@@ -282,10 +282,47 @@ namespace SupraInventoryRelayAgent
             var message = (requestedMessage ?? "").Trim();
             if (message.Length == 0) throw new InvalidOperationException("Nội dung thông báo không được để trống.");
             if (message.Length > 200) throw new InvalidOperationException("Nội dung thông báo tối đa 200 ký tự.");
+            if (string.IsNullOrWhiteSpace(picker.FirebaseUid))
+                throw new InvalidOperationException("Picker chưa có Firebase UID để nhận thông báo trực tiếp.");
 
             var alertId = "alert-" + Guid.NewGuid().ToString("N");
-            var expiresAtMs = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeMilliseconds();
-            var fields = new Dictionary<string, object>
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var expiresAtMs = nowMs + 30L * 60L * 1000L;
+            var senderRole = string.Equals(session.Role, "PICKPACK_ADMIN", StringComparison.Ordinal)
+                ? "PICK_PACK"
+                : "INVENTORY";
+
+            // D144 authoritative realtime delivery: write the current chat onto the
+            // same per-Picker control document already listened to by Android.
+            // This avoids the D143 FCM-only gap while keeping zero Picker ACK writes.
+            var directFields = new Dictionary<string, object>
+            {
+                { "firebase_uid", StringField(picker.FirebaseUid) },
+                { "user_id", StringField(picker.UserId) },
+                { "chat_id", StringField(alertId) },
+                { "chat_command_type", StringField("CHAT_MESSAGE") },
+                { "chat_message", StringField(message) },
+                { "chat_sender_user_id", StringField(session.AppUserId ?? "") },
+                { "chat_sender_agent_id", StringField(agentInstanceId) },
+                { "chat_sender_role", StringField(senderRole) },
+                { "chat_created_at_ms", IntField(nowMs) },
+                { "chat_expires_at_ms", IntField(expiresAtMs) }
+            };
+            FirestoreHttpTransport.SendJson(
+                "PATCH",
+                AgentConfig.FirestorePickerSessionControlBaseUrl + "/" +
+                    Uri.EscapeDataString(picker.FirebaseUid) + BuildMask(directFields.Keys),
+                session.IdToken,
+                _json.Serialize(new Dictionary<string, object> { { "fields", directFields } }),
+                UserAgent(),
+                10000,
+                false,
+                _log,
+                "picker-chat-direct");
+
+            // Keep the D143 FCM path as a compatibility fast-path for already
+            // installed vc84 clients. New clients deduplicate the same alert id locally.
+            var legacyFields = new Dictionary<string, object>
             {
                 { "alert_id", StringField(alertId) },
                 { "target_user_id", StringField(picker.UserId) },
@@ -297,20 +334,31 @@ namespace SupraInventoryRelayAgent
                 { "sender_agent_id", StringField(agentInstanceId) },
                 { "expires_at_ms", IntField(expiresAtMs) }
             };
-            var raw = FirestoreHttpTransport.SendJson(
-                "PATCH",
-                AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') +
-                    "/picker_alerts/" + Uri.EscapeDataString(alertId) +
-                    "?currentDocument.exists=false",
-                session.IdToken,
-                _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
-                UserAgent(),
-                10000,
-                false,
-                _log,
-                "picker-chat-create");
-            var written = _json.DeserializeObject(raw) as Dictionary<string, object>;
-            _log("PICKER_CHAT send=PASS target=" + Safe(picker.EmployeeCode) + " chars=" + message.Length);
+            var legacy = "SKIPPED";
+            try
+            {
+                FirestoreHttpTransport.SendJson(
+                    "PATCH",
+                    AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') +
+                        "/picker_alerts/" + Uri.EscapeDataString(alertId) +
+                        "?currentDocument.exists=false",
+                    session.IdToken,
+                    _json.Serialize(new Dictionary<string, object> { { "fields", legacyFields } }),
+                    UserAgent(),
+                    10000,
+                    false,
+                    _log,
+                    "picker-chat-fcm-fallback");
+                legacy = "PASS";
+            }
+            catch (Exception ex)
+            {
+                legacy = "DEFERRED";
+                _log("PICKER_CHAT fcm_fallback=DEFERRED reason=" + Safe(ex.Message));
+            }
+
+            _log("PICKER_CHAT direct=PASS fcm_fallback=" + legacy +
+                 " target=" + Safe(picker.EmployeeCode) + " chars=" + message.Length);
             return new PickerContactCommand
             {
                 AlertId = alertId,
@@ -318,7 +366,8 @@ namespace SupraInventoryRelayAgent
                 CommandType = "CHAT_MESSAGE",
                 Message = message,
                 SenderAgentId = agentInstanceId,
-                UpdateTime = Get(written, "updateTime"),
+                SenderRole = senderRole,
+                UpdateTime = "",
                 IsActiveCall = false
             };
         }

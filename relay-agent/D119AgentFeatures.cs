@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Web.Script.Serialization;
@@ -2232,6 +2233,7 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken();
                 var session = SnapshotSession();
                 _agentSyncClient.RevokePickerSession(session, picker, _agentInstanceId);
+                var serverRevoked = TryRevokePickerWorkerSession(session, picker);
                 var snapshot = _agentSyncClient.SetKick(
                     session,
                     picker.UserId,
@@ -2241,13 +2243,55 @@ namespace SupraInventoryRelayAgent
                 Ui(() => _pickerOnlineStatus.Text =
                     "Đã Kích User " +
                     (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
-                    " · toàn bộ Agent đã nhận trạng thái thu hồi.");
+                    " · toàn bộ Agent đã nhận trạng thái thu hồi" +
+                    (serverRevoked ? " · phiên máy chủ đã vô hiệu." : " · máy chủ sẽ chặn khi kết nối khả dụng."));
                 Log("PICKER_SESSION kick=PASS user=" + SafeUserLabel(picker.EmployeeCode, picker.UserId) +
-                    " generation=" + picker.SessionGeneration);
+                    " generation=" + picker.SessionGeneration +
+                    " server_revoke=" + (serverRevoked ? "PASS" : "DEFERRED"));
             }
             catch (Exception ex)
             {
                 Ui(() => _pickerOnlineStatus.Text = "Kích User thất bại · " + SafeMessage(ex));
+            }
+        }
+
+        private bool TryRevokePickerWorkerSession(AgentSession session, PickerPresenceView picker)
+        {
+            try
+            {
+                var request = (HttpWebRequest)WebRequest.Create(
+                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/picker-session/revoke");
+                request.Method = "POST";
+                request.Accept = "application/json";
+                request.ContentType = "application/json; charset=utf-8";
+                request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D144";
+                request.Timeout = 5000;
+                request.ReadWriteTimeout = 5000;
+                request.KeepAlive = false;
+                request.Headers[HttpRequestHeader.Authorization] = "Bearer " + session.IdToken;
+                var body = new JavaScriptSerializer().Serialize(new Dictionary<string, object>
+                {
+                    { "user_id", picker.UserId ?? "" },
+                    { "firebase_uid", picker.FirebaseUid ?? "" },
+                    { "revoked_generation", Math.Max(1L, picker.SessionGeneration) }
+                });
+                var bytes = Encoding.UTF8.GetBytes(body);
+                request.ContentLength = bytes.Length;
+                using (var output = request.GetRequestStream())
+                    output.Write(bytes, 0, bytes.Length);
+                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var input = response.GetResponseStream())
+                using (var reader = input == null ? null : new StreamReader(input))
+                {
+                    if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300) return false;
+                    if (reader != null) reader.ReadToEnd();
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log("PICKER_SESSION server_revoke=DEFERRED reason=" + SafeMessage(ex));
+                return false;
             }
         }
 
@@ -2306,6 +2350,8 @@ namespace SupraInventoryRelayAgent
                 dialog.MinimizeBox = false;
                 dialog.MaximizeBox = false;
                 dialog.ShowInTaskbar = false;
+                dialog.TopMost = true;
+                dialog.KeyPreview = false;
                 dialog.ClientSize = new Size(520, 260);
                 dialog.Font = Font;
 
@@ -2318,14 +2364,17 @@ namespace SupraInventoryRelayAgent
                 var note = new Label
                 {
                     Left = 18, Top = 44, Width = 480, Height = 34,
-                    Text = "Tối đa 200 ký tự. Picker chỉ cần bấm Xác nhận để đóng cảnh báo; hệ thống không gửi ACK về Agent."
+                    Text = "Tối đa 200 ký tự. Picker bấm Xác nhận để đóng cảnh báo; không gửi ACK về Agent."
                 };
                 var input = new TextBox
                 {
                     Left = 18, Top = 84, Width = 480, Height = 92,
                     Multiline = true,
+                    AcceptsReturn = true,
+                    AcceptsTab = false,
                     MaxLength = 200,
-                    ScrollBars = ScrollBars.Vertical
+                    ScrollBars = ScrollBars.Vertical,
+                    TabIndex = 0
                 };
                 var count = new Label
                 {
@@ -2333,38 +2382,84 @@ namespace SupraInventoryRelayAgent
                     Text = "0 / 200"
                 };
                 input.TextChanged += (sender, args) => count.Text = input.TextLength + " / 200";
+
+                string accepted = null;
                 var send = new Button
                 {
                     Left = 286, Top = 212, Width = 100, Height = 34,
                     Text = "Gửi",
-                    DialogResult = DialogResult.OK
+                    TabIndex = 1
                 };
                 var cancel = new Button
                 {
                     Left = 398, Top = 212, Width = 100, Height = 34,
                     Text = "Hủy",
-                    DialogResult = DialogResult.Cancel
+                    DialogResult = DialogResult.Cancel,
+                    TabIndex = 2
                 };
+                send.Click += (sender, args) =>
+                {
+                    var message = (input.Text ?? "").Trim();
+                    if (message.Length == 0 || message.Length > 200)
+                    {
+                        MessageBox.Show(
+                            dialog,
+                            "Nhập nội dung từ 1 đến 200 ký tự.",
+                            "Nội dung chưa hợp lệ",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        input.Focus();
+                        return;
+                    }
+                    accepted = message;
+                    dialog.DialogResult = DialogResult.OK;
+                    dialog.Close();
+                };
+
                 dialog.Controls.Add(title);
                 dialog.Controls.Add(note);
                 dialog.Controls.Add(input);
                 dialog.Controls.Add(count);
                 dialog.Controls.Add(send);
                 dialog.Controls.Add(cancel);
-                dialog.AcceptButton = send;
                 dialog.CancelButton = cancel;
-
-                while (dialog.ShowDialog(this) == DialogResult.OK)
+                dialog.Shown += (sender, args) =>
                 {
-                    var message = (input.Text ?? "").Trim();
-                    if (message.Length > 0 && message.Length <= 200) return message;
-                    MessageBox.Show(
-                        "Nhập nội dung từ 1 đến 200 ký tự.",
-                        "Nội dung chưa hợp lệ",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
+                    dialog.ActiveControl = input;
+                    input.Focus();
+                    input.SelectionStart = input.TextLength;
+                };
+                dialog.Activated += (sender, args) =>
+                {
+                    if (!send.Focused && !cancel.Focused)
+                    {
+                        input.Focus();
+                        input.SelectionStart = input.TextLength;
+                    }
+                };
+
+                // D144: isolate the modal editor from the one-second after-hours
+                // repaint and the 30-second Picker view refresh. Both timers run on the
+                // WinForms message loop and can otherwise disturb focus on weak laptops.
+                var afterHoursWasEnabled = _afterHoursTimer.Enabled;
+                var opsWasEnabled = _d119OpsTimer.Enabled;
+                if (afterHoursWasEnabled) _afterHoursTimer.Stop();
+                if (opsWasEnabled) _d119OpsTimer.Stop();
+                try
+                {
+                    var result = dialog.ShowDialog(this);
+                    return result == DialogResult.OK ? accepted : null;
                 }
-                return null;
+                finally
+                {
+                    if (afterHoursWasEnabled) _afterHoursTimer.Start();
+                    if (opsWasEnabled) _d119OpsTimer.Start();
+                    BeginInvoke(new Action(() =>
+                    {
+                        CheckAfterHoursSchedule();
+                        RefreshD119OperationalViews(false);
+                    }));
+                }
             }
         }
 

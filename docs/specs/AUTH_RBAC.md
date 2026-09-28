@@ -274,3 +274,7 @@ D126 supersedes D125 before implementation.
 - Managed-user listing excludes ROOT from normal personnel/account presentation.
 - Deletion of managed ADMIN/PICKPACK_ADMIN/REPORTER accounts is a real-ROOT-only operation. Server validation rejects ROOT, Picker, unknown, mixed-invalid or non-ROOT actor targets. Picker bulk enable/disable/delete remains a separate Picker-only operation.
 - External Firebase identity cleanup after an authoritative managed-user deletion is best-effort. InventoryCore removal revokes application authority even if external identity cleanup must be retried later.
+
+## D144 — Agent authoritative Picker-session revoke
+
+The Beta Agent may request revocation of one Picker Android session only when authenticated as a real ADMIN or real PICKPACK_ADMIN Agent identity. The target is bound by application user id plus Firebase UID. Revocation advances the authoritative Android session generation, clears Android device/presence state, disables the prior Android notification registration and closes Android realtime. Immediately before disabling the prior Android FCM target, Worker may send one best-effort backward-compatible re-login alert; that alert is presentation compatibility only and is never session authority. Effective-role impersonation is not sufficient. Stable remains OWNER-GATED.

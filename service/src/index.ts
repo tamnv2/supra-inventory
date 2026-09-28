@@ -21,7 +21,7 @@ import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
-import { refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { mirrorPickerNotificationTarget, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 
 
@@ -1211,6 +1211,46 @@ export default {
         return json({ error: "NOT_FOUND" }, 404);
       }
 
+      if (request.method === "POST" && url.pathname === "/api/agent/picker-session/revoke") {
+        const operator = await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        let body: { user_id?: string; firebase_uid?: string; revoked_generation?: number } = {};
+        try {
+          body = (await request.json()) as { user_id?: string; firebase_uid?: string; revoked_generation?: number };
+        } catch {
+          return json({ error: "INVALID_JSON" }, 400);
+        }
+        const userId = String(body.user_id || "").trim();
+        const firebaseUid = String(body.firebase_uid || "").trim();
+        const revokedGeneration = Math.max(0, Math.trunc(Number(body.revoked_generation || 0)));
+        if (!userId || !firebaseUid || revokedGeneration <= 0) {
+          return json({ error: "INVALID_PICKER_SESSION" }, 400);
+        }
+        const response = await coreStub(env).fetch("https://inventory-core.internal/auth/revoke-android-session", {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            firebase_uid: firebaseUid,
+            revoked_generation: revokedGeneration,
+            force_current: true,
+          }),
+        });
+        const payload = await response.json() as Record<string, unknown>;
+        if (!response.ok) return json(payload, response.status);
+        await closeUserRealtime(env, userId, "ANDROID");
+        if (payload.status === "android_session_revoked") {
+          await mirrorPickerNotificationTarget(env, {
+            user_id: userId,
+            device_id: "",
+            platform: "ANDROID",
+            enabled: false,
+          }).catch(() => undefined);
+        }
+        await refreshPickerProjectionBestEffort(env, "AGENT_KICK").catch(() => undefined);
+        return json(payload);
+      }
+
       if (request.method === "POST" && url.pathname === "/api/logs/upload") {
         const user = await requireUser(request, env);
         let body: Record<string, unknown> = {};
@@ -1308,6 +1348,8 @@ export default {
     if (controller.cron === "*/5 * * * *") {
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(reconcileRecentAgentKicks(env).then(() => undefined).catch((error) =>
+        console.error("agent_kick_reconcile_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
       // D136: provider Usage polling/snapshot publication retired. No periodic

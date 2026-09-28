@@ -13,9 +13,64 @@ service cloud.firestore {
         && request.auth.token.app_session_generation is int
         && (
           !exists(/databases/$(database)/documents/picker_session_controls/$(request.auth.uid))
+          || !get(/databases/$(database)/documents/picker_session_controls/$(request.auth.uid)).data.keys().hasAny(['revoked_generation'])
           || get(/databases/$(database)/documents/picker_session_controls/$(request.auth.uid)).data.revoked_generation
              < request.auth.token.app_session_generation
         );
+    }
+
+    function validSessionControlIdentity(firebaseUid) {
+      return request.resource.data.firebase_uid == firebaseUid
+        && request.resource.data.user_id is string
+        && request.resource.data.user_id.size() >= 1
+        && request.resource.data.user_id.size() <= 180;
+    }
+
+    function validSessionKickWrite() {
+      return request.resource.data.keys().hasAll([
+          'revoked_generation', 'kicked_at_ms', 'kicked_by_user_id', 'kicked_by_agent_id'
+        ])
+        && request.resource.data.revoked_generation is int
+        && request.resource.data.revoked_generation >= 1
+        && request.resource.data.kicked_at_ms is int
+        && request.resource.data.kicked_at_ms <= request.time.toMillis() + 60000
+        && request.resource.data.kicked_by_user_id == request.auth.token.app_user_id
+        && request.resource.data.kicked_by_agent_id is string
+        && request.resource.data.kicked_by_agent_id.size() >= 8
+        && request.resource.data.kicked_by_agent_id.size() <= 160;
+    }
+
+    function validSessionChatWrite() {
+      return request.resource.data.keys().hasAll([
+          'chat_id', 'chat_command_type', 'chat_message',
+          'chat_sender_user_id', 'chat_sender_agent_id', 'chat_sender_role',
+          'chat_created_at_ms', 'chat_expires_at_ms'
+        ])
+        && request.resource.data.chat_id is string
+        && request.resource.data.chat_id.matches('^alert-[A-Za-z0-9]{16,80}$')
+        && request.resource.data.chat_command_type == 'CHAT_MESSAGE'
+        && request.resource.data.chat_message is string
+        && request.resource.data.chat_message.size() >= 1
+        && request.resource.data.chat_message.size() <= 200
+        && request.resource.data.chat_sender_user_id == request.auth.token.app_user_id
+        && request.resource.data.chat_sender_agent_id is string
+        && request.resource.data.chat_sender_agent_id.size() >= 8
+        && request.resource.data.chat_sender_agent_id.size() <= 160
+        && request.resource.data.chat_sender_role in ['INVENTORY', 'PICK_PACK']
+        && (
+          (request.auth.token.app_role == 'ADMIN'
+           && request.auth.token.app_base_role == 'ADMIN'
+           && request.resource.data.chat_sender_role == 'INVENTORY')
+          ||
+          (request.auth.token.app_role == 'PICKPACK_ADMIN'
+           && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+           && request.resource.data.chat_sender_role == 'PICK_PACK')
+        )
+        && request.resource.data.chat_created_at_ms is int
+        && request.resource.data.chat_expires_at_ms is int
+        && request.resource.data.chat_created_at_ms <= request.time.toMillis() + 60000
+        && request.resource.data.chat_expires_at_ms > request.time.toMillis()
+        && request.resource.data.chat_expires_at_ms <= request.resource.data.chat_created_at_ms + 1800000;
     }
 
     function validActiveCall(targetUserId) {
@@ -196,20 +251,53 @@ service cloud.firestore {
       allow get: if isPickerContactOperator()
         || (isPicker() && request.auth.uid == firebaseUid);
       allow list: if false;
-      allow create, update: if isPickerContactOperator()
+
+      // D144: one per-Picker control document carries session revocation plus
+      // current direct chat delivery. Picker remains read-only and sends no chat ACK.
+      allow create: if isPickerContactOperator()
         && request.resource.data.keys().hasOnly([
-          'firebase_uid', 'user_id', 'revoked_generation',
-          'kicked_at_ms', 'kicked_by_user_id', 'kicked_by_agent_id'
+          'firebase_uid', 'user_id',
+          'revoked_generation', 'kicked_at_ms', 'kicked_by_user_id', 'kicked_by_agent_id',
+          'chat_id', 'chat_command_type', 'chat_message',
+          'chat_sender_user_id', 'chat_sender_agent_id', 'chat_sender_role',
+          'chat_created_at_ms', 'chat_expires_at_ms'
         ])
-        && request.resource.data.firebase_uid == firebaseUid
-        && request.resource.data.user_id is string
-        && request.resource.data.revoked_generation is int
-        && request.resource.data.revoked_generation >= 1
-        && request.resource.data.kicked_at_ms is int
-        && request.resource.data.kicked_by_user_id == request.auth.token.app_user_id
-        && request.resource.data.kicked_by_agent_id is string
-        && request.resource.data.kicked_by_agent_id.size() >= 8
-        && request.resource.data.kicked_by_agent_id.size() <= 160;
+        && validSessionControlIdentity(firebaseUid)
+        && (
+          (
+            request.resource.data.keys().hasAny(['revoked_generation'])
+            && validSessionKickWrite()
+            && !request.resource.data.keys().hasAny(['chat_id'])
+          )
+          ||
+          (
+            request.resource.data.keys().hasAny(['chat_id'])
+            && validSessionChatWrite()
+            && !request.resource.data.keys().hasAny(['revoked_generation'])
+          )
+        );
+
+      allow update: if isPickerContactOperator()
+        && validSessionControlIdentity(firebaseUid)
+        && request.resource.data.firebase_uid == resource.data.firebase_uid
+        && request.resource.data.user_id == resource.data.user_id
+        && (
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'revoked_generation', 'kicked_at_ms', 'kicked_by_user_id', 'kicked_by_agent_id'
+            ])
+            && validSessionKickWrite()
+          )
+          ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'chat_id', 'chat_command_type', 'chat_message',
+              'chat_sender_user_id', 'chat_sender_agent_id', 'chat_sender_role',
+              'chat_created_at_ms', 'chat_expires_at_ms'
+            ])
+            && validSessionChatWrite()
+          )
+        );
       allow delete: if false;
     }
 

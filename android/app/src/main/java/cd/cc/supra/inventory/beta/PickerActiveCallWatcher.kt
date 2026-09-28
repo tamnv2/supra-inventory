@@ -132,8 +132,30 @@ class PickerActiveCallWatcher(
                     !revokeDelivered) {
                     revokeDelivered = true
                     clearActiveCall()
-                    log("D134 session revoked generation=$generation")
+                    log("D144 session revoked generation=$generation")
                     onSessionRevoked()
+                    return@addSnapshotListener
+                }
+
+                val chatId = snapshot?.getString("chat_id").orEmpty()
+                val chatType = snapshot?.getString("chat_command_type").orEmpty()
+                val chatMessage = snapshot?.getString("chat_message").orEmpty().take(200)
+                val chatExpiresAt = (snapshot?.getLong("chat_expires_at_ms") ?: 0L).coerceAtLeast(0L)
+                if (snapshot?.exists() == true &&
+                    chatType == "CHAT_MESSAGE" &&
+                    chatId.isNotBlank() &&
+                    chatMessage.isNotBlank() &&
+                    chatExpiresAt > System.currentTimeMillis() &&
+                    !NotificationSignalStore.isPickerChatDismissed(appContext, chatId)) {
+                    CriticalOverlayService.show(
+                        appContext,
+                        "Chuyên viên gửi thông báo tới bạn:",
+                        "- $chatMessage\n\nHãy đọc kĩ và thực hiện theo!",
+                        CriticalOverlayService.MODE_PICKER_CHAT,
+                        chatId,
+                        chatExpiresAt,
+                    )
+                    log("D144 picker-chat visible id=" + chatId.take(12))
                 }
             }
     }

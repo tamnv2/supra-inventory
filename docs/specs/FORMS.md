@@ -680,3 +680,7 @@ The **Thời gian xử lý** form must keep these states separate:
 - Dashboard and detailed report start on **Hôm nay** unless an existing same-user saved dashboard preference applies where already specified.
 - Today/7/30/60 quick buttons visibly identify the exact selected interval. A custom interval highlights both date fields and leaves presets neutral unless it exactly equals one preset.
 - Audit previous/next controls sit directly below the current visible range/total at the top of the audit result panel.
+
+## D144 — Agent chat editor
+
+The Agent chat editor is modal and single-recipient. It accepts 1–200 characters, displays a live character count, keeps the text field active during normal typing, and requires an explicit Send or Cancel action. Chat does not collect a Picker acknowledgement back to Agent.

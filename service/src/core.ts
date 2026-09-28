@@ -7,6 +7,7 @@ import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
+import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
 import { handleOperationalV2CoreRequest, initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
@@ -16,7 +17,7 @@ import {
 import { sendFcmNotifications } from "./fcm";
 import { readAndroidAlertWindow } from "./alert-window-core";
 
-const SCHEMA_VERSION = 13;
+const SCHEMA_VERSION = 14;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -338,6 +339,7 @@ export class InventoryCore {
 
     initializeBusinessSchema(this.state);
     initializeOperationalV2Schema(this.state);
+    initializeRuntimeLogSchema(this.state);
 
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
@@ -771,6 +773,107 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "PUT" && url.pathname === "/auth/revoke-android-session") {
+      const body = (await request.json()) as {
+        user_id?: string;
+        firebase_uid?: string;
+        revoked_generation?: number;
+        force_current?: boolean;
+      };
+      const userId = String(body.user_id || "").trim();
+      const firebaseUid = String(body.firebase_uid || "").trim();
+      const requestedGeneration = Math.max(0, Math.trunc(Number(body.revoked_generation || 0)));
+      const forceCurrent = body.force_current === true;
+      if (!userId || !firebaseUid || requestedGeneration <= 0) {
+        return response({ error: "invalid_input" }, 400);
+      }
+      const current = this.state.storage.sql.exec<{
+        firebase_uid: string | null;
+        android_session_generation: number;
+      }>(
+        "SELECT firebase_uid, android_session_generation FROM users WHERE user_id = ? LIMIT 1",
+        userId,
+      ).toArray()[0];
+      if (!current || String(current.firebase_uid || "") !== firebaseUid) {
+        return response({ error: "picker_session_not_found" }, 404);
+      }
+
+      const currentGeneration = Number(current.android_session_generation || 0);
+      if (!forceCurrent && currentGeneration > requestedGeneration) {
+        return response({
+          status: "android_session_already_superseded",
+          user_id: userId,
+          previous_generation: currentGeneration,
+          revoked_generation: currentGeneration,
+        });
+      }
+
+      // D144 live Agent revoke uses force_current=true and always invalidates the
+      // current authoritative session, including a generation that raced ahead
+      // of the Agent row. The scheduled Firestore fallback is idempotent.
+      // Before disabling the Android token, send one backward-compatible
+      // picker_command. Older APKs that do not know the D144 session-control
+      // listener still receive a visible "re-login" alert, while server/Firestore
+      // authority below blocks all old-session business operations regardless.
+      let compatibilityPush = "SKIPPED";
+      if (this.env.GOOGLE_RUNTIME_SA_JSON && this.env.FIREBASE_PROJECT_ID) {
+        try {
+          const tokens = await this.notificationTokens([], [userId]);
+          if (tokens.length) {
+            const expiresAtMs = Date.now() + 60_000;
+            const delivery = await sendFcmNotifications(
+              this.env.GOOGLE_RUNTIME_SA_JSON,
+              this.env.FIREBASE_PROJECT_ID,
+              tokens,
+              {
+                title: "SUPRA Inventory · Phiên PDA đã bị thu hồi",
+                body: "Phiên làm việc đã được quản trị viên thu hồi. Vui lòng đăng nhập lại.",
+                data: {
+                  event: "picker_command",
+                  alert_id: "kick-" + crypto.randomUUID().replaceAll("-", ""),
+                  command_type: "CALL_SPECIALIST",
+                  notification_title: "PHIÊN PDA ĐÃ BỊ THU HỒI",
+                  notification_body: "Phiên làm việc đã được quản trị viên thu hồi. Vui lòng đăng nhập lại.",
+                  expires_at_ms: String(expiresAtMs),
+                  source: "D144_SESSION_REVOKE_COMPAT",
+                },
+              },
+            );
+            compatibilityPush = delivery.attempts.some((attempt) => attempt.status === "SENT")
+              ? "SENT"
+              : "FAILED";
+          }
+        } catch {
+          compatibilityPush = "FAILED";
+        }
+      }
+
+      const nextGeneration = Math.max(currentGeneration, requestedGeneration) + 1;
+      this.state.storage.sql.exec(
+        `UPDATE users
+            SET android_session_generation = ?,
+                android_session_device_id = NULL,
+                android_session_started_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ? AND firebase_uid = ?`,
+        nextGeneration,
+        userId,
+        firebaseUid,
+      );
+      this.state.storage.sql.exec(
+        "UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND platform = 'ANDROID'",
+        userId,
+      );
+      this.state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", userId);
+      return response({
+        status: "android_session_revoked",
+        user_id: userId,
+        previous_generation: Number(current.android_session_generation || 0),
+        revoked_generation: nextGeneration,
+        compatibility_push: compatibilityPush,
+      });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/end-session") {
       const body = (await request.json()) as {
         user_id?: string;
@@ -951,6 +1054,9 @@ export class InventoryCore {
 
     const systemMetrics = await handleSystemMetricsCoreRequest(this.state, request);
     if (systemMetrics) return systemMetrics;
+
+    const runtimeLogs = await handleRuntimeLogCoreRequest(this.state, request);
+    if (runtimeLogs) return runtimeLogs;
 
     const readModel = await handleReadModelCoreRequest(
       this.state,

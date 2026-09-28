@@ -1764,3 +1764,15 @@ OA068 physical acceptance after signed release:
 - On Web, check Pick Pack Admin Ca vận hành, ROOT permission review/deletion, hidden ROOT, zero badge, date selected states and top audit paging.
 - On Agent, verify tray/visible 21:30 prompt appears once, overtime extends one hour, no five-minute spam, auto-size survives tray restore, Picker list does not jump to an older snapshot, direct call still works and chat dismisses locally with no Kết thúc.
 - Leave managed Web Confirm/Agent running through an extended work session and verify browser RAM does not grow from an unbounded hidden child-window chain.
+
+## D144 — Logs, Picker chat and legacy kick field repair
+
+- With the configured Google OAuth refresh token revoked/unavailable, Web → Nhật ký still lists newly buffered Web/Android runtime logs from InventoryCore without `LOGS_OAUTH_FAILED`.
+- Android scheduled/error log upload returns success after bounded InventoryCore persistence even when Drive archival is deferred; no Drive folder permission change is required.
+- SQLite schema target is 14 and `SERVICE_LOGS` reset includes the bounded runtime-log buffer.
+- Agent chat editor accepts a normal 20–100 character sentence continuously without losing focus while periodic Agent UI refresh timers are isolated from the open modal.
+- Sending chat produces the direct full-screen PDA alert; FCM remains a compatibility path using the same alert identity; local **Xác nhận** closes it without any remote acknowledgement and a late duplicate is ignored.
+- Existing direct-call behavior remains unchanged.
+- Kích User removes the Picker from Agent state and revokes the Worker-authoritative Android session. Supported builds receive the Firestore revocation immediately; older command-capable APKs receive a best-effort re-login alert before their notification target is disabled. Previous business requests from the revoked generation are rejected until a fresh login.
+- An arbitrary older APK that never implemented any compatible revocation/command receiver may keep its stale local screen while idle; this must never restore server business authority.
+- D140 quota/listener protections, D142 critical-alert readiness and Stable OWNER-GATED behavior remain unchanged.

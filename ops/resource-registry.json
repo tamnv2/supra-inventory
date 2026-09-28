@@ -23,10 +23,10 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 13,
+    "beta_sqlite_schema_version": 14,
     "beta_operational_v2_extension_schema_runtime": 5,
     "beta_operational_v2_extension_schema_source_target": 5,
-    "beta_sqlite_schema_source_target": 13
+    "beta_sqlite_schema_source_target": 14
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D143_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC84__AGENT_V81__OA069_FIELD_READY",
+      "status": "D144_SOURCE_IMPLEMENTED__PENDING_PR_GATES",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -141,7 +141,7 @@
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 13,
+      "sqlite_schema_version": 14,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",
@@ -170,10 +170,10 @@
       "cloudflare_oauth_refresh_token_secret": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
       "oauth_refresh_token_configured": true,
       "github_deploy_token_secret": "CF_API_TOKEN_INVENTORY_BETA",
-      "web_source_status": "D143_RUNTIME_PASS__MAIN_96E38CA8__RBAC_DATE_AUDIT_REFINEMENTS",
+      "web_source_status": "D144_INVENTORYCORE_RUNTIME_LOG_BUFFER_SOURCE_READY",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
       "web_admin_report_monitoring": "D118_RUNTIME_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
-      "android_source_status": "D143_SIGNED_BETA_VC84__SECURE_DEFAULT_PASSWORD_INJECTION__OA069_FIELD_READY",
+      "android_source_status": "D144_DIRECT_CHAT_AND_KICK_COMPAT_SOURCE_READY__BASELINE_BETA_VC84",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc84",
@@ -195,9 +195,9 @@
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D143_PASS_RUN_36463932814__SOURCE_96E38CA8__SCHEMA13_13__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v81__RELEASED",
-      "next_signed_beta_release_target": "NO_D143_ANDROID_RELEASE_PENDING__BETA_VC84_RELEASED",
-      "next_relay_agent_release_target": "NO_D143_AGENT_RELEASE_PENDING__V81_RELEASED",
+      "relay_agent_release_target": "relay-agent-v82__TARGET",
+      "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC84__D144",
+      "next_relay_agent_release_target": "relay-agent-v82",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -215,7 +215,8 @@
       "d137_source_status": "OWNER_APPROVED__AGENT_V78_IMPLEMENTATION_ACTIVE__ANDROID_VC82_UNCHANGED",
       "d143_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC84__AGENT_V81__OA069_FIELD_READY",
       "android_default_picker_password_secret": "ANDROID_PICKER_DEFAULT_PASSWORD",
-      "android_default_picker_password_secret_status": "CONFIGURED_GITHUB_BETA_ENV__VALUE_NOT_RECORDED"
+      "android_default_picker_password_secret_status": "CONFIGURED_GITHUB_BETA_ENV__VALUE_NOT_RECORDED",
+      "d144_source_status": "SOURCE_IMPLEMENTED_PENDING_PR_GATES__LOGS_CHAT_KICK"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -479,8 +480,8 @@
     "sanitization": "PASSWORD_TOKEN_AUTH_COOKIE_CREDENTIAL_PRIVATE_SIGNING_KEYSTORE_SESSION_FIELDS_REDACTED__NO_TYPED_FORM_VALUES",
     "max_file_bytes": 192000,
     "android_crash_retry": "BOUNDED_SANITIZED_LOCAL_ENVELOPE_RETRY_AFTER_NEXT_AUTHENTICATED_START",
-    "status": "D112_90DAY_RETENTION_BETA_RUNTIME_PASS__30_60_90_VIEW__OA032_FIELD_READY",
-    "web_duplicate_guard": "CLIENT_SINGLE_FLIGHT_PLUS_SERVER_FILENAME_IDEMPOTENCY_PLUS_LIST_DEDUP",
+    "status": "D144_INVENTORYCORE_BUFFER_SOURCE_READY__DRIVE_ARCHIVE_BEST_EFFORT",
+    "web_duplicate_guard": "CLIENT_SINGLE_FLIGHT_PLUS_INVENTORYCORE_FILENAME_IDEMPOTENCY",
     "web_diagnostics": "API_RENDER_REALTIME_NAVIGATION_LONG_TASK_RESOURCE_DOM_INTERACTION_BOUNDED_TELEMETRY",
     "retention_days": 90,
     "view_windows_days": [
@@ -488,7 +489,12 @@
       60,
       90
     ],
-    "cleanup": "BOUNDED_OPPORTUNISTIC_DRIVE_DELETE_OLDER_THAN_90D__BUSINESS_UNBLOCKING"
+    "cleanup": "INVENTORYCORE_BOUNDED_90D_PRUNE__DRIVE_CLEANUP_BEST_EFFORT_WHEN_OAUTH_VALID",
+    "drive_auth": "OAUTH_ARCHIVE_ONLY__NOT_REQUIRED_FOR_RUNTIME_LOG_LIST_OR_CLIENT_UPLOAD_SUCCESS",
+    "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+    "logs_folder_permission": "OWNER_ONLY_OBSERVED_2026_09_29__NOT_A_D144_RUNTIME_BLOCKER",
+    "primary_authority": "INVENTORY_CORE_SQLITE_RUNTIME_LOG_BUFFER",
+    "drive_role": "BEST_EFFORT_ARCHIVE_ONLY"
   },
   "android": {
     "latest_beta_release": "beta-vc84",
@@ -725,7 +731,9 @@
       "artifact_id": 10679995891,
       "name": "supra-inventory-beta-apk",
       "zip_sha256": "6be6fb4d8d2a7fa22530be0a7aa0b148c474d68cc4254ad323ae57ae6ccffe78"
-    }
+    },
+    "picker_session_controls": "D144_EXISTING_SCOPED_COLLECTION__REVOCATION_PLUS_CURRENT_CHAT_DELIVERY",
+    "picker_active_calls": "D144_EXISTING_SCOPED_COLLECTION__DIRECT_CALL_UNCHANGED"
   },
   "wms_poc": {
     "decision": "D126",
@@ -1661,5 +1669,17 @@
     "release_source": "beta-vc83__EXACT_MAIN_4e382a39fa574fe49d176af435c1a6a4afdf75f4",
     "release_asset_metadata": "TAG_AND_SOURCE_VERIFIED__ASSET_HASH_SIZE_NOT_EXPOSED_BY_CURRENT_CONNECTOR",
     "field_acceptance": "PASS__OWNER_CONFIRMED__2026_09_28"
+  },
+  "d144": {
+    "status": "SOURCE_IMPLEMENTED_PENDING_PR_GATES",
+    "baseline_main": "76417cd9062c03b7e3a3f63bf87dda8c6a97c478",
+    "target_agent_release": "relay-agent-v82",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC84",
+    "logs": "INVENTORYCORE_SQLITE_BUFFER_PRIMARY__DRIVE_OAUTH_ARCHIVE_BEST_EFFORT__NO_OWNER_FOLDER_SHARE_REQUIRED",
+    "chat": "DIRECT_SESSION_CONTROL_PLUS_FCM_COMPATIBILITY__LOCAL_DISMISS_NO_ACK__MODAL_TIMER_ISOLATION",
+    "kick": "FIRESTORE_CONTROL_PLUS_WORKER_AUTHORITATIVE_ANDROID_SESSION_REVOKE__LEGACY_FCM_COMPAT_ALERT",
+    "schema": "14__ADDITIVE_RUNTIME_LOG_BUFFER",
+    "new_provider_resources": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

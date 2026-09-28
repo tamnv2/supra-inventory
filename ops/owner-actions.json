@@ -3435,7 +3435,7 @@
     },
     {
       "id": "OA069",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_FAIL__SUPERSEDED_BY_D144",
       "title": "Field-accept D143 Android, Web and Agent operational refinements",
       "resource_key": "repo",
       "provider": "Beta Android + Web/Worker + existing Firebase/Firestore + Windows Agent",
@@ -3476,8 +3476,14 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. No new provider resources, no plaintext password/token/session material, no Stable mutation.",
-      "remaining_owner_action": "Run the OA069 shortest field path on relay-agent-v81 + beta-vc84 and report any failing item; Stable remains untouched.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "FAIL",
+        "evidence": "Owner field test found revoked runtime-log OAuth, Agent chat input/delivery failure, and legacy Picker session reappearing after Kích User. Direct call remains PASS.",
+        "superseded_by": "D144"
+      }
     },
     {
       "id": "OA070",
@@ -3515,6 +3521,66 @@
         "release": "beta-vc84",
         "release_id": 398516587,
         "source_commit": "96e38ca88633ef9a0114d6682bdac5bea2d4f2c8"
+      }
+    },
+    {
+      "id": "OA071",
+      "status": "BLOCKED_PENDING_D144_TECHNICAL_RELEASE",
+      "title": "Field-accept D144 logs, Picker chat and legacy kick repair",
+      "resource_key": "repo",
+      "provider": "Beta Web/Worker + Android + existing Firestore + Windows Agent",
+      "reason_owner_only": "Final chat/full-screen behavior, legacy APK kick behavior and Web runtime-log listing need one real PDA/Agent/browser field check after the technical release. D144 no longer requires any Google Drive folder permission change.",
+      "prerequisites": {
+        "target_agent": "relay-agent-v82",
+        "target_android": "next monotonic signed Beta after beta-vc84",
+        "stable": "OWNER_GATED",
+        "logs_runtime": "INVENTORYCORE_LOCAL_BUFFER__NO_OAUTH_OR_FOLDER_SHARE_REQUIRED_FOR_LIST_UPLOAD"
+      },
+      "shortest_test_path": [
+        "Open Web → Nhật ký and require Android/Web logs to list without LOGS_OAUTH_FAILED.",
+        "Agent v82: open Gửi nội dung chat, type a normal 20–100 character sentence continuously, then send.",
+        "PDA on the new Beta build: require full-screen chat with the exact specialist wording; Xác nhận closes locally with no Agent ACK/end action.",
+        "Repeat direct Gọi thẳng về bàn CV and confirm existing 60-second call/resolve behavior remains unchanged.",
+        "Kích one Picker logged in on an older APK. The Agent list must remove it immediately; when Worker is reachable its Android server session must be invalidated so business requests are rejected until a fresh login."
+      ],
+      "pass_criteria": [
+        "Runtime-log list/upload remains available from InventoryCore even when the user OAuth refresh token is revoked; Drive archival may be deferred without blocking support logs.",
+        "Chat input keeps focus and allows up to 200 characters.",
+        "Chat has direct Firestore control delivery plus FCM compatibility and local-only dismiss.",
+        "Kích User invalidates the authoritative Android session, sends a best-effort compatibility alert to older APKs, and does not let stale legacy presence restore business authority.",
+        "Stable remains untouched."
+      ],
+      "safety": "Beta only; no new provider resource; no secret/token/session material in logs or repo.",
+      "remaining_owner_action": "After D144 technical/runtime releases are PASS, install the released Agent/Android build and run the shortest field test path.",
+      "closed": false
+    },
+    {
+      "id": "OA072",
+      "status": "SUPERSEDED_NO_ACTION_REQUIRED",
+      "title": "Superseded D144 Google Drive folder-share proposal",
+      "resource_key": "logs-folder-beta",
+      "provider": "Google Drive",
+      "reason_owner_only": "D144 was redesigned so InventoryCore SQLite is the primary bounded runtime-log authority and Google Drive is best-effort archive only. A My Drive folder share to the runtime service account is therefore not required for Web/Android log list/upload availability.",
+      "prerequisites": {
+        "superseded_by": "D144_INVENTORYCORE_RUNTIME_LOG_BUFFER",
+        "new_provider_resource": "NONE",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "No Owner action required. Do not change the existing Logs folder permission for D144."
+      ],
+      "pass_criteria": [
+        "Web/Android runtime-log upload and listing do not require Google OAuth or a service-account Drive folder share.",
+        "Existing Logs folder remains non-public and unchanged.",
+        "Stable remains untouched."
+      ],
+      "safety": "No Drive permission change is required. Never paste OAuth tokens or service-account keys into chat/repo.",
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "SUPERSEDED",
+        "evidence": "D144 switched runtime-log authority to bounded InventoryCore SQLite; Drive remains best-effort archive only."
       }
     }
   ]

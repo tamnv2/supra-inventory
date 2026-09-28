@@ -195,8 +195,10 @@ class CriticalOverlayService : Service() {
                 textSize = 17f
                 setTypeface(typeface, Typeface.BOLD)
                 setOnClickListener {
-                    // D143 chat acknowledgement is intentionally local-only:
-                    // dismiss the alert without writing an ACK or consuming provider usage.
+                    val alertId = activeAlertId
+                    if (alertId.isNotBlank()) {
+                        NotificationSignalStore.markPickerChatDismissed(applicationContext, alertId)
+                    }
                     stopSelf()
                 }
             }, LinearLayout.LayoutParams(

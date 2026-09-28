@@ -180,6 +180,76 @@ export async function syncPickerPresenceProjectionFromState(
   );
 }
 
+type AgentKickSnapshot = {
+  user_id?: unknown;
+  firebase_uid?: unknown;
+  revoked_generation?: unknown;
+  kicked_at_ms?: unknown;
+};
+
+function restStringField(fields: Record<string, { stringValue?: string }> | undefined, key: string): string {
+  return String(fields?.[key]?.stringValue || "");
+}
+
+export async function reconcileRecentAgentKicks(env: ProjectionEnv): Promise<void> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON) return;
+  const token = await accessToken(env);
+  const response = await fetch(documentUrl(env, "relay_poc_coordination", "agent_sync"), {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (response.status === 404) return;
+  if (!response.ok) throw new Error(`AGENT_KICK_RECONCILE_READ_HTTP_${response.status}`);
+
+  const payload = await response.json() as {
+    fields?: Record<string, { stringValue?: string }>;
+  };
+  const raw = restStringField(payload.fields, "kicks_json");
+  if (!raw) return;
+
+  let rows: AgentKickSnapshot[] = [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) rows = parsed.slice(0, 500);
+  } catch {
+    throw new Error("AGENT_KICK_RECONCILE_INVALID_JSON");
+  }
+
+  const now = Date.now();
+  const recent = rows.filter((row) => {
+    const kickedAtMs = Number(row.kicked_at_ms || 0);
+    return kickedAtMs > 0 && kickedAtMs <= now + 60_000 && now - kickedAtMs <= 15 * 60_000;
+  });
+  if (!recent.length) return;
+
+  const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
+  let changed = false;
+  for (const row of recent) {
+    const userId = String(row.user_id || "").trim();
+    const firebaseUid = String(row.firebase_uid || "").trim();
+    const revokedGeneration = Math.max(0, Math.trunc(Number(row.revoked_generation || 0)));
+    if (!userId || !firebaseUid || revokedGeneration <= 0) continue;
+    const revoke = await core.fetch("https://inventory-core.internal/auth/revoke-android-session", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        firebase_uid: firebaseUid,
+        revoked_generation: revokedGeneration,
+        force_current: false,
+      }),
+    });
+    if (!revoke.ok && revoke.status !== 404) {
+      throw new Error(`AGENT_KICK_RECONCILE_CORE_HTTP_${revoke.status}`);
+    }
+    const result = await revoke.json() as { status?: string };
+    if (result.status === "android_session_revoked") {
+      changed = true;
+      await deleteDocument(env, "picker_notification_targets", userId).catch(() => undefined);
+    }
+  }
+  if (changed) await syncPickerPresenceProjection(env, "AGENT_KICK_SCHEDULED_RECONCILE");
+}
+
 export async function refreshPickerProjectionBestEffort(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
   try {
     await syncPickerPresenceProjection(env, reason);

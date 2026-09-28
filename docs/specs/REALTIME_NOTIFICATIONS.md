@@ -673,3 +673,14 @@ Stable remains OWNER-GATED.
 - Chat display is local-ack only: **Xác nhận** dismisses the active overlay/service state without writing acknowledgement status back to Firestore/Worker. No close push is required because there is no Agent-side Kết thúc operation for chat.
 - Existing direct `CALL_SPECIALIST` remains distinct: it uses the shared active-call lock and may be resolved by the originating Agent.
 - D143 readiness UI adds a manual **Kiểm tra cấp quyền** fallback but retains automatic on-resume checks and D142's event-driven battery policy.
+
+## D144 — Picker chat direct delivery
+
+- `picker_session_controls/<firebase_uid>` carries the current `CHAT_MESSAGE` in addition to session revocation.
+- Chat is limited to 200 characters and expires after at most 30 minutes.
+- Android receives chat from the existing per-Picker Firestore snapshot listener. FCM remains a compatibility fast path using the same alert id.
+- Full-screen chat uses the specialist title, message, and “Hãy đọc kĩ và thực hiện theo!”.
+- Picker **Xác nhận** dismisses only on the PDA; no remote acknowledgement is written.
+- Late duplicate FCM for a locally dismissed chat is ignored.
+- Existing `picker_active_calls` direct-call lock and resolve behavior is unchanged.
+- Agent chat entry is a modal editor isolated from periodic Agent UI refresh timers while open; it adds no polling or provider write loop.

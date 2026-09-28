@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D143_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC84__AGENT_V81__OA069_FIELD_READY",
+    "beta": "D144_SOURCE_IMPLEMENTED__PENDING_PR_GATES",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
-    "sqlite_schema": 13,
+    "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D143_RUNTIME_PASS__MAIN_96E38CA8__SCHEMA13__RBAC_DATE_AUDIT_REFINEMENTS",
-    "android": "D143_SIGNED_BETA_VC84__SECURE_DEFAULT_PASSWORD_INJECTION__OA069_FIELD_READY",
+    "web": "D144_INVENTORYCORE_RUNTIME_LOG_BUFFER_SOURCE_READY__D143_WEB_RUNTIME_BASELINE_PASS",
+    "android": "D144_DIRECT_CHAT_AND_KICK_COMPAT_SOURCE_READY__BASELINE_BETA_VC84",
     "latest_beta_apk": "beta-vc84",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D118_OWNER_ACCEPTED_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D143_AGENT_V81_RELEASED__CONTACT_CHAT_SCHEDULE_UI_STABILITY__OA069_FIELD_READY"
+    "picklist_confirmation_poc": "D144_AGENT_V82_SOURCE_READY__DIRECT_CHAT_AND_AUTHORITATIVE_KICK"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -190,7 +190,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner runs OA069 field acceptance on Beta with relay-agent-v81 and signed beta-vc84. Verify D143 Android permission/login presentation, Web RBAC/date/audit UX, Agent overtime/autosize/Picker list/chat and long-running WebView2 behavior. Stable remains OWNER-GATED.",
+  "next_action": "Complete D144 PR gates, merge, deploy Beta Worker/Firestore/Functions, publish Agent v82 and the next monotonic signed Beta Android release, then run OA071 field acceptance for logs/chat/kick. No Google Drive permission change is required. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -829,7 +829,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D143_TECHNICAL_RUNTIME_RELEASE_PASS__OA069_OWNER_FIELD_TEST",
+  "active_workstream": "D144_FIELD_REPAIR_LOGS_CHAT_KICK",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2233,7 +2233,7 @@
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_FIREBASE_FIRESTORE_FUNCTIONS_AGENT_BROWSER_AND_DISTRIBUTION_RESOURCES",
     "schema": "13__ADDITIVE_ROOT_ROLE_OVERRIDE_PICKPACK_ADMIN_CONSTRAINT",
     "security": "NO_PLAINTEXT_DEFAULT_PASSWORD_IN_REPO__BUILD_SECRET_ONLY__NO_WMS_SESSION_OR_NETWORK_DOMAIN_EXTRACTION",
-    "field_gate": "OA069_READY_FOR_OWNER_FIELD_TEST",
+    "field_gate": "FIELD_FAIL__SUPERSEDED_BY_D144",
     "d141": "OWNER_FIELD_PASS",
     "d142": "OWNER_FIELD_PASS",
     "d140": "PARALLEL_SAFEGUARDS_RETAINED",
@@ -2271,6 +2271,34 @@
       "workflow_attempt": 2,
       "secret_gate": "ANDROID_PICKER_DEFAULT_PASSWORD_CONFIGURED_IN_GITHUB_BETA_ENV__VALUE_NOT_RECORDED"
     },
-    "release_status": "ANDROID_AND_AGENT_PUBLISHED__BETA_RUNTIME_EXACT_SOURCE_PASS"
+    "release_status": "ANDROID_AND_AGENT_PUBLISHED__BETA_RUNTIME_EXACT_SOURCE_PASS",
+    "field_acceptance": "FAIL__OWNER_2026_09_29__LOGS_OAUTH_REVOKED__CHAT_INPUT_DELIVERY_FAIL__LEGACY_KICK_RESURRECTION"
+  },
+  "d144": {
+    "status": "SOURCE_IMPLEMENTED_PENDING_PR_GATES",
+    "date": "2026-09-29",
+    "baseline_main": "76417cd9062c03b7e3a3f63bf87dda8c6a97c478",
+    "branch": "d144-field-repair",
+    "evidence": {
+      "web": "LOGS_OAUTH_FAILED_TOKEN_EXPIRED_OR_REVOKED__WEB_LOGS_PAGE__ANDROID_LOG_UPLOAD",
+      "agent": "CHAT_FIRESTORE_CREATE_PASS_BUT_PDA_NO_RECEIPT__CHAT_INPUT_FOCUS_LOSS__LEGACY_KICK_REAPPEARS",
+      "direct_call": "PASS_UNCHANGED"
+    },
+    "fixes": [
+      "RUNTIME_LOGS_INVENTORYCORE_LOCAL_BUFFER_PRIMARY__DRIVE_ARCHIVE_BEST_EFFORT",
+      "AGENT_CHAT_DIALOG_FOCUS_STABILITY_AND_MODAL_TIMER_ISOLATION",
+      "CHAT_DIRECT_PICKER_SESSION_CONTROL_DELIVERY_PLUS_FCM_COMPATIBILITY",
+      "CHAT_LOCAL_DISMISS_ONLY_NO_ACK",
+      "AGENT_KICK_WORKER_AUTHORITATIVE_ANDROID_SESSION_REVOKE",
+      "LEGACY_KICK_COMPATIBILITY_FCM_ALERT_BEFORE_TOKEN_DISABLE",
+      "EXISTING_PICKER_CONTROL_COLLECTION_SCOPE_RECONCILIATION"
+    ],
+    "target_agent_release": "relay-agent-v82",
+    "target_android_release": "NEXT_MONOTONIC_SIGNED_BETA_AFTER_VC84",
+    "schema": "14__ADDITIVE_RUNTIME_LOG_BUFFER",
+    "resource_change": "NO_NEW_PROVIDER_RESOURCE__REUSES_EXISTING_INVENTORYCORE_LOGS_FOLDER_FIRESTORE_CONTROL_COLLECTIONS",
+    "owner_blocker": null,
+    "field_gate": "OA071_BLOCKED_PENDING_TECHNICAL_RELEASE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

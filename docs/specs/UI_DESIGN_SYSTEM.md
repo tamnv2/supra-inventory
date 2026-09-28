@@ -899,3 +899,7 @@ The Android permission/readiness surface is an operational gate, not a generic p
 - Web quick-range selected state uses a distinct filled button. For non-preset custom dates, both date inputs get the selected emphasis instead.
 - Agent overtime decision must surface above normal windows once per boundary, including when Agent was in tray; it must not create recurring balloon spam.
 - Agent auto-size runs only on visible grids with stable usable width. Tray/maximize/normal restoration schedules a deferred re-fit after layout settles; hidden/collapsed dimensions are never persisted as auto-size output.
+
+## D144 — Agent chat input stability
+
+When the Agent chat dialog opens, the message field is the active control. Normal background Agent refreshes must not take input away from that editor while the operator is typing. The PDA chat remains a full-screen alert with one local **Xác nhận** action; chat has no remote completion button.

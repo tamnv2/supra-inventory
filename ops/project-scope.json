@@ -321,8 +321,8 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D131_ACTIVE_FIRESTORE_ONLY_PICKLIST_HA_DURABLE_AUDIT_AND_PICKER_CALL_STATE__SKU_SYNC_COLLECTION_RETIRED",
-      "guard": "D126_PICKLIST_REQUEST_ACK_HA_ONLY_FOR_CONFIRMATION__NO_SUPRA_SESSION_DATA__NO_WMS_API_AUTH_MATERIAL__STABLE_OWNER_GATED",
+      "status": "D144_ACTIVE_FIRESTORE_CONFIRM_HA_PICKER_PRESENCE_CONTACT_CHAT_SESSION_CONTROL",
+      "guard": "D144_BETA_ONLY__CONFIRMATION_PLUS_PICKER_CONTACT_AND_SESSION_CONTROL__NO_SUPRA_SESSION_DATA__NO_WMS_API_AUTH_MATERIAL__STABLE_OWNER_GATED",
       "collections": [
         "relay_poc_jobs",
         "relay_poc_rate_limits",
@@ -335,7 +335,9 @@
         "picker_notification_targets",
         "picker_alerts",
         "relay_fleet_metrics",
-        "sku_sync_jobs"
+        "sku_sync_jobs",
+        "picker_session_controls",
+        "picker_active_calls"
       ],
       "d119_agent_operator_roles": [
         "ADMIN",
