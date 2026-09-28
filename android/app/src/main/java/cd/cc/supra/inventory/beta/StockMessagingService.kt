@@ -42,6 +42,11 @@ class StockMessagingService : FirebaseMessagingService() {
         )
         val isPickerCommand = event == "picker_command"
         val isPickerChat = isPickerCommand && message.data["command_type"].orEmpty() == "CHAT_MESSAGE"
+        val pickerAlertId = message.data["alert_id"].orEmpty()
+        if (isPickerChat && pickerAlertId.isNotBlank() &&
+            NotificationSignalStore.isPickerChatDismissed(applicationContext, pickerAlertId)) {
+            return
+        }
         val resultEventId = message.data["result_event_id"].orEmpty().trim()
         // D120: only the Picker's authoritative red/blue result surface is projected
         // across other apps. Warning/report-created notices remain ordinary Android
