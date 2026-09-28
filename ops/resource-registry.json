@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D142_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC83__OA068_FIELD_READY__D141_OA067_READY__D140_AGENT_V80_PARALLEL",
+      "status": "D142_OWNER_FIELD_PASS__SIGNED_BETA_VC83__D141_OA067_READY__D140_AGENT_V80_PARALLEL",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -173,7 +173,7 @@
       "web_source_status": "D120_SOURCE_CANDIDATE__SLA_DIRTY_GUARD__COMPACT_POLICY_UI__DYNAMIC_VIEWPORT__ROOT_ROLE_EDITOR",
       "web_admin_sku_excel_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
       "web_admin_report_monitoring": "D118_RUNTIME_PASS__REAL_PAGINATION__DETAILED_MULTI_SHEET_EXCEL__SELECTED_RANGE_FILTER",
-      "android_source_status": "D142_SIGNED_BETA_VC83__MT90_DT50_ANDROID11_CRITICAL_ALERT_READINESS__OA068_FIELD_READY",
+      "android_source_status": "D142_OWNER_FIELD_PASS__SIGNED_BETA_VC83__MT90_DT50_ANDROID11_CRITICAL_ALERT_READINESS",
       "apk_artifact_name": "supra-inventory-beta-apk",
       "apk_artifact_retention_days": 7,
       "latest_signed_beta_release": "beta-vc83",
@@ -1632,7 +1632,7 @@
     "dashboard_probe_run": 36421277613
   },
   "d142": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC83__OA068_FIELD_READY",
+    "status": "OWNER_FIELD_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC83",
     "scope": "BETA_ANDROID_ONLY__NEWLAND_MT90_AND_UROVO_DT50_ANDROID11",
     "branch": "feat/d142-android11-critical-alert-readiness",
     "baseline_main": "29c0d1577abe61a59b397d3e6c4b397196f37556",
@@ -1656,6 +1656,7 @@
     "implementation_pr": 284,
     "main_merge": "4e382a39fa574fe49d176af435c1a6a4afdf75f4",
     "release_source": "beta-vc83__EXACT_MAIN_4e382a39fa574fe49d176af435c1a6a4afdf75f4",
-    "release_asset_metadata": "TAG_AND_SOURCE_VERIFIED__ASSET_HASH_SIZE_NOT_EXPOSED_BY_CURRENT_CONNECTOR"
+    "release_asset_metadata": "TAG_AND_SOURCE_VERIFIED__ASSET_HASH_SIZE_NOT_EXPOSED_BY_CURRENT_CONNECTOR",
+    "field_acceptance": "PASS__OWNER_CONFIRMED__2026_09_28"
   }
 }
