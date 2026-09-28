@@ -178,6 +178,7 @@ namespace SupraInventoryRelayAgent
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent;
+            TopMost = true;
             Font = new Font("Segoe UI", 9F);
 
             Controls.Add(new Label
