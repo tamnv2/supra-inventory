@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D142_OWNER_FIELD_PASS__SIGNED_BETA_VC83__D141_OA067_READY__D140_AGENT_V80_PARALLEL",
+      "status": "D143_IMPLEMENTATION_ACTIVE__D142_OWNER_PASS__D141_OWNER_PASS__D140_AGENT_V80_PARALLEL",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
