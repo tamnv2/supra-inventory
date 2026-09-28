@@ -21,7 +21,7 @@ import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
-import { reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { mirrorPickerNotificationTarget, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 
 
@@ -1239,6 +1239,14 @@ export default {
         const payload = await response.json() as Record<string, unknown>;
         if (!response.ok) return json(payload, response.status);
         await closeUserRealtime(env, userId, "ANDROID");
+        if (payload.status === "android_session_revoked") {
+          await mirrorPickerNotificationTarget(env, {
+            user_id: userId,
+            device_id: "",
+            platform: "ANDROID",
+            enabled: false,
+          }).catch(() => undefined);
+        }
         await refreshPickerProjectionBestEffort(env, "AGENT_KICK").catch(() => undefined);
         return json(payload);
       }
