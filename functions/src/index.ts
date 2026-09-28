@@ -160,7 +160,7 @@ export const pickerAlertCreated = onDocumentCreated("picker_alerts/{alertId}", a
     alert.source !== "AGENT_PICKER_CONTACT_V1" ||
     !alertId ||
     !targetUserId ||
-    !["CALL_SPECIALIST", "BRING_TO_PACK"].includes(commandType) ||
+    !["CALL_SPECIALIST", "BRING_TO_PACK", "CHAT_MESSAGE"].includes(commandType) ||
     !Number.isFinite(expiresAtMs) ||
     expiresAtMs <= now ||
     expiresAtMs > now + MAX_ALERT_TTL_MS
