@@ -485,8 +485,10 @@ jobs:
           if (-not $serviceUsage.Contains('publishRelayUsageSnapshot') -or -not $serviceUsage.Contains('reads: 45000')) {
             throw "D134 provider Usage snapshot/soft-read guard missing."
           }
-          if (-not $notifications.Contains('ANDROID_SESSION_AUTHORITY') -or $notifications.Contains('PDA_GRACE')) {
-            throw "D134 Worker Picker presence authority regression."
+          if (-not $notifications.Contains('android_session_generation') -or
+              -not $notifications.Contains('source: "LOGIN"') -or
+              $notifications.Contains('PDA_GRACE')) {
+            throw "D134 Worker Picker session-authority regression."
           }
           if (-not $fleet.Contains('relay_poc_coordination/daily_')) { throw "D134 durable fleet metric authority regression." }
           foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
