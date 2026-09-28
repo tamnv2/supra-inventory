@@ -53,6 +53,7 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, List<string>>(StringComparer.Ordinal);
         internal long ElapsedMs;
         internal bool SearchClicked;
+        internal string DomFingerprint = "";
     }
 
     internal sealed class SupraBrowserConfirmResult
@@ -511,7 +512,9 @@ namespace SupraInventoryRelayAgent
                     // settle early only after multiple identical DOM samples; 4.5s remains
                     // the hard safety bound for unusually slow WMS rendering.
                     var deadline = DateTime.UtcNow.AddMilliseconds(4500);
-                    var settleNotBefore = DateTime.UtcNow.AddMilliseconds(2000);
+                    var settleNotBefore = DateTime.UtcNow.AddMilliseconds(900);
+                    var initialDomFingerprint = scan.DomFingerprint ?? "";
+                    var domChangedAfterSearch = false;
                     var stableMissSamples = 0;
                     var lastMissFingerprint = "";
                     SupraBrowserSearchResult latest = scan;
@@ -522,7 +525,10 @@ namespace SupraInventoryRelayAgent
                         latest = ScanNoLock(terms);
                         if (!NeedsSearchRetry(latest)) break;
 
-                        if (DateTime.UtcNow >= settleNotBefore)
+                        if (!string.Equals(latest.DomFingerprint ?? "", initialDomFingerprint, StringComparison.Ordinal))
+                            domChangedAfterSearch = true;
+
+                        if (domChangedAfterSearch && DateTime.UtcNow >= settleNotBefore)
                         {
                             var fingerprint = SearchFingerprint(latest);
                             if (string.Equals(fingerprint, lastMissFingerprint, StringComparison.Ordinal))
@@ -1094,6 +1100,7 @@ namespace SupraInventoryRelayAgent
                 return result;
             }
 
+            result.DomFingerprint = String(map, "domFingerprint");
             var rows = map.TryGetValue("candidates", out var candidateObj)
                 ? candidateObj as Dictionary<string, object>
                 : null;
@@ -1282,7 +1289,8 @@ namespace SupraInventoryRelayAgent
                 result.Result ?? "",
                 "M:" + string.Join(",", result.MissingFragments.ToArray()),
                 "A:" + string.Join(",", result.AmbiguousFragments.ToArray()),
-                "U:" + string.Join(",", result.UnselectableFragments.ToArray())
+                "U:" + string.Join(",", result.UnselectableFragments.ToArray()),
+                "D:" + (result.DomFingerprint ?? "")
             };
             foreach (var pair in result.Candidates.OrderBy(x => x.Key, StringComparer.Ordinal))
             {
@@ -1668,10 +1676,12 @@ namespace SupraInventoryRelayAgent
               const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
               const candidates = {};
               const selectable = {};
+              const allCodes = [];
               for (const term of terms) { candidates[term] = []; selectable[term] = []; }
               for (const row of rows) {
                 const text = ((row.innerText || row.textContent) || '').toUpperCase();
                 const codes = [...new Set(text.match(/\bPL[0-9]+\b/g) || [])];
+                for (const code of codes) if (!allCodes.includes(code)) allCodes.push(code);
                 if (!codes.length) continue;
                 const native = [...row.querySelectorAll('input[type=checkbox]')];
                 const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')];
@@ -1688,7 +1698,9 @@ namespace SupraInventoryRelayAgent
                   }
                 }
               }
-              return JSON.stringify({candidates,selectable});
+              allCodes.sort();
+              const domFingerprint = rows.length + ':' + allCodes.join(',');
+              return JSON.stringify({candidates,selectable,domFingerprint});
             })()";
         }
 
