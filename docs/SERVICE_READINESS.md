@@ -1052,3 +1052,12 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Báo hàng result surfaces must dismiss local-first even during network loss or session revocation, with pending ACK metadata retried later.
 - OA061 becomes field-ready only after D135 PR gates, main gates and v76/signed-Android release evidence pass.
 - Stable remains OWNER-GATED and untouched.
+
+## D135 release checkpoint — 2026-09-28
+
+- PR #270 merged to main `6d929e42fa2474712e0629a95bb5ac9cf59112bd`.
+- Released Agent: `relay-agent-v76`; released signed Android: `beta-vc82` with visible name **1291 Báo hàng Beta**.
+- Main Authority/State/UI/Worker/Android/Agent/Dashboard gates PASS.
+- Runtime health is exact-source PASS with SQLite `12/12`, Operational V2 `5/5`, Agent migration `0/0`.
+- Inventory distribution channel now points to Agent v76 and Android vc82.
+- OA061 is READY_FOR_OWNER_FIELD_TEST. Stable remains OWNER-GATED and untouched.
