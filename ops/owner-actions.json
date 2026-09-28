@@ -3180,6 +3180,37 @@
       "safety": "Beta Agent only. No new provider resource, no credential/session exposure, no direct WMS API path, no DevTools Network domain. Stable remains OWNER-GATED.",
       "remaining_owner_action": "Update the Agent to relay-agent-v79 and run the OA063 shortest test path. Do not press F5 manually during the hydration test. Android remains beta-vc82; Stable remains untouched.",
       "closed": false
+    },
+    {
+      "id": "OA064",
+      "status": "BLOCKED_PENDING_D138_TECHNICAL_RUNTIME_PASS",
+      "title": "Field-accept D138 Web SLA FIRST_REPORT persistence during realtime reconciliation",
+      "resource_key": "repo",
+      "provider": "Beta Web + existing Beta Worker/InventoryCore",
+      "reason_owner_only": "CI can prove dirty-form preservation and server round-trip guards, but the reported failure depends on real browser realtime timing and requires one live Beta interaction check.",
+      "prerequisites": {
+        "baseline_main": "854090da3ede3034ed072dee89f12e9d4c26dffb",
+        "implementation_branch": "fix/d138-sla-mode-realtime-reset",
+        "new_provider_resources": "NONE",
+        "android": "beta-vc82__UNCHANGED",
+        "agent": "relay-agent-v79__UNCHANGED",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Open Beta Web → Thời gian xử lý.",
+        "Select Theo báo đầu tiên của SKU and leave the form open through normal realtime reconciliation; the radio must not jump back to Theo từng Picker.",
+        "Press Lưu cấu hình toàn hệ thống and verify success appears only after server and authoritative reload both return FIRST_REPORT.",
+        "Reload the browser page and verify Đang áp dụng and the selected radio still show Theo báo đầu tiên của SKU."
+      ],
+      "pass_criteria": [
+        "Unsaved FIRST_REPORT remains selected across realtime/reconcile activity.",
+        "A successful save requires server mode and post-save reload to equal FIRST_REPORT.",
+        "Browser reload preserves FIRST_REPORT from server authority.",
+        "No schema/provider/Android/Agent change and Stable remains untouched."
+      ],
+      "safety": "Beta Web only. Existing server-authoritative version guard remains. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D138 technical/runtime PASS; then run the four-step live Beta check.",
+      "closed": false
     }
   ]
 }
