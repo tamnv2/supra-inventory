@@ -245,6 +245,35 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session != null) reconcileNotificationSignal()
     }
 
+    private fun reconcileSkuCatalogRefresh() {
+        if (!::api.isInitialized || api.session == null) return
+        if (!NotificationSignalStore.consumeSkuCatalogRefresh(applicationContext)) return
+        syncSkuCatalogAsync("push")
+    }
+
+    private fun syncSkuCatalogAsync(reason: String, onDone: (Boolean) -> Unit = {}) {
+        if (api.session == null) {
+            onDone(false)
+            return
+        }
+        Thread {
+            try {
+                val result = skuCache.sync(api)
+                runOnUiThread {
+                    recordLog(
+                        if (result.updated) "Đã tự cập nhật Master SKU · ${result.count} SKU · $reason"
+                        else "Master SKU đã mới nhất · ${result.count} SKU · $reason"
+                    )
+                    onDone(true)
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    recordLog("Tự cập nhật Master SKU thất bại · $reason · ${sanitizeDiagnosticText(error.message ?: "unknown")}")
+                    onDone(false)
+                }
+            }
+        }.start()
+    }
     private fun reconcileNotificationSignal() {
         if (!NotificationSignalStore.consumeDirty(applicationContext)) return
         drainNotificationReceipts()
