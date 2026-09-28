@@ -174,6 +174,27 @@ jobs:
           grep -Fq 'Website nghiệp vụ Inventory' "$tmp" || { echo "Beta Web title marker missing"; exit 1; }
           echo "Beta Web shell PASS"
 
+      - name: Verify Beta OAuth public disclosure pages
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for path in about privacy terms; do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/${path}")"
+            [ "$code" = "200" ] || { echo "/${path} expected HTTP 200, got $code"; head -c 800 "$tmp"; exit 1; }
+            grep -Fq 'SUPRA Inventory Beta' "$tmp" || { echo "/${path} missing app identity"; exit 1; }
+            grep -Fq 'Chính sách quyền riêng tư' "$tmp" || { echo "/${path} missing privacy navigation"; exit 1; }
+          done
+          curl -sS --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/about" -o "$tmp"
+          grep -Fq 'https://www.googleapis.com/auth/drive.file' "$tmp" || { echo "/about missing drive.file disclosure"; exit 1; }
+          grep -Fq 'https://www.googleapis.com/auth/gmail.send' "$tmp" || { echo "/about missing gmail.send disclosure"; exit 1; }
+          curl -sS --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/privacy" -o "$tmp"
+          grep -Fq 'Google API Services User Data Policy' "$tmp" || { echo "/privacy missing Google data policy disclosure"; exit 1; }
+          grep -Fq 'Limited Use' "$tmp" || { echo "/privacy missing Limited Use disclosure"; exit 1; }
+          echo "Beta OAuth public disclosure pages PASS"
+
       - name: Verify Beta Google OAuth start
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
