@@ -1158,3 +1158,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - OA066 remains blocked until v80 is released and the Owner completes a 30–60 minute multi-Agent soak with no reconnect storm and normalized Firestore usage.
 - No new provider resource; Stable remains OWNER-GATED.
 
+
+
+## D141 SLA end-to-end persistence candidate — 2026-09-28
+
+- D139 live field test failed with a contradictory SLA control/server label after reload.
+- Root UI defect found: generic `restoreUiContext()` replayed SLA form values after authoritative rendering.
+- D141 introduces explicit server/draft state, excludes SLA controls from generic context restoration, and uses a dedicated non-droppable Save single-flight.
+- InventoryCore PUT performs post-write SQLite full-policy readback. Web requires both the readback proof and a fresh no-cache GET matching requested mode/version before success.
+- Failures expose requested versus current server mode without secret/session data.
+- No schema/provider/Android/Agent changes. D140 remains parallel. Stable remains OWNER-GATED.
+- OA067 blocked pending PR/main/exact-source Beta runtime PASS.
