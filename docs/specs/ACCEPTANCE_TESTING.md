@@ -1619,3 +1619,16 @@ D136 cannot be called Owner field PASS until all applicable checks below pass:
 - Local quota protection remains a reference guard and must not be presented as exact Firebase/provider usage.
 - With Web Confirm visible, **Chuyển Web chạy nền** hides immediately without password. **Hiện Web Confirm**, stop, Agent logout and managed-browser mode switch remain protected.
 - D135 HA/generation/idempotency/security guards stay PASS; Android stays `beta-vc82`; Stable is untouched.
+
+## D137 normal-window PickList / post-Confirm reload acceptance
+
+D137 cannot be called Owner field PASS until all applicable checks below pass:
+
+- At the Owner-reported normal/restored window size, search a valid PickList. The grid header and at least one result row are visible, including **PickList**, **Xác nhận** and **Trạng thái**. The result must not degrade to only the bottom green status sentence.
+- Maximize the Agent, restore to the saved normal size, toggle **Auto size cột** off/on and repeat. The result surface remains operational; D136 horizontal critical-column behavior remains PASS.
+- From logged-out Supra, open Web Agent, complete login, and let Agent reach Confirm. Verify one normal reload occurs before **Web Confirm sẵn sàng**. A known PickList is searchable without the operator pressing F5.
+- Repeat from an already-authenticated auth Dashboard route. The same one-reload-before-READY barrier applies and the first operational search returns live Confirm data.
+- During the reload and post-reload settle period, manual search and Confirm-dependent relay readiness are disabled/fail closed.
+- After READY, verify no repeated reload loop, no extra search-button clicks, and no periodic provider/browser polling is introduced.
+- Source regression must prove DevTools **Network** remains disabled/absent and no cookie/token/header/storage/session extraction or direct WMS API path is added.
+- Android remains `beta-vc82`; WebView2 host build remains 10; Stable remains OWNER-GATED and untouched.
