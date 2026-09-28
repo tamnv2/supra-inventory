@@ -12,7 +12,7 @@
         android:allowBackup="false"
         android:icon="@drawable/app_icon_d089"
         android:roundIcon="@drawable/app_icon_d089"
-        android:label="1291 Beta"
+        android:label="1291 Báo hàng Beta"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme">
