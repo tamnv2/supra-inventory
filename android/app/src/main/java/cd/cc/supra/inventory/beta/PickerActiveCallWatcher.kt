@@ -27,17 +27,24 @@ class PickerActiveCallWatcher(
         activeUserId = session.userId
 
         val existing = auth.currentUser
-        if (existing != null) {
+        if (existing != null && existing.uid == session.userId) {
             attach(session.userId)
             return
         }
+        if (existing != null) auth.signOut()
 
         auth.signInWithCustomToken(token)
-            .addOnSuccessListener {
-                if (activeUserId == session.userId) attach(session.userId)
+            .addOnSuccessListener { result ->
+                if (activeUserId != session.userId) return@addOnSuccessListener
+                if (result.user?.uid != session.userId) {
+                    auth.signOut()
+                    log("D133 active-call auth rejected: Firebase identity mismatch")
+                    return@addOnSuccessListener
+                }
+                attach(session.userId)
             }
             .addOnFailureListener { error ->
-                log("D131 active-call auth deferred: " + safe(error.message))
+                log("D133 active-call auth deferred: " + safe(error.message))
             }
     }
 
