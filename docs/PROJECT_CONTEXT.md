@@ -641,3 +641,12 @@ Status: **OWNER FIELD PASS**.
 - OA068 is closed PASS. No further D142 field action remains.
 - Canonical Android marker: `D142_OWNER_FIELD_PASS__SIGNED_BETA_VC83__ANDROID11_MT90_DT50_CRITICAL_ALERT_READINESS`.
 - D141 OA067 and D140 Agent v80 remain independent open workstreams. Stable remains OWNER-GATED and untouched.
+
+
+## D144 field-repair architecture — 2026-09-29
+
+- D143 field evidence opened D144 for three bounded defects: revoked Google OAuth broke Web/Android runtime logs, Agent chat input/delivery failed, and a legacy already-logged-in Picker could remain visible after Kích User. Direct specialist call remains PASS.
+- Sanitized Web/Android runtime logs now persist to a bounded 90-day InventoryCore SQLite buffer first. Web Nhật ký reads that buffer; Google Drive is best-effort archive only. D144 therefore requires no Drive permission change and schema source target advances to 14.
+- Agent v82 chat uses the existing per-Picker `picker_session_controls` listener as direct delivery, keeps the D143 FCM path for compatibility, and pauses periodic Agent UI refresh timers while the modal editor is open. Picker Xác nhận remains local-only with duplicate suppression.
+- Kích User keeps Firestore generation revocation and additionally revokes the Worker-authoritative Android session. Before disabling the old Android notification target, Worker sends one best-effort backward-compatible re-login command. A five-minute Worker reconciliation over existing compact Agent sync covers office-network Worker unreachability.
+- No new provider resource is introduced. Stable remains OWNER-GATED and untouched.
