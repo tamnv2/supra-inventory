@@ -153,31 +153,59 @@ namespace SupraInventoryRelayAgent
 
         private Dictionary<string, object> FetchD131Usage(AgentSession session, bool force)
         {
-            var url = AgentConfig.AgentUsageUrl + (force ? "?refresh=1" : "");
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "GET";
-            request.Timeout = 20000;
-            request.ReadWriteTimeout = 20000;
-            request.UserAgent = "SUPRA-Inventory-Relay-Agent/" + AgentConfig.AgentBuild;
-            request.Headers[HttpRequestHeader.Authorization] = "Bearer " + session.IdToken;
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
+                throw new InvalidOperationException("Chưa có phiên Agent để đọc Usage.");
+
             try
             {
-                using (var response = (HttpWebResponse)request.GetResponse())
-                using (var reader = new StreamReader(response.GetResponseStream()))
-                {
-                    var raw = reader.ReadToEnd();
-                    var json = new JavaScriptSerializer();
-                    return json.DeserializeObject(raw) as Dictionary<string, object>
-                           ?? new Dictionary<string, object>();
-                }
+                var raw = FirestoreHttpTransport.SendJson(
+                    "GET",
+                    AgentConfig.FirestoreUsageSnapshotUrl,
+                    session.IdToken,
+                    null,
+                    "SUPRA-Inventory-Relay-Agent/" + AgentConfig.AgentBuild,
+                    10000,
+                    true,
+                    message => Log(message),
+                    "usage-snapshot",
+                    2);
+                var json = new JavaScriptSerializer();
+                var doc = json.DeserializeObject(raw) as Dictionary<string, object>;
+                var fields = FirestoreMap(doc, "fields");
+                var payloadJson = FirestoreString(fields, "payload_json");
+                if (string.IsNullOrWhiteSpace(payloadJson))
+                    throw new InvalidOperationException("Usage snapshot chưa có dữ liệu.");
+                var payload = json.DeserializeObject(payloadJson) as Dictionary<string, object>;
+                if (payload == null) throw new InvalidOperationException("Usage snapshot không hợp lệ.");
+                payload["snapshot_transport"] = "FIRESTORE";
+                return payload;
             }
             catch (WebException ex)
             {
                 var response = ex.Response as HttpWebResponse;
                 var status = response == null ? 0 : (int)response.StatusCode;
                 try { if (response != null) response.Dispose(); } catch { }
-                throw new InvalidOperationException("Usage HTTP " + status, ex);
+                throw new InvalidOperationException(
+                    status == 404
+                        ? "Usage snapshot đang chờ lượt đồng bộ server ≤10 phút."
+                        : "Usage Firestore HTTP " + status,
+                    ex);
             }
+        }
+
+        private static Dictionary<string, object> FirestoreMap(Dictionary<string, object> map, string key)
+        {
+            object value;
+            return map != null && map.TryGetValue(key, out value)
+                ? value as Dictionary<string, object> ?? new Dictionary<string, object>()
+                : new Dictionary<string, object>();
+        }
+
+        private static string FirestoreString(Dictionary<string, object> fields, string key)
+        {
+            var wrapper = FirestoreMap(fields, key);
+            object value;
+            return wrapper.TryGetValue("stringValue", out value) ? Convert.ToString(value) ?? "" : "";
         }
 
         private void RenderD131Usage(Dictionary<string, object> payload)
@@ -197,7 +225,8 @@ namespace SupraInventoryRelayAgent
             else
             {
                 _d131UsageProviderStatus.Text =
-                    "Provider Usage · " + (cached ? "cache ≤10 phút" : "vừa làm mới") +
+                    "Provider Usage · Firestore snapshot ≤10 phút" +
+                    (Bool(monitoring, "partial") ? " · một phần metrics chưa khả dụng" : "") +
                     " · provider day " + JsonText(monitoring, "provider_day") +
                     (generated.Length > 0 ? " · " + generated : "");
 
@@ -205,26 +234,26 @@ namespace SupraInventoryRelayAgent
                 var soft = Map(fs, "soft");
                 var free = Map(fs, "free_reference");
                 _d131UsageFirestore.Text =
-                    "Reads: " + N(Long(fs, "reads")) + " / " + N(Long(soft, "reads")) + " soft / " + N(Long(free, "reads")) + " free ref" +
+                    "Reads: " + MetricN(fs, "reads") + " / " + N(Long(soft, "reads")) + " soft / " + N(Long(free, "reads")) + " free ref" +
                     Environment.NewLine +
-                    "Writes: " + N(Long(fs, "writes")) + " / " + N(Long(soft, "writes")) + " soft / " + N(Long(free, "writes")) + " free ref" +
+                    "Writes: " + MetricN(fs, "writes") + " / " + N(Long(soft, "writes")) + " soft / " + N(Long(free, "writes")) + " free ref" +
                     Environment.NewLine +
-                    "Deletes: " + N(Long(fs, "deletes")) + " / " + N(Long(soft, "deletes")) + " soft / " + N(Long(free, "deletes")) + " free ref" +
+                    "Deletes: " + MetricN(fs, "deletes") + " / " + N(Long(soft, "deletes")) + " soft / " + N(Long(free, "deletes")) + " free ref" +
                     Environment.NewLine +
-                    "Storage: " + Bytes(Long(fs, "storage_bytes")) + " / " + Bytes(Long(soft, "storage_bytes")) + " soft / " + Bytes(Long(free, "storage_bytes")) + " free ref" +
+                    "Storage: " + MetricBytes(fs, "storage_bytes") + " / " + Bytes(Long(soft, "storage_bytes")) + " soft / " + Bytes(Long(free, "storage_bytes")) + " free ref" +
                     Environment.NewLine +
-                    "Connections: " + N(Long(fs, "active_connections")) + " · Listeners: " + N(Long(fs, "snapshot_listeners"));
+                    "Connections: " + MetricN(fs, "active_connections") + " · Listeners: " + MetricN(fs, "snapshot_listeners");
 
                 var auth = Map(monitoring, "auth");
                 _d131UsageAuth.Text =
-                    "Firebase Auth · DAU: " + N(Long(auth, "daily_active")) +
-                    " · MAU: " + N(Long(auth, "monthly_active"));
+                    "Firebase Auth · DAU: " + MetricN(auth, "daily_active") +
+                    " · MAU: " + MetricN(auth, "monthly_active");
 
                 var functions = Map(monitoring, "functions");
                 var fcm = Map(monitoring, "fcm");
                 _d131UsageFunction.Text =
-                    "Picker-call Function hôm nay: " + N(Long(functions, "executions")) +
-                    " · lỗi: " + N(Long(functions, "errors")) +
+                    "Picker-call Function hôm nay: " + MetricN(functions, "executions") +
+                    " · lỗi: " + MetricN(functions, "errors") +
                     " · FCM: " + (JsonText(fcm, "pricing") == "NO_COST" ? "No-cost" : JsonText(fcm, "pricing"));
             }
 
@@ -302,6 +331,22 @@ namespace SupraInventoryRelayAgent
         private static string N(long value)
         {
             return Math.Max(0L, value).ToString("N0", CultureInfo.InvariantCulture);
+        }
+
+        private static bool HasMetric(Dictionary<string, object> map, string key)
+        {
+            object value;
+            return map != null && map.TryGetValue(key, out value) && value != null;
+        }
+
+        private static string MetricN(Dictionary<string, object> map, string key)
+        {
+            return HasMetric(map, key) ? N(Long(map, key)) : "N/A";
+        }
+
+        private static string MetricBytes(Dictionary<string, object> map, string key)
+        {
+            return HasMetric(map, key) ? Bytes(Long(map, key)) : "N/A";
         }
 
         private static string Bytes(long value)
