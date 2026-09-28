@@ -3230,7 +3230,7 @@
     },
     {
       "id": "OA065",
-      "status": "BLOCKED_PENDING_D139_TECHNICAL_RUNTIME_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D139 global SLA dirty-form persistence repair",
       "resource_key": "repo",
       "provider": "Beta Web + existing Beta Worker/InventoryCore",
@@ -3241,7 +3241,17 @@
         "new_provider_resources": "NONE",
         "android": "beta-vc82__UNCHANGED",
         "agent": "relay-agent-v79__UNCHANGED",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "technical_runtime": "PASS__MAIN_21946984__BETA_DEPLOY_RUN_36414388456",
+        "implementation_pr": 279,
+        "main_merge": "219469840a9ece147441b1ef9a0db8242109e5a7",
+        "main_runs": {
+          "repo_authority": 36414388407,
+          "project_state": 36414388431,
+          "beta_worker": 36414388456,
+          "ui_design": 36414388476,
+          "dashboard_probe": 36414388435
+        }
       },
       "shortest_test_path": [
         "Open Beta Web → Thời gian xử lý and wait until the page is fully loaded.",
@@ -3257,7 +3267,7 @@
         "No schema/provider/Android/Agent change and Stable remains untouched."
       ],
       "safety": "Beta Web only. Revision-safe server authority remains unchanged. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D139 technical/runtime PASS, then run the four-step live Beta test.",
+      "remaining_owner_action": "On live Beta Web, wait until Thời gian xử lý is fully loaded, select FIRST_REPORT, leave it selected for several seconds, save, reload, and verify the radio plus Đang áp dụng both remain FIRST_REPORT.",
       "closed": false
     }
   ]
