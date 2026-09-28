@@ -3311,7 +3311,7 @@
     },
     {
       "id": "OA067",
-      "status": "BLOCKED_PENDING_D141_TECHNICAL_RUNTIME_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D141 end-to-end SLA persistence and authority UI",
       "resource_key": "repo",
       "provider": "Beta Web + existing Beta Worker/InventoryCore SQLite",
@@ -3322,7 +3322,17 @@
         "new_provider_resources": "NONE",
         "android": "beta-vc82__UNCHANGED",
         "agent": "D140_RELAY_AGENT_V80_PARALLEL__NO_D141_CHANGE",
-        "stable": "OWNER_GATED"
+        "stable": "OWNER_GATED",
+        "technical_runtime": "PASS__MAIN_966B6D1F__BETA_DEPLOY_RUN_36421277405",
+        "implementation_pr": 282,
+        "main_merge": "966b6d1f561768551969694065b1035bb2e2b234",
+        "main_runs": {
+          "repo_authority": 36421277425,
+          "project_state": 36421277410,
+          "beta_worker": 36421277405,
+          "ui_design": 36421277430,
+          "dashboard_probe": 36421277613
+        }
       },
       "shortest_test_path": [
         "Open Beta Web → Thời gian xử lý and press F5 once.",
@@ -3342,7 +3352,7 @@
         "No schema/provider/Android/Agent change from D141 and Stable remains untouched."
       ],
       "safety": "Beta Web/Worker only. No secrets or session material are logged. Existing optimistic policy-version protection remains. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D141 technical/runtime PASS, then run the six-step live Beta test.",
+      "remaining_owner_action": "On live Beta Web, run the six-step OA067 SLA test: clean F5, verify initial authority alignment, select FIRST_REPORT, confirm unsaved draft label, save once, require verified-success, F5 and confirm radio + Đang áp dụng remain FIRST_REPORT.",
       "closed": false
     }
   ]
