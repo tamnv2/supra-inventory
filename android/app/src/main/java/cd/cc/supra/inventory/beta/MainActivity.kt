@@ -109,6 +109,7 @@ class MainActivity : Activity() {
     private val runtimeLogTick = object : Runnable {
         override fun run() {
             maybeUploadScheduledRuntimeLog()
+            reconcileSkuCatalogRefresh()
             if (::api.isInitialized && api.session?.role == "PICKER") {
                 drainOverlayAcknowledgements()
             }
@@ -205,6 +206,7 @@ class MainActivity : Activity() {
         }
         if (::api.isInitialized && api.session != null && updateGate == UpdateGate.CURRENT) {
             reconcileNotificationSignal()
+            reconcileSkuCatalogRefresh()
             drainOverlayAcknowledgements()
             ensurePickerActiveCallWatcher(api.session!!)
             syncEffectiveRole()
