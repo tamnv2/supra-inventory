@@ -412,6 +412,11 @@ def main() -> None:
     forbid(app, 'downloads/beta-vc', "D109 no hard-coded Beta tag in PDA tools URL")
     require(core, "const SCHEMA_VERSION = 13;", "D143 ROOT Pick Pack review schema target")
     require(core, "role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')", "D143 ROOT effective Pick Pack role constraint")
+    require(runtime_logs, 'getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON, DRIVE_SCOPE)', "D144 runtime-log service-account fallback")
+    require(service_index, '"/api/agent/picker-session/revoke"', "D144 authenticated Agent Picker-session revoke route")
+    require(core, '"/auth/revoke-android-session"', "D144 authoritative Android session revoke")
+    require(core, "force_current?: boolean", "D144 live versus scheduled revoke mode")
+    require(service_index, "reconcileRecentAgentKicks", "D144 scheduled Firestore kick reconciliation")
     require(core, 'ALTER TABLE audit_log ADD COLUMN actor_role TEXT', "D109 audit role migration")
     require(core, 'ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT', "D109 audit display migration")
 
