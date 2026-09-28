@@ -79,6 +79,12 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
         private readonly Dictionary<string, long> _pickerCallLocks =
             new Dictionary<string, long>(StringComparer.Ordinal);
+        private readonly HashSet<string> _pickerCallPending =
+            new HashSet<string>(StringComparer.Ordinal);
+        private string _d135CounterDayKey = "";
+        private long _d135CounterReceivedFloor;
+        private long _d135CounterConfirmedFloor;
+        private long _d135CounterErrorFloor;
         private long _agentSyncReconcileRunning;
         private DateTime _lastAgentSyncReconcileUtc = DateTime.MinValue;
         private bool? _pickerWindowOpenState;
@@ -870,6 +876,11 @@ namespace SupraInventoryRelayAgent
                 ErrorTotal = Math.Max(0L, snapshot.ErrorTotal),
                 OwnerAgentId = "D134_AGENT_SYNC"
             };
+            MergeD135CounterSnapshot(
+                _fleetSnapshot.DayKey,
+                _fleetSnapshot.ReceivedTotal,
+                _fleetSnapshot.ConfirmedTotal,
+                _fleetSnapshot.ErrorTotal);
             if (_leaderCoordinator != null) _leaderCoordinator.ApplySyncedFleet(snapshot.Fleet);
 
             if (_pickerWindowOpenState != false)
@@ -931,6 +942,83 @@ namespace SupraInventoryRelayAgent
                 return _pickerCallLocks.TryGetValue(userId ?? "", out until) &&
                     until > DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             }
+        }
+
+        private bool IsPickerCallPending(string userId)
+        {
+            lock (_pickerCallPending) return _pickerCallPending.Contains(userId ?? "");
+        }
+
+        private void SetPickerCallPending(string userId, bool pending)
+        {
+            lock (_pickerCallPending)
+            {
+                if (pending) _pickerCallPending.Add(userId ?? "");
+                else _pickerCallPending.Remove(userId ?? "");
+            }
+            _pickerOnlineRenderSignature = "";
+            RenderPickerOnlineSnapshot();
+        }
+
+        private void MergeD135CounterSnapshot(string dayKey, long received, long confirmed, long error)
+        {
+            var key = string.IsNullOrWhiteSpace(dayKey)
+                ? FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow)
+                : dayKey;
+            if (!string.Equals(_d135CounterDayKey, key, StringComparison.Ordinal))
+            {
+                _d135CounterDayKey = key;
+                _d135CounterReceivedFloor = Math.Max(0L, received);
+                _d135CounterConfirmedFloor = Math.Max(0L, confirmed);
+                _d135CounterErrorFloor = Math.Max(0L, error);
+                return;
+            }
+            _d135CounterReceivedFloor = Math.Max(_d135CounterReceivedFloor, Math.Max(0L, received));
+            _d135CounterConfirmedFloor = Math.Max(_d135CounterConfirmedFloor, Math.Max(0L, confirmed));
+            _d135CounterErrorFloor = Math.Max(_d135CounterErrorFloor, Math.Max(0L, error));
+        }
+
+        internal void ApplyD135DurableCounterAck(string dayKey, FirestoreConfirmationOutcome outcome)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<string, FirestoreConfirmationOutcome>(ApplyD135DurableCounterAck), dayKey, outcome);
+                return;
+            }
+            if (outcome == null) return;
+
+            var key = string.IsNullOrWhiteSpace(dayKey)
+                ? FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow)
+                : dayKey;
+            var snapshot = _fleetSnapshot;
+            if (!string.Equals(_d135CounterDayKey, key, StringComparison.Ordinal))
+            {
+                var sameSnapshotDay = snapshot != null && string.Equals(snapshot.DayKey, key, StringComparison.Ordinal);
+                _d135CounterDayKey = key;
+                _d135CounterReceivedFloor = sameSnapshotDay ? Math.Max(0L, snapshot.ReceivedTotal) : 0L;
+                _d135CounterConfirmedFloor = sameSnapshotDay ? Math.Max(0L, snapshot.ConfirmedTotal) : 0L;
+                _d135CounterErrorFloor = sameSnapshotDay ? Math.Max(0L, snapshot.ErrorTotal) : 0L;
+            }
+
+            _d135CounterReceivedFloor++;
+            if (string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal) ||
+                string.Equals(outcome.Result, "ALREADY_CONFIRMED", StringComparison.Ordinal))
+                _d135CounterConfirmedFloor++;
+            else
+                _d135CounterErrorFloor++;
+
+            RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            RefreshD128Overlay();
+        }
+
+        private void GetD135DisplayCounters(out long received, out long confirmed, out long error)
+        {
+            var snapshot = _fleetSnapshot;
+            if (snapshot != null)
+                MergeD135CounterSnapshot(snapshot.DayKey, snapshot.ReceivedTotal, snapshot.ConfirmedTotal, snapshot.ErrorTotal);
+            received = Math.Max(0L, _d135CounterReceivedFloor);
+            confirmed = Math.Max(0L, _d135CounterConfirmedFloor);
+            error = Math.Max(0L, _d135CounterErrorFloor);
         }
 
         private void RefreshD119OperationalViews(bool force)
@@ -1166,7 +1254,8 @@ namespace SupraInventoryRelayAgent
                 signature.Append(active == null ? "0" : "1")
                     .Append(':').Append(active == null ? "" : active.SenderAgentId ?? "")
                     .Append(':').Append(active == null ? "" : active.SenderRole ?? "")
-                    .Append(':').Append(lockUntil);
+                    .Append(':').Append(lockUntil)
+                    .Append(':').Append(IsPickerCallPending(picker.UserId) ? "P" : "-");
             }
             return signature.ToString();
         }
@@ -1223,7 +1312,7 @@ namespace SupraInventoryRelayAgent
                         ? "PICKLIST"
                         : "LOGIN";
                     var active = ActivePickerCommand(picker.UserId);
-                    var callLocked = IsPickerCallLocked(picker.UserId);
+                    var callLocked = IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId);
                     var canResolve = active != null && CanResolvePickerCommand(picker.UserId);
                     var resolveText = active == null ? "—" : (canResolve ? "Kết thúc" : "Agent khác đang gọi");
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
@@ -1282,12 +1371,14 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             var snapshot = _fleetSnapshot;
-            _fleetMetricStatus.Text = snapshot == null
-                ? "Cụm hôm nay: chờ đồng bộ"
-                : "Cụm hôm nay: " + snapshot.ReceivedTotal.ToString("N0") +
-                  " nhận · " + snapshot.ConfirmedTotal.ToString("N0") + " xác nhận · " +
-                  snapshot.ErrorTotal.ToString("N0") + " lỗi" +
-                  (primary ? " · durable" : " · 5p");
+            long received, confirmed, error;
+            GetD135DisplayCounters(out received, out confirmed, out error);
+            _fleetMetricStatus.Text = snapshot == null && string.IsNullOrWhiteSpace(_d135CounterDayKey)
+                ? "Hôm nay toàn cụm: chờ đồng bộ"
+                : "Hôm nay toàn cụm: " + received.ToString("N0") +
+                  " nhận · " + confirmed.ToString("N0") + " xác nhận · " +
+                  error.ToString("N0") + " lỗi" +
+                  (primary ? " · realtime local + durable" : " · đồng bộ định kỳ");
             RefreshAgentRequestMetrics();
         }
 
@@ -1304,7 +1395,7 @@ namespace SupraInventoryRelayAgent
             var failed = Interlocked.Read(ref _localConfirmFailed);
             var pending = Math.Max(0L, received - processed);
             _agentRequestMetrics.Text =
-                "Xác nhận đơn · Nhận " + received.ToString("N0") +
+                "Agent này · Nhận " + received.ToString("N0") +
                 " · Đã xử lý " + processed.ToString("N0") +
                 " · Thành công " + success.ToString("N0") +
                 " · Lỗi " + failed.ToString("N0") +
@@ -1380,11 +1471,9 @@ namespace SupraInventoryRelayAgent
         {
             var overlay = _d128Overlay;
             if (overlay == null || overlay.IsDisposed) return;
-            var snapshot = _fleetSnapshot;
-            overlay.UpdatePicklistMetrics(
-                snapshot == null ? 0L : snapshot.ReceivedTotal,
-                snapshot == null ? 0L : snapshot.ConfirmedTotal,
-                snapshot == null ? 0L : snapshot.ErrorTotal);
+            long received, confirmed, error;
+            GetD135DisplayCounters(out received, out confirmed, out error);
+            overlay.UpdatePicklistMetrics(received, confirmed, error);
         }
 
         private void RefreshD128OverlayMenu()
@@ -2007,12 +2096,20 @@ namespace SupraInventoryRelayAgent
 
             if (column == "CallSpecialist")
             {
-                if (IsPickerCallLocked(picker.UserId))
+                if (IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId))
                 {
                     _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.";
                     return;
                 }
-                Task.Run(() => SendPickerContact(picker));
+                var pickerLabel = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode;
+                if (MessageBox.Show(
+                    "Gửi yêu cầu Liên hệ picker đến " + pickerLabel +
+                    "? Sau khi gửi, nút gọi sẽ khóa đủ 60 giây để tránh gửi lặp.",
+                    "Xác nhận Liên hệ picker",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes) return;
+                SetPickerCallPending(picker.UserId, true);
+                Task.Run(() => SendPickerContact(picker, true));
                 return;
             }
             if (column == "ResolveContact")
@@ -2024,6 +2121,13 @@ namespace SupraInventoryRelayAgent
                         : "Picker này không có yêu cầu đang mở.";
                     return;
                 }
+                var pickerLabel = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode;
+                if (MessageBox.Show(
+                    "Kết thúc yêu cầu Liên hệ picker của " + pickerLabel +
+                    "? Cảnh báo trên PDA sẽ đóng; nút gọi vẫn khóa đủ 60 giây.",
+                    "Xác nhận kết thúc Liên hệ picker",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes) return;
                 Task.Run(() => ResolvePickerContact(picker));
             }
         }
@@ -2054,9 +2158,9 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void SendPickerContact(PickerPresenceView picker)
+        private void SendPickerContact(PickerPresenceView picker, bool locallyReserved = false)
         {
-            if (IsPickerCallLocked(picker.UserId))
+            if (!locallyReserved && (IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId)))
             {
                 Ui(() => _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.");
                 return;
@@ -2085,6 +2189,10 @@ namespace SupraInventoryRelayAgent
             catch (Exception ex)
             {
                 Ui(() => _pickerOnlineStatus.Text = "Liên hệ picker thất bại · " + SafeMessage(ex));
+            }
+            finally
+            {
+                if (locallyReserved) Ui(() => SetPickerCallPending(picker.UserId, false));
             }
         }
 
