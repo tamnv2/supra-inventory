@@ -77,9 +77,9 @@ jobs:
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*82\s*;') { throw "D144 requires Agent v82 while retaining D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.82\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.82\.0\.0</FileVersion>') {
-            throw "D144 Agent assembly/file version must be 0.82."
+          if ($config -notmatch 'AgentBuild\s*=\s*83\s*;') { throw "D146 requires Agent v83 while retaining D140 quota-storm safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.83\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.83\.0\.0</FileVersion>') {
+            throw "D146 Agent assembly/file version must be 0.83."
           }
 
           foreach ($marker in @(
