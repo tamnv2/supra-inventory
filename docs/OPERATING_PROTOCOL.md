@@ -173,3 +173,14 @@ Exact Owner phrase **`bắt đầu tối ưu lại mô hình`** routes to the D1
 6. Start code only after a subsequent explicit Owner approval such as **OK / đồng ý chạy code**.
 7. Implementation must use a new short-lived branch from then-current `main`; never continue implementation directly on the design-record branch.
 8. Stable remains OWNER-GATED.
+
+## D134 compact fleet and quota operating rule
+
+- Support at most 10 Agent entries in the D134 operational fleet model.
+- Every authenticated Agent may keep one listener on the single compact `relay_poc_coordination/agent_sync` document so Call/Kick changes reach Replay/deep-hibernate Agents without business-queue polling.
+- Only PRIMARY performs full fleet reconciliation, no faster than every 5 minutes in steady state. Window focus/restore does not force a provider read.
+- Received/confirmed/error remain durable in `relay_poc_coordination/daily_<business_day>`; D134 removes per-job exact counter reads and surfaces them through the compact five-minute reconciliation.
+- Firestore internal soft read target is 45,000/day. Call/Kick event reads and the bounded kicked-generation rule lookup are included in the shared budget.
+- Picker online/offline state must not be inferred from heartbeat silence or socket close/error. Explicit Android session state is authority; valid PickList identity is fallback.
+- A local URI/parser/state-machine defect is an application fault and must not be labeled Firestore offline. Transport-offline is reserved for actual network/provider failures.
+- No new provider resource and no Stable mutation are authorized.
