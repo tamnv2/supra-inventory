@@ -188,3 +188,7 @@ Exact Owner phrase **`bắt đầu tối ưu lại mô hình`** routes to the D1
 ## D137 Confirm readiness refresh rule
 
 A managed browser reaching the canonical Confirm URL must not publish READY from the first loaded document. The Agent performs exactly one normal top-level reload for that first arrival and requires a stable post-reload READY DOM before enabling Confirm-dependent work. This is a local browser action only: it does not add Firestore/Worker/provider polling and must not enable DevTools Network or expose session material. If the post-reload page is login, Dashboard, partial, or wrong, fail closed through the existing bounded recovery path. Stable remains OWNER-GATED.
+
+## D137 v79 final-route hydration rule
+
+Do not treat the first appearance of the Confirm URL as a safe reload point. The final Confirm document must remain on the same canonical route for 3 seconds before the one normal reload is issued, then remain post-reload READY for 1.2 seconds before Confirm-dependent work is enabled. If the first real search proves the table contains zero PickList codes, one local browser reload/search retry is allowed as a bounded self-heal. It must not loop and must not add Firestore/Worker/provider operations. Stable remains OWNER-GATED.
