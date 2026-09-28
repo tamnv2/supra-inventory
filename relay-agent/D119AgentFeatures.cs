@@ -72,11 +72,15 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _d119OpsTimer = new System.Windows.Forms.Timer();
         private FirestorePickerPresenceClient _pickerPresenceClient;
         private FirestorePickerContactClient _pickerContactClient;
+        private FirestoreAgentSyncClient _agentSyncClient;
+        private FirestoreAgentSyncListener _agentSyncListener;
+        private AgentSyncSnapshot _agentSyncSnapshot = new AgentSyncSnapshot();
         private readonly Dictionary<string, PickerContactCommand> _activePickerCommands =
             new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
-        private readonly Dictionary<string, DateTime> _pickerDisconnectGrace =
-            new Dictionary<string, DateTime>(StringComparer.Ordinal);
-        private const int PickerDisconnectGraceSeconds = 180;
+        private readonly Dictionary<string, long> _pickerCallLocks =
+            new Dictionary<string, long>(StringComparer.Ordinal);
+        private long _agentSyncReconcileRunning;
+        private DateTime _lastAgentSyncReconcileUtc = DateTime.MinValue;
         private long _pickerPresenceRefreshRunning;
         private DateTime _lastPickerPresenceRefreshUtc = DateTime.MinValue;
         private bool? _pickerWindowOpenState;
@@ -91,7 +95,6 @@ namespace SupraInventoryRelayAgent
         private long _d133DurableCounterRefreshGeneration;
         private int _d133DurableCounterRefreshRunning;
         private bool _lastFleetPrimary;
-        private readonly Button _autoSizeColumnsButton = new Button();
         private readonly Button _autoSizeAgentColumnsButton = new Button();
         private bool _autoSizeColumnsEnabled = true;
         private bool _columnPreferenceApplying;
@@ -126,6 +129,7 @@ namespace SupraInventoryRelayAgent
 
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
+            _agentSyncClient = new FirestoreAgentSyncClient(message => Log(message));
             _fleetMetricsClient = new FirestoreFleetMetricsClient(message => Log(message));
             InitializeD128Overlay();
 
@@ -218,6 +222,8 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             _pickerOnlineGrid.ColumnHeadersHeight = 24;
             _pickerOnlineGrid.RowTemplate.Height = 28;
+            _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            _pickerOnlineGrid.ShowCellToolTips = true;
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "EmployeeCode",
@@ -233,25 +239,25 @@ namespace SupraInventoryRelayAgent
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Name = "PdaState",
-                HeaderText = "PDA",
-                Width = 148
+                Name = "Source",
+                HeaderText = "Nguồn xác nhận",
+                Width = 116
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "KickUser",
+                HeaderText = "Kích User",
+                Text = "Kích User",
+                UseColumnTextForButtonValue = true,
+                Width = 96
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "CallSpecialist",
                 HeaderText = "Chuyên viên",
-                Text = "Gọi về bàn CV",
+                Text = "Liên hệ picker",
                 UseColumnTextForButtonValue = true,
-                Width = 112
-            });
-            _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
-            {
-                Name = "BringToPack",
-                HeaderText = "Pack",
-                Text = "Mang hàng về Pack",
-                UseColumnTextForButtonValue = true,
-                Width = 122
+                Width = 118
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
@@ -281,7 +287,7 @@ namespace SupraInventoryRelayAgent
             _d119OpsTimer.Tick += (s, e) =>
             {
                 RefreshPickerWindowBoundary();
-                ExpirePickerPresenceGrace();
+                ExpirePickerCallLocks();
                 RefreshD119OperationalViews(false);
             };
             _d119OpsTimer.Start();
@@ -393,30 +399,6 @@ namespace SupraInventoryRelayAgent
 
         private void InitializeColumnPreferences(Control pickerCard)
         {
-            if (pickerCard != null)
-            {
-                _autoSizeColumnsButton.Width = 152;
-                _autoSizeColumnsButton.Height = 28;
-                _autoSizeColumnsButton.Top = 4;
-                _autoSizeColumnsButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-                _autoSizeColumnsButton.FlatStyle = FlatStyle.System;
-                _autoSizeColumnsButton.Click += (s, e) =>
-                {
-                    if (_columnPreferenceApplying) return;
-                    _autoSizeColumnsEnabled = !_autoSizeColumnsEnabled;
-                    UpdateAutoSizeColumnsButton();
-                    ApplyColumnPreferenceMode();
-                    if (!_autoSizeColumnsEnabled) RestoreManualGridWidthsForCurrentUser();
-                    SaveColumnPreferencesForCurrentUser();
-                };
-                pickerCard.Controls.Add(_autoSizeColumnsButton);
-                pickerCard.Resize += (s, e) =>
-                {
-                    _autoSizeColumnsButton.Left = Math.Max(8, pickerCard.ClientSize.Width - _autoSizeColumnsButton.Width - 12);
-                };
-                _autoSizeColumnsButton.Left = Math.Max(8, pickerCard.ClientSize.Width - _autoSizeColumnsButton.Width - 12);
-                _autoSizeColumnsButton.BringToFront();
-            }
             var agentHost = _username.Parent;
             if (agentHost != null)
             {
@@ -479,7 +461,6 @@ namespace SupraInventoryRelayAgent
             var text = _autoSizeColumnsEnabled
                 ? "Auto size cột: Bật"
                 : "Auto size cột: Tắt";
-            _autoSizeColumnsButton.Text = text;
             _autoSizeAgentColumnsButton.Text = text;
         }
 
@@ -665,15 +646,79 @@ namespace SupraInventoryRelayAgent
             try
             {
                 foreach (DataGridViewColumn column in grid.Columns)
-                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
-                var available = Math.Max(200, grid.ClientSize.Width - (grid.Controls.OfType<VScrollBar>().Any(v => v.Visible) ? SystemInformation.VerticalScrollBarWidth : 4));
-                var used = 0;
-                foreach (DataGridViewColumn column in grid.Columns) used += column.Width;
-                if (used < available)
                 {
-                    var last = grid.Columns[grid.Columns.Count - 1];
-                    last.Width = Math.Min(800, Math.Max(last.MinimumWidth, last.Width + (available - used)));
+                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                    column.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+                }
+
+                grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
+                var available = Math.Max(240,
+                    grid.ClientSize.Width -
+                    (grid.Controls.OfType<VScrollBar>().Any(v => v.Visible) ? SystemInformation.VerticalScrollBarWidth : 4));
+                var columns = grid.Columns.Cast<DataGridViewColumn>().Where(x => x.Visible).ToList();
+                if (columns.Count == 0) return;
+
+                var preferred = new Dictionary<DataGridViewColumn, int>();
+                var minimum = new Dictionary<DataGridViewColumn, int>();
+                var totalPreferred = 0;
+                var totalMinimum = 0;
+                foreach (var column in columns)
+                {
+                    var isAction = column is DataGridViewButtonColumn;
+                    var min = Math.Max(column.MinimumWidth, isAction ? 82 : 72);
+                    var max = isAction ? 150 : 360;
+                    var pref = Math.Max(min, Math.Min(max, column.Width));
+                    preferred[column] = pref;
+                    minimum[column] = min;
+                    totalPreferred += pref;
+                    totalMinimum += min;
+                }
+
+                if (available <= totalMinimum)
+                {
+                    var ratio = available / (double)Math.Max(1, totalMinimum);
+                    foreach (var column in columns)
+                        column.Width = Math.Max(column.MinimumWidth, (int)Math.Floor(minimum[column] * ratio));
+                    return;
+                }
+
+                if (totalPreferred > available)
+                {
+                    var compressible = Math.Max(1, totalPreferred - totalMinimum);
+                    var need = totalPreferred - available;
+                    foreach (var column in columns)
+                    {
+                        var room = preferred[column] - minimum[column];
+                        var shrink = (int)Math.Round(need * (room / (double)compressible));
+                        column.Width = Math.Max(minimum[column], preferred[column] - shrink);
+                    }
+                }
+                else
+                {
+                    var slack = available - totalPreferred;
+                    var flexible = columns.Where(x => !(x is DataGridViewButtonColumn)).ToList();
+                    if (flexible.Count == 0) flexible = columns;
+                    var weightTotal = flexible.Sum(x => Math.Max(1, preferred[x]));
+                    foreach (var column in columns) column.Width = preferred[column];
+                    foreach (var column in flexible)
+                    {
+                        var extra = (int)Math.Floor(slack * (Math.Max(1, preferred[column]) / (double)Math.Max(1, weightTotal)));
+                        column.Width = Math.Min(column is DataGridViewButtonColumn ? 150 : 480, column.Width + extra);
+                    }
+                }
+
+                var used = columns.Sum(x => x.Width);
+                var remainder = available - used;
+                if (remainder > 0)
+                {
+                    foreach (var column in columns.Where(x => !(x is DataGridViewButtonColumn)).OrderByDescending(x => x.Width))
+                    {
+                        if (remainder <= 0) break;
+                        var cap = Math.Max(0, 480 - column.Width);
+                        var add = Math.Min(cap, remainder);
+                        column.Width += add;
+                        remainder -= add;
+                    }
                 }
             }
             catch { }
