@@ -278,3 +278,18 @@ D126 supersedes D125 before implementation.
 ## D144 — Agent authoritative Picker-session revoke
 
 The Beta Agent may request revocation of one Picker Android session only when authenticated as a real ADMIN or real PICKPACK_ADMIN Agent identity. The target is bound by application user id plus Firebase UID. Revocation advances the authoritative Android session generation, clears Android device/presence state, disables the prior Android notification registration and closes Android realtime. Immediately before disabling the prior Android FCM target, Worker may send one best-effort backward-compatible re-login alert; that alert is presentation compatibility only and is never session authority. Effective-role impersonation is not sufficient. Stable remains OWNER-GATED.
+## D146 — Managed-account delete hard boundary
+
+Managed ADMIN/PICKPACK_ADMIN/REPORTER deletion is a ROOT-only destructive action and must be gated on **both** identity levels:
+
+- `base_role == ROOT`; and
+- current/effective `role == ROOT`.
+
+The rule is enforced independently in Web presentation/selection, Worker API and InventoryCore mutation handling. Therefore:
+
+- a real `PICKPACK_ADMIN` cannot select or delete an `ADMIN`;
+- a ROOT user temporarily reviewing the system with effective role `PICKPACK_ADMIN` cannot select or delete an `ADMIN` or any other managed account;
+- changing client HTML/API input cannot bypass the InventoryCore guard;
+- true ROOT operating as ROOT retains the existing managed-account deletion authority.
+
+Picker bulk actions remain governed by their separate Picker-specific RBAC and are not widened by this rule.
