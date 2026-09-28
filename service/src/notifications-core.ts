@@ -74,6 +74,7 @@ type RealtimePickerAttachment = {
 
 export function onlinePickerProjectionData(
   state: DurableObjectState,
+  _excludeConnectionId = "",
 ): {
   items: Array<Record<string, unknown>>;
   count: number;
