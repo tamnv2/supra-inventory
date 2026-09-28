@@ -378,7 +378,7 @@ checks = {
     "web_d063_people_layout": all(token in WEB_APP for token in ["users-top-grid", "Tạo tài khoản nghiệp vụ", "Tìm và lọc tài khoản", "user-bulk-bar"]) and all(token in WEB_FAST for token in ["users-top-grid", "users-form-grid", "user-bulk-bar"]),
     "web_d063_runtime_logs": all(token in WEB_LOGGER for token in ["scheduled_", "window_error", "unhandled_promise_rejection", "maybeSendScheduledWebLog"]) and all(token in WEB_APP for token in ["Log Web", "Log Android", "send-web-log"]) and "Beta / Logs" not in WEB_APP and all(token in SERVICE_RUNTIME_LOGS for token in ["REDACTED", "LOGS_FOLDER_ID", "uploadRuntimeLog", "listRuntimeLogs"]),
     "service_d063_presence_by_role": "online_users_by_role" in SERVICE_READ_MODEL and "online_users_by_client" in SERVICE_READ_MODEL,
-    "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["currentRuntimeLogSlot", "scheduled_", "pending_crash", "android_crash", "Gửi lên Drive"]) and "uploadRuntimeLog" in ANDROID_API,
+    "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["currentRuntimeLogSlot", "scheduled_", "pending_crash", "android_crash", "Gửi log"]) and "uploadRuntimeLog" in ANDROID_API,
     "web_d063_dark_completion": all(token in WEB_FAST for token in ["D063 Owner operations/reporting/logs/users completion", ".business-summary-card", ".logs-layout", ".users-top-grid", 'body[data-theme="dark"]']),
     "web_d064_system_status_layout": all(token in WEB_APP for token in [
         "function renderSystem()", "Cloudflare", "Cơ sở dữ liệu nghiệp vụ", "Bài kiểm tra tải gần nhất",
