@@ -645,3 +645,16 @@ For Web **Thời gian xử lý**:
 - While dirty, only non-destructive secondary patches such as SLA insight counts/overlays may update.
 - Submit authority for Deadline mode is the currently checked `input[name="autoSkipMode"]`.
 - Authoritative server rerender is allowed only after successful save clears dirty state, explicit stale-conflict reload, navigation away/back, or fresh page load.
+
+
+### D141 SLA server authority and draft contract
+
+The **Thời gian xử lý** form must keep these states separate:
+
+- **Server/applied mode** comes only from `GET /api/admin/sla` and drives **Đang áp dụng**.
+- **Draft mode** is the radio selection currently being edited. If it differs from the server value, the UI must show **Thay đổi chưa lưu** explicitly.
+- A clean render must force radio controls from server authority; generic UI-context restoration and browser form restoration must not create a different selected mode.
+- SLA Save has a dedicated single-flight state and must never be silently dropped because another generic Web action is busy.
+- Save captures the checked mode at submit, sends a non-secret request id and the expected policy version, and remains revision-safe.
+- Server success requires post-write SQLite readback of all SLA fields and policy version. Web success additionally requires a fresh no-cache GET with the same mode and committed version.
+- On any mismatch, do not show success. Keep the draft visible and show requested mode versus current server mode.

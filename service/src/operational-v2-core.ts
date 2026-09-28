@@ -970,9 +970,12 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
     skip_to_stock_enabled?: unknown;
     skip_to_stock_minutes?: unknown;
     expected_policy_version?: unknown;
+    request_id?: unknown;
     actor?: Actor;
   };
   const actor = body.actor;
+  const requestedRequestId = String(body.request_id || "").trim();
+  const requestId = /^[A-Za-z0-9._:-]{8,128}$/.test(requestedRequestId) ? requestedRequestId : crypto.randomUUID();
   const previous = readSlaConfig(state);
   const currentPolicyVersion = Math.max(0, Number(previous?.policy_version || 0));
   const expectedPolicyVersion = body.expected_policy_version == null || body.expected_policy_version === ""
@@ -1051,13 +1054,68 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
       actor.role || null,
       actor.display_name || null,
       SLA_CONFIG_KEY,
-      JSON.stringify({ ...value, previous_auto_skip_enabled: previous?.auto_skip_enabled ?? false, previous_auto_skip_mode: previous?.auto_skip_mode ?? null }),
+      JSON.stringify({
+        ...value,
+        request_id: requestId,
+        requested_auto_skip_mode: value.auto_skip_mode,
+        previous_auto_skip_enabled: previous?.auto_skip_enabled ?? false,
+        previous_auto_skip_mode: previous?.auto_skip_mode ?? null,
+      }),
       at,
     );
   });
 
+  // D141: do not trust the value just written in memory. Read the SQLite authority
+  // back through the same parser used by GET /operational/sla and verify the entire
+  // policy before reporting success to the Web client.
+  const persisted = readSlaConfig(state);
+  const persistedMatches = Boolean(
+    persisted &&
+    persisted.warning_minutes === value.warning_minutes &&
+    persisted.warning_enabled === value.warning_enabled &&
+    persisted.escalation_minutes === value.escalation_minutes &&
+    persisted.escalation_enabled === value.escalation_enabled &&
+    persisted.auto_skip_minutes === value.auto_skip_minutes &&
+    persisted.auto_skip_enabled === value.auto_skip_enabled &&
+    persisted.auto_skip_mode === value.auto_skip_mode &&
+    persisted.skip_to_stock_enabled === value.skip_to_stock_enabled &&
+    persisted.skip_to_stock_minutes === value.skip_to_stock_minutes &&
+    Number(persisted.policy_version || 0) === Number(value.policy_version || 0) &&
+    String(persisted.effective_at || "") === String(value.effective_at || "")
+  );
+
+  // The policy row may already be committed even if verification fails, so keep
+  // deadline scheduling consistent with the database before returning fail-closed.
   await scheduleNextOperationalAlarm(state);
-  return json({ status: "saved", configured: true, sla: { ...value, updated_at: at, updated_by: actor.user_id } });
+
+  if (!persistedMatches || !persisted) {
+    return json({
+      error: "SLA_PERSISTENCE_VERIFY_FAILED",
+      message: "Máy chủ đã ghi cấu hình nhưng đọc xác minh từ SQLite không khớp. Không xác nhận lưu thành công.",
+      request_id: requestId,
+      requested_mode: value.auto_skip_mode,
+      persisted_mode: persisted?.auto_skip_mode ?? null,
+      base_policy_version: currentPolicyVersion,
+      persisted_policy_version: Number(persisted?.policy_version || 0),
+      configured: Boolean(persisted),
+      sla: persisted,
+    }, 500);
+  }
+
+  return json({
+    status: "saved",
+    configured: true,
+    sla: persisted,
+    verification: {
+      request_id: requestId,
+      requested_mode: value.auto_skip_mode,
+      previous_mode: previous?.auto_skip_mode ?? null,
+      persisted_mode: persisted.auto_skip_mode,
+      base_policy_version: currentPolicyVersion,
+      persisted_policy_version: Number(persisted.policy_version || 0),
+      sqlite_readback: "PASS",
+    },
+  });
 }
 
 export function pickerCanReceiveRealtimeEvent(

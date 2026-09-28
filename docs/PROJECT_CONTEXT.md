@@ -590,3 +590,14 @@ D140 is Agent-only. The raw streaming client now supplies Firestore database rou
 
 Target is `relay-agent-v80`. Android remains `beta-vc82`; no APK update, provider resource, schema or Stable change is part of D140. OA066 remains blocked until PR/CI/main/release PASS and a 30–60 minute Owner field soak confirms the reconnect storm and usage spike are gone.
 
+
+
+## D141 SLA persistence repair — 2026-09-28
+
+D139 failed field acceptance. Owner reloaded the Beta SLA screen and observed the radio on **Theo báo đầu tiên của SKU** while the server-authority label still showed **Theo từng Picker**.
+
+The source review isolated a concrete rendering defect that D138/D139 had missed: `patchActiveSection(true)` captures all form controls, renders fresh authoritative markup, then `restoreUiContext()` replays the old control values. That can restore the old radio after the server label has already rendered from the latest response. In addition, the SLA submit still used generic `run()`, whose `if (busy) return` contract can silently discard a configuration save when another generic action owns the busy flag.
+
+D141 replaces the mixed state with explicit server/draft mode ownership, excludes SLA fields from generic context restoration, gives SLA Save its own single-flight path, and adds two-stage persistence proof: InventoryCore SQLite post-write readback followed by a fresh no-cache Web GET. A mismatch is fail-closed and logged only with sanitized request/mode/version metadata.
+
+Scope: Beta Web/Worker only. No provider/schema/Android/Agent mutation. D140 Agent v80 remains parallel, D137 OA063 remains open, and Stable remains OWNER-GATED.

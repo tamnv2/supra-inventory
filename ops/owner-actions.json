@@ -3230,7 +3230,7 @@
     },
     {
       "id": "OA065",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "FIELD_FAIL__SUPERSEDED_BY_OA067_D141",
       "title": "Field-accept D139 global SLA dirty-form persistence repair",
       "resource_key": "repo",
       "provider": "Beta Web + existing Beta Worker/InventoryCore",
@@ -3267,8 +3267,14 @@
         "No schema/provider/Android/Agent change and Stable remains untouched."
       ],
       "safety": "Beta Web only. Revision-safe server authority remains unchanged. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "On live Beta Web, wait until Thời gian xử lý is fully loaded, select FIRST_REPORT, leave it selected for several seconds, save, reload, and verify the radio plus Đang áp dụng both remain FIRST_REPORT.",
-      "closed": false
+      "remaining_owner_action": null,
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-28",
+        "result": "FAIL",
+        "evidence": "After D139 Owner reloaded the SLA page. The radio appeared FIRST_REPORT while the explicit server-authority label still said PER_PICKER, proving the applied server value had not changed and stale form-control restoration remained.",
+        "successor": "OA067_D141"
+      }
     },
     {
       "id": "OA066",
@@ -3301,6 +3307,42 @@
       ],
       "safety": "Beta Agent only. Do not expose Firebase tokens, Agent credentials or WMS session data. Stable remains OWNER-GATED.",
       "remaining_owner_action": "Wait for D140 technical/runtime/release PASS and relay-agent-v80 publication, then run the shortest field soak path.",
+      "closed": false
+    },
+    {
+      "id": "OA067",
+      "status": "BLOCKED_PENDING_D141_TECHNICAL_RUNTIME_PASS",
+      "title": "Field-accept D141 end-to-end SLA persistence and authority UI",
+      "resource_key": "repo",
+      "provider": "Beta Web + existing Beta Worker/InventoryCore SQLite",
+      "reason_owner_only": "CI can prove source/build/readback invariants and exact-source deployment, but final acceptance requires one live authenticated browser mutation against the existing Beta InventoryCore.",
+      "prerequisites": {
+        "baseline_main": "ab9c867c92c13ff1391fef4f29b5de2cd412ea14",
+        "implementation_branch": "fix/d141-sla-server-draft-persistence",
+        "new_provider_resources": "NONE",
+        "android": "beta-vc82__UNCHANGED",
+        "agent": "D140_RELAY_AGENT_V80_PARALLEL__NO_D141_CHANGE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Open Beta Web → Thời gian xử lý and press F5 once.",
+        "Before editing, verify the selected Deadline radio and Đang áp dụng show the same server-authoritative mode.",
+        "Select Theo báo đầu tiên của SKU. Before Save, verify the UI explicitly shows Thay đổi chưa lưu: Theo báo đầu tiên của SKU while Đang áp dụng remains the current server mode.",
+        "Press Lưu cấu hình toàn hệ thống once. The button must show Đang lưu… and the action must not disappear because another generic Web action is busy.",
+        "Require a success notice that names Theo báo đầu tiên của SKU and the committed policy version.",
+        "Press F5. Verify both the selected radio and Đang áp dụng remain Theo báo đầu tiên của SKU."
+      ],
+      "pass_criteria": [
+        "SLA radio and server-applied label cannot contradict each other on a clean authoritative render.",
+        "Draft mode is visibly separate from server-applied mode before Save.",
+        "SLA Save uses a dedicated single-flight path and cannot be silently dropped by generic busy state.",
+        "Server success requires SQLite post-write readback of the full SLA policy, including FIRST_REPORT and incremented policy_version.",
+        "Web success additionally requires a fresh no-cache GET matching the persisted mode/version.",
+        "Any mismatch is shown as failure with requested mode versus current server mode; false success is forbidden.",
+        "No schema/provider/Android/Agent change from D141 and Stable remains untouched."
+      ],
+      "safety": "Beta Web/Worker only. No secrets or session material are logged. Existing optimistic policy-version protection remains. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D141 technical/runtime PASS, then run the six-step live Beta test.",
       "closed": false
     }
   ]

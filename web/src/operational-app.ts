@@ -67,6 +67,7 @@ import {
   type AdminReportingDetailRow,
   type AgentAppRelease,
   type AndroidAlertWindowState,
+  type AutoSkipMode,
   type BatchPickerTicket,
   type HrSourceResponse,
   type HrSyncPreview,
@@ -349,6 +350,8 @@ let operationsLoadPromise: Promise<void> | null = null;
 let operationsLoadQueued = false;
 let slaResponse: SlaResponse | null = null;
 let slaFormDirty = false;
+let slaDraftMode: AutoSkipMode | null = null;
+let slaSaveBusy = false;
 let operationalInsights: OperationalInsights | null = null;
 let realtimePresence: RealtimePresence | null = null;
 let managedUsers: ManagedUser[] = [];
@@ -710,6 +713,49 @@ function onlineForMutation(): boolean {
   return navigator.onLine;
 }
 
+function normalizeAutoSkipMode(value: unknown): AutoSkipMode | null {
+  const mode = String(value || "").toUpperCase();
+  return mode === "FIRST_REPORT" || mode === "PER_PICKER" ? mode : null;
+}
+
+function autoSkipModeLabel(mode: AutoSkipMode | null): string {
+  return mode === "FIRST_REPORT" ? "Theo báo đầu tiên của SKU"
+    : mode === "PER_PICKER" ? "Theo từng Picker"
+      : "Chưa xác định";
+}
+
+function currentSlaServerMode(): AutoSkipMode | null {
+  return normalizeAutoSkipMode(slaResponse?.sla?.auto_skip_mode);
+}
+
+function patchSlaDraftIndicator(): void {
+  const serverMode = currentSlaServerMode();
+  const serverNode = document.querySelector<HTMLElement>("#sla-server-mode-value");
+  if (serverNode) serverNode.textContent = autoSkipModeLabel(serverMode);
+  const node = document.querySelector<HTMLElement>("#sla-draft-value");
+  if (!node) return;
+  const draftMode = slaDraftMode || serverMode;
+  const pending = Boolean(slaFormDirty && draftMode && draftMode !== serverMode);
+  node.dataset.pending = pending ? "true" : "false";
+  node.textContent = pending
+    ? `Thay đổi chưa lưu: ${autoSkipModeLabel(draftMode)}`
+    : "Biểu mẫu đang khớp cấu hình máy chủ.";
+}
+
+function syncSlaModeControlsFromState(): void {
+  if (activeSection !== "sla") return;
+  const serverMode = currentSlaServerMode();
+  const desiredMode = slaFormDirty ? (slaDraftMode || serverMode) : serverMode;
+  if (!desiredMode) return;
+  document.querySelectorAll<HTMLInputElement>('input[name="autoSkipMode"]').forEach((input) => {
+    const selected = input.value === desiredMode;
+    input.checked = selected;
+    input.defaultChecked = selected;
+    input.autocomplete = "off";
+  });
+  patchSlaDraftIndicator();
+}
+
 function slaLabel(state: string): string {
   if (state === "ESCALATED") return "Quá thời gian";
   if (state === "WARNING") return "Sắp quá thời gian";
@@ -837,16 +883,22 @@ function restoreUiContext(snapshot: UiContextSnapshot | null): void {
   if (!snapshot || snapshot.section !== activeSection || snapshot.userId !== (profile?.user_id || null)) return;
   const main = document.querySelector<HTMLElement>(".main");
   if (!main) return;
-  for (const saved of snapshot.fields) {
-    let field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = null;
-    if (saved.id) field = document.getElementById(saved.id) as typeof field;
-    if (!field && saved.name) {
-      field = [...main.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")]
-        .find((candidate) => candidate.name === saved.name) || null;
+  // D141: SLA has explicit server/draft state. Generic context restoration used to
+  // replay stale radio values after an authoritative GET, producing the impossible
+  // visual state "radio FIRST_REPORT / Đang áp dụng PER_PICKER". Never restore SLA
+  // form controls from a pre-render snapshot; renderSla + slaDraftMode own them.
+  if (snapshot.section !== "sla") {
+    for (const saved of snapshot.fields) {
+      let field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null = null;
+      if (saved.id) field = document.getElementById(saved.id) as typeof field;
+      if (!field && saved.name) {
+        field = [...main.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")]
+          .find((candidate) => candidate.name === saved.name) || null;
+      }
+      if (!field) continue;
+      field.value = saved.value;
+      if (saved.checked != null && field instanceof HTMLInputElement) field.checked = saved.checked;
     }
-    if (!field) continue;
-    field.value = saved.value;
-    if (saved.checked != null && field instanceof HTMLInputElement) field.checked = saved.checked;
   }
   main.scrollTop = snapshot.mainScrollTop;
   main.scrollLeft = snapshot.mainScrollLeft;
@@ -958,7 +1010,10 @@ function navigateToSection(next: Section, historyMode: SectionHistoryMode = "pus
     return;
   }
   const started = performance.now();
-  if (activeSection === "sla") slaFormDirty = false;
+  if (activeSection === "sla") {
+    slaFormDirty = false;
+    slaDraftMode = null;
+  }
   activeSection = next;
   syncSectionHistory(next, historyMode);
   pickerSearchGeneration += 1;
@@ -1678,9 +1733,10 @@ function renderSla(): string {
   const escalationEnabled = configured ? sla!.escalation_enabled === true : false;
   const autoEnabled = configured ? sla!.auto_skip_enabled === true : false;
   const correctionEnabled = configured ? sla!.skip_to_stock_enabled === true : false;
-  const rawMode = configured ? String(sla!.auto_skip_mode || "") : "";
-  const mode = rawMode === "FIRST_REPORT" || rawMode === "PER_PICKER" ? rawMode : "";
-  const modeInvalid = configured && !mode;
+  const serverMode = configured ? normalizeAutoSkipMode(sla!.auto_skip_mode) : null;
+  const mode = slaFormDirty ? (slaDraftMode || serverMode) : serverMode;
+  const modeInvalid = configured && !serverMode;
+  const draftModePending = Boolean(slaFormDirty && mode && mode !== serverMode);
   const revision = Number(sla?.policy_version || 0);
   const updatedBy = sla?.updated_by || "—";
   const updatedAt = sla?.updated_at ? fmt(sla.updated_at) : "Chưa có";
@@ -1698,7 +1754,7 @@ function renderSla(): string {
     </section>
     ${modeInvalid ? `<div class="sla-config-error" role="alert">Cấu hình máy chủ đang thiếu chính sách Deadline hợp lệ. Không lưu đè; hãy tải lại trang hoặc kiểm tra dịch vụ.</div>` : ""}
 
-    <form id="sla-form" class="ops-panel sla-config-panel sla-config-professional">
+    <form id="sla-form" class="ops-panel sla-config-panel sla-config-professional" autocomplete="off">
       <div class="ops-panel-title sla-section-heading"><div><h3>01 · Mốc phản hồi</h3><p>Các mốc phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
       <div class="sla-threshold-flow">
         <article class="sla-threshold-card warning">
@@ -1726,10 +1782,11 @@ function renderSla(): string {
           <span class="sla-policy-kicker">Deadline tự động</span>
           <h4>Cách tính mốc tự động bỏ qua</h4>
           <div class="sla-choice-list" role="radiogroup" aria-label="Cách tính mốc tự động bỏ qua">
-            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
-            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" autocomplete="off" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" autocomplete="off" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
           </div>
-          <div class="sla-server-value">Đang áp dụng: <strong>${mode === "FIRST_REPORT" ? "Theo báo đầu tiên của SKU" : mode === "PER_PICKER" ? "Theo từng Picker" : "Chưa xác định"}</strong></div>
+          <div class="sla-server-value">Đang áp dụng: <strong id="sla-server-mode-value">${autoSkipModeLabel(serverMode)}</strong></div>
+          <div id="sla-draft-value" class="sla-draft-value" data-pending="${draftModePending ? "true" : "false"}">${draftModePending ? `Thay đổi chưa lưu: ${autoSkipModeLabel(mode)}` : "Biểu mẫu đang khớp cấu hình máy chủ."}</div>
         </article>
         <article class="sla-policy-card">
           <span class="sla-policy-kicker">Sửa kết quả</span>
@@ -1741,7 +1798,7 @@ function renderSla(): string {
 
       <div class="sla-config-footer">
         <div><strong>Lưu ý</strong><span>Hệ thống kiểm tra phiên bản cấu hình trước khi lưu. Nếu một máy khác vừa cập nhật, bản cũ sẽ không được phép ghi đè.</span></div>
-        <button class="primary">Lưu cấu hình toàn hệ thống</button>
+        <button id="sla-save-button" class="primary" ${slaSaveBusy ? "disabled" : ""}>${slaSaveBusy ? "Đang lưu…" : "Lưu cấu hình toàn hệ thống"}</button>
       </div>
     </form>
 
@@ -2649,6 +2706,189 @@ function patchSlaInsightCounts(): void {
     : "Tắt";
 }
 
+async function saveSlaConfiguration(form: HTMLFormElement): Promise<void> {
+  if (slaSaveBusy) {
+    setNotice("warning", "Cấu hình thời gian đang được lưu. Vui lòng chờ kết quả hiện tại.");
+    return;
+  }
+  if (!onlineForMutation()) {
+    setNotice("error", "Cần kết nối mạng để lưu cấu hình thời gian xử lý.");
+    return;
+  }
+
+  const data = new FormData(form);
+  const warning = Number(data.get("warning"));
+  const warningEnabled = data.get("warningEnabled") === "on";
+  const escalation = Number(data.get("escalation"));
+  const escalationEnabled = data.get("escalationEnabled") === "on";
+  const autoSkip = Number(data.get("autoSkip"));
+  const autoSkipEnabled = data.get("autoSkipEnabled") === "on";
+  const checkedMode = form.querySelector<HTMLInputElement>('input[name="autoSkipMode"]:checked');
+  const requestedMode = normalizeAutoSkipMode(checkedMode?.value || slaDraftMode || data.get("autoSkipMode"));
+  const skipToStockEnabled = data.get("skipToStockEnabled") === "on";
+  const skipToStockMinutes = Number(data.get("skipToStockMinutes"));
+
+  if (!requestedMode) {
+    setNotice("error", "Cách tính mốc tự động bắt buộc phải chọn đúng 1 phương án.");
+    return;
+  }
+  slaDraftMode = requestedMode;
+  slaFormDirty = true;
+  patchSlaDraftIndicator();
+
+  if (
+    !Number.isInteger(warning) ||
+    !Number.isInteger(escalation) ||
+    !Number.isInteger(autoSkip) ||
+    !Number.isInteger(skipToStockMinutes) ||
+    warning < 1 ||
+    warning > 1440 ||
+    escalation <= warning ||
+    escalation > 2880 ||
+    autoSkip <= escalation ||
+    autoSkip > 10080 ||
+    skipToStockMinutes < 1 ||
+    skipToStockMinutes > 10080
+  ) {
+    setNotice("error", "Các mốc phải là số phút nguyên hợp lệ; Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
+    return;
+  }
+
+  const expectedPolicyVersion = Number(slaResponse?.sla?.policy_version || 0);
+  const requestId = crypto.randomUUID();
+  const saveButton = form.querySelector<HTMLButtonElement>("#sla-save-button");
+  slaSaveBusy = true;
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.textContent = "Đang lưu…";
+  }
+  const started = performance.now();
+
+  try {
+    runtimeLogMetric("SLA", "save_start", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      expected_policy_version: expectedPolicyVersion,
+    }, 0);
+
+    const saved = await saveAdminSla({
+      warning_minutes: warning,
+      warning_enabled: warningEnabled,
+      escalation_minutes: escalation,
+      escalation_enabled: escalationEnabled,
+      auto_skip_minutes: autoSkip,
+      auto_skip_enabled: autoSkipEnabled,
+      auto_skip_mode: requestedMode,
+      skip_to_stock_enabled: skipToStockEnabled,
+      skip_to_stock_minutes: skipToStockMinutes,
+      expected_policy_version: expectedPolicyVersion,
+      request_id: requestId,
+    });
+
+    const verification = saved.verification;
+    const savedMode = normalizeAutoSkipMode(saved.sla?.auto_skip_mode);
+    const savedVersion = Number(saved.sla?.policy_version || 0);
+    const verificationValid = Boolean(
+      verification &&
+      verification.request_id === requestId &&
+      verification.sqlite_readback === "PASS" &&
+      verification.requested_mode === requestedMode &&
+      verification.persisted_mode === requestedMode &&
+      Number(verification.base_policy_version || 0) === expectedPolicyVersion &&
+      Number(verification.persisted_policy_version || 0) === savedVersion &&
+      savedMode === requestedMode &&
+      savedVersion > expectedPolicyVersion
+    );
+    if (!verificationValid) {
+      throw new Error(
+        `Xác minh ghi SQLite thất bại. Yêu cầu ${requestedMode}; phản hồi ${savedMode || "UNKNOWN"}; phiên bản ${savedVersion || 0}.`,
+      );
+    }
+
+    // D141 end-to-end authority check: use a fresh no-cache GET after the server's
+    // SQLite readback. Success is impossible unless both reads agree with the
+    // operator's requested mode and the exact committed policy version.
+    const authoritative = await getAdminSla();
+    const authoritativeMode = normalizeAutoSkipMode(authoritative.sla?.auto_skip_mode);
+    const authoritativeVersion = Number(authoritative.sla?.policy_version || 0);
+    if (authoritativeMode !== requestedMode || authoritativeVersion !== savedVersion) {
+      throw new Error(
+        `Xác minh GET sau lưu thất bại. Yêu cầu ${requestedMode}; máy chủ ${authoritativeMode || "UNKNOWN"}; phiên bản ${authoritativeVersion || 0}/${savedVersion}.`,
+      );
+    }
+
+    slaResponse = authoritative;
+    slaDraftMode = authoritativeMode;
+    slaFormDirty = false;
+    markWebUpdateReceived();
+    runtimeLogMetric("SLA", "save_verified", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      persisted_mode: authoritativeMode,
+      policy_version: authoritativeVersion,
+      sqlite_readback: "PASS",
+    }, performance.now() - started);
+    setNotice("success", `Đã lưu và xác minh: ${autoSkipModeLabel(authoritativeMode)} · phiên bản ${authoritativeVersion}.`);
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "SLA_CONFIG_STALE") {
+      slaFormDirty = false;
+      slaDraftMode = null;
+      await loadSla();
+      setNotice("warning", "Cấu hình đã được cập nhật ở phiên khác. Đã tải lại bản mới nhất; thay đổi cũ không được ghi đè.");
+      return;
+    }
+
+    const message = error instanceof Error ? error.message : "Không lưu được cấu hình thời gian xử lý.";
+    let latest: SlaResponse | null = null;
+    try {
+      latest = await getAdminSla();
+    } catch {
+      // Keep the current server snapshot if the verification read is unavailable.
+    }
+    if (latest) {
+      slaResponse = latest;
+      markWebUpdateReceived();
+    }
+    const serverMode = normalizeAutoSkipMode((latest || slaResponse)?.sla?.auto_skip_mode);
+    const serverVersion = Number((latest || slaResponse)?.sla?.policy_version || 0);
+    slaDraftMode = requestedMode;
+    slaFormDirty = true;
+    patchSlaDraftIndicator();
+    runtimeLogMetric("SLA", "save_verify_failed", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      server_mode: serverMode,
+      server_policy_version: serverVersion,
+      error: message,
+    }, performance.now() - started, "ERROR");
+    void sendWebRuntimeLog("sla_save_verify_failed", "ERROR", {
+      request_id: requestId,
+      requested_mode: requestedMode,
+      server_mode: serverMode,
+      server_policy_version: serverVersion,
+      message,
+    });
+    setNotice(
+      "error",
+      `Lưu chưa được xác nhận. Yêu cầu: ${autoSkipModeLabel(requestedMode)} · Máy chủ hiện tại: ${autoSkipModeLabel(serverMode)}. ${message}`,
+    );
+  } finally {
+    slaSaveBusy = false;
+    if (saveButton && saveButton.isConnected) {
+      saveButton.disabled = false;
+      saveButton.textContent = "Lưu cấu hình toàn hệ thống";
+    }
+    if (activeSection === "sla") {
+      if (slaFormDirty) {
+        syncSlaModeControlsFromState();
+        patchSlaDraftIndicator();
+      } else {
+        patchActiveSection(true);
+      }
+    }
+  }
+}
+
 async function loadSla(): Promise<void> {
   const loadGeneration = ++slaLoadGeneration;
   const generation = sessionViewGeneration;
@@ -2666,6 +2906,7 @@ async function loadSla(): Promise<void> {
   }
 
   slaResponse = nextSla;
+  slaDraftMode = normalizeAutoSkipMode(nextSla.sla?.auto_skip_mode);
   markWebUpdateReceived();
   if (activeSection === "sla") patchActiveSection(true);
   try {
@@ -3640,76 +3881,38 @@ function bindSection(): void {
   });
 
   const slaForm = document.querySelector<HTMLFormElement>("#sla-form");
-  slaForm?.addEventListener("input", () => { slaFormDirty = true; });
-  slaForm?.addEventListener("change", () => { slaFormDirty = true; });
-  slaForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget as HTMLFormElement);
-    void run(async () => {
-      const warning = Number(data.get("warning"));
-      const warningEnabled = data.get("warningEnabled") === "on";
-      const escalation = Number(data.get("escalation"));
-      const escalationEnabled = data.get("escalationEnabled") === "on";
-      const autoSkip = Number(data.get("autoSkip"));
-      const autoSkipEnabled = data.get("autoSkipEnabled") === "on";
-      const checkedMode = slaForm.querySelector<HTMLInputElement>('input[name="autoSkipMode"]:checked');
-      const autoSkipModeRaw = String(checkedMode?.value || data.get("autoSkipMode") || "");
-      const skipToStockEnabled = data.get("skipToStockEnabled") === "on";
-      const skipToStockMinutes = Number(data.get("skipToStockMinutes"));
-      if (!["FIRST_REPORT", "PER_PICKER"].includes(autoSkipModeRaw)) {
-        throw new Error("Cách tính mốc tự động bắt buộc phải chọn đúng 1 phương án.");
+  if (slaForm) {
+    // D141: server authority and browser draft are separate. Initialize the DOM
+    // from explicit state after every render so native/browser context restoration
+    // cannot silently select a different radio than the server value.
+    syncSlaModeControlsFromState();
+
+    slaForm.addEventListener("input", (event) => {
+      slaFormDirty = true;
+      const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+      if (target instanceof HTMLInputElement && target.name === "autoSkipMode" && target.checked) {
+        slaDraftMode = normalizeAutoSkipMode(target.value);
       }
-      const autoSkipMode = autoSkipModeRaw as "FIRST_REPORT" | "PER_PICKER";
-      if (
-        !Number.isInteger(warning) ||
-        !Number.isInteger(escalation) ||
-        !Number.isInteger(autoSkip) ||
-        !Number.isInteger(skipToStockMinutes) ||
-        warning < 1 ||
-        warning > 1440 ||
-        escalation <= warning ||
-        escalation > 2880 ||
-        autoSkip <= escalation ||
-        autoSkip > 10080 ||
-        skipToStockMinutes < 1 ||
-        skipToStockMinutes > 10080
-      ) throw new Error("Các mốc phải là số phút nguyên hợp lệ; Cảnh báo < Quá hạn < Tự động cho phép bỏ qua.");
-      const expectedPolicyVersion = Number(slaResponse?.sla?.policy_version || 0);
-      try {
-        const saved = await saveAdminSla({
-          warning_minutes: warning,
-          warning_enabled: warningEnabled,
-          escalation_minutes: escalation,
-          escalation_enabled: escalationEnabled,
-          auto_skip_minutes: autoSkip,
-          auto_skip_enabled: autoSkipEnabled,
-          auto_skip_mode: autoSkipMode,
-          skip_to_stock_enabled: skipToStockEnabled,
-          skip_to_stock_minutes: skipToStockMinutes,
-          expected_policy_version: expectedPolicyVersion,
-        });
-        const savedMode = saved.sla?.auto_skip_mode;
-        if (savedMode !== autoSkipMode) {
-          throw new Error("Máy chủ trả về chính sách Deadline khác giá trị vừa lưu. Không tiếp tục hiển thị như đã thành công.");
-        }
-        slaResponse = saved;
-        slaFormDirty = false;
-        await loadSla();
-        if (slaResponse?.sla?.auto_skip_mode !== autoSkipMode) {
-          throw new Error("Xác minh sau lưu thất bại: chính sách Deadline trên máy chủ không khớp.");
-        }
-        setNotice("success", "Đã lưu và xác minh cấu hình thời gian xử lý toàn hệ thống.");
-      } catch (error) {
-        if (error instanceof ApiError && error.code === "SLA_CONFIG_STALE") {
-          slaFormDirty = false;
-          await loadSla();
-          setNotice("warning", "Cấu hình đã được cập nhật ở một phiên khác. Đã tải lại bản mới nhất; thay đổi cũ không được ghi đè.");
-          return;
-        }
-        throw error;
-      }
+      patchSlaDraftIndicator();
     });
-  });
+    slaForm.addEventListener("change", (event) => {
+      slaFormDirty = true;
+      const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+      if (target instanceof HTMLInputElement && target.name === "autoSkipMode" && target.checked) {
+        slaDraftMode = normalizeAutoSkipMode(target.value);
+      }
+      patchSlaDraftIndicator();
+    });
+    slaForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      // Do not route this global configuration write through run(): run() drops
+      // work when another action owns the generic busy flag. SLA Save has its own
+      // single-flight lock and must never disappear silently.
+      void saveSlaConfiguration(event.currentTarget as HTMLFormElement);
+    });
+
+    requestAnimationFrame(() => syncSlaModeControlsFromState());
+  }
 
   document.querySelector<HTMLFormElement>("#dashboard-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -3900,6 +4103,11 @@ window.addEventListener("offline", () => {
 });
 window.addEventListener("popstate", handleSectionHistoryNavigation);
 window.addEventListener("hashchange", handleSectionHistoryNavigation);
+window.addEventListener("pageshow", () => {
+  // D141: browsers may restore form controls on reload/back-forward navigation.
+  // Re-assert explicit SLA server/draft authority after page restoration.
+  requestAnimationFrame(() => syncSlaModeControlsFromState());
+});
 
 async function bootstrap(): Promise<void> {
   if (!hasSession()) { renderLogin(); return; }
