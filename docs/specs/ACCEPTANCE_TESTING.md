@@ -1718,3 +1718,26 @@ In addition to the D137 UI checks:
    - PASS: radio and **Đang áp dụng** both remain `FIRST_REPORT`.
 7. Negative cases: stale version, network failure, readback mismatch or a second concurrent save.
    - PASS: no false success; requested/current server modes remain diagnosable and Stable is untouched.
+
+## D142 Android 11 MT90 / DT50 critical-alert acceptance
+
+Automated/source/build acceptance:
+
+- manifest declares `USE_FULL_SCREEN_INTENT`, `ACCESS_NOTIFICATION_POLICY` and `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` while preserving existing notification/overlay/foreground-service declarations;
+- readiness evaluates `NotificationManager.areNotificationsEnabled()`, `Settings.canDrawOverlays()`, `NotificationManager.isNotificationPolicyAccessGranted`, `PowerManager.isIgnoringBatteryOptimizations()` and the critical channel's high importance + `canBypassDnd()`;
+- the permission gate remains before login/restored business startup, lists missing requirements with concise guidance, provides Settings actions, and has **no manual KIỂM TRA LẠI button**;
+- returning through `onResume()` automatically re-evaluates readiness and continues the pre-existing login/restored-session path only when all required conditions pass;
+- critical channel uses `inventory_critical_alert_v2`, high importance and DND bypass; app/channel Settings routes target the current package/channel where Android supports that;
+- critical overlay notification and its fallback may use `setFullScreenIntent(..., true)`; the bounded wake Activity uses `setShowWhenLocked(true)` / `setTurnScreenOn(true)` on Android 11-compatible API and self-finishes;
+- the D133/D135 cross-app overlay, 60-second specialist-call safety TTL, result presentation ownership and local-first pending ACK behavior remain unchanged;
+- server FCM remains data-only Android `priority: "high"`; no system notification payload bypass is introduced;
+- no alert-permission polling loop, persistent WakeLock or new always-running service is introduced;
+- normal Android/Agent/Web business regressions and signed Beta build must remain PASS; Stable is untouched.
+
+OA068 physical acceptance after signed release:
+
+- install on one normal Newland MT90 Android 11 and one Urovo DT50 Android 11;
+- opening the app with any missing required item must show the exact missing list before login;
+- each available Settings action must reach the relevant Android control (or safe App-details fallback), and Android Back must automatically recheck without a manual test/check button;
+- once all items are ready, app automatically enters the existing login/restored-session flow and normal Báo hàng/PickList behavior is unchanged;
+- a normal real critical warehouse alert on each device preserves the existing full-screen overlay/ACK experience. Setup acceptance does not require a separate deliberate DND/Battery Saver toggle-and-test ceremony.

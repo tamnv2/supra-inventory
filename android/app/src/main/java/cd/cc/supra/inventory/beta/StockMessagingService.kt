@@ -79,14 +79,32 @@ class StockMessagingService : FirebaseMessagingService() {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val notification = Notification.Builder(this, CHANNEL_ID)
+        val fallbackChannelId =
+            if (overlayEligible && AndroidAlertReadiness.ensureCriticalChannel(this)) {
+                AndroidAlertReadiness.CRITICAL_CHANNEL_ID
+            } else {
+                CHANNEL_ID
+            }
+        val notificationBuilder = Notification.Builder(this, fallbackChannelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title.take(120))
             .setContentText(body.take(240))
             .setStyle(Notification.BigTextStyle().bigText(body.take(500)))
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .build()
+
+        if (overlayEligible) {
+            val wakePending = PendingIntent.getActivity(
+                this,
+                (129300 + resultEventId.hashCode()).and(0x7fffffff),
+                CriticalWakeActivity.intent(this, title, body),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            notificationBuilder
+                .setFullScreenIntent(wakePending, true)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+        }
+        val notification = notificationBuilder.build()
 
         getSystemService(NotificationManager::class.java)
             .notify(message.data["result_event_id"].orEmpty().ifBlank { message.messageId.orEmpty() }.hashCode(), notification)

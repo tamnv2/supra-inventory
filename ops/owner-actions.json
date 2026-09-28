@@ -3354,6 +3354,46 @@
       "safety": "Beta Web/Worker only. No secrets or session material are logged. Existing optimistic policy-version protection remains. Stable remains OWNER-GATED.",
       "remaining_owner_action": "On live Beta Web, run the six-step OA067 SLA test: clean F5, verify initial authority alignment, select FIRST_REPORT, confirm unsaved draft label, save once, require verified-success, F5 and confirm radio + Đang áp dụng remain FIRST_REPORT.",
       "closed": false
+    },
+    {
+      "id": "OA068",
+      "status": "BLOCKED_PENDING_D142_TECHNICAL_RELEASE_PASS",
+      "title": "Field-accept D142 Android 11 critical-alert readiness on MT90 and DT50",
+      "resource_key": "repo",
+      "provider": "Beta Android + existing FCM; no new provider resource",
+      "reason_owner_only": "CI can prove manifest/settings/channel/full-screen/power guards and compile the APK, but final Settings labels and OEM behavior require one normal warehouse PDA check on each supported Android 11 model.",
+      "prerequisites": {
+        "baseline_main": "29c0d1577abe61a59b397d3e6c4b397196f37556",
+        "implementation_branch": "feat/d142-android11-critical-alert-readiness",
+        "current_android": "beta-vc82",
+        "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC82",
+        "target_devices": [
+          "Newland NLS-MT90 Android 11",
+          "Urovo DT50 Android 11"
+        ],
+        "d141": "TECHNICAL_RUNTIME_PASS__OA067_FIELD_READY__UNCHANGED",
+        "agent": "NO_D142_CHANGE",
+        "new_provider_resources": "NONE",
+        "stable": "OWNER_GATED"
+      },
+      "shortest_test_path": [
+        "Install the released D142 Beta APK on one normal Newland MT90 Android 11 and one Urovo DT50 Android 11.",
+        "Open 1291 Báo hàng Beta normally. If any required alert setting is missing, login/business use must remain blocked and only the missing rows must need attention.",
+        "Use each shown Mở cài đặt action as needed. After changing a setting, press Android Back; the app must automatically recheck without a manual test/check button.",
+        "When all rows are ready, the app must automatically continue to the normal login/restored-session flow; existing Báo hàng and PickList behavior must be unchanged.",
+        "During ordinary warehouse operation, verify a real critical Báo hàng/specialist alert still uses the existing full-screen overlay/acknowledgement flow. No special Battery Saver/DND toggle-and-test ceremony is required for setup."
+      ],
+      "pass_criteria": [
+        "Both MT90 and DT50 can complete readiness setup from the app-provided routes and guidance.",
+        "Notification, overlay, DND policy, battery exemption and critical channel readiness are verified locally before login/business use.",
+        "Return from Settings auto-rechecks and advances automatically when ready; no KIỂM TRA LẠI button is required.",
+        "Critical Android 11 alert notification has high importance, DND-bypass capability and full-screen wake fallback while preserving the existing authoritative overlay/local-first ACK.",
+        "No permission polling loop, always-on wake lock or always-on new service is introduced; normal idle battery behavior remains event-driven.",
+        "No D142 Agent/Web business/provider/Stable mutation."
+      ],
+      "safety": "Beta Android only. Normal Android settings remain user-granted; app does not silently modify DND/battery policy. Force Stop, powered-off device or total network loss remain platform conditions the app cannot override. Stable remains OWNER-GATED.",
+      "remaining_owner_action": "Wait for D142 technical/release PASS, install the signed Beta on one MT90 and one DT50, and use the normal automatic setup flow. No manual alert-test button or deliberate Battery Saver/DND toggle sequence is required.",
+      "closed": false
     }
   ]
 }

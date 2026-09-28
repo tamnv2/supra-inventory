@@ -649,3 +649,19 @@ This subsection supersedes conflicting D131 max-6/RAM-counter wording above.
 - Both Android result surfaces — cross-app `CriticalOverlayService` and the in-app Picker result dialog — follow the same local-first acknowledgement contract: persist pending ACK metadata, dismiss immediately, then attempt network acknowledgement. Logout, session revocation, account change or connectivity loss cannot make the result surface a blocking network gate.
 - The 60-second specialist-call TTL remains an internal safety bound only; the Picker-facing call overlay does not advertise the automatic-close timer.
 - The originating Agent reserves the call action locally as soon as the operator confirms it, before the asynchronous shared-state write. Shared call authority and the full 60-second fleet lock remain unchanged.
+
+## D142 Android 11 critical-alert delivery/readiness
+
+For the Owner-supported warehouse PDA baseline (**Newland NLS-MT90 Android 11** and **Urovo DT50 Android 11**):
+
+- background transaction/result delivery remains the existing **data-only FCM HTTP v1** path; urgent Android messages retain `priority=high`;
+- FCM is still best-effort delivery after authoritative business commit and does not become a second business-state authority;
+- before login/business use, Android locally verifies app notifications, overlay capability, DND Notification Policy Access, battery-optimization exemption, and a dedicated critical notification channel at `IMPORTANCE_HIGH` that `canBypassDnd()`;
+- the critical channel ID is `inventory_critical_alert_v2`; it is created/configured for DND bypass only after Notification Policy Access is granted, avoiding creation of a permanently under-configured channel before permission exists;
+- critical Picker result / specialist-command delivery keeps the existing overlay and local-first acknowledgement semantics. Android 11 full-screen intent is an additional bounded wake/fallback layer, not a replacement business surface;
+- `CriticalWakeActivity` may turn the screen on/show over lock screen only for a received critical alert and must self-finish after a short bounded window. It must not hold a wake lock or create a background keepalive;
+- no permission polling, alert polling or new always-on service is allowed. Readiness is re-evaluated on app start/resume and when returning from Settings;
+- if a required alert setting is missing, login/business operation is blocked until the local readiness gate passes. The UI links the user to the closest official Android Settings screen and automatically rechecks on return;
+- platform Force Stop, device power-off and total network loss are not claimed as bypassable conditions.
+
+Stable remains OWNER-GATED.
