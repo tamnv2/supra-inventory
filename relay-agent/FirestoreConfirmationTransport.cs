@@ -860,6 +860,18 @@ namespace SupraInventoryRelayAgent
             return new Dictionary<string, object> { { "integerValue", value.ToString() } };
         }
 
+        private static string BuildMask(IEnumerable<string> fields)
+        {
+            var parts = new List<string>();
+            foreach (var field in fields ?? new string[0])
+            {
+                var value = (field ?? "").Trim();
+                if (value.Length == 0) continue;
+                parts.Add("updateMask.fieldPaths=" + Uri.EscapeDataString(value));
+            }
+            return parts.Count == 0 ? "" : "?" + string.Join("&", parts.ToArray());
+        }
+
         private static Dictionary<string, object> StringArrayField(IEnumerable<string> values)
         {
             var rows = new List<object>();
