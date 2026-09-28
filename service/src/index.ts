@@ -1211,6 +1211,37 @@ export default {
         return json({ error: "NOT_FOUND" }, 404);
       }
 
+      if (request.method === "POST" && url.pathname === "/api/agent/picker-session/revoke") {
+        const operator = await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        let body: { user_id?: string; firebase_uid?: string; revoked_generation?: number } = {};
+        try {
+          body = (await request.json()) as { user_id?: string; firebase_uid?: string; revoked_generation?: number };
+        } catch {
+          return json({ error: "INVALID_JSON" }, 400);
+        }
+        const userId = String(body.user_id || "").trim();
+        const firebaseUid = String(body.firebase_uid || "").trim();
+        const revokedGeneration = Math.max(0, Math.trunc(Number(body.revoked_generation || 0)));
+        if (!userId || !firebaseUid || revokedGeneration <= 0) {
+          return json({ error: "INVALID_PICKER_SESSION" }, 400);
+        }
+        const response = await coreStub(env).fetch("https://inventory-core.internal/auth/revoke-android-session", {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            firebase_uid: firebaseUid,
+            revoked_generation: revokedGeneration,
+          }),
+        });
+        const payload = await response.json() as Record<string, unknown>;
+        if (!response.ok) return json(payload, response.status);
+        await closeUserRealtime(env, userId, "ANDROID");
+        await refreshPickerProjectionBestEffort(env, "AGENT_KICK").catch(() => undefined);
+        return json(payload);
+      }
+
       if (request.method === "POST" && url.pathname === "/api/logs/upload") {
         const user = await requireUser(request, env);
         let body: Record<string, unknown> = {};
