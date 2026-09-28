@@ -76,6 +76,9 @@ def main() -> None:
     read_model = read("service/src/read-model-core.ts")
     firestore_projection = read("service/src/firestore-projection.ts")
     d119_agent = read("relay-agent/D119AgentFeatures.cs")
+    picker_contact = read("relay-agent/FirestorePickerContact.cs")
+    picker_watcher = active_call_watcher
+    stock_messaging = fcm_service
     picker_presence = read("relay-agent/FirestorePickerPresence.cs")
     operational = read("service/src/operational-v2-core.ts")
     sla_auto = read("service/src/sla-automation.ts")
