@@ -1106,3 +1106,15 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Release EXE SHA-256: `e88108a53ff5def868c7ca036318fcac5a2ba19da2fe426fddb1983fa1056d23`.
 - OA063 is READY_FOR_OWNER_FIELD_TEST for real first-session Confirm hydration without operator F5.
 - Android beta-vc82 and Stable are unchanged.
+
+
+## D138 SLA realtime repair candidate — 2026-09-28
+
+- Scope: Beta Web SLA form only.
+- Root cause confirmed in source: dirty `loadSla()` refresh was followed by generic active-section rerender from the previous `slaResponse`.
+- Candidate fix makes `loadSla()` the sole SLA render authority during reconcile; dirty edits survive realtime events.
+- Existing optimistic policy-version check and save-response/post-save-GET mode verification remain unchanged.
+- No provider, schema, Android or Agent changes. D137 OA063 remains independently field-ready. Stable remains OWNER-GATED.
+- OA064 is blocked until PR gates and exact-source Beta deployment PASS.
+
+- Canonical Web marker: `D138_SOURCE_CANDIDATE__SLA_DIRTY_FORM_REALTIME_RECONCILE_PRESERVATION`.

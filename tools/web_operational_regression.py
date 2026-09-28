@@ -365,6 +365,12 @@ def main() -> None:
     require(business_api, 'event: "sla_settings_updated"', "D109 SLA realtime event")
     require(business_api, 'scopes: ["sla_settings", "reporter_queue"]', "D109 SLA realtime scope")
     require(app, 'scopes.has("sla_settings")', "D109 SLA active-view realtime reconcile")
+    # D138: a dirty SLA form owns its in-progress control state. Realtime reconcile
+    # may refresh server authority, but must not fall through to the generic section
+    # patch after loadSla() declined to replace an edited form.
+    require(app, "D138: loadSla owns SLA rendering", "D138 dirty SLA form reconcile marker")
+    require(app, 'if (activeSection === "sla" && slaFormDirty && slaResponse)', "D138 dirty SLA form server-refresh guard")
+    forbid(app, 'else if (activeSection === "sla" && roleManage()) await loadSla();', "D138 old SLA reconcile fall-through")
     require(app, "Lịch sử thao tác", "D109 management audit tab")
     require(business_core, "actor_display_name", "D109 audit actor display identity")
     require(business_core, "actor_role", "D109 audit actor role")

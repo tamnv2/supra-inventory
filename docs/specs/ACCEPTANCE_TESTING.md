@@ -1643,3 +1643,19 @@ In addition to the D137 UI checks:
 - Post-reload READY requires the reload document to remain DOM-ready for the bounded stable interval; the previous v78 `600ms` proof is no longer sufficient.
 - No DevTools Network domain, cookie/token/header/storage/session extraction, direct WMS API, new Firestore call, Worker call or provider poll may be introduced by the hotfix.
 - Android remains `beta-vc82`; Stable remains OWNER-GATED.
+
+
+### D138 — SLA FIRST_REPORT realtime persistence
+
+1. Open Beta Web **Thời gian xử lý** with the current server mode `PER_PICKER`.
+2. Select **Theo báo đầu tiên của SKU** and keep the form open while normal realtime/reconcile activity occurs.
+   - PASS: the radio remains `FIRST_REPORT`; no generic section rerender restores the prior server snapshot.
+3. Save the form.
+   - PASS: request sends `auto_skip_mode=FIRST_REPORT`.
+   - PASS: save response returns `FIRST_REPORT`.
+   - PASS: the immediate authoritative reload also returns `FIRST_REPORT` before success is shown.
+4. Reload the browser.
+   - PASS: selected radio and **Đang áp dụng** both remain **Theo báo đầu tiên của SKU**.
+5. Repeat `PER_PICKER → FIRST_REPORT → PER_PICKER` once.
+   - PASS: both supported modes persist exactly and optimistic policy-version protection remains active.
+6. Regression: no schema/provider/Android/Agent change; D137 OA063 remains open; Stable remains untouched.

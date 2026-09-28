@@ -1995,3 +1995,14 @@ Approved hotfix behavior:
 - The empty-table self-heal is browser-local only: no additional Firestore/Worker/provider operation or polling is introduced.
 - DevTools remains Page/Runtime only. Network, cookie/token/header/storage/session extraction and direct WMS API remain forbidden.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D138 — Web SLA realtime must preserve dirty form state
+
+Status: **OWNER-REPORTED DEFECT / IMPLEMENTATION AUTHORIZED BY BUG-FIX REQUEST** — 2026-09-28
+
+- On Beta Web `Thời gian xử lý`, choosing **Theo báo đầu tiên của SKU** (`FIRST_REPORT`) must remain selected while the operator is editing, including during background realtime reconciliation.
+- A realtime refresh must never rebuild a dirty SLA form from an older `slaResponse` snapshot. `loadSla()` is the rendering authority for the SLA route because it already owns the dirty-form/version guard.
+- Saving keeps the existing server-authoritative optimistic version check. Web may show success only when the immediate save response and the subsequent authoritative reload both return the exact mode selected by the operator.
+- The existing `FIRST_REPORT` / `PER_PICKER` business semantics, service schema and timing calculations are unchanged.
+- Scope is Beta Web/Worker asset deployment only. No provider resource, schema, Android or Agent change. D137 OA063 stays independently open. Stable remains OWNER-GATED.

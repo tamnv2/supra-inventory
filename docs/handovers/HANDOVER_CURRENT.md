@@ -1146,3 +1146,16 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - `relay-agent-v79` is published; inventory-channel Agent manifest/EXE point to the v79 binary with SHA-256 `e88108a53ff5def868c7ca036318fcac5a2ba19da2fe426fddb1983fa1056d23`.
 - OA063 is field-ready: update to v79, enter Confirm without manual F5, search the known PickList, verify bounded self-heal/no loop and confirmation success.
 - Android remains `beta-vc82`; Stable remains OWNER-GATED.
+
+
+## D138 Web SLA realtime continuity — 2026-09-28
+
+- Owner field report: selecting **Theo báo đầu tiên của SKU** could be reset to **Theo từng Picker** before/around Save.
+- Root cause: `loadSla()` correctly protected the dirty form, but generic `reconcileActive()` still repatched the active SLA section from the older authoritative snapshot.
+- Fix branch: `fix/d138-sla-mode-realtime-reset`.
+- Fix: SLA reconcile delegates rendering entirely to `loadSla()` and returns; generic patch no longer runs after the dirty guard.
+- Existing save verification remains: immediate server result and fresh reload must equal the selected mode before success.
+- Target: Beta Web/Worker deploy only; no schema/provider/Android/Agent change.
+- OA064 opens after technical/runtime PASS. D137 OA063 remains open independently. Stable remains OWNER-GATED.
+
+- Canonical Web marker: `D138_SOURCE_CANDIDATE__SLA_DIRTY_FORM_REALTIME_RECONCILE_PRESERVATION`.

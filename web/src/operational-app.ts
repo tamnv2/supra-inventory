@@ -3803,7 +3803,13 @@ async function reconcileActive(): Promise<boolean> {
   try {
     if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
-    else if (activeSection === "sla" && roleManage()) await loadSla();
+    else if (activeSection === "sla" && roleManage()) {
+      // D138: loadSla owns SLA rendering. Its dirty-form guard must be allowed to
+      // return without a generic patch, otherwise realtime reconcile rebuilds the
+      // form from the previous server snapshot and silently resets radio edits.
+      await loadSla();
+      return true;
+    }
     else return true;
     patchActiveSection(true);
     return true;
