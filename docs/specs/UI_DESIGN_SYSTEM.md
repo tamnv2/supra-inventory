@@ -877,3 +877,16 @@ Stable remains OWNER-GATED.
 - Window resize must relayout the grid/status bounds from the current card client height; do not rely on the original design-time bottom-anchor offsets because they can collapse the grid in a restored/normal window.
 - The Overview row allocation gives the PickList region materially more vertical space than D136 while preserving the right-side Picker list across all three rows.
 - D136 horizontal semantics remain unchanged: **PickList**, **Xác nhận**, **Trạng thái** are critical columns and horizontal scrolling is the fallback when width is physically insufficient.
+
+## D142 Android critical-readiness gate
+
+The Android permission/readiness surface is an operational gate, not a generic permissions dialog.
+
+- Header: **CẦN HOÀN TẤT QUYỀN CẢNH BÁO**.
+- Show the detected PDA model and a concise explanation that the checks protect warehouse alerts under Android 11 power/DND controls.
+- Render one row per requirement with an obvious **Sẵn sàng** / **Cần thiết lập** state.
+- For a missing requirement, show a short instruction directly under the row and a single action button that opens the closest relevant Android Settings surface.
+- If DND Policy Access is not yet available, the critical-channel row may say that the channel will be created after DND access rather than presenting a useless channel-settings action.
+- Do not display a manual **KIỂM TRA LẠI** button. The footer tells the user to press Android Back; the app rechecks automatically.
+- Do not add test-alert controls, engineering terminology, decision IDs or battery/FCM implementation details to the operator-facing screen.
+- Existing application visual scale, Báo hàng result overlay and local-first acknowledgement surface remain unchanged.
