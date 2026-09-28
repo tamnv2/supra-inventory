@@ -1229,3 +1229,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Web marker: `D141_RUNTIME_PASS_MAIN_966B6D1F__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE__OA067_FIELD_READY`.
 - OA067 is READY_FOR_OWNER_FIELD_TEST. D140 Agent v80 remains parallel. D137 OA063 remains independently open.
 - Android unchanged; Stable remains OWNER-GATED.
+
+## D142 Android 11 critical-alert continuity — 2026-09-28
+
+- Owner-approved target devices: Newland NLS-MT90 Android 11 + Urovo DT50 Android 11.
+- Branch: `feat/d142-android11-critical-alert-readiness`; baseline main `966b6d1f561768551969694065b1035bb2e2b234`.
+- Android source candidate: `D142_SOURCE_CANDIDATE__ANDROID11_MT90_DT50_CRITICAL_ALERT_READINESS__NEXT_SIGNED_BETA_AFTER_VC82`.
+- Gate before login checks notifications, overlay, DND policy access, battery exemption and critical channel HIGH + DND bypass.
+- Missing rows get short Vietnamese guidance + closest Settings action; returning with Android Back auto-rechecks. No manual test/check button.
+- Existing data-only FCM HIGH delivery, D133/D135 full-screen overlay and local-first ACK are preserved. Full-screen intent/wake is a bounded Android 11 reliability layer only; no polling/persistent wake lock.
+- Target signed Android: next monotonic release after `beta-vc82`; OA068 opens after technical/release PASS.
+- D141 Web/SLA and D140 Agent v80 remain parallel/untouched by D142. No provider resource change. Stable OWNER-GATED.
