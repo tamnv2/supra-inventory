@@ -57,6 +57,7 @@ SERVICE_CORE = read("service/src/core.ts")
 SERVICE_READ_MODEL = read("service/src/read-model-core.ts")
 SERVICE_NOTIFICATIONS = read("service/src/notifications-core.ts")
 SERVICE_RUNTIME_LOGS = read("service/src/runtime-logs.ts")
+SERVICE_RUNTIME_LOGS_CORE = read("service/src/runtime-logs-core.ts")
 SERVICE_SLA_AUTO = read("service/src/sla-automation.ts")
 SERVICE_SYSTEM_STATUS = read("service/src/system-status.ts")
 SERVICE_SYSTEM_METRICS = read("service/src/system-metrics-core.ts")
@@ -510,7 +511,7 @@ checks = {
     "web_d067_scroll_preservation": all(token in WEB_APP for token in ["mainScrollTop", "mainScrollLeft", '".fast-list"', 'data-active-section']),
     "web_d067_picker_rows": all(token in WEB_APP for token in ["prefetchBatchDetails", "picker-detail-list", "picker-detail-row", "Đang tải danh sách Picker"]),
     "web_d067_confirmations": all(token in WEB_APP for token in ["renderStockModal", 'id="confirm-stock"', "SKIP_CONFIRM_DELAY_MS", 'id="skip-delay-setting"', 'id="confirm-skip"']),
-    "web_d067_log_dedupe": all(token in WEB_LOGGER for token in ["scheduledSendInFlight", "scheduledSendInFlight = true", "scheduledSendInFlight = false"]) and all(token in SERVICE_RUNTIME_LOGS for token in ["already_uploaded", "seenNames", "name ="]),
+    "web_d067_log_dedupe": all(token in WEB_LOGGER for token in ["scheduledSendInFlight", "scheduledSendInFlight = true", "scheduledSendInFlight = false"]) and all(token in SERVICE_RUNTIME_LOGS_CORE for token in ["filename TEXT NOT NULL UNIQUE", "ON CONFLICT(filename) DO UPDATE"]),
     "web_d067_clean_visible_copy": all(token not in WEB_APP for token in ["Beta / Logs", "Chỉ chạy trên Beta", "Beta thực tế", "D064 được ghi nhận", "Log được che mật khẩu", "Tự gửi định kỳ", "ROOT ·", "REPORTER ·", "PICKER ·"]),
     "web_d068_toast_notifications": all(token in (WEB_APP + WEB_FAST) for token in ["web-toast-stack", "toastItems", "slice(-5)", "5_000", "setNotice"]) and "renderNotice()" not in WEB_APP,
     "web_d068_browser_history": all(token in WEB_APP for token in ["history.pushState", "history.replaceState", 'window.addEventListener("popstate"', "navigateToSection", "syncSectionHistory"]),
