@@ -1079,3 +1079,11 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - `inventory-channel` is refreshed to v74/vc80. Fixed WebView2 runtime bundle is reused unchanged.
 - D134 technical/runtime/release is PASS; OA060 physical Owner field acceptance is READY.
 - Stable remains OWNER-GATED and untouched.
+
+## D135 implementation continuity — 2026-09-28
+
+- D134 hotfix core field path is Owner-confirmed PASS on Agent v75 / Android vc81. OA060 is closed; D135 follow-up acceptance is OA061.
+- Active branch: `fix/d135-post-d134-field-refinements`, based on main `fd57b420ff80fea6cd259e9ea1daa22b00c9535b`. Targets are Agent v76 and next monotonic signed Android Beta after vc81.
+- Approved D135 changes: immediate initiating-Agent call lock + single confirmations, faster one-click DOM lookup with stable-miss settle, explicit fleet/local counter labels, processing-Agent overlay counter immediacy after durable ACK, hidden Picker TTL implementation text, username-only display, Android name **1291 Báo hàng Beta**, and local-first ACK on both Báo hàng result surfaces.
+- Counter immediacy is local presentation derived from the already-successful durable ACK commit. It must not add Firestore provider operations. Durable daily summary remains cross-process authority; compact snapshots reconcile without moving totals backward.
+- D134 fleet/presence/generation/quota architecture is preserved. Stable remains OWNER-GATED and untouched.
