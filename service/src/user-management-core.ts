@@ -3,7 +3,7 @@ type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 type UserStatus = "ACTIVE" | "DISABLED";
 type PickerBulkAction = "ENABLE" | "DISABLE" | "DELETE";
 
-type Actor = { user_id: string; employee_code: string | null; role: AppRole; display_name?: string };
+type Actor = { user_id: string; employee_code: string | null; role: AppRole; base_role?: AppRole; display_name?: string };
 type HrEmployee = { employee_code?: unknown; display_name?: unknown };
 
 interface UserRow extends SqlRow {
@@ -301,7 +301,13 @@ async function deleteManagedUsers(state: DurableObjectState, request: Request): 
   const ids = Array.isArray(body.user_ids)
     ? [...new Set(body.user_ids.map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 100)
     : [];
-  if (!actor?.user_id || actor.role !== "ROOT" || !ids.length || !validRequestId(body.request_id)) {
+  if (
+    !actor?.user_id ||
+    actor.role !== "ROOT" ||
+    actor.base_role !== "ROOT" ||
+    !ids.length ||
+    !validRequestId(body.request_id)
+  ) {
     return response({ error: "MANAGED_USER_DELETE_FORBIDDEN" }, 403);
   }
   const targets = ids.map((id) => getUser(state, id)).filter((row): row is UserRow => Boolean(row));
