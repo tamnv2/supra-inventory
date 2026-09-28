@@ -74,6 +74,8 @@ namespace SupraInventoryRelayAgent
         private FirestorePickerContactClient _pickerContactClient;
         private FirestoreAgentSyncClient _agentSyncClient;
         private FirestoreAgentSyncListener _agentSyncListener;
+        private readonly object _agentSyncLifecycleGate = new object();
+        private FirestoreAgentRole _d139AgentSyncRole = FirestoreAgentRole.DEEP_HIBERNATE;
         private AgentSyncSnapshot _agentSyncSnapshot = new AgentSyncSnapshot();
         private readonly Dictionary<string, PickerContactCommand> _activePickerCommands =
             new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
@@ -807,32 +809,60 @@ namespace SupraInventoryRelayAgent
         internal void StartD134AgentSync()
         {
             if (!HasAgentSession() || _agentSyncClient == null) return;
-            if (_agentSyncListener != null) return;
-            _agentSyncListener = new FirestoreAgentSyncListener(
-                SnapshotSession,
-                EnsureFreshToken,
-                ApplyD134AgentSyncSnapshot,
-                message => Log(message));
-            _agentSyncListener.Start();
-            Task.Run(() =>
+            FirestoreAgentSyncListener listener = null;
+            lock (_agentSyncLifecycleGate)
             {
-                try
-                {
-                    EnsureFreshToken();
-                    ApplyD134AgentSyncSnapshot(_agentSyncClient.Load(SnapshotSession()));
-                }
-                catch (Exception ex)
-                {
-                    Log("AGENT_SYNC bootstrap=DEFER detail=" + SafeMessage(ex));
-                }
-            });
+                if (_agentSyncListener != null) return;
+                listener = new FirestoreAgentSyncListener(
+                    SnapshotSession,
+                    EnsureFreshToken,
+                    ApplyD134AgentSyncSnapshot,
+                    message => Log(message));
+                _agentSyncListener = listener;
+            }
+            listener.Start();
         }
 
         internal void StopD134AgentSync()
         {
-            var listener = _agentSyncListener;
-            _agentSyncListener = null;
+            FirestoreAgentSyncListener listener = null;
+            lock (_agentSyncLifecycleGate)
+            {
+                listener = _agentSyncListener;
+                _agentSyncListener = null;
+            }
             try { if (listener != null) listener.Stop(); } catch { }
+        }
+
+        internal void ApplyD139AgentSyncRole(FirestoreAgentRole role)
+        {
+            var changed = false;
+            lock (_agentSyncLifecycleGate)
+            {
+                if (_d139AgentSyncRole != role)
+                {
+                    _d139AgentSyncRole = role;
+                    changed = true;
+                }
+            }
+
+            var eligible =
+                role == FirestoreAgentRole.PRIMARY ||
+                role == FirestoreAgentRole.NEXT_A ||
+                role == FirestoreAgentRole.NEXT_B;
+
+            if (eligible)
+                StartD134AgentSync();
+            else
+                StopD134AgentSync();
+
+            if (changed)
+            {
+                Log(
+                    "AGENT_SYNC role_gate=" + role +
+                    " listener=" + (eligible ? "ENABLED" : "DISABLED") +
+                    " policy=PRIMARY_NEXT_A_NEXT_B_ONLY");
+            }
         }
 
         private void ApplyD134AgentSyncSnapshot(AgentSyncSnapshot snapshot)
@@ -1069,7 +1099,7 @@ namespace SupraInventoryRelayAgent
             if (!force && _lastAgentSyncReconcileUtc != DateTime.MinValue &&
                 now - _lastAgentSyncReconcileUtc < FirestoreAgentSyncClient.ReconcileInterval) return;
             if (force && _lastAgentSyncReconcileUtc != DateTime.MinValue &&
-                now - _lastAgentSyncReconcileUtc < TimeSpan.FromSeconds(20)) return;
+                now - _lastAgentSyncReconcileUtc < TimeSpan.FromMinutes(1)) return;
             if (Interlocked.CompareExchange(ref _agentSyncReconcileRunning, 1L, 0L) != 0L) return;
 
             Task.Run(() =>
