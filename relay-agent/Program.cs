@@ -4024,11 +4024,7 @@ namespace SupraInventoryRelayAgent
                             () =>
                             {
                                 Interlocked.Increment(ref _localAgentResponses);
-                                Ui(() =>
-                                {
-                                    RefreshAgentRequestMetrics();
-                                    QueueD133DurableCounterRefresh();
-                                });
+                                Ui(() => RefreshAgentRequestMetrics());
                             },
                             state => SetRelayTransportState(state),
                             ProcessFirestoreConfirmations,
