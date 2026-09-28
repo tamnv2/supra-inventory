@@ -519,7 +519,6 @@ namespace SupraInventoryRelayAgent
         private readonly TabPage _connectionPage = new TabPage("Kết nối");
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
         private readonly TabPage _technicalPage = new TabPage("Chẩn đoán kỹ thuật");
-        private readonly TabPage _usagePage = new TabPage("Usage");
         private readonly bool _startupSmoke;
         private readonly bool _autoStarted;
         private readonly HashSet<string> _acked = new HashSet<string>(StringComparer.Ordinal);
