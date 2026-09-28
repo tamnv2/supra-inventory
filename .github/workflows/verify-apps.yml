@@ -207,6 +207,30 @@ jobs:
           grep -q 'BuildConfig.DEFAULT_PICKER_PASSWORD' android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt
           echo "D143 secure Android password injection PASS"
 
+      - name: Verify D146 Android log schedule and live SKU refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          main="android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt"
+          messaging="android/app/src/main/java/cd/cc/supra/inventory/beta/StockMessagingService.kt"
+          signal="android/app/src/main/java/cd/cc/supra/inventory/beta/NotificationSignalStore.kt"
+          grep -q 'now.hour >= 21 -> 21' "$main"
+          grep -q 'now.hour >= 18 -> 18' "$main"
+          grep -q 'now.hour >= 12 -> 12' "$main"
+          grep -q 'if (now.hour < 6) return null' "$main"
+          grep -q 'syncSkuCatalogAsync("realtime"' "$main"
+          grep -q 'reconcileSkuCatalogRefresh()' "$main"
+          grep -q 'event == "sku_catalog_updated"' "$messaging"
+          grep -q 'markSkuCatalogRefresh' "$signal"
+          grep -q 'consumeSkuCatalogRefresh' "$signal"
+          grep -q 'Đã gửi log và lưu Google Drive' "$main"
+          grep -q 'Drive đang chờ đồng bộ' "$main"
+          if grep -q 'setNeutralButton("Gửi lên Drive")' "$main"; then
+            echo "D146 Android manual log control must not claim Drive success before archive confirmation." >&2
+            exit 1
+          fi
+          echo "D146 Android log schedule / live SKU refresh guard PASS"
+
       - name: Assemble Android 11+ Beta APK
         env:
           FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
