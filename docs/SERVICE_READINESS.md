@@ -1128,3 +1128,13 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Web marker: `D138_RUNTIME_PASS_MAIN_005D8298__SLA_DIRTY_FORM_REALTIME_PRESERVATION__OA064_FIELD_READY`.
 - OA064 is READY_FOR_OWNER_FIELD_TEST. D137 OA063 remains independently open.
 - Android remains `beta-vc82`; Agent remains `relay-agent-v79`; Stable remains OWNER-GATED.
+
+
+## D139 SLA hotfix candidate — 2026-09-28
+
+- D138 live field test failed: FIRST_REPORT did not persist after Save + browser refresh.
+- Candidate fix protects a dirty SLA form at the common active-section patch boundary and submits the explicitly checked mode.
+- Existing optimistic policy-version and server roundtrip verification remain.
+- No schema/provider/Android/Agent change.
+- OA065 blocked until PR/main/runtime gates PASS. D137 OA063 remains independently open. Stable remains OWNER-GATED.
+- Web marker: `D139_SOURCE_CANDIDATE__GLOBAL_DIRTY_SLA_FORM_RERENDER_GUARD`.
