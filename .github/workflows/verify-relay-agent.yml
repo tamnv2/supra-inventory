@@ -79,7 +79,7 @@ jobs:
 
           if ($config -notmatch 'AgentBuild\s*=\s*81\s*;') { throw "D143 requires Agent v81 while retaining D140 quota-storm safeguards." }
           if ($project -notmatch '<AssemblyVersion>0\.81\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.81\.0\.0</FileVersion>') {
-            throw "D143 Agent assembly/file version must be 0.81."
+            throw "D144 Agent assembly/file version must be 0.82."
           }
 
           foreach ($marker in @(
