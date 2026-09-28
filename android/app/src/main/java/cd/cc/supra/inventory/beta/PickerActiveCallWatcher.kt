@@ -1,50 +1,61 @@
 package cd.cc.supra.inventory.beta
 
 import android.content.Context
+import android.util.Base64
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import org.json.JSONObject
 
 class PickerActiveCallWatcher(
     context: Context,
+    private val onSessionRevoked: () -> Unit = {},
     private val log: (String) -> Unit = {},
 ) {
     private val appContext = context.applicationContext
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
-    private var registration: ListenerRegistration? = null
+    private var callRegistration: ListenerRegistration? = null
+    private var sessionRegistration: ListenerRegistration? = null
     private var activeCallId: String = ""
     private var activeUserId: String = ""
+    private var activeFirebaseUid: String = ""
+    private var activeGeneration: Long = 0L
+    @Volatile private var revokeDelivered = false
 
     fun start(session: AppSession) {
         close()
         if (session.role != "PICKER") return
         val token = session.relayCustomToken
         if (token.isNullOrBlank()) {
-            log("D131 active-call watch deferred: relay custom token unavailable")
+            log("D134 picker watch deferred: relay custom token unavailable")
             return
         }
+        val identity = tokenIdentity(session.idToken)
         activeUserId = session.userId
+        activeFirebaseUid = identity.first
+        activeGeneration = identity.second
+        revokeDelivered = false
 
         val existing = auth.currentUser
-        if (existing != null && existing.uid == session.userId) {
-            attach(session.userId)
+        if (existing != null && existing.uid == activeFirebaseUid) {
+            attach(session.userId, activeFirebaseUid, activeGeneration)
             return
         }
         if (existing != null) auth.signOut()
 
         auth.signInWithCustomToken(token)
             .addOnSuccessListener { result ->
-                if (activeUserId != session.userId) return@addOnSuccessListener
-                if (result.user?.uid != session.userId) {
+                if (activeUserId != session.userId || activeFirebaseUid != identity.first) return@addOnSuccessListener
+                if (result.user?.uid != activeFirebaseUid) {
                     auth.signOut()
-                    log("D133 active-call auth rejected: Firebase identity mismatch")
+                    log("D134 picker watch auth rejected: Firebase identity mismatch")
                     return@addOnSuccessListener
                 }
-                attach(session.userId)
+                attach(session.userId, activeFirebaseUid, activeGeneration)
             }
             .addOnFailureListener { error ->
-                log("D133 active-call auth deferred: " + safe(error.message))
+                log("D134 picker watch auth deferred: " + safe(error.message))
             }
     }
 
@@ -53,20 +64,33 @@ class PickerActiveCallWatcher(
             close()
             return
         }
-        if (registration == null || activeUserId != session.userId) start(session)
+        val identity = try { tokenIdentity(session.idToken) } catch (_: Exception) { "" to 0L }
+        if (callRegistration == null ||
+            sessionRegistration == null ||
+            activeUserId != session.userId ||
+            activeFirebaseUid != identity.first ||
+            activeGeneration != identity.second) {
+            start(session)
+        }
     }
 
-    private fun attach(userId: String) {
-        registration?.remove()
-        registration = firestore.collection("picker_active_calls").document(userId)
+    private fun attach(userId: String, firebaseUid: String, generation: Long) {
+        callRegistration?.remove()
+        sessionRegistration?.remove()
+
+        callRegistration = firestore.collection("picker_active_calls").document(userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    log("D131 active-call listener deferred: " + safe(error.message))
+                    log("D134 active-call listener reconnecting: " + safe(error.message))
                     return@addSnapshotListener
                 }
                 val status = snapshot?.getString("status").orEmpty()
                 val callId = snapshot?.getString("call_id").orEmpty()
-                if (snapshot?.exists() == true && status == "ACTIVE" && callId.isNotBlank()) {
+                val lockUntilMs = (snapshot?.getLong("lock_until_ms") ?: 0L).coerceAtLeast(0L)
+                if (snapshot?.exists() == true &&
+                    status == "ACTIVE" &&
+                    callId.isNotBlank() &&
+                    (lockUntilMs <= 0L || lockUntilMs > System.currentTimeMillis())) {
                     activeCallId = callId
                     val senderRole = snapshot.getString("sender_role").orEmpty()
                     val title = if (senderRole == "PICK_PACK") {
@@ -87,24 +111,63 @@ class PickerActiveCallWatcher(
                         body,
                         CriticalOverlayService.MODE_PICKER_COMMAND,
                         callId,
-                        Long.MAX_VALUE,
+                        if (lockUntilMs > 0L) lockUntilMs else System.currentTimeMillis() + 60_000L,
                     )
-                    log("D131 active-call visible call=" + callId.take(10))
+                    log("D134 active-call visible call=" + callId.take(10))
                 } else {
-                    val previous = activeCallId
-                    activeCallId = ""
-                    if (previous.isNotBlank()) {
-                        CriticalOverlayService.clear(appContext, previous)
-                        log("D131 active-call cleared call=" + previous.take(10))
-                    }
+                    clearActiveCall()
+                }
+            }
+
+        sessionRegistration = firestore.collection("picker_session_controls").document(firebaseUid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    log("D134 session-control listener reconnecting: " + safe(error.message))
+                    return@addSnapshotListener
+                }
+                val revokedGeneration = (snapshot?.getLong("revoked_generation") ?: 0L).coerceAtLeast(0L)
+                if (snapshot?.exists() == true &&
+                    generation > 0L &&
+                    revokedGeneration >= generation &&
+                    !revokeDelivered) {
+                    revokeDelivered = true
+                    clearActiveCall()
+                    log("D134 session revoked generation=$generation")
+                    onSessionRevoked()
                 }
             }
     }
 
+    private fun clearActiveCall() {
+        val previous = activeCallId
+        activeCallId = ""
+        if (previous.isNotBlank()) {
+            CriticalOverlayService.clear(appContext, previous)
+            log("D134 active-call cleared call=" + previous.take(10))
+        }
+    }
+
     fun close() {
-        registration?.remove()
-        registration = null
+        callRegistration?.remove()
+        sessionRegistration?.remove()
+        callRegistration = null
+        sessionRegistration = null
+        clearActiveCall()
         activeUserId = ""
+        activeFirebaseUid = ""
+        activeGeneration = 0L
+        revokeDelivered = false
+    }
+
+    private fun tokenIdentity(idToken: String): Pair<String, Long> {
+        val parts = idToken.split('.')
+        if (parts.size != 3) throw IllegalStateException("Firebase ID token không hợp lệ.")
+        val decoded = Base64.decode(parts[1], Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        val payload = JSONObject(String(decoded, Charsets.UTF_8))
+        val uid = payload.optString("sub").trim()
+        val generation = payload.optLong("app_session_generation", 0L).coerceAtLeast(0L)
+        if (uid.isBlank()) throw IllegalStateException("Firebase UID trống.")
+        return uid to generation
     }
 
     private fun safe(value: String?): String =
