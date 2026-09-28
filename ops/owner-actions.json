@@ -3608,17 +3608,19 @@
     },
     {
       "id": "OA073",
-      "status": "BLOCKED_PENDING_D145_RUNTIME",
+      "status": "READY_FOR_OWNER_GOOGLE_PUBLISH",
       "title": "Publish Beta Google OAuth and replace production refresh token",
       "resource_key": "oauth-beta",
       "provider": "Google Auth Platform + Cloudflare Worker",
       "reason_owner_only": "Google Auth Platform publishing status/re-consent and the Google OAuth refresh-token secret are Owner-controlled provider actions. The refresh-token value must never be pasted into chat, GitHub, logs or source.",
       "prerequisites": {
-        "d145_public_pages": "PENDING_RUNTIME_PASS",
+        "d145_public_pages": "RUNTIME_PASS__PR292__MAIN_5E11A094",
         "current_google_state": "TESTING__OWNER_SCREENSHOT_2026_09_29",
         "required_scopes": "drive.file__gmail.send",
         "beta_only": true,
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "runtime_workflow": 36482436903,
+        "public_page_probe": "PASS__HTTP200_IDENTITY_SCOPE_PRIVACY_LIMITED_USE"
       },
       "shortest_test_path": [
         "After D145 runtime PASS, open Google Auth Platform Branding for supra-inventory-beta and set Application home page to https://inventory-beta.supra.cc.cd/about, Privacy policy to https://inventory-beta.supra.cc.cd/privacy, and Terms of use to https://inventory-beta.supra.cc.cd/terms; save.",
@@ -3635,7 +3637,7 @@
         "No Stable OAuth resource or Stable runtime is changed."
       ],
       "safety": "Beta only. No OAuth token/client secret/service-account key may be pasted into chat, source, issue, PR or log. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D145 technical/runtime PASS. Then perform the Google Auth Platform publish/re-consent and protected Cloudflare secret replacement steps above.",
+      "remaining_owner_action": "Open Google Auth Platform Branding for supra-inventory-beta, enter the three now-live D145 URLs and save; then Audience → Publish app → In production. After publication, run the existing Beta OAuth consent once, place the returned refresh token directly into the protected Cloudflare Worker secret GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN, and re-test Gmail send plus the intended Drive-backed archive/status path. Never paste the token into chat/repo/logs.",
       "closed": false
     }
   ]
