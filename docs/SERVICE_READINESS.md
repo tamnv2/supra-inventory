@@ -1171,3 +1171,14 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - OA067 blocked pending PR/main/exact-source Beta runtime PASS.
 
 - Canonical Web marker: `D141_SOURCE_CANDIDATE__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE`.
+
+
+## D141 runtime PASS — 2026-09-28
+
+- PR #282 merged to main `966b6d1f561768551969694065b1035bb2e2b234`.
+- Main Repo Authority, Project State, UI Design, Beta Worker and Dashboard Probe gates PASS.
+- Beta Worker/Web exact-source deploy run `36421277405` PASS.
+- D141 now separates server-applied SLA authority from browser draft state, uses a dedicated non-droppable save path, verifies SQLite readback before server success, and requires a fresh no-cache GET match before Web success.
+- Web marker: `D141_RUNTIME_PASS_MAIN_966B6D1F__SLA_SERVER_DRAFT_SPLIT__SQLITE_READBACK__NON_DROPPABLE_SAVE__OA067_FIELD_READY`.
+- OA067 is READY_FOR_OWNER_FIELD_TEST. D140 Agent v80 remains parallel. D137 OA063 remains independently open.
+- Android unchanged; Stable remains OWNER-GATED.
