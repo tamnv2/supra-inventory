@@ -1843,3 +1843,13 @@ Owner reports three post-D131 field defects and authorizes a coordinated Beta ho
 5. Target release is **relay-agent-v72**. Android remains **beta-vc78**; Worker/service changes only restore the existing Firestore presence signal. No new provider/resource is introduced. Stable remains OWNER-GATED and untouched.
 
 Quota boundary: D132 presence delivery uses the already-running PRIMARY PENDING query. Each actual presence-state change adds a bounded fixed-document projection/control write, one returned control document read when PRIMARY observes it, and one control ACK write. It does not create a periodic PDA heartbeat, a second queue poll, or non-primary business polling. D131 soft quota guards remain authoritative.
+
+
+### D132 technical/runtime/release evidence — 2026-09-28
+
+- Hotfix PR **#262** passed all applicable PR gates and squash-merged to main commit `32411d15198331e8763f4d9a73288dd89524b65a`.
+- Main PASS runs: Repo Authority **36363752173**, Project State **36363752156**, Beta Worker **36363752158**, Relay Agent **36363752155**, UI Design **36363752204**, D127 Dashboard Probe **36363752172**.
+- Beta Worker deploy includes the repaired fixed single-slot Picker presence signal. No new heartbeat or non-primary business polling was added.
+- Windows Agent **relay-agent-v72** release id **397878131**; canonical EXE asset id **594118802**, size **411136 bytes**, SHA-256 **3de3db7f21f838341bf0c5f66057924cb72727fefa623537f1955866fd44114d**.
+- Android remains signed **beta-vc78** unchanged.
+- D132 is **TECHNICAL / RUNTIME / RELEASE PASS**. Remaining gate is **OA058 Owner field retest** for the visible status line, real login/logout/PickList presence, column-mode persistence and Windows normal-bounds restore. D131 OA056 remains a separate broader fleet/failover acceptance gate. Stable remains OWNER-GATED and untouched.
