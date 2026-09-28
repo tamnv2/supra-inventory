@@ -23,6 +23,7 @@ import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, r
 import { handleD119Internal } from "./internal-d119";
 import { mirrorPickerNotificationTarget, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
+import { handlePublicInfoPage } from "./public-pages";
 
 
 export { InventoryCore };
@@ -984,6 +985,9 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     try {
+      const publicInfoPage = handlePublicInfoPage(request, env.APP_ENV);
+      if (publicInfoPage) return publicInfoPage;
+
       const d119Internal = await handleD119Internal(request, env);
       if (d119Internal) return d119Internal;
 
