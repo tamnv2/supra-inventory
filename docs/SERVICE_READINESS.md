@@ -1090,3 +1090,11 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Confirm readiness requires one normal top-level reload after first Confirm arrival and a stable post-reload DOM before READY/search/confirmation.
 - No new provider resource or cadence is introduced. DevTools Network/session capture/direct WMS API remain forbidden.
 - OA063 opens after D137 technical/release PASS. Stable remains OWNER-GATED.
+
+## D137 v79 hotfix candidate — 2026-09-28
+
+- v78 physical field result is partial: PickList UI PASS, Confirm first-load data hydration FAIL.
+- v79 is Agent-only and reuses the existing WebView2 host/runtime and Beta distribution channel.
+- Final Confirm must settle 3s before normal reload; post-reload DOM must remain ready 1.2s before READY.
+- One empty-table self-heal reload/search retry is permitted only when the first search sees zero PickList codes; no loop and no Firestore/Worker/provider operation is added.
+- OA063 remains blocked until v79 technical/release PASS. Android beta-vc82 and Stable are unchanged.
