@@ -38,6 +38,9 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'pickerAlertCreated' functions/src/index.ts
+          grep -q 'pickerActiveCallCreated' functions/src/index.ts
+          grep -q 'pickerActiveCallResolved' functions/src/index.ts
+          grep -q 'PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000' functions/src/index.ts
           if grep -q 'skuSyncCreated' functions/src/index.ts; then
             echo "D126 forbids skuSyncCreated in active Functions source"
             exit 1
@@ -67,7 +70,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           npx --yes firebase-tools@14.12.1 deploy \
-            --only functions:pickerAlertCreated,functions:pickerAlertResolved \
+            --only functions:pickerAlertCreated,functions:pickerAlertResolved,functions:pickerActiveCallCreated,functions:pickerActiveCallResolved \
             --project supra-inventory-beta \
             --non-interactive
 
