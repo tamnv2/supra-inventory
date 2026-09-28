@@ -1098,3 +1098,11 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Final Confirm must settle 3s before normal reload; post-reload DOM must remain ready 1.2s before READY.
 - One empty-table self-heal reload/search retry is permitted only when the first search sees zero PickList codes; no loop and no Firestore/Worker/provider operation is added.
 - OA063 remains blocked until v79 technical/release PASS. Android beta-vc82 and Stable are unchanged.
+
+## D137 v79 release — 2026-09-28
+
+- Agent v79 technical/release pipeline PASS from exact main `b177ef0f9169b051fe90349460c1c3e2d7a07663`.
+- GitHub prerelease `relay-agent-v79` is published and inventory-channel updated to the same EXE.
+- Release EXE SHA-256: `e88108a53ff5def868c7ca036318fcac5a2ba19da2fe426fddb1983fa1056d23`.
+- OA063 is READY_FOR_OWNER_FIELD_TEST for real first-session Confirm hydration without operator F5.
+- Android beta-vc82 and Stable are unchanged.
