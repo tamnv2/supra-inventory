@@ -1741,3 +1741,26 @@ OA068 physical acceptance after signed release:
 - each available Settings action must reach the relevant Android control (or safe App-details fallback), and Android Back must automatically recheck without a manual test/check button;
 - once all items are ready, app automatically enters the existing login/restored-session flow and normal Báo hàng/PickList behavior is unchanged;
 - a normal real critical warehouse alert on each device preserves the existing full-screen overlay/ACK experience. Setup acceptance does not require a separate deliberate DND/Battery Saver toggle-and-test ceremony.
+
+## D143 cross-client acceptance
+
+### Automated/source gates
+1. Android permission gate contains separated readiness cards, **Kiểm tra cấp quyền** and **Đặt lại mặc định**, while automatic on-resume readiness remains.
+2. Signed Android release receives the Picker default password only from protected build configuration; source/logs contain no plaintext default password.
+3. Android company heading/footer/confirmation copy/SKU suggestion width changes compile without changing Báo hàng or PickList authority.
+4. Web `PICKPACK_ADMIN` can access Ca vận hành; ROOT role review includes PICKPACK_ADMIN; ROOT list rows are excluded; managed Admin/PickPack Admin/Reporter deletion is real-ROOT-only server-side.
+5. Web zero badge/date preset/custom range/audit-top paging behavior passes build/UI guards.
+6. Agent v81 self-tests preserve D140 listener/quota safeguards and prove 05:00–22:00 schedule transitions with first prompt at 21:30 and hourly extension boundaries.
+7. Agent ignores older compact-sync versions, does not auto-size hidden/minimized grids, and restores sizing only after visible layout settles.
+8. Agent chat is <=200 chars end-to-end, direct call remains separately locked/resolveable, and Android chat confirmation performs no network ACK.
+9. WebView2 host build remains x64 and D126/D127 forbidden Network/cookie/token/session extraction guards remain PASS while obsolete hidden child views are bounded/disposed.
+10. Stable resources remain untouched and no new provider resource is introduced.
+
+### Owner field gate
+- Update to released v81 Agent and next signed D143 Android Beta.
+- Verify one permission-setting round trip where **Kiểm tra cấp quyền** successfully advances if the OEM screen did not auto-advance; verify **Đặt lại mặc định** returns the operator to Android app settings without claiming system permission revocation.
+- Confirm masked default password is present for normal Picker login and can be erased/replaced.
+- Check full-width SKU suggestions and concise Xác nhận đơn guidance on warehouse PDA.
+- On Web, check Pick Pack Admin Ca vận hành, ROOT permission review/deletion, hidden ROOT, zero badge, date selected states and top audit paging.
+- On Agent, verify tray/visible 21:30 prompt appears once, overtime extends one hour, no five-minute spam, auto-size survives tray restore, Picker list does not jump to an older snapshot, direct call still works and chat dismisses locally with no Kết thúc.
+- Leave managed Web Confirm/Agent running through an extended work session and verify browser RAM does not grow from an unbounded hidden child-window chain.
