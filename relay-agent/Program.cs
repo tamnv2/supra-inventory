@@ -1972,7 +1972,9 @@ namespace SupraInventoryRelayAgent
             if (session == null)
             {
                 _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
-                _relay.Text = "Chế độ nhận tin từ PDA: Chưa đăng nhập | Wi-Fi hiện tại: " + _currentWifiName;
+                _relay.Text = "Chế độ nhận tin từ PDA: Chưa đăng nhập | Relay: " +
+                    (string.IsNullOrWhiteSpace(_relayTransportState) ? "chưa có trạng thái" : _relayTransportState) +
+                    " | Wi-Fi hiện tại: " + _currentWifiName;
                 return;
             }
 
@@ -2015,6 +2017,8 @@ namespace SupraInventoryRelayAgent
             var next = (state ?? "").Trim();
             if (next.StartsWith("Relay:", StringComparison.OrdinalIgnoreCase))
                 next = next.Substring("Relay:".Length).Trim();
+            else if (next.StartsWith("Relay PDA", StringComparison.OrdinalIgnoreCase))
+                next = next.Substring("Relay ".Length).Trim();
             _relayTransportState = string.IsNullOrWhiteSpace(next) ? "chưa có trạng thái" : next;
             UpdateD129AgentHeader();
         }
