@@ -1184,6 +1184,7 @@ D131 current Android state marker: D130_SIGNED_BETA_VC77_BASELINE__D131_PR259_IM
 - Android unchanged; Stable remains OWNER-GATED.
 
 ## D142 Android 11 critical-alert candidate — 2026-09-28
+- Canonical Android marker: `D142_SOURCE_CANDIDATE__ANDROID11_MT90_DT50_CRITICAL_ALERT_READINESS__NEXT_SIGNED_BETA_AFTER_VC82`.
 
 - Scope: Beta Android only; supported warehouse targets are Newland NLS-MT90 Android 11 and Urovo DT50 Android 11.
 - Current released baseline remains signed `beta-vc82` until D142 main/release gates publish the next monotonic APK.
