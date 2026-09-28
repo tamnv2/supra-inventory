@@ -325,7 +325,9 @@ def main() -> None:
     require(supra_browser, "AddMilliseconds(4500)", "D135 bounded local DOM search hard limit")
     require(supra_browser, "SearchFingerprint", "D135 stable-miss early settle")
 
-    require(fcm_service, "if (isPickerCommand) 60L * 1000L", "D133 FCM command fallback 60-second TTL retained")
+    require(fcm_service, "isPickerChat -> 30L * 60L * 1000L", "D143 chat fallback lifetime")
+    require(fcm_service, "isPickerCommand -> 60L * 1000L", "D133 direct-call FCM 60-second TTL retained")
+    require(critical_overlay, "MODE_PICKER_CHAT", "D143 chat overlay mode")
     require(functions_index, "PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000", "D134 active-call FCM server TTL")
     require(functions_index, "onDocumentWritten", "D134 reusable active-call transition trigger")
     require(functions_workflow, "functions:pickerActiveCallCreated,functions:pickerActiveCallResolved", "D134 active-call Functions deploy")
