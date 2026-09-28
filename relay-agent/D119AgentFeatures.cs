@@ -75,7 +75,7 @@ namespace SupraInventoryRelayAgent
         private FirestoreAgentSyncClient _agentSyncClient;
         private FirestoreAgentSyncListener _agentSyncListener;
         private readonly object _agentSyncLifecycleGate = new object();
-        private FirestoreAgentRole _d139AgentSyncRole = FirestoreAgentRole.DEEP_HIBERNATE;
+        private FirestoreAgentRole _d140AgentSyncRole = FirestoreAgentRole.DEEP_HIBERNATE;
         private AgentSyncSnapshot _agentSyncSnapshot = new AgentSyncSnapshot();
         private readonly Dictionary<string, PickerContactCommand> _activePickerCommands =
             new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
@@ -834,14 +834,14 @@ namespace SupraInventoryRelayAgent
             try { if (listener != null) listener.Stop(); } catch { }
         }
 
-        internal void ApplyD139AgentSyncRole(FirestoreAgentRole role)
+        internal void ApplyD140AgentSyncRole(FirestoreAgentRole role)
         {
             var changed = false;
             lock (_agentSyncLifecycleGate)
             {
-                if (_d139AgentSyncRole != role)
+                if (_d140AgentSyncRole != role)
                 {
-                    _d139AgentSyncRole = role;
+                    _d140AgentSyncRole = role;
                     changed = true;
                 }
             }
