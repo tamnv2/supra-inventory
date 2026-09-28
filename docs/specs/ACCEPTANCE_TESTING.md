@@ -1607,3 +1607,15 @@ D135 Beta acceptance must prove all of the following:
 - A NOT_FOUND browser lookup normally terminates after stable local DOM observation rather than waiting the former eight-second loop; only one search-button click is allowed and fail-closed uniqueness/checkbox/dialog guards remain.
 - With a Báo hàng full-screen result visible, disconnect network or revoke/logout the current session and press **XÁC NHẬN ĐÃ NHẬN**. The full-screen surface closes immediately; the PDA is usable/login-capable; pending ACK is retained for later authenticated retry.
 - Existing D134 generation fencing, single-PRIMARY mutation fencing, anti-spam escalation, no-offline-business guard, 45,000/day soft read target and Stable OWNER-GATE remain PASS.
+
+## D136 manual PickList / Usage retirement / Web-background acceptance
+
+D136 cannot be called Owner field PASS until all applicable checks below pass:
+
+- Search one valid manual PickList at normal window size and maximized size. The same result row must show the PickList code, row-specific **Xác nhận** button and **Trạng thái** simultaneously.
+- Toggle **Auto size cột** off/on, resize the Agent, relaunch with saved widths and repeat the search. Critical columns remain visible/reachable; a narrow viewport gets horizontal scrolling rather than a silently missing button/status.
+- Confirm a row. A successful/already-confirmed row cannot send confirmation again; an uncertain row is also non-repeatable; a retryable failure may expose **Xác nhận** again.
+- The Agent contains no visible **Usage** tab. Opening/running Agent must not schedule provider Usage Monitoring polling or periodic `usage_current` publication.
+- Local quota protection remains a reference guard and must not be presented as exact Firebase/provider usage.
+- With Web Confirm visible, **Chuyển Web chạy nền** hides immediately without password. **Hiện Web Confirm**, stop, Agent logout and managed-browser mode switch remain protected.
+- D135 HA/generation/idempotency/security guards stay PASS; Android stays `beta-vc82`; Stable is untouched.
