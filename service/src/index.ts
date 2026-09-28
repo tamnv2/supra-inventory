@@ -23,7 +23,7 @@ import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, r
 import { handleD119Internal } from "./internal-d119";
 import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
-import { collectRelayUsage, publishRelayUsageSnapshot } from "./relay-usage";
+
 
 export { InventoryCore };
 
@@ -1159,15 +1159,7 @@ export default {
       }
 
       if (request.method === "GET" && url.pathname === "/api/agent/usage") {
-        await requireAgentUsageUser(request, env);
-        try {
-          return json(await collectRelayUsage(env, url.searchParams.get("refresh") === "1"));
-        } catch (error) {
-          return json({
-            error: "RELAY_USAGE_UNAVAILABLE",
-            message: error instanceof Error ? error.message : "usage_unavailable",
-          }, 502);
-        }
+        return json({ error: "USAGE_RETIRED_D136" }, 410);
       }
 
       if (request.method === "GET" && url.pathname === "/api/admin/pda-app") {
@@ -1345,11 +1337,8 @@ export default {
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
-      const scheduledMinute = Math.floor(Number(controller.scheduledTime || Date.now()) / 60000);
-      if (scheduledMinute % 10 === 0) {
-        ctx.waitUntil(publishRelayUsageSnapshot(env).then(() => undefined).catch((error) =>
-          console.error("relay_usage_snapshot_failed", error instanceof Error ? error.message : "unknown")));
-      }
+      // D136: provider Usage polling/snapshot publication retired. No periodic
+      // Monitoring API calls and no usage_current Firestore writes are scheduled.
     }
   },
 } satisfies ExportedHandler<Env>;
