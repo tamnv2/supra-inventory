@@ -623,7 +623,15 @@ class PickerController(
         suggestionRows = rows
         val labels = rows.map { "${it.sku} - ${it.productName}" }
         field.setAdapter(ArrayAdapter(activity, android.R.layout.simple_dropdown_item_1line, labels))
-        if (labels.isNotEmpty() && field.hasFocus()) field.showDropDown() else field.dismissDropDown()
+        field.post {
+            val screenMargin = kit.dp(8)
+            val location = IntArray(2)
+            field.getLocationOnScreen(location)
+            val fullWidth = activity.resources.displayMetrics.widthPixels - screenMargin * 2
+            field.dropDownWidth = fullWidth.coerceAtLeast(field.width)
+            field.dropDownHorizontalOffset = screenMargin - location[0]
+            if (labels.isNotEmpty() && field.hasFocus()) field.showDropDown() else field.dismissDropDown()
+        }
     }
 
     private fun clearSelection() {
