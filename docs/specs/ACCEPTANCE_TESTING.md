@@ -1984,3 +1984,12 @@ Technical PASS requires all of the following:
 - Agent version advances monotonically to `relay-agent-v86`.
 
 OA080 Owner field PASS additionally requires normal real PickList confirmation to remain prompt, any naturally occurring checkbox-stale/uncertain case to self-recover truthfully without duplicate mutation, and no unexpected Firestore usage amplification.
+
+### D152 v87 hydrated verification safety
+
+Before OA080 can become field-ready:
+- passive or Search-based exact-row disappearance must not return CONFIRMED while the Confirm table is completely empty/unhydrated;
+- a stable exact-row disappearance may return CONFIRMED only with a hydrated rendered PickList table, or an explicit trusted success surface;
+- final pre-mutation checkbox disappearance/disable/verify failure returns conflict/not-ready and releases the unused guard safely;
+- the normal unique-row + usable-checkbox path remains unchanged and pays no new reload/verification cost;
+- Agent advances to v87 because v86 was already published; Android stays beta-vc89 and Stable remains untouched.
