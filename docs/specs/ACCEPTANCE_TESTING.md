@@ -1859,3 +1859,28 @@ Only explicit Owner PASS promotes D148 to the accepted base and unlocks the next
 D148 technical result: **PASS** on 2026-09-29. PR #300 is merged and live Beta Web/Worker plus signed `beta-vc87` passed the automated/runtime/release gates. OA076 is READY_FOR_OWNER_FIELD_TEST. Technical PASS does not promote the accepted base: D147 remains accepted and D149 remains blocked until the Owner explicitly records D148 PASS.
 
 D148 Owner result: **PASS** on 2026-09-29. OA076 is closed after the Owner explicitly confirmed field acceptance of live Beta Web and signed `beta-vc87`. D148 is promoted to the accepted base. The overtime Web/App/Agent unification request remains excluded from D148 and has not started.
+
+## D149 — Unified schedule and operational refinements acceptance
+
+### Automated/source gates
+- Agent schedule self-test proves: 05:00 is closed by default; 05:00–<06:00 supports early start only; 06:00 opens automatically; 22:00 closes automatically; 21:30 prompts for 22→23; active overtime prompts at HH:30; 03:30 may extend 04→05; 04:30 cannot extend beyond 05.
+- A scheduled boundary has first-writer-wins CAS semantics. A losing conflicting Agent refreshes/shared-renders the winner.
+- Manual **Điều chỉnh tăng ca** while sleeping writes at most one bounded state change to the next whole-hour boundary and does not consume the future HH:30 decision boundary.
+- No Function trigger targets hot roles/lease/agent_sync documents. No Android/Web schedule polling and no new Agent schedule listener exist.
+- Android normal schedule recovery uses Worker state; Firestore exact-current-state GET exists only as Worker-outage fallback and cannot list/listen.
+- Android closed-window handling does not automatically logout solely because time crossed the operating boundary.
+- Worker/InventoryCore rejects schedule-governed Android mutations when its mirrored effective state is closed and accepts them when the same shared state is open.
+- Result notification/recovery payload exposes product plus resolver display/role/source with system-timeout distinction.
+- Web recent results applies one bounded date range consistently to summary and paged rows.
+- Agent managed browser path is centralized; migration rejects removable/network destinations, closes active managed Web, verifies copy/switch, and has rollback.
+- PickList presentation no longer renders the Hôm nay aggregate cluster; durable daily counters are not deleted.
+- Stable is untouched.
+
+### Owner field gate — OA077
+1. With multiple Agents online, click conflicting overtime decisions nearly together. Exactly one boundary decision wins and all Agents converge to it.
+2. Do nothing at 21:30/22:00. At 22:00 replay must sleep without a synthetic schedule write. Use **Điều chỉnh tăng ca** and verify fleet/PDA reopen only to the next hour.
+3. Verify 22:30/23:30/etc prompts occur only while the previous extension remains active; verify no extension past 05:00.
+4. At 05:00 verify replay remains asleep and **Bật sớm trước 06:00** opens only until 06:00; at 06:00 normal replay starts automatically.
+5. Keep a PDA offline/powered off through an overtime decision, then restore it. It must obtain the current state once and operate consistently without polling.
+6. Verify Báo hàng and PickList follow the same open/closed schedule when Worker is healthy.
+7. Verify Web recent-result ranges, result resolver copy, Agent Web storage move/rollback, and removal of the PickList Hôm nay cluster.
