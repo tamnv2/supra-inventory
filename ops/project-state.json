@@ -193,7 +193,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D147 has explicit Owner PASS and is now the accepted governance base. No project change is currently open. The next requested change may be opened only after a fresh canonical GitHub bootstrap; if it may affect the accepted base, present impact/risk/components/resource-quota-security analysis and obtain explicit Owner approval before mutation. Stable remains OWNER-GATED.",
+  "next_action": "Implement and verify D148 scope only: (1) operations badge visibility repair, (2) Android report-created adaptive overlay for Reporter/Admin, (4) client-side shift comparison Excel, (5) clearer PickList strike/lock messages without backend rate-limit change, (6) Android INFO log on session end instead of scheduled PDA uploads while preserving crash/error/manual delivery, and (7) prioritized sequential Android overlay queue. D149/new work remains blocked until explicit Owner PASS on D148.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -837,7 +837,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "NONE__D147_OWNER_ACCEPTED_BASELINE",
+  "active_workstream": "D148_IMPLEMENTATION__WEB_ANDROID_REPORTING_LOG_ALERT_QUEUE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2460,10 +2460,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D147",
     "accepted_base_evidence": "OWNER_EXPLICIT_D147_PASS__2026_09_29",
-    "current_change_id": null,
-    "current_change_status": "NONE__D147_OWNER_ACCEPTED_PASS",
+    "current_change_id": "D148",
+    "current_change_status": "IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED_SCOPE_1_2_4_5_6_7",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2477,7 +2477,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "NONE__D147_GOVERNANCE_ONLY__D146_RUNTIME_REMAINS_BASE",
+    "runtime_impact": "WEB_UI_EXPORT_PLUS_ANDROID_NOTIFICATION_LOG_PRESENTATION__NO_BUSINESS_SCHEMA_OR_AGENT_CHANGE",
     "resource_change": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2501,5 +2501,33 @@
       "result": "PASS",
       "evidence": "Owner explicitly confirmed D147 accepted. Governance sequencing is accepted; no runtime/provider/resource/schema/quota/Stable mutation is introduced."
     }
+  },
+  "d148": {
+    "status": "IMPLEMENTATION_IN_PROGRESS",
+    "date": "2026-09-29",
+    "baseline_change": "D147",
+    "baseline_main": "05607ba96d4d7c94d083ba5ff9ebf07e2f5cbe2a",
+    "branch": "feat/d148",
+    "owner_approved_scope": [
+      "WEB_OPERATIONS_BADGE_ZERO_TO_POSITIVE_RECREATE",
+      "ANDROID_REPORT_CREATED_ADAPTIVE_OVERLAY_REPORTER_ADMIN",
+      "WEB_EXCEL_SHIFT_COMPARISON_CLIENT_SIDE",
+      "ANDROID_PICKLIST_STRIKE_LOCK_COPY_ONLY",
+      "ANDROID_LOG_INFO_ON_SESSION_END_NOT_SCHEDULED_PDA",
+      "ANDROID_PRIORITY_SEQUENTIAL_OVERLAY_QUEUE"
+    ],
+    "excluded_scope": "OVERTIME_WEB_ANDROID_AGENT_UNIFICATION__DEFERRED_TO_SEPARATE_CHANGE_AFTER_D148_OWNER_PASS",
+    "base_impact": "YES__PRESENTATION_AND_SUPPORT_LOG_POLICY_ONLY",
+    "affected_components": [
+      "web",
+      "android",
+      "service notification payload reused unchanged"
+    ],
+    "regression_stability_risk": "MEDIUM_ANDROID_OVERLAY_QUEUE__LOW_WEB_BADGE_EXPORT__NO_PICKLIST_BACKEND_LOGIC_CHANGE",
+    "resource_quota_security_impact": "NO_NEW_RESOURCE__NO_NEW_POLLING__NO_EXTRA_FIRESTORE_READ__FCM_EXISTING_EVENT_ONLY__NO_SECRET_CHANGE",
+    "recommended_approach": "LOCAL_UI_STATE_REPAIR__CLIENT_SIDE_EXPORT_AGGREGATION__LOCAL_PRIORITY_QUEUE_DEDUPE__SESSION_END_LOG_UPLOAD_WITH_PENDING_RETRY",
+    "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_APPROVED_D148_SCOPE_1_2_4_5_6_AND_ADDED_7__2026_09_29",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_gate": "OA076_BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS"
   }
 }
