@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D148_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC87__AGENT_V83_UNCHANGED",
+    "beta": "D148_OWNER_ACCEPTED_BASE__D149_IMPLEMENTATION_ACTIVE_BETA_CANDIDATE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -33,7 +33,7 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D146_AGENT_V83_OWNER_FIELD_PASS__GOOGLE_FIRST_LOGS__PROTECTED_INPUT_FOCUS",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__OWNER_ACCEPTED_PASS"
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D149_ACTIVE__D148_ACCEPTED_BASE"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -2460,10 +2460,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D148",
     "accepted_base_evidence": "OWNER_EXPLICIT_D148_PASS__2026_09_29",
-    "current_change_id": null,
-    "current_change_status": "NONE__D148_OWNER_ACCEPTED_PASS",
+    "current_change_id": "D149",
+    "current_change_status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2477,8 +2477,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D148_OWNER_ACCEPTED_LIVE_BETA_WEB_PLUS_SIGNED_ANDROID_VC87__AGENT_UNCHANGED",
-    "resource_change": "NONE",
+    "runtime_impact": "D149_CANDIDATE__BETA_ONLY__D148_REMAINS_ACCEPTED_BASE",
+    "resource_change": "REUSE_EXISTING_FIRESTORE_RELAY_BETA_AND_EXISTING_BETA_FUNCTION_RUNTIME__NO_NEW_PROVIDER",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -2557,5 +2557,54 @@
       "result": "PASS",
       "evidence": "Owner explicitly confirmed 'D148 pass' after field review of the approved D148 scope. This promotes D148 to the accepted base; item 3 overtime unification remains excluded and unstarted."
     }
+  },
+  "d149": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "date": "2026-09-29",
+    "baseline_change": "D148",
+    "baseline_main": "d251c0cd65e7c549e63257d4b1fe93a1ab3474b8",
+    "branch": "feat/d149-unified-operations",
+    "owner_approved_scope": [
+      "WEB_RECENT_RESULTS_EXPLICIT_DATE_RANGE_AND_REPORTING",
+      "ANDROID_RESULT_NOTIFICATION_RESOLVER_ROLE_SOURCE_AND_PRODUCT",
+      "AGENT_WEB_STORAGE_RELOCATION_WITH_CLOSE_VERIFY_REOPEN_ROLLBACK",
+      "UNIFIED_OPERATING_SCHEDULE_AGENT_WEB_ANDROID",
+      "PICKLIST_REMOVE_TODAY_CLUSTER_UI_KEEP_DURABLE_COUNTERS"
+    ],
+    "unified_schedule": {
+      "timezone": "Asia/Ho_Chi_Minh",
+      "normal_window": "06:00-22:00",
+      "prestart_window": "05:00-06:00__MANUAL_EARLY_START_ONLY",
+      "overtime_window": "22:00-05:00__ONE_HOUR_EXTENSIONS",
+      "prompt_rule": "21:30_FOR_22:00__THEN_HH:30_ONLY_WHILE_CURRENT_EXTENSION_ACTIVE__NO_PROMPT_BEYOND_05:00",
+      "default_22_behavior": "NO_DECISION_MEANS_SLEEP_WITHOUT_SCHEDULE_WRITE",
+      "fleet_decision": "ANY_AUTHENTICATED_AGENT_MAY_DECIDE__FIRST_SUCCESSFUL_FIRESTORE_CAS_PER_BOUNDARY_WINS__ALL_AGENTS_FOLLOW_SHARED_STATE",
+      "sleeping_adjustment": "SHOW_ADJUST_OVERTIME_BUTTON_22:00-05:00__ONE_BOUNDED_HUMAN_ACTION_CAN_REOPEN_TO_NEXT_HOUR_CAPPED_05:00",
+      "early_start": "AT_05:00_SHOW_BAT_SOM_TRUOC_06:00__OPEN_UNTIL_06:00",
+      "max_overtime": "05:00"
+    },
+    "base_impact": "YES__WEB_ANDROID_AGENT_WORKER_FIREBASE_FUNCTION_AND_FIRESTORE_RULES",
+    "affected_components": [
+      "relay-agent",
+      "android",
+      "web",
+      "service",
+      "functions",
+      "firestore_rules",
+      "repo_authority"
+    ],
+    "regression_stability_risk": "HIGH_SCHEDULE_CROSS_CHANNEL__MEDIUM_AGENT_BROWSER_STORAGE__MEDIUM_NOTIFICATION_ATTRIBUTION__LOW_WEB_RANGE_AND_PICKLIST_UI",
+    "resource_quota_security_impact": "NO_NEW_PROVIDER__NO_NEW_SCHEDULE_POLLING__NO_NEW_ALWAYS_ON_LISTENER__REUSE_RELAY_POC_COORDINATION_EXACT_SCHEDULE_DOC__EVENT_ONLY_FUNCTION_AND_FCM_TOPIC__WORKER_MIRROR__STABLE_UNTOUCHED",
+    "recommended_approach": "AGENT_CAS_AUTHORITY__DEDICATED_LOW_FREQUENCY_CURRENT_STATE_PROJECTION__FCM_ACCELERATOR__WORKER_MIRROR_FOR_BUSINESS_ENFORCEMENT__ONE_SHOT_RECOVERY__IDEMPOTENT_VERSIONING__NO_ROLE_DOC_TRIGGER",
+    "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_APPROVED_D149_AND_ADDED_FLEET_FIRST_WRITER_OVERTIME_ADJUST_06_22_EARLY_START_05_06_RULES__2026_09_29",
+    "quota_invariants": [
+      "NO_FUNCTION_TRIGGER_ON_HOT_HA_ROLES_OR_LEASE_DOCS",
+      "NO_ANDROID_OR_WEB_SCHEDULE_POLLING",
+      "NO_NEW_AGENT_SCHEDULE_LISTENER",
+      "MISSED_FCM_RECOVERY_USES_EXISTING_WORKER_RESPONSE_WHEN_HEALTHY_AND_EXACT_FIRESTORE_GET_ONLY_AS_OUTAGE_FALLBACK",
+      "DEFAULT_22_SLEEP_REQUIRES_NO_PROVIDER_WRITE"
+    ],
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_gate": "OA077_PENDING_AFTER_TECHNICAL_RELEASE_PASS"
   }
 }
