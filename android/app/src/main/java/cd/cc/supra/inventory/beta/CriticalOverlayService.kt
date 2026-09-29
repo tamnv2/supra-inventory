@@ -227,6 +227,24 @@ class CriticalOverlayService : Service() {
 
     private fun finishActive(userAcknowledged: Boolean) {
         val current = activeAlert ?: return
+
+        // Preserve the accepted D133/D135 local-first contract: durable local
+        // acknowledgement state is written before the visible item is removed.
+        if (userAcknowledged) {
+            when (current.mode) {
+                MODE_RESULT -> {
+                    if (current.alertId.isNotBlank()) {
+                        NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId)
+                    }
+                }
+                MODE_PICKER_CHAT -> {
+                    if (current.alertId.isNotBlank()) {
+                        NotificationSignalStore.markPickerChatDismissed(applicationContext, current.alertId)
+                    }
+                }
+            }
+        }
+
         cancelExpiry()
         removeOverlay()
         activeAlert = null
@@ -234,15 +252,9 @@ class CriticalOverlayService : Service() {
         when (current.mode) {
             MODE_RESULT -> {
                 if (userAcknowledged) {
-                    NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId)
                     acknowledgeResultAsync(current.alertId)
                 } else {
                     releaseUnacknowledgedResult(current)
-                }
-            }
-            MODE_PICKER_CHAT -> {
-                if (userAcknowledged && current.alertId.isNotBlank()) {
-                    NotificationSignalStore.markPickerChatDismissed(applicationContext, current.alertId)
                 }
             }
         }

@@ -315,8 +315,12 @@ def main() -> None:
     require(firestore_rules, "picker_session_controls", "D134 session-control rules")
     require(critical_overlay, "PICKER_COMMAND_TTL_MS = 60L * 1000L", "D133 60-second command overlay safety TTL retained")
     require(critical_overlay, "NotificationSignalStore.markOverlayAckPending", "D133 local-first result ACK retained")
-    if critical_overlay.find("NotificationSignalStore.markOverlayAckPending") > critical_overlay.find("stopSelf()", critical_overlay.find("acknowledge.setOnClickListener")):
-        fail("D133 result overlay must persist local ACK before dismissing")
+    queue_finish = critical_overlay.find("private fun finishActive")
+    queue_ack = critical_overlay.find("NotificationSignalStore.markOverlayAckPending", queue_finish)
+    queue_remove = critical_overlay.find("removeOverlay()", queue_finish)
+    queue_network = critical_overlay.find("acknowledgeResultAsync(current.alertId)", queue_finish)
+    if min(queue_finish, queue_ack, queue_remove, queue_network) < 0 or not (queue_ack < queue_remove < queue_network):
+        fail("D148 result queue must persist local ACK before dismiss and network ACK")
     require(picker, "activeResultDialog", "D135 in-app result dialog lifecycle")
     require(picker, "NotificationSignalStore.markOverlayAckPending", "D135 in-app local-first result ACK")
     picker_ack = picker.find("NotificationSignalStore.markOverlayAckPending", picker.find("acknowledge.setOnClickListener"))
