@@ -4200,8 +4200,25 @@ namespace SupraInventoryRelayAgent
                 if (!search.Candidates.TryGetValue(work.Suffix ?? "", out candidates))
                     candidates = new List<string>();
 
+                var checkboxRecoveryTerm = search.CheckboxRecoveryFragments.Exists(x =>
+                    string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal));
+
                 if (candidates.Count == 0)
                 {
+                    if (checkboxRecoveryTerm)
+                    {
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                            CacheMode = "BROWSER_DOM+CHECKBOX_RECOVERY_STATE_CHANGED",
+                            Route = "BROWSER_DOM",
+                            OperationMs = Math.Max(0L, search.ElapsedMs),
+                            Matches = 0,
+                            Rate = new PickerRateDecision()
+                        };
+                        continue;
+                    }
+
                     var rate = _firestoreRateLimiter.RecordNotFound(
                         appSession, work.PickerUid, work.PickerUserId, work.RequestId);
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
@@ -4236,8 +4253,10 @@ namespace SupraInventoryRelayAgent
                 {
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
-                        Result = "CONFIRM_REJECTED",
-                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_NOT_READY",
+                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                        CacheMode = checkboxRecoveryTerm
+                            ? "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_RELOAD+CHECKBOX_NOT_READY"
+                            : "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_NOT_READY",
                         Route = "BROWSER_DOM",
                         OperationMs = Math.Max(0L, search.ElapsedMs),
                         Matches = 1,
@@ -4286,18 +4305,50 @@ namespace SupraInventoryRelayAgent
 
                 if (!guard.Acquired || guard.InProgressOrUncertain)
                 {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    SupraBrowserConfirmResult verifyOnly = null;
+                    try
                     {
-                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                        CacheMode = "BROWSER_DOM+GUARD",
-                        Route = "FIRESTORE_CONFIRM_GUARD",
-                        Http = 409,
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
-                        Matches = 1,
-                        Rate = new PickerRateDecision(),
-                        GuardId = guard.GuardId,
-                        RetireAtMs = guard.RetireAtMs
-                    };
+                        verifyOnly = _supraBrowser.VerifyExactWithoutMutation(code);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("FIRESTORE CONFIRM verify-only fail type=" + ex.GetType().Name +
+                            " mutation=false");
+                    }
+
+                    if (verifyOnly != null &&
+                        string.Equals(verifyOnly.Result, "CONFIRMED", StringComparison.Ordinal))
+                    {
+                        _confirmationGuard.MarkVerifiedConfirmed(appSession, guard.GuardId);
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "CONFIRMED",
+                            CacheMode = "BROWSER_DOM+GUARD+VERIFY_ONLY_CONFIRMED",
+                            Route = "FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY",
+                            Http = 200,
+                            OperationMs = Math.Max(0L, search.ElapsedMs) + Math.Max(0L, verifyOnly.ElapsedMs),
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs
+                        };
+                    }
+                    else
+                    {
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                            CacheMode = "BROWSER_DOM+GUARD+VERIFY_ONLY_PENDING",
+                            Route = "FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY",
+                            Http = 409,
+                            OperationMs = Math.Max(0L, search.ElapsedMs) +
+                                          Math.Max(0L, verifyOnly == null ? 0L : verifyOnly.ElapsedMs),
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs
+                        };
+                    }
                     continue;
                 }
 
@@ -4379,6 +4430,10 @@ namespace SupraInventoryRelayAgent
                     Log("FIRESTORE browser confirm uncertain type=" + ex.GetType().Name);
                     continue;
                 }
+
+                Log("FIRESTORE CONFIRM browser result=" + (confirmed.Result ?? "CONFIRM_ERROR") +
+                    " reason=" + (string.IsNullOrWhiteSpace(confirmed.Detail) ? "NONE" : confirmed.Detail) +
+                    " mutation=true");
 
                 if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
                     _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
