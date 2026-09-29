@@ -400,10 +400,16 @@ export interface AgentAppRelease extends PdaAppRelease {}
 export interface AndroidAlertWindowState {
   start_minutes: number;
   end_minutes: number;
+  overtime_cutoff_minutes: number;
+  schedule_key: string;
+  schedule_version: number;
+  decision: string | null;
+  projection_open_until_ms: number | null;
   overtime_until_ms: number | null;
   is_open: boolean;
   normal_window_open: boolean;
   overtime_open: boolean;
+  early_start_open: boolean;
   server_now: string;
   server_now_ms: number;
   business_date: string;
@@ -867,6 +873,8 @@ export async function getReporterRecent(
   limit = 50,
   offset = 0,
   status = "",
+  from = "",
+  to = "",
 ): Promise<{
   items: ReporterRecentBatch[];
   count: number;
@@ -885,6 +893,8 @@ export async function getReporterRecent(
 }> {
   const params = new URLSearchParams({ limit: String(limit), offset: String(Math.max(0, offset)) });
   if (status) params.set("status", status);
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
   return readJson(await authorizedFetch(`/api/reporter/recent?${params.toString()}`));
 }
 
