@@ -3910,7 +3910,7 @@
     },
     {
       "id": "OA080",
-      "status": "BLOCKED_TECHNICAL_RELEASE_PENDING",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D152 bounded PickList confirmation recovery",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3920,7 +3920,8 @@
         "d152_owner_approval": "PASS__2026_09_29",
         "target_agent_release": "relay-agent-v86",
         "android": "beta-vc89__UNCHANGED",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "technical_release": "PASS__PR316_MAIN_A418DE7E__AGENT_V86"
       },
       "shortest_test_path": [
         "Install/update Agent v86 after technical release and keep the existing signed beta-vc89 PDA app.",
@@ -3938,7 +3939,7 @@
         "No new provider/read-write polling cadence or Android release is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until Agent v86 technical/runtime/release PASS. After release, run the bounded real-field matrix above and report PASS/FAIL.",
+      "remaining_owner_action": "Update Agent to relay-agent-v86, run the bounded real-field matrix, and report D152 PASS/FAIL. Android remains beta-vc89.",
       "closed": false
     }
   ]
