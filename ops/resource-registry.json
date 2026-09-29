@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D150_OWNER_ACCEPTED_BASE__D151_PROBE_TECHNICAL_BUILD_PASS__OA079_FIELD_READY",
+      "status": "D150_OWNER_ACCEPTED_BASE__D151_ADAPTIVE_ALERT_ENGINE_IMPLEMENTATION_ACTIVE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -221,7 +221,7 @@
       "d148_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC87__AGENT_V83_UNCHANGED",
       "d149_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC88__AGENT_V84__OA077_FIELD_READY",
       "d150_source_status": "OWNER_FIELD_ACCEPTED_PASS__AGENT_V85__ANDROID_VC88_UNCHANGED",
-      "d151_source_status": "PROBE_TECHNICAL_BUILD_PASS__MAIN_EAEAD3F2__OA079_FIELD_READY__PRODUCTION_BETA_VC88_UNCHANGED",
+      "d151_source_status": "OWNER_APPROVED_ADAPTIVE_ALERT_ENGINE__BETA_ANDROID_IMPLEMENTATION_ACTIVE",
       "d151_diagnostic_package": "cd.cc.supra.inventory.dnddiag",
       "d151_diagnostic_resources": "REUSE_EXISTING_BETA_WORKER_RUNTIME_LOG_BUFFER_AND_LOGS_FOLDER__NO_NEW_PROVIDER_RESOURCE",
       "d151_diagnostic_artifact": "mt90-dnd-diagnostic-apk",
@@ -234,7 +234,13 @@
       "d151_probe_resources": "DIAGNOSTIC_APK_ONLY__NO_NEW_PROVIDER_FIREBASE_APP_COLLECTION_SCHEMA_SECRET_POLLING_LISTENER_OR_CRON",
       "d151_probe_main_commit": "eaead3f239e559f7df67feb2923e76bd595af527",
       "d151_probe_artifact_id": 11024960495,
-      "d151_probe_pr": 311
+      "d151_probe_pr": 311,
+      "d151_production_scope": "BETA_ANDROID_ONLY__CAPABILITY_BASED_ALERT_READINESS_OVERLAY_WAKE__NO_MODEL_FIRMWARE_ALLOWLIST",
+      "d151_hard_readiness": "NOTIFICATIONS__SYSTEM_ALERT_WINDOW__BATTERY_OPTIMIZATION_EXEMPTION",
+      "d151_delivery_modes": "NATIVE_DND_WHEN_REAL_POLICY_AND_CHANNEL_BYPASS_READY__OTHERWISE_OVERLAY_COMPAT",
+      "d151_wake_policy": "EVENT_DRIVEN_SCREEN_OR_KEYGUARD_WAKE__NO_WAKELOCK__FSI_CAPABILITY_FALLBACK_ONLY",
+      "d151_target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC88",
+      "d151_resource_change": "NONE__NO_NEW_PROVIDER_SCHEMA_SECRET_COLLECTION_POLLING_LISTENER_CRON"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
