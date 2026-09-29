@@ -76,13 +76,14 @@ jobs:
           $sync = Get-Content relay-agent/FirestoreAgentSync.cs -Raw
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
+          $notificationApi = Get-Content service/src/notification-api.ts -Raw
           $agentLogBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*86\s*;') { throw "D152 requires Agent v86 while retaining D150/D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.86\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.86\.0\.0</FileVersion>') {
-            throw "D152 Agent assembly/file version must be 0.86."
+          if ($config -notmatch 'AgentBuild\s*=\s*87\s*;') { throw "D153 requires Agent v87 while retaining D152/D150/D140 safety guards." }
+          if ($project -notmatch '<AssemblyVersion>0\.87\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.87\.0\.0</FileVersion>') {
+            throw "D153 Agent assembly/file version must be 0.87."
           }
 
           foreach ($marker in @(
@@ -473,6 +474,40 @@ jobs:
           }
           foreach ($marker in @('HasWindowBounds','RefreshPickerPresenceOnForeground','ApplyPickerRequestActivity','StartD134AgentSync','StopD134AgentSync')) {
             if (-not $ops.Contains($marker)) { throw "D134 Agent fleet marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'fallback=SKIP_LOGIN_AUTHORITY',
+            'fallback=SKIP_ALREADY_PRESENT',
+            'fallback=UPSERT_ONCE',
+            'shared=SKIP_NO_CHANGE',
+            'ParsePresenceRemovals',
+            'IsCurrentPicklistFallback'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D153 Picker fallback/no-op guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'D153_PICKER_PRESENCE_PROJECTION_SIGNATURE',
+            'projection_current',
+            'mirror_required',
+            'd153PickerPresenceSemanticSignature'
+          )) {
+            if (-not $notifications.Contains($marker)) { throw "D153 InventoryCore semantic-dedupe marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'removed_sessions_json',
+            'projection-ack',
+            'projectionCurrent && normalizedRemovals.length === 0'
+          )) {
+            if (-not $projection.Contains($marker)) { throw "D153 projection write-dedupe marker missing: $marker" }
+          }
+          foreach ($marker in @('mirror_required','mirror-ack','refreshPickerProjectionBestEffort')) {
+            if (-not $notificationApi.Contains($marker)) { throw "D153 notification-target mirror guard missing: $marker" }
+          }
+          if (-not $transport.Contains('PresenceRemovedSessionsJson')) {
+            throw "D153 explicit session-removal metadata missing from Agent transport."
+          }
+          if (-not $sync.Contains('delayed fallback may not') -or -not $sync.Contains('same/newer fallback')) {
+            throw "D153 agent_sync fallback downgrade guard missing."
           }
           if ($ops.Contains('TimeSpan.FromSeconds(15)') -or $ops.Contains('PickerPresenceRefreshIntervalMs = 15000')) {
             throw "D134 foreground/periodic fast Picker reads are forbidden."
