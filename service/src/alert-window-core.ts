@@ -195,9 +195,10 @@ export function mirrorAndroidOperatingSchedule(
   if (!/^\d{8}$/.test(scheduleKey) || version <= 0 || !["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START"].includes(decision)) {
     throw new Error("INVALID_OPERATING_SCHEDULE");
   }
-  if (decision === "STOP") {
-    if (openUntilMs !== 0) throw new Error("INVALID_OPERATING_SCHEDULE_WINDOW");
-  } else if (openUntilMs <= 0 || openUntilMs < decisionBoundaryMs) {
+  // STOP means "do not extend the next boundary", not "kill the active hour now".
+  // Its open_until therefore remains the current accepted boundary just like the
+  // Agent authority, and expires naturally without another write.
+  if (openUntilMs <= 0 || openUntilMs < decisionBoundaryMs) {
     throw new Error("INVALID_OPERATING_SCHEDULE_WINDOW");
   }
 
