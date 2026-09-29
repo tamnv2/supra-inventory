@@ -128,6 +128,7 @@ export function onlinePickerProjectionData(
             COALESCE(u.firebase_uid, '') AS firebase_uid,
             COALESCE(u.employee_code, '') AS employee_code,
             u.display_name,
+            COALESCE(u.contractor_name, '') AS contractor_name,
             u.android_session_generation,
             u.android_session_started_at AS login_at,
             f.device_id,
@@ -142,7 +143,7 @@ export function onlinePickerProjectionData(
         AND u.status = 'ACTIVE'
         AND u.android_session_device_id IS NOT NULL
         AND u.android_session_device_id <> ''
-      GROUP BY u.user_id, u.firebase_uid, u.employee_code, u.display_name,
+      GROUP BY u.user_id, u.firebase_uid, u.employee_code, u.display_name, u.contractor_name,
                u.android_session_generation, u.android_session_started_at, f.device_id
       ORDER BY COALESCE(u.employee_code, u.user_id) ASC, u.display_name ASC
       LIMIT 2000`,
@@ -151,6 +152,7 @@ export function onlinePickerProjectionData(
     firebase_uid: String(row.firebase_uid || ""),
     employee_code: String(row.employee_code || ""),
     display_name: String(row.display_name || ""),
+    contractor_name: String(row.contractor_name || ""),
     device_id: String(row.device_id || ""),
     login_at: row.login_at == null ? null : String(row.login_at),
     device_seen_at: row.device_seen_at == null ? null : String(row.device_seen_at),
@@ -206,12 +208,15 @@ function targetUsersForBatch(state: DurableObjectState, batchId: string): string
   if (!batchId) return [];
   return state.storage.sql
     .exec<SqlRow>(
-      `SELECT DISTINCT picker_user_id AS user_id
-         FROM report_tickets
-        WHERE batch_id = ?
-          AND status = 'RESOLVED'
-          AND picker_user_id IS NOT NULL
-          AND picker_user_id <> ''`,
+      `SELECT DISTINCT t.picker_user_id AS user_id
+         FROM report_tickets t
+         JOIN users u ON u.user_id = t.picker_user_id
+        WHERE t.batch_id = ?
+          AND t.status = 'RESOLVED'
+          AND t.picker_user_id IS NOT NULL
+          AND t.picker_user_id <> ''
+          AND u.status = 'ACTIVE'
+          AND COALESCE(u.shortage_reporting_enabled, 1) = 1`,
       batchId,
     )
     .toArray()
@@ -223,9 +228,12 @@ function targetUsersForResultEvent(state: DurableObjectState, resultEventId: str
   if (!resultEventId) return [];
   return state.storage.sql
     .exec<SqlRow>(
-      `SELECT DISTINCT target_user_id AS user_id
-         FROM result_acknowledgements
-        WHERE result_event_id = ?`,
+      `SELECT DISTINCT a.target_user_id AS user_id
+         FROM result_acknowledgements a
+         JOIN users u ON u.user_id = a.target_user_id
+        WHERE a.result_event_id = ?
+          AND u.status = 'ACTIVE'
+          AND COALESCE(u.shortage_reporting_enabled, 1) = 1`,
       resultEventId,
     )
     .toArray()
