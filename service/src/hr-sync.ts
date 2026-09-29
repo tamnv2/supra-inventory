@@ -43,6 +43,9 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
   const employeeCodeWanted = normalizeHeader(source.mnv_header);
   const nameWanted = normalizeHeader(source.full_name_header);
   const contractorWanted = normalizeHeader(source.contractor_header);
+  if (!contractorWanted) {
+    throw new Error("Nguồn nhân sự chưa cấu hình cột Nhà thầu. Hãy xác nhận lại nguồn trước khi đồng bộ Picker.");
+  }
   const employeeCodeIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === employeeCodeWanted);
   const nameIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === nameWanted);
   const contractorIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === contractorWanted);
