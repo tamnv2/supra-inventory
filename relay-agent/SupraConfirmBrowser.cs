@@ -746,7 +746,7 @@ namespace SupraInventoryRelayAgent
                         break;
                     }
 
-                    if (Bool(post, "rowMissing"))
+                    if (Bool(post, "rowMissing") && Int(post, "allCodeCount") > 0)
                     {
                         if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
                         rowMissingSamples++;
@@ -754,7 +754,7 @@ namespace SupraInventoryRelayAgent
                             DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(700))
                         {
                             result.Result = "CONFIRMED";
-                            result.Detail = "ROW_REMOVED_STABLE";
+                            result.Detail = "ROW_REMOVED_STABLE_HYDRATED";
                             break;
                         }
                     }
@@ -1684,14 +1684,14 @@ namespace SupraInventoryRelayAgent
                 var raw = EvaluateJsonNoLock(BuildPostConfirmScript(code));
                 var post = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 if (post == null) continue;
-                if (Bool(post, "rowMissing"))
+                if (Bool(post, "rowMissing") && Int(post, "allCodeCount") > 0)
                 {
                     if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
                     rowMissingSamples++;
                     if (rowMissingSamples >= 3 &&
                         DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(600))
                     {
-                        _log("SUPRA_BROWSER verify_search=ROW_REMOVED_STABLE reason=" + reason);
+                        _log("SUPRA_BROWSER verify_search=ROW_REMOVED_STABLE_HYDRATED reason=" + reason);
                         return true;
                     }
                 }
@@ -1760,6 +1760,8 @@ namespace SupraInventoryRelayAgent
                 case "CHECKBOX_NOT_UNIQUE":
                 case "CHECKBOX_DISABLED":
                 case "CHECKBOX_VERIFY_FAILED":
+                case "ROW_CHANGED":
+                    return "CONFIRM_CONFLICT";
                 case "CONFIRM_BUTTON_NOT_UNIQUE":
                 case "CONFIRM_BUTTON_DISABLED":
                 case "CONFIRM_DIALOG_NOT_FOUND":
@@ -2349,7 +2351,10 @@ namespace SupraInventoryRelayAgent
                 }
               };
               addDoc(document);
-              const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible).filter(row => {
+              const allRows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
+              const allCodes = [...new Set(allRows.flatMap(row =>
+                (((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || [])))];
+              const rows = allRows.filter(row => {
                 const codes = [...new Set((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))];
                 return codes.includes(code);
               });
@@ -2359,10 +2364,10 @@ namespace SupraInventoryRelayAgent
               const dangerText = dangerNodes.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
               const successWord = successText.includes('thành công') || successText.includes('success');
               const rejectWord = dangerText.includes('thất bại') || dangerText.includes('không thể') || dangerText.includes('error');
-              if (successWord) return JSON.stringify({success:true,rejected:false,rowMissing:false,signal:'SUCCESS_SURFACE'});
-              if (rejectWord) return JSON.stringify({success:false,rejected:true,rowMissing:false,signal:'ERROR_SURFACE'});
-              if (rows.length === 0) return JSON.stringify({success:false,rejected:false,rowMissing:true,signal:'ROW_REMOVED'});
-              return JSON.stringify({success:false,rejected:false,rowMissing:false,signal:'PENDING'});
+              if (successWord) return JSON.stringify({success:true,rejected:false,rowMissing:false,allCodeCount:allCodes.length,signal:'SUCCESS_SURFACE'});
+              if (rejectWord) return JSON.stringify({success:false,rejected:true,rowMissing:false,allCodeCount:allCodes.length,signal:'ERROR_SURFACE'});
+              if (rows.length === 0) return JSON.stringify({success:false,rejected:false,rowMissing:true,allCodeCount:allCodes.length,signal:'ROW_REMOVED'});
+              return JSON.stringify({success:false,rejected:false,rowMissing:false,allCodeCount:allCodes.length,signal:'PENDING'});
             })()";
         }
 
