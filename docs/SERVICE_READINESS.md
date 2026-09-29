@@ -1381,3 +1381,19 @@ Derived current-status markers:
 - Latest Beta APK: `beta-vc88`
 - SQLite schema: `14`
 
+## D149 Owner-accepted Beta baseline — 2026-09-29
+- Owner explicitly confirmed **D149 PASS**; OA077 is closed.
+- Accepted base is now **D149**.
+- Runtime/release evidence remains PR #303 → main `c03f54861e5fbb6ff093b129e9b76e303475c358`.
+- Web/Worker: D149 bounded recent-range and shared schedule state accepted; SQLite schema remains `14`.
+- Android: signed `beta-vc88` unified schedule recovery + resolver attribution accepted.
+- Agent: `relay-agent-v84` unified schedule + managed-Web storage relocation accepted.
+- No new provider/resource/schema/polling loop is introduced by this Owner acceptance record.
+- Stable remains OWNER-GATED and untouched.
+
+Derived current-status markers:
+- `D149_OWNER_FIELD_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
+- `D149_OWNER_FIELD_PASS__SIGNED_BETA_VC88__UNIFIED_SCHEDULE_CACHE_FCM__RESOLVER_ATTRIBUTION`
+- Latest Beta APK: `beta-vc88`
+- Agent: `relay-agent-v84`
+- SQLite schema: `14`

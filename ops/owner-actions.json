@@ -3767,7 +3767,7 @@
     },
     {
       "id": "OA077",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_ACCEPTED_D149",
       "title": "Field-accept D149 unified operations and schedule",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3793,8 +3793,8 @@
         "Overtime never extends beyond 05:00 and normal replay begins automatically at 06:00.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Test D149 trên Beta theo shortest_test_path và xác nhận rõ PASS hoặc NOT PASS. D148 vẫn là accepted base cho tới khi Owner PASS D149.",
-      "closed": false,
+      "remaining_owner_action": "None. Owner explicitly confirmed D149 PASS on 2026-09-29.",
+      "closed": true,
       "runtime_proof": {
         "main_commit": "c03f54861e5fbb6ff093b129e9b76e303475c358",
         "worker_run_id": 36522333433,
@@ -3805,6 +3805,11 @@
         "functions_run_id": 36522333447,
         "firestore_run_id": 36522333435,
         "ui_guard_run_id": 36522333473
+      },
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D149 PASS after field review of the released D149 Beta set."
       }
     }
   ]

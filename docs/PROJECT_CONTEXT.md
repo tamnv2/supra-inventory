@@ -727,3 +727,7 @@ Signed Android `beta-vc87` release id `398763774` contains APK asset `596952438`
 Owner explicitly confirmed **D148 PASS** after field review. Accepted behavior includes the Web pending-badge repair, Reporter/Admin adaptive report-created overlay, shift-comparison Excel export, clearer PickList strike/lock copy, Android session-end INFO-log policy, and priority/FIFO one-at-a-time overlay queue.
 
 Technical/release evidence remains PR #300 → main `fe893db1d80e417021defdad92d85947c37abd82`, live Beta Worker/Web PASS, signed Android `beta-vc87`, and Agent `relay-agent-v83` unchanged. OA076 is closed. D148 is the accepted base; overtime unification remains a separate future change. Stable remains OWNER-GATED.
+
+## D149 Owner acceptance checkpoint — 2026-09-29
+
+D149 is Owner-accepted on Beta. OA077 is closed after explicit Owner PASS. The accepted runtime remains main `c03f54861e5fbb6ff093b129e9b76e303475c358`, signed Android `beta-vc88` and Agent `relay-agent-v84`, covering the shared 06:00–22:00 operating schedule, bounded overtime/early-start logic, one-shot Android recovery, recent-result range UX, resolver attribution, Agent managed-Web storage relocation and PickList presentation refinement. No new provider or schema is added by this acceptance update. Stable remains OWNER-GATED.
