@@ -36,6 +36,7 @@ jobs:
           set -euo pipefail
           manifest="diagnostics/dnd-android/app/src/main/AndroidManifest.xml"
           source="diagnostics/dnd-android/app/src/main/java/cd/cc/supra/inventory/dnddiag/MainActivity.java"
+          overlay="diagnostics/dnd-android/app/src/main/java/cd/cc/supra/inventory/dnddiag/OverlayProbeService.java"
           service="service/src/index.ts"
 
           grep -q 'android.permission.ACCESS_NOTIFICATION_POLICY' "$manifest"
@@ -46,6 +47,10 @@ jobs:
           grep -q 'Build.FINGERPRINT' "$source"
           grep -q 'Build.VERSION.SECURITY_PATCH' "$source"
           grep -q 'GỬI LOG VỀ BETA' "$source"
+          grep -q 'android.settings.NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS' "$source"
+          grep -q 'Settings.canDrawOverlays' "$source"
+          grep -q 'TYPE_APPLICATION_OVERLAY' "$overlay"
+          grep -q 'android.permission.SYSTEM_ALERT_WINDOW' "$manifest"
           grep -q '/api/diagnostics/dnd/upload' "$source"
           grep -q '/api/diagnostics/dnd/upload' "$service"
           grep -q 'DND_DIAGNOSTIC_RATE_LIMITED' "$service"
