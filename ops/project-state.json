@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D150_OWNER_ACCEPTED_BASE__D151_IMPLEMENTATION_ACTIVE",
+    "beta": "D150_OWNER_ACCEPTED_BASE__D151_TECHNICAL_RUNTIME_RELEASE_PASS__OA079_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -35,7 +35,7 @@
     "picklist_confirmation_poc": "D150_OWNER_FIELD_PASS__AGENT_V85__MANUAL_PRIMARY_CAS_GENERATION_FENCE__D149_BUSINESS_HA_CADENCE_RETAINED",
     "governance": "D147_SERIAL_OWNER_PASS_GATE__D150_OWNER_ACCEPTED_PASS__D150_ACCEPTED_BASE",
     "owner_acceptance": "D150_OWNER_FIELD_ACCEPTED_PASS__OA078_CLOSED__D150_ACCEPTED_BASE",
-    "diagnostic": "D151_MT90_DND_DIAGNOSTIC_SOURCE_IMPLEMENTED__BUILD_DEPLOY_PENDING"
+    "diagnostic": "D151_MT90_DND_DIAGNOSTIC_BUILD_AND_BETA_WORKER_RUNTIME_PASS__OA079_READY"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Finish D151 isolated diagnostic APK + bounded Beta log route, pass PR/main authority/build/runtime gates, deliver one APK to Owner, then collect one log from a normal MT90 and one from a failing MT90 under OA079. D150 remains accepted base; Stable untouched.",
+  "next_action": "D151 technical/runtime/build PASS is complete. OA079 is READY_FOR_OWNER_FIELD_TEST: install the same MT90 DND Diagnostic APK on one normal and one failing MT90 and press GỬI LOG VỀ BETA once on each. D150 remains accepted base until explicit D151 Owner PASS; production beta-vc88 and Stable remain unchanged.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -224,7 +224,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D151 IMPLEMENTATION ACTIVE: one isolated MT90 Android 11 DND diagnostic APK plus bounded Beta-only support-log intake; production beta-vc88 and Stable unchanged. OA079 waits for technical release.",
+      "D151 TECHNICAL/RUNTIME/BUILD PASS: main a7ac9315; Beta Worker exact-source health PASS; standalone MT90 DND Diagnostic APK artifact PASS (2,529,134 bytes, SHA-256 4c62afef...); OA079 ready for paired normal/failing MT90 logs. Production beta-vc88 and Stable unchanged.",
       "D147 OWNER PASS: Owner explicitly accepted the serial Owner-PASS governance gate on 2026-09-29. D147 is the accepted governance base; no runtime/provider/schema/quota/Stable change occurred.",
       "D142 OWNER FIELD PASS: Owner confirmed released beta-vc83 accepted on 2026-09-28. Android 11 critical-alert readiness for Newland MT90 + Urovo DT50 is closed PASS; automatic permission gate/direct Settings/Back auto-recheck and existing alert path are accepted. Stable untouched.",
       "D141 TECHNICAL/RUNTIME PASS: PR #282 merged main 966b6d1f; main Authority/State/UI/Beta Worker/Dashboard gates PASS. OA067 is READY_FOR_OWNER_FIELD_TEST for end-to-end FIRST_REPORT persistence. D140 Agent v80 remains parallel; Stable untouched.",
@@ -840,7 +840,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D151_MT90_DND_DIAGNOSTIC_APK_IMPLEMENTATION_ACTIVE",
+  "active_workstream": "D151_TECHNICAL_RUNTIME_RELEASE_PASS__OA079_OWNER_FIELD_PENDING",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D150",
     "accepted_base_evidence": "OWNER_EXPLICIT_D150_PASS__2026_09_29",
     "current_change_id": "D151",
-    "current_change_status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
+    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA079_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D151_DIAGNOSTIC_ONLY__PRODUCTION_ANDROID_BETA_VC88_UNCHANGED__ONE_BETA_LOG_INTAKE_ROUTE",
+    "runtime_impact": "D151_DIAGNOSTIC_ONLY__MAIN_A7AC9315__BETA_WORKER_EXACT_SOURCE_PASS__DIAGNOSTIC_APK_PASS__PRODUCTION_ANDROID_BETA_VC88_UNCHANGED",
     "resource_change": "D151_REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_RUNTIME_LOG_BUFFER_AND_DRIVE_LOGS_FOLDER__NO_NEW_PROVIDER_OR_SECRET",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2791,7 +2791,7 @@
     }
   },
   "d151": {
-    "status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA079_READY",
     "date": "2026-09-29",
     "baseline_change": "D150",
     "baseline_main": "0f73af1ad74fc24209f76a28dab7432a2a2b3565",
@@ -2817,9 +2817,46 @@
     "recommended_approach": "STANDALONE_PACKAGE_OUTSIDE_PRODUCTION_ANDROID_TREE__PLATFORM_ONLY_APK__ALLOWLISTED_BETA_ENDPOINT__EXISTING_SANITIZED_RUNTIME_LOG_ARCHIVE",
     "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_REQUESTED_ONE_APK_AND_DIRECT_BETA_LOG_SEND__2026_09_29",
     "package": "cd.cc.supra.inventory.dnddiag",
-    "field_gate": "OA079_WAITING_TECHNICAL_RELEASE",
+    "field_gate": "OA079_READY_FOR_OWNER_FIELD_TEST",
     "production_android": "beta-vc88__UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "new_provider_resources": "NONE"
+    "new_provider_resources": "NONE",
+    "main_commit": "a7ac9315f51d868118ec6399184f8507e1f2c765",
+    "technical_release": {
+      "status": "PASS",
+      "date": "2026-09-29",
+      "implementation_pr": 309,
+      "worker": {
+        "run_id": 36544445299,
+        "result": "PASS__HTTP_200__SOURCE_EXACT_A7AC9315__SCHEMA14_14__OPERATIONAL5_5"
+      },
+      "diagnostic_apk": {
+        "run_id": 36544445475,
+        "artifact_id": 11022311454,
+        "artifact_name": "mt90-dnd-diagnostic-apk",
+        "apk_name": "mt90-dnd-diagnostic.apk",
+        "size_bytes": 2529134,
+        "sha256": "4c62afef28251e99a90bcd7ac69fc0f5beba70d08dc181e9b61056ffbf5d6ed4",
+        "package": "cd.cc.supra.inventory.dnddiag"
+      },
+      "authority_guard": {
+        "run_id": 36544445390,
+        "result": "PASS"
+      },
+      "project_state_guard": {
+        "run_id": 36544445430,
+        "result": "PASS"
+      },
+      "ui_design_guard": {
+        "run_id": 36544445238,
+        "result": "PASS"
+      },
+      "dashboard_probe": {
+        "run_id": 36544445230,
+        "result": "PASS"
+      },
+      "production_android": "beta-vc88__UNCHANGED__NO_RELEASE",
+      "stable": "UNTOUCHED_OWNER_GATED"
+    }
   }
 }
