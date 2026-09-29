@@ -189,6 +189,7 @@ namespace SupraInventoryRelayAgent
             _fleetMetricStatus.TextAlign = ContentAlignment.MiddleRight;
             _fleetMetricStatus.ForeColor = Color.FromArgb(88, 104, 115);
             _fleetMetricStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _fleetMetricStatus.Visible = false; // D149: durable counters stay internal; remove Hôm nay cluster UI.
             pickerCard.Controls.Add(_fleetMetricStatus);
 
             pickerCard.Controls.Add(new Label
@@ -1303,9 +1304,9 @@ namespace SupraInventoryRelayAgent
         private void RefreshPickerWindowBoundary()
         {
             var now = _businessSchedule == null ? DateTime.Now : _businessSchedule.NowOperational();
-            var start = _businessSchedule == null ? new TimeSpan(5, 0, 0) : AgentBusinessSchedule.RegularStart;
-            var end = _businessSchedule == null ? new TimeSpan(22, 0, 0) : AgentBusinessSchedule.RegularEnd;
-            var open = now.TimeOfDay >= start && now.TimeOfDay < end;
+            var open = _businessSchedule == null
+                ? (now.TimeOfDay >= new TimeSpan(6, 0, 0) && now.TimeOfDay < new TimeSpan(22, 0, 0))
+                : IsBusinessAllowed();
             if (_pickerWindowOpenState.HasValue && _pickerWindowOpenState.Value == open) return;
             _pickerWindowOpenState = open;
 
@@ -1314,7 +1315,7 @@ namespace SupraInventoryRelayAgent
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _pickerOnlineRenderSignature = "";
                 UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-                _pickerOnlineStatus.Text = "Ngoài khung PDA 05:00–22:00 · danh sách Picker đã đóng.";
+                _pickerOnlineStatus.Text = "Replay/PDA đang ngoài ca · khung thường 06:00–22:00 hoặc theo tăng ca chung.";
                 return;
             }
             RefreshD119OperationalViews(true);
@@ -1453,15 +1454,12 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action<bool>(RenderFleetMetricStatus), primary);
                 return;
             }
-            var snapshot = _fleetSnapshot;
+            // D149: keep the durable D135 counters merged for HA/diagnostics, but
+            // do not render the former "Hôm nay toàn cụm" text cluster in the Picker list.
             long received, confirmed, error;
             GetD135DisplayCounters(out received, out confirmed, out error);
-            _fleetMetricStatus.Text = snapshot == null && string.IsNullOrWhiteSpace(_d135CounterDayKey)
-                ? "Hôm nay toàn cụm: chờ đồng bộ"
-                : "Hôm nay toàn cụm: " + received.ToString("N0") +
-                  " nhận · " + confirmed.ToString("N0") + " xác nhận · " +
-                  error.ToString("N0") + " lỗi" +
-                  (primary ? " · realtime local + durable" : " · đồng bộ định kỳ");
+            _fleetMetricStatus.Text = "";
+            _fleetMetricStatus.Visible = false;
             RefreshAgentRequestMetrics();
         }
 
