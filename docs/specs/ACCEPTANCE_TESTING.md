@@ -1984,3 +1984,5 @@ Technical PASS requires all of the following:
 - Agent version advances monotonically to `relay-agent-v86`.
 
 OA080 Owner field PASS additionally requires normal real PickList confirmation to remain prompt, any naturally occurring checkbox-stale/uncertain case to self-recover truthfully without duplicate mutation, and no unexpected Firestore usage amplification.
+
+D152 Owner result: **PASS** on 2026-09-29. OA080 is closed after the Owner explicitly confirmed field acceptance of released `relay-agent-v86`. D152 is promoted to the accepted base. Technical/release evidence remains PR #316 → main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`, Agent release id `399178131`, EXE SHA-256 `098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430`. Android `beta-vc89` and Stable remain unchanged.
