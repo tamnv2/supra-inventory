@@ -1352,3 +1352,15 @@ Status: **OWNER FIELD PASS**.
 Derived current-status markers:
 - `D148_TECHNICAL_RUNTIME_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
 - `D148_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`
+
+## D148 Owner-accepted Beta baseline — 2026-09-29
+- Beta: `D148_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC87__AGENT_V83_UNCHANGED`.
+- Web: pending badge recreation + client-side shift-comparison export field PASS.
+- Android: signed `beta-vc87` report-created adaptive overlay, priority/FIFO one-at-a-time alerts, PickList messaging and session-end INFO logging field PASS.
+- Agent: `relay-agent-v83` unchanged.
+- No new provider resource, schema or polling loop was introduced by D148.
+- OA076 is closed; D148 is the accepted base. Stable remains OWNER-GATED.
+
+Derived current-status markers:
+- `D148_OWNER_FIELD_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
+- `D148_OWNER_FIELD_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`

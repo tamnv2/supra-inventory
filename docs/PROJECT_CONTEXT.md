@@ -721,3 +721,9 @@ D148 reuses existing Web/Worker/InventoryCore/FCM/Android resources, adds no sch
 PR #300 merged to main `fe893db1d80e417021defdad92d85947c37abd82`. Main Repo Authority, continuity, Beta deploy, Android, legacy operational regression and build-probe gates are PASS. Live Beta Worker/Web deployment passed health/auth/business/Web/OAuth and protected D146 Drive-broker probes.
 
 Signed Android `beta-vc87` release id `398763774` contains APK asset `596952438` (19,102,276 bytes, SHA-256 `41e5d499e2c38a703aa4b58a1408963031dbacdb9b11f885650a325a4d0147f2`) and targets the exact D148 main commit. `inventory-channel` PDA assets were refreshed to the same APK. Agent remains v83 and overtime unification remains outside D148. OA076 is READY_FOR_OWNER_FIELD_TEST; D147 remains the accepted base until explicit Owner D148 PASS.
+
+## D148 Owner acceptance checkpoint — 2026-09-29
+
+Owner explicitly confirmed **D148 PASS** after field review. Accepted behavior includes the Web pending-badge repair, Reporter/Admin adaptive report-created overlay, shift-comparison Excel export, clearer PickList strike/lock copy, Android session-end INFO-log policy, and priority/FIFO one-at-a-time overlay queue.
+
+Technical/release evidence remains PR #300 → main `fe893db1d80e417021defdad92d85947c37abd82`, live Beta Worker/Web PASS, signed Android `beta-vc87`, and Agent `relay-agent-v83` unchanged. OA076 is closed. D148 is the accepted base; overtime unification remains a separate future change. Stable remains OWNER-GATED.
