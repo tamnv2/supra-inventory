@@ -1544,3 +1544,20 @@ Derived current-status markers:
 - Android: `D154_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
 - Web: `D154_TECHNICAL_RUNTIME_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
 - SQLite schema: `14`
+
+
+## D154 Owner acceptance — PASS — 2026-09-30
+
+- Accepted base is **D154** after explicit Owner field PASS; OA082 is closed.
+- Runtime implementation remains main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`.
+- Agent **relay-agent-v88** and Android **beta-vc90** remain the current accepted Beta releases.
+- Accepted behavior includes unified **05:45–22:30** normal replay, 05:00–05:45 early start, 22:30-anchored overtime with 05:00 cutoff, shared `CANCEL_OVERTIME`, and the deployed `operatingScheduleChanged` propagation path.
+- Android login version and DND/Overlay priority setup are Owner-accepted together with the existing hard Notification/Overlay/battery readiness requirements.
+- No new provider/resource/schema/secret/listener/polling/cron. Stable remains OWNER-GATED.
+- Serial Owner-PASS gate is open for the next separately reviewed change.
+
+Derived current-status markers:
+- Latest Beta APK: `beta-vc90`
+- Android: `D154_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
+- Web: `D154_OWNER_FIELD_ACCEPTED_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
+- SQLite schema: `14`
