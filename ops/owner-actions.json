@@ -4053,6 +4053,67 @@
         "date": "2026-09-30",
         "evidence": "Owner explicitly confirmed D154 PASS; D154 is promoted to the accepted Beta base and the serial next-change gate is unlocked."
       }
+    },
+    {
+      "id": "OA083",
+      "status": "READY_FOR_OWNER_FIELD_TEST__D155",
+      "title": "Field-accept D155 Picker contractor and quota-safe Báo hàng control",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can validate real warehouse HR-source mapping, Web bulk controls, PDA behavior, Agent contractor presentation and provider Usage after the signed D155 Beta releases.",
+      "prerequisites": {
+        "accepted_base": "D154_OWNER_FIELD_ACCEPTED_PASS",
+        "d155_owner_approval": "PASS__2026_09_30",
+        "implementation_pr": 328,
+        "main_commit": "2fdc4abe4dcb2ea2c221bafeade73f3e406aace4",
+        "worker_run": "36619215788__PASS__HTTP200__SCHEMA15_15",
+        "android": "beta-vc91__RUN_36619215698__PASS__SHA256_55314957A767DDFF2EB04283E2628AE6333C6D439168ABC4BB5B0F56C33A06DE",
+        "agent": "relay-agent-v89__RUN_36619215729__PASS__SHA256_3AA0C9929F9B972464502B1EC3289853633E32519DFA9B58B587AD6B7C5C8943",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Web Nhân sự: cấu hình đúng cột Nhà thầu, Preview/Apply; kiểm tra Picker hiện tại nhận đúng Nhà thầu và cờ Báo hàng trước đó không bị reset.",
+        "Web Tài khoản: tìm theo Nhà thầu, lọc Báo hàng Bật/Tắt; chọn một, nhiều và tất cả Picker để thử Bật/Tắt Báo hàng.",
+        "Trên một PDA Picker đang online, tắt Báo hàng từ Web: tab Báo hàng phải khóa/mờ gần như ngay, nhưng đăng nhập và Xác nhận đơn/PickList vẫn hoạt động.",
+        "Thử gửi SKU bằng UI và nếu có thể bằng APK cũ/stale: service phải chặn báo hàng khi capability tắt; không nhận Có hàng/Skip mới trong thời gian tắt.",
+        "Bật lại Báo hàng từ Web: PDA phải mở lại chức năng và đồng bộ cần thiết một lần, không yêu cầu logout/login.",
+        "Kiểm tra Web/PDA/Agent hiển thị Nhà thầu đúng vị trí; Agent tìm được theo Nhà thầu.",
+        "Quan sát Cloudflare/Firebase Usage trong vận hành thực tế: không có polling/listener/cadence mới; Firebase không tăng operation vì toggle Báo hàng, và Nhà thầu Agent chỉ tăng payload nhỏ trên operation hiện hữu."
+      ],
+      "pass_criteria": [
+        "Báo hàng enable/disable là capability độc lập; không khóa login, PickList/Xác nhận đơn hay Agent presence/contact.",
+        "ADMIN/PICKPACK_ADMIN/ROOT điều khiển capability đúng quyền; PICKPACK_ADMIN không được nới quyền disable/delete tài khoản.",
+        "HR sync cập nhật MNV/tên/Nhà thầu nhưng giữ nguyên explicit Báo hàng toggle của Picker cũ; Picker mới mặc định bật.",
+        "Cloudflare-only control converges nhanh trên PDA online và self-heals on resume without polling.",
+        "No Firestore/RTDB/FCM capability traffic or new idle/background cadence is observed.",
+        "Agent contractor display adds no dedicated Firestore operation; contractor-only HR change may wait for next existing presence/sync update.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Update PDA to beta-vc91 and Agent to relay-agent-v89, configure the contractor header once in HR source, then execute the OA083 shortest field path. Explicit Owner PASS is required before D155 becomes the accepted base.",
+      "closed": false,
+      "technical_release_evidence": {
+        "main_commit": "2fdc4abe4dcb2ea2c221bafeade73f3e406aace4",
+        "implementation_pr": 328,
+        "worker_run_id": 36619215788,
+        "worker_runtime": "HTTP_200__SOURCE_2FDC4ABE_EXACT__SCHEMA15_15__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+        "android_run_id": 36619215698,
+        "android_release": "beta-vc91",
+        "android_release_id": 399459526,
+        "android_asset_id": 599033249,
+        "android_size_bytes": 19118748,
+        "android_sha256": "55314957a767ddff2eb04283e2628ae6333c6d439168abc4bb5b0f56c33a06de",
+        "agent_run_id": 36619215729,
+        "agent_release": "relay-agent-v89",
+        "agent_release_id": 399459395,
+        "agent_asset_id": 599032834,
+        "agent_size_bytes": 7081472,
+        "agent_sha256": "3aa0c9929f9b972464502b1ec3289853633e32519dfa9b58b587ad6b7c5c8943",
+        "ui_guard_run_id": 36619215733,
+        "authority_run_id": 36619215754,
+        "project_state_run_id": 36619215798,
+        "dashboard_probe_run_id": 36619215725,
+        "quota_contract": "CLOUDFLARE_ONLY_REPORTING_CAPABILITY__NO_FIRESTORE_RTDB_FCM_CAPABILITY_PATH__NO_NEW_POLLING_LISTENER_CRON"
+      }
     }
   ]
 }

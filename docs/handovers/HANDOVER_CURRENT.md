@@ -1567,3 +1567,21 @@ Derived current-status markers:
 - Android: `D154_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
 - Web: `D154_OWNER_FIELD_ACCEPTED_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
 - SQLite schema: `14`
+
+## D155 technical/runtime/release PASS — OA083 field-ready — 2026-09-30
+
+- Accepted base remains **D154 Owner PASS** until explicit Owner D155 PASS.
+- D155 PR #328 merged to main `2fdc4abe4dcb2ea2c221bafeade73f3e406aace4`.
+- Main Worker `36619215788`, Android `36619215698`, Agent `36619215729`, UI `36619215733`, Authority `36619215754`, State `36619215798`, Dashboard `36619215725` and DND compatibility `36619215699`: PASS.
+- Beta health exact-source PASS: HTTP 200; SQLite `15/15`; Operational V2 `5/5`; Agent migration `0/0`.
+- Android **beta-vc91**: release `399459526`, APK asset `599033249`, SHA-256 `55314957a767ddff2eb04283e2628ae6333c6d439168abc4bb5b0f56c33a06de`.
+- Agent **relay-agent-v89**: release `399459395`, EXE asset `599032834`, SHA-256 `3aa0c9929f9b972464502b1ec3289853633e32519dfa9b58b587ad6b7c5c8943`.
+- Báo hàng enable/disable authority is Web ↔ Cloudflare Worker/InventoryCore ↔ PDA only. No Firestore/RTDB/FCM capability path or background polling was added.
+- Agent Nhà thầu is an extra field on the existing Picker projection/sync payload only; no dedicated Firestore operation cadence and no HR-triggered contractor-only write.
+- OA083 is **READY_FOR_OWNER_FIELD_TEST**. Stable remains OWNER-GATED.
+
+Derived current-status markers:
+- `D155_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_2FDC4ABE__ANDROID_VC91__AGENT_V89__OA083_FIELD_READY`
+- Latest Beta APK: `beta-vc91`
+- Agent: `relay-agent-v89`
+- SQLite schema: `15`
