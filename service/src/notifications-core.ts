@@ -27,6 +27,29 @@ function validDeviceId(value: string): boolean {
   return /^[A-Za-z0-9._:-]{8,128}$/.test(value);
 }
 
+const D153_PICKER_PRESENCE_PROJECTION_SIGNATURE = "d153:picker-presence-projection-signature";
+const D153_NOTIFICATION_MIRROR_PREFIX = "d153:notification-target-mirror:";
+
+async function d153Sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest)).map((part) => part.toString(16).padStart(2, "0")).join("");
+}
+function d153NotificationMirrorKey(userId: string): string { return D153_NOTIFICATION_MIRROR_PREFIX + userId; }
+async function d153NotificationMirrorSignature(input: { user_id: string; device_id: string; platform: string; token?: string; enabled: boolean }): Promise<string> {
+  return d153Sha256(JSON.stringify({ user_id: input.user_id, device_id: input.device_id, platform: input.platform, token: input.enabled ? String(input.token || "") : "", enabled: input.enabled }));
+}
+async function d153PickerPresenceSemanticSignature(items: Array<Record<string, unknown>>): Promise<string> {
+  const semantic = (items || []).map((item) => ({
+    user_id: String(item.user_id || ""), firebase_uid: String(item.firebase_uid || ""),
+    session_generation: Number(item.session_generation || 0), source: String(item.source || "LOGIN"),
+    employee_code: String(item.employee_code || ""), display_name: String(item.display_name || ""),
+    device_id: String(item.device_id || ""), login_at: item.login_at == null ? null : String(item.login_at),
+    status: String(item.status || "PDA_READY"),
+  }));
+  return d153Sha256(JSON.stringify(semantic));
+}
+function d153ValidSignature(value: string): boolean { return /^[0-9a-f]{64}$/.test(value); }
+
 async function upsertDevice(state: DurableObjectState, request: Request): Promise<Response> {
   const body = (await request.json()) as DeviceBody;
   const userId = String(body.user_id || "").trim();
@@ -49,7 +72,9 @@ async function upsertDevice(state: DurableObjectState, request: Request): Promis
        updated_at = excluded.updated_at`,
     deviceId, userId, platform, token, at, at, at,
   );
-  return response({ status: "registered", device_id: deviceId, platform, registered_at: at });
+  const mirrorSignature = await d153NotificationMirrorSignature({ user_id: userId, device_id: deviceId, platform, token, enabled: true });
+  const mirrored = await state.storage.get<string>(d153NotificationMirrorKey(userId));
+  return response({ status: "registered", device_id: deviceId, platform, registered_at: at, mirror_required: mirrored !== mirrorSignature, mirror_signature: mirrorSignature });
 }
 
 async function removeDevice(state: DurableObjectState, request: Request): Promise<Response> {
@@ -62,7 +87,9 @@ async function removeDevice(state: DurableObjectState, request: Request): Promis
     `UPDATE fcm_devices SET enabled = 0, updated_at = ?, last_seen_at = ? WHERE device_id = ? AND user_id = ?`,
     at, at, deviceId, userId,
   );
-  return response({ status: "unregistered", device_id: deviceId, unregistered_at: at });
+  const mirrorSignature = await d153NotificationMirrorSignature({ user_id: userId, device_id: deviceId, platform: "ANDROID", enabled: false });
+  const mirrored = await state.storage.get<string>(d153NotificationMirrorKey(userId));
+  return response({ status: "unregistered", device_id: deviceId, unregistered_at: at, mirror_required: mirrored !== mirrorSignature, mirror_signature: mirrorSignature });
 }
 
 type RealtimePickerAttachment = {
@@ -141,8 +168,27 @@ export function onlinePickerProjectionData(
   };
 }
 
-function onlinePickerProjection(state: DurableObjectState): Response {
-  return response(onlinePickerProjectionData(state));
+async function onlinePickerProjection(state: DurableObjectState): Promise<Response> {
+  const payload = onlinePickerProjectionData(state);
+  const semanticSignature = await d153PickerPresenceSemanticSignature(payload.items);
+  const projected = await state.storage.get<string>(D153_PICKER_PRESENCE_PROJECTION_SIGNATURE);
+  return response({ ...payload, semantic_signature: semanticSignature, projection_current: projected === semanticSignature });
+}
+async function ackPickerPresenceProjection(state: DurableObjectState, request: Request): Promise<Response> {
+  let body: { signature?: string } = {};
+  try { body = (await request.json()) as typeof body; } catch { return response({ error: "INVALID_JSON" }, 400); }
+  const signature = String(body.signature || "").trim();
+  if (!d153ValidSignature(signature)) return response({ error: "INVALID_PROJECTION_SIGNATURE" }, 400);
+  await state.storage.put(D153_PICKER_PRESENCE_PROJECTION_SIGNATURE, signature);
+  return response({ status: "acked" });
+}
+async function ackNotificationMirror(state: DurableObjectState, request: Request): Promise<Response> {
+  let body: { user_id?: string; signature?: string } = {};
+  try { body = (await request.json()) as typeof body; } catch { return response({ error: "INVALID_JSON" }, 400); }
+  const userId = String(body.user_id || "").trim(), signature = String(body.signature || "").trim();
+  if (!validUserId(userId) || !d153ValidSignature(signature)) return response({ error: "INVALID_NOTIFICATION_MIRROR_ACK" }, 400);
+  await state.storage.put(d153NotificationMirrorKey(userId), signature);
+  return response({ status: "acked" });
 }
 
 function targetUsersForRoles(state: DurableObjectState, roles: string[]): string[] {
@@ -320,6 +366,8 @@ export async function handleNotificationCoreRequest(state: DurableObjectState, r
   if (request.method === "GET" && url.pathname === "/notifications/online-pickers") {
     return onlinePickerProjection(state);
   }
+  if (request.method === "PUT" && url.pathname === "/notifications/online-pickers/projection-ack") return ackPickerPresenceProjection(state, request);
+  if (request.method === "POST" && url.pathname === "/notifications/device/mirror-ack") return ackNotificationMirror(state, request);
   if (request.method === "POST" && url.pathname === "/notifications/device/upsert") return upsertDevice(state, request);
   if (request.method === "POST" && url.pathname === "/notifications/device/remove") return removeDevice(state, request);
   if (request.method === "POST" && url.pathname === "/notifications/targets") return notificationTargets(state, request);

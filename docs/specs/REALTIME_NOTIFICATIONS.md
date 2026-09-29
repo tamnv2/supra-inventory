@@ -748,3 +748,14 @@ Both modes use the existing data-only high-priority FCM event, the same overlay 
 For a critical overlay event while the display is off or keyguard is active, the app may launch the existing bounded wake Activity to request screen-on/show-when-locked before or alongside overlay presentation. This path is event-driven only: no WakeLock, polling, periodic permission check, heartbeat, new listener or always-on service is allowed.
 
 Failure of OEM DND policy access alone must not block login when hard readiness is satisfied. Failure of Notification, Overlay or battery-exemption hard readiness still blocks operational startup.
+
+
+## D153 quota-safe Picker presence projection
+
+- `picker_presence_projection/current` remains the authoritative Firestore projection consumed by Agent. D153 adds no new listener or transport.
+- InventoryCore durably records the last successfully projected **semantic** Picker state. Volatile diagnostic timestamps are excluded. Repeated identical registration/recovery calls therefore create zero Firestore projection/control writes after acknowledgement.
+- Projection acknowledgement is commit-after-success: if the Firestore projection/control write fails, InventoryCore does not mark that semantic state current, so a later ordinary registration can repair it.
+- `picker_notification_targets/<user>` follows the same desired-state/acknowledged-state rule. Same device/platform/token/enabled state is not rewritten; failed mirror delivery remains retryable.
+- The existing fixed-slot `picker_presence_current` control/ACK path remains. Explicit logout/revoke may attach bounded removed-session metadata so PickList fallback removal is user/session-specific.
+- PickList fallback is one-shot and session-generation fenced; it is not last-seen/heartbeat traffic.
+- D150/D131 queue, lease, failover and listener cadence remain unchanged. No Android polling or additional realtime listener is added.

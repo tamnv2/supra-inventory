@@ -216,6 +216,22 @@ namespace SupraInventoryRelayAgent
             return Mutate(session, snapshot =>
             {
                 if (picker == null || string.IsNullOrWhiteSpace(picker.UserId)) return;
+
+                // D153: PickList is fallback presence only. A delayed fallback may not
+                // downgrade authoritative LOGIN or rewrite the same/newer fallback.
+                var existing = snapshot.Pickers.FirstOrDefault(item =>
+                    item != null && string.Equals(item.UserId, picker.UserId, StringComparison.Ordinal));
+                if (existing != null)
+                {
+                    var existingIsLogin = !string.Equals(existing.Source, "PICKLIST", StringComparison.Ordinal);
+                    if (existingIsLogin &&
+                        (picker.SessionGeneration <= 0 || existing.SessionGeneration >= picker.SessionGeneration))
+                        return;
+                    if (!existingIsLogin &&
+                        (picker.SessionGeneration <= 0 || existing.SessionGeneration >= picker.SessionGeneration))
+                        return;
+                }
+
                 PickerKickView kick;
                 if (!string.IsNullOrWhiteSpace(picker.FirebaseUid) &&
                     snapshot.Kicks.TryGetValue(picker.FirebaseUid, out kick))

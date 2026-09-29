@@ -59,16 +59,19 @@ export async function handleNotificationApi(request: Request, env: NotificationE
     body: JSON.stringify({ ...body, user_id: user.user_id }),
   });
   if (response.ok && user.role === "PICKER") {
-    try {
-      await mirrorPickerNotificationTarget(env, {
-        user_id: user.user_id,
-        device_id: String(body.device_id || ""),
-        platform: String(body.platform || "ANDROID").toUpperCase(),
-        token: request.method === "POST" ? String(body.token || "") : undefined,
-        enabled: request.method === "POST",
-      });
-    } catch {
-      // New alert bridge is additive. Existing FCM registration remains authoritative.
+    let corePayload: Record<string, unknown> = {};
+    try { corePayload = (await response.clone().json()) as Record<string, unknown>; } catch { corePayload = {}; }
+    const platform = String(body.platform || "ANDROID").toUpperCase();
+    const mirrorSignature = String(corePayload.mirror_signature || "");
+    const mirrorRequired = corePayload.mirror_required === true && /^[0-9a-f]{64}$/.test(mirrorSignature);
+    if (mirrorRequired && (request.method === "DELETE" || platform === "ANDROID")) {
+      try {
+        await mirrorPickerNotificationTarget(env, { user_id: user.user_id, device_id: String(body.device_id || ""), platform, token: request.method === "POST" ? String(body.token || "") : undefined, enabled: request.method === "POST" });
+        const ack = await core(env).fetch("https://inventory-core.internal/notifications/device/mirror-ack", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ user_id: user.user_id, signature: mirrorSignature }) });
+        if (!ack.ok) throw new Error("NOTIFICATION_MIRROR_ACK_HTTP_" + ack.status);
+      } catch {
+        // D153 failed mirror/ack stays unacknowledged so a later normal registration retries it.
+      }
     }
     await refreshPickerProjectionBestEffort(env, request.method === "POST" ? "DEVICE_UPSERT" : "DEVICE_REMOVE");
   }

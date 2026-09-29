@@ -1986,3 +1986,20 @@ Technical PASS requires all of the following:
 OA080 Owner field PASS additionally requires normal real PickList confirmation to remain prompt, any naturally occurring checkbox-stale/uncertain case to self-recover truthfully without duplicate mutation, and no unexpected Firestore usage amplification.
 
 D152 Owner result: **PASS** on 2026-09-29. OA080 is closed after the Owner explicitly confirmed field acceptance of released `relay-agent-v86`. D152 is promoted to the accepted base. Technical/release evidence remains PR #316 → main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`, Agent release id `399178131`, EXE SHA-256 `098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430`. Android `beta-vc89` and Stable remain unchanged.
+
+
+## D153 quota-safe Picker presence acceptance
+
+Technical PASS requires all of the following:
+- Agent version advances to `relay-agent-v87`; Android remains signed `beta-vc89`;
+- a Picker already present from LOGIN can submit repeated PickLists without changing shared Picker presence or writing `agent_sync` for those submissions;
+- a Picker absent from LOGIN is added once by PickList fallback, and subsequent PickLists from the same session produce no additional fallback write;
+- a newer LOGIN/session supersedes fallback, while delayed older-session activity cannot downgrade it;
+- explicit logout/revoke removes matching/older fallback, while unrelated Picker login/device events do not erase another Picker's fallback;
+- repeated identical Android device registration excludes volatile timestamps from semantic membership and produces zero Firestore presence/control write after successful projection acknowledgement;
+- notification-target mirror writes only on desired-state change or retry after an unacknowledged failure;
+- Picker-only no-op gates do not apply to call locks, kicks, fleet/PRIMARY takeover, durable counters or HA fencing;
+- 3s/15s/1s confirmation query cadence, 10s PRIMARY lease and 15s failover remain exact;
+- no new provider, collection, SQLite/Firestore schema, listener, polling loop, cron, secret, Android release or Stable mutation is introduced.
+
+OA081 Owner field PASS should verify one already-LOGIN Picker sends several real PickLists with no repeated Picker-list churn, one fallback-only Picker appears once then remains until matching logout/revoke, and Firebase Usage shows materially lower Write growth without slower PickList results or degraded Agent/PDA communication.
