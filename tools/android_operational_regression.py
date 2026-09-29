@@ -379,6 +379,7 @@ def main() -> None:
     require(functions_index, "PICKER_ACTIVE_CALL_TTL_MS = 60 * 1000", "D134 active-call FCM server TTL")
     require(functions_index, "onDocumentWritten", "D134 reusable active-call transition trigger")
     require(functions_workflow, "functions:pickerActiveCallCreated,functions:pickerActiveCallResolved", "D134 active-call Functions deploy")
+    require(functions_workflow, "functions:operatingScheduleChanged", "D154 operating schedule Function deployment")
 
     # D126 supersedes the old captured-session/direct-WMS adapter while preserving
     # the released Android confirmation transport, Agent HA, rate limits and guards.
