@@ -13,6 +13,8 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Process;
 import android.os.UserManager;
 import android.provider.Settings;
@@ -38,6 +40,8 @@ import java.util.Locale;
 public final class MainActivity extends Activity {
     private static final String CHANNEL_ID = "supra_dnd_diag_v1";
     private static final String ENDPOINT = "https://inventory-beta.supra.cc.cd/api/diagnostics/dnd/upload";
+    private static final String ACTION_DND_DETAIL = "android.settings.NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS";
+    private static final String PROBE_PREFS = "d151_probe_v2";
 
     private TextView status;
     private Button sendButton;
@@ -86,19 +90,46 @@ public final class MainActivity extends Activity {
         content.addView(title);
 
         TextView note = text(
-            "APK độc lập chỉ kiểm tra quyền Không làm phiền. Không đăng nhập, không Firebase, không nghiệp vụ.",
+            "Probe v2: thử trang DND chi tiết theo app và overlay độc lập với DND. Không đăng nhập, không Firebase, không nghiệp vụ.",
             13f,
             false
         );
         note.setPadding(0, dp(8), 0, dp(14));
         content.addView(note);
 
-        Button settingsButton = new Button(this);
-        settingsButton.setText("MỞ CÀI ĐẶT KHÔNG LÀM PHIỀN");
-        settingsButton.setOnClickListener(v -> openDndSettings());
-        content.addView(settingsButton, new LinearLayout.LayoutParams(
+        Button detailButton = new Button(this);
+        detailButton.setText("1. MỞ DND CHI TIẾT APP");
+        detailButton.setOnClickListener(v -> openDndDetailSettings());
+        content.addView(detailButton, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, dp(50)
         ));
+
+        Button settingsButton = new Button(this);
+        settingsButton.setText("2. MỞ DND DANH SÁCH CHUNG");
+        settingsButton.setOnClickListener(v -> openDndSettings());
+        LinearLayout.LayoutParams settingsParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(50)
+        );
+        settingsParams.topMargin = dp(8);
+        content.addView(settingsButton, settingsParams);
+
+        Button overlayPermissionButton = new Button(this);
+        overlayPermissionButton.setText("3. MỞ QUYỀN HIỂN THỊ TRÊN ỨNG DỤNG KHÁC");
+        overlayPermissionButton.setOnClickListener(v -> openOverlaySettings());
+        LinearLayout.LayoutParams overlayPermissionParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(54)
+        );
+        overlayPermissionParams.topMargin = dp(8);
+        content.addView(overlayPermissionButton, overlayPermissionParams);
+
+        Button overlayProbeButton = new Button(this);
+        overlayProbeButton.setText("4. TEST OVERLAY 15 GIÂY");
+        overlayProbeButton.setOnClickListener(v -> startOverlayProbe());
+        LinearLayout.LayoutParams overlayProbeParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(52)
+        );
+        overlayProbeParams.topMargin = dp(8);
+        content.addView(overlayProbeButton, overlayProbeParams);
 
         Button refreshButton = new Button(this);
         refreshButton.setText("LÀM MỚI TRẠNG THÁI");
@@ -135,12 +166,91 @@ public final class MainActivity extends Activity {
         setContentView(root);
     }
 
+    private void openDndDetailSettings() {
+        Intent detail = new Intent(ACTION_DND_DETAIL);
+        detail.setData(Uri.parse("package:" + getPackageName()));
+        try {
+            if (detail.resolveActivity(getPackageManager()) != null) {
+                getSharedPreferences(PROBE_PREFS, MODE_PRIVATE).edit()
+                    .putString("last_dnd_settings_route", "DETAIL")
+                    .putString("last_dnd_settings_error", "")
+                    .apply();
+                startActivity(detail);
+                return;
+            }
+            getSharedPreferences(PROBE_PREFS, MODE_PRIVATE).edit()
+                .putString("last_dnd_settings_route", "DETAIL_UNRESOLVED_FALLBACK_LIST")
+                .apply();
+            openDndSettings();
+        } catch (Exception error) {
+            getSharedPreferences(PROBE_PREFS, MODE_PRIVATE).edit()
+                .putString("last_dnd_settings_route", "DETAIL_ERROR_FALLBACK_LIST")
+                .putString("last_dnd_settings_error", error.getClass().getSimpleName() + ":" + String.valueOf(error.getMessage()))
+                .apply();
+            openDndSettings();
+        }
+    }
+
     private void openDndSettings() {
         try {
             Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
             startActivity(intent);
         } catch (Exception error) {
             Toast.makeText(this, "Thiết bị không mở được trang quyền DND.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void openOverlaySettings() {
+        try {
+            Intent intent = new Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + getPackageName())
+            );
+            startActivity(intent);
+        } catch (Exception error) {
+            Toast.makeText(this, "Thiết bị không mở được trang quyền Overlay.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void startOverlayProbe() {
+        if (!Settings.canDrawOverlays(this)) {
+            getSharedPreferences(PROBE_PREFS, MODE_PRIVATE).edit()
+                .putBoolean("overlay_probe_attempted", true)
+                .putBoolean("overlay_probe_success", false)
+                .putString("overlay_probe_error", "OVERLAY_PERMISSION_NOT_GRANTED")
+                .apply();
+            Toast.makeText(this, "Cần cấp quyền hiển thị trên ứng dụng khác trước.", Toast.LENGTH_LONG).show();
+            openOverlaySettings();
+            return;
+        }
+
+        getSharedPreferences(PROBE_PREFS, MODE_PRIVATE).edit()
+            .putBoolean("overlay_probe_attempted", true)
+            .putBoolean("overlay_probe_success", false)
+            .putString("overlay_probe_error", "STARTING")
+            .apply();
+
+        try {
+            Intent probe = new Intent(this, OverlayProbeService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(probe);
+            else startService(probe);
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                try {
+                    Intent home = new Intent(Intent.ACTION_MAIN);
+                    home.addCategory(Intent.CATEGORY_HOME);
+                    home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(home);
+                } catch (Exception ignored) {
+                }
+            }, 350L);
+        } catch (Exception error) {
+            getSharedPreferences(PROBE_PREFS, MODE_PRIVATE).edit()
+                .putBoolean("overlay_probe_success", false)
+                .putString("overlay_probe_error", error.getClass().getSimpleName() + ":" + String.valueOf(error.getMessage()))
+                .apply();
+            Toast.makeText(this, "Không khởi động được Overlay probe.", Toast.LENGTH_LONG).show();
+            refreshSnapshot();
         }
     }
 
@@ -264,7 +374,22 @@ public final class MainActivity extends Activity {
                 zenMode = Settings.Global.getInt(getContentResolver(), "zen_mode", -1);
             } catch (Exception ignored) {
             }
-            dnd.put("global_zen_mode", zenMode);
+            dnd.put("global_zen_mode", zenMode)
+                .put("detail_settings_resolvable", new Intent(
+                    ACTION_DND_DETAIL,
+                    Uri.parse("package:" + getPackageName())
+                ).resolveActivity(getPackageManager()) != null)
+                .put("last_dnd_settings_route", getSharedPreferences(PROBE_PREFS, MODE_PRIVATE)
+                    .getString("last_dnd_settings_route", "NONE"))
+                .put("last_dnd_settings_error", getSharedPreferences(PROBE_PREFS, MODE_PRIVATE)
+                    .getString("last_dnd_settings_error", ""))
+                .put("overlay_permission_granted", Settings.canDrawOverlays(this))
+                .put("overlay_probe_attempted", getSharedPreferences(PROBE_PREFS, MODE_PRIVATE)
+                    .getBoolean("overlay_probe_attempted", false))
+                .put("overlay_probe_success", getSharedPreferences(PROBE_PREFS, MODE_PRIVATE)
+                    .getBoolean("overlay_probe_success", false))
+                .put("overlay_probe_error", getSharedPreferences(PROBE_PREFS, MODE_PRIVATE)
+                    .getString("overlay_probe_error", ""));
 
             root.put("schema", "dnd-diagnostic-v1")
                 .put("generated_at", Instant.now().toString())
