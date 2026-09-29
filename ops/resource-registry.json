@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D149_OWNER_ACCEPTED_BASE__D150_OWNER_APPROVED_IMPLEMENTATION_IN_PROGRESS",
+      "status": "D149_OWNER_ACCEPTED_BASE__D150_TECHNICAL_RUNTIME_RELEASE_PASS__OA078_OWNER_FIELD_READY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -422,7 +422,7 @@
     "catalog_max_design_rows": 50000,
     "reporting": "BOUNDED_60D_INDEXED_TIME_RANGE_BETA_PASS",
     "live_stress": "NON_DESTRUCTIVE_ONLY_WITHOUT_ISOLATED_BUSINESS_DATASET",
-    "source_status": "D150_FIRESTORE_COORDINATION_QUOTA_HARDENING_IN_PROGRESS__D136_PROVIDER_USAGE_POLLING_RETIRED",
+    "source_status": "D150_TECHNICAL_RUNTIME_PASS__FILTERED_COORDINATION__LOG_STORM_GUARDS__D136_PROVIDER_USAGE_POLLING_RETIRED",
     "non_destructive_burst": {
       "requests": 50,
       "concurrency": 10,
@@ -1769,7 +1769,7 @@
     "firestore_run_id": 36522333435,
     "ui_guard_run_id": 36522333473,
   "d150": {
-    "status": "OWNER_APPROVED_SOURCE_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA078_READY",
     "baseline": "D149_OWNER_ACCEPTED",
     "branch": "d150-quota-safe-primary-takeover",
     "implementation_pr": 306,
@@ -1787,7 +1787,22 @@
     "new_firestore_collections": "NONE",
     "new_secrets": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_field_gate": "OA078_PENDING_AFTER_TECHNICAL_RELEASE"
+    "owner_field_gate": "OA078_READY_FOR_OWNER_FIELD_TEST",
+    "main_commit": "c9d42c701f66283f447aad4f24c8f9043db17e37",
+    "agent_release": "relay-agent-v85",
+    "agent_release_id": 398883765,
+    "agent_asset_id": 597497266,
+    "agent_sha256": "d1e7d89c431c8641591ce71e8e55b872bd4511c1cadf07bae24fce3c0005e080",
+    "agent_size_bytes": 7069184,
+    "agent_run_id": 36532689219,
+    "worker_run_id": 36532689311,
+    "functions_run_id": 36532689256,
+    "firestore_run_id": 36532689358,
+    "android_run_id": 36532689273,
+    "android_release_verification": "beta-vc88__UNCHANGED__NO_RELEASE_REQUIRED",
+    "ui_guard_run_id": 36532689242,
+    "authority_run_id": 36532689218,
+    "project_state_run_id": 36532689312
   }
   }
 }
