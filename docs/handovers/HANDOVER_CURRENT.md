@@ -1533,3 +1533,20 @@ Derived current-status markers:
 - Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
 - Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
 - SQLite schema: `14`
+
+
+## D154 technical/runtime/release PASS — OA082 field-ready — 2026-09-30
+
+- Current Beta runtime is D154 main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`; accepted base remains **D153** until explicit Owner D154 PASS.
+- Worker run `36609749783`, Functions `36609749800`, Android `36609749611`, Agent `36609749714`, UI `36609749861`, Authority `36609749884`, State `36609749791`, Dashboard `36609749872`: PASS.
+- `operatingScheduleChanged` was created successfully in asia-southeast1, resolving the Agent-projection/Worker-version-0 deployment omission.
+- Android **beta-vc90**: release `399404364`, APK asset `598876063`, SHA-256 `b3204970660096768950de870ccf6b8a6329018f6f27ccde12d83b24189a1cf4`.
+- Agent **relay-agent-v88**: release `399403230`, EXE asset `598872709`, SHA-256 `74128bc35fdc8b635e512b8af7a59131d0c932c7865b8597c31399d4d7a3d8f2`.
+- OA082 is READY_FOR_OWNER_FIELD_TEST. No D155 may open until explicit D154 PASS/NOT PASS handling completes.
+- Stable remains OWNER-GATED and untouched.
+
+Derived current-status markers:
+- Latest Beta APK: `beta-vc90`
+- Android: `D154_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
+- Web: `D154_TECHNICAL_RUNTIME_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
+- SQLite schema: `14`
