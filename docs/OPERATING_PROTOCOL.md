@@ -232,3 +232,9 @@ D140 supersedes only the D134 rule that allowed every authenticated Agent to kee
 - Duplicate FCM/function deliveries are handled by schedule version/idempotency and may not recursively write the triggering document.
 - D140 retry/circuit/no-op-write protections remain mandatory. Any implementation that introduces an unbounded retry, reconnect or fan-out loop fails D149.
 - Stable remains OWNER-GATED and untouched.
+
+## D152 PickList recovery rule
+
+For the Beta Agent PickList confirmation path, normal ready rows must remain on the direct fast path. Recovery is strictly bounded: one existing Search retry, then at most one Confirm-page reload only when a unique matched row remains checkbox-unselectable. A row that existed before this recovery must not become a user NOT_FOUND strike merely because it disappears during reload.
+
+After the confirmation dialog is accepted, no code path may send the confirmation mutation again. A terminal timeout may perform one read-only Search verification. An existing uncertain confirmation guard may also perform verify-only browser work, but never another mutation. Only trusted row-removal/terminal evidence may recover CONFIRMED; otherwise remain fail-closed. These recovery actions add no periodic provider cadence, WMS API/session extraction or Stable mutation.
