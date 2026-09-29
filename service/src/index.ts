@@ -98,7 +98,7 @@ const CORE_OBJECT_NAME = "inventory-core";
 const dndDiagnosticLastUpload = new Map<string, number>();
 
 function dndDiagnosticString(value: unknown, max = 300): string {
-  return String(value ?? "").replace(/[\\r\\n\\t]+/g, " ").trim().slice(0, max);
+  return String(value ?? "").replace(/[\r\n\t]+/g, " ").trim().slice(0, max);
 }
 
 function dndDiagnosticRecord(value: unknown): Record<string, unknown> {
