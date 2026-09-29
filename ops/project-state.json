@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D154_OWNER_ACCEPTED_BASE__AGENT_V88__ANDROID_VC90",
+    "beta": "D155_OWNER_ACCEPTED_BASE__AGENT_V90__ANDROID_VC91",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
-    "sqlite_schema": 14,
+    "sqlite_schema": 15,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D154_OWNER_FIELD_ACCEPTED_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B",
-    "android": "D154_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC",
-    "latest_beta_apk": "beta-vc90",
+    "web": "D155_OWNER_FIELD_ACCEPTED_PASS__MAIN_57596C6E__D154_SCHEDULE_BASE_RETAINED",
+    "android": "D155_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC91__CONTRACTOR_REPORTING_CONTROL__D154_SCHEDULE_BASE_RETAINED",
+    "latest_beta_apk": "beta-vc91",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -33,8 +33,8 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D154_OWNER_FIELD_ACCEPTED_PASS__SCHEDULE_SYNC_RECOVERY__D153_PICKER_PRESENCE_DEDUPE__D152_CONFIRM_RECOVERY_RETAINED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D155_ACTIVE__D154_ACCEPTED_BASE",
-    "owner_acceptance": "D154_OWNER_FIELD_ACCEPTED_PASS__D155_OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D155_OWNER_ACCEPTED_BASE__NEXT_CHANGE_ALLOWED",
+    "owner_acceptance": "D155_OWNER_FIELD_ACCEPTED_PASS__2026_09_30",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
@@ -2461,12 +2461,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D154",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D154_PASS__AGENT_V88__ANDROID_VC90__2026_09_30",
+    "accepted_base_change_id": "D155",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D155_PASS__AGENT_V90__ANDROID_VC91__2026_09_30",
     "current_change_id": "D155",
-    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_TEST__D154_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__PROMOTED_TO_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D155_BETA_RUNTIME_DEPLOYED__SCHEMA15__AGENT_V90__ANDROID_VC91__OWNER_FIELD_ACCEPTANCE_PENDING__D154_REMAINS_ACCEPTED_BASE",
+    "runtime_impact": "D155_BETA_RUNTIME_DEPLOYED__SCHEMA15__AGENT_V90__ANDROID_VC91__OWNER_FIELD_ACCEPTED",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_WEBSOCKET_ANDROID_AGENT_FIRESTORE_AGENT_PATH__NO_NEW_PROVIDER_COLLECTION_SECRET_LISTENER_POLLING_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -3120,7 +3120,7 @@
     "baseline_change": "D153",
     "baseline_main": "4f360cbabe1577d4763d09b15a15d28acd8a6353",
     "branch": "feat/d154-unified-schedule-permission-version",
-    "accepted_base": "D154",
+    "accepted_base": "D155",
     "owner_approved_scope": [
       "ANDROID_LOGIN_DYNAMIC_VERSION_FOOTER",
       "ANDROID_DND_OVERLAY_PRIORITY_SETUP_WITH_D151_HARD_GATES_RETAINED",
@@ -3204,7 +3204,7 @@
     }
   },
   "d155": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_TEST__AGENT_V90__ANDROID_VC91",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V90__ANDROID_VC91",
     "date": "2026-09-30",
     "baseline_change": "D154",
     "baseline_main": "bd75eb75e2eb260302cb69b1ac184208d7cb0843",
@@ -3281,6 +3281,13 @@
     },
     "runtime_proof": "BETA_HEALTH_HTTP200__SOURCE_57596C6E_EXACT__SCHEMA15_15__OPERATIONAL5_5__AGENT_MIGRATION0_0",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "READY_FOR_OWNER_FIELD_TEST__OA083"
+    "field_gate": "PASS__OWNER_CONFIRMED_D155__2026_09_30",
+    "field_acceptance": "PASS__OWNER_EXPLICIT_D155_PASS_AFTER_FIELD_TEST__2026_09_30",
+    "owner_acceptance": {
+      "result": "PASS",
+      "evidence": "Owner explicitly confirmed D155 PASS after field validation of Picker contractor synchronization and Báo hàng capability control on the released Beta set.",
+      "accepted_at": "2026-09-30",
+      "next_change_allowed": true
+    }
   }
 }

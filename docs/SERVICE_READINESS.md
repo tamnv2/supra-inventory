@@ -5,12 +5,12 @@
 ## Current markers
 
 - Project: `supra-inventory`
-- SQLite schema: `12`
-- Latest signed Beta APK: `beta-vc80`
-- Current released Agent: `relay-agent-v74`
-- Beta: `D134_TECHNICAL_RUNTIME_RELEASE_PASS__OA060_FIELD_READY`
-- Web: `D120_RUNTIME_PASS_MAIN_43A94207__OWNER_FIELD_TEST_OK`
-- Android: `D134_SIGNED_BETA_VC80__OA060_FIELD_READY`
+- SQLite schema: `15`
+- Latest signed Beta APK: `beta-vc91`
+- Current released Agent: `relay-agent-v90`
+- Beta: `D155_OWNER_ACCEPTED_BASE__AGENT_V90__ANDROID_VC91`
+- Web: `D155_OWNER_FIELD_ACCEPTED_PASS__MAIN_57596C6E__D154_SCHEDULE_BASE_RETAINED`
+- Android: `D155_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC91__CONTRACTOR_REPORTING_CONTROL__D154_SCHEDULE_BASE_RETAINED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1561,3 +1561,11 @@ Derived current-status markers:
 - Android: `D154_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
 - Web: `D154_OWNER_FIELD_ACCEPTED_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
 - SQLite schema: `14`
+
+
+## D155 Owner acceptance — PASS — 2026-09-30
+
+- Accepted base is **D155** after explicit Owner field PASS; OA083 is closed.
+- Current Beta runtime: schema **15**, Android **beta-vc91**, Agent **relay-agent-v90**.
+- D155 contractor synchronization and Picker Báo hàng capability control are Owner-accepted; D154 shared schedule behavior remains the inherited schedule baseline.
+- Serial Owner-PASS gate is open for the next separately reviewed change. Stable remains OWNER-GATED.
