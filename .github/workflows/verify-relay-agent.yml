@@ -81,9 +81,9 @@ jobs:
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*87\s*;') { throw "D153 requires Agent v87 while retaining D152/D150/D140 safety guards." }
-          if ($project -notmatch '<AssemblyVersion>0\.87\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.87\.0\.0</FileVersion>') {
-            throw "D153 Agent assembly/file version must be 0.87."
+          if ($config -notmatch 'AgentBuild\s*=\s*88\s*;') { throw "D154 requires Agent v88 while retaining D153/D152/D150 safety guards." }
+          if ($project -notmatch '<AssemblyVersion>0\.88\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.88\.0\.0</FileVersion>') {
+            throw "D154 Agent assembly/file version must be 0.88."
           }
 
           foreach ($marker in @(
@@ -705,11 +705,13 @@ jobs:
             throw "D149 must hide the Today aggregate presentation without deleting durable counters."
           }
           foreach ($marker in @(
-            'RegularStart = new TimeSpan(6, 0, 0)',
+            'RegularStart = new TimeSpan(5, 45, 0)',
             'OvertimeCutoff = new TimeSpan(5, 0, 0)',
             'Điều chỉnh tăng ca',
-            'Bật sớm trước 06:00',
+            'Bật sớm trước 05:45',
             'PublishManualScheduleAdjustment',
+            'PublishCancelOvertime',
+            'CANCEL_OVERTIME',
             'AgentBrowserStorage.MigrateClosedBrowserData',
             'AgentBrowserStorage.FinalizeMigration',
             'AgentBrowserStorage.RollbackMigration',
@@ -720,7 +722,7 @@ jobs:
                 -not $leader.Contains($marker) -and
                 -not (Get-Content relay-agent/AgentBusinessSchedule.cs -Raw).Contains($marker) -and
                 -not (Get-Content relay-agent/AgentBrowserStorage.cs -Raw).Contains($marker)) {
-              throw "D149 Agent schedule/storage marker missing: $marker"
+              throw "D154 Agent schedule/storage marker missing: $marker"
             }
           }
 
@@ -731,7 +733,7 @@ jobs:
             throw "D135 bounded DOM settle optimization missing."
           }
           foreach ($marker in @(
-            'RegularEnd = new TimeSpan(22, 0, 0)',
+            'RegularEnd = new TimeSpan(22, 30, 0)',
             'SHOW_ONCE',
             '_lastAfterHoursPromptBoundaryMs',
             'ScheduleAutoSizeAfterForegroundRestore',
