@@ -4200,6 +4200,21 @@ namespace SupraInventoryRelayAgent
                 if (!search.Candidates.TryGetValue(work.Suffix ?? "", out candidates))
                     candidates = new List<string>();
 
+                if (search.StateChangedFragments.Exists(
+                    x => string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal)))
+                {
+                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                    {
+                        Result = "CONFIRM_CONFLICT",
+                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_RELOAD+STATE_CHANGED",
+                        Route = "BROWSER_DOM",
+                        OperationMs = Math.Max(0L, search.ElapsedMs),
+                        Matches = Math.Max(0, candidates.Count),
+                        Rate = new PickerRateDecision()
+                    };
+                    continue;
+                }
+
                 if (candidates.Count == 0)
                 {
                     var rate = _firestoreRateLimiter.RecordNotFound(
@@ -4236,8 +4251,13 @@ namespace SupraInventoryRelayAgent
                 {
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
-                        Result = "CONFIRM_REJECTED",
-                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_NOT_READY",
+                        // D152: the exact row exists, so this is not a Supra rejection and
+                        // must never count as NOT_FOUND. Search retry + one bounded reload
+                        // have already been exhausted without a usable checkbox.
+                        Result = "CONFIRM_CONFLICT",
+                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+" +
+                                    (search.RecoveryReloaded ? "CHECKBOX_RELOAD+" : "") +
+                                    "CHECKBOX_NOT_READY",
                         Route = "BROWSER_DOM",
                         OperationMs = Math.Max(0L, search.ElapsedMs),
                         Matches = 1,
@@ -4286,13 +4306,47 @@ namespace SupraInventoryRelayAgent
 
                 if (!guard.Acquired || guard.InProgressOrUncertain)
                 {
+                    // D152: an existing uncertain guard remains a hard no-resend fence,
+                    // but it no longer means "return uncertain forever". One read-only
+                    // browser Search may prove that the exact row disappeared. No Confirm
+                    // button or dialog is ever clicked in this verification path.
+                    SupraBrowserConfirmResult verifyOnly = null;
+                    try
+                    {
+                        verifyOnly = _supraBrowser.VerifyExactAfterUncertain(code);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("FIRESTORE CONFIRM guard verify-only deferred type=" + ex.GetType().Name);
+                    }
+
+                    if (verifyOnly != null &&
+                        string.Equals(verifyOnly.Result, "CONFIRMED", StringComparison.Ordinal))
+                    {
+                        _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
+                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
+                        {
+                            Result = "CONFIRMED",
+                            CacheMode = "BROWSER_DOM+GUARD+VERIFY_ONLY_ROW_REMOVED",
+                            Route = "FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY",
+                            Http = 200,
+                            OperationMs = Math.Max(0L, search.ElapsedMs) + Math.Max(0L, verifyOnly.ElapsedMs),
+                            Matches = 1,
+                            Rate = new PickerRateDecision(),
+                            GuardId = guard.GuardId,
+                            RetireAtMs = guard.RetireAtMs
+                        };
+                        continue;
+                    }
+
                     outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                     {
                         Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                        CacheMode = "BROWSER_DOM+GUARD",
-                        Route = "FIRESTORE_CONFIRM_GUARD",
+                        CacheMode = "BROWSER_DOM+GUARD+VERIFY_ONLY",
+                        Route = "FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY",
                         Http = 409,
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
+                        OperationMs = Math.Max(0L, search.ElapsedMs) +
+                                      (verifyOnly == null ? 0L : Math.Max(0L, verifyOnly.ElapsedMs)),
                         Matches = 1,
                         Rate = new PickerRateDecision(),
                         GuardId = guard.GuardId,
@@ -4385,10 +4439,16 @@ namespace SupraInventoryRelayAgent
                 else if (IsSafeBrowserFailure(confirmed))
                     _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
 
+                var confirmCacheMode = "BROWSER_DOM+GUARD+EXACT_ROW";
+                if (string.Equals(confirmed.Detail, "ROW_REMOVED_AFTER_SEARCH_REFRESH", StringComparison.Ordinal))
+                    confirmCacheMode += "+POST_CONFIRM_SEARCH_VERIFY";
+                else if (string.Equals(confirmed.Detail, "POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH", StringComparison.Ordinal))
+                    confirmCacheMode += "+POST_CONFIRM_TIMEOUT";
+
                 outcomes[work.RequestId] = new FirestoreConfirmationOutcome
                 {
                     Result = confirmed.Result ?? "CONFIRM_ERROR",
-                    CacheMode = "BROWSER_DOM+GUARD+EXACT_ROW",
+                    CacheMode = confirmCacheMode,
                     Route = "BROWSER_DOM",
                     Http = 0,
                     OperationMs = Math.Max(0L, search.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
@@ -4412,6 +4472,8 @@ namespace SupraInventoryRelayAgent
                 "PDA_CONFIRM_BATCH adapter=BROWSER_DOM jobs=" + works.Count +
                 " mutations=" + browserMutationCount +
                 " search_click=" + (search.SearchClicked ? "1" : "0") +
+                " recovery_reload=" + (search.RecoveryReloaded ? "1" : "0") +
+                " state_changed=" + search.StateChangedFragments.Count +
                 " session_extract=false direct_wms_api=false");
 
             return outcomes;

@@ -2326,3 +2326,17 @@ Owner-approved production rule:
 ### D151 Owner acceptance — 2026-09-29
 
 D151 Owner acceptance: **PASS**. The Owner explicitly confirmed D151 PASS after field review of the signed `beta-vc89` adaptive Android alert engine. OA079 is closed and D151 is promoted to the accepted project base. The accepted scope remains capability-based alert readiness/delivery with Notification + Overlay + battery-exemption hard requirements, native DND enhancement only when truly available, and Overlay Compatibility otherwise. No new provider/resource/schema/polling/listener/secret is introduced by this acceptance; Agent/Web/Stable remain unchanged and Stable remains OWNER-GATED.
+
+## D152 — Bounded PickList checkbox recovery and post-confirm verification — 2026-09-29
+
+Status: **OWNER APPROVED — IMPLEMENTATION ACTIVE**.
+
+After explicitly accepting D151 PASS, the Owner approved the proposed PickList recovery logic with the requirement that normal speed remain stable while exceptional states are not missed.
+
+1. The normal path remains unchanged: exact unique PickList row + usable checkbox proceeds directly through the existing exact-row / checkbox-verified / semantic-confirm / exact-dialog confirmation path.
+2. A unique PickList row whose checkbox is not usable first receives the existing single Search retry. If the exact row still exists but remains unselectable, Agent may perform exactly one bounded normal Confirm-page reload and one bounded Search recheck. This recovery is local browser UI work only and must not add Firestore/provider polling.
+3. If the same exact row becomes selectable after recovery, confirmation continues normally. If the row disappears or resolves to a different exact code, return a state conflict rather than NOT_FOUND; do not increment Picker wrong-input strikes. If the same row remains unselectable, return a state conflict / checkbox-not-ready outcome rather than claiming Supra rejected the confirmation.
+4. After the existing dialog-confirm click, retain the existing passive terminal observation. If no trustworthy success/error signal is obtained, exactly one read-only Search refresh may verify whether the exact row is stably gone. This path must never click Confirm again.
+5. An existing uncertain confirmation guard remains a hard no-resend fence. A later request for the same exact PickList may perform one read-only browser verification; only stable disappearance of that exact row may convert the result to CONFIRMED. Otherwise it remains uncertain.
+6. Existing request-age, single-PRIMARY, generation, full-code, exact-row and confirmation-guard fences remain mandatory. No direct WMS API, session extraction, Network interception, second mutation provider or guessed success state is allowed.
+7. D152 is Agent-only and targets `relay-agent-v86`. Signed Android remains `beta-vc89`. No new provider resource, Firestore collection/schema, listener, polling cadence, cron or secret is authorized. Stable remains OWNER-GATED.

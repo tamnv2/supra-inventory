@@ -1967,3 +1967,20 @@ OA079 field PASS requires testing the signed D151 Beta on:
 On each device, Notification + Overlay + battery exemption must remain mandatory. A critical alert must appear over another app with DND enabled. At least one screen-off/keyguard run must wake/present the alert. Native-capable devices should report full mode; unsupported/broken DND devices should report Overlay Compatibility mode without a false grant. No duplicate business ACK or unexpected provider-usage amplification is accepted.
 
 D151 Owner result: **PASS** on 2026-09-29. OA079 is closed after explicit Owner field acceptance of signed `beta-vc89`. D151 is promoted to the accepted base; existing D151 technical/runtime/release evidence remains authoritative and Stable remains OWNER-GATED.
+
+## D152 bounded PickList recovery acceptance
+
+Technical PASS requires all of the following:
+- normal unique-row + usable-checkbox confirmation continues without recovery reload or added provider operation;
+- a unique unselectable row receives at most the existing Search retry plus one bounded top-level reload/recheck, with no loop;
+- row disappearance/change during checkbox recovery is not counted as NOT_FOUND and does not add a Picker strike;
+- persistent checkbox-not-ready is not surfaced as a false Supra rejection;
+- after the confirmation dialog was clicked, any additional recovery is read-only Search/DOM verification and never a second Confirm mutation;
+- an existing uncertain guard permits verify-only state proof but never reacquires the mutation path;
+- exact-row stable disappearance is required before verify-only returns CONFIRMED;
+- PRIMARY/generation/request-age/confirmation-guard fences remain intact;
+- no direct WMS API/session extraction/DevTools Network path is introduced;
+- no new Firestore/Worker/provider polling/listener/write cadence, Android build or Stable mutation is introduced;
+- Agent version advances monotonically to `relay-agent-v86`.
+
+OA080 Owner field PASS additionally requires normal real PickList confirmation to remain prompt, any naturally occurring checkbox-stale/uncertain case to self-recover truthfully without duplicate mutation, and no unexpected Firestore usage amplification.

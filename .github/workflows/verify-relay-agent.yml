@@ -80,9 +80,9 @@ jobs:
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*85\s*;') { throw "D150 requires Agent v85 while retaining D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.85\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.85\.0\.0</FileVersion>') {
-            throw "D150 Agent assembly/file version must be 0.85."
+          if ($config -notmatch 'AgentBuild\s*=\s*86\s*;') { throw "D152 requires Agent v86 while retaining D150/D140 quota-storm safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.86\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.86\.0\.0</FileVersion>') {
+            throw "D152 Agent assembly/file version must be 0.86."
           }
 
           foreach ($marker in @(
@@ -617,6 +617,32 @@ jobs:
           }
           if ($browser.Contains('Network.enable')) {
             throw "D137 must not enable DevTools Network while implementing Confirm refresh."
+          }
+          foreach ($marker in @(
+            'StateChangedFragments',
+            'RecoveryReloaded',
+            'checkbox_recovery=START',
+            'checkbox_not_ready_after_search',
+            'VerifyExactAfterUncertain',
+            'ExactRowMissingAfterOneSearchNoLock',
+            'post_confirm_timeout',
+            'VERIFY_ONLY_ROW_REMOVED_STABLE',
+            'POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D152 browser recovery guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'CHECKBOX_RELOAD+STATE_CHANGED',
+            'CHECKBOX_NOT_READY',
+            'FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY',
+            'VERIFY_ONLY_ROW_REMOVED',
+            'POST_CONFIRM_SEARCH_VERIFY',
+            'POST_CONFIRM_TIMEOUT'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D152 processing guard missing: $marker" }
+          }
+          if ([regex]::Matches($browser, 'BuildMutationScript\(code\)').Count -ne 1) {
+            throw "D152 must keep exactly one browser mutation-script invocation path."
           }
           if (-not $notifications.Contains('android_session_generation') -or
               -not $notifications.Contains('source: "LOGIN"') -or
