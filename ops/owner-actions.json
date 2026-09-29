@@ -4107,7 +4107,7 @@
     },
     {
       "id": "OA084",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__CLOSED",
       "title": "Field-accept D156 overtime convergence and Picker reporting default-off",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -4138,8 +4138,18 @@
         "PickList/login/Agent contact remain unaffected by Báo hàng capability state.",
         "No new provider resource, Firestore collection/write cadence, secret, listener, polling loop or cron is introduced; Stable remains untouched."
       ],
-      "remaining_owner_action": "Run the OA084 shortest field path with beta-vc92 and existing relay-agent-v90. If all criteria pass, explicitly confirm D156 PASS; otherwise repair continues under D156.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D156 PASS on 2026-09-30.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-30",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D156 PASS after real Beta validation of shared overtime convergence and Picker Báo hàng default-off behavior."
+      },
+      "owner_result": {
+        "status": "PASS",
+        "date": "2026-09-30",
+        "evidence": "D156 is promoted to the accepted Beta base; the serial next-change gate is unlocked."
+      }
     }
   ]
 }

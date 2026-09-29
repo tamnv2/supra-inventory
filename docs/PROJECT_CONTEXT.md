@@ -816,3 +816,15 @@ D156 is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_TEST** 
 - Schema 16 applied the one-time existing-Picker Báo hàng default-off migration; new HR Pickers also default off while later explicit toggles are preserved.
 - Main Authority, State, UI, Dashboard, Worker and Android gates are PASS. No new provider resource, collection, secret, listener, polling loop, cron or Firestore write cadence is introduced. Stable remains OWNER-GATED.
 
+## D156 Owner acceptance — PASS — 2026-09-30
+
+The Owner explicitly confirmed **D156 PASS** after field validation of the released Beta implementation.
+
+- D156 is now the **accepted project base**.
+- Accepted runtime remains implementation main `859a7dfb8b83594cc43fa502ac53d449ab1ee8ef`, SQLite schema `16`, signed Android `beta-vc92`, and Agent `relay-agent-v90` unchanged.
+- Accepted schedule behavior keeps Agent/Firestore as the only schedule authority, uses the existing Function → Worker + FCM normal path, and permits only single-flight globally throttled exact recovery when Worker remains closed.
+- Accepted Picker capability policy: existing Pickers were migrated once to Báo hàng disabled; newly provisioned Pickers default disabled; later explicit ADMIN/PICKPACK_ADMIN/ROOT enable/disable choices survive HR sync.
+- Web Ca vận hành and foreground Android Báo hàng now converge on the shared overtime state without a new polling/listener cadence.
+- OA084 is closed PASS. The serial Owner-PASS gate is open for the next separately reviewed change.
+- No new provider resource, Firestore collection/write cadence, secret, listener, polling loop or cron was introduced. Stable remains OWNER-GATED and untouched.
+
