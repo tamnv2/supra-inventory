@@ -735,3 +735,8 @@ D149 is Owner-accepted on Beta. OA077 is closed after explicit Owner PASS. The a
 ## D150 Owner acceptance checkpoint
 
 D150 is Owner-field accepted PASS on 2026-09-29. The accepted Beta base is D150: relay-agent-v85 quota-safe coordination/manual PRIMARY behavior is accepted; Android remains beta-vc88 unchanged. OA078 is closed. No new provider resource, collection, secret, schema, Stable deploy or Stable promotion is introduced by this acceptance record.
+
+## D151 temporary DND diagnostic boundary
+
+D151 adds a temporary standalone Android 11 diagnostic package, `cd.cc.supra.inventory.dnddiag`, solely to compare Notification Policy / Do Not Disturb behavior between normal and failing Newland NLS-MT90 devices. It is not the production PDA app and has no business, Firebase, realtime, PickList or WMS authority. It may POST only the bounded DND diagnostic schema to the Beta Worker diagnostic-log route, which reuses the existing sanitized runtime-log buffer and Inventory/Beta logs archive. Production `beta-vc88` remains unchanged and Stable remains OWNER-GATED.
+
