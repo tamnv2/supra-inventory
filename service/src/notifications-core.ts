@@ -1,4 +1,4 @@
-import { readAndroidAlertWindow, updateAndroidAlertWindow } from "./alert-window-core";
+import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow, updateAndroidAlertWindow } from "./alert-window-core";
 type SqlRow = Record<string, SqlStorageValue>;
 
 type DeviceBody = {
@@ -301,6 +301,15 @@ export async function handleNotificationCoreRequest(state: DurableObjectState, r
   const url = new URL(request.url);
   if (request.method === "GET" && url.pathname === "/notifications/alert-window") {
     return response(readAndroidAlertWindow(state));
+  }
+  if (request.method === "PUT" && url.pathname === "/notifications/operating-schedule-mirror") {
+    let body: Record<string, unknown> = {};
+    try { body = (await request.json()) as Record<string, unknown>; } catch { return response({ error: "INVALID_JSON" }, 400); }
+    try {
+      return response(mirrorAndroidOperatingSchedule(state, body));
+    } catch (error) {
+      return response({ error: error instanceof Error ? error.message : "OPERATING_SCHEDULE_MIRROR_FAILED" }, 409);
+    }
   }
   if (request.method === "PUT" && url.pathname === "/notifications/alert-window") {
     const body = (await request.json()) as { actor_user_id?: unknown; action?: unknown };
