@@ -75,7 +75,8 @@ if sig_start < 0 or sig_end < 0:
     raise SystemExit("D155 guard: unable to isolate D153 Picker presence semantic signature")
 sig_block = notifications[sig_start:sig_end]
 forbid(sig_block, "contractor_name", "contractor as Firestore presence semantic trigger")
-require(projection, "contractor_name: String(item.contractor_name || "")", "contractor piggyback in existing projection")
+require(projection, "contractor_name:", "contractor piggyback field in existing projection")
+require(projection, "String(item.contractor_name", "contractor piggyback value in existing projection")
 require(agent_presence, 'ReadString(itemFields, "contractor_name")', "Agent contractor presence read")
 require(agent_sync, '"contractor_name"', "Agent contractor sync preservation")
 require(agent_ui, 'HeaderText = "Nhà thầu"', "Agent contractor column")
