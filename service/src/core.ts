@@ -680,8 +680,26 @@ export class InventoryCore {
     this.nextScheduleRecoveryAt = now + 5_000;
     const task = (async () => {
       try {
+        const before = readAndroidAlertWindow(this.state);
         const projection = await readOperatingScheduleProjectionExact(this.env);
-        if (projection) mirrorAndroidOperatingSchedule(this.state, projection, Date.now());
+        if (!projection) return;
+        const after = mirrorAndroidOperatingSchedule(this.state, projection, Date.now());
+        if (after.schedule_version > before.schedule_version) {
+          await handleReadModelCoreRequest(
+            this.state,
+            new Request("https://inventory-core.internal/realtime/broadcast", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                event: "operating_schedule_changed",
+                scopes: ["operating_schedule"],
+                tags: ["role:ADMIN", "role:PICKPACK_ADMIN", "role:ROOT"],
+                metadata: { schedule_key: after.schedule_key, version: after.schedule_version, source: "D156_EXACT_RECOVERY" },
+              }),
+            }),
+            async () => { /* Schedule recovery does not mutate Picker presence. */ },
+          );
+        }
       } catch (error) {
         console.warn("d156_schedule_recovery_deferred", error instanceof Error ? error.message : "unknown");
       }
