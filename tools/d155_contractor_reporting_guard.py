@@ -25,6 +25,7 @@ android_rt = read("android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidR
 android_api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
 picker = read("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt")
 agent_presence = read("relay-agent/FirestorePickerPresence.cs")
+agent_confirmation = read("relay-agent/FirestoreConfirmationTransport.cs")
 agent_sync = read("relay-agent/FirestoreAgentSync.cs")
 agent_ui = read("relay-agent/D119AgentFeatures.cs")
 web = read("web/src/operational-app.ts")
@@ -77,7 +78,8 @@ sig_block = notifications[sig_start:sig_end]
 forbid(sig_block, "contractor_name", "contractor as Firestore presence semantic trigger")
 require(projection, "contractor_name:", "contractor piggyback field in existing projection")
 require(projection, "String(item.contractor_name", "contractor piggyback value in existing projection")
-require(agent_presence, 'ReadString(itemFields, "contractor_name")', "Agent contractor presence read")
+require(agent_presence, 'ReadString(itemFields, "contractor_name")', "Agent contractor projection read")
+require(agent_confirmation, 'ContractorName = FieldString(item, "contractor_name")', "Agent contractor event-driven presence read")
 require(agent_sync, '"contractor_name"', "Agent contractor sync preservation")
 require(agent_ui, 'HeaderText = "Nhà thầu"', "Agent contractor column")
 
@@ -99,7 +101,7 @@ for text, name in [(agent_presence, "Agent presence"), (agent_sync, "Agent sync"
         forbid(text, marker, f"new contractor cadence in {name}")
 
 version = read("relay-agent/VERSION").strip()
-if version != "89":
-    raise SystemExit(f"D155 guard: relay-agent/VERSION must be 89, got {version!r}")
+if version != "90":
+    raise SystemExit(f"D155 guard: relay-agent/VERSION must be 90 after D155 field-readiness hotfix, got {version!r}")
 
 print("D155 contractor/reporting Cloudflare-only quota guard PASS")
