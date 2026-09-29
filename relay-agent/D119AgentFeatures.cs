@@ -43,13 +43,21 @@ namespace SupraInventoryRelayAgent
             _browserBundleProgress.SetBounds(16, 146, Math.Max(120, width - 32), 16);
             _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-            const int folderButtonWidth = 150;
+            const int openFolderButtonWidth = 116;
+            const int moveFolderButtonWidth = 124;
             _agentDataStorageStatus.SetBounds(
-                16, 170, Math.Max(180, width - 32 - folderButtonWidth - 8), 24);
+                16, 170,
+                Math.Max(180, width - 32 - openFolderButtonWidth - moveFolderButtonWidth - gap - 8),
+                24);
             _agentDataStorageStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _openAgentDataFolder.SetBounds(
-                Math.Max(16, width - 16 - folderButtonWidth), 166, folderButtonWidth, 28);
+                Math.Max(16, width - 16 - moveFolderButtonWidth - gap - openFolderButtonWidth),
+                166, openFolderButtonWidth, 28);
             _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _moveAgentDataFolder.SetBounds(
+                Math.Max(16, width - 16 - moveFolderButtonWidth),
+                166, moveFolderButtonWidth, 28);
+            _moveAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         }
 
         private sealed class SmoothDataGridView : DataGridView
