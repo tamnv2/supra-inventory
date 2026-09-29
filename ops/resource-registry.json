@@ -249,7 +249,7 @@
       "d152_source_status": "V86_RELEASED__V87_SAFETY_REPAIR_IMPLEMENTATION_ACTIVE",
       "d152_resource_change": "NONE__AGENT_LOCAL_BROWSER_RECOVERY_ONLY__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON",
       "d152_android_release": "beta-vc89__UNCHANGED",
-      "d152_target_agent_release": "relay-agent-v86",
+      "d152_target_agent_release": "relay-agent-v87",
       "d152_repair_scope": "HYDRATED_ROW_REMOVAL_PROOF__PRE_MUTATION_CHECKBOX_RACE_TO_CONFLICT__NO_NEW_PROVIDER_USAGE"
     },
     "stable": {
