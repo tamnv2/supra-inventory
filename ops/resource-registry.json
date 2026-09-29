@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D151_OWNER_ACCEPTED_BASE__D152_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET",
+      "status": "D151_OWNER_ACCEPTED_BASE__D152_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V86__OA080_FIELD_READY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -191,13 +191,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v85",
+      "relay_agent_release": "relay-agent-v86",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D144_PASS_RUN_36477936028__SOURCE_2B2B5A62__SCHEMA14_14__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v85__OWNER_ACCEPTED",
+      "relay_agent_release_target": "relay-agent-v86__D152_TECHNICAL_RELEASE_PASS_OWNER_FIELD_PENDING",
       "next_signed_beta_release_target": "NO_D149_ANDROID_RELEASE_PENDING__BETA_VC88_RELEASED",
-      "next_relay_agent_release_target": "relay-agent-v86__D152",
+      "next_relay_agent_release_target": "NO_D152_AGENT_RELEASE_PENDING__V86_RELEASED",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -246,10 +246,15 @@
       "d151_android_apk_size_bytes": 19118660,
       "d151_android_apk_sha256": "9fe96a16a26d1d59e3b2664025cd0802a59b9535d545d92cd475995c4dfc12bc",
       "d151_inventory_channel_apk_asset_id": 597939084,
-      "d152_source_status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET",
+      "d152_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V86__OA080_FIELD_READY",
       "d152_resource_change": "NONE__AGENT_LOCAL_BROWSER_RECOVERY_ONLY__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON",
       "d152_android_release": "beta-vc89__UNCHANGED",
-      "d152_target_agent_release": "relay-agent-v86"
+      "d152_target_agent_release": "relay-agent-v86__RELEASED",
+      "d152_release_source_commit": "a418de7e852ff9c1bc8b37309b65cdfc75fe3f24",
+      "d152_agent_release_id": "399178131",
+      "d152_agent_exe_asset_id": "598297827",
+      "d152_agent_exe_sha256": "098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430",
+      "d152_agent_exe_size_bytes": 7074304
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
