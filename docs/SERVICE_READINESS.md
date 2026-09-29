@@ -1478,3 +1478,19 @@ Derived current-status markers:
 
 Derived current-status marker:
 - `D152_OWNER_FIELD_ACCEPTED_PASS__MAIN_A418DE7E__AGENT_V86__OA080_CLOSED`
+
+
+## D153 quota-safe Picker presence technical/runtime/release PASS — 2026-09-29
+
+- Implementation: PR #321 → main `d69566ee0ae6294573ec91f9eb649764e91561ee`.
+- Main gates PASS: Repo Authority `36594651066`, Project State `36594651211`, UI Design `36594651147`, Dashboard Probe `36594651119`, Beta Worker `36594651073`, DND compatibility `36594651179`, Relay Agent `36594651175`.
+- Beta Worker health: HTTP 200, exact source `d69566ee0ae6294573ec91f9eb649764e91561ee`, SQLite `14/14`, Operational V2 `5/5`, Agent migration `0/0`.
+- Agent: **relay-agent-v87**, release id `399311941`, EXE asset id `598619169`, size `7,078,912` bytes, SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`.
+- Inventory Agent channel asset id `598619345` matches the same digest.
+- D153 A+B+C only: one-shot session-fenced PickList fallback, semantic Worker/InventoryCore Firestore write dedupe, Picker-only Agent sync no-op gate. Streaming redesign D remains deferred.
+- Protected 3s/15s/1s queue, 10s PRIMARY lease, 15s failover and D152 WMS confirmation path remain unchanged.
+- OA081 is **READY_FOR_OWNER_FIELD_TEST**. D152 remains accepted base until explicit Owner D153 PASS.
+- Android remains **beta-vc89**. Stable remains OWNER-GATED and untouched.
+
+Derived current-status marker:
+- `D153_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_D69566EE__AGENT_V87__OA081_FIELD_READY`

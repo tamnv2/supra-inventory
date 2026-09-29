@@ -1479,3 +1479,21 @@ Derived current-status markers:
 - Latest Beta APK: `beta-vc89`
 - Agent: `relay-agent-v86`
 - SQLite schema: `14`
+
+
+## D153 technical/runtime/release PASS — Owner field pending — 2026-09-29
+
+- Accepted base remains **D152** until explicit Owner D153 PASS.
+- D153 PR #321 merged to main `d69566ee0ae6294573ec91f9eb649764e91561ee`.
+- All main gates passed: Repo Authority `36594651066`, Project State `36594651211`, UI Design `36594651147`, Dashboard Probe `36594651119`, Beta Worker `36594651073`, DND compatibility `36594651179`, Relay Agent `36594651175`.
+- Beta Worker exact-source health PASS: HTTP 200; source `d69566ee0ae6294573ec91f9eb649764e91561ee`; SQLite `14/14`; Operational V2 `5/5`; Agent migration `0/0`.
+- Agent **relay-agent-v87**: release id `399311941`; EXE asset `598619169`; size `7,078,912`; SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`; inventory channel asset `598619345` matches.
+- D153 optimization scope is A+B+C only. Existing fixed-slot presence transport remains; proposed streaming redesign D is deferred.
+- Queue/lease/failover and D152 confirmation timing/path are unchanged. Android remains **beta-vc89**. Stable remains OWNER-GATED.
+- OA081 is **READY_FOR_OWNER_FIELD_TEST**.
+
+Derived current-status markers:
+- `D153_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V87__OWNER_FIELD_OA081_READY`
+- Latest Beta APK: `beta-vc89`
+- Agent: `relay-agent-v87`
+- SQLite schema: `14`
