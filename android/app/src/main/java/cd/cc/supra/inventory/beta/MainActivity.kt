@@ -1118,9 +1118,9 @@ class MainActivity : Activity() {
 
         content.addView(TextView(this).apply {
             text = if (readiness.nativeDndReady) {
-                "Chế độ hiện tại: Cảnh báo đầy đủ · DND PASS. Các quyền bắt buộc bên trên vẫn phải hoàn tất."
+                "Chế độ cảnh báo đầy đủ · Sẵn sàng. DND PASS; các quyền bắt buộc bên trên vẫn phải hoàn tất."
             } else {
-                "Chế độ hiện tại: Tương thích Overlay. Không làm phiền không chặn đăng nhập; các quyền bắt buộc vẫn phải PASS."
+                "Chế độ tương thích Overlay · Sẵn sàng. DND không chặn đăng nhập; các quyền bắt buộc vẫn phải PASS."
             }
             textSize = 12.5f
             setTextColor(if (readiness.nativeDndReady) Color.rgb(21, 128, 61) else Color.rgb(29, 78, 216))
