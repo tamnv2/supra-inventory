@@ -43,6 +43,7 @@ class PickerController(
     private val friendlyError: (Exception) -> String,
     private val recordLog: (String) -> Unit,
     private val displayScale: Float = 1f,
+    private val shortageReportingEnabled: Boolean = true,
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
@@ -155,7 +156,12 @@ class PickerController(
         shortagePanel = root.findViewById(R.id.panelShortage)
         confirmPanel = root.findViewById(R.id.panelConfirmOrder)
         shortageTab = root.findViewById<TextView>(R.id.tabShortage)?.apply {
-            setOnClickListener { showOperationTab(confirm = false) }
+            isEnabled = shortageReportingEnabled
+            alpha = if (shortageReportingEnabled) 1f else 0.42f
+            setOnClickListener {
+                if (shortageReportingEnabled) showOperationTab(confirm = false)
+                else setStatus("Báo hàng đang tắt cho tài khoản này. Xác nhận đơn vẫn sử dụng bình thường.")
+            }
         }
         confirmTab = root.findViewById<TextView>(R.id.tabConfirmOrder)?.apply {
             setOnClickListener { showOperationTab(confirm = true) }
@@ -212,7 +218,7 @@ class PickerController(
                 }
             }
         }
-        showOperationTab(confirm = false)
+        showOperationTab(confirm = !shortageReportingEnabled)
 
         autoInput?.threshold = 3
         autoInput?.addTextChangedListener(object : TextWatcher {
@@ -261,11 +267,20 @@ class PickerController(
             if (exact != null) { selectSku(exact, true); true } else false
         }
         clearSelection()
-        syncCatalog(auto = true)
-        refresh()
+        if (shortageReportingEnabled) {
+            syncCatalog(auto = true)
+            refresh()
+        } else {
+            setStatus("Báo hàng đang tắt cho tài khoản này. Xác nhận đơn vẫn sử dụng bình thường.")
+            updateReportEnabled()
+        }
     }
 
     fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
+        if (!shortageReportingEnabled) {
+            completion(true)
+            return
+        }
         if (scopes.contains("sku_catalog")) syncCatalog(auto = true)
         if (scopes.contains("picker_reports")) refresh(completion)
         else completion(true)
@@ -284,19 +299,20 @@ class PickerController(
     }
 
     private fun showOperationTab(confirm: Boolean) {
-        shortagePanel?.visibility = if (confirm) View.GONE else View.VISIBLE
-        confirmPanel?.visibility = if (confirm) View.VISIBLE else View.GONE
+        val showConfirm = confirm || !shortageReportingEnabled
+        shortagePanel?.visibility = if (showConfirm) View.GONE else View.VISIBLE
+        confirmPanel?.visibility = if (showConfirm) View.VISIBLE else View.GONE
         shortageTab?.apply {
-            setBackgroundResource(if (confirm) R.drawable.bg_picker_tab_idle else R.drawable.bg_picker_tab_selected)
-            setTextColor(if (confirm) kit.muted else kit.navy)
-            isSelected = !confirm
+            setBackgroundResource(if (showConfirm) R.drawable.bg_picker_tab_idle else R.drawable.bg_picker_tab_selected)
+            setTextColor(if (showConfirm) kit.muted else kit.navy)
+            isSelected = !showConfirm
         }
         confirmTab?.apply {
-            setBackgroundResource(if (confirm) R.drawable.bg_picker_tab_selected else R.drawable.bg_picker_tab_idle)
-            setTextColor(if (confirm) kit.navy else kit.muted)
-            isSelected = confirm
+            setBackgroundResource(if (showConfirm) R.drawable.bg_picker_tab_selected else R.drawable.bg_picker_tab_idle)
+            setTextColor(if (showConfirm) kit.navy else kit.muted)
+            isSelected = showConfirm
         }
-        if (confirm) {
+        if (showConfirm) {
             recordLog("Picker mở tab Xác nhận đơn")
             relayPicklistInput?.post {
                 relayPicklistInput?.requestFocus()
@@ -572,7 +588,7 @@ class PickerController(
     }
 
     private fun updateReportEnabled() {
-        val ready = selected != null && isOnline() && !syncing
+        val ready = shortageReportingEnabled && selected != null && isOnline() && !syncing
         reportButton?.apply {
             isEnabled = ready
             alpha = if (ready) 1.0f else 0.42f
@@ -678,6 +694,11 @@ class PickerController(
     }
 
     private fun submit() {
+        if (!shortageReportingEnabled) {
+            updateReportEnabled()
+            setStatus("Báo hàng đang tắt cho tài khoản này.")
+            return
+        }
         val item = selected ?: return
         if (!isOnline()) {
             updateReportEnabled()
