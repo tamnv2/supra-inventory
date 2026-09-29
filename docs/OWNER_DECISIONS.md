@@ -2326,3 +2326,16 @@ Owner-approved production rule:
 ### D151 Owner acceptance — 2026-09-29
 
 D151 Owner acceptance: **PASS**. The Owner explicitly confirmed D151 PASS after field review of the signed `beta-vc89` adaptive Android alert engine. OA079 is closed and D151 is promoted to the accepted project base. The accepted scope remains capability-based alert readiness/delivery with Notification + Overlay + battery-exemption hard requirements, native DND enhancement only when truly available, and Overlay Compatibility otherwise. No new provider/resource/schema/polling/listener/secret is introduced by this acceptance; Agent/Web/Stable remain unchanged and Stable remains OWNER-GATED.
+
+## D152 — PickList fast-path recovery and verify-only confirmation — 2026-09-29
+
+Owner approved continuing immediately after D151 PASS with the reviewed PickList logic. D152 changes only the Beta Windows Agent managed-browser confirmation path.
+
+1. Keep the normal fast path unchanged: exact suffix resolution → unique full PickListCode → usable checkbox → existing guard/generation/age fences → exact semantic confirm. No reload is added to a normal ready PickList.
+2. Existing one-click **Tìm kiếm** retry remains the first recovery for missing/unselectable DOM state.
+3. If and only if one exact PickList is still present but its row checkbox remains unusable after that bounded retry, Agent may perform **one** normal Confirm-page reload, wait for the existing READY barrier, then re-scan and at most one bounded Search refresh. No loop is allowed.
+4. A PickList that existed before checkbox recovery but disappears/changes during that recovery is not reclassified as user NOT_FOUND and must not add a Picker strike. It fails closed as changed/uncertain unless authoritative post-confirm proof exists.
+5. After the confirmation dialog has already been accepted, Agent never resends the mutation. Existing success/error/row-removal evidence remains primary; if terminal evidence is still absent, one bounded **read-only Search verification** may check whether the exact row disappeared. Only trusted terminal evidence may return CONFIRMED.
+6. If an exact PickList already has an uncertain confirmation guard, later requests are **verify-only**: browser read/Search verification is allowed, but a second confirmation mutation is forbidden. A rare guard-status write may persist CONFIRMED only after verify-only evidence proves completion, preventing restart/failover from forgetting that recovered proof.
+7. Diagnostic logs identify sanitized recovery reasons/routes such as checkbox recovery, post-confirm verify and existing-guard verify without logging PickList values or credentials.
+8. D152 adds no WMS API/session extraction, provider, collection, listener, polling loop, cron or secret. Android remains signed `beta-vc89`; target Agent is `relay-agent-v86`; Stable remains OWNER-GATED.
