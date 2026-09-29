@@ -12,6 +12,8 @@ interface InternalUser {
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
+  contractor_name?: string | null;
+  shortage_reporting_enabled?: number | boolean | null;
   role: AppRole;
   status: "ACTIVE" | "DISABLED";
   password_salt: string | null;
@@ -107,6 +109,11 @@ function coreGet(env: BusinessEnv, path: string): Promise<Response> {
 
 function actor(user: InternalUser): { user_id: string; employee_code: string | null; role: AppRole; display_name: string } {
   return { user_id: user.user_id, employee_code: user.employee_code, role: user.role, display_name: user.display_name };
+}
+
+function pickerShortageReportingEnabled(user: InternalUser): boolean {
+  if (user.role !== "PICKER") return true;
+  return user.shortage_reporting_enabled == null || user.shortage_reporting_enabled === true || Number(user.shortage_reporting_enabled) === 1;
 }
 
 async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
@@ -428,6 +435,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "POST /api/picker/reports") {
+    if (!pickerShortageReportingEnabled(user)) {
+      return json({ error: "PICKER_SHORTAGE_REPORTING_DISABLED", message: "Chức năng Báo hàng đang tắt cho tài khoản này." }, 403);
+    }
     const body = await parseObjectBody(request);
     const response = await corePost(env, "/business/reports/create", { ...body, actor: actor(user) });
     const result = await realtimeAfter(response, env, {
@@ -459,6 +469,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "POST /api/picker/reports/withdraw") {
+    if (!pickerShortageReportingEnabled(user)) {
+      return json({ error: "PICKER_SHORTAGE_REPORTING_DISABLED", message: "Chức năng Báo hàng đang tắt cho tài khoản này." }, 403);
+    }
     const body = await parseObjectBody(request);
     const response = await corePost(env, "/business/reports/withdraw", { ...body, actor: actor(user) });
     return realtimeAfter(response, env, {
@@ -469,6 +482,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "GET /api/picker/results") {
+    if (!pickerShortageReportingEnabled(user)) {
+      return json({ items: [], count: 0, total: 0, reporting_enabled: false });
+    }
     const params = new URLSearchParams({ user_id: user.user_id });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
     return coreGet(env, `/operational/picker/results?${params.toString()}`);

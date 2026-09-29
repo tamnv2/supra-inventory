@@ -3,6 +3,7 @@ export interface HrSourceInput {
   tab_name: string;
   employee_code_header?: string;
   full_name_header?: string;
+  contractor_header?: string;
 }
 
 export interface HrSourceValidationResult {
@@ -12,6 +13,7 @@ export interface HrSourceValidationResult {
   mnv_header: string;
   employee_code_header: string;
   full_name_header: string;
+  contractor_header: string;
   header_row: number;
   data_row_count: number;
   verified_at: string;
@@ -127,21 +129,30 @@ function detectConfiguredHeaders(
   rows: string[][],
   employeeCodeHeader: string,
   fullNameHeader: string,
-): { headerRow: number; employeeCodeHeader: string; fullNameHeader: string } | null {
+  contractorHeader: string,
+): { headerRow: number; employeeCodeHeader: string; fullNameHeader: string; contractorHeader: string } | null {
   const codeWanted = normalizeHeader(employeeCodeHeader);
   const nameWanted = normalizeHeader(fullNameHeader);
+  const contractorWanted = normalizeHeader(contractorHeader);
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
     const row = rows[rowIndex] || [];
     let actualCodeHeader = "";
     let actualNameHeader = "";
+    let actualContractorHeader = "";
     for (const cell of row) {
       const raw = String(cell || "").trim();
       const normalized = normalizeHeader(raw);
       if (!actualCodeHeader && normalized === codeWanted) actualCodeHeader = raw;
       if (!actualNameHeader && normalized === nameWanted) actualNameHeader = raw;
+      if (!actualContractorHeader && normalized === contractorWanted) actualContractorHeader = raw;
     }
-    if (actualCodeHeader && actualNameHeader) {
-      return { headerRow: rowIndex + 1, employeeCodeHeader: actualCodeHeader, fullNameHeader: actualNameHeader };
+    if (actualCodeHeader && actualNameHeader && actualContractorHeader) {
+      return {
+        headerRow: rowIndex + 1,
+        employeeCodeHeader: actualCodeHeader,
+        fullNameHeader: actualNameHeader,
+        contractorHeader: actualContractorHeader,
+      };
     }
   }
   return null;
@@ -163,12 +174,18 @@ export async function validateHrSheetSource(
   const tabName = input.tab_name.trim();
   const employeeCodeHeader = String(input.employee_code_header || "").trim();
   const fullNameHeader = String(input.full_name_header || "").trim();
+  const contractorHeader = String(input.contractor_header || "").trim();
   if (!tabName) throw new Error("Tên tab không được để trống");
-  if (!employeeCodeHeader || !fullNameHeader) {
-    throw new Error("Hãy nhập tên cột Mã nhân viên và tên cột Họ và tên trước khi xác nhận nguồn nhân sự.");
+  if (!employeeCodeHeader || !fullNameHeader || !contractorHeader) {
+    throw new Error("Hãy nhập tên cột Mã nhân viên, Họ và tên và Nhà thầu trước khi xác nhận nguồn nhân sự.");
   }
-  if (normalizeHeader(employeeCodeHeader) === normalizeHeader(fullNameHeader)) {
-    throw new Error("Cột Mã nhân viên và cột Họ và tên phải là hai cột khác nhau.");
+  const distinctHeaders = new Set([
+    normalizeHeader(employeeCodeHeader),
+    normalizeHeader(fullNameHeader),
+    normalizeHeader(contractorHeader),
+  ]);
+  if (distinctHeaders.size !== 3) {
+    throw new Error("Ba cột Mã nhân viên, Họ và tên và Nhà thầu phải là ba cột khác nhau.");
   }
 
   const sheetId = parseGoogleSheetId(sheetUrl);
@@ -201,9 +218,9 @@ export async function validateHrSheetSource(
 
   const values = (await valuesResponse.json()) as { values?: string[][] };
   const rows = values.values || [];
-  const detected = detectConfiguredHeaders(rows.slice(0, 20), employeeCodeHeader, fullNameHeader);
+  const detected = detectConfiguredHeaders(rows.slice(0, 20), employeeCodeHeader, fullNameHeader, contractorHeader);
   if (!detected) {
-    throw new Error(`Không tìm thấy đồng thời cột "${employeeCodeHeader}" và "${fullNameHeader}" trong 20 dòng đầu của tab.`);
+    throw new Error(`Không tìm thấy đồng thời cột "${employeeCodeHeader}", "${fullNameHeader}" và "${contractorHeader}" trong 20 dòng đầu của tab.`);
   }
 
   const dataRows = rows.slice(detected.headerRow).filter((row) => row.some((cell) => String(cell || "").trim() !== ""));
@@ -214,6 +231,7 @@ export async function validateHrSheetSource(
     mnv_header: detected.employeeCodeHeader,
     employee_code_header: detected.employeeCodeHeader,
     full_name_header: detected.fullNameHeader,
+    contractor_header: detected.contractorHeader,
     header_row: detected.headerRow,
     data_row_count: dataRows.length,
     verified_at: new Date().toISOString(),

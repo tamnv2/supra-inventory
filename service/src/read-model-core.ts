@@ -455,26 +455,36 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
       continue;
     }
 
+    const directPickerReportingControl =
+      attachment.role === "PICKER" &&
+      !eventRow &&
+      (event === "picker_reporting_enabled" || event === "picker_reporting_disabled") &&
+      requestedTags.includes(`user:${attachment.user_id}`) &&
+      scopes.includes(event);
+
     if (
       attachment.role === "PICKER" &&
+      !directPickerReportingControl &&
       !pickerCanReceiveRealtimeEvent(state, eventIdentity, ticketId, attachment.user_id)
     ) {
       filtered += 1;
       continue;
     }
 
-    const snapshot = attachment.role === "PICKER"
+    const snapshot = attachment.role === "PICKER" && !directPickerReportingControl
       ? pickerRealtimeSnapshot(state, batchId, eventIdentity, ticketId, attachment.user_id)
-      : (batchId ? batchSnapshot(state, batchId) : null);
+      : (attachment.role === "PICKER" ? null : (batchId ? batchSnapshot(state, batchId) : null));
     const metadata = attachment.role === "PICKER"
-      ? { ...(batchId ? { batch_id: batchId } : {}) }
+      ? { ...(directPickerReportingControl ? (body.metadata || {}) : {}), ...(batchId ? { batch_id: batchId } : {}) }
       : { ...(body.metadata || {}), ...(batchId ? { batch_id: batchId } : {}) };
     const frame = JSON.stringify({
       type: "invalidate",
       event,
       event_id: eventIdentity,
       seq: eventRow ? Number(eventRow.seq || 0) : null,
-      scopes: attachment.role === "PICKER" ? scopes.filter((scope) => scope === "picker_reports") : scopes,
+      scopes: attachment.role === "PICKER"
+        ? scopes.filter((scope) => scope === "picker_reports" || scope === "picker_reporting_enabled" || scope === "picker_reporting_disabled")
+        : scopes,
       batch_id: batchId || null,
       batch_version: eventBatchVersion,
       snapshot,

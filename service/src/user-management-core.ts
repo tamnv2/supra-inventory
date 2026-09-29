@@ -1,16 +1,18 @@
 type SqlRow = Record<string, SqlStorageValue>;
 type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 type UserStatus = "ACTIVE" | "DISABLED";
-type PickerBulkAction = "ENABLE" | "DISABLE" | "DELETE";
+type PickerBulkAction = "ENABLE" | "DISABLE" | "DELETE" | "REPORTING_ENABLE" | "REPORTING_DISABLE";
 
 type Actor = { user_id: string; employee_code: string | null; role: AppRole; base_role?: AppRole; display_name?: string };
-type HrEmployee = { employee_code?: unknown; display_name?: unknown };
+type HrEmployee = { employee_code?: unknown; display_name?: unknown; contractor_name?: unknown };
 
 interface UserRow extends SqlRow {
   user_id: string;
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
+  contractor_name: string | null;
+  shortage_reporting_enabled: number;
   role: AppRole;
   status: UserStatus;
   password_salt: string | null;
@@ -61,7 +63,10 @@ function canManageTarget(actorRole: AppRole, targetRole: AppRole): boolean {
 function safeUser(row: UserRow): Record<string, unknown> {
   return {
     user_id: row.user_id, firebase_uid: row.firebase_uid, employee_code: row.employee_code,
-    display_name: row.display_name, role: row.role, status: row.status,
+    display_name: row.display_name,
+    contractor_name: row.role === "PICKER" ? (row.contractor_name || "") : null,
+    shortage_reporting_enabled: row.role === "PICKER" ? Number(row.shortage_reporting_enabled ?? 1) === 1 : null,
+    role: row.role, status: row.status,
     auth_email: row.auth_email || null,
     firebase_password_ready: Number(row.firebase_password_ready || 0) === 1,
     password_initialized: Boolean(row.password_hash && row.password_salt), password_changed_at: row.password_changed_at,
@@ -71,7 +76,7 @@ function safeUser(row: UserRow): Record<string, unknown> {
 
 function getUser(state: DurableObjectState, userId: string): UserRow | null {
   return first(state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users WHERE user_id = ? LIMIT 1`, userId,
   ).toArray());
 }
@@ -80,6 +85,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
   const query = String(url.searchParams.get("query") || "").trim().toLowerCase().slice(0, 200);
   const role = String(url.searchParams.get("role") || "").trim().toUpperCase();
   const status = String(url.searchParams.get("status") || "").trim().toUpperCase();
+  const shortageReporting = String(url.searchParams.get("shortage_reporting") || "").trim().toUpperCase();
   const parsedLimit = Number(url.searchParams.get("limit") || 100);
   const parsedOffset = Number(url.searchParams.get("offset") || 0);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsedLimit) ? Math.trunc(parsedLimit) : 100));
@@ -89,8 +95,8 @@ function listUsers(state: DurableObjectState, url: URL): Response {
   const args: SqlStorageValue[] = [];
   if (query) {
     const like = `%${query}%`;
-    where.push("(lower(COALESCE(employee_code,'')) LIKE ? OR lower(display_name) LIKE ? OR lower(user_id) LIKE ?)");
-    args.push(like, like, like);
+    where.push("(lower(COALESCE(employee_code,'')) LIKE ? OR lower(display_name) LIKE ? OR lower(COALESCE(contractor_name,'')) LIKE ? OR lower(user_id) LIKE ?)");
+    args.push(like, like, like, like);
   }
   if (["PICKER","REPORTER","ADMIN","PICKPACK_ADMIN","ROOT"].includes(role)) {
     where.push("role = ?");
@@ -100,6 +106,11 @@ function listUsers(state: DurableObjectState, url: URL): Response {
     where.push("status = ?");
     args.push(status);
   }
+  if (["ENABLED","DISABLED"].includes(shortageReporting)) {
+    where.push("role = 'PICKER'");
+    where.push("COALESCE(shortage_reporting_enabled, 1) = ?");
+    args.push(shortageReporting === "ENABLED" ? 1 : 0);
+  }
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
   const totalRow = first(state.storage.sql.exec<SqlRow>(
@@ -108,7 +119,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
   ).toArray()) || {};
 
   const rows = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status,
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
             password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users
        ${clause}
@@ -341,11 +352,18 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
   const body = (await request.json()) as { actor?: Actor; action?: PickerBulkAction; user_ids?: unknown; excluded_user_ids?: unknown; all?: boolean; request_id?: unknown };
   const actor = body.actor;
   const action = String(body.action || "").toUpperCase() as PickerBulkAction;
-  if (!actor?.user_id || !["ADMIN","ROOT"].includes(actor.role) || !["ENABLE","DISABLE","DELETE"].includes(action) || !validRequestId(body.request_id)) {
+  const reportingAction = action === "REPORTING_ENABLE" || action === "REPORTING_DISABLE";
+  const allowedActions: PickerBulkAction[] = ["ENABLE","DISABLE","DELETE","REPORTING_ENABLE","REPORTING_DISABLE"];
+  const actorAllowed = reportingAction
+    ? ["ADMIN","PICKPACK_ADMIN","ROOT"].includes(String(actor?.role || ""))
+    : ["ADMIN","ROOT"].includes(String(actor?.role || ""));
+  if (!actor?.user_id || !actorAllowed || !allowedActions.includes(action) || !validRequestId(body.request_id)) {
     return response({ error: "INVALID_PICKER_BULK_ACTION" }, 400);
   }
   let targets = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users WHERE role = 'PICKER' ORDER BY employee_code ASC`,
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
+            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
+       FROM users WHERE role = 'PICKER' ORDER BY employee_code ASC`,
   ).toArray();
   const excludedIds = Array.isArray(body.excluded_user_ids)
     ? new Set(body.excluded_user_ids.map((value) => String(value || "").trim()).filter(Boolean))
@@ -359,6 +377,7 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
   }
   const at = new Date().toISOString();
   let affected = 0;
+  const affectedUserIds: string[] = [];
   state.storage.transactionSync(() => {
     for (const target of targets) {
       if (action === "DELETE") {
@@ -366,6 +385,18 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
         state.storage.sql.exec(`DELETE FROM fcm_devices WHERE user_id = ?`, target.user_id);
         state.storage.sql.exec(`DELETE FROM presence_sessions WHERE user_id = ?`, target.user_id);
         state.storage.sql.exec(`DELETE FROM users WHERE user_id = ? AND role = 'PICKER'`, target.user_id);
+      } else if (reportingAction) {
+        const enabled = action === "REPORTING_ENABLE" ? 1 : 0;
+        const current = Number(target.shortage_reporting_enabled ?? 1) === 1 ? 1 : 0;
+        if (current === enabled) continue;
+        state.storage.sql.exec(
+          `UPDATE users SET shortage_reporting_enabled = ?, updated_at = ? WHERE user_id = ? AND role = 'PICKER'`,
+          enabled, at, target.user_id,
+        );
+        audit(state, actor, action === "REPORTING_ENABLE" ? "PICKER_SHORTAGE_REPORTING_ENABLE" : "PICKER_SHORTAGE_REPORTING_DISABLE", "USER", target.user_id, {
+          employee_code: target.employee_code,
+          bulk: true,
+        });
       } else {
         const nextStatus: UserStatus = action === "ENABLE" ? "ACTIVE" : "DISABLED";
         state.storage.sql.exec(`UPDATE users SET status = ?, updated_at = ? WHERE user_id = ? AND role = 'PICKER'`, nextStatus, at, target.user_id);
@@ -376,45 +407,57 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
         audit(state, actor, `PICKER_${action}`, "USER", target.user_id, { employee_code: target.employee_code, bulk: true });
       }
       affected += 1;
+      affectedUserIds.push(target.user_id);
     }
   });
   audit(state, actor, "PICKER_BULK_ACTION", "USER_SET", String(body.request_id), { action, affected, all: Boolean(body.all), excluded_count: body.all ? excludedIds.size : 0 });
-  return response({ status: "applied", action, affected });
+  return response({ status: "applied", action, affected, affected_user_ids: reportingAction ? affectedUserIds : undefined });
 }
 
-function normalizeHrEmployees(items: HrEmployee[]): { employees: Array<{ employee_code: string; display_name: string }>; invalid: number[]; duplicates: string[] } {
+function normalizeHrEmployees(items: HrEmployee[]): { employees: Array<{ employee_code: string; display_name: string; contractor_name: string }>; invalid: number[]; duplicates: string[] } {
   const invalid: number[] = [];
-  const map = new Map<string, string>();
+  const map = new Map<string, { display_name: string; contractor_name: string }>();
   const duplicates = new Set<string>();
   items.forEach((item, index) => {
     const code = normalizeLogin(item.employee_code);
     const name = normalizeName(item.display_name);
-    if (!validLogin(code) || !name || name.length > 200) { invalid.push(index + 1); return; }
+    const contractor = normalizeName(item.contractor_name);
+    if (!validLogin(code) || !name || name.length > 200 || contractor.length > 200) { invalid.push(index + 1); return; }
     const old = map.get(code);
-    if (old && old !== name) duplicates.add(code);
-    else map.set(code, name);
+    if (old && (old.display_name !== name || old.contractor_name !== contractor)) duplicates.add(code);
+    else map.set(code, { display_name: name, contractor_name: contractor });
   });
-  return { employees: [...map].map(([employee_code, display_name]) => ({ employee_code, display_name })), invalid, duplicates: [...duplicates] };
+  return {
+    employees: [...map].map(([employee_code, value]) => ({ employee_code, display_name: value.display_name, contractor_name: value.contractor_name })),
+    invalid,
+    duplicates: [...duplicates],
+  };
 }
 
-function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: string; display_name: string }>): Record<string, unknown> {
-  const incoming = new Map(employees.map((item) => [item.employee_code, item.display_name]));
+function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: string; display_name: string; contractor_name: string }>): Record<string, unknown> {
+  const incoming = new Map(employees.map((item) => [item.employee_code, item]));
   const existing = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
+            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
   ).toArray();
   const byCode = new Map(existing.filter((u) => u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
   const collisions: Array<{ employee_code: string; role: AppRole; user_id: string }> = [];
-  let create = 0, rename = 0, unchanged = 0, inactiveExisting = 0;
-  for (const [code, name] of incoming) {
+  let create = 0, rename = 0, contractor_update = 0, unchanged = 0, inactiveExisting = 0;
+  for (const [code, incomingUser] of incoming) {
     const current = byCode.get(code);
     if (!current) create += 1;
     else if (current.role !== "PICKER") collisions.push({ employee_code: code, role: current.role, user_id: current.user_id });
-    else if (current.status !== "ACTIVE") inactiveExisting += 1;
-    else if (current.display_name !== name) rename += 1;
-    else unchanged += 1;
+    else {
+      if (current.status !== "ACTIVE") inactiveExisting += 1;
+      const nameChanged = current.display_name !== incomingUser.display_name;
+      const contractorChanged = String(current.contractor_name || "") !== incomingUser.contractor_name;
+      if (nameChanged) rename += 1;
+      if (contractorChanged) contractor_update += 1;
+      if (!nameChanged && !contractorChanged) unchanged += 1;
+    }
   }
   const notInSource = existing.filter((u) => u.role === "PICKER" && u.employee_code && !incoming.has(String(u.employee_code).toLowerCase())).length;
-  return { total_source: employees.length, create, reactivate: 0, rename, disable: 0, unchanged, inactive_existing: inactiveExisting, not_in_source: notInSource, collisions };
+  return { total_source: employees.length, create, reactivate: 0, rename, contractor_update, disable: 0, unchanged, inactive_existing: inactiveExisting, not_in_source: notInSource, collisions };
 }
 
 async function hrPreview(state: DurableObjectState, request: Request): Promise<Response> {
@@ -433,32 +476,54 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
   if (normalized.invalid.length || normalized.duplicates.length) return response({ error: "INVALID_HR_ROWS", invalid_rows: normalized.invalid.slice(0,100), duplicate_conflicts: normalized.duplicates.slice(0,100) }, 400);
   const plan = hrPlan(state, normalized.employees) as { collisions?: unknown[] };
   if ((plan.collisions || []).length) return response({ error: "HR_EMPLOYEE_CODE_COLLIDES_NON_PICKER", ...plan }, 409);
-  const incoming = new Map(normalized.employees.map((item) => [item.employee_code, item.display_name]));
+  const incoming = new Map(normalized.employees.map((item) => [item.employee_code, item]));
   const at = new Date().toISOString();
   state.storage.transactionSync(() => {
     const existing = state.storage.sql.exec<UserRow>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
+              password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
     ).toArray();
     const pickerByCode = new Map(existing.filter((u) => u.role === "PICKER" && u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
-    for (const [code, name] of incoming) {
+    for (const [code, incomingUser] of incoming) {
       const current = pickerByCode.get(code);
       if (!current) {
         state.storage.sql.exec(
-          `INSERT INTO users (user_id, firebase_uid, employee_code, display_name, role, status, created_at, updated_at, password_salt, password_hash, password_changed_at)
-           VALUES (?, NULL, ?, ?, 'PICKER', 'ACTIVE', ?, ?, ?, ?, ?)`,
-          `picker:${code}:${crypto.randomUUID()}`, code, name, at, at, body.picker_password_salt, body.picker_password_hash, at,
+          `INSERT INTO users (
+             user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
+             role, status, created_at, updated_at, password_salt, password_hash, password_changed_at
+           ) VALUES (?, NULL, ?, ?, ?, 1, 'PICKER', 'ACTIVE', ?, ?, ?, ?, ?)`,
+          `picker:${code}:${crypto.randomUUID()}`, code, incomingUser.display_name, incomingUser.contractor_name || null,
+          at, at, body.picker_password_salt, body.picker_password_hash, at,
         );
-      } else if (current.display_name !== name) {
-        state.storage.sql.exec(`UPDATE users SET display_name = ?, updated_at = ? WHERE user_id = ?`, name, at, current.user_id);
+      } else if (
+        current.display_name !== incomingUser.display_name ||
+        String(current.contractor_name || "") !== incomingUser.contractor_name
+      ) {
+        state.storage.sql.exec(
+          `UPDATE users SET display_name = ?, contractor_name = ?, updated_at = ? WHERE user_id = ?`,
+          incomingUser.display_name, incomingUser.contractor_name || null, at, current.user_id,
+        );
       }
     }
   });
   const finalPlan = hrPlan(state, normalized.employees);
-  audit(state, actor, "HR_PICKER_SYNC", "HR_SOURCE", String(body.request_id), { source_count: normalized.employees.length, applied_at: at, pre_apply: plan, absence_policy: "NO_AUTOMATIC_DISABLE" });
+  audit(state, actor, "HR_PICKER_SYNC", "HR_SOURCE", String(body.request_id), {
+    source_count: normalized.employees.length,
+    applied_at: at,
+    pre_apply: plan,
+    absence_policy: "NO_AUTOMATIC_DISABLE",
+    reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED",
+  });
   state.storage.sql.exec(
     `INSERT INTO app_config (key, value_json, updated_at, updated_by) VALUES ('hr_last_sync', ?, ?, ?)
      ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at, updated_by = excluded.updated_by`,
-    JSON.stringify({ source_count: normalized.employees.length, applied_at: at, request_id: body.request_id, absence_policy: "NO_AUTOMATIC_DISABLE" }), at, actor.user_id,
+    JSON.stringify({
+      source_count: normalized.employees.length,
+      applied_at: at,
+      request_id: body.request_id,
+      absence_policy: "NO_AUTOMATIC_DISABLE",
+      reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED",
+    }), at, actor.user_id,
   );
   return response({ status: "applied", source_count: normalized.employees.length, applied_at: at, post_apply: finalPlan });
 }

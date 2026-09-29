@@ -692,3 +692,19 @@ For Android `Xác nhận PickList`, a not-found response exposes the existing se
 - second strike: **Sai 2/3 lần trong cửa sổ 60 giây**, with one attempt remaining;
 - locked: state that `Xác nhận PickList` is temporarily locked because of 3 wrong attempts in 60 seconds, show the applicable 5/30/60-minute duration and expected **HH:mm** reopen time, and direct the user to verify the PickList or use the specialist desk.
 Do not expose internal lock-level numbering. Backend strike/lock thresholds are unchanged.
+
+## D155 HR and Picker reporting controls
+
+### HR source — additional Picker column
+The HR source form adds a required configured source-header input: **Tên cột Nhà thầu**. Mã nhân viên / Họ và tên / Nhà thầu headers must be distinct and present together. A Picker row may have a blank contractor value.
+
+### Nhân sự & tài khoản
+- Search matches Mã nhân viên, Họ tên, Nhà thầu and existing account identifiers.
+- Add Báo hàng filter: **Tất cả / Đang bật / Đang tắt**.
+- Picker rows display **Nhà thầu** and **Báo hàng** status. Non-Picker rows show no contractor/reporting value.
+- Existing one/many/all Picker selection is reused for **Bật Báo hàng** and **Tắt Báo hàng**.
+- Tắt Báo hàng confirmation states that login and Xác nhận đơn remain available.
+- Existing account lifecycle buttons retain their RBAC; capability toggle is not account ACTIVE/DISABLED.
+
+### Android Picker
+When Báo hàng is disabled, the Báo hàng tab remains visible but disabled/muted; Xác nhận đơn remains usable and no shortage submit action is enabled.

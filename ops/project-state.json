@@ -33,8 +33,8 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D154_OWNER_FIELD_ACCEPTED_PASS__SCHEDULE_SYNC_RECOVERY__D153_PICKER_PRESENCE_DEDUPE__D152_CONFIRM_RECOVERY_RETAINED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D154_OWNER_ACCEPTED_PASS__D154_ACCEPTED_BASE",
-    "owner_acceptance": "D154_OWNER_FIELD_ACCEPTED_PASS__OA082_CLOSED__D154_ACCEPTED_BASE",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D155_ACTIVE__D154_ACCEPTED_BASE",
+    "owner_acceptance": "D154_OWNER_FIELD_ACCEPTED_PASS__D155_OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
@@ -2463,10 +2463,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D154",
     "accepted_base_evidence": "OWNER_EXPLICIT_D154_PASS__AGENT_V88__ANDROID_VC90__2026_09_30",
-    "current_change_id": "D154",
-    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V88__ANDROID_VC90",
-    "owner_pass_required_to_unlock_next_change": false,
-    "next_change_allowed": true,
+    "current_change_id": "D155",
+    "current_change_status": "IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED__D154_REMAINS_ACCEPTED_BASE",
+    "owner_pass_required_to_unlock_next_change": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D154_OWNER_ACCEPTED__MAIN_4AA06E7B__AGENT_V88__ANDROID_VC90__FUNCTION_SCHEDULE_PROPAGATION__UNIFIED_0545_2230",
-    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_FIRESTORE_FUNCTIONS_ANDROID_AGENT_WEB__NO_NEW_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON",
+    "runtime_impact": "D155_BRANCH_IMPLEMENTATION__NOT_RUNTIME_ACCEPTED__D154_REMAINS_LIVE_ACCEPTED_BASE",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_WEBSOCKET_ANDROID_AGENT_FIRESTORE_AGENT_PATH__NO_NEW_PROVIDER_COLLECTION_SECRET_LISTENER_POLLING_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3202,5 +3202,61 @@
       "accepted_at": "2026-09-30",
       "next_change_allowed": true
     }
+  },
+  "d155": {
+    "status": "IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED",
+    "date": "2026-09-30",
+    "baseline_change": "D154",
+    "baseline_main": "bd75eb75e2eb260302cb69b1ac184208d7cb0843",
+    "branch": "feat/d155-picker-contractor-shortage-control",
+    "accepted_base": "D154",
+    "owner_approved_scope": [
+      "PICKER_CONTRACTOR_CONFIGURABLE_HR_COLUMN",
+      "PICKER_CONTRACTOR_WEB_ANDROID_AGENT_PRESENTATION",
+      "PICKER_SHORTAGE_REPORTING_CAPABILITY_DEFAULT_ENABLED",
+      "ONE_MANY_ALL_REPORTING_ENABLE_DISABLE",
+      "ADMIN_PICKPACK_ADMIN_ROOT_REPORTING_TOGGLE_AUTHORITY",
+      "WEB_SEARCH_CONTRACTOR_AND_REPORTING_FILTER",
+      "CLOUDFLARE_ONLY_REPORTING_CAPABILITY_PATH",
+      "SERVER_AUTHORITATIVE_SHORTAGE_BLOCK_AND_RESULT_SUPPRESSION",
+      "DISABLED_REPORTING_PRESERVES_LOGIN_AND_PICKLIST",
+      "AGENT_CONTRACTOR_PIGGYBACK_EXISTING_PICKER_PROJECTION_ONLY",
+      "NO_NEW_BACKGROUND_CADENCE",
+      "STABLE_UNTOUCHED"
+    ],
+    "base_impact": "YES__BETA_INVENTORYCORE_WORKER_WEB_ANDROID_AND_AGENT_PICKER_PRESENTATION",
+    "affected_components": [
+      "service/src/core.ts",
+      "service/src/hr-source.ts",
+      "service/src/hr-sync.ts",
+      "service/src/user-management-core.ts",
+      "service/src/user-management-api.ts",
+      "service/src/business-api.ts",
+      "service/src/read-model-core.ts",
+      "service/src/operational-v2-core.ts",
+      "service/src/notifications-core.ts",
+      "service/src/firestore-projection.ts",
+      "web/src/api.ts",
+      "web/src/operational-app.ts",
+      "android InventoryApi/MainActivity/PickerController/session store/realtime client",
+      "relay-agent Picker presence/sync/UI",
+      "canonical decision/spec/state and regression guards"
+    ],
+    "regression_stability_risk": "MEDIUM__ACCOUNT_CAPABILITY_CROSSES_WEB_SERVICE_PDA_AND_AGENT_IDENTITY_PRESENTATION__MITIGATED_BY_INDEPENDENT_CAPABILITY_SERVER_GUARD_DEFAULT_ENABLED_AND_NO_PICKLIST_COUPLING",
+    "resource_quota_security_impact": "LOW__CLOUDFLARE_SQLITE_MUTATION_PLUS_EXISTING_WEBSOCKET_DIRECT_CONTROL__NO_CAPABILITY_FIRESTORE_RTDB_FCM_POLL_LISTENER__AGENT_CONTRACTOR_ONLY_PAYLOAD_BYTES_ON_EXISTING_FIRESTORE_OPERATIONS__NO_SECRET",
+    "recommended_approach": "ADDITIVE_SCHEMA15__HR_KEYED_BY_MNV__PRESERVE_EXISTING_TOGGLE__SERVER_ENFORCEMENT__DIRECT_TARGETED_CLOUDFLARE_WEBSOCKET__AUTH_ME_SELF_HEAL__DISABLED_PDA_SKIP_SHORTAGE_READS__AGENT_CONTRACTOR_NO_NEW_FIRESTORE_OPERATION",
+    "preimplementation_owner_approval": "PASS__OWNER_EXPLICIT_D155_APPROVAL_AND_CLOUDFLARE_USAGE_BOUNDARY__2026_09_30",
+    "sqlite_schema_target": 15,
+    "target_agent_release": "relay-agent-v89",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC90__EXPECTED_BETA_VC91_IF_NO_INTERVENING_RELEASE",
+    "reporting_capability_transport": "WEB_CLOUDFLARE_WORKER_INVENTORYCORE_WEBSOCKET_PDA_ONLY",
+    "firestore_capability_use": "FORBIDDEN",
+    "agent_contractor_transport": "EXISTING_PICKER_PRESENCE_AGENT_SYNC_PAYLOAD_ONLY__NO_EXTRA_OPERATION_CADENCE__NO_HR_TRIGGERED_WRITE",
+    "new_provider_resources": "NONE",
+    "new_firestore_collections": "NONE",
+    "new_secrets": "NONE",
+    "new_polling_listener_cron": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "field_gate": "BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS"
   }
 }

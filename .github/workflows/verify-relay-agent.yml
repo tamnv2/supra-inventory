@@ -81,9 +81,9 @@ jobs:
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*88\s*;') { throw "D154 requires Agent v88 while retaining D153/D152/D150 safety guards." }
-          if ($project -notmatch '<AssemblyVersion>0\.88\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.88\.0\.0</FileVersion>') {
-            throw "D154 Agent assembly/file version must be 0.88."
+          if ($config -notmatch 'AgentBuild\s*=\s*89\s*;') { throw "D155 requires Agent v89 while retaining D154/D153/D152/D150 safety guards." }
+          if ($project -notmatch '<AssemblyVersion>0\.89\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.89\.0\.0</FileVersion>') {
+            throw "D155 Agent assembly/file version must be 0.89."
           }
 
           foreach ($marker in @(

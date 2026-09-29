@@ -195,8 +195,15 @@ class AndroidRealtimeClient(
     }
 
     private fun handleInvalidate(payload: JSONObject) {
+        val scopes = readScopes(payload)
+        val directCapabilityControl =
+            scopes.contains("picker_reporting_enabled") || scopes.contains("picker_reporting_disabled")
         val seq = payload.optLong("seq", 0L)
         if (seq <= 0L) {
+            if (directCapabilityControl) {
+                if (!applyScopesAndWait(scopes)) scheduleDirtyRecovery("capability_control_apply_failed")
+                return
+            }
             scheduleDirtyRecovery("unsequenced_event")
             return
         }
@@ -209,7 +216,6 @@ class AndroidRealtimeClient(
             return
         }
 
-        val scopes = readScopes(payload)
         if (!applyScopesAndWait(scopes)) {
             scheduleDirtyRecovery("socket_apply_failed")
             return

@@ -466,6 +466,7 @@ namespace SupraInventoryRelayAgent
                 FirebaseUid = item.FirebaseUid ?? "",
                 EmployeeCode = item.EmployeeCode ?? "",
                 DisplayName = item.DisplayName ?? "",
+                ContractorName = item.ContractorName ?? "",
                 DeviceId = item.DeviceId ?? "",
                 LoginAt = item.LoginAt ?? "",
                 DeviceSeenAt = item.DeviceSeenAt ?? "",
@@ -503,6 +504,7 @@ namespace SupraInventoryRelayAgent
                 list.Add(new Dictionary<string, object> {
                     { "user_id", item.UserId ?? "" }, { "firebase_uid", item.FirebaseUid ?? "" },
                     { "employee_code", item.EmployeeCode ?? "" }, { "display_name", item.DisplayName ?? "" },
+                    { "contractor_name", item.ContractorName ?? "" },
                     { "device_id", item.DeviceId ?? "" }, { "login_at", item.LoginAt ?? "" },
                     { "source", item.Source ?? "LOGIN" }, { "session_generation", item.SessionGeneration }
                 });
@@ -560,6 +562,7 @@ namespace SupraInventoryRelayAgent
                 result.Add(new PickerPresenceView {
                     UserId = S(map, "user_id"), FirebaseUid = S(map, "firebase_uid"),
                     EmployeeCode = S(map, "employee_code"), DisplayName = S(map, "display_name"),
+                    ContractorName = S(map, "contractor_name"),
                     DeviceId = S(map, "device_id"), LoginAt = S(map, "login_at"),
                     Status = "PDA_READY", Source = S(map, "source") == "PICKLIST" ? "PICKLIST" : "LOGIN",
                     SessionGeneration = L(map, "session_generation")

@@ -167,6 +167,8 @@ object InteractiveSessionStore {
             .put("display_name", value.displayName)
             .put("role", value.role)
             .put("employee_code", value.employeeCode ?: org.json.JSONObject.NULL)
+            .put("contractor_name", value.contractorName ?: org.json.JSONObject.NULL)
+            .put("shortage_reporting_enabled", value.shortageReportingEnabled)
         prefs.edit().putString("session", payload.toString()).apply()
     }
 
@@ -182,6 +184,8 @@ object InteractiveSessionStore {
                 displayName = payload.optString("display_name"),
                 role = payload.optString("role"),
                 employeeCode = payload.optString("employee_code").takeIf { it.isNotBlank() && it != "null" },
+                contractorName = payload.optString("contractor_name").takeIf { it.isNotBlank() && it != "null" },
+                shortageReportingEnabled = payload.optBoolean("shortage_reporting_enabled", true),
             )
             if (next.idToken.isBlank() || next.refreshToken.isBlank() || next.userId.isBlank()) null else next
         } catch (_: Exception) {

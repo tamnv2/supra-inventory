@@ -17,6 +17,8 @@ interface User {
   firebase_uid?: string | null;
   employee_code: string | null;
   display_name?: string;
+  contractor_name?: string | null;
+  shortage_reporting_enabled?: boolean | number | null;
   role: AppRole;
   base_role?: AppRole;
   status: "ACTIVE" | "DISABLED";
@@ -32,6 +34,29 @@ const ROLES: AppRole[] = ["ADMIN", "PICKPACK_ADMIN", "ROOT"];
 
 function json(payload: unknown, status = 200): Response { return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 function core(env: Env): DurableObjectStub { return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core")); }
+
+async function broadcastPickerReportingCapability(env: Env, userIds: string[], enabled: boolean): Promise<void> {
+  const unique = [...new Set(userIds.map((value) => String(value || "").trim()).filter(Boolean))];
+  const event = enabled ? "picker_reporting_enabled" : "picker_reporting_disabled";
+  for (let offset = 0; offset < unique.length; offset += 200) {
+    const chunk = unique.slice(offset, offset + 200);
+    try {
+      await core(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          event,
+          scopes: [event],
+          tags: chunk.map((userId) => `user:${userId}`),
+          metadata: { source: "D155_CLOUDFLARE_ACCOUNT_CAPABILITY" },
+        }),
+      });
+    } catch {
+      // Best-effort fast path only. Server authorization is already authoritative;
+      // login/resume profile refresh repairs a missed control frame without polling.
+    }
+  }
+}
 async function requireAdmin(request: Request, env: Env): Promise<User> {
   const token = readBearerToken(request); if (!token) throw json({ error: "AUTH_REQUIRED" }, 401);
   let identity; try { identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID); } catch { throw json({ error: "INVALID_AUTH_TOKEN" }, 401); }
@@ -204,7 +229,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
 
   if (key === "GET /api/admin/users") {
     const params = new URLSearchParams();
-    for (const name of ["query","role","status","limit","offset"]) if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    for (const name of ["query","role","status","shortage_reporting","limit","offset"]) if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     if (user.role === "PICKPACK_ADMIN") params.set("role", "PICKER");
     return core(env).fetch(`https://inventory-core.internal/admin/users?${params.toString()}`);
   }
@@ -372,9 +397,21 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
   }
   if (key === "POST /api/admin/pickers/bulk") {
     const body = await bodyObject(request);
-    const response = await core(env).fetch("https://inventory-core.internal/admin/pickers/bulk", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, actor: actor(user) }) });
-    if (response.ok) await refreshPickerProjectionBestEffort(env);
-    return response;
+    const action = String(body.action || "").toUpperCase();
+    const response = await core(env).fetch("https://inventory-core.internal/admin/pickers/bulk", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...body, actor: actor(user) }),
+    });
+    if (!response.ok) return response;
+    const payload = (await response.json()) as { status?: string; action?: string; affected?: number; affected_user_ids?: string[] };
+    const reportingAction = action === "REPORTING_ENABLE" || action === "REPORTING_DISABLE";
+    if (reportingAction) {
+      await broadcastPickerReportingCapability(env, payload.affected_user_ids || [], action === "REPORTING_ENABLE");
+    } else {
+      await refreshPickerProjectionBestEffort(env);
+    }
+    return json(payload);
   }
   if (key === "PUT /api/admin/hr-source-v2") {
     if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
@@ -385,6 +422,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
         tab_name: String(body.tab_name || ""),
         employee_code_header: String(body.employee_code_header || ""),
         full_name_header: String(body.full_name_header || ""),
+        contractor_header: String(body.contractor_header || ""),
       });
       const saved = await core(env).fetch("https://inventory-core.internal/config/hr-source", {
         method: "PUT", headers: { "content-type": "application/json" },

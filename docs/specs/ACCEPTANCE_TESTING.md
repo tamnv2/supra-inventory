@@ -2025,3 +2025,21 @@ Technical PASS requires all of the following:
 - no new provider, collection/schema, listener, polling loop, cron or secret is introduced.
 
 Owner field PASS verifies Agent overtime after 22:30, Android/Web convergence, Huỷ tăng ca convergence, 05:45/22:30 boundaries, and Android permission/version presentation on warehouse devices.
+
+## D155 contractor and quota-safe shortage-capability acceptance
+
+Technical PASS requires all of the following:
+- accepted base remains D154 until explicit Owner D155 field PASS; Stable remains untouched;
+- InventoryCore schema advances additively to 15; existing Pickers default Báo hàng enabled after migration unless explicitly changed under D155;
+- HR source validates three configurable headers, accepts blank contractor cells, updates contractor/name by MNV, creates new Picker reporting-enabled, and never resets an existing explicit reporting toggle;
+- managed-user search finds Picker by contractor and server-side filter distinguishes reporting enabled/disabled;
+- ADMIN, PICKPACK_ADMIN and ROOT can enable/disable shortage reporting for one/many/all Picker selections; PICKPACK_ADMIN gains no unrelated account lifecycle authority;
+- disabled Picker login and Xác nhận đơn continue, Báo hàng is visibly locked, stale/modified PDA shortage POST is rejected server-side, and new Có hàng/Skip shortage result targeting is suppressed;
+- toggle convergence uses only Worker/InventoryCore + existing Cloudflare WebSocket. No Firestore/RTDB capability read/write/listener, FCM capability push, polling loop or cron exists;
+- online target applies the unsequenced capability frame without delta recovery/realtime reconnect; a missed frame is repaired by normal /api/auth/me resume;
+- disabled Picker performs no shortage catalog/history/result refresh solely for the disabled UI;
+- Agent v89 shows/searches contractor using existing Picker projection/sync; contractor-only HR sync does not force a Firestore presence/agent_sync write and no new Firestore cadence exists;
+- D153 presence dedupe, D150/D152 confirmation/HA timings and D154 shared schedule behavior remain unchanged;
+- Android advances monotonically after beta-vc90; Agent advances to relay-agent-v89; no new provider resource/collection/secret is introduced.
+
+Owner field PASS should verify bulk toggle immediately changes a logged-in PDA, Xác nhận đơn remains usable while Báo hàng is off, direct SKU submission is blocked, enabling restores normal Báo hàng, contractor appears correctly on Web/PDA/Agent, and Cloudflare/Firebase usage shows no new idle/background cadence.

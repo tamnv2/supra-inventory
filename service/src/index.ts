@@ -56,6 +56,8 @@ interface InternalUser {
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
+  contractor_name: string | null;
+  shortage_reporting_enabled: number;
   role: AppRole;
   base_role: AppRole;
   role_override: AppRole | null;
@@ -1130,7 +1132,7 @@ export default {
           realtime_foreground: "websocket_sequence_delta_on_inventory_core",
           background_notifications: "firebase_cloud_messaging",
           runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID", "AGENT"], schedule: ["06:00", "12:00", "18:00", "21:00"], android_info_policy: "session_end_only", error_upload: "immediate_best_effort", agent_bridge: "firestore_spool_to_drive_5m" },
-          hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column"], public_setup_endpoint: false },
+          hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column", "configured_contractor_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
         });
       }
@@ -1445,9 +1447,15 @@ export default {
       if (request.method === "PUT" && url.pathname === "/api/admin/hr-source") {
         const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
         if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
-        const body = (await request.json()) as { sheet_url?: string; tab_name?: string; employee_code_header?: string; full_name_header?: string };
+        const body = (await request.json()) as { sheet_url?: string; tab_name?: string; employee_code_header?: string; full_name_header?: string; contractor_header?: string };
         try {
-          const validated = await validateHrSheetSource(env.GOOGLE_RUNTIME_SA_JSON, { sheet_url: String(body.sheet_url || ""), tab_name: String(body.tab_name || ""), employee_code_header: String(body.employee_code_header || ""), full_name_header: String(body.full_name_header || "") });
+          const validated = await validateHrSheetSource(env.GOOGLE_RUNTIME_SA_JSON, {
+            sheet_url: String(body.sheet_url || ""),
+            tab_name: String(body.tab_name || ""),
+            employee_code_header: String(body.employee_code_header || ""),
+            full_name_header: String(body.full_name_header || ""),
+            contractor_header: String(body.contractor_header || ""),
+          });
           await coreJson(env, "/config/hr-source", {
             method: "PUT", headers: { "content-type": "application/json" },
             body: JSON.stringify({ ...validated, updated_by: user.user_id }),

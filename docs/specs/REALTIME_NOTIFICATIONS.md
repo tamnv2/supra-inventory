@@ -769,3 +769,13 @@ Failure of OEM DND policy access alone must not block login when hard readiness 
 - Schedule payload uses `normal_start_minutes=345`, `normal_end_minutes=1350`, `overtime_cutoff_minutes=300` and accepts `CANCEL_OVERTIME`.
 - Android FCM remains event-driven. If a blocked PickList receives a successful Worker response that still leaves the window closed, Android may perform one exact server Firestore GET for `operating_schedule`, bounded by the existing 60-second user-attempt reconcile gate.
 - No broad Firestore list, schedule listener, heartbeat, cron or new provider resource is added.
+
+## D155 Cloudflare-only Báo hàng capability convergence
+
+- The authoritative capability mutation is stored in InventoryCore SQLite.
+- An online targeted Picker receives one best-effort direct control frame over the existing Cloudflare hibernatable WebSocket: picker_reporting_enabled or picker_reporting_disabled.
+- These account-control frames are not Firestore/RTDB operations and do not add a realtime-event replay row solely for the toggle. They are scoped to the exact user socket tag.
+- Android applies the unsequenced direct control locally without triggering delta recovery or an extra HTTP reconcile.
+- If the frame is missed, normal /api/auth/me login/resume profile refresh repairs state. No timer/polling cadence is introduced.
+- While shortage reporting is disabled, shortage-result realtime/background targeting excludes that Picker. PickList/Agent control paths remain unchanged.
+- Contractor metadata is not a new realtime stream. Agent receives it only inside an already-required existing Picker presence/Agent sync payload; contractor-only HR changes do not force a provider write.

@@ -2430,3 +2430,21 @@ The Owner explicitly confirmed D154 PASS after field validation of the released 
 - Accepted Android presentation: dynamic Beta version footer and DND + Overlay priority setup while Notification/Overlay/battery hard readiness remains unchanged.
 - OA082 is closed PASS. The serial Owner-PASS gate is open for the next separately reviewed change.
 - No new provider/resource/collection/schema/secret/listener/polling/cron. Stable remains OWNER-GATED and untouched.
+
+## D155 — Picker contractor identity and shortage-reporting capability — 2026-09-30
+
+Status: **OWNER APPROVED — IMPLEMENTATION AUTHORIZED**.
+
+Baseline is D154 Owner PASS. After impact review, the Owner approved D155 with a strict transport/quota boundary.
+
+1. Picker HR identity adds configurable **Nhà thầu / nhà cung cấp** alongside Mã nhân viên and Họ và tên. Mã nhân viên remains the identity key. Missing HR membership still does not automatically disable/delete an account.
+2. The HR source adds a required Nhà thầu column mapping. Individual Picker contractor cells may be blank. Contractor data applies only to PICKER identities.
+3. Existing and newly provisioned Pickers default to **Báo hàng enabled**. HR sync preserves an existing Picker's explicit reporting toggle and never silently re-enables a Picker previously disabled by an administrator.
+4. shortage_reporting_enabled is independent from account ACTIVE/DISABLED. Disabling it must not block login, PickList/Xác nhận đơn, Agent presence/contact or other non-Báo-hàng capability.
+5. ADMIN, PICKPACK_ADMIN and ROOT may enable/disable Báo hàng for one, many or all Pickers. This does not widen PICKPACK_ADMIN account lifecycle disable/delete authority.
+6. When disabled, Android keeps the Picker signed in and keeps **Xác nhận đơn** available. Báo hàng is visibly locked, shortage submission is blocked server-side, and new Có hàng/Skip shortage-result delivery is suppressed. Historical shortage data is preserved.
+7. The shortage capability control path is strictly **Web ↔ Cloudflare Worker/InventoryCore ↔ PDA**. D155 must not use Firestore/RTDB as authority, delivery, polling or recovery for enabling/disabling Báo hàng. Online PDA uses the existing Cloudflare WebSocket direct-control path; missed frames self-heal from /api/auth/me on normal login/resume. No capability polling is allowed.
+8. Contractor display on Windows Agent may piggyback only on the **existing Agent Picker presence/sync payload**. It adds no Firestore listener, poll, read/write cadence or HR-triggered Firestore write. Contractor-only HR edits may appear on Agent at the next already-required Picker presence/Agent sync update.
+9. Web managed-user search includes contractor and filters Báo hàng enabled/disabled. Picker rows show contractor/reporting capability. Android shows contractor compactly in Picker identity; Agent adds contractor to Picker list/search.
+10. Quota policy: no new provider resource, Firestore collection, Firestore/RTDB capability operation, FCM capability push, polling loop, listener or cron. Cloudflare realtime reuses the existing hibernatable WebSocket path.
+11. D155 uses additive InventoryCore SQLite schema 15, targets Agent relay-agent-v89, and the next monotonic signed Android Beta after beta-vc90. Stable remains OWNER-GATED and untouched.

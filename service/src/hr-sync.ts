@@ -6,17 +6,19 @@ export interface StoredHrSource {
   tab_name: string;
   mnv_header: string;
   full_name_header: string;
+  contractor_header: string;
   header_row: number;
 }
 
 export interface HrEmployee {
   employee_code: string;
   display_name: string;
+  contractor_name: string;
 }
 
 export interface HrEmployeeReadResult {
   employees: HrEmployee[];
-  duplicate_conflicts: Array<{ employee_code: string; names: string[] }>;
+  duplicate_conflicts: Array<{ employee_code: string; names: string[]; contractors: string[] }>;
   invalid_rows: number[];
   source_row_count: number;
   loaded_at: string;
@@ -40,11 +42,18 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
   const headers = rows[headerIndex] || [];
   const employeeCodeWanted = normalizeHeader(source.mnv_header);
   const nameWanted = normalizeHeader(source.full_name_header);
+  const contractorWanted = normalizeHeader(source.contractor_header);
+  if (!contractorWanted) {
+    throw new Error("Nguồn nhân sự chưa cấu hình cột Nhà thầu. Hãy xác nhận lại nguồn trước khi đồng bộ Picker.");
+  }
   const employeeCodeIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === employeeCodeWanted);
   const nameIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === nameWanted);
-  if (employeeCodeIndex < 0 || nameIndex < 0) throw new Error("Tên cột Mã nhân viên/Họ và tên của nguồn nhân sự đã thay đổi. Hãy xác nhận lại cấu hình nguồn.");
+  const contractorIndex = headers.findIndex((cell) => normalizeHeader(String(cell || "")) === contractorWanted);
+  if (employeeCodeIndex < 0 || nameIndex < 0 || contractorIndex < 0) {
+    throw new Error("Tên cột Mã nhân viên/Họ và tên/Nhà thầu của nguồn nhân sự đã thay đổi. Hãy xác nhận lại cấu hình nguồn.");
+  }
 
-  const byCode = new Map<string, Set<string>>();
+  const byCode = new Map<string, Map<string, { display_name: string; contractor_name: string }>>();
   const invalidRows: number[] = [];
   let sourceRowCount = 0;
   for (let index = headerIndex + 1; index < rows.length; index += 1) {
@@ -53,20 +62,34 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
     sourceRowCount += 1;
     const employeeCode = String(row[employeeCodeIndex] || "").trim().toLowerCase();
     const displayName = String(row[nameIndex] || "").trim().replace(/\s+/g, " ");
-    if (!/^[a-z0-9._-]{1,64}$/.test(employeeCode) || !displayName || displayName.length > 200) {
+    const contractorName = String(row[contractorIndex] || "").trim().replace(/\s+/g, " ");
+    if (
+      !/^[a-z0-9._-]{1,64}$/.test(employeeCode) ||
+      !displayName ||
+      displayName.length > 200 ||
+      contractorName.length > 200
+    ) {
       invalidRows.push(index + 1);
       continue;
     }
-    const names = byCode.get(employeeCode) || new Set<string>();
-    names.add(displayName);
-    byCode.set(employeeCode, names);
+    const variants = byCode.get(employeeCode) || new Map<string, { display_name: string; contractor_name: string }>();
+    variants.set(`${displayName}\u001f${contractorName}`, { display_name: displayName, contractor_name: contractorName });
+    byCode.set(employeeCode, variants);
   }
 
-  const duplicateConflicts: Array<{ employee_code: string; names: string[] }> = [];
+  const duplicateConflicts: Array<{ employee_code: string; names: string[]; contractors: string[] }> = [];
   const employees: HrEmployee[] = [];
-  for (const [employeeCode, names] of byCode.entries()) {
-    if (names.size > 1) duplicateConflicts.push({ employee_code: employeeCode, names: [...names].sort() });
-    else employees.push({ employee_code: employeeCode, display_name: [...names][0] });
+  for (const [employeeCode, variants] of byCode.entries()) {
+    const values = [...variants.values()];
+    if (values.length > 1) {
+      duplicateConflicts.push({
+        employee_code: employeeCode,
+        names: [...new Set(values.map((item) => item.display_name))].sort(),
+        contractors: [...new Set(values.map((item) => item.contractor_name))].sort(),
+      });
+    } else if (values.length === 1) {
+      employees.push({ employee_code: employeeCode, display_name: values[0].display_name, contractor_name: values[0].contractor_name });
+    }
   }
   employees.sort((a, b) => a.employee_code.localeCompare(b.employee_code, "vi", { numeric: true }));
   duplicateConflicts.sort((a, b) => a.employee_code.localeCompare(b.employee_code, "vi", { numeric: true }));

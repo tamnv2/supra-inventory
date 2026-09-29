@@ -15,6 +15,8 @@ data class AppSession(
     val displayName: String,
     val role: String,
     val employeeCode: String?,
+    val contractorName: String? = null,
+    val shortageReportingEnabled: Boolean = true,
     val relayCustomToken: String? = null,
 )
 
@@ -232,6 +234,8 @@ class InventoryApi(
             displayName = user.optString("display_name", username),
             role = user.optString("role", "AUTH"),
             employeeCode = nullable(user, "employee_code"),
+            contractorName = nullable(user, "contractor_name"),
+            shortageReportingEnabled = user.optBoolean("shortage_reporting_enabled", true),
             relayCustomToken = payload.optString("firebase_custom_token").takeIf { it.isNotBlank() },
         )
         if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
@@ -249,7 +253,17 @@ class InventoryApi(
             displayName = user.optString("display_name", current.displayName),
             role = user.optString("role", current.role),
             employeeCode = nullable(user, "employee_code") ?: current.employeeCode,
+            contractorName = nullable(user, "contractor_name") ?: current.contractorName,
+            shortageReportingEnabled = user.optBoolean("shortage_reporting_enabled", current.shortageReportingEnabled),
         )
+        updateSession(next)
+        return next
+    }
+
+    fun applyShortageReportingCapability(enabled: Boolean): AppSession? {
+        val current = session ?: return null
+        if (current.role != "PICKER" || current.shortageReportingEnabled == enabled) return current
+        val next = current.copy(shortageReportingEnabled = enabled)
         updateSession(next)
         return next
     }

@@ -13,6 +13,7 @@ namespace SupraInventoryRelayAgent
         internal string Source = "LOGIN";
         internal string EmployeeCode;
         internal string DisplayName;
+        internal string ContractorName;
         internal string DeviceId;
         internal string Status;
         internal string LoginAt;
@@ -74,6 +75,7 @@ namespace SupraInventoryRelayAgent
                     var userId = ReadString(itemFields, "user_id");
                     var employeeCode = ReadString(itemFields, "employee_code");
                     var displayName = ReadString(itemFields, "display_name");
+                    var contractorName = ReadString(itemFields, "contractor_name");
                     var status = ReadString(itemFields, "status");
                     if (string.IsNullOrWhiteSpace(userId) || !string.Equals(status, "PDA_READY", StringComparison.Ordinal))
                         continue;
@@ -86,6 +88,7 @@ namespace SupraInventoryRelayAgent
                         Source = string.Equals(ReadString(itemFields, "source"), "PICKLIST", StringComparison.Ordinal) ? "PICKLIST" : "LOGIN",
                         EmployeeCode = employeeCode,
                         DisplayName = displayName,
+                        ContractorName = contractorName,
                         DeviceId = ReadString(itemFields, "device_id"),
                         Status = status,
                         LoginAt = ReadString(itemFields, "login_at"),

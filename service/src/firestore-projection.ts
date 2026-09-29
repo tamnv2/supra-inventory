@@ -110,6 +110,7 @@ type PickerProjectionPayload = {
     source?: unknown;
     employee_code?: unknown;
     display_name?: unknown;
+    contractor_name?: unknown;
     device_id?: unknown;
     login_at?: unknown;
     device_seen_at?: unknown;
@@ -144,6 +145,7 @@ async function writePickerPresenceProjection(
     source: String(item.source || "LOGIN") === "PICKLIST" ? "PICKLIST" : "LOGIN",
     employee_code: String(item.employee_code || ""),
     display_name: String(item.display_name || ""),
+    contractor_name: String(item.contractor_name || ""),
     device_id: String(item.device_id || ""),
     login_at: item.login_at || null,
     device_seen_at: item.device_seen_at || null,

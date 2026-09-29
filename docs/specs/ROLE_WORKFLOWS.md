@@ -786,3 +786,14 @@ D154 supersedes the D149 timing values while preserving its single shared Agent-
 - A sleeping Agent may still use **Điều chỉnh tăng ca**. Repeating the same explicit action may re-project current authority once for recovery; normal Agent UI ticks never publish or poll schedule state.
 - Web remains read-only for schedule decisions. Android remains logged in when the business window closes and reconciles schedule state only on login/recovery, FCM, or one blocked PickList attempt.
 - Direct/manual Agent confirmation behavior and D150/D153 HA/usage timings are unchanged.
+
+## D155 Picker contractor and shortage capability workflow
+
+- HR Preview/Apply carries Mã nhân viên + Họ tên + Nhà thầu; Mã nhân viên remains the Picker key. Name/contractor changes do not reset account status or Báo hàng capability.
+- Newly provisioned Pickers start with Báo hàng enabled. An existing Picker's explicit Báo hàng toggle survives every later HR sync.
+- ADMIN, PICKPACK_ADMIN and ROOT may select one/many/all Pickers and explicitly Bật Báo hàng / Tắt Báo hàng. Existing account lifecycle authority remains unchanged.
+- A Picker with Báo hàng disabled stays logged in and may continue Xác nhận đơn/PickList. Android locks the Báo hàng tab and does not perform shortage catalog/history/result refresh solely for the disabled workflow.
+- Worker/InventoryCore is authoritative on every shortage mutation; a stale/modified client attempting shortage create/withdraw while disabled is rejected.
+- New shortage-result delivery to a disabled Picker is suppressed. Existing report/audit history remains durable.
+- Capability convergence is Cloudflare-only: Web mutation → InventoryCore SQLite → existing hibernatable WebSocket direct control to targeted PDA. Missed direct frames recover by normal profile refresh on login/resume; no capability polling.
+- Contractor on Agent is presentation metadata carried only when the pre-existing Picker presence/Agent sync path already writes. No dedicated provider operation is performed for a contractor-only HR edit.

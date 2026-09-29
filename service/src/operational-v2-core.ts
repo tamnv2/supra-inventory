@@ -1159,7 +1159,14 @@ export function pickerCanReceiveRealtimeEvent(
   if (!eventId || !userId) return false;
   const row = first(state.storage.sql.exec<SqlRow>(
     `SELECT 1 AS allowed
-       WHERE (
+       WHERE EXISTS (
+         SELECT 1 FROM users u
+          WHERE u.user_id = ?
+            AND u.role = 'PICKER'
+            AND u.status = 'ACTIVE'
+            AND COALESCE(u.shortage_reporting_enabled, 1) = 1
+       )
+       AND (
          (? IS NOT NULL AND EXISTS (
            SELECT 1 FROM report_tickets t
             WHERE t.ticket_id = ? AND t.picker_user_id = ?
@@ -1184,6 +1191,7 @@ export function pickerCanReceiveRealtimeEvent(
          )
        )
        LIMIT 1`,
+    userId,
     ticketId,
     ticketId,
     userId,
