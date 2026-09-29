@@ -85,14 +85,18 @@ object OperatingScheduleStore {
         val key = data["schedule_key"].orEmpty()
         val version = data["schedule_version"]?.toLongOrNull() ?: return null
         val openUntil = data["open_until_ms"]?.toLongOrNull() ?: return null
-        if (!key.matches(Regex("^\\d{8}$")) || version <= 0L || openUntil <= 0L) return null
+        val decision = data["decision"].orEmpty()
+        if (!key.matches(Regex("^\\d{8}$")) || version <= 0L) return null
+        if (decision == "STOP") {
+            if (openUntil != 0L) return null
+        } else if (openUntil <= 0L) return null
         val current = load(context)
         return save(
             context,
             LocalOperatingSchedule(
                 scheduleKey = key,
                 version = version,
-                decision = data["decision"].orEmpty(),
+                decision = decision,
                 openUntilMs = openUntil,
                 normalStartMinutes = data["normal_start_minutes"]?.toIntOrNull() ?: 6 * 60,
                 normalEndMinutes = data["normal_end_minutes"]?.toIntOrNull() ?: 22 * 60,
