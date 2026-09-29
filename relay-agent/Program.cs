@@ -2472,6 +2472,7 @@ namespace SupraInventoryRelayAgent
 
             _wmsTest.Enabled = authenticated && active;
             UpdateD129PicklistReadinessUi();
+            UpdateD150PrimaryTakeoverButton();
         }
 
         private void UpdateD129PicklistReadinessUi()
