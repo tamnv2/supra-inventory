@@ -1515,3 +1515,21 @@ Derived current-status markers:
 - Latest Beta APK: `beta-vc89`
 - Agent: `relay-agent-v87`
 - SQLite schema: `14`
+
+
+## D154 Owner-approved source candidate — 2026-09-30
+
+- Accepted runtime base remains **D153 Owner PASS**: Agent `relay-agent-v87`, Android `beta-vc89`.
+- D154 is the single current Owner-approved change on branch `feat/d154-unified-schedule-permission-version`.
+- D154 widens shared normal replay to **05:45–22:30**, keeps overtime cutoff **05:00**, adds anchored 22:30/23:30/00:30 overtime boundaries, shared `CANCEL_OVERTIME`, visible Agent overtime state and Android/Web convergence recovery.
+- Root cause of the observed split state is identified: `operatingScheduleChanged` existed in source but was omitted from the Beta Functions deploy allow-list. D154 adds the trigger to deployment and adds a regression guard.
+- Android login version is dynamic; DND + Overlay setup is prioritized while D151 Notification/Overlay/battery hard readiness remains unchanged.
+- Target releases after technical PASS: Agent `relay-agent-v88`; next monotonic Android after `beta-vc89`.
+- No new provider/resource/schema/secret/listener/polling/cron. Stable remains OWNER-GATED.
+- OA082 is blocked pending D154 technical/runtime/release PASS.
+
+Derived current-status markers:
+- Latest Beta APK: `beta-vc89`
+- Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
+- Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
+- SQLite schema: `14`
