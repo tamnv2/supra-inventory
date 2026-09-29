@@ -65,7 +65,7 @@ function safeUser(row: UserRow): Record<string, unknown> {
     user_id: row.user_id, firebase_uid: row.firebase_uid, employee_code: row.employee_code,
     display_name: row.display_name,
     contractor_name: row.role === "PICKER" ? (row.contractor_name || "") : null,
-    shortage_reporting_enabled: row.role === "PICKER" ? Number(row.shortage_reporting_enabled ?? 1) === 1 : null,
+    shortage_reporting_enabled: row.role === "PICKER" ? Number(row.shortage_reporting_enabled ?? 0) === 1 : null,
     role: row.role, status: row.status,
     auth_email: row.auth_email || null,
     firebase_password_ready: Number(row.firebase_password_ready || 0) === 1,
@@ -108,7 +108,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
   }
   if (["ENABLED","DISABLED"].includes(shortageReporting)) {
     where.push("role = 'PICKER'");
-    where.push("COALESCE(shortage_reporting_enabled, 1) = ?");
+    where.push("COALESCE(shortage_reporting_enabled, 0) = ?");
     args.push(shortageReporting === "ENABLED" ? 1 : 0);
   }
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
@@ -387,7 +387,7 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
         state.storage.sql.exec(`DELETE FROM users WHERE user_id = ? AND role = 'PICKER'`, target.user_id);
       } else if (reportingAction) {
         const enabled = action === "REPORTING_ENABLE" ? 1 : 0;
-        const current = Number(target.shortage_reporting_enabled ?? 1) === 1 ? 1 : 0;
+        const current = Number(target.shortage_reporting_enabled ?? 0) === 1 ? 1 : 0;
         if (current === enabled) continue;
         state.storage.sql.exec(
           `UPDATE users SET shortage_reporting_enabled = ?, updated_at = ? WHERE user_id = ? AND role = 'PICKER'`,
@@ -491,7 +491,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
           `INSERT INTO users (
              user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
              role, status, created_at, updated_at, password_salt, password_hash, password_changed_at
-           ) VALUES (?, NULL, ?, ?, ?, 1, 'PICKER', 'ACTIVE', ?, ?, ?, ?, ?)`,
+           ) VALUES (?, NULL, ?, ?, ?, 0, 'PICKER', 'ACTIVE', ?, ?, ?, ?, ?)`,
           `picker:${code}:${crypto.randomUUID()}`, code, incomingUser.display_name, incomingUser.contractor_name || null,
           at, at, body.picker_password_salt, body.picker_password_hash, at,
         );
@@ -512,7 +512,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
     applied_at: at,
     pre_apply: plan,
     absence_policy: "NO_AUTOMATIC_DISABLE",
-    reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED",
+    reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156",
   });
   state.storage.sql.exec(
     `INSERT INTO app_config (key, value_json, updated_at, updated_by) VALUES ('hr_last_sync', ?, ?, ?)
@@ -522,7 +522,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
       applied_at: at,
       request_id: body.request_id,
       absence_policy: "NO_AUTOMATIC_DISABLE",
-      reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED",
+      reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156",
     }), at, actor.user_id,
   );
   return response({ status: "applied", source_count: normalized.employees.length, applied_at: at, post_apply: finalPlan });
