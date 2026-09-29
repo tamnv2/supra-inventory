@@ -4104,6 +4104,39 @@
         "date": "2026-09-30",
         "evidence": "D155 is promoted to the accepted Beta base; the serial next-change gate is unlocked."
       }
+    },
+    {
+      "id": "OA084",
+      "status": "BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "title": "Field-accept D156 overtime convergence and Picker reporting default-off",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Automated gates can prove bounded recovery, builds, schema and release integrity; final acceptance requires real Agent overtime, Web Ca vận hành and warehouse PDA Báo hàng observation.",
+      "prerequisites": {
+        "accepted_base": "D155_OWNER_FIELD_ACCEPTED_PASS",
+        "d156_owner_approval": "PASS__2026_09_30",
+        "technical_runtime_release": "PENDING",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "After D156 deploy, verify current Picker accounts show Báo hàng Tắt by default; sync HR and verify newly created Picker also starts Tắt.",
+        "Enable Báo hàng for one test Picker; run HR sync again and verify the explicit Bật state remains.",
+        "Outside 05:45–22:30, verify Xác nhận đơn/PickList remains available while Báo hàng send is closed until Agent opens overtime.",
+        "From Agent, open overtime. Verify Agent/PickList, Web Ca vận hành and the already-open PDA Báo hàng screen converge without logout or manual refresh.",
+        "Submit one shortage during overtime and resolve Có hàng/Skip; verify the Picker receives the result.",
+        "Cancel/end overtime from Agent and verify Web/PDA return to closed state and Báo hàng send is blocked again.",
+        "Review Firebase usage: no new periodic listener/polling/write cadence; schedule recovery may only produce bounded exact document reads during stale-closed recovery."
+      ],
+      "pass_criteria": [
+        "Agent/Firestore remains sole schedule authority and normal Function/Worker/FCM propagation remains primary.",
+        "Stale Worker schedule self-recovers through one exact document read shared globally and throttled to one read per 10 seconds.",
+        "Web and foreground Android converge on the recovered schedule without new polling.",
+        "Existing and newly created Pickers default Báo hàng off; explicit later enable/disable survives HR sync.",
+        "PickList/login/Agent contact remain unaffected by Báo hàng capability state.",
+        "No new provider resource, Firestore collection/write cadence, secret, listener, polling loop or cron is introduced; Stable remains untouched."
+      ],
+      "remaining_owner_action": "Blocked until D156 technical/runtime/release PASS.",
+      "closed": false
     }
   ]
 }
