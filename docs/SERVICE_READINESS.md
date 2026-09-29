@@ -1417,3 +1417,13 @@ Derived current-status markers:
 - Agent: `relay-agent-v85`
 - SQLite schema: `14`
 
+## D151 MT90 DND diagnostic technical/runtime/build PASS — 2026-09-29
+
+- Accepted business base remains **D150 Owner PASS**. D151 is diagnostic-only and awaits OA079 physical comparison; it is not yet Owner-accepted.
+- Implementation PR #309 merged to `main` at `a7ac9315f51d868118ec6399184f8507e1f2c765`.
+- Beta Worker deploy/health run `36544445299` PASS with exact source commit, HTTP 200, SQLite 14/14 and Operational V2 5/5.
+- Standalone diagnostic APK build run `36544445475` PASS; artifact `mt90-dnd-diagnostic-apk` / id `11022311454`; APK size 2,529,134 bytes; SHA-256 `4c62afef28251e99a90bcd7ac69fc0f5beba70d08dc181e9b61056ffbf5d6ed4`.
+- Repo Authority `36544445390`, Project State `36544445430`, UI/Worker regression `36544445238` and dashboard probe `36544445230` PASS.
+- Production Android stays `beta-vc88`; no production Android release was created. Stable is untouched/OWNER-GATED.
+- OA079 is READY: install the same diagnostic APK on one normal MT90 and one failing MT90, then send one DND diagnostic log from each.
+
