@@ -210,7 +210,7 @@ namespace SupraInventoryRelayAgent
                 Top = 43,
                 Width = 178,
                 Height = 20,
-                Text = "Tìm Mã nhân viên / họ tên",
+                Text = "Tìm MNV / họ tên / nhà thầu",
                 ForeColor = Color.FromArgb(71, 85, 105)
             });
             _pickerSearch.SetBounds(198, 36, 824, 30);
@@ -247,7 +247,14 @@ namespace SupraInventoryRelayAgent
                 Name = "DisplayName",
                 HeaderText = "Họ tên",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                MinimumWidth = 180
+                MinimumWidth = 170
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "ContractorName",
+                HeaderText = "Nhà thầu",
+                Width = 130,
+                MinimumWidth = 100
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -1400,6 +1407,7 @@ namespace SupraInventoryRelayAgent
                 Source = "PICKLIST",
                 EmployeeCode = work.PickerEmployeeCode ?? "",
                 DisplayName = work.PickerDisplayName ?? "",
+                ContractorName = existing == null ? "" : (existing.ContractorName ?? ""),
                 DeviceId = "",
                 LoginAt = "",
                 DeviceSeenAt = DateTime.UtcNow.ToString("o"),
@@ -1419,6 +1427,7 @@ namespace SupraInventoryRelayAgent
                 existing.LoginAt = "";
                 if (!string.IsNullOrWhiteSpace(picker.EmployeeCode)) existing.EmployeeCode = picker.EmployeeCode;
                 if (!string.IsNullOrWhiteSpace(picker.DisplayName)) existing.DisplayName = picker.DisplayName;
+                if (!string.IsNullOrWhiteSpace(picker.ContractorName)) existing.ContractorName = picker.ContractorName;
                 existing.DeviceSeenAt = picker.DeviceSeenAt;
                 existing.Status = "PDA_READY";
                 picker = existing;
@@ -1484,6 +1493,7 @@ namespace SupraInventoryRelayAgent
                     item.FirebaseUid ?? "",
                     item.EmployeeCode ?? "",
                     item.DisplayName ?? "",
+                    item.ContractorName ?? "",
                     item.DeviceId ?? "",
                     item.LoginAt ?? "",
                     item.Source ?? "LOGIN",
@@ -1646,6 +1656,7 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.UserId ?? "").Append(':')
                     .Append(picker.EmployeeCode ?? "").Append(':')
                     .Append(picker.DisplayName ?? "").Append(':')
+                    .Append(picker.ContractorName ?? "").Append(':')
                     .Append(picker.Source ?? "").Append(':')
                     .Append(picker.SessionGeneration).Append(':');
                 var active = ActivePickerCommand(picker.UserId);
@@ -1703,9 +1714,11 @@ namespace SupraInventoryRelayAgent
                 {
                     var code = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.UserId : picker.EmployeeCode;
                     var name = string.IsNullOrWhiteSpace(picker.DisplayName) ? "—" : picker.DisplayName;
+                    var contractor = string.IsNullOrWhiteSpace(picker.ContractorName) ? "—" : picker.ContractorName;
                     if (!string.IsNullOrWhiteSpace(query) &&
                         code.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
-                        name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0)
+                        name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                        contractor.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0)
                         continue;
 
                     var source = string.Equals(picker.Source, "PICKLIST", StringComparison.Ordinal)
@@ -1718,6 +1731,7 @@ namespace SupraInventoryRelayAgent
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
                         code,
                         name,
+                        contractor,
                         source,
                         "Kích User",
                         "Liên hệ picker",
