@@ -5,7 +5,10 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -105,6 +108,13 @@ class MainActivity : Activity() {
     private var permissionManualReview = false
     private var restoringSessionScreen = false
     private var operatingWindowTask: Runnable? = null
+    private var operatingScheduleReceiverRegistered = false
+    private val operatingScheduleReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != StockMessagingService.ACTION_OPERATING_SCHEDULE_CHANGED || !::api.isInitialized) return
+            applyOperatingSchedulePresentation()
+        }
+    }
     private var previousUncaughtHandler: Thread.UncaughtExceptionHandler? = null
     private val runtimeLogTick = object : Runnable {
         override fun run() {
@@ -161,6 +171,28 @@ class MainActivity : Activity() {
         } else {
             renderRequiredPermissionsGate()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (!operatingScheduleReceiverRegistered) {
+            val filter = IntentFilter(StockMessagingService.ACTION_OPERATING_SCHEDULE_CHANGED)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(operatingScheduleReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                @Suppress("DEPRECATION")
+                registerReceiver(operatingScheduleReceiver, filter)
+            }
+            operatingScheduleReceiverRegistered = true
+        }
+    }
+
+    override fun onStop() {
+        if (operatingScheduleReceiverRegistered) {
+            try { unregisterReceiver(operatingScheduleReceiver) } catch (_: Exception) { }
+            operatingScheduleReceiverRegistered = false
+        }
+        super.onStop()
     }
 
     override fun onDestroy() {
@@ -1362,6 +1394,7 @@ class MainActivity : Activity() {
     private fun applyOperatingSchedulePresentation() {
         if (api.session == null) return
         val open = OperatingScheduleStore.isOpen(applicationContext)
+        pickerController?.applyOperatingScheduleState(open)
         if (!open) {
             setStatus("Ca nghiệp vụ đang nghỉ. App vẫn đăng nhập và sẽ tự nhận khi Agent mở tăng ca.")
         }
@@ -1423,6 +1456,7 @@ class MainActivity : Activity() {
             return when (error.code) {
                 "ALREADY_REPORTED" -> "SKU này đang có báo chưa xử lý của bạn."
                 "PICKER_SHORTAGE_REPORTING_DISABLED" -> "Báo hàng đang tắt cho tài khoản này."
+                "ANDROID_WINDOW_CLOSED" -> "Ca nghiệp vụ đang nghỉ. Agent cần bật tăng ca/bật sớm trước khi Báo hàng."
                 "SKU_NOT_FOUND" -> "SKU không tồn tại trong Master SKU."
                 "WITHDRAW_WINDOW_EXPIRED" -> "Đã hết 60 giây cho phép thu hồi."
                 "TICKET_NOT_OPEN" -> "Báo này đã được xử lý hoặc thu hồi."
