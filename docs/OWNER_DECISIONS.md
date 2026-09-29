@@ -2170,3 +2170,16 @@ Owner approved on 2026-09-29. D146 supersedes the D144 log schedule/Drive-delive
 The Owner's message ended with an empty item 9; D146 does not invent an additional requirement beyond the eight concrete items above.
 
 D146 Owner acceptance: **PASS / done** on 2026-09-29. This acceptance covers the D146 requirements as released on Beta (`beta-vc86`, `relay-agent-v83`) after the final Firestore-rules hotfix. It closes OA074 and the remaining D145/OA073 Drive runtime retest. Stable remains OWNER-GATED.
+
+
+## D147 — Serial Owner-PASS gate and accepted-base protection
+
+Owner approved this governance requirement on 2026-09-29. D147 refines D119 for sequencing and final acceptance.
+
+- The accepted base is the latest change explicitly confirmed PASS by the Owner; technical, CI, runtime, or release PASS alone is insufficient.
+- Only one Dxxx change may be active. No later Dxxx or unrelated project mutation starts while the current change lacks Owner PASS.
+- NOT PASS or FAIL is repaired and retested under the same Dxxx until explicit Owner PASS.
+- Before any requested change that may affect the accepted base is implemented, present base impact, affected components, regression/stability risk, resource/quota/security impact, and the safest proposed approach; implementation requires explicit Owner approval.
+- Owner PASS must be recorded in canonical decision/state/Owner-action continuity under the same Dxxx before any later Dxxx starts.
+- D147 is governance-only: no Web, Android, Agent, database schema, provider resource, quota cadence, or Stable runtime changes.
+- D146 is the accepted base entering D147. D147 remains the only active change until explicit D147 PASS.
