@@ -740,3 +740,8 @@ D150 is Owner-field accepted PASS on 2026-09-29. The accepted Beta base is D150:
 
 D151 adds a temporary standalone Android 11 diagnostic package, `cd.cc.supra.inventory.dnddiag`, solely to compare Notification Policy / Do Not Disturb behavior between normal and failing Newland NLS-MT90 devices. It is not the production PDA app and has no business, Firebase, realtime, PickList or WMS authority. It may POST only the bounded DND diagnostic schema to the Beta Worker diagnostic-log route, which reuses the existing sanitized runtime-log buffer and Inventory/Beta logs archive. Production `beta-vc88` remains unchanged and Stable remains OWNER-GATED.
 
+
+
+## D151 adaptive Android alert remediation — 2026-09-29
+
+D151 field diagnostics established that OEM DND Settings state is not a universally reliable readiness authority. After Owner approval, D151 now includes a Beta Android production remediation: alert delivery is selected from real platform capability rather than model/firmware identity. Notifications, cross-app Overlay permission and battery-optimization exemption are hard readiness; real DND policy/channel bypass is an optional native enhancement. Unsupported/broken DND implementations use Overlay Compatibility mode. Screen-off/keyguard critical events use the existing bounded wake Activity without WakeLock or new network cadence. Target is the next monotonic signed Beta after `beta-vc88`; Agent/Web/Stable remain unchanged and Stable is OWNER-GATED.
