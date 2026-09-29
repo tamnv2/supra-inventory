@@ -302,3 +302,14 @@ Picker bulk actions remain governed by their separate Picker-specific RBAC and a
 - Worker/InventoryCore checks server-side capability before shortage create/withdraw and before targeting new Picker shortage result delivery. Client UI state is not authority.
 - Báo hàng capability propagation is Cloudflare Worker/InventoryCore/WebSocket only. Firestore/RTDB documents, claims or listeners must not be used as capability authority or synchronization.
 - Contractor is display/search metadata only and is not authentication, authorization or routing authority.
+
+## D156 reporting-default migration boundary
+
+D156 changes no role authority. It changes only the default state of the existing Picker shortage-reporting capability.
+
+- Existing and newly provisioned base PICKER accounts default to shortage_reporting_enabled = false.
+- Missing/null capability state is interpreted as disabled for PICKER.
+- ADMIN, PICKPACK_ADMIN and ROOT retain the D155 enable/disable authority; REPORTER and PICKER cannot change it.
+- A later explicit enable survives HR identity sync.
+- users.status remains independent; reporting disabled does not revoke login, Xác nhận đơn/PickList or Agent contact capability.
+- Schedule recovery never changes identity/RBAC and cannot authorize a request outside the Agent-owned effective schedule.
