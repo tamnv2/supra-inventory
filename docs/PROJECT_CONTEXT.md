@@ -102,6 +102,8 @@ GitHub is the durable project memory. Chat is the control surface, not the sourc
 
 Every Owner-approved requirement must be captured in GitHub in the same workstream. Every meaningful implementation change must update project state in the same change set. Generated summaries are never manually authoritative.
 
+D147 serial acceptance rule: the latest explicit **Owner PASS** is the accepted project base. Only one change ID may be active at a time. Technical/runtime/release PASS is not enough to open the next change. If the current change is not yet Owner-PASS, all unrelated new project mutation fails closed; a NOT PASS result is repaired under the same change ID until PASS. Any proposed mutation that may affect the accepted base requires an impact/risk/affected-component proposal and explicit Owner approval before implementation.
+
 ## Resource scope authority
 
 `ops/project-scope.json` is the canonical external-resource boundary. Every listed resource carries an exact known ID when appropriate, otherwise a canonical name plus an ID source. An unlisted provider project/app/worker/folder/sheet/domain is outside project scope until Owner-approved and added to the manifest.
