@@ -3865,6 +3865,34 @@
         "result": "PASS",
         "evidence": "Owner explicitly confirmed D150 PASS after field review of the released D150 Beta Agent coordination/manual PRIMARY scope."
       }
+    },
+    {
+      "id": "OA079",
+      "status": "WAITING_D151_TECHNICAL_RELEASE",
+      "title": "Collect paired MT90 DND diagnostic logs",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can install the same diagnostic APK on the physical normal/failing MT90 devices and reproduce the OEM Android 11 DND settings state.",
+      "prerequisites": {
+        "accepted_base": "D150_OWNER_FIELD_ACCEPTED_PASS",
+        "d151_scope": "ONE_STANDALONE_DND_DIAGNOSTIC_APK__BETA_ONLY_LOG_INTAKE",
+        "production_android": "beta-vc88__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Install the supplied MT90 DND Diagnostic APK on one normal MT90 and one failing MT90.",
+        "Open the DND settings from the APK and observe/reproduce the current permission state; return to the APK.",
+        "Press GỬI LOG VỀ BETA once on each device.",
+        "Report that both sends completed; AI will read the two latest manual_dnd_diagnostic files from Inventory/Beta/logs and compare them."
+      ],
+      "pass_criteria": [
+        "Two distinct device hashes are present.",
+        "Each log contains build fingerprint/security patch, user/profile state, policy API result, secure policy package membership and channel bypass result.",
+        "No production Beta APK update/reinstall is required for this diagnostic.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Wait for D151 technical/release PASS and APK delivery; then run the two-device send test.",
+      "closed": false
     }
   ]
 }
