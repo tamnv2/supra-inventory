@@ -1412,3 +1412,20 @@ Derived current-status markers:
 Derived current-status markers:
 - `D148_OWNER_FIELD_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
 - `D148_OWNER_FIELD_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`
+
+## D149 technical/runtime/release PASS — Owner field pending — 2026-09-29
+- Accepted base remains **D148** until explicit Owner PASS on D149.
+- Implementation PR #303 merged to main `c03f54861e5fbb6ff093b129e9b76e303475c358`.
+- Live Beta Worker/Web exact-source deploy and health PASS; SQLite schema remains `14`.
+- Signed Android: `beta-vc88`, exact source `c03f54861e5fbb6ff093b129e9b76e303475c358`, APK SHA-256 `0ce70330c2a829129f76902f4705975e260e5dd40c90f5328ada85c5e842c057`.
+- Agent: `relay-agent-v84`, exact source `c03f54861e5fbb6ff093b129e9b76e303475c358`, EXE SHA-256 `af2d169e84d1c433f4c495cb8795e15afddc702800151dc871eb2e5454cd95f9`.
+- D149 scope now technical/runtime/release PASS: bounded Web recent-result ranges; Android resolver/product/role attribution; configurable Agent Web storage move with close/verify/reopen/rollback; shared 06:00–22:00 schedule with 05:00 early-start and 22:00–05:00 bounded overtime; PickList Today aggregate UI removed while durable counters remain.
+- OA077: **READY_FOR_OWNER_FIELD_TEST**. Technical PASS does not promote D149 to accepted base.
+- Stable remains OWNER-GATED and untouched.
+
+Derived current-status markers:
+- `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
+- `D149_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC88__UNIFIED_SCHEDULE_CACHE_FCM__RESOLVER_ATTRIBUTION`
+- Latest Beta APK: `beta-vc88`
+- SQLite schema: `14`
+

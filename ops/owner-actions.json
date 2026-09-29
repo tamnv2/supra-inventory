@@ -3767,7 +3767,7 @@
     },
     {
       "id": "OA077",
-      "status": "BLOCKED_PENDING_D149_TECHNICAL_RELEASE_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D149 unified operations and schedule",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3775,7 +3775,7 @@
       "prerequisites": {
         "accepted_base": "D148_OWNER_FIELD_ACCEPTED_PASS",
         "d149_scope": "OWNER_APPROVED_2026_09_29",
-        "technical_release": "PENDING",
+        "technical_release": "PASS__MAIN_C03F5486__BETA_VC88__AGENT_V84",
         "stable": "OWNER_GATED_UNTOUCHED"
       },
       "shortest_test_path": [
@@ -3793,8 +3793,19 @@
         "Overtime never extends beyond 05:00 and normal replay begins automatically at 06:00.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Wait until D149 technical/runtime/release PASS, then perform the shortest field checks and explicitly confirm PASS or report NOT PASS.",
-      "closed": false
+      "remaining_owner_action": "Test D149 trên Beta theo shortest_test_path và xác nhận rõ PASS hoặc NOT PASS. D148 vẫn là accepted base cho tới khi Owner PASS D149.",
+      "closed": false,
+      "runtime_proof": {
+        "main_commit": "c03f54861e5fbb6ff093b129e9b76e303475c358",
+        "worker_run_id": 36522333433,
+        "android_release": "beta-vc88",
+        "android_run_id": 36522333439,
+        "agent_release": "relay-agent-v84",
+        "agent_run_id": 36522333472,
+        "functions_run_id": 36522333447,
+        "firestore_run_id": 36522333435,
+        "ui_guard_run_id": 36522333473
+      }
     }
   ]
 }
