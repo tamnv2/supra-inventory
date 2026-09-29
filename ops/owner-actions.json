@@ -4006,6 +4006,40 @@
         "date": "2026-09-29",
         "evidence": "Owner explicitly confirmed D153 PASS after field validation of the released quota-safe Picker presence behavior."
       }
+    },
+    {
+      "id": "OA082",
+      "status": "BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "title": "Field-accept D154 unified schedule, synchronization recovery and Android setup/version UX",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can validate real warehouse Android/Agent/Web timing and permission presentation after the signed D154 Beta releases are published.",
+      "prerequisites": {
+        "accepted_base": "D153_OWNER_FIELD_ACCEPTED_PASS",
+        "d154_owner_approval": "PASS__2026_09_30",
+        "target_agent_release": "relay-agent-v88",
+        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC89",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Verify Android login footer shows the installed beta base version and versionCode on the left of the existing developer credit.",
+        "Verify the permission page places Không làm phiền + Overlay first, native DND can be tried first, and Notification/Overlay/battery exemption still gate startup.",
+        "Verify normal replay is open at 05:45 and remains open through 22:29, then closes at 22:30 without an extension.",
+        "After 22:30, start/extend overtime from Agent and verify Agent shows the shared effective-until time; Android PickList and Web Ca vận hành converge to the same open state.",
+        "Press Huỷ tăng ca on Agent, confirm once, and verify Agent/Android/Web converge to sleep without waiting for the prior end time.",
+        "Verify overtime boundaries follow 22:30, 23:30, 00:30 and cannot pass 05:00; early start is available only 05:00–05:45.",
+        "Confirm no repeated Firestore schedule reads/writes occur while idle and normal PickList result speed/HA remains unchanged."
+      ],
+      "pass_criteria": [
+        "Agent, Android and Web share one schedule state with no split-brain after an overtime action.",
+        "Worker schedule version becomes nonzero after Agent projection and the deployed operatingScheduleChanged Function propagates the event.",
+        "Android stale-Worker recovery is one exact Firestore GET only when a blocked PickList attempt still sees closed state.",
+        "Huỷ tăng ca closes the active override immediately through CANCEL_OVERTIME.",
+        "No new polling, listener, cron, provider resource, collection/schema or secret is introduced.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Blocked until D154 technical/runtime/release PASS.",
+      "closed": false
     }
   ]
 }
