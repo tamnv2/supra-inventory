@@ -511,6 +511,7 @@ namespace SupraInventoryRelayAgent
                     Source = string.Equals(FieldString(item, "source"), "PICKLIST", StringComparison.Ordinal) ? "PICKLIST" : "LOGIN",
                     EmployeeCode = FieldString(item, "employee_code"),
                     DisplayName = FieldString(item, "display_name"),
+                    ContractorName = FieldString(item, "contractor_name"),
                     DeviceId = FieldString(item, "device_id"),
                     LoginAt = FieldString(item, "login_at"),
                     DeviceSeenAt = FieldString(item, "device_seen_at"),
