@@ -1463,3 +1463,19 @@ Derived current-status markers:
 - Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
 - Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
 - SQLite schema: `14`
+
+## D152 Owner-accepted baseline — 2026-09-29
+
+- Accepted base: **D152 Owner PASS**; OA080 closed.
+- Implementation: PR #316 → main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`.
+- Agent: **relay-agent-v86**, release id `399178131`, EXE SHA-256 `098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430`; inventory Agent channel refreshed to the same digest.
+- Android remains **beta-vc89**.
+- Accepted scope: normal fast path preserved; bounded checkbox recovery; state-change is not a NOT_FOUND strike; post-confirm/existing-guard recovery is verify-only with no duplicate Confirm mutation.
+- No new provider/resource/schema/listener/polling/write cadence. Stable remains OWNER-GATED.
+- Serial Owner-PASS gate is open for the next separately approved change.
+
+Derived current-status markers:
+- `D152_OWNER_FIELD_ACCEPTED_PASS__MAIN_A418DE7E__AGENT_V86__OA080_CLOSED`
+- Latest Beta APK: `beta-vc89`
+- Agent: `relay-agent-v86`
+- SQLite schema: `14`
