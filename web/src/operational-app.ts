@@ -4154,6 +4154,7 @@ async function reconcileActive(): Promise<boolean> {
       await loadSla();
       return true;
     }
+    else if (activeSection === "shift" && rolePickPackManage()) await loadShiftOperations();
     else return true;
     patchActiveSection(true);
     return true;
