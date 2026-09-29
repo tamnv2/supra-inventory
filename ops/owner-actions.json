@@ -3716,7 +3716,7 @@
       "field_result": {
         "date": "2026-09-29",
         "result": "PASS",
-        "evidence": "Owner explicitly replied '147 ok', accepting the D147 serial Owner-PASS governance gate."
+        "evidence": "Owner explicitly accepted D147, closing the serial Owner-PASS governance acceptance gate."
       }
     }
   ]
