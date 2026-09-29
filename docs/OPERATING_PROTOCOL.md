@@ -232,3 +232,7 @@ D140 supersedes only the D134 rule that allowed every authenticated Agent to kee
 - Duplicate FCM/function deliveries are handled by schedule version/idempotency and may not recursively write the triggering document.
 - D140 retry/circuit/no-op-write protections remain mandatory. Any implementation that introduces an unbounded retry, reconnect or fan-out loop fails D149.
 - Stable remains OWNER-GATED and untouched.
+
+## D152 PickList recovery operating rule
+
+D152 uses a fast-path / exception-recovery split. Normal exact-row confirmation must not pay the reload cost. A unique row with an unavailable checkbox may use the existing one Search retry and, only if still unselectable, one bounded normal page reload/recheck. After a Confirm dialog has been accepted, all further D152 recovery is verify-only; no retry path may click Confirm again. Existing uncertain guards stay closed to mutation and may only perform one bounded read-only exact-row verification. State changes during recovery must not be converted into NOT_FOUND strikes. Recovery is local WMS browser UI work and must not add Firestore/provider polling, listeners or write cadence. Stable remains OWNER-GATED.
