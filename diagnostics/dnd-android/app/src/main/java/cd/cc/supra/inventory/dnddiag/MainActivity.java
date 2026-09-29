@@ -309,6 +309,17 @@ public final class MainActivity extends Activity {
         status.setText(latestSnapshot.toString(2));
     }
 
+    private String readStream(InputStream stream) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int read;
+        while ((read = stream.read(buffer)) != -1) {
+            out.write(buffer, 0, read);
+            if (out.size() > 64_000) break;
+        }
+        return out.toString(StandardCharsets.UTF_8.name());
+    }
+
     private void sendLog() {
         refreshSnapshot();
         sendButton.setEnabled(false);
@@ -334,7 +345,7 @@ public final class MainActivity extends Activity {
                 java.io.InputStream stream = code >= 200 && code < 300
                     ? connection.getInputStream()
                     : connection.getErrorStream();
-                String response = stream == null ? "" : new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+                String response = stream == null ? "" : readStream(stream);
                 if (code >= 200 && code < 300) {
                     JSONObject parsed = response.isEmpty() ? new JSONObject() : new JSONObject(response);
                     String archive = parsed.optString("archive_status", "");
