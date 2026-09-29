@@ -3868,35 +3868,38 @@
     },
     {
       "id": "OA079",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
-      "title": "Verify MT90 DND detail route and overlay compatibility probe",
+      "status": "BLOCKED_UNTIL_D151_PRODUCTION_BETA_RELEASE",
+      "title": "Field-accept D151 adaptive Android alert engine",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
-      "reason_owner_only": "Only the Owner can run the revised standalone diagnostic APK on the physical MT90 V8.01.002 device and confirm the OEM Settings screen and cross-app overlay behavior.",
+      "reason_owner_only": "Only the Owner can verify real lock-screen/DND/Battery Saver behavior on warehouse MT90/DT50 hardware and additional Android devices after the signed D151 Beta APK is released.",
       "prerequisites": {
         "accepted_base": "D150_OWNER_FIELD_ACCEPTED_PASS",
-        "d151_scope": "ONE_STANDALONE_DND_DIAGNOSTIC_APK__BETA_ONLY_LOG_INTAKE",
-        "production_android": "beta-vc88__UNCHANGED",
-        "stable": "OWNER_GATED_UNTOUCHED",
-        "d151_technical_release": "PASS__MAIN_A7AC9315__WORKER_RUN_36544445299__APK_RUN_36544445475",
-        "diagnostic_artifact": "mt90-dnd-diagnostic-apk__ARTIFACT_11024960495__SHA256_168538b7dfe0c1a6f4d4c2dd5ae9dfd0dc0c12e19b1e33380282fef0f816d67a__SIZE_2540306",
-        "d151_repair": "PASS__MAIN_EAEAD3F2__PR311__APK_RUN_36550631691"
+        "d151_field_evidence": "THREE_MT90_V8_01_002_BACKEND_DND_FAIL__ONE_MT90_V8_04_006_NATIVE_DND_PASS__OVERLAY_PROBE_PASS",
+        "d151_owner_approval": "ADAPTIVE_CAPABILITY_ENGINE_APPROVED__2026_09_29",
+        "production_android": "NEXT_MONOTONIC_AFTER_BETA_VC88__PENDING",
+        "stable": "OWNER_GATED_UNTOUCHED"
       },
       "shortest_test_path": [
-        "Uninstall the previous MT90 DND Diagnostic test APK if Android reports a signing/update conflict; do not uninstall 1291 Báo hàng Beta.",
-        "Install the revised standalone D151 diagnostic APK on one failing MT90 V8.01.002.",
-        "Press 1. MỞ DND CHI TIẾT APP. If the per-app switch is usable, change it once as needed, return, and press LÀM MỚI TRẠNG THÁI.",
-        "Grant Hiển thị trên ứng dụng khác to the diagnostic APK, then press 4. TEST OVERLAY 15 GIÂY. The app should move to Home and the diagnostic overlay should remain visible above it.",
-        "Press GỬI LOG VỀ BETA after the DND-detail attempt and report whether the detail switch changed backend readiness and whether the overlay probe appeared."
+        "Update 1291 Báo hàng Beta to the D151 signed release on one MT90 V8.01.002, one MT90 where native DND works (currently V8.04.006), one Urovo DT50, and if readily available one other Android 11+ device.",
+        "On every device verify Notification, Hiển thị trên ứng dụng khác and Không tối ưu pin remain mandatory before login.",
+        "On the native-DND-capable device verify the permission screen reports Chế độ cảnh báo đầy đủ when Android policy + channel bypass are truly available.",
+        "On a device whose Android DND backend remains unavailable verify login is allowed only after the three hard capabilities are ready and the UI identifies Chế độ tương thích Overlay rather than falsely claiming DND permission.",
+        "With DND enabled, trigger a real critical operational alert while another app is foreground. Verify the canonical Overlay appears and existing priority/FIFO/ACK semantics remain unchanged.",
+        "Repeat one critical alert with screen off or keyguard showing. Verify the screen wakes/shows the operational overlay without requiring a persistent WakeLock.",
+        "Enable Battery Saver while the app remains exempt from battery optimization and verify the same alert path remains prompt.",
+        "Verify no duplicate overlay/notification business acknowledgement and no unexpected Firebase/Worker usage increase."
       ],
       "pass_criteria": [
-        "The revised APK builds independently and production beta-vc88 is not changed.",
-        "Package-specific DND detail settings either resolves and changes real Notification Policy authority, or its failure is observed without pretending permission is granted.",
-        "TYPE_APPLICATION_OVERLAY probe is verified visually on the failing firmware when overlay permission is granted.",
-        "No new provider/polling/listener/background quota path is introduced.",
+        "Alert delivery mode is selected from real Android capability, never manufacturer/model/firmware allowlists.",
+        "Notifications + Overlay + battery exemption remain hard operational readiness requirements.",
+        "DND policy/channel bypass is used when truly available but its OEM failure cannot permanently block login when the hard visual-alert capabilities are ready.",
+        "Critical alerts remain visible over other apps; screen-off/keyguard alert uses a bounded wake path and no WakeLock.",
+        "Existing overlay priority/FIFO/de-duplication/local-first ACK behavior does not regress.",
+        "No new provider, schema, polling, listener, heartbeat or scheduled network traffic is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Install the revised D151 probe APK on one failing MT90 V8.01.002. Try 1. MỞ DND CHI TIẾT APP, return and refresh; grant Overlay if needed and run 4. TEST OVERLAY 15 GIÂY; then press GỬI LOG VỀ BETA once and report whether the DND backend changed and whether the overlay appeared above Home.",
+      "remaining_owner_action": "Blocked until the signed D151 production Beta APK is published and technical/release guards pass.",
       "closed": false
     }
   ]
