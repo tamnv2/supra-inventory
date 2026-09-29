@@ -93,8 +93,10 @@ jobs:
             throw new Error('D126 Firestore Rules contain escaped newline text instead of real line breaks');
           }
           const agentLogBlock = rules.match(/match \/relay_agent_log_uploads\/\{partId\} \{[\s\S]*?\n    \}/)?.[0] || '';
-          if (!agentLogBlock.includes("request.resource.data.status == 'PENDING' || request.resource.data.status == 'DIRECT_PENDING'")) {
-            throw new Error('D146 Agent log Rules must allow both rollout PENDING and DIRECT_PENDING');
+          for (const status of ["'PENDING'", "'DIRECT_PART'", "'DIRECT_PENDING'"]) {
+            if (!agentLogBlock.includes(status)) {
+              throw new Error('D150 Agent log Rules must allow PENDING, DIRECT_PART and DIRECT_PENDING');
+            }
           }
           const d146FilenamePrefix = "request.resource.data.filename.matches('^(agent_|scheduled_agent_|error_agent_|crash_agent_)[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}";
           const d146FilenameTail = "\\\\.log" + "$" + "')";
