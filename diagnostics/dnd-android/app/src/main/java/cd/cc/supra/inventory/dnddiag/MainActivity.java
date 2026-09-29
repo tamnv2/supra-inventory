@@ -231,8 +231,8 @@ public final class MainActivity extends Activity {
             JSONObject profile = new JSONObject()
                 .put("managed_profile", um != null && um.isManagedProfile())
                 .put("restriction_adjust_volume", um != null && um.getUserRestrictions().getBoolean(UserManager.DISALLOW_ADJUST_VOLUME, false))
-                .put("restriction_config_sound", um != null && um.getUserRestrictions().getBoolean(UserManager.DISALLOW_CONFIG_SOUND, false))
-                .put("restriction_config_settings", um != null && um.getUserRestrictions().getBoolean(UserManager.DISALLOW_CONFIG_SETTINGS, false))
+                .put("restriction_config_sound", um != null && um.getUserRestrictions().getBoolean("no_config_sound", false))
+                .put("restriction_config_settings", um != null && um.getUserRestrictions().getBoolean("no_config_settings", false))
                 .put("this_app_device_owner", dpm != null && dpm.isDeviceOwnerApp(getPackageName()))
                 .put("this_app_profile_owner", dpm != null && dpm.isProfileOwnerApp(getPackageName()));
 
