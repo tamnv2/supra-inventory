@@ -24,7 +24,6 @@ import {
   getAdminAuditHistory,
   getAgentAppRelease,
   getAndroidAlertWindow,
-  updateAndroidAlertWindow,
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
@@ -340,6 +339,8 @@ const RECENT_PAGE_SIZE = 50;
 let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
+let recentFrom = dateDaysAgo(0);
+let recentTo = dateDaysAgo(0);
 let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
 let skipConfirm: ReporterBatch | null = null;
 let stockConfirm: ReporterBatch | null = null;
@@ -2658,7 +2659,13 @@ async function loadOperationsSnapshot(): Promise<void> {
   const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
   const [queue, recent] = await Promise.all([
     loadCompleteReporterQueue(),
-    getReporterRecent(RECENT_PAGE_SIZE, recentOffset, recentStatus),
+    getReporterRecent(
+      RECENT_PAGE_SIZE,
+      recentOffset,
+      recentStatus,
+      apiRange(recentFrom, recentTo).from,
+      apiRange(recentFrom, recentTo).to,
+    ),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
