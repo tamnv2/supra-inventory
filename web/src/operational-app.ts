@@ -2597,17 +2597,19 @@ function renderShiftOperations(): string {
         ? "Gia hạn +1 giờ"
         : state?.decision === "STOP"
           ? "Đúng giờ về"
-          : "Theo lịch mặc định";
+          : state?.decision === "CANCEL_OVERTIME"
+            ? "Đã huỷ tăng ca"
+            : "Theo lịch mặc định";
   return `<section class="ops-route tools-workspace">
     <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Trạng thái dùng chung từ Agent cho Web, Báo hàng và PickList. Web chỉ hiển thị authority hiện hành.</p></div></div>
     <section class="business-summary-grid">
-      <article class="business-summary-card primary"><span>Replay tự động</span><strong>06:00–22:00</strong><small>Không cần ghi schedule để mở/đóng khung thường</small></article>
+      <article class="business-summary-card primary"><span>Replay tự động</span><strong>05:45–22:30</strong><small>Không cần ghi schedule để mở/đóng khung thường</small></article>
       <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
       <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>State chia sẻ đến</span><strong>${esc(sharedUntil)}</strong><small>${esc(decision)}</small></article>
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
-      <div class="ops-note">21:30 hỏi cho mốc 22:00; sau đó HH:30 chỉ hỏi khi gia hạn hiện tại còn hiệu lực. Tăng ca tối đa đến 05:00. Từ 05:00–06:00 có thể Bật sớm trước 06:00 tại Agent. Nếu 22:00 không ai chốt, replay tự ngủ và không tạo write schedule.</div>
+      <div class="ops-note">22:00 hỏi cho mốc 22:30; tăng ca theo các mốc 22:30 → 23:30 → 00:30 và tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent. Khi đang tăng ca, Agent có thể Huỷ tăng ca để đóng ngay toàn hệ thống.</div>
     </article>
   </section>`;
 }
