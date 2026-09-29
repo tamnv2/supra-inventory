@@ -10,6 +10,7 @@ on:
       - "docs/specs/UI_DESIGN_SYSTEM.md"
       - "tools/ui_design_guard.py"
       - "tools/d098_cloudflare_budget_guard.py"
+      - "tools/d155_contractor_reporting_guard.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
   pull_request:
@@ -21,6 +22,7 @@ on:
       - "docs/specs/UI_DESIGN_SYSTEM.md"
       - "tools/ui_design_guard.py"
       - "tools/d098_cloudflare_budget_guard.py"
+      - "tools/d155_contractor_reporting_guard.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
   workflow_dispatch:
@@ -57,6 +59,9 @@ jobs:
 
       - name: Validate D098 Cloudflare 35 percent budget
         run: python3 tools/d098_cloudflare_budget_guard.py
+
+      - name: Validate D155 Cloudflare-only Picker reporting quota boundary
+        run: python3 tools/d155_contractor_reporting_guard.py
 
       - name: Run Operational V2 regression fixtures
         run: python3 tools/operational_v2_regression.py
