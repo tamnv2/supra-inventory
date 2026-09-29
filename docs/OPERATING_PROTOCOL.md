@@ -31,6 +31,18 @@ When Owner action is unavoidable, instructions must:
 
 Before mutation, fresh-read the canonical GitHub authority according to `ops/authority-manifest.json`. Do not use chat memory as an execution source when the repo has newer state.
 
+## D147 serial Owner-PASS change sequencing
+
+D147 refines D119 process control without changing runtime behavior.
+
+1. The accepted base is the latest change explicitly confirmed **PASS by the Owner** in canonical state.
+2. Exactly one project change ID may be active. Do not create/process the next `Dxxx` or an unrelated mutation while the current change lacks Owner PASS.
+3. Technical, CI, runtime or release PASS is evidence for the current change only; none of them substitutes for Owner acceptance.
+4. If Owner says NOT PASS / FAIL, diagnose and repair under the same change ID. Do not escape a failed acceptance by opening a new change ID.
+5. Before source/runtime/config mutation that may affect the accepted base, present a pre-implementation review covering: base impact yes/no, affected components, regression risk, quota/resource/security implications and recommended safest approach. Wait for explicit Owner approval before mutation.
+6. After Owner PASS, update canonical decision/state/Owner-action continuity under that same change so GitHub reflects the new accepted base. Only then may a later change ID start.
+7. While blocked, analysis needed to repair/accept the same change is allowed; unrelated project mutation is not.
+
 ## Stable
 
 Stable actions are never inferred from a Beta request. Stable provisioning/deploy/release always requires explicit current Owner authorization.
