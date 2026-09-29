@@ -381,7 +381,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (windowState.is_open !== true) {
       return json({
         error: "ANDROID_WINDOW_CLOSED",
-        message: "Ca vận hành App/PDA đang đóng (23:00–05:00).",
+        message: "Ngoài khung thường 06:00–22:00 và chưa có lệnh tăng ca/bật sớm hiện hành.",
         server_now_ms: Number(windowState.server_now_ms || 0),
       }, 403);
     }
@@ -397,15 +397,10 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "PUT /api/admin/alert-window") {
-    const body = await parseObjectBody(request);
-    const action = String(body.action || "").trim().toUpperCase();
-    if (!["EXTEND_ONE_HOUR", "STOP_OVERTIME"].includes(action)) {
-      return json({ error: "INVALID_ALERT_WINDOW_ACTION" }, 400);
-    }
-    return corePut(env, "/notifications/alert-window", {
-      actor_user_id: user.user_id,
-      action,
-    });
+    return json({
+      error: "ALERT_WINDOW_AGENT_AUTHORITY_D149",
+      message: "Ca vận hành được quyết định tập trung từ Agent; Web chỉ hiển thị trạng thái dùng chung.",
+    }, 409);
   }
 
   if (key === "POST /api/admin/skus/import") {
