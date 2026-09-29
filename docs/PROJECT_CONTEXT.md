@@ -754,3 +754,7 @@ D151 adaptive Android alert remediation is **TECHNICAL / RUNTIME / RELEASE PASS*
 ## D151 Owner acceptance checkpoint
 
 D151 is Owner-field accepted PASS on 2026-09-29. The accepted Beta base now includes signed `beta-vc89` adaptive Android alert behavior. OA079 is closed. Agent remains `relay-agent-v85`; no new provider/resource/schema/secret/polling/listener is introduced by the acceptance record, and Stable remains OWNER-GATED.
+
+## D152 approved PickList recovery workstream
+
+D152 is the active Owner-approved Beta change after D151 PASS. It is restricted to Windows Agent managed-browser PickList recovery and verify-only handling: normal ready confirmations remain fast; a unique row with an unavailable checkbox gets bounded Search then one reload recovery; post-confirm uncertainty gets read-only verification only; an existing uncertain guard can never trigger a second confirm mutation. Target Agent is `relay-agent-v86`; Android remains `beta-vc89`; no new provider/resource/cadence is introduced and Stable remains OWNER-GATED.
