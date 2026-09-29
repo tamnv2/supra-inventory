@@ -4164,6 +4164,8 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   const reporterRelevant =
     reporterScopeChanged && (activeSection === "operations" || activeSection === "results");
   const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
+  const scheduleRelevant =
+    rolePickPackManage() && activeSection === "shift" && scopes.has("operating_schedule");
 
   // D114: the Xử lý báo hàng badge is global operational state, not section-local state.
   // Reuse the existing realtime event to refresh the authoritative queue even while the
@@ -4177,7 +4179,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
     }
   }
 
-  if (!pickerRelevant && !reporterRelevant && !slaRelevant) return true;
+  if (!pickerRelevant && !reporterRelevant && !slaRelevant && !scheduleRelevant) return true;
   return reconcileActive();
 });
 
