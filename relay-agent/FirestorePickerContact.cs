@@ -40,31 +40,66 @@ namespace SupraInventoryRelayAgent
         private Dictionary<string, PickerContactCommand> LoadActiveCalls(AgentSession session)
         {
             var result = new Dictionary<string, PickerContactCommand>(StringComparer.Ordinal);
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var query = new Dictionary<string, object>
+            {
+                {
+                    "structuredQuery", new Dictionary<string, object>
+                    {
+                        { "from", new object[] { new Dictionary<string, object> { { "collectionId", "picker_active_calls" } } } },
+                        {
+                            "where", new Dictionary<string, object>
+                            {
+                                {
+                                    "fieldFilter", new Dictionary<string, object>
+                                    {
+                                        { "field", new Dictionary<string, object> { { "fieldPath", "lock_until_ms" } } },
+                                        { "op", "GREATER_THAN" },
+                                        { "value", IntField(nowMs) }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "orderBy", new object[]
+                            {
+                                new Dictionary<string, object>
+                                {
+                                    { "field", new Dictionary<string, object> { { "fieldPath", "lock_until_ms" } } },
+                                    { "direction", "ASCENDING" }
+                                }
+                            }
+                        },
+                        { "limit", 500 }
+                    }
+                }
+            };
+
             var raw = FirestoreHttpTransport.SendJson(
-                "GET",
-                AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') + "/picker_active_calls?pageSize=100",
+                "POST",
+                AgentConfig.FirestoreDocumentsBaseUrl + ":runQuery",
                 session.IdToken,
-                null,
+                _json.Serialize(query),
                 UserAgent(),
                 10000,
                 true,
                 _log,
-                "picker-active-call-list");
-            var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
-            object docsRaw;
-            var docs = root != null && root.TryGetValue("documents", out docsRaw)
-                ? docsRaw as IEnumerable
-                : null;
-            if (docs == null) return result;
+                "picker-active-call-fresh-query");
+            var rows = _json.DeserializeObject(raw) as IEnumerable;
+            if (rows == null) return result;
 
-            foreach (var item in docs)
+            var returnedDocuments = 0;
+            foreach (var item in rows)
             {
-                var doc = item as Dictionary<string, object>;
+                var row = item as Dictionary<string, object>;
+                var doc = row == null ? null : GetMap(row, "document");
+                if (doc == null) continue;
+                returnedDocuments++;
                 var fields = GetMap(doc, "fields");
                 if (fields == null || !string.Equals(FieldString(fields, "status"), "ACTIVE", StringComparison.Ordinal))
                     continue;
                 var lockUntilMs = FieldLong(fields, "lock_until_ms");
-                if (lockUntilMs > 0 && lockUntilMs <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) continue;
+                if (lockUntilMs <= nowMs) continue;
                 var target = FieldString(fields, "target_user_id");
                 var callId = FieldString(fields, "call_id");
                 if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(callId)) continue;
@@ -81,6 +116,7 @@ namespace SupraInventoryRelayAgent
                     LockUntilMs = lockUntilMs
                 };
             }
+            FirestoreQuotaGuard.RecordReadDocuments(returnedDocuments, "picker-active-call-fresh-query", _log);
             return result;
         }
 
@@ -138,6 +174,7 @@ namespace SupraInventoryRelayAgent
             var rows = _json.DeserializeObject(raw) as IEnumerable;
             if (rows == null) return;
 
+            var returnedDocuments = 0;
             foreach (var item in rows)
             {
                 var row = item as Dictionary<string, object>;
@@ -152,6 +189,7 @@ namespace SupraInventoryRelayAgent
                 if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(alertId)) continue;
                 if (expiresAt > 0 && expiresAt <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) continue;
                 if (result.ContainsKey(target)) continue;
+                returnedDocuments++;
                 result[target] = new PickerContactCommand
                 {
                     AlertId = alertId,
@@ -164,6 +202,7 @@ namespace SupraInventoryRelayAgent
                     IsActiveCall = false
                 };
             }
+            FirestoreQuotaGuard.RecordReadDocuments(returnedDocuments, "picker-contact-open-query", _log);
         }
 
         internal PickerContactCommand Send(
