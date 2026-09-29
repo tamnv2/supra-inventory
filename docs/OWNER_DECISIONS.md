@@ -2244,3 +2244,18 @@ Owner approved the post-D149 safety refinement after an explicit source-level re
 12. **Security/resource boundary.** Username gating is an operational client authorization, not a new server identity model. D150 does not add a backend takeover endpoint, provider, collection, secret, Android build or Stable mutation. Existing Firestore/Function/Worker/Agent resources are reused.
 13. **Target release.** Windows Agent target is **relay-agent-v85**. Android remains signed **beta-vc88** unchanged unless a separately justified defect is discovered. D150 field acceptance is tracked separately; technical/release PASS alone does not promote D150 to the accepted base.
 
+### D150 technical/runtime/release checkpoint — 2026-09-29
+
+D150 implementation PR **#306** squash-merged to main commit `c9d42c701f66283f447aad4f24c8f9043db17e37`. Main Repo Authority, Project State, Firestore, Functions, Beta Worker, UI Design, Android compatibility, Dashboard Probe and Relay Agent workflows all passed.
+
+Runtime evidence:
+- Beta Worker/Web exact-source health reached source `c9d42c701f66283f447aad4f24c8f9043db17e37`, HTTP 200, SQLite schema 14/14, agent migrations 0/0 and Operational V2 5/5 in run **36532689311**.
+- Firestore Rules source validation, ruleset creation, deployment and release readback passed in run **36532689358**.
+- Beta Functions deployment completed successfully in run **36532689256**.
+- Windows Agent **relay-agent-v85** was published from exact commit `c9d42c701f66283f447aad4f24c8f9043db17e37`; release id **398883765**, canonical EXE asset id **597497266**, size **7,069,184 bytes**, SHA-256 `d1e7d89c431c8641591ce71e8e55b872bd4511c1cadf07bae24fce3c0005e080`. The existing `inventory-channel` Agent assets were refreshed to v85.
+- Android main compatibility run **36532689273** passed with `ANDROID_RELEASE_REQUIRED=false`; no new Android release was published. Installed Beta authority therefore remains signed **beta-vc88**.
+- UI Design run **36532689242**, Dashboard Probe **36532689292**, Repo Authority **36532689218** and Project State **36532689312** passed.
+- No new provider, collection, secret, Android production artifact or Stable mutation was introduced.
+
+D150 is now **TECHNICAL / RUNTIME / RELEASE PASS**. OA078 is **READY_FOR_OWNER_FIELD_TEST**. D149 remains the accepted project base until the Owner explicitly records D150 PASS; technical/release PASS alone does not promote the base.
+
