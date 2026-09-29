@@ -2605,6 +2605,9 @@
       "DEFAULT_22_SLEEP_REQUIRES_NO_PROVIDER_WRITE"
     ],
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OA077_PENDING_AFTER_TECHNICAL_RELEASE_PASS"
+    "owner_gate": "OA077_PENDING_AFTER_TECHNICAL_RELEASE_PASS",
+    "target_agent_release": "relay-agent-v84",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC87",
+    "release_policy": "ANDROID_EXPECTED_VC88_IF_NO_INTERVENING_RELEASE__AGENT_EXACT_V84"
   }
 }
