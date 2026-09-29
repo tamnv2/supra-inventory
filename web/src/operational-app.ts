@@ -2584,25 +2584,30 @@ function renderShiftOperations(): string {
   const status = state == null
     ? "Đang tải trạng thái…"
     : state.is_open
-      ? (state.overtime_open ? "Đang tăng ca" : "Trong ca vận hành")
-      : "Ngoài ca vận hành";
-  const overtimeUntil = state?.overtime_until_ms
-    ? new Date(state.overtime_until_ms).toLocaleString("vi-VN", { hour12: false })
-    : "Chưa gia hạn";
+      ? (state.early_start_open ? "Đang bật sớm" : state.overtime_open ? "Đang tăng ca" : "Trong ca vận hành")
+      : "Replay/PDA đang nghỉ";
+  const sharedUntil = state?.projection_open_until_ms
+    ? new Date(state.projection_open_until_ms).toLocaleString("vi-VN", { hour12: false })
+    : "Không có gia hạn";
+  const decision = state?.decision === "EARLY_START"
+    ? "Bật sớm"
+    : state?.decision === "MANUAL_ADJUST"
+      ? "Điều chỉnh tăng ca"
+      : state?.decision === "CONTINUE"
+        ? "Gia hạn +1 giờ"
+        : state?.decision === "STOP"
+          ? "Đúng giờ về"
+          : "Theo lịch mặc định";
   return `<section class="ops-route tools-workspace">
-    <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Quản lý khung hoạt động App/PDA và gia hạn tăng ca. Thiết lập này dùng chung toàn hệ thống.</p></div></div>
+    <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Trạng thái dùng chung từ Agent cho Web, Báo hàng và PickList. Web chỉ hiển thị authority hiện hành.</p></div></div>
     <section class="business-summary-grid">
-      <article class="business-summary-card primary"><span>Khung tiêu chuẩn</span><strong>05:00–23:00</strong><small>Giờ hệ thống</small></article>
-      <article class="business-summary-card ${state?.overtime_open ? "warning" : "good"}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Đồng bộ cho App/PDA</small></article>
-      <article class="business-summary-card"><span>Gia hạn đến</span><strong>${esc(overtimeUntil)}</strong><small>Mỗi lần gia hạn thêm 1 giờ</small></article>
+      <article class="business-summary-card primary"><span>Replay tự động</span><strong>06:00–22:00</strong><small>Không cần ghi schedule để mở/đóng khung thường</small></article>
+      <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
+      <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>State chia sẻ đến</span><strong>${esc(sharedUntil)}</strong><small>${esc(decision)}</small></article>
     </section>
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Điều khiển tăng ca</h3><p>Chỉ sử dụng khi ca thực tế kéo dài. Không thay đổi nhịp polling, heartbeat hoặc logic xác nhận PickList.</p></div></div>
-      <div class="tool-actions">
-        <button type="button" class="primary" id="extend-android-alert-window">Gia hạn +1 giờ</button>
-        ${state?.overtime_until_ms ? '<button type="button" class="secondary" id="stop-android-alert-overtime">Kết thúc tăng ca</button>' : ""}
-      </div>
-      <div class="ops-note">Sau thao tác, trạng thái mới được lưu dùng chung và hiển thị lại ngay trên trang này.</div>
+      <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
+      <div class="ops-note">21:30 hỏi cho mốc 22:00; sau đó HH:30 chỉ hỏi khi gia hạn hiện tại còn hiệu lực. Tăng ca tối đa đến 05:00. Từ 05:00–06:00 có thể Bật sớm trước 06:00 tại Agent. Nếu 22:00 không ai chốt, replay tự ngủ và không tạo write schedule.</div>
     </article>
   </section>`;
 }
@@ -3656,15 +3661,6 @@ function bindSection(): void {
     }
   });
 
-  document.querySelector<HTMLButtonElement>("#extend-android-alert-window")?.addEventListener("click", () => void run(async () => {
-    androidAlertWindow = await updateAndroidAlertWindow("EXTEND_ONE_HOUR");
-    setNotice("success", "Đã gia hạn App/PDA thêm 1 giờ tăng ca.");
-  }));
-
-  document.querySelector<HTMLButtonElement>("#stop-android-alert-overtime")?.addEventListener("click", () => void run(async () => {
-    androidAlertWindow = await updateAndroidAlertWindow("STOP_OVERTIME");
-    setNotice("success", "Đã kết thúc gia hạn tăng ca App/PDA.");
-  }));
 
   document.querySelector<HTMLButtonElement>("#send-web-log")?.addEventListener("click", () => void run(async () => {
     const sent = await sendWebRuntimeLog("manual_web_log", "INFO");
@@ -3693,6 +3689,43 @@ function bindSection(): void {
     await loadOperations();
     setNotice("success", "Đã sửa kết quả thành Có hàng.");
   })));
+  document.querySelectorAll<HTMLButtonElement>("[data-recent-range]").forEach((button) => button.addEventListener("click", () => {
+    const preset = button.dataset.recentRange || "";
+    const today = dateDaysAgo(0);
+    if (preset === "TODAY") { recentFrom = today; recentTo = today; }
+    else if (preset === "YESTERDAY") { recentFrom = dateDaysAgo(1); recentTo = dateDaysAgo(1); }
+    else if (preset === "D7") { recentFrom = dateDaysAgo(6); recentTo = today; }
+    else if (preset === "D30") { recentFrom = dateDaysAgo(29); recentTo = today; }
+    else return;
+    recentOffset = 0;
+    void run(loadOperations);
+  }));
+  document.querySelector<HTMLFormElement>("#recent-range-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    const from = String(data.get("from") || "");
+    const to = String(data.get("to") || "");
+    const range = apiRange(from, to);
+    if (Date.parse(range.to) - Date.parse(range.from) > 60 * 86_400_000) {
+      setNotice("warning", "Kết quả gần đây chỉ cho phép tối đa 60 ngày.");
+      return;
+    }
+    if (to > dateDaysAgo(0)) {
+      setNotice("warning", "Không thể chọn ngày tương lai.");
+      return;
+    }
+    recentFrom = from;
+    recentTo = to;
+    recentOffset = 0;
+    void run(loadOperations);
+  });
+  document.querySelector<HTMLButtonElement>("#recent-open-report")?.addEventListener("click", () => {
+    reportFrom = recentFrom;
+    reportTo = recentTo;
+    reportStatus = recentFilter === "ALL" || recentFilter === "CLOSED" ? "" : recentFilter;
+    reportOffset = 0;
+    navigateToSection("reports");
+  });
   document.querySelectorAll<HTMLButtonElement>("[data-result-filter]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.resultFilter as typeof recentFilter;
     if (!["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(next)) return;
