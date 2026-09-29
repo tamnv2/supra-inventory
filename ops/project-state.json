@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D148_OWNER_ACCEPTED_BASE__D149_IMPLEMENTATION_ACTIVE_BETA_CANDIDATE",
+    "beta": "D148_OWNER_ACCEPTED_BASE__D149_TECHNICAL_RUNTIME_RELEASE_PASS__OA077_OWNER_FIELD_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D148_OWNER_FIELD_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL",
-    "android": "D148_OWNER_FIELD_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS",
-    "latest_beta_apk": "beta-vc87",
+    "web": "D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486",
+    "android": "D149_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC88__UNIFIED_SCHEDULE_CACHE_FCM__RESOLVER_ATTRIBUTION",
+    "latest_beta_apk": "beta-vc88",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -32,8 +32,8 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D146_AGENT_V83_OWNER_FIELD_PASS__GOOGLE_FIRST_LOGS__PROTECTED_INPUT_FOCUS",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D149_ACTIVE__D148_ACCEPTED_BASE"
+    "picklist_confirmation_poc": "D149_TECHNICAL_RELEASE_PASS__AGENT_V84__06_22_SHARED_SCHEDULE__BROWSER_STORAGE_RELOCATION",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D149_TECHNICAL_RUNTIME_RELEASE_PASS__OA077_PENDING__D148_ACCEPTED_BASE"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -2461,7 +2461,7 @@
     "accepted_base_change_id": "D148",
     "accepted_base_evidence": "OWNER_EXPLICIT_D148_PASS__2026_09_29",
     "current_change_id": "D149",
-    "current_change_status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA077_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2477,7 +2477,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D149_CANDIDATE__BETA_ONLY__D148_REMAINS_ACCEPTED_BASE",
+    "runtime_impact": "D149_BETA_MAIN_C03F5486__WORKER_WEB_FUNCTIONS_FIRESTORE_ANDROID_VC88_AGENT_V84_PASS__D148_REMAINS_ACCEPTED_BASE",
     "resource_change": "REUSE_EXISTING_FIRESTORE_RELAY_BETA_AND_EXISTING_BETA_FUNCTION_RUNTIME__NO_NEW_PROVIDER",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2559,7 +2559,7 @@
     }
   },
   "d149": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA077_PENDING",
     "date": "2026-09-29",
     "baseline_change": "D148",
     "baseline_main": "d251c0cd65e7c549e63257d4b1fe93a1ab3474b8",
@@ -2605,9 +2605,60 @@
       "DEFAULT_22_SLEEP_REQUIRES_NO_PROVIDER_WRITE"
     ],
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OA077_PENDING_AFTER_TECHNICAL_RELEASE_PASS",
+    "owner_gate": "OA077_READY_FOR_OWNER_FIELD_TEST__OWNER_PASS_NOT_YET_GRANTED",
     "target_agent_release": "relay-agent-v84",
     "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC87",
-    "release_policy": "ANDROID_EXPECTED_VC88_IF_NO_INTERVENING_RELEASE__AGENT_EXACT_V84"
+    "release_policy": "ANDROID_EXPECTED_VC88_IF_NO_INTERVENING_RELEASE__AGENT_EXACT_V84",
+    "main_commit": "c03f54861e5fbb6ff093b129e9b76e303475c358",
+    "implementation_pr": 303,
+    "technical_release": {
+      "status": "PASS",
+      "date": "2026-09-29",
+      "worker_web": {
+        "run_id": 36522333433,
+        "result": "PASS__DEPLOY_HEALTH_SOURCE_COMMIT_SCHEMA_AUTH_BUSINESS_WEB_OAUTH"
+      },
+      "android": {
+        "run_id": 36522333439,
+        "release": "beta-vc88",
+        "release_id": 398827304,
+        "source_commit": "c03f54861e5fbb6ff093b129e9b76e303475c358",
+        "apk_sha256": "0ce70330c2a829129f76902f4705975e260e5dd40c90f5328ada85c5e842c057",
+        "apk_size_bytes": 19118660
+      },
+      "agent": {
+        "run_id": 36522333472,
+        "release": "relay-agent-v84",
+        "release_id": 398827234,
+        "source_commit": "c03f54861e5fbb6ff093b129e9b76e303475c358",
+        "exe_sha256": "af2d169e84d1c433f4c495cb8795e15afddc702800151dc871eb2e5454cd95f9",
+        "exe_size_bytes": 7060480
+      },
+      "functions": {
+        "run_id": 36522333447,
+        "result": "PASS"
+      },
+      "firestore": {
+        "run_id": 36522333435,
+        "result": "PASS"
+      },
+      "ui_design_guard": {
+        "run_id": 36522333473,
+        "result": "PASS"
+      },
+      "dashboard_probe": {
+        "run_id": 36522333440,
+        "result": "PASS"
+      },
+      "authority_guard": {
+        "run_id": 36522333444,
+        "result": "PASS"
+      },
+      "project_state_guard": {
+        "run_id": 36522333438,
+        "result": "PASS"
+      },
+      "stable": "UNTOUCHED_OWNER_GATED"
+    }
   }
 }
