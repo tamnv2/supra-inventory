@@ -3907,6 +3907,39 @@
         "date": "2026-09-29",
         "evidence": "Owner explicitly confirmed D151 PASS after field review of beta-vc89."
       }
+    },
+    {
+      "id": "OA080",
+      "status": "PENDING_TECHNICAL_RELEASE",
+      "title": "Field-accept D152 PickList recovery and verify-only confirmation",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can validate real WMS browser checkbox hydration, post-confirm state changes and no-duplicate behavior with warehouse PickLists.",
+      "prerequisites": {
+        "accepted_base": "D151_OWNER_FIELD_ACCEPTED_PASS",
+        "d152_owner_approval": "PASS__2026_09_29",
+        "target_agent_release": "relay-agent-v86",
+        "android": "beta-vc89__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Test one normal PickList where row and checkbox are ready; confirm normal latency remains unchanged.",
+        "Test a PickList visible before its checkbox is ready; verify Agent retries Search, reloads Confirm at most once only for this exception, and confirms if the checkbox becomes usable.",
+        "Verify a row that remains unselectable after bounded recovery is reported as uncertain/not-ready rather than Supra rejected and does not count as NOT_FOUND.",
+        "Exercise a post-dialog uncertain case; verify Agent performs only read-only verification and never sends the confirm mutation twice.",
+        "Repeat the same PickList after an uncertain result; verify the existing guard permits verify-only resolution but blocks another confirm mutation.",
+        "Review sanitized Agent log reasons and confirm no new Firestore polling/listener/read storm."
+      ],
+      "pass_criteria": [
+        "Normal ready PickLists do not incur recovery reload or added provider operations.",
+        "Unique visible PickList with temporarily unavailable checkbox receives one bounded Search/reload recovery.",
+        "Recovery state change never becomes a false NOT_FOUND strike.",
+        "Post-confirm uncertainty receives one bounded read-only verification and never a repeat mutation.",
+        "Existing uncertain guard can become confirmed only from read-only WMS evidence; otherwise remains fail-closed.",
+        "No new provider, collection, listener, polling cadence, WMS API/session extraction, or Stable mutation."
+      ],
+      "remaining_owner_action": "Wait for D152 technical/release PASS, then field-test relay-agent-v86 against the listed scenarios.",
+      "closed": false
     }
   ]
 }
