@@ -4009,7 +4009,7 @@
     },
     {
       "id": "OA082",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_ACCEPTED_D154",
       "title": "Field-accept D154 unified schedule, synchronization recovery and Android setup/version UX",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -4041,8 +4041,18 @@
         "No new polling, listener, cron, provider resource, collection/schema or secret is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Run the D154 field path on warehouse Android 11 + Agent/Web and explicitly report PASS or NOT PASS. Until PASS, D153 remains the accepted base and no D155 may open.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D154 PASS on 2026-09-30.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-30",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D154 PASS after field validation of the released Beta set."
+      },
+      "owner_result": {
+        "status": "PASS",
+        "date": "2026-09-30",
+        "evidence": "Owner explicitly confirmed D154 PASS; D154 is promoted to the accepted Beta base and the serial next-change gate is unlocked."
+      }
     }
   ]
 }
