@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D151",
     "accepted_base_evidence": "OWNER_EXPLICIT_D151_PASS__2026_09_29",
     "current_change_id": "D152",
-    "current_change_status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET",
+    "current_change_status": "D152_V86_RELEASED__V87_SAFETY_REPAIR_IMPLEMENTATION_ACTIVE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D152_AGENT_ONLY_PICKLIST_CONFIRM_RECOVERY__NORMAL_FAST_PATH_UNCHANGED__EXCEPTION_ONLY_LOCAL_SEARCH_RELOAD_VERIFY",
+    "runtime_impact": "D152_AGENT_ONLY_PICKLIST_CONFIRM_RECOVERY__V87_HYDRATED_ROW_REMOVAL_PROOF_AND_CHECKBOX_RACE_CLASSIFICATION__NORMAL_FAST_PATH_UNCHANGED",
     "resource_change": "NONE__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON__NO_ANDROID_BUILD",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2946,7 +2946,7 @@
     }
   },
   "d152": {
-    "status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET",
+    "status": "V86_TECHNICAL_RELEASED__V87_SAFETY_REPAIR_IMPLEMENTATION_ACTIVE",
     "date": "2026-09-29",
     "baseline_change": "D151",
     "baseline_main": "8519e38c9d7646174d46b5cc8c0a3127edce8a3c",
@@ -2976,10 +2976,31 @@
     "resource_quota_security_impact": "NO_NEW_PROVIDER_RESOURCE_FIRESTORE_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON_OR_ANDROID_BUILD__RECOVERY_IS_LOCAL_BROWSER_DOM_PLUS_BOUNDED_WMS_UI_SEARCH_RELOAD_ONLY__NO_SESSION_CAPTURE",
     "recommended_approach": "FAST_PATH_UNCHANGED__EXCEPTION_ONLY_SEARCH_THEN_ONE_RELOAD_FOR_UNSELECTABLE__READ_ONLY_POST_CONFIRM_AND_EXISTING_GUARD_VERIFY__NEVER_REPEAT_CONFIRM_MUTATION",
     "preimplementation_owner_approval": "PASS__OWNER_EXPLICIT_CONTINUE_AFTER_D151_PASS_WITH_PROPOSED_LOGIC__2026_09_29",
-    "target_agent_release": "relay-agent-v86",
+    "target_agent_release": "relay-agent-v87",
     "android_release": "beta-vc89__UNCHANGED",
     "new_provider_resources": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "OA080_BLOCKED_TECHNICAL_RELEASE_PENDING"
+    "field_gate": "OA080_BLOCKED_V87_TECHNICAL_RELEASE_PENDING",
+    "repair_branch": "d152-v87-verify-hydration",
+    "v86_checkpoint": {
+      "status": "TECHNICAL_RELEASED__SUPERSEDED_BEFORE_OWNER_FIELD_ACCEPTANCE",
+      "main_commit": "a418de7e852ff9c1bc8b37309b65cdfc75fe3f24",
+      "release": "relay-agent-v86",
+      "reason": "Post-merge source review found verify-only row-removal could trust a transient empty WMS table. D152 continues under the same change ID with v87 safety hardening before OA080 field acceptance."
+    },
+    "v87_safety_repair": {
+      "owner_scope_basis": "WITHIN_ALREADY_APPROVED_D152_FAIL_CLOSED_VERIFY_ONLY_LOGIC",
+      "base_impact": "YES__SAME_D152_AGENT_CONFIRM_STATE_MACHINE_SAFETY_HARDENING",
+      "affected_components": [
+        "relay-agent/SupraConfirmBrowser.cs",
+        "relay-agent/Program.cs",
+        "relay-agent version and CI guards",
+        "canonical D152 continuity"
+      ],
+      "regression_stability_risk": "LOW_TO_MEDIUM__EXCEPTION_ONLY_VERIFY_AND_PRE_MUTATION_CHECKBOX_RACE__NORMAL_FAST_PATH_UNCHANGED",
+      "resource_quota_security_impact": "NONE__NO_NEW_PROVIDER_READ_WRITE_LISTENER_POLLING_CRON_SCHEMA_SECRET_OR_WMS_API__LOCAL_BROWSER_DOM_ONLY",
+      "recommended_approach": "REQUIRE_HYDRATED_NONEMPTY_PICKLIST_TABLE_BEFORE_ROW_REMOVAL_COUNTS_AS_CONFIRMED__KEEP_TRANSIENT_EMPTY_TABLE_UNCERTAIN__MAP_PRE_MUTATION_CHECKBOX_RACE_TO_CONFLICT_AND_RELEASE_GUARD_SAFELY",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    }
   }
 }
