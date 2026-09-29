@@ -1884,3 +1884,5 @@ D148 Owner result: **PASS** on 2026-09-29. OA076 is closed after the Owner expli
 5. Keep a PDA offline/powered off through an overtime decision, then restore it. It must obtain the current state once and operate consistently without polling.
 6. Verify Báo hàng and PickList follow the same open/closed schedule when Worker is healthy.
 7. Verify Web recent-result ranges, result resolver copy, Agent Web storage move/rollback, and removal of the PickList Hôm nay cluster.
+
+D149 Owner result: **PASS** on 2026-09-29. OA077 is closed after the Owner explicitly confirmed field acceptance of the released D149 Beta set. D149 is promoted to the accepted base. Technical/release evidence remains main `c03f54861e5fbb6ff093b129e9b76e303475c358`, signed `beta-vc88` and `relay-agent-v84`; Stable remains OWNER-GATED and untouched.
