@@ -2400,3 +2400,19 @@ Baseline is D153 Owner PASS. After impact review, the Owner approved the coordin
 8. Android PickList reconciliation no longer treats a successful but closed/stale Worker schedule response as final. If still blocked outside normal time, it performs one exact Firestore `operating_schedule` GET under the existing 60-second user-attempt gate; there is no background listener/list query or periodic retry.
 9. D154 targets Agent `relay-agent-v88` and the next monotonic signed Android Beta after `beta-vc89` (expected `beta-vc90` if no intervening release).
 10. No new provider, Firestore collection/schema, SQLite schema, secret, polling loop, listener or cron is authorized. Stable remains OWNER-GATED and untouched.
+
+
+### D154 technical/runtime/release checkpoint — 2026-09-30
+
+D154 implementation is technically released on Beta but is **not Owner-accepted yet**. D153 remains the accepted base until OA082 receives explicit Owner PASS.
+
+- Implementation PR #324 merged to main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`.
+- Main Worker run `36609749783` PASS with HTTP 200 health, exact source commit, SQLite 14/14, Operational V2 5/5 and Agent migration 0/0.
+- Main Functions run `36609749800` PASS and successfully **created** `operatingScheduleChanged(asia-southeast1)`, resolving the identified D149 deployment omission.
+- Signed Android **beta-vc90** release id `399404364`, APK asset `598876063`, size `19,118,744` bytes, SHA-256 `b3204970660096768950de870ccf6b8a6329018f6f27ccde12d83b24189a1cf4`.
+- Agent **relay-agent-v88** release id `399403230`, EXE asset `598872709`, size `7,081,472` bytes, SHA-256 `74128bc35fdc8b635e512b8af7a59131d0c932c7865b8597c31399d4d7a3d8f2`.
+- Both release tags resolve to exact main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`; the fixed inventory channel was refreshed to the same APK/EXE digests.
+- Agent run `36609749714` passed on attempt 2. Attempt 1 had a transient Microsoft Fixed WebView2 package-list/download race after the Agent EXE had already published; rerun passed without any source/runtime hotfix. Experimental PR #325 was closed unmerged.
+- Main Repo Authority `36609749884`, Project State `36609749791`, UI Design `36609749861`, Dashboard Probe `36609749872`, Android `36609749611`, Worker `36609749783`, Functions `36609749800` and Agent `36609749714` are PASS.
+- No new provider/resource/collection/schema/secret/listener/polling/cron. Stable remains OWNER-GATED and untouched.
+- OA082 is **READY_FOR_OWNER_FIELD_TEST**.
