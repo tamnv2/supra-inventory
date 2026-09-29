@@ -618,6 +618,32 @@ jobs:
           if ($browser.Contains('Network.enable')) {
             throw "D137 must not enable DevTools Network while implementing Confirm refresh."
           }
+          foreach ($marker in @(
+            'StateChangedFragments',
+            'RecoveryReloaded',
+            'checkbox_recovery=START',
+            'checkbox_not_ready_after_search',
+            'VerifyExactAfterUncertain',
+            'ExactRowMissingAfterOneSearchNoLock',
+            'post_confirm_timeout',
+            'VERIFY_ONLY_ROW_REMOVED_STABLE',
+            'POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D152 browser recovery guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'CHECKBOX_RELOAD+STATE_CHANGED',
+            'CHECKBOX_NOT_READY',
+            'FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY',
+            'VERIFY_ONLY_ROW_REMOVED',
+            'POST_CONFIRM_SEARCH_VERIFY',
+            'POST_CONFIRM_TIMEOUT'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D152 processing guard missing: $marker" }
+          }
+          if ([regex]::Matches($browser, 'BuildMutationScript\(code\)').Count -ne 1) {
+            throw "D152 must keep exactly one browser mutation-script invocation path."
+          }
           if (-not $notifications.Contains('android_session_generation') -or
               -not $notifications.Contains('source: "LOGIN"') -or
               $notifications.Contains('PDA_GRACE')) {
