@@ -1984,3 +1984,5 @@ Technical PASS requires all of the following:
 - Agent version advances monotonically to `relay-agent-v86`.
 
 OA080 Owner field PASS additionally requires normal real PickList confirmation to remain prompt, any naturally occurring checkbox-stale/uncertain case to self-recover truthfully without duplicate mutation, and no unexpected Firestore usage amplification.
+
+D152 technical result: **PASS** on main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24` with Agent `relay-agent-v86`. Source/build/regression/release gates passed and the fixed Agent update channel was refreshed. OA080 is READY for real WMS field validation; technical PASS alone does not promote D152 to the accepted base.
