@@ -152,11 +152,33 @@ export async function handleD119Internal(request: Request, env: InternalEnv): Pr
     if (!(await verifyRuntimeIdentity(request, env))) return json({ error: "INTERNAL_IDENTITY_REQUIRED" }, 401);
     let body: Record<string, unknown> = {};
     try { body = (await request.json()) as Record<string, unknown>; } catch { return json({ error: "INVALID_JSON" }, 400); }
-    return core(env).fetch("https://inventory-core.internal/notifications/operating-schedule-mirror", {
+    const mirrored = await core(env).fetch("https://inventory-core.internal/notifications/operating-schedule-mirror", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
+    if (!mirrored.ok) return mirrored;
+
+    // D149: one event per accepted schedule projection keeps an already-open Web
+    // page current without browser polling or a second Firebase listener.
+    try {
+      await core(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          event: "operating_schedule_changed",
+          scopes: ["operating_schedule"],
+          tags: ["role:ADMIN", "role:PICKPACK_ADMIN", "role:ROOT"],
+          metadata: {
+            schedule_key: String(body.schedule_key || ""),
+            version: Number(body.version || 0),
+          },
+        }),
+      });
+    } catch {
+      // Mirror is authoritative for Worker enforcement; WebSocket delivery is best-effort.
+    }
+    return mirrored;
   }
   if (!isAlertWindow) return null;
   if (!(await verifyRuntimeIdentity(request, env))) return json({ error: "INTERNAL_IDENTITY_REQUIRED" }, 401);
