@@ -1772,6 +1772,7 @@
     "status": "OWNER_APPROVED_SOURCE_IN_PROGRESS",
     "baseline": "D149_OWNER_ACCEPTED",
     "branch": "d150-quota-safe-primary-takeover",
+    "implementation_pr": 306,
     "firestore_database": "firestore-relay-beta-d091__EXISTING",
     "agent_presence": "PRIMARY_ONLY_SERVER_FILTERED_FRESH_QUERY__NON_PRIMARY_COMPACT_AGENT_SYNC",
     "picker_active_calls": "SERVER_FILTER_LOCK_UNTIL_FUTURE__BOUNDED__HISTORICAL_ROWS_NOT_RELISTED",
