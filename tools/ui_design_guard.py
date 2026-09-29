@@ -224,7 +224,7 @@ checks = {
         "function renderShiftOperations()",
         "Ca vận hành",
         "Replay tự động",
-        "06:00–22:00",
+        "05:45–22:30",
         "Agent là nơi quyết định",
     ]) and 'updateAndroidAlertWindow("EXTEND_ONE_HOUR")' not in WEB_APP
        and 'id="extend-android-alert-window"' not in WEB_APP,
