@@ -293,3 +293,12 @@ The rule is enforced independently in Web presentation/selection, Worker API and
 - true ROOT operating as ROOT retains the existing managed-account deletion authority.
 
 Picker bulk actions remain governed by their separate Picker-specific RBAC and are not widened by this rule.
+
+## D155 Picker contractor and Báo hàng capability authority
+
+- contractor_name and shortage_reporting_enabled are Picker-only account attributes; they do not create a new role.
+- shortage_reporting_enabled is independent from users.status. ACTIVE + reporting disabled remains a valid signed-in Picker for non-shortage capabilities.
+- ADMIN, PICKPACK_ADMIN and ROOT may execute only the D155 Picker reporting enable/disable bulk actions. D155 does not grant PICKPACK_ADMIN existing ADMIN/ROOT Picker lifecycle disable/delete authority.
+- Worker/InventoryCore checks server-side capability before shortage create/withdraw and before targeting new Picker shortage result delivery. Client UI state is not authority.
+- Báo hàng capability propagation is Cloudflare Worker/InventoryCore/WebSocket only. Firestore/RTDB documents, claims or listeners must not be used as capability authority or synchronization.
+- Contractor is display/search metadata only and is not authentication, authorization or routing authority.
