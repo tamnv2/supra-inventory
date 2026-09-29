@@ -1399,3 +1399,12 @@ Owner approved one combined Beta change set for reliable support logs, PDA SKU i
 Derived current-status markers:
 - `D148_TECHNICAL_RUNTIME_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
 - `D148_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`
+
+## D148 Owner-accepted baseline — 2026-09-29
+- Accepted change base: `D148`.
+- Current open change: none.
+- Web: pending badge recreation + shift-comparison Excel accepted.
+- Android: signed `beta-vc87` adaptive report-created overlay, sequential priority queue, PickList warning copy and session-end INFO logs accepted.
+- Agent remains `relay-agent-v83` unchanged.
+- Deferred overtime Web/App/Agent unification is not part of D148 and remains unstarted.
+- Stable remains OWNER-GATED and untouched.
