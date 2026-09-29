@@ -745,3 +745,8 @@ D151 adds a temporary standalone Android 11 diagnostic package, `cd.cc.supra.inv
 ## D151 adaptive Android alert remediation — 2026-09-29
 
 D151 field diagnostics established that OEM DND Settings state is not a universally reliable readiness authority. After Owner approval, D151 now includes a Beta Android production remediation: alert delivery is selected from real platform capability rather than model/firmware identity. Notifications, cross-app Overlay permission and battery-optimization exemption are hard readiness; real DND policy/channel bypass is an optional native enhancement. Unsupported/broken DND implementations use Overlay Compatibility mode. Screen-off/keyguard critical events use the existing bounded wake Activity without WakeLock or new network cadence. Target is the next monotonic signed Beta after `beta-vc88`; Agent/Web/Stable remain unchanged and Stable is OWNER-GATED.
+
+
+### D151 adaptive alert release checkpoint
+
+D151 adaptive Android alert remediation is **TECHNICAL / RUNTIME / RELEASE PASS** on Beta. Implementation PR #313 merged at main `44606b738b34b3ea216d4db14ab4a3af166f162c`; signed `beta-vc89` release id `399040014` contains the exact-source APK (asset `597939005`, 19,118,660 bytes, SHA-256 `9fe96a16a26d1d59e3b2664025cd0802a59b9535d545d92cd475995c4dfc12bc`) and the inventory-channel APK was refreshed to the same digest. OA079 is now READY_FOR_OWNER_FIELD_TEST. D150 remains the accepted base until explicit Owner D151 PASS. Stable remains OWNER-GATED and untouched.
