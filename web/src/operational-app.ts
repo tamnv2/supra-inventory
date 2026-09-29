@@ -424,6 +424,7 @@ let pickerSearchGeneration = 0;
 let userQuery = "";
 let userRole = "";
 let userStatus = "";
+let userShortageReporting = "";
 let userOffset = 0;
 let userTotal = 0;
 let allPickerSelection = false;
@@ -1678,13 +1679,14 @@ function renderHr(): string {
         <label>Tên tab<input name="tabName" value="${esc(source?.tab_name || "")}" required /></label>
         <label>Tên cột Mã nhân viên<input name="employeeCodeHeader" value="${esc(source?.mnv_header || "Mã nhân viên")}" required /></label>
         <label>Tên cột Họ và tên<input name="fullNameHeader" value="${esc(source?.full_name_header || "Họ và tên")}" required /></label>
+        <label>Tên cột Nhà thầu<input name="contractorHeader" value="${esc(source?.contractor_header || "Nhà thầu")}" required /></label>
         <div class="ops-form-actions"><button class="primary">Xác nhận nguồn</button></div>
       </form>
     </article>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Đồng bộ Picker</h3><p>Kiểm tra thay đổi trước khi áp dụng.</p></div></div>
       <div class="ops-form-actions"><button class="secondary" id="preview-hr">Xem trước</button>${hrPreview ? `<button class="primary" id="apply-hr">Áp dụng</button>` : ""}</div>
-      ${hrPreview ? `<section class="ops-status-strip"><span>Nguồn <b>${hrPreview.total_source}</b></span><span>Tạo mới <b>${hrPreview.create}</b></span><span>Đổi tên <b>${hrPreview.rename}</b></span><span>Không đổi <b>${hrPreview.unchanged}</b></span></section>` : `<div class="ops-empty">Chưa có bản xem trước.</div>`}
+      ${hrPreview ? `<section class="ops-status-strip"><span>Nguồn <b>${hrPreview.total_source}</b></span><span>Tạo mới <b>${hrPreview.create}</b></span><span>Đổi tên <b>${hrPreview.rename}</b></span><span>Đổi nhà thầu <b>${hrPreview.contractor_update || 0}</b></span><span>Không đổi <b>${hrPreview.unchanged}</b></span></section>` : `<div class="ops-empty">Chưa có bản xem trước.</div>`}
     </article>
   </section>`;
 }
@@ -1734,19 +1736,20 @@ function renderUsers(): string {
         </form>` : `<div class="ops-readonly">Thêm Picker mới qua Nguồn nhân sự và đồng bộ Picker.</div>`}
       </article>
       <article class="ops-panel users-filter-panel">
-        <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, quyền hoặc trạng thái.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, nhà thầu, quyền hoặc trạng thái.</p></div></div>
         <form id="user-filter-form" class="users-form-grid">
-          <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / tài khoản" /></label>
+          <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / nhà thầu / tài khoản" /></label>
           <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","PICKPACK_ADMIN","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
           <label>Trạng thái<select name="status"><option value="">Tất cả trạng thái</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>Đang hoạt động</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>Đã dừng</option></select></label>
+          <label>Báo hàng<select name="shortageReporting"><option value="">Tất cả</option><option value="ENABLED" ${userShortageReporting === "ENABLED" ? "selected" : ""}>Đang bật</option><option value="DISABLED" ${userShortageReporting === "DISABLED" ? "selected" : ""}>Đang tắt</option></select></label>
           <div class="ops-form-actions"><button class="secondary">Áp dụng bộ lọc</button></div>
         </form>
       </article>
     </div>
     <article class="ops-panel ops-users-panel">
       <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>ROOT được ẩn khỏi danh sách. Picker dùng thao tác hàng loạt riêng; ROOT có thể chọn Admin / Quản trị Pick Pack / Reporter để xóa.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
-      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
-      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button><button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button><button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button><span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
@@ -1759,8 +1762,12 @@ function renderUsers(): string {
           const actions = canManageListedUser(user)
             ? `<div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div>`
             : `<span class="ops-readonly">${user.role === "ROOT" ? "Tài khoản gốc được bảo vệ" : "Không thuộc quyền quản lý hiện tại"}</span>`;
-          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${actions}</td></tr>`;
-        }).join("") : `<tr><td colspan="6" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+          const contractor = isPicker ? (user.contractor_name || "—") : "—";
+          const reporting = isPicker
+            ? `<span class="badge ${user.shortage_reporting_enabled !== false ? "good" : "closed"}">${user.shortage_reporting_enabled !== false ? "Đang bật" : "Đang tắt"}</span>`
+            : "—";
+          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(contractor)}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${actions}</td></tr>`;
+        }).join("") : `<tr><td colspan="8" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Trang hiển thị ${pageStart}–${pageEnd}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -3072,6 +3079,7 @@ async function loadUsers(): Promise<void> {
     query: userQuery,
     role: userRole,
     status: userStatus,
+    shortageReporting: userShortageReporting,
     limit: USER_PAGE_SIZE,
     offset: userOffset,
   });
@@ -3082,6 +3090,7 @@ async function loadUsers(): Promise<void> {
       query: userQuery,
       role: userRole,
       status: userStatus,
+      shortageReporting: userShortageReporting,
       limit: USER_PAGE_SIZE,
       offset: userOffset,
     });
@@ -3864,6 +3873,7 @@ function bindSection(): void {
         String(data.get("tabName") || ""),
         String(data.get("employeeCodeHeader") || ""),
         String(data.get("fullNameHeader") || ""),
+        String(data.get("contractorHeader") || ""),
       );
       hrSource = await getHrSource();
       hrPreview = null;
@@ -3900,6 +3910,7 @@ function bindSection(): void {
     userQuery = String(data.get("query") || "").trim();
     userRole = String(data.get("role") || "");
     userStatus = String(data.get("status") || "");
+    userShortageReporting = String(data.get("shortageReporting") || "");
     userOffset = 0;
     selectedUserIds.clear();
     selectedManagedUserIds.clear();
@@ -3943,7 +3954,7 @@ function bindSection(): void {
     });
   });
   document.querySelectorAll<HTMLButtonElement>("[data-picker-action]").forEach((button) => button.addEventListener("click", () => {
-    const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE";
+    const action = button.dataset.pickerAction as "ENABLE" | "DISABLE" | "DELETE" | "REPORTING_ENABLE" | "REPORTING_DISABLE";
     const ids = [...selectedUserIds];
     if (!allPickerSelection && !ids.length) {
       setNotice("warning", "Chọn ít nhất một Picker hoặc chọn tất cả Picker.");
@@ -3954,6 +3965,7 @@ function bindSection(): void {
       ? (excludedPickerIds.size ? `tất cả Picker trừ ${excludedPickerIds.size} tài khoản đã bỏ chọn` : "tất cả Picker")
       : `${ids.length} Picker đã chọn`;
     if (action === "DELETE" && !window.confirm(`Xóa ${targetLabel}? Lịch sử nghiệp vụ vẫn được giữ.`)) return;
+    if (action === "REPORTING_DISABLE" && !window.confirm(`Tắt Báo hàng cho ${targetLabel}? Xác nhận đơn và đăng nhập vẫn hoạt động bình thường.`)) return;
     void run(async () => {
       await updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds]);
       selectedUserIds.clear();
@@ -3961,7 +3973,7 @@ function bindSection(): void {
       excludedPickerIds.clear();
       allPickerSelection = false;
       await loadUsers();
-      setNotice("success", "Đã cập nhật Picker.");
+      setNotice("success", action === "REPORTING_ENABLE" ? "Đã bật Báo hàng cho Picker." : action === "REPORTING_DISABLE" ? "Đã tắt Báo hàng cho Picker." : "Đã cập nhật Picker.");
     });
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-edit-user]").forEach((button) => button.addEventListener("click", () => {
