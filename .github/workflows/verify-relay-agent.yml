@@ -80,9 +80,9 @@ jobs:
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*86\s*;') { throw "D152 requires Agent v86 while retaining D150/D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.86\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.86\.0\.0</FileVersion>') {
-            throw "D152 Agent assembly/file version must be 0.86."
+          if ($config -notmatch 'AgentBuild\s*=\s*87\s*;') { throw "D152 requires Agent v87 while retaining D150/D140 quota-storm safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.87\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.87\.0\.0</FileVersion>') {
+            throw "D152 Agent assembly/file version must be 0.87."
           }
 
           foreach ($marker in @(
@@ -625,6 +625,9 @@ jobs:
             'checkbox_not_ready_after_search',
             'VerifyExactAfterUncertain',
             'ExactRowMissingAfterOneSearchNoLock',
+            'allCodeCount',
+            'ROW_REMOVED_STABLE_HYDRATED',
+            'CONFIRM_CONFLICT',
             'post_confirm_timeout',
             'VERIFY_ONLY_ROW_REMOVED_STABLE',
             'POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH'
