@@ -26,7 +26,7 @@
     "beta_sqlite_schema_version": 14,
     "beta_operational_v2_extension_schema_runtime": 5,
     "beta_operational_v2_extension_schema_source_target": 5,
-    "beta_sqlite_schema_source_target": 14
+    "beta_sqlite_schema_source_target": 15
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -75,16 +75,18 @@
       "google_sheet_url",
       "exact_tab_name",
       "employee_code_header",
-      "full_name_header"
+      "full_name_header",
+      "contractor_header"
     ],
     "required_columns": [
       "configured_employee_code_column",
-      "configured_full_name_column"
+      "configured_full_name_column",
+      "configured_contractor_column"
     ],
     "validation_module": "service/src/hr-source.ts",
     "storage": "InventoryCore.hr_source_config",
     "public_unauthenticated_setup": false,
-    "authenticated_api_status": "CONFIGURABLE_HEADERS_IMPLEMENTED_BETA_DEPLOY_PASS"
+    "authenticated_api_status": "D155_SOURCE_TARGET__CONFIGURABLE_MNV_NAME_CONTRACTOR_HEADERS__RUNTIME_D154_UNTIL_MERGE_DEPLOY"
   },
   "business_api": {
     "status": "D070_ALARM_RUNTIME_AVAILABILITY_REPAIR_BETA_RUNTIME_PASS",
@@ -196,8 +198,8 @@
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D144_PASS_RUN_36477936028__SOURCE_2B2B5A62__SCHEMA14_14__AGENT_MIGRATION0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v88__OWNER_ACCEPTED",
-      "next_signed_beta_release_target": "NONE__D154_OWNER_ACCEPTED",
-      "next_relay_agent_release_target": "NONE__D154_OWNER_ACCEPTED",
+      "next_signed_beta_release_target": "D155_NEXT_MONOTONIC_AFTER_VC90__EXPECTED_VC91",
+      "next_relay_agent_release_target": "relay-agent-v89",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -293,7 +295,8 @@
       "d154_inventory_channel_apk_manifest_asset_id": 598876169,
       "d154_inventory_channel_apk_asset_id": 598876159,
       "d154_owner_field_result": "PASS__OWNER_CONFIRMED_D154__2026_09_30",
-      "d154_accepted_base": "D154"
+      "d154_accepted_base": "D154",
+      "d155_source_status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS__SCHEMA15_TARGET__CLOUDFLARE_ONLY_REPORTING_CAPABILITY__AGENT_CONTRACTOR_NO_NEW_FIRESTORE_CADENCE"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -1878,5 +1881,19 @@
       "authority_run_id": 36532689218,
       "project_state_run_id": 36532689312
     }
+  },
+  "d155": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "accepted_base": "D154",
+    "sqlite_schema_target": 15,
+    "worker_path": "EXISTING_BETA_WORKER_INVENTORYCORE_HIBERNATABLE_WEBSOCKET",
+    "reporting_capability_transport": "CLOUDFLARE_ONLY__NO_FIRESTORE_RTDB_FCM_CAPABILITY_PATH",
+    "agent_contractor": "EXISTING_PICKER_PRESENCE_AGENT_SYNC_PAYLOAD_ONLY__NO_EXTRA_OPERATION_CADENCE",
+    "target_agent_release": "relay-agent-v89",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC90",
+    "new_provider_resources": "NONE",
+    "new_collections": "NONE",
+    "new_secrets": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
