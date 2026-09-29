@@ -43,7 +43,7 @@ class PickerController(
     private val friendlyError: (Exception) -> String,
     private val recordLog: (String) -> Unit,
     private val displayScale: Float = 1f,
-    private val shortageReportingEnabled: Boolean = true,
+    private var shortageReportingEnabled: Boolean = true,
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
@@ -284,6 +284,30 @@ class PickerController(
         if (scopes.contains("sku_catalog")) syncCatalog(auto = true)
         if (scopes.contains("picker_reports")) refresh(completion)
         else completion(true)
+    }
+
+    fun applyShortageReportingCapability(enabled: Boolean) {
+        if (shortageReportingEnabled == enabled) return
+        shortageReportingEnabled = enabled
+        shortageTab?.isEnabled = enabled
+        shortageTab?.alpha = if (enabled) 1f else 0.42f
+        if (!enabled) {
+            clearSelection()
+            pendingResults = emptyList()
+            activeResultDialog?.let { dialog ->
+                try { if (dialog.isShowing) dialog.dismiss() } catch (_: Exception) { }
+            }
+            activeResultDialog = null
+            resultDialogShowing = false
+            showOperationTab(confirm = true)
+            setStatus("Báo hàng đang tắt cho tài khoản này. Xác nhận đơn vẫn sử dụng bình thường.")
+            updateReportEnabled()
+            return
+        }
+        showOperationTab(confirm = false)
+        setStatus("Báo hàng đã được bật cho tài khoản này.")
+        syncCatalog(auto = true)
+        refresh()
     }
 
     fun destroy() {
