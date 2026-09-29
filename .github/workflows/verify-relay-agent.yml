@@ -78,8 +78,8 @@ jobs:
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
           if ($config -notmatch 'AgentBuild\s*=\s*83\s*;') { throw "D146 requires Agent v83 while retaining D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.83\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.83\.0\.0</FileVersion>') {
-            throw "D146 Agent assembly/file version must be 0.83."
+          if ($project -notmatch '<AssemblyVersion>0\.84\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.84\.0\.0</FileVersion>') {
+            throw "D149 Agent assembly/file version must be 0.84."
           }
 
           foreach ($marker in @(
