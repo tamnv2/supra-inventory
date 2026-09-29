@@ -84,22 +84,32 @@ type OperatingScheduleRecord = {
 function validOperatingSchedule(value: OperatingScheduleRecord): boolean {
   return /^\d{8}$/.test(String(value.schedule_key || "")) &&
     Number(value.version || 0) > 0 &&
-    ["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START"].includes(String(value.decision || "")) &&
+    ["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START", "CANCEL_OVERTIME"].includes(String(value.decision || "")) &&
     Number(value.open_until_ms || 0) > 0 &&
-    Number(value.normal_start_minutes || 0) === 360 &&
-    Number(value.normal_end_minutes || 0) === 1320 &&
+    Number(value.normal_start_minutes || 0) === 345 &&
+    Number(value.normal_end_minutes || 0) === 1350 &&
     Number(value.overtime_cutoff_minutes || 0) === 300;
 }
 
 async function mirrorOperatingScheduleToWorker(state: OperatingScheduleRecord): Promise<void> {
   const auth = new GoogleAuth();
   const client = await auth.getIdTokenClient(WORKER_ORIGIN);
-  await client.request({
-    url: `${WORKER_ORIGIN}/api/internal/d149/operating-schedule`,
-    method: "POST",
-    data: state,
-    timeout: 10_000,
-  });
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await client.request({
+        url: `${WORKER_ORIGIN}/api/internal/d149/operating-schedule`,
+        method: "POST",
+        data: state,
+        timeout: 10_000,
+      });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  throw lastError;
 }
 
 // D149: exact low-frequency current-state trigger only. Do not move this trigger
@@ -132,8 +142,8 @@ export const operatingScheduleChanged = onDocumentWritten(
       decision: String(state.decision || ""),
       decision_boundary_ms: String(Math.max(0, Math.trunc(Number(state.decision_boundary_ms || 0)))),
       open_until_ms: String(Math.max(0, Math.trunc(Number(state.open_until_ms || 0)))),
-      normal_start_minutes: "360",
-      normal_end_minutes: "1320",
+      normal_start_minutes: "345",
+      normal_end_minutes: "1350",
       overtime_cutoff_minutes: "300",
       updated_at_ms: String(Math.max(0, Math.trunc(Number(state.updated_at_ms || state.version || 0)))),
     };
