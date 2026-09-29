@@ -1943,3 +1943,25 @@ The revised standalone diagnostic APK must satisfy all of the following before f
 - the existing manual Beta diagnostic upload remains the only network action and keeps the existing bounded schema/throttle/archive path;
 - CI checks the detail-action, overlay permission and `TYPE_APPLICATION_OVERLAY` source boundary;
 - field result distinguishes: real DND backend repaired by per-app detail settings vs DND still denied but overlay path operational. Neither result silently weakens the production readiness gate.
+
+
+### D151 adaptive production acceptance
+
+Technical/source PASS requires:
+- `AlertReadiness.ready` depends only on notifications + overlay + battery exemption; DND policy/channel bypass is not a hard login predicate;
+- mode selection is capability-based: `NATIVE_DND` only when real policy + bypass channel are ready, otherwise `OVERLAY_COMPAT`;
+- production Android alert-selection source contains no MT90/DT50/firmware allowlist;
+- existing high-priority FCM and `CriticalOverlayService` remain the critical event path;
+- screen-off/keyguard handling uses a bounded local wake coordinator plus the existing `CriticalWakeActivity`; no WakeLock is introduced;
+- notification full-screen intent is emitted only when Android reports it usable on versions that expose that capability;
+- D148 overlay priority/FIFO/de-duplication/local-first ACK contracts remain unchanged;
+- no new provider, Worker request, Firestore read/write/listener, polling loop, cron or schema is introduced;
+- signed Beta Android advances monotonically after `beta-vc88`; Agent/Web/Stable are unchanged.
+
+OA079 field PASS requires testing the signed D151 Beta on:
+1. one MT90 with the known broken DND backend family (currently V8.01.002);
+2. one MT90 where native DND works (currently V8.04.006);
+3. one Urovo DT50;
+4. one other Android 11+ device when readily available.
+
+On each device, Notification + Overlay + battery exemption must remain mandatory. A critical alert must appear over another app with DND enabled. At least one screen-off/keyguard run must wake/present the alert. Native-capable devices should report full mode; unsupported/broken DND devices should report Overlay Compatibility mode without a false grant. No duplicate business ACK or unexpected provider-usage amplification is accepted.
