@@ -521,6 +521,7 @@ namespace SupraInventoryRelayAgent
                 EnsureReadyNoLock();
                 EnsurePageSize100NoLock();
                 var scan = ScanNoLock(terms);
+                var emptyRecoveryThisSearch = false;
                 if (NeedsSearchRetry(scan) && allowOneSearchClick)
                 {
                     ClickExactButtonNoLock(SearchText);
@@ -575,6 +576,7 @@ namespace SupraInventoryRelayAgent
                     scan.PicklistCodeCount == 0 && !_emptyDataRecoveryUsed)
                 {
                     _emptyDataRecoveryUsed = true;
+                    emptyRecoveryThisSearch = true;
                     _log("SUPRA_BROWSER empty_data_self_heal=START first_search_zero_picklist_codes=true");
                     IssueConfirmReloadNowNoLock("empty_table_after_search");
                     if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromSeconds(10)))
@@ -602,6 +604,7 @@ namespace SupraInventoryRelayAgent
                 // no loop and no mutation. Preserve the pre-reload exact code so a row
                 // that disappears/changes cannot be misclassified as a fresh NOT_FOUND.
                 if (allowOneSearchClick &&
+                    !emptyRecoveryThisSearch &&
                     scan.UnselectableFragments.Count > 0 &&
                     scan.AmbiguousFragments.Count == 0)
                 {
@@ -792,6 +795,7 @@ namespace SupraInventoryRelayAgent
             started.Stop();
             result.ElapsedMs = started.ElapsedMilliseconds;
             _log("SUPRA_BROWSER confirm result=" + result.Result +
+                 " detail=" + (string.IsNullOrWhiteSpace(result.Detail) ? "NONE" : result.Detail) +
                  " ms=" + result.ElapsedMs +
                  " direct_api=false session_extract=false");
             return result;
