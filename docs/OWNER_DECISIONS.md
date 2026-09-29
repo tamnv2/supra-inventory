@@ -2416,3 +2416,17 @@ D154 implementation is technically released on Beta but is **not Owner-accepted 
 - Main Repo Authority `36609749884`, Project State `36609749791`, UI Design `36609749861`, Dashboard Probe `36609749872`, Android `36609749611`, Worker `36609749783`, Functions `36609749800` and Agent `36609749714` are PASS.
 - No new provider/resource/collection/schema/secret/listener/polling/cron. Stable remains OWNER-GATED and untouched.
 - OA082 is **READY_FOR_OWNER_FIELD_TEST**.
+
+
+### D154 Owner acceptance — PASS — 2026-09-30
+
+The Owner explicitly confirmed D154 PASS after field validation of the released Beta implementation.
+
+- D154 is now the **accepted project base**.
+- Accepted runtime source remains implementation main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`.
+- Accepted releases: Android `beta-vc90` and Agent `relay-agent-v88`.
+- Accepted schedule authority: normal replay **05:45–22:30**, early start **05:00–05:45**, 22:30-anchored overtime extensions capped at 05:00, explicit `CANCEL_OVERTIME`, and one shared Agent-owned schedule state consumed by Android/Web.
+- Accepted synchronization repair: `operatingScheduleChanged` is deployed in Beta; Worker mirror retry is bounded to one retry inside the same event; Android exact Firestore schedule recovery is only on a blocked PickList attempt that still sees a closed Worker state.
+- Accepted Android presentation: dynamic Beta version footer and DND + Overlay priority setup while Notification/Overlay/battery hard readiness remains unchanged.
+- OA082 is closed PASS. The serial Owner-PASS gate is open for the next separately reviewed change.
+- No new provider/resource/collection/schema/secret/listener/polling/cron. Stable remains OWNER-GATED and untouched.
