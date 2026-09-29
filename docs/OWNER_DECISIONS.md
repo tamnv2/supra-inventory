@@ -2340,3 +2340,9 @@ After explicitly accepting D151 PASS, the Owner approved the proposed PickList r
 5. An existing uncertain confirmation guard remains a hard no-resend fence. A later request for the same exact PickList may perform one read-only browser verification; only stable disappearance of that exact row may convert the result to CONFIRMED. Otherwise it remains uncertain.
 6. Existing request-age, single-PRIMARY, generation, full-code, exact-row and confirmation-guard fences remain mandatory. No direct WMS API, session extraction, Network interception, second mutation provider or guessed success state is allowed.
 7. D152 is Agent-only and targets `relay-agent-v86`. Signed Android remains `beta-vc89`. No new provider resource, Firestore collection/schema, listener, polling cadence, cron or secret is authorized. Stable remains OWNER-GATED.
+
+### D152 technical/runtime/release checkpoint — 2026-09-29
+
+D152 implementation PR **#316** squash-merged to main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`. Main Repo Authority, Project State, Dashboard, UI/operational and Verify Beta Relay Agent workflows passed. Agent **relay-agent-v86** was published from that exact main commit; release id `399178131`, canonical EXE asset id `598297827`, size `7,074,304` bytes, SHA-256 `098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430`. The fixed `inventory-channel` Agent asset was refreshed to the same digest.
+
+D152 is now **TECHNICAL / RUNTIME / RELEASE PASS**. OA080 is READY_FOR_OWNER_FIELD_TEST. D151 remains the accepted base until explicit Owner D152 PASS. Android remains signed `beta-vc89`; no new provider/resource/schema/listener/polling/write cadence was introduced; Stable remains OWNER-GATED.
