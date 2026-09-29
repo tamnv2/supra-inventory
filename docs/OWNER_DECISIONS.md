@@ -2382,3 +2382,21 @@ The Owner explicitly confirmed **D153 PASS** after field validation of the relea
 Accepted runtime remains implementation main `d69566ee0ae6294573ec91f9eb649764e91561ee`, Agent `relay-agent-v87` release id `399311941`, EXE SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`, and signed Android `beta-vc89` unchanged.
 
 Accepted D153 scope remains A+B+C only: one-shot session-fenced PickList fallback, InventoryCore semantic presence/notification write dedupe, and Picker-only Agent sync no-op gating. The proposed streaming redesign D remains deferred. Protected 3s/15s/1s confirmation cadence, 10s PRIMARY lease, 15s failover and D152 confirmation safeguards remain unchanged. OA081 is closed; no new provider/resource/schema/listener/polling/cron was introduced; Stable remains OWNER-GATED.
+
+
+## D154 — Unified 05:45–22:30 schedule, schedule self-heal, Android setup UX and visible version — 2026-09-30
+
+Status: **OWNER APPROVED — IMPLEMENTATION AUTHORIZED**.
+
+Baseline is D153 Owner PASS. After impact review, the Owner approved the coordinated D154 change across Android, Agent, Functions, Worker and Web.
+
+1. Android login footer shows the running application version on the left of the existing developer credit, using the same small typography. The value is derived from BuildConfig and is not hard-coded; presentation is `Phiên bản beta <base-version> - version <versionCode>`.
+2. The Android pre-login permission surface moves the DND test + Overlay guidance to a visually distinct top priority group. Native DND remains capability-based and non-blocking; Notification + Overlay + battery-exemption remain the hard readiness requirements from D151.
+3. Normal shared business time is widened to **05:45–22:30 Asia/Ho_Chi_Minh**. The overtime cutoff remains **05:00**. Early start is therefore **05:00–<05:45**.
+4. Overtime cadence is anchored to **22:30 → 23:30 → 00:30 ...**, capped at 05:00. Agent is still the schedule authority; normal UI timers must not add a schedule listener or polling loop.
+5. When a shared override is active outside the normal window, Agent shows a professional shared-state message including the effective end time and exposes **Huỷ tăng ca**. Cancellation is a new explicit `CANCEL_OVERTIME` schedule decision that closes the override immediately and is propagated to Android/Web.
+6. A repeated explicit manual schedule action may re-project the already-authoritative role state once to repair a missed projection. This is action-driven self-heal only; it is not a timer/retry loop.
+7. Root cause found during D154 implementation: `operatingScheduleChanged` existed in Functions source but was omitted from the Beta Functions deployment allow-list. D154 adds the function to the deploy workflow and guard. The Function mirrors the exact schedule document to Worker and sends FCM; Worker mirror gets one bounded retry inside the same event on failure.
+8. Android PickList reconciliation no longer treats a successful but closed/stale Worker schedule response as final. If still blocked outside normal time, it performs one exact Firestore `operating_schedule` GET under the existing 60-second user-attempt gate; there is no background listener/list query or periodic retry.
+9. D154 targets Agent `relay-agent-v88` and the next monotonic signed Android Beta after `beta-vc89` (expected `beta-vc90` if no intervening release).
+10. No new provider, Firestore collection/schema, SQLite schema, secret, polling loop, listener or cron is authorized. Stable remains OWNER-GATED and untouched.
