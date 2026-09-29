@@ -263,8 +263,8 @@ jobs:
             echo "D151 production alert selection must remain capability-based, not firmware/model allowlisted." >&2
             exit 1
           fi
-          if grep -q 'WakeLock' "$wake"; then
-            echo "D151 adaptive wake path must not add a WakeLock." >&2
+          if grep -E -q 'newWakeLock|PARTIAL_WAKE_LOCK|\.acquire\(' "$wake"; then
+            echo "D151 adaptive wake path must not acquire a WakeLock." >&2
             exit 1
           fi
           echo "D151 adaptive Android alert engine guard PASS"
