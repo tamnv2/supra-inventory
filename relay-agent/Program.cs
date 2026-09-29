@@ -1136,7 +1136,7 @@ namespace SupraInventoryRelayAgent
             _supraCard.Controls.Add(_agentDataStorageStatus);
 
             _openAgentDataFolder.SetBounds(752, 166, 116, 28);
-            _openAgentDataFolder.Text = "Mở thư mục";
+            _openAgentDataFolder.Text = "Mở thư mục dữ liệu";
             _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _openAgentDataFolder.Click += (sender, e) => OpenAgentDataFolder();
             _supraCard.Controls.Add(_openAgentDataFolder);
@@ -1886,8 +1886,7 @@ namespace SupraInventoryRelayAgent
                 using (var dialog = new FolderBrowserDialog())
                 {
                     dialog.Description = "Chọn thư mục trên ổ đĩa nội bộ để lưu Web Agent.";
-                    dialog.SelectedPath = Directory.GetParent(AgentBrowserStorage.CurrentRoot)?.FullName
-                        ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    dialog.SelectedPath = AgentBrowserStorage.CurrentRoot;
                     if (dialog.ShowDialog(this) != DialogResult.OK) return;
 
                     var target = AgentBrowserStorage.ResolveTargetRoot(dialog.SelectedPath);
