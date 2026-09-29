@@ -5,12 +5,12 @@
 ## 1. Current canonical markers
 
 - Project: `supra-inventory`
-- SQLite schema: `15`
-- Latest signed Beta APK: `beta-vc91`
+- SQLite schema: `16`
+- Latest signed Beta APK: `beta-vc92`
 - Current released Agent: `relay-agent-v90`
-- Beta: `D155_OWNER_ACCEPTED_BASE__AGENT_V90__ANDROID_VC91`
-- Web: `D155_OWNER_FIELD_ACCEPTED_PASS__MAIN_57596C6E__D154_SCHEDULE_BASE_RETAINED`
-- Android: `D155_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC91__CONTRACTOR_REPORTING_CONTROL__D154_SCHEDULE_BASE_RETAINED`
+- Beta: `D156_TECHNICAL_RUNTIME_RELEASE_PASS__OA084_FIELD_READY__D155_ACCEPTED_BASE`
+- Web: `D156_TECHNICAL_RUNTIME_PASS__SCHEDULE_CONVERGENCE__MAIN_859A7DFB`
+- Android: `D156_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC92__SCHEDULE_CONVERGENCE_REPORTING_DEFAULT_OFF`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1575,3 +1575,16 @@ Derived current-status markers:
 - Current Beta runtime: schema **15**, Android **beta-vc91**, Agent **relay-agent-v90**.
 - D155 contractor synchronization and Picker Báo hàng capability control are Owner-accepted; D154 shared schedule behavior remains the inherited schedule baseline.
 - Serial Owner-PASS gate is open for the next separately reviewed change. Stable remains OWNER-GATED.
+
+## D156 technical/runtime/release checkpoint — 2026-09-30
+
+D156 is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_TEST** under OA084. D155 remains the accepted base until explicit Owner D156 PASS.
+
+- Implementation PR #333 merged to main `859a7dfb8b83594cc43fa502ac53d449ab1ee8ef`.
+- Beta Worker run `36645477945` PASS: HTTP 200, exact source, SQLite `16/16`, Operational V2 `5/5`, Agent auth migration `0/0`.
+- Signed Android **beta-vc92** release id `399600358`, APK asset `599489469`, size `19,118,748` bytes, SHA-256 `10171a4b8e38b542670be2c21c556c269c2f3f7b1f1ed8757e738618522e6d7f`; inventory channel APK asset `599489528` matches the same digest.
+- Windows Agent remains **relay-agent-v90** unchanged.
+- D156 normal schedule propagation remains Agent → existing operatingScheduleChanged Function → Worker + FCM. Exact recovery is only while Worker is closed and is single-flight/globally throttled to one exact schedule-document read per 10 seconds.
+- Schema 16 applied the one-time existing-Picker Báo hàng default-off migration; new HR Pickers also default off while later explicit toggles are preserved.
+- Main Authority, State, UI, Dashboard, Worker and Android gates are PASS. No new provider resource, collection, secret, listener, polling loop, cron or Firestore write cadence is introduced. Stable remains OWNER-GATED.
+
