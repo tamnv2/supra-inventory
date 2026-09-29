@@ -1339,3 +1339,16 @@ Status: **OWNER FIELD PASS**.
 - Worker metadata reflects 06/12/18/21 scheduled policy for Web/Agent and Android session-end INFO policy.
 - No Agent, overtime authority, schema, new provider resource or Stable change.
 - OA076 remains blocked until technical/runtime/release PASS.
+
+## D148 technical/runtime/release PASS — 2026-09-29
+- PR #300 merged main `fe893db1d80e417021defdad92d85947c37abd82`.
+- Main Repo Authority `36510191993`, continuity `36510191987`, Beta deploy `36510192034`, Android `36510192008`, legacy operational `36510192016`, and build-probe `36510192021` passed.
+- Live Beta Web/Worker probes passed.
+- Signed Android `beta-vc87` release id `398763774`; APK asset `596952438`; size 19,102,276 bytes; SHA-256 `41e5d499e2c38a703aa4b58a1408963031dbacdb9b11f885650a325a4d0147f2`.
+- Fixed PDA distribution channel points to the same APK. Agent remains v83.
+- No new resource/schema/polling/Agent/overtime-unification/Stable mutation.
+- OA076 is field-ready. D148 is **not** Owner-accepted yet; D147 remains the accepted base.
+
+Derived current-status markers:
+- `D148_TECHNICAL_RUNTIME_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
+- `D148_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`

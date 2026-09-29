@@ -3721,7 +3721,7 @@
     },
     {
       "id": "OA076",
-      "status": "BLOCKED_PENDING_D148_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D148 Web/Android alert, reporting and log refinements",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3747,8 +3747,18 @@
         "No Agent or overtime-unification mutation in D148.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until D148 technical/runtime/release PASS. Then perform field test and explicitly record PASS or NOT PASS.",
-      "closed": false
+      "remaining_owner_action": "Test live Beta Web + signed beta-vc87 using the six OA076 checks, then explicitly reply D148 PASS or itemize NOT PASS defects. D149 remains blocked until PASS.",
+      "closed": false,
+      "technical_release_evidence": {
+        "main_merge": "fe893db1d80e417021defdad92d85947c37abd82",
+        "android_release": "beta-vc87",
+        "android_sha256": "41e5d499e2c38a703aa4b58a1408963031dbacdb9b11f885650a325a4d0147f2",
+        "beta_worker_run": 36510192034,
+        "android_run": 36510192008,
+        "legacy_operational_run": 36510192016,
+        "authority_run": 36510191993,
+        "continuity_run": 36510191987
+      }
     }
   ]
 }
