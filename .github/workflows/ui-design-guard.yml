@@ -10,6 +10,7 @@ on:
       - "docs/specs/UI_DESIGN_SYSTEM.md"
       - "tools/ui_design_guard.py"
       - "tools/d098_cloudflare_budget_guard.py"
+      - "tools/android_operational_regression.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
   pull_request:
@@ -21,6 +22,7 @@ on:
       - "docs/specs/UI_DESIGN_SYSTEM.md"
       - "tools/ui_design_guard.py"
       - "tools/d098_cloudflare_budget_guard.py"
+      - "tools/android_operational_regression.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
   workflow_dispatch:
