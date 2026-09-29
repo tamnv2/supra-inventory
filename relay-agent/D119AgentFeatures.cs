@@ -98,11 +98,15 @@ namespace SupraInventoryRelayAgent
         private long _d135CounterErrorFloor;
         private long _agentSyncReconcileRunning;
         private DateTime _lastAgentSyncReconcileUtc = DateTime.MinValue;
+        private DateTime _lastD150DeepSyncReadUtc = DateTime.MinValue;
+        private long _d150DeepSyncReadRunning;
         private bool? _pickerWindowOpenState;
         private volatile int _activePdaCountForRelay;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
         private readonly Button _autoSizeAgentColumnsButton = new Button();
+        private readonly Button _d150PrimaryTakeoverButton = new Button();
+        private bool _d150PrimaryTakeoverRunning;
         private bool _autoSizeColumnsEnabled = true;
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
@@ -297,6 +301,7 @@ namespace SupraInventoryRelayAgent
                 RefreshPickerWindowBoundary();
                 ExpirePickerCallLocks();
                 RefreshD119OperationalViews(false);
+                UpdateD150PrimaryTakeoverButton();
             };
             _d119OpsTimer.Start();
             FormClosed += (s, e) =>
@@ -358,6 +363,7 @@ namespace SupraInventoryRelayAgent
                     30);
                 _autoSizeAgentColumnsButton.Visible = true;
                 _agentRequestMetrics.Visible = false;
+                UpdateD150PrimaryTakeoverButton();
 
                 var fleetTop = 126;
                 _agentFleetGrid.SetBounds(
@@ -376,6 +382,7 @@ namespace SupraInventoryRelayAgent
                 _manualUpdate.SetBounds(16, 118, 148, 30);
                 _background.SetBounds(174, 118, 142, 30);
                 _autoSizeAgentColumnsButton.Visible = false;
+                _d150PrimaryTakeoverButton.Visible = false;
                 _agentRequestMetrics.Visible = false;
                 _agentFleetGrid.Visible = false;
             }
@@ -423,8 +430,18 @@ namespace SupraInventoryRelayAgent
                 };
                 agentHost.Controls.Add(_autoSizeAgentColumnsButton);
                 _autoSizeAgentColumnsButton.BringToFront();
+
+                _d150PrimaryTakeoverButton.Text = "Chuyển Agent chính";
+                _d150PrimaryTakeoverButton.Width = 150;
+                _d150PrimaryTakeoverButton.Height = 30;
+                _d150PrimaryTakeoverButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                _d150PrimaryTakeoverButton.Visible = false;
+                _d150PrimaryTakeoverButton.Click += (s, e) => BeginD150ManualPrimaryTakeover();
+                agentHost.Controls.Add(_d150PrimaryTakeoverButton);
+                _d150PrimaryTakeoverButton.BringToFront();
             }
             UpdateAutoSizeColumnsButton();
+            UpdateD150PrimaryTakeoverButton();
 
             foreach (var grid in new[] { _agentFleetGrid, _pickerOnlineGrid, _manualPicklistGrid })
             {
@@ -474,6 +491,117 @@ namespace SupraInventoryRelayAgent
                 ? "Auto size cột: Bật"
                 : "Auto size cột: Tắt";
             _autoSizeAgentColumnsButton.Text = text;
+        }
+
+        private static bool IsD150ManualTakeoverLogin(string loginName)
+        {
+            var value = (loginName ?? "").Trim();
+            return string.Equals(value, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(value, "admin", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void UpdateD150PrimaryTakeoverButton()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(UpdateD150PrimaryTakeoverButton));
+                return;
+            }
+            var host = _username.Parent;
+            if (host == null) return;
+
+            var authenticated = HasAgentSession();
+            var allowed = false;
+            if (authenticated)
+            {
+                try { allowed = IsD150ManualTakeoverLogin(SnapshotSession().LoginName); }
+                catch { allowed = false; }
+            }
+            var primary = _leaderCoordinator != null && _leaderCoordinator.IsLeader;
+            var visible = authenticated && allowed && !primary;
+            _d150PrimaryTakeoverButton.Visible = visible;
+            _d150PrimaryTakeoverButton.Enabled = visible &&
+                !_d150PrimaryTakeoverRunning &&
+                _leaderCoordinator != null &&
+                IsBusinessAllowed() &&
+                HasReadyConfirmBrowser();
+
+            const int right = 16;
+            const int gap = 8;
+            const int autoWidth = 168;
+            const int takeoverWidth = 150;
+            if (visible)
+            {
+                var takeoverLeft = Math.Max(446, host.ClientSize.Width - right - takeoverWidth);
+                _d150PrimaryTakeoverButton.SetBounds(takeoverLeft, 88, takeoverWidth, 30);
+                _autoSizeAgentColumnsButton.SetBounds(Math.Max(446, takeoverLeft - gap - autoWidth), 88, autoWidth, 30);
+            }
+            else if (authenticated)
+            {
+                _autoSizeAgentColumnsButton.SetBounds(Math.Max(446, host.ClientSize.Width - right - autoWidth), 88, autoWidth, 30);
+            }
+            _d150PrimaryTakeoverButton.BringToFront();
+        }
+
+        private void BeginD150ManualPrimaryTakeover()
+        {
+            if (_d150PrimaryTakeoverRunning || !HasAgentSession()) return;
+            AgentSession session;
+            try { session = SnapshotSession(); }
+            catch { return; }
+            if (!IsD150ManualTakeoverLogin(session.LoginName)) return;
+            if (_leaderCoordinator == null || _leaderCoordinator.IsLeader)
+            {
+                UpdateD150PrimaryTakeoverButton();
+                return;
+            }
+            if (!IsBusinessAllowed() || !HasReadyConfirmBrowser())
+            {
+                MessageBox.Show(
+                    "Chỉ có thể chuyển Agent chính khi Replay đang hoạt động và Web Confirm sẵn sàng.",
+                    "Chuyển Agent chính",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                UpdateD150PrimaryTakeoverButton();
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                "Chuyển Agent chính về máy này?\r\n\r\nLuồng tự động PDA sẽ được chuyển sang Agent hiện tại bằng cơ chế CAS/generation an toàn.",
+                "Xác nhận chuyển Agent chính",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2);
+            if (confirm != DialogResult.Yes) return;
+
+            _d150PrimaryTakeoverRunning = true;
+            UpdateD150PrimaryTakeoverButton();
+            Task.Run(() =>
+            {
+                var passed = false;
+                try
+                {
+                    var coordinator = _leaderCoordinator;
+                    passed = coordinator != null && coordinator.PromoteManualPrimary();
+                }
+                catch (Exception ex)
+                {
+                    Log("D150 manual primary takeover DEFER type=" + ex.GetType().Name + " detail=" + SafeMessage(ex));
+                }
+                Ui(() =>
+                {
+                    _d150PrimaryTakeoverRunning = false;
+                    UpdateD150PrimaryTakeoverButton();
+                    if (passed)
+                        _relay.Text = "Chế độ nhận tin từ PDA: Replay · Máy này đã là Agent chính";
+                    else
+                        MessageBox.Show(
+                            "Chưa thể chuyển Agent chính. Kiểm tra Web Confirm, trạng thái Replay hoặc thử lại sau khi cụm Agent đồng bộ.",
+                            "Chuyển Agent chính",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                });
+            });
         }
 
         private string CurrentColumnPreferenceUser()
@@ -1124,22 +1252,39 @@ namespace SupraInventoryRelayAgent
             RenderFleetMetricStatus(primary);
 
             if (primary)
-                ReconcileD134AgentSync(force);
-            else if (force && (_agentSyncSnapshot == null || _agentSyncSnapshot.Version <= 0))
             {
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        EnsureFreshToken();
-                        ApplyD134AgentSyncSnapshot(_agentSyncClient.Load(SnapshotSession()));
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("AGENT_SYNC foreground=DEFER detail=" + SafeMessage(ex));
-                    }
-                });
+                ReconcileD134AgentSync(force);
+                return;
             }
+
+            var now = DateTime.UtcNow;
+            var role = coordinator == null ? FirestoreAgentRole.DEEP_HIBERNATE : coordinator.Role;
+            var noSnapshot = _agentSyncSnapshot == null || _agentSyncSnapshot.Version <= 0;
+            var forcedInitial = force && noSnapshot &&
+                (_lastD150DeepSyncReadUtc == DateTime.MinValue || now - _lastD150DeepSyncReadUtc >= TimeSpan.FromMinutes(1));
+            var deepPeriodic = role == FirestoreAgentRole.DEEP_HIBERNATE &&
+                (_lastD150DeepSyncReadUtc == DateTime.MinValue || now - _lastD150DeepSyncReadUtc >= TimeSpan.FromMinutes(10));
+            if (!forcedInitial && !deepPeriodic) return;
+            if (Interlocked.CompareExchange(ref _d150DeepSyncReadRunning, 1L, 0L) != 0L) return;
+            _lastD150DeepSyncReadUtc = now; // attempt throttle: failure must not create a 30-second retry loop.
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    EnsureFreshToken();
+                    ApplyD134AgentSyncSnapshot(_agentSyncClient.Load(SnapshotSession()));
+                    Log("AGENT_SYNC deep_exact_read=PASS cadence=10m listener=false");
+                }
+                catch (Exception ex)
+                {
+                    Log("AGENT_SYNC deep_exact_read=DEFER retry_after=10m detail=" + SafeMessage(ex));
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _d150DeepSyncReadRunning, 0L);
+                }
+            });
         }
 
         private void ReconcileD134AgentSync(bool force)
