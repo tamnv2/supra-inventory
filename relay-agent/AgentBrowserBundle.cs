@@ -34,22 +34,12 @@ namespace SupraInventoryRelayAgent
 
         private static string Root
         {
-            get
-            {
-                return Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "SUPRA Inventory", "ConfirmBrowser", "OwnedWebView2");
-            }
+            get { return Path.Combine(AgentBrowserStorage.CurrentRoot, "OwnedWebView2"); }
         }
 
         internal static string BrowserDataRoot
         {
-            get
-            {
-                return Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "SUPRA Inventory", "ConfirmBrowser");
-            }
+            get { return AgentBrowserStorage.CurrentRoot; }
         }
 
         internal static void CleanupObsoleteBackground(Action<string> log)
