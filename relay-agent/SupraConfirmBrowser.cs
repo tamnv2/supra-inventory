@@ -746,12 +746,12 @@ namespace SupraInventoryRelayAgent
                         break;
                     }
 
-                    if (Bool(post, "rowMissing"))
+                    if (Bool(post, "rowMissing") && Int(post, "allCodeCount") > 0)
                     {
                         if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
                         rowMissingSamples++;
-                        if (rowMissingSamples >= 3 &&
-                            DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(700))
+                        if (rowMissingSamples >= 4 &&
+                            DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(900))
                         {
                             result.Result = "CONFIRMED";
                             result.Detail = "ROW_REMOVED_STABLE";
@@ -770,7 +770,7 @@ namespace SupraInventoryRelayAgent
                     string verifyDiagnostic;
                     if (TryVerifyRowRemovedAfterSearchNoLock(
                         code,
-                        TimeSpan.FromMilliseconds(2500),
+                        TimeSpan.FromMilliseconds(3500),
                         out verifyDiagnostic))
                     {
                         result.Result = "CONFIRMED";
@@ -813,7 +813,7 @@ namespace SupraInventoryRelayAgent
                 string diagnostic;
                 if (TryVerifyRowRemovedAfterSearchNoLock(
                     code,
-                    TimeSpan.FromMilliseconds(2500),
+                    TimeSpan.FromMilliseconds(3500),
                     out diagnostic))
                 {
                     result.Result = "CONFIRMED";
@@ -878,22 +878,24 @@ namespace SupraInventoryRelayAgent
                 lastCheckboxChecked = Bool(post, "checkboxChecked");
                 lastCheckboxDisabled = Bool(post, "checkboxDisabled");
 
-                if (Bool(post, "rowMissing"))
+                if (Bool(post, "rowMissing") && Int(post, "allCodeCount") > 0)
                 {
                     if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
                     rowMissingSamples++;
-                    if (rowMissingSamples >= 3 &&
-                        DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(500))
-                    {
-                        diagnostic = "ROW_REMOVED_STABLE";
-                        return true;
-                    }
                 }
                 else
                 {
                     rowMissingSamples = 0;
                     rowMissingSinceUtc = DateTime.MinValue;
                 }
+            }
+
+            if (rowMissingSamples >= 6 &&
+                rowMissingSinceUtc != DateTime.MinValue &&
+                DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(1200))
+            {
+                diagnostic = "ROW_REMOVED_STABLE_HYDRATED_TABLE";
+                return true;
             }
 
             diagnostic = "ROW_PRESENT_OR_UNCERTAIN" +
@@ -2343,7 +2345,10 @@ namespace SupraInventoryRelayAgent
                 }
               };
               addDoc(document);
-              const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible).filter(row => {
+              const allRows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
+              const allCodes = [...new Set(allRows.flatMap(row =>
+                (((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || [])))];
+              const rows = allRows.filter(row => {
                 const codes = [...new Set((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))];
                 return codes.includes(code);
               });
@@ -2371,6 +2376,7 @@ namespace SupraInventoryRelayAgent
               const state = {
                 surfaceFingerprint,
                 rowCount: rows.length,
+                allCodeCount: allCodes.length,
                 checkboxCount,
                 checkboxChecked,
                 checkboxDisabled
