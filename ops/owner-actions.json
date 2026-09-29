@@ -3949,6 +3949,39 @@
         "agent_release_id": 399178131,
         "agent_sha256": "098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430"
       }
+    },
+    {
+      "id": "OA081",
+      "status": "BLOCKED_TECHNICAL_RELEASE_PENDING",
+      "title": "Field-accept D153 quota-safe Picker presence dedupe",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can validate real multi-PDA Picker-list continuity, targeted logout removal and provider Usage after the D153 Beta Agent/Worker release.",
+      "prerequisites": {
+        "accepted_base": "D152_OWNER_FIELD_ACCEPTED_PASS",
+        "d153_owner_approval": "PASS__2026_09_29",
+        "target_agent_release": "relay-agent-v87",
+        "android": "beta-vc89__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Keep one Picker logged in and submit several real PickLists; verify the Picker row remains LOGIN and does not flicker/rewrite on every PickList.",
+        "Use a Picker whose LOGIN projection is temporarily absent, submit one PickList, verify one fallback row appears, then submit more PickLists and verify no repeated list churn.",
+        "Explicitly logout/revoke that fallback session and verify only the matching Picker row disappears.",
+        "Repeat app resume/token registration on an unchanged logged-in PDA and verify alerts still work while Firestore Write growth no longer jumps for identical registration.",
+        "Verify normal PickList result speed, manual PRIMARY/failover and specialist call/chat remain unchanged.",
+        "Observe Firestore Usage long enough to confirm lower Write growth with no read/reconnect amplification."
+      ],
+      "pass_criteria": [
+        "Repeated same-session PickLists do not rewrite Picker presence/agent_sync.",
+        "Repeated identical device registration creates no Firestore presence/control or notification-target write after successful acknowledgement.",
+        "Fallback is one-shot, session-generation fenced and removed only by matching authoritative LOGIN/revoke/logout semantics.",
+        "D150 3s/15s/1s queue, 10s lease and 15s failover remain unchanged.",
+        "No new provider/listener/polling/schema/resource or Android release is introduced.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Blocked until D153 technical/runtime/release PASS. Then run the bounded field matrix and report PASS/FAIL.",
+      "closed": false
     }
   ]
 }
