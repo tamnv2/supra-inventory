@@ -211,6 +211,7 @@ class MainActivity : Activity() {
             reconcileSkuCatalogRefresh()
             drainOverlayAcknowledgements()
             ensurePickerActiveCallWatcher(api.session!!)
+            applyOperatingSchedulePresentation()
             syncEffectiveRole()
         }
     }
@@ -409,6 +410,7 @@ class MainActivity : Activity() {
                 Thread {
                     try {
                         val session = api.login(user, pass, "android:$notificationDeviceId", force)
+                        api.lastOperatingWindow?.let { OperatingScheduleStore.applyWorkerWindow(applicationContext, it) }
                         runOnUiThread {
                             progress.visibility = View.GONE
                             password.setText("")
@@ -1132,6 +1134,7 @@ class MainActivity : Activity() {
     }
 
     private fun registerBackgroundNotifications() {
+        ensureOperatingScheduleTopic()
         NotificationSignalStore.latestToken(applicationContext)?.let(::registerNotificationToken)
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             val token = if (task.isSuccessful) task.result else null
@@ -1139,6 +1142,15 @@ class MainActivity : Activity() {
             NotificationSignalStore.saveToken(applicationContext, token)
             registerNotificationToken(token)
         }
+    }
+
+    private fun ensureOperatingScheduleTopic() {
+        val prefs = getSharedPreferences("d149_schedule_topic", MODE_PRIVATE)
+        if (prefs.getBoolean("subscribed", false)) return
+        FirebaseMessaging.getInstance().subscribeToTopic(OperatingScheduleStore.FCM_TOPIC)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) prefs.edit().putBoolean("subscribed", true).apply()
+            }
     }
 
     private fun registerNotificationToken(token: String) {
@@ -1227,49 +1239,45 @@ class MainActivity : Activity() {
 
     private fun scheduleAndroidOperatingWindowCheck(session: AppSession) {
         if (operatingWindowCheckRunning || api.session == null) return
+
+        // Login/refresh already carries the schedule. Consume it locally with no
+        // second request whenever available.
+        api.lastOperatingWindow?.let { window ->
+            OperatingScheduleStore.applyWorkerWindow(applicationContext, window)
+            applyOperatingSchedulePresentation()
+            return
+        }
+
+        // Restored process/session: one Worker reconciliation only. D149 removes
+        // the former five-minute retry loop and shift-close auto logout.
         operatingWindowCheckRunning = true
         Thread {
             try {
                 val window = api.getAndroidOperatingWindow()
+                OperatingScheduleStore.applyWorkerWindow(applicationContext, window)
                 runOnUiThread {
                     operatingWindowCheckRunning = false
                     if (api.session == null || activeSession?.userId != session.userId) return@runOnUiThread
-                    operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
-                    operatingWindowTask = null
-
-                    if (!window.isOpen) {
-                        logoutWithNotificationCleanup(
-                            "Đã tự đăng xuất vì ca vận hành App/PDA đang đóng (23:00–05:00)."
-                        )
-                        return@runOnUiThread
-                    }
-
-                    val closesAt = window.closesAtMs ?: return@runOnUiThread
-                    val delayMs = (closesAt - window.serverNowMs + 1_500L)
-                        .coerceIn(1_500L, 25L * 60L * 60L * 1000L)
-                    val task = Runnable {
-                        operatingWindowTask = null
-                        scheduleAndroidOperatingWindowCheck(session)
-                    }
-                    operatingWindowTask = task
-                    uiHandler.postDelayed(task, delayMs)
+                    applyOperatingSchedulePresentation()
                 }
             } catch (_: Exception) {
                 runOnUiThread {
                     operatingWindowCheckRunning = false
                     if (api.session == null || activeSession?.userId != session.userId) return@runOnUiThread
-                    // Network failure must not fabricate a logout. Server APIs/FCM still
-                    // enforce the authoritative window; retry once after a bounded delay.
-                    operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
-                    val task = Runnable {
-                        operatingWindowTask = null
-                        scheduleAndroidOperatingWindowCheck(session)
-                    }
-                    operatingWindowTask = task
-                    uiHandler.postDelayed(task, 5L * 60L * 1000L)
+                    // Do not fabricate logout or start a retry timer. PickList has
+                    // one exact Firestore fallback when Worker is actually unavailable.
+                    applyOperatingSchedulePresentation()
                 }
             }
         }.start()
+    }
+
+    private fun applyOperatingSchedulePresentation() {
+        if (api.session == null) return
+        val open = OperatingScheduleStore.isOpen(applicationContext)
+        if (!open) {
+            setStatus("Ca nghiệp vụ đang nghỉ. App vẫn đăng nhập và sẽ tự nhận khi Agent mở tăng ca.")
+        }
     }
 
     private fun startRealtime(session: AppSession) {
