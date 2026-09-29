@@ -40,6 +40,7 @@ jobs:
           grep -q 'pickerAlertCreated' functions/src/index.ts
           grep -q 'pickerActiveCallCreated' functions/src/index.ts
           grep -q 'pickerActiveCallResolved' functions/src/index.ts
+          grep -q 'operatingScheduleChanged' functions/src/index.ts
           grep -q 'agentLogUploadWritten' functions/src/index.ts
           grep -q 'GOOGLE_DIRECT_IN_PROGRESS' functions/src/index.ts
           grep -q 'WORKER_FALLBACK' functions/src/index.ts
@@ -79,7 +80,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           npx --yes firebase-tools@14.12.1 deploy \
-            --only functions:pickerAlertCreated,functions:pickerAlertResolved,functions:pickerActiveCallCreated,functions:pickerActiveCallResolved,functions:agentLogUploadWritten \
+            --only functions:pickerAlertCreated,functions:pickerAlertResolved,functions:pickerActiveCallCreated,functions:pickerActiveCallResolved,functions:operatingScheduleChanged,functions:agentLogUploadWritten \
             --project supra-inventory-beta \
             --non-interactive
 
