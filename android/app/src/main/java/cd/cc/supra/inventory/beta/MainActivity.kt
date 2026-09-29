@@ -226,11 +226,18 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     roleSyncRunning = false
                     val roleChanged = before?.role != next.role
-                    val identityChanged = before?.displayName != next.displayName || before?.employeeCode != next.employeeCode
+                    val identityChanged =
+                        before?.displayName != next.displayName ||
+                        before?.employeeCode != next.employeeCode ||
+                        before?.contractorName != next.contractorName
+                    val reportingChanged = before?.shortageReportingEnabled != next.shortageReportingEnabled
                     if (roleChanged || identityChanged || activeSession == null) {
                         renderHome(next)
                     } else {
                         activeSession = next
+                        if (reportingChanged && next.role == "PICKER") {
+                            pickerController?.applyShortageReportingCapability(next.shortageReportingEnabled)
+                        }
                     }
                 }
             } catch (error: Exception) {
@@ -460,7 +467,15 @@ class MainActivity : Activity() {
         status = TextView(this)
         findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng Beta"
         findViewById<TextView>(R.id.tvHeaderUser).text =
-            "${session.employeeCode ?: session.userId} · ${session.displayName}"
+            buildString {
+                append(session.employeeCode ?: session.userId)
+                append(" · ")
+                append(session.displayName)
+                if (session.role == "PICKER" && !session.contractorName.isNullOrBlank()) {
+                    append(" · ")
+                    append(session.contractorName)
+                }
+            }
         findViewById<TextView>(R.id.tvAppVersion).apply {
             text = "Beta vc${BuildConfig.VERSION_CODE}"
             setOnClickListener { checkForUpdate(silent = false) }
@@ -626,6 +641,7 @@ class MainActivity : Activity() {
             ::friendlyError,
             ::recordLog,
             pickerDisplayScale(session),
+            session.shortageReportingEnabled,
         ).also { it.render(view) }
     }
 
@@ -1364,8 +1380,20 @@ class MainActivity : Activity() {
                     return@runOnUiThread
                 }
 
-                val catalogChanged = scopes.contains("sku_catalog")
-                val remainingScopes = if (catalogChanged) scopes.filterNot { it == "sku_catalog" }.toSet() else scopes
+                val reportingEnabledEvent = scopes.contains("picker_reporting_enabled")
+                val reportingDisabledEvent = scopes.contains("picker_reporting_disabled")
+                if (session.role == "PICKER" && (reportingEnabledEvent || reportingDisabledEvent)) {
+                    val enabled = reportingEnabledEvent && !reportingDisabledEvent
+                    val next = api.applyShortageReportingCapability(enabled)
+                    if (next != null) {
+                        activeSession = next
+                        pickerController?.applyShortageReportingCapability(enabled)
+                    }
+                }
+                val capabilityScopes = setOf("picker_reporting_enabled", "picker_reporting_disabled")
+                val afterCapability = scopes.filterNot { it in capabilityScopes }.toSet()
+                val catalogChanged = afterCapability.contains("sku_catalog")
+                val remainingScopes = if (catalogChanged) afterCapability.filterNot { it == "sku_catalog" }.toSet() else afterCapability
                 val applyRemaining: (Boolean) -> Unit = { catalogOk ->
                     if (!catalogOk) {
                         completion(false)
@@ -1390,6 +1418,7 @@ class MainActivity : Activity() {
         if (error is ApiException) {
             return when (error.code) {
                 "ALREADY_REPORTED" -> "SKU này đang có báo chưa xử lý của bạn."
+                "PICKER_SHORTAGE_REPORTING_DISABLED" -> "Báo hàng đang tắt cho tài khoản này."
                 "SKU_NOT_FOUND" -> "SKU không tồn tại trong Master SKU."
                 "WITHDRAW_WINDOW_EXPIRED" -> "Đã hết 60 giây cho phép thu hồi."
                 "TICKET_NOT_OPEN" -> "Báo này đã được xử lý hoặc thu hồi."
