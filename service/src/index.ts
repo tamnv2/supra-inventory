@@ -954,7 +954,7 @@ async function logoutInteractiveSession(request: Request, env: Env): Promise<Res
     });
     await closeUserRealtime(env, user.user_id, identity.sessionChannel);
     if (identity.sessionChannel === "ANDROID" && user.base_role === "PICKER") {
-      await refreshPickerProjectionBestEffort(env, "LOGOUT");
+      await refreshPickerProjectionBestEffort(env, "LOGOUT", [{ user_id: user.user_id, session_generation: identity.sessionGeneration }]);
     }
   }
   return json({ status: "ended" });
@@ -1270,7 +1270,7 @@ export default {
             enabled: false,
           }).catch(() => undefined);
         }
-        await refreshPickerProjectionBestEffort(env, "AGENT_KICK").catch(() => undefined);
+        await refreshPickerProjectionBestEffort(env, "AGENT_KICK", [{ user_id: userId, session_generation: revokedGeneration }]).catch(() => undefined);
         return json(payload);
       }
 

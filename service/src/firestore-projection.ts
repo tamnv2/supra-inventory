@@ -116,12 +116,26 @@ type PickerProjectionPayload = {
     status?: unknown;
   }>;
   generated_at?: unknown;
+  semantic_signature?: unknown;
+  projection_current?: unknown;
 };
+type PresenceRemoval = { user_id: string; session_generation: number };
+function normalizePresenceRemovals(rows: PresenceRemoval[]): PresenceRemoval[] {
+  const latest = new Map<string, number>();
+  for (const row of rows || []) {
+    const userId = String(row?.user_id || "").trim(), generation = Math.max(0, Math.trunc(Number(row?.session_generation || 0)));
+    if (!userId || generation <= 0) continue;
+    latest.set(userId, Math.max(generation, latest.get(userId) || 0));
+  }
+  return [...latest.entries()].map(([user_id, session_generation]) => ({ user_id, session_generation }));
+}
 
 async function writePickerPresenceProjection(
   env: ProjectionWriteEnv,
   payload: PickerProjectionPayload,
   reason = "SNAPSHOT_REFRESH",
+  writeProjection = true,
+  removals: PresenceRemoval[] = [],
 ): Promise<void> {
   const pickers = (payload.items || []).slice(0, 2000).map((item) => ({
     user_id: String(item.user_id || ""),
@@ -136,14 +150,16 @@ async function writePickerPresenceProjection(
     status: "PDA_READY",
   }));
   const now = new Date();
-  await putDocument(env, "picker_presence_projection", "current", {
-    schema_version: 4,
-    presence_source: "ANDROID_SESSION_AUTHORITY",
-    updated_at: now.toISOString(),
-    source_generated_at: payload.generated_at || null,
-    count: pickers.length,
-    pickers,
-  });
+  if (writeProjection) {
+    await putDocument(env, "picker_presence_projection", "current", {
+      schema_version: 4,
+      presence_source: "ANDROID_SESSION_AUTHORITY",
+      updated_at: now.toISOString(),
+      source_generated_at: payload.generated_at || null,
+      count: pickers.length,
+      pickers,
+    });
+  }
 
   // D132: one fixed single-slot control event restores event-driven delivery to
   // the current PRIMARY without adding a new poll loop or per-PDA heartbeat.
@@ -155,16 +171,26 @@ async function writePickerPresenceProjection(
     created_at: now,
     schema_version: 4,
     reason,
+    removed_sessions_json: JSON.stringify(normalizePresenceRemovals(removals)),
     count: pickers.length,
     pickers,
   });
 }
 
-export async function syncPickerPresenceProjection(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
+export async function syncPickerPresenceProjection(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH", removals: PresenceRemoval[] = []): Promise<void> {
   const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
   const response = await core.fetch("https://inventory-core.internal/notifications/online-pickers");
-  if (!response.ok) throw new Error(`ONLINE_PICKERS_HTTP_${response.status}`);
-  await writePickerPresenceProjection(env, (await response.json()) as PickerProjectionPayload, reason);
+  if (!response.ok) throw new Error("ONLINE_PICKERS_HTTP_" + response.status);
+  const payload = (await response.json()) as PickerProjectionPayload;
+  const semanticSignature = String(payload.semantic_signature || "");
+  const projectionCurrent = payload.projection_current === true && /^[0-9a-f]{64}$/.test(semanticSignature);
+  const normalizedRemovals = normalizePresenceRemovals(removals);
+  if (projectionCurrent && normalizedRemovals.length === 0) return;
+  await writePickerPresenceProjection(env, payload, reason, !projectionCurrent, normalizedRemovals);
+  if (!projectionCurrent) {
+    const ack = await core.fetch("https://inventory-core.internal/notifications/online-pickers/projection-ack", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ signature: semanticSignature }) });
+    if (!ack.ok) throw new Error("ONLINE_PICKERS_PROJECTION_ACK_HTTP_" + ack.status);
+  }
 }
 
 export async function syncPickerPresenceProjectionFromState(
@@ -222,7 +248,7 @@ export async function reconcileRecentAgentKicks(env: ProjectionEnv): Promise<voi
   if (!recent.length) return;
 
   const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
-  let changed = false;
+  const removals: PresenceRemoval[] = [];
   for (const row of recent) {
     const userId = String(row.user_id || "").trim();
     const firebaseUid = String(row.firebase_uid || "").trim();
@@ -243,16 +269,16 @@ export async function reconcileRecentAgentKicks(env: ProjectionEnv): Promise<voi
     }
     const result = await revoke.json() as { status?: string };
     if (result.status === "android_session_revoked") {
-      changed = true;
+      removals.push({ user_id: userId, session_generation: revokedGeneration });
       await deleteDocument(env, "picker_notification_targets", userId).catch(() => undefined);
     }
   }
-  if (changed) await syncPickerPresenceProjection(env, "AGENT_KICK_SCHEDULED_RECONCILE");
+  if (removals.length) await syncPickerPresenceProjection(env, "AGENT_KICK_SCHEDULED_RECONCILE", removals);
 }
 
-export async function refreshPickerProjectionBestEffort(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH"): Promise<void> {
+export async function refreshPickerProjectionBestEffort(env: ProjectionEnv, reason = "SNAPSHOT_REFRESH", removals: PresenceRemoval[] = []): Promise<void> {
   try {
-    await syncPickerPresenceProjection(env, reason);
+    await syncPickerPresenceProjection(env, reason, removals);
   } catch {
     // D119 projection failure must never roll back existing login/device business behavior.
   }
