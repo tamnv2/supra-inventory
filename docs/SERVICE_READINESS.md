@@ -1561,3 +1561,18 @@ Derived current-status markers:
 - Android: `D154_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
 - Web: `D154_OWNER_FIELD_ACCEPTED_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
 - SQLite schema: `14`
+
+## D155 Picker contractor / quota-safe Báo hàng technical runtime release PASS — 2026-09-30
+
+- Implementation: PR #328 → main `2fdc4abe4dcb2ea2c221bafeade73f3e406aace4`.
+- Beta Worker run `36619215788` PASS: HTTP 200, exact source, SQLite `15/15`, Operational V2 `5/5`, Agent migration `0/0`.
+- Main UI, Authority, State, Dashboard, Android, Agent and DND compatibility gates PASS.
+- Android **beta-vc91** release id `399459526`, asset `599033249`, size `19,118,748` bytes, SHA-256 `55314957a767ddff2eb04283e2628ae6333c6d439168abc4bb5b0f56c33a06de`.
+- Agent **relay-agent-v89** release id `399459395`, asset `599032834`, size `7,081,472` bytes, SHA-256 `3aa0c9929f9b972464502b1ec3289853633e32519dfa9b58b587ad6b7c5c8943`.
+- Inventory-channel PDA/Agent assets match the release digests.
+- Quota boundary PASS: Báo hàng capability is Cloudflare-only; no Firestore/RTDB/FCM capability operation, poll, listener or cron. Disabled Picker suppresses shortage refresh/catalog work; Agent contractor uses only existing projection/sync operations.
+- Accepted base remains D154. OA083 is **READY_FOR_OWNER_FIELD_TEST**; explicit Owner D155 PASS is still required.
+- Stable remains OWNER-GATED and untouched.
+
+Derived current-status marker:
+- `D155_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_2FDC4ABE__SCHEMA15__ANDROID_VC91__AGENT_V89__OA083_FIELD_READY`
