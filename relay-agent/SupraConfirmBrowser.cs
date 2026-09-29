@@ -56,6 +56,9 @@ namespace SupraInventoryRelayAgent
         internal bool SearchClicked;
         internal string DomFingerprint = "";
         internal int PicklistCodeCount;
+        internal readonly List<string> CheckboxRecoveryFragments = new List<string>();
+        internal bool CheckboxRecoveryReloaded;
+        internal bool CheckboxRecoveryReady;
     }
 
     internal sealed class SupraBrowserConfirmResult
@@ -589,6 +592,59 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
+                // D152: a unique PickList may render before its checkbox becomes usable.
+                // Preserve the normal fast path; only unresolved checkbox terms reach this one-shot reload.
+                var checkboxRecoveryTerms = scan.UnselectableFragments
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+                if (allowOneSearchClick && checkboxRecoveryTerms.Count > 0)
+                {
+                    output.CheckboxRecoveryReloaded = true;
+                    output.CheckboxRecoveryFragments.AddRange(checkboxRecoveryTerms);
+                    _log("SUPRA_BROWSER checkbox_recovery=START terms=" + checkboxRecoveryTerms.Count +
+                         " reload_once=true");
+
+                    try
+                    {
+                        IssueConfirmReloadNowNoLock("checkbox_not_ready");
+                        if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromSeconds(5)))
+                        {
+                            output.CheckboxRecoveryReady = true;
+                            EnsurePageSize100NoLock();
+                            var recovered = ScanNoLock(terms);
+
+                            if (NeedsSearchRetry(recovered))
+                            {
+                                ClickExactButtonNoLock(SearchText);
+                                output.SearchClicked = true;
+                                var recoveryDeadline = DateTime.UtcNow.AddMilliseconds(2200);
+                                while (DateTime.UtcNow < recoveryDeadline)
+                                {
+                                    Thread.Sleep(180);
+                                    EnsureReadyNoLock();
+                                    recovered = ScanNoLock(terms);
+                                    var checkboxStillPending = checkboxRecoveryTerms.Exists(term =>
+                                        recovered.UnselectableFragments.Exists(x =>
+                                            string.Equals(x, term, StringComparison.Ordinal)));
+                                    if (!checkboxStillPending) break;
+                                }
+                            }
+
+                            scan = recovered;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log("SUPRA_BROWSER checkbox_recovery=FAILED type=" + ex.GetType().Name +
+                             " mutation=false");
+                    }
+
+                    _log("SUPRA_BROWSER checkbox_recovery=END ready=" +
+                         (output.CheckboxRecoveryReady ? "1" : "0") +
+                         " remaining_unselectable=" + scan.UnselectableFragments.Count +
+                         " mutation=false");
+                }
+
                 CopySearch(scan, output);
             }
 
@@ -600,7 +656,9 @@ namespace SupraInventoryRelayAgent
                  " ambiguous=" + output.AmbiguousFragments.Count +
                  " missing=" + output.MissingFragments.Count +
                  " unselectable=" + output.UnselectableFragments.Count +
-                 " ui_search_click=" + (output.SearchClicked ? "1" : "0"));
+                 " ui_search_click=" + (output.SearchClicked ? "1" : "0") +
+                 " checkbox_recovery=" + (output.CheckboxRecoveryReloaded ? "1" : "0") +
+                 " checkbox_recovery_ready=" + (output.CheckboxRecoveryReady ? "1" : "0"));
             return output;
         }
 
@@ -621,6 +679,17 @@ namespace SupraInventoryRelayAgent
                 ThrowIfDisposed();
                 EnsureReadyNoLock();
                 EnsurePageSize100NoLock();
+
+                // D152: capture only a non-sensitive surface fingerprint before mutation so
+                // a stale success/error banner from an earlier row cannot confirm this row.
+                var baselineSurfaceFingerprint = "";
+                try
+                {
+                    var baselineRaw = EvaluateJsonNoLock(BuildPostConfirmScript(code));
+                    var baseline = _json.DeserializeObject(baselineRaw) as Dictionary<string, object>;
+                    if (baseline != null) baselineSurfaceFingerprint = String(baseline, "surfaceFingerprint");
+                }
+                catch { }
 
                 var mutationScript = BuildMutationScript(code);
                 var raw = EvaluateJsonNoLock(mutationScript);
@@ -659,13 +728,18 @@ namespace SupraInventoryRelayAgent
 
                     var post = _json.DeserializeObject(postRaw) as Dictionary<string, object>;
                     if (post == null) continue;
-                    if (Bool(post, "success"))
+                    var surfaceFingerprint = String(post, "surfaceFingerprint");
+                    var freshSurface = !string.Equals(
+                        surfaceFingerprint ?? "",
+                        baselineSurfaceFingerprint ?? "",
+                        StringComparison.Ordinal);
+                    if (Bool(post, "success") && freshSurface)
                     {
                         result.Result = "CONFIRMED";
                         result.Detail = String(post, "signal");
                         break;
                     }
-                    if (Bool(post, "rejected"))
+                    if (Bool(post, "rejected") && freshSurface)
                     {
                         result.Result = "CONFIRM_REJECTED";
                         result.Detail = String(post, "signal");
@@ -693,8 +767,20 @@ namespace SupraInventoryRelayAgent
 
                 if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
                 {
-                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                    result.Detail = "No trustworthy terminal DOM signal";
+                    string verifyDiagnostic;
+                    if (TryVerifyRowRemovedAfterSearchNoLock(
+                        code,
+                        TimeSpan.FromMilliseconds(2500),
+                        out verifyDiagnostic))
+                    {
+                        result.Result = "CONFIRMED";
+                        result.Detail = "ROW_REMOVED_AFTER_VERIFY_SEARCH";
+                    }
+                    else
+                    {
+                        result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                        result.Detail = "POST_CONFIRM_VERIFY_" + (verifyDiagnostic ?? "NO_TERMINAL_SIGNAL");
+                    }
                 }
             }
 
@@ -704,6 +790,118 @@ namespace SupraInventoryRelayAgent
                  " ms=" + result.ElapsedMs +
                  " direct_api=false session_extract=false");
             return result;
+        }
+
+        internal SupraBrowserConfirmResult VerifyExactWithoutMutation(string fullPickListCode)
+        {
+            var started = Stopwatch.StartNew();
+            var result = new SupraBrowserConfirmResult();
+            var code = (fullPickListCode ?? "").Trim().ToUpperInvariant();
+            if (!Regex.IsMatch(code, "^PL[0-9]+$"))
+            {
+                result.Result = "EXACT_CODE_NOT_RESOLVED";
+                result.Detail = "PickListCode invalid";
+                return result;
+            }
+
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                EnsureReadyNoLock();
+                EnsurePageSize100NoLock();
+
+                string diagnostic;
+                if (TryVerifyRowRemovedAfterSearchNoLock(
+                    code,
+                    TimeSpan.FromMilliseconds(2500),
+                    out diagnostic))
+                {
+                    result.Result = "CONFIRMED";
+                    result.Detail = "VERIFY_ONLY_ROW_REMOVED_AFTER_SEARCH";
+                }
+                else
+                {
+                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                    result.Detail = "VERIFY_ONLY_" + (diagnostic ?? "ROW_STATE_UNCERTAIN");
+                }
+            }
+
+            started.Stop();
+            result.ElapsedMs = started.ElapsedMilliseconds;
+            _log("SUPRA_BROWSER verify_only result=" + result.Result +
+                 " ms=" + result.ElapsedMs +
+                 " mutation=false direct_api=false session_extract=false");
+            return result;
+        }
+
+        private bool TryVerifyRowRemovedAfterSearchNoLock(
+            string code,
+            TimeSpan timeout,
+            out string diagnostic)
+        {
+            diagnostic = "SEARCH_NOT_RUN";
+            try
+            {
+                ClickExactButtonNoLock(SearchText);
+            }
+            catch (Exception ex)
+            {
+                diagnostic = "SEARCH_UNAVAILABLE_" + ex.GetType().Name;
+                return false;
+            }
+
+            var deadline = DateTime.UtcNow.Add(timeout);
+            var rowMissingSamples = 0;
+            var rowMissingSinceUtc = DateTime.MinValue;
+            var lastRowCount = -1;
+            var lastCheckboxCount = -1;
+            var lastCheckboxChecked = false;
+            var lastCheckboxDisabled = false;
+
+            while (DateTime.UtcNow < deadline)
+            {
+                Thread.Sleep(200);
+                Dictionary<string, object> post = null;
+                try
+                {
+                    var raw = EvaluateJsonNoLock(BuildPostConfirmScript(code));
+                    post = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                }
+                catch
+                {
+                    continue;
+                }
+                if (post == null) continue;
+
+                lastRowCount = Int(post, "rowCount");
+                lastCheckboxCount = Int(post, "checkboxCount");
+                lastCheckboxChecked = Bool(post, "checkboxChecked");
+                lastCheckboxDisabled = Bool(post, "checkboxDisabled");
+
+                if (Bool(post, "rowMissing"))
+                {
+                    if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
+                    rowMissingSamples++;
+                    if (rowMissingSamples >= 3 &&
+                        DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(500))
+                    {
+                        diagnostic = "ROW_REMOVED_STABLE";
+                        return true;
+                    }
+                }
+                else
+                {
+                    rowMissingSamples = 0;
+                    rowMissingSinceUtc = DateTime.MinValue;
+                }
+            }
+
+            diagnostic = "ROW_PRESENT_OR_UNCERTAIN" +
+                         "_rows_" + lastRowCount +
+                         "_checkboxes_" + lastCheckboxCount +
+                         "_checked_" + (lastCheckboxChecked ? "1" : "0") +
+                         "_disabled_" + (lastCheckboxDisabled ? "1" : "0");
+            return false;
         }
 
         private void StartNoLock(BrowserLaunchMode mode)
@@ -2155,10 +2353,32 @@ namespace SupraInventoryRelayAgent
               const dangerText = dangerNodes.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
               const successWord = successText.includes('thành công') || successText.includes('success');
               const rejectWord = dangerText.includes('thất bại') || dangerText.includes('không thể') || dangerText.includes('error');
-              if (successWord) return JSON.stringify({success:true,rejected:false,rowMissing:false,signal:'SUCCESS_SURFACE'});
-              if (rejectWord) return JSON.stringify({success:false,rejected:true,rowMissing:false,signal:'ERROR_SURFACE'});
-              if (rows.length === 0) return JSON.stringify({success:false,rejected:false,rowMissing:true,signal:'ROW_REMOVED'});
-              return JSON.stringify({success:false,rejected:false,rowMissing:false,signal:'PENDING'});
+              const surfaceFingerprint =
+                successNodes.length + ':' + successText + '|' + dangerNodes.length + ':' + dangerText;
+              let checkboxCount = 0;
+              let checkboxChecked = false;
+              let checkboxDisabled = false;
+              if (rows.length === 1) {
+                const native = [...rows[0].querySelectorAll('input[type=checkbox]')];
+                const roles = native.length ? [] : [...rows[0].querySelectorAll('[role=checkbox]')];
+                const boxes = native.length ? native : roles;
+                checkboxCount = boxes.length;
+                if (boxes.length === 1) {
+                  checkboxDisabled = !!boxes[0].disabled || boxes[0].getAttribute('aria-disabled') === 'true';
+                  checkboxChecked = native.length ? !!boxes[0].checked : boxes[0].getAttribute('aria-checked') === 'true';
+                }
+              }
+              const state = {
+                surfaceFingerprint,
+                rowCount: rows.length,
+                checkboxCount,
+                checkboxChecked,
+                checkboxDisabled
+              };
+              if (successWord) return JSON.stringify({...state,success:true,rejected:false,rowMissing:false,signal:'SUCCESS_SURFACE'});
+              if (rejectWord) return JSON.stringify({...state,success:false,rejected:true,rowMissing:false,signal:'ERROR_SURFACE'});
+              if (rows.length === 0) return JSON.stringify({...state,success:false,rejected:false,rowMissing:true,signal:'ROW_REMOVED'});
+              return JSON.stringify({...state,success:false,rejected:false,rowMissing:false,signal:'PENDING'});
             })()";
         }
 
