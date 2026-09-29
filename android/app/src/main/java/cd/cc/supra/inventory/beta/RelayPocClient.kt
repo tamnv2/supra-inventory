@@ -101,7 +101,7 @@ class RelayPocClient(
             throw ApiException(
                 403,
                 "ANDROID_WINDOW_CLOSED",
-                "Replay/PickList đang ngoài ca. Khung thường 06:00–22:00; tăng ca theo lệnh chung của Agent.",
+                "Replay/PickList đang ngoài ca. Khung thường 05:45–22:30; tăng ca theo lệnh chung của Agent.",
             )
         }
 
@@ -118,15 +118,29 @@ class RelayPocClient(
         try {
             val window = api.getAndroidOperatingWindow()
             OperatingScheduleStore.applyWorkerWindow(appContext, window)
-            log("D149 schedule reconcile=WORKER version=" + window.scheduleVersion)
-            return
+            log("D154 schedule reconcile=WORKER version=" + window.scheduleVersion)
+            if (OperatingScheduleStore.isOpen(appContext)) return
+            // D154: a successful HTTP response may still be a stale Worker mirror.
+            // When business is still blocked, perform one exact Firestore GET below.
+            log("D154 schedule reconcile=WORKER_CLOSED exact_get=REQUIRED")
         } catch (workerError: Exception) {
-            log("D149 schedule reconcile=WORKER_DEFER detail=" + safeText(workerError.message))
+            log("D154 schedule reconcile=WORKER_DEFER detail=" + safeText(workerError.message))
         }
 
-        // Worker-outage fallback only. No listener/list query and no retry loop.
-        val identity = firebaseIdentity(session.idToken)
-        if (!hasCompatibleFirebaseSession(identity)) return
+        // One exact-document recovery only when the Worker still leaves the window
+        // closed. No listener/list query and no retry loop; the existing 60s gate
+        // bounds repeated user attempts.
+        var firestoreSession = session
+        var identity = firebaseIdentity(firestoreSession.idToken)
+        if (!hasCompatibleFirebaseSession(identity)) {
+            try {
+                firestoreSession = ensureFirestoreAuth(firestoreSession)
+                identity = firebaseIdentity(firestoreSession.idToken)
+            } catch (authError: Exception) {
+                log("D154 schedule reconcile=FIRESTORE_AUTH_DEFER detail=" + safeText(authError.message))
+                return
+            }
+        }
         try {
             val doc = firestore.collection(OperatingScheduleStore.FIRESTORE_COLLECTION)
                 .document(OperatingScheduleStore.FIRESTORE_DOCUMENT)
@@ -144,16 +158,16 @@ class RelayPocClient(
                     version = version,
                     decision = snapshot.getString("decision").orEmpty(),
                     openUntilMs = openUntil,
-                    normalStartMinutes = (snapshot.getLong("normal_start_minutes") ?: 360L).toInt(),
-                    normalEndMinutes = (snapshot.getLong("normal_end_minutes") ?: 1320L).toInt(),
+                    normalStartMinutes = (snapshot.getLong("normal_start_minutes") ?: 345L).toInt(),
+                    normalEndMinutes = (snapshot.getLong("normal_end_minutes") ?: 1350L).toInt(),
                     overtimeCutoffMinutes = (snapshot.getLong("overtime_cutoff_minutes") ?: 300L).toInt(),
                     updatedAtMs = snapshot.getLong("updated_at_ms") ?: version,
                     serverOffsetMs = current?.serverOffsetMs ?: 0L,
                 ),
             )
-            log("D149 schedule reconcile=FIRESTORE_EXACT_GET version=" + version)
+            log("D154 schedule reconcile=FIRESTORE_EXACT_GET version=" + version)
         } catch (error: Exception) {
-            log("D149 schedule reconcile=FIRESTORE_DEFER detail=" + safeText(error.message))
+            log("D154 schedule reconcile=FIRESTORE_DEFER detail=" + safeText(error.message))
         }
     }
 
