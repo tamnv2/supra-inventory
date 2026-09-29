@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D150_OWNER_ACCEPTED_BASE__D151_DIAGNOSTIC_REPAIR_APPROVED__DND_DETAIL_OVERLAY_PROBE_BUILD_PENDING",
+    "beta": "D150_OWNER_ACCEPTED_BASE__D151_DIAGNOSTIC_REPAIR_APPROVED__DETAIL_OVERLAY_PROBE_BUILD_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
