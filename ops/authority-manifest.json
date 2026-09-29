@@ -77,5 +77,14 @@
     "operational_identifier_policy": "MINIMIZE_PUBLIC_EXPOSURE__PREFER_ALIASES_AND_RUNTIME_VARIABLES_FOR_NEW_SENSITIVE_OPERATIONAL_IDS",
     "chat_memory_authority": "NON_CANONICAL_RETRIEVAL_AID_ONLY",
     "resource_scope_authority": "ops/project-scope.json"
+  },
+  "change_control": {
+    "mode": "SERIAL_OWNER_PASS_GATED",
+    "state_authority": "ops/project-state.json#change_control",
+    "accepted_base_rule": "Only an explicit Owner PASS promotes the current change to the accepted project base.",
+    "next_change_rule": "Do not create or process a new change ID or unrelated project mutation while the current change lacks explicit Owner PASS.",
+    "not_pass_rule": "If Owner reports NOT PASS/FAIL, repair the same change ID until Owner explicitly records PASS.",
+    "impact_review_rule": "Before implementing any change that may affect the accepted base, present impact, affected components, regression/resource/security/quota risks and a recommended approach; implementation requires explicit Owner approval.",
+    "technical_pass_not_owner_pass": true
   }
 }
