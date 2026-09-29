@@ -2221,3 +2221,5 @@ Owner approved D149 on 2026-09-29 after D148 Owner PASS. D149 is one coordinated
 13. **Quota/security guard.** No new provider is introduced. Default 22:00 sleep is write-free; schedule changes are event-driven and idempotent. D140 reconnect/backoff/circuit/listener guards remain mandatory. Stable remains OWNER-GATED and untouched.
 
 D149 field acceptance is OA077. Technical/runtime/release PASS alone does not promote the accepted base; explicit Owner PASS is still required.
+
+D149 Owner acceptance: **PASS** on 2026-09-29. The Owner explicitly confirmed "d149 pass" after field review of the released D149 Beta set. This closes OA077 and promotes D149 to the accepted project base. Technical/release evidence remains implementation PR #303, main `c03f54861e5fbb6ff093b129e9b76e303475c358`, signed Android `beta-vc88` and Agent `relay-agent-v84`. No provider/resource/schema expansion is introduced by the acceptance record; Stable remains OWNER-GATED and untouched.
