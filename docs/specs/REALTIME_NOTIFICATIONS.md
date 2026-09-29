@@ -702,3 +702,17 @@ Stable remains OWNER-GATED.
 - Result acknowledgement remains local-first and network acknowledgement remains retryable. Expiry/remote clear without acknowledgement releases overlay ownership so authoritative result reconciliation can surface it later.
 - A clear signal with a missing alert id must never wipe unrelated queued shortage/result alerts.
 - No polling, wake loop or provider read cadence is added.
+
+## D149 operating-schedule delivery
+
+The current operating schedule is a low-frequency state change, not a polling workload.
+
+- Canonical Agent boundary decisions remain CAS-protected. Only a successful state change updates the dedicated current-state projection `relay_poc_coordination/operating_schedule`.
+- Never attach a schedule Function trigger to hot `roles`, generation lease or `agent_sync` documents.
+- The exact current-state projection emits one idempotent data-only FCM schedule signal when its version changes. Android ignores duplicate or older versions.
+- FCM is an accelerator only. A PDA that was powered off, offline, logged out or replaced must recover the latest current state without replaying missed messages.
+- When Worker is reachable, Android cold-start/login/reconnect obtains the current schedule from the existing Worker/InventoryCore path. Do not add a Firestore read in the normal recovery path.
+- If Worker is unavailable and an Android Firebase session is still valid, one exact GET of the schedule projection is allowed as bounded outage fallback. No collection list, listener or retry loop is permitted.
+- Closed schedule state blocks new schedule-governed actions but does not itself invalidate a valid login/session.
+- Schedule payload contains no secret/user-specific data: schedule key/version, decision/source, effective open-until, normal window and server/update timestamps only.
+- D140 streaming routing, exponential retry, permanent-error circuit and HA-trio listener limits remain unchanged.
