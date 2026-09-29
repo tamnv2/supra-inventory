@@ -2448,3 +2448,16 @@ Baseline is D154 Owner PASS. After impact review, the Owner approved D155 with a
 9. Web managed-user search includes contractor and filters Báo hàng enabled/disabled. Picker rows show contractor/reporting capability. Android shows contractor compactly in Picker identity; Agent adds contractor to Picker list/search.
 10. Quota policy: no new provider resource, Firestore collection, Firestore/RTDB capability operation, FCM capability push, polling loop, listener or cron. Cloudflare realtime reuses the existing hibernatable WebSocket path.
 11. D155 uses additive InventoryCore SQLite schema 15, targets Agent relay-agent-v89, and the next monotonic signed Android Beta after beta-vc90. Stable remains OWNER-GATED and untouched.
+
+### D155 technical/runtime/release checkpoint — 2026-09-30
+
+D155 implementation PR #328 merged to main `2fdc4abe4dcb2ea2c221bafeade73f3e406aace4`. Technical/runtime/release status is **PASS**; D154 remains the accepted base until explicit Owner D155 field PASS.
+
+- Main Worker run `36619215788` PASS. Live Beta health returned HTTP 200 with exact source `2fdc4abe4dcb2ea2c221bafeade73f3e406aace4`, SQLite `15/15`, Operational V2 `5/5`, Agent migration `0/0`, and business/auth/Web probes PASS.
+- Main Repo Authority `36619215754`, Project State `36619215798`, UI Design `36619215733`, Dashboard Probe `36619215725`, Android `36619215698`, Agent `36619215729` and DND compatibility `36619215699` are PASS.
+- Signed Android **beta-vc91** release id `399459526`; APK asset `599033249`, size `19,118,748` bytes, SHA-256 `55314957a767ddff2eb04283e2628ae6333c6d439168abc4bb5b0f56c33a06de`.
+- Agent **relay-agent-v89** release id `399459395`; EXE asset `599032834`, size `7,081,472` bytes, SHA-256 `3aa0c9929f9b972464502b1ec3289853633e32519dfa9b58b587ad6b7c5c8943`.
+- Both release tags resolve to exact D155 main source; fixed inventory-channel PDA/Agent assets were refreshed to the same release digests.
+- D155 Cloudflare-only reporting-capability CI guard PASS: no capability Firestore/RTDB/FCM transport, no capability polling/listener/cron, and no reporting-toggle Firestore projection refresh. Agent contractor only piggybacks on the already-existing Picker projection/sync path.
+- No new provider resource, Firestore collection, secret, listener, polling loop or cron. Stable remains OWNER-GATED and untouched.
+- OA083 is **READY_FOR_OWNER_FIELD_TEST**. Explicit Owner PASS is required before D155 becomes the accepted project base.
