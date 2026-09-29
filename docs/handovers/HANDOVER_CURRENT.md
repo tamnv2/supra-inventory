@@ -1550,3 +1550,20 @@ Derived current-status markers:
 - Android: `D154_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
 - Web: `D154_TECHNICAL_RUNTIME_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
 - SQLite schema: `14`
+
+
+## D154 Owner-accepted baseline — 2026-09-30
+
+- Accepted base: **D154 Owner PASS**; OA082 closed.
+- Runtime implementation: PR #324 → main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`.
+- Android: **beta-vc90**, APK SHA-256 `b3204970660096768950de870ccf6b8a6329018f6f27ccde12d83b24189a1cf4`.
+- Agent: **relay-agent-v88**, EXE SHA-256 `74128bc35fdc8b635e512b8af7a59131d0c932c7865b8597c31399d4d7a3d8f2`.
+- Accepted scope: 05:45–22:30 shared normal window; 05:00–05:45 early start; 22:30-anchored overtime capped at 05:00; visible active overtime + Huỷ tăng ca; `CANCEL_OVERTIME`; deployed `operatingScheduleChanged`; bounded Worker mirror retry and blocked-PickList exact schedule recovery; dynamic Android version footer; prioritized DND + Overlay setup.
+- No new provider/resource/schema/secret/listener/polling/cron. Stable remains OWNER-GATED.
+- Serial Owner-PASS gate is open for the next separately reviewed change.
+
+Derived current-status markers:
+- Latest Beta APK: `beta-vc90`
+- Android: `D154_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
+- Web: `D154_OWNER_FIELD_ACCEPTED_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
+- SQLite schema: `14`
