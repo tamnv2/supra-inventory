@@ -43,7 +43,7 @@ namespace SupraInventoryRelayAgent
             _browserBundleProgress.SetBounds(16, 146, Math.Max(120, width - 32), 16);
             _browserBundleProgress.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-            const int openFolderButtonWidth = 116;
+            const int openFolderButtonWidth = 154;
             const int moveFolderButtonWidth = 124;
             _agentDataStorageStatus.SetBounds(
                 16, 170,
