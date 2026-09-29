@@ -313,6 +313,7 @@ namespace SupraInventoryRelayAgent
 
                     SetSharedSchedule(scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
                     if (_role == FirestoreAgentRole.PRIMARY) WritePrimaryLease(session);
+                    TryPublishOperatingScheduleProjection(session, scheduleKey, decision, boundaryMs, relayOverrideUntilMs);
                     _log("FIRESTORE SCHEDULE decision=" + AgentDiagnostics.Sanitize(decision ?? "") +
                          " boundary_ms=" + boundaryMs +
                          " relay_until_ms=" + relayOverrideUntilMs +
@@ -329,6 +330,63 @@ namespace SupraInventoryRelayAgent
             return false;
         }
 
+
+        internal bool PublishManualScheduleAdjustment(
+            string scheduleKey,
+            long adjustmentAtMs,
+            long relayOverrideUntilMs)
+        {
+            if (string.IsNullOrWhiteSpace(scheduleKey) ||
+                adjustmentAtMs <= 0 ||
+                relayOverrideUntilMs <= NowMs())
+                return false;
+
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var read = ReadRoles(session);
+                    var current = read.Snapshot;
+                    ApplySharedSchedule(current);
+
+                    if (current != null &&
+                        string.Equals(current.ScheduleKey ?? "", scheduleKey, StringComparison.Ordinal) &&
+                        current.RelayOverrideUntilMs >= relayOverrideUntilMs)
+                    {
+                        TryPublishOperatingScheduleProjection(
+                            session, scheduleKey, current.ScheduleDecision,
+                            current.DecisionBoundaryMs, current.RelayOverrideUntilMs);
+                        _log("FIRESTORE SCHEDULE manual_adjust=NOOP existing_until_ms=" +
+                             current.RelayOverrideUntilMs);
+                        return true;
+                    }
+
+                    if (!TryWriteScheduleFields(
+                        session, scheduleKey, "MANUAL_ADJUST", adjustmentAtMs,
+                        relayOverrideUntilMs, read))
+                        continue;
+
+                    SetSharedSchedule(scheduleKey, "MANUAL_ADJUST", adjustmentAtMs, relayOverrideUntilMs);
+                    if (_role == FirestoreAgentRole.PRIMARY) WritePrimaryLease(session);
+                    TryPublishOperatingScheduleProjection(
+                        session, scheduleKey, "MANUAL_ADJUST", adjustmentAtMs, relayOverrideUntilMs);
+                    _log("FIRESTORE SCHEDULE manual_adjust=PASS at_ms=" + adjustmentAtMs +
+                         " relay_until_ms=" + relayOverrideUntilMs +
+                         " role=" + _role);
+                    try { _wake.Set(); } catch { }
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE SCHEDULE manual_adjust=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+            return false;
+        }
+
         internal bool PublishEarlyStartAndClaimPrimary(string scheduleKey, long relayOverrideUntilMs)
         {
             if (!_wmsReady() || string.IsNullOrWhiteSpace(scheduleKey) || relayOverrideUntilMs <= NowMs())
@@ -339,6 +397,7 @@ namespace SupraInventoryRelayAgent
                 var session = _sessionProvider();
                 WriteScheduleFields(session, scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
                 SetSharedSchedule(scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
+                TryPublishOperatingScheduleProjection(session, scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
 
                 for (var attempt = 0; attempt < 4; attempt++)
                 {
@@ -1213,6 +1272,55 @@ namespace SupraInventoryRelayAgent
             throw new InvalidOperationException("Không ghi được trạng thái lịch vận hành.");
         }
 
+
+        private void TryPublishOperatingScheduleProjection(
+            AgentSession session,
+            string scheduleKey,
+            string decision,
+            long boundaryMs,
+            long overrideUntilMs)
+        {
+            // D149: this exact document is deliberately low-frequency. It is written
+            // only after a real schedule action and is the only schedule document
+            // eligible for Function/Android recovery. Never project roles/lease heartbeats.
+            try
+            {
+                var now = NowMs();
+                var fields = new Dictionary<string, object>
+                {
+                    { "schedule_key", StringField(scheduleKey ?? "") },
+                    { "version", IntField(now) },
+                    { "decision", StringField(decision ?? "") },
+                    { "decision_boundary_ms", IntField(Math.Max(0L, boundaryMs)) },
+                    { "open_until_ms", IntField(Math.Max(0L, overrideUntilMs)) },
+                    { "normal_start_minutes", IntField(6 * 60) },
+                    { "normal_end_minutes", IntField(22 * 60) },
+                    { "overtime_cutoff_minutes", IntField(5 * 60) },
+                    { "updated_at_ms", IntField(now) },
+                    { "updated_by_agent_instance_id", StringField(_instanceId) }
+                };
+                SendJson(
+                    "PATCH",
+                    OperatingScheduleUrl(),
+                    session.IdToken,
+                    _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    BuildMask(fields.Keys),
+                    7000,
+                    false,
+                    "OPERATING_SCHEDULE_PROJECTION");
+                _log("FIRESTORE SCHEDULE projection=PASS decision=" +
+                     AgentDiagnostics.Sanitize(decision ?? "") +
+                     " open_until_ms=" + overrideUntilMs);
+            }
+            catch (Exception ex)
+            {
+                // Authority is already committed in roles. Projection failure must not
+                // create a retry loop; a same-decision explicit action can repair it.
+                _log("FIRESTORE SCHEDULE projection=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+        }
+
         private void WritePrimaryLease(AgentSession session)
         {
             if (_role != FirestoreAgentRole.PRIMARY ||
@@ -1357,6 +1465,11 @@ namespace SupraInventoryRelayAgent
         private static string RolesUrl()
         {
             return DocumentsBase + "/relay_poc_coordination/roles";
+        }
+
+        private static string OperatingScheduleUrl()
+        {
+            return DocumentsBase + "/relay_poc_coordination/operating_schedule";
         }
 
         private string PresenceSelfUrl()
