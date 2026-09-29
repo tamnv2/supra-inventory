@@ -43,7 +43,7 @@ class PickerController(
     private val friendlyError: (Exception) -> String,
     private val recordLog: (String) -> Unit,
     private val displayScale: Float = 1f,
-    private var shortageReportingEnabled: Boolean = true,
+    private var shortageReportingEnabled: Boolean = false,
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private var operatingWindowOpen = OperatingScheduleStore.isOpen(activity.applicationContext)
