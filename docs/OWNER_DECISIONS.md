@@ -2306,3 +2306,19 @@ Owner-approved probe:
 3. Add a local `TYPE_APPLICATION_OVERLAY` 15-second probe using the diagnostic package's own `SYSTEM_ALERT_WINDOW` permission. The probe is local-only and must not add Firebase, Worker polling, Firestore, listeners or scheduled traffic.
 4. Field-test on a failing V8.01.002 device. If package-detail settings repairs the real Notification Policy backend, production can later adopt that route under D151 after a new impact review. If it does not, the overlay probe provides evidence for a narrowly-scoped firmware compatibility mode proposal; no production compatibility mode is authorized by this probe alone.
 5. Stable remains OWNER-GATED and untouched.
+
+
+## D151 — Adaptive Android alert engine production remediation
+
+Owner approved on 2026-09-29 after D151 field diagnosis showed one MT90 `MT90-GL_V8.04.006` with real Notification Policy grant/channel bypass and three distinct MT90 `MT90-GL_V8.01.002` devices with the same OEM mismatch: Settings appears allowed but `NotificationManager.isNotificationPolicyAccessGranted()` remains false, the package is absent from the secure policy list and no bypass-DND channel is available. The latest failing-device run also reproduced the mismatch while DND was actually active; the local `TYPE_APPLICATION_OVERLAY` probe remained visible.
+
+Owner-approved production rule:
+- do **not** select behavior from manufacturer/model/firmware allowlists;
+- Android capability APIs are authority;
+- hard operational readiness is app notifications (plus runtime notification permission where required), `SYSTEM_ALERT_WINDOW` / `Settings.canDrawOverlays()`, and battery-optimization exemption;
+- when real Notification Policy access plus a high-importance channel with `canBypassDnd()` are available, use **Native DND mode**;
+- otherwise use **Overlay Compatibility mode** without falsely claiming DND access and without blocking login solely on the broken/unsupported DND backend;
+- overlay remains the canonical visual alert surface and preserves the accepted D148 priority/FIFO/de-duplication/local-first ACK semantics;
+- when screen is off or keyguard is active, use the existing bounded `CriticalWakeActivity` via a local capability-based wake coordinator; no WakeLock, polling, always-on service or provider traffic is added;
+- notification full-screen intent is only a capability-checked fallback, not alert authority;
+- Beta Android only. Agent, Web, Worker business behavior, Firestore coordination and Stable remain unchanged.
