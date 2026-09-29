@@ -60,7 +60,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string, FirestoreConfirmationOutcome> _onDurableAck;
         private readonly Action<string> _state;
         private readonly Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
-        private readonly Action<List<PickerPresenceView>, string> _presenceSnapshotHandler;
+        private readonly Action<List<PickerPresenceView>, string, string> _presenceSnapshotHandler;
         private readonly Action<FirestoreConfirmationWorkItem> _pickerActivityHandler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
         private readonly Func<bool> _businessEnabled;
@@ -87,7 +87,7 @@ namespace SupraInventoryRelayAgent
             Action<string, FirestoreConfirmationOutcome> onDurableAck,
             Action<string> state,
             Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
-            Action<List<PickerPresenceView>, string> presenceSnapshotHandler,
+            Action<List<PickerPresenceView>, string, string> presenceSnapshotHandler,
             Action<FirestoreConfirmationWorkItem> pickerActivityHandler,
             FirestoreAgentLeaderCoordinator coordinator,
             Func<bool> businessEnabled,
@@ -184,6 +184,7 @@ namespace SupraInventoryRelayAgent
             internal FirestoreConfirmationWorkItem Work;
             internal List<PickerPresenceView> PresenceSnapshot;
             internal string PresenceReason = "";
+            internal string PresenceRemovedSessionsJson = "[]";
         }
 
         private int ProcessOnce(AgentSession session)
@@ -198,7 +199,7 @@ namespace SupraInventoryRelayAgent
                 if (string.Equals(doc.Source, "ANDROID_PRESENCE_V1", StringComparison.Ordinal))
                 {
                     if (doc.PresenceSnapshot == null) continue;
-                    _presenceSnapshotHandler(doc.PresenceSnapshot, doc.PresenceReason);
+                    _presenceSnapshotHandler(doc.PresenceSnapshot, doc.PresenceReason, doc.PresenceRemovedSessionsJson);
                     var applied = new FirestoreConfirmationOutcome
                     {
                         Result = "PRESENCE_APPLIED",
@@ -450,7 +451,8 @@ namespace SupraInventoryRelayAgent
                     UpdateTime = Get(doc, "updateTime"),
                     Source = source,
                     PresenceSnapshot = ParsePresenceSnapshot(fields),
-                    PresenceReason = FieldString(fields, "reason")
+                    PresenceReason = FieldString(fields, "reason"),
+                    PresenceRemovedSessionsJson = FieldString(fields, "removed_sessions_json")
                 };
             }
 

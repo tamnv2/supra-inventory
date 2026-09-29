@@ -1362,11 +1362,41 @@ namespace SupraInventoryRelayAgent
         internal void ApplyPickerRequestActivity(FirestoreConfirmationWorkItem work)
         {
             if (work == null || string.IsNullOrWhiteSpace(work.PickerUserId)) return;
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<FirestoreConfirmationWorkItem>(ApplyPickerRequestActivity), work);
+                return;
+            }
+
+            var incomingGeneration = Math.Max(0L, work.PickerSessionGeneration);
+            var existing = _pickerOnlineSnapshot.FirstOrDefault(x =>
+                x != null && string.Equals(x.UserId, work.PickerUserId, StringComparison.Ordinal));
+
+            if (existing != null)
+            {
+                var existingIsLogin = !string.Equals(existing.Source, "PICKLIST", StringComparison.Ordinal);
+                if (existingIsLogin &&
+                    (incomingGeneration <= 0 || existing.SessionGeneration >= incomingGeneration))
+                {
+                    Log("PICKER_PRESENCE activity=PICKLIST fallback=SKIP_LOGIN_AUTHORITY user=" +
+                        SafeUserLabel(existing.EmployeeCode, existing.UserId));
+                    return;
+                }
+
+                if (!existingIsLogin &&
+                    (incomingGeneration <= 0 || existing.SessionGeneration >= incomingGeneration))
+                {
+                    Log("PICKER_PRESENCE activity=PICKLIST fallback=SKIP_ALREADY_PRESENT user=" +
+                        SafeUserLabel(existing.EmployeeCode, existing.UserId));
+                    return;
+                }
+            }
+
             var picker = new PickerPresenceView
             {
                 UserId = work.PickerUserId,
                 FirebaseUid = work.PickerUid ?? "",
-                SessionGeneration = Math.Max(0L, work.PickerSessionGeneration),
+                SessionGeneration = incomingGeneration,
                 Source = "PICKLIST",
                 EmployeeCode = work.PickerEmployeeCode ?? "",
                 DisplayName = work.PickerDisplayName ?? "",
@@ -1376,27 +1406,24 @@ namespace SupraInventoryRelayAgent
                 Status = "PDA_READY"
             };
 
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action<FirestoreConfirmationWorkItem>(ApplyPickerRequestActivity), work);
-                return;
-            }
-
-            var existing = _pickerOnlineSnapshot.FirstOrDefault(x =>
-                x != null && string.Equals(x.UserId, work.PickerUserId, StringComparison.Ordinal));
             if (existing == null)
                 _pickerOnlineSnapshot.Add(picker);
             else
             {
+                // A newer PickList session may replace an older/stale local row.
+                // Do not retain LOGIN-only fields on the fallback representation.
                 existing.FirebaseUid = picker.FirebaseUid;
                 existing.SessionGeneration = picker.SessionGeneration;
                 existing.Source = "PICKLIST";
+                existing.DeviceId = "";
+                existing.LoginAt = "";
                 if (!string.IsNullOrWhiteSpace(picker.EmployeeCode)) existing.EmployeeCode = picker.EmployeeCode;
                 if (!string.IsNullOrWhiteSpace(picker.DisplayName)) existing.DisplayName = picker.DisplayName;
                 existing.DeviceSeenAt = picker.DeviceSeenAt;
                 existing.Status = "PDA_READY";
                 picker = existing;
             }
+
             UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
 
             if (_leaderCoordinator != null && _leaderCoordinator.IsLeader && _agentSyncClient != null)
@@ -1407,6 +1434,14 @@ namespace SupraInventoryRelayAgent
                     try
                     {
                         EnsureFreshToken();
+                        // LOGIN may arrive while this task is queued. Never let a delayed
+                        // fallback request downgrade that newer authoritative state.
+                        if (!IsCurrentPicklistFallback(captured.UserId, captured.SessionGeneration))
+                        {
+                            Log("AGENT_SYNC picklist-upsert=SKIP_SUPERSEDED_BY_LOGIN user=" +
+                                SafeUserLabel(captured.EmployeeCode, captured.UserId));
+                            return;
+                        }
                         ApplyD134AgentSyncSnapshot(_agentSyncClient.UpsertPicker(SnapshotSession(), captured));
                     }
                     catch (Exception ex)
@@ -1415,7 +1450,21 @@ namespace SupraInventoryRelayAgent
                     }
                 });
             }
-            Log("PICKER_PRESENCE activity=PICKLIST user=" + SafeUserLabel(picker.EmployeeCode, picker.UserId));
+
+            Log("PICKER_PRESENCE activity=PICKLIST fallback=UPSERT_ONCE user=" +
+                SafeUserLabel(picker.EmployeeCode, picker.UserId));
+        }
+
+        private bool IsCurrentPicklistFallback(string userId, long generation)
+        {
+            if (InvokeRequired)
+                return (bool)Invoke(new Func<string, long, bool>(IsCurrentPicklistFallback), userId, generation);
+
+            var current = _pickerOnlineSnapshot.FirstOrDefault(item =>
+                item != null && string.Equals(item.UserId, userId ?? "", StringComparison.Ordinal));
+            return current != null &&
+                   string.Equals(current.Source, "PICKLIST", StringComparison.Ordinal) &&
+                   (generation <= 0 || current.SessionGeneration == generation);
         }
 
         private static string SafeUserLabel(string employeeCode, string userId)
@@ -1424,19 +1473,108 @@ namespace SupraInventoryRelayAgent
             return value.Length <= 32 ? value : value.Substring(0, 32);
         }
 
-        internal void ApplyEventDrivenPickerPresence(List<PickerPresenceView> items, string reason)
+        private static string PickerSharedStateSignature(IEnumerable<PickerPresenceView> items)
+        {
+            return string.Join("\n", (items ?? new PickerPresenceView[0])
+                .Where(item => item != null && !string.IsNullOrWhiteSpace(item.UserId))
+                .OrderBy(item => item.UserId ?? "", StringComparer.Ordinal)
+                .Select(item => string.Join("\u001f", new[]
+                {
+                    item.UserId ?? "",
+                    item.FirebaseUid ?? "",
+                    item.EmployeeCode ?? "",
+                    item.DisplayName ?? "",
+                    item.DeviceId ?? "",
+                    item.LoginAt ?? "",
+                    item.Source ?? "LOGIN",
+                    item.SessionGeneration.ToString()
+                })));
+        }
+
+        private static Dictionary<string, long> ParsePresenceRemovals(string raw)
+        {
+            var result = new Dictionary<string, long>(StringComparer.Ordinal);
+            if (string.IsNullOrWhiteSpace(raw)) return result;
+            try
+            {
+                var rows = new JavaScriptSerializer().Deserialize<List<Dictionary<string, object>>>(raw);
+                foreach (var row in rows ?? new List<Dictionary<string, object>>())
+                {
+                    object userObj;
+                    object generationObj;
+                    if (!row.TryGetValue("user_id", out userObj) ||
+                        !row.TryGetValue("session_generation", out generationObj))
+                        continue;
+
+                    var userId = Convert.ToString(userObj) ?? "";
+                    long generation;
+                    if (string.IsNullOrWhiteSpace(userId) ||
+                        !long.TryParse(Convert.ToString(generationObj), out generation) ||
+                        generation <= 0)
+                        continue;
+
+                    long previous;
+                    if (!result.TryGetValue(userId, out previous) || generation > previous)
+                        result[userId] = generation;
+                }
+            }
+            catch { }
+            return result;
+        }
+
+        internal void ApplyEventDrivenPickerPresence(
+            List<PickerPresenceView> items,
+            string reason,
+            string removedSessionsJson)
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action<List<PickerPresenceView>, string>(ApplyEventDrivenPickerPresence), items, reason);
+                BeginInvoke(
+                    new Action<List<PickerPresenceView>, string, string>(ApplyEventDrivenPickerPresence),
+                    items,
+                    reason,
+                    removedSessionsJson);
                 return;
             }
 
-            var incoming = items ?? new List<PickerPresenceView>();
-            UpdatePickerOnlineGrid(incoming, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            var incoming = (items ?? new List<PickerPresenceView>())
+                .Where(item => item != null && !string.IsNullOrWhiteSpace(item.UserId))
+                .ToList();
+            var incomingIds = new HashSet<string>(
+                incoming.Select(item => item.UserId),
+                StringComparer.Ordinal);
+            var removals = ParsePresenceRemovals(removedSessionsJson);
+
+            // LOGIN is authoritative. Preserve one-shot PickList fallback through
+            // unrelated presence changes, but remove a matching/older fallback on
+            // explicit logout/revoke metadata. LOGIN for the same user replaces it.
+            var merged = incoming.ToList();
+            foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
+                item != null &&
+                string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
+                !string.IsNullOrWhiteSpace(item.UserId)))
+            {
+                if (incomingIds.Contains(fallback.UserId)) continue;
+                long removedGeneration;
+                if (removals.TryGetValue(fallback.UserId, out removedGeneration) &&
+                    fallback.SessionGeneration <= removedGeneration)
+                    continue;
+                merged.Add(fallback);
+            }
+
+            var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
+            var after = PickerSharedStateSignature(merged);
+            if (string.Equals(before, after, StringComparison.Ordinal))
+            {
+                Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
+                    " shared=SKIP_NO_CHANGE count=" + merged.Count);
+                return;
+            }
+
+            UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
             if (_leaderCoordinator != null && _leaderCoordinator.IsLeader && _agentSyncClient != null)
             {
-                var snapshot = incoming.ToList();
+                var snapshot = merged.ToList();
                 Task.Run(() =>
                 {
                     try
@@ -1450,8 +1588,9 @@ namespace SupraInventoryRelayAgent
                     }
                 });
             }
+
             Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
-                " count=" + incoming.Count);
+                " shared=CHANGED count=" + merged.Count);
         }
 
         private void RefreshPickerWindowBoundary()
