@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D150_OWNER_ACCEPTED_BASE__D151_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89__OA079_FIELD_READY",
+    "beta": "D151_OWNER_ACCEPTED_BASE__SIGNED_BETA_VC89",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -2461,12 +2461,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D150",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D150_PASS__2026_09_29",
+    "accepted_base_change_id": "D151",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D151_PASS__2026_09_29",
     "current_change_id": "D151",
-    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89__OWNER_FIELD_OA079_PENDING",
-    "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89",
+    "owner_pass_required_to_unlock_next_change": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D151_BETA_ANDROID_ADAPTIVE_ALERT_ENGINE_RELEASED__SIGNED_BETA_VC89__AGENT_WEB_WORKER_BUSINESS_RUNTIME_UNCHANGED",
+    "runtime_impact": "D151_OWNER_ACCEPTED__BETA_ANDROID_ADAPTIVE_ALERT_ENGINE__SIGNED_BETA_VC89__AGENT_WEB_BUSINESS_RUNTIME_UNCHANGED",
     "resource_change": "NONE__EXISTING_ANDROID_FCM_OVERLAY_NOTIFICATION_BATTERY_EXEMPTION_ONLY__NO_NEW_PROVIDER_SCHEMA_SECRET_POLLING_LISTENER_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2791,7 +2791,7 @@
     }
   },
   "d151": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89__OWNER_FIELD_OA079_READY",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89",
     "date": "2026-09-29",
     "baseline_change": "D150",
     "baseline_main": "0f73af1ad74fc24209f76a28dab7432a2a2b3565",
@@ -2820,7 +2820,7 @@
     "recommended_approach": "STANDALONE_PACKAGE_OUTSIDE_PRODUCTION_ANDROID_TREE__PLATFORM_ONLY_APK__ALLOWLISTED_BETA_ENDPOINT__EXISTING_SANITIZED_RUNTIME_LOG_ARCHIVE",
     "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_REQUESTED_ONE_APK_AND_DIRECT_BETA_LOG_SEND__2026_09_29",
     "package": "cd.cc.supra.inventory.dnddiag",
-    "field_gate": "OA079_READY_FOR_OWNER_FIELD_TEST",
+    "field_gate": "PASS__OWNER_CONFIRMED_D151_2026_09_29",
     "production_android": "beta-vc89__RELEASED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "new_provider_resources": "NONE",
@@ -2937,6 +2937,12 @@
       "apk_sha256": "9fe96a16a26d1d59e3b2664025cd0802a59b9535d545d92cd475995c4dfc12bc",
       "inventory_channel_apk_asset_id": 597939084,
       "result": "PASS__EXACT_SOURCE_SIGNED_RELEASE_AND_CHANNEL_REFRESH"
+    },
+    "owner_gate": "OA079_CLOSED__OWNER_ACCEPTED",
+    "field_acceptance": {
+      "status": "PASS",
+      "date": "2026-09-29",
+      "evidence": "Owner explicitly confirmed D151 PASS after field review of the signed beta-vc89 adaptive Android alert engine. D151 is promoted to the accepted project base."
     }
   }
 }

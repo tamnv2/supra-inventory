@@ -1965,3 +1965,5 @@ OA079 field PASS requires testing the signed D151 Beta on:
 4. one other Android 11+ device when readily available.
 
 On each device, Notification + Overlay + battery exemption must remain mandatory. A critical alert must appear over another app with DND enabled. At least one screen-off/keyguard run must wake/present the alert. Native-capable devices should report full mode; unsupported/broken DND devices should report Overlay Compatibility mode without a false grant. No duplicate business ACK or unexpected provider-usage amplification is accepted.
+
+D151 Owner result: **PASS** on 2026-09-29. OA079 is closed after explicit Owner field acceptance of signed `beta-vc89`. D151 is promoted to the accepted base; existing D151 technical/runtime/release evidence remains authoritative and Stable remains OWNER-GATED.
