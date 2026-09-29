@@ -2463,10 +2463,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D151",
     "accepted_base_evidence": "OWNER_EXPLICIT_D151_PASS__2026_09_29",
-    "current_change_id": "D151",
-    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89",
-    "owner_pass_required_to_unlock_next_change": false,
-    "next_change_allowed": true,
+    "current_change_id": "D152",
+    "current_change_status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "owner_pass_required_to_unlock_next_change": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D151_OWNER_ACCEPTED__BETA_ANDROID_ADAPTIVE_ALERT_ENGINE__SIGNED_BETA_VC89__AGENT_WEB_BUSINESS_RUNTIME_UNCHANGED",
-    "resource_change": "NONE__EXISTING_ANDROID_FCM_OVERLAY_NOTIFICATION_BATTERY_EXEMPTION_ONLY__NO_NEW_PROVIDER_SCHEMA_SECRET_POLLING_LISTENER_CRON",
+    "runtime_impact": "D152_BETA_AGENT_PICKLIST_BROWSER_RECOVERY_AND_VERIFY_ONLY_PENDING_IMPLEMENTATION__ANDROID_WEB_WORKER_UNCHANGED",
+    "resource_change": "NONE__EXISTING_MANAGED_BROWSER_AND_EXISTING_FIRESTORE_CONFIRM_GUARD_ONLY__NO_NEW_PROVIDER_COLLECTION_POLLING_LISTENER_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -2944,5 +2944,29 @@
       "date": "2026-09-29",
       "evidence": "Owner explicitly confirmed D151 PASS after field review of the signed beta-vc89 adaptive Android alert engine. D151 is promoted to the accepted project base."
     }
+  },
+  "d152": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "date": "2026-09-29",
+    "baseline_change": "D151",
+    "baseline_main": "8519e38c9d7646174d46b5cc8c0a3127edce8a3c",
+    "branch": "d152-picklist-recovery",
+    "owner_approval": "PASS__OWNER_EXPLICITLY_REQUESTED_CONTINUE_AFTER_D151_PASS_WITH_APPROVED_PICKLIST_RECOVERY_LOGIC__2026_09_29",
+    "base_impact": "YES__BETA_WINDOWS_AGENT_PICKLIST_CONFIRM_RUNTIME_ONLY",
+    "affected_components": [
+      "relay_agent_managed_web_confirm_search",
+      "relay_agent_checkbox_readiness_recovery",
+      "relay_agent_post_confirm_verification",
+      "relay_agent_confirmation_guard_recovery",
+      "relay_agent_diagnostics_and_ci"
+    ],
+    "regression_stability_risk": "MEDIUM__WMS_BROWSER_UI_MUTATION_PATH__MITIGATED_BY_FAST_PATH_UNCHANGED_SINGLE_BOUNDED_RECOVERY_AND_NO_REPEAT_CONFIRM",
+    "resource_quota_security_impact": "NO_NEW_PROVIDER_COLLECTION_LISTENER_POLLING_CRON_SECRET_OR_WMS_API__LOCAL_BROWSER_RECOVERY_ONLY__ONE_RARE_FIRESTORE_GUARD_STATUS_WRITE_ONLY_AFTER_VERIFY_ONLY_PROVES_CONFIRMED",
+    "recommended_approach": "KEEP_NORMAL_MATCH_SELECT_CONFIRM_FAST_PATH__ONE_SEARCH_RETRY__ONE_RELOAD_ONLY_FOR_UNIQUE_UNSELECTABLE_ROW__NO_NOT_FOUND_STRIKE_AFTER_RECOVERY_STATE_CHANGE__POST_CONFIRM_ONE_READ_ONLY_SEARCH_VERIFY__EXISTING_GUARD_VERIFY_ONLY_NEVER_MUTATE_AGAIN__SANITIZED_REASON_TELEMETRY",
+    "target_agent_release": "relay-agent-v86",
+    "android": "beta-vc89__UNCHANGED",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "new_provider_resources": "NONE",
+    "field_gate": "OA080_PENDING_TECHNICAL_RELEASE"
   }
 }
