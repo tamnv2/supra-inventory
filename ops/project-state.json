@@ -33,7 +33,8 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D149_TECHNICAL_RELEASE_PASS__AGENT_V84__06_22_SHARED_SCHEDULE__BROWSER_STORAGE_RELOCATION",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D149_TECHNICAL_RUNTIME_RELEASE_PASS__OA077_PENDING__D148_ACCEPTED_BASE"
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D149_OWNER_ACCEPTED_PASS__D149_ACCEPTED_BASE",
+    "owner_acceptance": "D149_OWNER_FIELD_ACCEPTED_PASS__OA077_CLOSED__D149_ACCEPTED_BASE"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -193,7 +194,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D148 has explicit Owner PASS and is the accepted project base. No project change is currently open. The next requested workstream may start only after a fresh canonical GitHub bootstrap and pre-implementation impact review where required. The deferred overtime Web/App/Agent unification remains unstarted. Stable remains OWNER-GATED.",
+  "next_action": "D149 has explicit Owner PASS and is the accepted project base. No project change is currently open. The next requested workstream may start only after a fresh canonical GitHub bootstrap and pre-implementation impact review where required. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -837,7 +838,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "NONE__D148_OWNER_ACCEPTED_BASELINE",
+  "active_workstream": "NONE__D149_OWNER_ACCEPTED_BASELINE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2458,12 +2459,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D148",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D148_PASS__2026_09_29",
-    "current_change_id": "D149",
-    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA077_PENDING",
+    "accepted_base_change_id": "D149",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D149_PASS__2026_09_29",
+    "current_change_id": null,
+    "current_change_status": "NONE__D149_OWNER_ACCEPTED_PASS",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2477,7 +2478,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D149_BETA_MAIN_C03F5486__WORKER_WEB_FUNCTIONS_FIRESTORE_ANDROID_VC88_AGENT_V84_PASS__D148_REMAINS_ACCEPTED_BASE",
+    "runtime_impact": "D149_OWNER_ACCEPTED__TECHNICAL_RUNTIME_RELEASE_EVIDENCE_UNCHANGED__MAIN_C03F5486__BETA_VC88__AGENT_V84",
     "resource_change": "REUSE_EXISTING_FIRESTORE_RELAY_BETA_AND_EXISTING_BETA_FUNCTION_RUNTIME__NO_NEW_PROVIDER",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2559,7 +2560,7 @@
     }
   },
   "d149": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA077_PENDING",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC88__AGENT_V84",
     "date": "2026-09-29",
     "baseline_change": "D148",
     "baseline_main": "d251c0cd65e7c549e63257d4b1fe93a1ab3474b8",
@@ -2605,7 +2606,7 @@
       "DEFAULT_22_SLEEP_REQUIRES_NO_PROVIDER_WRITE"
     ],
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OA077_READY_FOR_OWNER_FIELD_TEST__OWNER_PASS_NOT_YET_GRANTED",
+    "owner_gate": "OA077_CLOSED__OWNER_ACCEPTED_PASS",
     "target_agent_release": "relay-agent-v84",
     "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC87",
     "release_policy": "ANDROID_EXPECTED_VC88_IF_NO_INTERVENING_RELEASE__AGENT_EXACT_V84",
@@ -2659,6 +2660,12 @@
         "result": "PASS"
       },
       "stable": "UNTOUCHED_OWNER_GATED"
+    },
+    "field_acceptance": "PASS__OWNER_EXPLICIT_D149_PASS__2026_09_29",
+    "owner_field_result": {
+      "date": "2026-09-29",
+      "result": "PASS",
+      "evidence": "Owner explicitly confirmed D149 PASS after field review of the released D149 Beta scope. D149 is promoted to the accepted project base."
     }
   }
 }
