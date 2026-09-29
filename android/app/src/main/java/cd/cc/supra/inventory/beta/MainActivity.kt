@@ -358,6 +358,8 @@ class MainActivity : Activity() {
         contentContainer = null
         setContentView(R.layout.activity_login)
         applySystemBarInsets()
+        findViewById<TextView>(R.id.tvLoginVersion).text =
+            "Phiên bản beta ${BuildConfig.VERSION_NAME.substringBefore("-")} - version ${BuildConfig.VERSION_CODE}"
 
         val username = findViewById<EditText>(R.id.etEmployeeCode)
         val password = findViewById<EditText>(R.id.etPassword)
@@ -966,7 +968,7 @@ class MainActivity : Activity() {
         })
         content.addView(TextView(this).apply {
             text = if (message.isBlank()) {
-                "Các quyền dưới đây giúp cảnh báo nghiệp vụ xuất hiện đúng lúc, kể cả khi PDA đang dùng ứng dụng khác, bật Không làm phiền hoặc Tiết kiệm pin."
+                "Ưu tiên thử khả năng vượt Không làm phiền trước. Sau đó hoàn tất các quyền bắt buộc để cảnh báo luôn hiển thị ổn định."
             } else message
             textSize = 14f
             setTextColor(Color.rgb(71, 85, 105))
@@ -1006,9 +1008,9 @@ class MainActivity : Activity() {
                 text = guide
                 textSize = 12.5f
                 setTextColor(Color.rgb(100, 116, 139))
-                setPadding(0, 2, 0, if (!ready && action != null) 8 else 0)
+                setPadding(0, 2, 0, 8)
             })
-            if (!ready && action != null) {
+            if (action != null) {
                 card.addView(Button(this).apply {
                     text = buttonText
                     isAllCaps = false
@@ -1024,73 +1026,40 @@ class MainActivity : Activity() {
             ).apply { bottomMargin = 10 })
         }
 
-        permissionCard(
-            "Thông báo ứng dụng",
-            readiness.notificationsReady,
-            "Để PDA nhận cảnh báo nghiệp vụ khi ứng dụng đang chạy nền.",
-            "Bật “Cho phép thông báo” cho 1291 Báo hàng Beta.",
-        ) { requestNotificationPermissionFromGate() }
-        permissionCard(
-            "Hiển thị trên ứng dụng khác",
-            readiness.overlayReady,
-            "Để cảnh báo có thể phủ lên SFT hoặc ứng dụng đang mở.",
-            "Bật “Cho phép hiển thị trên ứng dụng khác”.",
-        ) { AndroidAlertReadiness.openOverlaySettings(this) }
-        permissionCard(
-            "Không tối ưu pin",
-            readiness.batteryReady,
-            "Để Android không trì hoãn cảnh báo khi bật Tiết kiệm pin.",
-            "Chọn Cho phép / Không tối ưu cho ứng dụng.",
-            "CHO PHÉP KHÔNG TỐI ƯU PIN",
-        ) { AndroidAlertReadiness.openBatteryOptimizationSettings(this) }
-
-        val modeCard = LinearLayout(this).apply {
+        val priorityCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(18, 16, 18, 16)
             background = android.graphics.drawable.GradientDrawable().apply {
-                setColor(Color.WHITE)
+                setColor(Color.rgb(239, 246, 255))
                 cornerRadius = 14f
-                setStroke(
-                    1,
-                    if (readiness.nativeDndReady) Color.rgb(134, 239, 172) else Color.rgb(147, 197, 253),
-                )
+                setStroke(2, Color.rgb(59, 130, 246))
             }
         }
-        modeCard.addView(TextView(this).apply {
-            text = if (readiness.nativeDndReady) {
-                "✓ Chế độ cảnh báo đầy đủ · Sẵn sàng"
-            } else {
-                "✓ Chế độ tương thích Overlay · Sẵn sàng"
-            }
+        priorityCard.addView(TextView(this).apply {
+            text = "ƯU TIÊN 1 · KHÔNG LÀM PHIỀN + OVERLAY"
             textSize = 15f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(
-                if (readiness.nativeDndReady) Color.rgb(21, 128, 61) else Color.rgb(29, 78, 216),
-            )
+            setTextColor(Color.rgb(30, 64, 175))
         })
-        modeCard.addView(TextView(this).apply {
-            text = if (readiness.nativeDndReady) {
-                "Android đã cấp DND Policy và kênh cảnh báo có thể vượt Không làm phiền."
-            } else {
-                "Thiết bị không cung cấp đầy đủ DND bypass. Cảnh báo nghiệp vụ dùng Overlay làm bề mặt hiển thị chính; DND không chặn đăng nhập."
-            }
+        priorityCard.addView(TextView(this).apply {
+            text = "Hãy thử Không làm phiền trước. Nếu PASS, thiết bị dùng chế độ cảnh báo đầy đủ; nếu không PASS, Overlay là lớp tương thích để cảnh báo vẫn phủ lên ứng dụng đang mở."
             textSize = 13f
-            setTextColor(Color.rgb(51, 65, 85))
-            setPadding(0, 6, 0, 2)
+            setTextColor(Color.rgb(30, 64, 175))
+            setPadding(0, 7, 0, 8)
         })
-        modeCard.addView(TextView(this).apply {
+        priorityCard.addView(TextView(this).apply {
             text = if (readiness.nativeDndReady) {
-                "Overlay vẫn là bề mặt cảnh báo chính; notification/full-screen intent chỉ là lớp hỗ trợ."
+                "✓ Không làm phiền · PASS"
             } else {
-                "Thông báo, Hiển thị trên ứng dụng khác và Không tối ưu pin vẫn là các điều kiện bắt buộc."
+                "• Không làm phiền · Chưa PASS hoặc thiết bị không hỗ trợ đầy đủ"
             }
-            textSize = 12.5f
-            setTextColor(Color.rgb(100, 116, 139))
-            setPadding(0, 2, 0, if (!readiness.nativeDndReady) 8 else 0)
+            textSize = 13.5f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(if (readiness.nativeDndReady) Color.rgb(21, 128, 61) else Color.rgb(180, 83, 9))
         })
         if (!readiness.nativeDndReady) {
-            modeCard.addView(Button(this).apply {
-                text = if (readiness.dndPolicyReady) "MỞ KÊNH CẢNH BÁO" else "THỬ MỞ QUYỀN DND"
+            priorityCard.addView(Button(this).apply {
+                text = if (readiness.dndPolicyReady) "KIỂM TRA KÊNH CẢNH BÁO" else "THỬ QUYỀN KHÔNG LÀM PHIỀN"
                 isAllCaps = false
                 setOnClickListener {
                     if (readiness.dndPolicyReady) {
@@ -1102,12 +1071,61 @@ class MainActivity : Activity() {
             }, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-            ))
+            ).apply { bottomMargin = 8 })
         }
-        content.addView(modeCard, LinearLayout.LayoutParams(
+        priorityCard.addView(TextView(this).apply {
+            text = (if (readiness.overlayReady) "✓ " else "• ") +
+                "Hiển thị trên ứng dụng khác" +
+                if (readiness.overlayReady) " · Đã cấp" else " · Bắt buộc"
+            textSize = 13.5f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(if (readiness.overlayReady) Color.rgb(21, 128, 61) else Color.rgb(153, 27, 27))
+            setPadding(0, 3, 0, 4)
+        })
+        priorityCard.addView(TextView(this).apply {
+            text = "Overlay vẫn phải được cấp để bảo đảm cảnh báo có thể phủ SFT/ứng dụng khác trên các PDA thực tế."
+            textSize = 12.5f
+            setTextColor(Color.rgb(71, 85, 105))
+            setPadding(0, 0, 0, 8)
+        })
+        priorityCard.addView(Button(this).apply {
+            text = if (readiness.overlayReady) "MỞ CÀI ĐẶT OVERLAY" else "CẤP QUYỀN OVERLAY"
+            isAllCaps = false
+            setOnClickListener { AndroidAlertReadiness.openOverlaySettings(this@MainActivity) }
+        }, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
-        ).apply { bottomMargin = 10 })
+        ))
+        content.addView(priorityCard, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { bottomMargin = 12 })
+
+        permissionCard(
+            "Thông báo ứng dụng",
+            readiness.notificationsReady,
+            "Để PDA nhận cảnh báo nghiệp vụ khi ứng dụng đang chạy nền.",
+            "Bật “Cho phép thông báo” cho 1291 Báo hàng Beta.",
+        ) { requestNotificationPermissionFromGate() }
+
+        permissionCard(
+            "Không tối ưu pin",
+            readiness.batteryReady,
+            "Để Android không trì hoãn cảnh báo khi bật Tiết kiệm pin.",
+            "Chọn Cho phép / Không tối ưu cho ứng dụng.",
+            "CHO PHÉP KHÔNG TỐI ƯU PIN",
+        ) { AndroidAlertReadiness.openBatteryOptimizationSettings(this) }
+
+        content.addView(TextView(this).apply {
+            text = if (readiness.nativeDndReady) {
+                "Chế độ hiện tại: Cảnh báo đầy đủ · DND PASS. Các quyền bắt buộc bên trên vẫn phải hoàn tất."
+            } else {
+                "Chế độ hiện tại: Tương thích Overlay. Không làm phiền không chặn đăng nhập; các quyền bắt buộc vẫn phải PASS."
+            }
+            textSize = 12.5f
+            setTextColor(if (readiness.nativeDndReady) Color.rgb(21, 128, 61) else Color.rgb(29, 78, 216))
+            setPadding(0, 2, 0, 8)
+        })
 
         val actions = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1123,23 +1141,14 @@ class MainActivity : Activity() {
                     continueStartupAfterPermissionGate()
                 } else {
                     permissionManualReview = true
-                    renderRequiredPermissionsGate("Còn quyền bắt buộc chưa sẵn sàng. Mở đúng mục cài đặt bên dưới, sau đó bấm “Kiểm tra cấp quyền”.")
+                    renderRequiredPermissionsGate("Còn quyền bắt buộc chưa sẵn sàng. Hoàn tất các mục bên dưới rồi bấm “Kiểm tra cấp quyền”.")
                 }
             }
-        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 6 })
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         actions.addView(Button(this).apply {
-            text = "Đặt lại mặc định"
+            text = "Kiểm tra lại"
             isAllCaps = false
-            setOnClickListener {
-                getSharedPreferences("required_permission_gate_v1", MODE_PRIVATE).edit().clear().apply()
-                permissionManualReview = true
-                Toast.makeText(
-                    this@MainActivity,
-                    "Đã đặt lại trạng thái kiểm tra. Quyền hệ thống vẫn do Android quản lý; hãy chỉnh tại Cài đặt rồi quay lại kiểm tra.",
-                    Toast.LENGTH_LONG,
-                ).show()
-                AndroidAlertReadiness.openAppDetails(this@MainActivity)
-            }
+            setOnClickListener { renderRequiredPermissionsGate() }
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = 6 })
         content.addView(actions)
 
