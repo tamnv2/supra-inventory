@@ -90,7 +90,7 @@ jobs:
             'checkbox_recovery=START',
             'IssueConfirmReloadNowNoLock("checkbox_not_ready")',
             'TimeSpan.FromSeconds(5)',
-            'TimeSpan.FromMilliseconds(2200)',
+            'AddMilliseconds(2200)',
             'VerifyExactWithoutMutation',
             'TryVerifyRowRemovedAfterSearchNoLock',
             'ROW_REMOVED_AFTER_VERIFY_SEARCH',
