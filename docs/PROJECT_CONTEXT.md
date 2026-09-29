@@ -783,3 +783,15 @@ D154 is technically/runtime released on Beta at main `4aa06e7be0731ebe3b5fb05d30
 - `operatingScheduleChanged` is now actually deployed as a Beta Cloud Function in `asia-southeast1`. Android retains event-driven FCM and only performs one exact schedule-document Firestore read when a blocked PickList still sees a closed Worker mirror.
 - Beta releases: Android `beta-vc90`; Agent `relay-agent-v88`.
 - No new provider resource, collection/schema, secret, listener, polling loop or cron. Stable remains OWNER-GATED.
+
+
+## D154 accepted Beta base
+
+D154 is the current Owner-accepted Beta base after explicit PASS on 2026-09-30.
+
+- Current accepted releases: Android `beta-vc90` and Agent `relay-agent-v88`.
+- Shared schedule authority is 05:45–22:30 with early start 05:00–05:45, 22:30-anchored overtime capped at 05:00, and explicit `CANCEL_OVERTIME`.
+- Agent remains the schedule writer; Web remains read-only; Android uses event-driven FCM plus the bounded exact-document recovery defined by D154.
+- The previously missing `operatingScheduleChanged` Beta Function deployment is part of the accepted runtime.
+- No new provider resource, collection/schema, secret, listener, polling loop or cron was added. Stable remains OWNER-GATED.
+- The serial Owner-PASS gate is open for the next separately reviewed change.
