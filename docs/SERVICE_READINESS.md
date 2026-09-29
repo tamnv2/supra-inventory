@@ -1494,3 +1494,17 @@ Derived current-status marker:
 
 Derived current-status marker:
 - `D153_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_D69566EE__AGENT_V87__OA081_FIELD_READY`
+
+
+## D153 Owner acceptance — PASS — 2026-09-29
+
+- Accepted base is **D153** after explicit Owner field PASS; OA081 is closed.
+- Implementation source remains PR #321 → main `d69566ee0ae6294573ec91f9eb649764e91561ee`.
+- Agent **relay-agent-v87** release id `399311941`; EXE SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`.
+- Android remains **beta-vc89**.
+- Owner accepted the A+B+C quota-safe Picker presence behavior after field validation; streaming redesign D remains deferred.
+- No new provider/resource/schema/listener/polling/cron. Stable remains OWNER-GATED.
+- Serial Owner-PASS gate is open for the next separately reviewed change.
+
+Derived current-status marker:
+- `D153_OWNER_FIELD_ACCEPTED_PASS__MAIN_D69566EE__AGENT_V87__OA081_CLOSED`
