@@ -677,7 +677,7 @@ export class InventoryCore {
     }
     const now = Date.now();
     if (now < this.nextScheduleRecoveryAt) return;
-    this.nextScheduleRecoveryAt = now + 5_000;
+    this.nextScheduleRecoveryAt = now + 10_000;
     const task = (async () => {
       try {
         const before = readAndroidAlertWindow(this.state);
