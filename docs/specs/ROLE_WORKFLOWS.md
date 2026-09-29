@@ -772,3 +772,17 @@ If the reload returns to login, Dashboard, a partial DOM, or another page, exist
 - LOGIN for that Picker replaces fallback. Explicit logout/session revoke/kick removes only matching/older fallback by session generation; transient socket/network loss and unrelated Picker events do not remove it.
 - Repeated notification-device registration with unchanged semantic session/device state must not become a Firestore presence heartbeat.
 - No D153 optimization changes PickList processing cadence, WMS confirmation timing, critical notification behavior or HA/failover timing.
+
+
+## D154 unified schedule workflow
+
+D154 supersedes the D149 timing values while preserving its single shared Agent-owned authority.
+
+- Normal automatic replay is **05:45–22:30** Asia/Ho_Chi_Minh.
+- Overtime remains bounded by the **05:00** cutoff. The early-start interval is **05:00–<05:45**.
+- The overtime sequence is anchored to **22:30 → 23:30 → 00:30 ...**; accepted extension remains shared fleet state.
+- An active outside-normal override is visible in Agent as **Đang tăng ca · áp dụng toàn hệ thống đến HH:mm**.
+- **Huỷ tăng ca** writes `CANCEL_OVERTIME` and closes the shared override immediately. Android and Web consume the same newer version.
+- A sleeping Agent may still use **Điều chỉnh tăng ca**. Repeating the same explicit action may re-project current authority once for recovery; normal Agent UI ticks never publish or poll schedule state.
+- Web remains read-only for schedule decisions. Android remains logged in when the business window closes and reconciles schedule state only on login/recovery, FCM, or one blocked PickList attempt.
+- Direct/manual Agent confirmation behavior and D150/D153 HA/usage timings are unchanged.
