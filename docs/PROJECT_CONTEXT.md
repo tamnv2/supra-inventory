@@ -758,3 +758,7 @@ D151 is Owner-field accepted PASS on 2026-09-29. The accepted Beta base now incl
 ## D152 approved PickList recovery workstream
 
 After D151 Owner PASS, D152 is the active Owner-approved Agent-only workstream. It preserves the normal PickList confirmation fast path and adds bounded exception recovery for a unique row whose checkbox has not hydrated, plus read-only verification after an uncertain post-confirm state or an existing uncertain confirmation guard. Recovery never repeats the Confirm mutation, never converts a recovery state-change into a Picker NOT_FOUND strike, adds no provider cadence/resource/schema, targets `relay-agent-v86`, keeps Android at signed `beta-vc89`, and leaves Stable OWNER-GATED.
+
+### D152 v87 safety checkpoint
+
+D152 Agent v86 was published but is superseded for field acceptance by an in-change v87 safety repair. The repair prevents transient fully-empty WMS table renders from being treated as row-removal confirmation proof and classifies final pre-mutation checkbox races as safe conflicts. Fast-path behavior, Android beta-vc89, provider cadence/resources and Stable remain unchanged. OA080 waits for v87 technical/runtime/release PASS.
