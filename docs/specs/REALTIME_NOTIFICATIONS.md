@@ -759,3 +759,13 @@ Failure of OEM DND policy access alone must not block login when hard readiness 
 - The existing fixed-slot `picker_presence_current` control/ACK path remains. Explicit logout/revoke may attach bounded removed-session metadata so PickList fallback removal is user/session-specific.
 - PickList fallback is one-shot and session-generation fenced; it is not last-seen/heartbeat traffic.
 - D150/D131 queue, lease, failover and listener cadence remain unchanged. No Android polling or additional realtime listener is added.
+
+
+## D154 operating-schedule delivery and recovery
+
+- The low-frequency Firestore document `relay_poc_coordination/operating_schedule` remains the only schedule projection eligible for the Cloud Function trigger.
+- Beta deployment must include `operatingScheduleChanged`; deployment CI guards this exact function name so source-only schedule triggers cannot silently remain undeployed.
+- Each accepted projection sends the existing silent FCM topic event and mirrors the same version to InventoryCore/Worker. Worker mirror may retry once inside the same Function invocation after a transient failure; there is no scheduled retry loop.
+- Schedule payload uses `normal_start_minutes=345`, `normal_end_minutes=1350`, `overtime_cutoff_minutes=300` and accepts `CANCEL_OVERTIME`.
+- Android FCM remains event-driven. If a blocked PickList receives a successful Worker response that still leaves the window closed, Android may perform one exact server Firestore GET for `operating_schedule`, bounded by the existing 60-second user-attempt reconcile gate.
+- No broad Firestore list, schedule listener, heartbeat, cron or new provider resource is added.
