@@ -2226,9 +2226,9 @@ D149 Owner acceptance: **PASS** on 2026-09-29. The Owner explicitly confirmed "d
 
 ## D150 — Quota-safe Agent coordination and manual PRIMARY takeover — 2026-09-29
 
-Status: **OWNER APPROVED — IMPLEMENTATION AUTHORIZED**.
+Status: **OWNER FIELD ACCEPTED — PASS**.
 
-Owner approved the post-D149 safety refinement after an explicit source-level review of free-tier risk. D149 remains the accepted base until D150 receives explicit Owner PASS. Stable remains OWNER-GATED and untouched.
+Owner approved the post-D149 safety refinement after an explicit source-level review of free-tier risk. D150 is now the accepted base after explicit Owner PASS on 2026-09-29. Stable remains OWNER-GATED and untouched.
 
 1. **Protected business/HA cadence.** D150 must not change the accepted confirmation latency/failover contract: PRIMARY active queue query remains **3 seconds**, inactive query **15 seconds**, burst HOT **1 second for the existing bounded window**, PRIMARY lease heartbeat **10 seconds**, failover threshold **15 seconds**, NEXT-A exact lease monitoring remains active, NEXT-B/DEEP do not query the business PENDING queue, and Android adds no polling.
 2. **Fresh Picker-contact query.** The PRIMARY five-minute reconcile must no longer list up to 100 historical `picker_active_calls` documents and filter them locally. It queries only calls whose `lock_until_ms` is still in the future, with a bounded limit, then validates `ACTIVE` locally. Historical/resolved call documents remain available without being repeatedly downloaded.
@@ -2258,4 +2258,6 @@ Runtime evidence:
 - No new provider, collection, secret, Android production artifact or Stable mutation was introduced.
 
 D150 is now **TECHNICAL / RUNTIME / RELEASE PASS**. OA078 is **READY_FOR_OWNER_FIELD_TEST**. D149 remains the accepted project base until the Owner explicitly records D150 PASS; technical/release PASS alone does not promote the base.
+
+D150 Owner acceptance: **PASS** on 2026-09-29. The Owner explicitly confirmed “d150 pass” after field review. OA078 is closed and D150 is promoted to the accepted project base. Technical/runtime/release evidence remains implementation PR #306, main `c9d42c701f66283f447aad4f24c8f9043db17e37`, Agent `relay-agent-v85`, and signed Android `beta-vc88` unchanged. No new provider/resource/schema/secret is introduced by this acceptance record; Stable remains OWNER-GATED and untouched.
 

@@ -1398,8 +1398,8 @@ Derived current-status markers:
 - Agent: `relay-agent-v84`
 - SQLite schema: `14`
 
-## D150 technical/runtime/release PASS — Owner field pending — 2026-09-29
-- Accepted base remains **D149** until explicit Owner D150 PASS.
+## D150 Owner acceptance — PASS — 2026-09-29
+- Accepted base is **D150** after explicit Owner PASS; OA078 is closed.
 - D150 implementation PR #306 merged to main `c9d42c701f66283f447aad4f24c8f9043db17e37`.
 - Beta Worker/Web exact-source health PASS; SQLite schema remains `14`.
 - Firestore Rules deploy/readback PASS; Beta Functions deploy PASS.
@@ -1407,12 +1407,12 @@ Derived current-status markers:
 - Android: compatibility build PASS with no release required; signed **beta-vc88** remains the installed Beta release.
 - D150 preserves 3s/15s/1s confirmation cadence, 10s lease and 15s failover; quota hardening removes historical/broad coordination scans and bounds support-log amplification.
 - Manual **Chuyển Agent chính** is limited to `tamnv2`/`admin`, readiness-gated and CAS/new-generation fenced.
-- OA078 is **READY_FOR_OWNER_FIELD_TEST**.
+- OA078 is **PASS / CLOSED** after explicit Owner field acceptance.
 - No new provider/collection/secret or Stable mutation.
 
 Derived current-status markers:
-- `D150_TECHNICAL_RUNTIME_PASS__FILTERED_COORDINATION__LOG_STORM_GUARDS__MAIN_C9D42C70`
-- `D150_TECHNICAL_RELEASE_PASS__AGENT_V85__ANDROID_VC88_UNCHANGED__OA078_READY`
+- `D150_OWNER_FIELD_ACCEPTED_PASS__FILTERED_COORDINATION__LOG_STORM_GUARDS__MAIN_C9D42C70`
+- `D150_OWNER_FIELD_ACCEPTED_PASS__AGENT_V85__ANDROID_VC88_UNCHANGED__OA078_CLOSED`
 - Latest Beta APK: `beta-vc88`
 - Agent: `relay-agent-v85`
 - SQLite schema: `14`
