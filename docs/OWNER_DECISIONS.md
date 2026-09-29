@@ -2340,3 +2340,11 @@ After explicitly accepting D151 PASS, the Owner approved the proposed PickList r
 5. An existing uncertain confirmation guard remains a hard no-resend fence. A later request for the same exact PickList may perform one read-only browser verification; only stable disappearance of that exact row may convert the result to CONFIRMED. Otherwise it remains uncertain.
 6. Existing request-age, single-PRIMARY, generation, full-code, exact-row and confirmation-guard fences remain mandatory. No direct WMS API, session extraction, Network interception, second mutation provider or guessed success state is allowed.
 7. D152 is Agent-only and targets `relay-agent-v86`. Signed Android remains `beta-vc89`. No new provider resource, Firestore collection/schema, listener, polling cadence, cron or secret is authorized. Stable remains OWNER-GATED.
+
+### D152 Owner acceptance — 2026-09-29
+
+D152 Owner acceptance: **PASS**. The Owner explicitly confirmed PASS after downloading and field-testing the released `relay-agent-v86`. OA080 is closed and D152 is promoted to the accepted project base.
+
+Accepted technical/release evidence: implementation PR #316 → main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`; Repo Authority, Project State, Relay Agent, UI Design and Dashboard Probe main gates PASS; release `relay-agent-v86` id `399178131`; Agent EXE SHA-256 `098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430`. The inventory Agent channel points to the same EXE digest.
+
+The accepted D152 behavior remains the bounded PickList recovery/verify-only contract already approved: normal ready PickLists keep the fast path; checkbox-not-ready recovery is bounded; recovery state changes do not become false NOT_FOUND strikes; post-confirm and existing uncertain-guard handling never resend the Confirm mutation. Android remains signed `beta-vc89`; no new provider/resource/schema/listener/polling/write cadence is introduced; Stable remains OWNER-GATED.
