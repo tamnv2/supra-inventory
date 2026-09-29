@@ -149,6 +149,8 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
     if (url.searchParams.has("status")) params.set("status", url.searchParams.get("status") || "");
     if (url.searchParams.has("scope")) params.set("scope", url.searchParams.get("scope") || "");
+    if (url.searchParams.has("from")) params.set("from", url.searchParams.get("from") || "");
+    if (url.searchParams.has("to")) params.set("to", url.searchParams.get("to") || "");
     return core(env).fetch(`https://inventory-core.internal/operational/reporter/recent?${params.toString()}`);
   }
 
