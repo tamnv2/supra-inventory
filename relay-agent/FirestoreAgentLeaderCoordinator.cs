@@ -392,27 +392,39 @@ namespace SupraInventoryRelayAgent
             {
                 _ensureFreshToken();
                 var session = _sessionProvider();
-                WriteScheduleFields(session, scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
-                SetSharedSchedule(scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
-                TryPublishOperatingScheduleProjection(session, scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
 
+                // D149: early start follows the same first-writer-wins schedule CAS.
+                // It must never seize PRIMARY merely because a user clicked first;
+                // HA role ownership remains governed by the existing roles/lease model.
                 for (var attempt = 0; attempt < 4; attempt++)
                 {
                     var read = ReadRoles(session);
-                    var next = new FirestoreRoleSnapshot
+                    var current = read.Snapshot;
+                    ApplySharedSchedule(current);
+
+                    if (current != null &&
+                        string.Equals(current.ScheduleKey ?? "", scheduleKey, StringComparison.Ordinal) &&
+                        string.Equals(current.ScheduleDecision ?? "", "EARLY_START", StringComparison.Ordinal) &&
+                        current.RelayOverrideUntilMs >= relayOverrideUntilMs)
                     {
-                        PrimaryAgentInstanceId = _instanceId,
-                        StandbyAgentInstanceId = "",
-                        NextBAgentInstanceId = "",
-                        Generation = Guid.NewGuid().ToString("N"),
-                        UpdatedAtMs = NowMs()
-                    };
-                    if (!TryWriteRoles(session, next, read)) continue;
-                    _generation = next.Generation;
-                    SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "EARLY_START_PRIMARY");
-                    WritePrimaryLease(session);
-                    TrySelectReplacementStandby(session, "");
-                    _log("FIRESTORE SCHEDULE early_start=PASS relay_until_ms=" + relayOverrideUntilMs);
+                        _log("FIRESTORE SCHEDULE early_start=EXISTING relay_until_ms=" +
+                             current.RelayOverrideUntilMs);
+                        return true;
+                    }
+
+                    if (!TryWriteScheduleFields(
+                        session, scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs, read))
+                        continue;
+
+                    SetSharedSchedule(scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
+                    if (_role == FirestoreAgentRole.PRIMARY) WritePrimaryLease(session);
+                    TryPublishOperatingScheduleProjection(
+                        session, scheduleKey, "EARLY_START", 0L, relayOverrideUntilMs);
+                    _refreshBeforeBusiness = true;
+                    try { _wake.Set(); } catch { }
+                    _log("FIRESTORE SCHEDULE early_start=PASS relay_until_ms=" +
+                         relayOverrideUntilMs + " role=" + _role +
+                         " primary_authority=EXISTING_HA");
                     return true;
                 }
             }
