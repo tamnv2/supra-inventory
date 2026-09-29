@@ -2322,3 +2322,7 @@ Owner-approved production rule:
 - when screen is off or keyguard is active, use the existing bounded `CriticalWakeActivity` via a local capability-based wake coordinator; no WakeLock, polling, always-on service or provider traffic is added;
 - notification full-screen intent is only a capability-checked fallback, not alert authority;
 - Beta Android only. Agent, Web, Worker business behavior, Firestore coordination and Stable remain unchanged.
+
+### D151 Owner acceptance — 2026-09-29
+
+D151 Owner acceptance: **PASS**. The Owner explicitly confirmed D151 PASS after field review of the signed `beta-vc89` adaptive Android alert engine. OA079 is closed and D151 is promoted to the accepted project base. The accepted scope remains capability-based alert readiness/delivery with Notification + Overlay + battery-exemption hard requirements, native DND enhancement only when truly available, and Overlay Compatibility otherwise. No new provider/resource/schema/polling/listener/secret is introduced by this acceptance; Agent/Web/Stable remain unchanged and Stable remains OWNER-GATED.
