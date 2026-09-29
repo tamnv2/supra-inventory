@@ -498,11 +498,6 @@ async function createReport(state: DurableObjectState, request: Request): Promis
         status: "OPEN",
       },
       event_id: eventId,
-      resolution_source: "REPORTER",
-      resolved_by_user_id: actor.user_id,
-      resolved_by_display_name: actor.display_name || actor.employee_code || actor.user_id,
-      resolved_by_employee_code: actor.employee_code || "",
-      resolved_by_role: actor.role || "",
     };
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 201, payload } satisfies BusinessResult;
@@ -751,6 +746,11 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       resolved_at: at,
       correction_deadline_at: correctionDeadline,
       event_id: eventId,
+      resolution_source: "REPORTER",
+      resolved_by_user_id: actor.user_id,
+      resolved_by_display_name: actor.display_name || actor.employee_code || actor.user_id,
+      resolved_by_employee_code: actor.employee_code || "",
+      resolved_by_role: actor.role || "",
     };
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 200, payload } satisfies BusinessResult;
