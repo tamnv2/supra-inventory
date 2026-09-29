@@ -2448,3 +2448,20 @@ Baseline is D154 Owner PASS. After impact review, the Owner approved D155 with a
 9. Web managed-user search includes contractor and filters Báo hàng enabled/disabled. Picker rows show contractor/reporting capability. Android shows contractor compactly in Picker identity; Agent adds contractor to Picker list/search.
 10. Quota policy: no new provider resource, Firestore collection, Firestore/RTDB capability operation, FCM capability push, polling loop, listener or cron. Cloudflare realtime reuses the existing hibernatable WebSocket path.
 11. D155 uses additive InventoryCore SQLite schema 15, targets Agent relay-agent-v89, and the next monotonic signed Android Beta after beta-vc90. Stable remains OWNER-GATED and untouched.
+
+## D156 — Schedule convergence repair + Picker Báo hàng default OFF — 2026-09-30
+
+Status: **OWNER APPROVED — IMPLEMENTATION AUTHORIZED**.
+
+Baseline is D155 Owner PASS. D156 is a coordinated Beta repair for the observed split state where Agent/PickList accepted overtime while Web and the Báo hàng path could still see a closed Worker schedule.
+
+1. Agent/Firestore remains the single schedule authority. D156 does not create a second schedule writer.
+2. The normal path remains Agent schedule action → existing operatingScheduleChanged Function → Worker mirror + existing FCM. No new listener, polling loop, cron or provider resource is authorized.
+3. When InventoryCore still reads the business window as closed, a schedule-governed request may use a single exact Firestore read of relay_poc_coordination/operating_schedule through the existing Google runtime service account. Durable Object in-flight sharing plus a 10-second global throttle prevents burst amplification. No collection query/listener is allowed.
+4. If exact recovery observes a newer schedule version, InventoryCore mirrors it locally and emits the existing operating_schedule WebSocket invalidation for ADMIN/PICKPACK_ADMIN/ROOT. Web Ca vận hành must actually reload that state on the existing realtime scope.
+5. Android retains the existing data-only FCM topic. The active MainActivity consumes the existing operating-schedule broadcast and immediately reapplies shared-window presentation; Báo hàng send controls are disabled while the shared window is closed. Server authorization remains final authority.
+6. D156 explicitly supersedes D155's initial default-enabled rollout policy: all existing PICKER rows are set to Báo hàng disabled once by a durable migration marker, and newly HR-provisioned Pickers are created disabled. After this one-time migration, HR sync preserves any later explicit administrator enable/disable choice.
+7. shortage_reporting_enabled missing/null state is fail-closed for Picker across Worker, notification targeting, realtime result eligibility and Android parsing.
+8. Account ACTIVE/DISABLED remains independent. Tắt Báo hàng still does not block login, Xác nhận đơn/PickList, Agent presence/contact or unrelated alerts.
+9. Target runtime is SQLite schema 16 and the next monotonic signed Android Beta after beta-vc91. Windows Agent remains relay-agent-v90 unchanged.
+10. Stable remains OWNER-GATED and untouched.

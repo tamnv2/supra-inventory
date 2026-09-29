@@ -1164,7 +1164,7 @@ export function pickerCanReceiveRealtimeEvent(
           WHERE u.user_id = ?
             AND u.role = 'PICKER'
             AND u.status = 'ACTIVE'
-            AND COALESCE(u.shortage_reporting_enabled, 1) = 1
+            AND COALESCE(u.shortage_reporting_enabled, 0) = 1
        )
        AND (
          (? IS NOT NULL AND EXISTS (

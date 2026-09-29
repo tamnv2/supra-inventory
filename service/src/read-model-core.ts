@@ -2,7 +2,7 @@ import { handleOperationalV2CoreRequest, operationalV2Readiness, pickerCanReceiv
 
 type SqlRow = Record<string, SqlStorageValue>;
 
-type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "ROOT";
+type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 type RealtimeClientType = "WEB" | "ANDROID";
 
 type RealtimeTicket = {
@@ -26,7 +26,7 @@ type RealtimeAttachment = {
 
 const REALTIME_TICKET_PREFIX = "realtime-ticket:";
 const REALTIME_TICKET_TTL_MS = 60_000;
-const REALTIME_TAG_RE = /^(role:(PICKER|REPORTER|ADMIN|ROOT)|user:[A-Za-z0-9._:-]{1,128}|client:(WEB|ANDROID))$/;
+const REALTIME_TAG_RE = /^(role:(PICKER|REPORTER|ADMIN|PICKPACK_ADMIN|ROOT)|user:[A-Za-z0-9._:-]{1,128}|client:(WEB|ANDROID))$/;
 
 function response(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -188,7 +188,7 @@ async function createRealtimeTicket(state: DurableObjectState, request: Request)
   const clientType = String(body.client_type || "") as RealtimeClientType;
   if (
     !/^[A-Za-z0-9._:-]{1,128}$/.test(userId) ||
-    !["PICKER", "REPORTER", "ADMIN", "ROOT"].includes(role) ||
+    !["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(role) ||
     !["WEB", "ANDROID"].includes(clientType)
   ) {
     return response({ error: "INVALID_REALTIME_TICKET_REQUEST" }, 400);
@@ -313,6 +313,7 @@ function realtimePresence(state: DurableObjectState): Response {
     PICKER: new Set<string>(),
     REPORTER: new Set<string>(),
     ADMIN: new Set<string>(),
+    PICKPACK_ADMIN: new Set<string>(),
     ROOT: new Set<string>(),
   };
   const byClient: Record<RealtimeClientType, Set<string>> = {

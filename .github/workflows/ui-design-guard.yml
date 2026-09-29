@@ -11,6 +11,7 @@ on:
       - "tools/ui_design_guard.py"
       - "tools/d098_cloudflare_budget_guard.py"
       - "tools/d155_contractor_reporting_guard.py"
+      - "tools/d156_schedule_convergence_guard.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
   pull_request:
@@ -23,6 +24,7 @@ on:
       - "tools/ui_design_guard.py"
       - "tools/d098_cloudflare_budget_guard.py"
       - "tools/d155_contractor_reporting_guard.py"
+      - "tools/d156_schedule_convergence_guard.py"
       - "ops/project-state.json"
       - ".github/workflows/ui-design-guard.yml"
   workflow_dispatch:
@@ -62,6 +64,9 @@ jobs:
 
       - name: Validate D155 Cloudflare-only Picker reporting quota boundary
         run: python3 tools/d155_contractor_reporting_guard.py
+
+      - name: Validate D156 schedule convergence and reporting defaults
+        run: python3 tools/d156_schedule_convergence_guard.py
 
       - name: Run Operational V2 regression fixtures
         run: python3 tools/operational_v2_regression.py

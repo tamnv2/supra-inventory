@@ -16,7 +16,7 @@ data class AppSession(
     val role: String,
     val employeeCode: String?,
     val contractorName: String? = null,
-    val shortageReportingEnabled: Boolean = true,
+    val shortageReportingEnabled: Boolean = false,
     val relayCustomToken: String? = null,
 )
 
@@ -235,7 +235,7 @@ class InventoryApi(
             role = user.optString("role", "AUTH"),
             employeeCode = nullable(user, "employee_code"),
             contractorName = nullable(user, "contractor_name"),
-            shortageReportingEnabled = user.optBoolean("shortage_reporting_enabled", true),
+            shortageReportingEnabled = user.optBoolean("shortage_reporting_enabled", false),
             relayCustomToken = payload.optString("firebase_custom_token").takeIf { it.isNotBlank() },
         )
         if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")

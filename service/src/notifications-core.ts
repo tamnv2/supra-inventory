@@ -204,7 +204,7 @@ function targetUsersForRoles(state: DurableObjectState, roles: string[]): string
           AND (CASE WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override ELSE role END) IN (${placeholders})
           AND NOT (
             (CASE WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override ELSE role END) = 'PICKER'
-            AND COALESCE(shortage_reporting_enabled, 1) = 0
+            AND COALESCE(shortage_reporting_enabled, 0) = 0
           )`,
       ...allowed,
     )

@@ -797,3 +797,17 @@ D154 supersedes the D149 timing values while preserving its single shared Agent-
 - New shortage-result delivery to a disabled Picker is suppressed. Existing report/audit history remains durable.
 - Capability convergence is Cloudflare-only: Web mutation → InventoryCore SQLite → existing hibernatable WebSocket direct control to targeted PDA. Missed direct frames recover by normal profile refresh on login/resume; no capability polling.
 - Contractor on Agent is presentation metadata carried only when the pre-existing Picker presence/Agent sync path already writes. No dedicated provider operation is performed for a contractor-only HR edit.
+
+## D156 Picker default-off and overtime convergence
+
+### Picker account default
+- D156 performs one durable migration that sets every existing base PICKER to shortage_reporting_enabled = false.
+- Newly created HR Picker accounts also start with Báo hàng disabled.
+- After that migration, HR sync updates identity metadata only and preserves a later explicit reporting toggle.
+- ADMIN, PICKPACK_ADMIN and ROOT remain the only roles allowed to bulk enable/disable Báo hàng. Account ACTIVE/DISABLED is unchanged.
+
+### Outside normal hours
+- Xác nhận đơn/PickList continues to use the accepted Agent/Firestore path.
+- Báo hàng uses Worker/InventoryCore authority. If Worker is closed, the backend performs only the globally throttled exact schedule recovery before deciding whether the mutation is allowed.
+- A foreground PDA receiving the existing schedule FCM immediately updates local schedule presentation. While closed, Báo hàng remains viewable but send is disabled; Xác nhận đơn remains available.
+- Web Ca vận hành remains read-only and reloads on the existing operating_schedule realtime invalidation.

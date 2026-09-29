@@ -15,9 +15,10 @@ import {
   type OperationalDeadlineEffect,
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
-import { readAndroidAlertWindow } from "./alert-window-core";
+import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow } from "./alert-window-core";
+import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 
-const SCHEMA_VERSION = 15;
+const SCHEMA_VERSION = 16;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -70,6 +71,8 @@ export class InventoryCore {
   private readonly state: DurableObjectState;
   private readonly env: CoreEnv;
   private nextAuditRetentionSweepAt = 0;
+  private scheduleRecoveryInFlight: Promise<void> | null = null;
+  private nextScheduleRecoveryAt = 0;
 
   constructor(state: DurableObjectState, env: CoreEnv) {
     this.state = state;
@@ -123,7 +126,7 @@ export class InventoryCore {
         employee_code TEXT,
         display_name TEXT NOT NULL,
         contractor_name TEXT,
-        shortage_reporting_enabled INTEGER NOT NULL DEFAULT 1 CHECK (shortage_reporting_enabled IN (0,1)),
+        shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0 CHECK (shortage_reporting_enabled IN (0,1)),
         role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
         role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
         status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
@@ -283,10 +286,26 @@ export class InventoryCore {
     if (!this.hasColumn("users", "android_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN android_session_device_id TEXT");
     if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
     if (!this.hasColumn("users", "contractor_name")) sql.exec("ALTER TABLE users ADD COLUMN contractor_name TEXT");
-    if (!this.hasColumn("users", "shortage_reporting_enabled")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_enabled INTEGER NOT NULL DEFAULT 1");
+    if (!this.hasColumn("users", "shortage_reporting_enabled")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("hr_source_config", "contractor_header")) sql.exec("ALTER TABLE hr_source_config ADD COLUMN contractor_header TEXT NOT NULL DEFAULT ''");
     if (!this.hasColumn("audit_log", "actor_role")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_role TEXT");
     if (!this.hasColumn("audit_log", "actor_display_name")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT");
+
+    const d156ReportingDefaultApplied = sql.exec<{ value_json: string }>(
+      "SELECT value_json FROM app_config WHERE key = 'd156_reporting_default_off_applied' LIMIT 1",
+    ).toArray()[0];
+    if (!d156ReportingDefaultApplied) {
+      this.state.storage.transactionSync(() => {
+        sql.exec(
+          "UPDATE users SET shortage_reporting_enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE role = 'PICKER'",
+        );
+        sql.exec(
+          `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+           VALUES ('d156_reporting_default_off_applied', ?, CURRENT_TIMESTAMP, 'SYSTEM_D156')`,
+          JSON.stringify({ applied: true, policy: "EXISTING_AND_NEW_PICKERS_DEFAULT_DISABLED" }),
+        );
+      });
+    }
 
     // D143 extends ROOT acceptance-review role_override to PICKPACK_ADMIN.
     // Rebuild only the users table CHECK constraint; business rows/identities are preserved.
@@ -302,7 +321,7 @@ export class InventoryCore {
             employee_code TEXT,
             display_name TEXT NOT NULL,
             contractor_name TEXT,
-            shortage_reporting_enabled INTEGER NOT NULL DEFAULT 1 CHECK (shortage_reporting_enabled IN (0,1)),
+            shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0 CHECK (shortage_reporting_enabled IN (0,1)),
             role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
             role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
             status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
@@ -650,9 +669,57 @@ export class InventoryCore {
     return rows[0] ?? null;
   }
 
+  private async reconcileOperatingScheduleExactIfClosed(): Promise<void> {
+    if (readAndroidAlertWindow(this.state).is_open) return;
+    if (this.scheduleRecoveryInFlight) {
+      await this.scheduleRecoveryInFlight;
+      return;
+    }
+    const now = Date.now();
+    if (now < this.nextScheduleRecoveryAt) return;
+    this.nextScheduleRecoveryAt = now + 10_000;
+    const task = (async () => {
+      try {
+        const before = readAndroidAlertWindow(this.state);
+        const projection = await readOperatingScheduleProjectionExact(this.env);
+        if (!projection) return;
+        const after = mirrorAndroidOperatingSchedule(this.state, projection, Date.now());
+        if (after.schedule_version > before.schedule_version) {
+          await handleReadModelCoreRequest(
+            this.state,
+            new Request("https://inventory-core.internal/realtime/broadcast", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                event: "operating_schedule_changed",
+                scopes: ["operating_schedule"],
+                tags: ["role:ADMIN", "role:PICKPACK_ADMIN", "role:ROOT"],
+                metadata: { schedule_key: after.schedule_key, version: after.schedule_version, source: "D156_EXACT_RECOVERY" },
+              }),
+            }),
+            async () => { /* Schedule recovery does not mutate Picker presence. */ },
+          );
+        }
+      } catch (error) {
+        console.warn("d156_schedule_recovery_deferred", error instanceof Error ? error.message : "unknown");
+      }
+    })();
+    this.scheduleRecoveryInFlight = task;
+    try {
+      await task;
+    } finally {
+      if (this.scheduleRecoveryInFlight === task) this.scheduleRecoveryInFlight = null;
+    }
+  }
+
   async fetch(request: Request): Promise<Response> {
     this.pruneAuditRetentionIfDue();
     const url = new URL(request.url);
+
+    if (request.method === "GET" && url.pathname === "/notifications/alert-window/reconcile") {
+      await this.reconcileOperatingScheduleExactIfClosed();
+      return response(readAndroidAlertWindow(this.state));
+    }
 
     if (request.method === "GET" && url.pathname === "/health") {
       const root = this.getUserByUsername("root");

@@ -20,6 +20,7 @@ type FirestoreValue =
   | { mapValue: { fields: Record<string, FirestoreValue> } };
 
 const DATASTORE_SCOPE = "https://www.googleapis.com/auth/datastore";
+let cachedDatastoreToken: { value: string; expires_at_ms: number } | null = null;
 
 function field(value: unknown): FirestoreValue {
   if (value === null || value === undefined) return { nullValue: null };
@@ -41,11 +42,72 @@ function document(fields: Record<string, unknown>): { fields: Record<string, Fir
 
 async function accessToken(env: ProjectionWriteEnv): Promise<string> {
   if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("GOOGLE_RUNTIME_NOT_CONFIGURED");
-  return (await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON, DATASTORE_SCOPE)).accessToken;
+  const now = Date.now();
+  if (cachedDatastoreToken && cachedDatastoreToken.expires_at_ms > now + 60_000) return cachedDatastoreToken.value;
+  const value = (await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON, DATASTORE_SCOPE)).accessToken;
+  cachedDatastoreToken = { value, expires_at_ms: now + 50 * 60_000 };
+  return value;
 }
 
 function documentUrl(env: ProjectionWriteEnv, collection: string, id: string): string {
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/databases/(default)/documents/${collection}/${encodeURIComponent(id)}`;
+}
+
+
+type OperatingScheduleProjection = {
+  schedule_key: string;
+  version: number;
+  decision: string;
+  decision_boundary_ms: number;
+  open_until_ms: number;
+  updated_at_ms: number;
+  updated_by_agent_instance_id: string;
+};
+
+function firestoreString(fields: Record<string, { stringValue?: string; integerValue?: string }> | undefined, key: string): string {
+  return String(fields?.[key]?.stringValue || "");
+}
+
+function firestoreInt(fields: Record<string, { stringValue?: string; integerValue?: string }> | undefined, key: string): number {
+  const value = Number(fields?.[key]?.integerValue || 0);
+  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
+}
+
+export async function readOperatingScheduleProjectionExact(
+  env: ProjectionWriteEnv,
+): Promise<OperatingScheduleProjection | null> {
+  const token = await accessToken(env);
+  const response = await fetch(documentUrl(env, "relay_poc_coordination", "operating_schedule"), {
+    method: "GET",
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`OPERATING_SCHEDULE_EXACT_READ_HTTP_${response.status}`);
+  const payload = (await response.json()) as {
+    fields?: Record<string, { stringValue?: string; integerValue?: string }>;
+  };
+  const fields = payload.fields;
+  const scheduleKey = firestoreString(fields, "schedule_key");
+  const version = firestoreInt(fields, "version");
+  const decision = firestoreString(fields, "decision").toUpperCase();
+  const decisionBoundaryMs = firestoreInt(fields, "decision_boundary_ms");
+  const openUntilMs = firestoreInt(fields, "open_until_ms");
+  if (
+    !/^\d{8}$/.test(scheduleKey) ||
+    version <= 0 ||
+    !["CONTINUE","STOP","MANUAL_ADJUST","EARLY_START","CANCEL_OVERTIME"].includes(decision) ||
+    openUntilMs <= 0 ||
+    openUntilMs < decisionBoundaryMs
+  ) return null;
+  return {
+    schedule_key: scheduleKey,
+    version,
+    decision,
+    decision_boundary_ms: decisionBoundaryMs,
+    open_until_ms: openUntilMs,
+    updated_at_ms: firestoreInt(fields, "updated_at_ms") || version,
+    updated_by_agent_instance_id: firestoreString(fields, "updated_by_agent_instance_id"),
+  };
 }
 
 async function putDocument(

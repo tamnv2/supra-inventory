@@ -2043,3 +2043,23 @@ Technical PASS requires all of the following:
 - Android advances monotonically after beta-vc90; Agent advances to relay-agent-v89; no new provider resource/collection/secret is introduced.
 
 Owner field PASS should verify bulk toggle immediately changes a logged-in PDA, Xác nhận đơn remains usable while Báo hàng is off, direct SKU submission is blocked, enabling restores normal Báo hàng, contractor appears correctly on Web/PDA/Agent, and Cloudflare/Firebase usage shows no new idle/background cadence.
+
+## D156 schedule convergence and default-off acceptance
+
+Technical PASS requires all of the following:
+- accepted base remains D155 until explicit Owner D156 field PASS; Stable remains untouched;
+- InventoryCore advances to schema 16 and applies the existing-Picker reporting-default migration once only;
+- all existing Picker rows are reporting-disabled immediately after migration; new HR Picker creation uses reporting-disabled; later explicit enable/disable survives subsequent HR sync;
+- missing/null Picker reporting capability is fail-closed across Worker mutation checks, FCM target selection, realtime result eligibility and Android parsing;
+- Agent remains relay-agent-v90 unchanged; Android advances monotonically after beta-vc91;
+- the normal Agent → operatingScheduleChanged → Worker + FCM path remains unchanged and event-driven;
+- when Worker is closed, exact recovery reads only relay_poc_coordination/operating_schedule, is single-flight and throttled globally to one read per 10 seconds, with no collection query/listener/poll/cron;
+- a newer recovered schedule version updates InventoryCore and emits the existing operating_schedule WebSocket invalidation;
+- Web Ca vận hành reloads on that scope and on realtime reconcile;
+- foreground Android consumes ACTION_OPERATING_SCHEDULE_CHANGED and reapplies the local operating window without polling;
+- Báo hàng send is disabled locally when the shared window is closed, and the server recovers schedule authority before returning ANDROID_WINDOW_CLOSED;
+- result FCM delivery uses the reconciled window so overtime resolution is not suppressed by stale Worker state;
+- D154 PickList exact-read fallback, D153 presence dedupe and D150/D152 confirmation/HA timings remain unchanged;
+- no new provider resource, Firestore collection/write cadence, secret, listener, polling loop or cron is introduced.
+
+Owner field PASS should verify: current Pickers start with Báo hàng off; an Admin enables one test Picker and the choice persists through HR sync; after 22:30 Agent enables overtime and Agent/PickList, Web Ca vận hành and Android Báo hàng converge; Báo hàng submits and receives Có hàng/Skip during overtime; closing/cancelling overtime disables send again; Firebase usage shows no new periodic cadence.

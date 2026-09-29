@@ -43,9 +43,10 @@ class PickerController(
     private val friendlyError: (Exception) -> String,
     private val recordLog: (String) -> Unit,
     private val displayScale: Float = 1f,
-    private var shortageReportingEnabled: Boolean = true,
+    private var shortageReportingEnabled: Boolean = false,
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
+    private var operatingWindowOpen = OperatingScheduleStore.isOpen(activity.applicationContext)
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
     private val handler = Handler(Looper.getMainLooper())
     private var searchTask: Runnable? = null
@@ -159,8 +160,12 @@ class PickerController(
             isEnabled = shortageReportingEnabled
             alpha = if (shortageReportingEnabled) 1f else 0.42f
             setOnClickListener {
-                if (shortageReportingEnabled) showOperationTab(confirm = false)
-                else setStatus("Báo hàng đang tắt cho tài khoản này. Xác nhận đơn vẫn sử dụng bình thường.")
+                if (shortageReportingEnabled) {
+                    showOperationTab(confirm = false)
+                    if (!operatingWindowOpen) setStatus("Ca nghiệp vụ đang nghỉ. Chờ Agent bật tăng ca/bật sớm để gửi Báo hàng.")
+                } else {
+                    setStatus("Báo hàng đang tắt cho tài khoản này. Xác nhận đơn vẫn sử dụng bình thường.")
+                }
             }
         }
         confirmTab = root.findViewById<TextView>(R.id.tabConfirmOrder)?.apply {
@@ -284,6 +289,20 @@ class PickerController(
         if (scopes.contains("sku_catalog")) syncCatalog(auto = true)
         if (scopes.contains("picker_reports")) refresh(completion)
         else completion(true)
+    }
+
+    fun applyOperatingScheduleState(open: Boolean) {
+        if (operatingWindowOpen == open) {
+            updateReportEnabled()
+            return
+        }
+        operatingWindowOpen = open
+        updateReportEnabled()
+        if (open) {
+            if (shortageReportingEnabled) setStatus("Ca nghiệp vụ đã mở. Báo hàng sẵn sàng.")
+        } else {
+            setStatus("Ca nghiệp vụ đang nghỉ. Chờ Agent bật tăng ca/bật sớm để gửi Báo hàng.")
+        }
     }
 
     fun applyShortageReportingCapability(enabled: Boolean) {
@@ -612,7 +631,7 @@ class PickerController(
     }
 
     private fun updateReportEnabled() {
-        val ready = shortageReportingEnabled && selected != null && isOnline() && !syncing
+        val ready = shortageReportingEnabled && operatingWindowOpen && selected != null && isOnline() && !syncing
         reportButton?.apply {
             isEnabled = ready
             alpha = if (ready) 1.0f else 0.42f
@@ -721,6 +740,11 @@ class PickerController(
         if (!shortageReportingEnabled) {
             updateReportEnabled()
             setStatus("Báo hàng đang tắt cho tài khoản này.")
+            return
+        }
+        if (!operatingWindowOpen) {
+            updateReportEnabled()
+            setStatus("Ca nghiệp vụ đang nghỉ. Agent cần bật tăng ca/bật sớm trước khi Báo hàng.")
             return
         }
         val item = selected ?: return

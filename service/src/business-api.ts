@@ -113,7 +113,7 @@ function actor(user: InternalUser): { user_id: string; employee_code: string | n
 
 function pickerShortageReportingEnabled(user: InternalUser): boolean {
   if (user.role !== "PICKER") return true;
-  return user.shortage_reporting_enabled == null || user.shortage_reporting_enabled === true || Number(user.shortage_reporting_enabled) === 1;
+  return user.shortage_reporting_enabled === true || Number(user.shortage_reporting_enabled ?? 0) === 1;
 }
 
 async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
@@ -232,7 +232,7 @@ function scheduleFcm(
       const resultEventId = String(mutation.event_id || "");
       const batchId = String(options.target.batchId || mutation.batch_id || mutation.ticket?.batch_id || "");
 
-      const alertWindowResponse = await coreGet(env, "/notifications/alert-window");
+      const alertWindowResponse = await coreGet(env, "/notifications/alert-window/reconcile");
       if (!alertWindowResponse.ok) return;
       const alertWindow = (await alertWindowResponse.json()) as { is_open?: boolean };
       if (alertWindow.is_open !== true) return;
@@ -382,13 +382,13 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   // request must never trigger schema work or turn an expected 401/403 into a readiness 503.
   const user = await requireUser(request, env, requiredRolesForBusinessRoute(key));
   if (user.session_channel === "ANDROID" && request.method !== "GET") {
-    const windowResponse = await coreGet(env, "/notifications/alert-window");
+    const windowResponse = await coreGet(env, "/notifications/alert-window/reconcile");
     if (!windowResponse.ok) return json({ error: "ANDROID_WINDOW_UNAVAILABLE" }, 503);
     const windowState = (await windowResponse.json()) as { is_open?: boolean; server_now_ms?: number };
     if (windowState.is_open !== true) {
       return json({
         error: "ANDROID_WINDOW_CLOSED",
-        message: "Ngoài khung thường 06:00–22:00 và chưa có lệnh tăng ca/bật sớm hiện hành.",
+        message: "Ngoài khung thường 05:45–22:30 và chưa có lệnh tăng ca/bật sớm hiện hành.",
         server_now_ms: Number(windowState.server_now_ms || 0),
       }, 403);
     }
@@ -400,7 +400,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   if (initializationFailure) return initializationFailure;
 
   if (key === "GET /api/admin/alert-window") {
-    return coreGet(env, "/notifications/alert-window");
+    return coreGet(env, "/notifications/alert-window/reconcile");
   }
 
   if (key === "PUT /api/admin/alert-window") {

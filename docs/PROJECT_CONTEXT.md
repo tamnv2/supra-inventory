@@ -795,3 +795,11 @@ D154 is the current Owner-accepted Beta base after explicit PASS on 2026-09-30.
 - The previously missing `operatingScheduleChanged` Beta Function deployment is part of the accepted runtime.
 - No new provider resource, collection/schema, secret, listener, polling loop or cron was added. Stable remains OWNER-GATED.
 - The serial Owner-PASS gate is open for the next separately reviewed change.
+
+## D156 active Owner-approved workstream — 2026-09-30
+
+D155 is the accepted Beta base: schema 15, Android beta-vc91 and Agent relay-agent-v90. D156 is the single active Owner-approved change.
+
+D156 repairs schedule convergence without changing Agent authority: normal Agent → operatingScheduleChanged → Worker/FCM remains the realtime path; a closed Worker decision may perform one exact operating_schedule Firestore recovery, single-flight and globally throttled to 10 seconds. Web consumes the existing operating_schedule WebSocket scope; active Android consumes the existing FCM broadcast and gates Báo hàng send by the shared window. No new listener/poll/cron/provider is introduced.
+
+D156 also supersedes the D155 rollout default: existing Pickers are reporting-disabled once by migration and new HR Pickers start reporting-disabled; later administrator choices are preserved. Target is schema 16 + next signed Android Beta after beta-vc91; Agent stays v90. Stable remains OWNER-GATED.
