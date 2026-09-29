@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D149_OWNER_ACCEPTED_BASE__D150_OWNER_APPROVED_SOURCE_IN_PROGRESS",
+      "status": "D149_OWNER_ACCEPTED_BASE__D150_OWNER_APPROVED_IMPLEMENTATION_IN_PROGRESS",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
