@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D152_OWNER_ACCEPTED_BASE__D153_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V87__OA081_FIELD_READY",
+    "beta": "D153_OWNER_ACCEPTED_BASE__AGENT_V87__ANDROID_VC89",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -27,14 +27,14 @@
     "user_management": "D146_OWNER_FIELD_PASS__TRUE_ROOT_MODE_ONLY_MANAGED_DELETE__PICKPACK_CANNOT_DELETE_ADMIN",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D153_TECHNICAL_RUNTIME_RELEASE_PASS__PICKER_PRESENCE_WRITE_DEDUPE__ONE_SHOT_FALLBACK__D150_HA_TIMINGS_RETAINED",
+    "quota_resilience": "D153_OWNER_FIELD_PASS__PICKER_PRESENCE_WRITE_DEDUPE__ONE_SHOT_FALLBACK__D150_HA_TIMINGS_RETAINED",
     "ui_design_guard": "D148_OWNER_FIELD_PASS__ADAPTIVE_REPORT_CREATED_CARD__PRIORITY_SEQUENTIAL_OVERLAY_QUEUE",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D153_TECHNICAL_RELEASE_PASS__AGENT_V87__QUOTA_SAFE_PICKER_PRESENCE_DEDUPE__D152_CONFIRM_RECOVERY_RETAINED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D152_ACCEPTED_BASE__D153_TECHNICAL_PASS_OWNER_FIELD_PENDING",
-    "owner_acceptance": "D152_OWNER_FIELD_ACCEPTED_PASS__OA080_CLOSED__D152_ACCEPTED_BASE",
+    "picklist_confirmation_poc": "D153_OWNER_FIELD_ACCEPTED_PASS__AGENT_V87__QUOTA_SAFE_PICKER_PRESENCE_DEDUPE__D152_CONFIRM_RECOVERY_RETAINED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D153_OWNER_ACCEPTED_PASS__D153_ACCEPTED_BASE",
+    "owner_acceptance": "D153_OWNER_FIELD_ACCEPTED_PASS__OA081_CLOSED__D153_ACCEPTED_BASE",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D153 technical/runtime/release PASS is complete. OA081 is READY_FOR_OWNER_FIELD_TEST; D152 remains the accepted base until explicit Owner D153 PASS. Test relay-agent-v87 with existing beta-vc89 and confirm lower Firestore Write growth without slower PickList results. Stable remains OWNER-GATED.",
+  "next_action": "D153 Owner PASS is recorded as the accepted Beta base. Serial Owner-PASS gate is open for the next separately reviewed change. Agent relay-agent-v87 and Android beta-vc89 remain current; Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -840,7 +840,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D153_TECHNICAL_RUNTIME_RELEASE_PASS__OA081_OWNER_FIELD_PENDING",
+  "active_workstream": "D153_OWNER_FIELD_ACCEPTED_PASS__OA081_CLOSED",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2461,12 +2461,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D152",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D152_PASS__RELAY_AGENT_V86__2026_09_29",
+    "accepted_base_change_id": "D153",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D153_PASS__RELAY_AGENT_V87__2026_09_29",
     "current_change_id": "D153",
-    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V87__OWNER_FIELD_OA081_PENDING",
-    "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V87",
+    "owner_pass_required_to_unlock_next_change": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D153_MAIN_D69566EE__AGENT_V87__BETA_WORKER_RUNTIME_PASS__ANDROID_VC89_UNCHANGED__D152_REMAINS_ACCEPTED_BASE",
+    "runtime_impact": "D153_OWNER_ACCEPTED__MAIN_D69566EE__AGENT_V87__BETA_WORKER_PICKER_PRESENCE_WRITE_DEDUPE__ANDROID_VC89_UNCHANGED",
     "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_FIRESTORE_AGENT__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON_ANDROID_BUILD",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -3014,7 +3014,7 @@
     }
   },
   "d153": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V87__OWNER_FIELD_OA081_READY",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V87",
     "date": "2026-09-29",
     "baseline_change": "D152",
     "baseline_main": "8525d86becececa41fa46b8ccbc339d6d0e7ef52",
@@ -3054,7 +3054,7 @@
     "android_release": "beta-vc89__UNCHANGED",
     "new_provider_resources": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "OA081_READY_FOR_OWNER_FIELD_TEST",
+    "field_gate": "PASS__OWNER_CONFIRMED_D153__2026_09_29",
     "main_commit": "d69566ee0ae6294573ec91f9eb649764e91561ee",
     "implementation_pr": 321,
     "technical_release": {
@@ -3100,6 +3100,18 @@
       "android": "beta-vc89__UNCHANGED__NO_RELEASE_REQUIRED",
       "stable": "UNTOUCHED_OWNER_GATED",
       "new_provider_resources": "NONE"
+    },
+    "accepted_base_commit": "d69566ee0ae6294573ec91f9eb649764e91561ee",
+    "agent_release": "relay-agent-v87",
+    "agent_release_id": 399311941,
+    "agent_exe_sha256": "0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070",
+    "agent_exe_size_bytes": 7078912,
+    "field_acceptance": "PASS__OWNER_EXPLICIT_D153_PASS_AFTER_FIELD_TEST__2026_09_29",
+    "owner_acceptance": {
+      "result": "PASS",
+      "evidence": "Owner explicitly confirmed D153 PASS after field validation of relay-agent-v87 quota-safe Picker presence behavior and usage.",
+      "accepted_at": "2026-09-29",
+      "next_change_allowed": true
     }
   }
 }
