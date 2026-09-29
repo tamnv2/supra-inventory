@@ -4488,6 +4488,20 @@ namespace SupraInventoryRelayAgent
                 string.Equals(result.Result, "AMBIGUOUS_PICKLIST", StringComparison.Ordinal))
                 return true;
 
+            if (string.Equals(result.Result, "CONFIRM_CONFLICT", StringComparison.Ordinal))
+            {
+                switch (result.Detail ?? "")
+                {
+                    case "CHECKBOX_NOT_UNIQUE":
+                    case "CHECKBOX_DISABLED":
+                    case "CHECKBOX_VERIFY_FAILED":
+                    case "ROW_CHANGED":
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
             if (!string.Equals(result.Result, "CONFIRM_REJECTED", StringComparison.Ordinal))
                 return false;
 
@@ -4495,13 +4509,9 @@ namespace SupraInventoryRelayAgent
             {
                 case "ROW_NOT_FOUND":
                 case "ROW_AMBIGUOUS":
-                case "CHECKBOX_NOT_UNIQUE":
-                case "CHECKBOX_DISABLED":
-                case "CHECKBOX_VERIFY_FAILED":
                 case "CONFIRM_BUTTON_NOT_UNIQUE":
                 case "CONFIRM_BUTTON_DISABLED":
                 case "PAGE_NOT_READY":
-                case "ROW_CHANGED":
                     return true;
                 default:
                     return false;
