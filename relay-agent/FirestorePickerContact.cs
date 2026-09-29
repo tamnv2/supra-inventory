@@ -179,6 +179,7 @@ namespace SupraInventoryRelayAgent
             {
                 var row = item as Dictionary<string, object>;
                 var doc = row == null ? null : GetMap(row, "document");
+                if (doc != null) returnedDocuments++;
                 var fields = GetMap(doc, "fields");
                 if (fields == null) continue;
                 var target = FieldString(fields, "target_user_id");
@@ -189,7 +190,6 @@ namespace SupraInventoryRelayAgent
                 if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(alertId)) continue;
                 if (expiresAt > 0 && expiresAt <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) continue;
                 if (result.ContainsKey(target)) continue;
-                returnedDocuments++;
                 result[target] = new PickerContactCommand
                 {
                     AlertId = alertId,
