@@ -920,3 +920,11 @@ The support dialog action is labeled **Gửi log**, not **Gửi lên Drive**. Th
 
 ### Agent protected input
 Password dialogs for protected Agent actions are treated as interactive editing surfaces. While such a modal is open, periodic after-hours/operational repaint timers are paused and restored afterward. General periodic UI repaint work is also skipped while protected text entry or core text inputs have focus. No timer is allowed to rebuild/activate the parent UI and steal keyboard focus from the password field.
+
+## D148 adaptive report-created alert surface
+
+- Reporter/Admin Android report-created overlay uses a restrained dark translucent backdrop and a light high-contrast card.
+- Header is **THÔNG TIN BÁO HẾT HÀNG**. SKU is visually dominant; product name is large, readable and may wrap across multiple lines. Card height follows content instead of forcing a fixed half-screen height, with a bounded maximum for screen safety.
+- The only local action is a prominent **OK** button.
+- Picker result overlays retain their semantic Có hàng/Bỏ qua presentation. Queue semantics—not extra visual stacking—handle multiple simultaneous alerts.
+- Specialist/Picker-command alerts retain the highest interruption priority and must not be visually hidden behind lower-priority SKU information.

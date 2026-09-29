@@ -709,3 +709,9 @@ Technical/release evidence: implementation PR #294 merged at `108756a09d54ba100b
 Owner explicitly confirmed **D147 PASS**. D147 is now the accepted governance base for serial change sequencing: one active change at a time, same-ID repair after NOT PASS, and mandatory pre-implementation impact review plus explicit Owner approval for base-affecting mutations.
 
 D147 introduced no Web, Android, Agent, database, provider-resource, schema, quota-cadence, or Stable runtime change. The runtime baseline remains the Owner-accepted D146 behavior; Stable remains OWNER-GATED.
+
+## D148 approved implementation workstream — 2026-09-29
+
+After D147 Owner PASS, Owner approved D148 limited to Web pending-badge repair, Reporter/Admin Android report-created overlay, shift-comparison Excel, clearer PickList strike/lock copy, Android session-end INFO-log policy, and prioritized sequential Android overlay handling. The proposed overtime Web/App/Agent unification is explicitly excluded from D148 and may not start until D148 itself receives Owner PASS.
+
+D148 reuses existing Web/Worker/InventoryCore/FCM/Android resources, adds no schema/provider resource/polling cadence and does not change Agent or Stable. Android result acknowledgement remains local-first. Current branch: `feat/d148`. OA076 is the eventual Owner field acceptance gate.

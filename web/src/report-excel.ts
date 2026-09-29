@@ -65,6 +65,37 @@ function unique<T>(values: T[]): T[] {
   return [...new Set(values)];
 }
 
+type ShiftKey = "CA_1" | "CA_2" | "OVERTIME";
+
+function shiftKey(value: string | null | undefined): ShiftKey {
+  if (!value) return "OVERTIME";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "OVERTIME";
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(parsed);
+  const hour = Number(parts.find((part) => part.type === "hour")?.value || 0);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value || 0);
+  const total = hour * 60 + minute;
+  if (total >= 6 * 60 && total < 14 * 60) return "CA_1";
+  if (total >= 14 * 60 && total < 22 * 60) return "CA_2";
+  return "OVERTIME";
+}
+
+function shiftLabel(key: ShiftKey): string {
+  if (key === "CA_1") return "Ca 1 · 06:00–14:00";
+  if (key === "CA_2") return "Ca 2 · 14:00–22:00";
+  return "Ngoài ca / Tăng ca";
+}
+
+function average(values: Array<number | null | undefined>): number | "" {
+  const clean = values.filter((value): value is number => value != null && Number.isFinite(value));
+  return clean.length ? Math.round(clean.reduce((sum, value) => sum + value, 0) * 10 / clean.length) / 10 : "";
+}
+
 export function downloadReportWorkbook(
   rows: AdminReportingRow[],
   details: AdminReportingDetailRow[],
@@ -114,6 +145,59 @@ export function downloadReportWorkbook(
   const summarySheet = addSheet(workbook, "Tổng quan", summaryTable, [34, 44], false);
   summarySheet["!merges"] = [XLSX.utils.decode_range("A1:B1")];
 
+  const shiftKeys: ShiftKey[] = ["CA_1", "CA_2", "OVERTIME"];
+  const shiftStats = new Map<ShiftKey, {
+    rows: AdminReportingRow[];
+    details: AdminReportingDetailRow[];
+  }>();
+  for (const key of shiftKeys) {
+    shiftStats.set(key, {
+      rows: rows.filter((row) => shiftKey(row.first_report_at) === key),
+      details: details.filter((row) => shiftKey(row.reported_at) === key),
+    });
+  }
+  const shiftMetric = (key: ShiftKey) => {
+    const scoped = shiftStats.get(key)!;
+    const resolved = scoped.rows.filter((row) => row.status !== "PENDING").length;
+    return {
+      reports: scoped.details.length,
+      skus: unique(scoped.details.map((row) => row.sku).filter(Boolean)).length,
+      pickers: unique(scoped.details.map((row) => row.picker_employee_code || row.picker_user_id || "").filter(Boolean)).length,
+      batches: scoped.rows.length,
+      hasStock: scoped.rows.filter((row) => row.status === "HAS_STOCK").length,
+      skipped: scoped.rows.filter((row) => row.status === "SKIP_ALLOWED").length,
+      closed: scoped.rows.filter((row) => row.status === "CLOSED").length,
+      pending: scoped.rows.filter((row) => row.status === "PENDING").length,
+      resolvedRate: scoped.rows.length ? Math.round(resolved * 1000 / scoped.rows.length) / 10 : 0,
+      avgResolution: average(scoped.rows.map((row) => row.duration_minutes)),
+      avgPickerWait: average(scoped.details.map((row) => row.picker_wait_minutes)),
+    };
+  };
+  const ca1 = shiftMetric("CA_1");
+  const ca2 = shiftMetric("CA_2");
+  const overtime = shiftMetric("OVERTIME");
+  const shiftComparisonTable: unknown[][] = [
+    ["SO SÁNH VẬN HÀNH THEO CA", "Ca 1 · 06:00–14:00", "Ca 2 · 14:00–22:00", "Ngoài ca / Tăng ca", "Chênh lệch Ca 2 − Ca 1"],
+    ["Lượt báo hết hàng", ca1.reports, ca2.reports, overtime.reports, ca2.reports - ca1.reports],
+    ["SKU phát sinh", ca1.skus, ca2.skus, overtime.skus, ca2.skus - ca1.skus],
+    ["Picker bị ảnh hưởng", ca1.pickers, ca2.pickers, overtime.pickers, ca2.pickers - ca1.pickers],
+    ["Đợt báo hàng", ca1.batches, ca2.batches, overtime.batches, ca2.batches - ca1.batches],
+    ["Đã có hàng", ca1.hasStock, ca2.hasStock, overtime.hasStock, ca2.hasStock - ca1.hasStock],
+    ["Cho phép bỏ qua", ca1.skipped, ca2.skipped, overtime.skipped, ca2.skipped - ca1.skipped],
+    ["Picker thu hồi", ca1.closed, ca2.closed, overtime.closed, ca2.closed - ca1.closed],
+    ["Đang chờ", ca1.pending, ca2.pending, overtime.pending, ca2.pending - ca1.pending],
+    ["Tỷ lệ đợt đã xử lý (%)", ca1.resolvedRate, ca2.resolvedRate, overtime.resolvedRate,
+      Math.round((ca2.resolvedRate - ca1.resolvedRate) * 10) / 10],
+    ["TG xử lý TB (phút)", ca1.avgResolution, ca2.avgResolution, overtime.avgResolution,
+      typeof ca1.avgResolution === "number" && typeof ca2.avgResolution === "number"
+        ? Math.round((ca2.avgResolution - ca1.avgResolution) * 10) / 10 : ""],
+    ["TG Picker chờ TB (phút)", ca1.avgPickerWait, ca2.avgPickerWait, overtime.avgPickerWait,
+      typeof ca1.avgPickerWait === "number" && typeof ca2.avgPickerWait === "number"
+        ? Math.round((ca2.avgPickerWait - ca1.avgPickerWait) * 10) / 10 : ""],
+  ];
+  const shiftSheet = addSheet(workbook, "So sánh ca", shiftComparisonTable, [32, 24, 24, 24, 25], false);
+  shiftSheet["!merges"] = [XLSX.utils.decode_range("A1:A1")];
+
   const timelineTable: unknown[][] = [
     ["Thời gian", "Lượt báo", "Đợt xử lý xong"],
     ...(dashboard?.timeline || []).map((row) => [
@@ -127,7 +211,7 @@ export function downloadReportWorkbook(
   const batchTable: unknown[][] = [
     [
       "Batch ID", "SKU", "Tên sản phẩm", "Kết quả", "Nguồn xử lý", "MNV xử lý", "Người xử lý",
-      "Báo lần đầu", "Xử lý xong", "Thời gian xử lý (phút)", "Đang mở", "Tổng lượt báo",
+      "Ca phát sinh", "Báo lần đầu", "Xử lý xong", "Thời gian xử lý (phút)", "Đang mở", "Tổng lượt báo",
       "Hạn sửa Skip→Có hàng",
     ],
     ...rows.map((row) => [
@@ -138,6 +222,7 @@ export function downloadReportWorkbook(
       row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source),
       row.resolved_by_employee_code || "",
       row.resolved_by_display_name || row.resolved_by_user_id || "",
+      shiftLabel(shiftKey(row.first_report_at)),
       safeDate(row.first_report_at),
       safeDate(row.resolved_at),
       row.duration_minutes ?? "",
@@ -146,12 +231,12 @@ export function downloadReportWorkbook(
       safeDate(row.correction_deadline_at),
     ]),
   ];
-  addSheet(workbook, "Đợt báo hàng", batchTable, [36, 18, 46, 22, 28, 16, 28, 22, 22, 24, 12, 14, 22]);
+  addSheet(workbook, "Đợt báo hàng", batchTable, [36, 18, 46, 22, 28, 16, 28, 22, 22, 22, 24, 12, 14, 22]);
 
   const detailTable: unknown[][] = [
     [
       "Batch ID", "Ticket ID", "SKU", "Tên sản phẩm", "Kết quả đợt", "Trạng thái Picker",
-      "MNV Picker", "Tên Picker", "Picker báo lúc", "Hạn thu hồi", "Picker thu hồi lúc",
+      "MNV Picker", "Tên Picker", "Ca phát sinh", "Picker báo lúc", "Hạn thu hồi", "Picker thu hồi lúc",
       "Picker/đợt xử lý lúc", "Thời gian Picker chờ (phút)", "Tự động Skip dự kiến",
       "Tự động Skip được cấp", "Kết quả Picker", "Nguồn kết quả", "MNV Invent xử lý",
       "Invent xử lý", "Báo đầu đợt", "Báo cuối đợt", "Kết thúc đợt", "Thời gian đợt (phút)",
@@ -167,6 +252,7 @@ export function downloadReportWorkbook(
       ticketStatusLabel(row.ticket_status),
       row.picker_employee_code,
       row.picker_display_name,
+      shiftLabel(shiftKey(row.reported_at)),
       safeDate(row.reported_at),
       safeDate(row.withdraw_deadline_at),
       safeDate(row.withdrawn_at),
@@ -190,7 +276,7 @@ export function downloadReportWorkbook(
     ]),
   ];
   addSheet(workbook, "Chi tiết Picker", detailTable, [
-    36, 36, 18, 46, 20, 20, 16, 28, 22, 22, 22, 22, 24, 22, 22, 20, 28, 16, 28,
+    36, 36, 18, 46, 20, 20, 16, 28, 22, 22, 22, 22, 22, 24, 22, 22, 20, 28, 16, 28,
     22, 22, 22, 22, 22, 22, 22, 36, 22,
   ]);
 

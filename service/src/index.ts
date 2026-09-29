@@ -1110,7 +1110,7 @@ export default {
           },
           realtime_foreground: "websocket_sequence_delta_on_inventory_core",
           background_notifications: "firebase_cloud_messaging",
-          runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID", "AGENT"], schedule: ["06:00", "12:00", "18:00", "24:00"], error_upload: "immediate_best_effort", agent_bridge: "firestore_spool_to_drive_5m" },
+          runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID", "AGENT"], schedule: ["06:00", "12:00", "18:00", "21:00"], android_info_policy: "session_end_only", error_upload: "immediate_best_effort", agent_bridge: "firestore_spool_to_drive_5m" },
           hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
         });

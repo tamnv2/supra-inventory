@@ -1834,3 +1834,24 @@ OA068 physical acceptance after signed release:
 - If Owner reports D147 NOT PASS, repair D147 itself; do not open D148.
 
 D147 Owner result: **PASS** on 2026-09-29. OA075 is closed. D147 is promoted to the accepted governance base; runtime remains the D146 Owner-accepted baseline and Stable remains untouched.
+
+## D148 — Web/Android alert, reporting and log acceptance
+
+### Automated/source gates
+- Web pending navigation badge is removed only at queue count zero and is recreated on a zero→positive realtime transition.
+- Excel export contains `So sánh ca`, Ca 1/Ca 2/outside-overtime mapping and **Ca phát sinh** columns while retaining existing bounded page collection.
+- Android `report_created` uses the existing FCM payload and `MODE_REPORT_CREATED`; no polling path is added.
+- Android overlay service contains a priority/FIFO queue, id de-duplication and one-active-item acknowledgement semantics. Specialist command priority is greater than result/report information.
+- Android scheduled INFO-log sender is absent; session-end, deferred-same-user, ERROR/CRASH and manual log paths remain.
+- PickList source retains the existing backend-derived strike/lock fields and exposes the approved 1/3, 2/3, 3/3 lock wording.
+- No Agent/overtime-unification resource or code path changes in D148; Stable remains untouched.
+
+### Owner field gate — OA076
+1. Start Web with pending=0, then create a shortage without reloading. Badge must appear immediately and remain while pending>0; after processing to zero it disappears.
+2. On Reporter/Admin Android with overlay permission, create a shortage while another app is visible. The alert must show **THÔNG TIN BÁO HẾT HÀNG**, SKU, full readable product name and **OK** with adaptive card height.
+3. Export a filtered report. Verify `So sánh ca` and **Ca phát sinh** mapping at 06:00/14:00/22:00 boundaries; export must not trigger a new provider/polling cadence.
+4. Enter wrong PickList suffixes and verify 1/3, 2/3 and temporary-lock copy; existing 5/30/60-minute behavior must remain.
+5. Keep a PDA logged in across scheduled times and confirm no scheduled Android INFO upload occurs. Logout must attempt one session-end log; crash/error/manual paths remain available.
+6. Deliver multiple alerts close together. Specialist-call information takes priority. Three SKU/result alerts require three individual acknowledgements; acknowledging one must not dismiss the others.
+
+Only explicit Owner PASS promotes D148 to the accepted base and unlocks the next change.

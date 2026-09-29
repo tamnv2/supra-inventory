@@ -414,3 +414,12 @@ The public Privacy/About pages document the existing Google-data boundary; they 
 - Agent payload transport is Google-first: Windows Agent → authenticated Google Firestore parts → Beta Google Function → Google Drive resumable upload. The Function uses its workload identity only to authenticate to the protected Worker session-broker endpoint; the Worker uses the existing renewed human-user OAuth to create the short-lived Drive upload session and never returns the OAuth token. The Agent never stores Drive/OAuth credentials.
 - A Google-side Agent upload failure converts the Firestore parts to `WORKER_FALLBACK`; the existing Worker drain may archive them with the same renewed OAuth. This fallback does not change the Office first-hop requirement because the laptop has already delivered the payload to Google Firestore.
 - Beta OAuth remains `drive.file + gmail.send`, Owner-confirmed In production with the refreshed token deployed on 2026-09-29. No Gmail-read scope is permitted.
+
+## D148 Android session-end support-log lifecycle
+
+- Android no longer emits scheduled INFO support logs merely because an authenticated PDA remains running through 06:00/12:00/18:00/21:00.
+- One sanitized INFO snapshot is attempted before an authenticated Android session is logged out/ended. This preserves user/device correlation while avoiding log traffic from idle or unused PDAs.
+- If that send fails, a bounded local pending payload may retry only when the **same user** later authenticates on that PDA. It must not be uploaded under a different account.
+- ERROR/CRASH immediate best-effort upload and manual support-log upload remain unchanged.
+- The existing 60-second Android local task remains for SKU invalidation reconciliation and pending result-ACK recovery; it is not a support-log upload cadence.
+- Web and Agent log schedules remain governed by D146 (06:00/12:00/18:00/21:00) unless a later Owner-approved change supersedes them.

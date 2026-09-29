@@ -3718,6 +3718,37 @@
         "result": "PASS",
         "evidence": "Owner explicitly accepted D147, closing the serial Owner-PASS governance acceptance gate."
       }
+    },
+    {
+      "id": "OA076",
+      "status": "BLOCKED_PENDING_D148_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "title": "Field-accept D148 Web/Android alert, reporting and log refinements",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can confirm D148 matches real Web/PDA behavior and promote it to the accepted base.",
+      "prerequisites": {
+        "accepted_base": "D147_OWNER_ACCEPTED_PASS",
+        "d148_scope": "WEB_ANDROID_ONLY__NO_OVERTIME_UNIFICATION",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Verify Web operations badge remains visible whenever pending count is greater than zero and disappears only at zero.",
+        "On Reporter/Admin Android, create a shortage report and verify the adaptive overlay shows SKU and product name over another app.",
+        "Export the Web Excel report and verify shift assignment plus shift comparison sheets without extra server usage.",
+        "Enter incorrect PickList suffixes and verify 1/3, 2/3 and temporary-lock wording while existing 5/30/60-minute backend logic remains unchanged.",
+        "Verify Android no longer sends scheduled INFO logs; explicit/session-end log is sent on logout while ERROR/CRASH/manual paths remain available.",
+        "Queue multiple Android alerts and verify specialist-call priority, then one-at-a-time shortage/result alerts; each acknowledgement advances only one item."
+      ],
+      "pass_criteria": [
+        "No Web badge zero-to-positive disappearance.",
+        "No overlay overwrites or one-tap dismissal of multiple queued alerts.",
+        "No new polling/provider resource/quota-heavy cadence.",
+        "No PickList anti-spam backend semantic change.",
+        "No Agent or overtime-unification mutation in D148.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Blocked until D148 technical/runtime/release PASS. Then perform field test and explicitly record PASS or NOT PASS.",
+      "closed": false
     }
   ]
 }

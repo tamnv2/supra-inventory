@@ -1330,3 +1330,12 @@ Status: **OWNER FIELD PASS**.
 - Runtime service readiness therefore remains the D146 Owner-accepted Beta baseline.
 - No project change is currently open; the next base-affecting mutation requires pre-implementation impact review and explicit Owner approval.
 - Stable remains OWNER-GATED and untouched.
+
+## D148 source candidate — 2026-09-29
+- Baseline accepted change: D147; runtime foundation remains D146.
+- Branch: `feat/d148`.
+- Web: zero→positive pending badge recreation and client-side shift comparison workbook.
+- Android: existing FCM `report_created` adaptive overlay for Reporter/Admin; priority/FIFO one-at-a-time overlay queue; clearer PickList lock copy; periodic PDA INFO uploads retired in favor of session-end INFO plus existing error/crash/manual paths.
+- Worker metadata reflects 06/12/18/21 scheduled policy for Web/Agent and Android session-end INFO policy.
+- No Agent, overtime authority, schema, new provider resource or Stable change.
+- OA076 remains blocked until technical/runtime/release PASS.

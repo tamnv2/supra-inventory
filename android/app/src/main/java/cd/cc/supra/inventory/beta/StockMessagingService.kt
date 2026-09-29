@@ -52,25 +52,31 @@ class StockMessagingService : FirebaseMessagingService() {
             return
         }
         val resultEventId = message.data["result_event_id"].orEmpty().trim()
-        // D120: only the Picker's authoritative red/blue result surface is projected
-        // across other apps. Warning/report-created notices remain ordinary Android
-        // notifications so the user never sees two competing full-screen designs.
-        val overlayEligible = isPickerCommand || (event in resultEvents && resultEventId.isNotBlank())
+        val isReportCreated = event == "report_created" && resultEventId.isNotBlank()
+        // D148: the existing high-priority FCM event becomes the wake path for
+        // Reporter/Admin report-created overlays. No polling/listener cadence is added.
+        // The overlay service owns priority, de-duplication and one-at-a-time ACK.
+        val overlayEligible =
+            isPickerCommand ||
+                isReportCreated ||
+                (event in resultEvents && resultEventId.isNotBlank())
         val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
         if (overlayEligible && overlayGranted) {
             val expiresAt = message.data["expires_at_ms"]?.toLongOrNull()
                 ?: (System.currentTimeMillis() + when {
                     isPickerChat -> 30L * 60L * 1000L
                     isPickerCommand -> 60L * 1000L
+                    isReportCreated -> 30L * 60L * 1000L
                     else -> 30L * 60L * 1000L
                 })
             try {
                 CriticalOverlayService.show(
                     this,
-                    title,
+                    if (isReportCreated) "THÔNG TIN BÁO HẾT HÀNG" else title,
                     body,
                     if (isPickerChat) CriticalOverlayService.MODE_PICKER_CHAT
                     else if (isPickerCommand) CriticalOverlayService.MODE_PICKER_COMMAND
+                    else if (isReportCreated) CriticalOverlayService.MODE_REPORT_CREATED
                     else CriticalOverlayService.MODE_RESULT,
                     message.data["alert_id"].orEmpty().ifBlank { resultEventId },
                     expiresAt,
