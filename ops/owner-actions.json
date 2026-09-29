@@ -3868,7 +3868,7 @@
     },
     {
       "id": "OA079",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_ACCEPTED_D151",
       "title": "Field-accept D151 adaptive Android alert engine",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3900,8 +3900,13 @@
         "No new provider, schema, polling, listener, heartbeat or scheduled network traffic is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Update 1291 Báo hàng Beta to beta-vc89 and execute the OA079 field matrix on MT90 old/new DND behavior, DT50, and one additional Android 11+ device if readily available. Report any alert-mode, screen-off wake, DND/Battery Saver, duplicate ACK or usage anomaly. D151 is not Owner PASS until explicit Owner confirmation.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D151 PASS on 2026-09-29.",
+      "closed": true,
+      "owner_result": {
+        "status": "PASS",
+        "date": "2026-09-29",
+        "evidence": "Owner explicitly confirmed D151 PASS after field review of beta-vc89."
+      }
     }
   ]
 }
