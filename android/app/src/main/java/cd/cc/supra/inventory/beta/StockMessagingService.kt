@@ -7,12 +7,22 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 class StockMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         NotificationSignalStore.saveToken(applicationContext, token)
+        getSharedPreferences("d149_schedule_topic", MODE_PRIVATE)
+            .edit().putBoolean("subscribed", false).apply()
+        FirebaseMessaging.getInstance().subscribeToTopic(OperatingScheduleStore.FCM_TOPIC)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    getSharedPreferences("d149_schedule_topic", MODE_PRIVATE)
+                        .edit().putBoolean("subscribed", true).apply()
+                }
+            }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
