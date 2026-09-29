@@ -308,7 +308,11 @@ public final class MainActivity extends Activity {
 
     private void refreshSnapshot() {
         latestSnapshot = captureSnapshot();
-        status.setText(latestSnapshot.toString(2));
+        try {
+            status.setText(latestSnapshot.toString(2));
+        } catch (Exception ignored) {
+            status.setText(latestSnapshot.toString());
+        }
     }
 
     private String readStream(InputStream stream) throws Exception {
