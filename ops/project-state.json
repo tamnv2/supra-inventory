@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D149_OWNER_ACCEPTED_BASE__D150_TECHNICAL_RUNTIME_RELEASE_PASS__OA078_OWNER_FIELD_READY",
+    "beta": "D150_OWNER_ACCEPTED_BASE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -27,14 +27,14 @@
     "user_management": "D146_OWNER_FIELD_PASS__TRUE_ROOT_MODE_ONLY_MANAGED_DELETE__PICKPACK_CANNOT_DELETE_ADMIN",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D150_TECHNICAL_RUNTIME_PASS__FRESH_SERVER_FILTERED_COORDINATION__DOCUMENT_AWARE_LOCAL_GUARD__ERROR_STORM_FUSE__D140_RECONNECT_GUARDS_RETAINED",
+    "quota_resilience": "D150_OWNER_FIELD_PASS__FRESH_SERVER_FILTERED_COORDINATION__DOCUMENT_AWARE_LOCAL_GUARD__ERROR_STORM_FUSE__D140_RECONNECT_GUARDS_RETAINED",
     "ui_design_guard": "D148_OWNER_FIELD_PASS__ADAPTIVE_REPORT_CREATED_CARD__PRIORITY_SEQUENTIAL_OVERLAY_QUEUE",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D150_TECHNICAL_RELEASE_PASS__AGENT_V85__MANUAL_PRIMARY_CAS_GENERATION_FENCE__D149_BUSINESS_HA_CADENCE_RETAINED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D149_ACCEPTED_BASE__D150_TECHNICAL_PASS_OWNER_FIELD_PENDING",
-    "owner_acceptance": "D149_OWNER_FIELD_ACCEPTED_PASS__OA077_CLOSED__D149_ACCEPTED_BASE"
+    "picklist_confirmation_poc": "D150_OWNER_FIELD_PASS__AGENT_V85__MANUAL_PRIMARY_CAS_GENERATION_FENCE__D149_BUSINESS_HA_CADENCE_RETAINED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D150_OWNER_ACCEPTED_PASS__D150_ACCEPTED_BASE",
+    "owner_acceptance": "D150_OWNER_FIELD_ACCEPTED_PASS__OA078_CLOSED__D150_ACCEPTED_BASE"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -194,7 +194,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D150 technical/runtime/release PASS is complete. OA078 is READY_FOR_OWNER_FIELD_TEST; D149 remains the accepted base until explicit Owner D150 PASS. Stable remains OWNER-GATED.",
+  "next_action": "D150 has explicit Owner PASS and is the accepted project base. No project change is currently open. The next requested workstream may start after a fresh canonical GitHub bootstrap and required impact review. Stable remains OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -838,7 +838,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D150_TECHNICAL_RUNTIME_RELEASE_PASS__OA078_OWNER_FIELD_PENDING",
+  "active_workstream": "NONE__D150_OWNER_ACCEPTED_BASELINE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2459,12 +2459,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D149",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D149_PASS__2026_09_29",
-    "current_change_id": "D150",
-    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA078_PENDING",
+    "accepted_base_change_id": "D150",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D150_PASS__2026_09_29",
+    "current_change_id": null,
+    "current_change_status": "NONE__D150_OWNER_ACCEPTED_PASS",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2478,7 +2478,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D150_MAIN_C9D42C70__AGENT_V85__WORKER_FUNCTION_FIRESTORE_LIVE_PASS__ANDROID_VC88_UNCHANGED__D149_REMAINS_ACCEPTED_BASE",
+    "runtime_impact": "D150_OWNER_ACCEPTED__TECHNICAL_RUNTIME_RELEASE_EVIDENCE_UNCHANGED__MAIN_C9D42C70__AGENT_V85__ANDROID_VC88_UNCHANGED",
     "resource_change": "D150_REUSE_EXISTING_FIRESTORE_RELAY_BETA__AGENT_LOG_FUNCTION__BETA_WORKER__NO_NEW_PROVIDER_COLLECTION_OR_SECRET",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2667,119 +2667,125 @@
       "result": "PASS",
       "evidence": "Owner explicitly confirmed D149 PASS after field review of the released D149 Beta scope. D149 is promoted to the accepted project base."
     },
-  "d150": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA078_READY",
-    "date": "2026-09-29",
-    "baseline_change": "D149",
-    "baseline_main": "d03559ee9f15814edda36417716d68685913d929",
-    "branch": "d150-quota-safe-primary-takeover",
-    "implementation_pr": 306,
-    "owner_approved_scope": [
-      "SERVER_FILTER_FRESH_PICKER_ACTIVE_CALLS",
-      "PRIMARY_ONLY_FRESH_AGENT_PRESENCE_QUERY__HA_TRIO_COMPACT_SYNC__DEEP_EXACT_10M",
-      "DOCUMENT_AWARE_LOCAL_FIRESTORE_READ_GUARD",
-      "AGENT_ERROR_FINGERPRINT_DEDUPE_AND_GLOBAL_FUSE",
-      "AGENT_LOG_COMMIT_LAST_DIRECT_PART_PROTOCOL",
-      "BOUNDED_WORKER_LOG_FALLBACK_QUERY",
-      "TAMNV2_ADMIN_MANUAL_PRIMARY_CAS_GENERATION_FENCE"
-    ],
-    "protected_cadence": {
-      "primary_active_poll_ms": 3000,
-      "primary_inactive_poll_ms": 15000,
-      "primary_hot_poll_ms": 1000,
-      "primary_lease_heartbeat_ms": 10000,
-      "failover_after_ms": 15000,
-      "android_polling": "NONE"
-    },
-    "base_impact": "YES__AGENT_COORDINATION_AND_SUPPORT_LOG_PATHS",
-    "affected_components": [
-      "relay-agent",
-      "firebase_firestore_rules",
-      "functions",
-      "service_worker_log_fallback",
-      "repo_authority",
-      "ci"
-    ],
-    "regression_stability_risk": "MEDIUM_HA_ROLE_TRANSFER__MEDIUM_AGENT_LOG_PIPELINE__LOW_SERVER_FILTERED_READS",
-    "resource_quota_security_impact": "EXPECTED_READ_AND_FAILURE_AMPLIFICATION_REDUCTION__NO_NEW_PROVIDER_COLLECTION_SECRET_OR_ALWAYS_ON_LISTENER__STABLE_UNTOUCHED",
-    "recommended_approach": "PRESERVE_BUSINESS_HA_CADENCE__FILTER_SERVER_SIDE__COMPACT_DEEP_SYNC__COMMIT_LAST_LOGS__CAS_NEW_GENERATION_MANUAL_PRIMARY",
-    "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_APPROVED_SAFE_PROPOSAL_AFTER_SECOND_DETAILED_REVIEW__2026_09_29",
-    "quota_invariants": [
-      "NO_PRIMARY_BUSINESS_POLL_SLOWDOWN",
-      "NO_LEASE_OR_FAILOVER_SLOWDOWN",
-      "NO_DEEP_AGENT_REALTIME_LISTENER",
-      "NO_PROVIDER_USAGE_POLLING",
-      "NO_COLLECTION_WIDE_PICKER_ACTIVE_CALL_SCAN",
-      "NO_COLLECTION_WIDE_AGENT_PRESENCE_SCAN_ON_NON_PRIMARY",
-      "REPEATED_ERROR_MUST_NOT_CREATE_UNBOUNDED_LOG_WRITES",
-      "INTERMEDIATE_LOG_CHUNKS_MUST_NOT_START_ASSEMBLY"
-    ],
-    "manual_primary": {
-      "allowed_login_names": [
-        "tamnv2",
-        "admin"
-      ],
-      "button": "Chuyển Agent chính",
-      "visibility": "NON_PRIMARY_ONLY__FAR_RIGHT_AGENT_ACTION_ROW",
-      "readiness": "AUTHENTICATED__REPLAY_OPEN__WEB_CONFIRM_READY",
-      "mutation": "ROLE_READ__FRESH_FLEET__CAS_UPDATE_TIME__NEW_GENERATION__IMMEDIATE_LEASE",
-      "split_brain_guard": "EXISTING_VERIFY_PRIMARY_BEFORE_WMS_MUTATION"
-    },
-    "target_agent_release": "relay-agent-v85",
-    "android_release": "beta-vc88__UNCHANGED",
-    "new_provider_resources": "NONE",
-    "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OA078_READY_FOR_OWNER_FIELD_TEST",
-    "main_commit": "c9d42c701f66283f447aad4f24c8f9043db17e37",
-    "technical_release": {
-      "status": "PASS",
+    "d150": {
+      "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V85__ANDROID_VC88_UNCHANGED",
       "date": "2026-09-29",
+      "baseline_change": "D149",
+      "baseline_main": "d03559ee9f15814edda36417716d68685913d929",
+      "branch": "d150-quota-safe-primary-takeover",
       "implementation_pr": 306,
-      "worker": {
-        "run_id": 36532689311,
-        "result": "PASS__EXACT_SOURCE_C9D42C70__HEALTH_200__SCHEMA14__OPERATIONAL5_5"
+      "owner_approved_scope": [
+        "SERVER_FILTER_FRESH_PICKER_ACTIVE_CALLS",
+        "PRIMARY_ONLY_FRESH_AGENT_PRESENCE_QUERY__HA_TRIO_COMPACT_SYNC__DEEP_EXACT_10M",
+        "DOCUMENT_AWARE_LOCAL_FIRESTORE_READ_GUARD",
+        "AGENT_ERROR_FINGERPRINT_DEDUPE_AND_GLOBAL_FUSE",
+        "AGENT_LOG_COMMIT_LAST_DIRECT_PART_PROTOCOL",
+        "BOUNDED_WORKER_LOG_FALLBACK_QUERY",
+        "TAMNV2_ADMIN_MANUAL_PRIMARY_CAS_GENERATION_FENCE"
+      ],
+      "protected_cadence": {
+        "primary_active_poll_ms": 3000,
+        "primary_inactive_poll_ms": 15000,
+        "primary_hot_poll_ms": 1000,
+        "primary_lease_heartbeat_ms": 10000,
+        "failover_after_ms": 15000,
+        "android_polling": "NONE"
       },
-      "functions": {
-        "run_id": 36532689256,
-        "result": "PASS__DEPLOY_COMPLETE"
+      "base_impact": "YES__AGENT_COORDINATION_AND_SUPPORT_LOG_PATHS",
+      "affected_components": [
+        "relay-agent",
+        "firebase_firestore_rules",
+        "functions",
+        "service_worker_log_fallback",
+        "repo_authority",
+        "ci"
+      ],
+      "regression_stability_risk": "MEDIUM_HA_ROLE_TRANSFER__MEDIUM_AGENT_LOG_PIPELINE__LOW_SERVER_FILTERED_READS",
+      "resource_quota_security_impact": "EXPECTED_READ_AND_FAILURE_AMPLIFICATION_REDUCTION__NO_NEW_PROVIDER_COLLECTION_SECRET_OR_ALWAYS_ON_LISTENER__STABLE_UNTOUCHED",
+      "recommended_approach": "PRESERVE_BUSINESS_HA_CADENCE__FILTER_SERVER_SIDE__COMPACT_DEEP_SYNC__COMMIT_LAST_LOGS__CAS_NEW_GENERATION_MANUAL_PRIMARY",
+      "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_APPROVED_SAFE_PROPOSAL_AFTER_SECOND_DETAILED_REVIEW__2026_09_29",
+      "quota_invariants": [
+        "NO_PRIMARY_BUSINESS_POLL_SLOWDOWN",
+        "NO_LEASE_OR_FAILOVER_SLOWDOWN",
+        "NO_DEEP_AGENT_REALTIME_LISTENER",
+        "NO_PROVIDER_USAGE_POLLING",
+        "NO_COLLECTION_WIDE_PICKER_ACTIVE_CALL_SCAN",
+        "NO_COLLECTION_WIDE_AGENT_PRESENCE_SCAN_ON_NON_PRIMARY",
+        "REPEATED_ERROR_MUST_NOT_CREATE_UNBOUNDED_LOG_WRITES",
+        "INTERMEDIATE_LOG_CHUNKS_MUST_NOT_START_ASSEMBLY"
+      ],
+      "manual_primary": {
+        "allowed_login_names": [
+          "tamnv2",
+          "admin"
+        ],
+        "button": "Chuyển Agent chính",
+        "visibility": "NON_PRIMARY_ONLY__FAR_RIGHT_AGENT_ACTION_ROW",
+        "readiness": "AUTHENTICATED__REPLAY_OPEN__WEB_CONFIRM_READY",
+        "mutation": "ROLE_READ__FRESH_FLEET__CAS_UPDATE_TIME__NEW_GENERATION__IMMEDIATE_LEASE",
+        "split_brain_guard": "EXISTING_VERIFY_PRIMARY_BEFORE_WMS_MUTATION"
       },
-      "firestore": {
-        "run_id": 36532689358,
-        "result": "PASS__RULESET_CREATE_AND_RELEASE_READBACK"
+      "target_agent_release": "relay-agent-v85",
+      "android_release": "beta-vc88__UNCHANGED",
+      "new_provider_resources": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "owner_gate": "OA078_CLOSED__OWNER_ACCEPTED_PASS",
+      "main_commit": "c9d42c701f66283f447aad4f24c8f9043db17e37",
+      "technical_release": {
+        "status": "PASS",
+        "date": "2026-09-29",
+        "implementation_pr": 306,
+        "worker": {
+          "run_id": 36532689311,
+          "result": "PASS__EXACT_SOURCE_C9D42C70__HEALTH_200__SCHEMA14__OPERATIONAL5_5"
+        },
+        "functions": {
+          "run_id": 36532689256,
+          "result": "PASS__DEPLOY_COMPLETE"
+        },
+        "firestore": {
+          "run_id": 36532689358,
+          "result": "PASS__RULESET_CREATE_AND_RELEASE_READBACK"
+        },
+        "agent": {
+          "run_id": 36532689219,
+          "release": "relay-agent-v85",
+          "release_id": 398883765,
+          "asset_id": 597497266,
+          "source_commit": "c9d42c701f66283f447aad4f24c8f9043db17e37",
+          "sha256": "d1e7d89c431c8641591ce71e8e55b872bd4511c1cadf07bae24fce3c0005e080",
+          "size_bytes": 7069184,
+          "channel": "inventory-channel__UPDATED_TO_V85"
+        },
+        "android": {
+          "run_id": 36532689273,
+          "result": "PASS__COMPATIBILITY_BUILD_ONLY__ANDROID_RELEASE_REQUIRED_FALSE",
+          "release": "beta-vc88__UNCHANGED"
+        },
+        "ui_guard": {
+          "run_id": 36532689242,
+          "result": "PASS"
+        },
+        "dashboard_probe": {
+          "run_id": 36532689292,
+          "result": "PASS"
+        },
+        "authority_guard": {
+          "run_id": 36532689218,
+          "result": "PASS"
+        },
+        "project_state_guard": {
+          "run_id": 36532689312,
+          "result": "PASS"
+        },
+        "stable": "UNTOUCHED_OWNER_GATED"
       },
-      "agent": {
-        "run_id": 36532689219,
-        "release": "relay-agent-v85",
-        "release_id": 398883765,
-        "asset_id": 597497266,
-        "source_commit": "c9d42c701f66283f447aad4f24c8f9043db17e37",
-        "sha256": "d1e7d89c431c8641591ce71e8e55b872bd4511c1cadf07bae24fce3c0005e080",
-        "size_bytes": 7069184,
-        "channel": "inventory-channel__UPDATED_TO_V85"
-      },
-      "android": {
-        "run_id": 36532689273,
-        "result": "PASS__COMPATIBILITY_BUILD_ONLY__ANDROID_RELEASE_REQUIRED_FALSE",
-        "release": "beta-vc88__UNCHANGED"
-      },
-      "ui_guard": {
-        "run_id": 36532689242,
-        "result": "PASS"
-      },
-      "dashboard_probe": {
-        "run_id": 36532689292,
-        "result": "PASS"
-      },
-      "authority_guard": {
-        "run_id": 36532689218,
-        "result": "PASS"
-      },
-      "project_state_guard": {
-        "run_id": 36532689312,
-        "result": "PASS"
-      },
-      "stable": "UNTOUCHED_OWNER_GATED"
+      "field_acceptance": "PASS__OWNER_EXPLICIT_D150_PASS__2026_09_29",
+      "owner_field_result": {
+        "date": "2026-09-29",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D150 PASS after field review of the released D150 Beta scope. D150 is promoted to the accepted project base."
+      }
     }
-  }
   }
 }
