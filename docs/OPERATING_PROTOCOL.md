@@ -219,3 +219,16 @@ D140 supersedes only the D134 rule that allowed every authenticated Agent to kee
 - Android/PDA transport semantics are unchanged; no APK release is required solely for this hotfix.
 - Stable remains OWNER-GATED and untouched.
 
+## D149 unified operating-schedule quota rule
+
+- Schedule authority remains the existing Agent Firestore CAS model; first accepted decision per scheduled boundary wins.
+- Normal replay is deterministic 06:00–22:00. Default sleep at 22:00 is **write-free**.
+- 21:30 and later HH:30 prompts are UI/time calculations only; they do not perform provider reads. A provider write occurs only after an explicit accepted decision.
+- Overtime cannot pass 05:00. 05:00–06:00 early start is explicit and shared; 06:00 normal start is deterministic/write-free.
+- Sleeping **Điều chỉnh tăng ca** is one explicit bounded CAS/state update and never starts a timer-driven write loop.
+- No Cloud Function trigger may be attached to `relay_poc_coordination/roles`, generation leases or `agent_sync`.
+- No new persistent schedule listener is allowed on Android, Web or deep-hibernate Agents. Reuse existing HA mechanisms only where already authorized.
+- Android missed-state recovery is one-shot: Worker path first; one exact Firestore current-state GET only during Worker outage with a still-valid Firebase session.
+- Duplicate FCM/function deliveries are handled by schedule version/idempotency and may not recursively write the triggering document.
+- D140 retry/circuit/no-op-write protections remain mandatory. Any implementation that introduces an unbounded retry, reconnect or fan-out loop fails D149.
+- Stable remains OWNER-GATED and untouched.
