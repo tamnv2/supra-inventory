@@ -236,3 +236,7 @@ D140 supersedes only the D134 rule that allowed every authenticated Agent to kee
 ## D152 PickList recovery operating rule
 
 D152 uses a fast-path / exception-recovery split. Normal exact-row confirmation must not pay the reload cost. A unique row with an unavailable checkbox may use the existing one Search retry and, only if still unselectable, one bounded normal page reload/recheck. After a Confirm dialog has been accepted, all further D152 recovery is verify-only; no retry path may click Confirm again. Existing uncertain guards stay closed to mutation and may only perform one bounded read-only exact-row verification. State changes during recovery must not be converted into NOT_FOUND strikes. Recovery is local WMS browser UI work and must not add Firestore/provider polling, listeners or write cadence. Stable remains OWNER-GATED.
+
+### D152 verification hydration hardening
+
+For D152 read-only verification, exact-row absence is not sufficient while the entire rendered PickList table is empty. Empty/unhydrated table state must remain uncertain. Row-removal success requires stable absence while other PickList data proves the table is hydrated, unless an explicit trusted success surface already proves the terminal result. Pre-mutation checkbox races are safe conflicts and must release the unused guard; they are not Supra rejection and must not trigger another mutation automatically.
