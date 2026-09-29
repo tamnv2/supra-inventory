@@ -1395,3 +1395,7 @@ Owner approved one combined Beta change set for reliable support logs, PDA SKU i
 - OA076: **READY_FOR_OWNER_FIELD_TEST**.
 - Accepted base remains **D147**. D149 and the separate overtime-unification change remain blocked until explicit D148 Owner PASS.
 - Stable remains OWNER-GATED and untouched.
+
+Derived current-status markers:
+- `D148_TECHNICAL_RUNTIME_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
+- `D148_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`
