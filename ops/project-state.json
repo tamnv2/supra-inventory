@@ -33,8 +33,8 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D154_OWNER_FIELD_ACCEPTED_PASS__SCHEDULE_SYNC_RECOVERY__D153_PICKER_PRESENCE_DEDUPE__D152_CONFIRM_RECOVERY_RETAINED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D155_ACTIVE__D154_ACCEPTED_BASE",
-    "owner_acceptance": "D154_OWNER_FIELD_ACCEPTED_PASS__D155_OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D155_TECHNICAL_RUNTIME_RELEASE_PASS__D154_REMAINS_ACCEPTED_BASE",
+    "owner_acceptance": "D154_OWNER_FIELD_ACCEPTED_PASS__D155_OA083_OWNER_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D154",
     "accepted_base_evidence": "OWNER_EXPLICIT_D154_PASS__AGENT_V88__ANDROID_VC90__2026_09_30",
     "current_change_id": "D155",
-    "current_change_status": "IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED__D154_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA083_FIELD_READY__OWNER_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D155_BRANCH_IMPLEMENTATION__NOT_RUNTIME_ACCEPTED__D154_REMAINS_LIVE_ACCEPTED_BASE",
-    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_WEBSOCKET_ANDROID_AGENT_FIRESTORE_AGENT_PATH__NO_NEW_PROVIDER_COLLECTION_SECRET_LISTENER_POLLING_CRON",
+    "runtime_impact": "D155_BETA_RUNTIME_MAIN_2FDC4ABE__SCHEMA15__ANDROID_VC91__AGENT_V89__OWNER_FIELD_PENDING",
+    "resource_change": "NONE__CLOUDFLARE_ONLY_REPORTING_CAPABILITY__AGENT_CONTRACTOR_EXISTING_FIRESTORE_PAYLOAD_ONLY__NO_NEW_PROVIDER_COLLECTION_SECRET_LISTENER_POLLING_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3204,7 +3204,7 @@
     }
   },
   "d155": {
-    "status": "IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA083_FIELD_READY",
     "date": "2026-09-30",
     "baseline_change": "D154",
     "baseline_main": "bd75eb75e2eb260302cb69b1ac184208d7cb0843",
@@ -3257,6 +3257,36 @@
     "new_secrets": "NONE",
     "new_polling_listener_cron": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS"
+    "field_gate": "OA083_READY_FOR_OWNER_FIELD_TEST",
+    "implementation_pr": 328,
+    "main_commit": "2fdc4abe4dcb2ea2c221bafeade73f3e406aace4",
+    "worker_run_id": 36619215788,
+    "android_run_id": 36619215698,
+    "agent_run_id": 36619215729,
+    "ui_guard_run_id": 36619215733,
+    "authority_run_id": 36619215754,
+    "project_state_run_id": 36619215798,
+    "dashboard_probe_run_id": 36619215725,
+    "dnd_diagnostic_run_id": 36619215699,
+    "runtime_proof": "BETA_HEALTH_HTTP200__SOURCE_2FDC4ABE_EXACT__SCHEMA15_15__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+    "android_release": "beta-vc91",
+    "android_release_id": 399459526,
+    "android_asset_id": 599033249,
+    "android_size_bytes": 19118748,
+    "android_sha256": "55314957a767ddff2eb04283e2628ae6333c6d439168abc4bb5b0f56c33a06de",
+    "inventory_channel_pda_manifest_asset_id": 599033366,
+    "inventory_channel_pda_asset_id": 599033365,
+    "agent_release": "relay-agent-v89",
+    "agent_release_id": 399459395,
+    "agent_asset_id": 599032834,
+    "agent_size_bytes": 7081472,
+    "agent_sha256": "3aa0c9929f9b972464502b1ec3289853633e32519dfa9b58b587ad6b7c5c8943",
+    "inventory_channel_agent_manifest_asset_id": 599032960,
+    "inventory_channel_agent_asset_id": 599032958,
+    "release_source_verification": "ANDROID_TAG_EXACT_2FDC4ABE__AGENT_TAG_EXACT_2FDC4ABE",
+    "main_gates": "ALL_RELEVANT_MAIN_RUNS_PASS",
+    "quota_guard": "D155_CLOUDFLARE_ONLY_REPORTING_QUOTA_GUARD_PASS__NO_CAPABILITY_FIRESTORE_RTDB_FCM_POLL_LISTENER",
+    "field_acceptance": "PENDING_OWNER_EXPLICIT_PASS",
+    "accepted_base_remains": "D154"
   }
 }
