@@ -128,16 +128,16 @@
   },
   "environments": {
     "beta": {
-      "status": "D146_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC86__AGENT_V83__FINAL_HOTFIX_MAIN_D7E0CB94",
+      "status": "D148_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC87__AGENT_V83_UNCHANGED__OWNER_FIELD_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
-      "health_status": "D144_PASS_RUN_36477936028__MAIN_2B2B5A62__SCHEMA14__WORKER_DEPLOY_PASS",
-      "ci_deploy_status": "D144_PASS_RUN_36477936028_MAIN_2B2B5A62",
+      "health_status": "D148_PASS_RUN_36510192034__MAIN_FE893DB1__SCHEMA14__WORKER_DEPLOY_PASS",
+      "ci_deploy_status": "D148_PASS_RUN_36510192034_MAIN_FE893DB1",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
-      "app_verify_status": "D144_PASS_RUN_36477936034__SIGNED_BETA_VC85",
+      "app_verify_status": "D148_PASS_RUN_36510192008__SIGNED_BETA_VC87",
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
@@ -500,20 +500,23 @@
     "agent_transport": "AGENT_TO_GOOGLE_FIRESTORE_DIRECT__GOOGLE_FUNCTION_TO_GOOGLE_DRIVE_RESUMABLE__WORKER_BROKERS_METADATA_SESSION_ONLY__WORKER_FALLBACK_ON_DIRECT_FAILURE"
   },
   "android": {
-    "latest_beta_release": "beta-vc85",
-    "latest_beta_release_source": "2b2b5a622b971efbb676e7143573652abf6f9570",
-    "latest_beta_apk_sha256": "fdf561f67a65a0f99393b0c3fff6b5853adcd87c3b37bd624d04451493ce6466",
-    "target_beta_release": "D146_NEXT_MONOTONIC_AFTER_BETA_VC85",
+    "latest_beta_release": "beta-vc87",
+    "latest_beta_release_source": "fe893db1d80e417021defdad92d85947c37abd82",
+    "latest_beta_apk_sha256": "41e5d499e2c38a703aa4b58a1408963031dbacdb9b11f885650a325a4d0147f2",
+    "target_beta_release": "D148_BETA_VC87_RELEASED",
     "update_channel": "SERVICE_MANIFEST__INVENTORY_CHANNEL__VERSION_INDEPENDENT_PDA_ALIAS__HTTPS_SHA256_SIGNER_FAIL_CLOSED",
     "update_artifact_cleanup": "BEST_EFFORT_DELETE_TEMP_DOWNLOADED_APK_AFTER_CURRENT_VERSION_START",
-    "latest_beta_apk_size_bytes": 19085892,
-    "latest_beta_release_id": 398591717,
-    "latest_beta_apk_asset_id": 596320670,
+    "latest_beta_apk_size_bytes": 19102276,
+    "latest_beta_release_id": 398763774,
+    "latest_beta_apk_asset_id": 596952438,
     "inventory_channel_release_id": 394587029,
-    "inventory_channel_manifest_asset_id": 596320823,
-    "inventory_channel_apk_asset_id": 596320818,
+    "inventory_channel_manifest_asset_id": 596952527,
+    "inventory_channel_apk_asset_id": 596952526,
     "d146_sku_refresh": "WEB_IMPORT_REALTIME_SCOPE_PLUS_SILENT_FCM__PDA_CACHE_SYNC_WITHOUT_LOGOUT",
-    "d146_logs": "06_12_18_21__ERROR_CRASH_IMMEDIATE__TRUTHFUL_ARCHIVE_STATUS"
+    "d146_logs": "06_12_18_21__ERROR_CRASH_IMMEDIATE__TRUTHFUL_ARCHIVE_STATUS",
+    "d148_report_created_overlay": "EXISTING_FCM__REPORTER_ADMIN__ADAPTIVE_CROSS_APP_CARD__NO_POLLING",
+    "d148_overlay_queue": "PRIORITY_SPECIALIST_THEN_RESULT_THEN_REPORT__FIFO_WITHIN_PRIORITY__ONE_ACK_ONE_ITEM__LOCAL_FIRST_RESULT_ACK",
+    "d148_logs": "ANDROID_INFO_SESSION_END_ONLY__ERROR_CRASH_IMMEDIATE__MANUAL_RETAINED__NO_SCHEDULED_PDA_INFO"
   },
   "system_status": {
     "environment": "beta",
@@ -1706,5 +1709,23 @@
     "stable": "OWNER_GATED_UNTOUCHED",
     "final_main": "d7e0cb944b29ee7245053be64f5409be36e2b6c3",
     "owner_field_result": "PASS__OWNER_CONFIRMED_D146_DONE_2026_09_29"
+  },
+  "d148": {
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_PENDING",
+    "main": "fe893db1d80e417021defdad92d85947c37abd82",
+    "web": "PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL",
+    "android_release": "beta-vc87",
+    "android_asset_id": 596952438,
+    "android_sha256": "41e5d499e2c38a703aa4b58a1408963031dbacdb9b11f885650a325a4d0147f2",
+    "android_size_bytes": 19102276,
+    "inventory_channel_pda_manifest_asset_id": 596952527,
+    "inventory_channel_pda_asset_id": 596952526,
+    "agent": "relay-agent-v83__UNCHANGED",
+    "new_provider_resources": "NONE",
+    "schema": "UNCHANGED_14",
+    "polling_change": "NONE",
+    "overtime_unification": "EXCLUDED",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_field_gate": "OA076_READY"
   }
 }
