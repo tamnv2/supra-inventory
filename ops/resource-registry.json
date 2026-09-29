@@ -196,8 +196,8 @@
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D144_PASS_RUN_36477936028__SOURCE_2B2B5A62__SCHEMA14_14__AGENT_MIGRATION0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v83__RELEASED",
-      "next_signed_beta_release_target": "NO_D148_ANDROID_RELEASE_PENDING__BETA_VC87_RELEASED",
-      "next_relay_agent_release_target": "NO_D148_AGENT_RELEASE__V83_UNCHANGED",
+      "next_signed_beta_release_target": "NEXT_MONOTONIC_AFTER_BETA_VC87__D149_CANDIDATE",
+      "next_relay_agent_release_target": "relay-agent-v84__D149_CANDIDATE",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -1749,6 +1749,9 @@
     "recent_results": "BOUNDED_EXPLICIT_DATE_RANGE",
     "new_provider_resources": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_field_gate": "OA077_PENDING"
+    "owner_field_gate": "OA077_PENDING",
+    "target_agent_release": "relay-agent-v84",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC87",
+    "expected_android_if_no_intervening_release": "beta-vc88"
   }
 }
