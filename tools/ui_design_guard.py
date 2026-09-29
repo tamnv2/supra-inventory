@@ -26,7 +26,7 @@ ANDROID_MAIN = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainAc
 ANDROID_PICKER = read("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt")
 ANDROID_REPORTER = read("android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt")
 ANDROID_RT = read("android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidRealtimeClient.kt")
-ANDROID_API = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
+ANDROID_API = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")\nANDROID_FCM = read("android/app/src/main/java/cd/cc/supra/inventory/beta/StockMessagingService.kt")\nANDROID_CRITICAL_OVERLAY = read("android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt")
 ANDROID_MANIFEST = read("android/app/src/main/AndroidManifest.xml")
 ANDROID_LOGIN_XML = read("android/app/src/main/res/layout/activity_login.xml")
 ANDROID_MAIN_XML = read("android/app/src/main/res/layout/activity_main.xml")
@@ -378,7 +378,7 @@ checks = {
     "web_d063_people_layout": all(token in WEB_APP for token in ["users-top-grid", "Tạo tài khoản nghiệp vụ", "Tìm và lọc tài khoản", "user-bulk-bar"]) and all(token in WEB_FAST for token in ["users-top-grid", "users-form-grid", "user-bulk-bar"]),
     "web_d063_runtime_logs": all(token in WEB_LOGGER for token in ["scheduled_", "window_error", "unhandled_promise_rejection", "maybeSendScheduledWebLog"]) and all(token in WEB_APP for token in ["Log Web", "Log Android", "send-web-log"]) and "Beta / Logs" not in WEB_APP and all(token in SERVICE_RUNTIME_LOGS for token in ["REDACTED", "LOGS_FOLDER_ID", "uploadRuntimeLog", "listRuntimeLogs"]),
     "service_d063_presence_by_role": "online_users_by_role" in SERVICE_READ_MODEL and "online_users_by_client" in SERVICE_READ_MODEL,
-    "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["currentRuntimeLogSlot", "scheduled_", "pending_crash", "android_crash", "Gửi log"]) and "uploadRuntimeLog" in ANDROID_API,
+    "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["session_end_logout", "flushPendingSessionEndRuntimeLog", "pending_crash", "android_crash", "Gửi log"]) and "maybeUploadScheduledRuntimeLog" not in ANDROID_MAIN and "uploadRuntimeLog" in ANDROID_API,\n    "android_d148_overlay_queue": all(token in ANDROID_CRITICAL_OVERLAY for token in ["pendingAlerts", "PRIORITY_SPECIALIST", "MODE_REPORT_CREATED", "finishActive"]) and "MODE_REPORT_CREATED" in ANDROID_FCM,\n    "web_d148_shift_excel": all(token in WEB_REPORT_EXCEL for token in ["So sánh ca", "Ca 1 · 06:00–14:00", "Ca 2 · 14:00–22:00", "Ngoài ca / Tăng ca", "Ca phát sinh"]),
     "web_d063_dark_completion": all(token in WEB_FAST for token in ["D063 Owner operations/reporting/logs/users completion", ".business-summary-card", ".logs-layout", ".users-top-grid", 'body[data-theme="dark"]']),
     "web_d064_system_status_layout": all(token in WEB_APP for token in [
         "function renderSystem()", "Cloudflare", "Cơ sở dữ liệu nghiệp vụ", "Bài kiểm tra tải gần nhất",

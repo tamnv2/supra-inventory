@@ -6,15 +6,18 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -25,12 +28,32 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 
 class CriticalOverlayService : Service() {
+    private data class OverlayAlert(
+        val title: String,
+        val body: String,
+        val mode: String,
+        val alertId: String,
+        val expiresAtMs: Long,
+        val resolution: String,
+        val sku: String,
+        val productName: String,
+        val enqueuedAtMs: Long,
+    ) {
+        val priority: Int
+            get() = when (mode) {
+                MODE_PICKER_COMMAND, MODE_PICKER_CHAT -> PRIORITY_SPECIALIST
+                MODE_RESULT -> PRIORITY_RESULT
+                MODE_REPORT_CREATED -> PRIORITY_REPORT
+                else -> PRIORITY_REPORT
+            }
+    }
+
     private val handler = Handler(Looper.getMainLooper())
+    private val pendingAlerts = mutableListOf<OverlayAlert>()
     private var overlay: View? = null
     private var windowManager: WindowManager? = null
     private var expiryTask: Runnable? = null
-    private var activeAlertId: String = ""
-    private var activeMode: String = ""
+    private var activeAlert: OverlayAlert? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -42,8 +65,7 @@ class CriticalOverlayService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_CLEAR) {
-            val requested = intent.getStringExtra(EXTRA_ALERT_ID).orEmpty()
-            if (requested.isBlank() || requested == activeAlertId) stopSelf()
+            clearAlert(intent.getStringExtra(EXTRA_ALERT_ID).orEmpty())
             return START_NOT_STICKY
         }
         if (intent?.action != ACTION_SHOW) return START_NOT_STICKY
@@ -52,51 +74,217 @@ class CriticalOverlayService : Service() {
             return START_NOT_STICKY
         }
 
+        val nowMs = System.currentTimeMillis()
+        val mode = intent.getStringExtra(EXTRA_MODE).orEmpty()
         val title = intent.getStringExtra(EXTRA_TITLE).orEmpty().ifBlank { "SUPRA Inventory" }.take(120)
         val body = intent.getStringExtra(EXTRA_BODY).orEmpty().ifBlank { "Có cập nhật nghiệp vụ mới." }.take(800)
-        activeMode = intent.getStringExtra(EXTRA_MODE).orEmpty()
-        activeAlertId = intent.getStringExtra(EXTRA_ALERT_ID).orEmpty()
-        val resolution = intent.getStringExtra(EXTRA_RESOLUTION).orEmpty()
-        val sku = intent.getStringExtra(EXTRA_SKU).orEmpty()
-        val productName = intent.getStringExtra(EXTRA_PRODUCT_NAME).orEmpty()
-        val nowMs = System.currentTimeMillis()
+        val sku = intent.getStringExtra(EXTRA_SKU).orEmpty().take(64)
+        val productName = intent.getStringExtra(EXTRA_PRODUCT_NAME).orEmpty().take(500)
+        val resolution = intent.getStringExtra(EXTRA_RESOLUTION).orEmpty().take(64)
+        val suppliedId = intent.getStringExtra(EXTRA_ALERT_ID).orEmpty().trim()
+        val alertId = suppliedId.ifBlank {
+            "local:" + mode.take(24) + ":" + (sku.ifBlank { body.take(80) }).hashCode().toString()
+        }.take(128)
         val requestedExpiresAt = intent.getLongExtra(EXTRA_EXPIRES_AT_MS, nowMs + DEFAULT_TTL_MS)
             .coerceAtMost(nowMs + MAX_TTL_MS)
-        val expiresAt = if (activeMode == MODE_PICKER_COMMAND) {
+        val expiresAt = if (mode == MODE_PICKER_COMMAND) {
             minOf(requestedExpiresAt, nowMs + PICKER_COMMAND_TTL_MS)
         } else {
             requestedExpiresAt
         }
+        if (expiresAt <= nowMs) return START_NOT_STICKY
 
-        startForeground(
-            OVERLAY_NOTIFICATION_ID,
-            foregroundNotification(title, body, activeAlertId),
+        enqueue(
+            OverlayAlert(
+                title = title,
+                body = body,
+                mode = mode,
+                alertId = alertId,
+                expiresAtMs = expiresAt,
+                resolution = resolution,
+                sku = sku,
+                productName = productName,
+                enqueuedAtMs = nowMs,
+            ),
         )
-        if (activeMode == MODE_RESULT && activeAlertId.isNotBlank()) {
-            NotificationSignalStore.markResultOverlayPresented(applicationContext, activeAlertId)
-        }
-        showOverlay(title, body, activeMode, resolution, sku, productName)
-        expiryTask?.let(handler::removeCallbacks)
-        expiryTask = Runnable { stopSelf() }.also { task ->
-            val maxDelay = if (activeMode == MODE_PICKER_COMMAND) PICKER_COMMAND_TTL_MS else MAX_TTL_MS
-            handler.postDelayed(task, (expiresAt - System.currentTimeMillis()).coerceIn(1_000L, maxDelay))
-        }
         return START_NOT_STICKY
     }
 
-    private fun showOverlay(
-        title: String,
-        body: String,
-        mode: String,
-        resolution: String,
-        sku: String,
-        productName: String,
-    ) {
+    private fun enqueue(item: OverlayAlert) {
+        if (activeAlert?.alertId == item.alertId || pendingAlerts.any { it.alertId == item.alertId }) return
+
+        // Mark result events as owned by the overlay queue immediately, including
+        // items that are waiting behind a higher-priority alert. This prevents the
+        // in-app dialog from racing the queue and showing the same result twice.
+        if (item.mode == MODE_RESULT && item.alertId.isNotBlank()) {
+            NotificationSignalStore.markResultOverlayPresented(applicationContext, item.alertId)
+        }
+
+        pendingAlerts += item
+        pruneExpired()
+
+        val current = activeAlert
+        if (current == null) {
+            displayNext()
+            return
+        }
+
+        // Specialist/Picker-call alerts preempt lower-priority shortage/result info.
+        // The interrupted item is re-queued with its original FIFO timestamp.
+        if (item.priority > current.priority) {
+            suspendActiveForPriority()
+            displayNext()
+        }
+    }
+
+    private fun suspendActiveForPriority() {
+        val current = activeAlert ?: return
+        cancelExpiry()
         removeOverlay()
-        val view = if (mode == MODE_RESULT) {
-            buildResultOverlay(body, resolution, sku, productName)
+        activeAlert = null
+        if (current.expiresAtMs > System.currentTimeMillis()) {
+            pendingAlerts += current
         } else {
-            buildCommandOverlay(title, body, mode == MODE_PICKER_CHAT)
+            releaseUnacknowledgedResult(current)
+        }
+    }
+
+    private fun pruneExpired() {
+        val now = System.currentTimeMillis()
+        val expired = pendingAlerts.filter { it.expiresAtMs <= now }
+        if (expired.isEmpty()) return
+        pendingAlerts.removeAll(expired.toSet())
+        expired.forEach(::releaseUnacknowledgedResult)
+    }
+
+    private fun displayNext() {
+        pruneExpired()
+        if (activeAlert != null) return
+
+        val next = pendingAlerts
+            .sortedWith(compareByDescending<OverlayAlert> { it.priority }.thenBy { it.enqueuedAtMs })
+            .firstOrNull()
+
+        if (next == null) {
+            removeOverlay()
+            cancelExpiry()
+            stopForegroundCompat()
+            stopSelf()
+            return
+        }
+
+        pendingAlerts.remove(next)
+        activeAlert = next
+        startForeground(
+            OVERLAY_NOTIFICATION_ID,
+            foregroundNotification(next.title, next.body, next.alertId),
+        )
+        showOverlay(next)
+        scheduleExpiry(next)
+    }
+
+    private fun scheduleExpiry(item: OverlayAlert) {
+        cancelExpiry()
+        val maxDelay = if (item.mode == MODE_PICKER_COMMAND) PICKER_COMMAND_TTL_MS else MAX_TTL_MS
+        expiryTask = Runnable {
+            if (activeAlert?.alertId == item.alertId) {
+                finishActive(userAcknowledged = false)
+            }
+        }.also { task ->
+            handler.postDelayed(
+                task,
+                (item.expiresAtMs - System.currentTimeMillis()).coerceIn(1_000L, maxDelay),
+            )
+        }
+    }
+
+    private fun cancelExpiry() {
+        expiryTask?.let(handler::removeCallbacks)
+        expiryTask = null
+    }
+
+    private fun clearAlert(requestedId: String) {
+        val targetId = requestedId.trim()
+        if (targetId.isNotBlank()) {
+            val removed = pendingAlerts.filter { it.alertId == targetId }
+            pendingAlerts.removeAll { it.alertId == targetId }
+            removed.forEach(::releaseUnacknowledgedResult)
+            if (activeAlert?.alertId == targetId) {
+                finishActive(userAcknowledged = false)
+            } else if (activeAlert == null) {
+                displayNext()
+            }
+            return
+        }
+
+        // A malformed/legacy command-clear without an ID must never wipe unrelated
+        // shortage/result alerts. At most clear the currently visible command.
+        val current = activeAlert
+        if (current != null && (current.mode == MODE_PICKER_COMMAND || current.mode == MODE_PICKER_CHAT)) {
+            finishActive(userAcknowledged = false)
+        }
+    }
+
+    private fun finishActive(userAcknowledged: Boolean) {
+        val current = activeAlert ?: return
+        cancelExpiry()
+        removeOverlay()
+        activeAlert = null
+
+        when (current.mode) {
+            MODE_RESULT -> {
+                if (userAcknowledged) {
+                    NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId)
+                    acknowledgeResultAsync(current.alertId)
+                } else {
+                    releaseUnacknowledgedResult(current)
+                }
+            }
+            MODE_PICKER_CHAT -> {
+                if (userAcknowledged && current.alertId.isNotBlank()) {
+                    NotificationSignalStore.markPickerChatDismissed(applicationContext, current.alertId)
+                }
+            }
+        }
+
+        displayNext()
+    }
+
+    private fun releaseUnacknowledgedResult(item: OverlayAlert) {
+        if (
+            item.mode == MODE_RESULT &&
+            item.alertId.isNotBlank() &&
+            !NotificationSignalStore.isOverlayAckPending(applicationContext, item.alertId)
+        ) {
+            NotificationSignalStore.clearResultOverlayPresented(applicationContext, item.alertId)
+        }
+    }
+
+    private fun acknowledgeResultAsync(eventId: String) {
+        if (eventId.isBlank()) return
+        Thread {
+            try {
+                val session = InteractiveSessionStore.load(applicationContext) ?: return@Thread
+                val api = InventoryApi(
+                    baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
+                    userAgent = "SUPRA-Inventory-Beta/" + BuildConfig.VERSION_NAME,
+                    onSessionChanged = { InteractiveSessionStore.save(applicationContext, it) },
+                )
+                api.restoreSession(session)
+                api.acknowledgeResult(eventId)
+                NotificationSignalStore.clearOverlayAck(applicationContext, eventId)
+            } catch (_: Exception) {
+                // Keep the durable local pending ACK. MainActivity retries later.
+            }
+        }.start()
+    }
+
+    private fun showOverlay(item: OverlayAlert) {
+        removeOverlay()
+        val view = when (item.mode) {
+            MODE_RESULT -> buildResultOverlay(item)
+            MODE_REPORT_CREATED -> buildReportCreatedOverlay(item)
+            else -> buildCommandOverlay(item, item.mode == MODE_PICKER_CHAT)
         }
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -114,92 +302,151 @@ class CriticalOverlayService : Service() {
         overlay = view
     }
 
-    private fun buildResultOverlay(body: String, resolution: String, sku: String, productName: String): View {
-        val isSkip = resolution == "SKIP_ALLOWED" || body.contains("skip", ignoreCase = true) || body.contains("bỏ qua", ignoreCase = true)
+    private fun buildResultOverlay(item: OverlayAlert): View {
+        val isSkip = item.resolution == "SKIP_ALLOWED" ||
+            item.body.contains("skip", ignoreCase = true) ||
+            item.body.contains("bỏ qua", ignoreCase = true)
         val surface = LayoutInflater.from(this).inflate(R.layout.overlay_alert, null, false)
         surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else R.drawable.bg_overlay_available)
         surface.findViewById<TextView>(R.id.tvOverlayStatus).text =
             if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else "ĐÃ CÓ HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlaySku).text =
-            sku.takeIf { it.isNotBlank() } ?: "KẾT QUẢ BÁO HÀNG"
-        surface.findViewById<TextView>(R.id.tvOverlayProduct).text = productName
-        surface.findViewById<TextView>(R.id.tvOverlayMessage).text = body
+            item.sku.takeIf { it.isNotBlank() } ?: "KẾT QUẢ BÁO HÀNG"
+        surface.findViewById<TextView>(R.id.tvOverlayProduct).text = item.productName
+        surface.findViewById<TextView>(R.id.tvOverlayMessage).text = item.body
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
-            "Cảnh báo nghiệp vụ • xác nhận tại đây để tiếp tục"
-        val acknowledge = surface.findViewById<Button>(R.id.btnOverlayAck).apply {
+            "Cảnh báo nghiệp vụ • xác nhận từng thông tin để xem cảnh báo tiếp theo"
+        surface.findViewById<Button>(R.id.btnOverlayAck).apply {
             text = "XÁC NHẬN ĐÃ NHẬN"
             visibility = View.VISIBLE
-        }
-        acknowledge.setOnClickListener {
-            val eventId = activeAlertId
-            if (eventId.isBlank()) return@setOnClickListener
-
-            // D133 local-first acknowledgement: the Picker can always dismiss the
-            // full-screen result. Network delivery remains a durable pending ACK
-            // retried by MainActivity; this is not an offline Báo hàng mutation.
-            NotificationSignalStore.markOverlayAckPending(applicationContext, eventId)
-            acknowledge.isEnabled = false
-            acknowledge.text = "ĐÃ GHI NHẬN"
-            stopSelf()
-
-            Thread {
-                try {
-                    val session = InteractiveSessionStore.load(applicationContext)
-                        ?: return@Thread
-                    val api = InventoryApi(
-                        baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
-                        userAgent = "SUPRA-Inventory-Beta/" + BuildConfig.VERSION_NAME,
-                        onSessionChanged = { InteractiveSessionStore.save(applicationContext, it) },
-                    )
-                    api.restoreSession(session)
-                    api.acknowledgeResult(eventId)
-                    NotificationSignalStore.clearOverlayAck(applicationContext, eventId)
-                } catch (_: Exception) {
-                    // Keep the local pending ACK. MainActivity retries when connectivity/session returns.
-                }
-            }.start()
+            setOnClickListener {
+                isEnabled = false
+                finishActive(userAcknowledged = true)
+            }
         }
         return surface
     }
 
-    private fun buildCommandOverlay(title: String, body: String, localAcknowledge: Boolean): View {
+    private fun buildReportCreatedOverlay(item: OverlayAlert): View {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(28, 28, 28, 28)
+            setPadding(dp(22), dp(24), dp(22), dp(24))
+            setBackgroundColor(Color.argb(205, 8, 18, 35))
+        }
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(24), dp(22), dp(24), dp(22))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(248, 250, 252))
+                cornerRadius = dp(18).toFloat()
+                setStroke(dp(2), Color.rgb(226, 232, 240))
+            }
+            elevation = dp(8).toFloat()
+        }
+        card.addView(TextView(this).apply {
+            text = "THÔNG TIN BÁO HẾT HÀNG"
+            textSize = 22f
+            setTextColor(Color.rgb(15, 23, 42))
+            setTypeface(typeface, Typeface.BOLD)
+            gravity = Gravity.CENTER
+        }, matchWrap())
+
+        card.addView(TextView(this).apply {
+            text = "SKU"
+            textSize = 13f
+            setTextColor(Color.rgb(100, 116, 139))
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, dp(18), 0, dp(2))
+        }, matchWrap())
+
+        card.addView(TextView(this).apply {
+            text = item.sku.ifBlank { "—" }
+            textSize = 29f
+            setTextColor(Color.rgb(30, 64, 175))
+            setTypeface(typeface, Typeface.BOLD)
+            gravity = Gravity.CENTER
+        }, matchWrap())
+
+        card.addView(TextView(this).apply {
+            text = "Tên sản phẩm"
+            textSize = 13f
+            setTextColor(Color.rgb(100, 116, 139))
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, dp(16), 0, dp(4))
+        }, matchWrap())
+
+        card.addView(TextView(this).apply {
+            text = item.productName.ifBlank { item.body }
+            textSize = 19f
+            setTextColor(Color.rgb(30, 41, 59))
+            gravity = Gravity.CENTER
+            maxLines = 8
+            ellipsize = TextUtils.TruncateAt.END
+            setLineSpacing(0f, 1.08f)
+        }, matchWrap())
+
+        card.addView(Button(this).apply {
+            text = "OK"
+            textSize = 18f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            backgroundTintList = ColorStateList.valueOf(Color.rgb(37, 99, 235))
+            setOnClickListener {
+                isEnabled = false
+                finishActive(userAcknowledged = true)
+            }
+        }, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            dp(54),
+        ).apply { topMargin = dp(20) })
+
+        root.addView(card, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply {
+            marginStart = dp(2)
+            marginEnd = dp(2)
+        })
+        return root
+    }
+
+    private fun buildCommandOverlay(item: OverlayAlert, localAcknowledge: Boolean): View {
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(dp(28), dp(28), dp(28), dp(28))
             setBackgroundColor(Color.argb(225, 8, 18, 35))
         }
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(32, 28, 32, 28)
+            setPadding(dp(32), dp(28), dp(32), dp(28))
             setBackgroundColor(Color.WHITE)
         }
         card.addView(TextView(this).apply {
-            text = title
+            text = item.title
             textSize = 24f
             setTextColor(Color.rgb(15, 23, 42))
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        }, matchWrap())
         card.addView(TextView(this).apply {
-            text = body
+            text = item.body
             textSize = 19f
             setTextColor(Color.rgb(30, 41, 59))
             gravity = Gravity.CENTER
-            setPadding(0, 18, 0, 18)
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+            setPadding(0, dp(18), 0, dp(18))
+        }, matchWrap())
         if (localAcknowledge) {
             card.addView(Button(this).apply {
                 text = "XÁC NHẬN"
                 textSize = 17f
                 setTypeface(typeface, Typeface.BOLD)
                 setOnClickListener {
-                    val alertId = activeAlertId
-                    if (alertId.isNotBlank()) {
-                        NotificationSignalStore.markPickerChatDismissed(applicationContext, alertId)
-                    }
-                    stopSelf()
+                    isEnabled = false
+                    finishActive(userAcknowledged = true)
                 }
             }, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -210,11 +457,20 @@ class CriticalOverlayService : Service() {
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
         ).apply {
-            marginStart = 20
-            marginEnd = 20
+            marginStart = dp(20)
+            marginEnd = dp(20)
         })
         return root
     }
+
+    private fun matchWrap(): LinearLayout.LayoutParams =
+        LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt().coerceAtLeast(value)
 
     private fun foregroundNotification(title: String, body: String, alertId: String): Notification {
         val channelId = ensureChannel()
@@ -265,16 +521,23 @@ class CriticalOverlayService : Service() {
         overlay = null
     }
 
+    private fun stopForegroundCompat() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                stopForeground(true)
+            }
+        } catch (_: Exception) { }
+    }
+
     override fun onDestroy() {
-        expiryTask?.let(handler::removeCallbacks)
-        expiryTask = null
-        if (
-            activeMode == MODE_RESULT &&
-            activeAlertId.isNotBlank() &&
-            !NotificationSignalStore.isOverlayAckPending(applicationContext, activeAlertId)
-        ) {
-            NotificationSignalStore.clearResultOverlayPresented(applicationContext, activeAlertId)
-        }
+        cancelExpiry()
+        activeAlert?.let(::releaseUnacknowledgedResult)
+        pendingAlerts.forEach(::releaseUnacknowledgedResult)
+        pendingAlerts.clear()
+        activeAlert = null
         removeOverlay()
         super.onDestroy()
     }
@@ -293,6 +556,11 @@ class CriticalOverlayService : Service() {
         const val MODE_PICKER_COMMAND = "PICKER_COMMAND"
         const val MODE_PICKER_CHAT = "PICKER_CHAT"
         const val MODE_RESULT = "RESULT"
+        const val MODE_REPORT_CREATED = "REPORT_CREATED"
+
+        private const val PRIORITY_SPECIALIST = 300
+        private const val PRIORITY_RESULT = 200
+        private const val PRIORITY_REPORT = 100
         private const val OVERLAY_NOTIFICATION_ID = 129119
         private const val WAKE_REQUEST_BASE = 129200
         private const val DEFAULT_TTL_MS = 30L * 60L * 1000L

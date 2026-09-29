@@ -365,7 +365,13 @@ class PickerController(
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
-                        relayStatus?.append("\nSai " + result.rateStrikes + "/3 lần trong cửa sổ 60 giây.")
+                        val strikes = result.rateStrikes.coerceIn(1, 2)
+                        val remaining = 3 - strikes
+                        relayStatus?.append(
+                            "\n\nSai " + strikes + "/3 lần trong cửa sổ 60 giây." +
+                                "\nCòn " + remaining + " lần thử. Nếu sai đủ 3 lần trong cửa sổ này, " +
+                                "chức năng Xác nhận PickList sẽ bị khóa tạm thời."
+                        )
                     }
                     recordLog(
                         "Relay PDA confirm=" + result.lookupStatus +
@@ -407,10 +413,20 @@ class PickerController(
         relayPicklistInput?.isEnabled = false
         setRelayButtonReady(false)
         val remainingMinutes = maxOf(1L, (relayLockedUntilMs - System.currentTimeMillis() + 59_999L) / 60_000L)
-        showRelayResult("Đã bị khóa " + remainingMinutes + " phút do nhập sai nhiều lần.\nVui lòng về bàn chuyên viên xử lý trực tiếp.", false)
+        val unlockAt = timeFmt.format(Instant.ofEpochMilli(relayLockedUntilMs))
+        val lockMinutes = when (lockLevel.coerceIn(1, 3)) {
+            1 -> 5
+            2 -> 30
+            else -> 60
+        }
+        val message =
+            "Xác nhận PickList đã bị khóa tạm thời trong " + lockMinutes + " phút do nhập sai 3 lần trong 60 giây." +
+                "\nHệ thống dự kiến tự mở lại lúc " + unlockAt + "." +
+                "\nVui lòng kiểm tra lại mã PickList hoặc xử lý tại bàn chuyên viên."
+        showRelayResult(message, false)
         showRelayWarning(
-            "Tra cứu Picklist bị khóa",
-            "Bạn đã nhập sai nhiều lần. Tạm khóa khoảng " + remainingMinutes + " phút (cấp " + lockLevel + "). Vui lòng về bàn chuyên viên xử lý."
+            "Xác nhận PickList tạm thời bị khóa",
+            message + "\nThời gian còn lại hiện tại: khoảng " + remainingMinutes + " phút."
         )
         val delay = (relayLockedUntilMs - System.currentTimeMillis()).coerceAtLeast(1000L)
         handler.postDelayed({
@@ -418,7 +434,7 @@ class PickerController(
                 relayLockedUntilMs = 0L
                 relayPicklistInput?.isEnabled = true
                 setRelayButtonReady((relayPicklistInput?.text?.length ?: 0) >= 3 && !relayRequestInFlight)
-                showRelayHint("Đã hết thời gian khóa. Có thể kiểm tra PickList.")
+                showRelayHint("Đã hết thời gian khóa. Có thể xác nhận PickList.")
             }
         }, delay)
     }
@@ -432,9 +448,9 @@ class PickerController(
 
     private fun relayOutcomeText(status: String): String = when (status) {
         "CONFIRMED" -> "Đã xác nhận PickList thành công. Quay lại SFT / SFT 3 để tiếp tục."
-        "NOT_FOUND" -> "Không tìm thấy PickList khớp đúng các số cuối đã nhập. Kiểm tra lại mã PickList."
+        "NOT_FOUND" -> "Không tìm thấy PickList khớp các số cuối đã nhập. Vui lòng kiểm tra lại mã PickList trước khi thử tiếp."
         "AMBIGUOUS_PICKLIST" -> "Tìm thấy nhiều PickList cùng khớp các số cuối. Hãy chọn đúng một PickList của bạn bên dưới."
-        "PICKER_LOCKED" -> "PDA tạm khóa do nhập sai nhiều lần. Vui lòng xử lý tại bàn chuyên viên."
+        "PICKER_LOCKED" -> "Chức năng Xác nhận PickList đang bị khóa tạm thời do nhập sai nhiều lần. Vui lòng chờ hệ thống tự mở lại hoặc xử lý tại bàn chuyên viên."
         "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "Phiên SFT / SFT 3 trên Agent chưa sẵn sàng. Vui lòng xử lý tại bàn chuyên viên."
         "SCHEMA_UNSUPPORTED" -> "Không đọc được dữ liệu PickList an toàn. Vui lòng xử lý tại bàn chuyên viên."
         "FORBIDDEN" -> "Hệ thống Supra từ chối quyền xác nhận PickList."

@@ -1096,9 +1096,19 @@ function navButton(section: Section, label: string): string {
 }
 
 function syncOperationsNavBadge(): void {
-  const node = document.querySelector<HTMLElement>("[data-operations-nav-count]");
-  if (queueRows.length <= 0) { node?.remove(); return; }
-  if (!node) return;
+  let node = document.querySelector<HTMLElement>("[data-operations-nav-count]");
+  if (queueRows.length <= 0) {
+    node?.remove();
+    return;
+  }
+  if (!node) {
+    const button = document.querySelector<HTMLButtonElement>('.nav-button[data-section="operations"]');
+    if (!button) return;
+    node = document.createElement("b");
+    node.className = "nav-notice-badge";
+    node.setAttribute("data-operations-nav-count", "");
+    button.appendChild(node);
+  }
   node.textContent = queueRows.length > 99 ? "99+" : String(queueRows.length);
 }
 

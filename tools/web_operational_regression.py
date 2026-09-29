@@ -56,6 +56,17 @@ def main() -> None:
     google_mail = read("service/src/google-mail.ts")
     app_tools = read("service/src/app-tools.ts")
 
+    # D148: pending badge and client-side shift reporting remain quota-neutral.
+    require(app, "function syncOperationsNavBadge()", "D148 operations badge sync")
+    require(app, 'document.createElement("b")', "D148 zero-to-positive badge recreation")
+    require(app, 'data-operations-nav-count', "D148 operations badge marker")
+    require(report_excel, '"So sánh ca"', "D148 shift comparison sheet")
+    require(report_excel, '"Ca 1 · 06:00–14:00"', "D148 shift 1 boundary")
+    require(report_excel, '"Ca 2 · 14:00–22:00"', "D148 shift 2 boundary")
+    require(report_excel, '"Ngoài ca / Tăng ca"', "D148 overtime bucket")
+    require(report_excel, '"Ca phát sinh"', "D148 shift column in detail exports")
+    require(service_index, 'android_info_policy: "session_end_only"', "D148 Android session-end log metadata")
+
     # F08: realtime/search updates preserve active context instead of rebuilding the full shell.
     require(app, "function captureUiContext()", "UI context capture")
     require(app, "function restoreUiContext(", "UI context restore")

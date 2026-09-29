@@ -108,7 +108,9 @@ class MainActivity : Activity() {
     private var previousUncaughtHandler: Thread.UncaughtExceptionHandler? = null
     private val runtimeLogTick = object : Runnable {
         override fun run() {
-            maybeUploadScheduledRuntimeLog()
+            // D148: the 60-second tick remains for lightweight local reconciliation only.
+            // Periodic PDA INFO-log uploads are retired; session-end/error/crash/manual
+            // paths own support-log delivery so idle or unused PDAs create no log traffic.
             reconcileSkuCatalogRefresh()
             if (::api.isInitialized && api.session?.role == "PICKER") {
                 drainOverlayAcknowledgements()
@@ -494,6 +496,7 @@ class MainActivity : Activity() {
         drainOverlayAcknowledgements()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         flushPendingCrashRuntimeLog()
+        flushPendingSessionEndRuntimeLog(session)
         uiHandler.removeCallbacks(runtimeLogTick)
         uiHandler.post(runtimeLogTick)
     }
@@ -789,18 +792,6 @@ class MainActivity : Activity() {
 
     private fun runtimeLogPrefs() = getSharedPreferences("runtime_logs", MODE_PRIVATE)
 
-    private fun currentRuntimeLogSlot(): String? {
-        val now = Instant.now().atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
-        if (now.hour < 6) return null
-        val slot = when {
-            now.hour >= 21 -> 21
-            now.hour >= 18 -> 18
-            now.hour >= 12 -> 12
-            else -> 6
-        }
-        return "%04d%02d%02d-%02d".format(now.year, now.monthValue, now.dayOfMonth, slot)
-    }
-
     private fun androidRuntimeLogDevice(): JSONObject = JSONObject()
         .put("device_id", notificationDeviceId)
         .put("manufacturer", Build.MANUFACTURER.take(80))
@@ -860,14 +851,34 @@ class MainActivity : Activity() {
         }.start()
     }
 
-    private fun maybeUploadScheduledRuntimeLog() {
-        if (api.session == null || !hasValidatedInternet()) return
-        val slot = currentRuntimeLogSlot() ?: return
+    private fun savePendingSessionEndRuntimeLog(session: AppSession, payload: JSONObject) {
+        runtimeLogPrefs().edit()
+            .putString("pending_session_end_user", session.userId)
+            .putString("pending_session_end_payload", payload.toString().take(30_000))
+            .apply()
+    }
+
+    private fun flushPendingSessionEndRuntimeLog(session: AppSession) {
         val prefs = runtimeLogPrefs()
-        if (prefs.getString("last_slot", "") == slot) return
+        val pendingUser = prefs.getString("pending_session_end_user", "").orEmpty()
+        val raw = prefs.getString("pending_session_end_payload", null) ?: return
+        if (pendingUser != session.userId) {
+            // Never upload a previous user's session-end diagnostic under another
+            // authenticated account. A later login of the same user may retry.
+            return
+        }
         Thread {
-            val sent = uploadAndroidRuntimeLog("INFO", "scheduled_$slot", JSONObject(buildSupportDiagnostics()))
-            if (sent.accepted) prefs.edit().putString("last_slot", slot).apply()
+            val payload = try {
+                JSONObject(raw)
+            } catch (_: Exception) {
+                JSONObject().put("raw", sanitizeDiagnosticText(raw))
+            }
+            if (uploadAndroidRuntimeLog("INFO", "session_end_deferred", payload).accepted) {
+                prefs.edit()
+                    .remove("pending_session_end_user")
+                    .remove("pending_session_end_payload")
+                    .apply()
+            }
         }.start()
     }
 
@@ -1181,8 +1192,33 @@ class MainActivity : Activity() {
         operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
         operatingWindowTask = null
         uiHandler.removeCallbacks(runtimeLogTick)
+
+        val endingSession = api.session
+        val sessionEndPayload = if (endingSession != null) {
+            try {
+                JSONObject(buildSupportDiagnostics())
+                    .put("session_end_message", sanitizeDiagnosticText(message))
+                    .put("session_end_user_id", endingSession.userId.take(128))
+            } catch (_: Exception) {
+                JSONObject()
+                    .put("session_end_message", sanitizeDiagnosticText(message))
+                    .put("session_end_user_id", endingSession.userId.take(128))
+            }
+        } else null
+
         stopOperationalClients()
         Thread {
+            if (endingSession != null && sessionEndPayload != null) {
+                val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", sessionEndPayload)
+                if (!sent.accepted) {
+                    savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
+                } else {
+                    runtimeLogPrefs().edit()
+                        .remove("pending_session_end_user")
+                        .remove("pending_session_end_payload")
+                        .apply()
+                }
+            }
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
             try { api.logoutInteractive("android:$notificationDeviceId") } catch (_: Exception) { api.clearSession() }
             runOnUiThread { renderLogin(message) }
