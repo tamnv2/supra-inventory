@@ -715,3 +715,9 @@ D147 introduced no Web, Android, Agent, database, provider-resource, schema, quo
 After D147 Owner PASS, Owner approved D148 limited to Web pending-badge repair, Reporter/Admin Android report-created overlay, shift-comparison Excel, clearer PickList strike/lock copy, Android session-end INFO-log policy, and prioritized sequential Android overlay handling. The proposed overtime Web/App/Agent unification is explicitly excluded from D148 and may not start until D148 itself receives Owner PASS.
 
 D148 reuses existing Web/Worker/InventoryCore/FCM/Android resources, adds no schema/provider resource/polling cadence and does not change Agent or Stable. Android result acknowledgement remains local-first. Current branch: `feat/d148`. OA076 is the eventual Owner field acceptance gate.
+
+## D148 technical/runtime/release checkpoint — 2026-09-29
+
+PR #300 merged to main `fe893db1d80e417021defdad92d85947c37abd82`. Main Repo Authority, continuity, Beta deploy, Android, legacy operational regression and build-probe gates are PASS. Live Beta Worker/Web deployment passed health/auth/business/Web/OAuth and protected D146 Drive-broker probes.
+
+Signed Android `beta-vc87` release id `398763774` contains APK asset `596952438` (19,102,276 bytes, SHA-256 `41e5d499e2c38a703aa4b58a1408963031dbacdb9b11f885650a325a4d0147f2`) and targets the exact D148 main commit. `inventory-channel` PDA assets were refreshed to the same APK. Agent remains v83 and overtime unification remains outside D148. OA076 is READY_FOR_OWNER_FIELD_TEST; D147 remains the accepted base until explicit Owner D148 PASS.
