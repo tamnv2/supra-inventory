@@ -35,7 +35,7 @@ require(core, "shortage_reporting_enabled INTEGER NOT NULL DEFAULT 1", "default 
 require(core, "contractor_name TEXT", "Picker contractor storage")
 require(users_core, '"REPORTING_ENABLE" | "REPORTING_DISABLE"', "bulk reporting actions")
 require(users_core, '["ADMIN","PICKPACK_ADMIN","ROOT"]', "reporting toggle authority")
-require(users_core, 'reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED"', "HR capability preservation")
+require(users_core, 'reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156"', "HR capability preservation")
 require(business, "PICKER_SHORTAGE_REPORTING_DISABLED", "server shortage mutation guard")
 require(read_model, "directPickerReportingControl", "targeted Cloudflare realtime control")
 require(read_model, "picker_reporting_disabled", "Cloudflare reporting disable frame")
