@@ -3814,7 +3814,7 @@
     },
     {
       "id": "OA078",
-      "status": "BLOCKED_PENDING_D150_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D150 quota-safe Agent coordination and manual PRIMARY",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3841,8 +3841,25 @@
         "Fleet and Picker-contact views remain operational without broad historical scans.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Wait for D150 technical/runtime/release PASS, then run the shortest field test and explicitly report PASS or NOT PASS.",
-      "closed": false
+      "remaining_owner_action": "Install/update Agent to relay-agent-v85, run the shortest field test, then explicitly report PASS or NOT PASS. D149 remains accepted until PASS.",
+      "closed": false,
+      "technical_release_evidence": {
+        "main_commit": "c9d42c701f66283f447aad4f24c8f9043db17e37",
+        "implementation_pr": 306,
+        "worker_run_id": 36532689311,
+        "functions_run_id": 36532689256,
+        "firestore_run_id": 36532689358,
+        "agent_run_id": 36532689219,
+        "agent_release": "relay-agent-v85",
+        "agent_release_id": 398883765,
+        "agent_asset_id": 597497266,
+        "agent_sha256": "d1e7d89c431c8641591ce71e8e55b872bd4511c1cadf07bae24fce3c0005e080",
+        "android_run_id": 36532689273,
+        "android_release": "beta-vc88__UNCHANGED__NO_RELEASE_REQUIRED",
+        "ui_guard_run_id": 36532689242,
+        "authority_run_id": 36532689218,
+        "project_state_run_id": 36532689312
+      }
     }
   ]
 }
