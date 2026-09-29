@@ -1146,9 +1146,18 @@ class MainActivity : Activity() {
             }
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         actions.addView(Button(this).apply {
-            text = "Kiểm tra lại"
+            text = "Đặt lại mặc định"
             isAllCaps = false
-            setOnClickListener { renderRequiredPermissionsGate() }
+            setOnClickListener {
+                getSharedPreferences("required_permission_gate_v1", MODE_PRIVATE).edit().clear().apply()
+                permissionManualReview = true
+                Toast.makeText(
+                    this@MainActivity,
+                    "Đã đặt lại trạng thái kiểm tra. Quyền hệ thống vẫn do Android quản lý; hãy chỉnh tại Cài đặt rồi quay lại kiểm tra.",
+                    Toast.LENGTH_LONG,
+                ).show()
+                AndroidAlertReadiness.openAppDetails(this@MainActivity)
+            }
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = 6 })
         content.addView(actions)
 
