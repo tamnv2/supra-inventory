@@ -258,6 +258,8 @@ class MainActivity : Activity() {
     private fun reconcileSkuCatalogRefresh() {
         if (!::api.isInitialized || api.session == null) return
         if (!NotificationSignalStore.consumeSkuCatalogRefresh(applicationContext)) return
+        val current = api.session
+        if (current?.role == "PICKER" && !current.shortageReportingEnabled) return
         syncSkuCatalogAsync("push")
     }
 
@@ -1408,7 +1410,9 @@ class MainActivity : Activity() {
                     }
                 }
 
-                if (catalogChanged) syncSkuCatalogAsync("realtime", applyRemaining)
+                val skipCatalogForDisabledPicker =
+                    session.role == "PICKER" && api.session?.shortageReportingEnabled == false
+                if (catalogChanged && !skipCatalogForDisabledPicker) syncSkuCatalogAsync("realtime", applyRemaining)
                 else applyRemaining(true)
             }
         }.also { it.start() }
