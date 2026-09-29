@@ -1466,3 +1466,20 @@ Derived current-status markers:
 - Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
 - Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
 - SQLite schema: `14`
+
+## D152 technical/runtime/release PASS — Owner field pending — 2026-09-29
+
+- Accepted base remains **D151** until explicit Owner D152 PASS.
+- PR #316 merged to main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`.
+- Agent: **relay-agent-v86**, exact main source; canonical EXE SHA-256 `098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430`, size 7,074,304 bytes.
+- D152 preserves the normal PickList fast path; unique checkbox-not-ready uses bounded Search/reload recovery; post-confirm and existing uncertain guards use verify-only Search and never repeat Confirm.
+- Android remains **beta-vc89** with marker `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`.
+- Web marker remains `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`; SQLite schema remains `14`.
+- OA080 is **READY_FOR_OWNER_FIELD_TEST**.
+- No new provider/resource/schema/listener/polling/write cadence. Stable remains OWNER-GATED and untouched.
+
+Derived current-status markers:
+- Latest Beta APK: `beta-vc89`
+- Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
+- Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
+- SQLite schema: `14`
