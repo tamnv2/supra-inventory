@@ -516,6 +516,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _browserBundleStatus = new Label();
         private readonly Label _agentDataStorageStatus = new Label();
         private readonly Button _openAgentDataFolder = new Button();
+        private readonly Button _moveAgentDataFolder = new Button();
         private readonly Label _wmsStatus = new Label();
         private readonly Label _relay = new Label();
         private readonly Label _network = new Label();
@@ -605,6 +606,7 @@ namespace SupraInventoryRelayAgent
         private bool? _afterHoursLayoutVisible;
         private DateTime _lastAgentDataSizeRefreshUtc = DateTime.MinValue;
         private int _agentDataSizeRefreshRunning;
+        private int _browserStorageMigrationRunning;
 
         private static readonly string RelayDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -1133,11 +1135,17 @@ namespace SupraInventoryRelayAgent
             _agentDataStorageStatus.AutoEllipsis = true;
             _supraCard.Controls.Add(_agentDataStorageStatus);
 
-            _openAgentDataFolder.SetBounds(752, 166, 244, 28);
-            _openAgentDataFolder.Text = "Mở thư mục dữ liệu";
+            _openAgentDataFolder.SetBounds(752, 166, 116, 28);
+            _openAgentDataFolder.Text = "Mở thư mục";
             _openAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _openAgentDataFolder.Click += (sender, e) => OpenAgentDataFolder();
             _supraCard.Controls.Add(_openAgentDataFolder);
+
+            _moveAgentDataFolder.SetBounds(876, 166, 120, 28);
+            _moveAgentDataFolder.Text = "Đổi nơi lưu";
+            _moveAgentDataFolder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _moveAgentDataFolder.Click += (sender, e) => ChooseAndMoveAgentBrowserData();
+            _supraCard.Controls.Add(_moveAgentDataFolder);
 
             _supraCard.Resize += (sender, e) => LayoutSupraCardControls();
             LayoutSupraCardControls();
@@ -1861,6 +1869,158 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void ChooseAndMoveAgentBrowserData()
+        {
+            if (Interlocked.CompareExchange(ref _browserStorageMigrationRunning, 1, 0) != 0)
+            {
+                MessageBox.Show(
+                    "Agent đang di chuyển dữ liệu Web. Hãy hoàn tất thao tác hiện tại trước.",
+                    "Dữ liệu Web Agent",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                using (var dialog = new FolderBrowserDialog())
+                {
+                    dialog.Description = "Chọn thư mục trên ổ đĩa nội bộ để lưu Web Agent.";
+                    dialog.SelectedPath = Directory.GetParent(AgentBrowserStorage.CurrentRoot)?.FullName
+                        ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+                    var target = AgentBrowserStorage.ResolveTargetRoot(dialog.SelectedPath);
+                    var source = AgentBrowserStorage.CurrentRoot;
+                    if (string.Equals(
+                        Path.GetFullPath(source).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                        Path.GetFullPath(target).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        MessageBox.Show("Đây đang là nơi lưu Web Agent hiện tại.", "Dữ liệu Web Agent",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+
+                    if (MessageBox.Show(
+                        "Agent sẽ tạm dừng xác nhận PickList, đóng Web Confirm nếu đang chạy, " +
+                        "sao chép và kiểm tra toàn bộ runtime/profile/cache sang:\n\n" + target +
+                        "\n\nSau khi kiểm tra thành công, Agent sẽ mở lại Web tự động. Tiếp tục?",
+                        "Đổi nơi lưu Web Agent",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) != DialogResult.Yes)
+                        return;
+
+                    var wasActive = _supraBrowser != null && _supraBrowser.HasActiveBrowser();
+                    var wasDesktop = wasActive && _supraBrowser.IsDesktopSelected();
+                    var wasHidden = wasActive && _supraBrowserHidden;
+
+                    Ui(() =>
+                    {
+                        _moveAgentDataFolder.Enabled = false;
+                        _openAgentDataFolder.Enabled = false;
+                        _agentDataStorageStatus.Text = "Đang di chuyển dữ liệu Web...";
+                    });
+                    ReconcileOperationalReadiness();
+
+                    if (wasActive)
+                    {
+                        _supraBrowser.StopManagedBrowser();
+                        _supraBrowserReady = false;
+                        _supraBrowserHidden = false;
+                        _supraBrowserState = "NOT_OPEN";
+                    }
+
+                    AgentBrowserStorage.MigrationResult migration = null;
+                    try
+                    {
+                        migration = AgentBrowserStorage.MigrateClosedBrowserData(dialog.SelectedPath);
+                        if (migration.Changed && wasActive)
+                        {
+                            var state = wasDesktop
+                                ? _supraBrowser.OpenOrShowDesktop()
+                                : _supraBrowser.OpenAgentBackground();
+                            _supraBrowserReady = state.Ready;
+                            _supraBrowserHidden = state.Hidden;
+                            _supraBrowserState = state.State ?? "LOADING";
+                            if (wasHidden && !_supraBrowserHidden) _supraBrowser.Hide();
+                        }
+
+                        if (migration.Changed) AgentBrowserStorage.FinalizeMigration(migration);
+                        QueueAgentDataStorageRefresh(true);
+                        RefreshBrowserBundleUi();
+                        ReconcileOperationalReadiness();
+                        Log("AGENT_DATA storage_move=PASS source=" +
+                            AgentDiagnostics.Sanitize(migration.SourceRoot) +
+                            " target=" + AgentDiagnostics.Sanitize(migration.TargetRoot) +
+                            " files=" + migration.Files +
+                            " bytes=" + migration.Bytes);
+                        MessageBox.Show(
+                            "Đã chuyển nơi lưu Web Agent và kiểm tra thành công.\n\n" +
+                            AgentBrowserStorage.CurrentRoot,
+                            "Dữ liệu Web Agent",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
+                    catch (Exception moveError)
+                    {
+                        try
+                        {
+                            if (_supraBrowser != null && _supraBrowser.HasActiveBrowser())
+                                _supraBrowser.StopManagedBrowser();
+                        }
+                        catch { }
+
+                        if (migration != null)
+                        {
+                            try { AgentBrowserStorage.RollbackMigration(migration); } catch { }
+                        }
+
+                        if (wasActive)
+                        {
+                            try
+                            {
+                                var restored = wasDesktop
+                                    ? _supraBrowser.OpenOrShowDesktop()
+                                    : _supraBrowser.OpenAgentBackground();
+                                _supraBrowserReady = restored.Ready;
+                                _supraBrowserHidden = restored.Hidden;
+                                _supraBrowserState = restored.State ?? "LOADING";
+                                if (wasHidden && !_supraBrowserHidden) _supraBrowser.Hide();
+                            }
+                            catch (Exception reopenError)
+                            {
+                                Log("AGENT_DATA storage_move_rollback_reopen=FAIL type=" +
+                                    reopenError.GetType().Name + " detail=" + SafeMessage(reopenError));
+                            }
+                        }
+
+                        QueueAgentDataStorageRefresh(true);
+                        RefreshBrowserBundleUi();
+                        ReconcileOperationalReadiness();
+                        Log("AGENT_DATA storage_move=FAIL type=" + moveError.GetType().Name +
+                            " detail=" + SafeMessage(moveError));
+                        MessageBox.Show(
+                            "Không chuyển được dữ liệu Web Agent. Agent đã giữ/khôi phục nơi lưu cũ.\n\n" +
+                            SafeMessage(moveError),
+                            "Dữ liệu Web Agent",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _browserStorageMigrationRunning, 0);
+                Ui(() =>
+                {
+                    _moveAgentDataFolder.Enabled = HasAgentSession();
+                    _openAgentDataFolder.Enabled = true;
+                });
+                ReconcileOperationalReadiness();
+            }
+        }
+
         private static Panel NewCard(int left, int top, int width, int height)
         {
             return new Panel
@@ -2148,7 +2308,8 @@ namespace SupraInventoryRelayAgent
 
         private bool HasReadyConfirmBrowser()
         {
-            return _supraBrowserReady;
+            return _supraBrowserReady &&
+                   Interlocked.CompareExchange(ref _browserStorageMigrationRunning, 0, 0) == 0;
         }
 
         private bool HasOperationalReadiness()
