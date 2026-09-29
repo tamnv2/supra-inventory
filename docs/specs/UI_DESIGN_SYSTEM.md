@@ -957,3 +957,11 @@ Compatibility copy must be device-agnostic and must not name a failing model/fir
 - Overlay remains a required operational capability even when native DND passes. **Thông báo ứng dụng** and **Không tối ưu pin** remain required cards below the priority group. Existing **Kiểm tra cấp quyền** and **Đặt lại mặc định** controls remain available.
 - Agent schedule copy uses **Replay tự động 05:45–22:30**, **Bật sớm trước 05:45**, **Điều chỉnh tăng ca**, and **Huỷ tăng ca**.
 - While an outside-normal override is active, Agent visibly states the shared effective-until time. Web Ca vận hành displays the same 05:45–22:30 authority and maps `CANCEL_OVERTIME` to **Đã huỷ tăng ca**.
+
+## D155 Picker contractor and Báo hàng presentation
+
+- Web Nhân sự & tài khoản uses compact **Nhà thầu** and **Báo hàng** columns with clear status badges; existing selection + bulk action remains the primary control.
+- Web search copy names Nhà thầu as searchable and the Báo hàng filter is a normal management filter.
+- Android Picker identity may append contractor after MNV and Họ tên in the existing header; do not repeat contractor on every SKU/history row.
+- A disabled Báo hàng tab remains visible at reduced emphasis rather than disappearing; Xác nhận đơn remains selected/usable.
+- Agent Picker list adds a **Nhà thầu** column between identity and source/control columns; existing search matches MNV, name or contractor.
