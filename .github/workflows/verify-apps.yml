@@ -234,6 +234,41 @@ jobs:
           fi
           echo "D148 Android session-end log / live SKU refresh guard PASS"
 
+      - name: Verify D151 adaptive Android alert engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          readiness="android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidAlertReadiness.kt"
+          main="android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt"
+          messaging="android/app/src/main/java/cd/cc/supra/inventory/beta/StockMessagingService.kt"
+          overlay="android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt"
+          wake="android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeCoordinator.kt"
+
+          grep -Fq 'get() = notificationsReady && overlayReady && batteryReady' "$readiness"
+          grep -q 'AlertDeliveryMode.NATIVE_DND' "$readiness"
+          grep -q 'AlertDeliveryMode.OVERLAY_COMPAT' "$readiness"
+          grep -q 'isNotificationPolicyAccessGranted' "$readiness"
+          grep -q 'channel.canBypassDnd()' "$readiness"
+          grep -q 'canUseFullScreenIntent' "$readiness"
+          grep -q 'Chế độ tương thích Overlay' "$main"
+          grep -q 'DND không chặn đăng nhập' "$main"
+          grep -q 'CriticalWakeCoordinator.wakeForCriticalOverlayIfNeeded' "$messaging"
+          grep -q 'AndroidAlertReadiness.canUseFullScreenIntent(this)' "$messaging"
+          grep -q 'AndroidAlertReadiness.canUseFullScreenIntent(this)' "$overlay"
+          grep -q 'KeyguardManager::class.java' "$wake"
+          grep -q 'PowerManager::class.java' "$wake"
+          grep -q 'context.startActivity(CriticalWakeActivity.intent' "$wake"
+
+          if grep -E -q 'V8\.01\.002|MT90-GL_|NLS-MT90|Urovo DT50' "$readiness" "$main" "$messaging" "$wake"; then
+            echo "D151 production alert selection must remain capability-based, not firmware/model allowlisted." >&2
+            exit 1
+          fi
+          if grep -E -q 'newWakeLock|PARTIAL_WAKE_LOCK|\.acquire\(' "$wake"; then
+            echo "D151 adaptive wake path must not acquire a WakeLock." >&2
+            exit 1
+          fi
+          echo "D151 adaptive Android alert engine guard PASS"
+
       - name: Assemble Android 11+ Beta APK
         env:
           FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}

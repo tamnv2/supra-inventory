@@ -494,22 +494,25 @@ class CriticalOverlayService : Service() {
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val wakePending = PendingIntent.getActivity(
-            this,
-            (WAKE_REQUEST_BASE + alertId.hashCode()).and(0x7fffffff),
-            CriticalWakeActivity.intent(this, title, body),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        return Notification.Builder(this, channelId)
+        val builder = Notification.Builder(this, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(body.take(180))
             .setStyle(Notification.BigTextStyle().bigText(body.take(500)))
             .setContentIntent(pending)
-            .setFullScreenIntent(wakePending, true)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(true)
-            .build()
+
+        if (AndroidAlertReadiness.canUseFullScreenIntent(this)) {
+            val wakePending = PendingIntent.getActivity(
+                this,
+                (WAKE_REQUEST_BASE + alertId.hashCode()).and(0x7fffffff),
+                CriticalWakeActivity.intent(this, title, body),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            builder.setFullScreenIntent(wakePending, true)
+        }
+        return builder.build()
     }
 
     private fun ensureChannel(): String {

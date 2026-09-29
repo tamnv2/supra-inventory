@@ -12,19 +12,45 @@ import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 
+enum class AlertDeliveryMode {
+    NATIVE_DND,
+    OVERLAY_COMPAT,
+}
+
 data class AlertReadiness(
     val notificationsReady: Boolean,
     val overlayReady: Boolean,
     val dndPolicyReady: Boolean,
     val batteryReady: Boolean,
     val criticalChannelReady: Boolean,
+    val fullScreenIntentReady: Boolean,
 ) {
+    /**
+     * D151: only capabilities that are required by every supported Android
+     * delivery path are allowed to block operational startup.
+     *
+     * Notification Policy / bypass-DND is an optional native enhancement.
+     * Some OEM Android 11 builds expose a misleading DND Settings switch while
+     * NotificationManager keeps the real policy grant false. Overlay remains
+     * the canonical visual alert surface in that case.
+     */
+    val hardReady: Boolean
+        get() = notificationsReady && overlayReady && batteryReady
+
+    val nativeDndReady: Boolean
+        get() = dndPolicyReady && criticalChannelReady
+
+    val deliveryMode: AlertDeliveryMode
+        get() = if (nativeDndReady) AlertDeliveryMode.NATIVE_DND else AlertDeliveryMode.OVERLAY_COMPAT
+
     val ready: Boolean
-        get() = notificationsReady && overlayReady && dndPolicyReady && batteryReady && criticalChannelReady
+        get() = hardReady
 }
 
 object AndroidAlertReadiness {
     const val CRITICAL_CHANNEL_ID = "inventory_critical_alert_v2"
+    private const val ACTION_NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS =
+        "android.settings.NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS"
 
     fun evaluate(context: Context): AlertReadiness {
         val manager = context.getSystemService(NotificationManager::class.java)
@@ -45,12 +71,16 @@ object AndroidAlertReadiness {
                 channel.importance >= NotificationManager.IMPORTANCE_HIGH &&
                 channel.canBypassDnd()
 
+        val fullScreenIntentReady =
+            Build.VERSION.SDK_INT < 34 || manager.canUseFullScreenIntent()
+
         return AlertReadiness(
             notificationsReady = notificationsReady,
             overlayReady = overlayReady,
             dndPolicyReady = dndPolicyReady,
             batteryReady = batteryReady,
             criticalChannelReady = criticalChannelReady,
+            fullScreenIntentReady = fullScreenIntentReady,
         )
     }
 
@@ -64,7 +94,7 @@ object AndroidAlertReadiness {
                     "1291 Báo hàng · Cảnh báo bắt buộc",
                     NotificationManager.IMPORTANCE_HIGH,
                 ).apply {
-                    description = "Cảnh báo nghiệp vụ cần hiển thị ngay, kể cả khi bật Không làm phiền"
+                    description = "Cảnh báo nghiệp vụ cần hiển thị ngay; dùng DND bypass khi Android thực sự cấp quyền"
                     enableVibration(true)
                     setBypassDnd(true)
                     lockscreenVisibility = Notification.VISIBILITY_PUBLIC
@@ -77,6 +107,11 @@ object AndroidAlertReadiness {
         return channel != null &&
             channel.importance >= NotificationManager.IMPORTANCE_HIGH &&
             channel.canBypassDnd()
+    }
+
+    fun canUseFullScreenIntent(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < 34) return true
+        return context.getSystemService(NotificationManager::class.java).canUseFullScreenIntent()
     }
 
     fun openAppNotificationSettings(context: Context) {
@@ -96,6 +131,18 @@ object AndroidAlertReadiness {
     }
 
     fun openDndPolicySettings(context: Context) {
+        val detail = Intent(
+            ACTION_NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS,
+            Uri.parse("package:" + context.packageName),
+        )
+        try {
+            if (detail.resolveActivity(context.packageManager) != null) {
+                context.startActivity(detail)
+                return
+            }
+        } catch (_: Exception) {
+            // Fall through to the platform list. OEM detail pages are optional.
+        }
         startWithFallback(context, Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
     }
 
@@ -128,7 +175,7 @@ object AndroidAlertReadiness {
     fun deviceLabel(): String {
         val maker = Build.MANUFACTURER.orEmpty().trim()
         val model = Build.MODEL.orEmpty().trim()
-        return listOf(maker, model).filter { it.isNotBlank() }.joinToString(" ").ifBlank { "Android 11 PDA" }
+        return listOf(maker, model).filter { it.isNotBlank() }.joinToString(" ").ifBlank { "Android PDA" }
     }
 
     private fun startWithFallback(context: Context, intent: Intent) {

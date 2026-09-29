@@ -939,3 +939,12 @@ Password dialogs for protected Agent actions are treated as interactive editing 
 - Android result overlays name the product and resolving person/role/source without engineering IDs.
 - PickList removes the **Hôm nay** aggregate counter cluster from the list presentation while retaining normal row/content spacing.
 - Agent Web storage selection clearly shows the active managed storage root and migration result; destructive-looking folder moves require explicit confirmation and failure copy must say that the prior location remains active after rollback.
+
+
+### D151 Android alert-mode presentation
+
+The pre-login permission gate keeps only three blocking permission cards: **Thông báo ứng dụng**, **Hiển thị trên ứng dụng khác**, and **Không tối ưu pin**. DND capability is presented as alert mode rather than a blocking red error:
+- **Chế độ cảnh báo đầy đủ · Sẵn sàng** when real DND policy + channel bypass are available;
+- **Chế độ tương thích Overlay · Sẵn sàng** when native DND bypass is unavailable.
+
+Compatibility copy must be device-agnostic and must not name a failing model/firmware. It must state that Overlay is the primary business-alert surface and that the three hard capabilities remain mandatory.

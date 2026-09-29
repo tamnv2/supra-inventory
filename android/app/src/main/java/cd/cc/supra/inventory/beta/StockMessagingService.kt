@@ -102,6 +102,7 @@ class StockMessagingService : FirebaseMessagingService() {
                     message.data["sku"].orEmpty(),
                     message.data["product_name"].orEmpty(),
                 )
+                CriticalWakeCoordinator.wakeForCriticalOverlayIfNeeded(this, title, body)
                 return
             } catch (_: Exception) {
                 // Fall through to the accepted high-importance notification path.
@@ -134,15 +135,16 @@ class StockMessagingService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
 
         if (overlayEligible) {
-            val wakePending = PendingIntent.getActivity(
-                this,
-                (129300 + resultEventId.hashCode()).and(0x7fffffff),
-                CriticalWakeActivity.intent(this, title, body),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-            notificationBuilder
-                .setFullScreenIntent(wakePending, true)
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
+            notificationBuilder.setVisibility(Notification.VISIBILITY_PUBLIC)
+            if (AndroidAlertReadiness.canUseFullScreenIntent(this)) {
+                val wakePending = PendingIntent.getActivity(
+                    this,
+                    (129300 + resultEventId.hashCode()).and(0x7fffffff),
+                    CriticalWakeActivity.intent(this, title, body),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+                notificationBuilder.setFullScreenIntent(wakePending, true)
+            }
         }
         val notification = notificationBuilder.build()
 

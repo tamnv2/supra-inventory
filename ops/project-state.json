@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D150_OWNER_ACCEPTED_BASE__D151_PROBE_TECHNICAL_BUILD_PASS__OA079_FIELD_READY",
+    "beta": "D150_OWNER_ACCEPTED_BASE__D151_ADAPTIVE_ALERT_ENGINE_IMPLEMENTATION_ACTIVE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -35,7 +35,7 @@
     "picklist_confirmation_poc": "D150_OWNER_FIELD_PASS__AGENT_V85__MANUAL_PRIMARY_CAS_GENERATION_FENCE__D149_BUSINESS_HA_CADENCE_RETAINED",
     "governance": "D147_SERIAL_OWNER_PASS_GATE__D150_OWNER_ACCEPTED_PASS__D150_ACCEPTED_BASE",
     "owner_acceptance": "D150_OWNER_FIELD_ACCEPTED_PASS__OA078_CLOSED__D150_ACCEPTED_BASE",
-    "diagnostic": "D151_MT90_V801002_REPRODUCED__PACKAGE_DETAIL_OVERLAY_PROBE_TECHNICAL_PASS__OA079_READY"
+    "diagnostic": "D151_FIELD_EVIDENCE_COMPLETE__THREE_MT90_V801002_DND_BACKEND_FAIL__V804006_NATIVE_DND_PASS__OVERLAY_PROBE_PASS"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "OA079 READY: install the revised D151 standalone diagnostic APK on a failing MT90 V8.01.002, try the package-specific DND detail screen, run the 15-second overlay probe, then send one manual diagnostic log. D150 remains accepted base; production beta-vc88, Agent/Web and Stable remain unchanged.",
+  "next_action": "D151 Owner-approved production remediation is active: implement capability-based Android alert delivery. Hard readiness is Notifications + Overlay + battery exemption; native DND bypass is used only when Android grants it, otherwise Overlay Compatibility Mode remains operational. Add bounded screen/keyguard wake with no WakeLock/polling. Build/release next signed Beta Android, then OA079 field-validate MT90 old/new firmware, DT50 and any additional Android device available. D150 remains accepted base until explicit D151 Owner PASS; Stable remains untouched.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -840,7 +840,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D151_PROBE_TECHNICAL_BUILD_PASS__OA079_OWNER_FIELD_PENDING",
+  "active_workstream": "D151_ADAPTIVE_ALERT_ENGINE_IMPLEMENTATION_ACTIVE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D150",
     "accepted_base_evidence": "OWNER_EXPLICIT_D150_PASS__2026_09_29",
     "current_change_id": "D151",
-    "current_change_status": "TECHNICAL_BUILD_PASS__OWNER_FIELD_OA079_PENDING",
+    "current_change_status": "OWNER_APPROVED_PRODUCTION_REMEDIATION__IMPLEMENTATION_ACTIVE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D151_DIAGNOSTIC_ONLY_PROBE_TECHNICAL_PASS__MAIN_EAEAD3F2__PRODUCTION_ANDROID_BETA_VC88_UNCHANGED",
-    "resource_change": "D151_DIAGNOSTIC_APK_ONLY__REUSES_EXISTING_BETA_DIAGNOSTIC_UPLOAD__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_POLLING_LISTENER_OR_CRON",
+    "runtime_impact": "D151_BETA_ANDROID_ONLY__ADAPTIVE_ALERT_CAPABILITY_ENGINE__PRODUCTION_ANDROID_CHANGE_PENDING__AGENT_WEB_WORKER_BUSINESS_RUNTIME_UNCHANGED",
+    "resource_change": "NONE__EXISTING_ANDROID_FCM_OVERLAY_NOTIFICATION_BATTERY_EXEMPTION_ONLY__NO_NEW_PROVIDER_SCHEMA_SECRET_POLLING_LISTENER_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -2791,7 +2791,7 @@
     }
   },
   "d151": {
-    "status": "PROBE_TECHNICAL_BUILD_PASS__OWNER_FIELD_OA079_READY",
+    "status": "OWNER_APPROVED_ADAPTIVE_ALERT_ENGINE__IMPLEMENTATION_ACTIVE",
     "date": "2026-09-29",
     "baseline_change": "D150",
     "baseline_main": "0f73af1ad74fc24209f76a28dab7432a2a2b3565",
@@ -2820,8 +2820,8 @@
     "recommended_approach": "STANDALONE_PACKAGE_OUTSIDE_PRODUCTION_ANDROID_TREE__PLATFORM_ONLY_APK__ALLOWLISTED_BETA_ENDPOINT__EXISTING_SANITIZED_RUNTIME_LOG_ARCHIVE",
     "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_REQUESTED_ONE_APK_AND_DIRECT_BETA_LOG_SEND__2026_09_29",
     "package": "cd.cc.supra.inventory.dnddiag",
-    "field_gate": "OA079_READY_FOR_DND_DETAIL_AND_OVERLAY_FIELD_TEST",
-    "production_android": "beta-vc88__UNCHANGED",
+    "field_gate": "OA079_BLOCKED_UNTIL_ADAPTIVE_PRODUCTION_BETA_RELEASE",
+    "production_android": "beta-vc88__BASELINE__NEXT_MONOTONIC_SIGNED_BETA_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
     "new_provider_resources": "NONE",
     "main_commit": "a7ac9315f51d868118ec6399184f8507e1f2c765",
@@ -2864,10 +2864,12 @@
     "repair_branch": "d151-dnd-detail-overlay-probe",
     "field_findings": {
       "date": "2026-09-29",
-      "normal_device": "MT90_GL_V8_04_006__POLICY_GRANTED__SECURE_LIST_CONTAINS_APP__CHANNEL_BYPASS_TRUE",
-      "failing_devices": "TWO_DISTINCT_MT90_GL_V8_01_002__POLICY_FALSE__SECURE_LIST_MISSING_APP__CHANNEL_BYPASS_UNAVAILABLE",
+      "normal_mt90": "ONE_MT90_GL_V8_04_006__POLICY_GRANTED__SECURE_LIST_CONTAINS_APP__CHANNEL_BYPASS_TRUE",
+      "failing_mt90": "THREE_DISTINCT_MT90_GL_V8_01_002__POLICY_FALSE__SECURE_LIST_MISSING_APP__CHANNEL_BYPASS_UNAVAILABLE",
+      "latest_failing_state": "DND_ACTIVE__INTERRUPTION_FILTER_2__ZEN_MODE_1__BACKEND_POLICY_STILL_FALSE",
+      "overlay_probe": "OWNER_FIELD_PASS_ON_FAILING_MT90_V8_01_002",
       "profile_restriction": "NONE_ON_SAMPLED_DEVICES",
-      "conclusion": "FIRMWARE_SPECIFIC_NOTIFICATION_POLICY_BACKEND_OR_SETTINGS_SYNC_DEFECT_STRONGLY_SUPPORTED__PRODUCTION_WORKAROUND_NOT_YET_AUTHORIZED"
+      "conclusion": "DND_SETTINGS_UI_IS_NOT_A_RELIABLE_AUTHORITY_ON_ALL_OEM_BUILDS__USE_PLATFORM_CAPABILITIES_NOT_MODEL_OR_FIRMWARE_ALLOWLISTS"
     },
     "repair_probe": {
       "owner_approval": "PASS__OWNER_EXPLICIT_OK_BUILD_APK_TEST_FIRST__2026_09_29",
@@ -2895,6 +2897,29 @@
       "project_state_run_id": 36550631522,
       "dashboard_probe_run_id": 36550631616,
       "ui_design_run_id": 36550631636
+    },
+    "production_branch": "d151-adaptive-alert-engine",
+    "production_remediation": {
+      "owner_approval": "PASS__OWNER_EXPLICITLY_APPROVED_CAPABILITY_BASED_ADAPTIVE_ALERT_ENGINE__2026_09_29",
+      "base_impact": "YES__BETA_ANDROID_ALERT_READINESS_AND_LOCAL_PRESENTATION_ONLY",
+      "affected_components": [
+        "android_alert_readiness",
+        "android_permission_gate_ui",
+        "android_fcm_critical_alert_path",
+        "android_overlay_foreground_notification",
+        "android_screen_keyguard_wake",
+        "android_ci_regression_guards",
+        "canonical_d151_continuity"
+      ],
+      "hard_readiness": "NOTIFICATIONS_ENABLED_PLUS_RUNTIME_POST_NOTIFICATIONS_WHERE_REQUIRED__SYSTEM_ALERT_WINDOW__BATTERY_OPTIMIZATION_EXEMPTION",
+      "native_mode": "DND_POLICY_GRANTED_AND_HIGH_IMPORTANCE_CRITICAL_CHANNEL_CAN_BYPASS_DND",
+      "compatibility_mode": "OVERLAY_PRIMARY_WHEN_NATIVE_DND_CAPABILITY_IS_UNAVAILABLE__NO_MODEL_OR_FIRMWARE_ALLOWLIST",
+      "wake_path": "SCREEN_OFF_OR_KEYGUARD__BOUNDED_CRITICAL_WAKE_ACTIVITY__NO_WAKELOCK__FULL_SCREEN_INTENT_CAPABILITY_FALLBACK_ONLY",
+      "provider_impact": "NONE__NO_NEW_NETWORK_REQUEST_LISTENER_POLL_TIMER_PROVIDER_OR_SCHEMA",
+      "battery_impact": "EVENT_DRIVEN_ONLY__NO_PERSISTENT_WAKELOCK_OR_ALWAYS_ON_SERVICE",
+      "security": "NO_PERMISSION_FAKE_GRANT__REAL_ANDROID_APIS_REMAIN_DIAGNOSTIC_AUTHORITY",
+      "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC88",
+      "stable": "OWNER_GATED_UNTOUCHED"
     }
   }
 }

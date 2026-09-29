@@ -1037,26 +1037,77 @@ class MainActivity : Activity() {
             "Bật “Cho phép hiển thị trên ứng dụng khác”.",
         ) { AndroidAlertReadiness.openOverlaySettings(this) }
         permissionCard(
-            "Quyền truy cập Không làm phiền",
-            readiness.dndPolicyReady,
-            "Để cảnh báo quan trọng không bị chặn khi PDA bật Không làm phiền.",
-            "Trong danh sách quyền Không làm phiền, cho phép 1291 Báo hàng Beta.",
-        ) { AndroidAlertReadiness.openDndPolicySettings(this) }
-        permissionCard(
             "Không tối ưu pin",
             readiness.batteryReady,
             "Để Android không trì hoãn cảnh báo khi bật Tiết kiệm pin.",
             "Chọn Cho phép / Không tối ưu cho ứng dụng.",
             "CHO PHÉP KHÔNG TỐI ƯU PIN",
         ) { AndroidAlertReadiness.openBatteryOptimizationSettings(this) }
-        permissionCard(
-            "Kênh cảnh báo ưu tiên cao",
-            readiness.criticalChannelReady,
-            "Để cảnh báo bắt buộc được ưu tiên và có thể vượt Không làm phiền.",
-            if (readiness.dndPolicyReady) "Giữ kênh cảnh báo ở mức ưu tiên cao và cho phép vượt Không làm phiền."
-            else "Cấp quyền Không làm phiền trước; ứng dụng sẽ tự tạo và kiểm tra kênh này.",
-            action = if (readiness.dndPolicyReady) ({ AndroidAlertReadiness.openCriticalChannelSettings(this) }) else null,
-        )
+
+        val modeCard = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(18, 16, 18, 16)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = 14f
+                setStroke(
+                    1,
+                    if (readiness.nativeDndReady) Color.rgb(134, 239, 172) else Color.rgb(147, 197, 253),
+                )
+            }
+        }
+        modeCard.addView(TextView(this).apply {
+            text = if (readiness.nativeDndReady) {
+                "✓ Chế độ cảnh báo đầy đủ · Sẵn sàng"
+            } else {
+                "✓ Chế độ tương thích Overlay · Sẵn sàng"
+            }
+            textSize = 15f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(
+                if (readiness.nativeDndReady) Color.rgb(21, 128, 61) else Color.rgb(29, 78, 216),
+            )
+        })
+        modeCard.addView(TextView(this).apply {
+            text = if (readiness.nativeDndReady) {
+                "Android đã cấp DND Policy và kênh cảnh báo có thể vượt Không làm phiền."
+            } else {
+                "Thiết bị không cung cấp đầy đủ DND bypass. Cảnh báo nghiệp vụ dùng Overlay làm bề mặt hiển thị chính; DND không chặn đăng nhập."
+            }
+            textSize = 13f
+            setTextColor(Color.rgb(51, 65, 85))
+            setPadding(0, 6, 0, 2)
+        })
+        modeCard.addView(TextView(this).apply {
+            text = if (readiness.nativeDndReady) {
+                "Overlay vẫn là bề mặt cảnh báo chính; notification/full-screen intent chỉ là lớp hỗ trợ."
+            } else {
+                "Thông báo, Hiển thị trên ứng dụng khác và Không tối ưu pin vẫn là các điều kiện bắt buộc."
+            }
+            textSize = 12.5f
+            setTextColor(Color.rgb(100, 116, 139))
+            setPadding(0, 2, 0, if (!readiness.nativeDndReady) 8 else 0)
+        })
+        if (!readiness.nativeDndReady) {
+            modeCard.addView(Button(this).apply {
+                text = if (readiness.dndPolicyReady) "MỞ KÊNH CẢNH BÁO" else "THỬ MỞ QUYỀN DND"
+                isAllCaps = false
+                setOnClickListener {
+                    if (readiness.dndPolicyReady) {
+                        AndroidAlertReadiness.openCriticalChannelSettings(this@MainActivity)
+                    } else {
+                        AndroidAlertReadiness.openDndPolicySettings(this@MainActivity)
+                    }
+                }
+            }, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ))
+        }
+        content.addView(modeCard, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { bottomMargin = 10 })
 
         val actions = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1072,7 +1123,7 @@ class MainActivity : Activity() {
                     continueStartupAfterPermissionGate()
                 } else {
                     permissionManualReview = true
-                    renderRequiredPermissionsGate("Còn quyền chưa sẵn sàng. Mở đúng mục cài đặt bên dưới, sau đó bấm “Kiểm tra cấp quyền”.")
+                    renderRequiredPermissionsGate("Còn quyền bắt buộc chưa sẵn sàng. Mở đúng mục cài đặt bên dưới, sau đó bấm “Kiểm tra cấp quyền”.")
                 }
             }
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 6 })
