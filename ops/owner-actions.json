@@ -3810,7 +3810,8 @@
         "date": "2026-09-29",
         "result": "PASS",
         "evidence": "Owner explicitly confirmed D149 PASS after field review of the released D149 Beta set."
-      },
+      }
+    },
     {
       "id": "OA078",
       "status": "BLOCKED_PENDING_D150_TECHNICAL_RUNTIME_RELEASE_PASS",
@@ -3842,7 +3843,6 @@
       ],
       "remaining_owner_action": "Wait for D150 technical/runtime/release PASS, then run the shortest field test and explicitly report PASS or NOT PASS.",
       "closed": false
-    }
     }
   ]
 }
