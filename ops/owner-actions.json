@@ -3686,6 +3686,33 @@
         "result": "PASS",
         "evidence": "Owner explicitly confirmed D146 done. This closes the D146 field-acceptance checkpoint without adding any new OAuth/Gmail connection requirement."
       }
+    },
+    {
+      "id": "OA075",
+      "status": "READY_FOR_OWNER_CONFIRMATION",
+      "title": "Accept D147 serial Owner-PASS governance gate",
+      "resource_key": "repo",
+      "provider": "GitHub canonical authority",
+      "reason_owner_only": "Only the Owner can confirm that D147 matches the required sequencing rule and unlock later changes.",
+      "prerequisites": {
+        "accepted_base": "D146_OWNER_FIELD_ACCEPTED_PASS",
+        "d147_scope": "GOVERNANCE_ONLY",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Review that only one Dxxx can be active at a time.",
+        "Review that a later Dxxx cannot start before explicit Owner PASS.",
+        "Review that NOT PASS is repaired under the same Dxxx.",
+        "Review that base-affecting work requires impact analysis and explicit approval before implementation."
+      ],
+      "pass_criteria": [
+        "D146 remains the accepted base until D147 Owner PASS.",
+        "Technical or release PASS does not unlock a later Dxxx.",
+        "No D148 or unrelated project mutation is processed while D147 is pending.",
+        "D147 changes governance only."
+      ],
+      "remaining_owner_action": "Record D147 PASS if correct; otherwise record D147 NOT PASS and keep corrections under D147.",
+      "closed": false
     }
   ]
 }

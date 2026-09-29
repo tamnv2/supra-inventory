@@ -1815,3 +1815,20 @@ OA068 physical acceptance after signed release:
 - ROOT effective PICKPACK_ADMIN and real PICKPACK_ADMIN cannot select/delete ADMIN; true ROOT in ROOT mode retains its existing authority.
 - Password entry for protected Agent actions remains focused through continuous typing.
 - Stable is untouched.
+
+
+## D147 — Serial Owner-PASS governance acceptance
+
+### Authority/source gates
+- Canonical authority files encode the same serial Owner-PASS rule.
+- Project state distinguishes the accepted base from the current candidate change.
+- Technical/CI/runtime/release PASS does not unlock the next change ID.
+- NOT PASS / FAIL keeps repair and retest under the same change ID until explicit Owner PASS.
+- Base-affecting requests require pre-implementation impact/risk/affected-component analysis and explicit Owner approval.
+- D147 adds no runtime/provider/resource/schema/quota mutation; Stable remains untouched.
+
+### Owner acceptance gate
+- D146 remains the accepted base while D147 is pending.
+- D147 may be promoted only after the Owner explicitly records D147 PASS or equivalent unambiguous PASS wording.
+- Until that acceptance is recorded in canonical GitHub state, no D148 or unrelated project mutation is allowed.
+- If Owner reports D147 NOT PASS, repair D147 itself; do not open D148.

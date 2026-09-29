@@ -45,6 +45,21 @@ Meaningful work updates `ops/project-state.json` in the same workstream. It must
 
 Resource changes update both `ops/project-scope.json` and `ops/resource-registry.json` where applicable.
 
+## Serial Owner-PASS change gate
+
+The accepted project base is the latest change explicitly confirmed **PASS by the Owner** in canonical state. Technical/CI/runtime/release PASS alone does not promote a change to the accepted base.
+
+Only one project change may be open at a time. While the current change lacks explicit Owner PASS:
+- do not create or process a new `Dxxx` change ID;
+- do not start an unrelated feature/fix/removal workstream;
+- do not use a technically completed candidate as the next stable base.
+
+If the Owner reports NOT PASS / FAIL, continue diagnosis and repair under the **same change ID** until the Owner explicitly records PASS. Acceptance-record updates and repairs that belong to the same change remain allowed.
+
+Before implementing any requested add/change/remove that may affect the accepted base, first present: whether the base is affected, exactly which components are affected, regression/risk/resource/quota/security impact, and the recommended safest implementation. Implementation starts only after explicit Owner approval of that proposal.
+
+When Owner PASS is received, record it in canonical decision/state/Owner-action continuity under the same change before opening the next change. A request for new project mutation while the gate is blocked must fail closed and identify the blocking change.
+
 ## Automation-first rule
 
 Follow `docs/OPERATING_PROTOCOL.md`. For finite work: trigger → poll → inspect failure → repair in scope → rerun until terminal PASS or a real Owner-only blocker/hard tool limit.
