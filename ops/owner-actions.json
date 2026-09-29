@@ -3868,7 +3868,7 @@
     },
     {
       "id": "OA079",
-      "status": "WAITING_D151_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Collect paired MT90 DND diagnostic logs",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3877,7 +3877,9 @@
         "accepted_base": "D150_OWNER_FIELD_ACCEPTED_PASS",
         "d151_scope": "ONE_STANDALONE_DND_DIAGNOSTIC_APK__BETA_ONLY_LOG_INTAKE",
         "production_android": "beta-vc88__UNCHANGED",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "d151_technical_release": "PASS__MAIN_A7AC9315__WORKER_RUN_36544445299__APK_RUN_36544445475",
+        "diagnostic_artifact": "mt90-dnd-diagnostic-apk__ARTIFACT_11022311454__SHA256_4c62afef28251e99a90bcd7ac69fc0f5beba70d08dc181e9b61056ffbf5d6ed4"
       },
       "shortest_test_path": [
         "Install the supplied MT90 DND Diagnostic APK on one normal MT90 and one failing MT90.",
@@ -3891,7 +3893,7 @@
         "No production Beta APK update/reinstall is required for this diagnostic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Wait for D151 technical/release PASS and APK delivery; then run the two-device send test.",
+      "remaining_owner_action": "Install the delivered MT90 DND Diagnostic APK on one normal MT90 and one failing MT90. On each device open/return from DND settings if useful, then press GỬI LOG VỀ BETA once. After both report success, tell AI both logs were sent.",
       "closed": false
     }
   ]
