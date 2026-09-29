@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D155_OWNER_ACCEPTED_BASE__AGENT_V90__ANDROID_VC91",
+      "status": "D156_TECHNICAL_RUNTIME_RELEASE_PASS__OA084_FIELD_READY__D155_ACCEPTED_BASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
