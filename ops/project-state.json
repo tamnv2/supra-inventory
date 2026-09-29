@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D151_OWNER_ACCEPTED_BASE__SIGNED_BETA_VC89",
+    "beta": "D151_OWNER_ACCEPTED_BASE__D152_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486",
-    "android": "D149_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC88__UNIFIED_SCHEDULE_CACHE_FCM__RESOLVER_ATTRIBUTION",
-    "latest_beta_apk": "beta-vc88",
+    "android": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE",
+    "latest_beta_apk": "beta-vc89",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -32,10 +32,10 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D150_OWNER_FIELD_PASS__AGENT_V85__MANUAL_PRIMARY_CAS_GENERATION_FENCE__D149_BUSINESS_HA_CADENCE_RETAINED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D150_OWNER_ACCEPTED_PASS__D150_ACCEPTED_BASE",
-    "owner_acceptance": "D150_OWNER_FIELD_ACCEPTED_PASS__OA078_CLOSED__D150_ACCEPTED_BASE",
-    "diagnostic": "D151_FIELD_EVIDENCE_COMPLETE__ADAPTIVE_PRODUCTION_RELEASED__OA079_FIELD_READY"
+    "picklist_confirmation_poc": "D152_OWNER_APPROVED_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET__BOUNDED_CHECKBOX_RELOAD__POST_CONFIRM_VERIFY_ONLY__D150_HA_FENCES_RETAINED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D151_OWNER_ACCEPTED_PASS__D151_ACCEPTED_BASE",
+    "owner_acceptance": "D151_OWNER_FIELD_ACCEPTED_PASS__OA079_CLOSED__D151_ACCEPTED_BASE",
+    "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "OA079 READY: field-test signed beta-vc89 on MT90 with broken DND backend, MT90 with native DND, Urovo DT50, and one other Android 11+ device if available. Verify hard readiness, adaptive mode selection, cross-app overlay, screen-off/keyguard wake, Battery Saver behavior, no duplicate ACK, and no usage amplification. D150 remains accepted base until explicit D151 Owner PASS; Stable remains untouched.",
+  "next_action": "D152: complete Agent v86 branch CI/release for bounded PickList checkbox recovery and post-confirm verify-only behavior; then OA080 Owner field review. Android remains signed beta-vc89; Stable remains untouched.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -840,7 +840,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D151_TECHNICAL_RUNTIME_RELEASE_PASS__OA079_OWNER_FIELD_PENDING",
+  "active_workstream": "D152_OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2463,10 +2463,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D151",
     "accepted_base_evidence": "OWNER_EXPLICIT_D151_PASS__2026_09_29",
-    "current_change_id": "D151",
-    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89",
-    "owner_pass_required_to_unlock_next_change": false,
-    "next_change_allowed": true,
+    "current_change_id": "D152",
+    "current_change_status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET",
+    "owner_pass_required_to_unlock_next_change": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D151_OWNER_ACCEPTED__BETA_ANDROID_ADAPTIVE_ALERT_ENGINE__SIGNED_BETA_VC89__AGENT_WEB_BUSINESS_RUNTIME_UNCHANGED",
-    "resource_change": "NONE__EXISTING_ANDROID_FCM_OVERLAY_NOTIFICATION_BATTERY_EXEMPTION_ONLY__NO_NEW_PROVIDER_SCHEMA_SECRET_POLLING_LISTENER_CRON",
+    "runtime_impact": "D152_AGENT_ONLY_PICKLIST_CONFIRM_RECOVERY__NORMAL_FAST_PATH_UNCHANGED__EXCEPTION_ONLY_LOCAL_SEARCH_RELOAD_VERIFY",
+    "resource_change": "NONE__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON__NO_ANDROID_BUILD",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -2944,5 +2944,42 @@
       "date": "2026-09-29",
       "evidence": "Owner explicitly confirmed D151 PASS after field review of the signed beta-vc89 adaptive Android alert engine. D151 is promoted to the accepted project base."
     }
+  },
+  "d152": {
+    "status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE__AGENT_V86_TARGET",
+    "date": "2026-09-29",
+    "baseline_change": "D151",
+    "baseline_main": "8519e38c9d7646174d46b5cc8c0a3127edce8a3c",
+    "branch": "d152-picklist-confirm-recovery",
+    "owner_approved_scope": [
+      "PRESERVE_NORMAL_DOM_MATCH_CHECKBOX_CONFIRM_FAST_PATH",
+      "UNIQUE_ROW_CHECKBOX_NOT_READY__EXISTING_ONE_SEARCH_RETRY_THEN_EXACTLY_ONE_BOUNDED_CONFIRM_PAGE_RELOAD",
+      "POST_RELOAD_SAME_ROW_SELECTABLE__CONTINUE_NORMAL_CONFIRM",
+      "POST_RELOAD_ROW_MISSING_OR_CHANGED__CONFIRM_CONFLICT_NOT_NOT_FOUND_NO_PICKER_STRIKE",
+      "POST_RELOAD_SAME_ROW_STILL_UNSELECTABLE__CONFIRM_CONFLICT_NOT_SUPRA_REJECTED",
+      "AFTER_DIALOG_CONFIRM_EXISTING_PASSIVE_OBSERVATION_REMAINS__ONE_READ_ONLY_SEARCH_VERIFY_ON_TIMEOUT",
+      "EXISTING_UNCERTAIN_GUARD_REMAINS_NO_RESEND_FENCE__ALLOW_ONE_VERIFY_ONLY_SEARCH",
+      "VERIFY_ONLY_CONFIRMED_ONLY_WHEN_EXACT_ROW_IS_STABLY_REMOVED",
+      "PRIMARY_GENERATION_REQUEST_AGE_EXACT_ROW_CONFIRMATION_GUARD_FENCES_RETAINED",
+      "NO_DIRECT_WMS_API_SESSION_EXTRACTION_OR_NETWORK_INTERCEPTION",
+      "NO_NEW_FIRESTORE_PROVIDER_CADENCE_POLLING_LISTENER_WRITE_OR_ANDROID_RELEASE"
+    ],
+    "base_impact": "YES__BETA_WINDOWS_AGENT_PICKLIST_BROWSER_CONFIRMATION_RECOVERY_ONLY",
+    "affected_components": [
+      "relay-agent/SupraConfirmBrowser.cs",
+      "relay-agent/Program.cs",
+      "relay-agent release/version",
+      "relay-agent CI regression guards",
+      "canonical D152 continuity"
+    ],
+    "regression_stability_risk": "MEDIUM_CONFIRMATION_STATE_MACHINE__MITIGATED_BY_EXACT_ROW_PROOF_SINGLE_RELOAD_SINGLE_VERIFY_NO_RESEND_AND_EXISTING_PRIMARY_GENERATION_GUARDS",
+    "resource_quota_security_impact": "NO_NEW_PROVIDER_RESOURCE_FIRESTORE_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON_OR_ANDROID_BUILD__RECOVERY_IS_LOCAL_BROWSER_DOM_PLUS_BOUNDED_WMS_UI_SEARCH_RELOAD_ONLY__NO_SESSION_CAPTURE",
+    "recommended_approach": "FAST_PATH_UNCHANGED__EXCEPTION_ONLY_SEARCH_THEN_ONE_RELOAD_FOR_UNSELECTABLE__READ_ONLY_POST_CONFIRM_AND_EXISTING_GUARD_VERIFY__NEVER_REPEAT_CONFIRM_MUTATION",
+    "preimplementation_owner_approval": "PASS__OWNER_EXPLICIT_CONTINUE_AFTER_D151_PASS_WITH_PROPOSED_LOGIC__2026_09_29",
+    "target_agent_release": "relay-agent-v86",
+    "android_release": "beta-vc89__UNCHANGED",
+    "new_provider_resources": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "field_gate": "OA080_BLOCKED_TECHNICAL_RELEASE_PENDING"
   }
 }
