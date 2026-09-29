@@ -1057,8 +1057,8 @@ namespace SupraInventoryRelayAgent
             _afterHoursStop.Text = "Đúng giờ về";
             _afterHoursStop.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.STOP);
             _afterHoursPanel.Controls.Add(_afterHoursStop);
-            _afterHoursEarlyStart.Text = "Khởi động relay trước giờ vận hành";
-            _afterHoursEarlyStart.Click += (s, e) => StartRelayBeforeSix();
+            _afterHoursEarlyStart.Text = "Bật sớm trước 06:00";
+            _afterHoursEarlyStart.Click += (s, e) => HandleSleepingScheduleAction();
             _afterHoursEarlyStart.Visible = false;
             _afterHoursPanel.Controls.Add(_afterHoursEarlyStart);
             _afterHoursPanel.Visible = false;
@@ -1489,10 +1489,62 @@ namespace SupraInventoryRelayAgent
             CheckAfterHoursSchedule(true);
         }
 
+        private void HandleSleepingScheduleAction()
+        {
+            if (_businessSchedule == null) return;
+            var now = _businessSchedule.NowOperational();
+            if (_businessSchedule.IsEarlyStartWindow(now))
+            {
+                StartRelayBeforeSix();
+                return;
+            }
+            if (_businessSchedule.IsOvertimeSleepWindow(now))
+            {
+                AdjustOvertimeWhileSleeping();
+            }
+        }
+
+        private void AdjustOvertimeWhileSleeping()
+        {
+            if (_businessSchedule == null || _leaderCoordinator == null || !HasAgentSession()) return;
+            var now = _businessSchedule.NowOperational();
+            if (!_businessSchedule.IsOvertimeSleepWindow(now)) return;
+            var until = _businessSchedule.ManualAdjustmentUntil(now);
+            if (until == DateTime.MinValue || until <= now) return;
+            if (!HasReadyConfirmBrowser())
+            {
+                _afterHoursStatus.Text = "Cần Web Confirm sẵn sàng trước khi điều chỉnh tăng ca.";
+                return;
+            }
+
+            var key = _businessSchedule.ScheduleKey(now);
+            var published = _leaderCoordinator.PublishManualScheduleAdjustment(
+                key,
+                OperationalMs(now),
+                OperationalMs(until));
+            _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
+            if (!published)
+            {
+                _leaderCoordinator.RefreshSharedScheduleNow();
+                _afterHoursStatus.Text = "Một Agent khác vừa cập nhật ca. Đã đồng bộ trạng thái hiện hành.";
+                CheckAfterHoursSchedule(true);
+                return;
+            }
+
+            _lastAfterHoursPromptAt = DateTime.MinValue;
+            _lastAfterHoursPromptBoundaryMs = 0L;
+            TopMost = false;
+            _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+            Log("AFTER_HOURS manual_adjust=PASS relay_until=" + until.ToString("HH:mm") +
+                " schedule_key=" + key);
+            CheckAfterHoursSchedule(true);
+        }
+
         private void StartRelayBeforeSix()
         {
             if (_businessSchedule == null || _leaderCoordinator == null) return;
             var now = _businessSchedule.NowOperational();
+            if (!_businessSchedule.IsEarlyStartWindow(now)) return;
             if (_businessSchedule.DefaultRelayAllowed(now)) return;
             if (!HasReadyConfirmBrowser())
             {
@@ -1559,11 +1611,13 @@ namespace SupraInventoryRelayAgent
                 hasBoundary &&
                 !coordinator.HasScheduleDecision(key, boundaryMs);
             var frozenOutsideRegular = !defaultAllowed && !relayAllowed;
+            var earlyStartWindow = frozenOutsideRegular && _businessSchedule.IsEarlyStartWindow(now);
+            var overtimeSleepWindow = frozenOutsideRegular && _businessSchedule.IsOvertimeSleepWindow(now);
 
             ApplyAfterHoursAgentLayout(needsConfirmation || frozenOutsideRegular);
             _afterHoursContinue.Visible = needsConfirmation;
             _afterHoursStop.Visible = needsConfirmation;
-            _afterHoursEarlyStart.Visible = frozenOutsideRegular;
+            _afterHoursEarlyStart.Visible = earlyStartWindow || overtimeSleepWindow;
 
             if (needsConfirmation)
             {
@@ -1606,10 +1660,26 @@ namespace SupraInventoryRelayAgent
             if (frozenOutsideRegular)
             {
                 var next = _businessSchedule.NextRegularStart(now);
-                _afterHoursStatus.Text =
-                    "Relay PDA đang ngủ đến " + next.ToString("HH:mm") +
-                    " · xác nhận trực tiếp tại Agent vẫn hoạt động.";
-                _afterHoursEarlyStart.Text = "Khởi động relay đến " + next.ToString("HH:mm");
+                if (earlyStartWindow)
+                {
+                    _afterHoursStatus.Text =
+                        "Replay PDA đang ngủ · có thể bật sớm từ 05:00 đến 06:00.";
+                    _afterHoursEarlyStart.Text = "Bật sớm trước 06:00";
+                }
+                else if (overtimeSleepWindow)
+                {
+                    var adjustUntil = _businessSchedule.ManualAdjustmentUntil(now);
+                    _afterHoursStatus.Text =
+                        "Replay PDA đang ngủ · không có gia hạn hiện hành. Xác nhận trực tiếp tại Agent vẫn hoạt động.";
+                    _afterHoursEarlyStart.Text = adjustUntil == DateTime.MinValue
+                        ? "Điều chỉnh tăng ca"
+                        : "Điều chỉnh tăng ca · đến " + adjustUntil.ToString("HH:mm");
+                }
+                else
+                {
+                    _afterHoursStatus.Text = "Replay PDA đang ngủ đến " + next.ToString("HH:mm") + ".";
+                    _afterHoursEarlyStart.Text = "Bật sớm trước 06:00";
+                }
                 return;
             }
 
@@ -1619,13 +1689,13 @@ namespace SupraInventoryRelayAgent
                 var decision = coordinator.SharedScheduleDecision;
                 var until = _businessSchedule.ExtensionUntil(boundary);
                 _afterHoursStatus.Text = string.Equals(decision, "CONTINUE", StringComparison.Ordinal)
-                    ? "Đã xác nhận tiếp tục relay đến " + until.ToString("HH:mm") + " trên hệ thống."
+                    ? "Đã xác nhận tiếp tục replay đến " + until.ToString("HH:mm") + " trên hệ thống."
                     : "Đã xác nhận dừng relay tại " + boundary.ToString("HH:mm") + " trên hệ thống.";
                 return;
             }
 
             _afterHoursStatus.Text = relayAllowed
-                ? "Relay PDA hoạt động theo lịch đã xác nhận."
+                ? "Replay PDA hoạt động theo lịch đã xác nhận."
                 : _businessSchedule.StatusText(now);
         }
 
