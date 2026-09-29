@@ -747,8 +747,8 @@ namespace SupraInventoryRelayAgent
         {
             _port = FindFreeLoopbackPort();
             var profileDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "SUPRA Inventory", "ConfirmBrowser", "webview2-fixed-profile");
+                AgentBrowserStorage.CurrentRoot,
+                "webview2-fixed-profile");
             Directory.CreateDirectory(profileDir);
 
             var args =
@@ -780,8 +780,8 @@ namespace SupraInventoryRelayAgent
 
             _port = FindFreeLoopbackPort();
             var profileDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "SUPRA Inventory", "ConfirmBrowser", browser.ProfileKey);
+                AgentBrowserStorage.CurrentRoot,
+                browser.ProfileKey);
             Directory.CreateDirectory(profileDir);
 
             var args =

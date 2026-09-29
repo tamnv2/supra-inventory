@@ -143,10 +143,43 @@ export async function handleD119Internal(request: Request, env: InternalEnv): Pr
   const isRetiredSkuSync = request.method === "POST" && url.pathname === "/api/internal/d119/sku-sync";
   const isAlertWindow = request.method === "GET" && url.pathname === "/api/internal/d119/alert-window";
   const isAgentLogUploadSession = request.method === "POST" && url.pathname === "/api/internal/d146/agent-log-upload-session";
+  const isOperatingScheduleMirror = request.method === "POST" && url.pathname === "/api/internal/d149/operating-schedule";
   if (isRetiredSkuSync) {
     return json({ error: "RETIRED_D126_MANUAL_FILE_ONLY" }, 410);
   }
   if (isAgentLogUploadSession) return createAgentLogUploadSession(request, env);
+  if (isOperatingScheduleMirror) {
+    if (!(await verifyRuntimeIdentity(request, env))) return json({ error: "INTERNAL_IDENTITY_REQUIRED" }, 401);
+    let body: Record<string, unknown> = {};
+    try { body = (await request.json()) as Record<string, unknown>; } catch { return json({ error: "INVALID_JSON" }, 400); }
+    const mirrored = await core(env).fetch("https://inventory-core.internal/notifications/operating-schedule-mirror", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!mirrored.ok) return mirrored;
+
+    // D149: one event per accepted schedule projection keeps an already-open Web
+    // page current without browser polling or a second Firebase listener.
+    try {
+      await core(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          event: "operating_schedule_changed",
+          scopes: ["operating_schedule"],
+          tags: ["role:ADMIN", "role:PICKPACK_ADMIN", "role:ROOT"],
+          metadata: {
+            schedule_key: String(body.schedule_key || ""),
+            version: Number(body.version || 0),
+          },
+        }),
+      });
+    } catch {
+      // Mirror is authoritative for Worker enforcement; WebSocket delivery is best-effort.
+    }
+    return mirrored;
+  }
   if (!isAlertWindow) return null;
   if (!(await verifyRuntimeIdentity(request, env))) return json({ error: "INTERNAL_IDENTITY_REQUIRED" }, 401);
   return core(env).fetch("https://inventory-core.internal/notifications/alert-window");

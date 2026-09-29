@@ -928,3 +928,14 @@ Password dialogs for protected Agent actions are treated as interactive editing 
 - The only local action is a prominent **OK** button.
 - Picker result overlays retain their semantic Có hàng/Bỏ qua presentation. Queue semantics—not extra visual stacking—handle multiple simultaneous alerts.
 - Specialist/Picker-command alerts retain the highest interruption priority and must not be visually hidden behind lower-priority SKU information.
+
+## D149 schedule and operational UI
+
+- Agent schedule copy uses one coherent business vocabulary: **Replay tự động 06:00–22:00**, **Tăng ca thêm 1 giờ**, **Đúng giờ về**, **Điều chỉnh tăng ca**, and **Bật sớm trước 06:00**.
+- At a scheduled decision boundary, the existing foreground/topmost decision surface remains one-shot. Other Agents that lose the CAS race show the already-accepted shared state rather than a conflicting success state.
+- During sleep from 22:00–<05:00, keep a compact status plus **Điều chỉnh tăng ca**. Do not show **Bật sớm** there.
+- From 05:00–<06:00, show **Bật sớm trước 06:00**. Do not offer overtime beyond 05:00.
+- Web Ca vận hành presents the shared Agent-owned state; it must not look like a separate authority with an independent extension clock.
+- Android result overlays name the product and resolving person/role/source without engineering IDs.
+- PickList removes the **Hôm nay** aggregate counter cluster from the list presentation while retaining normal row/content spacing.
+- Agent Web storage selection clearly shows the active managed storage root and migration result; destructive-looking folder moves require explicit confirmation and failure copy must say that the prior location remains active after rollback.

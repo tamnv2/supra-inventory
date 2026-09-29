@@ -601,7 +601,7 @@ function processBatchAutoSkip(
         picker_user_ids: [...new Set(targetRows.map((ticket) => String(ticket.picker_user_id || "")).filter(Boolean))],
         result_event: true,
         title: "SUPRA Inventory · Được phép bỏ qua",
-        body: `${String(row.sku || "SKU")} đã quá thời gian phản hồi. Hệ thống cho phép bỏ qua.`,
+        body: `${String(row.sku || "SKU")} · ${String(row.product_name || "Chưa có tên sản phẩm")}\nCho phép skip · Hệ thống tự động · Hệ thống`,
       });
     });
   }
@@ -754,7 +754,7 @@ function processPerPickerAutoSkip(
         picker_user_ids: pickerUserId ? [pickerUserId] : [],
         result_event: true,
         title: "SUPRA Inventory · Được phép bỏ qua",
-        body: `${String(row.sku || "SKU")} đã quá thời gian phản hồi của bạn. Hệ thống cho phép bỏ qua.`,
+        body: `${String(row.sku || "SKU")} · ${String(row.product_name || "Chưa có tên sản phẩm")}\nCho phép skip · Hệ thống tự động · Hệ thống`,
       });
     });
   }

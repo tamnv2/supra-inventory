@@ -775,8 +775,22 @@ class PickerController(
         surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else "ĐÃ CÓ HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlaySku).text = result.sku
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = result.productName
+        val source = result.resolutionSource.orEmpty()
+        val actor = result.resolvedByDisplayName
+            ?.takeIf { it.isNotBlank() }
+            ?: result.resolvedByEmployeeCode?.takeIf { it.isNotBlank() }
+            ?: if (source == "SYSTEM_TIMEOUT") "Hệ thống tự động" else "Nhân sự Inventory"
+        val roleLabel = when {
+            source == "SYSTEM_TIMEOUT" -> "Hệ thống"
+            result.resolvedByRole == "ADMIN" -> "Quản trị Invent"
+            result.resolvedByRole == "REPORTER" -> "Người báo hàng"
+            result.resolvedByRole == "ROOT" -> "Quản trị hệ thống"
+            result.resolvedByRole == "PICKPACK_ADMIN" -> "Quản trị Pick Pack"
+            else -> "Inventory"
+        }
         surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
-            if (isSkip) "Người xử lý đã xác nhận SKU này được phép bỏ qua." else "Người xử lý đã xác nhận SKU này đã có hàng."
+            if (isSkip) "Cho phép skip · $actor · $roleLabel"
+            else "Đã có hàng · $actor · $roleLabel"
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = "Cảnh báo nghiệp vụ • cần xác nhận để tiếp tục"
         val acknowledge = surface.findViewById<Button>(R.id.btnOverlayAck).apply {
             text = "XÁC NHẬN ĐÃ NHẬN"

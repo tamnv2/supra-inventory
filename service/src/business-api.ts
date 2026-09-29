@@ -190,6 +190,14 @@ type NotificationTarget = {
   batchId?: string;
 };
 
+function resolverRoleLabel(role: string): string {
+  if (role === "ADMIN") return "Quản trị Invent";
+  if (role === "REPORTER") return "Người báo hàng";
+  if (role === "ROOT") return "Quản trị hệ thống";
+  if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  return role || "Hệ thống";
+}
+
 function scheduleFcm(
   response: Response,
   env: BusinessEnv,
@@ -209,6 +217,10 @@ function scheduleFcm(
         event_id?: string | null;
         batch_id?: string;
         ticket?: { batch_id?: string };
+        resolution_source?: string;
+        resolved_by_display_name?: string;
+        resolved_by_employee_code?: string;
+        resolved_by_role?: string;
       };
       const resultEventId = String(mutation.event_id || "");
       const batchId = String(options.target.batchId || mutation.batch_id || mutation.ticket?.batch_id || "");
@@ -244,9 +256,20 @@ function scheduleFcm(
       if (!tokens.length) return;
       const batchSku = String(targetPayload.batch?.sku || "");
       const batchProductName = String(targetPayload.batch?.product_name || "");
+      const resolverName = String(mutation.resolved_by_display_name || mutation.resolved_by_employee_code || "").trim();
+      const resolverRole = String(mutation.resolved_by_role || "").trim().toUpperCase();
+      const resolutionSource = String(mutation.resolution_source || "").trim();
+      const humanResolver = resolverName || (resolutionSource === "SYSTEM_TIMEOUT" ? "Hệ thống tự động" : "Nhân sự Inventory");
+      const roleLabel = resolutionSource === "SYSTEM_TIMEOUT" ? "Hệ thống" : resolverRoleLabel(resolverRole);
+      const renderedBody = options.body
+        .replaceAll("{sku}", batchSku || "SKU")
+        .replaceAll("{product}", batchProductName || "Chưa có tên sản phẩm")
+        .replaceAll("{actor}", humanResolver)
+        .replaceAll("{role}", roleLabel)
+        .replaceAll("{source}", resolutionSource || "REPORTER");
       const delivery = await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON!, env.FIREBASE_PROJECT_ID, tokens, {
         title: options.title,
-        body: options.body.replace("{sku}", batchSku || "SKU"),
+        body: renderedBody,
         data: {
           event: options.event,
           batch_id: batchId,
@@ -256,6 +279,10 @@ function scheduleFcm(
           sku: batchSku,
           product_name: batchProductName,
           resolution: options.resolution || "",
+          resolver_name: humanResolver,
+          resolver_role: resolverRole,
+          resolver_role_label: roleLabel,
+          resolution_source: resolutionSource,
         },
       });
       await corePost(env, "/notifications/delivery-attempts", {
@@ -354,7 +381,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (windowState.is_open !== true) {
       return json({
         error: "ANDROID_WINDOW_CLOSED",
-        message: "Ca vận hành App/PDA đang đóng (23:00–05:00).",
+        message: "Ngoài khung thường 06:00–22:00 và chưa có lệnh tăng ca/bật sớm hiện hành.",
         server_now_ms: Number(windowState.server_now_ms || 0),
       }, 403);
     }
@@ -370,15 +397,10 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   }
 
   if (key === "PUT /api/admin/alert-window") {
-    const body = await parseObjectBody(request);
-    const action = String(body.action || "").trim().toUpperCase();
-    if (!["EXTEND_ONE_HOUR", "STOP_OVERTIME"].includes(action)) {
-      return json({ error: "INVALID_ALERT_WINDOW_ACTION" }, 400);
-    }
-    return corePut(env, "/notifications/alert-window", {
-      actor_user_id: user.user_id,
-      action,
-    });
+    return json({
+      error: "ALERT_WINDOW_AGENT_AUTHORITY_D149",
+      message: "Ca vận hành được quyết định tập trung từ Agent; Web chỉ hiển thị trạng thái dùng chung.",
+    }, 409);
   }
 
   if (key === "POST /api/admin/skus/import") {
@@ -487,7 +509,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       event: "batch_resolved",
       target: { batchId },
       title: resolution === "HAS_STOCK" ? "SUPRA Inventory · Đã có hàng" : "SUPRA Inventory · Được skip",
-      body: resolution === "HAS_STOCK" ? "{sku} đã được Reporter xác nhận có hàng." : "{sku} đã được Reporter cho phép skip.",
+      body: resolution === "HAS_STOCK"
+        ? "{sku} · {product}\nĐã có hàng · {actor} · {role}"
+        : "{sku} · {product}\nCho phép skip · {actor} · {role}",
       resolution: resolution === "HAS_STOCK" ? "HAS_STOCK" : "SKIP_ALLOWED",
     });
     return result;
@@ -508,7 +532,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       event: "batch_corrected",
       target: { batchId },
       title: "SUPRA Inventory · Cập nhật kết quả",
-      body: "{sku} đã được sửa kết quả thành Có hàng.",
+      body: "{sku} · {product}\nCập nhật thành Đã có hàng · {actor} · {role}",
       resolution: "HAS_STOCK",
     });
     return result;

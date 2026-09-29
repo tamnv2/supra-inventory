@@ -423,3 +423,13 @@ The public Privacy/About pages document the existing Google-data boundary; they 
 - ERROR/CRASH immediate best-effort upload and manual support-log upload remain unchanged.
 - The existing 60-second Android local task remains for SKU invalidation reconciliation and pending result-ACK recovery; it is not a support-log upload cadence.
 - Web and Agent log schedules remain governed by D146 (06:00/12:00/18:00/21:00) unless a later Owner-approved change supersedes them.
+
+## D149 operating schedule and result attribution
+
+- `relay_poc_coordination/operating_schedule` is a **current-state projection**, not an event history or heartbeat. It changes only after a real accepted schedule decision, manual overtime adjustment or early-start action.
+- Projection data is bounded and non-sensitive: business/schedule key, monotonic version/update time, decision/source, boundary and `open_until_ms`. It must not contain passwords, tokens, WMS session material or private browser state.
+- Normal 06:00 opening and 22:00 default sleep are deterministic time rules and do not require daily provider writes.
+- Overtime state from a prior business night must never reopen a later day; clients/server validate schedule key and expiry.
+- Worker/InventoryCore stores only the current mirrored schedule required to enforce Báo hàng. Duplicate/same-or-older versions are idempotent and must not rewrite storage.
+- Android local schedule cache is replaceable state, not business authority. It may survive process/device restart but must be reconciled at the bounded lifecycle points defined by D149.
+- Human result attribution uses the existing canonical resolver identity/role/source wherever available. Recovery APIs must return the same attribution semantics as push delivery; no separate notification-only identity authority is created.

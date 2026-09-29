@@ -162,8 +162,25 @@ async function coreJson<T>(env: Env, path: string, init?: RequestInit): Promise<
   return payload;
 }
 
-async function androidOperatingWindow(env: Env): Promise<{ is_open: boolean; server_now_ms: number; closes_at_ms: number | null }> {
-  return coreJson(env, "/notifications/alert-window");
+type AndroidOperatingWindowPayload = {
+  is_open: boolean;
+  server_now_ms: number;
+  closes_at_ms: number | null;
+  schedule_key?: string;
+  schedule_version?: number;
+  decision?: string | null;
+  projection_open_until_ms?: number | null;
+  normal_window_open?: boolean;
+  overtime_open?: boolean;
+  early_start_open?: boolean;
+  overtime_until_ms?: number | null;
+  start_minutes?: number;
+  end_minutes?: number;
+  overtime_cutoff_minutes?: number;
+};
+
+async function androidOperatingWindow(env: Env): Promise<AndroidOperatingWindowPayload> {
+  return coreJson<AndroidOperatingWindowPayload>(env, "/notifications/alert-window");
 }
 
 async function checkCore(env: Env): Promise<{
@@ -540,6 +557,7 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
 
   let identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
   let user: InternalUser;
+  let operatingWindow: AndroidOperatingWindowPayload | undefined;
   try {
     identity = await verifyFirebaseIdToken(payload.id_token, env.FIREBASE_PROJECT_ID);
     const resolved = await getUserByFirebaseUid(env, identity.uid);
@@ -547,14 +565,9 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
     const sessionError = sessionAuthorityError(identity, resolved);
     if (sessionError) return json({ error: sessionError }, 401);
     if (identity.sessionChannel === "ANDROID") {
-      const windowState = await androidOperatingWindow(env);
-      if (!windowState.is_open) {
-        return json({
-          error: "ANDROID_WINDOW_CLOSED",
-          message: "Ca vận hành App/PDA đang đóng (23:00–05:00). Quản trị Invent có thể gia hạn khi tăng ca.",
-          server_now_ms: windowState.server_now_ms,
-        }, 403);
-      }
+      // D149: shift closure gates business actions, not authentication/session
+      // recovery. Returning the current state here avoids a second schedule request.
+      operatingWindow = await androidOperatingWindow(env);
     }
     user = resolved;
   } catch {
@@ -578,6 +591,7 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
     refresh_token: payload.refresh_token,
     expires_in: Math.max(60, Number(payload.expires_in || 3600)),
     ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),
+    ...(operatingWindow ? { operating_window: operatingWindow } : {}),
   });
 }
 async function login(request: Request, env: Env): Promise<Response> {
@@ -607,16 +621,10 @@ async function login(request: Request, env: Env): Promise<Response> {
   if (channel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")) {
     return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Root/Quản trị Pick Pack hiện sử dụng Web hoặc Agent phù hợp. App/PDA hỗ trợ Picker, Reporter và Quản trị Invent ở chế độ xử lý báo hàng." }, 403);
   }
-  if (channel === "ANDROID") {
-    const windowState = await androidOperatingWindow(env);
-    if (!windowState.is_open) {
-      return json({
-        error: "ANDROID_WINDOW_CLOSED",
-        message: "Ca vận hành App/PDA đang đóng (23:00–05:00). Quản trị Invent có thể gia hạn khi tăng ca.",
-        server_now_ms: windowState.server_now_ms,
-      }, 403);
-    }
-  }
+  // D149: an Android user may authenticate while replay/business operations are
+  // asleep so a later shared overtime adjustment can reopen the same session.
+  // Server mutation gates still enforce the effective operating state.
+  const operatingWindow = channel === "ANDROID" ? await androidOperatingWindow(env) : undefined;
 
   try {
     user = await ensureFirebasePasswordReady(env, user);
@@ -693,6 +701,7 @@ async function login(request: Request, env: Env): Promise<Response> {
       session_generation: activated.generation,
       session_channel: channel,
       ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),
+      ...(operatingWindow ? { operating_window: operatingWindow } : {}),
       user: publicUser(user),
     });
   } catch (error) {

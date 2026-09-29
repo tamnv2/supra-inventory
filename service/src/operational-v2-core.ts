@@ -588,10 +588,26 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const status = ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
   const todayStart = appTodayOpen ? appTodayStartIso() : "";
+  const from = String(url.searchParams.get("from") || "").trim();
+  const to = String(url.searchParams.get("to") || "").trim();
+  const fromMs = from ? Date.parse(from) : NaN;
+  const toMs = to ? Date.parse(to) : NaN;
+  if ((from || to) && (!from || !to || !Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs)) {
+    return json({ error: "INVALID_RECENT_RANGE" }, 400);
+  }
+  if (from && to && toMs - fromMs > 60 * 86_400_000) {
+    return json({ error: "RECENT_RANGE_TOO_LARGE", max_range_days: 60 }, 400);
+  }
 
   const where = ["b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')"];
   const args: SqlStorageValue[] = [];
   if (appTodayOpen) { where.push("b.first_report_at >= ?"); args.push(todayStart); }
+  if (from && to) {
+    where.push("COALESCE(b.resolved_at, b.updated_at) >= ?");
+    args.push(from);
+    where.push("COALESCE(b.resolved_at, b.updated_at) < ?");
+    args.push(to);
+  }
   if (status) { where.push("b.status = ?"); args.push(status); }
   const clause = where.join(" AND ");
 
@@ -658,6 +674,12 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const summaryWhere = ["b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')"];
   const summaryArgs: SqlStorageValue[] = [];
   if (appTodayOpen) { summaryWhere.push("b.first_report_at >= ?"); summaryArgs.push(todayStart); }
+  if (from && to) {
+    summaryWhere.push("COALESCE(b.resolved_at, b.updated_at) >= ?");
+    summaryArgs.push(from);
+    summaryWhere.push("COALESCE(b.resolved_at, b.updated_at) < ?");
+    summaryArgs.push(to);
+  }
   const summaryClause = summaryWhere.join(" AND ");
   const totalsRow = first(
     state.storage.sql.exec<SqlRow>(
@@ -829,10 +851,20 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
     `SELECT a.result_event_id, a.batch_id, a.batch_version, a.received_at, a.displayed_at, a.acknowledged_at,
             a.created_at,
             s.sku, s.product_name, s.resolution AS status, s.resolution, s.result_at AS resolved_at,
-            b.status AS current_batch_status, b.resolution AS current_resolution, b.version AS current_batch_version
+            b.status AS current_batch_status, b.resolution AS current_resolution, b.version AS current_batch_version,
+            CASE
+              WHEN e.event_type IN ('BATCH_AUTO_SKIP_ALLOWED','TICKET_AUTO_SKIP_ALLOWED') THEN 'SYSTEM_TIMEOUT'
+              WHEN e.event_type = 'BATCH_CORRECTED' THEN 'REPORTER_CORRECTION'
+              ELSE COALESCE(NULLIF(b.resolution_source, ''), 'REPORTER')
+            END AS resolution_source,
+            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+            COALESCE(resolver.employee_code, e.actor_employee_code, '') AS resolved_by_employee_code,
+            COALESCE(resolver.role, '') AS resolved_by_role
        FROM result_acknowledgements a
        JOIN result_event_snapshots s ON s.result_event_id = a.result_event_id
        JOIN report_batches b ON b.batch_id = a.batch_id
+       LEFT JOIN report_events e ON e.event_id = a.result_event_id
+       LEFT JOIN users resolver ON resolver.user_id = e.actor_user_id
       WHERE a.target_user_id = ? AND a.acknowledged_at IS NULL
       ORDER BY a.created_at ASC, a.result_event_id ASC
       LIMIT ?`,

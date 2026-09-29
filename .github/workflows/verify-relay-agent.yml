@@ -77,9 +77,9 @@ jobs:
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*83\s*;') { throw "D146 requires Agent v83 while retaining D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.83\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.83\.0\.0</FileVersion>') {
-            throw "D146 Agent assembly/file version must be 0.83."
+          if ($config -notmatch 'AgentBuild\s*=\s*84\s*;') { throw "D149 requires Agent v84 while retaining D140 quota-storm safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.84\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.84\.0\.0</FileVersion>') {
+            throw "D149 Agent assembly/file version must be 0.84."
           }
 
           foreach ($marker in @(
@@ -568,7 +568,6 @@ jobs:
           if (-not $fleet.Contains('relay_poc_coordination/daily_')) { throw "D134 durable fleet metric authority regression." }
           foreach ($marker in @(
             'ApplyD135DurableCounterAck',
-            'Hôm nay toàn cụm:',
             'ShowPickerContactChoice',
             'Gọi thẳng về bàn CV',
             'Gửi nội dung chat',
@@ -581,6 +580,30 @@ jobs:
           if (-not $transport.Contains('_onDurableAck') -or -not $transport.Contains('FindBusinessDay(work.RequestId), outcome')) {
             throw "D135 durable-ACK local counter hook missing."
           }
+          if (-not $ops.Contains('_fleetMetricStatus.Visible = false') -or
+              -not $ops.Contains('GetD135DisplayCounters')) {
+            throw "D149 must hide the Today aggregate presentation without deleting durable counters."
+          }
+          foreach ($marker in @(
+            'RegularStart = new TimeSpan(6, 0, 0)',
+            'OvertimeCutoff = new TimeSpan(5, 0, 0)',
+            'Điều chỉnh tăng ca',
+            'Bật sớm trước 06:00',
+            'PublishManualScheduleAdjustment',
+            'AgentBrowserStorage.MigrateClosedBrowserData',
+            'AgentBrowserStorage.FinalizeMigration',
+            'AgentBrowserStorage.RollbackMigration',
+            'Đổi nơi lưu'
+          )) {
+            if (-not $program.Contains($marker) -and
+                -not $ops.Contains($marker) -and
+                -not $leader.Contains($marker) -and
+                -not (Get-Content relay-agent/AgentBusinessSchedule.cs -Raw).Contains($marker) -and
+                -not (Get-Content relay-agent/AgentBrowserStorage.cs -Raw).Contains($marker)) {
+              throw "D149 Agent schedule/storage marker missing: $marker"
+            }
+          }
+
           if (-not $program.Contains('CleanAgentUsername') -or -not $leader.Contains('AgentDisplayUsername')) {
             throw "D135 username-only presentation marker missing."
           }

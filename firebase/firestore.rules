@@ -124,6 +124,13 @@ service cloud.firestore {
         );
     }
 
+    function isAndroidScheduleReader() {
+      return request.auth != null
+        && request.auth.token.app_session_channel == 'ANDROID'
+        && request.auth.token.app_user_id != null
+        && request.auth.token.app_role in ['PICKER', 'REPORTER', 'ADMIN'];
+    }
+
     function isPickerContactOperator() {
       return request.auth != null
         && request.auth.token.app_user_id != null
@@ -197,6 +204,14 @@ service cloud.firestore {
 
     match /relay_poc_rate_limits/{pickerKey} {
       allow get, create, update, delete: if isAgentOperator();
+      allow list: if false;
+    }
+
+    match /relay_poc_coordination/operating_schedule {
+      // D149 outage recovery: exact-document get only for authenticated Android.
+      // General coordination list/read remains Agent-only below.
+      allow get: if isAgentOperator() || isAndroidScheduleReader();
+      allow create, update, delete: if isAgentOperator();
       allow list: if false;
     }
 

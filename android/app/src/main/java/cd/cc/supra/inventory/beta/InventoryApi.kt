@@ -22,7 +22,17 @@ data class AndroidOperatingWindow(
     val isOpen: Boolean,
     val serverNowMs: Long,
     val closesAtMs: Long?,
+    val projectionOpenUntilMs: Long?,
     val overtimeUntilMs: Long?,
+    val scheduleKey: String,
+    val scheduleVersion: Long,
+    val decision: String?,
+    val normalWindowOpen: Boolean,
+    val overtimeOpen: Boolean,
+    val earlyStartOpen: Boolean,
+    val startMinutes: Int = 6 * 60,
+    val endMinutes: Int = 22 * 60,
+    val overtimeCutoffMinutes: Int = 5 * 60,
 )
 
 data class SkuItem(val sku: String, val productName: String)
@@ -62,6 +72,10 @@ data class PickerResult(
     val status: String,
     val resolution: String,
     val resolvedAt: String?,
+    val resolutionSource: String?,
+    val resolvedByDisplayName: String?,
+    val resolvedByEmployeeCode: String?,
+    val resolvedByRole: String?,
     val receivedAt: String?,
     val displayedAt: String?,
     val acknowledgedAt: String?,
@@ -168,6 +182,8 @@ class InventoryApi(
 ) {
     @Volatile var session: AppSession? = null
         private set
+    @Volatile var lastOperatingWindow: AndroidOperatingWindow? = null
+        private set
 
     private fun updateSession(next: AppSession?) {
         session = next
@@ -219,6 +235,7 @@ class InventoryApi(
             relayCustomToken = payload.optString("firebase_custom_token").takeIf { it.isNotBlank() },
         )
         if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
+        payload.optJSONObject("operating_window")?.let { lastOperatingWindow = parseOperatingWindow(it) }
         updateSession(next)
         return next
     }
@@ -238,14 +255,27 @@ class InventoryApi(
     }
 
     fun getAndroidOperatingWindow(): AndroidOperatingWindow {
-        val payload = request("GET", "/api/auth/android-window")
-        return AndroidOperatingWindow(
-            isOpen = payload.optBoolean("is_open", false),
-            serverNowMs = payload.optLong("server_now_ms", 0L),
-            closesAtMs = payload.optLong("closes_at_ms", 0L).takeIf { it > 0L },
-            overtimeUntilMs = payload.optLong("overtime_until_ms", 0L).takeIf { it > 0L },
-        )
+        val parsed = parseOperatingWindow(request("GET", "/api/auth/android-window"))
+        lastOperatingWindow = parsed
+        return parsed
     }
+
+    private fun parseOperatingWindow(payload: JSONObject): AndroidOperatingWindow = AndroidOperatingWindow(
+        isOpen = payload.optBoolean("is_open", false),
+        serverNowMs = payload.optLong("server_now_ms", 0L),
+        closesAtMs = payload.optLong("closes_at_ms", 0L).takeIf { it > 0L },
+        projectionOpenUntilMs = payload.optLong("projection_open_until_ms", 0L).takeIf { it > 0L },
+        overtimeUntilMs = payload.optLong("overtime_until_ms", 0L).takeIf { it > 0L },
+        scheduleKey = payload.optString("schedule_key"),
+        scheduleVersion = payload.optLong("schedule_version", 0L),
+        decision = nullable(payload, "decision"),
+        normalWindowOpen = payload.optBoolean("normal_window_open", false),
+        overtimeOpen = payload.optBoolean("overtime_open", false),
+        earlyStartOpen = payload.optBoolean("early_start_open", false),
+        startMinutes = payload.optInt("start_minutes", 6 * 60),
+        endMinutes = payload.optInt("end_minutes", 22 * 60),
+        overtimeCutoffMinutes = payload.optInt("overtime_cutoff_minutes", 5 * 60),
+    )
 
     fun registerNotificationDevice(deviceId: String, token: String): JSONObject = request(
         "POST", "/api/notifications/device",
@@ -388,6 +418,10 @@ class InventoryApi(
                 batchVersion = row.optInt("batch_version", 1), sku = row.optString("sku"),
                 productName = row.optString("product_name"), status = row.optString("status"),
                 resolution = row.optString("resolution"), resolvedAt = nullable(row, "resolved_at"),
+                resolutionSource = nullable(row, "resolution_source"),
+                resolvedByDisplayName = nullable(row, "resolved_by_display_name"),
+                resolvedByEmployeeCode = nullable(row, "resolved_by_employee_code"),
+                resolvedByRole = nullable(row, "resolved_by_role"),
                 receivedAt = nullable(row, "received_at"), displayedAt = nullable(row, "displayed_at"),
                 acknowledgedAt = nullable(row, "acknowledged_at"),
             )
@@ -511,6 +545,7 @@ class InventoryApi(
             updateSession(null)
             throw ApiException(401, "SESSION_REFRESH_FAILED", "Không thể làm mới phiên đăng nhập.")
         }
+        payload.optJSONObject("operating_window")?.let { lastOperatingWindow = parseOperatingWindow(it) }
         updateSession(
             current.copy(
                 idToken = idToken,

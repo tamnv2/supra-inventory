@@ -7,16 +7,34 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 class StockMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         NotificationSignalStore.saveToken(applicationContext, token)
+        getSharedPreferences("d149_schedule_topic", MODE_PRIVATE)
+            .edit().putBoolean("subscribed", false).apply()
+        FirebaseMessaging.getInstance().subscribeToTopic(OperatingScheduleStore.FCM_TOPIC)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    getSharedPreferences("d149_schedule_topic", MODE_PRIVATE)
+                        .edit().putBoolean("subscribed", true).apply()
+                }
+            }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         val event = message.data["event"].orEmpty()
+        if (event == "operating_schedule_changed") {
+            OperatingScheduleStore.applyFcm(applicationContext, message.data)
+            sendBroadcast(
+                Intent(ACTION_OPERATING_SCHEDULE_CHANGED)
+                    .setPackage(packageName)
+            )
+            return
+        }
         if (event == "sku_catalog_updated") {
             NotificationSignalStore.markSkuCatalogRefresh(applicationContext)
             return
@@ -145,5 +163,7 @@ class StockMessagingService : FirebaseMessagingService() {
 
     companion object {
         const val CHANNEL_ID = "inventory_operations"
+        const val ACTION_OPERATING_SCHEDULE_CHANGED =
+            "cd.cc.supra.inventory.beta.OPERATING_SCHEDULE_CHANGED"
     }
 }

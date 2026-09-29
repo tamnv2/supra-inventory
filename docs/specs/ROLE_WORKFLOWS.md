@@ -749,3 +749,16 @@ If the reload returns to login, Dashboard, a partial DOM, or another page, exist
 2. Agent also requests an authoritative Beta Worker Android-session revoke.
 3. Worker sends one best-effort backward-compatible re-login Picker command, then advances Android session generation, clears the Android device/presence state, disables the old notification target and closes Android realtime.
 4. Supported clients return to login immediately. Older command-capable clients may at least show the re-login alert; arbitrary older clients without a compatible listener may keep a stale local screen while idle, but after server revocation their previous business session is invalid.
+
+## D149 unified fleet schedule workflow
+
+- Normal automatic replay is 06:00–22:00 Asia/Ho_Chi_Minh.
+- Agent is the schedule-decision channel. Any authenticated Agent operator may act at an eligible boundary; the first successful CAS decision wins for the fleet.
+- At 21:30, and at each HH:30 while an accepted extension is still active, show one decision for the next boundary. Extension is exactly one hour and cannot pass 05:00.
+- No response by 22:00 means sleep by deterministic default; do not write a synthetic STOP solely to encode that default.
+- A sleeping Agent between 22:00 and 05:00 exposes **Điều chỉnh tăng ca**. Manual reopen goes only to the next whole-hour boundary, capped at 05:00, while preserving the next scheduled HH:30 decision as a separate boundary.
+- From 05:00–<06:00 expose **Bật sớm trước 06:00**. The shared early-start state expires at 06:00, then the normal schedule applies.
+- Direct/manual Agent confirmation remains available according to its existing accepted rules during replay sleep.
+- All Agents consume the same shared schedule authority. Deep-hibernate Agents must not gain a new schedule listener; they reconcile authority before promotion/business mutation.
+- Web shows the shared schedule state and does not create an independent competing overtime authority.
+- Android Báo hàng and PickList use the same effective operating window. Shift closure must not force logout merely to represent schedule state.

@@ -3764,6 +3764,37 @@
         "result": "PASS",
         "evidence": "Owner explicitly confirmed 'D148 pass' after field review of live Beta Web and signed beta-vc87."
       }
+    },
+    {
+      "id": "OA077",
+      "status": "BLOCKED_PENDING_D149_TECHNICAL_RELEASE_PASS",
+      "title": "Field-accept D149 unified operations and schedule",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can validate cross-device shift behavior, notification attribution, recent-history UX and Agent browser storage migration in real warehouse conditions.",
+      "prerequisites": {
+        "accepted_base": "D148_OWNER_FIELD_ACCEPTED_PASS",
+        "d149_scope": "OWNER_APPROVED_2026_09_29",
+        "technical_release": "PENDING",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Verify 06:00–22:00 automatic replay, 05:00 early-start to 06:00, 21:30/HH:30 one-hour overtime prompts, first-Agent decision wins fleet-wide, no-decision 22:00 sleep, and sleeping Điều chỉnh tăng ca capped at 05:00.",
+        "Verify Android Picker/Reporter follows the same open_until state for Báo hàng/PickList, including a device that missed FCM then restarts/reconnects.",
+        "Verify resolved-result overlay identifies product, confirmer and role/source.",
+        "Verify Web recent results can browse explicit bounded date ranges and open matching reporting.",
+        "Move Agent Web data to another fixed local drive/folder; verify managed Web is closed if required, data is verified, reopened and rollback remains safe.",
+        "Verify PickList UI no longer shows the removed Hôm nay cluster while durable counters remain operational."
+      ],
+      "pass_criteria": [
+        "No schedule polling, reconnect storm, hot-document Function trigger or per-PDA Firestore fan-out.",
+        "First successful Agent CAS decision is fleet authority; later conflicting clicks cannot overwrite that boundary.",
+        "Default sleep at 22:00 creates no schedule write and remains low usage.",
+        "Overtime never extends beyond 05:00 and normal replay begins automatically at 06:00.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Wait until D149 technical/runtime/release PASS, then perform the shortest field checks and explicitly confirm PASS or report NOT PASS.",
+      "closed": false
     }
   ]
 }
