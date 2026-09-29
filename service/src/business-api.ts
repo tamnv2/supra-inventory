@@ -113,7 +113,7 @@ function actor(user: InternalUser): { user_id: string; employee_code: string | n
 
 function pickerShortageReportingEnabled(user: InternalUser): boolean {
   if (user.role !== "PICKER") return true;
-  return user.shortage_reporting_enabled == null || user.shortage_reporting_enabled === true || Number(user.shortage_reporting_enabled) === 1;
+  return user.shortage_reporting_enabled === true || Number(user.shortage_reporting_enabled ?? 0) === 1;
 }
 
 async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
