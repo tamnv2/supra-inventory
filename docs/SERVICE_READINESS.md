@@ -1525,3 +1525,22 @@ Derived current-status markers:
 - Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
 - Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
 - SQLite schema: `14`
+
+
+## D154 technical/runtime/release PASS — 2026-09-30
+
+- Implementation PR #324 -> main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`.
+- Beta Worker run `36609749783` PASS: HTTP 200, exact source `4aa06e7b`, SQLite 14/14, Operational V2 5/5, Agent migration 0/0.
+- Beta Functions run `36609749800` PASS and created `operatingScheduleChanged(asia-southeast1)`.
+- Signed Android **beta-vc90** release id `399404364`, asset `598876063`, size 19,118,744 bytes, SHA-256 `b3204970660096768950de870ccf6b8a6329018f6f27ccde12d83b24189a1cf4`.
+- Agent **relay-agent-v88** release id `399403230`, asset `598872709`, size 7,081,472 bytes, SHA-256 `74128bc35fdc8b635e512b8af7a59131d0c932c7865b8597c31399d4d7a3d8f2`.
+- Inventory channel APK and Agent EXE match those release digests. Existing verified Fixed WebView2 bundle remains unchanged.
+- Main UI, Authority, State and Dashboard gates PASS. Agent attempt 1 hit a transient Microsoft Fixed Runtime selector/download race after v88 publication; attempt 2 PASS with no source hotfix. PR #325 was closed unmerged.
+- Accepted base remains D153. OA082 is READY_FOR_OWNER_FIELD_TEST.
+- No new provider/resource/schema/secret/listener/polling/cron. Stable remains OWNER-GATED.
+
+Derived current-status markers:
+- Latest Beta APK: `beta-vc90`
+- Android: `D154_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC90__PERMISSION_VERSION_SCHEDULE_SYNC`
+- Web: `D154_TECHNICAL_RUNTIME_PASS__UNIFIED_0545_2230__MAIN_4AA06E7B`
+- SQLite schema: `14`

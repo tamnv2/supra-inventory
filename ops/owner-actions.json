@@ -4009,7 +4009,7 @@
     },
     {
       "id": "OA082",
-      "status": "BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D154 unified schedule, synchronization recovery and Android setup/version UX",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -4017,8 +4017,11 @@
       "prerequisites": {
         "accepted_base": "D153_OWNER_FIELD_ACCEPTED_PASS",
         "d154_owner_approval": "PASS__2026_09_30",
-        "target_agent_release": "relay-agent-v88",
-        "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC89",
+        "main_commit": "4aa06e7be0731ebe3b5fb05d30653de30fbdc406",
+        "worker_run": "36609749783__PASS",
+        "functions_run": "36609749800__PASS__OPERATING_SCHEDULE_CHANGED_CREATED",
+        "android": "beta-vc90__RUN_36609749611__PASS__SHA256_B3204970660096768950DE870CCF6B8A6329018F6F27CCDE12D83B24189A1CF4",
+        "agent": "relay-agent-v88__RUN_36609749714_ATTEMPT2__PASS__SHA256_74128BC35FDC8B635E512B8AF7A59131D0C932C7865B8597C31399D4D7A3D8F2",
         "stable": "OWNER_GATED_UNTOUCHED"
       },
       "shortest_test_path": [
@@ -4038,7 +4041,7 @@
         "No new polling, listener, cron, provider resource, collection/schema or secret is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until D154 technical/runtime/release PASS.",
+      "remaining_owner_action": "Run the D154 field path on warehouse Android 11 + Agent/Web and explicitly report PASS or NOT PASS. Until PASS, D153 remains the accepted base and no D155 may open.",
       "closed": false
     }
   ]

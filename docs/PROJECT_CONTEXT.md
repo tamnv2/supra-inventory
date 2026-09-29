@@ -772,3 +772,14 @@ D152 is Owner-field accepted PASS on 2026-09-29. The accepted Beta base now incl
 - Confirmation cadence remains 3s active / 15s inactive / 1s bounded HOT; PRIMARY lease 10s and failover 15s are unchanged.
 - Streaming redesign D remains deferred. Stable remains OWNER-GATED.
 - Serial Owner-PASS gate is open for the next separately reviewed change.
+
+
+## D154 technical release checkpoint
+
+D154 is technically/runtime released on Beta at main `4aa06e7be0731ebe3b5fb05d30653de30fbdc406`; explicit Owner field acceptance is still pending under OA082, so D153 remains the accepted base.
+
+- Shared normal schedule: **05:45–22:30** Asia/Ho_Chi_Minh; early start **05:00–05:45**; overtime remains capped at **05:00** with 22:30-anchored one-hour boundaries.
+- Agent is the single schedule writer. `CANCEL_OVERTIME` closes the current override immediately; Web remains read-only.
+- `operatingScheduleChanged` is now actually deployed as a Beta Cloud Function in `asia-southeast1`. Android retains event-driven FCM and only performs one exact schedule-document Firestore read when a blocked PickList still sees a closed Worker mirror.
+- Beta releases: Android `beta-vc90`; Agent `relay-agent-v88`.
+- No new provider resource, collection/schema, secret, listener, polling loop or cron. Stable remains OWNER-GATED.
