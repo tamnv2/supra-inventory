@@ -3814,7 +3814,7 @@
     },
     {
       "id": "OA078",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_ACCEPTED_D150",
       "title": "Field-accept D150 quota-safe Agent coordination and manual PRIMARY",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3841,8 +3841,8 @@
         "Fleet and Picker-contact views remain operational without broad historical scans.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Install/update Agent to relay-agent-v85, run the shortest field test, then explicitly report PASS or NOT PASS. D149 remains accepted until PASS.",
-      "closed": false,
+      "remaining_owner_action": "None. Owner explicitly confirmed D150 PASS on 2026-09-29.",
+      "closed": true,
       "technical_release_evidence": {
         "main_commit": "c9d42c701f66283f447aad4f24c8f9043db17e37",
         "implementation_pr": 306,
@@ -3859,6 +3859,11 @@
         "ui_guard_run_id": 36532689242,
         "authority_run_id": 36532689218,
         "project_state_run_id": 36532689312
+      },
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D150 PASS after field review of the released D150 Beta Agent coordination/manual PRIMARY scope."
       }
     }
   ]
