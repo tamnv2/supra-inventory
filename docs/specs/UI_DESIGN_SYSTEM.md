@@ -948,3 +948,12 @@ The pre-login permission gate keeps only three blocking permission cards: **Thô
 - **Chế độ tương thích Overlay · Sẵn sàng** when native DND bypass is unavailable.
 
 Compatibility copy must be device-agnostic and must not name a failing model/firmware. It must state that Overlay is the primary business-alert surface and that the three hard capabilities remain mandatory.
+
+
+## D154 schedule and Android setup presentation
+
+- Android login footer is one line with two aligned small secondary labels: left **Phiên bản beta <base> - version <code>**, right the existing developer credit. Both use the same size/font treatment; version values come from the running build.
+- The permission screen begins with a visually distinct **ƯU TIÊN 1 · KHÔNG LÀM PHIỀN + OVERLAY** group. The copy instructs the operator to test native DND first and explains Overlay compatibility without treating DND failure as a blocking red error.
+- Overlay remains a required operational capability even when native DND passes. **Thông báo ứng dụng** and **Không tối ưu pin** remain required cards below the priority group. Existing **Kiểm tra cấp quyền** and **Đặt lại mặc định** controls remain available.
+- Agent schedule copy uses **Replay tự động 05:45–22:30**, **Bật sớm trước 05:45**, **Điều chỉnh tăng ca**, and **Huỷ tăng ca**.
+- While an outside-normal override is active, Agent visibly states the shared effective-until time. Web Ca vận hành displays the same 05:45–22:30 authority and maps `CANCEL_OVERTIME` to **Đã huỷ tăng ca**.

@@ -1508,3 +1508,20 @@ Derived current-status marker:
 
 Derived current-status marker:
 - `D153_OWNER_FIELD_ACCEPTED_PASS__MAIN_D69566EE__AGENT_V87__OA081_CLOSED`
+
+
+## D154 Owner-approved source candidate — 2026-09-30
+
+- Accepted runtime remains D153 Owner PASS; D154 is source-only pending PR gates and deployment.
+- Normal shared schedule target: **05:45–22:30**, early start 05:00–05:45, overtime capped at 05:00 with 22:30-anchored one-hour boundaries.
+- Agent target `relay-agent-v88`; Android target is the next monotonic signed Beta after `beta-vc89`.
+- `operatingScheduleChanged` is now included in the Beta Functions deploy allow-list; this repairs the identified source/deployment mismatch behind Agent projection PASS with Worker schedule version 0.
+- Recovery remains bounded: one in-event Worker mirror retry and one exact Firestore GET only for a blocked Android PickList that still sees a closed Worker state.
+- No new provider/resource/schema/secret/listener/polling/cron. Stable remains OWNER-GATED.
+- OA082 is blocked pending technical/runtime/release PASS.
+
+Derived current-status markers:
+- Latest Beta APK: `beta-vc89`
+- Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
+- Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
+- SQLite schema: `14`

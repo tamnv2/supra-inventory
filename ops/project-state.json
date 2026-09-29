@@ -33,7 +33,7 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D153_OWNER_FIELD_ACCEPTED_PASS__AGENT_V87__QUOTA_SAFE_PICKER_PRESENCE_DEDUPE__D152_CONFIRM_RECOVERY_RETAINED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D153_OWNER_ACCEPTED_PASS__D153_ACCEPTED_BASE",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D153_ACCEPTED_BASE__D154_CURRENT_CHANGE_OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
     "owner_acceptance": "D153_OWNER_FIELD_ACCEPTED_PASS__OA081_CLOSED__D153_ACCEPTED_BASE",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D153 Owner PASS is recorded as the accepted Beta base. Serial Owner-PASS gate is open for the next separately reviewed change. Agent relay-agent-v87 and Android beta-vc89 remain current; Stable remains OWNER-GATED.",
+  "next_action": "D154 implementation branch -> PR authority/continuity/runtime gates -> merge -> Beta Worker/Functions/Android/Agent release verification -> OA082 Owner field test. Accepted base remains D153 until explicit Owner D154 PASS.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -724,7 +724,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-09-29",
+  "last_updated": "2026-09-30",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -840,7 +840,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D153_OWNER_FIELD_ACCEPTED_PASS__OA081_CLOSED",
+  "active_workstream": "D154_OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2463,10 +2463,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D153",
     "accepted_base_evidence": "OWNER_EXPLICIT_D153_PASS__RELAY_AGENT_V87__2026_09_29",
-    "current_change_id": "D153",
-    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V87",
-    "owner_pass_required_to_unlock_next_change": false,
-    "next_change_allowed": true,
+    "current_change_id": "D154",
+    "current_change_status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "owner_pass_required_to_unlock_next_change": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D153_OWNER_ACCEPTED__MAIN_D69566EE__AGENT_V87__BETA_WORKER_PICKER_PRESENCE_WRITE_DEDUPE__ANDROID_VC89_UNCHANGED",
-    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_FIRESTORE_AGENT__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON_ANDROID_BUILD",
+    "runtime_impact": "D154_SOURCE_ONLY_PENDING_PR__ACCEPTED_RUNTIME_REMAINS_D153__TARGET_AGENT_V88__ANDROID_NEXT_AFTER_VC89",
+    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_FIRESTORE_FUNCTIONS_ANDROID_AGENT_WEB__NO_NEW_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3113,5 +3113,56 @@
       "accepted_at": "2026-09-29",
       "next_change_allowed": true
     }
+  },
+  "d154": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "date": "2026-09-30",
+    "baseline_change": "D153",
+    "baseline_main": "4f360cbabe1577d4763d09b15a15d28acd8a6353",
+    "branch": "feat/d154-unified-schedule-permission-version",
+    "accepted_base": "D153",
+    "owner_approved_scope": [
+      "ANDROID_LOGIN_DYNAMIC_VERSION_FOOTER",
+      "ANDROID_DND_OVERLAY_PRIORITY_SETUP_WITH_D151_HARD_GATES_RETAINED",
+      "NORMAL_WINDOW_0545_2230",
+      "OVERTIME_BOUNDARIES_2230_2330_0030_CAPPED_0500",
+      "EARLY_START_0500_0545",
+      "AGENT_VISIBLE_SHARED_OVERTIME_STATE_AND_CANCEL_OVERTIME",
+      "CANCEL_OVERTIME_SHARED_DECISION",
+      "ACTION_DRIVEN_SCHEDULE_REPROJECT_SELF_HEAL",
+      "DEPLOY_OPERATING_SCHEDULE_CHANGED_FUNCTION",
+      "FUNCTION_WORKER_MIRROR_ONE_BOUNDED_RETRY",
+      "ANDROID_BLOCKED_PICKLIST_ONE_EXACT_FIRESTORE_SCHEDULE_GET_ON_STALE_WORKER",
+      "NO_NEW_POLLING_LISTENER_CRON_RESOURCE",
+      "STABLE_UNTOUCHED"
+    ],
+    "base_impact": "YES__BETA_ANDROID_AGENT_FUNCTIONS_WORKER_WEB_SHARED_SCHEDULE",
+    "affected_components": [
+      "android/app/src/main/res/layout/activity_login.xml",
+      "android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt",
+      "android/app/src/main/java/cd/cc/supra/inventory/beta/OperatingScheduleStore.kt",
+      "android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt",
+      "relay-agent/AgentBusinessSchedule.cs",
+      "relay-agent/FirestoreAgentLeaderCoordinator.cs",
+      "relay-agent/Program.cs",
+      "functions/src/index.ts",
+      ".github/workflows/deploy-beta-functions.yml",
+      "service/src/alert-window-core.ts",
+      "web/src/operational-app.ts",
+      "regression guards and canonical authority/spec/state"
+    ],
+    "regression_stability_risk": "MEDIUM__CROSS_CLIENT_TIME_BOUNDARY_AND_PROJECTION_CONVERGENCE__MITIGATED_BY_SINGLE_SHARED_VERSION_EXACT_DOCUMENT_RECOVERY_AND_NO_NEW_BACKGROUND_CADENCE",
+    "resource_quota_security_impact": "LOWER_OR_EQUAL_NORMAL_USAGE__ONE_EVENT_LOCAL_RETRY_ONLY__ONE_EXACT_GET_ONLY_WHEN_BLOCKED__NO_NEW_PROVIDER_COLLECTION_SCHEMA_SECRET_LISTENER_POLLING_CRON",
+    "root_cause": "OPERATING_SCHEDULE_CHANGED_FUNCTION_EXISTED_IN_SOURCE_BUT_WAS_OMITTED_FROM_BETA_FUNCTION_DEPLOY_ALLOW_LIST__AGENT_FIRESTORE_PROJECTION_SUCCEEDED_WHILE_WORKER_FCM_MIRROR_DID_NOT_CONVERGE",
+    "recommended_approach": "DEPLOY_EXISTING_LOW_FREQUENCY_TRIGGER__BOUNDED_MIRROR_RETRY__ANDROID_STALE_SUCCESS_EXACT_GET_RECOVERY__UNIFIED_0545_2230_CONSTANTS__EXPLICIT_CANCEL_OVERTIME",
+    "preimplementation_owner_approval": "PASS__OWNER_EXPLICIT_D154_APPROVAL__2026_09_30",
+    "target_agent_release": "relay-agent-v88",
+    "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC89__EXPECTED_BETA_VC90_IF_NO_INTERVENING_RELEASE",
+    "new_provider_resources": "NONE",
+    "new_firestore_collections": "NONE",
+    "new_secrets": "NONE",
+    "new_polling_listener_cron": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "field_gate": "OA082_BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS"
   }
 }

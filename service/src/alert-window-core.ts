@@ -30,8 +30,8 @@ export interface OperatingScheduleMirrorInput {
 }
 
 const CONFIG_KEY = "d149_operating_schedule";
-const START_MINUTES = 6 * 60;
-const END_MINUTES = 22 * 60;
+const START_MINUTES = 5 * 60 + 45;
+const END_MINUTES = 22 * 60 + 30;
 const OVERTIME_CUTOFF_MINUTES = 5 * 60;
 const HOUR_MS = 60 * 60_000;
 
@@ -124,6 +124,7 @@ function projectionApplies(nowMs: number, stored: ReturnType<typeof storedConfig
   return Boolean(
     stored.scheduleKey &&
     stored.scheduleKey === scheduleKeyForNow(nowMs) &&
+    stored.decision !== "CANCEL_OVERTIME" &&
     stored.openUntilMs > nowMs &&
     stored.version > 0
   );
@@ -151,7 +152,7 @@ export function readAndroidAlertWindow(
   if (normalOpen) {
     closesAtMs = Math.max(standardClose, projectedOpen ? stored.openUntilMs : 0);
   } else if (earlyStartOpen) {
-    // Early start joins the deterministic 06:00-22:00 window without a gap.
+    // Early start joins the deterministic 05:45-22:30 window without a gap.
     closesAtMs = standardClose;
   } else if (overtimeOpen) {
     closesAtMs = stored.openUntilMs;
@@ -192,7 +193,7 @@ export function mirrorAndroidOperatingSchedule(
   const updatedAtMs = Math.max(0, Math.trunc(Number(body.updated_at_ms || 0)));
   const updatedBy = String(body.updated_by_agent_instance_id || "").trim().slice(0, 160);
 
-  if (!/^\d{8}$/.test(scheduleKey) || version <= 0 || !["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START"].includes(decision)) {
+  if (!/^\d{8}$/.test(scheduleKey) || version <= 0 || !["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START", "CANCEL_OVERTIME"].includes(decision)) {
     throw new Error("INVALID_OPERATING_SCHEDULE");
   }
   // STOP means "do not extend the next boundary", not "kill the active hour now".

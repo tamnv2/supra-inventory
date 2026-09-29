@@ -2006,3 +2006,22 @@ OA081 Owner field PASS should verify one already-LOGIN Picker sends several real
 
 
 D153 Owner result: **PASS** on 2026-09-29. OA081 is closed after explicit Owner field acceptance of released `relay-agent-v87` with Android `beta-vc89` unchanged. D153 is promoted to the accepted base; technical/release evidence remains PR #321 → main `d69566ee0ae6294573ec91f9eb649764e91561ee`, Agent release id `399311941`, EXE SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`. Deferred streaming redesign D remains outside accepted scope; Stable remains OWNER-GATED.
+
+
+## D154 unified schedule and synchronization acceptance
+
+Technical PASS requires all of the following:
+- accepted base remains D153 until Owner field PASS; Stable remains untouched;
+- Agent version advances to `relay-agent-v88`; Android advances monotonically after `beta-vc89`;
+- Agent, Function payload, Worker, Android and Web all use normal start 05:45, normal end 22:30 and overtime cutoff 05:00;
+- boundary tests cover 04:59, 05:00, 05:44, 05:45, 22:29 and 22:30;
+- overtime cadence follows 22:30 → 23:30 → 00:30 ... and cannot pass 05:00;
+- active overtime shows the shared-until state in Agent; **Huỷ tăng ca** creates `CANCEL_OVERTIME` and closes Android/Web state immediately;
+- `operatingScheduleChanged` is included in the Beta Functions deployment list and CI guard;
+- an Agent schedule action produces a nonzero Worker schedule version after Function mirror and Web receives the existing realtime `operating_schedule` invalidation;
+- Android blocked PickList reconciliation performs at most one exact Firestore schedule GET after a successful-but-closed Worker response, under the existing 60-second attempt gate and with no background polling;
+- login footer version comes from the running BuildConfig; the DND+Overlay setup group is visually first while Notification/Overlay/battery hard readiness remains intact;
+- D150 queue/lease/failover timings, D152 confirmation fences and D153 quota dedupe remain unchanged;
+- no new provider, collection/schema, listener, polling loop, cron or secret is introduced.
+
+Owner field PASS verifies Agent overtime after 22:30, Android/Web convergence, Huỷ tăng ca convergence, 05:45/22:30 boundaries, and Android permission/version presentation on warehouse devices.

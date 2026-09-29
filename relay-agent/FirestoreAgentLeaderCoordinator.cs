@@ -355,7 +355,15 @@ namespace SupraInventoryRelayAgent
                         string.Equals(current.ScheduleKey ?? "", scheduleKey, StringComparison.Ordinal) &&
                         current.RelayOverrideUntilMs >= relayOverrideUntilMs)
                     {
-                        _log("FIRESTORE SCHEDULE manual_adjust=NOOP existing_until_ms=" +
+                        // D154: an explicit repeated action may repair a missed low-frequency
+                        // projection without adding any timer, listener or retry loop.
+                        TryPublishOperatingScheduleProjection(
+                            session,
+                            current.ScheduleKey ?? scheduleKey,
+                            string.IsNullOrWhiteSpace(current.ScheduleDecision) ? "MANUAL_ADJUST" : current.ScheduleDecision,
+                            current.DecisionBoundaryMs > 0 ? current.DecisionBoundaryMs : adjustmentAtMs,
+                            current.RelayOverrideUntilMs);
+                        _log("FIRESTORE SCHEDULE manual_adjust=REPROJECT existing_until_ms=" +
                              current.RelayOverrideUntilMs);
                         return true;
                     }
@@ -383,6 +391,44 @@ namespace SupraInventoryRelayAgent
             }
             return false;
         }
+
+        internal bool PublishCancelOvertime(string scheduleKey, long cancelAtMs)
+        {
+            if (string.IsNullOrWhiteSpace(scheduleKey) || cancelAtMs <= 0)
+                return false;
+
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var read = ReadRoles(session);
+                    var current = read.Snapshot;
+                    ApplySharedSchedule(current);
+
+                    if (!TryWriteScheduleFields(
+                        session, scheduleKey, "CANCEL_OVERTIME", cancelAtMs, cancelAtMs, read))
+                        continue;
+
+                    SetSharedSchedule(scheduleKey, "CANCEL_OVERTIME", cancelAtMs, cancelAtMs);
+                    if (_role == FirestoreAgentRole.PRIMARY) WritePrimaryLease(session);
+                    TryPublishOperatingScheduleProjection(
+                        session, scheduleKey, "CANCEL_OVERTIME", cancelAtMs, cancelAtMs);
+                    _log("FIRESTORE SCHEDULE cancel_overtime=PASS at_ms=" + cancelAtMs +
+                         " role=" + _role);
+                    try { _wake.Set(); } catch { }
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE SCHEDULE cancel_overtime=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+            return false;
+        }
+
 
         internal bool PublishEarlyStartAndClaimPrimary(string scheduleKey, long relayOverrideUntilMs)
         {
@@ -1457,8 +1503,8 @@ namespace SupraInventoryRelayAgent
                     { "decision", StringField(decision ?? "") },
                     { "decision_boundary_ms", IntField(Math.Max(0L, boundaryMs)) },
                     { "open_until_ms", IntField(Math.Max(0L, overrideUntilMs)) },
-                    { "normal_start_minutes", IntField(6 * 60) },
-                    { "normal_end_minutes", IntField(22 * 60) },
+                    { "normal_start_minutes", IntField(5 * 60 + 45) },
+                    { "normal_end_minutes", IntField(22 * 60 + 30) },
                     { "overtime_cutoff_minutes", IntField(5 * 60) },
                     { "updated_at_ms", IntField(now) },
                     { "updated_by_agent_instance_id", StringField(_instanceId) }

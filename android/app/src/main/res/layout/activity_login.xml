@@ -141,18 +141,40 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:autoSizeMaxTextSize="10sp"
-            android:autoSizeMinTextSize="7sp"
-            android:autoSizeStepGranularity="1sp"
-            android:autoSizeTextType="uniform"
-            android:gravity="end"
-            android:maxLines="1"
-            android:text="Phát triển hệ thống - tamnv2 | Pick Pack 1291"
-            android:textColor="@color/text_secondary"
-            android:textSize="7sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvLoginVersion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="10sp"
+                android:autoSizeMinTextSize="7sp"
+                android:autoSizeStepGranularity="1sp"
+                android:autoSizeTextType="uniform"
+                android:gravity="start"
+                android:maxLines="1"
+                android:textColor="@color/text_secondary"
+                android:textSize="7sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="10sp"
+                android:autoSizeMinTextSize="7sp"
+                android:autoSizeStepGranularity="1sp"
+                android:autoSizeTextType="uniform"
+                android:gravity="end"
+                android:maxLines="1"
+                android:text="Phát triển hệ thống - tamnv2 | Pick Pack 1291"
+                android:textColor="@color/text_secondary"
+                android:textSize="7sp" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>
