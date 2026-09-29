@@ -2289,3 +2289,20 @@ Resource/quota/security impact:
 
 Field objective: install the same APK on one normal MT90 and one failing MT90, reproduce/open DND access state as observed, press `GỬI LOG VỀ BETA` on each, then compare the two resulting logs to distinguish firmware/build mismatch, profile/policy restriction, stale secure-settings projection, NotificationManager policy-access mismatch, or channel bypass failure.
 
+
+
+### D151 repair probe — package DND detail + overlay compatibility test
+
+Owner approved on 2026-09-29 after field evidence from one normal MT90 and two distinct failing MT90 devices.
+
+Field evidence:
+- normal `MT90-GL_V8.04.006`: Notification Policy API granted, secure policy list contains the diagnostic package and the high-importance diagnostic channel can bypass DND;
+- two distinct `MT90-GL_V8.01.002` devices: Notification Policy API false, secure policy list does not contain the package and no bypass-DND channel can be created; sampled devices are not managed profiles and have no relevant sound/settings restriction;
+- therefore D151 remains open and the next action is a bounded diagnostic repair probe, not a production permission bypass.
+
+Owner-approved probe:
+1. Keep production `1291 Báo hàng Beta` at signed `beta-vc88`; do not change its readiness gate yet.
+2. Revise only the standalone D151 diagnostic APK to try the package-specific Android DND detail action `android.settings.NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS` with `package:<diagnostic package>`, falling back safely to the existing DND list when the OEM does not resolve the detail activity.
+3. Add a local `TYPE_APPLICATION_OVERLAY` 15-second probe using the diagnostic package's own `SYSTEM_ALERT_WINDOW` permission. The probe is local-only and must not add Firebase, Worker polling, Firestore, listeners or scheduled traffic.
+4. Field-test on a failing V8.01.002 device. If package-detail settings repairs the real Notification Policy backend, production can later adopt that route under D151 after a new impact review. If it does not, the overlay probe provides evidence for a narrowly-scoped firmware compatibility mode proposal; no production compatibility mode is authorized by this probe alone.
+5. Stable remains OWNER-GATED and untouched.

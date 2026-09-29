@@ -3868,32 +3868,35 @@
     },
     {
       "id": "OA079",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
-      "title": "Collect paired MT90 DND diagnostic logs",
+      "status": "DIAGNOSTIC_REPAIR_BUILD_PENDING",
+      "title": "Verify MT90 DND detail route and overlay compatibility probe",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
-      "reason_owner_only": "Only the Owner can install the same diagnostic APK on the physical normal/failing MT90 devices and reproduce the OEM Android 11 DND settings state.",
+      "reason_owner_only": "Only the Owner can run the revised standalone diagnostic APK on the physical MT90 V8.01.002 device and confirm the OEM Settings screen and cross-app overlay behavior.",
       "prerequisites": {
         "accepted_base": "D150_OWNER_FIELD_ACCEPTED_PASS",
         "d151_scope": "ONE_STANDALONE_DND_DIAGNOSTIC_APK__BETA_ONLY_LOG_INTAKE",
         "production_android": "beta-vc88__UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
         "d151_technical_release": "PASS__MAIN_A7AC9315__WORKER_RUN_36544445299__APK_RUN_36544445475",
-        "diagnostic_artifact": "mt90-dnd-diagnostic-apk__ARTIFACT_11022311454__SHA256_4c62afef28251e99a90bcd7ac69fc0f5beba70d08dc181e9b61056ffbf5d6ed4"
+        "diagnostic_artifact": "mt90-dnd-diagnostic-apk__ARTIFACT_11022311454__SHA256_4c62afef28251e99a90bcd7ac69fc0f5beba70d08dc181e9b61056ffbf5d6ed4",
+        "d151_repair": "OWNER_APPROVED__PACKAGE_DND_DETAIL_PLUS_LOCAL_OVERLAY_PROBE__BUILD_PENDING"
       },
       "shortest_test_path": [
-        "Install the supplied MT90 DND Diagnostic APK on one normal MT90 and one failing MT90.",
-        "Open the DND settings from the APK and observe/reproduce the current permission state; return to the APK.",
-        "Press GỬI LOG VỀ BETA once on each device.",
-        "Report that both sends completed; AI will read the two latest manual_dnd_diagnostic files from Inventory/Beta/logs and compare them."
+        "Uninstall the previous MT90 DND Diagnostic test APK if Android reports a signing/update conflict; do not uninstall 1291 Báo hàng Beta.",
+        "Install the revised standalone D151 diagnostic APK on one failing MT90 V8.01.002.",
+        "Press 1. MỞ DND CHI TIẾT APP. If the per-app switch is usable, change it once as needed, return, and press LÀM MỚI TRẠNG THÁI.",
+        "Grant Hiển thị trên ứng dụng khác to the diagnostic APK, then press 4. TEST OVERLAY 15 GIÂY. The app should move to Home and the diagnostic overlay should remain visible above it.",
+        "Press GỬI LOG VỀ BETA after the DND-detail attempt and report whether the detail switch changed backend readiness and whether the overlay probe appeared."
       ],
       "pass_criteria": [
-        "Two distinct device hashes are present.",
-        "Each log contains build fingerprint/security patch, user/profile state, policy API result, secure policy package membership and channel bypass result.",
-        "No production Beta APK update/reinstall is required for this diagnostic.",
+        "The revised APK builds independently and production beta-vc88 is not changed.",
+        "Package-specific DND detail settings either resolves and changes real Notification Policy authority, or its failure is observed without pretending permission is granted.",
+        "TYPE_APPLICATION_OVERLAY probe is verified visually on the failing firmware when overlay permission is granted.",
+        "No new provider/polling/listener/background quota path is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Install the delivered MT90 DND Diagnostic APK on one normal MT90 and one failing MT90. On each device open/return from DND settings if useful, then press GỬI LOG VỀ BETA once. After both report success, tell AI both logs were sent.",
+      "remaining_owner_action": "Pending revised APK artifact. After delivery, run the DND-detail and Overlay probe on a failing MT90 V8.01.002 and send one manual diagnostic log.",
       "closed": false
     }
   ]

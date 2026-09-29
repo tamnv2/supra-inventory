@@ -1931,3 +1931,15 @@ Field evidence is Owner-only and is not implied by CI. Use the same built APK on
 
 On each device, return from the DND settings surface, refresh if needed, then press `GỬI LOG VỀ BETA` once. PASS for the diagnostic collection step requires two separate `manual_dnd_diagnostic` logs in the Beta logs folder with distinct device hashes and sufficient fields to compare policy API, secure-settings projection, channel bypass, firmware/build and profile state. D151 remains open until those field logs are analyzed and the Owner accepts the resulting root-cause conclusion/repair direction.
 
+
+
+### D151 repair-probe acceptance
+
+The revised standalone diagnostic APK must satisfy all of the following before field use:
+- production `android/`, Agent, Web and Stable runtime source are unchanged;
+- package-specific DND detail intent uses the literal Android action `android.settings.NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS` with a `package:` URI and safely falls back to the normal DND access list when unresolved;
+- the diagnostic manifest alone adds `SYSTEM_ALERT_WINDOW` and `FOREGROUND_SERVICE`; the overlay probe uses `TYPE_APPLICATION_OVERLAY` only after `Settings.canDrawOverlays()` is true;
+- pressing the overlay test starts a bounded 15-second local probe, returns the user to Home, remains visible above normal app windows when supported, and stops/removes itself without a retry loop;
+- the existing manual Beta diagnostic upload remains the only network action and keeps the existing bounded schema/throttle/archive path;
+- CI checks the detail-action, overlay permission and `TYPE_APPLICATION_OVERLAY` source boundary;
+- field result distinguishes: real DND backend repaired by per-app detail settings vs DND still denied but overlay path operational. Neither result silently weakens the production readiness gate.
