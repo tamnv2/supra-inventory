@@ -1967,3 +1967,18 @@ OA079 field PASS requires testing the signed D151 Beta on:
 On each device, Notification + Overlay + battery exemption must remain mandatory. A critical alert must appear over another app with DND enabled. At least one screen-off/keyguard run must wake/present the alert. Native-capable devices should report full mode; unsupported/broken DND devices should report Overlay Compatibility mode without a false grant. No duplicate business ACK or unexpected provider-usage amplification is accepted.
 
 D151 Owner result: **PASS** on 2026-09-29. OA079 is closed after explicit Owner field acceptance of signed `beta-vc89`. D151 is promoted to the accepted base; existing D151 technical/runtime/release evidence remains authoritative and Stable remains OWNER-GATED.
+
+## D152 PickList recovery acceptance
+
+Technical PASS requires:
+- normal unique/selectable PickLists retain the direct fast path with no recovery reload;
+- one existing Search retry remains bounded and local-browser-only;
+- a unique unselectable row may trigger at most one Confirm-page reload and one bounded post-reload Search refresh;
+- a row that disappears during pre-confirm checkbox recovery is not counted as NOT_FOUND and is never blindly confirmed;
+- after dialog confirmation, at most one read-only Search verification may be used when normal terminal DOM evidence times out;
+- an existing uncertain confirmation guard can execute verify-only browser work but cannot call the WMS confirm mutation again;
+- verify-only CONFIRMED persistence is bounded to the rare recovered case and introduces no periodic provider traffic;
+- sanitized logs expose the recovery route/reason without PickList values, cookies, tokens, headers or session material;
+- Agent build advances monotonically to v86; Android beta-vc89 and Stable remain unchanged.
+
+OA080 field PASS requires real normal, checkbox-late, post-confirm-uncertain and repeat-after-uncertain scenarios with no duplicate WMS mutation and no Firestore usage amplification.
