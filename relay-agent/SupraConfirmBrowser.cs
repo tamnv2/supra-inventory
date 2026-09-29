@@ -50,10 +50,12 @@ namespace SupraInventoryRelayAgent
         internal readonly List<string> MissingFragments = new List<string>();
         internal readonly List<string> AmbiguousFragments = new List<string>();
         internal readonly List<string> UnselectableFragments = new List<string>();
+        internal readonly List<string> StateChangedFragments = new List<string>();
         internal readonly Dictionary<string, List<string>> Candidates =
             new Dictionary<string, List<string>>(StringComparer.Ordinal);
         internal long ElapsedMs;
         internal bool SearchClicked;
+        internal bool RecoveryReloaded;
         internal string DomFingerprint = "";
         internal int PicklistCodeCount;
     }
@@ -544,7 +546,12 @@ namespace SupraInventoryRelayAgent
                         if (!string.Equals(latest.DomFingerprint ?? "", initialDomFingerprint, StringComparison.Ordinal))
                             domChangedAfterSearch = true;
 
-                        if (domChangedAfterSearch && DateTime.UtcNow >= settleNotBefore)
+                        var unselectableOnly =
+                            latest.UnselectableFragments.Count > 0 &&
+                            latest.MissingFragments.Count == 0 &&
+                            latest.AmbiguousFragments.Count == 0;
+                        if ((domChangedAfterSearch || unselectableOnly) &&
+                            DateTime.UtcNow >= settleNotBefore)
                         {
                             var fingerprint = SearchFingerprint(latest);
                             if (string.Equals(fingerprint, lastMissFingerprint, StringComparison.Ordinal))
@@ -589,6 +596,68 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
+                // D152: a unique PickList whose checkbox is still unavailable after the
+                // existing Search retry gets one bounded top-level reload. This is an
+                // exception-only local browser recovery: no Firestore/provider operation,
+                // no loop and no mutation. Preserve the pre-reload exact code so a row
+                // that disappears/changes cannot be misclassified as a fresh NOT_FOUND.
+                if (allowOneSearchClick &&
+                    scan.UnselectableFragments.Count > 0 &&
+                    scan.AmbiguousFragments.Count == 0)
+                {
+                    var beforeRecovery = new Dictionary<string, string>(StringComparer.Ordinal);
+                    foreach (var term in scan.UnselectableFragments)
+                    {
+                        List<string> candidates;
+                        if (scan.Candidates.TryGetValue(term, out candidates) &&
+                            candidates != null && candidates.Count == 1)
+                            beforeRecovery[term] = candidates[0];
+                    }
+
+                    if (beforeRecovery.Count > 0)
+                    {
+                        output.RecoveryReloaded = true;
+                        _log("SUPRA_BROWSER checkbox_recovery=START terms=" + beforeRecovery.Count +
+                             " reason=unique_row_checkbox_not_ready");
+                        IssueConfirmReloadNowNoLock("checkbox_not_ready_after_search");
+                        if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromMilliseconds(4500)))
+                        {
+                            EnsurePageSize100NoLock();
+                            ClickExactButtonNoLock(SearchText);
+                            output.SearchClicked = true;
+                            var recoveryDeadline = DateTime.UtcNow.AddMilliseconds(1800);
+                            var settleNotBeforeRecovery = DateTime.UtcNow.AddMilliseconds(600);
+                            var recovered = ScanNoLock(terms);
+                            while (DateTime.UtcNow < recoveryDeadline)
+                            {
+                                if (DateTime.UtcNow >= settleNotBeforeRecovery &&
+                                    CheckboxRecoverySettled(beforeRecovery, recovered))
+                                    break;
+                                Thread.Sleep(180);
+                                recovered = ScanNoLock(terms);
+                            }
+
+                            foreach (var pair in beforeRecovery)
+                            {
+                                List<string> after;
+                                if (!recovered.Candidates.TryGetValue(pair.Key, out after) ||
+                                    after == null || after.Count == 0 ||
+                                    (after.Count == 1 &&
+                                     !string.Equals(after[0], pair.Value, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    if (!recovered.StateChangedFragments.Contains(pair.Key))
+                                        recovered.StateChangedFragments.Add(pair.Key);
+                                }
+                            }
+                            scan = recovered;
+                        }
+                        _log("SUPRA_BROWSER checkbox_recovery=END ready=" +
+                             (scan.UnselectableFragments.Count == 0 ? "1" : "0") +
+                             " state_changed=" + scan.StateChangedFragments.Count +
+                             " unselectable=" + scan.UnselectableFragments.Count);
+                    }
+                }
+
                 CopySearch(scan, output);
             }
 
@@ -600,6 +669,8 @@ namespace SupraInventoryRelayAgent
                  " ambiguous=" + output.AmbiguousFragments.Count +
                  " missing=" + output.MissingFragments.Count +
                  " unselectable=" + output.UnselectableFragments.Count +
+                 " state_changed=" + output.StateChangedFragments.Count +
+                 " recovery_reload=" + (output.RecoveryReloaded ? "1" : "0") +
                  " ui_search_click=" + (output.SearchClicked ? "1" : "0"));
             return output;
         }
@@ -693,8 +764,28 @@ namespace SupraInventoryRelayAgent
 
                 if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
                 {
+                    // D152: after the existing 8s passive observation, perform exactly one
+                    // read-only Search refresh. Never click Confirm again. Stable removal
+                    // of the exact row after that refresh is trusted as terminal success.
+                    try
+                    {
+                        if (ExactRowMissingAfterOneSearchNoLock(
+                            code, TimeSpan.FromMilliseconds(1800), "post_confirm_timeout"))
+                        {
+                            result.Result = "CONFIRMED";
+                            result.Detail = "ROW_REMOVED_AFTER_SEARCH_REFRESH";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log("SUPRA_BROWSER confirm verify_search=DEFER type=" + ex.GetType().Name);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
+                {
                     result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                    result.Detail = "No trustworthy terminal DOM signal";
+                    result.Detail = "POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH";
                 }
             }
 
@@ -703,6 +794,53 @@ namespace SupraInventoryRelayAgent
             _log("SUPRA_BROWSER confirm result=" + result.Result +
                  " ms=" + result.ElapsedMs +
                  " direct_api=false session_extract=false");
+            return result;
+        }
+
+        internal SupraBrowserConfirmResult VerifyExactAfterUncertain(string fullPickListCode)
+        {
+            var started = Stopwatch.StartNew();
+            var result = new SupraBrowserConfirmResult();
+            var code = (fullPickListCode ?? "").Trim().ToUpperInvariant();
+            if (!Regex.IsMatch(code, "^PL[0-9]+$"))
+            {
+                result.Result = "EXACT_CODE_NOT_RESOLVED";
+                result.Detail = "PickListCode invalid";
+                return result;
+            }
+
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                EnsureReadyNoLock();
+                EnsurePageSize100NoLock();
+                try
+                {
+                    if (ExactRowMissingAfterOneSearchNoLock(
+                        code, TimeSpan.FromMilliseconds(1800), "existing_uncertain_guard"))
+                    {
+                        result.Result = "CONFIRMED";
+                        result.Detail = "VERIFY_ONLY_ROW_REMOVED_STABLE";
+                    }
+                    else
+                    {
+                        result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                        result.Detail = "VERIFY_ONLY_ROW_STILL_PRESENT_OR_UNSTABLE";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                    result.Detail = "VERIFY_ONLY_SEARCH_UNAVAILABLE";
+                    _log("SUPRA_BROWSER verify_only=DEFER type=" + ex.GetType().Name);
+                }
+            }
+
+            started.Stop();
+            result.ElapsedMs = started.ElapsedMilliseconds;
+            _log("SUPRA_BROWSER verify_only result=" + result.Result +
+                 " ms=" + result.ElapsedMs +
+                 " mutation=false search_refresh_once=true");
             return result;
         }
 
@@ -1503,6 +1641,66 @@ namespace SupraInventoryRelayAgent
                    result.AmbiguousFragments.Count == 0;
         }
 
+        private static bool CheckboxRecoverySettled(
+            Dictionary<string, string> beforeRecovery,
+            SupraBrowserSearchResult result)
+        {
+            if (result == null) return false;
+            foreach (var pair in beforeRecovery)
+            {
+                List<string> candidates;
+                if (!result.Candidates.TryGetValue(pair.Key, out candidates) ||
+                    candidates == null || candidates.Count == 0)
+                    continue;
+                if (candidates.Count != 1)
+                    continue;
+                if (!string.Equals(candidates[0], pair.Value, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (result.UnselectableFragments.Exists(
+                    x => string.Equals(x, pair.Key, StringComparison.Ordinal)))
+                    return false;
+            }
+            return true;
+        }
+
+        private bool ExactRowMissingAfterOneSearchNoLock(
+            string code,
+            TimeSpan timeout,
+            string reason)
+        {
+            ClickExactButtonNoLock(SearchText);
+            _log("SUPRA_BROWSER verify_search=START reason=" + reason +
+                 " mutation=false confirm_click=false");
+            var deadline = DateTime.UtcNow.Add(timeout);
+            var rowMissingSamples = 0;
+            var rowMissingSinceUtc = DateTime.MinValue;
+            while (DateTime.UtcNow < deadline)
+            {
+                Thread.Sleep(200);
+                var raw = EvaluateJsonNoLock(BuildPostConfirmScript(code));
+                var post = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                if (post == null) continue;
+                if (Bool(post, "rowMissing"))
+                {
+                    if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
+                    rowMissingSamples++;
+                    if (rowMissingSamples >= 3 &&
+                        DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(600))
+                    {
+                        _log("SUPRA_BROWSER verify_search=ROW_REMOVED_STABLE reason=" + reason);
+                        return true;
+                    }
+                }
+                else
+                {
+                    rowMissingSamples = 0;
+                    rowMissingSinceUtc = DateTime.MinValue;
+                }
+            }
+            _log("SUPRA_BROWSER verify_search=ROW_PRESENT_OR_UNSTABLE reason=" + reason);
+            return false;
+        }
+
         private static string SearchFingerprint(SupraBrowserSearchResult result)
         {
             if (result == null) return "NULL";
@@ -1530,6 +1728,8 @@ namespace SupraInventoryRelayAgent
             target.MissingFragments.AddRange(source.MissingFragments);
             target.AmbiguousFragments.AddRange(source.AmbiguousFragments);
             target.UnselectableFragments.AddRange(source.UnselectableFragments);
+            target.StateChangedFragments.AddRange(source.StateChangedFragments);
+            target.RecoveryReloaded = target.RecoveryReloaded || source.RecoveryReloaded;
             foreach (var pair in source.Candidates)
                 target.Candidates[pair.Key] = new List<string>(pair.Value);
         }
