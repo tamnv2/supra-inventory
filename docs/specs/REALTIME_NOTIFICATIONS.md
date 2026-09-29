@@ -690,3 +690,15 @@ Stable remains OWNER-GATED.
 - Web SKU import emits realtime scope `sku_catalog` for foreground convergence and sends a silent FCM data event for Android background/resume convergence.
 - The FCM event carries no SKU master payload and must not show a notification, overlay, sound or vibration. Android marks a local refresh-pending flag and fetches authoritative catalog data through the existing authenticated API.
 - This signal does not alter the critical-alert channel, specialist call/chat delivery, D142 notification-readiness contract, or existing realtime backoff.
+
+## D148 sequential Android overlay queue
+
+- Existing FCM `report_created` may surface on Reporter/Admin Android as an adaptive cross-app overlay using the already-required overlay permission. Payload continues to carry event id, SKU and product name; authoritative business state remains InventoryCore.
+- Overlay priority is deterministic: Picker/specialist command first, then Picker result, then Reporter/Admin report-created information. Equal-priority alerts are FIFO.
+- Overlay identity is the existing alert/event id. Duplicate ids already active or queued are ignored.
+- Only one overlay is active. A higher-priority command may preempt a lower-priority alert; the interrupted alert is re-queued instead of discarded.
+- Result events are marked as owned by the overlay queue while waiting so the foreground in-app result dialog cannot race the same event.
+- **XÁC NHẬN ĐÃ NHẬN**, chat **XÁC NHẬN**, or report-created **OK** affects only the active queue item. The next item is rendered afterward.
+- Result acknowledgement remains local-first and network acknowledgement remains retryable. Expiry/remote clear without acknowledgement releases overlay ownership so authoritative result reconciliation can surface it later.
+- A clear signal with a missing alert id must never wipe unrelated queued shortage/result alerts.
+- No polling, wake loop or provider read cadence is added.

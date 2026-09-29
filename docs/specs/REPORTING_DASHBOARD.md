@@ -225,3 +225,11 @@ The Agent Usage page remains server-mediated and provider-authoritative. The Win
 - If manually selected dates equal one of those exact intervals, that preset is highlighted too. Otherwise no preset is highlighted and both date inputs receive the custom-range selected treatment.
 - The Xử lý báo hàng navigation badge is omitted entirely when pending count is zero; a visible numeric zero badge is not rendered.
 - Audit pagination controls are placed at the top immediately below the visible `from–to / total` indicator.
+
+## D148 shift comparison workbook
+
+- Detailed Excel export keeps the existing date/status/query filters and bounded pagination. Shift analysis is calculated locally from already-fetched timestamps; no extra reporting API/provider query is added.
+- Asia/Ho_Chi_Minh shift mapping: **Ca 1 06:00–<14:00**, **Ca 2 14:00–<22:00**, all other timestamps are **Ngoài ca / Tăng ca**.
+- `Đợt báo hàng` and `Chi tiết Picker` include a visible **Ca phát sinh** column.
+- Workbook includes **So sánh ca** with, at minimum, lượt báo, SKU, Picker, số đợt, Có hàng, Bỏ qua, Thu hồi, Đang chờ, tỷ lệ đợt đã xử lý, thời gian xử lý bình quân and thời gian Picker chờ bình quân, plus Ca 2 minus Ca 1 comparison.
+- Existing workbook layout rules—clear sheet names, bounded column widths, date formats and filters—remain. D148 does not add a new reporting authority or change historical source data.

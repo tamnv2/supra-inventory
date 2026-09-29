@@ -684,3 +684,11 @@ The **Thời gian xử lý** form must keep these states separate:
 ## D144 — Agent chat editor
 
 The Agent chat editor is modal and single-recipient. It accepts 1–200 characters, displays a live character count, keeps the text field active during normal typing, and requires an explicit Send or Cancel action. Chat does not collect a Picker acknowledgement back to Agent.
+
+## D148 PickList validation copy
+
+For Android `Xác nhận PickList`, a not-found response exposes the existing server-authoritative strike state in user language:
+- first strike: **Sai 1/3 lần trong cửa sổ 60 giây**, with two attempts remaining and a clear warning that 3/3 temporarily locks confirmation;
+- second strike: **Sai 2/3 lần trong cửa sổ 60 giây**, with one attempt remaining;
+- locked: state that `Xác nhận PickList` is temporarily locked because of 3 wrong attempts in 60 seconds, show the applicable 5/30/60-minute duration and expected **HH:mm** reopen time, and direct the user to verify the PickList or use the specialist desk.
+Do not expose internal lock-level numbering. Backend strike/lock thresholds are unchanged.

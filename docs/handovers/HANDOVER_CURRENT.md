@@ -1377,3 +1377,11 @@ Owner approved one combined Beta change set for reliable support logs, PDA SKU i
 - Runtime baseline: D146 Owner-accepted runtime remains unchanged.
 - Next project mutation requires fresh GitHub bootstrap; base-affecting work requires impact review and explicit Owner approval before implementation.
 - Stable remains OWNER-GATED and untouched.
+
+## D148 active candidate — 2026-09-29
+- Accepted base remains **D147** until explicit Owner PASS on D148.
+- Current change: **D148**; no D149/unrelated mutation is allowed.
+- Scope: Web pending badge, Android report-created adaptive overlay, client-side shift Excel, PickList warning copy, Android session-end INFO logging, prioritized sequential overlay queue.
+- Excluded: overtime Web/App/Agent unification; no Agent mutation in D148.
+- Resource/schema/quota: no new provider resource/schema/polling/Firestore read loop. Existing FCM and report APIs are reused.
+- Stable remains OWNER-GATED and untouched.
