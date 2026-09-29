@@ -541,6 +541,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _afterHoursStatus = new Label();
         private readonly Button _afterHoursContinue = new Button();
         private readonly Button _afterHoursStop = new Button();
+        private readonly Button _afterHoursCancel = new Button();
         private readonly Button _afterHoursEarlyStart = new Button();
         private readonly Label _supraInfo = new Label();
         private readonly ListBox _log = new ListBox();
@@ -1059,7 +1060,11 @@ namespace SupraInventoryRelayAgent
             _afterHoursStop.Text = "Đúng giờ về";
             _afterHoursStop.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.STOP);
             _afterHoursPanel.Controls.Add(_afterHoursStop);
-            _afterHoursEarlyStart.Text = "Bật sớm trước 06:00";
+            _afterHoursCancel.Text = "Huỷ tăng ca";
+            _afterHoursCancel.Click += (s, e) => CancelActiveOvertime();
+            _afterHoursCancel.Visible = false;
+            _afterHoursPanel.Controls.Add(_afterHoursCancel);
+            _afterHoursEarlyStart.Text = "Bật sớm trước 05:45";
             _afterHoursEarlyStart.Click += (s, e) => HandleSleepingScheduleAction();
             _afterHoursEarlyStart.Visible = false;
             _afterHoursPanel.Controls.Add(_afterHoursEarlyStart);
@@ -1417,9 +1422,28 @@ namespace SupraInventoryRelayAgent
                 _afterHoursStatus.SetBounds(10, 7, Math.Max(220, panelWidth - 20), 34);
 
                 const int gap = 8;
-                var actionWidth = Math.Max(120, (panelWidth - 28 - gap) / 2);
-                _afterHoursContinue.SetBounds(10, 48, actionWidth, 32);
-                _afterHoursStop.SetBounds(18 + actionWidth, 48, Math.Max(120, panelWidth - 28 - gap - actionWidth), 32);
+                var visibleActionCount =
+                    (_afterHoursContinue.Visible ? 1 : 0) +
+                    (_afterHoursStop.Visible ? 1 : 0) +
+                    (_afterHoursCancel.Visible ? 1 : 0);
+                if (visibleActionCount >= 3)
+                {
+                    var threeWidth = Math.Max(100, (panelWidth - 20 - (gap * 2)) / 3);
+                    _afterHoursContinue.SetBounds(10, 48, threeWidth, 32);
+                    _afterHoursStop.SetBounds(10 + threeWidth + gap, 48, threeWidth, 32);
+                    _afterHoursCancel.SetBounds(10 + ((threeWidth + gap) * 2), 48,
+                        Math.Max(100, panelWidth - 20 - ((threeWidth + gap) * 2)), 32);
+                }
+                else if (_afterHoursContinue.Visible && _afterHoursStop.Visible)
+                {
+                    var actionWidth = Math.Max(120, (panelWidth - 28 - gap) / 2);
+                    _afterHoursContinue.SetBounds(10, 48, actionWidth, 32);
+                    _afterHoursStop.SetBounds(18 + actionWidth, 48, Math.Max(120, panelWidth - 28 - gap - actionWidth), 32);
+                }
+                else
+                {
+                    _afterHoursCancel.SetBounds(10, 48, Math.Max(240, panelWidth - 20), 32);
+                }
                 _afterHoursEarlyStart.SetBounds(10, 48, Math.Max(240, panelWidth - 20), 32);
 
                 var gridTop = panelTop + panelHeight + 6;
@@ -1494,6 +1518,43 @@ namespace SupraInventoryRelayAgent
                 " schedule_key=" + key +
                 " role=" + _leaderCoordinator.RoleName);
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+            CheckAfterHoursSchedule(true);
+        }
+
+        private void CancelActiveOvertime()
+        {
+            if (_businessSchedule == null || _leaderCoordinator == null || !HasAgentSession()) return;
+            var now = _businessSchedule.NowOperational();
+            if (_businessSchedule.DefaultRelayAllowed(now)) return;
+
+            var key = _businessSchedule.ScheduleKey(now);
+            if (!_leaderCoordinator.SharedRelayOverrideAllows(key, OperationalMs(now)))
+            {
+                _afterHoursStatus.Text = "Không còn tăng ca đang hoạt động.";
+                CheckAfterHoursSchedule(true);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                "Huỷ tăng ca ngay? App/PDA và Web sẽ chuyển sang trạng thái nghỉ sau khi lệnh được đồng bộ.",
+                "Huỷ tăng ca",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2);
+            if (confirm != DialogResult.Yes) return;
+
+            var cancelAtMs = OperationalMs(now);
+            if (!_leaderCoordinator.PublishCancelOvertime(key, cancelAtMs))
+            {
+                _afterHoursStatus.Text = "Chưa huỷ được tăng ca · kiểm tra kết nối rồi thử lại.";
+                return;
+            }
+
+            _lastAfterHoursPromptAt = DateTime.MinValue;
+            _lastAfterHoursPromptBoundaryMs = 0L;
+            _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+            Log("AFTER_HOURS cancel_overtime=PASS at=" + now.ToString("HH:mm:ss") +
+                " schedule_key=" + key);
             CheckAfterHoursSchedule(true);
         }
 
@@ -1618,14 +1679,17 @@ namespace SupraInventoryRelayAgent
                 HasAgentSession() &&
                 hasBoundary &&
                 !coordinator.HasScheduleDecision(key, boundaryMs);
+            var activeOverride = !defaultAllowed && relayAllowed && coordinator != null &&
+                                 coordinator.SharedRelayOverrideAllows(key, OperationalMs(now));
             var frozenOutsideRegular = !defaultAllowed && !relayAllowed;
             var earlyStartWindow = frozenOutsideRegular && _businessSchedule.IsEarlyStartWindow(now);
             var overtimeSleepWindow = frozenOutsideRegular && _businessSchedule.IsOvertimeSleepWindow(now);
 
-            ApplyAfterHoursAgentLayout(needsConfirmation || frozenOutsideRegular);
             _afterHoursContinue.Visible = needsConfirmation;
             _afterHoursStop.Visible = needsConfirmation;
-            _afterHoursEarlyStart.Visible = earlyStartWindow || overtimeSleepWindow;
+            _afterHoursCancel.Visible = activeOverride;
+            _afterHoursEarlyStart.Visible = !activeOverride && (earlyStartWindow || overtimeSleepWindow);
+            ApplyAfterHoursAgentLayout(needsConfirmation || frozenOutsideRegular || activeOverride);
 
             if (needsConfirmation)
             {
@@ -1665,14 +1729,24 @@ namespace SupraInventoryRelayAgent
             _lastAfterHoursPromptAt = DateTime.MinValue;
             _lastAfterHoursPromptBoundaryMs = 0L;
             TopMost = false;
+            if (activeOverride && !needsConfirmation)
+            {
+                var overrideUntil = DateTimeOffset.FromUnixTimeMilliseconds(
+                    coordinator.SharedRelayOverrideUntilMs).ToOffset(TimeSpan.FromHours(7)).DateTime;
+                _afterHoursStatus.Text =
+                    "Đang tăng ca · áp dụng toàn hệ thống đến " + overrideUntil.ToString("HH:mm") +
+                    ". App/PDA và Web dùng cùng trạng thái.";
+                return;
+            }
+
             if (frozenOutsideRegular)
             {
                 var next = _businessSchedule.NextRegularStart(now);
                 if (earlyStartWindow)
                 {
                     _afterHoursStatus.Text =
-                        "Replay PDA đang ngủ · có thể bật sớm từ 05:00 đến 06:00.";
-                    _afterHoursEarlyStart.Text = "Bật sớm trước 06:00";
+                        "Replay PDA đang ngủ · có thể bật sớm từ 05:00 đến 05:45.";
+                    _afterHoursEarlyStart.Text = "Bật sớm trước 05:45";
                 }
                 else if (overtimeSleepWindow)
                 {
@@ -1686,7 +1760,7 @@ namespace SupraInventoryRelayAgent
                 else
                 {
                     _afterHoursStatus.Text = "Replay PDA đang ngủ đến " + next.ToString("HH:mm") + ".";
-                    _afterHoursEarlyStart.Text = "Bật sớm trước 06:00";
+                    _afterHoursEarlyStart.Text = "Bật sớm trước 05:45";
                 }
                 return;
             }
