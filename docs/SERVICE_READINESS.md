@@ -1348,3 +1348,7 @@ Status: **OWNER FIELD PASS**.
 - Fixed PDA distribution channel points to the same APK. Agent remains v83.
 - No new resource/schema/polling/Agent/overtime-unification/Stable mutation.
 - OA076 is field-ready. D148 is **not** Owner-accepted yet; D147 remains the accepted base.
+
+Derived current-status markers:
+- `D148_TECHNICAL_RUNTIME_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
+- `D148_TECHNICAL_RELEASE_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`
