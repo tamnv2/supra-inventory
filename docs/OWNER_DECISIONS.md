@@ -2340,3 +2340,9 @@ After explicitly accepting D151 PASS, the Owner approved the proposed PickList r
 5. An existing uncertain confirmation guard remains a hard no-resend fence. A later request for the same exact PickList may perform one read-only browser verification; only stable disappearance of that exact row may convert the result to CONFIRMED. Otherwise it remains uncertain.
 6. Existing request-age, single-PRIMARY, generation, full-code, exact-row and confirmation-guard fences remain mandatory. No direct WMS API, session extraction, Network interception, second mutation provider or guessed success state is allowed.
 7. D152 is Agent-only and targets `relay-agent-v86`. Signed Android remains `beta-vc89`. No new provider resource, Firestore collection/schema, listener, polling cadence, cron or secret is authorized. Stable remains OWNER-GATED.
+
+### D152 v87 safety repair — 2026-09-29
+
+D152 remains the active change ID. Agent v86 was technically released from main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`, but post-release source review identified one fail-closed gap before OA080 field acceptance: a read-only Search verification could observe a temporarily empty/unhydrated WMS table and mistake exact-row absence for terminal completion.
+
+The D152 repair therefore advances the Agent to `relay-agent-v87` before Owner field acceptance. Row-removal proof is accepted only while the rendered Confirm table still contains PickList data; a completely empty table remains uncertain rather than becoming false CONFIRMED. A checkbox that becomes unavailable in the final pre-mutation race is classified as `CONFIRM_CONFLICT`/not-ready and safely releases the unused confirmation guard, not as a false Supra rejection. Normal ready-row latency and the existing one-mutation/no-resend contract are unchanged. No new provider read/write cadence, listener, collection, API/session extraction, Android build or Stable mutation is introduced.
