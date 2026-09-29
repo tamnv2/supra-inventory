@@ -1427,3 +1427,15 @@ Derived current-status markers:
 - Production Android stays `beta-vc88`; no production Android release was created. Stable is untouched/OWNER-GATED.
 - OA079 is READY: install the same diagnostic APK on one normal MT90 and one failing MT90, then send one DND diagnostic log from each.
 
+
+
+## D151 revised MT90 DND detail / overlay probe technical PASS — 2026-09-29
+
+- D151 remains the only open change; accepted business base remains D150 Owner PASS.
+- Diagnostic-only implementation PR #311 squash-merged to main `eaead3f239e559f7df67feb2923e76bd595af527`.
+- Main Build DND Diagnostic APK run `36550631691` PASS.
+- Main artifact `mt90-dnd-diagnostic-apk` id `11024960495`; APK size `2,540,306` bytes; SHA-256 `168538b7dfe0c1a6f4d4c2dd5ae9dfd0dc0c12e19b1e33380282fef0f816d67a`.
+- Main Repo Authority `36550631550`, Project State `36550631522`, D127 Dashboard Probe `36550631616` and UI Design / operational regression `36550631636` all PASS.
+- Revised standalone diagnostic APK adds the package-specific DND detail Settings route with safe fallback plus a bounded local 15-second `TYPE_APPLICATION_OVERLAY` probe.
+- Production signed Android remains `beta-vc88`; Agent/Web business runtime and Stable are unchanged. No provider, collection, schema, secret, polling, listener or scheduled traffic was added.
+- OA079 is READY for one failing MT90 V8.01.002: try package-detail DND, run overlay probe, then send one manual diagnostic log and report the visual overlay result.
