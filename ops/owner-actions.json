@@ -3689,7 +3689,7 @@
     },
     {
       "id": "OA075",
-      "status": "READY_FOR_OWNER_CONFIRMATION",
+      "status": "PASS__OWNER_ACCEPTED_D147",
       "title": "Accept D147 serial Owner-PASS governance gate",
       "resource_key": "repo",
       "provider": "GitHub canonical authority",
@@ -3711,8 +3711,13 @@
         "No D148 or unrelated project mutation is processed while D147 is pending.",
         "D147 changes governance only."
       ],
-      "remaining_owner_action": "Record D147 PASS if correct; otherwise record D147 NOT PASS and keep corrections under D147.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly accepted D147 on 2026-09-29.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "PASS",
+        "evidence": "Owner explicitly replied '147 ok', accepting the D147 serial Owner-PASS governance gate."
+      }
     }
   ]
 }
