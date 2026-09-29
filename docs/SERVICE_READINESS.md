@@ -1360,3 +1360,7 @@ Derived current-status markers:
 - Agent: `relay-agent-v83` unchanged.
 - No new provider resource, schema or polling loop was introduced by D148.
 - OA076 is closed; D148 is the accepted base. Stable remains OWNER-GATED.
+
+Derived current-status markers:
+- `D148_OWNER_FIELD_PASS__PENDING_BADGE_RECREATE__SHIFT_COMPARISON_EXCEL`
+- `D148_OWNER_FIELD_PASS__SIGNED_BETA_VC87__REPORT_CREATED_OVERLAY_QUEUE__SESSION_END_INFO_LOGS`
