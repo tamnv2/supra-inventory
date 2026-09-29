@@ -1466,3 +1466,15 @@ Derived current-status markers:
 - Android: `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`
 - Web: `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`
 - SQLite schema: `14`
+
+## D152 Owner acceptance — PASS — 2026-09-29
+
+- Accepted base is **D152** after explicit Owner field PASS.
+- PR #316 merged to main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`.
+- Main Repo Authority `36575399996`, Project State `36575399947`, Relay Agent `36575400117`, UI Design `36575400191` and Dashboard Probe `36575400049` all PASS.
+- Agent release **relay-agent-v86** id `399178131`; EXE size `7,074,304` bytes; SHA-256 `098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430`; inventory Agent channel matches the same digest.
+- Owner confirmed the downloaded Agent passed field validation; OA080 is closed.
+- Android remains **beta-vc89**. No new provider/resource/schema/listener/polling/write cadence is introduced. Stable remains OWNER-GATED.
+
+Derived current-status marker:
+- `D152_OWNER_FIELD_ACCEPTED_PASS__MAIN_A418DE7E__AGENT_V86__OA080_CLOSED`
