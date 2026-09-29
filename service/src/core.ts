@@ -17,7 +17,7 @@ import {
 import { sendFcmNotifications } from "./fcm";
 import { readAndroidAlertWindow } from "./alert-window-core";
 
-const SCHEMA_VERSION = 14;
+const SCHEMA_VERSION = 15;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -33,6 +33,8 @@ interface InternalUser extends Record<string, SqlStorageValue> {
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
+  contractor_name: string | null;
+  shortage_reporting_enabled: number;
   role: AppRole;
   base_role: AppRole;
   role_override: AppRole | null;
@@ -107,6 +109,7 @@ export class InventoryCore {
         tab_name TEXT NOT NULL,
         mnv_header TEXT NOT NULL,
         full_name_header TEXT NOT NULL,
+        contractor_header TEXT NOT NULL DEFAULT '',
         header_row INTEGER NOT NULL,
         data_row_count INTEGER NOT NULL DEFAULT 0,
         verified_at TEXT NOT NULL,
@@ -119,6 +122,8 @@ export class InventoryCore {
         firebase_uid TEXT UNIQUE,
         employee_code TEXT,
         display_name TEXT NOT NULL,
+        contractor_name TEXT,
+        shortage_reporting_enabled INTEGER NOT NULL DEFAULT 1 CHECK (shortage_reporting_enabled IN (0,1)),
         role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
         role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
         status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
@@ -277,6 +282,9 @@ export class InventoryCore {
     if (!this.hasColumn("users", "android_session_generation")) sql.exec("ALTER TABLE users ADD COLUMN android_session_generation INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "android_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN android_session_device_id TEXT");
     if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
+    if (!this.hasColumn("users", "contractor_name")) sql.exec("ALTER TABLE users ADD COLUMN contractor_name TEXT");
+    if (!this.hasColumn("users", "shortage_reporting_enabled")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_enabled INTEGER NOT NULL DEFAULT 1");
+    if (!this.hasColumn("hr_source_config", "contractor_header")) sql.exec("ALTER TABLE hr_source_config ADD COLUMN contractor_header TEXT NOT NULL DEFAULT ''");
     if (!this.hasColumn("audit_log", "actor_role")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_role TEXT");
     if (!this.hasColumn("audit_log", "actor_display_name")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT");
 
@@ -293,6 +301,8 @@ export class InventoryCore {
             firebase_uid TEXT UNIQUE,
             employee_code TEXT,
             display_name TEXT NOT NULL,
+            contractor_name TEXT,
+            shortage_reporting_enabled INTEGER NOT NULL DEFAULT 1 CHECK (shortage_reporting_enabled IN (0,1)),
             role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
             role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
             status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
@@ -314,14 +324,14 @@ export class InventoryCore {
             android_session_started_at TEXT
           );
           INSERT INTO users_d119 (
-            user_id, firebase_uid, employee_code, display_name, role, role_override, status,
+            user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, role_override, status,
             created_at, updated_at, password_salt, password_hash, password_changed_at,
             session_generation, session_started_at, auth_email, firebase_password_ready, firebase_agent_ready,
             web_session_generation, web_session_device_id, web_session_started_at,
             android_session_generation, android_session_device_id, android_session_started_at
           )
           SELECT
-            user_id, firebase_uid, employee_code, display_name, role, role_override, status,
+            user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, role_override, status,
             created_at, updated_at, password_salt, password_hash, password_changed_at,
             session_generation, session_started_at, auth_email, firebase_password_ready, firebase_agent_ready,
             web_session_generation, web_session_device_id, web_session_started_at,
@@ -574,7 +584,7 @@ export class InventoryCore {
 
   private getUserByUsername(username: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
               CASE
                 WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
@@ -598,7 +608,7 @@ export class InventoryCore {
 
   private getUserById(userId: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
               CASE
                 WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
@@ -621,7 +631,7 @@ export class InventoryCore {
 
   private getUserByFirebaseUid(uid: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
               CASE
                 WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
@@ -684,7 +694,7 @@ export class InventoryCore {
       const readinessColumn = channel === "AGENT" ? "firebase_agent_ready" : "firebase_password_ready";
       if (channel === "AGENT" && !["ADMIN", "PICKPACK_ADMIN"].includes(role)) return response({ error: "agent_operator_only" }, 400);
       const rows = this.state.storage.sql.exec<InternalUser>(
-        `SELECT user_id, firebase_uid, employee_code, display_name,
+        `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
                 role AS role, role AS base_role, role_override, status,
                 password_salt, password_hash, password_changed_at,
                 auth_email, firebase_password_ready, firebase_agent_ready,
@@ -994,10 +1004,10 @@ export class InventoryCore {
 
     if (request.method === "GET" && url.pathname === "/config/hr-source") {
       const rows = this.state.storage.sql.exec<{
-        sheet_id: string; sheet_url: string; tab_name: string; mnv_header: string; full_name_header: string;
+        sheet_id: string; sheet_url: string; tab_name: string; mnv_header: string; full_name_header: string; contractor_header: string;
         header_row: number; data_row_count: number; verified_at: string; updated_at: string;
       }>(
-        `SELECT sheet_id, sheet_url, tab_name, mnv_header, full_name_header,
+        `SELECT sheet_id, sheet_url, tab_name, mnv_header, full_name_header, contractor_header,
                 header_row, data_row_count, verified_at, updated_at
            FROM hr_source_config WHERE id = 1`,
       ).toArray();
@@ -1006,26 +1016,27 @@ export class InventoryCore {
 
     if (request.method === "PUT" && url.pathname === "/config/hr-source") {
       const body = (await request.json()) as {
-        sheet_id: string; sheet_url: string; tab_name: string; mnv_header: string; full_name_header: string;
+        sheet_id: string; sheet_url: string; tab_name: string; mnv_header: string; full_name_header: string; contractor_header: string;
         header_row: number; data_row_count: number; verified_at: string; updated_by?: string;
       };
       this.state.storage.sql.exec(
         `INSERT INTO hr_source_config (
-           id, sheet_id, sheet_url, tab_name, mnv_header, full_name_header,
+           id, sheet_id, sheet_url, tab_name, mnv_header, full_name_header, contractor_header,
            header_row, data_row_count, verified_at, updated_at, updated_by
-         ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
+         ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
          ON CONFLICT(id) DO UPDATE SET
            sheet_id = excluded.sheet_id,
            sheet_url = excluded.sheet_url,
            tab_name = excluded.tab_name,
            mnv_header = excluded.mnv_header,
            full_name_header = excluded.full_name_header,
+           contractor_header = excluded.contractor_header,
            header_row = excluded.header_row,
            data_row_count = excluded.data_row_count,
            verified_at = excluded.verified_at,
            updated_at = CURRENT_TIMESTAMP,
            updated_by = excluded.updated_by`,
-        body.sheet_id, body.sheet_url, body.tab_name, body.mnv_header, body.full_name_header,
+        body.sheet_id, body.sheet_url, body.tab_name, body.mnv_header, body.full_name_header, body.contractor_header,
         body.header_row, body.data_row_count, body.verified_at, body.updated_by ?? null,
       );
       return response({ status: "saved" });
