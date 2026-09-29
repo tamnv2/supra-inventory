@@ -3910,7 +3910,7 @@
     },
     {
       "id": "OA080",
-      "status": "BLOCKED_TECHNICAL_RELEASE_PENDING",
+      "status": "PASS__OWNER_ACCEPTED_D152",
       "title": "Field-accept D152 bounded PickList confirmation recovery",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3938,8 +3938,17 @@
         "No new provider/read-write polling cadence or Android release is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until Agent v86 technical/runtime/release PASS. After release, run the bounded real-field matrix above and report PASS/FAIL.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D152 PASS after downloading and field-testing relay-agent-v86 on 2026-09-29.",
+      "closed": true,
+      "field_result": "PASS__OWNER_CONFIRMED_D152__RELAY_AGENT_V86__2026_09_29",
+      "evidence": {
+        "owner_confirmation": "Owner downloaded the new Agent and explicitly reported D152 PASS.",
+        "implementation_pr": 316,
+        "main_commit": "a418de7e852ff9c1bc8b37309b65cdfc75fe3f24",
+        "agent_release": "relay-agent-v86",
+        "agent_release_id": 399178131,
+        "agent_sha256": "098d8cc6c51bdf58e0ef9bd662b9b7bfaf8a0f12b749318d44c194e89eb0c430"
+      }
     }
   ]
 }
