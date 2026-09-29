@@ -453,7 +453,9 @@ service cloud.firestore {
           'admin_user_id', 'agent_instance_id', 'machine',
           'generated_at_ms', 'crash', 'filename', 'content'
         ])
-        && (request.resource.data.status == 'PENDING' || request.resource.data.status == 'DIRECT_PENDING')
+        && (request.resource.data.status == 'PENDING'
+            || request.resource.data.status == 'DIRECT_PART'
+            || request.resource.data.status == 'DIRECT_PENDING')
         && request.resource.data.source == 'AGENT'
         && request.resource.data.admin_user_id == request.auth.token.app_user_id
         && request.resource.data.upload_id is string

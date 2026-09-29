@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -16,7 +17,23 @@ namespace SupraInventoryRelayAgent
         private readonly string _checkpointFile;
         private readonly Action<string> _log;
         private readonly object _errorGate = new object();
-        private DateTime _lastErrorQueuedUtc = DateTime.MinValue;
+        private readonly Dictionary<string, ErrorBurstState> _errorBursts =
+            new Dictionary<string, ErrorBurstState>(StringComparer.Ordinal);
+        private DateTime _errorWindowStartedUtc = DateTime.MinValue;
+        private int _errorWindowSent;
+        private const int MaxImmediateErrorsPerWindow = 6;
+        private static readonly TimeSpan ErrorFingerprintWindow = TimeSpan.FromMinutes(10);
+        private static readonly TimeSpan ErrorGlobalWindow = TimeSpan.FromMinutes(10);
+        private static readonly Regex ErrorGuidPattern = new Regex(@"(?i)\b[0-9a-f]{8}-[0-9a-f-]{20,}\b", RegexOptions.Compiled);
+        private static readonly Regex ErrorHexPattern = new Regex(@"(?i)\b[0-9a-f]{12,}\b", RegexOptions.Compiled);
+        private static readonly Regex ErrorNumberPattern = new Regex(@"\b\d{2,}\b", RegexOptions.Compiled);
+        private static readonly Regex ErrorSpacePattern = new Regex(@"\s+", RegexOptions.Compiled);
+
+        private sealed class ErrorBurstState
+        {
+            internal DateTime LastSentUtc = DateTime.MinValue;
+            internal int Suppressed;
+        }
 
         internal AgentLogUploadBridge(Func<AgentSession> sessionProvider, string instanceId, string checkpointFile, Action<string> log)
         {
@@ -82,11 +99,42 @@ namespace SupraInventoryRelayAgent
 
         internal void TryQueueErrorSnapshot(string errorType)
         {
+            var fingerprint = ErrorFingerprint(errorType);
+            var suppressed = 0;
             lock (_errorGate)
             {
-                if (DateTime.UtcNow - _lastErrorQueuedUtc < TimeSpan.FromSeconds(20)) return;
-                _lastErrorQueuedUtc = DateTime.UtcNow;
+                var now = DateTime.UtcNow;
+                if (_errorWindowStartedUtc == DateTime.MinValue || now - _errorWindowStartedUtc >= ErrorGlobalWindow)
+                {
+                    _errorWindowStartedUtc = now;
+                    _errorWindowSent = 0;
+                }
+
+                ErrorBurstState state;
+                if (!_errorBursts.TryGetValue(fingerprint, out state))
+                {
+                    state = new ErrorBurstState();
+                    _errorBursts[fingerprint] = state;
+                }
+                if (state.LastSentUtc != DateTime.MinValue && now - state.LastSentUtc < ErrorFingerprintWindow)
+                {
+                    state.Suppressed++;
+                    _log("AGENT LOG error_upload=SUPPRESSED reason=SAME_FINGERPRINT window=10m count=" + state.Suppressed);
+                    return;
+                }
+                if (_errorWindowSent >= MaxImmediateErrorsPerWindow)
+                {
+                    state.Suppressed++;
+                    _log("AGENT LOG error_upload=SUPPRESSED reason=GLOBAL_FUSE max=6 window=10m");
+                    return;
+                }
+
+                suppressed = state.Suppressed;
+                state.Suppressed = 0;
+                state.LastSentUtc = now;
+                _errorWindowSent++;
             }
+
             try
             {
                 var session = _sessionProvider();
@@ -94,14 +142,28 @@ namespace SupraInventoryRelayAgent
                     return;
                 var content = AgentDiagnostics.BuildUploadSnapshot(DateTime.Now.AddMinutes(-30), true);
                 if (string.IsNullOrWhiteSpace(content)) return;
-                content = "ERROR_MARKER=" + AgentDiagnostics.Sanitize(errorType ?? "UNKNOWN") + Environment.NewLine + content;
+                content = "ERROR_MARKER=" + AgentDiagnostics.Sanitize(errorType ?? "UNKNOWN") + Environment.NewLine +
+                          "ERROR_FINGERPRINT=" + fingerprint + Environment.NewLine +
+                          "REPEAT_SUPPRESSED_SINCE_LAST_SEND=" + suppressed.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
+                          content;
                 Queue(session, DateTime.Now, "error", content);
-                _log("AGENT LOG queue=PASS type=error");
+                _log("AGENT LOG queue=PASS type=error suppressed=" + suppressed);
             }
             catch (Exception ex)
             {
                 _log("AGENT LOG queue=DEFER type=error detail=" + ex.GetType().Name);
             }
+        }
+
+        private static string ErrorFingerprint(string value)
+        {
+            var next = AgentDiagnostics.Sanitize(value ?? "UNKNOWN").ToUpperInvariant();
+            next = ErrorGuidPattern.Replace(next, "{GUID}");
+            next = ErrorHexPattern.Replace(next, "{HEX}");
+            next = ErrorNumberPattern.Replace(next, "{N}");
+            next = ErrorSpacePattern.Replace(next, " ").Trim();
+            if (next.Length == 0) next = "UNKNOWN";
+            return next.Length <= 320 ? next : next.Substring(0, 320);
         }
 
         internal void TryFlushPendingCrash()
@@ -153,7 +215,7 @@ namespace SupraInventoryRelayAgent
                     { "upload_id", StringField(uploadId) },
                     { "part_index", IntField(index) },
                     { "part_count", IntField(chunks.Count) },
-                    { "status", StringField("DIRECT_PENDING") },
+                    { "status", StringField(index == chunks.Count - 1 ? "DIRECT_PENDING" : "DIRECT_PART") },
                     { "source", StringField("AGENT") },
                     { "admin_user_id", StringField(session.AppUserId ?? "") },
                     { "agent_instance_id", StringField(_instanceId) },

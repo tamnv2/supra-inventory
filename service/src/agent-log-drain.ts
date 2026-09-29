@@ -49,43 +49,62 @@ function fieldBool(fields: Record<string, FirestoreValue> | undefined, key: stri
 }
 
 async function listPendingParts(env: AgentLogDrainEnv, accessToken: string): Promise<AgentUploadPart[]> {
+  const response = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/databases/(default)/documents:runQuery`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: COLLECTION }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "status" },
+              op: "IN",
+              value: {
+                arrayValue: {
+                  values: [
+                    { stringValue: "PENDING" },
+                    { stringValue: "WORKER_FALLBACK" },
+                  ],
+                },
+              },
+            },
+          },
+          limit: 1000,
+        },
+      }),
+    },
+  );
+  if (!response.ok) throw new Error(`AGENT_LOG_FIRESTORE_QUERY_HTTP_${response.status}`);
+
+  const rows = (await response.json()) as Array<{ document?: FirestoreDoc }>;
   const parts: AgentUploadPart[] = [];
-  let pageToken = "";
-  do {
-    const url = new URL(
-      `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/databases/(default)/documents/${COLLECTION}`,
-    );
-    url.searchParams.set("pageSize", "1000");
-    if (pageToken) url.searchParams.set("pageToken", pageToken);
-    const response = await fetch(url.toString(), {
-      headers: { authorization: `Bearer ${accessToken}`, accept: "application/json" },
+  for (const row of rows) {
+    const doc = row.document;
+    const fields = doc?.fields;
+    if (!doc?.name || fieldString(fields, "source") !== "AGENT") continue;
+    const uploadId = fieldString(fields, "upload_id");
+    const index = fieldInt(fields, "part_index");
+    const count = fieldInt(fields, "part_count");
+    const filename = fieldString(fields, "filename");
+    const content = fieldString(fields, "content");
+    if (!uploadId || index < 0 || count < 1 || count > 64 || index >= count || !filename || !content) continue;
+    parts.push({
+      ref: doc.name,
+      uploadId,
+      index,
+      count,
+      filename,
+      content,
+      generatedAtMs: fieldInt(fields, "generated_at_ms"),
+      crash: fieldBool(fields, "crash"),
     });
-    if (response.status === 404) break;
-    if (!response.ok) throw new Error(`AGENT_LOG_FIRESTORE_LIST_HTTP_${response.status}`);
-    const payload = (await response.json()) as { documents?: FirestoreDoc[]; nextPageToken?: string };
-    for (const doc of payload.documents || []) {
-      const fields = doc.fields;
-      const status = fieldString(fields, "status");
-      if (!doc.name || !["PENDING", "WORKER_FALLBACK"].includes(status) || fieldString(fields, "source") !== "AGENT") continue;
-      const uploadId = fieldString(fields, "upload_id");
-      const index = fieldInt(fields, "part_index");
-      const count = fieldInt(fields, "part_count");
-      const filename = fieldString(fields, "filename");
-      const content = fieldString(fields, "content");
-      if (!uploadId || index < 0 || count < 1 || count > 64 || index >= count || !filename || !content) continue;
-      parts.push({
-        ref: doc.name,
-        uploadId,
-        index,
-        count,
-        filename,
-        content,
-        generatedAtMs: fieldInt(fields, "generated_at_ms"),
-        crash: fieldBool(fields, "crash"),
-      });
-    }
-    pageToken = String(payload.nextPageToken || "");
-  } while (pageToken && parts.length < 5000);
+  }
   return parts;
 }
 

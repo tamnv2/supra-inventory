@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D148_OWNER_ACCEPTED_BASE__D149_TECHNICAL_RUNTIME_RELEASE_PASS__OA077_OWNER_FIELD_PENDING",
+      "status": "D149_OWNER_ACCEPTED_BASE__D150_OWNER_APPROVED_IMPLEMENTATION_IN_PROGRESS",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -422,7 +422,7 @@
     "catalog_max_design_rows": 50000,
     "reporting": "BOUNDED_60D_INDEXED_TIME_RANGE_BETA_PASS",
     "live_stress": "NON_DESTRUCTIVE_ONLY_WITHOUT_ISOLATED_BUSINESS_DATASET",
-    "source_status": "D098_CLOUDFLARE_35PCT_PER_METRIC_GUARD_PASS__FIRESTORE_QUOTA_OPTIMIZATION_NEXT",
+    "source_status": "D150_FIRESTORE_COORDINATION_QUOTA_HARDENING_IN_PROGRESS__D136_PROVIDER_USAGE_POLLING_RETIRED",
     "non_destructive_burst": {
       "requests": 50,
       "concurrency": 10,
@@ -1734,10 +1734,10 @@
     "accepted_base": "D148"
   },
   "d149": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA077_PENDING",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS",
     "baseline_main": "d251c0cd65e7c549e63257d4b1fe93a1ab3474b8",
     "branch": "feat/d149-unified-operations",
-    "accepted_base": "D148",
+    "accepted_base": "D149",
     "schedule_authority": "AGENT_FIRESTORE_CAS__FIRST_WRITER_PER_BOUNDARY",
     "schedule_projection": "relay_poc_coordination/operating_schedule__LOW_FREQUENCY_CURRENT_STATE_ONLY",
     "function_trigger": "EXACT_OPERATING_SCHEDULE_DOC_ONLY__NOT_ROLES_LEASE_AGENT_SYNC",
@@ -1750,7 +1750,7 @@
     "recent_results": "BOUNDED_EXPLICIT_DATE_RANGE",
     "new_provider_resources": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_field_gate": "OA077_READY",
+    "owner_field_gate": "OA077_CLOSED_PASS",
     "target_agent_release": "relay-agent-v84",
     "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC87",
     "expected_android_if_no_intervening_release": "beta-vc88",
@@ -1767,6 +1767,27 @@
     "agent_run_id": 36522333472,
     "functions_run_id": 36522333447,
     "firestore_run_id": 36522333435,
-    "ui_guard_run_id": 36522333473
+    "ui_guard_run_id": 36522333473,
+  "d150": {
+    "status": "OWNER_APPROVED_SOURCE_IN_PROGRESS",
+    "baseline": "D149_OWNER_ACCEPTED",
+    "branch": "d150-quota-safe-primary-takeover",
+    "implementation_pr": 306,
+    "firestore_database": "firestore-relay-beta-d091__EXISTING",
+    "agent_presence": "PRIMARY_ONLY_SERVER_FILTERED_FRESH_QUERY__NON_PRIMARY_COMPACT_AGENT_SYNC",
+    "picker_active_calls": "SERVER_FILTER_LOCK_UNTIL_FUTURE__BOUNDED__HISTORICAL_ROWS_NOT_RELISTED",
+    "agent_sync": "D140_PRIMARY_NEXT_A_NEXT_B_LISTENER_RETAINED__DEEP_EXACT_10M_NO_LISTENER",
+    "quota_guard": "LOCAL_DOCUMENT_AWARE_REFERENCE_ONLY__NO_PROVIDER_POLL",
+    "agent_log_function": "EXISTING_AGENTLOGUPLOADWRITTEN__DIRECT_PART_INTERMEDIATE__ONE_FINAL_DIRECT_PENDING_TRIGGER",
+    "agent_log_worker_fallback": "EXISTING_BETA_WORKER__STATUS_FILTERED_RUNQUERY_LIMIT_1000__5M_SCHEDULE_RETAINED",
+    "manual_primary": "TAMNV2_ADMIN_UI_RUNTIME_GATE__CAS_NEW_GENERATION__EXISTING_WMS_MUTATION_FENCE",
+    "target_agent_release": "relay-agent-v85",
+    "android_release": "beta-vc88__UNCHANGED",
+    "new_provider_resources": "NONE",
+    "new_firestore_collections": "NONE",
+    "new_secrets": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_field_gate": "OA078_PENDING_AFTER_TECHNICAL_RELEASE"
+  }
   }
 }

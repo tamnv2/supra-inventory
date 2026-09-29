@@ -544,6 +544,133 @@ namespace SupraInventoryRelayAgent
             return false;
         }
 
+        internal bool PromoteManualPrimary()
+        {
+            if (_role == FirestoreAgentRole.PRIMARY) return true;
+            if (!_relayEnabled() || !_wmsReady()) return false;
+
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                if (!IsManualTakeoverUser(session))
+                {
+                    _log("FIRESTORE HA manual_takeover=DENY reason=USER_NOT_ALLOWED");
+                    return false;
+                }
+                if (!_takeoverWmsProbe())
+                {
+                    _log("FIRESTORE HA manual_takeover=DEFER reason=WMS_PROBE_NOT_READY");
+                    return false;
+                }
+
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var read = ReadRoles(session);
+                    var current = read.Snapshot;
+                    ApplySharedSchedule(current);
+                    if (!_relayEnabled() || !_wmsReady()) return false;
+
+                    if (current != null &&
+                        string.Equals(current.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                    {
+                        _generation = current.Generation ?? "";
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, current.StandbyAgentInstanceId, "MANUAL_ALREADY_PRIMARY");
+                        WritePrimaryLease(session);
+                        return true;
+                    }
+
+                    var fresh = QueryFreshPresence(session, "MANUAL_TAKEOVER_DISCOVERY", NowMs(), FirestoreAgentSyncClient.MaxAgents);
+                    var readyIds = new HashSet<string>(
+                        fresh.Where(item => item != null && item.WmsReady).Select(item => item.AgentInstanceId),
+                        StringComparer.Ordinal);
+                    var candidates = new List<string>();
+                    Action<string> addCandidate = id =>
+                    {
+                        if (string.IsNullOrWhiteSpace(id) ||
+                            string.Equals(id, _instanceId, StringComparison.Ordinal) ||
+                            !readyIds.Contains(id) ||
+                            candidates.Contains(id)) return;
+                        candidates.Add(id);
+                    };
+
+                    var previousPrimary = current == null ? "" : (current.PrimaryAgentInstanceId ?? "");
+                    if (current != null && IsCurrentPrimaryLeaseFresh(session, current) && readyIds.Contains(previousPrimary))
+                        addCandidate(previousPrimary);
+                    if (current != null)
+                    {
+                        addCandidate(current.StandbyAgentInstanceId);
+                        addCandidate(current.NextBAgentInstanceId);
+                    }
+
+                    var next = new FirestoreRoleSnapshot
+                    {
+                        PrimaryAgentInstanceId = _instanceId,
+                        StandbyAgentInstanceId = candidates.Count > 0 ? candidates[0] : "",
+                        NextBAgentInstanceId = candidates.Count > 1 ? candidates[1] : "",
+                        Generation = Guid.NewGuid().ToString("N"),
+                        UpdatedAtMs = NowMs()
+                    };
+                    if (!TryWriteRoles(session, next, read)) continue;
+
+                    _generation = next.Generation;
+                    lock (_stateGate) _nextBId = next.NextBAgentInstanceId ?? "";
+                    SetRole(FirestoreAgentRole.PRIMARY, _instanceId, next.StandbyAgentInstanceId, "MANUAL_OWNER_TAKEOVER");
+                    WritePrimaryLease(session);
+                    _fleetRefreshRequested = true;
+                    _log("FIRESTORE HA manual_takeover=PASS self=" + Short(_instanceId) +
+                         " previous_primary=" + Short(previousPrimary) +
+                         " next_a=" + Short(next.StandbyAgentInstanceId) +
+                         " next_b=" + Short(next.NextBAgentInstanceId));
+                    TrySelectReplacementStandby(session, "");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE HA manual_takeover=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+            return false;
+        }
+
+        private static bool IsManualTakeoverUser(AgentSession session)
+        {
+            var login = session == null ? "" : (session.LoginName ?? "").Trim();
+            return string.Equals(login, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(login, "admin", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsCurrentPrimaryLeaseFresh(AgentSession session, FirestoreRoleSnapshot snapshot)
+        {
+            if (snapshot == null ||
+                string.IsNullOrWhiteSpace(snapshot.Generation) ||
+                string.IsNullOrWhiteSpace(snapshot.PrimaryAgentInstanceId)) return false;
+            try
+            {
+                var raw = SendJson("GET", LeaseUrl(snapshot.Generation), session.IdToken, null, "", 5000, true, "MANUAL_TAKEOVER_LEASE_READ");
+                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                if (doc == null) return false;
+                DateTimeOffset updated;
+                if (!DateTimeOffset.TryParse(Get(doc, "updateTime"), out updated)) return false;
+                var age = Math.Max(0L, NowMs() - updated.ToUnixTimeMilliseconds());
+                object fieldsObj;
+                var fields = doc.TryGetValue("fields", out fieldsObj) ? fieldsObj as Dictionary<string, object> : null;
+                return age <= FailoverAfterMs &&
+                       fields != null &&
+                       string.Equals(FieldString(fields, "primary_agent_instance_id"), snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal) &&
+                       string.Equals(FieldString(fields, "generation"), snapshot.Generation, StringComparison.Ordinal);
+            }
+            catch (WebException ex)
+            {
+                var response = ex.Response as HttpWebResponse;
+                var status = response == null ? 0 : (int)response.StatusCode;
+                try { if (response != null) response.Dispose(); } catch { }
+                if (status == 404) return false;
+                throw;
+            }
+        }
+
         private void Loop(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -591,10 +718,14 @@ namespace SupraInventoryRelayAgent
                     }
 
                     MaintainPresence(session);
-                    if (startupConvergence ||
-                        _fleetRefreshRequested ||
-                        _lastPresenceReadMs == 0 ||
-                        NowMs() - _lastPresenceReadMs >= PresenceReadIntervalMs)
+                    // D150: only PRIMARY scans the fresh Agent-presence projection. NEXT_A/NEXT_B
+                    // receive the compact agent_sync document through the D140 listener; DEEP
+                    // performs a coarse exact agent_sync read in the UI layer. This removes the
+                    // previous N x N fleet collection scan without weakening lease/failover.
+                    if (_role == FirestoreAgentRole.PRIMARY &&
+                        (_fleetRefreshRequested ||
+                         _lastPresenceReadMs == 0 ||
+                         NowMs() - _lastPresenceReadMs >= PresenceReadIntervalMs))
                     {
                         ReadOnlineAgentCounts(session, NowMs());
                         _lastPresenceReadMs = NowMs();
@@ -812,33 +943,15 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var raw = SendJson("GET", PresenceCollectionUrl(), session.IdToken, null, "", 7000, true, "NEXT_AB_DISCOVERY");
-                var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                object docsObj;
-                var docs = root != null && root.TryGetValue("documents", out docsObj)
-                    ? docsObj as IEnumerable
-                    : null;
-                if (docs == null) return;
-
-                var now = NowMs();
+                var fresh = QueryFreshPresence(session, "NEXT_AB_DISCOVERY", NowMs(), FirestoreAgentSyncClient.MaxAgents);
                 var candidates = new List<string>();
-                foreach (var item in docs)
+                foreach (var view in fresh)
                 {
-                    var doc = item as Dictionary<string, object>;
-                    object fieldsObj;
-                    var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
-                        ? fieldsObj as Dictionary<string, object>
-                        : null;
-                    if (fields == null) continue;
-
-                    var agentId = FieldString(fields, "agent_instance_id");
-                    var heartbeat = FieldLong(fields, "heartbeat_at_ms");
-                    var age = now - heartbeat;
+                    var agentId = view == null ? "" : (view.AgentInstanceId ?? "");
                     if (string.IsNullOrWhiteSpace(agentId) ||
                         string.Equals(agentId, _instanceId, StringComparison.Ordinal) ||
                         string.Equals(agentId, excludedAgentId ?? "", StringComparison.Ordinal) ||
-                        heartbeat <= 0 || age < -60000 || age > PresenceFreshMs ||
-                        !FieldBool(fields, "wms_ready"))
+                        view == null || !view.WmsReady)
                         continue;
                     if (!candidates.Contains(agentId)) candidates.Add(agentId);
                 }
@@ -925,50 +1038,92 @@ namespace SupraInventoryRelayAgent
             _lastPresenceWriteMs = now;
         }
 
+        private List<AgentPresenceView> QueryFreshPresence(AgentSession session, string component, long now, int limit)
+        {
+            var cutoff = Math.Max(0L, now - PresenceFreshMs);
+            var query = new Dictionary<string, object>
+            {
+                {
+                    "structuredQuery", new Dictionary<string, object>
+                    {
+                        { "from", new object[] { new Dictionary<string, object> { { "collectionId", "relay_poc_agents" } } } },
+                        {
+                            "where", new Dictionary<string, object>
+                            {
+                                {
+                                    "fieldFilter", new Dictionary<string, object>
+                                    {
+                                        { "field", new Dictionary<string, object> { { "fieldPath", "heartbeat_at_ms" } } },
+                                        { "op", "GREATER_THAN_OR_EQUAL" },
+                                        { "value", IntField(cutoff) }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "orderBy", new object[]
+                            {
+                                new Dictionary<string, object>
+                                {
+                                    { "field", new Dictionary<string, object> { { "fieldPath", "heartbeat_at_ms" } } },
+                                    { "direction", "DESCENDING" }
+                                }
+                            }
+                        },
+                        { "limit", Math.Max(1, Math.Min(50, limit)) }
+                    }
+                }
+            };
+            var raw = SendJson(
+                "POST",
+                DocumentsBase + ":runQuery",
+                session.IdToken,
+                _json.Serialize(query),
+                "",
+                7000,
+                true,
+                component);
+            var rows = _json.DeserializeObject(raw) as IEnumerable;
+            var views = new List<AgentPresenceView>();
+            var returnedDocuments = 0;
+            if (rows != null)
+            {
+                foreach (var item in rows)
+                {
+                    var row = item as Dictionary<string, object>;
+                    object docObj;
+                    var doc = row != null && row.TryGetValue("document", out docObj)
+                        ? docObj as Dictionary<string, object>
+                        : null;
+                    if (doc == null) continue;
+                    returnedDocuments++;
+                    object fieldsObj;
+                    var fields = doc.TryGetValue("fields", out fieldsObj) ? fieldsObj as Dictionary<string, object> : null;
+                    if (fields == null) continue;
+                    var heartbeat = FieldLong(fields, "heartbeat_at_ms");
+                    var age = now - heartbeat;
+                    var agentId = FieldString(fields, "agent_instance_id");
+                    if (heartbeat <= 0 || age < -60000 || age > PresenceFreshMs || string.IsNullOrWhiteSpace(agentId))
+                        continue;
+                    var build = FieldLong(fields, "agent_build");
+                    views.Add(new AgentPresenceView
+                    {
+                        AgentInstanceId = agentId,
+                        AdminUserId = FieldString(fields, "agent_admin_user_id"),
+                        Machine = FieldString(fields, "machine"),
+                        WmsReady = FieldBool(fields, "wms_ready"),
+                        Version = build > 0 ? "v" + build : "--",
+                        HeartbeatAtMs = heartbeat
+                    });
+                }
+            }
+            FirestoreQuotaGuard.RecordReadDocuments(returnedDocuments, component, _log);
+            return views;
+        }
+
         private void ReadOnlineAgentCounts(AgentSession session, long now)
         {
-            var raw = SendJson("GET", PresenceCollectionUrl(), session.IdToken, null, "", 7000, true, "PRESENCE_READ");
-            var root = _json.DeserializeObject(raw) as Dictionary<string, object>;
-            object docsObj;
-            var docs = root != null && root.TryGetValue("documents", out docsObj) ? docsObj as IEnumerable : null;
-            if (docs == null)
-            {
-                _onlineAgentCount = 0;
-                _onlinePrimaryCount = 0;
-                _onlineStandbyCount = 0;
-                _onlineNextBCount = 0;
-                _onlineFrozenCount = 0;
-                lock (_stateGate) _onlineAgents = new List<AgentPresenceView>();
-                return;
-            }
-
-            var freshIds = new HashSet<string>(StringComparer.Ordinal);
-            var views = new List<AgentPresenceView>();
-            foreach (var item in docs)
-            {
-                var doc = item as Dictionary<string, object>;
-                if (doc == null) continue;
-                object fieldsObj;
-                var fields = doc.TryGetValue("fields", out fieldsObj) ? fieldsObj as Dictionary<string, object> : null;
-                if (fields == null) continue;
-                var heartbeat = FieldLong(fields, "heartbeat_at_ms");
-                var age = now - heartbeat;
-                var agentId = FieldString(fields, "agent_instance_id");
-                if (heartbeat <= 0 || age < -60000 || age > PresenceFreshMs || string.IsNullOrWhiteSpace(agentId))
-                    continue;
-
-                freshIds.Add(agentId);
-                var build = FieldLong(fields, "agent_build");
-                views.Add(new AgentPresenceView
-                {
-                    AgentInstanceId = agentId,
-                    AdminUserId = FieldString(fields, "agent_admin_user_id"),
-                    Machine = FieldString(fields, "machine"),
-                    WmsReady = FieldBool(fields, "wms_ready"),
-                    Version = build > 0 ? "v" + build : "--",
-                    HeartbeatAtMs = heartbeat
-                });
-            }
+            var views = QueryFreshPresence(session, "PRESENCE_FRESH_QUERY", now, FirestoreAgentSyncClient.MaxAgents);
 
             string primary;
             string standby;

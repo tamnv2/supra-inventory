@@ -2472,6 +2472,7 @@ namespace SupraInventoryRelayAgent
 
             _wmsTest.Enabled = authenticated && active;
             UpdateD129PicklistReadinessUi();
+            UpdateD150PrimaryTakeoverButton();
         }
 
         private void UpdateD129PicklistReadinessUi()
@@ -3076,6 +3077,7 @@ namespace SupraInventoryRelayAgent
                                 : (role == FirestoreAgentRole.NEXT_B ? "NGỦ ĐÔNG · NEXT B" : "NGỦ ĐÔNG"));
                         _identity.Text = "Agent: " + Environment.MachineName + " / " + CurrentSessionUser() + " / " + roleText;
                         UpdateD129AgentHeader();
+                        UpdateD150PrimaryTakeoverButton();
                         if (role == FirestoreAgentRole.PRIMARY) RefreshD119OperationalViews(true);
                     });
                 });

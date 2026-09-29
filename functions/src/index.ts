@@ -463,7 +463,7 @@ export const agentLogUploadWritten = onDocumentWritten(`${AGENT_LOG_COLLECTION}/
   const filename = String(rows[0]?.data.filename || "");
   if (!AGENT_LOG_FILENAME_RE.test(filename)) return;
   if (rows.some((row, index) =>
-    row.data.status !== "DIRECT_PENDING" ||
+    row.data.status !== (index === expected - 1 ? "DIRECT_PENDING" : "DIRECT_PART") ||
     row.data.source !== "AGENT" ||
     Number(row.data.part_index) !== index ||
     Number(row.data.part_count) !== expected ||
@@ -472,7 +472,9 @@ export const agentLogUploadWritten = onDocumentWritten(`${AGENT_LOG_COLLECTION}/
 
   const claimed = await db.runTransaction(async (tx) => {
     const current = await Promise.all(rows.map((row) => tx.get(row.ref)));
-    if (current.some((doc) => !doc.exists || doc.get("status") !== "DIRECT_PENDING")) return false;
+    if (current.some((doc, index) =>
+      !doc.exists || doc.get("status") !== (index === expected - 1 ? "DIRECT_PENDING" : "DIRECT_PART")
+    )) return false;
     for (const row of rows) {
       tx.update(row.ref, {
         status: "GOOGLE_DIRECT_IN_PROGRESS",

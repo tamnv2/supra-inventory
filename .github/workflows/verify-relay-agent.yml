@@ -76,10 +76,13 @@ jobs:
           $sync = Get-Content relay-agent/FirestoreAgentSync.cs -Raw
           $serviceIndex = Get-Content service/src/index.ts -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
+          $agentLogBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
+          $functionsIndex = Get-Content functions/src/index.ts -Raw
+          $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*84\s*;') { throw "D149 requires Agent v84 while retaining D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.84\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.84\.0\.0</FileVersion>') {
-            throw "D149 Agent assembly/file version must be 0.84."
+          if ($config -notmatch 'AgentBuild\s*=\s*85\s*;') { throw "D150 requires Agent v85 while retaining D140 quota-storm safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.85\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.85\.0\.0</FileVersion>') {
+            throw "D150 Agent assembly/file version must be 0.85."
           }
 
           foreach ($marker in @(
@@ -499,6 +502,61 @@ jobs:
               -not $program.Contains('ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE)') -or
               -not $program.Contains('--d140-sync-safety-self-test')) {
             throw "D140 listener lifecycle/self-test wiring missing."
+          }
+          foreach ($marker in @(
+            'RecordReadDocuments',
+            'document_aware=true'
+          )) {
+            if (-not $quota.Contains($marker)) { throw "D150 document-aware quota guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'QueryFreshPresence',
+            'PRESENCE_FRESH_QUERY',
+            'MANUAL_OWNER_TAKEOVER',
+            'IsManualTakeoverUser',
+            'MANUAL_TAKEOVER_LEASE_READ',
+            'string.Equals(login, "tamnv2"',
+            'string.Equals(login, "admin"'
+          )) {
+            if (-not $leader.Contains($marker)) { throw "D150 fleet/manual-primary safety marker missing: $marker" }
+          }
+          if ($leader.Contains('SendJson("GET", PresenceCollectionUrl()')) {
+            throw "D150 must not restore broad relay_poc_agents collection GET scans."
+          }
+          foreach ($marker in @(
+            'picker-active-call-fresh-query',
+            '"fieldPath", "lock_until_ms"',
+            'GREATER_THAN'
+          )) {
+            if (-not $contact.Contains($marker)) { throw "D150 fresh active-call query marker missing: $marker" }
+          }
+          if ($contact.Contains('/picker_active_calls?pageSize=100')) {
+            throw "D150 must not restore historical picker_active_calls list scans."
+          }
+          foreach ($marker in @(
+            'Chuyển Agent chính',
+            'BeginD150ManualPrimaryTakeover',
+            'IsD150ManualTakeoverLogin',
+            'TimeSpan.FromMinutes(10)',
+            'deep_exact_read=PASS cadence=10m listener=false'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D150 takeover/deep-sync UI marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'ErrorFingerprintWindow = TimeSpan.FromMinutes(10)',
+            'MaxImmediateErrorsPerWindow = 6',
+            'DIRECT_PART',
+            'SAME_FINGERPRINT',
+            'GLOBAL_FUSE'
+          )) {
+            if (-not $agentLogBridge.Contains($marker)) { throw "D150 Agent log-storm guard missing: $marker" }
+          }
+          if (-not $rules.Contains("'DIRECT_PART'")) { throw "D150 Firestore rules must allow DIRECT_PART Agent log chunks." }
+          if (-not $functionsIndex.Contains('index === expected - 1 ? "DIRECT_PENDING" : "DIRECT_PART"')) {
+            throw "D150 Agent log Function must use final-part commit gating."
+          }
+          foreach ($marker in @('documents:runQuery','WORKER_FALLBACK','limit: 1000')) {
+            if (-not $agentLogDrain.Contains($marker)) { throw "D150 bounded Agent log fallback query missing: $marker" }
           }
           if (-not $quota.Contains('SoftReadsPerDay = 45000L')) { throw "D134 Firestore read soft target must be 45,000/day." }
           if ($program.Contains('_mainTabs.TabPages.Add(_usagePage)') -or

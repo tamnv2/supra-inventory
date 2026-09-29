@@ -73,6 +73,44 @@ namespace SupraInventoryRelayAgent
             if (warning != null && log != null) log(warning);
         }
 
+        internal static void RecordReadDocuments(int returnedDocumentCount, string component, Action<string> log)
+        {
+            // Firestore bills collection/query reads by document returned, not by HTTP request.
+            // FirestoreHttpTransport already records the request as one read (also matching the
+            // provider minimum for an empty query), so add only documents beyond that first unit.
+            var additional = Math.Max(0, returnedDocumentCount - 1);
+            if (additional <= 0) return;
+
+            string warning = null;
+            lock (Gate)
+            {
+                ResetIfDayChangedNoLock();
+                _reads += additional;
+
+                var key = Safe(component);
+                long current;
+                ByComponent.TryGetValue(key, out current);
+                ByComponent[key] = current + additional;
+
+                var readBand = Band(_reads, SoftReadsPerDay);
+                if (readBand > _readBand)
+                {
+                    _readBand = readBand;
+                    warning =
+                        "FIRESTORE QUOTA local_guard reads=" + _reads.ToString(CultureInfo.InvariantCulture) +
+                        "/" + SoftReadsPerDay.ToString(CultureInfo.InvariantCulture) +
+                        " writes=" + _writes.ToString(CultureInfo.InvariantCulture) +
+                        "/" + SoftWritesPerDay.ToString(CultureInfo.InvariantCulture) +
+                        " deletes=" + _deletes.ToString(CultureInfo.InvariantCulture) +
+                        "/" + SoftDeletesPerDay.ToString(CultureInfo.InvariantCulture) +
+                        " level=" + Math.Max(_readBand, Math.Max(_writeBand, _deleteBand)).ToString(CultureInfo.InvariantCulture) +
+                        " quota_day=America/Los_Angeles reference_only=true provider_poll=false document_aware=true";
+                }
+            }
+
+            if (warning != null && log != null) log(warning);
+        }
+
         internal static string SnapshotText()
         {
             lock (Gate)

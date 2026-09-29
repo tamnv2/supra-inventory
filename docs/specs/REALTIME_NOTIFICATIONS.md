@@ -716,3 +716,16 @@ The current operating schedule is a low-frequency state change, not a polling wo
 - Closed schedule state blocks new schedule-governed actions but does not itself invalidate a valid login/session.
 - Schedule payload contains no secret/user-specific data: schedule key/version, decision/source, effective open-until, normal window and server/update timestamps only.
 - D140 streaming routing, exponential retry, permanent-error circuit and HA-trio listener limits remain unchanged.
+
+## D150 Agent coordination and quota-safety refinement
+
+D150 preserves the accepted D149 schedule plus D140/D131 confirmation HA timings. It changes only how non-business coordination reads are sourced and how support-log failure paths are bounded.
+
+- Only PRIMARY queries the fresh Agent presence projection. The query is server-filtered by the existing heartbeat freshness window and bounded to the compact fleet size.
+- NEXT-A and NEXT-B use the existing role-limited `agent_sync` realtime listener. DEEP has no listener and exact-reads the one compact `agent_sync` document at a 10-minute cadence; focus recovery remains bounded and must not become a fast polling loop.
+- `picker_active_calls` reconciliation queries only unexpired lock documents and then validates ACTIVE state locally. Historical/resolved calls are not repeatedly listed.
+- Manual PRIMARY takeover is limited in the Agent UI/runtime to login usernames `tamnv2` and `admin`. It requires replay open + Web Confirm ready, then uses roles-document CAS and a new generation. Existing pre-WMS-mutation generation verification remains authoritative.
+- PRIMARY queue 3s active / 15s inactive / 1s bounded HOT, 10s lease heartbeat and 15s failover remain protected.
+- Agent support-log delivery uses commit-last multipart semantics: intermediate `DIRECT_PART` writes do not start assembly; the final `DIRECT_PENDING` part is the single assembly trigger. Repeated same-fingerprint errors are locally suppressed/bounded while crash remains immediate.
+- No provider Usage polling, new Firestore collection, Android polling or Stable runtime is introduced.
+

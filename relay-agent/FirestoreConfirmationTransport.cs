@@ -410,6 +410,7 @@ namespace SupraInventoryRelayAgent
                     if (parsed != null) docs.Add(parsed);
                 }
 
+                FirestoreQuotaGuard.RecordReadDocuments(docs.Count, "CONFIRM_PENDING_QUERY", _log);
                 LogPollTelemetry("QUERY_FRESH_ONLY", docs.Count, rowCount);
                 return docs;
             }
