@@ -3608,7 +3608,7 @@
     },
     {
       "id": "OA073",
-      "status": "OWNER_PROVIDER_STEPS_PASS__DRIVE_ARCHIVE_RETEST_D146",
+      "status": "PASS__CLOSED_BY_D146_OWNER_ACCEPTANCE",
       "title": "Publish Beta Google OAuth and replace production refresh token",
       "resource_key": "oauth-beta",
       "provider": "Google Auth Platform + Cloudflare Worker",
@@ -3623,7 +3623,7 @@
         "public_page_probe": "PASS__HTTP200_IDENTITY_SCOPE_PRIVACY_LIMITED_USE",
         "refresh_token": "RECONSENTED_REPLACED__VALUE_NOT_READ_OR_RECORDED",
         "gmail_send": "OWNER_FIELD_PASS",
-        "drive_file": "D146_RUNTIME_RETEST_PENDING"
+        "drive_file": "OWNER_ACCEPTED_AS_PART_OF_D146"
       },
       "shortest_test_path": [
         "After D145 runtime PASS, open Google Auth Platform Branding for supra-inventory-beta and set Application home page to https://inventory-beta.supra.cc.cd/about, Privacy policy to https://inventory-beta.supra.cc.cd/privacy, and Terms of use to https://inventory-beta.supra.cc.cd/terms; save.",
@@ -3640,26 +3640,26 @@
         "No Stable OAuth resource or Stable runtime is changed."
       ],
       "safety": "Beta only. No OAuth token/client secret/service-account key may be pasted into chat, source, issue, PR or log. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "No additional Google Auth Platform or Gmail action. D146 will exercise the renewed drive.file token through the repaired runtime-log archive path. Never paste the refresh token into chat/repo/logs.",
-      "closed": false,
+      "remaining_owner_action": "None. D146 Owner acceptance closes the Drive runtime retest; never expose the refresh-token value.",
+      "closed": true,
       "field_result": {
         "date": "2026-09-29",
-        "result": "PARTIAL_PASS_PENDING_DRIVE_RUNTIME",
-        "evidence": "Owner confirmed Beta OAuth is In production, the refreshed token was deployed, and transactional Gmail sending succeeds. Drive archive will be proven by D146 runtime logs."
+        "result": "PASS",
+        "evidence": "D146 Owner acceptance closes the remaining Drive-backed runtime retest after OAuth In production and Gmail send had already passed."
       }
     },
     {
       "id": "OA074",
-      "status": "BLOCKED_PENDING_D146_TECHNICAL_RUNTIME_RELEASE",
+      "status": "PASS__OWNER_ACCEPTED_D146_DONE",
       "title": "Field-accept D146 logs, live SKU refresh, delete guard and Agent input",
       "resource_key": "repo",
       "provider": "Beta Worker/Web/Android/Firestore/Google Function/Drive/Windows Agent",
       "reason_owner_only": "Final acceptance requires one real PDA and company-laptop Agent check after the signed Android and Agent v83 releases are published. No new OAuth/Gmail connection is required.",
       "prerequisites": {
-        "d146": "PENDING_PR_GATES_AND_MAIN_RUNTIME",
+        "d146": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC86__AGENT_V83__FINAL_FIRESTORE_HOTFIX_PASS",
         "oauth_beta": "IN_PRODUCTION__FRESH_REFRESH_TOKEN__GMAIL_SEND_PASS",
         "target_agent": "relay-agent-v83",
-        "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC85",
+        "target_android": "beta-vc86",
         "stable": "OWNER_GATED_UNTOUCHED"
       },
       "shortest_test_path": [
@@ -3679,8 +3679,13 @@
         "Stable remains untouched."
       ],
       "safety": "Beta only. Do not connect/read another Gmail account. No OAuth token, client secret, service-account key, WMS session material or password may be pasted into chat/repo/logs. Stable remains OWNER-GATED.",
-      "remaining_owner_action": "Wait for D146 technical/runtime release PASS; then run only the bounded field checks above.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D146 done on 2026-09-29.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-29",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D146 done. This closes the D146 field-acceptance checkpoint without adding any new OAuth/Gmail connection requirement."
+      }
     }
   ]
 }

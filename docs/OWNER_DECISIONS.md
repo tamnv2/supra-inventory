@@ -2168,3 +2168,5 @@ Owner approved on 2026-09-29. D146 supersedes the D144 log schedule/Drive-delive
 10. **Release targets.** Beta target is Agent `relay-agent-v83` and the next monotonic signed Android Beta after `beta-vc85`. Stable remains OWNER-GATED and untouched.
 
 The Owner's message ended with an empty item 9; D146 does not invent an additional requirement beyond the eight concrete items above.
+
+D146 Owner acceptance: **PASS / done** on 2026-09-29. This acceptance covers the D146 requirements as released on Beta (`beta-vc86`, `relay-agent-v83`) after the final Firestore-rules hotfix. It closes OA074 and the remaining D145/OA073 Drive runtime retest. Stable remains OWNER-GATED.

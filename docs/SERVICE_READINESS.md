@@ -1314,3 +1314,12 @@ Status: **OWNER FIELD PASS**.
 - Android: `D146_SOURCE_CANDIDATE__NEXT_AFTER_VC85__LIVE_SKU_REFRESH__06_12_18_21_LOGS`
 - Latest Beta APK: `beta-vc85`
 - SQLite schema: `14`
+
+
+## D146 Owner-accepted Beta baseline — 2026-09-29
+- Beta: `D146_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC86__AGENT_V83__FINAL_HOTFIX_MAIN_D7E0CB94`.
+- Web: `D146_OWNER_FIELD_PASS__LOG_DRIVE_RETRY__SKU_PDA_PUSH__TRUE_ROOT_DELETE_GUARD`.
+- Android: `D146_OWNER_FIELD_PASS__SIGNED_BETA_VC86__LIVE_SKU_REFRESH__06_12_18_21_LOGS`.
+- Latest Beta APK: `beta-vc86`.
+- SQLite schema remains `14`.
+- Owner explicitly confirmed D146 done/PASS; OA073 and OA074 are closed. Stable remains OWNER-GATED and untouched.
