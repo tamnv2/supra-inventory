@@ -1545,10 +1545,34 @@ namespace SupraInventoryRelayAgent
                 StringComparer.Ordinal);
             var removals = ParsePresenceRemovals(removedSessionsJson);
 
-            // LOGIN is authoritative. Preserve one-shot PickList fallback through
-            // unrelated presence changes, but remove a matching/older fallback on
-            // explicit logout/revoke metadata. LOGIN for the same user replaces it.
-            var merged = incoming.ToList();
+            // LOGIN is authoritative, but an older delayed projection may not
+            // downgrade a newer session already observed locally. For the same user,
+            // LOGIN wins at the same/newer generation; a strictly newer local session
+            // is preserved until authoritative projection catches up.
+            var currentByUser = _pickerOnlineSnapshot
+                .Where(item => item != null && !string.IsNullOrWhiteSpace(item.UserId))
+                .GroupBy(item => item.UserId, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.OrderByDescending(item => item.SessionGeneration).First(), StringComparer.Ordinal);
+            var merged = new List<PickerPresenceView>();
+            foreach (var authoritative in incoming)
+            {
+                PickerPresenceView current;
+                if (currentByUser.TryGetValue(authoritative.UserId, out current) &&
+                    current.SessionGeneration > 0 &&
+                    current.SessionGeneration > authoritative.SessionGeneration)
+                {
+                    merged.Add(current);
+                    Log("PICKER_PRESENCE authority=LOGIN_LOGOUT stale_login=SKIP_OLDER_GENERATION user=" +
+                        SafeUserLabel(current.EmployeeCode, current.UserId));
+                }
+                else
+                {
+                    merged.Add(authoritative);
+                }
+            }
+
+            // Preserve one-shot PickList fallback through unrelated presence changes.
+            // Explicit logout/revoke metadata removes only matching/older fallback.
             foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
                 item != null &&
                 string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
