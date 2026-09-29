@@ -233,3 +233,12 @@ The Agent Usage page remains server-mediated and provider-authoritative. The Win
 - `Đợt báo hàng` and `Chi tiết Picker` include a visible **Ca phát sinh** column.
 - Workbook includes **So sánh ca** with, at minimum, lượt báo, SKU, Picker, số đợt, Có hàng, Bỏ qua, Thu hồi, Đang chờ, tỷ lệ đợt đã xử lý, thời gian xử lý bình quân and thời gian Picker chờ bình quân, plus Ca 2 minus Ca 1 comparison.
 - Existing workbook layout rules—clear sheet names, bounded column widths, date formats and filters—remain. D148 does not add a new reporting authority or change historical source data.
+
+## D149 recent-result date navigation
+
+- **Kết quả gần đây** remains paged and gains an explicit bounded date range instead of relying on an ambiguous all-history surface.
+- Default is **Hôm nay**. Quick ranges include Hôm nay, Hôm qua, 7 ngày and 30 ngày; a custom range is allowed within the existing hot-report maximum of 60 days.
+- Summary cards and the paged result table use the exact same active range and status filter.
+- A visible action may open detailed reporting with the same date interval rather than requiring the operator to re-enter dates.
+- Range changes are user actions; no background refresh/polling cadence is added.
+- Existing report-detail pagination/export safety ceilings and historical authority remain unchanged.
