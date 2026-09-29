@@ -747,6 +747,10 @@ class PickerController(
     }
 
     fun refresh(onComplete: ((Boolean) -> Unit)? = null) {
+        if (!shortageReportingEnabled) {
+            onComplete?.invoke(true)
+            return
+        }
         onComplete?.let { refreshWaiters += it }
         if (refreshing) {
             refreshDirty = true
