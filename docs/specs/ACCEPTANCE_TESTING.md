@@ -2003,3 +2003,6 @@ Technical PASS requires all of the following:
 - no new provider, collection, SQLite/Firestore schema, listener, polling loop, cron, secret, Android release or Stable mutation is introduced.
 
 OA081 Owner field PASS should verify one already-LOGIN Picker sends several real PickLists with no repeated Picker-list churn, one fallback-only Picker appears once then remains until matching logout/revoke, and Firebase Usage shows materially lower Write growth without slower PickList results or degraded Agent/PDA communication.
+
+
+D153 Owner result: **PASS** on 2026-09-29. OA081 is closed after explicit Owner field acceptance of released `relay-agent-v87` with Android `beta-vc89` unchanged. D153 is promoted to the accepted base; technical/release evidence remains PR #321 → main `d69566ee0ae6294573ec91f9eb649764e91561ee`, Agent release id `399311941`, EXE SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`. Deferred streaming redesign D remains outside accepted scope; Stable remains OWNER-GATED.
