@@ -355,9 +355,6 @@ namespace SupraInventoryRelayAgent
                         string.Equals(current.ScheduleKey ?? "", scheduleKey, StringComparison.Ordinal) &&
                         current.RelayOverrideUntilMs >= relayOverrideUntilMs)
                     {
-                        TryPublishOperatingScheduleProjection(
-                            session, scheduleKey, current.ScheduleDecision,
-                            current.DecisionBoundaryMs, current.RelayOverrideUntilMs);
                         _log("FIRESTORE SCHEDULE manual_adjust=NOOP existing_until_ms=" +
                              current.RelayOverrideUntilMs);
                         return true;
