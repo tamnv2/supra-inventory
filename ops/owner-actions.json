@@ -3810,7 +3810,39 @@
         "date": "2026-09-29",
         "result": "PASS",
         "evidence": "Owner explicitly confirmed D149 PASS after field review of the released D149 Beta set."
-      }
+      },
+    {
+      "id": "OA078",
+      "status": "BLOCKED_PENDING_D150_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "title": "Field-accept D150 quota-safe Agent coordination and manual PRIMARY",
+      "resource_key": "beta_runtime",
+      "provider": "SUPRA Inventory Beta",
+      "reason_owner_only": "Only the Owner can validate the manual PRIMARY transfer and real warehouse PDA continuity after the D150 Beta Agent release is published.",
+      "prerequisites": {
+        "accepted_base": "D149_OWNER_FIELD_ACCEPTED_PASS",
+        "d150_owner_approval": "PASS__2026_09_29",
+        "target_agent_release": "relay-agent-v85",
+        "android": "beta-vc88__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "On a non-PRIMARY Agent logged in as tamnv2 or admin, verify Chuyển Agent chính is the far-right Hệ thống Agent action.",
+        "Verify it is disabled when Replay is sleeping or Web Confirm is not ready.",
+        "With Replay open and Web Confirm ready, confirm takeover once; verify this machine becomes PRIMARY and the button hides.",
+        "Send a real PDA PickList confirmation and verify one normal result with no duplicate mutation from the former PRIMARY.",
+        "On another valid Agent operator username, verify the Chuyển Agent chính action is absent.",
+        "Observe Agent/PDA operation and confirm no rapid Firestore reconnect/read storm or broken fleet/Picker-contact presentation."
+      ],
+      "pass_criteria": [
+        "Manual PRIMARY works only for tamnv2/admin and uses one confirmation.",
+        "Former PRIMARY is generation-fenced before any WMS mutation.",
+        "3s/15s/1s business query, 10s lease and 15s failover behavior is unchanged.",
+        "Fleet and Picker-contact views remain operational without broad historical scans.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Wait for D150 technical/runtime/release PASS, then run the shortest field test and explicitly report PASS or NOT PASS.",
+      "closed": false
+    }
     }
   ]
 }
