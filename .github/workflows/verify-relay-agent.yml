@@ -80,9 +80,40 @@ jobs:
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*85\s*;') { throw "D150 requires Agent v85 while retaining D140 quota-storm safeguards." }
-          if ($project -notmatch '<AssemblyVersion>0\.85\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.85\.0\.0</FileVersion>') {
-            throw "D150 Agent assembly/file version must be 0.85."
+          if ($config -notmatch 'AgentBuild\s*=\s*86\s*;') { throw "D152 requires Agent v86 while retaining D150/D140 safeguards." }
+          if ($project -notmatch '<AssemblyVersion>0\.86\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.86\.0\.0</FileVersion>') {
+            throw "D152 Agent assembly/file version must be 0.86."
+          }
+
+          foreach ($d152Marker in @(
+            'CheckboxRecoveryFragments',
+            'checkbox_recovery=START',
+            'IssueConfirmReloadNowNoLock("checkbox_not_ready")',
+            'TimeSpan.FromSeconds(5)',
+            'TimeSpan.FromMilliseconds(2200)',
+            'VerifyExactWithoutMutation',
+            'TryVerifyRowRemovedAfterSearchNoLock',
+            'ROW_REMOVED_AFTER_VERIFY_SEARCH',
+            'POST_CONFIRM_VERIFY_',
+            'surfaceFingerprint',
+            'freshSurface',
+            'CHECKBOX_RECOVERY_STATE_CHANGED',
+            'CHECKBOX_RELOAD+CHECKBOX_NOT_READY',
+            'GUARD+VERIFY_ONLY_CONFIRMED',
+            'GUARD+VERIFY_ONLY_PENDING',
+            'MarkVerifiedConfirmed',
+            'CONFIRM_GUARD_VERIFY_CONFIRMED',
+            'mutation=false'
+          )) {
+            if (-not ($browser.Contains($d152Marker) -or $program.Contains($d152Marker) -or $confirmGuard.Contains($d152Marker))) {
+              throw "D152 PickList recovery/verify-only marker missing: $d152Marker"
+            }
+          }
+          if ($program -match 'Result\s*=\s*"CONFIRM_REJECTED"[\s\S]{0,220}CHECKBOX_NOT_READY') {
+            throw "D152 must not classify checkbox-not-ready as Supra rejection."
+          }
+          if (-not $program.Contains('FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY')) {
+            throw "D152 existing uncertain guard must remain verify-only."
           }
 
           foreach ($marker in @(
