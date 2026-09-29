@@ -321,8 +321,8 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D146_ACTIVE_FIRESTORE_CONFIRM_HA_PICKER_PRESENCE_CONTACT_CHAT_SESSION_CONTROL_AGENT_LOG_GOOGLE_FIRST",
-      "guard": "D146_BETA_ONLY__CONFIRMATION_PLUS_PICKER_CONTACT_SESSION_CONTROL_AND_BOUNDED_AGENT_LOG_PARTS__NO_SUPRA_SESSION_DATA__NO_WMS_API_AUTH_MATERIAL__STABLE_OWNER_GATED",
+      "status": "D149_ACTIVE_FIRESTORE_CONFIRM_HA_PICKER_PRESENCE_CONTACT_CHAT_SESSION_CONTROL_AGENT_LOG_AND_LOW_FREQUENCY_OPERATING_SCHEDULE",
+      "guard": "D149_BETA_ONLY__EXISTING_COLLECTIONS__OPERATING_SCHEDULE_EXACT_DOC_ALLOWED__NO_HOT_HA_DOC_FUNCTION_TRIGGER__NO_ANDROID_LIST_OR_GENERAL_COORDINATION_READ__NO_SECRET_OR_WMS_SESSION_DATA__STABLE_OWNER_GATED",
       "collections": [
         "relay_poc_jobs",
         "relay_poc_rate_limits",
@@ -343,7 +343,8 @@
         "ADMIN",
         "PICKPACK_ADMIN"
       ],
-      "d119_role_guard": "D131_AGENT_OPERATOR_ROLES_RETAINED_FOR_PICKLIST_AND_PICKER_CONTACT__ACTIVE_CALL_LOCK_SCOPED__SKU_WMS_SYNC_RETIRED"
+      "d119_role_guard": "D131_AGENT_OPERATOR_ROLES_RETAINED_FOR_PICKLIST_AND_PICKER_CONTACT__ACTIVE_CALL_LOCK_SCOPED__SKU_WMS_SYNC_RETIRED",
+      "d149_operating_schedule_document": "relay_poc_coordination/operating_schedule"
     },
     {
       "key": "supra-wms-ui-d080",
@@ -411,8 +412,8 @@
       "environment": "beta",
       "name": "inventory-beta-picker-alerts",
       "exposure": "public_identifier",
-      "status": "D146_EXISTING_BETA_FUNCTION_RUNTIME__FCM_PLUS_AGENT_LOG_GOOGLE_FIRST_EXTENSION",
-      "guard": "BETA_ONLY__FIRESTORE_EVENT_TO_FCM_OR_D146_AGENT_LOG_GOOGLE_FIRST_UPLOAD__STABLE_FORBIDDEN"
+      "status": "D149_EXISTING_BETA_FUNCTION_RUNTIME__FCM_PLUS_AGENT_LOG_PLUS_LOW_FREQUENCY_OPERATING_SCHEDULE_EVENT",
+      "guard": "BETA_ONLY__EXACT_OPERATING_SCHEDULE_DOC_EVENT_TO_FCM_AND_BOUNDED_WORKER_MIRROR__NO_HOT_ROLES_LEASE_TRIGGER__NO_RETRY_LOOP__STABLE_FORBIDDEN"
     },
     {
       "key": "agent-log-function-beta-d146",
