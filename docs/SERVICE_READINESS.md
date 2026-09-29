@@ -1439,3 +1439,14 @@ Derived current-status markers:
 - Revised standalone diagnostic APK adds the package-specific DND detail Settings route with safe fallback plus a bounded local 15-second `TYPE_APPLICATION_OVERLAY` probe.
 - Production signed Android remains `beta-vc88`; Agent/Web business runtime and Stable are unchanged. No provider, collection, schema, secret, polling, listener or scheduled traffic was added.
 - OA079 is READY for one failing MT90 V8.01.002: try package-detail DND, run overlay probe, then send one manual diagnostic log and report the visual overlay result.
+
+
+## D151 adaptive Android alert technical/runtime/release PASS — 2026-09-29
+
+- PR #313 merged to main `44606b738b34b3ea216d4db14ab4a3af166f162c`.
+- Main Repo Authority `36556013115`, Project State `36556013183`, D127 Dashboard Probe `36556013445`, UI Design / operational regression `36556013257`, Beta Worker `36556013002` and Verify Beta Android `36556013042` all PASS.
+- Signed Android release `beta-vc89` release id `399040014` targets that exact main commit.
+- APK asset id `597939005`, size `19,118,660` bytes, SHA-256 `9fe96a16a26d1d59e3b2664025cd0802a59b9535d545d92cd475995c4dfc12bc`.
+- `inventory-channel` APK asset id `597939084` was refreshed to the same digest.
+- D151 is technical/runtime/release PASS only. OA079 is field-ready; accepted base remains D150 until explicit Owner D151 PASS.
+- Stable remains OWNER-GATED and untouched.

@@ -3868,7 +3868,7 @@
     },
     {
       "id": "OA079",
-      "status": "BLOCKED_UNTIL_D151_PRODUCTION_BETA_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D151 adaptive Android alert engine",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3877,8 +3877,9 @@
         "accepted_base": "D150_OWNER_FIELD_ACCEPTED_PASS",
         "d151_field_evidence": "THREE_MT90_V8_01_002_BACKEND_DND_FAIL__ONE_MT90_V8_04_006_NATIVE_DND_PASS__OVERLAY_PROBE_PASS",
         "d151_owner_approval": "ADAPTIVE_CAPABILITY_ENGINE_APPROVED__2026_09_29",
-        "production_android": "NEXT_MONOTONIC_AFTER_BETA_VC88__PENDING",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "production_android": "beta-vc89__RELEASED__RUN_36556013042__MAIN_44606B73",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "release_evidence": "RELEASE_399040014__APK_ASSET_597939005__SHA256_9fe96a16a26d1d59e3b2664025cd0802a59b9535d545d92cd475995c4dfc12bc"
       },
       "shortest_test_path": [
         "Update 1291 Báo hàng Beta to the D151 signed release on one MT90 V8.01.002, one MT90 where native DND works (currently V8.04.006), one Urovo DT50, and if readily available one other Android 11+ device.",
@@ -3899,7 +3900,7 @@
         "No new provider, schema, polling, listener, heartbeat or scheduled network traffic is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until the signed D151 production Beta APK is published and technical/release guards pass.",
+      "remaining_owner_action": "Update 1291 Báo hàng Beta to beta-vc89 and execute the OA079 field matrix on MT90 old/new DND behavior, DT50, and one additional Android 11+ device if readily available. Report any alert-mode, screen-off wake, DND/Battery Saver, duplicate ACK or usage anomaly. D151 is not Owner PASS until explicit Owner confirmation.",
       "closed": false
     }
   ]
