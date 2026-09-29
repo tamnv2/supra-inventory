@@ -4092,8 +4092,18 @@
         "Agent contractor display adds no Firestore read/write/listener/poll operation cadence; it only adds payload bytes to already-authorized presence/sync operations.",
         "No new provider resource, Firestore collection, secret, listener, polling loop or cron is introduced; Stable remains untouched."
       ],
-      "remaining_owner_action": "Update Agent to relay-agent-v90, keep PDA on signed beta-vc91, then run the OA083 shortest field path. If all items pass, explicitly confirm D155 PASS; otherwise report the failing item and repair continues under D155.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D155 PASS on 2026-09-30.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-30",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D155 PASS after real Beta validation of contractor synchronization and Báo hàng enable/disable behavior."
+      },
+      "owner_result": {
+        "status": "PASS",
+        "date": "2026-09-30",
+        "evidence": "D155 is promoted to the accepted Beta base; the serial next-change gate is unlocked."
+      }
     }
   ]
 }
