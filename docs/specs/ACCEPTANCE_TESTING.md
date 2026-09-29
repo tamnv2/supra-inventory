@@ -1886,3 +1886,31 @@ D148 Owner result: **PASS** on 2026-09-29. OA076 is closed after the Owner expli
 7. Verify Web recent-result ranges, result resolver copy, Agent Web storage move/rollback, and removal of the PickList Hôm nay cluster.
 
 D149 Owner result: **PASS** on 2026-09-29. OA077 is closed after the Owner explicitly confirmed field acceptance of the released D149 Beta set. D149 is promoted to the accepted base. Technical/release evidence remains main `c03f54861e5fbb6ff093b129e9b76e303475c358`, signed `beta-vc88` and `relay-agent-v84`; Stable remains OWNER-GATED and untouched.
+
+## D150 acceptance gates — quota-safe coordination and manual PRIMARY
+
+D150 is not accepted merely because the Agent compiles or provider deploys succeed.
+
+Technical/CI gates:
+- preserve exact accepted queue/HA constants: active 3000 ms, inactive 15000 ms, HOT 1000 ms, lease 10000 ms, failover 15000 ms;
+- reject restoration of collection-wide `relay_poc_agents?pageSize=100` and `picker_active_calls?pageSize=100` reads;
+- require server-filtered fresh presence and unexpired active-call queries;
+- require DEEP to remain listener-free and use only bounded exact compact-state recovery;
+- require document-aware local read accounting without provider Usage polling;
+- require Agent error fingerprint suppression/global fuse while crash remains immediate;
+- require multipart logs to use non-triggering intermediate parts and one final commit part;
+- require Worker fallback to query bounded fallback statuses rather than list the entire log collection;
+- require manual PRIMARY to be username-gated to `tamnv2`/`admin`, Web-Confirm/schedule readiness-gated, CAS-based and generation-fenced;
+- Agent release/version must advance to v85; Android beta-vc88 remains unchanged unless separately justified;
+- Stable must remain untouched.
+
+Owner field gate after technical/runtime/release PASS:
+1. Log in to a non-PRIMARY Agent as `tamnv2` or `admin`; confirm **Chuyển Agent chính** appears at the far right.
+2. Confirm the action is disabled when Web Confirm is not ready or replay is sleeping.
+3. With replay open and Web Confirm ready, confirm once and verify this machine becomes PRIMARY, the button disappears and PDA confirmation continues normally.
+4. Confirm the former PRIMARY cannot produce a duplicate WMS mutation and the fleet settles into PRIMARY/NEXT-A/NEXT-B/DEEP roles.
+5. Log in using another valid Agent operator account and confirm the manual-primary button is absent.
+6. Observe normal field operation long enough to ensure Picker contact/fleet lists still update while no rapid reconnect/read storm returns.
+
+Only explicit Owner PASS closes the D150 field gate and promotes D150 over the D149 accepted base.
+
