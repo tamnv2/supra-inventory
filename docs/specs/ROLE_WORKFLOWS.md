@@ -762,3 +762,13 @@ If the reload returns to login, Dashboard, a partial DOM, or another page, exist
 - All Agents consume the same shared schedule authority. Deep-hibernate Agents must not gain a new schedule listener; they reconcile authority before promotion/business mutation.
 - Web shows the shared schedule state and does not create an independent competing overtime authority.
 - Android Báo hàng and PickList use the same effective operating window. Shift closure must not force logout merely to represent schedule state.
+
+
+## D153 Picker online-list quota semantics
+
+- Android LOGIN/session state remains the primary Picker-online authority.
+- PickList is only a one-shot fallback signal when the same current Android session is absent from the Agent list.
+- Once fallback exists for that session, additional PickLists do not refresh or rewrite Picker presence.
+- LOGIN for that Picker replaces fallback. Explicit logout/session revoke/kick removes only matching/older fallback by session generation; transient socket/network loss and unrelated Picker events do not remove it.
+- Repeated notification-device registration with unchanged semantic session/device state must not become a Firestore presence heartbeat.
+- No D153 optimization changes PickList processing cadence, WMS confirmation timing, critical notification behavior or HA/failover timing.
