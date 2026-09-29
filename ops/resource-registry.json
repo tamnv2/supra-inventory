@@ -23,7 +23,7 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 14,
+    "beta_sqlite_schema_version": 15,
     "beta_operational_v2_extension_schema_runtime": 5,
     "beta_operational_v2_extension_schema_source_target": 5,
     "beta_sqlite_schema_source_target": 15
@@ -130,16 +130,16 @@
   },
   "environments": {
     "beta": {
-      "status": "D154_OWNER_ACCEPTED_BASE__AGENT_V88__ANDROID_VC90",
+      "status": "D155_TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_OA083_PENDING__D154_ACCEPTED_BASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
-      "health_status": "D154_PASS_RUN_36609749783__MAIN_4AA06E7B__SCHEMA14__OPERATIONAL5_5__WORKER_WEB_DEPLOY_PASS",
-      "ci_deploy_status": "D154_PASS_RUN_36609749783_MAIN_4AA06E7B",
+      "health_status": "D155_PASS_RUN_36619215788__MAIN_2FDC4ABE__SCHEMA15__OPERATIONAL5_5__WORKER_WEB_DEPLOY_PASS",
+      "ci_deploy_status": "D155_PASS_RUN_36619215788_MAIN_2FDC4ABE",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
-      "app_verify_status": "D154_PASS_RUN_36609749611__SIGNED_BETA_VC90",
+      "app_verify_status": "D155_PASS_RUN_36619215698__SIGNED_BETA_VC91",
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
@@ -198,8 +198,8 @@
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D144_PASS_RUN_36477936028__SOURCE_2B2B5A62__SCHEMA14_14__AGENT_MIGRATION0_0__OPERATIONAL5_5",
       "relay_agent_release_target": "relay-agent-v88__OWNER_ACCEPTED",
-      "next_signed_beta_release_target": "D155_NEXT_MONOTONIC_AFTER_VC90__EXPECTED_VC91",
-      "next_relay_agent_release_target": "relay-agent-v89",
+      "next_signed_beta_release_target": "OWNER_FIELD_ACCEPTANCE_PENDING_D155",
+      "next_relay_agent_release_target": "OWNER_FIELD_ACCEPTANCE_PENDING_D155",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -296,7 +296,7 @@
       "d154_inventory_channel_apk_asset_id": 598876159,
       "d154_owner_field_result": "PASS__OWNER_CONFIRMED_D154__2026_09_30",
       "d154_accepted_base": "D154",
-      "d155_source_status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS__SCHEMA15_TARGET__CLOUDFLARE_ONLY_REPORTING_CAPABILITY__AGENT_CONTRACTOR_NO_NEW_FIRESTORE_CADENCE"
+      "d155_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA083_FIELD_READY__D154_REMAINS_ACCEPTED_BASE"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -1883,7 +1883,7 @@
     }
   },
   "d155": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA083_FIELD_READY",
     "accepted_base": "D154",
     "sqlite_schema_target": 15,
     "worker_path": "EXISTING_BETA_WORKER_INVENTORYCORE_HIBERNATABLE_WEBSOCKET",
@@ -1894,6 +1894,22 @@
     "new_provider_resources": "NONE",
     "new_collections": "NONE",
     "new_secrets": "NONE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "main_commit": "2fdc4abe4dcb2ea2c221bafeade73f3e406aace4",
+    "implementation_pr": 328,
+    "sqlite_schema_runtime": 15,
+    "worker_run_id": 36619215788,
+    "runtime_proof": "HTTP200__SOURCE_2FDC4ABE_EXACT__SCHEMA15_15__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+    "android_release": "beta-vc91",
+    "android_release_id": 399459526,
+    "android_asset_id": 599033249,
+    "android_sha256": "55314957a767ddff2eb04283e2628ae6333c6d439168abc4bb5b0f56c33a06de",
+    "agent_release": "relay-agent-v89",
+    "agent_release_id": 399459395,
+    "agent_asset_id": 599032834,
+    "agent_sha256": "3aa0c9929f9b972464502b1ec3289853633e32519dfa9b58b587ad6b7c5c8943",
+    "inventory_channel_pda_asset_id": 599033365,
+    "inventory_channel_agent_asset_id": 599032958,
+    "owner_field_gate": "OA083_READY"
   }
 }
