@@ -433,3 +433,11 @@ The public Privacy/About pages document the existing Google-data boundary; they 
 - Worker/InventoryCore stores only the current mirrored schedule required to enforce Báo hàng. Duplicate/same-or-older versions are idempotent and must not rewrite storage.
 - Android local schedule cache is replaceable state, not business authority. It may survive process/device restart but must be reconciled at the bounded lifecycle points defined by D149.
 - Human result attribution uses the existing canonical resolver identity/role/source wherever available. Recovery APIs must return the same attribution semantics as push delivery; no separate notification-only identity authority is created.
+
+## D155 Picker contractor and capability data lifecycle
+
+- InventoryCore users adds nullable contractor_name and shortage_reporting_enabled default enabled; migration is additive and preserves existing users/history.
+- hr_source_config adds the configured contractor source header. HR sync updates Picker display name/contractor by employee code and preserves existing reporting capability.
+- New Picker provisioning initializes reporting enabled. Account deletion/history retention semantics are unchanged.
+- Disabling shortage reporting does not modify or delete existing report tickets, batches, result snapshots, acknowledgements or audits.
+- No D155 capability state is persisted to Firestore/RTDB. Agent contractor presentation may appear in the existing Agent Picker projection only when that projection is already updated for established reasons.
