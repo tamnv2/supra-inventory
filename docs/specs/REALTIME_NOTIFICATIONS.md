@@ -779,3 +779,14 @@ Failure of OEM DND policy access alone must not block login when hard readiness 
 - If the frame is missed, normal /api/auth/me login/resume profile refresh repairs state. No timer/polling cadence is introduced.
 - While shortage reporting is disabled, shortage-result realtime/background targeting excludes that Picker. PickList/Agent control paths remain unchanged.
 - Contractor metadata is not a new realtime stream. Agent receives it only inside an already-required existing Picker presence/Agent sync payload; contractor-only HR changes do not force a provider write.
+
+## D156 schedule convergence without new cadence
+
+- Agent/Firestore remains the schedule authority and the existing operatingScheduleChanged Function remains the normal realtime bridge.
+- InventoryCore may exact-read only relay_poc_coordination/operating_schedule when its local window is still closed and a schedule-governed request needs an authoritative decision.
+- Recovery is single-flight inside the one InventoryCore Durable Object and globally throttled to one exact read per 10 seconds. There is no Firestore collection query, schedule listener, polling timer or cron.
+- A recovered newer version is mirrored into the same InventoryCore schedule state and reuses the existing WebSocket operating_schedule invalidation for ADMIN, PICKPACK_ADMIN and ROOT.
+- Web Ca vận hành consumes that existing scope and reloads the authoritative window; reconnect reconciliation does the same.
+- Android continues to receive the existing data-only FCM topic event. StockMessagingService persists the schedule and signals the active MainActivity, which reapplies Picker Báo hàng availability immediately.
+- Server mutation gating performs recovery before returning ANDROID_WINDOW_CLOSED. Notification/result delivery uses the same reconciled window so overtime result delivery cannot be suppressed by a stale Worker mirror.
+- D156 adds no new Firestore write cadence, FCM cadence, WebSocket connection, provider resource, listener or background polling loop.
