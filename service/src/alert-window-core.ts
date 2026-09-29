@@ -5,6 +5,7 @@ export interface AndroidAlertWindowState {
   schedule_key: string;
   schedule_version: number;
   decision: string | null;
+  projection_open_until_ms: number | null;
   overtime_until_ms: number | null;
   is_open: boolean;
   normal_window_open: boolean;
@@ -163,6 +164,7 @@ export function readAndroidAlertWindow(
     schedule_key: currentKey,
     schedule_version: stored.scheduleKey === currentKey ? stored.version : 0,
     decision: stored.scheduleKey === currentKey && stored.decision ? stored.decision : null,
+    projection_open_until_ms: projectedOpen ? stored.openUntilMs : null,
     overtime_until_ms: overtimeOpen ? stored.openUntilMs : null,
     is_open: normalOpen || earlyStartOpen || overtimeOpen,
     normal_window_open: normalOpen,
