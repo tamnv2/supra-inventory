@@ -480,6 +480,7 @@ jobs:
             'fallback=SKIP_ALREADY_PRESENT',
             'fallback=UPSERT_ONCE',
             'shared=SKIP_NO_CHANGE',
+            'stale_login=SKIP_OLDER_GENERATION',
             'ParsePresenceRemovals',
             'IsCurrentPicklistFallback'
           )) {
