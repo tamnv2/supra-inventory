@@ -169,6 +169,7 @@ type AndroidOperatingWindowPayload = {
   schedule_key?: string;
   schedule_version?: number;
   decision?: string | null;
+  projection_open_until_ms?: number | null;
   normal_window_open?: boolean;
   overtime_open?: boolean;
   early_start_open?: boolean;
