@@ -731,3 +731,7 @@ Technical/release evidence remains PR #300 → main `fe893db1d80e417021defdad92d
 ## D149 Owner acceptance checkpoint — 2026-09-29
 
 D149 is Owner-accepted on Beta. OA077 is closed after explicit Owner PASS. The accepted runtime remains main `c03f54861e5fbb6ff093b129e9b76e303475c358`, signed Android `beta-vc88` and Agent `relay-agent-v84`, covering the shared 06:00–22:00 operating schedule, bounded overtime/early-start logic, one-shot Android recovery, recent-result range UX, resolver attribution, Agent managed-Web storage relocation and PickList presentation refinement. No new provider or schema is added by this acceptance update. Stable remains OWNER-GATED.
+
+## D150 Owner acceptance checkpoint
+
+D150 is Owner-field accepted PASS on 2026-09-29. The accepted Beta base is D150: relay-agent-v85 quota-safe coordination/manual PRIMARY behavior is accepted; Android remains beta-vc88 unchanged. OA078 is closed. No new provider resource, collection, secret, schema, Stable deploy or Stable promotion is introduced by this acceptance record.
