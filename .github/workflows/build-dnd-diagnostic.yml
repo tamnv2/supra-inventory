@@ -1,0 +1,78 @@
+name: Build DND Diagnostic APK
+
+on:
+  pull_request:
+    paths:
+      - "diagnostics/dnd-android/**"
+      - "service/src/index.ts"
+      - ".github/workflows/build-dnd-diagnostic.yml"
+  push:
+    branches: [main]
+    paths:
+      - "diagnostics/dnd-android/**"
+      - "service/src/index.ts"
+      - ".github/workflows/build-dnd-diagnostic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+
+      - name: Validate diagnostic source boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="diagnostics/dnd-android/app/src/main/AndroidManifest.xml"
+          source="diagnostics/dnd-android/app/src/main/java/cd/cc/supra/inventory/dnddiag/MainActivity.java"
+          service="service/src/index.ts"
+
+          grep -q 'android.permission.ACCESS_NOTIFICATION_POLICY' "$manifest"
+          grep -q 'cd.cc.supra.inventory.dnddiag' diagnostics/dnd-android/app/build.gradle.kts
+          grep -q 'isNotificationPolicyAccessGranted' "$source"
+          grep -q 'enabled_notification_policy_access_packages' "$source"
+          grep -q 'channel_after_can_bypass_dnd' "$source"
+          grep -q 'Build.FINGERPRINT' "$source"
+          grep -q 'Build.VERSION.SECURITY_PATCH' "$source"
+          grep -q 'GỬI LOG VỀ BETA' "$source"
+          grep -q '/api/diagnostics/dnd/upload' "$source"
+          grep -q '/api/diagnostics/dnd/upload' "$service"
+          grep -q 'DND_DIAGNOSTIC_RATE_LIMITED' "$service"
+          grep -q 'manual_dnd_diagnostic' "$service"
+
+          if grep -R -E '(refresh_token|client_secret|private_key|BEGIN .*PRIVATE KEY|password[[:space:]]*=)' diagnostics/dnd-android --exclude='*.gradle.kts'; then
+            echo "Diagnostic APK must not contain credentials or secret material." >&2
+            exit 1
+          fi
+
+          echo "DND diagnostic source boundary PASS"
+
+      - name: Build lightweight debug APK
+        run: |
+          set -euo pipefail
+          gradle -p diagnostics/dnd-android :app:assembleDebug --no-daemon
+          mkdir -p diagnostics/dnd-android/dist
+          cp diagnostics/dnd-android/app/build/outputs/apk/debug/app-debug.apk diagnostics/dnd-android/dist/mt90-dnd-diagnostic.apk
+          sha256sum diagnostics/dnd-android/dist/mt90-dnd-diagnostic.apk > diagnostics/dnd-android/dist/mt90-dnd-diagnostic.apk.sha256
+          stat -c 'APK size: %s bytes' diagnostics/dnd-android/dist/mt90-dnd-diagnostic.apk
+
+      - name: Publish diagnostic APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mt90-dnd-diagnostic-apk
+          path: |
+            diagnostics/dnd-android/dist/mt90-dnd-diagnostic.apk
+            diagnostics/dnd-android/dist/mt90-dnd-diagnostic.apk.sha256
+          if-no-files-found: error
+          retention-days: 7
