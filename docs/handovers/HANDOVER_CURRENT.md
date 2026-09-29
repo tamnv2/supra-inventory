@@ -1369,3 +1369,11 @@ Owner approved one combined Beta change set for reliable support logs, PDA SKU i
 - Latest Beta APK: `beta-vc86`.
 - SQLite schema remains `14`.
 - Owner explicitly confirmed D146 done/PASS; OA073 and OA074 are closed. Stable remains OWNER-GATED and untouched.
+
+## D147 Owner-accepted governance baseline — 2026-09-29
+- Governance: `D147_OWNER_ACCEPTED_PASS__SERIAL_OWNER_PASS_GATE`.
+- Accepted change base: `D147`.
+- Current open change: none.
+- Runtime baseline: D146 Owner-accepted runtime remains unchanged.
+- Next project mutation requires fresh GitHub bootstrap; base-affecting work requires impact review and explicit Owner approval before implementation.
+- Stable remains OWNER-GATED and untouched.

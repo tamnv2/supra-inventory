@@ -1323,3 +1323,10 @@ Status: **OWNER FIELD PASS**.
 - Latest Beta APK: `beta-vc86`.
 - SQLite schema remains `14`.
 - Owner explicitly confirmed D146 done/PASS; OA073 and OA074 are closed. Stable remains OWNER-GATED and untouched.
+
+## D147 Owner-accepted governance baseline — 2026-09-29
+- Governance: `D147_OWNER_ACCEPTED_PASS__SERIAL_OWNER_PASS_GATE`.
+- D147 is governance-only; no service/runtime/provider/schema/quota mutation was made.
+- Runtime service readiness therefore remains the D146 Owner-accepted Beta baseline.
+- No project change is currently open; the next base-affecting mutation requires pre-implementation impact review and explicit Owner approval.
+- Stable remains OWNER-GATED and untouched.
