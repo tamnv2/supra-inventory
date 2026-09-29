@@ -192,7 +192,7 @@ type AndroidOperatingWindowPayload = {
 };
 
 async function androidOperatingWindow(env: Env): Promise<AndroidOperatingWindowPayload> {
-  return coreJson<AndroidOperatingWindowPayload>(env, "/notifications/alert-window");
+  return coreJson<AndroidOperatingWindowPayload>(env, "/notifications/alert-window/reconcile");
 }
 
 async function checkCore(env: Env): Promise<{
@@ -1145,7 +1145,7 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/auth/me") return json({ user: publicUser(await requireUser(request, env)) });
       if (request.method === "GET" && url.pathname === "/api/auth/android-window") {
         await requireUser(request, env, ["PICKER", "REPORTER", "ADMIN"]);
-        return coreStub(env).fetch("https://inventory-core.internal/notifications/alert-window");
+        return coreStub(env).fetch("https://inventory-core.internal/notifications/alert-window/reconcile");
       }
       if (request.method === "PUT" && url.pathname === "/api/auth/root-role") return setRootEffectiveRole(request, env);
       if (request.method === "PUT" && url.pathname === "/api/auth/change-password") return changePassword(request, env);
