@@ -73,6 +73,7 @@ class RelayPocClient(
         const val CREATE_VERIFY_WAIT_SECONDS = 3L
         const val CREATE_RETRY_WAIT_SECONDS = 4L
         const val JOB_COLLECTION = "relay_poc_jobs"
+        const val SCHEDULE_RECONCILE_MIN_MS = 60_000L
     }
 
     private val appContext = context.applicationContext
@@ -80,6 +81,7 @@ class RelayPocClient(
     private val firestore by lazy { FirebaseFirestore.getInstance() }
     private val listenerGate = Any()
     private var activeListener: ListenerRegistration? = null
+    @Volatile private var lastScheduleReconcileElapsedMs = 0L
 
     fun close() {
         synchronized(listenerGate) {
@@ -90,18 +92,69 @@ class RelayPocClient(
 
     fun sendProbe(suffix: String): RelayProbeResult {
         require(suffix.matches(Regex("^\\d{3,20}$"))) { "PickList phải có từ 3 đến 20 chữ số cuối." }
-        val window = api.getAndroidOperatingWindow()
-        if (!window.isOpen) {
+        var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
+
+        if (!OperatingScheduleStore.isOpen(appContext)) {
+            reconcileOperatingScheduleOnce(session)
+        }
+        if (!OperatingScheduleStore.isOpen(appContext)) {
             throw ApiException(
                 403,
                 "ANDROID_WINDOW_CLOSED",
-                "Ca vận hành App/PDA đang đóng (23:00–05:00).",
+                "Replay/PickList đang ngoài ca. Khung thường 06:00–22:00; tăng ca theo lệnh chung của Agent.",
             )
         }
-        var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
-        session = ensureFirestoreAuth(session)
 
+        session = ensureFirestoreAuth(session)
         return executeProbe(session, suffix)
+    }
+
+    private fun reconcileOperatingScheduleOnce(session: AppSession) {
+        val nowElapsed = SystemClock.elapsedRealtime()
+        val previous = lastScheduleReconcileElapsedMs
+        if (previous > 0L && nowElapsed - previous < SCHEDULE_RECONCILE_MIN_MS) return
+        lastScheduleReconcileElapsedMs = nowElapsed
+
+        try {
+            val window = api.getAndroidOperatingWindow()
+            OperatingScheduleStore.applyWorkerWindow(appContext, window)
+            log("D149 schedule reconcile=WORKER version=" + window.scheduleVersion)
+            return
+        } catch (workerError: Exception) {
+            log("D149 schedule reconcile=WORKER_DEFER detail=" + safeText(workerError.message))
+        }
+
+        // Worker-outage fallback only. No listener/list query and no retry loop.
+        val identity = firebaseIdentity(session.idToken)
+        if (!hasCompatibleFirebaseSession(identity)) return
+        try {
+            val doc = firestore.collection(OperatingScheduleStore.FIRESTORE_COLLECTION)
+                .document(OperatingScheduleStore.FIRESTORE_DOCUMENT)
+            val snapshot = Tasks.await(doc.get(Source.SERVER), 5, TimeUnit.SECONDS)
+            if (!snapshot.exists()) return
+            val key = snapshot.getString("schedule_key").orEmpty()
+            val version = snapshot.getLong("version") ?: 0L
+            val openUntil = snapshot.getLong("open_until_ms") ?: 0L
+            if (!key.matches(Regex("^\\d{8}$")) || version <= 0L || openUntil <= 0L) return
+            val current = OperatingScheduleStore.load(appContext)
+            OperatingScheduleStore.save(
+                appContext,
+                LocalOperatingSchedule(
+                    scheduleKey = key,
+                    version = version,
+                    decision = snapshot.getString("decision").orEmpty(),
+                    openUntilMs = openUntil,
+                    normalStartMinutes = (snapshot.getLong("normal_start_minutes") ?: 360L).toInt(),
+                    normalEndMinutes = (snapshot.getLong("normal_end_minutes") ?: 1320L).toInt(),
+                    overtimeCutoffMinutes = (snapshot.getLong("overtime_cutoff_minutes") ?: 300L).toInt(),
+                    updatedAtMs = snapshot.getLong("updated_at_ms") ?: version,
+                    serverOffsetMs = current?.serverOffsetMs ?: 0L,
+                ),
+            )
+            log("D149 schedule reconcile=FIRESTORE_EXACT_GET version=" + version)
+        } catch (error: Exception) {
+            log("D149 schedule reconcile=FIRESTORE_DEFER detail=" + safeText(error.message))
+        }
     }
 
     private fun ensureFirestoreAuth(initial: AppSession): AppSession {
