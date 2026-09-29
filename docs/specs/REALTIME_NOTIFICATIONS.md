@@ -729,3 +729,22 @@ D150 preserves the accepted D149 schedule plus D140/D131 confirmation HA timings
 - Agent support-log delivery uses commit-last multipart semantics: intermediate `DIRECT_PART` writes do not start assembly; the final `DIRECT_PENDING` part is the single assembly trigger. Repeated same-fingerprint errors are locally suppressed/bounded while crash remains immediate.
 - No provider Usage polling, new Firestore collection, Android polling or Stable runtime is introduced.
 
+
+
+## D151 adaptive Android critical-alert delivery
+
+For supported Android 11+ clients, device model and firmware are diagnostic metadata only and must never select the production alert path.
+
+Operational readiness is split into:
+- **hard readiness**: app notifications enabled (including runtime notification permission where applicable), `SYSTEM_ALERT_WINDOW` granted, and battery optimization exemption active;
+- **native enhancement**: Notification Policy access is truly granted and the critical high-importance channel reports `canBypassDnd() == true`.
+
+Delivery modes:
+- **NATIVE_DND** — hard readiness is satisfied and Android exposes real DND policy + bypass-channel capability;
+- **OVERLAY_COMPAT** — hard readiness is satisfied but DND policy/channel bypass is unavailable, broken or unsupported by the OEM build.
+
+Both modes use the existing data-only high-priority FCM event, the same overlay priority/FIFO queue and the same local-first acknowledgement semantics. Overlay remains the canonical visible business surface. Notification/full-screen intent is a fallback only and must be capability-checked on Android versions that expose `canUseFullScreenIntent()`.
+
+For a critical overlay event while the display is off or keyguard is active, the app may launch the existing bounded wake Activity to request screen-on/show-when-locked before or alongside overlay presentation. This path is event-driven only: no WakeLock, polling, periodic permission check, heartbeat, new listener or always-on service is allowed.
+
+Failure of OEM DND policy access alone must not block login when hard readiness is satisfied. Failure of Notification, Overlay or battery-exemption hard readiness still blocks operational startup.
