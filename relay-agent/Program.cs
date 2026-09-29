@@ -4564,7 +4564,7 @@ namespace SupraInventoryRelayAgent
                             (dayKey, outcome) => ApplyD135DurableCounterAck(dayKey, outcome),
                             state => SetRelayTransportState(state),
                             ProcessFirestoreConfirmations,
-                            (items, reason) => Ui(() => ApplyEventDrivenPickerPresence(items, reason)),
+                            (items, reason, removedSessionsJson) => Ui(() => ApplyEventDrivenPickerPresence(items, reason, removedSessionsJson)),
                             work => Ui(() => ApplyPickerRequestActivity(work)),
                             _leaderCoordinator,
                             IsBusinessAllowed,
