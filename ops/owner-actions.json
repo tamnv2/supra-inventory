@@ -3952,7 +3952,7 @@
     },
     {
       "id": "OA081",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__OWNER_ACCEPTED_D153",
       "title": "Field-accept D153 quota-safe Picker presence dedupe",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3980,8 +3980,8 @@
         "No new provider/listener/polling/schema/resource or Android release is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Update Agent to relay-agent-v87, keep Android beta-vc89, run the shortest D153 field matrix, compare Firestore Usage/Write growth, then explicitly report PASS or NOT PASS. D152 remains accepted until PASS.",
-      "closed": false,
+      "remaining_owner_action": "None. Owner explicitly confirmed D153 PASS on 2026-09-29.",
+      "closed": true,
       "technical_release_evidence": {
         "main_commit": "d69566ee0ae6294573ec91f9eb649764e91561ee",
         "implementation_pr": 321,
@@ -3999,6 +3999,12 @@
         "project_state_run_id": 36594651211,
         "dashboard_probe_run_id": 36594651119,
         "android_release": "beta-vc89__UNCHANGED__NO_RELEASE_REQUIRED"
+      },
+      "field_result": "PASS__OWNER_CONFIRMED_D153__RELAY_AGENT_V87__2026_09_29",
+      "owner_result": {
+        "status": "PASS",
+        "date": "2026-09-29",
+        "evidence": "Owner explicitly confirmed D153 PASS after field validation of the released quota-safe Picker presence behavior."
       }
     }
   ]

@@ -1497,3 +1497,21 @@ Derived current-status markers:
 - Latest Beta APK: `beta-vc89`
 - Agent: `relay-agent-v87`
 - SQLite schema: `14`
+
+
+## D153 Owner-accepted baseline — 2026-09-29
+
+- Accepted base: **D153 Owner PASS**; OA081 closed.
+- Implementation: PR #321 → main `d69566ee0ae6294573ec91f9eb649764e91561ee`.
+- Agent: **relay-agent-v87**, release id `399311941`, EXE SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`.
+- Android remains **beta-vc89**.
+- Accepted scope: LOGIN-authoritative one-shot/session-fenced PickList fallback; semantic presence/notification write dedupe; Picker-only Agent sync no-op gate; 5-minute repair reconcile retained.
+- Protected confirmation/HA timing remains unchanged. Streaming redesign D remains deferred.
+- No new provider/resource/schema/listener/polling/cron. Stable remains OWNER-GATED.
+- Serial Owner-PASS gate is open for the next separately reviewed change.
+
+Derived current-status markers:
+- `D153_OWNER_FIELD_ACCEPTED_PASS__MAIN_D69566EE__AGENT_V87__OA081_CLOSED`
+- Latest Beta APK: `beta-vc89`
+- Agent: `relay-agent-v87`
+- SQLite schema: `14`

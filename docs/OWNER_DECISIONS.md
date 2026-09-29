@@ -2373,3 +2373,12 @@ D153 implementation PR #321 merged to main `d69566ee0ae6294573ec91f9eb649764e915
 Beta Worker live health returned HTTP 200 with exact source `d69566ee0ae6294573ec91f9eb649764e91561ee`, SQLite `14/14`, Operational V2 `5/5`, and Agent auth migration `0/0`. Agent release `relay-agent-v87` id `399311941` points to the same main commit. EXE asset id `598619169`, size `7,078,912` bytes, SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`; inventory-channel Agent asset id `598619345` has the same digest.
 
 D153 technical/runtime/release status is **PASS** and OA081 is **READY_FOR_OWNER_FIELD_TEST**. Accepted base remains D152 until explicit Owner D153 PASS. Android remains signed `beta-vc89`; the deferred streaming redesign D was not implemented; no new provider, collection, schema, secret, listener, polling loop or cron was added. Stable remains OWNER-GATED and untouched.
+
+
+## D153 Owner acceptance — PASS — 2026-09-29
+
+The Owner explicitly confirmed **D153 PASS** after field validation of the released quota-safe Picker presence changes. D153 is promoted to the accepted Beta base.
+
+Accepted runtime remains implementation main `d69566ee0ae6294573ec91f9eb649764e91561ee`, Agent `relay-agent-v87` release id `399311941`, EXE SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`, and signed Android `beta-vc89` unchanged.
+
+Accepted D153 scope remains A+B+C only: one-shot session-fenced PickList fallback, InventoryCore semantic presence/notification write dedupe, and Picker-only Agent sync no-op gating. The proposed streaming redesign D remains deferred. Protected 3s/15s/1s confirmation cadence, 10s PRIMARY lease, 15s failover and D152 confirmation safeguards remain unchanged. OA081 is closed; no new provider/resource/schema/listener/polling/cron was introduced; Stable remains OWNER-GATED.
