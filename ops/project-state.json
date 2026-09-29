@@ -3042,7 +3042,9 @@
       "relay-agent/FirestoreAgentSync.cs",
       "relay-agent release/version",
       "relay-agent CI regression guards",
-      "canonical D153 continuity"
+      "canonical D153 continuity",
+      "relay-agent/Program.cs",
+      "tools/android_operational_regression.py"
     ],
     "regression_stability_risk": "MEDIUM_PRESENCE_SESSION_EDGE_CASES__MITIGATED_BY_LOGIN_AUTHORITY_SESSION_GENERATION_TARGETED_REMOVAL_SERVER_SIDE_DOWNGRADE_GUARD_AND_5M_RECONCILE",
     "resource_quota_security_impact": "EXPECTED_WRITE_REDUCTION__NO_NEW_PROVIDER_COLLECTION_SQLITE_OR_FIRESTORE_SCHEMA_SECRET_LISTENER_POLLING_CRON_OR_ANDROID_BUILD__HA_LEASE_AND_CONFIRM_CADENCE_UNCHANGED",
