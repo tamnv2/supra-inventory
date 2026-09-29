@@ -85,10 +85,7 @@ function validOperatingSchedule(value: OperatingScheduleRecord): boolean {
   return /^\d{8}$/.test(String(value.schedule_key || "")) &&
     Number(value.version || 0) > 0 &&
     ["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START"].includes(String(value.decision || "")) &&
-    (
-      (String(value.decision || "") === "STOP" && Number(value.open_until_ms || 0) === 0) ||
-      (String(value.decision || "") !== "STOP" && Number(value.open_until_ms || 0) > 0)
-    ) &&
+    Number(value.open_until_ms || 0) > 0 &&
     Number(value.normal_start_minutes || 0) === 360 &&
     Number(value.normal_end_minutes || 0) === 1320 &&
     Number(value.overtime_cutoff_minutes || 0) === 300;
