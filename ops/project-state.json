@@ -2673,6 +2673,7 @@
     "baseline_change": "D149",
     "baseline_main": "d03559ee9f15814edda36417716d68685913d929",
     "branch": "d150-quota-safe-primary-takeover",
+    "implementation_pr": 306,
     "owner_approved_scope": [
       "SERVER_FILTER_FRESH_PICKER_ACTIVE_CALLS",
       "PRIMARY_ONLY_FRESH_AGENT_PRESENCE_QUERY__HA_TRIO_COMPACT_SYNC__DEEP_EXACT_10M",
