@@ -3952,7 +3952,7 @@
     },
     {
       "id": "OA081",
-      "status": "BLOCKED_TECHNICAL_RELEASE_PENDING",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D153 quota-safe Picker presence dedupe",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3980,8 +3980,26 @@
         "No new provider/listener/polling/schema/resource or Android release is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until D153 technical/runtime/release PASS. Then run the bounded field matrix and report PASS/FAIL.",
-      "closed": false
+      "remaining_owner_action": "Update Agent to relay-agent-v87, keep Android beta-vc89, run the shortest D153 field matrix, compare Firestore Usage/Write growth, then explicitly report PASS or NOT PASS. D152 remains accepted until PASS.",
+      "closed": false,
+      "technical_release_evidence": {
+        "main_commit": "d69566ee0ae6294573ec91f9eb649764e91561ee",
+        "implementation_pr": 321,
+        "worker_run_id": 36594651073,
+        "worker_runtime": "HTTP_200__SOURCE_D69566EE_EXACT__SCHEMA14_14__OPERATIONAL5_5__AGENT_MIGRATION0_0",
+        "agent_run_id": 36594651175,
+        "agent_release": "relay-agent-v87",
+        "agent_release_id": 399311941,
+        "agent_asset_id": 598619169,
+        "agent_size_bytes": 7078912,
+        "agent_sha256": "0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070",
+        "inventory_channel_agent_asset_id": 598619345,
+        "ui_guard_run_id": 36594651147,
+        "authority_run_id": 36594651066,
+        "project_state_run_id": 36594651211,
+        "dashboard_probe_run_id": 36594651119,
+        "android_release": "beta-vc89__UNCHANGED__NO_RELEASE_REQUIRED"
+      }
     }
   ]
 }

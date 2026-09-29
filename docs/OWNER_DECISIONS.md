@@ -2364,3 +2364,12 @@ Baseline is D152 Owner PASS (`relay-agent-v86`). After impact review, the Owner 
 6. **Protected business/HA timing is frozen.** PRIMARY queue remains 3s active / 15s inactive / 1s bounded HOT; PRIMARY lease remains 10s; failover remains 15s. Android exact-request result observation and D152 WMS confirmation/recovery behavior remain unchanged.
 7. **Deferred scope D.** D153 does not replace the existing `picker_presence_projection/current` + `picker_presence_current` control/ACK transport with a new streaming path. That redesign requires separate evidence and Owner approval.
 8. D153 reuses existing Beta Worker, InventoryCore, Firestore and Agent resources. No new provider, collection, SQLite schema, Firestore schema/rule expansion, secret, listener, polling loop, cron or Android release is authorized. Target Agent is `relay-agent-v87`; signed Android remains `beta-vc89`. Stable remains OWNER-GATED and untouched.
+
+
+## D153 technical/runtime/release checkpoint — 2026-09-29
+
+D153 implementation PR #321 merged to main `d69566ee0ae6294573ec91f9eb649764e91561ee`. Main Repo Authority `36594651066`, Project State `36594651211`, UI Design `36594651147`, Dashboard Probe `36594651119`, Beta Worker `36594651073`, DND compatibility build `36594651179` and Relay Agent `36594651175` all PASS.
+
+Beta Worker live health returned HTTP 200 with exact source `d69566ee0ae6294573ec91f9eb649764e91561ee`, SQLite `14/14`, Operational V2 `5/5`, and Agent auth migration `0/0`. Agent release `relay-agent-v87` id `399311941` points to the same main commit. EXE asset id `598619169`, size `7,078,912` bytes, SHA-256 `0f863dea6a9841cb237be48ab83f17ff9443654c298ea9db6bc5c8a79c597070`; inventory-channel Agent asset id `598619345` has the same digest.
+
+D153 technical/runtime/release status is **PASS** and OA081 is **READY_FOR_OWNER_FIELD_TEST**. Accepted base remains D152 until explicit Owner D153 PASS. Android remains signed `beta-vc89`; the deferred streaming redesign D was not implemented; no new provider, collection, schema, secret, listener, polling loop or cron was added. Stable remains OWNER-GATED and untouched.
