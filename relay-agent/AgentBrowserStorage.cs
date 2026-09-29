@@ -13,6 +13,8 @@ namespace SupraInventoryRelayAgent
             internal string TargetRoot = "";
             internal long Bytes;
             internal long Files;
+            internal bool TargetPrepared;
+            internal bool ConfigSwitched;
         }
 
         private static readonly object Gate = new object();
@@ -132,9 +134,10 @@ namespace SupraInventoryRelayAgent
                     WriteConfigRoot(target);
                     configSwitched = true;
 
-                    if (Directory.Exists(source))
-                        Directory.Delete(source, true);
-
+                    // D149 two-phase migration: keep the source copy intact until the
+                    // managed browser successfully reopens from the new root. Program
+                    // then calls FinalizeMigration. If reopen fails, RollbackMigration
+                    // restores the source root without data loss.
                     return new MigrationResult
                     {
                         Changed = true,
@@ -142,6 +145,8 @@ namespace SupraInventoryRelayAgent
                         TargetRoot = target,
                         Bytes = sourceStats.Item1,
                         Files = sourceStats.Item2,
+                        TargetPrepared = true,
+                        ConfigSwitched = true,
                     };
                 }
                 catch
@@ -161,6 +166,45 @@ namespace SupraInventoryRelayAgent
                     }
                     catch { }
                     throw;
+                }
+            }
+        }
+
+
+        internal static void FinalizeMigration(MigrationResult result)
+        {
+            if (result == null || !result.Changed || !result.ConfigSwitched) return;
+            lock (Gate)
+            {
+                if (!SamePath(CurrentRoot, result.TargetRoot))
+                    throw new InvalidOperationException("Không thể hoàn tất di chuyển vì thư mục Web hiện hành đã thay đổi.");
+
+                // Best-effort cleanup happens only after successful browser reopen.
+                // Failure here is non-destructive: the target remains authority and
+                // the old source is merely a recoverable duplicate.
+                if (Directory.Exists(result.SourceRoot))
+                {
+                    try { Directory.Delete(result.SourceRoot, true); }
+                    catch { }
+                }
+            }
+        }
+
+        internal static void RollbackMigration(MigrationResult result)
+        {
+            if (result == null || !result.Changed) return;
+            lock (Gate)
+            {
+                if (result.ConfigSwitched)
+                {
+                    WriteConfigRoot(result.SourceRoot);
+                    result.ConfigSwitched = false;
+                }
+
+                if (result.TargetPrepared && Directory.Exists(result.TargetRoot))
+                {
+                    try { Directory.Delete(result.TargetRoot, true); }
+                    catch { }
                 }
             }
         }
