@@ -27,6 +27,7 @@ namespace SupraInventoryRelayAgent
         private sealed class GuardRead
         {
             internal bool Exists;
+            internal string Status = "";
             internal string RequestId = "";
             internal string PickerUid = "";
             internal long RetireAtMs;
@@ -99,6 +100,17 @@ namespace SupraInventoryRelayAgent
                 };
             }
 
+            if (string.Equals(existing.Status, "CONFIRMED", StringComparison.Ordinal))
+            {
+                lock (_localGate) _locallyConfirmed.Add(guardId);
+                return new FirestoreConfirmationGuardDecision
+                {
+                    AlreadyConfirmed = true,
+                    GuardId = guardId,
+                    RetireAtMs = existing.RetireAtMs
+                };
+            }
+
             lock (_localGate)
             {
                 if (_locallyConfirmed.Contains(guardId))
@@ -137,6 +149,34 @@ namespace SupraInventoryRelayAgent
             lock (_localGate) _locallyConfirmed.Add(guardId);
         }
 
+        internal void MarkVerifiedConfirmed(AgentSession session, string guardId)
+        {
+            if (string.IsNullOrWhiteSpace(guardId)) return;
+            lock (_localGate) _locallyConfirmed.Add(guardId);
+
+            try
+            {
+                EnsureSession(session);
+                var fields = new Dictionary<string, object>
+                {
+                    { "status", StringField("CONFIRMED") },
+                    { "verified_at_ms", IntField(NowMs()) }
+                };
+                Send(
+                    "PATCH",
+                    DocumentUrl(guardId) + BuildMask(fields.Keys),
+                    session.IdToken,
+                    _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    false,
+                    "CONFIRM_GUARD_VERIFY_CONFIRMED");
+            }
+            catch
+            {
+                // Local proof remains valid for this process. The durable ACK for the
+                // recovered request still records CONFIRMED; a later Agent may verify again.
+            }
+        }
+
         internal void ReleaseSafeFailure(AgentSession session, string guardId)
         {
             if (string.IsNullOrWhiteSpace(guardId)) return;
@@ -162,6 +202,7 @@ namespace SupraInventoryRelayAgent
                 return new GuardRead
                 {
                     Exists = doc != null,
+                    Status = FieldString(fields, "status"),
                     RequestId = FieldString(fields, "request_id"),
                     PickerUid = FieldString(fields, "picker_uid"),
                     RetireAtMs = FieldLong(fields, "retire_at_ms")
