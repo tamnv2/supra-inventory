@@ -4107,7 +4107,7 @@
     },
     {
       "id": "OA084",
-      "status": "BLOCKED_PENDING_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D156 overtime convergence and Picker reporting default-off",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -4115,8 +4115,11 @@
       "prerequisites": {
         "accepted_base": "D155_OWNER_FIELD_ACCEPTED_PASS",
         "d156_owner_approval": "PASS__2026_09_30",
-        "technical_runtime_release": "PENDING",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "technical_runtime_release": "PASS__PR333__MAIN_859A7DFB__SCHEMA16__ANDROID_VC92",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "worker": "RUN_36645477945__PASS__SOURCE_EXACT__SCHEMA16_16__OPERATIONAL5_5",
+        "android": "beta-vc92__SHA256_10171A4B8E38B542670BE2C21C556C269C2F3F7B1F1ED8757E738618522E6D7F",
+        "agent": "relay-agent-v90__UNCHANGED"
       },
       "shortest_test_path": [
         "After D156 deploy, verify current Picker accounts show Báo hàng Tắt by default; sync HR and verify newly created Picker also starts Tắt.",
@@ -4135,7 +4138,7 @@
         "PickList/login/Agent contact remain unaffected by Báo hàng capability state.",
         "No new provider resource, Firestore collection/write cadence, secret, listener, polling loop or cron is introduced; Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until D156 technical/runtime/release PASS.",
+      "remaining_owner_action": "Run the OA084 shortest field path with beta-vc92 and existing relay-agent-v90. If all criteria pass, explicitly confirm D156 PASS; otherwise repair continues under D156.",
       "closed": false
     }
   ]
