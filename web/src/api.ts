@@ -142,6 +142,8 @@ export interface ManagedUser {
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
+  contractor_name?: string | null;
+  shortage_reporting_enabled?: boolean | null;
   role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_initialized: boolean;
@@ -158,6 +160,7 @@ export interface HrSyncPreview {
   create: number;
   reactivate: number;
   rename: number;
+  contractor_update: number;
   disable: number;
   unchanged: number;
   inactive_existing: number;
@@ -171,6 +174,7 @@ export interface HrSourceConfig {
   tab_name: string;
   mnv_header: string;
   full_name_header: string;
+  contractor_header: string;
   header_row: number;
   data_row_count: number;
   verified_at: string;
@@ -822,7 +826,7 @@ export async function getHrSource(): Promise<HrSourceResponse> {
   return readJson(await authorizedFetch("/api/admin/hr-source"));
 }
 
-export async function saveHrSource(sheetUrl: string, tabName: string, employeeCodeHeader: string, fullNameHeader: string): Promise<HrSourceSaveResponse> {
+export async function saveHrSource(sheetUrl: string, tabName: string, employeeCodeHeader: string, fullNameHeader: string, contractorHeader: string): Promise<HrSourceSaveResponse> {
   return readJson(await authorizedFetch("/api/admin/hr-source-v2", {
     method: "PUT",
     body: JSON.stringify({
@@ -830,6 +834,7 @@ export async function saveHrSource(sheetUrl: string, tabName: string, employeeCo
       tab_name: tabName,
       employee_code_header: employeeCodeHeader,
       full_name_header: fullNameHeader,
+      contractor_header: contractorHeader,
     }),
   }));
 }
@@ -1121,6 +1126,7 @@ export async function listManagedUsers(options: {
   query?: string;
   role?: string;
   status?: string;
+  shortageReporting?: string;
   limit?: number;
   offset?: number;
 } = {}): Promise<{ items: ManagedUser[]; count: number; total: number; limit: number; offset: number }> {
@@ -1131,6 +1137,7 @@ export async function listManagedUsers(options: {
   if (options.query) params.set("query", options.query);
   if (options.role) params.set("role", options.role);
   if (options.status) params.set("status", options.status);
+  if (options.shortageReporting) params.set("shortage_reporting", options.shortageReporting);
   return readJson(await authorizedFetch(`/api/admin/users?${params.toString()}`));
 }
 
@@ -1187,11 +1194,11 @@ export async function deleteManagedUsers(userIds: string[]): Promise<{ status: s
 }
 
 export async function updatePickerAccounts(
-  action: "ENABLE" | "DISABLE" | "DELETE",
+  action: "ENABLE" | "DISABLE" | "DELETE" | "REPORTING_ENABLE" | "REPORTING_DISABLE",
   userIds: string[] = [],
   all = false,
   excludedUserIds: string[] = [],
-): Promise<{ status: string; action: string; affected: number }> {
+): Promise<{ status: string; action: string; affected: number; affected_user_ids?: string[] }> {
   return readJson(await authorizedFetch("/api/admin/pickers/bulk", {
     method: "POST",
     body: JSON.stringify({
