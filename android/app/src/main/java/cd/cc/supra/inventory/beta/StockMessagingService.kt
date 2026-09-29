@@ -17,6 +17,14 @@ class StockMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         val event = message.data["event"].orEmpty()
+        if (event == "operating_schedule_changed") {
+            OperatingScheduleStore.applyFcm(applicationContext, message.data)
+            sendBroadcast(
+                Intent(ACTION_OPERATING_SCHEDULE_CHANGED)
+                    .setPackage(packageName)
+            )
+            return
+        }
         if (event == "sku_catalog_updated") {
             NotificationSignalStore.markSkuCatalogRefresh(applicationContext)
             return
@@ -145,5 +153,7 @@ class StockMessagingService : FirebaseMessagingService() {
 
     companion object {
         const val CHANNEL_ID = "inventory_operations"
+        const val ACTION_OPERATING_SCHEDULE_CHANGED =
+            "cd.cc.supra.inventory.beta.OPERATING_SCHEDULE_CHANGED"
     }
 }
