@@ -2499,7 +2499,7 @@
     "owner_field_result": {
       "date": "2026-09-29",
       "result": "PASS",
-      "evidence": "Owner explicitly confirmed D147 accepted ('147 ok'). Governance sequencing is accepted; no runtime/provider/resource/schema/quota/Stable mutation is introduced."
+      "evidence": "Owner explicitly confirmed D147 accepted. Governance sequencing is accepted; no runtime/provider/resource/schema/quota/Stable mutation is introduced."
     }
   }
 }
