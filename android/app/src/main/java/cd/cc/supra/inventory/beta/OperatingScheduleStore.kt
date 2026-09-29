@@ -86,10 +86,7 @@ object OperatingScheduleStore {
         val version = data["schedule_version"]?.toLongOrNull() ?: return null
         val openUntil = data["open_until_ms"]?.toLongOrNull() ?: return null
         val decision = data["decision"].orEmpty()
-        if (!key.matches(Regex("^\\d{8}$")) || version <= 0L) return null
-        if (decision == "STOP") {
-            if (openUntil != 0L) return null
-        } else if (openUntil <= 0L) return null
+        if (!key.matches(Regex("^\\d{8}$")) || version <= 0L || openUntil <= 0L) return null
         val current = load(context)
         return save(
             context,
