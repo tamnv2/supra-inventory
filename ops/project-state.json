@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D150_OWNER_ACCEPTED_BASE__D151_ADAPTIVE_ALERT_ENGINE_IMPLEMENTATION_ACTIVE",
+    "beta": "D150_OWNER_ACCEPTED_BASE__D151_TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89__OA079_FIELD_READY",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 14,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -35,7 +35,7 @@
     "picklist_confirmation_poc": "D150_OWNER_FIELD_PASS__AGENT_V85__MANUAL_PRIMARY_CAS_GENERATION_FENCE__D149_BUSINESS_HA_CADENCE_RETAINED",
     "governance": "D147_SERIAL_OWNER_PASS_GATE__D150_OWNER_ACCEPTED_PASS__D150_ACCEPTED_BASE",
     "owner_acceptance": "D150_OWNER_FIELD_ACCEPTED_PASS__OA078_CLOSED__D150_ACCEPTED_BASE",
-    "diagnostic": "D151_FIELD_EVIDENCE_COMPLETE__THREE_MT90_V801002_DND_BACKEND_FAIL__V804006_NATIVE_DND_PASS__OVERLAY_PROBE_PASS"
+    "diagnostic": "D151_FIELD_EVIDENCE_COMPLETE__ADAPTIVE_PRODUCTION_RELEASED__OA079_FIELD_READY"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -195,7 +195,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D151 Owner-approved production remediation is active: implement capability-based Android alert delivery. Hard readiness is Notifications + Overlay + battery exemption; native DND bypass is used only when Android grants it, otherwise Overlay Compatibility Mode remains operational. Add bounded screen/keyguard wake with no WakeLock/polling. Build/release next signed Beta Android, then OA079 field-validate MT90 old/new firmware, DT50 and any additional Android device available. D150 remains accepted base until explicit D151 Owner PASS; Stable remains untouched.",
+  "next_action": "OA079 READY: field-test signed beta-vc89 on MT90 with broken DND backend, MT90 with native DND, Urovo DT50, and one other Android 11+ device if available. Verify hard readiness, adaptive mode selection, cross-app overlay, screen-off/keyguard wake, Battery Saver behavior, no duplicate ACK, and no usage amplification. D150 remains accepted base until explicit D151 Owner PASS; Stable remains untouched.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -840,7 +840,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D151_ADAPTIVE_ALERT_ENGINE_IMPLEMENTATION_ACTIVE",
+  "active_workstream": "D151_TECHNICAL_RUNTIME_RELEASE_PASS__OA079_OWNER_FIELD_PENDING",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D150",
     "accepted_base_evidence": "OWNER_EXPLICIT_D150_PASS__2026_09_29",
     "current_change_id": "D151",
-    "current_change_status": "OWNER_APPROVED_PRODUCTION_REMEDIATION__IMPLEMENTATION_ACTIVE",
+    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89__OWNER_FIELD_OA079_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D151_BETA_ANDROID_ONLY__ADAPTIVE_ALERT_CAPABILITY_ENGINE__PRODUCTION_ANDROID_CHANGE_PENDING__AGENT_WEB_WORKER_BUSINESS_RUNTIME_UNCHANGED",
+    "runtime_impact": "D151_BETA_ANDROID_ADAPTIVE_ALERT_ENGINE_RELEASED__SIGNED_BETA_VC89__AGENT_WEB_WORKER_BUSINESS_RUNTIME_UNCHANGED",
     "resource_change": "NONE__EXISTING_ANDROID_FCM_OVERLAY_NOTIFICATION_BATTERY_EXEMPTION_ONLY__NO_NEW_PROVIDER_SCHEMA_SECRET_POLLING_LISTENER_CRON",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -2791,7 +2791,7 @@
     }
   },
   "d151": {
-    "status": "OWNER_APPROVED_ADAPTIVE_ALERT_ENGINE__IMPLEMENTATION_ACTIVE",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC89__OWNER_FIELD_OA079_READY",
     "date": "2026-09-29",
     "baseline_change": "D150",
     "baseline_main": "0f73af1ad74fc24209f76a28dab7432a2a2b3565",
@@ -2820,8 +2820,8 @@
     "recommended_approach": "STANDALONE_PACKAGE_OUTSIDE_PRODUCTION_ANDROID_TREE__PLATFORM_ONLY_APK__ALLOWLISTED_BETA_ENDPOINT__EXISTING_SANITIZED_RUNTIME_LOG_ARCHIVE",
     "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_REQUESTED_ONE_APK_AND_DIRECT_BETA_LOG_SEND__2026_09_29",
     "package": "cd.cc.supra.inventory.dnddiag",
-    "field_gate": "OA079_BLOCKED_UNTIL_ADAPTIVE_PRODUCTION_BETA_RELEASE",
-    "production_android": "beta-vc88__BASELINE__NEXT_MONOTONIC_SIGNED_BETA_PENDING",
+    "field_gate": "OA079_READY_FOR_OWNER_FIELD_TEST",
+    "production_android": "beta-vc89__RELEASED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "new_provider_resources": "NONE",
     "main_commit": "a7ac9315f51d868118ec6399184f8507e1f2c765",
@@ -2920,6 +2920,23 @@
       "security": "NO_PERMISSION_FAKE_GRANT__REAL_ANDROID_APIS_REMAIN_DIAGNOSTIC_AUTHORITY",
       "target_android_release": "NEXT_MONOTONIC_AFTER_BETA_VC88",
       "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "production_release": {
+      "main_commit": "44606b738b34b3ea216d4db14ab4a3af166f162c",
+      "implementation_pr": 313,
+      "android_run_id": 36556013042,
+      "beta_worker_run_id": 36556013002,
+      "repo_authority_run_id": 36556013115,
+      "project_state_run_id": 36556013183,
+      "dashboard_probe_run_id": 36556013445,
+      "ui_design_run_id": 36556013257,
+      "release": "beta-vc89",
+      "release_id": 399040014,
+      "apk_asset_id": 597939005,
+      "apk_size_bytes": 19118660,
+      "apk_sha256": "9fe96a16a26d1d59e3b2664025cd0802a59b9535d545d92cd475995c4dfc12bc",
+      "inventory_channel_apk_asset_id": 597939084,
+      "result": "PASS__EXACT_SOURCE_SIGNED_RELEASE_AND_CHANNEL_REFRESH"
     }
   }
 }
