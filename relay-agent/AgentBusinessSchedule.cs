@@ -11,14 +11,14 @@ namespace SupraInventoryRelayAgent
 
     internal sealed class AgentBusinessSchedule
     {
-        internal static readonly TimeSpan RegularStart = new TimeSpan(6, 0, 0);
+        internal static readonly TimeSpan RegularStart = new TimeSpan(5, 45, 0);
         internal static readonly TimeSpan OvertimeCutoff = new TimeSpan(5, 0, 0);
-        internal static readonly TimeSpan RegularEnd = new TimeSpan(22, 0, 0);
+        internal static readonly TimeSpan RegularEnd = new TimeSpan(22, 30, 0);
         internal static readonly TimeSpan PromptLead = TimeSpan.FromMinutes(30);
 
         internal AgentBusinessSchedule(string stateFile)
         {
-            // D117: cross-machine operating decisions are canonical in Firestore coordination.
+            // Cross-machine operating decisions are canonical in Firestore coordination.
             // The legacy local file path remains accepted for constructor compatibility only.
         }
 
@@ -57,24 +57,24 @@ namespace SupraInventoryRelayAgent
             boundary = DateTime.MinValue;
             var time = now.TimeOfDay;
 
-            // 21:30-21:59 asks whether the relay may continue after 22:00.
+            // D154: 22:00-22:29 asks whether relay may continue after the
+            // widened regular end at 22:30.
             if (time >= RegularEnd.Subtract(PromptLead) && time < RegularEnd)
             {
                 boundary = now.Date.Add(RegularEnd);
                 return true;
             }
 
-            // D149: after 22:00, only an already-extended relay may ask again.
-            // Prompts stop before the 05:00 overtime cutoff. 05:00-06:00 is a
-            // separate explicit early-start window and never an overtime extension.
+            // D154 overtime cadence is anchored to 22:30 -> 23:30 -> 00:30...
+            // A prompt becomes eligible 30 minutes before the next boundary.
+            // Overtime never extends beyond 05:00.
             if (time >= RegularEnd || time < OvertimeCutoff)
             {
-                var hourStart = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Unspecified);
-                var nextHour = hourStart.AddHours(1);
+                var nextBoundary = NextOvertimeBoundary(now);
                 var cutoff = NextOvertimeCutoff(now);
-                if (nextHour >= cutoff) return false;
-                if (now < nextHour.Subtract(PromptLead)) return false;
-                boundary = nextHour;
+                if (nextBoundary > cutoff) return false;
+                if (now < nextBoundary.Subtract(PromptLead)) return false;
+                boundary = nextBoundary;
                 return true;
             }
 
@@ -115,15 +115,14 @@ namespace SupraInventoryRelayAgent
         internal DateTime ManualAdjustmentUntil(DateTime now)
         {
             if (!IsOvertimeSleepWindow(now)) return DateTime.MinValue;
-            var hourStart = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Unspecified);
-            var target = hourStart.AddHours(1);
+            var target = NextOvertimeBoundary(now);
             var cutoff = NextOvertimeCutoff(now);
             return target > cutoff ? cutoff : target;
         }
 
         internal string ScheduleKey(DateTime now)
         {
-            // D149 business night rolls at 05:00. 05:00-06:00 early-start belongs
+            // Business night rolls at 05:00. 05:00-05:44 early-start belongs
             // to the new business day while 00:00-04:59 remains the prior night.
             var businessDay = now.TimeOfDay < OvertimeCutoff ? now.Date.AddDays(-1) : now.Date;
             return businessDay.ToString("yyyyMMdd");
@@ -132,8 +131,19 @@ namespace SupraInventoryRelayAgent
         internal string StatusText(DateTime now)
         {
             if (DefaultRelayAllowed(now))
-                return "Replay PDA hoạt động theo khung 06:00–22:00.";
+                return "Replay PDA hoạt động theo khung 05:45–22:30.";
             return "Relay PDA đang ngủ; xác nhận trực tiếp tại Agent vẫn dùng được.";
+        }
+
+        private DateTime NextOvertimeBoundary(DateTime now)
+        {
+            var anchorDate = now.TimeOfDay < OvertimeCutoff ? now.Date.AddDays(-1) : now.Date;
+            var anchor = anchorDate.Add(RegularEnd);
+            if (now < anchor) return anchor;
+
+            var elapsed = now - anchor;
+            var completedHours = Math.Floor(elapsed.TotalHours);
+            return anchor.AddHours(completedHours + 1d);
         }
 
         internal static bool SelfTestTransitions()
@@ -145,31 +155,33 @@ namespace SupraInventoryRelayAgent
             if (schedule.DefaultRelayAllowed(day.AddHours(4).AddMinutes(59))) return false;
             if (schedule.DefaultRelayAllowed(day.AddHours(5))) return false;
             if (!schedule.IsEarlyStartWindow(day.AddHours(5))) return false;
-            if (schedule.DefaultRelayAllowed(day.AddHours(5).AddMinutes(59))) return false;
-            if (!schedule.DefaultRelayAllowed(day.AddHours(6))) return false;
-            if (!schedule.DefaultRelayAllowed(day.AddHours(21).AddMinutes(59))) return false;
-            if (schedule.DefaultRelayAllowed(day.AddHours(22))) return false;
+            if (schedule.DefaultRelayAllowed(day.AddHours(5).AddMinutes(44))) return false;
+            if (!schedule.DefaultRelayAllowed(day.AddHours(5).AddMinutes(45))) return false;
+            if (!schedule.DefaultRelayAllowed(day.AddHours(22).AddMinutes(29))) return false;
+            if (schedule.DefaultRelayAllowed(day.AddHours(22).AddMinutes(30))) return false;
 
-            if (schedule.TryGetPromptBoundary(day.AddHours(21).AddMinutes(29), out boundary)) return false;
-            if (!schedule.TryGetPromptBoundary(day.AddHours(21).AddMinutes(30), out boundary)) return false;
-            if (boundary != day.AddHours(22)) return false;
+            if (schedule.TryGetPromptBoundary(day.AddHours(21).AddMinutes(59), out boundary)) return false;
+            if (!schedule.TryGetPromptBoundary(day.AddHours(22), out boundary)) return false;
+            if (boundary != day.AddHours(22).AddMinutes(30)) return false;
 
-            if (schedule.TryGetPromptBoundary(day.AddHours(22).AddMinutes(29), out boundary)) return false;
-            if (!schedule.TryGetPromptBoundary(day.AddHours(22).AddMinutes(30), out boundary)) return false;
-            if (boundary != day.AddHours(23)) return false;
+            if (schedule.TryGetPromptBoundary(day.AddHours(22).AddMinutes(59), out boundary)) return false;
+            if (!schedule.TryGetPromptBoundary(day.AddHours(23), out boundary)) return false;
+            if (boundary != day.AddHours(23).AddMinutes(30)) return false;
 
-            if (schedule.TryGetPromptBoundary(day.AddHours(23).AddMinutes(30), out boundary) == false) return false;
-            if (boundary != day.AddDays(1)) return false;
+            if (!schedule.TryGetPromptBoundary(day.AddDays(1), out boundary)) return false;
+            if (boundary != day.AddDays(1).AddMinutes(30)) return false;
 
-            if (!schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(3).AddMinutes(30), out boundary)) return false;
-            if (boundary != day.AddDays(1).AddHours(4)) return false;
+            if (!schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(4), out boundary)) return false;
+            if (boundary != day.AddDays(1).AddHours(4).AddMinutes(30)) return false;
             if (schedule.TryGetPromptBoundary(day.AddDays(1).AddHours(4).AddMinutes(30), out boundary)) return false;
-            if (schedule.ExtensionUntil(day.AddDays(1).AddHours(4)) != day.AddDays(1).AddHours(5)) return false;
-            if (schedule.NextRegularStart(day.AddDays(1).AddHours(5)) != day.AddDays(1).AddHours(6)) return false;
+            if (schedule.ExtensionUntil(day.AddDays(1).AddHours(4).AddMinutes(30)) != day.AddDays(1).AddHours(5)) return false;
+
+            if (schedule.NextRegularStart(day.AddDays(1).AddHours(5)) != day.AddDays(1).AddHours(5).AddMinutes(45)) return false;
             if (schedule.ScheduleKey(day.AddDays(1).AddHours(4).AddMinutes(59)) != day.ToString("yyyyMMdd")) return false;
             if (schedule.ScheduleKey(day.AddDays(1).AddHours(5)) != day.AddDays(1).ToString("yyyyMMdd")) return false;
-            if (schedule.ManualAdjustmentUntil(day.AddHours(22).AddMinutes(10)) != day.AddHours(23)) return false;
-            if (schedule.ManualAdjustmentUntil(day.AddDays(1).AddHours(4).AddMinutes(10)) != day.AddDays(1).AddHours(5)) return false;
+
+            if (schedule.ManualAdjustmentUntil(day.AddHours(22).AddMinutes(40)) != day.AddHours(23).AddMinutes(30)) return false;
+            if (schedule.ManualAdjustmentUntil(day.AddDays(1).AddHours(4).AddMinutes(10)) != day.AddDays(1).AddHours(4).AddMinutes(30)) return false;
             if (schedule.ManualAdjustmentUntil(day.AddDays(1).AddHours(5).AddMinutes(10)) != DateTime.MinValue) return false;
 
             return true;
