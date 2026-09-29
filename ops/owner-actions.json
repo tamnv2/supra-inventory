@@ -3910,7 +3910,7 @@
     },
     {
       "id": "OA080",
-      "status": "BLOCKED_TECHNICAL_RELEASE_PENDING",
+      "status": "BLOCKED_D152_V87_TECHNICAL_RELEASE_PENDING",
       "title": "Field-accept D152 bounded PickList confirmation recovery",
       "resource_key": "beta_runtime",
       "provider": "SUPRA Inventory Beta",
@@ -3918,18 +3918,21 @@
       "prerequisites": {
         "accepted_base": "D151_OWNER_FIELD_ACCEPTED_PASS",
         "d152_owner_approval": "PASS__2026_09_29",
-        "target_agent_release": "relay-agent-v86",
+        "target_agent_release": "relay-agent-v87",
         "android": "beta-vc89__UNCHANGED",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "d152_v86": "TECHNICAL_RELEASED__SUPERSEDED_BEFORE_FIELD_ACCEPTANCE",
+        "d152_v87": "HYDRATED_VERIFY_SAFETY_REPAIR_PENDING"
       },
       "shortest_test_path": [
-        "Install/update Agent v86 after technical release and keep the existing signed beta-vc89 PDA app.",
+        "Install/update Agent v87 after technical release and keep the existing signed beta-vc89 PDA app.",
         "Run normal real PickList confirmations and verify the normal found-checkbox-confirm path remains prompt.",
         "When a real PickList appears but its checkbox is temporarily unavailable, verify Agent self-recovers through bounded Search/reload and either confirms normally or returns a truthful state conflict without NOT_FOUND strike.",
         "If a post-confirm result becomes uncertain, verify Agent never clicks Confirm a second time; a later same-PickList request may verify state only.",
         "Check Agent logs for checkbox_recovery / verify_search reason markers and confirm there is no repeated reload loop, duplicate WMS mutation or Firestore usage amplification."
       ],
       "pass_criteria": [
+        "Verify-only confirmation must never treat a transient fully-empty/unhydrated Confirm table as proof that the exact PickList was completed.",
         "Normal PickList success latency is not degraded by recovery logic.",
         "Unique row with delayed checkbox is not mislabeled as Supra rejection and does not create a NOT_FOUND strike.",
         "Reload/search recovery is bounded and does not loop.",
@@ -3938,7 +3941,7 @@
         "No new provider/read-write polling cadence or Android release is introduced.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Blocked until Agent v86 technical/runtime/release PASS. After release, run the bounded real-field matrix above and report PASS/FAIL.",
+      "remaining_owner_action": "Blocked until D152 Agent v87 technical/runtime/release PASS. After release, run the bounded real-field matrix and report PASS/FAIL.",
       "closed": false
     }
   ]
