@@ -762,3 +762,13 @@ After D151 Owner PASS, D152 is the active Owner-approved Agent-only workstream. 
 ## D152 Owner acceptance checkpoint
 
 D152 is Owner-field accepted PASS on 2026-09-29. The accepted Beta base now includes `relay-agent-v86` from PR #316 / main `a418de7e852ff9c1bc8b37309b65cdfc75fe3f24`, with bounded checkbox recovery and verify-only uncertain confirmation handling. OA080 is closed. Android remains signed `beta-vc89`; no new provider/resource/schema/listener/polling/write cadence is introduced and Stable remains OWNER-GATED. The serial gate is open for the next separately approved change.
+
+
+## D153 accepted Beta base — 2026-09-29
+
+- Accepted change base: **D153 Owner PASS**; OA081 closed.
+- Current Agent: **relay-agent-v87**; signed Android remains **beta-vc89**.
+- Accepted quota behavior: LOGIN remains Picker authority; PickList fallback is one-shot/session-fenced; repeated identical device/presence state is deduped before Firestore provider writes; Picker-only `agent_sync` no-op gating is retained with the 5-minute repair reconcile.
+- Confirmation cadence remains 3s active / 15s inactive / 1s bounded HOT; PRIMARY lease 10s and failover 15s are unchanged.
+- Streaming redesign D remains deferred. Stable remains OWNER-GATED.
+- Serial Owner-PASS gate is open for the next separately reviewed change.
