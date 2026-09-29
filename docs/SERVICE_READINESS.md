@@ -1457,9 +1457,9 @@ Derived current-status markers:
 - Signed Android: **beta-vc89** with marker `D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__ADAPTIVE_ALERT_ENGINE`.
 - Current Web marker remains `D149_TECHNICAL_RUNTIME_PASS__RECENT_RANGE__READ_ONLY_UNIFIED_SHIFT_STATE__MAIN_C03F5486`.
 - SQLite schema remains `14`.
-- D152 is the only active change: Agent-only bounded PickList checkbox recovery and post-confirm verify-only logic, target `relay-agent-v86`.
-- Normal confirmation fast path and D150 HA/quota fences remain unchanged. No new provider/resource/schema/listener/polling/write cadence or Android build.
-- OA080 is blocked until Agent v86 technical/runtime/release PASS. Stable remains OWNER-GATED and untouched.
+- D152 is the only active change. Agent v86 was technically released but is superseded before field acceptance by the same-D152 `relay-agent-v87` safety repair.
+- v87 requires hydrated Confirm-table evidence before verify-only row disappearance can become CONFIRMED, and maps final pre-mutation checkbox races to truthful conflict/not-ready. Normal fast path and D150 HA/quota fences remain unchanged; no new provider/resource/schema/listener/polling/write cadence or Android build.
+- OA080 is blocked until Agent v87 technical/runtime/release PASS. Stable remains OWNER-GATED and untouched.
 
 Derived current-status markers:
 - Latest Beta APK: `beta-vc89`
