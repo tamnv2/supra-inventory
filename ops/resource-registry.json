@@ -128,7 +128,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D150_OWNER_ACCEPTED_BASE",
+      "status": "D150_OWNER_ACCEPTED_BASE__D151_IMPLEMENTATION_ACTIVE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -220,7 +220,10 @@
       "d146_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC86__AGENT_V83__FINAL_FIRESTORE_HOTFIX_PASS",
       "d148_source_status": "OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC87__AGENT_V83_UNCHANGED",
       "d149_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC88__AGENT_V84__OA077_FIELD_READY",
-      "d150_source_status": "OWNER_FIELD_ACCEPTED_PASS__AGENT_V85__ANDROID_VC88_UNCHANGED"
+      "d150_source_status": "OWNER_FIELD_ACCEPTED_PASS__AGENT_V85__ANDROID_VC88_UNCHANGED",
+      "d151_source_status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE__DIAGNOSTIC_APK_BUILD_PENDING__PRODUCTION_BETA_VC88_UNCHANGED",
+      "d151_diagnostic_package": "cd.cc.supra.inventory.dnddiag",
+      "d151_diagnostic_resources": "REUSE_EXISTING_BETA_WORKER_RUNTIME_LOG_BUFFER_AND_LOGS_FOLDER__NO_NEW_PROVIDER_RESOURCE"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",

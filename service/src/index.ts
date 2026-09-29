@@ -95,6 +95,16 @@ interface FirebaseRefreshResponse {
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.send";
 const OAUTH_STATE_COOKIE = "inventory_oauth_state";
 const CORE_OBJECT_NAME = "inventory-core";
+const dndDiagnosticLastUpload = new Map<string, number>();
+
+function dndDiagnosticString(value: unknown, max = 300): string {
+  return String(value ?? "").replace(/[\r\n\t]+/g, " ").trim().slice(0, max);
+}
+
+function dndDiagnosticRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
 const REQUIRED_RUNTIME_BINDINGS = [
   "GOOGLE_RUNTIME_SA_JSON",
   "GOOGLE_DRIVE_OAUTH_CLIENT_ID",
@@ -1262,6 +1272,127 @@ export default {
         }
         await refreshPickerProjectionBestEffort(env, "AGENT_KICK").catch(() => undefined);
         return json(payload);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/diagnostics/dnd/upload") {
+        if (env.APP_ENV !== "beta") return json({ error: "NOT_FOUND" }, 404);
+        if (request.headers.get("x-dnd-diagnostic-version") !== "1") return json({ error: "DND_DIAGNOSTIC_HEADER_REQUIRED" }, 400);
+        const declaredLength = Number(request.headers.get("content-length") || "0");
+        if (declaredLength > 20_000) return json({ error: "DND_DIAGNOSTIC_PAYLOAD_TOO_LARGE" }, 413);
+
+        let raw = "";
+        try { raw = await request.text(); } catch { return json({ error: "INVALID_BODY" }, 400); }
+        if (!raw || raw.length > 20_000) return json({ error: "DND_DIAGNOSTIC_PAYLOAD_TOO_LARGE" }, 413);
+
+        let input: Record<string, unknown> = {};
+        try { input = JSON.parse(raw) as Record<string, unknown>; } catch { return json({ error: "INVALID_JSON" }, 400); }
+        if (input.schema !== "dnd-diagnostic-v1") return json({ error: "INVALID_DND_DIAGNOSTIC_SCHEMA" }, 400);
+
+        const identity = dndDiagnosticRecord(input.identity);
+        const build = dndDiagnosticRecord(input.build);
+        const profile = dndDiagnosticRecord(input.profile);
+        const dnd = dndDiagnosticRecord(input.dnd);
+        const packageName = dndDiagnosticString(identity.package, 100);
+        const deviceHash = dndDiagnosticString(identity.device_id_hash, 32).toLowerCase();
+        if (packageName !== "cd.cc.supra.inventory.dnddiag" || !/^[a-f0-9]{16}$/.test(deviceHash)) {
+          return json({ error: "INVALID_DND_DIAGNOSTIC_IDENTITY" }, 400);
+        }
+
+        const ip = dndDiagnosticString(request.headers.get("cf-connecting-ip") || "unknown", 80);
+        const rateKey = ip + "|" + deviceHash;
+        const now = Date.now();
+        const last = dndDiagnosticLastUpload.get(rateKey) || 0;
+        if (now - last < 10_000) return json({ error: "DND_DIAGNOSTIC_RATE_LIMITED" }, 429);
+        dndDiagnosticLastUpload.set(rateKey, now);
+        if (dndDiagnosticLastUpload.size > 256) {
+          const cutoff = now - 60 * 60_000;
+          for (const [key, seenAt] of dndDiagnosticLastUpload) if (seenAt < cutoff) dndDiagnosticLastUpload.delete(key);
+        }
+
+        const generatedAt = dndDiagnosticString(input.generated_at, 80);
+        const allowedPayload = {
+          schema: "dnd-diagnostic-v1",
+          build: {
+            manufacturer: dndDiagnosticString(build.manufacturer, 80),
+            brand: dndDiagnosticString(build.brand, 80),
+            model: dndDiagnosticString(build.model, 80),
+            device: dndDiagnosticString(build.device, 80),
+            product: dndDiagnosticString(build.product, 80),
+            board: dndDiagnosticString(build.board, 80),
+            hardware: dndDiagnosticString(build.hardware, 80),
+            bootloader: dndDiagnosticString(build.bootloader, 120),
+            id: dndDiagnosticString(build.id, 120),
+            display: dndDiagnosticString(build.display, 180),
+            fingerprint: dndDiagnosticString(build.fingerprint, 300),
+            sdk_int: Number(build.sdk_int || 0),
+            release: dndDiagnosticString(build.release, 40),
+            incremental: dndDiagnosticString(build.incremental, 120),
+            security_patch: dndDiagnosticString(build.security_patch, 40),
+          },
+          identity: {
+            device_id_hash: deviceHash,
+            package: packageName,
+            uid: Number(identity.uid || 0),
+            derived_user_id: Number(identity.derived_user_id || 0),
+            first_install_time: Number(identity.first_install_time || 0),
+            last_update_time: Number(identity.last_update_time || 0),
+          },
+          profile: {
+            managed_profile: profile.managed_profile === true,
+            restriction_adjust_volume: profile.restriction_adjust_volume === true,
+            restriction_config_sound: profile.restriction_config_sound === true,
+            restriction_config_settings: profile.restriction_config_settings === true,
+            this_app_device_owner: profile.this_app_device_owner === true,
+            this_app_profile_owner: profile.this_app_profile_owner === true,
+          },
+          dnd: {
+            manifest_declares_access_notification_policy: dnd.manifest_declares_access_notification_policy === true,
+            manifest_permission_check: Number(dnd.manifest_permission_check ?? -1),
+            is_notification_policy_access_granted: dnd.is_notification_policy_access_granted === true,
+            notifications_enabled: dnd.notifications_enabled === true,
+            current_interruption_filter: Number(dnd.current_interruption_filter ?? -1),
+            secure_policy_list_readable: dnd.secure_policy_list_readable === true,
+            secure_policy_list_contains_self: dnd.secure_policy_list_contains_self === true,
+            secure_policy_list_count: Number(dnd.secure_policy_list_count || 0),
+            condition_provider_list_readable: dnd.condition_provider_list_readable === true,
+            condition_provider_list_contains_self: dnd.condition_provider_list_contains_self === true,
+            condition_provider_list_count: Number(dnd.condition_provider_list_count || 0),
+            channel_before_exists: dnd.channel_before_exists === true,
+            channel_before_importance: Number(dnd.channel_before_importance ?? -1),
+            channel_before_can_bypass_dnd: dnd.channel_before_can_bypass_dnd === true,
+            channel_create_attempted: dnd.channel_create_attempted === true,
+            channel_create_error: dndDiagnosticString(dnd.channel_create_error, 300),
+            channel_after_exists: dnd.channel_after_exists === true,
+            channel_after_importance: Number(dnd.channel_after_importance ?? -1),
+            channel_after_can_bypass_dnd: dnd.channel_after_can_bypass_dnd === true,
+            global_zen_mode: Number(dnd.global_zen_mode ?? -999),
+          },
+        };
+
+        try {
+          return json(await uploadRuntimeLog(env, {
+            user_id: "dnd-diagnostic",
+            employee_code: null,
+            display_name: "DND Diagnostic",
+            role: "DIAGNOSTIC",
+          }, {
+            source: "ANDROID",
+            severity: "INFO",
+            reason: "manual_dnd_diagnostic",
+            generated_at: generatedAt,
+            device: {
+              device_id: "dnddiag-" + deviceHash,
+              manufacturer: allowedPayload.build.manufacturer,
+              model: allowedPayload.build.model,
+              sdk_int: allowedPayload.build.sdk_int,
+              package: packageName,
+              version_name: "1.0-dnddiag",
+            },
+            payload: allowedPayload,
+          }));
+        } catch (error) {
+          return json({ error: "DND_DIAGNOSTIC_UPLOAD_FAILED", message: error instanceof Error ? error.message : "upload_failed" }, 502);
+        }
       }
 
       if (request.method === "POST" && url.pathname === "/api/logs/upload") {

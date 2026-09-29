@@ -1916,3 +1916,18 @@ Only explicit Owner PASS closes the D150 field gate and promotes D150 over the D
 
 D150 Owner result: **PASS** on 2026-09-29. OA078 is closed after the Owner explicitly confirmed field acceptance. D150 is promoted to the accepted base. Technical/runtime/release evidence remains main `c9d42c701f66283f447aad4f24c8f9043db17e37`, Agent `relay-agent-v85`, and signed Android `beta-vc88` unchanged; Stable remains OWNER-GATED and untouched.
 
+## D151 DND diagnostic acceptance
+
+D151 is a diagnostic-only Beta field workstream. Technical PASS requires:
+- the standalone `cd.cc.supra.inventory.dnddiag` APK builds independently from the production `android/` application and therefore does not increment or republish the production Beta APK;
+- source contains no login, Firebase, realtime, shortage, PickList, WMS or embedded credential path;
+- the APK reads Android 11 DND authority and comparison signals from the device, including firmware/build fingerprint, security patch, user/profile restrictions, secure policy-access package membership, `NotificationManager.isNotificationPolicyAccessGranted()`, and dedicated-channel `canBypassDnd()`;
+- the Beta diagnostic intake accepts only the fixed DND schema/package, is payload-bounded and throttled, performs no business mutation, and archives with the existing sanitized Beta runtime-log/Drive path;
+- Repo Authority, Project State, Worker build/deploy and dedicated diagnostic APK build gates pass; Stable is untouched.
+
+Field evidence is Owner-only and is not implied by CI. Use the same built APK on:
+1. one MT90 where DND special access behaves normally;
+2. one MT90 where Android Settings appears stuck at `Cho phép` while the production app does not pass readiness.
+
+On each device, return from the DND settings surface, refresh if needed, then press `GỬI LOG VỀ BETA` once. PASS for the diagnostic collection step requires two separate `manual_dnd_diagnostic` logs in the Beta logs folder with distinct device hashes and sufficient fields to compare policy API, secure-settings projection, channel bypass, firmware/build and profile state. D151 remains open until those field logs are analyzed and the Owner accepts the resulting root-cause conclusion/repair direction.
+

@@ -2261,3 +2261,31 @@ D150 is now **TECHNICAL / RUNTIME / RELEASE PASS**. OA078 is **READY_FOR_OWNER_F
 
 D150 Owner acceptance: **PASS** on 2026-09-29. The Owner explicitly confirmed “d150 pass” after field review. OA078 is closed and D150 is promoted to the accepted project base. Technical/runtime/release evidence remains implementation PR #306, main `c9d42c701f66283f447aad4f24c8f9043db17e37`, Agent `relay-agent-v85`, and signed Android `beta-vc88` unchanged. No new provider/resource/schema/secret is introduced by this acceptance record; Stable remains OWNER-GATED and untouched.
 
+## D151 — One-off MT90 DND diagnostic APK and Beta log intake
+
+Status: **OWNER APPROVED — IMPLEMENTATION AUTHORIZED (2026-09-29)**
+
+Owner requested one lightweight standalone APK to install on both a normal Newland NLS-MT90 and a failing NLS-MT90 to isolate the Android 11 `Không làm phiền / Notification Policy Access` inconsistency. The APK is diagnostic-only and must not replace or mutate the production 1291 Báo hàng Beta app.
+
+Approved scope:
+- one standalone package `cd.cc.supra.inventory.dnddiag`, Android 11+, with no application login, Firebase, realtime, SKU, PickList or shortage-report logic;
+- read and display the exact system/build/profile/DND signals needed to compare the two MT90 devices, including firmware/build fingerprint, security patch, user/profile restrictions, manifest permission declaration, `NotificationManager.isNotificationPolicyAccessGranted()`, the secure policy-access package projection, and a dedicated HIGH notification channel's `canBypassDnd()` state;
+- provide `MỞ CÀI ĐẶT KHÔNG LÀM PHIỀN`, `LÀM MỚI TRẠNG THÁI` and one `GỬI LOG VỀ BETA` action;
+- send the sanitized diagnostic payload through a Beta-only bounded Worker endpoint, then archive through the existing Inventory/Beta logs pipeline and existing Google Drive credential held server-side;
+- keep the production Android package/release at `beta-vc88` unchanged.
+
+Base impact: **NO business-runtime behavior change to the accepted D150 Android/Agent/Web flows.** D151 adds only an isolated diagnostic APK plus a bounded Beta diagnostic-log intake route.
+
+Affected components: diagnostic APK source, Beta Worker log intake, existing runtime-log archive path, CI/authority continuity.
+
+Regression/stability risk: low for business runtime; the only shared-runtime change is one new Beta-only POST route before authenticated business routes. It has no business mutation and does not change existing authentication, realtime, notification, Agent, WMS or InventoryCore business semantics.
+
+Resource/quota/security impact:
+- no new provider, Firebase app, collection, database, schema, secret, polling loop, listener or scheduled job;
+- each Owner-triggered upload is one bounded support-log write plus the existing Drive archive operation;
+- endpoint accepts only a fixed diagnostic schema/package, rejects payloads above 20 KB, applies a short best-effort per-device/IP throttle, reconstructs an allowlisted payload server-side, and still passes through the existing runtime-log sanitizer;
+- no OAuth token, refresh token, Google credential, password, API secret or signing material is embedded in the APK;
+- Stable remains OWNER-GATED and untouched.
+
+Field objective: install the same APK on one normal MT90 and one failing MT90, reproduce/open DND access state as observed, press `GỬI LOG VỀ BETA` on each, then compare the two resulting logs to distinguish firmware/build mismatch, profile/policy restriction, stale secure-settings projection, NotificationManager policy-access mismatch, or channel bypass failure.
+
