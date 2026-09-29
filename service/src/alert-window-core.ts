@@ -195,7 +195,11 @@ export function mirrorAndroidOperatingSchedule(
   if (!/^\d{8}$/.test(scheduleKey) || version <= 0 || !["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START"].includes(decision)) {
     throw new Error("INVALID_OPERATING_SCHEDULE");
   }
-  if (openUntilMs <= 0 || openUntilMs < decisionBoundaryMs) throw new Error("INVALID_OPERATING_SCHEDULE_WINDOW");
+  if (decision === "STOP") {
+    if (openUntilMs !== 0) throw new Error("INVALID_OPERATING_SCHEDULE_WINDOW");
+  } else if (openUntilMs <= 0 || openUntilMs < decisionBoundaryMs) {
+    throw new Error("INVALID_OPERATING_SCHEDULE_WINDOW");
+  }
 
   const current = storedConfig(state);
   if (version <= current.version) return readAndroidAlertWindow(state, nowMs);
