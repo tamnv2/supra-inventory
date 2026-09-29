@@ -1385,3 +1385,13 @@ Owner approved one combined Beta change set for reliable support logs, PDA SKU i
 - Excluded: overtime Web/App/Agent unification; no Agent mutation in D148.
 - Resource/schema/quota: no new provider resource/schema/polling/Firestore read loop. Existing FCM and report APIs are reused.
 - Stable remains OWNER-GATED and untouched.
+
+## D148 technical/runtime/release PASS — Owner field pending
+- Main source: `fe893db1d80e417021defdad92d85947c37abd82` from PR #300.
+- Live Beta Web/Worker deploy: PASS.
+- Signed Android: `beta-vc87`, exact-source release, fixed PDA channel refreshed.
+- Agent: `relay-agent-v83` unchanged.
+- Scope PASS candidates: pending badge recreation; Reporter/Admin report-created overlay; shift-comparison Excel; clearer PickList strike/lock copy; Android session-end INFO logs; priority/FIFO sequential overlay queue with local-first result ACK.
+- OA076: **READY_FOR_OWNER_FIELD_TEST**.
+- Accepted base remains **D147**. D149 and the separate overtime-unification change remain blocked until explicit D148 Owner PASS.
+- Stable remains OWNER-GATED and untouched.
