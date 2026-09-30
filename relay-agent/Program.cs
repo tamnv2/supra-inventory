@@ -1642,8 +1642,8 @@ namespace SupraInventoryRelayAgent
         // The one-second UI timer must never add a parallel Firestore schedule-read loop.
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
-            QueueD128BrowserStateRefresh();
             TickD157SessionHealth();
+            QueueD128BrowserStateRefresh();
             if (_businessSchedule == null) return;
             var now = _businessSchedule.NowOperational();
             var defaultAllowed = _businessSchedule.DefaultRelayAllowed(now);
@@ -3173,6 +3173,7 @@ namespace SupraInventoryRelayAgent
         private void QueueD128BrowserStateRefresh()
         {
             if (!HasAgentSession()) return;
+            if (Interlocked.CompareExchange(ref _d157SessionValidationRunning, 0L, 0L) != 0L) return;
             if (Interlocked.CompareExchange(ref _readinessRefreshRunning, 1L, 0L) != 0L) return;
             Task.Run(() =>
             {
