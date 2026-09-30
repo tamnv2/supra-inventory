@@ -62,6 +62,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _ensureFreshToken;
         private readonly Func<bool> _wmsReady;
         private readonly Func<bool> _takeoverWmsProbe;
+        private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
         private readonly string _instanceId;
         private readonly Action<string> _log;
@@ -103,6 +104,7 @@ namespace SupraInventoryRelayAgent
             Action ensureFreshToken,
             Func<bool> wmsReady,
             Func<bool> takeoverWmsProbe,
+            Func<bool> targetHandoffWmsProbe,
             Func<bool> relayEnabled,
             string instanceId,
             Action<string> log,
@@ -112,6 +114,7 @@ namespace SupraInventoryRelayAgent
             _ensureFreshToken = ensureFreshToken;
             _wmsReady = wmsReady;
             _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
+            _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
@@ -735,7 +738,7 @@ namespace SupraInventoryRelayAgent
                 // D157: the target proves the real WMS session on its own machine
                 // immediately before accepting PRIMARY. The delegate performs the
                 // protected D137 Page.reload/F5 path, not a DOM-only probe.
-                if (!_takeoverWmsProbe())
+                if (!_targetHandoffWmsProbe())
                 {
                     detail = "WMS_REAL_RELOAD_NOT_READY";
                     _log("FIRESTORE HA targeted_handoff=DEFER reason=" + detail);
