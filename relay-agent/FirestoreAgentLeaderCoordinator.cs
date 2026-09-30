@@ -125,6 +125,10 @@ namespace SupraInventoryRelayAgent
         internal bool IsFrozen { get { return _role == FirestoreAgentRole.DEEP_HIBERNATE; } }
         internal bool IsDeepHibernate { get { return _role == FirestoreAgentRole.DEEP_HIBERNATE; } }
         internal FirestoreAgentRole Role { get { return _role; } }
+        internal string Generation
+        {
+            get { lock (_stateGate) return _generation ?? ""; }
+        }
         internal string RoleName { get { return _role.ToString(); } }
         internal bool CanPollBusiness { get { return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY; } }
         internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_relayPollHealthy ? _role == FirestoreAgentRole.DEEP_HIBERNATE : true); } }
