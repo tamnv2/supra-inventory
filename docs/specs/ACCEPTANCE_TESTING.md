@@ -2078,3 +2078,12 @@ D157 technical and field acceptance must prove all of the following while Androi
 - Every D157 active session check uses the existing real `Page.reload(ignoreCache=false)`; D137 three-second pre-reload settle, `navigationType=reload` proof, 1.2-second post-reload stability and one-shot recoveries remain intact.
 - Windows network-address change refreshes proxy at 0/750/3000/8000/15000 ms, safe reads prefer fresh system proxy during the transition, and there is no corporate-filter bypass.
 - Call Picker, Kích User, HA lease/generation/guard rules, Web/Worker business functions, Stable and Android vc92 are regression-clean.
+
+
+### D157 repair acceptance — secondary operational lists
+
+- Log into Agent v92 on a machine assigned NEXT_A or NEXT_B; without promoting it to PRIMARY, the Agent/User fleet must render and the active Picker list must render when the operational window is active.
+- If the secondary receives an AGENT_SYNC snapshot before UI paint, the UI must repaint from that in-memory snapshot without requiring a new Firestore read/write.
+- Exercise logout→login and CLOSED→ACTIVE transitions; lists must reappear without manual PRIMARY transfer.
+- Promote another machine to PRIMARY and confirm the secondary continues to display lists while remaining non-PRIMARY.
+- Confirm normal PickList mutation remains PRIMARY-fenced, Android stays beta-vc92, browser/F5 behavior is unchanged, and no new provider cadence/resource is introduced.

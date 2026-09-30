@@ -823,3 +823,12 @@ D157 preserves the D156/Agent-v90 Android-to-Firestore contract and changes only
 **Session health:** non-PRIMARY Agents perform a real Confirm reload every two hours only while idle, deferring until at least 30 seconds after work. PRIMARY performs one only after 60 minutes without real WMS proof and at least 60 idle seconds. New PickList activity has priority over scheduled validation. Promotion always performs an immediate target-side validation.
 
 **Protected browser behavior:** D157 must reuse `Page.reload(ignoreCache=false)` and the D137 hydration/readiness barrier. It does not alter WebView2 runtime/profile/cache/flags, login routing or the ordinary passive readiness cadence.
+
+
+### D157 repair — Agent operational-list visibility
+
+For an authenticated Windows Agent, presentation of synchronized operational lists is role-independent:
+- PRIMARY, NEXT_A, and NEXT_B may all view the synchronized Agent/User fleet and active Picker list.
+- Being PRIMARY is required only for protected PickList/WMS mutation paths; it is not a prerequisite for list visibility.
+- On Agent login or a CLOSED→ACTIVE operational-window transition, the UI first renders already-held in-memory Agent-sync/coordinator data. This presentation transition must not create a new provider polling cadence.
+- Existing out-of-hours hiding, D150 deep-agent bounded sync, HA role assignment, and D157 targeted PRIMARY handoff semantics remain unchanged.

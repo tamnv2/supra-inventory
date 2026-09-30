@@ -83,9 +83,17 @@ jobs:
           $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
           $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*91\s*;') { throw "D157 requires Agent v91 while retaining D156 Android vc92 and D154/D153/D152/D150 safety guards." }
-          if ($project -notmatch '<AssemblyVersion>0\.91\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.91\.0\.0</FileVersion>') {
-            throw "D157 Agent assembly/file version must be 0.91."
+          if ($config -notmatch 'AgentBuild\s*=\s*92\s*;') { throw "D157 repair requires Agent v92 while retaining D156 Android vc92 and D154/D153/D152/D150 safety guards." }
+          if ($project -notmatch '<AssemblyVersion>0\.92\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.92\.0\.0</FileVersion>') {
+            throw "D157 repair Agent assembly/file version must be 0.92."
+          }
+          foreach ($marker in @(
+            'RenderD157OperationalListsFromMemory',
+            'UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents)',
+            'pickerWindowWasOpen',
+            'provider_read=false provider_write=false'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D157 repair role-independent operational-list guard missing: $marker" }
           }
 
           foreach ($marker in @(

@@ -401,7 +401,22 @@ namespace SupraInventoryRelayAgent
                 if (authChanged)
                 {
                     LoadColumnPreferencesForCurrentUser();
-                    RefreshD119OperationalViews(true);
+
+                    // D157 repair: while logged out/not WMS-ready the 30s boundary timer may
+                    // have left _pickerWindowOpenState=false. Re-evaluate the boundary on
+                    // login before an async Agent-sync snapshot arrives, so a secondary
+                    // Agent does not cache the snapshot while suppressing its UI render.
+                    var pickerWindowWasOpen = _pickerWindowOpenState;
+                    RefreshPickerWindowBoundary();
+                    if (pickerWindowWasOpen.HasValue &&
+                        _pickerWindowOpenState.HasValue &&
+                        pickerWindowWasOpen.Value == _pickerWindowOpenState.Value &&
+                        _pickerWindowOpenState.Value)
+                    {
+                        RefreshD119OperationalViews(true);
+                    }
+
+                    RenderD157OperationalListsFromMemory();
                 }
             }
             else
@@ -1107,7 +1122,14 @@ namespace SupraInventoryRelayAgent
                 _fleetSnapshot.ReceivedTotal,
                 _fleetSnapshot.ConfirmedTotal,
                 _fleetSnapshot.ErrorTotal);
-            if (_leaderCoordinator != null) _leaderCoordinator.ApplySyncedFleet(snapshot.Fleet);
+            if (_leaderCoordinator != null)
+            {
+                _leaderCoordinator.ApplySyncedFleet(snapshot.Fleet);
+                // D157 repair: Fleet/User presentation is role-independent. A NEXT_A/NEXT_B
+                // Agent must render the already-synced fleet immediately; PRIMARY ownership
+                // only gates PickList mutation, never observation.
+                UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents);
+            }
 
             if (_pickerWindowOpenState != false)
                 UpdatePickerOnlineGrid(snapshot.Pickers, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
@@ -1645,7 +1667,33 @@ namespace SupraInventoryRelayAgent
                 _pickerOnlineStatus.Text = "Replay/PDA đang ngoài ca · khung thường 06:00–22:00 hoặc theo tăng ca chung.";
                 return;
             }
+
+            // D157 repair: crossing CLOSED -> ACTIVE is a presentation transition.
+            // First paint the snapshot/fleet already held in RAM; the existing refresh
+            // call below keeps its former cadence and is not replaced by a new poll.
+            RenderD157OperationalListsFromMemory();
             RefreshD119OperationalViews(true);
+        }
+
+        private void RenderD157OperationalListsFromMemory()
+        {
+            if (!HasAgentSession()) return;
+
+            var coordinator = _leaderCoordinator;
+            if (coordinator != null)
+                UpdateAgentFleetGrid(coordinator.OnlineAgents);
+
+            if (_pickerWindowOpenState == false) return;
+            var snapshot = _agentSyncSnapshot;
+            if (snapshot == null || snapshot.Version <= 0) return;
+
+            UpdatePickerOnlineGrid(
+                snapshot.Pickers,
+                coordinator != null && coordinator.IsLeader);
+            Log("D157 UI_SYNC render=MEMORY role=" +
+                (coordinator == null ? "UNASSIGNED" : coordinator.RoleName) +
+                " pickers=" + snapshot.Pickers.Count +
+                " provider_read=false provider_write=false");
         }
 
         private string PickerOnlineRenderSignature(string query)
