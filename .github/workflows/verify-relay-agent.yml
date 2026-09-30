@@ -688,9 +688,16 @@ jobs:
           foreach ($marker in @(
             'PromoteTargetedPrimaryHandoff',
             'D157_TARGETED_OWNER_HANDOFF',
-            'D157_HANDOFF_TARGET_DISCOVERY'
+            'D157_HANDOFF_TARGET_DISCOVERY',
+            '_targetHandoffWmsProbe'
           )) {
             if (-not $leader.Contains($marker)) { throw "D157 target-side HA fence marker missing: $marker" }
+          }
+          if (-not $leader.Contains('PromoteStandbyForTakeover') -or
+              -not $leader.Contains('if (!_takeoverWmsProbe())') -or
+              -not $program.Contains('ProbeSupraBrowserForTakeover') -or
+              -not $program.Contains('ProbeD157TargetWmsForTakeover')) {
+            throw "D157 must keep automatic failover on the accepted fast readiness probe while targeted handoff uses real F5."
           }
           if (-not $browser.Contains('IssueConfirmReloadNowNoLock("d157_"') -or
               -not $browser.Contains('WaitForForcedConfirmReloadNoLock') -or
