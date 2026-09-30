@@ -220,7 +220,7 @@ def main() -> None:
     require(firestore_rules, "function isAgentOperator()", "D126 Firestore Agent operator rule")
     require(firestore_rules, "request.resource.data.agent_admin_user_id == request.auth.token.app_user_id", "D126 Firestore ACK actor binding")
     require(firestore_rules, "request.auth.token.app_role == 'PICKPACK_ADMIN'", "D119/D126 PickPack Admin Agent authority retained")
-    require(relay_agent_config, "AgentBuild = 91", "D157 v91 Agent channel retaining D156 Android vc92 and D154/D153/D152/D150 safeguards")
+    require(relay_agent_config, "AgentBuild = 92", "D157 repair v92 Agent channel retaining D156 Android vc92 and D154/D153/D152/D150 safeguards")
     require(relay_agent, "QueueNetworkStatusRefresh", "D122 SSID refresh off WinForms UI thread")
     require(relay_agent, "QueueWatchdogRefresh", "D122 watchdog refresh off WinForms UI thread")
     require(relay_agent, "ExpireAgentSession", "D122 expired Agent session login recovery")
