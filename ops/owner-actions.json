@@ -4153,7 +4153,7 @@
     },
     {
       "id": "OA085",
-      "status": "WAITING_TECHNICAL_RUNTIME_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D157 Agent v91 speed/write/handoff/session-health changes",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Firebase",
@@ -4161,10 +4161,11 @@
       "prerequisites": {
         "accepted_base": "D156_OWNER_FIELD_ACCEPTED_PASS",
         "d157_owner_approval": "PASS__2026_09_30",
-        "technical_runtime_release": "PENDING",
+        "technical_runtime_release": "PASS__PR336__MAIN_87CBED6D__AGENT_V91",
         "stable": "OWNER_GATED_UNTOUCHED",
         "android": "beta-vc92__UNCHANGED",
-        "agent": "relay-agent-v91__PENDING"
+        "agent": "relay-agent-v91__RELEASED__SHA256_B9DB68C6E23E538D038638E0B2AEAD13CF1E8C82F12242DC2CA54C386025B341",
+        "main_gates": "PASS__PROJECT_STATE_36675226281__DASHBOARD_36675226242__AUTHORITY_36675226227__UI_36675226333__FIRESTORE_36675226210__AGENT_36675226296"
       },
       "shortest_test_path": [
         "Keep the existing beta-vc92 PDA installed. Send normal and invalid PickList requests and confirm result behavior remains unchanged.",
@@ -4183,7 +4184,7 @@
         "D157 scheduled checks use real D137 Page.reload/F5 semantics and do not alter the accepted login/Dashboard/SFT3/Confirm hydration flow.",
         "Calls, Kích User, HA/generation/confirmation guards remain regression-clean; Stable remains untouched."
       ],
-      "remaining_owner_action": "Wait for D157 technical/runtime/release PASS, then run the shortest field path above.",
+      "remaining_owner_action": "Run the OA085 shortest field path with relay-agent-v91 and existing beta-vc92. If all criteria pass, explicitly confirm D157 PASS; otherwise repair continues under D157.",
       "closed": false
     }
   ]
