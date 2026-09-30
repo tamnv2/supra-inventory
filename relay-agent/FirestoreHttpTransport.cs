@@ -57,9 +57,14 @@ namespace SupraInventoryRelayAgent
                 request.KeepAlive = false;
                 request.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
 
-                var route = attempt == 2
+                // D157: immediately prefer a fresh Windows system-proxy snapshot during
+                // a real adapter/network transition. Outside that bounded transition the
+                // accepted default-proxy-first behavior remains unchanged.
+                var route = IsNetworkTransitioning && attempt == 1
                     ? ApplyFreshSystemProxy(request, url)
-                    : ApplyDefaultWindowsProxy(request, url);
+                    : (attempt == 2
+                        ? ApplyFreshSystemProxy(request, url)
+                        : ApplyDefaultWindowsProxy(request, url));
                 FirestoreQuotaGuard.Record(method, url, component, log);
                 try
                 {

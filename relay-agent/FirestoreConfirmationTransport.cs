@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -70,6 +72,18 @@ namespace SupraInventoryRelayAgent
         private long _hotUntilMs;
         private int _lastBusinessPendingCount;
         private string _lastOutcomeState = "";
+        private const int SummaryCheckpointAckThreshold = 50;
+        private const long SummaryCheckpointIntervalMs = 5L * 60L * 1000L;
+        private const long SummaryCheckpointRetryMs = 60L * 1000L;
+        private readonly object _summaryCheckpointGate = new object();
+        private readonly HashSet<string> _summaryDirtyDays = new HashSet<string>(StringComparer.Ordinal);
+        private long _summaryDirtyVersion;
+        private int _summaryDirtyAckCount;
+        private long _summaryCheckpointRunning;
+        private long _lastSummaryCheckpointMs;
+        private long _lastSummaryCheckpointAttemptMs;
+        private string _summaryCheckpointGeneration = "";
+        private bool _summaryRecoveryRequired = true;
         private readonly object _currentBatchGate = new object();
         private readonly Dictionary<string, FirestoreConfirmationWorkItem> _currentBatchWorks =
             new Dictionary<string, FirestoreConfirmationWorkItem>(StringComparer.Ordinal);
@@ -113,6 +127,11 @@ namespace SupraInventoryRelayAgent
             _relayHealth = relayHealth ?? delegate { };
         }
 
+        internal bool HasActiveBatch
+        {
+            get { lock (_currentBatchGate) return _currentBatchWorks.Count > 0; }
+        }
+
         internal void Run(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -137,7 +156,20 @@ namespace SupraInventoryRelayAgent
                         var session = _sessionProvider();
                         _coordinator.EnsureRoleCurrentBeforeBusiness(session);
                         var startedMs = NowMs();
+                        var generation = _coordinator.Generation;
+                        lock (_summaryCheckpointGate)
+                        {
+                            if (!string.Equals(_summaryCheckpointGeneration, generation, StringComparison.Ordinal))
+                            {
+                                _summaryCheckpointGeneration = generation ?? "";
+                                _summaryRecoveryRequired = true;
+                                _summaryDirtyDays.Add(FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow));
+                                _summaryDirtyDays.Add(FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow.AddDays(-1)));
+                            }
+                        }
+
                         var processed = ProcessOnce(session);
+                        QueueD157SummaryCheckpointIfDue();
                         if (processed > 0 && _lastBusinessPendingCount >= 2)
                             _hotUntilMs = NowMs() + 15000L;
                         else if (processed > 0)
@@ -172,7 +204,10 @@ namespace SupraInventoryRelayAgent
                     try { _log("FIRESTORE confirm logic fail transport_preserved=true retry_ms=" + waitMs + " " + Describe(ex)); } catch { }
                 }
 
-                if (token.WaitHandle.WaitOne(Math.Max(1000, waitMs))) break;
+                // D157 realtime is acceleration only: it wakes this accepted REST
+                // poll loop. All parsing, HA fences, WMS mutation and ACK logic remain
+                // on this single pipeline.
+                if (D157PendingWakeSignal.Wait(token, Math.Max(1000, waitMs))) break;
             }
         }
 
@@ -312,7 +347,9 @@ namespace SupraInventoryRelayAgent
                     continue;
 
                 _onResponse();
-                try { _onDurableAck(FindBusinessDay(work.RequestId), outcome); } catch { }
+                var summaryDay = FindBusinessDay(work.RequestId);
+                MarkD157SummaryDirty(summaryDay);
+                try { _onDurableAck(summaryDay, outcome); } catch { }
                 _lastOutcomeState = "Relay: PRIMARY · " + UserFacingOutcome(outcome);
                 processed++;
             }
@@ -549,7 +586,7 @@ namespace SupraInventoryRelayAgent
                  " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
         }
 
-        private string SendSafeRead(string method, string url, string token, string body)
+        private string SendSafeRead(string method, string url, string token, string body, string component = "CONFIRM_QUERY")
         {
             // D130: a dead Firestore route must not block the PRIMARY loop for 3 x 12s.
             // Two 4s safe-read attempts keep recovery bounded inside the PDA wait window.
@@ -562,7 +599,7 @@ namespace SupraInventoryRelayAgent
                 4000,
                 true,
                 _log,
-                "CONFIRM_QUERY",
+                component,
                 2);
         }
 
@@ -666,44 +703,12 @@ namespace SupraInventoryRelayAgent
             if (!string.IsNullOrWhiteSpace(updateTime))
                 jobWrite["currentDocument"] = new Dictionary<string, object> { { "updateTime", updateTime } };
 
-            var summaryName = AgentConfig.FirestoreCoordinationBaseUrl
-                .Replace("https://firestore.googleapis.com/v1/", "")
-                .TrimEnd('/') + "/daily_" + businessDay;
-            var summaryFields = new Dictionary<string, object>
-            {
-                { "schema_version", IntField(2) },
-                { "business_day", StringField(businessDay) },
-                { "owner_agent_id", StringField(_instanceId) },
-                { "updated_at_ms", IntField(terminalAtMs) }
-            };
-            var transforms = new List<object>
-            {
-                new Dictionary<string, object>
-                {
-                    { "fieldPath", "received_total" },
-                    { "increment", IntField(1) }
-                },
-                new Dictionary<string, object>
-                {
-                    { "fieldPath", terminalConfirmed ? "confirmed_total" : "error_total" },
-                    { "increment", IntField(1) }
-                }
-            };
-            var summaryWrite = new Dictionary<string, object>
-            {
-                { "update", new Dictionary<string, object>
-                    {
-                        { "name", summaryName },
-                        { "fields", summaryFields }
-                    }
-                },
-                { "updateMask", new Dictionary<string, object> { { "fieldPaths", new List<string>(summaryFields.Keys).ToArray() } } },
-                { "updateTransforms", transforms.ToArray() }
-            };
-
+            // D157: the terminal PDA ACK is the latency-critical durable write.
+            // Daily counters are rebuilt from Firestore ACK truth by a bounded
+            // aggregate checkpoint, so this commit contains the job write only.
             var body = Serialize(new Dictionary<string, object>
             {
-                { "writes", new object[] { jobWrite, summaryWrite } }
+                { "writes", new object[] { jobWrite } }
             });
             var commitUrl =
                 "https://firestore.googleapis.com/v1/projects/" + AgentConfig.FirebaseProjectId +
@@ -725,7 +730,7 @@ namespace SupraInventoryRelayAgent
                         " instance=" + Short(_instanceId));
                     _log("FIRESTORE ACK PASS request=" + Short(jobId) +
                          " result=" + Safe(outcome.Result) +
-                         " durable_summary=true attempt=" + attempt +
+                         " summary_checkpoint=queued attempt=" + attempt +
                          " ack_ms=" + Math.Max(0L, NowMs() - ackStartedMs));
                     return true;
                 }
@@ -781,6 +786,260 @@ namespace SupraInventoryRelayAgent
                 }
             }
             return false;
+        }
+
+        private void MarkD157SummaryDirty(string businessDay)
+        {
+            lock (_summaryCheckpointGate)
+            {
+                if (!string.IsNullOrWhiteSpace(businessDay)) _summaryDirtyDays.Add(businessDay);
+                _summaryDirtyAckCount++;
+                _summaryDirtyVersion++;
+            }
+        }
+
+        private void QueueD157SummaryCheckpointIfDue()
+        {
+            var coordinator = _coordinator;
+            if (coordinator == null || !coordinator.IsLeader) return;
+
+            var now = NowMs();
+            string generation;
+            bool due;
+            lock (_summaryCheckpointGate)
+            {
+                generation = _summaryCheckpointGeneration ?? "";
+                var retryReady = _lastSummaryCheckpointAttemptMs == 0 ||
+                                 now - _lastSummaryCheckpointAttemptMs >= SummaryCheckpointRetryMs;
+                due = retryReady &&
+                      (
+                          _summaryRecoveryRequired ||
+                          _summaryDirtyAckCount >= SummaryCheckpointAckThreshold ||
+                          (_summaryDirtyAckCount > 0 &&
+                           (_lastSummaryCheckpointMs == 0 ||
+                            now - _lastSummaryCheckpointMs >= SummaryCheckpointIntervalMs))
+                      );
+                if (due) _lastSummaryCheckpointAttemptMs = now;
+            }
+            if (!due || string.IsNullOrWhiteSpace(generation)) return;
+            if (Interlocked.CompareExchange(ref _summaryCheckpointRunning, 1L, 0L) != 0L) return;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    _ensureFreshToken();
+                    var session = _sessionProvider();
+                    long capturedVersion;
+                    List<string> days;
+                    lock (_summaryCheckpointGate)
+                    {
+                        capturedVersion = _summaryDirtyVersion;
+                        days = _summaryDirtyDays.ToList();
+                        if (_summaryRecoveryRequired)
+                        {
+                            var current = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                            var previous = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow.AddDays(-1));
+                            if (!days.Contains(current)) days.Add(current);
+                            if (!days.Contains(previous)) days.Add(previous);
+                        }
+                    }
+
+                    if (_coordinator == null ||
+                        !_coordinator.IsLeader ||
+                        !string.Equals(_coordinator.Generation, generation, StringComparison.Ordinal) ||
+                        !_coordinator.VerifyPrimaryBeforeMutation(session))
+                    {
+                        _log("D157 SUMMARY checkpoint=DEFER reason=PRIMARY_FENCE_CHANGED");
+                        return;
+                    }
+
+                    foreach (var day in days.Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToList())
+                        RefreshD157DailySummaryAbsolute(session, day, generation);
+
+                    lock (_summaryCheckpointGate)
+                    {
+                        _lastSummaryCheckpointMs = NowMs();
+                        _summaryRecoveryRequired = false;
+                        if (_summaryDirtyVersion == capturedVersion)
+                        {
+                            _summaryDirtyDays.Clear();
+                            _summaryDirtyAckCount = 0;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _log("D157 SUMMARY checkpoint=DEFER type=" + ex.GetType().Name +
+                         " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _summaryCheckpointRunning, 0L);
+                }
+            });
+        }
+
+        private void RefreshD157DailySummaryAbsolute(AgentSession session, string businessDay, string generation)
+        {
+            var total = RunD157AckCount(session, businessDay, false);
+            var confirmed = RunD157AckCount(session, businessDay, true);
+            confirmed = Math.Min(total, Math.Max(0L, confirmed));
+            var error = Math.Max(0L, total - confirmed);
+            var now = NowMs();
+
+            if (_coordinator == null ||
+                !_coordinator.IsLeader ||
+                !string.Equals(_coordinator.Generation, generation, StringComparison.Ordinal))
+                throw new InvalidOperationException("PRIMARY changed during D157 summary aggregation.");
+
+            var fields = new Dictionary<string, object>
+            {
+                { "schema_version", IntField(2) },
+                { "business_day", StringField(businessDay) },
+                { "owner_agent_id", StringField(_instanceId) },
+                { "updated_at_ms", IntField(now) },
+                { "received_total", IntField(total) },
+                { "confirmed_total", IntField(confirmed) },
+                { "error_total", IntField(error) },
+                { "checkpoint_mode", StringField("D157_AGGREGATE_ABSOLUTE") },
+                { "checkpoint_generation", StringField(generation ?? "") }
+            };
+            var url = AgentConfig.FirestoreCoordinationBaseUrl + "/daily_" +
+                      Uri.EscapeDataString(businessDay) + BuildMask(fields.Keys);
+            Send(
+                "PATCH",
+                url,
+                session.IdToken,
+                Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                false,
+                "D157_DAILY_SUMMARY_CHECKPOINT");
+            _log("D157 SUMMARY checkpoint=PASS day=" + Safe(businessDay) +
+                 " received=" + total +
+                 " confirmed=" + confirmed +
+                 " error=" + error +
+                 " writes=1");
+        }
+
+        private long RunD157AckCount(AgentSession session, string businessDay, bool confirmedOnly)
+        {
+            var filters = new List<object>
+            {
+                new Dictionary<string, object>
+                {
+                    { "fieldFilter", new Dictionary<string, object>
+                        {
+                            { "field", new Dictionary<string, object> { { "fieldPath", "status" } } },
+                            { "op", "EQUAL" },
+                            { "value", StringField("ACK") }
+                        }
+                    }
+                },
+                new Dictionary<string, object>
+                {
+                    { "fieldFilter", new Dictionary<string, object>
+                        {
+                            { "field", new Dictionary<string, object> { { "fieldPath", "business_day" } } },
+                            { "op", "EQUAL" },
+                            { "value", StringField(businessDay) }
+                        }
+                    }
+                }
+            };
+            if (confirmedOnly)
+            {
+                filters.Add(new Dictionary<string, object>
+                {
+                    { "fieldFilter", new Dictionary<string, object>
+                        {
+                            { "field", new Dictionary<string, object> { { "fieldPath", "lookup_status" } } },
+                            { "op", "IN" },
+                            { "value", new Dictionary<string, object>
+                                {
+                                    { "arrayValue", new Dictionary<string, object>
+                                        {
+                                            { "values", new object[]
+                                                {
+                                                    StringField("CONFIRMED"),
+                                                    StringField("ALREADY_CONFIRMED")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var query = new Dictionary<string, object>
+            {
+                { "structuredAggregationQuery", new Dictionary<string, object>
+                    {
+                        { "structuredQuery", new Dictionary<string, object>
+                            {
+                                { "from", new object[]
+                                    {
+                                        new Dictionary<string, object> { { "collectionId", "relay_poc_jobs" } }
+                                    }
+                                },
+                                { "where", new Dictionary<string, object>
+                                    {
+                                        { "compositeFilter", new Dictionary<string, object>
+                                            {
+                                                { "op", "AND" },
+                                                { "filters", filters.ToArray() }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        { "aggregations", new object[]
+                            {
+                                new Dictionary<string, object>
+                                {
+                                    { "alias", "count" },
+                                    { "count", new Dictionary<string, object>() }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var url = AgentConfig.FirestoreDocumentsBaseUrl + ":runAggregationQuery";
+            var raw = SendSafeRead(
+                "POST",
+                url,
+                session.IdToken,
+                Serialize(query),
+                "D157_SUMMARY_AGGREGATION");
+            var rows = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 }
+                .DeserializeObject(raw) as IEnumerable;
+            if (rows == null) throw new InvalidOperationException("D157 aggregation response is not an array.");
+
+            long count = 0L;
+            foreach (var rowObj in rows)
+            {
+                var row = rowObj as Dictionary<string, object>;
+                var result = GetMap(row, "result");
+                var aggregateFields = GetMap(result, "aggregateFields");
+                var countField = GetMap(aggregateFields, "count");
+                long parsed;
+                if (countField != null &&
+                    long.TryParse(Get(countField, "integerValue"), NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed))
+                    count = Math.Max(count, parsed);
+            }
+            return Math.Max(0L, count);
+        }
+
+        private static Dictionary<string, object> GetMap(Dictionary<string, object> map, string key)
+        {
+            if (map == null) return null;
+            object raw;
+            return map.TryGetValue(key, out raw) ? raw as Dictionary<string, object> : null;
         }
 
         private long FindClientSentAt(string jobId)

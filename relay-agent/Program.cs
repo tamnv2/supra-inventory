@@ -163,7 +163,7 @@ namespace SupraInventoryRelayAgent
                     {
                         FirestoreHttpTransport.NotifyNetworkChange();
                         var generation = Interlocked.Increment(ref _networkChangeGeneration);
-                        foreach (var delayMs in new[] { 750, 3000, 8000, 15000 })
+                        foreach (var delayMs in new[] { 0, 750, 3000, 8000, 15000 })
                         {
                             var capturedDelay = delayMs;
                             ThreadPool.QueueUserWorkItem(_ =>
@@ -1642,6 +1642,7 @@ namespace SupraInventoryRelayAgent
         // The one-second UI timer must never add a parallel Firestore schedule-read loop.
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
+            TickD157SessionHealth();
             QueueD128BrowserStateRefresh();
             if (_businessSchedule == null) return;
             var now = _businessSchedule.NowOperational();
@@ -2795,6 +2796,7 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy mở Trình duyệt Agent hoặc Trình duyệt Desktop và đăng nhập Supra.");
 
                 var result = _supraBrowser.SearchMany(queries, true);
+                MarkD157WmsProof();
 
                 Ui(() =>
                 {
@@ -3136,6 +3138,7 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken,
                 HasReadyConfirmBrowser,
                 ProbeSupraBrowserForTakeover,
+                ProbeD157TargetWmsForTakeover,
                 IsBusinessAllowed,
                 _agentInstanceId,
                 Log,
@@ -3156,10 +3159,12 @@ namespace SupraInventoryRelayAgent
                     });
                 });
             _leaderCoordinator.Start();
+            StartD157AgentFeatures();
         }
 
         private void StopLeaderCoordination()
         {
+            StopD157AgentFeatures();
             var coordinator = _leaderCoordinator;
             _leaderCoordinator = null;
             ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE);
@@ -3169,6 +3174,7 @@ namespace SupraInventoryRelayAgent
         private void QueueD128BrowserStateRefresh()
         {
             if (!HasAgentSession()) return;
+            if (Interlocked.CompareExchange(ref _d157SessionValidationRunning, 0L, 0L) != 0L) return;
             if (Interlocked.CompareExchange(ref _readinessRefreshRunning, 1L, 0L) != 0L) return;
             Task.Run(() =>
             {
@@ -4251,6 +4257,7 @@ namespace SupraInventoryRelayAgent
                 search = eligible.Count == 0
                     ? new SupraBrowserSearchResult { Result = "NOT_FOUND" }
                     : _supraBrowser.SearchMany(suffixes, true);
+                if (eligible.Count > 0) MarkD157WmsProof();
             }
             catch (Exception ex)
             {
@@ -4584,6 +4591,8 @@ namespace SupraInventoryRelayAgent
 
         private bool ProbeSupraBrowserForTakeover()
         {
+            // Preserve the accepted v90 automatic failover latency path. D157 real-F5
+            // proof is injected separately and is used only for operator-targeted handoff.
             try
             {
                 RefreshSupraBrowserStatus();
@@ -4627,11 +4636,13 @@ namespace SupraInventoryRelayAgent
                             Audit,
                             () =>
                             {
+                                MarkD157BusinessActivity();
                                 Interlocked.Increment(ref _localPdaRequests);
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
                             () =>
                             {
+                                MarkD157BusinessActivity();
                                 Interlocked.Increment(ref _localAgentResponses);
                                 Ui(() => RefreshAgentRequestMetrics());
                             },

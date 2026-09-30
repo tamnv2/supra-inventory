@@ -4,8 +4,46 @@
       "collectionGroup": "relay_poc_jobs",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "created_at", "order": "ASCENDING" }
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "relay_poc_jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "business_day",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "relay_poc_jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "business_day",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lookup_status",
+          "order": "ASCENDING"
+        }
       ]
     }
   ],

@@ -2063,3 +2063,18 @@ Technical PASS requires all of the following:
 - no new provider resource, Firestore collection/write cadence, secret, listener, polling loop or cron is introduced.
 
 Owner field PASS should verify: current Pickers start with Báo hàng off; an Admin enables one test Picker and the choice persists through HR sync; after 22:30 Agent enables overtime and Agent/PickList, Web Ca vận hành and Android Báo hàng converge; Báo hàng submits and receives Có hàng/Skip during overtime; closing/cancelling overtime disables send again; Firebase usage shows no new periodic cadence.
+
+## D157 acceptance — Agent v91
+
+D157 technical and field acceptance must prove all of the following while Android remains the already-signed `beta-vc92`:
+
+- A normal vc92 PickList completes end-to-end with the same request/ACK/result contract as D156.
+- With the optional fast path connected, a new PENDING event wakes the existing REST queue path; disabling/exhausting the fast-path read guard leaves the exact 3s/15s/1s REST behavior operational.
+- A burst up to the accepted bounded batch/concurrency limit cannot create a second WMS mutation path or duplicate terminal ACK.
+- Terminal ACK is committed immediately without a per-job daily-summary write. After 50 ACKs or five minutes, the daily summary is corrected to absolute authoritative totals by one checkpoint; restart/PRIMARY transfer triggers recovery and cannot double-count.
+- `tamnv2` and `admin` can choose a different ready Agent from the fleet even if the initiating machine is PRIMARY. The target must real-reload/validate its own Confirm page before role CAS; failed target validation leaves the old PRIMARY unchanged.
+- A non-authorized login cannot open/execute the targeted transfer flow.
+- Non-PRIMARY session check is due every two hours, defers while busy and requires 30 seconds idle. PRIMARY is due only after 60 minutes without strong WMS proof and 60 seconds idle. Incoming PickList outranks scheduled reload.
+- Every D157 active session check uses the existing real `Page.reload(ignoreCache=false)`; D137 three-second pre-reload settle, `navigationType=reload` proof, 1.2-second post-reload stability and one-shot recoveries remain intact.
+- Windows network-address change refreshes proxy at 0/750/3000/8000/15000 ms, safe reads prefer fresh system proxy during the transition, and there is no corporate-filter bypass.
+- Call Picker, Kích User, HA lease/generation/guard rules, Web/Worker business functions, Stable and Android vc92 are regression-clean.

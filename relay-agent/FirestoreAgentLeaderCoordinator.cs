@@ -62,6 +62,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _ensureFreshToken;
         private readonly Func<bool> _wmsReady;
         private readonly Func<bool> _takeoverWmsProbe;
+        private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
         private readonly string _instanceId;
         private readonly Action<string> _log;
@@ -103,6 +104,7 @@ namespace SupraInventoryRelayAgent
             Action ensureFreshToken,
             Func<bool> wmsReady,
             Func<bool> takeoverWmsProbe,
+            Func<bool> targetHandoffWmsProbe,
             Func<bool> relayEnabled,
             string instanceId,
             Action<string> log,
@@ -112,6 +114,7 @@ namespace SupraInventoryRelayAgent
             _ensureFreshToken = ensureFreshToken;
             _wmsReady = wmsReady;
             _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
+            _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
@@ -125,6 +128,10 @@ namespace SupraInventoryRelayAgent
         internal bool IsFrozen { get { return _role == FirestoreAgentRole.DEEP_HIBERNATE; } }
         internal bool IsDeepHibernate { get { return _role == FirestoreAgentRole.DEEP_HIBERNATE; } }
         internal FirestoreAgentRole Role { get { return _role; } }
+        internal string Generation
+        {
+            get { lock (_stateGate) return _generation ?? ""; }
+        }
         internal string RoleName { get { return _role.ToString(); } }
         internal bool CanPollBusiness { get { return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY; } }
         internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_relayPollHealthy ? _role == FirestoreAgentRole.DEEP_HIBERNATE : true); } }
@@ -680,11 +687,173 @@ namespace SupraInventoryRelayAgent
             return false;
         }
 
+        internal List<AgentPresenceView> GetFreshAgentsForManualHandoff()
+        {
+            _ensureFreshToken();
+            var session = _sessionProvider();
+            if (!IsManualTakeoverUser(session))
+                throw new InvalidOperationException("Tài khoản này không có quyền chuyển Agent chính.");
+            return QueryFreshPresence(
+                session,
+                "D157_HANDOFF_DISCOVERY",
+                NowMs(),
+                FirestoreAgentSyncClient.MaxAgents);
+        }
+
+        internal bool PromoteTargetedPrimaryHandoff(
+            D157PrimaryHandoffRequest request,
+            out string detail,
+            out string generation)
+        {
+            detail = "";
+            generation = "";
+            if (request == null ||
+                !string.Equals(request.Status, "PENDING", StringComparison.Ordinal) ||
+                !string.Equals(request.TargetAgentInstanceId, _instanceId, StringComparison.Ordinal))
+            {
+                detail = "REQUEST_NOT_FOR_THIS_AGENT";
+                return false;
+            }
+            if (!IsManualTakeoverLogin(request.RequesterLogin))
+            {
+                detail = "REQUESTER_NOT_ALLOWED";
+                return false;
+            }
+            if (request.ExpiresAtMs <= NowMs())
+            {
+                detail = "REQUEST_EXPIRED";
+                return false;
+            }
+            if (!_relayEnabled() || !_wmsReady())
+            {
+                detail = "TARGET_NOT_READY";
+                return false;
+            }
+
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+
+                // D157: the target proves the real WMS session on its own machine
+                // immediately before accepting PRIMARY. The delegate performs the
+                // protected D137 Page.reload/F5 path, not a DOM-only probe.
+                if (!_targetHandoffWmsProbe())
+                {
+                    detail = "WMS_REAL_RELOAD_NOT_READY";
+                    _log("FIRESTORE HA targeted_handoff=DEFER reason=" + detail);
+                    return false;
+                }
+
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var read = ReadRoles(session);
+                    var current = read.Snapshot;
+                    ApplySharedSchedule(current);
+                    if (!_relayEnabled() || !_wmsReady())
+                    {
+                        detail = "TARGET_LOST_READINESS";
+                        return false;
+                    }
+
+                    if (current != null &&
+                        string.Equals(current.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                    {
+                        _generation = current.Generation ?? "";
+                        generation = _generation;
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, current.StandbyAgentInstanceId, "D157_HANDOFF_ALREADY_PRIMARY");
+                        WritePrimaryLease(session);
+                        detail = "ALREADY_PRIMARY";
+                        return true;
+                    }
+
+                    var fresh = QueryFreshPresence(
+                        session,
+                        "D157_HANDOFF_TARGET_DISCOVERY",
+                        NowMs(),
+                        FirestoreAgentSyncClient.MaxAgents);
+                    var readyIds = new HashSet<string>(
+                        fresh.Where(item => item != null && item.WmsReady)
+                             .Select(item => item.AgentInstanceId),
+                        StringComparer.Ordinal);
+                    // The target just passed a real local reload, so do not reject it
+                    // merely because the coarse 10-minute presence projection still
+                    // carries the previous readiness value.
+                    readyIds.Add(_instanceId);
+
+                    var candidates = new List<string>();
+                    Action<string> addCandidate = id =>
+                    {
+                        if (string.IsNullOrWhiteSpace(id) ||
+                            string.Equals(id, _instanceId, StringComparison.Ordinal) ||
+                            !readyIds.Contains(id) ||
+                            candidates.Contains(id)) return;
+                        candidates.Add(id);
+                    };
+
+                    var previousPrimary = current == null ? "" : (current.PrimaryAgentInstanceId ?? "");
+                    if (current != null &&
+                        IsCurrentPrimaryLeaseFresh(session, current) &&
+                        readyIds.Contains(previousPrimary))
+                        addCandidate(previousPrimary);
+                    if (current != null)
+                    {
+                        addCandidate(current.StandbyAgentInstanceId);
+                        addCandidate(current.NextBAgentInstanceId);
+                    }
+
+                    var next = new FirestoreRoleSnapshot
+                    {
+                        PrimaryAgentInstanceId = _instanceId,
+                        StandbyAgentInstanceId = candidates.Count > 0 ? candidates[0] : "",
+                        NextBAgentInstanceId = candidates.Count > 1 ? candidates[1] : "",
+                        Generation = Guid.NewGuid().ToString("N"),
+                        UpdatedAtMs = NowMs()
+                    };
+                    if (!TryWriteRoles(session, next, read)) continue;
+
+                    _generation = next.Generation;
+                    generation = next.Generation;
+                    lock (_stateGate) _nextBId = next.NextBAgentInstanceId ?? "";
+                    SetRole(
+                        FirestoreAgentRole.PRIMARY,
+                        _instanceId,
+                        next.StandbyAgentInstanceId,
+                        "D157_TARGETED_OWNER_HANDOFF");
+                    WritePrimaryLease(session);
+                    _fleetRefreshRequested = true;
+                    _log("FIRESTORE HA targeted_handoff=PASS request=" + Short(request.RequestId) +
+                         " self=" + Short(_instanceId) +
+                         " previous_primary=" + Short(previousPrimary) +
+                         " next_a=" + Short(next.StandbyAgentInstanceId) +
+                         " next_b=" + Short(next.NextBAgentInstanceId));
+                    TrySelectReplacementStandby(session, "");
+                    detail = "PRIMARY_TRANSFERRED";
+                    return true;
+                }
+
+                detail = "CAS_RETRY_EXHAUSTED";
+            }
+            catch (Exception ex)
+            {
+                detail = "TARGET_ERROR_" + ex.GetType().Name;
+                _log("FIRESTORE HA targeted_handoff=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+            return false;
+        }
+
+        private static bool IsManualTakeoverLogin(string login)
+        {
+            var value = (login ?? "").Trim();
+            return string.Equals(value, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(value, "admin", StringComparison.OrdinalIgnoreCase);
+        }
+
         private static bool IsManualTakeoverUser(AgentSession session)
         {
             var login = session == null ? "" : (session.LoginName ?? "").Trim();
-            return string.Equals(login, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(login, "admin", StringComparison.OrdinalIgnoreCase);
+            return IsManualTakeoverLogin(login);
         }
 
         private bool IsCurrentPrimaryLeaseFresh(AgentSession session, FirestoreRoleSnapshot snapshot)

@@ -790,3 +790,13 @@ Failure of OEM DND policy access alone must not block login when hard readiness 
 - Android continues to receive the existing data-only FCM topic event. StockMessagingService persists the schedule and signals the active MainActivity, which reapplies Picker Báo hàng availability immediately.
 - Server mutation gating performs recovery before returning ANDROID_WINDOW_CLOSED. Notification/result delivery uses the same reconciled window so overtime result delivery cannot be suppressed by a stale Worker mirror.
 - D156 adds no new Firestore write cadence, FCM cadence, WebSocket connection, provider resource, listener or background polling loop.
+
+## D157 Agent realtime acceleration boundary
+
+D157 adds two Beta Agent coordination signals without changing Android vc92.
+
+The PRIMARY pending listener is an **optional wake signal only**. A document-change event wakes the existing bounded REST fresh-PENDING query; all eligibility, role/generation fencing, WMS mutation, idempotency and terminal ACK remain in that pre-existing pipeline. When the local read guard reaches the reserved margin, the optional fast path pauses and the accepted REST cadence continues.
+
+The shared `relay_poc_coordination/primary_handoff` document is a bounded operator command/result carrier. All Agents may listen to the exact document so a DEEP target can wake immediately; only the selected target acts, validates its own Web Confirm session, and performs the existing role-generation CAS. The command expires after 30 seconds and is idempotent by request id.
+
+Daily counters are no longer incremented inside every terminal ACK commit. A PRIMARY checkpoint uses Firestore server-side count aggregation over authoritative ACK jobs and writes absolute `daily_<business_day>` totals after 50 ACKs or five minutes and on PRIMARY recovery. This optimization must never delay PDA ACK.

@@ -443,7 +443,7 @@ namespace SupraInventoryRelayAgent
                 _d150PrimaryTakeoverButton.Height = 30;
                 _d150PrimaryTakeoverButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
                 _d150PrimaryTakeoverButton.Visible = false;
-                _d150PrimaryTakeoverButton.Click += (s, e) => BeginD150ManualPrimaryTakeover();
+                _d150PrimaryTakeoverButton.Click += (s, e) => BeginD157TargetedPrimaryHandoff();
                 agentHost.Controls.Add(_d150PrimaryTakeoverButton);
                 _d150PrimaryTakeoverButton.BringToFront();
             }
@@ -525,13 +525,14 @@ namespace SupraInventoryRelayAgent
                 catch { allowed = false; }
             }
             var primary = _leaderCoordinator != null && _leaderCoordinator.IsLeader;
-            var visible = authenticated && allowed && !primary;
+            // D157: Owner-authorized users may choose any ready Agent as PRIMARY even
+            // when the current machine is already PRIMARY.
+            var visible = authenticated && allowed;
             _d150PrimaryTakeoverButton.Visible = visible;
             _d150PrimaryTakeoverButton.Enabled = visible &&
                 !_d150PrimaryTakeoverRunning &&
                 _leaderCoordinator != null &&
-                IsBusinessAllowed() &&
-                HasReadyConfirmBrowser();
+                IsBusinessAllowed();
 
             const int right = 16;
             const int gap = 8;

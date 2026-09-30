@@ -2463,10 +2463,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D156",
     "accepted_base_evidence": "OWNER_EXPLICIT_D156_PASS__AGENT_V90__ANDROID_VC92__2026_09_30",
-    "current_change_id": "D156",
-    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__PROMOTED_TO_ACCEPTED_BASE",
+    "current_change_id": "D157",
+    "current_change_status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE__OWNER_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D156_BETA_RUNTIME_DEPLOYED__SCHEMA16__ANDROID_VC92__AGENT_V90_UNCHANGED__OWNER_FIELD_ACCEPTED",
-    "resource_change": "NONE__REUSES_EXISTING_BETA_WORKER_INVENTORYCORE_WEBSOCKET_FCM_AND_EXACT_EXISTING_FIRESTORE_SCHEDULE_DOCUMENT__NO_NEW_PROVIDER_COLLECTION_SECRET_LISTENER_POLLING_CRON",
+    "runtime_impact": "D157_BRANCH_IMPLEMENTATION_NOT_LIVE__ACCEPTED_RUNTIME_REMAINS_D156_AGENT_V90_ANDROID_VC92",
+    "resource_change": "EXISTING_BETA_FIRESTORE_ONLY__REUSES_RELAY_POC_JOBS_AND_RELAY_POC_COORDINATION__ADDS_PRIMARY_HANDOFF_DOCUMENT_USAGE_AND_ACK_AGGREGATION_INDEXES__NO_NEW_COLLECTION_SECRET_OR_STABLE_RESOURCE",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3366,5 +3366,50 @@
       "accepted_at": "2026-09-30",
       "next_change_allowed": true
     }
+  },
+  "d157": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE__OWNER_PASS_PENDING",
+    "date": "2026-09-30",
+    "baseline_change": "D156",
+    "baseline_main": "4c38f4200d375e542d07a458858e64fbac950f52",
+    "branch": "feat/d157-agent-throughput-quota-handoff-session-health",
+    "owner_approved_scope": [
+      "ANDROID_BETA_VC92_UNCHANGED",
+      "PRIMARY_OPTIONAL_REALTIME_WAKE_ONLY__REST_3S_15S_1S_PIPELINE_RETAINED",
+      "OPTIONAL_FAST_PATH_LOCAL_READ_RESERVE_GUARD",
+      "TERMINAL_ACK_IMMEDIATE__DAILY_SUMMARY_REMOVED_FROM_PER_JOB_COMMIT",
+      "DAILY_SUMMARY_ABSOLUTE_AGGREGATION_CHECKPOINT_50_ACK_OR_5M",
+      "PRIMARY_GENERATION_RECOVERY_CHECKPOINT",
+      "TAMNV2_ADMIN_TARGETED_PRIMARY_SELECTION",
+      "TARGET_LOCAL_REAL_F5_WMS_PRECHECK_BEFORE_CAS",
+      "SECONDARY_REAL_RELOAD_2H_IDLE_30S",
+      "PRIMARY_REAL_RELOAD_AFTER_60M_WITHOUT_STRONG_WMS_PROOF_IDLE_60S",
+      "D137_REAL_PAGE_RELOAD_HYDRATION_GUARDS_FROZEN",
+      "WINDOWS_NETWORK_CHANGE_IMMEDIATE_PLUS_DEFERRED_PROXY_REFRESH",
+      "CALL_KICK_HA_GUARD_SEMANTICS_UNCHANGED",
+      "NO_BROWSER_RUNTIME_OPTIMIZATION",
+      "STABLE_UNTOUCHED"
+    ],
+    "base_impact": "YES__BETA_AGENT_COORDINATION_QUEUE_WAKE_DAILY_COUNTER_CHECKPOINT_PRIMARY_HANDOFF_SESSION_HEALTH_AND_NETWORK_TRANSITION",
+    "affected_components": [
+      "relay-agent",
+      "existing Beta Firestore relay_poc_jobs indexes",
+      "existing Beta Firestore relay_poc_coordination documents",
+      "repo authority and CI guards"
+    ],
+    "regression_stability_risk": "MEDIUM_HIGH__MITIGATED_BY_SINGLE_EXISTING_REST_BUSINESS_PIPELINE__TARGET_SIDE_REAL_F5_BEFORE_CAS__OLD_PRIMARY_RETAINED_UNTIL_CAS__ABSOLUTE_COUNTER_RECONCILIATION__D137_ENGINE_FROZEN",
+    "resource_quota_security_impact": "READ_MAY_INCREASE_SLIGHTLY_FROM_OPTIONAL_PRIMARY_LISTEN_AND_AGGREGATION__OPTIONAL_LISTEN_PAUSES_BEFORE_40K_LOCAL_READS__WRITE_REDUCED_BY_REMOVING_PER_ACK_SUMMARY_WRITE__HANDOFF_REUSES_EXISTING_COORDINATION_COLLECTION__NO_SECRET_OR_NEW_PROVIDER",
+    "recommended_approach": "WAKE_EXISTING_REST_POLL_ONLY__ABSOLUTE_COUNT_CHECKPOINT__TARGETED_COMMAND_PLUS_TARGET_SELF_PROOF_AND_EXISTING_ROLE_CAS__SCHEDULED_REAL_F5_IDLE_ONLY__NETWORK_PROXY_TRANSITION_HARDENING",
+    "preimplementation_owner_approval": "PASS__OWNER_EXPLICIT_D157_APPROVAL_AND_FINAL_BROWSER_SCOPE_NARROWED_TO_RELOAD_TIMING_ONLY__2026_09_30",
+    "target_agent_release": "relay-agent-v91",
+    "android_release": "beta-vc92__UNCHANGED",
+    "sqlite_schema": 16,
+    "new_provider_resources": "NONE",
+    "new_firestore_collections": "NONE",
+    "existing_firestore_document_usage": "relay_poc_coordination/primary_handoff",
+    "existing_firestore_index_change": "relay_poc_jobs status_business_day and status_business_day_lookup_status for aggregation checkpoints",
+    "new_secrets": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_gate": "OA085_PENDING_TECHNICAL_RELEASE_THEN_FIELD_PASS"
   }
 }
