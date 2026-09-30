@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D156_OWNER_ACCEPTED_BASE__AGENT_V90__ANDROID_VC92",
+      "status": "D157_OWNER_ACCEPTED_BASE__AGENT_V92__ANDROID_VC92",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -193,13 +193,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v90",
+      "relay_agent_release": "relay-agent-v92",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D156_PASS_RUN_36645477945__SOURCE_859A7DFB__SCHEMA16_16__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v90__OWNER_ACCEPTED_D155",
+      "relay_agent_release_target": "relay-agent-v92__OWNER_ACCEPTED_D157",
       "next_signed_beta_release_target": "NONE__D156_VC92_OWNER_ACCEPTED",
-      "next_relay_agent_release_target": "NONE__D156_V90_OWNER_ACCEPTED",
+      "next_relay_agent_release_target": "NONE__D157_V92_OWNER_ACCEPTED",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -297,7 +297,8 @@
       "d154_owner_field_result": "PASS__OWNER_CONFIRMED_D154__2026_09_30",
       "d154_accepted_base": "D154",
       "d155_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA083_FIELD_READY__SCHEMA15__AGENT_V90__ANDROID_VC91__CLOUDFLARE_ONLY_REPORTING_CAPABILITY__AGENT_CONTRACTOR_NO_NEW_FIRESTORE_CADENCE",
-      "d156_source_status": "OWNER_FIELD_ACCEPTED_PASS__SCHEMA16__ANDROID_VC92__AGENT_V90_UNCHANGED__GLOBAL_10S_EXACT_SCHEDULE_RECOVERY__REPORTING_DEFAULT_OFF"
+      "d156_source_status": "OWNER_FIELD_ACCEPTED_PASS__SCHEMA16__ANDROID_VC92__AGENT_V90_UNCHANGED__GLOBAL_10S_EXACT_SCHEDULE_RECOVERY__REPORTING_DEFAULT_OFF",
+      "d157_source_status": "OWNER_FIELD_ACCEPTED_PASS__AGENT_V92__ANDROID_VC92_UNCHANGED__PRIMARY_WAKE_WRITE_BATCH_HANDOFF_SESSION_HEALTH_SECONDARY_LIST_REPAIR"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -688,8 +689,8 @@
     "wms_mutation": "RETIRED_FORBIDDEN_D125",
     "stable": "UNTOUCHED_OWNER_GATED",
     "d157": {
-      "status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
-      "agent_target": "relay-agent-v91",
+      "status": "OWNER_FIELD_ACCEPTED_PASS",
+      "agent_target": "relay-agent-v92__OWNER_ACCEPTED",
       "android": "beta-vc92__UNCHANGED",
       "existing_database_resource": "firestore-relay-beta-d091",
       "primary_handoff_document": "relay_poc_coordination/primary_handoff",
@@ -704,7 +705,8 @@
       "new_collection": false,
       "new_provider_resource": false,
       "new_secret": false,
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "field_gate": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
     },
     "android_release": "beta-vc70",
     "android_apk_sha256": "aff46b7191e2bcf95e0960e8559c75ad89df41005f183892a3a29430c1f3cfa3",
@@ -1954,11 +1956,11 @@
     "field_gate": "PASS__OWNER_CONFIRMED_D156__2026_09_30"
   },
   "d157": {
-    "status": "REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS",
     "baseline_change": "D156",
     "implementation_pr": 338,
     "main_commit": "6b71a9bf439a1399a86b13252613e3aaea05e5ee",
-    "agent_release": "relay-agent-v92__RELEASED",
+    "agent_release": "relay-agent-v92__OWNER_ACCEPTED",
     "agent_release_id": 399772355,
     "agent_asset_id": 600203458,
     "agent_size_bytes": 7113728,
@@ -1974,6 +1976,8 @@
     "new_collections": "NONE",
     "new_secrets": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "OA085_READY_FOR_OWNER_FIELD_RETEST"
+    "field_gate": "PASS__OWNER_CONFIRMED_D157__2026_09_30",
+    "accepted_base": "D157",
+    "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
   }
 }
