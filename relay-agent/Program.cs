@@ -163,7 +163,7 @@ namespace SupraInventoryRelayAgent
                     {
                         FirestoreHttpTransport.NotifyNetworkChange();
                         var generation = Interlocked.Increment(ref _networkChangeGeneration);
-                        foreach (var delayMs in new[] { 750, 3000, 8000, 15000 })
+                        foreach (var delayMs in new[] { 0, 750, 3000, 8000, 15000 })
                         {
                             var capturedDelay = delayMs;
                             ThreadPool.QueueUserWorkItem(_ =>
@@ -1643,6 +1643,7 @@ namespace SupraInventoryRelayAgent
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
         {
             QueueD128BrowserStateRefresh();
+            TickD157SessionHealth();
             if (_businessSchedule == null) return;
             var now = _businessSchedule.NowOperational();
             var defaultAllowed = _businessSchedule.DefaultRelayAllowed(now);
@@ -3156,10 +3157,12 @@ namespace SupraInventoryRelayAgent
                     });
                 });
             _leaderCoordinator.Start();
+            StartD157AgentFeatures();
         }
 
         private void StopLeaderCoordination()
         {
+            StopD157AgentFeatures();
             var coordinator = _leaderCoordinator;
             _leaderCoordinator = null;
             ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE);
@@ -4584,16 +4587,9 @@ namespace SupraInventoryRelayAgent
 
         private bool ProbeSupraBrowserForTakeover()
         {
-            try
-            {
-                RefreshSupraBrowserStatus();
-                return HasReadyConfirmBrowser();
-            }
-            catch (Exception ex)
-            {
-                Log("SUPRA_BROWSER takeover readiness fail type=" + ex.GetType().Name);
-                return false;
-            }
+            // D157: promotion requires a real top-level F5/Page.reload proof on the
+            // target machine; the accepted D137 reload/hydration guard remains authority.
+            return ProbeD157TargetWmsForTakeover();
         }
 
         
@@ -4627,11 +4623,13 @@ namespace SupraInventoryRelayAgent
                             Audit,
                             () =>
                             {
+                                MarkD157BusinessActivity();
                                 Interlocked.Increment(ref _localPdaRequests);
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
                             () =>
                             {
+                                MarkD157BusinessActivity();
                                 Interlocked.Increment(ref _localAgentResponses);
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
