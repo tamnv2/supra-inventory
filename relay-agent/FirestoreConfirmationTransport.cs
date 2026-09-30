@@ -581,7 +581,7 @@ namespace SupraInventoryRelayAgent
                  " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
         }
 
-        private string SendSafeRead(string method, string url, string token, string body)
+        private string SendSafeRead(string method, string url, string token, string body, string component = "CONFIRM_QUERY")
         {
             // D130: a dead Firestore route must not block the PRIMARY loop for 3 x 12s.
             // Two 4s safe-read attempts keep recovery bounded inside the PDA wait window.
@@ -594,7 +594,7 @@ namespace SupraInventoryRelayAgent
                 4000,
                 true,
                 _log,
-                "CONFIRM_QUERY",
+                component,
                 2);
         }
 
@@ -1009,8 +1009,10 @@ namespace SupraInventoryRelayAgent
                 "POST",
                 url,
                 session.IdToken,
-                Serialize(query));
-            var rows = _json.DeserializeObject(raw) as IEnumerable;
+                Serialize(query),
+                "D157_SUMMARY_AGGREGATION");
+            var rows = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 }
+                .DeserializeObject(raw) as IEnumerable;
             if (rows == null) throw new InvalidOperationException("D157 aggregation response is not an array.");
 
             long count = 0L;
