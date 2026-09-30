@@ -127,6 +127,11 @@ namespace SupraInventoryRelayAgent
             _relayHealth = relayHealth ?? delegate { };
         }
 
+        internal bool HasActiveBatch
+        {
+            get { lock (_currentBatchGate) return _currentBatchWorks.Count > 0; }
+        }
+
         internal void Run(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
