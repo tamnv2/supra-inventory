@@ -2507,3 +2507,16 @@ Owner explicitly accepted the D157 proposal on top of the D156 accepted base, th
 9. **Scope.** Beta Windows Agent + existing Beta Firestore coordination/index configuration + authority/tests only. No new provider collection, secret, Worker business route or Stable mutation. Stable remains OWNER-GATED.
 
 Implementation target: **relay-agent-v91**. Final Owner field PASS is required before D157 becomes the accepted base.
+
+
+## D157 technical/runtime/release checkpoint — 2026-09-30
+
+D157 is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_TEST** under OA085. D156 remains the accepted base until explicit Owner D157 PASS.
+
+- Implementation PR #336 merged to main `87cbed6d7fc14cb71176ce65e613afb334ecb5e3`.
+- Main gates PASS: Project State `36675226281`, Dashboard Probe `36675226242`, Repo Authority `36675226227`, UI Design `36675226333`, Beta Firestore `36675226210`, Verify Beta Relay Agent `36675226296`.
+- Windows Agent **relay-agent-v91** release id `399752709`; canonical EXE asset `600151295`, size `7,113,216` bytes, SHA-256 `b9db68c6e23e538d038638e0b2aead13cf1e8c82f12242dc2ca54c386025b341`.
+- Inventory runtime channel Agent asset `600151474` has the same SHA-256; manifest asset is `600151475`. Android remains **beta-vc92** unchanged.
+- D157 preserves the accepted D137 real `Page.reload`/normal-F5 browser semantics. Secondary Agents validate every two hours only when idle; PRIMARY validates only after 60 minutes without strong WMS proof plus idle time. No WebView2/browser-runtime optimization was introduced.
+- PRIMARY realtime wake only accelerates the existing REST fresh-PENDING pipeline. Per-job daily-summary write is removed; absolute aggregate checkpoints run after 50 ACKs / five minutes and on PRIMARY recovery. Targeted PRIMARY handoff validates the selected target with a real reload before CAS.
+- No new provider resource, Firestore collection, secret, Android release or Stable mutation. Stable remains OWNER-GATED.
