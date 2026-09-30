@@ -80,10 +80,12 @@ jobs:
           $agentLogBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
+          $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
+          $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*90\s*;') { throw "D155 field-readiness hotfix requires Agent v90 while retaining D154/D153/D152/D150 safety guards." }
-          if ($project -notmatch '<AssemblyVersion>0\.90\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.90\.0\.0</FileVersion>') {
-            throw "D155 Agent assembly/file version must be 0.90."
+          if ($config -notmatch 'AgentBuild\s*=\s*91\s*;') { throw "D157 requires Agent v91 while retaining D156 Android vc92 and D154/D153/D152/D150 safety guards." }
+          if ($project -notmatch '<AssemblyVersion>0\.91\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.91\.0\.0</FileVersion>') {
+            throw "D157 Agent assembly/file version must be 0.91."
           }
 
           foreach ($marker in @(
@@ -550,9 +552,10 @@ jobs:
             'PRESENCE_FRESH_QUERY',
             'MANUAL_OWNER_TAKEOVER',
             'IsManualTakeoverUser',
+            'IsManualTakeoverLogin',
             'MANUAL_TAKEOVER_LEASE_READ',
-            'string.Equals(login, "tamnv2"',
-            'string.Equals(login, "admin"'
+            'string.Equals(value, "tamnv2"',
+            'string.Equals(value, "admin"'
           )) {
             if (-not $leader.Contains($marker)) { throw "D150 fleet/manual-primary safety marker missing: $marker" }
           }
@@ -648,6 +651,63 @@ jobs:
           )) {
             if (-not $browser.Contains($marker) -and -not $program.Contains($marker)) { throw "D137 hotfix Confirm hydration guard missing: $marker" }
           }
+          foreach ($marker in @(
+            'D157PendingWakeSignal.Wait',
+            'PrimaryActivePollIntervalMs = 3000',
+            'PrimaryInactivePollIntervalMs = 15000',
+            'PrimaryHotPollIntervalMs = 1000',
+            'D157_DAILY_SUMMARY_CHECKPOINT',
+            'SummaryCheckpointAckThreshold = 50',
+            'SummaryCheckpointIntervalMs = 5L * 60L * 1000L',
+            'runAggregationQuery',
+            'D157_AGGREGATE_ABSOLUTE'
+          )) {
+            if (-not $transport.Contains($marker) -and -not $quota.Contains($marker)) { throw "D157 queue/write optimization marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'FirestoreD157PendingWakeListener',
+            'D157_PENDING_LISTEN_EVENT',
+            'FirestoreD157HandoffListener',
+            'primary_handoff',
+            'target_agent_instance_id',
+            'expires_at_ms'
+          )) {
+            if (-not $d157.Contains($marker) -and -not $config.Contains($marker)) { throw "D157 realtime/handoff marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'BeginD157TargetedPrimaryHandoff',
+            'TimeSpan.FromHours(2)',
+            'TimeSpan.FromMinutes(60)',
+            'TimeSpan.FromSeconds(30)',
+            'TimeSpan.FromSeconds(60)',
+            'targeted_primary_preflight',
+            'ReloadConfirmForHealthCheck'
+          )) {
+            if (-not $d157Features.Contains($marker) -and -not $browser.Contains($marker)) { throw "D157 targeted-primary/session-health marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'PromoteTargetedPrimaryHandoff',
+            'D157_TARGETED_OWNER_HANDOFF',
+            'D157_HANDOFF_TARGET_DISCOVERY'
+          )) {
+            if (-not $leader.Contains($marker)) { throw "D157 target-side HA fence marker missing: $marker" }
+          }
+          if (-not $browser.Contains('IssueConfirmReloadNowNoLock("d157_"') -or
+              -not $browser.Contains('WaitForForcedConfirmReloadNoLock') -or
+              -not $browser.Contains('"ignoreCache", false')) {
+            throw "D157 scheduled validation must reuse the protected D137 real Page.reload path."
+          }
+          if (-not $http.Contains('IsNetworkTransitioning && attempt == 1') -or
+              -not $program.Contains('new[] { 0, 750, 3000, 8000, 15000 }')) {
+            throw "D157 Windows network-transition hardening missing."
+          }
+          if (-not $quota.Contains('return _reads < 40000L')) {
+            throw "D157 optional realtime read-reserve guard missing."
+          }
+          if (-not $indexes.Contains('business_day') -or -not $indexes.Contains('lookup_status')) {
+            throw "D157 daily ACK aggregation indexes missing."
+          }
+
           if ($browser.Contains('ArmConfirmReloadBarrierNoLock("canonical_confirm_navigation")')) {
             throw "D137 hotfix must not reload the transient first Confirm shell before the final route settles."
           }
@@ -697,8 +757,10 @@ jobs:
           )) {
             if (-not $ops.Contains($marker)) { throw "D135 realtime counter/call-action marker missing: $marker" }
           }
-          if (-not $transport.Contains('_onDurableAck') -or -not $transport.Contains('FindBusinessDay(work.RequestId), outcome')) {
-            throw "D135 durable-ACK local counter hook missing."
+          if (-not $transport.Contains('_onDurableAck') -or
+              -not $transport.Contains('MarkD157SummaryDirty(summaryDay)') -or
+              -not $transport.Contains('_onDurableAck(summaryDay, outcome)')) {
+            throw "D157 immediate ACK/local counter hook missing."
           }
           if (-not $ops.Contains('_fleetMetricStatus.Visible = false') -or
               -not $ops.Contains('GetD135DisplayCounters')) {
