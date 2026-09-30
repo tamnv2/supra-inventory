@@ -2520,3 +2520,16 @@ D157 is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_TEST** 
 - D157 preserves the accepted D137 real `Page.reload`/normal-F5 browser semantics. Secondary Agents validate every two hours only when idle; PRIMARY validates only after 60 minutes without strong WMS proof plus idle time. No WebView2/browser-runtime optimization was introduced.
 - PRIMARY realtime wake only accelerates the existing REST fresh-PENDING pipeline. Per-job daily-summary write is removed; absolute aggregate checkpoints run after 50 ACKs / five minutes and on PRIMARY recovery. Targeted PRIMARY handoff validates the selected target with a real reload before CAS.
 - No new provider resource, Firestore collection, secret, Android release or Stable mutation. Stable remains OWNER-GATED.
+
+
+## D157 repair — role-independent Agent/User/Picker presentation — 2026-09-30
+
+Owner field testing of Agent v91 found that a logged-in secondary Agent could receive the shared Agent-sync snapshot but leave Agent/User and Picker lists blank until that machine was manually promoted to PRIMARY. This is a D157 defect, not intended PRIMARY authorization.
+
+Approved repair contract:
+- PRIMARY ownership gates PickList confirmation mutation only; it does **not** gate viewing the Agent/User fleet or active Picker list.
+- PRIMARY, NEXT_A and NEXT_B must render the shared fleet/snapshot they already hold. Deep/fallback behavior keeps the existing D150 bounded synchronization policy.
+- Login and CLOSED→ACTIVE lifecycle transitions must repaint existing in-memory fleet/Picker state before relying on any later provider refresh.
+- The repair must not add Firestore polling, reads, writes, listeners, collections, provider resources or a parallel data pipeline.
+- Existing operating-hours behavior, D137 real Page.reload/F5 semantics, D157 session checks, HA mutation fences, Android beta-vc92 and Stable remain unchanged.
+- Repair release target: Windows Agent v92. D156 remains accepted base until explicit Owner D157 PASS.
