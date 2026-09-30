@@ -271,6 +271,48 @@ namespace SupraInventoryRelayAgent
             return last ?? new SupraBrowserState { Ready = false, Hidden = _hidden, State = "NOT_OPEN" };
         }
 
+        internal bool ReloadConfirmForHealthCheck(TimeSpan timeout, string reason)
+        {
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                if (!IsConnectedNoLock() && !TryReconnectNoLock()) return false;
+
+                var raw = EvaluateJsonNoLock(BuildReadinessScript());
+                var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                var url = map == null ? "" : String(map, "url");
+                var loaded = map != null && Bool(map, "pageLoaded");
+                var ready = map != null && Bool(map, "ready");
+                var login = map != null && Bool(map, "loginMarker");
+                var onConfirm = url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!loaded || !ready || login || !onConfirm)
+                {
+                    _log("D157 SESSION_CHECK reload=SKIP ready=" + (ready ? "1" : "0") +
+                         " loaded=" + (loaded ? "1" : "0") +
+                         " login=" + (login ? "1" : "0") +
+                         " on_confirm=" + (onConfirm ? "1" : "0"));
+                    return false;
+                }
+
+                // D157 deliberately reuses the field-PASS D137 top-level browser reload.
+                // This is real Page.reload/F5 semantics, never a DOM-only refresh.
+                IssueConfirmReloadNowNoLock("d157_" + SafeReason(reason));
+                var pass = WaitForForcedConfirmReloadNoLock(
+                    timeout <= TimeSpan.Zero ? TimeSpan.FromSeconds(12) : timeout);
+                _log("D157 SESSION_CHECK reload=" + (pass ? "PASS" : "FAIL") +
+                     " method=Page.reload ignore_cache=false");
+                return pass;
+            }
+        }
+
+        private static string SafeReason(string value)
+        {
+            var next = (value ?? "session_check").Trim();
+            if (next.Length == 0) next = "session_check";
+            next = next.Replace(" ", "_").Replace("\r", "").Replace("\n", "");
+            return next.Length <= 48 ? next : next.Substring(0, 48);
+        }
+
         internal SupraBrowserState RefreshState()
         {
             lock (_gate)
