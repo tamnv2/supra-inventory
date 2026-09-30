@@ -111,6 +111,17 @@ namespace SupraInventoryRelayAgent
             if (warning != null && log != null) log(warning);
         }
 
+        internal static bool AllowOptionalFastPath()
+        {
+            lock (Gate)
+            {
+                ResetIfDayChangedNoLock();
+                // D157: optional realtime acceleration must never consume the safety
+                // margin reserved for the accepted REST fallback and HA reads.
+                return _reads < 40000L;
+            }
+        }
+
         internal static string SnapshotText()
         {
             lock (Gate)
