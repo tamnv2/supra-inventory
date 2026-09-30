@@ -3138,6 +3138,7 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken,
                 HasReadyConfirmBrowser,
                 ProbeSupraBrowserForTakeover,
+                ProbeD157TargetWmsForTakeover,
                 IsBusinessAllowed,
                 _agentInstanceId,
                 Log,
@@ -4590,9 +4591,18 @@ namespace SupraInventoryRelayAgent
 
         private bool ProbeSupraBrowserForTakeover()
         {
-            // D157: promotion requires a real top-level F5/Page.reload proof on the
-            // target machine; the accepted D137 reload/hydration guard remains authority.
-            return ProbeD157TargetWmsForTakeover();
+            // Preserve the accepted v90 automatic failover latency path. D157 real-F5
+            // proof is injected separately and is used only for operator-targeted handoff.
+            try
+            {
+                RefreshSupraBrowserStatus();
+                return HasReadyConfirmBrowser();
+            }
+            catch (Exception ex)
+            {
+                Log("SUPRA_BROWSER takeover readiness fail type=" + ex.GetType().Name);
+                return false;
+            }
         }
 
         
