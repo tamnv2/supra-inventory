@@ -101,7 +101,7 @@ for text, name in [(agent_presence, "Agent presence"), (agent_sync, "Agent sync"
         forbid(text, marker, f"new contractor cadence in {name}")
 
 version = read("relay-agent/VERSION").strip()
-if version != "90":
-    raise SystemExit(f"D155 guard: relay-agent/VERSION must be 90 after D155 field-readiness hotfix, got {version!r}")
+if not version.isdigit() or int(version) < 90:
+    raise SystemExit(f"D155 guard: relay-agent/VERSION must retain or advance the accepted v90 baseline, got {version!r}")
 
 print("D155 contractor/reporting Cloudflare-only quota guard PASS")
