@@ -182,7 +182,7 @@ namespace SupraInventoryRelayAgent
                             {
                                 Field = new StructuredQuery.Types.FieldReference { FieldPath = "status" },
                                 Op = StructuredQuery.Types.FieldFilter.Types.Operator.Equal,
-                                Value = new Value { StringValue = "PENDING" }
+                                Value = new Google.Cloud.Firestore.V1.Value { StringValue = "PENDING" }
                             }
                         };
                         var createdFilter = new StructuredQuery.Types.Filter
@@ -191,7 +191,7 @@ namespace SupraInventoryRelayAgent
                             {
                                 Field = new StructuredQuery.Types.FieldReference { FieldPath = "created_at" },
                                 Op = StructuredQuery.Types.FieldFilter.Types.Operator.GreaterThanOrEqual,
-                                Value = new Value { TimestampValue = cutoff }
+                                Value = new Google.Cloud.Firestore.V1.Value { TimestampValue = cutoff }
                             }
                         };
                         var query = new StructuredQuery
@@ -426,7 +426,7 @@ namespace SupraInventoryRelayAgent
 
         private static string String(Google.Cloud.Firestore.V1.Document doc, string key)
         {
-            Value value;
+            Google.Cloud.Firestore.V1.Value value;
             return doc != null && doc.Fields.TryGetValue(key, out value) && value != null
                 ? value.StringValue ?? ""
                 : "";
@@ -434,7 +434,7 @@ namespace SupraInventoryRelayAgent
 
         private static long Long(Google.Cloud.Firestore.V1.Document doc, string key)
         {
-            Value value;
+            Google.Cloud.Firestore.V1.Value value;
             return doc != null && doc.Fields.TryGetValue(key, out value) && value != null
                 ? value.IntegerValue
                 : 0L;
