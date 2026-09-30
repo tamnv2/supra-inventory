@@ -2533,3 +2533,15 @@ Approved repair contract:
 - The repair must not add Firestore polling, reads, writes, listeners, collections, provider resources or a parallel data pipeline.
 - Existing operating-hours behavior, D137 real Page.reload/F5 semantics, D157 session checks, HA mutation fences, Android beta-vc92 and Stable remain unchanged.
 - Repair release target: Windows Agent v92. D156 remains accepted base until explicit Owner D157 PASS.
+
+
+## D157 repair technical/runtime/release checkpoint — 2026-09-30
+
+D157 repair is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_RETEST** under OA085. D156 remains the accepted base until explicit Owner D157 PASS.
+
+- Repair PR #338 merged to main `6b71a9bf439a1399a86b13252613e3aaea05e5ee`.
+- Main gates PASS: Repo Authority `36678094171`, Project State `36678094241`, Dashboard Probe `36678094200`, UI Design `36678094162`, Verify Beta Relay Agent `36678094225`.
+- Windows Agent **relay-agent-v92** release id `399772355`; EXE asset `600203458`, size `7,113,728` bytes, SHA-256 `58e7d60def203660dccd8df1ec766c672afaa90d6eceaffb81cb9c1784baf5b6`.
+- Inventory runtime-channel Agent asset `600203519` matches the same size and SHA-256; manifest asset is `600203516`. Android remains **beta-vc92** unchanged.
+- Repair makes Agent/User and active Picker list presentation role-independent for authenticated PRIMARY/NEXT_A/NEXT_B Agents and repaints already-held in-memory sync state on login/CLOSED→ACTIVE transitions. PRIMARY still exclusively gates protected PickList mutation.
+- No new Firestore read/write/listener/poll cadence, collection, provider resource or parallel data pipeline was introduced. D137 Page.reload/F5 semantics, D157 session checks/HA fences and Stable are unchanged.
