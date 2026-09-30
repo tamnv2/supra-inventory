@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D156",
     "accepted_base_evidence": "OWNER_EXPLICIT_D156_PASS__AGENT_V90__ANDROID_VC92__2026_09_30",
     "current_change_id": "D157",
-    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_TEST__D156_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "D157_REPAIR_IMPLEMENTATION_IN_PROGRESS__TARGET_AGENT_V92__D156_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D157_BETA_AGENT_V91_RELEASED__ANDROID_VC92_UNCHANGED__OWNER_FIELD_ACCEPTANCE_PENDING__D156_REMAINS_ACCEPTED_BASE",
+    "runtime_impact": "D157_V91_FIELD_DEFECT_SECONDARY_LIST_RENDER__REPAIR_TARGET_V92__ANDROID_VC92_UNCHANGED__STABLE_UNTOUCHED",
     "resource_change": "EXISTING_BETA_FIRESTORE_ONLY__REUSES_RELAY_POC_JOBS_AND_RELAY_POC_COORDINATION__ADDS_PRIMARY_HANDOFF_DOCUMENT_USAGE_AND_ACK_AGGREGATION_INDEXES__NO_NEW_COLLECTION_SECRET_OR_STABLE_RESOURCE",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -3368,7 +3368,7 @@
     }
   },
   "d157": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_TEST__AGENT_V91__ANDROID_VC92_UNCHANGED",
+    "status": "FIELD_REPAIR_IN_PROGRESS__SECONDARY_OPERATIONAL_LIST_RENDER__TARGET_AGENT_V92",
     "date": "2026-09-30",
     "baseline_change": "D156",
     "baseline_main": "4c38f4200d375e542d07a458858e64fbac950f52",
@@ -3401,7 +3401,7 @@
     "resource_quota_security_impact": "READ_MAY_INCREASE_SLIGHTLY_FROM_OPTIONAL_PRIMARY_LISTEN_AND_AGGREGATION__OPTIONAL_LISTEN_PAUSES_BEFORE_40K_LOCAL_READS__WRITE_REDUCED_BY_REMOVING_PER_ACK_SUMMARY_WRITE__HANDOFF_REUSES_EXISTING_COORDINATION_COLLECTION__NO_SECRET_OR_NEW_PROVIDER",
     "recommended_approach": "WAKE_EXISTING_REST_POLL_ONLY__ABSOLUTE_COUNT_CHECKPOINT__TARGETED_COMMAND_PLUS_TARGET_SELF_PROOF_AND_EXISTING_ROLE_CAS__SCHEDULED_REAL_F5_IDLE_ONLY__NETWORK_PROXY_TRANSITION_HARDENING",
     "preimplementation_owner_approval": "PASS__OWNER_EXPLICIT_D157_APPROVAL_AND_FINAL_BROWSER_SCOPE_NARROWED_TO_RELOAD_TIMING_ONLY__2026_09_30",
-    "target_agent_release": "relay-agent-v91",
+    "target_agent_release": "relay-agent-v92",
     "android_release": "beta-vc92__UNCHANGED",
     "sqlite_schema": 16,
     "new_provider_resources": "NONE",
@@ -3410,7 +3410,7 @@
     "existing_firestore_index_change": "relay_poc_jobs status_business_day and status_business_day_lookup_status for aggregation checkpoints",
     "new_secrets": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OWNER_PASS_PENDING__D156_REMAINS_ACCEPTED_BASE",
+    "owner_gate": "OWNER_PASS_PENDING_AFTER_V92_FIELD_RETEST__D156_REMAINS_ACCEPTED_BASE",
     "implementation_pr": 336,
     "main_commit": "87cbed6d7fc14cb71176ce65e613afb334ecb5e3",
     "main_runs": {
@@ -3432,6 +3432,17 @@
       "inventory_channel_agent_manifest_asset_id": 600151475,
       "android_release": "beta-vc92__UNCHANGED"
     },
-    "field_gate": "OA085_READY_FOR_OWNER_FIELD_TEST"
+    "field_gate": "OA085_BLOCKED_PENDING_D157_REPAIR_TECHNICAL_RUNTIME_RELEASE",
+    "repair": {
+      "reason": "SECONDARY_AGENT_RECEIVES_SYNC_SNAPSHOT_BUT_LIST_UI_CAN_REMAIN_BLANK_UNTIL_PRIMARY_PROMOTION",
+      "observed_release": "relay-agent-v91",
+      "scope": "AGENT_USER_PICKER_PRESENTATION_LIFECYCLE_ONLY",
+      "semantics": "PRIMARY_GATES_PICKLIST_MUTATION_NOT_OPERATIONAL_LIST_VISIBILITY",
+      "implementation": "RENDER_ALREADY_HELD_AGENT_SYNC_AND_COORDINATOR_MEMORY_ON_LOGIN_AND_CLOSED_TO_ACTIVE__RENDER_FLEET_ON_SYNC_APPLY",
+      "provider_impact": "NO_NEW_READ_WRITE_LISTENER_POLL_COLLECTION_OR_RESOURCE",
+      "browser": "UNCHANGED__D137_REAL_PAGE_RELOAD_F5_AND_D157_SESSION_CHECKS_FROZEN",
+      "android": "beta-vc92__UNCHANGED",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    }
   }
 }
