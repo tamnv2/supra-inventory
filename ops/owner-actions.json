@@ -4153,19 +4153,19 @@
     },
     {
       "id": "OA085",
-      "status": "BLOCKED_PENDING_D157_REPAIR_TECHNICAL_RUNTIME_RELEASE",
-      "title": "Field-accept D157 Agent v91 speed/write/handoff/session-health changes",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "title": "Field-accept D157 Agent v92 speed/write/handoff/session-health + secondary-list repair",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Firebase",
       "reason_owner_only": "Automated gates can prove build, Firestore rules/indexes, single-pipeline wiring and release integrity; final acceptance requires real company-laptop WMS session behavior, targeted PRIMARY transfer and unchanged beta-vc92 PDA confirmation.",
       "prerequisites": {
         "accepted_base": "D156_OWNER_FIELD_ACCEPTED_PASS",
         "d157_owner_approval": "PASS__2026_09_30",
-        "technical_runtime_release": "D157_V91_FIELD_DEFECT__REPAIR_TARGET_AGENT_V92",
+        "technical_runtime_release": "PASS__PR338__MAIN_6B71A9BF__AGENT_V92",
         "stable": "OWNER_GATED_UNTOUCHED",
         "android": "beta-vc92__UNCHANGED",
-        "agent": "relay-agent-v92__PENDING_RELEASE",
-        "main_gates": "PASS__PROJECT_STATE_36675226281__DASHBOARD_36675226242__AUTHORITY_36675226227__UI_36675226333__FIRESTORE_36675226210__AGENT_36675226296"
+        "agent": "relay-agent-v92__RELEASED__SHA256_58E7D60DEF203660DCCD8DF1EC766C672AFAA90D6ECEAFFB81CB9C1784BAF5B6",
+        "main_gates": "PASS__AUTHORITY_36678094171__STATE_36678094241__DASHBOARD_36678094200__UI_36678094162__AGENT_36678094225"
       },
       "shortest_test_path": [
         "Keep the existing beta-vc92 PDA installed. Send normal and invalid PickList requests and confirm result behavior remains unchanged.",
@@ -4185,7 +4185,7 @@
         "D157 scheduled checks use real D137 Page.reload/F5 semantics and do not alter the accepted login/Dashboard/SFT3/Confirm hydration flow.",
         "Calls, Kích User, HA/generation/confirmation guards remain regression-clean; Stable remains untouched."
       ],
-      "remaining_owner_action": "After D157 repair Agent v92 is technically/runtime released, retest OA085 including login as NEXT_A/NEXT_B and verify Agent/User/Picker lists render without promoting to PRIMARY.",
+      "remaining_owner_action": "Retest OA085 on relay-agent-v92. Minimum new repair check: log in on NEXT_A/NEXT_B and verify Agent/User + active Picker lists render without promoting that machine to PRIMARY. Then continue the existing D157 field path; explicitly confirm D157 PASS only if all criteria pass.",
       "closed": false
     }
   ]
