@@ -4153,7 +4153,7 @@
     },
     {
       "id": "OA085",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "PASS__CLOSED",
       "title": "Field-accept D157 Agent v92 speed/write/handoff/session-health + secondary-list repair",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Firebase",
@@ -4185,8 +4185,18 @@
         "D157 scheduled checks use real D137 Page.reload/F5 semantics and do not alter the accepted login/Dashboard/SFT3/Confirm hydration flow.",
         "Calls, Kích User, HA/generation/confirmation guards remain regression-clean; Stable remains untouched."
       ],
-      "remaining_owner_action": "Retest OA085 on relay-agent-v92. Minimum new repair check: log in on NEXT_A/NEXT_B and verify Agent/User + active Picker lists render without promoting that machine to PRIMARY. Then continue the existing D157 field path; explicitly confirm D157 PASS only if all criteria pass.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D157 PASS on 2026-09-30 after Agent v92 field retest.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-09-30",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D157 PASS after real Beta validation of Agent v92, including role-independent Agent/User/Picker list presentation and the approved D157 speed/write/handoff/session-health behavior."
+      },
+      "owner_result": {
+        "status": "PASS",
+        "date": "2026-09-30",
+        "evidence": "D157 is promoted to the accepted Beta base; the serial next-change gate is unlocked."
+      }
     }
   ]
 }
