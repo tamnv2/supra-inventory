@@ -31,10 +31,18 @@ namespace SupraInventoryRelayAgent
     internal static class D157PendingWakeSignal
     {
         private static readonly AutoResetEvent Wake = new AutoResetEvent(false);
+        private static long _lastPulseUtcTicks;
 
         internal static void Pulse()
         {
+            Interlocked.Exchange(ref _lastPulseUtcTicks, DateTime.UtcNow.Ticks);
             try { Wake.Set(); } catch { }
+        }
+
+        internal static bool HasRecentPulse(TimeSpan age)
+        {
+            var ticks = Interlocked.Read(ref _lastPulseUtcTicks);
+            return ticks > 0L && DateTime.UtcNow - new DateTime(ticks, DateTimeKind.Utc) <= age;
         }
 
         internal static bool Wait(CancellationToken token, int timeoutMs)
@@ -249,6 +257,9 @@ namespace SupraInventoryRelayAgent
                             }
 
                             var changed = response != null && response.DocumentChange != null && response.DocumentChange.Document != null;
+                            var removed = response != null && response.DocumentRemove != null;
+                            if (removed)
+                                FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_REMOVE", _log);
                             if (!changed) continue;
                             FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_EVENT", _log);
                             D157PendingWakeSignal.Pulse();
