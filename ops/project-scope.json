@@ -321,8 +321,8 @@
       "collection": "relay_poc_jobs",
       "api_url": "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs",
       "exposure": "public_identifier",
-      "status": "D149_ACTIVE_FIRESTORE_CONFIRM_HA_PICKER_PRESENCE_CONTACT_CHAT_SESSION_CONTROL_AGENT_LOG_AND_LOW_FREQUENCY_OPERATING_SCHEDULE",
-      "guard": "D149_BETA_ONLY__EXISTING_COLLECTIONS__OPERATING_SCHEDULE_EXACT_DOC_ALLOWED__NO_HOT_HA_DOC_FUNCTION_TRIGGER__NO_ANDROID_LIST_OR_GENERAL_COORDINATION_READ__NO_SECRET_OR_WMS_SESSION_DATA__STABLE_OWNER_GATED",
+      "status": "D157_APPROVED_EXISTING_BETA_FIRESTORE_CONFIRM_HA_PLUS_OPTIONAL_PRIMARY_WAKE_TARGETED_HANDOFF_AND_AGGREGATE_COUNTER_CHECKPOINT",
+      "guard": "D157_BETA_ONLY__EXISTING_COLLECTIONS__PRIMARY_FAST_PATH_WAKE_ONLY__REST_BUSINESS_PIPELINE_RETAINED__PRIMARY_HANDOFF_EXACT_COORDINATION_DOC__NO_SECRET_OR_WMS_SESSION_DATA__STABLE_OWNER_GATED",
       "collections": [
         "relay_poc_jobs",
         "relay_poc_rate_limits",
@@ -344,7 +344,14 @@
         "PICKPACK_ADMIN"
       ],
       "d119_role_guard": "D131_AGENT_OPERATOR_ROLES_RETAINED_FOR_PICKLIST_AND_PICKER_CONTACT__ACTIVE_CALL_LOCK_SCOPED__SKU_WMS_SYNC_RETIRED",
-      "d149_operating_schedule_document": "relay_poc_coordination/operating_schedule"
+      "d149_operating_schedule_document": "relay_poc_coordination/operating_schedule",
+      "d157_primary_handoff_document": "relay_poc_coordination/primary_handoff",
+      "d157_summary_documents": "relay_poc_coordination/daily_<business_day>",
+      "d157_ack_aggregation_indexes": [
+        "relay_poc_jobs(status,business_day)",
+        "relay_poc_jobs(status,business_day,lookup_status)"
+      ],
+      "d157_new_collection": false
     },
     {
       "key": "supra-wms-ui-d080",
