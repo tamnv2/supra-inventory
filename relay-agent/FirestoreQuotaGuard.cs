@@ -154,7 +154,10 @@ namespace SupraInventoryRelayAgent
         {
             if (string.Equals(method, "GET", StringComparison.OrdinalIgnoreCase)) return true;
             return string.Equals(method, "POST", StringComparison.OrdinalIgnoreCase) &&
-                (url ?? "").IndexOf(":runQuery", StringComparison.OrdinalIgnoreCase) >= 0;
+                (
+                    (url ?? "").IndexOf(":runQuery", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (url ?? "").IndexOf(":runAggregationQuery", StringComparison.OrdinalIgnoreCase) >= 0
+                );
         }
 
         private static bool IsWrite(string method, string url)
@@ -163,7 +166,8 @@ namespace SupraInventoryRelayAgent
                 string.Equals(method, "PUT", StringComparison.OrdinalIgnoreCase))
                 return true;
             return string.Equals(method, "POST", StringComparison.OrdinalIgnoreCase) &&
-                (url ?? "").IndexOf(":runQuery", StringComparison.OrdinalIgnoreCase) < 0;
+                (url ?? "").IndexOf(":runQuery", StringComparison.OrdinalIgnoreCase) < 0 &&
+                (url ?? "").IndexOf(":runAggregationQuery", StringComparison.OrdinalIgnoreCase) < 0;
         }
 
         private static int Band(long value, long reference)
