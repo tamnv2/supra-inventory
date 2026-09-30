@@ -87,6 +87,14 @@ jobs:
           if ($project -notmatch '<AssemblyVersion>0\.92\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.92\.0\.0</FileVersion>') {
             throw "D157 repair Agent assembly/file version must be 0.92."
           }
+          foreach ($marker in @(
+            'RenderD157OperationalListsFromMemory',
+            'UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents)',
+            'pickerWindowWasOpen',
+            'provider_read=false provider_write=false'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D157 repair role-independent operational-list guard missing: $marker" }
+          }
 
           foreach ($marker in @(
             'Runtime.enable',
