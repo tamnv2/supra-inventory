@@ -4150,6 +4150,41 @@
         "date": "2026-09-30",
         "evidence": "D156 is promoted to the accepted Beta base; the serial next-change gate is unlocked."
       }
+    },
+    {
+      "id": "OA085",
+      "status": "WAITING_TECHNICAL_RUNTIME_RELEASE",
+      "title": "Field-accept D157 Agent v91 speed/write/handoff/session-health changes",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "SUPRA Inventory Beta / Firebase",
+      "reason_owner_only": "Automated gates can prove build, Firestore rules/indexes, single-pipeline wiring and release integrity; final acceptance requires real company-laptop WMS session behavior, targeted PRIMARY transfer and unchanged beta-vc92 PDA confirmation.",
+      "prerequisites": {
+        "accepted_base": "D156_OWNER_FIELD_ACCEPTED_PASS",
+        "d157_owner_approval": "PASS__2026_09_30",
+        "technical_runtime_release": "PENDING",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "android": "beta-vc92__UNCHANGED",
+        "agent": "relay-agent-v91__PENDING"
+      },
+      "shortest_test_path": [
+        "Keep the existing beta-vc92 PDA installed. Send normal and invalid PickList requests and confirm result behavior remains unchanged.",
+        "With multiple Agents online, use tamnv2/admin → Chuyển Agent chính, select a different READY machine, confirm, and verify the target real-reloads Confirm then becomes PRIMARY without duplicate confirmation.",
+        "Attempt transfer to a machine whose Confirm session is not ready/logged out; verify transfer fails and the old PRIMARY remains active.",
+        "Leave a secondary Agent idle through its two-hour validation window; verify one real F5-style reload occurs only while idle. Verify PRIMARY does not scheduled-reload during PickList work and only checks after 60 minutes without strong WMS proof plus 60 seconds idle.",
+        "Run enough confirmations to cross 50 ACKs or five minutes; verify PDA ACK stays immediate while daily counters converge through a single aggregate checkpoint rather than one summary write per job.",
+        "Change Windows network/Wi-Fi once and verify Firestore reconnects without requiring Agent restart or changing the WMS browser flow.",
+        "Review Firebase usage/logs for no duplicate business pipeline, no unexpected write storm and no Android/Stable regression."
+      ],
+      "pass_criteria": [
+        "Android beta-vc92 contract and result flow are unchanged.",
+        "Fast path only wakes the existing REST fresh-PENDING processing path; REST fallback remains functional when optional realtime is unavailable or read-reserved.",
+        "Daily summary write frequency is materially reduced while displayed durable totals recover correctly after restart/PRIMARY transfer.",
+        "Targeted PRIMARY transfer is available only in normal UI for tamnv2/admin and never promotes an unvalidated target.",
+        "D157 scheduled checks use real D137 Page.reload/F5 semantics and do not alter the accepted login/Dashboard/SFT3/Confirm hydration flow.",
+        "Calls, Kích User, HA/generation/confirmation guards remain regression-clean; Stable remains untouched."
+      ],
+      "remaining_owner_action": "Wait for D157 technical/runtime/release PASS, then run the shortest field path above.",
+      "closed": false
     }
   ]
 }
