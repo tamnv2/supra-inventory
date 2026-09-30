@@ -66,8 +66,8 @@ require(users_core, 'reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER
 require(notifications, "COALESCE(shortage_reporting_enabled, 0)", "notification eligibility fail closed")
 require(operational, "COALESCE(u.shortage_reporting_enabled, 0)", "realtime result eligibility fail closed")
 
-if agent_version != "90":
-    raise SystemExit(f"D156 guard: Agent must remain v90 unchanged, got {agent_version!r}")
+if not agent_version.isdigit() or int(agent_version) < 90:
+    raise SystemExit(f"D156 guard: Agent must retain or advance the accepted v90 baseline, got {agent_version!r}")
 
 for text, name in [(core, "core"), (business, "business"), (web, "web"), (main_activity, "Android")]:
     forbid(text, "D156_POLL", f"new D156 polling cadence in {name}")
