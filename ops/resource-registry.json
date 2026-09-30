@@ -1952,5 +1952,28 @@
     "android_sha256": "10171a4b8e38b542670be2c21c556c269c2f3f7b1f1ed8757e738618522e6d7f",
     "inventory_channel_android_asset_id": 599489528,
     "field_gate": "PASS__OWNER_CONFIRMED_D156__2026_09_30"
+  },
+  "d157": {
+    "status": "REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
+    "baseline_change": "D156",
+    "implementation_pr": 338,
+    "main_commit": "6b71a9bf439a1399a86b13252613e3aaea05e5ee",
+    "agent_release": "relay-agent-v92__RELEASED",
+    "agent_release_id": 399772355,
+    "agent_asset_id": 600203458,
+    "agent_size_bytes": 7113728,
+    "agent_sha256": "58e7d60def203660dccd8df1ec766c672afaa90d6eceaffb81cb9c1784baf5b6",
+    "inventory_channel_release_id": 394587029,
+    "inventory_channel_agent_asset_id": 600203519,
+    "inventory_channel_agent_manifest_asset_id": 600203516,
+    "android_release": "beta-vc92__UNCHANGED",
+    "firestore": "EXISTING_D157_FIRESTORE_RESOURCES_UNCHANGED_BY_REPAIR",
+    "repair": "ROLE_INDEPENDENT_AGENT_USER_PICKER_LIST_RENDER_FROM_IN_MEMORY_SYNC__NO_NEW_PROVIDER_CADENCE",
+    "browser": "D137_REAL_PAGE_RELOAD_F5_AND_D157_SESSION_HEALTH_UNCHANGED",
+    "new_provider_resources": "NONE",
+    "new_collections": "NONE",
+    "new_secrets": "NONE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "field_gate": "OA085_READY_FOR_OWNER_FIELD_RETEST"
   }
 }

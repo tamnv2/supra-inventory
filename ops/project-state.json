@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D156",
     "accepted_base_evidence": "OWNER_EXPLICIT_D156_PASS__AGENT_V90__ANDROID_VC92__2026_09_30",
     "current_change_id": "D157",
-    "current_change_status": "D157_REPAIR_IMPLEMENTATION_IN_PROGRESS__TARGET_AGENT_V92__D156_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "D157_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V92__READY_FOR_OWNER_FIELD_RETEST__D156_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D157_V91_FIELD_DEFECT_SECONDARY_LIST_RENDER__REPAIR_TARGET_V92__ANDROID_VC92_UNCHANGED__STABLE_UNTOUCHED",
+    "runtime_impact": "D157_REPAIR_V92_RELEASED__SECONDARY_LIST_RENDER_FIXED__ANDROID_VC92_UNCHANGED__OWNER_FIELD_RETEST_PENDING__STABLE_UNTOUCHED",
     "resource_change": "EXISTING_BETA_FIRESTORE_ONLY__REUSES_RELAY_POC_JOBS_AND_RELAY_POC_COORDINATION__ADDS_PRIMARY_HANDOFF_DOCUMENT_USAGE_AND_ACK_AGGREGATION_INDEXES__NO_NEW_COLLECTION_SECRET_OR_STABLE_RESOURCE",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -3368,7 +3368,7 @@
     }
   },
   "d157": {
-    "status": "FIELD_REPAIR_IN_PROGRESS__SECONDARY_OPERATIONAL_LIST_RENDER__TARGET_AGENT_V92",
+    "status": "REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V92__READY_FOR_OWNER_FIELD_RETEST",
     "date": "2026-09-30",
     "baseline_change": "D156",
     "baseline_main": "4c38f4200d375e542d07a458858e64fbac950f52",
@@ -3411,28 +3411,27 @@
     "new_secrets": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_PENDING_AFTER_V92_FIELD_RETEST__D156_REMAINS_ACCEPTED_BASE",
-    "implementation_pr": 336,
-    "main_commit": "87cbed6d7fc14cb71176ce65e613afb334ecb5e3",
+    "implementation_pr": 338,
+    "main_commit": "6b71a9bf439a1399a86b13252613e3aaea05e5ee",
     "main_runs": {
-      "project_state": 36675226281,
-      "dashboard_probe": 36675226242,
-      "repo_authority": 36675226227,
-      "ui_design": 36675226333,
-      "beta_firestore": 36675226210,
-      "relay_agent": 36675226296
+      "repo_authority": 36678094171,
+      "project_state": 36678094241,
+      "dashboard_probe": 36678094200,
+      "ui_design": 36678094162,
+      "relay_agent": 36678094225
     },
     "release_evidence": {
-      "agent_release": "relay-agent-v91",
-      "agent_release_id": 399752709,
-      "agent_asset_id": 600151295,
-      "agent_size_bytes": 7113216,
-      "agent_sha256": "b9db68c6e23e538d038638e0b2aead13cf1e8c82f12242dc2ca54c386025b341",
+      "agent_release": "relay-agent-v92",
+      "agent_release_id": 399772355,
+      "agent_asset_id": 600203458,
+      "agent_size_bytes": 7113728,
+      "agent_sha256": "58e7d60def203660dccd8df1ec766c672afaa90d6eceaffb81cb9c1784baf5b6",
       "inventory_channel_release_id": 394587029,
-      "inventory_channel_agent_asset_id": 600151474,
-      "inventory_channel_agent_manifest_asset_id": 600151475,
+      "inventory_channel_agent_asset_id": 600203519,
+      "inventory_channel_agent_manifest_asset_id": 600203516,
       "android_release": "beta-vc92__UNCHANGED"
     },
-    "field_gate": "OA085_BLOCKED_PENDING_D157_REPAIR_TECHNICAL_RUNTIME_RELEASE",
+    "field_gate": "OA085_READY_FOR_OWNER_FIELD_RETEST__AGENT_V92",
     "repair": {
       "reason": "SECONDARY_AGENT_RECEIVES_SYNC_SNAPSHOT_BUT_LIST_UI_CAN_REMAIN_BLANK_UNTIL_PRIMARY_PROMOTION",
       "observed_release": "relay-agent-v91",
@@ -3442,7 +3441,11 @@
       "provider_impact": "NO_NEW_READ_WRITE_LISTENER_POLL_COLLECTION_OR_RESOURCE",
       "browser": "UNCHANGED__D137_REAL_PAGE_RELOAD_F5_AND_D157_SESSION_CHECKS_FROZEN",
       "android": "beta-vc92__UNCHANGED",
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "implementation_pr": 338,
+      "main_commit": "6b71a9bf439a1399a86b13252613e3aaea05e5ee",
+      "release": "relay-agent-v92__RELEASED",
+      "technical_result": "PASS__MAIN_GATES_AND_RELEASE_CHANNEL_INTEGRITY"
     }
   }
 }
