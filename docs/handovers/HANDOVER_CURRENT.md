@@ -7,8 +7,8 @@
 - Project: `supra-inventory`
 - SQLite schema: `16`
 - Latest signed Beta APK: `beta-vc92`
-- Current released Agent: `relay-agent-v91`
-- Beta: `D157_TECHNICAL_RUNTIME_RELEASE_PASS__OA085_FIELD_READY__D156_ACCEPTED_BASE`
+- Current released Agent: `relay-agent-v92`
+- Beta: `D157_REPAIR_V92_TECHNICAL_RUNTIME_RELEASE_PASS__OA085_FIELD_RETEST_READY__D156_ACCEPTED_BASE`
 - Web: `D156_OWNER_FIELD_ACCEPTED_PASS__SCHEDULE_CONVERGENCE__MAIN_859A7DFB`
 - Android: `D156_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC92__SCHEDULE_CONVERGENCE_REPORTING_DEFAULT_OFF`
 - D089: **OWNER ACCEPTED PASS**
@@ -1613,3 +1613,15 @@ D157 is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_TEST** 
 - D157 preserves the accepted D137 real `Page.reload`/normal-F5 browser semantics. Secondary Agents validate every two hours only when idle; PRIMARY validates only after 60 minutes without strong WMS proof plus idle time. No WebView2/browser-runtime optimization was introduced.
 - PRIMARY realtime wake only accelerates the existing REST fresh-PENDING pipeline. Per-job daily-summary write is removed; absolute aggregate checkpoints run after 50 ACKs / five minutes and on PRIMARY recovery. Targeted PRIMARY handoff validates the selected target with a real reload before CAS.
 - No new provider resource, Firestore collection, secret, Android release or Stable mutation. Stable remains OWNER-GATED.
+
+
+## D157 repair technical/runtime/release checkpoint — 2026-09-30
+
+D157 repair is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_RETEST** under OA085. D156 remains the accepted base until explicit Owner D157 PASS.
+
+- Repair PR #338 merged to main `6b71a9bf439a1399a86b13252613e3aaea05e5ee`.
+- Main gates PASS: Repo Authority `36678094171`, Project State `36678094241`, Dashboard Probe `36678094200`, UI Design `36678094162`, Verify Beta Relay Agent `36678094225`.
+- Windows Agent **relay-agent-v92** release id `399772355`; EXE asset `600203458`, size `7,113,728` bytes, SHA-256 `58e7d60def203660dccd8df1ec766c672afaa90d6eceaffb81cb9c1784baf5b6`.
+- Inventory runtime-channel Agent asset `600203519` matches the same size and SHA-256; manifest asset is `600203516`. Android remains **beta-vc92** unchanged.
+- Repair makes Agent/User and active Picker list presentation role-independent for authenticated PRIMARY/NEXT_A/NEXT_B Agents and repaints already-held in-memory sync state on login/CLOSED→ACTIVE transitions. PRIMARY still exclusively gates protected PickList mutation.
+- No new Firestore read/write/listener/poll cadence, collection, provider resource or parallel data pipeline was introduced. D137 Page.reload/F5 semantics, D157 session checks/HA fences and Stable are unchanged.
