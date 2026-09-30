@@ -687,6 +687,25 @@
     "windows_agent": "HISTORICAL_D114_AGENT__TARGET_REPLACED_BY_D125_OFFICE_INVENTORY_CLIENT",
     "wms_mutation": "RETIRED_FORBIDDEN_D125",
     "stable": "UNTOUCHED_OWNER_GATED",
+    "d157": {
+      "status": "OWNER_APPROVED_IMPLEMENTATION_ACTIVE",
+      "agent_target": "relay-agent-v91",
+      "android": "beta-vc92__UNCHANGED",
+      "existing_database_resource": "firestore-relay-beta-d091",
+      "primary_handoff_document": "relay_poc_coordination/primary_handoff",
+      "daily_summary_document_pattern": "relay_poc_coordination/daily_<business_day>",
+      "optional_pending_fast_path": "PRIMARY_QUERY_LISTENER_WAKE_ONLY__REST_PIPELINE_RETAINED__LOCAL_READ_RESERVE_GUARD",
+      "daily_summary_checkpoint": "ABSOLUTE_ACK_COUNT_AGGREGATION__50_ACK_OR_5M__PRIMARY_RECOVERY",
+      "indexes": [
+        "relay_poc_jobs(status,created_at)",
+        "relay_poc_jobs(status,business_day)",
+        "relay_poc_jobs(status,business_day,lookup_status)"
+      ],
+      "new_collection": false,
+      "new_provider_resource": false,
+      "new_secret": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
     "android_release": "beta-vc70",
     "android_apk_sha256": "aff46b7191e2bcf95e0960e8559c75ad89df41005f183892a3a29430c1f3cfa3",
     "field_evidence": "D097_RELEASE_READY__PHYSICAL_NORMAL_OFFICE_TRANSITION_AND_MULTI_AGENT_FAILOVER_PENDING",
