@@ -256,7 +256,7 @@ def main() -> None:
     require(d119_agent, "_fleetMetricStatus.Visible = false", "D149 Today aggregate UI removed while durable counters remain")
     require(d119_agent, "Agent này · Nhận", "D135 explicit local Agent counter label")
     require(firestore_transport, "_onDurableAck", "D135 counter update only after durable ACK")
-    require(firestore_transport, "FindBusinessDay(work.RequestId), outcome", "D135 durable ACK business-day callback")
+    require(firestore_transport, "_onDurableAck(summaryDay, outcome)", "D157 durable ACK business-day callback retaining D135 local counter semantics")
     forbid(d119_agent, "QueueD133DurableCounterRefresh", "D135 no per-job provider counter refresh")
     require(service_index, "USAGE_RETIRED_D136", "D136 retired Agent Usage endpoint")
     forbid(service_index, "publishRelayUsageSnapshot(env)", "D136 periodic provider Usage publication")
