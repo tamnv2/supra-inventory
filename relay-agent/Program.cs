@@ -2796,6 +2796,7 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Web Confirm chưa sẵn sàng. Hãy mở Trình duyệt Agent hoặc Trình duyệt Desktop và đăng nhập Supra.");
 
                 var result = _supraBrowser.SearchMany(queries, true);
+                MarkD157WmsProof();
 
                 Ui(() =>
                 {
@@ -4254,6 +4255,7 @@ namespace SupraInventoryRelayAgent
                 search = eligible.Count == 0
                     ? new SupraBrowserSearchResult { Result = "NOT_FOUND" }
                     : _supraBrowser.SearchMany(suffixes, true);
+                if (eligible.Count > 0) MarkD157WmsProof();
             }
             catch (Exception ex)
             {
