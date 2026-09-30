@@ -853,3 +853,15 @@ D157 repair is technically/runtime released on Beta and **READY_FOR_OWNER_FIELD_
 - Inventory runtime-channel Agent asset `600203519` matches the same size and SHA-256; manifest asset is `600203516`. Android remains **beta-vc92** unchanged.
 - Repair makes Agent/User and active Picker list presentation role-independent for authenticated PRIMARY/NEXT_A/NEXT_B Agents and repaints already-held in-memory sync state on login/CLOSED→ACTIVE transitions. PRIMARY still exclusively gates protected PickList mutation.
 - No new Firestore read/write/listener/poll cadence, collection, provider resource or parallel data pipeline was introduced. D137 Page.reload/F5 semantics, D157 session checks/HA fences and Stable are unchanged.
+
+
+## D157 Owner acceptance — PASS — 2026-09-30
+
+The Owner explicitly confirmed **D157 PASS** after field validation of the released Agent v92 repair and the complete D157 behavior.
+
+- D157 is now the **accepted project base**; OA085 is closed PASS and the serial next-change gate is unlocked.
+- Accepted Agent runtime is **relay-agent-v92**, release id `399772355`, EXE asset `600203458`, SHA-256 `58e7d60def203660dccd8df1ec766c672afaa90d6eceaffb81cb9c1784baf5b6`; Android remains **beta-vc92** unchanged.
+- Accepted D157 behavior includes optional PRIMARY realtime wake of the existing REST pipeline, removal of per-ACK daily-summary writes in favor of absolute 50-ACK/5-minute checkpoints, targeted tamnv2/admin PRIMARY handoff with target-side real F5 validation, two-hour idle secondary session checks, PRIMARY checks only after 60 minutes without strong WMS proof plus idle, and network-transition proxy refresh hardening.
+- The v92 repair is accepted: authenticated PRIMARY/NEXT_A/NEXT_B Agents can view synchronized Agent/User and active Picker lists without PRIMARY promotion; login and CLOSED→ACTIVE repaint already-held in-memory sync state without new provider reads/writes.
+- D137 real Page.reload/F5 semantics remain frozen; no WebView2/browser-runtime optimization was introduced.
+- No new provider resource, Firestore collection, secret, Android release, polling cadence or Stable mutation was introduced. Stable remains OWNER-GATED and untouched.
