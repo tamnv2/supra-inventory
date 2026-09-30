@@ -811,3 +811,15 @@ D154 supersedes the D149 timing values while preserving its single shared Agent-
 - Báo hàng uses Worker/InventoryCore authority. If Worker is closed, the backend performs only the globally throttled exact schedule recovery before deciding whether the mutation is allowed.
 - A foreground PDA receiving the existing schedule FCM immediately updates local schedule presentation. While closed, Báo hàng remains viewable but send is disabled; Xác nhận đơn remains available.
 - Web Ca vận hành remains read-only and reloads on the existing operating_schedule realtime invalidation.
+
+## D157 Agent PRIMARY transfer and Web Confirm session-health workflow
+
+D157 preserves the D156/Agent-v90 Android-to-Firestore contract and changes only the Beta Windows Agent coordination path.
+
+**Queue execution:** only PRIMARY processes `relay_poc_jobs`. The existing REST fresh-PENDING query remains the one business dispatcher. An optional PRIMARY realtime listener may wake the same REST loop; it never performs WMS business work or terminal ACK itself.
+
+**Targeted PRIMARY:** exact logins `tamnv2` and `admin` can open **Chuyển Agent chính**, choose a fresh Web-ready Agent and confirm. The target consumes the bounded handoff request, performs a real D137 Confirm F5/session check locally, then attempts the existing generation/CAS role transition. Until that CAS succeeds the old PRIMARY remains authoritative. Failed/expired/not-ready target requests do not transfer authority.
+
+**Session health:** non-PRIMARY Agents perform a real Confirm reload every two hours only while idle, deferring until at least 30 seconds after work. PRIMARY performs one only after 60 minutes without real WMS proof and at least 60 idle seconds. New PickList activity has priority over scheduled validation. Promotion always performs an immediate target-side validation.
+
+**Protected browser behavior:** D157 must reuse `Page.reload(ignoreCache=false)` and the D137 hydration/readiness barrier. It does not alter WebView2 runtime/profile/cache/flags, login routing or the ordinary passive readiness cadence.
