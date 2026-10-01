@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "OWNER_ACTION_NOW__REDEPLOY_EXISTING_D159_APPS_SCRIPT_TO_GW_V4",
+      "status": "GW_V4_PASS__PR_FINAL_GATE_THEN_OWNER_V3_FIELD_TEST",
       "title": "Deploy and field-test isolated D159 v3 Firebase Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4280,9 +4280,9 @@
         "Stable remains untouched."
       ],
       "remaining_owner_action": [
-        "Open the existing D159 Apps Script project. Replace only Code.gs with ops/apps-script/firestore-usage-gateway-d159/Code.gs from PR #354 / branch feat/d159-usage-v3.",
-        "Deploy > Manage deployments > Edit > New version > Deploy. Keep the same Web App deployment URL and existing Script Property; appsscript.json scopes are unchanged.",
-        "Tell AI 'GW-v4 done'. AI will rerun PR #354, require revision D159-GW-v4, merge only after all gates PASS, publish d159-usage-test-v3, then hand the v3 EXE to Owner for field acceptance."
+        "Wait for AI to merge PR #354 and publish the official d159-usage-test-v3 prerelease from main.",
+        "Open the official v3 EXE on the Windows account with the saved Agent session and press Cập nhật ngay once.",
+        "Review the Vietnamese Firestore, Firebase Auth/Secure Token, FCM and Cloud Functions values. Report PASS if the values are plausible and no unexpected provider/desktop load is observed; otherwise send the screenshot/error so D159 is repaired under the same change ID."
       ],
       "closed": false,
       "owner_report": {
@@ -4362,7 +4362,16 @@
         "metric_family_canaries": "PASS__FIRESTORE_STORAGE_FCM_IDENTITY_TOOLKIT_SECURE_TOKEN_PICKER_ALERT_CLOUD_RUN",
         "windows_build": "PASS__43008_BYTES__SHA256_C7D7E0DE9AFB3E9AA4B61DD1E64FE4B61D9FF4A7A2DE062A44F81682BEC7FF37",
         "self_test": "PASS",
-        "blocking_gate": "EXISTING_WEB_APP_STILL_PRE_GW_V4__REVISION_PROBE_FAIL_EXPECTED"
+        "blocking_gate": "EXISTING_WEB_APP_STILL_PRE_GW_V4__REVISION_PROBE_FAIL_EXPECTED",
+        "rerun_workflow": 36902749377,
+        "rerun_attempt": 2,
+        "gateway_revision": "PASS__D159-GW-v4",
+        "result": "PASS__ALL_STEPS_EXCEPT_PR_RELEASE_EXPECTEDLY_SKIPPED"
+      },
+      "v3_gateway_owner_report": {
+        "date": "2026-10-02",
+        "result": "DONE",
+        "evidence": "Owner reports the existing D159 Apps Script was redeployed as a new version with GW-v4 source while preserving the same Web App URL and existing configuration."
       }
     }
   ]
