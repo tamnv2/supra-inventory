@@ -550,7 +550,7 @@ jobs:
             'SelfTestSafetyPolicy',
             'write=SKIP_NO_CHANGE'
           )) {
-            if (-not $sync.Contains($marker)) { throw "D140 compact fleet-sync safety marker missing: $marker" }
+            if (-not $sync.Contains($marker) -and -not $d157.Contains($marker)) { throw "D140/D158 compact fleet-sync safety marker missing: $marker" }
           }
           if ($sync.Contains('role_independent=true') -or -not $sync.Contains('role_limited=true')) {
             throw "D140 Agent sync listener must no longer be role-independent."
