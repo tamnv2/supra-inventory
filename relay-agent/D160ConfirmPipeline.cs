@@ -529,6 +529,12 @@ namespace SupraInventoryRelayAgent
                     var picker = _pickerOnlineSnapshot.FirstOrDefault(item =>
                         item != null &&
                         string.Equals(item.UserId, work.PickerUserId ?? "", StringComparison.Ordinal));
+                    if (picker == null && _agentSyncSnapshot != null)
+                    {
+                        picker = _agentSyncSnapshot.Pickers.FirstOrDefault(item =>
+                            item != null &&
+                            string.Equals(item.UserId, work.PickerUserId ?? "", StringComparison.Ordinal));
+                    }
                     return picker == null ? "" : (picker.ContractorName ?? "");
                 };
                 work.PickerContractorName = InvokeRequired
