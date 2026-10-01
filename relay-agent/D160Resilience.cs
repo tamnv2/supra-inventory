@@ -153,5 +153,17 @@ namespace SupraInventoryRelayAgent
             catch { }
             return "";
         }
+        private static string D160ProviderErrorSummary(Exception ex)
+        {
+            var relay = ex as RelayHttpException;
+            if (relay != null)
+            {
+                var code = D160SafeServiceErrorCode(relay.Detail);
+                return "http=" + relay.StatusCode.ToString(CultureInfo.InvariantCulture) +
+                       " code=" + (string.IsNullOrWhiteSpace(code) ? "UNSPECIFIED" : AgentDiagnostics.Sanitize(code));
+            }
+            return "type=" + (ex == null ? "UNKNOWN" : ex.GetType().Name);
+        }
+
     }
 }
