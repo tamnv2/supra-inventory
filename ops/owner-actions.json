@@ -4389,7 +4389,7 @@
     },
     {
       "id": "OA088",
-      "status": "OWNER_ACTION_REQUIRED__CLASPRC_JSON_FORMAT",
+      "status": "OWNER_SECRET_REPAIR_DONE__AUTOMATED_RETEST_ACTIVE",
       "title": "Replace malformed GitHub beta CLASPRC_JSON secret",
       "resource_key": "apps-script-automation-canary-beta",
       "provider": "GitHub Environment beta / Google Apps Script",
@@ -4411,8 +4411,19 @@
         "failure": "JSONDecodeError__LINE17_COLUMN4__BEFORE_CREATE",
         "provider_resource_created": false
       },
-      "remaining_owner_action": "Replace CLASPRC_JSON with exact raw ~/.clasprc.json contents, then report CLASPRC fixed.",
-      "closed": false
+      "remaining_owner_action": [],
+      "closed": true,
+      "owner_result": {
+        "date": "2026-10-02",
+        "result": "DONE",
+        "evidence": "Owner replaced CLASPRC_JSON with valid raw JSON; workflow attempt 2 parsed it and reached real Apps Script create/push/version/deploy/list/redeploy."
+      },
+      "technical_followup": {
+        "workflow_run": 36909919971,
+        "attempt": 2,
+        "result": "REACHED_REDEPLOY__FAILED_ONLY_POST_REDEPLOY_LIST_VISIBILITY_VERIFY",
+        "owner_action_required": false
+      }
     }
   ]
 }
