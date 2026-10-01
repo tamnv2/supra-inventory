@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "READY_FOR_OWNER_RETEST_D159_V2",
+      "status": "FIELD_403_CONFIRMED__GW_V3_REPAIR_AND_PROVIDER_CANARY_ACTIVE",
       "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4277,7 +4277,7 @@
         "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Run official d159-usage-test-v2 on the same Windows user. If values load, compare them with Firebase Usage; if still N/A, send the visible 'Cloud Monitoring lỗi: ...' status line or screenshot. Do not send keys/tokens.",
+      "remaining_owner_action": "None until the D159 provider canary and authority gates pass. After merge, Owner will only need to paste the updated repo-managed Code.gs into the existing D159 Apps Script project and deploy a new Web App version; existing URL and D159-v2 EXE remain usable.",
       "closed": false,
       "owner_report": {
         "date": "2026-10-01",
@@ -4302,6 +4302,20 @@
         "release": "d159-usage-test-v2",
         "exe_asset_id": 603649137,
         "exe_sha256": "0a281091e1c3072d4d93f5fbbee1b26cb09194bc5302871cf824fbec6e5366b6"
+      },
+      "field_failure_403": {
+        "date": "2026-10-01",
+        "result": "FAIL",
+        "code": "MONITORING_HTTP_403",
+        "boundary": "APPS_SCRIPT_TO_CLOUD_MONITORING_AUTH_OR_QUOTA_ATTRIBUTION",
+        "not_affected": [
+          "D158 Agent v94",
+          "D158 log gateway",
+          "Android vc92",
+          "WMS",
+          "Worker",
+          "Stable"
+        ]
       }
     }
   ]
