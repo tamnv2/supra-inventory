@@ -2003,7 +2003,7 @@
     "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
   },
   "d159": {
-    "status": "403_ROOT_CAUSE_CONFIRMED__OWNER_IAM_API_ENABLEMENT_REQUIRED",
+    "status": "TECHNICAL_REPAIR_PASS__GW_V3_REDEPLOYED__PROVIDER_CANARY_PASS__OWNER_FIELD_RETEST_PENDING",
     "baseline": "D158_OWNER_FIELD_ACCEPTED_PASS",
     "windows_utility": "STANDALONE_ONE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
     "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_READ_ONLY__15M_CACHE",
@@ -2027,10 +2027,12 @@
     "next_release": "d159-usage-test-v2",
     "gateway_revision_target": "D159-GW-v3",
     "monitoring_request_quota_project": "supra-inventory-beta",
-    "provider_canary": "PENDING_CI_EXACT_QUERY_PROOF",
-    "provider_diagnostic_run": 36893601587,
-    "ci_monitoring_timeSeries_list": false,
-    "ci_serviceusage_services_use": false,
-    "required_role": "roles/serviceusage.serviceUsageConsumer"
+    "provider_canary": "PASS__RUN_36893999796__MONITORING_API_ENABLED__MONITORING_TIMESERIES_LIST_TRUE__SERVICEUSAGE_SERVICES_USE_TRUE__EXACT_QUERY_HTTP_200",
+    "provider_diagnostic_run": 36893999796,
+    "ci_monitoring_timeSeries_list": true,
+    "ci_serviceusage_services_use": true,
+    "required_role": "roles/serviceusage.serviceUsageConsumer",
+    "gateway_revision": "D159-GW-v3__OWNER_REDEPLOYED_SAME_URL",
+    "field_gate": "OA087_OWNER_FIELD_RETEST_PENDING"
   }
 }
