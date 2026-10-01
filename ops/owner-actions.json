@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "READY_OWNER_V3_FIELD_TEST",
+      "status": "CLOSED_PASS",
       "title": "Deploy and field-test isolated D159 v3 Firebase Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4279,13 +4279,8 @@
         "Future Agent integration contract is exact login tamnv2/admin only; all other users have no Usage tab, no Usage timer and no Usage gateway call.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": [
-        "Download/open the official d159-usage-test-v3 asset SUPRA.Firebase.Usage.Test.exe on the Windows account that already has the saved Agent session.",
-        "Press Cập nhật ngay once and review the Vietnamese Firestore, Firebase Auth/Secure Token, FCM and Cloud Functions summaries plus the 24-hour Firestore detail.",
-        "PASS requires plausible real values or truthful N/A for unsupported/lagging provider series, auto refresh 15 minutes, no visible desktop performance issue, and no unexpected Firestore usage increase caused by the Usage utility.",
-        "If accepted, explicitly report D159 PASS. Only then may D159 be closed and a later D160 change be opened."
-      ],
-      "closed": false,
+      "remaining_owner_action": [],
+      "closed": true,
       "owner_report": {
         "date": "2026-10-01",
         "result": "PROVISIONING_DONE",
@@ -4384,7 +4379,13 @@
         "date": "2026-10-02",
         "result": "DONE",
         "evidence": "Owner reports the existing D159 Apps Script was redeployed as a new version with GW-v4 source while preserving the same Web App URL and existing configuration."
-      }
+      },
+      "owner_field_result": {
+        "date": "2026-10-02",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D159 PASS after field-testing the official d159-usage-test-v3 / GW-v4 usage surface."
+      },
+      "next_change_gate": "UNLOCKED__D159_OWNER_PASS_RECORDED"
     }
   ]
 }
