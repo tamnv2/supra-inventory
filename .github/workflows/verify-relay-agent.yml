@@ -105,10 +105,12 @@ jobs:
           }
           foreach ($marker in @(
             'ProcessFirestoreConfirmationsD160',
-            'D160_16S_MUTATION_FENCE',
+            'D160_12S_MUTATION_FENCE',
             'WMS_DATA_UNAVAILABLE',
-            'SearchMany(eligible.Select(work => work.Suffix), true, false)',
-            'MaxConcurrentJobs'
+            'SearchMany(eligible.Select(work => work.Suffix), true, false, false)',
+            'MaxConcurrentJobs',
+            'EmitD160TerminalOutcomes',
+            'D160_12S_MUTATION_FENCE'
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "D160 mixed-batch pipeline guard missing: $marker" }
           }
