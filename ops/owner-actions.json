@@ -4386,6 +4386,33 @@
         "evidence": "Owner explicitly confirmed D159 PASS after field-testing the official d159-usage-test-v3 / GW-v4 usage surface."
       },
       "next_change_gate": "UNLOCKED__D159_OWNER_PASS_RECORDED"
+    },
+    {
+      "id": "OA088",
+      "status": "OWNER_ACTION_REQUIRED__CLASPRC_JSON_FORMAT",
+      "title": "Replace malformed GitHub beta CLASPRC_JSON secret",
+      "resource_key": "apps-script-automation-canary-beta",
+      "provider": "GitHub Environment beta / Google Apps Script",
+      "reason_owner_only": "GitHub exposes secret values only inside Actions and the connected project tools cannot read or replace the protected CLASPRC_JSON value. Main canary run 36909919971 parsed the secret before any provider create call and failed JSON decoding, so no Apps Script resource was created.",
+      "shortest_action": [
+        "Open GitHub repo Settings > Environments > beta > Environment secrets.",
+        "Edit CLASPRC_JSON.",
+        "Replace its value with the exact raw contents of the local ~/.clasprc.json file created by clasp login. Do not include markdown code fences, a CLASPRC_JSON= prefix, surrounding shell quotes, PowerShell output decorations, or extra text.",
+        "Save the secret and tell AI 'CLASPRC fixed'. AI will rerun only the failed main workflow job and continue the canary automatically."
+      ],
+      "pass_criteria": [
+        "CLASPRC_JSON parses as a non-empty JSON object.",
+        "The canary then reaches create/push/version/deploy/list/redeploy/undeploy/delete-script and finishes PASS.",
+        "Exact secret value and ephemeral Script/deployment IDs remain absent from repo/chat/logs.",
+        "D159 accepted base and D160 unopened status remain unchanged."
+      ],
+      "evidence": {
+        "workflow_run": 36909919971,
+        "failure": "JSONDecodeError__LINE17_COLUMN4__BEFORE_CREATE",
+        "provider_resource_created": false
+      },
+      "remaining_owner_action": "Replace CLASPRC_JSON with exact raw ~/.clasprc.json contents, then report CLASPRC fixed.",
+      "closed": false
     }
   ]
 }
