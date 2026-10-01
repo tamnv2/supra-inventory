@@ -2579,3 +2579,5 @@ Owner-approved requirements:
 
 D158 target release is **relay-agent-v93**. D157 remains the accepted project base until explicit Owner D158 PASS.
 
+Owner continuation on 2026-10-01: D158 field acceptance must use the **official normal-distribution `relay-agent-v93` release**, not a PR-only workflow artifact. PR artifacts remain technical evidence only. AI must merge the technically passing D158 PR, allow the existing main Agent workflow to publish `relay-agent-v93` and update the Agent channel, verify that release/channel evidence, and only then hand OA086 to the Owner for Office field proof. D157 remains the accepted base until explicit Owner D158 PASS.
+
