@@ -182,6 +182,7 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
+        private readonly Action _forceRefreshToken;
         private readonly Func<bool> _enabled;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
@@ -190,11 +191,13 @@ namespace SupraInventoryRelayAgent
         internal FirestoreD157PendingWakeListener(
             Func<AgentSession> sessionProvider,
             Action ensureFreshToken,
+            Action forceRefreshToken,
             Func<bool> enabled,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
+            _forceRefreshToken = forceRefreshToken ?? ensureFreshToken ?? delegate { };
             _enabled = enabled ?? (() => false);
             _log = log ?? delegate { };
         }
@@ -334,11 +337,30 @@ namespace SupraInventoryRelayAgent
                 catch (OperationCanceledException) { D157PendingWakeSignal.MarkConnected(false); return; }
                 catch (RpcException ex)
                 {
-                    permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
-                    retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
-                    _log("D157 FAST_PATH listen=RECONNECT grpc=" + ex.Status.StatusCode +
-                         " retry_ms=" + retryMs +
-                         " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    if (ex.Status.StatusCode == StatusCode.Unauthenticated)
+                    {
+                        permanent = false;
+                        retryMs = FirestoreD157Grpc.InitialRetryMs;
+                        backoff = FirestoreD157Grpc.InitialRetryMs;
+                        try
+                        {
+                            _forceRefreshToken();
+                            _log("D157 FAST_PATH listen=RECONNECT grpc=Unauthenticated auth_refresh=PASS retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                        catch (Exception refreshEx)
+                        {
+                            _log("D157 FAST_PATH listen=RECONNECT grpc=Unauthenticated auth_refresh=FAIL type=" +
+                                 refreshEx.GetType().Name + " retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                    }
+                    else
+                    {
+                        permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
+                        retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
+                        _log("D157 FAST_PATH listen=RECONNECT grpc=" + ex.Status.StatusCode +
+                             " retry_ms=" + retryMs +
+                             " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -370,6 +392,7 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
+        private readonly Action _forceRefreshToken;
         private readonly Action<D157PrimaryHandoffRequest> _onRequest;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
@@ -378,11 +401,13 @@ namespace SupraInventoryRelayAgent
         internal FirestoreD157HandoffListener(
             Func<AgentSession> sessionProvider,
             Action ensureFreshToken,
+            Action forceRefreshToken,
             Action<D157PrimaryHandoffRequest> onRequest,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
+            _forceRefreshToken = forceRefreshToken ?? ensureFreshToken ?? delegate { };
             _onRequest = onRequest ?? delegate { };
             _log = log ?? delegate { };
         }
@@ -453,11 +478,30 @@ namespace SupraInventoryRelayAgent
                 catch (OperationCanceledException) { return; }
                 catch (RpcException ex)
                 {
-                    permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
-                    retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
-                    _log("D157 HANDOFF listen=RECONNECT grpc=" + ex.Status.StatusCode +
-                         " retry_ms=" + retryMs +
-                         " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    if (ex.Status.StatusCode == StatusCode.Unauthenticated)
+                    {
+                        permanent = false;
+                        retryMs = FirestoreD157Grpc.InitialRetryMs;
+                        backoff = FirestoreD157Grpc.InitialRetryMs;
+                        try
+                        {
+                            _forceRefreshToken();
+                            _log("D157 HANDOFF listen=RECONNECT grpc=Unauthenticated auth_refresh=PASS retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                        catch (Exception refreshEx)
+                        {
+                            _log("D157 HANDOFF listen=RECONNECT grpc=Unauthenticated auth_refresh=FAIL type=" +
+                                 refreshEx.GetType().Name + " retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                    }
+                    else
+                    {
+                        permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
+                        retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
+                        _log("D157 HANDOFF listen=RECONNECT grpc=" + ex.Status.StatusCode +
+                             " retry_ms=" + retryMs +
+                             " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    }
                 }
                 catch (Exception ex)
                 {
