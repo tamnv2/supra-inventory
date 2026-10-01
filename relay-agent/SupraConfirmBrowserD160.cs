@@ -265,8 +265,10 @@ namespace SupraInventoryRelayAgent
                 return JSON.stringify({result:'CONFIRM_BUTTON_DISABLED', finalClicked:false});
 
               const terminalSelector = '.toast-success,.alert-success,.swal2-success,.toast-error,.alert-danger,.alert-error,.swal2-error,[role=alert]';
-              for (const d of docs) for (const node of [...d.querySelectorAll(terminalSelector)].filter(visible))
+              for (const d of docs) for (const node of [...d.querySelectorAll(terminalSelector)].filter(visible)) {
                 node.setAttribute('data-supra-d160-baseline', token);
+                node.setAttribute('data-supra-d160-baseline-text', norm(node.innerText || node.textContent || ''));
+              }
 
               confirmButtons[0].click();
 
@@ -328,8 +330,10 @@ namespace SupraInventoryRelayAgent
               if (dialogState.result === 'WAIT') return JSON.stringify({result:'CONFIRM_DIALOG_NOT_FOUND', finalClicked:false});
               if (dialogState.result !== 'READY') return JSON.stringify({result:dialogState.result,count:dialogState.count || 0,finalClicked:false});
 
-              for (const d of docs) for (const node of [...d.querySelectorAll(terminalSelector)].filter(visible))
+              for (const d of docs) for (const node of [...d.querySelectorAll(terminalSelector)].filter(visible)) {
                 node.setAttribute('data-supra-d160-baseline', token);
+                node.setAttribute('data-supra-d160-baseline-text', norm(node.innerText || node.textContent || ''));
+              }
               dialogState.button.click();
               return JSON.stringify({result:'CLICKED',stage:'DIALOG_CONFIRMED',finalClicked:true});
             })()";
@@ -351,9 +355,15 @@ namespace SupraInventoryRelayAgent
                 }
               };
               addDoc(document);
+              const norm = v => String(v || '').replace(/[\u200B-\u200D\uFEFF]/g,' ').replace(/\s+/g,' ').trim();
               const fresh = selector => docs.flatMap(d => [...d.querySelectorAll(selector)])
                 .filter(visible)
-                .filter(e => e.getAttribute('data-supra-d160-baseline') !== token);
+                .filter(e => {
+                  if (e.getAttribute('data-supra-d160-baseline') !== token) return true;
+                  const before = e.getAttribute('data-supra-d160-baseline-text') || '';
+                  const now = norm(e.innerText || e.textContent || '');
+                  return now !== before;
+                });
               const success = fresh('.toast-success,.alert-success,.swal2-success,[role=alert]');
               const errors = fresh('.toast-error,.alert-danger,.alert-error,.swal2-error,[role=alert]');
               const successText = success.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
