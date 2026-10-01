@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -11,14 +15,23 @@ namespace SupraInventoryRelayAgent
     internal sealed class AgentLogUploadBridge
     {
         private const int MaxChunkChars = 320000;
-        private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
+        private const long DirtyCheckpointMs = 6L * 60L * 60L * 1000L;
+        private const long SizeCheckpointBytes = 2L * 1024L * 1024L;
+        private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 8 * 1024 * 1024 };
         private readonly Func<AgentSession> _sessionProvider;
         private readonly string _instanceId;
         private readonly string _checkpointFile;
+        private readonly string _pendingDir;
+        private readonly string _cleanExitFile;
         private readonly Action<string> _log;
+        private readonly object _sealGate = new object();
         private readonly object _errorGate = new object();
         private readonly Dictionary<string, ErrorBurstState> _errorBursts =
             new Dictionary<string, ErrorBurstState>(StringComparer.Ordinal);
+        private readonly DateTime _processStartedLocal = DateTime.Now;
+        private long _lastSealWrittenBytes;
+        private DateTime _nextUploadAttemptUtc = DateTime.MinValue;
+        private int _uploadFailureStreak;
         private DateTime _errorWindowStartedUtc = DateTime.MinValue;
         private int _errorWindowSent;
         private const int MaxImmediateErrorsPerWindow = 6;
@@ -35,12 +48,23 @@ namespace SupraInventoryRelayAgent
             internal int Suppressed;
         }
 
-        internal AgentLogUploadBridge(Func<AgentSession> sessionProvider, string instanceId, string checkpointFile, Action<string> log)
+        internal AgentLogUploadBridge(
+            Func<AgentSession> sessionProvider,
+            string instanceId,
+            string checkpointFile,
+            Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _instanceId = instanceId ?? "";
             _checkpointFile = checkpointFile ?? "";
             _log = log ?? delegate { };
+            var root = Path.GetDirectoryName(_checkpointFile);
+            if (string.IsNullOrWhiteSpace(root)) root = AppDomain.CurrentDomain.BaseDirectory;
+            _pendingDir = Path.Combine(root, "agent-log-pending");
+            _cleanExitFile = Path.Combine(root, "agent-log-clean-exit.marker");
+            try { Directory.CreateDirectory(_pendingDir); } catch { }
+            if (ReadCheckpoint() == DateTime.MinValue) WriteCheckpoint(FloorToLogMillisecond(_processStartedLocal));
+            _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
         internal void TryQueueScheduledSnapshot()
@@ -48,30 +72,58 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var session = _sessionProvider();
-                if (session == null || string.IsNullOrWhiteSpace(session.IdToken) || string.IsNullOrWhiteSpace(session.AppUserId))
-                    return;
+                if (!UsableSession(session)) return;
+
+                TryFlushPending(session);
 
                 var now = DateTime.Now;
-                var slot = ResolveLatestSlot(now);
-                if (slot == DateTime.MinValue) return;
                 var checkpoint = ReadCheckpoint();
-                if (checkpoint >= slot) return;
-
-                var content = AgentDiagnostics.BuildUploadSnapshot(checkpoint == DateTime.MinValue ? slot.AddHours(-9) : checkpoint, false);
-                if (string.IsNullOrWhiteSpace(content))
+                if (checkpoint == DateTime.MinValue)
                 {
-                    WriteCheckpoint(slot);
+                    WriteCheckpoint(FloorToLogMillisecond(now));
                     return;
                 }
 
-                Queue(session, slot, "scheduled", content);
-                WriteCheckpoint(slot);
-                _log("AGENT LOG queue=PASS type=scheduled slot=" + slot.ToString("yyyyMMdd-HHmm", CultureInfo.InvariantCulture));
+                var dueByTime = now - checkpoint >= TimeSpan.FromMilliseconds(DirtyCheckpointMs);
+                var writtenSinceSeal = Math.Max(0L, AgentDiagnostics.TotalBytesWritten - _lastSealWrittenBytes);
+                var dueBySize = writtenSinceSeal >= SizeCheckpointBytes;
+                if (!dueByTime && !dueBySize) return;
+
+                var path = SealFromCheckpoint("checkpoint", "");
+                _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    TryFlushPending(session);
+                    _log("AGENT LOG seal=PASS type=checkpoint reason=" +
+                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
+                }
+                else
+                {
+                    _log("AGENT LOG seal=SKIP_EMPTY type=checkpoint reason=" +
+                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
+                }
             }
             catch (Exception ex)
             {
-                _log("AGENT LOG queue=DEFER type=scheduled error=" + ex.GetType().Name +
+                _log("AGENT LOG checkpoint=DEFER type=" + ex.GetType().Name +
                      " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+        }
+
+        internal void TryQueueManualSnapshot()
+        {
+            try
+            {
+                var path = SealFromCheckpoint("manual", "MANUAL_SEND=true");
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                _log(string.IsNullOrWhiteSpace(path)
+                    ? "AGENT LOG manual=SKIP_EMPTY"
+                    : "AGENT LOG manual=SEALED upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG manual=LOCAL_PENDING type=" + ex.GetType().Name);
             }
         }
 
@@ -79,21 +131,16 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var session = _sessionProvider();
-                if (session == null || string.IsNullOrWhiteSpace(session.IdToken) || string.IsNullOrWhiteSpace(session.AppUserId))
-                {
-                    PersistCrashPending(crashType);
-                    return;
-                }
-
-                var content = AgentDiagnostics.BuildUploadSnapshot(DateTime.Now.AddHours(-2), true);
-                if (string.IsNullOrWhiteSpace(content)) return;
-                Queue(session, DateTime.Now, "crash", content);
-                _log("AGENT LOG queue=PASS type=crash");
+                TryDeleteCleanExitMarker();
+                var marker = "CRASH_MARKER=" + AgentDiagnostics.Sanitize(crashType ?? "UNKNOWN");
+                var path = SealFromCheckpoint("crash", marker);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                if (!string.IsNullOrWhiteSpace(path)) _log("AGENT LOG seal=PASS type=crash");
             }
-            catch
+            catch (Exception ex)
             {
-                PersistCrashPending(crashType);
+                _log("AGENT LOG crash=LOCAL_PENDING type=" + ex.GetType().Name);
             }
         }
 
@@ -137,75 +184,267 @@ namespace SupraInventoryRelayAgent
 
             try
             {
-                var session = _sessionProvider();
-                if (session == null || string.IsNullOrWhiteSpace(session.IdToken) || string.IsNullOrWhiteSpace(session.AppUserId))
-                    return;
-                var content = AgentDiagnostics.BuildUploadSnapshot(DateTime.Now.AddMinutes(-30), true);
-                if (string.IsNullOrWhiteSpace(content)) return;
-                content = "ERROR_MARKER=" + AgentDiagnostics.Sanitize(errorType ?? "UNKNOWN") + Environment.NewLine +
-                          "ERROR_FINGERPRINT=" + fingerprint + Environment.NewLine +
-                          "REPEAT_SUPPRESSED_SINCE_LAST_SEND=" + suppressed.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
-                          content;
-                Queue(session, DateTime.Now, "error", content);
-                _log("AGENT LOG queue=PASS type=error suppressed=" + suppressed);
+                var marker =
+                    "ERROR_MARKER=" + AgentDiagnostics.Sanitize(errorType ?? "UNKNOWN") + Environment.NewLine +
+                    "ERROR_FINGERPRINT=" + fingerprint + Environment.NewLine +
+                    "REPEAT_SUPPRESSED_SINCE_LAST_SEND=" + suppressed.ToString(CultureInfo.InvariantCulture);
+                var path = SealFromCheckpoint("error", marker);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                if (!string.IsNullOrWhiteSpace(path))
+                    _log("AGENT LOG seal=PASS type=error suppressed=" + suppressed);
             }
             catch (Exception ex)
             {
-                _log("AGENT LOG queue=DEFER type=error detail=" + ex.GetType().Name);
+                _log("AGENT LOG error=LOCAL_PENDING type=" + ex.GetType().Name);
             }
         }
 
-        private static string ErrorFingerprint(string value)
-        {
-            var next = AgentDiagnostics.Sanitize(value ?? "UNKNOWN").ToUpperInvariant();
-            next = ErrorGuidPattern.Replace(next, "{GUID}");
-            next = ErrorHexPattern.Replace(next, "{HEX}");
-            next = ErrorNumberPattern.Replace(next, "{N}");
-            next = ErrorSpacePattern.Replace(next, " ").Trim();
-            if (next.Length == 0) next = "UNKNOWN";
-            return next.Length <= 320 ? next : next.Substring(0, 320);
-        }
-
+        // Kept under the existing method name so login/DPAPI restore call sites stay
+        // compatible. D158 expands it to recover any unclosed local segment and then
+        // flush all sealed bundles.
         internal void TryFlushPendingCrash()
         {
             try
             {
-                var pending = PendingCrashFile();
-                if (!File.Exists(pending)) return;
                 var session = _sessionProvider();
-                if (session == null || string.IsNullOrWhiteSpace(session.IdToken) || string.IsNullOrWhiteSpace(session.AppUserId))
-                    return;
+                if (!UsableSession(session)) return;
 
-                var marker = File.ReadAllText(pending, Encoding.UTF8);
-                var content = AgentDiagnostics.BuildUploadSnapshot(DateTime.Now.AddHours(-6), true);
-                if (!string.IsNullOrWhiteSpace(marker))
-                    content = "CRASH_MARKER=" + AgentDiagnostics.Sanitize(marker) + Environment.NewLine + content;
-                if (string.IsNullOrWhiteSpace(content)) return;
+                var clean = File.Exists(_cleanExitFile);
+                TryDeleteCleanExitMarker();
+                var checkpoint = ReadCheckpoint();
+                if (!clean &&
+                    checkpoint != DateTime.MinValue &&
+                    _processStartedLocal - checkpoint > TimeSpan.FromSeconds(15))
+                {
+                    var recovered = SealFromCheckpoint("recovery", "RECOVERY_PREVIOUS_UNCLEAN=true");
+                    if (!string.IsNullOrWhiteSpace(recovered))
+                        _log("AGENT LOG recovery=SEALED previous_session_unclean=true");
+                }
 
-                Queue(session, DateTime.Now, "crash", content);
-                File.Delete(pending);
-                _log("AGENT LOG pending-crash=FLUSHED");
+                TryFlushPending(session);
             }
             catch (Exception ex)
             {
-                _log("AGENT LOG pending-crash=DEFER type=" + ex.GetType().Name);
+                _log("AGENT LOG pending=DEFER type=" + ex.GetType().Name);
             }
         }
 
-        private void Queue(AgentSession session, DateTime generatedLocal, string kind, string content)
+        internal void SealLogoutAndFlush(AgentSession session)
         {
-            var safe = AgentDiagnostics.SanitizeBundle(content);
-            if (string.IsNullOrWhiteSpace(safe)) return;
+            try
+            {
+                SealFromCheckpoint("session", "AGENT_SESSION_FINAL=true");
+                if (UsableSession(session))
+                    Task.Run(() => TryFlushPending(session));
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG logout_seal=DEFER type=" + ex.GetType().Name);
+            }
+        }
 
-            var uploadId = Guid.NewGuid().ToString("N");
+        internal void SealPlannedExit(string exitKind)
+        {
+            try
+            {
+                SealFromCheckpoint(
+                    string.Equals(exitKind, "windows_shutdown", StringComparison.OrdinalIgnoreCase)
+                        ? "session"
+                        : "session",
+                    "PROCESS_EXIT=" + AgentDiagnostics.Sanitize(exitKind ?? "planned"));
+                var dir = Path.GetDirectoryName(_cleanExitFile);
+                if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(_cleanExitFile, DateTime.Now.ToString("O", CultureInfo.InvariantCulture), Encoding.ASCII);
+            }
+            catch { }
+        }
+
+        private string SealFromCheckpoint(string kind, string prefix)
+        {
+            lock (_sealGate)
+            {
+                // Local log lines are timestamped to millisecond precision. Use an
+                // exact millisecond boundary and a half-open [since, until) range so
+                // concurrent writes cannot be captured by two sealed bundles or lost
+                // between the snapshot and checkpoint update.
+                var now = FloorToLogMillisecond(DateTime.Now);
+                var since = ReadCheckpoint();
+                if (since == DateTime.MinValue) since = FloorToLogMillisecond(_processStartedLocal);
+
+                var content = AgentDiagnostics.BuildUploadSnapshot(
+                    since,
+                    now,
+                    string.Equals(kind, "crash", StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(prefix))
+                    content = prefix + Environment.NewLine + content;
+                content = AgentDiagnostics.SanitizeBundle(content);
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    WriteCheckpoint(now);
+                    return "";
+                }
+
+                Directory.CreateDirectory(_pendingDir);
+                var normalizedKind = NormalizeKind(kind);
+                var contentHash = Sha256Hex(content);
+                var firstMs = new DateTimeOffset(since).ToUnixTimeMilliseconds();
+                var lastMs = new DateTimeOffset(now).ToUnixTimeMilliseconds();
+                var bundleId = Sha256Hex(
+                    "AGENT|" + _instanceId + "|" + Environment.MachineName + "|" +
+                    firstMs.ToString(CultureInfo.InvariantCulture) + "|" +
+                    lastMs.ToString(CultureInfo.InvariantCulture) + "|" + contentHash);
+                var filename = normalizedKind + "_agent_" + SafeSlug(Environment.MachineName) + "_" +
+                               now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture) + ".log";
+                var pendingPath = Path.Combine(_pendingDir, bundleId + ".json");
+
+                if (!File.Exists(pendingPath))
+                {
+                    var payload = new Dictionary<string, object>
+                    {
+                        { "schema_version", 1 },
+                        { "bundle_id", bundleId },
+                        { "source", "AGENT" },
+                        { "kind", normalizedKind },
+                        { "file_name", filename },
+                        { "machine", Environment.MachineName },
+                        { "agent_instance_id", _instanceId },
+                        { "first_at_ms", firstMs },
+                        { "last_at_ms", lastMs },
+                        { "content_hash", contentHash },
+                        { "content", content }
+                    };
+                    var temp = pendingPath + ".tmp";
+                    File.WriteAllText(temp, _json.Serialize(payload), Encoding.UTF8);
+                    if (File.Exists(pendingPath)) File.Delete(temp);
+                    else File.Move(temp, pendingPath);
+                }
+
+                WriteCheckpoint(now);
+                _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
+                return pendingPath;
+            }
+        }
+
+        private void TryFlushPending(AgentSession session)
+        {
+            if (!UsableSession(session)) return;
+            if (_nextUploadAttemptUtc != DateTime.MinValue && DateTime.UtcNow < _nextUploadAttemptUtc) return;
+            string[] files;
+            try
+            {
+                Directory.CreateDirectory(_pendingDir);
+                files = Directory.GetFiles(_pendingDir, "*.json")
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .Take(24)
+                    .ToArray();
+            }
+            catch { return; }
+
+            foreach (var path in files)
+            {
+                try
+                {
+                    var raw = File.ReadAllText(path, Encoding.UTF8);
+                    var bundle = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                    if (bundle == null) continue;
+                    var uploaded = GatewayEnabled()
+                        ? UploadGateway(session, bundle)
+                        : UploadLegacyFirestore(session, bundle);
+                    if (!uploaded)
+                    {
+                        RegisterUploadFailure();
+                        break;
+                    }
+                    _uploadFailureStreak = 0;
+                    _nextUploadAttemptUtc = DateTime.MinValue;
+                    File.Delete(path);
+                    _log("AGENT LOG upload=PASS transport=" +
+                         (GatewayEnabled() ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
+                         " bundle=" + Short(Value(bundle, "bundle_id")));
+                }
+                catch (Exception ex)
+                {
+                    RegisterUploadFailure();
+                    _log("AGENT LOG upload=DEFER transport=" +
+                         (GatewayEnabled() ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
+                         " type=" + ex.GetType().Name +
+                         " detail=" + AgentDiagnostics.Sanitize(ex.Message) +
+                         " retry_after=" + _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture));
+                    break;
+                }
+            }
+        }
+
+        private void RegisterUploadFailure()
+        {
+            _uploadFailureStreak = Math.Min(8, _uploadFailureStreak + 1);
+            var minutes = _uploadFailureStreak <= 1 ? 1 :
+                          (_uploadFailureStreak == 2 ? 2 :
+                          (_uploadFailureStreak == 3 ? 5 :
+                          (_uploadFailureStreak == 4 ? 15 : 30)));
+            _nextUploadAttemptUtc = DateTime.UtcNow.AddMinutes(minutes);
+        }
+
+        private bool UploadGateway(AgentSession session, Dictionary<string, object> bundle)
+        {
+            var url = (AgentConfig.AgentLogGatewayUrl ?? "").Trim();
+            Uri parsed;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out parsed) ||
+                !string.Equals(parsed.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var body = new Dictionary<string, object>
+            {
+                { "action", "upload_agent_log" },
+                { "id_token", session.IdToken ?? "" },
+                { "bundle_id", Value(bundle, "bundle_id") },
+                { "source", "AGENT" },
+                { "kind", Value(bundle, "kind") },
+                { "file_name", Value(bundle, "file_name") },
+                { "machine", Value(bundle, "machine") },
+                { "agent_instance_id", Value(bundle, "agent_instance_id") },
+                { "first_at_ms", LongValue(bundle, "first_at_ms") },
+                { "last_at_ms", LongValue(bundle, "last_at_ms") },
+                { "content_hash", Value(bundle, "content_hash") },
+                { "payload", Value(bundle, "content") }
+            };
+            var bytes = Encoding.UTF8.GetBytes(_json.Serialize(body));
+            var request = (HttpWebRequest)WebRequest.Create(parsed);
+            request.Method = "POST";
+            request.ContentType = "application/json; charset=utf-8";
+            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D158";
+            request.Timeout = 10000;
+            request.ReadWriteTimeout = 10000;
+            request.AllowAutoRedirect = true;
+            request.ContentLength = bytes.Length;
+            using (var stream = request.GetRequestStream())
+                stream.Write(bytes, 0, bytes.Length);
+            using (var response = (HttpWebResponse)request.GetResponse())
+            using (var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
+            {
+                var text = reader.ReadToEnd();
+                if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300) return false;
+                var result = _json.DeserializeObject(text) as Dictionary<string, object>;
+                object ok;
+                return result != null && result.TryGetValue("ok", out ok) && Convert.ToBoolean(ok);
+            }
+        }
+
+        private bool UploadLegacyFirestore(AgentSession session, Dictionary<string, object> bundle)
+        {
+            var safe = AgentDiagnostics.SanitizeBundle(Value(bundle, "content"));
+            if (string.IsNullOrWhiteSpace(safe)) return true;
+
+            var bundleId = Value(bundle, "bundle_id");
+            var uploadId = string.IsNullOrWhiteSpace(bundleId)
+                ? Guid.NewGuid().ToString("N")
+                : bundleId.Substring(0, Math.Min(32, bundleId.Length));
             var chunks = Split(safe, MaxChunkChars);
-            var normalizedKind = string.Equals(kind, "crash", StringComparison.OrdinalIgnoreCase)
-                ? "crash"
-                : (string.Equals(kind, "error", StringComparison.OrdinalIgnoreCase) ? "error" : "scheduled");
-            var filename = normalizedKind + "_agent_" + SafeSlug(Environment.MachineName) + "_" +
-                           generatedLocal.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture) + ".log";
-            var generatedAtMs = new DateTimeOffset(generatedLocal).ToUnixTimeMilliseconds();
-            var crash = normalizedKind == "crash";
+            var kind = Value(bundle, "kind");
+            var filename = Value(bundle, "file_name");
+            var generatedAtMs = LongValue(bundle, "last_at_ms");
+            var crash = string.Equals(kind, "crash", StringComparison.OrdinalIgnoreCase);
 
             for (var index = 0; index < chunks.Count; index++)
             {
@@ -226,42 +465,67 @@ namespace SupraInventoryRelayAgent
                     { "content", StringField(chunks[index]) }
                 };
 
-                var url = AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') +
-                          "/relay_agent_log_uploads/" + Uri.EscapeDataString(docId);
+                var firestoreUrl = AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') +
+                                   "/relay_agent_log_uploads/" + Uri.EscapeDataString(docId);
                 FirestoreHttpTransport.SendJson(
                     "PATCH",
-                    url,
+                    firestoreUrl,
                     session.IdToken,
                     _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
-                    "Agent-Auto-Confirm-Pick-Pack/D101",
+                    "Agent-Auto-Confirm-Pick-Pack/D158",
                     10000,
                     false,
                     _log,
                     "AGENT_LOG_UPLOAD");
             }
+            return true;
         }
 
-        private static List<string> Split(string value, int size)
+        private bool GatewayEnabled()
         {
-            var result = new List<string>();
-            if (string.IsNullOrEmpty(value))
-            {
-                result.Add("");
-                return result;
-            }
-            for (var offset = 0; offset < value.Length; offset += size)
-                result.Add(value.Substring(offset, Math.Min(size, value.Length - offset)));
-            return result;
+            var value = (AgentConfig.AgentLogGatewayUrl ?? "").Trim();
+            Uri uri;
+            return value.Length > 0 &&
+                   value.IndexOf("__", StringComparison.Ordinal) < 0 &&
+                   Uri.TryCreate(value, UriKind.Absolute, out uri) &&
+                   string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static DateTime ResolveLatestSlot(DateTime now)
+        private AgentSession SafeSession()
         {
-            if (now.Hour < 6) return DateTime.MinValue;
-            var slots = new[] { 6, 12, 18, 21 };
-            var hour = 6;
-            foreach (var candidate in slots)
-                if (candidate <= now.Hour) hour = candidate;
-            return new DateTime(now.Year, now.Month, now.Day, hour, 0, 0, DateTimeKind.Local);
+            try { return _sessionProvider(); } catch { return null; }
+        }
+
+        private static bool UsableSession(AgentSession session)
+        {
+            return session != null &&
+                   !string.IsNullOrWhiteSpace(session.IdToken) &&
+                   !string.IsNullOrWhiteSpace(session.AppUserId);
+        }
+
+        private void TryDeleteCleanExitMarker()
+        {
+            try { if (File.Exists(_cleanExitFile)) File.Delete(_cleanExitFile); } catch { }
+        }
+
+        private static string NormalizeKind(string kind)
+        {
+            var value = (kind ?? "").Trim().ToLowerInvariant();
+            if (value == "crash" || value == "error" || value == "recovery" ||
+                value == "manual" || value == "session" || value == "checkpoint")
+                return value;
+            return "checkpoint";
+        }
+
+        private static string ErrorFingerprint(string value)
+        {
+            var next = AgentDiagnostics.Sanitize(value ?? "UNKNOWN").ToUpperInvariant();
+            next = ErrorGuidPattern.Replace(next, "{GUID}");
+            next = ErrorHexPattern.Replace(next, "{HEX}");
+            next = ErrorNumberPattern.Replace(next, "{N}");
+            next = ErrorSpacePattern.Replace(next, " ").Trim();
+            if (next.Length == 0) next = "UNKNOWN";
+            return next.Length <= 320 ? next : next.Substring(0, 320);
         }
 
         private DateTime ReadCheckpoint()
@@ -286,30 +550,54 @@ namespace SupraInventoryRelayAgent
             {
                 var dir = Path.GetDirectoryName(_checkpointFile);
                 if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_checkpointFile, value.ToString("O", CultureInfo.InvariantCulture), Encoding.ASCII);
+                var temp = _checkpointFile + ".tmp";
+                File.WriteAllText(temp, value.ToString("O", CultureInfo.InvariantCulture), Encoding.ASCII);
+                if (File.Exists(_checkpointFile)) File.Delete(_checkpointFile);
+                File.Move(temp, _checkpointFile);
             }
             catch { }
         }
 
-        private void PersistCrashPending(string crashType)
+        private static DateTime FloorToLogMillisecond(DateTime value)
         {
-            try
+            var ticks = value.Ticks - (value.Ticks % TimeSpan.TicksPerMillisecond);
+            return new DateTime(ticks, value.Kind);
+        }
+
+        private static List<string> Split(string value, int size)
+        {
+            var result = new List<string>();
+            if (string.IsNullOrEmpty(value))
             {
-                var path = PendingCrashFile();
-                var dir = Path.GetDirectoryName(path);
-                if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(
-                    path,
-                    DateTime.Now.ToString("O", CultureInfo.InvariantCulture) + " " + AgentDiagnostics.Sanitize(crashType ?? "UNKNOWN"),
-                    Encoding.UTF8);
+                result.Add("");
+                return result;
             }
-            catch { }
+            for (var offset = 0; offset < value.Length; offset += size)
+                result.Add(value.Substring(offset, Math.Min(size, value.Length - offset)));
+            return result;
         }
 
-        private string PendingCrashFile()
+        private static string Sha256Hex(string value)
         {
-            var dir = Path.GetDirectoryName(_checkpointFile);
-            return Path.Combine(string.IsNullOrWhiteSpace(dir) ? AppDomain.CurrentDomain.BaseDirectory : dir, "crash-upload.pending");
+            using (var sha = SHA256.Create())
+            {
+                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(value ?? ""));
+                var builder = new StringBuilder(hash.Length * 2);
+                foreach (var b in hash) builder.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+                return builder.ToString();
+            }
+        }
+
+        private static string Value(Dictionary<string, object> map, string key)
+        {
+            object value;
+            return map != null && map.TryGetValue(key, out value) ? Convert.ToString(value, CultureInfo.InvariantCulture) ?? "" : "";
+        }
+
+        private static long LongValue(Dictionary<string, object> map, string key)
+        {
+            long value;
+            return long.TryParse(Value(map, key), NumberStyles.Integer, CultureInfo.InvariantCulture, out value) ? value : 0L;
         }
 
         private static string SafeSlug(string value)
@@ -319,6 +607,12 @@ namespace SupraInventoryRelayAgent
                 next.Append(char.IsLetterOrDigit(ch) || ch == '-' || ch == '_' ? ch : '-');
             var result = next.ToString().Trim('-');
             return string.IsNullOrWhiteSpace(result) ? "agent" : result.Substring(0, Math.Min(48, result.Length));
+        }
+
+        private static string Short(string value)
+        {
+            var next = value ?? "";
+            return next.Length <= 12 ? next : next.Substring(0, 12);
         }
 
         private static Dictionary<string, object> StringField(string value)

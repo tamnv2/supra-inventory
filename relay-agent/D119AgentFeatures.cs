@@ -93,11 +93,15 @@ namespace SupraInventoryRelayAgent
         private readonly HashSet<string> _pickerCallPending =
             new HashSet<string>(StringComparer.Ordinal);
         private string _d135CounterDayKey = "";
+        private readonly object _d158CounterDayGate = new object();
+        private string _d158LocalCounterDayKey = "";
         private long _d135CounterReceivedFloor;
         private long _d135CounterConfirmedFloor;
         private long _d135CounterErrorFloor;
         private long _agentSyncReconcileRunning;
         private DateTime _lastAgentSyncReconcileUtc = DateTime.MinValue;
+        private string _lastD158DailyCounterReadDay = "";
+        private string _lastD158DailyCounterReadGeneration = "";
         private DateTime _lastD150DeepSyncReadUtc = DateTime.MinValue;
         private long _d150DeepSyncReadRunning;
         private bool? _pickerWindowOpenState;
@@ -305,6 +309,7 @@ namespace SupraInventoryRelayAgent
             _d119OpsTimer.Interval = 30000;
             _d119OpsTimer.Tick += (s, e) =>
             {
+                EnsureD158BusinessCounterDay();
                 RefreshPickerWindowBoundary();
                 ExpirePickerCallLocks();
                 RefreshD119OperationalViews(false);
@@ -1076,6 +1081,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             _agentSyncSnapshot = snapshot;
+            if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
             {
@@ -1109,19 +1115,29 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
+            var currentCounterDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+            var snapshotCounterDay = snapshot.CounterDayKey ?? "";
             _fleetSnapshot = new FleetMetricSnapshot
             {
-                DayKey = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow),
+                DayKey = snapshotCounterDay,
                 ReceivedTotal = Math.Max(0L, snapshot.ReceivedTotal),
                 ConfirmedTotal = Math.Max(0L, snapshot.ConfirmedTotal),
                 ErrorTotal = Math.Max(0L, snapshot.ErrorTotal),
                 OwnerAgentId = "D134_AGENT_SYNC"
             };
-            MergeD135CounterSnapshot(
-                _fleetSnapshot.DayKey,
-                _fleetSnapshot.ReceivedTotal,
-                _fleetSnapshot.ConfirmedTotal,
-                _fleetSnapshot.ErrorTotal);
+            if (string.Equals(snapshotCounterDay, currentCounterDay, StringComparison.Ordinal))
+            {
+                MergeD135CounterSnapshot(
+                    _fleetSnapshot.DayKey,
+                    _fleetSnapshot.ReceivedTotal,
+                    _fleetSnapshot.ConfirmedTotal,
+                    _fleetSnapshot.ErrorTotal);
+            }
+            else if (!string.IsNullOrWhiteSpace(snapshotCounterDay))
+            {
+                Log("D158 COUNTER stale_sync=IGNORED snapshot_day=" + snapshotCounterDay +
+                    " current_day=" + currentCounterDay);
+            }
             if (_leaderCoordinator != null)
             {
                 _leaderCoordinator.ApplySyncedFleet(snapshot.Fleet);
@@ -1208,6 +1224,49 @@ namespace SupraInventoryRelayAgent
             RenderPickerOnlineSnapshot();
         }
 
+        private void EnsureD158BusinessCounterDay()
+        {
+            var current = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+            var changed = false;
+            lock (_d158CounterDayGate)
+            {
+                if (string.Equals(_d158LocalCounterDayKey, current, StringComparison.Ordinal)) return;
+                _d158LocalCounterDayKey = current;
+                Interlocked.Exchange(ref _localPdaRequests, 0L);
+                Interlocked.Exchange(ref _localAgentResponses, 0L);
+                Interlocked.Exchange(ref _localConfirmSuccess, 0L);
+                Interlocked.Exchange(ref _localConfirmFailed, 0L);
+                _d135CounterDayKey = current;
+                _d135CounterReceivedFloor = 0L;
+                _d135CounterConfirmedFloor = 0L;
+                _d135CounterErrorFloor = 0L;
+                if (_fleetSnapshot == null || !string.Equals(_fleetSnapshot.DayKey, current, StringComparison.Ordinal))
+                    _fleetSnapshot = new FleetMetricSnapshot { DayKey = current };
+                changed = true;
+            }
+            if (changed)
+                Log("D158 COUNTER day_reset=PASS business_day=" + current + " boundary=05:00 local_only=true");
+        }
+
+        private void RecordD158PdaRequest()
+        {
+            EnsureD158BusinessCounterDay();
+            Interlocked.Increment(ref _localPdaRequests);
+        }
+
+        private void RecordD158AgentResponse()
+        {
+            EnsureD158BusinessCounterDay();
+            Interlocked.Increment(ref _localAgentResponses);
+        }
+
+        private void RecordD158ConfirmOutcome(bool success)
+        {
+            EnsureD158BusinessCounterDay();
+            if (success) Interlocked.Increment(ref _localConfirmSuccess);
+            else Interlocked.Increment(ref _localConfirmFailed);
+        }
+
         private void MergeD135CounterSnapshot(string dayKey, long received, long confirmed, long error)
         {
             var key = string.IsNullOrWhiteSpace(dayKey)
@@ -1235,9 +1294,10 @@ namespace SupraInventoryRelayAgent
             }
             if (outcome == null) return;
 
-            var key = string.IsNullOrWhiteSpace(dayKey)
-                ? FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow)
-                : dayKey;
+            EnsureD158BusinessCounterDay();
+            // D158 counter boundary is terminal/ACK time. A request created before 05:00
+            // but ACKed after 05:00 belongs to the new operational day for the Agent UI.
+            var key = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
             var snapshot = _fleetSnapshot;
             if (!string.Equals(_d135CounterDayKey, key, StringComparison.Ordinal))
             {
@@ -1261,8 +1321,10 @@ namespace SupraInventoryRelayAgent
 
         private void GetD135DisplayCounters(out long received, out long confirmed, out long error)
         {
+            EnsureD158BusinessCounterDay();
+            var current = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
             var snapshot = _fleetSnapshot;
-            if (snapshot != null)
+            if (snapshot != null && string.Equals(snapshot.DayKey, current, StringComparison.Ordinal))
                 MergeD135CounterSnapshot(snapshot.DayKey, snapshot.ReceivedTotal, snapshot.ConfirmedTotal, snapshot.ErrorTotal);
             received = Math.Max(0L, _d135CounterReceivedFloor);
             confirmed = Math.Max(0L, _d135CounterConfirmedFloor);
@@ -1337,11 +1399,27 @@ namespace SupraInventoryRelayAgent
                     Dictionary<string, PickerContactCommand> openCalls = null;
                     try { openCalls = _pickerContactClient.LoadOpen(session); }
                     catch (Exception ex) { Log("PICKER_ACTIVE_CALL reconcile=DEFER detail=" + SafeMessage(ex)); }
-                    var metrics = _fleetMetricsClient.RefreshPrimary(
-                        session,
-                        _agentInstanceId,
-                        Interlocked.Read(ref _localPdaRequests),
-                        Interlocked.Read(ref _localAgentResponses));
+                    var counterDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                    var generation = _leaderCoordinator == null ? "" : (_leaderCoordinator.Generation ?? "");
+                    long counterReceived;
+                    long counterConfirmed;
+                    long counterError;
+                    var needDurableRecoveryRead =
+                        !string.Equals(_lastD158DailyCounterReadDay, counterDay, StringComparison.Ordinal) ||
+                        !string.Equals(_lastD158DailyCounterReadGeneration, generation, StringComparison.Ordinal);
+                    if (needDurableRecoveryRead)
+                    {
+                        var metrics = _fleetMetricsClient.RefreshPrimary(
+                            session,
+                            _agentInstanceId,
+                            Interlocked.Read(ref _localPdaRequests),
+                            Interlocked.Read(ref _localAgentResponses));
+                        _lastD158DailyCounterReadDay = counterDay;
+                        _lastD158DailyCounterReadGeneration = generation;
+                        MergeD135CounterSnapshot(metrics.DayKey, metrics.ReceivedTotal, metrics.ConfirmedTotal, metrics.ErrorTotal);
+                    }
+                    GetD135DisplayCounters(out counterReceived, out counterConfirmed, out counterError);
+
                     var fleet = _leaderCoordinator == null
                         ? new List<AgentPresenceView>()
                         : _leaderCoordinator.OnlineAgents;
@@ -1350,9 +1428,9 @@ namespace SupraInventoryRelayAgent
                         pickers,
                         openCalls,
                         fleet,
-                        metrics.ReceivedTotal,
-                        metrics.ConfirmedTotal,
-                        metrics.ErrorTotal);
+                        counterReceived,
+                        counterConfirmed,
+                        counterError);
                     _lastAgentSyncReconcileUtc = DateTime.UtcNow;
                     ApplyD134AgentSyncSnapshot(snapshot);
                     Log("AGENT_SYNC reconcile=PASS cadence=5m max_agents=10");
@@ -1844,6 +1922,7 @@ namespace SupraInventoryRelayAgent
 
         private void RefreshAgentRequestMetrics()
         {
+            EnsureD158BusinessCounterDay();
             if (InvokeRequired)
             {
                 BeginInvoke(new Action(RefreshAgentRequestMetrics));

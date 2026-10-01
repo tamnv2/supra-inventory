@@ -2557,3 +2557,27 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - The v92 repair is accepted: authenticated PRIMARY/NEXT_A/NEXT_B Agents can view synchronized Agent/User and active Picker lists without PRIMARY promotion; login and CLOSED→ACTIVE repaint already-held in-memory sync state without new provider reads/writes.
 - D137 real Page.reload/F5 semantics remain frozen; no WebView2/browser-runtime optimization was introduced.
 - No new provider resource, Firestore collection, secret, Android release, polling cadence or Stable mutation was introduced. Stable remains OWNER-GATED and untouched.
+
+## D158 — Agent v93 speed/stability/usage reuse + health/counter/log lifecycle — Owner approved 2026-10-01
+
+D158 starts from the **Owner-accepted D157 base**. It is Windows-Agent-only; Android **beta-vc92 is hard-locked and must not be rebuilt, changed or released**. Stable remains OWNER-GATED.
+
+Owner-approved requirements:
+- Preserve D157 business safety and timing as the minimum contract: PRIMARY REST 3s active / 1s hot / 15s inactive fallback, 10s PRIMARY lease, 15s failover, confirmation guard, generation fence, rate-limit, D137 real Page.reload/F5 and WMS exact-row mutation semantics.
+- Reuse data already travelling through an accepted path before issuing another provider read/write. A fast path may shorten the path, but failure must fall back to D157 rather than create a weaker/slower mode.
+- The PRIMARY Firestore Listen event may carry the full PENDING document into the existing single confirmation pipeline. REST remains independent fallback; no second WMS business path is authorized.
+- A successful authoritative roles read used by the pre-WMS mutation fence also satisfies the periodic role-refresh proof.
+- AgentSync mutations may reuse the current listener snapshot + updateTime CAS; exact GET remains fallback for missing cache or conflict.
+- Connection health is role-aware. NEXT_A/NEXT_B must not be reported offline merely because only PRIMARY performs business queue polls. Login must converge to and render the actual PRIMARY/NEXT_A/NEXT_B/DEEP role.
+- Firestore gRPC Listen routing must use one canonical full database resource identity. The field-observed database/header mismatch is a D158 defect target.
+- New resilience reads are allowed only when they improve degraded-path speed/stability and are locally bounded to at most **2,000 additional reads per provider quota day**. Normal operation is expected to use the same or fewer reads than D157.
+- Agent counters use the operational day **05:00 Asia/Ho_Chi_Minh → 04:59:59**. Process-local/UI/overlay counters reset before the first new-day render/increment; stale previous-day shared counters must not be merged.
+- Durable daily-counter provider reads are recovery reads, not a blind five-minute cadence: reload on business-day or PRIMARY-generation recovery, then use current RAM/shared state.
+- Agent support logs keep the two local streams but are sealed into durable non-overlapping bundles on 6h dirty, ~2 MiB, session/logout, error, crash, manual/recovery boundaries. Capture and upload are separate; logging never blocks PickList/WMS/ACK.
+- Target support-log transport is Beta Google Apps Script → the existing scoped Inventory/Beta/Logs Drive folder, with deterministic bundle idempotency and Firebase ADMIN/PICKPACK_ADMIN token validation. Firestore is retired **only from Agent support-log delivery** after real Office proof. Until the gateway is provisioned/configured, the D157 Firestore log transport remains the safe fallback.
+- No secret, password, token, WMS cookie/session/signature or signing material may be committed or written to support logs.
+
+D158 target release is **relay-agent-v93**. D157 remains the accepted project base until explicit Owner D158 PASS.
+
+Owner continuation on 2026-10-01: D158 field acceptance must use the **official normal-distribution `relay-agent-v93` release**, not a PR-only workflow artifact. PR artifacts remain technical evidence only. AI must merge the technically passing D158 PR, allow the existing main Agent workflow to publish `relay-agent-v93` and update the Agent channel, verify that release/channel evidence, and only then hand OA086 to the Owner for Office field proof. D157 remains the accepted base until explicit Owner D158 PASS.
+

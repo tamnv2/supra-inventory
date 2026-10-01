@@ -2,7 +2,7 @@ namespace SupraInventoryRelayAgent
 {
     internal static class AgentConfig
     {
-        internal const int AgentBuild = 92;
+        internal const int AgentBuild = 93;
         internal const string ApiBaseUrl = "https://inventory-beta.supra.cc.cd";
         internal const string FirebaseProjectId = "supra-inventory-beta";
         internal const string FirebaseApiKey = "__FIREBASE_API_KEY_BETA__";
@@ -26,6 +26,10 @@ namespace SupraInventoryRelayAgent
         internal const string DriveProbeUrl = "https://www.googleapis.com/drive/v3/about?fields=user";
         internal const string WmsPicklistConfirmUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm";
         internal const string GitHubReleasesApi = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
+        // D158: populated by the Beta build environment for the scoped
+        // Apps Script Office field candidate after Owner provisioning. Runtime
+        // cutover is field-proven before D157 Firestore support-log retirement.
+        internal const string AgentLogGatewayUrl = "__AGENT_LOG_GATEWAY_URL_BETA__";
         internal const string AgentUpdateManifestUrl = ApiBaseUrl + "/downloads/agent/manifest";
         internal const string AgentUpdateExeUrl = ApiBaseUrl + "/downloads/agent/latest";
         internal const string AgentUpdateChecksumUrl = ApiBaseUrl + "/downloads/agent/latest.sha256";

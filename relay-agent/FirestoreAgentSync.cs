@@ -41,6 +41,7 @@ namespace SupraInventoryRelayAgent
         internal Dictionary<string, PickerCallLockView> Calls = new Dictionary<string, PickerCallLockView>(StringComparer.Ordinal);
         internal Dictionary<string, PickerKickView> Kicks = new Dictionary<string, PickerKickView>(StringComparer.Ordinal);
         internal List<AgentPresenceView> Fleet = new List<AgentPresenceView>();
+        internal string CounterDayKey = "";
         internal long ReceivedTotal;
         internal long ConfirmedTotal;
         internal long ErrorTotal;
@@ -52,10 +53,23 @@ namespace SupraInventoryRelayAgent
         internal static readonly TimeSpan ReconcileInterval = TimeSpan.FromMinutes(5);
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly Action<string> _log;
+        private readonly object _cacheGate = new object();
+        private AgentSyncSnapshot _cachedSnapshot = new AgentSyncSnapshot();
 
         internal FirestoreAgentSyncClient(Action<string> log)
         {
             _log = log ?? delegate { };
+        }
+
+        internal void Remember(AgentSyncSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            lock (_cacheGate) _cachedSnapshot = CloneSnapshot(snapshot);
+        }
+
+        private AgentSyncSnapshot Cached()
+        {
+            lock (_cacheGate) return CloneSnapshot(_cachedSnapshot);
         }
 
         internal AgentSyncSnapshot Load(AgentSession session)
@@ -67,14 +81,21 @@ namespace SupraInventoryRelayAgent
                     "GET", AgentConfig.FirestoreAgentSyncUrl, session.IdToken, null,
                     "Agent-Auto-Confirm-Pick-Pack/D134", 7000, true, _log, "AGENT_SYNC_READ", 2);
                 var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                return ParseRestDocument(doc);
+                var snapshot = ParseRestDocument(doc);
+                Remember(snapshot);
+                return snapshot;
             }
             catch (WebException ex)
             {
                 var response = ex.Response as HttpWebResponse;
                 var status = response == null ? 0 : (int)response.StatusCode;
                 try { if (response != null) response.Dispose(); } catch { }
-                if (status == 404) return new AgentSyncSnapshot();
+                if (status == 404)
+                {
+                    var empty = new AgentSyncSnapshot();
+                    Remember(empty);
+                    return empty;
+                }
                 throw;
             }
         }
@@ -87,7 +108,12 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
-                    var current = Load(session);
+                    // D158: the listener already carries the latest exact agent_sync
+                    // document. Reuse that RAM snapshot on the normal path; CAS with
+                    // updateTime preserves correctness. A conflict falls back to GET.
+                    var current = attempt == 1 ? Cached() : Load(session);
+                    if (current == null || current.Version <= 0 || string.IsNullOrWhiteSpace(current.UpdateTime))
+                        current = Load(session);
                     Normalize(current);
                     var beforeState = SerializeMutableState(current);
                     if (mutation != null) mutation(current);
@@ -96,6 +122,7 @@ namespace SupraInventoryRelayAgent
                     if (string.Equals(beforeState, afterState, StringComparison.Ordinal))
                     {
                         _log(component + " write=SKIP_NO_CHANGE");
+                        Remember(current);
                         return current;
                     }
                     current.Version = Math.Max(current.Version + 1L, NowMs());
@@ -106,11 +133,14 @@ namespace SupraInventoryRelayAgent
                         suffix += "&currentDocument.updateTime=" + Uri.EscapeDataString(current.UpdateTime);
                     else
                         suffix += "&currentDocument.exists=false";
-                    FirestoreHttpTransport.SendJson(
+                    var raw = FirestoreHttpTransport.SendJson(
                         "PATCH", AgentConfig.FirestoreAgentSyncUrl + suffix, session.IdToken,
                         _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
-                        "Agent-Auto-Confirm-Pick-Pack/D134", 7000, false, _log, component);
-                    return current;
+                        "Agent-Auto-Confirm-Pick-Pack/D158", 7000, false, _log, component);
+                    var written = ParseRestDocument(_json.DeserializeObject(raw) as Dictionary<string, object>);
+                    if (written.Version <= 0) written = current;
+                    Remember(written);
+                    return written;
                 }
                 catch (WebException ex)
                 {
@@ -200,6 +230,7 @@ namespace SupraInventoryRelayAgent
                 }
                 snapshot.Calls = repairedCalls;
                 snapshot.Fleet = CloneFleet(fleet);
+                snapshot.CounterDayKey = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
                 snapshot.ReceivedTotal = Math.Max(0L, received);
                 snapshot.ConfirmedTotal = Math.Max(0L, confirmed);
                 snapshot.ErrorTotal = Math.Max(0L, error);
@@ -342,7 +373,10 @@ namespace SupraInventoryRelayAgent
                         break;
                 }
             }
-            return ParseFields(fields, "");
+            var updateTime = doc.UpdateTime == null
+                ? ""
+                : doc.UpdateTime.ToDateTime().ToUniversalTime().ToString("o", CultureInfo.InvariantCulture);
+            return ParseFields(fields, updateTime);
         }
 
         private static AgentSyncSnapshot ParseRestDocument(Dictionary<string, object> doc)
@@ -361,6 +395,7 @@ namespace SupraInventoryRelayAgent
             if (fields == null) return snapshot;
             snapshot.Version = FieldLong(fields, "version");
             snapshot.UpdatedAtMs = FieldLong(fields, "updated_at_ms");
+            snapshot.CounterDayKey = FieldString(fields, "counter_business_day");
             snapshot.ReceivedTotal = FieldLong(fields, "received_total");
             snapshot.ConfirmedTotal = FieldLong(fields, "confirmed_total");
             snapshot.ErrorTotal = FieldLong(fields, "error_total");
@@ -386,6 +421,7 @@ namespace SupraInventoryRelayAgent
                 { "calls_json", SerializeCalls(snapshot.Calls) },
                 { "kicks_json", SerializeKicks(snapshot.Kicks) },
                 { "fleet_json", SerializeFleet(stableFleet) },
+                { "counter_business_day", snapshot.CounterDayKey ?? "" },
                 { "received_total", Math.Max(0L, snapshot.ReceivedTotal) },
                 { "confirmed_total", Math.Max(0L, snapshot.ConfirmedTotal) },
                 { "error_total", Math.Max(0L, snapshot.ErrorTotal) }
@@ -403,6 +439,7 @@ namespace SupraInventoryRelayAgent
                 { "calls_json", StringField(SerializeCalls(snapshot.Calls)) },
                 { "kicks_json", StringField(SerializeKicks(snapshot.Kicks)) },
                 { "fleet_json", StringField(SerializeFleet(snapshot.Fleet)) },
+                { "counter_business_day", StringField(snapshot.CounterDayKey ?? "") },
                 { "received_total", IntField(snapshot.ReceivedTotal) },
                 { "confirmed_total", IntField(snapshot.ConfirmedTotal) },
                 { "error_total", IntField(snapshot.ErrorTotal) }
@@ -444,6 +481,50 @@ namespace SupraInventoryRelayAgent
                 StringComparison.OrdinalIgnoreCase));
             if (snapshot.Pickers.Count > 500) snapshot.Pickers.RemoveRange(500, snapshot.Pickers.Count - 500);
             if (snapshot.Fleet.Count > MaxAgents) snapshot.Fleet.RemoveRange(MaxAgents, snapshot.Fleet.Count - MaxAgents);
+        }
+
+        private static AgentSyncSnapshot CloneSnapshot(AgentSyncSnapshot source)
+        {
+            source = source ?? new AgentSyncSnapshot();
+            var next = new AgentSyncSnapshot
+            {
+                Version = source.Version,
+                UpdatedAtMs = source.UpdatedAtMs,
+                UpdateTime = source.UpdateTime ?? "",
+                CounterDayKey = source.CounterDayKey ?? "",
+                Pickers = ClonePickers(source.Pickers),
+                Fleet = CloneFleet(source.Fleet),
+                ReceivedTotal = Math.Max(0L, source.ReceivedTotal),
+                ConfirmedTotal = Math.Max(0L, source.ConfirmedTotal),
+                ErrorTotal = Math.Max(0L, source.ErrorTotal)
+            };
+            foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
+            {
+                var item = pair.Value;
+                if (item == null) continue;
+                next.Calls[pair.Key] = new PickerCallLockView
+                {
+                    TargetUserId = item.TargetUserId ?? "",
+                    CallId = item.CallId ?? "",
+                    SenderAgentId = item.SenderAgentId ?? "",
+                    SenderRole = item.SenderRole ?? "",
+                    Active = item.Active,
+                    LockUntilMs = item.LockUntilMs
+                };
+            }
+            foreach (var pair in source.Kicks ?? new Dictionary<string, PickerKickView>())
+            {
+                var item = pair.Value;
+                if (item == null) continue;
+                next.Kicks[pair.Key] = new PickerKickView
+                {
+                    UserId = item.UserId ?? "",
+                    FirebaseUid = item.FirebaseUid ?? "",
+                    RevokedGeneration = item.RevokedGeneration,
+                    KickedAtMs = item.KickedAtMs
+                };
+            }
+            return next;
         }
 
         private static List<PickerPresenceView> ClonePickers(IEnumerable<PickerPresenceView> source)
@@ -741,16 +822,11 @@ namespace SupraInventoryRelayAgent
                     if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
                         throw new InvalidOperationException("Agent sync thiếu Firebase token.");
 
-                    ApplyGrpcProxyFromWindows();
-                    PrepareGrpcNativeOverride();
+                    FirestoreD157Grpc.ApplyGrpcProxyFromWindows();
+                    FirestoreD157Grpc.PrepareGrpcNativeOverride();
                     channel = new Channel("firestore.googleapis.com", 443, new SslCredentials());
                     var client = new Google.Cloud.Firestore.V1.Firestore.FirestoreClient(channel);
-                    var headers = new Metadata
-                    {
-                        { "authorization", "Bearer " + session.IdToken },
-                        { "google-cloud-resource-prefix", AgentConfig.FirestoreDatabaseName },
-                        { "x-goog-request-params", BuildRequestParamsHeader() }
-                    };
+                    var headers = FirestoreD157Grpc.Headers(session);
                     using (var call = client.Listen(headers, cancellationToken: token))
                     {
                         var docs = new Target.Types.DocumentsTarget();
@@ -852,11 +928,7 @@ namespace SupraInventoryRelayAgent
 
         private static string BuildRequestParamsHeader()
         {
-            var parts = (AgentConfig.FirestoreDatabaseName ?? "").Split('/');
-            var projectId = parts.Length > 1 ? parts[1] : AgentConfig.FirebaseProjectId;
-            var databaseId = parts.Length > 3 ? parts[3] : "(default)";
-            return "project_id=" + Uri.EscapeDataString(projectId) +
-                   "&database_id=" + Uri.EscapeDataString(databaseId);
+            return FirestoreD157Grpc.RequestParamsHeader();
         }
 
         internal static bool SelfTestSafetyPolicy()
@@ -868,8 +940,7 @@ namespace SupraInventoryRelayAgent
                    PermanentFailureCooldown >= TimeSpan.FromMinutes(5) &&
                    InitialRetryMs >= 2000 &&
                    MaxRetryMs >= 60000 &&
-                   routing.IndexOf("project_id=", StringComparison.Ordinal) >= 0 &&
-                   routing.IndexOf("database_id=", StringComparison.Ordinal) >= 0 &&
+                   routing.IndexOf("database=", StringComparison.Ordinal) == 0 &&
                    !string.IsNullOrWhiteSpace(AgentConfig.FirestoreDatabaseName);
         }
 

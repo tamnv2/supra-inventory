@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Web.Script.Serialization;
+using Google.Cloud.Firestore.V1;
 
 namespace SupraInventoryRelayAgent
 {
@@ -203,6 +204,55 @@ namespace SupraInventoryRelayAgent
                 };
             }
             FirestoreQuotaGuard.RecordReadDocuments(returnedDocuments, "picker-contact-open-query", _log);
+        }
+
+        internal static PickerContactCommand ParseGrpcActiveCall(Google.Cloud.Firestore.V1.Document doc)
+        {
+            if (doc == null) return null;
+            var fields = doc.Fields;
+            Google.Cloud.Firestore.V1.Value status;
+            if (!fields.TryGetValue("status", out status) || status == null ||
+                !string.Equals(status.StringValue ?? "", "ACTIVE", StringComparison.Ordinal))
+                return null;
+            var target = GrpcString(fields, "target_user_id");
+            var callId = GrpcString(fields, "call_id");
+            var lockUntil = GrpcLong(fields, "lock_until_ms");
+            if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(callId) ||
+                lockUntil <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+                return null;
+            return new PickerContactCommand
+            {
+                AlertId = callId,
+                TargetUserId = target,
+                CommandType = "CALL_SPECIALIST",
+                Message = GrpcString(fields, "message"),
+                SenderAgentId = GrpcString(fields, "sender_agent_id"),
+                SenderRole = GrpcString(fields, "sender_role"),
+                UpdateTime = doc.UpdateTime == null ? "" : doc.UpdateTime.ToDateTime().ToUniversalTime().ToString("o"),
+                IsActiveCall = true,
+                LockUntilMs = lockUntil
+            };
+        }
+
+        internal static string TargetUserIdFromGrpcName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return "";
+            var index = name.LastIndexOf('/');
+            return index >= 0 && index + 1 < name.Length ? Uri.UnescapeDataString(name.Substring(index + 1)) : name;
+        }
+
+        private static string GrpcString(Google.Protobuf.Collections.MapField<string, Google.Cloud.Firestore.V1.Value> fields, string key)
+        {
+            Google.Cloud.Firestore.V1.Value value;
+            return fields != null && fields.TryGetValue(key, out value) && value != null
+                ? (value.StringValue ?? "")
+                : "";
+        }
+
+        private static long GrpcLong(Google.Protobuf.Collections.MapField<string, Google.Cloud.Firestore.V1.Value> fields, string key)
+        {
+            Google.Cloud.Firestore.V1.Value value;
+            return fields != null && fields.TryGetValue(key, out value) && value != null ? value.IntegerValue : 0L;
         }
 
         internal PickerContactCommand Send(

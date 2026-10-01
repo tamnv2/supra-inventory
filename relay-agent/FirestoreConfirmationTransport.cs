@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using Google.Cloud.Firestore.V1;
 
 namespace SupraInventoryRelayAgent
 {
@@ -69,6 +70,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _hasActivePda;
         private readonly Action<bool> _relayHealth;
         private long _lastPollTelemetryMs;
+        private long _lastRestPendingQueryMs;
         private long _hotUntilMs;
         private int _lastBusinessPendingCount;
         private string _lastOutcomeState = "";
@@ -177,16 +179,17 @@ namespace SupraInventoryRelayAgent
                         if (NowMs() - startedMs >= FirestoreAgentLeaderCoordinator.FailoverAfterMs)
                             _coordinator.RequestRoleRefreshBeforeBusiness();
                         _relayHealth(true);
-                        waitMs = NowMs() < _hotUntilMs
-                            ? PrimaryHotPollIntervalMs
-                            : (_hasActivePda() ? PrimaryActivePollIntervalMs : PrimaryInactivePollIntervalMs);
+                        waitMs = D158RemainingPollWaitMs();
+                        var desiredPollMs = D158DesiredPollIntervalMs();
                         _state(processed > 0
                             ? (string.IsNullOrWhiteSpace(_lastOutcomeState) ? "Relay: PRIMARY · đã xử lý yêu cầu PDA" : _lastOutcomeState)
-                            : (waitMs == PrimaryHotPollIntervalMs
+                            : (desiredPollMs == PrimaryHotPollIntervalMs
                                 ? "Relay: PRIMARY · HOT 1s · đang xả burst"
-                                : (waitMs == PrimaryActivePollIntervalMs
-                                    ? "Relay: PRIMARY · PDA hoạt động · 3s"
-                                    : "Relay: PRIMARY · không có PDA hoạt động · 15s")));
+                                : (desiredPollMs == 2000
+                                    ? "Relay: PRIMARY · realtime đang phục hồi · REST 2s"
+                                    : (desiredPollMs == PrimaryActivePollIntervalMs
+                                        ? "Relay: PRIMARY · PDA hoạt động · 3s"
+                                        : "Relay: PRIMARY · không có PDA hoạt động · 15s"))));
                     }
                 }
                 catch (WebException ex)
@@ -211,6 +214,23 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private int D158DesiredPollIntervalMs()
+        {
+            if (NowMs() < _hotUntilMs) return PrimaryHotPollIntervalMs;
+            if (!_hasActivePda()) return PrimaryInactivePollIntervalMs;
+            if (!D157PendingWakeSignal.IsConnected && FirestoreQuotaGuard.CanUseD158ResilienceRead)
+                return 2000;
+            return PrimaryActivePollIntervalMs;
+        }
+
+        private int D158RemainingPollWaitMs()
+        {
+            var desired = D158DesiredPollIntervalMs();
+            if (_lastRestPendingQueryMs <= 0) return 1000;
+            var elapsed = Math.Max(0L, NowMs() - _lastRestPendingQueryMs);
+            return Math.Max(1000, desired - (int)Math.Min(desired, elapsed));
+        }
+
         private sealed class PendingDocument
         {
             internal string Name = "";
@@ -224,7 +244,35 @@ namespace SupraInventoryRelayAgent
 
         private int ProcessOnce(AgentSession session)
         {
-            var docs = ReadPendingDocuments(session);
+            // D158: a healthy Listen response already contains the full PENDING
+            // document. Process it immediately, but keep the accepted REST query
+            // on its original cadence as an independent fallback.
+            var listenerDocs = ReadRealtimePendingDocuments();
+            var fallbackMs = D158DesiredPollIntervalMs();
+            var nowForPoll = NowMs();
+            var restDue = _lastRestPendingQueryMs == 0 ||
+                          nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
+            if (restDue && fallbackMs == 2000 && !FirestoreQuotaGuard.TryReserveD158ResilienceRead())
+            {
+                fallbackMs = PrimaryActivePollIntervalMs;
+                restDue = _lastRestPendingQueryMs == 0 ||
+                          nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
+            }
+            var docs = new List<PendingDocument>();
+            if (restDue || (listenerDocs.Count == 0 && _lastRestPendingQueryMs == 0))
+                docs.AddRange(ReadPendingDocuments(session));
+            if (listenerDocs.Count > 0)
+            {
+                var known = new HashSet<string>(docs.Where(x => x != null).Select(x => (x.Name ?? "") + "|" + (x.UpdateTime ?? "")), StringComparer.Ordinal);
+                foreach (var item in listenerDocs)
+                {
+                    if (item == null) continue;
+                    var key = (item.Name ?? "") + "|" + (item.UpdateTime ?? "");
+                    if (known.Add(key)) docs.Add(item);
+                }
+                LogPollTelemetry("D158_LISTEN_PAYLOAD", listenerDocs.Count, listenerDocs.Count);
+            }
+
             var eligible = new List<PendingDocument>();
             var processed = 0;
 
@@ -448,6 +496,7 @@ namespace SupraInventoryRelayAgent
                     if (parsed != null) docs.Add(parsed);
                 }
 
+                _lastRestPendingQueryMs = NowMs();
                 FirestoreQuotaGuard.RecordReadDocuments(docs.Count, "CONFIRM_PENDING_QUERY", _log);
                 LogPollTelemetry("QUERY_FRESH_ONLY", docs.Count, rowCount);
                 return docs;
@@ -458,6 +507,141 @@ namespace SupraInventoryRelayAgent
                      ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message));
                 throw;
             }
+        }
+
+        private List<PendingDocument> ReadRealtimePendingDocuments()
+        {
+            var result = new List<PendingDocument>();
+            foreach (var doc in D157PendingWakeSignal.DrainDocuments(MaxDocumentsPerPoll))
+            {
+                var parsed = ParsePendingDocument(doc);
+                if (parsed != null) result.Add(parsed);
+            }
+            return result;
+        }
+
+        private PendingDocument ParsePendingDocument(Google.Cloud.Firestore.V1.Document doc)
+        {
+            if (doc == null || string.IsNullOrWhiteSpace(doc.Name)) return null;
+            var jobId = Last(doc.Name);
+            var fields = (IDictionary<string, Google.Cloud.Firestore.V1.Value>)doc.Fields;
+            if (string.IsNullOrWhiteSpace(jobId) ||
+                !string.Equals(GrpcString(fields, "status"), "PENDING", StringComparison.Ordinal))
+                return null;
+
+            var source = GrpcString(fields, "source");
+            var requestId = GrpcString(fields, "request_id");
+            var createdAtMs = GrpcTimestampMs(fields, "created_at");
+            if (!string.Equals(requestId, jobId, StringComparison.Ordinal) || createdAtMs <= 0) return null;
+            var updateTime = doc.UpdateTime == null
+                ? ""
+                : doc.UpdateTime.ToDateTime().ToUniversalTime().ToString("o", CultureInfo.InvariantCulture);
+
+            if (string.Equals(source, "ANDROID_PRESENCE_V1", StringComparison.Ordinal))
+            {
+                if (!string.Equals(jobId, "picker_presence_current", StringComparison.Ordinal) ||
+                    GrpcLong(fields, "schema_version") != 4)
+                    return null;
+                return new PendingDocument
+                {
+                    Name = doc.Name,
+                    UpdateTime = updateTime,
+                    Source = source,
+                    PresenceSnapshot = ParseGrpcPresenceSnapshot(fields),
+                    PresenceReason = GrpcString(fields, "reason"),
+                    PresenceRemovedSessionsJson = GrpcString(fields, "removed_sessions_json")
+                };
+            }
+
+            if (!string.Equals(source, "ANDROID_CONFIRM_V1", StringComparison.Ordinal)) return null;
+            var suffix = GrpcString(fields, "suffix");
+            var pickerUid = GrpcString(fields, "picker_uid");
+            var pickerUserId = GrpcString(fields, "picker_user_id");
+            if (!ValidSuffix(suffix) || string.IsNullOrWhiteSpace(pickerUid) || string.IsNullOrWhiteSpace(pickerUserId))
+                return null;
+
+            return new PendingDocument
+            {
+                Name = doc.Name,
+                UpdateTime = updateTime,
+                Source = source,
+                Work = new FirestoreConfirmationWorkItem
+                {
+                    RequestId = jobId,
+                    Suffix = suffix,
+                    PickerUid = pickerUid,
+                    PickerUserId = pickerUserId,
+                    PickerEmployeeCode = GrpcString(fields, "picker_employee_code"),
+                    PickerDisplayName = GrpcString(fields, "picker_display_name"),
+                    PickerSessionGeneration = GrpcLong(fields, "picker_session_generation"),
+                    ClientSentAtMs = GrpcLong(fields, "client_sent_at_ms"),
+                    CreatedAtMs = createdAtMs
+                }
+            };
+        }
+
+        private static List<PickerPresenceView> ParseGrpcPresenceSnapshot(
+            IDictionary<string, Google.Cloud.Firestore.V1.Value> fields)
+        {
+            var result = new List<PickerPresenceView>();
+            Google.Cloud.Firestore.V1.Value pickers;
+            if (fields == null || !fields.TryGetValue("pickers", out pickers) ||
+                pickers == null || pickers.ArrayValue == null)
+                return result;
+
+            foreach (var raw in pickers.ArrayValue.Values)
+            {
+                if (raw == null || raw.MapValue == null) continue;
+                var item = (IDictionary<string, Google.Cloud.Firestore.V1.Value>)raw.MapValue.Fields;
+                var userId = GrpcString(item, "user_id");
+                if (string.IsNullOrWhiteSpace(userId)) continue;
+                result.Add(new PickerPresenceView
+                {
+                    UserId = userId,
+                    FirebaseUid = GrpcString(item, "firebase_uid"),
+                    SessionGeneration = GrpcLong(item, "session_generation"),
+                    Source = string.Equals(GrpcString(item, "source"), "PICKLIST", StringComparison.Ordinal) ? "PICKLIST" : "LOGIN",
+                    EmployeeCode = GrpcString(item, "employee_code"),
+                    DisplayName = GrpcString(item, "display_name"),
+                    ContractorName = GrpcString(item, "contractor_name"),
+                    DeviceId = GrpcString(item, "device_id"),
+                    LoginAt = GrpcString(item, "login_at"),
+                    DeviceSeenAt = GrpcString(item, "device_seen_at"),
+                    Status = "PDA_READY"
+                });
+                if (result.Count >= 2000) break;
+            }
+            return result;
+        }
+
+        private static string GrpcString(
+            IDictionary<string, Google.Cloud.Firestore.V1.Value> fields,
+            string key)
+        {
+            Google.Cloud.Firestore.V1.Value value;
+            return fields != null && fields.TryGetValue(key, out value) && value != null
+                ? (value.StringValue ?? "")
+                : "";
+        }
+
+        private static long GrpcLong(
+            IDictionary<string, Google.Cloud.Firestore.V1.Value> fields,
+            string key)
+        {
+            Google.Cloud.Firestore.V1.Value value;
+            return fields != null && fields.TryGetValue(key, out value) && value != null
+                ? value.IntegerValue
+                : 0L;
+        }
+
+        private static long GrpcTimestampMs(
+            IDictionary<string, Google.Cloud.Firestore.V1.Value> fields,
+            string key)
+        {
+            Google.Cloud.Firestore.V1.Value value;
+            if (fields == null || !fields.TryGetValue(key, out value) || value == null || value.TimestampValue == null)
+                return 0L;
+            return new DateTimeOffset(value.TimestampValue.ToDateTime().ToUniversalTime()).ToUnixTimeMilliseconds();
         }
 
         private PendingDocument ParsePendingDocument(Dictionary<string, object> doc)

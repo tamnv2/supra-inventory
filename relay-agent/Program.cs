@@ -242,6 +242,12 @@ namespace SupraInventoryRelayAgent
         internal static Action<string> CrashUploadCallback { get; set; }
         internal static Action<string> ErrorUploadCallback { get; set; }
         private static int _errorUploadCallbackRunning;
+        private static long _totalBytesWritten;
+
+        internal static long TotalBytesWritten
+        {
+            get { return Math.Max(0L, Interlocked.Read(ref _totalBytesWritten)); }
+        }
 
         internal static void Initialize()
         {
@@ -348,8 +354,11 @@ namespace SupraInventoryRelayAgent
                 {
                     if (!string.IsNullOrWhiteSpace(path))
                     {
-                        RotateIfNeeded(path, Encoding.UTF8.GetByteCount(line + Environment.NewLine));
-                        File.AppendAllText(path, line + Environment.NewLine, Encoding.UTF8);
+                        var serialized = line + Environment.NewLine;
+                        var bytes = Encoding.UTF8.GetByteCount(serialized);
+                        RotateIfNeeded(path, bytes);
+                        File.AppendAllText(path, serialized, Encoding.UTF8);
+                        Interlocked.Add(ref _totalBytesWritten, Math.Max(0, bytes));
                     }
                 }
             }
@@ -380,11 +389,11 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
-        internal static string BuildUploadSnapshot(DateTime sinceLocal, bool crash)
+        internal static string BuildUploadSnapshot(DateTime sinceLocal, DateTime untilLocalExclusive, bool crash)
         {
             var builder = new StringBuilder();
-            AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal);
-            AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal);
+            AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal, untilLocalExclusive);
+            AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal, untilLocalExclusive);
             var content = builder.ToString();
             var cap = crash ? 800000 : 4000000;
             if (content.Length > cap)
@@ -392,7 +401,12 @@ namespace SupraInventoryRelayAgent
             return SanitizeBundle(content, cap);
         }
 
-        private static void AppendSnapshotStream(StringBuilder builder, string title, string currentPath, DateTime sinceLocal)
+        private static void AppendSnapshotStream(
+            StringBuilder builder,
+            string title,
+            string currentPath,
+            DateTime sinceLocal,
+            DateTime untilLocalExclusive)
         {
             if (string.IsNullOrWhiteSpace(currentPath)) return;
             var paths = new List<string>();
@@ -404,7 +418,10 @@ namespace SupraInventoryRelayAgent
             if (File.Exists(currentPath)) paths.Add(currentPath);
             if (paths.Count == 0) return;
 
-            builder.AppendLine("===== " + title + " =====");
+            // D158: do not manufacture a network bundle from stream headers alone.
+            // Collect matching durable log lines first and emit the section only when
+            // the checkpoint range actually contains diagnostic data.
+            var stream = new StringBuilder();
             foreach (var path in paths)
             {
                 try
@@ -416,11 +433,14 @@ namespace SupraInventoryRelayAgent
                         if (!DateTime.TryParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss.fff",
                             System.Globalization.CultureInfo.InvariantCulture,
                             System.Globalization.DateTimeStyles.None, out at)) continue;
-                        if (at >= sinceLocal) builder.AppendLine(Sanitize(line));
+                        if (at >= sinceLocal && at < untilLocalExclusive) stream.AppendLine(Sanitize(line));
                     }
                 }
                 catch { }
             }
+            if (stream.Length == 0) return;
+            builder.AppendLine("===== " + title + " =====");
+            builder.Append(stream);
         }
 
         internal static void OpenLog() { OpenDiagnosticLog(); }
@@ -499,6 +519,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
+        private readonly Button _sendLog = new Button();
         private readonly Button _openAuditLog = new Button();
         private readonly Button _probeAuth = new Button();
         private readonly Button _probeRtdb = new Button();
@@ -742,6 +763,12 @@ namespace SupraInventoryRelayAgent
                     _allowExit = true;
                 }
                 if (e.CloseReason == CloseReason.WindowsShutDown) AgentRuntimeGuard.MarkPlannedExit();
+                try
+                {
+                    _agentLogBridge.SealPlannedExit(
+                        e.CloseReason == CloseReason.WindowsShutDown ? "windows_shutdown" : "planned_exit");
+                }
+                catch { }
                 StopListening();
                 StopD134AgentSync();
                 StopLeaderCoordination();
@@ -1328,6 +1355,10 @@ namespace SupraInventoryRelayAgent
                 Text = "Chẩn đoán kỹ thuật",
                 Font = new Font("Segoe UI Semibold", 10.5F)
             });
+            _sendLog.SetBounds(770, 10, 120, 30);
+            _sendLog.Text = "Gửi log";
+            _sendLog.Click += (s, e) => Task.Run(() => _agentLogBridge.TryQueueManualSnapshot());
+            _technicalPage.Controls.Add(_sendLog);
             _openLog.SetBounds(900, 10, 120, 30);
             _openLog.Text = "Mở file";
             _technicalPage.Controls.Add(_openLog);
@@ -3463,6 +3494,8 @@ namespace SupraInventoryRelayAgent
                 SetAgentAuthUi(true);
                 SetProbeButtonsEnabled(true);
                 Log("Khôi phục ADMIN Agent PASS.");
+                Log("AGENT_LOG session=RESTORED user=" + (restored.AppUserId ?? "") +
+                    " machine=" + Environment.MachineName + " instance=" + Short(_agentInstanceId));
                 ActivateRelayRuntime();
                 Task.Run(() =>
                 {
@@ -3653,6 +3686,10 @@ namespace SupraInventoryRelayAgent
                     " instance=" + Short(_agentInstanceId) +
                     " firebase_uid=" + Fingerprint(next.UserId)
                 );
+                Log("AGENT_LOG session=LOGIN user=" + (next.AppUserId ?? "") +
+                    " role=" + (next.Role ?? "") +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId));
                 ActivateRelayRuntime();
                 Task.Run(() =>
                 {
@@ -3752,6 +3789,14 @@ namespace SupraInventoryRelayAgent
 
             AgentSession releasing = null;
             try { releasing = SnapshotSession(); } catch { }
+            try
+            {
+                Log("AGENT_LOGOUT user=" + previousUser +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId));
+                _agentLogBridge.SealLogoutAndFlush(releasing);
+            }
+            catch { }
             try { StopListening(); } catch { }
             try { StopD134AgentSync(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
@@ -4543,9 +4588,9 @@ namespace SupraInventoryRelayAgent
             foreach (var outcome in outcomes.Values)
             {
                 if (outcome != null && string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal))
-                    Interlocked.Increment(ref _localConfirmSuccess);
+                    RecordD158ConfirmOutcome(true);
                 else
-                    Interlocked.Increment(ref _localConfirmFailed);
+                    RecordD158ConfirmOutcome(false);
             }
             Ui(() => RefreshAgentRequestMetrics());
 
@@ -4637,13 +4682,13 @@ namespace SupraInventoryRelayAgent
                             () =>
                             {
                                 MarkD157BusinessActivity();
-                                Interlocked.Increment(ref _localPdaRequests);
+                                RecordD158PdaRequest();
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
                             () =>
                             {
                                 MarkD157BusinessActivity();
-                                Interlocked.Increment(ref _localAgentResponses);
+                                RecordD158AgentResponse();
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
                             (dayKey, outcome) => ApplyD135DurableCounterAck(dayKey, outcome),

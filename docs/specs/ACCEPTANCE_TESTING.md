@@ -2087,3 +2087,28 @@ D157 technical and field acceptance must prove all of the following while Androi
 - Exercise logout→login and CLOSED→ACTIVE transitions; lists must reappear without manual PRIMARY transfer.
 - Promote another machine to PRIMARY and confirm the secondary continues to display lists while remaining non-PRIMARY.
 - Confirm normal PickList mutation remains PRIMARY-fenced, Android stays beta-vc92, browser/F5 behavior is unchanged, and no new provider cadence/resource is introduced.
+
+## D158 acceptance — Agent v93 efficiency, health, counter and support-log lifecycle
+
+Android remains the already-signed **beta-vc92** and must not be rebuilt for D158.
+
+Technical/runtime gates must prove:
+- Agent v93 builds with the D157 confirmation guard, generation fence, 10s lease, 15s failover, 3s/1s/15s REST fallback and D137 real Page.reload protections intact.
+- Firestore gRPC listeners no longer use a project_id/database_id routing pair; the routing header carries the same full database resource as ListenRequest.Database.
+- On PRIMARY, a full PENDING DocumentChange may enter the existing confirmation pipeline immediately. REST fallback still independently discovers the same request when the listener is disabled, paused or failed; no request can create a second WMS mutation path.
+- Normal connected-listener operation does not add a new polling cadence. The 2s degraded REST path is active only while the listener is disconnected and stops when connected or when the D158 local read reserve reaches 2,000.
+- NEXT_A/NEXT_B do not show "Mất kết nối" solely because they do not own PRIMARY business polling. Role changes repaint consistent role/health information.
+- AgentSync mutations reuse listener RAM + updateTime CAS on the uncontended path and exact-read/retry on conflict, preserving no-lost-update semantics.
+- Successful pre-WMS roles/generation proof refreshes the role-read freshness timestamp; no safety fence is removed.
+- At the 05:00 Asia/Ho_Chi_Minh boundary, local Agent counters and overlay reset before new-day display/increment. Suspend/resume over 05:00 has the same result. Shared counter snapshots from a different day are ignored.
+- Durable fleet-counter read is bounded to business-day or PRIMARY-generation recovery rather than every five-minute AgentSync reconcile.
+- Agent logging continuously writes sanitized local streams, seals immutable pending bundles, preserves failed uploads across restart, and performs bounded retry without blocking PickList/WMS/ACK.
+- Login/DPAPI restore flushes pending sealed bundles; logout records/seals before auth clear; process kill/power loss yields one recovery bundle on next authenticated start.
+- Repeated same-fingerprint errors are locally aggregated; the network path is bounded rather than one upload per occurrence.
+- With the Apps Script gateway unconfigured, D157 Firestore support-log delivery remains available as a safe compatibility path. With the scoped gateway configured, Agent uses Apps Script → Drive and does not dual-write the same bundle to Firestore.
+- Gateway retry of the same bundle id produces one Drive file, verifies content hash, requires valid Firebase ADMIN/PICKPACK_ADMIN authority, and never writes outside Inventory/Beta/Logs.
+- No secrets, Firebase tokens, passwords, WMS session/cookie/signature material or signing material appear in repo or archived logs.
+- Stable remains untouched.
+
+Before Owner field acceptance, PR341 must be merged through the normal branch → PR → authority/continuity PASS → merge path, and the existing main Agent workflow must publish official `relay-agent-v93` plus update the Agent distribution channel. A PR-only artifact is not an acceptable field-release substitute. Owner field acceptance must then use that released v93 on real Office networking to verify: NEXT_B healthy display after login, listener reconnect behavior, normal/invalid PickList vc92 end-to-end, failover, 05:00 counter rollover evidence, Apps Script endpoint reachability and duplicate-safe Drive upload. D158 remains open until explicit Owner PASS.
+

@@ -832,3 +832,13 @@ For an authenticated Windows Agent, presentation of synchronized operational lis
 - Being PRIMARY is required only for protected PickList/WMS mutation paths; it is not a prerequisite for list visibility.
 - On Agent login or a CLOSED→ACTIVE operational-window transition, the UI first renders already-held in-memory Agent-sync/coordinator data. This presentation transition must not create a new provider polling cadence.
 - Existing out-of-hours hiding, D150 deep-agent bounded sync, HA role assignment, and D157 targeted PRIMARY handoff semantics remain unchanged.
+
+## D158 — Agent role health and 05:00 counter day
+
+D158 is Windows-Agent-only; beta-vc92 remains unchanged.
+
+- Immediately after authenticated login/restore, Agent resolves authoritative HA role and renders PRIMARY, NEXT_A, NEXT_B or DEEP without using PRIMARY-only queue-poll state to label a secondary as disconnected.
+- PRIMARY health includes coordination plus business transport. NEXT_A/NEXT_B health is based on their own coordination/lease/role responsibilities; DEEP is presented as sleeping/standby rather than falsely offline when its bounded coordination path is healthy.
+- Agent-local Nhận/Đã xử lý/Thành công/Lỗi and overlay counters use the business day starting at 05:00 Asia/Ho_Chi_Minh. A sleeping/resumed process detects a changed business-day key before rendering or incrementing.
+- A request created before 05:00 but terminally processed after 05:00 belongs to the new Agent display-counter day. This does not alter the immutable Android request/ACK document contract.
+

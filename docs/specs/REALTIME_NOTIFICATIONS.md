@@ -800,3 +800,16 @@ The PRIMARY pending listener is an **optional wake signal only**. A document-cha
 The shared `relay_poc_coordination/primary_handoff` document is a bounded operator command/result carrier. All Agents may listen to the exact document so a DEEP target can wake immediately; only the selected target acts, validates its own Web Confirm session, and performs the existing role-generation CAS. The command expires after 30 seconds and is idempotent by request id.
 
 Daily counters are no longer incremented inside every terminal ACK commit. A PRIMARY checkpoint uses Firestore server-side count aggregation over authoritative ACK jobs and writes absolute `daily_<business_day>` totals after 50 ACKs or five minutes and on PRIMARY recovery. This optimization must never delay PDA ACK.
+
+## D158 — Agent realtime reuse and degraded-path guard
+
+Android beta-vc92 is unchanged. D158 changes only the Windows Agent.
+
+- PRIMARY may consume the full Firestore PENDING document delivered by the existing optional Listen stream and feed it into the same D157 parsing/HA/WMS/ACK pipeline. Listen never becomes a second business mutation pipeline.
+- The accepted REST fresh-PENDING query remains fallback at 3s active / 1s hot / 15s inactive. When the PENDING listener is disconnected while REST remains healthy, Agent may temporarily use a 2s active fallback; D158-only incremental degraded reads are locally capped at 2,000/provider quota day, after which cadence returns to D157.
+- Firestore Listen calls use one canonical database routing value equal to the full configured Firestore database resource.
+- Agent role/connection presentation is role-aware: PRIMARY business-poll health is not a prerequisite for healthy NEXT_A/NEXT_B.
+- AgentSync writes may use an already-listened snapshot plus Firestore updateTime CAS; missing/stale/conflicting state falls back to exact GET and retry.
+- A successful authoritative role/generation read performed immediately before protected mutation also refreshes the periodic role proof.
+- No D158 change reduces the 10s PRIMARY lease, 15s takeover threshold, generation fence, confirmation guard, or D137/WMS safety behavior.
+

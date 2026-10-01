@@ -24,6 +24,8 @@ namespace SupraInventoryRelayAgent
         private static long _reads;
         private static long _writes;
         private static long _deletes;
+        private static long _d158ResilienceReads;
+        private const long D158ResilienceReadBudgetPerDay = 2000L;
         private static int _readBand;
         private static int _writeBand;
         private static int _deleteBand;
@@ -122,6 +124,41 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal static bool TryReserveD158ResilienceRead()
+        {
+            lock (Gate)
+            {
+                ResetIfDayChangedNoLock();
+                if (_d158ResilienceReads >= D158ResilienceReadBudgetPerDay) return false;
+                _d158ResilienceReads++;
+                return true;
+            }
+        }
+
+        internal static long D158ResilienceReads
+        {
+            get
+            {
+                lock (Gate)
+                {
+                    ResetIfDayChangedNoLock();
+                    return _d158ResilienceReads;
+                }
+            }
+        }
+
+        internal static bool CanUseD158ResilienceRead
+        {
+            get
+            {
+                lock (Gate)
+                {
+                    ResetIfDayChangedNoLock();
+                    return _d158ResilienceReads < D158ResilienceReadBudgetPerDay;
+                }
+            }
+        }
+
         internal static string SnapshotText()
         {
             lock (Gate)
@@ -130,7 +167,8 @@ namespace SupraInventoryRelayAgent
                 return "Firestore cục bộ · đọc " + _reads.ToString("N0", CultureInfo.InvariantCulture) +
                     " · ghi " + _writes.ToString("N0", CultureInfo.InvariantCulture) +
                     " · xóa " + _deletes.ToString("N0", CultureInfo.InvariantCulture) +
-                    " · soft " +
+                    " · D158 dự phòng " + _d158ResilienceReads.ToString("N0", CultureInfo.InvariantCulture) +
+                    "/2,000 · soft " +
                     SoftReadsPerDay.ToString("N0", CultureInfo.InvariantCulture) + "/" +
                     SoftWritesPerDay.ToString("N0", CultureInfo.InvariantCulture) + "/" +
                     SoftDeletesPerDay.ToString("N0", CultureInfo.InvariantCulture);
@@ -188,6 +226,7 @@ namespace SupraInventoryRelayAgent
             Interlocked.Exchange(ref _reads, 0L);
             Interlocked.Exchange(ref _writes, 0L);
             Interlocked.Exchange(ref _deletes, 0L);
+            Interlocked.Exchange(ref _d158ResilienceReads, 0L);
             _readBand = 0;
             _writeBand = 0;
             _deleteBand = 0;

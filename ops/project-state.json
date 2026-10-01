@@ -33,7 +33,7 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D157_OWNER_FIELD_ACCEPTED_PASS__AGENT_V92__TARGETED_PRIMARY_HANDOFF__SESSION_HEALTH__SECONDARY_LIST_RENDER_REPAIR",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D157_OWNER_ACCEPTED_BASE__NEXT_CHANGE_ALLOWED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D157_ACCEPTED_BASE__D158_ACTIVE_OWNER_APPROVED_NEXT_CHANGE_BLOCKED",
     "owner_acceptance": "D157_OWNER_FIELD_ACCEPTED_PASS__2026_09_30",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
@@ -2463,10 +2463,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D157",
     "accepted_base_evidence": "OWNER_EXPLICIT_D157_PASS__AGENT_V92__ANDROID_VC92__2026_09_30",
-    "current_change_id": "D157",
-    "current_change_status": "OWNER_FIELD_ACCEPTED_PASS__PROMOTED_TO_ACCEPTED_BASE",
+    "current_change_id": "D158",
+    "current_change_status": "TECHNICAL_PR_PASS__OFFICIAL_V93_RELEASE_REQUIRED_BEFORE_OA086__OWNER_OFFICE_PROOF_PENDING__D157_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D157_BETA_AGENT_V92_OWNER_FIELD_ACCEPTED__ANDROID_VC92_UNCHANGED__D156_WEB_ANDROID_BASE_RETAINED__STABLE_UNTOUCHED",
-    "resource_change": "EXISTING_BETA_FIRESTORE_ONLY__D157_REUSES_RELAY_POC_JOBS_AND_RELAY_POC_COORDINATION__NO_NEW_COLLECTION_SECRET_PROVIDER_OR_STABLE_RESOURCE",
+    "runtime_impact": "D158_AGENT_ONLY_IMPLEMENTATION_ACTIVE__TARGET_V93__ANDROID_BETA_VC92_HARD_LOCKED__D157_WMS_HA_LEASE_FAILOVER_GUARDS_RETAINED__STABLE_UNTOUCHED",
+    "resource_change": "D158_REUSES_EXISTING_BETA_FIRESTORE_AND_DRIVE__OWNER_PROVISIONED_ONE_BETA_APPS_SCRIPT_AGENT_LOG_GATEWAY__DEPLOYMENT_URL_HELD_ONLY_IN_GITHUB_BETA_ENV_VAR__NO_NEW_FIRESTORE_COLLECTION__NO_SECRET_IN_REPO",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3454,6 +3454,72 @@
       "evidence": "Owner explicitly confirmed D157 PASS after field validation of Agent v92, including the secondary Agent/User/Picker list repair, while retaining the approved speed/write/PRIMARY handoff/session-health behavior.",
       "accepted_at": "2026-09-30",
       "next_change_allowed": true
+    }
+  },
+  "d158": {
+    "status": "TECHNICAL_PR_PASS__OA086_OWNER_PROVISIONED__CONFIGURED_GATEWAY_PROBE_PASS__AGENT_V93_FIELD_READY",
+    "date": "2026-10-01",
+    "baseline_change": "D157",
+    "baseline_main": "7f7533b8ec61982a5d9fb5610436e9b15a87628f",
+    "branch": "feat/d158-agent-efficiency-health-logging",
+    "owner_approved_scope": [
+      "ANDROID_BETA_VC92_HARD_LOCKED_NO_SOURCE_BUILD_RELEASE_OR_RUNTIME_CHANGE",
+      "AGENT_ONLY_REUSE_EXISTING_PATHS_TO_REMOVE_DUPLICATE_READ_WRITE_ROUNDTRIPS",
+      "PRIMARY_LISTEN_PAYLOAD_FEEDS_EXISTING_SINGLE_CONFIRM_PIPELINE__REST_FALLBACK_RETAINED",
+      "REST_NORMAL_3S_HOT_1S_INACTIVE_15S_RETAINED__DEGRADED_LISTENER_MAY_USE_2S_WITH_LOCAL_INCREMENTAL_READ_BUDGET_MAX_2000_PER_PROVIDER_DAY",
+      "LEASE_10S_FAILOVER_15S_CONFIRM_GUARD_GENERATION_FENCE_RATE_LIMIT_D137_REAL_F5_AND_WMS_MUTATION_SEMANTICS_FROZEN",
+      "ROLE_AWARE_CONNECTION_HEALTH__NEXT_A_NEXT_B_NO_LONGER_DEPEND_ON_PRIMARY_BUSINESS_POLL_HEALTH",
+      "FIRESTORE_GRPC_DATABASE_ROUTING_HEADER_CANONICALIZED",
+      "AGENT_SYNC_LISTENER_SNAPSHOT_REUSED_WITH_UPDATE_TIME_CAS__GET_FALLBACK_ON_MISSING_CACHE_OR_CONFLICT",
+      "AUTHORITATIVE_ROLE_READ_REUSED_AS_ROLE_REFRESH_PROOF",
+      "AGENT_COUNTER_DAY_BOUNDARY_05_00_ASIA_HO_CHI_MINH__LOCAL_UI_OVERLAY_RESET",
+      "DURABLE_COUNTER_READ_REDUCED_TO_DAY_OR_PRIMARY_GENERATION_RECOVERY",
+      "AGENT_SUPPORT_LOG_LOCAL_DURABLE_SEALED_BUNDLES__6H_DIRTY_OR_2MB_OR_LIFECYCLE_ERROR_CRASH",
+      "AGENT_LOG_APPS_SCRIPT_TO_DRIVE_CUTOVER_ONLY_AFTER_OFFICE_FIELD_PROOF__D157_FIRESTORE_LOG_TRANSPORT_RETAINED_WHILE_GATEWAY_UNCONFIGURED",
+      "STABLE_UNTOUCHED"
+    ],
+    "base_impact": "YES__BETA_WINDOWS_AGENT_ONLY__D157_REMAINS_ACCEPTED_BASE_UNTIL_OWNER_PASS",
+    "affected_components": [
+      "relay-agent",
+      "existing Beta Firestore confirmation and coordination paths",
+      "existing Inventory/Beta/Logs Drive folder",
+      "planned Beta Apps Script Agent log gateway",
+      "repo authority and Agent CI guards"
+    ],
+    "regression_stability_risk": "MEDIUM_HIGH__MITIGATED_BY_D157_REST_FALLBACK_UNCHANGED__SINGLE_WMS_MUTATION_PIPELINE__ROLE_AND_GENERATION_FENCES_RETAINED__LOGGING_NEVER_BLOCKS_BUSINESS__GATEWAY_FAIL_CLOSED_TO_LOCAL_PENDING",
+    "resource_quota_security_impact": "NORMAL_READ_EXPECTED_FLAT_OR_LOWER__ONLY_DEGRADED_REALTIME_RESERVE_MAY_ADD_MAX_2000_LOCAL_COUNTED_READS_PER_PROVIDER_DAY__WRITE_EXPECTED_LOWER_AFTER_LOG_GATEWAY_CUTOVER__NO_ANDROID_WRITE_CHANGE__NO_SECRET_TOKEN_OR_WMS_SESSION_IN_LOGS",
+    "recommended_approach": "REUSE_ALREADY_RECEIVED_LISTEN_AND_RAM_STATE__KEEP_D157_FALLBACKS__RESET_COUNTERS_LOCALLY_AT_05_00__SEAL_LOGS_LOCALLY_THEN_UPLOAD_IDEMPOTENTLY__RETIRE_FIRESTORE_SUPPORT_LOG_ONLY_AFTER_OFFICE_PROOF",
+    "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_CHOSE_D158_AND_COMMANDED_IMPLEMENTATION__2026_10_01",
+    "target_agent_release": "relay-agent-v93",
+    "android_release": "beta-vc92__HARD_LOCKED_UNCHANGED",
+    "sqlite_schema": 16,
+    "new_firestore_collections": "NONE",
+    "new_provider_resources": "ONE_OWNER_PROVISIONED_BETA_APPS_SCRIPT_AGENT_LOG_GATEWAY__OFFICE_FIELD_PROOF_PENDING",
+    "new_secrets": "NONE_IN_REPO__GATEWAY_USES_SCRIPT_PROPERTIES_FOR_EXISTING_BETA_API_KEY_AND_SCOPED_LOG_FOLDER_ID",
+    "read_budget": "D158_INCREMENTAL_DEGRADED_REALTIME_READS_MAX_2000_PER_PROVIDER_QUOTA_DAY__NORMAL_EXPECTED_LOWER_THAN_D157",
+    "logging_cutover": "LOCAL_SEALED_BUNDLES_IMPLEMENTED__APPS_SCRIPT_OWNER_DEPLOYED__GITHUB_BETA_GATEWAY_VAR_CONFIGURED__OFFICE_PROOF_PENDING__FIRESTORE_SUPPORT_LOG_FALLBACK_RETAINED_UNTIL_FIELD_PASS",
+    "log_range_guard": "HALF_OPEN_MILLISECOND_RANGES__NO_CROSS_BUNDLE_OVERLAP__EMPTY_CHECKPOINTS_SKIPPED__SIZE_TRIGGER_COUNTS_NEW_BYTES_ONLY",
+    "manual_log_send": "TECHNICAL_TAB_Gửi_log__LOCAL_SEAL_THEN_BOUNDED_UPLOAD_OR_LOCAL_PENDING",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "owner_gate": "OA086_BLOCKED_UNTIL_OFFICIAL_RELAY_AGENT_V93_RELEASE__THEN_OWNER_OFFICE_FIELD_PROOF__D157_REMAINS_ACCEPTED_BASE",
+    "implementation_pr": 341,
+    "pr_head": "efab7e7cf31ee8b3ec134c09f59ef5cfe9dc7214",
+    "technical_runs": {
+      "repo_authority": 36845303330,
+      "project_state": 36845303219,
+      "relay_agent": 36845303212,
+      "ui_design": 36845303087,
+      "dashboard_probe": 36845303099,
+      "firestore": 36845303098,
+      "rtdb": 36845303250
+    },
+    "candidate_artifact": {
+      "workflow_run": 36845303212,
+      "artifact_id": 11153610507,
+      "name": "supra-inventory-relay-poc-agent",
+      "digest": "sha256:f908a6ad5258ad8e9f1a91afd5ebf1209c64fc7cbc2a6740b6afe64d1ca792e7",
+      "gateway_config": "PASS__GITHUB_BETA_ENV_VAR_PRESENT_AND_VALID_SCRIPT_GOOGLE_EXEC__PUBLIC_GET_IDENTITY_PROBE_PASS__VALUE_NOT_EXPOSED",
+      "note": "Configured v93 PR artifact built successfully after CI required a valid script.google.com /exec URL and the gateway GET identity probe returned SUPRA_AGENT_LOG_GATEWAY_D158 for supra-inventory-beta. Owner directed D158 to continue through the normal Agent distribution path: merge PR341, let the main relay-agent workflow publish official relay-agent-v93 and update the Agent channel, then perform OA086 Office proof. The PR artifact is technical evidence only and is not Owner field acceptance."
     }
   }
 }

@@ -29,6 +29,7 @@ jobs:
     environment: beta
     env:
       FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+      AGENT_LOG_GATEWAY_URL_BETA: ${{ vars.AGENT_LOG_GATEWAY_URL_BETA }}
     steps:
       - uses: actions/checkout@v4
 
@@ -83,9 +84,9 @@ jobs:
           $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
           $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*92\s*;') { throw "D157 repair requires Agent v92 while retaining D156 Android vc92 and D154/D153/D152/D150 safety guards." }
-          if ($project -notmatch '<AssemblyVersion>0\.92\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.92\.0\.0</FileVersion>') {
-            throw "D157 repair Agent assembly/file version must be 0.92."
+          if ($config -notmatch 'AgentBuild\s*=\s*93\s*;') { throw "D158 requires Agent v93 while Android remains hard-locked at beta-vc92 and D157 business guards stay intact." }
+          if ($project -notmatch '<AssemblyVersion>0\.93\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.93\.0\.0</FileVersion>') {
+            throw "D158 Agent assembly/file version must be 0.93."
           }
           foreach ($marker in @(
             'RenderD157OperationalListsFromMemory',
@@ -94,6 +95,19 @@ jobs:
             'provider_read=false provider_write=false'
           )) {
             if (-not $ops.Contains($marker)) { throw "D157 repair role-independent operational-list guard missing: $marker" }
+          }
+
+          foreach ($marker in @(
+            'database=',
+            'D158DesiredPollIntervalMs',
+            'TryReserveD158ResilienceRead',
+            'EnsureD158BusinessCounterDay',
+            'SealLogoutAndFlush',
+            'AgentLogGatewayUrl'
+          )) {
+            if (-not $d157.Contains($marker) -and -not $transport.Contains($marker) -and -not $quota.Contains($marker) -and -not $ops.Contains($marker) -and -not $program.Contains($marker) -and -not $config.Contains($marker)) {
+              throw "D158 speed/health/counter/logging guard missing: $marker"
+            }
           }
 
           foreach ($marker in @(
@@ -536,7 +550,7 @@ jobs:
             'SelfTestSafetyPolicy',
             'write=SKIP_NO_CHANGE'
           )) {
-            if (-not $sync.Contains($marker)) { throw "D140 compact fleet-sync safety marker missing: $marker" }
+            if (-not $sync.Contains($marker) -and -not $d157.Contains($marker)) { throw "D140/D158 compact fleet-sync safety marker missing: $marker" }
           }
           if ($sync.Contains('role_independent=true') -or -not $sync.Contains('role_limited=true')) {
             throw "D140 Agent sync listener must no longer be role-independent."
@@ -846,7 +860,33 @@ jobs:
           $path = "relay-agent/AgentConfig.cs"
           $content = Get-Content $path -Raw
           $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
+          $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
+          if ([string]::IsNullOrWhiteSpace($gateway)) { throw "D158 OA086 requires AGENT_LOG_GATEWAY_URL_BETA after Owner provisioning." }
+          $gatewayUri = $null
+          if (-not [System.Uri]::TryCreate($gateway, [System.UriKind]::Absolute, [ref]$gatewayUri) -or
+              $gatewayUri.Scheme -ne "https" -or
+              $gatewayUri.Host -ne "script.google.com" -or
+              -not $gatewayUri.AbsolutePath.EndsWith("/exec")) {
+            throw "D158 OA086 Agent log gateway must be the deployed HTTPS script.google.com Web App /exec URL."
+          }
+          $content = $content.Replace("__AGENT_LOG_GATEWAY_URL_BETA__", $gateway)
           Set-Content -Path $path -Value $content -Encoding UTF8
+
+      - name: Probe configured D158 Agent log gateway
+        shell: pwsh
+        run: |
+          $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
+          try {
+            $response = Invoke-RestMethod -Uri $gateway -Method Get -TimeoutSec 20
+          } catch {
+            throw "D158 OA086 gateway GET probe failed."
+          }
+          if ($null -eq $response -or $response.ok -ne $true -or
+              "$($response.service)" -ne "SUPRA_AGENT_LOG_GATEWAY_D158" -or
+              "$($response.project)" -ne "supra-inventory-beta") {
+            throw "D158 OA086 gateway GET probe returned an unexpected service identity."
+          }
+          Write-Host "D158 OA086 configured Agent log gateway probe PASS"
 
       - name: Build Agent-owned WebView2 host
         shell: pwsh
@@ -879,17 +919,28 @@ jobs:
             'TryQueueErrorSnapshot',
             'ErrorUploadCallback',
             'DIRECT_PENDING',
-            'scheduled_agent_',
-            'error_agent_',
-            'crash_agent_',
-            'new[] { 6, 12, 18, 21 }'
+            'DirtyCheckpointMs',
+            'SizeCheckpointBytes',
+            'TotalBytesWritten',
+            'SIZE_2MB_NEW_DATA',
+            'seal=SKIP_EMPTY',
+            'FloorToLogMillisecond',
+            'untilLocalExclusive',
+            'at < untilLocalExclusive',
+            'SealLogoutAndFlush',
+            'agent-log-pending',
+            'SAME_FINGERPRINT',
+            'GLOBAL_FUSE'
           )) {
             if (-not ($program.Contains($marker) -or $bridge.Contains($marker) -or $rules.Contains($marker))) {
-              throw "D146 Agent guard missing: $marker"
+              throw "D146/D158 Agent log/input guard missing: $marker"
             }
           }
-          if ($bridge.Contains('new[] { 0, 6, 12, 18 }')) {
-            throw "D146 Agent must not retain the midnight scheduled-log slot."
+          if ($bridge.Contains('new[] { 0, 6, 12, 18 }') -or $bridge.Contains('new[] { 6, 12, 18, 21 }')) {
+            throw "D158 Agent durable lifecycle must not restore fixed scheduled-log snapshots."
+          }
+          if ($bridge.Contains('CurrentOpenLogBytes')) {
+            throw "D158 size checkpoint must count new log bytes since the previous seal, not total rotated-file size."
           }
           if ($rules -notmatch "DIRECT_PENDING") { throw "D146 Firestore rules must allow DIRECT_PENDING Agent log parts." }
           Write-Host "D146 Agent Google-first logs / protected text input guard PASS"
