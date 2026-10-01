@@ -276,6 +276,11 @@ namespace SupraInventoryRelayAgent
                 return false;
             }
             if (!_relayEnabled()) return false;
+            // D158: this authoritative roles read already proves the current PRIMARY
+            // generation. Reuse it as the scheduled role-refresh proof instead of
+            // issuing another GET seconds later.
+            _lastRoleRefreshMs = NowMs();
+            _refreshBeforeBusiness = false;
             return true;
         }
 
