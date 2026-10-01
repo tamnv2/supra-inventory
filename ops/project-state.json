@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "V3_IMPLEMENTATION_ACTIVE__OWNER_APPROVED_MULTI_SERVICE_USAGE__GW_V4_REDEPLOY_PENDING",
+    "status": "V3_SOURCE_TECHNICAL_PASS__ALL_NEW_METRIC_CANARIES_BUILD_SELFTEST_PASS__GW_V4_OWNER_REDEPLOY_PENDING",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3682,7 +3682,7 @@
       "run.googleapis.com/container/billable_instance_time__inventory-beta-picker-alerts"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_OWNER_GW_V4_REDEPLOY_AND_V3_FIELD_TEST_PENDING",
+    "field_gate": "OA087_OWNER_REDEPLOY_EXISTING_APPS_SCRIPT_TO_D159_GW_V4_THEN_RERUN_PR",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
     "implementation_pr": 346,
@@ -3830,7 +3830,24 @@
         "other_users": "TAB_HIDDEN__NO_TIMER__NO_USAGE_GATEWAY_REQUEST",
         "refresh_minutes": 15
       },
-      "owner_acceptance_rule": "D159_CLOSES_ONLY_AFTER_OWNER_TESTS_V3_AND_EXPLICITLY_SAYS_PASS"
+      "owner_acceptance_rule": "D159_CLOSES_ONLY_AFTER_OWNER_TESTS_V3_AND_EXPLICITLY_SAYS_PASS",
+      "technical_evidence": {
+        "pr": 354,
+        "workflow_run": 36902749377,
+        "firestore_provider_canary": "PASS_HTTP_200",
+        "new_metric_canaries": {
+          "firestore_storage": "PASS_HTTP_200",
+          "fcm_api": "PASS_HTTP_200",
+          "identity_toolkit_api": "PASS_HTTP_200",
+          "secure_token_api": "PASS_HTTP_200",
+          "picker_alert_cloud_run": "PASS_HTTP_200"
+        },
+        "windows_build": "PASS",
+        "parser_self_test": "PASS",
+        "configured_exe_size_bytes": 43008,
+        "configured_exe_sha256": "c7d7e0de9afb3e9aa4b61dd1e64fe4b61d9ff4a7a2de062a44f81682bec7ff37",
+        "only_expected_failure": "CONFIGURED_GATEWAY_STILL_REPORTS_PREVIOUS_REVISION__OWNER_REDEPLOY_D159_GW_V4_REQUIRED"
+      }
     }
   }
 }
