@@ -120,7 +120,12 @@ jobs:
           foreach ($marker in @('tamnv2','admin','15 * 60 * 1000','get_firestore_usage','D160UsageAllowedForCurrentSession')) {
             if (-not $d160Usage.Contains($marker) -and -not $d160Ui.Contains($marker)) { throw "D160 restricted Usage guard missing: $marker" }
           }
-          if (-not $d160Resilience.Contains('D160_401_AFTER_REFRESH') -or $d157.Contains('case StatusCode.Unauthenticated:')) {
+          if (-not $d160Resilience.Contains('D160_401_AFTER_REFRESH') -or
+              -not $d160Resilience.Contains('ForceRefreshAgentTokenD160') -or
+              -not $d157.Contains('auth_refresh=PASS') -or
+              -not $sync.Contains('auth_refresh=PASS') -or
+              $d157.Contains('case StatusCode.Unauthenticated:') -or
+              $sync.Contains('case StatusCode.Unauthenticated:')) {
             throw "D160 auth recovery guard regression."
           }
 
