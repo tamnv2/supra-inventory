@@ -389,11 +389,11 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
-        internal static string BuildUploadSnapshot(DateTime sinceLocal, bool crash)
+        internal static string BuildUploadSnapshot(DateTime sinceLocal, DateTime untilLocalExclusive, bool crash)
         {
             var builder = new StringBuilder();
-            AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal);
-            AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal);
+            AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal, untilLocalExclusive);
+            AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal, untilLocalExclusive);
             var content = builder.ToString();
             var cap = crash ? 800000 : 4000000;
             if (content.Length > cap)
@@ -401,7 +401,12 @@ namespace SupraInventoryRelayAgent
             return SanitizeBundle(content, cap);
         }
 
-        private static void AppendSnapshotStream(StringBuilder builder, string title, string currentPath, DateTime sinceLocal)
+        private static void AppendSnapshotStream(
+            StringBuilder builder,
+            string title,
+            string currentPath,
+            DateTime sinceLocal,
+            DateTime untilLocalExclusive)
         {
             if (string.IsNullOrWhiteSpace(currentPath)) return;
             var paths = new List<string>();
@@ -428,7 +433,7 @@ namespace SupraInventoryRelayAgent
                         if (!DateTime.TryParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss.fff",
                             System.Globalization.CultureInfo.InvariantCulture,
                             System.Globalization.DateTimeStyles.None, out at)) continue;
-                        if (at >= sinceLocal) stream.AppendLine(Sanitize(line));
+                        if (at >= sinceLocal && at < untilLocalExclusive) stream.AppendLine(Sanitize(line));
                     }
                 }
                 catch { }
