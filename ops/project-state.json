@@ -2465,7 +2465,7 @@
     "accepted_base_change_id": "D158",
     "accepted_base_evidence": "OWNER_EXPLICIT_D158_PASS__AGENT_V94__ANDROID_VC92_UNCHANGED__2026_10_01",
     "current_change_id": "D159",
-    "current_change_status": "TECHNICAL_SOURCE_BUILD_PASS__OWNER_APPS_SCRIPT_PROVISIONING_PENDING__D158_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "OWNER_REPORTS_D159_GATEWAY_PROVISIONED__CI_IDENTITY_AND_CONFIGURED_RELEASE_VERIFY_ACTIVE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "TECHNICAL_SOURCE_BUILD_PASS__OWNER_PROVISIONING_GATE_PENDING",
+    "status": "OWNER_REPORTS_PROVISIONED__CI_GATEWAY_IDENTITY_AND_CONFIGURED_RELEASE_VERIFY_ACTIVE",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3671,7 +3671,7 @@
       "firestore.googleapis.com/rules/evaluation_count"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_READY_OWNER_PROVISIONING__NO_CONFIGURED_FIELD_RELEASE_YET",
+    "field_gate": "OA087_OWNER_PROVISIONED__CI_VERIFY_CONFIGURED_GATEWAY_AND_FIELD_RELEASE_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_USAGE_VALUES_MATCH_FIREBASE_MONITORING_EXPECTATION",
     "implementation_pr": 346,
@@ -3689,6 +3689,16 @@
       "digest": "sha256:1a8364ec8c2a9e7f79bed8cb7b7287ed8396d4639902f0918ad4fda77975ec06",
       "note": "Technical artifact uses the CI placeholder D159 gateway because D159_USAGE_GATEWAY_URL_BETA is not configured yet. It is not a field-test release."
     },
-    "technical_result": "PASS__PR346_ALL_REQUIRED_GATES__MAIN_AUTHORITY_STATE_UI_DASHBOARD_D159_BUILD_PASS"
+    "technical_result": "PASS__PR346_ALL_REQUIRED_GATES__MAIN_AUTHORITY_STATE_UI_DASHBOARD_D159_BUILD_PASS",
+    "owner_provisioning": {
+      "reported_at": "2026-10-01",
+      "reported_status": "DONE_BY_OWNER",
+      "verification_required": [
+        "GITHUB_BETA_ENV_D159_USAGE_GATEWAY_URL_BETA_PRESENT",
+        "D159_GATEWAY_GET_IDENTITY_PASS",
+        "CONFIGURED_MAIN_BUILD_PASS",
+        "CONFIGURED_PRERELEASE_PUBLISHED"
+      ]
+    }
   }
 }
