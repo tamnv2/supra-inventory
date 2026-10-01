@@ -742,6 +742,12 @@ namespace SupraInventoryRelayAgent
                     _allowExit = true;
                 }
                 if (e.CloseReason == CloseReason.WindowsShutDown) AgentRuntimeGuard.MarkPlannedExit();
+                try
+                {
+                    _agentLogBridge.SealPlannedExit(
+                        e.CloseReason == CloseReason.WindowsShutDown ? "windows_shutdown" : "planned_exit");
+                }
+                catch { }
                 StopListening();
                 StopD134AgentSync();
                 StopLeaderCoordination();
@@ -3463,6 +3469,8 @@ namespace SupraInventoryRelayAgent
                 SetAgentAuthUi(true);
                 SetProbeButtonsEnabled(true);
                 Log("Khôi phục ADMIN Agent PASS.");
+                Log("AGENT_LOG session=RESTORED user=" + (restored.AppUserId ?? "") +
+                    " machine=" + Environment.MachineName + " instance=" + Short(_agentInstanceId));
                 ActivateRelayRuntime();
                 Task.Run(() =>
                 {
@@ -3653,6 +3661,10 @@ namespace SupraInventoryRelayAgent
                     " instance=" + Short(_agentInstanceId) +
                     " firebase_uid=" + Fingerprint(next.UserId)
                 );
+                Log("AGENT_LOG session=LOGIN user=" + (next.AppUserId ?? "") +
+                    " role=" + (next.Role ?? "") +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId));
                 ActivateRelayRuntime();
                 Task.Run(() =>
                 {
@@ -3752,6 +3764,14 @@ namespace SupraInventoryRelayAgent
 
             AgentSession releasing = null;
             try { releasing = SnapshotSession(); } catch { }
+            try
+            {
+                Log("AGENT_LOGOUT user=" + previousUser +
+                    " machine=" + Environment.MachineName +
+                    " instance=" + Short(_agentInstanceId));
+                _agentLogBridge.SealLogoutAndFlush(releasing);
+            }
+            catch { }
             try { StopListening(); } catch { }
             try { StopD134AgentSync(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
