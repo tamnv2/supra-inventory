@@ -1,0 +1,207 @@
+name: Verify D159 Usage Test Agent
+
+on:
+  pull_request:
+    paths:
+      - "usage-test-agent/**"
+      - "ops/apps-script/firestore-usage-gateway-d159/**"
+      - ".github/workflows/verify-d159-usage-test-agent.yml"
+      - "ops/project-state.json"
+      - "ops/project-scope.json"
+      - "ops/resource-registry.json"
+      - "ops/owner-actions.json"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/AUTH_RBAC.md"
+      - "docs/specs/UI_DESIGN_SYSTEM.md"
+      - "docs/specs/ACCEPTANCE_TESTING.md"
+  push:
+    branches: [main]
+    paths:
+      - "usage-test-agent/**"
+      - "ops/apps-script/firestore-usage-gateway-d159/**"
+      - ".github/workflows/verify-d159-usage-test-agent.yml"
+      - "ops/project-state.json"
+      - "ops/project-scope.json"
+      - "ops/resource-registry.json"
+      - "ops/owner-actions.json"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/AUTH_RBAC.md"
+      - "docs/specs/UI_DESIGN_SYSTEM.md"
+      - "docs/specs/ACCEPTANCE_TESTING.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  d159-usage-test:
+    runs-on: windows-latest
+    environment: beta
+    env:
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+      D159_USAGE_GATEWAY_URL_BETA: ${{ vars.D159_USAGE_GATEWAY_URL_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: D159 isolation and security guard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $program = Get-Content usage-test-agent/Program.cs -Raw
+          $config = Get-Content usage-test-agent/UsageTestConfig.cs -Raw
+          $script = Get-Content ops/apps-script/firestore-usage-gateway-d159/Code.gs -Raw
+          $manifest = Get-Content ops/apps-script/firestore-usage-gateway-d159/appsscript.json -Raw
+
+          foreach ($marker in @(
+            'session.bin',
+            'ProtectedData.Unprotect',
+            'get_firestore_usage',
+            'RefreshMinutes = 15',
+            'SUPRA Firestore Usage Test',
+            'D159_GATEWAY_NOT_CONFIGURED'
+          )) {
+            if (-not $program.Contains($marker) -and -not $config.Contains($marker)) {
+              throw "D159 Windows isolation marker missing: $marker"
+            }
+          }
+
+          foreach ($forbidden in @(
+            'signInWithPassword',
+            'ProtectedData.Protect',
+            'SaveStoredSession',
+            'confirmSkipItem',
+            'wms-supra.winmart.vn',
+            'relay_poc_jobs',
+            'firestore.googleapis.com/v1/projects'
+          )) {
+            if ($program.Contains($forbidden)) {
+              throw "D159 standalone EXE must not own login/business/Firestore/WMS mutation path: $forbidden"
+            }
+          }
+
+          foreach ($marker in @(
+            'firestore.googleapis.com/document/read_ops_count',
+            'firestore.googleapis.com/document/write_ops_count',
+            'firestore.googleapis.com/document/delete_ops_count',
+            'firestore.googleapis.com/network/active_connections',
+            'firestore.googleapis.com/network/snapshot_listeners',
+            'firestore.googleapis.com/rules/evaluation_count',
+            'CACHE_TTL_SECONDS = 15 * 60',
+            'ROLE_ALLOWLIST',
+            'ADMIN',
+            'PICKPACK_ADMIN',
+            'monitoring.googleapis.com/v3/projects/',
+            'CacheService.getScriptCache',
+            'LockService.getScriptLock'
+          )) {
+            if (-not $script.Contains($marker)) {
+              throw "D159 Apps Script monitoring guard missing: $marker"
+            }
+          }
+
+          foreach ($forbidden in @(
+            'DriveApp',
+            'SpreadsheetApp',
+            'firestore.googleapis.com/v1/',
+            'UrlFetchApp.fetch("https://inventory-beta',
+            'AGENT_LOG_GATEWAY_URL_BETA',
+            'upload_agent_log'
+          )) {
+            if ($script.Contains($forbidden)) {
+              throw "D159 usage gateway must remain isolated/read-only: $forbidden"
+            }
+          }
+
+          if (-not $manifest.Contains('https://www.googleapis.com/auth/monitoring.read')) {
+            throw "D159 Apps Script must request monitoring.read only for provider telemetry."
+          }
+          if ($manifest.Contains('https://www.googleapis.com/auth/drive')) {
+            throw "D159 Apps Script must not request Drive scope."
+          }
+
+      - name: Syntax-check D159 Apps Script
+        shell: pwsh
+        run: |
+          Copy-Item ops/apps-script/firestore-usage-gateway-d159/Code.gs "$env:RUNNER_TEMP\d159-code.js"
+          node --check "$env:RUNNER_TEMP\d159-code.js"
+
+      - name: Inject bounded Beta build configuration
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $apiKey = "${env:FIREBASE_API_KEY_BETA}".Trim()
+          $gateway = "${env:D159_USAGE_GATEWAY_URL_BETA}".Trim()
+          $configured = "false"
+
+          if ([string]::IsNullOrWhiteSpace($apiKey)) {
+            $apiKey = "d159-ci-placeholder-key"
+          }
+          if ([string]::IsNullOrWhiteSpace($gateway)) {
+            $gateway = "https://script.google.com/macros/s/d159-ci-placeholder/exec"
+          } else {
+            if ($gateway -notmatch '^https://script\.google\.com/macros/s/.+/exec$') {
+              throw "D159_USAGE_GATEWAY_URL_BETA must be an Apps Script /exec URL."
+            }
+            if ([string]::IsNullOrWhiteSpace("${env:FIREBASE_API_KEY_BETA}")) {
+              throw "Configured D159 build requires FIREBASE_WEB_API_KEY_BETA."
+            }
+            $configured = "true"
+          }
+
+          $path = "usage-test-agent/UsageTestConfig.cs"
+          $content = Get-Content $path -Raw
+          $content = $content.Replace("__FIREBASE_API_KEY_BETA__", $apiKey)
+          $content = $content.Replace("__D159_USAGE_GATEWAY_URL_BETA__", $gateway)
+          Set-Content $path $content -Encoding UTF8
+
+          "D159_CONFIGURED=$configured" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build D159 standalone EXE
+        shell: pwsh
+        run: |
+          dotnet build usage-test-agent/SupraFirestoreUsageTest.csproj -c Release -o usage-test-agent/dist
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run D159 parser self-test
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firestore Usage Test.exe" | Select-Object -First 1
+          if ($null -eq $exe) { throw "D159 EXE missing." }
+          & $exe.FullName --self-test
+          if ($LASTEXITCODE -ne 0) { throw "D159 self-test failed." }
+
+      - name: Verify D159 standalone output
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firestore Usage Test.exe" | Select-Object -First 1
+          if ($null -eq $exe) { throw "D159 EXE missing." }
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($exe.Name)" | Set-Content "usage-test-agent/dist/SUPRA.Firestore.Usage.Test.exe.sha256" -Encoding ASCII
+          Write-Host "D159 configured=$env:D159_CONFIGURED size=$($exe.Length) sha256=$hash"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d159-firestore-usage-test-${{ github.sha }}
+          path: |
+            usage-test-agent/dist/SUPRA Firestore Usage Test.exe
+            usage-test-agent/dist/SUPRA.Firestore.Usage.Test.exe.sha256
+          if-no-files-found: error
+
+      - name: Publish configured D159 field-test prerelease
+        if: github.event_name != 'pull_request' && env.D159_CONFIGURED == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "d159-usage-test-v1"
+          $exe = "usage-test-agent/dist/SUPRA Firestore Usage Test.exe"
+          $sha = "usage-test-agent/dist/SUPRA.Firestore.Usage.Test.exe.sha256"
+          if (gh release view $tag --repo "${{ github.repository }}" 2>$null) {
+            gh release upload $tag $exe $sha --clobber --repo "${{ github.repository }}"
+          } else {
+            gh release create $tag $exe $sha --prerelease --target "${{ github.sha }}" --title "D159 Firestore Usage Test v1" --notes "Isolated Beta field-test utility. No login UI, no WMS, no Firestore business operations, no D158 Agent v94 mutation. Requires an existing local Agent DPAPI session and the separate D159 Apps Script Usage Gateway."
+          }
