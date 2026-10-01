@@ -965,3 +965,20 @@ Compatibility copy must be device-agnostic and must not name a failing model/fir
 - Android Picker identity may append contractor after MNV and Họ tên in the existing header; do not repeat contractor on every SKU/history row.
 - A disabled Báo hàng tab remains visible at reduced emphasis rather than disappearing; Xác nhận đơn remains selected/usable.
 - Agent Picker list adds a **Nhà thầu** column between identity and source/control columns; existing search matches MNV, name or contractor.
+
+
+## D159 standalone Usage-test presentation
+
+The D159 field utility is intentionally smaller than the accepted Agent UI and must remain visually/operationally isolated.
+
+- Window title: **SUPRA Firestore Usage Test — D159-v1**.
+- Exactly one tab: **Thông tin**.
+- Header shows **Firestore Usage — Beta**, last provider update/cache state and one **Cập nhật ngay** action.
+- Summary has three compact groups:
+  1. provider-day Reads/Writes/Deletes with informational reference percentages;
+  2. Active connections and Snapshot listeners with current + 24-hour peak;
+  3. Security Rules ALLOW/DENY/ERROR over 24 hours.
+- Lower area is one read-only 24-hour table: Giờ, Read, Write, Delete, Listener peak, Connection peak, ALLOW, DENY, ERROR.
+- Opening the EXE starts refresh automatically. No login panel, Agent fleet, Picker list, WMS/Supra browser, settings, overlay, logs, update channel or confirmation controls are present.
+- Partial provider failure is shown as a bounded status message/N/A condition; it must not invent zero as authoritative when a metric is unavailable.
+- Copy states that Cloud Monitoring may lag several minutes and that quota figures are reference values.
