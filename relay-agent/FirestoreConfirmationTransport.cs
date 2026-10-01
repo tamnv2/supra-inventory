@@ -244,9 +244,9 @@ namespace SupraInventoryRelayAgent
 
         private int ProcessOnce(AgentSession session)
         {
-            // D158: a healthy Listen response already contains the full PENDING
-            // document. Process it immediately, but keep the accepted REST query
-            // on its original cadence as an independent fallback.
+            // D158 hotfix: start the accepted REST safety query on its original
+            // cadence, but never make an already-delivered listener payload wait
+            // behind that network round-trip. REST remains the independent fallback.
             var listenerDocs = ReadRealtimePendingDocuments();
             var fallbackMs = D158DesiredPollIntervalMs();
             var nowForPoll = NowMs();
@@ -258,21 +258,93 @@ namespace SupraInventoryRelayAgent
                 restDue = _lastRestPendingQueryMs == 0 ||
                           nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
             }
-            var docs = new List<PendingDocument>();
+
+            Task<List<PendingDocument>> restTask = null;
             if (restDue || (listenerDocs.Count == 0 && _lastRestPendingQueryMs == 0))
-                docs.AddRange(ReadPendingDocuments(session));
-            if (listenerDocs.Count > 0)
+                restTask = Task.Run(() => ReadPendingDocuments(session));
+
+            var cycleSeen = new Dictionary<string, string>(StringComparer.Ordinal);
+            var processed = 0;
+            _lastBusinessPendingCount = 0;
+
+            var listenerCanonical = CanonicalizePendingDocuments(listenerDocs, cycleSeen, "LISTEN");
+            if (listenerCanonical.Count > 0)
             {
-                var known = new HashSet<string>(docs.Where(x => x != null).Select(x => (x.Name ?? "") + "|" + (x.UpdateTime ?? "")), StringComparer.Ordinal);
-                foreach (var item in listenerDocs)
-                {
-                    if (item == null) continue;
-                    var key = (item.Name ?? "") + "|" + (item.UpdateTime ?? "");
-                    if (known.Add(key)) docs.Add(item);
-                }
-                LogPollTelemetry("D158_LISTEN_PAYLOAD", listenerDocs.Count, listenerDocs.Count);
+                LogPollTelemetry("D158_LISTEN_PAYLOAD", listenerDocs.Count, listenerCanonical.Count);
+                processed += ProcessPendingDocuments(session, listenerCanonical);
             }
 
+            if (restTask != null)
+            {
+                // GetAwaiter().GetResult preserves the original WebException so the
+                // existing transport health/retry path keeps its accepted semantics.
+                var restDocs = restTask.GetAwaiter().GetResult();
+                var restCanonical = CanonicalizePendingDocuments(restDocs, cycleSeen, "REST");
+                if (restCanonical.Count > 0)
+                    processed += ProcessPendingDocuments(session, restCanonical);
+            }
+
+            return processed;
+        }
+
+        private List<PendingDocument> CanonicalizePendingDocuments(
+            List<PendingDocument> docs,
+            Dictionary<string, string> cycleSeen,
+            string source)
+        {
+            var result = new List<PendingDocument>();
+            if (docs == null || docs.Count == 0) return result;
+            if (cycleSeen == null) cycleSeen = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            foreach (var doc in docs)
+            {
+                if (doc == null) continue;
+                var identity = CanonicalPendingIdentity(doc);
+                if (string.IsNullOrWhiteSpace(identity)) continue;
+                var signature = PendingBusinessSignature(doc);
+
+                string previousSignature;
+                if (cycleSeen.TryGetValue(identity, out previousSignature))
+                {
+                    _log("FIRESTORE CONFIRM duplicate_request=SKIP source=" + Safe(source) +
+                         " identity=" + Short(identity) +
+                         " metadata_conflict=" +
+                         (!string.Equals(previousSignature, signature, StringComparison.Ordinal) ? "true" : "false"));
+                    continue;
+                }
+
+                cycleSeen[identity] = signature;
+                result.Add(doc);
+            }
+            return result;
+        }
+
+        private static string CanonicalPendingIdentity(PendingDocument doc)
+        {
+            if (doc == null) return "";
+            if (doc.Work != null && !string.IsNullOrWhiteSpace(doc.Work.RequestId))
+                return "JOB:" + doc.Work.RequestId;
+            if (!string.IsNullOrWhiteSpace(doc.Name))
+                return "DOC:" + doc.Name;
+            return "";
+        }
+
+        private static string PendingBusinessSignature(PendingDocument doc)
+        {
+            if (doc == null) return "";
+            if (doc.Work == null)
+                return (doc.Source ?? "") + "|" + (doc.Name ?? "");
+            var work = doc.Work;
+            return (work.RequestId ?? "") + "|" +
+                   (work.Suffix ?? "") + "|" +
+                   (work.PickerUid ?? "") + "|" +
+                   (work.PickerUserId ?? "") + "|" +
+                   work.PickerSessionGeneration.ToString(CultureInfo.InvariantCulture) + "|" +
+                   work.CreatedAtMs.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private int ProcessPendingDocuments(AgentSession session, List<PendingDocument> docs)
+        {
             var eligible = new List<PendingDocument>();
             var processed = 0;
 
@@ -308,7 +380,7 @@ namespace SupraInventoryRelayAgent
                 eligible.Add(doc);
             }
 
-            _lastBusinessPendingCount = eligible.Count;
+            _lastBusinessPendingCount += eligible.Count;
             if (eligible.Count == 0) return processed;
             if (!_coordinator.VerifyPrimaryBeforeMutation(session))
             {
@@ -330,9 +402,18 @@ namespace SupraInventoryRelayAgent
             if (docs == null || docs.Count == 0) return 0;
 
             var works = new List<FirestoreConfirmationWorkItem>();
+            var uniqueDocs = new List<PendingDocument>();
+            var batchRequestIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var doc in docs)
             {
-                var work = doc.Work;
+                var work = doc == null ? null : doc.Work;
+                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
+                if (!batchRequestIds.Add(work.RequestId))
+                {
+                    _log("FIRESTORE CONFIRM duplicate_request=SKIP layer=TRANSPORT_BATCH request=" + Short(work.RequestId));
+                    continue;
+                }
+
                 _log("FIRESTORE CONFIRM pending-found request=" + Short(work.RequestId) +
                      " picker=" + Safe(work.PickerUserId) +
                      " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName) +
@@ -345,7 +426,10 @@ namespace SupraInventoryRelayAgent
                     " machine=" + Safe(Environment.MachineName) +
                     " instance=" + Short(_instanceId));
                 works.Add(work);
+                uniqueDocs.Add(doc);
             }
+            docs = uniqueDocs;
+            if (docs.Count == 0) return 0;
 
             lock (_currentBatchGate)
             {
