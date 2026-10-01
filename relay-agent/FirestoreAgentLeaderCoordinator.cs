@@ -184,6 +184,16 @@ namespace SupraInventoryRelayAgent
             get { lock (_stateGate) return _primaryId; }
         }
 
+        internal string CurrentStandbyId
+        {
+            get { lock (_stateGate) return _standbyId; }
+        }
+
+        internal string CurrentNextBId
+        {
+            get { lock (_stateGate) return _nextBId; }
+        }
+
         internal int BusinessPollIntervalMs
         {
             get
