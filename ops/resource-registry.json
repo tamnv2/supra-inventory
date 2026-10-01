@@ -303,8 +303,8 @@
       "agent_log_gateway_resource_key": "apps-script-agent-log-gateway-beta-d158",
       "agent_log_gateway_status": "OWNER_PROVISION_READY__NOT_YET_DEPLOYED__D157_FIRESTORE_LOG_FALLBACK_RETAINED",
       "agent_log_gateway_actions_variable": "AGENT_LOG_GATEWAY_URL_BETA",
-      "d158_candidate_artifact_id": 11149094105,
-      "d158_candidate_artifact_digest": "sha256:c4731f7e5ca5d5edc1edaf0895daac7525fdb3b7e882a8db15d62d6cfab20323"
+      "d158_candidate_artifact_id": 11150501670,
+      "d158_candidate_artifact_digest": "sha256:486c49c0d9730987527f593bc48837dd6ca17107e6c865bb93a59f07179289d4"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
