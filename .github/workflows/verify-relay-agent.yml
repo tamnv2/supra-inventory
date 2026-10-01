@@ -897,6 +897,9 @@ jobs:
             'DIRECT_PENDING',
             'DirtyCheckpointMs',
             'SizeCheckpointBytes',
+            'TotalBytesWritten',
+            'SIZE_2MB_NEW_DATA',
+            'seal=SKIP_EMPTY',
             'SealLogoutAndFlush',
             'agent-log-pending',
             'SAME_FINGERPRINT',
@@ -908,6 +911,9 @@ jobs:
           }
           if ($bridge.Contains('new[] { 0, 6, 12, 18 }') -or $bridge.Contains('new[] { 6, 12, 18, 21 }')) {
             throw "D158 Agent durable lifecycle must not restore fixed scheduled-log snapshots."
+          }
+          if ($bridge.Contains('CurrentOpenLogBytes')) {
+            throw "D158 size checkpoint must count new log bytes since the previous seal, not total rotated-file size."
           }
           if ($rules -notmatch "DIRECT_PENDING") { throw "D146 Firestore rules must allow DIRECT_PENDING Agent log parts." }
           Write-Host "D146 Agent Google-first logs / protected text input guard PASS"
