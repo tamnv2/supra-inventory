@@ -95,14 +95,14 @@ jobs:
 
           scope_value="$(jq -r '.tokens.default.scope // .token.scope // .scope // ""' "$HOME/.clasprc.json")"
           if printf ' %s ' "$scope_value" | grep -Fq ' https://www.googleapis.com/auth/drive '; then
-            echo "AUTH_SCOPE_DRIVE_FULL=true"
+            echo "STORED_SCOPE_DRIVE_FULL=true"
           else
-            echo "AUTH_SCOPE_DRIVE_FULL=false"
+            echo "STORED_SCOPE_DRIVE_FULL=false"
           fi
           if printf ' %s ' "$scope_value" | grep -Fq ' https://www.googleapis.com/auth/drive.file '; then
-            echo "AUTH_SCOPE_DRIVE_FILE=true"
+            echo "STORED_SCOPE_DRIVE_FILE=true"
           else
-            echo "AUTH_SCOPE_DRIVE_FILE=false"
+            echo "STORED_SCOPE_DRIVE_FILE=false"
           fi
 
           classify_delete_error() {
@@ -125,15 +125,61 @@ jobs:
             fi
           }
 
+          token_scope_diag() {
+            local access_token
+            access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+            if [ -z "$access_token" ]; then
+              echo "TOKEN_SCOPE_DIAG=NO_ACCESS_TOKEN"
+              return 0
+            fi
+            curl -sS -o tokeninfo.json -G --data-urlencode "access_token=$access_token" "https://oauth2.googleapis.com/tokeninfo" || true
+            local granted
+            granted="$(jq -r '.scope // ""' tokeninfo.json 2>/dev/null || true)"
+            if printf ' %s ' "$granted" | grep -Fq ' https://www.googleapis.com/auth/drive '; then
+              echo "TOKEN_SCOPE_DRIVE_FULL=true"
+            else
+              echo "TOKEN_SCOPE_DRIVE_FULL=false"
+            fi
+            if printf ' %s ' "$granted" | grep -Fq ' https://www.googleapis.com/auth/drive.file '; then
+              echo "TOKEN_SCOPE_DRIVE_FILE=true"
+            else
+              echo "TOKEN_SCOPE_DRIVE_FILE=false"
+            fi
+          }
+
           delete_script_checked() {
             local target_id="$1"
             local label="$2"
             local out_file="delete-${label}.out"
             local err_file="delete-${label}.err"
             if clasp delete-script "$target_id" --force >"$out_file" 2>"$err_file"; then
+              echo "DELETE_SCRIPT_METHOD=CLASP"
               return 0
             fi
+
             echo "DELETE_SCRIPT_DIAG=$(classify_delete_error "$out_file" "$err_file")"
+            token_scope_diag
+
+            local access_token
+            access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+            if [ -z "$access_token" ]; then
+              echo "DRIVE_DELETE_HTTP=NO_ACCESS_TOKEN"
+              return 1
+            fi
+
+            local http_code
+            http_code="$(curl -sS -o "drive-delete-${label}.json" -w '%{http_code}' -X PATCH               -H "Authorization: Bearer $access_token"               -H "Content-Type: application/json"               --data '{"trashed":true}'               "https://www.googleapis.com/drive/v3/files/${target_id}?supportsAllDrives=true")"
+            echo "DRIVE_DELETE_HTTP=$http_code"
+
+            if [ "$http_code" = "200" ]; then
+              echo "DELETE_SCRIPT_METHOD=DIRECT_DRIVE_API"
+              return 0
+            fi
+
+            local reason
+            reason="$(jq -r '.error.errors[0].reason // .error.status // "UNKNOWN"' "drive-delete-${label}.json" 2>/dev/null || echo UNKNOWN)"
+            reason="$(printf '%s' "$reason" | tr -cd 'A-Za-z0-9_.-')"
+            echo "DRIVE_DELETE_REASON=${reason:-UNKNOWN}"
             return 1
           }
 
@@ -148,7 +194,7 @@ jobs:
               clasp --json delete-deployment "$deployment_id" >/dev/null 2>&1 || true
             fi
             if [ -n "$script_id" ]; then
-              clasp delete-script "$script_id" --force >/dev/null 2>&1 || true
+              delete_script_checked "$script_id" "trap" >/dev/null 2>&1 || true
             fi
             rm -rf "$work"
             rm -f "$HOME/.clasprc.json"
