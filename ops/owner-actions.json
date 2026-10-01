@@ -4200,36 +4200,38 @@
     },
     {
       "id": "OA086",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
-      "title": "Field-prove D158 Beta Agent log gateway + v93 on Office",
+      "status": "BLOCKED_PENDING_D158_HOTFIX_V94_TECHNICAL_RELEASE",
+      "title": "Field-prove D158 hotfix Agent v94 + Beta log gateway on Office",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Google Apps Script / Google Drive / SUPRA Inventory Beta",
-      "reason_owner_only": "AI has completed the normal Agent release path for relay-agent-v93 and verified the Agent distribution channel. The remaining gate is physical Office-laptop field proof by the Owner.",
+      "reason_owner_only": "v93 field error logs exposed a same-request duplicate mutation defect plus false/noisy error classification. AI is repairing D158 under the same change ID. Owner field testing resumes only after official relay-agent-v94 is merged, released and channel-verified.",
       "prerequisites": {
         "accepted_base": "D157_OWNER_ACCEPTED_PASS",
         "d158_owner_approval": "PASS__2026_10_01",
         "technical_pr": "PASS__PR341__MERGED_MAIN_2D2A9BFA__ALL_REQUIRED_GATES_PASS__CONFIGURED_GATEWAY_GET_PROBE_PASS",
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
-        "agent_candidate": "relay-agent-v93__OFFICIAL_RELEASE_ID_400845505__CHANNEL_AGENT_ASSET_602963581__FIELD_READY",
-        "technical_release": "PASS__MAIN_RUN_36847084762__RELEASE_400845505__EXE_SHA256_548C968100ED74ADDD0FD2D08D3A8490CBA400CFAB14F9F3EBF6F2C1C0FFE7FC",
-        "distribution_channel": "PASS__INVENTORY_CHANNEL__MANIFEST_ASSET_602963583__AGENT_ASSET_602963581"
+        "agent_candidate": "PENDING__OFFICIAL_RELAY_AGENT_V94_REQUIRED__V93_SUPERSEDED_FOR_D158_FIELD_ACCEPTANCE",
+        "technical_release": "PENDING__V94",
+        "distribution_channel": "PENDING__V94",
+        "d158_hotfix_owner_approval": "PASS__2026_10_01",
+        "hotfix_branch": "hotfix/d158-v94-dedupe-fastpath-errors"
       },
       "provisioning_evidence": "PASS__OWNER_CONFIRMED_APPS_SCRIPT_DEPLOYED__SCRIPT_PROPERTIES_SET_PRIVATELY__GITHUB_BETA_AGENT_LOG_GATEWAY_URL_CONFIGURED__2026_10_01",
       "shortest_action_after_technical_pass": [
-        "Official relay-agent-v93 is released from merged main and the normal Agent distribution channel is updated; PR-only artifact 11153610507 remains technical evidence only.",
-        "On one Office laptop update/run released v93: verify role/health after login, normal vc92 PickList, tiny log upload, same-bundle retry without duplicate, offline pending then reconnect, and 05:00 counter rollover when practical."
+        "Do not field-accept relay-agent-v93. Wait for the official relay-agent-v94 hotfix and normal Agent channel update.",
+        "On one Office laptop run released v94 with existing beta-vc92: verify normal PickList latency, listener+REST overlap without duplicate mutation, fallback when listener is unavailable, role/login behavior, log incident coalescing/recovery, Drive gateway pending/retry, and 05:00 rollover when practical."
       ],
       "pass_criteria": [
-        "Apps Script endpoint is reachable on Office and validates only current Firebase ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN Agent authority.",
-        "A sanitized Agent bundle lands only in Inventory/Beta/Logs and retrying the same bundle id does not create a second Drive file.",
-        "Gateway outage keeps the sealed bundle local and never blocks PickList/WMS/ACK.",
-        "With gateway configured, Agent support-log upload performs no Firestore spool write/read/delete/Function trigger.",
-        "Android beta-vc92 confirmation behavior, D157 HA lease/failover/WMS guards and Stable remain unchanged.",
-        "NEXT_A/NEXT_B role-health presentation is correct after login and gRPC listeners do not reproduce the D157 database/header InvalidArgument.",
-        "05:00 business-day counter rollover is correct."
+        "Listener payload can progress without waiting behind a due REST fallback query while REST 3s/1s/15s and bounded degraded 2s safety behavior remain available.",
+        "The same RequestId delivered by listener and REST, including different updateTime representations, produces one business/audit unit and at most one ConfirmExact WMS mutation; different RequestIds sharing a suffix remain independent.",
+        "Final ACK uncertainty never causes a second WMS mutation.",
+        "Known Agent role repeat-login may avoid the wrong-role Firebase probe; a role-probe HTTP 400 does not create error_agent, while final dual-role rejection creates one canonical error.",
+        "One active Google connectivity incident creates one immediate error bundle while all sanitized nested errors remain in local technical logs; recovery closes the incident and a later outage is captured as a new incident.",
+        "Apps Script endpoint remains scoped/idempotent; gateway outage stays local pending and never blocks PickList/WMS/ACK.",
+        "Android beta-vc92, D157 HA lease/failover/generation guard, D137 real-F5/browser semantics and Stable remain unchanged."
       ],
-      "remaining_owner_action": "Run the shortest Office field proof on one company laptop using released relay-agent-v93: verify correct PRIMARY/NEXT_A/NEXT_B health after login, normal vc92 PickList confirmation, tiny Agent log upload into Inventory/Beta/Logs, same-bundle retry without duplicate Drive file, offline local pending then reconnect upload, and 05:00 counter rollover when the boundary is available. Do not send keys/tokens.",
+      "remaining_owner_action": "None until AI completes D158 hotfix v94 technical PR, merge, official release and channel verification. After that, run the updated OA086 shortest Office field proof. Do not send keys/tokens.",
       "closed": false
     }
   ]
