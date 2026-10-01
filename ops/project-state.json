@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D157",
     "accepted_base_evidence": "OWNER_EXPLICIT_D157_PASS__AGENT_V92__ANDROID_VC92__2026_09_30",
     "current_change_id": "D158",
-    "current_change_status": "OA086_OWNER_PROVISIONED__PR341_REBUILDING_CONFIGURED_AGENT_V93_FIELD_CANDIDATE__D157_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "TECHNICAL_PR_PASS__OA086_PROVISIONED__CONFIGURED_AGENT_V93_FIELD_READY__OWNER_OFFICE_PROOF_PENDING__D157_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -3457,7 +3457,7 @@
     }
   },
   "d158": {
-    "status": "OA086_OWNER_PROVISIONED__PR341_CONFIGURED_V93_FIELD_CANDIDATE_REBUILDING",
+    "status": "TECHNICAL_PR_PASS__OA086_OWNER_PROVISIONED__CONFIGURED_GATEWAY_PROBE_PASS__AGENT_V93_FIELD_READY",
     "date": "2026-10-01",
     "baseline_change": "D157",
     "baseline_main": "7f7533b8ec61982a5d9fb5610436e9b15a87628f",
@@ -3501,25 +3501,25 @@
     "log_range_guard": "HALF_OPEN_MILLISECOND_RANGES__NO_CROSS_BUNDLE_OVERLAP__EMPTY_CHECKPOINTS_SKIPPED__SIZE_TRIGGER_COUNTS_NEW_BYTES_ONLY",
     "manual_log_send": "TECHNICAL_TAB_Gửi_log__LOCAL_SEAL_THEN_BOUNDED_UPLOAD_OR_LOCAL_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OA086_PROVISION_COMPLETE__AI_REBUILD_CONFIGURED_FIELD_CANDIDATE__OWNER_OFFICE_PROOF_NEXT__D157_REMAINS_ACCEPTED_BASE",
+    "owner_gate": "OA086_READY_FOR_OWNER_OFFICE_FIELD_PROOF__CONFIGURED_V93_CANDIDATE_READY__D157_REMAINS_ACCEPTED_BASE",
     "implementation_pr": 341,
-    "pr_head": "e96aa0350c801ebd2a6017a2b882680b1a25674c",
+    "pr_head": "efab7e7cf31ee8b3ec134c09f59ef5cfe9dc7214",
     "technical_runs": {
-      "repo_authority": 36841504159,
-      "project_state": 36841504090,
-      "relay_agent": 36841504280,
-      "ui_design": 36841504066,
-      "dashboard_probe": 36841504097,
-      "firestore": 36841504219,
-      "rtdb": 36841504071
+      "repo_authority": 36845303330,
+      "project_state": 36845303219,
+      "relay_agent": 36845303212,
+      "ui_design": 36845303087,
+      "dashboard_probe": 36845303099,
+      "firestore": 36845303098,
+      "rtdb": 36845303250
     },
     "candidate_artifact": {
-      "workflow_run": 36841504280,
-      "artifact_id": 11150619088,
+      "workflow_run": 36845303212,
+      "artifact_id": 11153610507,
       "name": "supra-inventory-relay-poc-agent",
-      "digest": "sha256:7bc5bb53bb59bcc1655eed5b9511ca5d3660bf5cb6a4df6f9ca9735ecb7372bc",
-      "gateway_config": "OWNER_REPORTED_CONFIGURED_IN_GITHUB_BETA_ENVIRONMENT__CI_MUST_FAIL_IF_MISSING_OR_NOT_SCRIPT_GOOGLE_EXEC",
-      "note": "Owner reported Apps Script deployment and GitHub Beta environment variable complete; rebuild must prove configured gateway without exposing its value before Office field proof."
+      "digest": "sha256:f908a6ad5258ad8e9f1a91afd5ebf1209c64fc7cbc2a6740b6afe64d1ca792e7",
+      "gateway_config": "PASS__GITHUB_BETA_ENV_VAR_PRESENT_AND_VALID_SCRIPT_GOOGLE_EXEC__PUBLIC_GET_IDENTITY_PROBE_PASS__VALUE_NOT_EXPOSED",
+      "note": "Configured v93 PR artifact built successfully after CI required a valid script.google.com /exec URL and the gateway GET identity probe returned SUPRA_AGENT_LOG_GATEWAY_D158 for supra-inventory-beta. Office authenticated upload/idempotency/offline-retry proof remains pending."
     }
   }
 }
