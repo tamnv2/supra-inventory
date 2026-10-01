@@ -861,6 +861,14 @@ jobs:
           $content = Get-Content $path -Raw
           $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
           $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
+          if ([string]::IsNullOrWhiteSpace($gateway)) { throw "D158 OA086 requires AGENT_LOG_GATEWAY_URL_BETA after Owner provisioning." }
+          $gatewayUri = $null
+          if (-not [System.Uri]::TryCreate($gateway, [System.UriKind]::Absolute, [ref]$gatewayUri) -or
+              $gatewayUri.Scheme -ne "https" -or
+              $gatewayUri.Host -ne "script.google.com" -or
+              -not $gatewayUri.AbsolutePath.EndsWith("/exec")) {
+            throw "D158 OA086 Agent log gateway must be the deployed HTTPS script.google.com Web App /exec URL."
+          }
           $content = $content.Replace("__AGENT_LOG_GATEWAY_URL_BETA__", $gateway)
           Set-Content -Path $path -Value $content -Encoding UTF8
 
