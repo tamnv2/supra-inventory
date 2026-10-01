@@ -32,9 +32,11 @@ namespace SupraInventoryRelayAgent
     {
         private static readonly AutoResetEvent Wake = new AutoResetEvent(false);
         private static readonly object Gate = new object();
-        private static readonly Queue<Google.Cloud.Firestore.V1.Document> PendingDocuments =
-            new Queue<Google.Cloud.Firestore.V1.Document>();
-        private static readonly HashSet<string> PendingKeys = new HashSet<string>(StringComparer.Ordinal);
+        // D158 hotfix: business identity is the Firestore document name (request id),
+        // not Name+UpdateTime. Keep only the newest snapshot for a queued request.
+        private static readonly Queue<string> PendingDocumentNames = new Queue<string>();
+        private static readonly Dictionary<string, Google.Cloud.Firestore.V1.Document> PendingDocuments =
+            new Dictionary<string, Google.Cloud.Firestore.V1.Document>(StringComparer.Ordinal);
         private static long _lastPulseUtcTicks;
         private static int _connected;
 
@@ -50,18 +52,18 @@ namespace SupraInventoryRelayAgent
             Interlocked.Exchange(ref _lastPulseUtcTicks, DateTime.UtcNow.Ticks);
             if (document != null)
             {
-                var update = document.UpdateTime == null ? "" : document.UpdateTime.ToString();
-                var key = (document.Name ?? "") + "|" + update;
-                lock (Gate)
+                var documentName = document.Name ?? "";
+                if (!string.IsNullOrWhiteSpace(documentName))
                 {
-                    if (PendingKeys.Add(key))
+                    lock (Gate)
                     {
-                        PendingDocuments.Enqueue(document);
-                        while (PendingDocuments.Count > 256)
+                        if (!PendingDocuments.ContainsKey(documentName))
+                            PendingDocumentNames.Enqueue(documentName);
+                        PendingDocuments[documentName] = document;
+                        while (PendingDocumentNames.Count > 256)
                         {
-                            var dropped = PendingDocuments.Dequeue();
-                            var droppedUpdate = dropped.UpdateTime == null ? "" : dropped.UpdateTime.ToString();
-                            PendingKeys.Remove((dropped.Name ?? "") + "|" + droppedUpdate);
+                            var droppedName = PendingDocumentNames.Dequeue();
+                            PendingDocuments.Remove(droppedName);
                         }
                     }
                 }
@@ -74,11 +76,13 @@ namespace SupraInventoryRelayAgent
             var result = new List<Google.Cloud.Firestore.V1.Document>();
             lock (Gate)
             {
-                while (PendingDocuments.Count > 0 && result.Count < Math.Max(1, max))
+                while (PendingDocumentNames.Count > 0 && result.Count < Math.Max(1, max))
                 {
-                    var item = PendingDocuments.Dequeue();
-                    var update = item.UpdateTime == null ? "" : item.UpdateTime.ToString();
-                    PendingKeys.Remove((item.Name ?? "") + "|" + update);
+                    var documentName = PendingDocumentNames.Dequeue();
+                    Google.Cloud.Firestore.V1.Document item;
+                    if (!PendingDocuments.TryGetValue(documentName, out item))
+                        continue;
+                    PendingDocuments.Remove(documentName);
                     result.Add(item);
                 }
             }
