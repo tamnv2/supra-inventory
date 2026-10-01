@@ -2740,3 +2740,19 @@ GitHub Actions rerun `36893999796` provides independent technical proof:
 - configured D159 gateway identity, isolated EXE build and parser/self-test all PASS.
 
 This closes the 403 provider/IAM blocker technically. It does **not** constitute Owner PASS for D159: OA087 remains open until the Owner field-retests the existing D159-v2 standalone EXE and confirms that real totals/hourly/realtime/rules values are visible and plausible against Firebase Usage. D158 remains the accepted base; Agent v94, Android vc92, Web/Worker/WMS and Stable are unchanged.
+
+## D159 v3 — multi-service Firebase usage field candidate — 2026-10-02
+
+Owner approved continuing the **same D159** with a v3 standalone field candidate before any next change is opened. D158 remains the accepted base and production Agent v94 / Android vc92 / Web / Worker / WMS / Stable are unchanged.
+
+D159-v3 expands the existing Cloud Monitoring-only gateway from the Firestore core metrics to a bounded provider snapshot covering:
+- Firestore document read/write/delete operations, active connections, snapshot listeners, Security Rules, data+index storage, provider-day remaining quota/reset and derived 24-hour totals/peak hours;
+- Firebase Authentication / Identity Toolkit request volume and Secure Token refresh volume;
+- Firebase Cloud Messaging API request/error volume;
+- the existing `inventory-beta-picker-alerts` Cloud Run function request/error volume, current/peak instance count and billable instance time.
+
+The gateway performs 13 Cloud Monitoring queries only on a **shared 15-minute Script Cache miss**. The usage feature does not query, scan, write or delete Firestore documents. The standalone client still refreshes its existing saved Firebase session in memory and the gateway validates the ID token, so a small bounded Firebase Auth request overhead remains; this is not Firestore document quota.
+
+The v3 UI is Vietnamese-first and uses clear operational terms. The 24-hour Firestore detail table is retained with Vietnamese columns. Provider data may lag; N/A is never treated as zero.
+
+Owner also fixed the future Agent integration contract: once D159 itself receives explicit Owner PASS and a later change integrates this surface, **Thông tin Usage is visible only for exact normalized Agent logins `tamnv2` and `admin`**. Every other Agent user must have no Usage tab, no Usage refresh timer and no Usage gateway request. This requirement is recorded now but no later change is opened or implemented before D159 Owner PASS.

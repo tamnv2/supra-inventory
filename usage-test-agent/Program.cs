@@ -34,7 +34,7 @@ namespace SupraFirestoreUsageTest
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new UsageTestForm());
+            Application.Run(new UsageTestFormV3());
         }
     }
 
@@ -117,7 +117,7 @@ namespace SupraFirestoreUsageTest
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
-            request.UserAgent = "SUPRA-Firestore-Usage-Test/D159";
+            request.UserAgent = "SUPRA-Firebase-Usage-Test/D159-v3";
             request.Timeout = 15000;
             request.ReadWriteTimeout = 15000;
             request.AllowAutoRedirect = true;
@@ -156,7 +156,7 @@ namespace SupraFirestoreUsageTest
             var request = (HttpWebRequest)WebRequest.Create(UsageTestConfig.UsageGatewayUrl);
             request.Method = "POST";
             request.ContentType = "application/json; charset=utf-8";
-            request.UserAgent = "SUPRA-Firestore-Usage-Test/D159";
+            request.UserAgent = "SUPRA-Firebase-Usage-Test/D159-v3";
             request.Timeout = 30000;
             request.ReadWriteTimeout = 30000;
             request.AllowAutoRedirect = true;

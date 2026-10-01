@@ -3627,11 +3627,11 @@
     }
   },
   "d159": {
-    "status": "TECHNICAL_REPAIR_PASS__PROVIDER_CANARY_PASS__OWNER_FIELD_RETEST_PENDING",
+    "status": "V3_TECHNICAL_PROVIDER_PASS__GW_V4_OWNER_REDEPLOY_CONFIRMED__PR_FINAL_GATES_PENDING",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
-    "branch": "feat/d159-firestore-usage-test",
+    "branch": "feat/d159-usage-v3",
     "owner_approved_scope": [
       "SEPARATE_D159_APPS_SCRIPT_RESOURCE__DO_NOT_MODIFY_D158_LOG_GATEWAY",
       "STANDALONE_WINDOWS_TEST_EXE_ONLY__ONE_INFORMATION_TAB__NO_LOGIN_UI",
@@ -3644,7 +3644,11 @@
       "RULES_ALLOW_DENY_ERROR_24H",
       "HOURLY_24H_TABLE",
       "AGENT_V94_ANDROID_VC92_WEB_WORKER_WMS_UNCHANGED",
-      "STABLE_UNTOUCHED"
+      "STABLE_UNTOUCHED",
+      "V3_VIETNAMESE_MULTI_SERVICE_SUMMARY__FIRESTORE_AUTH_FCM_CLOUD_FUNCTIONS",
+      "FIRESTORE_STORAGE_DATA_PLUS_INDEX_REFERENCE",
+      "DERIVED_24H_TOTALS_PEAK_HOURS_REMAINING_QUOTA_RESET_COUNTDOWN",
+      "FUTURE_AGENT_USAGE_TAB_EXACT_LOGIN_TAMNV2_OR_ADMIN_ONLY__OTHERS_HIDDEN_AND_NO_TIMER_OR_GATEWAY_CALL"
     ],
     "base_impact": "NO_ACCEPTED_BUSINESS_RUNTIME_MUTATION__ISOLATED_BETA_TEST_UTILITY_AND_NEW_PROVIDER_RESOURCE",
     "affected_components": [
@@ -3655,9 +3659,9 @@
     ],
     "regression_stability_risk": "LOW__NEW_EXE_AND_NEW_APPS_SCRIPT_ARE_ISOLATED_FROM_ACCEPTED_AGENT_V94_AND_D158_LOG_GATEWAY__FAILURE_ONLY_REMOVES_USAGE_VISIBILITY",
     "resource_quota_security_impact": "ONE_NEW_BETA_APPS_SCRIPT_WEB_APP__MONITORING_READ_ONLY_CACHED_15M__NO_FIRESTORE_DOCUMENT_OPS_FOR_USAGE__NO_WMS_CLOUDFLARE_DRIVE_OR_STABLE_TRAFFIC__FIREBASE_ID_TOKEN_REQUIRED__NO_SECRET_IN_REPO",
-    "recommended_approach": "SEPARATE_GATEWAY__READ_EXISTING_DPAPI_AGENT_SESSION_WITHOUT_MUTATION__REFRESH_FIREBASE_ID_TOKEN_IN_MEMORY__SERVER_VALIDATE_ADMIN_ROLE__QUERY_ONLY_SIX_FIRESTORE_MONITORING_METRICS__CACHE_15M",
+    "recommended_approach": "SEPARATE_STANDALONE_V3__EXISTING_DPAPI_SESSION_READ_ONLY__CLOUD_MONITORING_MULTI_SERVICE_ONLY__13_METRIC_QUERIES_ON_GLOBAL_15M_CACHE_MISS__ZERO_FIRESTORE_DOCUMENT_OPS",
     "preimplementation_owner_approval": "PASS__OWNER_EXPLICITLY_APPROVED_SEPARATE_D159_AFTER_LOW_RISK_REVIEW__2026_10_01",
-    "target_test_release": "d159-usage-test-v1",
+    "target_test_release": "d159-usage-test-v3",
     "new_provider_resources": "ONE_SEPARATE_BETA_APPS_SCRIPT_FIRESTORE_USAGE_GATEWAY__OWNER_PROVISIONING_REQUIRED",
     "new_firestore_collections": "NONE",
     "new_firestore_reads_writes_deletes_from_usage_feature": "ZERO",
@@ -3668,10 +3672,17 @@
       "firestore.googleapis.com/document/delete_ops_count",
       "firestore.googleapis.com/network/active_connections",
       "firestore.googleapis.com/network/snapshot_listeners",
-      "firestore.googleapis.com/rules/evaluation_count"
+      "firestore.googleapis.com/rules/evaluation_count",
+      "firestore.googleapis.com/storage/data_and_index_storage_bytes",
+      "serviceruntime.googleapis.com/api/request_count__fcm.googleapis.com",
+      "serviceruntime.googleapis.com/api/request_count__identitytoolkit.googleapis.com",
+      "serviceruntime.googleapis.com/api/request_count__securetoken.googleapis.com",
+      "run.googleapis.com/request_count__inventory-beta-picker-alerts",
+      "run.googleapis.com/container/instance_count__inventory-beta-picker-alerts",
+      "run.googleapis.com/container/billable_instance_time__inventory-beta-picker-alerts"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_READY_OWNER_FIELD_RETEST__GW_V3_REDEPLOYED__MONITORING_API_ENABLED__IAM_PASS__CANARY_HTTP_200",
+    "field_gate": "OA087_READY_AFTER_PR_MERGE_AND_V3_PRERELEASE_FOR_OWNER_FIELD_TEST",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
     "implementation_pr": 346,
@@ -3692,7 +3703,7 @@
     "technical_result": "PASS__PR346_ALL_REQUIRED_GATES__MAIN_AUTHORITY_STATE_UI_DASHBOARD_D159_BUILD_PASS",
     "owner_provisioning": {
       "reported_at": "2026-10-01",
-      "reported_status": "DONE_BY_OWNER__IAM_API_GW_V3_REDEPLOY_CONFIRMED",
+      "reported_status": "DONE_BY_OWNER__GW_V4_REDEPLOY_CONFIRMED",
       "verification_required": [
         "GITHUB_BETA_ENV_D159_USAGE_GATEWAY_URL_BETA_PRESENT",
         "D159_GATEWAY_GET_IDENTITY_PASS",
@@ -3706,7 +3717,17 @@
         "BETA_RUNTIME_SA_SERVICE_USAGE_CONSUMER_GRANTED",
         "D159_GW_V3_REDEPLOYED_SAME_WEB_APP_URL",
         "CI_EXACT_MONITORING_QUERY_HTTP_200"
-      ]
+      ],
+      "v3_gateway_redeploy": {
+        "reported_at": "2026-10-02",
+        "result": "DONE_BY_OWNER",
+        "deployment_url": "UNCHANGED_EXISTING_D159_WEB_APP",
+        "script_property": "UNCHANGED",
+        "scopes": "UNCHANGED",
+        "revision_probe": "PASS__D159_GW_V4",
+        "verification_run": 36902749377,
+        "verification_attempt": 2
+      }
     },
     "gateway_verification": "PASS__CONFIGURED_D159_USAGE_GATEWAY_GET_IDENTITY__PROJECT_SUPRA_INVENTORY_BETA",
     "configured_artifact": {
@@ -3800,6 +3821,47 @@
       "source_contract": "D159_V2_WINDOWS_SOURCE_UNCHANGED__GW_V3_PROVIDER_REPAIR_ACTIVE",
       "note": "This is the field-test asset after the final continuity refresh. D159 CI now prevents authority/docs-only pushes from clobbering the prerelease asset."
     },
-    "release_refresh_policy": "PUBLISH_PRERELEASE_ONLY_WHEN_USAGE_TEST_AGENT_OR_D159_APPS_SCRIPT_SOURCE_CHANGES__AUTHORITY_CONTINUITY_OR_WORKFLOW_ONLY_PUSH_DOES_NOT_CLOBBER_FIELD_ASSET"
+    "release_refresh_policy": "PUBLISH_PRERELEASE_ONLY_WHEN_USAGE_TEST_AGENT_OR_D159_APPS_SCRIPT_SOURCE_CHANGES__AUTHORITY_CONTINUITY_OR_WORKFLOW_ONLY_PUSH_DOES_NOT_CLOBBER_FIELD_ASSET",
+    "v3": {
+      "owner_approval": "PASS__OWNER_EXPLICITLY_APPROVED_D159_V3__2026_10_02",
+      "test_release": "d159-usage-test-v3",
+      "gateway_revision": "D159-GW-v4",
+      "ui": "THUAN_VIET__THONG_TIN_USAGE__FIRESTORE_FIREBASE_AUTH_FCM_CLOUD_FUNCTIONS__24H_DETAIL",
+      "provider_query_count_per_shared_cache_miss": 13,
+      "cache_seconds": 900,
+      "firestore_document_ops_from_usage_feature": 0,
+      "firebase_auth_overhead": "ONE_SECURE_TOKEN_REFRESH_IN_STANDALONE_CLIENT_PLUS_ONE_IDENTITY_TOOLKIT_TOKEN_LOOKUP_AT_GATEWAY_PER_VISIBLE_REFRESH__NO_FIRESTORE_DOCUMENT_OP",
+      "production_agent_change": "NONE__RELAY_AGENT_V94_UNCHANGED_UNTIL_D159_OWNER_PASS_AND_SEPARATE_NEXT_CHANGE",
+      "future_agent_visibility": {
+        "exact_login_allowlist": [
+          "tamnv2",
+          "admin"
+        ],
+        "other_users": "TAB_HIDDEN__NO_TIMER__NO_USAGE_GATEWAY_REQUEST",
+        "refresh_minutes": 15
+      },
+      "owner_acceptance_rule": "D159_CLOSES_ONLY_AFTER_OWNER_TESTS_V3_AND_EXPLICITLY_SAYS_PASS",
+      "technical_evidence": {
+        "pr": 354,
+        "workflow_run": 36902749377,
+        "firestore_provider_canary": "PASS_HTTP_200",
+        "new_metric_canaries": {
+          "firestore_storage": "PASS_HTTP_200",
+          "fcm_api": "PASS_HTTP_200",
+          "identity_toolkit_api": "PASS_HTTP_200",
+          "secure_token_api": "PASS_HTTP_200",
+          "picker_alert_cloud_run": "PASS_HTTP_200"
+        },
+        "windows_build": "PASS",
+        "parser_self_test": "PASS",
+        "configured_exe_size_bytes": 43008,
+        "configured_exe_sha256": "c7d7e0de9afb3e9aa4b61dd1e64fe4b61d9ff4a7a2de062a44f81682bec7ff37",
+        "only_expected_failure": "CONFIGURED_GATEWAY_STILL_REPORTS_PREVIOUS_REVISION__OWNER_REDEPLOY_D159_GW_V4_REQUIRED",
+        "gateway_revision_probe": "PASS__D159-GW-v4",
+        "rerun_workflow": 36902749377,
+        "rerun_attempt": 2,
+        "result": "PASS__ALL_D159_V3_SOURCE_PROVIDER_BUILD_SELFTEST_GATEWAY_STEPS"
+      }
+    }
   }
 }

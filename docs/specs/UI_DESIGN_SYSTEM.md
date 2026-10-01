@@ -982,3 +982,11 @@ The D159 field utility is intentionally smaller than the accepted Agent UI and m
 - Opening the EXE starts refresh automatically. No login panel, Agent fleet, Picker list, WMS/Supra browser, settings, overlay, logs, update channel or confirmation controls are present.
 - Partial provider failure is shown as a bounded status message/N/A condition; it must not invent zero as authoritative when a metric is unavailable.
 - Copy states that Cloud Monitoring may lag several minutes and that quota figures are reference values.
+
+## D159 v3 — Thông tin Usage presentation
+
+The standalone D159-v3 field utility previews the later Agent **Thông tin Usage** surface. It must be Vietnamese-first and readable without Cloud/Firebase terminology knowledge.
+
+Required summary groups are: **Firestore — quota hôm nay**, **Firestore — realtime & bảo mật · 24 giờ**, **Firebase — đăng nhập & FCM · 24 giờ**, **Firestore — tổng 24 giờ**, **Cloud Functions — thông báo Picker · 24 giờ**, and **Cơ chế giám sát**. Read/write/delete labels are shown as **Đọc / Ghi / Xóa**; peaks use **đỉnh**; Security Rules use **Rule cho phép / từ chối / lỗi**.
+
+The detail grid keeps 24 hourly rows and uses Vietnamese column labels. The header states 15-minute automatic refresh and zero Firestore document operation overhead for usage collection. Partial provider data remains visible with N/A plus a concise warning rather than being replaced by zero.

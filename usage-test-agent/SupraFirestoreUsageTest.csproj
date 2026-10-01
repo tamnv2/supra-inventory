@@ -4,9 +4,9 @@
     <TargetFramework>net48</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>SupraFirestoreUsageTest</RootNamespace>
-    <AssemblyName>SUPRA Firestore Usage Test</AssemblyName>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyName>SUPRA Firebase Usage Test</AssemblyName>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
     <LangVersion>latest</LangVersion>
     <Deterministic>true</Deterministic>
     <PlatformTarget>x64</PlatformTarget>

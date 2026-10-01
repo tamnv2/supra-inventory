@@ -1,8 +1,8 @@
 const PROJECT_ID = 'supra-inventory-beta';
 const DATABASE_ID = '(default)';
 const ROLE_ALLOWLIST = ['ADMIN', 'PICKPACK_ADMIN'];
-const CACHE_KEY = 'D159_FIRESTORE_USAGE_V3_QUOTA_PROJECT';
-const GATEWAY_REVISION = 'D159-GW-v3';
+const CACHE_KEY = 'D159_FIREBASE_USAGE_V4_MULTI_SERVICE';
+const GATEWAY_REVISION = 'D159-GW-v4';
 const CACHE_TTL_SECONDS = 15 * 60;
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -13,8 +13,22 @@ const METRICS = {
   deletes: 'firestore.googleapis.com/document/delete_ops_count',
   connections: 'firestore.googleapis.com/network/active_connections',
   listeners: 'firestore.googleapis.com/network/snapshot_listeners',
-  rules: 'firestore.googleapis.com/rules/evaluation_count'
+  rules: 'firestore.googleapis.com/rules/evaluation_count',
+  storage: 'firestore.googleapis.com/storage/data_and_index_storage_bytes',
+  serviceRequests: 'serviceruntime.googleapis.com/api/request_count',
+  functionRequests: 'run.googleapis.com/request_count',
+  functionInstances: 'run.googleapis.com/container/instance_count',
+  functionBillableTime: 'run.googleapis.com/container/billable_instance_time'
 };
+
+const SERVICE_ENDPOINTS = {
+  fcm: 'fcm.googleapis.com',
+  identityToolkit: 'identitytoolkit.googleapis.com',
+  secureToken: 'securetoken.googleapis.com'
+};
+
+const PICKER_ALERT_CLOUD_RUN_SERVICE = 'inventory-beta-picker-alerts';
+const FIRESTORE_FREE_STORAGE_BYTES_REFERENCE = 1024 * 1024 * 1024;
 
 function doGet() {
   return json_({
@@ -77,6 +91,7 @@ function collectUsage_() {
   const now = new Date();
   const start = new Date(now.getTime() - DAY_MS);
   const providerDayStart = zonedMidnightUtc_(now, 'America/Los_Angeles');
+  const providerDayReset = nextZonedMidnightUtc_(now, 'America/Los_Angeles');
   const token = ScriptApp.getOAuthToken();
 
   const specs = [
@@ -85,7 +100,14 @@ function collectUsage_() {
     metricSpec_('deletes', METRICS.deletes, start, now, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
     metricSpec_('connections', METRICS.connections, start, now, '60s', 'ALIGN_MAX', 'REDUCE_SUM', []),
     metricSpec_('listeners', METRICS.listeners, start, now, '60s', 'ALIGN_MAX', 'REDUCE_SUM', []),
-    metricSpec_('rules', METRICS.rules, start, now, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', ['metric.labels.result'])
+    metricSpec_('rules', METRICS.rules, start, now, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', ['metric.labels.result']),
+    metricSpec_('storage', METRICS.storage, start, now, '300s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    consumedApiMetricSpec_('fcm_requests', SERVICE_ENDPOINTS.fcm, start, now),
+    consumedApiMetricSpec_('identity_requests', SERVICE_ENDPOINTS.identityToolkit, start, now),
+    consumedApiMetricSpec_('secure_token_requests', SERVICE_ENDPOINTS.secureToken, start, now),
+    cloudRunMetricSpec_('function_requests', METRICS.functionRequests, start, now, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', ['metric.labels.response_code_class']),
+    cloudRunMetricSpec_('function_instances', METRICS.functionInstances, start, now, '60s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    cloudRunMetricSpec_('function_billable_time', METRICS.functionBillableTime, start, now, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', [])
   ];
 
   const results = fetchMetrics_(specs, token);
@@ -126,6 +148,14 @@ function collectUsage_() {
   });
 
   const hourly = Object.keys(hours).sort().map(key => hours[key]);
+  const traffic = summarizeTraffic_(hourly);
+  const storage = summarizeGaugeSeries_(results.storage.series);
+  const fcm = summarizeRequestSeries_(results.fcm_requests.series);
+  const identity = summarizeRequestSeries_(results.identity_requests.series);
+  const secureToken = summarizeRequestSeries_(results.secure_token_requests.series);
+  const functionRequests = summarizeRequestSeries_(results.function_requests.series);
+  const functionInstances = summarizeGaugeSeries_(results.function_instances.series);
+  const functionBillableSeconds = sumSeries_(results.function_billable_time.series);
 
   return {
     ok: true,
@@ -143,11 +173,19 @@ function collectUsage_() {
       deletes: !results.deletes.error,
       connections: !results.connections.error,
       listeners: !results.listeners.error,
-      rules: !results.rules.error
+      rules: !results.rules.error,
+      storage: !results.storage.error,
+      fcm: !results.fcm_requests.error,
+      auth_identity: !results.identity_requests.error,
+      auth_refresh: !results.secure_token_requests.error,
+      functions_requests: !results.function_requests.error,
+      functions_instances: !results.function_instances.error,
+      functions_billable: !results.function_billable_time.error
     },
     quota_day: {
       timezone: 'America/Los_Angeles',
       start_at: providerDayStart.toISOString(),
+      reset_at: providerDayReset.toISOString(),
       reads: Math.round(quotaReads),
       writes: Math.round(quotaWrites),
       deletes: Math.round(quotaDeletes),
@@ -157,6 +195,12 @@ function collectUsage_() {
         deletes: 20000
       }
     },
+    firestore_storage: {
+      data_and_index_bytes: Math.round(storage.current),
+      peak_24h_bytes: Math.round(storage.peak),
+      free_reference_bytes: FIRESTORE_FREE_STORAGE_BYTES_REFERENCE
+    },
+    firestore_24h: traffic,
     realtime_24h: {
       active_connections_current: connections.current,
       active_connections_peak: connections.peak,
@@ -168,16 +212,71 @@ function collectUsage_() {
       deny: Math.round(rulesDeny),
       error: Math.round(rulesError)
     },
+    firebase_24h: {
+      fcm: fcm,
+      identity_toolkit: identity,
+      secure_token: secureToken
+    },
+    functions_24h: {
+      service: PICKER_ALERT_CLOUD_RUN_SERVICE,
+      requests: functionRequests,
+      instances_current: functionInstances.current,
+      instances_peak: functionInstances.peak,
+      billable_instance_seconds: Math.round(functionBillableSeconds)
+    },
     hourly: hourly,
-    note: 'Cloud Monitoring may lag provider activity by several minutes. Reference limits are informational, not a billing entitlement assertion.'
+    notes: [
+      'Cloud Monitoring can lag provider activity by several minutes; generic API metrics can lag longer.',
+      'Reference limits are informational and do not assert the active billing plan.',
+      'D159 uses Cloud Monitoring only and performs zero Firestore document reads/writes/deletes for usage collection.'
+    ]
   };
 }
 
 function metricSpec_(key, metricType, start, end, alignmentPeriod, aligner, reducer, groupBy) {
-  const filter =
-    'metric.type="' + metricType + '" AND ' +
-    'resource.type="firestore.googleapis.com/Database" AND ' +
-    'resource.labels.database_id="' + DATABASE_ID + '"';
+  return monitoringMetricSpec_(
+    key,
+    metricType,
+    'resource.type="firestore.googleapis.com/Database" AND resource.labels.database_id="' + DATABASE_ID + '"',
+    start,
+    end,
+    alignmentPeriod,
+    aligner,
+    reducer,
+    groupBy
+  );
+}
+
+function consumedApiMetricSpec_(key, serviceName, start, end) {
+  return monitoringMetricSpec_(
+    key,
+    METRICS.serviceRequests,
+    'resource.type="consumed_api" AND resource.labels.service="' + serviceName + '"',
+    start,
+    end,
+    '3600s',
+    'ALIGN_SUM',
+    'REDUCE_SUM',
+    ['metric.labels.response_code_class']
+  );
+}
+
+function cloudRunMetricSpec_(key, metricType, start, end, alignmentPeriod, aligner, reducer, groupBy) {
+  return monitoringMetricSpec_(
+    key,
+    metricType,
+    'resource.type="cloud_run_revision" AND resource.labels.service_name="' + PICKER_ALERT_CLOUD_RUN_SERVICE + '"',
+    start,
+    end,
+    alignmentPeriod,
+    aligner,
+    reducer,
+    groupBy
+  );
+}
+
+function monitoringMetricSpec_(key, metricType, resourceFilter, start, end, alignmentPeriod, aligner, reducer, groupBy) {
+  const filter = 'metric.type="' + metricType + '" AND ' + resourceFilter;
   const params = [
     ['filter', filter],
     ['interval.startTime', start.toISOString()],
@@ -329,6 +428,78 @@ function applyRules_(hours, series) {
   });
 }
 
+function summarizeRequestSeries_(series) {
+  let total = 0;
+  let clientErrors = 0;
+  let serverErrors = 0;
+  (series || []).forEach(row => {
+    const responseClass = String(row.metric && row.metric.labels && row.metric.labels.response_code_class || '').toLowerCase();
+    let rowTotal = 0;
+    (row.points || []).forEach(point => { rowTotal += pointNumber_(point); });
+    total += rowTotal;
+    if (responseClass === '4xx') clientErrors += rowTotal;
+    if (responseClass === '5xx') serverErrors += rowTotal;
+  });
+  return {
+    requests: Math.round(total),
+    client_errors: Math.round(clientErrors),
+    server_errors: Math.round(serverErrors)
+  };
+}
+
+function summarizeGaugeSeries_(series) {
+  let current = 0;
+  let currentAt = 0;
+  let peak = 0;
+  (series || []).forEach(row => {
+    (row.points || []).forEach(point => {
+      const value = pointNumber_(point);
+      const endMs = pointEndMs_(point);
+      if (endMs > currentAt) {
+        currentAt = endMs;
+        current = value;
+      }
+      if (value > peak) peak = value;
+    });
+  });
+  return { current: current, peak: peak };
+}
+
+function sumSeries_(series) {
+  let total = 0;
+  (series || []).forEach(row => {
+    (row.points || []).forEach(point => { total += pointNumber_(point); });
+  });
+  return total;
+}
+
+function summarizeTraffic_(hourly) {
+  let reads = 0;
+  let writes = 0;
+  let deletes = 0;
+  let peakRead = { hour: '', value: 0 };
+  let peakWrite = { hour: '', value: 0 };
+  (hourly || []).forEach(row => {
+    const r = Number(row.reads || 0);
+    const w = Number(row.writes || 0);
+    const d = Number(row.deletes || 0);
+    reads += r;
+    writes += w;
+    deletes += d;
+    if (r > peakRead.value) peakRead = { hour: String(row.hour_label_vn || ''), value: r };
+    if (w > peakWrite.value) peakWrite = { hour: String(row.hour_label_vn || ''), value: w };
+  });
+  return {
+    reads: Math.round(reads),
+    writes: Math.round(writes),
+    deletes: Math.round(deletes),
+    peak_read_hour: peakRead.hour,
+    peak_read_value: Math.round(peakRead.value),
+    peak_write_hour: peakWrite.hour,
+    peak_write_value: Math.round(peakWrite.value)
+  };
+}
+
 function pointNumber_(point) {
   const value = point && point.value || {};
   if (value.int64Value != null) {
@@ -352,6 +523,12 @@ function pointHourKey_(point) {
   const endMs = pointEndMs_(point);
   if (!endMs) return '';
   return new Date(Math.floor((endMs - 1) / HOUR_MS) * HOUR_MS).toISOString();
+}
+
+function nextZonedMidnightUtc_(now, timeZone) {
+  const localDate = Utilities.formatDate(now, timeZone, 'yyyy-MM-dd').split('-').map(Number);
+  const nextDateReference = new Date(Date.UTC(localDate[0], localDate[1] - 1, localDate[2] + 1, 12, 0, 0));
+  return zonedMidnightUtc_(nextDateReference, timeZone);
 }
 
 function zonedMidnightUtc_(now, timeZone) {

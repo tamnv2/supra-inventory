@@ -324,3 +324,15 @@ D156 changes no role authority. It changes only the default state of the existin
 - A publicly reachable Apps Script URL is not authorization. Missing/expired/invalid token or role mismatch fails closed.
 - Firebase Web API key value remains runtime configuration only; it is never committed or logged.
 - D159 grants no business mutation capability and no access to WMS/session/cookie/header/signature material.
+
+## D159 v3 — Usage visibility contract
+
+D159-v3 standalone testing continues to reuse an already-saved authorized Agent Firebase session and does not add a login surface.
+
+For any later integration of the accepted D159 Usage surface into the production Windows Agent:
+- normalize the authenticated Agent login to lowercase and show **Thông tin Usage** only when the exact login is `tamnv2` or `admin`;
+- all other authenticated Agent users, including otherwise valid ADMIN/PICKPACK_ADMIN operators, must not receive the Usage tab;
+- hidden means fail-closed presentation **and execution**: do not create/start the 15-minute Usage timer and do not call the D159 Usage gateway;
+- this presentation allowlist does not grant new business permissions, WMS authority, Firestore mutation rights or Stable access.
+
+The D159 Apps Script remains independently protected by valid Firebase ID token plus approved management-role claims; client-side tab hiding is not a substitute for gateway authorization.

@@ -2129,3 +2129,17 @@ D159 is field-accepted only after all of the following pass:
 9. **Security:** no password, refresh token, Firebase ID token, API-key value or Google credential appears in source, console output, support logs or release notes.
 10. **Release:** only a configured D159 prerelease built with the dedicated `D159_USAGE_GATEWAY_URL_BETA` may be handed to Owner for field testing. CI placeholder builds are technical artifacts only.
 11. Stable remains OWNER-GATED and untouched.
+
+## D159 v3 — multi-service Usage acceptance
+
+D159-v3 remains under the same Owner gate OA087. PASS requires all of the following:
+1. D158 Agent v94, Android vc92 and all accepted business paths remain unchanged.
+2. The standalone executable title identifies D159-v3 and opens one **Thông tin Usage** tab without a login form.
+3. It reads the existing Agent DPAPI session read-only and does not write/delete `session.bin`.
+4. Firestore provider-day Đọc/Ghi/Xóa, reset countdown, storage, realtime, Security Rules, 24-hour totals/peaks and hourly rows render real or truthful N/A values.
+5. Firebase Auth / Secure Token, FCM and `inventory-beta-picker-alerts` Cloud Run metrics render without document scans or business Firestore operations.
+6. Automatic refresh remains exactly 15 minutes; Apps Script uses one shared 900-second cache and performs at most the registered 13 Monitoring queries per cache miss.
+7. CI probes the Firestore storage, FCM consumed-api, Identity Toolkit consumed-api, Secure Token consumed-api and picker-alert Cloud Run metric filters with HTTP 200 before release.
+8. The usage feature itself creates **0 Firestore document reads, 0 writes and 0 deletes**; no WMS, Worker, Drive or RTDB business traffic is introduced.
+9. Future Agent integration acceptance must additionally prove exact login `tamnv2` and `admin` see the Usage tab while another valid Agent user has no tab, no Usage timer and no Usage gateway request.
+10. D159 is not Owner-PASS until the Owner tests the published v3 field executable and explicitly says PASS. Stable remains untouched.
