@@ -723,171 +723,32 @@ namespace SupraInventoryRelayAgent
 
         internal SupraBrowserConfirmResult ConfirmExact(string fullPickListCode)
         {
-            var started = Stopwatch.StartNew();
-            var result = new SupraBrowserConfirmResult();
-            var code = (fullPickListCode ?? "").Trim().ToUpperInvariant();
-            if (!Regex.IsMatch(code, "^PL[0-9]+$"))
+            var bulk = ConfirmManyExact(new[] { fullPickListCode });
+            return new SupraBrowserConfirmResult
             {
-                result.Result = "EXACT_CODE_NOT_RESOLVED";
-                result.Detail = "PickListCode invalid";
-                return result;
-            }
-
-            lock (_gate)
-            {
-                ThrowIfDisposed();
-                EnsureReadyNoLock();
-                EnsurePageSize100NoLock();
-
-                var mutationScript = BuildMutationScript(code);
-                var raw = EvaluateJsonNoLock(mutationScript);
-                var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                var stepResult = map == null ? "DOM_ERROR" : String(map, "result");
-                var stepStage = map == null ? "" : String(map, "stage");
-
-                if (!string.Equals(stepResult, "CLICKED", StringComparison.Ordinal))
-                {
-                    result.Result = MapDomFailure(stepResult);
-                    result.Detail = stepResult;
-                    started.Stop();
-                    result.ElapsedMs = started.ElapsedMilliseconds;
-                    _log("SUPRA_BROWSER confirm result=" + result.Result + " phase=pre_click detail=" + stepResult);
-                    return result;
-                }
-
-                _log("SUPRA_BROWSER confirm guard stage=" + (string.IsNullOrWhiteSpace(stepStage) ? "UNKNOWN" : stepStage) +
-                     " dialog_required=true");
-
-                // Only DOM state is observed after the exact semantic click.
-                // A visible success surface or disappearance of the exact row is trusted;
-                // otherwise the outcome is uncertain and the confirmation guard stays closed.
-                var deadline = DateTime.UtcNow.AddSeconds(8);
-                var rowMissingSamples = 0;
-                var rowMissingSinceUtc = DateTime.MinValue;
-                while (DateTime.UtcNow < deadline)
-                {
-                    Thread.Sleep(350);
-                    string postRaw;
-                    try { postRaw = EvaluateJsonNoLock(BuildPostConfirmScript(code)); }
-                    catch
-                    {
-                        continue;
-                    }
-
-                    var post = _json.DeserializeObject(postRaw) as Dictionary<string, object>;
-                    if (post == null) continue;
-                    if (Bool(post, "success"))
-                    {
-                        result.Result = "CONFIRMED";
-                        result.Detail = String(post, "signal");
-                        break;
-                    }
-                    if (Bool(post, "rejected"))
-                    {
-                        result.Result = "CONFIRM_REJECTED";
-                        result.Detail = String(post, "signal");
-                        break;
-                    }
-
-                    if (Bool(post, "rowMissing"))
-                    {
-                        if (rowMissingSamples == 0) rowMissingSinceUtc = DateTime.UtcNow;
-                        rowMissingSamples++;
-                        if (rowMissingSamples >= 3 &&
-                            DateTime.UtcNow - rowMissingSinceUtc >= TimeSpan.FromMilliseconds(700))
-                        {
-                            result.Result = "CONFIRMED";
-                            result.Detail = "ROW_REMOVED_STABLE";
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        rowMissingSamples = 0;
-                        rowMissingSinceUtc = DateTime.MinValue;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
-                {
-                    // D152: after the existing 8s passive observation, perform exactly one
-                    // read-only Search refresh. Never click Confirm again. Stable removal
-                    // of the exact row after that refresh is trusted as terminal success.
-                    try
-                    {
-                        if (ExactRowMissingAfterOneSearchNoLock(
-                            code, TimeSpan.FromMilliseconds(1800), "post_confirm_timeout"))
-                        {
-                            result.Result = "CONFIRMED";
-                            result.Detail = "ROW_REMOVED_AFTER_SEARCH_REFRESH";
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _log("SUPRA_BROWSER confirm verify_search=DEFER type=" + ex.GetType().Name);
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
-                {
-                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                    result.Detail = "POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH";
-                }
-            }
-
-            started.Stop();
-            result.ElapsedMs = started.ElapsedMilliseconds;
-            _log("SUPRA_BROWSER confirm result=" + result.Result +
-                 " detail=" + (string.IsNullOrWhiteSpace(result.Detail) ? "NONE" : result.Detail) +
-                 " ms=" + result.ElapsedMs +
-                 " direct_api=false session_extract=false");
-            return result;
+                Result = bulk.Result,
+                Detail = bulk.Detail,
+                ElapsedMs = bulk.ElapsedMs
+            };
         }
 
         internal SupraBrowserConfirmResult VerifyExactAfterUncertain(string fullPickListCode)
         {
+            // D160: the real Supra Confirm page reloads after a successful mutation and
+            // the PickList row may remain visible. Row presence/disappearance is therefore
+            // not business evidence. An uncertain post-click guard must never re-send WMS
+            // mutation based on DOM row state.
             var started = Stopwatch.StartNew();
-            var result = new SupraBrowserConfirmResult();
-            var code = (fullPickListCode ?? "").Trim().ToUpperInvariant();
-            if (!Regex.IsMatch(code, "^PL[0-9]+$"))
+            var result = new SupraBrowserConfirmResult
             {
-                result.Result = "EXACT_CODE_NOT_RESOLVED";
-                result.Detail = "PickListCode invalid";
-                return result;
-            }
-
-            lock (_gate)
-            {
-                ThrowIfDisposed();
-                EnsureReadyNoLock();
-                EnsurePageSize100NoLock();
-                try
-                {
-                    if (ExactRowMissingAfterOneSearchNoLock(
-                        code, TimeSpan.FromMilliseconds(1800), "existing_uncertain_guard"))
-                    {
-                        result.Result = "CONFIRMED";
-                        result.Detail = "VERIFY_ONLY_ROW_REMOVED_STABLE";
-                    }
-                    else
-                    {
-                        result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                        result.Detail = "VERIFY_ONLY_ROW_STILL_PRESENT_OR_UNSTABLE";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                    result.Detail = "VERIFY_ONLY_SEARCH_UNAVAILABLE";
-                    _log("SUPRA_BROWSER verify_only=DEFER type=" + ex.GetType().Name);
-                }
-            }
-
+                Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                Detail = "VERIFY_ONLY_NOT_PROVABLE_BY_ROW_STATE_D160"
+            };
             started.Stop();
             result.ElapsedMs = started.ElapsedMilliseconds;
             _log("SUPRA_BROWSER verify_only result=" + result.Result +
-                 " ms=" + result.ElapsedMs +
-                 " mutation=false search_refresh_once=true");
+                 " detail=" + result.Detail +
+                 " mutation=false row_disappearance_evidence=false");
             return result;
         }
 
