@@ -1014,6 +1014,7 @@ namespace SupraInventoryRelayAgent
                 listener = new FirestoreAgentSyncListener(
                     SnapshotSession,
                     EnsureFreshToken,
+                    ForceRefreshAgentTokenD160,
                     ApplyD134AgentSyncSnapshot,
                     message => Log(message));
                 _agentSyncListener = listener;
