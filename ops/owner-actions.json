@@ -4514,7 +4514,7 @@
       "pass_criteria": [
         "Android beta-vc92 contract, package and runtime remain unchanged.",
         "A micro-batch is capped at 15 and each request retains independent result/guard/ACK semantics.",
-        "Fresh post-final-click success/error UI is the only WMS business terminal evidence; row presence/disappearance and reload never prove success.",
+        "Only a fresh post-final-click success surface may produce CONFIRMED. A fresh post-click error remains uncertain/guarded for multi-row safety; row state and reload never prove success.",
         "No second WMS mutation is issued after an uncertain final click.",
         "Fast terminal outcomes ACK before deferred checkbox recovery; zero-table is technical unavailable and creates no user NOT_FOUND strike.",
         "Usage is visible/called only for exact login tamnv2/admin and produces zero Firestore document Read/Write/Delete for monitoring.",
