@@ -83,11 +83,45 @@ jobs:
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
           $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
           $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
+          $d160Browser = Get-Content relay-agent/SupraConfirmBrowserD160.cs -Raw
+          $d160Pipeline = Get-Content relay-agent/D160ConfirmPipeline.cs -Raw
+          $d160Ui = Get-Content relay-agent/D160UiHistory.cs -Raw
+          $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
+          $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*94\s*;') { throw "D158 hotfix requires Agent v94 while Android remains hard-locked at beta-vc92 and D157 business guards stay intact." }
-          if ($project -notmatch '<AssemblyVersion>0\.94\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.94\.0\.0</FileVersion>') {
-            throw "D158 hotfix Agent assembly/file version must be 0.94."
+          if ($config -notmatch 'AgentBuild\s*=\s*95\s*;') { throw "D160 requires Agent v95 while Android remains hard-locked at beta-vc92." }
+          if ($project -notmatch '<AssemblyVersion>0\.95\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.95\.0\.0</FileVersion>') {
+            throw "D160 Agent assembly/file version must be 0.95."
           }
+          foreach ($marker in @(
+            'ConfirmManyExact',
+            'FRESH_SUCCESS_SURFACE',
+            'NO_FRESH_TERMINAL_SURFACE',
+            'finalClicked:true',
+            'TARGET_PRECHECKED',
+            'FOREIGN_SELECTION'
+          )) {
+            if (-not $d160Browser.Contains($marker)) { throw "D160 bulk/fresh-terminal browser guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'ProcessFirestoreConfirmationsD160',
+            'D160_16S_MUTATION_FENCE',
+            'WMS_DATA_UNAVAILABLE',
+            'SearchMany(eligible.Select(work => work.Suffix), true, false)',
+            'MaxConcurrentJobs'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 mixed-batch pipeline guard missing: $marker" }
+          }
+          foreach ($marker in @('Lịch sử Picker xác nhận PickList','reset lúc 05:00','không thêm Firestore usage','Gửi Logs')) {
+            if (-not $d160Ui.Contains($marker)) { throw "D160 history/log UI guard missing: $marker" }
+          }
+          foreach ($marker in @('tamnv2','admin','15 * 60 * 1000','get_firestore_usage','D160UsageAllowedForCurrentSession')) {
+            if (-not $d160Usage.Contains($marker) -and -not $d160Ui.Contains($marker)) { throw "D160 restricted Usage guard missing: $marker" }
+          }
+          if (-not $d160Resilience.Contains('D160_401_AFTER_REFRESH') -or $d157.Contains('case StatusCode.Unauthenticated:')) {
+            throw "D160 auth recovery guard regression."
+          }
+
           foreach ($marker in @(
             'RenderD157OperationalListsFromMemory',
             'UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents)',
@@ -491,8 +525,8 @@ jobs:
           foreach ($marker in @('PRIMARY','NEXT_A','NEXT_B','DEEP_HIBERNATE','PromoteStandbyForTakeover','VerifyPrimaryBeforeMutation','PublishScheduleDecision','PublishEarlyStartAndClaimPrimary','ANY_AUTHENTICATED_AGENT')) {
             if (-not $leader.Contains($marker)) { throw "Protected D131 HA/schedule marker missing: $marker" }
           }
-          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*12') {
-            throw "D131 bounded Firestore cadence regression."
+          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*15') {
+            throw "D160 bounded Firestore cadence/batch regression."
           }
           if ($transport -match 'PROCESSING|TryClaim' -or -not $transport.Contains('CONFIRM_ACK_VERIFY')) { throw "Firestore direct-ACK guard regression." }
           foreach ($marker in @('MaxPendingAgeMs = 20000L','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
