@@ -3501,21 +3501,21 @@
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OA086_READY__PROVISION_APPS_SCRIPT_AND_BETA_ENV_VAR_THEN_REBUILD_FIELD_CANDIDATE__D157_REMAINS_ACCEPTED_BASE",
     "implementation_pr": 341,
-    "pr_head": "36bb35f6814df764bc3773ff8e554efb87eabf46",
+    "pr_head": "b42d713a771eb8559519858c847c9fea35132f0c",
     "technical_runs": {
-      "repo_authority": 36838903939,
-      "project_state": 36838903779,
-      "relay_agent": 36838903827,
-      "ui_design": 36838904075,
-      "dashboard_probe": 36838903771,
-      "firestore": 36838903776,
-      "rtdb": 36838903930
+      "repo_authority": 36839459143,
+      "project_state": 36839459350,
+      "relay_agent": 36839459372,
+      "ui_design": 36839459071,
+      "dashboard_probe": 36839459241,
+      "firestore": 36839459413,
+      "rtdb": 36839459144
     },
     "candidate_artifact": {
-      "workflow_run": 36838903827,
-      "artifact_id": 11149669831,
+      "workflow_run": 36839459372,
+      "artifact_id": 11150501670,
       "name": "supra-inventory-relay-poc-agent",
-      "digest": "sha256:904448f7e9351eac3d3952dd98fa292b53fe45a435c1580c2f50a8248d2d904f",
+      "digest": "sha256:486c49c0d9730987527f593bc48837dd6ca17107e6c865bb93a59f07179289d4",
       "gateway_config": "UNCONFIGURED__D157_FIRESTORE_SUPPORT_LOG_FALLBACK",
       "note": "Technical candidate only; final D158 field candidate must be rebuilt after OA086 gateway URL is configured."
     }
