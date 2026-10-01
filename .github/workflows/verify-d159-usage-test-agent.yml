@@ -154,6 +154,33 @@ jobs:
         if: env.FIREBASE_RULES_SA_JSON_BETA != ''
         uses: google-github-actions/setup-gcloud@v3
 
+      - name: Diagnose D159 Monitoring API and IAM
+        if: env.FIREBASE_RULES_SA_JSON_BETA != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          token="$(gcloud auth print-access-token)"
+
+          enabled="$(gcloud services list --enabled --project="$project" --filter='config.name=monitoring.googleapis.com' --format='value(config.name)' 2>/dev/null || true)"
+          if [ "$enabled" = "monitoring.googleapis.com" ]; then
+            echo "D159_DIAG_MONITORING_API=ENABLED"
+          else
+            echo "D159_DIAG_MONITORING_API=NOT_CONFIRMED"
+          fi
+
+          tmp_perm="$(mktemp)"
+          trap 'rm -f "$tmp_perm"' EXIT
+          perm_code="$(curl -sS -o "$tmp_perm" -w '%{http_code}' -X POST             -H "Authorization: Bearer $token"             -H "X-Goog-User-Project: $project"             -H "Content-Type: application/json"             --data '{"permissions":["monitoring.timeSeries.list","serviceusage.services.use"]}'             "https://cloudresourcemanager.googleapis.com/v1/projects/$project:testIamPermissions")"
+          if [ "$perm_code" = "200" ]; then
+            has_monitoring="$(jq -r '(.permissions // []) | index("monitoring.timeSeries.list") != null' "$tmp_perm")"
+            has_serviceuse="$(jq -r '(.permissions // []) | index("serviceusage.services.use") != null' "$tmp_perm")"
+            echo "D159_DIAG_MONITORING_PERMISSION=$has_monitoring"
+            echo "D159_DIAG_SERVICEUSAGE_PERMISSION=$has_serviceuse"
+          else
+            echo "D159_DIAG_IAM_TEST=HTTP_$perm_code"
+          fi
+
       - name: Prove D159 Cloud Monitoring query against Beta
         if: env.FIREBASE_RULES_SA_JSON_BETA != ''
         shell: bash
