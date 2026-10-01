@@ -3776,6 +3776,28 @@
       "exact_query": "PASS__FIRESTORE_READ_OPS_COUNT_DEFAULT_DATABASE",
       "gateway_identity": "PASS__CONFIGURED_D159_GATEWAY_SAME_URL",
       "conclusion": "Cloud Monitoring consumption/IAM and quota-project attribution are technically repaired. D159 remains open only for Owner field comparison of real values in the standalone EXE."
+    },
+    "repair_pr": 351,
+    "repair_main": "a1a3f3a729b824de7214d4b78c7855b32ed6c481",
+    "repair_main_runs": {
+      "repo_authority": 36897255172,
+      "project_state": 36897255174,
+      "ui_design": 36897255420,
+      "dashboard_probe": 36897255260,
+      "d159_usage_test": 36897255165,
+      "d159_usage_test_attempt": 2
+    },
+    "repair_main_result": "PASS__ATTEMPT_1_GATEWAY_IDENTITY_TRANSIENT_TIMEOUT__ATTEMPT_2_FULL_PASS",
+    "repair_release_evidence": {
+      "release": "d159-usage-test-v2",
+      "release_id": 401147817,
+      "exe_asset_id": 603735849,
+      "exe_size_bytes": 28160,
+      "exe_sha256": "9f55658537e8aa6f3bac2b64df13a4d1de6df58cbd6fe6c512a2b3a32f225978",
+      "checksum_asset_id": 603735848,
+      "published_asset_updated_at": "2026-10-01T17:12:54Z",
+      "main_workflow": "PASS__VERIFY_D159_USAGE_TEST_AGENT_36897255165_ATTEMPT_2",
+      "note": "The v2 standalone EXE contract is unchanged; the official prerelease assets were refreshed from repaired main after Cloud Monitoring/GW-v3 technical PASS."
     }
   }
 }

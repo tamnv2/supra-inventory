@@ -4292,9 +4292,18 @@
         "gateway_identity": "PASS",
         "main_commit": "95a03d0a90d781ed3b75f1cbe13798cb36d6cdda",
         "workflow_run": 36889812874,
-        "configured_release": "d159-usage-test-v1",
-        "exe_asset_id": 603627225,
-        "exe_sha256": "91df4f9aef51e3a00c16b6a45119402371197a0168863c36890e7cca9a9f5571"
+        "configured_release": "d159-usage-test-v2",
+        "exe_asset_id": 603735849,
+        "exe_sha256": "9f55658537e8aa6f3bac2b64df13a4d1de6df58cbd6fe6c512a2b3a32f225978",
+        "repair_pr": 351,
+        "repair_main": "a1a3f3a729b824de7214d4b78c7855b32ed6c481",
+        "main_repo_authority_run": 36897255172,
+        "main_project_state_run": 36897255174,
+        "main_ui_run": 36897255420,
+        "main_dashboard_probe_run": 36897255260,
+        "main_d159_run": 36897255165,
+        "main_d159_attempt": 2,
+        "main_result": "PASS__TRANSIENT_GATEWAY_IDENTITY_TIMEOUT_ON_ATTEMPT_1__FULL_PASS_ATTEMPT_2"
       },
       "field_failure": {
         "date": "2026-10-01",
