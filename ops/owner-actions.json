@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "FIELD_FAIL__D159_V1_ALL_METRICS_NA__V2_REPAIR_BUILDING",
+      "status": "READY_FOR_OWNER_RETEST_D159_V2",
       "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4277,7 +4277,7 @@
         "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "After D159-v2 is published, run it once on the same Windows user and send only the visible Cloud Monitoring error code/status line or a screenshot. Do not send any key/token.",
+      "remaining_owner_action": "Run official d159-usage-test-v2 on the same Windows user. If values load, compare them with Firebase Usage; if still N/A, send the visible 'Cloud Monitoring lỗi: ...' status line or screenshot. Do not send keys/tokens.",
       "closed": false,
       "owner_report": {
         "date": "2026-10-01",
@@ -4297,6 +4297,11 @@
         "result": "FAIL",
         "evidence": "D159-v1 UI loaded successfully with cache/session information, but every Cloud Monitoring metric rendered N/A.",
         "interpretation": "Gateway reachability and saved Agent session authentication are working; Cloud Monitoring provider calls are failing."
+      },
+      "repair_release": {
+        "release": "d159-usage-test-v2",
+        "exe_asset_id": 603649137,
+        "exe_sha256": "0a281091e1c3072d4d93f5fbbee1b26cb09194bc5302871cf824fbec6e5366b6"
       }
     }
   ]
