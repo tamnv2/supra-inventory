@@ -368,12 +368,16 @@ jobs:
             'HasReadyConfirmBrowser',
             'ProcessFirestoreConfirmations',
             'adapter=BROWSER_DOM',
-            'VerifyPrimaryBeforeMutation(appSession)',
-            'CONFIRM_IN_PROGRESS_OR_UNCERTAIN',
-            'MarkLocalConfirmed',
             'ProbeSupraBrowserForTakeover'
           )) {
             if (-not $program.Contains($marker)) { throw "D126 Agent wiring marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'VerifyPrimaryBeforeMutation(session)',
+            'CONFIRM_IN_PROGRESS_OR_UNCERTAIN',
+            'MarkLocalConfirmed'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 protected mutation wiring marker missing: $marker" }
           }
           foreach ($forbidden in @(
             'CaptureWmsSession',
