@@ -3902,7 +3902,7 @@
     }
   },
   "apps_script_automation_probe": {
-    "status": "SECRET_VALID__RUNTIME_REACHED_REDEPLOY__BOUNDED_LIST_CONSISTENCY_REPAIR_ACTIVE",
+    "status": "DELETE_SCRIPT_DIAGNOSTIC_ACTIVE__NO_NEW_PRODUCT_CHANGE",
     "approved_at": "2026-10-02",
     "accepted_base": "D159",
     "d160_status": "NOT_OPENED",
@@ -3932,9 +3932,15 @@
       "LIST_DEPLOYMENTS_V1",
       "PUSH_CONTENT_V2",
       "CREATE_VERSION_V2",
-      "UPDATE_DEPLOYMENT"
+      "UPDATE_DEPLOYMENT",
+      "LIST_DEPLOYMENTS_V2",
+      "DELETE_DEPLOYMENT"
     ],
     "interpretation": "PERMISSION_PATH_WORKING__REDEPLOY_RESPONSE_VERIFIED__FOLLOWUP_LIST_CAN_LAG_PROVIDER_CONSISTENCY",
-    "owner_action_required": false
+    "owner_action_required": false,
+    "latest_main_run": 36912085428,
+    "latest_failure_stage": "DELETE_SCRIPT_AFTER_UNDEPLOY",
+    "pending_capability": "DELETE_SCRIPT",
+    "diagnostic_change": "PRINT_SCOPE_PRESENCE_BOOLEANS_AND_CLASSIFIED_DELETE_ERROR_ONLY__NO_TOKEN_OR_EPHEMERAL_ID_OUTPUT__CLEAN_STALE_CANARIES_BEFORE_NEW_CREATE"
   }
 }
