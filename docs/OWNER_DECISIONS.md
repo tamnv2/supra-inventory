@@ -2756,3 +2756,17 @@ The gateway performs 13 Cloud Monitoring queries only on a **shared 15-minute Sc
 The v3 UI is Vietnamese-first and uses clear operational terms. The 24-hour Firestore detail table is retained with Vietnamese columns. Provider data may lag; N/A is never treated as zero.
 
 Owner also fixed the future Agent integration contract: once D159 itself receives explicit Owner PASS and a later change integrates this surface, **Thông tin Usage is visible only for exact normalized Agent logins `tamnv2` and `admin`**. Every other Agent user must have no Usage tab, no Usage refresh timer and no Usage gateway request. This requirement is recorded now but no later change is opened or implemented before D159 Owner PASS.
+
+## D159 Owner result — PASS — 2026-10-02
+
+Owner explicitly confirmed **D159 PASS** after field validation of the official `d159-usage-test-v3` candidate with deployed `D159-GW-v4`.
+
+Accepted D159 behavior:
+- Vietnamese-first **Thông tin Usage** standalone surface covering Firestore quota/day, storage, realtime, Security Rules, 24-hour totals/peaks/hourly detail, Firebase Authentication/Secure Token, FCM and the existing Picker-alert Cloud Run function;
+- automatic client refresh every 15 minutes with a shared Apps Script cache of 900 seconds;
+- Usage collection performs zero Firestore document Read/Write/Delete operations; bounded Firebase authentication overhead is not Firestore document quota;
+- provider lag is allowed and unavailable provider series remain truthful `N/A`, never fabricated as zero;
+- the future Windows Agent integration contract remains exact login `tamnv2` or `admin` only; every other Agent login has no Usage tab, no Usage timer and no Usage gateway request;
+- production Agent v94, Android beta-vc92, Web/Worker/WMS business paths and Stable are unchanged by D159.
+
+OA087 is closed. D159 is promoted to the accepted project base and the serial governance gate is unlocked for a later Owner-approved change. No later change is opened by this acceptance record itself.

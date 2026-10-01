@@ -27,14 +27,14 @@
     "user_management": "D146_OWNER_FIELD_PASS__TRUE_ROOT_MODE_ONLY_MANAGED_DELETE__PICKPACK_CANNOT_DELETE_ADMIN",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D158_OWNER_FIELD_ACCEPTED_PASS__READ_FLAT_OR_LOWER__WRITE_RECOVERY_FLAT_OR_LOWER__D157_GUARDS_RETAINED",
+    "quota_resilience": "D159_OWNER_FIELD_ACCEPTED_PASS__USAGE_OBSERVABILITY_15M_SHARED_CACHE__ZERO_USAGE_FEATURE_FIRESTORE_DOCUMENT_OPS",
     "ui_design_guard": "D154_OWNER_FIELD_PASS__PERMISSION_DND_OVERLAY_PRIORITY__LOGIN_VERSION__SHARED_OVERTIME_PRESENTATION",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D158_OWNER_FIELD_ACCEPTED_PASS__AGENT_V94__REQUEST_DEDUPE_FASTPATH_ERROR_COALESCING__ANDROID_VC92_UNCHANGED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D158_ACCEPTED_BASE__D159_ACTIVE_OWNER_APPROVED_NEXT_CHANGE_BLOCKED",
-    "owner_acceptance": "D158_OWNER_FIELD_ACCEPTED_PASS__2026_10_01",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D159_ACCEPTED_BASE__NEXT_CHANGE_UNLOCKED",
+    "owner_acceptance": "D159_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
@@ -2462,12 +2462,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D158",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D158_PASS__AGENT_V94__ANDROID_VC92_UNCHANGED__2026_10_01",
-    "current_change_id": "D159",
-    "current_change_status": "D159_403_ROOT_CAUSE_CONFIRMED__OWNER_IAM_API_ENABLEMENT_REQUIRED__GW_V3_SOURCE_READY__D158_REMAINS_ACCEPTED_BASE",
-    "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "accepted_base_change_id": "D159",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D159_PASS__V3_MULTI_SERVICE_USAGE__GW_V4__2026_10_02",
+    "current_change_id": "NONE",
+    "current_change_status": "D159_OWNER_FIELD_ACCEPTED_PASS__OA087_CLOSED__NEXT_CHANGE_UNLOCKED",
+    "owner_pass_required_to_unlock_next_change": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2481,8 +2481,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D159_ISOLATED_BETA_TEST_UTILITY_ONLY__AGENT_V94_ANDROID_VC92_WEB_WORKER_WMS_FIRESTORE_BUSINESS_PATH_UNCHANGED",
-    "resource_change": "D159_ADDS_ONE_SEPARATE_BETA_APPS_SCRIPT_USAGE_GATEWAY_AND_STANDALONE_WINDOWS_TEST_EXE__D158_LOG_GATEWAY_UNCHANGED__NO_SECRET_IN_REPO__STABLE_UNTOUCHED",
+    "runtime_impact": "D159_ACCEPTED_ISOLATED_BETA_USAGE_OBSERVABILITY__PRODUCTION_AGENT_V94_ANDROID_VC92_WEB_WORKER_WMS_BUSINESS_PATH_UNCHANGED",
+    "resource_change": "D159_ACCEPTED_ONE_SEPARATE_BETA_APPS_SCRIPT_USAGE_GATEWAY_PLUS_STANDALONE_WINDOWS_TEST_EXE__NO_SECRET_IN_REPO__STABLE_UNTOUCHED",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "V3_TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__V3",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3682,9 +3682,9 @@
       "run.googleapis.com/container/billable_instance_time__inventory-beta-picker-alerts"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_READY_OWNER_V3_FIELD_TEST",
+    "field_gate": "PASS__OWNER_CONFIRMED_D159__2026_10_02__OA087_CLOSED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
+    "owner_gate": "PASS__OWNER_CONFIRMED_D159__2026_10_02",
     "implementation_pr": 346,
     "main_commit": "03f1ea037b2359ea08960f6d06a2f7dce10a0750",
     "main_runs": {
@@ -3840,7 +3840,7 @@
         "other_users": "TAB_HIDDEN__NO_TIMER__NO_USAGE_GATEWAY_REQUEST",
         "refresh_minutes": 15
       },
-      "owner_acceptance_rule": "D159_CLOSES_ONLY_AFTER_OWNER_TESTS_V3_AND_EXPLICITLY_SAYS_PASS",
+      "owner_acceptance_rule": "SATISFIED__OWNER_EXPLICIT_PASS__2026_10_02",
       "technical_evidence": {
         "pr": 354,
         "workflow_run": 36902749377,
@@ -3882,7 +3882,17 @@
         "exe_size_bytes": 43008,
         "exe_sha256": "073dca1a5b294d179b6d25610d3de3688b5acbb4a3b748555250374d430ee953",
         "checksum_asset_id": 603829004
-      }
+      },
+      "owner_field_result": "PASS__OWNER_CONFIRMED_D159_V3__2026_10_02"
+    },
+    "accepted_base": "D159",
+    "accepted_base_commit": "03f1ea037b2359ea08960f6d06a2f7dce10a0750",
+    "field_acceptance": "PASS__OWNER_EXPLICIT_D159_PASS_AFTER_V3_FIELD_TEST__2026_10_02",
+    "owner_acceptance": {
+      "result": "PASS",
+      "evidence": "Owner explicitly confirmed D159 PASS after field validation of official d159-usage-test-v3 with GW-v4. Accepted scope includes Vietnamese multi-service Usage observability, 15-minute client refresh, shared 900-second gateway cache, truthful provider N/A behavior, and zero Firestore document Read/Write/Delete generated by the Usage collection path. Production Agent v94 and Android beta-vc92 remain unchanged.",
+      "accepted_at": "2026-10-02",
+      "next_change_allowed": true
     }
   }
 }
