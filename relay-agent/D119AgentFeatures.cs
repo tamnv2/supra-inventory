@@ -399,6 +399,8 @@ namespace SupraInventoryRelayAgent
                 _agentFleetGrid.Visible = false;
             }
 
+            UpdateD160RestrictedTabs(authenticated);
+
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
             if (authenticated)
@@ -1245,7 +1247,10 @@ namespace SupraInventoryRelayAgent
                 changed = true;
             }
             if (changed)
+            {
+                ResetD160HistoryForBusinessDay(current);
                 Log("D158 COUNTER day_reset=PASS business_day=" + current + " boundary=05:00 local_only=true");
+            }
         }
 
         private void RecordD158PdaRequest()
