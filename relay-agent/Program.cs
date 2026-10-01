@@ -242,6 +242,12 @@ namespace SupraInventoryRelayAgent
         internal static Action<string> CrashUploadCallback { get; set; }
         internal static Action<string> ErrorUploadCallback { get; set; }
         private static int _errorUploadCallbackRunning;
+        private static long _totalBytesWritten;
+
+        internal static long TotalBytesWritten
+        {
+            get { return Math.Max(0L, Interlocked.Read(ref _totalBytesWritten)); }
+        }
 
         internal static void Initialize()
         {
@@ -348,8 +354,11 @@ namespace SupraInventoryRelayAgent
                 {
                     if (!string.IsNullOrWhiteSpace(path))
                     {
-                        RotateIfNeeded(path, Encoding.UTF8.GetByteCount(line + Environment.NewLine));
-                        File.AppendAllText(path, line + Environment.NewLine, Encoding.UTF8);
+                        var serialized = line + Environment.NewLine;
+                        var bytes = Encoding.UTF8.GetByteCount(serialized);
+                        RotateIfNeeded(path, bytes);
+                        File.AppendAllText(path, serialized, Encoding.UTF8);
+                        Interlocked.Add(ref _totalBytesWritten, Math.Max(0, bytes));
                     }
                 }
             }
@@ -404,7 +413,10 @@ namespace SupraInventoryRelayAgent
             if (File.Exists(currentPath)) paths.Add(currentPath);
             if (paths.Count == 0) return;
 
-            builder.AppendLine("===== " + title + " =====");
+            // D158: do not manufacture a network bundle from stream headers alone.
+            // Collect matching durable log lines first and emit the section only when
+            // the checkpoint range actually contains diagnostic data.
+            var stream = new StringBuilder();
             foreach (var path in paths)
             {
                 try
@@ -416,11 +428,14 @@ namespace SupraInventoryRelayAgent
                         if (!DateTime.TryParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss.fff",
                             System.Globalization.CultureInfo.InvariantCulture,
                             System.Globalization.DateTimeStyles.None, out at)) continue;
-                        if (at >= sinceLocal) builder.AppendLine(Sanitize(line));
+                        if (at >= sinceLocal) stream.AppendLine(Sanitize(line));
                     }
                 }
                 catch { }
             }
+            if (stream.Length == 0) return;
+            builder.AppendLine("===== " + title + " =====");
+            builder.Append(stream);
         }
 
         internal static void OpenLog() { OpenDiagnosticLog(); }
