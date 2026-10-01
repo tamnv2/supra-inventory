@@ -179,16 +179,17 @@ namespace SupraInventoryRelayAgent
                         if (NowMs() - startedMs >= FirestoreAgentLeaderCoordinator.FailoverAfterMs)
                             _coordinator.RequestRoleRefreshBeforeBusiness();
                         _relayHealth(true);
-                        waitMs = NowMs() < _hotUntilMs
-                            ? PrimaryHotPollIntervalMs
-                            : (_hasActivePda() ? PrimaryActivePollIntervalMs : PrimaryInactivePollIntervalMs);
+                        waitMs = D158RemainingPollWaitMs();
+                        var desiredPollMs = D158DesiredPollIntervalMs();
                         _state(processed > 0
                             ? (string.IsNullOrWhiteSpace(_lastOutcomeState) ? "Relay: PRIMARY · đã xử lý yêu cầu PDA" : _lastOutcomeState)
-                            : (waitMs == PrimaryHotPollIntervalMs
+                            : (desiredPollMs == PrimaryHotPollIntervalMs
                                 ? "Relay: PRIMARY · HOT 1s · đang xả burst"
-                                : (waitMs == PrimaryActivePollIntervalMs
-                                    ? "Relay: PRIMARY · PDA hoạt động · 3s"
-                                    : "Relay: PRIMARY · không có PDA hoạt động · 15s")));
+                                : (desiredPollMs == 2000
+                                    ? "Relay: PRIMARY · realtime đang phục hồi · REST 2s"
+                                    : (desiredPollMs == PrimaryActivePollIntervalMs
+                                        ? "Relay: PRIMARY · PDA hoạt động · 3s"
+                                        : "Relay: PRIMARY · không có PDA hoạt động · 15s"))));
                     }
                 }
                 catch (WebException ex)
@@ -213,6 +214,23 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private int D158DesiredPollIntervalMs()
+        {
+            if (NowMs() < _hotUntilMs) return PrimaryHotPollIntervalMs;
+            if (!_hasActivePda()) return PrimaryInactivePollIntervalMs;
+            if (!D157PendingWakeSignal.IsConnected && FirestoreQuotaGuard.CanUseD158ResilienceRead)
+                return 2000;
+            return PrimaryActivePollIntervalMs;
+        }
+
+        private int D158RemainingPollWaitMs()
+        {
+            var desired = D158DesiredPollIntervalMs();
+            if (_lastRestPendingQueryMs <= 0) return 1000;
+            var elapsed = Math.Max(0L, NowMs() - _lastRestPendingQueryMs);
+            return Math.Max(1000, desired - (int)Math.Min(desired, elapsed));
+        }
+
         private sealed class PendingDocument
         {
             internal string Name = "";
@@ -230,13 +248,18 @@ namespace SupraInventoryRelayAgent
             // document. Process it immediately, but keep the accepted REST query
             // on its original cadence as an independent fallback.
             var listenerDocs = ReadRealtimePendingDocuments();
-            var fallbackMs = NowMs() < _hotUntilMs
-                ? PrimaryHotPollIntervalMs
-                : (_hasActivePda() ? PrimaryActivePollIntervalMs : PrimaryInactivePollIntervalMs);
+            var fallbackMs = D158DesiredPollIntervalMs();
+            var nowForPoll = NowMs();
             var restDue = _lastRestPendingQueryMs == 0 ||
-                          NowMs() - _lastRestPendingQueryMs >= fallbackMs;
+                          nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
+            if (restDue && fallbackMs == 2000 && !FirestoreQuotaGuard.TryReserveD158ResilienceRead())
+            {
+                fallbackMs = PrimaryActivePollIntervalMs;
+                restDue = _lastRestPendingQueryMs == 0 ||
+                          nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
+            }
             var docs = new List<PendingDocument>();
-            if (restDue || listenerDocs.Count == 0)
+            if (restDue || (listenerDocs.Count == 0 && _lastRestPendingQueryMs == 0))
                 docs.AddRange(ReadPendingDocuments(session));
             if (listenerDocs.Count > 0)
             {
