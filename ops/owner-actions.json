@@ -4249,8 +4249,8 @@
     },
     {
       "id": "OA087",
-      "status": "READY_OWNER_FIELD_RETEST__IAM_API_GW_V3_CANARY_PASS",
-      "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
+      "status": "D159_V3_SOURCE_ACTIVE__OWNER_GW_V4_REDEPLOY_REQUIRED_AFTER_TECHNICAL_GATES",
+      "title": "Deploy and field-test isolated D159 v3 Firebase Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
       "reason_owner_only": "The connected project tools cannot create a new Apps Script project, grant the Owner Google consent, deploy its Web App, or set the GitHub beta environment variable. All source/build work is automated first; Owner action is limited to the shortest Web UI provisioning path.",
@@ -4269,18 +4269,21 @@
         "AI re-runs the merged D159 workflow, verifies the configured prerelease, then Owner opens the EXE on a Windows account that already has a saved Agent session and compares totals/hourly values with Firebase Usage."
       ],
       "pass_criteria": [
-        "D158 Agent v94/log gateway and all accepted business paths are unchanged.",
-        "EXE opens directly with one Thông tin tab and no login UI.",
+        "D158 Agent v94/log gateway, Android vc92 and all accepted business paths remain unchanged.",
+        "Standalone v3 opens directly with one Vietnamese Thông tin Usage tab and no login UI.",
         "Existing Agent DPAPI session is read-only; D159 does not rewrite/delete session.bin.",
-        "Cloud Monitoring totals and hourly rows are plausible against Firebase Usage within provider delay.",
-        "D159 refresh is 15 minutes and Apps Script response is shared-cache bounded.",
-        "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
+        "Firestore quota-day reads/writes/deletes, storage, realtime, rules and 24-hour hourly rows are plausible against provider consoles within normal delay.",
+        "Firebase Auth, Secure Token, FCM and Cloud Functions provider summaries return real values or truthful zero/N/A without scanning Firestore documents.",
+        "Automatic refresh remains exactly 15 minutes and the Apps Script provider snapshot is shared-cache bounded to 15 minutes.",
+        "Usage collection itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive/RTDB traffic.",
+        "Future Agent integration contract is exact login tamnv2/admin only; all other users have no Usage tab, no Usage timer and no Usage gateway call.",
         "Stable remains untouched."
       ],
       "remaining_owner_action": [
-        "Open the existing d159-usage-test-v2 standalone EXE on the Windows account with the saved Agent session and refresh once.",
-        "Verify Reads/Writes/Deletes, realtime connections/listeners, Rules and the hourly table show real values instead of N/A or MONITORING_HTTP_403, then compare the totals/hourly pattern with Firebase Usage allowing normal provider delay.",
-        "Report PASS if values are plausible and the 15-minute cache behavior remains as designed; otherwise report the exact visible error/value mismatch so D159 is repaired under the same change ID."
+        "After AI reports the D159-v3 PR technical/provider canaries PASS, update the existing D159 Apps Script Code.gs from branch feat/d159-usage-v3 and deploy a new version using the same Web App deployment URL.",
+        "Do not create a new Apps Script project, API key or deployment URL; keep the existing Script Property and deployment.",
+        "Tell AI the GW-v4 redeploy is done so the gateway revision probe can PASS, the PR can merge and d159-usage-test-v3 can be published.",
+        "Open the published v3 EXE on the Windows account with the saved Agent session, press Cập nhật ngay once, review the Vietnamese Firestore/Auth/FCM/Functions values and report PASS or the exact mismatch."
       ],
       "closed": false,
       "owner_report": {
@@ -4345,6 +4348,14 @@
         "date": "2026-10-01",
         "result": "DONE_BY_OWNER",
         "evidence": "Owner confirmed Cloud Monitoring API enabled, required IAM grant present and D159-GW-v3 redeployed using the existing Web App deployment."
+      },
+      "v3_owner_requirement": {
+        "approved_at": "2026-10-02",
+        "result": "APPROVED",
+        "gateway_revision_target": "D159-GW-v4",
+        "release_target": "d159-usage-test-v3",
+        "future_agent_usage_visibility": "EXACT_LOGIN_TAMNV2_OR_ADMIN_ONLY__OTHER_USERS_TAB_HIDDEN_NO_TIMER_NO_GATEWAY",
+        "next_change_gate": "NO_NEXT_CHANGE_IS_OPENED_UNTIL_D159_OWNER_PASS"
       }
     }
   ]
