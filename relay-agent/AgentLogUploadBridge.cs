@@ -110,6 +110,23 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal void TryQueueManualSnapshot()
+        {
+            try
+            {
+                var path = SealFromCheckpoint("manual", "MANUAL_SEND=true");
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                _log(string.IsNullOrWhiteSpace(path)
+                    ? "AGENT LOG manual=SKIP_EMPTY"
+                    : "AGENT LOG manual=SEALED upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG manual=LOCAL_PENDING type=" + ex.GetType().Name);
+            }
+        }
+
         internal void TryQueueCrashSnapshot(string crashType)
         {
             try

@@ -514,6 +514,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _testOffice = new Button();
         private readonly Button _listen = new Button();
         private readonly Button _openLog = new Button();
+        private readonly Button _sendLog = new Button();
         private readonly Button _openAuditLog = new Button();
         private readonly Button _probeAuth = new Button();
         private readonly Button _probeRtdb = new Button();
@@ -1349,6 +1350,10 @@ namespace SupraInventoryRelayAgent
                 Text = "Chẩn đoán kỹ thuật",
                 Font = new Font("Segoe UI Semibold", 10.5F)
             });
+            _sendLog.SetBounds(770, 10, 120, 30);
+            _sendLog.Text = "Gửi log";
+            _sendLog.Click += (s, e) => Task.Run(() => _agentLogBridge.TryQueueManualSnapshot());
+            _technicalPage.Controls.Add(_sendLog);
             _openLog.SetBounds(900, 10, 120, 30);
             _openLog.Text = "Mở file";
             _technicalPage.Controls.Add(_openLog);
