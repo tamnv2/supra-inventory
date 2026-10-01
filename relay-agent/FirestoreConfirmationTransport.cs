@@ -924,7 +924,6 @@ namespace SupraInventoryRelayAgent
             string jobId,
             FirestoreConfirmationOutcome outcome)
         {
-            var currentWork = CurrentBatchWork(jobId);
             var fields = new Dictionary<string, object>
             {
                 { "status", StringField("ACK") },
@@ -978,6 +977,7 @@ namespace SupraInventoryRelayAgent
             var terminalConfirmed =
                 string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal) ||
                 string.Equals(outcome.Result, "ALREADY_CONFIRMED", StringComparison.Ordinal);
+            var currentWork = CurrentBatchWork(jobId);
 
             var fields = new Dictionary<string, object>
             {
