@@ -2592,3 +2592,15 @@ D158 hotfix continuation approved by Owner on 2026-10-01 after real v93 error-lo
 
 D158 hotfix technical/release checkpoint on 2026-10-01: PR #343 passed Repo Authority, Project State, Agent, UI/Android, Firestore, RTDB and Dashboard gates, merged to main at `25b146a6d7e826b34b79944967cb83f0e643b1d0`, and main verification published official **relay-agent-v94**. The normal Agent distribution channel was refreshed to the same v94 binary digest; Android beta-vc92 remained unchanged. This is technical/runtime/release PASS only. D157 remains the accepted base and D158 remains open until OA086 field proof and explicit Owner PASS.
 
+
+
+## D158 Owner acceptance — PASS — 2026-10-01
+
+The Owner explicitly confirmed **D158 PASS** after field validation of the official **relay-agent-v94** release on the real Office path.
+
+- D158 is promoted to the **accepted project base**.
+- Accepted Agent runtime is `relay-agent-v94`; Android remains `beta-vc92` unchanged.
+- The accepted D158 behavior includes request-id duplicate suppression across listener/REST overlap and the final WMS mutation fence, listener payload fast-path without removing the D157 REST safety cadence, role-probe error classification, and sanitized connectivity-incident coalescing.
+- The Owner field PASS closes OA086 and accepts the provisioned Beta Apps Script support-log gateway path for Agent support-log delivery. No secret/token value is recorded.
+- Stable remains OWNER-GATED and untouched.
+- The serial change gate is unlocked for the next Owner-approved change.
