@@ -291,7 +291,7 @@ namespace SupraInventoryRelayAgent
                 {
                     foreach (var work in works)
                         outcomes[work.RequestId] = D160Outcome(
-                            work, "REQUEST_EXPIRED", "D160_16S_MUTATION_FENCE",
+                            work, "REQUEST_EXPIRED", "D160_12S_MUTATION_FENCE",
                             "BROWSER_DOM", group.Key, searchMs, 1);
                     continue;
                 }
@@ -398,9 +398,11 @@ namespace SupraInventoryRelayAgent
             }
 
             var confirmed = string.Equals(browser.Result, "CONFIRMED", StringComparison.Ordinal);
-            var safeFailure = !browser.FinalClicked ||
-                (string.Equals(browser.Result, "CONFIRM_REJECTED", StringComparison.Ordinal) &&
-                 string.Equals(browser.Detail, "FRESH_ERROR_SURFACE", StringComparison.Ordinal));
+            // D160 fail-closed: after the final WMS dialog click, even a fresh error
+            // surface does not prove that a multi-row provider mutation had zero partial
+            // success. Never release a post-click guard; only failures before the final
+            // business click are safe to retry.
+            var safeFailure = !browser.FinalClicked;
 
             foreach (var target in targets)
             {
