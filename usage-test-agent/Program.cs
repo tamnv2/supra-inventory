@@ -491,24 +491,34 @@ namespace SupraFirestoreUsageTest
 
         private void ApplySnapshot(Dictionary<string, object> snapshot)
         {
+            var availability = JsonHelpers.Child(snapshot, "availability");
+            var readsAvailable = JsonHelpers.BoolValue(availability, "reads");
+            var writesAvailable = JsonHelpers.BoolValue(availability, "writes");
+            var deletesAvailable = JsonHelpers.BoolValue(availability, "deletes");
+            var connectionsAvailable = JsonHelpers.BoolValue(availability, "connections");
+            var listenersAvailable = JsonHelpers.BoolValue(availability, "listeners");
+            var rulesAvailable = JsonHelpers.BoolValue(availability, "rules");
+
             var quota = JsonHelpers.Child(snapshot, "quota_day");
             var limits = JsonHelpers.Child(quota, "reference_limits");
-            _reads.Text = QuotaText(JsonHelpers.LongValue(quota, "reads"), JsonHelpers.LongValue(limits, "reads"));
-            _writes.Text = QuotaText(JsonHelpers.LongValue(quota, "writes"), JsonHelpers.LongValue(limits, "writes"));
-            _deletes.Text = QuotaText(JsonHelpers.LongValue(quota, "deletes"), JsonHelpers.LongValue(limits, "deletes"));
+            _reads.Text = readsAvailable ? QuotaText(JsonHelpers.LongValue(quota, "reads"), JsonHelpers.LongValue(limits, "reads")) : "N/A";
+            _writes.Text = writesAvailable ? QuotaText(JsonHelpers.LongValue(quota, "writes"), JsonHelpers.LongValue(limits, "writes")) : "N/A";
+            _deletes.Text = deletesAvailable ? QuotaText(JsonHelpers.LongValue(quota, "deletes"), JsonHelpers.LongValue(limits, "deletes")) : "N/A";
 
             var realtime = JsonHelpers.Child(snapshot, "realtime_24h");
-            _connections.Text =
-                Number(JsonHelpers.LongValue(realtime, "active_connections_current")) + " hiện tại · " +
-                Number(JsonHelpers.LongValue(realtime, "active_connections_peak")) + " peak";
-            _listeners.Text =
-                Number(JsonHelpers.LongValue(realtime, "snapshot_listeners_current")) + " hiện tại · " +
-                Number(JsonHelpers.LongValue(realtime, "snapshot_listeners_peak")) + " peak";
+            _connections.Text = connectionsAvailable
+                ? Number(JsonHelpers.LongValue(realtime, "active_connections_current")) + " hiện tại · " +
+                  Number(JsonHelpers.LongValue(realtime, "active_connections_peak")) + " peak"
+                : "N/A";
+            _listeners.Text = listenersAvailable
+                ? Number(JsonHelpers.LongValue(realtime, "snapshot_listeners_current")) + " hiện tại · " +
+                  Number(JsonHelpers.LongValue(realtime, "snapshot_listeners_peak")) + " peak"
+                : "N/A";
 
             var rules = JsonHelpers.Child(snapshot, "rules_24h");
-            _rulesAllow.Text = Number(JsonHelpers.LongValue(rules, "allow"));
-            _rulesDeny.Text = Number(JsonHelpers.LongValue(rules, "deny"));
-            _rulesError.Text = Number(JsonHelpers.LongValue(rules, "error"));
+            _rulesAllow.Text = rulesAvailable ? Number(JsonHelpers.LongValue(rules, "allow")) : "N/A";
+            _rulesDeny.Text = rulesAvailable ? Number(JsonHelpers.LongValue(rules, "deny")) : "N/A";
+            _rulesError.Text = rulesAvailable ? Number(JsonHelpers.LongValue(rules, "error")) : "N/A";
 
             _grid.Rows.Clear();
             foreach (var item in JsonHelpers.List(JsonHelpers.Value(snapshot, "hourly")))
@@ -516,14 +526,14 @@ namespace SupraFirestoreUsageTest
                 var row = JsonHelpers.Map(item);
                 _grid.Rows.Add(
                     JsonHelpers.StringValue(row, "hour_label_vn"),
-                    Number(JsonHelpers.LongValue(row, "reads")),
-                    Number(JsonHelpers.LongValue(row, "writes")),
-                    Number(JsonHelpers.LongValue(row, "deletes")),
-                    Number(JsonHelpers.LongValue(row, "listeners_peak")),
-                    Number(JsonHelpers.LongValue(row, "connections_peak")),
-                    Number(JsonHelpers.LongValue(row, "rules_allow")),
-                    Number(JsonHelpers.LongValue(row, "rules_deny")),
-                    Number(JsonHelpers.LongValue(row, "rules_error"))
+                    readsAvailable ? Number(JsonHelpers.LongValue(row, "reads")) : "N/A",
+                    writesAvailable ? Number(JsonHelpers.LongValue(row, "writes")) : "N/A",
+                    deletesAvailable ? Number(JsonHelpers.LongValue(row, "deletes")) : "N/A",
+                    listenersAvailable ? Number(JsonHelpers.LongValue(row, "listeners_peak")) : "N/A",
+                    connectionsAvailable ? Number(JsonHelpers.LongValue(row, "connections_peak")) : "N/A",
+                    rulesAvailable ? Number(JsonHelpers.LongValue(row, "rules_allow")) : "N/A",
+                    rulesAvailable ? Number(JsonHelpers.LongValue(row, "rules_deny")) : "N/A",
+                    rulesAvailable ? Number(JsonHelpers.LongValue(row, "rules_error")) : "N/A"
                 );
             }
             if (_grid.Rows.Count > 0) _grid.FirstDisplayedScrollingRowIndex = Math.Max(0, _grid.Rows.Count - 1);
@@ -592,7 +602,7 @@ namespace SupraFirestoreUsageTest
             {
                 var json = new JavaScriptSerializer();
                 var sample =
-                    "{\"ok\":true,\"quota_day\":{\"reads\":17000,\"writes\":8500,\"deletes\":95," +
+                    "{\"ok\":true,\"availability\":{\"reads\":true,\"writes\":true,\"deletes\":true,\"connections\":true,\"listeners\":true,\"rules\":true},\"quota_day\":{\"reads\":17000,\"writes\":8500,\"deletes\":95," +
                     "\"reference_limits\":{\"reads\":50000,\"writes\":20000,\"deletes\":20000}}," +
                     "\"realtime_24h\":{\"active_connections_current\":34,\"active_connections_peak\":63," +
                     "\"snapshot_listeners_current\":47,\"snapshot_listeners_peak\":63}," +
@@ -601,6 +611,7 @@ namespace SupraFirestoreUsageTest
                     "\"listeners_peak\":60,\"connections_peak\":32,\"rules_allow\":3000,\"rules_deny\":1,\"rules_error\":0}]}";
                 var root = JsonHelpers.Map(json.DeserializeObject(sample));
                 if (!JsonHelpers.BoolValue(root, "ok")) return false;
+                if (!JsonHelpers.BoolValue(JsonHelpers.Child(root, "availability"), "rules")) return false;
                 if (JsonHelpers.LongValue(JsonHelpers.Child(root, "quota_day"), "reads") != 17000) return false;
                 var count = 0;
                 foreach (var item in JsonHelpers.List(JsonHelpers.Value(root, "hourly")))
