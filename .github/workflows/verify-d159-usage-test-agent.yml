@@ -32,6 +32,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   d159-usage-test:
@@ -40,6 +41,7 @@ jobs:
     env:
       FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
       D159_USAGE_GATEWAY_URL_BETA: ${{ vars.D159_USAGE_GATEWAY_URL_BETA }}
+      FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
     steps:
       - uses: actions/checkout@v4
 
@@ -106,7 +108,10 @@ jobs:
             'reads: !results.reads.error',
             'rules: !results.rules.error',
             'monitoringFailureCode_',
-            'MONITORING_HTTP_'
+            'MONITORING_HTTP_',
+            "'X-Goog-User-Project': PROJECT_ID",
+            "D159_FIRESTORE_USAGE_V3_QUOTA_PROJECT",
+            "MISSING_MONITORING_TIMESERIES_LIST"
           )) {
             if (-not $script.Contains($marker)) {
               throw "D159 Apps Script monitoring guard missing: $marker"
@@ -138,6 +143,36 @@ jobs:
         run: |
           Copy-Item ops/apps-script/firestore-usage-gateway-d159/Code.gs "$env:RUNNER_TEMP\d159-code.js"
           node --check "$env:RUNNER_TEMP\d159-code.js"
+
+      - name: Authenticate Google Cloud for D159 provider canary
+        if: env.FIREBASE_RULES_SA_JSON_BETA != ''
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+
+      - name: Set up gcloud for D159 provider canary
+        if: env.FIREBASE_RULES_SA_JSON_BETA != ''
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Prove D159 Cloud Monitoring query against Beta
+        if: env.FIREBASE_RULES_SA_JSON_BETA != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          token="$(gcloud auth print-access-token)"
+          end="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          start="$(date -u -d '30 minutes ago' +%Y-%m-%dT%H:%M:%SZ)"
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' -G             -H "Authorization: Bearer $token"             -H "X-Goog-User-Project: $project"             --data-urlencode 'filter=metric.type="firestore.googleapis.com/document/read_ops_count" AND resource.type="firestore.googleapis.com/Database" AND resource.labels.database_id="(default)"'             --data-urlencode "interval.startTime=$start"             --data-urlencode "interval.endTime=$end"             --data-urlencode 'view=FULL'             --data-urlencode 'pageSize=5'             "https://monitoring.googleapis.com/v3/projects/$project/timeSeries")"
+          if [ "$code" != "200" ]; then
+            echo "D159 provider canary failed HTTP $code"
+            jq -r '.error.status // "UNKNOWN_STATUS", (.error.details[]?.reason // empty)' "$tmp" 2>/dev/null || true
+            exit 1
+          fi
+          jq -e 'has("timeSeries") or . == {} or (.timeSeries | type == "array")' "$tmp" >/dev/null
+          echo "D159 Cloud Monitoring provider canary PASS"
 
       - name: Inject bounded Beta build configuration
         shell: pwsh
