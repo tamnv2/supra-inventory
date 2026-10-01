@@ -177,8 +177,6 @@ namespace SupraInventoryRelayAgent
             AgentSession session;
             try { session = SnapshotSession(); } catch { return false; }
             var login = ((session == null ? "" : session.LoginName) ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(login))
-                login = ((session == null ? "" : session.AppUserId) ?? "").Trim();
             return string.Equals(login, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(login, "admin", StringComparison.OrdinalIgnoreCase);
         }
