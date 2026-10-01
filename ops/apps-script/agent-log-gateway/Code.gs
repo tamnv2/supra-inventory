@@ -15,15 +15,16 @@ function doPost(e) {
     const bundleId = String(body.bundle_id || '').toLowerCase();
     const fileName = String(body.file_name || '');
     const contentHash = String(body.content_hash || '').toLowerCase();
-    const payload = sanitize_(String(body.payload || ''));
+    const rawPayload = String(body.payload || '');
 
     if (!/^[0-9a-f]{64}$/.test(bundleId)) throw new Error('INVALID_BUNDLE_ID');
     if (!/^[0-9a-f]{64}$/.test(contentHash)) throw new Error('INVALID_CONTENT_HASH');
     if (!/^(session|checkpoint|error|crash|recovery|manual)_agent_[A-Za-z0-9_-]{1,48}_[0-9]{8}_[0-9]{6}\.log$/.test(fileName)) {
       throw new Error('INVALID_FILENAME');
     }
-    if (!payload || payload.length > MAX_PAYLOAD_CHARS) throw new Error('INVALID_PAYLOAD_SIZE');
-    if (sha256Hex_(payload) !== contentHash) throw new Error('CONTENT_HASH_MISMATCH');
+    if (!rawPayload || rawPayload.length > MAX_PAYLOAD_CHARS) throw new Error('INVALID_PAYLOAD_SIZE');
+    if (sha256Hex_(rawPayload) !== contentHash) throw new Error('CONTENT_HASH_MISMATCH');
+    const payload = sanitize_(rawPayload);
 
     const props = PropertiesService.getScriptProperties();
     const folderId = String(props.getProperty('BETA_LOG_FOLDER_ID') || '');
