@@ -162,14 +162,21 @@ jobs:
             if (-not $transport.Contains($marker)) { throw "D158 hotfix confirmation ingress guard missing: $marker" }
           }
           foreach ($marker in @(
-            'PDA_CONFIRM_DUPLICATE business=SKIP',
-            'PDA_CONFIRM_DUPLICATE mutation=BLOCK',
-            'mutationRequestIds',
+            '.GroupBy(work => work.RequestId, StringComparer.Ordinal)',
+            '.GroupBy(item => item.Code, StringComparer.OrdinalIgnoreCase)'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 business/exact-PickList dedupe guard missing: $marker" }
+          }
+          if (-not $transport.Contains('layer=D160_RECENT_TERMINAL') -or
+              -not $transport.Contains('RecentTerminalTtlMs = 60000L')) {
+            throw "D160 cross-cycle terminal dedupe guard missing."
+          }
+          foreach ($marker in @(
             'AgentRoleHintFile',
             'HTTP EXPECTED RESPONSE',
             'AUTH LOGIN result=FAIL'
           )) {
-            if (-not $program.Contains($marker)) { throw "D158 hotfix business/auth guard missing: $marker" }
+            if (-not $program.Contains($marker)) { throw "D158 auth regression guard missing: $marker" }
           }
           foreach ($marker in @(
             'GOOGLE_CONNECTIVITY',
