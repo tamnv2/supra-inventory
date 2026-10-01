@@ -70,7 +70,7 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
-                    EnsureFreshToken();
+                    ForceRefreshAgentTokenD160();
                     session = SnapshotSession();
                 }
                 catch (Exception ex)
