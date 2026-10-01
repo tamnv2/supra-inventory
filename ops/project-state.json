@@ -2465,7 +2465,7 @@
     "accepted_base_change_id": "D158",
     "accepted_base_evidence": "OWNER_EXPLICIT_D158_PASS__AGENT_V94__ANDROID_VC92_UNCHANGED__2026_10_01",
     "current_change_id": "D159",
-    "current_change_status": "D159_CONFIGURED_GATEWAY_AND_FIELD_PRERELEASE_PASS__READY_FOR_OWNER_FIELD_TEST__D158_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "D159_FIELD_FAIL_ALL_METRICS_NA__SAME_CHANGE_REPAIR_V2_ACTIVE__D158_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__CONFIGURED_GATEWAY_VERIFIED__READY_FOR_OWNER_FIELD_TEST",
+    "status": "FIELD_FAIL__GATEWAY_SESSION_PATH_PASS__ALL_MONITORING_METRICS_NA__V2_DIAGNOSTIC_REPAIR_ACTIVE",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3671,7 +3671,7 @@
       "firestore.googleapis.com/rules/evaluation_count"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_READY_FOR_OWNER_FIELD_TEST__OPEN_EXE_COMPARE_REAL_USAGE",
+    "field_gate": "OA087_RETEST_WITH_V2_AND_REPORT_EXACT_PROVIDER_CODE__OWNER_PASS_BLOCKED_UNTIL_REAL_VALUES_LOAD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
     "implementation_pr": 346,
@@ -3717,6 +3717,19 @@
       "checksum_asset_id": 603627229,
       "source_commit": "95a03d0a90d781ed3b75f1cbe13798cb36d6cdda",
       "prerelease": true
+    },
+    "field_failure": {
+      "observed_at": "2026-10-01",
+      "evidence": "Owner screenshot: D159-v1 opens successfully, shows cache <=15 minutes and saved admin session, but Reads/Writes/Deletes, realtime metrics, Rules and all hourly cells are N/A.",
+      "diagnosis": "CLIENT_TO_GATEWAY_AND_FIREBASE_SESSION_AUTH_PATH_PASS__APPS_SCRIPT_RETURNED_OK_PARTIAL_WITH_ALL_SIX_CLOUD_MONITORING_QUERIES_FAILED",
+      "affected": "D159_USAGE_VISIBILITY_ONLY",
+      "accepted_base_impact": "NONE__D158_UNCHANGED"
+    },
+    "repair": {
+      "target_release": "d159-usage-test-v2",
+      "change": "Expose sanitized Cloud Monitoring HTTP/status/reason codes from Apps Script and render them directly in the standalone UI instead of generic N/A text.",
+      "quota_impact": "NO_NEW_FIRESTORE_OPS__NO_NEW_MONITORING_CADENCE__SAME_SIX_QUERIES_ON_15M_SHARED_CACHE_MISS",
+      "security": "NO_RAW_PROVIDER_MESSAGE_TOKEN_KEY_OR_CREDENTIAL_EXPOSED"
     }
   }
 }
