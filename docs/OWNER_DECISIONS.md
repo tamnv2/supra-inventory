@@ -2628,3 +2628,16 @@ Owner-approved requirements:
 - Stable remains OWNER-GATED and untouched.
 
 D159 technical implementation follows branch → PR → authority/continuity PASS → merge. The current connected tools cannot create/deploy a new Apps Script Web App or set the GitHub environment variable, so the only remaining manual gate after technical merge is OA087 provisioning via Web UI. Owner field PASS is required before D159 is accepted as the next base.
+
+
+## D159 technical/source checkpoint — 2026-10-01
+
+Status: **TECHNICAL SOURCE / BUILD PASS — OA087 OWNER PROVISIONING READY**.
+
+- PR #346 merged to `main` at `0f67eecd2ec37a2291061d1fc8cbdb2d6f4bc2cb`.
+- Main PASS evidence: Repo Authority `36872486803`, Project State `36872486890`, UI Design `36872486834`, Dashboard Probe `36872486812`, D159 Usage Test `36872486836`.
+- The standalone Windows D159 EXE compiles and passes its parser/self-test and source isolation/security guards.
+- Main workflow produced technical artifact `11168455789` (digest `sha256:1a8364ec8c2a9e7f79bed8cb7b7287ed8396d4639902f0918ad4fda77975ec06`). Because the dedicated D159 gateway URL is not yet configured, this artifact contains a CI placeholder gateway and is **not** the Owner field-test release.
+- The separate Apps Script source passes JavaScript syntax and isolation guards; it uses only external request + `monitoring.read`, shared 900-second Script Cache, Firebase ADMIN/PICKPACK_ADMIN token validation, and no Firestore/Drive/WMS/Worker mutation path.
+- D158 Agent v94 and its accepted log gateway are unchanged. Android remains beta-vc92. Stable remains OWNER-GATED.
+- OA087 is the only current blocker: Owner provisions the separate Apps Script D159 Web App and stores its `/exec` URL in GitHub Beta environment variable `D159_USAGE_GATEWAY_URL_BETA`. After that configuration, CI must prove gateway identity and publish the configured D159 field-test prerelease before Owner testing.
