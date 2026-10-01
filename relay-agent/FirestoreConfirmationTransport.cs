@@ -21,6 +21,7 @@ namespace SupraInventoryRelayAgent
         internal string PickerUserId;
         internal string PickerEmployeeCode;
         internal string PickerDisplayName;
+        internal string PickerContractorName;
         internal long PickerSessionGeneration;
         internal long ClientSentAtMs;
         internal long CreatedAtMs;
@@ -38,6 +39,8 @@ namespace SupraInventoryRelayAgent
         internal PickerRateDecision Rate = new PickerRateDecision();
         internal bool ShouldAck = true;
         internal string GuardId = "";
+        internal string ResolvedPickListCode = "";
+        internal string PickerContractorName = "";
         internal long RetireAtMs;
     }
 
@@ -49,7 +52,7 @@ namespace SupraInventoryRelayAgent
         internal const int PrimaryPollIntervalMs = PrimaryActivePollIntervalMs;
         internal const int StandbyPollIntervalMs = 0;
         internal const int MaxDocumentsPerPoll = 100;
-        internal const int MaxConcurrentJobs = 12;
+        internal const int MaxConcurrentJobs = 15;
         internal const long MaxPendingAgeMs = 20000L;
 
         private readonly Func<AgentSession> _sessionProvider;
