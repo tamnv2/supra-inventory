@@ -849,7 +849,7 @@ D158 is Windows-Agent-only; beta-vc92 remains unchanged.
 - Checkbox-not-ready targets receive at most one shared bounded recovery wave. They do not delay already-terminal fast-lane outcomes.
 - A zero/unhydrated WMS table is technical `WMS_DATA_UNAVAILABLE`, not user NOT_FOUND and not a strike.
 - Before any final click Agent requires a clean selection: no stale dialog, no foreign checked checkbox and exactly one usable checkbox for every frozen target.
-- One WMS bulk wave uses one final confirmation dialog. After the final dialog click, only a newly created **success** surface may produce `CONFIRMED`. A fresh error surface is retained as evidence but returns `CONFIRM_IN_PROGRESS_OR_UNCERTAIN` for the whole affected wave because partial provider mutation cannot be ruled out. Reload, dialog close, row presence or row disappearance are not success evidence.
+- One WMS bulk wave uses one final confirmation dialog. After the final dialog click, only a **new or content-changed success** surface observed after the click may produce `CONFIRMED`. A fresh error surface is retained as evidence but returns `CONFIRM_IN_PROGRESS_OR_UNCERTAIN` for the whole affected wave because partial provider mutation cannot be ruled out. Reload, dialog close, row presence or row disappearance are not success evidence.
 - Every non-success post-click target remains confirmation-guarded and may only be observed/read; it must not be confirmed again.
 - Normal target is 5–10 seconds end-to-end with hard product target ≤20 seconds. The mutation-start fence reserves time for WMS final click, terminal evidence and Firestore ACK.
 - Android beta-vc92 remains unchanged and continues the accepted D157/D158 request/ACK contract.
