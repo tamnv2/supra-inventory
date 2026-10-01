@@ -313,3 +313,14 @@ D156 changes no role authority. It changes only the default state of the existin
 - A later explicit enable survives HR identity sync.
 - users.status remains independent; reporting disabled does not revoke login, Xác nhận đơn/PickList or Agent contact capability.
 - Schedule recovery never changes identity/RBAC and cannot authorize a request outside the Agent-owned effective schedule.
+
+
+## D159 isolated Usage-test authentication boundary
+
+- The standalone D159 Windows utility has **no login UI**.
+- It may read only the already-existing Agent DPAPI `CurrentUser` saved session and use its refresh token in process memory to obtain a short-lived Firebase ID token.
+- D159 must not call password sign-in, persist a new refresh token, modify/delete `session.bin`, create a parallel credential store or weaken Agent v94 authentication.
+- The separate D159 Apps Script validates the Firebase ID token using the existing Beta Firebase identity contract and accepts only identities where effective `app_role` equals `app_base_role` and is exactly `ADMIN` or `PICKPACK_ADMIN`.
+- A publicly reachable Apps Script URL is not authorization. Missing/expired/invalid token or role mismatch fails closed.
+- Firebase Web API key value remains runtime configuration only; it is never committed or logged.
+- D159 grants no business mutation capability and no access to WMS/session/cookie/header/signature material.
