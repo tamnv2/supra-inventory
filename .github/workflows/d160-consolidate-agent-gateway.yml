@@ -29,6 +29,7 @@ jobs:
           test -f ops/apps-script/agent-log-gateway/Code.gs
           test -f ops/apps-script/agent-log-gateway/appsscript.json
           grep -Fq "SUPRA_AGENT_OPERATIONS_GATEWAY_D160" ops/apps-script/agent-log-gateway/Code.gs
+          grep -Fq "SUPRA_AGENT_OPERATIONS_USAGE_D160" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "get_firestore_usage" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "upload_agent_log" ops/apps-script/agent-log-gateway/Code.gs
           jq -e '.oauthScopes | index("https://www.googleapis.com/auth/monitoring.read") != null' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
@@ -45,6 +46,8 @@ jobs:
     env:
       AGENT_LOG_GATEWAY_URL_BETA: ${{ vars.AGENT_LOG_GATEWAY_URL_BETA }}
       CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
       INVENTORY_ROOT_FOLDER_ID: "1aNt8PULfMvJC8CKKbQyf5suLPtGo2PRF"
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +73,10 @@ jobs:
             echo "::error::AGENT_LOG_GATEWAY_URL_BETA missing."
             exit 1
           fi
+          if [ -z "$FIREBASE_RULES_SA_JSON_BETA" ] || [ -z "$FIREBASE_API_KEY_BETA" ]; then
+            echo "::error::Existing Beta Firebase canary credentials are required for authenticated D160 Usage proof."
+            exit 1
+          fi
 
           umask 077
           printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
@@ -85,8 +92,12 @@ jobs:
           PY
 
           work="$(mktemp -d)"
+          canary_uid="d160-gateway-canary-${GITHUB_RUN_ID}"
           cleanup() {
             set +e
+            if [ -f "$work/firebase-canary.js" ]; then
+              D160_CANARY_UID="$canary_uid" node "$work/firebase-canary.js" delete >/dev/null 2>&1 || true
+            fi
             rm -rf "$work"
             rm -f "$HOME/.clasprc.json"
           }
@@ -178,6 +189,97 @@ jobs:
           done
           [ "$identity_ok" = true ] || fail "unified-gateway-identity"
 
+          # D160 must prove the *authenticated Usage POST* on the migrated Apps Script,
+          # not just its public GET identity. Reuse the existing Beta Firebase Rules
+          # service-account secret to mint one short-lived ADMIN custom token, exchange
+          # it for a Firebase ID token, call get_firestore_usage, then delete the
+          # temporary Auth user. No token is printed or persisted outside this job.
+          npm ci --prefix "$GITHUB_WORKSPACE/functions" --omit=dev >/dev/null 2>&1 || fail "firebase-admin-install"
+          cat > "$work/firebase-canary.js" <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const admin = require(path.join(process.env.GITHUB_WORKSPACE, 'functions', 'node_modules', 'firebase-admin'));
+
+          const sa = JSON.parse(process.env.FIREBASE_RULES_SA_JSON_BETA || '{}');
+          const uid = process.env.D160_CANARY_UID || '';
+          const mode = process.argv[2] || '';
+          if (!uid || !sa.client_email || !sa.private_key) process.exit(2);
+
+          if (!admin.apps.length) {
+            admin.initializeApp({
+              credential: admin.credential.cert(sa),
+              projectId: 'supra-inventory-beta'
+            });
+          }
+
+          async function removeUser() {
+            try {
+              await admin.auth().deleteUser(uid);
+            } catch (err) {
+              if (!err || err.code !== 'auth/user-not-found') throw err;
+            }
+          }
+
+          (async () => {
+            if (mode === 'delete') {
+              await removeUser();
+              return;
+            }
+            if (mode !== 'create') process.exit(3);
+
+            await removeUser();
+            const customToken = await admin.auth().createCustomToken(uid, {
+              app_role: 'ADMIN',
+              app_base_role: 'ADMIN',
+              app_user_id: 'd160-provider-canary'
+            });
+            const url =
+              'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=' +
+              encodeURIComponent(process.env.FIREBASE_API_KEY_BETA || '');
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ token: customToken, returnSecureToken: true })
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload.idToken) throw new Error('FIREBASE_CUSTOM_SIGNIN_FAILED');
+            fs.writeFileSync(process.env.D160_ID_TOKEN_FILE, payload.idToken, { mode: 0o600 });
+          })().catch(() => process.exit(4));
+          NODE
+
+          export D160_CANARY_UID="$canary_uid"
+          export D160_ID_TOKEN_FILE="$work/d160-id-token"
+          node "$work/firebase-canary.js" create >/dev/null 2>&1 || fail "firebase-id-token-canary"
+
+          id_token="$(cat "$D160_ID_TOKEN_FILE")"
+          jq -n --arg token "$id_token" '{action:"get_firestore_usage",id_token:$token}' > "$work/usage-request.json"
+          rm -f "$D160_ID_TOKEN_FILE"
+          unset id_token
+
+          http="$(curl -L -sS -o "$work/usage-response.json" -w '%{http_code}'             -H "Content-Type: application/json"             --data-binary @"$work/usage-request.json"             "$AGENT_LOG_GATEWAY_URL_BETA" || true)"
+          rm -f "$work/usage-request.json"
+          [ "$http" = "200" ] || fail "authenticated-usage-http"
+
+          jq -e '
+            .ok == true and
+            .service == "SUPRA_AGENT_OPERATIONS_USAGE_D160" and
+            .project == "supra-inventory-beta" and
+            .revision == "D160-GW-v1" and
+            .availability.reads == true
+          ' "$work/usage-response.json" >/dev/null || fail "authenticated-usage-contract"
+
+          if jq -e '
+            (.errors // []) |
+            any(test("MONITORING_HTTP_403|OAUTH_SCOPE_INSUFFICIENT|MISSING_MONITORING_TIMESERIES_LIST|MISSING_SERVICEUSAGE_SERVICES_USE"))
+          ' "$work/usage-response.json" >/dev/null; then
+            fail "authenticated-usage-monitoring-authorization"
+          fi
+
+          node "$work/firebase-canary.js" delete >/dev/null 2>&1 || fail "firebase-canary-cleanup"
+          echo "D160_AUTHENTICATED_USAGE_POST=PASS"
+
+          # Retire D159 only after both GET identity and authenticated Monitoring-backed
+          # POST proof pass on the existing Agent gateway URL.
           if clasp delete-script "$usage_script_id" --force >/dev/null 2>&1; then
             :
           else
