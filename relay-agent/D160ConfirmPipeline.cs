@@ -71,7 +71,7 @@ namespace SupraInventoryRelayAgent
             {
                 search = eligible.Count == 0
                     ? new SupraBrowserSearchResult { Result = "NOT_FOUND" }
-                    : _supraBrowser.SearchMany(eligible.Select(work => work.Suffix), true, false);
+                    : _supraBrowser.SearchMany(eligible.Select(work => work.Suffix), true, false, false);
                 if (eligible.Count > 0) MarkD157WmsProof();
             }
             catch (Exception ex)
@@ -110,7 +110,7 @@ namespace SupraInventoryRelayAgent
                 try
                 {
                     recovered = _supraBrowser.SearchMany(
-                        deferred.Select(item => item.Work.Suffix), true, true);
+                        deferred.Select(item => item.Work.Suffix), true, true, true);
                     MarkD157WmsProof();
                 }
                 catch (Exception ex)
@@ -258,7 +258,7 @@ namespace SupraInventoryRelayAgent
                 if (!D160CanStartMutation(work))
                 {
                     outcomes[work.RequestId] = D160Outcome(
-                        work, "REQUEST_EXPIRED", "BROWSER_DOM+D160_16S_MUTATION_FENCE",
+                        work, "REQUEST_EXPIRED", "BROWSER_DOM+D160_12S_MUTATION_FENCE",
                         "BROWSER_DOM", code, search.ElapsedMs, 1);
                     continue;
                 }
@@ -372,7 +372,19 @@ namespace SupraInventoryRelayAgent
             SupraBrowserBulkConfirmResult browser;
             try
             {
-                browser = _supraBrowser.ConfirmManyExact(targets.Select(target => target.Code));
+                var maxRequestAgeMs = targets
+                    .SelectMany(target => target.Works)
+                    .Select(D160RequestAgeMs)
+                    .DefaultIfEmpty(0L)
+                    .Max();
+                var terminalWaitMs = (int)Math.Max(
+                    800L,
+                    Math.Min(3500L, 17500L - maxRequestAgeMs - 4500L));
+                var allowPreFinalRecovery = maxRequestAgeMs < 6000L;
+                browser = _supraBrowser.ConfirmManyExact(
+                    targets.Select(target => target.Code),
+                    terminalWaitMs,
+                    allowPreFinalRecovery);
             }
             catch (Exception ex)
             {
@@ -401,7 +413,10 @@ namespace SupraInventoryRelayAgent
                 {
                     var outcome = D160Outcome(
                         work,
-                        browser.Result ?? "CONFIRM_ERROR",
+                        !browser.FinalClicked &&
+                        string.Equals(browser.Result, "CONFIRM_REJECTED", StringComparison.Ordinal)
+                            ? "CONFIRM_CONFLICT"
+                            : (browser.Result ?? "CONFIRM_ERROR"),
                         "BROWSER_DOM+GUARD+D160_BULK_" + wave +
                         (browser.RecoveryReloaded ? "+UI_RECOVERY_RELOAD" : "") +
                         (browser.FinalClicked ? "+FINAL_CLICK" : "+PRE_FINAL"),
@@ -458,7 +473,7 @@ namespace SupraInventoryRelayAgent
 
         private static bool D160CanStartMutation(FirestoreConfirmationWorkItem work)
         {
-            return D160RequestAgeMs(work) < 16000L;
+            return D160RequestAgeMs(work) < 12000L;
         }
 
         private static bool D160HasRecoveryBudget(IEnumerable<FirestoreConfirmationWorkItem> works)
@@ -469,7 +484,7 @@ namespace SupraInventoryRelayAgent
                 .Max();
             // Recovery may include a real top-level reload. Do not start it late enough
             // to consume the ACK reserve near the 20-second PDA hard bound.
-            return maxAge < 10000L;
+            return maxAge < 6500L;
         }
 
         private void FinalizeD160Outcomes(
