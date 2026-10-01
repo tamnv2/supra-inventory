@@ -441,3 +441,17 @@ The public Privacy/About pages document the existing Google-data boundary; they 
 - New Picker provisioning initializes reporting enabled. Account deletion/history retention semantics are unchanged.
 - Disabling shortage reporting does not modify or delete existing report tickets, batches, result snapshots, acknowledgements or audits.
 - No D155 capability state is persisted to Firestore/RTDB. Agent contractor presentation may appear in the existing Agent Picker projection only when that projection is already updated for established reasons.
+
+## D158 — Windows Agent support-log lifecycle
+
+D158 does not change Android logging. Windows Agent retains `technical-ai.log` and `pda-agent-audit.log` as sanitized local streams and adds durable sealed support bundles.
+
+- Local capture is independent from upload. Sealed bundle boundaries are 6h dirty, approximately 2 MiB, authenticated session/logout, error, crash, planned exit, recovery or manual send.
+- Each bundle has deterministic identity from Agent/machine/range/content hash. Retry must be idempotent and must not create duplicate Drive files.
+- A failed upload leaves the sealed bundle on local disk with bounded retry/backoff. Unclean process termination is recovered after the next valid authenticated Agent session.
+- Logout records and seals the lifecycle event before Agent auth/session state is cleared. Logging failure never prevents logout or business processing.
+- Target Beta transport is Google Apps Script Web App → existing `Inventory/Beta/Logs`. The gateway validates the Firebase ID token and exact ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN authority, sanitizes again server-side, and writes only to the fixed scoped Beta Logs folder.
+- The Apps Script endpoint, Firebase Web API key and Logs folder id are runtime/deployment configuration. Secret/token values are never repository content.
+- Until Office field proof and canonical gateway configuration complete, the D157 Firestore/Function support-log route remains fallback. After proven cutover, Agent support-log use of `relay_agent_log_uploads`/Function spool is retired; Firestore PickList/HA/coordination remains unchanged.
+- Stable is untouched.
+
