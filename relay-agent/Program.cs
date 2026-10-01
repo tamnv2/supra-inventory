@@ -241,6 +241,7 @@ namespace SupraInventoryRelayAgent
         internal static string LogFile { get { return DiagnosticLogFile; } }
         internal static Action<string> CrashUploadCallback { get; set; }
         internal static Action<string> ErrorUploadCallback { get; set; }
+        internal static Action<string> DiagnosticObservationCallback { get; set; }
         private static int _errorUploadCallbackRunning;
         private static long _totalBytesWritten;
 
@@ -303,6 +304,12 @@ namespace SupraInventoryRelayAgent
         internal static void Write(string message)
         {
             AppendSanitized(DiagnosticLogFile, message);
+            try
+            {
+                var observer = DiagnosticObservationCallback;
+                if (observer != null) observer(Sanitize(message ?? ""));
+            }
+            catch { }
             if (!IsImmediateErrorSignal(message)) return;
             if (Interlocked.CompareExchange(ref _errorUploadCallbackRunning, 1, 0) != 0) return;
             var safeMessage = Sanitize(message ?? "UNKNOWN");
@@ -662,6 +669,8 @@ namespace SupraInventoryRelayAgent
             {
                 Task.Run(() => _agentLogBridge.TryQueueErrorSnapshot(errorType));
             };
+            AgentDiagnostics.DiagnosticObservationCallback = message =>
+                _agentLogBridge.ObserveDiagnostic(message);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
             Width = 780;
             Height = 680;
