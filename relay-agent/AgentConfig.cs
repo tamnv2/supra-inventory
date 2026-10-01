@@ -11,7 +11,6 @@ namespace SupraInventoryRelayAgent
         internal const string FirestoreProbeUrl = FirestoreDocumentsBaseUrl;
         internal const string FirestoreRelayCollectionUrl = FirestoreDocumentsBaseUrl + "/relay_poc_jobs";
         internal const string FirestorePickerPresenceUrl = FirestoreDocumentsBaseUrl + "/picker_presence_projection/current";
-        internal const string FirestorePickerPresenceDocumentName = "projects/" + FirebaseProjectId + "/databases/(default)/documents/picker_presence_projection/current";
         internal const string FirestoreFleetMetricsUrl = FirestoreDocumentsBaseUrl + "/relay_fleet_metrics/current";
         internal const string FirestoreCoordinationBaseUrl = FirestoreDocumentsBaseUrl + "/relay_poc_coordination";
         internal const string FirestoreAgentSyncUrl = FirestoreCoordinationBaseUrl + "/agent_sync";
@@ -27,6 +26,10 @@ namespace SupraInventoryRelayAgent
         internal const string DriveProbeUrl = "https://www.googleapis.com/drive/v3/about?fields=user";
         internal const string WmsPicklistConfirmUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm";
         internal const string GitHubReleasesApi = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
+        // D158: populated by the Beta build environment only after the scoped
+        // Apps Script log gateway passes Office field proof. Empty means retain
+        // the D157 Firestore support-log transport as a safe fallback.
+        internal const string AgentLogGatewayUrl = "__AGENT_LOG_GATEWAY_URL_BETA__";
         internal const string AgentUpdateManifestUrl = ApiBaseUrl + "/downloads/agent/manifest";
         internal const string AgentUpdateExeUrl = ApiBaseUrl + "/downloads/agent/latest";
         internal const string AgentUpdateChecksumUrl = ApiBaseUrl + "/downloads/agent/latest.sha256";
