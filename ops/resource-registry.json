@@ -2057,5 +2057,25 @@
     "v3_gateway_identity": "PASS__D159-GW-v4",
     "accepted_base": "D159",
     "owner_acceptance": "PASS__OFFICIAL_D159_USAGE_V3_FIELD_ACCEPTED__2026_10_02"
+  },
+  "apps_script_automation": {
+    "status": "OWNER_APPROVED_CANARY_PENDING",
+    "credential_reference": "GITHUB_ENV_BETA_SECRET_CLASPRC_JSON",
+    "api_setting": "GOOGLE_APPS_SCRIPT_API_OWNER_CONFIRMED_ON__2026_10_02",
+    "canary_resource_key": "apps-script-automation-canary-beta",
+    "canary_workflow": ".github/workflows/probe-apps-script-automation.yml",
+    "clasp_version": "3.4.1",
+    "target_capabilities": [
+      "CREATE_SCRIPT",
+      "PUSH_CONTENT",
+      "CREATE_VERSION",
+      "CREATE_DEPLOYMENT",
+      "LIST_DEPLOYMENTS",
+      "UPDATE_DEPLOYMENT",
+      "DELETE_DEPLOYMENT",
+      "DELETE_SCRIPT"
+    ],
+    "provider_ids": "EPHEMERAL_NOT_RECORDED",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
