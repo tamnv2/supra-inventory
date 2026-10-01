@@ -2707,3 +2707,23 @@ This follows Google's documented user-credential REST requirement that a quota p
 No new runtime secret is introduced. The existing CI service-account credential is used only inside GitHub Actions and is never copied to Apps Script or the EXE. Runtime cadence and Firestore document-operation cost remain unchanged.
 
 After technical PASS, the only manual action is updating/redeploying the **existing** D159 Apps Script Web App as a new version. The deployment URL and D159-v2 EXE do not need to change.
+
+
+## D159 403 diagnostic proof — missing Monitoring consumer permissions — 2026-10-01
+
+Automated provider diagnosis on run `36893601587` reproduced HTTP 403 outside Apps Script using the protected Beta Google service-account identity and the exact Firestore Monitoring filter.
+
+Safe `testIamPermissions` output:
+- `monitoring.timeSeries.list = false`
+- `serviceusage.services.use = false`
+- Monitoring API enabled-state could not be confirmed because the caller lacks Service Usage permission.
+
+The Owner field Apps Script path independently returns `MONITORING_HTTP_403`. Therefore D159 is blocked at Google Cloud Monitoring consumption/IAM, not at the Windows EXE, Firebase session, D159 gateway routing, cache, Firestore data model or metric filter.
+
+Minimal provider fix:
+1. Ensure **Cloud Monitoring API** is enabled on `supra-inventory-beta`.
+2. Grant **Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`) to the Google account used to deploy/execute the D159 Apps Script.
+3. Grant the same role to `inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com` for the automated provider canary.
+4. Redeploy the existing D159 Apps Script with repo-managed Gateway revision `D159-GW-v3`, which adds `X-Goog-User-Project: supra-inventory-beta` and a fresh cache key.
+
+This is narrower than granting project Viewer/Editor. No Stable role/resource is touched.
