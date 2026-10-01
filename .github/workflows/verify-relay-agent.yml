@@ -895,17 +895,19 @@ jobs:
             'TryQueueErrorSnapshot',
             'ErrorUploadCallback',
             'DIRECT_PENDING',
-            'scheduled_agent_',
-            'error_agent_',
-            'crash_agent_',
-            'new[] { 6, 12, 18, 21 }'
+            'DirtyCheckpointMs',
+            'SizeCheckpointBytes',
+            'SealLogoutAndFlush',
+            'agent-log-pending',
+            'SAME_FINGERPRINT',
+            'GLOBAL_FUSE'
           )) {
             if (-not ($program.Contains($marker) -or $bridge.Contains($marker) -or $rules.Contains($marker))) {
-              throw "D146 Agent guard missing: $marker"
+              throw "D146/D158 Agent log/input guard missing: $marker"
             }
           }
-          if ($bridge.Contains('new[] { 0, 6, 12, 18 }')) {
-            throw "D146 Agent must not retain the midnight scheduled-log slot."
+          if ($bridge.Contains('new[] { 0, 6, 12, 18 }') -or $bridge.Contains('new[] { 6, 12, 18, 21 }')) {
+            throw "D158 Agent durable lifecycle must not restore fixed scheduled-log snapshots."
           }
           if ($rules -notmatch "DIRECT_PENDING") { throw "D146 Firestore rules must allow DIRECT_PENDING Agent log parts." }
           Write-Host "D146 Agent Google-first logs / protected text input guard PASS"
