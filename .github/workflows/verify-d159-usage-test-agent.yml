@@ -45,6 +45,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Detect D159 release payload changes
+        id: release_scope
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $publish = "false"
+
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $publish = "true"
+          } elseif ("${{ github.event_name }}" -eq "push") {
+            $before = "${{ github.event.before }}"
+            $head = "${{ github.sha }}"
+            $zero = "0000000000000000000000000000000000000000"
+
+            if ([string]::IsNullOrWhiteSpace($before) -or $before -eq $zero) {
+              $files = git show --pretty="" --name-only $head
+            } else {
+              git fetch --no-tags --depth=1 origin $before | Out-Null
+              if ($LASTEXITCODE -ne 0) { throw "Unable to fetch D159 push base $before." }
+              $files = git diff --name-only $before $head
+              if ($LASTEXITCODE -ne 0) { throw "Unable to diff D159 release payload." }
+            }
+
+            foreach ($file in $files) {
+              if ($file -like "usage-test-agent/*" -or
+                  $file -like "ops/apps-script/firestore-usage-gateway-d159/*") {
+                $publish = "true"
+                break
+              }
+            }
+          }
+
+          "publish=$publish" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "D159 release payload changed=$publish"
+
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
@@ -297,7 +332,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish configured D159 field-test prerelease
-        if: github.event_name != 'pull_request' && env.D159_CONFIGURED == 'true'
+        if: github.event_name != 'pull_request' && env.D159_CONFIGURED == 'true' && steps.release_scope.outputs.publish == 'true'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
