@@ -188,6 +188,52 @@ jobs:
             fi
           }
 
+          ensure_script_api_enabled() {
+            local access_token
+            access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+            [ -n "$access_token" ] || return 1
+            local service_url="https://serviceusage.googleapis.com/v1/projects/supra-inventory-beta/services/script.googleapis.com"
+            local http_code state
+            http_code="$(curl -sS -o script-api-state.json -w '%{http_code}' \
+              -H "Authorization: Bearer $access_token" \
+              "$service_url" || true)"
+            [ "$http_code" = "200" ] || return 1
+            state="$(jq -r '.state // "UNKNOWN"' script-api-state.json 2>/dev/null | tr -cd 'A-Za-z0-9_-')"
+            echo "SCRIPT_API_INITIAL_STATE=${state:-UNKNOWN}"
+            if [ "$state" = "ENABLED" ]; then
+              return 0
+            fi
+            [ "$state" = "DISABLED" ] || return 1
+
+            echo "SCRIPT_API_ENABLE_REQUEST=START"
+            http_code="$(curl -sS -o script-api-enable.json -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer $access_token" \
+              -H "Content-Type: application/json" \
+              --data '{}' \
+              "${service_url}:enable" || true)"
+            echo "SCRIPT_API_ENABLE_HTTP=${http_code:-CURL_FAILED}"
+            case "$http_code" in
+              200|202) ;;
+              *) return 1 ;;
+            esac
+
+            for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+              sleep 5
+              http_code="$(curl -sS -o script-api-state.json -w '%{http_code}' \
+                -H "Authorization: Bearer $access_token" \
+                "$service_url" || true)"
+              if [ "$http_code" = "200" ]; then
+                state="$(jq -r '.state // "UNKNOWN"' script-api-state.json 2>/dev/null | tr -cd 'A-Za-z0-9_-')"
+                if [ "$state" = "ENABLED" ]; then
+                  echo "SCRIPT_API_FINAL_STATE=ENABLED"
+                  return 0
+                fi
+              fi
+            done
+            echo "SCRIPT_API_FINAL_STATE=${state:-UNKNOWN}"
+            return 1
+          }
+
           list_active_canary_ids() {
             local access_token
             access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
@@ -302,6 +348,8 @@ jobs:
             done
             [ "$stale_deleted" = true ] || fail_stage "stale-delete-verify"
           done
+          ensure_script_api_enabled || fail_stage "script-api-enable"
+
           title="SUPRA Inventory Beta - Apps Script Automation Probe ${GITHUB_RUN_ID}"
 
           echo "CANARY_STAGE=create"

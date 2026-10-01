@@ -4427,7 +4427,7 @@
     },
     {
       "id": "OA089",
-      "status": "OWNER_ACTION_DONE__TECHNICAL_VERIFICATION_IN_PROGRESS",
+      "status": "OWNER_ACTION_DONE__TECHNICAL_REPAIR_IN_PROGRESS",
       "title": "Re-consent clasp with full Google Drive scope",
       "resource_key": "apps-script-automation-canary-beta",
       "provider": "Google OAuth / clasp / Google Drive API",
@@ -4454,7 +4454,7 @@
         "drive_delete_reason": "appNotAuthorizedToFile",
         "stale_canary_scripts": 2
       },
-      "remaining_owner_action": "NONE__AI_RECHECK_IN_PROGRESS",
+      "remaining_owner_action": "NONE__AI_AUTO_ENABLES_REQUIRED_BETA_SCRIPT_API",
       "closed": false,
       "owner_reported_done_at": "2026-10-02",
       "owner_result": {
@@ -4463,12 +4463,14 @@
         "evidence": "Owner reported DRIVE scope fixed and replaced the protected GitHub Environment beta CLASPRC_JSON. No secret value was shared or recorded."
       },
       "technical_followup": {
-        "workflow_run": 36913589049,
-        "post_consent_result": "DRIVE_DELETE_FUNCTIONAL_PASS__CREATE_FAILED__SAFE_DIAGNOSTIC_REPAIR_IN_PROGRESS",
-        "stale_canary_scripts_observed": 2,
-        "delete_method": "CLASP",
+        "workflow_run": 36916599484,
+        "result": "DRIVE_SCOPE_PASS__STALE_ACTIVE_ZERO__CREATE_BLOCKED_BY_SCRIPT_API_DISABLED",
+        "token_scope_drive_full": true,
+        "token_scope_drive_file": true,
+        "script_api_service_state": "DISABLED",
         "owner_action_required": false,
-        "repair_branch": "ops/oa089-apps-script-canary-repair"
+        "repair_branch": "ops/oa089-enable-apps-script-api",
+        "next": "Enable script.googleapis.com in scoped Beta project from main-only canary, then rerun full lifecycle."
       }
     }
   ]
