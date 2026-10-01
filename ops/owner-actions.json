@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "READY_FOR_OWNER_PROVISIONING",
+      "status": "OWNER_REPORTS_PROVISIONED__CI_VERIFICATION_ACTIVE",
       "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4277,8 +4277,13 @@
         "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Provision the separate D159 Apps Script Web App in Google Apps Script, set Script Property FIREBASE_WEB_API_KEY_BETA privately, deploy as Owner/Anyone with monitoring.read consent, then set GitHub Environment beta variable D159_USAGE_GATEWAY_URL_BETA to the /exec URL. Do not send key/token values in chat.",
-      "closed": false
+      "remaining_owner_action": "None until CI verification completes. AI must verify the configured D159 gateway identity and configured prerelease before asking Owner to run the EXE.",
+      "closed": false,
+      "owner_report": {
+        "date": "2026-10-01",
+        "result": "PROVISIONING_DONE",
+        "note": "Owner reports the separate D159 Apps Script Web App, Script Property and GitHub Beta environment variable are configured. Secret values remain outside repo/chat."
+      }
     }
   ]
 }
