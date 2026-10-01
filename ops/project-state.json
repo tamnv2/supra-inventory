@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D157_OWNER_ACCEPTED_BASE__AGENT_V92__ANDROID_VC92",
+    "beta": "D158_OWNER_FIELD_ACCEPTED_PASS__AGENT_V94__ANDROID_VC92",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 16,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -27,14 +27,14 @@
     "user_management": "D146_OWNER_FIELD_PASS__TRUE_ROOT_MODE_ONLY_MANAGED_DELETE__PICKPACK_CANNOT_DELETE_ADMIN",
     "archive": "ARCHIVE_V1_F19_RESULT_ACK_RECURRENCE_RETENTION_COVERAGE_BETA_RUNTIME_PASS",
     "admin_dashboard": "D112_OWNER_ACCEPTED_PASS__EXISTING_METRICS_OPERATIONAL_HIERARCHY__NONBLOCKING_SECONDARY_LOAD",
-    "quota_resilience": "D157_OWNER_FIELD_PASS__OPTIONAL_PRIMARY_WAKE_READ_RESERVE__PER_ACK_SUMMARY_WRITE_REMOVED__ABSOLUTE_50_ACK_OR_5M_CHECKPOINT",
+    "quota_resilience": "D158_OWNER_FIELD_ACCEPTED_PASS__READ_FLAT_OR_LOWER__WRITE_RECOVERY_FLAT_OR_LOWER__D157_GUARDS_RETAINED",
     "ui_design_guard": "D154_OWNER_FIELD_PASS__PERMISSION_DND_OVERLAY_PRIORITY__LOGIN_VERSION__SHARED_OVERTIME_PRESENTATION",
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D157_OWNER_FIELD_ACCEPTED_PASS__AGENT_V92__TARGETED_PRIMARY_HANDOFF__SESSION_HEALTH__SECONDARY_LIST_RENDER_REPAIR",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D157_ACCEPTED_BASE__D158_ACTIVE_OWNER_APPROVED_NEXT_CHANGE_BLOCKED",
-    "owner_acceptance": "D157_OWNER_FIELD_ACCEPTED_PASS__2026_09_30",
+    "picklist_confirmation_poc": "D158_OWNER_FIELD_ACCEPTED_PASS__AGENT_V94__REQUEST_DEDUPE_FASTPATH_ERROR_COALESCING__ANDROID_VC92_UNCHANGED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D158_ACCEPTED_BASE__NEXT_CHANGE_ALLOWED",
+    "owner_acceptance": "D158_OWNER_FIELD_ACCEPTED_PASS__2026_10_01",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
@@ -2461,12 +2461,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D157",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D157_PASS__AGENT_V92__ANDROID_VC92__2026_09_30",
-    "current_change_id": "D158",
-    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OFFICIAL_AGENT_V93_RELEASED_AND_CHANNEL_UPDATED__OA086_READY_FOR_OWNER_OFFICE_PROOF__D157_REMAINS_ACCEPTED_BASE",
-    "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "accepted_base_change_id": "D158",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D158_PASS__AGENT_V94__ANDROID_VC92_UNCHANGED__2026_10_01",
+    "current_change_id": "NONE",
+    "current_change_status": "NO_ACTIVE_CHANGE__D158_OWNER_PASS_RECORDED__NEXT_CHANGE_ALLOWED",
+    "owner_pass_required_to_unlock_next_change": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2480,8 +2480,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D158_AGENT_ONLY_IMPLEMENTATION_MERGED_RELEASED_V93__ANDROID_BETA_VC92_HARD_LOCKED__D157_WMS_HA_LEASE_FAILOVER_GUARDS_RETAINED__STABLE_UNTOUCHED",
-    "resource_change": "D158_REUSES_EXISTING_BETA_FIRESTORE_AND_DRIVE__OWNER_PROVISIONED_ONE_BETA_APPS_SCRIPT_AGENT_LOG_GATEWAY__DEPLOYMENT_URL_HELD_ONLY_IN_GITHUB_BETA_ENV_VAR__NO_NEW_FIRESTORE_COLLECTION__NO_SECRET_IN_REPO",
+    "runtime_impact": "D158_OWNER_ACCEPTED__AGENT_V94__ANDROID_BETA_VC92_HARD_LOCKED_UNCHANGED__D157_WMS_HA_LEASE_FAILOVER_GUARDS_RETAINED__STABLE_UNTOUCHED",
+    "resource_change": "D158_OWNER_ACCEPTED__EXISTING_BETA_FIRESTORE_DRIVE_AND_OWNER_PROVISIONED_APPS_SCRIPT_LOG_GATEWAY__NO_NEW_FIRESTORE_COLLECTION__NO_SECRET_IN_REPO",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3457,7 +3457,7 @@
     }
   },
   "d158": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__HOTFIX_AGENT_V94_RELEASED__OA086_READY_FOR_OWNER_FIELD_TEST",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__AGENT_V94",
     "date": "2026-10-01",
     "baseline_change": "D157",
     "baseline_main": "7f7533b8ec61982a5d9fb5610436e9b15a87628f",
@@ -3506,7 +3506,7 @@
     "log_range_guard": "HALF_OPEN_MILLISECOND_RANGES__NO_CROSS_BUNDLE_OVERLAP__EMPTY_CHECKPOINTS_SKIPPED__SIZE_TRIGGER_COUNTS_NEW_BYTES_ONLY",
     "manual_log_send": "TECHNICAL_TAB_Gửi_log__LOCAL_SEAL_THEN_BOUNDED_UPLOAD_OR_LOCAL_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OA086_READY_FOR_OWNER_OFFICE_FIELD_PROOF__OFFICIAL_RELAY_AGENT_V94_RELEASED__D157_REMAINS_ACCEPTED_BASE",
+    "owner_gate": "PASS__OWNER_CONFIRMED_D158__2026_10_01__OA086_CLOSED",
     "implementation_pr": 341,
     "pr_head": "a3a9d6cc1ac6d6d632674db80397dc2f41797e97",
     "technical_runs": {
@@ -3602,8 +3602,8 @@
       "main_workflow": "PASS__VERIFY_BETA_RELAY_AGENT_36857217023",
       "note": "Official D158 hotfix relay-agent-v94 published from merged main and Agent distribution channel refreshed on 2026-10-01. Android beta-vc92 channel asset is unchanged. D158 remains open pending OA086 Owner Office field proof and explicit Owner PASS."
     },
-    "field_gate": "OA086_READY_FOR_OWNER_FIELD_TEST__V94_OFFICIAL_CHANNEL_VERIFIED__OWNER_PASS_PENDING",
-    "accepted_base": "D157",
+    "field_gate": "PASS__OWNER_CONFIRMED_D158__2026_10_01__OA086_CLOSED",
+    "accepted_base": "D158",
     "pre_hotfix_release_evidence": {
       "agent_release": "relay-agent-v93",
       "agent_release_id": 400845505,
@@ -3616,6 +3616,13 @@
       "inventory_channel_agent_checksum_asset_id": 602963580,
       "main_workflow": "PASS__VERIFY_BETA_RELAY_AGENT_36847084762",
       "note": "Official normal-distribution relay-agent-v93 published from merged main and Agent channel assets refreshed on 2026-10-01. D158 remains open pending OA086 Owner Office field proof."
+    },
+    "field_acceptance": "PASS__OWNER_EXPLICIT_D158_PASS_AFTER_V94_OFFICE_FIELD_TEST__2026_10_01",
+    "owner_acceptance": {
+      "result": "PASS",
+      "evidence": "Owner explicitly confirmed D158 PASS after field validation of official relay-agent-v94. The accepted result includes the request-id duplicate-mutation fences, listener/REST fast-path coexistence, sanitized connectivity incident coalescing, and the Beta Apps Script support-log gateway field path. Android beta-vc92 remains unchanged.",
+      "accepted_at": "2026-10-01",
+      "next_change_allowed": true
     }
   }
 }
