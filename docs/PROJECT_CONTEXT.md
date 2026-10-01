@@ -865,3 +865,15 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - The v92 repair is accepted: authenticated PRIMARY/NEXT_A/NEXT_B Agents can view synchronized Agent/User and active Picker lists without PRIMARY promotion; login and CLOSED→ACTIVE repaint already-held in-memory sync state without new provider reads/writes.
 - D137 real Page.reload/F5 semantics remain frozen; no WebView2/browser-runtime optimization was introduced.
 - No new provider resource, Firestore collection, secret, Android release, polling cadence or Stable mutation was introduced. Stable remains OWNER-GATED and untouched.
+## D160 active Owner-approved workstream — 2026-10-02
+
+D159 is the accepted base. D160 is the single active Owner-approved change; the accepted production runtime remains Agent v94 + Android beta-vc92 until D160 technical release and explicit Owner PASS.
+
+D160 targets Windows Agent v95. It introduces bounded multi-PickList confirmation with a maximum micro-batch of 15, independent per-request classification/ACK, READY-before-recovery ordering, exact checkbox/selection fences and fresh post-final-click success/error evidence. WMS reload or PickList row disappearance/persistence is never business-success evidence. Post-click uncertainty remains confirmation-guarded with no second mutation. Normal latency target is 5–10 seconds with a hard ≤20-second product target.
+
+D160 also integrates accepted D159-v3 Usage into the official Agent for exact logins tamnv2/admin only, consolidates Agent logs into one complete sanitized stream, renames Kết nối to Cài đặt, removes user-facing realtime log tabs and adds a local-realtime Picker confirmation History projection. The History tab creates no new Firestore cadence; existing ACK payload is only enriched with contractor/full PickList.
+
+The existing closed-day Excel exporter archives the richer history, then deletes only terminal ACK documents from the same already-read result list after Drive upload PASS. The existing D158 log Apps Script becomes **SUPRA Inventory Beta - Agent Operations Gateway**, receives the D159 Monitoring action and moves into the scoped Inventory folder; the redundant D159 script is deleted only after the unified existing URL proves D160 identity.
+
+Android **beta-vc92 is hard locked and unchanged**. No new Firestore collection/provider resource/secret is introduced. Stable remains OWNER-GATED. OA090 is the final Owner field gate.
+
