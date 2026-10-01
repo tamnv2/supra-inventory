@@ -2676,3 +2676,15 @@ Same-change repair D159-v2:
 - no extra Firestore document operations and no increased Monitoring cadence.
 
 Owner PASS remains blocked until D159 loads real provider values and they are compared with Firebase/Cloud Monitoring.
+
+
+## D159 v2 diagnostic repair release — 2026-10-01
+
+After the Owner field screenshot showed every provider metric as `N/A`, D159 remains open and the same change ID was repaired rather than opening a new change.
+
+- PR #349 recorded the field failure and added a bounded v2 diagnostic repair.
+- Main commit `ae5e309b9d64c45190cffc4a199c461a9ddb6579` passed the configured D159 gateway identity probe, standalone Windows build, parser self-test, isolation/security guard and prerelease publication.
+- Official repair prerelease: `d159-usage-test-v2`, release id `401147817`.
+- EXE asset id `603649137`, size `28,160` bytes, SHA-256 `0a281091e1c3072d4d93f5fbbee1b26cb09194bc5302871cf824fbec6e5366b6`.
+- V2 does not increase Monitoring cadence and creates no Firestore document operation. It only surfaces the provider failure code that v1 hid behind generic `N/A`.
+- Owner retest requirement: if values remain unavailable, report only the visible sanitized `Cloud Monitoring lỗi: ...` code/status. This identifies whether the remaining issue is OAuth/IAM/API enablement or Monitoring query syntax without exposing secrets.
