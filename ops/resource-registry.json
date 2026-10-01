@@ -2003,12 +2003,12 @@
     "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
   },
   "d159": {
-    "status": "TECHNICAL_REPAIR_PASS__GW_V3_REDEPLOYED__PROVIDER_CANARY_PASS__OWNER_FIELD_RETEST_PENDING",
+    "status": "V3_IMPLEMENTATION_ACTIVE__GW_V4_SOURCE_PENDING_OWNER_REDEPLOY",
     "baseline": "D158_OWNER_FIELD_ACCEPTED_PASS",
-    "windows_utility": "STANDALONE_ONE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
-    "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_READ_ONLY__15M_CACHE",
+    "windows_utility": "STANDALONE_D159_V3_ONE_VIETNAMESE_USAGE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
+    "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_MULTI_SERVICE_READ_ONLY__15M_SHARED_CACHE",
     "auth": "FIREBASE_ID_TOKEN__ADMIN_OR_PICKPACK_ADMIN_BASE_ROLE_EXACT_MATCH",
-    "provider_ops": "MONITORING_API_ONLY__ZERO_USAGE_FEATURE_FIRESTORE_DOCUMENT_READ_WRITE_DELETE",
+    "provider_ops": "13_CLOUD_MONITORING_QUERIES_ONLY_ON_SHARED_15M_CACHE_MISS__ZERO_USAGE_FEATURE_FIRESTORE_DOCUMENT_READ_WRITE_DELETE",
     "production_agent": "relay-agent-v94__UNCHANGED",
     "android": "beta-vc92__UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
@@ -2024,8 +2024,8 @@
     "exe_sha256": "6fc4c37c5f9e29c8a105a229e8e2761c1be9087830c01166d49c347c556405ba",
     "checksum_asset_id": 603747266,
     "field_failure_boundary": "APPS_SCRIPT_TO_CLOUD_MONITORING",
-    "next_release": "d159-usage-test-v2",
-    "gateway_revision_target": "D159-GW-v3",
+    "next_release": "d159-usage-test-v3",
+    "gateway_revision_target": "D159-GW-v4",
     "monitoring_request_quota_project": "supra-inventory-beta",
     "provider_canary": "PASS__RUN_36893999796__MONITORING_API_ENABLED__MONITORING_TIMESERIES_LIST_TRUE__SERVICEUSAGE_SERVICES_USE_TRUE__EXACT_QUERY_HTTP_200",
     "provider_diagnostic_run": 36893999796,
@@ -2033,9 +2033,21 @@
     "ci_serviceusage_services_use": true,
     "required_role": "roles/serviceusage.serviceUsageConsumer",
     "gateway_revision": "D159-GW-v3__OWNER_REDEPLOYED_SAME_URL",
-    "field_gate": "OA087_OWNER_FIELD_RETEST_PENDING",
+    "field_gate": "OA087_GW_V4_REDEPLOY_THEN_V3_OWNER_FIELD_PASS_PENDING",
     "repair_pr": 351,
     "main_ci": "PASS__AUTHORITY_STATE_UI_DASHBOARD_D159__D159_ATTEMPT_2_AFTER_TRANSIENT_GATEWAY_TIMEOUT",
-    "release_update_policy": "ONLY_USAGE_TEST_AGENT_OR_D159_APPS_SCRIPT_SOURCE_CHANGE_MAY_REFRESH_FIELD_PRERELEASE__AUTHORITY_CONTINUITY_PUSHES_DO_NOT_CLOBBER"
+    "release_update_policy": "ONLY_USAGE_TEST_AGENT_OR_D159_APPS_SCRIPT_SOURCE_CHANGE_MAY_REFRESH_FIELD_PRERELEASE__AUTHORITY_CONTINUITY_PUSHES_DO_NOT_CLOBBER",
+    "v3_metric_families": [
+      "FIRESTORE",
+      "FIREBASE_AUTH",
+      "FCM",
+      "CLOUD_RUN_FUNCTIONS"
+    ],
+    "v3_future_agent_visibility": "EXACT_LOGIN_TAMNV2_ADMIN_ONLY__OTHERS_HIDE_TAB_AND_DO_NOT_START_USAGE_TIMER_OR_CALL_GATEWAY",
+    "v3_refresh_minutes": 15,
+    "v3_shared_cache_seconds": 900,
+    "v3_monitoring_queries_per_cache_miss": 13,
+    "v3_firestore_document_usage_overhead": "ZERO",
+    "v3_auth_overhead": "BOUNDED_SECURE_TOKEN_REFRESH_AND_IDENTITY_LOOKUP_ONLY__NOT_FIRESTORE_QUOTA"
   }
 }
