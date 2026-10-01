@@ -2727,3 +2727,16 @@ Minimal provider fix:
 4. Redeploy the existing D159 Apps Script with repo-managed Gateway revision `D159-GW-v3`, which adds `X-Goog-User-Project: supra-inventory-beta` and a fresh cache key.
 
 This is narrower than granting project Viewer/Editor. No Stable role/resource is touched.
+
+## D159 provider repair proof — IAM/API/redeploy technical PASS — 2026-10-01
+
+Owner confirmed the Google Cloud provider repair actions for the existing isolated D159 resource: Cloud Monitoring API is enabled on `supra-inventory-beta`, the required Service Usage Consumer grant is present for the Apps Script execution account and `inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com`, and the repo-managed `D159-GW-v3` code was redeployed using the existing Web App deployment.
+
+GitHub Actions rerun `36893999796` provides independent technical proof:
+- Cloud Monitoring API: `ENABLED`;
+- `monitoring.timeSeries.list = true`;
+- `serviceusage.services.use = true`;
+- the exact Firestore `document/read_ops_count` query for the default database returned HTTP 200;
+- configured D159 gateway identity, isolated EXE build and parser/self-test all PASS.
+
+This closes the 403 provider/IAM blocker technically. It does **not** constitute Owner PASS for D159: OA087 remains open until the Owner field-retests the existing D159-v2 standalone EXE and confirms that real totals/hourly/realtime/rules values are visible and plausible against Firebase Usage. D158 remains the accepted base; Agent v94, Android vc92, Web/Worker/WMS and Stable are unchanged.
