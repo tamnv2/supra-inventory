@@ -99,8 +99,12 @@ namespace SupraInventoryRelayAgent
                         }
                         if (Bool(post, "rejected"))
                         {
-                            result.Result = "CONFIRM_REJECTED";
-                            result.Detail = "FRESH_ERROR_SURFACE";
+                            // After the final business click an error surface is useful
+                            // evidence, but for a multi-row mutation it does not prove
+                            // that zero rows changed. Keep the outcome uncertain and the
+                            // confirmation guards closed to prevent a duplicate retry.
+                            result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                            result.Detail = "FRESH_ERROR_SURFACE_POST_CLICK";
                             break;
                         }
                     }
