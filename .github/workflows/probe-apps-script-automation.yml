@@ -168,16 +168,45 @@ jobs:
           jq --arg id "$deployment_id" --argjson v "$version2" -e '.deploymentId == $id and .versionNumber == $v' deploy2.json >/dev/null || fail_stage "redeploy-v2-verify"
 
           echo "CANARY_STAGE=list-v2"
-          clasp --json list-deployments > deployments2.json 2>/dev/null || fail_stage "list-v2"
-          jq --arg id "$deployment_id" --argjson v "$version2" -e 'map(select(.deploymentId == $id and .versionNumber == $v)) | length == 1' deployments2.json >/dev/null || fail_stage "list-v2-verify"
+          list_v2_ok=false
+          for attempt in 1 2 3 4 5 6 7 8; do
+            clasp --json list-deployments > deployments2.json 2>/dev/null || fail_stage "list-v2"
+            if jq --arg id "$deployment_id" --arg v "$version2" -e 'map(select(.deploymentId == $id and ((.versionNumber|tostring) == $v))) | length == 1' deployments2.json >/dev/null; then
+              list_v2_ok=true
+              break
+            fi
+            sleep 3
+          done
+          [ "$list_v2_ok" = true ] || fail_stage "list-v2-verify"
 
           echo "CANARY_STAGE=undeploy"
           clasp --json delete-deployment "$deployment_id" >/dev/null 2>&1 || fail_stage "undeploy"
+          undeploy_ok=false
+          for attempt in 1 2 3 4 5 6 7 8; do
+            clasp --json list-deployments > deployments-after-delete.json 2>/dev/null || fail_stage "undeploy-list"
+            if ! jq --arg id "$deployment_id" -e 'map(select(.deploymentId == $id)) | length > 0' deployments-after-delete.json >/dev/null; then
+              undeploy_ok=true
+              break
+            fi
+            sleep 3
+          done
+          [ "$undeploy_ok" = true ] || fail_stage "undeploy-verify"
           deployment_id=""
 
           echo "CANARY_STAGE=delete-script"
-          clasp delete-script "$script_id" --force >/dev/null 2>&1 || fail_stage "delete-script"
+          deleted_script_id="$script_id"
+          clasp delete-script "$deleted_script_id" --force >/dev/null 2>&1 || fail_stage "delete-script"
+          delete_script_ok=false
+          for attempt in 1 2 3 4 5 6 7 8; do
+            clasp --json list-scripts > scripts-after-delete.json 2>/dev/null || fail_stage "delete-script-list"
+            if ! jq --arg id "$deleted_script_id" -e 'map(select(.id == $id)) | length > 0' scripts-after-delete.json >/dev/null; then
+              delete_script_ok=true
+              break
+            fi
+            sleep 3
+          done
+          [ "$delete_script_ok" = true ] || fail_stage "delete-script-verify"
           script_id=""
 
           echo "APPS_SCRIPT_AUTOMATION_CANARY=PASS"
-          echo "CAPABILITIES=create,push,version,deploy,list,redeploy,undeploy,delete-script"
+          echo "CAPABILITIES=create,push,version,deploy,list,redeploy,undeploy,delete-script,cleanup-verified"
