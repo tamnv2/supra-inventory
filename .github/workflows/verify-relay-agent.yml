@@ -872,6 +872,22 @@ jobs:
           $content = $content.Replace("__AGENT_LOG_GATEWAY_URL_BETA__", $gateway)
           Set-Content -Path $path -Value $content -Encoding UTF8
 
+      - name: Probe configured D158 Agent log gateway
+        shell: pwsh
+        run: |
+          $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
+          try {
+            $response = Invoke-RestMethod -Uri $gateway -Method Get -TimeoutSec 20
+          } catch {
+            throw "D158 OA086 gateway GET probe failed."
+          }
+          if ($null -eq $response -or $response.ok -ne $true -or
+              "$($response.service)" -ne "SUPRA_AGENT_LOG_GATEWAY_D158" -or
+              "$($response.project)" -ne "supra-inventory-beta") {
+            throw "D158 OA086 gateway GET probe returned an unexpected service identity."
+          }
+          Write-Host "D158 OA086 configured Agent log gateway probe PASS"
+
       - name: Build Agent-owned WebView2 host
         shell: pwsh
         run: |
