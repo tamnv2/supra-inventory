@@ -546,7 +546,7 @@ namespace SupraInventoryRelayAgent
             return output;
         }
 
-        internal SupraBrowserSearchResult SearchMany(IEnumerable<string> fragments, bool allowOneSearchClick, bool recoverUnselectable = true)
+        internal SupraBrowserSearchResult SearchMany(IEnumerable<string> fragments, bool allowOneSearchClick, bool recoverUnselectable = true, bool recoverEmptyTable = true)
         {
             var started = Stopwatch.StartNew();
             var terms = NormalizeFragments(fragments);
@@ -614,7 +614,8 @@ namespace SupraInventoryRelayAgent
                 // PickList table is still empty. If the first real search sees zero PL
                 // codes in the entire table, perform one bounded browser reload and retry
                 // locally. This adds no Firestore/provider operation and never loops.
-                if (allowOneSearchClick && NeedsSearchRetry(scan) &&
+                if (recoverEmptyTable &&
+                    allowOneSearchClick && NeedsSearchRetry(scan) &&
                     scan.PicklistCodeCount == 0 && !_emptyDataRecoveryUsed)
                 {
                     _emptyDataRecoveryUsed = true;
