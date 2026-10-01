@@ -4483,6 +4483,49 @@
         "d160_opened": false
       },
       "closed_at": "2026-10-02"
+    },
+    {
+      "id": "OA090",
+      "status": "PENDING_TECHNICAL_RELEASE",
+      "title": "Field-accept D160 Agent v95 bulk confirmation, Usage, unified Logs and Picker history",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "SUPRA Inventory Beta / Windows Agent / Google Apps Script",
+      "reason_owner_only": "Automated gates can prove build, exact batch/guard contracts, provider migration and release integrity; final acceptance needs the real company WMS UI, existing beta-vc92 PDA and account-specific Agent presentation.",
+      "prerequisites": {
+        "accepted_base": "D159_OWNER_FIELD_ACCEPTED_PASS",
+        "d160_owner_approval": "PASS__2026_10_02",
+        "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
+        "target_agent": "relay-agent-v95",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Update one Office Agent through the normal channel to relay-agent-v95; do not update or rebuild Android beta-vc92.",
+        "Confirm one normal PickList and verify WMS success is accepted from the new post-click success surface even though the WMS page reloads and the PickList row may remain visible.",
+        "Send a burst/micro-batch up to 15 valid PickLists when practical; verify exact target checkboxes only, one bulk confirmation wave, no duplicate mutation and PDA results stay within the 20-second hard target with normal cases around 5–10 seconds.",
+        "Exercise a mixed batch containing valid READY, not-found and checkbox-not-ready items; verify READY/other terminal results ACK before checkbox recovery and one bad subset does not block or redefine the others.",
+        "Leave/open a stale WMS confirmation dialog or stale selected checkbox when practical; verify Agent cleans/reloads before a new final click and never confirms a foreign PickList.",
+        "Login Agent as tamnv2 or admin and verify Thông tin Usage appears and refreshes. Login with another permitted Agent account and verify the Usage tab is absent and no Usage timer/gateway call is logged.",
+        "Verify only Tổng quan, Cài đặt, Lịch sử Picker xác nhận PickList and the restricted Usage tab are user-facing as applicable; old operation/technical log tabs are absent.",
+        "In Cài đặt, keep Kiểm tra kết nối and Bảng nổi PickList behavior unchanged; press Gửi Logs and verify one complete sanitized Agent log bundle reaches Inventory/Beta/Logs.",
+        "Send Picker requests and verify Lịch sử shows time, MNV/user, name, contractor, sent suffix, result, full PickList when resolved and processing time without new provider polling/listeners.",
+        "After the next closed-day Excel export succeeds, verify the file contains contractor/full PickList fields and only terminal ACK jobs from the archived day are purged; unresolved work must remain.",
+        "Verify the consolidated Apps Script is named SUPRA Inventory Beta - Agent Operations Gateway under Inventory, the existing Agent gateway URL works, and the separate D159 gateway no longer exists."
+      ],
+      "pass_criteria": [
+        "Android beta-vc92 contract, package and runtime remain unchanged.",
+        "A micro-batch is capped at 15 and each request retains independent result/guard/ACK semantics.",
+        "Fresh post-final-click success/error UI is the only WMS business terminal evidence; row presence/disappearance and reload never prove success.",
+        "No second WMS mutation is issued after an uncertain final click.",
+        "Fast terminal outcomes ACK before deferred checkbox recovery; zero-table is technical unavailable and creates no user NOT_FOUND strike.",
+        "Usage is visible/called only for exact login tamnv2/admin and produces zero Firestore document Read/Write/Delete for monitoring.",
+        "History UI adds no Firestore read/write/listener/poll cadence; ACK write count is unchanged and only payload fields are enriched.",
+        "Unified local/Drive Logs contain both operational and technical evidence without realtime list rendering in the UI.",
+        "Closed-day export upload succeeds before terminal exported jobs are deleted; cleanup reuses the export query and introduces no extra read query.",
+        "The existing Agent Apps Script gateway is consolidated/renamed/moved successfully and the redundant D159 script is retired.",
+        "D158/D157 HA, PRIMARY generation fence, WMS managed-browser restrictions and Stable owner gate remain intact."
+      ],
+      "remaining_owner_action": "Wait for D160 technical/runtime release evidence, then perform the shortest field test above and explicitly report PASS/NOT PASS.",
+      "closed": false
     }
   ]
 }
