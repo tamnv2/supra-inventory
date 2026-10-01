@@ -3457,7 +3457,7 @@
     }
   },
   "d158": {
-    "status": "OWNER_APPROVED_HOTFIX_IN_PROGRESS__TARGET_AGENT_V94__D157_REMAINS_ACCEPTED_BASE",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__HOTFIX_AGENT_V94_RELEASED__OA086_READY_FOR_OWNER_FIELD_TEST",
     "date": "2026-10-01",
     "baseline_change": "D157",
     "baseline_main": "7f7533b8ec61982a5d9fb5610436e9b15a87628f",
@@ -3506,7 +3506,7 @@
     "log_range_guard": "HALF_OPEN_MILLISECOND_RANGES__NO_CROSS_BUNDLE_OVERLAP__EMPTY_CHECKPOINTS_SKIPPED__SIZE_TRIGGER_COUNTS_NEW_BYTES_ONLY",
     "manual_log_send": "TECHNICAL_TAB_Gửi_log__LOCAL_SEAL_THEN_BOUNDED_UPLOAD_OR_LOCAL_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "D158_HOTFIX_V94_TECHNICAL_PR_RELEASE_PENDING__OA086_BLOCKED_UNTIL_OFFICIAL_V94__D157_REMAINS_ACCEPTED_BASE",
+    "owner_gate": "OA086_READY_FOR_OWNER_OFFICE_FIELD_PROOF__OFFICIAL_RELAY_AGENT_V94_RELEASED__D157_REMAINS_ACCEPTED_BASE",
     "implementation_pr": 341,
     "pr_head": "a3a9d6cc1ac6d6d632674db80397dc2f41797e97",
     "technical_runs": {
@@ -3535,17 +3535,20 @@
       "build_probe": 36847084764
     },
     "release_evidence": {
-      "agent_release": "relay-agent-v93",
-      "agent_release_id": 400845505,
-      "agent_asset_id": 602963530,
-      "agent_size_bytes": 7129088,
-      "agent_sha256": "548c968100ed74addd0fd2d08d3a8490cba400cfab14f9f3ebf6f2c1c0ffe7fc",
+      "agent_release": "relay-agent-v94",
+      "agent_release_id": 400914759,
+      "agent_asset_id": 603147185,
+      "agent_size_bytes": 7133696,
+      "agent_sha256": "f71344f0405ba430bad62faf90ea72f4900cc7774ab0555891da1b00a8fda929",
       "inventory_channel_release_id": 394587029,
-      "inventory_channel_agent_manifest_asset_id": 602963583,
-      "inventory_channel_agent_asset_id": 602963581,
-      "inventory_channel_agent_checksum_asset_id": 602963580,
-      "main_workflow": "PASS__VERIFY_BETA_RELAY_AGENT_36847084762",
-      "note": "Official normal-distribution relay-agent-v93 published from merged main and Agent channel assets refreshed on 2026-10-01. D158 remains open pending OA086 Owner Office field proof."
+      "inventory_channel_agent_manifest_asset_id": 603147276,
+      "inventory_channel_agent_asset_id": 603147275,
+      "inventory_channel_agent_checksum_asset_id": 603147278,
+      "android_release": "beta-vc92__UNCHANGED",
+      "android_channel_asset_id": 599489528,
+      "android_sha256": "10171a4b8e38b542670be2c21c556c269c2f3f7b1f1ed8757e738618522e6d7f",
+      "main_workflow": "PASS__VERIFY_BETA_RELAY_AGENT_36857217023",
+      "note": "Official D158 hotfix relay-agent-v94 published from merged main and Agent distribution channel refreshed on 2026-10-01. Android beta-vc92 channel asset is unchanged. D158 remains open pending OA086 Owner Office field proof and explicit Owner PASS."
     },
     "hotfix": {
       "date": "2026-10-01",
@@ -3561,9 +3564,58 @@
       "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
       "browser": "D137_D157_REAL_F5_AND_WMS_DOM_FLOW_UNCHANGED",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "implementation_pr": "PENDING",
-      "technical_result": "PENDING"
+      "implementation_pr": 343,
+      "technical_result": "PASS__PR343_ALL_GATES__MAIN_AGENT_UI_DASHBOARD_AUTHORITY_CONTINUITY_PASS__OFFICIAL_V94_RELEASE_AND_CHANNEL_VERIFIED",
+      "pr_head": "f8f94a7ac3e826be4e5e3b0afe47d77b04cc20aa",
+      "main_merge": "25b146a6d7e826b34b79944967cb83f0e643b1d0",
+      "pr_runs": {
+        "repo_authority": 36857000749,
+        "project_state": 36857000793,
+        "relay_agent": 36857000812,
+        "ui_design": 36857000699,
+        "firestore": 36857000797,
+        "rtdb": 36857000780,
+        "dashboard_probe": 36857001598
+      },
+      "main_runs": {
+        "repo_authority": 36857216813,
+        "project_state": 36857216920,
+        "relay_agent": 36857217023,
+        "ui_design": 36857216822,
+        "dashboard_probe": 36857216913
+      },
+      "gateway_probe": "PASS__STRICT_IDENTITY__UP_TO_3_BOUNDED_ATTEMPTS__NO_SOFT_PASS"
     },
-    "hotfix_release_evidence": "PENDING_OFFICIAL_RELAY_AGENT_V94_AFTER_BRANCH_PR_AUTHORITY_CONTINUITY_PASS_AND_MAIN_MERGE"
+    "hotfix_release_evidence": {
+      "agent_release": "relay-agent-v94",
+      "agent_release_id": 400914759,
+      "agent_asset_id": 603147185,
+      "agent_size_bytes": 7133696,
+      "agent_sha256": "f71344f0405ba430bad62faf90ea72f4900cc7774ab0555891da1b00a8fda929",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_manifest_asset_id": 603147276,
+      "inventory_channel_agent_asset_id": 603147275,
+      "inventory_channel_agent_checksum_asset_id": 603147278,
+      "android_release": "beta-vc92__UNCHANGED",
+      "android_channel_asset_id": 599489528,
+      "android_sha256": "10171a4b8e38b542670be2c21c556c269c2f3f7b1f1ed8757e738618522e6d7f",
+      "main_workflow": "PASS__VERIFY_BETA_RELAY_AGENT_36857217023",
+      "note": "Official D158 hotfix relay-agent-v94 published from merged main and Agent distribution channel refreshed on 2026-10-01. Android beta-vc92 channel asset is unchanged. D158 remains open pending OA086 Owner Office field proof and explicit Owner PASS."
+    },
+    "field_gate": "OA086_READY_FOR_OWNER_FIELD_TEST__V94_OFFICIAL_CHANNEL_VERIFIED__OWNER_PASS_PENDING",
+    "accepted_base": "D157",
+    "pre_hotfix_release_evidence": {
+      "agent_release": "relay-agent-v93",
+      "agent_release_id": 400845505,
+      "agent_asset_id": 602963530,
+      "agent_size_bytes": 7129088,
+      "agent_sha256": "548c968100ed74addd0fd2d08d3a8490cba400cfab14f9f3ebf6f2c1c0ffe7fc",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_manifest_asset_id": 602963583,
+      "inventory_channel_agent_asset_id": 602963581,
+      "inventory_channel_agent_checksum_asset_id": 602963580,
+      "main_workflow": "PASS__VERIFY_BETA_RELAY_AGENT_36847084762",
+      "note": "Official normal-distribution relay-agent-v93 published from merged main and Agent channel assets refreshed on 2026-10-01. D158 remains open pending OA086 Owner Office field proof."
+    }
   }
 }
