@@ -2581,3 +2581,12 @@ D158 target release is **relay-agent-v93**. D157 remains the accepted project ba
 
 Owner continuation on 2026-10-01: D158 field acceptance must use the **official normal-distribution `relay-agent-v93` release**, not a PR-only workflow artifact. PR artifacts remain technical evidence only. AI must merge the technically passing D158 PR, allow the existing main Agent workflow to publish `relay-agent-v93` and update the Agent channel, verify that release/channel evidence, and only then hand OA086 to the Owner for Office field proof. D157 remains the accepted base until explicit Owner D158 PASS.
 
+D158 hotfix continuation approved by Owner on 2026-10-01 after real v93 error-log review:
+- The official v93 release is **not** eligible for Owner D158 field PASS because a same Firestore request was observed entering the confirmation batch twice and reaching two browser mutation attempts.
+- Hotfix target is the next monotonic Agent release **relay-agent-v94**. Android remains beta-vc92 hard-locked; Stable remains untouched; D157 remains the accepted base.
+- PRIMARY listener payload is processed without waiting behind a due REST fallback round-trip. The accepted REST 3s/1s/15s safety cadence remains active and independent; the 2s degraded reserve remains bounded exactly as D158 approved.
+- Request identity is the Firestore job/document request id. Duplicate protection is defense-in-depth: realtime queue keeps the newest snapshot per document identity, transport deduplicates before audit/business work, business input deduplicates again, and the final WMS mutation loop hard-blocks a second ConfirmExact for the same RequestId.
+- Firebase Agent role probing may use a local non-secret role hint keyed by a one-way identifier fingerprint. A first-role HTTP 400 is diagnostic only; one canonical error is emitted only after both allowed Agent role identities fail.
+- Full sanitized local technical logs remain complete. Repeated transient Google/DNS/timeout symptoms from one active connectivity incident are coalesced into one immediate support bundle; observed recovery closes the incident so a later outage is captured as a new incident.
+- CI must fail if the request-id dedupe fences, WMS single-mutation fence, auth-probe classification, connectivity-incident lifecycle or Firestore database routing guards regress.
+
