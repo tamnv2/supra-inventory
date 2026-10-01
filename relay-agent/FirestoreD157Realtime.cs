@@ -108,13 +108,12 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private static string RequestParamsHeader()
+        internal static string RequestParamsHeader()
         {
-            var parts = (AgentConfig.FirestoreDatabaseName ?? "").Split('/');
-            var projectId = parts.Length > 1 ? parts[1] : AgentConfig.FirebaseProjectId;
-            var databaseId = parts.Length > 3 ? parts[3] : "(default)";
-            return "project_id=" + Uri.EscapeDataString(projectId) +
-                   "&database_id=" + Uri.EscapeDataString(databaseId);
+            // Firestore Listen routes by the full database resource name.  The v92
+            // project_id/database_id pair could disagree with ListenRequest.Database
+            // and was observed in the field as intermittent InvalidArgument.
+            return "database=" + Uri.EscapeDataString(AgentConfig.FirestoreDatabaseName ?? "");
         }
     }
 
