@@ -4200,27 +4200,30 @@
     },
     {
       "id": "OA086",
-      "status": "BLOCKED_PENDING_D158_HOTFIX_V94_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-prove D158 hotfix Agent v94 + Beta log gateway on Office",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Google Apps Script / Google Drive / SUPRA Inventory Beta",
-      "reason_owner_only": "v93 field error logs exposed a same-request duplicate mutation defect plus false/noisy error classification. AI is repairing D158 under the same change ID. Owner field testing resumes only after official relay-agent-v94 is merged, released and channel-verified.",
+      "reason_owner_only": "AI completed the D158 v94 hotfix through branch → PR343 → all required gates PASS → main merge → official relay-agent-v94 release and normal Agent channel verification. Remaining acceptance requires real Office-laptop behavior observed by the Owner.",
       "prerequisites": {
         "accepted_base": "D157_OWNER_ACCEPTED_PASS",
         "d158_owner_approval": "PASS__2026_10_01",
-        "technical_pr": "PASS__PR341__MERGED_MAIN_2D2A9BFA__ALL_REQUIRED_GATES_PASS__CONFIGURED_GATEWAY_GET_PROBE_PASS",
+        "technical_pr": "PASS__PR343__MERGED_MAIN_25B146A6__ALL_REQUIRED_GATES_PASS",
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
-        "agent_candidate": "PENDING__OFFICIAL_RELAY_AGENT_V94_REQUIRED__V93_SUPERSEDED_FOR_D158_FIELD_ACCEPTANCE",
-        "technical_release": "PENDING__V94",
-        "distribution_channel": "PENDING__V94",
+        "agent_candidate": "relay-agent-v94__OFFICIAL_RELEASE_ID_400914759__CHANNEL_AGENT_ASSET_603147275__FIELD_READY",
+        "technical_release": "PASS__MAIN_RUN_36857217023__RELEASE_400914759__EXE_SHA256_F71344F0405BA430BAD62FAF90EA72F4900CC7774AB0555891DA1B00A8FDA929",
+        "distribution_channel": "PASS__INVENTORY_CHANNEL__MANIFEST_ASSET_603147276__AGENT_ASSET_603147275__CHECKSUM_ASSET_603147278",
         "d158_hotfix_owner_approval": "PASS__2026_10_01",
         "hotfix_branch": "hotfix/d158-v94-dedupe-fastpath-errors"
       },
       "provisioning_evidence": "PASS__OWNER_CONFIRMED_APPS_SCRIPT_DEPLOYED__SCRIPT_PROPERTIES_SET_PRIVATELY__GITHUB_BETA_AGENT_LOG_GATEWAY_URL_CONFIGURED__2026_10_01",
       "shortest_action_after_technical_pass": [
-        "Do not field-accept relay-agent-v93. Wait for the official relay-agent-v94 hotfix and normal Agent channel update.",
-        "On one Office laptop run released v94 with existing beta-vc92: verify normal PickList latency, listener+REST overlap without duplicate mutation, fallback when listener is unavailable, role/login behavior, log incident coalescing/recovery, Drive gateway pending/retry, and 05:00 rollover when practical."
+        "Update one Office laptop through the normal Agent channel to official relay-agent-v94; keep existing beta-vc92 PDA unchanged.",
+        "Send several normal PickList requests, including a small burst if practical. Verify normal speed and exactly one visible WMS confirmation/result per request.",
+        "During operation, observe that listener+REST overlap does not produce duplicate request/audit/mutation behavior and that temporary network interruption self-recovers without repeated error files for one continuous incident.",
+        "Log out/in once with a Pick Pack Admin account already used on the machine: verify login remains prompt and an expected role-probe miss does not create error_agent; a real bad credential test is optional but, if performed, must create one canonical login error.",
+        "Verify one Agent log bundle reaches Inventory/Beta/Logs, offline/pending retry remains local then uploads after recovery, and existing role-health/failover plus 05:00 rollover remain correct when observable."
       ],
       "pass_criteria": [
         "Listener payload can progress without waiting behind a due REST fallback query while REST 3s/1s/15s and bounded degraded 2s safety behavior remain available.",
@@ -4231,7 +4234,7 @@
         "Apps Script endpoint remains scoped/idempotent; gateway outage stays local pending and never blocks PickList/WMS/ACK.",
         "Android beta-vc92, D157 HA lease/failover/generation guard, D137 real-F5/browser semantics and Stable remain unchanged."
       ],
-      "remaining_owner_action": "None until AI completes D158 hotfix v94 technical PR, merge, official release and channel verification. After that, run the updated OA086 shortest Office field proof. Do not send keys/tokens.",
+      "remaining_owner_action": "Run the updated OA086 Office field proof on official relay-agent-v94 with existing beta-vc92. Confirm D158 PASS only after normal confirmation speed, no duplicate WMS mutation, clean auth/error behavior, gateway pending/recovery and role/HA behavior are satisfactory. Do not send keys/tokens.",
       "closed": false
     }
   ]
