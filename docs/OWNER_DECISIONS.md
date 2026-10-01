@@ -2688,3 +2688,22 @@ After the Owner field screenshot showed every provider metric as `N/A`, D159 rem
 - EXE asset id `603649137`, size `28,160` bytes, SHA-256 `0a281091e1c3072d4d93f5fbbee1b26cb09194bc5302871cf824fbec6e5366b6`.
 - V2 does not increase Monitoring cadence and creates no Firestore document operation. It only surfaces the provider failure code that v1 hid behind generic `N/A`.
 - Owner retest requirement: if values remain unavailable, report only the visible sanitized `Cloud Monitoring lỗi: ...` code/status. This identifies whether the remaining issue is OAuth/IAM/API enablement or Monitoring query syntax without exposing secrets.
+
+
+## D159 403 root-cause repair — quota-project attribution — 2026-10-01
+
+The Owner's D159-v2 field screenshot proves the provider failure is HTTP **403**. The D159 Windows client, saved Agent DPAPI session, Firebase token refresh, Web App reachability and 15-minute cache path are all functioning.
+
+The same D159 change is repaired without touching the D158 accepted base.
+
+Repair:
+- every Apps Script Cloud Monitoring REST call now includes `X-Goog-User-Project: supra-inventory-beta` in addition to the bearer token from `ScriptApp.getOAuthToken()`;
+- the Script Cache key is bumped to `D159_FIRESTORE_USAGE_V3_QUOTA_PROJECT` so an old cached 403/N-A snapshot cannot survive the redeploy;
+- provider failures remain sanitized but classify missing `monitoring.timeSeries.list`, missing `serviceusage.services.use`, insufficient OAuth scope, disabled Monitoring API and missing quota-project cases;
+- CI gains an independent Google Cloud provider canary using the existing protected Beta service-account secret. It calls the exact Firestore read metric/filter with `X-Goog-User-Project` and must return HTTP 200 before this repair may merge.
+
+This follows Google's documented user-credential REST requirement that a quota project can be supplied with `X-Goog-User-Project`; the caller must have `serviceusage.services.use` on that project. Cloud Monitoring `timeSeries.list` also requires `monitoring.timeSeries.list`.
+
+No new runtime secret is introduced. The existing CI service-account credential is used only inside GitHub Actions and is never copied to Apps Script or the EXE. Runtime cadence and Firestore document-operation cost remain unchanged.
+
+After technical PASS, the only manual action is updating/redeploying the **existing** D159 Apps Script Web App as a new version. The deployment URL and D159-v2 EXE do not need to change.
