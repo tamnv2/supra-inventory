@@ -55,6 +55,19 @@ namespace SupraInventoryRelayAgent
                         var code = D160UsageJson.String(root, "error");
                         throw new InvalidOperationException(string.IsNullOrWhiteSpace(code) ? "USAGE_GATEWAY_REJECTED" : code);
                     }
+                    if (!string.Equals(
+                            D160UsageJson.String(root, "service"),
+                            "SUPRA_AGENT_OPERATIONS_USAGE_D160",
+                            StringComparison.Ordinal) ||
+                        !string.Equals(
+                            D160UsageJson.String(root, "project"),
+                            AgentConfig.FirebaseProjectId,
+                            StringComparison.Ordinal) ||
+                        !string.Equals(
+                            D160UsageJson.String(root, "revision"),
+                            "D160-GW-v1",
+                            StringComparison.Ordinal))
+                        throw new InvalidOperationException("USAGE_GATEWAY_IDENTITY_MISMATCH");
                     return root;
                 }
             }
