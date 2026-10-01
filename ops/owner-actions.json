@@ -2760,7 +2760,7 @@
     },
     {
       "id": "OA056",
-      "status": "BLOCKED_PENDING_OFFICIAL_V93_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D131 Firestore-only free-tier HA, failover, counters and latency",
       "resource_key": "repo",
       "provider": "Beta Windows Agent + Beta Android + existing Cloud Firestore relay",
@@ -4204,19 +4204,21 @@
       "title": "Field-prove D158 Beta Agent log gateway + v93 on Office",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Google Apps Script / Google Drive / SUPRA Inventory Beta",
-      "reason_owner_only": "Owner has completed the Apps Script deployment, Script Properties and GitHub Beta environment variable. AI must first complete the normal Agent release path for relay-agent-v93; only the subsequent physical Office-laptop proof is Owner-only.",
+      "reason_owner_only": "AI has completed the normal Agent release path for relay-agent-v93 and verified the Agent distribution channel. The remaining gate is physical Office-laptop field proof by the Owner.",
       "prerequisites": {
         "accepted_base": "D157_OWNER_ACCEPTED_PASS",
         "d158_owner_approval": "PASS__2026_10_01",
-        "technical_pr": "PASS__PR341__SOURCE_EFAB7E7C__ALL_REQUIRED_GATES_PASS__CONFIGURED_GATEWAY_GET_PROBE_PASS",
+        "technical_pr": "PASS__PR341__MERGED_MAIN_2D2A9BFA__ALL_REQUIRED_GATES_PASS__CONFIGURED_GATEWAY_GET_PROBE_PASS",
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
-        "agent_candidate": "relay-agent-v93__PR_ARTIFACT_11153610507__TECHNICAL_ONLY__OFFICIAL_RELEASE_REQUIRED_BEFORE_FIELD_TEST"
+        "agent_candidate": "relay-agent-v93__OFFICIAL_RELEASE_ID_400845505__CHANNEL_AGENT_ASSET_602963581__FIELD_READY",
+        "technical_release": "PASS__MAIN_RUN_36847084762__RELEASE_400845505__EXE_SHA256_548C968100ED74ADDD0FD2D08D3A8490CBA400CFAB14F9F3EBF6F2C1C0FFE7FC",
+        "distribution_channel": "PASS__INVENTORY_CHANNEL__MANIFEST_ASSET_602963583__AGENT_ASSET_602963581"
       },
       "provisioning_evidence": "PASS__OWNER_CONFIRMED_APPS_SCRIPT_DEPLOYED__SCRIPT_PROPERTIES_SET_PRIVATELY__GITHUB_BETA_AGENT_LOG_GATEWAY_URL_CONFIGURED__2026_10_01",
       "shortest_action_after_technical_pass": [
-        "AI rebuilt PR341 Agent v93 with AGENT_LOG_GATEWAY_URL_BETA required; CI validated the URL shape and the live gateway GET identity without exposing the URL.",
-        "After PR341 is merged and the normal main workflow publishes official relay-agent-v93 to the Agent distribution channel, run that released v93 on one Office laptop: verify role/health after login, normal vc92 PickList, tiny log upload, same-bundle retry without duplicate, offline pending then reconnect, and 05:00 counter rollover when practical."
+        "Official relay-agent-v93 is released from merged main and the normal Agent distribution channel is updated; PR-only artifact 11153610507 remains technical evidence only.",
+        "On one Office laptop update/run released v93: verify role/health after login, normal vc92 PickList, tiny log upload, same-bundle retry without duplicate, offline pending then reconnect, and 05:00 counter rollover when practical."
       ],
       "pass_criteria": [
         "Apps Script endpoint is reachable on Office and validates only current Firebase ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN Agent authority.",
@@ -4227,7 +4229,7 @@
         "NEXT_A/NEXT_B role-health presentation is correct after login and gRPC listeners do not reproduce the D157 database/header InvalidArgument.",
         "05:00 business-day counter rollover is correct."
       ],
-      "remaining_owner_action": "No Owner action until AI completes official relay-agent-v93 publication through the normal main Agent workflow. After release/channel verification, run the shortest Office field proof on one company laptop: verify correct PRIMARY/NEXT_A/NEXT_B health after login, normal vc92 PickList confirmation, tiny Agent log upload into Inventory/Beta/Logs, same-bundle retry without duplicate Drive file, offline local pending then reconnect upload, and 05:00 counter rollover when the boundary is available. Do not send keys/tokens.",
+      "remaining_owner_action": "Run the shortest Office field proof on one company laptop using released relay-agent-v93: verify correct PRIMARY/NEXT_A/NEXT_B health after login, normal vc92 PickList confirmation, tiny Agent log upload into Inventory/Beta/Logs, same-bundle retry without duplicate Drive file, offline local pending then reconnect upload, and 05:00 counter rollover when the boundary is available. Do not send keys/tokens.",
       "closed": false
     }
   ]
