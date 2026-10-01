@@ -2003,7 +2003,7 @@
     "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
   },
   "d159": {
-    "status": "FIELD_FAIL_ALL_METRICS_NA__V2_DIAGNOSTIC_REPAIR_ACTIVE",
+    "status": "FIELD_FAIL_V1__V2_RETEST_READY",
     "baseline": "D158_OWNER_FIELD_ACCEPTED_PASS",
     "windows_utility": "STANDALONE_ONE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
     "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_READ_ONLY__15M_CACHE",
@@ -2017,11 +2017,11 @@
     "technical_artifact_id": 11168455789,
     "technical_artifact_digest": "sha256:1a8364ec8c2a9e7f79bed8cb7b7287ed8396d4639902f0918ad4fda77975ec06",
     "gateway_identity": "PASS__SUPRA_FIRESTORE_USAGE_GATEWAY_D159__supra-inventory-beta",
-    "release": "d159-usage-test-v1",
-    "release_id": 401138149,
-    "exe_asset_id": 603627225,
-    "exe_size_bytes": 27648,
-    "exe_sha256": "91df4f9aef51e3a00c16b6a45119402371197a0168863c36890e7cca9a9f5571",
+    "release": "d159-usage-test-v2",
+    "release_id": 401147817,
+    "exe_asset_id": 603649137,
+    "exe_size_bytes": 28160,
+    "exe_sha256": "0a281091e1c3072d4d93f5fbbee1b26cb09194bc5302871cf824fbec6e5366b6",
     "checksum_asset_id": 603627229,
     "field_failure_boundary": "APPS_SCRIPT_TO_CLOUD_MONITORING",
     "next_release": "d159-usage-test-v2"
