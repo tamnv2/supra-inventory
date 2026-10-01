@@ -1,0 +1,303 @@
+name: D160 Consolidate Agent Operations Gateway
+
+on:
+  pull_request:
+    paths:
+      - "ops/apps-script/agent-log-gateway/**"
+      - ".github/workflows/d160-consolidate-agent-gateway.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "ops/apps-script/agent-log-gateway/**"
+      - ".github/workflows/d160-consolidate-agent-gateway.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate D160 gateway migration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate merged gateway source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f ops/apps-script/agent-log-gateway/Code.gs
+          test -f ops/apps-script/agent-log-gateway/appsscript.json
+          grep -Fq "SUPRA_AGENT_OPERATIONS_GATEWAY_D160" ops/apps-script/agent-log-gateway/Code.gs
+          grep -Fq "SUPRA_AGENT_OPERATIONS_USAGE_D160" ops/apps-script/agent-log-gateway/Code.gs
+          grep -Fq "get_firestore_usage" ops/apps-script/agent-log-gateway/Code.gs
+          grep -Fq "upload_agent_log" ops/apps-script/agent-log-gateway/Code.gs
+          jq -e '.oauthScopes | index("https://www.googleapis.com/auth/monitoring.read") != null' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
+          jq -e '.oauthScopes | index("https://www.googleapis.com/auth/drive") != null' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
+          echo "D160_GATEWAY_STATIC=PASS"
+
+  migrate:
+    name: Merge D159 into Agent gateway and retire D159 script
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: beta
+    env:
+      AGENT_LOG_GATEWAY_URL_BETA: ${{ vars.AGENT_LOG_GATEWAY_URL_BETA }}
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+      INVENTORY_ROOT_FOLDER_ID: "1aNt8PULfMvJC8CKKbQyf5suLPtGo2PRF"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned clasp
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global @google/clasp@3.4.1 >/dev/null
+          clasp --version
+      - name: Consolidate provider resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          if [ -z "$CLASPRC_JSON" ]; then
+            echo "::error::CLASPRC_JSON missing."
+            exit 1
+          fi
+          if [ -z "$AGENT_LOG_GATEWAY_URL_BETA" ]; then
+            echo "::error::AGENT_LOG_GATEWAY_URL_BETA missing."
+            exit 1
+          fi
+          if [ -z "$FIREBASE_RULES_SA_JSON_BETA" ] || [ -z "$FIREBASE_API_KEY_BETA" ]; then
+            echo "::error::Existing Beta Firebase canary credentials are required for authenticated D160 Usage proof."
+            exit 1
+          fi
+
+          umask 077
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          unset CLASPRC_JSON
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path.home()/".clasprc.json"
+          value=json.loads(p.read_text(encoding="utf-8"))
+          if not isinstance(value,dict) or not value:
+              raise SystemExit("CLASPRC_JSON_INVALID")
+          PY
+
+          work="$(mktemp -d)"
+          canary_uid="d160-gateway-canary-${GITHUB_RUN_ID}"
+          cleanup() {
+            set +e
+            if [ -f "$work/firebase-canary.js" ]; then
+              D160_CANARY_UID="$canary_uid" node "$work/firebase-canary.js" delete >/dev/null 2>&1 || true
+            fi
+            rm -rf "$work"
+            rm -f "$HOME/.clasprc.json"
+          }
+          trap cleanup EXIT
+
+          fail() {
+            echo "::error::D160 Apps Script migration failed at $1"
+            exit 1
+          }
+
+          clasp --json list-scripts > "$work/scripts.json" 2>/dev/null || fail "list-scripts"
+          access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+          [ -n "$access_token" ] || fail "access-token"
+
+          drive_list() {
+            local title="$1"
+            local out="$2"
+            local q="mimeType='application/vnd.google-apps.script' and trashed=false and name='$title'"
+            curl -sS -o "$out" -G               -H "Authorization: Bearer $access_token"               --data-urlencode "q=$q"               --data-urlencode "pageSize=10"               --data-urlencode "fields=files(id,name,parents,trashed)"               "https://www.googleapis.com/drive/v3/files"
+          }
+
+          drive_list "SUPRA Inventory Beta - Agent Log Gateway D158" "$work/log-old.json"
+          drive_list "SUPRA Inventory Beta - Agent Operations Gateway" "$work/log-new.json"
+          drive_list "SUPRA Inventory Beta - Firestore Usage Gateway D159" "$work/usage-old.json"
+
+          old_count="$(jq '.files|length' "$work/log-old.json")"
+          new_count="$(jq '.files|length' "$work/log-new.json")"
+          usage_count="$(jq '.files|length' "$work/usage-old.json")"
+
+          if [ "$new_count" = "1" ]; then
+            log_script_id="$(jq -r '.files[0].id' "$work/log-new.json")"
+          elif [ "$old_count" = "1" ]; then
+            log_script_id="$(jq -r '.files[0].id' "$work/log-old.json")"
+          else
+            fail "log-script-exact-match"
+          fi
+          [ "$usage_count" = "1" ] || fail "d159-script-exact-match"
+          usage_script_id="$(jq -r '.files[0].id' "$work/usage-old.json")"
+
+          curl -sS -o "$work/log-current.json"             -H "Authorization: Bearer $access_token"             "https://www.googleapis.com/drive/v3/files/$log_script_id?fields=parents" || fail "log-parent-read"
+          current_parents="$(jq -r '(.parents // []) | join(",")' "$work/log-current.json")"
+
+          move_url="https://www.googleapis.com/drive/v3/files/$log_script_id?supportsAllDrives=true&addParents=$INVENTORY_ROOT_FOLDER_ID"
+          if [ -n "$current_parents" ] && [ "$current_parents" != "$INVENTORY_ROOT_FOLDER_ID" ]; then
+            encoded_parents="$(PARENTS="$current_parents" python3 -c 'import os,urllib.parse;print(urllib.parse.quote(os.environ["PARENTS"],safe=","))')"
+            move_url="$move_url&removeParents=$encoded_parents"
+          fi
+
+          http="$(curl -sS -o "$work/rename.json" -w '%{http_code}' -X PATCH             -H "Authorization: Bearer $access_token"             -H "Content-Type: application/json"             --data '{"name":"SUPRA Inventory Beta - Agent Operations Gateway"}'             "$move_url")"
+          [ "$http" = "200" ] || fail "rename-move-log-gateway"
+
+          cd "$work"
+          printf '{"scriptId":"%s","rootDir":"."}' "$log_script_id" > .clasp.json
+          cp "$GITHUB_WORKSPACE/ops/apps-script/agent-log-gateway/Code.gs" Code.gs
+          cp "$GITHUB_WORKSPACE/ops/apps-script/agent-log-gateway/appsscript.json" appsscript.json
+
+          clasp push --force >/dev/null 2>&1 || fail "push-unified-source"
+          clasp --json create-version "D160 unified Agent operations gateway $GITHUB_RUN_ID" > version.json 2>/dev/null || fail "create-version"
+          version="$(jq -r '.versionNumber // empty' version.json)"
+          [ -n "$version" ] || fail "version-number"
+
+          deployment_id="$(python3 - <<'PY'
+          import os, urllib.parse
+          u=urllib.parse.urlparse(os.environ["AGENT_LOG_GATEWAY_URL_BETA"])
+          parts=[p for p in u.path.split("/") if p]
+          try:
+              i=parts.index("s")
+              print(parts[i+1])
+          except Exception:
+              pass
+          PY
+          )"
+          [ -n "$deployment_id" ] || fail "deployment-url-parse"
+
+          clasp --json list-deployments > deployments.json 2>/dev/null || fail "list-deployments"
+          jq --arg id "$deployment_id" -e 'map(select(.deploymentId==$id))|length==1' deployments.json >/dev/null || fail "deployment-exact-match"
+
+          clasp --json create-deployment             --deploymentId "$deployment_id"             --versionNumber "$version"             --description "D160 unified Agent operations gateway $GITHUB_RUN_ID"             > redeploy.json 2>/dev/null || fail "redeploy"
+          jq --arg id "$deployment_id" --arg v "$version" -e             '.deploymentId==$id and ((.versionNumber|tostring)==$v)' redeploy.json >/dev/null || fail "redeploy-verify"
+
+          identity_ok=false
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            http="$(curl -L -sS -o identity.json -w '%{http_code}' "$AGENT_LOG_GATEWAY_URL_BETA" || true)"
+            if [ "$http" = "200" ] && jq -e               '.ok==true and .service=="SUPRA_AGENT_OPERATIONS_GATEWAY_D160" and .project=="supra-inventory-beta"'               identity.json >/dev/null 2>&1; then
+              identity_ok=true
+              break
+            fi
+            sleep 5
+          done
+          [ "$identity_ok" = true ] || fail "unified-gateway-identity"
+
+          # D160 must prove the *authenticated Usage POST* on the migrated Apps Script,
+          # not just its public GET identity. Reuse the existing Beta Firebase Rules
+          # service-account secret to mint one short-lived ADMIN custom token, exchange
+          # it for a Firebase ID token, call get_firestore_usage, then delete the
+          # temporary Auth user. No token is printed or persisted outside this job.
+          npm ci --prefix "$GITHUB_WORKSPACE/functions" --omit=dev >/dev/null 2>&1 || fail "firebase-admin-install"
+          cat > "$work/firebase-canary.js" <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const admin = require(path.join(process.env.GITHUB_WORKSPACE, 'functions', 'node_modules', 'firebase-admin'));
+
+          const sa = JSON.parse(process.env.FIREBASE_RULES_SA_JSON_BETA || '{}');
+          const uid = process.env.D160_CANARY_UID || '';
+          const mode = process.argv[2] || '';
+          if (!uid || !sa.client_email || !sa.private_key) process.exit(2);
+
+          if (!admin.apps.length) {
+            admin.initializeApp({
+              credential: admin.credential.cert(sa),
+              projectId: 'supra-inventory-beta'
+            });
+          }
+
+          async function removeUser() {
+            try {
+              await admin.auth().deleteUser(uid);
+            } catch (err) {
+              if (!err || err.code !== 'auth/user-not-found') throw err;
+            }
+          }
+
+          (async () => {
+            if (mode === 'delete') {
+              await removeUser();
+              return;
+            }
+            if (mode !== 'create') process.exit(3);
+
+            await removeUser();
+            const customToken = await admin.auth().createCustomToken(uid, {
+              app_role: 'ADMIN',
+              app_base_role: 'ADMIN',
+              app_user_id: 'd160-provider-canary'
+            });
+            const url =
+              'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=' +
+              encodeURIComponent(process.env.FIREBASE_API_KEY_BETA || '');
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ token: customToken, returnSecureToken: true })
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload.idToken) throw new Error('FIREBASE_CUSTOM_SIGNIN_FAILED');
+            fs.writeFileSync(process.env.D160_ID_TOKEN_FILE, payload.idToken, { mode: 0o600 });
+          })().catch(() => process.exit(4));
+          NODE
+
+          export D160_CANARY_UID="$canary_uid"
+          export D160_ID_TOKEN_FILE="$work/d160-id-token"
+          node "$work/firebase-canary.js" create >/dev/null 2>&1 || fail "firebase-id-token-canary"
+
+          id_token="$(cat "$D160_ID_TOKEN_FILE")"
+          jq -n --arg token "$id_token" '{action:"get_firestore_usage",id_token:$token}' > "$work/usage-request.json"
+          rm -f "$D160_ID_TOKEN_FILE"
+          unset id_token
+
+          http="$(curl -L -sS -o "$work/usage-response.json" -w '%{http_code}'             -H "Content-Type: application/json"             --data-binary @"$work/usage-request.json"             "$AGENT_LOG_GATEWAY_URL_BETA" || true)"
+          rm -f "$work/usage-request.json"
+          [ "$http" = "200" ] || fail "authenticated-usage-http"
+
+          jq -e '
+            .ok == true and
+            .service == "SUPRA_AGENT_OPERATIONS_USAGE_D160" and
+            .project == "supra-inventory-beta" and
+            .revision == "D160-GW-v1" and
+            .availability.reads == true
+          ' "$work/usage-response.json" >/dev/null || fail "authenticated-usage-contract"
+
+          if jq -e '
+            (.errors // []) |
+            any(test("MONITORING_HTTP_403|OAUTH_SCOPE_INSUFFICIENT|MISSING_MONITORING_TIMESERIES_LIST|MISSING_SERVICEUSAGE_SERVICES_USE"))
+          ' "$work/usage-response.json" >/dev/null; then
+            fail "authenticated-usage-monitoring-authorization"
+          fi
+
+          node "$work/firebase-canary.js" delete >/dev/null 2>&1 || fail "firebase-canary-cleanup"
+          echo "D160_AUTHENTICATED_USAGE_POST=PASS"
+
+          # Retire D159 only after both GET identity and authenticated Monitoring-backed
+          # POST proof pass on the existing Agent gateway URL.
+          if clasp delete-script "$usage_script_id" --force >/dev/null 2>&1; then
+            :
+          else
+            http="$(curl -sS -o delete-usage.json -w '%{http_code}' -X PATCH               -H "Authorization: Bearer $access_token"               -H "Content-Type: application/json"               --data '{"trashed":true}'               "https://www.googleapis.com/drive/v3/files/$usage_script_id?supportsAllDrives=true")"
+            [ "$http" = "200" ] || fail "retire-d159-script"
+          fi
+
+          retired=false
+          for attempt in 1 2 3 4 5 6 7 8; do
+            drive_list "SUPRA Inventory Beta - Firestore Usage Gateway D159" usage-after.json
+            if [ "$(jq '.files|length' usage-after.json)" = "0" ]; then
+              retired=true
+              break
+            fi
+            sleep 3
+          done
+          [ "$retired" = true ] || fail "retire-d159-verify"
+
+          echo "D160_AGENT_OPERATIONS_GATEWAY=PASS"
+          echo "D160_D159_STANDALONE_GATEWAY_RETIRED=PASS"
+          echo "D160_GATEWAY_MOVED_TO_INVENTORY=PASS"

@@ -71,6 +71,18 @@ namespace SupraInventoryRelayAgent
             try { Wake.Set(); } catch { }
         }
 
+        internal static void Remove(string documentName)
+        {
+            if (string.IsNullOrWhiteSpace(documentName)) return;
+            lock (Gate)
+            {
+                // D160: DocumentRemove is a tombstone for the newest cached listener
+                // snapshot. PendingDocumentNames may still contain the name, but Drain
+                // will skip it because the dictionary entry is gone.
+                PendingDocuments.Remove(documentName);
+            }
+        }
+
         internal static List<Google.Cloud.Firestore.V1.Document> DrainDocuments(int max)
         {
             var result = new List<Google.Cloud.Firestore.V1.Document>();
@@ -147,7 +159,6 @@ namespace SupraInventoryRelayAgent
             {
                 case StatusCode.InvalidArgument:
                 case StatusCode.PermissionDenied:
-                case StatusCode.Unauthenticated:
                 case StatusCode.FailedPrecondition:
                 case StatusCode.NotFound:
                 case StatusCode.ResourceExhausted:
@@ -171,6 +182,7 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
+        private readonly Action _forceRefreshToken;
         private readonly Func<bool> _enabled;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
@@ -179,11 +191,13 @@ namespace SupraInventoryRelayAgent
         internal FirestoreD157PendingWakeListener(
             Func<AgentSession> sessionProvider,
             Action ensureFreshToken,
+            Action forceRefreshToken,
             Func<bool> enabled,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
+            _forceRefreshToken = forceRefreshToken ?? ensureFreshToken ?? delegate { };
             _enabled = enabled ?? (() => false);
             _log = log ?? delegate { };
         }
@@ -310,7 +324,10 @@ namespace SupraInventoryRelayAgent
                             var changed = response != null && response.DocumentChange != null && response.DocumentChange.Document != null;
                             var removed = response != null && response.DocumentRemove != null;
                             if (removed)
+                            {
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_REMOVE", _log);
+                                D157PendingWakeSignal.Remove(response.DocumentRemove.Document);
+                            }
                             if (!changed) continue;
                             FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_EVENT", _log);
                             D157PendingWakeSignal.Pulse(response.DocumentChange.Document);
@@ -320,11 +337,30 @@ namespace SupraInventoryRelayAgent
                 catch (OperationCanceledException) { D157PendingWakeSignal.MarkConnected(false); return; }
                 catch (RpcException ex)
                 {
-                    permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
-                    retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
-                    _log("D157 FAST_PATH listen=RECONNECT grpc=" + ex.Status.StatusCode +
-                         " retry_ms=" + retryMs +
-                         " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    if (ex.Status.StatusCode == StatusCode.Unauthenticated)
+                    {
+                        permanent = false;
+                        retryMs = FirestoreD157Grpc.InitialRetryMs;
+                        backoff = FirestoreD157Grpc.InitialRetryMs;
+                        try
+                        {
+                            _forceRefreshToken();
+                            _log("D157 FAST_PATH listen=RECONNECT grpc=Unauthenticated auth_refresh=PASS retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                        catch (Exception refreshEx)
+                        {
+                            _log("D157 FAST_PATH listen=RECONNECT grpc=Unauthenticated auth_refresh=FAIL type=" +
+                                 refreshEx.GetType().Name + " retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                    }
+                    else
+                    {
+                        permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
+                        retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
+                        _log("D157 FAST_PATH listen=RECONNECT grpc=" + ex.Status.StatusCode +
+                             " retry_ms=" + retryMs +
+                             " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -356,6 +392,7 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
+        private readonly Action _forceRefreshToken;
         private readonly Action<D157PrimaryHandoffRequest> _onRequest;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
@@ -364,11 +401,13 @@ namespace SupraInventoryRelayAgent
         internal FirestoreD157HandoffListener(
             Func<AgentSession> sessionProvider,
             Action ensureFreshToken,
+            Action forceRefreshToken,
             Action<D157PrimaryHandoffRequest> onRequest,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
+            _forceRefreshToken = forceRefreshToken ?? ensureFreshToken ?? delegate { };
             _onRequest = onRequest ?? delegate { };
             _log = log ?? delegate { };
         }
@@ -439,11 +478,30 @@ namespace SupraInventoryRelayAgent
                 catch (OperationCanceledException) { return; }
                 catch (RpcException ex)
                 {
-                    permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
-                    retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
-                    _log("D157 HANDOFF listen=RECONNECT grpc=" + ex.Status.StatusCode +
-                         " retry_ms=" + retryMs +
-                         " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    if (ex.Status.StatusCode == StatusCode.Unauthenticated)
+                    {
+                        permanent = false;
+                        retryMs = FirestoreD157Grpc.InitialRetryMs;
+                        backoff = FirestoreD157Grpc.InitialRetryMs;
+                        try
+                        {
+                            _forceRefreshToken();
+                            _log("D157 HANDOFF listen=RECONNECT grpc=Unauthenticated auth_refresh=PASS retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                        catch (Exception refreshEx)
+                        {
+                            _log("D157 HANDOFF listen=RECONNECT grpc=Unauthenticated auth_refresh=FAIL type=" +
+                                 refreshEx.GetType().Name + " retry_ms=" + retryMs + " circuit=CLOSED");
+                        }
+                    }
+                    else
+                    {
+                        permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
+                        retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
+                        _log("D157 HANDOFF listen=RECONNECT grpc=" + ex.Status.StatusCode +
+                             " retry_ms=" + retryMs +
+                             " circuit=" + (permanent ? "OPEN" : "CLOSED"));
+                    }
                 }
                 catch (Exception ex)
                 {

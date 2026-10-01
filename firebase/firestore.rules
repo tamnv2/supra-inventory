@@ -191,7 +191,9 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
           'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
-          'lookup_status', 'lookup_matches', 'candidate_picklists', 'lookup_ms', 'lookup_route',
+          'lookup_status', 'lookup_matches', 'candidate_picklists',
+          'resolved_picklist_code', 'picker_contractor_name',
+          'lookup_ms', 'lookup_route',
           'lookup_http', 'cache_mode', 'rate_strikes', 'lock_level',
           'locked_until_ms', 'guard_id', 'retire_at_ms',
           'business_day', 'terminal_at_ms', 'terminal_duration_ms'

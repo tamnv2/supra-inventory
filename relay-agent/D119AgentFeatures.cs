@@ -399,6 +399,8 @@ namespace SupraInventoryRelayAgent
                 _agentFleetGrid.Visible = false;
             }
 
+            UpdateD160RestrictedTabs(authenticated);
+
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
             if (authenticated)
@@ -1012,6 +1014,7 @@ namespace SupraInventoryRelayAgent
                 listener = new FirestoreAgentSyncListener(
                     SnapshotSession,
                     EnsureFreshToken,
+                    ForceRefreshAgentTokenD160,
                     ApplyD134AgentSyncSnapshot,
                     message => Log(message));
                 _agentSyncListener = listener;
@@ -1245,7 +1248,10 @@ namespace SupraInventoryRelayAgent
                 changed = true;
             }
             if (changed)
+            {
+                ResetD160HistoryForBusinessDay(current);
                 Log("D158 COUNTER day_reset=PASS business_day=" + current + " boundary=05:00 local_only=true");
+            }
         }
 
         private void RecordD158PdaRequest()
@@ -1719,7 +1725,7 @@ namespace SupraInventoryRelayAgent
                     }
                     catch (Exception ex)
                     {
-                        Log("AGENT_SYNC presence=DEFER reason=" + SafeMessage(ex));
+                        Log("AGENT_SYNC presence=DEFER " + D160ProviderErrorSummary(ex) + " retry=NONE_EVENT_DRIVEN");
                     }
                 });
             }
@@ -2713,42 +2719,7 @@ namespace SupraInventoryRelayAgent
 
         private bool TryRevokePickerWorkerSession(AgentSession session, PickerPresenceView picker)
         {
-            try
-            {
-                var request = (HttpWebRequest)WebRequest.Create(
-                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/picker-session/revoke");
-                request.Method = "POST";
-                request.Accept = "application/json";
-                request.ContentType = "application/json; charset=utf-8";
-                request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D144";
-                request.Timeout = 5000;
-                request.ReadWriteTimeout = 5000;
-                request.KeepAlive = false;
-                request.Headers[HttpRequestHeader.Authorization] = "Bearer " + session.IdToken;
-                var body = new JavaScriptSerializer().Serialize(new Dictionary<string, object>
-                {
-                    { "user_id", picker.UserId ?? "" },
-                    { "firebase_uid", picker.FirebaseUid ?? "" },
-                    { "revoked_generation", Math.Max(1L, picker.SessionGeneration) }
-                });
-                var bytes = Encoding.UTF8.GetBytes(body);
-                request.ContentLength = bytes.Length;
-                using (var output = request.GetRequestStream())
-                    output.Write(bytes, 0, bytes.Length);
-                using (var response = (HttpWebResponse)request.GetResponse())
-                using (var input = response.GetResponseStream())
-                using (var reader = input == null ? null : new StreamReader(input))
-                {
-                    if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300) return false;
-                    if (reader != null) reader.ReadToEnd();
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log("PICKER_SESSION server_revoke=DEFERRED reason=" + SafeMessage(ex));
-                return false;
-            }
+            return TryRevokePickerWorkerSessionD160(session, picker);
         }
 
         private int ShowPickerContactChoice(string pickerLabel)

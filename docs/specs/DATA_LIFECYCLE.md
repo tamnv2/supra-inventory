@@ -455,4 +455,13 @@ D158 does not change Android logging. Windows Agent retains `technical-ai.log` a
 - Until Office field proof and canonical gateway configuration complete, the D157 Firestore/Function support-log route remains fallback. After proven cutover, Agent support-log use of `relay_agent_log_uploads`/Function spool is retired; Firestore PickList/HA/coordination remains unchanged.
 - D158 v94 hotfix keeps every sanitized error/retry/recovery line in local technical logs while coalescing one active Google connectivity incident into one immediate support bundle. A positive Firestore/listener/ACK/gateway recovery closes that incident; a later outage is a new incident. Expected Firebase role-probe HTTP 400 responses never create immediate error bundles; only final dual-role login rejection is an error.
 - Stable is untouched.
+## D160 PickList history, unified Agent log and export cleanup lifecycle
+
+- Agent writes operational and technical events into one sanitized rolling local stream `agent-complete.log`. Existing error/crash/scheduled/manual upload sealing and retry rules remain; the UI no longer keeps realtime audit/technical list views.
+- The Picker-confirmation History tab is a current-business-day local projection. It may persist a local JSONL replay journal for restart continuity, resets at the 05:00 boundary and removes older local day journals. This local journal is not an offline business mutation/outbox.
+- Existing `relay_poc_jobs` terminal ACK writes may add `picker_contractor_name` and `resolved_picklist_code` to support UI/export. This changes payload size only; it does not add a second ACK write.
+- Closed-day Excel export reuses its existing bounded day query. The Drive file must be successfully created/updated before D160 deletes any exported job.
+- After Drive upload PASS, only documents from the already-read export result whose status is terminal `ACK` may be deleted. There is no additional D160 query/read for this purge. Pending/unresolved jobs are retained.
+- The existing longer-retention cleanup remains as a safety net for stragglers/guards. D160 daily purge is not allowed to delete active confirmation guards required for uncertain post-click safety.
+- D160 Usage monitoring uses Cloud Monitoring through the consolidated Apps Script gateway and produces zero Firestore document Read/Write/Delete operations. Provider/cache/auth overhead is separate from business document quota.
 

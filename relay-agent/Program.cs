@@ -198,6 +198,9 @@ namespace SupraInventoryRelayAgent
                 AgentDiagnostics.TryQueueCrashUpload("STARTUP_" + ex.GetType().Name);
                 if (startupSmoke)
                 {
+                    Console.Error.WriteLine(
+                        "STARTUP_SMOKE_FAIL type=" + ex.GetType().Name +
+                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
                     Environment.ExitCode = 2;
                     return;
                 }
@@ -256,8 +259,8 @@ namespace SupraInventoryRelayAgent
             {
                 var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Agent Auto Confirm Pick Pack", "RelayPoc", "Logs");
                 Directory.CreateDirectory(dir);
-                DiagnosticLogFile = Path.Combine(dir, "technical-ai.log");
-                RelayAuditLogFile = Path.Combine(dir, "pda-agent-audit.log");
+                DiagnosticLogFile = Path.Combine(dir, "agent-complete.log");
+                RelayAuditLogFile = DiagnosticLogFile;
                 Write("START version=" + Assembly.GetExecutingAssembly().GetName().Version + " os=" + Environment.OSVersion.VersionString + " clr=" + Environment.Version + " process64=" + Environment.Is64BitProcess + " machine=" + Environment.MachineName);
                 WriteAudit("AUDIT_START version=" + Assembly.GetExecutingAssembly().GetName().Version + " machine=" + Environment.MachineName);
             }
@@ -339,7 +342,7 @@ namespace SupraInventoryRelayAgent
 
         internal static void WriteAudit(string message)
         {
-            AppendSanitized(RelayAuditLogFile, message);
+            AppendSanitized(DiagnosticLogFile, "AUDIT " + (message ?? ""));
         }
 
         internal static void TryQueueCrashUpload(string crashType)
@@ -399,8 +402,7 @@ namespace SupraInventoryRelayAgent
         internal static string BuildUploadSnapshot(DateTime sinceLocal, DateTime untilLocalExclusive, bool crash)
         {
             var builder = new StringBuilder();
-            AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal, untilLocalExclusive);
-            AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal, untilLocalExclusive);
+            AppendSnapshotStream(builder, "AGENT_COMPLETE", DiagnosticLogFile, sinceLocal, untilLocalExclusive);
             var content = builder.ToString();
             var cap = crash ? 800000 : 4000000;
             if (content.Length > cap)
@@ -593,7 +595,7 @@ namespace SupraInventoryRelayAgent
         private string _agentFleetRenderSignature = "";
         private readonly TabControl _mainTabs = new TabControl();
         private readonly TabPage _overviewPage = new TabPage("Tổng quan");
-        private readonly TabPage _connectionPage = new TabPage("Kết nối");
+        private readonly TabPage _connectionPage = new TabPage("Cài đặt");
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
         private readonly TabPage _technicalPage = new TabPage("Chẩn đoán kỹ thuật");
         private readonly bool _startupSmoke;
@@ -924,13 +926,11 @@ namespace SupraInventoryRelayAgent
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
-            foreach (var page in new[] { _overviewPage, _connectionPage, _auditPage, _technicalPage })
+            foreach (var page in new[] { _overviewPage, _connectionPage })
                 page.BackColor = Color.FromArgb(243, 246, 248);
             _overviewPage.AutoScroll = false;
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_connectionPage);
-            _mainTabs.TabPages.Add(_auditPage);
-            _mainTabs.TabPages.Add(_technicalPage);
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
@@ -1376,6 +1376,7 @@ namespace SupraInventoryRelayAgent
             _log.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _technicalPage.Controls.Add(_log);
 
+            InitializeD160Ui();
             ResumeLayout(true);
         }
 
@@ -4256,7 +4257,9 @@ namespace SupraInventoryRelayAgent
 
         private FirestoreConfirmationOutcome ProcessFirestoreConfirmation(FirestoreConfirmationWorkItem work)
         {
-            var results = ProcessFirestoreConfirmations(new List<FirestoreConfirmationWorkItem> { work });
+            var results = ProcessFirestoreConfirmations(
+                new List<FirestoreConfirmationWorkItem> { work },
+                null);
             FirestoreConfirmationOutcome outcome;
             return work != null &&
                    results.TryGetValue(work.RequestId ?? "", out outcome) &&
@@ -4266,391 +4269,11 @@ namespace SupraInventoryRelayAgent
         }
 
         private Dictionary<string, FirestoreConfirmationOutcome> ProcessFirestoreConfirmations(
-            List<FirestoreConfirmationWorkItem> works)
+            List<FirestoreConfirmationWorkItem> works,
+            Action<string, FirestoreConfirmationOutcome> terminalCallback)
         {
-            var outcomes = new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal);
-            if (works == null || works.Count == 0) return outcomes;
-
-            // D158 hotfix defense-in-depth: even if a future transport refactor
-            // regresses ingress dedupe, business work remains one item per RequestId.
-            var uniqueWorks = new List<FirestoreConfirmationWorkItem>();
-            var businessRequestIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var work in works)
-            {
-                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
-                if (!businessRequestIds.Add(work.RequestId))
-                {
-                    AgentDiagnostics.WriteAudit(
-                        "PDA_CONFIRM_DUPLICATE business=SKIP request=" + Short(work.RequestId));
-                    continue;
-                }
-                uniqueWorks.Add(work);
-            }
-            works = uniqueWorks;
-            if (works.Count == 0) return outcomes;
-            if (works.Count > FirestoreConfirmationTransport.MaxConcurrentJobs)
-                throw new InvalidOperationException("Confirmation batch exceeds bounded job limit.");
-
-            var appSession = SnapshotSession();
-            foreach (var work in works)
-            {
-                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
-                var rate = _firestoreRateLimiter.Check(appSession, work.PickerUid, work.PickerUserId);
-                if (rate.IsLocked)
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "PICKER_LOCKED",
-                        CacheMode = "RATE_LIMIT",
-                        Route = "NONE",
-                        Rate = rate
-                    };
-                }
-            }
-
-            if (!HasReadyConfirmBrowser())
-            {
-                foreach (var work in works)
-                {
-                    if (work == null || string.IsNullOrWhiteSpace(work.RequestId) || outcomes.ContainsKey(work.RequestId)) continue;
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "WMS_SESSION_REQUIRED",
-                        CacheMode = "WEB_CONFIRM_NOT_READY",
-                        Route = "BROWSER_DOM"
-                    };
-                }
-                return outcomes;
-            }
-
-            var eligible = new List<FirestoreConfirmationWorkItem>();
-            var suffixes = new List<string>();
-            foreach (var work in works)
-            {
-                if (work == null || string.IsNullOrWhiteSpace(work.RequestId) || outcomes.ContainsKey(work.RequestId)) continue;
-                eligible.Add(work);
-                suffixes.Add(work.Suffix);
-            }
-
-            SupraBrowserSearchResult search;
-            try
-            {
-                search = eligible.Count == 0
-                    ? new SupraBrowserSearchResult { Result = "NOT_FOUND" }
-                    : _supraBrowser.SearchMany(suffixes, true);
-                if (eligible.Count > 0) MarkD157WmsProof();
-            }
-            catch (Exception ex)
-            {
-                foreach (var work in eligible)
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "LOOKUP_ERROR",
-                        CacheMode = "BROWSER_DOM_ERROR",
-                        Route = "BROWSER_DOM"
-                    };
-                Log("FIRESTORE browser lookup fail type=" + ex.GetType().Name);
-                return outcomes;
-            }
-
-            var guardsByRequest = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.Ordinal);
-            var codeByRequest = new Dictionary<string, string>(StringComparer.Ordinal);
-
-            foreach (var work in eligible)
-            {
-                List<string> candidates;
-                if (!search.Candidates.TryGetValue(work.Suffix ?? "", out candidates))
-                    candidates = new List<string>();
-
-                if (search.StateChangedFragments.Exists(
-                    x => string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal)))
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "CONFIRM_CONFLICT",
-                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+CHECKBOX_RELOAD+STATE_CHANGED",
-                        Route = "BROWSER_DOM",
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
-                        Matches = Math.Max(0, candidates.Count),
-                        Rate = new PickerRateDecision()
-                    };
-                    continue;
-                }
-
-                if (candidates.Count == 0)
-                {
-                    var rate = _firestoreRateLimiter.RecordNotFound(
-                        appSession, work.PickerUid, work.PickerUserId, work.RequestId);
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = rate.IsLocked ? "PICKER_LOCKED" : "NOT_FOUND",
-                        CacheMode = "BROWSER_DOM" + (search.SearchClicked ? "+SEARCH_CLICK" : ""),
-                        Route = "BROWSER_DOM",
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
-                        Matches = 0,
-                        Rate = rate
-                    };
-                    continue;
-                }
-
-                if (candidates.Count != 1)
-                {
-                    var ambiguous = new FirestoreConfirmationOutcome
-                    {
-                        Result = "AMBIGUOUS_PICKLIST",
-                        CacheMode = "BROWSER_DOM",
-                        Route = "BROWSER_DOM",
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
-                        Matches = candidates.Count,
-                        Rate = new PickerRateDecision()
-                    };
-                    ambiguous.Candidates.AddRange(candidates);
-                    outcomes[work.RequestId] = ambiguous;
-                    continue;
-                }
-
-                if (search.UnselectableFragments.Exists(x => string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal)))
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        // D152: the exact row exists, so this is not a Supra rejection and
-                        // must never count as NOT_FOUND. Search retry + one bounded reload
-                        // have already been exhausted without a usable checkbox.
-                        Result = "CONFIRM_CONFLICT",
-                        CacheMode = "BROWSER_DOM+SEARCH_REFRESH+" +
-                                    (search.RecoveryReloaded ? "CHECKBOX_RELOAD+" : "") +
-                                    "CHECKBOX_NOT_READY",
-                        Route = "BROWSER_DOM",
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
-                        Matches = 1,
-                        Rate = new PickerRateDecision()
-                    };
-                    continue;
-                }
-
-                _firestoreRateLimiter.ClearFound(appSession, work.PickerUid);
-
-                var ageNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                if (work.CreatedAtMs <= 0 || ageNow - work.CreatedAtMs >= 20000L)
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "REQUEST_EXPIRED",
-                        CacheMode = "BROWSER_DOM+AGE_FENCE",
-                        Route = "BROWSER_DOM",
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
-                        Matches = 1,
-                        Rate = new PickerRateDecision()
-                    };
-                    continue;
-                }
-
-                var code = candidates[0];
-                var guard = _confirmationGuard.TryBegin(
-                    appSession, code, work.RequestId, _agentInstanceId, work.PickerUid);
-
-                if (guard.AlreadyConfirmed)
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "CONFIRMED",
-                        CacheMode = "BROWSER_DOM+IDEMPOTENT",
-                        Route = "FIRESTORE_CONFIRM_GUARD",
-                        Http = 200,
-                        OperationMs = Math.Max(0L, search.ElapsedMs),
-                        Matches = 1,
-                        Rate = new PickerRateDecision(),
-                        GuardId = guard.GuardId,
-                        RetireAtMs = guard.RetireAtMs
-                    };
-                    continue;
-                }
-
-                if (!guard.Acquired || guard.InProgressOrUncertain)
-                {
-                    // D152: an existing uncertain guard remains a hard no-resend fence,
-                    // but it no longer means "return uncertain forever". One read-only
-                    // browser Search may prove that the exact row disappeared. No Confirm
-                    // button or dialog is ever clicked in this verification path.
-                    SupraBrowserConfirmResult verifyOnly = null;
-                    try
-                    {
-                        verifyOnly = _supraBrowser.VerifyExactAfterUncertain(code);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("FIRESTORE CONFIRM guard verify-only deferred type=" + ex.GetType().Name);
-                    }
-
-                    if (verifyOnly != null &&
-                        string.Equals(verifyOnly.Result, "CONFIRMED", StringComparison.Ordinal))
-                    {
-                        _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
-                        outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                        {
-                            Result = "CONFIRMED",
-                            CacheMode = "BROWSER_DOM+GUARD+VERIFY_ONLY_ROW_REMOVED",
-                            Route = "FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY",
-                            Http = 200,
-                            OperationMs = Math.Max(0L, search.ElapsedMs) + Math.Max(0L, verifyOnly.ElapsedMs),
-                            Matches = 1,
-                            Rate = new PickerRateDecision(),
-                            GuardId = guard.GuardId,
-                            RetireAtMs = guard.RetireAtMs
-                        };
-                        continue;
-                    }
-
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                        CacheMode = "BROWSER_DOM+GUARD+VERIFY_ONLY",
-                        Route = "FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY",
-                        Http = 409,
-                        OperationMs = Math.Max(0L, search.ElapsedMs) +
-                                      (verifyOnly == null ? 0L : Math.Max(0L, verifyOnly.ElapsedMs)),
-                        Matches = 1,
-                        Rate = new PickerRateDecision(),
-                        GuardId = guard.GuardId,
-                        RetireAtMs = guard.RetireAtMs
-                    };
-                    continue;
-                }
-
-                guardsByRequest[work.RequestId] = guard;
-                codeByRequest[work.RequestId] = code;
-            }
-
-            var browserMutationCount = 0;
-            var mutationRequestIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var work in eligible)
-            {
-                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
-                if (!mutationRequestIds.Add(work.RequestId))
-                {
-                    AgentDiagnostics.WriteAudit(
-                        "PDA_CONFIRM_DUPLICATE mutation=BLOCK request=" + Short(work.RequestId));
-                    continue;
-                }
-
-                FirestoreConfirmationGuardDecision guard;
-                string code;
-                if (!guardsByRequest.TryGetValue(work.RequestId ?? "", out guard) ||
-                    !codeByRequest.TryGetValue(work.RequestId ?? "", out code))
-                    continue;
-
-                var finalAgeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                if (work.CreatedAtMs <= 0 || finalAgeMs - work.CreatedAtMs >= 20000L)
-                {
-                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "REQUEST_EXPIRED",
-                        CacheMode = "BROWSER_DOM+GUARD+FINAL_20S_FENCE",
-                        Route = "BROWSER_DOM",
-                        Matches = 1,
-                        GuardId = guard.GuardId,
-                        RetireAtMs = guard.RetireAtMs,
-                        Rate = new PickerRateDecision()
-                    };
-                    continue;
-                }
-
-                var fenceOk = false;
-                try
-                {
-                    fenceOk = _leaderCoordinator != null &&
-                              _leaderCoordinator.VerifyPrimaryBeforeMutation(appSession);
-                }
-                catch (Exception ex)
-                {
-                    Log("FIRESTORE CONFIRM browser generation fence error type=" + ex.GetType().Name);
-                }
-                if (!fenceOk)
-                {
-                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                        CacheMode = "BROWSER_DOM+ROLE_GENERATION_FENCE",
-                        Route = "ROLE_GENERATION_FENCE",
-                        Matches = 1,
-                        GuardId = guard.GuardId,
-                        RetireAtMs = guard.RetireAtMs,
-                        Rate = new PickerRateDecision(),
-                        ShouldAck = false
-                    };
-                    continue;
-                }
-
-                SupraBrowserConfirmResult confirmed;
-                try
-                {
-                    confirmed = _supraBrowser.ConfirmExact(code);
-                    browserMutationCount++;
-                }
-                catch (Exception ex)
-                {
-                    outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                    {
-                        Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                        CacheMode = "BROWSER_DOM+EXCEPTION",
-                        Route = "BROWSER_DOM",
-                        Matches = 1,
-                        GuardId = guard.GuardId,
-                        RetireAtMs = guard.RetireAtMs,
-                        Rate = new PickerRateDecision()
-                    };
-                    Log("FIRESTORE browser confirm uncertain type=" + ex.GetType().Name);
-                    continue;
-                }
-
-                if (string.Equals(confirmed.Result, "CONFIRMED", StringComparison.Ordinal))
-                    _confirmationGuard.MarkLocalConfirmed(guard.GuardId);
-                else if (IsSafeBrowserFailure(confirmed))
-                    _confirmationGuard.ReleaseSafeFailure(appSession, guard.GuardId);
-
-                var confirmCacheMode = "BROWSER_DOM+GUARD+EXACT_ROW";
-                if (string.Equals(confirmed.Detail, "ROW_REMOVED_AFTER_SEARCH_REFRESH", StringComparison.Ordinal))
-                    confirmCacheMode += "+POST_CONFIRM_SEARCH_VERIFY";
-                else if (string.Equals(confirmed.Detail, "POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH", StringComparison.Ordinal))
-                    confirmCacheMode += "+POST_CONFIRM_TIMEOUT";
-
-                outcomes[work.RequestId] = new FirestoreConfirmationOutcome
-                {
-                    Result = confirmed.Result ?? "CONFIRM_ERROR",
-                    CacheMode = confirmCacheMode,
-                    Route = "BROWSER_DOM",
-                    Http = 0,
-                    OperationMs = Math.Max(0L, search.ElapsedMs) + Math.Max(0L, confirmed.ElapsedMs),
-                    Matches = 1,
-                    Rate = new PickerRateDecision(),
-                    GuardId = guard.GuardId,
-                    RetireAtMs = guard.RetireAtMs
-                };
-            }
-
-            foreach (var outcome in outcomes.Values)
-            {
-                if (outcome != null && string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal))
-                    RecordD158ConfirmOutcome(true);
-                else
-                    RecordD158ConfirmOutcome(false);
-            }
-            Ui(() => RefreshAgentRequestMetrics());
-
-            AgentDiagnostics.WriteAudit(
-                "PDA_CONFIRM_BATCH adapter=BROWSER_DOM jobs=" + works.Count +
-                " mutations=" + browserMutationCount +
-                " search_click=" + (search.SearchClicked ? "1" : "0") +
-                " recovery_reload=" + (search.RecoveryReloaded ? "1" : "0") +
-                " state_changed=" + search.StateChangedFragments.Count +
-                " session_extract=false direct_wms_api=false");
-
-            return outcomes;
+            return ProcessFirestoreConfirmationsD160(works, terminalCallback);
         }
-
-        
 
         private static bool IsSafeBrowserFailure(SupraBrowserConfirmResult result)
         {
@@ -5385,24 +5008,12 @@ namespace SupraInventoryRelayAgent
 
         private void Log(string message)
         {
-            var safe = AgentDiagnostics.Sanitize(message);
-            AgentDiagnostics.Write(safe);
-            Ui(() =>
-            {
-                _log.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
-                while (_log.Items.Count > 120) _log.Items.RemoveAt(_log.Items.Count - 1);
-            });
+            AgentDiagnostics.Write(AgentDiagnostics.Sanitize(message));
         }
 
         private void Audit(string message)
         {
-            var safe = AgentDiagnostics.Sanitize(message);
-            AgentDiagnostics.WriteAudit(safe);
-            Ui(() =>
-            {
-                _auditLog.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
-                while (_auditLog.Items.Count > 120) _auditLog.Items.RemoveAt(_auditLog.Items.Count - 1);
-            });
+            AgentDiagnostics.WriteAudit(AgentDiagnostics.Sanitize(message));
         }
 
         private void Ui(Action action)

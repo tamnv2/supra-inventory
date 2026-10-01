@@ -36,6 +36,7 @@ namespace SupraInventoryRelayAgent
                 _d157HandoffListener = new FirestoreD157HandoffListener(
                     SnapshotSession,
                     EnsureFreshToken,
+                    ForceRefreshAgentTokenD160,
                     HandleD157HandoffEvent,
                     message => Log(message));
                 _d157HandoffListener.Start();
@@ -46,6 +47,7 @@ namespace SupraInventoryRelayAgent
                 _d157PendingWakeListener = new FirestoreD157PendingWakeListener(
                     SnapshotSession,
                     EnsureFreshToken,
+                    ForceRefreshAgentTokenD160,
                     () =>
                     {
                         var coordinator = _leaderCoordinator;

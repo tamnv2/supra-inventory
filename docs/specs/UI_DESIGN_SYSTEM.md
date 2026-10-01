@@ -990,3 +990,12 @@ The standalone D159-v3 field utility previews the later Agent **Thông tin Usage
 Required summary groups are: **Firestore — quota hôm nay**, **Firestore — realtime & bảo mật · 24 giờ**, **Firebase — đăng nhập & FCM · 24 giờ**, **Firestore — tổng 24 giờ**, **Cloud Functions — thông báo Picker · 24 giờ**, and **Cơ chế giám sát**. Read/write/delete labels are shown as **Đọc / Ghi / Xóa**; peaks use **đỉnh**; Security Rules use **Rule cho phép / từ chối / lỗi**.
 
 The detail grid keeps 24 hourly rows and uses Vietnamese column labels. The header states 15-minute automatic refresh and zero Firestore document operation overhead for usage collection. Partial provider data remains visible with N/A plus a concise warning rather than being replaced by zero.
+## D160 Windows Agent presentation
+
+- Main user-facing tabs are **Tổng quan**, **Cài đặt**, **Lịch sử Picker xác nhận PickList**, plus **Thông tin Usage** only for exact login `tamnv2` or `admin`.
+- The old **Nhật ký vận hành** and **Chẩn đoán kỹ thuật** tabs are not user-facing. Do not render high-frequency log lines into hidden or visible UI list controls.
+- **Cài đặt** preserves the accepted connectivity-check and PickList-overlay controls. Add one compact **Logs** card with a plain-language description, current file/status, **Gửi Logs** and **Mở file Logs**.
+- **Lịch sử Picker xác nhận PickList** uses a read-only operational table with time, MNV/user, name, contractor, sent suffix/text, outcome, full PickList and processing time. New requests/outcomes patch the table in place without provider polling.
+- The History status line states the 05:00 business-day boundary and local/no-extra-provider-cadence behavior.
+- **Thông tin Usage** preserves the accepted D159-v3 Vietnamese-first grouping, hourly detail, truthful N/A behavior and 15-minute refresh. It must not exist for non-allowlisted Agent logins.
+

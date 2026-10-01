@@ -151,9 +151,11 @@ function buildExcelXml(dayKey: string, docs: FirestoreDoc[]): Uint8Array {
     "Request ID",
     "Mã nhân viên",
     "Họ tên Picker",
+    "Nhà thầu",
     "User ID",
     "Thời gian gửi",
-    "Số cuối PickList",
+    "Cụm Picker gửi",
+    "PickList đầy đủ",
     "Trạng thái",
     "Kết quả",
     "Mã kết quả",
@@ -169,9 +171,11 @@ function buildExcelXml(dayKey: string, docs: FirestoreDoc[]): Uint8Array {
       fieldString(f, "request_id"),
       fieldString(f, "picker_employee_code"),
       fieldString(f, "picker_display_name"),
+      fieldString(f, "picker_contractor_name"),
       fieldString(f, "picker_user_id"),
       fieldTimestamp(f, "created_at") || fieldLong(f, "client_sent_at_ms"),
       fieldString(f, "suffix"),
+      fieldString(f, "resolved_picklist_code"),
       fieldString(f, "status"),
       fieldString(f, "lookup_status"),
       fieldString(f, "lookup_status"),
@@ -419,6 +423,17 @@ export async function runRelayAuditExport(env: RelayAuditEnv, dayKey = closedBus
     let fileId = fieldString(stateFields, "file_id");
     if (!fileId) fileId = await findDriveFile(env, driveToken, fileName);
     fileId = await uploadDriveFile(env, driveToken, fileName, bytes, fileId);
+
+    // D160: once the closed-day Excel file is durably present in Drive, delete
+    // terminal Android confirmation jobs from the exact list already queried for
+    // export. This adds no extra Firestore read/query and prevents job-history
+    // storage from growing for data already archived. Never delete non-terminal
+    // work, even if it falls inside the closed-day range.
+    const exportedTerminalNames = jobs
+      .filter((doc) => fieldString(doc.fields, "status") === "ACK")
+      .map((doc) => String(doc.name || ""))
+      .filter(Boolean);
+    const deletedExportedJobs = await batchDelete(env, firestoreToken, exportedTerminalNames);
     const cleanup = await boundedCleanup(env, firestoreToken);
     await writeExportState(env, firestoreToken, dayKey, {
       status: "PASS",
@@ -426,7 +441,7 @@ export async function runRelayAuditExport(env: RelayAuditEnv, dayKey = closedBus
       fileName,
       rowCount: jobs.length,
       durationMs: Date.now() - started,
-      deletedJobs: cleanup.jobs,
+      deletedJobs: deletedExportedJobs + cleanup.jobs,
       deletedGuards: cleanup.guards,
     });
     return { status: "PASS", business_day: dayKey, rows: jobs.length, file_id: fileId };

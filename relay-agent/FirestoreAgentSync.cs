@@ -769,6 +769,7 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
+        private readonly Action _forceRefreshToken;
         private readonly Action<AgentSyncSnapshot> _onSnapshot;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
@@ -777,11 +778,13 @@ namespace SupraInventoryRelayAgent
         internal FirestoreAgentSyncListener(
             Func<AgentSession> sessionProvider,
             Action ensureFreshToken,
+            Action forceRefreshToken,
             Action<AgentSyncSnapshot> onSnapshot,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
+            _forceRefreshToken = forceRefreshToken ?? ensureFreshToken ?? delegate { };
             _onSnapshot = onSnapshot ?? delegate { };
             _log = log ?? delegate { };
         }
@@ -872,16 +875,38 @@ namespace SupraInventoryRelayAgent
                 catch (OperationCanceledException) { return; }
                 catch (RpcException ex)
                 {
-                    permanentFailure = IsPermanentRpcStatus(ex.Status.StatusCode);
-                    retryDelayMs = permanentFailure
-                        ? (int)PermanentFailureCooldown.TotalMilliseconds
-                        : backoff;
-                    _log(
-                        "AGENT_SYNC listen=RECONNECT grpc=" + ex.Status.StatusCode +
-                        " detail=" + AgentDiagnostics.Sanitize(ex.Status.Detail) +
-                        " accepted=" + (acceptedResponse ? "true" : "false") +
-                        " retry_ms=" + retryDelayMs +
-                        " circuit=" + (permanentFailure ? "OPEN" : "CLOSED"));
+                    if (ex.Status.StatusCode == StatusCode.Unauthenticated)
+                    {
+                        permanentFailure = false;
+                        retryDelayMs = InitialRetryMs;
+                        backoff = InitialRetryMs;
+                        try
+                        {
+                            _forceRefreshToken();
+                            _log("AGENT_SYNC listen=RECONNECT grpc=Unauthenticated auth_refresh=PASS accepted=" +
+                                 (acceptedResponse ? "true" : "false") +
+                                 " retry_ms=" + retryDelayMs + " circuit=CLOSED");
+                        }
+                        catch (Exception refreshEx)
+                        {
+                            _log("AGENT_SYNC listen=RECONNECT grpc=Unauthenticated auth_refresh=FAIL type=" +
+                                 refreshEx.GetType().Name +
+                                 " retry_ms=" + retryDelayMs + " circuit=CLOSED");
+                        }
+                    }
+                    else
+                    {
+                        permanentFailure = IsPermanentRpcStatus(ex.Status.StatusCode);
+                        retryDelayMs = permanentFailure
+                            ? (int)PermanentFailureCooldown.TotalMilliseconds
+                            : backoff;
+                        _log(
+                            "AGENT_SYNC listen=RECONNECT grpc=" + ex.Status.StatusCode +
+                            " detail=" + AgentDiagnostics.Sanitize(ex.Status.Detail) +
+                            " accepted=" + (acceptedResponse ? "true" : "false") +
+                            " retry_ms=" + retryDelayMs +
+                            " circuit=" + (permanentFailure ? "OPEN" : "CLOSED"));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -915,7 +940,6 @@ namespace SupraInventoryRelayAgent
             {
                 case StatusCode.InvalidArgument:
                 case StatusCode.PermissionDenied:
-                case StatusCode.Unauthenticated:
                 case StatusCode.FailedPrecondition:
                 case StatusCode.NotFound:
                 case StatusCode.ResourceExhausted:

@@ -83,11 +83,52 @@ jobs:
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
           $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
           $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
+          $d160Browser = Get-Content relay-agent/SupraConfirmBrowserD160.cs -Raw
+          $d160Pipeline = Get-Content relay-agent/D160ConfirmPipeline.cs -Raw
+          $d160Ui = Get-Content relay-agent/D160UiHistory.cs -Raw
+          $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
+          $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*94\s*;') { throw "D158 hotfix requires Agent v94 while Android remains hard-locked at beta-vc92 and D157 business guards stay intact." }
-          if ($project -notmatch '<AssemblyVersion>0\.94\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.94\.0\.0</FileVersion>') {
-            throw "D158 hotfix Agent assembly/file version must be 0.94."
+          if ($config -notmatch 'AgentBuild\s*=\s*95\s*;') { throw "D160 requires Agent v95 while Android remains hard-locked at beta-vc92." }
+          if ($project -notmatch '<AssemblyVersion>0\.95\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.95\.0\.0</FileVersion>') {
+            throw "D160 Agent assembly/file version must be 0.95."
           }
+          foreach ($marker in @(
+            'ConfirmManyExact',
+            'FRESH_SUCCESS_SURFACE',
+            'NO_FRESH_TERMINAL_SURFACE',
+            'finalClicked:true',
+            'TARGET_PRECHECKED',
+            'FOREIGN_SELECTION'
+          )) {
+            if (-not $d160Browser.Contains($marker)) { throw "D160 bulk/fresh-terminal browser guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'ProcessFirestoreConfirmationsD160',
+            'D160_12S_MUTATION_FENCE',
+            'WMS_DATA_UNAVAILABLE',
+            'SearchMany(eligible.Select(work => work.Suffix), true, false, false)',
+            'MaxConcurrentJobs',
+            'EmitD160TerminalOutcomes',
+            'D160_12S_MUTATION_FENCE'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 mixed-batch pipeline guard missing: $marker" }
+          }
+          foreach ($marker in @('Lịch sử Picker xác nhận PickList','reset lúc 05:00','không thêm Firestore usage','Gửi Logs')) {
+            if (-not $d160Ui.Contains($marker)) { throw "D160 history/log UI guard missing: $marker" }
+          }
+          foreach ($marker in @('tamnv2','admin','15 * 60 * 1000','get_firestore_usage','D160UsageAllowedForCurrentSession')) {
+            if (-not $d160Usage.Contains($marker) -and -not $d160Ui.Contains($marker)) { throw "D160 restricted Usage guard missing: $marker" }
+          }
+          if (-not $d160Resilience.Contains('D160_401_AFTER_REFRESH') -or
+              -not $d160Resilience.Contains('ForceRefreshAgentTokenD160') -or
+              -not $d157.Contains('auth_refresh=PASS') -or
+              -not $sync.Contains('auth_refresh=PASS') -or
+              $d157.Contains('case StatusCode.Unauthenticated:') -or
+              $sync.Contains('case StatusCode.Unauthenticated:')) {
+            throw "D160 auth recovery guard regression."
+          }
+
           foreach ($marker in @(
             'RenderD157OperationalListsFromMemory',
             'UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents)',
@@ -126,14 +167,21 @@ jobs:
             if (-not $transport.Contains($marker)) { throw "D158 hotfix confirmation ingress guard missing: $marker" }
           }
           foreach ($marker in @(
-            'PDA_CONFIRM_DUPLICATE business=SKIP',
-            'PDA_CONFIRM_DUPLICATE mutation=BLOCK',
-            'mutationRequestIds',
+            '.GroupBy(work => work.RequestId, StringComparer.Ordinal)',
+            '.GroupBy(item => item.Code, StringComparer.OrdinalIgnoreCase)'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 business/exact-PickList dedupe guard missing: $marker" }
+          }
+          if (-not $transport.Contains('layer=D160_RECENT_TERMINAL') -or
+              -not $transport.Contains('RecentTerminalTtlMs = 60000L')) {
+            throw "D160 cross-cycle terminal dedupe guard missing."
+          }
+          foreach ($marker in @(
             'AgentRoleHintFile',
             'HTTP EXPECTED RESPONSE',
             'AUTH LOGIN result=FAIL'
           )) {
-            if (-not $program.Contains($marker)) { throw "D158 hotfix business/auth guard missing: $marker" }
+            if (-not $program.Contains($marker)) { throw "D158 auth regression guard missing: $marker" }
           }
           foreach ($marker in @(
             'GOOGLE_CONNECTIVITY',
@@ -182,7 +230,6 @@ jobs:
             'CONFIRM_DIALOG_BUTTON_NOT_UNIQUE',
             'CONFIRM_DIALOG_CLOSE_NOT_UNIQUE',
             "stage:'DIALOG_CONFIRMED'",
-            'dialog_required=true',
             'private const string PageSizeLabel = "Số dòng mỗi trang"',
             'private const string PageSizeTarget = "100"',
             'EnsurePageSize100NoLock',
@@ -321,12 +368,16 @@ jobs:
             'HasReadyConfirmBrowser',
             'ProcessFirestoreConfirmations',
             'adapter=BROWSER_DOM',
-            'VerifyPrimaryBeforeMutation(appSession)',
-            'CONFIRM_IN_PROGRESS_OR_UNCERTAIN',
-            'MarkLocalConfirmed',
             'ProbeSupraBrowserForTakeover'
           )) {
             if (-not $program.Contains($marker)) { throw "D126 Agent wiring marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'VerifyPrimaryBeforeMutation(session)',
+            'CONFIRM_IN_PROGRESS_OR_UNCERTAIN',
+            'MarkLocalConfirmed'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 protected mutation wiring marker missing: $marker" }
           }
           foreach ($forbidden in @(
             'CaptureWmsSession',
@@ -491,8 +542,8 @@ jobs:
           foreach ($marker in @('PRIMARY','NEXT_A','NEXT_B','DEEP_HIBERNATE','PromoteStandbyForTakeover','VerifyPrimaryBeforeMutation','PublishScheduleDecision','PublishEarlyStartAndClaimPrimary','ANY_AUTHENTICATED_AGENT')) {
             if (-not $leader.Contains($marker)) { throw "Protected D131 HA/schedule marker missing: $marker" }
           }
-          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*12') {
-            throw "D131 bounded Firestore cadence regression."
+          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*15') {
+            throw "D160 bounded Firestore cadence/batch regression."
           }
           if ($transport -match 'PROCESSING|TryClaim' -or -not $transport.Contains('CONFIRM_ACK_VERIFY')) { throw "Firestore direct-ACK guard regression." }
           foreach ($marker in @('MaxPendingAgeMs = 20000L','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
@@ -780,28 +831,32 @@ jobs:
           foreach ($marker in @(
             'StateChangedFragments',
             'RecoveryReloaded',
-            'checkbox_recovery=START',
-            'checkbox_not_ready_after_search',
             'VerifyExactAfterUncertain',
-            'ExactRowMissingAfterOneSearchNoLock',
-            'post_confirm_timeout',
-            'VERIFY_ONLY_ROW_REMOVED_STABLE',
-            'POST_CONFIRM_TIMEOUT_AFTER_SEARCH_REFRESH'
+            'VERIFY_ONLY_NOT_PROVABLE_BY_ROW_STATE_D160'
           )) {
-            if (-not $browser.Contains($marker)) { throw "D152 browser recovery guard missing: $marker" }
+            if (-not $browser.Contains($marker)) { throw "D160 browser recovery/verify-only guard missing: $marker" }
           }
           foreach ($marker in @(
-            'CHECKBOX_RELOAD+STATE_CHANGED',
-            'CHECKBOX_NOT_READY',
-            'FIRESTORE_CONFIRM_GUARD_VERIFY_ONLY',
-            'VERIFY_ONLY_ROW_REMOVED',
-            'POST_CONFIRM_SEARCH_VERIFY',
-            'POST_CONFIRM_TIMEOUT'
+            'ConfirmManyExact',
+            'FRESH_SUCCESS_SURFACE',
+            'NO_FRESH_TERMINAL_SURFACE',
+            'BuildD160PostConfirmScript',
+            'data-supra-d160-baseline'
           )) {
-            if (-not $program.Contains($marker)) { throw "D152 processing guard missing: $marker" }
+            if (-not $d160Browser.Contains($marker)) { throw "D160 fresh-terminal browser evidence guard missing: $marker" }
           }
-          if ([regex]::Matches($browser, 'BuildMutationScript\(code\)').Count -ne 1) {
-            throw "D152 must keep exactly one browser mutation-script invocation path."
+          foreach ($marker in @(
+            'var safeFailure = !browser.FinalClicked',
+            'MarkLocalConfirmed',
+            'ReleaseSafeFailure',
+            'D160_NO_ROW_INFERENCE'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 post-click idempotency guard missing: $marker" }
+          }
+          if ($d160Pipeline.Contains('VERIFY_ONLY_ROW_REMOVED') -or
+              $d160Browser.Contains('ROW_REMOVED_STABLE') -or
+              $d160Browser.Contains('row_disappearance_evidence=true')) {
+            throw "D160 must never use row disappearance as business success evidence."
           }
           if (-not $notifications.Contains('android_session_generation') -or
               -not $notifications.Contains('source: "LOGIN"') -or
@@ -895,18 +950,18 @@ jobs:
           $content = Get-Content $path -Raw
           $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
           $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
-          if ([string]::IsNullOrWhiteSpace($gateway)) { throw "D158 OA086 requires AGENT_LOG_GATEWAY_URL_BETA after Owner provisioning." }
+          if ([string]::IsNullOrWhiteSpace($gateway)) { throw "D160 requires the existing AGENT_LOG_GATEWAY_URL_BETA." }
           $gatewayUri = $null
           if (-not [System.Uri]::TryCreate($gateway, [System.UriKind]::Absolute, [ref]$gatewayUri) -or
               $gatewayUri.Scheme -ne "https" -or
               $gatewayUri.Host -ne "script.google.com" -or
               -not $gatewayUri.AbsolutePath.EndsWith("/exec")) {
-            throw "D158 OA086 Agent log gateway must be the deployed HTTPS script.google.com Web App /exec URL."
+            throw "D160 Agent operations gateway must retain the deployed HTTPS script.google.com Web App /exec URL."
           }
           $content = $content.Replace("__AGENT_LOG_GATEWAY_URL_BETA__", $gateway)
           Set-Content -Path $path -Value $content -Encoding UTF8
 
-      - name: Probe configured D158 Agent log gateway
+      - name: Probe D160 Agent operations gateway rollout
         shell: pwsh
         run: |
           $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
@@ -924,14 +979,26 @@ jobs:
             }
           }
           if ($null -eq $response) {
-            throw "D158 OA086 gateway GET probe failed after 3 bounded attempts."
+            throw "D160 gateway GET probe failed after 3 bounded attempts."
           }
-          if ($response.ok -ne $true -or
-              "$($response.service)" -ne "SUPRA_AGENT_LOG_GATEWAY_D158" -or
-              "$($response.project)" -ne "supra-inventory-beta") {
-            throw "D158 OA086 gateway GET probe returned an unexpected service identity."
+          $service = "$($response.service)"
+          $project = "$($response.project)"
+          if ($response.ok -ne $true -or $project -ne "supra-inventory-beta") {
+            throw "D160 gateway GET probe returned an invalid project/health identity."
           }
-          Write-Host "D158 OA086 configured Agent log gateway probe PASS"
+
+          if ($env:GITHUB_EVENT_NAME -eq "pull_request") {
+            if ($service -ne "SUPRA_AGENT_LOG_GATEWAY_D158" -and
+                $service -ne "SUPRA_AGENT_OPERATIONS_GATEWAY_D160") {
+              throw "D160 PR probe accepts only the current D158 gateway or migrated D160 gateway identity."
+            }
+            Write-Host "D160 PR gateway compatibility probe PASS service=$service"
+          } else {
+            if ($service -ne "SUPRA_AGENT_OPERATIONS_GATEWAY_D160") {
+              throw "D160 main release is blocked until the existing Agent gateway is migrated to SUPRA_AGENT_OPERATIONS_GATEWAY_D160."
+            }
+            Write-Host "D160 main Agent operations gateway probe PASS"
+          }
 
       - name: Build Agent-owned WebView2 host
         shell: pwsh
