@@ -167,8 +167,18 @@ jobs:
           trap 'rm -f "$tmp"' EXIT
           code="$(curl -sS -o "$tmp" -w '%{http_code}' -G             -H "Authorization: Bearer $token"             -H "X-Goog-User-Project: $project"             --data-urlencode 'filter=metric.type="firestore.googleapis.com/document/read_ops_count" AND resource.type="firestore.googleapis.com/Database" AND resource.labels.database_id="(default)"'             --data-urlencode "interval.startTime=$start"             --data-urlencode "interval.endTime=$end"             --data-urlencode 'view=FULL'             --data-urlencode 'pageSize=5'             "https://monitoring.googleapis.com/v3/projects/$project/timeSeries")"
           if [ "$code" != "200" ]; then
-            echo "D159 provider canary failed HTTP $code"
-            jq -r '.error.status // "UNKNOWN_STATUS", (.error.details[]?.reason // empty)' "$tmp" 2>/dev/null || true
+            status="$(jq -r '.error.status // "UNKNOWN_STATUS"' "$tmp" 2>/dev/null || echo UNKNOWN_STATUS)"
+            reason="$(jq -r '[.error.details[]?.reason // empty][0] // ""' "$tmp" 2>/dev/null || true)"
+            message="$(jq -r '.error.message // ""' "$tmp" 2>/dev/null || true)"
+            upper="$(printf '%s' "$message" | tr '[:lower:]' '[:upper:]')"
+            category="PERMISSION_OR_PROVIDER_UNKNOWN"
+            if [[ "$upper" == *"MONITORING.TIMESERIES.LIST"* ]]; then category="MISSING_MONITORING_TIMESERIES_LIST"
+            elif [[ "$upper" == *"SERVICEUSAGE.SERVICES.USE"* ]]; then category="MISSING_SERVICEUSAGE_SERVICES_USE"
+            elif [[ "$upper" == *"INSUFFICIENT AUTHENTICATION SCOPES"* ]]; then category="OAUTH_SCOPE_INSUFFICIENT"
+            elif [[ "$upper" == *"API HAS NOT BEEN USED"* || "$upper" == *"API IS DISABLED"* || "$upper" == *"SERVICE_DISABLED"* ]]; then category="MONITORING_API_DISABLED"
+            elif [[ "$upper" == *"QUOTA PROJECT"* ]]; then category="QUOTA_PROJECT_REQUIRED"
+            fi
+            echo "D159 provider canary failed HTTP $code status=$status reason=${reason:-NONE} category=$category"
             exit 1
           fi
           jq -e 'has("timeSeries") or . == {} or (.timeSeries | type == "array")' "$tmp" >/dev/null
