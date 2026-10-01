@@ -31,12 +31,58 @@ namespace SupraInventoryRelayAgent
     internal static class D157PendingWakeSignal
     {
         private static readonly AutoResetEvent Wake = new AutoResetEvent(false);
+        private static readonly object Gate = new object();
+        private static readonly Queue<Google.Cloud.Firestore.V1.Document> PendingDocuments =
+            new Queue<Google.Cloud.Firestore.V1.Document>();
+        private static readonly HashSet<string> PendingKeys = new HashSet<string>(StringComparer.Ordinal);
         private static long _lastPulseUtcTicks;
+        private static int _connected;
 
-        internal static void Pulse()
+        internal static bool IsConnected { get { return Interlocked.CompareExchange(ref _connected, 0, 0) != 0; } }
+
+        internal static void MarkConnected(bool connected)
+        {
+            Interlocked.Exchange(ref _connected, connected ? 1 : 0);
+        }
+
+        internal static void Pulse(Google.Cloud.Firestore.V1.Document document)
         {
             Interlocked.Exchange(ref _lastPulseUtcTicks, DateTime.UtcNow.Ticks);
+            if (document != null)
+            {
+                var update = document.UpdateTime == null ? "" : document.UpdateTime.ToString();
+                var key = (document.Name ?? "") + "|" + update;
+                lock (Gate)
+                {
+                    if (PendingKeys.Add(key))
+                    {
+                        PendingDocuments.Enqueue(document);
+                        while (PendingDocuments.Count > 256)
+                        {
+                            var dropped = PendingDocuments.Dequeue();
+                            var droppedUpdate = dropped.UpdateTime == null ? "" : dropped.UpdateTime.ToString();
+                            PendingKeys.Remove((dropped.Name ?? "") + "|" + droppedUpdate);
+                        }
+                    }
+                }
+            }
             try { Wake.Set(); } catch { }
+        }
+
+        internal static List<Google.Cloud.Firestore.V1.Document> DrainDocuments(int max)
+        {
+            var result = new List<Google.Cloud.Firestore.V1.Document>();
+            lock (Gate)
+            {
+                while (PendingDocuments.Count > 0 && result.Count < Math.Max(1, max))
+                {
+                    var item = PendingDocuments.Dequeue();
+                    var update = item.UpdateTime == null ? "" : item.UpdateTime.ToString();
+                    PendingKeys.Remove((item.Name ?? "") + "|" + update);
+                    result.Add(item);
+                }
+            }
+            return result;
         }
 
         internal static bool HasRecentPulse(TimeSpan age)
@@ -246,11 +292,13 @@ namespace SupraInventoryRelayAgent
                             {
                                 accepted = true;
                                 backoff = FirestoreD157Grpc.InitialRetryMs;
+                                D157PendingWakeSignal.MarkConnected(true);
                                 _log("D157 FAST_PATH listen=CONNECTED primary_only=true");
                             }
 
                             if (!_enabled() || !FirestoreQuotaGuard.AllowOptionalFastPath())
                             {
+                                D157PendingWakeSignal.MarkConnected(false);
                                 _log("D157 FAST_PATH listen=PAUSE reason=ROLE_OR_READ_BUDGET");
                                 break;
                             }
@@ -261,11 +309,11 @@ namespace SupraInventoryRelayAgent
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_REMOVE", _log);
                             if (!changed) continue;
                             FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_EVENT", _log);
-                            D157PendingWakeSignal.Pulse();
+                            D157PendingWakeSignal.Pulse(response.DocumentChange.Document);
                         }
                     }
                 }
-                catch (OperationCanceledException) { return; }
+                catch (OperationCanceledException) { D157PendingWakeSignal.MarkConnected(false); return; }
                 catch (RpcException ex)
                 {
                     permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
@@ -283,6 +331,7 @@ namespace SupraInventoryRelayAgent
                 }
                 finally
                 {
+                    D157PendingWakeSignal.MarkConnected(false);
                     if (channel != null)
                     {
                         try { await channel.ShutdownAsync().ConfigureAwait(false); } catch { }
