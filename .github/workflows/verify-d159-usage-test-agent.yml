@@ -88,7 +88,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $program = Get-Content usage-test-agent/Program.cs -Raw
+          $program = ((Get-ChildItem usage-test-agent -Filter "*.cs" | ForEach-Object { Get-Content $_.FullName -Raw }) -join "`n")
           $config = Get-Content usage-test-agent/UsageTestConfig.cs -Raw
           $script = Get-Content ops/apps-script/firestore-usage-gateway-d159/Code.gs -Raw
           $manifest = Get-Content ops/apps-script/firestore-usage-gateway-d159/appsscript.json -Raw
@@ -98,9 +98,15 @@ jobs:
             'ProtectedData.Unprotect',
             'get_firestore_usage',
             'RefreshMinutes = 15',
-            'SUPRA Firestore Usage Test',
+            'SUPRA Firebase Usage Test',
+            'D159-v3',
+            'Thông tin Usage',
+            'Chỉ tamnv2 / admin khi tích hợp Agent',
             'D159_GATEWAY_NOT_CONFIGURED',
-            'readsAvailable ? QuotaText',
+            'QuotaTextV3',
+            'ByteQuotaText',
+            'firebase_24h',
+            'functions_24h',
             'rulesAvailable ? Number',
             ': "N/A"',
             'BuildProviderFailureStatus',
@@ -132,6 +138,15 @@ jobs:
             'firestore.googleapis.com/network/active_connections',
             'firestore.googleapis.com/network/snapshot_listeners',
             'firestore.googleapis.com/rules/evaluation_count',
+            'firestore.googleapis.com/storage/data_and_index_storage_bytes',
+            'serviceruntime.googleapis.com/api/request_count',
+            'run.googleapis.com/request_count',
+            'run.googleapis.com/container/instance_count',
+            'run.googleapis.com/container/billable_instance_time',
+            "fcm.googleapis.com",
+            "identitytoolkit.googleapis.com",
+            "securetoken.googleapis.com",
+            "inventory-beta-picker-alerts",
             'CACHE_TTL_SECONDS = 15 * 60',
             'ROLE_ALLOWLIST',
             'ADMIN',
@@ -145,7 +160,8 @@ jobs:
             'monitoringFailureCode_',
             'MONITORING_HTTP_',
             "'X-Goog-User-Project': PROJECT_ID",
-            "D159_FIRESTORE_USAGE_V3_QUOTA_PROJECT",
+            "D159_FIREBASE_USAGE_V4_MULTI_SERVICE",
+            "D159-GW-v4",
             "MISSING_MONITORING_TIMESERIES_LIST"
           )) {
             if (-not $script.Contains($marker)) {
@@ -246,6 +262,39 @@ jobs:
           jq -e 'has("timeSeries") or . == {} or (.timeSeries | type == "array")' "$tmp" >/dev/null
           echo "D159 Cloud Monitoring provider canary PASS"
 
+      - name: Prove D159 v3 Firebase metric families
+        if: env.FIREBASE_RULES_SA_JSON_BETA != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          project="supra-inventory-beta"
+          token="$(gcloud auth print-access-token)"
+          end="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          start="$(date -u -d '30 minutes ago' +%Y-%m-%dT%H:%M:%SZ)"
+
+          probe() {
+            local name="$1"
+            local filter="$2"
+            local tmp
+            tmp="$(mktemp)"
+            local code
+            code="$(curl -sS -o "$tmp" -w '%{http_code}' -G               -H "Authorization: Bearer $token"               -H "X-Goog-User-Project: $project"               --data-urlencode "filter=$filter"               --data-urlencode "interval.startTime=$start"               --data-urlencode "interval.endTime=$end"               --data-urlencode 'view=FULL'               --data-urlencode 'pageSize=5'               "https://monitoring.googleapis.com/v3/projects/$project/timeSeries")"
+            if [ "$code" != "200" ]; then
+              status="$(jq -r '.error.status // "UNKNOWN_STATUS"' "$tmp" 2>/dev/null || echo UNKNOWN_STATUS)"
+              echo "D159 v3 metric probe failed name=$name HTTP=$code status=$status"
+              rm -f "$tmp"
+              exit 1
+            fi
+            rm -f "$tmp"
+            echo "D159 v3 metric probe PASS name=$name"
+          }
+
+          probe "firestore-storage" 'metric.type="firestore.googleapis.com/storage/data_and_index_storage_bytes" AND resource.type="firestore.googleapis.com/Database" AND resource.labels.database_id="(default)"'
+          probe "fcm-api" 'metric.type="serviceruntime.googleapis.com/api/request_count" AND resource.type="consumed_api" AND resource.labels.service="fcm.googleapis.com"'
+          probe "identity-toolkit-api" 'metric.type="serviceruntime.googleapis.com/api/request_count" AND resource.type="consumed_api" AND resource.labels.service="identitytoolkit.googleapis.com"'
+          probe "secure-token-api" 'metric.type="serviceruntime.googleapis.com/api/request_count" AND resource.type="consumed_api" AND resource.labels.service="securetoken.googleapis.com"'
+          probe "picker-alert-function" 'metric.type="run.googleapis.com/request_count" AND resource.type="cloud_run_revision" AND resource.labels.service_name="inventory-beta-picker-alerts"'
+
       - name: Inject bounded Beta build configuration
         shell: pwsh
         run: |
@@ -289,7 +338,8 @@ jobs:
               $response = Invoke-RestMethod -Uri $url -Method Get -TimeoutSec 20
               if ($response.ok -eq $true -and
                   $response.service -eq "SUPRA_FIRESTORE_USAGE_GATEWAY_D159" -and
-                  $response.project -eq "supra-inventory-beta") {
+                  $response.project -eq "supra-inventory-beta" -and
+                  $response.revision -eq "D159-GW-v4") {
                 $passed = $true
                 break
               }
@@ -309,7 +359,7 @@ jobs:
       - name: Run D159 parser self-test
         shell: pwsh
         run: |
-          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firestore Usage Test.exe" | Select-Object -First 1
+          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firebase Usage Test.exe" | Select-Object -First 1
           if ($null -eq $exe) { throw "D159 EXE missing." }
           $process = Start-Process -FilePath $exe.FullName -ArgumentList "--self-test" -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "D159 self-test failed with exit code $($process.ExitCode)." }
@@ -317,18 +367,18 @@ jobs:
       - name: Verify D159 standalone output
         shell: pwsh
         run: |
-          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firestore Usage Test.exe" | Select-Object -First 1
+          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firebase Usage Test.exe" | Select-Object -First 1
           if ($null -eq $exe) { throw "D159 EXE missing." }
           $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $($exe.Name)" | Set-Content "usage-test-agent/dist/SUPRA.Firestore.Usage.Test.exe.sha256" -Encoding ASCII
+          "$hash  $($exe.Name)" | Set-Content "usage-test-agent/dist/SUPRA.Firebase.Usage.Test.exe.sha256" -Encoding ASCII
           Write-Host "D159 configured=$env:D159_CONFIGURED size=$($exe.Length) sha256=$hash"
 
       - uses: actions/upload-artifact@v4
         with:
           name: d159-firestore-usage-test-${{ github.sha }}
           path: |
-            usage-test-agent/dist/SUPRA Firestore Usage Test.exe
-            usage-test-agent/dist/SUPRA.Firestore.Usage.Test.exe.sha256
+            usage-test-agent/dist/SUPRA Firebase Usage Test.exe
+            usage-test-agent/dist/SUPRA.Firebase.Usage.Test.exe.sha256
           if-no-files-found: error
 
       - name: Publish configured D159 field-test prerelease
@@ -337,11 +387,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "d159-usage-test-v2"
-          $exe = "usage-test-agent/dist/SUPRA Firestore Usage Test.exe"
-          $sha = "usage-test-agent/dist/SUPRA.Firestore.Usage.Test.exe.sha256"
+          $tag = "d159-usage-test-v3"
+          $exe = "usage-test-agent/dist/SUPRA Firebase Usage Test.exe"
+          $sha = "usage-test-agent/dist/SUPRA.Firebase.Usage.Test.exe.sha256"
           if (gh release view $tag --repo "${{ github.repository }}" 2>$null) {
             gh release upload $tag $exe $sha --clobber --repo "${{ github.repository }}"
           } else {
-            gh release create $tag $exe $sha --prerelease --target "${{ github.sha }}" --title "D159 Firestore Usage Test v2" --notes "Isolated Beta field-test utility. No login UI, no WMS, no Firestore business operations, no D158 Agent v94 mutation. Requires an existing local Agent DPAPI session and the separate D159 Apps Script Usage Gateway."
+            gh release create $tag $exe $sha --prerelease --target "${{ github.sha }}" --title "D159 Firebase Usage Test v3" --notes "Isolated Beta D159-v3 field-test utility with Firestore, Firebase Auth, FCM and Cloud Functions provider metrics. No login UI, no WMS, no Firestore business operations, no D158 Agent v94 mutation. Requires an existing local Agent DPAPI session and the separate D159 Apps Script Usage Gateway."
           }
