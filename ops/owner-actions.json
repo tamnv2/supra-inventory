@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "FIELD_403_CONFIRMED__GW_V3_REPAIR_AND_PROVIDER_CANARY_ACTIVE",
+      "status": "OWNER_IAM_API_ACTION_REQUIRED__D159_403_ROOT_CAUSE_CONFIRMED",
       "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4277,7 +4277,12 @@
         "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "None until the D159 provider canary and authority gates pass. After merge, Owner will only need to paste the updated repo-managed Code.gs into the existing D159 Apps Script project and deploy a new Web App version; existing URL and D159-v2 EXE remain usable.",
+      "remaining_owner_action": [
+        "In Google Cloud Console project supra-inventory-beta, ensure Cloud Monitoring API is enabled.",
+        "In IAM, grant role Service Usage Consumer (roles/serviceusage.serviceUsageConsumer) to the Google account that deploys the D159 Apps Script Web App.",
+        "Grant the same Service Usage Consumer role to inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com so automated provider canary can verify the exact query.",
+        "Update existing D159 Apps Script Code.gs from repo branch fix/d159-monitoring-403 and deploy a new version using the same Web App deployment URL. No API key/token needs to be sent in chat."
+      ],
       "closed": false,
       "owner_report": {
         "date": "2026-10-01",
@@ -4316,6 +4321,13 @@
           "Worker",
           "Stable"
         ]
+      },
+      "diagnostic_evidence": {
+        "workflow_run": 36893601587,
+        "monitoring_api": "NOT_CONFIRMED",
+        "ci_monitoring_timeSeries_list": false,
+        "ci_serviceusage_services_use": false,
+        "apps_script_field_code": "MONITORING_HTTP_403"
       }
     }
   ]
