@@ -3902,7 +3902,7 @@
     }
   },
   "apps_script_automation_probe": {
-    "status": "BLOCKED_OWNER_SECRET_FORMAT__MAIN_CANARY_FAILED_BEFORE_CREATE",
+    "status": "SECRET_VALID__RUNTIME_REACHED_REDEPLOY__BOUNDED_LIST_CONSISTENCY_REPAIR_ACTIVE",
     "approved_at": "2026-10-02",
     "accepted_base": "D159",
     "d160_status": "NOT_OPENED",
@@ -3911,16 +3911,30 @@
     "workflow": ".github/workflows/probe-apps-script-automation.yml",
     "clasp_version": "3.4.1",
     "provider_mutation_policy": "PR_STATIC_VALIDATE_ONLY__MAIN_PUSH_CANARY_ONLY",
-    "cleanup_policy": "UNDEPLOY_VERSIONED_DEPLOYMENT_THEN_DELETE_TEMPORARY_SCRIPT_IN_SAME_RUN__BEST_EFFORT_EXIT_TRAP_ON_FAILURE",
+    "cleanup_policy": "EXIT_TRAP_RETAINED__NEXT_RUN_ADDS_BOUNDED_LIST_POLL_AND_EXPLICIT_UNDEPLOY_DELETE_SCRIPT_VERIFICATION",
     "secret_policy": "CLASPRC_JSON_GITHUB_ENV_BETA_ONLY__NO_VALUE_IN_REPO_CHAT_OR_LOG",
     "business_runtime_impact": "NONE__D159_ACCEPTED_BASE_UNCHANGED__AGENT_V94_ANDROID_VC92_WEB_WORKER_FIREBASE_BUSINESS_PATH_STABLE_UNCHANGED",
     "pass_definition": "MAIN_CANARY_FULL_LIFECYCLE_PASS_AND_TEMP_RESOURCE_DELETED",
     "fail_definition": "KEEP_D159_ACCEPTED_BASE__DO_NOT_OPEN_D160__REPAIR_CAPABILITY_PROBE_ONLY",
     "main_workflow_run": 36909919971,
-    "failure_stage": "CLASPRC_JSON_JSON_PARSE__BEFORE_CANARY_STAGE_CREATE",
+    "failure_stage": "POST_REDEPLOY_LIST_VISIBILITY_VERIFY",
     "provider_resource_created": false,
     "cleanup_required": false,
     "blocker": "GITHUB_ENV_BETA_SECRET_CLASPRC_JSON_IS_NOT_VALID_JSON__OWNER_MUST_REPLACE_SECRET_VALUE_WITH_EXACT_RAW_CONTENT_OF_LOCAL_TILDE_CLASPRC_JSON",
-    "next_action": "OWNER_REPLACE_CLASPRC_JSON_SECRET__AI_RERUN_FAILED_WORKFLOW_JOBS"
+    "next_action": "MERGE_CANARY_REPAIR_AFTER_GATES__RUN_MAIN_FULL_LIFECYCLE__REQUIRE_VERIFIED_CLEANUP",
+    "latest_attempt": 2,
+    "secret_parse": "PASS",
+    "proven_capabilities": [
+      "CREATE_SCRIPT",
+      "PUSH_CONTENT_V1",
+      "CREATE_VERSION_V1",
+      "CREATE_DEPLOYMENT",
+      "LIST_DEPLOYMENTS_V1",
+      "PUSH_CONTENT_V2",
+      "CREATE_VERSION_V2",
+      "UPDATE_DEPLOYMENT"
+    ],
+    "interpretation": "PERMISSION_PATH_WORKING__REDEPLOY_RESPONSE_VERIFIED__FOLLOWUP_LIST_CAN_LAG_PROVIDER_CONSISTENCY",
+    "owner_action_required": false
   }
 }
