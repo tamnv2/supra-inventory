@@ -841,4 +841,25 @@ D158 is Windows-Agent-only; beta-vc92 remains unchanged.
 - PRIMARY health includes coordination plus business transport. NEXT_A/NEXT_B health is based on their own coordination/lease/role responsibilities; DEEP is presented as sleeping/standby rather than falsely offline when its bounded coordination path is healthy.
 - Agent-local Nhận/Đã xử lý/Thành công/Lỗi and overlay counters use the business day starting at 05:00 Asia/Ho_Chi_Minh. A sleeping/resumed process detects a changed business-day key before rendering or incrementing.
 - A request created before 05:00 but terminally processed after 05:00 belongs to the new Agent display-counter day. This does not alter the immutable Android request/ACK document contract.
+## D160 Agent confirmation workflow
+
+- One PRIMARY Agent micro-batch contains at most 15 requests. Arrival does not wait a fixed three seconds merely to fill a batch.
+- Agent performs one multi-term WMS lookup and classifies every request independently. READY, true NOT_FOUND, ambiguous, locked, technical-unavailable and checkbox-not-ready are not batch-wide states.
+- READY targets are grouped by exact full PickListCode, guarded per unique target, generation-fenced, then selected together. READY and other fast terminal outcomes are ACKed before any deferred checkbox recovery.
+- Checkbox-not-ready targets receive at most one shared bounded recovery wave. They do not delay already-terminal fast-lane outcomes.
+- A zero/unhydrated WMS table is technical `WMS_DATA_UNAVAILABLE`, not user NOT_FOUND and not a strike.
+- Before any final click Agent requires a clean selection: no stale dialog, no foreign checked checkbox and exactly one usable checkbox for every frozen target.
+- One WMS bulk wave uses one final confirmation dialog. After the final dialog click, only a newly created success/error surface is terminal business evidence. Reload, dialog close, row presence or row disappearance are not success evidence.
+- A post-click uncertain target remains confirmation-guarded and may only be observed/read; it must not be confirmed again.
+- Normal target is 5–10 seconds end-to-end with hard product target ≤20 seconds. The mutation-start fence reserves time for WMS final click, terminal evidence and Firestore ACK.
+- Android beta-vc92 remains unchanged and continues the accepted D157/D158 request/ACK contract.
+
+### D160 Agent Usage, Logs and history
+
+- `Thông tin Usage` exists only for exact normalized Agent login `tamnv2` or `admin`. For every other Agent account the tab is absent, the 15-minute timer is stopped and no Usage gateway request is sent.
+- `Kết nối` is renamed `Cài đặt`; connectivity testing and PickList overlay settings retain their accepted behavior.
+- Operational and technical log evidence is unified in one sanitized local stream. Logs are no longer rendered continuously into user-facing audit/technical tabs.
+- Cài đặt exposes basic Logs information, local open-file access and manual upload through the existing support-log path.
+- `Lịch sử Picker xác nhận PickList` is a local projection of already-received request/outcome data plus already-held Picker metadata. It does not add a Firestore listener, poll, read, write or collection.
+- History day boundary is 05:00 Asia/Ho_Chi_Minh and displays time, MNV/user, name, contractor, sent text, result, resolved full PickList and processing time.
 
