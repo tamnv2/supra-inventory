@@ -635,6 +635,7 @@ namespace SupraInventoryRelayAgent
             "Agent Auto Confirm Pick Pack", "RelayPoc");
         private static readonly string SessionFile = Path.Combine(RelayDataDir, "session.bin");
         private static readonly string AgentInstanceFile = Path.Combine(RelayDataDir, "agent-instance-id.txt");
+        private static readonly string AgentRoleHintFile = Path.Combine(RelayDataDir, "agent-role-hints.json");
         private static readonly string ExitVerifierFile = Path.Combine(RelayDataDir, "exit-verifier.bin");
         private static readonly string AgentLogUploadCheckpointFile = Path.Combine(RelayDataDir, "agent-log-upload-checkpoint.txt");
         private static readonly string AfterHoursStateFile = Path.Combine(RelayDataDir, "after-hours-state.txt");
@@ -3563,7 +3564,9 @@ namespace SupraInventoryRelayAgent
                 { "password", password },
                 { "returnSecureToken", true }
             });
-            var root = Map(_json.DeserializeObject(RequestJson("POST", url, payload, "application/json")));
+            // D158 hotfix: a 400 here is a role/credential probe miss until both
+            // allowed Agent role forms have failed. Do not emit a false error bundle.
+            var root = Map(_json.DeserializeObject(RequestJson("POST", url, payload, "application/json", true)));
             var idToken = MapString(root, "idToken");
             var refreshToken = MapString(root, "refreshToken");
             var expires = ParseInt(root, "expiresIn", 3600);
@@ -3601,26 +3604,32 @@ namespace SupraInventoryRelayAgent
                 throw new InvalidOperationException("Nhập mật khẩu Agent.");
 
             Log("Firebase Agent login START host=identitytoolkit.googleapis.com ssid=" + GetSsid());
+            var preferredRole = LoadAgentRoleHint(identifier);
+            var roles = string.Equals(preferredRole, "PICKPACK_ADMIN", StringComparison.Ordinal)
+                ? new[] { "PICKPACK_ADMIN", "ADMIN" }
+                : new[] { "ADMIN", "PICKPACK_ADMIN" };
+
             RelayHttpException firstCredentialFailure = null;
-            try
+            foreach (var role in roles)
             {
-                return FirebasePasswordLoginForRole(identifier, password, "ADMIN");
-            }
-            catch (RelayHttpException ex)
-            {
-                if (ex.StatusCode != 400) throw;
-                firstCredentialFailure = ex;
+                try
+                {
+                    var session = FirebasePasswordLoginForRole(identifier, password, role);
+                    SaveAgentRoleHint(identifier, role);
+                    return session;
+                }
+                catch (RelayHttpException ex)
+                {
+                    if (ex.StatusCode != 400) throw;
+                    if (firstCredentialFailure == null) firstCredentialFailure = ex;
+                    AgentDiagnostics.Write("AUTH ROLE_PROBE result=MISS role=" + role);
+                }
             }
 
-            try
-            {
-                return FirebasePasswordLoginForRole(identifier, password, "PICKPACK_ADMIN");
-            }
-            catch (RelayHttpException ex)
-            {
-                if (ex.StatusCode != 400) throw;
-                throw firstCredentialFailure ?? ex;
-            }
+            // Both valid Agent role identities rejected the credential. This is the
+            // single canonical login error; probe misses above stay diagnostic-only.
+            AgentDiagnostics.Write("AUTH LOGIN result=FAIL reason=CREDENTIAL_OR_ROLE");
+            throw firstCredentialFailure ?? new RelayHttpException(400, "Agent login rejected.", "Firebase Agent login");
         }
 
         private void PairLogin()
@@ -4252,6 +4261,24 @@ namespace SupraInventoryRelayAgent
         {
             var outcomes = new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal);
             if (works == null || works.Count == 0) return outcomes;
+
+            // D158 hotfix defense-in-depth: even if a future transport refactor
+            // regresses ingress dedupe, business work remains one item per RequestId.
+            var uniqueWorks = new List<FirestoreConfirmationWorkItem>();
+            var businessRequestIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var work in works)
+            {
+                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
+                if (!businessRequestIds.Add(work.RequestId))
+                {
+                    AgentDiagnostics.WriteAudit(
+                        "PDA_CONFIRM_DUPLICATE business=SKIP request=" + Short(work.RequestId));
+                    continue;
+                }
+                uniqueWorks.Add(work);
+            }
+            works = uniqueWorks;
+            if (works.Count == 0) return outcomes;
             if (works.Count > FirestoreConfirmationTransport.MaxConcurrentJobs)
                 throw new InvalidOperationException("Confirmation batch exceeds bounded job limit.");
 
@@ -4486,8 +4513,17 @@ namespace SupraInventoryRelayAgent
             }
 
             var browserMutationCount = 0;
+            var mutationRequestIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var work in eligible)
             {
+                if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) continue;
+                if (!mutationRequestIds.Add(work.RequestId))
+                {
+                    AgentDiagnostics.WriteAudit(
+                        "PDA_CONFIRM_DUPLICATE mutation=BLOCK request=" + Short(work.RequestId));
+                    continue;
+                }
+
                 FirestoreConfirmationGuardDecision guard;
                 string code;
                 if (!guardsByRequest.TryGetValue(work.RequestId ?? "", out guard) ||
@@ -4918,7 +4954,12 @@ namespace SupraInventoryRelayAgent
             return AgentConfig.DatabaseUrl.TrimEnd('/') + "/relay_poc/jobs/" + Uri.EscapeDataString(id) + ".json?auth=" + Uri.EscapeDataString(s.IdToken);
         }
 
-        private static string RequestJson(string method, string url, string body, string contentType)
+        private static string RequestJson(
+            string method,
+            string url,
+            string body,
+            string contentType,
+            bool expectedHttp400 = false)
         {
             var started = Stopwatch.StartNew();
             var req = (HttpWebRequest)WebRequest.Create(url);
@@ -4954,7 +4995,10 @@ namespace SupraInventoryRelayAgent
             catch (WebException ex)
             {
                 started.Stop();
-                var converted = ToRelayHttpException(ex, method + " " + AgentDiagnostics.SafeUrl(url));
+                var converted = ToRelayHttpException(
+                    ex,
+                    method + " " + AgentDiagnostics.SafeUrl(url),
+                    expectedHttp400);
                 AgentDiagnostics.Write("HTTP FAIL method=" + method + " url=" + AgentDiagnostics.SafeUrl(url) +
                     " status=" + converted.StatusCode + " ms=" + started.ElapsedMilliseconds +
                     " detail=" + converted.Detail);
@@ -4962,7 +5006,10 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private static RelayHttpException ToRelayHttpException(WebException ex, string operation)
+        private static RelayHttpException ToRelayHttpException(
+            WebException ex,
+            string operation,
+            bool expectedHttp400 = false)
         {
             var response = ex.Response as HttpWebResponse;
             if (response == null)
@@ -5003,12 +5050,61 @@ namespace SupraInventoryRelayAgent
                 safeDetail = AgentDiagnostics.Sanitize(statusDescription).Trim();
 
             AgentDiagnostics.Write(
-                "HTTP ERROR RESPONSE status=" + statusCode +
+                (expectedHttp400 && statusCode == 400
+                    ? "HTTP EXPECTED RESPONSE"
+                    : "HTTP ERROR RESPONSE") +
+                " status=" + statusCode +
                 " host=" + responseHost +
                 " content_type=" + contentType +
                 " web_exception=" + ex.Status);
 
             return new RelayHttpException(statusCode, safeDetail, operation);
+        }
+
+        private string LoadAgentRoleHint(string identifier)
+        {
+            try
+            {
+                if (!File.Exists(AgentRoleHintFile)) return "";
+                var root = _json.DeserializeObject(File.ReadAllText(AgentRoleHintFile, Encoding.UTF8)) as Dictionary<string, object>;
+                if (root == null) return "";
+                object value;
+                var key = Fingerprint((identifier ?? "").Trim().ToLowerInvariant());
+                var role = root.TryGetValue(key, out value) ? Convert.ToString(value) ?? "" : "";
+                return string.Equals(role, "ADMIN", StringComparison.Ordinal) ||
+                       string.Equals(role, "PICKPACK_ADMIN", StringComparison.Ordinal)
+                    ? role
+                    : "";
+            }
+            catch { return ""; }
+        }
+
+        private void SaveAgentRoleHint(string identifier, string role)
+        {
+            if (!string.Equals(role, "ADMIN", StringComparison.Ordinal) &&
+                !string.Equals(role, "PICKPACK_ADMIN", StringComparison.Ordinal))
+                return;
+            try
+            {
+                Directory.CreateDirectory(RelayDataDir);
+                Dictionary<string, object> root = null;
+                if (File.Exists(AgentRoleHintFile))
+                {
+                    try
+                    {
+                        root = _json.DeserializeObject(File.ReadAllText(AgentRoleHintFile, Encoding.UTF8)) as Dictionary<string, object>;
+                    }
+                    catch { }
+                }
+                if (root == null) root = new Dictionary<string, object>(StringComparer.Ordinal);
+                var key = Fingerprint((identifier ?? "").Trim().ToLowerInvariant());
+                root[key] = role;
+                var temp = AgentRoleHintFile + ".tmp";
+                File.WriteAllText(temp, _json.Serialize(root), Encoding.UTF8);
+                if (File.Exists(AgentRoleHintFile)) File.Delete(AgentRoleHintFile);
+                File.Move(temp, AgentRoleHintFile);
+            }
+            catch { }
         }
 
         private void SaveStoredSession(AgentSession session)
