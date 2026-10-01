@@ -198,6 +198,9 @@ namespace SupraInventoryRelayAgent
                 AgentDiagnostics.TryQueueCrashUpload("STARTUP_" + ex.GetType().Name);
                 if (startupSmoke)
                 {
+                    Console.Error.WriteLine(
+                        "STARTUP_SMOKE_FAIL type=" + ex.GetType().Name +
+                        " message=" + AgentDiagnostics.Sanitize(ex.Message));
                     Environment.ExitCode = 2;
                     return;
                 }
