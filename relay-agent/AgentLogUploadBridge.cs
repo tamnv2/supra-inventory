@@ -29,7 +29,7 @@ namespace SupraInventoryRelayAgent
         private readonly Dictionary<string, ErrorBurstState> _errorBursts =
             new Dictionary<string, ErrorBurstState>(StringComparer.Ordinal);
         private readonly DateTime _processStartedLocal = DateTime.Now;
-        private DateTime _lastSizeSealLocal = DateTime.MinValue;
+        private long _lastSealWrittenBytes;
         private DateTime _nextUploadAttemptUtc = DateTime.MinValue;
         private int _uploadFailureStreak;
         private DateTime _errorWindowStartedUtc = DateTime.MinValue;
@@ -64,6 +64,7 @@ namespace SupraInventoryRelayAgent
             _cleanExitFile = Path.Combine(root, "agent-log-clean-exit.marker");
             try { Directory.CreateDirectory(_pendingDir); } catch { }
             if (ReadCheckpoint() == DateTime.MinValue) WriteCheckpoint(_processStartedLocal);
+            _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
         internal void TryQueueScheduledSnapshot()
@@ -84,17 +85,22 @@ namespace SupraInventoryRelayAgent
                 }
 
                 var dueByTime = now - checkpoint >= TimeSpan.FromMilliseconds(DirtyCheckpointMs);
-                var dueBySize = now - _lastSizeSealLocal >= TimeSpan.FromMinutes(30) &&
-                                CurrentOpenLogBytes() >= SizeCheckpointBytes;
+                var writtenSinceSeal = Math.Max(0L, AgentDiagnostics.TotalBytesWritten - _lastSealWrittenBytes);
+                var dueBySize = writtenSinceSeal >= SizeCheckpointBytes;
                 if (!dueByTime && !dueBySize) return;
 
                 var path = SealFromCheckpoint("checkpoint", "");
+                _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
                 if (!string.IsNullOrWhiteSpace(path))
                 {
-                    if (dueBySize) _lastSizeSealLocal = now;
                     TryFlushPending(session);
                     _log("AGENT LOG seal=PASS type=checkpoint reason=" +
-                         (dueBySize ? "SIZE_2MB" : "DIRTY_6H"));
+                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
+                }
+                else
+                {
+                    _log("AGENT LOG seal=SKIP_EMPTY type=checkpoint reason=" +
+                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
                 }
             }
             catch (Exception ex)
@@ -291,6 +297,7 @@ namespace SupraInventoryRelayAgent
                 }
 
                 WriteCheckpoint(now);
+                _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
                 return pendingPath;
             }
         }
@@ -458,19 +465,6 @@ namespace SupraInventoryRelayAgent
                    value.IndexOf("__", StringComparison.Ordinal) < 0 &&
                    Uri.TryCreate(value, UriKind.Absolute, out uri) &&
                    string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private long CurrentOpenLogBytes()
-        {
-            long total = 0L;
-            try
-            {
-                foreach (var path in new[] { AgentDiagnostics.DiagnosticLogFile, AgentDiagnostics.RelayAuditLogFile })
-                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
-                        total += Math.Max(0L, new FileInfo(path).Length);
-            }
-            catch { }
-            return total;
         }
 
         private AgentSession SafeSession()
