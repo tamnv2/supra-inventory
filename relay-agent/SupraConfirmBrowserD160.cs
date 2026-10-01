@@ -20,7 +20,7 @@ namespace SupraInventoryRelayAgent
 
     internal sealed partial class SupraConfirmBrowser
     {
-        internal SupraBrowserBulkConfirmResult ConfirmManyExact(IEnumerable<string> fullPickListCodes)
+        internal SupraBrowserBulkConfirmResult ConfirmManyExact(IEnumerable<string> fullPickListCodes, int terminalWaitMs = 3500, bool allowPreFinalRecovery = true)
         {
             var started = Stopwatch.StartNew();
             var result = new SupraBrowserBulkConfirmResult();
@@ -48,7 +48,7 @@ namespace SupraInventoryRelayAgent
                 var stepResult = String(step, "result");
                 var finalClicked = Bool(step, "finalClicked");
 
-                if (!finalClicked && ShouldReloadBeforeFinalClick(stepResult))
+                if (!finalClicked && allowPreFinalRecovery && ShouldReloadBeforeFinalClick(stepResult))
                 {
                     result.RecoveryReloaded = true;
                     _log("SUPRA_BROWSER d160_bulk_recovery=START reason=" + stepResult + " targets=" + codes.Count);
@@ -81,7 +81,8 @@ namespace SupraInventoryRelayAgent
                 }
 
                 result.FinalClicked = true;
-                var deadline = DateTime.UtcNow.AddMilliseconds(6000);
+                var boundedTerminalWaitMs = Math.Max(800, Math.Min(4500, terminalWaitMs));
+                var deadline = DateTime.UtcNow.AddMilliseconds(boundedTerminalWaitMs);
                 while (DateTime.UtcNow < deadline)
                 {
                     Thread.Sleep(120);
@@ -117,7 +118,7 @@ namespace SupraInventoryRelayAgent
                 }
                 else
                 {
-                    WaitForD160CleanUiNoLock(TimeSpan.FromMilliseconds(2500));
+                    WaitForD160CleanUiNoLock(TimeSpan.FromMilliseconds(900));
                 }
             }
 
