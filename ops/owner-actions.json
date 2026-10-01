@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "D159_V3_SOURCE_ACTIVE__OWNER_GW_V4_REDEPLOY_REQUIRED_AFTER_TECHNICAL_GATES",
+      "status": "OWNER_ACTION_NOW__REDEPLOY_EXISTING_D159_APPS_SCRIPT_TO_GW_V4",
       "title": "Deploy and field-test isolated D159 v3 Firebase Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4280,10 +4280,9 @@
         "Stable remains untouched."
       ],
       "remaining_owner_action": [
-        "After AI reports the D159-v3 PR technical/provider canaries PASS, update the existing D159 Apps Script Code.gs from branch feat/d159-usage-v3 and deploy a new version using the same Web App deployment URL.",
-        "Do not create a new Apps Script project, API key or deployment URL; keep the existing Script Property and deployment.",
-        "Tell AI the GW-v4 redeploy is done so the gateway revision probe can PASS, the PR can merge and d159-usage-test-v3 can be published.",
-        "Open the published v3 EXE on the Windows account with the saved Agent session, press Cập nhật ngay once, review the Vietnamese Firestore/Auth/FCM/Functions values and report PASS or the exact mismatch."
+        "Open the existing D159 Apps Script project. Replace only Code.gs with ops/apps-script/firestore-usage-gateway-d159/Code.gs from PR #354 / branch feat/d159-usage-v3.",
+        "Deploy > Manage deployments > Edit > New version > Deploy. Keep the same Web App deployment URL and existing Script Property; appsscript.json scopes are unchanged.",
+        "Tell AI 'GW-v4 done'. AI will rerun PR #354, require revision D159-GW-v4, merge only after all gates PASS, publish d159-usage-test-v3, then hand the v3 EXE to Owner for field acceptance."
       ],
       "closed": false,
       "owner_report": {
@@ -4356,6 +4355,14 @@
         "release_target": "d159-usage-test-v3",
         "future_agent_usage_visibility": "EXACT_LOGIN_TAMNV2_OR_ADMIN_ONLY__OTHER_USERS_TAB_HIDDEN_NO_TIMER_NO_GATEWAY",
         "next_change_gate": "NO_NEXT_CHANGE_IS_OPENED_UNTIL_D159_OWNER_PASS"
+      },
+      "v3_technical_evidence": {
+        "pr": 354,
+        "workflow_run": 36902749377,
+        "metric_family_canaries": "PASS__FIRESTORE_STORAGE_FCM_IDENTITY_TOOLKIT_SECURE_TOKEN_PICKER_ALERT_CLOUD_RUN",
+        "windows_build": "PASS__43008_BYTES__SHA256_C7D7E0DE9AFB3E9AA4B61DD1E64FE4B61D9FF4A7A2DE062A44F81682BEC7FF37",
+        "self_test": "PASS",
+        "blocking_gate": "EXISTING_WEB_APP_STILL_PRE_GW_V4__REVISION_PROBE_FAIL_EXPECTED"
       }
     }
   ]
