@@ -178,16 +178,55 @@ jobs:
           clasp --json create-deployment             --deploymentId "$deployment_id"             --versionNumber "$version"             --description "D160 unified Agent operations gateway $GITHUB_RUN_ID"             > redeploy.json 2>/dev/null || fail "redeploy"
           jq --arg id "$deployment_id" --arg v "$version" -e             '.deploymentId==$id and ((.versionNumber|tostring)==$v)' redeploy.json >/dev/null || fail "redeploy-verify"
 
+          # Apps Script control-plane redeploy may become visible at the public
+          # Web App URL a little later. Verify the control-plane version first, then
+          # probe the same existing URL with a cache-busting query. Diagnostics expose
+          # only HTTP/service/project/revision, never deployment/script IDs or tokens.
+          deployment_version_ok=false
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            clasp --json list-deployments > deployments-after.json 2>/dev/null || fail "list-deployments-after"
+            if jq --arg id "$deployment_id" --arg v "$version" -e \
+              'map(select(.deploymentId==$id and ((.versionNumber|tostring)==$v)))|length==1' \
+              deployments-after.json >/dev/null; then
+              deployment_version_ok=true
+              break
+            fi
+            sleep 3
+          done
+          [ "$deployment_version_ok" = true ] || fail "redeploy-control-plane-version"
+          echo "D160_REDEPLOY_CONTROL_PLANE=PASS"
+
           identity_ok=false
-          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
-            http="$(curl -L -sS -o identity.json -w '%{http_code}' "$AGENT_LOG_GATEWAY_URL_BETA" || true)"
-            if [ "$http" = "200" ] && jq -e               '.ok==true and .service=="SUPRA_AGENT_OPERATIONS_GATEWAY_D160" and .project=="supra-inventory-beta"'               identity.json >/dev/null 2>&1; then
+          last_http="0"
+          last_service=""
+          last_project=""
+          last_revision=""
+          for attempt in $(seq 1 60); do
+            probe_url="$AGENT_LOG_GATEWAY_URL_BETA?d160_probe=${version}_${attempt}"
+            http="$(curl -L -sS -o identity.json -w '%{http_code}' \
+              -H "Cache-Control: no-cache" \
+              -H "Pragma: no-cache" \
+              "$probe_url" || true)"
+            last_http="$http"
+            last_service="$(jq -r '.service // empty' identity.json 2>/dev/null || true)"
+            last_project="$(jq -r '.project // empty' identity.json 2>/dev/null || true)"
+            last_revision="$(jq -r '.revision // empty' identity.json 2>/dev/null || true)"
+            if [ "$http" = "200" ] && jq -e \
+              '.ok==true and .service=="SUPRA_AGENT_OPERATIONS_GATEWAY_D160" and .project=="supra-inventory-beta"' \
+              identity.json >/dev/null 2>&1; then
               identity_ok=true
               break
             fi
+            if [ $((attempt % 10)) -eq 0 ]; then
+              echo "D160_IDENTITY_WAIT attempt=$attempt http=${last_http:-0} service=${last_service:-EMPTY} project=${last_project:-EMPTY} revision=${last_revision:-EMPTY}"
+            fi
             sleep 5
           done
-          [ "$identity_ok" = true ] || fail "unified-gateway-identity"
+          if [ "$identity_ok" != true ]; then
+            echo "::error::D160_IDENTITY_FINAL http=${last_http:-0} service=${last_service:-EMPTY} project=${last_project:-EMPTY} revision=${last_revision:-EMPTY}"
+            fail "unified-gateway-identity"
+          fi
+          echo "D160_UNIFIED_GATEWAY_IDENTITY=PASS"
 
           # D160 must prove the *authenticated Usage POST* on the migrated Apps Script,
           # not just its public GET identity. Reuse the existing Beta Firebase Rules

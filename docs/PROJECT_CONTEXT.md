@@ -877,3 +877,11 @@ The existing closed-day Excel exporter archives the richer history, then deletes
 
 Android **beta-vc92 is hard locked and unchanged**. No new Firestore collection/provider resource/secret is introduced. Stable remains OWNER-GATED. OA090 is the final Owner field gate.
 
+## D160 provider cutover technical repair — 2026-10-02
+
+D160 implementation PR #367 passed all PR gates and merged to main `6c7106d9c6a9d41dfd675c9488f4e107e9eb66bc`. Agent v95 source/build/startup-smoke is technically clean, while Android remains hard-locked at beta-vc92.
+
+The first main Apps Script consolidation run reached the existing Agent gateway rename/move, source push, immutable version creation and deployment update, but the existing public `/exec` URL did not yet prove `SUPRA_AGENT_OPERATIONS_GATEWAY_D160` within the bounded identity window. A direct retry produced the same boundary. The workflow therefore did **not** reach the D159 retirement step; the accepted D159 standalone Usage gateway remains present and no data/provider fallback was deleted.
+
+Repair remains under the same D160 change ID. It adds control-plane deployment-version proof, cache-busting public identity polling and safe diagnostics limited to HTTP/service/project/revision. No token, Script ID or deployment ID is logged. OA090 remains pending technical release; D159 stays the accepted base and Stable remains untouched.
+
