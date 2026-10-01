@@ -2604,3 +2604,27 @@ The Owner explicitly confirmed **D158 PASS** after field validation of the offic
 - The Owner field PASS closes OA086 and accepts the provisioned Beta Apps Script support-log gateway path for Agent support-log delivery. No secret/token value is recorded.
 - Stable remains OWNER-GATED and untouched.
 - The serial change gate is unlocked for the next Owner-approved change.
+
+
+## D159 — Isolated Firestore Usage test utility — Owner approved 2026-10-01
+
+D159 starts from the **Owner-accepted D158 base** and is deliberately isolated from every accepted runtime path.
+
+Owner-approved requirements:
+- Create a separate Windows test utility named **SUPRA Firestore Usage Test**. It is not Agent v94 and must not replace, modify, inject into or share process state with Agent v94.
+- UI has exactly one operational tab: **Thông tin**. Opening the EXE immediately attempts the test; there is no login form and no unrelated Agent/PickList/WMS function.
+- Authentication is silent and read-only: the utility may read the existing Agent DPAPI CurrentUser `session.bin`, refresh the Firebase ID token in memory, and call the D159 gateway. It must never rewrite, rotate, delete or migrate the accepted Agent session file.
+- If no saved Agent session exists, fail clearly rather than adding a second login flow.
+- The D159 provider is a **new, separate Beta Google Apps Script Web App**, not the accepted D158 support-log gateway. A D159 failure may remove Usage visibility only; it must not affect support logs, PickList confirmation, HA, WMS, Android, Web or Worker.
+- The Apps Script validates Firebase ID tokens and permits only exact ADMIN or PICKPACK_ADMIN base/effective-role matches.
+- It queries only Google Cloud Monitoring metrics for the Beta Firestore default database: document reads, writes, deletes, active connections, snapshot listeners and rules evaluations (ALLOW/DENY/ERROR).
+- Provider results are globally cached for **15 minutes** in Apps Script. The EXE refreshes immediately at startup, then every 15 minutes; a manual **Cập nhật ngay** action may request the same cached path.
+- Summary presentation includes provider-quota-day Reads/Writes/Deletes against informational 50k/20k/20k reference values, realtime current + 24h peak, and Rules ALLOW/DENY/ERROR for the last 24 hours.
+- Detailed presentation is a 24-hour hourly table with Read, Write, Delete, Listener peak, Connection peak, ALLOW, DENY and ERROR.
+- Reference limits are informational only and are not represented as a billing entitlement guarantee.
+- Cloud Monitoring data may lag live provider activity by several minutes; the UI must label the source/update time accordingly.
+- D159 itself creates **zero Firestore document reads/writes/deletes** for Usage collection. It does not call WMS, Cloudflare business APIs, Drive or Android.
+- One new Beta Apps Script resource is authorized. No secret/token/key value may be committed or logged. Deployment URL is stored only in GitHub Beta environment variable `D159_USAGE_GATEWAY_URL_BETA`.
+- Stable remains OWNER-GATED and untouched.
+
+D159 technical implementation follows branch → PR → authority/continuity PASS → merge. The current connected tools cannot create/deploy a new Apps Script Web App or set the GitHub environment variable, so the only remaining manual gate after technical merge is OA087 provisioning via Web UI. Owner field PASS is required before D159 is accepted as the next base.

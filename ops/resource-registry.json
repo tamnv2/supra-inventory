@@ -312,7 +312,12 @@
       "d158_agent_sha256": "f71344f0405ba430bad62faf90ea72f4900cc7774ab0555891da1b00a8fda929",
       "d158_inventory_channel_agent_manifest_asset_id": 603147276,
       "d158_inventory_channel_agent_asset_id": 603147275,
-      "d158_inventory_channel_agent_checksum_asset_id": 603147278
+      "d158_inventory_channel_agent_checksum_asset_id": 603147278,
+      "d159_source_status": "OWNER_APPROVED__ISOLATED_USAGE_TEST_IMPLEMENTATION_ACTIVE__OWNER_PROVISIONING_PENDING",
+      "d159_usage_gateway_resource_key": "apps-script-firestore-usage-beta-d159",
+      "d159_usage_gateway_actions_variable": "D159_USAGE_GATEWAY_URL_BETA",
+      "d159_usage_test_release_target": "d159-usage-test-v1",
+      "d159_monitoring_cache_seconds": 900
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -1996,5 +2001,16 @@
     "field_gate": "PASS__OWNER_CONFIRMED_D157__2026_09_30",
     "accepted_base": "D157",
     "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
+  },
+  "d159": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "baseline": "D158_OWNER_FIELD_ACCEPTED_PASS",
+    "windows_utility": "STANDALONE_ONE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
+    "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_READ_ONLY__15M_CACHE",
+    "auth": "FIREBASE_ID_TOKEN__ADMIN_OR_PICKPACK_ADMIN_BASE_ROLE_EXACT_MATCH",
+    "provider_ops": "MONITORING_API_ONLY__ZERO_USAGE_FEATURE_FIRESTORE_DOCUMENT_READ_WRITE_DELETE",
+    "production_agent": "relay-agent-v94__UNCHANGED",
+    "android": "beta-vc92__UNCHANGED",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

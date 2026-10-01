@@ -2112,3 +2112,20 @@ Technical/runtime gates must prove:
 
 Before Owner field acceptance after the v93 field defect, the D158 hotfix must pass the normal branch → PR → authority/continuity PASS → merge path, and the existing main Agent workflow must publish official `relay-agent-v94` plus update the Agent distribution channel. A PR-only artifact and the superseded v93 runtime are not acceptable field-release substitutes. Owner field acceptance must use released v94 on real Office networking and verify: no duplicate RequestId/WMS mutation under listener+REST overlap, normal vc92 PickList latency, REST fallback when listener is unavailable, role-health/failover, final-only auth errors, connectivity incident coalescing/recovery, 05:00 rollover, Apps Script reachability and duplicate-safe Drive upload. D158 remains open until explicit Owner PASS.
 
+
+
+## D159 isolated Firestore Usage test acceptance
+
+D159 is field-accepted only after all of the following pass:
+
+1. **Isolation:** Agent v94, D158 log gateway, Android vc92, Web/Worker, WMS, Firestore relay/HA and Stable files/resources remain unchanged by the D159 implementation.
+2. **Standalone startup:** D159 EXE opens directly to one **Thông tin** tab with no login prompt and immediately starts a Usage refresh.
+3. **Read-only local auth:** on a Windows user with an existing saved Agent session, D159 obtains an ID token without modifying/deleting `session.bin`; on a user without that session it fails clearly and creates no credential file.
+4. **Gateway auth:** missing/invalid/non-ADMIN/PICKPACK_ADMIN tokens are rejected. The endpoint never serves Usage merely because the Web App URL is known.
+5. **Metrics:** Reads/Writes/Deletes, realtime current/peak, rules ALLOW/DENY/ERROR and 24 hourly rows are returned where Cloud Monitoring exposes them; partial metric failure remains explicit.
+6. **Quota safety:** one Apps Script collection miss performs only bounded Cloud Monitoring queries, then a shared 900-second Script Cache serves repeated Agent refreshes. The D159 feature creates zero Firestore document reads/writes/deletes.
+7. **Comparison:** provider-day totals and representative hourly points are plausibly aligned with Firebase/Cloud Monitoring after allowing for documented provider delay.
+8. **No side channels:** no WMS, Cloudflare business API, Drive, Sheet, Firestore REST/gRPC business operation, Android push or D158 support-log request is made by D159.
+9. **Security:** no password, refresh token, Firebase ID token, API-key value or Google credential appears in source, console output, support logs or release notes.
+10. **Release:** only a configured D159 prerelease built with the dedicated `D159_USAGE_GATEWAY_URL_BETA` may be handed to Owner for field testing. CI placeholder builds are technical artifacts only.
+11. Stable remains OWNER-GATED and untouched.

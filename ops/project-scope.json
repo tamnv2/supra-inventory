@@ -327,6 +327,22 @@
       "guard": "D158_ACCEPTED_BETA_SUPPORT_LOG_ONLY__NO_PICKLIST_HA_WMS_OR_ANDROID_DEPENDENCY__NO_FIRESTORE_INTERMEDIATE_ON_CONFIGURED_GATEWAY_PATH__STABLE_FORBIDDEN"
     },
     {
+      "key": "apps-script-firestore-usage-beta-d159",
+      "provider": "Google Apps Script",
+      "kind": "web_app",
+      "environment": "beta",
+      "name": "SUPRA Inventory Beta - Firestore Usage Gateway D159",
+      "id_source": "OWNER_PROVISIONED_FROM_REPO_MANAGED_ops/apps-script/firestore-usage-gateway-d159__DEPLOYMENT_URL_STORED_ONLY_IN_GITHUB_BETA_ENV_VAR",
+      "exposure": "public_identifier_when_deployed",
+      "status": "D159_OWNER_APPROVED__SOURCE_IMPLEMENTATION_ACTIVE__OWNER_PROVISIONING_PENDING",
+      "source_path": "ops/apps-script/firestore-usage-gateway-d159",
+      "execute_as": "OWNER",
+      "access_policy": "WEB_APP_ENDPOINT_PUBLICLY_REACHABLE__FIREBASE_ID_TOKEN_REQUIRED__ADMIN_OR_PICKPACK_ADMIN_BASE_ROLE_EXACT_MATCH",
+      "monitoring_target": "GCP_PROJECT_supra-inventory-beta__FIRESTORE_DEFAULT_DATABASE",
+      "secret_policy": "FIREBASE_WEB_API_KEY_BETA_IS_SCRIPT_PROPERTY__VALUE_NEVER_COMMITTED_OR_LOGGED",
+      "guard": "D159_USAGE_TEST_ONLY__SEPARATE_FROM_D158_LOG_GATEWAY__READ_ONLY_CLOUD_MONITORING__NO_FIRESTORE_MUTATION_WMS_CLOUDFLARE_DRIVE_ANDROID_OR_STABLE_DEPENDENCY"
+    },
+    {
       "key": "firestore-relay-beta-d091",
       "provider": "Firebase / Google Cloud",
       "kind": "firestore_database",
