@@ -4246,6 +4246,37 @@
         "date": "2026-10-01",
         "evidence": "D158 is promoted to the accepted Beta base; OA086 is closed and the serial next-change gate is unlocked."
       }
+    },
+    {
+      "id": "OA087",
+      "status": "PENDING_OWNER_PROVISIONING_AFTER_D159_TECHNICAL_MERGE",
+      "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
+      "resource_key": "apps-script-firestore-usage-beta-d159",
+      "provider": "Google Apps Script / Google Cloud Monitoring",
+      "reason_owner_only": "The connected project tools cannot create a new Apps Script project, grant the Owner Google consent, deploy its Web App, or set the GitHub beta environment variable. All source/build work is automated first; Owner action is limited to the shortest Web UI provisioning path.",
+      "prerequisites": {
+        "accepted_base": "D158_OWNER_FIELD_ACCEPTED_PASS",
+        "owner_approval": "PASS__SEPARATE_D159__2026_10_01",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action_after_technical_pass": [
+        "Create one new Google Apps Script project named SUPRA Inventory Beta - Firestore Usage Gateway D159.",
+        "Paste the repo-managed D159 Code.gs and appsscript.json, then set Script Property FIREBASE_WEB_API_KEY_BETA using the existing Beta value.",
+        "Deploy as Web App: execute as Owner; access Anyone; approve only external-request and monitoring.read scopes.",
+        "Store the resulting /exec URL in GitHub repository Environment beta variable D159_USAGE_GATEWAY_URL_BETA.",
+        "AI re-runs the merged D159 workflow, verifies the configured prerelease, then Owner opens the EXE on a Windows account that already has a saved Agent session and compares totals/hourly values with Firebase Usage."
+      ],
+      "pass_criteria": [
+        "D158 Agent v94/log gateway and all accepted business paths are unchanged.",
+        "EXE opens directly with one Thông tin tab and no login UI.",
+        "Existing Agent DPAPI session is read-only; D159 does not rewrite/delete session.bin.",
+        "Cloud Monitoring totals and hourly rows are plausible against Firebase Usage within provider delay.",
+        "D159 refresh is 15 minutes and Apps Script response is shared-cache bounded.",
+        "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "Wait for D159 technical merge; then perform the five Web UI provisioning steps above. Do not send API keys/tokens in chat.",
+      "closed": false
     }
   ]
 }
