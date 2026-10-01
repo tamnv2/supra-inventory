@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "V3_SOURCE_TECHNICAL_PASS__ALL_NEW_METRIC_CANARIES_BUILD_SELFTEST_PASS__GW_V4_OWNER_REDEPLOY_PENDING",
+    "status": "V3_TECHNICAL_PROVIDER_PASS__GW_V4_OWNER_REDEPLOY_CONFIRMED__PR_FINAL_GATES_PENDING",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3682,7 +3682,7 @@
       "run.googleapis.com/container/billable_instance_time__inventory-beta-picker-alerts"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_OWNER_REDEPLOY_EXISTING_APPS_SCRIPT_TO_D159_GW_V4_THEN_RERUN_PR",
+    "field_gate": "OA087_READY_AFTER_PR_MERGE_AND_V3_PRERELEASE_FOR_OWNER_FIELD_TEST",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
     "implementation_pr": 346,
@@ -3703,7 +3703,7 @@
     "technical_result": "PASS__PR346_ALL_REQUIRED_GATES__MAIN_AUTHORITY_STATE_UI_DASHBOARD_D159_BUILD_PASS",
     "owner_provisioning": {
       "reported_at": "2026-10-01",
-      "reported_status": "DONE_BY_OWNER__IAM_API_GW_V3_REDEPLOY_CONFIRMED",
+      "reported_status": "DONE_BY_OWNER__GW_V4_REDEPLOY_CONFIRMED",
       "verification_required": [
         "GITHUB_BETA_ENV_D159_USAGE_GATEWAY_URL_BETA_PRESENT",
         "D159_GATEWAY_GET_IDENTITY_PASS",
@@ -3717,7 +3717,17 @@
         "BETA_RUNTIME_SA_SERVICE_USAGE_CONSUMER_GRANTED",
         "D159_GW_V3_REDEPLOYED_SAME_WEB_APP_URL",
         "CI_EXACT_MONITORING_QUERY_HTTP_200"
-      ]
+      ],
+      "v3_gateway_redeploy": {
+        "reported_at": "2026-10-02",
+        "result": "DONE_BY_OWNER",
+        "deployment_url": "UNCHANGED_EXISTING_D159_WEB_APP",
+        "script_property": "UNCHANGED",
+        "scopes": "UNCHANGED",
+        "revision_probe": "PASS__D159_GW_V4",
+        "verification_run": 36902749377,
+        "verification_attempt": 2
+      }
     },
     "gateway_verification": "PASS__CONFIGURED_D159_USAGE_GATEWAY_GET_IDENTITY__PROJECT_SUPRA_INVENTORY_BETA",
     "configured_artifact": {
@@ -3846,7 +3856,11 @@
         "parser_self_test": "PASS",
         "configured_exe_size_bytes": 43008,
         "configured_exe_sha256": "c7d7e0de9afb3e9aa4b61dd1e64fe4b61d9ff4a7a2de062a44f81682bec7ff37",
-        "only_expected_failure": "CONFIGURED_GATEWAY_STILL_REPORTS_PREVIOUS_REVISION__OWNER_REDEPLOY_D159_GW_V4_REQUIRED"
+        "only_expected_failure": "CONFIGURED_GATEWAY_STILL_REPORTS_PREVIOUS_REVISION__OWNER_REDEPLOY_D159_GW_V4_REQUIRED",
+        "gateway_revision_probe": "PASS__D159-GW-v4",
+        "rerun_workflow": 36902749377,
+        "rerun_attempt": 2,
+        "result": "PASS__ALL_D159_V3_SOURCE_PROVIDER_BUILD_SELFTEST_GATEWAY_STEPS"
       }
     }
   }
