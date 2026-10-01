@@ -4427,7 +4427,7 @@
     },
     {
       "id": "OA089",
-      "status": "OWNER_ACTION_REQUIRED__ADD_FULL_DRIVE_SCOPE_TO_CLASPRC",
+      "status": "OWNER_ACTION_DONE__TECHNICAL_VERIFICATION_IN_PROGRESS",
       "title": "Re-consent clasp with full Google Drive scope",
       "resource_key": "apps-script-automation-canary-beta",
       "provider": "Google OAuth / clasp / Google Drive API",
@@ -4454,8 +4454,22 @@
         "drive_delete_reason": "appNotAuthorizedToFile",
         "stale_canary_scripts": 2
       },
-      "remaining_owner_action": "Re-login clasp with --extra-scopes https://www.googleapis.com/auth/drive, replace CLASPRC_JSON in GitHub Environment beta, then report DRIVE scope fixed.",
-      "closed": false
+      "remaining_owner_action": "NONE__AI_RECHECK_IN_PROGRESS",
+      "closed": false,
+      "owner_reported_done_at": "2026-10-02",
+      "owner_result": {
+        "date": "2026-10-02",
+        "result": "DONE",
+        "evidence": "Owner reported DRIVE scope fixed and replaced the protected GitHub Environment beta CLASPRC_JSON. No secret value was shared or recorded."
+      },
+      "technical_followup": {
+        "workflow_run": 36913589049,
+        "post_consent_result": "DRIVE_DELETE_FUNCTIONAL_PASS__CREATE_FAILED__SAFE_DIAGNOSTIC_REPAIR_IN_PROGRESS",
+        "stale_canary_scripts_observed": 2,
+        "delete_method": "CLASP",
+        "owner_action_required": false,
+        "repair_branch": "ops/oa089-apps-script-canary-repair"
+      }
     }
   ]
 }
