@@ -5,6 +5,12 @@ on:
     paths:
       - "ops/apps-script/agent-log-gateway/**"
       - ".github/workflows/d160-consolidate-agent-gateway.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "ops/apps-script/agent-log-gateway/**"
+      - ".github/workflows/d160-consolidate-agent-gateway.yml"
   workflow_dispatch:
 
 permissions:
@@ -31,7 +37,7 @@ jobs:
 
   migrate:
     name: Merge D159 into Agent gateway and retire D159 script
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 12
