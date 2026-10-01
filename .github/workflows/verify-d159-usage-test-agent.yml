@@ -326,6 +326,29 @@ jobs:
 
           "D159_CONFIGURED=$configured" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Build D159 standalone EXE
+        shell: pwsh
+        run: |
+          dotnet build usage-test-agent/SupraFirestoreUsageTest.csproj -c Release -o usage-test-agent/dist
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run D159 parser self-test
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firebase Usage Test.exe" | Select-Object -First 1
+          if ($null -eq $exe) { throw "D159 EXE missing." }
+          $process = Start-Process -FilePath $exe.FullName -ArgumentList "--self-test" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "D159 self-test failed with exit code $($process.ExitCode)." }
+
+      - name: Verify D159 standalone output
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firebase Usage Test.exe" | Select-Object -First 1
+          if ($null -eq $exe) { throw "D159 EXE missing." }
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($exe.Name)" | Set-Content "usage-test-agent/dist/SUPRA.Firebase.Usage.Test.exe.sha256" -Encoding ASCII
+          Write-Host "D159 configured=$env:D159_CONFIGURED size=$($exe.Length) sha256=$hash"
+
       - name: Probe configured D159 gateway identity
         if: env.D159_CONFIGURED == 'true'
         shell: pwsh
@@ -349,29 +372,6 @@ jobs:
             }
           }
           if (-not $passed) { throw "Configured D159 gateway identity probe failed." }
-
-      - name: Build D159 standalone EXE
-        shell: pwsh
-        run: |
-          dotnet build usage-test-agent/SupraFirestoreUsageTest.csproj -c Release -o usage-test-agent/dist
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Run D159 parser self-test
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firebase Usage Test.exe" | Select-Object -First 1
-          if ($null -eq $exe) { throw "D159 EXE missing." }
-          $process = Start-Process -FilePath $exe.FullName -ArgumentList "--self-test" -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "D159 self-test failed with exit code $($process.ExitCode)." }
-
-      - name: Verify D159 standalone output
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firebase Usage Test.exe" | Select-Object -First 1
-          if ($null -eq $exe) { throw "D159 EXE missing." }
-          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $($exe.Name)" | Set-Content "usage-test-agent/dist/SUPRA.Firebase.Usage.Test.exe.sha256" -Encoding ASCII
-          Write-Host "D159 configured=$env:D159_CONFIGURED size=$($exe.Length) sha256=$hash"
 
       - uses: actions/upload-artifact@v4
         with:
