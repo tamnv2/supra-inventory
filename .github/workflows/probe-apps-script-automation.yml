@@ -147,6 +147,80 @@ jobs:
             fi
           }
 
+          classify_create_error() {
+            local out_file="$1"
+            local err_file="$2"
+            local combined
+            combined="$(cat "$out_file" "$err_file" 2>/dev/null || true)"
+            if printf '%s' "$combined" | grep -Eqi 'Apps Script API.*(disabled|not been used)|script.googleapis.com.*(disabled|not been used)|accessNotConfigured'; then
+              echo "APPS_SCRIPT_API_DISABLED_OR_UNCONFIGURED"
+            elif printf '%s' "$combined" | grep -Eqi 'has not enabled the Apps Script API|Apps Script API.*user settings|script.google.com/home/usersettings'; then
+              echo "APPS_SCRIPT_USER_API_SETTING_DISABLED"
+            elif printf '%s' "$combined" | grep -qi 'insufficient authentication scopes'; then
+              echo "OAUTH_SCOPE_INSUFFICIENT"
+            elif printf '%s' "$combined" | grep -Eqi 'invalid_grant|unauthorized'; then
+              echo "OAUTH_TOKEN_REJECTED"
+            elif printf '%s' "$combined" | grep -Eqi 'RESOURCE_EXHAUSTED|quota|rate limit|too many requests'; then
+              echo "QUOTA_OR_RATE_LIMIT"
+            elif printf '%s' "$combined" | grep -Eqi 'permission denied|forbidden|PERMISSION_DENIED'; then
+              echo "PERMISSION_DENIED"
+            else
+              echo "UNCLASSIFIED_CREATE_ERROR"
+            fi
+          }
+
+          script_api_service_diag() {
+            local access_token
+            access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+            if [ -z "$access_token" ]; then
+              echo "SCRIPT_API_SERVICE_HTTP=NO_ACCESS_TOKEN"
+              return 0
+            fi
+            local http_code
+            http_code="$(curl -sS -o script-api-service.json -w '%{http_code}' \
+              -H "Authorization: Bearer $access_token" \
+              "https://serviceusage.googleapis.com/v1/projects/supra-inventory-beta/services/script.googleapis.com" || true)"
+            echo "SCRIPT_API_SERVICE_HTTP=${http_code:-CURL_FAILED}"
+            if [ "$http_code" = "200" ]; then
+              local state
+              state="$(jq -r '.state // "UNKNOWN"' script-api-service.json 2>/dev/null | tr -cd 'A-Za-z0-9_-')"
+              echo "SCRIPT_API_SERVICE_STATE=${state:-UNKNOWN}"
+            fi
+          }
+
+          list_active_canary_ids() {
+            local access_token
+            access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+            [ -n "$access_token" ] || return 1
+            local http_code
+            http_code="$(curl -sS -o active-canary-scripts.json -w '%{http_code}' -G \
+              -H "Authorization: Bearer $access_token" \
+              --data-urlencode "q=mimeType='application/vnd.google-apps.script' and trashed=false" \
+              --data-urlencode "pageSize=1000" \
+              --data-urlencode "fields=files(id,name)" \
+              "https://www.googleapis.com/drive/v3/files" || true)"
+            [ "$http_code" = "200" ] || return 1
+            jq -r '.files[]? | select(.name | startswith("SUPRA Inventory Beta - Apps Script Automation Probe ")) | .id' active-canary-scripts.json
+          }
+
+          verify_script_trashed() {
+            local target_id="$1"
+            local label="$2"
+            local access_token
+            access_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+            [ -n "$access_token" ] || return 1
+            local http_code
+            http_code="$(curl -sS -o "verify-trash-${label}.json" -w '%{http_code}' -G \
+              -H "Authorization: Bearer $access_token" \
+              --data-urlencode "fields=trashed" \
+              "https://www.googleapis.com/drive/v3/files/${target_id}" || true)"
+            if [ "$http_code" = "404" ]; then
+              return 0
+            fi
+            [ "$http_code" = "200" ] || return 1
+            jq -e '.trashed == true' "verify-trash-${label}.json" >/dev/null
+          }
+
           delete_script_checked() {
             local target_id="$1"
             local label="$2"
@@ -209,19 +283,32 @@ jobs:
           cd "$work"
 
           echo "CANARY_STAGE=preflight-stale-cleanup"
-          clasp --json list-scripts > existing-scripts.json 2>/dev/null || fail_stage "list-scripts-preflight"
-          mapfile -t stale_ids < <(jq -r '.[] | select(.name | startswith("SUPRA Inventory Beta - Apps Script Automation Probe ")) | .id' existing-scripts.json)
+          clasp --json list-scripts >/dev/null 2>&1 || fail_stage "list-scripts-preflight"
+          token_scope_diag
+          list_active_canary_ids > stale-ids.txt || fail_stage "list-active-canaries"
+          mapfile -t stale_ids < stale-ids.txt
           echo "STALE_CANARY_SCRIPTS=${#stale_ids[@]}"
           stale_index=0
           for stale_id in "${stale_ids[@]}"; do
             stale_index=$((stale_index + 1))
             delete_script_checked "$stale_id" "stale-${stale_index}" || fail_stage "stale-delete-script"
+            stale_deleted=false
+            for attempt in 1 2 3 4 5 6 7 8; do
+              if verify_script_trashed "$stale_id" "stale-${stale_index}"; then
+                stale_deleted=true
+                break
+              fi
+              sleep 3
+            done
+            [ "$stale_deleted" = true ] || fail_stage "stale-delete-verify"
           done
-
           title="SUPRA Inventory Beta - Apps Script Automation Probe ${GITHUB_RUN_ID}"
 
           echo "CANARY_STAGE=create"
           if ! clasp --json create --type webapp --title "$title" > create.json 2>create.err; then
+            echo "CREATE_DIAG=$(classify_create_error create.json create.err)"
+            token_scope_diag
+            script_api_service_diag
             fail_stage "create"
           fi
           script_id="$(jq -r '.scriptId // empty' create.json)"
@@ -299,8 +386,7 @@ jobs:
           delete_script_checked "$deleted_script_id" "current" || fail_stage "delete-script"
           delete_script_ok=false
           for attempt in 1 2 3 4 5 6 7 8; do
-            clasp --json list-scripts > scripts-after-delete.json 2>/dev/null || fail_stage "delete-script-list"
-            if ! jq --arg id "$deleted_script_id" -e 'map(select(.id == $id)) | length > 0' scripts-after-delete.json >/dev/null; then
+            if verify_script_trashed "$deleted_script_id" "current"; then
               delete_script_ok=true
               break
             fi
@@ -308,6 +394,5 @@ jobs:
           done
           [ "$delete_script_ok" = true ] || fail_stage "delete-script-verify"
           script_id=""
-
           echo "APPS_SCRIPT_AUTOMATION_CANARY=PASS"
           echo "CAPABILITIES=create,push,version,deploy,list,redeploy,undeploy,delete-script,cleanup-verified"
