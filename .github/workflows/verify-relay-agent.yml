@@ -84,9 +84,9 @@ jobs:
           $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
           $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*92\s*;') { throw "D157 repair requires Agent v92 while retaining D156 Android vc92 and D154/D153/D152/D150 safety guards." }
-          if ($project -notmatch '<AssemblyVersion>0\.92\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.92\.0\.0</FileVersion>') {
-            throw "D157 repair Agent assembly/file version must be 0.92."
+          if ($config -notmatch 'AgentBuild\s*=\s*93\s*;') { throw "D158 requires Agent v93 while Android remains hard-locked at beta-vc92 and D157 business guards stay intact." }
+          if ($project -notmatch '<AssemblyVersion>0\.93\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.93\.0\.0</FileVersion>') {
+            throw "D158 Agent assembly/file version must be 0.93."
           }
           foreach ($marker in @(
             'RenderD157OperationalListsFromMemory',
@@ -95,6 +95,19 @@ jobs:
             'provider_read=false provider_write=false'
           )) {
             if (-not $ops.Contains($marker)) { throw "D157 repair role-independent operational-list guard missing: $marker" }
+          }
+
+          foreach ($marker in @(
+            'database=',
+            'D158DesiredPollIntervalMs',
+            'TryReserveD158ResilienceRead',
+            'EnsureD158BusinessCounterDay',
+            'SealLogoutAndFlush',
+            'AgentLogGatewayUrl'
+          )) {
+            if (-not $d157.Contains($marker) -and -not $transport.Contains($marker) -and -not $quota.Contains($marker) -and -not $ops.Contains($marker) -and -not $program.Contains($marker) -and -not $config.Contains($marker)) {
+              throw "D158 speed/health/counter/logging guard missing: $marker"
+            }
           }
 
           foreach ($marker in @(
