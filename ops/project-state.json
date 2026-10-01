@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "V3_TECHNICAL_PROVIDER_PASS__GW_V4_OWNER_REDEPLOY_CONFIRMED__PR_FINAL_GATES_PENDING",
+    "status": "V3_TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3682,11 +3682,11 @@
       "run.googleapis.com/container/billable_instance_time__inventory-beta-picker-alerts"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_READY_AFTER_PR_MERGE_AND_V3_PRERELEASE_FOR_OWNER_FIELD_TEST",
+    "field_gate": "OA087_READY_OWNER_V3_FIELD_TEST",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
     "implementation_pr": 346,
-    "main_commit": "95a03d0a90d781ed3b75f1cbe13798cb36d6cdda",
+    "main_commit": "03f1ea037b2359ea08960f6d06a2f7dce10a0750",
     "main_runs": {
       "repo_authority": 36889812834,
       "project_state": 36889812825,
@@ -3861,6 +3861,27 @@
         "rerun_workflow": 36902749377,
         "rerun_attempt": 2,
         "result": "PASS__ALL_D159_V3_SOURCE_PROVIDER_BUILD_SELFTEST_GATEWAY_STEPS"
+      },
+      "main_evidence": {
+        "implementation_pr": 354,
+        "main_commit": "03f1ea037b2359ea08960f6d06a2f7dce10a0750",
+        "repo_authority_run": 36904035874,
+        "project_state_run": 36904036038,
+        "ui_design_run": 36904035865,
+        "dashboard_probe_run": 36904036101,
+        "d159_usage_run": 36904035915,
+        "result": "PASS"
+      },
+      "release_evidence": {
+        "release": "d159-usage-test-v3",
+        "release_id": 401222706,
+        "prerelease": true,
+        "source_commit": "03f1ea037b2359ea08960f6d06a2f7dce10a0750",
+        "exe_asset_id": 603829003,
+        "exe_asset_name": "SUPRA.Firebase.Usage.Test.exe",
+        "exe_size_bytes": 43008,
+        "exe_sha256": "073dca1a5b294d179b6d25610d3de3688b5acbb4a3b748555250374d430ee953",
+        "checksum_asset_id": 603829004
       }
     }
   }
