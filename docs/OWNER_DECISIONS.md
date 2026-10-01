@@ -2590,3 +2590,5 @@ D158 hotfix continuation approved by Owner on 2026-10-01 after real v93 error-lo
 - Full sanitized local technical logs remain complete. Repeated transient Google/DNS/timeout symptoms from one active connectivity incident are coalesced into one immediate support bundle; observed recovery closes the incident so a later outage is captured as a new incident.
 - CI must fail if the request-id dedupe fences, WMS single-mutation fence, auth-probe classification, connectivity-incident lifecycle or Firestore database routing guards regress.
 
+D158 hotfix technical/release checkpoint on 2026-10-01: PR #343 passed Repo Authority, Project State, Agent, UI/Android, Firestore, RTDB and Dashboard gates, merged to main at `25b146a6d7e826b34b79944967cb83f0e643b1d0`, and main verification published official **relay-agent-v94**. The normal Agent distribution channel was refreshed to the same v94 binary digest; Android beta-vc92 remained unchanged. This is technical/runtime/release PASS only. D157 remains the accepted base and D158 remains open until OA086 field proof and explicit Owner PASS.
+
