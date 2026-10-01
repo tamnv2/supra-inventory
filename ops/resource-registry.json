@@ -2059,9 +2059,9 @@
     "owner_acceptance": "PASS__OFFICIAL_D159_USAGE_V3_FIELD_ACCEPTED__2026_10_02"
   },
   "apps_script_automation": {
-    "status": "TECHNICAL_REPAIR_IN_PROGRESS__SCRIPT_API_DISABLED_AUTO_ENABLE",
+    "status": "TECHNICAL_RUNTIME_PASS__FULL_LIFECYCLE_CLEANUP_VERIFIED",
     "credential_reference": "GITHUB_ENV_BETA_SECRET_CLASPRC_JSON",
-    "api_setting": "GOOGLE_APPS_SCRIPT_API_OWNER_CONFIRMED_ON__2026_10_02",
+    "api_setting": "APPS_SCRIPT_USER_ACCESS_OWNER_CONFIRMED__SCRIPT_GOOGLEAPIS_COM_ENABLED_RUN_36917268394",
     "canary_resource_key": "apps-script-automation-canary-beta",
     "canary_workflow": ".github/workflows/probe-apps-script-automation.yml",
     "clasp_version": "3.4.1",
@@ -2078,8 +2078,8 @@
     "provider_ids": "EPHEMERAL_NOT_RECORDED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "credential_validation": "PASS__CLASPRC_JSON_VALID__DRIVE_FULL_SCOPE_TRUE",
-    "runtime_evidence": "RUN_36916599484__DRIVE_FULL_TRUE__STALE_ACTIVE_ZERO__SCRIPT_API_HTTP200_STATE_DISABLED",
-    "pending_gate": "ENABLE_SCRIPT_GOOGLEAPIS_COM__THEN_FRESH_CREATE_PUSH_VERSION_DEPLOY_LIST_REDEPLOY_UNDEPLOY_DELETE_CLEANUP_PASS",
+    "runtime_evidence": "RUN_36917268394__TOKEN_DRIVE_FULL_TRUE__SCRIPT_API_DISABLED_TO_ENABLED_HTTP200__CREATE_PUSH_VERSION_DEPLOY_LIST_REDEPLOY_UNDEPLOY_DELETE_CLEANUP_PASS",
+    "pending_gate": "NONE",
     "proven_capabilities": [
       "CREATE_SCRIPT",
       "PUSH_CONTENT",
@@ -2087,18 +2087,22 @@
       "CREATE_DEPLOYMENT",
       "LIST_DEPLOYMENTS",
       "UPDATE_DEPLOYMENT",
-      "DELETE_DEPLOYMENT"
+      "DELETE_DEPLOYMENT",
+      "DELETE_SCRIPT",
+      "CLEANUP_VERIFIED"
     ],
-    "pending_capability": "FULL_FRESH_LIFECYCLE",
-    "stale_canary_policy": "LIST_BY_EXACT_PREFIX__DELETE_BEFORE_NEW_CANARY__NO_ID_LOGGING",
-    "diagnostic_output_policy": "ONLY_SCOPE_PRESENCE_BOOLEANS_AND_CLASSIFIED_DELETE_ERROR",
-    "stale_canary_count_observed": 2,
-    "diagnostic_method": "TOKENINFO_SCOPE_BOOLEAN__DIRECT_DRIVE_FILES_PATCH_TRASH__SAFE_REASON_ONLY",
-    "missing_capability": "DELETE_SCRIPT_PROJECT",
+    "pending_capability": "NONE",
+    "stale_canary_policy": "DRIVE_TRASH_AWARE__ACTIVE_ONLY_TRASHED_FALSE__PREFIX_MATCH__NO_ID_LOGGING",
+    "diagnostic_output_policy": "ONLY_SCOPE_PRESENCE_BOOLEANS__SERVICE_STATE__HTTP_STATUS__CLASSIFIED_ERRORS__NO_TOKEN_OR_SCRIPT_ID_LOGGING",
+    "stale_canary_count_observed": 0,
+    "diagnostic_method": "TOKENINFO_SCOPE_BOOLEAN__SERVICEUSAGE_STATE__DRIVE_TRASH_STATE__SAFE_REASON_ONLY",
+    "missing_capability": "NONE",
     "oauth_evidence": "DRIVE_FULL_TRUE__DRIVE_FILE_TRUE__NO_SECRET_VALUE_RECORDED",
-    "owner_action": "OA089__OWNER_STEP_DONE__TECHNICAL_REPAIR_ONLY",
+    "owner_action": "OA089__CLOSED_PASS",
     "api_project": "supra-inventory-beta",
     "api_service": "script.googleapis.com",
-    "api_enablement": "MAIN_ONLY__ENABLE_IF_DISABLED__POLL_UNTIL_ENABLED__BETA_ONLY"
+    "api_enablement": "ENABLED__BETA__RUN_36917268394",
+    "main_commit": "72dbb4a4df2ba7c14734fd2f4400c3262043458c",
+    "pass_run": 36917268394
   }
 }
