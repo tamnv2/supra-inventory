@@ -1724,7 +1724,7 @@ namespace SupraInventoryRelayAgent
                     }
                     catch (Exception ex)
                     {
-                        Log("AGENT_SYNC presence=DEFER reason=" + SafeMessage(ex));
+                        Log("AGENT_SYNC presence=DEFER " + D160ProviderErrorSummary(ex) + " retry=NONE_EVENT_DRIVEN");
                     }
                 });
             }
