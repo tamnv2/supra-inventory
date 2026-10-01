@@ -453,5 +453,6 @@ D158 does not change Android logging. Windows Agent retains `technical-ai.log` a
 - Target Beta transport is Google Apps Script Web App → existing `Inventory/Beta/Logs`. The gateway validates the Firebase ID token and exact ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN authority, sanitizes again server-side, and writes only to the fixed scoped Beta Logs folder.
 - The Apps Script endpoint, Firebase Web API key and Logs folder id are runtime/deployment configuration. Secret/token values are never repository content.
 - Until Office field proof and canonical gateway configuration complete, the D157 Firestore/Function support-log route remains fallback. After proven cutover, Agent support-log use of `relay_agent_log_uploads`/Function spool is retired; Firestore PickList/HA/coordination remains unchanged.
+- D158 v94 hotfix keeps every sanitized error/retry/recovery line in local technical logs while coalescing one active Google connectivity incident into one immediate support bundle. A positive Firestore/listener/ACK/gateway recovery closes that incident; a later outage is a new incident. Expected Firebase role-probe HTTP 400 responses never create immediate error bundles; only final dual-role login rejection is an error.
 - Stable is untouched.
 

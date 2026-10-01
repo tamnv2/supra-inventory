@@ -812,4 +812,5 @@ Android beta-vc92 is unchanged. D158 changes only the Windows Agent.
 - AgentSync writes may use an already-listened snapshot plus Firestore updateTime CAS; missing/stale/conflicting state falls back to exact GET and retry.
 - A successful authoritative role/generation read performed immediately before protected mutation also refreshes the periodic role proof.
 - No D158 change reduces the 10s PRIMARY lease, 15s takeover threshold, generation fence, confirmation guard, or D137/WMS safety behavior.
+- D158 v94 hotfix treats Firestore job/document RequestId as the canonical confirmation identity. Listener delivery is allowed to execute the existing pipeline while a due REST safety query is still in flight; REST cadence is unchanged. Repeated snapshots of the same request are coalesced before business/audit work, and a final in-process mutation fence permits at most one ConfirmExact call per RequestId.
 
