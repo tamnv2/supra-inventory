@@ -2143,3 +2143,26 @@ D159-v3 remains under the same Owner gate OA087. PASS requires all of the follow
 8. The usage feature itself creates **0 Firestore document reads, 0 writes and 0 deletes**; no WMS, Worker, Drive or RTDB business traffic is introduced.
 9. Future Agent integration acceptance must additionally prove exact login `tamnv2` and `admin` see the Usage tab while another valid Agent user has no tab, no Usage timer and no Usage gateway request.
 10. D159 is not Owner-PASS until the Owner tests the published v3 field executable and explicitly says PASS. Stable remains untouched.
+## D160 acceptance — Agent v95 bulk, Usage, Logs, history and provider consolidation
+
+D160 remains behind OA090 until the released Agent v95 is field-tested with the unchanged beta-vc92 PDA.
+
+Technical gates must prove:
+1. Agent build/version is 95 while Android beta-vc92 source/release/channel are unchanged.
+2. Firestore micro-batch maximum is 15; READY fast-wave outcomes can ACK before deferred checkbox recovery.
+3. Fast mixed-batch search does not enter the long empty-table F5 path. Zero table produces technical unavailable and no Picker strike.
+4. Bulk WMS mutation freezes exact targets, rejects stale/foreign selection, retains PRIMARY generation and per-target confirmation guards, and uses at most one final dialog click per wave.
+5. Post-final success uses a fresh success/error surface created after the click. Row presence/disappearance and navigation/reload are absent from terminal success logic.
+6. A post-final uncertain guard is never released/reconfirmed merely because the row is visible/missing.
+7. Cross-cycle stale PENDING replay of a recently terminal RequestId is skipped locally without provider operations.
+8. gRPC UNAUTHENTICATED is not classified as the five-minute permanent circuit. Worker revoke 401 performs at most one refresh/retry before a 60-second local circuit.
+9. Usage tab/timer/gateway calls are exact-login `tamnv2`/`admin` only and use the consolidated gateway with shared 15-minute Monitoring cache and zero Firestore document ops for Usage.
+10. Old operation/technical log tabs are absent; log presentation no longer performs realtime list rendering; one sanitized complete local log remains and manual upload uses the accepted log path.
+11. History table is populated from existing in-memory business/sync data and introduces no Firestore read/write/listener/poll cadence.
+12. Existing ACK write count is unchanged while contractor/full PickList fields are available for history/export.
+13. Closed-day Excel includes the new history fields. Terminal ACK deletion happens only after Drive upload PASS and uses the already-read export list; unresolved documents survive.
+14. Provider migration keeps the existing Agent gateway URL, moves/renames the existing script, proves unified D160 identity, then deletes the redundant D159 script.
+15. Stable remains untouched and no secret/session/password/WMS material is committed or logged.
+
+Owner field acceptance must additionally validate single and burst/mixed real WMS behavior, fresh-success recognition despite page reload/row persistence, Usage visibility under allowed/disallowed Agent accounts, manual Logs upload, History presentation and unchanged beta-vc92 result flow.
+
