@@ -3902,7 +3902,7 @@
     }
   },
   "apps_script_automation_probe": {
-    "status": "DRIVE_DELETE_DIAGNOSTIC_ACTIVE__NO_NEW_PRODUCT_CHANGE",
+    "status": "OWNER_SCOPE_CONSENT_REQUIRED__FULL_DRIVE_FOR_SCRIPT_DELETE",
     "approved_at": "2026-10-02",
     "accepted_base": "D159",
     "d160_status": "NOT_OPENED",
@@ -3936,12 +3936,20 @@
       "LIST_DEPLOYMENTS_V2",
       "DELETE_DEPLOYMENT"
     ],
-    "interpretation": "APPS_SCRIPT_MANAGEMENT_AND_DEPLOYMENT_CAPABILITIES_PROVEN__SCRIPT_TRASH_PERMISSION_PATH_UNRESOLVED",
-    "owner_action_required": false,
-    "latest_main_run": 36912918889,
+    "interpretation": "CREATE_PUSH_VERSION_DEPLOY_LIST_REDEPLOY_UNDEPLOY_PASS__FULL_SCRIPT_DELETE_REQUIRES_GOOGLE_DRIVE_SCOPE",
+    "owner_action_required": true,
+    "latest_main_run": 36913589049,
     "latest_failure_stage": "PREFLIGHT_STALE_DELETE_SCRIPT",
     "pending_capability": "DELETE_SCRIPT",
     "diagnostic_change": "TOKENINFO_SCOPE_PRESENCE_PLUS_DIRECT_DRIVE_PATCH_FALLBACK__SAFE_HTTP_REASON_ONLY__NO_TOKEN_OR_SCRIPT_ID_LOGGING",
-    "stale_canary_count_observed": 2
+    "stale_canary_count_observed": 2,
+    "provider_evidence": {
+      "token_scope_drive_file": true,
+      "token_scope_drive_full": false,
+      "direct_drive_delete_http": 403,
+      "direct_drive_delete_reason": "appNotAuthorizedToFile",
+      "stale_canary_scripts_observed": 2
+    },
+    "owner_action_id": "OA089"
   }
 }

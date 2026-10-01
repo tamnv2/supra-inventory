@@ -4424,6 +4424,38 @@
         "result": "REACHED_REDEPLOY__FAILED_ONLY_POST_REDEPLOY_LIST_VISIBILITY_VERIFY",
         "owner_action_required": false
       }
+    },
+    {
+      "id": "OA089",
+      "status": "OWNER_ACTION_REQUIRED__ADD_FULL_DRIVE_SCOPE_TO_CLASPRC",
+      "title": "Re-consent clasp with full Google Drive scope",
+      "resource_key": "apps-script-automation-canary-beta",
+      "provider": "Google OAuth / clasp / Google Drive API",
+      "reason_owner_only": "The canary proved Apps Script create/push/version/deploy/list/redeploy/undeploy. Script deletion uses Google Drive files.update. The current OAuth token has drive.file but not full drive and Google returns 403 appNotAuthorizedToFile for Apps Script projects created through the Apps Script API. Only the Google account owner can grant the additional OAuth scope and replace the protected GitHub secret.",
+      "shortest_action": [
+        "In Google Cloud Shell, run: clasp login --no-localhost --extra-scopes https://www.googleapis.com/auth/drive",
+        "Open the authorization URL shown by clasp, use the same Google account that owns the project, and approve the requested scopes.",
+        "After login completes, run: jq -c . ~/.clasprc.json > ~/CLASPRC_JSON.clean",
+        "Open ~/CLASPRC_JSON.clean and copy only the JSON content.",
+        "Update GitHub Environment beta secret CLASPRC_JSON with that JSON. Do not paste it into chat.",
+        "Tell AI: DRIVE scope fixed. AI will rerun the existing canary, clean stale temporary scripts, and verify the complete lifecycle."
+      ],
+      "pass_criteria": [
+        "Tokeninfo reports https://www.googleapis.com/auth/drive granted.",
+        "The two stale canary scripts are deleted without logging their IDs.",
+        "A fresh canary completes create/push/version/deploy/list/redeploy/undeploy/delete-script and verifies cleanup.",
+        "D159 remains accepted and D160 remains unopened."
+      ],
+      "evidence": {
+        "workflow_run": 36913589049,
+        "token_scope_drive_file": true,
+        "token_scope_drive_full": false,
+        "drive_delete_http": 403,
+        "drive_delete_reason": "appNotAuthorizedToFile",
+        "stale_canary_scripts": 2
+      },
+      "remaining_owner_action": "Re-login clasp with --extra-scopes https://www.googleapis.com/auth/drive, replace CLASPRC_JSON in GitHub Environment beta, then report DRIVE scope fixed.",
+      "closed": false
     }
   ]
 }

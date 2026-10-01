@@ -2059,7 +2059,7 @@
     "owner_acceptance": "PASS__OFFICIAL_D159_USAGE_V3_FIELD_ACCEPTED__2026_10_02"
   },
   "apps_script_automation": {
-    "status": "DRIVE_DELETE_DIAGNOSTIC_ACTIVE",
+    "status": "OWNER_SCOPE_CONSENT_REQUIRED__FULL_DRIVE_FOR_DELETE",
     "credential_reference": "GITHUB_ENV_BETA_SECRET_CLASPRC_JSON",
     "api_setting": "GOOGLE_APPS_SCRIPT_API_OWNER_CONFIRMED_ON__2026_10_02",
     "canary_resource_key": "apps-script-automation-canary-beta",
@@ -2093,6 +2093,9 @@
     "stale_canary_policy": "LIST_BY_EXACT_PREFIX__DELETE_BEFORE_NEW_CANARY__NO_ID_LOGGING",
     "diagnostic_output_policy": "ONLY_SCOPE_PRESENCE_BOOLEANS_AND_CLASSIFIED_DELETE_ERROR",
     "stale_canary_count_observed": 2,
-    "diagnostic_method": "TOKENINFO_SCOPE_BOOLEAN__DIRECT_DRIVE_FILES_PATCH_TRASH__SAFE_REASON_ONLY"
+    "diagnostic_method": "TOKENINFO_SCOPE_BOOLEAN__DIRECT_DRIVE_FILES_PATCH_TRASH__SAFE_REASON_ONLY",
+    "missing_capability": "DELETE_SCRIPT_PROJECT",
+    "oauth_evidence": "DRIVE_FILE_TRUE__DRIVE_FULL_FALSE__DIRECT_DELETE_403_APP_NOT_AUTHORIZED_TO_FILE",
+    "owner_action": "OA089"
   }
 }
