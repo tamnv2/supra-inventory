@@ -147,6 +147,18 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal static bool CanUseD158ResilienceRead
+        {
+            get
+            {
+                lock (Gate)
+                {
+                    ResetIfDayChangedNoLock();
+                    return _d158ResilienceReads < D158ResilienceReadBudgetPerDay;
+                }
+            }
+        }
+
         internal static string SnapshotText()
         {
             lock (Gate)
