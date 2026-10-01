@@ -3902,7 +3902,7 @@
     }
   },
   "apps_script_automation_probe": {
-    "status": "DELETE_SCRIPT_DIAGNOSTIC_ACTIVE__NO_NEW_PRODUCT_CHANGE",
+    "status": "DRIVE_DELETE_DIAGNOSTIC_ACTIVE__NO_NEW_PRODUCT_CHANGE",
     "approved_at": "2026-10-02",
     "accepted_base": "D159",
     "d160_status": "NOT_OPENED",
@@ -3936,11 +3936,12 @@
       "LIST_DEPLOYMENTS_V2",
       "DELETE_DEPLOYMENT"
     ],
-    "interpretation": "PERMISSION_PATH_WORKING__REDEPLOY_RESPONSE_VERIFIED__FOLLOWUP_LIST_CAN_LAG_PROVIDER_CONSISTENCY",
+    "interpretation": "APPS_SCRIPT_MANAGEMENT_AND_DEPLOYMENT_CAPABILITIES_PROVEN__SCRIPT_TRASH_PERMISSION_PATH_UNRESOLVED",
     "owner_action_required": false,
-    "latest_main_run": 36912085428,
-    "latest_failure_stage": "DELETE_SCRIPT_AFTER_UNDEPLOY",
+    "latest_main_run": 36912918889,
+    "latest_failure_stage": "PREFLIGHT_STALE_DELETE_SCRIPT",
     "pending_capability": "DELETE_SCRIPT",
-    "diagnostic_change": "PRINT_SCOPE_PRESENCE_BOOLEANS_AND_CLASSIFIED_DELETE_ERROR_ONLY__NO_TOKEN_OR_EPHEMERAL_ID_OUTPUT__CLEAN_STALE_CANARIES_BEFORE_NEW_CREATE"
+    "diagnostic_change": "TOKENINFO_SCOPE_PRESENCE_PLUS_DIRECT_DRIVE_PATCH_FALLBACK__SAFE_HTTP_REASON_ONLY__NO_TOKEN_OR_SCRIPT_ID_LOGGING",
+    "stale_canary_count_observed": 2
   }
 }
