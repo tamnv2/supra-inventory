@@ -2152,7 +2152,7 @@ Technical gates must prove:
 2. Firestore micro-batch maximum is 15; READY fast-wave outcomes can ACK before deferred checkbox recovery.
 3. Fast mixed-batch search does not enter the long empty-table F5 path. Zero table produces technical unavailable and no Picker strike.
 4. Bulk WMS mutation freezes exact targets, rejects stale/foreign selection, retains PRIMARY generation and per-target confirmation guards, and uses at most one final dialog click per wave.
-5. Post-final `CONFIRMED` requires a fresh success surface created after the click. A fresh error surface remains guarded/uncertain for multi-row safety. Row presence/disappearance and navigation/reload are absent from terminal success logic.
+5. Post-final `CONFIRMED` requires a new or content-changed success surface observed after the click. A fresh error surface remains guarded/uncertain for multi-row safety. Row presence/disappearance and navigation/reload are absent from terminal success logic.
 6. Every non-success post-final guard is never released/reconfirmed merely because an error surface, row visibility change or reload occurs.
 7. Cross-cycle stale PENDING replay of a recently terminal RequestId is skipped locally without provider operations.
 8. gRPC UNAUTHENTICATED is not classified as the five-minute permanent circuit. Worker revoke 401 performs at most one refresh/retry before a 60-second local circuit.
