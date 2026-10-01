@@ -134,7 +134,17 @@ namespace SupraInventoryRelayAgent
         }
         internal string RoleName { get { return _role.ToString(); } }
         internal bool CanPollBusiness { get { return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY; } }
-        internal bool IsTransportHealthy { get { return _coordinationHealthy && (!_relayPollHealthy ? _role == FirestoreAgentRole.DEEP_HIBERNATE : true); } }
+        internal bool IsTransportHealthy
+        {
+            get
+            {
+                // D158: only PRIMARY owns the business queue poll. NEXT_A/NEXT_B are
+                // healthy when HA coordination is healthy; their lack of PRIMARY poll
+                // success must never be rendered as "Mất kết nối".
+                return _coordinationHealthy &&
+                       (_role != FirestoreAgentRole.PRIMARY || _relayPollHealthy);
+            }
+        }
         internal int OnlineAgentCount { get { return Math.Max(0, _onlineAgentCount); } }
         internal int OnlinePrimaryCount { get { return Math.Max(0, _onlinePrimaryCount); } }
         internal int OnlineStandbyCount { get { return Math.Max(0, _onlineStandbyCount); } }
