@@ -4197,6 +4197,40 @@
         "date": "2026-09-30",
         "evidence": "D157 is promoted to the accepted Beta base; the serial next-change gate is unlocked."
       }
+    },
+    {
+      "id": "OA086",
+      "status": "BLOCKED_PENDING_D158_TECHNICAL_PR_PASS",
+      "title": "Provision and field-prove D158 Beta Agent log gateway + v93 on Office",
+      "resource_key": "apps-script-agent-log-gateway-beta-d158",
+      "provider": "Google Apps Script / Google Drive / SUPRA Inventory Beta",
+      "reason_owner_only": "Connected tools can manage repo code and Drive files but do not expose Google Apps Script project/web-app deployment or GitHub Actions environment-variable administration, and cannot physically place the company laptop on Office networking.",
+      "prerequisites": {
+        "accepted_base": "D157_OWNER_ACCEPTED_PASS",
+        "d158_owner_approval": "PASS__2026_10_01",
+        "technical_pr": "PENDING",
+        "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action_after_technical_pass": [
+        "Open script.google.com and create one project named SUPRA Inventory Beta - Agent Log Gateway D158 from repo ops/apps-script/agent-log-gateway/Code.gs + appsscript.json.",
+        "In Project Settings → Script properties, set FIREBASE_WEB_API_KEY_BETA to the existing Beta Firebase Web API key and BETA_LOG_FOLDER_ID to the canonical Inventory/Beta/Logs folder id. Do not paste either value into chat/repo.",
+        "Deploy → New deployment → Web app → Execute as Me/Owner → access Anyone, then copy the /exec Web App URL.",
+        "In GitHub repo → Settings → Environments → beta → Environment variables, add AGENT_LOG_GATEWAY_URL_BETA with that /exec URL.",
+        "Tell ChatGPT only that OA086 provisioning is complete; do not send keys/tokens. AI continues build/release verification automatically.",
+        "On one Office laptop run the D158 v93 field candidate: verify NEXT_B role/health, normal vc92 PickList, tiny log upload, retry same bundle without duplicate, offline pending then reconnect."
+      ],
+      "pass_criteria": [
+        "Apps Script endpoint is reachable on Office and validates only current Firebase ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN Agent authority.",
+        "A sanitized Agent bundle lands only in Inventory/Beta/Logs and retrying the same bundle id does not create a second Drive file.",
+        "Gateway outage keeps the sealed bundle local and never blocks PickList/WMS/ACK.",
+        "With gateway configured, Agent support-log upload performs no Firestore spool write/read/delete/Function trigger.",
+        "Android beta-vc92 confirmation behavior, D157 HA lease/failover/WMS guards and Stable remain unchanged.",
+        "NEXT_A/NEXT_B role-health presentation is correct after login and gRPC listeners do not reproduce the D157 database/header InvalidArgument.",
+        "05:00 business-day counter rollover is correct."
+      ],
+      "remaining_owner_action": "None until D158 PR reaches technical PASS. Then perform only the shortest Apps Script/GitHub Web UI provisioning and one real Office field test above.",
+      "closed": false
     }
   ]
 }
