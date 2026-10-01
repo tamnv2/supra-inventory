@@ -4427,7 +4427,7 @@
     },
     {
       "id": "OA089",
-      "status": "OWNER_ACTION_DONE__TECHNICAL_REPAIR_IN_PROGRESS",
+      "status": "CLOSED_PASS",
       "title": "Re-consent clasp with full Google Drive scope",
       "resource_key": "apps-script-automation-canary-beta",
       "provider": "Google OAuth / clasp / Google Drive API",
@@ -4449,13 +4449,21 @@
       "evidence": {
         "workflow_run": 36913589049,
         "token_scope_drive_file": true,
-        "token_scope_drive_full": false,
+        "token_scope_drive_full": true,
         "drive_delete_http": 403,
         "drive_delete_reason": "appNotAuthorizedToFile",
-        "stale_canary_scripts": 2
+        "stale_canary_scripts": 2,
+        "pass_workflow_run": 36917268394,
+        "stale_active_canary_scripts": 0,
+        "script_api_initial_state": "DISABLED",
+        "script_api_enable_http": 200,
+        "script_api_final_state": "ENABLED",
+        "full_lifecycle": "PASS__CREATE_PUSH_VERSION_DEPLOY_LIST_REDEPLOY_UNDEPLOY_DELETE_CLEANUP",
+        "delete_script_method": "CLASP",
+        "cleanup_verified": true
       },
-      "remaining_owner_action": "NONE__AI_AUTO_ENABLES_REQUIRED_BETA_SCRIPT_API",
-      "closed": false,
+      "remaining_owner_action": [],
+      "closed": true,
       "owner_reported_done_at": "2026-10-02",
       "owner_result": {
         "date": "2026-10-02",
@@ -4463,15 +4471,18 @@
         "evidence": "Owner reported DRIVE scope fixed and replaced the protected GitHub Environment beta CLASPRC_JSON. No secret value was shared or recorded."
       },
       "technical_followup": {
-        "workflow_run": 36916599484,
-        "result": "DRIVE_SCOPE_PASS__STALE_ACTIVE_ZERO__CREATE_BLOCKED_BY_SCRIPT_API_DISABLED",
+        "workflow_run": 36917268394,
+        "result": "PASS__FULL_APPS_SCRIPT_AUTOMATION_LIFECYCLE_AND_CLEANUP_VERIFIED",
         "token_scope_drive_full": true,
         "token_scope_drive_file": true,
-        "script_api_service_state": "DISABLED",
+        "script_api_final_state": "ENABLED",
+        "stale_active_canary_scripts": 0,
+        "capabilities": "create,push,version,deploy,list,redeploy,undeploy,delete-script,cleanup-verified",
         "owner_action_required": false,
-        "repair_branch": "ops/oa089-enable-apps-script-api",
-        "next": "Enable script.googleapis.com in scoped Beta project from main-only canary, then rerun full lifecycle."
-      }
+        "d159_accepted_base_unchanged": true,
+        "d160_opened": false
+      },
+      "closed_at": "2026-10-02"
     }
   ]
 }
