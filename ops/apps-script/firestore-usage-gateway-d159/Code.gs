@@ -1,7 +1,8 @@
 const PROJECT_ID = 'supra-inventory-beta';
 const DATABASE_ID = '(default)';
 const ROLE_ALLOWLIST = ['ADMIN', 'PICKPACK_ADMIN'];
-const CACHE_KEY = 'D159_FIRESTORE_USAGE_V1';
+const CACHE_KEY = 'D159_FIRESTORE_USAGE_V3_QUOTA_PROJECT';
+const GATEWAY_REVISION = 'D159-GW-v3';
 const CACHE_TTL_SECONDS = 15 * 60;
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -20,7 +21,8 @@ function doGet() {
     ok: true,
     service: 'SUPRA_FIRESTORE_USAGE_GATEWAY_D159',
     project: PROJECT_ID,
-    cache_ttl_seconds: CACHE_TTL_SECONDS
+    cache_ttl_seconds: CACHE_TTL_SECONDS,
+    revision: GATEWAY_REVISION
   });
 }
 
@@ -132,6 +134,7 @@ function collectUsage_() {
     database: DATABASE_ID,
     generated_at: now.toISOString(),
     cache_ttl_seconds: CACHE_TTL_SECONDS,
+    revision: GATEWAY_REVISION,
     partial: errors.length > 0,
     errors: errors,
     availability: {
@@ -200,7 +203,11 @@ function fetchMetrics_(specs, token) {
   const requests = specs.map(spec => ({
     url: spec.url,
     method: 'get',
-    headers: { Authorization: 'Bearer ' + token },
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'X-Goog-User-Project': PROJECT_ID,
+      Accept: 'application/json'
+    },
     muteHttpExceptions: true
   }));
   const responses = UrlFetchApp.fetchAll(requests);
@@ -228,18 +235,30 @@ function fetchMetrics_(specs, token) {
 function monitoringFailureCode_(httpStatus, content) {
   let status = '';
   let reason = '';
+  let message = '';
   try {
     const payload = JSON.parse(content || '{}');
     const error = payload && payload.error || {};
     status = String(error.status || '');
+    message = String(error.message || '');
     const details = error.details || [];
     details.forEach(detail => {
       if (!reason && detail && detail.reason) reason = String(detail.reason);
     });
   } catch (_) {}
+
+  const messageUpper = message.toUpperCase();
+  let category = '';
+  if (messageUpper.indexOf('MONITORING.TIMESERIES.LIST') >= 0) category = 'MISSING_MONITORING_TIMESERIES_LIST';
+  else if (messageUpper.indexOf('SERVICEUSAGE.SERVICES.USE') >= 0) category = 'MISSING_SERVICEUSAGE_SERVICES_USE';
+  else if (messageUpper.indexOf('INSUFFICIENT AUTHENTICATION SCOPES') >= 0) category = 'OAUTH_SCOPE_INSUFFICIENT';
+  else if (messageUpper.indexOf('API HAS NOT BEEN USED') >= 0 || messageUpper.indexOf('API IS DISABLED') >= 0) category = 'MONITORING_API_DISABLED';
+  else if (messageUpper.indexOf('QUOTA PROJECT') >= 0) category = 'QUOTA_PROJECT_REQUIRED';
+
   const parts = ['MONITORING_HTTP_' + httpStatus];
   if (status) parts.push(status.replace(/[^A-Z0-9_]/gi, '_').substring(0, 64));
   if (reason) parts.push(reason.replace(/[^A-Z0-9_]/gi, '_').substring(0, 96));
+  if (category) parts.push(category);
   return parts.join(':');
 }
 

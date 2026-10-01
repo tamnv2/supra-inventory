@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "READY_FOR_OWNER_RETEST_D159_V2",
+      "status": "READY_OWNER_FIELD_RETEST__IAM_API_GW_V3_CANARY_PASS",
       "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4277,7 +4277,11 @@
         "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Run official d159-usage-test-v2 on the same Windows user. If values load, compare them with Firebase Usage; if still N/A, send the visible 'Cloud Monitoring lỗi: ...' status line or screenshot. Do not send keys/tokens.",
+      "remaining_owner_action": [
+        "Open the existing d159-usage-test-v2 standalone EXE on the Windows account with the saved Agent session and refresh once.",
+        "Verify Reads/Writes/Deletes, realtime connections/listeners, Rules and the hourly table show real values instead of N/A or MONITORING_HTTP_403, then compare the totals/hourly pattern with Firebase Usage allowing normal provider delay.",
+        "Report PASS if values are plausible and the 15-minute cache behavior remains as designed; otherwise report the exact visible error/value mismatch so D159 is repaired under the same change ID."
+      ],
       "closed": false,
       "owner_report": {
         "date": "2026-10-01",
@@ -4302,6 +4306,34 @@
         "release": "d159-usage-test-v2",
         "exe_asset_id": 603649137,
         "exe_sha256": "0a281091e1c3072d4d93f5fbbee1b26cb09194bc5302871cf824fbec6e5366b6"
+      },
+      "field_failure_403": {
+        "date": "2026-10-01",
+        "result": "FAIL",
+        "code": "MONITORING_HTTP_403",
+        "boundary": "APPS_SCRIPT_TO_CLOUD_MONITORING_AUTH_OR_QUOTA_ATTRIBUTION",
+        "not_affected": [
+          "D158 Agent v94",
+          "D158 log gateway",
+          "Android vc92",
+          "WMS",
+          "Worker",
+          "Stable"
+        ]
+      },
+      "diagnostic_evidence": {
+        "workflow_run": 36893999796,
+        "monitoring_api": "ENABLED",
+        "ci_monitoring_timeSeries_list": true,
+        "ci_serviceusage_services_use": true,
+        "exact_monitoring_query": "PASS_HTTP_200",
+        "configured_gateway_identity": "PASS",
+        "apps_script_field_code_before_repair": "MONITORING_HTTP_403"
+      },
+      "provider_repair_owner_report": {
+        "date": "2026-10-01",
+        "result": "DONE_BY_OWNER",
+        "evidence": "Owner confirmed Cloud Monitoring API enabled, required IAM grant present and D159-GW-v3 redeployed using the existing Web App deployment."
       }
     }
   ]

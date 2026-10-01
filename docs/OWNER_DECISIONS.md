@@ -2688,3 +2688,55 @@ After the Owner field screenshot showed every provider metric as `N/A`, D159 rem
 - EXE asset id `603649137`, size `28,160` bytes, SHA-256 `0a281091e1c3072d4d93f5fbbee1b26cb09194bc5302871cf824fbec6e5366b6`.
 - V2 does not increase Monitoring cadence and creates no Firestore document operation. It only surfaces the provider failure code that v1 hid behind generic `N/A`.
 - Owner retest requirement: if values remain unavailable, report only the visible sanitized `Cloud Monitoring lỗi: ...` code/status. This identifies whether the remaining issue is OAuth/IAM/API enablement or Monitoring query syntax without exposing secrets.
+
+
+## D159 403 root-cause repair — quota-project attribution — 2026-10-01
+
+The Owner's D159-v2 field screenshot proves the provider failure is HTTP **403**. The D159 Windows client, saved Agent DPAPI session, Firebase token refresh, Web App reachability and 15-minute cache path are all functioning.
+
+The same D159 change is repaired without touching the D158 accepted base.
+
+Repair:
+- every Apps Script Cloud Monitoring REST call now includes `X-Goog-User-Project: supra-inventory-beta` in addition to the bearer token from `ScriptApp.getOAuthToken()`;
+- the Script Cache key is bumped to `D159_FIRESTORE_USAGE_V3_QUOTA_PROJECT` so an old cached 403/N-A snapshot cannot survive the redeploy;
+- provider failures remain sanitized but classify missing `monitoring.timeSeries.list`, missing `serviceusage.services.use`, insufficient OAuth scope, disabled Monitoring API and missing quota-project cases;
+- CI gains an independent Google Cloud provider canary using the existing protected Beta service-account secret. It calls the exact Firestore read metric/filter with `X-Goog-User-Project` and must return HTTP 200 before this repair may merge.
+
+This follows Google's documented user-credential REST requirement that a quota project can be supplied with `X-Goog-User-Project`; the caller must have `serviceusage.services.use` on that project. Cloud Monitoring `timeSeries.list` also requires `monitoring.timeSeries.list`.
+
+No new runtime secret is introduced. The existing CI service-account credential is used only inside GitHub Actions and is never copied to Apps Script or the EXE. Runtime cadence and Firestore document-operation cost remain unchanged.
+
+After technical PASS, the only manual action is updating/redeploying the **existing** D159 Apps Script Web App as a new version. The deployment URL and D159-v2 EXE do not need to change.
+
+
+## D159 403 diagnostic proof — missing Monitoring consumer permissions — 2026-10-01
+
+Automated provider diagnosis on run `36893601587` reproduced HTTP 403 outside Apps Script using the protected Beta Google service-account identity and the exact Firestore Monitoring filter.
+
+Safe `testIamPermissions` output:
+- `monitoring.timeSeries.list = false`
+- `serviceusage.services.use = false`
+- Monitoring API enabled-state could not be confirmed because the caller lacks Service Usage permission.
+
+The Owner field Apps Script path independently returns `MONITORING_HTTP_403`. Therefore D159 is blocked at Google Cloud Monitoring consumption/IAM, not at the Windows EXE, Firebase session, D159 gateway routing, cache, Firestore data model or metric filter.
+
+Minimal provider fix:
+1. Ensure **Cloud Monitoring API** is enabled on `supra-inventory-beta`.
+2. Grant **Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`) to the Google account used to deploy/execute the D159 Apps Script.
+3. Grant the same role to `inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com` for the automated provider canary.
+4. Redeploy the existing D159 Apps Script with repo-managed Gateway revision `D159-GW-v3`, which adds `X-Goog-User-Project: supra-inventory-beta` and a fresh cache key.
+
+This is narrower than granting project Viewer/Editor. No Stable role/resource is touched.
+
+## D159 provider repair proof — IAM/API/redeploy technical PASS — 2026-10-01
+
+Owner confirmed the Google Cloud provider repair actions for the existing isolated D159 resource: Cloud Monitoring API is enabled on `supra-inventory-beta`, the required Service Usage Consumer grant is present for the Apps Script execution account and `inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com`, and the repo-managed `D159-GW-v3` code was redeployed using the existing Web App deployment.
+
+GitHub Actions rerun `36893999796` provides independent technical proof:
+- Cloud Monitoring API: `ENABLED`;
+- `monitoring.timeSeries.list = true`;
+- `serviceusage.services.use = true`;
+- the exact Firestore `document/read_ops_count` query for the default database returned HTTP 200;
+- configured D159 gateway identity, isolated EXE build and parser/self-test all PASS.
+
+This closes the 403 provider/IAM blocker technically. It does **not** constitute Owner PASS for D159: OA087 remains open until the Owner field-retests the existing D159-v2 standalone EXE and confirms that real totals/hourly/realtime/rules values are visible and plausible against Firebase Usage. D158 remains the accepted base; Agent v94, Android vc92, Web/Worker/WMS and Stable are unchanged.
