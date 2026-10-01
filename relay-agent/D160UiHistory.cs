@@ -287,8 +287,8 @@ namespace SupraInventoryRelayAgent
             };
             if (target == null)
             {
-                var index = _d160HistoryGrid.Rows.Insert(0, values);
-                _d160HistoryGrid.Rows[index].Tag = item.RequestId;
+                _d160HistoryGrid.Rows.Insert(0, values);
+                _d160HistoryGrid.Rows[0].Tag = item.RequestId;
             }
             else
             {
