@@ -93,6 +93,50 @@ jobs:
               raise SystemExit("CLASPRC_JSON is not a non-empty JSON object")
           PY
 
+          scope_value="$(jq -r '.tokens.default.scope // .token.scope // .scope // ""' "$HOME/.clasprc.json")"
+          if printf ' %s ' "$scope_value" | grep -Fq ' https://www.googleapis.com/auth/drive '; then
+            echo "AUTH_SCOPE_DRIVE_FULL=true"
+          else
+            echo "AUTH_SCOPE_DRIVE_FULL=false"
+          fi
+          if printf ' %s ' "$scope_value" | grep -Fq ' https://www.googleapis.com/auth/drive.file '; then
+            echo "AUTH_SCOPE_DRIVE_FILE=true"
+          else
+            echo "AUTH_SCOPE_DRIVE_FILE=false"
+          fi
+
+          classify_delete_error() {
+            local out_file="$1"
+            local err_file="$2"
+            local combined
+            combined="$(cat "$out_file" "$err_file" 2>/dev/null || true)"
+            if printf '%s' "$combined" | grep -qi 'insufficient authentication scopes'; then
+              echo "OAUTH_SCOPE_INSUFFICIENT"
+            elif printf '%s' "$combined" | grep -Eqi 'insufficient permissions|permission denied|forbidden'; then
+              echo "DRIVE_PERMISSION_INSUFFICIENT"
+            elif printf '%s' "$combined" | grep -Eqi 'Drive API.*(disabled|not been used)|accessNotConfigured'; then
+              echo "DRIVE_API_DISABLED_OR_UNCONFIGURED"
+            elif printf '%s' "$combined" | grep -Eqi 'File not found|notFound'; then
+              echo "DRIVE_FILE_NOT_ACCESSIBLE_OR_NOT_FOUND"
+            elif printf '%s' "$combined" | grep -Eqi 'invalid_grant|unauthorized'; then
+              echo "OAUTH_TOKEN_REJECTED"
+            else
+              echo "UNCLASSIFIED_DELETE_ERROR"
+            fi
+          }
+
+          delete_script_checked() {
+            local target_id="$1"
+            local label="$2"
+            local out_file="delete-${label}.out"
+            local err_file="delete-${label}.err"
+            if clasp delete-script "$target_id" --force >"$out_file" 2>"$err_file"; then
+              return 0
+            fi
+            echo "DELETE_SCRIPT_DIAG=$(classify_delete_error "$out_file" "$err_file")"
+            return 1
+          }
+
           work="$(mktemp -d)"
           script_id=""
           deployment_id=""
@@ -117,6 +161,17 @@ jobs:
           }
 
           cd "$work"
+
+          echo "CANARY_STAGE=preflight-stale-cleanup"
+          clasp --json list-scripts > existing-scripts.json 2>/dev/null || fail_stage "list-scripts-preflight"
+          mapfile -t stale_ids < <(jq -r '.[] | select(.name | startswith("SUPRA Inventory Beta - Apps Script Automation Probe ")) | .id' existing-scripts.json)
+          echo "STALE_CANARY_SCRIPTS=${#stale_ids[@]}"
+          stale_index=0
+          for stale_id in "${stale_ids[@]}"; do
+            stale_index=$((stale_index + 1))
+            delete_script_checked "$stale_id" "stale-${stale_index}" || fail_stage "stale-delete-script"
+          done
+
           title="SUPRA Inventory Beta - Apps Script Automation Probe ${GITHUB_RUN_ID}"
 
           echo "CANARY_STAGE=create"
@@ -195,7 +250,7 @@ jobs:
 
           echo "CANARY_STAGE=delete-script"
           deleted_script_id="$script_id"
-          clasp delete-script "$deleted_script_id" --force >/dev/null 2>&1 || fail_stage "delete-script"
+          delete_script_checked "$deleted_script_id" "current" || fail_stage "delete-script"
           delete_script_ok=false
           for attempt in 1 2 3 4 5 6 7 8; do
             clasp --json list-scripts > scripts-after-delete.json 2>/dev/null || fail_stage "delete-script-list"
