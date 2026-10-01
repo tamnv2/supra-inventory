@@ -163,21 +163,29 @@ function collectUsage_() {
 }
 
 function metricSpec_(key, metricType, start, end, alignmentPeriod, aligner, reducer, groupBy) {
-  const url = new URL('https://monitoring.googleapis.com/v3/projects/' + encodeURIComponent(PROJECT_ID) + '/timeSeries');
   const filter =
     'metric.type="' + metricType + '" AND ' +
     'resource.type="firestore.googleapis.com/Database" AND ' +
     'resource.labels.database_id="' + DATABASE_ID + '"';
-  url.searchParams.set('filter', filter);
-  url.searchParams.set('interval.startTime', start.toISOString());
-  url.searchParams.set('interval.endTime', end.toISOString());
-  url.searchParams.set('view', 'FULL');
-  url.searchParams.set('pageSize', '1000');
-  url.searchParams.set('aggregation.alignmentPeriod', alignmentPeriod);
-  url.searchParams.set('aggregation.perSeriesAligner', aligner);
-  url.searchParams.set('aggregation.crossSeriesReducer', reducer);
-  (groupBy || []).forEach(field => url.searchParams.append('aggregation.groupByFields', field));
-  return { key: key, url: url.toString() };
+  const params = [
+    ['filter', filter],
+    ['interval.startTime', start.toISOString()],
+    ['interval.endTime', end.toISOString()],
+    ['view', 'FULL'],
+    ['pageSize', '1000'],
+    ['aggregation.alignmentPeriod', alignmentPeriod],
+    ['aggregation.perSeriesAligner', aligner],
+    ['aggregation.crossSeriesReducer', reducer]
+  ];
+  (groupBy || []).forEach(field => params.push(['aggregation.groupByFields', field]));
+  const query = params
+    .map(pair => encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1]))
+    .join('&');
+  return {
+    key: key,
+    url: 'https://monitoring.googleapis.com/v3/projects/' +
+      encodeURIComponent(PROJECT_ID) + '/timeSeries?' + query
+  };
 }
 
 function fetchMetrics_(specs, token) {
