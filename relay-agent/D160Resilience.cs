@@ -11,7 +11,41 @@ namespace SupraInventoryRelayAgent
     internal sealed partial class AgentForm
     {
         private readonly object _d160WorkerRevokeGate = new object();
+        private readonly object _d160RealtimeAuthRecoveryGate = new object();
+        private long _d160LastRealtimeAuthRefreshAttemptMs;
         private long _d160WorkerRevokeCircuitUntilMs;
+
+        private void ForceRefreshAgentTokenD160()
+        {
+            lock (_d160RealtimeAuthRecoveryGate)
+            {
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (now - _d160LastRealtimeAuthRefreshAttemptMs < 5000L)
+                {
+                    Log("D160 AUTH realtime_force_refresh=COALESCED window_ms=5000");
+                    return;
+                }
+                _d160LastRealtimeAuthRefreshAttemptMs = now;
+                try
+                {
+                    RefreshDirect();
+                    Log("D160 AUTH realtime_force_refresh=PASS");
+                }
+                catch (Exception ex)
+                {
+                    Log("D160 AUTH realtime_force_refresh=FAIL type=" + ex.GetType().Name);
+                    if (IsDefinitiveAgentAuthFailure(ex))
+                    {
+                        ThreadPool.QueueUserWorkItem(_ =>
+                        {
+                            try { ExpireAgentSession("Phiên Agent không thể làm mới cho Firestore realtime."); }
+                            catch { }
+                        });
+                    }
+                    throw;
+                }
+            }
+        }
 
         private bool TryRevokePickerWorkerSessionD160(AgentSession session, PickerPresenceView picker)
         {
