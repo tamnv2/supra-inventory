@@ -171,8 +171,8 @@ jobs:
         run: |
           $exe = Get-ChildItem usage-test-agent/dist -Filter "SUPRA Firestore Usage Test.exe" | Select-Object -First 1
           if ($null -eq $exe) { throw "D159 EXE missing." }
-          & $exe.FullName --self-test
-          if ($LASTEXITCODE -ne 0) { throw "D159 self-test failed." }
+          $process = Start-Process -FilePath $exe.FullName -ArgumentList "--self-test" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "D159 self-test failed with exit code $($process.ExitCode)." }
 
       - name: Verify D159 standalone output
         shell: pwsh
