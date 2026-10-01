@@ -2019,10 +2019,10 @@
     "gateway_identity": "PASS__SUPRA_FIRESTORE_USAGE_GATEWAY_D159__supra-inventory-beta",
     "release": "d159-usage-test-v2",
     "release_id": 401147817,
-    "exe_asset_id": 603735849,
+    "exe_asset_id": 603747265,
     "exe_size_bytes": 28160,
-    "exe_sha256": "9f55658537e8aa6f3bac2b64df13a4d1de6df58cbd6fe6c512a2b3a32f225978",
-    "checksum_asset_id": 603735848,
+    "exe_sha256": "6fc4c37c5f9e29c8a105a229e8e2761c1be9087830c01166d49c347c556405ba",
+    "checksum_asset_id": 603747266,
     "field_failure_boundary": "APPS_SCRIPT_TO_CLOUD_MONITORING",
     "next_release": "d159-usage-test-v2",
     "gateway_revision_target": "D159-GW-v3",
@@ -2035,6 +2035,7 @@
     "gateway_revision": "D159-GW-v3__OWNER_REDEPLOYED_SAME_URL",
     "field_gate": "OA087_OWNER_FIELD_RETEST_PENDING",
     "repair_pr": 351,
-    "main_ci": "PASS__AUTHORITY_STATE_UI_DASHBOARD_D159__D159_ATTEMPT_2_AFTER_TRANSIENT_GATEWAY_TIMEOUT"
+    "main_ci": "PASS__AUTHORITY_STATE_UI_DASHBOARD_D159__D159_ATTEMPT_2_AFTER_TRANSIENT_GATEWAY_TIMEOUT",
+    "release_update_policy": "ONLY_USAGE_TEST_AGENT_OR_D159_APPS_SCRIPT_SOURCE_CHANGE_MAY_REFRESH_FIELD_PRERELEASE__AUTHORITY_CONTINUITY_PUSHES_DO_NOT_CLOBBER"
   }
 }

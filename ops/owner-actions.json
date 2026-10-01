@@ -4293,8 +4293,8 @@
         "main_commit": "95a03d0a90d781ed3b75f1cbe13798cb36d6cdda",
         "workflow_run": 36889812874,
         "configured_release": "d159-usage-test-v2",
-        "exe_asset_id": 603735849,
-        "exe_sha256": "9f55658537e8aa6f3bac2b64df13a4d1de6df58cbd6fe6c512a2b3a32f225978",
+        "exe_asset_id": 603747265,
+        "exe_sha256": "6fc4c37c5f9e29c8a105a229e8e2761c1be9087830c01166d49c347c556405ba",
         "repair_pr": 351,
         "repair_main": "a1a3f3a729b824de7214d4b78c7855b32ed6c481",
         "main_repo_authority_run": 36897255172,
@@ -4303,7 +4303,9 @@
         "main_dashboard_probe_run": 36897255260,
         "main_d159_run": 36897255165,
         "main_d159_attempt": 2,
-        "main_result": "PASS__TRANSIENT_GATEWAY_IDENTITY_TIMEOUT_ON_ATTEMPT_1__FULL_PASS_ATTEMPT_2"
+        "main_result": "PASS__TRANSIENT_GATEWAY_IDENTITY_TIMEOUT_ON_ATTEMPT_1__FULL_PASS_ATTEMPT_2",
+        "latest_main_d159_run": 36898149324,
+        "release_refresh_policy": "SOURCE_PAYLOAD_ONLY__NO_DOCS_ONLY_CLOBBER"
       },
       "field_failure": {
         "date": "2026-10-01",

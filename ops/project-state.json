@@ -3791,13 +3791,15 @@
     "repair_release_evidence": {
       "release": "d159-usage-test-v2",
       "release_id": 401147817,
-      "exe_asset_id": 603735849,
+      "exe_asset_id": 603747265,
       "exe_size_bytes": 28160,
-      "exe_sha256": "9f55658537e8aa6f3bac2b64df13a4d1de6df58cbd6fe6c512a2b3a32f225978",
-      "checksum_asset_id": 603735848,
-      "published_asset_updated_at": "2026-10-01T17:12:54Z",
-      "main_workflow": "PASS__VERIFY_D159_USAGE_TEST_AGENT_36897255165_ATTEMPT_2",
-      "note": "The v2 standalone EXE contract is unchanged; the official prerelease assets were refreshed from repaired main after Cloud Monitoring/GW-v3 technical PASS."
-    }
+      "exe_sha256": "6fc4c37c5f9e29c8a105a229e8e2761c1be9087830c01166d49c347c556405ba",
+      "checksum_asset_id": 603747266,
+      "published_asset_updated_at": "2026-10-01T17:20:00Z",
+      "latest_refresh_workflow": "PASS__VERIFY_D159_USAGE_TEST_AGENT_36898149324",
+      "source_contract": "D159_V2_WINDOWS_SOURCE_UNCHANGED__GW_V3_PROVIDER_REPAIR_ACTIVE",
+      "note": "This is the field-test asset after the final continuity refresh. D159 CI now prevents authority/docs-only pushes from clobbering the prerelease asset."
+    },
+    "release_refresh_policy": "PUBLISH_PRERELEASE_ONLY_WHEN_USAGE_TEST_AGENT_OR_D159_APPS_SCRIPT_SOURCE_CHANGES__AUTHORITY_CONTINUITY_OR_WORKFLOW_ONLY_PUSH_DOES_NOT_CLOBBER_FIELD_ASSET"
   }
 }
