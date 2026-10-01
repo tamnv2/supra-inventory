@@ -4200,7 +4200,7 @@
     },
     {
       "id": "OA086",
-      "status": "OWNER_PROVISION_COMPLETE__AI_REBUILDING_FIELD_CANDIDATE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-prove D158 Beta Agent log gateway + v93 on Office",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Google Apps Script / Google Drive / SUPRA Inventory Beta",
@@ -4208,14 +4208,14 @@
       "prerequisites": {
         "accepted_base": "D157_OWNER_ACCEPTED_PASS",
         "d158_owner_approval": "PASS__2026_10_01",
-        "technical_pr": "PASS__PR341__HEAD_E96AA035__ALL_REQUIRED_GATES_PASS",
+        "technical_pr": "PASS__PR341__SOURCE_EFAB7E7C__ALL_REQUIRED_GATES_PASS__CONFIGURED_GATEWAY_GET_PROBE_PASS",
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
-        "agent_candidate": "relay-agent-v93__CONFIGURED_GATEWAY_REBUILD_IN_PROGRESS"
+        "agent_candidate": "relay-agent-v93__PR_ARTIFACT_11153610507__GATEWAY_CONFIGURED__FIELD_READY"
       },
       "provisioning_evidence": "PASS__OWNER_CONFIRMED_APPS_SCRIPT_DEPLOYED__SCRIPT_PROPERTIES_SET_PRIVATELY__GITHUB_BETA_AGENT_LOG_GATEWAY_URL_CONFIGURED__2026_10_01",
       "shortest_action_after_technical_pass": [
-        "AI rebuilds PR341 Agent v93 with AGENT_LOG_GATEWAY_URL_BETA required and validates the configured candidate without exposing the URL.",
+        "AI rebuilt PR341 Agent v93 with AGENT_LOG_GATEWAY_URL_BETA required; CI validated the URL shape and the live gateway GET identity without exposing the URL.",
         "On one Office laptop run the configured D158 v93 candidate: verify role/health after login, normal vc92 PickList, tiny log upload, same-bundle retry without duplicate, offline pending then reconnect, and 05:00 counter rollover when practical."
       ],
       "pass_criteria": [
