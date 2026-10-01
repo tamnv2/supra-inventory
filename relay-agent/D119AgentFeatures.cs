@@ -100,6 +100,8 @@ namespace SupraInventoryRelayAgent
         private long _d135CounterErrorFloor;
         private long _agentSyncReconcileRunning;
         private DateTime _lastAgentSyncReconcileUtc = DateTime.MinValue;
+        private string _lastD158DailyCounterReadDay = "";
+        private string _lastD158DailyCounterReadGeneration = "";
         private DateTime _lastD150DeepSyncReadUtc = DateTime.MinValue;
         private long _d150DeepSyncReadRunning;
         private bool? _pickerWindowOpenState;
@@ -1397,11 +1399,27 @@ namespace SupraInventoryRelayAgent
                     Dictionary<string, PickerContactCommand> openCalls = null;
                     try { openCalls = _pickerContactClient.LoadOpen(session); }
                     catch (Exception ex) { Log("PICKER_ACTIVE_CALL reconcile=DEFER detail=" + SafeMessage(ex)); }
-                    var metrics = _fleetMetricsClient.RefreshPrimary(
-                        session,
-                        _agentInstanceId,
-                        Interlocked.Read(ref _localPdaRequests),
-                        Interlocked.Read(ref _localAgentResponses));
+                    var counterDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                    var generation = _leaderCoordinator == null ? "" : (_leaderCoordinator.Generation ?? "");
+                    long counterReceived;
+                    long counterConfirmed;
+                    long counterError;
+                    var needDurableRecoveryRead =
+                        !string.Equals(_lastD158DailyCounterReadDay, counterDay, StringComparison.Ordinal) ||
+                        !string.Equals(_lastD158DailyCounterReadGeneration, generation, StringComparison.Ordinal);
+                    if (needDurableRecoveryRead)
+                    {
+                        var metrics = _fleetMetricsClient.RefreshPrimary(
+                            session,
+                            _agentInstanceId,
+                            Interlocked.Read(ref _localPdaRequests),
+                            Interlocked.Read(ref _localAgentResponses));
+                        _lastD158DailyCounterReadDay = counterDay;
+                        _lastD158DailyCounterReadGeneration = generation;
+                        MergeD135CounterSnapshot(metrics.DayKey, metrics.ReceivedTotal, metrics.ConfirmedTotal, metrics.ErrorTotal);
+                    }
+                    GetD135DisplayCounters(out counterReceived, out counterConfirmed, out counterError);
+
                     var fleet = _leaderCoordinator == null
                         ? new List<AgentPresenceView>()
                         : _leaderCoordinator.OnlineAgents;
@@ -1410,9 +1428,9 @@ namespace SupraInventoryRelayAgent
                         pickers,
                         openCalls,
                         fleet,
-                        metrics.ReceivedTotal,
-                        metrics.ConfirmedTotal,
-                        metrics.ErrorTotal);
+                        counterReceived,
+                        counterConfirmed,
+                        counterError);
                     _lastAgentSyncReconcileUtc = DateTime.UtcNow;
                     ApplyD134AgentSyncSnapshot(snapshot);
                     Log("AGENT_SYNC reconcile=PASS cadence=5m max_agents=10");
