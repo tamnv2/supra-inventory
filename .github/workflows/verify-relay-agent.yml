@@ -910,12 +910,23 @@ jobs:
         shell: pwsh
         run: |
           $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
-          try {
-            $response = Invoke-RestMethod -Uri $gateway -Method Get -TimeoutSec 20
-          } catch {
-            throw "D158 OA086 gateway GET probe failed."
+          $response = $null
+          $lastError = $null
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            try {
+              $response = Invoke-RestMethod -Uri $gateway -Method Get -TimeoutSec 25
+              break
+            } catch {
+              $lastError = $_
+              if ($attempt -lt 3) {
+                Start-Sleep -Seconds (2 + (3 * ($attempt - 1)))
+              }
+            }
           }
-          if ($null -eq $response -or $response.ok -ne $true -or
+          if ($null -eq $response) {
+            throw "D158 OA086 gateway GET probe failed after 3 bounded attempts."
+          }
+          if ($response.ok -ne $true -or
               "$($response.service)" -ne "SUPRA_AGENT_LOG_GATEWAY_D158" -or
               "$($response.project)" -ne "supra-inventory-beta") {
             throw "D158 OA086 gateway GET probe returned an unexpected service identity."
