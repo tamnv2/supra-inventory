@@ -770,6 +770,9 @@ namespace SupraInventoryRelayAgent
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
         private readonly Action<AgentSyncSnapshot> _onSnapshot;
+        private readonly Action<List<PickerPresenceView>> _onDirectPresence;
+        private readonly Action<PickerContactCommand> _onDirectActiveCall;
+        private readonly Action<string> _onDirectActiveCallRemoved;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
         private Task _task;
@@ -778,11 +781,17 @@ namespace SupraInventoryRelayAgent
             Func<AgentSession> sessionProvider,
             Action ensureFreshToken,
             Action<AgentSyncSnapshot> onSnapshot,
+            Action<List<PickerPresenceView>> onDirectPresence,
+            Action<PickerContactCommand> onDirectActiveCall,
+            Action<string> onDirectActiveCallRemoved,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
             _onSnapshot = onSnapshot ?? delegate { };
+            _onDirectPresence = onDirectPresence ?? delegate { };
+            _onDirectActiveCall = onDirectActiveCall ?? delegate { };
+            _onDirectActiveCallRemoved = onDirectActiveCallRemoved ?? delegate { };
             _log = log ?? delegate { };
         }
 
@@ -829,14 +838,47 @@ namespace SupraInventoryRelayAgent
                     var headers = FirestoreD157Grpc.Headers(session);
                     using (var call = client.Listen(headers, cancellationToken: token))
                     {
-                        var docs = new Target.Types.DocumentsTarget();
-                        docs.Documents.Add(AgentConfig.FirestoreAgentSyncDocumentName);
+                        var syncDocs = new Target.Types.DocumentsTarget();
+                        syncDocs.Documents.Add(AgentConfig.FirestoreAgentSyncDocumentName);
                         await call.RequestStream.WriteAsync(new ListenRequest
                         {
                             Database = AgentConfig.FirestoreDatabaseName,
-                            AddTarget = new Target { TargetId = 134, Documents = docs }
+                            AddTarget = new Target { TargetId = 134, Documents = syncDocs }
                         }).ConfigureAwait(false);
-                        _log("AGENT_SYNC listen=OPEN role_limited=true routing_headers=true cadence=EVENT_PLUS_5M");
+
+                        var presenceDocs = new Target.Types.DocumentsTarget();
+                        presenceDocs.Documents.Add(AgentConfig.FirestorePickerPresenceDocumentName);
+                        await call.RequestStream.WriteAsync(new ListenRequest
+                        {
+                            Database = AgentConfig.FirestoreDatabaseName,
+                            AddTarget = new Target { TargetId = 135, Documents = presenceDocs }
+                        }).ConfigureAwait(false);
+
+                        var activeCallsQuery = new StructuredQuery();
+                        activeCallsQuery.From.Add(new StructuredQuery.Types.CollectionSelector { CollectionId = "picker_active_calls" });
+                        activeCallsQuery.Where = new StructuredQuery.Types.Filter
+                        {
+                            FieldFilter = new StructuredQuery.Types.FieldFilter
+                            {
+                                Field = new StructuredQuery.Types.FieldReference { FieldPath = "status" },
+                                Op = StructuredQuery.Types.FieldFilter.Types.Operator.Equal,
+                                Value = new Google.Cloud.Firestore.V1.Value { StringValue = "ACTIVE" }
+                            }
+                        };
+                        await call.RequestStream.WriteAsync(new ListenRequest
+                        {
+                            Database = AgentConfig.FirestoreDatabaseName,
+                            AddTarget = new Target
+                            {
+                                TargetId = 136,
+                                Query = new Target.Types.QueryTarget
+                                {
+                                    Parent = AgentConfig.FirestoreDatabaseName + "/documents",
+                                    StructuredQuery = activeCallsQuery
+                                }
+                            }
+                        }).ConfigureAwait(false);
+                        _log("AGENT_SYNC listen=OPEN role_limited=true routing_headers=true direct_presence=true direct_calls=true cadence=EVENT_PLUS_5M");
 
                         while (await call.ResponseStream.MoveNext(token).ConfigureAwait(false))
                         {
@@ -853,16 +895,46 @@ namespace SupraInventoryRelayAgent
                             {
                                 acceptedResponse = true;
                                 backoff = InitialRetryMs;
-                                _log("AGENT_SYNC listen=CONNECTED role_limited=true cadence=EVENT_PLUS_5M");
+                                _log("AGENT_SYNC listen=CONNECTED role_limited=true direct_sources=true cadence=EVENT_PLUS_5M");
                             }
 
                             var doc = response == null || response.DocumentChange == null
                                 ? null : response.DocumentChange.Document;
-                            if (doc == null || !string.Equals(doc.Name, AgentConfig.FirestoreAgentSyncDocumentName, StringComparison.Ordinal))
-                                continue;
-                            var snapshot = FirestoreAgentSyncClient.ParseGrpcDocument(doc);
-                            _onSnapshot(snapshot);
-                            FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreAgentSyncUrl, "AGENT_SYNC_LISTEN_EVENT", _log);
+                            if (doc != null)
+                            {
+                                if (string.Equals(doc.Name, AgentConfig.FirestoreAgentSyncDocumentName, StringComparison.Ordinal))
+                                {
+                                    var snapshot = FirestoreAgentSyncClient.ParseGrpcDocument(doc);
+                                    _onSnapshot(snapshot);
+                                    FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreAgentSyncUrl, "AGENT_SYNC_LISTEN_EVENT", _log);
+                                    continue;
+                                }
+
+                                if (string.Equals(doc.Name, AgentConfig.FirestorePickerPresenceDocumentName, StringComparison.Ordinal))
+                                {
+                                    _onDirectPresence(FirestorePickerPresenceClient.ParseGrpcDocument(doc));
+                                    FirestoreQuotaGuard.Record("GET", AgentConfig.FirestorePickerPresenceUrl, "D158_PRESENCE_LISTEN_EVENT", _log);
+                                    continue;
+                                }
+
+                                if ((doc.Name ?? "").IndexOf("/picker_active_calls/", StringComparison.Ordinal) >= 0)
+                                {
+                                    var command = FirestorePickerContactClient.ParseGrpcActiveCall(doc);
+                                    if (command != null) _onDirectActiveCall(command);
+                                    FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreDocumentsBaseUrl + "/picker_active_calls", "D158_ACTIVE_CALL_LISTEN_EVENT", _log);
+                                    continue;
+                                }
+                            }
+
+                            var removedName = response != null && response.DocumentRemove != null
+                                ? response.DocumentRemove.Document
+                                : (response != null && response.DocumentDelete != null ? response.DocumentDelete.Document : "");
+                            if (!string.IsNullOrWhiteSpace(removedName) &&
+                                removedName.IndexOf("/picker_active_calls/", StringComparison.Ordinal) >= 0)
+                            {
+                                _onDirectActiveCallRemoved(FirestorePickerContactClient.TargetUserIdFromGrpcName(removedName));
+                                FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreDocumentsBaseUrl + "/picker_active_calls", "D158_ACTIVE_CALL_LISTEN_REMOVE", _log);
+                            }
                         }
 
                         retryDelayMs = backoff;
