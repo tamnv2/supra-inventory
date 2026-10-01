@@ -92,6 +92,10 @@ namespace SupraInventoryRelayAgent
         private readonly object _currentBatchGate = new object();
         private readonly Dictionary<string, FirestoreConfirmationWorkItem> _currentBatchWorks =
             new Dictionary<string, FirestoreConfirmationWorkItem>(StringComparer.Ordinal);
+        private readonly object _recentTerminalGate = new object();
+        private readonly Dictionary<string, long> _recentTerminalRequestIds =
+            new Dictionary<string, long>(StringComparer.Ordinal);
+        private const long RecentTerminalTtlMs = 60000L;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
 
         internal FirestoreConfirmationTransport(
@@ -416,6 +420,11 @@ namespace SupraInventoryRelayAgent
                     _log("FIRESTORE CONFIRM duplicate_request=SKIP layer=TRANSPORT_BATCH request=" + Short(work.RequestId));
                     continue;
                 }
+                if (IsRecentTerminalRequest(work.RequestId))
+                {
+                    _log("FIRESTORE CONFIRM duplicate_request=SKIP layer=D160_RECENT_TERMINAL request=" + Short(work.RequestId));
+                    continue;
+                }
 
                 _log("FIRESTORE CONFIRM pending-found request=" + Short(work.RequestId) +
                      " picker=" + Safe(work.PickerUserId) +
@@ -481,6 +490,7 @@ namespace SupraInventoryRelayAgent
                 if (!TryAck(session, doc.Name, doc.UpdateTime, work.RequestId, outcome))
                     continue;
 
+                RememberRecentTerminalRequest(work.RequestId);
                 _onResponse();
                 var summaryDay = FindBusinessDay(work.RequestId);
                 MarkD157SummaryDirty(summaryDay);
@@ -494,6 +504,39 @@ namespace SupraInventoryRelayAgent
                  " acked=" + processed +
                  " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
             return processed;
+        }
+
+        private bool IsRecentTerminalRequest(string requestId)
+        {
+            if (string.IsNullOrWhiteSpace(requestId)) return false;
+            var now = NowMs();
+            lock (_recentTerminalGate)
+            {
+                var expired = _recentTerminalRequestIds
+                    .Where(pair => pair.Value <= now)
+                    .Select(pair => pair.Key)
+                    .ToList();
+                foreach (var key in expired) _recentTerminalRequestIds.Remove(key);
+                long until;
+                return _recentTerminalRequestIds.TryGetValue(requestId, out until) && until > now;
+            }
+        }
+
+        private void RememberRecentTerminalRequest(string requestId)
+        {
+            if (string.IsNullOrWhiteSpace(requestId)) return;
+            lock (_recentTerminalGate)
+                _recentTerminalRequestIds[requestId] = NowMs() + RecentTerminalTtlMs;
+        }
+
+        private FirestoreConfirmationWorkItem CurrentBatchWork(string requestId)
+        {
+            if (string.IsNullOrWhiteSpace(requestId)) return null;
+            lock (_currentBatchGate)
+            {
+                FirestoreConfirmationWorkItem work;
+                return _currentBatchWorks.TryGetValue(requestId, out work) ? work : null;
+            }
         }
 
         private List<PendingDocument> ReadPendingDocuments(AgentSession session)
@@ -881,6 +924,7 @@ namespace SupraInventoryRelayAgent
             string jobId,
             FirestoreConfirmationOutcome outcome)
         {
+            var currentWork = CurrentBatchWork(jobId);
             var fields = new Dictionary<string, object>
             {
                 { "status", StringField("ACK") },
@@ -947,6 +991,11 @@ namespace SupraInventoryRelayAgent
                 { "lookup_status", StringField(outcome.Result ?? "CONFIRM_ERROR") },
                 { "lookup_matches", IntField(Math.Max(0, outcome.Matches)) },
                 { "candidate_picklists", StringArrayField(outcome.Candidates) },
+                { "resolved_picklist_code", StringField(outcome.ResolvedPickListCode ?? "") },
+                { "picker_contractor_name", StringField(
+                    !string.IsNullOrWhiteSpace(outcome.PickerContractorName)
+                        ? outcome.PickerContractorName
+                        : (currentWork == null ? "" : (currentWork.PickerContractorName ?? ""))) },
                 { "lookup_ms", IntField(Math.Max(0L, outcome.OperationMs)) },
                 { "lookup_route", StringField(outcome.Route ?? "NONE") },
                 { "lookup_http", IntField(Math.Max(0, outcome.Http)) },
