@@ -4254,7 +4254,9 @@ namespace SupraInventoryRelayAgent
 
         private FirestoreConfirmationOutcome ProcessFirestoreConfirmation(FirestoreConfirmationWorkItem work)
         {
-            var results = ProcessFirestoreConfirmations(new List<FirestoreConfirmationWorkItem> { work });
+            var results = ProcessFirestoreConfirmations(
+                new List<FirestoreConfirmationWorkItem> { work },
+                null);
             FirestoreConfirmationOutcome outcome;
             return work != null &&
                    results.TryGetValue(work.RequestId ?? "", out outcome) &&
@@ -4264,9 +4266,10 @@ namespace SupraInventoryRelayAgent
         }
 
         private Dictionary<string, FirestoreConfirmationOutcome> ProcessFirestoreConfirmations(
-            List<FirestoreConfirmationWorkItem> works)
+            List<FirestoreConfirmationWorkItem> works,
+            Action<string, FirestoreConfirmationOutcome> terminalCallback)
         {
-            return ProcessFirestoreConfirmationsD160(works);
+            return ProcessFirestoreConfirmationsD160(works, terminalCallback);
         }
 
         private static bool IsSafeBrowserFailure(SupraBrowserConfirmResult result)
