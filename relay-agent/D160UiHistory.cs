@@ -38,8 +38,10 @@ namespace SupraInventoryRelayAgent
         private readonly JavaScriptSerializer _d160HistoryJson = new JavaScriptSerializer();
         private string _d160HistoryDayKey = "";
 
-        private static readonly string D160HistoryDir =
-            Path.Combine(RelayDataDir, "picker-history");
+        private static string D160HistoryDir
+        {
+            get { return Path.Combine(RelayDataDir, "picker-history"); }
+        }
 
         private void InitializeD160Ui()
         {
