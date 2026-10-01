@@ -7,6 +7,6 @@ namespace SupraFirestoreUsageTest
         internal const string UsageGatewayUrl = "__D159_USAGE_GATEWAY_URL_BETA__";
         internal const int RefreshMinutes = 15;
         internal const string ProductName = "SUPRA Firestore Usage Test";
-        internal const string Version = "D159-v1";
+        internal const string Version = "D159-v2";
     }
 }
