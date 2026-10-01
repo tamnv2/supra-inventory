@@ -71,6 +71,18 @@ namespace SupraInventoryRelayAgent
             try { Wake.Set(); } catch { }
         }
 
+        internal static void Remove(string documentName)
+        {
+            if (string.IsNullOrWhiteSpace(documentName)) return;
+            lock (Gate)
+            {
+                // D160: DocumentRemove is a tombstone for the newest cached listener
+                // snapshot. PendingDocumentNames may still contain the name, but Drain
+                // will skip it because the dictionary entry is gone.
+                PendingDocuments.Remove(documentName);
+            }
+        }
+
         internal static List<Google.Cloud.Firestore.V1.Document> DrainDocuments(int max)
         {
             var result = new List<Google.Cloud.Firestore.V1.Document>();
@@ -309,7 +321,10 @@ namespace SupraInventoryRelayAgent
                             var changed = response != null && response.DocumentChange != null && response.DocumentChange.Document != null;
                             var removed = response != null && response.DocumentRemove != null;
                             if (removed)
+                            {
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_REMOVE", _log);
+                                D157PendingWakeSignal.Remove(response.DocumentRemove.Document);
+                            }
                             if (!changed) continue;
                             FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_EVENT", _log);
                             D157PendingWakeSignal.Pulse(response.DocumentChange.Document);
