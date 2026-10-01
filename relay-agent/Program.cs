@@ -4543,9 +4543,9 @@ namespace SupraInventoryRelayAgent
             foreach (var outcome in outcomes.Values)
             {
                 if (outcome != null && string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal))
-                    Interlocked.Increment(ref _localConfirmSuccess);
+                    RecordD158ConfirmOutcome(true);
                 else
-                    Interlocked.Increment(ref _localConfirmFailed);
+                    RecordD158ConfirmOutcome(false);
             }
             Ui(() => RefreshAgentRequestMetrics());
 
@@ -4637,13 +4637,13 @@ namespace SupraInventoryRelayAgent
                             () =>
                             {
                                 MarkD157BusinessActivity();
-                                Interlocked.Increment(ref _localPdaRequests);
+                                RecordD158PdaRequest();
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
                             () =>
                             {
                                 MarkD157BusinessActivity();
-                                Interlocked.Increment(ref _localAgentResponses);
+                                RecordD158AgentResponse();
                                 Ui(() => RefreshAgentRequestMetrics());
                             },
                             (dayKey, outcome) => ApplyD135DurableCounterAck(dayKey, outcome),
