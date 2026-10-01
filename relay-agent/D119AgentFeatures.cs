@@ -2718,42 +2718,7 @@ namespace SupraInventoryRelayAgent
 
         private bool TryRevokePickerWorkerSession(AgentSession session, PickerPresenceView picker)
         {
-            try
-            {
-                var request = (HttpWebRequest)WebRequest.Create(
-                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/picker-session/revoke");
-                request.Method = "POST";
-                request.Accept = "application/json";
-                request.ContentType = "application/json; charset=utf-8";
-                request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D144";
-                request.Timeout = 5000;
-                request.ReadWriteTimeout = 5000;
-                request.KeepAlive = false;
-                request.Headers[HttpRequestHeader.Authorization] = "Bearer " + session.IdToken;
-                var body = new JavaScriptSerializer().Serialize(new Dictionary<string, object>
-                {
-                    { "user_id", picker.UserId ?? "" },
-                    { "firebase_uid", picker.FirebaseUid ?? "" },
-                    { "revoked_generation", Math.Max(1L, picker.SessionGeneration) }
-                });
-                var bytes = Encoding.UTF8.GetBytes(body);
-                request.ContentLength = bytes.Length;
-                using (var output = request.GetRequestStream())
-                    output.Write(bytes, 0, bytes.Length);
-                using (var response = (HttpWebResponse)request.GetResponse())
-                using (var input = response.GetResponseStream())
-                using (var reader = input == null ? null : new StreamReader(input))
-                {
-                    if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300) return false;
-                    if (reader != null) reader.ReadToEnd();
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log("PICKER_SESSION server_revoke=DEFERRED reason=" + SafeMessage(ex));
-                return false;
-            }
+            return TryRevokePickerWorkerSessionD160(session, picker);
         }
 
         private int ShowPickerContactChoice(string pickerLabel)
