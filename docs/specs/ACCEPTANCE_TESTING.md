@@ -2161,7 +2161,7 @@ Technical gates must prove:
 11. History table is populated from existing in-memory business/sync data and introduces no Firestore read/write/listener/poll cadence.
 12. Existing ACK write count is unchanged while contractor/full PickList fields are available for history/export.
 13. Closed-day Excel includes the new history fields. Terminal ACK deletion happens only after Drive upload PASS and uses the already-read export list; unresolved documents survive.
-14. Provider migration keeps the existing Agent gateway URL, moves/renames the existing script, proves unified D160 identity, then deletes the redundant D159 script.
+14. Provider migration keeps the existing Agent gateway URL, moves/renames the existing script, proves unified D160 GET identity **and an authenticated Monitoring-backed Usage POST**, cleans the temporary Firebase Auth canary user, then deletes the redundant D159 script.
 15. Stable remains untouched and no secret/session/password/WMS material is committed or logged.
 
 Owner field acceptance must additionally validate single and burst/mixed real WMS behavior, fresh-success recognition despite page reload/row persistence, Usage visibility under allowed/disallowed Agent accounts, manual Logs upload, History presentation and unchanged beta-vc92 result flow.
