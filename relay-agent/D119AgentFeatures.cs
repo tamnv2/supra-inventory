@@ -1079,6 +1079,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             _agentSyncSnapshot = snapshot;
+            if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
             {
@@ -1112,19 +1113,29 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
+            var currentCounterDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+            var snapshotCounterDay = snapshot.CounterDayKey ?? "";
             _fleetSnapshot = new FleetMetricSnapshot
             {
-                DayKey = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow),
+                DayKey = snapshotCounterDay,
                 ReceivedTotal = Math.Max(0L, snapshot.ReceivedTotal),
                 ConfirmedTotal = Math.Max(0L, snapshot.ConfirmedTotal),
                 ErrorTotal = Math.Max(0L, snapshot.ErrorTotal),
                 OwnerAgentId = "D134_AGENT_SYNC"
             };
-            MergeD135CounterSnapshot(
-                _fleetSnapshot.DayKey,
-                _fleetSnapshot.ReceivedTotal,
-                _fleetSnapshot.ConfirmedTotal,
-                _fleetSnapshot.ErrorTotal);
+            if (string.Equals(snapshotCounterDay, currentCounterDay, StringComparison.Ordinal))
+            {
+                MergeD135CounterSnapshot(
+                    _fleetSnapshot.DayKey,
+                    _fleetSnapshot.ReceivedTotal,
+                    _fleetSnapshot.ConfirmedTotal,
+                    _fleetSnapshot.ErrorTotal);
+            }
+            else if (!string.IsNullOrWhiteSpace(snapshotCounterDay))
+            {
+                Log("D158 COUNTER stale_sync=IGNORED snapshot_day=" + snapshotCounterDay +
+                    " current_day=" + currentCounterDay);
+            }
             if (_leaderCoordinator != null)
             {
                 _leaderCoordinator.ApplySyncedFleet(snapshot.Fleet);
