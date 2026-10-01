@@ -134,6 +134,14 @@ function collectUsage_() {
     cache_ttl_seconds: CACHE_TTL_SECONDS,
     partial: errors.length > 0,
     errors: errors,
+    availability: {
+      reads: !results.reads.error,
+      writes: !results.writes.error,
+      deletes: !results.deletes.error,
+      connections: !results.connections.error,
+      listeners: !results.listeners.error,
+      rules: !results.rules.error
+    },
     quota_day: {
       timezone: 'America/Los_Angeles',
       start_at: providerDayStart.toISOString(),
