@@ -587,6 +587,13 @@
       "value_in_repo": false,
       "purpose": "D119 Beta Cloud Functions deployment identity",
       "status": "OWNER_CONFIRMED_CONFIGURED__VALUE_NOT_READ_OR_RECORDED"
+    },
+    {
+      "name": "CLASPRC_JSON",
+      "storage": "GitHub Environment beta secret",
+      "value_in_repo": false,
+      "purpose": "Owner-authorized Google Apps Script automation via pinned clasp for scoped Beta Apps Script resources",
+      "status": "OWNER_CONFIRMED_CONFIGURED__API_SCRIPT_ON__VALUE_NOT_READ_RECORDED_OR_LOGGED"
     }
   ],
   "explicit_out_of_scope": [
