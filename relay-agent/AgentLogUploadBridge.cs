@@ -63,7 +63,7 @@ namespace SupraInventoryRelayAgent
             _pendingDir = Path.Combine(root, "agent-log-pending");
             _cleanExitFile = Path.Combine(root, "agent-log-clean-exit.marker");
             try { Directory.CreateDirectory(_pendingDir); } catch { }
-            if (ReadCheckpoint() == DateTime.MinValue) WriteCheckpoint(_processStartedLocal);
+            if (ReadCheckpoint() == DateTime.MinValue) WriteCheckpoint(FloorToLogMillisecond(_processStartedLocal));
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
@@ -80,7 +80,7 @@ namespace SupraInventoryRelayAgent
                 var checkpoint = ReadCheckpoint();
                 if (checkpoint == DateTime.MinValue)
                 {
-                    WriteCheckpoint(now);
+                    WriteCheckpoint(FloorToLogMillisecond(now));
                     return;
                 }
 
@@ -264,11 +264,18 @@ namespace SupraInventoryRelayAgent
         {
             lock (_sealGate)
             {
-                var now = DateTime.Now;
+                // Local log lines are timestamped to millisecond precision. Use an
+                // exact millisecond boundary and a half-open [since, until) range so
+                // concurrent writes cannot be captured by two sealed bundles or lost
+                // between the snapshot and checkpoint update.
+                var now = FloorToLogMillisecond(DateTime.Now);
                 var since = ReadCheckpoint();
-                if (since == DateTime.MinValue) since = _processStartedLocal;
+                if (since == DateTime.MinValue) since = FloorToLogMillisecond(_processStartedLocal);
 
-                var content = AgentDiagnostics.BuildUploadSnapshot(since, string.Equals(kind, "crash", StringComparison.OrdinalIgnoreCase));
+                var content = AgentDiagnostics.BuildUploadSnapshot(
+                    since,
+                    now,
+                    string.Equals(kind, "crash", StringComparison.OrdinalIgnoreCase));
                 if (!string.IsNullOrWhiteSpace(prefix))
                     content = prefix + Environment.NewLine + content;
                 content = AgentDiagnostics.SanitizeBundle(content);
@@ -549,6 +556,12 @@ namespace SupraInventoryRelayAgent
                 File.Move(temp, _checkpointFile);
             }
             catch { }
+        }
+
+        private static DateTime FloorToLogMillisecond(DateTime value)
+        {
+            var ticks = value.Ticks - (value.Ticks % TimeSpan.TicksPerMillisecond);
+            return new DateTime(ticks, value.Kind);
         }
 
         private static List<string> Split(string value, int size)
