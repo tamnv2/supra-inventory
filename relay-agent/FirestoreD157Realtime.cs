@@ -147,7 +147,6 @@ namespace SupraInventoryRelayAgent
             {
                 case StatusCode.InvalidArgument:
                 case StatusCode.PermissionDenied:
-                case StatusCode.Unauthenticated:
                 case StatusCode.FailedPrecondition:
                 case StatusCode.NotFound:
                 case StatusCode.ResourceExhausted:
