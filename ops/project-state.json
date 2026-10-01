@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D157",
     "accepted_base_evidence": "OWNER_EXPLICIT_D157_PASS__AGENT_V92__ANDROID_VC92__2026_09_30",
     "current_change_id": "D158",
-    "current_change_status": "TECHNICAL_PR_PASS__OFFICIAL_V93_RELEASE_REQUIRED_BEFORE_OA086__OWNER_OFFICE_PROOF_PENDING__D157_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OFFICIAL_AGENT_V93_RELEASED_AND_CHANNEL_UPDATED__OA086_READY_FOR_OWNER_OFFICE_PROOF__D157_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2480,7 +2480,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D158_AGENT_ONLY_IMPLEMENTATION_ACTIVE__TARGET_V93__ANDROID_BETA_VC92_HARD_LOCKED__D157_WMS_HA_LEASE_FAILOVER_GUARDS_RETAINED__STABLE_UNTOUCHED",
+    "runtime_impact": "D158_AGENT_ONLY_IMPLEMENTATION_MERGED_RELEASED_V93__ANDROID_BETA_VC92_HARD_LOCKED__D157_WMS_HA_LEASE_FAILOVER_GUARDS_RETAINED__STABLE_UNTOUCHED",
     "resource_change": "D158_REUSES_EXISTING_BETA_FIRESTORE_AND_DRIVE__OWNER_PROVISIONED_ONE_BETA_APPS_SCRIPT_AGENT_LOG_GATEWAY__DEPLOYMENT_URL_HELD_ONLY_IN_GITHUB_BETA_ENV_VAR__NO_NEW_FIRESTORE_COLLECTION__NO_SECRET_IN_REPO",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -3457,7 +3457,7 @@
     }
   },
   "d158": {
-    "status": "TECHNICAL_PR_PASS__OA086_OWNER_PROVISIONED__CONFIGURED_GATEWAY_PROBE_PASS__AGENT_V93_FIELD_READY",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OFFICIAL_AGENT_V93_RELEASED__OA086_READY_FOR_OWNER_FIELD_TEST",
     "date": "2026-10-01",
     "baseline_change": "D157",
     "baseline_main": "7f7533b8ec61982a5d9fb5610436e9b15a87628f",
@@ -3501,9 +3501,9 @@
     "log_range_guard": "HALF_OPEN_MILLISECOND_RANGES__NO_CROSS_BUNDLE_OVERLAP__EMPTY_CHECKPOINTS_SKIPPED__SIZE_TRIGGER_COUNTS_NEW_BYTES_ONLY",
     "manual_log_send": "TECHNICAL_TAB_Gửi_log__LOCAL_SEAL_THEN_BOUNDED_UPLOAD_OR_LOCAL_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OA086_BLOCKED_UNTIL_OFFICIAL_RELAY_AGENT_V93_RELEASE__THEN_OWNER_OFFICE_FIELD_PROOF__D157_REMAINS_ACCEPTED_BASE",
+    "owner_gate": "OA086_READY_FOR_OWNER_OFFICE_FIELD_PROOF__OFFICIAL_RELAY_AGENT_V93_RELEASED__D157_REMAINS_ACCEPTED_BASE",
     "implementation_pr": 341,
-    "pr_head": "efab7e7cf31ee8b3ec134c09f59ef5cfe9dc7214",
+    "pr_head": "a3a9d6cc1ac6d6d632674db80397dc2f41797e97",
     "technical_runs": {
       "repo_authority": 36845303330,
       "project_state": 36845303219,
@@ -3520,6 +3520,27 @@
       "digest": "sha256:f908a6ad5258ad8e9f1a91afd5ebf1209c64fc7cbc2a6740b6afe64d1ca792e7",
       "gateway_config": "PASS__GITHUB_BETA_ENV_VAR_PRESENT_AND_VALID_SCRIPT_GOOGLE_EXEC__PUBLIC_GET_IDENTITY_PROBE_PASS__VALUE_NOT_EXPOSED",
       "note": "Configured v93 PR artifact built successfully after CI required a valid script.google.com /exec URL and the gateway GET identity probe returned SUPRA_AGENT_LOG_GATEWAY_D158 for supra-inventory-beta. Owner directed D158 to continue through the normal Agent distribution path: merge PR341, let the main relay-agent workflow publish official relay-agent-v93 and update the Agent channel, then perform OA086 Office proof. The PR artifact is technical evidence only and is not Owner field acceptance."
+    },
+    "main_merge": "2d2a9bfa6227e8b3ddacc8bcb5c6c4e2602283d3",
+    "main_runs": {
+      "authority": 36847084593,
+      "continuity": 36847084712,
+      "relay_agent": 36847084762,
+      "legacy_operational_v2": 36847084629,
+      "build_probe": 36847084764
+    },
+    "release_evidence": {
+      "agent_release": "relay-agent-v93",
+      "agent_release_id": 400845505,
+      "agent_asset_id": 602963530,
+      "agent_size_bytes": 7129088,
+      "agent_sha256": "548c968100ed74addd0fd2d08d3a8490cba400cfab14f9f3ebf6f2c1c0ffe7fc",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_manifest_asset_id": 602963583,
+      "inventory_channel_agent_asset_id": 602963581,
+      "inventory_channel_agent_checksum_asset_id": 602963580,
+      "main_workflow": "PASS__VERIFY_BETA_RELAY_AGENT_36847084762",
+      "note": "Official normal-distribution relay-agent-v93 published from merged main and Agent channel assets refreshed on 2026-10-01. D158 remains open pending OA086 Owner Office field proof."
     }
   }
 }
