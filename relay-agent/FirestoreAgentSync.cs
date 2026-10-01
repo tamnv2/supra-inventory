@@ -741,16 +741,11 @@ namespace SupraInventoryRelayAgent
                     if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
                         throw new InvalidOperationException("Agent sync thiếu Firebase token.");
 
-                    ApplyGrpcProxyFromWindows();
-                    PrepareGrpcNativeOverride();
+                    FirestoreD157Grpc.ApplyGrpcProxyFromWindows();
+                    FirestoreD157Grpc.PrepareGrpcNativeOverride();
                     channel = new Channel("firestore.googleapis.com", 443, new SslCredentials());
                     var client = new Google.Cloud.Firestore.V1.Firestore.FirestoreClient(channel);
-                    var headers = new Metadata
-                    {
-                        { "authorization", "Bearer " + session.IdToken },
-                        { "google-cloud-resource-prefix", AgentConfig.FirestoreDatabaseName },
-                        { "x-goog-request-params", BuildRequestParamsHeader() }
-                    };
+                    var headers = FirestoreD157Grpc.Headers(session);
                     using (var call = client.Listen(headers, cancellationToken: token))
                     {
                         var docs = new Target.Types.DocumentsTarget();
@@ -852,11 +847,7 @@ namespace SupraInventoryRelayAgent
 
         private static string BuildRequestParamsHeader()
         {
-            var parts = (AgentConfig.FirestoreDatabaseName ?? "").Split('/');
-            var projectId = parts.Length > 1 ? parts[1] : AgentConfig.FirebaseProjectId;
-            var databaseId = parts.Length > 3 ? parts[3] : "(default)";
-            return "project_id=" + Uri.EscapeDataString(projectId) +
-                   "&database_id=" + Uri.EscapeDataString(databaseId);
+            return FirestoreD157Grpc.RequestParamsHeader();
         }
 
         internal static bool SelfTestSafetyPolicy()
@@ -868,8 +859,7 @@ namespace SupraInventoryRelayAgent
                    PermanentFailureCooldown >= TimeSpan.FromMinutes(5) &&
                    InitialRetryMs >= 2000 &&
                    MaxRetryMs >= 60000 &&
-                   routing.IndexOf("project_id=", StringComparison.Ordinal) >= 0 &&
-                   routing.IndexOf("database_id=", StringComparison.Ordinal) >= 0 &&
+                   routing.IndexOf("database=", StringComparison.Ordinal) == 0 &&
                    !string.IsNullOrWhiteSpace(AgentConfig.FirestoreDatabaseName);
         }
 
