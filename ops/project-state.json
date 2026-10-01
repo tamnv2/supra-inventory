@@ -2464,7 +2464,7 @@
     "accepted_base_change_id": "D157",
     "accepted_base_evidence": "OWNER_EXPLICIT_D157_PASS__AGENT_V92__ANDROID_VC92__2026_09_30",
     "current_change_id": "D158",
-    "current_change_status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS__AGENT_V93_TARGET__D157_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "TECHNICAL_PR_PASS__PR341__AGENT_V93_CANDIDATE__OA086_OWNER_GATEWAY_PROVISION_READY__D157_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -3457,7 +3457,7 @@
     }
   },
   "d158": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS__AGENT_V93_TARGET",
+    "status": "TECHNICAL_PR_PASS__PR341__AGENT_V93_CANDIDATE__OA086_OWNER_GATEWAY_PROVISION_READY",
     "date": "2026-10-01",
     "baseline_change": "D157",
     "baseline_main": "7f7533b8ec61982a5d9fb5610436e9b15a87628f",
@@ -3499,6 +3499,25 @@
     "read_budget": "D158_INCREMENTAL_DEGRADED_REALTIME_READS_MAX_2000_PER_PROVIDER_QUOTA_DAY__NORMAL_EXPECTED_LOWER_THAN_D157",
     "logging_cutover": "LOCAL_SEALED_BUNDLES_IMPLEMENTED__APPS_SCRIPT_SOURCE_REPO_MANAGED__EXTERNAL_DEPLOYMENT_AND_OFFICE_PROOF_PENDING__FIRESTORE_SUPPORT_LOG_FALLBACK_RETAINED_UNTIL_GATEWAY_CONFIGURED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OWNER_PASS_PENDING__D157_REMAINS_ACCEPTED_BASE"
+    "owner_gate": "OA086_READY__PROVISION_APPS_SCRIPT_AND_BETA_ENV_VAR_THEN_REBUILD_FIELD_CANDIDATE__D157_REMAINS_ACCEPTED_BASE",
+    "implementation_pr": 341,
+    "pr_head": "418c5a90ab296679e496644ff2d99f992cfa6cd7",
+    "technical_runs": {
+      "repo_authority": 36837656918,
+      "project_state": 36837656860,
+      "relay_agent": 36837657140,
+      "ui_design": 36837656861,
+      "dashboard_probe": 36837657114,
+      "firestore": 36837656952,
+      "rtdb": 36837656791
+    },
+    "candidate_artifact": {
+      "workflow_run": 36837657140,
+      "artifact_id": 11149094105,
+      "name": "supra-inventory-relay-poc-agent",
+      "digest": "sha256:c4731f7e5ca5d5edc1edaf0895daac7525fdb3b7e882a8db15d62d6cfab20323",
+      "gateway_config": "UNCONFIGURED__D157_FIRESTORE_SUPPORT_LOG_FALLBACK",
+      "note": "Technical candidate only; final D158 field candidate must be rebuilt after OA086 gateway URL is configured."
+    }
   }
 }
