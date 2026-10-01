@@ -2641,3 +2641,16 @@ Status: **TECHNICAL SOURCE / BUILD PASS — OA087 OWNER PROVISIONING READY**.
 - The separate Apps Script source passes JavaScript syntax and isolation guards; it uses only external request + `monitoring.read`, shared 900-second Script Cache, Firebase ADMIN/PICKPACK_ADMIN token validation, and no Firestore/Drive/WMS/Worker mutation path.
 - D158 Agent v94 and its accepted log gateway are unchanged. Android remains beta-vc92. Stable remains OWNER-GATED.
 - OA087 is the only current blocker: Owner provisions the separate Apps Script D159 Web App and stores its `/exec` URL in GitHub Beta environment variable `D159_USAGE_GATEWAY_URL_BETA`. After that configuration, CI must prove gateway identity and publish the configured D159 field-test prerelease before Owner testing.
+
+
+## D159 configured field-release checkpoint — 2026-10-01
+
+Status: **TECHNICAL/RUNTIME/RELEASE PASS — READY FOR OWNER FIELD TEST**.
+
+- Owner completed the separate D159 Apps Script provisioning and GitHub Beta environment-variable setup.
+- PR #348 verified the configured D159 gateway identity successfully without changing runtime logic.
+- Main commit `95a03d0a90d781ed3b75f1cbe13798cb36d6cdda` passed Repo Authority `36889812834`, Project State `36889812825`, UI Design `36889812805`, Dashboard Probe `36889812846`, and configured D159 Usage Test `36889812874`.
+- The main D159 workflow proved the configured Apps Script GET identity for project `supra-inventory-beta`, built the standalone EXE, passed self-test/isolation guards and published official prerelease `d159-usage-test-v1`.
+- Release id `401138149`; EXE asset id `603627225`, size `27,648` bytes, SHA-256 `91df4f9aef51e3a00c16b6a45119402371197a0168863c36890e7cca9a9f5571`; checksum asset id `603627229`.
+- D159 remains isolated: accepted D158 Agent v94/log gateway, Android beta-vc92, Worker/WMS business paths and Stable are unchanged.
+- OA087 now requires only Owner field comparison of real D159 values against Firebase/Cloud Monitoring. D158 remains the accepted base until explicit Owner D159 PASS.
