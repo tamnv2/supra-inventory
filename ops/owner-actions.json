@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "PENDING_OWNER_PROVISIONING_AFTER_D159_TECHNICAL_MERGE",
+      "status": "READY_FOR_OWNER_PROVISIONING",
       "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4257,7 +4257,9 @@
       "prerequisites": {
         "accepted_base": "D158_OWNER_FIELD_ACCEPTED_PASS",
         "owner_approval": "PASS__SEPARATE_D159__2026_10_01",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "technical_result": "PASS__PR346__MAIN_0F67EECD__D159_BUILD_36872486836",
+        "technical_artifact": "ARTIFACT_11168455789__PLACEHOLDER_GATEWAY_BUILD_ONLY__NOT_FIELD_RELEASE"
       },
       "shortest_action_after_technical_pass": [
         "Create one new Google Apps Script project named SUPRA Inventory Beta - Firestore Usage Gateway D159.",
@@ -4275,7 +4277,7 @@
         "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "Wait for D159 technical merge; then perform the five Web UI provisioning steps above. Do not send API keys/tokens in chat.",
+      "remaining_owner_action": "Provision the separate D159 Apps Script Web App in Google Apps Script, set Script Property FIREBASE_WEB_API_KEY_BETA privately, deploy as Owner/Anyone with monitoring.read consent, then set GitHub Environment beta variable D159_USAGE_GATEWAY_URL_BETA to the /exec URL. Do not send key/token values in chat.",
       "closed": false
     }
   ]
