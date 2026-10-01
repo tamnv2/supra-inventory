@@ -4200,7 +4200,7 @@
     },
     {
       "id": "OA086",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS__CLOSED__OWNER_ACCEPTED_D158",
       "title": "Field-prove D158 hotfix Agent v94 + Beta log gateway on Office",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Google Apps Script / Google Drive / SUPRA Inventory Beta",
@@ -4234,8 +4234,18 @@
         "Apps Script endpoint remains scoped/idempotent; gateway outage stays local pending and never blocks PickList/WMS/ACK.",
         "Android beta-vc92, D157 HA lease/failover/generation guard, D137 real-F5/browser semantics and Stable remain unchanged."
       ],
-      "remaining_owner_action": "Run the updated OA086 Office field proof on official relay-agent-v94 with existing beta-vc92. Confirm D158 PASS only after normal confirmation speed, no duplicate WMS mutation, clean auth/error behavior, gateway pending/recovery and role/HA behavior are satisfactory. Do not send keys/tokens.",
-      "closed": false
+      "remaining_owner_action": "None. Owner explicitly confirmed D158 PASS on 2026-10-01.",
+      "closed": true,
+      "field_result": {
+        "date": "2026-10-01",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D158 PASS after the official relay-agent-v94 Office field test."
+      },
+      "owner_result": {
+        "status": "PASS",
+        "date": "2026-10-01",
+        "evidence": "D158 is promoted to the accepted Beta base; OA086 is closed and the serial next-change gate is unlocked."
+      }
     }
   ]
 }
