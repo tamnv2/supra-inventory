@@ -224,7 +224,7 @@
   },
   "workboard": {
     "in_progress": [
-      "D159 OWNER APPROVED: isolated standalone Firestore Usage test EXE + separate Beta Apps Script Cloud Monitoring gateway; D158 Agent v94/log gateway, Android vc92, Worker/WMS and Stable remain unchanged. Owner provisioning OA087 pending after technical merge.",
+      "D159 TECHNICAL SOURCE/BUILD PASS: PR #346 merged main 0f67eecd; Authority/State/UI/Dashboard/D159 build PASS; standalone EXE technical artifact PASS. OA087 is READY for Owner to provision the separate Apps Script gateway and set D159_USAGE_GATEWAY_URL_BETA. D158 Agent v94/log gateway, Android vc92 and Stable unchanged.",
       "D151 TECHNICAL/RUNTIME/BUILD PASS: main a7ac9315; Beta Worker exact-source health PASS; standalone MT90 DND Diagnostic APK artifact PASS (2,529,134 bytes, SHA-256 4c62afef...); OA079 ready for paired normal/failing MT90 logs. Production beta-vc88 and Stable unchanged.",
       "D147 OWNER PASS: Owner explicitly accepted the serial Owner-PASS governance gate on 2026-09-29. D147 is the accepted governance base; no runtime/provider/schema/quota/Stable change occurred.",
       "D142 OWNER FIELD PASS: Owner confirmed released beta-vc83 accepted on 2026-09-28. Android 11 critical-alert readiness for Newland MT90 + Urovo DT50 is closed PASS; automatic permission gate/direct Settings/Back auto-recheck and existing alert path are accepted. Stable untouched.",
@@ -2465,7 +2465,7 @@
     "accepted_base_change_id": "D158",
     "accepted_base_evidence": "OWNER_EXPLICIT_D158_PASS__AGENT_V94__ANDROID_VC92_UNCHANGED__2026_10_01",
     "current_change_id": "D159",
-    "current_change_status": "OWNER_APPROVED__ISOLATED_FIRESTORE_USAGE_TEST_IMPLEMENTATION_ACTIVE",
+    "current_change_status": "TECHNICAL_SOURCE_BUILD_PASS__OWNER_APPS_SCRIPT_PROVISIONING_PENDING__D158_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE__OWNER_PROVISIONING_GATE_PENDING",
+    "status": "TECHNICAL_SOURCE_BUILD_PASS__OWNER_PROVISIONING_GATE_PENDING",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3671,8 +3671,24 @@
       "firestore.googleapis.com/rules/evaluation_count"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_OWNER_PROVISION_D159_APPS_SCRIPT_THEN_CONFIGURED_EXE_FIELD_TEST",
+    "field_gate": "OA087_READY_OWNER_PROVISIONING__NO_CONFIGURED_FIELD_RELEASE_YET",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_USAGE_VALUES_MATCH_FIREBASE_MONITORING_EXPECTATION"
+    "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_USAGE_VALUES_MATCH_FIREBASE_MONITORING_EXPECTATION",
+    "implementation_pr": 346,
+    "main_commit": "0f67eecd2ec37a2291061d1fc8cbdb2d6f4bc2cb",
+    "main_runs": {
+      "repo_authority": 36872486803,
+      "project_state": 36872486890,
+      "ui_design": 36872486834,
+      "dashboard_probe": 36872486812,
+      "d159_usage_test": 36872486836
+    },
+    "technical_artifact": {
+      "artifact_id": 11168455789,
+      "name": "d159-firestore-usage-test-0f67eecd2ec37a2291061d1fc8cbdb2d6f4bc2cb",
+      "digest": "sha256:1a8364ec8c2a9e7f79bed8cb7b7287ed8396d4639902f0918ad4fda77975ec06",
+      "note": "Technical artifact uses the CI placeholder D159 gateway because D159_USAGE_GATEWAY_URL_BETA is not configured yet. It is not a field-test release."
+    },
+    "technical_result": "PASS__PR346_ALL_REQUIRED_GATES__MAIN_AUTHORITY_STATE_UI_DASHBOARD_D159_BUILD_PASS"
   }
 }

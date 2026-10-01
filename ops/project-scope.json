@@ -334,7 +334,7 @@
       "name": "SUPRA Inventory Beta - Firestore Usage Gateway D159",
       "id_source": "OWNER_PROVISIONED_FROM_REPO_MANAGED_ops/apps-script/firestore-usage-gateway-d159__DEPLOYMENT_URL_STORED_ONLY_IN_GITHUB_BETA_ENV_VAR",
       "exposure": "public_identifier_when_deployed",
-      "status": "D159_OWNER_APPROVED__SOURCE_IMPLEMENTATION_ACTIVE__OWNER_PROVISIONING_PENDING",
+      "status": "D159_TECHNICAL_SOURCE_PASS__OWNER_PROVISIONING_PENDING__NOT_DEPLOYED",
       "source_path": "ops/apps-script/firestore-usage-gateway-d159",
       "execute_as": "OWNER",
       "access_policy": "WEB_APP_ENDPOINT_PUBLICLY_REACHABLE__FIREBASE_ID_TOKEN_REQUIRED__ADMIN_OR_PICKPACK_ADMIN_BASE_ROLE_EXACT_MATCH",
