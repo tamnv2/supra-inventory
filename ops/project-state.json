@@ -3627,7 +3627,7 @@
     }
   },
   "d159": {
-    "status": "FIELD_FAIL_403__MONITORING_AUTH_QUOTA_PROJECT_BOUNDARY_CONFIRMED__GW_V3_REPAIR_ACTIVE",
+    "status": "TECHNICAL_REPAIR_PASS__PROVIDER_CANARY_PASS__OWNER_FIELD_RETEST_PENDING",
     "date": "2026-10-01",
     "baseline_change": "D158",
     "baseline_main": "ae96a7b33d1bce894021b5f5eb8a311d836b7c53",
@@ -3671,7 +3671,7 @@
       "firestore.googleapis.com/rules/evaluation_count"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_OWNER_IAM_ENABLEMENT_REQUIRED__GRANT_SERVICE_USAGE_CONSUMER_TO_APPS_SCRIPT_EXECUTION_ACCOUNT_AND_BETA_RUNTIME_SA__ENSURE_MONITORING_API_ENABLED__THEN_REDEPLOY_GW_V3_AND_RETEST",
+    "field_gate": "OA087_READY_OWNER_FIELD_RETEST__GW_V3_REDEPLOYED__MONITORING_API_ENABLED__IAM_PASS__CANARY_HTTP_200",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
     "implementation_pr": 346,
@@ -3692,12 +3692,20 @@
     "technical_result": "PASS__PR346_ALL_REQUIRED_GATES__MAIN_AUTHORITY_STATE_UI_DASHBOARD_D159_BUILD_PASS",
     "owner_provisioning": {
       "reported_at": "2026-10-01",
-      "reported_status": "DONE_BY_OWNER",
+      "reported_status": "DONE_BY_OWNER__IAM_API_GW_V3_REDEPLOY_CONFIRMED",
       "verification_required": [
         "GITHUB_BETA_ENV_D159_USAGE_GATEWAY_URL_BETA_PRESENT",
         "D159_GATEWAY_GET_IDENTITY_PASS",
         "CONFIGURED_MAIN_BUILD_PASS",
         "CONFIGURED_PRERELEASE_PUBLISHED"
+      ],
+      "provider_repair_verified_at": "2026-10-01",
+      "provider_repair_verification": [
+        "CLOUD_MONITORING_API_ENABLED",
+        "APPS_SCRIPT_EXECUTION_ACCOUNT_SERVICE_USAGE_CONSUMER_GRANTED",
+        "BETA_RUNTIME_SA_SERVICE_USAGE_CONSUMER_GRANTED",
+        "D159_GW_V3_REDEPLOYED_SAME_WEB_APP_URL",
+        "CI_EXACT_MONITORING_QUERY_HTTP_200"
       ]
     },
     "gateway_verification": "PASS__CONFIGURED_D159_USAGE_GATEWAY_GET_IDENTITY__PROJECT_SUPRA_INVENTORY_BETA",
@@ -3758,14 +3766,16 @@
       ]
     },
     "provider_diagnostic": {
-      "run_id": 36893601587,
-      "result": "FAIL_403_PERMISSION_DENIED",
-      "monitoring_api_state": "NOT_CONFIRMED_BECAUSE_CI_PRINCIPAL_LACKS_SERVICEUSAGE_PERMISSION",
+      "run_id": 36893999796,
+      "result": "PASS_HTTP_200_AFTER_OWNER_IAM_API_GW_V3_REDEPLOY",
+      "monitoring_api_state": "ENABLED",
       "ci_principal_permissions": {
-        "monitoring.timeSeries.list": false,
-        "serviceusage.services.use": false
+        "monitoring.timeSeries.list": true,
+        "serviceusage.services.use": true
       },
-      "conclusion": "At least the Beta CI/runtime service account lacks the two permissions required to consume Cloud Monitoring. The Apps Script field path independently returns the same 403 class. D159 cannot be accepted until the Apps Script execution account and CI canary principal can consume Monitoring quota/time-series."
+      "exact_query": "PASS__FIRESTORE_READ_OPS_COUNT_DEFAULT_DATABASE",
+      "gateway_identity": "PASS__CONFIGURED_D159_GATEWAY_SAME_URL",
+      "conclusion": "Cloud Monitoring consumption/IAM and quota-project attribution are technically repaired. D159 remains open only for Owner field comparison of real values in the standalone EXE."
     }
   }
 }
