@@ -69,7 +69,7 @@ namespace SupraInventoryRelayAgent
 
     // D126: browser UI adapter. It intentionally enables only Page/Runtime domains.
     // It never enables Network, reads cookies/storage, inspects requests, or calls Supra APIs.
-    internal sealed class SupraConfirmBrowser : IDisposable
+    internal sealed partial class SupraConfirmBrowser : IDisposable
     {
         private sealed class BrowserCandidate
         {
@@ -546,7 +546,7 @@ namespace SupraInventoryRelayAgent
             return output;
         }
 
-        internal SupraBrowserSearchResult SearchMany(IEnumerable<string> fragments, bool allowOneSearchClick)
+        internal SupraBrowserSearchResult SearchMany(IEnumerable<string> fragments, bool allowOneSearchClick, bool recoverUnselectable = true)
         {
             var started = Stopwatch.StartNew();
             var terms = NormalizeFragments(fragments);
@@ -645,7 +645,8 @@ namespace SupraInventoryRelayAgent
                 // exception-only local browser recovery: no Firestore/provider operation,
                 // no loop and no mutation. Preserve the pre-reload exact code so a row
                 // that disappears/changes cannot be misclassified as a fresh NOT_FOUND.
-                if (allowOneSearchClick &&
+                if (recoverUnselectable &&
+                    allowOneSearchClick &&
                     !emptyRecoveryThisSearch &&
                     scan.UnselectableFragments.Count > 0 &&
                     scan.AmbiguousFragments.Count == 0)
