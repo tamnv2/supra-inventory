@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D159_OWNER_FIELD_ACCEPTED_PASS__D158_AGENT_V94__ANDROID_VC92_UNCHANGED__USAGE_V3_ACCEPTED",
+    "beta": "D158_OWNER_FIELD_ACCEPTED_PASS__AGENT_V94__ANDROID_VC92",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 16,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
