@@ -4200,7 +4200,7 @@
     },
     {
       "id": "OA086",
-      "status": "BLOCKED_PENDING_D158_TECHNICAL_PR_PASS",
+      "status": "READY_FOR_OWNER_ACTION",
       "title": "Provision and field-prove D158 Beta Agent log gateway + v93 on Office",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Google Apps Script / Google Drive / SUPRA Inventory Beta",
@@ -4208,9 +4208,10 @@
       "prerequisites": {
         "accepted_base": "D157_OWNER_ACCEPTED_PASS",
         "d158_owner_approval": "PASS__2026_10_01",
-        "technical_pr": "PENDING",
+        "technical_pr": "PASS__PR341__HEAD_418C5A90__ALL_REQUIRED_GATES_PASS",
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "agent_candidate": "relay-agent-v93__PR_ARTIFACT_11149094105__GATEWAY_UNCONFIGURED"
       },
       "shortest_action_after_technical_pass": [
         "Open script.google.com and create one project named SUPRA Inventory Beta - Agent Log Gateway D158 from repo ops/apps-script/agent-log-gateway/Code.gs + appsscript.json.",
@@ -4229,7 +4230,7 @@
         "NEXT_A/NEXT_B role-health presentation is correct after login and gRPC listeners do not reproduce the D157 database/header InvalidArgument.",
         "05:00 business-day counter rollover is correct."
       ],
-      "remaining_owner_action": "None until D158 PR reaches technical PASS. Then perform only the shortest Apps Script/GitHub Web UI provisioning and one real Office field test above.",
+      "remaining_owner_action": "Create/deploy the scoped Apps Script Web App from repo source, set the two Script Properties privately, add GitHub beta environment variable AGENT_LOG_GATEWAY_URL_BETA, then tell ChatGPT only that OA086 provisioning is complete. AI will rerun PR341 and prepare the Office field candidate.",
       "closed": false
     }
   ]
