@@ -46,6 +46,7 @@ namespace SupraInventoryRelayAgent
         {
             internal DateTime LastSentUtc = DateTime.MinValue;
             internal int Suppressed;
+            internal bool IncidentOpen;
         }
 
         internal AgentLogUploadBridge(
@@ -163,6 +164,12 @@ namespace SupraInventoryRelayAgent
                     state = new ErrorBurstState();
                     _errorBursts[fingerprint] = state;
                 }
+                if (string.Equals(fingerprint, "GOOGLE_CONNECTIVITY", StringComparison.Ordinal) && state.IncidentOpen)
+                {
+                    state.Suppressed++;
+                    _log("AGENT LOG error_upload=SUPPRESSED reason=ACTIVE_INCIDENT kind=GOOGLE_CONNECTIVITY count=" + state.Suppressed);
+                    return;
+                }
                 if (state.LastSentUtc != DateTime.MinValue && now - state.LastSentUtc < ErrorFingerprintWindow)
                 {
                     state.Suppressed++;
@@ -179,6 +186,8 @@ namespace SupraInventoryRelayAgent
                 suppressed = state.Suppressed;
                 state.Suppressed = 0;
                 state.LastSentUtc = now;
+                if (string.Equals(fingerprint, "GOOGLE_CONNECTIVITY", StringComparison.Ordinal))
+                    state.IncidentOpen = true;
                 _errorWindowSent++;
             }
 
@@ -508,6 +517,38 @@ namespace SupraInventoryRelayAgent
             try { if (File.Exists(_cleanExitFile)) File.Delete(_cleanExitFile); } catch { }
         }
 
+        internal void ObserveDiagnostic(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+            var upper = AgentDiagnostics.Sanitize(message).ToUpperInvariant();
+            var recovered =
+                upper.Contains("FIRESTORE CONFIRM POLL=PASS") ||
+                upper.Contains("D157 FAST_PATH LISTEN=CONNECTED") ||
+                upper.Contains("FIRESTORE ACK PASS") ||
+                upper.Contains("AGENT LOG UPLOAD=PASS TRANSPORT=GOOGLE_APPS_SCRIPT");
+            if (!recovered) return;
+
+            var closed = false;
+            var suppressed = 0;
+            lock (_errorGate)
+            {
+                ErrorBurstState state;
+                if (_errorBursts.TryGetValue("GOOGLE_CONNECTIVITY", out state) && state.IncidentOpen)
+                {
+                    state.IncidentOpen = false;
+                    suppressed = state.Suppressed;
+                    state.Suppressed = 0;
+                    // Recovery explicitly ends the incident. A later outage is a
+                    // new incident even inside the normal 10-minute fingerprint window.
+                    state.LastSentUtc = DateTime.MinValue;
+                    closed = true;
+                }
+            }
+            if (closed)
+                _log("AGENT LOG incident=RECOVERED kind=GOOGLE_CONNECTIVITY suppressed=" +
+                     suppressed.ToString(CultureInfo.InvariantCulture));
+        }
+
         private static string NormalizeKind(string kind)
         {
             var value = (kind ?? "").Trim().ToLowerInvariant();
@@ -520,6 +561,13 @@ namespace SupraInventoryRelayAgent
         private static string ErrorFingerprint(string value)
         {
             var next = AgentDiagnostics.Sanitize(value ?? "UNKNOWN").ToUpperInvariant();
+            if (next.Contains("NAMERESOLUTIONFAILURE") ||
+                next.Contains("REMOTE NAME COULD NOT BE RESOLVED") ||
+                next.Contains("WEB_EXCEPTION=TIMEOUT") ||
+                next.Contains("OPERATION HAS TIMED OUT") ||
+                next.Contains("WEB_EXCEPTION=RECEIVEFAILURE"))
+                return "GOOGLE_CONNECTIVITY";
+
             next = ErrorGuidPattern.Replace(next, "{GUID}");
             next = ErrorHexPattern.Replace(next, "{HEX}");
             next = ErrorNumberPattern.Replace(next, "{N}");
