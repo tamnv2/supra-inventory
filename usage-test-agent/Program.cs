@@ -474,7 +474,7 @@ namespace SupraFirestoreUsageTest
                 ApplySnapshot(snapshot);
                 var partial = JsonHelpers.BoolValue(snapshot, "partial");
                 if (partial)
-                    SetStatus("Đã cập nhật nhưng có metric tạm thời N/A. Xem trạng thái nguồn ở lần cập nhật tiếp theo.", Color.FromArgb(180, 83, 9));
+                    SetStatus(BuildProviderFailureStatus(snapshot), Color.FromArgb(180, 83, 9));
                 else
                     SetStatus("Đã cập nhật. D159 chỉ đọc Cloud Monitoring; không tạo Firestore Read/Write/Delete.", Color.FromArgb(21, 128, 61));
             }
@@ -571,6 +571,27 @@ namespace SupraFirestoreUsageTest
             var pct = limit <= 0 ? 0D : (100D * value / limit);
             return Number(value) + " / " + Number(limit) + " · " +
                 pct.ToString("0.#", CultureInfo.InvariantCulture) + "%";
+        }
+
+        private static string BuildProviderFailureStatus(Dictionary<string, object> snapshot)
+        {
+            var unique = new List<string>();
+            foreach (var item in JsonHelpers.List(JsonHelpers.Value(snapshot, "errors")))
+            {
+                var value = Convert.ToString(item, CultureInfo.InvariantCulture);
+                if (string.IsNullOrWhiteSpace(value)) continue;
+                var separator = value.IndexOf(':');
+                var code = separator >= 0 && separator + 1 < value.Length
+                    ? value.Substring(separator + 1)
+                    : value;
+                if (!unique.Contains(code)) unique.Add(code);
+            }
+
+            if (unique.Count == 0)
+                return "Cloud Monitoring không trả đủ metric. Một số mục đang N/A.";
+
+            var shown = string.Join(" | ", unique.ToArray());
+            return "Cloud Monitoring lỗi: " + shown + ". Dữ liệu N/A không được coi là 0.";
         }
 
         private static string FriendlyError(string code)

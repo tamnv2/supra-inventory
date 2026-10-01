@@ -2641,3 +2641,38 @@ Status: **TECHNICAL SOURCE / BUILD PASS — OA087 OWNER PROVISIONING READY**.
 - The separate Apps Script source passes JavaScript syntax and isolation guards; it uses only external request + `monitoring.read`, shared 900-second Script Cache, Firebase ADMIN/PICKPACK_ADMIN token validation, and no Firestore/Drive/WMS/Worker mutation path.
 - D158 Agent v94 and its accepted log gateway are unchanged. Android remains beta-vc92. Stable remains OWNER-GATED.
 - OA087 is the only current blocker: Owner provisions the separate Apps Script D159 Web App and stores its `/exec` URL in GitHub Beta environment variable `D159_USAGE_GATEWAY_URL_BETA`. After that configuration, CI must prove gateway identity and publish the configured D159 field-test prerelease before Owner testing.
+
+
+## D159 configured field-release checkpoint — 2026-10-01
+
+Status: **TECHNICAL/RUNTIME/RELEASE PASS — READY FOR OWNER FIELD TEST**.
+
+- Owner completed the separate D159 Apps Script provisioning and GitHub Beta environment-variable setup.
+- PR #348 verified the configured D159 gateway identity successfully without changing runtime logic.
+- Main commit `95a03d0a90d781ed3b75f1cbe13798cb36d6cdda` passed Repo Authority `36889812834`, Project State `36889812825`, UI Design `36889812805`, Dashboard Probe `36889812846`, and configured D159 Usage Test `36889812874`.
+- The main D159 workflow proved the configured Apps Script GET identity for project `supra-inventory-beta`, built the standalone EXE, passed self-test/isolation guards and published official prerelease `d159-usage-test-v1`.
+- Release id `401138149`; EXE asset id `603627225`, size `27,648` bytes, SHA-256 `91df4f9aef51e3a00c16b6a45119402371197a0168863c36890e7cca9a9f5571`; checksum asset id `603627229`.
+- D159 remains isolated: accepted D158 Agent v94/log gateway, Android beta-vc92, Worker/WMS business paths and Stable are unchanged.
+- OA087 now requires only Owner field comparison of real D159 values against Firebase/Cloud Monitoring. D158 remains the accepted base until explicit Owner D159 PASS.
+
+
+## D159 field failure — all Monitoring metrics N/A — 2026-10-01
+
+Owner field test of `d159-usage-test-v1` is **FAIL** for provider data retrieval.
+
+Observed screenshot facts:
+- the standalone EXE opens normally;
+- it identifies the saved `admin` Agent session;
+- it receives a D159 gateway response and shows the shared cache state (`<=15 phút`);
+- every Read/Write/Delete, realtime, Rules and hourly metric is `N/A`.
+
+This narrows the failure boundary to **Apps Script -> Cloud Monitoring**. Client-to-gateway reachability and the Firebase saved-session authentication path are not the failing stage.
+
+Same-change repair D159-v2:
+- preserve the existing isolated architecture and 15-minute shared cache;
+- do not alter D158 Agent v94/log gateway, Android vc92, Worker/WMS or Stable;
+- expose only sanitized Cloud Monitoring HTTP/status/reason identifiers (for example HTTP status + Google error status/reason), never raw provider response text or credentials;
+- show the exact provider failure code in the D159 UI so the next field run can distinguish IAM/scope/API enablement from an invalid Monitoring query;
+- no extra Firestore document operations and no increased Monitoring cadence.
+
+Owner PASS remains blocked until D159 loads real provider values and they are compared with Firebase/Cloud Monitoring.

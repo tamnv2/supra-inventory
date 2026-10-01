@@ -65,7 +65,9 @@ jobs:
             'D159_GATEWAY_NOT_CONFIGURED',
             'readsAvailable ? QuotaText',
             'rulesAvailable ? Number',
-            ': "N/A"'
+            ': "N/A"',
+            'BuildProviderFailureStatus',
+            'Dữ liệu N/A không được coi là 0.'
           )) {
             if (-not $program.Contains($marker) -and -not $config.Contains($marker)) {
               throw "D159 Windows isolation marker missing: $marker"
@@ -102,7 +104,9 @@ jobs:
             'LockService.getScriptLock',
             'availability: {',
             'reads: !results.reads.error',
-            'rules: !results.rules.error'
+            'rules: !results.rules.error',
+            'monitoringFailureCode_',
+            'MONITORING_HTTP_'
           )) {
             if (-not $script.Contains($marker)) {
               throw "D159 Apps Script monitoring guard missing: $marker"
@@ -226,11 +230,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "d159-usage-test-v1"
+          $tag = "d159-usage-test-v2"
           $exe = "usage-test-agent/dist/SUPRA Firestore Usage Test.exe"
           $sha = "usage-test-agent/dist/SUPRA.Firestore.Usage.Test.exe.sha256"
           if (gh release view $tag --repo "${{ github.repository }}" 2>$null) {
             gh release upload $tag $exe $sha --clobber --repo "${{ github.repository }}"
           } else {
-            gh release create $tag $exe $sha --prerelease --target "${{ github.sha }}" --title "D159 Firestore Usage Test v1" --notes "Isolated Beta field-test utility. No login UI, no WMS, no Firestore business operations, no D158 Agent v94 mutation. Requires an existing local Agent DPAPI session and the separate D159 Apps Script Usage Gateway."
+            gh release create $tag $exe $sha --prerelease --target "${{ github.sha }}" --title "D159 Firestore Usage Test v2" --notes "Isolated Beta field-test utility. No login UI, no WMS, no Firestore business operations, no D158 Agent v94 mutation. Requires an existing local Agent DPAPI session and the separate D159 Apps Script Usage Gateway."
           }

@@ -4249,7 +4249,7 @@
     },
     {
       "id": "OA087",
-      "status": "OWNER_REPORTS_PROVISIONED__CI_VERIFICATION_ACTIVE",
+      "status": "FIELD_FAIL__D159_V1_ALL_METRICS_NA__V2_REPAIR_BUILDING",
       "title": "Provision and field-test isolated D159 Firestore Usage Gateway",
       "resource_key": "apps-script-firestore-usage-beta-d159",
       "provider": "Google Apps Script / Google Cloud Monitoring",
@@ -4277,12 +4277,26 @@
         "Usage feature itself creates zero Firestore document reads/writes/deletes and no WMS/Worker/Drive traffic.",
         "Stable remains untouched."
       ],
-      "remaining_owner_action": "None until CI verification completes. AI must verify the configured D159 gateway identity and configured prerelease before asking Owner to run the EXE.",
+      "remaining_owner_action": "After D159-v2 is published, run it once on the same Windows user and send only the visible Cloud Monitoring error code/status line or a screenshot. Do not send any key/token.",
       "closed": false,
       "owner_report": {
         "date": "2026-10-01",
         "result": "PROVISIONING_DONE",
         "note": "Owner reports the separate D159 Apps Script Web App, Script Property and GitHub Beta environment variable are configured. Secret values remain outside repo/chat."
+      },
+      "ci_verification": {
+        "gateway_identity": "PASS",
+        "main_commit": "95a03d0a90d781ed3b75f1cbe13798cb36d6cdda",
+        "workflow_run": 36889812874,
+        "configured_release": "d159-usage-test-v1",
+        "exe_asset_id": 603627225,
+        "exe_sha256": "91df4f9aef51e3a00c16b6a45119402371197a0168863c36890e7cca9a9f5571"
+      },
+      "field_failure": {
+        "date": "2026-10-01",
+        "result": "FAIL",
+        "evidence": "D159-v1 UI loaded successfully with cache/session information, but every Cloud Monitoring metric rendered N/A.",
+        "interpretation": "Gateway reachability and saved Agent session authentication are working; Cloud Monitoring provider calls are failing."
       }
     }
   ]

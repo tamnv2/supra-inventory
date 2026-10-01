@@ -313,7 +313,7 @@
       "d158_inventory_channel_agent_manifest_asset_id": 603147276,
       "d158_inventory_channel_agent_asset_id": 603147275,
       "d158_inventory_channel_agent_checksum_asset_id": 603147278,
-      "d159_source_status": "OWNER_REPORTS_GATEWAY_PROVISIONED__CI_IDENTITY_AND_CONFIGURED_RELEASE_VERIFY_ACTIVE",
+      "d159_source_status": "CONFIGURED_GATEWAY_IDENTITY_PASS__OFFICIAL_FIELD_PRERELEASE_READY",
       "d159_usage_gateway_resource_key": "apps-script-firestore-usage-beta-d159",
       "d159_usage_gateway_actions_variable": "D159_USAGE_GATEWAY_URL_BETA",
       "d159_usage_test_release_target": "d159-usage-test-v1",
@@ -2003,7 +2003,7 @@
     "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
   },
   "d159": {
-    "status": "OWNER_REPORTS_PROVISIONED__CI_VERIFY_ACTIVE",
+    "status": "FIELD_FAIL_ALL_METRICS_NA__V2_DIAGNOSTIC_REPAIR_ACTIVE",
     "baseline": "D158_OWNER_FIELD_ACCEPTED_PASS",
     "windows_utility": "STANDALONE_ONE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
     "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_READ_ONLY__15M_CACHE",
@@ -2012,9 +2012,18 @@
     "production_agent": "relay-agent-v94__UNCHANGED",
     "android": "beta-vc92__UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "main_commit": "0f67eecd2ec37a2291061d1fc8cbdb2d6f4bc2cb",
+    "main_commit": "95a03d0a90d781ed3b75f1cbe13798cb36d6cdda",
     "build_run_id": 36872486836,
     "technical_artifact_id": 11168455789,
-    "technical_artifact_digest": "sha256:1a8364ec8c2a9e7f79bed8cb7b7287ed8396d4639902f0918ad4fda77975ec06"
+    "technical_artifact_digest": "sha256:1a8364ec8c2a9e7f79bed8cb7b7287ed8396d4639902f0918ad4fda77975ec06",
+    "gateway_identity": "PASS__SUPRA_FIRESTORE_USAGE_GATEWAY_D159__supra-inventory-beta",
+    "release": "d159-usage-test-v1",
+    "release_id": 401138149,
+    "exe_asset_id": 603627225,
+    "exe_size_bytes": 27648,
+    "exe_sha256": "91df4f9aef51e3a00c16b6a45119402371197a0168863c36890e7cca9a9f5571",
+    "checksum_asset_id": 603627229,
+    "field_failure_boundary": "APPS_SCRIPT_TO_CLOUD_MONITORING",
+    "next_release": "d159-usage-test-v2"
   }
 }
