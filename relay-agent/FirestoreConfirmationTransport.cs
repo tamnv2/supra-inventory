@@ -65,7 +65,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _onResponse;
         private readonly Action<string, FirestoreConfirmationOutcome> _onDurableAck;
         private readonly Action<string> _state;
-        private readonly Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
+        private readonly Func<List<FirestoreConfirmationWorkItem>, Action<string, FirestoreConfirmationOutcome>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
         private readonly Action<List<PickerPresenceView>, string, string> _presenceSnapshotHandler;
         private readonly Action<FirestoreConfirmationWorkItem> _pickerActivityHandler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
@@ -109,7 +109,7 @@ namespace SupraInventoryRelayAgent
             Action onResponse,
             Action<string, FirestoreConfirmationOutcome> onDurableAck,
             Action<string> state,
-            Func<List<FirestoreConfirmationWorkItem>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
+            Func<List<FirestoreConfirmationWorkItem>, Action<string, FirestoreConfirmationOutcome>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
             Action<List<PickerPresenceView>, string, string> presenceSnapshotHandler,
             Action<FirestoreConfirmationWorkItem> pickerActivityHandler,
             FirestoreAgentLeaderCoordinator coordinator,
@@ -451,13 +451,33 @@ namespace SupraInventoryRelayAgent
                         _currentBatchWorks[work.RequestId] = work;
             }
 
+            var docsByRequestId = docs
+                .Where(doc => doc != null && doc.Work != null && !string.IsNullOrWhiteSpace(doc.Work.RequestId))
+                .GroupBy(doc => doc.Work.RequestId, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+            var earlyAcked = new HashSet<string>(StringComparer.Ordinal);
+            var processed = 0;
+
+            Action<string, FirestoreConfirmationOutcome> earlyTerminal = (requestId, outcome) =>
+            {
+                if (string.IsNullOrWhiteSpace(requestId) || outcome == null || !outcome.ShouldAck) return;
+                if (earlyAcked.Contains(requestId)) return;
+                PendingDocument doc;
+                if (!docsByRequestId.TryGetValue(requestId, out doc) || doc == null || doc.Work == null) return;
+                if (!TryCompleteBusinessAck(session, doc, outcome)) return;
+                earlyAcked.Add(requestId);
+                processed++;
+                _log("FIRESTORE ACK wave=EARLY request=" + Short(requestId) +
+                     " result=" + Safe(outcome.Result));
+            };
+
             var businessStartedMs = NowMs();
             Dictionary<string, FirestoreConfirmationOutcome> outcomes;
             try
             {
                 outcomes = _batchHandler == null
                     ? new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal)
-                    : _batchHandler(works);
+                    : _batchHandler(works, earlyTerminal);
             }
             catch (Exception ex)
             {
@@ -468,10 +488,10 @@ namespace SupraInventoryRelayAgent
             var businessMs = Math.Max(0L, NowMs() - businessStartedMs);
             _log("FIRESTORE CONFIRM business batch_ms=" + businessMs + " count=" + docs.Count);
 
-            var processed = 0;
             foreach (var doc in docs)
             {
                 var work = doc.Work;
+                if (work == null || earlyAcked.Contains(work.RequestId ?? "")) continue;
                 FirestoreConfirmationOutcome outcome;
                 if (outcomes == null ||
                     !outcomes.TryGetValue(work.RequestId ?? "", out outcome) ||
@@ -487,15 +507,8 @@ namespace SupraInventoryRelayAgent
                     continue;
                 }
 
-                if (!TryAck(session, doc.Name, doc.UpdateTime, work.RequestId, outcome))
+                if (!TryCompleteBusinessAck(session, doc, outcome))
                     continue;
-
-                RememberRecentTerminalRequest(work.RequestId);
-                _onResponse();
-                var summaryDay = FindBusinessDay(work.RequestId);
-                MarkD157SummaryDirty(summaryDay);
-                try { _onDurableAck(summaryDay, outcome); } catch { }
-                _lastOutcomeState = "Relay: PRIMARY · " + UserFacingOutcome(outcome);
                 processed++;
             }
 
@@ -504,6 +517,25 @@ namespace SupraInventoryRelayAgent
                  " acked=" + processed +
                  " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
             return processed;
+        }
+
+        private bool TryCompleteBusinessAck(
+            AgentSession session,
+            PendingDocument doc,
+            FirestoreConfirmationOutcome outcome)
+        {
+            if (doc == null || doc.Work == null || outcome == null) return false;
+            var work = doc.Work;
+            if (!TryAck(session, doc.Name, doc.UpdateTime, work.RequestId, outcome))
+                return false;
+
+            RememberRecentTerminalRequest(work.RequestId);
+            _onResponse();
+            var summaryDay = FindBusinessDay(work.RequestId);
+            MarkD157SummaryDirty(summaryDay);
+            try { _onDurableAck(summaryDay, outcome); } catch { }
+            _lastOutcomeState = "Relay: PRIMARY · " + UserFacingOutcome(outcome);
+            return true;
         }
 
         private bool IsRecentTerminalRequest(string requestId)
