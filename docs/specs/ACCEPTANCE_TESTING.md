@@ -2110,5 +2110,5 @@ Technical/runtime gates must prove:
 - No secrets, Firebase tokens, passwords, WMS session/cookie/signature material or signing material appear in repo or archived logs.
 - Stable remains untouched.
 
-Owner field acceptance must additionally use real Office networking to verify: NEXT_B healthy display after login, listener reconnect behavior, normal/invalid PickList vc92 end-to-end, failover, 05:00 counter rollover evidence, Apps Script endpoint reachability and duplicate-safe Drive upload. D158 remains open until explicit Owner PASS.
+Before Owner field acceptance, PR341 must be merged through the normal branch → PR → authority/continuity PASS → merge path, and the existing main Agent workflow must publish official `relay-agent-v93` plus update the Agent distribution channel. A PR-only artifact is not an acceptable field-release substitute. Owner field acceptance must then use that released v93 on real Office networking to verify: NEXT_B healthy display after login, listener reconnect behavior, normal/invalid PickList vc92 end-to-end, failover, 05:00 counter rollover evidence, Apps Script endpoint reachability and duplicate-safe Drive upload. D158 remains open until explicit Owner PASS.
 
