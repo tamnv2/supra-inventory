@@ -20,7 +20,8 @@ namespace SupraInventoryRelayAgent
         }
 
         private Dictionary<string, FirestoreConfirmationOutcome> ProcessFirestoreConfirmationsD160(
-            List<FirestoreConfirmationWorkItem> input)
+            List<FirestoreConfirmationWorkItem> input,
+            Action<string, FirestoreConfirmationOutcome> terminalCallback)
         {
             var outcomes = new Dictionary<string, FirestoreConfirmationOutcome>(StringComparer.Ordinal);
             if (input == null || input.Count == 0) return outcomes;
@@ -60,6 +61,7 @@ namespace SupraInventoryRelayAgent
                     outcomes[work.RequestId] = D160Outcome(
                         work, "WMS_SESSION_REQUIRED", "WEB_CONFIRM_NOT_READY", "BROWSER_DOM", "", 0L, 0);
                 FinalizeD160Outcomes(works, outcomes, 0, null);
+                EmitD160TerminalOutcomes(outcomes, terminalCallback, null);
                 return outcomes;
             }
 
@@ -79,6 +81,7 @@ namespace SupraInventoryRelayAgent
                         work, "LOOKUP_ERROR", "BROWSER_DOM_ERROR", "BROWSER_DOM", "", 0L, 0);
                 Log("D160 FIRESTORE browser fast-search fail type=" + ex.GetType().Name);
                 FinalizeD160Outcomes(works, outcomes, 0, null);
+                EmitD160TerminalOutcomes(outcomes, terminalCallback, null);
                 return outcomes;
             }
 
@@ -89,6 +92,14 @@ namespace SupraInventoryRelayAgent
             var mutationWaves = 0;
             if (ready.Count > 0)
                 mutationWaves += D160MutateReady(appSession, ready, search.ElapsedMs, outcomes, "FAST");
+
+            // READY / true NOT_FOUND / ambiguous / rate-limited outcomes are terminal
+            // independently. Persist/ACK them before any slow checkbox recovery starts.
+            var deferredRequestIds = new HashSet<string>(
+                deferred.Select(item => item.Work == null ? "" : (item.Work.RequestId ?? ""))
+                    .Where(value => !string.IsNullOrWhiteSpace(value)),
+                StringComparer.Ordinal);
+            EmitD160TerminalOutcomes(outcomes, terminalCallback, deferredRequestIds);
 
             // Recovery is deliberately second. A slow/unselectable PickList never delays
             // selection/mutation of the READY subset. One shared SearchMany recovery may
@@ -163,7 +174,23 @@ namespace SupraInventoryRelayAgent
             }
 
             FinalizeD160Outcomes(works, outcomes, mutationWaves, search);
+            EmitD160TerminalOutcomes(outcomes, terminalCallback, null);
             return outcomes;
+        }
+
+        private static void EmitD160TerminalOutcomes(
+            Dictionary<string, FirestoreConfirmationOutcome> outcomes,
+            Action<string, FirestoreConfirmationOutcome> terminalCallback,
+            HashSet<string> skipRequestIds)
+        {
+            if (terminalCallback == null || outcomes == null) return;
+            foreach (var pair in outcomes)
+            {
+                if (skipRequestIds != null && skipRequestIds.Contains(pair.Key)) continue;
+                var outcome = pair.Value;
+                if (outcome == null || !outcome.ShouldAck) continue;
+                terminalCallback(pair.Key, outcome);
+            }
         }
 
         private void D160ClassifyFastSearch(
