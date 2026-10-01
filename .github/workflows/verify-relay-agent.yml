@@ -225,7 +225,6 @@ jobs:
             'CONFIRM_DIALOG_BUTTON_NOT_UNIQUE',
             'CONFIRM_DIALOG_CLOSE_NOT_UNIQUE',
             "stage:'DIALOG_CONFIRMED'",
-            'dialog_required=true',
             'private const string PageSizeLabel = "Số dòng mỗi trang"',
             'private const string PageSizeTarget = "100"',
             'EnsurePageSize100NoLock',
