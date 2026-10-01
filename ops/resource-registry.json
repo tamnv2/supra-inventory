@@ -2003,7 +2003,7 @@
     "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
   },
   "d159": {
-    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_TEST_PENDING",
+    "status": "FIELD_FAIL_ALL_METRICS_NA__V2_DIAGNOSTIC_REPAIR_ACTIVE",
     "baseline": "D158_OWNER_FIELD_ACCEPTED_PASS",
     "windows_utility": "STANDALONE_ONE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
     "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_READ_ONLY__15M_CACHE",
@@ -2022,6 +2022,8 @@
     "exe_asset_id": 603627225,
     "exe_size_bytes": 27648,
     "exe_sha256": "91df4f9aef51e3a00c16b6a45119402371197a0168863c36890e7cca9a9f5571",
-    "checksum_asset_id": 603627229
+    "checksum_asset_id": 603627229,
+    "field_failure_boundary": "APPS_SCRIPT_TO_CLOUD_MONITORING",
+    "next_release": "d159-usage-test-v2"
   }
 }
