@@ -313,7 +313,7 @@
       "d158_inventory_channel_agent_manifest_asset_id": 603147276,
       "d158_inventory_channel_agent_asset_id": 603147275,
       "d158_inventory_channel_agent_checksum_asset_id": 603147278,
-      "d159_source_status": "TECHNICAL_SOURCE_BUILD_PASS__MAIN_0F67EECD__OWNER_PROVISIONING_PENDING",
+      "d159_source_status": "OWNER_REPORTS_GATEWAY_PROVISIONED__CI_IDENTITY_AND_CONFIGURED_RELEASE_VERIFY_ACTIVE",
       "d159_usage_gateway_resource_key": "apps-script-firestore-usage-beta-d159",
       "d159_usage_gateway_actions_variable": "D159_USAGE_GATEWAY_URL_BETA",
       "d159_usage_test_release_target": "d159-usage-test-v1",
@@ -2003,7 +2003,7 @@
     "owner_field_result": "PASS__OWNER_CONFIRMED_D157__2026_09_30"
   },
   "d159": {
-    "status": "TECHNICAL_SOURCE_BUILD_PASS__OWNER_PROVISIONING_PENDING",
+    "status": "OWNER_REPORTS_PROVISIONED__CI_VERIFY_ACTIVE",
     "baseline": "D158_OWNER_FIELD_ACCEPTED_PASS",
     "windows_utility": "STANDALONE_ONE_TAB_NO_LOGIN_UI__READS_EXISTING_AGENT_DPAPI_SESSION_READ_ONLY",
     "gateway": "SEPARATE_BETA_APPS_SCRIPT__CLOUD_MONITORING_READ_ONLY__15M_CACHE",
