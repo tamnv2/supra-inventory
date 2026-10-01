@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Web.Script.Serialization;
+using Google.Cloud.Firestore.V1;
 
 namespace SupraInventoryRelayAgent
 {
@@ -107,6 +108,74 @@ namespace SupraInventoryRelayAgent
             });
 
             return result;
+        }
+
+        internal static List<PickerPresenceView> ParseGrpcDocument(Google.Cloud.Firestore.V1.Document doc)
+        {
+            var result = new List<PickerPresenceView>();
+            if (doc == null) return result;
+            Google.Cloud.Firestore.V1.Value schema;
+            Google.Cloud.Firestore.V1.Value source;
+            if (!doc.Fields.TryGetValue("schema_version", out schema) || schema == null ||
+                schema.IntegerValue != 4 ||
+                !doc.Fields.TryGetValue("presence_source", out source) || source == null ||
+                !string.Equals(source.StringValue ?? "", "ANDROID_SESSION_AUTHORITY", StringComparison.Ordinal))
+                return result;
+
+            Google.Cloud.Firestore.V1.Value pickers;
+            if (!doc.Fields.TryGetValue("pickers", out pickers) || pickers == null || pickers.ArrayValue == null)
+                return result;
+
+            foreach (var raw in pickers.ArrayValue.Values)
+            {
+                if (raw == null || raw.MapValue == null) continue;
+                var fields = raw.MapValue.Fields;
+                Google.Cloud.Firestore.V1.Value status;
+                Google.Cloud.Firestore.V1.Value user;
+                if (!fields.TryGetValue("user_id", out user) || user == null || string.IsNullOrWhiteSpace(user.StringValue))
+                    continue;
+                if (!fields.TryGetValue("status", out status) || status == null ||
+                    !string.Equals(status.StringValue ?? "", "PDA_READY", StringComparison.Ordinal))
+                    continue;
+                result.Add(new PickerPresenceView
+                {
+                    UserId = user.StringValue ?? "",
+                    FirebaseUid = GrpcString(fields, "firebase_uid"),
+                    SessionGeneration = GrpcLong(fields, "session_generation"),
+                    Source = string.Equals(GrpcString(fields, "source"), "PICKLIST", StringComparison.Ordinal) ? "PICKLIST" : "LOGIN",
+                    EmployeeCode = GrpcString(fields, "employee_code"),
+                    DisplayName = GrpcString(fields, "display_name"),
+                    ContractorName = GrpcString(fields, "contractor_name"),
+                    DeviceId = GrpcString(fields, "device_id"),
+                    Status = "PDA_READY",
+                    LoginAt = GrpcString(fields, "login_at"),
+                    DeviceSeenAt = GrpcString(fields, "device_seen_at")
+                });
+                if (result.Count >= 2000) break;
+            }
+
+            result.Sort((a, b) =>
+            {
+                var left = string.IsNullOrWhiteSpace(a.EmployeeCode) ? a.UserId : a.EmployeeCode;
+                var right = string.IsNullOrWhiteSpace(b.EmployeeCode) ? b.UserId : b.EmployeeCode;
+                var byCode = string.Compare(left, right, StringComparison.OrdinalIgnoreCase);
+                return byCode != 0 ? byCode : string.Compare(a.DisplayName, b.DisplayName, StringComparison.CurrentCultureIgnoreCase);
+            });
+            return result;
+        }
+
+        private static string GrpcString(Google.Protobuf.Collections.MapField<string, Google.Cloud.Firestore.V1.Value> fields, string key)
+        {
+            Google.Cloud.Firestore.V1.Value value;
+            return fields != null && fields.TryGetValue(key, out value) && value != null
+                ? (value.StringValue ?? "")
+                : "";
+        }
+
+        private static long GrpcLong(Google.Protobuf.Collections.MapField<string, Google.Cloud.Firestore.V1.Value> fields, string key)
+        {
+            Google.Cloud.Firestore.V1.Value value;
+            return fields != null && fields.TryGetValue(key, out value) && value != null ? value.IntegerValue : 0L;
         }
 
         private static Dictionary<string, object> AsMap(object value)
