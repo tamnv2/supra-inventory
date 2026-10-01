@@ -3902,7 +3902,7 @@
     }
   },
   "apps_script_automation_probe": {
-    "status": "TECHNICAL_RECHECK_IN_PROGRESS__OWNER_DRIVE_CONSENT_DONE",
+    "status": "TECHNICAL_REPAIR_IN_PROGRESS__SCRIPT_API_DISABLED_AUTO_ENABLE",
     "approved_at": "2026-10-02",
     "accepted_base": "D159",
     "d160_status": "NOT_OPENED",
@@ -3920,8 +3920,8 @@
     "failure_stage": "POST_REDEPLOY_LIST_VISIBILITY_VERIFY",
     "provider_resource_created": false,
     "cleanup_required": false,
-    "blocker": "NONE_OWNER__POST_CONSENT_CANARY_CREATE_DIAG_PENDING",
-    "next_action": "MERGE_CANARY_DIAG_REPAIR__RUN_MAIN_FULL_LIFECYCLE__REPAIR_SAME_PROBE_UNTIL_PASS",
+    "blocker": "BETA_GCP_SCRIPT_API_DISABLED__AUTOMATION_CAN_ENABLE_IN_SCOPE",
+    "next_action": "MAIN_ONLY_ENABLE_SCRIPT_GOOGLEAPIS_COM__POLL_ENABLED__RUN_FULL_CANARY__VERIFY_CLEANUP",
     "latest_attempt": 2,
     "secret_parse": "PASS",
     "proven_capabilities": [
@@ -3938,9 +3938,9 @@
     ],
     "interpretation": "CREATE_PUSH_VERSION_DEPLOY_LIST_REDEPLOY_UNDEPLOY_PASS__FULL_SCRIPT_DELETE_REQUIRES_GOOGLE_DRIVE_SCOPE",
     "owner_action_required": false,
-    "latest_main_run": 36913589049,
-    "latest_failure_stage": "CREATE_AFTER_SUCCESSFUL_STALE_DRIVE_DELETE",
-    "pending_capability": "DELETE_SCRIPT",
+    "latest_main_run": 36916599484,
+    "latest_failure_stage": "CREATE__SCRIPT_API_SERVICE_DISABLED",
+    "pending_capability": "FULL_FRESH_LIFECYCLE_AFTER_SCRIPT_API_ENABLE",
     "diagnostic_change": "TOKENINFO_SCOPE_PRESENCE_PLUS_DIRECT_DRIVE_PATCH_FALLBACK__SAFE_HTTP_REASON_ONLY__NO_TOKEN_OR_SCRIPT_ID_LOGGING",
     "stale_canary_count_observed": 2,
     "provider_evidence": {
@@ -3953,10 +3953,17 @@
       "post_consent_stale_delete_method": "CLASP_PASS",
       "post_consent_stale_scripts_observed": 2,
       "post_consent_create_result": "FAIL__DIAGNOSTIC_REPAIR_PENDING",
-      "secret_value_recorded": false
+      "secret_value_recorded": false,
+      "drive_scope_full": true,
+      "drive_scope_file": true,
+      "stale_active_canary_scripts": 0,
+      "script_api_service_http": 200,
+      "script_api_service_state": "DISABLED",
+      "script_api_diag_run": 36916599484,
+      "owner_action_required": false
     },
     "owner_action_id": "OA089",
-    "repair_branch": "ops/oa089-apps-script-canary-repair",
-    "repair_reason": "CLASP_LIST_SCRIPTS_INCLUDES_TRASHED_PROJECTS__CLEANUP_VERIFY_MUST_QUERY_DRIVE_TRASH_STATE__CREATE_FAILURE_NEEDS_SAFE_CLASSIFICATION"
+    "repair_branch": "ops/oa089-enable-apps-script-api",
+    "repair_reason": "CUSTOM_OAUTH_CLIENT_PROJECT_REQUIRES_SCRIPT_GOOGLEAPIS_COM_ENABLED__BETA_ONLY_AUTO_ENABLE_BEFORE_CREATE"
   }
 }
