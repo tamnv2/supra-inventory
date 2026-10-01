@@ -256,8 +256,8 @@ namespace SupraInventoryRelayAgent
             {
                 var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Agent Auto Confirm Pick Pack", "RelayPoc", "Logs");
                 Directory.CreateDirectory(dir);
-                DiagnosticLogFile = Path.Combine(dir, "technical-ai.log");
-                RelayAuditLogFile = Path.Combine(dir, "pda-agent-audit.log");
+                DiagnosticLogFile = Path.Combine(dir, "agent-complete.log");
+                RelayAuditLogFile = DiagnosticLogFile;
                 Write("START version=" + Assembly.GetExecutingAssembly().GetName().Version + " os=" + Environment.OSVersion.VersionString + " clr=" + Environment.Version + " process64=" + Environment.Is64BitProcess + " machine=" + Environment.MachineName);
                 WriteAudit("AUDIT_START version=" + Assembly.GetExecutingAssembly().GetName().Version + " machine=" + Environment.MachineName);
             }
@@ -339,7 +339,7 @@ namespace SupraInventoryRelayAgent
 
         internal static void WriteAudit(string message)
         {
-            AppendSanitized(RelayAuditLogFile, message);
+            AppendSanitized(DiagnosticLogFile, "AUDIT " + (message ?? ""));
         }
 
         internal static void TryQueueCrashUpload(string crashType)
@@ -399,8 +399,7 @@ namespace SupraInventoryRelayAgent
         internal static string BuildUploadSnapshot(DateTime sinceLocal, DateTime untilLocalExclusive, bool crash)
         {
             var builder = new StringBuilder();
-            AppendSnapshotStream(builder, "TECHNICAL", DiagnosticLogFile, sinceLocal, untilLocalExclusive);
-            AppendSnapshotStream(builder, "PDA_AGENT_AUDIT", RelayAuditLogFile, sinceLocal, untilLocalExclusive);
+            AppendSnapshotStream(builder, "AGENT_COMPLETE", DiagnosticLogFile, sinceLocal, untilLocalExclusive);
             var content = builder.ToString();
             var cap = crash ? 800000 : 4000000;
             if (content.Length > cap)
@@ -593,7 +592,7 @@ namespace SupraInventoryRelayAgent
         private string _agentFleetRenderSignature = "";
         private readonly TabControl _mainTabs = new TabControl();
         private readonly TabPage _overviewPage = new TabPage("Tổng quan");
-        private readonly TabPage _connectionPage = new TabPage("Kết nối");
+        private readonly TabPage _connectionPage = new TabPage("Cài đặt");
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
         private readonly TabPage _technicalPage = new TabPage("Chẩn đoán kỹ thuật");
         private readonly bool _startupSmoke;
@@ -924,13 +923,11 @@ namespace SupraInventoryRelayAgent
 
             _mainTabs.Dock = DockStyle.Fill;
             _mainTabs.Font = new Font("Segoe UI", 9F);
-            foreach (var page in new[] { _overviewPage, _connectionPage, _auditPage, _technicalPage })
+            foreach (var page in new[] { _overviewPage, _connectionPage })
                 page.BackColor = Color.FromArgb(243, 246, 248);
             _overviewPage.AutoScroll = false;
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_connectionPage);
-            _mainTabs.TabPages.Add(_auditPage);
-            _mainTabs.TabPages.Add(_technicalPage);
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
@@ -1376,6 +1373,7 @@ namespace SupraInventoryRelayAgent
             _log.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _technicalPage.Controls.Add(_log);
 
+            InitializeD160Ui();
             ResumeLayout(true);
         }
 
@@ -5004,24 +5002,12 @@ namespace SupraInventoryRelayAgent
 
         private void Log(string message)
         {
-            var safe = AgentDiagnostics.Sanitize(message);
-            AgentDiagnostics.Write(safe);
-            Ui(() =>
-            {
-                _log.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
-                while (_log.Items.Count > 120) _log.Items.RemoveAt(_log.Items.Count - 1);
-            });
+            AgentDiagnostics.Write(AgentDiagnostics.Sanitize(message));
         }
 
         private void Audit(string message)
         {
-            var safe = AgentDiagnostics.Sanitize(message);
-            AgentDiagnostics.WriteAudit(safe);
-            Ui(() =>
-            {
-                _auditLog.Items.Insert(0, DateTime.Now.ToString("HH:mm:ss") + "  " + safe);
-                while (_auditLog.Items.Count > 120) _auditLog.Items.RemoveAt(_auditLog.Items.Count - 1);
-            });
+            AgentDiagnostics.WriteAudit(AgentDiagnostics.Sanitize(message));
         }
 
         private void Ui(Action action)
