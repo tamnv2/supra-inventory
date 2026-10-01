@@ -498,6 +498,21 @@
       "allowed_reference_page": "https://auth-supra.winmart.vn/dashboard",
       "guard": "D127_V67_BROWSER_UI__MANUAL_LOGIN_WHEN_REQUIRED__ONE_BOUNDED_DOM_CLICK_ON_FIELD_PROVEN_DASHBOARD_ACCESS_CONTROL__NO_SENSITIVE_CAPTURE__NO_STEALTH",
       "status": "D127_V67_DASHBOARD_UI_AUTOMATION_OWNER_FIELD_PASS"
+    },
+    {
+      "key": "apps-script-automation-canary-beta",
+      "provider": "Google Apps Script",
+      "kind": "temporary_web_app_canary",
+      "environment": "beta",
+      "name": "SUPRA Inventory Beta - Apps Script Automation Permission Probe",
+      "id_source": "EPHEMERAL_CREATED_BY_GITHUB_ACTIONS__EXACT_SCRIPT_AND_DEPLOYMENT_IDS_NEVER_COMMITTED_OR_INTENTIONALLY_LOGGED__DELETED_IN_SAME_RUN",
+      "exposure": "PRIVATE_TO_OWNER__WEBAPP_ACCESS_MYSELF__TEMPORARY",
+      "status": "OWNER_APPROVED_PLANNED__NO_PROVIDER_RESOURCE_EXISTS_BEFORE_MAIN_CANARY",
+      "source_path": "ops/apps-script/automation-canary",
+      "execute_as": "OWNER",
+      "access_policy": "MYSELF_ONLY__NO_PUBLIC_OR_ANONYMOUS_ACCESS",
+      "secret_policy": "CLASPRC_JSON_GITHUB_BETA_ENV_SECRET__NEVER_COMMITTED_LOGGED_OR_EXPOSED",
+      "guard": "TEMPORARY_AUTOMATION_CAPABILITY_PROBE_ONLY__MUST_UNDEPLOY_AND_DELETE_SCRIPT_IN_SAME_RUN__NO_BUSINESS_DATA__NO_FIRESTORE_RTDB_WMS_CLOUDFLARE_DRIVE_BUSINESS_FILE_OR_STABLE_TRAFFIC"
     }
   ],
   "secret_references": [
@@ -572,6 +587,13 @@
       "value_in_repo": false,
       "purpose": "D119 Beta Cloud Functions deployment identity",
       "status": "OWNER_CONFIRMED_CONFIGURED__VALUE_NOT_READ_OR_RECORDED"
+    },
+    {
+      "name": "CLASPRC_JSON",
+      "storage": "GitHub Environment beta secret",
+      "value_in_repo": false,
+      "purpose": "Owner-authorized Google Apps Script automation via pinned clasp for scoped Beta Apps Script resources",
+      "status": "OWNER_CONFIRMED_CONFIGURED__API_SCRIPT_ON__VALUE_NOT_READ_RECORDED_OR_LOGGED"
     }
   ],
   "explicit_out_of_scope": [

@@ -2770,3 +2770,11 @@ Accepted D159 behavior:
 - production Agent v94, Android beta-vc92, Web/Worker/WMS business paths and Stable are unchanged by D159.
 
 OA087 is closed. D159 is promoted to the accepted project base and the serial governance gate is unlocked for a later Owner-approved change. No later change is opened by this acceptance record itself.
+
+## Apps Script automation permission canary — Owner approved — 2026-10-02
+
+After D159 Owner PASS, the Owner approved a **non-D160 infrastructure capability probe** to validate the already-configured GitHub Environment `beta` secret `CLASPRC_JSON` and the enabled Google Apps Script API. D159 remains the accepted project base and no product/runtime change ID is opened by this probe.
+
+The only authorized provider mutation is the temporary scoped resource `apps-script-automation-canary-beta`. The main-only canary may create one standalone Apps Script project, push the repo-managed minimal source, create immutable versions, create/list/update/delete one versioned deployment, then delete the temporary script in the same run. The canary uses `webapp.access=MYSELF`, contains no business data and must not access Firestore, RTDB, WMS, Cloudflare business APIs, Drive business files or Stable.
+
+Exact temporary Script/deployment IDs and the `CLASPRC_JSON` value must never be committed or intentionally printed. PR execution is static validation only; provider mutation is allowed only after branch → PR → authority/continuity PASS → merge to `main`. A failed probe does not alter the D159 accepted base and does not open D160.

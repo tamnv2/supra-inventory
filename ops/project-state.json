@@ -3900,5 +3900,21 @@
       "pr": 357,
       "note": "Continuity-only sync after Owner PASS; no runtime/provider mutation."
     }
+  },
+  "apps_script_automation_probe": {
+    "status": "OWNER_APPROVED__SOURCE_READY__PR_AND_MAIN_CANARY_PENDING",
+    "approved_at": "2026-10-02",
+    "accepted_base": "D159",
+    "d160_status": "NOT_OPENED",
+    "purpose": "PROVE_GITHUB_ACTIONS_CLASPRC_JSON_CAN_CREATE_PUSH_VERSION_DEPLOY_LIST_REDEPLOY_UNDEPLOY_AND_DELETE_TEMPORARY_APPS_SCRIPT",
+    "resource_key": "apps-script-automation-canary-beta",
+    "workflow": ".github/workflows/probe-apps-script-automation.yml",
+    "clasp_version": "3.4.1",
+    "provider_mutation_policy": "PR_STATIC_VALIDATE_ONLY__MAIN_PUSH_CANARY_ONLY",
+    "cleanup_policy": "UNDEPLOY_VERSIONED_DEPLOYMENT_THEN_DELETE_TEMPORARY_SCRIPT_IN_SAME_RUN__BEST_EFFORT_EXIT_TRAP_ON_FAILURE",
+    "secret_policy": "CLASPRC_JSON_GITHUB_ENV_BETA_ONLY__NO_VALUE_IN_REPO_CHAT_OR_LOG",
+    "business_runtime_impact": "NONE__D159_ACCEPTED_BASE_UNCHANGED__AGENT_V94_ANDROID_VC92_WEB_WORKER_FIREBASE_BUSINESS_PATH_STABLE_UNCHANGED",
+    "pass_definition": "MAIN_CANARY_FULL_LIFECYCLE_PASS_AND_TEMP_RESOURCE_DELETED",
+    "fail_definition": "KEEP_D159_ACCEPTED_BASE__DO_NOT_OPEN_D160__REPAIR_CAPABILITY_PROBE_ONLY"
   }
 }
