@@ -3498,24 +3498,26 @@
     "new_secrets": "NONE_IN_REPO__GATEWAY_USES_SCRIPT_PROPERTIES_FOR_EXISTING_BETA_API_KEY_AND_SCOPED_LOG_FOLDER_ID",
     "read_budget": "D158_INCREMENTAL_DEGRADED_REALTIME_READS_MAX_2000_PER_PROVIDER_QUOTA_DAY__NORMAL_EXPECTED_LOWER_THAN_D157",
     "logging_cutover": "LOCAL_SEALED_BUNDLES_IMPLEMENTED__APPS_SCRIPT_SOURCE_REPO_MANAGED__EXTERNAL_DEPLOYMENT_AND_OFFICE_PROOF_PENDING__FIRESTORE_SUPPORT_LOG_FALLBACK_RETAINED_UNTIL_GATEWAY_CONFIGURED",
+    "log_range_guard": "HALF_OPEN_MILLISECOND_RANGES__NO_CROSS_BUNDLE_OVERLAP__EMPTY_CHECKPOINTS_SKIPPED__SIZE_TRIGGER_COUNTS_NEW_BYTES_ONLY",
+    "manual_log_send": "TECHNICAL_TAB_Gửi_log__LOCAL_SEAL_THEN_BOUNDED_UPLOAD_OR_LOCAL_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OA086_READY__PROVISION_APPS_SCRIPT_AND_BETA_ENV_VAR_THEN_REBUILD_FIELD_CANDIDATE__D157_REMAINS_ACCEPTED_BASE",
     "implementation_pr": 341,
-    "pr_head": "b42d713a771eb8559519858c847c9fea35132f0c",
+    "pr_head": "e96aa0350c801ebd2a6017a2b882680b1a25674c",
     "technical_runs": {
-      "repo_authority": 36839459143,
-      "project_state": 36839459350,
-      "relay_agent": 36839459372,
-      "ui_design": 36839459071,
-      "dashboard_probe": 36839459241,
-      "firestore": 36839459413,
-      "rtdb": 36839459144
+      "repo_authority": 36841504159,
+      "project_state": 36841504090,
+      "relay_agent": 36841504280,
+      "ui_design": 36841504066,
+      "dashboard_probe": 36841504097,
+      "firestore": 36841504219,
+      "rtdb": 36841504071
     },
     "candidate_artifact": {
-      "workflow_run": 36839459372,
-      "artifact_id": 11150501670,
+      "workflow_run": 36841504280,
+      "artifact_id": 11150619088,
       "name": "supra-inventory-relay-poc-agent",
-      "digest": "sha256:486c49c0d9730987527f593bc48837dd6ca17107e6c865bb93a59f07179289d4",
+      "digest": "sha256:7bc5bb53bb59bcc1655eed5b9511ca5d3660bf5cb6a4df6f9ca9735ecb7372bc",
       "gateway_config": "UNCONFIGURED__D157_FIRESTORE_SUPPORT_LOG_FALLBACK",
       "note": "Technical candidate only; final D158 field candidate must be rebuilt after OA086 gateway URL is configured."
     }
