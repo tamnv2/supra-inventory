@@ -30,6 +30,8 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, ErrorBurstState>(StringComparer.Ordinal);
         private readonly DateTime _processStartedLocal = DateTime.Now;
         private DateTime _lastSizeSealLocal = DateTime.MinValue;
+        private DateTime _nextUploadAttemptUtc = DateTime.MinValue;
+        private int _uploadFailureStreak;
         private DateTime _errorWindowStartedUtc = DateTime.MinValue;
         private int _errorWindowSent;
         private const int MaxImmediateErrorsPerWindow = 6;
@@ -296,6 +298,7 @@ namespace SupraInventoryRelayAgent
         private void TryFlushPending(AgentSession session)
         {
             if (!UsableSession(session)) return;
+            if (_nextUploadAttemptUtc != DateTime.MinValue && DateTime.UtcNow < _nextUploadAttemptUtc) return;
             string[] files;
             try
             {
@@ -317,7 +320,13 @@ namespace SupraInventoryRelayAgent
                     var uploaded = GatewayEnabled()
                         ? UploadGateway(session, bundle)
                         : UploadLegacyFirestore(session, bundle);
-                    if (!uploaded) break;
+                    if (!uploaded)
+                    {
+                        RegisterUploadFailure();
+                        break;
+                    }
+                    _uploadFailureStreak = 0;
+                    _nextUploadAttemptUtc = DateTime.MinValue;
                     File.Delete(path);
                     _log("AGENT LOG upload=PASS transport=" +
                          (GatewayEnabled() ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
@@ -325,13 +334,25 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (Exception ex)
                 {
+                    RegisterUploadFailure();
                     _log("AGENT LOG upload=DEFER transport=" +
                          (GatewayEnabled() ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
                          " type=" + ex.GetType().Name +
-                         " detail=" + AgentDiagnostics.Sanitize(ex.Message));
+                         " detail=" + AgentDiagnostics.Sanitize(ex.Message) +
+                         " retry_after=" + _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture));
                     break;
                 }
             }
+        }
+
+        private void RegisterUploadFailure()
+        {
+            _uploadFailureStreak = Math.Min(8, _uploadFailureStreak + 1);
+            var minutes = _uploadFailureStreak <= 1 ? 1 :
+                          (_uploadFailureStreak == 2 ? 2 :
+                          (_uploadFailureStreak == 3 ? 5 :
+                          (_uploadFailureStreak == 4 ? 15 : 30)));
+            _nextUploadAttemptUtc = DateTime.UtcNow.AddMinutes(minutes);
         }
 
         private bool UploadGateway(AgentSession session, Dictionary<string, object> bundle)
