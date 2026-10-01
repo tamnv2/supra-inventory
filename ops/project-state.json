@@ -2465,7 +2465,7 @@
     "accepted_base_change_id": "D158",
     "accepted_base_evidence": "OWNER_EXPLICIT_D158_PASS__AGENT_V94__ANDROID_VC92_UNCHANGED__2026_10_01",
     "current_change_id": "D159",
-    "current_change_status": "D159_FIELD_403_CONFIRMED__QUOTA_PROJECT_FIX_AND_PROVIDER_CANARY_ACTIVE__D158_REMAINS_ACCEPTED_BASE",
+    "current_change_status": "D159_403_ROOT_CAUSE_CONFIRMED__OWNER_IAM_API_ENABLEMENT_REQUIRED__GW_V3_SOURCE_READY__D158_REMAINS_ACCEPTED_BASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -3671,7 +3671,7 @@
       "firestore.googleapis.com/rules/evaluation_count"
     ],
     "cache": "APPS_SCRIPT_SCRIPT_CACHE_900S__GLOBAL_SHARED",
-    "field_gate": "OA087_WAIT_TECHNICAL_CANARY_PASS_THEN_OWNER_REDEPLOY_SAME_D159_APPS_SCRIPT_AS_NEW_VERSION__RETEST_V2",
+    "field_gate": "OA087_OWNER_IAM_ENABLEMENT_REQUIRED__GRANT_SERVICE_USAGE_CONSUMER_TO_APPS_SCRIPT_EXECUTION_ACCOUNT_AND_BETA_RUNTIME_SA__ENSURE_MONITORING_API_ENABLED__THEN_REDEPLOY_GW_V3_AND_RETEST",
     "stable": "OWNER_GATED_UNTOUCHED",
     "owner_gate": "OWNER_PASS_REQUIRED_AFTER_REAL_FIELD_COMPARISON",
     "implementation_pr": 346,
@@ -3756,6 +3756,16 @@
         "Cloud Monitoring timeSeries.list requires monitoring.timeSeries.list permission.",
         "User-credential REST calls can require X-Goog-User-Project quota attribution and serviceusage.services.use on that project."
       ]
+    },
+    "provider_diagnostic": {
+      "run_id": 36893601587,
+      "result": "FAIL_403_PERMISSION_DENIED",
+      "monitoring_api_state": "NOT_CONFIRMED_BECAUSE_CI_PRINCIPAL_LACKS_SERVICEUSAGE_PERMISSION",
+      "ci_principal_permissions": {
+        "monitoring.timeSeries.list": false,
+        "serviceusage.services.use": false
+      },
+      "conclusion": "At least the Beta CI/runtime service account lacks the two permissions required to consume Cloud Monitoring. The Apps Script field path independently returns the same 403 class. D159 cannot be accepted until the Apps Script execution account and CI canary principal can consume Monitoring quota/time-series."
     }
   }
 }
