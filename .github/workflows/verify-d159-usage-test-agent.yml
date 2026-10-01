@@ -62,7 +62,10 @@ jobs:
             'get_firestore_usage',
             'RefreshMinutes = 15',
             'SUPRA Firestore Usage Test',
-            'D159_GATEWAY_NOT_CONFIGURED'
+            'D159_GATEWAY_NOT_CONFIGURED',
+            'readsAvailable ? QuotaText',
+            'rulesAvailable ? Number',
+            ': "N/A"'
           )) {
             if (-not $program.Contains($marker) -and -not $config.Contains($marker)) {
               throw "D159 Windows isolation marker missing: $marker"
@@ -96,7 +99,10 @@ jobs:
             'PICKPACK_ADMIN',
             'monitoring.googleapis.com/v3/projects/',
             'CacheService.getScriptCache',
-            'LockService.getScriptLock'
+            'LockService.getScriptLock',
+            'availability: {',
+            'reads: !results.reads.error',
+            'rules: !results.rules.error'
           )) {
             if (-not $script.Contains($marker)) {
               throw "D159 Apps Script monitoring guard missing: $marker"
@@ -159,6 +165,29 @@ jobs:
           Set-Content $path $content -Encoding UTF8
 
           "D159_CONFIGURED=$configured" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Probe configured D159 gateway identity
+        if: env.D159_CONFIGURED == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $url = "${env:D159_USAGE_GATEWAY_URL_BETA}".Trim()
+          $passed = $false
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            try {
+              $response = Invoke-RestMethod -Uri $url -Method Get -TimeoutSec 20
+              if ($response.ok -eq $true -and
+                  $response.service -eq "SUPRA_FIRESTORE_USAGE_GATEWAY_D159" -and
+                  $response.project -eq "supra-inventory-beta") {
+                $passed = $true
+                break
+              }
+            } catch {
+              if ($attempt -ge 3) { throw }
+              Start-Sleep -Seconds (2 * $attempt)
+            }
+          }
+          if (-not $passed) { throw "Configured D159 gateway identity probe failed." }
 
       - name: Build D159 standalone EXE
         shell: pwsh
