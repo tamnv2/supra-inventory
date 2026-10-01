@@ -205,7 +205,7 @@ function collectUsage_() {
 
   return {
     ok: true,
-    service: 'SUPRA_FIRESTORE_USAGE_GATEWAY_D159',
+    service: 'SUPRA_AGENT_OPERATIONS_USAGE_D160',
     project: PROJECT_ID,
     database: DATABASE_ID,
     generated_at: now.toISOString(),
