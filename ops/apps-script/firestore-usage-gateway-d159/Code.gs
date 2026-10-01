@@ -209,7 +209,10 @@ function fetchMetrics_(specs, token) {
     const key = specs[index].key;
     const status = response.getResponseCode();
     if (status < 200 || status >= 300) {
-      out[key] = { series: [], error: 'MONITORING_HTTP_' + status };
+      out[key] = {
+        series: [],
+        error: monitoringFailureCode_(status, response.getContentText())
+      };
       return;
     }
     try {
@@ -220,6 +223,24 @@ function fetchMetrics_(specs, token) {
     }
   });
   return out;
+}
+
+function monitoringFailureCode_(httpStatus, content) {
+  let status = '';
+  let reason = '';
+  try {
+    const payload = JSON.parse(content || '{}');
+    const error = payload && payload.error || {};
+    status = String(error.status || '');
+    const details = error.details || [];
+    details.forEach(detail => {
+      if (!reason && detail && detail.reason) reason = String(detail.reason);
+    });
+  } catch (_) {}
+  const parts = ['MONITORING_HTTP_' + httpStatus];
+  if (status) parts.push(status.replace(/[^A-Z0-9_]/gi, '_').substring(0, 64));
+  if (reason) parts.push(reason.replace(/[^A-Z0-9_]/gi, '_').substring(0, 96));
+  return parts.join(':');
 }
 
 function buildHourBuckets_(now) {
