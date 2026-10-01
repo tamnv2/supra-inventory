@@ -1,0 +1,183 @@
+name: Probe Apps Script Automation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/probe-apps-script-automation.yml"
+      - "ops/apps-script/automation-canary/**"
+      - "ops/project-scope.json"
+      - "ops/project-state.json"
+      - "ops/resource-registry.json"
+      - "docs/OWNER_DECISIONS.md"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/probe-apps-script-automation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apps-script-automation-canary
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate canary boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate temporary source and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f ops/apps-script/automation-canary/Code.gs
+          test -f ops/apps-script/automation-canary/appsscript.json
+          grep -Fq "SUPRA_APPS_SCRIPT_AUTOMATION_CANARY_V1" ops/apps-script/automation-canary/Code.gs
+          jq -e '.webapp.access == "MYSELF"' ops/apps-script/automation-canary/appsscript.json >/dev/null
+          jq -e '.webapp.executeAs == "USER_DEPLOYING"' ops/apps-script/automation-canary/appsscript.json >/dev/null
+          if grep -RniE '(refresh[_ -]?token|private[_ -]?key|client[_ -]?secret|password|bearer[[:space:]]+[A-Za-z0-9._-]+)' ops/apps-script/automation-canary; then
+            echo "::error::Sensitive-looking material found in Apps Script canary source."
+            exit 1
+          fi
+          echo "APPS_SCRIPT_CANARY_STATIC_BOUNDARY=PASS"
+
+  provider-canary:
+    name: Create push version deploy redeploy cleanup
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pinned clasp
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global @google/clasp@3.4.1 >/dev/null
+          clasp --version
+
+      - name: Prove full Apps Script lifecycle
+        shell: bash
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CLASPRC_JSON:-}" ]; then
+            echo "::error::CLASPRC_JSON is not configured in GitHub Environment beta."
+            exit 1
+          fi
+
+          umask 077
+          mkdir -p "$HOME"
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          unset CLASPRC_JSON
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path.home() / ".clasprc.json"
+          value = json.loads(path.read_text(encoding="utf-8"))
+          if not isinstance(value, dict) or not value:
+              raise SystemExit("CLASPRC_JSON is not a non-empty JSON object")
+          PY
+
+          work="$(mktemp -d)"
+          script_id=""
+          deployment_id=""
+
+          cleanup() {
+            set +e
+            cd "$work" 2>/dev/null || true
+            if [ -n "$deployment_id" ]; then
+              clasp --json delete-deployment "$deployment_id" >/dev/null 2>&1 || true
+            fi
+            if [ -n "$script_id" ]; then
+              clasp delete-script "$script_id" --force >/dev/null 2>&1 || true
+            fi
+            rm -rf "$work"
+            rm -f "$HOME/.clasprc.json"
+          }
+          trap cleanup EXIT
+
+          fail_stage() {
+            echo "::error::Apps Script automation canary failed at stage: $1"
+            exit 1
+          }
+
+          cd "$work"
+          title="SUPRA Inventory Beta - Apps Script Automation Probe ${GITHUB_RUN_ID}"
+
+          echo "CANARY_STAGE=create"
+          if ! clasp --json create --type webapp --title "$title" > create.json 2>create.err; then
+            fail_stage "create"
+          fi
+          script_id="$(jq -r '.scriptId // empty' create.json)"
+          [ -n "$script_id" ] || fail_stage "create-id"
+
+          find "$work" -maxdepth 1 -type f \( -name '*.js' -o -name '*.gs' -o -name '*.html' -o -name 'appsscript.json' \) -delete
+          cp "$GITHUB_WORKSPACE/ops/apps-script/automation-canary/Code.gs" "$work/Code.gs"
+          cp "$GITHUB_WORKSPACE/ops/apps-script/automation-canary/appsscript.json" "$work/appsscript.json"
+
+          echo "CANARY_STAGE=push-v1"
+          clasp push --force >/dev/null 2>&1 || fail_stage "push-v1"
+
+          echo "CANARY_STAGE=version-v1"
+          clasp --json create-version "automation-canary-v1-${GITHUB_RUN_ID}" > version1.json 2>/dev/null || fail_stage "version-v1"
+          version1="$(jq -r '.versionNumber // empty' version1.json)"
+          [ -n "$version1" ] || fail_stage "version-v1-number"
+
+          echo "CANARY_STAGE=deploy-v1"
+          clasp --json create-deployment --versionNumber "$version1" --description "automation-canary-v1-${GITHUB_RUN_ID}" > deploy1.json 2>/dev/null || fail_stage "deploy-v1"
+          deployment_id="$(jq -r '.deploymentId // empty' deploy1.json)"
+          [ -n "$deployment_id" ] || fail_stage "deploy-v1-id"
+
+          echo "CANARY_STAGE=list-v1"
+          clasp --json list-deployments > deployments1.json 2>/dev/null || fail_stage "list-v1"
+          jq --arg id "$deployment_id" --argjson v "$version1" -e 'map(select(.deploymentId == $id and .versionNumber == $v)) | length == 1' deployments1.json >/dev/null || fail_stage "list-v1-verify"
+
+          echo "CANARY_STAGE=push-v2"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("Code.gs")
+          text = p.read_text(encoding="utf-8")
+          if "CANARY_V1" not in text:
+              raise SystemExit("v1 marker missing")
+          p.write_text(text.replace("CANARY_V1", "CANARY_V2"), encoding="utf-8")
+          PY
+          clasp push --force >/dev/null 2>&1 || fail_stage "push-v2"
+
+          echo "CANARY_STAGE=version-v2"
+          clasp --json create-version "automation-canary-v2-${GITHUB_RUN_ID}" > version2.json 2>/dev/null || fail_stage "version-v2"
+          version2="$(jq -r '.versionNumber // empty' version2.json)"
+          [ -n "$version2" ] || fail_stage "version-v2-number"
+
+          echo "CANARY_STAGE=redeploy-v2"
+          clasp --json create-deployment --deploymentId "$deployment_id" --versionNumber "$version2" --description "automation-canary-v2-${GITHUB_RUN_ID}" > deploy2.json 2>/dev/null || fail_stage "redeploy-v2"
+          jq --arg id "$deployment_id" --argjson v "$version2" -e '.deploymentId == $id and .versionNumber == $v' deploy2.json >/dev/null || fail_stage "redeploy-v2-verify"
+
+          echo "CANARY_STAGE=list-v2"
+          clasp --json list-deployments > deployments2.json 2>/dev/null || fail_stage "list-v2"
+          jq --arg id "$deployment_id" --argjson v "$version2" -e 'map(select(.deploymentId == $id and .versionNumber == $v)) | length == 1' deployments2.json >/dev/null || fail_stage "list-v2-verify"
+
+          echo "CANARY_STAGE=undeploy"
+          clasp --json delete-deployment "$deployment_id" >/dev/null 2>&1 || fail_stage "undeploy"
+          deployment_id=""
+
+          echo "CANARY_STAGE=delete-script"
+          clasp delete-script "$script_id" --force >/dev/null 2>&1 || fail_stage "delete-script"
+          script_id=""
+
+          echo "APPS_SCRIPT_AUTOMATION_CANARY=PASS"
+          echo "CAPABILITIES=create,push,version,deploy,list,redeploy,undeploy,delete-script"
