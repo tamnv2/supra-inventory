@@ -117,7 +117,7 @@ jobs:
           foreach ($marker in @(
             'Lịch sử Picker xác nhận PickList',
             'reset lúc 05:00',
-            'đồng bộ fleet, không thêm provider operation',
+            'D160_HISTORY_ZERO_EXTRA_PROVIDER_OP',
             'Gửi Logs',
             'Nhập sai',
             'D160HistorySnapshotJson',
