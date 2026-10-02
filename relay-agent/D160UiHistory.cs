@@ -407,6 +407,22 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
+        private static string D160HistoryLockText(D160PickerHistoryRow item)
+        {
+            if (item == null || item.LockLevel <= 0) return "";
+            var prefix = "L" + item.LockLevel.ToString(CultureInfo.InvariantCulture);
+            if (item.LockedUntilMs > DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+            {
+                var until = DateTimeOffset.FromUnixTimeMilliseconds(item.LockedUntilMs)
+                    .ToLocalTime().ToString("HH:mm:ss");
+                return prefix + " · " + Math.Max(0, item.LockMinutes).ToString(CultureInfo.InvariantCulture) +
+                    "p · đến " + until;
+            }
+            return prefix + (item.LockMinutes > 0
+                ? " · " + item.LockMinutes.ToString(CultureInfo.InvariantCulture) + "p"
+                : "");
+        }
+
         private static string D160HistoryResultText(string result)
         {
             switch (result ?? "")
