@@ -308,7 +308,6 @@ namespace SupraInventoryRelayAgent
         private void StopD160Usage()
         {
             _d160UsageTimer.Stop();
-            _d160UsageLastAutoBoundary = "";
         }
 
         private async Task TryD160UsageQuarterBoundaryAsync()
