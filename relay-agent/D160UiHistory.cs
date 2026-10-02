@@ -407,6 +407,72 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
+        private void ApplyD160HistorySyncSnapshot(string dayKey, string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw) || raw == "[]") return;
+            var currentDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+            if (!string.Equals(dayKey ?? "", currentDay, StringComparison.Ordinal)) return;
+
+            try
+            {
+                var array = _d160HistoryJson.DeserializeObject(raw) as System.Collections.IEnumerable;
+                if (array == null) return;
+                var changed = false;
+                lock (_d160HistoryGate)
+                {
+                    foreach (var item in array)
+                    {
+                        var map = item as Dictionary<string, object>;
+                        if (map == null) continue;
+                        var requestId = D160MapString(map, "r");
+                        if (string.IsNullOrWhiteSpace(requestId)) continue;
+
+                        var incoming = new D160PickerHistoryRow
+                        {
+                            RequestId = requestId,
+                            SentAtMs = D160MapLong(map, "t"),
+                            UserId = D160MapString(map, "u"),
+                            EmployeeCode = D160MapString(map, "e"),
+                            DisplayName = D160MapString(map, "n"),
+                            ContractorName = D160MapString(map, "c"),
+                            InputText = D160MapString(map, "i"),
+                            Result = D160MapString(map, "s"),
+                            FullPickList = D160MapString(map, "p"),
+                            OperationMs = D160MapLong(map, "m"),
+                            WrongCount = (int)D160MapLong(map, "w"),
+                            LockLevel = (int)D160MapLong(map, "l"),
+                            LockMinutes = (int)D160MapLong(map, "q"),
+                            LockedUntilMs = D160MapLong(map, "z")
+                        };
+
+                        D160PickerHistoryRow existing;
+                        if (_d160History.TryGetValue(requestId, out existing) &&
+                            existing != null &&
+                            existing.OperationMs > incoming.OperationMs &&
+                            !string.Equals(existing.Result, "Đang xử lý", StringComparison.Ordinal))
+                            continue;
+
+                        _d160History[requestId] = incoming;
+                        changed = true;
+                    }
+                }
+
+                if (!changed) return;
+                Ui(() =>
+                {
+                    _d160HistoryGrid.Rows.Clear();
+                    List<D160PickerHistoryRow> rows;
+                    lock (_d160HistoryGate)
+                        rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
+                    foreach (var row in rows) RenderD160HistoryRow(row);
+                });
+            }
+            catch (Exception ex)
+            {
+                Log("D160 HISTORY fleet_merge=DEFER type=" + ex.GetType().Name);
+            }
+        }
+
         internal string D160HistorySnapshotJson()
         {
             try
