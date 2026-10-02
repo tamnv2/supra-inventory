@@ -1007,3 +1007,11 @@ The detail grid keeps 24 hourly rows and uses Vietnamese column labels. The head
 - Logs shows the active file name, pending sealed-bundle count and most recent Drive-confirmed send in the current Agent session, plus **Gửi Logs** and **Mở file Logs**.
 - Lịch sử Picker xác nhận PickList adds **Nhập sai** and **Khóa** columns while retaining time, Picker identity, contractor, sent suffix, result, full PickList and processing time.
 - Thông tin Usage labels its automatic cadence as fixed local boundaries `:00 / :15 / :30 / :45`.
+
+## D161 — Deferred UI requirements
+
+- Web product subtitle shows **Website nghiệp vụ Inventory | Version 1** for the current Web baseline; the displayed version comes from one canonical Web-version value.
+- The authenticated footer shows only **Phát triển hệ thống · tamnv2 | Pick Pack 1291**; do not render Giới thiệu/Quyền riêng tư/Điều khoản beside it.
+- Android Reporter `Cho phép skip` rows show an explicit correction action while server authority says the row is correctable: **Sửa thành Đã có hàng · MM:SS**.
+- The countdown updates locally without network traffic. When remaining time reaches zero the action disappears rather than remaining as a stale disabled control.
+- A correction that becomes expired at the final server mutation boundary receives clear Vietnamese feedback rather than a silent no-op.
