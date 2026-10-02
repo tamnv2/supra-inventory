@@ -74,10 +74,8 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var session = _sessionProvider();
-                if (!UsableSession(session)) return;
-
-                TryFlushPending(session);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
 
                 var now = DateTime.Now;
                 var checkpoint = ReadCheckpoint();
@@ -108,8 +106,9 @@ namespace SupraInventoryRelayAgent
                 _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
                 if (!string.IsNullOrWhiteSpace(path))
                 {
-                    TryFlushPending(session);
-                    _log("AGENT LOG seal=PASS type=checkpoint reason=" + reason);
+                    if (UsableSession(session)) TryFlushPending(session);
+                    _log("AGENT LOG seal=PASS type=checkpoint reason=" + reason +
+                         " upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
                 }
                 else
                 {
