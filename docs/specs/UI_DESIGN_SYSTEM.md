@@ -1037,3 +1037,25 @@ Status: Owner-approved requirement; implementation deferred.
 - Do not display **05:45–22:15** under a business-shift label.
 - If technical Replay margins are useful in an advanced/system context, label them explicitly **Cửa sổ kỹ thuật Replay · 05:45–22:15** and keep them visually subordinate/separate from the business shift.
 - The Web `Ca vận hành` primary summary must therefore stop showing the technical Replay window as the normal shift.
+
+## D161 Agent bulk-kick and Android update controls
+
+Status: Owner-approved target; implementation deferred.
+
+### Agent active-Picker card
+- Place **Kích toàn bộ user** as a card-level action at the upper-right of **Picker đang hoạt động trên PDA**.
+- Keep it outside the DataGrid rows and outside the search field so the destructive global scope is visually unambiguous.
+- Use danger/admin styling with normal professional density; do not make it the dominant primary action of the page.
+- Disabled/hidden states must not shift the Picker grid unexpectedly.
+- Warning copy must include the current target count and clearly state that all targeted Pickers will have to log in again.
+- Search text/filter state is presentation only and must never imply that the bulk operation affects just visible rows.
+
+### Android login version/update area
+- Add a compact **Phiên bản & cập nhật** row directly below the login credential card and above the existing footer/credit.
+- Left: **Beta vcXX** current build.
+- Right: outlined secondary button **Kiểm tra cập nhật**.
+- The primary **ĐĂNG NHẬP** button remains visually dominant.
+- During a manual check, only the update action shows **Đang kiểm tra…** / disabled single-flight state; credential inputs and Login remain usable.
+- New-version notice uses clear **Cập nhật** and **Để sau** actions.
+- Update-channel failure uses a non-blocking warning style; it must not be rendered like an authentication failure.
+- When no update exists, avoid modal noise; show a short current-version confirmation.
