@@ -23,6 +23,10 @@ namespace SupraInventoryRelayAgent
             internal string Result = "PENDING";
             internal string FullPickList = "";
             internal long OperationMs;
+            internal int WrongCount;
+            internal int LockLevel;
+            internal int LockMinutes;
+            internal long LockedUntilMs;
         }
 
         private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử Picker xác nhận PickList");
@@ -55,7 +59,7 @@ namespace SupraInventoryRelayAgent
 
         private void InitializeD160LogSettings()
         {
-            var card = NewCard(22, 338, 1040, 178);
+            var card = NewCard(22, 506, 1040, 188);
             card.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             card.Controls.Add(new Label
             {
@@ -76,8 +80,8 @@ namespace SupraInventoryRelayAgent
                 Text = "Agent ghi một file log đầy đủ gồm vận hành PDA ↔ Agent, WMS, Firestore, lỗi và chẩn đoán. Log được làm sạch thông tin nhạy cảm trước khi lưu/gửi.",
                 ForeColor = Color.DimGray
             });
-            _d160LogStatus.SetBounds(18, 94, 650, 26);
-            _d160LogStatus.Text = "File: agent-complete.log · gửi định kỳ/lỗi/crash và có thể gửi thủ công.";
+            _d160LogStatus.SetBounds(18, 94, 650, 42);
+            _d160LogStatus.Text = _agentLogBridge.StatusSummary();
             _d160LogStatus.ForeColor = Color.FromArgb(88, 104, 115);
             card.Controls.Add(_d160LogStatus);
 
@@ -89,8 +93,7 @@ namespace SupraInventoryRelayAgent
                 System.Threading.Tasks.Task.Run(() =>
                 {
                     _agentLogBridge.TryQueueManualSnapshot();
-                    Ui(() => _d160LogStatus.Text =
-                        "Đã xử lý yêu cầu gửi Logs. Nếu mạng chưa sẵn sàng, gói được giữ cục bộ để gửi lại.");
+                    Ui(() => _d160LogStatus.Text = _agentLogBridge.StatusSummary());
                 });
             };
             card.Controls.Add(_d160SendLogs);
@@ -110,7 +113,7 @@ namespace SupraInventoryRelayAgent
 
             _d160HistoryStatus.Dock = DockStyle.Top;
             _d160HistoryStatus.Height = 42;
-            _d160HistoryStatus.Text = "Lịch sử trong ca vận hành 05:00–04:59 · cập nhật trực tiếp từ pipeline Agent, không tạo listener/poll Firestore riêng.";
+            _d160HistoryStatus.Text = "Lịch sử ca 05:00–04:59 · đồng bộ cùng agent_sync hiện hữu, không thêm listener/poll/read/write riêng.";
             _d160HistoryStatus.ForeColor = Color.FromArgb(71, 85, 105);
             root.Controls.Add(_d160HistoryStatus);
 
@@ -131,7 +134,9 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Contractor", HeaderText = "Nhà thầu", Width = 140 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Input", HeaderText = "Cụm gửi", Width = 100 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Result", HeaderText = "Kết quả", Width = 210 });
-            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "FullPickList", HeaderText = "PickList đầy đủ", Width = 190 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "FullPickList", HeaderText = "PickList đầy đủ", Width = 170 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Wrong", HeaderText = "Nhập sai", Width = 78 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Lock", HeaderText = "Khóa", Width = 120 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             root.Controls.Add(_d160HistoryGrid);
             _d160HistoryGrid.BringToFront();
