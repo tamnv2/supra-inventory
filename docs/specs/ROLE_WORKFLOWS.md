@@ -925,3 +925,38 @@ Status: Owner-approved requirement; implementation deferred.
 - Replay technical guard: **05:45–22:15**.
 - The Replay guard provides operational margin and is not the shift definition.
 - Overtime control begins when Replay enters SLEEP at 22:15, while outward business copy still describes the normal work shift as ending at 22:00.
+
+### D161 bulk Picker revoke workflow
+
+Status: Owner-approved target; implementation deferred.
+
+1. Exact Agent login `admin`/`tamnv2` sees **Kích toàn bộ user** in the active-Picker card header.
+2. Agent obtains/display the current authoritative target count for authenticated Picker/PDA sessions.
+3. User accepts a destructive warning or cancels.
+4. On Continue, user enters the current Agent password; failed/cancelled verification makes no provider/business mutation.
+5. Agent submits one idempotent bulk-revoke command. The server invalidates the targeted Android session generations and closes affected realtime/notification state.
+6. Optional Firebase/FCM signaling only accelerates the PDA presentation change.
+7. The Agent shows a bounded result summary; individual Picker row-kick remains available.
+
+The active Picker search/filter does not change the bulk target set.
+
+### D161 manual-only Agent update workflow
+- Agent startup never performs release-channel update checks.
+- No 30-minute update timer remains.
+- **Kiểm tra cập nhật** is an explicit operator action.
+- Current version → concise current-status result.
+- New version → one Yes/No install confirmation → Yes runs trusted download/checksum/replace/restart; No changes nothing.
+- Check failure does not stop relay processing or invalidate the Agent session.
+
+### D161 Android update workflows
+**Unauthenticated/login screen**
+- One bounded automatic version discovery may run without disabling login.
+- New trusted version → **Cập nhật / Để sau**.
+- **Cập nhật** downloads/verifies/installs; **Để sau** returns to login.
+- A persistent **Kiểm tra cập nhật** control is always available for manual checking.
+- Automatic/manual checks are single-flight and share the same trusted channel.
+
+**Authenticated app**
+- Tap visible version → **Tìm kiếm bản cập nhật?** Yes/No.
+- No → no request.
+- Yes → one check; current version reports current; a newer trusted version automatically proceeds to download/verify/install from that explicit consent.
