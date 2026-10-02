@@ -4486,7 +4486,7 @@
     },
     {
       "id": "OA090",
-      "status": "READY_FOR_OWNER_FIELD_ACCEPTANCE_V97",
+      "status": "CLOSED_PASS",
       "title": "Field-accept D160 Agent v97 repair: overlay/history lifecycle plus prior v96 repair scope",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / Google Apps Script",
@@ -4515,8 +4515,8 @@
         "All prior D160 v96 WMS, Logs, Usage, History-sync, export and provider gates remain PASS.",
         "D159 remains the accepted base until explicit Owner D160 PASS."
       ],
-      "remaining_owner_action": "FIELD_TEST_RELAY_AGENT_V97__REPORT_D160_PASS_OR_NOT_PASS",
-      "closed": false,
+      "remaining_owner_action": null,
+      "closed": true,
       "technical_evidence": {
         "provider_run": 36949347354,
         "provider_attempt": 2,
@@ -4556,6 +4556,12 @@
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
         "provider_change": "NONE"
+      },
+      "closed_at": "2026-10-02",
+      "owner_result": {
+        "date": "2026-10-02",
+        "result": "PASS",
+        "evidence": "Owner explicitly confirmed D160 v97 PASS after field review; relay-agent-v97 becomes the accepted D160 field baseline. Android beta-vc92 and Stable remain unchanged."
       }
     },
     {
