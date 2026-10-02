@@ -1612,6 +1612,8 @@ namespace SupraInventoryRelayAgent
                 " relay_until=" + until.ToString("HH:mm") +
                 " schedule_key=" + key +
                 " role=" + _leaderCoordinator.RoleName);
+            Task.Run(() => _agentLogBridge.TryQueueBoundarySnapshot(
+                "OVERTIME_DECISION_" + decision + "_BOUNDARY_" + boundary.ToString("HHmm")));
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
             CheckAfterHoursSchedule(true);
         }
@@ -1650,6 +1652,7 @@ namespace SupraInventoryRelayAgent
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
             Log("AFTER_HOURS cancel_overtime=PASS at=" + now.ToString("HH:mm:ss") +
                 " schedule_key=" + key);
+            Task.Run(() => _agentLogBridge.TryQueueBoundarySnapshot("OVERTIME_CANCEL"));
             CheckAfterHoursSchedule(true);
         }
 
