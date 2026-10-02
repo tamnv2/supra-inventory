@@ -893,3 +893,9 @@ The repo-managed Agent gateway manifest did not contain a `webapp` resource. Whe
 
 D160 repairs the same existing scoped gateway by explicitly declaring `webapp.access=ANYONE_ANONYMOUS` and `webapp.executeAs=USER_DEPLOYING`. This restores the already-accepted transport model: the endpoint itself is publicly reachable, GET exposes only bounded service identity, and protected POST actions still require a valid Firebase ADMIN/PICKPACK_ADMIN token. The existing URL is retained. D159 remains present until the repaired URL passes both D160 identity and authenticated Monitoring-backed Usage proof.
 
+### D160 provider repair gate — OA091
+
+Provider diagnostics on 2026-10-02 prove the existing consolidated **SUPRA Inventory Beta - Agent Operations Gateway** is deployed and returns the D160 public identity, and the temporary Firebase ADMIN canary reaches the authenticated Usage action. The remaining failure is specifically the Apps Script execution token: every Monitoring request returns `ACCESS_TOKEN_SCOPE_INSUFFICIENT / OAUTH_SCOPE_INSUFFICIENT`.
+
+This is not a code/IAM/API-enable/CLASPRC/Drive failure. The existing D158 Apps Script project added `monitoring.read` during D160 and the script owner's OAuth grant has not yet been interactively refreshed for that new scope. D160 therefore adds the editor helper `authorizeD160Monitoring()`. OA091 is the only current manual gate: the Owner runs that helper once and approves the read-only Monitoring scope. Until OA091 passes, the standalone D159 script is retained, Agent v95 release remains blocked, Android beta-vc92 is unchanged and Stable remains OWNER-GATED.
+
