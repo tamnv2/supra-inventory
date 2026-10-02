@@ -77,7 +77,7 @@ namespace SupraInventoryRelayAgent
                 Top = 48,
                 Width = 960,
                 Height = 42,
-                Text = "Agent ghi một file log đầy đủ gồm vận hành PDA ↔ Agent, WMS, Firestore, lỗi và chẩn đoán. Log được làm sạch thông tin nhạy cảm trước khi lưu/gửi.",
+                Text = "Agent ghi một file log đầy đủ về quá trình vận hành, xác nhận PickList, kết nối và lỗi. Thông tin nhạy cảm được làm sạch trước khi lưu/gửi.",
                 ForeColor = Color.DimGray
             });
             _d160LogStatus.SetBounds(18, 94, 650, 42);
