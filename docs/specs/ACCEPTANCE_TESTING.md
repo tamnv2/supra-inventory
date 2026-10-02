@@ -2166,3 +2166,19 @@ Technical gates must prove:
 
 Owner field acceptance must additionally validate single and burst/mixed real WMS behavior, fresh-success recognition despite page reload/row persistence, Usage visibility under allowed/disallowed Agent accounts, manual Logs upload, History presentation and unchanged beta-vc92 result flow.
 
+### D160 v96 repair acceptance addendum
+
+The v95 field result is NOT PASS; OA090 remains the same D160 gate. The next candidate is Agent v96 with Android beta-vc92 unchanged.
+
+Technical gates additionally prove:
+1. Visible exact-row checkbox filtering is used both in scan/classification and final bulk mutation; non-PickList/header checked controls cannot cause `FOREIGN_SELECTION`, while a visibly checked different `PL...` row still does.
+2. WMS readiness exposes `dataHydrated`/PickList-code evidence. After the required real reload, a shell-only empty table is not READY and may invoke at most one bounded recovery F5.
+3. Logs card is below overlay settings and includes status/manual-send controls.
+4. 21:45 safety sealing is once per date, survives upload retry, and an older pending upload cannot suppress the 21:45 delta. CONTINUE/STOP/CANCEL overtime decisions invoke a log boundary seal.
+5. Local log pruning occurs only after confirmed Apps Script/Drive success and preserves lines newer than the uploaded bundle boundary.
+6. Usage auto-refresh is wall-clock aligned to `:00/:15/:30/:45`; manual refresh and exact-login restriction remain.
+7. History sync reuses existing agent_sync. `history_json` is absent from the mutable write-decision signature so a history-only update cannot cause a Firestore write; no new collection/listener/query/poll is introduced.
+8. History displays counted-wrong and lock totals derived from existing confirmation/rate outcomes, with no extra anti-spam read/write.
+9. Agent source/build/release is v96, Android remains beta-vc92 and Stable is untouched.
+
+Owner retest must verify the original five failed/missing behaviors plus the three added requirements before explicit D160 PASS.
