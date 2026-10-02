@@ -452,6 +452,59 @@ namespace SupraInventoryRelayAgent
             builder.Append(stream);
         }
 
+        internal static void PruneUploadedThrough(DateTime untilLocalExclusive)
+        {
+            try
+            {
+                if (untilLocalExclusive == DateTime.MinValue ||
+                    untilLocalExclusive > DateTime.Now.AddMinutes(1) ||
+                    string.IsNullOrWhiteSpace(DiagnosticLogFile))
+                    return;
+
+                lock (Gate)
+                {
+                    var paths = new List<string>();
+                    for (var i = MaxRolledFilesPerStream; i >= 1; i--)
+                    {
+                        var rolled = DiagnosticLogFile + "." + i;
+                        if (File.Exists(rolled)) paths.Add(rolled);
+                    }
+                    if (File.Exists(DiagnosticLogFile)) paths.Add(DiagnosticLogFile);
+                    if (paths.Count == 0) return;
+
+                    var keep = new List<string>();
+                    foreach (var path in paths)
+                    {
+                        foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
+                        {
+                            if (line.Length < 23)
+                            {
+                                keep.Add(line);
+                                continue;
+                            }
+                            DateTime at;
+                            if (!DateTime.TryParseExact(
+                                    line.Substring(0, 23),
+                                    "yyyy-MM-dd HH:mm:ss.fff",
+                                    System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.None,
+                                    out at) ||
+                                at >= untilLocalExclusive)
+                                keep.Add(line);
+                        }
+                    }
+
+                    foreach (var path in paths)
+                    {
+                        try { if (File.Exists(path)) File.Delete(path); } catch { }
+                    }
+                    if (keep.Count > 0)
+                        File.WriteAllLines(DiagnosticLogFile, keep, Encoding.UTF8);
+                }
+            }
+            catch { }
+        }
+
         internal static void OpenLog() { OpenDiagnosticLog(); }
 
         internal static void OpenDiagnosticLog()
