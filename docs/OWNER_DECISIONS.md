@@ -2802,3 +2802,9 @@ D160 also repairs cross-cycle terminal-request replay with a short local termina
 
 D159 remains the accepted base until D160 passes branch/PR/authority/continuity/release gates and the Owner explicitly records D160 PASS under OA090.
 
+### D160 technical/provider release checkpoint — 2026-10-02
+
+After the Owner reported `D160_MONITORING_AUTH_PASS`, provider verification workflow `36949347354` attempt 2 passed the unified gateway identity, Firebase-authenticated Usage POST and Cloud Monitoring read proof, then retired the redundant D159 Apps Script and verified it absent.
+
+The blocked Agent workflow `36942335324` was rerun and passed, publishing Beta prerelease `relay-agent-v95`. Android remains `beta-vc92`; Stable remains untouched. This is technical/runtime/release evidence only. D159 remains the accepted business base until OA090 field validation ends with explicit Owner D160 PASS.
+
