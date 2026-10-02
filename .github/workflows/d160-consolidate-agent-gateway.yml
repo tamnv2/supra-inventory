@@ -31,6 +31,7 @@ jobs:
           grep -Fq "SUPRA_AGENT_OPERATIONS_GATEWAY_D160" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "SUPRA_AGENT_OPERATIONS_USAGE_D160" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "get_firestore_usage" ops/apps-script/agent-log-gateway/Code.gs
+          grep -Fq "authorizeD160Monitoring" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "upload_agent_log" ops/apps-script/agent-log-gateway/Code.gs
           jq -e '.oauthScopes | index("https://www.googleapis.com/auth/monitoring.read") != null' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
           jq -e '.oauthScopes | index("https://www.googleapis.com/auth/drive") != null' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
@@ -346,13 +347,22 @@ jobs:
           }' "$work/usage-response.json" 2>/dev/null || echo '{"ok":false,"error":"INVALID_JSON"}')"
           echo "D160_USAGE_SAFE_SUMMARY $usage_summary"
 
-          jq -e '
+          if ! jq -e '
             .ok == true and
             .service == "SUPRA_AGENT_OPERATIONS_USAGE_D160" and
             .project == "supra-inventory-beta" and
             .revision == "D160-GW-v1" and
             .availability.reads == true
-          ' "$work/usage-response.json" >/dev/null || fail "authenticated-usage-contract"
+          ' "$work/usage-response.json" >/dev/null; then
+            if jq -e '
+              (.errors // []) |
+              any(test("OAUTH_SCOPE_INSUFFICIENT|ACCESS_TOKEN_SCOPE_INSUFFICIENT"))
+            ' "$work/usage-response.json" >/dev/null; then
+              echo "::error::D160_OWNER_ACTION_OA091=Run authorizeD160Monitoring once in the existing Agent Operations Gateway Apps Script editor and approve monitoring.read."
+              fail "authenticated-usage-owner-consent-required"
+            fi
+            fail "authenticated-usage-contract"
+          fi
 
           if jq -e '
             (.errors // []) |
