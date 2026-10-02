@@ -475,3 +475,18 @@ D158 does not change Android logging. Windows Agent retains `technical-ai.log` a
 - Pending sealed bundles are flushed oldest-first by captured time boundary. A failed, unreadable or invalid older pending bundle blocks later bundle upload/prune so Agent can never prune source lines past an older unsent segment.
 - Legacy Firestore-first support-log fallback does not authorize local source pruning because its first-hop success is not itself Drive confirmation.
 - In addition to error/crash/manual and dirty/size checkpoints, Agent creates a bounded 21:45 delta checkpoint and an immediate delta checkpoint after successful overtime continue/stop/cancel/manual-adjust decisions. These events reuse the existing gateway and add no polling/provider resource.
+
+## D161 runtime support-log lifecycle addendum
+
+Status: Owner-approved requirement; implementation deferred.
+
+- Existing Beta parent: `Inventory/Beta/Logs`.
+- Archive layout: `Inventory/Beta/Logs/YYYY-MM-DD/<typed-file>`, where the folder date is the trusted archive server's Asia/Ho_Chi_Minh date at successful Drive archive time.
+- Original generated/received timestamps remain inside metadata/file naming for forensic ordering; delayed upload does not falsify the event timestamp.
+- Trusted archive services resolve/cache the daily folder. Web/Android/Agent clients do not list or create Drive folders.
+- Duplicate detection is scoped to the resolved daily folder.
+- Android and Agent retain the only local pending copy until positive Drive synchronization confirmation. Intermediate buffer/stage acceptance is insufficient for prune.
+- Android keeps a bounded local support journal and bounded pending bundles; successful `DRIVE_SYNCED` reconciliation prunes confirmed data. No continuous Drive polling.
+- Agent keeps pending sealed bundles oldest-first with backoff; Drive-confirmed bundles may prune their covered local diagnostic range. Firestore fallback staging alone cannot prune.
+- Web server-side buffer/archive remains authoritative for Web; local-file prune is not applicable.
+- Session-end logout is a session/logout log type, not a scheduled log type.
