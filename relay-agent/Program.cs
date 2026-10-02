@@ -188,7 +188,15 @@ namespace SupraInventoryRelayAgent
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new AgentForm(startupSmoke, autoStarted, activateEvent));
+                var startupSmokeHistoryCreated = startupSmoke && AgentForm.PrepareD160StartupSmokeHistory();
+                try
+                {
+                    Application.Run(new AgentForm(startupSmoke, autoStarted, activateEvent));
+                }
+                finally
+                {
+                    if (startupSmoke) AgentForm.CleanupD160StartupSmokeHistory(startupSmokeHistoryCreated);
+                }
             }
             catch (Exception ex)
             {
@@ -882,7 +890,16 @@ namespace SupraInventoryRelayAgent
 
                 if (_startupSmoke)
                 {
-                    AgentDiagnostics.Write("STARTUP_SMOKE PASS shell=ready");
+                    if (!D160StartupSmokeLifecycleReady())
+                    {
+                        AgentDiagnostics.Write("STARTUP_SMOKE FAIL shell=ready d160_history_overlay=false");
+                        Environment.ExitCode = 3;
+                    }
+                    else
+                    {
+                        AgentDiagnostics.Write("STARTUP_SMOKE PASS shell=ready d160_history_overlay=true");
+                        Environment.ExitCode = 0;
+                    }
                     _allowExit = true;
                     BeginInvoke(new Action(Close));
                     return;
