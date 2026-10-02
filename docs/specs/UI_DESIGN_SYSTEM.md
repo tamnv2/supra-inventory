@@ -999,3 +999,11 @@ The detail grid keeps 24 hourly rows and uses Vietnamese column labels. The head
 - The History status line states the 05:00 business-day boundary and local/no-extra-provider-cadence behavior.
 - **Thông tin Usage** preserves the accepted D159-v3 Vietnamese-first grouping, hourly detail, truthful N/A behavior and 15-minute refresh. It must not exist for non-allowlisted Agent logins.
 
+
+
+## D160 Agent field-repair presentation
+
+- Cài đặt remains scrollable and orders operational cards so the PickList overlay card and Logs card never overlap. Logs appears below the overlay card.
+- Logs shows the active file name, pending sealed-bundle count and most recent Drive-confirmed send in the current Agent session, plus **Gửi Logs** and **Mở file Logs**.
+- Lịch sử Picker xác nhận PickList adds **Nhập sai** and **Khóa** columns while retaining time, Picker identity, contractor, sent suffix, result, full PickList and processing time.
+- Thông tin Usage labels its automatic cadence as fixed local boundaries `:00 / :15 / :30 / :45`.

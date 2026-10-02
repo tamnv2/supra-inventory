@@ -2166,3 +2166,16 @@ Technical gates must prove:
 
 Owner field acceptance must additionally validate single and burst/mixed real WMS behavior, fresh-success recognition despite page reload/row persistence, Usage visibility under allowed/disallowed Agent accounts, manual Logs upload, History presentation and unchanged beta-vc92 result flow.
 
+
+
+## D160 v96 Owner-field repair acceptance
+
+1. Start/update Agent on the Confirm route with a rendered table shell but no real `PL...` data. It must remain not-ready, issue at most one bounded normal `Page.reload(ignoreCache=false)` recovery, and only become ready after real PickList data appears.
+2. With one exact PickList and one visible enabled row checkbox, confirmation must not fail because of hidden duplicate checkbox controls or a checked header/framework checkbox. A checked different real PickList row must still fail closed before final mutation.
+3. Cài đặt must show both Bảng nổi PickList and Logs without overlap. Manual send must use the existing Agent Operations Gateway.
+4. Run Agent across 21:45; verify one delta checkpoint attempt. After each successful overtime continue/stop/cancel/manual-adjust decision, verify one additional delta checkpoint attempt without periodic spam.
+5. For a Drive-confirmed Apps Script upload, verify local log lines older than the uploaded cutoff are pruned while newer lines and sealed unsent bundles remain.
+6. For exact Agent login tamnv2/admin, automatic Usage refresh must occur only at local `:00/:15/:30/:45` boundaries. Manual refresh remains available. Other Agent accounts have no Usage timer/call.
+7. Generate confirmation, NOT_FOUND strikes and a lock. PRIMARY/NEXT_A/NEXT_B must converge on the current business-day history through the existing `agent_sync` stream, including wrong-count and lock level/minutes/until.
+8. Provider evidence must show no new history listener/poll/read and no history-only `agent_sync` write; the history payload may change only when the existing aggregate-counter change already requires reconcile mutation.
+9. Re-run original D160 batch/fresh-terminal/no-second-mutation/ACK/daily-export/provider regressions. Android beta-vc92 and Stable remain unchanged.
