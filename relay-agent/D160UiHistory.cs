@@ -305,8 +305,6 @@ namespace SupraInventoryRelayAgent
         }
 
         private void RenderD160HistoryRow(D160PickerHistoryRow item)
-
-        private void RenderD160HistoryRow(D160PickerHistoryRow item)
         {
             if (item == null || !_d160HistoryUiReady || _d160HistoryGrid.IsDisposed || _d160HistoryGrid.Columns.Count == 0) return;
             DataGridViewRow target = null;
