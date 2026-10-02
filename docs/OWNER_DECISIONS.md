@@ -2914,3 +2914,18 @@ The Owner clarified that the Replay timing approved in D161 is an internal opera
 - A technical diagnostic may expose 05:45–22:15 only when clearly labelled as the Replay technical window.
 - Previously approved D161 overtime behavior still begins from Replay SLEEP at 22:15; this clarification changes presentation/semantic labeling, not the technical Replay boundary.
 - D160 remains the accepted runtime base; D161 implementation remains deferred.
+
+### D161 Owner approval — bulk kick and manual update lifecycle — 2026-10-03
+
+The Owner approved adding the source-reviewed proposals to the D161 backlog, plus a permanent manual Android update-check control on the unauthenticated login screen.
+
+- Agent gets a protected **Kích toàn bộ user** action for all currently authenticated Picker/PDA sessions. It is an exact-login **admin/tamnv2** operation, requires a destructive warning plus current Agent-password verification, is not affected by search filtering and must be implemented as one idempotent server-authoritative bulk revoke rather than N Agent-side per-user kick requests.
+- The bulk operation targets Android Picker interactive sessions only. Server session-generation invalidation is authoritative; Firebase/FCM may accelerate logout but may not become the authority.
+- Agent application updates become manual-only: remove startup and 30-minute auto checks; keep **Kiểm tra cập nhật** as the explicit user action and preserve the existing trusted/checksummed replace-and-restart installer after confirmation.
+- Android update discovery is advisory for normal login. Temporary inability to contact/parse the update channel may warn but may not disable **ĐĂNG NHẬP**. Integrity failure of the currently installed APK remains fail-closed.
+- Android update-check diagnostics must retain a sanitized stage/reason rather than collapsing every exception into one generic “không xác minh được” message.
+- Login UI adds a professional **Phiên bản & cập nhật** row: current **Beta vcXX** plus visible **Kiểm tra cập nhật**. This button remains available before authentication and is the explicit recovery path when automatic discovery fails or misses an update.
+- Login-screen auto-check is bounded and single-flight. New version → **Cập nhật / Để sau**; only **Cập nhật** downloads. Failure does not block login or retry in a tight loop.
+- While authenticated, tapping the version first asks **Tìm kiếm bản cập nhật?**; Yes checks once and, if a newer trusted release exists, proceeds automatically through download/verify/install without a second download confirmation.
+- After explicit user consent, Android automates download/checksum/package/version/signer validation and installer handoff as far as normal Android permissions allow. Full silent/MDM/Device-Owner/OEM privileged installation is not part of D161 and would require a separate Owner-approved resource/security workstream.
+- No new provider, polling/listener cadence, Stable mutation or runtime implementation is authorized by this decision capture. D160 remains the accepted runtime base.
