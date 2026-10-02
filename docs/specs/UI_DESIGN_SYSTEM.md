@@ -1028,3 +1028,12 @@ Status: Owner-approved requirement; implementation deferred.
 - Sleeping/no-extension overtime state uses a prominent red background with white status text and an explicit **Gia hạn +1 giờ** action.
 - At T-15 before an active overtime deadline, present one red/white warning for that deadline with explicit **Gia hạn +1 giờ** and **Không gia hạn** actions. Do not reopen/refocus once per one-second timer tick.
 - Active overtime shows its exact shared end time and clear actions to extend one hour or end overtime.
+
+## D161 business-shift versus Replay timing presentation
+
+Status: Owner-approved requirement; implementation deferred.
+
+- Any user-facing card, heading, summary or explanatory copy labelled **Ca bình thường** / **Ca vận hành bình thường** shows **06:00–22:00**.
+- Do not display **05:45–22:15** under a business-shift label.
+- If technical Replay margins are useful in an advanced/system context, label them explicitly **Cửa sổ kỹ thuật Replay · 05:45–22:15** and keep them visually subordinate/separate from the business shift.
+- The Web `Ca vận hành` primary summary must therefore stop showing the technical Replay window as the normal shift.
