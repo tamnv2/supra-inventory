@@ -89,9 +89,9 @@ jobs:
           $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
           $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*96\s*;') { throw "D160 repair requires Agent v96 while Android remains hard-locked at beta-vc92." }
-          if ($project -notmatch '<AssemblyVersion>0\.96\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.96\.0\.0</FileVersion>') {
-            throw "D160 Agent assembly/file version must be 0.96."
+          if ($config -notmatch 'AgentBuild\s*=\s*97\s*;') { throw "D160 lifecycle repair requires Agent v97 while Android remains hard-locked at beta-vc92." }
+          if ($project -notmatch '<AssemblyVersion>0\.97\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.97\.0\.0</FileVersion>') {
+            throw "D160 Agent assembly/file version must be 0.97."
           }
           foreach ($marker in @(
             'ConfirmManyExact',
@@ -121,9 +121,23 @@ jobs:
             'Gửi Logs',
             'Nhập sai',
             'D160HistorySnapshotJson',
-            'ApplyD160HistorySyncSnapshot'
+            'ApplyD160HistorySyncSnapshot',
+            '_d160HistoryUiReady',
+            'RenderD160HistorySnapshot',
+            'PrepareD160StartupSmokeHistory',
+            'D160StartupSmokeLifecycleReady'
           )) {
             if (-not $d160Ui.Contains($marker)) { throw "D160 repair history/log UI guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'InitializeD128OverlaySettingsSurface',
+            'TryInitializeD128Overlay',
+            'RetryD128OverlayAfterD160UiInitialized',
+            'D128_OVERLAY init=PASS stage=SETTINGS_CARD',
+            'D128_OVERLAY init=FAIL stage=',
+            'Thử lại bảng nổi'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D160 overlay lifecycle/recovery guard missing: $marker" }
           }
           foreach ($marker in @('tamnv2','admin','30 * 1000','mốc :00 / :15 / :30 / :45','get_firestore_usage','D160UsageAllowedForCurrentSession')) {
             if (-not $d160Usage.Contains($marker) -and -not $d160Ui.Contains($marker)) { throw "D160 repair restricted Usage guard missing: $marker" }
@@ -1099,7 +1113,7 @@ jobs:
           if ($smoke.ExitCode -ne 0) {
             throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
           }
-          Write-Host "Agent startup smoke PASS"
+          Write-Host "Agent startup smoke PASS (preloaded same-day History + overlay lifecycle)"
 
           $grpcSmoke = Start-Process -FilePath $exe -ArgumentList "--d134-grpc-native-self-test" -PassThru
           if (-not $grpcSmoke.WaitForExit(15000)) {
