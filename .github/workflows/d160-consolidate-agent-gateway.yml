@@ -37,10 +37,8 @@ jobs:
           jq -e '.webapp.access == "ANYONE_ANONYMOUS"' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
           jq -e '.webapp.executeAs == "USER_DEPLOYING"' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
           grep -Fq "node:crypto" .github/workflows/d160-consolidate-agent-gateway.yml
-          if grep -Fq 'npm ci --prefix "$GITHUB_WORKSPACE/functions"' .github/workflows/d160-consolidate-agent-gateway.yml; then
-            echo "::error::D160 canary must remain dependency-free; firebase-admin install is not allowed."
-            exit 1
-          fi
+          grep -Fq "accounts:signInWithCustomToken" .github/workflows/d160-consolidate-agent-gateway.yml
+          grep -Fq "accounts:delete" .github/workflows/d160-consolidate-agent-gateway.yml
           echo "D160_GATEWAY_STATIC=PASS"
 
   migrate:
