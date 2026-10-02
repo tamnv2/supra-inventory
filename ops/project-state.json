@@ -13,13 +13,13 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D159_ACCEPTED_BASE__D160_TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92",
+    "beta": "D160_ACCEPTED_BASE__D161_OWNER_APPROVED_BACKLOG_ACTIVE_IMPLEMENTATION_DEFERRED__ANDROID_VC92",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 16,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D156_OWNER_FIELD_ACCEPTED_PASS__SCHEDULE_CONVERGENCE__MAIN_859A7DFB",
-    "android": "D156_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC92__SCHEDULE_CONVERGENCE_REPORTING_DEFAULT_OFF",
+    "web": "D160_ACCEPTED_RUNTIME_WEB__D161_WEB_VERSION_1_AND_REPAIR_REQUIREMENTS_APPROVED_IMPLEMENTATION_DEFERRED",
+    "android": "D160_ACCEPTED_RUNTIME__SIGNED_BETA_VC92__D161_REPAIR_REQUIREMENTS_APPROVED_IMPLEMENTATION_DEFERRED",
     "latest_beta_apk": "beta-vc92",
     "realtime": "D098_BETA_RUNTIME_PASS__HIBERNATABLE_WEBSOCKET_SHARED_SESSION_V2__BACKOFF_JITTER__35PCT_BUDGET_GUARD_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
@@ -32,9 +32,9 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D160_TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92_UNCHANGED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D159_ACCEPTED_BASE__D160_ACTIVE_OWNER_APPROVED_NEXT_CHANGE_BLOCKED",
-    "owner_acceptance": "D159_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
+    "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D160_ACCEPTED_BASE__D161_ACTIVE_AUTHORITY_BACKLOG_ONLY__IMPLEMENTATION_NOT_AUTHORIZED",
+    "owner_acceptance": "D160_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
   },
   "hard_guards": [
@@ -108,7 +108,8 @@
     "D119 protected baseline: accepted stable behavior may not be changed for a new feature without explicit impact/risk/cost approval; full-fleet update, no deliberate mixed-version rollout.",
     "D121 Agent-only repair keeps periodic Firestore schedule refresh and Windows system-monitor sampling off the WinForms UI thread, divides the left Overview evenly across Agent/Supra/PickList, and keeps Agent/Relay/Wi-Fi on one responsive row without changing D117/D118 cadence or WMS semantics.",
     "D124 Owner-approved Agent repair removes Windows Overlay, places local confirmation counters in Hệ thống Agent, makes SKU synchronization progress explicit, and locks the Asia/Ho_Chi_Minh daily SKU operation after first Service submission so no automatic/manual duplicate is sent that day.",
-    "D147 Owner-approved governance rule: D146 is the accepted base; one change at a time; base-affecting mutation requires pre-implementation impact/risk review and explicit approval; the next Dxxx is blocked until explicit Owner PASS of the current change."
+    "D147 Owner-approved governance rule: D146 is the accepted base; one change at a time; base-affecting mutation requires pre-implementation impact/risk review and explicit approval; the next Dxxx is blocked until explicit Owner PASS of the current change.",
+    "D161 Owner-approved collection: GitHub is the durable authority for the consolidated Web/Android/HR repair backlog; D160 remains the accepted runtime base and D161 implementation/build/deploy/provider mutation is forbidden until a separate explicit Owner start command."
   ],
   "completed_capabilities": [
     "Cloudflare Beta Worker/custom domain/InventoryCore SQLite provisioning",
@@ -4162,5 +4163,46 @@
     },
     "owner_field_result": "PASS__OWNER_CONFIRMED_D160_V97__2026_10_02",
     "owner_acceptance": "PASS__OFFICIAL_D160_V97_FIELD_ACCEPTED__2026_10_02"
+  },
+  "d161": {
+    "status": "OWNER_APPROVED_REQUIREMENTS_CAPTURED__IMPLEMENTATION_DEFERRED",
+    "date": "2026-10-02",
+    "baseline_change": "D160",
+    "accepted_base": "D160",
+    "authority_document": "docs/D161_APPROVED_BACKLOG.md",
+    "purpose": "COLLECT_OWNER_APPROVED_DEFECTS_AND_REFINEMENTS_IN_GITHUB_CANONICAL_AUTHORITY_BEFORE_ONE_CONSOLIDATED_UPDATE",
+    "owner_approved_scope": [
+      "PICKER_REPORTING_CAPABILITY_API_BOOLEAN_NORMALIZATION_PLUS_ANDROID_DEFENSIVE_PARSE_AND_AUTHORITATIVE_RECONCILIATION",
+      "D156_REPORTING_DEFAULT_OFF_MIGRATION_HISTORY_MUST_SURVIVE_NORMAL_RUNTIME_SETTINGS_RESET",
+      "WEB_CURRENT_VERSION_1__HEADER_WEBSITE_NGHIEP_VU_INVENTORY_VERSION_1__MONOTONIC_WEB_RELEASE_VERSION",
+      "WEB_RUNTIME_LOG_INCLUDE_WEB_VERSION",
+      "WEB_DATE_PRESETS_CONVERGE_VISIBLE_FROM_TO_AND_AUTHORITATIVE_QUERY_STATE_ACROSS_APPLICABLE_SURFACES",
+      "HR_GSHEET_EVENT_DRIVEN_NO_APPS_SCRIPT__DRIVE_FILE_WATCH_TO_WORKER_TO_SHEETS_API_TO_INVENTORYCORE",
+      "HR_PLUS1_NEW_PICKER_AUTO_APPLY__MORE_THAN1_NEW_PICKER_REQUIRES_REALTIME_WEB_CONFIRMATION",
+      "HR_EXISTING_INFO_1_AUTO__2_TO_10_AUTO_AUDIT__OVER10_OR_OVER10_PERCENT_REQUIRE_CONFIRMATION",
+      "HR_MISSING_PICKER_NO_AUTO_DISABLE_DELETE__DUPLICATE_INVALID_HEADER_TAB_ACCESS_EMPTY_OR_OVER20_PERCENT_ROW_LOSS_HARD_BLOCK",
+      "ANDROID_REPORTER_SKIP_TO_STOCK_EXPLICIT_SERVER_AUTHORITATIVE_CORRECTION_BUTTON_WITH_MM_SS_ZERO_NETWORK_LOCAL_COUNTDOWN_AND_HIDE_ON_EXPIRY",
+      "WEB_CORRECTION_VISIBILITY_CONVERGES_ON_SAME_SERVER_AUTHORITY",
+      "ANDROID_CORRECTION_BOUNDED_DIAGNOSTIC_LOGGING_NO_SECRET_NO_POLLING",
+      "AUTHENTICATED_WEB_FOOTER_PRODUCT_CREDIT_ONLY__KEEP_PUBLIC_ABOUT_PRIVACY_TERMS_ROUTES",
+      "STABLE_UNTOUCHED"
+    ],
+    "implementation_authorization": "NOT_GRANTED__WAIT_FOR_OWNER_EXPLICIT_CONSOLIDATED_IMPLEMENTATION_COMMAND",
+    "code_changes": "NONE_IN_D161_AUTHORITY_CAPTURE",
+    "build_release_deploy": "NONE_AUTHORIZED",
+    "provider_mutation": "NONE_AUTHORIZED__FUTURE_DRIVE_WATCH_PERMISSION_OR_RESOURCE_REPRESENTATION_MUST_RECONCILE_PROJECT_SCOPE_AND_RESOURCE_REGISTRY_BEFORE_MUTATION",
+    "affected_components_if_later_selected": [
+      "service/Worker and InventoryCore contract/migration metadata",
+      "web",
+      "android Beta",
+      "HR Google Sheet source integration",
+      "canonical docs/specs/tests"
+    ],
+    "agent": "UNCHANGED_FROM_D160_ACCEPTED_BASE_UNLESS_OWNER_LATER_ADDS_D161_AGENT_SCOPE",
+    "android_current_release": "beta-vc92__UNCHANGED_DURING_COLLECTION",
+    "web_current_label": "Version 1",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "next_action": "CONTINUE_APPEND_OWNER_APPROVED_FINDINGS_UNDER_D161__WHEN_OWNER_REQUESTS_SUMMARY_PRESENT_COMPLETE_BACKLOG_AND_DEPENDENCIES__IMPLEMENT_ONLY_SELECTED_SCOPE_AFTER_EXPLICIT_OWNER_APPROVAL",
+    "next_change_allowed": false
   }
 }

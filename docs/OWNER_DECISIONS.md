@@ -2871,3 +2871,19 @@ D159 remains the accepted base. D160 stays open under OA090 until relay-agent-v9
 - D160 is now the accepted project base; D159 is superseded only as the accepted-base pointer, while its approved behavior remains inherited where D160 did not change it.
 - Android remains hard-locked at `beta-vc92` with no D160 Android source/build/release change. Stable remains OWNER-GATED and untouched.
 - The serial Owner-PASS gate is unlocked for the next change, subject to the normal impact review and explicit Owner approval before any base-affecting mutation.
+
+## D161 — Consolidated Web/Android/HR repair backlog — Owner requirements approved, implementation deferred — 2026-10-02
+
+The Owner explicitly requires GitHub, not chat memory, to be the durable authority for the collection phase. D161 is therefore opened as an **authority/backlog workstream only** against the accepted D160 base. D160 remains the accepted runtime base. No D161 source change, build, release, deploy, provider mutation or Stable mutation is authorized until the Owner separately commands implementation after reviewing the consolidated list.
+
+Canonical detailed backlog: `docs/D161_APPROVED_BACKLOG.md`.
+
+Owner-approved D161 requirements currently include:
+- repair the Picker shortage-reporting capability contract by normalizing external Service/Worker values to boolean and hardening Android parsing/reconciliation, while preserving fail-closed behavior and preventing D156 migration history from being erased by ordinary runtime reset;
+- identify the current Web as **Version 1**, render **Website nghiệp vụ Inventory | Version 1**, increment the Web version on later Web-source releases, and include `web_version` in Web runtime logs;
+- make all applicable Web date presets update both authoritative query state and visible `Từ/Đến` fields without generic UI restoration overwriting the chosen range;
+- replace manual HR synchronization with an event-driven, no-Apps-Script Google Sheet change path using a verified source, Drive file-change watch, Worker, Sheets API and InventoryCore; +1 new Picker auto-applies, >1 new Picker requires realtime Web confirmation, bounded information-change thresholds apply, and destructive/invalid source conditions fail closed;
+- replace Android vc92's hidden SKIP_ALLOWED row-tap correction with an explicit server-authoritative **Sửa thành Đã có hàng · MM:SS** action, one local zero-network countdown ticker, automatic button removal at expiry, server revalidation at mutation, convergent Web authority and bounded diagnostics;
+- remove **Giới thiệu / Quyền riêng tư / Điều khoản** from the authenticated Web business footer while retaining the public legal/OAuth routes and public login/recovery links.
+
+Additional Owner-approved findings/refinements may be appended under the same D161 while implementation remains deferred. Before implementation, present the complete D161 backlog and let the Owner choose all or selected items. Stable remains OWNER-GATED.

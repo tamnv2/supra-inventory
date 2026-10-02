@@ -2179,3 +2179,15 @@ Owner field acceptance must additionally validate single and burst/mixed real WM
 7. Generate confirmation, NOT_FOUND strikes and a lock. PRIMARY/NEXT_A/NEXT_B must converge on the current business-day history through the existing `agent_sync` stream, including wrong-count and lock level/minutes/until.
 8. Provider evidence must show no new history listener/poll/read and no history-only `agent_sync` write; the history payload may change only when the existing aggregate-counter change already requires reconcile mutation.
 9. Re-run original D160 batch/fresh-terminal/no-second-mutation/ACK/daily-export/provider regressions. Android beta-vc92 and Stable remain unchanged.
+
+## D161 — Approved backlog acceptance plan (implementation not started)
+
+When the Owner later authorizes implementation, D161 acceptance must prove at minimum:
+
+1. Reporting capability: DB/server ON logs in as ON and OFF as OFF; boolean, numeric and accepted legacy string forms converge correctly; missing/null/unknown fails closed; logout/login, reconnect and missed realtime converge to server authority; runtime-settings reset cannot re-run D156 default-OFF migration.
+2. Web version: header shows **Website nghiệp vụ Inventory | Version 1** for the current Web baseline and runtime logs include the same canonical version. A Web-source release increments it; non-Web-only releases do not.
+3. Date presets: Hôm nay/7/30/60-day selections update both visible Từ/Đến fields and actual requests on every applicable Web date-range surface; a subsequent Xem/Áp dụng cannot revert to stale restored values.
+4. HR event path: verified Sheet change reaches Worker without Apps Script or Web polling; +1 new Picker auto-applies; >1 new Picker requires confirmation; thresholded information changes follow policy; missing Picker does not auto-disable/delete; duplicates/header/tab/access/empty/>20%-loss hard-block without destructive mutation.
+5. Reporter correction: Web and Android agree on server-authoritative eligibility; Android displays **Sửa thành Đã có hàng · MM:SS**, uses one zero-network visible-screen ticker, removes the button at expiry, pauses when not visible, rechecks on server at POST, and logs bounded correction diagnostics.
+6. Authenticated Web footer contains only the product credit while `/about`, `/privacy`, and `/terms` remain publicly routable for OAuth/legal purposes.
+7. No D161 countdown or HR change path adds Firestore polling/listeners, no secret is committed/logged, Agent behavior is unchanged unless separately added under D161, and Stable remains untouched.

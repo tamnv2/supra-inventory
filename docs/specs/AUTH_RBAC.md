@@ -336,3 +336,14 @@ For any later integration of the accepted D159 Usage surface into the production
 - this presentation allowlist does not grant new business permissions, WMS authority, Firestore mutation rights or Stable access.
 
 The D159 Apps Script remains independently protected by valid Firebase ID token plus approved management-role claims; client-side tab hiding is not a substitute for gateway authorization.
+
+## D161 — Picker reporting capability contract
+
+D161 approved requirement, implementation deferred:
+
+- `shortage_reporting_enabled` remains server-authoritative per Picker.
+- External Service/Worker client contracts normalize the value to JSON boolean `true/false`.
+- Android may tolerate legacy boolean/numeric/string representations only as defensive compatibility; missing/null/unknown remains fail-closed.
+- Realtime reporting-capability events are convergence accelerators, not a replacement for authoritative login/profile state.
+- HR synchronization of an existing Picker must not alter the capability unless an explicit authorized reporting-capability action does so.
+- Normal runtime-settings reset must not make a one-time migration capable of resetting reporting permission again.

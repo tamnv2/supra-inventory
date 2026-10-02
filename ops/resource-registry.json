@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D159_ACCEPTED_BASE__D160_TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92",
+      "status": "D160_ACCEPTED_BASE__D161_OWNER_APPROVED_BACKLOG_ACTIVE_IMPLEMENTATION_DEFERRED__ANDROID_VC92",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -193,13 +193,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v97__TECHNICAL_FIELD_CANDIDATE__D159_ACCEPTED_BASE_UNTIL_OWNER_PASS",
+      "relay_agent_release": "relay-agent-v97__OWNER_FIELD_ACCEPTED_PASS",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D156_PASS_RUN_36645477945__SOURCE_859A7DFB__SCHEMA16_16__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v97__D160_TECHNICAL_RELEASED_OWNER_FIELD_PENDING",
+      "relay_agent_release_target": "NONE__D160_V97_OWNER_ACCEPTED",
       "next_signed_beta_release_target": "NONE__D156_VC92_OWNER_ACCEPTED",
-      "next_relay_agent_release_target": "relay-agent-v97__D160_FIELD_ACCEPTANCE",
+      "next_relay_agent_release_target": "NONE__D161_IMPLEMENTATION_DEFERRED",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -318,7 +318,8 @@
       "d159_usage_gateway_actions_variable": "D159_USAGE_GATEWAY_URL_BETA__OBSOLETE_AFTER_D160_PROVIDER_PASS",
       "d159_usage_test_release_target": "HISTORICAL_D159_V3__NO_NEW_RUNTIME_CALLERS",
       "d159_monitoring_cache_seconds": 900,
-      "d160_source_status": "TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92_HARD_LOCKED"
+      "d160_source_status": "OWNER_FIELD_ACCEPTED_PASS__AGENT_V97__ANDROID_VC92_UNCHANGED",
+      "d161_source_status": "OWNER_APPROVED_REQUIREMENTS_CAPTURED__IMPLEMENTATION_DEFERRED__NO_RUNTIME_OR_PROVIDER_MUTATION"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",

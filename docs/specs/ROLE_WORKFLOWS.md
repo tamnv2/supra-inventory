@@ -874,3 +874,29 @@ D158 is Windows-Agent-only; beta-vc92 remains unchanged.
 - Current-day Picker history converges across the existing HA-trio `agent_sync` stream. History is included only when the existing aggregate-counter change already causes the normal reconcile mutation, so history alone never creates a provider operation. No new listener/poll/read collection is added.
 - History includes the existing rate-limit decision's wrong-count and lock level/minutes/until values. No additional rate-limit read is performed.
 - Usage automatic refresh is aligned to local clock `:00 / :15 / :30 / :45`; manual refresh remains available and non-authorized Agent logins still have no Usage tab/timer/gateway call.
+
+## D161 — Deferred approved workflow changes
+
+D161 is an Owner-approved requirement collection against the accepted D160 runtime base. These rules are canonical requirements but are **not implementation authorization** until the Owner separately starts D161 implementation.
+
+### Picker reporting capability
+- Server/API projection is authoritative for `shortage_reporting_enabled`.
+- External client responses use JSON boolean `true/false`; Android remains defensive to legacy numeric/string representations and fails closed only for missing/null/unknown values.
+- HR synchronization must not reset an existing Picker's reporting capability.
+- New Picker default remains reporting OFF.
+- Normal runtime-settings reset must not erase the one-time D156 migration history or re-run the default-OFF migration against existing Pickers.
+
+### Reporter correction
+- SKIP_ALLOWED → HAS_STOCK eligibility is server-authoritative.
+- Android exposes an explicit correction button only while eligible and shows the remaining time in `MM:SS`.
+- The countdown is presentation-only, uses one shared local ticker while the relevant Reporter view is visible, performs no polling/network request, and stops when the view is backgrounded.
+- At expiry the button is removed. The final correction API always revalidates server time and returns a clear expired result when the boundary has passed.
+- Web and Android consume the same authoritative correction eligibility.
+
+### HR source synchronization
+- A verified HR Google Sheet may be synchronized through an event-driven no-Apps-Script path.
+- Exactly one newly observed Picker auto-applies after validation.
+- More than one newly observed Picker becomes a pending HR batch requiring realtime Web confirmation before apply.
+- One existing Picker identity-information change auto-applies; 2–10 changes auto-apply with audit; >10 or >10% require Web confirmation.
+- Missing Picker rows never auto-disable/delete accounts.
+- Duplicate employee codes, invalid/missing headers or tab, access loss, unreadable/empty source after prior valid data, or >20% source-row loss hard-block the cycle and preserve current users.
