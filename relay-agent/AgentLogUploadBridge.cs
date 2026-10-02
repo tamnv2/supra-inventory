@@ -381,6 +381,20 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private long PendingBoundary(string path, string field)
+        {
+            try
+            {
+                var raw = File.ReadAllText(path, Encoding.UTF8);
+                var bundle = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                return LongValue(bundle, field);
+            }
+            catch
+            {
+                return 0L;
+            }
+        }
+
         private void TryFlushPending(AgentSession session)
         {
             if (!UsableSession(session)) return;
@@ -390,8 +404,17 @@ namespace SupraInventoryRelayAgent
             {
                 Directory.CreateDirectory(_pendingDir);
                 files = Directory.GetFiles(_pendingDir, "*.json")
-                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .Select(path => new
+                    {
+                        Path = path,
+                        FirstAtMs = PendingBoundary(path, "first_at_ms"),
+                        LastAtMs = PendingBoundary(path, "last_at_ms")
+                    })
+                    .OrderBy(item => item.FirstAtMs <= 0 ? long.MaxValue : item.FirstAtMs)
+                    .ThenBy(item => item.LastAtMs <= 0 ? long.MaxValue : item.LastAtMs)
+                    .ThenBy(item => item.Path, StringComparer.OrdinalIgnoreCase)
                     .Take(24)
+                    .Select(item => item.Path)
                     .ToArray();
             }
             catch { return; }
