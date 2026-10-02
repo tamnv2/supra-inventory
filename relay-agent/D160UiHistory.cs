@@ -23,6 +23,9 @@ namespace SupraInventoryRelayAgent
             internal string Result = "PENDING";
             internal string FullPickList = "";
             internal long OperationMs;
+            internal int WrongCount;
+            internal int LockCount;
+            internal long LockedUntilMs;
         }
 
         private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử Picker xác nhận PickList");
@@ -130,8 +133,10 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Họ tên", Width = 180 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Contractor", HeaderText = "Nhà thầu", Width = 140 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Input", HeaderText = "Cụm gửi", Width = 100 });
-            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Result", HeaderText = "Kết quả", Width = 210 });
-            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "FullPickList", HeaderText = "PickList đầy đủ", Width = 190 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Result", HeaderText = "Kết quả", Width = 190 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "WrongCount", HeaderText = "Nhập sai", Width = 76 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "LockCount", HeaderText = "Bị khóa", Width = 110 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "FullPickList", HeaderText = "PickList đầy đủ", Width = 170 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             root.Controls.Add(_d160HistoryGrid);
             _d160HistoryGrid.BringToFront();
@@ -284,6 +289,8 @@ namespace SupraInventoryRelayAgent
                 item.ContractorName,
                 item.InputText,
                 item.Result,
+                item.WrongCount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")),
+                D160HistoryLockText(item),
                 item.FullPickList,
                 item.OperationMs > 0 ? item.OperationMs.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " ms" : ""
             };
@@ -324,7 +331,10 @@ namespace SupraInventoryRelayAgent
                     { "input_text", row.InputText },
                     { "result", row.Result },
                     { "full_picklist", row.FullPickList },
-                    { "operation_ms", row.OperationMs }
+                    { "operation_ms", row.OperationMs },
+                    { "wrong_count", row.WrongCount },
+                    { "lock_count", row.LockCount },
+                    { "locked_until_ms", row.LockedUntilMs }
                 };
                 File.AppendAllText(
                     D160HistoryPath(day),
@@ -361,7 +371,10 @@ namespace SupraInventoryRelayAgent
                         InputText = D160MapString(map, "input_text"),
                         Result = D160MapString(map, "result"),
                         FullPickList = D160MapString(map, "full_picklist"),
-                        OperationMs = D160MapLong(map, "operation_ms")
+                        OperationMs = D160MapLong(map, "operation_ms"),
+                        WrongCount = (int)Math.Max(0L, D160MapLong(map, "wrong_count")),
+                        LockCount = (int)Math.Max(0L, D160MapLong(map, "lock_count")),
+                        LockedUntilMs = Math.Max(0L, D160MapLong(map, "locked_until_ms"))
                     };
                 }
             }
@@ -385,6 +398,17 @@ namespace SupraInventoryRelayAgent
                         File.Delete(path);
             }
             catch { }
+        }
+
+        private static string D160HistoryLockText(D160PickerHistoryRow item)
+        {
+            if (item == null) return "0";
+            var count = Math.Max(0, item.LockCount);
+            if (item.LockedUntilMs <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+                return count.ToString(CultureInfo.InvariantCulture);
+            var until = DateTimeOffset.FromUnixTimeMilliseconds(item.LockedUntilMs)
+                .ToLocalTime().ToString("HH:mm");
+            return count.ToString(CultureInfo.InvariantCulture) + " · đến " + until;
         }
 
         private static string D160HistoryResultText(string result)
