@@ -134,7 +134,7 @@ jobs:
           foreach ($marker in @('BOUNDARY_2145','TryQueueBoundarySnapshot','PruneUploadedThrough','drive_confirmed=true')) {
             if (-not $agentLogBridge.Contains($marker) -and -not $program.Contains($marker)) { throw "D160 repair log lifecycle guard missing: $marker" }
           }
-          foreach ($marker in @('DataHydrated','confirm_data_hydration=RECOVERY_F5','picklistCodeCount')) {
+          foreach ($marker in @('DataHydrated','confirm_data_hydration=RECOVERY_F5','picklistCodeCount','final_confirm_settled_current_agent')) {
             if (-not $browser.Contains($marker)) { throw "D160 repair WMS hydration guard missing: $marker" }
           }
           if (-not $d160Browser.Contains('if (rowCodes.length === 0) continue;') -or
