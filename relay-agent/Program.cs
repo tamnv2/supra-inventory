@@ -816,6 +816,7 @@ namespace SupraInventoryRelayAgent
             catch { _tray.Icon = SystemIcons.Application; }
             try { Icon = _tray.Icon; } catch { }
             _tray.ContextMenuStrip = menu; _tray.Visible = true;
+            EnsureD128OverlayTrayMenu();
             _tray.DoubleClick += (s, e) => RestoreFromTray();
 
             // D088: minimize/user-close hides the window from taskbar and leaves the Agent in System Tray.
