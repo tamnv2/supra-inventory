@@ -446,11 +446,14 @@ namespace SupraInventoryRelayAgent
                         };
 
                         D160PickerHistoryRow existing;
-                        if (_d160History.TryGetValue(requestId, out existing) &&
-                            existing != null &&
-                            existing.OperationMs > incoming.OperationMs &&
-                            !string.Equals(existing.Result, "Đang xử lý", StringComparison.Ordinal))
-                            continue;
+                        if (_d160History.TryGetValue(requestId, out existing) && existing != null)
+                        {
+                            if (existing.OperationMs > incoming.OperationMs &&
+                                !string.Equals(existing.Result, "Đang xử lý", StringComparison.Ordinal))
+                                continue;
+                            if (D160HistoryRowsEquivalent(existing, incoming))
+                                continue;
+                        }
 
                         _d160History[requestId] = incoming;
                         changed = true;
@@ -471,6 +474,24 @@ namespace SupraInventoryRelayAgent
             {
                 Log("D160 HISTORY fleet_merge=DEFER type=" + ex.GetType().Name);
             }
+        }
+
+        private static bool D160HistoryRowsEquivalent(D160PickerHistoryRow a, D160PickerHistoryRow b)
+        {
+            if (a == null || b == null) return a == b;
+            return a.SentAtMs == b.SentAtMs &&
+                   string.Equals(a.UserId ?? "", b.UserId ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.EmployeeCode ?? "", b.EmployeeCode ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.DisplayName ?? "", b.DisplayName ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.ContractorName ?? "", b.ContractorName ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.InputText ?? "", b.InputText ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.Result ?? "", b.Result ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.FullPickList ?? "", b.FullPickList ?? "", StringComparison.Ordinal) &&
+                   a.OperationMs == b.OperationMs &&
+                   a.WrongCount == b.WrongCount &&
+                   a.LockLevel == b.LockLevel &&
+                   a.LockMinutes == b.LockMinutes &&
+                   a.LockedUntilMs == b.LockedUntilMs;
         }
 
         internal string D160HistorySnapshotJson()
