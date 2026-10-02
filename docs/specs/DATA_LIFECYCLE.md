@@ -465,3 +465,13 @@ D158 does not change Android logging. Windows Agent retains `technical-ai.log` a
 - The existing longer-retention cleanup remains as a safety net for stragglers/guards. D160 daily purge is not allowed to delete active confirmation guards required for uncertain post-click safety.
 - D160 Usage monitoring uses Cloud Monitoring through the consolidated Apps Script gateway and produces zero Firestore document Read/Write/Delete operations. Provider/cache/auth overhead is separate from business document quota.
 
+
+
+## D160 Agent log retention repair
+
+- The local complete Agent log is a transient capture source, not an archive authority. A sealed bundle remains durable in the local pending queue until transport success.
+- When the D160 Agent Operations Apps Script returns success for `upload_agent_log`, that response is accepted as Drive-confirmed because the gateway returns success only after the deterministic Drive file exists or is created.
+- After that Drive-confirmed response, Agent may prune source log lines only through that bundle's exclusive cutoff. Newer lines remain in the active local log; any unsent sealed pending bundle remains untouched.
+- Pending sealed bundles are flushed oldest-first by captured time boundary. A failed, unreadable or invalid older pending bundle blocks later bundle upload/prune so Agent can never prune source lines past an older unsent segment.
+- Legacy Firestore-first support-log fallback does not authorize local source pruning because its first-hop success is not itself Drive confirmation.
+- In addition to error/crash/manual and dirty/size checkpoints, Agent creates a bounded 21:45 delta checkpoint and an immediate delta checkpoint after successful overtime continue/stop/cancel/manual-adjust decisions. These events reuse the existing gateway and add no polling/provider resource.

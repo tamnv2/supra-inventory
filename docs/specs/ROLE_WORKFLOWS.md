@@ -863,3 +863,14 @@ D158 is Windows-Agent-only; beta-vc92 remains unchanged.
 - `Lịch sử Picker xác nhận PickList` is a local projection of already-received request/outcome data plus already-held Picker metadata. It does not add a Firestore listener, poll, read, write or collection.
 - History day boundary is 05:00 Asia/Ho_Chi_Minh and displays time, MNV/user, name, contractor, sent text, result, resolved full PickList and processing time.
 
+
+
+### D160 Owner-field repair refinement
+
+- Exact PickList row readiness counts only visible/enabled row checkboxes. Header/select-all/framework checkboxes without a real PickList code are ignored for foreign-selection detection; a selected different real PickList row still blocks the wave.
+- Agent Web Confirm is operationally READY only after the real normal reload/F5 path and actual `PL...` data hydration. A visible table/search/confirm shell with zero PickList codes remains unavailable. One bounded real F5 recovery is allowed; no repeated reload loop is added.
+- Cài đặt places Logs below the PickList-overlay card and exposes local status, manual send and open-log actions.
+- In addition to the existing dirty/size/error/crash lifecycle, Agent seals a delta at 21:45 and after successful overtime continue/stop/cancel/manual-adjust decisions.
+- Current-day Picker history converges across the existing HA-trio `agent_sync` stream. History is included only when the existing aggregate-counter change already causes the normal reconcile mutation, so history alone never creates a provider operation. No new listener/poll/read collection is added.
+- History includes the existing rate-limit decision's wrong-count and lock level/minutes/until values. No additional rate-limit read is performed.
+- Usage automatic refresh is aligned to local clock `:00 / :15 / :30 / :45`; manual refresh remains available and non-authorized Agent logins still have no Usage tab/timer/gateway call.

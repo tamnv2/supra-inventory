@@ -242,3 +242,8 @@ The Agent Usage page remains server-mediated and provider-authoritative. The Win
 - A visible action may open detailed reporting with the same date interval rather than requiring the operator to re-enter dates.
 - Range changes are user actions; no background refresh/polling cadence is added.
 - Existing report-detail pagination/export safety ceilings and historical authority remain unchanged.
+
+
+## D160 Agent Usage refresh refinement
+
+The restricted Agent **Thông tin Usage** surface keeps the accepted D159/D160 Cloud Monitoring source and shared 15-minute gateway cache. Automatic client refresh is aligned to the workstation local clock boundaries `:00 / :15 / :30 / :45` rather than starting a rolling 15-minute cadence when the process launches. **Cập nhật ngay** remains manual. This changes presentation/request timing only; it creates no Firestore document Read/Write/Delete and does not widen visibility beyond exact Agent login `tamnv2` or `admin`.

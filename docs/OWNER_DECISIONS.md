@@ -2808,3 +2808,22 @@ After the Owner reported `D160_MONITORING_AUTH_PASS`, provider verification work
 
 The blocked Agent workflow `36942335324` was rerun and passed, publishing Beta prerelease `relay-agent-v95`. Android remains `beta-vc92`; Stable remains untouched. This is technical/runtime/release evidence only. D159 remains the accepted business base until OA090 field validation ends with explicit Owner D160 PASS.
 
+
+
+### D160 Owner-field repair approval — 2026-10-02
+
+Owner field review of `relay-agent-v95` found D160 is not yet acceptable and explicitly approved same-D160 repair. D159 remains the accepted base; no new change ID opens.
+
+The repair target is `relay-agent-v96`; Android stays hard-locked at `beta-vc92` and Stable remains untouched.
+
+Approved repair requirements:
+- PickList checkbox classification must use only visible/enabled checkbox controls inside the exact visible data row. A header/select-all/framework checkbox without a real `PL...` row is not a foreign selection; a checked different real PickList row remains fail-closed.
+- Web Confirm may advertise READY only after the real normal reload/F5 path and actual PickList data hydration. A rendered table shell with zero real `PL...` codes is not READY. Agent may perform at most one bounded real F5 recovery for this empty-hydration state before remaining unavailable.
+- Cài đặt must visibly contain a Logs card below the existing PickList overlay card, with basic local/pending/last-send information plus manual send and open-log actions.
+- Agent must seal/send an additional log delta at the 21:45 local operational boundary if running, and after successful overtime continue/stop/cancel/manual-adjust decisions.
+- Only after the existing Apps Script gateway confirms the Drive upload succeeded may already-uploaded local source log lines be pruned. Newer lines and durable unsent sealed bundles must remain.
+- Thông tin Usage automatic refresh uses fixed local clock boundaries `:00 / :15 / :30 / :45`, not a 15-minute interval measured from process startup. Manual refresh and the existing tamnv2/admin visibility restriction remain.
+- Current-business-day Picker confirmation history must converge across the existing PRIMARY/NEXT_A/NEXT_B `agent_sync` stream without a new listener, poll, collection or history-only provider write. History payload is bounded and piggybacks only when the existing aggregate-counter mutation already requires the existing reconcile write.
+- Picker history adds wrong-input/strike count and lock detail (level/minutes/until) from the rate-limit decision already produced by the confirmation pipeline; no extra rate-limit read is authorized.
+
+The existing D160 maximum-15 micro-batch, per-request terminal ACK, exact target fence, fresh post-final-click success evidence, no-second-mutation uncertainty guard, PRIMARY generation fence, consolidated Agent Operations Gateway and D159 gateway retirement remain unchanged. D160 remains open under OA090 until v96 technical/release PASS followed by explicit Owner field PASS.

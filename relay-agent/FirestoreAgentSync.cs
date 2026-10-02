@@ -45,6 +45,7 @@ namespace SupraInventoryRelayAgent
         internal long ReceivedTotal;
         internal long ConfirmedTotal;
         internal long ErrorTotal;
+        internal string PickerHistoryJson = "";
     }
 
     internal sealed class FirestoreAgentSyncClient
@@ -166,7 +167,8 @@ namespace SupraInventoryRelayAgent
             IEnumerable<AgentPresenceView> fleet,
             long received,
             long confirmed,
-            long error)
+            long error,
+            string pickerHistoryJson)
         {
             return Mutate(session, snapshot =>
             {
@@ -230,10 +232,26 @@ namespace SupraInventoryRelayAgent
                 }
                 snapshot.Calls = repairedCalls;
                 snapshot.Fleet = CloneFleet(fleet);
-                snapshot.CounterDayKey = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
-                snapshot.ReceivedTotal = Math.Max(0L, received);
-                snapshot.ConfirmedTotal = Math.Max(0L, confirmed);
-                snapshot.ErrorTotal = Math.Max(0L, error);
+                var counterDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                var nextReceived = Math.Max(0L, received);
+                var nextConfirmed = Math.Max(0L, confirmed);
+                var nextError = Math.Max(0L, error);
+                var countersChanged =
+                    !string.Equals(snapshot.CounterDayKey ?? "", counterDay, StringComparison.Ordinal) ||
+                    snapshot.ReceivedTotal != nextReceived ||
+                    snapshot.ConfirmedTotal != nextConfirmed ||
+                    snapshot.ErrorTotal != nextError;
+
+                snapshot.CounterDayKey = counterDay;
+                snapshot.ReceivedTotal = nextReceived;
+                snapshot.ConfirmedTotal = nextConfirmed;
+                snapshot.ErrorTotal = nextError;
+
+                // D160 repair: history piggybacks only when the existing aggregate
+                // counter state already requires an agent_sync mutation. History alone
+                // must never create an extra provider write.
+                if (countersChanged)
+                    snapshot.PickerHistoryJson = pickerHistoryJson ?? "";
             }, "AGENT_SYNC_RECONCILE");
         }
 
@@ -403,6 +421,7 @@ namespace SupraInventoryRelayAgent
             snapshot.Calls = ParseCalls(FieldString(fields, "calls_json"));
             snapshot.Kicks = ParseKicks(FieldString(fields, "kicks_json"));
             snapshot.Fleet = ParseFleet(FieldString(fields, "fleet_json"));
+            snapshot.PickerHistoryJson = FieldString(fields, "picker_history_json");
             Normalize(snapshot);
             return snapshot;
         }
@@ -424,7 +443,8 @@ namespace SupraInventoryRelayAgent
                 { "counter_business_day", snapshot.CounterDayKey ?? "" },
                 { "received_total", Math.Max(0L, snapshot.ReceivedTotal) },
                 { "confirmed_total", Math.Max(0L, snapshot.ConfirmedTotal) },
-                { "error_total", Math.Max(0L, snapshot.ErrorTotal) }
+                { "error_total", Math.Max(0L, snapshot.ErrorTotal) },
+                { "picker_history_json", snapshot.PickerHistoryJson ?? "" }
             });
         }
 
@@ -442,7 +462,8 @@ namespace SupraInventoryRelayAgent
                 { "counter_business_day", StringField(snapshot.CounterDayKey ?? "") },
                 { "received_total", IntField(snapshot.ReceivedTotal) },
                 { "confirmed_total", IntField(snapshot.ConfirmedTotal) },
-                { "error_total", IntField(snapshot.ErrorTotal) }
+                { "error_total", IntField(snapshot.ErrorTotal) },
+                { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") }
             };
         }
 
@@ -496,7 +517,8 @@ namespace SupraInventoryRelayAgent
                 Fleet = CloneFleet(source.Fleet),
                 ReceivedTotal = Math.Max(0L, source.ReceivedTotal),
                 ConfirmedTotal = Math.Max(0L, source.ConfirmedTotal),
-                ErrorTotal = Math.Max(0L, source.ErrorTotal)
+                ErrorTotal = Math.Max(0L, source.ErrorTotal),
+                PickerHistoryJson = source.PickerHistoryJson ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
             {

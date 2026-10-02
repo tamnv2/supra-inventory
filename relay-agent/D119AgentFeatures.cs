@@ -1085,6 +1085,7 @@ namespace SupraInventoryRelayAgent
             }
             _agentSyncSnapshot = snapshot;
             if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
+            ApplyD160HistorySyncSnapshot(snapshot.CounterDayKey, snapshot.PickerHistoryJson);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
             {
@@ -1436,7 +1437,8 @@ namespace SupraInventoryRelayAgent
                         fleet,
                         counterReceived,
                         counterConfirmed,
-                        counterError);
+                        counterError,
+                        D160HistorySnapshotJson());
                     _lastAgentSyncReconcileUtc = DateTime.UtcNow;
                     ApplyD134AgentSyncSnapshot(snapshot);
                     Log("AGENT_SYNC reconcile=PASS cadence=5m max_agents=10");

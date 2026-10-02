@@ -23,6 +23,10 @@ namespace SupraInventoryRelayAgent
             internal string Result = "PENDING";
             internal string FullPickList = "";
             internal long OperationMs;
+            internal int WrongCount;
+            internal int LockLevel;
+            internal int LockMinutes;
+            internal long LockedUntilMs;
         }
 
         private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử Picker xác nhận PickList");
@@ -55,7 +59,7 @@ namespace SupraInventoryRelayAgent
 
         private void InitializeD160LogSettings()
         {
-            var card = NewCard(22, 338, 1040, 178);
+            var card = NewCard(22, 506, 1040, 188);
             card.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             card.Controls.Add(new Label
             {
@@ -73,11 +77,11 @@ namespace SupraInventoryRelayAgent
                 Top = 48,
                 Width = 960,
                 Height = 42,
-                Text = "Agent ghi một file log đầy đủ gồm vận hành PDA ↔ Agent, WMS, Firestore, lỗi và chẩn đoán. Log được làm sạch thông tin nhạy cảm trước khi lưu/gửi.",
+                Text = "Agent ghi một file log đầy đủ về quá trình vận hành, xác nhận PickList, kết nối và lỗi. Thông tin nhạy cảm được làm sạch trước khi lưu/gửi.",
                 ForeColor = Color.DimGray
             });
-            _d160LogStatus.SetBounds(18, 94, 650, 26);
-            _d160LogStatus.Text = "File: agent-complete.log · gửi định kỳ/lỗi/crash và có thể gửi thủ công.";
+            _d160LogStatus.SetBounds(18, 94, 650, 42);
+            _d160LogStatus.Text = _agentLogBridge.StatusSummary();
             _d160LogStatus.ForeColor = Color.FromArgb(88, 104, 115);
             card.Controls.Add(_d160LogStatus);
 
@@ -89,8 +93,7 @@ namespace SupraInventoryRelayAgent
                 System.Threading.Tasks.Task.Run(() =>
                 {
                     _agentLogBridge.TryQueueManualSnapshot();
-                    Ui(() => _d160LogStatus.Text =
-                        "Đã xử lý yêu cầu gửi Logs. Nếu mạng chưa sẵn sàng, gói được giữ cục bộ để gửi lại.");
+                    Ui(() => _d160LogStatus.Text = _agentLogBridge.StatusSummary());
                 });
             };
             card.Controls.Add(_d160SendLogs);
@@ -110,7 +113,7 @@ namespace SupraInventoryRelayAgent
 
             _d160HistoryStatus.Dock = DockStyle.Top;
             _d160HistoryStatus.Height = 42;
-            _d160HistoryStatus.Text = "Lịch sử trong ca vận hành 05:00–04:59 · cập nhật trực tiếp từ pipeline Agent, không tạo listener/poll Firestore riêng.";
+            _d160HistoryStatus.Text = "Lịch sử ca 05:00–04:59 · tự đồng bộ giữa các Agent đang hoạt động.";
             _d160HistoryStatus.ForeColor = Color.FromArgb(71, 85, 105);
             root.Controls.Add(_d160HistoryStatus);
 
@@ -131,7 +134,9 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Contractor", HeaderText = "Nhà thầu", Width = 140 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Input", HeaderText = "Cụm gửi", Width = 100 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Result", HeaderText = "Kết quả", Width = 210 });
-            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "FullPickList", HeaderText = "PickList đầy đủ", Width = 190 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "FullPickList", HeaderText = "PickList đầy đủ", Width = 170 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Wrong", HeaderText = "Nhập sai", Width = 78 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Lock", HeaderText = "Khóa", Width = 120 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             root.Controls.Add(_d160HistoryGrid);
             _d160HistoryGrid.BringToFront();
@@ -232,6 +237,11 @@ namespace SupraInventoryRelayAgent
                 row.Result = D160HistoryResultText(outcome.Result);
                 row.FullPickList = outcome.ResolvedPickListCode ?? "";
                 row.OperationMs = Math.Max(0L, outcome.OperationMs);
+                var rate = outcome.Rate;
+                row.WrongCount = rate == null ? 0 : Math.Max(0, rate.NewlyLocked ? 3 : rate.StrikeCount);
+                row.LockLevel = rate == null ? 0 : Math.Max(0, rate.LockLevel);
+                row.LockMinutes = rate == null ? 0 : Math.Max(0, rate.LockMinutes);
+                row.LockedUntilMs = rate == null ? 0L : Math.Max(0L, rate.LockedUntilMs);
             }
             AppendD160HistoryEvent(row);
             Ui(() => RenderD160HistoryRow(row));
@@ -256,7 +266,7 @@ namespace SupraInventoryRelayAgent
                 foreach (var row in rows) RenderD160HistoryRow(row);
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
-                    " request · reset lúc 05:00 · UI cục bộ, không thêm Firestore usage.";
+                    " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
             });
             CleanupD160OldHistoryFiles(dayKey);
         }
@@ -285,6 +295,8 @@ namespace SupraInventoryRelayAgent
                 item.InputText,
                 item.Result,
                 item.FullPickList,
+                item.WrongCount > 0 ? item.WrongCount.ToString(CultureInfo.InvariantCulture) : "",
+                D160HistoryLockText(item),
                 item.OperationMs > 0 ? item.OperationMs.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " ms" : ""
             };
             if (target == null)
@@ -301,7 +313,7 @@ namespace SupraInventoryRelayAgent
             lock (_d160HistoryGate) count = _d160History.Count;
             _d160HistoryStatus.Text =
                 "Ngày vận hành " + _d160HistoryDayKey + " · " + count.ToString("N0") +
-                " request · reset lúc 05:00 · UI cục bộ, không thêm Firestore usage.";
+                " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
         }
 
         private void AppendD160HistoryEvent(D160PickerHistoryRow row)
@@ -324,7 +336,11 @@ namespace SupraInventoryRelayAgent
                     { "input_text", row.InputText },
                     { "result", row.Result },
                     { "full_picklist", row.FullPickList },
-                    { "operation_ms", row.OperationMs }
+                    { "operation_ms", row.OperationMs },
+                    { "wrong_count", row.WrongCount },
+                    { "lock_level", row.LockLevel },
+                    { "lock_minutes", row.LockMinutes },
+                    { "locked_until_ms", row.LockedUntilMs }
                 };
                 File.AppendAllText(
                     D160HistoryPath(day),
@@ -361,7 +377,11 @@ namespace SupraInventoryRelayAgent
                         InputText = D160MapString(map, "input_text"),
                         Result = D160MapString(map, "result"),
                         FullPickList = D160MapString(map, "full_picklist"),
-                        OperationMs = D160MapLong(map, "operation_ms")
+                        OperationMs = D160MapLong(map, "operation_ms"),
+                        WrongCount = (int)D160MapLong(map, "wrong_count"),
+                        LockLevel = (int)D160MapLong(map, "lock_level"),
+                        LockMinutes = (int)D160MapLong(map, "lock_minutes"),
+                        LockedUntilMs = D160MapLong(map, "locked_until_ms")
                     };
                 }
             }
@@ -385,6 +405,155 @@ namespace SupraInventoryRelayAgent
                         File.Delete(path);
             }
             catch { }
+        }
+
+        private void ApplyD160HistorySyncSnapshot(string dayKey, string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw) || raw == "[]") return;
+            var currentDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+            if (!string.Equals(dayKey ?? "", currentDay, StringComparison.Ordinal)) return;
+
+            try
+            {
+                var array = _d160HistoryJson.DeserializeObject(raw) as System.Collections.IEnumerable;
+                if (array == null) return;
+                var changed = false;
+                lock (_d160HistoryGate)
+                {
+                    foreach (var item in array)
+                    {
+                        var map = item as Dictionary<string, object>;
+                        if (map == null) continue;
+                        var requestId = D160MapString(map, "r");
+                        if (string.IsNullOrWhiteSpace(requestId)) continue;
+
+                        var incoming = new D160PickerHistoryRow
+                        {
+                            RequestId = requestId,
+                            SentAtMs = D160MapLong(map, "t"),
+                            UserId = D160MapString(map, "u"),
+                            EmployeeCode = D160MapString(map, "e"),
+                            DisplayName = D160MapString(map, "n"),
+                            ContractorName = D160MapString(map, "c"),
+                            InputText = D160MapString(map, "i"),
+                            Result = D160MapString(map, "s"),
+                            FullPickList = D160MapString(map, "p"),
+                            OperationMs = D160MapLong(map, "m"),
+                            WrongCount = (int)D160MapLong(map, "w"),
+                            LockLevel = (int)D160MapLong(map, "l"),
+                            LockMinutes = (int)D160MapLong(map, "q"),
+                            LockedUntilMs = D160MapLong(map, "z")
+                        };
+
+                        D160PickerHistoryRow existing;
+                        if (_d160History.TryGetValue(requestId, out existing) && existing != null)
+                        {
+                            if (existing.OperationMs > incoming.OperationMs &&
+                                !string.Equals(existing.Result, "Đang xử lý", StringComparison.Ordinal))
+                                continue;
+                            if (D160HistoryRowsEquivalent(existing, incoming))
+                                continue;
+                        }
+
+                        _d160History[requestId] = incoming;
+                        changed = true;
+                    }
+                }
+
+                if (!changed) return;
+                Ui(() =>
+                {
+                    _d160HistoryGrid.Rows.Clear();
+                    List<D160PickerHistoryRow> rows;
+                    lock (_d160HistoryGate)
+                        rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
+                    foreach (var row in rows) RenderD160HistoryRow(row);
+                });
+            }
+            catch (Exception ex)
+            {
+                Log("D160 HISTORY fleet_merge=DEFER type=" + ex.GetType().Name);
+            }
+        }
+
+        private static bool D160HistoryRowsEquivalent(D160PickerHistoryRow a, D160PickerHistoryRow b)
+        {
+            if (a == null || b == null) return a == b;
+            return a.SentAtMs == b.SentAtMs &&
+                   string.Equals(a.UserId ?? "", b.UserId ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.EmployeeCode ?? "", b.EmployeeCode ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.DisplayName ?? "", b.DisplayName ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.ContractorName ?? "", b.ContractorName ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.InputText ?? "", b.InputText ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.Result ?? "", b.Result ?? "", StringComparison.Ordinal) &&
+                   string.Equals(a.FullPickList ?? "", b.FullPickList ?? "", StringComparison.Ordinal) &&
+                   a.OperationMs == b.OperationMs &&
+                   a.WrongCount == b.WrongCount &&
+                   a.LockLevel == b.LockLevel &&
+                   a.LockMinutes == b.LockMinutes &&
+                   a.LockedUntilMs == b.LockedUntilMs;
+        }
+
+        // D160_HISTORY_ZERO_EXTRA_PROVIDER_OP: this payload is carried only by the
+        // existing counter-driven agent_sync reconcile; it owns no listener/poll/write cadence.
+        internal string D160HistorySnapshotJson()
+        {
+            try
+            {
+                List<D160PickerHistoryRow> rows;
+                lock (_d160HistoryGate)
+                    rows = _d160History.Values.OrderBy(item => item.SentAtMs).ToList();
+
+                var compact = new List<object>();
+                foreach (var row in rows)
+                {
+                    compact.Add(new Dictionary<string, object>
+                    {
+                        { "r", row.RequestId ?? "" },
+                        { "t", row.SentAtMs },
+                        { "u", row.UserId ?? "" },
+                        { "e", row.EmployeeCode ?? "" },
+                        { "n", row.DisplayName ?? "" },
+                        { "c", row.ContractorName ?? "" },
+                        { "i", row.InputText ?? "" },
+                        { "s", row.Result ?? "" },
+                        { "p", row.FullPickList ?? "" },
+                        { "m", row.OperationMs },
+                        { "w", row.WrongCount },
+                        { "l", row.LockLevel },
+                        { "q", row.LockMinutes },
+                        { "z", row.LockedUntilMs }
+                    });
+                }
+
+                var raw = _d160HistoryJson.Serialize(compact);
+                while (System.Text.Encoding.UTF8.GetByteCount(raw) > 420000 && compact.Count > 1)
+                {
+                    compact.RemoveRange(0, Math.Min(50, compact.Count - 1));
+                    raw = _d160HistoryJson.Serialize(compact);
+                }
+                return System.Text.Encoding.UTF8.GetByteCount(raw) <= 420000 ? raw : "[]";
+            }
+            catch
+            {
+                return "[]";
+            }
+        }
+
+        private static string D160HistoryLockText(D160PickerHistoryRow item)
+        {
+            if (item == null || item.LockLevel <= 0) return "";
+            var prefix = "L" + item.LockLevel.ToString(CultureInfo.InvariantCulture);
+            if (item.LockedUntilMs > DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+            {
+                var until = DateTimeOffset.FromUnixTimeMilliseconds(item.LockedUntilMs)
+                    .ToLocalTime().ToString("HH:mm:ss");
+                return prefix + " · " + Math.Max(0, item.LockMinutes).ToString(CultureInfo.InvariantCulture) +
+                    "p · đến " + until;
+            }
+            return prefix + (item.LockMinutes > 0
+                ? " · " + item.LockMinutes.ToString(CultureInfo.InvariantCulture) + "p"
+                : "");
         }
 
         private static string D160HistoryResultText(string result)

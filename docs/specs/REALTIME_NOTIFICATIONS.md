@@ -814,3 +814,8 @@ Android beta-vc92 is unchanged. D158 changes only the Windows Agent.
 - No D158 change reduces the 10s PRIMARY lease, 15s takeover threshold, generation fence, confirmation guard, or D137/WMS safety behavior.
 - D158 v94 hotfix treats Firestore job/document RequestId as the canonical confirmation identity. Listener delivery is allowed to execute the existing pipeline while a due REST safety query is still in flight; REST cadence is unchanged. Repeated snapshots of the same request are coalesced before business/audit work, and a final in-process mutation fence permits at most one ConfirmExact call per RequestId.
 
+
+
+## D160 Picker-history fleet convergence
+
+D160 v96 does not create a history realtime channel. PRIMARY/NEXT_A/NEXT_B continue using the existing role-gated `agent_sync` listener. PRIMARY may attach a bounded current-business-day Picker-history JSON projection to the same `agent_sync` document only when the existing aggregate-counter delta already requires the normal five-minute reconcile mutation. History changes by themselves must not create a Firestore write. Secondary Agents consume that field from the listener they already hold. Deep-hibernate behavior is unchanged and no new listener, poll, query, collection, cron or provider resource is authorized.

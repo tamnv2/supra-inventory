@@ -410,6 +410,56 @@ namespace SupraInventoryRelayAgent
             return SanitizeBundle(content, cap);
         }
 
+        internal static int PruneUploadedThrough(DateTime untilLocalExclusive)
+        {
+            if (string.IsNullOrWhiteSpace(DiagnosticLogFile)) return 0;
+            var removed = 0;
+            lock (Gate)
+            {
+                try
+                {
+                    var paths = new List<string>();
+                    for (var i = MaxRolledFilesPerStream; i >= 1; i--)
+                    {
+                        var rolled = DiagnosticLogFile + "." + i;
+                        if (File.Exists(rolled)) paths.Add(rolled);
+                    }
+                    if (File.Exists(DiagnosticLogFile)) paths.Add(DiagnosticLogFile);
+
+                    var keep = new List<string>();
+                    foreach (var path in paths)
+                    {
+                        foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
+                        {
+                            DateTime at;
+                            if (line.Length >= 23 &&
+                                DateTime.TryParseExact(
+                                    line.Substring(0, 23),
+                                    "yyyy-MM-dd HH:mm:ss.fff",
+                                    System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.None,
+                                    out at) &&
+                                at < untilLocalExclusive)
+                            {
+                                removed++;
+                                continue;
+                            }
+                            keep.Add(line);
+                        }
+                    }
+
+                    foreach (var path in paths)
+                    {
+                        try { File.Delete(path); } catch { }
+                    }
+                    if (keep.Count > 0)
+                        File.WriteAllLines(DiagnosticLogFile, keep, Encoding.UTF8);
+                }
+                catch { }
+            }
+            return removed;
+        }
+
         private static void AppendSnapshotStream(
             StringBuilder builder,
             string title,
@@ -822,6 +872,7 @@ namespace SupraInventoryRelayAgent
                 try { EnsureFreshToken(); } catch { }
                 _agentLogBridge.TryFlushPendingCrash();
                 _agentLogBridge.TryQueueScheduledSnapshot();
+                Ui(() => _d160LogStatus.Text = _agentLogBridge.StatusSummary());
             });
 
             Shown += (s, e) =>
@@ -1560,6 +1611,7 @@ namespace SupraInventoryRelayAgent
                 " schedule_key=" + key +
                 " role=" + _leaderCoordinator.RoleName);
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+            Task.Run(() => _agentLogBridge.TryQueueBoundarySnapshot("OVERTIME_" + decision.ToString()));
             CheckAfterHoursSchedule(true);
         }
 
@@ -1597,6 +1649,7 @@ namespace SupraInventoryRelayAgent
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
             Log("AFTER_HOURS cancel_overtime=PASS at=" + now.ToString("HH:mm:ss") +
                 " schedule_key=" + key);
+            Task.Run(() => _agentLogBridge.TryQueueBoundarySnapshot("OVERTIME_CANCEL"));
             CheckAfterHoursSchedule(true);
         }
 
@@ -1648,6 +1701,7 @@ namespace SupraInventoryRelayAgent
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
             Log("AFTER_HOURS manual_adjust=PASS relay_until=" + until.ToString("HH:mm") +
                 " schedule_key=" + key);
+            Task.Run(() => _agentLogBridge.TryQueueBoundarySnapshot("OVERTIME_MANUAL_ADJUST"));
             CheckAfterHoursSchedule(true);
         }
 

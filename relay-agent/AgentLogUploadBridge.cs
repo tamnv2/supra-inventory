@@ -32,6 +32,8 @@ namespace SupraInventoryRelayAgent
         private long _lastSealWrittenBytes;
         private DateTime _nextUploadAttemptUtc = DateTime.MinValue;
         private int _uploadFailureStreak;
+        private DateTime _lastUploadSuccessLocal = DateTime.MinValue;
+        private DateTime _last2145BoundaryLocal = DateTime.MinValue;
         private DateTime _errorWindowStartedUtc = DateTime.MinValue;
         private int _errorWindowSent;
         private const int MaxImmediateErrorsPerWindow = 6;
@@ -72,10 +74,8 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var session = _sessionProvider();
-                if (!UsableSession(session)) return;
-
-                TryFlushPending(session);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
 
                 var now = DateTime.Now;
                 var checkpoint = ReadCheckpoint();
@@ -88,20 +88,31 @@ namespace SupraInventoryRelayAgent
                 var dueByTime = now - checkpoint >= TimeSpan.FromMilliseconds(DirtyCheckpointMs);
                 var writtenSinceSeal = Math.Max(0L, AgentDiagnostics.TotalBytesWritten - _lastSealWrittenBytes);
                 var dueBySize = writtenSinceSeal >= SizeCheckpointBytes;
-                if (!dueByTime && !dueBySize) return;
 
-                var path = SealFromCheckpoint("checkpoint", "");
+                var operationalDate = now.TimeOfDay < TimeSpan.FromHours(5)
+                    ? now.Date.AddDays(-1)
+                    : now.Date;
+                var boundary2145 = operationalDate.AddHours(21).AddMinutes(45);
+                var due2145 = now >= boundary2145 &&
+                    now < operationalDate.AddDays(1).AddHours(5) &&
+                    _last2145BoundaryLocal != operationalDate;
+
+                if (!dueByTime && !dueBySize && !due2145) return;
+
+                var reason = due2145 ? "BOUNDARY_2145" :
+                    (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H");
+                var path = SealFromCheckpoint("checkpoint", due2145 ? "SCHEDULE_BOUNDARY=21:45" : "");
+                if (due2145) _last2145BoundaryLocal = operationalDate;
                 _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
                 if (!string.IsNullOrWhiteSpace(path))
                 {
-                    TryFlushPending(session);
-                    _log("AGENT LOG seal=PASS type=checkpoint reason=" +
-                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
+                    if (UsableSession(session)) TryFlushPending(session);
+                    _log("AGENT LOG seal=PASS type=checkpoint reason=" + reason +
+                         " upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
                 }
                 else
                 {
-                    _log("AGENT LOG seal=SKIP_EMPTY type=checkpoint reason=" +
-                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
+                    _log("AGENT LOG seal=SKIP_EMPTY type=checkpoint reason=" + reason);
                 }
             }
             catch (Exception ex)
@@ -126,6 +137,41 @@ namespace SupraInventoryRelayAgent
             {
                 _log("AGENT LOG manual=LOCAL_PENDING type=" + ex.GetType().Name);
             }
+        }
+
+        internal void TryQueueBoundarySnapshot(string reason)
+        {
+            try
+            {
+                var marker = "BOUNDARY_EVENT=" + AgentDiagnostics.Sanitize(reason ?? "UNKNOWN");
+                var path = SealFromCheckpoint("checkpoint", marker);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                _log(string.IsNullOrWhiteSpace(path)
+                    ? "AGENT LOG boundary=SKIP_EMPTY reason=" + AgentDiagnostics.Sanitize(reason ?? "UNKNOWN")
+                    : "AGENT LOG boundary=SEALED reason=" + AgentDiagnostics.Sanitize(reason ?? "UNKNOWN"));
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG boundary=LOCAL_PENDING type=" + ex.GetType().Name);
+            }
+        }
+
+        internal string StatusSummary()
+        {
+            var pending = 0;
+            try
+            {
+                if (Directory.Exists(_pendingDir))
+                    pending = Directory.GetFiles(_pendingDir, "*.json").Length;
+            }
+            catch { }
+            var last = _lastUploadSuccessLocal == DateTime.MinValue
+                ? "chưa có trong phiên"
+                : _lastUploadSuccessLocal.ToString("HH:mm:ss dd/MM", CultureInfo.GetCultureInfo("vi-VN"));
+            return "File: agent-complete.log · gói chờ: " +
+                pending.ToString(CultureInfo.InvariantCulture) +
+                " · gửi Drive gần nhất: " + last;
         }
 
         internal void TryQueueCrashSnapshot(string crashType)
@@ -335,6 +381,20 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private long PendingBoundary(string path, string field)
+        {
+            try
+            {
+                var raw = File.ReadAllText(path, Encoding.UTF8);
+                var bundle = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                return LongValue(bundle, field);
+            }
+            catch
+            {
+                return 0L;
+            }
+        }
+
         private void TryFlushPending(AgentSession session)
         {
             if (!UsableSession(session)) return;
@@ -344,8 +404,17 @@ namespace SupraInventoryRelayAgent
             {
                 Directory.CreateDirectory(_pendingDir);
                 files = Directory.GetFiles(_pendingDir, "*.json")
-                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .Select(path => new
+                    {
+                        Path = path,
+                        FirstAtMs = PendingBoundary(path, "first_at_ms"),
+                        LastAtMs = PendingBoundary(path, "last_at_ms")
+                    })
+                    .OrderBy(item => item.FirstAtMs <= 0 ? 0L : item.FirstAtMs)
+                    .ThenBy(item => item.LastAtMs <= 0 ? long.MaxValue : item.LastAtMs)
+                    .ThenBy(item => item.Path, StringComparer.OrdinalIgnoreCase)
                     .Take(24)
+                    .Select(item => item.Path)
                     .ToArray();
             }
             catch { return; }
@@ -356,8 +425,17 @@ namespace SupraInventoryRelayAgent
                 {
                     var raw = File.ReadAllText(path, Encoding.UTF8);
                     var bundle = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                    if (bundle == null) continue;
-                    var uploaded = GatewayEnabled()
+                    var firstMs = LongValue(bundle, "first_at_ms");
+                    var lastMs = LongValue(bundle, "last_at_ms");
+                    if (bundle == null || firstMs <= 0 || lastMs <= 0 || lastMs < firstMs)
+                    {
+                        RegisterUploadFailure();
+                        _log("AGENT LOG upload=BLOCKED_INVALID_PENDING_METADATA retry_after=" +
+                             _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture));
+                        break;
+                    }
+                    var gateway = GatewayEnabled();
+                    var uploaded = gateway
                         ? UploadGateway(session, bundle)
                         : UploadLegacyFirestore(session, bundle);
                     if (!uploaded)
@@ -368,8 +446,28 @@ namespace SupraInventoryRelayAgent
                     _uploadFailureStreak = 0;
                     _nextUploadAttemptUtc = DateTime.MinValue;
                     File.Delete(path);
+                    if (gateway)
+                    {
+                        try
+                        {
+                            var uploadedThroughMs = LongValue(bundle, "last_at_ms");
+                            if (uploadedThroughMs > 0)
+                            {
+                                var cutoff = DateTimeOffset.FromUnixTimeMilliseconds(uploadedThroughMs).LocalDateTime;
+                                var removed = AgentDiagnostics.PruneUploadedThrough(cutoff);
+                                _lastUploadSuccessLocal = DateTime.Now;
+                                _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
+                                _log("AGENT LOG local_prune=PASS drive_confirmed=true removed_lines=" +
+                                     removed.ToString(CultureInfo.InvariantCulture));
+                            }
+                        }
+                        catch (Exception pruneEx)
+                        {
+                            _log("AGENT LOG local_prune=DEFER type=" + pruneEx.GetType().Name);
+                        }
+                    }
                     _log("AGENT LOG upload=PASS transport=" +
-                         (GatewayEnabled() ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
+                         (gateway ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
                          " bundle=" + Short(Value(bundle, "bundle_id")));
                 }
                 catch (Exception ex)

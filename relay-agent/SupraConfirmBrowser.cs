@@ -27,6 +27,9 @@ namespace SupraInventoryRelayAgent
         internal int ConfirmCount;
         internal int ConfirmVisibleCount;
         internal int TableCount;
+        internal int PicklistCodeCount;
+        internal bool DomReady;
+        internal bool DataHydrated;
         internal int FrameCount;
         internal bool PageLoaded;
         internal bool LoginMarkerDetected;
@@ -114,6 +117,7 @@ namespace SupraInventoryRelayAgent
         private DateTime _confirmArrivalObservedAtUtc = DateTime.MinValue;
         private string _confirmArrivalUrl = "";
         private bool _emptyDataRecoveryUsed;
+        private bool _readinessHydrationRecoveryUsed;
         private bool _disposed;
         private TimeSpan _resourceCpuTotal = TimeSpan.Zero;
         private DateTime _resourceSampleAtUtc = DateTime.MinValue;
@@ -339,6 +343,9 @@ namespace SupraInventoryRelayAgent
                     ConfirmCount = Int(map, "confirmCount"),
                     ConfirmVisibleCount = Int(map, "confirmVisibleCount"),
                     TableCount = Int(map, "tableCount"),
+                    PicklistCodeCount = Int(map, "picklistCodeCount"),
+                    DomReady = Bool(map, "domReady"),
+                    DataHydrated = Bool(map, "dataHydrated"),
                     FrameCount = Int(map, "frameCount"),
                     PageLoaded = Bool(map, "pageLoaded"),
                     LoginMarkerDetected = Bool(map, "loginMarker"),
@@ -884,6 +891,7 @@ namespace SupraInventoryRelayAgent
             _confirmArrivalObservedAtUtc = DateTime.MinValue;
             _confirmArrivalUrl = "";
             _emptyDataRecoveryUsed = false;
+            _readinessHydrationRecoveryUsed = false;
         }
 
         private void ResetConfirmArrivalObservationNoLock()
@@ -955,23 +963,35 @@ namespace SupraInventoryRelayAgent
                     return true;
                 }
 
-                if (string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase))
-                {
-                    _confirmReloadIssued = true;
-                    _confirmReloadIssuedAtUtc = now;
-                    _confirmReloadStableSinceUtc = DateTime.MinValue;
-                    _log("SUPRA_BROWSER confirm_reload=MANUAL_OR_EXISTING_RELOAD observed_after_settle=true");
-                }
-                else
-                {
-                    IssueConfirmReloadNowNoLock("final_confirm_settled");
-                    state.Ready = false;
-                    state.State = "CONFIRM_REFRESHING";
-                    return true;
-                }
+                // D160 field repair: navigationType=reload may describe a reload
+                // that happened before this Agent process attached to an already-open
+                // browser. Never treat that stale NavigationTiming value as current
+                // session proof. Issue one real Page.reload after the settle barrier.
+                IssueConfirmReloadNowNoLock("final_confirm_settled_current_agent");
+                state.Ready = false;
+                state.State = "CONFIRM_REFRESHING";
+                return true;
             }
 
             var realReload = string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase);
+            if (realReload && state.DomReady && !state.DataHydrated)
+            {
+                _confirmReloadStableSinceUtc = DateTime.MinValue;
+                state.Ready = false;
+                if (!_readinessHydrationRecoveryUsed &&
+                    _confirmReloadIssuedAtUtc != DateTime.MinValue &&
+                    now - _confirmReloadIssuedAtUtc >= TimeSpan.FromMilliseconds(1200))
+                {
+                    _readinessHydrationRecoveryUsed = true;
+                    IssueConfirmReloadNowNoLock("confirm_data_not_hydrated");
+                    state.State = "CONFIRM_DATA_REFRESHING";
+                    _log("SUPRA_BROWSER confirm_data_hydration=RECOVERY_F5 picklist_codes=0 bounded_once=true");
+                    return true;
+                }
+                state.State = "CONFIRM_DATA_EMPTY";
+                return true;
+            }
+
             if (!realReload || !state.Ready)
             {
                 _confirmReloadStableSinceUtc = DateTime.MinValue;
@@ -1000,7 +1020,8 @@ namespace SupraInventoryRelayAgent
             _confirmReloadVerified = true;
             _confirmReloadIssuedAtUtc = DateTime.MinValue;
             _confirmReloadStableSinceUtc = DateTime.MinValue;
-            _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload settle_before_ms=3000 stable_after_ms=1200 data_dom_ready=true");
+            _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload settle_before_ms=3000 stable_after_ms=1200 data_hydrated=true picklist_codes=" +
+                 state.PicklistCodeCount);
             return false;
         }
 
@@ -1962,6 +1983,8 @@ namespace SupraInventoryRelayAgent
               const confirmVisible = confirm.filter(visible);
               const tableSurfaces = docs.flatMap(d => [...d.querySelectorAll('table,[role=grid],[role=table]')]).filter(visible);
               const rowSurfaces = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
+              const picklistCodes = [...new Set(rowSurfaces.flatMap(row =>
+                ((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))))];
               const loginMarker = docs.flatMap(d => [...d.querySelectorAll('body *')]).some(e =>
                 visible(e) && fold(txt(e)) === fold('" + LoginMarkerText + @"'));
               const pageLoaded = document.readyState === 'complete';
@@ -1971,13 +1994,19 @@ namespace SupraInventoryRelayAgent
                 ? String(navigationEntries[navigationEntries.length - 1].type || '') : '';
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
               const tableOk = tableSurfaces.length > 0 || rowSurfaces.length > 0;
-              const ready = pathOk && tableOk && search.length === 1 && confirm.length === 1;
+              const domReady = pathOk && tableOk && search.length === 1 && confirm.length === 1;
+              const dataHydrated = domReady && picklistCodes.length > 0;
+              const ready = domReady && dataHydrated;
               let state = 'WRONG_PAGE';
               if (loginMarker) state = 'LOGIN_REQUIRED';
-              else if (pathOk && !ready) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
+              else if (pathOk && domReady && !dataHydrated) state = 'CONFIRM_DATA_EMPTY';
+              else if (pathOk && !domReady) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
               if (ready) state = 'READY';
               return JSON.stringify({
                 ready,
+                domReady,
+                dataHydrated,
+                picklistCodeCount: picklistCodes.length,
                 state,
                 pageLoaded,
                 loginMarker,
@@ -2020,8 +2049,8 @@ namespace SupraInventoryRelayAgent
                 const codes = [...new Set(text.match(/\bPL[0-9]+\b/g) || [])];
                 for (const code of codes) if (!allCodes.includes(code)) allCodes.push(code);
                 if (!codes.length) continue;
-                const native = [...row.querySelectorAll('input[type=checkbox]')];
-                const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')];
+                const native = [...row.querySelectorAll('input[type=checkbox]')].filter(visible);
+                const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(visible);
                 const boxes = native.length ? native : roles;
                 const boxReady = boxes.length === 1 &&
                   !boxes[0].disabled &&
@@ -2127,8 +2156,9 @@ namespace SupraInventoryRelayAgent
               if (rows.length === 0) return JSON.stringify({result:'ROW_NOT_FOUND'});
               if (rows.length !== 1) return JSON.stringify({result:'ROW_AMBIGUOUS'});
               let row = rows[0];
-              const native = [...row.querySelectorAll('input[type=checkbox]')].filter(e => !e.disabled);
-              const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(e => e.getAttribute('aria-disabled') !== 'true');
+              const native = [...row.querySelectorAll('input[type=checkbox]')].filter(e => visible(e) && !e.disabled);
+              const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(e =>
+                visible(e) && e.getAttribute('aria-disabled') !== 'true');
               const boxes = native.length ? native : roles;
               if (boxes.length !== 1) return JSON.stringify({result:'CHECKBOX_NOT_UNIQUE', count:boxes.length});
               const box = boxes[0];
