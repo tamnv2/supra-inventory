@@ -2191,3 +2191,33 @@ When the Owner later authorizes implementation, D161 acceptance must prove at mi
 5. Reporter correction: Web and Android agree on server-authoritative eligibility; Android displays **Sửa thành Đã có hàng · MM:SS**, uses one zero-network visible-screen ticker, removes the button at expiry, pauses when not visible, rechecks on server at POST, and logs bounded correction diagnostics.
 6. Authenticated Web footer contains only the product credit while `/about`, `/privacy`, and `/terms` remain publicly routable for OAuth/legal purposes.
 7. No D161 countdown or HR change path adds Firestore polling/listeners, no secret is committed/logged, Agent behavior is unchanged unless separately added under D161, and Stable remains untouched.
+
+## D161 log, Agent UI and overtime acceptance addendum
+
+Status: Owner-approved acceptance requirements; implementation deferred.
+
+Later D161 implementation is not acceptable unless tests prove all of the following:
+
+### Logs
+- Android confirmed logout immediately shows progress, ignores duplicate logout triggers, and completes without duplicate session-end uploads for one logout transaction.
+- A session-end Android bundle is typed/classified as logout/session rather than scheduled.
+- Web/Android/Agent archives for a successful upload land under the correct trusted `YYYY-MM-DD` Drive child by archive time.
+- Simulated Drive failure leaves Android/Agent pending evidence intact; only positive Drive confirmation permits local prune.
+- Global request rejects non-`admin`/`tamnv2`, dedupes repeated same request-id, ignores expired/logged-out clients, does not re-upload Drive-synced history, and demonstrates bounded responder jitter without per-device Firestore ACK writes.
+- Agent repeated boundary callbacks for the same event produce one logical sealed boundary, not multiple near-identical checkpoints.
+
+### Agent History/Usage
+- Loading a full operating-day History does not visibly add rows one at a time and remains responsive while data is prepared.
+- One fleet-history row change does not require a visible full-grid clear/rebuild.
+- History tab entry order is full `SentAtMs` descending. Manual alternate sort works during the current tab visit; leave/re-enter resets to newest first.
+- Usage applies one completed snapshot without progressive label/grid wave. Hidden-tab refresh does not repaint metric-by-metric.
+- UI optimization adds zero Firestore document operations/listeners/polling and does not delay protected PickList relay processing.
+
+### Overtime
+- At 22:14:59 with no override, normal relay remains active; at 22:15:00 it becomes SLEEP and no pre-end Continue/Stop prompt exists.
+- Sleep panel is red/white and offers **Gia hạn +1 giờ**. No action leaves relay asleep with no periodic write.
+- Extension from sleep is now+1h capped at 05:00; extension while active is current `override_until`+1h capped at 05:00.
+- A deadline 01:30 produces exactly one T-15 warning at/after 01:15 for that boundary. Yes/extend changes the authoritative end; No keeps 01:30 as end and suppresses repeat prompt; no response also sleeps at 01:30.
+- Multiple Agents racing extension converge through shared schedule authority and do not double-add hours.
+- Android/Web/Worker enforcement agrees with Agent SLEEP/ACTIVE state at the changed 22:15 normal boundary.
+- 05:00 cutoff and inherited 05:00–05:45 early-start behavior remain correct.
