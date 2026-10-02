@@ -450,10 +450,10 @@ namespace SupraInventoryRelayAgent
                     {
                         try
                         {
-                            var lastMs = LongValue(bundle, "last_at_ms");
-                            if (lastMs > 0)
+                            var uploadedThroughMs = LongValue(bundle, "last_at_ms");
+                            if (uploadedThroughMs > 0)
                             {
-                                var cutoff = DateTimeOffset.FromUnixTimeMilliseconds(lastMs).LocalDateTime;
+                                var cutoff = DateTimeOffset.FromUnixTimeMilliseconds(uploadedThroughMs).LocalDateTime;
                                 var removed = AgentDiagnostics.PruneUploadedThrough(cutoff);
                                 _lastUploadSuccessLocal = DateTime.Now;
                                 _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
