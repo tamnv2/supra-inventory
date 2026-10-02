@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D159_ACCEPTED_BASE__D160_OWNER_FIELD_NOT_PASS__REPAIR_V96_IN_PROGRESS__ANDROID_VC92",
+    "beta": "D159_ACCEPTED_BASE__D160_TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 16,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -32,7 +32,7 @@
     "repo_authority": "COMPLETE_CONTEXT_SCOPE_DECISIONS_FULL_SPECS_LIVE_STATE_RESOURCES_OPERATING_PROTOCOL_SECURITY_AND_CI_GUARDS",
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
-    "picklist_confirmation_poc": "D160_OWNER_FIELD_NOT_PASS__REPAIR_V96_IN_PROGRESS__ANDROID_VC92_UNCHANGED",
+    "picklist_confirmation_poc": "D160_TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92_UNCHANGED",
     "governance": "D147_SERIAL_OWNER_PASS_GATE__D159_ACCEPTED_BASE__D160_ACTIVE_OWNER_APPROVED_NEXT_CHANGE_BLOCKED",
     "owner_acceptance": "D159_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED"
@@ -187,7 +187,8 @@
     "D070 exact field timing/FCM behavior requires real signed-in Web/PDA operation after technical deployment.",
     "Owner acceptance of FIRST_REPORT and PER_PICKER behavior remains field-dependent after runtime PASS.",
     "Stable promotion remains OWNER-GATED.",
-    "OA061 D135 physical field acceptance on relay-agent-v76 + beta-vc82: processing-Agent realtime overlay counters, one-click DOM settle latency, call/resolve confirmations and local 60s anti-spam lock, username-only UI, Android branding, and local-first result dismissal under network/session loss."
+    "OA061 D135 physical field acceptance on relay-agent-v76 + beta-vc82: processing-Agent realtime overlay counters, one-click DOM settle latency, call/resolve confirmations and local 60s anti-spam lock, username-only UI, Android branding, and local-first result dismissal under network/session loss.",
+    "OA090 D160 relay-agent-v97 Owner field acceptance: same-day restart with non-empty History, overlay + Bảng nổi Picklist Settings survival, bounded retry, plus prior v96 WMS/Logs/Usage/History-sync regression checks."
   ],
   "open_decisions_do_not_invent": [
     "Exact SKU-reset confirmation semantics originally described as random '6 chữ'.",
@@ -195,7 +196,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D154 Owner PASS is recorded as the accepted Beta base. Serial Owner-PASS gate is open for the next separately reviewed change. Current Beta releases are relay-agent-v88 and beta-vc90; Stable remains OWNER-GATED.",
+  "next_action": "Owner field-test relay-agent-v97 under OA090, focusing on same-day restart with non-empty Picker History, overlay/Settings survival and the prior v96 D160 acceptance checks. D159 remains accepted base; Android beta-vc92 unchanged; Stable OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -841,7 +842,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D154_OWNER_FIELD_ACCEPTED_PASS__OA082_CLOSED",
+  "active_workstream": "D160_TECHNICAL_V97_PASS__OA090_OWNER_FIELD_ACCEPTANCE_PENDING",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2465,7 +2466,7 @@
     "accepted_base_change_id": "D159",
     "accepted_base_evidence": "OWNER_EXPLICIT_D159_PASS__V3_MULTI_SERVICE_USAGE__GW_V4__2026_10_02",
     "current_change_id": "D160",
-    "current_change_status": "OWNER_FIELD_NOT_PASS__D160_REPAIR_V97_IMPLEMENTATION_ACTIVE",
+    "current_change_status": "TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2481,7 +2482,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D160_V96_FIELD_LIFECYCLE_NOT_PASS__BETA_AGENT_V97_REPAIR_TARGET__ANDROID_VC92_UNCHANGED__D159_REMAINS_ACCEPTED_BASE_UNTIL_OWNER_D160_PASS",
+    "runtime_impact": "D160_V97_TECHNICAL_RELEASED__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92_UNCHANGED__D159_REMAINS_ACCEPTED_BASE_UNTIL_OWNER_D160_PASS",
     "resource_change": "NONE_FOR_REPAIR__REUSE_EXISTING_WMS_BROWSER_FIRESTORE_AGENT_SYNC_AND_AGENT_OPERATIONS_GATEWAY__STABLE_UNTOUCHED",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -3977,7 +3978,7 @@
     "repair_reason": "RESOLVED__FULL_DRIVE_SCOPE_PLUS_BETA_SCRIPT_API_ENABLEMENT_AND_TRASH_AWARE_CLEANUP"
   },
   "d160": {
-    "status": "V97_REPAIR_IMPLEMENTATION_ACTIVE__OWNER_FIELD_ACCEPTANCE_PENDING",
+    "status": "TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "date": "2026-10-02",
     "baseline_change": "D159",
     "baseline_main": "320e7e446f122a70ee55d2a191eebff218c502c9",
@@ -4048,7 +4049,7 @@
     "new_firestore_collections": "NONE",
     "new_secrets": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "OA090_REPAIR_V97_IMPLEMENTATION_ACTIVE",
+    "field_gate": "OA090_READY_FOR_OWNER_FIELD_ACCEPTANCE_V97",
     "implementation_pr": 367,
     "main_commit": "6c7106d9c6a9d41dfd675c9488f4e107e9eb66bc",
     "pr_gates": "PASS__11_OF_11__AGENT_BUILD_STARTUP_SMOKE_PASS__ANDROID_VC92_REGRESSION_PASS__AUTHORITY_STATE_UI_PASS",
@@ -4069,17 +4070,18 @@
       "d159_retirement": "PASS__DELETED_AND_VERIFIED_ABSENT"
     },
     "release_evidence": {
-      "workflow_run": 36964147000,
+      "workflow_run": 36969035725,
       "workflow_attempt": 1,
-      "main_commit": "ffb75df558d5217cb0ec871928471916c75a6769",
-      "repair_pr": 379,
-      "release": "relay-agent-v96",
-      "release_id": 401538424,
-      "exe_asset_id": 604789328,
-      "exe_size_bytes": 7212544,
-      "exe_sha256": "6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7",
-      "published_at": "2026-10-02T04:22:30Z",
-      "android": "beta-vc92__UNCHANGED"
+      "main_commit": "4c3f0a4dffc94f66237d0958032fd27ac52fed29",
+      "repair_pr": 381,
+      "release": "relay-agent-v97",
+      "release_id": 401562436,
+      "exe_asset_id": 604881289,
+      "exe_size_bytes": 7216128,
+      "exe_sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
+      "published_at": "2026-10-02T05:29:14Z",
+      "android": "beta-vc92__UNCHANGED",
+      "stable": "OWNER_GATED_UNTOUCHED"
     },
     "field_failure_v95": {
       "result": "NOT_PASS",
@@ -4108,7 +4110,7 @@
       "STARTUP_SMOKE_PRELOADS_NONEMPTY_SAME_DAY_HISTORY_AND_REQUIRES_OVERLAY_HISTORY_READY"
     ],
     "repair_review_guard": "PASS__PENDING_LOG_BUNDLES_ORDERED_BY_FIRST_AT_MS_THEN_LAST_AT_MS__FAILED_OLDER_BUNDLE_BLOCKS_LATER_UPLOAD_AND_PRUNE",
-    "repair_release_evidence": "PASS__RELAY_AGENT_V96_MAIN_RUN_36964147000__RELEASE_401538424__SHA256_6A76E825E92F46632043F6F83721CE43228614BABB951E6634261623DB2573C7",
+    "repair_release_evidence": "PASS__RELAY_AGENT_V97_MAIN_RUN_36969035725__RELEASE_401562436__SHA256_B8F75D0F100CBB97493D140F39FD708DF7002DC1A073EFF6A4B7C346D12F4530",
     "repair_branch": "fix/d160-field-repair",
     "repair_pr": 379,
     "repair_merge_main": "ffb75df558d5217cb0ec871928471916c75a6769",
@@ -4122,7 +4124,7 @@
       "result": "OWNER_FIELD_NOT_PASS__REPAIR_REQUIRED"
     },
     "lifecycle_repair_branch": "fix/d160-overlay-history-lifecycle",
-    "lifecycle_repair_status": "SOURCE_IMPLEMENTATION_IN_PROGRESS__OWNER_APPROVED",
+    "lifecycle_repair_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "field_failure_v96": {
       "result": "REPAIR_REQUIRED",
       "date": "2026-10-02",
@@ -4135,6 +4137,17 @@
       ],
       "root_cause": "D128_COUNTER_REFRESH_CALLED_D160_BUSINESS_DAY_RESET_BEFORE_HISTORY_UI_COLUMNS_EXIST__NONEMPTY_SAME_DAY_HISTORY_TRIGGERED_ROWS_INSERT_ON_ZERO_COLUMN_GRID",
       "owner_approved_repair": true
+    },
+    "lifecycle_repair_pr": 381,
+    "lifecycle_repair_merge_main": "4c3f0a4dffc94f66237d0958032fd27ac52fed29",
+    "lifecycle_repair_pr_gates": "PASS__9_OF_9__AGENT_STARTUP_SMOKE_WITH_NONEMPTY_HISTORY__ANDROID_VC92_GUARD__AUTHORITY_STATE_UI_PASS",
+    "lifecycle_previous_release_v96": {
+      "release": "relay-agent-v96",
+      "release_id": 401538424,
+      "exe_asset_id": 604789328,
+      "exe_size_bytes": 7212544,
+      "exe_sha256": "6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7",
+      "field_result": "REPAIR_REQUIRED__OVERLAY_HISTORY_LIFECYCLE"
     }
   }
 }
