@@ -2111,7 +2111,7 @@
     "pass_run": 36917268394
   },
   "d160": {
-    "status": "OWNER_FIELD_REPAIR_V96_IN_PROGRESS",
+    "status": "TECHNICAL_V96_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "accepted_base": "D159",
     "target_agent": "relay-agent-v96",
     "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
@@ -2125,6 +2125,13 @@
     "new_resources": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
     "provider_cutover": "RUN_36949347354__CONTROL_PLANE_PASS__PUBLIC_IDENTITY_PASS__FIREBASE_AUTH_PASS__MONITORING_READ_PASS__D159_RETIREMENT_PASS",
-    "repair_branch": "fix/d160-field-repair"
+    "repair_branch": "fix/d160-field-repair",
+    "repair_pr": 379,
+    "repair_main_commit": "ffb75df558d5217cb0ec871928471916c75a6769",
+    "agent_release": "relay-agent-v96",
+    "agent_release_id": 401538424,
+    "agent_exe_asset_id": 604789328,
+    "agent_exe_sha256": "6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7",
+    "agent_release_run": 36964147000
   }
 }
