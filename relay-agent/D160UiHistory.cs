@@ -113,7 +113,7 @@ namespace SupraInventoryRelayAgent
 
             _d160HistoryStatus.Dock = DockStyle.Top;
             _d160HistoryStatus.Height = 42;
-            _d160HistoryStatus.Text = "Lịch sử ca 05:00–04:59 · đồng bộ cùng agent_sync hiện hữu, không thêm listener/poll/read/write riêng.";
+            _d160HistoryStatus.Text = "Lịch sử ca 05:00–04:59 · tự đồng bộ giữa các Agent đang hoạt động.";
             _d160HistoryStatus.ForeColor = Color.FromArgb(71, 85, 105);
             root.Controls.Add(_d160HistoryStatus);
 
@@ -266,7 +266,7 @@ namespace SupraInventoryRelayAgent
                 foreach (var row in rows) RenderD160HistoryRow(row);
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
-                    " request · reset lúc 05:00 · đồng bộ fleet, không thêm provider operation.";
+                    " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
             });
             CleanupD160OldHistoryFiles(dayKey);
         }
@@ -313,7 +313,7 @@ namespace SupraInventoryRelayAgent
             lock (_d160HistoryGate) count = _d160History.Count;
             _d160HistoryStatus.Text =
                 "Ngày vận hành " + _d160HistoryDayKey + " · " + count.ToString("N0") +
-                " request · reset lúc 05:00 · đồng bộ fleet, không thêm provider operation.";
+                " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
         }
 
         private void AppendD160HistoryEvent(D160PickerHistoryRow row)
@@ -494,6 +494,8 @@ namespace SupraInventoryRelayAgent
                    a.LockedUntilMs == b.LockedUntilMs;
         }
 
+        // D160_HISTORY_ZERO_EXTRA_PROVIDER_OP: this payload is carried only by the
+        // existing counter-driven agent_sync reconcile; it owns no listener/poll/write cadence.
         internal string D160HistorySnapshotJson()
         {
             try
