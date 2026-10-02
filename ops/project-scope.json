@@ -281,7 +281,7 @@
       "id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo",
       "name": "Inventory/Beta/Logs",
       "exposure": "operational_metadata_existing_public",
-      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles. D146: Web/Android use Worker -> InventoryCore -> OAuth Drive archive with bounded retry; Agent sends log parts first-hop directly to Google Firestore, then the Beta Google Function obtains a short-lived resumable Drive upload session from the trusted Worker and uploads the payload Google Function -> Google Drive. No Google Drive/OAuth secret is stored on the laptop."
+      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles. D146/D160 existing parent authority remains. D161 Owner-approved future target (implementation still deferred): trusted archive services may create/cache daily child folders named YYYY-MM-DD under this exact scoped parent, using Asia/Ho_Chi_Minh Drive-archive date; clients never list/create folders directly. Daily children inherit Beta-only scope and must not be created until explicit D161 implementation authorization."
     },
     {
       "key": "archive-sheet-beta",
