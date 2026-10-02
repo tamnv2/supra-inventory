@@ -4486,20 +4486,21 @@
     },
     {
       "id": "OA090",
-      "status": "ACTION_REQUIRED__FIELD_READY",
-      "title": "Field-accept D160 Agent v95 bulk confirmation, Usage, unified Logs and Picker history",
+      "status": "BLOCKED_PENDING_TECHNICAL_RELEASE__D160_V96_REPAIR",
+      "title": "Field-accept D160 Agent v96 repaired confirmation, Usage, Logs and fleet Picker history",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / Google Apps Script",
-      "reason_owner_only": "Automated gates can prove build, exact batch/guard contracts, provider migration and release integrity; final acceptance needs the real company WMS UI, existing beta-vc92 PDA and account-specific Agent presentation.",
+      "reason_owner_only": "Owner field test of v95 is NOT PASS. The same D160 repair is Owner-approved and is being implemented as Agent v96. Final acceptance still requires real WMS/PDA/Agent field validation after technical release.",
       "prerequisites": {
         "accepted_base": "D159_OWNER_FIELD_ACCEPTED_PASS",
         "d160_owner_approval": "PASS__2026_10_02",
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
-        "target_agent": "relay-agent-v95",
+        "target_agent": "relay-agent-v96",
         "stable": "OWNER_GATED_UNTOUCHED"
       },
       "shortest_test_path": [
-        "Update one Office Agent through the normal channel to relay-agent-v95; do not update or rebuild Android beta-vc92.",
+        "After AI reports D160 v96 technical/release PASS, update one Office Agent to relay-agent-v96; until then no Owner action is required.",
+        "Update one Office Agent through the normal channel to relay-agent-v96; do not update or rebuild Android beta-vc92.",
         "Confirm one normal PickList and verify WMS success is accepted from the new post-click success surface even though the WMS page reloads and the PickList row may remain visible.",
         "Send a burst/micro-batch up to 15 valid PickLists when practical; verify exact target checkboxes only, one bulk confirmation wave, no duplicate mutation and PDA results stay within the 20-second hard target with normal cases around 5–10 seconds.",
         "Exercise a mixed batch containing valid READY, not-found and checkbox-not-ready items; verify READY/other terminal results ACK before checkbox recovery and one bad subset does not block or redefine the others.",
@@ -4509,7 +4510,12 @@
         "In Cài đặt, keep Kiểm tra kết nối and Bảng nổi PickList behavior unchanged; press Gửi Logs and verify one complete sanitized Agent log bundle reaches Inventory/Beta/Logs.",
         "Send Picker requests and verify Lịch sử shows time, MNV/user, name, contractor, sent suffix, result, full PickList when resolved and processing time without new provider polling/listeners.",
         "After the next closed-day Excel export succeeds, verify the file contains contractor/full PickList fields and only terminal ACK jobs from the archived day are purged; unresolved work must remain.",
-        "Verify the consolidated Apps Script is named SUPRA Inventory Beta - Agent Operations Gateway under Inventory, the existing Agent gateway URL works, and the separate D159 gateway no longer exists."
+        "Verify the consolidated Apps Script is named SUPRA Inventory Beta - Agent Operations Gateway under Inventory, the existing Agent gateway URL works, and the separate D159 gateway no longer exists.",
+        "Verify a correct unique PickList with a visible usable row checkbox is not rejected because of hidden/header checkbox controls; a genuinely selected different PickList must still fail closed.",
+        "After Agent/browser startup or update, verify WMS is not shown available while the Confirm page is only an empty table shell; the Agent must require hydrated PickList data after real F5 and one bounded recovery F5.",
+        "Verify Logs card is visible below Bảng nổi PickList. Confirm 21:45 safety upload, overtime CONTINUE/STOP/CANCEL delta upload, and local uploaded lines are removed only after Drive confirms success.",
+        "Verify Usage auto updates on wall-clock 00/15/30/45 rather than 15 minutes from Agent startup.",
+        "Verify Picker history converges across Agent fleet through existing agent_sync and shows counted-wrong and lock count/active-until without a new provider cadence."
       ],
       "pass_criteria": [
         "Android beta-vc92 contract, package and runtime remain unchanged.",
@@ -4522,11 +4528,30 @@
         "Unified local/Drive Logs contain both operational and technical evidence without realtime list rendering in the UI.",
         "Closed-day export upload succeeds before terminal exported jobs are deleted; cleanup reuses the export query and introduces no extra read query.",
         "The existing Agent Apps Script gateway is consolidated/renamed/moved successfully and the redundant D159 script is retired.",
-        "D158/D157 HA, PRIMARY generation fence, WMS managed-browser restrictions and Stable owner gate remain intact."
+        "D158/D157 HA, PRIMARY generation fence, WMS managed-browser restrictions and Stable owner gate remain intact.",
+        "Hidden/template/header checkbox controls do not create false checkbox-not-ready/FOREIGN_SELECTION; real foreign PickList selection remains blocked.",
+        "WMS readiness requires hydrated PickList data after real reload; blank shell never reports available.",
+        "Logs safety/upload/prune behavior matches the D160 v96 lifecycle and does not duplicate one 21:45 bundle per minute.",
+        "Usage automatic refresh aligns to :00/:15/:30/:45.",
+        "Fleet history uses existing agent_sync only; history-only changes cannot trigger a provider write and wrong/lock totals are shown."
       ],
-      "remaining_owner_action": "Field-test relay-agent-v95 with beta-vc92, then explicitly report D160 PASS or NOT PASS.",
+      "remaining_owner_action": "WAIT_FOR_D160_V96_TECHNICAL_RELEASE__THEN_FIELD_TEST_AND_REPORT_PASS_OR_NOT_PASS",
       "closed": false,
-      "technical_evidence": {
+      "v95_field_result": {
+        "date": "2026-10-02",
+        "result": "NOT_PASS",
+        "findings": [
+          "CORRECT_PICKLIST_AND_USABLE_CHECKBOX_CAN_BE_REPORTED_NOT_READY",
+          "SETTINGS_LOGS_CARD_NOT_VISIBLE",
+          "MISSING_2145_AND_OVERTIME_LOG_SAFETY_SEND",
+          "PICKER_HISTORY_NOT_FLEET_SYNCED",
+          "WMS_CAN_REPORT_AVAILABLE_BEFORE_DATA_HYDRATES_AFTER_UPDATE",
+          "DELETE_UPLOADED_LOCAL_LOG_AFTER_DRIVE_CONFIRM_REQUIRED",
+          "USAGE_REFRESH_MUST_ALIGN_00_15_30_45",
+          "HISTORY_MUST_SHOW_WRONG_AND_LOCK_COUNTS_WITHOUT_EXTRA_FREE_USAGE"
+        ]
+      },
+      "technical_evidence_v95": {
         "provider_run": 36949347354,
         "provider_attempt": 2,
         "agent_run": 36942335324,
