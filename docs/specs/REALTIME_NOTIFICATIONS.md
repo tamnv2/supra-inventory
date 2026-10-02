@@ -842,3 +842,14 @@ Status: Owner-approved requirement; implementation deferred.
 - Web/Android delivery must reuse existing realtime/FCM infrastructure or one bounded server fanout; do not add a client Firestore polling loop.
 - If implementation requires an additional exact Firebase server trigger/resource, reconcile project scope/resource registry before provider mutation.
 - Android responders jitter upload start across a bounded 0–30 second window for large fleets. There is no per-device Firestore acknowledgement write.
+
+## D161 bulk session-revoke signaling
+
+Status: Owner-approved target; implementation deferred.
+
+- Bulk **Kích toàn bộ user** must not create an Agent-side N-user provider request storm.
+- Worker/InventoryCore Android session-generation invalidation is the authority.
+- Existing Firebase/FCM mechanisms may carry one bounded revoke/session-recheck signal to affected PDA devices so they return to login quickly.
+- Missing/delayed FCM cannot preserve access: the next authenticated API/realtime authority check must reject the revoked generation.
+- Do not add periodic client polling or a new always-on listener for bulk kick.
+- Any future exact fanout resource beyond existing scoped Firebase/notification resources must be reconciled in project scope/resource registry before provider mutation.
