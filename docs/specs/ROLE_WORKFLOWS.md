@@ -919,3 +919,9 @@ Status: Owner-approved requirement; implementation deferred.
 - A Yes/No confirmation precedes any mutation. Backend/server identity validation is mandatory.
 - Yes issues one request-id/TTL control signal through a Google/Firebase-capable path suitable for Office Agent connectivity. Active authenticated Web/Android/Agent sessions respond once; logged-out sessions ignore it.
 - Responders send unsynced local evidence plus one current snapshot, use dedupe and bounded jitter, and never re-upload already Drive-synced history merely because of the global request.
+
+### D161 business shift semantics
+- Human/business shift: **06:00–22:00**.
+- Replay technical guard: **05:45–22:15**.
+- The Replay guard provides operational margin and is not the shift definition.
+- Overtime control begins when Replay enters SLEEP at 22:15, while outward business copy still describes the normal work shift as ending at 22:00.
