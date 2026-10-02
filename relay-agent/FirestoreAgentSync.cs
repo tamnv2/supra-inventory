@@ -91,6 +91,21 @@ namespace SupraInventoryRelayAgent
             lock (_cacheGate) return CloneSnapshot(_cachedSnapshot);
         }
 
+        internal void MergeLocalHistory(string dayKey, IEnumerable<AgentSyncHistoryRow> history)
+        {
+            lock (_cacheGate)
+            {
+                var current = CloneSnapshot(_cachedSnapshot);
+                if (!string.Equals(current.HistoryDayKey ?? "", dayKey ?? "", StringComparison.Ordinal))
+                {
+                    current.HistoryDayKey = dayKey ?? "";
+                    current.History = new List<AgentSyncHistoryRow>();
+                }
+                current.History = MergeHistoryRows(current.History, history);
+                _cachedSnapshot = current;
+            }
+        }
+
         internal AgentSyncSnapshot Load(AgentSession session)
         {
             EnsureSession(session);
@@ -185,7 +200,9 @@ namespace SupraInventoryRelayAgent
             IEnumerable<AgentPresenceView> fleet,
             long received,
             long confirmed,
-            long error)
+            long error,
+            string historyDayKey,
+            IEnumerable<AgentSyncHistoryRow> history)
         {
             return Mutate(session, snapshot =>
             {
@@ -253,6 +270,13 @@ namespace SupraInventoryRelayAgent
                 snapshot.ReceivedTotal = Math.Max(0L, received);
                 snapshot.ConfirmedTotal = Math.Max(0L, confirmed);
                 snapshot.ErrorTotal = Math.Max(0L, error);
+                var activeHistoryDay = historyDayKey ?? "";
+                if (!string.Equals(snapshot.HistoryDayKey ?? "", activeHistoryDay, StringComparison.Ordinal))
+                {
+                    snapshot.HistoryDayKey = activeHistoryDay;
+                    snapshot.History = new List<AgentSyncHistoryRow>();
+                }
+                snapshot.History = MergeHistoryRows(snapshot.History, history);
             }, "AGENT_SYNC_RECONCILE");
         }
 
