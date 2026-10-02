@@ -98,11 +98,11 @@ namespace SupraInventoryRelayAgent
                     _last2145BoundaryLocal != operationalDate;
 
                 if (!dueByTime && !dueBySize && !due2145) return;
-                if (due2145) _last2145BoundaryLocal = operationalDate;
 
                 var reason = due2145 ? "BOUNDARY_2145" :
                     (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H");
                 var path = SealFromCheckpoint("checkpoint", due2145 ? "SCHEDULE_BOUNDARY=21:45" : "");
+                if (due2145) _last2145BoundaryLocal = operationalDate;
                 _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
                 if (!string.IsNullOrWhiteSpace(path))
                 {
