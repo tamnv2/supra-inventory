@@ -3977,7 +3977,7 @@
     "repair_reason": "RESOLVED__FULL_DRIVE_SCOPE_PLUS_BETA_SCRIPT_API_ENABLEMENT_AND_TRASH_AWARE_CLEANUP"
   },
   "d160": {
-    "status": "OWNER_FIELD_NOT_PASS__REPAIR_V96_IMPLEMENTATION_ACTIVE",
+    "status": "TECHNICAL_V96_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "date": "2026-10-02",
     "baseline_change": "D159",
     "baseline_main": "320e7e446f122a70ee55d2a191eebff218c502c9",
@@ -4048,7 +4048,7 @@
     "new_firestore_collections": "NONE",
     "new_secrets": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "OA090_BLOCKED_PENDING_TECHNICAL_REPAIR_V96_RELEASE",
+    "field_gate": "OA090_READY_FOR_OWNER_FIELD_ACCEPTANCE_V96",
     "implementation_pr": 367,
     "main_commit": "6c7106d9c6a9d41dfd675c9488f4e107e9eb66bc",
     "pr_gates": "PASS__11_OF_11__AGENT_BUILD_STARTUP_SMOKE_PASS__ANDROID_VC92_REGRESSION_PASS__AUTHORITY_STATE_UI_PASS",
@@ -4069,13 +4069,16 @@
       "d159_retirement": "PASS__DELETED_AND_VERIFIED_ABSENT"
     },
     "release_evidence": {
-      "workflow_run": 36942335324,
-      "workflow_attempt": 2,
-      "release": "relay-agent-v95",
-      "release_id": 401470717,
-      "exe_asset_id": 604502168,
-      "exe_size_bytes": 7200768,
-      "exe_sha256": "23692a84b576e98e8b835dd09acc330a485f2a50fc0e64075ea25680b0de27ff",
+      "workflow_run": 36964147000,
+      "workflow_attempt": 1,
+      "main_commit": "ffb75df558d5217cb0ec871928471916c75a6769",
+      "repair_pr": 379,
+      "release": "relay-agent-v96",
+      "release_id": 401538424,
+      "exe_asset_id": 604789328,
+      "exe_size_bytes": 7212544,
+      "exe_sha256": "6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7",
+      "published_at": "2026-10-02T04:22:30Z",
       "android": "beta-vc92__UNCHANGED"
     },
     "field_failure_v95": {
@@ -4101,7 +4104,18 @@
       "PICKER_HISTORY_WRONG_COUNT_AND_LOCK_DETAIL"
     ],
     "repair_review_guard": "PASS__PENDING_LOG_BUNDLES_ORDERED_BY_FIRST_AT_MS_THEN_LAST_AT_MS__FAILED_OLDER_BUNDLE_BLOCKS_LATER_UPLOAD_AND_PRUNE",
-    "repair_release_evidence": "PENDING_RELAY_AGENT_V96_PR_GATES_AND_RELEASE",
-    "repair_branch": "fix/d160-field-repair"
+    "repair_release_evidence": "PASS__RELAY_AGENT_V96_MAIN_RUN_36964147000__RELEASE_401538424__SHA256_6A76E825E92F46632043F6F83721CE43228614BABB951E6634261623DB2573C7",
+    "repair_branch": "fix/d160-field-repair",
+    "repair_pr": 379,
+    "repair_merge_main": "ffb75df558d5217cb0ec871928471916c75a6769",
+    "repair_pr_gates": "PASS__9_OF_9__AGENT_BUILD_STARTUP_REGRESSION__ANDROID_VC92_REGRESSION__AUTHORITY_STATE_UI_PROVIDER_PASS",
+    "previous_field_release": {
+      "release": "relay-agent-v95",
+      "release_id": 401470717,
+      "exe_asset_id": 604502168,
+      "exe_size_bytes": 7200768,
+      "exe_sha256": "23692a84b576e98e8b835dd09acc330a485f2a50fc0e64075ea25680b0de27ff",
+      "result": "OWNER_FIELD_NOT_PASS__REPAIR_REQUIRED"
+    }
   }
 }

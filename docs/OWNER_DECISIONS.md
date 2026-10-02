@@ -2827,3 +2827,13 @@ Approved repair requirements:
 - Picker history adds wrong-input/strike count and lock detail (level/minutes/until) from the rate-limit decision already produced by the confirmation pipeline; no extra rate-limit read is authorized.
 
 The existing D160 maximum-15 micro-batch, per-request terminal ACK, exact target fence, fresh post-final-click success evidence, no-second-mutation uncertainty guard, PRIMARY generation fence, consolidated Agent Operations Gateway and D159 gateway retirement remain unchanged. D160 remains open under OA090 until v96 technical/release PASS followed by explicit Owner field PASS.
+
+### D160 repair v96 technical release checkpoint — 2026-10-02
+
+- PR #379 (`fix/d160-field-repair`) passed all 9 PR workflows and merged to `main` at `ffb75df558d5217cb0ec871928471916c75a6769`.
+- Main Agent workflow run `36964147000` PASS published `relay-agent-v96` (release `401538424`), canonical EXE asset `604789328`, size `7,212,544` bytes, SHA-256 `6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7`.
+- Repair includes exact visible PickList-row checkbox fencing, real-PL hydration readiness/recovery, visible Settings Logs/manual send, 21:45 and overtime boundary checkpoints, Drive-confirmed oldest-first/fail-closed local log pruning, existing-agent-sync history piggyback with strike/lock details, and Usage boundaries `:00/:15/:30/:45`.
+- Android remains `beta-vc92` unchanged; Stable remains Owner-gated and untouched.
+- This is technical/release PASS only. D160 remains unaccepted until Owner completes OA090 field acceptance against the real company WMS/PDA/fleet environment and explicitly reports PASS.
+- D159 remains the accepted base until that explicit D160 Owner PASS.
+
