@@ -885,3 +885,11 @@ The first main Apps Script consolidation run reached the existing Agent gateway 
 
 Repair remains under the same D160 change ID. It adds control-plane deployment-version proof, cache-busting public identity polling and safe diagnostics limited to HTTP/service/project/revision. No token, Script ID or deployment ID is logged. OA090 remains pending technical release; D159 stays the accepted base and Stable remains untouched.
 
+## D160 gateway Web App entrypoint root-cause repair — 2026-10-02
+
+The extended cutover diagnostic proved the Apps Script control plane had the exact newly redeployed version, while the existing public `/exec` URL returned HTTP 404 for sixty cache-busted probes. This excludes normal propagation/cache delay and isolates the failure to Web App entrypoint semantics.
+
+The repo-managed Agent gateway manifest did not contain a `webapp` resource. When automation pushed that manifest and created a new version for the existing deployment, the version no longer advertised a Web App entrypoint even though the deployment/version remained visible to the Apps Script API.
+
+D160 repairs the same existing scoped gateway by explicitly declaring `webapp.access=ANYONE_ANONYMOUS` and `webapp.executeAs=USER_DEPLOYING`. This restores the already-accepted transport model: the endpoint itself is publicly reachable, GET exposes only bounded service identity, and protected POST actions still require a valid Firebase ADMIN/PICKPACK_ADMIN token. The existing URL is retained. D159 remains present until the repaired URL passes both D160 identity and authenticated Monitoring-backed Usage proof.
+
