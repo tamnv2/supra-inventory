@@ -238,3 +238,9 @@ Expected normal-runtime impact after a correct implementation:
 - Schedule UI adds no polling. Explicit overtime actions retain low-frequency shared-state writes only.
 - Stable remains OWNER-GATED and untouched.
 
+### Business shift display versus Replay technical window
+- **Ca bình thường / ca nghiệp vụ hiển thị cho người dùng luôn là 06:00–22:00 Asia/Ho_Chi_Minh.**
+- The D161 Replay technical guard remains **05:45–22:15**: 15 minutes early before the business shift and 15 minutes late after the business shift. These margins are operational/technical protection and must not redefine the human-facing business shift.
+- Web `Ca vận hành`, summaries, reports, labels and other outward business copy must not present 05:45–22:15 as “ca bình thường”.
+- If a technical/diagnostic surface needs to expose the Replay guard, it must use an explicit label such as **Cửa sổ kỹ thuật Replay: 05:45–22:15**, visually separate from **Ca bình thường: 06:00–22:00**.
+- Overtime logic remains anchored to the Replay technical end at 22:15 exactly as already approved in D161. Business-facing shift statistics/grouping continue to use the established 06:00–22:00 shift definition unless an independent Owner decision changes reporting semantics.
