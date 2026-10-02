@@ -4526,6 +4526,50 @@
       ],
       "remaining_owner_action": "Wait for D160 technical/runtime release evidence, then perform the shortest field test above and explicitly report PASS/NOT PASS.",
       "closed": false
+    },
+    {
+      "id": "OA091",
+      "status": "OWNER_ACTION_REQUIRED__ONE_TIME_APPS_SCRIPT_OAUTH_CONSENT",
+      "title": "Authorize monitoring.read on consolidated D160 Agent Operations Gateway",
+      "resource_key": "apps-script-agent-log-gateway-beta-d158",
+      "provider": "Google Apps Script / Google Cloud Monitoring",
+      "reason_owner_only": "D160 provider diagnostics prove the consolidated Apps Script project is deployed and reachable, Firebase authenticated Usage POST reaches the correct D160 code, but ScriptApp.getOAuthToken() lacks the newly added monitoring.read scope. Google requires an interactive consent by the script owner; GitHub/clasp/Drive/ChatGPT connectors cannot grant this user OAuth consent.",
+      "prerequisites": {
+        "d160_public_gateway_identity": "PASS__SUPRA_AGENT_OPERATIONS_GATEWAY_D160",
+        "d160_canary_firebase_auth": "PASS",
+        "failure": "MONITORING_HTTP_403__ACCESS_TOKEN_SCOPE_INSUFFICIENT__OAUTH_SCOPE_INSUFFICIENT",
+        "helper": "authorizeD160Monitoring",
+        "d159": "RETAINED_UNTIL_PROVIDER_PASS",
+        "target_agent": "relay-agent-v95__RELEASE_BLOCKED",
+        "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action": [
+        "Open Google Apps Script in the same Google account that owns SUPRA Inventory Beta - Agent Operations Gateway.",
+        "Open the project SUPRA Inventory Beta - Agent Operations Gateway.",
+        "At the function selector, choose authorizeD160Monitoring.",
+        "Click Run.",
+        "When Google asks for authorization, approve the requested permissions including Cloud Monitoring read-only.",
+        "Run authorizeD160Monitoring once more if the editor does not automatically continue after consent. Success is the return/result D160_MONITORING_AUTH_PASS with no red error.",
+        "Tell AI: OA091 done. Do not paste any token, JSON credential, authorization code or private key."
+      ],
+      "pass_criteria": [
+        "The script owner grants the explicit monitoring.read scope to the existing consolidated Apps Script project.",
+        "authorizeD160Monitoring completes without D160_MONITORING_SCOPE_NOT_AUTHORIZED.",
+        "AI reruns the existing D160 provider migration; authenticated get_firestore_usage returns availability.reads=true.",
+        "Only after that proof does automation retire the standalone D159 script.",
+        "Agent v95 release proceeds only after provider migration PASS.",
+        "Android beta-vc92 and Stable remain unchanged."
+      ],
+      "evidence": {
+        "provider_run": 36946539253,
+        "public_identity": "PASS",
+        "firebase_canary_exchange": "PASS",
+        "safe_summary": "ok=true__service=SUPRA_AGENT_OPERATIONS_USAGE_D160__revision=D160-GW-v1__reads=null__OAUTH_SCOPE_INSUFFICIENT",
+        "owner_action_minimized": "ONE_INTERACTIVE_GOOGLE_OAUTH_CONSENT"
+      },
+      "remaining_owner_action": "Run authorizeD160Monitoring once in the existing Agent Operations Gateway Apps Script editor, approve monitoring.read, then report OA091 done.",
+      "closed": false
     }
   ]
 }
