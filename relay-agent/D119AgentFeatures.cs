@@ -1085,6 +1085,7 @@ namespace SupraInventoryRelayAgent
             }
             _agentSyncSnapshot = snapshot;
             if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
+            ApplyD160HistoryFromAgentSync(snapshot.HistoryDayKey, snapshot.History);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
             {
@@ -1429,6 +1430,9 @@ namespace SupraInventoryRelayAgent
                     var fleet = _leaderCoordinator == null
                         ? new List<AgentPresenceView>()
                         : _leaderCoordinator.OnlineAgents;
+                    var historyDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                    var history = SnapshotD160HistoryForAgentSync(historyDay);
+                    _agentSyncClient.MergeLocalHistory(historyDay, history);
                     var snapshot = _agentSyncClient.Reconcile(
                         session,
                         pickers,
@@ -1436,7 +1440,9 @@ namespace SupraInventoryRelayAgent
                         fleet,
                         counterReceived,
                         counterConfirmed,
-                        counterError);
+                        counterError,
+                        historyDay,
+                        history);
                     _lastAgentSyncReconcileUtc = DateTime.UtcNow;
                     ApplyD134AgentSyncSnapshot(snapshot);
                     Log("AGENT_SYNC reconcile=PASS cadence=5m max_agents=10");
