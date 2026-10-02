@@ -87,23 +87,28 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
 
+                var safety2145 = now.Date.AddHours(21).AddMinutes(45);
+                var lastDriveSuccess = ReadLastDriveSuccess();
+                var due2145 = now >= safety2145 &&
+                              now < now.Date.AddDays(1) &&
+                              lastDriveSuccess < safety2145;
                 var dueByTime = now - checkpoint >= TimeSpan.FromMilliseconds(DirtyCheckpointMs);
                 var writtenSinceSeal = Math.Max(0L, AgentDiagnostics.TotalBytesWritten - _lastSealWrittenBytes);
                 var dueBySize = writtenSinceSeal >= SizeCheckpointBytes;
-                if (!dueByTime && !dueBySize) return;
+                if (!due2145 && !dueByTime && !dueBySize) return;
 
-                var path = SealFromCheckpoint("checkpoint", "");
+                var reason = due2145 ? "SAFETY_2145" :
+                             (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H");
+                var path = SealFromCheckpoint("checkpoint", due2145 ? "SAFETY_BOUNDARY=21:45" : "");
                 _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
                 if (!string.IsNullOrWhiteSpace(path))
                 {
                     TryFlushPending(session);
-                    _log("AGENT LOG seal=PASS type=checkpoint reason=" +
-                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
+                    _log("AGENT LOG seal=PASS type=checkpoint reason=" + reason);
                 }
                 else
                 {
-                    _log("AGENT LOG seal=SKIP_EMPTY type=checkpoint reason=" +
-                         (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H"));
+                    _log("AGENT LOG seal=SKIP_EMPTY type=checkpoint reason=" + reason);
                 }
             }
             catch (Exception ex)
@@ -128,6 +133,43 @@ namespace SupraInventoryRelayAgent
             {
                 _log("AGENT LOG manual=LOCAL_PENDING type=" + ex.GetType().Name);
             }
+        }
+
+        internal void TryQueueBoundarySnapshot(string reason)
+        {
+            try
+            {
+                var marker = "BOUNDARY_TRIGGER=" + AgentDiagnostics.Sanitize(reason ?? "UNKNOWN");
+                var path = SealFromCheckpoint("checkpoint", marker);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                _log(string.IsNullOrWhiteSpace(path)
+                    ? "AGENT LOG boundary=SKIP_EMPTY reason=" + AgentDiagnostics.Sanitize(reason)
+                    : "AGENT LOG boundary=SEALED reason=" + AgentDiagnostics.Sanitize(reason) +
+                      " upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG boundary=LOCAL_PENDING type=" + ex.GetType().Name);
+            }
+        }
+
+        internal string GetStatusSummary()
+        {
+            var pending = PendingCount();
+            var last = ReadLastDriveSuccess();
+            long bytes = 0L;
+            try
+            {
+                var path = AgentDiagnostics.LogFile;
+                if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    bytes = new FileInfo(path).Length;
+            }
+            catch { }
+            return "File: agent-complete.log · " +
+                   (bytes / 1024L).ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " KB · Chờ gửi: " +
+                   pending.ToString(CultureInfo.InvariantCulture) + " · Drive gần nhất: " +
+                   (last == DateTime.MinValue ? "chưa có" : last.ToString("dd/MM HH:mm:ss"));
         }
 
         internal void TryQueueCrashSnapshot(string crashType)
