@@ -220,8 +220,8 @@ namespace SupraInventoryRelayAgent
                 if (matches.length === 0) return JSON.stringify({result:'ROW_NOT_FOUND', code:code, finalClicked:false});
                 if (matches.length !== 1) return JSON.stringify({result:'ROW_AMBIGUOUS', code:code, count:matches.length, finalClicked:false});
                 const row = matches[0];
-                const native = [...row.querySelectorAll('input[type=checkbox]')].filter(e => !e.disabled);
-                const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(e => e.getAttribute('aria-disabled') !== 'true');
+                const native = [...row.querySelectorAll('input[type=checkbox]')].filter(e => visible(e) && !e.disabled);
+                const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(e => visible(e) && e.getAttribute('aria-disabled') !== 'true');
                 const boxes = native.length ? native : roles;
                 if (boxes.length !== 1) return JSON.stringify({result:'CHECKBOX_NOT_UNIQUE', code:code, count:boxes.length, finalClicked:false});
                 const box = boxes[0];
@@ -234,6 +234,7 @@ namespace SupraInventoryRelayAgent
               for (const box of allChecked) {
                 const row = box.closest('tr,[role=row]');
                 const rowCodes = row ? [...new Set((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))] : [];
+                if (!row || rowCodes.length === 0) continue;
                 if (!rowCodes.some(code => targets.has(code)))
                   return JSON.stringify({result:'FOREIGN_SELECTION', finalClicked:false});
               }
