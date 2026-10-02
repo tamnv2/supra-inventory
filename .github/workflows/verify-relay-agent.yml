@@ -137,7 +137,8 @@ jobs:
             'PruneUploadedThrough',
             'drive_confirmed=true',
             'PendingBoundary(path, "first_at_ms")',
-            'OrderBy(item => item.FirstAtMs <= 0 ? long.MaxValue : item.FirstAtMs)'
+            'OrderBy(item => item.FirstAtMs <= 0 ? 0L : item.FirstAtMs)',
+            'BLOCKED_INVALID_PENDING_METADATA'
           )) {
             if (-not $agentLogBridge.Contains($marker) -and -not $program.Contains($marker)) { throw "D160 repair log lifecycle guard missing: $marker" }
           }
