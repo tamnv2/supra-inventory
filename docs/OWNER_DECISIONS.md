@@ -2853,3 +2853,12 @@ Approved repair remains under D160 and targets relay-agent-v97:
 
 D159 remains the accepted base. D160 stays open under OA090 until relay-agent-v97 passes branch/PR/authority/continuity/release gates and the Owner explicitly reports D160 PASS.
 
+### D160 v97 technical release checkpoint — 2026-10-02
+
+- Owner-approved same-D160 lifecycle repair PR #381 passed all 9 PR workflows and merged to `main` at `4c3f0a4dffc94f66237d0958032fd27ac52fed29`.
+- Main Agent workflow run `36969035725` PASS, including the strengthened startup-smoke with non-empty same-day Picker History and overlay lifecycle checks.
+- Beta prerelease `relay-agent-v97` was published as release `401562436`. Canonical EXE asset `604881289`, size `7,216,128` bytes, SHA-256 `b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530`.
+- The repair separates History model loading from UI rendering, repaints already-loaded same-day History after UI readiness, makes the Bảng nổi Picklist Settings surface independent from overlay-form success, adds staged sanitized diagnostics, one bounded post-UI auto retry and explicit manual retry.
+- The v96 WMS confirmation pipeline, Agent Operations Gateway/provider cadence and Android `beta-vc92` are unchanged. Stable remains OWNER-GATED and untouched.
+- This is technical/runtime/release PASS only. D159 remains the accepted base and OA090 is now ready for Owner field acceptance of v97. No later change ID may open until explicit Owner D160 PASS.
+

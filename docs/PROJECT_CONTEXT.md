@@ -901,3 +901,11 @@ The Owner approved same-D160 repair targeting **relay-agent-v97**. History model
 
 The v96 WMS confirmation pipeline is intentionally unchanged. No new provider resource, Firestore collection/read/write/listener/poll cadence or secret is introduced. Android remains **beta-vc92** hard-locked and Stable remains OWNER-GATED. D159 remains the accepted base until explicit Owner D160 PASS.
 
+## D160 v97 technical release checkpoint — 2026-10-02
+
+PR #381 implemented the Owner-approved overlay/history lifecycle repair and merged to `main` at `4c3f0a4dffc94f66237d0958032fd27ac52fed29`. Main Agent run `36969035725` passed and published `relay-agent-v97` (release `401562436`, canonical EXE asset `604881289`, SHA-256 `b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530`).
+
+The v97 startup-smoke now exercises a non-empty same-day Picker History before AgentForm construction and requires both History repaint and overlay lifecycle readiness. History loading no longer depends on DataGridView construction, and the Bảng nổi Picklist Settings surface survives overlay-form initialization failure with bounded recovery.
+
+Android remains `beta-vc92` hard-locked. No provider resource, Firestore cadence or Stable resource changed. D159 remains the accepted base; D160 remains open under OA090 until explicit Owner field PASS.
+
