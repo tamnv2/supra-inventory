@@ -379,10 +379,10 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void TryFlushPending(AgentSession session)
+        private int TryFlushPending(AgentSession session)
         {
-            if (!UsableSession(session)) return;
-            if (_nextUploadAttemptUtc != DateTime.MinValue && DateTime.UtcNow < _nextUploadAttemptUtc) return;
+            if (!UsableSession(session)) return 0;
+            if (_nextUploadAttemptUtc != DateTime.MinValue && DateTime.UtcNow < _nextUploadAttemptUtc) return 0;
             string[] files;
             try
             {
@@ -392,8 +392,9 @@ namespace SupraInventoryRelayAgent
                     .Take(24)
                     .ToArray();
             }
-            catch { return; }
+            catch { return 0; }
 
+            var uploadedCount = 0;
             foreach (var path in files)
             {
                 try
@@ -401,7 +402,8 @@ namespace SupraInventoryRelayAgent
                     var raw = File.ReadAllText(path, Encoding.UTF8);
                     var bundle = _json.DeserializeObject(raw) as Dictionary<string, object>;
                     if (bundle == null) continue;
-                    var uploaded = GatewayEnabled()
+                    var gateway = GatewayEnabled();
+                    var uploaded = gateway
                         ? UploadGateway(session, bundle)
                         : UploadLegacyFirestore(session, bundle);
                     if (!uploaded)
@@ -411,10 +413,22 @@ namespace SupraInventoryRelayAgent
                     }
                     _uploadFailureStreak = 0;
                     _nextUploadAttemptUtc = DateTime.MinValue;
+                    if (gateway)
+                    {
+                        var throughMs = LongValue(bundle, "last_at_ms");
+                        if (throughMs > 0)
+                        {
+                            var through = DateTimeOffset.FromUnixTimeMilliseconds(throughMs).LocalDateTime;
+                            AgentDiagnostics.PruneUploadedThrough(through);
+                        }
+                        WriteLastDriveSuccess(DateTime.Now);
+                    }
                     File.Delete(path);
+                    uploadedCount++;
                     _log("AGENT LOG upload=PASS transport=" +
-                         (GatewayEnabled() ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
-                         " bundle=" + Short(Value(bundle, "bundle_id")));
+                         (gateway ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
+                         " bundle=" + Short(Value(bundle, "bundle_id")) +
+                         (gateway ? " local_prune=PASS_AFTER_DRIVE_CONFIRM" : ""));
                 }
                 catch (Exception ex)
                 {
@@ -427,6 +441,48 @@ namespace SupraInventoryRelayAgent
                     break;
                 }
             }
+            return uploadedCount;
+        }
+
+        private int PendingCount()
+        {
+            try
+            {
+                Directory.CreateDirectory(_pendingDir);
+                return Directory.GetFiles(_pendingDir, "*.json").Length;
+            }
+            catch { return 0; }
+        }
+
+        private DateTime ReadLastDriveSuccess()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_lastSuccessFile) || !File.Exists(_lastSuccessFile))
+                    return DateTime.MinValue;
+                DateTime value;
+                return DateTime.TryParseExact(
+                    File.ReadAllText(_lastSuccessFile).Trim(),
+                    "O",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind,
+                    out value) ? value.ToLocalTime() : DateTime.MinValue;
+            }
+            catch { return DateTime.MinValue; }
+        }
+
+        private void WriteLastDriveSuccess(DateTime value)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(_lastSuccessFile);
+                if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(
+                    _lastSuccessFile,
+                    value.ToString("O", CultureInfo.InvariantCulture),
+                    Encoding.ASCII);
+            }
+            catch { }
         }
 
         private void RegisterUploadFailure()
