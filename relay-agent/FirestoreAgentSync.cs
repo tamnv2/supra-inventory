@@ -32,6 +32,23 @@ namespace SupraInventoryRelayAgent
         internal long KickedAtMs;
     }
 
+    internal sealed class AgentSyncHistoryRow
+    {
+        internal string RequestId = "";
+        internal long SentAtMs;
+        internal string UserId = "";
+        internal string EmployeeCode = "";
+        internal string DisplayName = "";
+        internal string ContractorName = "";
+        internal string InputText = "";
+        internal string Result = "";
+        internal string FullPickList = "";
+        internal long OperationMs;
+        internal int WrongCount;
+        internal int LockCount;
+        internal long LockedUntilMs;
+    }
+
     internal sealed class AgentSyncSnapshot
     {
         internal long Version;
@@ -45,6 +62,8 @@ namespace SupraInventoryRelayAgent
         internal long ReceivedTotal;
         internal long ConfirmedTotal;
         internal long ErrorTotal;
+        internal string HistoryDayKey = "";
+        internal List<AgentSyncHistoryRow> History = new List<AgentSyncHistoryRow>();
     }
 
     internal sealed class FirestoreAgentSyncClient
