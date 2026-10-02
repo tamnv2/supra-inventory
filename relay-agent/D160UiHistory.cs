@@ -527,12 +527,12 @@ namespace SupraInventoryRelayAgent
                 }
 
                 var raw = _d160HistoryJson.Serialize(compact);
-                while (raw.Length > 520000 && compact.Count > 1)
+                while (System.Text.Encoding.UTF8.GetByteCount(raw) > 420000 && compact.Count > 1)
                 {
                     compact.RemoveRange(0, Math.Min(50, compact.Count - 1));
                     raw = _d160HistoryJson.Serialize(compact);
                 }
-                return raw.Length <= 520000 ? raw : "[]";
+                return System.Text.Encoding.UTF8.GetByteCount(raw) <= 420000 ? raw : "[]";
             }
             catch
             {
