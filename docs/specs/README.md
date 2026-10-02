@@ -14,6 +14,7 @@ Read the matching spec before changing that area:
 - `REPORTING_DASHBOARD.md` — Admin/Root dashboard/reporting authority including SLA/recurrence views.
 - `UI_DESIGN_SYSTEM.md` — Owner-selected **Legacy Operational UI V2** design authority.
 - `ACCEPTANCE_TESTING.md` — CI/runtime/device/Owner acceptance levels and regression expectations.
+- `D160_AGENT_LIFECYCLE.md` — Owner-approved same-D160 v97 overlay/history startup lifecycle repair and its acceptance contract.
 
 Implementation plan for the approved rebaseline:
 - `../plans/LEGACY_OPERATIONAL_REBASELINE_V1.md`
