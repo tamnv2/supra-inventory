@@ -27,6 +27,9 @@ namespace SupraInventoryRelayAgent
         internal int ConfirmCount;
         internal int ConfirmVisibleCount;
         internal int TableCount;
+        internal int PicklistCodeCount;
+        internal bool DomReady;
+        internal bool DataHydrated;
         internal int FrameCount;
         internal bool PageLoaded;
         internal bool LoginMarkerDetected;
@@ -114,6 +117,7 @@ namespace SupraInventoryRelayAgent
         private DateTime _confirmArrivalObservedAtUtc = DateTime.MinValue;
         private string _confirmArrivalUrl = "";
         private bool _emptyDataRecoveryUsed;
+        private bool _readinessHydrationRecoveryUsed;
         private bool _disposed;
         private TimeSpan _resourceCpuTotal = TimeSpan.Zero;
         private DateTime _resourceSampleAtUtc = DateTime.MinValue;
@@ -339,6 +343,9 @@ namespace SupraInventoryRelayAgent
                     ConfirmCount = Int(map, "confirmCount"),
                     ConfirmVisibleCount = Int(map, "confirmVisibleCount"),
                     TableCount = Int(map, "tableCount"),
+                    PicklistCodeCount = Int(map, "picklistCodeCount"),
+                    DomReady = Bool(map, "domReady"),
+                    DataHydrated = Bool(map, "dataHydrated"),
                     FrameCount = Int(map, "frameCount"),
                     PageLoaded = Bool(map, "pageLoaded"),
                     LoginMarkerDetected = Bool(map, "loginMarker"),
@@ -884,6 +891,7 @@ namespace SupraInventoryRelayAgent
             _confirmArrivalObservedAtUtc = DateTime.MinValue;
             _confirmArrivalUrl = "";
             _emptyDataRecoveryUsed = false;
+            _readinessHydrationRecoveryUsed = false;
         }
 
         private void ResetConfirmArrivalObservationNoLock()
