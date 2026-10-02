@@ -1661,3 +1661,14 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Replay technical guard remains **05:45–22:15** under the already-approved D161 logic.
 - The 15-minute margins are technical only and must not be presented as the business shift.
 - D161 implementation remains deferred; D160 runtime is unchanged.
+
+## D161 bulk-kick / update-lifecycle extension — 2026-10-03
+
+- Accepted runtime base remains **D160 / Agent relay-agent-v97 / Android beta-vc92**; D161 implementation remains deferred.
+- Owner-approved Agent target: card-level **Kích toàn bộ user** for all authenticated Picker/PDA sessions, exact Agent login **admin/tamnv2**, destructive warning + current Agent-password verification, one idempotent server-authoritative bulk session-generation revoke; search filters do not change scope and no Agent-side N-user provider loop is allowed.
+- Owner-approved Agent update target: **manual-only**. Remove startup and 30-minute checks; **Kiểm tra cập nhật** is the sole normal entry point and update-channel failure never disrupts relay work.
+- Owner-approved Android update target: release-channel failure is advisory and cannot block normal login; current installed signer/integrity failure remains fail-closed.
+- Login screen permanently shows **Beta vcXX** plus **Kiểm tra cập nhật** in a compact version/update row. Automatic login-screen discovery is bounded/single-flight and offers **Cập nhật / Để sau** only when a newer trusted release exists.
+- While authenticated, tapping version asks **Tìm kiếm bản cập nhật?**; Yes checks once and a newer trusted release proceeds through download/verification/installer handoff from that consent.
+- Best-effort Android install is in scope; full silent Device Owner/MDM/OEM/Play-style install is not part of D161 and would require separate Owner/resource approval.
+- No new provider/resource/secret/polling/listener/runtime deployment is introduced by this authority capture. Stable remains OWNER-GATED.
