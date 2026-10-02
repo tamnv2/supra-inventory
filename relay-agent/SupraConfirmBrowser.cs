@@ -980,6 +980,24 @@ namespace SupraInventoryRelayAgent
             }
 
             var realReload = string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase);
+            if (realReload && state.DomReady && !state.DataHydrated)
+            {
+                _confirmReloadStableSinceUtc = DateTime.MinValue;
+                state.Ready = false;
+                if (!_readinessHydrationRecoveryUsed &&
+                    _confirmReloadIssuedAtUtc != DateTime.MinValue &&
+                    now - _confirmReloadIssuedAtUtc >= TimeSpan.FromSeconds(2))
+                {
+                    _readinessHydrationRecoveryUsed = true;
+                    IssueConfirmReloadNowNoLock("confirm_data_not_hydrated");
+                    state.State = "CONFIRM_DATA_REFRESHING";
+                    _log("SUPRA_BROWSER confirm_data_hydration=RECOVERY_F5 picklist_codes=0 bounded_once=true");
+                    return true;
+                }
+                state.State = "CONFIRM_DATA_EMPTY";
+                return true;
+            }
+
             if (!realReload || !state.Ready)
             {
                 _confirmReloadStableSinceUtc = DateTime.MinValue;
@@ -1008,7 +1026,8 @@ namespace SupraInventoryRelayAgent
             _confirmReloadVerified = true;
             _confirmReloadIssuedAtUtc = DateTime.MinValue;
             _confirmReloadStableSinceUtc = DateTime.MinValue;
-            _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload settle_before_ms=3000 stable_after_ms=1200 data_dom_ready=true");
+            _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload settle_before_ms=3000 stable_after_ms=1200 data_hydrated=true picklist_codes=" +
+                 state.PicklistCodeCount);
             return false;
         }
 
