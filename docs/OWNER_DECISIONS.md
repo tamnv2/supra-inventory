@@ -2929,3 +2929,18 @@ The Owner approved adding the source-reviewed proposals to the D161 backlog, plu
 - While authenticated, tapping the version first asks **Tìm kiếm bản cập nhật?**; Yes checks once and, if a newer trusted release exists, proceeds automatically through download/verify/install without a second download confirmation.
 - After explicit user consent, Android automates download/checksum/package/version/signer validation and installer handoff as far as normal Android permissions allow. Full silent/MDM/Device-Owner/OEM privileged installation is not part of D161 and would require a separate Owner-approved resource/security workstream.
 - No new provider, polling/listener cadence, Stable mutation or runtime implementation is authorized by this decision capture. D160 remains the accepted runtime base.
+
+### D161 Owner approval — mandatory safety baseline and rescue contract — 2026-10-03
+
+The Owner approved a mandatory forward-recovery model for D161.
+
+- Exact command **`bắt đầu D161 tiến hành`** authorizes the complete then-current D161 implementation. The AI must first complete and PASS **Phase 0 Safety Baseline**, then automatically continue through the already-approved D161 backlog without asking the Owner to restate or reconfirm those items.
+- Phase 0 captures the pre-D161 safe model: source/component identities, schema/health markers, Web reproducible build identity, Agent/APK release artifacts and hashes, release-channel manifests and non-secret resource/config references.
+- Before D161 business changes, publish/verify monotonic safety releases of Android and Agent from the pre-D161 safe behavior. Exact version numbers are resolved at execution time.
+- Web/Worker rescue is not a raw whole-deployment rollback. Web may return to Safety presentation while Worker/InventoryCore remains on a newer schema-compatible forward deployment.
+- Until Owner acceptance, migrations must remain additive/backward-compatible where technically possible. Rescue must not blindly downgrade SQLite or delete new state.
+- After D161 technical/runtime/release PASS, the Owner field-tests. In the explicit D161 field-test-ready state, **`ghi nhận ok`** or explicit **D161 PASS** records Owner acceptance and promotes D161 to the accepted base.
+- Exact command **`quay lại bản backup ban đầu trước khi sửa code`** triggers rescue under the same D161: stop further feature rollout; restore Safety Web behavior; forward-repair backend behavior without unsafe schema downgrade; publish Android and Agent rescue versions with numbers higher than the failed D161 versions but Safety behavior; repoint trusted channels only after signature/checksum verification.
+- A rescue restores safe operation first, preserves diagnostics, and does not create a new change ID. D161 repair may continue afterward.
+- No secret, WMS session material, password, refresh token, signing material or sensitive runtime data may be copied into the public repository as part of the safety manifest.
+- Stable is untouched/OWNER-GATED.
