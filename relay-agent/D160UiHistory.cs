@@ -206,6 +206,7 @@ namespace SupraInventoryRelayAgent
             };
             lock (_d160HistoryGate) _d160History[work.RequestId] = row;
             AppendD160HistoryEvent(row);
+            QueueD160HistoryForAgentSync();
             Ui(() => RenderD160HistoryRow(row));
         }
 
@@ -237,9 +238,136 @@ namespace SupraInventoryRelayAgent
                 row.Result = D160HistoryResultText(outcome.Result);
                 row.FullPickList = outcome.ResolvedPickListCode ?? "";
                 row.OperationMs = Math.Max(0L, outcome.OperationMs);
+
+                var prior = _d160History.Values
+                    .Where(item => item != null &&
+                                   !string.Equals(item.RequestId, row.RequestId, StringComparison.Ordinal) &&
+                                   D160HistorySamePicker(item, row))
+                    .ToList();
+                var priorWrong = prior.Select(item => item.WrongCount).DefaultIfEmpty(0).Max();
+                var priorLocks = prior.Select(item => item.LockCount).DefaultIfEmpty(0).Max();
+                var rate = outcome.Rate;
+                var countedWrong = string.Equals(outcome.Result, "NOT_FOUND", StringComparison.Ordinal) ||
+                                   (rate != null && rate.NewlyLocked);
+                row.WrongCount = Math.Max(row.WrongCount, priorWrong + (countedWrong ? 1 : 0));
+                row.LockCount = Math.Max(row.LockCount, priorLocks + (rate != null && rate.NewlyLocked ? 1 : 0));
+                row.LockedUntilMs = rate == null ? 0L : Math.Max(0L, rate.LockedUntilMs);
             }
             AppendD160HistoryEvent(row);
+            QueueD160HistoryForAgentSync();
             Ui(() => RenderD160HistoryRow(row));
+        }
+
+        private static bool D160HistorySamePicker(D160PickerHistoryRow left, D160PickerHistoryRow right)
+        {
+            if (left == null || right == null) return false;
+            if (!string.IsNullOrWhiteSpace(left.UserId) && !string.IsNullOrWhiteSpace(right.UserId))
+                return string.Equals(left.UserId, right.UserId, StringComparison.Ordinal);
+            return !string.IsNullOrWhiteSpace(left.EmployeeCode) &&
+                   string.Equals(left.EmployeeCode, right.EmployeeCode, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void QueueD160HistoryForAgentSync()
+        {
+            try
+            {
+                if (_agentSyncClient == null) return;
+                string day;
+                List<AgentSyncHistoryRow> rows;
+                lock (_d160HistoryGate)
+                {
+                    day = _d160HistoryDayKey;
+                    rows = D160HistorySyncRowsNoLock();
+                }
+                _agentSyncClient.MergeLocalHistory(day, rows);
+            }
+            catch (Exception ex)
+            {
+                Log("D160 HISTORY sync_cache=DEFER type=" + ex.GetType().Name);
+            }
+        }
+
+        internal List<AgentSyncHistoryRow> SnapshotD160HistoryForAgentSync(string dayKey)
+        {
+            lock (_d160HistoryGate)
+            {
+                if (!string.Equals(_d160HistoryDayKey, dayKey ?? "", StringComparison.Ordinal))
+                    return new List<AgentSyncHistoryRow>();
+                return D160HistorySyncRowsNoLock();
+            }
+        }
+
+        private List<AgentSyncHistoryRow> D160HistorySyncRowsNoLock()
+        {
+            return _d160History.Values
+                .Where(item => item != null && !string.IsNullOrWhiteSpace(item.RequestId))
+                .OrderBy(item => item.SentAtMs)
+                .Select(item => new AgentSyncHistoryRow
+                {
+                    RequestId = item.RequestId ?? "",
+                    SentAtMs = Math.Max(0L, item.SentAtMs),
+                    UserId = item.UserId ?? "",
+                    EmployeeCode = item.EmployeeCode ?? "",
+                    DisplayName = item.DisplayName ?? "",
+                    ContractorName = item.ContractorName ?? "",
+                    InputText = item.InputText ?? "",
+                    Result = item.Result ?? "",
+                    FullPickList = item.FullPickList ?? "",
+                    OperationMs = Math.Max(0L, item.OperationMs),
+                    WrongCount = Math.Max(0, item.WrongCount),
+                    LockCount = Math.Max(0, item.LockCount),
+                    LockedUntilMs = Math.Max(0L, item.LockedUntilMs)
+                })
+                .Take(FirestoreAgentSyncClient.MaxHistoryRows)
+                .ToList();
+        }
+
+        internal void ApplyD160HistoryFromAgentSync(string dayKey, IEnumerable<AgentSyncHistoryRow> incoming)
+        {
+            var currentDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+            if (!string.Equals(dayKey ?? "", currentDay, StringComparison.Ordinal)) return;
+            var changed = false;
+            lock (_d160HistoryGate)
+            {
+                if (!string.Equals(_d160HistoryDayKey, currentDay, StringComparison.Ordinal)) return;
+                foreach (var source in incoming ?? new AgentSyncHistoryRow[0])
+                {
+                    if (source == null || string.IsNullOrWhiteSpace(source.RequestId)) continue;
+                    D160PickerHistoryRow target;
+                    if (!_d160History.TryGetValue(source.RequestId, out target))
+                    {
+                        target = new D160PickerHistoryRow { RequestId = source.RequestId };
+                        _d160History[source.RequestId] = target;
+                        changed = true;
+                    }
+                    var before = target.Result + "|" + target.FullPickList + "|" + target.OperationMs + "|" +
+                                 target.WrongCount + "|" + target.LockCount + "|" + target.LockedUntilMs;
+                    if (source.SentAtMs > 0) target.SentAtMs = source.SentAtMs;
+                    if (!string.IsNullOrWhiteSpace(source.UserId)) target.UserId = source.UserId;
+                    if (!string.IsNullOrWhiteSpace(source.EmployeeCode)) target.EmployeeCode = source.EmployeeCode;
+                    if (!string.IsNullOrWhiteSpace(source.DisplayName)) target.DisplayName = source.DisplayName;
+                    if (!string.IsNullOrWhiteSpace(source.ContractorName)) target.ContractorName = source.ContractorName;
+                    if (!string.IsNullOrWhiteSpace(source.InputText)) target.InputText = source.InputText;
+                    if (!string.IsNullOrWhiteSpace(source.Result)) target.Result = source.Result;
+                    if (!string.IsNullOrWhiteSpace(source.FullPickList)) target.FullPickList = source.FullPickList;
+                    if (source.OperationMs > 0) target.OperationMs = source.OperationMs;
+                    target.WrongCount = Math.Max(target.WrongCount, Math.Max(0, source.WrongCount));
+                    target.LockCount = Math.Max(target.LockCount, Math.Max(0, source.LockCount));
+                    target.LockedUntilMs = Math.Max(target.LockedUntilMs, Math.Max(0L, source.LockedUntilMs));
+                    var after = target.Result + "|" + target.FullPickList + "|" + target.OperationMs + "|" +
+                                target.WrongCount + "|" + target.LockCount + "|" + target.LockedUntilMs;
+                    if (!string.Equals(before, after, StringComparison.Ordinal)) changed = true;
+                }
+            }
+            if (!changed) return;
+            Ui(() =>
+            {
+                _d160HistoryGrid.Rows.Clear();
+                List<D160PickerHistoryRow> rows;
+                lock (_d160HistoryGate)
+                    rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
+                foreach (var row in rows) RenderD160HistoryRow(row);
+            });
         }
 
         internal void ResetD160HistoryForBusinessDay(string dayKey)
