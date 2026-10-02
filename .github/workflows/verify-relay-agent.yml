@@ -131,7 +131,14 @@ jobs:
           foreach ($marker in @('picker_history_json','History alone','D160HistorySnapshotJson()')) {
             if (-not $sync.Contains($marker) -and -not $ops.Contains($marker)) { throw "D160 repair zero-extra-cadence history sync guard missing: $marker" }
           }
-          foreach ($marker in @('BOUNDARY_2145','TryQueueBoundarySnapshot','PruneUploadedThrough','drive_confirmed=true')) {
+          foreach ($marker in @(
+            'BOUNDARY_2145',
+            'TryQueueBoundarySnapshot',
+            'PruneUploadedThrough',
+            'drive_confirmed=true',
+            'PendingBoundary(path, "first_at_ms")',
+            'OrderBy(item => item.FirstAtMs <= 0 ? long.MaxValue : item.FirstAtMs)'
+          )) {
             if (-not $agentLogBridge.Contains($marker) -and -not $program.Contains($marker)) { throw "D160 repair log lifecycle guard missing: $marker" }
           }
           foreach ($marker in @('DataHydrated','confirm_data_hydration=RECOVERY_F5','picklistCodeCount','final_confirm_settled_current_agent')) {
