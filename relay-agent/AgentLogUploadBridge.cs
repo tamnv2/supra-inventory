@@ -79,24 +79,26 @@ namespace SupraInventoryRelayAgent
                 var session = _sessionProvider();
                 if (!UsableSession(session)) return;
 
+                var now = DateTime.Now;
+                var safety2145 = now.Date.AddHours(21).AddMinutes(45);
+                var lastDriveSuccessBeforeFlush = ReadLastDriveSuccess();
+                var safetyDay = now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var due2145 = GatewayEnabled() &&
+                              now >= safety2145 &&
+                              now < now.Date.AddDays(1) &&
+                              lastDriveSuccessBeforeFlush < safety2145 &&
+                              !string.Equals(ReadSafety2145Day(), safetyDay, StringComparison.Ordinal);
+
+                // Flush older durable bundles first, but do not let a late upload of an
+                // older bundle suppress the 21:45 delta seal computed above.
                 TryFlushPending(session);
 
-                var now = DateTime.Now;
                 var checkpoint = ReadCheckpoint();
                 if (checkpoint == DateTime.MinValue)
                 {
                     WriteCheckpoint(FloorToLogMillisecond(now));
                     return;
                 }
-
-                var safety2145 = now.Date.AddHours(21).AddMinutes(45);
-                var lastDriveSuccess = ReadLastDriveSuccess();
-                var safetyDay = now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-                var due2145 = GatewayEnabled() &&
-                              now >= safety2145 &&
-                              now < now.Date.AddDays(1) &&
-                              lastDriveSuccess < safety2145 &&
-                              !string.Equals(ReadSafety2145Day(), safetyDay, StringComparison.Ordinal);
                 var dueByTime = now - checkpoint >= TimeSpan.FromMilliseconds(DirtyCheckpointMs);
                 var writtenSinceSeal = Math.Max(0L, AgentDiagnostics.TotalBytesWritten - _lastSealWrittenBytes);
                 var dueBySize = writtenSinceSeal >= SizeCheckpointBytes;
