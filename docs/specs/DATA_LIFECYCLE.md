@@ -490,3 +490,19 @@ Status: Owner-approved requirement; implementation deferred.
 - Agent keeps pending sealed bundles oldest-first with backoff; Drive-confirmed bundles may prune their covered local diagnostic range. Firestore fallback staging alone cannot prune.
 - Web server-side buffer/archive remains authoritative for Web; local-file prune is not applicable.
 - Session-end logout is a session/logout log type, not a scheduled log type.
+
+## D161 pre-acceptance migration and rescue safety
+
+Status: Owner-approved execution rule.
+
+Until D161 Owner field acceptance:
+- schema evolution must prefer additive columns/tables/indexes/config records and backward-compatible API/state transitions;
+- existing Safety Baseline fields/tables/contracts required by pre-D161 clients must not be destructively dropped or renamed;
+- existing history/audit/session/report records must not be destructively rewritten solely to simplify D161;
+- a D161 rescue may leave newer additive schema/data present while returning runtime behavior to the Safety Baseline;
+- SQLite schema downgrade is not a normal rollback mechanism;
+- any truly destructive migration that cannot preserve a verified rescue path is a fail-closed Owner decision point before execution.
+
+The D161 safety manifest stores metadata/hashes/references only. It must never contain credentials, Firebase tokens, WMS/session material, OAuth refresh tokens, signing keys, passwords or sensitive user/business payloads.
+
+Existing archive/retention authority remains unchanged; Phase 0 does not create an alternate business-data store or offline transaction path.
