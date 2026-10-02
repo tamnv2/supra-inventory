@@ -2118,8 +2118,6 @@ namespace SupraInventoryRelayAgent
         }
 
         private void RefreshD128Overlay()
-
-        private void RefreshD128Overlay()
         {
             var overlay = _d128Overlay;
             if (overlay == null || overlay.IsDisposed) return;
