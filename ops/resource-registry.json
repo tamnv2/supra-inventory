@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D159_ACCEPTED_BASE__D160_OWNER_FIELD_REPAIR_V96_IN_PROGRESS__ANDROID_VC92",
+      "status": "D159_ACCEPTED_BASE__D160_OWNER_FIELD_NOT_PASS__REPAIR_V96_IN_PROGRESS__ANDROID_VC92",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
