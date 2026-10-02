@@ -174,7 +174,7 @@ namespace SupraInventoryRelayAgent
                 Font = new Font("Segoe UI Semibold", 16F, FontStyle.Bold)
             });
             _d160UsageStatus.SetBounds(6, 40, 760, 28);
-            _d160UsageStatus.Text = "Tự cập nhật mỗi 15 phút · Cloud Monitoring read-only · 0 Firestore document op cho Usage.";
+            _d160UsageStatus.Text = "Tự cập nhật theo mốc 00 / 15 / 30 / 45 · Cloud Monitoring read-only · 0 Firestore document op cho Usage.";
             _d160UsageStatus.ForeColor = Color.FromArgb(71, 85, 105);
             header.Controls.Add(_d160UsageStatus);
             _d160UsageUpdated.SetBounds(770, 6, 250, 42);
@@ -261,14 +261,19 @@ namespace SupraInventoryRelayAgent
             host.Controls.Add(_d160UsageGrid);
             root.Controls.Add(host,0,2);
 
-            D160UsageSet("auto","15 phút/lần");
+            D160UsageSet("auto","Mốc 00 / 15 / 30 / 45");
             D160UsageSet("cache","Dùng chung tối đa 15 phút");
             D160UsageSet("extra","0 Read / 0 Write / 0 Delete");
             D160UsageSet("delay","Monitoring có thể trễ vài–30 phút");
             D160UsageSet("visibility","Chỉ tamnv2 / admin");
 
-            _d160UsageTimer.Interval = 15 * 60 * 1000;
-            _d160UsageTimer.Tick += async (s,e) => await RefreshD160UsageAsync(false);
+            _d160UsageTimer.Tick += async (s,e) =>
+            {
+                _d160UsageTimer.Stop();
+                await RefreshD160UsageAsync(false);
+                ScheduleD160UsageQuarterHour();
+                if (D160UsageAllowedForCurrentSession()) _d160UsageTimer.Start();
+            };
         }
 
         private GroupBox D160UsageGroup(string title, Tuple<string,string>[] rows)
@@ -300,10 +305,21 @@ namespace SupraInventoryRelayAgent
         private void StartD160Usage()
         {
             if (!D160UsageAllowedForCurrentSession()) return;
+            ScheduleD160UsageQuarterHour();
             _d160UsageTimer.Start();
-            if (_d160UsageLastRefreshUtc == DateTime.MinValue ||
-                DateTime.UtcNow - _d160UsageLastRefreshUtc >= TimeSpan.FromMinutes(14))
-                _ = RefreshD160UsageAsync(false);
+        }
+
+        private void ScheduleD160UsageQuarterHour()
+        {
+            var now = DateTime.Now;
+            var nextMinute = ((now.Minute / 15) + 1) * 15;
+            var next = nextMinute >= 60
+                ? new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, now.Kind).AddHours(1)
+                : new DateTime(now.Year, now.Month, now.Day, now.Hour, nextMinute, 0, now.Kind);
+            var delay = next - now;
+            var ms = (int)Math.Max(1000D, Math.Min(int.MaxValue, delay.TotalMilliseconds));
+            _d160UsageTimer.Interval = ms;
+            _d160UsageUpdated.Text = "Tự cập nhật lúc " + next.ToString("HH:mm");
         }
 
         private void StopD160Usage()
