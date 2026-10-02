@@ -831,3 +831,14 @@ D161 approved architecture, implementation deferred:
 - A >1-new-Picker diff or other configured confirmation threshold creates a pending HR batch and a realtime Web notification; the pending diff is not applied until authorized confirmation.
 - Hard-block source failures produce a visible operational warning and preserve existing authoritative users.
 - Any required provider watch permission/resource representation must be reconciled into project scope/registry before implementation mutation.
+
+## D161 global support-log control signal addendum
+
+Status: Owner-approved requirement; implementation deferred.
+
+- Global support-log collection is an exceptional operator-triggered control signal, not a polling feature.
+- The control carries `request_id`, issued time and short expiry. Every client dedupes by request-id and ignores expired requests.
+- Agent initiation must work from the Office network through the existing Google/Firebase-capable control plane. Agent fleet should reuse an existing listener where safe.
+- Web/Android delivery must reuse existing realtime/FCM infrastructure or one bounded server fanout; do not add a client Firestore polling loop.
+- If implementation requires an additional exact Firebase server trigger/resource, reconcile project scope/resource registry before provider mutation.
+- Android responders jitter upload start across a bounded 0–30 second window for large fleets. There is no per-device Firestore acknowledgement write.
