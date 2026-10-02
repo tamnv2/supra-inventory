@@ -963,20 +963,14 @@ namespace SupraInventoryRelayAgent
                     return true;
                 }
 
-                if (string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase))
-                {
-                    _confirmReloadIssued = true;
-                    _confirmReloadIssuedAtUtc = now;
-                    _confirmReloadStableSinceUtc = DateTime.MinValue;
-                    _log("SUPRA_BROWSER confirm_reload=MANUAL_OR_EXISTING_RELOAD observed_after_settle=true");
-                }
-                else
-                {
-                    IssueConfirmReloadNowNoLock("final_confirm_settled");
-                    state.Ready = false;
-                    state.State = "CONFIRM_REFRESHING";
-                    return true;
-                }
+                // D160 field repair: navigationType=reload may describe a reload
+                // that happened before this Agent process attached to an already-open
+                // browser. Never treat that stale NavigationTiming value as current
+                // session proof. Issue one real Page.reload after the settle barrier.
+                IssueConfirmReloadNowNoLock("final_confirm_settled_current_agent");
+                state.Ready = false;
+                state.State = "CONFIRM_REFRESHING";
+                return true;
             }
 
             var realReload = string.Equals(state.NavigationType, "reload", StringComparison.OrdinalIgnoreCase);
