@@ -80,7 +80,7 @@ namespace SupraInventoryRelayAgent
                 ForeColor = Color.DimGray
             });
             _d160LogStatus.SetBounds(18, 94, 650, 42);
-            _d160LogStatus.Text = _agentLogBridge.GetStatusSummary() + " · bảo hiểm gửi lúc 21:45.";
+            RefreshD160LogStatus();
             _d160LogStatus.ForeColor = Color.FromArgb(88, 104, 115);
             card.Controls.Add(_d160LogStatus);
 
@@ -92,8 +92,7 @@ namespace SupraInventoryRelayAgent
                 System.Threading.Tasks.Task.Run(() =>
                 {
                     _agentLogBridge.TryQueueManualSnapshot();
-                    Ui(() => _d160LogStatus.Text = _agentLogBridge.GetStatusSummary() +
-                        " · Nếu còn gói chờ, Agent sẽ tự gửi lại khi mạng sẵn sàng.");
+                    Ui(RefreshD160LogStatus);
                 });
             };
             card.Controls.Add(_d160SendLogs);
@@ -105,6 +104,13 @@ namespace SupraInventoryRelayAgent
             _connectionPage.Controls.Add(card);
         }
 
+        internal void RefreshD160LogStatus()
+        {
+            if (_d160LogStatus.IsDisposed) return;
+            _d160LogStatus.Text = _agentLogBridge.GetStatusSummary() +
+                " · bảo hiểm 21:45 · xóa phần log cục bộ chỉ sau khi Drive xác nhận thành công.";
+        }
+
         private void InitializeD160HistoryUi()
         {
             _d160HistoryPage.BackColor = Color.FromArgb(243, 246, 248);
@@ -113,7 +119,7 @@ namespace SupraInventoryRelayAgent
 
             _d160HistoryStatus.Dock = DockStyle.Top;
             _d160HistoryStatus.Height = 42;
-            _d160HistoryStatus.Text = "Lịch sử trong ca vận hành 05:00–04:59 · cập nhật trực tiếp từ pipeline Agent, không tạo listener/poll Firestore riêng.";
+            _d160HistoryStatus.Text = "Lịch sử 05:00–04:59 · đồng bộ cùng agent_sync hiện hữu, không thêm listener/poll/write riêng.";
             _d160HistoryStatus.ForeColor = Color.FromArgb(71, 85, 105);
             root.Controls.Add(_d160HistoryStatus);
 
@@ -389,7 +395,7 @@ namespace SupraInventoryRelayAgent
                 foreach (var row in rows) RenderD160HistoryRow(row);
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
-                    " request · reset lúc 05:00 · UI cục bộ, không thêm Firestore usage.";
+                    " request · reset lúc 05:00 · đồng bộ cùng agent_sync, không thêm provider operation riêng.";
             });
             CleanupD160OldHistoryFiles(dayKey);
         }
@@ -436,7 +442,7 @@ namespace SupraInventoryRelayAgent
             lock (_d160HistoryGate) count = _d160History.Count;
             _d160HistoryStatus.Text =
                 "Ngày vận hành " + _d160HistoryDayKey + " · " + count.ToString("N0") +
-                " request · reset lúc 05:00 · UI cục bộ, không thêm Firestore usage.";
+                " request · reset lúc 05:00 · đồng bộ cùng agent_sync, không thêm provider operation riêng.";
         }
 
         private void AppendD160HistoryEvent(D160PickerHistoryRow row)
