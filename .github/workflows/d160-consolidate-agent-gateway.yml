@@ -334,6 +334,18 @@ jobs:
           rm -f "$work/usage-request.json"
           [ "$http" = "200" ] || fail "authenticated-usage-http"
 
+          usage_summary="$(jq -c '{
+            ok:(.ok // false),
+            service:(.service // ""),
+            project:(.project // ""),
+            revision:(.revision // ""),
+            error:(.error // ""),
+            partial:(.partial // null),
+            reads:(.availability.reads // null),
+            errors:((.errors // []) | map(tostring | .[0:160]))
+          }' "$work/usage-response.json" 2>/dev/null || echo '{"ok":false,"error":"INVALID_JSON"}')"
+          echo "D160_USAGE_SAFE_SUMMARY $usage_summary"
+
           jq -e '
             .ok == true and
             .service == "SUPRA_AGENT_OPERATIONS_USAGE_D160" and
