@@ -89,9 +89,9 @@ jobs:
           $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
           $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
 
-          if ($config -notmatch 'AgentBuild\s*=\s*95\s*;') { throw "D160 requires Agent v95 while Android remains hard-locked at beta-vc92." }
-          if ($project -notmatch '<AssemblyVersion>0\.95\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.95\.0\.0</FileVersion>') {
-            throw "D160 Agent assembly/file version must be 0.95."
+          if ($config -notmatch 'AgentBuild\s*=\s*96\s*;') { throw "D160 repair requires Agent v96 while Android remains hard-locked at beta-vc92." }
+          if ($project -notmatch '<AssemblyVersion>0\.96\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.96\.0\.0</FileVersion>') {
+            throw "D160 repair Agent assembly/file version must be 0.96."
           }
           foreach ($marker in @(
             'ConfirmManyExact',
@@ -114,11 +114,26 @@ jobs:
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "D160 mixed-batch pipeline guard missing: $marker" }
           }
-          foreach ($marker in @('Lịch sử Picker xác nhận PickList','reset lúc 05:00','không thêm Firestore usage','Gửi Logs')) {
-            if (-not $d160Ui.Contains($marker)) { throw "D160 history/log UI guard missing: $marker" }
+          foreach ($marker in @('Lịch sử Picker xác nhận PickList','reset lúc 05:00','Gửi Logs','Nhập sai','Bị khóa','NewCard(22, 510, 1040, 190)','không thêm provider operation riêng')) {
+            if (-not $d160Ui.Contains($marker)) { throw "D160 repair history/log UI guard missing: $marker" }
           }
-          foreach ($marker in @('tamnv2','admin','15 * 60 * 1000','get_firestore_usage','D160UsageAllowedForCurrentSession')) {
-            if (-not $d160Usage.Contains($marker) -and -not $d160Ui.Contains($marker)) { throw "D160 restricted Usage guard missing: $marker" }
+          foreach ($marker in @('tamnv2','admin','00 / 15 / 30 / 45','ScheduleD160UsageQuarterHour','get_firestore_usage','D160UsageAllowedForCurrentSession')) {
+            if (-not $d160Usage.Contains($marker) -and -not $d160Ui.Contains($marker)) { throw "D160 repair restricted Usage clock guard missing: $marker" }
+          }
+          foreach ($marker in @('SAFETY_2145','TryQueueBoundarySnapshot','local_prune=PASS_AFTER_DRIVE_CONFIRM','agent-log-last-drive-success.txt')) {
+            if (-not $agentLogBridge.Contains($marker)) { throw "D160 repair log lifecycle guard missing: $marker" }
+          }
+          foreach ($marker in @('OVERTIME_DECISION_','OVERTIME_CANCEL','PruneUploadedThrough')) {
+            if (-not $program.Contains($marker)) { throw "D160 repair overtime/local-log guard missing: $marker" }
+          }
+          foreach ($marker in @('history_json','history_business_day','MaxHistoryRows = 1500','MergeLocalHistory')) {
+            if (-not $sync.Contains($marker)) { throw "D160 repair quota-neutral history sync guard missing: $marker" }
+          }
+          if ($sync.Substring($sync.IndexOf('private string SerializeMutableState'), $sync.IndexOf('private Dictionary<string, object> SerializeFields') - $sync.IndexOf('private string SerializeMutableState')).Contains('history_json')) {
+            throw "D160 history must not create provider writes by changing agent_sync write-decision state."
+          }
+          foreach ($marker in @('confirm_data_hydration=RECOVERY_F5','dataHydrated','PicklistCodeCount')) {
+            if (-not $browser.Contains($marker)) { throw "D160 repair WMS hydration readiness guard missing: $marker" }
           }
           if (-not $d160Resilience.Contains('D160_401_AFTER_REFRESH') -or
               -not $d160Resilience.Contains('ForceRefreshAgentTokenD160') -or
