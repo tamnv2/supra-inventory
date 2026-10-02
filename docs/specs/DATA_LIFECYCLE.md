@@ -465,3 +465,10 @@ D158 does not change Android logging. Windows Agent retains `technical-ai.log` a
 - The existing longer-retention cleanup remains as a safety net for stragglers/guards. D160 daily purge is not allowed to delete active confirmation guards required for uncertain post-click safety.
 - D160 Usage monitoring uses Cloud Monitoring through the consolidated Apps Script gateway and produces zero Firestore document Read/Write/Delete operations. Provider/cache/auth overhead is separate from business document quota.
 
+### D160 v96 Agent log/history lifecycle repair
+
+- The 21:45 safety boundary is a once-per-local-date durable seal marker. If an older pending bundle is successfully retried at 21:45, that success does **not** suppress sealing the newer delta up to the 21:45 boundary.
+- Overtime CONTINUE/STOP/CANCEL events seal the delta after the schedule decision has been accepted. Offline/network failure leaves the deterministic bundle under the existing local pending directory for bounded retry.
+- The consolidated Apps Script response `ok=true` is accepted as Drive persistence proof because it is returned only after the target Drive file already exists or is created. Only on that proof may Agent prune local log lines whose timestamps are strictly before the uploaded bundle boundary. Firestore fallback acceptance alone never authorizes local-log pruning.
+- Picker-history fleet sharing adds compact current-day history fields to the existing `agent_sync` document. The in-memory history cache is excluded from the agent_sync write-decision signature, so history-only changes cannot create a provider write. Existing agent_sync core writes carry the latest bounded history opportunistically.
+- History payload is bounded and deduplicated by request id. It is supporting UI continuity, not a business mutation authority or offline outbox.
