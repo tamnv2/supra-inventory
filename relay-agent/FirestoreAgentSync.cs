@@ -69,6 +69,7 @@ namespace SupraInventoryRelayAgent
     internal sealed class FirestoreAgentSyncClient
     {
         internal const int MaxAgents = 10;
+        internal const int MaxHistoryRows = 1500;
         internal static readonly TimeSpan ReconcileInterval = TimeSpan.FromMinutes(5);
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly Action<string> _log;
@@ -684,6 +685,133 @@ namespace SupraInventoryRelayAgent
                     { "wms_ready", item.WmsReady }, { "heartbeat_at_ms", item.HeartbeatAtMs }
                 });
             return _json.Serialize(list);
+        }
+
+        private string SerializeHistory(List<AgentSyncHistoryRow> items)
+        {
+            var list = new List<object>();
+            foreach (var item in (items ?? new List<AgentSyncHistoryRow>())
+                .Where(row => row != null && !string.IsNullOrWhiteSpace(row.RequestId))
+                .OrderBy(row => row.SentAtMs)
+                .ThenBy(row => row.RequestId, StringComparer.Ordinal)
+                .Take(MaxHistoryRows))
+            {
+                list.Add(new Dictionary<string, object> {
+                    { "r", HistoryText(item.RequestId, 80) },
+                    { "t", Math.Max(0L, item.SentAtMs) },
+                    { "u", HistoryText(item.UserId, 96) },
+                    { "e", HistoryText(item.EmployeeCode, 32) },
+                    { "n", HistoryText(item.DisplayName, 96) },
+                    { "c", HistoryText(item.ContractorName, 96) },
+                    { "i", HistoryText(item.InputText, 24) },
+                    { "o", HistoryText(item.Result, 64) },
+                    { "p", HistoryText(item.FullPickList, 40) },
+                    { "m", Math.Max(0L, item.OperationMs) },
+                    { "w", Math.Max(0, item.WrongCount) },
+                    { "k", Math.Max(0, item.LockCount) },
+                    { "l", Math.Max(0L, item.LockedUntilMs) }
+                });
+            }
+            return _json.Serialize(list);
+        }
+
+        private static List<AgentSyncHistoryRow> ParseHistory(string raw)
+        {
+            var result = new List<AgentSyncHistoryRow>();
+            foreach (var map in JsonList(raw))
+            {
+                var requestId = S(map, "r");
+                if (string.IsNullOrWhiteSpace(requestId)) continue;
+                result.Add(new AgentSyncHistoryRow {
+                    RequestId = requestId,
+                    SentAtMs = L(map, "t"),
+                    UserId = S(map, "u"),
+                    EmployeeCode = S(map, "e"),
+                    DisplayName = S(map, "n"),
+                    ContractorName = S(map, "c"),
+                    InputText = S(map, "i"),
+                    Result = S(map, "o"),
+                    FullPickList = S(map, "p"),
+                    OperationMs = L(map, "m"),
+                    WrongCount = (int)Math.Max(0L, L(map, "w")),
+                    LockCount = (int)Math.Max(0L, L(map, "k")),
+                    LockedUntilMs = Math.Max(0L, L(map, "l"))
+                });
+                if (result.Count >= MaxHistoryRows) break;
+            }
+            return result;
+        }
+
+        private static List<AgentSyncHistoryRow> CloneHistory(IEnumerable<AgentSyncHistoryRow> source)
+        {
+            return MergeHistoryRows(new AgentSyncHistoryRow[0], source);
+        }
+
+        private static List<AgentSyncHistoryRow> MergeHistoryRows(
+            IEnumerable<AgentSyncHistoryRow> existing,
+            IEnumerable<AgentSyncHistoryRow> incoming)
+        {
+            var map = new Dictionary<string, AgentSyncHistoryRow>(StringComparer.Ordinal);
+            foreach (var item in (existing ?? new AgentSyncHistoryRow[0]).Concat(incoming ?? new AgentSyncHistoryRow[0]))
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.RequestId)) continue;
+                AgentSyncHistoryRow current;
+                if (!map.TryGetValue(item.RequestId, out current))
+                {
+                    map[item.RequestId] = CloneHistoryRow(item);
+                    continue;
+                }
+                MergeHistoryRow(current, item);
+            }
+            return map.Values
+                .OrderByDescending(item => item.SentAtMs)
+                .ThenBy(item => item.RequestId, StringComparer.Ordinal)
+                .Take(MaxHistoryRows)
+                .OrderBy(item => item.SentAtMs)
+                .ThenBy(item => item.RequestId, StringComparer.Ordinal)
+                .ToList();
+        }
+
+        private static AgentSyncHistoryRow CloneHistoryRow(AgentSyncHistoryRow item)
+        {
+            return new AgentSyncHistoryRow {
+                RequestId = item.RequestId ?? "",
+                SentAtMs = Math.Max(0L, item.SentAtMs),
+                UserId = item.UserId ?? "",
+                EmployeeCode = item.EmployeeCode ?? "",
+                DisplayName = item.DisplayName ?? "",
+                ContractorName = item.ContractorName ?? "",
+                InputText = item.InputText ?? "",
+                Result = item.Result ?? "",
+                FullPickList = item.FullPickList ?? "",
+                OperationMs = Math.Max(0L, item.OperationMs),
+                WrongCount = Math.Max(0, item.WrongCount),
+                LockCount = Math.Max(0, item.LockCount),
+                LockedUntilMs = Math.Max(0L, item.LockedUntilMs)
+            };
+        }
+
+        private static void MergeHistoryRow(AgentSyncHistoryRow target, AgentSyncHistoryRow next)
+        {
+            if (next.SentAtMs > 0) target.SentAtMs = next.SentAtMs;
+            if (!string.IsNullOrWhiteSpace(next.UserId)) target.UserId = next.UserId;
+            if (!string.IsNullOrWhiteSpace(next.EmployeeCode)) target.EmployeeCode = next.EmployeeCode;
+            if (!string.IsNullOrWhiteSpace(next.DisplayName)) target.DisplayName = next.DisplayName;
+            if (!string.IsNullOrWhiteSpace(next.ContractorName)) target.ContractorName = next.ContractorName;
+            if (!string.IsNullOrWhiteSpace(next.InputText)) target.InputText = next.InputText;
+            if (!string.IsNullOrWhiteSpace(next.Result)) target.Result = next.Result;
+            if (!string.IsNullOrWhiteSpace(next.FullPickList)) target.FullPickList = next.FullPickList;
+            if (next.OperationMs > 0) target.OperationMs = next.OperationMs;
+            target.WrongCount = Math.Max(target.WrongCount, Math.Max(0, next.WrongCount));
+            target.LockCount = Math.Max(target.LockCount, Math.Max(0, next.LockCount));
+            target.LockedUntilMs = Math.Max(target.LockedUntilMs, Math.Max(0L, next.LockedUntilMs));
+        }
+
+        private static string HistoryText(string value, int max)
+        {
+            var next = value ?? "";
+            if (max <= 0 || next.Length <= max) return next;
+            return next.Substring(0, max);
         }
 
         private static List<PickerPresenceView> ParsePickers(string raw)
