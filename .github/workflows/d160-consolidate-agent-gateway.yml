@@ -31,6 +31,7 @@ jobs:
           grep -Fq "SUPRA_AGENT_OPERATIONS_GATEWAY_D160" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "SUPRA_AGENT_OPERATIONS_USAGE_D160" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "get_firestore_usage" ops/apps-script/agent-log-gateway/Code.gs
+          grep -Fq "authorizeD160Monitoring" ops/apps-script/agent-log-gateway/Code.gs
           grep -Fq "upload_agent_log" ops/apps-script/agent-log-gateway/Code.gs
           jq -e '.oauthScopes | index("https://www.googleapis.com/auth/monitoring.read") != null' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null
           jq -e '.oauthScopes | index("https://www.googleapis.com/auth/drive") != null' ops/apps-script/agent-log-gateway/appsscript.json >/dev/null

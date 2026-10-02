@@ -4542,14 +4542,17 @@
         "monitoring_failure": "RUN_36946539253__ALL_METRIC_FAMILIES__OAUTH_SCOPE_INSUFFICIENT",
         "d159_safety": "STANDALONE_D159_GATEWAY_RETAINED__RETIRE_STEP_NOT_REACHED",
         "runtime_safety": "ACCEPTED_AGENT_V94__ANDROID_BETA_VC92_UNCHANGED",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "helper": "authorizeD160Monitoring"
       },
       "shortest_action": [
         "Open Google Apps Script and open the existing project named SUPRA Inventory Beta - Agent Operations Gateway.",
-        "In the editor function selector choose doGet, then click Run. No source edit is required.",
+        "In the editor function selector choose authorizeD160Monitoring, then click Run.",
         "When Google shows Authorization required / Review permissions, use the same Google account that owns/deployed this script and approve the requested permissions, including read-only Cloud Monitoring access.",
+        "If the editor does not automatically continue after consent, run authorizeD160Monitoring one more time.",
+        "The function must finish without a red error; expected return/result is D160_MONITORING_AUTH_PASS.",
         "Do not change Script Properties, source code, deployment URL or deployment settings, and do not paste any token/credential into chat.",
-        "After doGet finishes successfully, tell AI exactly: D160 Monitoring consent xong."
+        "Then tell AI exactly: D160 Monitoring consent xong."
       ],
       "pass_criteria": [
         "Rerun of the existing D160 provider migration returns D160_UNIFIED_GATEWAY_IDENTITY=PASS and D160_AUTHENTICATED_USAGE_POST=PASS.",
@@ -4568,7 +4571,7 @@
         "affected_metric_families": "reads,writes,deletes,connections,listeners,rules,storage,fcm_requests,identity_requests,secure_token_requests,function_requests,function_instances,function_billable_time",
         "d159_retired": false
       },
-      "remaining_owner_action": "Grant only the requested Monitoring OAuth consent in the existing Agent Operations Gateway project, then report D160 Monitoring consent xong.",
+      "remaining_owner_action": "Run authorizeD160Monitoring once in the existing Agent Operations Gateway Apps Script editor, approve monitoring.read, then report D160 Monitoring consent xong.",
       "closed": false
     }
   ]
