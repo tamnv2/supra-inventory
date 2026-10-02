@@ -235,7 +235,7 @@ jobs:
           # service-account secret to mint one short-lived ADMIN custom token, exchange
           # it for a Firebase ID token, call get_firestore_usage, then delete the
           # temporary Auth user. No token is printed or persisted outside this job.
-          npm ci --prefix "$GITHUB_WORKSPACE/functions" --omit=dev >/dev/null 2>&1 || fail "firebase-admin-install"
+          npm install --prefix "$GITHUB_WORKSPACE/functions" --omit=dev --no-package-lock --no-audit --no-fund >/dev/null 2>&1 || fail "firebase-admin-install"
           cat > "$work/firebase-canary.js" <<'NODE'
           const fs = require('fs');
           const path = require('path');
