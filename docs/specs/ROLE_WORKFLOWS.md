@@ -863,3 +863,11 @@ D158 is Windows-Agent-only; beta-vc92 remains unchanged.
 - `Lịch sử Picker xác nhận PickList` is a local projection of already-received request/outcome data plus already-held Picker metadata. It does not add a Firestore listener, poll, read, write or collection.
 - History day boundary is 05:00 Asia/Ho_Chi_Minh and displays time, MNV/user, name, contractor, sent text, result, resolved full PickList and processing time.
 
+### D160 v96 field-repair workflow
+
+- Agent WMS readiness is fail-closed until the post-arrival real reload has both the accepted Confirm DOM and at least one hydrated `PL...` data row. A shell-only table is not READY; one bounded recovery F5 is allowed before remaining unavailable.
+- Exact-row checkbox evaluation ignores hidden/template checkbox controls. Foreign-selection protection still blocks any visibly checked different PickList row, but header/non-PickList checkboxes are not foreign business selections.
+- Logs use the existing gateway only. At/after 21:45, one durable safety delta is sealed for that date when the 21:45 boundary has not already been covered. Successful overtime CONTINUE, STOP or CANCEL decisions trigger another delta seal. Confirmed Drive upload prunes only the local lines already covered by that uploaded bundle.
+- Usage auto-refresh is aligned to `:00 / :15 / :30 / :45` local time. Manual refresh remains available; non-allowlisted accounts still have no tab/timer/gateway call.
+- Picker history is merged fleet-wide through the existing agent_sync snapshot. Local history updates only modify the in-memory agent_sync cache; history is serialized when an existing core agent_sync mutation already requires a write. History-only change must remain `write=SKIP_NO_CHANGE`.
+- The history table additionally shows cumulative counted-wrong requests and lock count for the current 05:00 business day, including active lock-until time. No extra anti-spam read/write is performed for presentation.
