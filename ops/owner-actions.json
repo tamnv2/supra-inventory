@@ -4526,6 +4526,50 @@
       ],
       "remaining_owner_action": "Wait for D160 technical/runtime release evidence, then perform the shortest field test above and explicitly report PASS/NOT PASS.",
       "closed": false
+    },
+    {
+      "id": "OA091",
+      "status": "ACTION_REQUIRED",
+      "title": "Grant Cloud Monitoring OAuth consent to the consolidated D160 Agent Operations Gateway",
+      "resource_key": "apps-script-agent-log-gateway-beta-d158",
+      "provider": "Google Apps Script / Google OAuth / Cloud Monitoring",
+      "reason_owner_only": "Automated D160 provider run 36946539253 proved the existing Apps Script Web App identity, Firebase custom-token exchange and protected Usage endpoint are working, but every Cloud Monitoring metric returned OAUTH_SCOPE_INSUFFICIENT from the deployment-owner ScriptApp OAuth token. The manifest already requests monitoring.read; only the Google account that owns/deploys this Apps Script can grant the newly requested OAuth consent. Available connected tools cannot approve OAuth consent on the Owner's behalf.",
+      "prerequisites": {
+        "accepted_base": "D159_OWNER_FIELD_ACCEPTED_PASS",
+        "d160_owner_approval": "PASS__2026_10_02",
+        "gateway_identity": "PASS__SUPRA_AGENT_OPERATIONS_GATEWAY_D160",
+        "authenticated_usage_service": "PASS__SUPRA_AGENT_OPERATIONS_USAGE_D160__D160_GW_V1",
+        "monitoring_failure": "RUN_36946539253__ALL_METRIC_FAMILIES__OAUTH_SCOPE_INSUFFICIENT",
+        "d159_safety": "STANDALONE_D159_GATEWAY_RETAINED__RETIRE_STEP_NOT_REACHED",
+        "runtime_safety": "ACCEPTED_AGENT_V94__ANDROID_BETA_VC92_UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action": [
+        "Open Google Apps Script and open the existing project named SUPRA Inventory Beta - Agent Operations Gateway.",
+        "In the editor function selector choose doGet, then click Run. No source edit is required.",
+        "When Google shows Authorization required / Review permissions, use the same Google account that owns/deployed this script and approve the requested permissions, including read-only Cloud Monitoring access.",
+        "Do not change Script Properties, source code, deployment URL or deployment settings, and do not paste any token/credential into chat.",
+        "After doGet finishes successfully, tell AI exactly: D160 Monitoring consent xong."
+      ],
+      "pass_criteria": [
+        "Rerun of the existing D160 provider migration returns D160_UNIFIED_GATEWAY_IDENTITY=PASS and D160_AUTHENTICATED_USAGE_POST=PASS.",
+        "Cloud Monitoring availability.reads is true and the response contains no OAUTH_SCOPE_INSUFFICIENT / Monitoring 403 authorization error.",
+        "Only after the authenticated Monitoring proof passes, the redundant standalone D159 Apps Script is retired and cleanup verifies it is gone.",
+        "Agent v95 is then released through the normal Agent channel; Android beta-vc92 remains unchanged and Stable remains untouched."
+      ],
+      "evidence": {
+        "workflow_run": 36946539253,
+        "control_plane": "PASS",
+        "gateway_identity": "PASS",
+        "firebase_custom_token_exchange": "PASS",
+        "usage_service_identity": "PASS",
+        "usage_partial": true,
+        "cloud_monitoring_error": "OAUTH_SCOPE_INSUFFICIENT",
+        "affected_metric_families": "reads,writes,deletes,connections,listeners,rules,storage,fcm_requests,identity_requests,secure_token_requests,function_requests,function_instances,function_billable_time",
+        "d159_retired": false
+      },
+      "remaining_owner_action": "Grant only the requested Monitoring OAuth consent in the existing Agent Operations Gateway project, then report D160 Monitoring consent xong.",
+      "closed": false
     }
   ]
 }
