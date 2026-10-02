@@ -446,6 +446,8 @@ namespace SupraInventoryRelayAgent
             snapshot.Calls = ParseCalls(FieldString(fields, "calls_json"));
             snapshot.Kicks = ParseKicks(FieldString(fields, "kicks_json"));
             snapshot.Fleet = ParseFleet(FieldString(fields, "fleet_json"));
+            snapshot.HistoryDayKey = FieldString(fields, "history_business_day");
+            snapshot.History = ParseHistory(FieldString(fields, "history_json"));
             Normalize(snapshot);
             return snapshot;
         }
@@ -482,6 +484,8 @@ namespace SupraInventoryRelayAgent
                 { "calls_json", StringField(SerializeCalls(snapshot.Calls)) },
                 { "kicks_json", StringField(SerializeKicks(snapshot.Kicks)) },
                 { "fleet_json", StringField(SerializeFleet(snapshot.Fleet)) },
+                { "history_business_day", StringField(snapshot.HistoryDayKey ?? "") },
+                { "history_json", StringField(SerializeHistory(snapshot.History)) },
                 { "counter_business_day", StringField(snapshot.CounterDayKey ?? "") },
                 { "received_total", IntField(snapshot.ReceivedTotal) },
                 { "confirmed_total", IntField(snapshot.ConfirmedTotal) },
@@ -496,6 +500,8 @@ namespace SupraInventoryRelayAgent
             if (snapshot.Calls == null) snapshot.Calls = new Dictionary<string, PickerCallLockView>(StringComparer.Ordinal);
             if (snapshot.Kicks == null) snapshot.Kicks = new Dictionary<string, PickerKickView>(StringComparer.Ordinal);
             if (snapshot.Fleet == null) snapshot.Fleet = new List<AgentPresenceView>();
+            if (snapshot.History == null) snapshot.History = new List<AgentSyncHistoryRow>();
+            snapshot.History = MergeHistoryRows(new AgentSyncHistoryRow[0], snapshot.History);
             var now = NowMs();
             foreach (var picker in snapshot.Pickers)
             {
@@ -539,7 +545,9 @@ namespace SupraInventoryRelayAgent
                 Fleet = CloneFleet(source.Fleet),
                 ReceivedTotal = Math.Max(0L, source.ReceivedTotal),
                 ConfirmedTotal = Math.Max(0L, source.ConfirmedTotal),
-                ErrorTotal = Math.Max(0L, source.ErrorTotal)
+                ErrorTotal = Math.Max(0L, source.ErrorTotal),
+                HistoryDayKey = source.HistoryDayKey ?? "",
+                History = CloneHistory(source.History)
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
             {
