@@ -23,6 +23,7 @@ namespace SupraInventoryRelayAgent
         private readonly string _checkpointFile;
         private readonly string _pendingDir;
         private readonly string _cleanExitFile;
+        private readonly string _lastSuccessFile;
         private readonly Action<string> _log;
         private readonly object _sealGate = new object();
         private readonly object _errorGate = new object();
@@ -63,6 +64,7 @@ namespace SupraInventoryRelayAgent
             if (string.IsNullOrWhiteSpace(root)) root = AppDomain.CurrentDomain.BaseDirectory;
             _pendingDir = Path.Combine(root, "agent-log-pending");
             _cleanExitFile = Path.Combine(root, "agent-log-clean-exit.marker");
+            _lastSuccessFile = Path.Combine(root, "agent-log-last-drive-success.txt");
             try { Directory.CreateDirectory(_pendingDir); } catch { }
             if (ReadCheckpoint() == DateTime.MinValue) WriteCheckpoint(FloorToLogMillisecond(_processStartedLocal));
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
