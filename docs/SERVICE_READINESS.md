@@ -1654,3 +1654,10 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Newly approved Agent UI target: atomic/batched History/Usage rendering with no visible wave; History resets to full `SentAtMs` newest-first order on every tab re-entry.
 - Newly approved shared schedule target: D161 changes normal replay end to **22:15**, removes pre-end Continue/Stop confirmation, uses SLEEP red/white UI with +1h shared extensions, one T-15 expiry warning and automatic sleep when no extension occurs; 05:00 cutoff and 05:00–05:45 early-start model remain inherited.
 - No code/build/release/deploy/provider mutation occurred in this authority update. Stable remains OWNER-GATED.
+
+## D161 shift-display clarification — 2026-10-03
+
+- Business-facing normal shift remains **06:00–22:00**.
+- Replay technical guard remains **05:45–22:15** under the already-approved D161 logic.
+- The 15-minute margins are technical only and must not be presented as the business shift.
+- D161 implementation remains deferred; D160 runtime is unchanged.
