@@ -347,3 +347,12 @@ D161 approved requirement, implementation deferred:
 - Realtime reporting-capability events are convergence accelerators, not a replacement for authoritative login/profile state.
 - HR synchronization of an existing Picker must not alter the capability unless an explicit authorized reporting-capability action does so.
 - Normal runtime-settings reset must not make a one-time migration capable of resetting reporting permission again.
+
+## D161 support-log request RBAC addendum
+
+Status: Owner-approved requirement; implementation deferred.
+
+- The Agent control **Yêu cầu toàn bộ log hệ thống Báo hàng & xác nhận đơn** is restricted to the exact authenticated login names `admin` and `tamnv2`.
+- UI visibility is presentation only. The trusted server/control endpoint must independently resolve the authenticated Agent identity and reject all other logins even if a caller crafts the request.
+- Existing broader ADMIN/PICKPACK_ADMIN authorization for ordinary Agent operations does not implicitly grant this D161 global-log action.
+- Global-log request payloads contain no password, token, refresh token, private key, signing material or raw sensitive credential data.
