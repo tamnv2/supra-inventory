@@ -893,3 +893,11 @@ The repo-managed Agent gateway manifest did not contain a `webapp` resource. Whe
 
 D160 repairs the same existing scoped gateway by explicitly declaring `webapp.access=ANYONE_ANONYMOUS` and `webapp.executeAs=USER_DEPLOYING`. This restores the already-accepted transport model: the endpoint itself is publicly reachable, GET exposes only bounded service identity, and protected POST actions still require a valid Firebase ADMIN/PICKPACK_ADMIN token. The existing URL is retained. D159 remains present until the repaired URL passes both D160 identity and authenticated Monitoring-backed Usage proof.
 
+## D160 v97 overlay/history lifecycle repair — 2026-10-02
+
+Field-log analysis of relay-agent-v96 proved a same-day restart lifecycle defect inherited from the D160 History integration: D128 overlay startup refresh could trigger D160 business-day History loading before the History DataGridView had columns. With existing same-day rows this raised InvalidOperationException, and the shared overlay try/catch then skipped overlay show plus Settings/tray setup. The loaded day key could also suppress later History repaint.
+
+The Owner approved same-D160 repair targeting **relay-agent-v97**. History model loading is now independent from WinForms rendering; already-loaded same-day data is repainted only after History UI readiness. The Bảng nổi Picklist Settings surface is created independently from the overlay form, overlay failures expose staged sanitized diagnostics, one bounded post-UI retry and a manual retry control, and startup-smoke must exercise a non-empty same-day History restart.
+
+The v96 WMS confirmation pipeline is intentionally unchanged. No new provider resource, Firestore collection/read/write/listener/poll cadence or secret is introduced. Android remains **beta-vc92** hard-locked and Stable remains OWNER-GATED. D159 remains the accepted base until explicit Owner D160 PASS.
+
