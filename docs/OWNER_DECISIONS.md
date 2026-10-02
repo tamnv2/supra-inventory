@@ -2808,3 +2808,18 @@ After the Owner reported `D160_MONITORING_AUTH_PASS`, provider verification work
 
 The blocked Agent workflow `36942335324` was rerun and passed, publishing Beta prerelease `relay-agent-v95`. Android remains `beta-vc92`; Stable remains untouched. This is technical/runtime/release evidence only. D159 remains the accepted business base until OA090 field validation ends with explicit Owner D160 PASS.
 
+### D160 Owner-approved field repair — Agent v96 — 2026-10-02
+
+Owner field validation of v95 is **NOT PASS** and remains inside D160. Owner approved the same-change repair target `relay-agent-v96`; D159 stays the accepted base until explicit D160 PASS. Android remains hard-locked at `beta-vc92`; Stable remains untouched.
+
+The approved repair contract is:
+- WMS exact-row checkbox readiness counts only visible/enabled checkbox controls. Hidden/template controls must not make a valid row unselectable. Foreign-selection protection applies only to checked data rows that actually contain a different `PL...` code; header/select-all or non-PickList controls are ignored while a genuinely checked foreign PickList still fails closed.
+- Confirm-page operational READY requires the real F5/reload barrier **and hydrated PickList data**, not only a rendered table shell. A post-reload empty shell receives one bounded real F5 self-heal; if PickList data still does not hydrate, Agent remains unavailable and must not claim WMS-ready.
+- Cài đặt must expose the Logs card below the existing PickList overlay settings, with current local log status plus **Gửi Logs** and **Mở file Logs**.
+- Agent guarantees one bounded 21:45 local safety seal when Drive has not already received the 21:45-or-later delta. A successful overtime CONTINUE/STOP/CANCEL decision triggers another delta seal/upload attempt. Retries reuse durable pending bundles and must not create per-minute duplicate bundles.
+- Only a confirmed Apps Script → Drive upload success may remove already-uploaded local log lines. Newer/unuploaded lines and durable pending bundles are preserved.
+- `Thông tin Usage` automatic refresh aligns to local wall-clock `:00 / :15 / :30 / :45`; it is not “15 minutes since Agent start”. Existing exact-login visibility and shared 15-minute gateway cache remain.
+- Picker confirmation history is synchronized through the **existing** `relay_poc_coordination/agent_sync` payload/listener/reconcile path. History itself may never trigger a new provider write; it is piggybacked only when an already-required agent_sync write occurs, so there is no new listener/read/write/poll cadence.
+- History also shows current-business-day cumulative counted-wrong attempts and lock occurrences, plus active lock-until time when applicable. These values are derived from the already-produced confirmation/rate outcome and the same synced history payload; no additional rate-limit read or provider operation is allowed.
+
+OA090 therefore remains open and moves to v96 retest after technical/release PASS.
