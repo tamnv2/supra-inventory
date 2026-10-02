@@ -24,6 +24,7 @@ namespace SupraInventoryRelayAgent
         private readonly string _pendingDir;
         private readonly string _cleanExitFile;
         private readonly string _lastSuccessFile;
+        private readonly string _safety2145File;
         private readonly Action<string> _log;
         private readonly object _sealGate = new object();
         private readonly object _errorGate = new object();
@@ -65,6 +66,7 @@ namespace SupraInventoryRelayAgent
             _pendingDir = Path.Combine(root, "agent-log-pending");
             _cleanExitFile = Path.Combine(root, "agent-log-clean-exit.marker");
             _lastSuccessFile = Path.Combine(root, "agent-log-last-drive-success.txt");
+            _safety2145File = Path.Combine(root, "agent-log-safety-2145-day.txt");
             try { Directory.CreateDirectory(_pendingDir); } catch { }
             if (ReadCheckpoint() == DateTime.MinValue) WriteCheckpoint(FloorToLogMillisecond(_processStartedLocal));
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
@@ -89,9 +91,12 @@ namespace SupraInventoryRelayAgent
 
                 var safety2145 = now.Date.AddHours(21).AddMinutes(45);
                 var lastDriveSuccess = ReadLastDriveSuccess();
-                var due2145 = now >= safety2145 &&
+                var safetyDay = now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var due2145 = GatewayEnabled() &&
+                              now >= safety2145 &&
                               now < now.Date.AddDays(1) &&
-                              lastDriveSuccess < safety2145;
+                              lastDriveSuccess < safety2145 &&
+                              !string.Equals(ReadSafety2145Day(), safetyDay, StringComparison.Ordinal);
                 var dueByTime = now - checkpoint >= TimeSpan.FromMilliseconds(DirtyCheckpointMs);
                 var writtenSinceSeal = Math.Max(0L, AgentDiagnostics.TotalBytesWritten - _lastSealWrittenBytes);
                 var dueBySize = writtenSinceSeal >= SizeCheckpointBytes;
@@ -100,6 +105,7 @@ namespace SupraInventoryRelayAgent
                 var reason = due2145 ? "SAFETY_2145" :
                              (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H");
                 var path = SealFromCheckpoint("checkpoint", due2145 ? "SAFETY_BOUNDARY=21:45" : "");
+                if (due2145 && !string.IsNullOrWhiteSpace(path)) WriteSafety2145Day(safetyDay);
                 _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
                 if (!string.IsNullOrWhiteSpace(path))
                 {
@@ -452,6 +458,28 @@ namespace SupraInventoryRelayAgent
                 return Directory.GetFiles(_pendingDir, "*.json").Length;
             }
             catch { return 0; }
+        }
+
+        private string ReadSafety2145Day()
+        {
+            try
+            {
+                return string.IsNullOrWhiteSpace(_safety2145File) || !File.Exists(_safety2145File)
+                    ? ""
+                    : File.ReadAllText(_safety2145File, Encoding.ASCII).Trim();
+            }
+            catch { return ""; }
+        }
+
+        private void WriteSafety2145Day(string day)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(_safety2145File);
+                if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(_safety2145File, day ?? "", Encoding.ASCII);
+            }
+            catch { }
         }
 
         private DateTime ReadLastDriveSuccess()
