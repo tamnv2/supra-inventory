@@ -999,3 +999,9 @@ The detail grid keeps 24 hourly rows and uses Vietnamese column labels. The head
 - The History status line states the 05:00 business-day boundary and local/no-extra-provider-cadence behavior.
 - **Thông tin Usage** preserves the accepted D159-v3 Vietnamese-first grouping, hourly detail, truthful N/A behavior and 15-minute refresh. It must not exist for non-allowlisted Agent logins.
 
+### D160 v96 Agent presentation repair
+
+- In **Cài đặt**, vertical order is connectivity → PickList overlay → **Logs**. The Logs card must not overlap another card and must show local file size, pending-bundle count, most recent confirmed Drive upload, 21:45 safety behavior, **Gửi Logs**, and **Mở file Logs**.
+- **Lịch sử Picker xác nhận PickList** adds **Nhập sai** and **Bị khóa** columns. Bị khóa shows cumulative lock count and, while active, the local expiry time. The status copy states 05:00 reset and that synchronization reuses agent_sync without extra provider-operation cadence.
+- **Thông tin Usage** states and implements automatic refresh at `00 / 15 / 30 / 45` minutes of each local hour. It must not describe the cadence as “15 minutes after startup”.
+- A WMS table shell without hydrated PickList rows must not be rendered as operationally available.
