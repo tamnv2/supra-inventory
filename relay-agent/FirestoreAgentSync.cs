@@ -84,7 +84,23 @@ namespace SupraInventoryRelayAgent
         internal void Remember(AgentSyncSnapshot snapshot)
         {
             if (snapshot == null) return;
-            lock (_cacheGate) _cachedSnapshot = CloneSnapshot(snapshot);
+            lock (_cacheGate)
+            {
+                var next = CloneSnapshot(snapshot);
+                var cached = _cachedSnapshot ?? new AgentSyncSnapshot();
+                var currentDay = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                if (string.Equals(cached.HistoryDayKey ?? "", currentDay, StringComparison.Ordinal) &&
+                    !string.Equals(next.HistoryDayKey ?? "", currentDay, StringComparison.Ordinal))
+                {
+                    next.HistoryDayKey = currentDay;
+                    next.History = CloneHistory(cached.History);
+                }
+                else if (string.Equals(next.HistoryDayKey ?? "", cached.HistoryDayKey ?? "", StringComparison.Ordinal))
+                {
+                    next.History = MergeHistoryRows(next.History, cached.History);
+                }
+                _cachedSnapshot = next;
+            }
         }
 
         private AgentSyncSnapshot Cached()
