@@ -2020,8 +2020,8 @@ namespace SupraInventoryRelayAgent
                 const codes = [...new Set(text.match(/\bPL[0-9]+\b/g) || [])];
                 for (const code of codes) if (!allCodes.includes(code)) allCodes.push(code);
                 if (!codes.length) continue;
-                const native = [...row.querySelectorAll('input[type=checkbox]')];
-                const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')];
+                const native = [...row.querySelectorAll('input[type=checkbox]')].filter(visible);
+                const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(visible);
                 const boxes = native.length ? native : roles;
                 const boxReady = boxes.length === 1 &&
                   !boxes[0].disabled &&
@@ -2127,8 +2127,8 @@ namespace SupraInventoryRelayAgent
               if (rows.length === 0) return JSON.stringify({result:'ROW_NOT_FOUND'});
               if (rows.length !== 1) return JSON.stringify({result:'ROW_AMBIGUOUS'});
               let row = rows[0];
-              const native = [...row.querySelectorAll('input[type=checkbox]')].filter(e => !e.disabled);
-              const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(e => e.getAttribute('aria-disabled') !== 'true');
+              const native = [...row.querySelectorAll('input[type=checkbox]')].filter(e => visible(e) && !e.disabled);
+              const roles = native.length ? [] : [...row.querySelectorAll('[role=checkbox]')].filter(e => visible(e) && e.getAttribute('aria-disabled') !== 'true');
               const boxes = native.length ? native : roles;
               if (boxes.length !== 1) return JSON.stringify({result:'CHECKBOX_NOT_UNIQUE', count:boxes.length});
               const box = boxes[0];
