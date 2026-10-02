@@ -2837,3 +2837,19 @@ The existing D160 maximum-15 micro-batch, per-request terminal ACK, exact target
 - This is technical/release PASS only. D160 remains unaccepted until Owner completes OA090 field acceptance against the real company WMS/PDA/fleet environment and explicitly reports PASS.
 - D159 remains the accepted base until that explicit D160 Owner PASS.
 
+### D160 v97 overlay/history lifecycle repair approval — 2026-10-02
+
+Owner review of the v95/v96 field logs isolated an additional same-D160 Windows Agent lifecycle defect and explicitly approved repair before any further Owner acceptance.
+
+Canonical root cause: during Agent construction, D128 overlay initialization refreshes D135 counters before D160 History UI columns exist. That counter path can call the business-day history reset/load path. If a same-day Picker history file already contains rows, the old implementation attempted to insert those rows into a zero-column DataGridView, raising InvalidOperationException. Because overlay form creation, initial counter refresh, overlay show, Settings card creation and tray-menu wiring shared one try/catch, that exception also prevented both the overlay and its Settings surface from appearing. A later History UI initialization could then skip repaint because the business-day key had already been marked loaded.
+
+Approved repair remains under D160 and targets relay-agent-v97:
+- Separate D160 History model load/reset from WinForms rendering. The model may load before UI construction; rendering is deferred until the grid is initialized and remains idempotent for same-day restart.
+- Guard row rendering on History UI readiness/columns and repaint the already-loaded current-day model after UI initialization.
+- Create the Bảng nổi Picklist Settings card independently from overlay-form success so a runtime overlay failure cannot hide the operational settings surface.
+- Add explicit overlay lifecycle diagnostics by stage, one bounded automatic retry after D160 UI initialization and a manual **Thử lại bảng nổi** action. No periodic retry/provider loop is allowed.
+- Startup-smoke must seed a non-empty same-day History file and fail unless both History repaint and overlay lifecycle initialize successfully.
+- Preserve the v96 confirmation pipeline, WMS hydration/checkbox fixes, Usage/log/history-sync provider cadence, Android beta-vc92 and Stable without behavioral expansion.
+
+D159 remains the accepted base. D160 stays open under OA090 until relay-agent-v97 passes branch/PR/authority/continuity/release gates and the Owner explicitly reports D160 PASS.
+

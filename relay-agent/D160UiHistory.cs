@@ -41,6 +41,8 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, D160PickerHistoryRow>(StringComparer.Ordinal);
         private readonly JavaScriptSerializer _d160HistoryJson = new JavaScriptSerializer();
         private string _d160HistoryDayKey = "";
+        private string _d160HistoryRenderedDayKey = "";
+        private bool _d160HistoryUiReady;
 
         private static string D160HistoryDir
         {
@@ -55,6 +57,7 @@ namespace SupraInventoryRelayAgent
             InitializeD160HistoryUi();
             InitializeD160UsageUi();
             UpdateD160RestrictedTabs(HasAgentSession());
+            RetryD128OverlayAfterD160UiInitialized();
         }
 
         private void InitializeD160LogSettings()
@@ -140,6 +143,7 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             root.Controls.Add(_d160HistoryGrid);
             _d160HistoryGrid.BringToFront();
+            _d160HistoryUiReady = true;
 
             var day = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
             ResetD160HistoryForBusinessDay(day);
@@ -250,30 +254,59 @@ namespace SupraInventoryRelayAgent
         internal void ResetD160HistoryForBusinessDay(string dayKey)
         {
             if (string.IsNullOrWhiteSpace(dayKey)) return;
+
+            var changedDay = false;
             lock (_d160HistoryGate)
             {
-                if (string.Equals(_d160HistoryDayKey, dayKey, StringComparison.Ordinal)) return;
-                _d160HistoryDayKey = dayKey;
-                _d160History.Clear();
-                LoadD160HistoryNoLock(dayKey);
+                if (!string.Equals(_d160HistoryDayKey, dayKey, StringComparison.Ordinal))
+                {
+                    _d160HistoryDayKey = dayKey;
+                    _d160HistoryRenderedDayKey = "";
+                    _d160History.Clear();
+                    LoadD160HistoryNoLock(dayKey);
+                    changedDay = true;
+                }
             }
-            Ui(() =>
+
+            // D160 v97: model lifecycle is independent from WinForms lifecycle.
+            // Startup may reset/load the business-day model before the History grid
+            // has any columns. Rendering is deferred until InitializeD160HistoryUi.
+            if (_d160HistoryUiReady)
+                RenderD160HistorySnapshot(dayKey);
+
+            if (changedDay) CleanupD160OldHistoryFiles(dayKey);
+        }
+
+        private void RenderD160HistorySnapshot(string dayKey)
+        {
+            if (!_d160HistoryUiReady || _d160HistoryGrid.IsDisposed || _d160HistoryGrid.Columns.Count == 0) return;
+
+            List<D160PickerHistoryRow> rows;
+            lock (_d160HistoryGate)
+            {
+                if (!string.Equals(_d160HistoryDayKey, dayKey, StringComparison.Ordinal)) return;
+                rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
+            }
+
+            _d160HistoryGrid.SuspendLayout();
+            try
             {
                 _d160HistoryGrid.Rows.Clear();
-                List<D160PickerHistoryRow> rows;
-                lock (_d160HistoryGate)
-                    rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
                 foreach (var row in rows) RenderD160HistoryRow(row);
+                _d160HistoryRenderedDayKey = dayKey;
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
                     " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
-            });
-            CleanupD160OldHistoryFiles(dayKey);
+            }
+            finally
+            {
+                _d160HistoryGrid.ResumeLayout();
+            }
         }
 
         private void RenderD160HistoryRow(D160PickerHistoryRow item)
         {
-            if (item == null || _d160HistoryGrid.IsDisposed) return;
+            if (item == null || !_d160HistoryUiReady || _d160HistoryGrid.IsDisposed || _d160HistoryGrid.Columns.Count == 0) return;
             DataGridViewRow target = null;
             foreach (DataGridViewRow row in _d160HistoryGrid.Rows)
                 if (string.Equals(Convert.ToString(row.Tag), item.RequestId, StringComparison.Ordinal))
@@ -392,6 +425,63 @@ namespace SupraInventoryRelayAgent
         {
             var safe = new string((dayKey ?? "").Where(ch => char.IsDigit(ch) || ch == '-').ToArray());
             return Path.Combine(D160HistoryDir, "picker-history-" + safe + ".jsonl");
+        }
+
+        internal static bool PrepareD160StartupSmokeHistory()
+        {
+            try
+            {
+                var day = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                var path = D160HistoryPath(day);
+                if (File.Exists(path) && new FileInfo(path).Length > 0) return false;
+                Directory.CreateDirectory(D160HistoryDir);
+                var payload = new Dictionary<string, object>
+                {
+                    { "request_id", "d160-startup-smoke-history" },
+                    { "sent_at_ms", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() },
+                    { "user_id", "startup-smoke" },
+                    { "employee_code", "SMOKE" },
+                    { "display_name", "D160 startup smoke" },
+                    { "contractor_name", "" },
+                    { "input_text", "0000" },
+                    { "result", "CONFIRMED" },
+                    { "full_picklist", "PL0000" },
+                    { "operation_ms", 1L },
+                    { "wrong_count", 0 },
+                    { "lock_level", 0 },
+                    { "lock_minutes", 0 },
+                    { "locked_until_ms", 0L }
+                };
+                File.WriteAllText(path, new JavaScriptSerializer().Serialize(payload) + Environment.NewLine, System.Text.Encoding.UTF8);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("D160 STARTUP_SMOKE history_seed=FAIL type=" + ex.GetType().Name);
+                return false;
+            }
+        }
+
+        internal static void CleanupD160StartupSmokeHistory(bool created)
+        {
+            if (!created) return;
+            try
+            {
+                var day = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
+                var path = D160HistoryPath(day);
+                if (File.Exists(path)) File.Delete(path);
+            }
+            catch { }
+        }
+
+        internal bool D160StartupSmokeLifecycleReady()
+        {
+            return _d160HistoryUiReady &&
+                   _d160HistoryGrid.Columns.Count >= 10 &&
+                   _d160HistoryGrid.Rows.Count >= 1 &&
+                   _d128OverlayUiInitialized &&
+                   _d128Overlay != null &&
+                   !_d128Overlay.IsDisposed;
         }
 
         private static void CleanupD160OldHistoryFiles(string currentDay)

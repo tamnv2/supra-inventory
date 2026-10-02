@@ -4486,41 +4486,36 @@
     },
     {
       "id": "OA090",
-      "status": "READY_FOR_OWNER_FIELD_ACCEPTANCE_V96",
-      "title": "Field-accept D160 Agent v96 repair: PickList readiness, Logs, fleet history and Usage",
+      "status": "REPAIR_V97_IMPLEMENTATION_ACTIVE",
+      "title": "Field-accept D160 Agent v97 repair: overlay/history lifecycle plus prior v96 repair scope",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / Google Apps Script",
-      "reason_owner_only": "Owner found v95 field defects and approved same-D160 repair. Automated gates must first release v96; final acceptance still needs the real company WMS UI, beta-vc92 PDA and fleet presentation.",
+      "reason_owner_only": "Owner field logs on v96 exposed a same-day restart lifecycle defect: overlay counter refresh could load/render History before its grid columns existed, causing InvalidOperationException and hiding overlay Settings. Owner approved same-D160 v97 repair; final acceptance still requires the real company WMS UI, beta-vc92 PDA and fleet presentation.",
       "prerequisites": {
         "accepted_base": "D159_OWNER_FIELD_ACCEPTED_PASS",
         "d160_owner_approval": "PASS__2026_10_02",
         "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
-        "target_agent": "relay-agent-v96",
+        "target_agent": "relay-agent-v97",
         "stable": "OWNER_GATED_UNTOUCHED",
-        "d160_repair_approval": "PASS__OWNER_APPROVED_5_ITEMS_PLUS_3_ADDITIONS__2026_10_02"
+        "d160_repair_approval": "PASS__OWNER_APPROVED_5_ITEMS_PLUS_3_ADDITIONS__2026_10_02",
+        "d160_lifecycle_repair_approval": "PASS__OWNER_APPROVED_OVERLAY_HISTORY_LIFECYCLE_REPAIR__2026_10_02"
       },
       "shortest_test_path": [
-        "Wait for AI to finish and publish relay-agent-v96; keep Android beta-vc92 unchanged.",
-        "After v96 starts or updates, verify Web Confirm is not shown as ready until the real F5/reload finishes and actual PL data is present. A table shell with no PL data must remain not-ready and self-heal with at most one bounded F5.",
-        "Confirm a known exact PickList whose row checkbox is usable. Header/framework checkbox state must not cause false CHECKBOX_NOT_READY or FOREIGN_SELECTION; a genuinely checked different PickList row must still block mutation.",
-        "Run a practical mixed/micro-batch up to 15 and verify READY items are independent, no duplicate final mutation occurs, and normal PDA result time remains around 5–10 seconds with hard target <=20 seconds.",
-        "Open Cài đặt and verify the Logs card is visible below Bảng nổi PickList, shows basic status, Mở file Logs works and Gửi Logs reaches Inventory/Beta/Logs.",
-        "Verify a 21:45 checkpoint is sent when Agent is running. After Tăng ca thêm, Đúng giờ về/Huỷ tăng ca or manual overtime adjustment succeeds, verify a delta log checkpoint is also attempted.",
-        "After Apps Script confirms Drive upload success, verify uploaded source log lines are pruned locally only through that uploaded cutoff while newer lines and unsent sealed bundles remain.",
-        "For tamnv2/admin verify Thông tin Usage auto-refreshes only on local clock boundaries :00/:15/:30/:45; manual Cập nhật ngay remains available. Other Agent logins must have no Usage tab/timer/gateway call.",
-        "Verify Lịch sử Picker xác nhận PickList converges across PRIMARY/NEXT_A/NEXT_B through existing agent_sync, includes Nhập sai and Khóa details, and creates no new history listener/poll/read or history-only write.",
-        "Verify original D160 post-final-click success evidence, confirmation guard, daily export/purge, consolidated Apps Script gateway and Android beta-vc92 behavior remain intact."
+        "Wait for AI to finish and publish relay-agent-v97; keep Android beta-vc92 unchanged.",
+        "Restart v97 during the same 05:00–04:59 business day after Picker History already contains rows. Verify no D128_OVERLAY init failure, existing History rows repaint, Bảng nổi Picklist remains visible in Cài đặt and the overlay itself appears according to its saved visibility setting.",
+        "If overlay initialization is intentionally/transiently unavailable, verify the Bảng nổi Picklist card remains present, shows the failure state and offers Thử lại bảng nổi; automatic recovery occurs at most once after D160 UI initialization.",
+        "Repeat the prior v96 field checks: real-PL hydration readiness, exact visible-row checkbox confirmation, mixed/micro-batch behavior, Logs/manual send/21:45/overtime checkpoints, Drive-confirmed pruning, Usage :00/:15/:30/:45 and cross-Agent History convergence.",
+        "Verify original D160 post-final-click success evidence, no-second-mutation guard, daily export/purge, consolidated Apps Script gateway and Android beta-vc92 behavior remain intact."
       ],
       "pass_criteria": [
         "Android beta-vc92 and Stable remain unchanged.",
-        "Exact visible enabled PickList-row checkbox is accepted; non-data/header/framework checkbox cannot create a false foreign-selection conflict, while a checked different real PickList row remains fail-closed.",
-        "WMS readiness requires real PL data after normal reload; empty shell never advertises ready and recovery performs at most one bounded real F5.",
-        "Logs card is visible and manual send works; 21:45 and overtime decision checkpoints are present; local source log is pruned only after Drive-confirmed Apps Script success.",
-        "Usage automatic refresh follows :00/:15/:30/:45 and remains restricted to tamnv2/admin with zero Firestore document operations for Usage.",
-        "Picker history converges through the existing agent_sync listener/reconcile path, includes wrong-count and lock details, and history alone cannot trigger an extra provider write.",
-        "D160 batch <=15, per-request ACK semantics, no-second-mutation uncertainty guard, PRIMARY generation fence, WMS browser boundary and D159 accepted base remain intact until explicit Owner PASS."
+        "Same-day restart with non-empty History initializes without D128 overlay InvalidOperationException and repaints preexisting History rows.",
+        "Bảng nổi Picklist Settings remains visible independently of overlay-form success; recovery is one bounded post-UI retry plus explicit manual retry with no polling loop.",
+        "Startup-smoke exercises non-empty same-day History and fails unless both History and overlay lifecycle are ready.",
+        "All prior D160 v96 WMS, Logs, Usage, History-sync, export and provider gates remain PASS.",
+        "D159 remains the accepted base until explicit Owner D160 PASS."
       ],
-      "remaining_owner_action": "FIELD_TEST_RELAY_AGENT_V96__REPORT_D160_PASS_OR_NOT_PASS",
+      "remaining_owner_action": "FIELD_TEST_RELAY_AGENT_V97__REPORT_D160_PASS_OR_NOT_PASS",
       "closed": false,
       "technical_evidence": {
         "provider_run": 36949347354,
@@ -4544,6 +4539,20 @@
         "result": "REPAIR_REQUIRED",
         "candidate": "relay-agent-v95",
         "owner_approved_repair": true
+      },
+      "field_findings_v96": {
+        "date": "2026-10-02",
+        "result": "REPAIR_REQUIRED",
+        "candidate": "relay-agent-v96",
+        "root_cause": "OVERLAY_COUNTER_REFRESH_TRIGGERED_HISTORY_RENDER_BEFORE_GRID_COLUMNS__INVALIDOPERATIONEXCEPTION__SHARED_INIT_BOUNDARY_HID_SETTINGS",
+        "owner_approved_repair": true
+      },
+      "current_repair": {
+        "branch": "fix/d160-overlay-history-lifecycle",
+        "target_agent": "relay-agent-v97",
+        "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "provider_change": "NONE"
       }
     },
     {
