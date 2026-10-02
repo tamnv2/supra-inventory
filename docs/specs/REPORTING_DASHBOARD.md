@@ -247,3 +247,13 @@ The Agent Usage page remains server-mediated and provider-authoritative. The Win
 ## D160 Agent Usage refresh refinement
 
 The restricted Agent **Thông tin Usage** surface keeps the accepted D159/D160 Cloud Monitoring source and shared 15-minute gateway cache. Automatic client refresh is aligned to the workstation local clock boundaries `:00 / :15 / :30 / :45` rather than starting a rolling 15-minute cadence when the process launches. **Cập nhật ngay** remains manual. This changes presentation/request timing only; it creates no Firestore document Read/Write/Delete and does not widen visibility beyond exact Agent login `tamnv2` or `admin`.
+
+## D161 — Web version, date-range and HR confirmation requirements
+
+D161 approved requirements are deferred until explicit implementation authorization.
+
+- Current Web presentation is **Version 1** and displays **Website nghiệp vụ Inventory | Version 1**. Later releases that modify Web source increment this version monotonically; backend/Agent/Android-only releases do not.
+- Web runtime diagnostics include the canonical `web_version`.
+- Applicable date presets update both the actual query range and the visible `Từ/Đến` values. Generic context restoration must never restore stale values over a deliberate preset selection. The next Xem/Áp dụng request uses exactly the visible range.
+- HR synchronization requiring confirmation surfaces a realtime Web warning plus the validated proposed employee diff. No user-account mutation occurs until an authorized user confirms that pending batch.
+- The authenticated business footer contains only **Phát triển hệ thống · tamnv2 | Pick Pack 1291**. Public legal/OAuth routes remain available but their links are not duplicated in the authenticated footer.
