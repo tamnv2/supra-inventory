@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D159_ACCEPTED_BASE__D160_OWNER_FIELD_NOT_PASS__REPAIR_V96_IN_PROGRESS__ANDROID_VC92",
+      "status": "D159_ACCEPTED_BASE__D160_TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -197,9 +197,9 @@
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D156_PASS_RUN_36645477945__SOURCE_859A7DFB__SCHEMA16_16__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v96__D160_REPAIR_PENDING_TECHNICAL_RELEASE",
+      "relay_agent_release_target": "relay-agent-v97__D160_TECHNICAL_RELEASED_OWNER_FIELD_PENDING",
       "next_signed_beta_release_target": "NONE__D156_VC92_OWNER_ACCEPTED",
-      "next_relay_agent_release_target": "relay-agent-v96__D160_FIELD_REPAIR",
+      "next_relay_agent_release_target": "relay-agent-v97__D160_FIELD_ACCEPTANCE",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -301,7 +301,7 @@
       "d157_source_status": "OWNER_FIELD_ACCEPTED_PASS__AGENT_V92__ANDROID_VC92_UNCHANGED__PRIMARY_WAKE_WRITE_BATCH_HANDOFF_SESSION_HEALTH_SECONDARY_LIST_REPAIR",
       "d158_source_status": "OWNER_FIELD_ACCEPTED_PASS__OFFICIAL_AGENT_V94__ANDROID_VC92_UNCHANGED",
       "agent_log_gateway_resource_key": "apps-script-agent-log-gateway-beta-d158",
-      "agent_log_gateway_status": "D160_PROVIDER_PASS__MONITORING_AUTHENTICATED__D159_RETIRED__REUSED_BY_V96_REPAIR",
+      "agent_log_gateway_status": "D160_PROVIDER_PASS__MONITORING_AUTHENTICATED__D159_RETIRED__UNCHANGED_BY_V97_LIFECYCLE_REPAIR",
       "agent_log_gateway_actions_variable": "AGENT_LOG_GATEWAY_URL_BETA",
       "d158_candidate_artifact_id": 11153610507,
       "d158_candidate_artifact_digest": "sha256:f908a6ad5258ad8e9f1a91afd5ebf1209c64fc7cbc2a6740b6afe64d1ca792e7",
@@ -318,7 +318,7 @@
       "d159_usage_gateway_actions_variable": "D159_USAGE_GATEWAY_URL_BETA__OBSOLETE_AFTER_D160_PROVIDER_PASS",
       "d159_usage_test_release_target": "HISTORICAL_D159_V3__NO_NEW_RUNTIME_CALLERS",
       "d159_monitoring_cache_seconds": 900,
-      "d160_source_status": "OWNER_FIELD_REPAIR_APPROVED__V96_IN_PROGRESS__ANDROID_VC92_HARD_LOCKED"
+      "d160_source_status": "TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92_HARD_LOCKED"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -965,8 +965,8 @@
     "inventory_channel_release_id": 394587029,
     "inventory_channel_manifest_asset_id": 591974644,
     "inventory_channel_exe_asset_id": 591974642,
-    "next_target_release": "relay-agent-v96",
-    "next_source_status": "D160_OWNER_FIELD_REPAIR_V96_IN_PROGRESS",
+    "next_target_release": "relay-agent-v97",
+    "next_source_status": "D160_TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "release_publish_run": 36286366107,
     "wms_health": "D160_REPAIR__READY_ONLY_AFTER_REAL_RELOAD_AND_REAL_PL_DATA_HYDRATION__ONE_BOUNDED_F5_RECOVERY__VISIBLE_PICKLIST_ROW_CHECKBOX_ONLY",
     "schedule_authority": "KEEP_D117_D118_CONFIRMATION_RELAY_SCHEDULE",
@@ -2111,9 +2111,9 @@
     "pass_run": 36917268394
   },
   "d160": {
-    "status": "TECHNICAL_V96_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
+    "status": "TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
     "accepted_base": "D159",
-    "target_agent": "relay-agent-v96",
+    "target_agent": "relay-agent-v97",
     "android": "beta-vc92__HARD_LOCKED_UNCHANGED",
     "batch": "MAX15__FAST_READY_WAVE__PER_REQUEST_OUTCOME__EARLY_ACK_BEFORE_RECOVERY",
     "wms_terminal": "FRESH_SUCCESS_OR_ERROR_AFTER_FINAL_DIALOG_CLICK_ONLY__ROW_STATE_RELOAD_NOT_EVIDENCE",
@@ -2128,10 +2128,23 @@
     "repair_branch": "fix/d160-field-repair",
     "repair_pr": 379,
     "repair_main_commit": "ffb75df558d5217cb0ec871928471916c75a6769",
-    "agent_release": "relay-agent-v96",
-    "agent_release_id": 401538424,
-    "agent_exe_asset_id": 604789328,
-    "agent_exe_sha256": "6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7",
-    "agent_release_run": 36964147000
+    "agent_release": "relay-agent-v97",
+    "agent_release_id": 401562436,
+    "agent_exe_asset_id": 604881289,
+    "agent_exe_sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
+    "agent_release_run": 36969035725,
+    "lifecycle_repair_branch": "fix/d160-overlay-history-lifecycle",
+    "lifecycle_repair_pr": 381,
+    "lifecycle_repair_main_commit": "4c3f0a4dffc94f66237d0958032fd27ac52fed29",
+    "lifecycle_repair_pr_gates": "PASS__9_OF_9",
+    "lifecycle_repair_scope": "HISTORY_MODEL_UI_LIFECYCLE__INDEPENDENT_OVERLAY_SETTINGS__BOUNDED_RETRY__NONEMPTY_HISTORY_STARTUP_SMOKE",
+    "agent_exe_size_bytes": 7216128,
+    "previous_agent_release": {
+      "release": "relay-agent-v96",
+      "release_id": 401538424,
+      "exe_asset_id": 604789328,
+      "exe_sha256": "6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7",
+      "field_result": "REPAIR_REQUIRED__OVERLAY_HISTORY_LIFECYCLE"
+    }
   }
 }
