@@ -356,3 +356,15 @@ Status: Owner-approved requirement; implementation deferred.
 - UI visibility is presentation only. The trusted server/control endpoint must independently resolve the authenticated Agent identity and reject all other logins even if a caller crafts the request.
 - Existing broader ADMIN/PICKPACK_ADMIN authorization for ordinary Agent operations does not implicitly grant this D161 global-log action.
 - Global-log request payloads contain no password, token, refresh token, private key, signing material or raw sensitive credential data.
+
+## D161 destructive Agent bulk-session control
+
+Status: Owner-approved target; implementation deferred.
+
+- **Kích toàn bộ user** is visible only when the exact authenticated Agent login name is `admin` or `tamnv2`.
+- Backend/Worker must independently revalidate the authenticated Agent identity; UI visibility is not an authorization boundary.
+- The action targets currently authenticated Android **PICKER** sessions only. It does not revoke Web, Agent, REPORTER, ADMIN or ROOT sessions.
+- Before execution, the Agent must require the current Agent password through the existing protected local verification pattern. Password plaintext must never be persisted, logged, copied into diagnostics, Firestore or Worker requests.
+- The bulk command is idempotent by request/command id.
+- Session generation / server session authority is decisive. Best-effort push/realtime signals may accelerate client logout but cannot substitute for server invalidation.
+- Individual per-Picker kick authority remains unchanged.
