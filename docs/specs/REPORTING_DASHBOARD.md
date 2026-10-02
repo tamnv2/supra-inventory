@@ -257,3 +257,11 @@ D161 approved requirements are deferred until explicit implementation authorizat
 - Applicable date presets update both the actual query range and the visible `Từ/Đến` values. Generic context restoration must never restore stale values over a deliberate preset selection. The next Xem/Áp dụng request uses exactly the visible range.
 - HR synchronization requiring confirmation surfaces a realtime Web warning plus the validated proposed employee diff. No user-account mutation occurs until an authorized user confirms that pending batch.
 - The authenticated business footer contains only **Phát triển hệ thống · tamnv2 | Pick Pack 1291**. Public legal/OAuth routes remain available but their links are not duplicated in the authenticated footer.
+
+## D161 normal-shift display clarification
+
+Status: Owner-approved requirement; implementation deferred.
+
+- Reporting/dashboard/business summaries use **06:00–22:00 Asia/Ho_Chi_Minh** as the outward normal-shift definition.
+- D161's internal Replay guard **05:45–22:15** does not alter business shift naming, shift comparison labels or normal-shift reporting semantics.
+- Technical Replay availability may be shown separately only with an explicit technical label.
