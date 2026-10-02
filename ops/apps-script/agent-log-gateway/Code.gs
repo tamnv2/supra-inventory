@@ -36,6 +36,16 @@ function doGet() {
   return json_({ ok: true, service: 'SUPRA_AGENT_OPERATIONS_GATEWAY_D160', project: PROJECT_ID, revision: GATEWAY_REVISION, cache_ttl_seconds: CACHE_TTL_SECONDS });
 }
 
+function authorizeD160Monitoring() {
+  const cache = CacheService.getScriptCache();
+  cache.remove(CACHE_KEY);
+  const snapshot = collectUsage_();
+  const ready = !!(snapshot && snapshot.availability && snapshot.availability.reads === true);
+  if (!ready) throw new Error('D160_MONITORING_PROBE_NOT_READY');
+  cache.put(CACHE_KEY, JSON.stringify(snapshot), CACHE_TTL_SECONDS);
+  return 'D160_MONITORING_AUTH_PASS';
+}
+
 function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
