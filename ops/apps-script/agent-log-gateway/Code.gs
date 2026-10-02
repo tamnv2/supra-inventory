@@ -37,11 +37,25 @@ function doGet() {
 }
 
 function authorizeD160Monitoring() {
+  const requiredScopes = [
+    'https://www.googleapis.com/auth/monitoring.read',
+    'https://www.googleapis.com/auth/script.external_request'
+  ];
+  ScriptApp.requireScopes(ScriptApp.AuthMode.FULL, requiredScopes);
+
   const cache = CacheService.getScriptCache();
   cache.remove(CACHE_KEY);
   const snapshot = collectUsage_();
   const ready = !!(snapshot && snapshot.availability && snapshot.availability.reads === true);
-  if (!ready) throw new Error('D160_MONITORING_PROBE_NOT_READY');
+  if (!ready) {
+    const readError = (snapshot && snapshot.errors || [])
+      .map(String)
+      .find(value => value.indexOf('reads:') === 0) || 'reads:UNKNOWN';
+    throw new Error(
+      'D160_MONITORING_PROBE_NOT_READY:' +
+      readError.replace(/[^A-Za-z0-9_.:-]/g, '_').substring(0, 120)
+    );
+  }
   cache.put(CACHE_KEY, JSON.stringify(snapshot), CACHE_TTL_SECONDS);
   return 'D160_MONITORING_AUTH_PASS';
 }
