@@ -147,6 +147,7 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, Label>(StringComparer.Ordinal);
         private int _d160UsageRefreshing;
         private DateTime _d160UsageLastRefreshUtc = DateTime.MinValue;
+        private string _d160UsageLastAutoBoundary = "";
 
         private void InitializeD160UsageUi()
         {
@@ -174,7 +175,7 @@ namespace SupraInventoryRelayAgent
                 Font = new Font("Segoe UI Semibold", 16F, FontStyle.Bold)
             });
             _d160UsageStatus.SetBounds(6, 40, 760, 28);
-            _d160UsageStatus.Text = "Tự cập nhật mỗi 15 phút · Cloud Monitoring read-only · 0 Firestore document op cho Usage.";
+            _d160UsageStatus.Text = "Tự cập nhật theo mốc :00 / :15 / :30 / :45 · Cloud Monitoring read-only · 0 Firestore document op cho Usage.";
             _d160UsageStatus.ForeColor = Color.FromArgb(71, 85, 105);
             header.Controls.Add(_d160UsageStatus);
             _d160UsageUpdated.SetBounds(770, 6, 250, 42);
@@ -261,14 +262,14 @@ namespace SupraInventoryRelayAgent
             host.Controls.Add(_d160UsageGrid);
             root.Controls.Add(host,0,2);
 
-            D160UsageSet("auto","15 phút/lần");
+            D160UsageSet("auto","Mốc :00 / :15 / :30 / :45");
             D160UsageSet("cache","Dùng chung tối đa 15 phút");
             D160UsageSet("extra","0 Read / 0 Write / 0 Delete");
             D160UsageSet("delay","Monitoring có thể trễ vài–30 phút");
             D160UsageSet("visibility","Chỉ tamnv2 / admin");
 
-            _d160UsageTimer.Interval = 15 * 60 * 1000;
-            _d160UsageTimer.Tick += async (s,e) => await RefreshD160UsageAsync(false);
+            _d160UsageTimer.Interval = 30 * 1000;
+            _d160UsageTimer.Tick += async (s,e) => await TryD160UsageQuarterBoundaryAsync();
         }
 
         private GroupBox D160UsageGroup(string title, Tuple<string,string>[] rows)
@@ -301,14 +302,24 @@ namespace SupraInventoryRelayAgent
         {
             if (!D160UsageAllowedForCurrentSession()) return;
             _d160UsageTimer.Start();
-            if (_d160UsageLastRefreshUtc == DateTime.MinValue ||
-                DateTime.UtcNow - _d160UsageLastRefreshUtc >= TimeSpan.FromMinutes(14))
-                _ = RefreshD160UsageAsync(false);
+            _ = TryD160UsageQuarterBoundaryAsync();
         }
 
         private void StopD160Usage()
         {
             _d160UsageTimer.Stop();
+            _d160UsageLastAutoBoundary = "";
+        }
+
+        private async Task TryD160UsageQuarterBoundaryAsync()
+        {
+            if (!D160UsageAllowedForCurrentSession()) return;
+            var now = DateTime.Now;
+            if (now.Minute % 15 != 0) return;
+            var key = now.ToString("yyyyMMddHHmm", CultureInfo.InvariantCulture);
+            if (string.Equals(_d160UsageLastAutoBoundary, key, StringComparison.Ordinal)) return;
+            _d160UsageLastAutoBoundary = key;
+            await RefreshD160UsageAsync(false);
         }
 
         private async Task RefreshD160UsageAsync(bool manual)
