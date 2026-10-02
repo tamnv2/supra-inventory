@@ -1970,6 +1970,7 @@ namespace SupraInventoryRelayAgent
               const confirmVisible = confirm.filter(visible);
               const tableSurfaces = docs.flatMap(d => [...d.querySelectorAll('table,[role=grid],[role=table]')]).filter(visible);
               const rowSurfaces = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
+              const picklistCodes = [...new Set(rowSurfaces.flatMap(row => ((((row.innerText || row.textContent) || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))))];
               const loginMarker = docs.flatMap(d => [...d.querySelectorAll('body *')]).some(e =>
                 visible(e) && fold(txt(e)) === fold('" + LoginMarkerText + @"'));
               const pageLoaded = document.readyState === 'complete';
@@ -1979,13 +1980,19 @@ namespace SupraInventoryRelayAgent
                 ? String(navigationEntries[navigationEntries.length - 1].type || '') : '';
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
               const tableOk = tableSurfaces.length > 0 || rowSurfaces.length > 0;
-              const ready = pathOk && tableOk && search.length === 1 && confirm.length === 1;
+              const domReady = pathOk && tableOk && search.length === 1 && confirm.length === 1;
+              const dataHydrated = domReady && picklistCodes.length > 0;
+              const ready = domReady && dataHydrated;
               let state = 'WRONG_PAGE';
               if (loginMarker) state = 'LOGIN_REQUIRED';
-              else if (pathOk && !ready) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
+              else if (pathOk && domReady && !dataHydrated) state = 'CONFIRM_DATA_EMPTY';
+              else if (pathOk && !domReady) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
               if (ready) state = 'READY';
               return JSON.stringify({
                 ready,
+                domReady,
+                dataHydrated,
+                picklistCodeCount: picklistCodes.length,
                 state,
                 pageLoaded,
                 loginMarker,
