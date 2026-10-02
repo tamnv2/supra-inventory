@@ -1437,7 +1437,8 @@ namespace SupraInventoryRelayAgent
                         fleet,
                         counterReceived,
                         counterConfirmed,
-                        counterError);
+                        counterError,
+                        D160HistorySnapshotJson());
                     _lastAgentSyncReconcileUtc = DateTime.UtcNow;
                     ApplyD134AgentSyncSnapshot(snapshot);
                     Log("AGENT_SYNC reconcile=PASS cadence=5m max_agents=10");
