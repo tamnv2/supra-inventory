@@ -2260,3 +2260,38 @@ Later D161 implementation is not acceptable unless tests prove all of the follow
 - Missing package-install permission is guided once and pending install resumes/opens installer after permission is available.
 - No claim/test expects fully silent Android 11 installation unless a later separately authorized Device Owner/MDM/OEM path exists.
 - Update failure diagnostics contain sanitized stage/category but no secret, token, password, signer material or raw sensitive payload.
+
+### D161 Phase 0 Safety Baseline / rescue acceptance
+
+**Phase 0 before backlog code**
+- Exact current main/source/component identities are captured.
+- Current Beta Worker health source, SQLite schema and Operational V2 schema are recorded and PASS.
+- Current release-channel manifests are fetched and validated.
+- Existing accepted Android/Agent artifacts have resolved release identity and SHA-256 where available.
+- A machine-readable safety manifest contains only non-secret metadata and can reconstruct which source/artifacts/config references form the safe model.
+- A next-monotonic Android safety APK is signed/published from Safety behavior and installs over the prior accepted APK.
+- A next-monotonic Agent safety EXE is published from Safety behavior and replaces/starts over the prior accepted Agent.
+- Safety channel manifests/checksums match the published artifacts.
+- Safety Android reaches login and passes critical pre-D161 smoke.
+- Safety Agent starts, restores/authenticates as applicable and passes critical relay/browser/runtime smoke.
+- Safety Web build/source identity is reproducible and critical shell/auth checks PASS.
+- No D161 backlog business behavior is introduced before all Phase 0 gates PASS.
+
+**Migration guards during D161**
+- CI/source review fails a destructive required-field/table drop/rename or incompatible Safety contract removal before Owner acceptance unless a separately approved recovery plan exists.
+- Additive newer fields/tables do not break the Safety-compatible rescue runtime.
+- Rescue does not require database version-number downgrade.
+
+**Owner-triggered rescue drill/real rescue**
+- Given failed D161 Agent vN, rescue publishes vN+1 or greater from Safety-compatible behavior and channel manifest resolves to it.
+- Given failed Android vcN, rescue publishes vcN+1 or greater, signed with the trusted Beta signer, and installs over vcN.
+- Safety Web behavior can be deployed while the current schema-compatible backend remains forward-deployed.
+- Worker rescue health reports the current supported schema and critical auth/business API checks PASS.
+- Firebase rules/functions/schedule/log paths changed by D161 are forward-deployed to Safety-compatible behavior without deleting data.
+- A client that cannot self-update has a valid trusted manual installation path.
+- After rescue, normal safe operations pass the critical smoke matrix before D161 repair resumes.
+- Canonical state records `D161_RESCUE_TO_SAFETY_BASELINE`; no D162 is created for the rescue.
+
+**Acceptance routing**
+- Technical/runtime/release PASS alone does not promote D161.
+- Only while state is explicitly waiting for D161 Owner field test, Owner phrase `ghi nhận ok` or explicit `D161 PASS` promotes D161 to accepted base.

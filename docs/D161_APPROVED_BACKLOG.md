@@ -345,3 +345,92 @@ Expected effects:
 - Android release-channel failure no longer creates an artificial business-login outage.
 - Bulk kick is exceptional/manual and must use one bounded authoritative command rather than an N-request Agent loop.
 - Stable remains OWNER-GATED and untouched.
+
+## 15. Mandatory D161 Phase 0 Safety Baseline and Owner-triggered rescue
+
+Status: **OWNER-APPROVED SAFETY/EXECUTION CONTRACT**. D161 implementation is still deferred until the Owner uses the explicit start command below.
+
+### Exact start command
+The exact Owner command **`bắt đầu D161 tiến hành`** authorizes implementation of the complete then-current Owner-approved D161 backlog.
+
+On that command the execution order is mandatory:
+1. Fresh-bootstrap canonical GitHub authority.
+2. Run and PASS **D161 Phase 0 Safety Baseline** before modifying D161 business/runtime logic.
+3. After Phase 0 PASS, continue automatically into the approved D161 backlog under the same D161 change; do not ask the Owner to reconfirm each backlog item already approved.
+4. Branch → PR → authority/continuity/runtime gates → merge/release/deploy as applicable.
+5. Present the technically/runtime/release-passed D161 candidate for Owner field testing.
+6. D160 remains the accepted project base until explicit Owner acceptance of D161.
+
+### Phase 0 goal
+Phase 0 creates a recoverable, monotonic, field-installable snapshot of the last safe operating model **before D161 backlog behavior is introduced**.
+
+The safety baseline is based on the accepted D160 runtime behavior and must preserve the current operational model. D161 authority-only documentation already present on `main` does not alter the runtime baseline.
+
+### Phase 0 mandatory capture
+Before D161 backlog runtime code begins, automation must capture and verify at least:
+- exact Git source commit/ref and component tree identities for Service/Worker, Web, Android, Agent, Firebase rules/functions and other D161-affected source;
+- current InventoryCore SQLite schema version and Operational V2 schema version;
+- current Beta health/source markers and existing release-channel manifests;
+- current accepted Agent and Android release identities, artifact hashes and sizes when available;
+- Web production build identity/hash or equivalent reproducible source/build evidence;
+- existing scoped provider/configuration **names/references only**, never secret values;
+- current relevant Firestore/rules/functions/resource aliases and schedule/log transport identifiers from canonical scope/registry;
+- a machine-readable D161 safety-baseline manifest committed to GitHub or attached to a GitHub release/artifact, containing no secret/session/WMS credential material.
+
+### Monotonic safety releases before backlog implementation
+Phase 0 must prepare and verify forward-installable safety releases:
+- **Android:** publish the next monotonic Beta `versionCode` from the pre-D161 Android safety source/behavior. Example: vc92 baseline → safety vc93 if no intervening Android release exists.
+- **Agent:** publish the next monotonic `relay-agent-vN` from the pre-D161 Agent safety source/behavior. Example: v97 baseline → safety v98 if no intervening Agent release exists.
+- The exact numbers are resolved from the release channel at execution time; never hard-code the examples.
+- Safety releases may contain only version/release-safety plumbing required for reliable recovery. They must not silently introduce D161 business behavior.
+- The Owner field environment may remain on the safety release while D161 candidate releases advance monotonically above it.
+
+### Web / Worker baseline
+Web and Worker are deployed together through the current Cloudflare bundle, so Phase 0 must treat them separately for rescue semantics:
+- preserve a reproducible **Safety Web** source/build snapshot;
+- preserve the **Safety Service contract/behavior** source snapshot and schema markers;
+- do not depend on a raw old Cloudflare deployment rollback as the primary rescue path;
+- rescue Web may combine Safety Web behavior with the newest schema-compatible Service runtime.
+
+### Schema and state safety rule
+Until Owner D161 acceptance:
+- D161 schema/data migrations must be additive and backward-compatible with the Safety Baseline wherever technically possible;
+- do not drop/rename required Safety fields/tables, destructively rewrite history, or remove Safety API contracts before Owner acceptance;
+- new fields/tables may remain present during rescue;
+- rescue never blindly downgrades SQLite schema or deletes D161-created data merely to make version numbers match;
+- if an implementation proposal cannot preserve a recoverable path for a destructive migration, fail closed and stop before that migration for a new Owner decision.
+
+### Field acceptance
+After D161 code/runtime/release gates PASS, the Owner tests the candidate.
+
+When D161 is in the explicit field-test-ready state, the Owner phrase **`ghi nhận ok`** (or an explicit **D161 PASS**) is treated as D161 Owner field acceptance. Canonical decision/state continuity must then record D161 as the accepted base before any later change ID starts.
+
+Technical/runtime/release PASS alone remains insufficient.
+
+### Exact rescue command
+If the Owner reports a severe D161 failure and gives the command **`quay lại bản backup ban đầu trước khi sửa code`**, stop further D161 feature rollout and execute the D161 rescue path under the **same D161 change ID**.
+
+Rescue target: restore the safe pre-D161 operating behavior as quickly as possible without unsafe database downgrade.
+
+Mandatory rescue behavior:
+- preserve sanitized diagnostics/evidence needed to repair D161 later;
+- **Web:** restore Safety Web behavior through a new deployment, using the current schema-compatible backend rather than blindly restoring an old all-in-one Cloudflare deployment;
+- **Worker/InventoryCore:** forward-repair code/contracts toward Safety behavior while retaining compatible current schema/data; never blindly downgrade schema;
+- **Agent:** publish a new monotonic Agent version greater than every failed D161 Agent build, using the Safety Agent behavior plus only compatibility/recovery shims required by current shared state;
+- **Android:** publish a new monotonic Android `versionCode` greater than every failed D161 APK, using Safety Android behavior plus only compatibility/recovery shims required by current server state;
+- update the existing trusted runtime channels to those rescue releases after checksum/signature verification;
+- Firebase rules/functions/shared schedule/log support that D161 changed must be forward-deployed to Safety-compatible behavior without deleting current data;
+- if a broken Android/Agent build cannot self-update, use the existing trusted manual installer/download path; Agent local `.bak` may be used as an emergency local aid but does not replace the canonical monotonic rescue release;
+- Stable remains untouched/OWNER-GATED.
+
+### Rescue completion gate
+The rescue is complete only after:
+- Web health/business shell/auth critical checks PASS;
+- Worker health/schema/Operational V2 and critical API guards PASS;
+- Agent safety release builds, starts, authenticates and performs bounded relay checks;
+- Android safety release is signed, installable over the failed version, reaches login and passes critical login/session/report/confirmation smoke tests applicable to the Safety model;
+- release-channel manifests point to the rescue versions and checksums match;
+- canonical state records **D161_RESCUE_TO_SAFETY_BASELINE** while D160/Safety behavior remains the operational fallback;
+- the Owner can resume normal safe operation before D161 repair continues.
+
+A rescue does **not** create D162. Later diagnosis/repair remains D161 until the Owner explicitly accepts D161.

@@ -1672,3 +1672,13 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - While authenticated, tapping version asks **Tìm kiếm bản cập nhật?**; Yes checks once and a newer trusted release proceeds through download/verification/installer handoff from that consent.
 - Best-effort Android install is in scope; full silent Device Owner/MDM/OEM/Play-style install is not part of D161 and would require separate Owner/resource approval.
 - No new provider/resource/secret/polling/listener/runtime deployment is introduced by this authority capture. Stable remains OWNER-GATED.
+
+## D161 mandatory Safety Baseline / rescue routing — 2026-10-03
+
+- Accepted runtime base remains **D160**; D161 implementation is still deferred.
+- Future exact Owner command **`bắt đầu D161 tiến hành`** authorizes complete then-current D161 implementation, but Phase 0 Safety Baseline must PASS before any D161 business/runtime backlog code.
+- Phase 0 captures source/component identities, schema/health markers, release-channel manifests, artifact digests and non-secret resource references; it also publishes monotonic Android/Agent safety releases from pre-D161 safe behavior.
+- After Phase 0 PASS, implementation automatically continues through the already-approved backlog without asking the Owner to restate requirements.
+- While D161 is explicitly field-test-ready, **`ghi nhận ok`** or explicit **D161 PASS** records Owner acceptance.
+- Exact rescue command **`quay lại bản backup ban đầu trước khi sửa code`** freezes feature rollout and restores Safety behavior through forward deployments/releases: Safety Web with schema-compatible backend, newer-number Agent/APK rescue releases, no blind SQLite downgrade and no D162.
+- Stable remains OWNER-GATED and untouched.

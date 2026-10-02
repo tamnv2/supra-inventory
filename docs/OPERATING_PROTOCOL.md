@@ -236,3 +236,37 @@ D140 supersedes only the D134 rule that allowed every authenticated Agent to kee
 ## D152 PickList recovery operating rule
 
 D152 uses a fast-path / exception-recovery split. Normal exact-row confirmation must not pay the reload cost. A unique row with an unavailable checkbox may use the existing one Search retry and, only if still unselectable, one bounded normal page reload/recheck. After a Confirm dialog has been accepted, all further D152 recovery is verify-only; no retry path may click Confirm again. Existing uncertain guards stay closed to mutation and may only perform one bounded read-only exact-row verification. State changes during recovery must not be converted into NOT_FOUND strikes. Recovery is local WMS browser UI work and must not add Firestore/provider polling, listeners or write cadence. Stable remains OWNER-GATED.
+
+## D161 start / field-acceptance / rescue routing
+
+These exact commands route the active D161 workstream and do not create a new change ID.
+
+### `bắt đầu D161 tiến hành`
+1. Fresh-bootstrap the complete canonical authority.
+2. Mark D161 implementation as authorized.
+3. Execute **Phase 0 Safety Baseline** first and do not modify D161 business/runtime behavior before the Phase 0 gate is PASS.
+4. Capture and verify the safety manifest plus forward-installable Android/Agent safety releases and Web/Service reproducible baseline.
+5. If Phase 0 fails, repair Phase 0 under D161 until terminal PASS; do not continue into backlog implementation.
+6. After Phase 0 PASS, continue automatically through the complete then-current Owner-approved D161 backlog using fresh short-lived implementation branches/PRs as needed.
+7. Continue finite build/deploy/test loops to terminal technical/runtime/release PASS or a real Owner-only blocker.
+8. Present the field-test-ready candidate. D160 remains the accepted base until Owner field acceptance.
+
+### `ghi nhận ok` while D161 is field-test-ready
+Treat this phrase as D161 Owner field acceptance only when canonical state says D161 is explicitly waiting for Owner field test. Record Owner PASS/accepted-base continuity before opening any later change.
+
+Outside that exact D161 field-test-ready state, do not infer acceptance merely from the generic phrase.
+
+### `quay lại bản backup ban đầu trước khi sửa code`
+1. Freeze further D161 feature rollout.
+2. Preserve bounded/redacted evidence.
+3. Execute the canonical D161 Safety rescue, not a new Dxxx.
+4. Restore safe behavior via new forward deployments/releases: Safety Web + current schema-compatible backend; monotonic Agent/Android rescue versions; compatible Firebase/rules/functions state.
+5. Do not blindly downgrade SQLite schema, erase D161-created data, overwrite release history or restore secret/config values from public GitHub.
+6. Continue rescue automation until the critical safe-operation acceptance matrix is PASS.
+7. Record `D161_RESCUE_TO_SAFETY_BASELINE` continuity. D161 remains the active repair change until later Owner acceptance.
+
+### Safety-release monotonicity
+- Android rescue `versionCode` must be strictly greater than every already-published D161 Android build.
+- Agent rescue `relay-agent-vN` must be strictly greater than every already-published D161 Agent build.
+- A rescue release may reuse Safety behavior/source logic but is a new signed/checksummed release; it is not a version-number downgrade.
+- Web/Worker rescue is a new deployment from a known Safety-compatible source composition, not an assumption that provider rollback of an old bundle is safe.
