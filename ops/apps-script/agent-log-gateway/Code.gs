@@ -36,6 +36,24 @@ function doGet() {
   return json_({ ok: true, service: 'SUPRA_AGENT_OPERATIONS_GATEWAY_D160', project: PROJECT_ID, revision: GATEWAY_REVISION, cache_ttl_seconds: CACHE_TTL_SECONDS });
 }
 
+function authorizeD160Monitoring() {
+  // One-time Owner consent helper for the existing D158->D160 Apps Script project.
+  // Running this function from the Apps Script editor triggers the explicit
+  // monitoring.read OAuth consent defined in appsscript.json. After consent,
+  // discard any cached 403 snapshot and prove a live Firestore read metric call.
+  const cache = CacheService.getScriptCache();
+  cache.remove(CACHE_KEY);
+  const snapshot = collectUsage_();
+  const readsReady = !!(snapshot && snapshot.availability && snapshot.availability.reads === true);
+  if (!readsReady) {
+    const errors = (snapshot && snapshot.errors || []).map(String);
+    const scopeError = errors.some(value => value.indexOf('OAUTH_SCOPE_INSUFFICIENT') >= 0);
+    throw new Error(scopeError ? 'D160_MONITORING_SCOPE_NOT_AUTHORIZED' : 'D160_MONITORING_PROBE_NOT_READY');
+  }
+  cache.put(CACHE_KEY, JSON.stringify(snapshot), CACHE_TTL_SECONDS);
+  return 'D160_MONITORING_AUTH_PASS';
+}
+
 function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
