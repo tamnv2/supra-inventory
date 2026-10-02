@@ -2862,3 +2862,12 @@ D159 remains the accepted base. D160 stays open under OA090 until relay-agent-v9
 - The v96 WMS confirmation pipeline, Agent Operations Gateway/provider cadence and Android `beta-vc92` are unchanged. Stable remains OWNER-GATED and untouched.
 - This is technical/runtime/release PASS only. D159 remains the accepted base and OA090 is now ready for Owner field acceptance of v97. No later change ID may open until explicit Owner D160 PASS.
 
+
+
+### D160 Owner field acceptance — 2026-10-02
+
+- Owner explicitly confirmed **D160 PASS** for the released `relay-agent-v97` field candidate.
+- OA090 is closed PASS. The v97 overlay/history lifecycle repair and the prior D160 v96 repair scope are accepted as the field baseline.
+- D160 is now the accepted project base; D159 is superseded only as the accepted-base pointer, while its approved behavior remains inherited where D160 did not change it.
+- Android remains hard-locked at `beta-vc92` with no D160 Android source/build/release change. Stable remains OWNER-GATED and untouched.
+- The serial Owner-PASS gate is unlocked for the next change, subject to the normal impact review and explicit Owner approval before any base-affecting mutation.

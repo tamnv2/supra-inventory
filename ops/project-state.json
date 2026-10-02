@@ -2463,12 +2463,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D159",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D159_PASS__V3_MULTI_SERVICE_USAGE__GW_V4__2026_10_02",
-    "current_change_id": "D160",
-    "current_change_status": "TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
-    "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "accepted_base_change_id": "D160",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02",
+    "current_change_id": null,
+    "current_change_status": "NONE__D160_OWNER_PASS_ACCEPTED_BASE",
+    "owner_pass_required_to_unlock_next_change": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2482,8 +2482,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D160_V97_TECHNICAL_RELEASED__OWNER_FIELD_ACCEPTANCE_PENDING__ANDROID_VC92_UNCHANGED__D159_REMAINS_ACCEPTED_BASE_UNTIL_OWNER_D160_PASS",
-    "resource_change": "NONE_FOR_REPAIR__REUSE_EXISTING_WMS_BROWSER_FIRESTORE_AGENT_SYNC_AND_AGENT_OPERATIONS_GATEWAY__STABLE_UNTOUCHED",
+    "runtime_impact": "D160_V97_OWNER_FIELD_ACCEPTED_PASS__ANDROID_VC92_UNCHANGED__D160_IS_ACCEPTED_BASE__NEXT_CHANGE_MAY_OPEN_AFTER_NORMAL_IMPACT_REVIEW",
+    "resource_change": "NONE__D160_OWNER_ACCEPTANCE_CONTINUITY_ONLY__STABLE_UNTOUCHED",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3978,12 +3978,12 @@
     "repair_reason": "RESOLVED__FULL_DRIVE_SCOPE_PLUS_BETA_SCRIPT_API_ENABLEMENT_AND_TRASH_AWARE_CLEANUP"
   },
   "d160": {
-    "status": "TECHNICAL_V97_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
+    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__V97",
     "date": "2026-10-02",
     "baseline_change": "D159",
     "baseline_main": "320e7e446f122a70ee55d2a191eebff218c502c9",
     "branch": "feat/d160-agent-bulk-usage-history-logs",
-    "accepted_base": "D159_UNCHANGED_UNTIL_OWNER_PASS",
+    "accepted_base": "D160",
     "owner_approved_scope": [
       "ANDROID_BETA_VC92_HARD_LOCKED__NO_SOURCE_BUILD_RELEASE_OR_RUNTIME_CHANGE",
       "AGENT_MAX_MICRO_BATCH_15__MIXED_REQUEST_PER_ITEM_CLASSIFICATION__READY_WAVE_BEFORE_CHECKBOX_RECOVERY",
@@ -4049,7 +4049,7 @@
     "new_firestore_collections": "NONE",
     "new_secrets": "NONE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "field_gate": "OA090_READY_FOR_OWNER_FIELD_ACCEPTANCE_V97",
+    "field_gate": "PASS__OA090_CLOSED__OWNER_CONFIRMED_2026_10_02",
     "implementation_pr": 367,
     "main_commit": "6c7106d9c6a9d41dfd675c9488f4e107e9eb66bc",
     "pr_gates": "PASS__11_OF_11__AGENT_BUILD_STARTUP_SMOKE_PASS__ANDROID_VC92_REGRESSION_PASS__AUTHORITY_STATE_UI_PASS",
@@ -4124,7 +4124,7 @@
       "result": "OWNER_FIELD_NOT_PASS__REPAIR_REQUIRED"
     },
     "lifecycle_repair_branch": "fix/d160-overlay-history-lifecycle",
-    "lifecycle_repair_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_ACCEPTANCE_PENDING",
+    "lifecycle_repair_status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS",
     "field_failure_v96": {
       "result": "REPAIR_REQUIRED",
       "date": "2026-10-02",
@@ -4159,6 +4159,8 @@
         "D160_AGENT_OPERATIONS_GATEWAY_MARKED_PROVIDER_PASS",
         "D159_ACCEPTED_RUNTIME_MARKER_POINTS_TO_D160_V97_FIELD_CANDIDATE"
       ]
-    }
+    },
+    "owner_field_result": "PASS__OWNER_CONFIRMED_D160_V97__2026_10_02",
+    "owner_acceptance": "PASS__OFFICIAL_D160_V97_FIELD_ACCEPTED__2026_10_02"
   }
 }
