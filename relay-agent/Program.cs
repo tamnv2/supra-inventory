@@ -875,6 +875,7 @@ namespace SupraInventoryRelayAgent
                 try { EnsureFreshToken(); } catch { }
                 _agentLogBridge.TryFlushPendingCrash();
                 _agentLogBridge.TryQueueScheduledSnapshot();
+                Ui(RefreshD160LogStatus);
             });
 
             Shown += (s, e) =>
