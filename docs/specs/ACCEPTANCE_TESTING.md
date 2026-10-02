@@ -2221,3 +2221,9 @@ Later D161 implementation is not acceptable unless tests prove all of the follow
 - Multiple Agents racing extension converge through shared schedule authority and do not double-add hours.
 - Android/Web/Worker enforcement agrees with Agent SLEEP/ACTIVE state at the changed 22:15 normal boundary.
 - 05:00 cutoff and inherited 05:00–05:45 early-start behavior remain correct.
+
+### Business shift / Replay guard separation
+- Web `Ca vận hành` and every outward normal-shift label show **06:00–22:00**, not 05:45–22:15.
+- Replay state tests still prove technical ACTIVE from 05:45 until 22:14:59 and SLEEP at 22:15 without override.
+- If 05:45–22:15 appears anywhere user-visible, it is explicitly labelled as the Replay technical window and never as the normal shift.
+- Reporting/shift comparison behavior continues to use the established 06:00–22:00 business definition.

@@ -2903,3 +2903,14 @@ Canonical detail remains `docs/D161_APPROVED_BACKLOG.md`. The durable decisions 
 - Sleeping extension starts at `min(now + 1h, 05:00)`; active extension adds one hour to authoritative `override_until`, capped at 05:00. Fifteen minutes before `override_until`, show one deduped warning with **Gia hạn +1 giờ / Không gia hạn**; no response means automatic sleep at the current deadline. Existing shared CAS authority, propagation, 05:00 cutoff and 05:00–05:45 early-start model remain.
 - The schedule change is shared authority, not Agent-only presentation: later implementation must keep Agent, schedule propagation/enforcement, Android and Web consistent.
 - This addendum is **requirements authority only**. D160 remains the accepted runtime base; no D161 implementation/build/release/deploy/provider mutation is authorized yet. Stable remains OWNER-GATED.
+
+### D161 Owner clarification — business shift 06:00–22:00 versus Replay guard — 2026-10-03
+
+The Owner clarified that the Replay timing approved in D161 is an internal operating margin, not the business shift definition.
+
+- Human-facing **Ca bình thường** remains **06:00–22:00**.
+- D161 Replay technical availability remains **05:45–22:15**, providing a 15-minute technical margin on both sides of the business shift.
+- Web and other outward business surfaces must show 06:00–22:00 for the normal shift. They must not relabel 05:45–22:15 as the business shift.
+- A technical diagnostic may expose 05:45–22:15 only when clearly labelled as the Replay technical window.
+- Previously approved D161 overtime behavior still begins from Replay SLEEP at 22:15; this clarification changes presentation/semantic labeling, not the technical Replay boundary.
+- D160 remains the accepted runtime base; D161 implementation remains deferred.
