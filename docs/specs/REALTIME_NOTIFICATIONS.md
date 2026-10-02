@@ -819,3 +819,15 @@ Android beta-vc92 is unchanged. D158 changes only the Windows Agent.
 ## D160 Picker-history fleet convergence
 
 D160 v96 does not create a history realtime channel. PRIMARY/NEXT_A/NEXT_B continue using the existing role-gated `agent_sync` listener. PRIMARY may attach a bounded current-business-day Picker-history JSON projection to the same `agent_sync` document only when the existing aggregate-counter delta already requires the normal five-minute reconcile mutation. History changes by themselves must not create a Firestore write. Secondary Agents consume that field from the listener they already hold. Deep-hibernate behavior is unchanged and no new listener, poll, query, collection, cron or provider resource is authorized.
+
+## D161 — HR source event-driven synchronization
+
+D161 approved architecture, implementation deferred:
+
+- A verified HR spreadsheet change is signaled by a Google Drive file-change watch to the Beta Worker HTTPS path.
+- Provider notification is a wake signal only; the Worker rereads the authoritative Google Sheet, validates it and computes the diff before any InventoryCore mutation.
+- Duplicate notifications may be coalesced with a short bounded debounce.
+- No Apps Script, Firestore listener/polling or Web-open requirement is introduced.
+- A >1-new-Picker diff or other configured confirmation threshold creates a pending HR batch and a realtime Web notification; the pending diff is not applied until authorized confirmation.
+- Hard-block source failures produce a visible operational warning and preserve existing authoritative users.
+- Any required provider watch permission/resource representation must be reconciled into project scope/registry before implementation mutation.
