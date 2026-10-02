@@ -2227,3 +2227,36 @@ Later D161 implementation is not acceptable unless tests prove all of the follow
 - Replay state tests still prove technical ACTIVE from 05:45 until 22:14:59 and SLEEP at 22:15 without override.
 - If 05:45–22:15 appears anywhere user-visible, it is explicitly labelled as the Replay technical window and never as the normal shift.
 - Reporting/shift comparison behavior continues to use the established 06:00–22:00 business definition.
+
+### D161 bulk Picker revoke / update lifecycle acceptance
+
+**Bulk Kích toàn bộ user**
+- Exact Agent login `admin` and `tamnv2` see the bulk button; other Agent logins do not.
+- Button is in the active-Picker card header/tool area, not a grid row.
+- Search/filter applied → warning count/scope still targets all authenticated Picker/PDA sessions.
+- Cancel at warning → zero mutation.
+- Wrong/cancelled Agent password → zero mutation and no password in diagnostics/logs.
+- Success invalidates all targeted Picker Android session generations with one idempotent bulk command; no Agent-side N-per-user kick request loop.
+- A PDA that receives acceleration signal returns to login promptly.
+- A PDA that misses the signal cannot continue using the old generation on the next authenticated authority check.
+- Web/Agent/Reporter sessions remain unaffected.
+- Repeat same command/request id is idempotent.
+
+**Agent update**
+- Startup with update channel online/offline produces no Agent update-channel request.
+- Running Agent for more than 30 minutes produces no periodic update check.
+- Manual current/new/failure cases behave as specified; failure does not disrupt relay/PickList runtime.
+- New-version Yes follows trusted download/checksum/replace/restart; No does not download.
+
+**Android login/update**
+- Login screen visibly shows current **Beta vcXX** plus **Kiểm tra cập nhật** before authentication.
+- Automatic check success/current → login stays usable and no intrusive current-version dialog.
+- Automatic check finds newer version → **Cập nhật / Để sau**; no APK download before Cập nhật.
+- Automatic check DNS/timeout/HTTP/manifest failure → visible non-blocking warning; Login remains enabled.
+- Manual login-screen check works after an automatic failure and is single-flight with it.
+- Installed-current-APK signer/integrity failure remains fail-closed.
+- Authenticated version tap first asks **Tìm kiếm bản cập nhật?**; No sends no request; Yes checks once.
+- Authenticated Yes + newer trusted version proceeds to download/verify/install without a second download confirmation.
+- Missing package-install permission is guided once and pending install resumes/opens installer after permission is available.
+- No claim/test expects fully silent Android 11 installation unless a later separately authorized Device Owner/MDM/OEM path exists.
+- Update failure diagnostics contain sanitized stage/category but no secret, token, password, signer material or raw sensitive payload.
