@@ -407,6 +407,50 @@ namespace SupraInventoryRelayAgent
             catch { }
         }
 
+        internal string D160HistorySnapshotJson()
+        {
+            try
+            {
+                List<D160PickerHistoryRow> rows;
+                lock (_d160HistoryGate)
+                    rows = _d160History.Values.OrderBy(item => item.SentAtMs).ToList();
+
+                var compact = new List<object>();
+                foreach (var row in rows)
+                {
+                    compact.Add(new Dictionary<string, object>
+                    {
+                        { "r", row.RequestId ?? "" },
+                        { "t", row.SentAtMs },
+                        { "u", row.UserId ?? "" },
+                        { "e", row.EmployeeCode ?? "" },
+                        { "n", row.DisplayName ?? "" },
+                        { "c", row.ContractorName ?? "" },
+                        { "i", row.InputText ?? "" },
+                        { "s", row.Result ?? "" },
+                        { "p", row.FullPickList ?? "" },
+                        { "m", row.OperationMs },
+                        { "w", row.WrongCount },
+                        { "l", row.LockLevel },
+                        { "q", row.LockMinutes },
+                        { "z", row.LockedUntilMs }
+                    });
+                }
+
+                var raw = _d160HistoryJson.Serialize(compact);
+                while (raw.Length > 520000 && compact.Count > 1)
+                {
+                    compact.RemoveRange(0, Math.Min(50, compact.Count - 1));
+                    raw = _d160HistoryJson.Serialize(compact);
+                }
+                return raw.Length <= 520000 ? raw : "[]";
+            }
+            catch
+            {
+                return "[]";
+            }
+        }
+
         private static string D160HistoryLockText(D160PickerHistoryRow item)
         {
             if (item == null || item.LockLevel <= 0) return "";
