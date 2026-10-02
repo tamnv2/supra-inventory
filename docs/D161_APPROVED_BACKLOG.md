@@ -244,3 +244,104 @@ Expected normal-runtime impact after a correct implementation:
 - Web `Ca vận hành`, summaries, reports, labels and other outward business copy must not present 05:45–22:15 as “ca bình thường”.
 - If a technical/diagnostic surface needs to expose the Replay guard, it must use an explicit label such as **Cửa sổ kỹ thuật Replay: 05:45–22:15**, visually separate from **Ca bình thường: 06:00–22:00**.
 - Overtime logic remains anchored to the Replay technical end at 22:15 exactly as already approved in D161. Business-facing shift statistics/grouping continue to use the established 06:00–22:00 shift definition unless an independent Owner decision changes reporting semantics.
+
+## 12. Agent bulk Picker session revocation and manual-only Agent update
+
+Owner-approved target after source review.
+
+### Bulk **Kích toàn bộ user**
+Current source already supports per-row **Kích User** and a protected Agent-password verifier, but there is no bulk operation.
+
+Approved behavior:
+- Add one destructive action **Kích toàn bộ user** to the **Picker đang hoạt động trên PDA** card.
+- Placement: card-level action in the upper-right header/tool area, visually separate from per-row actions and from the search field. It must look like a deliberate danger/admin action, not a normal row control.
+- The action is visible only to the exact authenticated Agent login names **admin** and **tamnv2**. Backend/Worker authority must revalidate the exact authenticated login; UI hiding is not security.
+- Scope is **all currently authenticated Picker/PDA Android sessions**, not Agent sessions, Web sessions, Reporter sessions or filtered search results.
+- The active search/filter never narrows the bulk target. The warning states the authoritative target count before confirmation.
+- Flow: click → destructive warning with current target count and consequence “toàn bộ Picker phải đăng nhập lại” → Continue/Cancel → require the current Agent password → execute only after local password verification succeeds.
+- The entered Agent password is never logged, persisted, sent to Firestore/Worker or included in diagnostics.
+- Do not implement this as an Agent-side loop that invokes the existing one-Picker kick pipeline N times.
+- Use one idempotent server-authoritative bulk command/request id. InventoryCore/Worker invalidates the targeted Android session generations in a bounded server transaction/batch, closes affected realtime sessions/notification targets as applicable and returns a bounded summary.
+- A best-effort Firebase/FCM signal may accelerate PDA logout, but **server session-generation invalidation is the authority**. A PDA that misses the signal must still fail its next authenticated request and be returned to login.
+- Reuse existing Firebase/notification/session resources. Do not introduce high-frequency polling, a new business carrier or N per-Picker Agent provider writes merely to implement the bulk button.
+- Individual per-row **Kích User** remains available and behavior-compatible.
+
+### Agent update becomes manual-only
+Current source checks Agent updates during startup and again every 30 minutes, while also exposing a manual **Kiểm tra cập nhật** button.
+
+Approved target:
+- Remove automatic Agent version checks from startup.
+- Remove the 30-minute automatic update timer/cadence.
+- Agent startup restores its saved Agent session/browser/runtime normally even when the update channel is unavailable.
+- **Kiểm tra cập nhật** is the only normal Agent update entry point.
+- Clicking it checks the trusted Agent manifest only after the user action.
+- If current: show a concise “Đang dùng bản mới nhất”.
+- If newer: show current → target version and a clear Yes/No confirmation. **Yes** downloads, verifies existing trusted-channel/checksum rules, starts the existing safe replace/restart installer; **No** makes no mutation.
+- A manual update-check failure is diagnostic only and must not stop relay/PickList processing or expire an otherwise valid Agent session.
+- Removing the timer must reduce or eliminate idle Agent update-channel traffic; no replacement poll/listener is introduced.
+
+## 13. Android update discovery, login availability and best-effort install UX
+
+Current-source defects confirmed:
+- Android vc92 treats update-check failure as a login-blocking gate.
+- The normal login screen constructs an update button in code but does not mount a visible update control in the login layout.
+- Update failures are currently collapsed into a generic message, losing the failing stage.
+
+### Update check must not be a normal login dependency
+Approved target:
+- Opening the login screen may perform **one bounded background version check**, but login availability must not depend on successful access to the release/update channel.
+- Update-channel DNS/HTTP/manifest/temporary availability failure shows a non-blocking warning and leaves **ĐĂNG NHẬP** usable.
+- A failure to verify the integrity/signature of the **currently installed APK itself** remains fail-closed.
+- D161 introduces no mandatory minimum-version policy. A future force-update/minimum-supported-version rule requires explicit separate Owner authority.
+- Update diagnostics preserve a sanitized failure stage instead of one generic catch, including at least: installed-signer, manifest-network/http, manifest-parse/channel validation, download, checksum, downloaded-APK package/version/signer validation, installer permission and installer launch.
+- Pre-login update failures that cannot upload because there is no authenticated session are retained in a small bounded local diagnostic record and may be included in the next authenticated support snapshot; no secret/credential content.
+
+### Professional login-screen update control
+- Add a permanently visible, compact **Phiên bản & cập nhật** row below the login credential card and above the existing footer/credit.
+- Left side: current build label, e.g. **Beta vc92**.
+- Right side: outlined secondary action **Kiểm tra cập nhật**.
+- The control must remain reachable without logging in and must not compete visually with the primary **ĐĂNG NHẬP** button.
+- While checking, only the update action changes to a bounded loading/disabled state such as **Đang kiểm tra…**; the credential fields and Login button remain usable.
+- This manual button is the recovery path when automatic login-screen discovery does not show an update prompt or when the previous check failed.
+- Manual check and automatic login-screen check share one single-flight checker and the same trusted manifest rules; concurrent duplicate checks/downloads are forbidden.
+
+### Login-screen automatic discovery
+- If the bounded automatic check finds a newer trusted Beta release, show a clear update warning with **Cập nhật** / **Để sau**.
+- **Để sau** keeps the login form available and creates no download.
+- **Cập nhật** starts download/verification/install.
+- If the automatic check finds current version, no intrusive dialog is shown.
+- A failed automatic check does not repeatedly prompt or retry in a tight loop; the visible manual **Kiểm tra cập nhật** remains available.
+
+### Manual check while logged in
+- Keep the visible in-app version label clickable.
+- Tap version → confirmation **Tìm kiếm bản cập nhật?** Yes/No.
+- **No** cancels with no network request.
+- **Yes** performs one version check.
+- If current: show **Đang dùng bản mới nhất**.
+- If a newer trusted release exists: download, verify and proceed to install automatically after that explicit Yes; no second “download?” confirmation is required.
+- The same download/install single-flight guard applies whether update was initiated from login or from the authenticated app.
+
+### Best-effort installation
+- After the user has explicitly accepted an update, automate all safe steps available to the application: download, SHA-256 verification, package/version/signer validation, retain the pending APK, request the package-install permission when missing, and immediately resume/open the system installer after permission becomes available.
+- On normal Android 11 sideloaded PDA operation, the target is **minimum user interaction**, not falsely claiming Play-style silent installation.
+- Full unattended/silent install is **not a D161 requirement**. It may be reconsidered only through a later Owner-approved Device Owner/MDM/OEM-management workstream with explicit resource/security review.
+- Do not add Google Play, an MDM provider, OEM-specific privileged API, device-owner enrollment or a new provider resource as part of this D161 item.
+
+## 14. Additional implementation-impact boundary
+
+These newly approved items remain **authority/backlog only** until the Owner gives a separate consolidated D161 implementation command.
+
+Potential later implementation surfaces:
+- Agent WinForms Picker card, Agent authentication guard, Agent updater/startup lifecycle;
+- Worker/InventoryCore Android-session authority and bounded bulk revoke API;
+- existing Firebase FCM/session-control signaling as best-effort acceleration;
+- Android login layout/update state machine/update diagnostics/installer handoff;
+- existing trusted GitHub inventory release channel and Beta Worker download endpoints;
+- canonical tests/specs/state/resource metadata.
+
+Expected effects:
+- No additional idle polling/listener cadence.
+- Agent update-channel background traffic decreases because startup/30-minute checks are removed.
+- Android release-channel failure no longer creates an artificial business-login outage.
+- Bulk kick is exceptional/manual and must use one bounded authoritative command rather than an N-request Agent loop.
+- Stable remains OWNER-GATED and untouched.
