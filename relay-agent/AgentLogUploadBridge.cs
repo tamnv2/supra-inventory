@@ -410,7 +410,7 @@ namespace SupraInventoryRelayAgent
                         FirstAtMs = PendingBoundary(path, "first_at_ms"),
                         LastAtMs = PendingBoundary(path, "last_at_ms")
                     })
-                    .OrderBy(item => item.FirstAtMs <= 0 ? long.MaxValue : item.FirstAtMs)
+                    .OrderBy(item => item.FirstAtMs <= 0 ? 0L : item.FirstAtMs)
                     .ThenBy(item => item.LastAtMs <= 0 ? long.MaxValue : item.LastAtMs)
                     .ThenBy(item => item.Path, StringComparer.OrdinalIgnoreCase)
                     .Take(24)
@@ -425,7 +425,15 @@ namespace SupraInventoryRelayAgent
                 {
                     var raw = File.ReadAllText(path, Encoding.UTF8);
                     var bundle = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                    if (bundle == null) continue;
+                    var firstMs = LongValue(bundle, "first_at_ms");
+                    var lastMs = LongValue(bundle, "last_at_ms");
+                    if (bundle == null || firstMs <= 0 || lastMs <= 0 || lastMs < firstMs)
+                    {
+                        RegisterUploadFailure();
+                        _log("AGENT LOG upload=BLOCKED_INVALID_PENDING_METADATA retry_after=" +
+                             _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture));
+                        break;
+                    }
                     var gateway = GatewayEnabled();
                     var uploaded = gateway
                         ? UploadGateway(session, bundle)
