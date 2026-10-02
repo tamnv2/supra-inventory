@@ -55,7 +55,7 @@ namespace SupraInventoryRelayAgent
 
         private void InitializeD160LogSettings()
         {
-            var card = NewCard(22, 338, 1040, 178);
+            var card = NewCard(22, 510, 1040, 190);
             card.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             card.Controls.Add(new Label
             {
@@ -76,8 +76,8 @@ namespace SupraInventoryRelayAgent
                 Text = "Agent ghi một file log đầy đủ gồm vận hành PDA ↔ Agent, WMS, Firestore, lỗi và chẩn đoán. Log được làm sạch thông tin nhạy cảm trước khi lưu/gửi.",
                 ForeColor = Color.DimGray
             });
-            _d160LogStatus.SetBounds(18, 94, 650, 26);
-            _d160LogStatus.Text = "File: agent-complete.log · gửi định kỳ/lỗi/crash và có thể gửi thủ công.";
+            _d160LogStatus.SetBounds(18, 94, 650, 42);
+            _d160LogStatus.Text = _agentLogBridge.GetStatusSummary() + " · bảo hiểm gửi lúc 21:45.";
             _d160LogStatus.ForeColor = Color.FromArgb(88, 104, 115);
             card.Controls.Add(_d160LogStatus);
 
@@ -89,8 +89,8 @@ namespace SupraInventoryRelayAgent
                 System.Threading.Tasks.Task.Run(() =>
                 {
                     _agentLogBridge.TryQueueManualSnapshot();
-                    Ui(() => _d160LogStatus.Text =
-                        "Đã xử lý yêu cầu gửi Logs. Nếu mạng chưa sẵn sàng, gói được giữ cục bộ để gửi lại.");
+                    Ui(() => _d160LogStatus.Text = _agentLogBridge.GetStatusSummary() +
+                        " · Nếu còn gói chờ, Agent sẽ tự gửi lại khi mạng sẵn sàng.");
                 });
             };
             card.Controls.Add(_d160SendLogs);
