@@ -1637,3 +1637,16 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - The v92 repair is accepted: authenticated PRIMARY/NEXT_A/NEXT_B Agents can view synchronized Agent/User and active Picker lists without PRIMARY promotion; login and CLOSED→ACTIVE repaint already-held in-memory sync state without new provider reads/writes.
 - D137 real Page.reload/F5 semantics remain frozen; no WebView2/browser-runtime optimization was introduced.
 - No new provider resource, Firestore collection, secret, Android release, polling cadence or Stable mutation was introduced. Stable remains OWNER-GATED and untouched.
+
+## D161 derived continuity markers — 2026-10-02
+
+> Derived view only. Canonical authority is `ops/project-state.json`, `docs/OWNER_DECISIONS.md`, affected specs, and `docs/D161_APPROVED_BACKLOG.md`.
+
+- Accepted runtime base: `D160`.
+- Beta collection state: `D160_ACCEPTED_BASE__D161_OWNER_APPROVED_BACKLOG_ACTIVE_IMPLEMENTATION_DEFERRED__ANDROID_VC92`.
+- Web runtime marker: `D160_ACCEPTED_RUNTIME_WEB__D161_WEB_VERSION_1_AND_REPAIR_REQUIREMENTS_APPROVED_IMPLEMENTATION_DEFERRED`.
+- Android runtime marker: `D160_ACCEPTED_RUNTIME__SIGNED_BETA_VC92__D161_REPAIR_REQUIREMENTS_APPROVED_IMPLEMENTATION_DEFERRED`.
+- Latest signed Beta APK: `beta-vc92`.
+- SQLite schema: `16`.
+- D161 is authority/backlog collection only. No implementation/build/release/deploy/provider mutation is authorized until a separate explicit Owner command.
+- Stable remains OWNER-GATED.
