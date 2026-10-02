@@ -4486,7 +4486,7 @@
     },
     {
       "id": "OA090",
-      "status": "PENDING_TECHNICAL_RELEASE",
+      "status": "ACTION_REQUIRED__FIELD_READY",
       "title": "Field-accept D160 Agent v95 bulk confirmation, Usage, unified Logs and Picker history",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / Google Apps Script",
@@ -4524,12 +4524,23 @@
         "The existing Agent Apps Script gateway is consolidated/renamed/moved successfully and the redundant D159 script is retired.",
         "D158/D157 HA, PRIMARY generation fence, WMS managed-browser restrictions and Stable owner gate remain intact."
       ],
-      "remaining_owner_action": "Wait for D160 technical/runtime release evidence, then perform the shortest field test above and explicitly report PASS/NOT PASS.",
-      "closed": false
+      "remaining_owner_action": "Field-test relay-agent-v95 with beta-vc92, then explicitly report D160 PASS or NOT PASS.",
+      "closed": false,
+      "technical_evidence": {
+        "provider_run": 36949347354,
+        "provider_attempt": 2,
+        "agent_run": 36942335324,
+        "agent_attempt": 2,
+        "release": "relay-agent-v95",
+        "release_id": 401470717,
+        "exe_asset_id": 604502168,
+        "exe_size_bytes": 7200768,
+        "exe_sha256": "23692a84b576e98e8b835dd09acc330a485f2a50fc0e64075ea25680b0de27ff"
+      }
     },
     {
       "id": "OA091",
-      "status": "ACTION_REQUIRED",
+      "status": "CLOSED_PASS",
       "title": "Grant Cloud Monitoring OAuth consent to the consolidated D160 Agent Operations Gateway",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Google Apps Script / Google OAuth / Cloud Monitoring",
@@ -4571,8 +4582,13 @@
         "affected_metric_families": "reads,writes,deletes,connections,listeners,rules,storage,fcm_requests,identity_requests,secure_token_requests,function_requests,function_instances,function_billable_time",
         "d159_retired": false
       },
-      "remaining_owner_action": "Run authorizeD160Monitoring once in the existing Agent Operations Gateway Apps Script editor, approve monitoring.read, then report D160 Monitoring consent xong.",
-      "closed": false
+      "remaining_owner_action": "NONE",
+      "closed": true,
+      "owner_result": {
+        "date": "2026-10-02",
+        "result": "PASS",
+        "evidence": "Owner reported D160_MONITORING_AUTH_PASS."
+      }
     }
   ]
 }
