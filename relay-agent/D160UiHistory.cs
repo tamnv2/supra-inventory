@@ -237,6 +237,11 @@ namespace SupraInventoryRelayAgent
                 row.Result = D160HistoryResultText(outcome.Result);
                 row.FullPickList = outcome.ResolvedPickListCode ?? "";
                 row.OperationMs = Math.Max(0L, outcome.OperationMs);
+                var rate = outcome.Rate;
+                row.WrongCount = rate == null ? 0 : Math.Max(0, rate.NewlyLocked ? 3 : rate.StrikeCount);
+                row.LockLevel = rate == null ? 0 : Math.Max(0, rate.LockLevel);
+                row.LockMinutes = rate == null ? 0 : Math.Max(0, rate.LockMinutes);
+                row.LockedUntilMs = rate == null ? 0L : Math.Max(0L, rate.LockedUntilMs);
             }
             AppendD160HistoryEvent(row);
             Ui(() => RenderD160HistoryRow(row));
@@ -261,7 +266,7 @@ namespace SupraInventoryRelayAgent
                 foreach (var row in rows) RenderD160HistoryRow(row);
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
-                    " request · reset lúc 05:00 · UI cục bộ, không thêm Firestore usage.";
+                    " request · reset lúc 05:00 · đồng bộ fleet, không thêm provider operation.";
             });
             CleanupD160OldHistoryFiles(dayKey);
         }
@@ -290,6 +295,8 @@ namespace SupraInventoryRelayAgent
                 item.InputText,
                 item.Result,
                 item.FullPickList,
+                item.WrongCount > 0 ? item.WrongCount.ToString(CultureInfo.InvariantCulture) : "",
+                D160HistoryLockText(item),
                 item.OperationMs > 0 ? item.OperationMs.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " ms" : ""
             };
             if (target == null)
@@ -306,7 +313,7 @@ namespace SupraInventoryRelayAgent
             lock (_d160HistoryGate) count = _d160History.Count;
             _d160HistoryStatus.Text =
                 "Ngày vận hành " + _d160HistoryDayKey + " · " + count.ToString("N0") +
-                " request · reset lúc 05:00 · UI cục bộ, không thêm Firestore usage.";
+                " request · reset lúc 05:00 · đồng bộ fleet, không thêm provider operation.";
         }
 
         private void AppendD160HistoryEvent(D160PickerHistoryRow row)
@@ -329,7 +336,11 @@ namespace SupraInventoryRelayAgent
                     { "input_text", row.InputText },
                     { "result", row.Result },
                     { "full_picklist", row.FullPickList },
-                    { "operation_ms", row.OperationMs }
+                    { "operation_ms", row.OperationMs },
+                    { "wrong_count", row.WrongCount },
+                    { "lock_level", row.LockLevel },
+                    { "lock_minutes", row.LockMinutes },
+                    { "locked_until_ms", row.LockedUntilMs }
                 };
                 File.AppendAllText(
                     D160HistoryPath(day),
@@ -366,7 +377,11 @@ namespace SupraInventoryRelayAgent
                         InputText = D160MapString(map, "input_text"),
                         Result = D160MapString(map, "result"),
                         FullPickList = D160MapString(map, "full_picklist"),
-                        OperationMs = D160MapLong(map, "operation_ms")
+                        OperationMs = D160MapLong(map, "operation_ms"),
+                        WrongCount = (int)D160MapLong(map, "wrong_count"),
+                        LockLevel = (int)D160MapLong(map, "lock_level"),
+                        LockMinutes = (int)D160MapLong(map, "lock_minutes"),
+                        LockedUntilMs = D160MapLong(map, "locked_until_ms")
                     };
                 }
             }
