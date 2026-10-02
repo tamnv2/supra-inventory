@@ -2887,3 +2887,19 @@ Owner-approved D161 requirements currently include:
 - remove **Giới thiệu / Quyền riêng tư / Điều khoản** from the authenticated Web business footer while retaining the public legal/OAuth routes and public login/recovery links.
 
 Additional Owner-approved findings/refinements may be appended under the same D161 while implementation remains deferred. Before implementation, present the complete D161 backlog and let the Owner choose all or selected items. Stable remains OWNER-GATED.
+
+### D161 Owner addendum — support logs, Agent UI performance and overtime UX — 2026-10-03
+
+The Owner explicitly approved the previously reviewed unified support-log proposal and added two Agent requirements: eliminate progressive/wave rendering in History/Usage with canonical newest-first History behavior, and replace the existing pre-end overtime confirmation flow with the D161 sleep/extension state machine.
+
+Canonical detail remains `docs/D161_APPROVED_BACKLOG.md`. The durable decisions are:
+- Android logout immediately shows a blocking progress state and is single-flight; session-end log classification is not `scheduled`.
+- Runtime logs archive under server-resolved `Inventory/Beta/Logs/YYYY-MM-DD` by actual Drive archive date in Asia/Ho_Chi_Minh; clients do not independently create/list daily folders.
+- Android/Agent local evidence is pruned only after positive Drive synchronization. Intermediate Worker/Core/Firestore acceptance cannot delete the only local copy.
+- Normal support logging is bounded and anti-spam: Android bounded local journal plus event/logout/final safety paths rather than four full periodic INFO uploads; Web bounded pending-error queue; Agent error/incident suppression and idempotent boundary sealing.
+- Exact Agent logins `admin` and `tamnv2` alone may request a global support-log collection. Backend revalidates the identity; request-id/TTL/dedupe/jitter apply; only currently authenticated clients respond; already Drive-synced history is not re-uploaded; no per-device Firestore ACK write is introduced.
+- Agent History/Usage must render atomically/batched with no visible row/label wave and no provider-cadence increase. History tab entry always restores authoritative `SentAtMs` descending order; temporary manual sort is discarded after leaving/re-entering the tab.
+- D161 supersedes D154's end-of-day timing only where conflicting: normal shared replay end becomes **22:15 Asia/Ho_Chi_Minh**, with no pre-end Continue/Stop confirmation. At 22:15 without an active override the shared relay state is SLEEP and the Agent shows a red/white no-extension panel with **Gia hạn +1 giờ**.
+- Sleeping extension starts at `min(now + 1h, 05:00)`; active extension adds one hour to authoritative `override_until`, capped at 05:00. Fifteen minutes before `override_until`, show one deduped warning with **Gia hạn +1 giờ / Không gia hạn**; no response means automatic sleep at the current deadline. Existing shared CAS authority, propagation, 05:00 cutoff and 05:00–05:45 early-start model remain.
+- The schedule change is shared authority, not Agent-only presentation: later implementation must keep Agent, schedule propagation/enforcement, Android and Web consistent.
+- This addendum is **requirements authority only**. D160 remains the accepted runtime base; no D161 implementation/build/release/deploy/provider mutation is authorized yet. Stable remains OWNER-GATED.

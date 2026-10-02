@@ -1015,3 +1015,16 @@ The detail grid keeps 24 hourly rows and uses Vietnamese column labels. The head
 - Android Reporter `Cho phép skip` rows show an explicit correction action while server authority says the row is correctable: **Sửa thành Đã có hàng · MM:SS**.
 - The countdown updates locally without network traffic. When remaining time reaches zero the action disappears rather than remaining as a stale disabled control.
 - A correction that becomes expired at the final server mutation boundary receives clear Vietnamese feedback rather than a silent no-op.
+
+## D161 Agent rendering and overtime presentation addendum
+
+Status: Owner-approved requirement; implementation deferred.
+
+- Agent History and Usage surfaces must never visibly populate row-by-row/label-by-label. Prepare data off the UI thread and commit one atomic/batched visual snapshot.
+- History full rebuild must not repeatedly insert at row zero or linearly rescan every existing grid row. Use a virtualized/bound/batched model or equivalent with bounded repaint.
+- Fleet-history reconciliation should repaint only changed rows where practical; a one-row change must not clear and reconstruct the whole grid.
+- Usage fetch remains asynchronous; hidden Usage data may be cached in memory but must not repaint hidden controls metric-by-metric.
+- Entering **Lịch sử Picker xác nhận PickList** always presents full timestamp order newest → oldest. Manual user sorting is session-local to the current tab visit and resets after leaving/re-entering.
+- Sleeping/no-extension overtime state uses a prominent red background with white status text and an explicit **Gia hạn +1 giờ** action.
+- At T-15 before an active overtime deadline, present one red/white warning for that deadline with explicit **Gia hạn +1 giờ** and **Không gia hạn** actions. Do not reopen/refocus once per one-second timer tick.
+- Active overtime shows its exact shared end time and clear actions to extend one hour or end overtime.

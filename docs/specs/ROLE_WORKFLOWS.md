@@ -900,3 +900,22 @@ D161 is an Owner-approved requirement collection against the accepted D160 runti
 - One existing Picker identity-information change auto-applies; 2–10 changes auto-apply with audit; >10 or >10% require Web confirmation.
 - Missing Picker rows never auto-disable/delete accounts.
 - Duplicate employee codes, invalid/missing headers or tab, access loss, unreadable/empty source after prior valid data, or >20% source-row loss hard-block the cycle and preserve current users.
+
+## D161 Agent overtime and support-log workflow addendum
+
+Status: Owner-approved requirement; implementation deferred.
+
+### Shared end-of-day/overtime workflow
+1. Normal shared replay authority ends at **22:15 Asia/Ho_Chi_Minh**. D161 replaces D154's 22:30 end and pre-boundary Continue/Stop prompt.
+2. At/after 22:15, if no shared override is active, relay is SLEEP. Agent shows the no-extension sleep surface; no provider write is generated merely because the UI remains open.
+3. **Gia hạn +1 giờ** while sleeping creates an override to `min(now + 1h, 05:00)`. While already active it extends from current authoritative `override_until` by one hour, capped at 05:00.
+4. Exactly T-15 before `override_until`, one boundary-keyed warning appears. Extend updates the shared authority; decline records/suppresses further fleet prompts for that boundary but does not shorten the already-authoritative deadline.
+5. No response produces no implicit extension. At the deadline the override expires and relay returns to SLEEP automatically.
+6. Existing immediate overtime cancellation remains available. At 05:00 overtime cannot continue; the inherited 05:00–05:45 early-start model remains separate.
+7. Existing shared schedule CAS/propagation remains authoritative; no one-second provider polling/read/write loop may be added.
+
+### Support-log operator workflow
+- Exact authenticated Agent login `admin` or `tamnv2` may open **Cài đặt** and choose **Yêu cầu toàn bộ log hệ thống Báo hàng & xác nhận đơn**.
+- A Yes/No confirmation precedes any mutation. Backend/server identity validation is mandatory.
+- Yes issues one request-id/TTL control signal through a Google/Firebase-capable path suitable for Office Agent connectivity. Active authenticated Web/Android/Agent sessions respond once; logged-out sessions ignore it.
+- Responders send unsynced local evidence plus one current snapshot, use dedupe and bounded jitter, and never re-upload already Drive-synced history merely because of the global request.

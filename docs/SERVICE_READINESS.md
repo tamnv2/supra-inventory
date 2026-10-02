@@ -1644,3 +1644,13 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - SQLite schema: `16`.
 - D161 is authority/backlog collection only. No implementation/build/release/deploy/provider mutation is authorized until a separate explicit Owner command.
 - Stable remains OWNER-GATED.
+
+## D161 approved backlog extension — support logs / Agent UI / shared overtime — 2026-10-03
+
+> Derived continuity view. Canonical authority: `docs/D161_APPROVED_BACKLOG.md`, `docs/OWNER_DECISIONS.md`, affected specs and `ops/project-state.json`.
+
+- Accepted runtime base remains **D160 / Agent relay-agent-v97 / Android beta-vc92**; D161 implementation remains deferred.
+- Newly approved log target: daily trusted Drive archive children under existing Beta Logs parent, strict Drive-confirmed Android/Agent prune, bounded anti-spam capture, and exact-login `admin`/`tamnv2` global support-log request with TTL/dedupe/jitter.
+- Newly approved Agent UI target: atomic/batched History/Usage rendering with no visible wave; History resets to full `SentAtMs` newest-first order on every tab re-entry.
+- Newly approved shared schedule target: D161 changes normal replay end to **22:15**, removes pre-end Continue/Stop confirmation, uses SLEEP red/white UI with +1h shared extensions, one T-15 expiry warning and automatic sleep when no extension occurs; 05:00 cutoff and 05:00–05:45 early-start model remain inherited.
+- No code/build/release/deploy/provider mutation occurred in this authority update. Stable remains OWNER-GATED.
