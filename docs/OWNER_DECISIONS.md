@@ -2986,3 +2986,18 @@ The Owner explicitly approved a bounded **D160 post-PASS diagnostic candidate** 
 - Main Repo Authority, Project State, UI/Android, D127 and D159 usage guards are PASS for the merged diagnostic source.
 - This is **TECHNICAL / RELEASE PASS only**. Accepted runtime remains D160 / relay-agent-v97. OA092 now waits for Owner manual field test and sanitized diagnostic logs.
 - D161 authority/backlog and its deferred implementation state remain unchanged. Android beta-vc92, Web/backend runtime behavior and Stable are unchanged.
+
+
+### D160 post-PASS optimization test Agent candidate — Owner approved — 2026-10-03
+The Owner explicitly approved a second bounded D160 post-PASS Agent candidate to test evidence-backed confirmation/Firestore/logging optimizations during the remainder of the shift before deciding what is promoted into D161.
+- Accepted runtime and trusted update channel remain **D160 / relay-agent-v97**.
+- Target candidate is **relay-agent-v99**, manual-install only, diagnostic/test use only; no fleet auto-update and no `inventory-channel` mutation.
+- D161 remains unchanged and implementation-deferred. Results from the v99 field run are evidence only; D161 backlog is updated later only after end-of-shift analysis and explicit Owner decision.
+- v98 diagnostic evidence established three authorized repair targets for v99:
+  1. Preserve the existing fresh-success terminal fast path; when no authoritative fresh reject exists, allow **all exact target rows showing the same-row confirmed marker `Xác nhận lấy lại hàng` before the checkbox** to prove CONFIRMED after final click. For multi-target waves, every target must satisfy the exact-row marker proof. No second Confirm click, no added provider call and no added F5.
+  2. Treat Firestore presence-control ACK HTTP 400 + canonical `FAILED_PRECONDITION` + update precondition as a **SUPERSEDED stale snapshot**, not business transport OFFLINE. Do not arm HA role refresh or retry the stale control snapshot; newer listener state remains authoritative.
+  3. Keep successful `D160_DIAG TERMINAL result=CONFIRMED` in the complete local journal but do not seal/upload it as an immediate error bundle. UNCERTAIN/reject/real failure/crash behavior remains.
+- The following evidence-backed v98 behaviors are deliberately preserved for the v99 test: Search-before-F5 for missing/unselectable rows, FOREIGN_SELECTION hard-reload safety, 12-second mutation fence, exact-match/ambiguity guards, one final business click only, page-size=100 restoration after reload, no periodic WMS refresh, no intentional batching delay.
+- Persistent NOT_FOUND timeout tuning is **not changed in v99** because the current sample is insufficient; continue measuring it.
+- Telemetry remains enabled and redacted so end-of-shift comparison can quantify CONFIRMED/UNCERTAIN/CONFLICT/NOT_FOUND, terminal proof route, Search/F5 recovery, latency, Firestore control supersession, HA refresh, log upload volume and any regression.
+- Android beta-vc92, Web/backend business runtime, provider resources, schema and Stable remain unchanged.

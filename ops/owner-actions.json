@@ -4629,7 +4629,7 @@
     },
     {
       "id": "OA092",
-      "status": "WAITING_OWNER_FIELD_TEST",
+      "status": "CLOSED_DIAGNOSTIC_EVIDENCE_CAPTURED__NOT_PROMOTED",
       "title": "Field-test D160 post-PASS diagnostic Agent and return sanitized logs",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
@@ -4652,8 +4652,8 @@
         "Logs contain the new bounded WMS/terminal/Firestore/HA telemetry without sensitive data.",
         "inventory-channel remains relay-agent-v97 and Android beta-vc92/Stable remain unchanged."
       ],
-      "remaining_owner_action": "MANUALLY_INSTALL_V98_ON_SELECTED_AGENT_AND_RETURN_SANITIZED_LOGS",
-      "closed": false,
+      "remaining_owner_action": "NONE__SUPERSEDED_BY_OA093",
+      "closed": true,
       "prerequisite_status": "TECHNICAL_RELEASE_PASS",
       "release": {
         "tag": "relay-agent-v98",
@@ -4668,7 +4668,38 @@
         "size_bytes": 7216128,
         "sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
         "v98_not_promoted": true
-      }
+      },
+      "result": "v98 field logs captured enough evidence for bounded v99 optimization test; accepted runtime remains v97."
+    },
+    {
+      "id": "OA093",
+      "status": "PENDING_AFTER_V99_RELEASE",
+      "title": "Field-run D160 optimization test Agent v99 through end of shift",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
+      "reason_owner_only": "Real Supra WMS DOM/terminal behavior and company-network Firestore presence races can only be validated in the Owner field environment.",
+      "prerequisites": {
+        "accepted_runtime": "relay-agent-v97",
+        "test_candidate": "relay-agent-v99__MANUAL_ONLY",
+        "inventory_channel": "MUST_REMAIN_V97",
+        "android": "beta-vc92__UNCHANGED",
+        "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED"
+      },
+      "shortest_test_path": [
+        "Install relay-agent-v99 manually on the selected processing Agent; do not roll it fleet-wide.",
+        "Run the normal PDA↔Agent confirmation workload for the remainder of the shift without artificial batching or forced test traffic.",
+        "Include natural close-together confirmations, stale/missing checkbox cases, Search/F5 recoveries and normal presence login/logout activity.",
+        "At end of shift, provide/retain the complete sanitized v99 Agent logs for comparative analysis against v98."
+      ],
+      "pass_criteria": [
+        "False UNCERTAIN from stale success surfaces is reduced without duplicate final-click or increased F5/provider calls.",
+        "Presence FAILED_PRECONDITION is logged as SUPERSEDED without false Firestore OFFLINE/HA refresh.",
+        "Successful terminal diagnostics do not create immediate error bundles.",
+        "Normal CONFIRMED latency and safety remain at least as stable as v98; no new regression in Search/F5/FOREIGN_SELECTION/NOT_FOUND.",
+        "inventory-channel remains relay-agent-v97; Android beta-vc92, Web/backend business behavior, Stable and D161 remain unchanged."
+      ],
+      "remaining_owner_action": "FIELD_RUN_V99_THROUGH_END_OF_SHIFT_AND_RETURN_LOGS",
+      "closed": false
     }
   ]
 }
