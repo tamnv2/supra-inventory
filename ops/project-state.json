@@ -4401,7 +4401,7 @@
     "android_current_release": "beta-vc92__UNCHANGED_DURING_COLLECTION",
     "web_current_label": "Version 1",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "MERGE_ADMIN_IDENTITY_PROBE_REPAIR__RERUN_PHASE0A_CONTINUATION",
+    "next_action": "MERGE_LOCAL_TOKEN_SIGNING_REPAIR__RERUN_PHASE0A_CONTINUATION",
     "next_change_allowed": false,
     "schedule": "OWNER_APPROVED_TARGET__NORMAL_END_2215__NO_PREEND_PROMPT__PLUS1H_SHARED_OVERRIDES__T_MINUS_15_WARNING__0500_CAP__D154_START_EARLY_START_AND_PROPAGATION_INHERITED",
     "logs": "OWNER_APPROVED_TARGET__OBSERVABILITY_V2__COMMON_TRACE_SEQUENCE_GAPS__WEB_PERSISTED_INCIDENT_CONTEXT__ANDROID_1_2MIB_JOURNAL__AGENT_STRUCTURED_COMPLETE_STREAM__DRIVE_CONFIRMED_PRUNE__NO_PER_EVENT_PROVIDER_WRITE",
@@ -4523,19 +4523,20 @@
         "android_safety": "vc93",
         "android_feature_min": "vc94"
       },
-      "result": "REPAIRING_PREFLIGHT_AUTOMATION__ADMIN_FIREBASE_IDENTITY_RESOLUTION",
+      "result": "REPAIRING_PREFLIGHT_AUTOMATION__LOCAL_FIREBASE_TOKEN_SIGNING",
       "last_failure": {
-        "run_id": 37162087642,
+        "run_id": 37162334620,
         "step": "AUTHENTICATED_WORKER_HR_PREVIEW_AND_AGENT_GATEWAY_CONTROL",
-        "classification": "PREFLIGHT_AUTOMATION_IDENTITY_ASSUMPTION_DEFECT",
-        "cause": "probe hard-coded admin.admin Firebase email; canonical username-derived Firebase role prefix may be ADMIN or PICKPACK_ADMIN",
+        "classification": "PREFLIGHT_AUTOMATION_SIGNING_METHOD_DEFECT__NOT_RUNTIME_IAM_REQUIREMENT",
+        "cause": "firebase-admin createCustomToken attempted iam.serviceAccounts.signBlob despite service-account private key being available in the protected job credentials file",
         "passed_before_failure": [
           "RUNTIME_ADC_OAUTH",
           "HR_DRIVE_READ",
           "HR_SHEETS_READ",
-          "CLOUD_MONITORING_READ"
+          "CLOUD_MONITORING_READ",
+          "FIREBASE_ADMIN_LIST_USERS"
         ],
-        "repair": "DISCOVER_EXISTING_FIREBASE_USER_BY_APP_USER_ID_OR_CANONICAL_ROLE_PREFIX__PRESERVE_ACTUAL_AGENT_ELIGIBLE_BASE_ROLE",
+        "repair": "SIGN_FIREBASE_CUSTOM_TOKEN_LOCALLY_WITH_PROTECTED_SERVICE_ACCOUNT_PRIVATE_KEY__NO_SIGNBLOB_IAM_GRANT",
         "runtime_mutation": "NONE"
       },
       "continuation_workflow": ".github/workflows/d161-phase0a-continuation.yml",
