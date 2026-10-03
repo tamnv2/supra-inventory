@@ -179,6 +179,12 @@ Owner-approved target:
 - A user may temporarily sort another column while staying on the History tab. After leaving the tab and later returning, manual sort state is discarded and canonical newest→oldest is restored.
 - The canonical sort key is the full `SentAtMs` value, not the formatted `HH:mm:ss` string.
 - Tab switching, scrolling and Agent relay processing must remain responsive while History/Usage data is prepared.
+- Add a visible History column **User Agent xử lý**. It shows the authenticated Agent username that actually owns the terminal processing/ACK for that PickList request, for example `tamnv2`, `admin`, `dienhx`.
+- Identity source priority is the terminal Agent session `LoginName`; fall back to `AppUserId` only when LoginName is unavailable. Do not display Firebase UID, machine name or Picker identity as this column.
+- A pending local row may temporarily show the current processing Agent, but the terminal result must overwrite/converge to the Agent user that actually produced the final durable ACK.
+- Carry this field inside the **existing durable ACK write** and the **existing compact `picker_history_json` piggyback** used by `agent_sync`. Adding the field must not create an extra Firestore document operation, read, write, listener, poll or history-only sync mutation.
+- Fleet merge/local JSON/history persistence must retain the field so all active Agents converge on the same **User Agent xử lý** without a separate lookup.
+- History sorting remains canonical by full `SentAtMs`; adding the column must not change the no-wave/batched rendering requirements above.
 
 ## 10. D161 shared relay sleep/overtime UX
 
