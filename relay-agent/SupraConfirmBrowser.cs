@@ -681,7 +681,7 @@ namespace SupraInventoryRelayAgent
                         _log("SUPRA_BROWSER checkbox_recovery=START terms=" + beforeRecovery.Count +
                              " reason=unique_row_checkbox_not_ready");
                         IssueConfirmReloadNowNoLock("checkbox_not_ready_after_search");
-                        if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromMilliseconds(4500)))
+                        if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromMilliseconds(4500), true))
                         {
                             EnsurePageSize100NoLock();
                             ClickExactButtonNoLock(SearchText);
@@ -1061,13 +1061,20 @@ namespace SupraInventoryRelayAgent
             return false;
         }
 
-        private bool WaitForForcedConfirmReloadNoLock(TimeSpan timeout)
+        private bool WaitForForcedConfirmReloadNoLock(TimeSpan timeout, bool allowProgressExtension = false)
         {
+            var softTimeout = timeout <= TimeSpan.Zero ? TimeSpan.FromMilliseconds(4500) : timeout;
             var diagnosticStarted = Stopwatch.StartNew();
             var diagnosticSamples = 0;
-            var deadline = DateTime.UtcNow.Add(timeout);
+            var softDeadline = DateTime.UtcNow.Add(softTimeout);
+            var hardDeadline = allowProgressExtension
+                ? softDeadline.AddMilliseconds(3500)
+                : softDeadline;
             var stableSince = DateTime.MinValue;
-            while (DateTime.UtcNow < deadline)
+            var extensionArmed = false;
+            var progressChanges = 0;
+            var lastProgressSignature = "";
+            while (DateTime.UtcNow < hardDeadline)
             {
                 Thread.Sleep(250);
                 diagnosticSamples++;
@@ -1075,9 +1082,49 @@ namespace SupraInventoryRelayAgent
                 var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 var loaded = map != null && Bool(map, "pageLoaded");
                 var ready = map != null && Bool(map, "ready");
+                var domReady = map != null && Bool(map, "domReady");
+                var dataHydrated = map != null && Bool(map, "dataHydrated");
+                var picklistCodeCount = map == null ? 0 : Math.Max(0, Int(map, "picklistCodeCount"));
                 var nav = map == null ? "" : String(map, "navigationType");
                 var url = map == null ? "" : String(map, "url");
                 var onConfirm = url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0;
+                var progressSignature =
+                    (loaded ? "1" : "0") + "|" +
+                    (domReady ? "1" : "0") + "|" +
+                    (dataHydrated ? "1" : "0") + "|" +
+                    picklistCodeCount + "|" +
+                    nav + "|" +
+                    (onConfirm ? "1" : "0");
+                if (!string.Equals(progressSignature, lastProgressSignature, StringComparison.Ordinal))
+                {
+                    lastProgressSignature = progressSignature;
+                    progressChanges++;
+                }
+
+                if (!extensionArmed && allowProgressExtension && DateTime.UtcNow >= softDeadline)
+                {
+                    var progressEligible =
+                        onConfirm &&
+                        loaded &&
+                        string.Equals(nav, "reload", StringComparison.OrdinalIgnoreCase);
+                    if (progressEligible)
+                    {
+                        extensionArmed = true;
+                        _log("D160_DIAG WMS_REFRESH event=EXTENDED epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                             " reason=" + D160DiagnosticTelemetry.LastReloadReason +
+                             " soft_ms=" + Math.Max(0L, (long)softTimeout.TotalMilliseconds) +
+                             " hard_extra_ms=3500" +
+                             " progress_changes=" + progressChanges +
+                             " dom_ready=" + D160DiagnosticTelemetry.Flag(domReady) +
+                             " hydrated=" + D160DiagnosticTelemetry.Flag(dataHydrated) +
+                             " picklist_codes=" + picklistCodeCount);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
                 if (loaded && ready && onConfirm &&
                     string.Equals(nav, "reload", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1096,7 +1143,8 @@ namespace SupraInventoryRelayAgent
                         _log("D160_DIAG WMS_REFRESH event=PASS epoch=" + D160DiagnosticTelemetry.PageEpoch +
                              " reason=" + D160DiagnosticTelemetry.LastReloadReason +
                              " elapsed_ms=" + diagnosticStarted.ElapsedMilliseconds +
-                             " readiness_samples=" + diagnosticSamples);
+                             " readiness_samples=" + diagnosticSamples +
+                             " extension_armed=" + D160DiagnosticTelemetry.Flag(extensionArmed));
                         LogD160DiagnosticPageStateNoLock("RELOAD_PASS", diagnosticStarted.ElapsedMilliseconds);
                         return true;
                     }
@@ -1105,12 +1153,19 @@ namespace SupraInventoryRelayAgent
                 {
                     stableSince = DateTime.MinValue;
                 }
+
+                if (!allowProgressExtension && DateTime.UtcNow >= softDeadline)
+                    break;
+                if (allowProgressExtension && !extensionArmed && DateTime.UtcNow >= softDeadline)
+                    break;
             }
             _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_TIMEOUT fail_closed=true");
             _log("D160_DIAG WMS_REFRESH event=TIMEOUT epoch=" + D160DiagnosticTelemetry.PageEpoch +
                  " reason=" + D160DiagnosticTelemetry.LastReloadReason +
                  " elapsed_ms=" + diagnosticStarted.ElapsedMilliseconds +
                  " readiness_samples=" + diagnosticSamples +
+                 " extension_armed=" + D160DiagnosticTelemetry.Flag(extensionArmed) +
+                 " progress_changes=" + progressChanges +
                  " dirty_after_confirm=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
             LogD160DiagnosticPageStateNoLock("RELOAD_TIMEOUT", diagnosticStarted.ElapsedMilliseconds);
             return false;
