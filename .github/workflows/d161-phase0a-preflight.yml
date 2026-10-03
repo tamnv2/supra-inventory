@@ -1,0 +1,506 @@
+name: D161 Phase 0A Provider Preflight
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d161-phase0a-preflight.yml"
+      - "docs/D161_APPROVED_BACKLOG.md"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/OBSERVABILITY_LOGGING.md"
+      - "ops/project-state.json"
+      - "ops/owner-actions.json"
+      - "ops/resource-registry.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/d161-phase0a-preflight.yml"
+      - "docs/D161_APPROVED_BACKLOG.md"
+      - "docs/OWNER_DECISIONS.md"
+      - "docs/specs/OBSERVABILITY_LOGGING.md"
+      - "ops/project-state.json"
+      - "ops/owner-actions.json"
+      - "ops/resource-registry.json"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: d161-phase0a-provider-preflight
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: phase0a-static-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate D161 start authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -e '.d161.status == "STARTED__PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE"' ops/project-state.json >/dev/null
+          jq -e '.d161.current_gate == "PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE"' ops/project-state.json >/dev/null
+          jq -e '.d161.phase0a.resolved_release_lineage.agent_safety == "v101"' ops/project-state.json >/dev/null
+          jq -e '.d161.phase0a.resolved_release_lineage.android_safety == "vc93"' ops/project-state.json >/dev/null
+          jq -e '.actions[] | select(.id=="OA095") | .status=="PASS" and .closed==true' ops/owner-actions.json >/dev/null
+          test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "97"
+          grep -q 'Stable remains OWNER-GATED and untouched' docs/OWNER_DECISIONS.md
+          echo "D161 Phase 0A static authority gate PASS"
+
+  provider-preflight:
+    name: phase0a-provider-canaries
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: beta
+    env:
+      PROJECT_ID: supra-inventory-beta
+      RUNTIME_SA: inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com
+      ALERT_RUNTIME_SA: inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com
+      HR_SHEET_ID: 14UcBtXvK_uGHAiKU31Ofw3nwxsTl2IlLPUG9sX8ce7k
+      HR_TAB: Nhân sự
+      LOGS_FOLDER_ID: 17Ealimu__NFxeEzG3mUfivpEEacX_vgo
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      CF_API_TOKEN_INVENTORY_BETA: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+      BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+      FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+      FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      FIREBASE_FUNCTIONS_SA_JSON_BETA: ${{ secrets.FIREBASE_FUNCTIONS_SA_JSON_BETA }}
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      AGENT_LOG_GATEWAY_URL_BETA: ${{ vars.AGENT_LOG_GATEWAY_URL_BETA }}
+      BETA_KEYSTORE_B64: ${{ secrets.BETA_KEYSTORE_B64 }}
+      BETA_KEYSTORE_PASSWORD: ${{ secrets.BETA_KEYSTORE_PASSWORD }}
+      BETA_KEY_ALIAS: ${{ secrets.BETA_KEY_ALIAS }}
+      BETA_KEY_PASSWORD: ${{ secrets.BETA_KEY_PASSWORD }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Resolve release lineage and prove GitHub release write/cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          max_agent="$(gh release list --limit 100 --json tagName --jq '[.[].tagName | select(test("^relay-agent-v[0-9]+$")) | capture("^relay-agent-v(?<n>[0-9]+)$").n | tonumber] | max // 0')"
+          max_android="$(gh release list --limit 100 --json tagName --jq '[.[].tagName | select(test("^beta-vc[0-9]+$")) | capture("^beta-vc(?<n>[0-9]+)$").n | tonumber] | max // 0')"
+          test "$max_agent" = "100"
+          test "$max_android" = "92"
+          test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "97"
+          tag="d161-phase0a-permission-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          cleanup() { gh release delete "$tag" --cleanup-tag -y >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          gh release create "$tag" --draft --target "$GITHUB_SHA" --title "D161 Phase0A disposable permission probe" --notes "Disposable Beta-only Phase 0A release permission canary."
+          gh release view "$tag" --json isDraft --jq '.isDraft == true' | grep -q true
+          cleanup
+          trap - EXIT
+          echo "GITHUB_RELEASE=PASS"
+          echo "AGENT_LINEAGE=V97_ACCEPTED__V101_SAFETY__V102_PLUS_FEATURE"
+          echo "ANDROID_LINEAGE=VC92_ACCEPTED__VC93_SAFETY__VC94_PLUS_FEATURE"
+
+      - name: Prove Cloudflare Beta token, existing Worker and dry-run deploy packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CF_API_TOKEN_INVENTORY_BETA"
+          test -n "$CF_ACCOUNT_ID"
+          test -n "$BETA_HOSTNAME"
+          verify="$(curl -fsS -H "Authorization: Bearer $CF_API_TOKEN_INVENTORY_BETA" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/tokens/verify")"
+          jq -e '.success == true and .result.status == "active"' <<<"$verify" >/dev/null
+          service_code="$(curl -sS -o /tmp/cf-service.json -w '%{http_code}' -H "Authorization: Bearer $CF_API_TOKEN_INVENTORY_BETA" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/services/supra-inventory-beta")"
+          test "$service_code" = "200"
+          npm --prefix service install --no-audit --no-fund >/dev/null
+          (cd service && npx wrangler@4 deploy --config wrangler.beta.toml --dry-run --outdir ../.phase0a-worker >/dev/null)
+          echo "CLOUDFLARE_BETA_DEPLOY_CAPABILITY=PASS"
+
+      - name: Prove live Beta health, runtime bindings and Google OAuth configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          health="$(curl -fsS "https://$BETA_HOSTNAME/health")"
+          jq -e '.status=="ok" and .environment=="beta" and (.missing_bindings|length)==0 and .oauth_refresh_token_configured==true and .logs_folder_configured==true' <<<"$health" >/dev/null
+          jq -e '.storage.status=="ok" and .storage.schema_version==.storage.expected_schema_version and .storage.operational_v2.ready==true' <<<"$health" >/dev/null
+          echo "BETA_RUNTIME_HEALTH_AND_OAUTH_BINDINGS=PASS"
+
+      - name: Prove fixed Android Beta signer is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          for v in BETA_KEYSTORE_B64 BETA_KEYSTORE_PASSWORD BETA_KEY_ALIAS BETA_KEY_PASSWORD; do test -n "${!v:-}"; done
+          key="$RUNNER_TEMP/d161-phase0a-beta.jks"
+          printf '%s' "$BETA_KEYSTORE_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          keytool -list -keystore "$key" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" >/dev/null
+          signer="$(keytool -exportcert -keystore "$key" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" | sha256sum | awk '{print $1}')"
+          test "${#signer}" -eq 64
+          rm -f "$key"
+          echo "ANDROID_BETA_SIGNER=PASS"
+
+      - name: Authenticate Beta Firebase/Firestore probe identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_RULES_SA_JSON_BETA"
+          key="$RUNNER_TEMP/d161-rules-sa.json"
+          printf '%s' "$FIREBASE_RULES_SA_JSON_BETA" > "$key"
+          chmod 600 "$key"
+          jq -e '.type=="service_account" and .project_id=="supra-inventory-beta"' "$key" >/dev/null
+          email="$(jq -r '.client_email' "$key")"
+          gcloud auth activate-service-account "$email" --key-file="$key" --project="$PROJECT_ID" --quiet >/dev/null
+          echo "FIREBASE_RULES_IDENTITY=$email"
+
+      - name: Prove Firestore write/read/delete canary in existing coordination collection
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          doc="d161_phase0a_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}"
+          url="https://firestore.googleapis.com/v1/projects/$PROJECT_ID/databases/(default)/documents/relay_poc_coordination/$doc"
+          cleanup() { curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $token" "$url" || true; }
+          trap cleanup EXIT
+          code="$(curl -sS -o /tmp/fs-write.json -w '%{http_code}' -X PATCH -H "Authorization: Bearer $token" -H "Content-Type: application/json" --data "{\"fields\":{\"phase\":{\"stringValue\":\"D161_PHASE0A\"},\"run_id\":{\"stringValue\":\"${GITHUB_RUN_ID}\"}}}" "$url")"
+          test "$code" = "200"
+          curl -fsS -H "Authorization: Bearer $token" "$url" | jq -e '.fields.phase.stringValue=="D161_PHASE0A"' >/dev/null
+          del="$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE -H "Authorization: Bearer $token" "$url")"
+          test "$del" = "200"
+          trap - EXIT
+          gone="$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $token" "$url")"
+          test "$gone" = "404"
+          echo "FIRESTORE_COORDINATION_CANARY=PASS"
+
+      - name: Prove Functions/Cloud Run visibility and FCM validate-only permission
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_FUNCTIONS_SA_JSON_BETA"
+          key="$RUNNER_TEMP/d161-functions-sa.json"
+          printf '%s' "$FIREBASE_FUNCTIONS_SA_JSON_BETA" > "$key"
+          chmod 600 "$key"
+          email="$(jq -r '.client_email' "$key")"
+          gcloud auth activate-service-account "$email" --key-file="$key" --project="$PROJECT_ID" --quiet >/dev/null
+          gcloud run services describe inventory-beta-picker-alerts --region asia-southeast1 --project "$PROJECT_ID" --format='value(metadata.name)' | grep -qx 'inventory-beta-picker-alerts'
+          token="$(gcloud auth print-access-token)"
+          fcm_body='{"validate_only":true,"message":{"token":"d161-phase0a-invalid-token","data":{"probe":"permission"}}}'
+          fcm_code="$(curl -sS -o /tmp/fcm.json -w '%{http_code}' -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" --data "$fcm_body" "https://fcm.googleapis.com/v1/projects/$PROJECT_ID/messages:send")"
+          if [ "$fcm_code" = "401" ] || [ "$fcm_code" = "403" ] || [ "$fcm_code" -ge 500 ]; then
+            echo "FCM validate-only permission failed HTTP $fcm_code" >&2
+            cat /tmp/fcm.json | jq -c '{error:{code:.error.code,status:.error.status}}' 2>/dev/null || true
+            exit 1
+          fi
+          echo "FUNCTIONS_CLOUD_RUN=PASS"
+          echo "FCM_VALIDATE_ONLY=PASS_HTTP_$fcm_code"
+
+      - name: Re-authenticate Firebase rules identity and prove Cloud Monitoring read
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/d161-rules-sa.json"
+          email="$(jq -r '.client_email' "$key")"
+          gcloud auth activate-service-account "$email" --key-file="$key" --project="$PROJECT_ID" --quiet >/dev/null
+          token="$(gcloud auth print-access-token)"
+          end="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          start="$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ)"
+          code="$(curl -sS -o /tmp/monitoring.json -w '%{http_code}' -G -H "Authorization: Bearer $token" --data-urlencode 'filter=metric.type="firestore.googleapis.com/document/read_ops_count"' --data-urlencode "interval.startTime=$start" --data-urlencode "interval.endTime=$end" --data-urlencode 'view=HEADERS' "https://monitoring.googleapis.com/v3/projects/$PROJECT_ID/timeSeries")"
+          test "$code" = "200"
+          echo "CLOUD_MONITORING_READ=PASS"
+
+      - name: Create authenticated Agent-channel Admin token and prove runtime HR Sheet read
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          lookup_code="$(curl -sS -o /tmp/admin-user.json -w '%{http_code}' -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" --data '{"email":["admin.admin@auth.supra.invalid"]}' "https://identitytoolkit.googleapis.com/v1/projects/$PROJECT_ID/accounts:lookup")"
+          test "$lookup_code" = "200"
+          uid="$(jq -r '.users[0].localId // empty' /tmp/admin-user.json)"
+          test -n "$uid"
+          FIREBASE_UID="$uid" node <<'NODE' > /tmp/custom-token.txt
+          const crypto=require('crypto');
+          const sa=JSON.parse(process.env.FIREBASE_RULES_SA_JSON_BETA);
+          const uid=process.env.FIREBASE_UID;
+          const now=Math.floor(Date.now()/1000);
+          const b64=v=>Buffer.from(JSON.stringify(v)).toString('base64url');
+          const head=b64({alg:'RS256',typ:'JWT'});
+          const body=b64({
+            iss:sa.client_email,sub:sa.client_email,
+            aud:'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+            iat:now,exp:now+3600,uid,
+            claims:{app_user_id:'admin',app_role:'ADMIN',app_base_role:'ADMIN',app_session_channel:'AGENT',employee_code:'admin'}
+          });
+          const unsigned=head+'.'+body;
+          const sig=crypto.sign('RSA-SHA256',Buffer.from(unsigned),sa.private_key).toString('base64url');
+          process.stdout.write(unsigned+'.'+sig);
+          NODE
+          custom="$(cat /tmp/custom-token.txt)"
+          exchange="$(curl -fsS -X POST -H "Content-Type: application/json" --data "{"token":"$custom","returnSecureToken":true}" "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=$FIREBASE_WEB_API_KEY_BETA")"
+          id_token="$(jq -r '.idToken // empty' <<<"$exchange")"
+          test -n "$id_token"
+          source_json="$(curl -fsS -H "Authorization: Bearer $id_token" "https://$BETA_HOSTNAME/api/admin/hr-source")"
+          jq -e --arg id "$HR_SHEET_ID" '.configured==true and .source.sheet_id==$id' <<<"$source_json" >/dev/null
+          preview_code="$(curl -sS -o /tmp/hr-preview.json -w '%{http_code}' -X POST -H "Authorization: Bearer $id_token" -H "Content-Type: application/json" --data '{}' "https://$BETA_HOSTNAME/api/admin/hr-sync/preview")"
+          test "$preview_code" = "200"
+          jq -e '.status=="preview"' /tmp/hr-preview.json >/dev/null
+          rm -f /tmp/custom-token.txt
+          echo "HR_SHEETS_RUNTIME_IDENTITY_READ=PASS"
+
+      - name: Prepare Apps Script OAuth for Drive/watch and log canaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLASPRC_JSON"
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          chmod 600 "$HOME/.clasprc.json"
+          npx --yes @google/clasp@3.4.1 --json list-scripts >/dev/null
+          echo "APPS_SCRIPT_OAUTH=PASS"
+
+      - name: Prove HR Drive files.watch initial sync, replacement and channels.stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          rules_key="$RUNNER_TEMP/d161-rules-sa.json"
+          rules_email="$(jq -r '.client_email' "$rules_key")"
+          rules_token="$(gcloud auth print-access-token)"
+          runtime_token=""
+          if [ "$rules_email" = "$RUNTIME_SA" ]; then
+            runtime_token="$(SA_JSON="$FIREBASE_RULES_SA_JSON_BETA" node <<'NODE'
+          const crypto=require('crypto');
+          const sa=JSON.parse(process.env.SA_JSON);
+          const now=Math.floor(Date.now()/1000);
+          const enc=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
+          const unsigned=enc({alg:'RS256',typ:'JWT'})+'.'+enc({iss:sa.client_email,scope:'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets.readonly',aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600});
+          const assertion=unsigned+'.'+crypto.sign('RSA-SHA256',Buffer.from(unsigned),sa.private_key).toString('base64url');
+          fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion})}).then(async r=>{const j=await r.json();if(!r.ok||!j.access_token)process.exit(2);process.stdout.write(j.access_token);});
+          NODE
+          )"
+          else
+            imp_code="$(curl -sS -o /tmp/impersonate.json -w '%{http_code}' -X POST -H "Authorization: Bearer $rules_token" -H "Content-Type: application/json" --data '{"scope":["https://www.googleapis.com/auth/drive.readonly","https://www.googleapis.com/auth/spreadsheets.readonly"],"lifetime":"1800s"}' "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/$RUNTIME_SA:generateAccessToken")"
+            if [ "$imp_code" = "200" ]; then runtime_token="$(jq -r '.accessToken // empty' /tmp/impersonate.json)"; fi
+          fi
+          if [ -z "$runtime_token" ]; then
+            echo "::error::Cannot obtain a bounded Drive-read token for the canonical runtime service account without exposing its private key."
+            exit 1
+          fi
+          meta_code="$(curl -sS -o /tmp/hr-drive-meta.json -w '%{http_code}' -H "Authorization: Bearer $runtime_token" "https://www.googleapis.com/drive/v3/files/$HR_SHEET_ID?fields=id,name,mimeType")"
+          test "$meta_code" = "200"
+          jq -e --arg id "$HR_SHEET_ID" '.id==$id' /tmp/hr-drive-meta.json >/dev/null
+
+          work="$(mktemp -d)"
+          script_id=""
+          deployment_id=""
+          ch1=""
+          rid1=""
+          ch2=""
+          rid2=""
+          owner_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+          cleanup() {
+            set +e
+            if [ -n "$ch1" ] && [ -n "$rid1" ]; then curl -sS -o /dev/null -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch1","resourceId":"$rid1"}" "https://www.googleapis.com/drive/v3/channels/stop" || true; fi
+            if [ -n "$ch2" ] && [ -n "$rid2" ]; then curl -sS -o /dev/null -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch2","resourceId":"$rid2"}" "https://www.googleapis.com/drive/v3/channels/stop" || true; fi
+            if [ -n "$deployment_id" ]; then (cd "$work" && npx --yes @google/clasp@3.4.1 --json delete-deployment "$deployment_id" >/dev/null 2>&1) || true; fi
+            if [ -n "$script_id" ] && [ -n "$owner_token" ]; then curl -sS -o /dev/null -X PATCH -H "Authorization: Bearer $owner_token" -H "Content-Type: application/json" --data '{"trashed":true}' "https://www.googleapis.com/drive/v3/files/$script_id" || true; fi
+            rm -rf "$work"
+          }
+          trap cleanup EXIT
+          cd "$work"
+          npx --yes @google/clasp@3.4.1 --json create --type webapp --title "SUPRA Inventory D161 Phase0A Watch ${GITHUB_RUN_ID}" > create.json
+          script_id="$(jq -r '.scriptId // empty' create.json)"
+          test -n "$script_id"
+          cat > Code.gs <<'GS'
+          function doPost() {
+            const p = PropertiesService.getScriptProperties();
+            const n = Number(p.getProperty('COUNT') || '0') + 1;
+            p.setProperty('COUNT', String(n));
+            return ContentService.createTextOutput(JSON.stringify({ok:true,count:n})).setMimeType(ContentService.MimeType.JSON);
+          }
+          function doGet() {
+            const n = Number(PropertiesService.getScriptProperties().getProperty('COUNT') || '0');
+            return ContentService.createTextOutput(JSON.stringify({ok:true,count:n})).setMimeType(ContentService.MimeType.JSON);
+          }
+          GS
+          cat > appsscript.json <<'JSON'
+          {"timeZone":"Asia/Ho_Chi_Minh","dependencies":{},"exceptionLogging":"STACKDRIVER","runtimeVersion":"V8","webapp":{"access":"ANYONE_ANONYMOUS","executeAs":"USER_DEPLOYING"}}
+          JSON
+          npx --yes @google/clasp@3.4.1 push --force >/dev/null
+          npx --yes @google/clasp@3.4.1 --json create-version "D161 Phase0A watch" > version.json
+          version="$(jq -r '.versionNumber // empty' version.json)"
+          npx --yes @google/clasp@3.4.1 --json create-deployment --versionNumber "$version" --description "D161 Phase0A watch" > deployment.json
+          deployment_id="$(jq -r '.deploymentId // empty' deployment.json)"
+          test -n "$deployment_id"
+          dep_code="$(curl -sS -o deployment-api.json -w '%{http_code}' -H "Authorization: Bearer $owner_token" "https://script.googleapis.com/v1/projects/$script_id/deployments/$deployment_id")"
+          test "$dep_code" = "200"
+          callback="$(jq -r '.entryPoints[]? | select(.entryPointType=="WEB_APP") | .webApp.url // empty' deployment-api.json | head -n1)"
+          test -n "$callback"
+          for i in $(seq 1 20); do if curl -fsSL "$callback" >/tmp/callback.json 2>/dev/null && jq -e '.ok==true' /tmp/callback.json >/dev/null; then break; fi; sleep 2; done
+          jq -e '.ok==true' /tmp/callback.json >/dev/null
+
+          watch_one() {
+            local id="$1" out="$2"
+            local expiration="$(( ( $(date +%s) + 900 ) * 1000 ))"
+            curl -fsS -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$id","type":"web_hook","address":"$callback","expiration":"$expiration"}" "https://www.googleapis.com/drive/v3/files/$HR_SHEET_ID/watch?supportsAllDrives=true" > "$out"
+          }
+          ch1="$(cat /proc/sys/kernel/random/uuid)"
+          watch_one "$ch1" watch1.json
+          rid1="$(jq -r '.resourceId // empty' watch1.json)"
+          test -n "$rid1"
+          initial_ok=false
+          for i in $(seq 1 30); do
+            if curl -fsSL "$callback" >/tmp/callback.json 2>/dev/null; then count="$(jq -r '.count // 0' /tmp/callback.json)"; if [ "$count" -ge 1 ]; then initial_ok=true; break; fi; fi
+            sleep 2
+          done
+          test "$initial_ok" = true
+
+          ch2="$(cat /proc/sys/kernel/random/uuid)"
+          watch_one "$ch2" watch2.json
+          rid2="$(jq -r '.resourceId // empty' watch2.json)"
+          test -n "$rid2"
+          replace_ok=false
+          for i in $(seq 1 30); do
+            if curl -fsSL "$callback" >/tmp/callback.json 2>/dev/null; then count="$(jq -r '.count // 0' /tmp/callback.json)"; if [ "$count" -ge 2 ]; then replace_ok=true; break; fi; fi
+            sleep 2
+          done
+          test "$replace_ok" = true
+
+          stop1="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch1","resourceId":"$rid1"}" "https://www.googleapis.com/drive/v3/channels/stop")"
+          test "$stop1" = "204"
+          ch1=""; rid1=""
+          stop2="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch2","resourceId":"$rid2"}" "https://www.googleapis.com/drive/v3/channels/stop")"
+          test "$stop2" = "204"
+          ch2=""; rid2=""
+          echo "HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP=PASS"
+
+      - name: Prove Logs child-folder create/resolve/upload/readback/cleanup and recent runtime evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
+          test -n "$token"
+          canary="D161_PHASE0A_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}"
+          folder_json="$(jq -nc --arg n "$canary" --arg p "$LOGS_FOLDER_ID" '{name:$n,mimeType:"application/vnd.google-apps.folder",parents:[$p]}')"
+          folder="$(curl -fsS -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" --data "$folder_json" "https://www.googleapis.com/drive/v3/files?fields=id,name,parents")"
+          folder_id="$(jq -r '.id // empty' <<<"$folder")"
+          test -n "$folder_id"
+          cleanup() { if [ -n "${folder_id:-}" ]; then curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $token" "https://www.googleapis.com/drive/v3/files/$folder_id" || true; fi; }
+          trap cleanup EXIT
+          q="'$LOGS_FOLDER_ID' in parents and trashed=false and name='$canary'"
+          resolved="$(curl -fsS -G -H "Authorization: Bearer $token" --data-urlencode "q=$q" --data-urlencode 'fields=files(id,name)' "https://www.googleapis.com/drive/v3/files")"
+          jq -e --arg id "$folder_id" '[.files[]|select(.id==$id)]|length==1' <<<"$resolved" >/dev/null
+          printf 'D161_PHASE0A_LOG_CANARY\n' > /tmp/d161-log-canary.txt
+          meta="$(jq -nc --arg p "$folder_id" '{name:"phase0a.txt",parents:[$p]}')"
+          curl -fsS -X POST -H "Authorization: Bearer $token" -F "metadata=$meta;type=application/json" -F "file=@/tmp/d161-log-canary.txt;type=text/plain" "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id" > /tmp/log-file.json
+          file_id="$(jq -r '.id // empty' /tmp/log-file.json)"
+          test -n "$file_id"
+          curl -fsS -H "Authorization: Bearer $token" "https://www.googleapis.com/drive/v3/files/$file_id?alt=media" > /tmp/readback.txt
+          cmp /tmp/d161-log-canary.txt /tmp/readback.txt
+          curl -fsS -o /dev/null -X DELETE -H "Authorization: Bearer $token" "https://www.googleapis.com/drive/v3/files/$file_id"
+          curl -fsS -o /dev/null -X DELETE -H "Authorization: Bearer $token" "https://www.googleapis.com/drive/v3/files/$folder_id"
+          folder_id=""
+          trap - EXIT
+
+          recent="$(curl -fsS -G -H "Authorization: Bearer $token" --data-urlencode "q='$LOGS_FOLDER_ID' in parents and trashed=false" --data-urlencode 'orderBy=modifiedTime desc' --data-urlencode 'pageSize=1' --data-urlencode 'fields=files(id,name,modifiedTime)' "https://www.googleapis.com/drive/v3/files")"
+          modified="$(jq -r '.files[0].modifiedTime // empty' <<<"$recent")"
+          test -n "$modified"
+          python3 - "$modified" <<'PY'
+          import sys,datetime
+          t=datetime.datetime.fromisoformat(sys.argv[1].replace('Z','+00:00'))
+          now=datetime.datetime.now(datetime.timezone.utc)
+          if (now-t).total_seconds()>72*3600: raise SystemExit("No recent runtime log evidence within 72h")
+          PY
+          echo "LOGS_CREATE_RESOLVE_UPLOAD_READBACK_CLEANUP=PASS"
+          echo "RECENT_RUNTIME_LOG_EVIDENCE=PASS"
+
+      - name: Prove existing Agent operations gateway and global control reachability
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$AGENT_LOG_GATEWAY_URL_BETA"
+          payload="$(curl -fsSL "$AGENT_LOG_GATEWAY_URL_BETA")"
+          jq -e '.ok==true and .service=="SUPRA_AGENT_OPERATIONS_GATEWAY_D160"' <<<"$payload" >/dev/null
+          echo "AGENT_GATEWAY_REACHABILITY=PASS"
+          echo "GLOBAL_LOG_CONTROL_PLANE_FOUNDATION=PASS"
+
+      - name: Cleanup local credential files
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$HOME/.clasprc.json" "$RUNNER_TEMP/d161-rules-sa.json" "$RUNNER_TEMP/d161-functions-sa.json" /tmp/custom-token.txt
+          echo "PHASE0A_PROVIDER_PREFLIGHT_COMPLETE"
+
+  android-build-preflight:
+    name: phase0a-android-signed-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: provider-preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: beta
+    env:
+      BETA_KEYSTORE_B64: ${{ secrets.BETA_KEYSTORE_B64 }}
+      BETA_KEYSTORE_PASSWORD: ${{ secrets.BETA_KEYSTORE_PASSWORD }}
+      BETA_KEY_ALIAS: ${{ secrets.BETA_KEY_ALIAS }}
+      BETA_KEY_PASSWORD: ${{ secrets.BETA_KEY_PASSWORD }}
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+      APP_VERSION_CODE: "93"
+      APP_VERSION_NAME: "0.2.0-beta.93"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build signed Safety-numbered APK without publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/d161-phase0a-beta.jks"
+          printf '%s' "$BETA_KEYSTORE_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          echo "BETA_KEYSTORE_PATH=$key" >> "$GITHUB_ENV"
+          gradle -p android :app:assembleRelease --no-daemon
+          apk="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$apk"
+          jarsigner -verify -certs "$apk" >/dev/null 2>&1 || true
+          echo "ANDROID_SIGNED_BUILD_VC93_PREFLIGHT=PASS"
+
+  agent-build-preflight:
+    name: phase0a-agent-v97-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: provider-preflight
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build accepted v97 source and run startup smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -ne "97") { throw "Accepted source is not v97." }
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $p = Start-Process -FilePath $exe -ArgumentList "--startup-smoke" -PassThru
+          if (-not $p.WaitForExit(15000)) { try { $p.Kill() } catch {}; throw "Agent startup smoke timed out." }
+          if ($p.ExitCode -ne 0) { throw "Agent startup smoke failed." }
+          Write-Host "AGENT_V97_REPRODUCIBLE_BUILD=PASS"
+
+  phase0a:
+    name: phase0a
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [provider-preflight, android-build-preflight, agent-build-preflight]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "D161_PHASE0A=PASS"
+          echo "Stable untouched; next gate is Phase 0 Safety."

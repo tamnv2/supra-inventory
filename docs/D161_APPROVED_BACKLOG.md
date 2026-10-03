@@ -1,6 +1,6 @@
 # D161 — Owner-approved consolidated update backlog
 
-Status: **OWNER-APPROVED REQUIREMENTS / IMPLEMENTATION DEFERRED**
+Status: **IMPLEMENTATION STARTED — PHASE 0A PROVIDER PREFLIGHT ACTIVE**
 
 Date: 2026-10-02  
 Accepted runtime base: **D160 Owner PASS**  
@@ -9,7 +9,9 @@ Stable: **OWNER-GATED / untouched**
 
 ## Governance
 
-This document is canonical durable project memory for the D161 collection phase.
+**Execution checkpoint 2026-10-04:** Owner issued the exact command `bắt đầu D161 tiến hành`. D161 implementation is authorized subject to the existing mandatory gates: Phase 0A must PASS before Safety/runtime mutation; Phase 0 Safety must PASS before feature-bearing backlog implementation. Stable remains OWNER-GATED and untouched.
+
+This document is canonical durable project memory for D161.
 
 - The Owner has approved the requirements below.
 - Approval here does **not** authorize implementation, build, release, deploy, provider mutation, or Stable change.
@@ -106,7 +108,7 @@ Approved target:
 
 ## 7. Implementation gate
 
-No D161 source/build/deploy work is authorized yet.
+The exact Owner start command was received on **2026-10-04**. D161 is now in **Phase 0A Permission & Provider Preflight**. Business/runtime source mutation remains blocked until Phase 0A PASS; feature-bearing backlog implementation remains blocked until Phase 0 Safety PASS.
 
 When the Owner requests a consolidated update:
 1. Bootstrap GitHub authority.

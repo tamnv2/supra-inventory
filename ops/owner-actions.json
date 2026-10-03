@@ -4753,7 +4753,7 @@
     },
     {
       "id": "OA095",
-      "status": "WAITING_EXACT_D161_START_COMMAND",
+      "status": "PASS",
       "title": "Start D161 implementation only on exact Owner command",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory / GitHub canonical authority",
@@ -4762,7 +4762,7 @@
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d160_tests": "CLOSED__V98_V99_V100_NOT_PROMOTED",
         "d161_backlog": "OWNER_APPROVED__INCLUDING_CONFIRM_PIPELINE_V2__OBSERVABILITY_V2__HISTORY_PROCESSING_AGENT_USER",
-        "first_official_agent_runtime_version": "v98",
+        "first_official_agent_runtime_version": "SAFETY_V101__FEATURE_V102_PLUS__HISTORICAL_V98_V99_V100_IMMUTABLE",
         "stable": "OWNER_GATED_UNTOUCHED"
       },
       "shortest_action": [
@@ -4775,8 +4775,16 @@
         "D161 implementation then proceeds through the complete then-current approved backlog using branch → PR → authority/continuity PASS → merge.",
         "Stable remains untouched unless separately and explicitly authorized."
       ],
-      "remaining_owner_action": "SEND_EXACT_COMMAND__bắt đầu D161 tiến hành",
-      "closed": false
+      "remaining_owner_action": "NONE__EXACT_COMMAND_RECEIVED_2026_10_04",
+      "closed": true,
+      "completion_evidence": {
+        "owner_command": "bắt đầu D161 tiến hành",
+        "received_at": "2026-10-04",
+        "authority_bootstrap": "PASS",
+        "phase0a_state": "STARTED",
+        "resolved_agent_lineage": "V97_ACCEPTED__V98_V99_V100_TEST_HISTORY__V101_SAFETY__V102_PLUS_FEATURE",
+        "resolved_android_lineage": "VC92_ACCEPTED__VC93_SAFETY__VC94_PLUS_FEATURE"
+      }
     }
   ]
 }
