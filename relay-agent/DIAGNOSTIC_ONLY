@@ -1,6 +1,0 @@
-D160_POST_PASS_MANUAL_TEST_CANDIDATE
-accepted_runtime=relay-agent-v97
-candidate=relay-agent-v100
-purpose=RECOVERY_TERMINAL_LATENCY_TEST_WITH_DIAGNOSTICS
-inventory_channel_update=FORBIDDEN
-d161_runtime_update=FORBIDDEN
