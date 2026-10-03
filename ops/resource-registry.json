@@ -193,13 +193,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v97__OWNER_FIELD_ACCEPTED_PASS",
+      "relay_agent_release": "relay-agent-v97__OWNER_FIELD_ACCEPTED_PASS__TRUSTED_CHANNEL",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D156_PASS_RUN_36645477945__SOURCE_859A7DFB__SCHEMA16_16__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "NONE__D160_V97_OWNER_ACCEPTED",
+      "relay_agent_release_target": "relay-agent-v97__ACCEPTED__DIAGNOSTIC_V98_MUST_NOT_PROMOTE_CHANNEL",
       "next_signed_beta_release_target": "NONE__D156_VC92_OWNER_ACCEPTED",
-      "next_relay_agent_release_target": "NONE__D161_IMPLEMENTATION_DEFERRED",
+      "next_relay_agent_release_target": "relay-agent-v98__D160_POST_PASS_DIAGNOSTIC__MANUAL_ONLY",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -2146,6 +2146,16 @@
       "exe_asset_id": 604789328,
       "exe_sha256": "6a76e825e92f46632043f6f83721ce43228614babb951e6634261623db2573c7",
       "field_result": "REPAIR_REQUIRED__OVERLAY_HISTORY_LIFECYCLE"
+    },
+    "post_pass_diagnostic_candidate": {
+      "target": "relay-agent-v98",
+      "distribution": "DEDICATED_PRERELEASE_OR_ARTIFACT__MANUAL_INSTALL_ONLY",
+      "accepted_runtime": "relay-agent-v97",
+      "trusted_inventory_channel": "NO_CHANGE__MUST_REMAIN_V97",
+      "resources": "EXISTING_AGENT_LOCAL_LOG_AND_EXISTING_D160_LOG_GATEWAY_ONLY",
+      "provider_change": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "d161": "UNCHANGED"
     }
   },
   "d161": {
