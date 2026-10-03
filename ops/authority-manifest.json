@@ -16,6 +16,7 @@
     "docs/specs/SKU_MASTER.md",
     "docs/specs/REALTIME_NOTIFICATIONS.md",
     "docs/specs/DATA_LIFECYCLE.md",
+    "docs/specs/OBSERVABILITY_LOGGING.md",
     "docs/specs/REPORTING_DASHBOARD.md",
     "docs/specs/UI_DESIGN_SYSTEM.md",
     "docs/specs/ACCEPTANCE_TESTING.md",
@@ -39,6 +40,7 @@
       "docs/specs/SKU_MASTER.md",
       "docs/specs/REALTIME_NOTIFICATIONS.md",
       "docs/specs/DATA_LIFECYCLE.md",
+      "docs/specs/OBSERVABILITY_LOGGING.md",
       "docs/specs/REPORTING_DASHBOARD.md",
       "docs/specs/UI_DESIGN_SYSTEM.md",
       "docs/specs/ACCEPTANCE_TESTING.md"
