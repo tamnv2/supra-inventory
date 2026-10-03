@@ -3097,3 +3097,16 @@ Existing D161 daily Drive folders, Drive-confirmed local prune, bounded upload/d
 
 This addendum is requirements/authority only. It does not start D161 implementation. The exact implementation trigger remains **`bắt đầu D161 tiến hành`**, followed by Phase 0A → Phase 0 Safety → implementation. Stable remains OWNER-GATED.
 
+### D161 Owner addendum — PickList History shows processing Agent user — 2026-10-03
+
+The Owner requires **Lịch sử Picker xác nhận PickList** to add a visible column **User Agent xử lý**.
+
+- The value is the authenticated Agent username that actually owns the terminal processing/durable ACK, e.g. `tamnv2`, `admin`, `dienhx`.
+- Prefer the terminal Agent session `LoginName`; use `AppUserId` only as fallback. Do not substitute Firebase UID, machine name or Picker identity.
+- If a pending local row already has a provisional processor, the terminal outcome must converge/overwrite to the user that actually produced the durable ACK.
+- The identity is carried in the **same existing confirmation ACK operation** and in the existing compact History payload that piggybacks only when the existing counter-driven `agent_sync` mutation already occurs.
+- This requirement adds **zero extra Firestore document read/write/listener/poll cadence** and creates no history-only provider mutation.
+- Local History JSON, fleet merge and UI rendering retain the field; canonical History sort remains full `SentAtMs` newest-first.
+
+This is D161 authority/backlog only and does not start runtime implementation. Exact start remains **`bắt đầu D161 tiến hành`**.
+
