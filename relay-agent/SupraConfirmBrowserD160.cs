@@ -107,6 +107,7 @@ namespace SupraInventoryRelayAgent
                 var maxSameBaseline = 0;
                 var maxMutatedBaseline = 0;
                 var maxNewTerminal = 0;
+                var maxConfirmedMarkerTargets = 0;
                 var firstSignalMs = -1L;
                 var deadline = DateTime.UtcNow.AddMilliseconds(boundedTerminalWaitMs);
                 while (DateTime.UtcNow < deadline)
@@ -114,7 +115,7 @@ namespace SupraInventoryRelayAgent
                     Thread.Sleep(120);
                     try
                     {
-                        var postRaw = EvaluateJsonNoLock(BuildD160PostConfirmScript(token));
+                        var postRaw = EvaluateJsonNoLock(BuildD160PostConfirmScript(token, codes));
                         var post = _json.DeserializeObject(postRaw) as Dictionary<string, object>;
                         if (post == null) continue;
                         terminalSamples++;
@@ -124,6 +125,7 @@ namespace SupraInventoryRelayAgent
                         maxSameBaseline = Math.Max(maxSameBaseline, Int(post, "sameBaselineCount"));
                         maxMutatedBaseline = Math.Max(maxMutatedBaseline, Int(post, "mutatedBaselineCount"));
                         maxNewTerminal = Math.Max(maxNewTerminal, Int(post, "newTerminalCount"));
+                        maxConfirmedMarkerTargets = Math.Max(maxConfirmedMarkerTargets, Int(post, "confirmedMarkerTargetCount"));
                         if (Bool(post, "success"))
                         {
                             if (firstSignalMs < 0) firstSignalMs = terminalStarted.ElapsedMilliseconds;
@@ -140,6 +142,13 @@ namespace SupraInventoryRelayAgent
                             // confirmation guards closed to prevent a duplicate retry.
                             result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
                             result.Detail = "FRESH_ERROR_SURFACE_POST_CLICK";
+                            break;
+                        }
+                        if (Bool(post, "allTargetsConfirmed"))
+                        {
+                            if (firstSignalMs < 0) firstSignalMs = terminalStarted.ElapsedMilliseconds;
+                            result.Result = "CONFIRMED";
+                            result.Detail = "ROW_CONFIRMED_MARKER";
                             break;
                         }
                     }
@@ -176,6 +185,7 @@ namespace SupraInventoryRelayAgent
                      " same_baseline_max=" + maxSameBaseline +
                      " mutated_baseline_max=" + maxMutatedBaseline +
                      " new_terminal_max=" + maxNewTerminal +
+                     " confirmed_marker_targets_max=" + maxConfirmedMarkerTargets +
                      " epoch=" + D160DiagnosticTelemetry.PageEpoch +
                      " dirty_after_confirm=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
             }
@@ -406,11 +416,13 @@ namespace SupraInventoryRelayAgent
             })()";
         }
 
-        private static string BuildD160PostConfirmScript(string token)
+        private static string BuildD160PostConfirmScript(string token, List<string> codes)
         {
             var escaped = JavaScriptString(token);
+            var jsCodes = string.Join(",", (codes ?? new List<string>()).Select(code => "'" + JavaScriptString(code) + "'"));
             return @"(() => {
               const token = '" + escaped + @"';
+              const targets = [" + jsCodes + @"];
               const visible = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
               const docs = [];
               const seen = new Set();
@@ -452,9 +464,33 @@ namespace SupraInventoryRelayAgent
               const errorText = errors.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
               const successWord = successText.includes('thành công') || successText.includes('success');
               const rejectWord = errorText.includes('thất bại') || errorText.includes('không thể') || errorText.includes('error');
+
+              const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
+              let confirmedMarkerTargetCount = 0;
+              for (const code of targets) {
+                const matches = rows.filter(row => {
+                  const found = [...new Set(((row.innerText || row.textContent || '').toUpperCase().match(/\bPL[0-9]+\b/g) || []))];
+                  return found.includes(code);
+                });
+                if (matches.length !== 1) continue;
+                const row = matches[0];
+                const boxes = [...row.querySelectorAll('input[type=checkbox],[role=checkbox]')].filter(visible);
+                if (boxes.length !== 1) continue;
+                const box = boxes[0];
+                const markers = [...row.querySelectorAll('*')].filter(e =>
+                  visible(e) &&
+                  norm(e.innerText || e.textContent) === 'Xác nhận lấy lại hàng' &&
+                  !e.matches('button,a,[role=button],input[type=button],input[type=submit]') &&
+                  ![...e.children].some(child => visible(child) && norm(child.innerText || child.textContent) === 'Xác nhận lấy lại hàng'));
+                const markerBeforeCheckbox = markers.some(marker =>
+                  !!(marker.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING));
+                if (markerBeforeCheckbox) confirmedMarkerTargetCount++;
+              }
               return JSON.stringify({
                 success:successWord,
                 rejected:rejectWord,
+                allTargetsConfirmed:targets.length > 0 && confirmedMarkerTargetCount === targets.length,
+                confirmedMarkerTargetCount:confirmedMarkerTargetCount,
                 freshSuccessCount:success.length,
                 freshErrorCount:errors.length,
                 visibleTerminalCount:allTerminal.length,
