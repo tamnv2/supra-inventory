@@ -41,3 +41,4 @@ D125 is the current cross-spec override where older specs describe Supra/WMS ses
 
 D126 supersedes the D125 target model before D125 implementation. The current published Android/PDA PickList flow and Agent operating model remain. Supra integration changes to user-login browser UI automation only: no session extraction/persistence/replay and no direct WMS PickList API. SKU master remains manual-file-only; WMS/Tồn Bin SKU sync stays retired. See OWNER_DECISIONS D126 and the D126 sections in ROLE_WORKFLOWS, AUTH_RBAC, FORMS, SKU_MASTER, REALTIME_NOTIFICATIONS, UI_DESIGN_SYSTEM and ACCEPTANCE_TESTING.
 
+- `OBSERVABILITY_LOGGING.md` — D161 cross-platform Web/Android/Agent observability, support-log schema, correlation, redaction, lifecycle and PickList critical-path diagnostics.
