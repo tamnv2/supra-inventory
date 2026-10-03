@@ -283,3 +283,12 @@ Owner-approved diagnostic work on 2026-10-03 is a bounded continuation of D160, 
 - Only logging/telemetry and the minimum CI/release fencing needed to keep the diagnostic candidate manual-only are authorized.
 - D160 v97 business behavior, Android beta-vc92, Web/backend/provider cadence and Stable remain unchanged.
 - After candidate publication, stop at Owner field/log collection. A field failure is repaired under the same D160 diagnostic continuation; a field PASS must reconcile accepted-artifact metadata before any D161 implementation can start.
+
+
+## D160 post-PASS optimization test candidate routing — v99
+The Owner-approved v99 test remains a bounded continuation of D160.
+- relay-agent-v97 remains accepted and trusted; v99 is manual-install only and cannot mutate `inventory-channel`.
+- v98 diagnostic evidence is input to v99 but neither v98 nor v99 becomes accepted merely by technical/release PASS.
+- v99 may change only the three approved evidence-backed repair points: same-row confirmed-marker fallback, presence FAILED_PRECONDITION supersession classification, and successful-terminal error-upload suppression.
+- Search-before-F5, FOREIGN_SELECTION reload safety, 12-second mutation fence and all other D160 v97 safety/business invariants stay unchanged.
+- After v99 publication, stop at Owner field run/log collection. End-of-shift analysis determines whether repairs are kept, adjusted or rejected; D161 remains unchanged until a later explicit Owner decision.
