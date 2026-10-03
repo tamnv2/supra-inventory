@@ -4629,7 +4629,7 @@
     },
     {
       "id": "OA092",
-      "status": "PENDING_AFTER_RELEASE",
+      "status": "WAITING_OWNER_FIELD_TEST",
       "title": "Field-test D160 post-PASS diagnostic Agent and return sanitized logs",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
@@ -4652,8 +4652,23 @@
         "Logs contain the new bounded WMS/terminal/Firestore/HA telemetry without sensitive data.",
         "inventory-channel remains relay-agent-v97 and Android beta-vc92/Stable remain unchanged."
       ],
-      "remaining_owner_action": "FIELD_TEST_AND_RETURN_LOGS_AFTER_DIAGNOSTIC_RELEASE",
-      "closed": false
+      "remaining_owner_action": "MANUALLY_INSTALL_V98_ON_SELECTED_AGENT_AND_RETURN_SANITIZED_LOGS",
+      "closed": false,
+      "prerequisite_status": "TECHNICAL_RELEASE_PASS",
+      "release": {
+        "tag": "relay-agent-v98",
+        "release_id": 402285229,
+        "exe_asset_id": 606990416,
+        "exe_size_bytes": 7244288,
+        "exe_sha256": "1d7902903311862af471b01f8b66ac9e7b309949eb65228cf6198afb987d2bad"
+      },
+      "channel_proof": {
+        "accepted_runtime": "relay-agent-v97",
+        "inventory_channel_agent_asset_id": 604881360,
+        "size_bytes": 7216128,
+        "sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
+        "v98_not_promoted": true
+      }
     }
   ]
 }

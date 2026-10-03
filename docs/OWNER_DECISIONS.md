@@ -2975,3 +2975,14 @@ The Owner explicitly approved a bounded **D160 post-PASS diagnostic candidate** 
 - Local log rotation/upload lifecycle remains D160 accepted behavior; no new Drive/Apps Script/Firestore resource or upload cadence is authorized.
 - D161 remains **OWNER_APPROVED_REQUIREMENTS_CAPTURED__IMPLEMENTATION_DEFERRED** and is not edited by this diagnostic hotfix.
 - If the diagnostic candidate is not accepted, relay-agent-v97 remains the runtime baseline. If it is accepted later, canonical accepted-artifact pointers must be reconciled before D161 implementation starts.
+
+
+### D160 diagnostic Agent v98 technical release checkpoint — 2026-10-03
+- PR #391 merged to `main` at `7c9270bb5f98d089ade3a05fa21b9c9838533d3a`.
+- Main `Verify Beta Relay Agent` run `37090244165` PASS, including build, startup smoke, protected D160 regression guards, D146 log lifecycle guard and D102 schedule regression.
+- Dedicated manual-only prerelease `relay-agent-v98` exists as release id `402285229`.
+- Canonical EXE asset id `606990416`, size `7244288` bytes, SHA-256 `1d7902903311862af471b01f8b66ac9e7b309949eb65228cf6198afb987d2bad`.
+- Trusted `inventory-channel` was intentionally not updated. Its Agent EXE asset remains id `604881360`, size `7216128` bytes, SHA-256 `b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530`, exactly matching accepted `relay-agent-v97` asset id `604881289`.
+- Main Repo Authority, Project State, UI/Android, D127 and D159 usage guards are PASS for the merged diagnostic source.
+- This is **TECHNICAL / RELEASE PASS only**. Accepted runtime remains D160 / relay-agent-v97. OA092 now waits for Owner manual field test and sanitized diagnostic logs.
+- D161 authority/backlog and its deferred implementation state remain unchanged. Android beta-vc92, Web/backend runtime behavior and Stable are unchanged.

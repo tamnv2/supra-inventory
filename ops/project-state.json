@@ -36,7 +36,7 @@
     "governance": "D147_SERIAL_OWNER_PASS_GATE__D160_V97_ACCEPTED_BASE__D160_POST_PASS_DIAGNOSTIC_CANDIDATE_ACTIVE__D161_AUTHORITY_BACKLOG_ONLY",
     "owner_acceptance": "D160_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D160_ACCEPTED_AGENT_V97__D160_POST_PASS_DIAGNOSTIC_CANDIDATE_V98_APPROVED_MANUAL_ONLY__D161_IMPLEMENTATION_DEFERRED"
+    "agent": "D160_ACCEPTED_AGENT_V97__D160_DIAGNOSTIC_V98_TECHNICAL_RELEASE_PASS_MANUAL_FIELD_READY__D161_IMPLEMENTATION_DEFERRED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -198,7 +198,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Build and field-test the D160 post-PASS diagnostic Agent candidate manually; collect sanitized Agent logs for WMS/Firestore analysis. Accepted runtime remains relay-agent-v97; D161 remains implementation-deferred.",
+  "next_action": "OA092: Owner manually installs relay-agent-v98 on selected test Agent(s), exercises normal/burst/stale-checkbox cases, then returns sanitized logs. Accepted runtime/channel remain relay-agent-v97 until explicit Owner PASS.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2468,7 +2468,7 @@
     "accepted_base_change_id": "D160",
     "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02",
     "current_change_id": "D160",
-    "current_change_status": "D160_POST_PASS_DIAGNOSTIC_CANDIDATE_ACTIVE__ACCEPTED_BASE_REMAINS_RELAY_AGENT_V97",
+    "current_change_status": "D160_POST_PASS_DIAGNOSTIC_V98_TECHNICAL_RELEASE_PASS__WAITING_OWNER_FIELD_TEST__ACCEPTED_BASE_REMAINS_V97",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -4165,7 +4165,7 @@
     "owner_field_result": "PASS__OWNER_CONFIRMED_D160_V97__2026_10_02",
     "owner_acceptance": "PASS__OFFICIAL_D160_V97_FIELD_ACCEPTED__2026_10_02",
     "post_pass_diagnostic_candidate": {
-      "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+      "status": "TECHNICAL_RELEASE_PASS__WAITING_OWNER_FIELD_TEST",
       "date": "2026-10-03",
       "purpose": "LOGGING_TELEMETRY_ONLY_TO_CAPTURE_WMS_DOM_REFRESH_CHECKBOX_CONFIRM_TERMINAL_FIRESTORE_HA_EVIDENCE",
       "accepted_runtime": "relay-agent-v97",
@@ -4177,7 +4177,21 @@
       "business_behavior": "MUST_MATCH_D160_V97",
       "security": "REDACT_PICKLIST_TOKEN_COOKIE_PASSWORD_SESSION_AUTH_HEADERS_PRIVATE_KEYS_SIGNING_MATERIAL_RAW_HTML_SCREENSHOT",
       "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED",
-      "owner_field_pass_required_for_promotion": true
+      "owner_field_pass_required_for_promotion": true,
+      "main_commit": "7c9270bb5f98d089ade3a05fa21b9c9838533d3a",
+      "pr": 391,
+      "main_agent_run": 37090244165,
+      "release_tag": "relay-agent-v98",
+      "release_id": 402285229,
+      "exe_asset_id": 606990416,
+      "exe_size_bytes": 7244288,
+      "exe_sha256": "1d7902903311862af471b01f8b66ac9e7b309949eb65228cf6198afb987d2bad",
+      "trusted_channel_agent": "relay-agent-v97",
+      "trusted_channel_asset_id": 604881360,
+      "trusted_channel_size_bytes": 7216128,
+      "trusted_channel_sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
+      "channel_proof": "EXACT_SIZE_SHA_MATCH_WITH_RELAY_AGENT_V97__NO_V98_CHANNEL_PROMOTION",
+      "owner_field_action": "OA092"
     }
   },
   "d161": {
