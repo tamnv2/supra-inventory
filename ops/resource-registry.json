@@ -2273,13 +2273,14 @@
     },
     "phase0a": {
       "workflow": ".github/workflows/d161-phase0a-preflight.yml",
-      "status": "ACTIVE_PENDING_RUN",
+      "status": "ACTIVE_REPAIRING_PREFLIGHT_AUTOMATION",
       "persistent_resource_change": "NONE",
       "beta_only": true,
       "stable": "FORBIDDEN",
       "canary_cleanup": "REQUIRED_SAME_RUN",
       "agent_safety_target": "v101",
-      "android_safety_target": "vc93"
+      "android_safety_target": "vc93",
+      "last_failure": "RUN_37143388730__CLOUDFLARE_TOKEN_AND_SERVICE_READ_PASS__WRANGLER_DRYRUN_BLOCKED_ONLY_BY_MISSING_WEB_DIST__NO_PROVIDER_MUTATION"
     }
   }
 }
