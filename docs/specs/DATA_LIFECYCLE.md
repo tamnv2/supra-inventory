@@ -506,3 +506,18 @@ Until D161 Owner field acceptance:
 The D161 safety manifest stores metadata/hashes/references only. It must never contain credentials, Firebase tokens, WMS/session material, OAuth refresh tokens, signing keys, passwords or sensitive user/business payloads.
 
 Existing archive/retention authority remains unchanged; Phase 0 does not create an alternate business-data store or offline transaction path.
+
+## D161 observability v2 diagnostic-data lifecycle
+
+D161 diagnostic journals are support evidence only and never become an alternate business transaction path. Canonical capture, redaction and bundle rules are in `docs/specs/OBSERVABILITY_LOGGING.md`.
+
+- Local event append causes zero provider write.
+- Web keeps bounded reload-surviving incident context.
+- Android keeps a bounded 1–2 MiB support journal.
+- Agent keeps the complete local diagnostic stream plus sealed pending bundles.
+- Repeated low-value incidents may be compacted with first/last/repeat metadata, while business/auth/error/confirm safety evidence is not silently sampled away.
+- Capacity eviction must leave explicit drop/gap accounting.
+- Server/archive receive time is retained separately from client event time.
+- Android/Agent evidence is not destructively pruned until positive Drive synchronization.
+- Diagnostics persistence does not authorize any new business transport or mutation path.
+
