@@ -467,3 +467,37 @@ The rescue is complete only after:
 - the Owner can resume normal safe operation before D161 repair continues.
 
 A rescue does **not** create D162. Later diagnosis/repair remains D161 until the Owner explicitly accepts D161.
+
+## 16. D160 v99/v100 PickList-confirm carry-forward and D160 closure
+
+Status: **OWNER-APPROVED D161 BACKLOG / IMPLEMENTATION DEFERRED**.
+
+The Owner closed D160 post-PASS testing on 2026-10-03. The trusted/accepted D160 runtime is **relay-agent-v97**. Manual-only relay-agent-v98/v99/v100 candidates remain historical evidence only; they are not promoted to `inventory-channel`, and no more D160 test build is authorized.
+
+### Proven v99 behavior to inherit
+- Same-row post-final marker fallback: when there is no authoritative fresh reject, `Xác nhận lấy lại hàng` on the exact target row may prove CONFIRMED only when every exact target satisfies the proof. Keep one final business click total.
+- Presence-control `FAILED_PRECONDITION` caused by an update precondition is `SUPERSEDED`, not transport OFFLINE; do not arm HA refresh or retry the stale control snapshot.
+- Successful terminal diagnostics remain in the complete local log but do not immediately create an error upload bundle.
+
+### Safe v100 behavior to inherit
+- Checkbox recovery stays pre-final, uses real Page.reload, preserves Search-before-F5/exact-row/foreign-selection guards, and may use the existing 4.5s soft wait plus progress-gated extension up to 3.5s. The existing 12s mutation-start fence remains authoritative.
+- Post-final observation is passive and one-click-only, up to 5.2s when the end-to-end budget permits. No Search, F5, provider retry or second Confirm click is permitted after the final click.
+- Keep local redacted queue/handoff/browser-gate/search/mutation/terminal budget telemetry with zero new provider operation/cadence.
+- Fast success exits immediately on authoritative evidence; do not intentionally delay a successful fast path to consume the full terminal budget.
+- Persistent NOT_FOUND timeout tuning remains deferred pending stronger field evidence.
+
+### Final recovery refinements approved from v100 field evidence
+1. **Operational-ready after reload requires page-size=100.** A successful reload/barrier may continue self-healing after the request itself has failed closed, but before the browser is advertised ready for the next business request it must restore and verify 100 rows/page.
+2. **Reset the D157 secondary 2h idle-reload clock after every successful reload.** Recovery/manual/scheduled successful reloads all reset the same last-successful-reload timestamp. A secondary idle F5 is allowed only when at least two hours have elapsed since that timestamp and the Agent is idle.
+
+Safety boundary:
+- A request past the existing mutation fence stays fail-closed even if hydration completes later.
+- Late self-heal prepares only the next request; it never reopens mutation authority for the old request.
+- Exact-match/ambiguity guards, one final business click, confirmation guard, no row-disappearance success inference, max-15 semantics, HA authority and provider cadence remain inherited unless another explicit D161 decision changes them.
+
+### D161 Agent version lineage
+- Official trusted runtime returns to **relay-agent-v97** when D160 closes.
+- The first official D161 Agent runtime build is **v98**.
+- Historical manual-only D160 test prereleases tagged v98/v99/v100 remain non-trusted evidence and must not be overwritten or silently promoted. D161 release mechanics must use a non-colliding publication identity while the product/runtime version presented through the trusted channel is v98.
+- This section does not start implementation. Exact start command remains **`bắt đầu D161 tiến hành`**, followed by Phase 0A PASS → Phase 0 PASS → D161 implementation.
+
