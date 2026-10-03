@@ -126,6 +126,8 @@ jobs:
 
       - name: Prove authenticated Worker HR preview and Agent operations control request
         shell: bash
+        env:
+          RUNTIME_CREDS: ${{ steps.runtime_auth.outputs.credentials_file_path }}
         run: |
           set -euo pipefail
           test -n "$FIREBASE_WEB_API_KEY_BETA"
@@ -134,9 +136,13 @@ jobs:
           work="$RUNNER_TEMP/d161-firebase-admin"
           mkdir -p "$work"
           npm install --prefix "$work" --no-audit --no-fund firebase-admin@13.5.0 >/dev/null
-          custom="$(NODE_PATH="$work/node_modules" node <<'NODE'
+          test -s "$RUNTIME_CREDS"
+          custom="$(NODE_PATH="$work/node_modules" RUNTIME_CREDS="$RUNTIME_CREDS" node <<'NODE'
+          const fs=require('fs');
+          const crypto=require('crypto');
           const admin=require('firebase-admin');
           admin.initializeApp({credential:admin.credential.applicationDefault(),projectId:'supra-inventory-beta'});
+          const b64=v=>Buffer.from(typeof v==='string'?v:JSON.stringify(v)).toString('base64url');
           (async()=>{
             const page=await admin.auth().listUsers(1000);
             const user=page.users.find(u=>String((u.customClaims||{}).app_user_id||'').toLowerCase()==='admin')
@@ -145,11 +151,30 @@ jobs:
             const claims=user.customClaims||{};
             const baseRole=String(claims.app_base_role||claims.app_role||'').toUpperCase();
             if(!['ADMIN','PICKPACK_ADMIN'].includes(baseRole)) throw new Error('D161_ADMIN_FIREBASE_ROLE_NOT_AGENT_ELIGIBLE');
-            const token=await admin.auth().createCustomToken(user.uid,{
-              app_user_id:'admin',app_role:baseRole,app_base_role:baseRole,
-              app_session_channel:'AGENT',employee_code:'admin'
+            const creds=JSON.parse(fs.readFileSync(process.env.RUNTIME_CREDS,'utf8'));
+            if(!creds.client_email||!creds.private_key) throw new Error('D161_RUNTIME_KEY_MATERIAL_NOT_AVAILABLE_TO_JOB');
+            const now=Math.floor(Date.now()/1000);
+            const header=b64({alg:'RS256',typ:'JWT'});
+            const payload=b64({
+              iss:creds.client_email,
+              sub:creds.client_email,
+              aud:'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+              iat:now,
+              exp:now+3600,
+              uid:user.uid,
+              claims:{
+                app_user_id:'admin',
+                app_role:baseRole,
+                app_base_role:baseRole,
+                app_session_channel:'AGENT',
+                employee_code:'admin'
+              }
             });
-            process.stdout.write(token);
+            const unsigned=header+'.'+payload;
+            const signer=crypto.createSign('RSA-SHA256');
+            signer.update(unsigned);
+            signer.end();
+            process.stdout.write(unsigned+'.'+signer.sign(creds.private_key).toString('base64url'));
           })().catch(e=>{
             const code=String(e&&e.message||'FIREBASE_ADMIN_PROBE_FAILED').replace(/[^A-Za-z0-9_.:-]/g,'_').slice(0,120);
             process.stderr.write(code+'\n');
