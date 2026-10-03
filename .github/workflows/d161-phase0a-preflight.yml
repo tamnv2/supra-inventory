@@ -192,7 +192,7 @@ jobs:
           test "$gone" = "404"
           echo "FIRESTORE_COORDINATION_CANARY=PASS"
 
-      - name: Prove Functions/Cloud Run visibility and FCM validate-only permission
+      - name: Prove deployed Gen2 Functions and runtime FCM IAM permission
         shell: bash
         run: |
           set -euo pipefail
@@ -202,17 +202,39 @@ jobs:
           chmod 600 "$key"
           email="$(jq -r '.client_email' "$key")"
           gcloud auth activate-service-account "$email" --key-file="$key" --project="$PROJECT_ID" --quiet >/dev/null
-          gcloud run services describe inventory-beta-picker-alerts --region asia-southeast1 --project "$PROJECT_ID" --format='value(metadata.name)' | grep -qx 'inventory-beta-picker-alerts'
-          token="$(gcloud auth print-access-token)"
-          fcm_body='{"validate_only":true,"message":{"token":"d161-phase0a-invalid-token","data":{"probe":"permission"}}}'
-          fcm_code="$(curl -sS -o /tmp/fcm.json -w '%{http_code}' -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" --data "$fcm_body" "https://fcm.googleapis.com/v1/projects/$PROJECT_ID/messages:send")"
-          if [ "$fcm_code" = "401" ] || [ "$fcm_code" = "403" ] || [ "$fcm_code" -ge 500 ]; then
-            echo "FCM validate-only permission failed HTTP $fcm_code" >&2
-            cat /tmp/fcm.json | jq -c '{error:{code:.error.code,status:.error.status}}' 2>/dev/null || true
-            exit 1
-          fi
-          echo "FUNCTIONS_CLOUD_RUN=PASS"
-          echo "FCM_VALIDATE_ONLY=PASS_HTTP_$fcm_code"
+
+          list_json="$(npx --yes firebase-tools@14.12.1 functions:list --project "$PROJECT_ID" --json)"
+          for fn in pickerAlertCreated pickerAlertResolved pickerActiveCallCreated pickerActiveCallResolved operatingScheduleChanged agentLogUploadWritten; do
+            grep -q "\"$fn\"" <<<"$list_json" || { echo "Missing deployed Gen2 Function: $fn" >&2; exit 1; }
+            runtime="$(gcloud functions describe "$fn" --gen2 --region asia-southeast1 --project "$PROJECT_ID" --format='value(serviceConfig.serviceAccountEmail)')"
+            test "$runtime" = "$ALERT_RUNTIME_SA" || { echo "Unexpected runtime identity for $fn" >&2; exit 1; }
+          done
+
+          gcloud projects get-iam-policy "$PROJECT_ID" --format=json > /tmp/project-iam.json
+          member="serviceAccount:$ALERT_RUNTIME_SA"
+          mapfile -t runtime_roles < <(jq -r --arg member "$member" '.bindings[] | select((.members // []) | index($member)) | .role' /tmp/project-iam.json)
+          test "${#runtime_roles[@]}" -gt 0 || { echo "No project IAM binding found for alert runtime identity" >&2; exit 1; }
+
+          has_fcm=false
+          for role in "${runtime_roles[@]}"; do
+            role_json=/tmp/role.json
+            if [[ "$role" == roles/* ]]; then
+              gcloud iam roles describe "$role" --format=json > "$role_json" 2>/dev/null || continue
+            elif [[ "$role" == projects/$PROJECT_ID/roles/* ]]; then
+              role_id="${role##*/}"
+              gcloud iam roles describe "$role_id" --project "$PROJECT_ID" --format=json > "$role_json" 2>/dev/null || continue
+            else
+              continue
+            fi
+            if jq -e '(.includedPermissions // []) | index("cloudmessaging.messages.create") != null' "$role_json" >/dev/null; then
+              has_fcm=true
+              break
+            fi
+          done
+          test "$has_fcm" = true || { echo "Alert runtime identity lacks cloudmessaging.messages.create in effective project bindings" >&2; exit 1; }
+
+          echo "GEN2_FUNCTIONS_RUNTIME_IDENTITY=PASS"
+          echo "FCM_RUNTIME_IAM_PERMISSION=PASS"
 
       - name: Re-authenticate Firebase rules identity and prove Cloud Monitoring read
         shell: bash
