@@ -522,6 +522,17 @@
       "api_enablement_policy": "BETA_CANARY_MAIN_WORKFLOW_MAY_ENABLE_IF_DISABLED__NO_STABLE",
       "api_state": "ENABLED__VERIFIED_RUN_36917268394",
       "cleanup_state": "PASS__NO_ACTIVE_CANARY_SCRIPT__CURRENT_SCRIPT_TRASH_VERIFIED"
+    },
+    {
+      "key": "d161-phase0a-provider-canary-beta",
+      "provider": "Google Cloud / Firebase",
+      "kind": "temporary_cloud_run_function_gen2",
+      "environment": "beta",
+      "name": "d161Phase0aCanary",
+      "id_source": "EPHEMERAL_FIXED_CANARY_NAME__GITHUB_ACTIONS_D161_PHASE0A__DELETED_SAME_RUN",
+      "exposure": "public_identifier_during_bounded_canary_only",
+      "status": "D161_PHASE0A_DISPOSABLE_PERMISSION_CANARY_AUTHORIZED",
+      "guard": "BETA_ONLY__HTTP_CALLBACK_AND_FCM_VALIDATE_ONLY__NO_BUSINESS_DATA__NO_STABLE__DELETE_SAME_RUN__FIRESTORE_CANARY_DOC_DELETE_SAME_RUN"
     }
   ],
   "secret_references": [
