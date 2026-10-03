@@ -537,3 +537,28 @@ This design reuses existing scoped Beta resources and existing log archive/contr
 If D161 implementation proves that an additional persistent Firebase/Google/Cloudflare resource is unavoidable, stop that resource mutation, reconcile `ops/project-scope.json` and `ops/resource-registry.json`, perform impact/security/quota review and obtain Owner authority before provisioning.
 
 Stable remains OWNER-GATED.
+
+
+## 16. D161 integrity hardening approved 2026-10-04
+
+### 16.1 Cross-platform archive idempotency
+- Every sealable bundle has an immutable bundle_id.
+- A logical boundary that can be re-entered (logout/session end, scheduled slot, Agent checkpoint/error boundary, global request) also carries a stable boundary_id or slot key.
+- Trusted archive commit dedupes by logical bundle identity, not filename. Retry of an already archived bundle must converge to the existing durable object and DRIVE_SYNCED result without creating a duplicate Drive object.
+- Web scheduled support checkpoints use a logical slot key rather than timestamped filename equality, so reload/re-entry cannot archive the same slot twice.
+- Client-side single-flight is still required; server/archive idempotency is the final duplicate barrier.
+
+### 16.2 Canonical severity/outcome semantics
+- CONFIRMED and other expected business-success terminals are INFO/business evidence and do not create an immediate error bundle.
+- Proven stale CAS/update-precondition conflicts are SUPERSEDED and do not degrade transport health.
+- Temporary updater DNS/timeout/HTTP/channel-unavailable outcomes are DEFER/WARN; they remain locally recorded/compacted and do not by themselves create an immediate ERROR archive.
+- Signer/hash/integrity mismatch, duplicate-mutation safety risk, confirmation-guard violation, post-click unsafe state, crash/fatal and comparable safety failures retain ERROR/INCIDENT/FATAL treatment.
+- Repeated connectivity incidents are fingerprinted and compacted with first/last/repeat counters.
+
+### 16.3 Confirm trace completeness
+Once Agent has accepted/claimed a PickList request, its structured trace must converge to one explicit end class: ACKED_TERMINAL, SAFE_ABORT_PRE_MUTATION, UNCERTAIN_POST_MUTATION, HANDOFF, EXPIRED, or TRACE_GAP_DETECTED.
+
+TRACE_GAP_DETECTED means evidence is incomplete. It never proves a business result, never releases a post-final confirmation guard and never authorizes a second WMS mutation.
+
+### 16.4 Web journal session-generation isolation
+Reload-surviving Web incident context is scoped to one authenticated session generation. Logout, account replacement or authoritative session-generation replacement rotates the journal. Old evidence may be archived under its original session identity but cannot be attached to the next user.

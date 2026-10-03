@@ -504,8 +504,8 @@ Safety boundary:
 ### D161 Agent version lineage
 - Official trusted runtime returns to **relay-agent-v97** when D160 closes.
 - Active Agent source and its verify workflow are restored to the accepted v97 source identity (`4c3f0a4dffc94f66237d0958032fd27ac52fed29`) before D161 implementation; test-only v98/v99/v100 source is not the D161 starting baseline.
-- The first official D161 Agent runtime build is **v98**.
-- Historical manual-only D160 test prereleases tagged v98/v99/v100 remain non-trusted evidence and must not be overwritten or silently promoted. D161 release mechanics must use a non-colliding publication identity while the product/runtime version presented through the trusted channel is v98.
+- Phase 0 publishes the next monotonic **Safety Agent** build S from accepted v97 behavior before any feature-bearing D161 Agent runtime. The first feature-bearing D161 Agent candidate must be strictly **greater than S**. If the trusted channel is still v97 at execution time with no intervening release, the expected lineage is Safety v98 → first D161 feature candidate v99 or later; exact numbers are always resolved from the live channel.
+- Historical manual-only D160 test prereleases tagged v98/v99/v100 remain non-trusted evidence and must not be overwritten or silently promoted. Release publication must be collision-safe and must never reuse a historical test tag as a different artifact.
 - This section does not start implementation. Exact start command remains **`bắt đầu D161 tiến hành`**, followed by Phase 0A PASS → Phase 0 PASS → D161 implementation.
 
 ## 17. D161 PickList confirm pipeline optimization and regression contract
@@ -662,3 +662,67 @@ Required high-level behavior:
 
 Section 8 remains authoritative for archive/prune/global-collection lifecycle except where this v2 schema/capture design explicitly extends it.
 
+
+
+## 19. D161 integrity, convergence and evidence hardening — Owner-approved 2026-10-04
+
+Status: **OWNER-APPROVED D161 BACKLOG / IMPLEMENTATION DEFERRED UNTIL THE EXISTING EXACT START GATE**.
+
+These refinements were approved after the 2026-10-03 full-log review. They tighten already-approved D161 behavior; they do not create a new change ID, provider resource, polling cadence or Stable mutation.
+
+### Agent release lineage must distinguish Safety from feature runtime
+- Phase 0 Safety Agent is the next monotonic trusted build S derived from accepted pre-D161 behavior.
+- The first feature-bearing D161 Agent build must be strictly greater than S.
+- If accepted v97 is still current when Phase 0 runs and no intervening release exists, expected numbering is Safety v98 → D161 feature candidate v99+.
+- Historical manual-only D160 v98/v99/v100 test releases remain immutable evidence only and are never silently promoted, overwritten or repurposed.
+- The same monotonic principle applies to Android Safety versus feature candidates.
+
+### HR source revision, stale-confirmation protection and atomic diff precedence
+- Every observed authoritative HR Sheet snapshot used to produce an auto-apply or confirmation proposal carries a bounded source_revision or deterministic source_fingerprint.
+- A Web confirmation proposal is valid only for that exact source revision/fingerprint. On confirmation, the trusted backend rereads or revalidates the current authoritative source; if the source changed, the old proposal is invalidated and a new diff/proposal is produced.
+- Validate the complete observed snapshot before any mutation. One snapshot must never partially auto-apply a subset and later discover that another subset required confirmation or hard-block.
+- Precedence for one snapshot is **HARD_BLOCK > CONFIRM_REQUIRED > AUTO**.
+- Any hard-block condition yields zero HR business mutation for that snapshot.
+- If any part requires confirmation, hold all changes from that same snapshot until the proposal is accepted and revalidated.
+- Drive watch initial sync, channel renewal overlap and retry/recovery notifications are signals only; authoritative reread + revision/fingerprint dedupe determines whether business processing is needed.
+
+### Reporting capability monotonic revision
+- shortage_reporting_enabled authority must carry or reuse a server-authoritative monotonic revision/generation alongside the normalized boolean.
+- Android persists (value, revision) and ignores an older revision after a newer authoritative state has been applied.
+- Realtime remains the fast path and profile/login reconciliation remains the convergence path; no polling is added.
+- Same-revision/different-value is a consistency anomaly: fail closed, retain evidence and require authoritative reconciliation rather than silently accepting either value.
+
+### Cross-platform support-log archive idempotency
+- Web, Android and Agent use an immutable logical bundle_id; boundary-triggered bundles also carry a stable logical boundary_id/slot identity where applicable.
+- Upload retries are allowed, but trusted archive commit is idempotent by source + bundle identity, not by filename alone.
+- Re-submitting an already archived bundle returns/converges to the same DRIVE_SYNCED durable result without creating another Drive object.
+- Android logout/session boundaries, Web scheduled slots and Agent error/checkpoint boundaries must each be single-flight/idempotent for one logical event.
+- Web scheduled checkpoints dedupe by logical slot such as source + device/session generation + business date + slot, so reload/re-entry cannot create a second archive merely because the filename timestamp differs.
+
+### AgentSync same-version no-op
+- If incoming agent_sync authoritative version equals the last applied version and there is no new local side-effect obligation, processing is a no-op for model rebuild, grid repaint and persistence.
+- Listener/reconcile duplicate delivery may still be observed diagnostically but must not rebuild History/Picker presentation repeatedly.
+- Same version with different authoritative payload content is a consistency anomaly and must be logged/handled explicitly rather than silently applied.
+- This optimization adds no provider read/write/listener/poll cadence and must not delay PickList relay work.
+
+### Canonical observability severity semantics
+- Business success such as CONFIRMED is INFO/CONFIRMED evidence and must not itself trigger an immediate error bundle.
+- Proven stale CAS/update-precondition outcomes are SUPERSEDED with transport-health impact NONE.
+- Temporary updater DNS/timeout/HTTP/channel-unavailable failures are DEFER/WARN and non-blocking; they remain locally diagnosable without default immediate ERROR upload.
+- Integrity/signer/hash mismatch, unsafe duplicate-mutation risk, confirmation-guard violation, crash/fatal and comparable safety failures remain ERROR/INCIDENT/FATAL as applicable.
+- Short transient connectivity/reconnect incidents are fingerprinted/compacted; they must not create one Drive file per repeated line.
+
+### PickList confirm trace completeness
+- Once an Agent records/claims a PDA confirmation request, the structured trace must converge to one explicit terminal evidence class: ACKED_TERMINAL, SAFE_ABORT_PRE_MUTATION, UNCERTAIN_POST_MUTATION, HANDOFF, EXPIRED, or TRACE_GAP_DETECTED.
+- TRACE_GAP_DETECTED is an observability failure marker only. It must never infer business success/failure, release a post-click confirmation guard or authorize another WMS click.
+- Cross-component trace correlation continues to use the existing request identity and adds zero provider operation.
+
+### Web persisted-journal session rotation
+- Web reload-surviving incident context belongs to one authenticated session generation.
+- Logout, account replacement or authoritative session-generation replacement rotates the journal generation.
+- Prior evidence may be sealed/archived under its original session but must never be attributed to the next authenticated user.
+
+### Overtime T-15 edge near the 05:00 cutoff
+- When a newly created/extended authoritative overtime boundary is already within 15 minutes of its deadline, emit at most one immediate warning for that boundary rather than waiting for a T-15 instant that has already passed.
+- The warning remains boundary-key idempotent across Agents; no periodic provider write/polling is added.
+- The 05:00 hard cutoff remains authoritative and cannot be extended.
