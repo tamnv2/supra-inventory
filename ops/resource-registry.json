@@ -2149,13 +2149,29 @@
     },
     "post_pass_diagnostic_candidate": {
       "target": "relay-agent-v98",
-      "distribution": "DEDICATED_PRERELEASE_OR_ARTIFACT__MANUAL_INSTALL_ONLY",
+      "distribution": "MANUAL_INSTALL_ONLY",
       "accepted_runtime": "relay-agent-v97",
       "trusted_inventory_channel": "NO_CHANGE__MUST_REMAIN_V97",
       "resources": "EXISTING_AGENT_LOCAL_LOG_AND_EXISTING_D160_LOG_GATEWAY_ONLY",
       "provider_change": "NONE",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "d161": "UNCHANGED"
+      "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED",
+      "status": "TECHNICAL_RELEASE_PASS__MANUAL_FIELD_READY",
+      "main_commit": "7c9270bb5f98d089ade3a05fa21b9c9838533d3a",
+      "pr": 391,
+      "verify_agent_run": 37090244165,
+      "release_tag": "relay-agent-v98",
+      "release_id": 402285229,
+      "exe_asset_id": 606990416,
+      "exe_size_bytes": 7244288,
+      "exe_sha256": "1d7902903311862af471b01f8b66ac9e7b309949eb65228cf6198afb987d2bad",
+      "inventory_channel_release_id": 394587029,
+      "inventory_channel_agent_asset_id": 604881360,
+      "inventory_channel_agent_size_bytes": 7216128,
+      "inventory_channel_agent_sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
+      "accepted_v97_release_id": 401562436,
+      "accepted_v97_asset_id": 604881289,
+      "channel_identity_proof": "INVENTORY_CHANNEL_AGENT_EXE_EXACTLY_MATCHES_RELAY_AGENT_V97_SIZE_AND_SHA256"
     }
   },
   "d161": {
