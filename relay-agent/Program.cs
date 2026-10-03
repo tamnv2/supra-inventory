@@ -344,6 +344,16 @@ namespace SupraInventoryRelayAgent
             if (string.IsNullOrWhiteSpace(message)) return false;
             var upper = message.ToUpperInvariant();
             if (upper.StartsWith("AGENT LOG ", StringComparison.Ordinal)) return false;
+
+            // D160 v99 test: terminal success diagnostics include an "exceptions=0"
+            // counter for analysis. That token must never turn a successful confirm
+            // into an immediate error bundle. Uncertain terminal results stay urgent.
+            if (upper.StartsWith("D160_DIAG TERMINAL ", StringComparison.Ordinal))
+            {
+                if (upper.Contains("RESULT=CONFIRMED")) return false;
+                if (upper.Contains("RESULT=CONFIRM_IN_PROGRESS_OR_UNCERTAIN")) return true;
+            }
+
             return upper.Contains("=FAIL") ||
                    upper.Contains(" ERROR ") ||
                    upper.StartsWith("ERROR ", StringComparison.Ordinal) ||
