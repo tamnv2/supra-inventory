@@ -2961,3 +2961,17 @@ The Owner approved a new hard gate before the existing D161 Safety Baseline so a
 - Phase 0A is capability proof only. It does not itself authorize HR business mutation, fleet-wide log collection, bulk Picker revoke, schedule changes, Stable activity or any other D161 business behavior.
 - D160 remains the accepted runtime base; D161 implementation remains deferred until the exact start command.
 
+
+
+### D160 post-PASS diagnostic Agent candidate — Owner approved — 2026-10-03
+The Owner explicitly approved a bounded **D160 post-PASS diagnostic candidate** to collect richer Windows Agent evidence before any WMS confirmation-behavior repair. This does not reopen or alter the D161 backlog.
+- Accepted runtime base remains **D160 / relay-agent-v97** until a separate explicit Owner field PASS promotes a later candidate.
+- Diagnostic candidate target is **relay-agent-v98** unless execution-time version resolution proves that number is already occupied; any actual candidate version must remain monotonic.
+- Scope is **logging/telemetry only**. Existing D160 v97 business behavior for Search, real F5/Page.reload recovery, page-size handling, checkbox selection, bulk confirm, confirmation guard, 12-second mutation fence, HA, Firestore cadence, update cadence, Android beta-vc92 and all provider/runtime business semantics must remain unchanged.
+- Candidate distribution is **manual-install only**. It may publish a dedicated prerelease/artifact but must **not update the trusted `inventory-channel` Agent manifest/assets** and must not cause fleet auto-update.
+- Telemetry must capture bounded structured evidence needed to diagnose/optimize: WMS reload/page epoch and timing, page-size state, hydration/row counts, search/recovery timing and DOM-change hashes, exact-row/checkbox classifications without raw PickList values, batch/wave timing, confirm-dialog/final-click timing, terminal-surface lifecycle counts, same-row post-confirm marker classification, Firestore control/business error classification, HA/role-refresh reasons and relevant latency summaries.
+- Logging must not add WMS/Firestore/Google polling, listeners, provider writes or business retries. Read-only DOM snapshots are allowed only at already-existing request/recovery boundaries and must not add another Confirm click.
+- Never log full PickList codes/suffixes, passwords, tokens, cookies, WMS/Firebase/Google session material, authorization headers, private keys, signing material, raw HTML or screenshots. Existing sanitization remains mandatory and is strengthened for PickList-like values.
+- Local log rotation/upload lifecycle remains D160 accepted behavior; no new Drive/Apps Script/Firestore resource or upload cadence is authorized.
+- D161 remains **OWNER_APPROVED_REQUIREMENTS_CAPTURED__IMPLEMENTATION_DEFERRED** and is not edited by this diagnostic hotfix.
+- If the diagnostic candidate is not accepted, relay-agent-v97 remains the runtime baseline. If it is accepted later, canonical accepted-artifact pointers must be reconciled before D161 implementation starts.
