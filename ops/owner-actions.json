@@ -4761,7 +4761,7 @@
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d160_tests": "CLOSED__V98_V99_V100_NOT_PROMOTED",
-        "d161_backlog": "OWNER_APPROVED__INCLUDING_CONFIRM_PIPELINE_V2_AND_OBSERVABILITY_V2",
+        "d161_backlog": "OWNER_APPROVED__INCLUDING_CONFIRM_PIPELINE_V2__OBSERVABILITY_V2__HISTORY_PROCESSING_AGENT_USER",
         "first_official_agent_runtime_version": "v98",
         "stable": "OWNER_GATED_UNTOUCHED"
       },
