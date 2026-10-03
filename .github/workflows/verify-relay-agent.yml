@@ -128,9 +128,30 @@ jobs:
               'same_baseline_max',
               'new_terminal_max',
               'ROW_CONFIRMED_MARKER',
-              'confirmedMarkerTargetCount'
+              'confirmedMarkerTargetCount',
+              'Math.Min(5200, terminalWaitMs)'
             )) {
               if (-not $d160Browser.Contains($marker)) { throw "D160 terminal diagnostic/optimization marker missing: $marker" }
+            }
+            foreach ($marker in @(
+              'D160_DIAG WMS_REFRESH event=EXTENDED',
+              'allowProgressExtension',
+              'hard_extra_ms=3500'
+            )) {
+              if (-not $browser.Contains($marker)) { throw "D160 adaptive reload marker missing: $marker" }
+            }
+            foreach ($marker in @(
+              'D160_DIAG QUEUE phase=BROWSER_GATE',
+              'D160_DIAG MUTATION_BUDGET',
+              'Math.Min(5200L'
+            )) {
+              if (-not $d160Pipeline.Contains($marker)) { throw "D160 v100 pipeline marker missing: $marker" }
+            }
+            foreach ($marker in @(
+              'D160_DIAG QUEUE phase=HANDOFF',
+              'transport_prepare_ms'
+            )) {
+              if (-not $transport.Contains($marker)) { throw "D160 v100 queue telemetry marker missing: $marker" }
             }
             foreach ($marker in @(
               'result=SUPERSEDED',
