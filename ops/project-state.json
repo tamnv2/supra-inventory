@@ -2466,9 +2466,9 @@
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D160",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02",
-    "current_change_id": "D160",
-    "current_change_status": "D160_POST_PASS_OPTIMIZATION_TEST_V100_TECHNICAL_RELEASE_PASS__WAITING_OWNER_FIELD_TEST__ACCEPTED_BASE_REMAINS_V97",
+    "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02__POST_PASS_TESTS_CLOSED_2026_10_03",
+    "current_change_id": "D161",
+    "current_change_status": "D161_OWNER_APPROVED_BACKLOG__D160_CONFIRM_CARRYOVER_CAPTURED__AWAITING_EXACT_START_COMMAND",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2484,8 +2484,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D160_V97_OWNER_FIELD_ACCEPTED_PASS__ANDROID_VC92_UNCHANGED__D160_IS_ACCEPTED_BASE__NEXT_CHANGE_MAY_OPEN_AFTER_NORMAL_IMPACT_REVIEW",
-    "resource_change": "NONE__D160_OWNER_ACCEPTANCE_CONTINUITY_ONLY__STABLE_UNTOUCHED",
+    "runtime_impact": "D160_CLOSED__TRUSTED_RUNTIME_RELAY_AGENT_V97__D161_NOT_STARTED__ANDROID_VC92_UNCHANGED",
+    "resource_change": "NONE__AUTHORITY_BACKLOG_ONLY__STABLE_UNTOUCHED",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -3980,7 +3980,7 @@
     "repair_reason": "RESOLVED__FULL_DRIVE_SCOPE_PLUS_BETA_SCRIPT_API_ENABLEMENT_AND_TRASH_AWARE_CLEANUP"
   },
   "d160": {
-    "status": "OWNER_FIELD_ACCEPTED_PASS__TECHNICAL_RUNTIME_RELEASE_PASS__V97",
+    "status": "CLOSED__OWNER_CONFIRMED_NO_FURTHER_TESTS__ACCEPTED_RUNTIME_V97",
     "date": "2026-10-02",
     "baseline_change": "D159",
     "baseline_main": "320e7e446f122a70ee55d2a191eebff218c502c9",
@@ -4194,7 +4194,7 @@
       "owner_field_action": "OA092"
     },
     "post_pass_optimization_test_candidate": {
-      "status": "TECHNICAL_RELEASE_PASS__WAITING_OWNER_END_OF_SHIFT_FIELD_TEST",
+      "status": "CLOSED__EVIDENCE_TRANSFERRED_TO_D161__NOT_PROMOTED",
       "date": "2026-10-03",
       "accepted_runtime": "relay-agent-v97",
       "target_candidate": "relay-agent-v99__MANUAL_INSTALL_ONLY",
@@ -4242,7 +4242,7 @@
       "owner_v99_evidence": "OWNER_CONFIRMED_KEEP_V99_PROVEN_OPTIMIZATIONS__NO_RUNTIME_PROMOTION__2026_10_03"
     },
     "post_pass_v100_test_candidate": {
-      "status": "TECHNICAL_RELEASE_PASS__WAITING_OWNER_FIELD_TEST",
+      "status": "CLOSED_BY_OWNER__FIELD_EVIDENCE_REVIEWED__SELECTED_BEHAVIOR_TRANSFERRED_TO_D161__NOT_PROMOTED",
       "date": "2026-10-03",
       "accepted_runtime": "relay-agent-v97",
       "target_candidate": "relay-agent-v100__MANUAL_INSTALL_ONLY",
@@ -4274,8 +4274,8 @@
       "web": "UNCHANGED",
       "provider": "NO_NEW_RESOURCE_NO_NEW_POLLING_LISTENER_WRITE_CADENCE",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED",
-      "owner_field_action": "OA094",
+      "d161": "CONFIRM_BEHAVIOR_AND_FINAL_RECOVERY_REFINEMENTS_TRANSFERRED_TO_D161_BACKLOG",
+      "owner_field_action": "OA094__CLOSED_BY_OWNER_D160_TEST_TERMINATION",
       "implementation_pr": 395,
       "main_commit": "7216aa74cd7e07ce233c8e377104bcb400997798",
       "main_agent_run": 37118152206,
@@ -4289,13 +4289,17 @@
       "trusted_channel_size_bytes": 7216128,
       "trusted_channel_sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
       "channel_proof": "INVENTORY_CHANNEL_AGENT_EXE_UNCHANGED_EXACT_V97_ASSET_SIZE_SHA__V100_NOT_PROMOTED"
-    }
+    },
+    "owner_post_pass_test_closure": "PASS__OWNER_CLOSED_D160_TESTING_2026_10_03__V98_V99_V100_NOT_PROMOTED",
+    "accepted_runtime": "relay-agent-v97",
+    "trusted_inventory_channel": "relay-agent-v97",
+    "next_test_candidate": "NONE__D160_CLOSED"
   },
   "d161": {
-    "status": "OWNER_APPROVED_REQUIREMENTS_CAPTURED__IMPLEMENTATION_DEFERRED",
+    "status": "OWNER_APPROVED_REQUIREMENTS_CAPTURED__D160_CONFIRM_CARRYOVER_ADDED__IMPLEMENTATION_DEFERRED",
     "date": "2026-10-02",
     "baseline_change": "D160",
-    "accepted_base": "D160",
+    "accepted_base": "D160__RELAY_AGENT_V97",
     "authority_document": "docs/D161_APPROVED_BACKLOG.md",
     "purpose": "COLLECT_OWNER_APPROVED_DEFECTS_AND_REFINEMENTS_IN_GITHUB_CANONICAL_AUTHORITY_BEFORE_ONE_CONSOLIDATED_UPDATE",
     "owner_approved_scope": [
@@ -4382,6 +4386,39 @@
     "start_command": "EXACT_OWNER_COMMAND__bat_dau_D161_tien_hanh__AUTHORIZES_COMPLETE_THEN_CURRENT_BACKLOG__PHASE0A_REQUIRED_FIRST__PHASE0_SAFETY_SECOND__AUTO_CONTINUE_AFTER_BOTH_PASS",
     "rescue_command": "EXACT_OWNER_COMMAND__quay_lai_ban_backup_ban_dau_truoc_khi_sua_code__FREEZE_FEATURE_ROLLOUT__FORWARD_RESCUE_TO_SAFETY_BEHAVIOR__NO_SCHEMA_DOWNGRADE__NO_D162",
     "field_acceptance": "WHEN_D161_STATE_IS_READY_FOR_OWNER_FIELD_TEST__ghi_nhan_ok_OR_EXPLICIT_D161_PASS_PROMOTES_D161_ACCEPTED_BASE",
-    "migration_safety": "UNTIL_OWNER_PASS__ADDITIVE_BACKWARD_COMPATIBLE_PREFERRED__DESTRUCTIVE_UNRECOVERABLE_MIGRATION_FAIL_CLOSED_FOR_OWNER_DECISION"
+    "migration_safety": "UNTIL_OWNER_PASS__ADDITIVE_BACKWARD_COMPATIBLE_PREFERRED__DESTRUCTIVE_UNRECOVERABLE_MIGRATION_FAIL_CLOSED_FOR_OWNER_DECISION",
+    "exact_start_command": "bắt đầu D161 tiến hành",
+    "current_gate": "AWAITING_EXACT_START_COMMAND__THEN_PHASE0A__THEN_PHASE0",
+    "first_official_agent_runtime_version": "v98",
+    "agent_version_lineage": "OFFICIAL_V97_TO_D161_V98__D160_MANUAL_TEST_V98_V99_V100_ARE_NONTRUSTED_HISTORICAL_EVIDENCE",
+    "agent_release_collision_policy": "DO_NOT_OVERWRITE_HISTORICAL_D160_TEST_RELEASES__USE_COLLISION_SAFE_PUBLICATION_IDENTITY_WITH_OFFICIAL_RUNTIME_VERSION_V98",
+    "confirm_carryover": {
+      "status": "OWNER_APPROVED_BACKLOG__IMPLEMENTATION_DEFERRED",
+      "from_v99": [
+        "EXACT_ROW_ALL_TARGETS_ROW_CONFIRMED_MARKER_AFTER_FINAL_CLICK__NO_SECOND_CONFIRM",
+        "PRESENCE_FAILED_PRECONDITION_UPDATE_PRECONDITION_IS_SUPERSEDED__NO_TRANSPORT_OFFLINE_OR_HA_REFRESH",
+        "SUCCESS_TERMINAL_DIAGNOSTIC_STAYS_LOCAL_JOURNAL__NO_IMMEDIATE_ERROR_BUNDLE"
+      ],
+      "from_v100": [
+        "PRE_FINAL_REAL_PAGE_RELOAD_RECOVERY__SOFT_4500MS_PLUS_PROGRESS_GATED_MAX_3500MS__12S_MUTATION_FENCE",
+        "PASSIVE_POST_FINAL_TERMINAL_WAIT_UP_TO_5200MS_WHEN_BUDGET_ALLOWS__ONE_FINAL_CLICK__NO_POST_CLICK_SEARCH_F5_PROVIDER_RETRY",
+        "LOCAL_REDACTED_QUEUE_MUTATION_TERMINAL_TIMING_TELEMETRY__ZERO_PROVIDER_OP"
+      ],
+      "final_owner_approved_refinements": [
+        "AFTER_SUCCESSFUL_RELOAD_BARRIER_RESTORE_VERIFY_PAGE_SIZE_100_BEFORE_OPERATIONAL_READY",
+        "EVERY_SUCCESSFUL_RELOAD_RESETS_D157_SECONDARY_2H_IDLE_RELOAD_CLOCK__NO_F5_BEFORE_2H_AND_IDLE"
+      ],
+      "preserve": [
+        "EXACT_MATCH_AMBIGUITY_FOREIGN_SELECTION_GUARDS",
+        "CONFIRM_GUARD",
+        "NO_ROW_DISAPPEARANCE_SUCCESS_INFERENCE",
+        "MAX15",
+        "FAST_SUCCESS_IMMEDIATE_EXIT",
+        "PROVIDER_CADENCE_UNCHANGED"
+      ],
+      "deferred": [
+        "PERSISTENT_NOT_FOUND_TIMEOUT_TUNING"
+      ]
+    }
   }
 }
