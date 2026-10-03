@@ -1059,3 +1059,14 @@ Status: Owner-approved target; implementation deferred.
 - New-version notice uses clear **Cập nhật** and **Để sau** actions.
 - Update-channel failure uses a non-blocking warning style; it must not be rendered like an authentication failure.
 - When no update exists, avoid modal noise; show a short current-version confirmation.
+
+## D161 Agent PickList History processing-user column
+
+The Agent **Lịch sử Picker xác nhận PickList** table adds **User Agent xử lý** as a normal readable text column.
+
+- Display the terminal processing Agent username, preferring `LoginName` and falling back to `AppUserId`.
+- Examples: `tamnv2`, `admin`, `dienhx`.
+- Do not display Firebase UID or machine ID in this user-facing column.
+- The column participates in normal temporary manual sorting, but leaving/re-entering History restores the canonical full-`SentAtMs` newest-first order.
+- Adding the column must preserve D161 atomic/batched History rendering and must not reintroduce progressive row repaint.
+
