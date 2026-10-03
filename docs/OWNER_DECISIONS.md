@@ -3061,3 +3061,39 @@ The trusted D160 runtime is therefore explicitly **relay-agent-v97**. The active
 
 The exact implementation trigger remains **`bắt đầu D161 tiến hành`**. Until that exact command is received, D161 remains implementation-deferred and Stable remains OWNER-GATED.
 
+### D161 Owner addendum — complete PickList confirm regression contract + Observability/Support Log v2 — 2026-10-03
+
+The Owner approved adding the full post-D160 PickList-confirm optimization review into D161 and redesigning Web/Android/Agent logs to collect the information needed for diagnosis, optimization and fault isolation while excluding sensitive/security material.
+
+#### PickList confirm
+D161 must preserve the accepted v97 safety/idempotency model and reapply the proven v99/v100 behavior, while also making the following previously implicit/identified requirements explicit:
+
+- immediate local DOM scan must isolate FAST READY requests before slow Search/recovery;
+- mixed-batch classification is per request, so one ambiguous request cannot suppress Search for another missing/unselectable request;
+- already-terminal outcomes durable-ACK before deferred recovery;
+- deferred recovery is shared/bounded, never one F5 per request;
+- max 15 is a ceiling, not a reason to delay a request waiting for a fuller batch;
+- listener/REST/batch/recent-terminal/same-PickList dedupe and confirmation-guard idempotency remain;
+- role/generation fencing remains immediately before WMS mutation;
+- the 12-second mutation fence is rechecked close to the real mutation path and remains subordinate to the original ≤20s request budget;
+- zero/unhydrated WMS table is technical unavailable, never a true NOT_FOUND strike;
+- WMS health proof requires hydrated/valid evidence rather than a responsive shell;
+- shared schedule/control-plane availability is distinguished from temporary WMS mutation readiness;
+- Firestore/HA errors log canonical operation/precondition/generation classification so stale/superseded writes do not become false transport failures;
+- mixed-batch and burst regression fixtures, including 20 PDA / 5 seconds, are mandatory.
+
+D161 may measure post-terminal cleanup and rate-limit critical-path cost and optimize them only when telemetry proves material latency and the accepted safety/anti-spam contract remains intact.
+
+The v100 reload-extension description is clarified: at the 4.5s soft boundary the field-tested extension gate is exact Confirm route + loaded page/document + navigation type `reload`. Progress/hydration counters remain diagnostic evidence but are not silently promoted into an untested stricter gate.
+
+#### Observability/Support Log v2
+Canonical design is `docs/specs/OBSERVABILITY_LOGGING.md`.
+
+The Owner requires a unified structured event model across Web, Android and Agent with cross-platform trace IDs, per-journal sequence/gap accounting, critical-stage latency, lifecycle/auth/network/API/realtime/business/HA/WMS/update/logging evidence, and bounded local journals. Recording events must not create per-event provider writes or new polling.
+
+Sensitive/security data remains excluded, including credentials/tokens/cookies/private keys/signing/session material, raw WMS session data, raw HTML/screenshots, HTTP bodies/query values and raw PickList code/suffix. Redaction is required on both client and trusted server/archive layers.
+
+Existing D161 daily Drive folders, Drive-confirmed local prune, bounded upload/debounce, and authorized global log collection remain. A global support request ID becomes the common trace ID in all responding Web/Android/Agent bundles.
+
+This addendum is requirements/authority only. It does not start D161 implementation. The exact implementation trigger remains **`bắt đầu D161 tiến hành`**, followed by Phase 0A → Phase 0 Safety → implementation. Stable remains OWNER-GATED.
+
