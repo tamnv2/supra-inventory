@@ -68,6 +68,11 @@ namespace SupraInventoryRelayAgent
             }
 
             var eligible = works.Where(work => !outcomes.ContainsKey(work.RequestId)).ToList();
+            var maxAgeAtBrowserGate = works.Select(D160RequestAgeMs).DefaultIfEmpty(0L).Max();
+            Log("D160_DIAG QUEUE phase=BROWSER_GATE jobs=" + works.Count +
+                " eligible=" + eligible.Count +
+                " max_request_age_ms=" + maxAgeAtBrowserGate +
+                " handler_pre_search_ms=" + diagnosticBatchStarted.ElapsedMilliseconds);
             SupraBrowserSearchResult search;
             try
             {
@@ -404,8 +409,13 @@ namespace SupraInventoryRelayAgent
                     .Max();
                 var terminalWaitMs = (int)Math.Max(
                     800L,
-                    Math.Min(3500L, 17500L - maxRequestAgeMs - 4500L));
+                    Math.Min(5200L, 17500L - maxRequestAgeMs - 4500L));
                 var allowPreFinalRecovery = maxRequestAgeMs < 6000L;
+                Log("D160_DIAG MUTATION_BUDGET wave=" + wave +
+                    " max_request_age_ms=" + maxRequestAgeMs +
+                    " terminal_wait_ms=" + terminalWaitMs +
+                    " allow_pre_final_recovery=" + D160DiagnosticTelemetry.Flag(allowPreFinalRecovery) +
+                    " mutation_fence_ms=12000");
                 browser = _supraBrowser.ConfirmManyExact(
                     targets.Select(target => target.Code),
                     terminalWaitMs,
