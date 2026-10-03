@@ -2356,3 +2356,22 @@ This remains a manual-only D160 test candidate; relay-agent-v97 remains accepted
 6. Local diagnostics record D160_DIAG QUEUE HANDOFF/BROWSER_GATE, MUTATION_BUDGET and WMS_REFRESH EXTENDED/PASS/TIMEOUT without PickList values, credentials, tokens, cookies, raw HTML or screenshots.
 7. No new Firestore/WMS/Google polling, listener, write cadence or resource is added.
 8. Field evidence compares CONFIRMED/UNCERTAIN/CONFLICT/NOT_FOUND, E2E P50/P90/P95, recovery-extension count/outcome, terminal wait/proof route, queue-age decomposition and any regression in safety/HA/provider usage.
+
+## D161 PickList-confirm carry-forward acceptance — Owner-approved backlog gate
+
+When D161 implementation is started by the exact authorized command, the Agent confirmation work inherited from the D160 v99/v100 evidence must pass all of the following in addition to the existing D161 Phase 0A/Phase 0 gates:
+
+- Baseline/runtime lineage before D161 mutation is relay-agent-v97; D160 v98/v99/v100 manual candidates are not trusted-channel baselines.
+- First official D161 Agent runtime version is v98. Historical D160 test prereleases must not be overwritten or promoted as the D161 runtime artifact.
+- Same-row confirmed-marker fallback requires exact-row proof for every target and no authoritative fresh reject; there is only one final business click.
+- Presence-control FAILED_PRECONDITION/update-precondition is classified SUPERSEDED and does not mark business transport OFFLINE or trigger HA recovery.
+- Successful terminal diagnostics do not immediately seal/upload an error bundle.
+- Checkbox recovery remains pre-final and fail-closed, uses real Page.reload, retains the bounded 4.5s + max 3.5s progress-gated wait and never overrides the 12s mutation-start fence.
+- Post-final terminal observation is passive/read-only, may wait up to 5.2s only when budget permits and performs no Search/F5/provider retry/second Confirm click.
+- After a successful recovery/reload barrier, browser operational-ready is withheld until page-size=100 is restored and verified.
+- Every successful reload updates the single D157 last-successful-reload timestamp. The secondary 2h idle check must not issue a reload earlier than two hours after that timestamp and must require idle state.
+- A request that fails closed at/past the mutation fence stays failed closed even if browser hydration completes later; late self-heal may affect only later requests.
+- Fast CONFIRMED paths exit immediately on authoritative evidence and show no material latency regression caused solely by the larger passive observation ceiling.
+- Queue/handoff/browser-gate/search/mutation/terminal telemetry remains local/redacted and adds zero provider polling/listener/write cadence.
+- Persistent NOT_FOUND timeout tuning stays unchanged unless later evidence and explicit Owner authority reopen it.
+

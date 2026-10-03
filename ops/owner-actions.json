@@ -4698,7 +4698,7 @@
     },
     {
       "id": "OA094",
-      "status": "WAITING_OWNER_FIELD_TEST",
+      "status": "CLOSED_BY_OWNER__D160_TESTS_TERMINATED__EVIDENCE_TRANSFERRED_TO_D161",
       "title": "Field-run D160 optimization test Agent v100",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
@@ -4724,8 +4724,8 @@
         "Fast-path CONFIRMED P50/P90/P95 does not materially regress because successful evidence still exits immediately.",
         "No provider cadence/resource change; inventory-channel stays relay-agent-v97; Android/Web/Stable/D161 remain unchanged."
       ],
-      "remaining_owner_action": "MANUALLY_INSTALL_V100_ON_SELECTED_AGENT_RUN_NORMAL_WORKLOAD_AND_RETURN_SANITIZED_LOGS",
-      "closed": false,
+      "remaining_owner_action": "NONE__D160_CLOSED",
+      "closed": true,
       "prerequisite_status": "TECHNICAL_RELEASE_PASS",
       "release": {
         "tag": "relay-agent-v100",
@@ -4743,7 +4743,40 @@
         "size_bytes": 7216128,
         "sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
         "v100_not_promoted": true
+      },
+      "closed_at": "2026-10-03",
+      "owner_result": {
+        "date": "2026-10-03",
+        "result": "CLOSE_D160_KEEP_V97_AND_TRANSFER_PROVEN_CONFIRM_WORK_TO_D161",
+        "evidence": "Owner explicitly ended D160 testing, returned trusted runtime lineage to relay-agent-v97, approved carrying v99/v100 proven confirm behavior plus two final recovery refinements into D161, and designated the first official D161 Agent runtime version v98."
       }
+    },
+    {
+      "id": "OA095",
+      "status": "WAITING_EXACT_D161_START_COMMAND",
+      "title": "Start D161 implementation only on exact Owner command",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory / GitHub canonical authority",
+      "reason_owner_only": "D161 Phase 0A, Phase 0 and runtime implementation are explicitly gated by the Owner's exact start command.",
+      "prerequisites": {
+        "accepted_base": "D160__RELAY_AGENT_V97",
+        "d160_tests": "CLOSED__V98_V99_V100_NOT_PROMOTED",
+        "d161_backlog": "OWNER_APPROVED__INCLUDING_D160_CONFIRM_CARRYOVER",
+        "first_official_agent_runtime_version": "v98",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action": [
+        "When ready to start the complete D161 implementation, tell AI exactly: bắt đầu D161 tiến hành"
+      ],
+      "pass_criteria": [
+        "Fresh authority bootstrap completes.",
+        "Phase 0A Permission & Provider Preflight reaches PASS before runtime source mutation.",
+        "Phase 0 Safety Baseline reaches PASS before backlog implementation.",
+        "D161 implementation then proceeds through the complete then-current approved backlog using branch → PR → authority/continuity PASS → merge.",
+        "Stable remains untouched unless separately and explicitly authorized."
+      ],
+      "remaining_owner_action": "SEND_EXACT_COMMAND__bắt đầu D161 tiến hành",
+      "closed": false
     }
   ]
 }

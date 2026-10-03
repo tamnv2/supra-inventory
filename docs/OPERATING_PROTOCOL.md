@@ -302,3 +302,15 @@ Owner approval on 2026-10-03 keeps the v99-proven optimizations frozen and autho
 - Post-final observation remains read-only/passive with one final business click total.
 - No provider cadence/resource change, Android/Web/backend change, Stable action or D161 implementation is allowed.
 - After technical/release PASS, stop at Owner field run/log collection. Any repair remains D160/v100 continuation until Owner decides otherwise.
+
+## D160 post-PASS test closure and D161 handoff — 2026-10-03
+
+Owner closed D160 v98/v99/v100 manual testing. Do not create any further D160 diagnostic/optimization Agent candidate.
+
+- Accepted/trusted runtime is relay-agent-v97 and `inventory-channel` remains v97.
+- OA094 is closed by Owner decision; v100 is not promoted.
+- Evidence-backed v99/v100 confirmation behavior plus the two final reload refinements are now D161 backlog authority.
+- Current workstream is D161 requirements/safety preparation only. Do not execute Phase 0A, Phase 0, source mutation, build, release or provider mutation until the exact command **`bắt đầu D161 tiến hành`** is received.
+- The first official D161 Agent runtime version is v98. Historical D160 test prerelease tags v98/v99/v100 remain evidence-only and may not be silently overwritten/promoted; publication must use a collision-safe release identity.
+- Stable remains OWNER-GATED.
+
