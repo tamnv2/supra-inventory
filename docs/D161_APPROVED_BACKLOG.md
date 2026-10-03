@@ -480,7 +480,7 @@ The Owner closed D160 post-PASS testing on 2026-10-03. The trusted/accepted D160
 - Successful terminal diagnostics remain in the complete local log but do not immediately create an error upload bundle.
 
 ### Safe v100 behavior to inherit
-- Checkbox recovery stays pre-final, uses real Page.reload, preserves Search-before-F5/exact-row/foreign-selection guards, and may use the existing 4.5s soft wait plus progress-gated extension up to 3.5s. The existing 12s mutation-start fence remains authoritative.
+- Checkbox recovery stays pre-final, uses real Page.reload, preserves Search-before-F5/exact-row/foreign-selection guards, and may use the existing 4.5s soft wait plus an extension up to 3.5s. At the 4.5s soft boundary, the v100 field-tested extension gate is exact Confirm route + document/page loaded + navigation type `reload`; progress/hydration counters remain diagnostic evidence but are not silently promoted into a stricter extension prerequisite. The existing 12s mutation-start fence remains authoritative.
 - Post-final observation is passive and one-click-only, up to 5.2s when the end-to-end budget permits. No Search, F5, provider retry or second Confirm click is permitted after the final click.
 - Keep local redacted queue/handoff/browser-gate/search/mutation/terminal budget telemetry with zero new provider operation/cadence.
 - Fast success exits immediately on authoritative evidence; do not intentionally delay a successful fast path to consume the full terminal budget.
@@ -501,4 +501,158 @@ Safety boundary:
 - The first official D161 Agent runtime build is **v98**.
 - Historical manual-only D160 test prereleases tagged v98/v99/v100 remain non-trusted evidence and must not be overwritten or silently promoted. D161 release mechanics must use a non-colliding publication identity while the product/runtime version presented through the trusted channel is v98.
 - This section does not start implementation. Exact start command remains **`bắt đầu D161 tiến hành`**, followed by Phase 0A PASS → Phase 0 PASS → D161 implementation.
+
+## 17. D161 PickList confirm pipeline optimization and regression contract
+
+Status: **OWNER-APPROVED D161 BACKLOG / IMPLEMENTATION DEFERRED**.
+
+This section makes previously implicit D160 v97 behavior explicit and adds the additional confirm optimizations approved by the Owner after the v99/v100 review. D161 must start from the exact accepted v97 source and reapply the v99/v100 improvements without regressing these contracts.
+
+### Immediate-scan FAST wave and per-request classification
+
+- The first WMS pass is an **immediate local DOM scan** with no intentional wait to fill a batch.
+- A request that is exact-row + selectable is classified FAST READY immediately.
+- Missing/unselectable requests are deferred for bounded Search/recovery.
+- Ambiguous/state-changed/unavailable requests are classified independently.
+- One ambiguous request must never suppress Search/recovery for another missing/unselectable request in the same mixed batch.
+- Max 15 remains a processing ceiling only. Never add an intentional batching delay to wait for more requests.
+
+### Early terminal and ACK isolation
+
+- FAST READY and other already-terminal outcomes must be persisted/ACKed before deferred checkbox/search/reload recovery.
+- One slow or broken request may not hold the durable ACK of an unrelated ready request.
+- Deferred requests use a shared bounded Search/recovery wave where possible; never introduce a per-request F5 loop.
+
+### Dedupe and idempotency
+
+Preserve and test all layers:
+
+- listener + REST duplicate delivery dedupe within a cycle;
+- duplicate request_id removal within a transport batch;
+- requests that resolve to the same exact full PickList group to one WMS mutation target;
+- recent terminal request suppression across cycles for the accepted bounded TTL;
+- confirmation guard remains authoritative across retry/failover.
+
+### Confirmation guard semantics
+
+- Already-confirmed guard proof returns CONFIRMED without another WMS mutation.
+- In-progress/uncertain guard blocks a new WMS mutation.
+- Only a failure before the final business click is eligible for safe guard release.
+- After the final click, uncertainty never releases the guard merely because success proof was not observed.
+- Row disappearance/presence never reopens mutation authority and never proves success.
+
+### Role/generation and mutation-deadline fencing
+
+- Keep primary/generation verification before WMS mutation even if the request passed earlier queue/search checks.
+- If role/generation changes after Search but before mutation, fail closed without WMS click.
+- Keep the accepted 12-second mutation-start safety fence, but recheck the deadline close to the actual WMS mutation path instead of relying only on an early pipeline check.
+- D161 should express request timing against one absolute end-to-end budget derived from the original client/request timestamp. Existing field-tested thresholds remain bounded inputs rather than independent timers that can accidentally exceed the PDA hard bound.
+- Preserve the existing recovery-start reserve (current v97 contract uses the bounded early-recovery window) and the v100 terminal ceiling of 5.2s; do not use the larger passive wait to justify a late mutation.
+- Normal target remains **5–10s end-to-end** and hard PDA target remains **≤20s**.
+
+### WMS data readiness and health proof
+
+- Zero/unhydrated table is technical unavailability, not true NOT_FOUND.
+- WMS_DATA_UNAVAILABLE must not create a Picker NOT_FOUND strike.
+- A responsive Confirm shell alone is not a WMS health proof.
+- Reset/refresh WMS health proof only from a real hydrated/valid page proof, successful exact scan, successful reload barrier + hydration/page-size readiness, or successful business terminal evidence.
+- Reload/recovery operational-ready still requires verified page-size=100.
+- Every successful reload still resets the D157 secondary 2h reload clock.
+
+### Schedule/control-plane versus WMS mutation readiness
+
+D161 must separate:
+
+1. shared business schedule authority;
+2. Firestore/HA/control-plane availability;
+3. WMS browser mutation readiness.
+
+A transient WMS reload/not-ready state during an active schedule window must not by itself be represented as business SLEEP. Listener/HA coordination should remain alive where safe, while WMS mutation is blocked until ready. A bounded unhealthy PRIMARY may yield to a WMS-ready standby through the existing HA authority without parallel WMS mutation.
+
+### Firestore/HA error classification
+
+- Log HTTP + canonical Firestore status + operation + precondition/generation context.
+- Expected stale/precondition outcomes must be classified as superseded/non-transport-health-impact where semantics prove that classification.
+- Do not turn an expected stale CAS/precondition into transport OFFLINE or unnecessary HA recovery.
+
+### Confirm critical-path telemetry
+
+In addition to v100 queue/search/mutation/terminal timing, D161 must measure locally:
+
+- rate-check and rate-clear/update duration;
+- guard claim/read duration;
+- primary/generation fence duration;
+- checkbox select/verify duration;
+- Confirm button wait;
+- dialog-ready wait;
+- final-click-to-first-proof;
+- post-terminal cleanup duration;
+- durable ACK duration/attempt count;
+- total E2E and remaining budget at each safety gate.
+
+No telemetry item may add a provider operation or WMS mutation.
+
+### Measurement-first optimization candidates
+
+These are approved for measurement and conditional optimization inside D161, but must not be changed blindly:
+
+- If telemetry proves `WaitForD160CleanUi` materially delays PDA ACK, allow the authoritative terminal result to leave the ACK critical path earlier while marking browser cleanup as mandatory before the next mutation.
+- If rate-limit read/clear is a material critical-path cost, optimize cache/batching/ordering without weakening anti-spam authority or correctness.
+
+### Required regression and load fixtures
+
+Add deterministic tests for:
+
+- mixed batch READY + MISSING + AMBIGUOUS + UNSELECTABLE + STATE_CHANGED;
+- duplicate request IDs;
+- two requests resolving to one exact PickList;
+- request near the mutation deadline;
+- one deferred request while other requests must early-ACK;
+- zero/unhydrated table;
+- PRIMARY/generation change between Search and mutation;
+- uncertain final click followed by retry;
+- shared recovery with no per-request F5;
+- batch up to 15 with no intentional batch-fill delay;
+- burst model including **20 PDA / 5 seconds**.
+
+Acceptance must show READY isolation, no false NOT_FOUND/strike, no duplicate WMS mutation, one final business click, normal 5–10s target where WMS/provider conditions permit, hard ≤20s bound, and no provider cadence increase.
+
+### Explicitly unchanged unless later evidence reopens them
+
+- no terminal wait above 5.2s;
+- no second Confirm click;
+- no row-disappearance success proof;
+- no confirmation-guard loosening;
+- no extra Firestore polling/listener cadence;
+- no periodic WMS refresh increase;
+- no persistent NOT_FOUND timeout tuning without new evidence;
+- no parallel WMS mutation by multiple Agents.
+
+
+## 18. D161 cross-platform Observability & Support Log v2
+
+Status: **OWNER-APPROVED D161 BACKLOG / IMPLEMENTATION DEFERRED**.
+
+Canonical detailed design: `docs/specs/OBSERVABILITY_LOGGING.md`.
+
+D161 must redesign Web, Android and Agent logging around one structured schema and cross-platform trace model so future log review can reconstruct business flow, latency, retries, recovery, provider/HA state and evidence loss.
+
+Required high-level behavior:
+
+- common schema v2 with source/version/device/session/role/trace/stage/outcome/duration fields;
+- request/trace correlation across Web/Android/Agent where one business ID already exists;
+- monotonic per-journal sequence plus first/last sequence, dropped-event count and compacted-repeat count in every bundle;
+- local-first recording with **zero provider write per event**;
+- client + server double redaction and field allow-listing;
+- no password/token/cookie/private-key/signing/session material, raw WMS session data, raw HTML/screenshots, HTTP bodies, query values or raw PickList code/suffix;
+- Web gains bounded reload-surviving diagnostic incident context in addition to in-memory telemetry;
+- Android keeps a bounded 1–2 MiB persistent support journal and records lifecycle/auth/permission/FCM/realtime/API/update/business/PickList stages without returning to four full periodic INFO uploads;
+- Agent keeps complete local diagnostics but moves critical evidence to machine-parseable structured events, including full confirm critical-path stage timing and HA/WMS state;
+- errors/crashes/incidents/logout/manual/global requests are event boundaries; immediate upload is fingerprint/debounce protected while local evidence/counters remain;
+- daily Drive folders, Drive-confirmed local prune, global log collection authorization/TTL/jitter and no per-device ACK write remain inherited from section 8;
+- one global log request ID must appear as trace_id in all responding Web/Android/Agent bundles;
+- log failure must not become a business transport failure;
+- no logging feature may increase WMS/Firestore/Google polling/listener cadence.
+
+Section 8 remains authoritative for archive/prune/global-collection lifecycle except where this v2 schema/capture design explicitly extends it.
 
