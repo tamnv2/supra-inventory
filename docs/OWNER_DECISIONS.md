@@ -3001,3 +3001,13 @@ The Owner explicitly approved a second bounded D160 post-PASS Agent candidate to
 - Persistent NOT_FOUND timeout tuning is **not changed in v99** because the current sample is insufficient; continue measuring it.
 - Telemetry remains enabled and redacted so end-of-shift comparison can quantify CONFIRMED/UNCERTAIN/CONFLICT/NOT_FOUND, terminal proof route, Search/F5 recovery, latency, Firestore control supersession, HA refresh, log upload volume and any regression.
 - Android beta-vc92, Web/backend business runtime, provider resources, schema and Stable remain unchanged.
+
+
+### D160 optimization test Agent v99 technical release checkpoint — 2026-10-03
+- PR #393 merged to `main` at `ef403ded346d4d25875b57db2413ffc914e1c921`.
+- Main `Verify Beta Relay Agent` run `37100883906` PASS; Repo Authority, Project State, UI/Android, D127 and D159 usage guards also PASS.
+- Dedicated manual-only prerelease `relay-agent-v99` exists as release id `402351882`.
+- Canonical EXE asset id `607236270`, size `7248896` bytes, SHA-256 `38ad765453299649a8373d6b6c02c4c26a72b58b435b4f358f7276f1a8cd36b0`.
+- Trusted `inventory-channel` remains exact accepted relay-agent-v97 Agent identity: size `7216128` bytes and SHA-256 `b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530`, matching relay-agent-v97 asset id `604881289`.
+- This is **TECHNICAL / RELEASE PASS only**. v99 is manual field-test candidate; accepted runtime/channel remain relay-agent-v97.
+- OA093 now waits for Owner end-of-shift field run and sanitized logs. D161 remains unchanged and implementation-deferred until later evidence review + explicit Owner decision.

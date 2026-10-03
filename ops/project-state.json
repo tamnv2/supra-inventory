@@ -36,7 +36,7 @@
     "governance": "D147_SERIAL_OWNER_PASS_GATE__D160_V97_ACCEPTED_BASE__D160_POST_PASS_OPTIMIZATION_TEST_V99_ACTIVE__D161_AUTHORITY_BACKLOG_ONLY",
     "owner_acceptance": "D160_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D160_ACCEPTED_AGENT_V97__D160_OPTIMIZATION_TEST_V99_APPROVED_MANUAL_ONLY__V98_EVIDENCE_CAPTURED__D161_IMPLEMENTATION_DEFERRED"
+    "agent": "D160_ACCEPTED_AGENT_V97__D160_OPTIMIZATION_TEST_V99_TECHNICAL_RELEASE_PASS_MANUAL_FIELD_READY__D161_IMPLEMENTATION_DEFERRED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -198,7 +198,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Build/release relay-agent-v99 manual-only, verify inventory-channel remains relay-agent-v97, then OA093 field-run v99 for the rest of shift and analyze logs before any D161 backlog change.",
+  "next_action": "OA093: Owner manually installs relay-agent-v99 on selected processing Agent, runs normal workload through end of shift, then provides sanitized logs for comparative analysis. No D161 backlog mutation until later explicit Owner decision.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2468,7 +2468,7 @@
     "accepted_base_change_id": "D160",
     "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02",
     "current_change_id": "D160",
-    "current_change_status": "D160_POST_PASS_OPTIMIZATION_TEST_V99_ACTIVE__ACCEPTED_BASE_REMAINS_RELAY_AGENT_V97",
+    "current_change_status": "D160_POST_PASS_OPTIMIZATION_TEST_V99_TECHNICAL_RELEASE_PASS__WAITING_OWNER_END_OF_SHIFT_FIELD_EVIDENCE__ACCEPTED_BASE_REMAINS_V97",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -4194,7 +4194,7 @@
       "owner_field_action": "OA092"
     },
     "post_pass_optimization_test_candidate": {
-      "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+      "status": "TECHNICAL_RELEASE_PASS__WAITING_OWNER_END_OF_SHIFT_FIELD_TEST",
       "date": "2026-10-03",
       "accepted_runtime": "relay-agent-v97",
       "target_candidate": "relay-agent-v99__MANUAL_INSTALL_ONLY",
@@ -4223,7 +4223,22 @@
       "provider": "NO_NEW_RESOURCE_NO_NEW_POLLING_LISTENER_WRITE_CADENCE",
       "stable": "OWNER_GATED_UNTOUCHED",
       "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED__FIELD_EVIDENCE_TO_BE_REVIEWED_BEFORE_BACKLOG_UPDATE",
-      "owner_field_action": "OA093"
+      "owner_field_action": "OA093",
+      "main_commit": "ef403ded346d4d25875b57db2413ffc914e1c921",
+      "pr": 393,
+      "main_agent_run": 37100883906,
+      "release_tag": "relay-agent-v99",
+      "release_id": 402351882,
+      "exe_asset_id": 607236270,
+      "exe_size_bytes": 7248896,
+      "exe_sha256": "38ad765453299649a8373d6b6c02c4c26a72b58b435b4f358f7276f1a8cd36b0",
+      "trusted_channel_agent": "relay-agent-v97",
+      "trusted_channel_asset_id": 604881360,
+      "trusted_channel_size_bytes": 7216128,
+      "trusted_channel_sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
+      "accepted_v97_release_id": 401562436,
+      "accepted_v97_asset_id": 604881289,
+      "channel_proof": "INVENTORY_CHANNEL_AGENT_EXE_EXACTLY_MATCHES_RELAY_AGENT_V97_SIZE_AND_SHA256__V99_NOT_PROMOTED"
     }
   },
   "d161": {
