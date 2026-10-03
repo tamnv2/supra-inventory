@@ -3,7 +3,6 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Text.RegularExpressions;
 
 namespace SupraInventoryRelayAgent
 {
@@ -122,44 +121,17 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        internal static string CanonicalErrorStatus(WebException ex)
-        {
-            if (ex == null) return "UNKNOWN";
-            var response = ex.Response as HttpWebResponse;
-            if (response == null) return "NETWORK_" + ex.Status;
-            try
-            {
-                var stream = response.GetResponseStream();
-                if (stream == null) return "UNKNOWN";
-                using (var reader = new StreamReader(stream))
-                {
-                    var buffer = new char[16384];
-                    var count = reader.Read(buffer, 0, buffer.Length);
-                    var raw = count <= 0 ? "" : new string(buffer, 0, count);
-                    var match = Regex.Match(raw, "\\\"status\\\"\\s*:\\s*\\\"([A-Z_]+)\\\"", RegexOptions.IgnoreCase);
-                    if (!match.Success) return "UNKNOWN";
-                    var value = (match.Groups[1].Value ?? "").ToUpperInvariant();
-                    return Regex.IsMatch(value, "^[A-Z_]{2,40}$") ? value : "UNKNOWN";
-                }
-            }
-            catch
-            {
-                return "UNKNOWN";
-            }
-        }
-
         internal static string Describe(WebException ex)
         {
             if (ex == null) return "unknown";
             var response = ex.Response as HttpWebResponse;
             if (response == null)
-                return "status=0 canonical=NETWORK_" + ex.Status + " web_exception=" + ex.Status;
+                return "status=0 web_exception=" + ex.Status;
 
             var status = (int)response.StatusCode;
             var host = response.ResponseUri == null ? "" : response.ResponseUri.Host;
-            var canonical = CanonicalErrorStatus(ex);
             try { response.Dispose(); } catch { }
-            return "http=" + status + " canonical=" + Safe(canonical) + " host=" + Safe(host) + " web_exception=" + ex.Status;
+            return "http=" + status + " host=" + Safe(host) + " web_exception=" + ex.Status;
         }
 
         private static string ApplyDefaultWindowsProxy(HttpWebRequest request, string url)
