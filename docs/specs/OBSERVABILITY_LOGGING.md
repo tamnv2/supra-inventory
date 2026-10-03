@@ -1,10 +1,10 @@
 # OBSERVABILITY & SUPPORT LOGGING — D161
 
-Status: **OWNER-APPROVED D161 REQUIREMENTS / IMPLEMENTATION DEFERRED**.
+Status: **OWNER-APPROVED D161 REQUIREMENTS / IMPLEMENTATION STARTED — PHASE 0A ACTIVE**.
 
 This specification defines the D161 observability and support-log model for **Web, Android/PDA and Windows Agent**. It extends the existing D161 unified support-log lifecycle. Where this document adds capture/schema/correlation requirements, it is authoritative for D161. Existing daily Drive archive, Drive-confirmed pruning, global log collection, Beta resource scope and Stable guard remain in force unless explicitly superseded here.
 
-D161 implementation still requires the exact Owner command `bắt đầu D161 tiến hành`, then Phase 0A PASS and Phase 0 Safety PASS before runtime mutation.
+The exact Owner command `bắt đầu D161 tiến hành` was received on 2026-10-04. Phase 0A is active. Runtime/business mutation remains blocked until Phase 0A PASS, and feature-bearing implementation remains blocked until Phase 0 Safety PASS.
 
 ## 1. Goals
 

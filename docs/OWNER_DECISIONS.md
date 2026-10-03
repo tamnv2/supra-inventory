@@ -3129,3 +3129,23 @@ After review of the consolidated D161 authority plus 2026-10-03 Web/Android/Agen
 - one immediate idempotent overtime warning when a newly created boundary is already inside its T-15 window near the 05:00 hard cutoff.
 
 These refinements add no provider polling/listener cadence, no new persistent provider resource and no Stable mutation. D160/Agent v97 remains accepted until D161 passes its existing implementation/field gates.
+
+
+## D161 implementation start authorization — 2026-10-04
+
+Status: **OWNER COMMAND RECEIVED / PHASE 0A ACTIVE**.
+
+The Owner issued the exact previously-gated command:
+
+`bắt đầu D161 tiến hành`
+
+This authorizes the complete then-current D161 backlog to proceed automatically under the existing sequence and safety constraints:
+
+1. fresh GitHub authority bootstrap;
+2. **Phase 0A Permission & Provider Preflight PASS** before any D161 business/runtime source mutation or Safety release;
+3. **Phase 0 Safety Baseline PASS** before feature-bearing D161 runtime implementation;
+4. then continue the complete approved D161 backlog under branch → PR → authority/continuity PASS → merge until field-ready or a genuine Owner-only blocker.
+
+Live release reconciliation at start found historical immutable Agent test tags v98/v99/v100 while accepted runtime remains v97. Therefore the first monotonic **Safety Agent is v101** and the first feature-bearing D161 Agent must be **v102 or later**. Android accepted release is vc92, so the first Safety Android is **vc93** and the first feature-bearing D161 Android is **vc94 or later**, unless a newer release is introduced and authority is reconciled before publication.
+
+Stable remains OWNER-GATED and untouched. The D160 accepted runtime remains the rescue/base behavior until D161 is explicitly field-accepted.

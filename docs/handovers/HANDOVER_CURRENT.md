@@ -1688,3 +1688,10 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - While D161 is explicitly field-test-ready, **`ghi nhận ok`** or explicit **D161 PASS** records Owner acceptance.
 - Exact rescue command **`quay lại bản backup ban đầu trước khi sửa code`** freezes feature rollout and restores Safety behavior through forward deployments/releases: Safety Web with schema-compatible backend, newer-number Agent/APK rescue releases, no blind SQLite downgrade and no D162.
 - Stable remains OWNER-GATED and untouched.
+
+
+## D161 Phase 0A start derived marker — 2026-10-04
+
+- Android runtime marker: `D160_ACCEPTED_RUNTIME__SIGNED_BETA_VC92__D161_PHASE0A_ACTIVE__SAFETY_TARGET_VC93__FEATURE_MIN_VC94`.
+- Accepted runtime remains Android beta-vc92 and Agent v97 while Phase 0A is active; no Safety or feature release has been published yet.
+- Stable remains OWNER-GATED and untouched.
