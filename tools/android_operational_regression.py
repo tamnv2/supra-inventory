@@ -225,9 +225,13 @@ def main() -> None:
     diagnostic_only = diagnostic_marker_path.exists()
     if diagnostic_only:
         diagnostic_marker = diagnostic_marker_path.read_text(encoding="utf-8")
-        require(relay_agent_config, "AgentBuild = 98", "D160 post-PASS diagnostic Agent v98 candidate")
-        require(diagnostic_marker, "accepted_runtime=relay-agent-v97", "D160 diagnostic accepted runtime remains v97")
-        require(diagnostic_marker, "inventory_channel_update=FORBIDDEN", "D160 diagnostic trusted Agent channel fence")
+        candidate_version = (ROOT / "relay-agent" / "VERSION").read_text(encoding="utf-8").strip()
+        require(relay_agent_config, f"AgentBuild = {candidate_version}", "D160 post-PASS manual test Agent version")
+        require(diagnostic_marker, "D160_POST_PASS_MANUAL_TEST_CANDIDATE", "D160 manual test candidate marker")
+        require(diagnostic_marker, "accepted_runtime=relay-agent-v97", "D160 manual test accepted runtime remains v97")
+        require(diagnostic_marker, f"candidate=relay-agent-v{candidate_version}", "D160 manual test candidate tag")
+        require(diagnostic_marker, "inventory_channel_update=FORBIDDEN", "D160 manual test trusted Agent channel fence")
+        require(diagnostic_marker, "d161_runtime_update=FORBIDDEN", "D160 manual test keeps D161 deferred")
     else:
         require(relay_agent_config, "AgentBuild = 97", "D160 lifecycle repair Agent v97 channel retaining hard-locked Android beta-vc92 and accepted D158/D157 safeguards")
     require(relay_agent, "QueueNetworkStatusRefresh", "D122 SSID refresh off WinForms UI thread")
