@@ -3011,3 +3011,16 @@ The Owner explicitly approved a second bounded D160 post-PASS Agent candidate to
 - Trusted `inventory-channel` remains exact accepted relay-agent-v97 Agent identity: size `7216128` bytes and SHA-256 `b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530`, matching relay-agent-v97 asset id `604881289`.
 - This is **TECHNICAL / RELEASE PASS only**. v99 is manual field-test candidate; accepted runtime/channel remain relay-agent-v97.
 - OA093 now waits for Owner end-of-shift field run and sanitized logs. D161 remains unchanged and implementation-deferred until later evidence review + explicit Owner decision.
+
+
+### D160 post-PASS optimization test Agent v100 — Owner approved — 2026-10-03
+The Owner reviewed the v99 field evidence and explicitly directed that the v99 repairs which proved correct remain unchanged while the next D160 manual candidate focuses only on remaining latency/recovery defects.
+- relay-agent-v97 remains the accepted runtime and trusted inventory-channel target. v99 evidence is accepted for the three bounded optimizations only; v99 is not promoted fleet-wide by this decision.
+- Freeze the v99-proven behavior: same-row `Xác nhận lấy lại hàng` terminal fallback, presence FAILED_PRECONDITION→SUPERSEDED handling, and suppression of immediate error-bundle sealing for successful terminal diagnostics.
+- Target candidate is **relay-agent-v100**, manual-install test only. No inventory-channel update, Android/Web/backend/provider/schema/Stable mutation and no D161 implementation.
+- v100 may change only the remaining evidence-backed areas:
+  1. Checkbox/Search recovery reload keeps the existing real Page.reload and fail-closed semantics, but the 4.5-second soft wait may extend by at most 3.5 seconds only when the reloaded document is already on the exact Confirm route, navigation type is `reload`, and the document has loaded. The 12-second mutation-start fence still decides whether any WMS final click may occur after recovery.
+  2. Post-final terminal observation remains passive and one-click-only. Its bounded wait may use up to 5.2 seconds when the existing end-to-end budget allows; no Search, F5, provider retry or second Confirm click is permitted after the final business click.
+  3. Add local redacted timing telemetry separating Firestore-created/client age at transport handoff, handler-to-browser gate delay, search/classification timing and the terminal budget actually granted. No provider operation is added.
+- Persistent NOT_FOUND tuning remains deferred because the sample is still insufficient.
+- Existing exact-match/ambiguity guards, FOREIGN_SELECTION recovery, max-15 semantics, page-size restoration, confirmation guards, HA/failover authority, Firestore cadence and successful fast path remain unchanged.
