@@ -121,7 +121,19 @@ jobs:
           jq -e '.success == true and .result.status == "active"' <<<"$verify" >/dev/null
           service_code="$(curl -sS -o /tmp/cf-service.json -w '%{http_code}' -H "Authorization: Bearer $CF_API_TOKEN_INVENTORY_BETA" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/services/supra-inventory-beta")"
           test "$service_code" = "200"
-          npm --prefix service install --no-audit --no-fund >/dev/null
+          npm --prefix web install --ignore-scripts --no-audit --no-fund >/dev/null
+          (
+            cd web
+            VITE_API_BASE_URL="https://$BETA_HOSTNAME" \
+            VITE_FIREBASE_API_KEY="$FIREBASE_WEB_API_KEY_BETA" \
+            VITE_FIREBASE_AUTH_DOMAIN="supra-inventory-beta.firebaseapp.com" \
+            VITE_FIREBASE_PROJECT_ID="supra-inventory-beta" \
+            VITE_FIREBASE_APP_ID="1:572322098890:web:96459cf386b3fb6f400e33" \
+            VITE_FIREBASE_MESSAGING_SENDER_ID="572322098890" \
+            npm run build >/dev/null
+          )
+          test -d web/dist
+          npm --prefix service install --ignore-scripts --no-audit --no-fund >/dev/null
           (cd service && npx wrangler@4 deploy --config wrangler.beta.toml --dry-run --outdir ../.phase0a-worker >/dev/null)
           echo "CLOUDFLARE_BETA_DEPLOY_CAPABILITY=PASS"
 
