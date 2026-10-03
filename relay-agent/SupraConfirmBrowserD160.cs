@@ -151,6 +151,16 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
+                if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
+                {
+                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                    result.Detail = "NO_FRESH_TERMINAL_SURFACE";
+                }
+                else
+                {
+                    WaitForD160CleanUiNoLock(TimeSpan.FromMilliseconds(900));
+                }
+
                 LogD160DiagnosticTargetSnapshotNoLock("POST_TERMINAL", codes);
                 _log("D160_DIAG TERMINAL result=" + D160DiagnosticTelemetry.SafeReason(result.Result) +
                      " detail=" + D160DiagnosticTelemetry.SafeReason(result.Detail) +
@@ -168,16 +178,6 @@ namespace SupraInventoryRelayAgent
                      " new_terminal_max=" + maxNewTerminal +
                      " epoch=" + D160DiagnosticTelemetry.PageEpoch +
                      " dirty_after_confirm=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
-
-                if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
-                {
-                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                    result.Detail = "NO_FRESH_TERMINAL_SURFACE";
-                }
-                else
-                {
-                    WaitForD160CleanUiNoLock(TimeSpan.FromMilliseconds(900));
-                }
             }
 
             started.Stop();
