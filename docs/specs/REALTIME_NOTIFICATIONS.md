@@ -853,3 +853,19 @@ Status: Owner-approved target; implementation deferred.
 - Missing/delayed FCM cannot preserve access: the next authenticated API/realtime authority check must reject the revoked generation.
 - Do not add periodic client polling or a new always-on listener for bulk kick.
 - Any future exact fanout resource beyond existing scoped Firebase/notification resources must be reconciled in project scope/resource registry before provider mutation.
+
+
+## D161 convergence hardening — Owner-approved 2026-10-04
+
+### Picker reporting capability revision
+- The normalized server-authoritative shortage_reporting_enabled value carries/reuses a monotonic authority revision/generation.
+- Android stores (value, revision) and rejects older-revision capability state after a newer revision is applied.
+- Same-revision/different-value is a consistency anomaly and must fail closed into authoritative reconciliation/evidence capture.
+- Realtime remains the fast path; login/profile reconciliation remains the recovery/convergence path. No polling is added.
+
+### HR Sheet signal/revision semantics
+- Google Drive change/watch delivery is only a signal to reread the verified authoritative Sheet.
+- Each processed snapshot has a bounded source revision or deterministic fingerprint.
+- Initial sync, renewal overlap, duplicate notification and retry/recovery are idempotent against that snapshot identity.
+- Any Web confirmation proposal carries the exact snapshot revision/fingerprint that produced it. Confirmation revalidates current source authority; a changed source invalidates the stale proposal and recomputes the diff.
+- Complete-snapshot validation precedes mutation with precedence HARD_BLOCK > CONFIRM_REQUIRED > AUTO; one observed snapshot is never partially auto-applied before another part of the same snapshot is known to require hold/block.

@@ -3110,3 +3110,22 @@ The Owner requires **Lịch sử Picker xác nhận PickList** to add a visible 
 
 This is D161 authority/backlog only and does not start runtime implementation. Exact start remains **`bắt đầu D161 tiến hành`**.
 
+
+
+## D161 Owner approval — integrity/convergence hardening after full-log review — 2026-10-04
+
+Status: **OWNER APPROVED — PART OF D161 / IMPLEMENTATION STILL CONTROLLED BY EXISTING EXACT START GATE**.
+
+After review of the consolidated D161 authority plus 2026-10-03 Web/Android/Agent logs, the Owner approved adding the following to the same D161 backlog:
+
+- distinguish Phase 0 Safety Agent release from feature-bearing D161 Agent release; feature Agent must be strictly newer than the resolved Safety build, with historical D160 manual v98/v99/v100 remaining immutable evidence;
+- HR snapshot revision/fingerprint, stale-proposal revalidation, whole-snapshot atomicity and precedence HARD_BLOCK > CONFIRM_REQUIRED > AUTO;
+- monotonic revision/generation for authoritative shortage_reporting_enabled;
+- cross-platform support-log bundle_id/boundary idempotency at trusted archive, including Android logout and Web scheduled-slot dedupe;
+- same-version agent_sync no-op for rebuild/persist/repaint, with same-version/different-content treated as a consistency anomaly;
+- canonical observability severity semantics so success and expected superseded/transient states do not become immediate error bundles;
+- PickList confirm trace-completeness terminal classes and non-mutating TRACE_GAP_DETECTED;
+- Web reload-surviving diagnostic journal isolation by authenticated session generation;
+- one immediate idempotent overtime warning when a newly created boundary is already inside its T-15 window near the 05:00 hard cutoff.
+
+These refinements add no provider polling/listener cadence, no new persistent provider resource and no Stable mutation. D160/Agent v97 remains accepted until D161 passes its existing implementation/field gates.

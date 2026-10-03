@@ -2423,3 +2423,19 @@ queue/handoff, browser gate, immediate classification, Search/recovery, rate lim
 - History-only changes do not trigger an `agent_sync` write; the field rides only an already-required sync mutation.
 - Existing newest-first `SentAtMs` canonical sorting and D161 atomic History rendering remain PASS.
 
+
+
+## D161 integrity/convergence hardening acceptance — 2026-10-04
+
+Before D161 field-ready status, automated/runtime acceptance must additionally prove:
+
+1. **Safety/feature lineage:** if accepted Agent is v97 and Safety resolves to v98, no feature-bearing D161 Agent is published as v98; the first feature candidate is v99+ (or, generically, feature > live-resolved Safety S). Historical D160 manual v98/v99/v100 tags are never overwritten/reused.
+2. **HR stale proposal:** create a confirmation-required HR snapshot A, mutate authoritative Sheet to snapshot B before approval, then approve A; A performs zero mutation and the system recomputes from B.
+3. **HR atomic precedence:** a mixed snapshot containing an otherwise auto-applicable change plus a confirmation-required or hard-block condition performs no partial early mutation. Hard-block yields zero mutation; confirmation-required holds the complete snapshot change set.
+4. **Capability revision:** apply ON@rev10 then deliver OFF@rev9 → remains ON; OFF@rev11 applies; same revision with conflicting values fails closed and records a consistency anomaly without polling.
+5. **Archive idempotency:** replay the same Android logout bundle, Web scheduled slot and Agent boundary multiple times across retry/reload; trusted archive contains one durable logical object per bundle/boundary and all retries converge to DRIVE_SYNCED.
+6. **AgentSync duplicate version:** repeated same-version listener/reconcile snapshots do not rebuild/persist/repaint presentation. Same-version/different-content is surfaced as an anomaly. Provider operation cadence is unchanged.
+7. **Severity:** confirmed business success does not create immediate error upload; stale update-precondition is SUPERSEDED/no transport-health impact; updater DNS/timeout/channel failure is non-blocking DEFER/WARN; signer/hash mismatch remains safety ERROR.
+8. **Trace completeness:** every claimed PickList trace ends in ACKED_TERMINAL, SAFE_ABORT_PRE_MUTATION, UNCERTAIN_POST_MUTATION, HANDOFF, EXPIRED or TRACE_GAP_DETECTED. A trace gap never triggers/result-infers another WMS mutation.
+9. **Web journal identity:** reload preserves bounded context inside one session; logout/account replacement rotates generation and prior evidence is never attributed to the new user.
+10. **Overtime cutoff edge:** creating/extending a boundary with <=15 minutes remaining before 05:00 emits at most one immediate boundary-key warning; multiple Agents do not duplicate it and 05:00 remains a hard cap.
