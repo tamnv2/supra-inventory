@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D160_ACCEPTED_BASE__D161_OWNER_APPROVED_BACKLOG_ACTIVE_IMPLEMENTATION_DEFERRED__ANDROID_VC92",
+    "beta": "D160_CLOSED_ACCEPTED_V97__D161_BACKLOG_AWAITING_START__ANDROID_VC92",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 16,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
