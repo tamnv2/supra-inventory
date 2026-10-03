@@ -314,3 +314,11 @@ Owner closed D160 v98/v99/v100 manual testing. Do not create any further D160 di
 - The first official D161 Agent runtime version is v98. Historical D160 test prerelease tags v98/v99/v100 remain evidence-only and may not be silently overwritten/promoted; publication must use a collision-safe release identity.
 - Stable remains OWNER-GATED.
 
+## D161 confirm/observability authority addendum — 2026-10-03
+
+Owner-approved requirements now include the extended PickList confirm pipeline contract and cross-platform Observability/Support Log v2 in `docs/D161_APPROVED_BACKLOG.md` and `docs/specs/OBSERVABILITY_LOGGING.md`.
+
+This is authority capture only. Do not implement runtime/source/provider changes until the exact D161 start command. After start, Phase 0A and Phase 0 Safety remain mandatory before implementation.
+
+Observability implementation must reuse existing scoped Beta resources where possible, add zero provider write per local event, add no polling/listener cadence, and reconcile project scope before any unavoidable new persistent resource. Stable remains OWNER-GATED.
+

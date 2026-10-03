@@ -2375,3 +2375,41 @@ When D161 implementation is started by the exact authorized command, the Agent c
 - Queue/handoff/browser-gate/search/mutation/terminal telemetry remains local/redacted and adds zero provider polling/listener/write cadence.
 - Persistent NOT_FOUND timeout tuning stays unchanged unless later evidence and explicit Owner authority reopen it.
 
+## D161 extended PickList-confirm and Observability v2 acceptance
+
+These gates extend the existing D161 PickList-confirm carry-forward acceptance.
+
+### Confirm mixed-batch and latency correctness
+- First pass is immediate local classification; a FAST READY request is not held behind Search/recovery needed by another request.
+- Mixed batch READY + MISSING + AMBIGUOUS + UNSELECTABLE + STATE_CHANGED is classified per request.
+- AMBIGUOUS on one request cannot suppress the bounded Search/recovery path for another unresolved request.
+- Terminal/READY outcomes durable-ACK before deferred recovery starts.
+- Deferred requests share bounded Search/recovery; no per-request F5 loop.
+- Max 15 is a ceiling only; tests fail if implementation intentionally waits to fill a batch.
+- Listener/REST duplicate, in-batch duplicate, same-PickList grouping and recent-terminal replay do not create duplicate WMS mutation.
+- Confirmation guard semantics remain: already-confirmed no mutation, uncertain blocks mutation, only pre-final safe failure releases guard.
+- PRIMARY/generation change after Search but before mutation causes fail-closed with zero WMS business click.
+- 12s mutation fence is revalidated close to mutation and no late self-heal authorizes the old request.
+- Zero/unhydrated WMS table produces WMS_DATA_UNAVAILABLE and no NOT_FOUND strike.
+- WMS health proof is not reset by an unhydrated/zero-data shell.
+- Schedule/control-plane remains distinguishable from transient WMS mutation readiness.
+- Burst fixture includes 20 PDA / 5 seconds, preserves one-click safety and shows no provider-cadence increase.
+- Normal target remains 5–10s E2E where upstream conditions permit; hard client bound remains ≤20s.
+
+### Confirm observability
+For every confirm request fixture, logs must expose enough local timing to attribute latency to:
+queue/handoff, browser gate, immediate classification, Search/recovery, rate limit, confirmation guard, primary/generation fence, checkbox selection, Confirm button/dialog, terminal proof, cleanup and durable ACK.
+
+### Observability v2 schema/security
+- Web/Android/Agent emit schema-v2-compatible structured events with source/version/device/session/trace/category/event/outcome/duration fields.
+- Journals maintain monotonic sequence and bundles expose first/last sequence, event count, dropped count and compacted repeat count.
+- Secret/redaction test corpus proves removal of passwords, auth headers, access/ID/refresh tokens, cookies, private keys, service-account material, signing/keystore material, raw WMS session material, raw HTTP bodies/query values and raw PickList code/suffix.
+- Web reload preserves bounded incident context without creating offline business behavior.
+- Android crash/restart preserves bounded pre-crash evidence.
+- Agent complete local stream survives upload failure.
+- No event recording path performs a provider write by itself.
+- Error/upload debounce suppresses duplicate Drive files but preserves bounded local incident evidence/counters.
+- Android/Agent do not prune the only local copy until DRIVE_SYNCED.
+- One global support-log request correlates all responders by the same request_id/trace_id and creates no per-device Firestore ACK write.
+- Logging failure does not change business outcome except where an existing explicit safety/audit guard already requires fail-closed behavior.
+
