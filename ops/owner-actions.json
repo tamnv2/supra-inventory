@@ -4626,6 +4626,34 @@
         "cleanup_verified": true,
         "owner_action_required": false
       }
+    },
+    {
+      "id": "OA092",
+      "status": "PENDING_AFTER_RELEASE",
+      "title": "Field-test D160 post-PASS diagnostic Agent and return sanitized logs",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
+      "reason_owner_only": "Only the Owner/company environment can reproduce the real Supra WMS DOM, checkbox freshness, confirm result surface and Office-network Firestore behavior needed for this diagnostic.",
+      "prerequisites": {
+        "accepted_runtime": "relay-agent-v97",
+        "diagnostic_candidate": "relay-agent-v98__MANUAL_ONLY",
+        "inventory_channel": "MUST_REMAIN_V97",
+        "android": "beta-vc92__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Install the diagnostic Agent manually only on the selected test Agent machine(s); do not roll it fleet-wide.",
+        "Use the normal PDA↔Agent PickList flow, including normal confirmations, close-together/burst confirmations and any case where the checkbox is not ready.",
+        "When an abnormal result occurs, use the existing Gửi Logs/manual log path or allow the accepted D160 lifecycle to archive the complete log.",
+        "Return the resulting sanitized Agent log evidence for analysis; never copy credentials, tokens or WMS session data."
+      ],
+      "pass_criteria": [
+        "Diagnostic candidate preserves D160 v97 business behavior and acceptable latency.",
+        "Logs contain the new bounded WMS/terminal/Firestore/HA telemetry without sensitive data.",
+        "inventory-channel remains relay-agent-v97 and Android beta-vc92/Stable remain unchanged."
+      ],
+      "remaining_owner_action": "FIELD_TEST_AND_RETURN_LOGS_AFTER_DIAGNOSTIC_RELEASE",
+      "closed": false
     }
   ]
 }

@@ -274,3 +274,12 @@ Outside that exact D161 field-test-ready state, do not infer acceptance merely f
 - Agent rescue `relay-agent-vN` must be strictly greater than every already-published D161 Agent build.
 - A rescue release may reuse Safety behavior/source logic but is a new signed/checksummed release; it is not a version-number downgrade.
 - Web/Worker rescue is a new deployment from a known Safety-compatible source composition, not an assumption that provider rollback of an old bundle is safe.
+
+
+## D160 post-PASS diagnostic candidate routing
+Owner-approved diagnostic work on 2026-10-03 is a bounded continuation of D160, not D161 implementation.
+- Accepted runtime remains relay-agent-v97 until explicit Owner field PASS of a diagnostic candidate.
+- A diagnostic candidate may use the next monotonic Agent version and a dedicated prerelease/artifact, but must never update `inventory-channel`.
+- Only logging/telemetry and the minimum CI/release fencing needed to keep the diagnostic candidate manual-only are authorized.
+- D160 v97 business behavior, Android beta-vc92, Web/backend/provider cadence and Stable remain unchanged.
+- After candidate publication, stop at Owner field/log collection. A field failure is repaired under the same D160 diagnostic continuation; a field PASS must reconcile accepted-artifact metadata before any D161 implementation can start.

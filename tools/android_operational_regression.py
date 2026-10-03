@@ -221,7 +221,15 @@ def main() -> None:
     require(firestore_rules, "function isAgentOperator()", "D126 Firestore Agent operator rule")
     require(firestore_rules, "request.resource.data.agent_admin_user_id == request.auth.token.app_user_id", "D126 Firestore ACK actor binding")
     require(firestore_rules, "request.auth.token.app_role == 'PICKPACK_ADMIN'", "D119/D126 PickPack Admin Agent authority retained")
-    require(relay_agent_config, "AgentBuild = 97", "D160 lifecycle repair Agent v97 channel retaining hard-locked Android beta-vc92 and accepted D158/D157 safeguards")
+    diagnostic_marker_path = ROOT / "relay-agent" / "DIAGNOSTIC_ONLY"
+    diagnostic_only = diagnostic_marker_path.exists()
+    if diagnostic_only:
+        diagnostic_marker = diagnostic_marker_path.read_text(encoding="utf-8")
+        require(relay_agent_config, "AgentBuild = 98", "D160 post-PASS diagnostic Agent v98 candidate")
+        require(diagnostic_marker, "accepted_runtime=relay-agent-v97", "D160 diagnostic accepted runtime remains v97")
+        require(diagnostic_marker, "inventory_channel_update=FORBIDDEN", "D160 diagnostic trusted Agent channel fence")
+    else:
+        require(relay_agent_config, "AgentBuild = 97", "D160 lifecycle repair Agent v97 channel retaining hard-locked Android beta-vc92 and accepted D158/D157 safeguards")
     require(relay_agent, "QueueNetworkStatusRefresh", "D122 SSID refresh off WinForms UI thread")
     require(relay_agent, "QueueWatchdogRefresh", "D122 watchdog refresh off WinForms UI thread")
     require(relay_agent, "ExpireAgentSession", "D122 expired Agent session login recovery")

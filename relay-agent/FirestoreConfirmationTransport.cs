@@ -986,6 +986,13 @@ namespace SupraInventoryRelayAgent
             {
                 var response = ex.Response as HttpWebResponse;
                 var status = response == null ? 0 : (int)response.StatusCode;
+                var canonical = FirestoreHttpTransport.CanonicalErrorStatus(ex);
+                _log("D160_DIAG FIRESTORE_CONTROL component=PRESENCE_ACK_CONTROL result=FAIL" +
+                     " http=" + status +
+                     " canonical=" + Safe(canonical) +
+                     " web_exception=" + ex.Status +
+                     " update_precondition=" + (!string.IsNullOrWhiteSpace(updateTime) ? "1" : "0") +
+                     " presence_count=" + (outcome == null ? 0 : Math.Max(0, outcome.Matches)));
                 try { if (response != null) response.Dispose(); } catch { }
                 if ((status == 409 || status == 412) && AckAlreadyVisible(session, name, jobId))
                     return true;

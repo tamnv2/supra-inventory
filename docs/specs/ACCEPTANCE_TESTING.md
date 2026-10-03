@@ -2319,3 +2319,15 @@ Later D161 implementation is not acceptable unless tests prove all of the follow
 **Acceptance routing**
 - Technical/runtime/release PASS alone does not promote D161.
 - Only while state is explicitly waiting for D161 Owner field test, Owner phrase `ghi nhận ok` or explicit `D161 PASS` promotes D161 to accepted base.
+
+
+## D160 post-PASS diagnostic Agent candidate acceptance — 2026-10-03
+This is a diagnostic-only field candidate; D160 relay-agent-v97 remains accepted until explicit Owner PASS.
+1. Build/version identity is monotonic and clearly diagnostic; Android beta-vc92, Web, backend schema and Stable are unchanged.
+2. Dedicated Agent prerelease/artifact exists, checksum is verified, and **inventory-channel remains byte-for-byte/version-identical to accepted relay-agent-v97**.
+3. D160 v97 protected confirmation regression remains PASS: exact row matching, max-15 micro-batch, one confirm dialog per ready wave, no second mutation after final-click uncertainty, confirmation guard and 12-second mutation fence.
+4. Logging captures structured bounded evidence for page reload epoch/reason/duration, page-size 10/100 state, hydration/row count, search/recovery timing, DOM-change hash, row/checkbox classification, batch/confirm timing, terminal-surface lifecycle summary, post-confirm same-row marker classification, Firestore canonical/HTTP error class and HA refresh reason where available.
+5. Diagnostic telemetry emits no raw PickList, suffix, token, password, cookie, session, authorization header, raw HTML, screenshot, credential or signing material.
+6. No diagnostic timer/poll/listener/provider write is added; request/WMS/Firestore cadence remains the accepted v97 cadence.
+7. Local logging stays bounded by the accepted rotation/seal/upload lifecycle and does not create a new Drive/Firestore/Apps Script resource.
+8. Field evidence must show no material latency regression on successful confirmation and must provide enough evidence to distinguish stale checkbox, hard-refresh hydration, reused terminal UI and presence/control-plane Firestore failures.

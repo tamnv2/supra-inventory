@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SupraInventoryRelayAgent
@@ -33,6 +34,7 @@ namespace SupraInventoryRelayAgent
                 .Take(FirestoreConfirmationTransport.MaxConcurrentJobs)
                 .ToList();
             if (works.Count == 0) return outcomes;
+            var diagnosticBatchStarted = Stopwatch.StartNew();
 
             foreach (var work in works)
             {
@@ -88,6 +90,16 @@ namespace SupraInventoryRelayAgent
             var ready = new List<D160ReadyTarget>();
             var deferred = new List<D160ReadyTarget>();
             D160ClassifyFastSearch(appSession, eligible, search, outcomes, ready, deferred);
+            var maxAgeAtClassify = works.Select(D160RequestAgeMs).DefaultIfEmpty(0L).Max();
+            Log("D160_DIAG BATCH phase=CLASSIFIED jobs=" + works.Count +
+                " eligible=" + eligible.Count +
+                " ready=" + ready.Count +
+                " deferred=" + deferred.Count +
+                " immediate_outcomes=" + outcomes.Count +
+                " max_request_age_ms=" + maxAgeAtClassify +
+                " search_ms=" + Math.Max(0L, search.ElapsedMs) +
+                " page_epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                " page_dirty=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
 
             var mutationWaves = 0;
             if (ready.Count > 0)
@@ -175,6 +187,19 @@ namespace SupraInventoryRelayAgent
 
             FinalizeD160Outcomes(works, outcomes, mutationWaves, search);
             EmitD160TerminalOutcomes(outcomes, terminalCallback, null);
+            var diagnosticSummary = string.Join(",", outcomes.Values
+                .Where(value => value != null)
+                .GroupBy(value => value.Result ?? "UNKNOWN", StringComparer.Ordinal)
+                .OrderBy(group => group.Key, StringComparer.Ordinal)
+                .Select(group => D160DiagnosticTelemetry.SafeReason(group.Key) + ":" + group.Count())
+                .ToArray());
+            Log("D160_DIAG BATCH phase=END jobs=" + works.Count +
+                " mutation_waves=" + mutationWaves +
+                " outcomes=" + outcomes.Count +
+                " result_counts=" + (diagnosticSummary.Length == 0 ? "none" : diagnosticSummary) +
+                " elapsed_ms=" + diagnosticBatchStarted.ElapsedMilliseconds +
+                " page_epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                " page_dirty=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
             return outcomes;
         }
 

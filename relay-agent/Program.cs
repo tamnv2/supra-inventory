@@ -247,6 +247,7 @@ namespace SupraInventoryRelayAgent
         private static readonly Regex JwtPattern = new Regex(@"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", RegexOptions.Compiled);
         private static readonly Regex SecretPattern = new Regex(@"(?i)\b(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token|apisid|sid|scid|usid|x-signature(?:-nonce)?)\b\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
         private static readonly Regex QuerySecretPattern = new Regex(@"(?i)([?&](?:auth|key|access_token|token)=)[^&\s]+", RegexOptions.Compiled);
+        private static readonly Regex PickListPattern = new Regex(@"(?i)\bPL[0-9]{3,20}\b", RegexOptions.Compiled);
         internal static string DiagnosticLogFile { get; private set; }
         internal static string RelayAuditLogFile { get; private set; }
         internal static string LogFile { get { return DiagnosticLogFile; } }
@@ -286,6 +287,7 @@ namespace SupraInventoryRelayAgent
             next = QuerySecretPattern.Replace(next, "$1[REDACTED]");
             next = SecretPattern.Replace(next, m => m.Groups[1].Value + "=[REDACTED]");
             next = JwtPattern.Replace(next, "[REDACTED_JWT]");
+            next = PickListPattern.Replace(next, "PL[REDACTED]");
             return next;
         }
 
@@ -296,6 +298,7 @@ namespace SupraInventoryRelayAgent
             next = QuerySecretPattern.Replace(next, "$1[REDACTED]");
             next = SecretPattern.Replace(next, m => m.Groups[1].Value + "=[REDACTED]");
             next = JwtPattern.Replace(next, "[REDACTED_JWT]");
+            next = PickListPattern.Replace(next, "PL[REDACTED]");
             return next;
         }
 

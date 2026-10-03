@@ -33,10 +33,10 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D160_ACCEPTED_BASE__D161_ACTIVE_AUTHORITY_BACKLOG_ONLY__IMPLEMENTATION_NOT_AUTHORIZED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D160_V97_ACCEPTED_BASE__D160_POST_PASS_DIAGNOSTIC_CANDIDATE_ACTIVE__D161_AUTHORITY_BACKLOG_ONLY",
     "owner_acceptance": "D160_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D160_ACCEPTED_AGENT_V97__D161_AGENT_LOG_UI_OVERTIME_REQUIREMENTS_APPROVED_IMPLEMENTATION_DEFERRED"
+    "agent": "D160_ACCEPTED_AGENT_V97__D160_POST_PASS_DIAGNOSTIC_CANDIDATE_V98_APPROVED_MANUAL_ONLY__D161_IMPLEMENTATION_DEFERRED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -198,7 +198,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner field-test relay-agent-v97 under OA090, focusing on same-day restart with non-empty Picker History, overlay/Settings survival and the prior v96 D160 acceptance checks. D159 remains accepted base; Android beta-vc92 unchanged; Stable OWNER-GATED.",
+  "next_action": "Build and field-test the D160 post-PASS diagnostic Agent candidate manually; collect sanitized Agent logs for WMS/Firestore analysis. Accepted runtime remains relay-agent-v97; D161 remains implementation-deferred.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2467,10 +2467,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D160",
     "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02",
-    "current_change_id": null,
-    "current_change_status": "NONE__D160_OWNER_PASS_ACCEPTED_BASE",
-    "owner_pass_required_to_unlock_next_change": false,
-    "next_change_allowed": true,
+    "current_change_id": "D160",
+    "current_change_status": "D160_POST_PASS_DIAGNOSTIC_CANDIDATE_ACTIVE__ACCEPTED_BASE_REMAINS_RELAY_AGENT_V97",
+    "owner_pass_required_to_unlock_next_change": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -4163,7 +4163,22 @@
       ]
     },
     "owner_field_result": "PASS__OWNER_CONFIRMED_D160_V97__2026_10_02",
-    "owner_acceptance": "PASS__OFFICIAL_D160_V97_FIELD_ACCEPTED__2026_10_02"
+    "owner_acceptance": "PASS__OFFICIAL_D160_V97_FIELD_ACCEPTED__2026_10_02",
+    "post_pass_diagnostic_candidate": {
+      "status": "OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+      "date": "2026-10-03",
+      "purpose": "LOGGING_TELEMETRY_ONLY_TO_CAPTURE_WMS_DOM_REFRESH_CHECKBOX_CONFIRM_TERMINAL_FIRESTORE_HA_EVIDENCE",
+      "accepted_runtime": "relay-agent-v97",
+      "target_candidate": "relay-agent-v98__MANUAL_INSTALL_ONLY",
+      "trusted_channel": "MUST_REMAIN_RELAY_AGENT_V97__NO_INVENTORY_CHANNEL_UPDATE",
+      "android": "beta-vc92__UNCHANGED",
+      "web": "UNCHANGED",
+      "provider": "NO_NEW_RESOURCE_NO_NEW_POLLING_LISTENER_WRITE_CADENCE",
+      "business_behavior": "MUST_MATCH_D160_V97",
+      "security": "REDACT_PICKLIST_TOKEN_COOKIE_PASSWORD_SESSION_AUTH_HEADERS_PRIVATE_KEYS_SIGNING_MATERIAL_RAW_HTML_SCREENSHOT",
+      "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED",
+      "owner_field_pass_required_for_promotion": true
+    }
   },
   "d161": {
     "status": "OWNER_APPROVED_REQUIREMENTS_CAPTURED__IMPLEMENTATION_DEFERRED",
