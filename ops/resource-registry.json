@@ -2156,7 +2156,7 @@
       "provider_change": "NONE",
       "stable": "OWNER_GATED_UNTOUCHED",
       "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED",
-      "status": "TECHNICAL_RELEASE_PASS__MANUAL_FIELD_READY",
+      "status": "DIAGNOSTIC_EVIDENCE_CAPTURED__NOT_PROMOTED",
       "main_commit": "7c9270bb5f98d089ade3a05fa21b9c9838533d3a",
       "pr": 391,
       "verify_agent_run": 37090244165,
@@ -2172,6 +2172,18 @@
       "accepted_v97_release_id": 401562436,
       "accepted_v97_asset_id": 604881289,
       "channel_identity_proof": "INVENTORY_CHANNEL_AGENT_EXE_EXACTLY_MATCHES_RELAY_AGENT_V97_SIZE_AND_SHA256"
+    },
+    "post_pass_optimization_test_candidate": {
+      "target": "relay-agent-v99",
+      "distribution": "DEDICATED_PRERELEASE_OR_ARTIFACT__MANUAL_INSTALL_ONLY",
+      "accepted_runtime": "relay-agent-v97",
+      "trusted_inventory_channel": "NO_CHANGE__MUST_REMAIN_V97",
+      "resources": "EXISTING_AGENT_LOCAL_LOG_AND_EXISTING_D160_LOG_GATEWAY_ONLY",
+      "runtime_scope": "WINDOWS_AGENT_SOURCE_ONLY__NO_ANDROID_WEB_BACKEND_BUSINESS_CHANGE",
+      "provider_change": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED",
+      "field_evidence_destination": "END_OF_SHIFT_ANALYSIS_THEN_OWNER_DECISION_BEFORE_ANY_D161_BACKLOG_UPDATE"
     }
   },
   "d161": {
