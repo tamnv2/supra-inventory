@@ -26,7 +26,6 @@ namespace SupraInventoryRelayAgent
         {
             var now = NowMs();
             Interlocked.Exchange(ref _lastReloadIssuedMs, now);
-            Interlocked.Exchange(ref _dirtyAfterConfirm, 0);
             _lastReloadReason = SafeReason(reason);
             return Interlocked.Increment(ref _pageEpoch);
         }
