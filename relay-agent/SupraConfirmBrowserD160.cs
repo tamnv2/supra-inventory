@@ -42,11 +42,20 @@ namespace SupraInventoryRelayAgent
                 ThrowIfDisposed();
                 EnsureReadyNoLock();
                 EnsurePageSize100NoLock();
+                LogD160DiagnosticPageStateNoLock("PRE_CONFIRM_WAVE");
+                LogD160DiagnosticTargetSnapshotNoLock("PRE_CONFIRM_WAVE", codes);
 
                 var token = Guid.NewGuid().ToString("N");
                 var step = EvaluateD160BulkMutationNoLock(codes, token);
                 var stepResult = String(step, "result");
                 var finalClicked = Bool(step, "finalClicked");
+                _log("D160_DIAG CONFIRM_STEP phase=INITIAL result=" + D160DiagnosticTelemetry.SafeReason(stepResult) +
+                     " targets=" + codes.Count +
+                     " selected=" + Math.Max(0, Int(step, "selectedCount")) +
+                     " baseline_terminals=" + Math.Max(0, Int(step, "baselineTerminalCount")) +
+                     " final_clicked=" + D160DiagnosticTelemetry.Flag(finalClicked) +
+                     " epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                     " dirty_before=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
 
                 if (!finalClicked && allowPreFinalRecovery && ShouldReloadBeforeFinalClick(stepResult))
                 {
@@ -62,6 +71,12 @@ namespace SupraInventoryRelayAgent
                         step = EvaluateD160BulkMutationNoLock(codes, token);
                         stepResult = String(step, "result");
                         finalClicked = Bool(step, "finalClicked");
+                        _log("D160_DIAG CONFIRM_STEP phase=RECOVERY result=" + D160DiagnosticTelemetry.SafeReason(stepResult) +
+                             " targets=" + codes.Count +
+                             " selected=" + Math.Max(0, Int(step, "selectedCount")) +
+                             " baseline_terminals=" + Math.Max(0, Int(step, "baselineTerminalCount")) +
+                             " final_clicked=" + D160DiagnosticTelemetry.Flag(finalClicked) +
+                             " epoch=" + D160DiagnosticTelemetry.PageEpoch);
                     }
                     _log("SUPRA_BROWSER d160_bulk_recovery=END result=" + stepResult +
                          " final_clicked=" + (finalClicked ? "1" : "0"));
@@ -81,7 +96,18 @@ namespace SupraInventoryRelayAgent
                 }
 
                 result.FinalClicked = true;
+                D160DiagnosticTelemetry.MarkFinalClick();
                 var boundedTerminalWaitMs = Math.Max(800, Math.Min(4500, terminalWaitMs));
+                var terminalStarted = Stopwatch.StartNew();
+                var terminalSamples = 0;
+                var terminalExceptions = 0;
+                var maxFreshSuccess = 0;
+                var maxFreshError = 0;
+                var maxVisibleTerminal = 0;
+                var maxSameBaseline = 0;
+                var maxMutatedBaseline = 0;
+                var maxNewTerminal = 0;
+                var firstSignalMs = -1L;
                 var deadline = DateTime.UtcNow.AddMilliseconds(boundedTerminalWaitMs);
                 while (DateTime.UtcNow < deadline)
                 {
@@ -91,14 +117,23 @@ namespace SupraInventoryRelayAgent
                         var postRaw = EvaluateJsonNoLock(BuildD160PostConfirmScript(token));
                         var post = _json.DeserializeObject(postRaw) as Dictionary<string, object>;
                         if (post == null) continue;
+                        terminalSamples++;
+                        maxFreshSuccess = Math.Max(maxFreshSuccess, Int(post, "freshSuccessCount"));
+                        maxFreshError = Math.Max(maxFreshError, Int(post, "freshErrorCount"));
+                        maxVisibleTerminal = Math.Max(maxVisibleTerminal, Int(post, "visibleTerminalCount"));
+                        maxSameBaseline = Math.Max(maxSameBaseline, Int(post, "sameBaselineCount"));
+                        maxMutatedBaseline = Math.Max(maxMutatedBaseline, Int(post, "mutatedBaselineCount"));
+                        maxNewTerminal = Math.Max(maxNewTerminal, Int(post, "newTerminalCount"));
                         if (Bool(post, "success"))
                         {
+                            if (firstSignalMs < 0) firstSignalMs = terminalStarted.ElapsedMilliseconds;
                             result.Result = "CONFIRMED";
                             result.Detail = "FRESH_SUCCESS_SURFACE";
                             break;
                         }
                         if (Bool(post, "rejected"))
                         {
+                            if (firstSignalMs < 0) firstSignalMs = terminalStarted.ElapsedMilliseconds;
                             // After the final business click an error surface is useful
                             // evidence, but for a multi-row mutation it does not prove
                             // that zero rows changed. Keep the outcome uncertain and the
@@ -110,10 +145,29 @@ namespace SupraInventoryRelayAgent
                     }
                     catch
                     {
+                        terminalExceptions++;
                         // Navigation/reload after the final WMS click is expected. It is
                         // never itself treated as business success.
                     }
                 }
+
+                LogD160DiagnosticTargetSnapshotNoLock("POST_TERMINAL", codes);
+                _log("D160_DIAG TERMINAL result=" + D160DiagnosticTelemetry.SafeReason(result.Result) +
+                     " detail=" + D160DiagnosticTelemetry.SafeReason(result.Detail) +
+                     " targets=" + codes.Count +
+                     " wait_budget_ms=" + boundedTerminalWaitMs +
+                     " elapsed_ms=" + terminalStarted.ElapsedMilliseconds +
+                     " samples=" + terminalSamples +
+                     " exceptions=" + terminalExceptions +
+                     " first_signal_ms=" + firstSignalMs +
+                     " fresh_success_max=" + maxFreshSuccess +
+                     " fresh_error_max=" + maxFreshError +
+                     " visible_terminal_max=" + maxVisibleTerminal +
+                     " same_baseline_max=" + maxSameBaseline +
+                     " mutated_baseline_max=" + maxMutatedBaseline +
+                     " new_terminal_max=" + maxNewTerminal +
+                     " epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                     " dirty_after_confirm=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
 
                 if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
                 {
@@ -335,12 +389,20 @@ namespace SupraInventoryRelayAgent
               if (dialogState.result === 'WAIT') return JSON.stringify({result:'CONFIRM_DIALOG_NOT_FOUND', finalClicked:false});
               if (dialogState.result !== 'READY') return JSON.stringify({result:dialogState.result,count:dialogState.count || 0,finalClicked:false});
 
+              let baselineTerminalCount = 0;
               for (const d of docs) for (const node of [...d.querySelectorAll(terminalSelector)].filter(visible)) {
+                baselineTerminalCount++;
                 node.setAttribute('data-supra-d160-baseline', token);
                 node.setAttribute('data-supra-d160-baseline-text', norm(node.innerText || node.textContent || ''));
               }
               dialogState.button.click();
-              return JSON.stringify({result:'CLICKED',stage:'DIALOG_CONFIRMED',finalClicked:true});
+              return JSON.stringify({
+                result:'CLICKED',
+                stage:'DIALOG_CONFIRMED',
+                finalClicked:true,
+                selectedCount:selected.length,
+                baselineTerminalCount:baselineTerminalCount
+              });
             })()";
         }
 
@@ -361,6 +423,8 @@ namespace SupraInventoryRelayAgent
               };
               addDoc(document);
               const norm = v => String(v || '').replace(/[\u200B-\u200D\uFEFF]/g,' ').replace(/\s+/g,' ').trim();
+              const terminalSelector = '.toast-success,.alert-success,.swal2-success,.toast-error,.alert-danger,.alert-error,.swal2-error,[role=alert]';
+              const allTerminal = docs.flatMap(d => [...d.querySelectorAll(terminalSelector)]).filter(visible);
               const fresh = selector => docs.flatMap(d => [...d.querySelectorAll(selector)])
                 .filter(visible)
                 .filter(e => {
@@ -371,11 +435,33 @@ namespace SupraInventoryRelayAgent
                 });
               const success = fresh('.toast-success,.alert-success,.swal2-success,[role=alert]');
               const errors = fresh('.toast-error,.alert-danger,.alert-error,.swal2-error,[role=alert]');
+              const sameBaseline = allTerminal.filter(e => {
+                if (e.getAttribute('data-supra-d160-baseline') !== token) return false;
+                const before = e.getAttribute('data-supra-d160-baseline-text') || '';
+                const now = norm(e.innerText || e.textContent || '');
+                return now === before;
+              });
+              const mutatedBaseline = allTerminal.filter(e => {
+                if (e.getAttribute('data-supra-d160-baseline') !== token) return false;
+                const before = e.getAttribute('data-supra-d160-baseline-text') || '';
+                const now = norm(e.innerText || e.textContent || '');
+                return now !== before;
+              });
+              const newTerminal = allTerminal.filter(e => e.getAttribute('data-supra-d160-baseline') !== token);
               const successText = success.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
               const errorText = errors.map(e => (e.innerText || e.textContent || '')).join(' ').toLowerCase();
               const successWord = successText.includes('thành công') || successText.includes('success');
               const rejectWord = errorText.includes('thất bại') || errorText.includes('không thể') || errorText.includes('error');
-              return JSON.stringify({success:successWord,rejected:rejectWord});
+              return JSON.stringify({
+                success:successWord,
+                rejected:rejectWord,
+                freshSuccessCount:success.length,
+                freshErrorCount:errors.length,
+                visibleTerminalCount:allTerminal.length,
+                sameBaselineCount:sameBaseline.length,
+                mutatedBaselineCount:mutatedBaseline.length,
+                newTerminalCount:newTerminal.length
+              });
             })()";
         }
 
