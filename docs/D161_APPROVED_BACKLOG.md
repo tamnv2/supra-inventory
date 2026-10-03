@@ -346,20 +346,53 @@ Expected effects:
 - Bulk kick is exceptional/manual and must use one bounded authoritative command rather than an N-request Agent loop.
 - Stable remains OWNER-GATED and untouched.
 
-## 15. Mandatory D161 Phase 0 Safety Baseline and Owner-triggered rescue
+## 15. Mandatory D161 Phase 0A Permission & Provider Preflight, Phase 0 Safety Baseline and Owner-triggered rescue
 
 Status: **OWNER-APPROVED SAFETY/EXECUTION CONTRACT**. D161 implementation is still deferred until the Owner uses the explicit start command below.
+
+### Phase 0A Permission & Provider Preflight
+
+Status: **OWNER-APPROVED HARD GATE**. Phase 0A runs only after the exact D161 start command and before Safety release publication or any D161 business/runtime source mutation.
+
+Purpose:
+- prove every external permission, credential capability, release path and provider mutation class required by D161 before large implementation begins;
+- fail closed at the beginning instead of discovering a missing grant, scope, signing secret or provider IAM permission after D161 runtime code has already changed;
+- use existing canonical resources and the least privilege necessary; Stable remains untouched.
+
+Mandatory rules:
+- No D161 business/runtime source mutation may begin until Phase 0A is terminal PASS.
+- Prefer read-only/no-op proofs. When a real write is the only reliable capability proof, use one bounded disposable Beta-only canary inside already scoped resources, verify it, and clean it up in the same Phase 0A run.
+- Never print, commit, upload or persist secret values, refresh tokens, passwords, signing material, service-account private keys, Firebase tokens or WMS/session material.
+- A failed capability is repaired and the **entire relevant Phase 0A matrix is rerun** before continuing.
+- If a real Owner-only grant/consent is unavoidable, batch all known missing permissions into the shortest official Web-UI action, then automatically rerun Phase 0A. Do not begin backlog code while waiting for that grant.
+
+Minimum preflight matrix:
+- **GitHub:** repo branch/PR/merge and release-channel write authority required by the existing Agent/Android release workflows.
+- **Cloudflare Beta:** existing deploy token active and sufficient for the current Worker/Web/Durable Object deployment path; no Stable probe or mutation.
+- **Android Beta:** fixed signing material is present in the protected GitHub environment, the trusted signer fingerprint can be derived, and release-channel/version monotonicity can be resolved before publishing the later Safety APK.
+- **Agent:** build plus trusted GitHub prerelease/runtime-channel publication path is available before the later Safety EXE is published.
+- **Firebase/GCP:** existing Beta Auth, Firestore Rules, Functions/Eventarc/FCM and current session-control resources expose the permissions required by the selected D161 implementation; do not create a replacement provider merely to bypass a missing grant.
+- **Apps Script / Agent operations gateway:** current clasp/Script API lifecycle and the existing Drive/Monitoring consent remain usable where D161 reuses that gateway.
+- **Google OAuth/runtime access:** current Beta refresh-token path and scoped runtime service-account access required by D161 are valid; request no broader OAuth scope unless the minimum required path is proven impossible.
+- **Logs daily-folder hard gate:** under existing scoped parent `Inventory/Beta/Logs`, prove the trusted archive layer can create/resolve one disposable child folder, upload/read back one sanitized tiny test object inside it, remove/trash the disposable probe, and verify cleanup. Client devices must not perform folder creation/listing.
+- **HR Sheet read hard gate:** the currently configured/verified Beta HR source remains readable through the existing Google Sheets authority before watch setup.
+- **HR Drive-watch hard gate:** prove the chosen least-privilege identity can resolve the verified HR file through Drive, create a bounded `files.watch` channel to the Beta Worker callback, receive the initial Google `sync` notification, replace/renew the channel without duplicate business processing, stop the superseded channel, and verify cleanup. The probe must not change HR business rows.
+- **Global-log control:** prove the chosen existing Google/Firebase control plane can carry one bounded authenticated control request without introducing per-device acknowledgement writes or new polling.
+- **Release/update dependencies:** current Android and Agent trusted manifests/assets/checksums are readable so Safety release numbering and later manual/advisory update flows cannot begin from an unknown channel state.
+
+Phase 0A PASS is permission/capability proof only. It does not itself authorize D161 feature behavior, HR data application, global log collection from the fleet, bulk Picker revoke, schedule changes or Stable activity.
 
 ### Exact start command
 The exact Owner command **`bắt đầu D161 tiến hành`** authorizes implementation of the complete then-current Owner-approved D161 backlog.
 
 On that command the execution order is mandatory:
 1. Fresh-bootstrap canonical GitHub authority.
-2. Run and PASS **D161 Phase 0 Safety Baseline** before modifying D161 business/runtime logic.
-3. After Phase 0 PASS, continue automatically into the approved D161 backlog under the same D161 change; do not ask the Owner to reconfirm each backlog item already approved.
-4. Branch → PR → authority/continuity/runtime gates → merge/release/deploy as applicable.
-5. Present the technically/runtime/release-passed D161 candidate for Owner field testing.
-6. D160 remains the accepted project base until explicit Owner acceptance of D161.
+2. Run and PASS **D161 Phase 0A Permission & Provider Preflight**. If any permission/capability fails, repair it under D161 and do not modify D161 business/runtime source.
+3. After Phase 0A PASS, run and PASS **D161 Phase 0 Safety Baseline** before introducing D161 backlog behavior.
+4. After Phase 0 PASS, continue automatically into the approved D161 backlog under the same D161 change; do not ask the Owner to reconfirm each backlog item already approved.
+5. Branch → PR → authority/continuity/runtime gates → merge/release/deploy as applicable.
+6. Present the technically/runtime/release-passed D161 candidate for Owner field testing.
+7. D160 remains the accepted project base until explicit Owner acceptance of D161.
 
 ### Phase 0 goal
 Phase 0 creates a recoverable, monotonic, field-installable snapshot of the last safe operating model **before D161 backlog behavior is introduced**.

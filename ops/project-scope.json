@@ -253,7 +253,7 @@
       "name": "Nhân sự _ Beta",
       "tab": "Nhân sự",
       "exposure": "operational_metadata_existing_public",
-      "note": "test source only; product source remains Admin/Root configurable"
+      "note": "test source only; product source remains Admin/Root configurable. D161 Phase 0A (only after the exact D161 start command) must prove the selected verified HR source can be resolved through the least-privilege Drive identity and complete a bounded files.watch -> initial sync callback -> replacement/renewal -> channels.stop cleanup cycle without changing HR rows. This authority update itself creates no watch channel and grants no provider mutation."
     },
     {
       "key": "archive-folder-beta",
@@ -281,7 +281,7 @@
       "id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo",
       "name": "Inventory/Beta/Logs",
       "exposure": "operational_metadata_existing_public",
-      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles. D146/D160 existing parent authority remains. D161 Owner-approved future target (implementation still deferred): trusted archive services may create/cache daily child folders named YYYY-MM-DD under this exact scoped parent, using Asia/Ho_Chi_Minh Drive-archive date; clients never list/create folders directly. Daily children inherit Beta-only scope and must not be created until explicit D161 implementation authorization."
+      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles. D146/D160 existing parent authority remains. D161 Owner-approved future target (implementation still deferred): trusted archive services may create/cache daily child folders named YYYY-MM-DD under this exact scoped parent, using Asia/Ho_Chi_Minh Drive-archive date; clients never list/create folders directly. Daily children inherit Beta-only scope and must not be created until explicit D161 implementation authorization. After the exact D161 start command, Phase 0A may create one clearly disposable Beta-only child/file canary under this parent solely to prove create/resolve/upload/readback/cleanup capability; the canary must be verified and removed/trashed in the same preflight before backlog runtime code begins."
     },
     {
       "key": "archive-sheet-beta",

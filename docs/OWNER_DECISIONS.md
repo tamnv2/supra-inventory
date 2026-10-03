@@ -2944,3 +2944,20 @@ The Owner approved a mandatory forward-recovery model for D161.
 - A rescue restores safe operation first, preserves diagnostics, and does not create a new change ID. D161 repair may continue afterward.
 - No secret, WMS session material, password, refresh token, signing material or sensitive runtime data may be copied into the public repository as part of the safety manifest.
 - Stable is untouched/OWNER-GATED.
+
+### D161 Owner approval — mandatory Phase 0A permission/provider preflight — 2026-10-03
+
+The Owner approved a new hard gate before the existing D161 Safety Baseline so a large D161 implementation cannot progress and only later discover missing provider permissions.
+
+- The exact D161 start command remains **`bắt đầu D161 tiến hành`**. After that command, execution order becomes: fresh authority bootstrap → **Phase 0A Permission & Provider Preflight PASS** → existing Phase 0 Safety Baseline PASS → D161 backlog implementation.
+- No D161 business/runtime source mutation may begin while Phase 0A is not PASS.
+- Phase 0A proves the actual Beta capabilities required by D161 across GitHub/release channels, Cloudflare deploy, Android signing, Agent release, Firebase/Firestore/Functions/FCM, Apps Script/Monitoring, current Google OAuth/runtime access, HR Sheets read, support-log Drive archive and the selected global-log control plane.
+- The **HR Drive watch** path is a hard gate: the least-privilege chosen identity must resolve the verified HR file, create a bounded `files.watch` channel, receive the initial Google `sync` callback at the Beta Worker, prove replacement/renewal behavior without duplicate business processing, stop the superseded channel and clean up. The probe must not change HR rows.
+- The **daily log folder** path is a hard gate: the trusted archive layer must prove create/resolve/upload/readback/cleanup for one disposable test child under the already scoped `Inventory/Beta/Logs` parent before D161 changes log lifecycle behavior.
+- Prefer read-only/no-op proofs. A real write is permitted only when needed to prove capability, must be Beta-only, disposable, scoped to existing canonical resources, verified and cleaned up in the same preflight.
+- Do not broaden Google OAuth scope merely for convenience. Use the minimum working identity/scope; a broader grant requires evidence that the narrower approved path cannot satisfy the required operation.
+- If a real Owner-only consent/grant is unavoidable, collect all known missing grants first and request one shortest official Web-UI action; after completion, automatically rerun the affected/full Phase 0A matrix before proceeding.
+- Protected secrets/signing material remain outside the public repository and diagnostics.
+- Phase 0A is capability proof only. It does not itself authorize HR business mutation, fleet-wide log collection, bulk Picker revoke, schedule changes, Stable activity or any other D161 business behavior.
+- D160 remains the accepted runtime base; D161 implementation remains deferred until the exact start command.
+

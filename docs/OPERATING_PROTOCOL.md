@@ -244,12 +244,16 @@ These exact commands route the active D161 workstream and do not create a new ch
 ### `bắt đầu D161 tiến hành`
 1. Fresh-bootstrap the complete canonical authority.
 2. Mark D161 implementation as authorized.
-3. Execute **Phase 0 Safety Baseline** first and do not modify D161 business/runtime behavior before the Phase 0 gate is PASS.
-4. Capture and verify the safety manifest plus forward-installable Android/Agent safety releases and Web/Service reproducible baseline.
-5. If Phase 0 fails, repair Phase 0 under D161 until terminal PASS; do not continue into backlog implementation.
-6. After Phase 0 PASS, continue automatically through the complete then-current Owner-approved D161 backlog using fresh short-lived implementation branches/PRs as needed.
-7. Continue finite build/deploy/test loops to terminal technical/runtime/release PASS or a real Owner-only blocker.
-8. Present the field-test-ready candidate. D160 remains the accepted base until Owner field acceptance.
+3. Execute **Phase 0A Permission & Provider Preflight** first. No D161 business/runtime source mutation or Safety release publication is allowed before Phase 0A PASS.
+4. Phase 0A must prove the selected Beta capabilities needed by D161, including GitHub/release paths, Cloudflare deploy, Android signing, Agent release, Firebase/Firestore/Functions/FCM, Apps Script/Monitoring, Google OAuth/runtime access, current HR Sheet read, HR Drive `files.watch` callback/replace/stop, Logs daily-folder create/upload/readback/cleanup and the chosen global-log control plane.
+5. Use read-only/no-op capability checks when possible. Any necessary write proof must be a bounded disposable Beta-only canary inside existing scoped resources and must be cleaned up in the same preflight. Stable is forbidden.
+6. If Phase 0A fails, repair the missing capability under D161 and rerun the relevant/full preflight. If an Owner-only grant is unavoidable, batch all known missing grants into the shortest official Web-UI action before asking the Owner.
+7. After Phase 0A PASS, execute **Phase 0 Safety Baseline** and do not introduce D161 backlog behavior before the Phase 0 gate is PASS.
+8. Capture and verify the safety manifest plus forward-installable Android/Agent safety releases and Web/Service reproducible baseline.
+9. If Phase 0 fails, repair Phase 0 under D161 until terminal PASS; do not continue into backlog implementation.
+10. After Phase 0 PASS, continue automatically through the complete then-current Owner-approved D161 backlog using fresh short-lived implementation branches/PRs as needed.
+11. Continue finite build/deploy/test loops to terminal technical/runtime/release PASS or a real Owner-only blocker.
+12. Present the field-test-ready candidate. D160 remains the accepted base until Owner field acceptance.
 
 ### `ghi nhận ok` while D161 is field-test-ready
 Treat this phrase as D161 Owner field acceptance only when canonical state says D161 is explicitly waiting for Owner field test. Record Owner PASS/accepted-base continuity before opening any later change.
