@@ -3024,3 +3024,13 @@ The Owner reviewed the v99 field evidence and explicitly directed that the v99 r
   3. Add local redacted timing telemetry separating Firestore-created/client age at transport handoff, handler-to-browser gate delay, search/classification timing and the terminal budget actually granted. No provider operation is added.
 - Persistent NOT_FOUND tuning remains deferred because the sample is still insufficient.
 - Existing exact-match/ambiguity guards, FOREIGN_SELECTION recovery, max-15 semantics, page-size restoration, confirmation guards, HA/failover authority, Firestore cadence and successful fast path remain unchanged.
+
+
+### D160 optimization test Agent v100 technical release checkpoint — 2026-10-03
+- PR #395 merged to `main` at `7216aa74cd7e07ce233c8e377104bcb400997798`.
+- Main `Verify Beta Relay Agent` run `37118152206` PASS; Repo Authority, Project State, UI, D127 and D159 main guards also PASS.
+- Dedicated manual-only prerelease `relay-agent-v100` exists as release id `402469781`.
+- Canonical EXE asset id `607659111`, size `7266816` bytes, SHA-256 `4e7030854b00fdc42679e8713ca5727d451fe51e55193c6532a3831c9b2f5497`.
+- Trusted `inventory-channel` remains the accepted relay-agent-v97 identity: release id `394587029`, Agent EXE asset id `604881360`, size `7216128`, SHA-256 `b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530`.
+- This is TECHNICAL / RELEASE PASS only. v100 is manual field-test evidence; accepted runtime remains relay-agent-v97. OA094 waits for Owner field run and sanitized logs.
+- Android beta-vc92, Web/backend business runtime, provider resources, D161 implementation state and Stable are unchanged.
