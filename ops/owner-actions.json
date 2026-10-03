@@ -4673,33 +4673,12 @@
     },
     {
       "id": "OA093",
-      "status": "WAITING_OWNER_END_OF_SHIFT_FIELD_TEST",
-      "title": "Field-run D160 optimization test Agent v99 through end of shift",
+      "status": "CLOSED_V99_EVIDENCE_ACCEPTED__NOT_PROMOTED",
+      "title": "Field-run D160 optimization test Agent v99",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
-      "reason_owner_only": "Real Supra WMS DOM/terminal behavior and company-network Firestore presence races can only be validated in the Owner field environment.",
-      "prerequisites": {
-        "accepted_runtime": "relay-agent-v97",
-        "test_candidate": "relay-agent-v99__MANUAL_ONLY",
-        "inventory_channel": "MUST_REMAIN_V97",
-        "android": "beta-vc92__UNCHANGED",
-        "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED"
-      },
-      "shortest_test_path": [
-        "Install relay-agent-v99 manually on the selected processing Agent; do not roll it fleet-wide.",
-        "Run the normal PDA↔Agent confirmation workload for the remainder of the shift without artificial batching or forced test traffic.",
-        "Include natural close-together confirmations, stale/missing checkbox cases, Search/F5 recoveries and normal presence login/logout activity.",
-        "At end of shift, provide/retain the complete sanitized v99 Agent logs for comparative analysis against v98."
-      ],
-      "pass_criteria": [
-        "False UNCERTAIN from stale success surfaces is reduced without duplicate final-click or increased F5/provider calls.",
-        "Presence FAILED_PRECONDITION is logged as SUPERSEDED without false Firestore OFFLINE/HA refresh.",
-        "Successful terminal diagnostics do not create immediate error bundles.",
-        "Normal CONFIRMED latency and safety remain at least as stable as v98; no new regression in Search/F5/FOREIGN_SELECTION/NOT_FOUND.",
-        "inventory-channel remains relay-agent-v97; Android beta-vc92, Web/backend business behavior, Stable and D161 remain unchanged."
-      ],
-      "remaining_owner_action": "MANUALLY_INSTALL_V99_ON_SELECTED_AGENT_RUN_THROUGH_END_OF_SHIFT_AND_RETURN_SANITIZED_LOGS",
-      "closed": false,
+      "remaining_owner_action": "NONE__SUPERSEDED_BY_OA094",
+      "closed": true,
       "prerequisite_status": "TECHNICAL_RELEASE_PASS",
       "release": {
         "tag": "relay-agent-v99",
@@ -4714,7 +4693,39 @@
         "size_bytes": 7216128,
         "sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
         "v99_not_promoted": true
-      }
+      },
+      "result": "Owner reviewed v99 evidence and froze the proven v99 optimizations for inheritance into v100; remaining recovery/UNCERTAIN latency proceeds under D160 without promoting v99 to the trusted runtime."
+    },
+    {
+      "id": "OA094",
+      "status": "PENDING_AFTER_V100_RELEASE",
+      "title": "Field-run D160 optimization test Agent v100",
+      "resource_key": "firestore-relay-beta-d091",
+      "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
+      "reason_owner_only": "Real WMS reload hydration timing and post-final terminal surfaces require the company field environment.",
+      "prerequisites": {
+        "accepted_runtime": "relay-agent-v97",
+        "test_candidate": "relay-agent-v100__MANUAL_ONLY",
+        "v99_proven_behavior": "FROZEN_UNCHANGED",
+        "inventory_channel": "MUST_REMAIN_V97",
+        "android": "beta-vc92__UNCHANGED",
+        "d161": "UNCHANGED__IMPLEMENTATION_DEFERRED"
+      },
+      "shortest_test_path": [
+        "Install relay-agent-v100 manually on the selected processing Agent only.",
+        "Run normal confirmation traffic; do not force artificial retries or extra F5.",
+        "Retain sanitized logs covering normal fast confirms, any checkbox-recovery extension, UNCERTAIN/CONFLICT/NOT_FOUND and queue timing.",
+        "Compare v100 against the v99 evidence baseline before any further D160 adjustment."
+      ],
+      "pass_criteria": [
+        "v99-proven optimizations remain behaviorally unchanged.",
+        "Recovery cases that were timing out near 4.5 seconds may complete within the bounded progress-gated extension without any second F5 or post-fence WMS click.",
+        "Passive terminal grace reduces false UNCERTAIN where a valid fresh success/row marker appears late, without adding provider calls or duplicate final click.",
+        "Fast-path CONFIRMED P50/P90/P95 does not materially regress because successful evidence still exits immediately.",
+        "No provider cadence/resource change; inventory-channel stays relay-agent-v97; Android/Web/Stable/D161 remain unchanged."
+      ],
+      "remaining_owner_action": "MANUALLY_INSTALL_V100_ON_SELECTED_AGENT_RUN_NORMAL_WORKLOAD_AND_RETURN_SANITIZED_LOGS",
+      "closed": false
     }
   ]
 }
