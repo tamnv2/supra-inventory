@@ -407,6 +407,7 @@ namespace SupraInventoryRelayAgent
         private int ProcessBatch(AgentSession session, List<PendingDocument> docs)
         {
             if (docs == null || docs.Count == 0) return 0;
+            var transportBatchStartedMs = NowMs();
 
             var works = new List<FirestoreConfirmationWorkItem>();
             var uniqueDocs = new List<PendingDocument>();
@@ -442,6 +443,26 @@ namespace SupraInventoryRelayAgent
             }
             docs = uniqueDocs;
             if (docs.Count == 0) return 0;
+
+            var handoffNowMs = NowMs();
+            var maxCreatedAgeMs = works
+                .Where(work => work != null && work.CreatedAtMs > 0)
+                .Select(work => Math.Max(0L, handoffNowMs - work.CreatedAtMs))
+                .DefaultIfEmpty(0L)
+                .Max();
+            var maxClientAgeMs = works
+                .Where(work => work != null)
+                .Select(work =>
+                {
+                    var sent = work.ClientSentAtMs > 0 ? work.ClientSentAtMs : work.CreatedAtMs;
+                    return sent > 0 ? Math.Max(0L, handoffNowMs - sent) : 0L;
+                })
+                .DefaultIfEmpty(0L)
+                .Max();
+            _log("D160_DIAG QUEUE phase=HANDOFF jobs=" + works.Count +
+                 " max_created_age_ms=" + maxCreatedAgeMs +
+                 " max_client_age_ms=" + maxClientAgeMs +
+                 " transport_prepare_ms=" + Math.Max(0L, handoffNowMs - transportBatchStartedMs));
 
             lock (_currentBatchGate)
             {
