@@ -3034,3 +3034,30 @@ The Owner reviewed the v99 field evidence and explicitly directed that the v99 r
 - Trusted `inventory-channel` remains the accepted relay-agent-v97 identity: release id `394587029`, Agent EXE asset id `604881360`, size `7216128`, SHA-256 `b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530`.
 - This is TECHNICAL / RELEASE PASS only. v100 is manual field-test evidence; accepted runtime remains relay-agent-v97. OA094 waits for Owner field run and sanitized logs.
 - Android beta-vc92, Web/backend business runtime, provider resources, D161 implementation state and Stable are unchanged.
+
+## D160 closure and D161 PickList-confirm carry-forward — Owner approved — 2026-10-03
+
+The Owner explicitly closes all D160 post-PASS Agent testing. **D160 is complete and closed on the accepted relay-agent-v97 runtime.** The manual-only v98/v99/v100 candidates are evidence artifacts only and are not promoted to the trusted `inventory-channel`. No further D160 test build is authorized.
+
+The Owner also approves carrying the evidence-backed PickList-confirm improvements into the existing D161 backlog. This is D161 requirements authority only; it is **not** the exact D161 start command and does not authorize Phase 0A, Phase 0, source mutation, build, release, deploy or provider mutation yet.
+
+D161 must inherit the proven v99 behavior:
+- after the one final business click, when there is no authoritative fresh reject, the exact same-row `Xác nhận lấy lại hàng` confirmed marker may prove CONFIRMED only when **every exact target row** satisfies the marker proof; never issue a second Confirm click;
+- Firestore presence-control HTTP 400 + canonical `FAILED_PRECONDITION` caused by an update precondition is `SUPERSEDED`, not business transport OFFLINE, and must not arm HA refresh/retry of the stale snapshot;
+- successful terminal diagnostics remain in the complete local journal but do not immediately seal/upload an error bundle.
+
+D161 must also inherit the v100 confirmation/recovery behavior that remained safe under field evidence:
+- checkbox recovery uses the real WMS Page.reload path and remains pre-final/fail-closed; the 4.5-second soft wait may use the existing progress-gated extension of at most 3.5 seconds, while the 12-second mutation-start fence remains authoritative;
+- after the final business click, terminal observation is passive and one-click-only, with a bounded wait up to 5.2 seconds when the existing end-to-end budget permits; no Search, F5, provider retry or second Confirm click occurs after the final click;
+- retain bounded local queue/mutation/terminal timing telemetry without adding provider operations or cadence.
+
+The Owner approves two final D161 recovery refinements from v100 field evidence:
+1. **Reload/recovery readiness must include page-size restoration.** After any successful recovery/reload barrier, restore and verify `page_size=100` before the browser is considered operational-ready for the next business request.
+2. **Any successful reload resets the D157 secondary 2-hour idle-reload clock.** Recovery/manual/scheduled successful reloads all count. A D157 secondary idle check must not issue another F5 until at least two hours have elapsed since the latest successful reload and the Agent is idle.
+
+A request that reaches the existing safety fence still fails closed; late browser self-heal may prepare the browser for the next request but must never authorize a post-fence click for the old request. Persistent NOT_FOUND timeout tuning remains deferred until stronger evidence exists.
+
+The trusted D160 runtime is therefore explicitly **relay-agent-v97**. The first official D161 Agent runtime build is designated **v98**, resuming the official runtime lineage from accepted v97. Existing manual-only historical prerelease tags `relay-agent-v98`, `relay-agent-v99` and `relay-agent-v100` do not become trusted runtime versions; D161 publication must avoid overwriting historical evidence while exposing official runtime version v98 through the trusted release/channel contract.
+
+The exact implementation trigger remains **`bắt đầu D161 tiến hành`**. Until that exact command is received, D161 remains implementation-deferred and Stable remains OWNER-GATED.
+
