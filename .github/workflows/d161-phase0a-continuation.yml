@@ -62,23 +62,48 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Authenticate canonical runtime service account with bounded scopes
+      - name: Authenticate canonical runtime service account
         id: runtime_auth
         uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
-          token_format: access_token
-          access_token_scopes: "https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/spreadsheets.readonly"
+
+      - name: Prepare local Google OAuth client
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/d161-google-auth" --no-audit --no-fund google-auth-library@9.15.1 >/dev/null
+          echo "GOOGLE_OAUTH_LOCAL_CLIENT=PASS"
 
       - uses: google-github-actions/setup-gcloud@v3
 
       - name: Prove HR Drive/Sheets read and Cloud Monitoring read
         shell: bash
         env:
-          RUNTIME_TOKEN: ${{ steps.runtime_auth.outputs.access_token }}
+          RUNTIME_CREDS: ${{ steps.runtime_auth.outputs.credentials_file_path }}
         run: |
           set -euo pipefail
+          test -s "$RUNTIME_CREDS"
+          RUNTIME_TOKEN="$(NODE_PATH="$RUNNER_TEMP/d161-google-auth/node_modules" RUNTIME_CREDS="$RUNTIME_CREDS" node <<'NODE'
+          const {GoogleAuth}=require('google-auth-library');
+          (async()=>{
+            const auth=new GoogleAuth({
+              keyFile:process.env.RUNTIME_CREDS,
+              scopes:[
+                'https://www.googleapis.com/auth/cloud-platform',
+                'https://www.googleapis.com/auth/drive.readonly',
+                'https://www.googleapis.com/auth/spreadsheets.readonly'
+              ]
+            });
+            const client=await auth.getClient();
+            const token=await client.getAccessToken();
+            if(!token || !token.token) process.exit(2);
+            process.stdout.write(token.token);
+          })().catch(()=>process.exit(2));
+          NODE
+          )"
           test -n "$RUNTIME_TOKEN"
+          echo "::add-mask::$RUNTIME_TOKEN"
           meta_code="$(curl -sS -o /tmp/hr-drive.json -w '%{http_code}' -H "Authorization: Bearer $RUNTIME_TOKEN" "https://www.googleapis.com/drive/v3/files/$HR_SHEET_ID?fields=id,name,mimeType")"
           test "$meta_code" = "200"
           jq -e --arg id "$HR_SHEET_ID" '.id==$id and .mimeType=="application/vnd.google-apps.spreadsheet"' /tmp/hr-drive.json >/dev/null
@@ -161,10 +186,30 @@ jobs:
       - name: Prove FCM validate-only and HR Drive watch lifecycle with disposable callback
         shell: bash
         env:
-          RUNTIME_TOKEN: ${{ steps.runtime_auth.outputs.access_token }}
+          RUNTIME_CREDS: ${{ steps.runtime_auth.outputs.credentials_file_path }}
         run: |
           set -euo pipefail
+          test -s "$RUNTIME_CREDS"
+          RUNTIME_TOKEN="$(NODE_PATH="$RUNNER_TEMP/d161-google-auth/node_modules" RUNTIME_CREDS="$RUNTIME_CREDS" node <<'NODE'
+          const {GoogleAuth}=require('google-auth-library');
+          (async()=>{
+            const auth=new GoogleAuth({
+              keyFile:process.env.RUNTIME_CREDS,
+              scopes:[
+                'https://www.googleapis.com/auth/cloud-platform',
+                'https://www.googleapis.com/auth/drive.readonly',
+                'https://www.googleapis.com/auth/spreadsheets.readonly'
+              ]
+            });
+            const client=await auth.getClient();
+            const token=await client.getAccessToken();
+            if(!token || !token.token) process.exit(2);
+            process.stdout.write(token.token);
+          })().catch(()=>process.exit(2));
+          NODE
+          )"
           test -n "$RUNTIME_TOKEN"
+          echo "::add-mask::$RUNTIME_TOKEN"
           fn="d161Phase0aCanary"
           doc="d161_phase0a_watch_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}"
           work="$(mktemp -d)"
