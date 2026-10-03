@@ -2282,6 +2282,15 @@
       "android_safety_target": "vc93",
       "last_failure": "RUN_37143582949__GEN2_FUNCTION_PROBE_USED_LOGICAL_LEGACY_TARGET_NAME__EARLIER_GITHUB_CLOUDFLARE_HEALTH_SIGNER_FIRESTORE_GATES_PASS__NO_RUNTIME_MUTATION",
       "functions_probe": "DEPLOYED_GEN2_FUNCTION_IDS_FROM_CANONICAL_DEPLOY_SCOPE__VERIFY_SERVICE_ACCOUNT_inventory-beta-alert-runtime__VERIFY_cloudmessaging.messages.create_VIA_EFFECTIVE_PROJECT_ROLE"
+    },
+    "phase0a_continuation_canary": {
+      "status": "AUTHORIZED__PENDING_TECHNICAL_PASS",
+      "resource_key": "d161-phase0a-provider-canary-beta",
+      "name": "d161Phase0aCanary",
+      "purpose": "GEN2_FUNCTION_RUNTIME_IDENTITY__FCM_VALIDATE_ONLY__HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP_CLEANUP",
+      "firestore_state": "EXISTING_relay_poc_coordination_DISPOSABLE_DOC_ONLY__DELETE_SAME_RUN",
+      "resource_lifecycle": "CREATE_BETA_ONLY__VERIFY__DELETE_SAME_RUN",
+      "stable": "FORBIDDEN"
     }
   }
 }
