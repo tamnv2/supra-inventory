@@ -88,6 +88,7 @@ jobs:
           $d160Ui = Get-Content relay-agent/D160UiHistory.cs -Raw
           $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
           $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
+          $d160Diagnostic = Test-Path 'relay-agent/D160DiagnosticTelemetry.cs' ? (Get-Content relay-agent/D160DiagnosticTelemetry.cs -Raw) : ""
 
           $diagnosticOnly = Test-Path 'relay-agent/DIAGNOSTIC_ONLY'
           if ($diagnosticOnly) {
@@ -98,6 +99,25 @@ jobs:
             }
             foreach ($marker in @('D160_POST_PASS_DIAGNOSTIC_CANDIDATE','accepted_runtime=relay-agent-v97','inventory_channel_update=FORBIDDEN')) {
               if (-not $diagnosticMarker.Contains($marker)) { throw "D160 diagnostic-only marker missing: $marker" }
+            }
+            foreach ($marker in @(
+              'D160_DIAG WMS_PAGE',
+              'D160_DIAG WMS_TARGET',
+              'BuildD160DiagnosticTargetStateScript',
+              'DirtyAfterConfirm',
+              'SafeHash'
+            )) {
+              if (-not $d160Diagnostic.Contains($marker)) { throw "D160 diagnostic telemetry marker missing: $marker" }
+            }
+            foreach ($marker in @(
+              'D160_DIAG TERMINAL',
+              'same_baseline_max',
+              'new_terminal_max'
+            )) {
+              if (-not $d160Browser.Contains($marker)) { throw "D160 terminal diagnostic marker missing: $marker" }
+            }
+            if (-not $program.Contains('PickListPattern') -or -not $program.Contains('PL[REDACTED]')) {
+              throw "D160 diagnostic candidate must redact full PickList values."
             }
           } else {
             if ($config -notmatch 'AgentBuild\s*=\s*97\s*;') { throw "D160 lifecycle repair requires Agent v97 while Android remains hard-locked at beta-vc92." }
