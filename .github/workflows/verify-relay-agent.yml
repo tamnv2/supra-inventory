@@ -96,12 +96,23 @@ jobs:
           $diagnosticOnly = Test-Path 'relay-agent/DIAGNOSTIC_ONLY'
           if ($diagnosticOnly) {
             $diagnosticMarker = Get-Content 'relay-agent/DIAGNOSTIC_ONLY' -Raw
-            if ($config -notmatch 'AgentBuild\s*=\s*98\s*;') { throw "D160 diagnostic candidate requires Agent v98." }
-            if ($project -notmatch '<AssemblyVersion>0\.98\.0\.0</AssemblyVersion>' -or $project -notmatch '<FileVersion>0\.98\.0\.0</FileVersion>') {
-              throw "D160 diagnostic candidate assembly/file version must be 0.98."
+            $candidateVersion = (Get-Content 'relay-agent/VERSION' -Raw).Trim()
+            $candidateEscaped = [regex]::Escape($candidateVersion)
+            if ($config -notmatch "AgentBuild\\s*=\\s*$candidateEscaped\\s*;") {
+              throw "D160 manual test candidate AgentBuild must match VERSION=$candidateVersion."
             }
-            foreach ($marker in @('D160_POST_PASS_DIAGNOSTIC_CANDIDATE','accepted_runtime=relay-agent-v97','inventory_channel_update=FORBIDDEN')) {
-              if (-not $diagnosticMarker.Contains($marker)) { throw "D160 diagnostic-only marker missing: $marker" }
+            if ($project -notmatch "<AssemblyVersion>0\\.$candidateEscaped\\.0\\.0</AssemblyVersion>" -or
+                $project -notmatch "<FileVersion>0\\.$candidateEscaped\\.0\\.0</FileVersion>") {
+              throw "D160 manual test candidate assembly/file version must be 0.$candidateVersion."
+            }
+            foreach ($marker in @(
+              'D160_POST_PASS_MANUAL_TEST_CANDIDATE',
+              'accepted_runtime=relay-agent-v97',
+              "candidate=relay-agent-v$candidateVersion",
+              'inventory_channel_update=FORBIDDEN',
+              'd161_runtime_update=FORBIDDEN'
+            )) {
+              if (-not $diagnosticMarker.Contains($marker)) { throw "D160 manual-test marker missing: $marker" }
             }
             foreach ($marker in @(
               'D160_DIAG WMS_PAGE',
@@ -115,12 +126,28 @@ jobs:
             foreach ($marker in @(
               'D160_DIAG TERMINAL',
               'same_baseline_max',
-              'new_terminal_max'
+              'new_terminal_max',
+              'ROW_CONFIRMED_MARKER',
+              'confirmedMarkerTargetCount'
             )) {
-              if (-not $d160Browser.Contains($marker)) { throw "D160 terminal diagnostic marker missing: $marker" }
+              if (-not $d160Browser.Contains($marker)) { throw "D160 terminal diagnostic/optimization marker missing: $marker" }
+            }
+            foreach ($marker in @(
+              'result=SUPERSEDED',
+              'canonical, "FAILED_PRECONDITION"',
+              'transport_health_impact=NONE'
+            )) {
+              if (-not $transport.Contains($marker)) { throw "D160 presence supersession marker missing: $marker" }
+            }
+            foreach ($marker in @(
+              'D160_DIAG TERMINAL ',
+              'RESULT=CONFIRMED',
+              'RESULT=CONFIRM_IN_PROGRESS_OR_UNCERTAIN'
+            )) {
+              if (-not $program.Contains($marker)) { throw "D160 terminal error-upload filter marker missing: $marker" }
             }
             if (-not $program.Contains('PickListPattern') -or -not $program.Contains('PL[REDACTED]')) {
-              throw "D160 diagnostic candidate must redact full PickList values."
+              throw "D160 manual test candidate must redact full PickList values."
             }
           } else {
             if ($config -notmatch 'AgentBuild\s*=\s*97\s*;') { throw "D160 lifecycle repair requires Agent v97 while Android remains hard-locked at beta-vc92." }
