@@ -497,6 +497,7 @@ Safety boundary:
 
 ### D161 Agent version lineage
 - Official trusted runtime returns to **relay-agent-v97** when D160 closes.
+- Active Agent source and its verify workflow are restored to the accepted v97 source identity (`4c3f0a4dffc94f66237d0958032fd27ac52fed29`) before D161 implementation; test-only v98/v99/v100 source is not the D161 starting baseline.
 - The first official D161 Agent runtime build is **v98**.
 - Historical manual-only D160 test prereleases tagged v98/v99/v100 remain non-trusted evidence and must not be overwritten or silently promoted. D161 release mechanics must use a non-colliding publication identity while the product/runtime version presented through the trusted channel is v98.
 - This section does not start implementation. Exact start command remains **`bắt đầu D161 tiến hành`**, followed by Phase 0A PASS → Phase 0 PASS → D161 implementation.
