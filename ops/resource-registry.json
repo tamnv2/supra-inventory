@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_PHASE0A_ACTIVE__D160_RUNTIME_REMAINS_ACCEPTED",
+      "status": "D161_PHASE0A_ACTIVE__D160_ACCEPTED_V97_RUNTIME__ANDROID_VC92",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
