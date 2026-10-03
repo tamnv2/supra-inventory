@@ -4698,7 +4698,7 @@
     },
     {
       "id": "OA094",
-      "status": "PENDING_AFTER_V100_RELEASE",
+      "status": "WAITING_OWNER_FIELD_TEST",
       "title": "Field-run D160 optimization test Agent v100",
       "resource_key": "firestore-relay-beta-d091",
       "provider": "SUPRA Inventory Beta / Windows Agent / existing D160 log gateway",
@@ -4725,7 +4725,25 @@
         "No provider cadence/resource change; inventory-channel stays relay-agent-v97; Android/Web/Stable/D161 remain unchanged."
       ],
       "remaining_owner_action": "MANUALLY_INSTALL_V100_ON_SELECTED_AGENT_RUN_NORMAL_WORKLOAD_AND_RETURN_SANITIZED_LOGS",
-      "closed": false
+      "closed": false,
+      "prerequisite_status": "TECHNICAL_RELEASE_PASS",
+      "release": {
+        "tag": "relay-agent-v100",
+        "release_id": 402469781,
+        "exe_asset_id": 607659111,
+        "exe_size_bytes": 7266816,
+        "exe_sha256": "4e7030854b00fdc42679e8713ca5727d451fe51e55193c6532a3831c9b2f5497",
+        "main_commit": "7216aa74cd7e07ce233c8e377104bcb400997798",
+        "verify_agent_run": 37118152206
+      },
+      "channel_proof": {
+        "accepted_runtime": "relay-agent-v97",
+        "inventory_channel_release_id": 394587029,
+        "inventory_channel_agent_asset_id": 604881360,
+        "size_bytes": 7216128,
+        "sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530",
+        "v100_not_promoted": true
+      }
     }
   ]
 }
