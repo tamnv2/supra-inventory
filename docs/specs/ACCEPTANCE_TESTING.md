@@ -2413,3 +2413,13 @@ queue/handoff, browser gate, immediate classification, Search/recovery, rate lim
 - One global support-log request correlates all responders by the same request_id/trace_id and creates no per-device Firestore ACK write.
 - Logging failure does not change business outcome except where an existing explicit safety/audit guard already requires fail-closed behavior.
 
+## D161 PickList History Agent-user attribution acceptance
+
+- A terminal PickList history row displays **User Agent xử lý** equal to the Agent login that produced the durable terminal ACK.
+- Test with at least two distinct Agent usernames and verify fleet History convergence preserves the correct user after sync/merge.
+- If processing transfers/fails over before terminal mutation, the terminal row must attribute the Agent user that actually produced the final ACK, not the earlier provisional Agent.
+- Missing LoginName falls back to AppUserId; Firebase UID/machine name never appear as the user-facing value.
+- The field is included in the existing ACK payload and existing compact `picker_history_json` piggyback without increasing Firestore document operation count, listener count or polling cadence.
+- History-only changes do not trigger an `agent_sync` write; the field rides only an already-required sync mutation.
+- Existing newest-first `SentAtMs` canonical sorting and D161 atomic History rendering remain PASS.
+
