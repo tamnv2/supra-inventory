@@ -138,13 +138,23 @@ jobs:
           const admin=require('firebase-admin');
           admin.initializeApp({credential:admin.credential.applicationDefault(),projectId:'supra-inventory-beta'});
           (async()=>{
-            const user=await admin.auth().getUserByEmail('admin.admin@auth.supra.invalid');
+            const page=await admin.auth().listUsers(1000);
+            const user=page.users.find(u=>String((u.customClaims||{}).app_user_id||'').toLowerCase()==='admin')
+              || page.users.find(u=>['admin.admin@auth.supra.invalid','pickpack_admin.admin@auth.supra.invalid'].includes(String(u.email||'').toLowerCase()));
+            if(!user) throw new Error('D161_ADMIN_FIREBASE_IDENTITY_NOT_FOUND');
+            const claims=user.customClaims||{};
+            const baseRole=String(claims.app_base_role||claims.app_role||'').toUpperCase();
+            if(!['ADMIN','PICKPACK_ADMIN'].includes(baseRole)) throw new Error('D161_ADMIN_FIREBASE_ROLE_NOT_AGENT_ELIGIBLE');
             const token=await admin.auth().createCustomToken(user.uid,{
-              app_user_id:'admin',app_role:'ADMIN',app_base_role:'ADMIN',
+              app_user_id:'admin',app_role:baseRole,app_base_role:baseRole,
               app_session_channel:'AGENT',employee_code:'admin'
             });
             process.stdout.write(token);
-          })().catch(()=>process.exit(2));
+          })().catch(e=>{
+            const code=String(e&&e.message||'FIREBASE_ADMIN_PROBE_FAILED').replace(/[^A-Za-z0-9_.:-]/g,'_').slice(0,120);
+            process.stderr.write(code+'\n');
+            process.exit(2);
+          });
           NODE
           )"
           test -n "$custom"
