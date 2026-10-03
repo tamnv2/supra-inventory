@@ -2261,6 +2261,30 @@ Later D161 implementation is not acceptable unless tests prove all of the follow
 - No claim/test expects fully silent Android 11 installation unless a later separately authorized Device Owner/MDM/OEM path exists.
 - Update failure diagnostics contain sanitized stage/category but no secret, token, password, signer material or raw sensitive payload.
 
+### D161 Phase 0A Permission / Provider Preflight acceptance
+
+**Hard gate before Safety release and backlog code**
+- Phase 0A starts only after the exact Owner command `bắt đầu D161 tiến hành`.
+- No D161 business/runtime source mutation is present before Phase 0A PASS.
+- GitHub branch/PR/merge and existing Android/Agent release-channel write paths are proven available.
+- Cloudflare Beta deploy credential is active for the existing Worker/Web/Durable Object path; Stable is not touched.
+- Protected Android Beta signing material is present, trusted signer identity is derivable and monotonic version resolution is available without exposing signing secrets.
+- Existing Beta Firebase Auth, Firestore Rules, Functions/Eventarc/FCM and session-control paths required by the selected D161 design pass bounded capability checks.
+- Existing Apps Script Agent operations gateway, Script API/clasp lifecycle and Monitoring access pass where reused by D161.
+- Current Google OAuth/runtime credentials required by D161 pass scoped capability checks without broadening scope by default.
+- Current verified HR Google Sheet remains readable.
+- HR Drive watch hard gate passes: exact verified HR file resolves; `files.watch` channel creation succeeds; Beta Worker receives initial `sync`; replacement/renewal is proven without duplicate business application; superseded channel stops; probe cleanup succeeds; HR rows remain unchanged.
+- Logs daily-folder hard gate passes: trusted archive layer creates/resolves one disposable child under the scoped Logs parent, uploads and reads back one sanitized tiny probe file, then removes/trashes probe artifacts and verifies cleanup.
+- Global-log control-plane capability is proven with one bounded authenticated canary and without per-device acknowledgement-write cadence.
+- Current Android/Agent manifests/assets/checksums are readable before Safety numbering/publication.
+- No secret, credential, signer material, refresh token, Firebase token or WMS/session material appears in source, Actions output, support logs or public artifacts.
+
+**Failure behavior**
+- Any missing scope/IAM/provider permission/signing/release capability makes Phase 0A FAIL-CLOSED.
+- No Safety release or D161 backlog source mutation begins after a Phase 0A failure.
+- If an Owner-only consent/grant is unavoidable, all known missing grants are batched into one shortest official UI action where possible.
+- After repair/grant, the affected capability and the relevant Phase 0A matrix are rerun to terminal PASS.
+
 ### D161 Phase 0 Safety Baseline / rescue acceptance
 
 **Phase 0 before backlog code**
