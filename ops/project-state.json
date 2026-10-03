@@ -4401,7 +4401,7 @@
     "android_current_release": "beta-vc92__UNCHANGED_DURING_COLLECTION",
     "web_current_label": "Version 1",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "MERGE_ADC_REPAIR_AFTER_AUTHORITY_CONTINUITY_PASS__RERUN_PHASE0A_CONTINUATION_TO_TERMINAL_PASS",
+    "next_action": "MERGE_ADMIN_IDENTITY_PROBE_REPAIR__RERUN_PHASE0A_CONTINUATION",
     "next_change_allowed": false,
     "schedule": "OWNER_APPROVED_TARGET__NORMAL_END_2215__NO_PREEND_PROMPT__PLUS1H_SHARED_OVERRIDES__T_MINUS_15_WARNING__0500_CAP__D154_START_EARLY_START_AND_PROPAGATION_INHERITED",
     "logs": "OWNER_APPROVED_TARGET__OBSERVABILITY_V2__COMMON_TRACE_SEQUENCE_GAPS__WEB_PERSISTED_INCIDENT_CONTEXT__ANDROID_1_2MIB_JOURNAL__AGENT_STRUCTURED_COMPLETE_STREAM__DRIVE_CONFIRMED_PRUNE__NO_PER_EVENT_PROVIDER_WRITE",
@@ -4523,21 +4523,19 @@
         "android_safety": "vc93",
         "android_feature_min": "vc94"
       },
-      "result": "REPAIRING_PREFLIGHT_AUTOMATION__RUNTIME_ADC_TOKEN_FLOW",
+      "result": "REPAIRING_PREFLIGHT_AUTOMATION__ADMIN_FIREBASE_IDENTITY_RESOLUTION",
       "last_failure": {
-        "run_id": 37161793964,
-        "step": "RUNTIME_SERVICE_ACCOUNT_BOUNDED_OAUTH",
-        "classification": "PREFLIGHT_AUTOMATION_AUTH_METHOD_DEFECT__NOT_RUNTIME_PERMISSION_FAILURE",
-        "cause": "google-github-actions/auth token_format access_token invoked IAMCredentials self-impersonation; runtime service-account key ADC does not require iam.serviceAccounts.getAccessToken",
+        "run_id": 37162087642,
+        "step": "AUTHENTICATED_WORKER_HR_PREVIEW_AND_AGENT_GATEWAY_CONTROL",
+        "classification": "PREFLIGHT_AUTOMATION_IDENTITY_ASSUMPTION_DEFECT",
+        "cause": "probe hard-coded admin.admin Firebase email; canonical username-derived Firebase role prefix may be ADMIN or PICKPACK_ADMIN",
         "passed_before_failure": [
-          "FRESH_APPS_SCRIPT_LIFECYCLE",
-          "PHASE0A_CORE_GITHUB_RELEASE",
-          "PHASE0A_CORE_CLOUDFLARE_DRYRUN",
-          "PHASE0A_CORE_BETA_HEALTH_OAUTH",
-          "PHASE0A_CORE_ANDROID_SIGNER",
-          "PHASE0A_CORE_FIRESTORE_CANARY"
+          "RUNTIME_ADC_OAUTH",
+          "HR_DRIVE_READ",
+          "HR_SHEETS_READ",
+          "CLOUD_MONITORING_READ"
         ],
-        "repair": "USE_CREDENTIALS_FILE_ADC_AND_LOCAL_GOOGLE_AUTH_LIBRARY_OAUTH_TOKEN_EXCHANGE__NO_NEW_IAM_GRANT",
+        "repair": "DISCOVER_EXISTING_FIREBASE_USER_BY_APP_USER_ID_OR_CANONICAL_ROLE_PREFIX__PRESERVE_ACTUAL_AGENT_ELIGIBLE_BASE_ROLE",
         "runtime_mutation": "NONE"
       },
       "continuation_workflow": ".github/workflows/d161-phase0a-continuation.yml",
