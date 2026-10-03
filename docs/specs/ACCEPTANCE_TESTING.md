@@ -2331,3 +2331,16 @@ This is a diagnostic-only field candidate; D160 relay-agent-v97 remains accepted
 6. No diagnostic timer/poll/listener/provider write is added; request/WMS/Firestore cadence remains the accepted v97 cadence.
 7. Local logging stays bounded by the accepted rotation/seal/upload lifecycle and does not create a new Drive/Firestore/Apps Script resource.
 8. Field evidence must show no material latency regression on successful confirmation and must provide enough evidence to distinguish stale checkbox, hard-refresh hydration, reused terminal UI and presence/control-plane Firestore failures.
+
+
+## D160 post-PASS optimization test Agent v99 acceptance — 2026-10-03
+This remains a manual-only test candidate; relay-agent-v97 remains accepted/trusted.
+1. Version is monotonic v99; dedicated prerelease/artifact exists; `inventory-channel` remains exact relay-agent-v97 by asset identity/checksum.
+2. Existing D160 exact-row, ambiguity, max-15 wave, one-final-click, confirmation guard, 12-second mutation fence, Search-before-F5, FOREIGN_SELECTION reload and page-size restoration protections remain PASS.
+3. Fresh success terminal remains the fast CONFIRMED path. If no authoritative fresh reject is present, all exact target rows with the confirmed same-row marker before their checkbox may yield `CONFIRMED / ROW_CONFIRMED_MARKER`. Partial marker coverage in a multi-target wave must not prove full success.
+4. A presence-control ACK with HTTP 400 + canonical FAILED_PRECONDITION + update precondition logs `SUPERSEDED`, returns without transport OFFLINE, and does not arm `REFRESH_BEFORE_BUSINESS`.
+5. Successful terminal diagnostic rows stay in complete local logs but do not cause immediate `error_agent` sealing/upload. UNCERTAIN, real failure, exception and crash immediate behavior is preserved.
+6. No new WMS/Firestore/Google polling/listener/write cadence or provider resource is added.
+7. Persistent NOT_FOUND timing logic is unchanged in v99.
+8. Field comparison records end-to-end and terminal latency, terminal proof route, Search/F5 counts, UNCERTAIN/CONFLICT/NOT_FOUND outcomes, presence superseded count, false OFFLINE/role-refresh count and error-bundle volume.
+9. Android beta-vc92, Web/backend business behavior, Stable and D161 implementation state remain unchanged.
