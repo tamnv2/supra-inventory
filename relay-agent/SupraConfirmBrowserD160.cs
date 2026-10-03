@@ -97,7 +97,7 @@ namespace SupraInventoryRelayAgent
 
                 result.FinalClicked = true;
                 D160DiagnosticTelemetry.MarkFinalClick();
-                var boundedTerminalWaitMs = Math.Max(800, Math.Min(4500, terminalWaitMs));
+                var boundedTerminalWaitMs = Math.Max(800, Math.Min(5200, terminalWaitMs));
                 var terminalStarted = Stopwatch.StartNew();
                 var terminalSamples = 0;
                 var terminalExceptions = 0;

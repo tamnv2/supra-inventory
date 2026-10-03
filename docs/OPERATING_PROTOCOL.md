@@ -292,3 +292,13 @@ The Owner-approved v99 test remains a bounded continuation of D160.
 - v99 may change only the three approved evidence-backed repair points: same-row confirmed-marker fallback, presence FAILED_PRECONDITION supersession classification, and successful-terminal error-upload suppression.
 - Search-before-F5, FOREIGN_SELECTION reload safety, 12-second mutation fence and all other D160 v97 safety/business invariants stay unchanged.
 - After v99 publication, stop at Owner field run/log collection. End-of-shift analysis determines whether repairs are kept, adjusted or rejected; D161 remains unchanged until a later explicit Owner decision.
+
+
+## D160 post-PASS optimization test candidate routing — v100
+Owner approval on 2026-10-03 keeps the v99-proven optimizations frozen and authorizes a narrower manual-only v100 test under D160.
+- relay-agent-v97 remains accepted/trusted; v100 must not mutate inventory-channel.
+- v100 scope is limited to adaptive pre-final reload waiting, passive terminal observation budget and local queue/latency telemetry.
+- Adaptive reload extension is bounded and pre-final only; the 12-second mutation fence remains authoritative.
+- Post-final observation remains read-only/passive with one final business click total.
+- No provider cadence/resource change, Android/Web/backend change, Stable action or D161 implementation is allowed.
+- After technical/release PASS, stop at Owner field run/log collection. Any repair remains D160/v100 continuation until Owner decides otherwise.

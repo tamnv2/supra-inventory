@@ -2344,3 +2344,15 @@ This remains a manual-only test candidate; relay-agent-v97 remains accepted/trus
 7. Persistent NOT_FOUND timing logic is unchanged in v99.
 8. Field comparison records end-to-end and terminal latency, terminal proof route, Search/F5 counts, UNCERTAIN/CONFLICT/NOT_FOUND outcomes, presence superseded count, false OFFLINE/role-refresh count and error-bundle volume.
 9. Android beta-vc92, Web/backend business behavior, Stable and D161 implementation state remain unchanged.
+
+
+## D160 post-PASS optimization test Agent v100 acceptance — 2026-10-03
+This remains a manual-only D160 test candidate; relay-agent-v97 remains accepted/trusted.
+1. Version is monotonic v100 and the dedicated prerelease is produced without changing inventory-channel, Android beta-vc92, Web/backend runtime, provider resources, Stable or D161 implementation state.
+2. All v99-proven behavior remains unchanged: ROW_CONFIRMED_MARKER exact-row/all-target proof, presence FAILED_PRECONDITION→SUPERSEDED classification and successful-terminal immediate-error-upload suppression.
+3. Checkbox recovery still performs at most the existing bounded Search→real Page.reload flow. The normal 4.5-second wait may extend by at most 3.5 seconds only after the exact Confirm reload document is loaded; no extra F5 is introduced by the extension.
+4. The 12-second mutation-start fence remains authoritative after any extended recovery. A request that no longer has mutation budget must not final-click WMS.
+5. Post-final observation is passive only and may be budgeted up to 5.2 seconds. It must never Search, reload, retry the provider or perform a second final click.
+6. Local diagnostics record D160_DIAG QUEUE HANDOFF/BROWSER_GATE, MUTATION_BUDGET and WMS_REFRESH EXTENDED/PASS/TIMEOUT without PickList values, credentials, tokens, cookies, raw HTML or screenshots.
+7. No new Firestore/WMS/Google polling, listener, write cadence or resource is added.
+8. Field evidence compares CONFIRMED/UNCERTAIN/CONFLICT/NOT_FOUND, E2E P50/P90/P95, recovery-extension count/outcome, terminal wait/proof route, queue-age decomposition and any regression in safety/HA/provider usage.
