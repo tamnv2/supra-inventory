@@ -983,6 +983,8 @@ namespace SupraInventoryRelayAgent
                 { "agent_id", StringField(Environment.MachineName) },
                 { "agent_instance_id", StringField(_instanceId) },
                 { "agent_admin_user_id", StringField(session.AppUserId ?? "") },
+                { "agent_login_name", StringField(
+                    !string.IsNullOrWhiteSpace(session.LoginName) ? session.LoginName : (session.AppUserId ?? "")) },
                 { "agent_ack_at_ms", IntField(NowMs()) },
                 { "lookup_status", StringField(outcome == null ? "PRESENCE_APPLIED" : (outcome.Result ?? "PRESENCE_APPLIED")) },
                 { "lookup_matches", IntField(outcome == null ? 0 : Math.Max(0, outcome.Matches)) },
@@ -1062,6 +1064,8 @@ namespace SupraInventoryRelayAgent
                 { "agent_id", StringField(Environment.MachineName) },
                 { "agent_instance_id", StringField(_instanceId) },
                 { "agent_admin_user_id", StringField(session.AppUserId ?? "") },
+                { "agent_login_name", StringField(
+                    !string.IsNullOrWhiteSpace(session.LoginName) ? session.LoginName : (session.AppUserId ?? "")) },
                 { "agent_network", StringField(_networkProvider()) },
                 { "agent_received_at_ms", IntField(terminalAtMs) },
                 { "agent_ack_at_ms", IntField(terminalAtMs) },
