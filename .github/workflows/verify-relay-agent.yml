@@ -772,10 +772,21 @@ jobs:
             'policy=AUTHENTICATED_AGENT_SESSION__PICKER_OBSERVATION_WMS_INDEPENDENT',
             'StartD134AgentSync();',
             'StopD134AgentSync();',
+            'DIRECT_PRESENCE_LISTEN',
             'TimeSpan.FromMinutes(1)',
             'danh sách vẫn hiển thị theo phiên đăng nhập'
           )) {
             if (-not $ops.Contains($marker)) { throw "D161 authenticated Picker-observation marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'FirestorePickerPresenceDocumentName',
+            'exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE',
+            'FirestorePickerPresenceClient.ParseGrpcDocument',
+            'PICKER_PRESENCE_LISTEN_EVENT'
+          )) {
+            if (-not $sync.Contains($marker) -and -not $config.Contains($marker)) {
+              throw "D161 exact Picker presence observation marker missing: $marker"
+            }
           }
           if ($ops.Contains('if (_pickerWindowOpenState != false)') -or $ops.Contains('if (_pickerWindowOpenState == false) return;')) {
             throw "D161 active-Picker rendering must not be gated by the business window."
