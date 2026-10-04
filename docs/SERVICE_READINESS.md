@@ -1689,3 +1689,14 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Android runtime marker: `D160_ACCEPTED_RUNTIME__SIGNED_BETA_VC92__D161_PHASE0A_ACTIVE__SAFETY_TARGET_VC93__FEATURE_MIN_VC94`.
 - Accepted runtime remains Android beta-vc92 and Agent v97 while Phase 0A is active; no Safety or feature release has been published yet.
 - Stable remains OWNER-GATED and untouched.
+
+## D161 Phase 0 Safety derived marker — 2026-10-04
+
+- SQLite schema: `16`.
+- Latest signed Beta APK: `beta-vc92`.
+- Web runtime marker: `D160_ACCEPTED_RUNTIME_WEB__D161_WEB_VERSION_1_AND_REPAIR_REQUIREMENTS_APPROVED_IMPLEMENTATION_DEFERRED`.
+- Android runtime marker: `D160_ACCEPTED_RUNTIME__SIGNED_BETA_VC92__D161_PHASE0A_PASS__SAFETY_VC93_PREPARING__FEATURE_MIN_VC94`.
+- Phase 0A: PASS on main `be097ce199f2f7f6d09570777193e63fb45399e3`.
+- Phase 0 Safety: ACTIVE; Agent v101 and Android vc93 are Safety-only targets. D161 feature behavior remains blocked until Safety PASS.
+- Stable remains OWNER-GATED and untouched.
+

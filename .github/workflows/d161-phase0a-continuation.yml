@@ -26,22 +26,33 @@ jobs:
   validate:
     name: phase0a-continuation-static
     runs-on: ubuntu-latest
+    outputs:
+      phase0a_active: ${{ steps.gate.outputs.phase0a_active }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate active gate and disposable resource scope
+        id: gate
         shell: bash
         run: |
           set -euo pipefail
-          jq -e '.d161.status=="STARTED__PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE"' ops/project-state.json >/dev/null
-          jq -e '.d161.current_gate=="PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE"' ops/project-state.json >/dev/null
+          gate="$(jq -r '.d161.current_gate' ops/project-state.json)"
+          result="$(jq -r '.d161.phase0a.result' ops/project-state.json)"
           jq -e '.resources[] | select(.key=="d161-phase0a-provider-canary-beta") | .environment=="beta"' ops/project-scope.json >/dev/null
           jq -e '.d161.phase0a_continuation_canary.resource_lifecycle=="CREATE_BETA_ONLY__VERIFY__DELETE_SAME_RUN"' ops/resource-registry.json >/dev/null
-          test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "97"
-          echo "D161_PHASE0A_CONTINUATION_STATIC=PASS"
+          if [ "$gate" = "PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE" ]; then
+            echo "phase0a_active=true" >> "$GITHUB_OUTPUT"
+            test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "97"
+          else
+            case "$result" in PASS*) ;; *) echo "Phase 0A continuation advanced without PASS evidence: $result" >&2; exit 1 ;; esac
+            echo "phase0a_active=false" >> "$GITHUB_OUTPUT"
+            version="$(tr -d '\r\n ' < relay-agent/VERSION)"
+            test "$version" -ge 101
+          fi
+          echo "D161_PHASE0A_CONTINUATION_STATIC=PASS gate=$gate result=$result"
 
   provider-continuation:
     name: phase0a-functions-fcm-hr-watch-control
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.outputs.phase0a_active == 'true'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 30

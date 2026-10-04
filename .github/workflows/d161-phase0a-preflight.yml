@@ -33,24 +33,35 @@ jobs:
   validate:
     name: phase0a-static-gate
     runs-on: ubuntu-latest
+    outputs:
+      phase0a_active: ${{ steps.gate.outputs.phase0a_active }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate D161 start authority
+        id: gate
         shell: bash
         run: |
           set -euo pipefail
-          jq -e '.d161.status == "STARTED__PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE"' ops/project-state.json >/dev/null
-          jq -e '.d161.current_gate == "PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE"' ops/project-state.json >/dev/null
+          gate="$(jq -r '.d161.current_gate' ops/project-state.json)"
+          result="$(jq -r '.d161.phase0a.result' ops/project-state.json)"
           jq -e '.d161.phase0a.resolved_release_lineage.agent_safety == "v101"' ops/project-state.json >/dev/null
           jq -e '.d161.phase0a.resolved_release_lineage.android_safety == "vc93"' ops/project-state.json >/dev/null
           jq -e '.actions[] | select(.id=="OA095") | .status=="PASS" and .closed==true' ops/owner-actions.json >/dev/null
-          test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "97"
+          if [ "$gate" = "PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE" ]; then
+            echo "phase0a_active=true" >> "$GITHUB_OUTPUT"
+            test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "97"
+          else
+            case "$result" in PASS*) ;; *) echo "Phase 0A gate advanced without PASS evidence: $result" >&2; exit 1 ;; esac
+            echo "phase0a_active=false" >> "$GITHUB_OUTPUT"
+            version="$(tr -d '\r\n ' < relay-agent/VERSION)"
+            test "$version" -ge 101
+          fi
           grep -q 'Stable remains OWNER-GATED and untouched' docs/OWNER_DECISIONS.md
-          echo "D161 Phase 0A static authority gate PASS"
+          echo "D161 Phase 0A static authority gate PASS gate=$gate result=$result"
 
   provider-preflight:
     name: phase0a-provider-canaries
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.outputs.phase0a_active == 'true'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 30

@@ -1,0 +1,218 @@
+name: D161 Phase 0 Safety Baseline
+
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - "relay-agent/**"
+      - "ops/d161-safety-baseline.json"
+      - "ops/project-state.json"
+      - "ops/resource-registry.json"
+      - "ops/owner-actions.json"
+      - ".github/workflows/d161-phase0-safety.yml"
+      - ".github/workflows/d161-phase0a-preflight.yml"
+      - ".github/workflows/d161-phase0a-continuation.yml"
+      - ".github/workflows/verify-relay-agent.yml"
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "relay-agent/**"
+      - "ops/d161-safety-baseline.json"
+      - "ops/project-state.json"
+      - "ops/resource-registry.json"
+      - "ops/owner-actions.json"
+      - ".github/workflows/d161-phase0-safety.yml"
+      - ".github/workflows/d161-phase0a-preflight.yml"
+      - ".github/workflows/d161-phase0a-continuation.yml"
+      - ".github/workflows/verify-relay-agent.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: d161-phase0-safety
+  cancel-in-progress: false
+
+jobs:
+  safety-static:
+    name: phase0-safety-static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate Safety authority, baseline identity and behavior-only diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="ops/d161-safety-baseline.json"
+          baseline="$(jq -r '.captured_from_main_sha' "$manifest")"
+          jq -e '.schema_version==1 and .change_id=="D161" and .phase=="PHASE0_SAFETY_BASELINE"' "$manifest" >/dev/null
+          jq -e '.d161.status=="STARTED__PHASE0_SAFETY_BASELINE_ACTIVE"' ops/project-state.json >/dev/null
+          jq -e '.d161.current_gate=="PHASE0_SAFETY_BASELINE_ACTIVE"' ops/project-state.json >/dev/null
+          jq -e '.d161.phase0a.status=="PASS" and (.d161.phase0a.result|startswith("PASS__"))' ops/project-state.json >/dev/null
+          jq -e '.d161.phase0.status=="ACTIVE" and .d161.phase0.safety_agent_target=="relay-agent-v101" and .d161.phase0.safety_android_target=="beta-vc93"' ops/project-state.json >/dev/null
+          jq -e '.d161.phase0_safety.status=="ACTIVE"' ops/resource-registry.json >/dev/null
+          jq -e '.security.secret_values_in_manifest==false and .security.session_or_wms_material_in_manifest==false and .security.stable=="OWNER_GATED_UNTOUCHED"' "$manifest" >/dev/null
+
+          test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "101"
+          grep -q 'AgentBuild = 101;' relay-agent/AgentConfig.cs
+          grep -q '<AssemblyVersion>0.101.0.0</AssemblyVersion>' relay-agent/SupraInventoryRelayAgent.csproj
+          grep -q '<FileVersion>0.101.0.0</FileVersion>' relay-agent/SupraInventoryRelayAgent.csproj
+
+          for pair in             "service:.component_trees.service"             "web:.component_trees.web"             "android:.component_trees.android"             "relay-agent:.component_trees.relay_agent"             "firebase:.component_trees.firebase"             "functions:.component_trees.functions"; do
+            path="${pair%%:*}"
+            selector="${pair#*:}"
+            expected="$(jq -r "$selector" "$manifest")"
+            actual="$(git rev-parse "$baseline:$path")"
+            test "$actual" = "$expected" || { echo "Baseline tree mismatch path=$path expected=$expected actual=$actual" >&2; exit 1; }
+          done
+
+          android_diff="$(git diff --name-only "$baseline"...HEAD -- android/ | sed '/^$/d')"
+          test "$android_diff" = "android/D161_SAFETY_BASELINE.md" || {
+            echo "Phase0 Safety Android must be marker-only; unexpected diff:" >&2
+            printf '%s\n' "$android_diff" >&2
+            exit 1
+          }
+
+          agent_diff="$(git diff --name-only "$baseline"...HEAD -- relay-agent/ | sed '/^$/d' | sort)"
+          expected_agent="$(printf '%s\n' relay-agent/AgentConfig.cs relay-agent/SupraInventoryRelayAgent.csproj relay-agent/VERSION | sort)"
+          test "$agent_diff" = "$expected_agent" || {
+            echo "Phase0 Safety Agent may change version metadata only; unexpected diff:" >&2
+            printf '%s\n' "$agent_diff" >&2
+            exit 1
+          }
+
+          jq -e '.accepted_releases.android.tag=="beta-vc92" and .accepted_releases.android.sha256=="10171a4b8e38b542670be2c21c556c269c2f3f7b1f1ed8757e738618522e6d7f"' "$manifest" >/dev/null
+          jq -e '.accepted_releases.agent.tag=="relay-agent-v97" and .accepted_releases.agent.sha256=="b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530"' "$manifest" >/dev/null
+          echo "D161_PHASE0_SAFETY_STATIC=PASS"
+
+  safety-runtime:
+    name: phase0-safety-runtime-release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: safety-static
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Wait for same-source deploy, Android and Agent release gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&per_page=100"
+          for attempt in $(seq 1 50); do
+            data="$(curl -fsSL "$api")"
+            complete=true
+            for name in "Deploy Beta Worker" "Verify Beta Android" "Verify Beta Relay Agent"; do
+              status="$(jq -r --arg name "$name" '[.workflow_runs[] | select(.name==$name)][0].status // empty' <<<"$data")"
+              conclusion="$(jq -r --arg name "$name" '[.workflow_runs[] | select(.name==$name)][0].conclusion // empty' <<<"$data")"
+              echo "$name attempt=$attempt status=${status:-pending} conclusion=${conclusion:-pending}"
+              if [ "$status" = "completed" ]; then
+                test "$conclusion" = "success" || { echo "$name failed conclusion=$conclusion" >&2; exit 1; }
+              else
+                complete=false
+              fi
+            done
+            [ "$complete" = true ] && break
+            [ "$attempt" -ge 50 ] && { echo "Safety dependencies did not complete for $GITHUB_SHA" >&2; exit 1; }
+            sleep 10
+          done
+
+      - name: Reproduce Safety Web build and Service contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd web && npm install --ignore-scripts --no-audit --no-fund && npm run build)
+          find web/dist -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}' > /tmp/d161-web-dist.sha256
+          (cd service && npm install --ignore-scripts --no-audit --no-fund && npm run typecheck)
+          web_sha="$(cat /tmp/d161-web-dist.sha256)"
+          test "${#web_sha}" = "64"
+          echo "SAFETY_WEB_DIST_AGGREGATE_SHA256=$web_sha"
+
+      - name: Verify Safety releases and runtime channel checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY"
+          work="$RUNNER_TEMP/d161-safety-release"
+          mkdir -p "$work/android" "$work/agent" "$work/channel"
+
+          android_ref="$(curl -fsSL "$api/git/ref/tags/beta-vc93" | jq -r '.object.sha')"
+          agent_ref="$(curl -fsSL "$api/git/ref/tags/relay-agent-v101" | jq -r '.object.sha')"
+          test "$android_ref" = "$GITHUB_SHA" || { echo "beta-vc93 source mismatch $android_ref != $GITHUB_SHA" >&2; exit 1; }
+          test "$agent_ref" = "$GITHUB_SHA" || { echo "relay-agent-v101 source mismatch $agent_ref != $GITHUB_SHA" >&2; exit 1; }
+
+          download_asset() {
+            tag="$1"; asset="$2"; out="$3"
+            rel="$(curl -fsSL "$api/releases/tags/$tag")"
+            url="$(jq -r --arg asset "$asset" '.assets[] | select(.name==$asset) | .browser_download_url' <<<"$rel")"
+            test -n "$url" && test "$url" != "null"
+            curl -fsSL "$url" -o "$out"
+          }
+
+          download_asset beta-vc93 supra-inventory-beta.apk "$work/android/supra-inventory-beta.apk"
+          download_asset beta-vc93 supra-inventory-beta.apk.sha256 "$work/android/supra-inventory-beta.apk.sha256"
+          apk_sha="$(sha256sum "$work/android/supra-inventory-beta.apk" | awk '{print $1}')"
+          apk_declared="$(awk '{print $1}' "$work/android/supra-inventory-beta.apk.sha256")"
+          test "$apk_sha" = "$apk_declared"
+
+          download_asset relay-agent-v101 Agent.Auto.Confirm.Pick.Pack.exe "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe"
+          download_asset relay-agent-v101 Agent.Auto.Confirm.Pick.Pack.exe.sha256 "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
+          agent_sha="$(sha256sum "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe" | awk '{print $1}')"
+          agent_declared="$(awk '{print $1}' "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe.sha256")"
+          test "$agent_sha" = "$agent_declared"
+
+          download_asset inventory-channel pda-latest.json "$work/channel/pda-latest.json"
+          download_asset inventory-channel agent-latest.json "$work/channel/agent-latest.json"
+          jq -e --arg sha "$apk_sha" '.tag=="beta-vc93" and .sha256==$sha and .asset_name=="supra-inventory-beta.apk"' "$work/channel/pda-latest.json" >/dev/null
+          jq -e --arg sha "$agent_sha" '.tag=="relay-agent-v101" and .sha256==$sha and .asset_name=="Agent.Auto.Confirm.Pick.Pack.exe"' "$work/channel/agent-latest.json" >/dev/null
+
+          echo "$apk_sha" > /tmp/d161-android-safety.sha256
+          echo "$agent_sha" > /tmp/d161-agent-safety.sha256
+          echo "ANDROID_SAFETY_VC93=PASS sha256=$apk_sha"
+          echo "AGENT_SAFETY_V101=PASS sha256=$agent_sha"
+
+      - name: Verify live Safety Worker health and schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for attempt in $(seq 1 24); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://inventory-beta.supra.cc.cd/health" || true)"
+            if [ "$code" = "200" ] && jq -e --arg sha "$GITHUB_SHA" '.status=="ok" and .environment=="beta" and .source_commit==$sha and .storage.ok==true and .storage.schema_version==16 and .storage.expected_schema_version==16 and .storage.operational_v2.ready==true and .storage.operational_v2.schema_version==5 and .storage.operational_v2.expected_schema_version==5 and (.missing_bindings|length)==0' "$tmp" >/dev/null 2>&1; then
+              echo "D161_SAFETY_LIVE_HEALTH=PASS source=$GITHUB_SHA schema=16 operational_v2=5"
+              exit 0
+            fi
+            [ "$attempt" -ge 24 ] || sleep 5
+          done
+          echo "Safety live health did not converge to source $GITHUB_SHA" >&2
+          cat "$tmp"
+          exit 1
+
+      - name: Emit Safety runtime evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          web_sha="$(cat /tmp/d161-web-dist.sha256)"
+          apk_sha="$(cat /tmp/d161-android-safety.sha256)"
+          agent_sha="$(cat /tmp/d161-agent-safety.sha256)"
+          jq -n --arg source "$GITHUB_SHA" --arg web_sha "$web_sha" --arg apk_sha "$apk_sha" --arg agent_sha "$agent_sha" '{schema_version:1,change_id:"D161",phase:"PHASE0_SAFETY_BASELINE",result:"PASS",source:$source,web_dist_aggregate_sha256:$web_sha,android:{tag:"beta-vc93",sha256:$apk_sha},agent:{tag:"relay-agent-v101",sha256:$agent_sha},inventorycore_schema:16,operational_v2_schema:5,stable:"UNTOUCHED"}' > /tmp/d161-phase0-safety-evidence.json
+          cat /tmp/d161-phase0-safety-evidence.json
+          echo "D161_PHASE0_SAFETY=PASS"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d161-phase0-safety-evidence
+          path: /tmp/d161-phase0-safety-evidence.json
+          if-no-files-found: error
+          retention-days: 30

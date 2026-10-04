@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_PHASE0A_ACTIVE__D160_ACCEPTED_V97_RUNTIME__ANDROID_VC92",
+      "status": "D161_PHASE0_SAFETY_ACTIVE__D160_ACCEPTED_RUNTIME__AGENT_V97_FIELD_BASE__ANDROID_VC92_FIELD_BASE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -319,7 +319,7 @@
       "d159_usage_test_release_target": "HISTORICAL_D159_V3__NO_NEW_RUNTIME_CALLERS",
       "d159_monitoring_cache_seconds": 900,
       "d160_source_status": "CLOSED__ACTIVE_AGENT_SOURCE_RESTORED_EXACT_V97__TEST_V98_V99_V100_HISTORY_ONLY",
-      "d161_source_status": "EXACT_START_RECEIVED__PHASE0A_ACTIVE__NO_RUNTIME_SOURCE_MUTATION_YET"
+      "d161_source_status": "PHASE0A_PASS__PHASE0_SAFETY_ACTIVE__NO_FEATURE_RUNTIME_BEHAVIOR"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -2233,11 +2233,11 @@
     "source_baseline": "EXACT_V97_SOURCE_COMMIT_4c3f0a4dffc94f66237d0958032fd27ac52fed29"
   },
   "d161": {
-    "status": "EXACT_START_RECEIVED__PHASE0A_ACTIVE",
+    "status": "PHASE0A_PASS__PHASE0_SAFETY_ACTIVE",
     "accepted_base": "D160__RELAY_AGENT_V97",
-    "resource_change_now": "NONE_PERSISTENT__PHASE0A_DISPOSABLE_BETA_CANARIES_ONLY__CLEANUP_SAME_RUN",
+    "resource_change_now": "NONE_PERSISTENT__PHASE0_SAFETY_USES_EXISTING_GITHUB_RELEASE_CHANNELS_ONLY__STABLE_UNTOUCHED",
     "logs_parent": "EXISTING_SCOPED_INVENTORY_BETA_LOGS_FOLDER",
-    "future_daily_children": "YYYY_MM_DD_NAMING_SEMANTICS__ACTUAL_NAME_YYYY-MM-DD__TRUSTED_SERVER_CREATE_CACHE__BETA_ONLY__IMPLEMENTATION_NOT_AUTHORIZED",
+    "future_daily_children": "YYYY_MM_DD_NAMING_SEMANTICS__ACTUAL_NAME_YYYY-MM-DD__TRUSTED_SERVER_CREATE_CACHE__BETA_ONLY__FEATURE_IMPLEMENTATION_AFTER_PHASE0_SAFETY_PASS",
     "global_log_control": "EXISTING_GOOGLE_FIREBASE_CAPABLE_CONTROL_PLANE_REQUIRED_FOR_OFFICE_AGENT__REUSE_EXISTING_CHANNELS_WHERE_SAFE__ANY_NEW_EXACT_SERVER_TRIGGER_REQUIRES_SCOPE_RECONCILIATION_BEFORE_PROVIDER_MUTATION",
     "schedule_resources": "EXISTING_SHARED_FIRESTORE_SCHEDULE_AUTHORITY_PLUS_EXISTING_FUNCTION_WORKER_FCM_PROPAGATION__NO_NEW_POLLING_LISTENER",
     "agent_ui": "LOCAL_WINFORMS_ONLY__HISTORY_USAGE_OVERTIME_PLUS_BULK_KICK_UI__NO_NEW_PROVIDER_RESOURCE",
@@ -2273,7 +2273,7 @@
     },
     "phase0a": {
       "workflow": ".github/workflows/d161-phase0a-preflight.yml",
-      "status": "ACTIVE_REPAIRING_ANDROID_SIGNED_BUILD_ENV",
+      "status": "PASS",
       "persistent_resource_change": "NONE",
       "beta_only": true,
       "stable": "FORBIDDEN",
@@ -2281,7 +2281,9 @@
       "agent_safety_target": "v101",
       "android_safety_target": "vc93",
       "last_failure": "RUN_37165619963_GRADLE_ASSEMBLE_RELEASE_SUCCESS__SIGNED_APK_PATH_ABSENT_BECAUSE_KEYSTORE_PATH_NOT_EXPORTED_IN_CURRENT_STEP__NO_RUNTIME_MUTATION",
-      "functions_probe": "DIRECT_GCLOUD_GEN2_DESCRIBE_PASS__FCM_AND_HR_WATCH_EFFECTIVE_CAPABILITY_BY_DISPOSABLE_CONTINUATION_CANARY"
+      "functions_probe": "DIRECT_GCLOUD_GEN2_DESCRIBE_PASS__FCM_AND_HR_WATCH_EFFECTIVE_CAPABILITY_BY_DISPOSABLE_CONTINUATION_CANARY",
+      "last_pass": "MAIN_BE097CE__PROVIDER_RUN_37166085903__CONTINUATION_RUN_37166085920",
+      "pass_source_sha": "be097ce199f2f7f6d09570777193e63fb45399e3"
     },
     "phase0a_continuation_canary": {
       "status": "PASS__FCM_VALIDATE_ONLY__HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP_CLEANUP",
@@ -2291,6 +2293,19 @@
       "firestore_state": "EXISTING_relay_poc_coordination_DISPOSABLE_DOC_ONLY__DELETE_SAME_RUN",
       "resource_lifecycle": "CREATE_BETA_ONLY__VERIFY__DELETE_SAME_RUN",
       "stable": "FORBIDDEN"
+    },
+    "phase0_safety": {
+      "status": "ACTIVE",
+      "manifest": "ops/d161-safety-baseline.json",
+      "baseline_capture_main_sha": "be097ce199f2f7f6d09570777193e63fb45399e3",
+      "accepted_agent_release": "relay-agent-v97",
+      "accepted_android_release": "beta-vc92",
+      "agent_safety_target": "relay-agent-v101",
+      "android_safety_target": "beta-vc93",
+      "release_storage": "EXISTING_GITHUB_RELEASES_AND_INVENTORY_CHANNEL",
+      "web_service_evidence": "D161_PHASE0_SAFETY_CI_REPRODUCIBLE_BUILD_PLUS_LIVE_HEALTH",
+      "persistent_resource_change": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED"
     }
   }
 }

@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "change_id": "D161",
+  "phase": "PHASE0_SAFETY_BASELINE",
+  "status": "PREPARED_AWAITING_SIGNED_SAFETY_RELEASES",
+  "captured_at_date": "2026-10-04",
+  "captured_from_main_sha": "be097ce199f2f7f6d09570777193e63fb45399e3",
+  "accepted_base": {
+    "change_id": "D160",
+    "behavior": "RELAY_AGENT_V97__ANDROID_VC92__WEB_SERVICE_ACCEPTED_RUNTIME",
+    "component_source_anchor_sha": "4c3f0a4dffc94f66237d0958032fd27ac52fed29",
+    "live_worker_source_before_safety": "859a7dfb8b83594cc43fa502ac53d449ab1ee8ef"
+  },
+  "component_trees": {
+    "service": "0cf887d1ab5f99ddbfb722ca940fb741a0350cc0",
+    "web": "9c2bb91c624c5c03b6d7a8c51ef27adb35178a97",
+    "android": "22f4669b6bdfcc70a1084206748135250caae6fc",
+    "relay_agent": "da2901d67e6b0be8a733f5c4efa6027518fea9c0",
+    "firebase": "e1a2b62123c961ecc319eb361d6a5169af5b0612",
+    "functions": "eee3e2b32abb263a5729fba28487c0bd165b49ff",
+    "apps_script_agent_log_gateway": "f92edb014fcdf84b79d8b0dfffa586c89ea6a0f4"
+  },
+  "schemas": {
+    "inventorycore_sqlite": 16,
+    "operational_v2": 5
+  },
+  "accepted_releases": {
+    "android": {
+      "tag": "beta-vc92",
+      "tag_source_sha": "859a7dfb8b83594cc43fa502ac53d449ab1ee8ef",
+      "asset": "supra-inventory-beta.apk",
+      "size_bytes": 19118748,
+      "sha256": "10171a4b8e38b542670be2c21c556c269c2f3f7b1f1ed8757e738618522e6d7f"
+    },
+    "agent": {
+      "tag": "relay-agent-v97",
+      "tag_source_sha": "4c3f0a4dffc94f66237d0958032fd27ac52fed29",
+      "asset": "Agent.Auto.Confirm.Pick.Pack.exe",
+      "size_bytes": 7216128,
+      "sha256": "b8f75d0f100cbb97493d140f39fd708df7002dc1a073eff6a4b7c346d12f4530"
+    },
+    "historical_agent_test_tags": [
+      "relay-agent-v98",
+      "relay-agent-v99",
+      "relay-agent-v100"
+    ]
+  },
+  "safety_targets": {
+    "android": {
+      "tag": "beta-vc93",
+      "version_code": 93,
+      "feature_min_version_code": 94
+    },
+    "agent": {
+      "tag": "relay-agent-v101",
+      "build": 101,
+      "feature_min_build": 102
+    }
+  },
+  "reproducibility": {
+    "web": "EXACT_WEB_TREE_PLUS_LOCKFILE_BUILD__D161_PHASE0_SAFETY_CI_RECORDS_AGGREGATE_DIST_SHA256",
+    "service": "EXACT_SERVICE_TREE_PLUS_TYPECHECK_AND_LIVE_HEALTH_SCHEMA_PROOF",
+    "android": "BASELINE_ANDROID_TREE_IDENTICAL_TO_VC92__ONLY_NONPACKAGED_SAFETY_MARKER_ADDED",
+    "agent": "BASELINE_RELAY_AGENT_TREE_IDENTICAL_TO_V97__ONLY_VERSION_METADATA_97_TO_101"
+  },
+  "scoped_resource_aliases": [
+    "gcp-beta",
+    "worker-beta",
+    "host-beta",
+    "firebase-android-beta",
+    "firebase-web-beta",
+    "sa-beta",
+    "oauth-beta",
+    "drive-beta",
+    "hr-sheet-beta",
+    "logs-folder-beta",
+    "firebase-rtdb-relay-beta",
+    "firestore-relay-beta-d091",
+    "functions-deploy-sa-beta-d119",
+    "picker-alert-runtime-sa-beta-d119",
+    "apps-script-agent-log-gateway-beta-d158"
+  ],
+  "security": {
+    "secret_values_in_manifest": false,
+    "session_or_wms_material_in_manifest": false,
+    "stable": "OWNER_GATED_UNTOUCHED"
+  }
+}
