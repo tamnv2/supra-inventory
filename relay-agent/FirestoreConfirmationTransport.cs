@@ -389,9 +389,14 @@ namespace SupraInventoryRelayAgent
 
             _lastBusinessPendingCount += eligible.Count;
             if (eligible.Count == 0) return processed;
-            if (!_coordinator.VerifyPrimaryBeforeMutation(session))
+            // D161 v107 repair: request ingress/history is allowed for an authenticated
+            // degraded PRIMARY even when Web Confirm is not ready. This fence verifies
+            // only current PRIMARY/generation authority. Actual WMS mutation still uses
+            // VerifyPrimaryBeforeMutation inside D160MutateReady, where WMS-ready remains
+            // mandatory immediately before any provider action.
+            if (!_coordinator.VerifyPrimaryForBusinessIngress(session))
             {
-                _log("FIRESTORE CONFIRM mutation-fence=BLOCK role_or_generation_changed=true");
+                _log("FIRESTORE CONFIRM ingress-fence=BLOCK role_or_generation_changed=true");
                 return processed;
             }
 
