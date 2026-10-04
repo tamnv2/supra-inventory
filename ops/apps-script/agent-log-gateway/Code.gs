@@ -84,7 +84,8 @@ function doPost(e) {
     const props = PropertiesService.getScriptProperties();
     const folderId = String(props.getProperty('BETA_LOG_FOLDER_ID') || '');
     if (!folderId) throw new Error('MISSING_LOG_FOLDER_ID');
-    const folder = DriveApp.getFolderById(folderId);
+    const rootFolder = DriveApp.getFolderById(folderId);
+    const folder = resolveDailyLogFolder_(rootFolder, new Date());
     const key = 'B_' + bundleId;
     const lock = LockService.getScriptLock();
     lock.waitLock(15000);
@@ -119,6 +120,13 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: safeError_(err) });
   }
+}
+
+function resolveDailyLogFolder_(rootFolder, when) {
+  const dateKey = Utilities.formatDate(when || new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
+  const matches = rootFolder.getFoldersByName(dateKey);
+  if (matches.hasNext()) return matches.next();
+  return rootFolder.createFolder(dateKey);
 }
 
 function loadSnapshot_() {
