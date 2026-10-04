@@ -1704,19 +1704,24 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
-            // Preserve one-shot PickList fallback through unrelated presence changes.
-            // Explicit logout/revoke metadata removes only matching/older fallback.
-            foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
-                item != null &&
-                string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
-                !string.IsNullOrWhiteSpace(item.UserId)))
+            // The direct picker_presence_projection document is complete authority:
+            // absence means the Picker session is no longer active. Legacy job/fallback
+            // events may still preserve one-shot PickList observations until explicit
+            // logout/revoke metadata arrives.
+            if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
             {
-                if (incomingIds.Contains(fallback.UserId)) continue;
-                long removedGeneration;
-                if (removals.TryGetValue(fallback.UserId, out removedGeneration) &&
-                    fallback.SessionGeneration <= removedGeneration)
-                    continue;
-                merged.Add(fallback);
+                foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
+                    item != null &&
+                    string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
+                    !string.IsNullOrWhiteSpace(item.UserId)))
+                {
+                    if (incomingIds.Contains(fallback.UserId)) continue;
+                    long removedGeneration;
+                    if (removals.TryGetValue(fallback.UserId, out removedGeneration) &&
+                        fallback.SessionGeneration <= removedGeneration)
+                        continue;
+                    merged.Add(fallback);
+                }
             }
 
             var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
