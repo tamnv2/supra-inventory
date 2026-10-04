@@ -1017,6 +1017,7 @@ namespace SupraInventoryRelayAgent
                     EnsureFreshToken,
                     ForceRefreshAgentTokenD160,
                     ApplyD134AgentSyncSnapshot,
+                    items => ApplyEventDrivenPickerPresence(items, "DIRECT_PRESENCE_LISTEN", "[]"),
                     message => Log(message));
                 _agentSyncListener = listener;
             }
