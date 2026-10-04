@@ -18,7 +18,7 @@ import { sendFcmNotifications } from "./fcm";
 import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow } from "./alert-window-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 
-const SCHEMA_VERSION = 16;
+const SCHEMA_VERSION = 17;
 
 interface CoreEnv {
   APP_ENV: string;
@@ -36,6 +36,7 @@ interface InternalUser extends Record<string, SqlStorageValue> {
   display_name: string;
   contractor_name: string | null;
   shortage_reporting_enabled: number;
+  shortage_reporting_revision: number;
   role: AppRole;
   base_role: AppRole;
   role_override: AppRole | null;
@@ -127,6 +128,7 @@ export class InventoryCore {
         display_name TEXT NOT NULL,
         contractor_name TEXT,
         shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0 CHECK (shortage_reporting_enabled IN (0,1)),
+        shortage_reporting_revision INTEGER NOT NULL DEFAULT 0,
         role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
         role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
         status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
@@ -287,22 +289,35 @@ export class InventoryCore {
     if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
     if (!this.hasColumn("users", "contractor_name")) sql.exec("ALTER TABLE users ADD COLUMN contractor_name TEXT");
     if (!this.hasColumn("users", "shortage_reporting_enabled")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0");
+    if (!this.hasColumn("users", "shortage_reporting_revision")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_revision INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("hr_source_config", "contractor_header")) sql.exec("ALTER TABLE hr_source_config ADD COLUMN contractor_header TEXT NOT NULL DEFAULT ''");
     if (!this.hasColumn("audit_log", "actor_role")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_role TEXT");
     if (!this.hasColumn("audit_log", "actor_display_name")) sql.exec("ALTER TABLE audit_log ADD COLUMN actor_display_name TEXT");
 
-    const d156ReportingDefaultApplied = sql.exec<{ value_json: string }>(
-      "SELECT value_json FROM app_config WHERE key = 'd156_reporting_default_off_applied' LIMIT 1",
+    // D161: D156 is a structural one-time migration. Keep its marker in schema_meta,
+    // not mutable app_config, so RUNTIME_SETTINGS reset can never re-disable Picker reporting.
+    const d156Structural = sql.exec<{ value: string }>(
+      "SELECT value FROM schema_meta WHERE key = 'd156_reporting_default_off_applied' LIMIT 1",
     ).toArray()[0];
-    if (!d156ReportingDefaultApplied) {
+    if (!d156Structural) {
+      const legacyMarker = sql.exec<{ value_json: string }>(
+        "SELECT value_json FROM app_config WHERE key = 'd156_reporting_default_off_applied' LIMIT 1",
+      ).toArray()[0];
       this.state.storage.transactionSync(() => {
+        if (!legacyMarker) {
+          sql.exec(
+            "UPDATE users SET shortage_reporting_enabled = 0, shortage_reporting_revision = shortage_reporting_revision + 1, updated_at = CURRENT_TIMESTAMP WHERE role = 'PICKER'",
+          );
+        }
         sql.exec(
-          "UPDATE users SET shortage_reporting_enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE role = 'PICKER'",
-        );
-        sql.exec(
-          `INSERT INTO app_config (key, value_json, updated_at, updated_by)
-           VALUES ('d156_reporting_default_off_applied', ?, CURRENT_TIMESTAMP, 'SYSTEM_D156')`,
-          JSON.stringify({ applied: true, policy: "EXISTING_AND_NEW_PICKERS_DEFAULT_DISABLED" }),
+          `INSERT INTO schema_meta (key, value, updated_at)
+           VALUES ('d156_reporting_default_off_applied', ?, CURRENT_TIMESTAMP)
+           ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+          JSON.stringify({
+            applied: true,
+            policy: "EXISTING_AND_NEW_PICKERS_DEFAULT_DISABLED",
+            migrated_from_legacy_marker: Boolean(legacyMarker),
+          }),
         );
       });
     }
@@ -322,6 +337,7 @@ export class InventoryCore {
             display_name TEXT NOT NULL,
             contractor_name TEXT,
             shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0 CHECK (shortage_reporting_enabled IN (0,1)),
+            shortage_reporting_revision INTEGER NOT NULL DEFAULT 0,
             role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
             role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
             status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
@@ -343,14 +359,14 @@ export class InventoryCore {
             android_session_started_at TEXT
           );
           INSERT INTO users_d119 (
-            user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, role_override, status,
+            user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, role_override, status,
             created_at, updated_at, password_salt, password_hash, password_changed_at,
             session_generation, session_started_at, auth_email, firebase_password_ready, firebase_agent_ready,
             web_session_generation, web_session_device_id, web_session_started_at,
             android_session_generation, android_session_device_id, android_session_started_at
           )
           SELECT
-            user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, role_override, status,
+            user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, role_override, status,
             created_at, updated_at, password_salt, password_hash, password_changed_at,
             session_generation, session_started_at, auth_email, firebase_password_ready, firebase_agent_ready,
             web_session_generation, web_session_device_id, web_session_started_at,
@@ -603,7 +619,7 @@ export class InventoryCore {
 
   private getUserByUsername(username: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision,
               CASE
                 WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
@@ -627,7 +643,7 @@ export class InventoryCore {
 
   private getUserById(userId: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision,
               CASE
                 WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
@@ -650,7 +666,7 @@ export class InventoryCore {
 
   private getUserByFirebaseUid(uid: string): InternalUser | null {
     const rows = this.state.storage.sql.exec<InternalUser>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision,
               CASE
                 WHEN role = 'ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override
                 ELSE role
@@ -761,7 +777,7 @@ export class InventoryCore {
       const readinessColumn = channel === "AGENT" ? "firebase_agent_ready" : "firebase_password_ready";
       if (channel === "AGENT" && !["ADMIN", "PICKPACK_ADMIN"].includes(role)) return response({ error: "agent_operator_only" }, 400);
       const rows = this.state.storage.sql.exec<InternalUser>(
-        `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
+        `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision,
                 role AS role, role AS base_role, role_override, status,
                 password_salt, password_hash, password_changed_at,
                 auth_email, firebase_password_ready, firebase_agent_ready,
