@@ -140,6 +140,7 @@ namespace SupraInventoryRelayAgent
         private const string ConfirmDialogCloseText = "Đóng";
         private const string PageSizeLabel = "Số dòng mỗi trang";
         private const string PageSizeTarget = "100";
+        private const string NoResultsText = "Không tìm thấy kết quả phù hợp";
 
         internal SupraConfirmBrowser(Action<string> log, Action successfulReload = null)
         {
@@ -2122,13 +2123,20 @@ namespace SupraInventoryRelayAgent
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
               const tableOk = tableSurfaces.length > 0 || rowSurfaces.length > 0;
               const domReady = pathOk && tableOk && search.length === 1 && confirm.length === 1;
-              const dataHydrated = domReady && picklistCodes.length > 0;
+              // D161 v110: an explicit WMS "no results" surface is hydrated data,
+              // not an unavailable Confirm session. This lets Agent activate before
+              // the first PickList of a shift; a later PDA request still runs the
+              // normal Search/recovery path. A blank/unhydrated shell without this
+              // explicit marker remains fail-closed.
+              const explicitEmpty = docs.flatMap(d => [...d.querySelectorAll('body *')]).some(e =>
+                visible(e) && fold(txt(e)) === fold('" + NoResultsText + @"'));
+              const dataHydrated = domReady && (picklistCodes.length > 0 || explicitEmpty);
               const ready = domReady && dataHydrated;
               let state = 'WRONG_PAGE';
               if (loginMarker) state = 'LOGIN_REQUIRED';
               else if (pathOk && domReady && !dataHydrated) state = 'CONFIRM_DATA_EMPTY';
               else if (pathOk && !domReady) state = (search.length > 0 || confirm.length > 0 || tableOk) ? 'CONFIRM_DOM_PARTIAL' : 'LOGIN_OR_DOM_NOT_READY';
-              if (ready) state = 'READY';
+              if (ready) state = explicitEmpty && picklistCodes.length === 0 ? 'READY_EMPTY' : 'READY';
               return JSON.stringify({
                 ready,
                 domReady,
@@ -2145,7 +2153,8 @@ namespace SupraInventoryRelayAgent
                 confirmCount: confirm.length,
                 confirmVisibleCount: confirmVisible.length,
                 tableCount: tableSurfaces.length || rowSurfaces.length,
-                frameCount: Math.max(0, docs.length - 1)
+                frameCount: Math.max(0, docs.length - 1),
+                explicitEmpty
               });
             })()";
         }
