@@ -4557,8 +4557,8 @@
       }
     },
     "phase0": {
-      "status": "ACTIVE",
-      "gate": "PHASE0_SAFETY_BASELINE_ACTIVE",
+      "status": "PASS",
+      "gate": "PHASE0_SAFETY_BASELINE_PASS",
       "manifest": "ops/d161-safety-baseline.json",
       "baseline_capture_main_sha": "be097ce199f2f7f6d09570777193e63fb45399e3",
       "accepted_agent": "relay-agent-v97",
@@ -4571,7 +4571,9 @@
       "web_service_policy": "REPRODUCIBLE_BUILD_AND_SCHEMA_HEALTH_CAPTURE__NO_RAW_PROVIDER_ROLLBACK_ASSUMPTION",
       "persistent_resource_change": "NONE",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "result": "PENDING_SIGNED_RELEASE_AND_RUNTIME_VERIFICATION"
+      "result": "PASS__SIGNED_SAFETY_RELEASES_AND_RUNTIME_VERIFICATION__RUN_37170577529",
+      "terminal_pass_main_sha": "6702b0aabc807954d6427e7e3aa6442134cb95e3",
+      "terminal_pass_run_id": 37170577529
     },
     "phase0_safety": {
       "status": "PASS",
