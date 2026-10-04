@@ -866,6 +866,117 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "PUT" && url.pathname === "/auth/revoke-all-picker-android-sessions") {
+      let body: { request_id?: string; issued_by_user_id?: string } = {};
+      try {
+        body = (await request.json()) as { request_id?: string; issued_by_user_id?: string };
+      } catch {
+        body = {};
+      }
+      const requestId = String(body.request_id || "").trim();
+      const issuedByUserId = String(body.issued_by_user_id || "").trim();
+      if (!/^[A-Za-z0-9._:-]{8,160}$/.test(requestId) || !/^[A-Za-z0-9._:-]{1,180}$/.test(issuedByUserId)) {
+        return response({ error: "invalid_bulk_revoke_request" }, 400);
+      }
+
+      const configKey = `d161_bulk_picker_revoke:${requestId}`;
+      const existing = this.state.storage.sql.exec<{ value_json: string | null }>(
+        "SELECT value_json FROM app_config WHERE key = ? LIMIT 1",
+        configKey,
+      ).toArray()[0];
+      if (existing?.value_json) {
+        try {
+          const replay = JSON.parse(String(existing.value_json)) as Record<string, unknown>;
+          return response({ ...replay, idempotent_replay: true });
+        } catch {
+          return response({ error: "bulk_revoke_state_corrupt" }, 500);
+        }
+      }
+
+      type BulkTarget = {
+        user_id: string;
+        firebase_uid: string;
+        previous_generation: number;
+        revoked_generation: number;
+      };
+      const targets: BulkTarget[] = [];
+      const at = new Date().toISOString();
+      this.state.storage.transactionSync(() => {
+        const rows = this.state.storage.sql.exec<{
+          user_id: string;
+          firebase_uid: string | null;
+          android_session_generation: number;
+        }>(
+          `SELECT user_id, firebase_uid, android_session_generation
+             FROM users
+            WHERE role = 'PICKER'
+              AND status = 'ACTIVE'
+              AND firebase_uid IS NOT NULL
+              AND firebase_uid <> ''
+              AND android_session_generation > 0
+              AND android_session_device_id IS NOT NULL
+              AND android_session_device_id <> ''
+            ORDER BY user_id ASC
+            LIMIT 2000`,
+        ).toArray();
+
+        for (const row of rows) {
+          const previousGeneration = Math.max(1, Number(row.android_session_generation || 0));
+          const nextGeneration = previousGeneration + 1;
+          this.state.storage.sql.exec(
+            `UPDATE users
+                SET android_session_generation = ?,
+                    android_session_device_id = NULL,
+                    android_session_started_at = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+              WHERE user_id = ? AND android_session_generation = ?`,
+            nextGeneration,
+            row.user_id,
+            previousGeneration,
+          );
+          this.state.storage.sql.exec(
+            "UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND platform = 'ANDROID'",
+            row.user_id,
+          );
+          this.state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", row.user_id);
+          targets.push({
+            user_id: row.user_id,
+            firebase_uid: String(row.firebase_uid || ""),
+            previous_generation: previousGeneration,
+            revoked_generation: nextGeneration,
+          });
+        }
+
+        const result = {
+          status: "bulk_picker_android_sessions_revoked",
+          request_id: requestId,
+          issued_by_user_id: issuedByUserId,
+          affected: targets.length,
+          targets,
+          applied_at: at,
+        };
+        this.state.storage.sql.exec(
+          `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(key) DO NOTHING`,
+          configKey,
+          JSON.stringify(result),
+          at,
+          issuedByUserId,
+        );
+      });
+
+      return response({
+        status: "bulk_picker_android_sessions_revoked",
+        request_id: requestId,
+        issued_by_user_id: issuedByUserId,
+        affected: targets.length,
+        targets,
+        applied_at: at,
+        idempotent_replay: false,
+      });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/revoke-android-session") {
       const body = (await request.json()) as {
         user_id?: string;
