@@ -4,7 +4,7 @@ const MAX_PAYLOAD_CHARS = 4500000;
 const INDEX_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 const DATABASE_ID = '(default)';
 const CACHE_KEY = 'D160_AGENT_USAGE_V1';
-const GATEWAY_REVISION = 'D160-GW-v1';
+const GATEWAY_REVISION = 'D161-GW-v2';
 const CACHE_TTL_SECONDS = 15 * 60;
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -85,15 +85,16 @@ function doPost(e) {
     const folderId = String(props.getProperty('BETA_LOG_FOLDER_ID') || '');
     if (!folderId) throw new Error('MISSING_LOG_FOLDER_ID');
     const rootFolder = DriveApp.getFolderById(folderId);
-    const folder = resolveDailyLogFolder_(rootFolder, new Date());
     const key = 'B_' + bundleId;
     const lock = LockService.getScriptLock();
     lock.waitLock(15000);
     try {
+      const daily = resolveDailyLogFolder_(rootFolder, new Date());
+      const folder = daily.folder;
       const known = props.getProperty(key);
       if (known) {
         const parsed = JSON.parse(known);
-        return json_({ ok: true, existing: true, file_id: String(parsed.file_id || '') });
+        return json_({ ok: true, existing: true, drive_synced: true, archive_date: daily.date_key, file_id: String(parsed.file_id || '') });
       }
 
       const deterministicName = fileName.replace(/\.log$/, '_' + bundleId.substring(0, 12) + '.log');
@@ -102,7 +103,7 @@ function doPost(e) {
         const file = existing.next();
         props.setProperty(key, JSON.stringify({ file_id: file.getId(), at_ms: Date.now() }));
         pruneIndex_(props);
-        return json_({ ok: true, existing: true, file_id: file.getId() });
+        return json_({ ok: true, existing: true, drive_synced: true, archive_date: daily.date_key, file_id: file.getId() });
       }
 
       const file = folder.createFile(deterministicName, payload, MimeType.PLAIN_TEXT);
@@ -113,7 +114,7 @@ function doPost(e) {
         app_user_id: auth.app_user_id
       }));
       pruneIndex_(props);
-      return json_({ ok: true, existing: false, file_id: file.getId() });
+      return json_({ ok: true, existing: false, drive_synced: true, archive_date: daily.date_key, file_id: file.getId() });
     } finally {
       lock.releaseLock();
     }
@@ -124,9 +125,21 @@ function doPost(e) {
 
 function resolveDailyLogFolder_(rootFolder, when) {
   const dateKey = Utilities.formatDate(when || new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'D161_LOG_DAY_' + dateKey;
+  const cachedId = String(cache.get(cacheKey) || '');
+  if (cachedId) {
+    try {
+      return { folder: DriveApp.getFolderById(cachedId), date_key: dateKey };
+    } catch (_) {
+      cache.remove(cacheKey);
+    }
+  }
+
   const matches = rootFolder.getFoldersByName(dateKey);
-  if (matches.hasNext()) return matches.next();
-  return rootFolder.createFolder(dateKey);
+  const folder = matches.hasNext() ? matches.next() : rootFolder.createFolder(dateKey);
+  cache.put(cacheKey, folder.getId(), 6 * 60 * 60);
+  return { folder: folder, date_key: dateKey };
 }
 
 function loadSnapshot_() {
