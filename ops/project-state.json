@@ -2468,7 +2468,7 @@
     "accepted_base_change_id": "D160",
     "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02__POST_PASS_TESTS_CLOSED_2026_10_03",
     "current_change_id": "D161",
-    "current_change_status": "D161_OWNER_APPROVED_BACKLOG__D160_CONFIRM_CARRYOVER_CAPTURED__AWAITING_EXACT_START_COMMAND",
+    "current_change_status": "D161_EXACT_START_RECEIVED__PHASE0A_PERMISSION_PROVIDER_PREFLIGHT_ACTIVE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2484,7 +2484,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D160_CLOSED__TRUSTED_RUNTIME_RELAY_AGENT_V97__D161_NOT_STARTED__ANDROID_VC92_UNCHANGED",
+    "runtime_impact": "D160_ACCEPTED_RUNTIME_RELAY_AGENT_V97__D161_PHASE0A_ACTIVE__NO_BUSINESS_RUNTIME_SOURCE_MUTATION__ANDROID_VC92_UNCHANGED",
     "resource_change": "NONE__AUTHORITY_BACKLOG_ONLY__STABLE_UNTOUCHED",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
@@ -4401,7 +4401,7 @@
     "android_current_release": "beta-vc92__UNCHANGED_DURING_COLLECTION",
     "web_current_label": "Version 1",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "MERGE_LOCAL_TOKEN_SIGNING_REPAIR__RERUN_PHASE0A_CONTINUATION",
+    "next_action": "MERGE_PHASE0A_CONTRACT_PROBE_REPAIR__RERUN_MAIN_PREFLIGHT_AND_CONTINUATION",
     "next_change_allowed": false,
     "schedule": "OWNER_APPROVED_TARGET__NORMAL_END_2215__NO_PREEND_PROMPT__PLUS1H_SHARED_OVERRIDES__T_MINUS_15_WARNING__0500_CAP__D154_START_EARLY_START_AND_PROPAGATION_INHERITED",
     "logs": "OWNER_APPROVED_TARGET__OBSERVABILITY_V2__COMMON_TRACE_SEQUENCE_GAPS__WEB_PERSISTED_INCIDENT_CONTEXT__ANDROID_1_2MIB_JOURNAL__AGENT_STRUCTURED_COMPLETE_STREAM__DRIVE_CONFIRMED_PRUNE__NO_PER_EVENT_PROVIDER_WRITE",
@@ -4523,12 +4523,12 @@
         "android_safety": "vc93",
         "android_feature_min": "vc94"
       },
-      "result": "REPAIRING_PREFLIGHT_AUTOMATION__LOCAL_FIREBASE_TOKEN_SIGNING",
+      "result": "REPAIRING_PREFLIGHT_AUTOMATION__CONTRACT_PROBE_ALIGNMENT",
       "last_failure": {
-        "run_id": 37162334620,
-        "step": "AUTHENTICATED_WORKER_HR_PREVIEW_AND_AGENT_GATEWAY_CONTROL",
-        "classification": "PREFLIGHT_AUTOMATION_SIGNING_METHOD_DEFECT__NOT_RUNTIME_IAM_REQUIREMENT",
-        "cause": "firebase-admin createCustomToken attempted iam.serviceAccounts.signBlob despite service-account private key being available in the protected job credentials file",
+        "run_id": 37162506846,
+        "step": "WORKER_HR_AUTH_PROBE_AND_FCM_CAPABILITY_PROBE",
+        "classification": "PREFLIGHT_AUTOMATION_CONTRACT_MISMATCH__NOT_PROVEN_RUNTIME_PERMISSION_DEFECT",
+        "cause": "AGENT-channel probe was sent to a Web-session-only HR preview route; a parallel FCM probe inferred capability from role metadata instead of the approved provider canary",
         "passed_before_failure": [
           "RUNTIME_ADC_OAUTH",
           "HR_DRIVE_READ",
@@ -4536,7 +4536,7 @@
           "CLOUD_MONITORING_READ",
           "FIREBASE_ADMIN_LIST_USERS"
         ],
-        "repair": "SIGN_FIREBASE_CUSTOM_TOKEN_LOCALLY_WITH_PROTECTED_SERVICE_ACCOUNT_PRIVATE_KEY__NO_SIGNBLOB_IAM_GRANT",
+        "repair": "KEEP_PRODUCT_RBAC_UNCHANGED__USE_AGENT_TOKEN_ONLY_ON_AGENT_COMPATIBLE_ENDPOINTS__USE_PROVIDER_CANARY_FOR_FCM",
         "runtime_mutation": "NONE"
       },
       "continuation_workflow": ".github/workflows/d161-phase0a-continuation.yml",

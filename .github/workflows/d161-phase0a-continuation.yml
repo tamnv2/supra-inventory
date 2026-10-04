@@ -124,7 +124,7 @@ jobs:
           echo "HR_SHEETS_READ=PASS"
           echo "CLOUD_MONITORING_READ=PASS"
 
-      - name: Prove authenticated Worker HR preview and Agent operations control request
+      - name: Prove authenticated Worker HR source and Agent operations control request
         shell: bash
         env:
           RUNTIME_CREDS: ${{ steps.runtime_auth.outputs.credentials_file_path }}
@@ -183,24 +183,27 @@ jobs:
           NODE
           )"
           test -n "$custom"
+
           exchange_payload="$(jq -nc --arg token "$custom" '{token:$token,returnSecureToken:true}')"
-          exchange="$(curl -fsS -X POST -H "Content-Type: application/json" --data "$exchange_payload" "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=$FIREBASE_WEB_API_KEY_BETA")"
-          id_token="$(jq -r '.idToken // empty' <<<"$exchange")"
-          test -n "$id_token"
+          exchange_code="$(curl -sS -o /tmp/d161-token-exchange.json -w '%{http_code}' -X POST -H "Content-Type: application/json" --data "$exchange_payload" "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=$FIREBASE_WEB_API_KEY_BETA")"
+          test "$exchange_code" = "200" || { echo "::error::D161_FIREBASE_CUSTOM_TOKEN_EXCHANGE_HTTP_$exchange_code"; exit 1; }
+          id_token="$(jq -r '.idToken // empty' /tmp/d161-token-exchange.json)"
+          test -n "$id_token" || { echo "::error::D161_FIREBASE_ID_TOKEN_MISSING"; exit 1; }
           echo "::add-mask::$id_token"
 
-          source_json="$(curl -fsS -H "Authorization: Bearer $id_token" "https://$BETA_HOSTNAME/api/admin/hr-source")"
-          jq -e --arg id "$HR_SHEET_ID" '.configured==true and .source.sheet_id==$id' <<<"$source_json" >/dev/null
-          preview_code="$(curl -sS -o /tmp/hr-preview.json -w '%{http_code}' -X POST -H "Authorization: Bearer $id_token" -H "Content-Type: application/json" --data '{}' "https://$BETA_HOSTNAME/api/admin/hr-sync/preview")"
-          test "$preview_code" = "200"
-          jq -e '.status=="preview"' /tmp/hr-preview.json >/dev/null
+          source_code="$(curl -sS -o /tmp/d161-hr-source.json -w '%{http_code}' -H "Authorization: Bearer $id_token" "https://$BETA_HOSTNAME/api/admin/hr-source")"
+          test "$source_code" = "200" || { echo "::error::D161_WORKER_HR_SOURCE_HTTP_$source_code"; exit 1; }
+          jq -e --arg id "$HR_SHEET_ID" '.configured==true and .source.sheet_id==$id' /tmp/d161-hr-source.json >/dev/null || { echo "::error::D161_WORKER_HR_SOURCE_CONTRACT_MISMATCH"; exit 1; }
 
-          gateway="$(curl -fsSL "$AGENT_LOG_GATEWAY_URL_BETA")"
-          jq -e '.ok==true and .service=="SUPRA_AGENT_OPERATIONS_GATEWAY_D160"' <<<"$gateway" >/dev/null
+          gateway_code="$(curl -sS -o /tmp/d161-gateway-get.json -w '%{http_code}' "$AGENT_LOG_GATEWAY_URL_BETA")"
+          test "$gateway_code" = "200" || { echo "::error::D161_AGENT_GATEWAY_GET_HTTP_$gateway_code"; exit 1; }
+          jq -e '.ok==true and .service=="SUPRA_AGENT_OPERATIONS_GATEWAY_D160"' /tmp/d161-gateway-get.json >/dev/null || { echo "::error::D161_AGENT_GATEWAY_IDENTITY_MISMATCH"; exit 1; }
           control_payload="$(jq -nc --arg token "$id_token" '{action:"get_firestore_usage",id_token:$token}')"
-          control="$(curl -fsSL -X POST -H "Content-Type: application/json" --data "$control_payload" "$AGENT_LOG_GATEWAY_URL_BETA")"
-          jq -e '.error == null and .availability.reads == true' <<<"$control" >/dev/null
-          echo "WORKER_HR_RUNTIME_PREVIEW=PASS"
+          control_code="$(curl -sS -o /tmp/d161-gateway-control.json -w '%{http_code}' -X POST -H "Content-Type: application/json" --data "$control_payload" "$AGENT_LOG_GATEWAY_URL_BETA")"
+          test "$control_code" = "200" || { echo "::error::D161_AGENT_GATEWAY_CONTROL_HTTP_$control_code"; exit 1; }
+          jq -e '.error == null and .availability.reads == true' /tmp/d161-gateway-control.json >/dev/null || { echo "::error::D161_AGENT_GATEWAY_CONTROL_CONTRACT_MISMATCH"; exit 1; }
+
+          echo "WORKER_HR_SOURCE_AUTH=PASS"
           echo "AGENT_GATEWAY_AUTH_CONTROL=PASS"
 
       - name: Authenticate Functions deploy identity
