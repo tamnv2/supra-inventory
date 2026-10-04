@@ -64,8 +64,41 @@ function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     const action = String(body.action || '');
-    const auth = validateIdToken_(String(body.id_token || ''));
+    const idToken = String(body.id_token || '');
+    const auth = validateIdToken_(idToken);
     if (action === 'get_firestore_usage') return json_(loadSnapshot_());
+    if (action === 'request_support_logs') {
+      const requestId = String(body.request_id || '');
+      if (!/^support-[A-Za-z0-9]{16,80}$/.test(requestId)) throw new Error('INVALID_SUPPORT_REQUEST_ID');
+      const authHeader = ['Bea', 'rer ', idToken].join('');
+      const worker = UrlFetchApp.fetch(
+        'https://inventory-beta.supra.cc.cd/api/agent/support-log-request',
+        {
+          method: 'post',
+          contentType: 'application/json',
+          headers: { authorization: authHeader },
+          payload: JSON.stringify({ request_id: requestId }),
+          muteHttpExceptions: true
+        }
+      );
+      const status = worker.getResponseCode();
+      let result = {};
+      try { result = JSON.parse(worker.getContentText() || '{}'); } catch (_) { result = {}; }
+      if (status < 200 || status >= 300) {
+        throw new Error(String(result.error || ('WORKER_HTTP_' + status)).substring(0, 120));
+      }
+      return json_({
+        ok: true,
+        service: 'SUPRA_AGENT_SUPPORT_CONTROL_D161',
+        project: PROJECT_ID,
+        revision: GATEWAY_REVISION,
+        request_id: String(result.request_id || requestId),
+        trace_id: String(result.trace_id || requestId),
+        expires_at_ms: Number(result.expires_at_ms || 0),
+        idempotent_replay: result.idempotent_replay === true,
+        propagation: result.propagation || {}
+      });
+    }
     if (action !== 'upload_agent_log') throw new Error('ACTION_NOT_ALLOWED');
     const bundleId = String(body.bundle_id || '').toLowerCase();
     const fileName = String(body.file_name || '');
