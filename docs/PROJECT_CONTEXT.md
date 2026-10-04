@@ -918,3 +918,14 @@ Android remains `beta-vc92` hard-locked. No provider resource, Firestore cadence
 - **HR:** HARD_BLOCK exposes bounded non-sensitive row/reason diagnostics and a one-shot recheck; HARD_BLOCK remains fail-closed. CONFIRM_REQUIRED uses explicit Yes/No, where No performs no mutation and keeps the proposal pending.
 - **Agent Picker list:** after Agent login, active Picker observation is independent from WMS/Web Confirm readiness and the business-processing window. It reuses one Agent-sync gRPC stream targeting the existing `agent_sync` and authoritative `picker_presence_projection/current` documents, and stops on Agent logout; PickList mutation gates remain unchanged.
 - Repair lineage target: Web Version 2, Agent v105, next monotonic Android Beta after vc96. Stable remains OWNER-GATED and untouched.
+
+
+## D161 Owner field repair technical pass — 2026-10-04
+
+- Repair implementation merged in PR #427 at main `afaf9d563894e61d3632f65ce624c1b3b76bfd36`.
+- Beta Web/Worker deploy PASS: run `37199390053`; Web presentation release is **Version 2**.
+- Android repair release PASS: **beta-vc97**, release `402990645`, verify run `37199390022`.
+- Agent repair release PASS: **relay-agent-v105**, release `402990615`, verify run `37199390032`.
+- Repo Authority, Project State and UI Design push guards PASS on the repaired main lineage.
+- This is **technical/runtime/release PASS only**. OA096 is now ready for Owner field re-test of the three repaired items; D161 is not Owner PASS yet.
+- Stable remains OWNER-GATED and untouched.
