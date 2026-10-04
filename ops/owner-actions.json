@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "BLOCKED_BY_SEVENTH_FIELD_REPAIR",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "D161 sixth field repair is merged and technical/runtime/release PASS on Agent v110. Owner field retest remains required with Android beta-vc97 unchanged. Overtime/early-start schedule actions are now independent of idle PickList readiness, and an explicit WMS no-results surface is represented as Web Agent chưa có PickList rather than a false unavailable session.",
+      "reason_owner_only": "D161 Owner field retest is temporarily blocked while the Owner-approved Agent-only v111 Picker presence convergence repair is implemented and technically released. Android beta-vc97 remains unchanged; no Owner action is needed until v111 is ready.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4817,25 +4817,26 @@
         "third_field_repair": "OWNER_FIELD_NOT_PASS__PR_432__MAIN_B7307EEB__AGENT_V107__HISTORY_STILL_BLANK_WHEN_WEB_CONFIRM_NOT_READY",
         "fourth_field_repair": "PASS__PR_434__MAIN_217D33F1__AUTHORITY_PR_435__MAIN_5A3C07EB__AGENT_V108__RUN_37207091449__RELEASE_403043358__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "fifth_field_repair": "PASS__PR_437__MAIN_C5673B4E__WORKER_RUN_37214830211__AGENT_V109__RUN_37214830165__RELEASE_403093302__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
-        "sixth_field_repair": "PASS__PR_439__MAIN_FBD18C15__AGENT_V110__RUN_37217744592__UI_RUN_37217744516__D127_RUN_37217744628__USAGE_RUN_37217744811__RELEASE_403111389__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED"
+        "sixth_field_repair": "PASS__PR_439__MAIN_FBD18C15__AGENT_V110__RUN_37217744592__UI_RUN_37217744516__D127_RUN_37217744628__USAGE_RUN_37217744811__RELEASE_403111389__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
+        "seventh_field_repair": "OWNER_APPROVED__IN_PROGRESS__TARGET_AGENT_V111__RAM_GENERATION_TOMBSTONE__LOCAL_POST_AUTHORITY_REVOKE_REMOVAL__EXISTING_EVENT_PATHS_ONLY__ANDROID_VC97_UNCHANGED"
       },
       "shortest_test_path": [
-        "Run/update Windows Agent to relay-agent-v110. Keep Android on beta-vc97.",
-        "Outside 22:15–05:00, verify the red warning with white text visibly contains Gia hạn +1 giờ and the button remains visible/clickable after resize or auto-size.",
-        "With Web Agent showing no current PickList, press Gia hạn +1 giờ and verify the shared overtime schedule activates without requiring a PickList.",
-        "Verify the Web Confirm status reads Web Agent chưa có PickList when the WMS page explicitly shows Không tìm thấy kết quả phù hợp.",
-        "While that empty state is active, send a PickList from Android vc97 and verify Agent runs the normal Search/recovery/confirm flow instead of rejecting solely because the idle page was empty.",
-        "Retest one per-row Kích User: selected PDA must log out and no specialist/call overlay may appear.",
-        "Continue remaining D161 field acceptance items and explicitly report PASS only when the full candidate is accepted."
+        "No manual action until relay-agent-v111 reaches technical/runtime/release PASS.",
+        "Then update Windows Agent to relay-agent-v111. Keep Android on beta-vc97.",
+        "Login at least one Picker and verify it appears without manual refresh.",
+        "Perform normal Android logout and verify the Picker disappears from every authenticated Agent list without manual refresh.",
+        "Login again, then use per-row Kích User and verify the selected Picker disappears immediately after server success, returns to login, and no specialist overlay appears.",
+        "Login the same Picker again with a newer session and verify it appears normally instead of being blocked by stale local state.",
+        "Continue the remaining v110 overtime/READY_EMPTY and D161 field acceptance checks."
       ],
       "pass_criteria": [
-        "Agent v110 keeps Gia hạn +1 giờ visibly positioned inside the outside-hours warning panel after render and resize.",
-        "Overtime extension and 05:00–05:45 early-start activation do not depend on WMS/PickList readiness.",
-        "Explicit WMS no-results is READY_EMPTY and user-facing as Web Agent chưa có PickList; a blank/unhydrated shell remains fail-closed.",
-        "A later PDA request from READY_EMPTY enters the existing Search/recovery/confirm pipeline and preserves strict PRIMARY/generation + operational browser mutation fencing.",
-        "The v109 per-row Kích User repair remains regression-clean: exactly the selected Android session is revoked and no specialist overlay is emitted.",
-        "Android beta-vc97, Worker, Web and Stable remain unchanged by v110.",
-        "No new provider resource, collection/query/listener family, polling, heartbeat or provider write cadence is introduced.",
+        "Normal Android logout removes the Picker through existing event-driven paths without manual refresh.",
+        "Per-row Kích User removes the exact local row immediately only after server-authoritative revoke succeeds.",
+        "Delayed same/older generation direct/sync/PickList evidence cannot resurrect a removed Picker; a strictly newer login generation appears normally.",
+        "Existing agent_sync presence delta can converge a missed/delayed direct presence event, while history/counter/call-lock-only changes cannot repaint the Picker list.",
+        "Bulk revoke removes only captured session generations so a newer concurrent login is preserved.",
+        "Android beta-vc97, Worker, Web and Stable remain unchanged.",
+        "No new provider resource, listener/query family, polling, heartbeat, Desktop timer or provider write cadence is introduced; normal-path usage does not increase.",
         "Owner explicitly accepts the field result before D161 can PASS."
       ],
       "evidence": {
@@ -4963,7 +4964,7 @@
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "FIELD_RETEST_AGENT_V110_THEN_EXPLICIT_PASS_OR_NOT_PASS",
+      "remaining_owner_action": "NONE_UNTIL_V111_TECHNICAL_RUNTIME_RELEASE_PASS",
       "closed": false,
       "completion_evidence": {
         "sixth_field_repair": {

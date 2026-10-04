@@ -3247,3 +3247,18 @@ Owner field retest after Agent v109 found three related Agent-only defects and a
 - Existing pre-mutation safety remains mandatory: actual WMS checkbox/Confirm mutation still requires current PRIMARY/generation authority and operational browser readiness at the mutation fence.
 - Scope is Windows Agent only. Android remains beta-vc97; Worker/Web/Stable are unchanged. No new provider resource, collection, listener, query, polling loop, heartbeat or write cadence is authorized.
 - Target repair release is **relay-agent-v110**. D160 relay-agent-v97 remains the accepted/rescue base until explicit Owner PASS for D161.
+
+
+## D161 seventh field repair — Picker presence realtime convergence — 2026-10-04
+
+Owner field testing after Agent v110 found that an Android Picker could remain visible in the Agent active-Picker list after self logout or **Kích User** even though session authority had already ended/revoked. The Owner approved repair under the existing D161 gate.
+
+- The active-Picker list continues to mean **authenticated Android Picker sessions**, not device-power/heartbeat state.
+- Reuse only the existing event-driven paths: the authenticated Agent exact-document stream for `relay_poc_coordination/agent_sync` + `picker_presence_projection/current`, plus the already-existing presence control event. Do **not** add a listener, query, polling loop, heartbeat, timer cadence or provider resource.
+- After authoritative per-row **Kích User** succeeds, Agent removes that exact Picker generation from local RAM/UI immediately; it must not wait for another provider event. Existing server revoke and existing `agent_sync` mutation remain unchanged.
+- After authoritative **Kích toàn bộ user** succeeds, Agent removes only the session generations captured when the command was issued so a legitimate newer login that races the response is not hidden.
+- Agent keeps a RAM-only `user_id -> removed/revoked generation` tombstone. Delayed direct-presence, PickList fallback or `agent_sync` data at the same/older generation is ignored. A strictly newer legitimate session generation clears the tombstone automatically.
+- Direct `picker_presence_projection/current` remains the primary complete login/logout view. Existing `agent_sync` presence deltas are allowed to converge the UI as a second already-paid event path instead of being permanently ignored after the first direct-presence observation.
+- Unrelated `agent_sync` mutations such as history/counters/call locks must not repaint Picker presence. Only an actual `agent_sync` presence delta participates in fallback convergence.
+- Android stays **beta-vc97**; Worker/Web/Stable are unchanged for this repair. No extra normal-path Desktop/provider usage is authorized.
+- Target repair release is **relay-agent-v111**. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.

@@ -106,6 +106,12 @@ namespace SupraInventoryRelayAgent
         private long _d150DeepSyncReadRunning;
         private bool? _pickerWindowOpenState;
         private bool _d161DirectPickerPresenceObserved;
+        // D161 v111: local RAM-only generation fences prevent delayed presence,
+        // PickList fallback or agent_sync snapshots from resurrecting a Picker
+        // after an authoritative logout/revoke observation. Newer generations
+        // automatically clear their own fence. No provider operation is attached.
+        private readonly Dictionary<string, long> _pickerSessionTombstones =
+            new Dictionary<string, long>(StringComparer.Ordinal);
         private volatile int _activePdaCountForRelay;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
@@ -432,6 +438,7 @@ namespace SupraInventoryRelayAgent
             {
                 StopD134AgentSync();
                 _d161DirectPickerPresenceObserved = false;
+                _pickerSessionTombstones.Clear();
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
@@ -1153,8 +1160,8 @@ namespace SupraInventoryRelayAgent
                 UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents);
             }
 
-            if (HasAgentSession() && !_d161DirectPickerPresenceObserved)
-                UpdatePickerOnlineGrid(snapshot.Pickers, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            if (HasAgentSession())
+                ApplyD161AgentSyncPickerConvergence(currentSnapshot, snapshot);
             RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader);
             RefreshD128Overlay();
             Log("AGENT_SYNC apply version=" + snapshot.Version +
@@ -1464,7 +1471,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             var previousActivePdaCount = _activePdaCountForRelay;
-            _pickerOnlineSnapshot = (items ?? new List<PickerPresenceView>())
+            _pickerOnlineSnapshot = FilterPickerTombstones(items ?? new List<PickerPresenceView>())
                 .Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId))
                 .OrderBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
@@ -1495,6 +1502,24 @@ namespace SupraInventoryRelayAgent
             }
 
             var incomingGeneration = Math.Max(0L, work.PickerSessionGeneration);
+            long tombstoneGeneration;
+            if (_pickerSessionTombstones.TryGetValue(work.PickerUserId, out tombstoneGeneration))
+            {
+                if (incomingGeneration <= tombstoneGeneration)
+                {
+                    Log("PICKER_PRESENCE activity=PICKLIST fallback=SKIP_TOMBSTONED user=" +
+                        SafeUserLabel(work.PickerEmployeeCode, work.PickerUserId) +
+                        " incoming_generation=" + incomingGeneration +
+                        " tombstone_generation=" + tombstoneGeneration);
+                    return;
+                }
+                _pickerSessionTombstones.Remove(work.PickerUserId);
+                Log("PICKER_PRESENCE tombstone=CLEARED_NEWER_GENERATION user=" +
+                    SafeUserLabel(work.PickerEmployeeCode, work.PickerUserId) +
+                    " incoming_generation=" + incomingGeneration +
+                    " previous_tombstone=" + tombstoneGeneration);
+            }
+
             var existing = _pickerOnlineSnapshot.FirstOrDefault(x =>
                 x != null && string.Equals(x.UserId, work.PickerUserId, StringComparison.Ordinal));
 
@@ -1595,6 +1620,220 @@ namespace SupraInventoryRelayAgent
                    (generation <= 0 || current.SessionGeneration == generation);
         }
 
+        private Dictionary<string, long> CapturePickerSessionGenerations()
+        {
+            if (InvokeRequired)
+                return (Dictionary<string, long>)Invoke(new Func<Dictionary<string, long>>(CapturePickerSessionGenerations));
+
+            var result = new Dictionary<string, long>(StringComparer.Ordinal);
+            foreach (var picker in _pickerOnlineSnapshot ?? new List<PickerPresenceView>())
+            {
+                if (picker == null || string.IsNullOrWhiteSpace(picker.UserId)) continue;
+                long previous;
+                var generation = Math.Max(0L, picker.SessionGeneration);
+                if (!result.TryGetValue(picker.UserId, out previous) || generation > previous)
+                    result[picker.UserId] = generation;
+            }
+            return result;
+        }
+
+        private void RememberPickerSessionTombstone(string userId, long generation, string reason)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || generation <= 0L) return;
+            long current;
+            if (_pickerSessionTombstones.TryGetValue(userId, out current) && current >= generation) return;
+            _pickerSessionTombstones[userId] = generation;
+            Log("PICKER_PRESENCE tombstone=SET user=" + SafeUserLabel("", userId) +
+                " generation=" + generation +
+                " reason=" + AgentDiagnostics.Sanitize(reason) +
+                " provider_op=false");
+        }
+
+        private bool PickerBlockedByTombstone(PickerPresenceView picker)
+        {
+            if (picker == null || string.IsNullOrWhiteSpace(picker.UserId)) return true;
+            long tombstone;
+            if (!_pickerSessionTombstones.TryGetValue(picker.UserId, out tombstone)) return false;
+            if (picker.SessionGeneration > tombstone)
+            {
+                _pickerSessionTombstones.Remove(picker.UserId);
+                Log("PICKER_PRESENCE tombstone=CLEARED_NEWER_GENERATION user=" +
+                    SafeUserLabel(picker.EmployeeCode, picker.UserId) +
+                    " incoming_generation=" + picker.SessionGeneration +
+                    " previous_tombstone=" + tombstone);
+                return false;
+            }
+            return true;
+        }
+
+        private List<PickerPresenceView> FilterPickerTombstones(IEnumerable<PickerPresenceView> items)
+        {
+            var result = new List<PickerPresenceView>();
+            foreach (var picker in items ?? new PickerPresenceView[0])
+            {
+                if (picker == null || string.IsNullOrWhiteSpace(picker.UserId)) continue;
+                if (PickerBlockedByTombstone(picker)) continue;
+                result.Add(picker);
+            }
+            return result;
+        }
+
+        private void ApplyLocalPickerSessionRemoval(string userId, long generation, string reason)
+        {
+            var removals = new Dictionary<string, long>(StringComparer.Ordinal);
+            if (!string.IsNullOrWhiteSpace(userId)) removals[userId] = Math.Max(0L, generation);
+            ApplyLocalPickerSessionRemovals(removals, reason);
+        }
+
+        private void ApplyLocalPickerSessionRemovals(IDictionary<string, long> removals, string reason)
+        {
+            if (InvokeRequired)
+            {
+                var copy = removals == null
+                    ? new Dictionary<string, long>(StringComparer.Ordinal)
+                    : removals.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+                Invoke(new Action<IDictionary<string, long>, string>(ApplyLocalPickerSessionRemovals), copy, reason);
+                return;
+            }
+            if (removals == null || removals.Count == 0) return;
+
+            foreach (var pair in removals)
+                RememberPickerSessionTombstone(pair.Key, pair.Value, reason);
+
+            var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
+            var next = (_pickerOnlineSnapshot ?? new List<PickerPresenceView>())
+                .Where(item =>
+                {
+                    if (item == null || string.IsNullOrWhiteSpace(item.UserId)) return false;
+                    long removedGeneration;
+                    if (!removals.TryGetValue(item.UserId, out removedGeneration)) return true;
+                    return item.SessionGeneration > Math.Max(0L, removedGeneration);
+                })
+                .ToList();
+            next = FilterPickerTombstones(next);
+            if (string.Equals(before, PickerSharedStateSignature(next), StringComparison.Ordinal)) return;
+
+            UpdatePickerOnlineGrid(next, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+            Log("PICKER_PRESENCE local_remove=APPLIED reason=" + AgentDiagnostics.Sanitize(reason) +
+                " remaining=" + next.Count +
+                " provider_op=false");
+        }
+
+        private void ApplyD161AgentSyncPickerConvergence(
+            AgentSyncSnapshot previousSnapshot,
+            AgentSyncSnapshot nextSnapshot)
+        {
+            if (nextSnapshot == null) return;
+
+            foreach (var kick in nextSnapshot.Kicks.Values)
+            {
+                if (kick == null || string.IsNullOrWhiteSpace(kick.UserId)) continue;
+                RememberPickerSessionTombstone(
+                    kick.UserId,
+                    Math.Max(0L, kick.RevokedGeneration),
+                    "AGENT_SYNC_KICK");
+            }
+
+            var previousPickers = previousSnapshot == null
+                ? new List<PickerPresenceView>()
+                : (previousSnapshot.Pickers ?? new List<PickerPresenceView>());
+            var nextPickers = nextSnapshot.Pickers ?? new List<PickerPresenceView>();
+            var syncPresenceChanged = !string.Equals(
+                PickerSharedStateSignature(previousPickers),
+                PickerSharedStateSignature(nextPickers),
+                StringComparison.Ordinal);
+
+            if (!_d161DirectPickerPresenceObserved)
+            {
+                UpdatePickerOnlineGrid(
+                    FilterPickerTombstones(nextPickers),
+                    _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+                return;
+            }
+
+            // Once direct projection has been seen, unrelated agent_sync mutations
+            // (history/counters/call locks) must not repaint Picker presence. A real
+            // presence delta is still useful as the existing second event path when
+            // one direct document change was delayed/lost.
+            if (!syncPresenceChanged)
+            {
+                var filteredCurrent = FilterPickerTombstones(_pickerOnlineSnapshot);
+                if (!string.Equals(
+                        PickerSharedStateSignature(filteredCurrent),
+                        PickerSharedStateSignature(_pickerOnlineSnapshot),
+                        StringComparison.Ordinal))
+                    UpdatePickerOnlineGrid(filteredCurrent, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+                return;
+            }
+
+            var previousByUser = previousPickers
+                .Where(item => item != null && !string.IsNullOrWhiteSpace(item.UserId))
+                .GroupBy(item => item.UserId, StringComparer.Ordinal)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderByDescending(item => item.SessionGeneration).First(),
+                    StringComparer.Ordinal);
+            var currentByUser = (_pickerOnlineSnapshot ?? new List<PickerPresenceView>())
+                .Where(item => item != null && !string.IsNullOrWhiteSpace(item.UserId))
+                .GroupBy(item => item.UserId, StringComparer.Ordinal)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderByDescending(item => item.SessionGeneration).First(),
+                    StringComparer.Ordinal);
+            var incomingByUser = nextPickers
+                .Where(item => item != null && !string.IsNullOrWhiteSpace(item.UserId))
+                .GroupBy(item => item.UserId, StringComparer.Ordinal)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderByDescending(item => item.SessionGeneration).First(),
+                    StringComparer.Ordinal);
+
+            var merged = new List<PickerPresenceView>();
+            foreach (var pair in incomingByUser)
+            {
+                var incoming = pair.Value;
+                PickerPresenceView current;
+                if (currentByUser.TryGetValue(pair.Key, out current) &&
+                    current.SessionGeneration > incoming.SessionGeneration)
+                    merged.Add(current);
+                else
+                    merged.Add(incoming);
+            }
+
+            foreach (var pair in currentByUser)
+            {
+                if (incomingByUser.ContainsKey(pair.Key)) continue;
+                var current = pair.Value;
+                if (PickerBlockedByTombstone(current)) continue;
+
+                PickerPresenceView previousSync;
+                if (previousByUser.TryGetValue(pair.Key, out previousSync) &&
+                    current.SessionGeneration <= previousSync.SessionGeneration)
+                {
+                    RememberPickerSessionTombstone(
+                        current.UserId,
+                        Math.Max(0L, current.SessionGeneration),
+                        "AGENT_SYNC_PRESENT_TO_ABSENT");
+                    continue;
+                }
+
+                // Current is a newer direct observation that agent_sync has not yet
+                // caught up with; do not let an unrelated/older sync snapshot erase it.
+                merged.Add(current);
+            }
+
+            merged = FilterPickerTombstones(merged);
+            var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
+            var after = PickerSharedStateSignature(merged);
+            if (!string.Equals(before, after, StringComparison.Ordinal))
+                UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
+
+            Log("PICKER_PRESENCE convergence=AGENT_SYNC_DELTA changed=" +
+                (!string.Equals(before, after, StringComparison.Ordinal) ? "true" : "false") +
+                " count=" + merged.Count +
+                " provider_op=false");
+        }
+
         private static string SafeUserLabel(string employeeCode, string userId)
         {
             var value = string.IsNullOrWhiteSpace(employeeCode) ? (userId ?? "") : employeeCode;
@@ -1685,6 +1924,28 @@ namespace SupraInventoryRelayAgent
                 incoming.Select(item => item.UserId),
                 StringComparer.Ordinal);
             var removals = ParsePresenceRemovals(removedSessionsJson);
+            foreach (var removal in removals)
+                RememberPickerSessionTombstone(removal.Key, removal.Value, reason + "_REMOVAL");
+
+            // A direct projection is a complete authority snapshot. Absence is an
+            // authoritative session-end observation, so fence the generation already
+            // held in RAM before removing it. This prevents a delayed PickList or
+            // agent_sync event from resurrecting the logged-out row.
+            if (string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
+            {
+                foreach (var current in _pickerOnlineSnapshot.Where(item =>
+                    item != null &&
+                    !string.IsNullOrWhiteSpace(item.UserId) &&
+                    !incomingIds.Contains(item.UserId)))
+                {
+                    RememberPickerSessionTombstone(
+                        current.UserId,
+                        Math.Max(0L, current.SessionGeneration),
+                        "DIRECT_PRESENCE_ABSENT");
+                }
+            }
+
+            incoming = FilterPickerTombstones(incoming);
 
             // LOGIN is authoritative, but an older delayed projection may not
             // downgrade a newer session already observed locally. For the same user,
@@ -1732,6 +1993,7 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
+            merged = FilterPickerTombstones(merged);
             var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
             var after = PickerSharedStateSignature(merged);
             if (string.Equals(before, after, StringComparison.Ordinal))
@@ -2850,6 +3112,14 @@ namespace SupraInventoryRelayAgent
                         out idempotentReplay))
                     throw new InvalidOperationException(
                         "Máy chủ chưa hoàn tất thu hồi phiên Picker. PDA chưa được coi là Kích User thành công.");
+
+                // D161 v111: once server authority confirms the generation revoke,
+                // remove the row from RAM/UI immediately. This is local-only and
+                // does not wait for another Firestore event or create provider usage.
+                ApplyLocalPickerSessionRemoval(
+                    picker.UserId,
+                    authoritativeGeneration,
+                    "SINGLE_KICK_SERVER_AUTHORITY");
 
                 // D161 v109: server generation commits first. Worker then publishes
                 // the existing picker_session_controls fence for vc97 immediate logout.
