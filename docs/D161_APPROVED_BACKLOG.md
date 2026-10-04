@@ -788,3 +788,16 @@ D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner 
 - Main UI/regression, authority and continuity gates PASS. Stable remains OWNER-GATED and untouched.
 - D161 is **READY_FOR_OWNER_FIELD_RETEST**, not Owner PASS. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner acceptance.
 
+
+
+## Sixth field repair approved 2026-10-04 — Agent v110
+
+Owner approved continuation under the existing D161 change after field testing Agent v109.
+
+- Fix the outside-hours warning layout so the visible action set is laid out generically; **Gia hạn +1 giờ** must remain visible/clickable in the sleeping state and after resize.
+- Decouple overtime extension and 05:00–05:45 early-start activation from Web Confirm/PickList readiness. These are shared schedule/control-plane actions.
+- Distinguish an explicitly hydrated empty Confirm result from a broken/unhydrated session. Visible **Không tìm thấy kết quả phù hợp** + expected Confirm DOM is `READY_EMPTY` and user-facing as **Web Agent chưa có PickList**.
+- Preserve fail-closed behavior for a blank/partial Confirm shell without the explicit empty-result marker.
+- When a PDA request arrives from `READY_EMPTY`, run the existing Search/recovery/confirm path normally; do not terminal-fail only because idle state previously had zero PickLists.
+- Preserve strict PRIMARY/generation + browser readiness mutation fence immediately before WMS mutation.
+- Agent-only target: **relay-agent-v110**. Android beta-vc97, Worker, Web and Stable remain unchanged. No new provider resource/cadence.
