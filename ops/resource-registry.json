@@ -1018,7 +1018,7 @@
       "/downloads/agent/browser/latest.sha256"
     ],
     "discovery_policy": "NORMAL_RUNTIME_DOES_NOT_ENUMERATE_GITHUB_RELEASES_REST",
-    "status": "D127_V65_AGENT_RELEASED__HOST_BUILD_9_REUSED__OA052_FIELD_READY",
+    "status": "D161_FIELD_REPAIR_RUNTIME_CHANNEL__PDA_VC97__AGENT_V105__WEB_V2__OWNER_RETEST_PENDING",
     "agent_browser_manifest_asset": "agent-browser-latest.json",
     "agent_browser_alias_asset": "Agent.WebView2.FixedRuntime.x64.zip",
     "agent_browser_checksum_asset": "Agent.WebView2.FixedRuntime.x64.zip.sha256"
@@ -1030,18 +1030,22 @@
     "target_commit": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
     "policy": "VERSION_INDEPENDENT_PUBLIC_ASSET_ALIASES__NO_NORMAL_RUNTIME_GITHUB_RELEASES_REST_ENUMERATION",
     "pda": {
-      "manifest_asset_id": 589368497,
-      "apk_asset_id": 589368496,
-      "apk_size_bytes": 19052908,
-      "release": "beta-vc76"
+      "manifest_asset_id": 609733317,
+      "apk_asset_id": 609733318,
+      "checksum_asset_id": 609733314,
+      "apk_size_bytes": 19151608,
+      "release": "beta-vc97",
+      "sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19",
+      "source_main": "afaf9d563894e61d3632f65ce624c1b3b76bfd36"
     },
     "agent": {
-      "manifest_asset_id": 591888652,
-      "exe_asset_id": 591888651,
-      "exe_size_bytes": 349696,
-      "release": "relay-agent-v65",
-      "sha256": "3df5c5aab895e2c7ae26f8d7eec016fa6ea4cea5aef1a5c883fb30c9910ef75b",
-      "source_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680"
+      "manifest_asset_id": 609733238,
+      "exe_asset_id": 609733237,
+      "checksum_asset_id": 609733239,
+      "exe_size_bytes": 7286784,
+      "release": "relay-agent-v105",
+      "sha256": "542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807",
+      "source_main": "afaf9d563894e61d3632f65ce624c1b3b76bfd36"
     },
     "stable": "OWNER_GATED_UNTOUCHED",
     "browser_bundle": {
