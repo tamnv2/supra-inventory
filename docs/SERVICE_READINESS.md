@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `16`
-- Latest signed Beta APK: `beta-vc92`
-- Current released Agent: `relay-agent-v92`
-- Beta: `D157_OWNER_ACCEPTED_BASE__AGENT_V92__ANDROID_VC92`
-- Web: `D156_OWNER_FIELD_ACCEPTED_PASS__SCHEDULE_CONVERGENCE__MAIN_859A7DFB`
-- Android: `D156_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC92__SCHEDULE_CONVERGENCE_REPORTING_DEFAULT_OFF`
+- Latest signed Beta APK: `beta-vc93`
+- Current released Agent: `relay-agent-v101`
+- Beta: `D161_PHASE0_SAFETY_PASS__FEATURE_IMPLEMENTATION_ACTIVE__D160_ACCEPTED_BASE_RESCUE__AGENT_V101_SAFETY__ANDROID_VC93_SAFETY`
+- Web: `D160_ACCEPTED_RUNTIME_WEB__D161_PHASE0_SAFETY_REPRODUCIBLE_PASS__FEATURE_IMPLEMENTATION_ACTIVE`
+- Android: `D161_PHASE0_SAFETY_PASS__SIGNED_BETA_VC93__D160_BEHAVIOR__FEATURE_MIN_VC94__FEATURE_IMPLEMENTATION_ACTIVE`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1700,3 +1700,13 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Phase 0 Safety: ACTIVE; Agent v101 and Android vc93 are Safety-only targets. D161 feature behavior remains blocked until Safety PASS.
 - Stable remains OWNER-GATED and untouched.
 
+
+
+## D161 Phase 0 Safety PASS — 2026-10-04
+
+- Phase 0A: PASS.
+- Phase 0 Safety main gate: run `37170577529` PASS on `6702b0aabc807954d6427e7e3aa6442134cb95e3`.
+- UI Design Guard: run `37170513921` PASS.
+- Safety artifacts: `beta-vc93` and `relay-agent-v101`.
+- Feature-bearing D161 implementation is active; D160 behavior remains the rescue/accepted base until explicit Owner field acceptance.
+- Stable remains OWNER-GATED / untouched.
