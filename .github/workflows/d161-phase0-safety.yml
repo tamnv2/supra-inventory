@@ -40,23 +40,41 @@ jobs:
   safety-static:
     name: phase0-safety-static
     runs-on: ubuntu-latest
+    outputs:
+      phase_active: ${{ steps.validate.outputs.phase_active }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Validate Safety authority, baseline identity and behavior-only diff
+        id: validate
         shell: bash
         run: |
           set -euo pipefail
           manifest="ops/d161-safety-baseline.json"
           baseline="$(jq -r '.captured_from_main_sha' "$manifest")"
           jq -e '.schema_version==1 and .change_id=="D161" and .phase=="PHASE0_SAFETY_BASELINE"' "$manifest" >/dev/null
+          jq -e '.d161.phase0a.status=="PASS" and (.d161.phase0a.result|startswith("PASS__"))' ops/project-state.json >/dev/null
+          jq -e '.security.secret_values_in_manifest==false and .security.session_or_wms_material_in_manifest==false and .security.stable=="OWNER_GATED_UNTOUCHED"' "$manifest" >/dev/null
+
+          phase0_status="$(jq -r '.d161.phase0.status' ops/project-state.json)"
+          if [ "$phase0_status" = "PASS" ]; then
+            jq -e '.d161.current_gate=="FEATURE_IMPLEMENTATION_ACTIVE"' ops/project-state.json >/dev/null
+            jq -e '.d161.phase0_safety.status=="PASS" and .d161.phase0_safety.terminal_pass_run_id==37170577529' ops/project-state.json >/dev/null
+            jq -e '.d161.phase0_safety.status=="PASS" and .d161.phase0_safety.terminal_pass_run_id==37170577529' ops/resource-registry.json >/dev/null
+            jq -e '.status|startswith("PASS__")' "$manifest" >/dev/null
+            jq -e '.terminal_gate.status=="PASS" and .terminal_gate.run_id==37170577529' "$manifest" >/dev/null
+            echo "phase_active=false" >> "$GITHUB_OUTPUT"
+            echo "D161_PHASE0_SAFETY_RECORDED_PASS=PASS"
+            exit 0
+          fi
+
+          test "$phase0_status" = "ACTIVE"
           jq -e '.d161.status=="STARTED__PHASE0_SAFETY_BASELINE_ACTIVE"' ops/project-state.json >/dev/null
           jq -e '.d161.current_gate=="PHASE0_SAFETY_BASELINE_ACTIVE"' ops/project-state.json >/dev/null
-          jq -e '.d161.phase0a.status=="PASS" and (.d161.phase0a.result|startswith("PASS__"))' ops/project-state.json >/dev/null
-          jq -e '.d161.phase0.status=="ACTIVE" and .d161.phase0.safety_agent_target=="relay-agent-v101" and .d161.phase0.safety_android_target=="beta-vc93"' ops/project-state.json >/dev/null
+          jq -e '.d161.phase0.safety_agent_target=="relay-agent-v101" and .d161.phase0.safety_android_target=="beta-vc93"' ops/project-state.json >/dev/null
           jq -e '.d161.phase0_safety.status=="ACTIVE"' ops/resource-registry.json >/dev/null
-          jq -e '.security.secret_values_in_manifest==false and .security.session_or_wms_material_in_manifest==false and .security.stable=="OWNER_GATED_UNTOUCHED"' "$manifest" >/dev/null
+          echo "phase_active=true" >> "$GITHUB_OUTPUT"
 
           test "$(tr -d '\r\n ' < relay-agent/VERSION)" = "101"
           grep -q 'AgentBuild = 101;' relay-agent/AgentConfig.cs
@@ -92,7 +110,7 @@ jobs:
 
   safety-runtime:
     name: phase0-safety-runtime-release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.safety-static.outputs.phase_active == 'true'
     needs: safety-static
     runs-on: ubuntu-latest
     timeout-minutes: 30
