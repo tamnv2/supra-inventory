@@ -664,12 +664,27 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     offset,
   ).toArray();
 
-  const projectedRows = rows.map((row) => ({
-    ...row,
-    correction_deadline_at: String(row.status || "") === "SKIP_ALLOWED"
+  const serverNowMs = Date.now();
+  const serverNow = new Date(serverNowMs).toISOString();
+  const projectedRows = rows.map((row) => {
+    const correctionDeadline = String(row.status || "") === "SKIP_ALLOWED"
       ? correctionDeadlineFromFirstReport(state, String(row.first_report_at || ""))
-      : null,
-  }));
+      : null;
+    const correctionDeadlineMs = correctionDeadline ? Date.parse(correctionDeadline) : NaN;
+    return {
+      ...row,
+      correction_deadline_at: correctionDeadline,
+      correction_allowed: Boolean(
+        String(row.status || "") === "SKIP_ALLOWED" &&
+        correctionDeadline &&
+        Number.isFinite(correctionDeadlineMs) &&
+        correctionDeadlineMs > serverNowMs
+      ),
+      correction_remaining_ms: Number.isFinite(correctionDeadlineMs)
+        ? Math.max(0, correctionDeadlineMs - serverNowMs)
+        : 0,
+    };
+  });
 
   const summaryWhere = ["b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')"];
   const summaryArgs: SqlStorageValue[] = [];
@@ -708,6 +723,8 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   return json({
     items: projectedRows,
     count: projectedRows.length,
+    server_now: serverNow,
+    server_now_ms: serverNowMs,
     total: Number(totalRow.total || 0),
     limit,
     offset,
