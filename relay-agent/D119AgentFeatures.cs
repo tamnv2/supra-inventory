@@ -2839,22 +2839,36 @@ namespace SupraInventoryRelayAgent
             {
                 EnsureFreshToken();
                 var session = SnapshotSession();
-                _agentSyncClient.RevokePickerSession(session, picker, _agentInstanceId);
-                var serverRevoked = TryRevokePickerWorkerSession(session, picker);
+                var requestId = "single-" + Guid.NewGuid().ToString("N");
+                long authoritativeGeneration;
+                bool idempotentReplay;
+                if (!TryRevokePickerWorkerSession(
+                        session,
+                        picker,
+                        requestId,
+                        out authoritativeGeneration,
+                        out idempotentReplay))
+                    throw new InvalidOperationException(
+                        "Máy chủ chưa hoàn tất thu hồi phiên Picker. PDA chưa được coi là Kích User thành công.");
+
+                // D161 v109: server generation commits first. Worker then publishes
+                // the existing picker_session_controls fence for vc97 immediate logout.
+                // Agent must not send a picker-command overlay for session revocation.
                 var snapshot = _agentSyncClient.SetKick(
                     session,
                     picker.UserId,
                     picker.FirebaseUid,
-                    picker.SessionGeneration);
+                    authoritativeGeneration);
                 ApplyD134AgentSyncSnapshot(snapshot);
                 Ui(() => _pickerOnlineStatus.Text =
                     "Đã Kích User " +
                     (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
-                    " · toàn bộ Agent đã nhận trạng thái thu hồi" +
-                    (serverRevoked ? " · phiên máy chủ đã vô hiệu." : " · máy chủ sẽ chặn khi kết nối khả dụng."));
+                    " · phiên máy chủ đã vô hiệu · PDA được yêu cầu đăng nhập lại.");
                 Log("PICKER_SESSION kick=PASS user=" + SafeUserLabel(picker.EmployeeCode, picker.UserId) +
-                    " generation=" + picker.SessionGeneration +
-                    " server_revoke=" + (serverRevoked ? "PASS" : "DEFERRED"));
+                    " generation=" + authoritativeGeneration +
+                    " request_id=" + requestId +
+                    " replay=" + (idempotentReplay ? "true" : "false") +
+                    " order=SERVER_AUTHORITY_THEN_SESSION_SIGNAL");
             }
             catch (Exception ex)
             {
@@ -2862,9 +2876,19 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private bool TryRevokePickerWorkerSession(AgentSession session, PickerPresenceView picker)
+        private bool TryRevokePickerWorkerSession(
+            AgentSession session,
+            PickerPresenceView picker,
+            string requestId,
+            out long authoritativeGeneration,
+            out bool idempotentReplay)
         {
-            return TryRevokePickerWorkerSessionD160(session, picker);
+            return TryRevokePickerWorkerSessionD160(
+                session,
+                picker,
+                requestId,
+                out authoritativeGeneration,
+                out idempotentReplay);
         }
 
         private int ShowPickerContactChoice(string pickerLabel)
