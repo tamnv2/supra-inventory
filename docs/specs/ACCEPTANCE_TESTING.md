@@ -2529,3 +2529,20 @@ Before returning D161 to Owner field retest:
 7. **Mutation fence preserved:** immediately before checkbox/Confirm mutation, current PRIMARY/generation and browser operational readiness are still required; no schedule repair weakens the WMS mutation fence.
 8. **No APK/provider change:** Android remains beta-vc97; Worker/Web/Stable are unchanged. No new provider resource, collection/query/listener family, polling loop, heartbeat or provider write cadence is introduced.
 9. **Release lineage:** publish monotonic **relay-agent-v110** through the existing trusted Agent release/update channel; D160 v97 remains accepted/rescue base until explicit D161 Owner PASS.
+
+
+## D161 v111 Picker presence convergence acceptance — 2026-10-04
+
+Before returning D161 to Owner field retest:
+
+1. **Self logout:** a Picker Android vc97 that performs normal logout disappears from every authenticated Agent active-Picker list through the existing event path without manual refresh.
+2. **Single Kích User:** after Worker returns the authoritative revoked generation, that row is removed from the initiating Agent RAM/UI immediately and cannot wait for another Firestore event.
+3. **Fleet convergence:** existing direct-presence and `agent_sync` event paths converge the same removal to other authenticated Agents. After direct presence has been observed, a real `agent_sync` presence delta is not ignored.
+4. **No unrelated repaint:** history/counter/call-lock-only `agent_sync` version changes do not overwrite the current Picker list.
+5. **Generation tombstone:** delayed PickList/direct/sync data at the removed/revoked generation or older cannot resurrect the user.
+6. **New login wins:** a legitimate later login with a strictly newer session generation clears the RAM tombstone and becomes visible normally.
+7. **Bulk race safety:** bulk revoke removes only sessions captured at command issue; a newer login occurring while the response is in flight is preserved.
+8. **No liveness overclaim:** abrupt power/network loss without explicit logout is not declared offline solely by this repair.
+9. **Quota/resources:** no new provider resource, exact-document target, collection/query/listener family, polling loop, heartbeat, provider write cadence or Desktop timer cadence. Normal-path usage does not increase.
+10. **Regression:** v110 overtime/READY_EMPTY behavior, v109 no-overlay single revoke, PickList processing/HA/history, Android beta-vc97, Web and Stable remain unchanged.
+11. **Release lineage:** target monotonic release is **relay-agent-v111**; D160 v97 remains accepted/rescue until explicit D161 Owner PASS.
