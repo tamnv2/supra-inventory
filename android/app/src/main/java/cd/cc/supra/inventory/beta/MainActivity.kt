@@ -1332,6 +1332,26 @@ class MainActivity : Activity() {
     }
 
     private fun logoutWithNotificationCleanup(message: String = "Đã đăng xuất.") {
+        if (logoutRunning) return
+        logoutRunning = true
+        findViewById<View?>(R.id.btnLogout)?.isEnabled = false
+        val logoutLoading = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(kit.dp(20), kit.dp(12), kit.dp(20), kit.dp(12))
+            addView(ProgressBar(this@MainActivity), LinearLayout.LayoutParams(kit.dp(34), kit.dp(34)))
+            addView(TextView(this@MainActivity).apply {
+                text = "Đang đăng xuất…"
+                textSize = 14f
+                setPadding(kit.dp(12), 0, 0, 0)
+            })
+        }
+        val logoutDialog = AlertDialog.Builder(this)
+            .setView(logoutLoading)
+            .setCancelable(false)
+            .create()
+        logoutDialog.show()
+
         operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
         operatingWindowTask = null
         uiHandler.removeCallbacks(runtimeLogTick)
@@ -1364,7 +1384,11 @@ class MainActivity : Activity() {
             }
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
             try { api.logoutInteractive("android:$notificationDeviceId") } catch (_: Exception) { api.clearSession() }
-            runOnUiThread { renderLogin(message) }
+            runOnUiThread {
+                logoutRunning = false
+                logoutDialog.dismiss()
+                renderLogin(message)
+            }
         }.start()
     }
 
@@ -1430,12 +1454,10 @@ class MainActivity : Activity() {
                 val reportingEnabledEvent = scopes.contains("picker_reporting_enabled")
                 val reportingDisabledEvent = scopes.contains("picker_reporting_disabled")
                 if (session.role == "PICKER" && (reportingEnabledEvent || reportingDisabledEvent)) {
-                    val enabled = reportingEnabledEvent && !reportingDisabledEvent
-                    val next = api.applyShortageReportingCapability(enabled)
-                    if (next != null) {
-                        activeSession = next
-                        pickerController?.applyShortageReportingCapability(enabled)
-                    }
+                    // D161: event scope is only a wake-up hint. Reconcile the
+                    // authoritative boolean + revision instead of applying an
+                    // unversioned realtime value that could overwrite a newer state.
+                    syncEffectiveRole()
                 }
                 val capabilityScopes = setOf("picker_reporting_enabled", "picker_reporting_disabled")
                 val afterCapability = scopes.filterNot { it in capabilityScopes }.toSet()
