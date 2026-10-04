@@ -140,8 +140,13 @@ jobs:
           else
             fail "log-script-exact-match"
           fi
-          [ "$usage_count" = "1" ] || fail "d159-script-exact-match"
-          usage_script_id="$(jq -r '.files[0].id' "$work/usage-old.json")"
+          [ "$usage_count" -le 1 ] || fail "d159-script-duplicate"
+          if [ "$usage_count" = "1" ]; then
+            usage_script_id="$(jq -r '.files[0].id' "$work/usage-old.json")"
+          else
+            usage_script_id=""
+            echo "D160_D159_STANDALONE_GATEWAY_ALREADY_RETIRED=PASS"
+          fi
 
           curl -sS -o "$work/log-current.json"             -H "Authorization: Bearer $access_token"             "https://www.googleapis.com/drive/v3/files/$log_script_id?fields=parents" || fail "log-parent-read"
           current_parents="$(jq -r '(.parents // []) | join(",")' "$work/log-current.json")"
@@ -367,12 +372,17 @@ jobs:
           echo "D160_AUTHENTICATED_USAGE_POST=PASS"
 
           # Retire D159 only after both GET identity and authenticated Monitoring-backed
-          # POST proof pass on the existing Agent gateway URL.
-          if clasp delete-script "$usage_script_id" --force >/dev/null 2>&1; then
-            :
-          else
-            http="$(curl -sS -o delete-usage.json -w '%{http_code}' -X PATCH               -H "Authorization: Bearer $access_token"               -H "Content-Type: application/json"               --data '{"trashed":true}'               "https://www.googleapis.com/drive/v3/files/$usage_script_id?supportsAllDrives=true")"
-            [ "$http" = "200" ] || fail "retire-d159-script"
+          # POST proof pass on the existing Agent gateway URL. The migration is
+          # idempotent: after D160 has already retired the standalone script,
+          # later source deployments verify absence instead of requiring it to
+          # exist again.
+          if [ -n "$usage_script_id" ]; then
+            if clasp delete-script "$usage_script_id" --force >/dev/null 2>&1; then
+              :
+            else
+              http="$(curl -sS -o delete-usage.json -w '%{http_code}' -X PATCH               -H "Authorization: Bearer $access_token"               -H "Content-Type: application/json"               --data '{"trashed":true}'               "https://www.googleapis.com/drive/v3/files/$usage_script_id?supportsAllDrives=true")"
+              [ "$http" = "200" ] || fail "retire-d159-script"
+            fi
           fi
 
           retired=false
