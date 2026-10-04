@@ -1454,7 +1454,7 @@ namespace SupraInventoryRelayAgent
 
             _technicalPage.Controls.Add(new Label
             {
-                Left = 18, Top = 14, Width = 760, Height = 28,
+                Left = 18, Top = 14, Width = 338, Height = 28,
                 Text = "Chẩn đoán kỹ thuật",
                 Font = new Font("Segoe UI Semibold", 10.5F)
             });
