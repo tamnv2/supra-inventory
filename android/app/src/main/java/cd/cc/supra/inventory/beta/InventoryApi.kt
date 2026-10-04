@@ -17,6 +17,7 @@ data class AppSession(
     val employeeCode: String?,
     val contractorName: String? = null,
     val shortageReportingEnabled: Boolean = false,
+    val shortageReportingRevision: Long = -1L,
     val relayCustomToken: String? = null,
 )
 
@@ -192,6 +193,27 @@ class InventoryApi(
         onSessionChanged(next)
     }
 
+    private fun parseCapabilityBoolean(value: JSONObject, key: String): Boolean {
+        if (!value.has(key) || value.isNull(key)) return false
+        return when (val raw = value.opt(key)) {
+            is Boolean -> raw
+            is Number -> raw.toInt() == 1
+            is String -> when (raw.trim().lowercase()) {
+                "1", "true", "yes", "on", "enabled" -> true
+                "0", "false", "no", "off", "disabled", "" -> false
+                else -> false
+            }
+            else -> false
+        }
+    }
+
+    private fun parseCapabilityRevision(value: JSONObject): Long =
+        when (val raw = value.opt("shortage_reporting_revision")) {
+            is Number -> raw.toLong().coerceAtLeast(0L)
+            is String -> raw.trim().toLongOrNull()?.coerceAtLeast(0L) ?: 0L
+            else -> 0L
+        }
+
     fun restoreSession(next: AppSession) {
         updateSession(next)
     }
@@ -235,7 +257,8 @@ class InventoryApi(
             role = user.optString("role", "AUTH"),
             employeeCode = nullable(user, "employee_code"),
             contractorName = nullable(user, "contractor_name"),
-            shortageReportingEnabled = user.optBoolean("shortage_reporting_enabled", false),
+            shortageReportingEnabled = parseCapabilityBoolean(user, "shortage_reporting_enabled"),
+            shortageReportingRevision = parseCapabilityRevision(user),
             relayCustomToken = payload.optString("firebase_custom_token").takeIf { it.isNotBlank() },
         )
         if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
@@ -248,23 +271,41 @@ class InventoryApi(
         val current = session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
         val payload = request("GET", "/api/auth/me")
         val user = payload.optJSONObject("user") ?: JSONObject()
+        val nextRole = user.optString("role", current.role)
+        val incomingEnabled = parseCapabilityBoolean(user, "shortage_reporting_enabled")
+        val incomingRevision = parseCapabilityRevision(user)
+        val capability = when {
+            nextRole != "PICKER" -> true to incomingRevision
+            current.shortageReportingRevision < 0L -> incomingEnabled to incomingRevision
+            incomingRevision > current.shortageReportingRevision -> incomingEnabled to incomingRevision
+            incomingRevision < current.shortageReportingRevision -> current.shortageReportingEnabled to current.shortageReportingRevision
+            incomingEnabled == current.shortageReportingEnabled -> current.shortageReportingEnabled to current.shortageReportingRevision
+            else -> false to current.shortageReportingRevision // same revision + different value: fail closed
+        }
         val next = current.copy(
             userId = user.optString("user_id", current.userId),
             displayName = user.optString("display_name", current.displayName),
-            role = user.optString("role", current.role),
+            role = nextRole,
             employeeCode = nullable(user, "employee_code") ?: current.employeeCode,
             contractorName = nullable(user, "contractor_name") ?: current.contractorName,
-            shortageReportingEnabled = user.optBoolean("shortage_reporting_enabled", current.shortageReportingEnabled),
+            shortageReportingEnabled = capability.first,
+            shortageReportingRevision = capability.second,
         )
         updateSession(next)
         return next
     }
 
-    fun applyShortageReportingCapability(enabled: Boolean): AppSession? {
+    fun applyShortageReportingCapability(enabled: Boolean, revision: Long): AppSession? {
         val current = session ?: return null
-        if (current.role != "PICKER" || current.shortageReportingEnabled == enabled) return current
-        val next = current.copy(shortageReportingEnabled = enabled)
-        updateSession(next)
+        if (current.role != "PICKER") return current
+        val next = when {
+            current.shortageReportingRevision < 0L || revision > current.shortageReportingRevision ->
+                current.copy(shortageReportingEnabled = enabled, shortageReportingRevision = revision)
+            revision < current.shortageReportingRevision -> current
+            enabled == current.shortageReportingEnabled -> current
+            else -> current.copy(shortageReportingEnabled = false) // same revision conflict: fail closed
+        }
+        if (next != current) updateSession(next)
         return next
     }
 
