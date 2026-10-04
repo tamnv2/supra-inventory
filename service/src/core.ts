@@ -1313,6 +1313,93 @@ export class InventoryCore {
       return response({ status: "saved" });
     }
 
+    if (request.method === "GET" && url.pathname === "/config/d161-hr-watch") {
+      const row = this.state.storage.sql.exec<{ value_json: string }>(
+        "SELECT value_json FROM app_config WHERE key = 'd161_hr_drive_watch' LIMIT 1",
+      ).toArray()[0];
+      let watch: Record<string, unknown> | null = null;
+      try { watch = row?.value_json ? JSON.parse(row.value_json) as Record<string, unknown> : null; } catch { watch = null; }
+      return response({ configured: Boolean(watch), watch });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/config/d161-hr-watch") {
+      let body: Record<string, unknown> = {};
+      try { body = (await request.json()) as Record<string, unknown>; } catch { return response({ error: "INVALID_JSON" }, 400); }
+      const sheetId = String(body.sheet_id || "").trim();
+      const channelId = String(body.channel_id || "").trim();
+      const resourceId = String(body.resource_id || "").trim();
+      const channelToken = String(body.channel_token || "").trim();
+      const expiresAtMs = Math.trunc(Number(body.expires_at_ms || 0));
+      if (
+        !/^[A-Za-z0-9_-]{10,200}$/.test(sheetId) ||
+        !/^[A-Za-z0-9-]{16,100}$/.test(channelId) ||
+        !/^[A-Za-z0-9_-]{8,220}$/.test(resourceId) ||
+        !/^[a-f0-9]{32,128}$/.test(channelToken) ||
+        expiresAtMs <= Date.now()
+      ) return response({ error: "INVALID_HR_WATCH_STATE" }, 400);
+      const payload = {
+        sheet_id: sheetId,
+        channel_id: channelId,
+        resource_id: resourceId,
+        channel_token: channelToken,
+        expires_at_ms: expiresAtMs,
+        registered_at: String(body.registered_at || new Date().toISOString()).slice(0, 40),
+      };
+      this.state.storage.sql.exec(
+        `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+         VALUES ('d161_hr_drive_watch', ?, CURRENT_TIMESTAMP, 'system:d161-hr-watch')
+         ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = CURRENT_TIMESTAMP, updated_by = excluded.updated_by`,
+        JSON.stringify(payload),
+      );
+      return response({ status: "saved", watch: payload });
+    }
+
+    if (request.method === "GET" && url.pathname === "/config/d161-hr-sync") {
+      const row = this.state.storage.sql.exec<{ value_json: string }>(
+        "SELECT value_json FROM app_config WHERE key = 'd161_hr_sync_state' LIMIT 1",
+      ).toArray()[0];
+      let sync: Record<string, unknown> | null = null;
+      try { sync = row?.value_json ? JSON.parse(row.value_json) as Record<string, unknown> : null; } catch { sync = null; }
+      return response({ configured: Boolean(sync), sync });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/config/d161-hr-sync") {
+      let body: Record<string, unknown> = {};
+      try { body = (await request.json()) as Record<string, unknown>; } catch { return response({ error: "INVALID_JSON" }, 400); }
+      const encoded = JSON.stringify(body);
+      if (!encoded || encoded.length > 24_000) return response({ error: "INVALID_HR_SYNC_STATE" }, 400);
+      this.state.storage.sql.exec(
+        `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+         VALUES ('d161_hr_sync_state', ?, CURRENT_TIMESTAMP, ?)
+         ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = CURRENT_TIMESTAMP, updated_by = excluded.updated_by`,
+        encoded,
+        String(body.updated_by || "system:d161-hr-watch").slice(0, 180),
+      );
+      return response({ status: "saved" });
+    }
+
+    if (request.method === "POST" && url.pathname === "/config/d161-hr-snapshot-claim") {
+      let body: { fingerprint?: string } = {};
+      try { body = (await request.json()) as { fingerprint?: string }; } catch { return response({ error: "INVALID_JSON" }, 400); }
+      const fingerprint = String(body.fingerprint || "").trim().toLowerCase();
+      if (!/^[a-f0-9]{64}$/.test(fingerprint)) return response({ error: "INVALID_HR_SOURCE_FINGERPRINT" }, 400);
+      const key = `d161_hr_snapshot:${fingerprint}`;
+      const existing = this.state.storage.sql.exec<{ value_json: string }>(
+        "SELECT value_json FROM app_config WHERE key = ? LIMIT 1",
+        key,
+      ).toArray()[0];
+      if (existing) return response({ claimed: false, fingerprint, idempotent_replay: true });
+      const at = new Date().toISOString();
+      this.state.storage.sql.exec(
+        `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+         VALUES (?, ?, ?, 'system:d161-hr-watch') ON CONFLICT(key) DO NOTHING`,
+        key,
+        JSON.stringify({ fingerprint, claimed_at: at }),
+        at,
+      );
+      return response({ claimed: true, fingerprint, claimed_at: at, idempotent_replay: false });
+    }
+
     const operationalV2 = await handleOperationalV2CoreRequest(this.state, request);
     if (operationalV2) return operationalV2;
 

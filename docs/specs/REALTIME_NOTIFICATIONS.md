@@ -822,7 +822,7 @@ D160 v96 does not create a history realtime channel. PRIMARY/NEXT_A/NEXT_B conti
 
 ## D161 — HR source event-driven synchronization
 
-D161 approved architecture, implementation deferred:
+D161 Tranche E implementation is active after Phase 0A/Phase 0 Safety PASS and merged Tranches A–D:
 
 - A verified HR spreadsheet change is signaled by a Google Drive file-change watch to the Beta Worker HTTPS path.
 - Provider notification is a wake signal only; the Worker rereads the authoritative Google Sheet, validates it and computes the diff before any InventoryCore mutation.
@@ -834,7 +834,7 @@ D161 approved architecture, implementation deferred:
 
 ## D161 global support-log control signal addendum
 
-Status: Owner-approved requirement; implementation deferred.
+Status: Implemented in merged D161 Tranche D; Owner field acceptance pending.
 
 - Global support-log collection is an exceptional operator-triggered control signal, not a polling feature.
 - The control carries `request_id`, issued time and short expiry. Every client dedupes by request-id and ignores expired requests.
@@ -845,7 +845,7 @@ Status: Owner-approved requirement; implementation deferred.
 
 ## D161 bulk session-revoke signaling
 
-Status: Owner-approved target; implementation deferred.
+Status: Implemented in merged D161 Tranche C; Owner field acceptance pending.
 
 - Bulk **Kích toàn bộ user** must not create an Agent-side N-user provider request storm.
 - Worker/InventoryCore Android session-generation invalidation is the authority.

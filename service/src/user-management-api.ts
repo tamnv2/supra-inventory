@@ -3,8 +3,10 @@ import { deleteFirebaseUsers, importPasswordIdentity, signInWithFirebasePassword
 import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
 import { refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { ensureHrDriveWatch } from "./hr-event-sync";
 
 interface Env {
+  APP_ENV: string;
   FIREBASE_PROJECT_ID: string;
   FIREBASE_WEB_API_KEY?: string;
   INVENTORY_CORE: DurableObjectNamespace;
@@ -429,6 +431,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
         body: JSON.stringify({ ...validated, updated_by: user.user_id }),
       });
       if (!saved.ok) return saved;
+      await ensureHrDriveWatch(env, true).catch(() => undefined);
       return json({ status: "saved", source: validated });
     } catch (error) {
       return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "Nguồn nhân sự không hợp lệ." }, 400);

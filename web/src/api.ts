@@ -171,6 +171,45 @@ export interface HrSyncPreview {
   collisions: Array<{ employee_code: string; role: string; user_id: string }>;
 }
 
+export interface HrEventSyncState {
+  watch?: {
+    configured?: boolean;
+    sheet_id?: string;
+    expires_at_ms?: number;
+    registered_at?: string | null;
+  };
+  sync?: {
+    status?: string;
+    decision?: string;
+    fingerprint?: string;
+    pending_fingerprint?: string;
+    source_row_count?: number;
+    last_accepted_row_count?: number;
+    last_accepted_fingerprint?: string;
+    hard_block_code?: string | null;
+    updated_at?: string;
+    updated_by?: string;
+    trigger?: string;
+    plan?: {
+      total_source?: number;
+      create?: number;
+      rename?: number;
+      contractor_update?: number;
+      existing_info_updates?: number;
+      existing_picker_count?: number;
+      unchanged?: number;
+      inactive_existing?: number;
+      not_in_source?: number;
+      collisions?: Array<{ employee_code?: string; role?: string; user_id?: string }>;
+    };
+  };
+}
+
+export interface HrEventConfirmResponse {
+  status: "APPLIED" | "NO_MATCHING_PENDING_SNAPSHOT" | "STALE_SNAPSHOT_RECOMPUTED" | "SOURCE_BLOCKED" | string;
+  state: NonNullable<HrEventSyncState["sync"]>;
+}
+
 export interface HrSourceConfig {
   sheet_id: string;
   sheet_url: string;
@@ -1244,5 +1283,16 @@ export async function applyHrPickerSync(): Promise<unknown> {
   return readJson(await authorizedFetch("/api/admin/hr-sync/apply", {
     method: "POST",
     body: JSON.stringify({ request_id: crypto.randomUUID(), confirm: true }),
+  }));
+}
+
+export async function getHrEventSyncState(): Promise<HrEventSyncState> {
+  return readJson(await authorizedFetch("/api/admin/hr-sync/event-state"));
+}
+
+export async function confirmHrEventSync(fingerprint: string): Promise<HrEventConfirmResponse> {
+  return readJson(await authorizedFetch("/api/admin/hr-sync/confirm", {
+    method: "POST",
+    body: JSON.stringify({ fingerprint }),
   }));
 }

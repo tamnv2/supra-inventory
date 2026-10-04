@@ -444,7 +444,7 @@ function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: str
   ).toArray();
   const byCode = new Map(existing.filter((u) => u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
   const collisions: Array<{ employee_code: string; role: AppRole; user_id: string }> = [];
-  let create = 0, rename = 0, contractor_update = 0, unchanged = 0, inactiveExisting = 0;
+  let create = 0, rename = 0, contractor_update = 0, existingInfoUpdates = 0, unchanged = 0, inactiveExisting = 0;
   for (const [code, incomingUser] of incoming) {
     const current = byCode.get(code);
     if (!current) create += 1;
@@ -455,11 +455,26 @@ function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: str
       const contractorChanged = String(current.contractor_name || "") !== incomingUser.contractor_name;
       if (nameChanged) rename += 1;
       if (contractorChanged) contractor_update += 1;
-      if (!nameChanged && !contractorChanged) unchanged += 1;
+      if (nameChanged || contractorChanged) existingInfoUpdates += 1;
+      else unchanged += 1;
     }
   }
+  const existingPickerCount = existing.filter((u) => u.role === "PICKER").length;
   const notInSource = existing.filter((u) => u.role === "PICKER" && u.employee_code && !incoming.has(String(u.employee_code).toLowerCase())).length;
-  return { total_source: employees.length, create, reactivate: 0, rename, contractor_update, disable: 0, unchanged, inactive_existing: inactiveExisting, not_in_source: notInSource, collisions };
+  return {
+    total_source: employees.length,
+    create,
+    reactivate: 0,
+    rename,
+    contractor_update,
+    existing_info_updates: existingInfoUpdates,
+    existing_picker_count: existingPickerCount,
+    disable: 0,
+    unchanged,
+    inactive_existing: inactiveExisting,
+    not_in_source: notInSource,
+    collisions,
+  };
 }
 
 async function hrPreview(state: DurableObjectState, request: Request): Promise<Response> {
@@ -471,7 +486,17 @@ async function hrPreview(state: DurableObjectState, request: Request): Promise<R
 }
 
 async function hrApply(state: DurableObjectState, request: Request): Promise<Response> {
-  const body = (await request.json()) as { actor?: Actor; employees?: HrEmployee[]; request_id?: unknown; confirm?: boolean; picker_password_salt?: unknown; picker_password_hash?: unknown };
+  const body = (await request.json()) as {
+    actor?: Actor;
+    employees?: HrEmployee[];
+    request_id?: unknown;
+    confirm?: boolean;
+    picker_password_salt?: unknown;
+    picker_password_hash?: unknown;
+    source_fingerprint?: unknown;
+    source_row_count?: unknown;
+    decision?: unknown;
+  };
   const actor = body.actor;
   if (!actor?.user_id || !["ADMIN","ROOT"].includes(actor.role) || !Array.isArray(body.employees) || body.confirm !== true || !validRequestId(body.request_id) || !validPasswordPart(body.picker_password_salt) || !validPasswordPart(body.picker_password_hash)) return response({ error: "INVALID_HR_SYNC" }, 400);
   const normalized = normalizeHrEmployees(body.employees);
@@ -515,6 +540,9 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
     pre_apply: plan,
     absence_policy: "NO_AUTOMATIC_DISABLE",
     reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156",
+    source_fingerprint: String(body.source_fingerprint || "").slice(0, 80) || null,
+    source_row_count: Math.max(0, Math.trunc(Number(body.source_row_count || normalized.employees.length))),
+    decision: String(body.decision || "MANUAL_CONFIRM").slice(0, 40),
   });
   state.storage.sql.exec(
     `INSERT INTO app_config (key, value_json, updated_at, updated_by) VALUES ('hr_last_sync', ?, ?, ?)
@@ -525,6 +553,9 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
       request_id: body.request_id,
       absence_policy: "NO_AUTOMATIC_DISABLE",
       reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156",
+      source_fingerprint: String(body.source_fingerprint || "").slice(0, 80) || null,
+      source_row_count: Math.max(0, Math.trunc(Number(body.source_row_count || normalized.employees.length))),
+      decision: String(body.decision || "MANUAL_CONFIRM").slice(0, 40),
     }), at, actor.user_id,
   );
   return response({ status: "applied", source_count: normalized.employees.length, applied_at: at, post_apply: finalPlan });

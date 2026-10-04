@@ -13,6 +13,7 @@ import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
   applyHrPickerSync,
+  confirmHrEventSync,
   changeMyPassword,
   clearSession,
   createManagedUser,
@@ -34,6 +35,7 @@ import {
   requestSystemResetChallenge,
   executeSystemReset,
   getHrSource,
+  getHrEventSyncState,
   getMyProfile,
   getSkuCatalogInfo,
   getReporterBatchTickets,
@@ -71,6 +73,7 @@ import {
   type BatchPickerTicket,
   type HrSourceResponse,
   type HrSyncPreview,
+  type HrEventSyncState,
   type ManagedUser,
   type OperationalInsights,
   type PdaAppRelease,
@@ -364,6 +367,7 @@ let selectedManagedUserIds = new Set<string>();
 let excludedPickerIds = new Set<string>();
 let hrSource: HrSourceResponse | null = null;
 let hrPreview: HrSyncPreview | null = null;
+let hrEventSync: HrEventSyncState | null = null;
 let pendingWorkbook: ParsedSkuWorkbook | null = null;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
 let skuAdminQuery = "";
@@ -1680,6 +1684,36 @@ function renderPeopleTabs(current: "users" | "hr"): string {
 
 function renderHr(): string {
   const source = hrSource?.source;
+  const eventState = hrEventSync?.sync || {};
+  const eventPlan = eventState.plan || {};
+  const eventStatus = String(eventState.status || "CHƯA CÓ TÍN HIỆU");
+  const watch = hrEventSync?.watch;
+  const watchUntil = watch?.expires_at_ms
+    ? fmt(new Date(Number(watch.expires_at_ms)).toISOString())
+    : "Chưa đăng ký";
+  const hardBlockLabels: Record<string, string> = {
+    DUPLICATE_CONFLICT: "Trùng Mã nhân viên nhưng thông tin không đồng nhất",
+    INVALID_ROWS: "Có dòng nhân sự không hợp lệ",
+    EMPTY_SOURCE: "Nguồn nhân sự rỗng",
+    NON_PICKER_COLLISION: "Mã nhân viên trùng tài khoản không phải Picker",
+    SOURCE_ROW_LOSS_OVER_20_PERCENT: "Số dòng nguồn giảm quá 20%",
+    HEADER_CHANGED: "Tên cột nguồn đã thay đổi",
+    SOURCE_ACCESS_FAILED: "Không đọc được Google Sheet",
+    SOURCE_READ_FAILED: "Không đọc được snapshot nhân sự",
+  };
+  const pendingFingerprint = String(eventState.pending_fingerprint || "");
+  const canConfirmEvent = Boolean(
+    pendingFingerprint &&
+    profile &&
+    (profile.role === "ADMIN" || profile.role === "ROOT")
+  );
+  const eventClass = eventStatus === "HARD_BLOCK"
+    ? "error"
+    : eventStatus === "CONFIRM_REQUIRED"
+      ? "warning"
+      : eventStatus === "APPLIED"
+        ? "success"
+        : "";
   return `<section class="ops-route people-workspace">
     <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Quản lý tài khoản, nguồn nhân sự và đồng bộ Picker trong cùng một nghiệp vụ.</p></div></div>
     ${renderPeopleTabs("hr")}
@@ -1695,7 +1729,24 @@ function renderHr(): string {
       </form>
     </article>
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Đồng bộ Picker</h3><p>Kiểm tra thay đổi trước khi áp dụng.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Đồng bộ tự động D161</h3><p>Google Drive chỉ đánh thức hệ thống khi file thay đổi; máy chủ luôn đọc lại Sheet và kiểm tra toàn bộ snapshot trước khi áp dụng.</p></div></div>
+      ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? `
+        <section class="ops-status-strip">
+          <span>Watch <b>${watch?.configured ? "Đang hoạt động" : "Chưa hoạt động"}</b></span>
+          <span>Gia hạn đến <b>${esc(watchUntil)}</b></span>
+          <span>Trạng thái <b>${esc(eventStatus)}</b></span>
+          <span>Dòng nguồn <b>${Number(eventState.source_row_count || 0).toLocaleString("vi-VN")}</b></span>
+        </section>
+        ${eventStatus === "CONFIRM_REQUIRED" ? `<div class="notice warning">
+          Snapshot mới cần xác nhận: tạo mới <b>${Number(eventPlan.create || 0)}</b>, cập nhật thông tin <b>${Number(eventPlan.existing_info_updates || 0)}</b>.
+          ${canConfirmEvent ? `<div class="ops-form-actions"><button class="primary" id="confirm-hr-event">Xác nhận áp dụng snapshot hiện tại</button></div>` : ""}
+        </div>` : ""}
+        ${eventStatus === "HARD_BLOCK" ? `<div class="notice error">Đồng bộ đang bị chặn: ${esc(hardBlockLabels[String(eventState.hard_block_code || "")] || String(eventState.hard_block_code || "Cần kiểm tra nguồn nhân sự"))}. Dữ liệu người dùng hiện tại được giữ nguyên.</div>` : ""}
+        ${eventClass === "success" ? `<div class="notice success">Snapshot gần nhất đã được áp dụng và xác minh theo fingerprint nguồn.</div>` : ""}
+      ` : `<div class="ops-empty">Trạng thái đồng bộ tự động chỉ hiển thị cho Admin/Root.</div>`}
+    </article>
+    <article class="ops-panel">
+      <div class="ops-panel-title"><div><h3>Kiểm tra thủ công</h3><p>Xem trước vẫn dùng dữ liệu máy chủ đọc trực tiếp từ nguồn hiện tại.</p></div></div>
       <div class="ops-form-actions"><button class="secondary" id="preview-hr">Xem trước</button>${hrPreview ? `<button class="primary" id="apply-hr">Áp dụng</button>` : ""}</div>
       ${hrPreview ? `<section class="ops-status-strip"><span>Nguồn <b>${hrPreview.total_source}</b></span><span>Tạo mới <b>${hrPreview.create}</b></span><span>Đổi tên <b>${hrPreview.rename}</b></span><span>Đổi nhà thầu <b>${hrPreview.contractor_update || 0}</b></span><span>Không đổi <b>${hrPreview.unchanged}</b></span></section>` : `<div class="ops-empty">Chưa có bản xem trước.</div>`}
     </article>
@@ -3266,7 +3317,13 @@ async function loadSection(section: Section): Promise<void> {
   else if (section === "shift" && roleManage()) { await loadShiftOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
   else if (section === "sku" && rolePickPackManage()) { await loadSkuWorkspace(); received = true; }
-  else if (section === "hr" && rolePickPackManage()) { hrSource = await getHrSource(); received = true; }
+  else if (section === "hr" && rolePickPackManage()) {
+    hrSource = await getHrSource();
+    hrEventSync = profile.role === "ADMIN" || profile.role === "ROOT"
+      ? await getHrEventSyncState()
+      : null;
+    received = true;
+  }
   else if (section === "users" && rolePickPackManage()) { await loadUsers(); received = true; }
   else if (section === "sla" && roleManage()) { await loadSla(); received = true; }
   else if (section === "dashboard" && rolePickPackManage()) { await loadDashboard(); received = true; }
@@ -3890,8 +3947,11 @@ function bindSection(): void {
         String(data.get("contractorHeader") || ""),
       );
       hrSource = await getHrSource();
+      hrEventSync = profile?.role === "ADMIN" || profile?.role === "ROOT"
+        ? await getHrEventSyncState()
+        : null;
       hrPreview = null;
-      setNotice("success", "Đã xác nhận và ghim nguồn nhân sự.");
+      setNotice("success", "Đã xác nhận nguồn và đăng ký đồng bộ thay đổi.");
     });
   });
   document.querySelector<HTMLButtonElement>("#preview-hr")?.addEventListener("click", () => void run(async () => {
@@ -3901,6 +3961,14 @@ function bindSection(): void {
     await applyHrPickerSync();
     hrPreview = await previewHrPickerSync();
     setNotice("success", "Đã áp dụng đồng bộ Picker.");
+  }));
+  document.querySelector<HTMLButtonElement>("#confirm-hr-event")?.addEventListener("click", () => void run(async () => {
+    const fingerprint = String(hrEventSync?.sync?.pending_fingerprint || "");
+    if (!fingerprint) throw new Error("Snapshot chờ xác nhận không còn hợp lệ.");
+    await confirmHrEventSync(fingerprint);
+    hrEventSync = await getHrEventSyncState();
+    hrPreview = null;
+    setNotice("success", "Đã xác nhận và áp dụng snapshot nhân sự hiện tại.");
   }));
 
   document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => {
@@ -4202,6 +4270,8 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
   const scheduleRelevant =
     rolePickPackManage() && activeSection === "shift" && scopes.has("operating_schedule");
+  const hrRelevant =
+    Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT")) && scopes.has("hr_sync");
 
   // D114: the Xử lý báo hàng badge is global operational state, not section-local state.
   // Reuse the existing realtime event to refresh the authoritative queue even while the
@@ -4215,7 +4285,20 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
     }
   }
 
-  if (!pickerRelevant && !reporterRelevant && !slaRelevant && !scheduleRelevant) return true;
+  if (hrRelevant) {
+    try {
+      hrEventSync = await getHrEventSyncState();
+      const status = String(hrEventSync.sync?.status || "");
+      if (status === "CONFIRM_REQUIRED") setNotice("warning", "Nguồn nhân sự vừa thay đổi và cần Admin/Root xác nhận.");
+      else if (status === "HARD_BLOCK") setNotice("error", "Đồng bộ nhân sự đang bị chặn; dữ liệu tài khoản hiện tại được giữ nguyên.");
+      if (activeSection === "hr") patchActiveSection(true);
+    } catch {
+      return false;
+    }
+  }
+
+  if (!pickerRelevant && !reporterRelevant && !slaRelevant && !scheduleRelevant && !hrRelevant) return true;
+  if (hrRelevant && activeSection === "hr") return true;
   return reconcileActive();
 });
 

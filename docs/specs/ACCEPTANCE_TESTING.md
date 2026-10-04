@@ -2194,7 +2194,7 @@ When the Owner later authorizes implementation, D161 acceptance must prove at mi
 
 ## D161 log, Agent UI and overtime acceptance addendum
 
-Status: Owner-approved acceptance requirements; implementation deferred.
+Status: D161 implementation active; technical gates are being executed and Owner field acceptance remains pending.
 
 Later D161 implementation is not acceptable unless tests prove all of the following:
 
