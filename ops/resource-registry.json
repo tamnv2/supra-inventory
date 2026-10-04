@@ -2273,18 +2273,18 @@
     },
     "phase0a": {
       "workflow": ".github/workflows/d161-phase0a-preflight.yml",
-      "status": "ACTIVE_REPAIRING_WATCH_AND_GATEWAY_PROBES",
+      "status": "ACTIVE_REPAIRING_ANDROID_SIGNED_BUILD_ENV",
       "persistent_resource_change": "NONE",
       "beta_only": true,
       "stable": "FORBIDDEN",
       "canary_cleanup": "REQUIRED_SAME_RUN",
       "agent_safety_target": "v101",
       "android_safety_target": "vc93",
-      "last_failure": "RUN_37165408482_GATEWAY_POST_REDIRECT_405__RUN_37165408478_DUPLICATE_APPS_SCRIPT_WATCH_CALLBACK_HTTP400__NO_RUNTIME_MUTATION",
+      "last_failure": "RUN_37165619963_GRADLE_ASSEMBLE_RELEASE_SUCCESS__SIGNED_APK_PATH_ABSENT_BECAUSE_KEYSTORE_PATH_NOT_EXPORTED_IN_CURRENT_STEP__NO_RUNTIME_MUTATION",
       "functions_probe": "DIRECT_GCLOUD_GEN2_DESCRIBE_PASS__FCM_AND_HR_WATCH_EFFECTIVE_CAPABILITY_BY_DISPOSABLE_CONTINUATION_CANARY"
     },
     "phase0a_continuation_canary": {
-      "status": "AUTHORIZED__CANONICAL_HR_WATCH_FCM_PROVIDER_PROOF",
+      "status": "PASS__FCM_VALIDATE_ONLY__HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP_CLEANUP",
       "resource_key": "d161-phase0a-provider-canary-beta",
       "name": "d161Phase0aCanary",
       "purpose": "GEN2_FUNCTION_RUNTIME_IDENTITY__FCM_VALIDATE_ONLY__HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP_CLEANUP",

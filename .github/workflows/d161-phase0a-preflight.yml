@@ -353,6 +353,7 @@ jobs:
           key="$RUNNER_TEMP/d161-phase0a-beta.jks"
           printf '%s' "$BETA_KEYSTORE_B64" | base64 --decode > "$key"
           chmod 600 "$key"
+          export BETA_KEYSTORE_PATH="$key"
           echo "BETA_KEYSTORE_PATH=$key" >> "$GITHUB_ENV"
           gradle -p android :app:assembleRelease --no-daemon
           apk="android/app/build/outputs/apk/release/app-release.apk"
