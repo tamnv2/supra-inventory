@@ -757,3 +757,24 @@ These refinements were approved after the 2026-10-03 full-log review. They tight
 - **HR:** HARD_BLOCK exposes bounded non-sensitive row/reason diagnostics and a one-shot recheck; HARD_BLOCK remains fail-closed. CONFIRM_REQUIRED uses explicit Yes/No, where No performs no mutation and keeps the proposal pending.
 - **Agent Picker list:** after Agent login, active Picker observation is independent from WMS/Web Confirm readiness and the business-processing window. It reuses one Agent-sync gRPC stream targeting the existing `agent_sync` and authoritative `picker_presence_projection/current` documents, and stops on Agent logout; PickList mutation gates remain unchanged.
 - Repair lineage target: Web Version 2, Agent v105, next monotonic Android Beta after vc96. Stable remains OWNER-GATED and untouched.
+
+## 22. D161 fifth field repair — per-row Kích User without Android update — 2026-10-04
+
+Status: **OWNER APPROVED / IMPLEMENTATION ACTIVE UNDER D161**.
+
+Field observation: per-row Kích User could produce a locked overlay while Kích toàn bộ user did not. Root cause is the legacy single-revoke compatibility push encoded as `picker_command / CALL_SPECIALIST`, not beta-vc97 logout logic.
+
+Approved repair:
+
+- Android remains hard-locked at **beta-vc97**.
+- Target Agent is **relay-agent-v109**.
+- Per-row kick becomes one idempotent server-first command targeting exactly one Picker.
+- InventoryCore generation revoke is authoritative and commits before client signaling.
+- Worker reuses the existing `picker_session_controls` document to publish the authoritative generation after commit for immediate vc97 logout.
+- Remove session-revoke specialist-overlay FCM semantics completely.
+- Agent fleet removal consumes the authoritative generation returned by Worker.
+- Bounded transient retry reuses the same command id.
+- No new provider resource, collection, listener, query family, polling/heartbeat cadence or Stable change.
+
+D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
+
