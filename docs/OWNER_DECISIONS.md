@@ -3233,3 +3233,17 @@ The Owner explicitly approved an Android-free repair:
 
 Target repair Agent is **relay-agent-v109**. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
 
+
+
+## D161 sixth field repair — overtime activation + explicit empty PickList readiness — 2026-10-04
+
+Owner field retest after Agent v109 found three related Agent-only defects and approved repair under the same D161 change.
+
+- The outside-hours warning panel must keep its red/white warning presentation while always laying out the currently available action button(s) inside the visible panel. In the normal sleeping state, **Gia hạn +1 giờ** must be visible and usable; resize/auto-size must not hide it behind the status label.
+- Overtime extension and the 05:00–05:45 early-start schedule action are **schedule/control-plane decisions** and must not depend on Web Confirm/WMS PickList readiness. An authenticated Agent may activate/extend the shared relay schedule even when the Confirm page has no current PickList.
+- A Confirm page that has the expected controls/table structure and explicitly displays **Không tìm thấy kết quả phù hợp** is a hydrated empty state, not a broken/unready WMS session. It is represented as `READY_EMPTY` and shown to the user as **Web Agent chưa có PickList**.
+- A truly blank or partially hydrated Confirm shell without the explicit no-results marker remains fail-closed and is not promoted to ready.
+- When a PDA PickList arrives while the browser is in `READY_EMPTY`, Agent must run the existing normal Search/recovery/confirm pipeline. The empty-at-idle state must not cause an immediate WMS-not-ready terminal solely because there were no PickLists before the request.
+- Existing pre-mutation safety remains mandatory: actual WMS checkbox/Confirm mutation still requires current PRIMARY/generation authority and operational browser readiness at the mutation fence.
+- Scope is Windows Agent only. Android remains beta-vc97; Worker/Web/Stable are unchanged. No new provider resource, collection, listener, query, polling loop, heartbeat or write cadence is authorized.
+- Target repair release is **relay-agent-v110**. D160 relay-agent-v97 remains the accepted/rescue base until explicit Owner PASS for D161.

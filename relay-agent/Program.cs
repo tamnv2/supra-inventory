@@ -1491,6 +1491,10 @@ namespace SupraInventoryRelayAgent
                     .Append(agent.Machine).Append('|')
                     .Append(agent.Role).Append('|')
                     .Append(agent.WmsReady ? '1' : '0').Append('|')
+                    .Append(string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal)
+                        ? (_supraBrowserState ?? "")
+                        : "")
+                    .Append('|')
                     .Append(agent.Version).Append('|')
                     .Append(ageBucket).Append(';');
             }
@@ -1512,11 +1516,15 @@ namespace SupraInventoryRelayAgent
                         : (ageMs < 3600000
                             ? Math.Max(1L, ageMs / 60000) + " phút"
                             : Math.Max(1L, ageMs / 3600000) + " giờ");
+                    var webConfirmText = agent.WmsReady ? "Sẵn sàng" : "Chưa sẵn sàng";
+                    if (string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal) &&
+                        string.Equals(_supraBrowserState, "READY_EMPTY", StringComparison.Ordinal))
+                        webConfirmText = "Chưa có PickList";
                     _agentFleetGrid.Rows.Add(
                         CleanAgentUsername(agent.AdminUserId),
                         string.IsNullOrWhiteSpace(agent.Machine) ? "--" : agent.Machine,
                         agent.Role,
-                        agent.WmsReady ? "Sẵn sàng" : "Chưa sẵn sàng",
+                        webConfirmText,
                         string.IsNullOrWhiteSpace(agent.Version) ? "--" : agent.Version,
                         age);
                 }
@@ -1557,30 +1565,30 @@ namespace SupraInventoryRelayAgent
                 _afterHoursPanel.SetBounds(16, panelTop, panelWidth, panelHeight);
                 _afterHoursStatus.SetBounds(10, 7, Math.Max(220, panelWidth - 20), 34);
 
+                // D161 v110: lay out only the actions that are actually visible.
+                // The prior branch handled "continue + stop" and "cancel-only", so the
+                // normal sleeping state (only Gia hạn +1 giờ visible) left the button
+                // at its default bounds under the status label.
                 const int gap = 8;
-                var visibleActionCount =
-                    (_afterHoursContinue.Visible ? 1 : 0) +
-                    (_afterHoursStop.Visible ? 1 : 0) +
-                    (_afterHoursCancel.Visible ? 1 : 0);
-                if (visibleActionCount >= 3)
+                var actions = new List<Button>();
+                if (_afterHoursContinue.Visible) actions.Add(_afterHoursContinue);
+                if (_afterHoursStop.Visible) actions.Add(_afterHoursStop);
+                if (_afterHoursCancel.Visible) actions.Add(_afterHoursCancel);
+                if (_afterHoursEarlyStart.Visible) actions.Add(_afterHoursEarlyStart);
+                if (actions.Count > 0)
                 {
-                    var threeWidth = Math.Max(100, (panelWidth - 20 - (gap * 2)) / 3);
-                    _afterHoursContinue.SetBounds(10, 48, threeWidth, 32);
-                    _afterHoursStop.SetBounds(10 + threeWidth + gap, 48, threeWidth, 32);
-                    _afterHoursCancel.SetBounds(10 + ((threeWidth + gap) * 2), 48,
-                        Math.Max(100, panelWidth - 20 - ((threeWidth + gap) * 2)), 32);
+                    var usableWidth = Math.Max(240, panelWidth - 20 - (gap * (actions.Count - 1)));
+                    var actionWidth = Math.Max(100, usableWidth / actions.Count);
+                    var left = 10;
+                    for (var i = 0; i < actions.Count; i++)
+                    {
+                        var width = i == actions.Count - 1
+                            ? Math.Max(100, panelWidth - 10 - left)
+                            : actionWidth;
+                        actions[i].SetBounds(left, 48, width, 32);
+                        left += width + gap;
+                    }
                 }
-                else if (_afterHoursContinue.Visible && _afterHoursStop.Visible)
-                {
-                    var actionWidth = Math.Max(120, (panelWidth - 28 - gap) / 2);
-                    _afterHoursContinue.SetBounds(10, 48, actionWidth, 32);
-                    _afterHoursStop.SetBounds(18 + actionWidth, 48, Math.Max(120, panelWidth - 28 - gap - actionWidth), 32);
-                }
-                else
-                {
-                    _afterHoursCancel.SetBounds(10, 48, Math.Max(240, panelWidth - 20), 32);
-                }
-                _afterHoursEarlyStart.SetBounds(10, 48, Math.Max(240, panelWidth - 20), 32);
 
                 var gridTop = panelTop + panelHeight + 6;
                 _agentFleetGrid.SetBounds(
@@ -1723,12 +1731,9 @@ namespace SupraInventoryRelayAgent
             if (_businessSchedule == null || _leaderCoordinator == null || !HasAgentSession()) return;
             var now = _businessSchedule.NowOperational();
             if (!_businessSchedule.IsOvertimeSleepWindow(now)) return;
-            if (!HasReadyConfirmBrowser())
-            {
-                _afterHoursStatus.Text = "Cần Web Confirm sẵn sàng trước khi gia hạn tăng ca.";
-                return;
-            }
 
+            // D161 v110: overtime is schedule/control-plane authority, not WMS
+            // readiness. A shift may start or extend before any PickList exists.
             var key = _businessSchedule.ScheduleKey(now);
             var cutoff = _businessSchedule.NextOvertimeCutoff(now);
             var published = _leaderCoordinator.PublishOvertimeExtension(
@@ -1759,12 +1764,9 @@ namespace SupraInventoryRelayAgent
             var now = _businessSchedule.NowOperational();
             if (!_businessSchedule.IsEarlyStartWindow(now)) return;
             if (_businessSchedule.DefaultRelayAllowed(now)) return;
-            if (!HasReadyConfirmBrowser())
-            {
-                _afterHoursStatus.Text = "Cần Web Confirm sẵn sàng trước khi khởi động relay.";
-                return;
-            }
 
+            // D161 v110: early-start schedule activation is independent of whether
+            // the Confirm page currently contains a PickList.
             var until = _businessSchedule.NextRegularStart(now);
             var key = _businessSchedule.ScheduleKey(now);
             if (_leaderCoordinator.PublishEarlyStartAndClaimPrimary(key, OperationalMs(until)))
@@ -1778,7 +1780,7 @@ namespace SupraInventoryRelayAgent
             }
             else
             {
-                _afterHoursStatus.Text = "Chưa khởi động được relay sớm · kiểm tra Firestore/Web Confirm.";
+                _afterHoursStatus.Text = "Chưa khởi động được relay sớm · kiểm tra kết nối đồng bộ ca.";
             }
         }
 
@@ -2746,6 +2748,7 @@ namespace SupraInventoryRelayAgent
             switch (state ?? "")
             {
                 case "READY": return "Web Confirm sẵn sàng";
+                case "READY_EMPTY": return "Web Agent chưa có PickList";
                 case "LOGIN_REQUIRED": return "Cần đăng nhập Supra trên trình duyệt";
                 case "DASHBOARD_ACCESS_CLICK": return "Đang truy cập SFT3 từ Dashboard";
                 case "DASHBOARD_ACCESS_FAILED": return "Không truy cập được SFT3 từ Dashboard";

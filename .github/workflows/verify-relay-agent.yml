@@ -309,6 +309,52 @@ jobs:
             throw "D161 v109 session revoke must never generate a specialist overlay command."
           }
 
+          # D161 v110 field repair: overtime controls are independent from WMS
+          # readiness, the visible action button is always laid out, and an explicit
+          # no-results WMS page is a hydrated READY_EMPTY state rather than a false
+          # session failure. A truly blank/unhydrated shell remains fail-closed.
+          $extendStart = $program.IndexOf('private void ExtendOvertimeOneHour()')
+          $extendEnd = $program.IndexOf('private void StartRelayBeforeSix()', $extendStart)
+          $earlyStart = $extendEnd
+          $earlyEnd = $program.IndexOf('// D129: shared schedule', $earlyStart)
+          $layoutStart = $program.IndexOf('private void ApplyAfterHoursAgentLayout(bool visible)')
+          $layoutEnd = $program.IndexOf('private bool IsBusinessAllowed()', $layoutStart)
+          if ($extendStart -lt 0 -or $extendEnd -le $extendStart -or
+              $earlyStart -lt 0 -or $earlyEnd -le $earlyStart -or
+              $layoutStart -lt 0 -or $layoutEnd -le $layoutStart) {
+            throw "D161 v110 method-boundary guard missing."
+          }
+          $extendBody = $program.Substring($extendStart, $extendEnd - $extendStart)
+          $earlyBody = $program.Substring($earlyStart, $earlyEnd - $earlyStart)
+          $layoutBody = $program.Substring($layoutStart, $layoutEnd - $layoutStart)
+          if ($extendBody.Contains('HasReadyConfirmBrowser') -or
+              $earlyBody.Contains('HasReadyConfirmBrowser')) {
+            throw "D161 v110 schedule activation must not depend on WMS/PickList readiness."
+          }
+          foreach ($marker in @(
+            'var actions = new List<Button>();',
+            'if (_afterHoursContinue.Visible) actions.Add(_afterHoursContinue);',
+            'actions[i].SetBounds(left, 48, width, 32);'
+          )) {
+            if (-not $layoutBody.Contains($marker)) { throw "D161 v110 after-hours action layout guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'private const string NoResultsText = "Không tìm thấy kết quả phù hợp";',
+            'const explicitEmpty =',
+            'picklistCodes.length > 0 || explicitEmpty',
+            "'READY_EMPTY'",
+            'empty_data_self_heal=START',
+            'ClickExactButtonNoLock(SearchText)'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D161 v110 empty-PickList readiness/search guard missing: $marker" }
+          }
+          if (-not $browser.Contains("else if (pathOk && domReady && !dataHydrated) state = 'CONFIRM_DATA_EMPTY';")) {
+            throw "D161 v110 blank/unhydrated Confirm shell must remain fail-closed."
+          }
+          if (-not $program.Contains('case "READY_EMPTY": return "Web Agent chưa có PickList";')) {
+            throw "D161 v110 READY_EMPTY user-facing status guard missing."
+          }
+
           foreach ($marker in @(
             'Lịch sử Picker xác nhận PickList',
             'reset lúc 05:00',
