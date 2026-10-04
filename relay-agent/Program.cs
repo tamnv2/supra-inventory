@@ -1601,7 +1601,9 @@ namespace SupraInventoryRelayAgent
 
         private bool IsBusinessAllowed()
         {
-            if (!HasOperationalReadiness()) return false;
+            // D161 v108: relay/schedule authority is independent of WMS readiness.
+            // WMS readiness is enforced only by the strict pre-mutation fence.
+            if (!HasAgentSession()) return false;
             if (_businessSchedule == null) return true;
             var now = _businessSchedule.NowOperational();
             if (_businessSchedule.DefaultRelayAllowed(now)) return true;
@@ -4412,7 +4414,10 @@ namespace SupraInventoryRelayAgent
         private void StartListening()
         {
             try { SnapshotSession(); } catch { Log("Chưa ghép Agent."); return; }
-            if (!HasOperationalReadiness()) return;
+            // D161 v108: authenticated Agent transport must remain alive even while
+            // Web Confirm is preparing/not-ready so requests can reach History and
+            // terminate explicitly as WMS_SESSION_REQUIRED without WMS mutation.
+            if (!HasAgentSession()) return;
             if (_listenCts != null) return;
             StartLeaderCoordination();
             _listenCts = new CancellationTokenSource();
