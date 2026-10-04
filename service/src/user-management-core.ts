@@ -13,6 +13,7 @@ interface UserRow extends SqlRow {
   display_name: string;
   contractor_name: string | null;
   shortage_reporting_enabled: number;
+  shortage_reporting_revision: number;
   role: AppRole;
   status: UserStatus;
   password_salt: string | null;
@@ -66,6 +67,7 @@ function safeUser(row: UserRow): Record<string, unknown> {
     display_name: row.display_name,
     contractor_name: row.role === "PICKER" ? (row.contractor_name || "") : null,
     shortage_reporting_enabled: row.role === "PICKER" ? Number(row.shortage_reporting_enabled ?? 0) === 1 : null,
+    shortage_reporting_revision: Number(row.shortage_reporting_revision || 0),
     role: row.role, status: row.status,
     auth_email: row.auth_email || null,
     firebase_password_ready: Number(row.firebase_password_ready || 0) === 1,
@@ -76,7 +78,7 @@ function safeUser(row: UserRow): Record<string, unknown> {
 
 function getUser(state: DurableObjectState, userId: string): UserRow | null {
   return first(state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users WHERE user_id = ? LIMIT 1`, userId,
   ).toArray());
 }
@@ -119,7 +121,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
   ).toArray()) || {};
 
   const rows = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
             password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users
        ${clause}
@@ -361,7 +363,7 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
     return response({ error: "INVALID_PICKER_BULK_ACTION" }, 400);
   }
   let targets = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
             password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
        FROM users WHERE role = 'PICKER' ORDER BY employee_code ASC`,
   ).toArray();
@@ -390,7 +392,7 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
         const current = Number(target.shortage_reporting_enabled ?? 0) === 1 ? 1 : 0;
         if (current === enabled) continue;
         state.storage.sql.exec(
-          `UPDATE users SET shortage_reporting_enabled = ?, updated_at = ? WHERE user_id = ? AND role = 'PICKER'`,
+          `UPDATE users SET shortage_reporting_enabled = ?, shortage_reporting_revision = COALESCE(shortage_reporting_revision, 0) + 1, updated_at = ? WHERE user_id = ? AND role = 'PICKER'`,
           enabled, at, target.user_id,
         );
         audit(state, actor, action === "REPORTING_ENABLE" ? "PICKER_SHORTAGE_REPORTING_ENABLE" : "PICKER_SHORTAGE_REPORTING_DISABLE", "USER", target.user_id, {
@@ -437,7 +439,7 @@ function normalizeHrEmployees(items: HrEmployee[]): { employees: Array<{ employe
 function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: string; display_name: string; contractor_name: string }>): Record<string, unknown> {
   const incoming = new Map(employees.map((item) => [item.employee_code, item]));
   const existing = state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
             password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
   ).toArray();
   const byCode = new Map(existing.filter((u) => u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
@@ -480,7 +482,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
   const at = new Date().toISOString();
   state.storage.transactionSync(() => {
     const existing = state.storage.sql.exec<UserRow>(
-      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, role, status,
+      `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
               password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
     ).toArray();
     const pickerByCode = new Map(existing.filter((u) => u.role === "PICKER" && u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));

@@ -23,10 +23,10 @@
     "durable_object_class": "InventoryCore",
     "durable_object_binding": "INVENTORY_CORE",
     "durable_object_storage": "sqlite",
-    "beta_sqlite_schema_version": 16,
+    "beta_sqlite_schema_version": 17,
     "beta_operational_v2_extension_schema_runtime": 5,
     "beta_operational_v2_extension_schema_source_target": 5,
-    "beta_sqlite_schema_source_target": 16
+    "beta_sqlite_schema_source_target": 17
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",
@@ -143,7 +143,7 @@
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
-      "sqlite_schema_version": 16,
+      "sqlite_schema_version": 17,
       "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
       "android_package": "cd.cc.supra.inventory.beta",
       "firebase_android_app_id": "1:572322098890:android:3e483937876cbcc0400e33",

@@ -91,6 +91,7 @@ import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
 import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
+import { WEB_VERSION, WEB_VERSION_LABEL } from "./web-version";
 import {
   createPickerReport,
   getPickerReportsV2,
@@ -834,6 +835,16 @@ function renderCompactDateRange(target: "dashboard" | "reports", from: string, t
   </div>`;
 }
 
+function syncVisibleDateRange(target: "dashboard" | "reports" | "recent", from: string, to: string): void {
+  const form = document.querySelector<HTMLFormElement>(
+    target === "dashboard" ? "#dashboard-filter" : target === "reports" ? "#report-filter" : "#recent-range-form",
+  );
+  const fromInput = form?.querySelector<HTMLInputElement>('input[name="from"]');
+  const toInput = form?.querySelector<HTMLInputElement>('input[name="to"]');
+  if (fromInput) fromInput.value = from;
+  if (toInput) toInput.value = to;
+}
+
 
 type UiFieldSnapshot = {
   id: string;
@@ -1152,7 +1163,7 @@ function renderLogin(): void {
   const recoveryToken = new URL(window.location.href).searchParams.get("password-reset") || "";
   if (/^[a-f0-9]{128}$/i.test(recoveryToken)) {
     app.innerHTML = `<main class="login-shell"><section class="login-card">
-      <div class="login-brand-lockup"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory</h1></div></div><h2 class="login-view-title">Đặt lại mật khẩu</h2>
+      <div class="login-brand-lockup"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1></div></div><h2 class="login-view-title">Đặt lại mật khẩu</h2>
       <p class="muted">Nhập mật khẩu mới cho tài khoản đã yêu cầu khôi phục.</p>
       <form id="confirm-password-reset-form">
         <label>Mật khẩu mới<input name="next" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
@@ -1184,7 +1195,7 @@ function renderLogin(): void {
   }
   const rememberedUsername = localStorage.getItem(REMEMBER_LOGIN_KEY) || "";
   app.innerHTML = `<main class="login-shell"><div class="login-stage">
-    <div class="login-brand-lockup login-brand-reference"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory</h1></div></div>
+    <div class="login-brand-lockup login-brand-reference"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1></div></div>
     <section class="login-card">
       <div class="login-card-heading"><span></span><div><h2>Đăng nhập tài khoản</h2><p>Nhập thông tin để truy cập hệ thống</p></div></div>
       ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
@@ -1293,7 +1304,7 @@ function renderShell(content: string): void {
     <header class="topbar">
       <div class="header-product">
         <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
-        <h1>Website nghiệp vụ Inventory</h1>
+        <h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1>
         <div class="header-runtime">
           <span id="service-state" data-state="${serviceReachable ? "on" : "off"}">Dịch vụ: ${serviceReachable ? "Hoạt động" : "Mất kết nối"}</span>
           <span class="header-runtime-separator">|</span>
@@ -1317,7 +1328,7 @@ function renderShell(content: string): void {
     </header>
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
     <main id="content" class="content main" data-active-section="${esc(activeSection)}">${content}</main>
-    <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span><span class="app-footer-public-links"><a href="/about">Giới thiệu</a><a href="/privacy">Quyền riêng tư</a><a href="/terms">Điều khoản</a></span></footer>
+    <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>
     <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
   </div>`;
   bindShell();
@@ -1592,7 +1603,7 @@ function renderResults(): string {
       </form>
       <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
-        ${visible.map((row) => { const canCorrect = roleCanResolve() && row.status === "SKIP_ALLOWED" && row.correction_deadline_at && Date.now() <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+        ${visible.map((row) => { const canCorrect = roleCanResolve() && row.status === "SKIP_ALLOWED" && row.correction_deadline_at && (Date.now() + queueServerOffsetMs) <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -2703,7 +2714,8 @@ async function loadOperationsSnapshot(): Promise<void> {
     ),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-  const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
+  const serverNowValue = recent.server_now || queue.server_now || "";
+  const serverNow = serverNowValue ? Date.parse(serverNowValue) : NaN;
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
   queueRows = queue.items;
   if (recent.total > 0 && recentOffset >= recent.total) {
@@ -3709,6 +3721,7 @@ function bindSection(): void {
     else if (preset === "D7") { recentFrom = dateDaysAgo(6); recentTo = today; }
     else if (preset === "D30") { recentFrom = dateDaysAgo(29); recentTo = today; }
     else return;
+    syncVisibleDateRange("recent", recentFrom, recentTo);
     recentOffset = 0;
     void run(loadOperations);
   }));
@@ -4064,6 +4077,7 @@ function bindSection(): void {
     if (target === "dashboard") {
       dashboardFrom = dateDaysAgo(days);
       dashboardTo = dateDaysAgo(0);
+      syncVisibleDateRange("dashboard", dashboardFrom, dashboardTo);
       void run(async () => {
         await persistDashboardRangeForUser();
         await loadDashboard();
@@ -4071,6 +4085,7 @@ function bindSection(): void {
     } else if (target === "reports") {
       reportFrom = dateDaysAgo(days);
       reportTo = dateDaysAgo(0);
+      syncVisibleDateRange("reports", reportFrom, reportTo);
       reportOffset = 0;
       void run(loadReports);
     }
@@ -4270,6 +4285,7 @@ initWebRuntimeLogging(() => ({
   busy,
   realtime: { state: realtimeState, applied_seq: realtimeLastSeq },
   service_reachable: serviceReachable,
+  web_version: WEB_VERSION,
   queue: {
     total: queueRows.length,
     filter: queueFilter,

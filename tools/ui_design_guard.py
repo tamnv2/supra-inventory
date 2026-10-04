@@ -483,7 +483,7 @@ checks = {
         and "Pick Pack 1291" in ANDROID_LOGIN_XML
     ),
     "android_realtime_delta": "/api/realtime/delta" in ANDROID_API and "appliedSeq" in ANDROID_RT and "streamEpoch" in ANDROID_RT and "recoverDelta" in ANDROID_RT,
-    "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "loginButton?.isEnabled = updateGate == UpdateGate.CURRENT"]),
+    "android_update_gate_preserved": all(token in ANDROID_MAIN for token in ["UpdateGate.CHECKING", "UpdateGate.REQUIRED", "UpdateGate.DEFERRED", "UpdateGate.FAILED", "BuildConfig.UPDATE_RELEASE_API", "verifyInstalledSignerTrusted()", "loginButton?.isEnabled = updateGate != UpdateGate.FAILED", 'setNegativeButton("Để sau")']),
 
     "service_operational_v2_schema": all(token in SERVICE_OPS for token in ["realtime_events", "result_acknowledgements", "previous_batch_id", "version", "operational_sla_v1"]),
     "service_delta_api": "/api/realtime/delta" in SERVICE_READ and "/operational/realtime/delta" in SERVICE_OPS,
@@ -542,7 +542,7 @@ checks = {
     "web_d071_compact_dates": all(token in (WEB_APP + WEB_UNIFIED) for token in ["renderCompactDateRange", "compact-date-range", "compact-date-presets", "report-filter-compact"]),
     "web_d071_immediate_reporter_actions": all(token in WEB_APP for token in ["pendingReporterResolutions", "commitReporterResolution", "reporter_resolution_immediate_feedback", "loadOperationsSnapshot", "operationsLoadPromise"]) and 'await resolveReporterBatch(batch.batch_id, "HAS_STOCK");\n      await loadOperations();' not in WEB_APP and 'await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");\n      await loadOperations();' not in WEB_APP,
     "web_d089_tools_dark_completion": all(token in WEB_UNIFIED for token in ["D089 — Tools dark-theme completion", ".tool-icon-image", ".tools-workspace .tool-facts > div"]) and 'body[data-theme="dark"] .tools-workspace .tool-facts > div' in WEB_UNIFIED,
-    "web_d107_professional_identity": all(token in WEB_APP for token in ['class="login-brand-lockup"', '/app-icon.png', "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN", "<h1>Website nghiệp vụ Inventory</h1>"]) and all(token not in WEB_APP for token in ['<div class="brand">1291</div>', "<h1>Web nghiệp vụ</h1>", "Đăng nhập bằng tài khoản Báo hàng 1291."]),
+    "web_d107_professional_identity": all(token in WEB_APP for token in ['class="login-brand-lockup"', '/app-icon.png', "CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN", "Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}"]) and all(token not in WEB_APP for token in ['<div class="brand">1291</div>', "<h1>Web nghiệp vụ</h1>", "Đăng nhập bằng tài khoản Báo hàng 1291."]),
     "web_d107_professional_layer": './legacy-transplant/web-professional-v2.css' in WEB_APP and all(token in WEB_PRO for token in ["D107 — professional Web refinement", ".login-brand-lockup", ".business-summary-grid-6", ".pro-trend-chart", ".pro-report-analysis", 'body[data-theme="dark"]']),
     "web_d107_richer_reporting": all(token in WEB_APP for token in ["affectedInPeriod", "trendRows", "pro-trend-chart", "data-dashboard-sku", "reportWarningCount", "reportOverdueCount", "open_ticket_count", "pro-report-analysis"]),
     "authority_d108_picker_resolution_refinement": "D108" in DECISIONS and "D108" in DESIGN_SPEC,

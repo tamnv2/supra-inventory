@@ -29,9 +29,11 @@ main_activity = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainA
 picker = read("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt")
 agent_version = read("relay-agent/VERSION").strip()
 
-require(core, "const SCHEMA_VERSION = 16;", "schema16 migration target")
+require(core, "const SCHEMA_VERSION = 17;", "schema17 D161 capability-revision migration target")
 require(core, "shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0", "clean-install reporting default off")
 require(core, "d156_reporting_default_off_applied", "one-time existing Picker migration marker")
+require(core, "SELECT value FROM schema_meta WHERE key = 'd156_reporting_default_off_applied'", "D161 structural D156 marker survives runtime reset")
+require(core, "shortage_reporting_revision INTEGER NOT NULL DEFAULT 0", "D161 monotonic reporting capability revision")
 require(core, "UPDATE users SET shortage_reporting_enabled = 0", "existing Picker default-off migration")
 require(core, "scheduleRecoveryInFlight", "single in-flight schedule recovery")
 require(core, "this.nextScheduleRecoveryAt = now + 10_000;", "global 10-second exact-read throttle")
@@ -60,7 +62,9 @@ require(picker, "shortageReportingEnabled && operatingWindowOpen", "Báo hàng b
 require(picker, "if (!operatingWindowOpen)", "Báo hàng submit schedule gate")
 
 require(android_api, "val shortageReportingEnabled: Boolean = false", "Android fail-closed reporting default")
-require(android_api, 'optBoolean("shortage_reporting_enabled", false)', "Android parser fail-closed reporting default")
+require(android_api, "parseCapabilityBoolean", "D161 Android robust reporting boolean parser")
+require(android_api, "shortageReportingRevision", "D161 Android reporting revision authority")
+require(android_api, "same revision conflict: fail closed", "D161 same-revision conflict fail closed")
 require(users_core, "?, NULL, ?, ?, ?, 0, 'PICKER'", "new HR Picker reporting default off")
 require(users_core, 'reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156"', "HR post-migration preservation policy")
 require(notifications, "COALESCE(shortage_reporting_enabled, 0)", "notification eligibility fail closed")

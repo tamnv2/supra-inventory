@@ -109,6 +109,8 @@ export interface ReporterRecentBatch {
   resolution: "HAS_STOCK" | "SKIP_ALLOWED" | null;
   resolution_source?: string | null;
   correction_deadline_at: string | null;
+  correction_allowed?: boolean;
+  correction_remaining_ms?: number;
   affected_picker_count: number;
   version: number;
   previous_batch_id: string | null;
@@ -144,6 +146,7 @@ export interface ManagedUser {
   display_name: string;
   contractor_name?: string | null;
   shortage_reporting_enabled?: boolean | null;
+  shortage_reporting_revision?: number;
   role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_initialized: boolean;
@@ -887,6 +890,8 @@ export async function getReporterRecent(
   limit: number;
   offset: number;
   filter_status: string;
+  server_now?: string;
+  server_now_ms?: number;
   totals: {
     has_stock: number;
     skip_allowed: number;

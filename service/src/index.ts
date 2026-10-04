@@ -58,6 +58,7 @@ interface InternalUser {
   display_name: string;
   contractor_name: string | null;
   shortage_reporting_enabled: number;
+  shortage_reporting_revision: number;
   role: AppRole;
   base_role: AppRole;
   role_override: AppRole | null;
@@ -513,7 +514,15 @@ function publicUser(user: InternalUser): Record<string, unknown> {
     firebase_agent_ready: _firebaseAgentReady,
     ...safe
   } = user;
-  return safe;
+  return {
+    ...safe,
+    // D161 external capability contract is always a JSON boolean. Non-Picker
+    // roles are effectively enabled because the Picker-only gate does not apply.
+    shortage_reporting_enabled: user.role === "PICKER"
+      ? Number(user.shortage_reporting_enabled ?? 0) === 1
+      : true,
+    shortage_reporting_revision: Number(user.shortage_reporting_revision || 0),
+  };
 }
 
 async function parseUpstreamJson<T>(response: Response): Promise<T> {

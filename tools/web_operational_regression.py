@@ -317,7 +317,9 @@ def main() -> None:
     forbid(app, 'await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");\n      await loadOperations();', "D071 blocking Skip refresh chain")
 
     # D088: naming, persistent single interactive session and Web tools.
-    require(app, "<h1>Website nghiệp vụ Inventory</h1>", "D088 Web product name")
+    require(app, "Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}", "D161 Web product name with canonical version")
+    require(app, "syncVisibleDateRange", "D161 date preset visible/query convergence")
+    require(app, '<footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>', "D161 authenticated footer product credit only")
     require(app, '["tools", "Công cụ"]', "D088 tools navigation")
     require(app, "Agent Auto Confirm Pick Pack", "D088 Agent product surface")
     require(app, "getAgentAppRelease", "D112 dynamic Agent release metadata")
@@ -423,7 +425,7 @@ def main() -> None:
     require(app_tools, 'stable_download_path: "/downloads/pda/latest"', "D109 version-independent PDA download path")
     require(app_tools, 'stable_download_path: "/downloads/agent/latest"', "D112 version-independent Agent download path")
     forbid(app, 'downloads/beta-vc', "D109 no hard-coded Beta tag in PDA tools URL")
-    require(core, "const SCHEMA_VERSION = 16;", "D156 schedule convergence and reporting-default migration schema target")
+    require(core, "const SCHEMA_VERSION = 17;", "D161 capability-revision schema retaining D156 schedule/reporting migration")
     require(core, "role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')", "D143 ROOT effective Pick Pack role constraint")
     require(runtime_logs_core, "CREATE TABLE IF NOT EXISTS runtime_log_buffer", "D144 OAuth-independent runtime-log authority")
     require(runtime_logs, "Google Drive is archive-only", "D144 Drive archive is non-blocking")

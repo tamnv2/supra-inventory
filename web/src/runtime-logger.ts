@@ -1,4 +1,5 @@
 import { hasSession, uploadRuntimeLog } from "./api";
+import { WEB_VERSION } from "./web-version";
 
 type Severity = "INFO" | "ERROR";
 type SnapshotProvider = () => Record<string, unknown>;
@@ -241,6 +242,7 @@ function runtimePayload(reason: string): Record<string, unknown> {
   const connection = (navigator as Navigator & { connection?: { effectiveType?: string; downlink?: number; rtt?: number; saveData?: boolean } }).connection;
   return {
     reason,
+    web_version: WEB_VERSION,
     page: {
       path: location.pathname,
       hash: location.hash,
