@@ -36,6 +36,7 @@ def main() -> None:
     relay_agent = read("relay-agent/Program.cs")
     d160_pipeline = read("relay-agent/D160ConfirmPipeline.cs")
     relay_agent_config = read("relay-agent/AgentConfig.cs")
+    relay_agent_version = read("relay-agent/VERSION").strip()
     relay_agent_updater = read("relay-agent/AgentUpdater.cs")
     supra_browser = read("relay-agent/SupraConfirmBrowser.cs")
     # D124 supersedes the legacy Windows Agent overlay requirements. Android's
@@ -233,7 +234,7 @@ def main() -> None:
         require(diagnostic_marker, "inventory_channel_update=FORBIDDEN", "D160 manual test trusted Agent channel fence")
         require(diagnostic_marker, "d161_runtime_update=FORBIDDEN", "D160 manual test keeps D161 deferred")
     else:
-        require(relay_agent_config, "AgentBuild = 97", "D160 lifecycle repair Agent v97 channel retaining hard-locked Android beta-vc92 and accepted D158/D157 safeguards")
+        require(relay_agent_config, f"AgentBuild = {relay_agent_version}", "official Agent build/version alignment retaining accepted safeguards")
     require(relay_agent, "QueueNetworkStatusRefresh", "D122 SSID refresh off WinForms UI thread")
     require(relay_agent, "QueueWatchdogRefresh", "D122 watchdog refresh off WinForms UI thread")
     require(relay_agent, "ExpireAgentSession", "D122 expired Agent session login recovery")
