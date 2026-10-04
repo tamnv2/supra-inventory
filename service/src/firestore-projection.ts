@@ -137,6 +137,43 @@ async function deleteDocument(env: ProjectionWriteEnv, collection: string, id: s
   if (!response.ok && response.status !== 404) throw new Error(`FIRESTORE_PROJECTION_DELETE_HTTP_${response.status}`);
 }
 
+export async function clearPickerNotificationTargets(
+  env: ProjectionWriteEnv,
+  userIds: string[],
+): Promise<number> {
+  const unique = [...new Set(
+    (userIds || [])
+      .map((value) => String(value || "").trim())
+      .filter((value) => /^[A-Za-z0-9._:-]{1,180}$/.test(value)),
+  )].slice(0, 2000);
+  if (!unique.length) return 0;
+
+  const token = await accessToken(env);
+  let deleted = 0;
+  for (let offset = 0; offset < unique.length; offset += 450) {
+    const chunk = unique.slice(offset, offset + 450);
+    const response = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/databases/(default)/documents:commit`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          writes: chunk.map((userId) => ({
+            delete: `projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/picker_notification_targets/${userId}`,
+          })),
+        }),
+      },
+    );
+    if (!response.ok) throw new Error(`FIRESTORE_NOTIFICATION_TARGET_BULK_DELETE_HTTP_${response.status}`);
+    deleted += chunk.length;
+  }
+  return deleted;
+}
+
 export async function mirrorPickerNotificationTarget(
   env: ProjectionEnv,
   input: {
