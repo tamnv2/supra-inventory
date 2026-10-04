@@ -10,7 +10,7 @@ data class LocalOperatingSchedule(
     val decision: String,
     val openUntilMs: Long,
     val normalStartMinutes: Int = 5 * 60 + 45,
-    val normalEndMinutes: Int = 22 * 60 + 30,
+    val normalEndMinutes: Int = 22 * 60 + 15,
     val overtimeCutoffMinutes: Int = 5 * 60,
     val updatedAtMs: Long = 0L,
     val serverOffsetMs: Long = 0L,
@@ -34,7 +34,7 @@ object OperatingScheduleStore {
             decision = prefs.getString("decision", "").orEmpty(),
             openUntilMs = prefs.getLong("open_until_ms", 0L),
             normalStartMinutes = prefs.getInt("normal_start_minutes", 5 * 60 + 45),
-            normalEndMinutes = prefs.getInt("normal_end_minutes", 22 * 60 + 30),
+            normalEndMinutes = prefs.getInt("normal_end_minutes", 22 * 60 + 15),
             overtimeCutoffMinutes = prefs.getInt("overtime_cutoff_minutes", 5 * 60),
             updatedAtMs = prefs.getLong("updated_at_ms", 0L),
             serverOffsetMs = prefs.getLong("server_offset_ms", 0L),
@@ -96,7 +96,7 @@ object OperatingScheduleStore {
                 decision = decision,
                 openUntilMs = openUntil,
                 normalStartMinutes = data["normal_start_minutes"]?.toIntOrNull() ?: 5 * 60 + 45,
-                normalEndMinutes = data["normal_end_minutes"]?.toIntOrNull() ?: 22 * 60 + 30,
+                normalEndMinutes = data["normal_end_minutes"]?.toIntOrNull() ?: 22 * 60 + 15,
                 overtimeCutoffMinutes = data["overtime_cutoff_minutes"]?.toIntOrNull() ?: 5 * 60,
                 updatedAtMs = data["updated_at_ms"]?.toLongOrNull() ?: version,
                 serverOffsetMs = current?.serverOffsetMs ?: 0L,
@@ -109,7 +109,7 @@ object OperatingScheduleStore {
         val offset = state?.serverOffsetMs ?: 0L
         val nowMs = systemNowMs + offset
         val start = state?.normalStartMinutes ?: 5 * 60 + 45
-        val end = state?.normalEndMinutes ?: 22 * 60 + 30
+        val end = state?.normalEndMinutes ?: 22 * 60 + 15
         val cutoff = state?.overtimeCutoffMinutes ?: 5 * 60
         val minutes = localMinutes(nowMs)
         if (minutes >= start && minutes < end) return true

@@ -87,7 +87,7 @@ function validOperatingSchedule(value: OperatingScheduleRecord): boolean {
     ["CONTINUE", "STOP", "MANUAL_ADJUST", "EARLY_START", "CANCEL_OVERTIME"].includes(String(value.decision || "")) &&
     Number(value.open_until_ms || 0) > 0 &&
     Number(value.normal_start_minutes || 0) === 345 &&
-    Number(value.normal_end_minutes || 0) === 1350 &&
+    Number(value.normal_end_minutes || 0) === 1335 &&
     Number(value.overtime_cutoff_minutes || 0) === 300;
 }
 
@@ -143,7 +143,7 @@ export const operatingScheduleChanged = onDocumentWritten(
       decision_boundary_ms: String(Math.max(0, Math.trunc(Number(state.decision_boundary_ms || 0)))),
       open_until_ms: String(Math.max(0, Math.trunc(Number(state.open_until_ms || 0)))),
       normal_start_minutes: "345",
-      normal_end_minutes: "1350",
+      normal_end_minutes: "1335",
       overtime_cutoff_minutes: "300",
       updated_at_ms: String(Math.max(0, Math.trunc(Number(state.updated_at_ms || state.version || 0)))),
     };

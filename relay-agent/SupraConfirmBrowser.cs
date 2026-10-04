@@ -89,6 +89,7 @@ namespace SupraInventoryRelayAgent
         }
 
         private readonly Action<string> _log;
+        private readonly Action _successfulReload;
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private Process _process;
@@ -140,9 +141,10 @@ namespace SupraInventoryRelayAgent
         private const string PageSizeLabel = "Số dòng mỗi trang";
         private const string PageSizeTarget = "100";
 
-        internal SupraConfirmBrowser(Action<string> log)
+        internal SupraConfirmBrowser(Action<string> log, Action successfulReload = null)
         {
             _log = log ?? (_ => { });
+            _successfulReload = successfulReload ?? (() => { });
         }
 
         internal SupraBrowserState OpenOrShowAgent()
@@ -570,6 +572,13 @@ namespace SupraInventoryRelayAgent
                 EnsureReadyNoLock();
                 EnsurePageSize100NoLock();
                 var scan = ScanNoLock(terms);
+                var diagnosticInitialFingerprint = D160DiagnosticTelemetry.SafeHash(scan.DomFingerprint);
+                var diagnosticInitialPicklists = scan.PicklistCodeCount;
+                var diagnosticInitialMissing = scan.MissingFragments.Count;
+                var diagnosticInitialUnselectable = scan.UnselectableFragments.Count;
+                var diagnosticEpoch = D160DiagnosticTelemetry.PageEpoch;
+                var diagnosticReloadAgeMs = D160DiagnosticTelemetry.ReloadAgeMs;
+                var diagnosticDirty = D160DiagnosticTelemetry.DirtyAfterConfirm;
                 var emptyRecoveryThisSearch = false;
                 if (NeedsSearchRetry(scan) && allowOneSearchClick)
                 {
@@ -674,7 +683,7 @@ namespace SupraInventoryRelayAgent
                         _log("SUPRA_BROWSER checkbox_recovery=START terms=" + beforeRecovery.Count +
                              " reason=unique_row_checkbox_not_ready");
                         IssueConfirmReloadNowNoLock("checkbox_not_ready_after_search");
-                        if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromMilliseconds(4500)))
+                        if (WaitForForcedConfirmReloadNoLock(TimeSpan.FromMilliseconds(4500), true))
                         {
                             EnsurePageSize100NoLock();
                             ClickExactButtonNoLock(SearchText);
@@ -713,6 +722,22 @@ namespace SupraInventoryRelayAgent
                 }
 
                 CopySearch(scan, output);
+                _log("D160_DIAG WMS_SEARCH terms=" + terms.Count +
+                     " epoch=" + diagnosticEpoch +
+                     " dirty_after_confirm=" + D160DiagnosticTelemetry.Flag(diagnosticDirty) +
+                     " reload_age_ms=" + diagnosticReloadAgeMs +
+                     " initial_picklists=" + diagnosticInitialPicklists +
+                     " initial_missing=" + diagnosticInitialMissing +
+                     " initial_unselectable=" + diagnosticInitialUnselectable +
+                     " initial_dom_hash=" + diagnosticInitialFingerprint +
+                     " final_picklists=" + scan.PicklistCodeCount +
+                     " final_missing=" + scan.MissingFragments.Count +
+                     " final_unselectable=" + scan.UnselectableFragments.Count +
+                     " final_dom_hash=" + D160DiagnosticTelemetry.SafeHash(scan.DomFingerprint) +
+                     " dom_changed=" + D160DiagnosticTelemetry.Flag(
+                         !string.Equals(diagnosticInitialFingerprint, D160DiagnosticTelemetry.SafeHash(scan.DomFingerprint), StringComparison.Ordinal)) +
+                     " search_clicked=" + D160DiagnosticTelemetry.Flag(output.SearchClicked) +
+                     " recovery_reload=" + D160DiagnosticTelemetry.Flag(output.RecoveryReloaded));
             }
 
             started.Stop();
@@ -905,6 +930,8 @@ namespace SupraInventoryRelayAgent
 
         private void IssueConfirmReloadNowNoLock(string reason)
         {
+            var diagnosticPriorReloadAgeMs = D160DiagnosticTelemetry.ReloadAgeMs;
+            var diagnosticEpoch = D160DiagnosticTelemetry.BeginReload(reason);
             _confirmReloadRequired = true;
             _confirmReloadIssued = true;
             _confirmReloadVerified = false;
@@ -915,6 +942,10 @@ namespace SupraInventoryRelayAgent
                 { "ignoreCache", false }
             }, TimeSpan.FromSeconds(5));
             _log("SUPRA_BROWSER confirm_reload=ISSUED method=Page.reload ignore_cache=false reason=" + reason);
+            _log("D160_DIAG WMS_REFRESH event=ISSUED epoch=" + diagnosticEpoch +
+                 " reason=" + D160DiagnosticTelemetry.SafeReason(reason) +
+                 " prior_reload_age_ms=" + diagnosticPriorReloadAgeMs +
+                 " dirty_after_confirm=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
         }
 
         private bool ApplyConfirmReloadBarrierNoLock(SupraBrowserState state)
@@ -1018,27 +1049,84 @@ namespace SupraInventoryRelayAgent
             _confirmReloadRequired = false;
             _confirmReloadIssued = false;
             _confirmReloadVerified = true;
+            D160DiagnosticTelemetry.MarkReloadPass();
             _confirmReloadIssuedAtUtc = DateTime.MinValue;
             _confirmReloadStableSinceUtc = DateTime.MinValue;
             _log("SUPRA_BROWSER confirm_reload=PASS navigation_type=reload settle_before_ms=3000 stable_after_ms=1200 data_hydrated=true picklist_codes=" +
                  state.PicklistCodeCount);
+            _log("D160_DIAG WMS_REFRESH event=BARRIER_PASS epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                 " reason=" + D160DiagnosticTelemetry.LastReloadReason +
+                 " picklist_codes=" + state.PicklistCodeCount +
+                 " frame_count=" + state.FrameCount +
+                 " dirty_after_confirm=0");
+            LogD160DiagnosticPageStateNoLock("BARRIER_PASS");
             return false;
         }
 
-        private bool WaitForForcedConfirmReloadNoLock(TimeSpan timeout)
+        private bool WaitForForcedConfirmReloadNoLock(TimeSpan timeout, bool allowProgressExtension = false)
         {
-            var deadline = DateTime.UtcNow.Add(timeout);
+            var softTimeout = timeout <= TimeSpan.Zero ? TimeSpan.FromMilliseconds(4500) : timeout;
+            var diagnosticStarted = Stopwatch.StartNew();
+            var diagnosticSamples = 0;
+            var softDeadline = DateTime.UtcNow.Add(softTimeout);
+            var hardDeadline = allowProgressExtension
+                ? softDeadline.AddMilliseconds(3500)
+                : softDeadline;
             var stableSince = DateTime.MinValue;
-            while (DateTime.UtcNow < deadline)
+            var extensionArmed = false;
+            var progressChanges = 0;
+            var lastProgressSignature = "";
+            while (DateTime.UtcNow < hardDeadline)
             {
                 Thread.Sleep(250);
+                diagnosticSamples++;
                 var raw = EvaluateJsonNoLock(BuildReadinessScript());
                 var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 var loaded = map != null && Bool(map, "pageLoaded");
                 var ready = map != null && Bool(map, "ready");
+                var domReady = map != null && Bool(map, "domReady");
+                var dataHydrated = map != null && Bool(map, "dataHydrated");
+                var picklistCodeCount = map == null ? 0 : Math.Max(0, Int(map, "picklistCodeCount"));
                 var nav = map == null ? "" : String(map, "navigationType");
                 var url = map == null ? "" : String(map, "url");
                 var onConfirm = url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0;
+                var progressSignature =
+                    (loaded ? "1" : "0") + "|" +
+                    (domReady ? "1" : "0") + "|" +
+                    (dataHydrated ? "1" : "0") + "|" +
+                    picklistCodeCount + "|" +
+                    nav + "|" +
+                    (onConfirm ? "1" : "0");
+                if (!string.Equals(progressSignature, lastProgressSignature, StringComparison.Ordinal))
+                {
+                    lastProgressSignature = progressSignature;
+                    progressChanges++;
+                }
+
+                if (!extensionArmed && allowProgressExtension && DateTime.UtcNow >= softDeadline)
+                {
+                    var progressEligible =
+                        onConfirm &&
+                        loaded &&
+                        string.Equals(nav, "reload", StringComparison.OrdinalIgnoreCase);
+                    if (progressEligible)
+                    {
+                        extensionArmed = true;
+                        _log("D160_DIAG WMS_REFRESH event=EXTENDED epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                             " reason=" + D160DiagnosticTelemetry.LastReloadReason +
+                             " soft_ms=" + Math.Max(0L, (long)softTimeout.TotalMilliseconds) +
+                             " hard_extra_ms=3500" +
+                             " progress_changes=" + progressChanges +
+                             " dom_ready=" + D160DiagnosticTelemetry.Flag(domReady) +
+                             " hydrated=" + D160DiagnosticTelemetry.Flag(dataHydrated) +
+                             " picklist_codes=" + picklistCodeCount);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
                 if (loaded && ready && onConfirm &&
                     string.Equals(nav, "reload", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1052,7 +1140,26 @@ namespace SupraInventoryRelayAgent
                         _confirmReloadStableSinceUtc = DateTime.MinValue;
                         _confirmArrivalObservedAtUtc = DateTime.UtcNow;
                         _confirmArrivalUrl = url;
-                        _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_PASS navigation_type=reload stable_after_ms=1200");
+                        // D161: a reload is not operationally successful until the
+                        // hydrated Confirm page also proves the required 100-row page size.
+                        try
+                        {
+                            EnsurePageSize100NoLock();
+                        }
+                        catch (Exception ex)
+                        {
+                            _log("D161 WMS_REFRESH page_size_100=FAIL type=" + ex.GetType().Name);
+                            return false;
+                        }
+                        D160DiagnosticTelemetry.MarkReloadPass();
+                        _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_PASS navigation_type=reload hydrated=true page_size_100=true stable_after_ms=1200");
+                        _log("D160_DIAG WMS_REFRESH event=PASS epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                             " reason=" + D160DiagnosticTelemetry.LastReloadReason +
+                             " elapsed_ms=" + diagnosticStarted.ElapsedMilliseconds +
+                             " readiness_samples=" + diagnosticSamples +
+                             " extension_armed=" + D160DiagnosticTelemetry.Flag(extensionArmed));
+                        LogD160DiagnosticPageStateNoLock("RELOAD_PASS", diagnosticStarted.ElapsedMilliseconds);
+                        try { _successfulReload(); } catch { }
                         return true;
                     }
                 }
@@ -1060,8 +1167,21 @@ namespace SupraInventoryRelayAgent
                 {
                     stableSince = DateTime.MinValue;
                 }
+
+                if (!allowProgressExtension && DateTime.UtcNow >= softDeadline)
+                    break;
+                if (allowProgressExtension && !extensionArmed && DateTime.UtcNow >= softDeadline)
+                    break;
             }
             _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_TIMEOUT fail_closed=true");
+            _log("D160_DIAG WMS_REFRESH event=TIMEOUT epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                 " reason=" + D160DiagnosticTelemetry.LastReloadReason +
+                 " elapsed_ms=" + diagnosticStarted.ElapsedMilliseconds +
+                 " readiness_samples=" + diagnosticSamples +
+                 " extension_armed=" + D160DiagnosticTelemetry.Flag(extensionArmed) +
+                 " progress_changes=" + progressChanges +
+                 " dirty_after_confirm=" + D160DiagnosticTelemetry.Flag(D160DiagnosticTelemetry.DirtyAfterConfirm));
+            LogD160DiagnosticPageStateNoLock("RELOAD_TIMEOUT", diagnosticStarted.ElapsedMilliseconds);
             return false;
         }
 
@@ -1704,9 +1824,15 @@ namespace SupraInventoryRelayAgent
 
         private void EnsurePageSize100NoLock()
         {
+            var diagnosticStarted = Stopwatch.StartNew();
             var raw = EvaluateJsonNoLock(BuildEnsurePageSize100Script());
             var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
             var result = map == null ? "DOM_ERROR" : String(map, "result");
+            _log("D160_DIAG PAGE_SIZE result=" + SafeDiagnosticValue(result) +
+                 " epoch=" + D160DiagnosticTelemetry.PageEpoch +
+                 " before=" + SafeDiagnosticValue(map == null ? "" : String(map, "before")) +
+                 " after=" + SafeDiagnosticValue(map == null ? "" : String(map, "after")) +
+                 " elapsed_ms=" + diagnosticStarted.ElapsedMilliseconds);
             if (string.Equals(result, "ALREADY_100", StringComparison.Ordinal) ||
                 string.Equals(result, "CHANGED_100", StringComparison.Ordinal))
                 return;
@@ -1777,8 +1903,9 @@ namespace SupraInventoryRelayAgent
               const current = control => norm(control.value || control.innerText || control.textContent);
               for (const candidate of candidates) {
                 const control = candidate.control;
-                if (/(^|\s)100(\s|$)/.test(current(control)))
-                  return JSON.stringify({result:'ALREADY_100',candidates:candidates.length});
+                const before = current(control);
+                if (/(^|\s)100(\s|$)/.test(before))
+                  return JSON.stringify({result:'ALREADY_100',candidates:candidates.length,before:before,after:before});
 
                 let changed = false;
                 if (control.tagName && control.tagName.toLowerCase() === 'select') {
@@ -1805,7 +1932,7 @@ namespace SupraInventoryRelayAgent
                   await new Promise(r => setTimeout(r,100));
                   if (/(^|\s)100(\s|$)/.test(current(control))) {
                     await new Promise(r => setTimeout(r,300));
-                    return JSON.stringify({result:'CHANGED_100',candidates:candidates.length});
+                    return JSON.stringify({result:'CHANGED_100',candidates:candidates.length,before:before,after:current(control)});
                   }
                 } while (Date.now() < verifyDeadline);
               }

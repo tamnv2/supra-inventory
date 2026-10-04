@@ -120,6 +120,25 @@ jobs:
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "D160 mixed-batch pipeline guard missing: $marker" }
           }
+          if ($d160Ui.Contains('Rows.Insert(0') -or
+              -not $d160Ui.Contains('User Agent xử lý') -or
+              -not $d160Ui.Contains('ProcessingAgentUser') -or
+              -not $d160Ui.Contains('SentAtMs') -or
+              -not $d160Ui.Contains('Rows.AddRange') -or
+              -not $transport.Contains('agent_login_name')) {
+            throw "D161 atomic history/processing-user guard regression."
+          }
+          if (-not $d160Usage.Contains('_d160UsagePendingSnapshot') -or
+              -not $d160Usage.Contains('ApplyD160PendingUsageSnapshot') -or
+              -not $d160Usage.Contains('SuspendLayout')) {
+            throw "D161 atomic Usage presentation guard regression."
+          }
+          if (-not $browser.Contains('page_size_100=true') -or
+              -not $browser.Contains('_successfulReload') -or
+              -not $d157Features.Contains('successful_reload_clock_reset=PASS')) {
+            throw "D161 reload/page-size/D157 clock guard regression."
+          }
+
           foreach ($marker in @(
             'Lịch sử Picker xác nhận PickList',
             'reset lúc 05:00',
@@ -616,7 +635,12 @@ jobs:
           if (-not $program.Contains('identitytoolkit.googleapis.com/v1/accounts:signInWithPassword') -or -not $program.Contains('PICKPACK_ADMIN') -or -not $program.Contains('FirestoreAgentSessionGate')) { throw "Agent Firebase identity/RBAC regression." }
           if (-not $program.Contains('DataGridViewButtonColumn') -or -not $program.Contains('ConfirmManualPicklist(code)')) { throw "Manual row-confirm UI regression." }
           if (-not $program.Contains('CheckAfterHoursSchedule') -or -not $program.Contains('StartRelayBeforeSix') -or -not $program.Contains('ProbeSupraBrowserForTakeover')) { throw "D126 schedule/browser takeover wiring missing." }
-          if (-not $program.Contains('30 * 60 * 1000') -or -not $updater.Contains('AgentUpdateManifestUrl')) { throw "Agent update cadence regression." }
+          if (-not $program.Contains('_updateTimer.Stop()') -or
+              $program.Contains('TryAutoUpdate(true)') -or
+              -not $program.Contains('MessageBoxButtons.YesNo') -or
+              -not $updater.Contains('AgentUpdateManifestUrl')) {
+            throw "D161 manual-only Agent update guard regression."
+          }
           if ($program -match 'Bảng nổi|StatusOverlay|OverlaySettings' -or (Test-Path 'relay-agent/StatusOverlay.cs') -or (Test-Path 'relay-agent/OverlaySettingsForm.cs')) { throw "D124 Overlay must remain removed." }
           if (-not $ops.Contains('_agentRequestMetrics') -or -not $ops.Contains('Picker đang hoạt động trên PDA')) { throw "D124/D120 operational UI regression." }
           if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
@@ -935,10 +959,11 @@ jobs:
           }
           foreach ($marker in @(
             'RegularStart = new TimeSpan(5, 45, 0)',
+            'RegularEnd = new TimeSpan(22, 15, 0)',
             'OvertimeCutoff = new TimeSpan(5, 0, 0)',
-            'Điều chỉnh tăng ca',
+            'Gia hạn +1 giờ',
             'Bật sớm trước 05:45',
-            'PublishManualScheduleAdjustment',
+            'PublishOvertimeExtension',
             'PublishCancelOvertime',
             'CANCEL_OVERTIME',
             'AgentBrowserStorage.MigrateClosedBrowserData',
@@ -951,7 +976,7 @@ jobs:
                 -not $leader.Contains($marker) -and
                 -not (Get-Content relay-agent/AgentBusinessSchedule.cs -Raw).Contains($marker) -and
                 -not (Get-Content relay-agent/AgentBrowserStorage.cs -Raw).Contains($marker)) {
-              throw "D154 Agent schedule/storage marker missing: $marker"
+              throw "D161 Agent schedule/storage marker missing: $marker"
             }
           }
 
@@ -962,15 +987,15 @@ jobs:
             throw "D135 bounded DOM settle optimization missing."
           }
           foreach ($marker in @(
-            'RegularEnd = new TimeSpan(22, 30, 0)',
-            'SHOW_ONCE',
-            '_lastAfterHoursPromptBoundaryMs',
+            'RegularEnd = new TimeSpan(22, 15, 0)',
+            'd161_sleep=SHOW_ONCE',
+            '_d161LastSleepForegroundBoundaryMs',
             'ScheduleAutoSizeAfterForegroundRestore',
             'IGNORED_STALE',
             'TrimRetiredChildren'
           )) {
             if (-not $program.Contains($marker) -and -not $ops.Contains($marker) -and -not $ownedHost.Contains($marker) -and -not (Get-Content relay-agent/AgentBusinessSchedule.cs -Raw).Contains($marker)) {
-              throw "D143 Agent stability marker missing: $marker"
+              throw "D161/D143 Agent stability marker missing: $marker"
             }
           }
           foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {

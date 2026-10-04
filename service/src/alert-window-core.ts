@@ -31,7 +31,7 @@ export interface OperatingScheduleMirrorInput {
 
 const CONFIG_KEY = "d149_operating_schedule";
 const START_MINUTES = 5 * 60 + 45;
-const END_MINUTES = 22 * 60 + 30;
+const END_MINUTES = 22 * 60 + 15;
 const OVERTIME_CUTOFF_MINUTES = 5 * 60;
 const HOUR_MS = 60 * 60_000;
 
@@ -152,7 +152,7 @@ export function readAndroidAlertWindow(
   if (normalOpen) {
     closesAtMs = Math.max(standardClose, projectedOpen ? stored.openUntilMs : 0);
   } else if (earlyStartOpen) {
-    // Early start joins the deterministic 05:45-22:30 window without a gap.
+    // Early start joins the deterministic 05:45-22:15 window without a gap.
     closesAtMs = standardClose;
   } else if (overtimeOpen) {
     closesAtMs = stored.openUntilMs;

@@ -27,6 +27,7 @@ namespace SupraInventoryRelayAgent
             internal int LockLevel;
             internal int LockMinutes;
             internal long LockedUntilMs;
+            internal string ProcessingAgentUser = "";
         }
 
         private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử Picker xác nhận PickList");
@@ -39,6 +40,8 @@ namespace SupraInventoryRelayAgent
         private readonly object _d160HistoryGate = new object();
         private readonly Dictionary<string, D160PickerHistoryRow> _d160History =
             new Dictionary<string, D160PickerHistoryRow>(StringComparer.Ordinal);
+        private readonly Dictionary<string, DataGridViewRow> _d160HistoryGridRows =
+            new Dictionary<string, DataGridViewRow>(StringComparer.Ordinal);
         private readonly JavaScriptSerializer _d160HistoryJson = new JavaScriptSerializer();
         private string _d160HistoryDayKey = "";
         private string _d160HistoryRenderedDayKey = "";
@@ -131,6 +134,7 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.AutoGenerateColumns = false;
             _d160HistoryGrid.BackgroundColor = Color.White;
             _d160HistoryGrid.BorderStyle = BorderStyle.FixedSingle;
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "SentAtMs", HeaderText = "SentAtMs", Visible = false, ValueType = typeof(long) });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Time", HeaderText = "Thời gian", Width = 86 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Employee", HeaderText = "MNV / User", Width = 120 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Họ tên", Width = 180 });
@@ -141,8 +145,21 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Wrong", HeaderText = "Nhập sai", Width = 78 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Lock", HeaderText = "Khóa", Width = 120 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
+            _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Processor", HeaderText = "User Agent xử lý", Width = 145 });
             root.Controls.Add(_d160HistoryGrid);
             _d160HistoryGrid.BringToFront();
+            _mainTabs.SelectedIndexChanged += (s, e) =>
+            {
+                if (_mainTabs.SelectedTab == _d160HistoryPage)
+                {
+                    RenderD160HistorySnapshot(_d160HistoryDayKey);
+                    D161RestoreCanonicalHistorySort();
+                }
+                else if (_mainTabs.SelectedTab == _d160UsagePage)
+                {
+                    ApplyD160PendingUsageSnapshot();
+                }
+            };
             _d160HistoryUiReady = true;
 
             var day = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
@@ -206,7 +223,8 @@ namespace SupraInventoryRelayAgent
                 InputText = work.Suffix ?? "",
                 Result = "Đang xử lý",
                 FullPickList = "",
-                OperationMs = 0
+                OperationMs = 0,
+                ProcessingAgentUser = D161CurrentProcessingAgentUser()
             };
             lock (_d160HistoryGate) _d160History[work.RequestId] = row;
             AppendD160HistoryEvent(row);
@@ -241,6 +259,7 @@ namespace SupraInventoryRelayAgent
                 row.Result = D160HistoryResultText(outcome.Result);
                 row.FullPickList = outcome.ResolvedPickListCode ?? "";
                 row.OperationMs = Math.Max(0L, outcome.OperationMs);
+                row.ProcessingAgentUser = D161CurrentProcessingAgentUser();
                 var rate = outcome.Rate;
                 row.WrongCount = rate == null ? 0 : Math.Max(0, rate.NewlyLocked ? 3 : rate.StrikeCount);
                 row.LockLevel = rate == null ? 0 : Math.Max(0, rate.LockLevel);
@@ -280,6 +299,7 @@ namespace SupraInventoryRelayAgent
         private void RenderD160HistorySnapshot(string dayKey)
         {
             if (!_d160HistoryUiReady || _d160HistoryGrid.IsDisposed || _d160HistoryGrid.Columns.Count == 0) return;
+            if (string.IsNullOrWhiteSpace(dayKey)) return;
 
             List<D160PickerHistoryRow> rows;
             lock (_d160HistoryGate)
@@ -288,39 +308,73 @@ namespace SupraInventoryRelayAgent
                 rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
             }
 
+            var prepared = rows.Select(D161HistoryValues).ToArray();
             _d160HistoryGrid.SuspendLayout();
             try
             {
                 _d160HistoryGrid.Rows.Clear();
-                foreach (var row in rows) RenderD160HistoryRow(row);
+                _d160HistoryGridRows.Clear();
+                if (prepared.Length > 0)
+                {
+                    var gridRows = new DataGridViewRow[prepared.Length];
+                    for (var i = 0; i < prepared.Length; i++)
+                    {
+                        var gridRow = new DataGridViewRow();
+                        gridRow.CreateCells(_d160HistoryGrid, prepared[i]);
+                        gridRow.Tag = rows[i].RequestId;
+                        gridRows[i] = gridRow;
+                    }
+                    _d160HistoryGrid.Rows.AddRange(gridRows);
+                    for (var i = 0; i < gridRows.Length; i++)
+                        _d160HistoryGridRows[rows[i].RequestId] = gridRows[i];
+                }
                 _d160HistoryRenderedDayKey = dayKey;
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
                     " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
+                D161RestoreCanonicalHistorySort();
             }
             finally
             {
-                _d160HistoryGrid.ResumeLayout();
+                _d160HistoryGrid.ResumeLayout(true);
             }
         }
 
         private void RenderD160HistoryRow(D160PickerHistoryRow item)
         {
             if (item == null || !_d160HistoryUiReady || _d160HistoryGrid.IsDisposed || _d160HistoryGrid.Columns.Count == 0) return;
-            DataGridViewRow target = null;
-            foreach (DataGridViewRow row in _d160HistoryGrid.Rows)
-                if (string.Equals(Convert.ToString(row.Tag), item.RequestId, StringComparison.Ordinal))
-                {
-                    target = row;
-                    break;
-                }
+            DataGridViewRow target;
+            if (!_d160HistoryGridRows.TryGetValue(item.RequestId ?? "", out target) || target == null || target.DataGridView == null)
+            {
+                var index = _d160HistoryGrid.Rows.Add(D161HistoryValues(item));
+                target = _d160HistoryGrid.Rows[index];
+                target.Tag = item.RequestId;
+                _d160HistoryGridRows[item.RequestId ?? ""] = target;
+                if (_mainTabs.SelectedTab == _d160HistoryPage) D161RestoreCanonicalHistorySort();
+            }
+            else
+            {
+                var values = D161HistoryValues(item);
+                for (var i = 0; i < values.Length && i < target.Cells.Count; i++)
+                    target.Cells[i].Value = values[i];
+            }
 
+            int count;
+            lock (_d160HistoryGate) count = _d160History.Count;
+            _d160HistoryStatus.Text =
+                "Ngày vận hành " + _d160HistoryDayKey + " · " + count.ToString("N0") +
+                " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
+        }
+
+        private object[] D161HistoryValues(D160PickerHistoryRow item)
+        {
             var when = item.SentAtMs > 0
                 ? DateTimeOffset.FromUnixTimeMilliseconds(item.SentAtMs).ToLocalTime().ToString("HH:mm:ss")
                 : "--";
             var user = string.IsNullOrWhiteSpace(item.EmployeeCode) ? item.UserId : item.EmployeeCode;
-            var values = new object[]
+            return new object[]
             {
+                item.SentAtMs,
                 when,
                 user,
                 item.DisplayName,
@@ -330,23 +384,29 @@ namespace SupraInventoryRelayAgent
                 item.FullPickList,
                 item.WrongCount > 0 ? item.WrongCount.ToString(CultureInfo.InvariantCulture) : "",
                 D160HistoryLockText(item),
-                item.OperationMs > 0 ? item.OperationMs.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " ms" : ""
+                item.OperationMs > 0 ? item.OperationMs.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " ms" : "",
+                item.ProcessingAgentUser ?? ""
             };
-            if (target == null)
-            {
-                _d160HistoryGrid.Rows.Insert(0, values);
-                _d160HistoryGrid.Rows[0].Tag = item.RequestId;
-            }
-            else
-            {
-                for (var i = 0; i < values.Length; i++) target.Cells[i].Value = values[i];
-            }
+        }
 
-            int count;
-            lock (_d160HistoryGate) count = _d160History.Count;
-            _d160HistoryStatus.Text =
-                "Ngày vận hành " + _d160HistoryDayKey + " · " + count.ToString("N0") +
-                " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
+        private void D161RestoreCanonicalHistorySort()
+        {
+            if (!_d160HistoryUiReady || _d160HistoryGrid.IsDisposed) return;
+            var column = _d160HistoryGrid.Columns["SentAtMs"];
+            if (column != null && _d160HistoryGrid.Rows.Count > 1)
+                _d160HistoryGrid.Sort(column, System.ComponentModel.ListSortDirection.Descending);
+        }
+
+        private string D161CurrentProcessingAgentUser()
+        {
+            try
+            {
+                var session = SnapshotSession();
+                if (session == null) return "";
+                var login = (session.LoginName ?? "").Trim();
+                return login.Length > 0 ? login : ((session.AppUserId ?? "").Trim());
+            }
+            catch { return ""; }
         }
 
         private void AppendD160HistoryEvent(D160PickerHistoryRow row)
@@ -373,7 +433,8 @@ namespace SupraInventoryRelayAgent
                     { "wrong_count", row.WrongCount },
                     { "lock_level", row.LockLevel },
                     { "lock_minutes", row.LockMinutes },
-                    { "locked_until_ms", row.LockedUntilMs }
+                    { "locked_until_ms", row.LockedUntilMs },
+                    { "processing_agent_user", row.ProcessingAgentUser ?? "" }
                 };
                 File.AppendAllText(
                     D160HistoryPath(day),
@@ -414,7 +475,8 @@ namespace SupraInventoryRelayAgent
                         WrongCount = (int)D160MapLong(map, "wrong_count"),
                         LockLevel = (int)D160MapLong(map, "lock_level"),
                         LockMinutes = (int)D160MapLong(map, "lock_minutes"),
-                        LockedUntilMs = D160MapLong(map, "locked_until_ms")
+                        LockedUntilMs = D160MapLong(map, "locked_until_ms"),
+                        ProcessingAgentUser = D160MapString(map, "processing_agent_user")
                     };
                 }
             }
@@ -450,7 +512,8 @@ namespace SupraInventoryRelayAgent
                     { "wrong_count", 0 },
                     { "lock_level", 0 },
                     { "lock_minutes", 0 },
-                    { "locked_until_ms", 0L }
+                    { "locked_until_ms", 0L },
+                    { "processing_agent_user", "startup-smoke" }
                 };
                 File.WriteAllText(path, new JavaScriptSerializer().Serialize(payload) + Environment.NewLine, System.Text.Encoding.UTF8);
                 return true;
@@ -477,7 +540,7 @@ namespace SupraInventoryRelayAgent
         internal bool D160StartupSmokeLifecycleReady()
         {
             return _d160HistoryUiReady &&
-                   _d160HistoryGrid.Columns.Count >= 10 &&
+                   _d160HistoryGrid.Columns.Count >= 12 &&
                    _d160HistoryGrid.Rows.Count >= 1 &&
                    _d128OverlayUiInitialized &&
                    _d128Overlay != null &&
@@ -508,6 +571,7 @@ namespace SupraInventoryRelayAgent
                 var array = _d160HistoryJson.DeserializeObject(raw) as System.Collections.IEnumerable;
                 if (array == null) return;
                 var changed = false;
+                var changedIds = new List<string>();
                 lock (_d160HistoryGate)
                 {
                     foreach (var item in array)
@@ -532,7 +596,8 @@ namespace SupraInventoryRelayAgent
                             WrongCount = (int)D160MapLong(map, "w"),
                             LockLevel = (int)D160MapLong(map, "l"),
                             LockMinutes = (int)D160MapLong(map, "q"),
-                            LockedUntilMs = D160MapLong(map, "z")
+                            LockedUntilMs = D160MapLong(map, "z"),
+                            ProcessingAgentUser = D160MapString(map, "a")
                         };
 
                         D160PickerHistoryRow existing;
@@ -547,17 +612,23 @@ namespace SupraInventoryRelayAgent
 
                         _d160History[requestId] = incoming;
                         changed = true;
+                        changedIds.Add(requestId);
                     }
                 }
 
                 if (!changed) return;
                 Ui(() =>
                 {
-                    _d160HistoryGrid.Rows.Clear();
-                    List<D160PickerHistoryRow> rows;
-                    lock (_d160HistoryGate)
-                        rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
-                    foreach (var row in rows) RenderD160HistoryRow(row);
+                    if (changedIds.Count == 1)
+                    {
+                        D160PickerHistoryRow row;
+                        lock (_d160HistoryGate) _d160History.TryGetValue(changedIds[0], out row);
+                        if (row != null) RenderD160HistoryRow(row);
+                    }
+                    else
+                    {
+                        RenderD160HistorySnapshot(currentDay);
+                    }
                 });
             }
             catch (Exception ex)
@@ -581,7 +652,8 @@ namespace SupraInventoryRelayAgent
                    a.WrongCount == b.WrongCount &&
                    a.LockLevel == b.LockLevel &&
                    a.LockMinutes == b.LockMinutes &&
-                   a.LockedUntilMs == b.LockedUntilMs;
+                   a.LockedUntilMs == b.LockedUntilMs &&
+                   string.Equals(a.ProcessingAgentUser ?? "", b.ProcessingAgentUser ?? "", StringComparison.Ordinal);
         }
 
         // D160_HISTORY_ZERO_EXTRA_PROVIDER_OP: this payload is carried only by the
@@ -612,7 +684,8 @@ namespace SupraInventoryRelayAgent
                         { "w", row.WrongCount },
                         { "l", row.LockLevel },
                         { "q", row.LockMinutes },
-                        { "z", row.LockedUntilMs }
+                        { "z", row.LockedUntilMs },
+                        { "a", row.ProcessingAgentUser ?? "" }
                     });
                 }
 

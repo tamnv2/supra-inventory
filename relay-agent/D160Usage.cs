@@ -148,6 +148,7 @@ namespace SupraInventoryRelayAgent
         private int _d160UsageRefreshing;
         private DateTime _d160UsageLastRefreshUtc = DateTime.MinValue;
         private string _d160UsageLastAutoBoundary = "";
+        private Dictionary<string, object> _d160UsagePendingSnapshot;
 
         private void InitializeD160UsageUi()
         {
@@ -361,11 +362,40 @@ namespace SupraInventoryRelayAgent
 
         private void ApplyD160Usage(Dictionary<string,object> snapshot)
         {
+            if (snapshot == null) return;
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<Dictionary<string,object>>(ApplyD160Usage), snapshot);
+                return;
+            }
+            _d160UsagePendingSnapshot = snapshot;
+            if (_mainTabs.SelectedTab != _d160UsagePage) return;
+            ApplyD160UsageSnapshotNow(snapshot);
+        }
+
+        internal void ApplyD160PendingUsageSnapshot()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(ApplyD160PendingUsageSnapshot));
+                return;
+            }
+            var snapshot = _d160UsagePendingSnapshot;
+            if (snapshot == null || _mainTabs.SelectedTab != _d160UsagePage) return;
+            ApplyD160UsageSnapshotNow(snapshot);
+        }
+
+        private void ApplyD160UsageSnapshotNow(Dictionary<string,object> snapshot)
+        {
             if (InvokeRequired)
             {
                 BeginInvoke(new Action<Dictionary<string,object>>(ApplyD160Usage),snapshot);
                 return;
             }
+            _d160UsagePage.SuspendLayout();
+            _d160UsageGrid.SuspendLayout();
+            try
+            {
             var availability=D160UsageJson.Child(snapshot,"availability");
             bool reads=D160UsageJson.Bool(availability,"reads"), writes=D160UsageJson.Bool(availability,"writes"),
                  deletes=D160UsageJson.Bool(availability,"deletes"), storageOk=D160UsageJson.Bool(availability,"storage"),
@@ -441,6 +471,12 @@ namespace SupraInventoryRelayAgent
                 ? generated.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") : "—";
             _d160UsageUpdated.Text="Cập nhật: "+when+Environment.NewLine+
                 (D160UsageJson.Bool(snapshot,"cache_hit")?"cache ≤15 phút":"Cloud Monitoring mới");
+            }
+            finally
+            {
+                _d160UsageGrid.ResumeLayout(true);
+                _d160UsagePage.ResumeLayout(true);
+            }
         }
 
         private void D160UsageSet(string key,string value)
