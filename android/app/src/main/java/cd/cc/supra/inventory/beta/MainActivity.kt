@@ -941,16 +941,54 @@ class MainActivity : Activity() {
         val error: String = "",
     )
 
+    private data class AndroidRuntimeLogIdentity(
+        val bundleId: String,
+        val boundaryId: String,
+        val traceId: String,
+        val generatedAt: String,
+    )
+
+    private fun ensureAndroidRuntimeLogIdentity(payload: JSONObject, reason: String): AndroidRuntimeLogIdentity {
+        val bundlePattern = Regex("^[a-f0-9]{32,64}$")
+        val idPattern = Regex("^[A-Za-z0-9._:-]{1,180}$")
+        var bundleId = payload.optString("_runtime_log_bundle_id", "").lowercase()
+        if (!bundlePattern.matches(bundleId)) {
+            bundleId = UUID.randomUUID().toString().replace("-", "").lowercase()
+            payload.put("_runtime_log_bundle_id", bundleId)
+        }
+        var boundaryId = payload.optString("_runtime_log_boundary_id", "")
+        if (!idPattern.matches(boundaryId)) {
+            val safeReason = reason.replace(Regex("[^A-Za-z0-9._-]+"), "_").take(48).ifBlank { "support" }
+            boundaryId = "android:$safeReason:$bundleId"
+            payload.put("_runtime_log_boundary_id", boundaryId)
+        }
+        var traceId = payload.optString("_runtime_log_trace_id", "")
+        if (!idPattern.matches(traceId)) {
+            traceId = boundaryId
+            payload.put("_runtime_log_trace_id", traceId)
+        }
+        var generatedAt = payload.optString("_runtime_log_generated_at", "")
+        if (generatedAt.isBlank()) {
+            generatedAt = Instant.now().toString()
+            payload.put("_runtime_log_generated_at", generatedAt)
+        }
+        return AndroidRuntimeLogIdentity(bundleId, boundaryId, traceId, generatedAt)
+    }
+
     private fun uploadAndroidRuntimeLog(severity: String, reason: String, payload: JSONObject): AndroidLogSendResult {
         if (api.session == null) return AndroidLogSendResult(false, error = "Chưa đăng nhập.")
         if (!hasValidatedInternet()) return AndroidLogSendResult(false, error = "Chưa có Internet.")
         return try {
+            val identity = ensureAndroidRuntimeLogIdentity(payload, reason)
             val response = api.uploadRuntimeLog(
                 severity = severity,
                 reason = sanitizeDiagnosticText(reason),
-                generatedAt = Instant.now().toString(),
+                generatedAt = identity.generatedAt,
                 device = androidRuntimeLogDevice(),
                 payload = payload,
+                bundleId = identity.bundleId,
+                boundaryId = identity.boundaryId,
+                traceId = identity.traceId,
             )
             val archiveStatus = response.optString("archive_status", "DEFERRED")
             if (archiveStatus == "DRIVE_SYNCED") pruneAndroidPersistentJournal(payload)
@@ -1009,7 +1047,8 @@ class MainActivity : Activity() {
             } catch (_: Exception) {
                 JSONObject().put("raw", sanitizeDiagnosticText(raw))
             }
-            if (uploadAndroidRuntimeLog("INFO", "session_end_deferred", payload).accepted) {
+            val result = uploadAndroidRuntimeLog("INFO", "session_end_deferred", payload)
+            if (result.archiveStatus == "DRIVE_SYNCED") {
                 prefs.edit()
                     .remove("pending_session_end_user")
                     .remove("pending_session_end_payload")
@@ -1023,7 +1062,8 @@ class MainActivity : Activity() {
         val raw = prefs.getString("pending_crash", null) ?: return
         Thread {
             val payload = try { JSONObject(raw) } catch (_: Exception) { JSONObject().put("raw", sanitizeDiagnosticText(raw)) }
-            if (uploadAndroidRuntimeLog("ERROR", "deferred_android_crash", payload).accepted) {
+            val result = uploadAndroidRuntimeLog("ERROR", "deferred_android_crash", payload)
+            if (result.archiveStatus == "DRIVE_SYNCED") {
                 prefs.edit().remove("pending_crash").apply()
             }
         }.start()
@@ -1038,6 +1078,7 @@ class MainActivity : Activity() {
                 .put("message", sanitizeDiagnosticText(throwable.message ?: throwable.javaClass.name))
                 .put("stack", sanitizeDiagnosticText(throwable.stackTraceToString()).take(12_000))
                 .put("support", try { JSONObject(buildSupportDiagnostics()) } catch (_: Exception) { JSONObject() })
+            ensureAndroidRuntimeLogIdentity(payload, "android_crash")
             runtimeLogPrefs().edit().putString("pending_crash", payload.toString().take(30_000)).commit()
             if (::api.isInitialized && api.session != null && hasValidatedInternet()) {
                 val sender = Thread { uploadAndroidRuntimeLog("ERROR", "android_crash", payload) }
@@ -1443,7 +1484,7 @@ class MainActivity : Activity() {
         Thread {
             if (endingSession != null && sessionEndPayload != null) {
                 val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", sessionEndPayload)
-                if (!sent.accepted) {
+                if (sent.archiveStatus != "DRIVE_SYNCED") {
                     savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
                 } else {
                     runtimeLogPrefs().edit()
