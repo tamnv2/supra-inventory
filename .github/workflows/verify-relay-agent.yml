@@ -355,6 +355,54 @@ jobs:
             throw "D161 v110 READY_EMPTY user-facing status guard missing."
           }
 
+          # D161 v111 Picker-presence convergence repair: reuse only the existing
+          # exact-doc/event paths, add RAM-only generation tombstones, and make
+          # server-authoritative kick removal visible immediately without polling.
+          foreach ($marker in @(
+            '_pickerSessionTombstones',
+            'ApplyLocalPickerSessionRemoval(',
+            'ApplyLocalPickerSessionRemovals(',
+            'ApplyD161AgentSyncPickerConvergence(',
+            'PICKER_PRESENCE tombstone=SET',
+            'provider_op=false',
+            'fallback=SKIP_TOMBSTONED'
+          )) {
+            if (-not $d119Features.Contains($marker)) { throw "D161 v111 presence convergence guard missing: $marker" }
+          }
+          if ($d119Features.Contains('HasAgentSession() && !_d161DirectPickerPresenceObserved')) {
+            throw "D161 v111 must not permanently suppress agent_sync presence convergence after direct projection is observed."
+          }
+          $singleKickV111Start = $d119Features.IndexOf('private void KickPickerUser(PickerPresenceView picker)')
+          $singleKickV111End = $d119Features.IndexOf('private int ShowPickerContactChoice', $singleKickV111Start)
+          if ($singleKickV111Start -lt 0 -or $singleKickV111End -le $singleKickV111Start) {
+            throw "D161 v111 single-kick boundary missing."
+          }
+          $singleKickV111Body = $d119Features.Substring($singleKickV111Start, $singleKickV111End - $singleKickV111Start)
+          $serverRevokeIndex = $singleKickV111Body.IndexOf('TryRevokePickerWorkerSession(')
+          $localRemoveIndex = $singleKickV111Body.IndexOf('ApplyLocalPickerSessionRemoval(')
+          if ($serverRevokeIndex -lt 0 -or $localRemoveIndex -le $serverRevokeIndex) {
+            throw "D161 v111 local single-kick removal must occur only after server-authoritative revoke returns."
+          }
+          foreach ($marker in @(
+            'var localGenerations = CapturePickerSessionGenerations();',
+            'ApplyLocalPickerSessionRemovals(',
+            '"BULK_KICK_SERVER_AUTHORITY"'
+          )) {
+            if (-not $d161Admin.Contains($marker)) { throw "D161 v111 bulk local convergence guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'docs.Documents.Add(AgentConfig.FirestoreAgentSyncDocumentName);',
+            'docs.Documents.Add(AgentConfig.FirestorePickerPresenceDocumentName);',
+            'exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE'
+          )) {
+            if (-not $agentSync.Contains($marker)) { throw "D161 v111 existing exact-doc listener reuse guard missing: $marker" }
+          }
+          if ($agentSync.Contains('picker_presence_projection/{') -or
+              $agentSync.Contains('RunQuery') -or
+              $d119Features.Contains('System.Threading.Timer')) {
+            throw "D161 v111 must not add per-Picker listener/query/polling cadence."
+          }
+
           foreach ($marker in @(
             'Lịch sử Picker xác nhận PickList',
             'reset lúc 05:00',
