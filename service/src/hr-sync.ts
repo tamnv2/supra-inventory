@@ -16,10 +16,17 @@ export interface HrEmployee {
   contractor_name: string;
 }
 
+export type HrInvalidRowReason =
+  | "INVALID_EMPLOYEE_CODE"
+  | "MISSING_DISPLAY_NAME"
+  | "DISPLAY_NAME_TOO_LONG"
+  | "CONTRACTOR_TOO_LONG";
+
 export interface HrEmployeeReadResult {
   employees: HrEmployee[];
   duplicate_conflicts: Array<{ employee_code: string; names: string[]; contractors: string[] }>;
   invalid_rows: number[];
+  invalid_row_details: Array<{ row: number; reasons: HrInvalidRowReason[] }>;
   source_row_count: number;
   loaded_at: string;
 }
@@ -55,6 +62,7 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
 
   const byCode = new Map<string, Map<string, { display_name: string; contractor_name: string }>>();
   const invalidRows: number[] = [];
+  const invalidRowDetails: HrEmployeeReadResult["invalid_row_details"] = [];
   let sourceRowCount = 0;
   for (let index = headerIndex + 1; index < rows.length; index += 1) {
     const row = rows[index] || [];
@@ -63,13 +71,14 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
     const employeeCode = String(row[employeeCodeIndex] || "").trim().toLowerCase();
     const displayName = String(row[nameIndex] || "").trim().replace(/\s+/g, " ");
     const contractorName = String(row[contractorIndex] || "").trim().replace(/\s+/g, " ");
-    if (
-      !/^[a-z0-9._-]{1,64}$/.test(employeeCode) ||
-      !displayName ||
-      displayName.length > 200 ||
-      contractorName.length > 200
-    ) {
+    const invalidReasons: HrInvalidRowReason[] = [];
+    if (!/^[a-z0-9._-]{1,64}$/.test(employeeCode)) invalidReasons.push("INVALID_EMPLOYEE_CODE");
+    if (!displayName) invalidReasons.push("MISSING_DISPLAY_NAME");
+    if (displayName.length > 200) invalidReasons.push("DISPLAY_NAME_TOO_LONG");
+    if (contractorName.length > 200) invalidReasons.push("CONTRACTOR_TOO_LONG");
+    if (invalidReasons.length) {
       invalidRows.push(index + 1);
+      invalidRowDetails.push({ row: index + 1, reasons: invalidReasons });
       continue;
     }
     const variants = byCode.get(employeeCode) || new Map<string, { display_name: string; contractor_name: string }>();
@@ -93,5 +102,12 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
   }
   employees.sort((a, b) => a.employee_code.localeCompare(b.employee_code, "vi", { numeric: true }));
   duplicateConflicts.sort((a, b) => a.employee_code.localeCompare(b.employee_code, "vi", { numeric: true }));
-  return { employees, duplicate_conflicts: duplicateConflicts, invalid_rows: invalidRows, source_row_count: sourceRowCount, loaded_at: new Date().toISOString() };
+  return {
+    employees,
+    duplicate_conflicts: duplicateConflicts,
+    invalid_rows: invalidRows,
+    invalid_row_details: invalidRowDetails,
+    source_row_count: sourceRowCount,
+    loaded_at: new Date().toISOString(),
+  };
 }
