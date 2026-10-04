@@ -918,3 +918,13 @@ Android remains `beta-vc92` hard-locked. No provider resource, Firestore cadence
 - **HR:** HARD_BLOCK exposes bounded non-sensitive row/reason diagnostics and a one-shot recheck; HARD_BLOCK remains fail-closed. CONFIRM_REQUIRED uses explicit Yes/No, where No performs no mutation and keeps the proposal pending.
 - **Agent Picker list:** after Agent login, active Picker observation is independent from WMS/Web Confirm readiness and the business-processing window. It reuses one Agent-sync gRPC stream targeting the existing `agent_sync` and authoritative `picker_presence_projection/current` documents, and stops on Agent logout; PickList mutation gates remain unchanged.
 - Repair lineage target: Web Version 2, Agent v105, next monotonic Android Beta after vc96. Stable remains OWNER-GATED and untouched.
+
+
+## D161 repaired candidate field-retest readiness — 2026-10-04
+
+- Owner-reported three-item field repair merged via PR #427 at main `afaf9d563894e61d3632f65ce624c1b3b76bfd36`.
+- Technical/runtime/release gates PASS: Worker/Web run `37199390053`, Agent run `37199390032`, Android run `37199390022`, UI guard `37199390010`.
+- Repaired candidates: Web **Version 2**, Agent **relay-agent-v105**, Android **beta-vc97**.
+- Repair semantics: business shift outward **06:00–22:00**, technical Replay **05:45–22:15**; HR HARD_BLOCK gives bounded actionable row/reason detail plus one-shot recheck while remaining fail-closed; authenticated Agent observes active Picker authority independent of WMS readiness/business window using one gRPC stream over two exact existing documents.
+- No new persistent resource, collection query, per-Picker listener, polling loop or write cadence. Stable remains OWNER-GATED.
+- D161 remains not Owner PASS; next action is OA096 field retest.

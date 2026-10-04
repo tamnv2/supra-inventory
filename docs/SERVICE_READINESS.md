@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `17`
-- Latest signed Beta APK: `beta-vc93`
-- Current released Agent: `relay-agent-v101`
-- Beta: `D161_FEATURE_IMPLEMENTATION_ACTIVE__TRANCHE_A_B_C_MERGED__TRANCHE_D_SUPPORT_OBSERVABILITY_ACTIVE__D160_ACCEPTED_BASE_RESCUE`
-- Web: `D161_TRANCHE_A_MERGED__WEB_VERSION_1__DATE_PRESET_CONVERGENCE__AUTHENTICATED_FOOTER_CREDIT_ONLY__STABLE_UNTOUCHED`
-- Android: `D161_TRANCHE_A_MERGED__VC93_SAFETY_BASE__SCHEDULE_2215_TRANCHE_B_MERGED__FEATURE_RELEASE_MIN_VC94_PENDING`
+- Latest signed Beta APK: `beta-vc97`
+- Current released Agent: `relay-agent-v105`
+- Beta: `D161_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE`
+- Web: `D161_FIELD_REPAIR_WEB_VERSION_2_DEPLOYED__SHIFT_0600_2200__REPLAY_0545_2215__HR_ACTIONABLE_BLOCKS`
+- Android: `D161_FIELD_REPAIR_SIGNED_BETA_VC97__TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_RETEST_PENDING`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1731,3 +1731,14 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - D161 runtime readiness: run `37192056329` PASS; HR production watch `APPLIED / AUTO`, future expiry.
 - Agent Operations Gateway: main `e128deba6567216ac28156c4148eb3183be99c9f`, run `37193309206` PASS for redeploy, identity, authenticated Usage/Monitoring and D159-retired proof.
 - Status: **READY_FOR_OWNER_FIELD_TEST** under OA096. This is technical/runtime/release PASS only; D160 remains the accepted base until explicit Owner D161 PASS. Stable untouched.
+
+
+## D161 field repair technical/runtime/release PASS — READY_FOR_OWNER_FIELD_RETEST — 2026-10-04
+
+- Repair PR #427 merged at main `afaf9d563894e61d3632f65ce624c1b3b76bfd36`.
+- Beta Worker/Web deploy run `37199390053` PASS with source `afaf9d56`, HTTP 200, schema 17/17 and Operational V2 5/5.
+- Repaired Web is **Version 2**.
+- Repaired Android candidate **beta-vc97** is published; APK SHA-256 `28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19`.
+- Repaired Agent candidate **relay-agent-v105** is published; EXE SHA-256 `542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807`.
+- Main Android run `37199390022`, Agent run `37199390032`, UI guard run `37199390010` and all main workflows for the repair merge PASS.
+- OA096 is **READY_FOR_OWNER_FIELD_RETEST**. D160 v97/vc92 remains the accepted rescue base until explicit D161 Owner PASS. Stable remains OWNER-GATED and untouched.

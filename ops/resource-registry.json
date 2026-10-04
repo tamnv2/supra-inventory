@@ -143,7 +143,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_OWNER_FIELD_REPAIR_ACTIVE__3_OWNER_REPORTED_DEFECTS__D160_ACCEPTED_BASE_RESCUE",
+      "status": "D161_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -332,7 +332,7 @@
       "d159_usage_test_release_target": "HISTORICAL_D159_V3__NO_NEW_RUNTIME_CALLERS",
       "d159_monitoring_cache_seconds": 900,
       "d160_source_status": "CLOSED__ACTIVE_AGENT_SOURCE_RESTORED_EXACT_V97__TEST_V98_V99_V100_HISTORY_ONLY",
-      "d161_source_status": "OWNER_FIELD_REPAIR_ACTIVE__WEB_V2_AGENT_V105_NEXT_ANDROID_PENDING__NO_NEW_PERSISTENT_RESOURCE"
+      "d161_source_status": "FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_AFAF9D56__WEB_V2__AGENT_V105__ANDROID_VC97__OWNER_RETEST_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -1018,7 +1018,7 @@
       "/downloads/agent/browser/latest.sha256"
     ],
     "discovery_policy": "NORMAL_RUNTIME_DOES_NOT_ENUMERATE_GITHUB_RELEASES_REST",
-    "status": "D127_V65_AGENT_RELEASED__HOST_BUILD_9_REUSED__OA052_FIELD_READY",
+    "status": "D161_FIELD_REPAIR_RUNTIME_CHANNEL__PDA_VC97__AGENT_V105__WEB_V2__OWNER_RETEST_PENDING",
     "agent_browser_manifest_asset": "agent-browser-latest.json",
     "agent_browser_alias_asset": "Agent.WebView2.FixedRuntime.x64.zip",
     "agent_browser_checksum_asset": "Agent.WebView2.FixedRuntime.x64.zip.sha256"
@@ -1030,18 +1030,22 @@
     "target_commit": "f623a83ec6785f920aa2a6916a1f016e9ec63680",
     "policy": "VERSION_INDEPENDENT_PUBLIC_ASSET_ALIASES__NO_NORMAL_RUNTIME_GITHUB_RELEASES_REST_ENUMERATION",
     "pda": {
-      "manifest_asset_id": 589368497,
-      "apk_asset_id": 589368496,
-      "apk_size_bytes": 19052908,
-      "release": "beta-vc76"
+      "manifest_asset_id": 609733317,
+      "apk_asset_id": 609733318,
+      "checksum_asset_id": 609733314,
+      "apk_size_bytes": 19151608,
+      "release": "beta-vc97",
+      "sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19",
+      "source_main": "afaf9d563894e61d3632f65ce624c1b3b76bfd36"
     },
     "agent": {
-      "manifest_asset_id": 591888652,
-      "exe_asset_id": 591888651,
-      "exe_size_bytes": 349696,
-      "release": "relay-agent-v65",
-      "sha256": "3df5c5aab895e2c7ae26f8d7eec016fa6ea4cea5aef1a5c883fb30c9910ef75b",
-      "source_main": "f623a83ec6785f920aa2a6916a1f016e9ec63680"
+      "manifest_asset_id": 609733238,
+      "exe_asset_id": 609733237,
+      "checksum_asset_id": 609733239,
+      "exe_size_bytes": 7286784,
+      "release": "relay-agent-v105",
+      "sha256": "542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807",
+      "source_main": "afaf9d563894e61d3632f65ce624c1b3b76bfd36"
     },
     "stable": "OWNER_GATED_UNTOUCHED",
     "browser_bundle": {
@@ -2246,7 +2250,7 @@
     "source_baseline": "EXACT_V97_SOURCE_COMMIT_4c3f0a4dffc94f66237d0958032fd27ac52fed29"
   },
   "d161": {
-    "status": "OWNER_FIELD_REPAIR_ACTIVE__3_DEFECTS__PR_CI_PENDING",
+    "status": "FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
     "accepted_base": "D160__RELAY_AGENT_V97",
     "resource_change_now": "NO_NEW_PERSISTENT_RESOURCE__REUSE_EXISTING_BETA_WORKER_HR_WATCH_AND_FIRESTORE_AGENT_SYNC_DOCUMENT__STABLE_UNTOUCHED",
     "logs_parent": "EXISTING_SCOPED_INVENTORY_BETA_LOGS_FOLDER",
@@ -2360,27 +2364,46 @@
       "stable": "OWNER_GATED_UNTOUCHED"
     },
     "final_readiness": {
-      "status": "OWNER_FIELD_DEFECTS_REPORTED__REPAIR_ACTIVE__RETEST_REQUIRED",
-      "beta_worker_run": 37191613243,
+      "status": "FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
+      "beta_worker_run": 37199390053,
       "runtime_readiness_run": 37192056329,
       "agent_gateway_provider_run": 37193309206,
-      "android": "NEXT_MONOTONIC_AFTER_BETA_VC96__TARGET_PENDING_RELEASE",
-      "agent": "relay-agent-v105__TARGET_PENDING_RELEASE",
+      "android": "beta-vc97",
+      "agent": "relay-agent-v105",
       "accepted_base": "D160__RELAY_AGENT_V97",
-      "owner_acceptance": "PENDING_RETEST",
+      "owner_acceptance": "PENDING_FIELD_RETEST",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "web": "Version 2__TARGET_PENDING_DEPLOY"
+      "web": "Version 2"
     },
     "field_repair": {
       "resource_change": "NONE_PERSISTENT",
-      "web_worker": "EXISTING_BETA_WORKER_WEB_ASSETS__HR_RECHECK_REUSES_SHEETS_REREAD_PATH",
+      "web_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__WEB_VERSION_2__SCHEMA17_17__OPERATIONAL5_5",
       "hr": "EXISTING_DRIVE_WATCH_AND_VERIFIED_SHEET__STORE_ONLY_BOUNDED_ROW_NUMBERS_AND_VALIDATION_REASON_CODES",
       "agent_sync": "ONE_EXISTING_AGENT_SYNC_GRPC_STREAM__EXACT_RELAY_POC_COORDINATION_AGENT_SYNC_PLUS_PICKER_PRESENCE_PROJECTION_CURRENT",
       "provider_impact": "NO_NEW_WRITE_CADENCE__NO_NEW_COLLECTION_QUERY__NO_POLLING__BOUNDED_ADDITIONAL_EXACT_DOCUMENT_READS",
-      "target_agent": "relay-agent-v105",
-      "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC96",
-      "target_web": "Version 2",
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "target_agent": "relay-agent-v105__RELEASED",
+      "target_android": "beta-vc97__RELEASED",
+      "target_web": "Version 2__DEPLOYED",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
+      "main_sha": "afaf9d563894e61d3632f65ce624c1b3b76bfd36",
+      "repair_pr": 427,
+      "agent_release": {
+        "tag": "relay-agent-v105",
+        "release_id": 402990615,
+        "asset_id": 609733176,
+        "size_bytes": 7286784,
+        "sha256": "542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807",
+        "run_id": 37199390032
+      },
+      "android_release": {
+        "tag": "beta-vc97",
+        "release_id": 402990645,
+        "asset_id": 609733266,
+        "size_bytes": 19151608,
+        "sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19",
+        "run_id": 37199390022
+      }
     }
   }
 }
