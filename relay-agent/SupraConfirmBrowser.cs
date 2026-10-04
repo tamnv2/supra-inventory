@@ -1140,8 +1140,19 @@ namespace SupraInventoryRelayAgent
                         _confirmReloadStableSinceUtc = DateTime.MinValue;
                         _confirmArrivalObservedAtUtc = DateTime.UtcNow;
                         _confirmArrivalUrl = url;
+                        // D161: a reload is not operationally successful until the
+                        // hydrated Confirm page also proves the required 100-row page size.
+                        try
+                        {
+                            EnsurePageSize100NoLock();
+                        }
+                        catch (Exception ex)
+                        {
+                            _log("D161 WMS_REFRESH page_size_100=FAIL type=" + ex.GetType().Name);
+                            return false;
+                        }
                         D160DiagnosticTelemetry.MarkReloadPass();
-                        _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_PASS navigation_type=reload stable_after_ms=1200");
+                        _log("SUPRA_BROWSER confirm_reload=SELF_HEAL_PASS navigation_type=reload hydrated=true page_size_100=true stable_after_ms=1200");
                         _log("D160_DIAG WMS_REFRESH event=PASS epoch=" + D160DiagnosticTelemetry.PageEpoch +
                              " reason=" + D160DiagnosticTelemetry.LastReloadReason +
                              " elapsed_ms=" + diagnosticStarted.ElapsedMilliseconds +
