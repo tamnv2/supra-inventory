@@ -7,8 +7,8 @@
 - Project: `supra-inventory`
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
-- Current released Agent: `relay-agent-v105`
-- Beta: `D161_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE`
+- Current released Agent: `relay-agent-v106`
+- Beta: `D161_SECOND_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE`
 - Web: `D161_FIELD_REPAIR_WEB_VERSION_2_DEPLOYED__SHIFT_0600_2200__REPLAY_0545_2215__HR_ACTIONABLE_BLOCKS`
 - Android: `D161_FIELD_REPAIR_SIGNED_BETA_VC97__TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_RETEST_PENDING`
 - D089: **OWNER ACCEPTED PASS**
@@ -1748,3 +1748,14 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Repaired Agent candidate **relay-agent-v105** is published; EXE SHA-256 `542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807`.
 - Main Android run `37199390022`, Agent run `37199390032`, UI guard run `37199390010` and all main workflows for the repair merge PASS.
 - OA096 is **READY_FOR_OWNER_FIELD_RETEST**. D160 v97/vc92 remains the accepted rescue base until explicit D161 Owner PASS. Stable remains OWNER-GATED and untouched.
+
+## D161 second field repair technical/runtime/release PASS — READY_FOR_OWNER_FIELD_RETEST — 2026-10-04
+
+- Repair PR #430 merged to main `6fca277e7fe69d59864716b699788dd6b8d87c4f`.
+- Beta Worker deploy run `37201568740` PASS.
+- Agent verification/release run `37201568734` PASS; released **relay-agent-v106**.
+- Usage provider/runtime verification run `37201568816` PASS; current gateway revision compatibility is restored.
+- UI/Worker regression run `37201568724` PASS.
+- Android remains **beta-vc97**; no Android source change was required for this repair.
+- OA096 is **READY_FOR_OWNER_FIELD_RETEST** for: bulk kick-all, WMS-not-ready explicit History/result, and Usage.
+- D160 v97/vc92 remains the accepted rescue base until explicit D161 Owner PASS. Stable remains OWNER-GATED and untouched.

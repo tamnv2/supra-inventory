@@ -143,7 +143,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_SECOND_FIELD_REPAIR_IMPLEMENTED__PR_CI_PENDING__D160_ACCEPTED_BASE_RESCUE",
+      "status": "D161_SECOND_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -1039,13 +1039,13 @@
       "source_main": "afaf9d563894e61d3632f65ce624c1b3b76bfd36"
     },
     "agent": {
-      "manifest_asset_id": 609733238,
-      "exe_asset_id": 609733237,
-      "checksum_asset_id": 609733239,
-      "exe_size_bytes": 7286784,
-      "release": "relay-agent-v105",
-      "sha256": "542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807",
-      "source_main": "afaf9d563894e61d3632f65ce624c1b3b76bfd36"
+      "manifest_asset_id": 609797654,
+      "exe_asset_id": 609797657,
+      "checksum_asset_id": 609797655,
+      "exe_size_bytes": 7287296,
+      "release": "relay-agent-v106",
+      "sha256": "57c84c4d0acd436dc31a2198e079eaf1b5105e1d2d27979080bcbc9bb3900bcf",
+      "source_main": "6fca277e7fe69d59864716b699788dd6b8d87c4f"
     },
     "stable": "OWNER_GATED_UNTOUCHED",
     "browser_bundle": {
