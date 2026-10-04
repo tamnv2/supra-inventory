@@ -1030,6 +1030,9 @@ export async function uploadRuntimeLog(payload: {
   generated_at: string;
   device: Record<string, unknown>;
   payload: unknown;
+  bundle_id?: string;
+  boundary_id?: string;
+  trace_id?: string;
 }): Promise<{
   status: string;
   archive_status?: "DRIVE_SYNCED" | "DEFERRED";
