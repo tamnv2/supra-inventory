@@ -175,7 +175,7 @@ jobs:
           # while actual WMS mutation still requires the strict WMS-ready fence.
           if (-not $leader.Contains('internal bool VerifyPrimaryForBusinessIngress(AgentSession session)') -or
               -not $transport.Contains('_coordinator.VerifyPrimaryForBusinessIngress(session)') -or
-              $transport.Contains('_coordinator.VerifyPrimaryBeforeMutation(session)')) {
+              $transport.Contains('FIRESTORE CONFIRM mutation-fence=BLOCK role_or_generation_changed=true')) {
             throw "D161 WMS-not-ready pre-pipeline ingress fence regression."
           }
           if (-not $leader.Contains('if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;') -or
