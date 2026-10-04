@@ -870,11 +870,20 @@ class MainActivity : Activity() {
                     .put("level", "INFO")
                     .put("category", "APP")
                     .put("name", sanitizeDiagnosticText(message)))
-                while (persisted.length() > 160) persisted.remove(0)
+                var dropped = if (owner == userId) prefs.getLong("journal_dropped", 0L) else 0L
+                while (persisted.length() > 160) {
+                    persisted.remove(0)
+                    dropped += 1L
+                }
+                while (persisted.toString().length > 700_000 && persisted.length() > 20) {
+                    persisted.remove(0)
+                    dropped += 1L
+                }
                 prefs.edit()
                     .putString("journal_owner", userId)
                     .putLong("journal_sequence", sequence)
-                    .putString("journal_events", persisted.toString().take(700_000))
+                    .putLong("journal_dropped", dropped)
+                    .putString("journal_events", persisted.toString())
                     .apply()
             }
         } catch (_: Exception) { }
