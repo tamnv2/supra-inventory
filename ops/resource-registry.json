@@ -2273,18 +2273,18 @@
     },
     "phase0a": {
       "workflow": ".github/workflows/d161-phase0a-preflight.yml",
-      "status": "ACTIVE_REPAIRING_MAIN_PROVIDER_AUTOMATION",
+      "status": "ACTIVE_REPAIRING_WATCH_AND_GATEWAY_PROBES",
       "persistent_resource_change": "NONE",
       "beta_only": true,
       "stable": "FORBIDDEN",
       "canary_cleanup": "REQUIRED_SAME_RUN",
       "agent_safety_target": "v101",
       "android_safety_target": "vc93",
-      "last_failure": "RUN_37165039712_APPS_SCRIPT_GATEWAY_NORMAL_REDIRECT_NOT_FOLLOWED__RUN_37165039727_FIREBASE_TOOLS_FUNCTION_LIST_EXITED_BEFORE_DIRECT_GEN2_PROOF__NO_RUNTIME_MUTATION",
-      "functions_probe": "DIRECT_GCLOUD_GEN2_DESCRIBE_PER_CANONICAL_FUNCTION__FCM_EFFECTIVE_CAPABILITY_BY_DISPOSABLE_VALIDATE_ONLY_CANARY"
+      "last_failure": "RUN_37165408482_GATEWAY_POST_REDIRECT_405__RUN_37165408478_DUPLICATE_APPS_SCRIPT_WATCH_CALLBACK_HTTP400__NO_RUNTIME_MUTATION",
+      "functions_probe": "DIRECT_GCLOUD_GEN2_DESCRIBE_PASS__FCM_AND_HR_WATCH_EFFECTIVE_CAPABILITY_BY_DISPOSABLE_CONTINUATION_CANARY"
     },
     "phase0a_continuation_canary": {
-      "status": "AUTHORIZED__ACTIVE_AFTER_MAIN_PROVIDER_AUTOMATION_REPAIR",
+      "status": "AUTHORIZED__CANONICAL_HR_WATCH_FCM_PROVIDER_PROOF",
       "resource_key": "d161-phase0a-provider-canary-beta",
       "name": "d161Phase0aCanary",
       "purpose": "GEN2_FUNCTION_RUNTIME_IDENTITY__FCM_VALIDATE_ONLY__HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP_CLEANUP",
