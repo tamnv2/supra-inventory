@@ -145,8 +145,11 @@ function ensureJournal(): typeof journalState {
 
 function persistJournalNow(): void {
   journalPersistTimer = null;
-  const journal = ensureJournal();
-  if (!journal || !journalKey) return;
+  const existingJournal = journalState;
+  const existingKey = journalKey;
+  const journal = existingJournal && existingKey ? existingJournal : ensureJournal();
+  const storageKey = existingJournal && existingKey ? existingKey : journalKey;
+  if (!journal || !storageKey) return;
   try {
     journal.last_updated_at = new Date().toISOString();
     while (journal.events.length > MAX_JOURNAL_EVENTS) {
@@ -159,7 +162,7 @@ function persistJournalNow(): void {
       journal.dropped_events += 20;
       encoded = JSON.stringify(journal);
     }
-    localStorage.setItem(journalKey, encoded);
+    localStorage.setItem(storageKey, encoded);
   } catch {
     // Storage quota/private-mode failures are diagnostics-only.
   }
@@ -551,9 +554,10 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
     await flushPendingError();
     const slot = currentSlotKey();
     if (!slot) return;
-    if (localStorage.getItem(SLOT_KEY) === slot) return;
+    const slotIdentity = `${journalSessionKey()}:${slot}`;
+    if (localStorage.getItem(SLOT_KEY) === slotIdentity) return;
     if (await send("INFO", `scheduled_${slot}`, undefined, { boundaryId: `web:scheduled:${slot}` })) {
-      localStorage.setItem(SLOT_KEY, slot);
+      localStorage.setItem(SLOT_KEY, slotIdentity);
     }
   } finally {
     scheduledSendInFlight = false;
