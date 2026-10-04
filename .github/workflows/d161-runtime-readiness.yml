@@ -107,6 +107,16 @@ jobs:
           echo "::add-mask::$id_token"
           echo "D161_ID_TOKEN=$id_token" >> "$GITHUB_ENV"
 
+      - name: Verify D161 candidate release channels
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --connect-timeout 5 --max-time 20 "https://$BETA_HOSTNAME/downloads/pda/manifest" -o "$RUNNER_TEMP/d161-pda-manifest.json"
+          curl -fsS --connect-timeout 5 --max-time 20 "https://$BETA_HOSTNAME/downloads/agent/manifest" -o "$RUNNER_TEMP/d161-agent-manifest.json"
+          jq -e '.tag == "beta-vc96" and .version_code == 96 and (.digest | startswith("sha256:"))' "$RUNNER_TEMP/d161-pda-manifest.json" >/dev/null
+          jq -e '.tag == "relay-agent-v104" and .build == 104 and (.digest | startswith("sha256:"))' "$RUNNER_TEMP/d161-agent-manifest.json" >/dev/null
+          echo "D161_RELEASE_CHANNELS=PASS android=vc96 agent=v104"
+
       - name: Verify production HR watch is registered
         shell: bash
         run: |
