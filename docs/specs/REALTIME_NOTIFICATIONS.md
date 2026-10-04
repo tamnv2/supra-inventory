@@ -869,3 +869,14 @@ Status: Implemented in merged D161 Tranche C; Owner field acceptance pending.
 - Initial sync, renewal overlap, duplicate notification and retry/recovery are idempotent against that snapshot identity.
 - Any Web confirmation proposal carries the exact snapshot revision/fingerprint that produced it. Confirmation revalidates current source authority; a changed source invalidates the stale proposal and recomputes the diff.
 - Complete-snapshot validation precedes mutation with precedence HARD_BLOCK > CONFIRM_REQUIRED > AUTO; one observed snapshot is never partially auto-applied before another part of the same snapshot is known to require hold/block.
+
+
+## D161 Owner field-repair Agent-sync semantics — 2026-10-04
+
+This section supersedes the earlier D140/D160 role-limited listener rule for authenticated active-Picker observation.
+
+- While an Agent session is authenticated, the existing Agent-sync gRPC listener stream remains attached regardless of PRIMARY/NEXT_A/NEXT_B/DEEP_HIBERNATE role and regardless of WMS readiness. The stream targets exactly two existing documents: `relay_poc_coordination/agent_sync` for fleet/history/control state and `picker_presence_projection/current` for authoritative active-Picker login/logout state.
+- Logout/invalid Agent session stops the listener and clears the active-Picker presentation.
+- No collection query, per-Picker listener, polling loop or write cadence is introduced. `picker_presence_projection/current` is already written by the existing server-side login/logout projection path; the Agent only observes it.
+- The change adds bounded document-listener reads: one initial read for each of the two exact documents per authenticated Agent stream, plus document-change reads when those exact documents change. It adds no provider write.
+- PickList processing, PRIMARY mutation authority, WMS confirmation and business schedule gates are unchanged.

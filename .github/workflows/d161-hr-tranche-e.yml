@@ -41,6 +41,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           hr = Path("service/src/hr-event-sync.ts").read_text(encoding="utf-8")
+          hr_reader = Path("service/src/hr-sync.ts").read_text(encoding="utf-8")
           core = Path("service/src/core.ts").read_text(encoding="utf-8")
           index = Path("service/src/index.ts").read_text(encoding="utf-8")
           scope = Path("ops/project-scope.json").read_text(encoding="utf-8")
@@ -48,12 +49,15 @@ jobs:
               "HARD_BLOCK", "CONFIRM_REQUIRED", "AUTO",
               "SOURCE_ROW_LOSS_OVER_20_PERCENT",
               "existing_info_updates",
+              "invalid_row_details",
+              "INVALID_EMPLOYEE_CODE",
               "d161_hr_snapshot:",
               "STALE_SNAPSHOT_RECOMPUTED",
+              "WEB_RECHECK",
               "channels/stop",
               "/watch",
           ]
-          joined = hr + "\n" + core
+          joined = hr + "\n" + hr_reader + "\n" + core + "\n" + index
           missing = [item for item in required if item not in joined]
           if missing:
               raise SystemExit("missing D161 HR invariant markers: " + ", ".join(missing))
@@ -67,5 +71,7 @@ jobs:
               raise SystemExit("HR Drive watch resource family not scoped")
           if "/api/internal/d161/hr-drive-watch" not in index:
               raise SystemExit("HR watch callback route missing")
+          if "/api/admin/hr-sync/recheck" not in index:
+              raise SystemExit("HR bounded recheck route missing")
           print("D161_HR_TRANCHE_E_GUARD=PASS")
           PY

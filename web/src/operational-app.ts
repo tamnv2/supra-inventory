@@ -14,6 +14,7 @@ import QRCode from "qrcode";
 import {
   applyHrPickerSync,
   confirmHrEventSync,
+  recheckHrEventSync,
   changeMyPassword,
   clearSession,
   createManagedUser,
@@ -1702,11 +1703,42 @@ function renderHr(): string {
     SOURCE_READ_FAILED: "Không đọc được snapshot nhân sự",
   };
   const pendingFingerprint = String(eventState.pending_fingerprint || "");
-  const canConfirmEvent = Boolean(
-    pendingFingerprint &&
-    profile &&
-    (profile.role === "ADMIN" || profile.role === "ROOT")
-  );
+  const canManageEvent = Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT"));
+  const canConfirmEvent = Boolean(pendingFingerprint && canManageEvent);
+  const invalidReasonLabels: Record<string, string> = {
+    INVALID_EMPLOYEE_CODE: "Mã nhân viên trống hoặc có ký tự không được phép",
+    MISSING_DISPLAY_NAME: "Họ và tên đang để trống",
+    DISPLAY_NAME_TOO_LONG: "Họ và tên vượt 200 ký tự",
+    CONTRACTOR_TOO_LONG: "Nhà thầu vượt 200 ký tự",
+  };
+  const invalidRowDetails = Array.isArray(eventState.invalid_row_details)
+    ? eventState.invalid_row_details.slice(0, 20)
+    : [];
+  const invalidRowsHtml = invalidRowDetails.length
+    ? `<div class="ops-note"><b>Dòng cần sửa:</b><ul>${invalidRowDetails.map((item) => {
+        const reasons = Array.isArray(item.reasons) && item.reasons.length
+          ? item.reasons.map((reason) => invalidReasonLabels[String(reason)] || String(reason)).join("; ")
+          : "Dữ liệu không hợp lệ";
+        return `<li>Dòng <b>${Number(item.row || 0)}</b>: ${esc(reasons)}</li>`;
+      }).join("")}</ul></div>`
+    : "";
+  const duplicateCodes = Array.isArray(eventState.duplicate_employee_codes)
+    ? eventState.duplicate_employee_codes.slice(0, 20)
+    : [];
+  const duplicateHtml = duplicateCodes.length
+    ? `<div class="ops-note"><b>Mã nhân viên bị trùng thông tin:</b> ${duplicateCodes.map((value) => esc(value)).join(", ")}</div>`
+    : "";
+  const hardBlockCode = String(eventState.hard_block_code || "");
+  const hardBlockHelp: Record<string, string> = {
+    INVALID_ROWS: "Sửa đúng các dòng được liệt kê trên Google Sheet rồi bấm Kiểm tra lại. Không cho phép ép áp dụng khi dữ liệu nguồn chưa hợp lệ.",
+    DUPLICATE_CONFLICT: "Chuẩn hóa mỗi Mã nhân viên về một bộ Họ tên/Nhà thầu duy nhất rồi bấm Kiểm tra lại.",
+    EMPTY_SOURCE: "Khôi phục dữ liệu nhân sự trong nguồn rồi bấm Kiểm tra lại.",
+    NON_PICKER_COLLISION: "Xử lý tài khoản đang trùng Mã nhân viên nhưng không phải Picker trước khi đồng bộ.",
+    SOURCE_ROW_LOSS_OVER_20_PERCENT: "Kiểm tra việc mất dòng nguồn. Hệ thống giữ nguyên user hiện tại cho đến khi nguồn hợp lệ.",
+    HEADER_CHANGED: "Kiểm tra lại tên cột Mã nhân viên/Họ và tên/Nhà thầu và xác nhận lại nguồn.",
+    SOURCE_ACCESS_FAILED: "Kiểm tra quyền truy cập Google Sheet rồi bấm Kiểm tra lại.",
+    SOURCE_READ_FAILED: "Kiểm tra nguồn Google Sheet/kết nối rồi bấm Kiểm tra lại.",
+  };
   const eventClass = eventStatus === "HARD_BLOCK"
     ? "error"
     : eventStatus === "CONFIRM_REQUIRED"
@@ -1738,10 +1770,17 @@ function renderHr(): string {
           <span>Dòng nguồn <b>${Number(eventState.source_row_count || 0).toLocaleString("vi-VN")}</b></span>
         </section>
         ${eventStatus === "CONFIRM_REQUIRED" ? `<div class="notice warning">
-          Snapshot mới cần xác nhận: tạo mới <b>${Number(eventPlan.create || 0)}</b>, cập nhật thông tin <b>${Number(eventPlan.existing_info_updates || 0)}</b>.
-          ${canConfirmEvent ? `<div class="ops-form-actions"><button class="primary" id="confirm-hr-event">Xác nhận áp dụng snapshot hiện tại</button></div>` : ""}
+          <b>Snapshot mới cần quyết định:</b> tạo mới <b>${Number(eventPlan.create || 0)}</b>, cập nhật thông tin <b>${Number(eventPlan.existing_info_updates || 0)}</b>.
+          <div>Dữ liệu hiện tại chưa thay đổi.</div>
+          ${canConfirmEvent ? `<div class="ops-form-actions"><button class="primary" id="confirm-hr-event">Có · Áp dụng</button><button class="secondary" id="defer-hr-event">Không · Giữ nguyên</button></div>` : ""}
         </div>` : ""}
-        ${eventStatus === "HARD_BLOCK" ? `<div class="notice error">Đồng bộ đang bị chặn: ${esc(hardBlockLabels[String(eventState.hard_block_code || "")] || String(eventState.hard_block_code || "Cần kiểm tra nguồn nhân sự"))}. Dữ liệu người dùng hiện tại được giữ nguyên.</div>` : ""}
+        ${eventStatus === "HARD_BLOCK" ? `<div class="notice error">
+          <div><b>Đồng bộ đang bị chặn:</b> ${esc(hardBlockLabels[hardBlockCode] || hardBlockCode || "Cần kiểm tra nguồn nhân sự")}.</div>
+          ${invalidRowsHtml}${duplicateHtml}
+          <div><b>Cách xử lý:</b> ${esc(hardBlockHelp[hardBlockCode] || "Kiểm tra nguồn nhân sự, sửa nguyên nhân rồi kiểm tra lại.")}</div>
+          <div>Dữ liệu người dùng hiện tại được giữ nguyên.</div>
+          ${canManageEvent ? `<div class="ops-form-actions"><button class="secondary" id="recheck-hr-event">Kiểm tra lại nguồn</button></div>` : ""}
+        </div>` : ""}
         ${eventClass === "success" ? `<div class="notice success">Snapshot gần nhất đã được áp dụng và xác minh theo fingerprint nguồn.</div>` : ""}
       ` : `<div class="ops-empty">Trạng thái đồng bộ tự động chỉ hiển thị cho Admin/Root.</div>`}
     </article>
@@ -2673,13 +2712,13 @@ function renderShiftOperations(): string {
   return `<section class="ops-route tools-workspace">
     <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Trạng thái dùng chung từ Agent cho Web, Báo hàng và PickList. Web chỉ hiển thị authority hiện hành.</p></div></div>
     <section class="business-summary-grid">
-      <article class="business-summary-card primary"><span>Replay tự động</span><strong>05:45–22:30</strong><small>Không cần ghi schedule để mở/đóng khung thường</small></article>
+      <article class="business-summary-card primary"><span>Ca bình thường</span><strong>06:00–22:00</strong><small>Cửa sổ kỹ thuật Replay · 05:45–22:15</small></article>
       <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
       <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>State chia sẻ đến</span><strong>${esc(sharedUntil)}</strong><small>${esc(decision)}</small></article>
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
-      <div class="ops-note">22:00 hỏi cho mốc 22:30; tăng ca theo các mốc 22:30 → 23:30 → 00:30 và tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent. Khi đang tăng ca, Agent có thể Huỷ tăng ca để đóng ngay toàn hệ thống.</div>
+      <div class="ops-note">Ca bình thường 06:00–22:00. Cửa sổ kỹ thuật Replay hoạt động 05:45–22:15; nếu không có gia hạn thì chuyển SLEEP lúc 22:15. Sau 22:15, Agent có thể Gia hạn +1 giờ; cảnh báo T-15 áp dụng cho mốc tăng ca đang hoạt động; tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent.</div>
     </article>
   </section>`;
 }
@@ -3970,6 +4009,15 @@ function bindSection(): void {
     hrPreview = null;
     setNotice("success", "Đã xác nhận và áp dụng snapshot nhân sự hiện tại.");
   }));
+  document.querySelector<HTMLButtonElement>("#defer-hr-event")?.addEventListener("click", () => {
+    setNotice("warning", "Đã chọn Không: dữ liệu hiện tại được giữ nguyên. Snapshot vẫn chờ để có thể quyết định lại sau.");
+  });
+  document.querySelector<HTMLButtonElement>("#recheck-hr-event")?.addEventListener("click", () => void run(async () => {
+    await recheckHrEventSync();
+    hrEventSync = await getHrEventSyncState();
+    hrPreview = null;
+    setNotice("success", "Đã kiểm tra lại nguồn nhân sự.");
+  }));
 
   document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -4290,7 +4338,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       hrEventSync = await getHrEventSyncState();
       const status = String(hrEventSync.sync?.status || "");
       if (status === "CONFIRM_REQUIRED") setNotice("warning", "Nguồn nhân sự vừa thay đổi và cần Admin/Root xác nhận.");
-      else if (status === "HARD_BLOCK") setNotice("error", "Đồng bộ nhân sự đang bị chặn; dữ liệu tài khoản hiện tại được giữ nguyên.");
+      else if (status === "HARD_BLOCK") setNotice("error", "Đồng bộ nhân sự đang bị chặn. Mở Nguồn nhân sự & đồng bộ Picker để xem dòng lỗi và cách xử lý.");
       if (activeSection === "hr") patchActiveSection(true);
     } catch {
       return false;

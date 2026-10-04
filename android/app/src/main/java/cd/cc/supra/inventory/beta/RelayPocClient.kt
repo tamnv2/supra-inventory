@@ -101,7 +101,7 @@ class RelayPocClient(
             throw ApiException(
                 403,
                 "ANDROID_WINDOW_CLOSED",
-                "Replay/PickList đang ngoài ca. Khung thường 05:45–22:30; tăng ca theo lệnh chung của Agent.",
+                "Replay/PickList đang ngoài ca. Cửa sổ kỹ thuật Replay 05:45–22:15; tăng ca theo lệnh chung của Agent.",
             )
         }
 

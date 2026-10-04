@@ -52,6 +52,8 @@ type HrSyncState = {
   last_accepted_fingerprint?: string;
   plan?: HrPlan;
   hard_block_code?: string | null;
+  invalid_row_details?: Array<{ row: number; reasons: string[] }>;
+  duplicate_employee_codes?: string[];
   updated_at?: string;
   updated_by?: string;
   trigger?: string;
@@ -128,6 +130,9 @@ async function sourceFingerprint(source: StoredHrSource, read: HrEmployeeReadRes
     contractor_header: source.contractor_header,
     source_row_count: read.source_row_count,
     invalid_rows: [...read.invalid_rows].sort((a, b) => a - b),
+    invalid_row_details: [...read.invalid_row_details]
+      .map((item) => ({ row: item.row, reasons: [...item.reasons].sort() }))
+      .sort((a, b) => a.row - b.row),
     duplicate_conflicts: [...read.duplicate_conflicts]
       .map((row) => ({
         employee_code: row.employee_code,
@@ -162,6 +167,19 @@ function compactPlan(plan: HrPlan): HrPlan {
       role: String(row.role || "").slice(0, 32),
       user_id: String(row.user_id || "").slice(0, 180),
     })),
+  };
+}
+
+function hardBlockEvidence(read: HrEmployeeReadResult): Pick<HrSyncState, "invalid_row_details" | "duplicate_employee_codes"> {
+  return {
+    invalid_row_details: (read.invalid_row_details || []).slice(0, 100).map((item) => ({
+      row: Math.max(1, Math.trunc(Number(item.row || 0))),
+      reasons: (item.reasons || []).map((reason) => String(reason || "")).filter(Boolean).slice(0, 8),
+    })),
+    duplicate_employee_codes: (read.duplicate_conflicts || [])
+      .map((item) => String(item.employee_code || "").slice(0, 64))
+      .filter(Boolean)
+      .slice(0, 100),
   };
 }
 
@@ -222,6 +240,8 @@ async function broadcast(env: HrEventEnv, event: string, state: HrSyncState): Pr
         fingerprint: state.fingerprint || "",
         source_row_count: Math.max(0, Number(state.source_row_count || 0)),
         hard_block_code: state.hard_block_code || null,
+        invalid_row_count: Math.max(0, Number(state.invalid_row_details?.length || 0)),
+        duplicate_employee_count: Math.max(0, Number(state.duplicate_employee_codes?.length || 0)),
         plan: compactPlan(state.plan || {}),
       },
     }),
@@ -275,6 +295,8 @@ async function storeBlockedSourceError(env: HrEventEnv, trigger: string, error: 
     decision: "HARD_BLOCK",
     hard_block_code: code,
     pending_fingerprint: "",
+    invalid_row_details: [],
+    duplicate_employee_codes: [],
     updated_at: new Date().toISOString(),
     updated_by: "system:d161-hr-watch",
     trigger,
@@ -332,6 +354,7 @@ export async function processHrSnapshot(env: HrEventEnv, trigger = "DRIVE_WATCH"
     plan: compactPlan(plan),
     hard_block_code: classification.code || null,
     pending_fingerprint: classification.decision === "CONFIRM_REQUIRED" ? fingerprint : "",
+    ...hardBlockEvidence(read),
     updated_at: new Date().toISOString(),
     updated_by: "system:d161-hr-watch",
     trigger,
@@ -369,6 +392,8 @@ export async function processHrSnapshot(env: HrEventEnv, trigger = "DRIVE_WATCH"
     last_accepted_fingerprint: fingerprint,
     last_accepted_row_count: read.source_row_count,
     hard_block_code: null,
+    invalid_row_details: [],
+    duplicate_employee_codes: [],
     updated_at: new Date().toISOString(),
   };
   await saveSync(env, applied);
@@ -538,6 +563,7 @@ export async function confirmHrPending(
       hard_block_code: classification.code || "REVALIDATION_BLOCKED",
       pending_fingerprint: "",
       plan,
+      ...hardBlockEvidence(read),
       updated_at: new Date().toISOString(),
       updated_by: actor.user_id,
       trigger: "CONFIRM_REVALIDATE",
@@ -559,6 +585,8 @@ export async function confirmHrPending(
     last_accepted_fingerprint: expected,
     last_accepted_row_count: read.source_row_count,
     hard_block_code: null,
+    invalid_row_details: [],
+    duplicate_employee_codes: [],
     updated_at: new Date().toISOString(),
     updated_by: actor.user_id,
     trigger: "WEB_CONFIRM",

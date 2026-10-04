@@ -254,10 +254,10 @@ jobs:
           foreach ($marker in @(
             'RenderD157OperationalListsFromMemory',
             'UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents)',
-            'pickerWindowWasOpen',
+            'StartD134AgentSync();',
             'provider_read=false provider_write=false'
           )) {
-            if (-not $ops.Contains($marker)) { throw "D157 repair role-independent operational-list guard missing: $marker" }
+            if (-not $ops.Contains($marker)) { throw "D157/D161 operational-list observation guard missing: $marker" }
           }
 
           foreach ($marker in @(
@@ -764,11 +764,35 @@ jobs:
           )) {
             if (-not $sync.Contains($marker) -and -not $d157.Contains($marker)) { throw "D140/D158 compact fleet-sync safety marker missing: $marker" }
           }
-          if ($sync.Contains('role_independent=true') -or -not $sync.Contains('role_limited=true')) {
-            throw "D140 Agent sync listener must no longer be role-independent."
+          if ($sync.Contains('role_limited=true') -or -not $sync.Contains('session_scoped=true')) {
+            throw "D161 active-Picker observation must reuse the single agent_sync listener for the authenticated Agent session."
           }
-          foreach ($marker in @('ApplyD140AgentSyncRole','policy=PRIMARY_NEXT_A_NEXT_B_ONLY','TimeSpan.FromMinutes(1)')) {
-            if (-not $ops.Contains($marker)) { throw "D140 HA-trio listener gate marker missing: $marker" }
+          foreach ($marker in @(
+            'ApplyD140AgentSyncRole',
+            'policy=AUTHENTICATED_AGENT_SESSION__PICKER_OBSERVATION_WMS_INDEPENDENT',
+            'StartD134AgentSync();',
+            'StopD134AgentSync();',
+            'DIRECT_PRESENCE_LISTEN',
+            '_d161DirectPickerPresenceObserved',
+            'source=DIRECT_PRESENCE',
+            'if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))',
+            'TimeSpan.FromMinutes(1)',
+            'danh sách vẫn hiển thị theo phiên đăng nhập'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D161 authenticated Picker-observation marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'FirestorePickerPresenceDocumentName',
+            'exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE',
+            'FirestorePickerPresenceClient.ParseGrpcDocument',
+            'PICKER_PRESENCE_LISTEN_EVENT'
+          )) {
+            if (-not $sync.Contains($marker) -and -not $config.Contains($marker)) {
+              throw "D161 exact Picker presence observation marker missing: $marker"
+            }
+          }
+          if ($ops.Contains('if (_pickerWindowOpenState != false)') -or $ops.Contains('if (_pickerWindowOpenState == false) return;')) {
+            throw "D161 active-Picker rendering must not be gated by the business window."
           }
           if (-not $program.Contains('ApplyD140AgentSyncRole(role)') -or
               -not $program.Contains('ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE)') -or

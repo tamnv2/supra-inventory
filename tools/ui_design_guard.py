@@ -223,10 +223,12 @@ checks = {
         '"shift"',
         "function renderShiftOperations()",
         "Ca vận hành",
-        "Replay tự động",
-        "05:45–22:30",
+        "Ca bình thường",
+        "06:00–22:00",
+        "Cửa sổ kỹ thuật Replay · 05:45–22:15",
         "Agent là nơi quyết định",
-    ]) and 'updateAndroidAlertWindow("EXTEND_ONE_HOUR")' not in WEB_APP
+    ]) and "05:45–22:30" not in WEB_APP
+       and 'updateAndroidAlertWindow("EXTEND_ONE_HOUR")' not in WEB_APP
        and 'id="extend-android-alert-window"' not in WEB_APP,
     "web_d122_sku_sync_checkpoint": all(token in WEB_APP + WEB_API + SERVICE_READ_MODEL for token in [
         "last_sync_at",

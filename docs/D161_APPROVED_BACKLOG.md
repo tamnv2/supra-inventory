@@ -748,3 +748,12 @@ These refinements were approved after the 2026-10-03 full-log review. They tight
 - D161 runtime-readiness proof PASS: run `37192056329`; candidate channels verified and production HR watch reported `APPLIED / AUTO` with future expiry.
 - Final Agent Operations Gateway provider repair merged in PR #425; main `e128deba6567216ac28156c4148eb3183be99c9f`, provider run `37193309206` PASS including redeploy, gateway identity, authenticated Usage/Monitoring and D159-retired verification.
 - D161 is now **READY_FOR_OWNER_FIELD_TEST** under OA096. This is not Owner PASS. D160 remains the accepted/rescue base until explicit D161 field acceptance. Stable remains OWNER-GATED and untouched.
+
+
+## D161 Owner field repair — 2026-10-04
+
+- Owner field test rejected the initial v104/vc96/Web Version 1 candidate on three repairable defects while keeping D161 as the active change ID.
+- **Schedule:** outward business shift is 06:00–22:00; technical Replay is separately labelled 05:45–22:15; obsolete 22:30 copy is removed without changing the 22:15 runtime boundary.
+- **HR:** HARD_BLOCK exposes bounded non-sensitive row/reason diagnostics and a one-shot recheck; HARD_BLOCK remains fail-closed. CONFIRM_REQUIRED uses explicit Yes/No, where No performs no mutation and keeps the proposal pending.
+- **Agent Picker list:** after Agent login, active Picker observation is independent from WMS/Web Confirm readiness and the business-processing window. It reuses one Agent-sync gRPC stream targeting the existing `agent_sync` and authoritative `picker_presence_projection/current` documents, and stops on Agent logout; PickList mutation gates remain unchanged.
+- Repair lineage target: Web Version 2, Agent v105, next monotonic Android Beta after vc96. Stable remains OWNER-GATED and untouched.

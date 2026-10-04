@@ -145,6 +145,15 @@ def main() -> None:
     forbid(app, "Beta / Logs", "internal environment log copy")
     forbid(app, "Tự gửi định kỳ", "internal log schedule copy")
 
+    # D161 Owner field repair: outward schedule semantics and actionable HR blocks.
+    require(app, '<span>Ca bình thường</span><strong>06:00–22:00</strong>', "business shift outward label")
+    require(app, "Cửa sổ kỹ thuật Replay · 05:45–22:15", "technical Replay label")
+    forbid(app, "05:45–22:30", "obsolete 22:30 Web schedule copy")
+    require(app, 'id="recheck-hr-event"', "HR hard-block recheck action")
+    require(app, 'id="defer-hr-event"', "HR confirmation No action")
+    require(app, "invalid_row_details", "HR invalid-row diagnostics presentation")
+    require(api, "recheckHrEventSync", "HR bounded recheck API")
+
     # D068: instant route feedback, browser history, toast notices and targeted SKU detail refresh.
     require(app, "function navigateToSection(", "instant section navigation")
     require(app, 'window.history.pushState({ section }', "section history push")

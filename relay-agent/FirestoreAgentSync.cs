@@ -793,6 +793,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _ensureFreshToken;
         private readonly Action _forceRefreshToken;
         private readonly Action<AgentSyncSnapshot> _onSnapshot;
+        private readonly Action<List<PickerPresenceView>> _onPickerPresence;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
         private Task _task;
@@ -802,12 +803,14 @@ namespace SupraInventoryRelayAgent
             Action ensureFreshToken,
             Action forceRefreshToken,
             Action<AgentSyncSnapshot> onSnapshot,
+            Action<List<PickerPresenceView>> onPickerPresence,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
             _forceRefreshToken = forceRefreshToken ?? ensureFreshToken ?? delegate { };
             _onSnapshot = onSnapshot ?? delegate { };
+            _onPickerPresence = onPickerPresence ?? delegate { };
             _log = log ?? delegate { };
         }
 
@@ -856,12 +859,13 @@ namespace SupraInventoryRelayAgent
                     {
                         var docs = new Target.Types.DocumentsTarget();
                         docs.Documents.Add(AgentConfig.FirestoreAgentSyncDocumentName);
+                        docs.Documents.Add(AgentConfig.FirestorePickerPresenceDocumentName);
                         await call.RequestStream.WriteAsync(new ListenRequest
                         {
                             Database = AgentConfig.FirestoreDatabaseName,
                             AddTarget = new Target { TargetId = 134, Documents = docs }
                         }).ConfigureAwait(false);
-                        _log("AGENT_SYNC listen=OPEN role_limited=true routing_headers=true cadence=EVENT_PLUS_5M");
+                        _log("AGENT_SYNC listen=OPEN session_scoped=true exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE routing_headers=true cadence=EVENT_DRIVEN");
 
                         while (await call.ResponseStream.MoveNext(token).ConfigureAwait(false))
                         {
@@ -878,16 +882,24 @@ namespace SupraInventoryRelayAgent
                             {
                                 acceptedResponse = true;
                                 backoff = InitialRetryMs;
-                                _log("AGENT_SYNC listen=CONNECTED role_limited=true cadence=EVENT_PLUS_5M");
+                                _log("AGENT_SYNC listen=CONNECTED session_scoped=true exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE cadence=EVENT_DRIVEN");
                             }
 
                             var doc = response == null || response.DocumentChange == null
                                 ? null : response.DocumentChange.Document;
-                            if (doc == null || !string.Equals(doc.Name, AgentConfig.FirestoreAgentSyncDocumentName, StringComparison.Ordinal))
+                            if (doc == null) continue;
+                            if (string.Equals(doc.Name, AgentConfig.FirestoreAgentSyncDocumentName, StringComparison.Ordinal))
+                            {
+                                var snapshot = FirestoreAgentSyncClient.ParseGrpcDocument(doc);
+                                _onSnapshot(snapshot);
+                                FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreAgentSyncUrl, "AGENT_SYNC_LISTEN_EVENT", _log);
                                 continue;
-                            var snapshot = FirestoreAgentSyncClient.ParseGrpcDocument(doc);
-                            _onSnapshot(snapshot);
-                            FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreAgentSyncUrl, "AGENT_SYNC_LISTEN_EVENT", _log);
+                            }
+                            if (string.Equals(doc.Name, AgentConfig.FirestorePickerPresenceDocumentName, StringComparison.Ordinal))
+                            {
+                                _onPickerPresence(FirestorePickerPresenceClient.ParseGrpcDocument(doc));
+                                FirestoreQuotaGuard.Record("GET", AgentConfig.FirestorePickerPresenceUrl, "PICKER_PRESENCE_LISTEN_EVENT", _log);
+                            }
                         }
 
                         retryDelayMs = backoff;

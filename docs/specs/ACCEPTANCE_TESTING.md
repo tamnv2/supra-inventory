@@ -2439,3 +2439,19 @@ Before D161 field-ready status, automated/runtime acceptance must additionally p
 8. **Trace completeness:** every claimed PickList trace ends in ACKED_TERMINAL, SAFE_ABORT_PRE_MUTATION, UNCERTAIN_POST_MUTATION, HANDOFF, EXPIRED or TRACE_GAP_DETECTED. A trace gap never triggers/result-infers another WMS mutation.
 9. **Web journal identity:** reload preserves bounded context inside one session; logout/account replacement rotates generation and prior evidence is never attributed to the new user.
 10. **Overtime cutoff edge:** creating/extending a boundary with <=15 minutes remaining before 05:00 emits at most one immediate boundary-key warning; multiple Agents do not duplicate it and 05:00 remains a hard cap.
+
+
+## D161 Owner field-repair acceptance — 2026-10-04
+
+Before D161 Owner field re-acceptance, prove:
+
+1. **Schedule copy:** Web shows **Ca bình thường 06:00–22:00** and, if the technical margin is shown, **Cửa sổ kỹ thuật Replay 05:45–22:15**. No active Web/Android business-facing copy says 05:45–22:30 or describes 22:30 as the normal close.
+2. **Runtime schedule unchanged:** Agent/Worker/Android still enforce the D161 technical boundary at 22:15 and the business definition at 06:00–22:00; the presentation repair must not reopen the old 22:30 runtime.
+3. **HR invalid row detail:** a controlled invalid Sheet row produces HARD_BLOCK, zero user mutation, exact bounded row number and a non-sensitive reason such as invalid MNV or missing name. Raw row payload is not returned.
+4. **HR recheck:** after correcting the invalid row, **Kiểm tra lại nguồn** performs one bounded authoritative reread/recompute and reaches the correct AUTO/CONFIRM_REQUIRED/APPLIED state without polling.
+5. **HR Yes/No:** CONFIRM_REQUIRED shows **Có · Áp dụng** and **Không · Giữ nguyên**. No causes zero mutation and keeps the proposal pending; Yes retains stale-fingerprint revalidation before apply.
+6. **Agent Picker observation without WMS:** with Agent authenticated and Web Confirm not ready, a logged-in Picker still appears in **Picker đang hoạt động trên PDA** and login/logout changes converge from authoritative `picker_presence_projection/current` on the existing Agent-sync gRPC stream.
+7. **Agent Picker observation outside processing window:** authenticated Agent continues to display active Picker sessions outside the business window; PickList mutation remains blocked by existing WMS/schedule gates.
+8. **Logout authority:** Agent logout stops the compact listener and clears the active-Picker list.
+9. **Provider impact:** no new Firestore collection, collection query, per-Picker listener, polling loop or write cadence. One existing Agent-sync gRPC stream observes exactly two existing documents (`agent_sync` and `picker_presence_projection/current`) for authenticated Agent sessions.
+10. **Release lineage:** Web increments to Version 2; Agent field-repair candidate is v105; Android uses the next monotonic Beta version after vc96. Stable remains untouched.

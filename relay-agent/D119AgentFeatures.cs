@@ -105,6 +105,7 @@ namespace SupraInventoryRelayAgent
         private DateTime _lastD150DeepSyncReadUtc = DateTime.MinValue;
         private long _d150DeepSyncReadRunning;
         private bool? _pickerWindowOpenState;
+        private bool _d161DirectPickerPresenceObserved;
         private volatile int _activePdaCountForRelay;
         private FirestoreFleetMetricsClient _fleetMetricsClient;
         private FleetMetricSnapshot _fleetSnapshot;
@@ -414,29 +415,23 @@ namespace SupraInventoryRelayAgent
             _d119AuthenticatedState = authenticated;
             if (authenticated)
             {
+                // D161 Owner field repair: Picker observation is an authenticated Agent
+                // management surface and is independent from WMS/Web Confirm readiness
+                // and from the business processing window.
+                if (authChanged) _d161DirectPickerPresenceObserved = false;
+                StartD134AgentSync();
                 if (authChanged)
                 {
                     LoadColumnPreferencesForCurrentUser();
-
-                    // D157 repair: while logged out/not WMS-ready the 30s boundary timer may
-                    // have left _pickerWindowOpenState=false. Re-evaluate the boundary on
-                    // login before an async Agent-sync snapshot arrives, so a secondary
-                    // Agent does not cache the snapshot while suppressing its UI render.
-                    var pickerWindowWasOpen = _pickerWindowOpenState;
                     RefreshPickerWindowBoundary();
-                    if (pickerWindowWasOpen.HasValue &&
-                        _pickerWindowOpenState.HasValue &&
-                        pickerWindowWasOpen.Value == _pickerWindowOpenState.Value &&
-                        _pickerWindowOpenState.Value)
-                    {
-                        RefreshD119OperationalViews(true);
-                    }
-
+                    RefreshD119OperationalViews(true);
                     RenderD157OperationalListsFromMemory();
                 }
             }
             else
             {
+                StopD134AgentSync();
+                _d161DirectPickerPresenceObserved = false;
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
@@ -1025,6 +1020,7 @@ namespace SupraInventoryRelayAgent
                     EnsureFreshToken,
                     ForceRefreshAgentTokenD160,
                     ApplyD134AgentSyncSnapshot,
+                    ApplyD161DirectPickerPresence,
                     message => Log(message));
                 _agentSyncListener = listener;
             }
@@ -1054,10 +1050,7 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
-            var eligible =
-                role == FirestoreAgentRole.PRIMARY ||
-                role == FirestoreAgentRole.NEXT_A ||
-                role == FirestoreAgentRole.NEXT_B;
+            var eligible = HasAgentSession();
 
             if (eligible)
                 StartD134AgentSync();
@@ -1069,7 +1062,7 @@ namespace SupraInventoryRelayAgent
                 Log(
                     "AGENT_SYNC role_gate=" + role +
                     " listener=" + (eligible ? "ENABLED" : "DISABLED") +
-                    " policy=PRIMARY_NEXT_A_NEXT_B_ONLY");
+                    " policy=AUTHENTICATED_AGENT_SESSION__PICKER_OBSERVATION_WMS_INDEPENDENT");
             }
         }
 
@@ -1160,7 +1153,7 @@ namespace SupraInventoryRelayAgent
                 UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents);
             }
 
-            if (_pickerWindowOpenState != false)
+            if (HasAgentSession() && !_d161DirectPickerPresenceObserved)
                 UpdatePickerOnlineGrid(snapshot.Pickers, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
             RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader);
             RefreshD128Overlay();
@@ -1650,6 +1643,18 @@ namespace SupraInventoryRelayAgent
             return result;
         }
 
+        private void ApplyD161DirectPickerPresence(List<PickerPresenceView> items)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<PickerPresenceView>>(ApplyD161DirectPickerPresence), items);
+                return;
+            }
+            if (!HasAgentSession()) return;
+            _d161DirectPickerPresenceObserved = true;
+            ApplyEventDrivenPickerPresence(items, "DIRECT_PRESENCE_LISTEN", "[]");
+        }
+
         internal void ApplyEventDrivenPickerPresence(
             List<PickerPresenceView> items,
             string reason,
@@ -1699,19 +1704,24 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
-            // Preserve one-shot PickList fallback through unrelated presence changes.
-            // Explicit logout/revoke metadata removes only matching/older fallback.
-            foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
-                item != null &&
-                string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
-                !string.IsNullOrWhiteSpace(item.UserId)))
+            // The direct picker_presence_projection document is complete authority:
+            // absence means the Picker session is no longer active. Legacy job/fallback
+            // events may still preserve one-shot PickList observations until explicit
+            // logout/revoke metadata arrives.
+            if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
             {
-                if (incomingIds.Contains(fallback.UserId)) continue;
-                long removedGeneration;
-                if (removals.TryGetValue(fallback.UserId, out removedGeneration) &&
-                    fallback.SessionGeneration <= removedGeneration)
-                    continue;
-                merged.Add(fallback);
+                foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
+                    item != null &&
+                    string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
+                    !string.IsNullOrWhiteSpace(item.UserId)))
+                {
+                    if (incomingIds.Contains(fallback.UserId)) continue;
+                    long removedGeneration;
+                    if (removals.TryGetValue(fallback.UserId, out removedGeneration) &&
+                        fallback.SessionGeneration <= removedGeneration)
+                        continue;
+                    merged.Add(fallback);
+                }
             }
 
             var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
@@ -1756,16 +1766,16 @@ namespace SupraInventoryRelayAgent
 
             if (!open)
             {
-                _pickerOnlineSnapshot = new List<PickerPresenceView>();
-                _pickerOnlineRenderSignature = "";
-                UpdatePickerOnlineGrid(_pickerOnlineSnapshot, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-                _pickerOnlineStatus.Text = "Replay/PDA đang ngoài ca · khung thường 06:00–22:00 hoặc theo tăng ca chung.";
+                RenderD157OperationalListsFromMemory();
+                if (HasAgentSession())
+                    _pickerOnlineStatus.Text =
+                        _pickerOnlineSnapshot.Count.ToString("N0") +
+                        " Picker đang hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
                 return;
             }
 
-            // D157 repair: crossing CLOSED -> ACTIVE is a presentation transition.
-            // First paint the snapshot/fleet already held in RAM; the existing refresh
-            // call below keeps its former cadence and is not replaced by a new poll.
+            // Crossing CLOSED -> ACTIVE changes business processing only. Picker
+            // observation remains visible throughout the authenticated Agent session.
             RenderD157OperationalListsFromMemory();
             RefreshD119OperationalViews(true);
         }
@@ -1778,7 +1788,13 @@ namespace SupraInventoryRelayAgent
             if (coordinator != null)
                 UpdateAgentFleetGrid(coordinator.OnlineAgents);
 
-            if (_pickerWindowOpenState == false) return;
+            if (_d161DirectPickerPresenceObserved)
+            {
+                RenderPickerOnlineSnapshot();
+                Log("D161 UI_SYNC render=MEMORY source=DIRECT_PRESENCE provider_read=false provider_write=false");
+                return;
+            }
+
             var snapshot = _agentSyncSnapshot;
             if (snapshot == null || snapshot.Version <= 0) return;
 
