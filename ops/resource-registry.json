@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_FEATURE_IMPLEMENTATION_ACTIVE__TRANCHE_A_MERGED__TRANCHE_B_PR_ACTIVE__D160_ACCEPTED_BASE_RESCUE",
+      "status": "D161_FEATURE_IMPLEMENTATION_ACTIVE__TRANCHE_A_B_MERGED__TRANCHE_C_BULK_REVOKE_ACTIVE__D160_ACCEPTED_BASE_RESCUE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -2233,7 +2233,7 @@
     "source_baseline": "EXACT_V97_SOURCE_COMMIT_4c3f0a4dffc94f66237d0958032fd27ac52fed29"
   },
   "d161": {
-    "status": "PHASE0A_PASS__PHASE0_SAFETY_PASS__FEATURE_IMPLEMENTATION_ACTIVE__TRANCHE_A_MERGED__TRANCHE_B_PR_420",
+    "status": "PHASE0A_PASS__PHASE0_SAFETY_PASS__FEATURE_IMPLEMENTATION_ACTIVE__TRANCHE_A_B_MERGED__TRANCHE_C_ACTIVE",
     "accepted_base": "D160__RELAY_AGENT_V97",
     "resource_change_now": "NONE_PERSISTENT__SAFETY_RELEASES_VERIFIED__FEATURE_WORK_REUSES_EXISTING_SCOPED_BETA_RESOURCES__STABLE_UNTOUCHED",
     "logs_parent": "EXISTING_SCOPED_INVENTORY_BETA_LOGS_FOLDER",
@@ -2307,13 +2307,23 @@
       "stable": "OWNER_GATED_UNTOUCHED"
     },
     "tranche_b": {
-      "status": "IMPLEMENTATION_ACTIVE__PR_420",
+      "status": "MERGED__PR_420__MAIN_4728E35",
       "agent_target": "relay-agent-v102",
       "schedule": "TECHNICAL_GUARD_0545_2215__NO_PREEND_PROMPT__PLUS1H_CAS__T15_WARNING__0500_CAP",
       "confirm": "V99_V100_PROVEN_CARRYOVER__HYDRATED_PAGE_SIZE_100_RELOAD_BARRIER__D157_2H_CLOCK_RESET",
       "history_usage": "ATOMIC_BATCHED_RENDER__SENTATMS_DESC__PROCESSING_AGENT_USER_PIGGYBACK__NO_EXTRA_PROVIDER_OP",
       "updater": "MANUAL_ONLY__NO_STARTUP_OR_30MIN_CHECK",
       "persistent_resource_change": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "tranche_c": {
+      "status": "IMPLEMENTATION_ACTIVE__AGENT_V103",
+      "resource_change": "NONE_PERSISTENT",
+      "agent_to_server": "EXISTING_BETA_WORKER_AUTHENTICATED_API",
+      "session_authority": "EXISTING_INVENTORYCORE_ANDROID_SESSION_GENERATION",
+      "realtime_cleanup": "EXISTING_INVENTORYCORE_HIBERNATABLE_WEBSOCKET",
+      "notification_cleanup": "EXISTING_FIRESTORE_picker_notification_targets__BOUNDED_SERVER_BATCH_DELETE",
+      "new_firestore_command_resource": "NONE__EXPLICITLY_REJECTED",
       "stable": "OWNER_GATED_UNTOUCHED"
     }
   }

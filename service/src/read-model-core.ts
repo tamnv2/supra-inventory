@@ -305,6 +305,46 @@ async function closeRealtimeUser(state: DurableObjectState, request: Request): P
   return response({ status: "closed", user_id: userId, client_type: clientType || "ALL", closed });
 }
 
+async function closeRealtimeUsers(state: DurableObjectState, request: Request): Promise<Response> {
+  let body: { user_ids?: unknown[]; client_type?: string; reason?: string } = {};
+  try {
+    body = (await request.json()) as { user_ids?: unknown[]; client_type?: string; reason?: string };
+  } catch {
+    body = {};
+  }
+  const userIds = new Set(
+    (Array.isArray(body.user_ids) ? body.user_ids : [])
+      .map((value) => String(value || "").trim())
+      .filter((value) => /^[A-Za-z0-9._:-]{1,128}$/.test(value))
+      .slice(0, 2000),
+  );
+  const clientType = String(body.client_type || "").trim().toUpperCase();
+  const allowedCloseReasons = new Set(["role-changed", "session-replaced", "session-changed"]);
+  const requestedReason = String(body.reason || "session-changed").trim().slice(0, 64) || "session-changed";
+  const reason = allowedCloseReasons.has(requestedReason) ? requestedReason : "session-changed";
+  if (!userIds.size) return response({ status: "noop", closed: 0, targeted_users: 0 });
+  if (clientType && !["WEB", "ANDROID"].includes(clientType)) return response({ error: "INVALID_CLIENT_TYPE" }, 400);
+
+  let closed = 0;
+  for (const socket of state.getWebSockets()) {
+    const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
+    if (!attachment?.user_id || !userIds.has(attachment.user_id)) continue;
+    if (clientType && attachment.client_type !== clientType) continue;
+    try {
+      socket.close(1000, reason);
+      closed += 1;
+    } catch {
+      // Session generation remains authoritative if the socket is already closing.
+    }
+  }
+  return response({
+    status: "closed",
+    targeted_users: userIds.size,
+    client_type: clientType || "ALL",
+    closed,
+  });
+}
+
 function realtimePresence(state: DurableObjectState): Response {
   const sockets = state.getWebSockets();
   const sessions: RealtimeAttachment[] = [];
@@ -541,6 +581,7 @@ export async function handleReadModelCoreRequest(
   }
   if (request.method === "GET" && url.pathname === "/read/realtime/presence") return realtimePresence(state);
   if (request.method === "POST" && url.pathname === "/realtime/close-user") return closeRealtimeUser(state, request);
+  if (request.method === "POST" && url.pathname === "/realtime/close-users") return closeRealtimeUsers(state, request);
   if (request.method === "POST" && url.pathname === "/realtime/broadcast") return realtimeBroadcast(state, request);
   return null;
 }
