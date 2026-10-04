@@ -729,7 +729,9 @@ namespace SupraInventoryRelayAgent
             _instanceActivateEvent = instanceActivateEvent;
             _agentInstanceId = LoadOrCreateAgentInstanceId();
             _businessSchedule = new AgentBusinessSchedule(AfterHoursStateFile);
-            _supraBrowser = new SupraConfirmBrowser(message => Log(message));
+            _supraBrowser = new SupraConfirmBrowser(
+                message => Log(message),
+                () => MarkD157SuccessfulReload());
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
