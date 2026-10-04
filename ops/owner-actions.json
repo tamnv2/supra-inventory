@@ -4792,7 +4792,7 @@
     },
     {
       "id": "OA096",
-      "status": "REPAIR_IN_PROGRESS__OWNER_FIELD_DEFECTS_REPORTED",
+      "status": "READY_FOR_OWNER_FIELD_RETEST__FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
@@ -4809,9 +4809,9 @@
         "stable": "OWNER_GATED_UNTOUCHED",
         "pre_repair_android": "beta-vc96__FIELD_DEFECT_REPORTED",
         "pre_repair_agent": "relay-agent-v104__FIELD_DEFECT_REPORTED",
-        "repair_web": "Version 2__PENDING",
-        "repair_agent": "relay-agent-v105__PENDING",
-        "repair_android": "NEXT_MONOTONIC_AFTER_BETA_VC96__PENDING"
+        "repair_web": "Version 2__BETA_DEPLOY_PASS__RUN_37199390053",
+        "repair_agent": "relay-agent-v105__RELEASED__RUN_37199390032",
+        "repair_android": "beta-vc97__RELEASED__RUN_37199390022"
       },
       "shortest_test_path": [
         "After repair releases are published, refresh Beta Web and verify Ca bình thường 06:00–22:00 with technical Replay 05:45–22:15 and no obsolete 22:30 copy.",
@@ -4849,10 +4849,20 @@
           "branch": "d161-owner-field-repair-3",
           "target_web": "Version 2",
           "target_agent": "relay-agent-v105",
-          "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC96"
+          "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC96",
+          "implementation_pr": 427,
+          "main_sha": "afaf9d563894e61d3632f65ce624c1b3b76bfd36",
+          "beta_worker_run": 37199390053,
+          "android_run": 37199390022,
+          "android_release_id": 402990645,
+          "android_sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19",
+          "agent_run": 37199390032,
+          "agent_release_id": 402990615,
+          "agent_sha256": "542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807",
+          "technical_runtime_release_result": "PASS"
         }
       },
-      "remaining_owner_action": "WAIT_FOR_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__THEN_RETEST_3_REPAIRED_ITEMS_AND_CONTINUE_D161_FIELD_ACCEPTANCE",
+      "remaining_owner_action": "RETEST_THE_3_REPAIRED_ITEMS_ON_WEB_VERSION_2__AGENT_V105__ANDROID_BETA_VC97__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
       "closed": false
     }
   ]
