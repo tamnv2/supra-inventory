@@ -144,37 +144,49 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="14dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="8dp">
 
-            <TextView
-                android:id="@+id/tvLoginVersion"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:autoSizeMaxTextSize="10sp"
-                android:autoSizeMinTextSize="7sp"
-                android:autoSizeStepGranularity="1sp"
-                android:autoSizeTextType="uniform"
-                android:gravity="start"
-                android:maxLines="1"
-                android:textColor="@color/text_secondary"
-                android:textSize="7sp" />
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Phiên bản &amp; cập nhật"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvLoginVersion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:autoSizeMaxTextSize="10sp"
-                android:autoSizeMinTextSize="7sp"
-                android:autoSizeStepGranularity="1sp"
-                android:autoSizeTextType="uniform"
-                android:gravity="end"
-                android:maxLines="1"
-                android:text="Phát triển hệ thống - tamnv2 | Pick Pack 1291"
-                android:textColor="@color/text_secondary"
-                android:textSize="7sp" />
+            <Button
+                android:id="@+id/btnLoginUpdate"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Kiểm tra cập nhật"
+                android:textAllCaps="false"
+                android:textSize="10sp" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="Phát triển hệ thống - tamnv2 | Pick Pack 1291"
+            android:textColor="@color/text_secondary"
+            android:textSize="8sp" />
     </LinearLayout>
 </ScrollView>
