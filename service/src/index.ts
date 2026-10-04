@@ -25,6 +25,12 @@ import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publish
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePublicInfoPage } from "./public-pages";
 import { sendFcmNotifications } from "./fcm";
+import {
+  confirmHrPending,
+  ensureHrDriveWatch,
+  handleHrDriveWatchNotification,
+  readHrEventState,
+} from "./hr-event-sync";
 
 
 export { InventoryCore };
@@ -1046,6 +1052,10 @@ export default {
         }, healthy ? 200 : 503);
       }
 
+      if (request.method === "POST" && url.pathname === "/api/internal/d161/hr-drive-watch") {
+        return handleHrDriveWatchNotification(request, env);
+      }
+
       if (request.method === "GET" && url.pathname === "/downloads/pda/latest") {
         return redirectLatestPdaApk();
       }
@@ -1670,6 +1680,37 @@ export default {
         catch (error) { return json({ error: "ARCHIVE_RUN_FAILED", message: error instanceof Error ? error.message : "archive_failed" }, 502); }
       }
 
+      if (request.method === "GET" && url.pathname === "/api/admin/hr-sync/event-state") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        return json(await readHrEventState(env));
+      }
+      if (request.method === "POST" && url.pathname === "/api/admin/hr-sync/confirm") {
+        const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
+        let body: { fingerprint?: string } = {};
+        try { body = (await request.json()) as { fingerprint?: string }; }
+        catch { return json({ error: "INVALID_JSON" }, 400); }
+        const fingerprint = String(body.fingerprint || "").trim().toLowerCase();
+        if (!/^[a-f0-9]{64}$/.test(fingerprint)) return json({ error: "INVALID_HR_SOURCE_FINGERPRINT" }, 400);
+        try {
+          const result = await confirmHrPending(env, {
+            user_id: user.user_id,
+            employee_code: user.employee_code,
+            display_name: user.display_name,
+            role: user.role === "ROOT" ? "ROOT" : "ADMIN",
+            base_role: user.base_role === "ROOT" ? "ROOT" : "ADMIN",
+          }, fingerprint);
+          const status = result.status === "NO_MATCHING_PENDING_SNAPSHOT" ? 409 :
+            result.status === "STALE_SNAPSHOT_RECOMPUTED" ? 409 :
+            result.status === "SOURCE_BLOCKED" ? 409 : 200;
+          return json(result, status);
+        } catch (error) {
+          return json({
+            error: "HR_SYNC_CONFIRM_FAILED",
+            message: error instanceof Error ? error.message : "Không xác nhận được đồng bộ nhân sự.",
+          }, 500);
+        }
+      }
+
       if (request.method === "GET" && url.pathname === "/api/admin/hr-source") {
         await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN", "ROOT"]);
         return coreStub(env).fetch("https://inventory-core.internal/config/hr-source");
@@ -1690,6 +1731,8 @@ export default {
             method: "PUT", headers: { "content-type": "application/json" },
             body: JSON.stringify({ ...validated, updated_by: user.user_id }),
           });
+          ctx.waitUntil(ensureHrDriveWatch(env, true).catch((error) =>
+            console.error("hr_drive_watch_refresh_failed", error instanceof Error ? error.message : "unknown")));
           return json({ status: "saved", source: validated });
         } catch (error) {
           return json({ error: "HR_SOURCE_INVALID", message: error instanceof Error ? error.message : "HR source validation failed" }, 400);
@@ -1736,6 +1779,8 @@ export default {
         console.error("agent_kick_reconcile_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(ensureHrDriveWatch(env).then(() => undefined).catch((error) =>
+        console.error("hr_drive_watch_ensure_failed", error instanceof Error ? error.message : "unknown")));
       // D136: provider Usage polling/snapshot publication retired. No periodic
       // Monitoring API calls and no usage_current Firestore writes are scheduled.
     }
