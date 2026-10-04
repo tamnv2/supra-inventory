@@ -21,7 +21,7 @@ import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
-import { mirrorPickerNotificationTarget, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePublicInfoPage } from "./public-pages";
 
@@ -1243,6 +1243,83 @@ export default {
         }
 
         return json({ error: "NOT_FOUND" }, 404);
+      }
+
+      if (
+        (request.method === "GET" && url.pathname === "/api/agent/picker-session/revoke-all-preview") ||
+        (request.method === "POST" && url.pathname === "/api/agent/picker-session/revoke-all")
+      ) {
+        const operator = await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        const login = String(operator.employee_code || "").trim().toLowerCase();
+        if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
+
+        if (request.method === "GET") {
+          const countResponse = await coreStub(env).fetch("https://inventory-core.internal/auth/picker-android-session-count");
+          const countPayload = await countResponse.json() as Record<string, unknown>;
+          return json(countPayload, countResponse.status);
+        }
+
+        let body: { request_id?: string } = {};
+        try {
+          body = (await request.json()) as { request_id?: string };
+        } catch {
+          return json({ error: "INVALID_JSON" }, 400);
+        }
+        const requestId = String(body.request_id || "").trim();
+        if (!/^[A-Za-z0-9._:-]{8,160}$/.test(requestId)) {
+          return json({ error: "INVALID_BULK_REVOKE_COMMAND" }, 400);
+        }
+
+        const revokeResponse = await coreStub(env).fetch("https://inventory-core.internal/auth/revoke-all-picker-android-sessions", {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            request_id: requestId,
+            issued_by_user_id: operator.user_id,
+          }),
+        });
+        const revokePayload = await revokeResponse.json() as {
+          status?: string;
+          request_id?: string;
+          affected?: number;
+          idempotent_replay?: boolean;
+          targets?: Array<{ user_id?: string; revoked_generation?: number }>;
+          error?: string;
+        };
+        if (!revokeResponse.ok) return json(revokePayload, revokeResponse.status);
+
+        const targets = Array.isArray(revokePayload.targets) ? revokePayload.targets.slice(0, 2000) : [];
+        const userIds = targets.map((item) => String(item.user_id || "").trim()).filter(Boolean);
+        if (userIds.length) {
+          await clearPickerNotificationTargets(env, userIds).catch(() => undefined);
+          await coreStub(env).fetch("https://inventory-core.internal/realtime/close-users", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              user_ids: userIds,
+              client_type: "ANDROID",
+              reason: "session-changed",
+            }),
+          }).catch(() => undefined);
+          await refreshPickerProjectionBestEffort(
+            env,
+            "D161_BULK_PICKER_REVOKE",
+            targets
+              .map((item) => ({
+                user_id: String(item.user_id || ""),
+                session_generation: Math.max(0, Math.trunc(Number(item.revoked_generation || 0))),
+              }))
+              .filter((item) => item.user_id && item.session_generation > 0),
+          ).catch(() => undefined);
+        }
+
+        return json({
+          status: String(revokePayload.status || "bulk_picker_android_sessions_revoked"),
+          request_id: requestId,
+          affected: Math.max(0, Math.trunc(Number(revokePayload.affected || userIds.length))),
+          idempotent_replay: revokePayload.idempotent_replay === true,
+        });
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/picker-session/revoke") {
