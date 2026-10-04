@@ -278,6 +278,26 @@ namespace SupraInventoryRelayAgent
                  " elapsed_ms=" + Math.Max(0L, NowMs() - started));
         }
 
+        internal bool VerifyPrimaryForBusinessIngress(AgentSession session)
+        {
+            if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY) return false;
+            var read = ReadRoles(session);
+            ApplySharedSchedule(read.Snapshot);
+            var snapshot = read.Snapshot;
+            if (snapshot == null ||
+                !string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                string.IsNullOrWhiteSpace(snapshot.Generation) ||
+                !string.Equals(snapshot.Generation, _generation, StringComparison.Ordinal))
+            {
+                ApplySnapshot(snapshot, "INGRESS_FENCE_CHANGED");
+                return false;
+            }
+            if (!_relayEnabled()) return false;
+            _lastRoleRefreshMs = NowMs();
+            _refreshBeforeBusiness = false;
+            return true;
+        }
+
         internal bool VerifyPrimaryBeforeMutation(AgentSession session)
         {
             if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;
