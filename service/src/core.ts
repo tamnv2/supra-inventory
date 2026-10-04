@@ -866,6 +866,65 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "POST" && url.pathname === "/support-log-request/claim") {
+      let body: { request_id?: string; issued_by_user_id?: string; expires_at_ms?: number; trace_id?: string } = {};
+      try {
+        body = (await request.json()) as typeof body;
+      } catch {
+        body = {};
+      }
+      const requestId = String(body.request_id || "").trim();
+      const issuedByUserId = String(body.issued_by_user_id || "").trim();
+      const traceId = String(body.trace_id || "").trim();
+      const expiresAtMs = Math.trunc(Number(body.expires_at_ms || 0));
+      const now = Date.now();
+      if (
+        !/^support-[A-Za-z0-9]{16,80}$/.test(requestId) ||
+        !/^[A-Za-z0-9._:-]{1,180}$/.test(issuedByUserId) ||
+        !/^[A-Za-z0-9._:-]{1,180}$/.test(traceId) ||
+        expiresAtMs <= now ||
+        expiresAtMs > now + 5 * 60_000
+      ) {
+        return response({ error: "invalid_support_log_request" }, 400);
+      }
+      const key = `d161_support_log_request:${requestId}`;
+      const existing = this.state.storage.sql.exec<{ value_json: string | null }>(
+        "SELECT value_json FROM app_config WHERE key = ? LIMIT 1",
+        key,
+      ).toArray()[0];
+      if (existing?.value_json) {
+        try {
+          return response({
+            ...(JSON.parse(String(existing.value_json)) as Record<string, unknown>),
+            claimed: false,
+            idempotent_replay: true,
+          });
+        } catch {
+          return response({ error: "support_log_request_state_corrupt" }, 500);
+        }
+      }
+      const claimedAt = new Date(now).toISOString();
+      const payload = {
+        status: "support_log_request_claimed",
+        request_id: requestId,
+        trace_id: traceId,
+        issued_by_user_id: issuedByUserId,
+        issued_at_ms: now,
+        expires_at_ms: expiresAtMs,
+        claimed_at: claimedAt,
+      };
+      this.state.storage.sql.exec(
+        `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(key) DO NOTHING`,
+        key,
+        JSON.stringify(payload),
+        claimedAt,
+        issuedByUserId,
+      );
+      return response({ ...payload, claimed: true, idempotent_replay: false });
+    }
+
     if (request.method === "GET" && url.pathname === "/auth/picker-android-session-count") {
       const row = this.state.storage.sql.exec<{ count: number }>(
         `SELECT COUNT(*) AS count
