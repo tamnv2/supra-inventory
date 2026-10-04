@@ -21,7 +21,7 @@ import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
-import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePublicInfoPage } from "./public-pages";
 import { sendFcmNotifications } from "./fcm";
@@ -1510,18 +1510,31 @@ export default {
       if (request.method === "POST" && url.pathname === "/api/agent/picker-session/revoke") {
         const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
-        let body: { user_id?: string; firebase_uid?: string; revoked_generation?: number } = {};
+        let body: {
+          user_id?: string;
+          firebase_uid?: string;
+          revoked_generation?: number;
+          request_id?: string;
+          agent_instance_id?: string;
+        } = {};
         try {
-          body = (await request.json()) as { user_id?: string; firebase_uid?: string; revoked_generation?: number };
+          body = (await request.json()) as typeof body;
         } catch {
           return json({ error: "INVALID_JSON" }, 400);
         }
         const userId = String(body.user_id || "").trim();
         const firebaseUid = String(body.firebase_uid || "").trim();
         const revokedGeneration = Math.max(0, Math.trunc(Number(body.revoked_generation || 0)));
+        const suppliedRequestId = String(body.request_id || "").trim();
+        const agentInstanceId = String(body.agent_instance_id || "").trim().slice(0, 180);
         if (!userId || !firebaseUid || revokedGeneration <= 0) {
           return json({ error: "INVALID_PICKER_SESSION" }, 400);
         }
+        if (suppliedRequestId && !/^[A-Za-z0-9._:-]{8,160}$/.test(suppliedRequestId)) {
+          return json({ error: "INVALID_SINGLE_REVOKE_COMMAND" }, 400);
+        }
+        const requestId = suppliedRequestId || ("legacy-" + crypto.randomUUID().replaceAll("-", ""));
+
         const response = await coreStub(env).fetch("https://inventory-core.internal/auth/revoke-android-session", {
           method: "PUT",
           headers: { "content-type": "application/json" },
@@ -1530,12 +1543,46 @@ export default {
             firebase_uid: firebaseUid,
             revoked_generation: revokedGeneration,
             force_current: true,
+            request_id: requestId,
+            issued_by_user_id: operator.user_id,
           }),
         });
         const payload = await response.json() as Record<string, unknown>;
         if (!response.ok) return json(payload, response.status);
+
+        const authoritativeGeneration = Math.max(
+          0,
+          Math.trunc(Number(payload.revoked_generation || revokedGeneration)),
+        );
+        if (authoritativeGeneration <= 0) {
+          return json({ error: "INVALID_REVOKE_RESPONSE", request_id: requestId }, 502);
+        }
+
+        // v109+ sends one idempotent command and lets Worker publish the existing
+        // per-Picker generation fence only after InventoryCore authority commits.
+        // Older Agents supplied no request_id and already wrote that same fence.
+        if (suppliedRequestId) {
+          try {
+            await publishPickerSessionRevocation(env, {
+              user_id: userId,
+              firebase_uid: firebaseUid,
+              revoked_generation: authoritativeGeneration,
+              kicked_at_ms: Date.now(),
+              issued_by_user_id: operator.user_id,
+              issued_by_agent_instance_id: agentInstanceId,
+            });
+          } catch {
+            return json({
+              error: "PICKER_SESSION_SIGNAL_FAILED",
+              authority_revoked: true,
+              request_id: requestId,
+              revoked_generation: authoritativeGeneration,
+            }, 502);
+          }
+        }
+
         await closeUserRealtime(env, userId, "ANDROID");
-        if (payload.status === "android_session_revoked") {
+        if (payload.status === "android_session_revoked" || payload.status === "android_session_already_superseded") {
           await mirrorPickerNotificationTarget(env, {
             user_id: userId,
             device_id: "",
@@ -1543,8 +1590,17 @@ export default {
             enabled: false,
           }).catch(() => undefined);
         }
-        await refreshPickerProjectionBestEffort(env, "AGENT_KICK", [{ user_id: userId, session_generation: revokedGeneration }]).catch(() => undefined);
-        return json(payload);
+        await refreshPickerProjectionBestEffort(
+          env,
+          "AGENT_KICK",
+          [{ user_id: userId, session_generation: authoritativeGeneration }],
+        ).catch(() => undefined);
+        return json({
+          ...payload,
+          request_id: requestId,
+          revoked_generation: authoritativeGeneration,
+          session_signal: suppliedRequestId ? "PUBLISHED_AFTER_AUTHORITY" : "LEGACY_AGENT_DIRECT",
+        });
       }
 
       if (request.method === "POST" && url.pathname === "/api/diagnostics/dnd/upload") {

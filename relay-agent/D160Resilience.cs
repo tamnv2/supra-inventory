@@ -48,8 +48,15 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private bool TryRevokePickerWorkerSessionD160(AgentSession session, PickerPresenceView picker)
+        private bool TryRevokePickerWorkerSessionD160(
+            AgentSession session,
+            PickerPresenceView picker,
+            string requestId,
+            out long authoritativeGeneration,
+            out bool idempotentReplay)
         {
+            authoritativeGeneration = 0L;
+            idempotentReplay = false;
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_d160WorkerRevokeGate)
             {
@@ -63,7 +70,9 @@ namespace SupraInventoryRelayAgent
 
             int status;
             string code;
-            if (TryD160WorkerRevokeOnce(session, picker, out status, out code))
+            if (TryD160WorkerRevokeOnce(
+                    session, picker, requestId,
+                    out status, out code, out authoritativeGeneration, out idempotentReplay))
                 return true;
 
             if (status == 401)
@@ -79,9 +88,11 @@ namespace SupraInventoryRelayAgent
                     return false;
                 }
 
-                if (TryD160WorkerRevokeOnce(session, picker, out status, out code))
+                if (TryD160WorkerRevokeOnce(
+                        session, picker, requestId,
+                        out status, out code, out authoritativeGeneration, out idempotentReplay))
                 {
-                    Log("PICKER_SESSION server_revoke=RECOVERED after=TOKEN_REFRESH");
+                    Log("PICKER_SESSION server_revoke=RECOVERED after=TOKEN_REFRESH request_id=" + requestId);
                     return true;
                 }
 
@@ -96,6 +107,23 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
+            // D161: one bounded same-id retry is safe because InventoryCore stores
+            // the command result by request_id. This recovers response loss or a
+            // transient post-authority session-signal failure without double revoke.
+            if (status == 0 || status == 408 || status == 429 ||
+                status == 500 || status == 502 || status == 503 || status == 504)
+            {
+                Log("PICKER_SESSION server_revoke=RETRY_SAME_ID status=" +
+                    status.ToString(CultureInfo.InvariantCulture) + " code=" +
+                    AgentDiagnostics.Sanitize(code));
+                Thread.Sleep(150);
+                try { session = SnapshotSession(); } catch { }
+                if (TryD160WorkerRevokeOnce(
+                        session, picker, requestId,
+                        out status, out code, out authoritativeGeneration, out idempotentReplay))
+                    return true;
+            }
+
             Log("PICKER_SESSION server_revoke=DEFERRED status=" + status.ToString(CultureInfo.InvariantCulture) +
                 " code=" + AgentDiagnostics.Sanitize(code));
             return false;
@@ -104,11 +132,16 @@ namespace SupraInventoryRelayAgent
         private bool TryD160WorkerRevokeOnce(
             AgentSession session,
             PickerPresenceView picker,
+            string requestId,
             out int status,
-            out string code)
+            out string code,
+            out long authoritativeGeneration,
+            out bool idempotentReplay)
         {
             status = 0;
             code = "";
+            authoritativeGeneration = 0L;
+            idempotentReplay = false;
             try
             {
                 var request = (HttpWebRequest)WebRequest.Create(
@@ -116,7 +149,7 @@ namespace SupraInventoryRelayAgent
                 request.Method = "POST";
                 request.Accept = "application/json";
                 request.ContentType = "application/json; charset=utf-8";
-                request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D160";
+                request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D161";
                 request.Timeout = 5000;
                 request.ReadWriteTimeout = 5000;
                 request.KeepAlive = false;
@@ -125,7 +158,9 @@ namespace SupraInventoryRelayAgent
                 {
                     { "user_id", picker == null ? "" : (picker.UserId ?? "") },
                     { "firebase_uid", picker == null ? "" : (picker.FirebaseUid ?? "") },
-                    { "revoked_generation", picker == null ? 1L : Math.Max(1L, picker.SessionGeneration) }
+                    { "revoked_generation", picker == null ? 1L : Math.Max(1L, picker.SessionGeneration) },
+                    { "request_id", requestId ?? "" },
+                    { "agent_instance_id", _agentInstanceId ?? "" }
                 });
                 var bytes = Encoding.UTF8.GetBytes(body);
                 request.ContentLength = bytes.Length;
@@ -135,8 +170,20 @@ namespace SupraInventoryRelayAgent
                 using (var reader = input == null ? null : new StreamReader(input))
                 {
                     status = (int)response.StatusCode;
-                    if (reader != null) reader.ReadToEnd();
-                    return status >= 200 && status < 300;
+                    var raw = reader == null ? "" : reader.ReadToEnd();
+                    var map = string.IsNullOrWhiteSpace(raw)
+                        ? null
+                        : new JavaScriptSerializer().DeserializeObject(raw) as Dictionary<string, object>;
+                    object generationValue;
+                    if (map != null && map.TryGetValue("revoked_generation", out generationValue) && generationValue != null)
+                        long.TryParse(Convert.ToString(generationValue, CultureInfo.InvariantCulture), NumberStyles.Integer, CultureInfo.InvariantCulture, out authoritativeGeneration);
+                    object replayValue;
+                    if (map != null && map.TryGetValue("idempotent_replay", out replayValue) && replayValue != null)
+                        bool.TryParse(Convert.ToString(replayValue, CultureInfo.InvariantCulture), out idempotentReplay);
+                    if (status >= 200 && status < 300 && authoritativeGeneration > 0)
+                        return true;
+                    code = status >= 200 && status < 300 ? "INVALID_REVOKE_RESPONSE" : D160SafeServiceErrorCode(raw);
+                    return false;
                 }
             }
             catch (WebException ex)
@@ -153,6 +200,16 @@ namespace SupraInventoryRelayAgent
                         {
                             var raw = reader == null ? "" : reader.ReadToEnd();
                             code = D160SafeServiceErrorCode(raw);
+                            try
+                            {
+                                var map = string.IsNullOrWhiteSpace(raw)
+                                    ? null
+                                    : new JavaScriptSerializer().DeserializeObject(raw) as Dictionary<string, object>;
+                                object generationValue;
+                                if (map != null && map.TryGetValue("revoked_generation", out generationValue) && generationValue != null)
+                                    long.TryParse(Convert.ToString(generationValue, CultureInfo.InvariantCulture), NumberStyles.Integer, CultureInfo.InvariantCulture, out authoritativeGeneration);
+                            }
+                            catch { }
                         }
                     }
                 }

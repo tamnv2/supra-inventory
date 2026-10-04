@@ -3212,3 +3212,24 @@ Approved repair:
 - A local-only wake on Picker presence transition `0 -> active` is allowed to remove the login/first-request race. This wake performs no provider read/write. Realtime connect/disconnect transitions also wake the local transport so fallback changes take effect promptly.
 - Actual PickList request evidence outranks cached PDA count: a listener-delivered PENDING request must never be discarded merely because local presence count is zero.
 - Target Agent release is monotonic **relay-agent-v108**. D160 relay-agent-v97 remains the accepted rescue base until explicit Owner D161 PASS.
+
+## D161 fifth field repair — single Kích User server-authority convergence — Owner approved 2026-10-04
+
+Status: **OWNER APPROVED REPAIR WITHIN D161 — ANDROID VC97 HARD-LOCKED**.
+
+The Owner reported that per-row **Kích User** could leave a PDA covered by a non-dismissible specialist-style overlay while **Kích toàn bộ user** did not reproduce the problem. Canonical source review found that the single-revoke InventoryCore path still emitted the D144 backward-compatibility FCM as `picker_command / CALL_SPECIALIST`. Android beta-vc97 correctly interprets that event as the existing locked specialist-call overlay, so the revoke path itself was injecting an unrelated presentation command.
+
+The Owner explicitly approved an Android-free repair:
+
+- keep **beta-vc97 unchanged**; this repair is not an Android bug-fix release;
+- per-row **Kích User** uses one bounded idempotent `request_id` and the same server-generation authority principle as D161 bulk revoke, but targets exactly one authenticated Android Picker session;
+- InventoryCore commits the authoritative Android generation revoke first, clears Android device/session authority, disables the old Android notification target and removes presence;
+- only after authoritative revoke succeeds may Worker publish the existing `picker_session_controls/<firebase_uid>.revoked_generation` fence so beta-vc97 returns to login immediately;
+- session revocation must **never** be encoded as `picker_command`, `CALL_SPECIALIST` or any other specialist/chat/result overlay event;
+- Agent removes the Picker from its compact fleet state only after the server command returns the authoritative revoked generation;
+- a bounded retry must reuse the same request id so response loss or a transient post-authority session-signal failure cannot revoke a newer generation twice;
+- existing two-step per-row confirmation and existing single-kick ADMIN/PICKPACK_ADMIN authority remain unchanged;
+- no new collection, listener, poll, heartbeat, provider resource or Stable mutation is introduced. Existing Worker/InventoryCore/Firestore session-control resources are reused.
+
+Target repair Agent is **relay-agent-v109**. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
+

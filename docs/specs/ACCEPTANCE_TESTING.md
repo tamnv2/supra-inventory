@@ -2498,3 +2498,19 @@ Before returning D161 to Owner field retest:
 8. Existing request cadences remain bounded: active 3s, D158 listener-degraded resilience 2s only within the existing reserve, HOT 1s burst behavior unchanged, standby business polling remains zero.
 9. CI must inspect the actual `StartListening()` and `IsBusinessAllowed()` method bodies and fail if `HasOperationalReadiness()` is reintroduced there. Presence of comments/markers alone is insufficient.
 10. No new persistent resource, Firestore collection/query family/listener family/write cadence or provider timer is introduced. Target release is **relay-agent-v108**.
+
+## D161 v109 single Kích User repair acceptance — 2026-10-04
+
+Before returning D161 to Owner field retest, prove all of the following:
+
+1. **Android unchanged:** beta-vc97 source/build/release is byte-identical to the current signed candidate; no Android version bump is produced.
+2. **No revoke overlay:** the InventoryCore `/auth/revoke-android-session` path contains no `picker_command`, `CALL_SPECIALIST` or compatibility specialist-overlay emission.
+3. **Server first:** v109 per-row Kích User calls Worker before any client revocation signal. If authoritative Worker revoke fails, Agent must not claim Kích User success or locally publish a pre-authority revoke.
+4. **Exactly one target:** single command identifies one Picker `user_id + firebase_uid`; it cannot widen into the bulk target set.
+5. **Idempotency:** repeating the same `request_id` returns the same authoritative revoked generation and does not advance generation again; the same request id with another target fails closed.
+6. **Immediate vc97 logout:** after authoritative revoke, Worker writes the existing per-Picker `revoked_generation` fence and the current vc97 session returns to login without a specialist-call overlay.
+7. **Bounded retry:** response loss / transient 5xx may retry once with the same command id; no retry creates a second revoke generation.
+8. **Fleet convergence:** Agent compact state removes the Picker using the authoritative generation; stale revoked-generation PickList work remains denied and a later legitimate newer login succeeds.
+9. **Quota/resources:** no new collection, listener, polling loop, heartbeat or persistent provider resource; normal-path Firestore write count is not increased versus the prior single-kick path.
+10. **Regression:** Kích toàn bộ user, Liên hệ Picker, chat, PickList confirm, Agent HA, Web, Android vc97 business behavior and Stable remain regression-clean.
+

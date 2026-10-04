@@ -1060,14 +1060,47 @@ export class InventoryCore {
         firebase_uid?: string;
         revoked_generation?: number;
         force_current?: boolean;
+        request_id?: string;
+        issued_by_user_id?: string;
       };
       const userId = String(body.user_id || "").trim();
       const firebaseUid = String(body.firebase_uid || "").trim();
       const requestedGeneration = Math.max(0, Math.trunc(Number(body.revoked_generation || 0)));
       const forceCurrent = body.force_current === true;
+      const requestId = String(body.request_id || "").trim();
+      const issuedByUserId = String(body.issued_by_user_id || "").trim();
       if (!userId || !firebaseUid || requestedGeneration <= 0) {
         return response({ error: "invalid_input" }, 400);
       }
+      if (requestId && !/^[A-Za-z0-9._:-]{8,160}$/.test(requestId)) {
+        return response({ error: "invalid_single_revoke_request" }, 400);
+      }
+      if (requestId && !/^[A-Za-z0-9._:-]{1,180}$/.test(issuedByUserId)) {
+        return response({ error: "invalid_single_revoke_actor" }, 400);
+      }
+
+      const commandKey = requestId ? `d161_single_picker_revoke:${requestId}` : "";
+      if (commandKey) {
+        const existing = this.state.storage.sql.exec<{ value_json: string | null }>(
+          "SELECT value_json FROM app_config WHERE key = ? LIMIT 1",
+          commandKey,
+        ).toArray()[0];
+        if (existing?.value_json) {
+          try {
+            const replay = JSON.parse(String(existing.value_json)) as Record<string, unknown>;
+            if (
+              String(replay.user_id || "") !== userId ||
+              String(replay.firebase_uid || "") !== firebaseUid
+            ) {
+              return response({ error: "single_revoke_request_conflict" }, 409);
+            }
+            return response({ ...replay, idempotent_replay: true });
+          } catch {
+            return response({ error: "single_revoke_state_corrupt" }, 500);
+          }
+        }
+      }
+
       const current = this.state.storage.sql.exec<{
         firebase_uid: string | null;
         android_session_generation: number;
@@ -1084,75 +1117,66 @@ export class InventoryCore {
         return response({
           status: "android_session_already_superseded",
           user_id: userId,
+          firebase_uid: firebaseUid,
           previous_generation: currentGeneration,
           revoked_generation: currentGeneration,
+          ...(requestId ? { request_id: requestId, issued_by_user_id: issuedByUserId, idempotent_replay: false } : {}),
         });
       }
 
-      // D144 live Agent revoke uses force_current=true and always invalidates the
-      // current authoritative session, including a generation that raced ahead
-      // of the Agent row. The scheduled Firestore fallback is idempotent.
-      // Before disabling the Android token, send one backward-compatible
-      // picker_command. Older APKs that do not know the D144 session-control
-      // listener still receive a visible "re-login" alert, while server/Firestore
-      // authority below blocks all old-session business operations regardless.
-      let compatibilityPush = "SKIPPED";
-      if (this.env.GOOGLE_RUNTIME_SA_JSON && this.env.FIREBASE_PROJECT_ID) {
-        try {
-          const tokens = await this.notificationTokens([], [userId]);
-          if (tokens.length) {
-            const expiresAtMs = Date.now() + 60_000;
-            const delivery = await sendFcmNotifications(
-              this.env.GOOGLE_RUNTIME_SA_JSON,
-              this.env.FIREBASE_PROJECT_ID,
-              tokens,
-              {
-                title: "SUPRA Inventory · Phiên PDA đã bị thu hồi",
-                body: "Phiên làm việc đã được quản trị viên thu hồi. Vui lòng đăng nhập lại.",
-                data: {
-                  event: "picker_command",
-                  alert_id: "kick-" + crypto.randomUUID().replaceAll("-", ""),
-                  command_type: "CALL_SPECIALIST",
-                  notification_title: "PHIÊN PDA ĐÃ BỊ THU HỒI",
-                  notification_body: "Phiên làm việc đã được quản trị viên thu hồi. Vui lòng đăng nhập lại.",
-                  expires_at_ms: String(expiresAtMs),
-                  source: "D144_SESSION_REVOKE_COMPAT",
-                },
-              },
-            );
-            compatibilityPush = delivery.attempts.some((attempt) => attempt.status === "SENT")
-              ? "SENT"
-              : "FAILED";
-          }
-        } catch {
-          compatibilityPush = "FAILED";
-        }
-      }
-
+      // D161 single-kick repair: server session generation is authoritative.
+      // Do not send the former D144 compatibility picker_command/CALL_SPECIALIST
+      // push here: vc97 interprets that command as a locked specialist overlay.
+      // Current clients are converged by the existing picker_session_controls
+      // generation fence only after this authoritative mutation succeeds.
       const nextGeneration = Math.max(currentGeneration, requestedGeneration) + 1;
-      this.state.storage.sql.exec(
-        `UPDATE users
-            SET android_session_generation = ?,
-                android_session_device_id = NULL,
-                android_session_started_at = NULL,
-                updated_at = CURRENT_TIMESTAMP
-          WHERE user_id = ? AND firebase_uid = ?`,
-        nextGeneration,
-        userId,
-        firebaseUid,
-      );
-      this.state.storage.sql.exec(
-        "UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND platform = 'ANDROID'",
-        userId,
-      );
-      this.state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", userId);
-      return response({
+      const appliedAt = new Date().toISOString();
+      const result = {
         status: "android_session_revoked",
         user_id: userId,
-        previous_generation: Number(current.android_session_generation || 0),
+        firebase_uid: firebaseUid,
+        previous_generation: currentGeneration,
         revoked_generation: nextGeneration,
-        compatibility_push: compatibilityPush,
+        ...(requestId
+          ? {
+              request_id: requestId,
+              issued_by_user_id: issuedByUserId,
+              applied_at: appliedAt,
+              idempotent_replay: false,
+            }
+          : {}),
+      };
+
+      this.state.storage.transactionSync(() => {
+        this.state.storage.sql.exec(
+          `UPDATE users
+              SET android_session_generation = ?,
+                  android_session_device_id = NULL,
+                  android_session_started_at = NULL,
+                  updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND firebase_uid = ?`,
+          nextGeneration,
+          userId,
+          firebaseUid,
+        );
+        this.state.storage.sql.exec(
+          "UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND platform = 'ANDROID'",
+          userId,
+        );
+        this.state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", userId);
+        if (commandKey) {
+          this.state.storage.sql.exec(
+            `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(key) DO NOTHING`,
+            commandKey,
+            JSON.stringify(result),
+            appliedAt,
+            issuedByUserId,
+          );
+        }
       });
+      return response(result);
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/end-session") {

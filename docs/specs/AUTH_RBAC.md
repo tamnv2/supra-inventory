@@ -368,3 +368,14 @@ Status: Owner-approved target; implementation deferred.
 - The bulk command is idempotent by request/command id.
 - Session generation / server session authority is decisive. Best-effort push/realtime signals may accelerate client logout but cannot substitute for server invalidation.
 - Individual per-Picker kick authority remains unchanged.
+
+## D161 — single Picker revoke authority refinement
+
+- Per-row **Kích User** remains available to the existing real ADMIN / real PICKPACK_ADMIN Agent authority and remains distinct from the privileged `admin`/`tamnv2` bulk action.
+- The per-row action is one server-authoritative command targeting exactly one `user_id + firebase_uid` Android Picker identity. InventoryCore session generation is decisive.
+- v109+ supplies one idempotent command id. A replay of the same command id returns the already-committed result and may not advance Android generation again. Reusing one command id for a different target fails closed.
+- Server revoke commits before any client logout signal. A client/session-control signal is presentation/convergence only and cannot substitute for authority.
+- Session revoke must not send `picker_command`, `CALL_SPECIALIST`, chat, shortage-result or any other overlay-class event.
+- Android beta-vc97 is unchanged by this repair. Its existing per-user `picker_session_controls` generation listener is reused only after server authority succeeds.
+- No new role, provider resource, listener family, polling cadence or Stable authority is introduced.
+
