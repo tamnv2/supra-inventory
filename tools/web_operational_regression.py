@@ -317,7 +317,9 @@ def main() -> None:
     forbid(app, 'await resolveReporterBatch(batch.batch_id, "SKIP_ALLOWED");\n      await loadOperations();', "D071 blocking Skip refresh chain")
 
     # D088: naming, persistent single interactive session and Web tools.
-    require(app, "<h1>Website nghiệp vụ Inventory</h1>", "D088 Web product name")
+    require(app, "Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}", "D161 Web product name with canonical version")
+    require(app, "syncVisibleDateRange", "D161 date preset visible/query convergence")
+    require(app, '<footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>', "D161 authenticated footer product credit only")
     require(app, '["tools", "Công cụ"]', "D088 tools navigation")
     require(app, "Agent Auto Confirm Pick Pack", "D088 Agent product surface")
     require(app, "getAgentAppRelease", "D112 dynamic Agent release metadata")
