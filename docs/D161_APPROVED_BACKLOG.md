@@ -848,3 +848,33 @@ Technical/runtime/release PASS after the Owner-approved active-Picker convergenc
 - Android remains **beta-vc97** unchanged; inventory-channel APK asset **609733318** remains SHA-256 `28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19`.
 - Worker/Web/Stable are unchanged by v111. No new provider resource/listener/query/poll/heartbeat/Desktop timer/write cadence; normal-path provider usage is unchanged.
 - D161 remains **Owner field retest pending**; D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
+
+## Eighth field repair approved 2026-10-05 — Agent v112 + Beta Firestore Rules
+
+Owner approved continuation under D161 after field evidence showed the PDA could time out after about 20 seconds even though WMS had already confirmed the PickList.
+
+- Android remains hard-locked at **beta-vc97**; no APK source/version/release change is required.
+- D161 Tranche B added `agent_login_name` to the terminal ACK for **User Agent xử lý**, but the existing `relay_poc_jobs` Firestore update allowlist did not permit that field.
+- The resulting Firestore `PERMISSION_DENIED` left the request `PENDING`, allowing rediscovery/reprocessing after the WMS mutation had already succeeded.
+- The Agent error path also disposed `HttpWebResponse` before outer diagnostics, masking the original 403 as `ObjectDisposedException`.
+- Repair the existing Beta Firestore Rules to allow bounded optional `agent_login_name`, preserve legacy ACK compatibility, and repair Agent error handling so original Firestore status is retained.
+- Add CI parity guards tying Agent ACK fields to the Firestore Rules contract.
+- Target **relay-agent-v112**. Web/Worker/Stable unchanged. No new provider resource/listener/query/poll/heartbeat/write cadence.
+
+### Eighth field repair technical/release checkpoint — Agent v112
+
+Technical/runtime/release PASS after the Owner-approved terminal ACK repair.
+
+- Implementation PR: **#443**, merged to main at `b829d3f66043cf05c1a8edf3cca158f1230acfdc`.
+- Beta Firestore Rules deploy: run **37245093715** PASS.
+- Verify Beta Relay Agent: run **37245093721** PASS.
+- D127 Dashboard Probe: run **37245093724** PASS.
+- D159 Usage Agent verification: run **37245093723** PASS.
+- Android regression verification: run **37245093763** PASS; no APK was rebuilt or promoted.
+- Release: **relay-agent-v112**, release id **403260020**.
+- EXE asset id **610963495**, size **7,298,048 bytes**, SHA-256 `cc4c949340cc0a9af440471d95226fef3d008f0f2053b4e7635a46310299eb09`.
+- Trusted `inventory-channel` Agent asset id **610963548** matches the same size/SHA; `agent-latest.json` asset id **610963545**.
+- Android remains **beta-vc97** unchanged; inventory-channel APK asset **609733318** remains SHA-256 `28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19`.
+- Web/Worker/Stable are unchanged. No new provider resource/listener/query/poll/heartbeat/write cadence.
+- D161 is **READY_FOR_OWNER_FIELD_RETEST**, not Owner PASS. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner acceptance.
+
