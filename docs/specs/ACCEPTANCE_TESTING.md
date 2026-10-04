@@ -2469,3 +2469,16 @@ Before returning D161 to Owner field retest, automated/runtime evidence must add
 7. **Release lineage:** Agent source change publishes a new monotonic **relay-agent-v106**. Android remains **beta-vc97** unless an unrelated Android source change occurs. Stable remains untouched.
 8. **Provider impact:** no new persistent resource, collection query, listener family, polling loop or write cadence is introduced by this repair.
 
+## D161 v107 Agent-only WMS-not-ready History repair acceptance — 2026-10-04
+
+Before returning this D161 item to Owner field retest:
+
+1. **No APK change:** Android remains beta-vc97 and no Android source/build change is part of this repair.
+2. **Ingress/history path:** with authenticated Agent PRIMARY and Web Confirm not ready, the Firestore request passes PRIMARY/generation ingress authority and enters D160 processing.
+3. **Immediate History:** `RecordD160PickerHistoryRequest` is reached before browser readiness is evaluated; the request becomes visible in Picker History instead of remaining blank.
+4. **Explicit terminal:** the not-ready request resolves as `WMS_SESSION_REQUIRED` and renders **Web Agent chưa sẵn sàng**, then returns that explicit result to the PDA within the existing request budget.
+5. **Zero WMS mutation:** not-ready handling performs no Search/checkbox/Confirm mutation.
+6. **Mutation fence preserved:** immediately before any real WMS mutation, `VerifyPrimaryBeforeMutation` still requires relay enabled + WMS-ready + current PRIMARY/generation.
+7. **HA safety:** stale/wrong PRIMARY generation cannot process business ingress, while a valid degraded PRIMARY may only produce safe pre-mutation terminal handling until WMS becomes ready.
+8. **Regression guard:** CI fails if `FirestoreConfirmationTransport` reintroduces `VerifyPrimaryBeforeMutation` as its pre-pipeline gate or if the D160 mutation path loses the strict fence.
+9. **Release lineage:** publish a monotonic relay-agent-v107 candidate. Android vc97 and Stable remain unchanged.
