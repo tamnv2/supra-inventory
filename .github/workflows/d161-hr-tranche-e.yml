@@ -41,6 +41,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           hr = Path("service/src/hr-event-sync.ts").read_text(encoding="utf-8")
+          hr_reader = Path("service/src/hr-sync.ts").read_text(encoding="utf-8")
           core = Path("service/src/core.ts").read_text(encoding="utf-8")
           index = Path("service/src/index.ts").read_text(encoding="utf-8")
           scope = Path("ops/project-scope.json").read_text(encoding="utf-8")
@@ -56,7 +57,7 @@ jobs:
               "channels/stop",
               "/watch",
           ]
-          joined = hr + "\n" + core
+          joined = hr + "\n" + hr_reader + "\n" + core + "\n" + index
           missing = [item for item in required if item not in joined]
           if missing:
               raise SystemExit("missing D161 HR invariant markers: " + ", ".join(missing))
