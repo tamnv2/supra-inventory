@@ -280,7 +280,7 @@ namespace SupraInventoryRelayAgent
 
         internal bool VerifyPrimaryBeforeMutation(AgentSession session)
         {
-            if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY) return false;
+            if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;
             var read = ReadRoles(session);
             ApplySharedSchedule(read.Snapshot);
             var snapshot = read.Snapshot;
