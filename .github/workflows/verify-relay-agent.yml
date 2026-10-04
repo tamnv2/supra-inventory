@@ -84,6 +84,7 @@ jobs:
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
           $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
           $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
+          $d119Features = Get-Content relay-agent/D119AgentFeatures.cs -Raw
           $d160Browser = Get-Content relay-agent/SupraConfirmBrowserD160.cs -Raw
           $d160Pipeline = Get-Content relay-agent/D160ConfirmPipeline.cs -Raw
           $d160Ui = Get-Content relay-agent/D160UiHistory.cs -Raw
@@ -170,13 +171,34 @@ jobs:
             throw "D161 Picker History WMS-not-ready reason guard regression."
           }
 
-          # D161 v107 field repair: ingress authority is distinct from WMS mutation
-          # authority. A degraded PRIMARY must reach D160 History/terminal handling,
-          # while actual WMS mutation still requires the strict WMS-ready fence.
+          # D161 v107/v108 field repair: ingress authority is distinct from WMS
+          # mutation authority. v108 also prevents the higher-level transport/schedule
+          # gates from silently re-coupling authenticated relay ingress to WMS readiness.
           if (-not $leader.Contains('internal bool VerifyPrimaryForBusinessIngress(AgentSession session)') -or
               -not $transport.Contains('_coordinator.VerifyPrimaryForBusinessIngress(session)') -or
               $transport.Contains('FIRESTORE CONFIRM mutation-fence=BLOCK role_or_generation_changed=true')) {
             throw "D161 WMS-not-ready pre-pipeline ingress fence regression."
+          }
+          $businessStart = $program.IndexOf('private bool IsBusinessAllowed()')
+          $businessEnd = $program.IndexOf('private static long OperationalMs', $businessStart)
+          $listenStart = $program.IndexOf('private void StartListening()')
+          $listenEnd = $program.IndexOf('private void StopListening()', $listenStart)
+          if ($businessStart -lt 0 -or $businessEnd -le $businessStart -or $listenStart -lt 0 -or $listenEnd -le $listenStart) {
+            throw "D161 v108 method-boundary guard could not locate Agent relay gates."
+          }
+          $businessBody = $program.Substring($businessStart, $businessEnd - $businessStart)
+          $listenBody = $program.Substring($listenStart, $listenEnd - $listenStart)
+          if ($businessBody.Contains('HasOperationalReadiness') -or -not $businessBody.Contains('HasAgentSession')) {
+            throw "D161 v108 schedule authority must require Agent auth but not WMS readiness."
+          }
+          if ($listenBody.Contains('HasOperationalReadiness') -or -not $listenBody.Contains('HasAgentSession')) {
+            throw "D161 v108 StartListening must require Agent auth but not WMS readiness."
+          }
+          if (-not $transport.Contains('var idleRealtime = !_hasActivePda() && D157PendingWakeSignal.IsConnected;') -or
+              -not $transport.Contains('if (!idleRealtime && (restDue ||') -or
+              -not $d157.Contains('internal static void WakeTransport()') -or
+              -not $d119Features.Contains('transition=0_TO_ACTIVE provider_op=false')) {
+            throw "D161 v108 zero-PDA realtime/REST-fallback usage guard regression."
           }
           if (-not $leader.Contains('if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;') -or
               -not $d160Pipeline.Contains('_leaderCoordinator.VerifyPrimaryBeforeMutation(session)')) {
