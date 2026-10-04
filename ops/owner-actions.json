@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "REPAIR_IN_PROGRESS__OWNER_FIELD_DEFECTS_REPORTED",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "Technical, CI, release and Beta runtime gates are PASS. Final acceptance requires the Owner/company field environment for real PDA, WMS, operator, Agent fleet and controlled HR-source behavior.",
+      "reason_owner_only": "Owner field test found three D161 defects. Repair remains within D161; final acceptance still requires the Owner/company environment after repaired Beta releases pass technical/runtime gates.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4806,23 +4806,27 @@
         "agent_gateway": "PASS__MAIN_E128DEB__RUN_37193309206",
         "android": "beta-vc96",
         "agent": "relay-agent-v104",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "pre_repair_android": "beta-vc96__FIELD_DEFECT_REPORTED",
+        "pre_repair_agent": "relay-agent-v104__FIELD_DEFECT_REPORTED",
+        "repair_web": "Version 2__PENDING",
+        "repair_agent": "relay-agent-v105__PENDING",
+        "repair_android": "NEXT_MONOTONIC_AFTER_BETA_VC96__PENDING"
       },
       "shortest_test_path": [
-        "Update controlled Beta PDA devices to beta-vc96 and controlled Agent machines to relay-agent-v104; refresh Beta Web.",
-        "Run normal shortage-reporting and Reporter correction flows; verify reporting enable/disable, logout and update UX.",
-        "Run normal and close-together PickList confirmations including one mixed ready/recovery case; verify terminal timing, no duplicate WMS mutation, History ordering and User Agent xử lý.",
-        "Verify Agent schedule/overtime, manual-only Agent update and one safe bulk Picker session revoke with controlled Beta users.",
-        "Verify controlled HR Sheet AUTO and confirmation-required behavior; unsafe or duplicate input must not silently mutate users.",
-        "Trigger and inspect support logging on Web/Android/Agent including daily Drive archive and Drive-confirmed pruning/idempotency."
+        "After repair releases are published, refresh Beta Web and verify Ca bình thường 06:00–22:00 with technical Replay 05:45–22:15 and no obsolete 22:30 copy.",
+        "Create one controlled invalid HR row; verify HARD_BLOCK shows the exact row/reason, makes zero user mutation, then correct it and use Kiểm tra lại nguồn.",
+        "Create a controlled CONFIRM_REQUIRED HR change; verify Có applies only after revalidation and Không keeps current data unchanged.",
+        "Login Agent while Web Confirm/WMS is not ready; verify logged-in Picker sessions still appear and login/logout changes converge.",
+        "Verify the same Picker list remains visible outside the business-processing window while PickList mutation stays blocked by existing schedule/WMS authority.",
+        "Continue remaining D161 field acceptance items after these three repairs pass."
       ],
       "pass_criteria": [
-        "No regression in ordinary Báo hàng, Reporter or Web operations.",
-        "PickList remains within approved field timing bounds with no duplicate final WMS mutation.",
-        "Android beta-vc96 and Agent v104 match the published D161 candidates.",
-        "HR event synchronization obeys AUTO, CONFIRM_REQUIRED and HARD_BLOCK authority.",
-        "Support logs remain sanitized, idempotent and Drive-confirmed before local pruning.",
-        "Stable remains untouched."
+        "All three Owner-reported field defects are repaired without regressing D161 schedule runtime, HR fail-closed semantics or PickList WMS mutation gates.",
+        "Web Version 2, Agent v105 and the next monotonic Android Beta release are published from the same repaired main lineage and technical/runtime gates pass.",
+        "No new persistent provider resource, polling loop, per-Picker listener or write cadence is introduced.",
+        "Stable remains untouched.",
+        "Owner completes field retest and explicitly accepts D161."
       ],
       "evidence": {
         "tranche_prs": [
@@ -4838,9 +4842,17 @@
         "runtime_readiness_run": 37192056329,
         "agent_gateway_provider_run": 37193309206,
         "android_release_id": 402929924,
-        "agent_release_id": 402929873
+        "agent_release_id": 402929873,
+        "field_repair": {
+          "owner_reported_at": "2026-10-04",
+          "defects": 3,
+          "branch": "d161-owner-field-repair-3",
+          "target_web": "Version 2",
+          "target_agent": "relay-agent-v105",
+          "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC96"
+        }
       },
-      "remaining_owner_action": "RUN_CONTROLLED_D161_FIELD_TEST__THEN_ACCEPT_OR_REPORT_DEFECT",
+      "remaining_owner_action": "WAIT_FOR_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__THEN_RETEST_3_REPAIRED_ITEMS_AND_CONTINUE_D161_FIELD_ACCEPTANCE",
       "closed": false
     }
   ]
