@@ -960,3 +960,20 @@ The active Picker search/filter does not change the bulk target set.
 - Tap visible version → **Tìm kiếm bản cập nhật?** Yes/No.
 - No → no request.
 - Yes → one check; current version reports current; a newer trusted version automatically proceeds to download/verify/install from that explicit consent.
+
+
+## D161 Owner field-repair workflows — 2026-10-04
+
+**Agent active Picker list**
+1. Agent authentication succeeds.
+2. Agent starts/reuses the compact fleet `agent_sync` observation immediately, without waiting for Web Confirm readiness.
+3. Active Picker sessions render regardless of business-window state.
+4. WMS not-ready or outside-shift states may block PickList processing but do not blank the Picker list.
+5. Agent logout stops observation and clears the list.
+
+**HR blocked source**
+1. Drive watch wakes the Worker and the Worker rereads the authoritative Sheet.
+2. Any invalid row makes the complete snapshot HARD_BLOCK with zero user mutation.
+3. Web shows bounded row numbers/reasons and a manual **Kiểm tra lại nguồn** action.
+4. After the Sheet is corrected, recheck recomputes the authoritative snapshot.
+5. Confirmation-required snapshots use explicit Yes/No; No preserves current users and keeps the proposal pending.
