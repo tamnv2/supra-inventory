@@ -903,7 +903,7 @@ D161 is an Owner-approved requirement collection against the accepted D160 runti
 
 ## D161 Agent overtime and support-log workflow addendum
 
-Status: Owner-approved requirement; implementation deferred.
+Status: Implemented in merged D161 Tranche D; Owner field acceptance pending.
 
 ### Shared end-of-day/overtime workflow
 1. Normal shared replay authority ends at **22:15 Asia/Ho_Chi_Minh**. D161 replaces D154's 22:30 end and pre-boundary Continue/Stop prompt.
@@ -928,7 +928,7 @@ Status: Owner-approved requirement; implementation deferred.
 
 ### D161 bulk Picker revoke workflow
 
-Status: Owner-approved target; implementation deferred.
+Status: Implemented in merged D161 Tranche C; Owner field acceptance pending.
 
 1. Exact Agent login `admin`/`tamnv2` sees **Kích toàn bộ user** in the active-Picker card header.
 2. Agent obtains/display the current authoritative target count for authenticated Picker/PDA sessions.
