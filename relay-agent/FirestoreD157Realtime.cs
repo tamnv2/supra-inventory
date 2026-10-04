@@ -612,13 +612,14 @@ namespace SupraInventoryRelayAgent
                 { "result_detail", StringField("") },
                 { "primary_generation", StringField("") }
             };
-            var mask = "?" + string.Join("&", new[]
-            {
-                "schema_version", "request_id", "status", "target_agent_instance_id",
-                "target_machine", "target_admin_user_id", "requester_agent_instance_id",
-                "requester_user_id", "requester_login", "created_at_ms", "expires_at_ms",
-                "completed_at_ms", "result_detail", "primary_generation"
-            }.Select(name => "updateMask.fieldPaths=" + Uri.EscapeDataString(name)));
+            var mask =
+                "?updateMask.fieldPaths=schema_version&updateMask.fieldPaths=request_id" +
+                "&updateMask.fieldPaths=status&updateMask.fieldPaths=target_agent_instance_id" +
+                "&updateMask.fieldPaths=target_machine&updateMask.fieldPaths=target_admin_user_id" +
+                "&updateMask.fieldPaths=requester_agent_instance_id&updateMask.fieldPaths=requester_user_id" +
+                "&updateMask.fieldPaths=requester_login&updateMask.fieldPaths=created_at_ms" +
+                "&updateMask.fieldPaths=expires_at_ms&updateMask.fieldPaths=completed_at_ms" +
+                "&updateMask.fieldPaths=result_detail&updateMask.fieldPaths=primary_generation";
             FirestoreHttpTransport.SendJson(
                 "PATCH",
                 AgentConfig.FirestorePrimaryHandoffUrl + mask,
