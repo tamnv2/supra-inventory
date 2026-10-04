@@ -15,6 +15,8 @@ namespace SupraInventoryRelayAgent
         private readonly object _d157HandoffGate = new object();
         private string _d157PendingHandoffRequestId = "";
         private string _d157HandledTargetHandoffRequestId = "";
+        private string _d161HandledSupportLogRequestId = "";
+        private long _d161SupportListenerStartedAtMs;
         private DateTime _d157LastWmsProofUtc = DateTime.MinValue;
         private DateTime _d157LastSessionValidationUtc = DateTime.MinValue;
         private DateTime _d157LastBusinessActivityUtc = DateTime.MinValue;
@@ -33,6 +35,7 @@ namespace SupraInventoryRelayAgent
 
             if (_d157HandoffListener == null)
             {
+                _d161SupportListenerStartedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 _d157HandoffListener = new FirestoreD157HandoffListener(
                     SnapshotSession,
                     EnsureFreshToken,
@@ -75,6 +78,8 @@ namespace SupraInventoryRelayAgent
             {
                 _d157PendingHandoffRequestId = "";
                 _d157HandledTargetHandoffRequestId = "";
+                _d161HandledSupportLogRequestId = "";
+                _d161SupportListenerStartedAtMs = 0L;
             }
         }
 
@@ -328,9 +333,44 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void HandleD161SupportLogRequest(D157PrimaryHandoffRequest request)
+        {
+            var requestId = (request.SupportRequestId ?? "").Trim();
+            var traceId = (request.SupportTraceId ?? requestId).Trim();
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (!requestId.StartsWith("support-", StringComparison.Ordinal) ||
+                requestId.Length > 88 ||
+                request.SupportIssuedAtMs <= 0L ||
+                request.SupportExpiresAtMs <= nowMs ||
+                request.SupportExpiresAtMs > request.SupportIssuedAtMs + 5L * 60L * 1000L ||
+                _d161SupportListenerStartedAtMs <= 0L ||
+                request.SupportIssuedAtMs + 2000L < _d161SupportListenerStartedAtMs)
+                return;
+
+            lock (_d157HandoffGate)
+            {
+                if (string.Equals(_d161HandledSupportLogRequestId, requestId, StringComparison.Ordinal))
+                    return;
+                _d161HandledSupportLogRequestId = requestId;
+            }
+
+            var jitter = Math.Abs(requestId.GetHashCode()) % 5001;
+            Task.Run(() =>
+            {
+                if (jitter > 0) Thread.Sleep(jitter);
+                if (!HasAgentSession()) return;
+                _agentLogBridge.TryQueueGlobalSupportSnapshot(requestId, traceId);
+                Log("D161 SUPPORT_LOG request=PROCESSED id=" +
+                    (requestId.Length <= 18 ? requestId : requestId.Substring(0, 18)) +
+                    " jitter_ms=" + jitter);
+            });
+        }
+
         private void HandleD157HandoffEvent(D157PrimaryHandoffRequest request)
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.RequestId)) return;
+            if (request == null) return;
+            HandleD161SupportLogRequest(request);
+            if (string.IsNullOrWhiteSpace(request.RequestId)) return;
 
             string pending;
             lock (_d157HandoffGate) pending = _d157PendingHandoffRequestId;
