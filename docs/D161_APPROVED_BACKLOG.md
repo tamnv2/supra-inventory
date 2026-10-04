@@ -778,3 +778,13 @@ Approved repair:
 
 D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
 
+### D161 v109 fifth-field repair technical checkpoint — 2026-10-04
+
+- Repair PR **#437** merged to main at `c5673b4e297f5c5ac150a1485d29443bf528fc0d`.
+- Beta Worker deploy run **37214830211** PASS; runtime health is HTTP 200, source matches main, schema **17/17**, operational v2 **5/5**.
+- Verify Beta Relay Agent run **37214830165** PASS and published **relay-agent-v109**.
+- Release v109 EXE and inventory-channel EXE are byte-identical: size **7,289,344 bytes**, SHA-256 `89649c4d9a37fee536697600709b748b46eacd02c340b6a17692ea41d11f98dd`.
+- Android remains **beta-vc97** unchanged; inventory-channel APK asset remains the same with SHA-256 `28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19`.
+- Main UI/regression, authority and continuity gates PASS. Stable remains OWNER-GATED and untouched.
+- D161 is **READY_FOR_OWNER_FIELD_RETEST**, not Owner PASS. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner acceptance.
+
