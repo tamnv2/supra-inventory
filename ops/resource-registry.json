@@ -143,16 +143,16 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_OWNER_FIELD_REPAIR_ACTIVE__3_OWNER_REPORTED_DEFECTS__D160_ACCEPTED_BASE_RESCUE",
+      "status": "D161_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_RETEST__D160_ACCEPTED_BASE_RESCUE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
       "hostname": "inventory-beta.supra.cc.cd",
       "custom_domain_status": "ACTIVE",
       "health_status": "D154_PASS_RUN_36609749783__MAIN_4AA06E7B__SCHEMA14__OPERATIONAL5_5__WORKER_WEB_DEPLOY_PASS",
-      "ci_deploy_status": "D154_PASS_RUN_36609749783_MAIN_4AA06E7B",
+      "ci_deploy_status": "D161_FIELD_REPAIR_PASS_RUN_37199390053_MAIN_AFAF9D56",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
-      "app_verify_status": "D154_PASS_RUN_36609749611__SIGNED_BETA_VC90",
+      "app_verify_status": "D161_FIELD_REPAIR_PASS_RUN_37199390022__SIGNED_BETA_VC97",
       "durable_object_status": "READY",
       "durable_object_class": "InventoryCore",
       "durable_object_storage": "sqlite",
@@ -332,7 +332,7 @@
       "d159_usage_test_release_target": "HISTORICAL_D159_V3__NO_NEW_RUNTIME_CALLERS",
       "d159_monitoring_cache_seconds": 900,
       "d160_source_status": "CLOSED__ACTIVE_AGENT_SOURCE_RESTORED_EXACT_V97__TEST_V98_V99_V100_HISTORY_ONLY",
-      "d161_source_status": "OWNER_FIELD_REPAIR_ACTIVE__WEB_V2_AGENT_V105_NEXT_ANDROID_PENDING__NO_NEW_PERSISTENT_RESOURCE"
+      "d161_source_status": "FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_AFAF9D56__WEB_V2__AGENT_V105__ANDROID_VC97"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -2246,7 +2246,7 @@
     "source_baseline": "EXACT_V97_SOURCE_COMMIT_4c3f0a4dffc94f66237d0958032fd27ac52fed29"
   },
   "d161": {
-    "status": "OWNER_FIELD_REPAIR_ACTIVE__3_DEFECTS__PR_CI_PENDING",
+    "status": "FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_RETEST",
     "accepted_base": "D160__RELAY_AGENT_V97",
     "resource_change_now": "NO_NEW_PERSISTENT_RESOURCE__REUSE_EXISTING_BETA_WORKER_HR_WATCH_AND_FIRESTORE_AGENT_SYNC_DOCUMENT__STABLE_UNTOUCHED",
     "logs_parent": "EXISTING_SCOPED_INVENTORY_BETA_LOGS_FOLDER",
@@ -2360,16 +2360,17 @@
       "stable": "OWNER_GATED_UNTOUCHED"
     },
     "final_readiness": {
-      "status": "OWNER_FIELD_DEFECTS_REPORTED__REPAIR_ACTIVE__RETEST_REQUIRED",
+      "status": "FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_RETEST",
       "beta_worker_run": 37191613243,
       "runtime_readiness_run": 37192056329,
       "agent_gateway_provider_run": 37193309206,
-      "android": "NEXT_MONOTONIC_AFTER_BETA_VC96__TARGET_PENDING_RELEASE",
-      "agent": "relay-agent-v105__TARGET_PENDING_RELEASE",
+      "android": "beta-vc97",
+      "agent": "relay-agent-v105",
       "accepted_base": "D160__RELAY_AGENT_V97",
       "owner_acceptance": "PENDING_RETEST",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "web": "Version 2__TARGET_PENDING_DEPLOY"
+      "web": "Version 2",
+      "field_repair_main_sha": "afaf9d563894e61d3632f65ce624c1b3b76bfd36"
     },
     "field_repair": {
       "resource_change": "NONE_PERSISTENT",
@@ -2380,7 +2381,13 @@
       "target_agent": "relay-agent-v105",
       "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC96",
       "target_web": "Version 2",
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "status": "TECHNICAL_RUNTIME_RELEASE_PASS",
+      "main_sha": "afaf9d563894e61d3632f65ce624c1b3b76bfd36",
+      "web": "Version 2__BETA_DEPLOY_PASS_RUN_37199390053",
+      "agent": "relay-agent-v105__RELEASE_402990615__VERIFY_RUN_37199390032",
+      "android": "beta-vc97__RELEASE_402990645__VERIFY_RUN_37199390022",
+      "owner_retest": "PENDING"
     }
   }
 }
