@@ -253,7 +253,18 @@
       "name": "Nhân sự _ Beta",
       "tab": "Nhân sự",
       "exposure": "operational_metadata_existing_public",
-      "note": "test source only; product source remains Admin/Root configurable. D161 Phase 0A (only after the exact D161 start command) must prove the selected verified HR source can be resolved through the least-privilege Drive identity and complete a bounded files.watch -> initial sync callback -> replacement/renewal -> channels.stop cleanup cycle without changing HR rows. This authority update itself creates no watch channel and grants no provider mutation."
+      "note": "test source only; product source remains Admin/Root configurable. D161 Phase 0A proved the selected verified HR source can be resolved through the least-privilege runtime identity and complete files.watch initial sync, replacement/renewal and channels.stop cleanup without changing HR rows. D161 Tranche E uses the same Beta-only capability for the configured source."
+    },
+    {
+      "key": "d161-hr-drive-watch-beta",
+      "provider": "Google Drive",
+      "kind": "file_watch_channel_family",
+      "environment": "beta",
+      "name": "D161 HR source Drive watch",
+      "id_source": "RUNTIME_GENERATED_PER_CONFIGURED_HR_SOURCE__STATE_STORED_IN_INVENTORYCORE__CHANNEL_ID_RESOURCE_ID_NOT_COMMITTED",
+      "exposure": "runtime_ephemeral_identifier_not_committed",
+      "status": "D161_TRANCHE_E_OWNER_APPROVED_IMPLEMENTATION",
+      "guard": "BETA_ONLY__EXACT_CONFIGURED_HR_SOURCE__HTTPS_WORKER_CALLBACK__RANDOM_RUNTIME_CHANNEL_TOKEN__RENEW_BEFORE_EXPIRY__STOP_REPLACED_CHANNEL__NO_STABLE__NO_APPS_SCRIPT__NO_FIRESTORE_POLLING"
     },
     {
       "key": "archive-folder-beta",
