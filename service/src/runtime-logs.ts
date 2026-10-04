@@ -121,24 +121,39 @@ async function sha256Hex(value: string): Promise<string> {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function archiveIdentityFromEnvelope(content: string, fallbackLogId: string): {
+async function archiveIdentityFromEnvelope(content: string, fallbackLogId: string): Promise<{
   archiveId: string;
   bundleId: string;
   boundaryId: string;
-} {
+}> {
   let bundleId = "";
   let boundaryId = "";
+  let source = "";
+  let actorId = "";
+  let deviceId = "";
   try {
     const parsed = JSON.parse(content) as Record<string, unknown>;
     const rawBundle = String(parsed.bundle_id || "").trim().toLowerCase();
     if (/^[a-f0-9]{32,64}$/.test(rawBundle)) bundleId = rawBundle;
     const rawBoundary = String(parsed.boundary_id || "").trim();
     if (/^[A-Za-z0-9._:-]{1,180}$/.test(rawBoundary)) boundaryId = rawBoundary;
+    source = String(parsed.source || "").trim().toUpperCase();
+    const actor = parsed.actor && typeof parsed.actor === "object" ? parsed.actor as Record<string, unknown> : {};
+    const device = parsed.device && typeof parsed.device === "object" ? parsed.device as Record<string, unknown> : {};
+    actorId = String(actor.user_id || "").trim();
+    deviceId = String(device.device_id || device.id || device.model || device.label || "").trim();
   } catch {
     // Legacy payloads use local buffer identity only.
   }
+  const logicalBoundary = boundaryId
+    ? await sha256Hex(`${source}|${actorId}|${deviceId}|${boundaryId}`)
+    : "";
   return {
-    archiveId: bundleId ? `bundle:${bundleId}` : `runtime:${fallbackLogId}`,
+    archiveId: logicalBoundary
+      ? `boundary:${logicalBoundary}`
+      : bundleId
+        ? `bundle:${bundleId}`
+        : `runtime:${fallbackLogId}`,
     bundleId,
     boundaryId,
   };
@@ -165,6 +180,31 @@ async function findArchivedByIdentity(
     headers: { authorization: `Bearer ${token}`, accept: "application/json" },
   });
   if (!response.ok) throw new Error(`LOGS_ARCHIVE_IDENTITY_LOOKUP_FAILED:${response.status}`);
+  const payload = await response.json() as { files?: Array<Record<string, unknown>> };
+  return payload.files?.[0] || null;
+}
+
+async function findArchivedByFilename(
+  folderId: string,
+  token: string,
+  filename: string,
+): Promise<Record<string, unknown> | null> {
+  const query = [
+    `'${driveQueryEscape(folderId)}' in parents`,
+    "trashed = false",
+    `name = '${driveQueryEscape(filename)}'`,
+  ].join(" and ");
+  const params = new URLSearchParams({
+    q: query,
+    orderBy: "createdTime desc",
+    pageSize: "1",
+    spaces: "drive",
+    fields: "files(id,name,createdTime,size,appProperties)",
+  });
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`LOGS_FILENAME_LOOKUP_FAILED:${response.status}`);
   const payload = await response.json() as { files?: Array<Record<string, unknown>> };
   return payload.files?.[0] || null;
 }
@@ -336,7 +376,9 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   const device = sanitize(body.device || {}) as Record<string, unknown>;
   const deviceSlug = safeSlug(device.device_id || device.id || device.model || device.label, source.toLowerCase());
   const suppliedBundleId = String(body.bundle_id || "").trim().toLowerCase();
-  const bundleId = /^[a-f0-9]{32,64}$/.test(suppliedBundleId) ? suppliedBundleId : "";
+  const bundleId = /^[a-f0-9]{32,64}$/.test(suppliedBundleId)
+    ? suppliedBundleId
+    : crypto.randomUUID().replaceAll("-", "");
   const suppliedBoundaryId = String(body.boundary_id || "").trim();
   const boundaryId = /^[A-Za-z0-9._:-]{1,180}$/.test(suppliedBoundaryId) ? suppliedBoundaryId : "";
   const suppliedTraceId = String(body.trace_id || "").trim();
@@ -347,6 +389,7 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
 
   const envelope: Record<string, unknown> = {
     format: "supra-inventory-runtime-log-v2",
+    schema_version: 2,
     bundle_id: bundleId || null,
     boundary_id: boundaryId || null,
     trace_id: traceId || null,
@@ -444,9 +487,9 @@ export async function uploadRuntimeLog(
     const logicalBoundary = boundaryId
       ? await sha256Hex(`${source}|${actor.user_id}|${String((sanitize(body.device || {}) as Record<string, unknown>).device_id || "")}|${boundaryId}`)
       : "";
-    const archiveId = bundleId
-      ? `bundle:${bundleId}`
-      : (logicalBoundary ? `boundary:${logicalBoundary}` : `runtime:${localId}`);
+    const archiveId = logicalBoundary
+      ? `boundary:${logicalBoundary}`
+      : `bundle:${bundleId}`;
     const existing = await findArchivedByIdentity(daily.id, token, archiveId);
     if (existing?.id) {
       await markDriveState(env, localId, String(existing.id));
@@ -561,7 +604,7 @@ async function archiveBufferedJson(
   if (!/^local_[a-f0-9]{32}$/.test(logId) || !filename || !content) throw new Error("INVALID_BUFFERED_RUNTIME_LOG");
 
   const daily = await resolveRuntimeLogDailyFolder(env, token);
-  const identity = archiveIdentityFromEnvelope(content, logId);
+  const identity = await archiveIdentityFromEnvelope(content, logId);
   const archiveId = identity.archiveId;
   const existing = await findArchivedByIdentity(daily.id, token, archiveId);
   const existingId = String(existing?.id || "");
@@ -675,8 +718,9 @@ export async function uploadAgentRuntimeLogText(
   await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
   const daily = await resolveRuntimeLogDailyFolder(env, token);
   const archiveId = `agent:${await sha256Hex(filename + "\n" + content)}`;
-  const existing = await findArchivedByIdentity(daily.id, token, archiveId);
-  if (existing) return { status: "already_uploaded", file: existing, archive_date: daily.dateKey };
+  const existing = await findArchivedByIdentity(daily.id, token, archiveId)
+    || await findArchivedByFilename(daily.id, token, filename);
+  if (existing) return { status: "already_uploaded", archive_status: "DRIVE_SYNCED", file: existing, archive_date: daily.dateKey };
 
   const boundary = `supra_agent_log_${crypto.randomUUID().replaceAll("-", "")}`;
   const metadata = JSON.stringify({
@@ -716,7 +760,7 @@ export async function uploadAgentRuntimeLogText(
   );
   const payload = (await response.json()) as Record<string, unknown>;
   if (!response.ok) throw new Error(`AGENT_LOGS_DRIVE_UPLOAD_FAILED:${response.status}`);
-  return { status: "uploaded", file: payload, archive_date: daily.dateKey };
+  return { status: "uploaded", archive_status: "DRIVE_SYNCED", file: payload, archive_date: daily.dateKey };
 }
 
 export async function listRuntimeLogs(
