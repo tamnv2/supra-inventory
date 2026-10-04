@@ -892,3 +892,13 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - Existing business-window authority remains unchanged. This repair does not turn an out-of-window business request into an allowed confirmation.
 - Existing Firestore REST/listener/Agent-sync resources are reused. No new collection, query, listener family, client polling loop or write cadence is added.
 
+## D161 single Kích User revoke signaling repair — 2026-10-04
+
+- Per-row Kích User no longer uses the D144 backward-compatibility `picker_command / CALL_SPECIALIST` FCM. A revoke is not a specialist-contact command and must never open the locked specialist overlay.
+- InventoryCore Android session generation is committed first. Worker then patches only the already-existing target `picker_session_controls/<firebase_uid>` fields, including the authoritative `revoked_generation`, so beta-vc97 executes its existing immediate logout path.
+- The session-control write preserves unrelated fields through an update mask and adds no collection/listener. Android continues listening only to its own existing control document.
+- A v109+ Agent command carries one idempotent request id. Transient retry reuses the same id; the authoritative generation cannot be advanced twice by response loss.
+- Legacy Agent requests without the new request id remain temporarily accepted for rollout compatibility; they do not receive the removed specialist-overlay compatibility push.
+- Normal-path Firestore write count does not increase: the previous Agent-originated session-control write moves behind server authority to Worker. Extra attempts occur only on bounded transient failure recovery.
+- Bulk revoke semantics remain server-generation authoritative and unchanged. Stable remains OWNER-GATED.
+
