@@ -132,6 +132,24 @@ jobs:
               -not $transport.Contains('agent_login_name')) {
             throw "D161 atomic history/processing-user guard regression."
           }
+
+          # D161 v112: the Agent ACK payload and Firestore Rules must evolve together.
+          # This prevents a successful WMS mutation from timing out on PDA because a
+          # newly added ACK field is rejected by Firestore.
+          $relayJobBlock = [regex]::Match(
+            $rules,
+            'match /relay_poc_jobs/\{jobId\} \{[\s\S]*?\n    \}'
+          ).Value
+          if ([string]::IsNullOrWhiteSpace($relayJobBlock) -or
+              -not $relayJobBlock.Contains("'agent_login_name'") -or
+              -not $transport.Contains('{ "agent_login_name", StringField(')) {
+            throw "D161 v112 confirmation ACK/rules contract regression."
+          }
+          if (-not $http.Contains('var status = 0;') -or
+              -not $http.Contains('try { status = (int)response.StatusCode; } catch { }') -or
+              -not $transport.Contains('preserve the original WebException response')) {
+            throw "D161 v112 Firestore error-diagnostic preservation regression."
+          }
           if (-not $d160Usage.Contains('_d160UsagePendingSnapshot') -or
               -not $d160Usage.Contains('ApplyD160PendingUsageSnapshot') -or
               -not $d160Usage.Contains('SuspendLayout')) {

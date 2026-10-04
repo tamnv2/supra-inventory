@@ -2546,3 +2546,19 @@ Before returning D161 to Owner field retest:
 9. **Quota/resources:** no new provider resource, exact-document target, collection/query/listener family, polling loop, heartbeat, provider write cadence or Desktop timer cadence. Normal-path usage does not increase.
 10. **Regression:** v110 overtime/READY_EMPTY behavior, v109 no-overlay single revoke, PickList processing/HA/history, Android beta-vc97, Web and Stable remain unchanged.
 11. **Release lineage:** target monotonic release is **relay-agent-v111**; D160 v97 remains accepted/rescue until explicit D161 Owner PASS.
+
+## D161 v112 confirmation ACK / Firestore Rules convergence acceptance — 2026-10-05
+
+Before returning D161 to Owner field retest:
+
+1. **No APK change:** Android remains exactly beta-vc97; no Android source, versionCode or release artifact changes are part of v112.
+2. **Rules/payload parity:** `relay_poc_jobs` permits the bounded optional `agent_login_name` field used by both business ACK and presence-control ACK while preserving older ACK compatibility when the field is absent.
+3. **Successful terminal path:** for a real pending request, WMS `CONFIRMED` is followed by a durable Firestore `ACK` for the same request and the PDA receives the success result within the existing timeout.
+4. **No duplicate post-success processing:** after durable ACK, the confirmed request is no longer rediscovered/reprocessed as `PENDING`.
+5. **History identity retained:** `User Agent xử lý` remains populated from the same terminal ACK/piggyback path; no extra provider operation is added.
+6. **True error preserved:** an intentionally rejected or synthetic Firestore write must log its original HTTP/canonical error status; error reporting must not replace it with `ObjectDisposedException`.
+7. **Retry/disposal safety:** handled retry/recovery branches dispose their response; a branch that rethrows leaves the response available to the outer diagnostic path, whose description function is itself non-throwing.
+8. **CI regression guard:** Agent verification and Beta Firestore deploy validation both fail if `agent_login_name` exists in the ACK payload without the corresponding Rules contract.
+9. **Quota/resources:** no new provider resource, listener, query, polling loop, heartbeat or write cadence. Firestore operation count remains the accepted request + terminal ACK model.
+10. **Regression:** v111 Picker-presence convergence, v110 overtime/READY_EMPTY, v109 no-overlay revoke, current WMS mutation fences and Android beta-vc97 remain unchanged.
+11. **Release lineage:** publish monotonic **relay-agent-v112** through the trusted Agent channel and deploy the repaired existing Beta Firestore Rules. D160 v97 remains accepted/rescue until explicit D161 Owner PASS.

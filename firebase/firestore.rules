@@ -188,9 +188,16 @@ service cloud.firestore {
         )
         && request.resource.data.status == 'ACK'
         && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+        && (
+          !request.resource.data.keys().hasAny(['agent_login_name'])
+          || (
+            request.resource.data.agent_login_name is string
+            && request.resource.data.agent_login_name.size() <= 180
+          )
+        )
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status', 'agent_id', 'agent_instance_id', 'agent_admin_user_id',
-          'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
+          'agent_login_name', 'agent_network', 'agent_received_at_ms', 'agent_ack_at_ms',
           'lookup_status', 'lookup_matches', 'candidate_picklists',
           'resolved_picklist_code', 'picker_contractor_name',
           'lookup_ms', 'lookup_route',

@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "BLOCKED_BY_EIGHTH_FIELD_REPAIR",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "D161 seventh field repair is merged and technical/runtime/release PASS on Agent v111. Owner field retest remains required with Android beta-vc97 unchanged. Active-Picker logout/revoke convergence now reuses the existing event paths plus RAM-only generation tombstones with no added normal-path provider cadence.",
+      "reason_owner_only": "Owner field evidence on Agent v111 shows WMS confirmation succeeds but the Firestore terminal ACK is rejected, leaving Android vc97 waiting until its 20-second timeout. D161 eighth repair is authorized: Agent v112 plus existing Beta Firestore Rules only; Android vc97 remains unchanged.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4818,27 +4818,25 @@
         "fourth_field_repair": "PASS__PR_434__MAIN_217D33F1__AUTHORITY_PR_435__MAIN_5A3C07EB__AGENT_V108__RUN_37207091449__RELEASE_403043358__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "fifth_field_repair": "PASS__PR_437__MAIN_C5673B4E__WORKER_RUN_37214830211__AGENT_V109__RUN_37214830165__RELEASE_403093302__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "sixth_field_repair": "PASS__PR_439__MAIN_FBD18C15__AGENT_V110__RUN_37217744592__UI_RUN_37217744516__D127_RUN_37217744628__USAGE_RUN_37217744811__RELEASE_403111389__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
-        "seventh_field_repair": "PASS__PR_441__MAIN_F28DD759__AGENT_V111__RUN_37220702938__UI_RUN_37220702940__D127_RUN_37220703084__USAGE_RUN_37220702957__RELEASE_403129379__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED"
+        "seventh_field_repair": "PASS__PR_441__MAIN_F28DD759__AGENT_V111__RUN_37220702938__UI_RUN_37220702940__D127_RUN_37220703084__USAGE_RUN_37220702957__RELEASE_403129379__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
+        "eighth_field_repair": "OWNER_APPROVED__IN_PROGRESS__TARGET_AGENT_V112__FIRESTORE_ACK_RULES_PARITY__ANDROID_VC97_UNCHANGED"
       },
       "shortest_test_path": [
-        "Run/update Windows Agent to relay-agent-v111. Keep Android on beta-vc97.",
-        "Login one Picker and verify the row appears without manual refresh.",
-        "Perform normal Android logout and verify the row disappears from every authenticated Agent list without manual refresh.",
-        "Login the same Picker again and verify the newer session appears normally.",
-        "Use per-row Kích User and verify the selected Picker disappears immediately after server success, PDA returns to login, and no specialist overlay appears.",
-        "Login the same Picker again after Kích User and verify the newer generation appears normally and is not blocked by stale local state.",
-        "Optionally test Kích toàn bộ while one Picker relogs during the response; the newer login must not be hidden.",
-        "Continue the prior v110 overtime button / gia hạn without PickList / Web Agent chưa có PickList checks and remaining D161 field acceptance."
+        "No manual action until Agent v112 and the Beta Firestore Rules repair reach technical/runtime/release PASS.",
+        "Then update Windows Agent to relay-agent-v112. Keep Android on beta-vc97.",
+        "Send one real PickList suffix from Android and verify Agent History shows processing immediately.",
+        "Verify WMS confirms the PickList and Android receives the successful terminal result instead of timing out after 20 seconds.",
+        "Repeat once with a second PickList to prove the request does not remain PENDING or get reprocessed after a successful WMS confirmation.",
+        "Continue prior v111 Picker presence and v110 overtime/READY_EMPTY checks, then explicitly PASS or NOT PASS D161."
       ],
       "pass_criteria": [
-        "Normal Android logout removes the Picker through existing event-driven paths without manual refresh.",
-        "Per-row Kích User removes the exact local row immediately only after server-authoritative revoke succeeds.",
-        "Delayed same/older generation direct/sync/PickList evidence cannot resurrect a removed Picker; a strictly newer login generation appears normally.",
-        "Existing agent_sync presence delta can converge a missed/delayed direct presence event, while history/counter/call-lock-only changes cannot repaint the Picker list.",
-        "Bulk revoke removes only captured session generations so a newer concurrent login is preserved.",
-        "No new provider resource, listener/query family, polling, heartbeat, Desktop timer or provider write cadence was introduced; normal-path usage does not increase.",
-        "Android beta-vc97, Worker, Web and Stable remain unchanged by v111.",
-        "v110 overtime/READY_EMPTY and v109 no-overlay single-revoke behavior remain regression-clean.",
+        "Successful WMS CONFIRMED is followed by a durable Firestore ACK for the same request and Android receives the terminal result within the existing timeout.",
+        "The same successfully confirmed request is not reprocessed as PENDING.",
+        "Agent History retains User Agent xử lý through agent_login_name without Firestore PERMISSION_DENIED.",
+        "Firestore diagnostics preserve the original HTTP/canonical error and do not replace it with ObjectDisposedException.",
+        "Android beta-vc97 is unchanged; Web/Worker/Stable are unchanged.",
+        "No new provider resource, listener/query family, polling, heartbeat or write cadence is introduced.",
+        "Prior v111/v110/v109 D161 repairs remain regression-clean.",
         "Owner explicitly accepts the full D161 field result before D161 can PASS."
       ],
       "evidence": {
@@ -4966,7 +4964,7 @@
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "FIELD_RETEST_AGENT_V111_THEN_EXPLICIT_PASS_OR_NOT_PASS",
+      "remaining_owner_action": "NONE_UNTIL_V112_TECHNICAL_RUNTIME_RELEASE_PASS",
       "closed": false,
       "completion_evidence": {
         "sixth_field_repair": {

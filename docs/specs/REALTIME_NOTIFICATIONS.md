@@ -915,3 +915,12 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - After direct presence has been observed, `agent_sync` is no longer globally suppressed for Picker convergence. Only a real change to its Picker presence payload may affect Picker UI; unrelated history/counter/call-lock changes cannot repaint the list.
 - Existing leader presence publication remains unchanged. This repair creates **zero new provider writes, zero new listener/query families, zero polling, zero heartbeat and zero Desktop timer cadence**.
 - Power loss/network loss without explicit logout is not treated as immediate logout; adding heartbeat/device-liveness semantics remains outside this repair.
+
+## D161 v112 confirmation terminal-ACK schema parity
+
+- Android beta-vc97 continues to create the existing `ANDROID_CONFIRM_V1` pending document and waits for the existing terminal ACK; the client contract does not change.
+- The Agent terminal ACK remains the durable signal that closes the PDA request after the WMS result. A successful WMS mutation is not considered delivered to the PDA until the Firestore document transitions from `PENDING` to `ACK`.
+- `agent_login_name` is an optional bounded Agent-authenticated ACK field used by the existing History **User Agent xử lý** presentation. Firestore Rules must allow this exact field in the `relay_poc_jobs` ACK diff while preserving compatibility with legacy ACKs that omit it.
+- Agent ACK payload changes and Firestore Rules changes are a single compatibility contract. CI must reject source states where an emitted ACK field is not allowed by the deployed Rules source.
+- A failed ACK must retain the original Firestore HTTP/canonical error for diagnosis. Diagnostic handling must not dispose the response before a rethrow and must never throw while describing a prior transport exception.
+- No extra ACK write, provider polling, listener/query family or Android heartbeat is introduced. WMS confirmation and PRIMARY/generation mutation fences are unchanged.

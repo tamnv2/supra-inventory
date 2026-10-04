@@ -155,9 +155,15 @@ namespace SupraInventoryRelayAgent
             if (response == null)
                 return "status=0 canonical=NETWORK_" + ex.Status + " web_exception=" + ex.Status;
 
-            var status = (int)response.StatusCode;
-            var host = response.ResponseUri == null ? "" : response.ResponseUri.Host;
-            var canonical = CanonicalErrorStatus(ex);
+            // D161 v112: diagnostics must never mask the original Firestore error.
+            // A caller may already have inspected the response, so every property/read
+            // is defensive and this method remains non-throwing even for a disposed response.
+            var status = 0;
+            var host = "";
+            var canonical = "UNKNOWN";
+            try { status = (int)response.StatusCode; } catch { }
+            try { host = response.ResponseUri == null ? "" : response.ResponseUri.Host; } catch { }
+            try { canonical = CanonicalErrorStatus(ex); } catch { }
             try { response.Dispose(); } catch { }
             return "http=" + status + " canonical=" + Safe(canonical) + " host=" + Safe(host) + " web_exception=" + ex.Status;
         }

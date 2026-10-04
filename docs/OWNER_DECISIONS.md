@@ -3262,3 +3262,18 @@ Owner field testing after Agent v110 found that an Android Picker could remain v
 - Unrelated `agent_sync` mutations such as history/counters/call locks must not repaint Picker presence. Only an actual `agent_sync` presence delta participates in fallback convergence.
 - Android stays **beta-vc97**; Worker/Web/Stable are unchanged for this repair. No extra normal-path Desktop/provider usage is authorized.
 - Target repair release is **relay-agent-v111**. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
+
+## D161 eighth field repair — successful WMS confirm but terminal ACK rejected — 2026-10-05
+
+Status: **OWNER APPROVED REPAIR WITHIN D161 — NO APK CHANGE**.
+
+Owner field evidence on Agent v111 + Android beta-vc97 shows a PickList request can reach the Agent, be confirmed successfully on the WMS page, and still time out on the PDA after about 20 seconds because the terminal Firestore ACK is not committed.
+
+- Android beta-vc97 request creation and timeout contract are unchanged and are not the defect. **Do not rebuild the APK for this repair.**
+- D161 Tranche B added `agent_login_name` to confirmation/presence ACK payloads so PickList History can display **User Agent xử lý**. The current `relay_poc_jobs` Firestore update allowlist did not include that field, so the ACK update is rejected with `PERMISSION_DENIED`.
+- Because the terminal ACK is rejected, the request remains `PENDING`, may be discovered again after WMS has already confirmed it, and the PDA eventually reports its existing timeout even though the business mutation succeeded.
+- The Agent WebException path also disposed the `HttpWebResponse` before the outer diagnostic layer logged it. That converted the useful Firestore 403 evidence into `ObjectDisposedException` and obscured the root cause.
+- Repair scope is **relay-agent-v112 + the existing Beta Firestore Rules only**. Add `agent_login_name` as a bounded optional ACK field to preserve compatibility with older Agent ACKs, preserve the original WebException response until it is diagnosed when rethrowing, and make Firestore error description non-throwing.
+- CI must verify the Agent ACK payload and Firestore Rules allowlist evolve together so a future new ACK field cannot silently break terminal delivery after a successful WMS mutation.
+- No WMS confirm semantics, Android behavior, Web, Worker business logic, provider resource, listener/query family, polling/heartbeat or normal write cadence changes are authorized.
+- Stable remains OWNER-GATED and untouched. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
