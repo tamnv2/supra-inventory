@@ -184,8 +184,8 @@ jobs:
 
           pda_manifest="$(curl -fsSL "https://inventory-beta.supra.cc.cd/downloads/pda/manifest")"
           agent_manifest="$(curl -fsSL "https://inventory-beta.supra.cc.cd/downloads/agent/manifest")"
-          jq -e --arg sha "$apk_sha" '.tag=="beta-vc93" and .sha256==$sha and .asset_name=="supra-inventory-beta.apk"' <<<"$pda_manifest" >/dev/null
-          jq -e --arg sha "$agent_sha" '.tag=="relay-agent-v101" and .sha256==$sha and .asset_name=="Agent.Auto.Confirm.Pick.Pack.exe"' <<<"$agent_manifest" >/dev/null
+          jq -e --arg digest "sha256:$apk_sha" --arg source "$release_source" '.tag=="beta-vc93" and .digest==$digest and .source==$source and .apk_path=="/downloads/pda/latest"' <<<"$pda_manifest" >/dev/null || { echo "PDA manifest contract mismatch" >&2; echo "$pda_manifest" >&2; exit 1; }
+          jq -e --arg digest "sha256:$agent_sha" --arg source "$release_source" '.tag=="relay-agent-v101" and .digest==$digest and .source==$source and .exe_path=="/downloads/agent/latest"' <<<"$agent_manifest" >/dev/null || { echo "Agent manifest contract mismatch" >&2; echo "$agent_manifest" >&2; exit 1; }
 
           echo "$apk_sha" > /tmp/d161-android-safety.sha256
           echo "$agent_sha" > /tmp/d161-agent-safety.sha256
