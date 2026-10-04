@@ -213,6 +213,7 @@ namespace SupraInventoryRelayAgent
             _fleetMetricStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _fleetMetricStatus.Visible = false; // D149: durable counters stay internal; remove Hôm nay cluster UI.
             pickerCard.Controls.Add(_fleetMetricStatus);
+            InitializeD161BulkPickerRevoke(pickerCard);
 
             pickerCard.Controls.Add(new Label
             {
@@ -406,6 +407,7 @@ namespace SupraInventoryRelayAgent
             }
 
             UpdateD160RestrictedTabs(authenticated);
+            UpdateD161BulkPickerRevokeVisibility();
 
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
