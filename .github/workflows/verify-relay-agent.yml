@@ -395,10 +395,10 @@ jobs:
             'docs.Documents.Add(AgentConfig.FirestorePickerPresenceDocumentName);',
             'exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE'
           )) {
-            if (-not $agentSync.Contains($marker)) { throw "D161 v111 existing exact-doc listener reuse guard missing: $marker" }
+            if (-not $sync.Contains($marker)) { throw "D161 v111 existing exact-doc listener reuse guard missing: $marker" }
           }
-          if ($agentSync.Contains('picker_presence_projection/{') -or
-              $agentSync.Contains('RunQuery') -or
+          if ($sync.Contains('picker_presence_projection/{') -or
+              $sync.Contains('RunQuery') -or
               $d119Features.Contains('System.Threading.Timer')) {
             throw "D161 v111 must not add per-Picker listener/query/polling cadence."
           }
