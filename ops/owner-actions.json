@@ -4789,6 +4789,59 @@
         "phase0a_source_sha": "be097ce199f2f7f6d09570777193e63fb45399e3",
         "phase0_state": "ACTIVE__SAFETY_V101_VC93_PREPARING"
       }
+    },
+    {
+      "id": "OA096",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "title": "Field-accept D161 consolidated Beta candidate",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
+      "reason_owner_only": "Technical, CI, release and Beta runtime gates are PASS. Final acceptance requires the Owner/company field environment for real PDA, WMS, operator, Agent fleet and controlled HR-source behavior.",
+      "prerequisites": {
+        "accepted_base": "D160__RELAY_AGENT_V97",
+        "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
+        "beta_worker": "PASS__MAIN_E75B0A0__RUN_37191613243",
+        "runtime_readiness": "PASS__RUN_37192056329",
+        "hr_watch": "PASS__APPLIED__AUTO__FUTURE_EXPIRY",
+        "agent_gateway": "PASS__MAIN_E128DEB__RUN_37193309206",
+        "android": "beta-vc96",
+        "agent": "relay-agent-v104",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Update controlled Beta PDA devices to beta-vc96 and controlled Agent machines to relay-agent-v104; refresh Beta Web.",
+        "Run normal shortage-reporting and Reporter correction flows; verify reporting enable/disable, logout and update UX.",
+        "Run normal and close-together PickList confirmations including one mixed ready/recovery case; verify terminal timing, no duplicate WMS mutation, History ordering and User Agent xử lý.",
+        "Verify Agent schedule/overtime, manual-only Agent update and one safe bulk Picker session revoke with controlled Beta users.",
+        "Verify controlled HR Sheet AUTO and confirmation-required behavior; unsafe or duplicate input must not silently mutate users.",
+        "Trigger and inspect support logging on Web/Android/Agent including daily Drive archive and Drive-confirmed pruning/idempotency."
+      ],
+      "pass_criteria": [
+        "No regression in ordinary Báo hàng, Reporter or Web operations.",
+        "PickList remains within approved field timing bounds with no duplicate final WMS mutation.",
+        "Android beta-vc96 and Agent v104 match the published D161 candidates.",
+        "HR event synchronization obeys AUTO, CONFIRM_REQUIRED and HARD_BLOCK authority.",
+        "Support logs remain sanitized, idempotent and Drive-confirmed before local pruning.",
+        "Stable remains untouched."
+      ],
+      "evidence": {
+        "tranche_prs": [
+          419,
+          420,
+          421,
+          422,
+          423
+        ],
+        "runtime_readiness_pr": 424,
+        "provider_repair_pr": 425,
+        "beta_worker_run": 37191613243,
+        "runtime_readiness_run": 37192056329,
+        "agent_gateway_provider_run": 37193309206,
+        "android_release_id": 402929924,
+        "agent_release_id": 402929873
+      },
+      "remaining_owner_action": "RUN_CONTROLLED_D161_FIELD_TEST__THEN_ACCEPT_OR_REPORT_DEFECT",
+      "closed": false
     }
   ]
 }

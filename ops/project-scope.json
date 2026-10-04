@@ -263,7 +263,7 @@
       "name": "D161 HR source Drive watch",
       "id_source": "RUNTIME_GENERATED_PER_CONFIGURED_HR_SOURCE__STATE_STORED_IN_INVENTORYCORE__CHANNEL_ID_RESOURCE_ID_NOT_COMMITTED",
       "exposure": "runtime_ephemeral_identifier_not_committed",
-      "status": "D161_TRANCHE_E_OWNER_APPROVED_IMPLEMENTATION",
+      "status": "D161_TRANCHE_E_RUNTIME_PASS__PRODUCTION_WATCH_REGISTERED__OWNER_FIELD_PASS_PENDING",
       "guard": "BETA_ONLY__EXACT_CONFIGURED_HR_SOURCE__HTTPS_WORKER_CALLBACK__RANDOM_RUNTIME_CHANNEL_TOKEN__RENEW_BEFORE_EXPIRY__STOP_REPLACED_CHANNEL__NO_STABLE__NO_APPS_SCRIPT__NO_FIRESTORE_POLLING"
     },
     {
@@ -292,7 +292,7 @@
       "id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo",
       "name": "Inventory/Beta/Logs",
       "exposure": "operational_metadata_existing_public",
-      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles. D146/D160 existing parent authority remains. D161 Owner-approved future target (implementation still deferred): trusted archive services may create/cache daily child folders named YYYY-MM-DD under this exact scoped parent, using Asia/Ho_Chi_Minh Drive-archive date; clients never list/create folders directly. Daily children inherit Beta-only scope and must not be created until explicit D161 implementation authorization. After the exact D161 start command, Phase 0A may create one clearly disposable Beta-only child/file canary under this parent solely to prove create/resolve/upload/readback/cleanup capability; the canary must be verified and removed/trashed in the same preflight before backlog runtime code begins."
+      "note": "Runtime support/error logs for Web, Android and sanitized Agent bundles. D146/D160 parent authority remains. D161 Tranche D daily archive semantics are implemented on Beta: trusted archive services resolve/cache YYYY-MM-DD child folders using Asia/Ho_Chi_Minh archive date; clients never list/create folders directly. Daily children remain under this exact scoped Beta parent. Technical/runtime/release gates are PASS; Owner field acceptance is pending."
     },
     {
       "key": "archive-sheet-beta",
@@ -329,7 +329,7 @@
       "name": "SUPRA Inventory Beta - Agent Operations Gateway",
       "id_source": "OWNER_PROVISIONED_FROM_REPO_MANAGED_ops/apps-script/agent-log-gateway__DEPLOYMENT_URL_STORED_ONLY_IN_GITHUB_BETA_ENV_VAR",
       "exposure": "public_identifier_when_deployed",
-      "status": "D160_PROVIDER_PASS__MONITORING_AUTHENTICATED__D159_RETIRED",
+      "status": "D160_PROVIDER_PASS__D161_GW_V2_REDEPLOYED_AND_AUTHENTICATED__MONITORING_PASS__D159_RETIRED__OWNER_FIELD_PASS_PENDING",
       "source_path": "ops/apps-script/agent-log-gateway",
       "execute_as": "OWNER",
       "access_policy": "WEB_APP_ENDPOINT_PUBLICLY_REACHABLE__FIREBASE_ID_TOKEN_REQUIRED__ADMIN_OR_PICKPACK_ADMIN_BASE_ROLE__D160_AGENT_UI_CALLS_USAGE_ONLY_FOR_EXACT_LOGIN_TAMNV2_OR_ADMIN",
@@ -337,7 +337,7 @@
       "secret_policy": "EXISTING_SCRIPT_PROPERTIES_RETAINED__FIREBASE_WEB_API_KEY_BETA_AND_BETA_LOG_FOLDER_ID_VALUES_NEVER_COMMITTED_OR_LOGGED",
       "guard": "D160_EXISTING_GATEWAY_REUSE__UPLOAD_AGENT_LOG_PLUS_GET_FIRESTORE_USAGE__APPLICATION_FIREBASE_AUTH_REQUIRED__NO_WMS_ANDROID_OR_STABLE_DEPENDENCY",
       "monitoring_target": "GCP_PROJECT_supra-inventory-beta__FIRESTORE_DEFAULT_DATABASE__FCM_AND_AUTH_CONSUMED_API__PICKER_ALERT_CLOUD_RUN_SERVICE",
-      "migration": "PASS__EXISTING_URL_REDEPLOYED__AUTHENTICATED_MONITORING_PROOF__D159_RETIRED",
+      "migration": "PASS__D161_MAIN_E128DEB__RUN_37193309206__IDEMPOTENT_EXISTING_URL_REDEPLOY__AUTHENTICATED_MONITORING_PROOF__D159_ALREADY_RETIRED_AND_ABSENT",
       "webapp_manifest": "ACCESS_ANYONE_ANONYMOUS__EXECUTE_AS_USER_DEPLOYING__PUBLIC_TRANSPORT_ENDPOINT__APPLICATION_FIREBASE_AUTH_REQUIRED_FOR_POST_ACTIONS"
     },
     {

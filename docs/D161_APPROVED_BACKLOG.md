@@ -1,6 +1,6 @@
 # D161 — Owner-approved consolidated update backlog
 
-Status: **IMPLEMENTATION ACTIVE — PHASE 0A PASS / PHASE 0 SAFETY PASS**
+Status: **TECHNICAL / RUNTIME / RELEASE PASS — READY FOR OWNER FIELD TEST**
 
 Date: 2026-10-02  
 Accepted runtime base: **D160 Owner PASS**  
@@ -738,3 +738,13 @@ These refinements were approved after the 2026-10-03 full-log review. They tight
 - Safety Android `beta-vc93` and Safety Agent `relay-agent-v101` are published and digest/channel verified; both preserve pre-D161 behavior.
 - Phase 0A and Phase 0 are closed PASS. The complete already-approved D161 feature backlog may now proceed automatically through branch → PR → authority/continuity PASS → merge.
 - D160 remains the accepted/rescue behavior until explicit D161 Owner field PASS. Stable remains OWNER-GATED and untouched.
+
+
+## 21. D161 technical/runtime/release checkpoint — READY FOR OWNER FIELD TEST — 2026-10-04
+
+- All current Owner-approved D161 implementation tranches A–E are merged: PRs #419, #420, #421, #422 and #423.
+- Android field candidate: `beta-vc96`; Agent field candidate: `relay-agent-v104`.
+- Beta Worker runtime PASS: main `e75b0a0a73543947840d2c3c599fa9efbf4220e5`, run `37191613243`, health HTTP 200, schema 17/17, Operational V2 5/5, missing bindings 0.
+- D161 runtime-readiness proof PASS: run `37192056329`; candidate channels verified and production HR watch reported `APPLIED / AUTO` with future expiry.
+- Final Agent Operations Gateway provider repair merged in PR #425; main `e128deba6567216ac28156c4148eb3183be99c9f`, provider run `37193309206` PASS including redeploy, gateway identity, authenticated Usage/Monitoring and D159-retired verification.
+- D161 is now **READY_FOR_OWNER_FIELD_TEST** under OA096. This is not Owner PASS. D160 remains the accepted/rescue base until explicit D161 field acceptance. Stable remains OWNER-GATED and untouched.
