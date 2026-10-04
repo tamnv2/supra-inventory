@@ -51,7 +51,7 @@ function driveQueryEscape(value: string): string {
   return value.replaceAll("\\", "\\\\").replaceAll("'", "\\'");
 }
 
-async function resolveDailyLogFolder(
+export async function resolveRuntimeLogDailyFolder(
   env: RuntimeLogsEnv,
   token: string,
   archiveDate = new Date(),
@@ -119,6 +119,29 @@ async function resolveDailyLogFolder(
 async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function archiveIdentityFromEnvelope(content: string, fallbackLogId: string): {
+  archiveId: string;
+  bundleId: string;
+  boundaryId: string;
+} {
+  let bundleId = "";
+  let boundaryId = "";
+  try {
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    const rawBundle = String(parsed.bundle_id || "").trim().toLowerCase();
+    if (/^[a-f0-9]{32,64}$/.test(rawBundle)) bundleId = rawBundle;
+    const rawBoundary = String(parsed.boundary_id || "").trim();
+    if (/^[A-Za-z0-9._:-]{1,180}$/.test(rawBoundary)) boundaryId = rawBoundary;
+  } catch {
+    // Legacy payloads use local buffer identity only.
+  }
+  return {
+    archiveId: bundleId ? `bundle:${bundleId}` : `runtime:${fallbackLogId}`,
+    bundleId,
+    boundaryId,
+  };
 }
 
 async function findArchivedByIdentity(
@@ -417,7 +440,7 @@ export async function uploadRuntimeLog(
     const token = await refreshGoogleAccessToken(env);
     await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
 
-    const daily = await resolveDailyLogFolder(env, token, new Date(generatedAt));
+    const daily = await resolveRuntimeLogDailyFolder(env, token, new Date(generatedAt));
     const logicalBoundary = boundaryId
       ? await sha256Hex(`${source}|${actor.user_id}|${String((sanitize(body.device || {}) as Record<string, unknown>).device_id || "")}|${boundaryId}`)
       : "";
@@ -537,8 +560,9 @@ async function archiveBufferedJson(
   const content = String(item.content || "");
   if (!/^local_[a-f0-9]{32}$/.test(logId) || !filename || !content) throw new Error("INVALID_BUFFERED_RUNTIME_LOG");
 
-  const daily = await resolveDailyLogFolder(env, token);
-  const archiveId = `runtime:${logId}`;
+  const daily = await resolveRuntimeLogDailyFolder(env, token);
+  const identity = archiveIdentityFromEnvelope(content, logId);
+  const archiveId = identity.archiveId;
   const existing = await findArchivedByIdentity(daily.id, token, archiveId);
   const existingId = String(existing?.id || "");
   if (existingId) return existingId;
@@ -548,7 +572,15 @@ async function archiveBufferedJson(
     name: filename,
     parents: [daily.id],
     mimeType: "application/json",
-    appProperties: { project: "supra-inventory", source, severity, archive_id: archiveId, archive_date: daily.dateKey },
+    appProperties: {
+      project: "supra-inventory",
+      source,
+      severity,
+      archive_id: archiveId,
+      archive_date: daily.dateKey,
+      bundle_id: identity.bundleId || "legacy",
+      boundary_id_hash: identity.boundaryId ? await sha256Hex(identity.boundaryId) : "none",
+    },
   });
   const multipart = [
     `--${boundary}`,
@@ -641,7 +673,7 @@ export async function uploadAgentRuntimeLogText(
 
   const token = await refreshGoogleAccessToken(env);
   await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
-  const daily = await resolveDailyLogFolder(env, token);
+  const daily = await resolveRuntimeLogDailyFolder(env, token);
   const archiveId = `agent:${await sha256Hex(filename + "\n" + content)}`;
   const existing = await findArchivedByIdentity(daily.id, token, archiveId);
   if (existing) return { status: "already_uploaded", file: existing, archive_date: daily.dateKey };
