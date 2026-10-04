@@ -425,7 +425,7 @@ def main() -> None:
     require(app_tools, 'stable_download_path: "/downloads/pda/latest"', "D109 version-independent PDA download path")
     require(app_tools, 'stable_download_path: "/downloads/agent/latest"', "D112 version-independent Agent download path")
     forbid(app, 'downloads/beta-vc', "D109 no hard-coded Beta tag in PDA tools URL")
-    require(core, "const SCHEMA_VERSION = 16;", "D156 schedule convergence and reporting-default migration schema target")
+    require(core, "const SCHEMA_VERSION = 17;", "D161 capability-revision schema retaining D156 schedule/reporting migration")
     require(core, "role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')", "D143 ROOT effective Pick Pack role constraint")
     require(runtime_logs_core, "CREATE TABLE IF NOT EXISTS runtime_log_buffer", "D144 OAuth-independent runtime-log authority")
     require(runtime_logs, "Google Drive is archive-only", "D144 Drive archive is non-blocking")
