@@ -89,6 +89,7 @@ namespace SupraInventoryRelayAgent
         }
 
         private readonly Action<string> _log;
+        private readonly Action _successfulReload;
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private Process _process;
@@ -140,9 +141,10 @@ namespace SupraInventoryRelayAgent
         private const string PageSizeLabel = "Số dòng mỗi trang";
         private const string PageSizeTarget = "100";
 
-        internal SupraConfirmBrowser(Action<string> log)
+        internal SupraConfirmBrowser(Action<string> log, Action successfulReload = null)
         {
             _log = log ?? (_ => { });
+            _successfulReload = successfulReload ?? (() => { });
         }
 
         internal SupraBrowserState OpenOrShowAgent()
@@ -1146,6 +1148,7 @@ namespace SupraInventoryRelayAgent
                              " readiness_samples=" + diagnosticSamples +
                              " extension_armed=" + D160DiagnosticTelemetry.Flag(extensionArmed));
                         LogD160DiagnosticPageStateNoLock("RELOAD_PASS", diagnosticStarted.ElapsedMilliseconds);
+                        try { _successfulReload(); } catch { }
                         return true;
                     }
                 }
