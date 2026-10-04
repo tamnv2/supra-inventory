@@ -1051,9 +1051,15 @@ namespace SupraInventoryRelayAgent
                      " web_exception=" + ex.Status +
                      " update_precondition=" + (hasUpdatePrecondition ? "1" : "0") +
                      " presence_count=" + (outcome == null ? 0 : Math.Max(0, outcome.Matches)));
-                try { if (response != null) response.Dispose(); } catch { }
                 if ((status == 409 || status == 412) && AckAlreadyVisible(session, name, jobId))
+                {
+                    try { if (response != null) response.Dispose(); } catch { }
                     return true;
+                }
+
+                // D161 v112: preserve the original WebException response for the outer
+                // diagnostic path. Disposing before rethrow masked Firestore 403 as an
+                // ObjectDisposedException and hid the real ACK failure.
                 throw;
             }
         }
@@ -1157,7 +1163,6 @@ namespace SupraInventoryRelayAgent
                 {
                     var response = ex.Response as HttpWebResponse;
                     var status = response == null ? 0 : (int)response.StatusCode;
-                    try { if (response != null) response.Dispose(); } catch { }
 
                     if (status == 401 || status == 403)
                     {
@@ -1177,6 +1182,7 @@ namespace SupraInventoryRelayAgent
                         _log("FIRESTORE ACK RECOVERED request=" + Short(jobId) +
                              " after_status=" + status +
                              " durable_commit_uncertain=true");
+                        try { if (response != null) response.Dispose(); } catch { }
                         return true;
                     }
 
@@ -1184,12 +1190,14 @@ namespace SupraInventoryRelayAgent
                     {
                         _log("FIRESTORE ACK conditional-lost request=" + Short(jobId) +
                              " status=" + status);
+                        try { if (response != null) response.Dispose(); } catch { }
                         return false;
                     }
 
                     var retryable = status == 0 || status == 401 || status == 403 ||
                                     status == 408 || status == 429 || status >= 500;
                     if (!retryable || attempt >= 3) throw;
+                    try { if (response != null) response.Dispose(); } catch { }
                     Thread.Sleep(150 * attempt);
                 }
                 catch
@@ -1559,7 +1567,12 @@ namespace SupraInventoryRelayAgent
         {
             var web = ex as WebException;
             if (web == null) return "type=" + ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message);
-            return FirestoreHttpTransport.Describe(web);
+            try { return FirestoreHttpTransport.Describe(web); }
+            catch
+            {
+                return "type=WebException detail=" + AgentDiagnostics.Sanitize(web.Message) +
+                       " web_exception=" + web.Status;
+            }
         }
 
         private static Dictionary<string, object> StringField(string value)
