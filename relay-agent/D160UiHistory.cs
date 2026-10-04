@@ -727,7 +727,12 @@ namespace SupraInventoryRelayAgent
                 case "NOT_FOUND": return "Không tìm thấy PickList";
                 case "AMBIGUOUS_PICKLIST": return "Trùng nhiều PickList";
                 case "PICKER_LOCKED": return "Picker đang bị khóa";
+                case "WMS_SESSION_REQUIRED": return "Web Agent chưa sẵn sàng";
+                case "SESSION_EXPIRED": return "Phiên Web Supra đã hết hạn";
                 case "WMS_DATA_UNAVAILABLE": return "Dữ liệu Supra chưa sẵn sàng";
+                case "LOOKUP_ERROR": return "Lỗi đọc dữ liệu Web Supra";
+                case "TRANSPORT_FAIL": return "Kết nối Supra đang gián đoạn";
+                case "FORBIDDEN": return "Supra từ chối quyền xác nhận";
                 case "CONFIRM_CONFLICT": return "Checkbox/trạng thái chưa sẵn sàng";
                 case "CONFIRM_REJECTED": return "Supra từ chối xác nhận";
                 case "CONFIRM_IN_PROGRESS_OR_UNCERTAIN": return "Chưa xác định kết quả";
