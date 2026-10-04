@@ -773,6 +773,9 @@ jobs:
             'StartD134AgentSync();',
             'StopD134AgentSync();',
             'DIRECT_PRESENCE_LISTEN',
+            '_d161DirectPickerPresenceObserved',
+            'source=DIRECT_PRESENCE',
+            'if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))',
             'TimeSpan.FromMinutes(1)',
             'danh sách vẫn hiển thị theo phiên đăng nhập'
           )) {
