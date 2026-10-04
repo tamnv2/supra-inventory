@@ -388,7 +388,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (windowState.is_open !== true) {
       return json({
         error: "ANDROID_WINDOW_CLOSED",
-        message: "Ngoài khung thường 05:45–22:30 và chưa có lệnh tăng ca/bật sớm hiện hành.",
+        message: "Ngoài khung thường 05:45–22:15 và chưa có lệnh tăng ca/bật sớm hiện hành.",
         server_now_ms: Number(windowState.server_now_ms || 0),
       }, 403);
     }
