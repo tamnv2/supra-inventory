@@ -29,6 +29,7 @@ import {
   confirmHrPending,
   ensureHrDriveWatch,
   handleHrDriveWatchNotification,
+  processHrSnapshot,
   readHrEventState,
 } from "./hr-event-sync";
 
@@ -1683,6 +1684,18 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/admin/hr-sync/event-state") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         return json(await readHrEventState(env));
+      }
+      if (request.method === "POST" && url.pathname === "/api/admin/hr-sync/recheck") {
+        await requireUser(request, env, ["ADMIN", "ROOT"]);
+        try {
+          const state = await processHrSnapshot(env, "WEB_RECHECK");
+          return json({ status: String(state.status || "NO_CHANGE"), state });
+        } catch (error) {
+          return json({
+            error: "HR_SYNC_RECHECK_FAILED",
+            message: error instanceof Error ? error.message : "Không kiểm tra lại được nguồn nhân sự.",
+          }, 500);
+        }
       }
       if (request.method === "POST" && url.pathname === "/api/admin/hr-sync/confirm") {
         const user = await requireUser(request, env, ["ADMIN", "ROOT"]);
