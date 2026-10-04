@@ -801,3 +801,20 @@ Owner approved continuation under the existing D161 change after field testing A
 - When a PDA request arrives from `READY_EMPTY`, run the existing Search/recovery/confirm path normally; do not terminal-fail only because idle state previously had zero PickLists.
 - Preserve strict PRIMARY/generation + browser readiness mutation fence immediately before WMS mutation.
 - Agent-only target: **relay-agent-v110**. Android beta-vc97, Worker, Web and Stable remain unchanged. No new provider resource/cadence.
+
+
+### Sixth field repair technical/release checkpoint — Agent v110
+
+Technical/runtime/release PASS after Owner-approved sixth repair.
+
+- Implementation PR: **#439**, merged to main at `fbd18c15deb9877244bdd45f1ff5372aa04278a5`.
+- Verify Beta Relay Agent: run **37217744592** PASS.
+- UI Design Guard: run **37217744516** PASS.
+- D127 Dashboard Probe: run **37217744628** PASS.
+- D159 Usage Agent verification: run **37217744811** PASS.
+- Release: **relay-agent-v110**, release id **403111389**.
+- EXE asset id **610204624**, size **7,290,368 bytes**, SHA-256 `1507b7eebc73c1f34efe8000bb732f0925be4c0d1a6e2eb7694f53821af61ddc`.
+- Trusted `inventory-channel` Agent asset id **610204673** matches the same size/SHA; `agent-latest.json` asset id **610204671**.
+- Android remains **beta-vc97** unchanged; Worker/Web/Stable unchanged by this repair.
+- No new provider resource/listener/query/poll/heartbeat/write cadence.
+- D161 remains **Owner field retest pending**; D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.

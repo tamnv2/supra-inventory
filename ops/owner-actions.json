@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "BLOCKED_BY_SIXTH_FIELD_REPAIR",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "D161 Owner field retest is temporarily blocked while the approved Agent-only v110 repair is implemented and technically released. Android beta-vc97 remains unchanged; no Owner action is needed until v110 is ready.",
+      "reason_owner_only": "D161 sixth field repair is merged and technical/runtime/release PASS on Agent v110. Owner field retest remains required with Android beta-vc97 unchanged. Overtime/early-start schedule actions are now independent of idle PickList readiness, and an explicit WMS no-results surface is represented as Web Agent chưa có PickList rather than a false unavailable session.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4817,25 +4817,25 @@
         "third_field_repair": "OWNER_FIELD_NOT_PASS__PR_432__MAIN_B7307EEB__AGENT_V107__HISTORY_STILL_BLANK_WHEN_WEB_CONFIRM_NOT_READY",
         "fourth_field_repair": "PASS__PR_434__MAIN_217D33F1__AUTHORITY_PR_435__MAIN_5A3C07EB__AGENT_V108__RUN_37207091449__RELEASE_403043358__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "fifth_field_repair": "PASS__PR_437__MAIN_C5673B4E__WORKER_RUN_37214830211__AGENT_V109__RUN_37214830165__RELEASE_403093302__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
-        "sixth_field_repair": "OWNER_APPROVED__IN_PROGRESS__TARGET_AGENT_V110__OVERTIME_UI_SCHEDULE_DECOUPLING__READY_EMPTY_PICKLIST__ANDROID_VC97_UNCHANGED"
+        "sixth_field_repair": "PASS__PR_439__MAIN_FBD18C15__AGENT_V110__RUN_37217744592__UI_RUN_37217744516__D127_RUN_37217744628__USAGE_RUN_37217744811__RELEASE_403111389__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED"
       },
       "shortest_test_path": [
-        "No manual action until relay-agent-v110 reaches technical/runtime/release PASS.",
-        "Then update Windows Agent to relay-agent-v110. Keep Android on beta-vc97.",
-        "Outside 22:15–05:00, verify the red/white warning visibly shows Gia hạn +1 giờ and the button remains visible after resizing.",
-        "With Web Agent showing no PickList, press Gia hạn +1 giờ and verify the shared overtime schedule activates without requiring a PickList.",
-        "Verify the Web Confirm status reads Web Agent chưa có PickList rather than Chưa sẵn sàng when the page explicitly shows Không tìm thấy kết quả phù hợp.",
-        "Send a PickList from Android vc97 while that empty state is active and verify Agent performs the normal Search/recovery/confirm flow.",
-        "Continue the per-row Kích User and remaining D161 field acceptance checks."
+        "Run/update Windows Agent to relay-agent-v110. Keep Android on beta-vc97.",
+        "Outside 22:15–05:00, verify the red warning with white text visibly contains Gia hạn +1 giờ and the button remains visible/clickable after resize or auto-size.",
+        "With Web Agent showing no current PickList, press Gia hạn +1 giờ and verify the shared overtime schedule activates without requiring a PickList.",
+        "Verify the Web Confirm status reads Web Agent chưa có PickList when the WMS page explicitly shows Không tìm thấy kết quả phù hợp.",
+        "While that empty state is active, send a PickList from Android vc97 and verify Agent runs the normal Search/recovery/confirm flow instead of rejecting solely because the idle page was empty.",
+        "Retest one per-row Kích User: selected PDA must log out and no specialist/call overlay may appear.",
+        "Continue remaining D161 field acceptance items and explicitly report PASS only when the full candidate is accepted."
       ],
       "pass_criteria": [
-        "Agent v110 keeps the visible overtime action button inside the warning panel and clickable after resize.",
-        "Overtime extension and early-start schedule activation do not depend on WMS/PickList readiness.",
-        "Explicit WMS no-results is READY_EMPTY and user-facing as Web Agent chưa có PickList; blank/unhydrated shell remains fail-closed.",
-        "A later PDA request from READY_EMPTY enters the existing Search/recovery/confirm pipeline and preserves strict PRIMARY/generation mutation fencing.",
-        "Per-row Kích User v109 repair remains regression-clean: selected PDA logs out with no specialist overlay.",
+        "Agent v110 keeps Gia hạn +1 giờ visibly positioned inside the outside-hours warning panel after render and resize.",
+        "Overtime extension and 05:00–05:45 early-start activation do not depend on WMS/PickList readiness.",
+        "Explicit WMS no-results is READY_EMPTY and user-facing as Web Agent chưa có PickList; a blank/unhydrated shell remains fail-closed.",
+        "A later PDA request from READY_EMPTY enters the existing Search/recovery/confirm pipeline and preserves strict PRIMARY/generation + operational browser mutation fencing.",
+        "The v109 per-row Kích User repair remains regression-clean: exactly the selected Android session is revoked and no specialist overlay is emitted.",
         "Android beta-vc97, Worker, Web and Stable remain unchanged by v110.",
-        "No new provider resource/listener/query/poll/heartbeat/write cadence is introduced.",
+        "No new provider resource, collection/query/listener family, polling, heartbeat or provider write cadence is introduced.",
         "Owner explicitly accepts the field result before D161 can PASS."
       ],
       "evidence": {
@@ -4963,8 +4963,29 @@
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "NONE_UNTIL_V110_TECHNICAL_RUNTIME_RELEASE_PASS",
-      "closed": false
+      "remaining_owner_action": "FIELD_RETEST_AGENT_V110_THEN_EXPLICIT_PASS_OR_NOT_PASS",
+      "closed": false,
+      "completion_evidence": {
+        "sixth_field_repair": {
+          "repair_pr": 439,
+          "main_sha": "fbd18c15deb9877244bdd45f1ff5372aa04278a5",
+          "agent_run_id": 37217744592,
+          "ui_guard_run_id": 37217744516,
+          "d127_run_id": 37217744628,
+          "usage_run_id": 37217744811,
+          "release_tag": "relay-agent-v110",
+          "release_id": 403111389,
+          "agent_asset_id": 610204624,
+          "agent_size_bytes": 7290368,
+          "agent_sha256": "1507b7eebc73c1f34efe8000bb732f0925be4c0d1a6e2eb7694f53821af61ddc",
+          "inventory_channel_release_id": 394587029,
+          "inventory_channel_latest_json_asset_id": 610204671,
+          "inventory_channel_agent_asset_id": 610204673,
+          "inventory_channel_checksum_asset_id": 610204675,
+          "android": "beta-vc97__UNCHANGED__ASSET_609733318",
+          "stable": "OWNER_GATED_UNTOUCHED"
+        }
+      }
     }
   ]
 }
