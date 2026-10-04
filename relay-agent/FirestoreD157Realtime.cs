@@ -50,7 +50,16 @@ namespace SupraInventoryRelayAgent
 
         internal static void MarkConnected(bool connected)
         {
-            Interlocked.Exchange(ref _connected, connected ? 1 : 0);
+            var next = connected ? 1 : 0;
+            var previous = Interlocked.Exchange(ref _connected, next);
+            // D161 v108: connection transitions are local wake signals. In
+            // particular CONNECTED->DISCONNECTED must promptly resume REST fallback.
+            if (previous != next) WakeTransport();
+        }
+
+        internal static void WakeTransport()
+        {
+            try { Wake.Set(); } catch { }
         }
 
         internal static void Pulse(Google.Cloud.Firestore.V1.Document document)
@@ -74,7 +83,7 @@ namespace SupraInventoryRelayAgent
                     }
                 }
             }
-            try { Wake.Set(); } catch { }
+            WakeTransport();
         }
 
         internal static void Remove(string documentName)
