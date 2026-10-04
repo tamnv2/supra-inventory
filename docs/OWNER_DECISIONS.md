@@ -3200,3 +3200,15 @@ Approved repair:
 4. When Web Confirm is not ready, D160 must create History and terminal `WMS_SESSION_REQUIRED / Web Agent chưa sẵn sàng`, ACK it to the PDA, and perform zero WMS mutation.
 5. Add a regression guard proving the transport no longer uses the mutation fence as a pre-pipeline ingress gate.
 6. Repair lineage is **relay-agent-v107**. Android remains **beta-vc97 unchanged**. No Worker or Stable change is required for this defect.
+
+
+## D161 v108 fourth field repair — Owner approved 2026-10-04
+
+- Owner field evidence makes relay-agent-v107 **NOT PASS** for the Web-Confirm-not-ready History case. The lower pre-pipeline ingress fence was repaired in v107, but `StartListening()` and `IsBusinessAllowed()` still re-coupled authenticated relay ingress to `HasOperationalReadiness()` / WMS readiness.
+- Repair remains **inside D161**. Android is hard-locked at **beta-vc97** for this repair; Worker/Web/Stable are unchanged.
+- `StartListening()` must require an authenticated Agent session, not WMS readiness. `IsBusinessAllowed()` must represent Agent-authenticated Replay schedule authority only. WMS readiness remains mandatory only at the protected pre-mutation fence immediately before Search/checkbox/Confirm mutation.
+- Usage optimization is accepted with a fail-safe condition: **zero active PDA + healthy D157 pending realtime listener => suppress the redundant REST pending-queue query**. Listener-delivered requests must still enter the canonical D160 pipeline immediately. If the realtime listener disconnects, the existing 15-second REST fallback resumes automatically.
+- Existing active cadence is preserved: PDA active 3s, listener-degraded resilience 2s within the existing budget, burst HOT 1s. No new provider timer, query family, collection, listener, write, heartbeat or Android change is authorized.
+- A local-only wake on Picker presence transition `0 -> active` is allowed to remove the login/first-request race. This wake performs no provider read/write. Realtime connect/disconnect transitions also wake the local transport so fallback changes take effect promptly.
+- Actual PickList request evidence outranks cached PDA count: a listener-delivered PENDING request must never be discarded merely because local presence count is zero.
+- Target Agent release is monotonic **relay-agent-v108**. D160 relay-agent-v97 remains the accepted rescue base until explicit Owner D161 PASS.
