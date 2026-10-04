@@ -8,7 +8,7 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc93`
 - Current released Agent: `relay-agent-v101`
-- Beta: `D161_FEATURE_IMPLEMENTATION_ACTIVE__TRANCHE_A_B_MERGED__TRANCHE_C_BULK_REVOKE_ACTIVE__D160_ACCEPTED_BASE_RESCUE`
+- Beta: `D161_FEATURE_IMPLEMENTATION_ACTIVE__TRANCHE_A_B_C_MERGED__TRANCHE_D_SUPPORT_OBSERVABILITY_ACTIVE__D160_ACCEPTED_BASE_RESCUE`
 - Web: `D161_TRANCHE_A_MERGED__WEB_VERSION_1__DATE_PRESET_CONVERGENCE__AUTHENTICATED_FOOTER_CREDIT_ONLY__STABLE_UNTOUCHED`
 - Android: `D161_TRANCHE_A_MERGED__VC93_SAFETY_BASE__SCHEDULE_2215_TRANCHE_B_MERGED__FEATURE_RELEASE_MIN_VC94_PENDING`
 - D089: **OWNER ACCEPTED PASS**
@@ -1716,3 +1716,13 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Safety artifacts: `beta-vc93` and `relay-agent-v101`.
 - Feature-bearing D161 implementation is active; D160 behavior remains the rescue/accepted base until explicit Owner field acceptance.
 - Stable remains OWNER-GATED / untouched.
+
+
+## D161 Tranche D support/observability checkpoint — 2026-10-04
+
+- Tranche C bulk Picker revoke is merged as PR #421 at main `5a5c4690e39c9e3caf8d459d6b6228c82d61bafa`.
+- Tranche D is active on `feat/d161-support-observability-tranche-d`; Agent source candidate is v104 while released Safety Agent remains v101 and D160/v97 remains the accepted rescue base.
+- Web/Android/Agent support logging is converging on schema v2 local-first evidence, trusted `YYYY-MM-DD` Drive archive folders, bundle/boundary idempotency and positive `DRIVE_SYNCED` prune authority.
+- Existing scoped Beta Worker/InventoryCore/Logs Drive/Apps Script gateway/Firestore fallback are reused. No new persistent provider resource or provider polling cadence is introduced.
+- Stable remains OWNER-GATED and untouched.
+- NEXT_ACTION: pass Tranche D gates → merge → continue D161 HR + global support control → complete release/runtime verification → READY_FOR_OWNER_FIELD_TEST.
