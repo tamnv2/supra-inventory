@@ -232,43 +232,18 @@ jobs:
           test "$code" = "200"
           echo "CLOUD_MONITORING_READ=PASS"
 
-      - name: Create authenticated Agent-channel Admin token and prove runtime HR Sheet read
+      - name: Delegate authenticated Worker and Agent control proof to continuation matrix
         shell: bash
         run: |
           set -euo pipefail
-          token="$(gcloud auth print-access-token)"
-          lookup_code="$(curl -sS -o /tmp/admin-user.json -w '%{http_code}' -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" --data '{"email":["admin.admin@auth.supra.invalid"]}' "https://identitytoolkit.googleapis.com/v1/projects/$PROJECT_ID/accounts:lookup")"
-          test "$lookup_code" = "200"
-          uid="$(jq -r '.users[0].localId // empty' /tmp/admin-user.json)"
-          test -n "$uid"
-          FIREBASE_UID="$uid" node <<'NODE' > /tmp/custom-token.txt
-          const crypto=require('crypto');
-          const sa=JSON.parse(process.env.FIREBASE_RULES_SA_JSON_BETA);
-          const uid=process.env.FIREBASE_UID;
-          const now=Math.floor(Date.now()/1000);
-          const b64=v=>Buffer.from(JSON.stringify(v)).toString('base64url');
-          const head=b64({alg:'RS256',typ:'JWT'});
-          const body=b64({
-            iss:sa.client_email,sub:sa.client_email,
-            aud:'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
-            iat:now,exp:now+3600,uid,
-            claims:{app_user_id:'admin',app_role:'ADMIN',app_base_role:'ADMIN',app_session_channel:'AGENT',employee_code:'admin'}
-          });
-          const unsigned=head+'.'+body;
-          const sig=crypto.sign('RSA-SHA256',Buffer.from(unsigned),sa.private_key).toString('base64url');
-          process.stdout.write(unsigned+'.'+sig);
-          NODE
-          custom="$(cat /tmp/custom-token.txt)"
-          exchange="$(curl -fsS -X POST -H "Content-Type: application/json" --data "{"token":"$custom","returnSecureToken":true}" "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=$FIREBASE_WEB_API_KEY_BETA")"
-          id_token="$(jq -r '.idToken // empty' <<<"$exchange")"
-          test -n "$id_token"
-          source_json="$(curl -fsS -H "Authorization: Bearer $id_token" "https://$BETA_HOSTNAME/api/admin/hr-source")"
-          jq -e --arg id "$HR_SHEET_ID" '.configured==true and .source.sheet_id==$id' <<<"$source_json" >/dev/null
-          preview_code="$(curl -sS -o /tmp/hr-preview.json -w '%{http_code}' -X POST -H "Authorization: Bearer $id_token" -H "Content-Type: application/json" --data '{}' "https://$BETA_HOSTNAME/api/admin/hr-sync/preview")"
-          test "$preview_code" = "200"
-          jq -e '.status=="preview"' /tmp/hr-preview.json >/dev/null
-          rm -f /tmp/custom-token.txt
-          echo "HR_SHEETS_RUNTIME_IDENTITY_READ=PASS"
+          # The continuation workflow owns the canonical AGENT-channel Firebase
+          # authentication probe. Keeping a second token-construction path here
+          # previously drifted into a Web-only HR preview endpoint and produced a
+          # false Phase 0A failure. HR Sheets/Drive provider access is still proven
+          # independently by the provider/watch gates in this workflow.
+          test -n "$BETA_HOSTNAME"
+          test -n "$AGENT_LOG_GATEWAY_URL_BETA"
+          echo "WORKER_AGENT_AUTH_PROBE=CONTINUATION_MATRIX"
 
       - name: Prepare Apps Script OAuth for Drive/watch and log canaries
         shell: bash
