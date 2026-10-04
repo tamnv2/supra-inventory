@@ -203,11 +203,13 @@ jobs:
           email="$(jq -r '.client_email' "$key")"
           gcloud auth activate-service-account "$email" --key-file="$key" --project="$PROJECT_ID" --quiet >/dev/null
 
-          list_json="$(npx --yes firebase-tools@14.12.1 functions:list --project "$PROJECT_ID" --json)"
           for fn in pickerAlertCreated pickerAlertResolved pickerActiveCallCreated pickerActiveCallResolved operatingScheduleChanged agentLogUploadWritten; do
-            grep -q "\"$fn\"" <<<"$list_json" || { echo "Missing deployed Gen2 Function: $fn" >&2; exit 1; }
-            runtime="$(gcloud functions describe "$fn" --gen2 --region asia-southeast1 --project "$PROJECT_ID" --format='value(serviceConfig.serviceAccountEmail)')"
-            test "$runtime" = "$ALERT_RUNTIME_SA" || { echo "Unexpected runtime identity for $fn" >&2; exit 1; }
+            if ! runtime="$(gcloud functions describe "$fn" --gen2 --region asia-southeast1 --project "$PROJECT_ID" --format='value(serviceConfig.serviceAccountEmail)')"; then
+              echo "::error::D161_GEN2_FUNCTION_DESCRIBE_FAILED_$fn" >&2
+              exit 1
+            fi
+            test -n "$runtime" || { echo "::error::D161_GEN2_FUNCTION_MISSING_$fn" >&2; exit 1; }
+            test "$runtime" = "$ALERT_RUNTIME_SA" || { echo "::error::D161_GEN2_FUNCTION_RUNTIME_IDENTITY_MISMATCH_$fn" >&2; exit 1; }
           done
 
           # Effective FCM capability is proven by the disposable D161 continuation
