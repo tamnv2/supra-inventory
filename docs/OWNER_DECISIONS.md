@@ -3167,3 +3167,16 @@ Owner field test of the D161 Beta candidate found three defects and explicitly a
 3. **Agent active-Picker observation:** after Agent authentication, **Picker đang hoạt động trên PDA** remains visible and synchronized even when Web Confirm/WMS is not ready and even outside the business-processing window. Only an unauthenticated Agent hides the list. PickList mutation/PRIMARY processing remains gated by WMS readiness and schedule authority. The repair reuses one existing Agent-sync gRPC listener stream and observes exactly two existing documents on that stream: `relay_poc_coordination/agent_sync` plus authoritative `picker_presence_projection/current`. It adds no collection query, per-Picker listener, polling loop or write cadence.
 
 Impact approved by Owner: Beta Web/Worker/Android/Agent plus existing compact Agent-sync listener semantics. Web release increments to **Version 2**; Agent candidate increments to **v105**; Android source change requires the next monotonic Beta APK (expected **vc97** if no intervening release). Stable remains OWNER-GATED and untouched.
+
+## D161 Owner field-retest repair — bulk revoke / WMS-not-ready History / Usage — 2026-10-04
+
+Status: **OWNER REPORTED FAIL — REPAIR AUTHORIZED WITHIN THE SAME D161 CHANGE ID**.
+
+The Owner field-tested Agent v105 with Android vc97 and reported three additional defects:
+
+1. **Bulk Picker revoke:** **Kích toàn bộ user** fails although revoking one Picker can still complete its local session-generation path. Agent-authenticated Worker endpoints must accept the dedicated Agent Firebase identity without weakening WEB/ANDROID interactive-session authority. The privileged bulk action remains limited to the existing authorized Agent users and keeps its confirmation/password guard.
+2. **PickList request History while Web Confirm is not ready:** once an authenticated Agent receives a PDA request, WMS/browser readiness must not suppress request ingress, History creation or an explicit terminal result. If Web Confirm is still preparing/not ready, the request must terminate without any WMS mutation as **WMS_SESSION_REQUIRED / Web Agent chưa sẵn sàng**, be visible in **Lịch sử Picker xác nhận PickList**, and return the explicit reason to the PDA instead of timing out with blank Agent history. Existing schedule authority, PRIMARY/generation fencing and all WMS mutation safety gates remain.
+3. **Usage:** Agent must accept the currently deployed authenticated Usage gateway revision **D161-GW-v2** while retaining legacy **D160-GW-v1** compatibility and exact service/project identity checks. Arbitrary gateway revisions remain rejected.
+
+Implementation lineage for this repair is **Agent v106**. Android **vc97 remains unchanged** because the timeout/blank-history defect is on Agent ingress/terminal handling, not the Android request contract. Beta Worker/Agent may change; Stable remains OWNER-GATED and untouched. No new persistent provider resource, polling loop, collection query or write cadence is authorized.
+

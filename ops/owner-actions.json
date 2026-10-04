@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "BLOCKED_BY_SECOND_FIELD_REPAIR__PR_CI_RELEASE_PENDING",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "The three Owner-reported D161 defects are repaired and technical/runtime/release gates are PASS. Final acceptance still requires the Owner/company field environment to retest the repaired Beta candidate.",
+      "reason_owner_only": "Owner field retest found three additional D161 defects. Owner action is blocked until the same D161 change publishes the repaired Beta Worker and Agent v106; Android vc97 is unchanged.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4811,11 +4811,14 @@
         "pre_repair_agent": "relay-agent-v104__FIELD_DEFECT_REPORTED",
         "repair_web": "Version 2__DEPLOYED__MAIN_AFAF9D56",
         "repair_agent": "relay-agent-v105__RELEASED__RUN_37199390032",
-        "repair_android": "beta-vc97__RELEASED__RUN_37199390022",
-        "repair_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__SCHEMA17_17__OPERATIONAL5_5"
+        "repair_android": "beta-vc97__UNCHANGED_FOR_SECOND_REPAIR",
+        "repair_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__SCHEMA17_17__OPERATIONAL5_5",
+        "second_field_repair": "IMPLEMENTED_ON_BRANCH__TARGET_AGENT_V106__WORKER_REDEPLOY__CI_RELEASE_PENDING"
       },
       "shortest_test_path": [
-        "After repair releases are published, refresh Beta Web and verify Ca bình thường 06:00–22:00 with technical Replay 05:45–22:15 and no obsolete 22:30 copy.",
+        "After Agent v106 and the repaired Beta Worker are published, test Kích toàn bộ user with at least two logged-in Picker Android sessions; verify all affected sessions are revoked and must log in again.",
+        "With Agent authenticated and Web Confirm showing preparing/not-ready, send a PickList request from Android vc97; verify Agent History immediately shows the request and explicit reason Web Agent chưa sẵn sàng, PDA receives the explicit terminal instead of timing out, and no WMS mutation occurs.",
+        "Open Usage as admin/tamnv2; verify the current D161-GW-v2 data loads successfully and refresh remains restricted to the authorized users.",
         "Create one controlled invalid HR row; verify HARD_BLOCK shows the exact row/reason, makes zero user mutation, then correct it and use Kiểm tra lại nguồn.",
         "Create a controlled CONFIRM_REQUIRED HR change; verify Có applies only after revalidation and Không keeps current data unchanged.",
         "Login Agent while Web Confirm/WMS is not ready; verify logged-in Picker sessions still appear and login/logout changes converge.",
@@ -4823,8 +4826,11 @@
         "Continue remaining D161 field acceptance items after these three repairs pass."
       ],
       "pass_criteria": [
+        "Bulk Picker revoke succeeds through dedicated Agent Worker authentication without weakening WEB/ANDROID session authority or privileged-user/password confirmation guards.",
+        "Web-Confirm-not-ready requests create a non-blank Picker History terminal with explicit reason and perform zero WMS mutation.",
+        "Usage accepts only the scoped service/project and allowed D161-GW-v2 or legacy D160-GW-v1 revisions.",
+        "Agent v106 and repaired Beta Worker are published from the same repair lineage; Android remains beta-vc97 unless independently changed.",
         "All three Owner-reported field defects are repaired without regressing D161 schedule runtime, HR fail-closed semantics or PickList WMS mutation gates.",
-        "Web Version 2, Agent v105 and the next monotonic Android Beta release are published from the same repaired main lineage and technical/runtime gates pass.",
         "No new persistent provider resource, collection query, per-Picker listener, polling loop or write cadence is introduced; the existing Agent-sync gRPC stream observes two exact existing documents.",
         "Stable remains untouched.",
         "Owner completes field retest and explicitly accepts D161."
@@ -4864,9 +4870,16 @@
           "android_release_id": 402990645,
           "android_asset_id": 609733266,
           "android_sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19"
+        },
+        "second_field_repair": {
+          "owner_reported_at": "2026-10-04",
+          "defects": 3,
+          "target_agent": "relay-agent-v106",
+          "android": "beta-vc97__UNCHANGED",
+          "status": "PR_CI_RELEASE_PENDING"
         }
       },
-      "remaining_owner_action": "RETEST_3_REPAIRED_ITEMS_ON_WEB_VERSION_2__AGENT_V105__ANDROID_VC97__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
+      "remaining_owner_action": "BLOCKED_UNTIL_SECOND_FIELD_REPAIR_RELEASE_PASS__THEN_RETEST_BULK_KICK__WMS_NOT_READY_HISTORY__USAGE__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
       "closed": false
     }
   ]

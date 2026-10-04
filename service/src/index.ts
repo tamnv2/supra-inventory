@@ -485,6 +485,36 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   return user;
 }
 
+async function requireAgentUser(request: Request, env: Env, roles: AppRole[] = ["ADMIN", "PICKPACK_ADMIN"]): Promise<InternalUser> {
+  const token = readBearerToken(request);
+  if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
+  let identity;
+  try {
+    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
+  } catch {
+    throw new Response(JSON.stringify({ error: "INVALID_AUTH_TOKEN" }), { status: 401, headers: { "content-type": "application/json" } });
+  }
+  const user = await getUserByFirebaseUid(env, identity.uid);
+  if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+
+  // Agent signs in directly with the dedicated synthetic Firebase password identity.
+  // Those refreshable ID tokens intentionally carry the persistent role/user claims
+  // but no WEB/ANDROID interactive-session channel. Never relax requireUser(): only
+  // /api/agent/* endpoints may accept this channel-less Agent identity.
+  if (identity.sessionChannel !== "" && identity.sessionChannel !== "AGENT") {
+    throw new Response(JSON.stringify({ error: "AGENT_SESSION_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
+  }
+  if (Number(user.firebase_agent_ready || 0) !== 1 ||
+      user.base_role !== user.role ||
+      (user.role !== "ADMIN" && user.role !== "PICKPACK_ADMIN")) {
+    throw new Response(JSON.stringify({ error: "AGENT_OPERATOR_REQUIRED" }), { status: 403, headers: { "content-type": "application/json" } });
+  }
+  if (roles.length && !roles.includes(user.role)) {
+    throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
+  }
+  return user;
+}
+
 async function constantTimeEqual(left: string, right: string): Promise<boolean> {
   const encoder = new TextEncoder();
   const [a, b] = await Promise.all([
@@ -1258,7 +1288,7 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/support-log-request") {
-        const operator = await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const login = String(operator.employee_code || "").trim().toLowerCase();
         if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
@@ -1404,7 +1434,7 @@ export default {
         (request.method === "GET" && url.pathname === "/api/agent/picker-session/revoke-all-preview") ||
         (request.method === "POST" && url.pathname === "/api/agent/picker-session/revoke-all")
       ) {
-        const operator = await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const login = String(operator.employee_code || "").trim().toLowerCase();
         if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
@@ -1478,7 +1508,7 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/picker-session/revoke") {
-        const operator = await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         let body: { user_id?: string; firebase_uid?: string; revoked_generation?: number } = {};
         try {

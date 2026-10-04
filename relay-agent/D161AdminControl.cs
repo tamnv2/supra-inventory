@@ -116,7 +116,7 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (Exception ex)
                 {
-                    Log("D161 BULK_REVOKE result=FAIL type=" + ex.GetType().Name);
+                    Log("D161 BULK_REVOKE result=FAIL type=" + ex.GetType().Name + " detail=" + AgentDiagnostics.Sanitize(ex.Message));
                     Ui(() => _pickerOnlineStatus.Text =
                         "Kích toàn bộ user thất bại · " + SafeMessage(ex));
                 }

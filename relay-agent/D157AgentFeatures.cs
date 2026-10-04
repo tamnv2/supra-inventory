@@ -56,8 +56,7 @@ namespace SupraInventoryRelayAgent
                         var coordinator = _leaderCoordinator;
                         return coordinator != null &&
                                coordinator.IsLeader &&
-                               IsBusinessAllowed() &&
-                               HasOperationalReadiness();
+                               IsBusinessAllowed();
                     },
                     message => Log(message));
                 _d157PendingWakeListener.Start();

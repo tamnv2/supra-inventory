@@ -880,3 +880,15 @@ This section supersedes the earlier D140/D160 role-limited listener rule for aut
 - No collection query, per-Picker listener, polling loop or write cadence is introduced. `picker_presence_projection/current` is already written by the existing server-side login/logout projection path; the Agent only observes it.
 - The change adds bounded document-listener reads: one initial read for each of the two exact documents per authenticated Agent stream, plus document-change reads when those exact documents change. It adds no provider write.
 - PickList processing, PRIMARY mutation authority, WMS confirmation and business schedule gates are unchanged.
+
+## D161 field-retest repair — degraded PRIMARY receiver when WMS is not ready
+
+An authenticated Agent transport remains connected even when Web Confirm is still preparing or otherwise not ready. WMS readiness is a **mutation-readiness** gate, not a request-observation/history gate.
+
+- If no WMS-ready standby is available, one current/vacant PRIMARY may remain or become a **degraded receiver**.
+- The degraded receiver may consume the existing PDA pending request, create/update the existing local Picker History row and durable-ACK the explicit terminal **WMS_SESSION_REQUIRED / WEB_CONFIRM_NOT_READY**.
+- The degraded receiver performs **zero WMS business mutation**. The D160 browser gate still terminates before Search/checkbox/Confirm whenever Web Confirm is not ready.
+- If a ready standby exists, normal HA handoff/relinquish remains preferred. Role/generation authority remains mandatory immediately before any later WMS mutation.
+- Existing business-window authority remains unchanged. This repair does not turn an out-of-window business request into an allowed confirmation.
+- Existing Firestore REST/listener/Agent-sync resources are reused. No new collection, query, listener family, client polling loop or write cadence is added.
+

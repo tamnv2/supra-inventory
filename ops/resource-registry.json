@@ -143,7 +143,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE",
+      "status": "D161_SECOND_FIELD_REPAIR_IMPLEMENTED__PR_CI_PENDING__D160_ACCEPTED_BASE_RESCUE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
