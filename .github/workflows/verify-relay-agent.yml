@@ -248,6 +248,67 @@ jobs:
             throw "D161 bulk Picker revoke must reuse existing Worker/session authority without a new Firestore command resource."
           }
 
+          # D161 v109 single-kick repair: per-row kick uses one idempotent
+          # server-authoritative command. vc97 logout signal is published only after
+          # authority commits; session revoke must never be encoded as CALL_SPECIALIST.
+          $singleKickStart = $d119Features.IndexOf('private void KickPickerUser(PickerPresenceView picker)')
+          $singleKickEnd = $d119Features.IndexOf('private int ShowPickerContactChoice', $singleKickStart)
+          if ($singleKickStart -lt 0 -or $singleKickEnd -le $singleKickStart) {
+            throw "D161 v109 single-kick method boundary missing."
+          }
+          $singleKickBody = $d119Features.Substring($singleKickStart, $singleKickEnd - $singleKickStart)
+          foreach ($marker in @(
+            '"single-" + Guid.NewGuid().ToString("N")',
+            'authoritativeGeneration',
+            'SERVER_AUTHORITY_THEN_SESSION_SIGNAL'
+          )) {
+            if (-not $singleKickBody.Contains($marker)) { throw "D161 v109 Agent single-kick guard missing: $marker" }
+          }
+          if ($singleKickBody.Contains('_agentSyncClient.RevokePickerSession')) {
+            throw "D161 v109 Agent must not publish session-control revoke before Worker authority."
+          }
+          foreach ($marker in @(
+            '"request_id"',
+            '"revoked_generation"',
+            'RETRY_SAME_ID',
+            'TryRevokePickerWorkerSessionD160'
+          )) {
+            if (-not $d160Resilience.Contains($marker)) { throw "D161 v109 idempotent single-kick transport guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'publishPickerSessionRevocation',
+            'PICKER_SESSION_SIGNAL_FAILED',
+            'PUBLISHED_AFTER_AUTHORITY',
+            'issued_by_user_id'
+          )) {
+            if (-not $serviceIndex.Contains($marker)) { throw "D161 v109 Worker single-kick guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'D161_SINGLE_REVOKE_SERVER_AUTHORITY',
+            'picker_session_controls',
+            'revoked_generation'
+          )) {
+            if (-not $projection.Contains($marker)) { throw "D161 v109 session-control convergence guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'd161_single_picker_revoke:',
+            'single_revoke_request_conflict',
+            'idempotent_replay'
+          )) {
+            if (-not $core.Contains($marker)) { throw "D161 v109 InventoryCore single-kick idempotency guard missing: $marker" }
+          }
+          $coreSingleStart = $core.IndexOf('url.pathname === "/auth/revoke-android-session"')
+          $coreSingleEnd = $core.IndexOf('url.pathname === "/auth/end-session"', $coreSingleStart)
+          if ($coreSingleStart -lt 0 -or $coreSingleEnd -le $coreSingleStart) {
+            throw "D161 v109 InventoryCore single-revoke method boundary missing."
+          }
+          $coreSingleBody = $core.Substring($coreSingleStart, $coreSingleEnd - $coreSingleStart)
+          if ($coreSingleBody.Contains('CALL_SPECIALIST') -or
+              $coreSingleBody.Contains('event: "picker_command"') -or
+              $coreSingleBody.Contains('compatibilityPush')) {
+            throw "D161 v109 session revoke must never generate a specialist overlay command."
+          }
+
           foreach ($marker in @(
             'Lịch sử Picker xác nhận PickList',
             'reset lúc 05:00',
