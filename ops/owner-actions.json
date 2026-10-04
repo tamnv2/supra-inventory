@@ -4895,7 +4895,8 @@
           "target_agent": "relay-agent-v107",
           "android": "beta-vc97__UNCHANGED",
           "worker": "UNCHANGED",
-          "status": "IMPLEMENTED_ON_BRANCH__PR_CI_RELEASE_PENDING"
+          "status": "PR_432_CI_RELEASE_PENDING",
+          "repair_pr": 432
         }
       },
       "remaining_owner_action": "BLOCKED_UNTIL_AGENT_V107_RELEASE_PASS__THEN_RETEST_WMS_NOT_READY_HISTORY_WITH_ANDROID_VC97__OTHER_D161_ACCEPTANCE_REMAINS_PENDING",
