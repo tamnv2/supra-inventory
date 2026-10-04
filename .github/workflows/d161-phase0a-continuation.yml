@@ -195,11 +195,11 @@ jobs:
           test "$source_code" = "200" || { echo "::error::D161_WORKER_HR_SOURCE_HTTP_$source_code"; exit 1; }
           jq -e --arg id "$HR_SHEET_ID" '.configured==true and .source.sheet_id==$id' /tmp/d161-hr-source.json >/dev/null || { echo "::error::D161_WORKER_HR_SOURCE_CONTRACT_MISMATCH"; exit 1; }
 
-          gateway_code="$(curl -sS -o /tmp/d161-gateway-get.json -w '%{http_code}' "$AGENT_LOG_GATEWAY_URL_BETA")"
+          gateway_code="$(curl -sSL -o /tmp/d161-gateway-get.json -w '%{http_code}' "$AGENT_LOG_GATEWAY_URL_BETA")"
           test "$gateway_code" = "200" || { echo "::error::D161_AGENT_GATEWAY_GET_HTTP_$gateway_code"; exit 1; }
           jq -e '.ok==true and .service=="SUPRA_AGENT_OPERATIONS_GATEWAY_D160"' /tmp/d161-gateway-get.json >/dev/null || { echo "::error::D161_AGENT_GATEWAY_IDENTITY_MISMATCH"; exit 1; }
           control_payload="$(jq -nc --arg token "$id_token" '{action:"get_firestore_usage",id_token:$token}')"
-          control_code="$(curl -sS -o /tmp/d161-gateway-control.json -w '%{http_code}' -X POST -H "Content-Type: application/json" --data "$control_payload" "$AGENT_LOG_GATEWAY_URL_BETA")"
+          control_code="$(curl -sSL -o /tmp/d161-gateway-control.json -w '%{http_code}' -X POST -H "Content-Type: application/json" --data "$control_payload" "$AGENT_LOG_GATEWAY_URL_BETA")"
           test "$control_code" = "200" || { echo "::error::D161_AGENT_GATEWAY_CONTROL_HTTP_$control_code"; exit 1; }
           jq -e '.error == null and .availability.reads == true' /tmp/d161-gateway-control.json >/dev/null || { echo "::error::D161_AGENT_GATEWAY_CONTROL_CONTRACT_MISMATCH"; exit 1; }
 
