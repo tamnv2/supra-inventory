@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "BLOCKED_BY_SIXTH_FIELD_REPAIR",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "D161 fifth field repair is merged and technical/runtime/release PASS on Agent v109 + Beta Worker. Owner field retest remains required with Android beta-vc97 unchanged. The per-row Kích User path now uses server authority first and no longer emits the specialist-overlay revoke FCM.",
+      "reason_owner_only": "D161 Owner field retest is temporarily blocked while the approved Agent-only v110 repair is implemented and technically released. Android beta-vc97 remains unchanged; no Owner action is needed until v110 is ready.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4816,26 +4816,26 @@
         "second_field_repair": "PASS__PR_430__MAIN_6FCA277E__AGENT_V106__WORKER_RUN_37201568740__AGENT_RUN_37201568734__USAGE_RUN_37201568816",
         "third_field_repair": "OWNER_FIELD_NOT_PASS__PR_432__MAIN_B7307EEB__AGENT_V107__HISTORY_STILL_BLANK_WHEN_WEB_CONFIRM_NOT_READY",
         "fourth_field_repair": "PASS__PR_434__MAIN_217D33F1__AUTHORITY_PR_435__MAIN_5A3C07EB__AGENT_V108__RUN_37207091449__RELEASE_403043358__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
-        "fifth_field_repair": "PASS__PR_437__MAIN_C5673B4E__WORKER_RUN_37214830211__AGENT_V109__RUN_37214830165__RELEASE_403093302__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED"
+        "fifth_field_repair": "PASS__PR_437__MAIN_C5673B4E__WORKER_RUN_37214830211__AGENT_V109__RUN_37214830165__RELEASE_403093302__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
+        "sixth_field_repair": "OWNER_APPROVED__IN_PROGRESS__TARGET_AGENT_V110__OVERTIME_UI_SCHEDULE_DECOUPLING__READY_EMPTY_PICKLIST__ANDROID_VC97_UNCHANGED"
       },
       "shortest_test_path": [
-        "Run/update Windows Agent to relay-agent-v109. Keep Android on beta-vc97.",
-        "Test one per-row Kích User on an actively logged-in Picker. Confirm the PDA returns to the login screen and no locked 'Liên hệ picker' / specialist overlay appears.",
-        "Confirm that Picker disappears from the active-PDA list after the authoritative revoke, then log that Picker back in and verify the new session operates normally.",
-        "Retest the prior v108 WMS-not-ready case: with Agent authenticated but Web Confirm preparing/not-ready, send one PickList from Android vc97 and verify History records the explicit Web Agent chưa sẵn sàng terminal without WMS mutation.",
-        "With zero active PDA and healthy D157 pending realtime, verify redundant 15-second pending REST polling stays suppressed; disconnect/degrade realtime to verify the existing fallback resumes.",
-        "Continue the remaining D161 field acceptance items after these repairs pass."
+        "No manual action until relay-agent-v110 reaches technical/runtime/release PASS.",
+        "Then update Windows Agent to relay-agent-v110. Keep Android on beta-vc97.",
+        "Outside 22:15–05:00, verify the red/white warning visibly shows Gia hạn +1 giờ and the button remains visible after resizing.",
+        "With Web Agent showing no PickList, press Gia hạn +1 giờ and verify the shared overtime schedule activates without requiring a PickList.",
+        "Verify the Web Confirm status reads Web Agent chưa có PickList rather than Chưa sẵn sàng when the page explicitly shows Không tìm thấy kết quả phù hợp.",
+        "Send a PickList from Android vc97 while that empty state is active and verify Agent performs the normal Search/recovery/confirm flow.",
+        "Continue the per-row Kích User and remaining D161 field acceptance checks."
       ],
       "pass_criteria": [
-        "Agent v109 per-row Kích User revokes exactly the selected Android Picker session and does not open a specialist/call overlay.",
-        "Android beta-vc97 logs out through the existing session-control revoked_generation path; Android source/build/release remains unchanged.",
-        "A repeated same logical single-kick command is idempotent and cannot advance the session generation twice or widen into Kích toàn bộ user.",
-        "Agent v109 starts authenticated relay transport without requiring Web Confirm/WMS readiness.",
-        "WMS-not-ready Android vc97 requests create a non-blank Picker History terminal with explicit Web Agent chưa sẵn sàng reason and perform zero WMS mutation.",
-        "Strict WMS-ready plus PRIMARY/generation mutation fencing remains intact before any actual WMS Search/checkbox/Confirm mutation.",
-        "Zero PDA plus healthy D157 realtime listener suppresses only the redundant REST pending query; listener-delivered requests remain processable and realtime loss restores the existing REST fallback.",
-        "No new provider resource, Firestore collection/query/listener family, polling/heartbeat cadence or normal-path write increase is introduced.",
-        "Stable remains untouched.",
+        "Agent v110 keeps the visible overtime action button inside the warning panel and clickable after resize.",
+        "Overtime extension and early-start schedule activation do not depend on WMS/PickList readiness.",
+        "Explicit WMS no-results is READY_EMPTY and user-facing as Web Agent chưa có PickList; blank/unhydrated shell remains fail-closed.",
+        "A later PDA request from READY_EMPTY enters the existing Search/recovery/confirm pipeline and preserves strict PRIMARY/generation mutation fencing.",
+        "Per-row Kích User v109 repair remains regression-clean: selected PDA logs out with no specialist overlay.",
+        "Android beta-vc97, Worker, Web and Stable remain unchanged by v110.",
+        "No new provider resource/listener/query/poll/heartbeat/write cadence is introduced.",
         "Owner explicitly accepts the field result before D161 can PASS."
       ],
       "evidence": {
@@ -4963,7 +4963,7 @@
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "RETEST_AGENT_V109_SINGLE_KICK_NO_OVERLAY_WITH_ANDROID_VC97__RETEST_WMS_NOT_READY_HISTORY_AND_IDLE_REST_BEHAVIOR__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
+      "remaining_owner_action": "NONE_UNTIL_V110_TECHNICAL_RUNTIME_RELEASE_PASS",
       "closed": false
     }
   ]
