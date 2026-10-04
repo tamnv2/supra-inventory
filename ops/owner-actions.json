@@ -4781,9 +4781,13 @@
         "owner_command": "bắt đầu D161 tiến hành",
         "received_at": "2026-10-04",
         "authority_bootstrap": "PASS",
-        "phase0a_state": "STARTED",
+        "phase0a_state": "PASS",
         "resolved_agent_lineage": "V97_ACCEPTED__V98_V99_V100_TEST_HISTORY__V101_SAFETY__V102_PLUS_FEATURE",
-        "resolved_android_lineage": "VC92_ACCEPTED__VC93_SAFETY__VC94_PLUS_FEATURE"
+        "resolved_android_lineage": "VC92_ACCEPTED__VC93_SAFETY__VC94_PLUS_FEATURE",
+        "phase0a_provider_run_id": 37166085903,
+        "phase0a_continuation_run_id": 37166085920,
+        "phase0a_source_sha": "be097ce199f2f7f6d09570777193e63fb45399e3",
+        "phase0_state": "ACTIVE__SAFETY_V101_VC93_PREPARING"
       }
     }
   ]
