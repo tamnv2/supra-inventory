@@ -143,7 +143,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_THIRD_FIELD_REPAIR_IMPLEMENTED__PR_CI_RELEASE_PENDING__D160_ACCEPTED_BASE_RESCUE",
+      "status": "D161_THIRD_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -332,10 +332,15 @@
       "d159_usage_test_release_target": "HISTORICAL_D159_V3__NO_NEW_RUNTIME_CALLERS",
       "d159_monitoring_cache_seconds": 900,
       "d160_source_status": "CLOSED__ACTIVE_AGENT_SOURCE_RESTORED_EXACT_V97__TEST_V98_V99_V100_HISTORY_ONLY",
-      "d161_source_status": "THIRD_FIELD_REPAIR_AGENT_ONLY__V106_OWNER_RETEST_NOT_PASS_WMS_NOT_READY_HISTORY__TARGET_AGENT_V107__ANDROID_VC97_UNCHANGED__NO_WORKER_CHANGE__PR_CI_RELEASE_PENDING",
-      "d161_third_field_repair_target_agent": "relay-agent-v107",
+      "d161_source_status": "THIRD_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_B7307EEB__AGENT_V107__ANDROID_VC97_UNCHANGED__NO_WORKER_CHANGE__OWNER_RETEST_PENDING",
+      "d161_third_field_repair_target_agent": "relay-agent-v107__RELEASED",
       "d161_third_field_repair_android": "beta-vc97__UNCHANGED",
-      "d161_third_field_repair_resource_change": "NONE__EXISTING_FIRESTORE_RELAY_AND_AGENT_RELEASE_CHANNEL_ONLY__STABLE_UNTOUCHED"
+      "d161_third_field_repair_resource_change": "NONE__EXISTING_FIRESTORE_RELAY_AND_AGENT_RELEASE_CHANNEL_ONLY__STABLE_UNTOUCHED",
+      "d161_third_field_repair_agent_release_id": 403018374,
+      "d161_third_field_repair_agent_asset_id": 609838194,
+      "d161_third_field_repair_agent_size_bytes": 7287808,
+      "d161_third_field_repair_agent_sha256": "67a371a9e3e51a822344b74a97c93cbf56b5909ff8f374a4210722a8621707ca",
+      "d161_third_field_repair_inventory_channel_agent_asset_id": 609838227
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
