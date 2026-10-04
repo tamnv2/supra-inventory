@@ -869,3 +869,14 @@ Status: Implemented in merged D161 Tranche C; Owner field acceptance pending.
 - Initial sync, renewal overlap, duplicate notification and retry/recovery are idempotent against that snapshot identity.
 - Any Web confirmation proposal carries the exact snapshot revision/fingerprint that produced it. Confirmation revalidates current source authority; a changed source invalidates the stale proposal and recomputes the diff.
 - Complete-snapshot validation precedes mutation with precedence HARD_BLOCK > CONFIRM_REQUIRED > AUTO; one observed snapshot is never partially auto-applied before another part of the same snapshot is known to require hold/block.
+
+
+## D161 Owner field-repair Agent-sync semantics — 2026-10-04
+
+This section supersedes the earlier D140/D160 role-limited listener rule only for the compact active-Picker observation document.
+
+- While an Agent session is authenticated, the existing single-document `agent_sync` listener remains attached regardless of PRIMARY/NEXT_A/NEXT_B/DEEP_HIBERNATE role and regardless of WMS readiness.
+- Logout/invalid Agent session stops the listener and clears the active-Picker presentation.
+- No additional collection listener, per-Picker listener, polling loop or write cadence is introduced.
+- The change may increase compact document-listener reads only for authenticated Agents that previously had no listener while WMS was unavailable or the Agent was outside the HA trio.
+- PickList processing, PRIMARY mutation authority, WMS confirmation and business schedule gates are unchanged.
