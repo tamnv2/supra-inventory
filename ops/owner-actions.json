@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "REPAIR_IN_PROGRESS__V107_FIELD_NOT_PASS__V108_AGENT_ONLY",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "Owner field evidence shows relay-agent-v107 still does not surface History when Web Confirm is not ready because higher-level StartListening/IsBusinessAllowed gates remain coupled to WMS readiness. Owner approved an Agent-only v108 repair; Android vc97 is hard-locked and Worker/Web/Stable remain unchanged.",
+      "reason_owner_only": "D161 Agent-only v108 repair is merged and technical/runtime/release PASS. Owner field retest remains required with Android beta-vc97. Android is hard-locked unchanged; Worker/Web/Stable are unchanged for this repair.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4814,28 +4814,26 @@
         "repair_android": "beta-vc97__UNCHANGED_FOR_SECOND_REPAIR",
         "repair_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__SCHEMA17_17__OPERATIONAL5_5",
         "second_field_repair": "PASS__PR_430__MAIN_6FCA277E__AGENT_V106__WORKER_RUN_37201568740__AGENT_RUN_37201568734__USAGE_RUN_37201568816",
-        "third_field_repair": "PASS__PR_432__MAIN_B7307EEB__AGENT_V107__RUN_37203208163__ANDROID_VC97_UNCHANGED__NO_WORKER_CHANGE",
-        "fourth_field_repair": "IN_PROGRESS__TARGET_AGENT_V108__ANDROID_VC97_UNCHANGED__ZERO_PDA_HEALTHY_REALTIME_SUPPRESS_IDLE_REST__15S_FALLBACK_ON_LISTENER_LOSS"
+        "third_field_repair": "OWNER_FIELD_NOT_PASS__PR_432__MAIN_B7307EEB__AGENT_V107__HISTORY_STILL_BLANK_WHEN_WEB_CONFIRM_NOT_READY",
+        "fourth_field_repair": "PASS__PR_434__MAIN_217D33F1__AUTHORITY_PR_435__MAIN_5A3C07EB__AGENT_V108__RUN_37207091449__RELEASE_403043358__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED"
       },
       "shortest_test_path": [
-        "After Agent v106 and the repaired Beta Worker are published, test Kích toàn bộ user with at least two logged-in Picker Android sessions; verify all affected sessions are revoked and must log in again.",
-        "With Agent v107 authenticated and Web Confirm showing preparing/not-ready, send a PickList request from Android vc97; verify Agent History immediately records the request with Web Agent chưa sẵn sàng, PDA receives the explicit terminal instead of timing out, and zero WMS mutation occurs.",
-        "Open Usage as admin/tamnv2; verify the current D161-GW-v2 data loads successfully and refresh remains restricted to the authorized users.",
-        "Create one controlled invalid HR row; verify HARD_BLOCK shows the exact row/reason, makes zero user mutation, then correct it and use Kiểm tra lại nguồn.",
-        "Create a controlled CONFIRM_REQUIRED HR change; verify Có applies only after revalidation and Không keeps current data unchanged.",
-        "Login Agent while Web Confirm/WMS is not ready; verify logged-in Picker sessions still appear and login/logout changes converge.",
-        "Verify the same Picker list remains visible outside the business-processing window while PickList mutation stays blocked by existing schedule/WMS authority.",
-        "Continue remaining D161 field acceptance items after these three repairs pass."
+        "Run/update Windows Agent to relay-agent-v108. Keep Android on beta-vc97.",
+        "With Agent authenticated during an allowed Replay window, deliberately leave Web Confirm preparing/not-ready and send one PickList request from Android vc97.",
+        "Verify Agent History records the request promptly with reason Web Agent chưa sẵn sàng, Android receives the explicit terminal before its existing 20-second bound, and no WMS Search/checkbox/Confirm mutation occurs.",
+        "With zero active PDA and the D157 pending realtime listener connected, verify Agent relay state reports realtime ready / REST paused and does not issue the redundant 15-second pending-queue REST query.",
+        "If realtime becomes disconnected/degraded, verify the existing 15-second REST fallback resumes; when a Picker presence changes 0 -> active, relay wakes locally without a provider operation.",
+        "Continue the remaining D161 field acceptance items after this v108 repair passes."
       ],
       "pass_criteria": [
-        "Bulk Picker revoke succeeds through dedicated Agent Worker authentication without weakening WEB/ANDROID session authority or privileged-user/password confirmation guards.",
-        "Web-Confirm-not-ready requests create a non-blank Picker History terminal with explicit reason and perform zero WMS mutation.",
-        "Usage accepts only the scoped service/project and allowed D161-GW-v2 or legacy D160-GW-v1 revisions.",
-        "Agent v107 is published for the Agent-only ingress repair; Android remains beta-vc97 and Worker remains unchanged for this defect.",
-        "All three Owner-reported field defects are repaired without regressing D161 schedule runtime, HR fail-closed semantics or PickList WMS mutation gates.",
-        "No new persistent provider resource, collection query, per-Picker listener, polling loop or write cadence is introduced; the existing Agent-sync gRPC stream observes two exact existing documents.",
+        "Agent v108 starts authenticated relay transport without requiring Web Confirm/WMS readiness.",
+        "WMS-not-ready Android vc97 requests create a non-blank Picker History terminal with explicit Web Agent chưa sẵn sàng reason and perform zero WMS mutation.",
+        "Strict WMS-ready plus PRIMARY/generation mutation fencing remains intact before any actual WMS Search/checkbox/Confirm mutation.",
+        "Zero PDA plus healthy D157 realtime listener suppresses only the redundant REST pending query; a listener-delivered request is still processed even if local PDA count is zero.",
+        "Realtime disconnect restores the existing 15-second REST fallback; active 3-second, degraded-resilience 2-second and HOT 1-second behavior remain bounded as before.",
+        "No Android source/build change, per-PDA heartbeat, new Firestore collection/query family/listener family/write cadence or persistent provider resource is introduced.",
         "Stable remains untouched.",
-        "Owner completes field retest and explicitly accepts D161."
+        "Owner explicitly accepts the field result before D161 can PASS."
       ],
       "evidence": {
         "tranche_prs": [
@@ -4910,10 +4908,35 @@
           "inventory_channel_checksum_asset_id": 609838228,
           "android": "beta-vc97__UNCHANGED",
           "worker": "UNCHANGED",
+          "status": "TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_FIELD_RETEST_NOT_PASS",
+          "owner_retest": "NOT_PASS__HISTORY_STILL_BLANK_WHEN_WEB_CONFIRM_NOT_READY__2026_10_04"
+        },
+        "fourth_field_repair": {
+          "owner_approved_at": "2026-10-04",
+          "repair_pr": 434,
+          "repair_main_sha": "217d33f1e25a42931da91c08c5544ca577236d32",
+          "authority_repair_pr": 435,
+          "authority_main_sha": "5a3c07eb2a0486e2a79861b43b011a6fde739529",
+          "agent_run_id": 37207091449,
+          "target_agent": "relay-agent-v108",
+          "agent_release_id": 403043358,
+          "agent_asset_id": 609938421,
+          "agent_size_bytes": 7288320,
+          "agent_sha256": "b096d45bea049c847a277921e2039f6fd81c75bbfab22cd0ee1be3bf0a177dbf",
+          "inventory_channel_release_id": 394587029,
+          "inventory_channel_latest_json_asset_id": 609938504,
+          "inventory_channel_agent_asset_id": 609938501,
+          "inventory_channel_checksum_asset_id": 609938500,
+          "inventory_channel_sha256": "b096d45bea049c847a277921e2039f6fd81c75bbfab22cd0ee1be3bf0a177dbf",
+          "android": "beta-vc97__UNCHANGED",
+          "android_asset_id": 609733318,
+          "android_sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19",
+          "worker": "UNCHANGED",
+          "stable": "OWNER_GATED_UNTOUCHED",
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "WAIT_FOR_V108_TECHNICAL_RUNTIME_RELEASE_PASS__THEN_RETEST_WMS_NOT_READY_HISTORY_WITH_ANDROID_VC97_AND_VERIFY_IDLE_REST_SUPPRESSION_FALLBACK",
+      "remaining_owner_action": "RETEST_WMS_NOT_READY_HISTORY_EXPLICIT_REASON_AND_IDLE_REST_BEHAVIOR_ON_AGENT_V108_WITH_ANDROID_VC97__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
       "closed": false
     }
   ]
