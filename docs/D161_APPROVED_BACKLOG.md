@@ -831,3 +831,20 @@ Owner approved continuation under D161 after v110 field testing exposed stale ac
 - Do not let unrelated `agent_sync` history/counter/call-lock mutations repaint Picker UI.
 - Existing direct/control/sync paths only; no new listener/query/poll/heartbeat/provider write/timer cadence.
 - Target **relay-agent-v111**. Android beta-vc97, Worker, Web and Stable unchanged.
+
+
+### Seventh field repair technical/release checkpoint — Agent v111
+
+Technical/runtime/release PASS after the Owner-approved active-Picker convergence repair.
+
+- Implementation PR: **#441**, merged to main at `f28dd759d07f2e1f553640fcd594fd401de55485`.
+- Verify Beta Relay Agent: run **37220702938** PASS.
+- UI Design Guard: run **37220702940** PASS.
+- D127 Dashboard Probe: run **37220703084** PASS.
+- D159 Usage Agent verification: run **37220702957** PASS.
+- Release: **relay-agent-v111**, release id **403129379**.
+- EXE asset id **610278038**, size **7,297,536 bytes**, SHA-256 `8f8cf530443c2959b80a6547d2863ea80f6520ad485c6e651242bc8b7838b6bb`.
+- Trusted `inventory-channel` Agent asset id **610278135** matches the same size/SHA; `agent-latest.json` asset id **610278132**.
+- Android remains **beta-vc97** unchanged; inventory-channel APK asset **609733318** remains SHA-256 `28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19`.
+- Worker/Web/Stable are unchanged by v111. No new provider resource/listener/query/poll/heartbeat/Desktop timer/write cadence; normal-path provider usage is unchanged.
+- D161 remains **Owner field retest pending**; D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
