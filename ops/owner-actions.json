@@ -4824,7 +4824,7 @@
       "pass_criteria": [
         "All three Owner-reported field defects are repaired without regressing D161 schedule runtime, HR fail-closed semantics or PickList WMS mutation gates.",
         "Web Version 2, Agent v105 and the next monotonic Android Beta release are published from the same repaired main lineage and technical/runtime gates pass.",
-        "No new persistent provider resource, polling loop, per-Picker listener or write cadence is introduced.",
+        "No new persistent provider resource, collection query, per-Picker listener, polling loop or write cadence is introduced; the existing Agent-sync gRPC stream observes two exact existing documents.",
         "Stable remains untouched.",
         "Owner completes field retest and explicitly accepts D161."
       ],
