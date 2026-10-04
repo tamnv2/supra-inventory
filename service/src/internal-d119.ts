@@ -1,6 +1,9 @@
+import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 type InternalEnv = {
   APP_ENV: string;
   INVENTORY_CORE: DurableObjectNamespace;
+  FIREBASE_PROJECT_ID: string;
+  GOOGLE_RUNTIME_SA_JSON?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
@@ -144,6 +147,83 @@ export async function handleD119Internal(request: Request, env: InternalEnv): Pr
   const isAlertWindow = request.method === "GET" && url.pathname === "/api/internal/d119/alert-window";
   const isAgentLogUploadSession = request.method === "POST" && url.pathname === "/api/internal/d146/agent-log-upload-session";
   const isOperatingScheduleMirror = request.method === "POST" && url.pathname === "/api/internal/d149/operating-schedule";
+  const isBulkPickerRevoke = request.method === "POST" && url.pathname === "/api/internal/d161/bulk-picker-revoke";
+  if (isBulkPickerRevoke) {
+    if (!(await verifyRuntimeIdentity(request, env))) return json({ error: "INTERNAL_IDENTITY_REQUIRED" }, 401);
+    let body: { request_id?: string; issued_by_user_id?: string } = {};
+    try {
+      body = (await request.json()) as { request_id?: string; issued_by_user_id?: string };
+    } catch {
+      return json({ error: "INVALID_JSON" }, 400);
+    }
+    const requestId = String(body.request_id || "").trim();
+    const issuedByUserId = String(body.issued_by_user_id || "").trim();
+    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(requestId) || !/^[A-Za-z0-9._:-]{1,180}$/.test(issuedByUserId)) {
+      return json({ error: "INVALID_BULK_REVOKE_COMMAND" }, 400);
+    }
+
+    const operatorResponse = await core(env).fetch(
+      "https://inventory-core.internal/auth/user-by-id?user_id=" + encodeURIComponent(issuedByUserId),
+    );
+    const operatorPayload = operatorResponse.ok
+      ? await operatorResponse.json() as { user?: { employee_code?: string | null; role?: string; base_role?: string; status?: string } | null }
+      : { user: null };
+    const operator = operatorPayload.user;
+    const login = String(operator?.employee_code || "").trim().toLowerCase();
+    const role = String(operator?.role || "").trim().toUpperCase();
+    const baseRole = String(operator?.base_role || "").trim().toUpperCase();
+    if (
+      !operator ||
+      operator.status !== "ACTIVE" ||
+      !["admin", "tamnv2"].includes(login) ||
+      !["ADMIN", "PICKPACK_ADMIN"].includes(role) ||
+      role !== baseRole
+    ) {
+      return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
+    }
+
+    const revoke = await core(env).fetch("https://inventory-core.internal/auth/revoke-all-picker-android-sessions", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ request_id: requestId, issued_by_user_id: issuedByUserId }),
+    });
+    const result = await revoke.json() as {
+      status?: string;
+      affected?: number;
+      idempotent_replay?: boolean;
+      targets?: Array<{ user_id?: string; revoked_generation?: number }>;
+      error?: string;
+    };
+    if (!revoke.ok) return json(result, revoke.status);
+
+    const targets = Array.isArray(result.targets) ? result.targets.slice(0, 2000) : [];
+    const userIds = targets.map((item) => String(item.user_id || "").trim()).filter(Boolean);
+    if (userIds.length) {
+      await core(env).fetch("https://inventory-core.internal/realtime/close-users", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ user_ids: userIds, client_type: "ANDROID", reason: "session-changed" }),
+      }).catch(() => undefined);
+      await refreshPickerProjectionBestEffort(
+        env,
+        "D161_BULK_PICKER_REVOKE",
+        targets
+          .map((item) => ({
+            user_id: String(item.user_id || ""),
+            session_generation: Math.max(0, Number(item.revoked_generation || 0)),
+          }))
+          .filter((item) => item.user_id && item.session_generation > 0),
+      ).catch(() => undefined);
+    }
+
+    return json({
+      status: String(result.status || "bulk_picker_android_sessions_revoked"),
+      request_id: requestId,
+      affected: Math.max(0, Number(result.affected || userIds.length)),
+      idempotent_replay: result.idempotent_replay === true,
+    });
+  }
+
   if (isRetiredSkuSync) {
     return json({ error: "RETIRED_D126_MANUAL_FILE_ONLY" }, 410);
   }
