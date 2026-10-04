@@ -7,8 +7,8 @@
 - Project: `supra-inventory`
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
-- Current released Agent: `relay-agent-v106`
-- Beta: `D161_SECOND_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE`
+- Current released Agent: `relay-agent-v106` (v107 repair source pending CI/release)
+- Beta: `D161_THIRD_FIELD_REPAIR_IMPLEMENTED__PR_CI_RELEASE_PENDING__D160_ACCEPTED_BASE_RESCUE`
 - Web: `D161_FIELD_REPAIR_WEB_VERSION_2_DEPLOYED__SHIFT_0600_2200__REPLAY_0545_2215__HR_ACTIONABLE_BLOCKS`
 - Android: `D161_FIELD_REPAIR_SIGNED_BETA_VC97__TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_RETEST_PENDING`
 - D089: **OWNER ACCEPTED PASS**
@@ -1753,3 +1753,11 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Android remains **beta-vc97**; no Android source change was required for this repair.
 - OA096 is **READY_FOR_OWNER_FIELD_RETEST** for: bulk kick-all, WMS-not-ready explicit History/result, and Usage.
 - D160 v97/vc92 remains the accepted rescue base until explicit D161 Owner PASS. Stable remains OWNER-GATED and untouched.
+
+## D161 v106 field retest NOT PASS — Agent-only v107 History repair in progress — 2026-10-04
+
+- Owner confirmed Android vc97 sends the PickList request, but Agent v106 still leaves Picker History blank when Web Confirm is not ready.
+- Root cause is Agent-only: `FirestoreConfirmationTransport` used the strict WMS-ready mutation fence before the D160 pipeline, so History/terminal handling never ran.
+- Repair target is **relay-agent-v107**. Android remains **beta-vc97 unchanged**; Worker/Web and Stable are untouched for this defect.
+- v107 separates PRIMARY/generation request-ingress authority from the existing strict WMS mutation authority. The mutation fence still requires WMS-ready immediately before any real WMS action.
+- OA096 is blocked until v107 PR/CI/release PASS, then Owner retests the WMS-not-ready History/explicit-result path.
