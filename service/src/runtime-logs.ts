@@ -23,6 +23,9 @@ type RuntimeLogBody = {
   generated_at?: string;
   device?: Record<string, unknown>;
   payload?: unknown;
+  bundle_id?: string;
+  boundary_id?: string;
+  trace_id?: string;
 };
 
 const SENSITIVE_KEY = /authorization|bearer|token|password|secret|private|credential|api.?key|refresh|cookie|signing|keystore|session/i;
@@ -297,6 +300,9 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   generatedAt: string;
   receivedAt: string;
   content: string;
+  bundleId: string;
+  boundaryId: string;
+  traceId: string;
 } {
   const source = normalizeSource(body.source);
   const severity = normalizeSeverity(body.severity);
@@ -306,11 +312,21 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   const receivedAt = new Date().toISOString();
   const device = sanitize(body.device || {}) as Record<string, unknown>;
   const deviceSlug = safeSlug(device.device_id || device.id || device.model || device.label, source.toLowerCase());
+  const suppliedBundleId = String(body.bundle_id || "").trim().toLowerCase();
+  const bundleId = /^[a-f0-9]{32,64}$/.test(suppliedBundleId) ? suppliedBundleId : "";
+  const suppliedBoundaryId = String(body.boundary_id || "").trim();
+  const boundaryId = /^[A-Za-z0-9._:-]{1,180}$/.test(suppliedBoundaryId) ? suppliedBoundaryId : "";
+  const suppliedTraceId = String(body.trace_id || "").trim();
+  const traceId = /^[A-Za-z0-9._:-]{1,180}$/.test(suppliedTraceId) ? suppliedTraceId : "";
+
   const kind = runtimeLogKind(body.reason, severity);
   const filename = `${kind}_${source.toLowerCase()}_${deviceSlug}_${vietnamStamp(generatedAt)}.json`;
 
   const envelope: Record<string, unknown> = {
-    format: "supra-inventory-runtime-log-v1",
+    format: "supra-inventory-runtime-log-v2",
+    bundle_id: bundleId || null,
+    boundary_id: boundaryId || null,
+    trace_id: traceId || null,
     generated_at: generatedAt,
     received_at: receivedAt,
     source,
@@ -346,7 +362,7 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
       content = JSON.stringify(envelope, null, 2);
     }
   }
-  return { source, severity, filename, generatedAt, receivedAt, content };
+  return { source, severity, filename, generatedAt, receivedAt, content, bundleId, boundaryId, traceId };
 }
 
 export async function uploadRuntimeLog(
@@ -354,7 +370,7 @@ export async function uploadRuntimeLog(
   actor: RuntimeLogActor,
   body: RuntimeLogBody,
 ): Promise<Record<string, unknown>> {
-  const { source, severity, filename, generatedAt, receivedAt, content } = logEnvelope(actor, body);
+  const { source, severity, filename, generatedAt, receivedAt, content, bundleId, boundaryId, traceId } = logEnvelope(actor, body);
 
   // D144 authority: persist the sanitized support log in InventoryCore first.
   // Google Drive is archive-only. A revoked user OAuth token must never make
@@ -401,8 +417,13 @@ export async function uploadRuntimeLog(
     const token = await refreshGoogleAccessToken(env);
     await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
 
-    const daily = await resolveDailyLogFolder(env, token);
-    const archiveId = `runtime:${localId}`;
+    const daily = await resolveDailyLogFolder(env, token, new Date(generatedAt));
+    const logicalBoundary = boundaryId
+      ? await sha256Hex(`${source}|${actor.user_id}|${String((sanitize(body.device || {}) as Record<string, unknown>).device_id || "")}|${boundaryId}`)
+      : "";
+    const archiveId = bundleId
+      ? `bundle:${bundleId}`
+      : (logicalBoundary ? `boundary:${logicalBoundary}` : `runtime:${localId}`);
     const existing = await findArchivedByIdentity(daily.id, token, archiveId);
     if (existing?.id) {
       await markDriveState(env, localId, String(existing.id));
@@ -426,7 +447,16 @@ export async function uploadRuntimeLog(
       name: filename,
       parents: [daily.id],
       mimeType: "application/json",
-      appProperties: { project: "supra-inventory", source, severity, archive_id: archiveId, archive_date: daily.dateKey },
+      appProperties: {
+        project: "supra-inventory",
+        source,
+        severity,
+        archive_id: archiveId,
+        archive_date: daily.dateKey,
+        bundle_id: bundleId || "legacy",
+        boundary_id_hash: logicalBoundary || "none",
+        trace_id: traceId ? safeSlug(traceId, "trace") : "none",
+      },
     });
     const multipart = [
       `--${boundary}`,
