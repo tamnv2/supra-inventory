@@ -90,7 +90,7 @@ import {
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
-import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
+import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, queueWebSupportLogRequest, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
 import { WEB_VERSION, WEB_VERSION_LABEL } from "./web-version";
 import {
   createPickerReport,
@@ -4185,6 +4185,11 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
     markWebUpdateReceived();
     announceDeadlineEvents(events);
     announceNewReportEvents(events);
+    for (const row of events) {
+      if (row.event === "support_log_request" || (row.scopes || []).includes("support_log_request")) {
+        queueWebSupportLogRequest(row.metadata);
+      }
+    }
   }
   if (context.source === "reconcile") return reconcileActive();
 
