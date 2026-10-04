@@ -118,6 +118,7 @@ data class ReporterRecentCounts(
 data class ReporterRecentSnapshot(
     val items: List<ReporterRecent>,
     val counts: ReporterRecentCounts,
+    val serverNowMs: Long = 0L,
 )
 
 data class ReporterRecent(
@@ -131,6 +132,7 @@ data class ReporterRecent(
     val resolvedByDisplayName: String? = null,
     val resolvedByEmployeeCode: String? = null,
     val correctionDeadlineAt: String?,
+    val correctionAllowed: Boolean = false,
     val affectedPickerCount: Int,
     val version: Int = 1,
     val previousBatchId: String? = null,
@@ -536,7 +538,9 @@ class InventoryApi(
                 resolutionSource = nullable(row, "resolution_source"),
                 resolvedByDisplayName = nullable(row, "resolved_by_display_name"),
                 resolvedByEmployeeCode = nullable(row, "resolved_by_employee_code"),
-                correctionDeadlineAt = nullable(row, "correction_deadline_at"), affectedPickerCount = row.optInt("affected_picker_count", 0),
+                correctionDeadlineAt = nullable(row, "correction_deadline_at"),
+                correctionAllowed = row.optBoolean("correction_allowed", false),
+                affectedPickerCount = row.optInt("affected_picker_count", 0),
                 version = row.optInt("version", 1), previousBatchId = nullable(row, "previous_batch_id"),
                 ackTargetCount = row.optInt("ack_target_count", 0), acknowledgedCount = row.optInt("acknowledged_count", 0),
             )
@@ -549,6 +553,7 @@ class InventoryApi(
                 skipAllowed = totals.optInt("skip_allowed", rows.count { it.status == "SKIP_ALLOWED" }),
                 withdrawn = totals.optInt("withdrawn", rows.count { it.status == "CLOSED" }),
             ),
+            serverNowMs = payload.optLong("server_now_ms", 0L),
         )
     }
 
