@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D161_EIGHTH_FIELD_REPAIR_OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS__TARGET_AGENT_V112__ANDROID_VC97_UNCHANGED__D160_ACCEPTED_BASE_RESCUE",
+    "beta": "D161_EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__AGENT_V112__ANDROID_VC97_UNCHANGED__D160_ACCEPTED_BASE_RESCUE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -33,10 +33,10 @@
     "reporting": "D148_OWNER_FIELD_PASS__DETAILED_EXCEL_PLUS_SHIFT_COMPARISON__CLIENT_SIDE_NO_EXTRA_PROVIDER_READ",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D161_EIGHTH_FIELD_REPAIR_OWNER_APPROVED_IN_PROGRESS__STABLE_UNTOUCHED",
+    "governance": "D147_SERIAL_OWNER_PASS_GATE__D161_V112_EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_RETEST_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D160_OWNER_FIELD_ACCEPTED_PASS__2026_10_02",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D161_EIGHTH_FIELD_REPAIR_TARGET_RELAY_AGENT_V112__ANDROID_VC97_UNCHANGED__OWNER_RETEST_PENDING"
+    "agent": "D161_EIGHTH_FIELD_REPAIR_RELAY_AGENT_V112__TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_RETEST_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -198,7 +198,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "IMPLEMENT_VERIFY_MERGE_D161_V112_CONFIRM_ACK_RULES_REPAIR__DEPLOY_BETA_FIRESTORE_RULES__RELEASE_AGENT__THEN_OWNER_FIELD_RETEST",
+  "next_action": "OWNER_FIELD_RETEST_D161_V112_CONFIRM_ACK_TERMINAL_DELIVERY_WITH_ANDROID_VC97__THEN_CONTINUE_REMAINING_D161_ACCEPTANCE",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2468,7 +2468,7 @@
     "accepted_base_change_id": "D160",
     "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02__POST_PASS_TESTS_CLOSED_2026_10_03",
     "current_change_id": "D161",
-    "current_change_status": "D161_EIGHTH_FIELD_REPAIR_OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "current_change_status": "D161_EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2484,8 +2484,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D160_ACCEPTED_BASE_RETAINED__D161_V111_FIELD_EVIDENCE_PROVES_WMS_CONFIRM_SUCCESS_BUT_FIRESTORE_TERMINAL_ACK_REJECTED__TARGET_AGENT_V112_PLUS_EXISTING_BETA_FIRESTORE_RULES__ANDROID_VC97_UNCHANGED__WEB_WORKER_STABLE_UNCHANGED",
-    "resource_change": "NONE_PERSISTENT__REUSE_EXISTING_BETA_FIRESTORE_RULES_AND_AGENT_RELEASE_CHANNEL__NO_NEW_PROVIDER_RESOURCE_LISTENER_QUERY_POLL_HEARTBEAT_OR_WRITE_CADENCE__STABLE_UNTOUCHED",
+    "runtime_impact": "D160_ACCEPTED_BASE_RETAINED__D161_PR_443_MERGED_MAIN_B829D3F6__BETA_FIRESTORE_RULES_DEPLOY_PASS_RUN_37245093715__AGENT_V112_RELEASE_PASS_RUN_37245093721__ANDROID_VC97_UNCHANGED__WEB_WORKER_STABLE_UNCHANGED__OWNER_FIELD_RETEST_PENDING",
+    "resource_change": "NONE_PERSISTENT__EXISTING_BETA_FIRESTORE_RULES_ALLOWLIST_REPAIR_PLUS_EXISTING_AGENT_RELEASE_CHANNEL__NO_NEW_PROVIDER_RESOURCE_LISTENER_QUERY_POLL_HEARTBEAT_OR_WRITE_CADENCE__STABLE_UNTOUCHED",
     "stable": "OWNER_GATED_UNTOUCHED"
   },
   "d147": {
@@ -4298,7 +4298,7 @@
     "test_candidate_source_active": "NO__V98_V99_V100_REMAIN_HISTORY_EVIDENCE_ONLY"
   },
   "d161": {
-    "status": "STARTED__PHASE0A_PASS__PHASE0_SAFETY_PASS__TRANCHE_A_B_C_D_E_MERGED__V112_EIGHTH_FIELD_REPAIR_OWNER_APPROVED_IN_PROGRESS",
+    "status": "STARTED__PHASE0A_PASS__PHASE0_SAFETY_PASS__TRANCHE_A_B_C_D_E_MERGED__V112_EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
     "date": "2026-10-04",
     "baseline_change": "D160",
     "accepted_base": "D160__RELAY_AGENT_V97",
@@ -4408,11 +4408,11 @@
       "existing trusted GitHub inventory release channel and Beta Worker PDA/Agent download endpoints",
       "Windows Agent WMS PickList confirmation/recovery pipeline and D157 reload scheduling"
     ],
-    "agent": "relay-agent-v112__D161_EIGHTH_FIELD_REPAIR_TARGET__D160_V97_RESCUE_BASE_RETAINED_UNTIL_OWNER_PASS",
+    "agent": "relay-agent-v112__D161_EIGHTH_FIELD_REPAIR_CANDIDATE__TECHNICAL_RUNTIME_RELEASE_PASS__D160_V97_RESCUE_BASE_RETAINED_UNTIL_OWNER_PASS",
     "android_current_release": "beta-vc97__HARD_LOCKED_UNCHANGED_FOR_SIXTH_FIELD_REPAIR__D160_VC92_RESCUE_BASE_RETAINED_UNTIL_OWNER_PASS",
     "web_current_label": "Version 2__DEPLOYED_FROM_MAIN_AFAF9D56__OWNER_RETEST_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "next_action": "IMPLEMENT_VERIFY_DEPLOY_FIRESTORE_RULES_RELEASE_AGENT_V112__CONFIRM_ACK_RULES_PARITY_AND_DIAGNOSTIC_PRESERVATION__THEN_OWNER_FIELD_RETEST",
+    "next_action": "OWNER_FIELD_RETEST__AGENT_V112_CONFIRM_ACK_TERMINAL_DELIVERY__PLUS_PRIOR_V111_PICKER_PRESENCE_AND_V110_OVERTIME_READY_EMPTY_CHECKS__ANDROID_VC97",
     "next_change_allowed": false,
     "schedule": "OWNER_APPROVED_TARGET__NORMAL_END_2215__NO_PREEND_PROMPT__PLUS1H_SHARED_OVERRIDES__T_MINUS_15_WARNING__0500_CAP__D154_START_EARLY_START_AND_PROPAGATION_INHERITED",
     "logs": "OWNER_APPROVED_TARGET__OBSERVABILITY_V2__COMMON_TRACE_SEQUENCE_GAPS__WEB_PERSISTED_INCIDENT_CONTEXT__ANDROID_1_2MIB_JOURNAL__AGENT_STRUCTURED_COMPLETE_STREAM__DRIVE_CONFIRMED_PRUNE__NO_PER_EVENT_PROVIDER_WRITE",
@@ -4425,7 +4425,7 @@
     "safety_baseline": "OWNER_APPROVED_MANDATORY_PHASE0_AFTER_PHASE0A_PASS__PRE_D161_RUNTIME_BEHAVIOR__MONOTONIC_ANDROID_AGENT_SAFETY_RELEASES__WEB_SERVICE_REPRODUCIBLE_BASELINE__NO_SECRET_CAPTURE",
     "start_command": "EXACT_OWNER_COMMAND__bat_dau_D161_tien_hanh__AUTHORIZES_COMPLETE_THEN_CURRENT_BACKLOG__PHASE0A_REQUIRED_FIRST__PHASE0_SAFETY_SECOND__AUTO_CONTINUE_AFTER_BOTH_PASS",
     "rescue_command": "EXACT_OWNER_COMMAND__quay_lai_ban_backup_ban_dau_truoc_khi_sua_code__FREEZE_FEATURE_ROLLOUT__FORWARD_RESCUE_TO_SAFETY_BEHAVIOR__NO_SCHEMA_DOWNGRADE__NO_D162",
-    "field_acceptance": "EIGHTH_FIELD_REPAIR_IN_PROGRESS__OWNER_PASS_NOT_YET",
+    "field_acceptance": "READY_FOR_OWNER_FIELD_RETEST__V112_TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_PASS_NOT_YET",
     "migration_safety": "UNTIL_OWNER_PASS__ADDITIVE_BACKWARD_COMPATIBLE_PREFERRED__DESTRUCTIVE_UNRECOVERABLE_MIGRATION_FAIL_CLOSED_FOR_OWNER_DECISION",
     "exact_start_command": "bắt đầu D161 tiến hành",
     "current_gate": "FEATURE_IMPLEMENTATION_ACTIVE",
@@ -4723,10 +4723,10 @@
       "field_ready": "PASS",
       "stable": "OWNER_GATED_UNTOUCHED"
     },
-    "owner_field_gate": "BLOCKED_BY_EIGHTH_FIELD_REPAIR__RETURN_TO_OA096_AFTER_TECHNICAL_RUNTIME_RELEASE_PASS",
-    "current_gate_note": "OWNER_FIELD_RETEST_FOUND_CONFIRM_ACK_FAILURE_AFTER_WMS_SUCCESS__REPAIR_AUTHORIZED_2026_10_05__NO_ANDROID_CHANGE",
+    "owner_field_gate": "READY_FOR_OWNER_FIELD_RETEST__OA096__AGENT_V112__ANDROID_VC97",
+    "current_gate_note": "V112_AGENT_PLUS_BETA_FIRESTORE_RULES_TECHNICAL_RUNTIME_RELEASE_PASS__ACTUAL_EXTERNAL_GATE_IS_OWNER_FIELD_TEST",
     "final_readiness": {
-      "status": "EIGHTH_FIELD_REPAIR_IN_PROGRESS__TARGET_AGENT_V112__BETA_FIRESTORE_RULES_REPAIR__OWNER_FIELD_RETEST_BLOCKED",
+      "status": "EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
       "owner_action": "OA096",
       "accepted_base": "D160__RELAY_AGENT_V97",
       "rescue_runtime": "D160_V97__ANDROID_VC92__FORWARD_SAFE_WEB_WORKER_RESCUE_POLICY",
@@ -4761,7 +4761,7 @@
       "agent_gateway_provider_run_id": 37193309206,
       "owner_acceptance": "PENDING_FIELD_RETEST",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "agent": "relay-agent-v111__SEVENTH_FIELD_REPAIR_CANDIDATE",
+      "agent": "relay-agent-v112__EIGHTH_FIELD_REPAIR_CANDIDATE",
       "android": "beta-vc97__UNCHANGED",
       "web": "Version 2__FIELD_REPAIR_DEPLOYED",
       "repair_pr": 427,
@@ -4832,10 +4832,24 @@
         "exe_asset_id": 610278038,
         "size_bytes": 7297536,
         "sha256": "8f8cf530443c2959b80a6547d2863ea80f6520ad485c6e651242bc8b7838b6bb"
+      },
+      "repair_pr_8": 443,
+      "repair_main_sha_8": "b829d3f66043cf05c1a8edf3cca158f1230acfdc",
+      "beta_firestore_run_id_8": 37245093715,
+      "agent_run_id_8": 37245093721,
+      "d127_run_id_8": 37245093724,
+      "usage_run_id_8": 37245093723,
+      "android_regression_run_id_8": 37245093763,
+      "agent_release_8": {
+        "tag": "relay-agent-v112",
+        "release_id": 403260020,
+        "exe_asset_id": 610963495,
+        "size_bytes": 7298048,
+        "sha256": "cc4c949340cc0a9af440471d95226fef3d008f0f2053b4e7635a46310299eb09"
       }
     },
     "field_repair": {
-      "status": "EIGHTH_FIELD_REPAIR_IN_PROGRESS__TARGET_AGENT_V112__ANDROID_VC97_UNCHANGED",
+      "status": "EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
       "reported_at": "2026-10-04",
       "defects": [
         "WEB_SHIFT_PRESENTATION_STILL_SHOWED_0545_2230_AND_OLD_2230_OVERTIME_COPY",
@@ -5155,7 +5169,7 @@
         "owner_acceptance": "PENDING_FIELD_RETEST"
       },
       "eighth_field_repair": {
-        "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+        "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
         "reported_at": "2026-10-05",
         "owner_observation": "PDA_TIMES_OUT_AFTER_20S_WHILE_WMS_PICKLIST_CONFIRM_ALREADY_SUCCEEDED",
         "runtime_evidence": [
@@ -5178,8 +5192,8 @@
           "CI_GUARD_AGENT_ACK_PAYLOAD_AND_FIRESTORE_RULES_PARITY"
         ],
         "target_agent": "relay-agent-v112",
-        "android": "beta-vc97__UNCHANGED__NO_APK_SOURCE_OR_RELEASE_CHANGE",
-        "firestore_rules": "EXISTING_BETA_FIRESTORE_RULESET__ALLOWLIST_REPAIR_ONLY",
+        "android": "beta-vc97__UNCHANGED__APK_ASSET_609733318__SHA256_28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19",
+        "firestore_rules": "BETA_DEPLOY_PASS__RUN_37245093715__EXISTING_RULESET_ALLOWLIST_REPAIR_ONLY",
         "worker": "UNCHANGED",
         "web": "UNCHANGED",
         "new_provider_resource": "NONE",
@@ -5189,7 +5203,30 @@
         "provider_write_cadence": "UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
         "repair_branch": "repair/d161-v112-confirm-ack-rules",
-        "owner_acceptance": "PENDING_REPAIR_RELEASE_THEN_FIELD_RETEST"
+        "owner_acceptance": "PENDING_FIELD_RETEST",
+        "repair_pr": 443,
+        "main_sha": "b829d3f66043cf05c1a8edf3cca158f1230acfdc",
+        "beta_firestore_run_id": 37245093715,
+        "agent_run_id": 37245093721,
+        "d127_run_id": 37245093724,
+        "usage_run_id": 37245093723,
+        "android_regression_run_id": 37245093763,
+        "agent_release": {
+          "tag": "relay-agent-v112",
+          "release_id": 403260020,
+          "exe_asset_id": 610963495,
+          "checksum_asset_id": 610963492,
+          "size_bytes": 7298048,
+          "sha256": "cc4c949340cc0a9af440471d95226fef3d008f0f2053b4e7635a46310299eb09"
+        },
+        "inventory_channel": {
+          "release_id": 394587029,
+          "latest_json_asset_id": 610963545,
+          "agent_exe_asset_id": 610963548,
+          "checksum_asset_id": 610963546,
+          "size_bytes": 7298048,
+          "sha256": "cc4c949340cc0a9af440471d95226fef3d008f0f2053b4e7635a46310299eb09"
+        }
       }
     }
   }

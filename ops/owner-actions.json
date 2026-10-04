@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "BLOCKED_BY_EIGHTH_FIELD_REPAIR",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "Owner field evidence on Agent v111 shows WMS confirmation succeeds but the Firestore terminal ACK is rejected, leaving Android vc97 waiting until its 20-second timeout. D161 eighth repair is authorized: Agent v112 plus existing Beta Firestore Rules only; Android vc97 remains unchanged.",
+      "reason_owner_only": "D161 eighth field repair is merged and technical/runtime/release PASS: Agent v112 plus repaired existing Beta Firestore Rules. Android beta-vc97 remains unchanged. Owner field retest is now required to prove WMS success is followed by durable ACK/PDA success without the prior 20-second timeout.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4819,22 +4819,21 @@
         "fifth_field_repair": "PASS__PR_437__MAIN_C5673B4E__WORKER_RUN_37214830211__AGENT_V109__RUN_37214830165__RELEASE_403093302__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "sixth_field_repair": "PASS__PR_439__MAIN_FBD18C15__AGENT_V110__RUN_37217744592__UI_RUN_37217744516__D127_RUN_37217744628__USAGE_RUN_37217744811__RELEASE_403111389__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "seventh_field_repair": "PASS__PR_441__MAIN_F28DD759__AGENT_V111__RUN_37220702938__UI_RUN_37220702940__D127_RUN_37220703084__USAGE_RUN_37220702957__RELEASE_403129379__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
-        "eighth_field_repair": "OWNER_APPROVED__IN_PROGRESS__TARGET_AGENT_V112__FIRESTORE_ACK_RULES_PARITY__ANDROID_VC97_UNCHANGED"
+        "eighth_field_repair": "PASS__PR_443__MAIN_B829D3F6__FIRESTORE_RUN_37245093715__AGENT_V112_RUN_37245093721__D127_RUN_37245093724__USAGE_RUN_37245093723__ANDROID_REGRESSION_RUN_37245093763__RELEASE_403260020__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED"
       },
       "shortest_test_path": [
-        "No manual action until Agent v112 and the Beta Firestore Rules repair reach technical/runtime/release PASS.",
-        "Then update Windows Agent to relay-agent-v112. Keep Android on beta-vc97.",
-        "Send one real PickList suffix from Android and verify Agent History shows processing immediately.",
-        "Verify WMS confirms the PickList and Android receives the successful terminal result instead of timing out after 20 seconds.",
-        "Repeat once with a second PickList to prove the request does not remain PENDING or get reprocessed after a successful WMS confirmation.",
-        "Continue prior v111 Picker presence and v110 overtime/READY_EMPTY checks, then explicitly PASS or NOT PASS D161."
+        "Run/update Windows Agent to relay-agent-v112. Keep Android on beta-vc97; do not install a new APK.",
+        "Send one real PickList suffix from Android and verify Agent History records the request/processing user.",
+        "Verify WMS confirms the PickList and Android receives the successful result instead of timing out after about 20 seconds.",
+        "Repeat with a second PickList and verify the successfully confirmed request does not remain PENDING or get processed again.",
+        "Continue prior v111 Picker logout/Kích User convergence and v110 overtime/READY_EMPTY checks, then explicitly report PASS or NOT PASS for D161."
       ],
       "pass_criteria": [
-        "Successful WMS CONFIRMED is followed by a durable Firestore ACK for the same request and Android receives the terminal result within the existing timeout.",
-        "The same successfully confirmed request is not reprocessed as PENDING.",
-        "Agent History retains User Agent xử lý through agent_login_name without Firestore PERMISSION_DENIED.",
-        "Firestore diagnostics preserve the original HTTP/canonical error and do not replace it with ObjectDisposedException.",
-        "Android beta-vc97 is unchanged; Web/Worker/Stable are unchanged.",
+        "WMS CONFIRMED is followed by durable Firestore ACK for the same request and Android receives the terminal success within the existing timeout.",
+        "A successfully ACKed request is not rediscovered/reprocessed as PENDING.",
+        "Agent History retains User Agent xử lý without Firestore PERMISSION_DENIED.",
+        "Firestore errors preserve original HTTP/canonical status and are not masked as ObjectDisposedException.",
+        "Android beta-vc97 remains unchanged; no new APK release is introduced.",
         "No new provider resource, listener/query family, polling, heartbeat or write cadence is introduced.",
         "Prior v111/v110/v109 D161 repairs remain regression-clean.",
         "Owner explicitly accepts the full D161 field result before D161 can PASS."
@@ -4964,7 +4963,7 @@
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "NONE_UNTIL_V112_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "remaining_owner_action": "FIELD_RETEST_AGENT_V112_THEN_EXPLICIT_PASS_OR_NOT_PASS",
       "closed": false,
       "completion_evidence": {
         "sixth_field_repair": {
@@ -5004,6 +5003,29 @@
           "inventory_channel_checksum_asset_id": 610278136,
           "android": "beta-vc97__UNCHANGED__ASSET_609733318",
           "stable": "OWNER_GATED_UNTOUCHED"
+        },
+        "eighth_field_repair": {
+          "repair_pr": 443,
+          "main_sha": "b829d3f66043cf05c1a8edf3cca158f1230acfdc",
+          "beta_firestore_run_id": 37245093715,
+          "agent_run_id": 37245093721,
+          "d127_run_id": 37245093724,
+          "usage_run_id": 37245093723,
+          "android_regression_run_id": 37245093763,
+          "release_tag": "relay-agent-v112",
+          "release_id": 403260020,
+          "agent_asset_id": 610963495,
+          "agent_size_bytes": 7298048,
+          "agent_sha256": "cc4c949340cc0a9af440471d95226fef3d008f0f2053b4e7635a46310299eb09",
+          "inventory_channel_release_id": 394587029,
+          "inventory_channel_latest_json_asset_id": 610963545,
+          "inventory_channel_agent_asset_id": 610963548,
+          "inventory_channel_checksum_asset_id": 610963546,
+          "inventory_channel_sha256": "cc4c949340cc0a9af440471d95226fef3d008f0f2053b4e7635a46310299eb09",
+          "android": "beta-vc97__UNCHANGED__ASSET_609733318",
+          "android_sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19",
+          "stable": "OWNER_GATED_UNTOUCHED",
+          "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       }
     }
