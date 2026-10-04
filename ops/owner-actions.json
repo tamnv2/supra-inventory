@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "REPAIR_IN_PROGRESS__OWNER_FIELD_DEFECTS_REPORTED",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "Owner field test found three D161 defects. Repair remains within D161; final acceptance still requires the Owner/company environment after repaired Beta releases pass technical/runtime gates.",
+      "reason_owner_only": "The three Owner-reported D161 defects are repaired and technical/runtime/release gates are PASS. Final acceptance still requires the Owner/company field environment to retest the repaired Beta candidate.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4809,9 +4809,10 @@
         "stable": "OWNER_GATED_UNTOUCHED",
         "pre_repair_android": "beta-vc96__FIELD_DEFECT_REPORTED",
         "pre_repair_agent": "relay-agent-v104__FIELD_DEFECT_REPORTED",
-        "repair_web": "Version 2__PENDING",
-        "repair_agent": "relay-agent-v105__PENDING",
-        "repair_android": "NEXT_MONOTONIC_AFTER_BETA_VC96__PENDING"
+        "repair_web": "Version 2__DEPLOYED__MAIN_AFAF9D56",
+        "repair_agent": "relay-agent-v105__RELEASED__RUN_37199390032",
+        "repair_android": "beta-vc97__RELEASED__RUN_37199390022",
+        "repair_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__SCHEMA17_17__OPERATIONAL5_5"
       },
       "shortest_test_path": [
         "After repair releases are published, refresh Beta Web and verify Ca bình thường 06:00–22:00 with technical Replay 05:45–22:15 and no obsolete 22:30 copy.",
@@ -4846,13 +4847,26 @@
         "field_repair": {
           "owner_reported_at": "2026-10-04",
           "defects": 3,
-          "branch": "d161-owner-field-repair-3",
-          "target_web": "Version 2",
-          "target_agent": "relay-agent-v105",
-          "target_android": "NEXT_MONOTONIC_AFTER_BETA_VC96"
+          "repair_pr": 427,
+          "pr_head_sha": "e0b27f1bdb031447b6a5b5e91b7f45be98958fd9",
+          "pr_checks": "PASS__15_OF_15",
+          "main_sha": "afaf9d563894e61d3632f65ce624c1b3b76bfd36",
+          "beta_worker_run_id": 37199390053,
+          "agent_run_id": 37199390032,
+          "android_run_id": 37199390022,
+          "ui_guard_run_id": 37199390010,
+          "web": "Version 2",
+          "agent": "relay-agent-v105",
+          "android": "beta-vc97",
+          "agent_release_id": 402990615,
+          "agent_asset_id": 609733176,
+          "agent_sha256": "542b82d2d1cee0d35442c580d85861b0fc79473c7ee0948a9aacd3c751d92807",
+          "android_release_id": 402990645,
+          "android_asset_id": 609733266,
+          "android_sha256": "28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19"
         }
       },
-      "remaining_owner_action": "WAIT_FOR_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__THEN_RETEST_3_REPAIRED_ITEMS_AND_CONTINUE_D161_FIELD_ACCEPTANCE",
+      "remaining_owner_action": "RETEST_3_REPAIRED_ITEMS_ON_WEB_VERSION_2__AGENT_V105__ANDROID_VC97__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
       "closed": false
     }
   ]
