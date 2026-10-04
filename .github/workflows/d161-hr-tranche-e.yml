@@ -48,8 +48,11 @@ jobs:
               "HARD_BLOCK", "CONFIRM_REQUIRED", "AUTO",
               "SOURCE_ROW_LOSS_OVER_20_PERCENT",
               "existing_info_updates",
+              "invalid_row_details",
+              "INVALID_EMPLOYEE_CODE",
               "d161_hr_snapshot:",
               "STALE_SNAPSHOT_RECOMPUTED",
+              "WEB_RECHECK",
               "channels/stop",
               "/watch",
           ]
@@ -67,5 +70,7 @@ jobs:
               raise SystemExit("HR Drive watch resource family not scoped")
           if "/api/internal/d161/hr-drive-watch" not in index:
               raise SystemExit("HR watch callback route missing")
+          if "/api/admin/hr-sync/recheck" not in index:
+              raise SystemExit("HR bounded recheck route missing")
           print("D161_HR_TRANCHE_E_GUARD=PASS")
           PY
