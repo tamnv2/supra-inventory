@@ -3156,3 +3156,14 @@ Stable remains OWNER-GATED and untouched. The D160 accepted runtime remains the 
 The mandatory pre-feature gates are complete. Phase 0A Permission & Provider Preflight is PASS and Phase 0 Safety Baseline is PASS. Final Safety evidence is main `6702b0aabc807954d6427e7e3aa6442134cb95e3`, main Safety run `37170577529` PASS and UI Design Guard run `37170513921` PASS. Safety artifacts are Android `beta-vc93` and Agent `relay-agent-v101`, both preserving the pre-D161 behavior and verified through the trusted Beta release/channel contracts.
 
 The already-recorded Owner start authorization therefore advances D161 automatically into the complete approved feature backlog. No new Owner reconfirmation is required for already-approved D161 items. D160 behavior remains the accepted/rescue base until D161 reaches field-ready state and the Owner explicitly records acceptance. Stable remains OWNER-GATED and untouched.
+
+
+## D161 Owner field-repair decision — 2026-10-04
+
+Owner field test of the D161 Beta candidate found three defects and explicitly authorized repair within D161:
+
+1. **Schedule presentation:** outward business-shift UI must show **06:00–22:00**. The technical Replay guard is separate and, when shown, must be labelled **Cửa sổ kỹ thuật Replay · 05:45–22:15**. Obsolete 22:30 copy is forbidden. Runtime 22:15 enforcement remains unchanged.
+2. **HR HARD_BLOCK diagnostics:** a blocked HR snapshot must explain the concrete safe reason. For invalid rows, Web shows bounded row numbers plus non-sensitive validation reasons and a bounded **Kiểm tra lại nguồn** action. HARD_BLOCK remains fail-closed and cannot be force-applied. For `CONFIRM_REQUIRED`, Web presents explicit **Có · Áp dụng** / **Không · Giữ nguyên** choices; **Không** performs no mutation and leaves the proposal pending for a later decision.
+3. **Agent active-Picker observation:** after Agent authentication, **Picker đang hoạt động trên PDA** remains visible and synchronized even when Web Confirm/WMS is not ready and even outside the business-processing window. Only an unauthenticated Agent hides the list. PickList mutation/PRIMARY processing remains gated by WMS readiness and schedule authority. The repair reuses the existing single `agent_sync` document listener for the authenticated Agent session; it adds no polling, per-Picker listener, collection or write cadence.
+
+Impact approved by Owner: Beta Web/Worker/Android/Agent plus existing compact Agent-sync listener semantics. Web release increments to **Version 2**; Agent candidate increments to **v105**; Android source change requires the next monotonic Beta APK (expected **vc97** if no intervening release). Stable remains OWNER-GATED and untouched.
