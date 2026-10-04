@@ -967,6 +967,128 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "PUT" && url.pathname === "/auth/revoke-all-picker-android-sessions") {
+      const body = (await request.json()) as { request_id?: string; actor_user_id?: string };
+      const requestId = String(body.request_id || "").trim();
+      const actorUserId = String(body.actor_user_id || "").trim();
+      if (!/^[A-Za-z0-9._:-]{8,160}$/.test(requestId) || !actorUserId) {
+        return response({ error: "invalid_input" }, 400);
+      }
+
+      const idempotencyKey = "d161_bulk_picker_revoke_last";
+      const prior = this.state.storage.sql.exec<{ value_json: string }>(
+        "SELECT value_json FROM app_config WHERE key = ? LIMIT 1",
+        idempotencyKey,
+      ).toArray()[0];
+      if (prior?.value_json) {
+        try {
+          const parsed = JSON.parse(prior.value_json) as { request_id?: string; result?: unknown };
+          if (String(parsed.request_id || "") === requestId) {
+            return response({
+              status: "picker_android_sessions_revoked",
+              idempotent_replay: true,
+              ...(parsed.result && typeof parsed.result === "object" ? parsed.result as Record<string, unknown> : {}),
+            });
+          }
+        } catch { /* ignore corrupt historical marker and replace below */ }
+      }
+
+      const targets = this.state.storage.sql.exec<{
+        user_id: string;
+        firebase_uid: string | null;
+        android_session_generation: number;
+      }>(
+        `SELECT user_id, firebase_uid, android_session_generation
+           FROM users
+          WHERE role = 'PICKER'
+            AND status = 'ACTIVE'
+            AND android_session_device_id IS NOT NULL
+          ORDER BY user_id ASC`,
+      ).toArray();
+
+      const targetIds = targets.map((row) => row.user_id);
+      const pushTokens = targetIds.length ? await this.notificationTokens([], targetIds) : [];
+      const revokedAt = new Date().toISOString();
+
+      this.state.storage.transactionSync(() => {
+        this.state.storage.sql.exec(
+          `UPDATE users
+              SET android_session_generation = COALESCE(android_session_generation, 0) + 1,
+                  android_session_device_id = NULL,
+                  android_session_started_at = NULL,
+                  updated_at = CURRENT_TIMESTAMP
+            WHERE role = 'PICKER'
+              AND status = 'ACTIVE'
+              AND android_session_device_id IS NOT NULL`,
+        );
+        this.state.storage.sql.exec(
+          `UPDATE fcm_devices
+              SET enabled = 0,
+                  updated_at = CURRENT_TIMESTAMP
+            WHERE platform = 'ANDROID'
+              AND user_id IN (
+                SELECT user_id FROM users WHERE role = 'PICKER' AND status = 'ACTIVE'
+              )`,
+        );
+        this.state.storage.sql.exec(
+          `DELETE FROM presence_sessions
+            WHERE user_id IN (
+              SELECT user_id FROM users WHERE role = 'PICKER' AND status = 'ACTIVE'
+            )`,
+        );
+        const result = {
+          request_id: requestId,
+          actor_user_id: actorUserId,
+          revoked_count: targets.length,
+          revoked_at: revokedAt,
+        };
+        this.state.storage.sql.exec(
+          `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+           VALUES (?, ?, CURRENT_TIMESTAMP, ?)
+           ON CONFLICT(key) DO UPDATE SET
+             value_json = excluded.value_json,
+             updated_at = CURRENT_TIMESTAMP,
+             updated_by = excluded.updated_by`,
+          idempotencyKey,
+          JSON.stringify({ request_id: requestId, result }),
+          actorUserId,
+        );
+      });
+
+      let compatibilityPush = "SKIPPED";
+      if (pushTokens.length && this.env.GOOGLE_RUNTIME_SA_JSON && this.env.FIREBASE_PROJECT_ID) {
+        try {
+          const delivery = await sendFcmNotifications(
+            this.env.GOOGLE_RUNTIME_SA_JSON,
+            this.env.FIREBASE_PROJECT_ID,
+            pushTokens,
+            {
+              title: "SUPRA Inventory · Phiên PDA đã bị thu hồi",
+              body: "Toàn bộ phiên Picker đang đăng nhập đã được quản trị viên thu hồi. Vui lòng đăng nhập lại.",
+              data: {
+                event: "picker_sessions_revoked",
+                request_id: requestId,
+                source: "D161_BULK_SESSION_REVOKE",
+                expires_at_ms: String(Date.now() + 120_000),
+              },
+            },
+          );
+          compatibilityPush = delivery.attempts.some((attempt) => attempt.status === "SENT") ? "SENT" : "FAILED";
+        } catch {
+          compatibilityPush = "FAILED";
+        }
+      }
+
+      return response({
+        status: "picker_android_sessions_revoked",
+        request_id: requestId,
+        revoked_count: targets.length,
+        revoked_at: revokedAt,
+        compatibility_push: compatibilityPush,
+        idempotent_replay: false,
+      });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/end-session") {
       const body = (await request.json()) as {
         user_id?: string;
