@@ -966,7 +966,7 @@ The active Picker search/filter does not change the bulk target set.
 
 **Agent active Picker list**
 1. Agent authentication succeeds.
-2. Agent starts/reuses the compact fleet `agent_sync` observation immediately, without waiting for Web Confirm readiness.
+2. Agent starts/reuses one gRPC observation stream immediately, without waiting for Web Confirm readiness; the stream watches the existing `agent_sync` document plus authoritative `picker_presence_projection/current`.
 3. Active Picker sessions render regardless of business-window state.
 4. WMS not-ready or outside-shift states may block PickList processing but do not blank the Picker list.
 5. Agent logout stops observation and clears the list.
