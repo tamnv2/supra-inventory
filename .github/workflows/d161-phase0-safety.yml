@@ -104,11 +104,18 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Wait for same-source deploy, Android and Agent release gates
+      - name: Resolve published Safety source and wait only on publication commit
         shell: bash
         run: |
           set -euo pipefail
-          api="https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&per_page=100"
+          release_source="$(jq -r '.published_safety_releases.source_sha' ops/d161-safety-baseline.json)"
+          test "$release_source" != "null" && test -n "$release_source"
+          echo "$release_source" > /tmp/d161-safety-source.sha
+          if [ "$GITHUB_SHA" != "$release_source" ]; then
+            echo "Safety releases already published from $release_source; current commit is evidence/guard-only."
+            exit 0
+          fi
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$release_source&per_page=100"
           for attempt in $(seq 1 50); do
             data="$(curl -fsSL "$api")"
             complete=true
@@ -123,7 +130,7 @@ jobs:
               fi
             done
             [ "$complete" = true ] && break
-            [ "$attempt" -ge 50 ] && { echo "Safety dependencies did not complete for $GITHUB_SHA" >&2; exit 1; }
+            [ "$attempt" -ge 50 ] && { echo "Safety publication dependencies did not complete for $release_source" >&2; exit 1; }
             sleep 10
           done
 
@@ -138,43 +145,47 @@ jobs:
           test "${#web_sha}" = "64"
           echo "SAFETY_WEB_DIST_AGGREGATE_SHA256=$web_sha"
 
-      - name: Verify Safety releases and runtime channel checksums
+      - name: Verify Safety release and channel digests
         shell: bash
         run: |
           set -euo pipefail
           api="https://api.github.com/repos/$GITHUB_REPOSITORY"
-          work="$RUNNER_TEMP/d161-safety-release"
-          mkdir -p "$work/android" "$work/agent" "$work/channel"
+          release_source="$(cat /tmp/d161-safety-source.sha)"
+          expected_apk="$(jq -r '.published_safety_releases.android.sha256' ops/d161-safety-baseline.json)"
+          expected_agent="$(jq -r '.published_safety_releases.agent.sha256' ops/d161-safety-baseline.json)"
 
           android_ref="$(curl -fsSL "$api/git/ref/tags/beta-vc93" | jq -r '.object.sha')"
           agent_ref="$(curl -fsSL "$api/git/ref/tags/relay-agent-v101" | jq -r '.object.sha')"
-          test "$android_ref" = "$GITHUB_SHA" || { echo "beta-vc93 source mismatch $android_ref != $GITHUB_SHA" >&2; exit 1; }
-          test "$agent_ref" = "$GITHUB_SHA" || { echo "relay-agent-v101 source mismatch $agent_ref != $GITHUB_SHA" >&2; exit 1; }
+          test "$android_ref" = "$release_source" || { echo "beta-vc93 source mismatch $android_ref != $release_source" >&2; exit 1; }
+          test "$agent_ref" = "$release_source" || { echo "relay-agent-v101 source mismatch $agent_ref != $release_source" >&2; exit 1; }
 
-          download_asset() {
-            tag="$1"; asset="$2"; out="$3"
-            rel="$(curl -fsSL "$api/releases/tags/$tag")"
-            url="$(jq -r --arg asset "$asset" '.assets[] | select(.name==$asset) | .browser_download_url' <<<"$rel")"
-            test -n "$url" && test "$url" != "null"
-            curl -fsSL "$url" -o "$out"
+          android_release="$(curl -fsSL "$api/releases/tags/beta-vc93")"
+          agent_release="$(curl -fsSL "$api/releases/tags/relay-agent-v101")"
+          channel_release="$(curl -fsSL "$api/releases/tags/inventory-channel")"
+
+          digest_of() {
+            jq -r --arg asset "$2" '.assets[] | select(.name==$asset) | .digest // empty' <<<"$1" | sed 's/^sha256://'
+          }
+          size_of() {
+            jq -r --arg asset "$2" '.assets[] | select(.name==$asset) | .size // 0' <<<"$1"
           }
 
-          download_asset beta-vc93 supra-inventory-beta.apk "$work/android/supra-inventory-beta.apk"
-          download_asset beta-vc93 supra-inventory-beta.apk.sha256 "$work/android/supra-inventory-beta.apk.sha256"
-          apk_sha="$(sha256sum "$work/android/supra-inventory-beta.apk" | awk '{print $1}')"
-          apk_declared="$(awk '{print $1}' "$work/android/supra-inventory-beta.apk.sha256")"
-          test "$apk_sha" = "$apk_declared"
+          apk_sha="$(digest_of "$android_release" "supra-inventory-beta.apk")"
+          agent_sha="$(digest_of "$agent_release" "Agent.Auto.Confirm.Pick.Pack.exe")"
+          channel_apk_sha="$(digest_of "$channel_release" "supra-inventory-beta.apk")"
+          channel_agent_sha="$(digest_of "$channel_release" "Agent.Auto.Confirm.Pick.Pack.exe")"
 
-          download_asset relay-agent-v101 Agent.Auto.Confirm.Pick.Pack.exe "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe"
-          download_asset relay-agent-v101 Agent.Auto.Confirm.Pick.Pack.exe.sha256 "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
-          agent_sha="$(sha256sum "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe" | awk '{print $1}')"
-          agent_declared="$(awk '{print $1}' "$work/agent/Agent.Auto.Confirm.Pick.Pack.exe.sha256")"
-          test "$agent_sha" = "$agent_declared"
+          test "$apk_sha" = "$expected_apk"
+          test "$agent_sha" = "$expected_agent"
+          test "$channel_apk_sha" = "$apk_sha"
+          test "$channel_agent_sha" = "$agent_sha"
+          test "$(size_of "$android_release" "supra-inventory-beta.apk")" = "19118748"
+          test "$(size_of "$agent_release" "Agent.Auto.Confirm.Pick.Pack.exe")" = "7216128"
 
-          download_asset inventory-channel pda-latest.json "$work/channel/pda-latest.json"
-          download_asset inventory-channel agent-latest.json "$work/channel/agent-latest.json"
-          jq -e --arg sha "$apk_sha" '.tag=="beta-vc93" and .sha256==$sha and .asset_name=="supra-inventory-beta.apk"' "$work/channel/pda-latest.json" >/dev/null
-          jq -e --arg sha "$agent_sha" '.tag=="relay-agent-v101" and .sha256==$sha and .asset_name=="Agent.Auto.Confirm.Pick.Pack.exe"' "$work/channel/agent-latest.json" >/dev/null
+          pda_manifest="$(curl -fsSL "https://inventory-beta.supra.cc.cd/downloads/pda/manifest")"
+          agent_manifest="$(curl -fsSL "https://inventory-beta.supra.cc.cd/downloads/agent/manifest")"
+          jq -e --arg sha "$apk_sha" '.tag=="beta-vc93" and .sha256==$sha and .asset_name=="supra-inventory-beta.apk"' <<<"$pda_manifest" >/dev/null
+          jq -e --arg sha "$agent_sha" '.tag=="relay-agent-v101" and .sha256==$sha and .asset_name=="Agent.Auto.Confirm.Pick.Pack.exe"' <<<"$agent_manifest" >/dev/null
 
           echo "$apk_sha" > /tmp/d161-android-safety.sha256
           echo "$agent_sha" > /tmp/d161-agent-safety.sha256
@@ -189,13 +200,14 @@ jobs:
           trap 'rm -f "$tmp"' EXIT
           for attempt in $(seq 1 24); do
             code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://inventory-beta.supra.cc.cd/health" || true)"
-            if [ "$code" = "200" ] && jq -e --arg sha "$GITHUB_SHA" '.status=="ok" and .environment=="beta" and .source_commit==$sha and .storage.ok==true and .storage.schema_version==16 and .storage.expected_schema_version==16 and .storage.operational_v2.ready==true and .storage.operational_v2.schema_version==5 and .storage.operational_v2.expected_schema_version==5 and (.missing_bindings|length)==0' "$tmp" >/dev/null 2>&1; then
-              echo "D161_SAFETY_LIVE_HEALTH=PASS source=$GITHUB_SHA schema=16 operational_v2=5"
+            release_source="$(cat /tmp/d161-safety-source.sha)"
+            if [ "$code" = "200" ] && jq -e --arg sha "$release_source" '.status=="ok" and .environment=="beta" and .source_commit==$sha and .storage.ok==true and .storage.schema_version==16 and .storage.expected_schema_version==16 and .storage.operational_v2.ready==true and .storage.operational_v2.schema_version==5 and .storage.operational_v2.expected_schema_version==5 and (.missing_bindings|length)==0' "$tmp" >/dev/null 2>&1; then
+              echo "D161_SAFETY_LIVE_HEALTH=PASS source=$release_source schema=16 operational_v2=5"
               exit 0
             fi
             [ "$attempt" -ge 24 ] || sleep 5
           done
-          echo "Safety live health did not converge to source $GITHUB_SHA" >&2
+          echo "Safety live health did not converge to published Safety source $(cat /tmp/d161-safety-source.sha)" >&2
           cat "$tmp"
           exit 1
 
@@ -206,7 +218,8 @@ jobs:
           web_sha="$(cat /tmp/d161-web-dist.sha256)"
           apk_sha="$(cat /tmp/d161-android-safety.sha256)"
           agent_sha="$(cat /tmp/d161-agent-safety.sha256)"
-          jq -n --arg source "$GITHUB_SHA" --arg web_sha "$web_sha" --arg apk_sha "$apk_sha" --arg agent_sha "$agent_sha" '{schema_version:1,change_id:"D161",phase:"PHASE0_SAFETY_BASELINE",result:"PASS",source:$source,web_dist_aggregate_sha256:$web_sha,android:{tag:"beta-vc93",sha256:$apk_sha},agent:{tag:"relay-agent-v101",sha256:$agent_sha},inventorycore_schema:16,operational_v2_schema:5,stable:"UNTOUCHED"}' > /tmp/d161-phase0-safety-evidence.json
+          release_source="$(cat /tmp/d161-safety-source.sha)"
+          jq -n --arg source "$release_source" --arg evidence_commit "$GITHUB_SHA" --arg web_sha "$web_sha" --arg apk_sha "$apk_sha" --arg agent_sha "$agent_sha" '{schema_version:1,change_id:"D161",phase:"PHASE0_SAFETY_BASELINE",result:"PASS",safety_release_source:$source,evidence_commit:$evidence_commit,web_dist_aggregate_sha256:$web_sha,android:{tag:"beta-vc93",sha256:$apk_sha},agent:{tag:"relay-agent-v101",sha256:$agent_sha},inventorycore_schema:16,operational_v2_schema:5,stable:"UNTOUCHED"}' > /tmp/d161-phase0-safety-evidence.json
           cat /tmp/d161-phase0-safety-evidence.json
           echo "D161_PHASE0_SAFETY=PASS"
 
