@@ -247,6 +247,7 @@ namespace SupraInventoryRelayAgent
         private static readonly Regex JwtPattern = new Regex(@"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", RegexOptions.Compiled);
         private static readonly Regex SecretPattern = new Regex(@"(?i)\b(authorization|bearer|token|password|secret|private[_ -]?key|api[_ -]?key|cookie|refresh[_ -]?token|id[_ -]?token|apisid|sid|scid|usid|x-signature(?:-nonce)?)\b\s*[:=]\s*[^\s,;]+", RegexOptions.Compiled);
         private static readonly Regex QuerySecretPattern = new Regex(@"(?i)([?&](?:auth|key|access_token|token)=)[^&\s]+", RegexOptions.Compiled);
+        private static readonly Regex PickListPattern = new Regex(@"(?i)\bPL[0-9]{3,20}\b", RegexOptions.Compiled);
         internal static string DiagnosticLogFile { get; private set; }
         internal static string RelayAuditLogFile { get; private set; }
         internal static string LogFile { get { return DiagnosticLogFile; } }
@@ -286,6 +287,7 @@ namespace SupraInventoryRelayAgent
             next = QuerySecretPattern.Replace(next, "$1[REDACTED]");
             next = SecretPattern.Replace(next, m => m.Groups[1].Value + "=[REDACTED]");
             next = JwtPattern.Replace(next, "[REDACTED_JWT]");
+            next = PickListPattern.Replace(next, "PL[REDACTED]");
             return next;
         }
 
@@ -296,6 +298,7 @@ namespace SupraInventoryRelayAgent
             next = QuerySecretPattern.Replace(next, "$1[REDACTED]");
             next = SecretPattern.Replace(next, m => m.Groups[1].Value + "=[REDACTED]");
             next = JwtPattern.Replace(next, "[REDACTED_JWT]");
+            next = PickListPattern.Replace(next, "PL[REDACTED]");
             return next;
         }
 
@@ -341,6 +344,16 @@ namespace SupraInventoryRelayAgent
             if (string.IsNullOrWhiteSpace(message)) return false;
             var upper = message.ToUpperInvariant();
             if (upper.StartsWith("AGENT LOG ", StringComparison.Ordinal)) return false;
+
+            // D160 v99 test: terminal success diagnostics include an "exceptions=0"
+            // counter for analysis. That token must never turn a successful confirm
+            // into an immediate error bundle. Uncertain terminal results stay urgent.
+            if (upper.StartsWith("D160_DIAG TERMINAL ", StringComparison.Ordinal))
+            {
+                if (upper.Contains("RESULT=CONFIRMED")) return false;
+                if (upper.Contains("RESULT=CONFIRM_IN_PROGRESS_OR_UNCERTAIN")) return true;
+            }
+
             return upper.Contains("=FAIL") ||
                    upper.Contains(" ERROR ") ||
                    upper.StartsWith("ERROR ", StringComparison.Ordinal) ||

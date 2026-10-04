@@ -248,6 +248,7 @@ namespace SupraInventoryRelayAgent
             {
                 _refreshBeforeBusiness = true;
                 _log("FIRESTORE role=" + RoleName + " transport=OFFLINE role_preserved=true");
+                _log("D160_DIAG HA refresh_before_business=ARMED trigger=RELAY_POLL_UNHEALTHY role=" + RoleName);
             }
         }
 
@@ -266,9 +267,15 @@ namespace SupraInventoryRelayAgent
         internal void EnsureRoleCurrentBeforeBusiness(AgentSession session)
         {
             if (!_refreshBeforeBusiness) return;
+            var started = NowMs();
+            var before = RoleName;
+            _log("D160_DIAG HA role_refresh=START trigger=REFRESH_BEFORE_BUSINESS role_before=" + before);
             RefreshRole(session);
             _lastRoleRefreshMs = NowMs();
             _refreshBeforeBusiness = false;
+            _log("D160_DIAG HA role_refresh=END trigger=REFRESH_BEFORE_BUSINESS role_before=" + before +
+                 " role_after=" + RoleName +
+                 " elapsed_ms=" + Math.Max(0L, NowMs() - started));
         }
 
         internal bool VerifyPrimaryBeforeMutation(AgentSession session)

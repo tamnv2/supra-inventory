@@ -407,6 +407,7 @@ namespace SupraInventoryRelayAgent
         private int ProcessBatch(AgentSession session, List<PendingDocument> docs)
         {
             if (docs == null || docs.Count == 0) return 0;
+            var transportBatchStartedMs = NowMs();
 
             var works = new List<FirestoreConfirmationWorkItem>();
             var uniqueDocs = new List<PendingDocument>();
@@ -442,6 +443,26 @@ namespace SupraInventoryRelayAgent
             }
             docs = uniqueDocs;
             if (docs.Count == 0) return 0;
+
+            var handoffNowMs = NowMs();
+            var maxCreatedAgeMs = works
+                .Where(work => work != null && work.CreatedAtMs > 0)
+                .Select(work => Math.Max(0L, handoffNowMs - work.CreatedAtMs))
+                .DefaultIfEmpty(0L)
+                .Max();
+            var maxClientAgeMs = works
+                .Where(work => work != null)
+                .Select(work =>
+                {
+                    var sent = work.ClientSentAtMs > 0 ? work.ClientSentAtMs : work.CreatedAtMs;
+                    return sent > 0 ? Math.Max(0L, handoffNowMs - sent) : 0L;
+                })
+                .DefaultIfEmpty(0L)
+                .Max();
+            _log("D160_DIAG QUEUE phase=HANDOFF jobs=" + works.Count +
+                 " max_created_age_ms=" + maxCreatedAgeMs +
+                 " max_client_age_ms=" + maxClientAgeMs +
+                 " transport_prepare_ms=" + Math.Max(0L, handoffNowMs - transportBatchStartedMs));
 
             lock (_currentBatchGate)
             {
@@ -986,6 +1007,30 @@ namespace SupraInventoryRelayAgent
             {
                 var response = ex.Response as HttpWebResponse;
                 var status = response == null ? 0 : (int)response.StatusCode;
+                var canonical = FirestoreHttpTransport.CanonicalErrorStatus(ex);
+                var hasUpdatePrecondition = !string.IsNullOrWhiteSpace(updateTime);
+                var superseded =
+                    status == 400 &&
+                    hasUpdatePrecondition &&
+                    string.Equals(canonical, "FAILED_PRECONDITION", StringComparison.OrdinalIgnoreCase);
+                if (superseded)
+                {
+                    _log("D160_DIAG FIRESTORE_CONTROL component=PRESENCE_ACK_CONTROL result=SUPERSEDED" +
+                         " http=" + status +
+                         " canonical=FAILED_PRECONDITION" +
+                         " update_precondition=1" +
+                         " presence_count=" + (outcome == null ? 0 : Math.Max(0, outcome.Matches)) +
+                         " transport_health_impact=NONE");
+                    try { if (response != null) response.Dispose(); } catch { }
+                    return true;
+                }
+
+                _log("D160_DIAG FIRESTORE_CONTROL component=PRESENCE_ACK_CONTROL result=FAIL" +
+                     " http=" + status +
+                     " canonical=" + Safe(canonical) +
+                     " web_exception=" + ex.Status +
+                     " update_precondition=" + (hasUpdatePrecondition ? "1" : "0") +
+                     " presence_count=" + (outcome == null ? 0 : Math.Max(0, outcome.Matches)));
                 try { if (response != null) response.Dispose(); } catch { }
                 if ((status == 409 || status == 412) && AckAlreadyVisible(session, name, jobId))
                     return true;
