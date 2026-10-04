@@ -757,3 +757,8 @@ These refinements were approved after the 2026-10-03 full-log review. They tight
 - **HR:** HARD_BLOCK exposes bounded non-sensitive row/reason diagnostics and a one-shot recheck; HARD_BLOCK remains fail-closed. CONFIRM_REQUIRED uses explicit Yes/No, where No performs no mutation and keeps the proposal pending.
 - **Agent Picker list:** after Agent login, active Picker observation is independent from WMS/Web Confirm readiness and the business-processing window. It reuses one Agent-sync gRPC stream targeting the existing `agent_sync` and authoritative `picker_presence_projection/current` documents, and stops on Agent logout; PickList mutation gates remain unchanged.
 - Repair lineage target: Web Version 2, Agent v105, next monotonic Android Beta after vc96. Stable remains OWNER-GATED and untouched.
+
+
+## D161 field repair technical status — 2026-10-04
+
+PR 427 merged to main afaf9d56. Beta Web Version 2 deploy PASS (run 37199390053). Android beta-vc97 PASS (run 37199390022, release 402990645). Agent relay-agent-v105 PASS (run 37199390032, release 402990615). Technical/runtime/release status is PASS; Owner field re-test remains required under OA096. Stable is unchanged.
