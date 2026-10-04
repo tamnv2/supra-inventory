@@ -562,3 +562,10 @@ TRACE_GAP_DETECTED means evidence is incomplete. It never proves a business resu
 
 ### 16.4 Web journal session-generation isolation
 Reload-surviving Web incident context is scoped to one authenticated session generation. Logout, account replacement or authoritative session-generation replacement rotates the journal. Old evidence may be archived under its original session identity but cannot be attached to the next user.
+
+## D161 field-retest diagnostic completeness — WMS-not-ready and Agent control failures
+
+For a PDA confirmation request observed by an authenticated Agent, local History and structured diagnostics must never remain blank merely because Web Confirm is not ready. The request trace records ingress and converges to the explicit pre-mutation terminal **WMS_SESSION_REQUIRED / WEB_CONFIRM_NOT_READY**, rendered to operators as **Web Agent chưa sẵn sàng**. Other known pre-mutation failures use bounded human-readable reasons rather than an empty result.
+
+Agent bulk-revoke and Usage failures must preserve a bounded non-sensitive error code/class sufficient to distinguish authentication/session-contract failure from provider/network failure. Secrets, tokens and raw PickList values remain excluded. These diagnostics create no per-event provider write.
+
