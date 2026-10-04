@@ -2123,7 +2123,7 @@ namespace SupraInventoryRelayAgent
               const pathOk = location.hostname === 'wms-supra.winmart.vn' && location.pathname.indexOf('" + ConfirmPath + @"') >= 0;
               const tableOk = tableSurfaces.length > 0 || rowSurfaces.length > 0;
               const domReady = pathOk && tableOk && search.length === 1 && confirm.length === 1;
-              // D161 v110: an explicit WMS "no results" surface is hydrated data,
+              // D161 v110: an explicit WMS no-results surface is hydrated data,
               // not an unavailable Confirm session. This lets Agent activate before
               // the first PickList of a shift; a later PDA request still runs the
               // normal Search/recovery path. A blank/unhydrated shell without this
