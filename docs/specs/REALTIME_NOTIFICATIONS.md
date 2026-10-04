@@ -902,3 +902,16 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - Normal-path Firestore write count does not increase: the previous Agent-originated session-control write moves behind server authority to Worker. Extra attempts occur only on bounded transient failure recovery.
 - Bulk revoke semantics remain server-generation authoritative and unchanged. Stable remains OWNER-GATED.
 
+
+
+## D161 v111 active-Picker event convergence
+
+- Active-Picker presentation is event-driven and generation-fenced. It represents authenticated Android Picker session authority, not physical device liveness.
+- The existing authenticated Agent gRPC stream continues to target exactly two existing documents: `relay_poc_coordination/agent_sync` and `picker_presence_projection/current`. No additional target/listener/query/poll is introduced.
+- `picker_presence_projection/current` is the primary complete login/logout snapshot. A missing user in a newer direct snapshot removes that local session and records its observed generation as a RAM-only tombstone.
+- Existing presence-control removal metadata and existing `agent_sync.kicks` also advance the same RAM-only tombstone.
+- Per-row server-authoritative revoke removes the matching local row immediately after the Worker returns the authoritative generation. Bulk revoke removes only locally captured generations, preserving a newer concurrent login.
+- Delayed events with generation less than or equal to the tombstone are ignored. A strictly newer generation clears the tombstone and is rendered normally.
+- After direct presence has been observed, `agent_sync` is no longer globally suppressed for Picker convergence. Only a real change to its Picker presence payload may affect Picker UI; unrelated history/counter/call-lock changes cannot repaint the list.
+- Existing leader presence publication remains unchanged. This repair creates **zero new provider writes, zero new listener/query families, zero polling, zero heartbeat and zero Desktop timer cadence**.
+- Power loss/network loss without explicit logout is not treated as immediate logout; adding heartbeat/device-liveness semantics remains outside this repair.
