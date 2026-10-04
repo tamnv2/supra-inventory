@@ -1070,3 +1070,11 @@ The Agent **Lịch sử Picker xác nhận PickList** table adds **User Agent x�
 - The column participates in normal temporary manual sorting, but leaving/re-entering History restores the canonical full-`SentAtMs` newest-first order.
 - Adding the column must preserve D161 atomic/batched History rendering and must not reintroduce progressive row repaint.
 
+
+
+## D161 Owner field-repair presentation — 2026-10-04
+
+- Web Ca vận hành shows **Ca bình thường · 06:00–22:00** as the outward business shift. If shown, the margin is explicitly subordinate as **Cửa sổ kỹ thuật Replay · 05:45–22:15**. User-facing 22:30 schedule copy is forbidden.
+- HR HARD_BLOCK must show the specific safe cause. INVALID_ROWS shows bounded Sheet row numbers and validation reasons without raw row payload. It offers **Kiểm tra lại nguồn**, never a force-apply action.
+- HR CONFIRM_REQUIRED shows explicit **Có · Áp dụng** and **Không · Giữ nguyên**. No means zero mutation and leaves the pending proposal available for a later decision.
+- Agent **Picker đang hoạt động trên PDA** is an authenticated management surface: it remains visible when WMS/Web Confirm is not ready and outside the business window. Only Agent logout/unauthenticated state clears the list.
