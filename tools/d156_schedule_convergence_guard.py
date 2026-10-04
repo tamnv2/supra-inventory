@@ -48,7 +48,7 @@ forbid(projection, "OperatingScheduleListener", "new schedule listener")
 
 if business.count('"/notifications/alert-window/reconcile"') < 3:
     raise SystemExit("D156 guard: Android mutation, result FCM and Web shift read must all use schedule reconcile")
-require(business, "05:45–22:30", "current normal-window copy")
+require(business, "05:45–22:15", "D161 relay technical window copy")
 
 require(web, 'else if (activeSection === "shift" && rolePickPackManage()) await loadShiftOperations();', "Web shift realtime reconcile")
 require(read_model, '"PICKPACK_ADMIN"', "Pick Pack Admin realtime role support")
