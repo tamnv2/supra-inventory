@@ -162,8 +162,13 @@ def main() -> None:
     require(main_activity, 'info.tag != "beta-vc${info.versionCode}"', "Beta channel tag verification")
     require(main_activity, "expectedSigner !in archiveSigners", "downloaded signer verification")
     require(main_activity, "validateUpdateUrl", "trusted update URL verification")
-    require(main_activity, "info.versionCode == BuildConfig.VERSION_CODE", "exact latest-version login gate")
-    require(main_activity, "info.versionCode < BuildConfig.VERSION_CODE", "unexpected ahead-of-channel fail closed")
+    require(main_activity, "verifyInstalledSignerTrusted()", "D161 installed signer integrity remains fail closed")
+    require(main_activity, "UpdateGate.DEFERRED", "D161 update-channel failure is nonblocking")
+    require(main_activity, 'setNegativeButton("Để sau")', "D161 update defer action")
+    require(main_activity, 'setPositiveButton("Cập nhật")', "D161 explicit update action")
+    require(main_activity, '"Tìm kiếm bản cập nhật?"', "D161 authenticated manual update confirmation")
+    require(main_activity, "pendingUpdateInfo", "D161 single-flight discovered update state")
+    require(main_activity, "updateGate != UpdateGate.FAILED", "D161 login blocked only by installed-app integrity failure")
 
     # D060: Android refreshes the server-authoritative effective role on resume.
     require(inventory_api, "fun refreshProfile(): AppSession", "effective-role profile refresh API")
