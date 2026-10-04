@@ -830,6 +830,7 @@ class MainActivity : Activity() {
             .put("catalog", JSONObject()
                 .put("count", skuCache.count)
                 .put("version", sanitizeDiagnosticText(skuCache.version).take(160)))
+            .put("journal", androidPersistentJournalSnapshot())
             .put("recent_events", JSONArray(localLog.toList().takeLast(80).map(::sanitizeDiagnosticText)))
             .put("recent_errors", JSONArray(errors))
 
@@ -879,6 +880,41 @@ class MainActivity : Activity() {
         } catch (_: Exception) { }
     }
 
+    private fun androidPersistentJournalSnapshot(): JSONObject {
+        val prefs = runtimeLogPrefs()
+        val userId = (activeSession ?: api.session)?.userId.orEmpty()
+        if (userId.isBlank() || prefs.getString("journal_owner", "").orEmpty() != userId) {
+            return JSONObject().put("persistent", false)
+        }
+        val events = try { JSONArray(prefs.getString("journal_events", "[]")) } catch (_: Exception) { JSONArray() }
+        return JSONObject()
+            .put("persistent", true)
+            .put("format", "supra-android-runtime-journal-v2")
+            .put("first_sequence", events.optJSONObject(0)?.optLong("sequence", 0L)?.takeIf { it > 0L })
+            .put("last_sequence", events.optJSONObject(events.length() - 1)?.optLong("sequence", 0L)?.takeIf { it > 0L })
+            .put("dropped_events", prefs.getLong("journal_dropped", 0L))
+            .put("recent_events", events)
+    }
+
+    private fun pruneAndroidPersistentJournal(payload: JSONObject) {
+        val journal = payload.optJSONObject("journal")
+            ?: payload.optJSONObject("support")?.optJSONObject("journal")
+            ?: return
+        val through = journal.optLong("last_sequence", 0L)
+        if (through <= 0L) return
+        val prefs = runtimeLogPrefs()
+        val events = try { JSONArray(prefs.getString("journal_events", "[]")) } catch (_: Exception) { JSONArray() }
+        val keep = JSONArray()
+        for (index in 0 until events.length()) {
+            val event = events.optJSONObject(index) ?: continue
+            if (event.optLong("sequence", 0L) > through) keep.put(event)
+        }
+        prefs.edit()
+            .putString("journal_events", keep.toString())
+            .putLong("journal_dropped", 0L)
+            .apply()
+    }
+
     private fun runtimeLogPrefs() = getSharedPreferences("runtime_logs", MODE_PRIVATE)
 
     private fun androidRuntimeLogDevice(): JSONObject = JSONObject()
@@ -907,9 +943,11 @@ class MainActivity : Activity() {
                 device = androidRuntimeLogDevice(),
                 payload = payload,
             )
+            val archiveStatus = response.optString("archive_status", "DEFERRED")
+            if (archiveStatus == "DRIVE_SYNCED") pruneAndroidPersistentJournal(payload)
             AndroidLogSendResult(
                 accepted = true,
-                archiveStatus = response.optString("archive_status", "DEFERRED"),
+                archiveStatus = archiveStatus,
             )
         } catch (error: Exception) {
             val safe = sanitizeDiagnosticText(error.message ?: "unknown")
