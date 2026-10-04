@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "BLOCKED_BY_SECOND_FIELD_REPAIR__PR_CI_RELEASE_PENDING",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "Owner field retest found three additional D161 defects. Owner action is blocked until the same D161 change publishes the repaired Beta Worker and Agent v106; Android vc97 is unchanged.",
+      "reason_owner_only": "The second D161 field repair is merged and runtime/release gates are PASS on Beta Worker + Agent v106. Final acceptance still requires Owner/company field retest; Android vc97 is unchanged.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4813,7 +4813,7 @@
         "repair_agent": "relay-agent-v105__RELEASED__RUN_37199390032",
         "repair_android": "beta-vc97__UNCHANGED_FOR_SECOND_REPAIR",
         "repair_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__SCHEMA17_17__OPERATIONAL5_5",
-        "second_field_repair": "IMPLEMENTED_ON_BRANCH__TARGET_AGENT_V106__WORKER_REDEPLOY__CI_RELEASE_PENDING"
+        "second_field_repair": "PASS__PR_430__MAIN_6FCA277E__AGENT_V106__WORKER_RUN_37201568740__AGENT_RUN_37201568734__USAGE_RUN_37201568816"
       },
       "shortest_test_path": [
         "After Agent v106 and the repaired Beta Worker are published, test Kích toàn bộ user with at least two logged-in Picker Android sessions; verify all affected sessions are revoked and must log in again.",
@@ -4874,12 +4874,21 @@
         "second_field_repair": {
           "owner_reported_at": "2026-10-04",
           "defects": 3,
+          "repair_pr": 430,
+          "main_sha": "6fca277e7fe69d59864716b699788dd6b8d87c4f",
+          "beta_worker_run_id": 37201568740,
+          "agent_run_id": 37201568734,
+          "usage_run_id": 37201568816,
+          "ui_guard_run_id": 37201568724,
           "target_agent": "relay-agent-v106",
+          "agent_release_id": 403005411,
+          "agent_asset_id": 609797572,
+          "agent_sha256": "57c84c4d0acd436dc31a2198e079eaf1b5105e1d2d27979080bcbc9bb3900bcf",
           "android": "beta-vc97__UNCHANGED",
-          "status": "PR_CI_RELEASE_PENDING"
+          "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "BLOCKED_UNTIL_SECOND_FIELD_REPAIR_RELEASE_PASS__THEN_RETEST_BULK_KICK__WMS_NOT_READY_HISTORY__USAGE__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
+      "remaining_owner_action": "RETEST_BULK_KICK_ALL__WMS_NOT_READY_HISTORY_EXPLICIT_REASON__USAGE_ON_AGENT_V106_WITH_ANDROID_VC97__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
       "closed": false
     }
   ]
