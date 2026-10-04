@@ -818,3 +818,16 @@ Technical/runtime/release PASS after Owner-approved sixth repair.
 - Android remains **beta-vc97** unchanged; Worker/Web/Stable unchanged by this repair.
 - No new provider resource/listener/query/poll/heartbeat/write cadence.
 - D161 remains **Owner field retest pending**; D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
+
+
+## Seventh field repair approved 2026-10-04 — Agent v111
+
+Owner approved continuation under D161 after v110 field testing exposed stale active-Picker rows after self logout / Kích User.
+
+- Add local RAM-only generation tombstones so delayed same/older session evidence cannot resurrect a logged-out/revoked Picker.
+- Remove a per-row kicked Picker immediately after server authority succeeds; do not wait for a second provider event.
+- For bulk revoke, capture local generations before the command and remove only those generations after server success so a newer concurrent login survives.
+- Keep direct `picker_presence_projection/current` as primary complete authority and allow a **real Picker-presence delta** from the existing `agent_sync` document to act as the existing fallback convergence path.
+- Do not let unrelated `agent_sync` history/counter/call-lock mutations repaint Picker UI.
+- Existing direct/control/sync paths only; no new listener/query/poll/heartbeat/provider write/timer cadence.
+- Target **relay-agent-v111**. Android beta-vc97, Worker, Web and Stable unchanged.
