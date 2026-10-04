@@ -39,6 +39,10 @@ class StockMessagingService : FirebaseMessagingService() {
             NotificationSignalStore.markSkuCatalogRefresh(applicationContext)
             return
         }
+        if (event == "support_log_request") {
+            AndroidSupportLogResponder.queue(applicationContext, message.data)
+            return
+        }
 
         NotificationSignalStore.markMessage(applicationContext, message.data)
         ensureChannel()
