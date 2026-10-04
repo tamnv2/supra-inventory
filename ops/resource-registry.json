@@ -130,7 +130,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D161_PHASE0_SAFETY_ACTIVE__D160_ACCEPTED_RUNTIME__AGENT_V97_FIELD_BASE__ANDROID_VC92_FIELD_BASE",
+      "status": "D161_PHASE0_SAFETY_PASS__FEATURE_IMPLEMENTATION_ACTIVE__D160_ACCEPTED_BASE_RESCUE__AGENT_V101_SAFETY__ANDROID_VC93_SAFETY",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -193,13 +193,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v97__OWNER_ACCEPTED__TRUSTED_CHANNEL",
+      "relay_agent_release": "relay-agent-v101__D161_SAFETY__D160_BEHAVIOR__FEATURE_MIN_V102",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D156_PASS_RUN_36645477945__SOURCE_859A7DFB__SCHEMA16_16__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v97__ACCEPTED",
-      "next_signed_beta_release_target": "D161_SAFETY_VC93__FEATURE_MIN_VC94",
-      "next_relay_agent_release_target": "D161_SAFETY_V101__FEATURE_MIN_V102",
+      "relay_agent_release_target": "relay-agent-v101__D161_SAFETY_VERIFIED",
+      "next_signed_beta_release_target": "D161_FEATURE_MIN_VC94",
+      "next_relay_agent_release_target": "D161_FEATURE_MIN_V102",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -319,7 +319,7 @@
       "d159_usage_test_release_target": "HISTORICAL_D159_V3__NO_NEW_RUNTIME_CALLERS",
       "d159_monitoring_cache_seconds": 900,
       "d160_source_status": "CLOSED__ACTIVE_AGENT_SOURCE_RESTORED_EXACT_V97__TEST_V98_V99_V100_HISTORY_ONLY",
-      "d161_source_status": "PHASE0A_PASS__PHASE0_SAFETY_ACTIVE__NO_FEATURE_RUNTIME_BEHAVIOR"
+      "d161_source_status": "PHASE0A_PASS__PHASE0_SAFETY_PASS__FEATURE_IMPLEMENTATION_ACTIVE"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -2233,9 +2233,9 @@
     "source_baseline": "EXACT_V97_SOURCE_COMMIT_4c3f0a4dffc94f66237d0958032fd27ac52fed29"
   },
   "d161": {
-    "status": "PHASE0A_PASS__PHASE0_SAFETY_ACTIVE",
+    "status": "PHASE0A_PASS__PHASE0_SAFETY_PASS__FEATURE_IMPLEMENTATION_ACTIVE",
     "accepted_base": "D160__RELAY_AGENT_V97",
-    "resource_change_now": "NONE_PERSISTENT__PHASE0_SAFETY_USES_EXISTING_GITHUB_RELEASE_CHANNELS_ONLY__STABLE_UNTOUCHED",
+    "resource_change_now": "NONE_PERSISTENT__SAFETY_RELEASES_VERIFIED__FEATURE_WORK_REUSES_EXISTING_SCOPED_BETA_RESOURCES__STABLE_UNTOUCHED",
     "logs_parent": "EXISTING_SCOPED_INVENTORY_BETA_LOGS_FOLDER",
     "future_daily_children": "YYYY_MM_DD_NAMING_SEMANTICS__ACTUAL_NAME_YYYY-MM-DD__TRUSTED_SERVER_CREATE_CACHE__BETA_ONLY__FEATURE_IMPLEMENTATION_AFTER_PHASE0_SAFETY_PASS",
     "global_log_control": "EXISTING_GOOGLE_FIREBASE_CAPABLE_CONTROL_PLANE_REQUIRED_FOR_OFFICE_AGENT__REUSE_EXISTING_CHANNELS_WHERE_SAFE__ANY_NEW_EXACT_SERVER_TRIGGER_REQUIRES_SCOPE_RECONCILIATION_BEFORE_PROVIDER_MUTATION",
@@ -2295,15 +2295,14 @@
       "stable": "FORBIDDEN"
     },
     "phase0_safety": {
-      "status": "ACTIVE",
+      "status": "PASS",
       "manifest": "ops/d161-safety-baseline.json",
-      "baseline_capture_main_sha": "be097ce199f2f7f6d09570777193e63fb45399e3",
-      "accepted_agent_release": "relay-agent-v97",
-      "accepted_android_release": "beta-vc92",
-      "agent_safety_target": "relay-agent-v101",
-      "android_safety_target": "beta-vc93",
-      "release_storage": "EXISTING_GITHUB_RELEASES_AND_INVENTORY_CHANNEL",
-      "web_service_evidence": "D161_PHASE0_SAFETY_CI_REPRODUCIBLE_BUILD_PLUS_LIVE_HEALTH",
+      "agent_safety_release": "relay-agent-v101",
+      "android_safety_release": "beta-vc93",
+      "release_source_sha": "d1d33d4941034e04bc757d1a9252b848fe5de193",
+      "terminal_pass_main_sha": "6702b0aabc807954d6427e7e3aa6442134cb95e3",
+      "terminal_pass_run_id": 37170577529,
+      "ui_guard_pass_run_id": 37170513921,
       "persistent_resource_change": "NONE",
       "stable": "OWNER_GATED_UNTOUCHED"
     }
