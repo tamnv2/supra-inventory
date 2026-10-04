@@ -409,7 +409,7 @@ type AgentLogUploadRecord = {
   crash?: boolean;
 };
 
-async function uploadAgentLogDirectToDrive(filename: string, content: string): Promise<string> {
+async function uploadAgentLogDirectToDrive(filename: string, content: string, bundleId: string): Promise<string> {
   if (!AGENT_LOG_FILENAME_RE.test(filename)) throw new Error("AGENT_LOG_FILENAME_INVALID");
   const bodyBytes = Buffer.from(content, "utf8");
   if (bodyBytes.length <= 0 || bodyBytes.length > AGENT_LOG_MAX_BYTES) throw new Error("AGENT_LOG_SIZE_INVALID");
@@ -431,6 +431,7 @@ async function uploadAgentLogDirectToDrive(filename: string, content: string): P
     data: {
       filename,
       content_length: bodyBytes.length,
+      bundle_id: bundleId,
     },
     timeout: 10_000,
   });
@@ -497,7 +498,7 @@ export const agentLogUploadWritten = onDocumentWritten(`${AGENT_LOG_COLLECTION}/
 
   const content = rows.map((row) => String(row.data.content || "")).join("");
   try {
-    const driveFileId = await uploadAgentLogDirectToDrive(filename, content);
+    const driveFileId = await uploadAgentLogDirectToDrive(filename, content, uploadId);
     const batch = db.batch();
     for (const row of rows) batch.delete(row.ref);
     await batch.commit();
