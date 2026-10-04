@@ -854,6 +854,29 @@ class MainActivity : Activity() {
     private fun recordLog(message: String) {
         if (localLog.size >= 80) localLog.removeFirst()
         localLog.addLast("${logTime.format(Instant.now())} · $message")
+        try {
+            val userId = (activeSession ?: api.session)?.userId.orEmpty()
+            if (userId.isNotBlank()) {
+                val prefs = runtimeLogPrefs()
+                val owner = prefs.getString("journal_owner", "").orEmpty()
+                val sequence = if (owner == userId) prefs.getLong("journal_sequence", 0L) + 1L else 1L
+                val persisted = if (owner == userId) {
+                    try { JSONArray(prefs.getString("journal_events", "[]")) } catch (_: Exception) { JSONArray() }
+                } else JSONArray()
+                persisted.put(JSONObject()
+                    .put("at", Instant.now().toString())
+                    .put("sequence", sequence)
+                    .put("level", "INFO")
+                    .put("category", "APP")
+                    .put("name", sanitizeDiagnosticText(message)))
+                while (persisted.length() > 160) persisted.remove(0)
+                prefs.edit()
+                    .putString("journal_owner", userId)
+                    .putLong("journal_sequence", sequence)
+                    .putString("journal_events", persisted.toString().take(700_000))
+                    .apply()
+            }
+        } catch (_: Exception) { }
     }
 
     private fun runtimeLogPrefs() = getSharedPreferences("runtime_logs", MODE_PRIVATE)
