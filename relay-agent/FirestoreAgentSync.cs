@@ -861,7 +861,7 @@ namespace SupraInventoryRelayAgent
                             Database = AgentConfig.FirestoreDatabaseName,
                             AddTarget = new Target { TargetId = 134, Documents = docs }
                         }).ConfigureAwait(false);
-                        _log("AGENT_SYNC listen=OPEN role_limited=true routing_headers=true cadence=EVENT_PLUS_5M");
+                        _log("AGENT_SYNC listen=OPEN session_scoped=true routing_headers=true cadence=EVENT_PLUS_5M");
 
                         while (await call.ResponseStream.MoveNext(token).ConfigureAwait(false))
                         {
@@ -878,7 +878,7 @@ namespace SupraInventoryRelayAgent
                             {
                                 acceptedResponse = true;
                                 backoff = InitialRetryMs;
-                                _log("AGENT_SYNC listen=CONNECTED role_limited=true cadence=EVENT_PLUS_5M");
+                                _log("AGENT_SYNC listen=CONNECTED session_scoped=true cadence=EVENT_PLUS_5M");
                             }
 
                             var doc = response == null || response.DocumentChange == null
