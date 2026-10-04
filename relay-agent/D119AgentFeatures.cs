@@ -1692,7 +1692,7 @@ namespace SupraInventoryRelayAgent
                 var copy = removals == null
                     ? new Dictionary<string, long>(StringComparer.Ordinal)
                     : removals.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
-                BeginInvoke(new Action<IDictionary<string, long>, string>(ApplyLocalPickerSessionRemovals), copy, reason);
+                Invoke(new Action<IDictionary<string, long>, string>(ApplyLocalPickerSessionRemovals), copy, reason);
                 return;
             }
             if (removals == null || removals.Count == 0) return;
