@@ -596,6 +596,19 @@ export function getStoredProfile(): AppProfile | null {
   return session?.user || null;
 }
 
+export function getSessionDiagnosticIdentity(): {
+  user_id: string;
+  session_generation: number;
+  session_channel: "WEB" | "ANDROID";
+} | null {
+  if (!session?.user?.user_id || !session.session_generation) return null;
+  return {
+    user_id: session.user.user_id,
+    session_generation: Math.max(1, Math.trunc(Number(session.session_generation))),
+    session_channel: session.session_channel || "WEB",
+  };
+}
+
 export function clearSession(): void {
   saveSession(null);
 }
@@ -1017,7 +1030,14 @@ export async function uploadRuntimeLog(payload: {
   generated_at: string;
   device: Record<string, unknown>;
   payload: unknown;
-}): Promise<{ status: string; file?: { id?: string; name?: string; created_at?: string; size?: number } }> {
+  bundle_id?: string;
+  boundary_id?: string;
+  trace_id?: string;
+}): Promise<{
+  status: string;
+  archive_status?: "DRIVE_SYNCED" | "DEFERRED";
+  file?: { id?: string; name?: string; created_at?: string; size?: number };
+}> {
   return readJson(await authorizedFetch("/api/logs/upload", {
     method: "POST",
     body: JSON.stringify(payload),

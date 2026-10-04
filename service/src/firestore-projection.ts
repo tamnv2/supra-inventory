@@ -110,6 +110,49 @@ export async function readOperatingScheduleProjectionExact(
   };
 }
 
+export async function publishAgentSupportLogRequest(
+  env: ProjectionWriteEnv,
+  input: {
+    request_id: string;
+    trace_id: string;
+    issued_at_ms: number;
+    expires_at_ms: number;
+    issued_by_user_id: string;
+    issued_by_login: string;
+  },
+): Promise<void> {
+  const token = await accessToken(env);
+  const fields = document({
+    support_request_id: input.request_id,
+    support_trace_id: input.trace_id,
+    support_issued_at_ms: Math.trunc(input.issued_at_ms),
+    support_expires_at_ms: Math.trunc(input.expires_at_ms),
+    support_issued_by_user_id: input.issued_by_user_id,
+    support_issued_by_login: input.issued_by_login,
+  }).fields;
+  const mask = [
+    "support_request_id",
+    "support_trace_id",
+    "support_issued_at_ms",
+    "support_expires_at_ms",
+    "support_issued_by_user_id",
+    "support_issued_by_login",
+  ].map((name) => `updateMask.fieldPaths=${encodeURIComponent(name)}`).join("&");
+  const response = await fetch(
+    documentUrl(env, "relay_poc_coordination", "primary_handoff") + "?" + mask,
+    {
+      method: "PATCH",
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ fields }),
+    },
+  );
+  if (!response.ok) throw new Error(`AGENT_SUPPORT_CONTROL_WRITE_HTTP_${response.status}`);
+}
+
 async function putDocument(
   env: ProjectionWriteEnv,
   collection: string,

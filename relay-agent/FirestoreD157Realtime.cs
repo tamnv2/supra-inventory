@@ -26,6 +26,12 @@ namespace SupraInventoryRelayAgent
         internal long CompletedAtMs;
         internal string ResultDetail = "";
         internal string PrimaryGeneration = "";
+        internal string SupportRequestId = "";
+        internal string SupportTraceId = "";
+        internal long SupportIssuedAtMs;
+        internal long SupportExpiresAtMs;
+        internal string SupportIssuedByUserId = "";
+        internal string SupportIssuedByLogin = "";
     }
 
     internal static class D157PendingWakeSignal
@@ -541,7 +547,13 @@ namespace SupraInventoryRelayAgent
                 ExpiresAtMs = Long(doc, "expires_at_ms"),
                 CompletedAtMs = Long(doc, "completed_at_ms"),
                 ResultDetail = String(doc, "result_detail"),
-                PrimaryGeneration = String(doc, "primary_generation")
+                PrimaryGeneration = String(doc, "primary_generation"),
+                SupportRequestId = String(doc, "support_request_id"),
+                SupportTraceId = String(doc, "support_trace_id"),
+                SupportIssuedAtMs = Long(doc, "support_issued_at_ms"),
+                SupportExpiresAtMs = Long(doc, "support_expires_at_ms"),
+                SupportIssuedByUserId = String(doc, "support_issued_by_user_id"),
+                SupportIssuedByLogin = String(doc, "support_issued_by_login")
             };
         }
 
@@ -600,9 +612,17 @@ namespace SupraInventoryRelayAgent
                 { "result_detail", StringField("") },
                 { "primary_generation", StringField("") }
             };
+            var mask =
+                "?updateMask.fieldPaths=schema_version&updateMask.fieldPaths=request_id" +
+                "&updateMask.fieldPaths=status&updateMask.fieldPaths=target_agent_instance_id" +
+                "&updateMask.fieldPaths=target_machine&updateMask.fieldPaths=target_admin_user_id" +
+                "&updateMask.fieldPaths=requester_agent_instance_id&updateMask.fieldPaths=requester_user_id" +
+                "&updateMask.fieldPaths=requester_login&updateMask.fieldPaths=created_at_ms" +
+                "&updateMask.fieldPaths=expires_at_ms&updateMask.fieldPaths=completed_at_ms" +
+                "&updateMask.fieldPaths=result_detail&updateMask.fieldPaths=primary_generation";
             FirestoreHttpTransport.SendJson(
                 "PATCH",
-                AgentConfig.FirestorePrimaryHandoffUrl,
+                AgentConfig.FirestorePrimaryHandoffUrl + mask,
                 session.IdToken,
                 _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
                 "Agent-Auto-Confirm-Pick-Pack/D157",

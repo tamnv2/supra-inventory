@@ -23,6 +23,9 @@ type RuntimeLogBody = {
   generated_at?: string;
   device?: Record<string, unknown>;
   payload?: unknown;
+  bundle_id?: string;
+  boundary_id?: string;
+  trace_id?: string;
 };
 
 const SENSITIVE_KEY = /authorization|bearer|token|password|secret|private|credential|api.?key|refresh|cookie|signing|keystore|session/i;
@@ -30,6 +33,181 @@ const FILE_ID_RE = /^[A-Za-z0-9_-]{10,200}$/;
 const RUNTIME_LOG_RETENTION_DAYS = 90;
 const RETENTION_SWEEP_INTERVAL_MS = 6 * 60 * 60_000;
 let nextRetentionSweepAt = 0;
+const dailyFolderCache = new Map<string, { id: string; expiresAt: number }>();
+const DAILY_FOLDER_CACHE_MS = 6 * 60 * 60_000;
+
+function vietnamDateKey(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const pick = (type: string) => parts.find((part) => part.type === type)?.value || "00";
+  return `${pick("year")}-${pick("month")}-${pick("day")}`;
+}
+
+function driveQueryEscape(value: string): string {
+  return value.replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+}
+
+export async function resolveRuntimeLogDailyFolder(
+  env: RuntimeLogsEnv,
+  token: string,
+  archiveDate = new Date(),
+): Promise<{ id: string; dateKey: string }> {
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
+  const dateKey = vietnamDateKey(archiveDate);
+  const cacheKey = `${env.LOGS_FOLDER_ID}:${dateKey}`;
+  const cached = dailyFolderCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now() && FILE_ID_RE.test(cached.id)) {
+    return { id: cached.id, dateKey };
+  }
+
+  const query = [
+    `'${driveQueryEscape(env.LOGS_FOLDER_ID)}' in parents`,
+    "trashed = false",
+    "mimeType = 'application/vnd.google-apps.folder'",
+    `name = '${driveQueryEscape(dateKey)}'`,
+    "appProperties has { key='project' and value='supra-inventory' }",
+    "appProperties has { key='kind' and value='runtime-log-day' }",
+  ].join(" and ");
+  const params = new URLSearchParams({
+    q: query,
+    orderBy: "createdTime asc",
+    pageSize: "2",
+    spaces: "drive",
+    fields: "files(id,name,createdTime,appProperties)",
+  });
+  const listed = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (!listed.ok) throw new Error(`LOGS_DAILY_FOLDER_LIST_FAILED:${listed.status}`);
+  const payload = await listed.json() as { files?: Array<{ id?: string }> };
+  let id = String(payload.files?.[0]?.id || "");
+
+  if (!FILE_ID_RE.test(id)) {
+    const created = await fetch("https://www.googleapis.com/drive/v3/files?fields=id,name,createdTime,appProperties", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json",
+        "content-type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify({
+        name: dateKey,
+        parents: [env.LOGS_FOLDER_ID],
+        mimeType: "application/vnd.google-apps.folder",
+        appProperties: {
+          project: "supra-inventory",
+          kind: "runtime-log-day",
+          archive_date: dateKey,
+        },
+      }),
+    });
+    const createdPayload = await created.json() as { id?: string };
+    if (!created.ok || !FILE_ID_RE.test(String(createdPayload.id || ""))) {
+      throw new Error(`LOGS_DAILY_FOLDER_CREATE_FAILED:${created.status}`);
+    }
+    id = String(createdPayload.id);
+  }
+
+  dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
+  return { id, dateKey };
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function archiveIdentityFromEnvelope(content: string, fallbackLogId: string): Promise<{
+  archiveId: string;
+  bundleId: string;
+  boundaryId: string;
+}> {
+  let bundleId = "";
+  let boundaryId = "";
+  let source = "";
+  let actorId = "";
+  let deviceId = "";
+  try {
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    const rawBundle = String(parsed.bundle_id || "").trim().toLowerCase();
+    if (/^[a-f0-9]{32,64}$/.test(rawBundle)) bundleId = rawBundle;
+    const rawBoundary = String(parsed.boundary_id || "").trim();
+    if (/^[A-Za-z0-9._:-]{1,180}$/.test(rawBoundary)) boundaryId = rawBoundary;
+    source = String(parsed.source || "").trim().toUpperCase();
+    const actor = parsed.actor && typeof parsed.actor === "object" ? parsed.actor as Record<string, unknown> : {};
+    const device = parsed.device && typeof parsed.device === "object" ? parsed.device as Record<string, unknown> : {};
+    actorId = String(actor.user_id || "").trim();
+    deviceId = String(device.device_id || device.id || device.model || device.label || "").trim();
+  } catch {
+    // Legacy payloads use local buffer identity only.
+  }
+  const logicalBoundary = boundaryId
+    ? await sha256Hex(`${source}|${actorId}|${deviceId}|${boundaryId}`)
+    : "";
+  return {
+    archiveId: logicalBoundary
+      ? `boundary:${logicalBoundary}`
+      : bundleId
+        ? `bundle:${bundleId}`
+        : `runtime:${fallbackLogId}`,
+    bundleId,
+    boundaryId,
+  };
+}
+
+async function findArchivedByIdentity(
+  folderId: string,
+  token: string,
+  archiveId: string,
+): Promise<Record<string, unknown> | null> {
+  const query = [
+    `'${driveQueryEscape(folderId)}' in parents`,
+    "trashed = false",
+    `appProperties has { key='archive_id' and value='${driveQueryEscape(archiveId)}' }`,
+  ].join(" and ");
+  const params = new URLSearchParams({
+    q: query,
+    orderBy: "createdTime desc",
+    pageSize: "1",
+    spaces: "drive",
+    fields: "files(id,name,createdTime,size,appProperties)",
+  });
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`LOGS_ARCHIVE_IDENTITY_LOOKUP_FAILED:${response.status}`);
+  const payload = await response.json() as { files?: Array<Record<string, unknown>> };
+  return payload.files?.[0] || null;
+}
+
+async function findArchivedByFilename(
+  folderId: string,
+  token: string,
+  filename: string,
+): Promise<Record<string, unknown> | null> {
+  const query = [
+    `'${driveQueryEscape(folderId)}' in parents`,
+    "trashed = false",
+    `name = '${driveQueryEscape(filename)}'`,
+  ].join(" and ");
+  const params = new URLSearchParams({
+    q: query,
+    orderBy: "createdTime desc",
+    pageSize: "1",
+    spaces: "drive",
+    fields: "files(id,name,createdTime,size,appProperties)",
+  });
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`LOGS_FILENAME_LOOKUP_FAILED:${response.status}`);
+  const payload = await response.json() as { files?: Array<Record<string, unknown>> };
+  return payload.files?.[0] || null;
+}
 
 async function maybeCleanupRuntimeLogs(env: RuntimeLogsEnv, token: string): Promise<void> {
   const now = Date.now();
@@ -185,6 +363,9 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   generatedAt: string;
   receivedAt: string;
   content: string;
+  bundleId: string;
+  boundaryId: string;
+  traceId: string;
 } {
   const source = normalizeSource(body.source);
   const severity = normalizeSeverity(body.severity);
@@ -194,11 +375,24 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   const receivedAt = new Date().toISOString();
   const device = sanitize(body.device || {}) as Record<string, unknown>;
   const deviceSlug = safeSlug(device.device_id || device.id || device.model || device.label, source.toLowerCase());
+  const suppliedBundleId = String(body.bundle_id || "").trim().toLowerCase();
+  const bundleId = /^[a-f0-9]{32,64}$/.test(suppliedBundleId)
+    ? suppliedBundleId
+    : crypto.randomUUID().replaceAll("-", "");
+  const suppliedBoundaryId = String(body.boundary_id || "").trim();
+  const boundaryId = /^[A-Za-z0-9._:-]{1,180}$/.test(suppliedBoundaryId) ? suppliedBoundaryId : "";
+  const suppliedTraceId = String(body.trace_id || "").trim();
+  const traceId = /^[A-Za-z0-9._:-]{1,180}$/.test(suppliedTraceId) ? suppliedTraceId : "";
+
   const kind = runtimeLogKind(body.reason, severity);
   const filename = `${kind}_${source.toLowerCase()}_${deviceSlug}_${vietnamStamp(generatedAt)}.json`;
 
   const envelope: Record<string, unknown> = {
-    format: "supra-inventory-runtime-log-v1",
+    format: "supra-inventory-runtime-log-v2",
+    schema_version: 2,
+    bundle_id: bundleId || null,
+    boundary_id: boundaryId || null,
+    trace_id: traceId || null,
     generated_at: generatedAt,
     received_at: receivedAt,
     source,
@@ -234,7 +428,7 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
       content = JSON.stringify(envelope, null, 2);
     }
   }
-  return { source, severity, filename, generatedAt, receivedAt, content };
+  return { source, severity, filename, generatedAt, receivedAt, content, bundleId, boundaryId, traceId };
 }
 
 export async function uploadRuntimeLog(
@@ -242,7 +436,7 @@ export async function uploadRuntimeLog(
   actor: RuntimeLogActor,
   body: RuntimeLogBody,
 ): Promise<Record<string, unknown>> {
-  const { source, severity, filename, generatedAt, receivedAt, content } = logEnvelope(actor, body);
+  const { source, severity, filename, generatedAt, receivedAt, content, bundleId, boundaryId, traceId } = logEnvelope(actor, body);
 
   // D144 authority: persist the sanitized support log in InventoryCore first.
   // Google Drive is archive-only. A revoked user OAuth token must never make
@@ -289,42 +483,46 @@ export async function uploadRuntimeLog(
     const token = await refreshGoogleAccessToken(env);
     await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
 
-    const duplicateParams = new URLSearchParams({
-      q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
-      orderBy: "createdTime desc",
-      pageSize: "1",
-      spaces: "drive",
-      fields: "files(id,name,createdTime,size)",
-    });
-    const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
-      headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-    });
-    if (duplicateResponse.ok) {
-      const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
-      const existing = duplicatePayload.files?.[0];
-      if (existing?.id) {
-        await markDriveState(env, localId, String(existing.id));
-        return {
-          status: "buffered_and_archived",
-          source,
-          severity,
-          file: {
-            id: localId,
-            name: filename,
-            created_at: receivedAt,
-            size: Number(localFile.size_bytes || content.length),
-          },
-          archive_status: "DRIVE_SYNCED",
-        };
-      }
+    const daily = await resolveRuntimeLogDailyFolder(env, token, new Date(generatedAt));
+    const logicalBoundary = boundaryId
+      ? await sha256Hex(`${source}|${actor.user_id}|${String((sanitize(body.device || {}) as Record<string, unknown>).device_id || "")}|${boundaryId}`)
+      : "";
+    const archiveId = logicalBoundary
+      ? `boundary:${logicalBoundary}`
+      : `bundle:${bundleId}`;
+    const existing = await findArchivedByIdentity(daily.id, token, archiveId);
+    if (existing?.id) {
+      await markDriveState(env, localId, String(existing.id));
+      return {
+        status: "buffered_and_archived",
+        source,
+        severity,
+        file: {
+          id: localId,
+          name: filename,
+          created_at: receivedAt,
+          size: Number(localFile.size_bytes || content.length),
+        },
+        archive_status: "DRIVE_SYNCED",
+        archive_date: daily.dateKey,
+      };
     }
 
     const boundary = `supra_inventory_${crypto.randomUUID().replaceAll("-", "")}`;
     const metadata = JSON.stringify({
       name: filename,
-      parents: [env.LOGS_FOLDER_ID],
+      parents: [daily.id],
       mimeType: "application/json",
-      appProperties: { project: "supra-inventory", source, severity },
+      appProperties: {
+        project: "supra-inventory",
+        source,
+        severity,
+        archive_id: archiveId,
+        archive_date: daily.dateKey,
+        bundle_id: bundleId || "legacy",
+        boundary_id_hash: logicalBoundary || "none",
+        trace_id: traceId ? safeSlug(traceId, "trace") : "none",
+      },
     });
     const multipart = [
       `--${boundary}`,
@@ -364,6 +562,7 @@ export async function uploadRuntimeLog(
         size: Number(localFile.size_bytes || content.length),
       },
       archive_status: "DRIVE_SYNCED",
+      archive_date: daily.dateKey,
     };
   } catch (error) {
     await markDriveState(env, localId, "", archiveErrorCode(error));
@@ -404,28 +603,27 @@ async function archiveBufferedJson(
   const content = String(item.content || "");
   if (!/^local_[a-f0-9]{32}$/.test(logId) || !filename || !content) throw new Error("INVALID_BUFFERED_RUNTIME_LOG");
 
-  const duplicateParams = new URLSearchParams({
-    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
-    orderBy: "createdTime desc",
-    pageSize: "1",
-    spaces: "drive",
-    fields: "files(id,name,createdTime,size)",
-  });
-  const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
-    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-  });
-  if (duplicateResponse.ok) {
-    const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
-    const existingId = String(duplicatePayload.files?.[0]?.id || "");
-    if (existingId) return existingId;
-  }
+  const daily = await resolveRuntimeLogDailyFolder(env, token);
+  const identity = await archiveIdentityFromEnvelope(content, logId);
+  const archiveId = identity.archiveId;
+  const existing = await findArchivedByIdentity(daily.id, token, archiveId);
+  const existingId = String(existing?.id || "");
+  if (existingId) return existingId;
 
   const boundary = `supra_runtime_retry_${crypto.randomUUID().replaceAll("-", "")}`;
   const metadata = JSON.stringify({
     name: filename,
-    parents: [env.LOGS_FOLDER_ID],
+    parents: [daily.id],
     mimeType: "application/json",
-    appProperties: { project: "supra-inventory", source, severity },
+    appProperties: {
+      project: "supra-inventory",
+      source,
+      severity,
+      archive_id: archiveId,
+      archive_date: daily.dateKey,
+      bundle_id: identity.bundleId || "legacy",
+      boundary_id_hash: identity.boundaryId ? await sha256Hex(identity.boundaryId) : "none",
+    },
   });
   const multipart = [
     `--${boundary}`,
@@ -518,28 +716,24 @@ export async function uploadAgentRuntimeLogText(
 
   const token = await refreshGoogleAccessToken(env);
   await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
-  const duplicateParams = new URLSearchParams({
-    q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
-    orderBy: "createdTime desc",
-    pageSize: "1",
-    spaces: "drive",
-    fields: "files(id,name,createdTime,size)",
-  });
-  const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
-    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-  });
-  if (duplicateResponse.ok) {
-    const duplicatePayload = (await duplicateResponse.json()) as { files?: Array<Record<string, unknown>> };
-    const existing = duplicatePayload.files?.[0];
-    if (existing) return { status: "already_uploaded", file: existing };
-  }
+  const daily = await resolveRuntimeLogDailyFolder(env, token);
+  const archiveId = `agent:${await sha256Hex(filename + "\n" + content)}`;
+  const existing = await findArchivedByIdentity(daily.id, token, archiveId)
+    || await findArchivedByFilename(daily.id, token, filename);
+  if (existing) return { status: "already_uploaded", archive_status: "DRIVE_SYNCED", file: existing, archive_date: daily.dateKey };
 
   const boundary = `supra_agent_log_${crypto.randomUUID().replaceAll("-", "")}`;
   const metadata = JSON.stringify({
     name: filename,
-    parents: [env.LOGS_FOLDER_ID],
+    parents: [daily.id],
     mimeType: "text/plain",
-    appProperties: { project: "supra-inventory", source: "AGENT", severity: /^(?:crash_|error_)/.test(filename) ? "ERROR" : "INFO" },
+    appProperties: {
+      project: "supra-inventory",
+      source: "AGENT",
+      severity: /^(?:crash_|error_)/.test(filename) ? "ERROR" : "INFO",
+      archive_id: archiveId,
+      archive_date: daily.dateKey,
+    },
   });
   const multipart = [
     `--${boundary}`,
@@ -566,7 +760,7 @@ export async function uploadAgentRuntimeLogText(
   );
   const payload = (await response.json()) as Record<string, unknown>;
   if (!response.ok) throw new Error(`AGENT_LOGS_DRIVE_UPLOAD_FAILED:${response.status}`);
-  return { status: "uploaded", file: payload };
+  return { status: "uploaded", archive_status: "DRIVE_SYNCED", file: payload, archive_date: daily.dateKey };
 }
 
 export async function listRuntimeLogs(

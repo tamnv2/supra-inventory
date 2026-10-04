@@ -1,10 +1,11 @@
-import { hasSession, uploadRuntimeLog } from "./api";
+import { getSessionDiagnosticIdentity, hasSession, uploadRuntimeLog } from "./api";
 import { WEB_VERSION } from "./web-version";
 
 type Severity = "INFO" | "ERROR";
 type SnapshotProvider = () => Record<string, unknown>;
 type RuntimeEvent = {
   at: string;
+  sequence?: number;
   level: Severity;
   category: string;
   name: string;
@@ -15,6 +16,11 @@ type RuntimeEvent = {
 const DEVICE_KEY = "supra_inventory_web_device_id_v1";
 const SLOT_KEY = "supra_inventory_web_log_slot_v1";
 const PENDING_ERROR_KEY = "supra_inventory_web_pending_error_v1";
+const SUPPORT_REQUEST_PREFIX = "supra_inventory_web_support_request_v2:";
+const JOURNAL_PREFIX = "supra_inventory_web_runtime_journal_v2:";
+const JOURNAL_INDEX_KEY = "supra_inventory_web_runtime_journal_index_v2";
+const MAX_JOURNAL_CHARS = 720_000;
+const MAX_JOURNAL_EVENTS = 320;
 const MAX_EVENTS = 420;
 const MAX_LONG_TASKS = 100;
 const events: RuntimeEvent[] = [];
@@ -24,6 +30,17 @@ let snapshotProvider: SnapshotProvider = () => ({});
 let initialized = false;
 let lastImmediateErrorAt = 0;
 let scheduledSendInFlight = false;
+let journalPersistTimer: number | null = null;
+let journalKey = "";
+const supportRequestsInFlight = new Set<string>();
+let journalState: {
+  format: "supra-web-runtime-journal-v2";
+  session_key: string;
+  next_sequence: number;
+  dropped_events: number;
+  last_updated_at: string;
+  events: RuntimeEvent[];
+} | null = null;
 
 function redactText(value: string): string {
   let next = value.slice(0, 2_000);
@@ -51,9 +68,144 @@ function sanitize(value: unknown, depth = 0): unknown {
   return redactText(String(value));
 }
 
+
+function journalSessionKey(): string {
+  const identity = getSessionDiagnosticIdentity();
+  if (!identity || identity.session_channel !== "WEB") return "";
+  return `${identity.user_id}:${identity.session_generation}`;
+}
+
+function journalStorageKey(sessionKey: string): string {
+  return JOURNAL_PREFIX + sessionKey;
+}
+
+function pruneOldJournals(currentStorageKey: string): void {
+  try {
+    const raw = localStorage.getItem(JOURNAL_INDEX_KEY);
+    const parsed = raw ? JSON.parse(raw) as Array<{ key?: string; updated_at?: string }> : [];
+    const next = parsed
+      .filter((item) => item && typeof item.key === "string" && item.key.startsWith(JOURNAL_PREFIX))
+      .filter((item) => item.key !== currentStorageKey);
+    next.unshift({ key: currentStorageKey, updated_at: new Date().toISOString() });
+    const keep = next.slice(0, 3);
+    const keepSet = new Set(keep.map((item) => item.key));
+    for (const item of next.slice(3)) {
+      if (item.key && !keepSet.has(item.key)) localStorage.removeItem(item.key);
+    }
+    localStorage.setItem(JOURNAL_INDEX_KEY, JSON.stringify(keep));
+  } catch {
+    // Diagnostics persistence is best-effort and must never block business UI.
+  }
+}
+
+function ensureJournal(): typeof journalState {
+  const sessionKey = journalSessionKey();
+  if (!sessionKey) {
+    journalKey = "";
+    journalState = null;
+    return null;
+  }
+  const storageKey = journalStorageKey(sessionKey);
+  if (journalState && journalKey === storageKey) return journalState;
+  journalKey = storageKey;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    const parsed = raw ? JSON.parse(raw) as typeof journalState : null;
+    if (
+      parsed &&
+      parsed.format === "supra-web-runtime-journal-v2" &&
+      parsed.session_key === sessionKey &&
+      Array.isArray(parsed.events)
+    ) {
+      journalState = {
+        format: "supra-web-runtime-journal-v2",
+        session_key: sessionKey,
+        next_sequence: Math.max(1, Math.trunc(Number(parsed.next_sequence || 1))),
+        dropped_events: Math.max(0, Math.trunc(Number(parsed.dropped_events || 0))),
+        last_updated_at: String(parsed.last_updated_at || new Date().toISOString()),
+        events: parsed.events.slice(-MAX_JOURNAL_EVENTS),
+      };
+    } else {
+      journalState = null;
+    }
+  } catch {
+    journalState = null;
+  }
+  if (!journalState) {
+    journalState = {
+      format: "supra-web-runtime-journal-v2",
+      session_key: sessionKey,
+      next_sequence: 1,
+      dropped_events: 0,
+      last_updated_at: new Date().toISOString(),
+      events: [],
+    };
+  }
+  pruneOldJournals(storageKey);
+  return journalState;
+}
+
+function persistJournalNow(): void {
+  journalPersistTimer = null;
+  const existingJournal = journalState;
+  const existingKey = journalKey;
+  const journal = existingJournal && existingKey ? existingJournal : ensureJournal();
+  const storageKey = existingJournal && existingKey ? existingKey : journalKey;
+  if (!journal || !storageKey) return;
+  try {
+    journal.last_updated_at = new Date().toISOString();
+    while (journal.events.length > MAX_JOURNAL_EVENTS) {
+      journal.events.shift();
+      journal.dropped_events += 1;
+    }
+    let encoded = JSON.stringify(journal);
+    while (encoded.length > MAX_JOURNAL_CHARS && journal.events.length > 20) {
+      journal.events.splice(0, Math.min(20, journal.events.length));
+      journal.dropped_events += 20;
+      encoded = JSON.stringify(journal);
+    }
+    localStorage.setItem(storageKey, encoded);
+  } catch {
+    // Storage quota/private-mode failures are diagnostics-only.
+  }
+}
+
+function scheduleJournalPersist(): void {
+  if (journalPersistTimer != null) return;
+  journalPersistTimer = window.setTimeout(persistJournalNow, 250);
+}
+
+function journalSnapshot(): Record<string, unknown> {
+  const journal = ensureJournal();
+  if (!journal) return { persistent: false };
+  const first = journal.events[0]?.sequence ?? null;
+  const last = journal.events[journal.events.length - 1]?.sequence ?? null;
+  return {
+    persistent: true,
+    format: journal.format,
+    session_key: journal.session_key,
+    first_sequence: first,
+    last_sequence: last,
+    dropped_events: journal.dropped_events,
+    recent_events: journal.events.slice(-260),
+  };
+}
+
+function markJournalDriveSynced(lastSequence: number | null): void {
+  const journal = ensureJournal();
+  if (!journal || lastSequence == null) return;
+  journal.events = journal.events.filter((event) => Number(event.sequence || 0) > lastSequence);
+  journal.dropped_events = 0;
+  scheduleJournalPersist();
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 function pushEvent(event: RuntimeEvent): void {
-  while (events.length >= MAX_EVENTS) events.shift();
-  events.push({
+  const normalized: RuntimeEvent = {
     ...event,
     at: event.at || new Date().toISOString(),
     level: event.level === "ERROR" ? "ERROR" : "INFO",
@@ -61,7 +213,19 @@ function pushEvent(event: RuntimeEvent): void {
     name: redactText(event.name || "event"),
     duration_ms: event.duration_ms == null ? undefined : Math.max(0, Math.round(event.duration_ms * 100) / 100),
     data: sanitize(event.data),
-  });
+  };
+  const journal = ensureJournal();
+  if (journal) {
+    normalized.sequence = journal.next_sequence++;
+    journal.events.push(normalized);
+    if (journal.events.length > MAX_JOURNAL_EVENTS) {
+      journal.events.shift();
+      journal.dropped_events += 1;
+    }
+    scheduleJournalPersist();
+  }
+  while (events.length >= MAX_EVENTS) events.shift();
+  events.push(normalized);
 }
 
 export function runtimeLogEvent(message: string, level = "INFO", data?: unknown): void {
@@ -294,6 +458,7 @@ function runtimePayload(reason: string): Record<string, unknown> {
     },
     storage: localStorageStats(),
     state: sanitize(snapshotProvider()),
+    journal: journalSnapshot(),
     recent_events: events.slice(-260),
   };
 }
@@ -302,14 +467,31 @@ export function getWebRuntimeDiagnosticSnapshot(reason = "local_support"): Recor
   return sanitize(runtimePayload(reason)) as Record<string, unknown>;
 }
 
-async function send(severity: Severity, reason: string, extra?: unknown): Promise<boolean> {
+async function send(
+  severity: Severity,
+  reason: string,
+  extra?: unknown,
+  options: { boundaryId?: string; traceId?: string } = {},
+): Promise<boolean> {
   if (!hasSession()) return false;
   try {
-    await uploadRuntimeLog({
+    const identity = getSessionDiagnosticIdentity();
+    const generatedAt = new Date().toISOString();
+    const stableBoundary = options.boundaryId ||
+      (reason.startsWith("scheduled_") ? `web:${reason}` : `web:${reason}:${generatedAt}`);
+    const bundleId = await sha256Hex(
+      `WEB|${deviceId()}|${identity?.user_id || "unknown"}|${identity?.session_generation || 0}|${stableBoundary}`,
+    );
+    const journal = ensureJournal();
+    const archivedThrough = journal?.events[journal.events.length - 1]?.sequence ?? null;
+    const result = await uploadRuntimeLog({
       source: "WEB",
       severity,
       reason,
-      generated_at: new Date().toISOString(),
+      generated_at: generatedAt,
+      bundle_id: bundleId,
+      boundary_id: stableBoundary,
+      trace_id: options.traceId || "",
       device: {
         device_id: deviceId(),
         label: `Web ${navigator.platform || "browser"}`,
@@ -321,6 +503,7 @@ async function send(severity: Severity, reason: string, extra?: unknown): Promis
         extra: sanitize(extra),
       },
     });
+    if (result.archive_status === "DRIVE_SYNCED") markJournalDriveSynced(archivedThrough);
     return true;
   } catch (error) {
     pushEvent({
@@ -337,6 +520,64 @@ async function send(severity: Severity, reason: string, extra?: unknown): Promis
 export async function sendWebRuntimeLog(reason = "manual", severity: Severity = "INFO", extra?: unknown): Promise<boolean> {
   runtimeLogEvent(`Gửi log: ${reason}`, severity, extra);
   return send(severity, reason, extra);
+}
+
+function supportRequestDedupeKey(requestId: string): string {
+  return `${SUPPORT_REQUEST_PREFIX}${journalSessionKey()}:${requestId}`;
+}
+
+function deterministicSupportJitterMs(requestId: string): number {
+  const seed = `${deviceId()}|${requestId}`;
+  let hash = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0) % 5001;
+}
+
+export function queueWebSupportLogRequest(metadata: Record<string, unknown> | undefined): void {
+  if (!hasSession()) return;
+  const requestId = String(metadata?.request_id || "").trim();
+  const traceId = String(metadata?.trace_id || requestId).trim();
+  const issuedAtMs = Math.trunc(Number(metadata?.issued_at_ms || 0));
+  const expiresAtMs = Math.trunc(Number(metadata?.expires_at_ms || 0));
+  const now = Date.now();
+  if (
+    !/^support-[A-Za-z0-9]{16,80}$/.test(requestId) ||
+    !/^[A-Za-z0-9._:-]{1,180}$/.test(traceId) ||
+    issuedAtMs <= 0 ||
+    expiresAtMs <= now ||
+    expiresAtMs > issuedAtMs + 5 * 60_000
+  ) return;
+
+  const dedupeKey = supportRequestDedupeKey(requestId);
+  if (localStorage.getItem(dedupeKey) === "1" || supportRequestsInFlight.has(dedupeKey)) return;
+  supportRequestsInFlight.add(dedupeKey);
+  const jitterMs = deterministicSupportJitterMs(requestId);
+
+  window.setTimeout(() => {
+    if (!hasSession() || Date.now() >= expiresAtMs) {
+      supportRequestsInFlight.delete(dedupeKey);
+      return;
+    }
+    void send(
+      "INFO",
+      "global_support_request",
+      {
+        request_id: requestId,
+        support_request: true,
+        responder_jitter_ms: jitterMs,
+      },
+      { boundaryId: `support:${requestId}`, traceId },
+    ).then((accepted) => {
+      if (accepted) {
+        try { localStorage.setItem(dedupeKey, "1"); } catch { /* diagnostics-only */ }
+      }
+    }).finally(() => {
+      supportRequestsInFlight.delete(dedupeKey);
+    });
+  }, jitterMs);
 }
 
 async function flushPendingError(): Promise<void> {
@@ -373,8 +614,11 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
     await flushPendingError();
     const slot = currentSlotKey();
     if (!slot) return;
-    if (localStorage.getItem(SLOT_KEY) === slot) return;
-    if (await send("INFO", `scheduled_${slot}`)) localStorage.setItem(SLOT_KEY, slot);
+    const slotIdentity = `${journalSessionKey()}:${slot}`;
+    if (localStorage.getItem(SLOT_KEY) === slotIdentity) return;
+    if (await send("INFO", `scheduled_${slot}`, undefined, { boundaryId: `web:scheduled:${slot}` })) {
+      localStorage.setItem(SLOT_KEY, slotIdentity);
+    }
   } finally {
     scheduledSendInFlight = false;
   }
@@ -493,6 +737,13 @@ export function initWebRuntimeLogging(provider: SnapshotProvider): void {
     if (document.visibilityState === "visible") void maybeSendScheduledWebLog();
   });
   window.addEventListener("supra:session-changed", () => {
+    if (journalPersistTimer != null) {
+      window.clearTimeout(journalPersistTimer);
+      journalPersistTimer = null;
+    }
+    persistJournalNow();
+    journalKey = "";
+    journalState = null;
     runtimeLogMetric("SESSION", "changed");
     void maybeSendScheduledWebLog();
   });

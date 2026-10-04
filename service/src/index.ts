@@ -21,9 +21,10 @@ import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
-import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
+import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePublicInfoPage } from "./public-pages";
+import { sendFcmNotifications } from "./fcm";
 
 
 export { InventoryCore };
@@ -1243,6 +1244,149 @@ export default {
         }
 
         return json({ error: "NOT_FOUND" }, 404);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/agent/support-log-request") {
+        const operator = await requireUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        const login = String(operator.employee_code || "").trim().toLowerCase();
+        if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
+        let body: { request_id?: string } = {};
+        try {
+          body = (await request.json()) as { request_id?: string };
+        } catch {
+          return json({ error: "INVALID_JSON" }, 400);
+        }
+        const requestId = String(body.request_id || "").trim();
+        if (!/^support-[A-Za-z0-9]{16,80}$/.test(requestId)) {
+          return json({ error: "INVALID_SUPPORT_LOG_REQUEST" }, 400);
+        }
+        const now = Date.now();
+        const expiresAtMs = now + 120_000;
+        const traceId = requestId;
+        const claimResponse = await coreStub(env).fetch("https://inventory-core.internal/support-log-request/claim", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            request_id: requestId,
+            issued_by_user_id: operator.user_id,
+            expires_at_ms: expiresAtMs,
+            trace_id: traceId,
+          }),
+        });
+        const claim = await claimResponse.json() as {
+          claimed?: boolean;
+          idempotent_replay?: boolean;
+          issued_at_ms?: number;
+          expires_at_ms?: number;
+          error?: string;
+        };
+        if (!claimResponse.ok) return json(claim, claimResponse.status);
+        if (claim.claimed !== true) {
+          return json({
+            status: "support_log_request_accepted",
+            request_id: requestId,
+            trace_id: traceId,
+            idempotent_replay: true,
+            expires_at_ms: Number(claim.expires_at_ms || expiresAtMs),
+          });
+        }
+
+        const issuedAtMs = Number(claim.issued_at_ms || now);
+        const claimedExpiresAtMs = Number(claim.expires_at_ms || expiresAtMs);
+        const propagation: Record<string, unknown> = {
+          agent_control: "DEFERRED",
+          realtime: "DEFERRED",
+          android_fcm: "DEFERRED",
+        };
+
+        try {
+          await publishAgentSupportLogRequest(env, {
+            request_id: requestId,
+            trace_id: traceId,
+            issued_at_ms: issuedAtMs,
+            expires_at_ms: claimedExpiresAtMs,
+            issued_by_user_id: operator.user_id,
+            issued_by_login: login,
+          });
+          propagation.agent_control = "PUBLISHED";
+        } catch (error) {
+          propagation.agent_control = error instanceof Error ? error.message.slice(0, 120) : "FAILED";
+        }
+
+        try {
+          const realtimeResponse = await coreStub(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              event: "support_log_request",
+              scopes: ["support_log_request"],
+              tags: ["role:PICKER", "role:REPORTER", "role:ADMIN", "role:PICKPACK_ADMIN", "role:ROOT"],
+              metadata: {
+                request_id: requestId,
+                trace_id: traceId,
+                issued_at_ms: issuedAtMs,
+                expires_at_ms: claimedExpiresAtMs,
+                source: "D161_GLOBAL_SUPPORT_LOG",
+              },
+            }),
+          });
+          const realtime = await realtimeResponse.json() as Record<string, unknown>;
+          propagation.realtime = realtimeResponse.ok ? realtime : { error: realtime.error || realtimeResponse.status };
+        } catch {
+          propagation.realtime = "FAILED";
+        }
+
+        if (env.GOOGLE_RUNTIME_SA_JSON) {
+          try {
+            const targetResponse = await coreStub(env).fetch("https://inventory-core.internal/notifications/targets", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                roles: ["PICKER", "REPORTER", "ADMIN"],
+              }),
+            });
+            const target = await targetResponse.json() as { tokens?: string[] };
+            const tokens = Array.isArray(target.tokens) ? target.tokens : [];
+            const delivery = await sendFcmNotifications(
+              env.GOOGLE_RUNTIME_SA_JSON,
+              env.FIREBASE_PROJECT_ID,
+              tokens,
+              {
+                title: "SUPRA Inventory · Yêu cầu log hỗ trợ",
+                body: "Hệ thống đang thu thập log chẩn đoán.",
+                data: {
+                  event: "support_log_request",
+                  request_id: requestId,
+                  trace_id: traceId,
+                  issued_at_ms: String(issuedAtMs),
+                  expires_at_ms: String(claimedExpiresAtMs),
+                  source: "D161_GLOBAL_SUPPORT_LOG",
+                },
+              },
+            );
+            propagation.android_fcm = { sent: delivery.sent, failed: delivery.failed };
+            if (delivery.invalidTokens.length) {
+              await coreStub(env).fetch("https://inventory-core.internal/notifications/disable-tokens", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ tokens: delivery.invalidTokens }),
+              }).catch(() => undefined);
+            }
+          } catch {
+            propagation.android_fcm = "FAILED";
+          }
+        }
+
+        return json({
+          status: "support_log_request_accepted",
+          request_id: requestId,
+          trace_id: traceId,
+          issued_at_ms: issuedAtMs,
+          expires_at_ms: claimedExpiresAtMs,
+          idempotent_replay: false,
+          propagation,
+        });
       }
 
       if (

@@ -26,6 +26,8 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string> _log;
         private readonly object _sealGate = new object();
         private readonly object _errorGate = new object();
+        private readonly HashSet<string> _firestoreStagedBundles =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, ErrorBurstState> _errorBursts =
             new Dictionary<string, ErrorBurstState>(StringComparer.Ordinal);
         private readonly DateTime _processStartedLocal = DateTime.Now;
@@ -139,6 +141,29 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal void TryQueueGlobalSupportSnapshot(string requestId, string traceId)
+        {
+            try
+            {
+                var safeRequest = AgentDiagnostics.Sanitize(requestId ?? "");
+                var safeTrace = AgentDiagnostics.Sanitize(traceId ?? "");
+                var marker =
+                    "GLOBAL_SUPPORT_REQUEST_ID=" + safeRequest + Environment.NewLine +
+                    "TRACE_ID=" + safeTrace;
+                var path = SealFromCheckpoint("manual", marker);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                _log(string.IsNullOrWhiteSpace(path)
+                    ? "AGENT LOG global_support=SKIP_EMPTY request=" + safeRequest
+                    : "AGENT LOG global_support=SEALED request=" + safeRequest +
+                      " upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG global_support=LOCAL_PENDING type=" + ex.GetType().Name);
+            }
+        }
+
         internal void TryQueueBoundarySnapshot(string reason)
         {
             try
@@ -154,6 +179,49 @@ namespace SupraInventoryRelayAgent
             catch (Exception ex)
             {
                 _log("AGENT LOG boundary=LOCAL_PENDING type=" + ex.GetType().Name);
+            }
+        }
+
+        internal void ConfirmFallbackDriveSynced(string uploadId, string agentInstanceId)
+        {
+            var safeUpload = (uploadId ?? "").Trim();
+            if (safeUpload.Length < 12 || safeUpload.Length > 64) return;
+            if (!string.Equals((agentInstanceId ?? "").Trim(), _instanceId, StringComparison.Ordinal)) return;
+
+            try
+            {
+                Directory.CreateDirectory(_pendingDir);
+                var matches = Directory.GetFiles(_pendingDir, safeUpload + "*.json")
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+                foreach (var path in matches)
+                {
+                    var raw = File.ReadAllText(path, Encoding.UTF8);
+                    var bundle = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                    var bundleId = Value(bundle, "bundle_id");
+                    if (string.IsNullOrWhiteSpace(bundleId) ||
+                        !bundleId.StartsWith(safeUpload, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var uploadedThroughMs = LongValue(bundle, "last_at_ms");
+                    File.Delete(path);
+                    lock (_sealGate) _firestoreStagedBundles.Remove(bundleId);
+                    if (uploadedThroughMs > 0)
+                    {
+                        var cutoff = DateTimeOffset.FromUnixTimeMilliseconds(uploadedThroughMs).LocalDateTime;
+                        var removed = AgentDiagnostics.PruneUploadedThrough(cutoff);
+                        _lastUploadSuccessLocal = DateTime.Now;
+                        _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
+                        _log("AGENT LOG local_prune=PASS drive_confirmed=true transport=FIRESTORE_FALLBACK removed_lines=" +
+                             removed.ToString(CultureInfo.InvariantCulture));
+                    }
+                    _log("AGENT LOG fallback_receipt=DRIVE_SYNCED upload=" + Short(safeUpload));
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG fallback_receipt=DEFER type=" + ex.GetType().Name);
             }
         }
 
@@ -357,7 +425,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var payload = new Dictionary<string, object>
                     {
-                        { "schema_version", 1 },
+                        { "schema_version", 2 },
                         { "bundle_id", bundleId },
                         { "source", "AGENT" },
                         { "kind", normalizedKind },
@@ -435,10 +503,29 @@ namespace SupraInventoryRelayAgent
                         break;
                     }
                     var gateway = GatewayEnabled();
-                    var uploaded = gateway
-                        ? UploadGateway(session, bundle)
-                        : UploadLegacyFirestore(session, bundle);
-                    if (!uploaded)
+                    if (!gateway)
+                    {
+                        var bundleId = Value(bundle, "bundle_id");
+                        var staged = false;
+                        lock (_sealGate) staged = _firestoreStagedBundles.Contains(bundleId);
+                        if (!staged)
+                        {
+                            if (!UploadLegacyFirestore(session, bundle))
+                            {
+                                RegisterUploadFailure();
+                                break;
+                            }
+                            lock (_sealGate) _firestoreStagedBundles.Add(bundleId);
+                            _log("AGENT LOG upload=STAGED transport=FIRESTORE_D157_FALLBACK drive_confirmed=false bundle=" +
+                                 Short(bundleId));
+                        }
+                        // Firestore acceptance is staging only. Keep the local pending
+                        // bundle until the existing handoff listener receives a
+                        // DRIVE_SYNCED receipt from Google Function/Worker.
+                        continue;
+                    }
+
+                    if (!UploadGateway(session, bundle))
                     {
                         RegisterUploadFailure();
                         break;
@@ -446,29 +533,25 @@ namespace SupraInventoryRelayAgent
                     _uploadFailureStreak = 0;
                     _nextUploadAttemptUtc = DateTime.MinValue;
                     File.Delete(path);
-                    if (gateway)
+                    try
                     {
-                        try
+                        var uploadedThroughMs = LongValue(bundle, "last_at_ms");
+                        if (uploadedThroughMs > 0)
                         {
-                            var uploadedThroughMs = LongValue(bundle, "last_at_ms");
-                            if (uploadedThroughMs > 0)
-                            {
-                                var cutoff = DateTimeOffset.FromUnixTimeMilliseconds(uploadedThroughMs).LocalDateTime;
-                                var removed = AgentDiagnostics.PruneUploadedThrough(cutoff);
-                                _lastUploadSuccessLocal = DateTime.Now;
-                                _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
-                                _log("AGENT LOG local_prune=PASS drive_confirmed=true removed_lines=" +
-                                     removed.ToString(CultureInfo.InvariantCulture));
-                            }
-                        }
-                        catch (Exception pruneEx)
-                        {
-                            _log("AGENT LOG local_prune=DEFER type=" + pruneEx.GetType().Name);
+                            var cutoff = DateTimeOffset.FromUnixTimeMilliseconds(uploadedThroughMs).LocalDateTime;
+                            var removed = AgentDiagnostics.PruneUploadedThrough(cutoff);
+                            _lastUploadSuccessLocal = DateTime.Now;
+                            _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
+                            _log("AGENT LOG local_prune=PASS drive_confirmed=true removed_lines=" +
+                                 removed.ToString(CultureInfo.InvariantCulture));
                         }
                     }
-                    _log("AGENT LOG upload=PASS transport=" +
-                         (gateway ? "GOOGLE_APPS_SCRIPT" : "FIRESTORE_D157_FALLBACK") +
-                         " bundle=" + Short(Value(bundle, "bundle_id")));
+                    catch (Exception pruneEx)
+                    {
+                        _log("AGENT LOG local_prune=DEFER type=" + pruneEx.GetType().Name);
+                    }
+                    _log("AGENT LOG upload=PASS transport=GOOGLE_APPS_SCRIPT bundle=" +
+                         Short(Value(bundle, "bundle_id")));
                 }
                 catch (Exception ex)
                 {
@@ -520,7 +603,7 @@ namespace SupraInventoryRelayAgent
             var request = (HttpWebRequest)WebRequest.Create(parsed);
             request.Method = "POST";
             request.ContentType = "application/json; charset=utf-8";
-            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D158";
+            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D161";
             request.Timeout = 10000;
             request.ReadWriteTimeout = 10000;
             request.AllowAutoRedirect = true;
@@ -534,7 +617,16 @@ namespace SupraInventoryRelayAgent
                 if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300) return false;
                 var result = _json.DeserializeObject(text) as Dictionary<string, object>;
                 object ok;
-                return result != null && result.TryGetValue("ok", out ok) && Convert.ToBoolean(ok);
+                object driveSynced;
+                var accepted = result != null &&
+                    result.TryGetValue("ok", out ok) &&
+                    Convert.ToBoolean(ok);
+                var confirmed = accepted &&
+                    result.TryGetValue("drive_synced", out driveSynced) &&
+                    Convert.ToBoolean(driveSynced);
+                if (accepted && !confirmed)
+                    _log("AGENT LOG upload=DEFER reason=DRIVE_CONFIRMATION_MISSING");
+                return confirmed;
             }
         }
 

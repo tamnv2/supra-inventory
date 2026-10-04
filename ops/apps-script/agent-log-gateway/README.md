@@ -1,4 +1,4 @@
-# D158 Beta Agent Log Gateway
+# D161 Beta Agent Operations / Log Gateway
 
 Canonical planned Apps Script source for the Windows Agent support-log path.
 
@@ -10,3 +10,15 @@ Deployment is **Beta only** and must be executed as the Owner. Required Script P
 Deploy as a Web App, execute as the Owner, access "Anyone" only because the endpoint performs its own Firebase ID-token + ADMIN/PICKPACK_ADMIN validation. Do not expose any token, password, WMS session or OAuth refresh material in source/logs.
 
 After the Web App is deployed, store its `/exec` URL as GitHub Beta environment variable `AGENT_LOG_GATEWAY_URL_BETA` so CI can build the D158 Office field candidate against the gateway. This configuration is for field proof; it does **not** retire the D157 Firestore support-log fallback by itself. Firestore support-log retirement is allowed only after the real Office gateway/upload/idempotency checks PASS and the Owner accepts D158. If the variable is absent, Agent v93 retains the D157 Firestore support-log transport. Business Firestore/HA/PickList behavior is unrelated to this gateway.
+
+
+## D161 archive contract
+
+The existing Beta gateway resource is reused; no new Apps Script resource is introduced.
+
+- Agent log files are committed beneath the trusted `Inventory/Beta/Logs/YYYY-MM-DD` child resolved in `Asia/Ho_Chi_Minh`.
+- Daily-folder resolution is lock-protected and cached to avoid duplicate folder creation under concurrent uploads.
+- `bundle_id` remains the immutable retry/idempotency key.
+- A successful upload response returns `drive_synced=true` and `archive_date`. Agent local evidence may be pruned only after that positive Drive confirmation.
+- Intermediate Firestore/Worker acceptance is never prune authority.
+- Stable remains OWNER-GATED.

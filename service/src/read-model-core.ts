@@ -502,21 +502,28 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
       (event === "picker_reporting_enabled" || event === "picker_reporting_disabled") &&
       requestedTags.includes(`user:${attachment.user_id}`) &&
       scopes.includes(event);
+    const directPickerSupportControl =
+      attachment.role === "PICKER" &&
+      !eventRow &&
+      event === "support_log_request" &&
+      requestedTags.includes("role:PICKER") &&
+      scopes.includes("support_log_request");
+    const directPickerControl = directPickerReportingControl || directPickerSupportControl;
 
     if (
       attachment.role === "PICKER" &&
-      !directPickerReportingControl &&
+      !directPickerControl &&
       !pickerCanReceiveRealtimeEvent(state, eventIdentity, ticketId, attachment.user_id)
     ) {
       filtered += 1;
       continue;
     }
 
-    const snapshot = attachment.role === "PICKER" && !directPickerReportingControl
+    const snapshot = attachment.role === "PICKER" && !directPickerControl
       ? pickerRealtimeSnapshot(state, batchId, eventIdentity, ticketId, attachment.user_id)
       : (attachment.role === "PICKER" ? null : (batchId ? batchSnapshot(state, batchId) : null));
     const metadata = attachment.role === "PICKER"
-      ? { ...(directPickerReportingControl ? (body.metadata || {}) : {}), ...(batchId ? { batch_id: batchId } : {}) }
+      ? { ...(directPickerControl ? (body.metadata || {}) : {}), ...(batchId ? { batch_id: batchId } : {}) }
       : { ...(body.metadata || {}), ...(batchId ? { batch_id: batchId } : {}) };
     const frame = JSON.stringify({
       type: "invalidate",
@@ -524,7 +531,11 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
       event_id: eventIdentity,
       seq: eventRow ? Number(eventRow.seq || 0) : null,
       scopes: attachment.role === "PICKER"
-        ? scopes.filter((scope) => scope === "picker_reports" || scope === "picker_reporting_enabled" || scope === "picker_reporting_disabled")
+        ? scopes.filter((scope) =>
+            scope === "picker_reports" ||
+            scope === "picker_reporting_enabled" ||
+            scope === "picker_reporting_disabled" ||
+            scope === "support_log_request")
         : scopes,
       batch_id: batchId || null,
       batch_version: eventBatchVersion,

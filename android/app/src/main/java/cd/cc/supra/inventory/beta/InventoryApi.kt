@@ -350,6 +350,9 @@ class InventoryApi(
         generatedAt: String,
         device: JSONObject,
         payload: JSONObject,
+        bundleId: String = "",
+        boundaryId: String = "",
+        traceId: String = "",
     ): JSONObject = request(
         "POST", "/api/logs/upload",
         JSONObject()
@@ -357,6 +360,9 @@ class InventoryApi(
             .put("severity", severity.uppercase())
             .put("reason", reason)
             .put("generated_at", generatedAt)
+            .put("bundle_id", bundleId)
+            .put("boundary_id", boundaryId)
+            .put("trace_id", traceId)
             .put("device", device)
             .put("payload", payload),
     )

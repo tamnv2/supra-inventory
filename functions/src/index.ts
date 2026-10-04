@@ -399,6 +399,7 @@ export const pickerAlertResolved = onDocumentUpdated("picker_alerts/{alertId}", 
 
 type AgentLogUploadRecord = {
   upload_id?: string;
+  agent_instance_id?: string;
   source?: string;
   status?: string;
   part_index?: number;
@@ -409,7 +410,7 @@ type AgentLogUploadRecord = {
   crash?: boolean;
 };
 
-async function uploadAgentLogDirectToDrive(filename: string, content: string): Promise<string> {
+async function uploadAgentLogDirectToDrive(filename: string, content: string, bundleId: string): Promise<string> {
   if (!AGENT_LOG_FILENAME_RE.test(filename)) throw new Error("AGENT_LOG_FILENAME_INVALID");
   const bodyBytes = Buffer.from(content, "utf8");
   if (bodyBytes.length <= 0 || bodyBytes.length > AGENT_LOG_MAX_BYTES) throw new Error("AGENT_LOG_SIZE_INVALID");
@@ -431,6 +432,7 @@ async function uploadAgentLogDirectToDrive(filename: string, content: string): P
     data: {
       filename,
       content_length: bodyBytes.length,
+      bundle_id: bundleId,
     },
     timeout: 10_000,
   });
@@ -497,10 +499,18 @@ export const agentLogUploadWritten = onDocumentWritten(`${AGENT_LOG_COLLECTION}/
 
   const content = rows.map((row) => String(row.data.content || "")).join("");
   try {
-    const driveFileId = await uploadAgentLogDirectToDrive(filename, content);
+    const driveFileId = await uploadAgentLogDirectToDrive(filename, content, uploadId);
+    const agentInstanceId = String(rows[0]?.data.agent_instance_id || "").trim();
     const batch = db.batch();
     for (const row of rows) batch.delete(row.ref);
     await batch.commit();
+    if (agentInstanceId) {
+      await db.doc("relay_poc_coordination/primary_handoff").set({
+        log_drive_synced_upload_id: uploadId,
+        log_drive_synced_agent_instance_id: agentInstanceId,
+        log_drive_synced_at_ms: Date.now(),
+      }, { merge: true });
+    }
     console.info("agent_log_google_direct_pass", { upload_id: uploadId, parts: expected, drive_file: Boolean(driveFileId) });
   } catch (error) {
     const code = safeCode(error);

@@ -79,6 +79,7 @@ jobs:
           $notifications = Get-Content service/src/notifications-core.ts -Raw
           $notificationApi = Get-Content service/src/notification-api.ts -Raw
           $agentLogBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
+          $agentLogGateway = Get-Content ops/apps-script/agent-log-gateway/Code.gs -Raw
           $functionsIndex = Get-Content functions/src/index.ts -Raw
           $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
           $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
@@ -216,6 +217,23 @@ jobs:
             'BLOCKED_INVALID_PENDING_METADATA'
           )) {
             if (-not $agentLogBridge.Contains($marker) -and -not $program.Contains($marker)) { throw "D160 repair log lifecycle guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            '"schema_version", 2',
+            'drive_synced',
+            'DRIVE_CONFIRMATION_MISSING',
+            'Agent-Auto-Confirm-Pick-Pack/D161'
+          )) {
+            if (-not $agentLogBridge.Contains($marker)) { throw "D161 Agent Drive-confirmed prune guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            "D161-GW-v2",
+            "D161_LOG_DAY_",
+            "Asia/Ho_Chi_Minh",
+            "drive_synced: true",
+            "archive_date: daily.date_key"
+          )) {
+            if (-not $agentLogGateway.Contains($marker)) { throw "D161 Agent daily Drive archive guard missing: $marker" }
           }
           foreach ($marker in @('DataHydrated','confirm_data_hydration=RECOVERY_F5','picklistCodeCount','final_confirm_settled_current_agent')) {
             if (-not $browser.Contains($marker)) { throw "D160 repair WMS hydration guard missing: $marker" }

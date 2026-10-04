@@ -4,7 +4,7 @@ const MAX_PAYLOAD_CHARS = 4500000;
 const INDEX_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 const DATABASE_ID = '(default)';
 const CACHE_KEY = 'D160_AGENT_USAGE_V1';
-const GATEWAY_REVISION = 'D160-GW-v1';
+const GATEWAY_REVISION = 'D161-GW-v2';
 const CACHE_TTL_SECONDS = 15 * 60;
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -64,8 +64,41 @@ function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     const action = String(body.action || '');
-    const auth = validateIdToken_(String(body.id_token || ''));
+    const idToken = String(body.id_token || '');
+    const auth = validateIdToken_(idToken);
     if (action === 'get_firestore_usage') return json_(loadSnapshot_());
+    if (action === 'request_support_logs') {
+      const requestId = String(body.request_id || '');
+      if (!/^support-[A-Za-z0-9]{16,80}$/.test(requestId)) throw new Error('INVALID_SUPPORT_REQUEST_ID');
+      const authHeader = ['Bea', 'rer ', idToken].join('');
+      const worker = UrlFetchApp.fetch(
+        'https://inventory-beta.supra.cc.cd/api/agent/support-log-request',
+        {
+          method: 'post',
+          contentType: 'application/json',
+          headers: { authorization: authHeader },
+          payload: JSON.stringify({ request_id: requestId }),
+          muteHttpExceptions: true
+        }
+      );
+      const status = worker.getResponseCode();
+      let result = {};
+      try { result = JSON.parse(worker.getContentText() || '{}'); } catch (_) { result = {}; }
+      if (status < 200 || status >= 300) {
+        throw new Error(String(result.error || ('WORKER_HTTP_' + status)).substring(0, 120));
+      }
+      return json_({
+        ok: true,
+        service: 'SUPRA_AGENT_SUPPORT_CONTROL_D161',
+        project: PROJECT_ID,
+        revision: GATEWAY_REVISION,
+        request_id: String(result.request_id || requestId),
+        trace_id: String(result.trace_id || requestId),
+        expires_at_ms: Number(result.expires_at_ms || 0),
+        idempotent_replay: result.idempotent_replay === true,
+        propagation: result.propagation || {}
+      });
+    }
     if (action !== 'upload_agent_log') throw new Error('ACTION_NOT_ALLOWED');
     const bundleId = String(body.bundle_id || '').toLowerCase();
     const fileName = String(body.file_name || '');
@@ -84,15 +117,17 @@ function doPost(e) {
     const props = PropertiesService.getScriptProperties();
     const folderId = String(props.getProperty('BETA_LOG_FOLDER_ID') || '');
     if (!folderId) throw new Error('MISSING_LOG_FOLDER_ID');
-    const folder = DriveApp.getFolderById(folderId);
+    const rootFolder = DriveApp.getFolderById(folderId);
     const key = 'B_' + bundleId;
     const lock = LockService.getScriptLock();
     lock.waitLock(15000);
     try {
+      const daily = resolveDailyLogFolder_(rootFolder, new Date());
+      const folder = daily.folder;
       const known = props.getProperty(key);
       if (known) {
         const parsed = JSON.parse(known);
-        return json_({ ok: true, existing: true, file_id: String(parsed.file_id || '') });
+        return json_({ ok: true, existing: true, drive_synced: true, archive_date: daily.date_key, file_id: String(parsed.file_id || '') });
       }
 
       const deterministicName = fileName.replace(/\.log$/, '_' + bundleId.substring(0, 12) + '.log');
@@ -101,7 +136,7 @@ function doPost(e) {
         const file = existing.next();
         props.setProperty(key, JSON.stringify({ file_id: file.getId(), at_ms: Date.now() }));
         pruneIndex_(props);
-        return json_({ ok: true, existing: true, file_id: file.getId() });
+        return json_({ ok: true, existing: true, drive_synced: true, archive_date: daily.date_key, file_id: file.getId() });
       }
 
       const file = folder.createFile(deterministicName, payload, MimeType.PLAIN_TEXT);
@@ -112,13 +147,32 @@ function doPost(e) {
         app_user_id: auth.app_user_id
       }));
       pruneIndex_(props);
-      return json_({ ok: true, existing: false, file_id: file.getId() });
+      return json_({ ok: true, existing: false, drive_synced: true, archive_date: daily.date_key, file_id: file.getId() });
     } finally {
       lock.releaseLock();
     }
   } catch (err) {
     return json_({ ok: false, error: safeError_(err) });
   }
+}
+
+function resolveDailyLogFolder_(rootFolder, when) {
+  const dateKey = Utilities.formatDate(when || new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'D161_LOG_DAY_' + dateKey;
+  const cachedId = String(cache.get(cacheKey) || '');
+  if (cachedId) {
+    try {
+      return { folder: DriveApp.getFolderById(cachedId), date_key: dateKey };
+    } catch (_) {
+      cache.remove(cacheKey);
+    }
+  }
+
+  const matches = rootFolder.getFoldersByName(dateKey);
+  const folder = matches.hasNext() ? matches.next() : rootFolder.createFolder(dateKey);
+  cache.put(cacheKey, folder.getId(), 6 * 60 * 60);
+  return { folder: folder, date_key: dateKey };
 }
 
 function loadSnapshot_() {
