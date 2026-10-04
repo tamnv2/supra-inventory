@@ -357,7 +357,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var payload = new Dictionary<string, object>
                     {
-                        { "schema_version", 1 },
+                        { "schema_version", 2 },
                         { "bundle_id", bundleId },
                         { "source", "AGENT" },
                         { "kind", normalizedKind },
@@ -520,7 +520,7 @@ namespace SupraInventoryRelayAgent
             var request = (HttpWebRequest)WebRequest.Create(parsed);
             request.Method = "POST";
             request.ContentType = "application/json; charset=utf-8";
-            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D158";
+            request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D161";
             request.Timeout = 10000;
             request.ReadWriteTimeout = 10000;
             request.AllowAutoRedirect = true;
@@ -534,7 +534,16 @@ namespace SupraInventoryRelayAgent
                 if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300) return false;
                 var result = _json.DeserializeObject(text) as Dictionary<string, object>;
                 object ok;
-                return result != null && result.TryGetValue("ok", out ok) && Convert.ToBoolean(ok);
+                object driveSynced;
+                var accepted = result != null &&
+                    result.TryGetValue("ok", out ok) &&
+                    Convert.ToBoolean(ok);
+                var confirmed = accepted &&
+                    result.TryGetValue("drive_synced", out driveSynced) &&
+                    Convert.ToBoolean(driveSynced);
+                if (accepted && !confirmed)
+                    _log("AGENT LOG upload=DEFER reason=DRIVE_CONFIRMATION_MISSING");
+                return confirmed;
             }
         }
 
