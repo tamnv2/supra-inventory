@@ -136,6 +136,42 @@ jobs:
               -not $d160Usage.Contains('SuspendLayout')) {
             throw "D161 atomic Usage presentation guard regression."
           }
+
+          # D161 Owner field-retest repair: Agent auth must remain separate from
+          # WEB/ANDROID interactive-session authority; WMS-not-ready requests must
+          # still terminate explicitly and Usage must accept the current gateway.
+          foreach ($marker in @(
+            'async function requireAgentUser',
+            'AGENT_SESSION_REQUIRED',
+            'firebase_agent_ready',
+            'requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"])'
+          )) {
+            if (-not $serviceIndex.Contains($marker)) { throw "D161 Agent API auth repair guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'PRIMARY_DEGRADED_RECEIVER',
+            'DEGRADED_RECEIVER_FIRST',
+            'DEGRADED_RECEIVER_VACANT'
+          )) {
+            if (-not $leader.Contains($marker)) { throw "D161 degraded PRIMARY receiver guard missing: $marker" }
+          }
+          if (-not $program.Contains('authenticated Agent transport must stay alive') -or
+              -not $d157Features.Contains('coordinator.IsLeader') -or
+              -not $d157Features.Contains('IsBusinessAllowed();')) {
+            throw "D161 WMS-not-ready ingress/listener guard regression."
+          }
+          foreach ($marker in @(
+            'WMS_SESSION_REQUIRED',
+            'WEB_CONFIRM_NOT_READY'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D161 explicit WMS-not-ready terminal guard missing: $marker" }
+          }
+          if (-not $d160Ui.Contains('case "WMS_SESSION_REQUIRED": return "Web Agent chưa sẵn sàng"')) {
+            throw "D161 Picker History WMS-not-ready reason guard regression."
+          }
+          foreach ($marker in @('D160-GW-v1','D161-GW-v2','USAGE_GATEWAY_IDENTITY_MISMATCH')) {
+            if (-not $d160Usage.Contains($marker)) { throw "D161 Usage gateway compatibility guard missing: $marker" }
+          }
           if (-not $browser.Contains('page_size_100=true') -or
               -not $browser.Contains('_successfulReload') -or
               -not $d157Features.Contains('successful_reload_clock_reset=PASS')) {
