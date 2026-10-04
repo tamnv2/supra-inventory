@@ -2455,3 +2455,17 @@ Before D161 Owner field re-acceptance, prove:
 8. **Logout authority:** Agent logout stops the compact listener and clears the active-Picker list.
 9. **Provider impact:** no new Firestore collection, collection query, per-Picker listener, polling loop or write cadence. One existing Agent-sync gRPC stream observes exactly two existing documents (`agent_sync` and `picker_presence_projection/current`) for authenticated Agent sessions.
 10. **Release lineage:** Web increments to Version 2; Agent field-repair candidate is v105; Android uses the next monotonic Beta version after vc96. Stable remains untouched.
+
+## D161 second field-retest repair acceptance — 2026-10-04
+
+Before returning D161 to Owner field retest, automated/runtime evidence must additionally prove:
+
+1. **Agent bulk revoke auth:** Agent v106 using the dedicated Agent Firebase password/refresh identity can call bulk preview and bulk revoke through Worker authority. WEB/ANDROID tokens are not accepted as Agent identities. Existing admin/tamnv2 privilege, destructive confirmation and password verification remain.
+2. **Single revoke compatibility:** the existing single-Picker revoke path still works and Worker server-revoke no longer fails only because the Agent token lacks WEB/ANDROID interactive-session claims.
+3. **WMS-not-ready ingress:** with Agent authenticated and Web Confirm in preparing/not-ready state, an Android vc97 request is consumed within the existing request budget, creates a visible Picker History row, performs zero WMS Search/checkbox/Confirm mutation and returns terminal **WMS_SESSION_REQUIRED** instead of expiring silently.
+4. **History reason:** the terminal row renders **Web Agent chưa sẵn sàng**. Known session/lookup/transport/permission terminal classes also render a non-empty bounded reason.
+5. **HA safety:** degraded PRIMARY receiving is allowed only to observe/ACK the safe pre-mutation terminal. A ready standby can still supersede it, and PRIMARY/generation fencing remains required before any actual WMS mutation.
+6. **Usage compatibility:** exact service/project + revision **D161-GW-v2** succeeds; legacy **D160-GW-v1** remains allowed; wrong service, project or arbitrary revision is rejected as USAGE_GATEWAY_IDENTITY_MISMATCH.
+7. **Release lineage:** Agent source change publishes a new monotonic **relay-agent-v106**. Android remains **beta-vc97** unless an unrelated Android source change occurs. Stable remains untouched.
+8. **Provider impact:** no new persistent resource, collection query, listener family, polling loop or write cadence is introduced by this repair.
+
