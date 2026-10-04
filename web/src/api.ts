@@ -187,6 +187,8 @@ export interface HrEventSyncState {
     last_accepted_row_count?: number;
     last_accepted_fingerprint?: string;
     hard_block_code?: string | null;
+    invalid_row_details?: Array<{ row: number; reasons: string[] }>;
+    duplicate_employee_codes?: string[];
     updated_at?: string;
     updated_by?: string;
     trigger?: string;
@@ -1294,5 +1296,12 @@ export async function confirmHrEventSync(fingerprint: string): Promise<HrEventCo
   return readJson(await authorizedFetch("/api/admin/hr-sync/confirm", {
     method: "POST",
     body: JSON.stringify({ fingerprint }),
+  }));
+}
+
+export async function recheckHrEventSync(): Promise<HrEventConfirmResponse> {
+  return readJson(await authorizedFetch("/api/admin/hr-sync/recheck", {
+    method: "POST",
+    body: "{}",
   }));
 }
