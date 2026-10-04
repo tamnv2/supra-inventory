@@ -16,6 +16,7 @@ type RuntimeEvent = {
 const DEVICE_KEY = "supra_inventory_web_device_id_v1";
 const SLOT_KEY = "supra_inventory_web_log_slot_v1";
 const PENDING_ERROR_KEY = "supra_inventory_web_pending_error_v1";
+const SUPPORT_REQUEST_PREFIX = "supra_inventory_web_support_request_v2:";
 const JOURNAL_PREFIX = "supra_inventory_web_runtime_journal_v2:";
 const JOURNAL_INDEX_KEY = "supra_inventory_web_runtime_journal_index_v2";
 const MAX_JOURNAL_CHARS = 720_000;
@@ -31,6 +32,7 @@ let lastImmediateErrorAt = 0;
 let scheduledSendInFlight = false;
 let journalPersistTimer: number | null = null;
 let journalKey = "";
+const supportRequestsInFlight = new Set<string>();
 let journalState: {
   format: "supra-web-runtime-journal-v2";
   session_key: string;
@@ -518,6 +520,64 @@ async function send(
 export async function sendWebRuntimeLog(reason = "manual", severity: Severity = "INFO", extra?: unknown): Promise<boolean> {
   runtimeLogEvent(`Gửi log: ${reason}`, severity, extra);
   return send(severity, reason, extra);
+}
+
+function supportRequestDedupeKey(requestId: string): string {
+  return `${SUPPORT_REQUEST_PREFIX}${journalSessionKey()}:${requestId}`;
+}
+
+function deterministicSupportJitterMs(requestId: string): number {
+  const seed = `${deviceId()}|${requestId}`;
+  let hash = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0) % 5001;
+}
+
+export function queueWebSupportLogRequest(metadata: Record<string, unknown> | undefined): void {
+  if (!hasSession()) return;
+  const requestId = String(metadata?.request_id || "").trim();
+  const traceId = String(metadata?.trace_id || requestId).trim();
+  const issuedAtMs = Math.trunc(Number(metadata?.issued_at_ms || 0));
+  const expiresAtMs = Math.trunc(Number(metadata?.expires_at_ms || 0));
+  const now = Date.now();
+  if (
+    !/^support-[A-Za-z0-9]{16,80}$/.test(requestId) ||
+    !/^[A-Za-z0-9._:-]{1,180}$/.test(traceId) ||
+    issuedAtMs <= 0 ||
+    expiresAtMs <= now ||
+    expiresAtMs > issuedAtMs + 5 * 60_000
+  ) return;
+
+  const dedupeKey = supportRequestDedupeKey(requestId);
+  if (localStorage.getItem(dedupeKey) === "1" || supportRequestsInFlight.has(dedupeKey)) return;
+  supportRequestsInFlight.add(dedupeKey);
+  const jitterMs = deterministicSupportJitterMs(requestId);
+
+  window.setTimeout(() => {
+    if (!hasSession() || Date.now() >= expiresAtMs) {
+      supportRequestsInFlight.delete(dedupeKey);
+      return;
+    }
+    void send(
+      "INFO",
+      "global_support_request",
+      {
+        request_id: requestId,
+        support_request: true,
+        responder_jitter_ms: jitterMs,
+      },
+      { boundaryId: `support:${requestId}`, traceId },
+    ).then((accepted) => {
+      if (accepted) {
+        try { localStorage.setItem(dedupeKey, "1"); } catch { /* diagnostics-only */ }
+      }
+    }).finally(() => {
+      supportRequestsInFlight.delete(dedupeKey);
+    });
+  }, jitterMs);
 }
 
 async function flushPendingError(): Promise<void> {
