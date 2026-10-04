@@ -14,6 +14,7 @@ import QRCode from "qrcode";
 import {
   applyHrPickerSync,
   confirmHrEventSync,
+  recheckHrEventSync,
   changeMyPassword,
   clearSession,
   createManagedUser,
@@ -2673,13 +2674,13 @@ function renderShiftOperations(): string {
   return `<section class="ops-route tools-workspace">
     <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Trạng thái dùng chung từ Agent cho Web, Báo hàng và PickList. Web chỉ hiển thị authority hiện hành.</p></div></div>
     <section class="business-summary-grid">
-      <article class="business-summary-card primary"><span>Replay tự động</span><strong>05:45–22:30</strong><small>Không cần ghi schedule để mở/đóng khung thường</small></article>
+      <article class="business-summary-card primary"><span>Ca bình thường</span><strong>06:00–22:00</strong><small>Cửa sổ kỹ thuật Replay · 05:45–22:15</small></article>
       <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
       <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>State chia sẻ đến</span><strong>${esc(sharedUntil)}</strong><small>${esc(decision)}</small></article>
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
-      <div class="ops-note">22:00 hỏi cho mốc 22:30; tăng ca theo các mốc 22:30 → 23:30 → 00:30 và tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent. Khi đang tăng ca, Agent có thể Huỷ tăng ca để đóng ngay toàn hệ thống.</div>
+      <div class="ops-note">Ca bình thường 06:00–22:00. Cửa sổ kỹ thuật Replay hoạt động 05:45–22:15; nếu không có gia hạn thì chuyển SLEEP lúc 22:15. Sau 22:15, Agent có thể Gia hạn +1 giờ; cảnh báo T-15 áp dụng cho mốc tăng ca đang hoạt động; tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent.</div>
     </article>
   </section>`;
 }
@@ -4290,7 +4291,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       hrEventSync = await getHrEventSyncState();
       const status = String(hrEventSync.sync?.status || "");
       if (status === "CONFIRM_REQUIRED") setNotice("warning", "Nguồn nhân sự vừa thay đổi và cần Admin/Root xác nhận.");
-      else if (status === "HARD_BLOCK") setNotice("error", "Đồng bộ nhân sự đang bị chặn; dữ liệu tài khoản hiện tại được giữ nguyên.");
+      else if (status === "HARD_BLOCK") setNotice("error", "Đồng bộ nhân sự đang bị chặn. Mở Nguồn nhân sự & đồng bộ Picker để xem dòng lỗi và cách xử lý.");
       if (activeSection === "hr") patchActiveSection(true);
     } catch {
       return false;
