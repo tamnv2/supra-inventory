@@ -1,3 +1,5 @@
+import { resolveRuntimeLogDailyFolder } from "./runtime-logs";
+
 type InternalEnv = {
   APP_ENV: string;
   INVENTORY_CORE: DurableObjectNamespace;
@@ -73,22 +75,28 @@ async function createAgentLogUploadSession(
   if (!(await verifyRuntimeIdentity(request, env))) return json({ error: "INTERNAL_IDENTITY_REQUIRED" }, 401);
   if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) return json({ error: "LOGS_FOLDER_NOT_CONFIGURED" }, 503);
 
-  let body: { filename?: string; content_length?: number } = {};
-  try { body = (await request.json()) as { filename?: string; content_length?: number }; } catch { body = {}; }
+  let body: { filename?: string; content_length?: number; bundle_id?: string } = {};
+  try { body = (await request.json()) as { filename?: string; content_length?: number; bundle_id?: string }; } catch { body = {}; }
   const filename = String(body.filename || "").trim();
   const contentLength = Number(body.content_length || 0);
+  const bundleIdRaw = String(body.bundle_id || "").trim().toLowerCase();
+  const bundleId = /^[a-z0-9._:-]{12,100}$/.test(bundleIdRaw) ? bundleIdRaw : "";
   if (!AGENT_LOG_FILENAME_RE.test(filename) || !Number.isInteger(contentLength) || contentLength < 1 || contentLength > MAX_AGENT_LOG_BYTES) {
     return json({ error: "INVALID_AGENT_LOG_UPLOAD_REQUEST" }, 400);
   }
 
   try {
     const token = await refreshDriveAccessToken(env);
+    const daily = await resolveRuntimeLogDailyFolder(env, token);
+    const duplicateClause = bundleId
+      ? `appProperties has { key='archive_id' and value='bundle:AGENT:${bundleId}' }`
+      : `name = '${filename.replaceAll("'", "\\'")}'`;
     const duplicateParams = new URLSearchParams({
-      q: `'${env.LOGS_FOLDER_ID}' in parents and trashed = false and name = '${filename.replaceAll("'", "\\'")}'`,
+      q: `'${daily.id}' in parents and trashed = false and ${duplicateClause}`,
       orderBy: "createdTime desc",
       pageSize: "1",
       spaces: "drive",
-      fields: "files(id,name)",
+      fields: "files(id,name,appProperties)",
     });
     const duplicateResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${duplicateParams.toString()}`, {
       headers: { authorization: `Bearer ${token}`, accept: "application/json" },
@@ -111,13 +119,16 @@ async function createAgentLogUploadSession(
         },
         body: JSON.stringify({
           name: filename,
-          parents: [env.LOGS_FOLDER_ID],
+          parents: [daily.id],
           mimeType: "text/plain",
           appProperties: {
             project: "supra-inventory",
             source: "AGENT",
             transport: "GOOGLE_DIRECT_BROKERED_SESSION",
             severity: /^(?:crash_|error_)/.test(filename) ? "ERROR" : "INFO",
+            archive_id: bundleId ? `bundle:AGENT:${bundleId}` : `legacy:${filename.slice(0, 90)}`,
+            bundle_id: bundleId || "legacy",
+            archive_date: daily.dateKey,
           },
         }),
       },
@@ -126,7 +137,7 @@ async function createAgentLogUploadSession(
     if (!response.ok || !uploadUrl.startsWith("https://")) {
       return json({ error: "DRIVE_UPLOAD_SESSION_FAILED", status_code: response.status }, 502);
     }
-    return json({ status: "upload_required", upload_url: uploadUrl });
+    return json({ status: "upload_required", upload_url: uploadUrl, archive_date: daily.dateKey });
   } catch (error) {
     return json({
       error: error instanceof Error ? error.message : "DRIVE_UPLOAD_SESSION_FAILED",
