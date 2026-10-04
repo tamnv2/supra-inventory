@@ -1334,7 +1334,7 @@ class MainActivity : Activity() {
     private fun logoutWithNotificationCleanup(message: String = "Đã đăng xuất.") {
         if (logoutRunning) return
         logoutRunning = true
-        findViewById<View?>(R.id.btnLogout)?.isEnabled = false
+        findViewById<View>(R.id.btnLogout)?.isEnabled = false
         val logoutLoading = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -1658,7 +1658,7 @@ class MainActivity : Activity() {
 
     private fun tryRestoreSessionAfterUpdateCheck() {
         if (!restoringSessionScreen) return
-        val restored = try { api.refreshProfile() } catch (_: Exception) { null }
+        val restored = api.session
         if (restored != null) renderHome(restored) else renderLogin("Phiên đăng nhập cần xác thực lại.")
     }
 
