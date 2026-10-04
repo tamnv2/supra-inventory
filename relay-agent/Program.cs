@@ -1465,6 +1465,7 @@ namespace SupraInventoryRelayAgent
             _openLog.SetBounds(900, 10, 120, 30);
             _openLog.Text = "Mở file";
             _technicalPage.Controls.Add(_openLog);
+            InitializeD161GlobalSupportLogControl(_technicalPage);
             _log.SetBounds(18, 52, 1002, 590);
             _log.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _technicalPage.Controls.Add(_log);
