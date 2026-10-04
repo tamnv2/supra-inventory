@@ -90,6 +90,15 @@ namespace SupraInventoryRelayAgent
             _d157LastWmsProofUtc = now;
         }
 
+        private void MarkD157SuccessfulReload()
+        {
+            var now = DateTime.UtcNow;
+            _d157LastSessionValidationUtc = now;
+            _d157LastWmsProofUtc = now;
+            _d157LastBusinessActivityUtc = now;
+            Log("D157 SESSION_CHECK successful_reload_clock_reset=PASS secondary_2h_from_now=true");
+        }
+
         private void TickD157SessionHealth()
         {
             if (!HasAgentSession() || _supraBrowser == null || !HasReadyConfirmBrowser()) return;
