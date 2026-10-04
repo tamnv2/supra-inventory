@@ -683,7 +683,6 @@ namespace SupraInventoryRelayAgent
         private long _localConfirmSuccess;
         private long _localConfirmFailed;
         private readonly string _agentInstanceId;
-        private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
         private readonly AgentLogUploadBridge _agentLogBridge;
         private int _interactiveInputGuardDepth;
@@ -869,11 +868,8 @@ namespace SupraInventoryRelayAgent
                 RefreshD130ResourceClock();
             };
 
-            // GitHub cannot push directly into a portable EXE. D101 therefore uses
-            // a bounded direct GitHub background check while the Agent is running.
-            _updateTimer.Interval = 30 * 60 * 1000;
-            _updateTimer.Tick += (s, e) => Task.Run(() => TryAutoUpdate(false));
-            _updateTimer.Start();
+            // D161: Agent update discovery/install is manual-only.
+            // No startup check and no periodic update timer are allowed.
 
             _logUploadTimer.Interval = 60 * 1000;
             _logUploadTimer.Tick += (s, e) => Task.Run(() =>
@@ -1096,7 +1092,7 @@ namespace SupraInventoryRelayAgent
 
             _manualUpdate.SetBounds(736, 80, 150, 31);
             _manualUpdate.Text = "Kiểm tra cập nhật";
-            _manualUpdate.Click += (s, e) => Task.Run(() => TryAutoUpdate(false));
+            _manualUpdate.Click += (s, e) => Task.Run(() => TryManualUpdate());
             agentCard.Controls.Add(_manualUpdate);
 
             _background.SetBounds(886, 80, 120, 31);
@@ -3494,12 +3490,11 @@ namespace SupraInventoryRelayAgent
         {
             UserStartupRegistration.EnsureRegistered();
             LogNetworkSnapshot("startup");
-            if (TryAutoUpdate(true)) return;
             RestoreSession();
             AgentBrowserBundle.EnsureBackground(Log);
         }
 
-        private bool TryAutoUpdate(bool startup)
+        private bool TryManualUpdate()
         {
             lock (_sessionLock)
             {
@@ -3509,14 +3504,40 @@ namespace SupraInventoryRelayAgent
 
             try
             {
-                if (startup) Log("UPDATE kiểm tra Agent prerelease v" + AgentConfig.AgentBuild + ".");
+                Log("UPDATE manual_check current=v" + AgentConfig.AgentBuild + ".");
                 Ui(() =>
                 {
                     _manualUpdate.Enabled = false;
                     _manualUpdate.Text = "Đang kiểm tra...";
                     _updateStatus.Text = "CHECKING";
                 });
-                var result = AgentUpdater.CheckAndInstallIfNeeded();
+                var check = AgentUpdater.CheckLatest();
+                if (check.LatestBuild <= AgentConfig.AgentBuild)
+                {
+                    Log("UPDATE " + check.Message);
+                    Ui(() => _updateStatus.Text = check.Message);
+                    return false;
+                }
+
+                var confirmed = DialogResult.No;
+                Invoke(new Action(() =>
+                {
+                    confirmed = MessageBox.Show(
+                        "Đã phát hiện Agent v" + check.LatestBuild + ".\r\n\r\n" +
+                        "Chỉ cài khi bạn xác nhận. Quá trình sẽ tải bản phát hành đã ký/checksum, sau đó khởi động lại Agent.",
+                        "Cập nhật Agent thủ công",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question,
+                        MessageBoxDefaultButton.Button2);
+                }));
+                if (confirmed != DialogResult.Yes)
+                {
+                    Log("UPDATE manual_install=CANCEL target=v" + check.LatestBuild);
+                    Ui(() => _updateStatus.Text = "Đã hủy cập nhật v" + check.LatestBuild + ".");
+                    return false;
+                }
+
+                var result = AgentUpdater.InstallLatest();
                 if (result.InstallStarted)
                 {
                     Log(result.Message);
@@ -3529,7 +3550,7 @@ namespace SupraInventoryRelayAgent
                     });
                     return true;
                 }
-                if (!startup) Log("UPDATE " + result.Message);
+                Log("UPDATE " + result.Message);
                 Ui(() => _updateStatus.Text = result.Message);
                 return false;
             }
