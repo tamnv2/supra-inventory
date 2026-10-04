@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "BLOCKED_BY_THIRD_FIELD_REPAIR__AGENT_V107_PR_CI_RELEASE_PENDING",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "Owner field retest found Agent v106 still leaves Picker History blank when Web Confirm is not ready. The same D161 change now requires an Agent-only v107 repair; Android vc97 and Worker remain unchanged.",
+      "reason_owner_only": "Agent-only D161 v107 History repair is merged and runtime/release gates PASS. Final acceptance still requires Owner field retest with Android vc97; Worker/Web and Stable are unchanged for this defect.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4814,11 +4814,11 @@
         "repair_android": "beta-vc97__UNCHANGED_FOR_SECOND_REPAIR",
         "repair_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__SCHEMA17_17__OPERATIONAL5_5",
         "second_field_repair": "PASS__PR_430__MAIN_6FCA277E__AGENT_V106__WORKER_RUN_37201568740__AGENT_RUN_37201568734__USAGE_RUN_37201568816",
-        "third_field_repair": "IMPLEMENTED_ON_BRANCH__TARGET_AGENT_V107__ANDROID_VC97_UNCHANGED__NO_WORKER_CHANGE__PR_CI_RELEASE_PENDING"
+        "third_field_repair": "PASS__PR_432__MAIN_B7307EEB__AGENT_V107__RUN_37203208163__ANDROID_VC97_UNCHANGED__NO_WORKER_CHANGE"
       },
       "shortest_test_path": [
         "After Agent v106 and the repaired Beta Worker are published, test Kích toàn bộ user with at least two logged-in Picker Android sessions; verify all affected sessions are revoked and must log in again.",
-        "After Agent v107 is published, authenticate Agent and leave Web Confirm preparing/not-ready; send a PickList request from Android vc97 and verify Agent History immediately records it with Web Agent chưa sẵn sàng, PDA receives the explicit terminal, and zero WMS mutation occurs.",
+        "With Agent v107 authenticated and Web Confirm showing preparing/not-ready, send a PickList request from Android vc97; verify Agent History immediately records the request with Web Agent chưa sẵn sàng, PDA receives the explicit terminal instead of timing out, and zero WMS mutation occurs.",
         "Open Usage as admin/tamnv2; verify the current D161-GW-v2 data loads successfully and refresh remains restricted to the authorized users.",
         "Create one controlled invalid HR row; verify HARD_BLOCK shows the exact row/reason, makes zero user mutation, then correct it and use Kiểm tra lại nguồn.",
         "Create a controlled CONFIRM_REQUIRED HR change; verify Có applies only after revalidation and Không keeps current data unchanged.",
@@ -4892,14 +4892,27 @@
           "owner_reported_at": "2026-10-04",
           "defect": "AGENT_V106_WMS_NOT_READY_REQUEST_SENT_BUT_PICKER_HISTORY_BLANK",
           "root_cause": "PRE_PIPELINE_VERIFY_PRIMARY_BEFORE_MUTATION_REQUIRED_WMS_READY_AND_RETURNED_BEFORE_D160_HISTORY",
+          "repair_pr": 432,
+          "main_sha": "b7307eebcc9fdff5de2cacadd96b618470a5fc86",
+          "agent_run_id": 37203208163,
+          "usage_run_id": 37203208151,
+          "ui_guard_run_id": 37203208149,
+          "d127_run_id": 37203208171,
           "target_agent": "relay-agent-v107",
+          "agent_release_id": 403018374,
+          "agent_asset_id": 609838194,
+          "agent_size_bytes": 7287808,
+          "agent_sha256": "67a371a9e3e51a822344b74a97c93cbf56b5909ff8f374a4210722a8621707ca",
+          "inventory_channel_release_id": 394587029,
+          "inventory_channel_latest_asset_id": 609838226,
+          "inventory_channel_agent_asset_id": 609838227,
+          "inventory_channel_checksum_asset_id": 609838228,
           "android": "beta-vc97__UNCHANGED",
           "worker": "UNCHANGED",
-          "status": "PR_432_CI_RELEASE_PENDING",
-          "repair_pr": 432
+          "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "BLOCKED_UNTIL_AGENT_V107_RELEASE_PASS__THEN_RETEST_WMS_NOT_READY_HISTORY_WITH_ANDROID_VC97__OTHER_D161_ACCEPTANCE_REMAINS_PENDING",
+      "remaining_owner_action": "RETEST_WMS_NOT_READY_HISTORY_EXPLICIT_REASON_ON_AGENT_V107_WITH_ANDROID_VC97__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
       "closed": false
     }
   ]
