@@ -133,7 +133,7 @@ namespace SupraInventoryRelayAgent
             get { lock (_stateGate) return _generation ?? ""; }
         }
         internal string RoleName { get { return _role.ToString(); } }
-        internal bool CanPollBusiness { get { return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY; } }
+        internal bool CanPollBusiness { get { return _relayEnabled() && _role == FirestoreAgentRole.PRIMARY; } }
         internal bool IsTransportHealthy
         {
             get
@@ -207,7 +207,7 @@ namespace SupraInventoryRelayAgent
 
         internal bool CanProcessJob(long createdAtMs)
         {
-            return _relayEnabled() && _wmsReady() && _role == FirestoreAgentRole.PRIMARY;
+            return _relayEnabled() && _role == FirestoreAgentRole.PRIMARY;
         }
 
         internal bool SharedRelayOverrideAllows(string scheduleKey, long nowMs)
@@ -280,7 +280,7 @@ namespace SupraInventoryRelayAgent
 
         internal bool VerifyPrimaryBeforeMutation(AgentSession session)
         {
-            if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;
+            if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY) return false;
             var read = ReadRoles(session);
             ApplySharedSchedule(read.Snapshot);
             var snapshot = read.Snapshot;
@@ -998,7 +998,9 @@ namespace SupraInventoryRelayAgent
                         ? DeepHibernateRoleRefreshMs
                         : (_role == FirestoreAgentRole.NEXT_A
                             ? NextARoleRefreshMs
-                            : (_role == FirestoreAgentRole.NEXT_B ? NextBRoleRefreshMs : PrimaryRoleRefreshMs));
+                            : (_role == FirestoreAgentRole.NEXT_B
+                                ? NextBRoleRefreshMs
+                                : (!_wmsReady() ? FirestoreConfirmationTransport.PrimaryInactivePollIntervalMs : PrimaryRoleRefreshMs)));
                     var roleRefreshDue = startupConvergence ||
                                          _refreshBeforeBusiness ||
                                          _lastRoleRefreshMs == 0 ||
@@ -1072,9 +1074,9 @@ namespace SupraInventoryRelayAgent
 
                 if (snapshot == null)
                 {
-                    if (!_relayEnabled() || !_wmsReady())
+                    if (!_relayEnabled())
                     {
-                        SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", "WMS_NOT_READY");
+                        SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", "RELAY_SCHEDULE_SLEEP");
                         return;
                     }
                     var first = new FirestoreRoleSnapshot
@@ -1087,7 +1089,7 @@ namespace SupraInventoryRelayAgent
                     if (TryWriteRoles(session, first, read))
                     {
                         _generation = first.Generation;
-                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "ACTIVE_FIRST");
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", _wmsReady() ? "ACTIVE_FIRST" : "DEGRADED_RECEIVER_FIRST");
                         WritePrimaryLease(session);
                         return;
                     }
@@ -1117,6 +1119,16 @@ namespace SupraInventoryRelayAgent
                     _generation = snapshot.Generation ?? "";
                     if (!_wmsReady())
                     {
+                        // D161 repair: if no ready standby exists, retain one PRIMARY as
+                        // a degraded receiver. It may consume/ACK PDA requests with the
+                        // explicit WMS_SESSION_REQUIRED terminal result, while the D160
+                        // business pipeline still blocks WMS mutation until browser-ready.
+                        if (string.IsNullOrWhiteSpace(snapshot.StandbyAgentInstanceId))
+                        {
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "PRIMARY_DEGRADED_RECEIVER");
+                            return;
+                        }
+
                         var relinquish = new FirestoreRoleSnapshot
                         {
                             PrimaryAgentInstanceId = snapshot.StandbyAgentInstanceId ?? "",
@@ -1184,7 +1196,7 @@ namespace SupraInventoryRelayAgent
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(snapshot.PrimaryAgentInstanceId) && _wmsReady())
+                if (string.IsNullOrWhiteSpace(snapshot.PrimaryAgentInstanceId))
                 {
                     var primary = new FirestoreRoleSnapshot
                     {
@@ -1197,7 +1209,7 @@ namespace SupraInventoryRelayAgent
                     if (TryWriteRoles(session, primary, read))
                     {
                         _generation = primary.Generation;
-                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, primary.StandbyAgentInstanceId, "ACTIVE_VACANT");
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, primary.StandbyAgentInstanceId, _wmsReady() ? "ACTIVE_VACANT" : "DEGRADED_RECEIVER_VACANT");
                         WritePrimaryLease(session);
                         return;
                     }
