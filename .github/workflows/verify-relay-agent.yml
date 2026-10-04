@@ -169,6 +169,20 @@ jobs:
           if (-not $d160Ui.Contains('case "WMS_SESSION_REQUIRED": return "Web Agent chưa sẵn sàng"')) {
             throw "D161 Picker History WMS-not-ready reason guard regression."
           }
+
+          # D161 v107 field repair: ingress authority is distinct from WMS mutation
+          # authority. A degraded PRIMARY must reach D160 History/terminal handling,
+          # while actual WMS mutation still requires the strict WMS-ready fence.
+          if (-not $leader.Contains('internal bool VerifyPrimaryForBusinessIngress(AgentSession session)') -or
+              -not $transport.Contains('_coordinator.VerifyPrimaryForBusinessIngress(session)') -or
+              $transport.Contains('FIRESTORE CONFIRM mutation-fence=BLOCK role_or_generation_changed=true')) {
+            throw "D161 WMS-not-ready pre-pipeline ingress fence regression."
+          }
+          if (-not $leader.Contains('if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;') -or
+              -not $d160Pipeline.Contains('_leaderCoordinator.VerifyPrimaryBeforeMutation(session)')) {
+            throw "D161 actual WMS mutation safety fence regression."
+          }
+
           foreach ($marker in @('D160-GW-v1','D161-GW-v2','USAGE_GATEWAY_IDENTITY_MISMATCH')) {
             if (-not $d160Usage.Contains($marker)) { throw "D161 Usage gateway compatibility guard missing: $marker" }
           }

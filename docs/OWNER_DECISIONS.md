@@ -3180,3 +3180,23 @@ The Owner field-tested Agent v105 with Android vc97 and reported three additiona
 
 Implementation lineage for this repair is **Agent v106**. Android **vc97 remains unchanged** because the timeout/blank-history defect is on Agent ingress/terminal handling, not the Android request contract. Beta Worker/Agent may change; Stable remains OWNER-GATED and untouched. No new persistent provider resource, polling loop, collection query or write cadence is authorized.
 
+## D161 v106 field-retest NOT PASS — Agent-only WMS-not-ready History repair — 2026-10-04
+
+Status: **OWNER AUTHORIZED REPAIR WITHIN D161 — AGENT ONLY**.
+
+Owner field retest of Agent v106 + Android vc97 confirmed that the PDA request can be sent while Agent History remains blank when Web Confirm is not ready. This means the second D161 repair did not satisfy the approved WMS-not-ready History contract.
+
+Canonical diagnosis:
+- Android vc97 request creation/transport contract is unchanged and does not require repair.
+- Agent v106 already keeps the authenticated transport alive and may hold a degraded PRIMARY receiver role.
+- However, `FirestoreConfirmationTransport` still called the strict `VerifyPrimaryBeforeMutation` fence **before** entering `D160ConfirmPipeline`.
+- That strict fence correctly requires WMS-ready, so a not-ready browser returned before `RecordD160PickerHistoryRequest` could run. The PDA request therefore had no Agent History row and no explicit `WMS_SESSION_REQUIRED` terminal response.
+- Actual WMS safety must remain fail-closed: WMS-ready + current PRIMARY/generation are still mandatory immediately before any WMS mutation.
+
+Approved repair:
+1. Add a separate PRIMARY/generation **business-ingress fence** that does not depend on WMS readiness.
+2. Use that ingress fence only before D160 request/history processing.
+3. Preserve the existing strict `VerifyPrimaryBeforeMutation` check inside the WMS mutation path.
+4. When Web Confirm is not ready, D160 must create History and terminal `WMS_SESSION_REQUIRED / Web Agent chưa sẵn sàng`, ACK it to the PDA, and perform zero WMS mutation.
+5. Add a regression guard proving the transport no longer uses the mutation fence as a pre-pipeline ingress gate.
+6. Repair lineage is **relay-agent-v107**. Android remains **beta-vc97 unchanged**. No Worker or Stable change is required for this defect.
