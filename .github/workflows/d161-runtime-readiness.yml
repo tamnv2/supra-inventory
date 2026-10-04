@@ -1,0 +1,130 @@
+name: D161 Runtime Readiness Proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d161-runtime-readiness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hr-watch-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: beta
+    env:
+      BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+      FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Authenticate Beta service identity
+        id: runtime_auth
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+
+      - name: Create bounded management probe token
+        shell: bash
+        env:
+          RUNTIME_CREDS: ${{ steps.runtime_auth.outputs.credentials_file_path }}
+        run: |
+          set -euo pipefail
+          test -n "$BETA_HOSTNAME"
+          test -n "$FIREBASE_WEB_API_KEY_BETA"
+          test -s "$RUNTIME_CREDS"
+          work="$RUNNER_TEMP/d161-field-ready-auth"
+          mkdir -p "$work"
+          npm install --prefix "$work" --no-audit --no-fund firebase-admin@13.5.0 >/dev/null
+
+          custom="$(NODE_PATH="$work/node_modules" RUNTIME_CREDS="$RUNTIME_CREDS" node <<'NODE'
+          const fs=require('fs');
+          const crypto=require('crypto');
+          const admin=require('firebase-admin');
+          admin.initializeApp({credential:admin.credential.applicationDefault(),projectId:'supra-inventory-beta'});
+          const b64=v=>Buffer.from(typeof v==='string'?v:JSON.stringify(v)).toString('base64url');
+          (async()=>{
+            let selected=null;
+            let token='';
+            for(let pageToken=undefined;;){
+              const page=await admin.auth().listUsers(1000,pageToken);
+              selected=page.users.find(u=>{
+                const c=u.customClaims||{};
+                const role=String(c.app_role||'').toUpperCase();
+                const base=String(c.app_base_role||role).toUpperCase();
+                return ['ROOT','ADMIN'].includes(role) && role===base && String(c.app_user_id||'').length>0;
+              }) || selected;
+              if(selected || !page.pageToken) break;
+              pageToken=page.pageToken;
+            }
+            if(!selected) throw new Error('D161_MANAGEMENT_FIREBASE_IDENTITY_NOT_FOUND');
+            const claims=selected.customClaims||{};
+            const role=String(claims.app_role||'').toUpperCase();
+            const baseRole=String(claims.app_base_role||role).toUpperCase();
+            const appUserId=String(claims.app_user_id||'');
+            const creds=JSON.parse(fs.readFileSync(process.env.RUNTIME_CREDS,'utf8'));
+            if(!creds.client_email||!creds.private_key) throw new Error('D161_RUNTIME_KEY_MATERIAL_NOT_AVAILABLE_TO_JOB');
+            const now=Math.floor(Date.now()/1000);
+            const header=b64({alg:'RS256',typ:'JWT'});
+            const payload=b64({
+              iss:creds.client_email,
+              sub:creds.client_email,
+              aud:'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+              iat:now,
+              exp:now+3600,
+              uid:selected.uid,
+              claims:{
+                app_user_id:appUserId,
+                app_role:role,
+                app_base_role:baseRole,
+                app_session_channel:'AGENT',
+                employee_code:String(claims.employee_code||'')
+              }
+            });
+            const unsigned=header+'.'+payload;
+            const signer=crypto.createSign('RSA-SHA256');
+            signer.update(unsigned);
+            signer.end();
+            process.stdout.write(unsigned+'.'+signer.sign(creds.private_key).toString('base64url'));
+          })().catch(e=>{
+            process.stderr.write(String(e&&e.message||'D161_MANAGEMENT_TOKEN_FAILED').replace(/[^A-Za-z0-9_.:-]/g,'_').slice(0,120)+'\n');
+            process.exit(2);
+          });
+          NODE
+          )"
+          test -n "$custom"
+          payload="$(jq -nc --arg token "$custom" '{token:$token,returnSecureToken:true}')"
+          code="$(curl -sS -o "$RUNNER_TEMP/d161-exchange.json" -w '%{http_code}' -X POST -H 'Content-Type: application/json' --data "$payload" "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=$FIREBASE_WEB_API_KEY_BETA")"
+          test "$code" = "200" || { echo "::error::D161_TOKEN_EXCHANGE_HTTP_$code"; exit 1; }
+          id_token="$(jq -r '.idToken // empty' "$RUNNER_TEMP/d161-exchange.json")"
+          test -n "$id_token"
+          echo "::add-mask::$id_token"
+          echo "D161_ID_TOKEN=$id_token" >> "$GITHUB_ENV"
+
+      - name: Verify production HR watch is registered
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/d161-hr-event-state.json"
+          for attempt in $(seq 1 20); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$out" -w '%{http_code}' -H "Authorization: Bearer $D161_ID_TOKEN" "https://$BETA_HOSTNAME/api/admin/hr-sync/event-state" || true)"
+            configured="$(jq -r '.watch.configured // false' "$out" 2>/dev/null || echo false)"
+            expires="$(jq -r '.watch.expires_at_ms // 0' "$out" 2>/dev/null || echo 0)"
+            now="$(date +%s%3N)"
+            if [ "$code" = "200" ] && [ "$configured" = "true" ] && [ "$expires" -gt "$((now + 30*60*1000))" ] 2>/dev/null; then
+              status="$(jq -r '.sync.status // "UNSET"' "$out")"
+              decision="$(jq -r '.sync.decision // "UNSET"' "$out")"
+              echo "D161_HR_PRODUCTION_WATCH=PASS status=$status decision=$decision expires_future=true"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::D161_HR_PRODUCTION_WATCH_NOT_READY"
+          jq '{watch:{configured:(.watch.configured // false),expires_at_ms:(.watch.expires_at_ms // 0)},sync:{status:(.sync.status // null),decision:(.sync.decision // null),hard_block_code:(.sync.hard_block_code // null)}}' "$out" || true
+          exit 1
