@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "BLOCKED_BY_SEVENTH_FIELD_REPAIR",
+      "status": "READY_FOR_OWNER_FIELD_RETEST",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "D161 Owner field retest is temporarily blocked while the Owner-approved Agent-only v111 Picker presence convergence repair is implemented and technically released. Android beta-vc97 remains unchanged; no Owner action is needed until v111 is ready.",
+      "reason_owner_only": "D161 seventh field repair is merged and technical/runtime/release PASS on Agent v111. Owner field retest remains required with Android beta-vc97 unchanged. Active-Picker logout/revoke convergence now reuses the existing event paths plus RAM-only generation tombstones with no added normal-path provider cadence.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4818,16 +4818,17 @@
         "fourth_field_repair": "PASS__PR_434__MAIN_217D33F1__AUTHORITY_PR_435__MAIN_5A3C07EB__AGENT_V108__RUN_37207091449__RELEASE_403043358__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "fifth_field_repair": "PASS__PR_437__MAIN_C5673B4E__WORKER_RUN_37214830211__AGENT_V109__RUN_37214830165__RELEASE_403093302__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
         "sixth_field_repair": "PASS__PR_439__MAIN_FBD18C15__AGENT_V110__RUN_37217744592__UI_RUN_37217744516__D127_RUN_37217744628__USAGE_RUN_37217744811__RELEASE_403111389__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED",
-        "seventh_field_repair": "OWNER_APPROVED__IN_PROGRESS__TARGET_AGENT_V111__RAM_GENERATION_TOMBSTONE__LOCAL_POST_AUTHORITY_REVOKE_REMOVAL__EXISTING_EVENT_PATHS_ONLY__ANDROID_VC97_UNCHANGED"
+        "seventh_field_repair": "PASS__PR_441__MAIN_F28DD759__AGENT_V111__RUN_37220702938__UI_RUN_37220702940__D127_RUN_37220703084__USAGE_RUN_37220702957__RELEASE_403129379__INVENTORY_CHANNEL_MATCH__ANDROID_VC97_UNCHANGED"
       },
       "shortest_test_path": [
-        "No manual action until relay-agent-v111 reaches technical/runtime/release PASS.",
-        "Then update Windows Agent to relay-agent-v111. Keep Android on beta-vc97.",
-        "Login at least one Picker and verify it appears without manual refresh.",
-        "Perform normal Android logout and verify the Picker disappears from every authenticated Agent list without manual refresh.",
-        "Login again, then use per-row Kích User and verify the selected Picker disappears immediately after server success, returns to login, and no specialist overlay appears.",
-        "Login the same Picker again with a newer session and verify it appears normally instead of being blocked by stale local state.",
-        "Continue the remaining v110 overtime/READY_EMPTY and D161 field acceptance checks."
+        "Run/update Windows Agent to relay-agent-v111. Keep Android on beta-vc97.",
+        "Login one Picker and verify the row appears without manual refresh.",
+        "Perform normal Android logout and verify the row disappears from every authenticated Agent list without manual refresh.",
+        "Login the same Picker again and verify the newer session appears normally.",
+        "Use per-row Kích User and verify the selected Picker disappears immediately after server success, PDA returns to login, and no specialist overlay appears.",
+        "Login the same Picker again after Kích User and verify the newer generation appears normally and is not blocked by stale local state.",
+        "Optionally test Kích toàn bộ while one Picker relogs during the response; the newer login must not be hidden.",
+        "Continue the prior v110 overtime button / gia hạn without PickList / Web Agent chưa có PickList checks and remaining D161 field acceptance."
       ],
       "pass_criteria": [
         "Normal Android logout removes the Picker through existing event-driven paths without manual refresh.",
@@ -4835,9 +4836,10 @@
         "Delayed same/older generation direct/sync/PickList evidence cannot resurrect a removed Picker; a strictly newer login generation appears normally.",
         "Existing agent_sync presence delta can converge a missed/delayed direct presence event, while history/counter/call-lock-only changes cannot repaint the Picker list.",
         "Bulk revoke removes only captured session generations so a newer concurrent login is preserved.",
-        "Android beta-vc97, Worker, Web and Stable remain unchanged.",
-        "No new provider resource, listener/query family, polling, heartbeat, Desktop timer or provider write cadence is introduced; normal-path usage does not increase.",
-        "Owner explicitly accepts the field result before D161 can PASS."
+        "No new provider resource, listener/query family, polling, heartbeat, Desktop timer or provider write cadence was introduced; normal-path usage does not increase.",
+        "Android beta-vc97, Worker, Web and Stable remain unchanged by v111.",
+        "v110 overtime/READY_EMPTY and v109 no-overlay single-revoke behavior remain regression-clean.",
+        "Owner explicitly accepts the full D161 field result before D161 can PASS."
       ],
       "evidence": {
         "tranche_prs": [
@@ -4964,7 +4966,7 @@
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "NONE_UNTIL_V111_TECHNICAL_RUNTIME_RELEASE_PASS",
+      "remaining_owner_action": "FIELD_RETEST_AGENT_V111_THEN_EXPLICIT_PASS_OR_NOT_PASS",
       "closed": false,
       "completion_evidence": {
         "sixth_field_repair": {
@@ -4983,6 +4985,25 @@
           "inventory_channel_latest_json_asset_id": 610204671,
           "inventory_channel_agent_asset_id": 610204673,
           "inventory_channel_checksum_asset_id": 610204675,
+          "android": "beta-vc97__UNCHANGED__ASSET_609733318",
+          "stable": "OWNER_GATED_UNTOUCHED"
+        },
+        "seventh_field_repair": {
+          "repair_pr": 441,
+          "main_sha": "f28dd759d07f2e1f553640fcd594fd401de55485",
+          "agent_run_id": 37220702938,
+          "ui_guard_run_id": 37220702940,
+          "d127_run_id": 37220703084,
+          "usage_run_id": 37220702957,
+          "release_tag": "relay-agent-v111",
+          "release_id": 403129379,
+          "agent_asset_id": 610278038,
+          "agent_size_bytes": 7297536,
+          "agent_sha256": "8f8cf530443c2959b80a6547d2863ea80f6520ad485c6e651242bc8b7838b6bb",
+          "inventory_channel_release_id": 394587029,
+          "inventory_channel_latest_json_asset_id": 610278132,
+          "inventory_channel_agent_asset_id": 610278135,
+          "inventory_channel_checksum_asset_id": 610278136,
           "android": "beta-vc97__UNCHANGED__ASSET_609733318",
           "stable": "OWNER_GATED_UNTOUCHED"
         }
