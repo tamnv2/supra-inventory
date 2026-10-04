@@ -1,0 +1,71 @@
+name: D161 HR Tranche E Guard
+
+on:
+  pull_request:
+    paths:
+      - "service/**"
+      - "web/**"
+      - "ops/project-scope.json"
+      - "ops/resource-registry.json"
+      - "ops/project-state.json"
+      - ".github/workflows/d161-hr-tranche-e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hr-tranche-e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Service typecheck
+        working-directory: service
+        run: |
+          npm install --no-audit --no-fund
+          npm run typecheck
+
+      - name: Web typecheck
+        working-directory: web
+        run: |
+          npm install --no-audit --no-fund
+          npm run typecheck
+
+      - name: D161 HR invariants
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          hr = Path("service/src/hr-event-sync.ts").read_text(encoding="utf-8")
+          core = Path("service/src/core.ts").read_text(encoding="utf-8")
+          index = Path("service/src/index.ts").read_text(encoding="utf-8")
+          scope = Path("ops/project-scope.json").read_text(encoding="utf-8")
+          required = [
+              "HARD_BLOCK", "CONFIRM_REQUIRED", "AUTO",
+              "SOURCE_ROW_LOSS_OVER_20_PERCENT",
+              "existing_info_updates",
+              "d161_hr_snapshot:",
+              "STALE_SNAPSHOT_RECOMPUTED",
+              "channels/stop",
+              "/watch",
+          ]
+          joined = hr + "\n" + core
+          missing = [item for item in required if item not in joined]
+          if missing:
+              raise SystemExit("missing D161 HR invariant markers: " + ", ".join(missing))
+          forbidden = ["setInterval(", "setTimeout(function poll", "apps-script", "firestore.googleapis.com"]
+          found = [item for item in forbidden if item.lower() in hr.lower()]
+          if found:
+              raise SystemExit("forbidden HR runtime cadence/resource marker: " + ", ".join(found))
+          if 'crons = ["*/5 * * * *", "15 20 * * *"]' not in Path("service/wrangler.beta.toml").read_text(encoding="utf-8"):
+              raise SystemExit("existing Beta cron contract changed")
+          if 'd161-hr-drive-watch-beta' not in scope:
+              raise SystemExit("HR Drive watch resource family not scoped")
+          if "/api/internal/d161/hr-drive-watch" not in index:
+              raise SystemExit("HR watch callback route missing")
+          print("D161_HR_TRANCHE_E_GUARD=PASS")
+          PY
