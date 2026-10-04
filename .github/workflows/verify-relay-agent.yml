@@ -254,10 +254,10 @@ jobs:
           foreach ($marker in @(
             'RenderD157OperationalListsFromMemory',
             'UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents)',
-            'pickerWindowWasOpen',
+            'StartD134AgentSync();',
             'provider_read=false provider_write=false'
           )) {
-            if (-not $ops.Contains($marker)) { throw "D157 repair role-independent operational-list guard missing: $marker" }
+            if (-not $ops.Contains($marker)) { throw "D157/D161 operational-list observation guard missing: $marker" }
           }
 
           foreach ($marker in @(
