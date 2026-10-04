@@ -1,6 +1,6 @@
 # D161 — Owner-approved consolidated update backlog
 
-Status: **IMPLEMENTATION STARTED — PHASE 0A PROVIDER PREFLIGHT ACTIVE**
+Status: **IMPLEMENTATION ACTIVE — PHASE 0A PASS / PHASE 0 SAFETY PASS**
 
 Date: 2026-10-02  
 Accepted runtime base: **D160 Owner PASS**  
@@ -108,7 +108,7 @@ Approved target:
 
 ## 7. Implementation gate
 
-The exact Owner start command was received on **2026-10-04**. D161 is now in **Phase 0A Permission & Provider Preflight**. Business/runtime source mutation remains blocked until Phase 0A PASS; feature-bearing backlog implementation remains blocked until Phase 0 Safety PASS.
+The exact Owner start command was received on **2026-10-04**. D161 has completed **Phase 0A Permission & Provider Preflight PASS** and **Phase 0 Safety Baseline PASS**. Feature-bearing backlog implementation is now authorized under the same D161, while D160 behavior remains the rescue/accepted base until Owner field acceptance.
 
 When the Owner requests a consolidated update:
 1. Bootstrap GitHub authority.
@@ -728,3 +728,13 @@ These refinements were approved after the 2026-10-03 full-log review. They tight
 - When a newly created/extended authoritative overtime boundary is already within 15 minutes of its deadline, emit at most one immediate warning for that boundary rather than waiting for a T-15 instant that has already passed.
 - The warning remains boundary-key idempotent across Agents; no periodic provider write/polling is added.
 - The 05:00 hard cutoff remains authoritative and cannot be extended.
+
+
+## 20. Phase 0 Safety execution checkpoint — PASS — 2026-10-04
+
+- Final main evidence commit: `6702b0aabc807954d6427e7e3aa6442134cb95e3`.
+- `D161 Phase 0 Safety Baseline` main run `37170577529`: PASS.
+- UI Design Guard repair main run `37170513921`: PASS.
+- Safety Android `beta-vc93` and Safety Agent `relay-agent-v101` are published and digest/channel verified; both preserve pre-D161 behavior.
+- Phase 0A and Phase 0 are closed PASS. The complete already-approved D161 feature backlog may now proceed automatically through branch → PR → authority/continuity PASS → merge.
+- D160 remains the accepted/rescue behavior until explicit D161 Owner field PASS. Stable remains OWNER-GATED and untouched.
