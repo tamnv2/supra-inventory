@@ -2273,18 +2273,18 @@
     },
     "phase0a": {
       "workflow": ".github/workflows/d161-phase0a-preflight.yml",
-      "status": "ACTIVE_REPAIRING_FUNCTIONS_FCM_PROBE",
+      "status": "ACTIVE_REPAIRING_CONTRACT_PROBES",
       "persistent_resource_change": "NONE",
       "beta_only": true,
       "stable": "FORBIDDEN",
       "canary_cleanup": "REQUIRED_SAME_RUN",
       "agent_safety_target": "v101",
       "android_safety_target": "vc93",
-      "last_failure": "RUN_37143582949__GEN2_FUNCTION_PROBE_USED_LOGICAL_LEGACY_TARGET_NAME__EARLIER_GITHUB_CLOUDFLARE_HEALTH_SIGNER_FIRESTORE_GATES_PASS__NO_RUNTIME_MUTATION",
-      "functions_probe": "DEPLOYED_GEN2_FUNCTION_IDS_FROM_CANONICAL_DEPLOY_SCOPE__VERIFY_SERVICE_ACCOUNT_inventory-beta-alert-runtime__VERIFY_cloudmessaging.messages.create_VIA_EFFECTIVE_PROJECT_ROLE"
+      "last_failure": "RUN_37162506846_AGENT_TOKEN_WAS_SENT_TO_WEB_ONLY_HR_PREVIEW__RUN_37162506804_FCM_ROLE_METADATA_INFERENCE_FAILED__PROBE_REPAIR_ONLY__NO_RUNTIME_MUTATION",
+      "functions_probe": "DEPLOYED_GEN2_FUNCTION_IDS_AND_RUNTIME_IDENTITY__FCM_EFFECTIVE_CAPABILITY_PROVEN_BY_DISPOSABLE_CONTINUATION_VALIDATE_ONLY_CANARY"
     },
     "phase0a_continuation_canary": {
-      "status": "AUTHORIZED__PENDING_TECHNICAL_PASS",
+      "status": "AUTHORIZED__ACTIVE_AFTER_CONTRACT_PROBE_REPAIR",
       "resource_key": "d161-phase0a-provider-canary-beta",
       "name": "d161Phase0aCanary",
       "purpose": "GEN2_FUNCTION_RUNTIME_IDENTITY__FCM_VALIDATE_ONLY__HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP_CLEANUP",
