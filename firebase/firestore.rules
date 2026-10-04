@@ -209,6 +209,321 @@ service cloud.firestore {
       allow list: if false;
     }
 
+    // D161 privileged Agent control plane. Clients may create one immutable
+    // bounded command only; Google Functions writes the terminal result with
+    // Admin SDK authority. Worker revalidates the canonical business login
+    // (admin/tamnv2) from InventoryCore before any destructive action.
+    match /relay_admin_commands/{requestId} {
+      allow create: if isAgentOperator()
+        && request.resource.data.keys().hasOnly([
+          'request_id', 'command_type', 'status', 'source',
+          'issued_at_ms', 'expires_at_ms',
+          'issued_by_user_id', 'issued_by_login',
+          'agent_instance_id', 'target_count'
+        ])
+        && request.resource.data.request_id == requestId
+        && requestId.matches('^[A-Za-z0-9._:-]{8,160}
+      // D149 outage recovery: exact-document get only for authenticated Android.
+      // General coordination list/read remains Agent-only below.
+      allow get: if isAgentOperator() || isAndroidScheduleReader();
+      allow create, update, delete: if isAgentOperator();
+      allow list: if false;
+    }
+
+    match /relay_poc_coordination/{docId} {
+      allow get, create, update, delete: if isAgentOperator();
+      allow list: if false;
+    }
+
+    match /relay_poc_agents/{agentId} {
+      allow get, list, create, update, delete: if isAgentOperator();
+    }
+
+    match /relay_poc_agent_sessions/{uid} {
+      allow get: if isAgentOperator() && request.auth.uid == uid;
+      allow create, update: if isAgentOperator()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'firebase_uid', 'agent_instance_id', 'agent_admin_user_id',
+          'machine', 'claimed_at_ms'
+        ])
+        && request.resource.data.firebase_uid == request.auth.uid
+        && request.resource.data.agent_admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.claimed_at_ms is int;
+      allow delete: if isAgentOperator() && request.auth.uid == uid;
+      allow list: if false;
+    }
+
+    match /relay_poc_confirm_guards/{guardId} {
+      allow get, create, update, delete: if isAgentOperator();
+      allow delete: if isPicker()
+        && resource.data.picker_uid == request.auth.uid
+        && resource.data.retire_at_ms is int
+        && resource.data.retire_at_ms <= request.time.toMillis();
+      allow list: if false;
+    }
+
+    // D119 additive online-Picker projection. Clients may read only sanitized
+    // current-state metadata; token targets stay server-private.
+    match /picker_presence_projection/{docId} {
+      allow get, list: if isPickerContactOperator();
+      allow create, update, delete: if false;
+    }
+
+    match /picker_notification_targets/{userId} {
+      allow read, write: if false;
+    }
+
+    match /picker_session_controls/{firebaseUid} {
+      allow get: if isPickerContactOperator()
+        || (isPicker() && request.auth.uid == firebaseUid);
+      allow list: if false;
+
+      // D144: one per-Picker control document carries session revocation plus
+      // current direct chat delivery. Picker remains read-only and sends no chat ACK.
+      allow create: if isPickerContactOperator()
+        && request.resource.data.keys().hasOnly([
+          'firebase_uid', 'user_id',
+          'revoked_generation', 'kicked_at_ms', 'kicked_by_user_id', 'kicked_by_agent_id',
+          'chat_id', 'chat_command_type', 'chat_message',
+          'chat_sender_user_id', 'chat_sender_agent_id', 'chat_sender_role',
+          'chat_created_at_ms', 'chat_expires_at_ms'
+        ])
+        && validSessionControlIdentity(firebaseUid)
+        && (
+          (
+            request.resource.data.keys().hasAny(['revoked_generation'])
+            && validSessionKickWrite()
+            && !request.resource.data.keys().hasAny(['chat_id'])
+          )
+          ||
+          (
+            request.resource.data.keys().hasAny(['chat_id'])
+            && validSessionChatWrite()
+            && !request.resource.data.keys().hasAny(['revoked_generation'])
+          )
+        );
+
+      allow update: if isPickerContactOperator()
+        && validSessionControlIdentity(firebaseUid)
+        && request.resource.data.firebase_uid == resource.data.firebase_uid
+        && request.resource.data.user_id == resource.data.user_id
+        && (
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'revoked_generation', 'kicked_at_ms', 'kicked_by_user_id', 'kicked_by_agent_id'
+            ])
+            && validSessionKickWrite()
+          )
+          ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'chat_id', 'chat_command_type', 'chat_message',
+              'chat_sender_user_id', 'chat_sender_agent_id', 'chat_sender_role',
+              'chat_created_at_ms', 'chat_expires_at_ms'
+            ])
+            && validSessionChatWrite()
+          )
+        );
+      allow delete: if false;
+    }
+
+    match /picker_active_calls/{targetUserId} {
+      allow get: if isPickerContactOperator()
+        || (isPicker() && targetUserId == request.auth.token.app_user_id);
+      allow list: if isPickerContactOperator();
+
+      allow create: if isPickerContactOperator()
+        && validActiveCall(targetUserId)
+        && (
+          (request.auth.token.app_role == 'ADMIN'
+           && request.auth.token.app_base_role == 'ADMIN'
+           && request.resource.data.sender_role == 'INVENTORY')
+          ||
+          (request.auth.token.app_role == 'PICKPACK_ADMIN'
+           && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+           && request.resource.data.sender_role == 'PICK_PACK')
+        );
+
+      allow update: if isPickerContactOperator()
+        && (
+          (
+            resource.data.status == 'ACTIVE'
+            && request.resource.data.status == 'RESOLVED'
+            && request.resource.data.resolved_by_user_id == request.auth.token.app_user_id
+            && request.resource.data.resolved_by_agent_id == resource.data.sender_agent_id
+            && request.resource.data.resolved_at_ms is int
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'
+            ])
+          )
+          ||
+          (
+            (resource.data.status == 'RESOLVED'
+             || (resource.data.status == 'ACTIVE'
+                 && resource.data.lock_until_ms is int
+                 && resource.data.lock_until_ms <= request.time.toMillis()))
+            && validActiveCall(targetUserId)
+            && (
+              (request.auth.token.app_role == 'ADMIN'
+               && request.auth.token.app_base_role == 'ADMIN'
+               && request.resource.data.sender_role == 'INVENTORY')
+              ||
+              (request.auth.token.app_role == 'PICKPACK_ADMIN'
+               && request.auth.token.app_base_role == 'PICKPACK_ADMIN'
+               && request.resource.data.sender_role == 'PICK_PACK')
+            )
+          )
+        );
+
+      // Admin SDK function closes the PDA push then removes the active lock.
+      allow delete: if false;
+    }
+
+    match /picker_alerts/{alertId} {
+      allow create: if isPickerContactOperator()
+        && request.resource.data.keys().hasOnly([
+          'alert_id', 'target_user_id', 'command_type', 'message',
+          'status', 'source', 'sender_user_id', 'sender_agent_id',
+          'expires_at_ms'
+        ])
+        && request.resource.data.alert_id == alertId
+        && request.resource.data.target_user_id is string
+        && request.resource.data.target_user_id.size() >= 3
+        && request.resource.data.target_user_id.size() <= 160
+        && request.resource.data.command_type in ['CALL_SPECIALIST', 'BRING_TO_PACK', 'CHAT_MESSAGE']
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.source == 'AGENT_PICKER_CONTACT_V1'
+        && request.resource.data.sender_user_id == request.auth.token.app_user_id
+        && request.resource.data.sender_agent_id is string
+        && request.resource.data.sender_agent_id.size() >= 8
+        && request.resource.data.sender_agent_id.size() <= 160
+        && request.resource.data.expires_at_ms is int
+        && request.resource.data.expires_at_ms > request.time.toMillis()
+        && request.resource.data.expires_at_ms <= request.time.toMillis() + 21600000;
+
+      allow get, list: if isPickerContactOperator();
+      allow update: if isAgentOperator()
+        && resource.data.status in ['PENDING', 'SENT', 'FAILED', 'TARGET_OFFLINE']
+        && request.resource.data.status == 'RESOLVED'
+        && request.resource.data.resolved_by_user_id == request.auth.token.app_user_id
+        && request.resource.data.resolved_by_agent_id is string
+        && request.resource.data.resolved_by_agent_id.size() >= 8
+        && request.resource.data.resolved_by_agent_id.size() <= 160
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'resolved_by_user_id', 'resolved_by_agent_id'
+        ]);
+      allow delete: if false;
+    }
+
+    // D119 fleet metrics deliberately remain separate from the accepted D117/D118
+    // HA lease. Real ADMIN and real PICKPACK_ADMIN Agent operators may write counters.
+    match /relay_fleet_metrics/{docId} {
+      allow get: if docId == 'current' && isAgentOperator();
+      allow list: if false;
+      allow create, update: if docId == 'current'
+        && isAgentOperator()
+        && request.resource.data.keys().hasOnly([
+          'schema_version', 'day_key', 'accepted_total', 'processed_total',
+          'accepted_ids', 'processed_ids', 'owner_agent_id',
+          'local_requests', 'local_responses'
+        ])
+        && request.resource.data.schema_version == 1
+        && request.resource.data.day_key is string
+        && request.resource.data.day_key.matches('^[0-9]{8}$')
+        && request.resource.data.accepted_total is int
+        && request.resource.data.accepted_total >= 0
+        && request.resource.data.processed_total is int
+        && request.resource.data.processed_total >= 0
+        && request.resource.data.processed_total <= request.resource.data.accepted_total
+        && request.resource.data.accepted_ids is list
+        && request.resource.data.accepted_ids.size() <= 2500
+        && request.resource.data.processed_ids is list
+        && request.resource.data.processed_ids.size() <= 2500
+        && request.resource.data.owner_agent_id is string
+        && request.resource.data.owner_agent_id.size() >= 8
+        && request.resource.data.owner_agent_id.size() <= 160
+        && request.resource.data.local_requests is int
+        && request.resource.data.local_requests >= 0
+        && request.resource.data.local_responses is int
+        && request.resource.data.local_responses >= 0;
+      allow delete: if false;
+    }
+
+    // D126: WMS/Tồn Bin SKU synchronization is retired. Historical documents may
+    // remain for audit, but no client may create/read/update/delete this staging path.
+    match /sku_sync_jobs/{jobId} {
+      allow read, write: if false;
+    }
+
+    match /relay_agent_log_uploads/{partId} {
+      allow create: if isAgentOperator()
+        && request.resource.data.keys().hasOnly([
+          'upload_id', 'part_index', 'part_count', 'status', 'source',
+          'admin_user_id', 'agent_instance_id', 'machine',
+          'generated_at_ms', 'crash', 'filename', 'content'
+        ])
+        && (request.resource.data.status == 'PENDING'
+            || request.resource.data.status == 'DIRECT_PART'
+            || request.resource.data.status == 'DIRECT_PENDING')
+        && request.resource.data.source == 'AGENT'
+        && request.resource.data.admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.upload_id is string
+        && request.resource.data.upload_id.size() >= 16
+        && request.resource.data.upload_id.size() <= 64
+        && request.resource.data.part_index is int
+        && request.resource.data.part_index >= 0
+        && request.resource.data.part_count is int
+        && request.resource.data.part_count >= 1
+        && request.resource.data.part_count <= 64
+        && request.resource.data.part_index < request.resource.data.part_count
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.machine is string
+        && request.resource.data.machine.size() <= 160
+        && request.resource.data.generated_at_ms is int
+        && request.resource.data.crash is bool
+        && request.resource.data.filename is string
+        && request.resource.data.filename.size() <= 160
+        && request.resource.data.filename.matches('^(agent_|scheduled_agent_|error_agent_|crash_agent_)[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\\.log$')
+        && request.resource.data.content is string
+        && request.resource.data.content.size() <= 350000;
+
+      allow get, list, update, delete: if false;
+    }
+  }
+}
+)
+        && request.resource.data.command_type in ['BULK_PICKER_REVOKE', 'SUPPORT_LOG_REQUEST']
+        && request.resource.data.status == 'REQUESTED'
+        && request.resource.data.source == 'D161_AGENT_CONTROL_V1'
+        && request.resource.data.issued_by_user_id == request.auth.token.app_user_id
+        && request.resource.data.issued_by_login is string
+        && request.resource.data.issued_by_login.size() >= 1
+        && request.resource.data.issued_by_login.size() <= 64
+        && request.resource.data.agent_instance_id is string
+        && request.resource.data.agent_instance_id.size() >= 8
+        && request.resource.data.agent_instance_id.size() <= 160
+        && request.resource.data.target_count is int
+        && request.resource.data.target_count >= 0
+        && request.resource.data.target_count <= 2000
+        && request.resource.data.issued_at_ms is int
+        && request.resource.data.issued_at_ms <= request.time.toMillis() + 60000
+        && request.resource.data.expires_at_ms is int
+        && request.resource.data.expires_at_ms > request.time.toMillis()
+        && request.resource.data.expires_at_ms <= request.resource.data.issued_at_ms + 300000;
+
+      allow get: if isAgentOperator()
+        && resource.data.issued_by_user_id == request.auth.token.app_user_id;
+      allow list, update, delete: if false;
+    }
+
     match /relay_poc_coordination/operating_schedule {
       // D149 outage recovery: exact-document get only for authenticated Android.
       // General coordination list/read remains Agent-only below.
