@@ -58,9 +58,13 @@ class ReporterController(
     private var recent: List<ReporterRecent> = emptyList()
     private var recentCounts = ReporterRecentCounts()
 
+    // One shared UI ticker. SKIP correction needs second-level countdown; PENDING
+    // keeps minute-boundary refresh. Neither path performs network I/O per tick.
     private val minuteTicker = object : Runnable {
         override fun run() {
-            if (filter == Filter.PENDING && queue.isNotEmpty()) {
+            if ((filter == Filter.PENDING && queue.isNotEmpty()) ||
+                (filter == Filter.SKIP_ALLOWED && recent.isNotEmpty())
+            ) {
                 (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
             }
             scheduleMinuteTicker()
@@ -144,7 +148,11 @@ class ReporterController(
     private fun scheduleMinuteTicker() {
         handler.removeCallbacks(minuteTicker)
         val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
-        val delay = (60_000L - (calibratedNow % 60_000L) + 80L).coerceIn(1_000L, 60_080L)
+        val delay = if (filter == Filter.SKIP_ALLOWED) {
+            (1_000L - (calibratedNow % 1_000L) + 30L).coerceIn(250L, 1_030L)
+        } else {
+            (60_000L - (calibratedNow % 60_000L) + 80L).coerceIn(1_000L, 60_080L)
+        }
         handler.postDelayed(minuteTicker, delay)
     }
 
@@ -160,7 +168,8 @@ class ReporterController(
                 val nextQueue = api.getReporterQueueSnapshot(200)
                 val nextRecent = api.getReporterRecentSnapshot(200)
                 activity.runOnUiThread {
-                    val serverNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
+                    val queueServerNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
+                    val serverNow = nextRecent.serverNowMs.takeIf { it > 0L } ?: queueServerNow
                     queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
                     queue = nextQueue.items
                     queueTotal = nextQueue.total
@@ -234,14 +243,8 @@ class ReporterController(
         } else {
             val rows = recentRows()
             target.adapter = recentAdapter(rows)
-            if (filter == Filter.SKIP_ALLOWED && rows.isNotEmpty()) {
-                target.setOnItemClickListener { _, _, position, _ ->
-                    rows.getOrNull(position)?.let { row ->
-                        if (millis(row.correctionDeadlineAt) > System.currentTimeMillis()) confirmCorrection(row)
-                    }
-                }
-            }
         }
+        scheduleMinuteTicker()
         updateTabs()
     }
 
@@ -305,7 +308,27 @@ class ReporterController(
             if (created) applyDisplayScale(view)
             val row = getItem(position)
             bindCommon(view, row.sku, row.productName, "")
-            view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.GONE
+            val actions = view.findViewById<LinearLayout>(R.id.reporterActions)
+            val hasStock = view.findViewById<Button>(R.id.btnReporterHasStock)
+            val skip = view.findViewById<Button>(R.id.btnReporterSkip)
+            val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
+            val deadlineMs = millis(row.correctionDeadlineAt)
+            val remainingMs = (deadlineMs - calibratedNow).coerceAtLeast(0L)
+            val canCorrect = row.status == "SKIP_ALLOWED" && row.correctionAllowed && deadlineMs > 0L && remainingMs > 0L
+            actions.visibility = if (canCorrect) View.VISIBLE else View.GONE
+            hasStock.visibility = if (canCorrect) View.VISIBLE else View.GONE
+            skip.visibility = View.GONE
+            if (canCorrect) {
+                val totalSeconds = (remainingMs + 999L) / 1_000L
+                val minutes = totalSeconds / 60L
+                val seconds = totalSeconds % 60L
+                hasStock.text = "Sửa thành Đã có hàng · %02d:%02d".format(minutes, seconds)
+                hasStock.isEnabled = !processingBatchIds.contains(row.batchId)
+                hasStock.alpha = if (hasStock.isEnabled) 1f else 0.45f
+                hasStock.setOnClickListener { confirmCorrection(row) }
+            } else {
+                hasStock.setOnClickListener(null)
+            }
             val root = view.findViewById<LinearLayout>(R.id.reporterRowRoot)
             val colors = when (row.status) {
                 "HAS_STOCK" -> Triple(kit.stockFill, kit.stockStroke, kit.greenDark)
@@ -380,17 +403,33 @@ class ReporterController(
     }
 
     private fun confirmCorrection(row: ReporterRecent) {
+        val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
+        if (millis(row.correctionDeadlineAt) <= calibratedNow) {
+            setStatus("Đã hết thời gian cho phép sửa kết quả.")
+            (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+            return
+        }
         AlertDialog.Builder(activity)
             .setTitle("Sửa thành Đã có hàng?")
             .setMessage("${row.sku} - ${row.productName}\nLịch sử Cho phép skip ban đầu vẫn được giữ.")
             .setNegativeButton("Huỷ", null)
             .setPositiveButton("Xác nhận") { _, _ ->
+                if (!processingBatchIds.add(row.batchId)) return@setPositiveButton
+                (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
                 Thread {
                     try {
                         api.correctBatch(row.batchId)
-                        activity.runOnUiThread { setStatus("Đã sửa ${row.sku} thành Đã có hàng."); refresh() }
+                        activity.runOnUiThread {
+                            processingBatchIds.remove(row.batchId)
+                            setStatus("Đã sửa ${row.sku} thành Đã có hàng.")
+                            refresh()
+                        }
                     } catch (e: Exception) {
-                        activity.runOnUiThread { setStatus(friendlyError(e)); refresh() }
+                        activity.runOnUiThread {
+                            processingBatchIds.remove(row.batchId)
+                            setStatus(friendlyError(e))
+                            refresh()
+                        }
                     }
                 }.start()
             }.show()
