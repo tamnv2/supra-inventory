@@ -257,120 +257,15 @@ jobs:
           npx --yes @google/clasp@3.4.1 --json list-scripts >/dev/null
           echo "APPS_SCRIPT_OAUTH=PASS"
 
-      - name: Prove HR Drive files.watch initial sync, replacement and channels.stop
+      - name: Delegate HR Drive watch lifecycle proof to continuation canary
         shell: bash
         run: |
           set -euo pipefail
-          rules_key="$RUNNER_TEMP/d161-rules-sa.json"
-          rules_email="$(jq -r '.client_email' "$rules_key")"
-          rules_token="$(gcloud auth print-access-token)"
-          runtime_token=""
-          if [ "$rules_email" = "$RUNTIME_SA" ]; then
-            runtime_token="$(SA_JSON="$FIREBASE_RULES_SA_JSON_BETA" node <<'NODE'
-          const crypto=require('crypto');
-          const sa=JSON.parse(process.env.SA_JSON);
-          const now=Math.floor(Date.now()/1000);
-          const enc=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
-          const unsigned=enc({alg:'RS256',typ:'JWT'})+'.'+enc({iss:sa.client_email,scope:'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets.readonly',aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600});
-          const assertion=unsigned+'.'+crypto.sign('RSA-SHA256',Buffer.from(unsigned),sa.private_key).toString('base64url');
-          fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion})}).then(async r=>{const j=await r.json();if(!r.ok||!j.access_token)process.exit(2);process.stdout.write(j.access_token);});
-          NODE
-          )"
-          else
-            imp_code="$(curl -sS -o /tmp/impersonate.json -w '%{http_code}' -X POST -H "Authorization: Bearer $rules_token" -H "Content-Type: application/json" --data '{"scope":["https://www.googleapis.com/auth/drive.readonly","https://www.googleapis.com/auth/spreadsheets.readonly"],"lifetime":"1800s"}' "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/$RUNTIME_SA:generateAccessToken")"
-            if [ "$imp_code" = "200" ]; then runtime_token="$(jq -r '.accessToken // empty' /tmp/impersonate.json)"; fi
-          fi
-          if [ -z "$runtime_token" ]; then
-            echo "::error::Cannot obtain a bounded Drive-read token for the canonical runtime service account without exposing its private key."
-            exit 1
-          fi
-          meta_code="$(curl -sS -o /tmp/hr-drive-meta.json -w '%{http_code}' -H "Authorization: Bearer $runtime_token" "https://www.googleapis.com/drive/v3/files/$HR_SHEET_ID?fields=id,name,mimeType")"
-          test "$meta_code" = "200"
-          jq -e --arg id "$HR_SHEET_ID" '.id==$id' /tmp/hr-drive-meta.json >/dev/null
-
-          work="$(mktemp -d)"
-          script_id=""
-          deployment_id=""
-          ch1=""
-          rid1=""
-          ch2=""
-          rid2=""
-          owner_token="$(jq -r '.tokens.default.access_token // .token.access_token // .access_token // empty' "$HOME/.clasprc.json")"
-          cleanup() {
-            set +e
-            if [ -n "$ch1" ] && [ -n "$rid1" ]; then curl -sS -o /dev/null -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch1","resourceId":"$rid1"}" "https://www.googleapis.com/drive/v3/channels/stop" || true; fi
-            if [ -n "$ch2" ] && [ -n "$rid2" ]; then curl -sS -o /dev/null -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch2","resourceId":"$rid2"}" "https://www.googleapis.com/drive/v3/channels/stop" || true; fi
-            if [ -n "$deployment_id" ]; then (cd "$work" && npx --yes @google/clasp@3.4.1 --json delete-deployment "$deployment_id" >/dev/null 2>&1) || true; fi
-            if [ -n "$script_id" ] && [ -n "$owner_token" ]; then curl -sS -o /dev/null -X PATCH -H "Authorization: Bearer $owner_token" -H "Content-Type: application/json" --data '{"trashed":true}' "https://www.googleapis.com/drive/v3/files/$script_id" || true; fi
-            rm -rf "$work"
-          }
-          trap cleanup EXIT
-          cd "$work"
-          npx --yes @google/clasp@3.4.1 --json create --type webapp --title "SUPRA Inventory D161 Phase0A Watch ${GITHUB_RUN_ID}" > create.json
-          script_id="$(jq -r '.scriptId // empty' create.json)"
-          test -n "$script_id"
-          cat > Code.gs <<'GS'
-          function doPost() {
-            const p = PropertiesService.getScriptProperties();
-            const n = Number(p.getProperty('COUNT') || '0') + 1;
-            p.setProperty('COUNT', String(n));
-            return ContentService.createTextOutput(JSON.stringify({ok:true,count:n})).setMimeType(ContentService.MimeType.JSON);
-          }
-          function doGet() {
-            const n = Number(PropertiesService.getScriptProperties().getProperty('COUNT') || '0');
-            return ContentService.createTextOutput(JSON.stringify({ok:true,count:n})).setMimeType(ContentService.MimeType.JSON);
-          }
-          GS
-          cat > appsscript.json <<'JSON'
-          {"timeZone":"Asia/Ho_Chi_Minh","dependencies":{},"exceptionLogging":"STACKDRIVER","runtimeVersion":"V8","webapp":{"access":"ANYONE_ANONYMOUS","executeAs":"USER_DEPLOYING"}}
-          JSON
-          npx --yes @google/clasp@3.4.1 push --force >/dev/null
-          npx --yes @google/clasp@3.4.1 --json create-version "D161 Phase0A watch" > version.json
-          version="$(jq -r '.versionNumber // empty' version.json)"
-          npx --yes @google/clasp@3.4.1 --json create-deployment --versionNumber "$version" --description "D161 Phase0A watch" > deployment.json
-          deployment_id="$(jq -r '.deploymentId // empty' deployment.json)"
-          test -n "$deployment_id"
-          dep_code="$(curl -sS -o deployment-api.json -w '%{http_code}' -H "Authorization: Bearer $owner_token" "https://script.googleapis.com/v1/projects/$script_id/deployments/$deployment_id")"
-          test "$dep_code" = "200"
-          callback="$(jq -r '.entryPoints[]? | select(.entryPointType=="WEB_APP") | .webApp.url // empty' deployment-api.json | head -n1)"
-          test -n "$callback"
-          for i in $(seq 1 20); do if curl -fsSL "$callback" >/tmp/callback.json 2>/dev/null && jq -e '.ok==true' /tmp/callback.json >/dev/null; then break; fi; sleep 2; done
-          jq -e '.ok==true' /tmp/callback.json >/dev/null
-
-          watch_one() {
-            local id="$1" out="$2"
-            local expiration="$(( ( $(date +%s) + 900 ) * 1000 ))"
-            curl -fsS -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$id","type":"web_hook","address":"$callback","expiration":"$expiration"}" "https://www.googleapis.com/drive/v3/files/$HR_SHEET_ID/watch?supportsAllDrives=true" > "$out"
-          }
-          ch1="$(cat /proc/sys/kernel/random/uuid)"
-          watch_one "$ch1" watch1.json
-          rid1="$(jq -r '.resourceId // empty' watch1.json)"
-          test -n "$rid1"
-          initial_ok=false
-          for i in $(seq 1 30); do
-            if curl -fsSL "$callback" >/tmp/callback.json 2>/dev/null; then count="$(jq -r '.count // 0' /tmp/callback.json)"; if [ "$count" -ge 1 ]; then initial_ok=true; break; fi; fi
-            sleep 2
-          done
-          test "$initial_ok" = true
-
-          ch2="$(cat /proc/sys/kernel/random/uuid)"
-          watch_one "$ch2" watch2.json
-          rid2="$(jq -r '.resourceId // empty' watch2.json)"
-          test -n "$rid2"
-          replace_ok=false
-          for i in $(seq 1 30); do
-            if curl -fsSL "$callback" >/tmp/callback.json 2>/dev/null; then count="$(jq -r '.count // 0' /tmp/callback.json)"; if [ "$count" -ge 2 ]; then replace_ok=true; break; fi; fi
-            sleep 2
-          done
-          test "$replace_ok" = true
-
-          stop1="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch1","resourceId":"$rid1"}" "https://www.googleapis.com/drive/v3/channels/stop")"
-          test "$stop1" = "204"
-          ch1=""; rid1=""
-          stop2="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $runtime_token" -H "Content-Type: application/json" --data "{"id":"$ch2","resourceId":"$rid2"}" "https://www.googleapis.com/drive/v3/channels/stop")"
-          test "$stop2" = "204"
-          ch2=""; rid2=""
-          echo "HR_DRIVE_WATCH_INITIAL_SYNC_REPLACE_STOP=PASS"
+          # Canonical HR Drive read is already proven in this workflow.
+          # The continuation matrix owns the bounded disposable Gen2 callback
+          # and proves files.watch initial sync, replacement, channels.stop and cleanup.
+          test -n "$HR_SHEET_ID"
+          echo "HR_DRIVE_WATCH_LIFECYCLE=CONTINUATION_CANARY"
 
       - name: Prove Logs child-folder create/resolve/upload/readback/cleanup and recent runtime evidence
         shell: bash
