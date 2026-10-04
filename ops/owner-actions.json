@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "REPAIR_IN_PROGRESS__V107_FIELD_NOT_PASS__V108_AGENT_ONLY",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "Agent-only D161 v107 History repair is merged and runtime/release gates PASS. Final acceptance still requires Owner field retest with Android vc97; Worker/Web and Stable are unchanged for this defect.",
+      "reason_owner_only": "Owner field evidence shows relay-agent-v107 still does not surface History when Web Confirm is not ready because higher-level StartListening/IsBusinessAllowed gates remain coupled to WMS readiness. Owner approved an Agent-only v108 repair; Android vc97 is hard-locked and Worker/Web/Stable remain unchanged.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4814,7 +4814,8 @@
         "repair_android": "beta-vc97__UNCHANGED_FOR_SECOND_REPAIR",
         "repair_worker": "PASS__RUN_37199390053__SOURCE_AFAF9D56__SCHEMA17_17__OPERATIONAL5_5",
         "second_field_repair": "PASS__PR_430__MAIN_6FCA277E__AGENT_V106__WORKER_RUN_37201568740__AGENT_RUN_37201568734__USAGE_RUN_37201568816",
-        "third_field_repair": "PASS__PR_432__MAIN_B7307EEB__AGENT_V107__RUN_37203208163__ANDROID_VC97_UNCHANGED__NO_WORKER_CHANGE"
+        "third_field_repair": "PASS__PR_432__MAIN_B7307EEB__AGENT_V107__RUN_37203208163__ANDROID_VC97_UNCHANGED__NO_WORKER_CHANGE",
+        "fourth_field_repair": "IN_PROGRESS__TARGET_AGENT_V108__ANDROID_VC97_UNCHANGED__ZERO_PDA_HEALTHY_REALTIME_SUPPRESS_IDLE_REST__15S_FALLBACK_ON_LISTENER_LOSS"
       },
       "shortest_test_path": [
         "After Agent v106 and the repaired Beta Worker are published, test Kích toàn bộ user with at least two logged-in Picker Android sessions; verify all affected sessions are revoked and must log in again.",
@@ -4912,7 +4913,7 @@
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
       },
-      "remaining_owner_action": "RETEST_WMS_NOT_READY_HISTORY_EXPLICIT_REASON_ON_AGENT_V107_WITH_ANDROID_VC97__THEN_CONTINUE_REMAINING_D161_FIELD_ACCEPTANCE",
+      "remaining_owner_action": "WAIT_FOR_V108_TECHNICAL_RUNTIME_RELEASE_PASS__THEN_RETEST_WMS_NOT_READY_HISTORY_WITH_ANDROID_VC97_AND_VERIFY_IDLE_REST_SUPPRESSION_FALLBACK",
       "closed": false
     }
   ]
