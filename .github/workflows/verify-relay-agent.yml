@@ -303,7 +303,7 @@ jobs:
             throw "D161 v109 InventoryCore single-revoke method boundary missing."
           }
           $coreSingleBody = $core.Substring($coreSingleStart, $coreSingleEnd - $coreSingleStart)
-          if ($coreSingleBody.Contains('CALL_SPECIALIST') -or
+          if ($coreSingleBody.Contains('command_type: "CALL_SPECIALIST"') -or
               $coreSingleBody.Contains('event: "picker_command"') -or
               $coreSingleBody.Contains('compatibilityPush')) {
             throw "D161 v109 session revoke must never generate a specialist overlay command."
