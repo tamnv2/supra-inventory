@@ -192,7 +192,7 @@ jobs:
           test "$gone" = "404"
           echo "FIRESTORE_COORDINATION_CANARY=PASS"
 
-      - name: Prove deployed Gen2 Functions and runtime FCM IAM permission
+      - name: Verify deployed Gen2 Function runtime identities
         shell: bash
         run: |
           set -euo pipefail
@@ -210,31 +210,13 @@ jobs:
             test "$runtime" = "$ALERT_RUNTIME_SA" || { echo "Unexpected runtime identity for $fn" >&2; exit 1; }
           done
 
-          gcloud projects get-iam-policy "$PROJECT_ID" --format=json > /tmp/project-iam.json
-          member="serviceAccount:$ALERT_RUNTIME_SA"
-          mapfile -t runtime_roles < <(jq -r --arg member "$member" '.bindings[] | select((.members // []) | index($member)) | .role' /tmp/project-iam.json)
-          test "${#runtime_roles[@]}" -gt 0 || { echo "No project IAM binding found for alert runtime identity" >&2; exit 1; }
-
-          has_fcm=false
-          for role in "${runtime_roles[@]}"; do
-            role_json=/tmp/role.json
-            if [[ "$role" == roles/* ]]; then
-              gcloud iam roles describe "$role" --format=json > "$role_json" 2>/dev/null || continue
-            elif [[ "$role" == projects/$PROJECT_ID/roles/* ]]; then
-              role_id="${role##*/}"
-              gcloud iam roles describe "$role_id" --project "$PROJECT_ID" --format=json > "$role_json" 2>/dev/null || continue
-            else
-              continue
-            fi
-            if jq -e '(.includedPermissions // []) | index("cloudmessaging.messages.create") != null' "$role_json" >/dev/null; then
-              has_fcm=true
-              break
-            fi
-          done
-          test "$has_fcm" = true || { echo "Alert runtime identity lacks cloudmessaging.messages.create in effective project bindings" >&2; exit 1; }
-
+          # Effective FCM capability is proven by the disposable D161 continuation
+          # canary using a real HTTP v1 validate_only request under ALERT_RUNTIME_SA.
+          # Avoid inferring effective permissions from role metadata here: inherited
+          # and managed-role semantics make that check less authoritative than the
+          # actual no-send provider operation.
           echo "GEN2_FUNCTIONS_RUNTIME_IDENTITY=PASS"
-          echo "FCM_RUNTIME_IAM_PERMISSION=PASS"
+          echo "FCM_RUNTIME_CAPABILITY=DELEGATED_TO_VALIDATE_ONLY_CANARY"
 
       - name: Re-authenticate Firebase rules identity and prove Cloud Monitoring read
         shell: bash
