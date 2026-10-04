@@ -1463,12 +1463,20 @@ namespace SupraInventoryRelayAgent
                 BeginInvoke(new Action<List<PickerPresenceView>, bool>(UpdatePickerOnlineGrid), items, primary);
                 return;
             }
+            var previousActivePdaCount = _activePdaCountForRelay;
             _pickerOnlineSnapshot = (items ?? new List<PickerPresenceView>())
                 .Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId))
                 .OrderBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
                 .ToList();
             _activePdaCountForRelay = _pickerOnlineSnapshot.Count;
+            if (previousActivePdaCount <= 0 && _activePdaCountForRelay > 0)
+            {
+                // D161 v108: local-only wake. No Firestore write/read is emitted here.
+                // This removes the login->first-PickList race while idle REST is paused.
+                D157PendingWakeSignal.WakeTransport();
+                Log("PICKER_PRESENCE relay_wake=LOCAL transition=0_TO_ACTIVE provider_op=false");
+            }
             _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
             _pickerOnlineStatus.Text =
