@@ -873,10 +873,10 @@ Status: Implemented in merged D161 Tranche C; Owner field acceptance pending.
 
 ## D161 Owner field-repair Agent-sync semantics — 2026-10-04
 
-This section supersedes the earlier D140/D160 role-limited listener rule only for the compact active-Picker observation document.
+This section supersedes the earlier D140/D160 role-limited listener rule for authenticated active-Picker observation.
 
-- While an Agent session is authenticated, the existing single-document `agent_sync` listener remains attached regardless of PRIMARY/NEXT_A/NEXT_B/DEEP_HIBERNATE role and regardless of WMS readiness.
+- While an Agent session is authenticated, the existing Agent-sync gRPC listener stream remains attached regardless of PRIMARY/NEXT_A/NEXT_B/DEEP_HIBERNATE role and regardless of WMS readiness. The stream targets exactly two existing documents: `relay_poc_coordination/agent_sync` for fleet/history/control state and `picker_presence_projection/current` for authoritative active-Picker login/logout state.
 - Logout/invalid Agent session stops the listener and clears the active-Picker presentation.
-- No additional collection listener, per-Picker listener, polling loop or write cadence is introduced.
-- The change may increase compact document-listener reads only for authenticated Agents that previously had no listener while WMS was unavailable or the Agent was outside the HA trio.
+- No collection query, per-Picker listener, polling loop or write cadence is introduced. `picker_presence_projection/current` is already written by the existing server-side login/logout projection path; the Agent only observes it.
+- The change adds bounded document-listener reads: one initial read for each of the two exact documents per authenticated Agent stream, plus document-change reads when those exact documents change. It adds no provider write.
 - PickList processing, PRIMARY mutation authority, WMS confirmation and business schedule gates are unchanged.
