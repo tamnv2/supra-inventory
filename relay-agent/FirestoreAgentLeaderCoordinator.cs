@@ -370,6 +370,71 @@ namespace SupraInventoryRelayAgent
         }
 
 
+        // D161: one explicit +1h action is applied against the freshest
+        // shared schedule snapshot under Firestore updateTime CAS. If another
+        // Agent wins the CAS first, retry recomputes from that newer end time,
+        // so no stale write can shorten an active override.
+        internal bool PublishOvertimeExtension(
+            string scheduleKey,
+            long requestedAtMs,
+            long cutoffMs)
+        {
+            if (string.IsNullOrWhiteSpace(scheduleKey) ||
+                requestedAtMs <= 0 ||
+                cutoffMs <= requestedAtMs)
+                return false;
+
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var read = ReadRoles(session);
+                    var current = read.Snapshot;
+                    ApplySharedSchedule(current);
+
+                    var basis = requestedAtMs;
+                    if (current != null &&
+                        string.Equals(current.ScheduleKey ?? "", scheduleKey, StringComparison.Ordinal) &&
+                        current.RelayOverrideUntilMs > requestedAtMs)
+                        basis = current.RelayOverrideUntilMs;
+
+                    if (basis >= cutoffMs)
+                    {
+                        if (current != null)
+                            TryPublishOperatingScheduleProjection(
+                                session, scheduleKey, "MANUAL_ADJUST",
+                                current.DecisionBoundaryMs > 0 ? current.DecisionBoundaryMs : requestedAtMs,
+                                current.RelayOverrideUntilMs);
+                        return true;
+                    }
+
+                    var target = Math.Min(cutoffMs, basis + 60L * 60L * 1000L);
+                    if (!TryWriteScheduleFields(
+                        session, scheduleKey, "MANUAL_ADJUST", requestedAtMs, target, read))
+                        continue;
+
+                    SetSharedSchedule(scheduleKey, "MANUAL_ADJUST", requestedAtMs, target);
+                    if (_role == FirestoreAgentRole.PRIMARY) WritePrimaryLease(session);
+                    TryPublishOperatingScheduleProjection(
+                        session, scheduleKey, "MANUAL_ADJUST", requestedAtMs, target);
+                    _log("FIRESTORE SCHEDULE d161_extend=PASS at_ms=" + requestedAtMs +
+                         " relay_until_ms=" + target +
+                         " cutoff_ms=" + cutoffMs +
+                         " role=" + _role);
+                    try { _wake.Set(); } catch { }
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE SCHEDULE d161_extend=DEFER type=" + ex.GetType().Name +
+                     " message=" + AgentDiagnostics.Sanitize(ex.Message));
+            }
+            return false;
+        }
+
         internal bool PublishManualScheduleAdjustment(
             string scheduleKey,
             long adjustmentAtMs,
@@ -1705,7 +1770,7 @@ namespace SupraInventoryRelayAgent
                     { "decision_boundary_ms", IntField(Math.Max(0L, boundaryMs)) },
                     { "open_until_ms", IntField(Math.Max(0L, overrideUntilMs)) },
                     { "normal_start_minutes", IntField(5 * 60 + 45) },
-                    { "normal_end_minutes", IntField(22 * 60 + 30) },
+                    { "normal_end_minutes", IntField(22 * 60 + 15) },
                     { "overtime_cutoff_minutes", IntField(5 * 60) },
                     { "updated_at_ms", IntField(now) },
                     { "updated_by_agent_instance_id", StringField(_instanceId) }
