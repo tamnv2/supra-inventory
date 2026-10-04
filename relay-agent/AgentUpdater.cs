@@ -31,7 +31,35 @@ namespace SupraInventoryRelayAgent
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
         private static readonly Regex TagPattern = new Regex("^relay-agent-v(\\d+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-        internal static AgentUpdateResult CheckAndInstallIfNeeded()
+        internal static AgentUpdateResult CheckLatest()
+        {
+            var latest = FindLatestRelease();
+            if (latest == null)
+            {
+                return new AgentUpdateResult
+                {
+                    LatestBuild = AgentConfig.AgentBuild,
+                    Message = "Không có Agent prerelease hợp lệ."
+                };
+            }
+
+            if (latest.Build <= AgentConfig.AgentBuild)
+            {
+                return new AgentUpdateResult
+                {
+                    LatestBuild = latest.Build,
+                    Message = "Agent đang ở bản mới nhất v" + AgentConfig.AgentBuild + "."
+                };
+            }
+
+            return new AgentUpdateResult
+            {
+                LatestBuild = latest.Build,
+                Message = "Có bản cập nhật Agent v" + latest.Build + "."
+            };
+        }
+
+        internal static AgentUpdateResult InstallLatest()
         {
             var latest = FindLatestRelease();
             if (latest == null)
@@ -97,7 +125,7 @@ namespace SupraInventoryRelayAgent
             {
                 InstallStarted = true,
                 LatestBuild = latest.Build,
-                Message = "Đang tự cập nhật Agent lên v" + latest.Build + "..."
+                Message = "Đang cài bản Agent v" + latest.Build + " theo yêu cầu người dùng..."
             };
         }
 
