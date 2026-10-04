@@ -4009,6 +4009,9 @@ function bindSection(): void {
     hrPreview = null;
     setNotice("success", "Đã xác nhận và áp dụng snapshot nhân sự hiện tại.");
   }));
+  document.querySelector<HTMLButtonElement>("#defer-hr-event")?.addEventListener("click", () => {
+    setNotice("warning", "Đã chọn Không: dữ liệu hiện tại được giữ nguyên. Snapshot vẫn chờ để có thể quyết định lại sau.");
+  });
 
   document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
