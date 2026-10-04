@@ -37,6 +37,19 @@ type AlertRecord = {
   expires_at_ms?: number;
 };
 
+type D161AdminCommand = {
+  request_id?: string;
+  command_type?: string;
+  status?: string;
+  source?: string;
+  issued_at_ms?: number;
+  expires_at_ms?: number;
+  issued_by_user_id?: string;
+  issued_by_login?: string;
+  agent_instance_id?: string;
+  target_count?: number;
+};
+
 type ActiveCallRecord = {
   call_id?: string;
   target_user_id?: string;
@@ -164,6 +177,80 @@ export const operatingScheduleChanged = onDocumentWritten(
     }
   },
 );
+
+export const d161AdminCommandCreated = onDocumentCreated("relay_admin_commands/{requestId}", async (event) => {
+  const snapshot = event.data;
+  if (!snapshot || !snapshot.exists) return;
+  const command = snapshot.data() as D161AdminCommand;
+  const requestId = String(command.request_id || event.params.requestId || "").trim();
+  const commandType = String(command.command_type || "").trim().toUpperCase();
+  const issuedByUserId = String(command.issued_by_user_id || "").trim();
+  const issuedAtMs = Math.trunc(Number(command.issued_at_ms || 0));
+  const expiresAtMs = Math.trunc(Number(command.expires_at_ms || 0));
+  const now = Date.now();
+
+  if (
+    command.status !== "REQUESTED" ||
+    command.source !== "D161_AGENT_CONTROL_V1" ||
+    requestId !== String(event.params.requestId || "") ||
+    !/^[A-Za-z0-9._:-]{8,160}$/.test(requestId) ||
+    !/^[A-Za-z0-9._:-]{1,180}$/.test(issuedByUserId) ||
+    issuedAtMs <= 0 ||
+    expiresAtMs <= now ||
+    expiresAtMs > issuedAtMs + 5 * 60_000 ||
+    issuedAtMs > now + 60_000
+  ) {
+    await snapshot.ref.set({
+      status: "REJECTED",
+      result_code: "INVALID_COMMAND",
+      processed_at_ms: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    return;
+  }
+
+  if (commandType !== "BULK_PICKER_REVOKE") {
+    await snapshot.ref.set({
+      status: "REJECTED",
+      result_code: "UNSUPPORTED_COMMAND",
+      processed_at_ms: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    return;
+  }
+
+  try {
+    const auth = new GoogleAuth();
+    const client = await auth.getIdTokenClient(WORKER_ORIGIN);
+    const response = await client.request<{
+      status?: string;
+      affected?: number;
+      idempotent_replay?: boolean;
+      error?: string;
+    }>({
+      url: `${WORKER_ORIGIN}/api/internal/d161/bulk-picker-revoke`,
+      method: "POST",
+      data: {
+        request_id: requestId,
+        issued_by_user_id: issuedByUserId,
+      },
+      timeout: 20_000,
+    });
+    const result = response.data || {};
+    await snapshot.ref.set({
+      status: "COMPLETED",
+      result_code: String(result.status || "OK").slice(0, 120),
+      affected: Math.max(0, Math.trunc(Number(result.affected || 0))),
+      idempotent_replay: result.idempotent_replay === true,
+      processed_at_ms: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  } catch (error) {
+    await snapshot.ref.set({
+      status: "FAILED",
+      result_code: safeCode(error),
+      processed_at_ms: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    throw error;
+  }
+});
 
 export const pickerActiveCallCreated = onDocumentWritten("picker_active_calls/{targetUserId}", async (event) => {
   const before = event.data?.before;
