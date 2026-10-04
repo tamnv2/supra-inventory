@@ -866,6 +866,24 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "GET" && url.pathname === "/auth/picker-android-session-count") {
+      const row = this.state.storage.sql.exec<{ count: number }>(
+        `SELECT COUNT(*) AS count
+           FROM users
+          WHERE role = 'PICKER'
+            AND status = 'ACTIVE'
+            AND firebase_uid IS NOT NULL
+            AND firebase_uid <> ''
+            AND android_session_generation > 0
+            AND android_session_device_id IS NOT NULL
+            AND android_session_device_id <> ''`,
+      ).toArray()[0];
+      return response({
+        status: "ok",
+        authenticated_picker_android_sessions: Math.max(0, Number(row?.count || 0)),
+      });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/revoke-all-picker-android-sessions") {
       let body: { request_id?: string; issued_by_user_id?: string } = {};
       try {
