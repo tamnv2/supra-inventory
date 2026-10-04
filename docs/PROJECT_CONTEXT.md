@@ -928,3 +928,15 @@ Android remains `beta-vc92` hard-locked. No provider resource, Firestore cadence
 - Repair semantics: business shift outward **06:00–22:00**, technical Replay **05:45–22:15**; HR HARD_BLOCK gives bounded actionable row/reason detail plus one-shot recheck while remaining fail-closed; authenticated Agent observes active Picker authority independent of WMS readiness/business window using one gRPC stream over two exact existing documents.
 - No new persistent resource, collection query, per-Picker listener, polling loop or write cadence. Stable remains OWNER-GATED.
 - D161 remains not Owner PASS; next action is OA096 field retest.
+
+## D161 v108 fourth field repair technical/runtime/release checkpoint — 2026-10-04
+
+- Owner field retest of relay-agent-v107 was **NOT PASS**: with Agent authenticated and Web Confirm not ready, Picker History remained blank because higher-level `StartListening()` and `IsBusinessAllowed()` still coupled relay ingress/schedule authority to WMS operational readiness.
+- Owner approved an **Agent-only** repair inside D161. Android is hard-locked at **beta-vc97**; Worker/Web/Stable are unchanged.
+- PR #434 merged to main `217d33f1e25a42931da91c08c5544ca577236d32`. It starts authenticated relay transport without WMS readiness, separates Replay schedule authority from WMS readiness, preserves the strict WMS-ready + PRIMARY/generation mutation fence, and suppresses redundant REST pending-queue polling only when PDA count is zero and the D157 pending realtime listener is healthy.
+- Listener disconnect wakes the local transport and restores the existing 15-second REST fallback. Picker presence transition `0 -> active` also wakes locally with no provider operation. Active 3-second, D158 degraded 2-second and HOT 1-second behavior remain bounded as before.
+- CI now inspects the actual `StartListening()` and `IsBusinessAllowed()` method bodies so the v107 comment/marker-only false PASS cannot recur. PR #435 merged authority-only fix `5a3c07eb2a0486e2a79861b43b011a6fde739529`; D161 Phase0 Safety, authority and continuity gates PASS.
+- Main Agent verification run **37207091449 PASS**. Release **relay-agent-v108** id **403043358**, EXE asset **609938421**, size **7,288,320 bytes**, SHA-256 `b096d45bea049c847a277921e2039f6fd81c75bbfab22cd0ee1be3bf0a177dbf`.
+- Inventory channel Agent asset **609938501** matches the same size/SHA; manifest asset is **609938504** and checksum asset **609938500**. Android remains **beta-vc97** with existing APK asset **609733318** and SHA-256 `28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19`.
+- No new persistent provider resource, Firestore listener/query family, write cadence, Android heartbeat or Stable mutation was introduced. D160 relay-agent-v97 remains the accepted rescue base until explicit Owner D161 PASS.
+- Status: **TECHNICAL/RUNTIME/RELEASE PASS — READY FOR OWNER FIELD RETEST**, not Owner PASS.
