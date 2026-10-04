@@ -2514,3 +2514,18 @@ Before returning D161 to Owner field retest, prove all of the following:
 9. **Quota/resources:** no new collection, listener, polling loop, heartbeat or persistent provider resource; normal-path Firestore write count is not increased versus the prior single-kick path.
 10. **Regression:** Kích toàn bộ user, Liên hệ Picker, chat, PickList confirm, Agent HA, Web, Android vc97 business behavior and Stable remain regression-clean.
 
+
+
+## D161 v110 Agent-only overtime/empty-PickList repair acceptance — 2026-10-04
+
+Before returning D161 to Owner field retest:
+
+1. **Visible overtime action:** in the 22:15–05:00 sleeping state, the red warning panel with white text visibly contains **Gia hạn +1 giờ** after initial render and after Agent-card resize/auto-size. The button is not overlapped by the status label and remains clickable.
+2. **Overtime independent of WMS:** authenticated Agent can publish a +1h overtime extension while Web Confirm has no PickList or is otherwise not operationally ready. The schedule action does not call or require `HasReadyConfirmBrowser()`.
+3. **Early start independent of WMS:** during 05:00–05:45, **Bật sớm trước 05:45** can activate the shared schedule without requiring a current PickList/WMS-ready state.
+4. **Explicit empty is hydrated:** on the exact Confirm route with expected Search/Confirm/table structure plus visible **Không tìm thấy kết quả phù hợp**, browser state becomes `READY_EMPTY`, operational readiness is true, and the user-facing status is **Web Agent chưa có PickList**.
+5. **Blank shell remains fail-closed:** the same route without PickList codes and without the explicit no-results marker remains `CONFIRM_DATA_EMPTY`/not-ready and cannot authorize WMS mutation.
+6. **Later request still searches:** when a PDA request arrives from `READY_EMPTY`, Agent enters the existing Search/recovery path, may use the existing bounded empty-table self-heal, and does not return WMS-not-ready solely because the idle page previously had zero PickLists.
+7. **Mutation fence preserved:** immediately before checkbox/Confirm mutation, current PRIMARY/generation and browser operational readiness are still required; no schedule repair weakens the WMS mutation fence.
+8. **No APK/provider change:** Android remains beta-vc97; Worker/Web/Stable are unchanged. No new provider resource, collection/query/listener family, polling loop, heartbeat or provider write cadence is introduced.
+9. **Release lineage:** publish monotonic **relay-agent-v110** through the existing trusted Agent release/update channel; D160 v97 remains accepted/rescue base until explicit D161 Owner PASS.
