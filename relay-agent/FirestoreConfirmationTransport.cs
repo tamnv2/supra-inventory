@@ -188,6 +188,7 @@ namespace SupraInventoryRelayAgent
                         _relayHealth(true);
                         waitMs = D158RemainingPollWaitMs();
                         var desiredPollMs = D158DesiredPollIntervalMs();
+                        var idleRealtime = !_hasActivePda() && D157PendingWakeSignal.IsConnected;
                         _state(processed > 0
                             ? (string.IsNullOrWhiteSpace(_lastOutcomeState) ? "Relay: PRIMARY · đã xử lý yêu cầu PDA" : _lastOutcomeState)
                             : (desiredPollMs == PrimaryHotPollIntervalMs
@@ -196,7 +197,9 @@ namespace SupraInventoryRelayAgent
                                     ? "Relay: PRIMARY · realtime đang phục hồi · REST 2s"
                                     : (desiredPollMs == PrimaryActivePollIntervalMs
                                         ? "Relay: PRIMARY · PDA hoạt động · 3s"
-                                        : "Relay: PRIMARY · không có PDA hoạt động · 15s"))));
+                                        : (idleRealtime
+                                            ? "Relay: PRIMARY · 0 PDA · realtime sẵn sàng · REST tạm dừng"
+                                            : "Relay: PRIMARY · 0 PDA · realtime lỗi · REST dự phòng 15s")))));
                     }
                 }
                 catch (WebException ex)
@@ -233,6 +236,10 @@ namespace SupraInventoryRelayAgent
         private int D158RemainingPollWaitMs()
         {
             var desired = D158DesiredPollIntervalMs();
+            // D161 v108: when zero PDA and realtime listener is healthy, keep the
+            // local 15s supervision cadence but do not force a REST query.
+            if (!_hasActivePda() && D157PendingWakeSignal.IsConnected)
+                return PrimaryInactivePollIntervalMs;
             if (_lastRestPendingQueryMs <= 0) return 1000;
             var elapsed = Math.Max(0L, NowMs() - _lastRestPendingQueryMs);
             return Math.Max(1000, desired - (int)Math.Min(desired, elapsed));
@@ -257,8 +264,14 @@ namespace SupraInventoryRelayAgent
             var listenerDocs = ReadRealtimePendingDocuments();
             var fallbackMs = D158DesiredPollIntervalMs();
             var nowForPoll = NowMs();
-            var restDue = _lastRestPendingQueryMs == 0 ||
-                          nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
+            // D161 v108 usage repair: a healthy realtime listener is the wake path
+            // when no PDA session is active. Suppress only the redundant REST queue
+            // query; never suppress listener-delivered requests. If realtime drops,
+            // MarkConnected(false) wakes this loop and the 15s REST fallback resumes.
+            var idleRealtime = !_hasActivePda() && D157PendingWakeSignal.IsConnected;
+            var restDue = !idleRealtime &&
+                          (_lastRestPendingQueryMs == 0 ||
+                           nowForPoll - _lastRestPendingQueryMs >= fallbackMs);
             if (restDue && fallbackMs == 2000 && !FirestoreQuotaGuard.TryReserveD158ResilienceRead())
             {
                 fallbackMs = PrimaryActivePollIntervalMs;
@@ -267,7 +280,7 @@ namespace SupraInventoryRelayAgent
             }
 
             Task<List<PendingDocument>> restTask = null;
-            if (restDue || (listenerDocs.Count == 0 && _lastRestPendingQueryMs == 0))
+            if (!idleRealtime && (restDue || (listenerDocs.Count == 0 && _lastRestPendingQueryMs == 0)))
                 restTask = Task.Run(() => ReadPendingDocuments(session));
 
             var cycleSeen = new Dictionary<string, string>(StringComparer.Ordinal);
