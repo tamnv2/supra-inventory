@@ -101,9 +101,19 @@ namespace SupraInventoryRelayAgent
                     }
 
                     var requestId = "bulk-" + Guid.NewGuid().ToString("N");
+                    var localGenerations = CapturePickerSessionGenerations();
                     Ui(() => _pickerOnlineStatus.Text =
                         "Đang thu hồi " + targetCount + " phiên Picker Android...");
                     var result = ExecuteD161BulkPickerRevoke(requestId);
+
+                    // D161 v111: the server bulk revoke is authoritative. Remove only
+                    // sessions that were present when the command was issued; a Picker
+                    // that legitimately logs in again with a newer generation while
+                    // the response is in flight is preserved.
+                    ApplyLocalPickerSessionRemovals(
+                        localGenerations,
+                        "BULK_KICK_SERVER_AUTHORITY");
+
                     Ui(() => _pickerOnlineStatus.Text =
                         "Kích toàn bộ user hoàn tất · " +
                         result.Affected.ToString(CultureInfo.InvariantCulture) +
