@@ -84,5 +84,21 @@
     "secret_values_in_manifest": false,
     "session_or_wms_material_in_manifest": false,
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "published_safety_releases": {
+    "source_sha": "d1d33d4941034e04bc757d1a9252b848fe5de193",
+    "android": {
+      "tag": "beta-vc93",
+      "asset": "supra-inventory-beta.apk",
+      "size_bytes": 19118748,
+      "sha256": "e1a7d9a2519534a32f80a724c2676332ff06b79ce0d77079e3c09d275a22fe2b"
+    },
+    "agent": {
+      "tag": "relay-agent-v101",
+      "asset": "Agent.Auto.Confirm.Pick.Pack.exe",
+      "size_bytes": 7216128,
+      "sha256": "17ae0452ded9e71f3734542d184e5c13bf4fb25ba3fc7eb00246c7434f511fa9"
+    },
+    "status": "PUBLISHED__AWAITING_PHASE0_TERMINAL_GATE"
   }
 }
