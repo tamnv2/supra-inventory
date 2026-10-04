@@ -3234,10 +3234,22 @@ namespace SupraInventoryRelayAgent
                 UpdateD129PicklistReadinessUi();
             });
 
-            if (ready)
+            // D161 field repair: authenticated Agent transport must stay alive even
+            // while Web Confirm is not ready. This lets one degraded PRIMARY receive
+            // the PDA request, persist History and ACK WMS_SESSION_REQUIRED instead
+            // of leaving the PDA to expire with a blank Agent history.
+            if (HasAgentSession())
             {
                 if (_listenCts == null) StartListening();
-                Ui(() => _listen.Enabled = true);
+                Ui(() =>
+                {
+                    _listen.Enabled = true;
+                    if (!ready)
+                    {
+                        _manualPicklistGrid.Enabled = false;
+                        UpdateManualConfirmAllVisibility();
+                    }
+                });
                 return;
             }
 
