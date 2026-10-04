@@ -2482,3 +2482,19 @@ Before returning this D161 item to Owner field retest:
 7. **HA safety:** stale/wrong PRIMARY generation cannot process business ingress, while a valid degraded PRIMARY may only produce safe pre-mutation terminal handling until WMS becomes ready.
 8. **Regression guard:** CI fails if `FirestoreConfirmationTransport` reintroduces `VerifyPrimaryBeforeMutation` as its pre-pipeline gate or if the D160 mutation path loses the strict fence.
 9. **Release lineage:** publish a monotonic relay-agent-v107 candidate. Android vc97 and Stable remain unchanged.
+
+
+## D161 v108 Agent-only transport/idle-usage repair acceptance — 2026-10-04
+
+Before returning D161 to Owner field retest:
+
+1. Android remains **beta-vc97** with no Android source/build change; Worker/Web/Stable remain unchanged for this repair.
+2. With Agent authenticated and Web Confirm not ready, `StartListening()` starts transport/HA without requiring `HasOperationalReadiness()`; schedule authority likewise does not depend on WMS readiness.
+3. A listener-delivered Android request with local PDA count zero is still consumed, recorded in Picker History, and terminates as **WMS_SESSION_REQUIRED / Web Agent chưa sẵn sàng** within the existing 20-second Android bound.
+4. Not-ready handling performs zero WMS Search/checkbox/Confirm mutation. The existing `VerifyPrimaryBeforeMutation` WMS-ready + PRIMARY/generation fence remains mandatory immediately before any real WMS mutation.
+5. **Zero PDA + D157 pending listener CONNECTED** performs no REST pending-queue query. The local supervision loop may continue, but it creates no replacement provider read/write.
+6. D157 listener CONNECTED->DISCONNECTED wakes the transport locally and restores the existing **15s REST fallback**. Reconnect may suppress idle REST again.
+7. PDA presence transition **0 -> active** wakes the transport locally with `provider_op=false`; no per-PDA heartbeat/write/listener is introduced.
+8. Existing request cadences remain bounded: active 3s, D158 listener-degraded resilience 2s only within the existing reserve, HOT 1s burst behavior unchanged, standby business polling remains zero.
+9. CI must inspect the actual `StartListening()` and `IsBusinessAllowed()` method bodies and fail if `HasOperationalReadiness()` is reintroduced there. Presence of comments/markers alone is insufficient.
+10. No new persistent resource, Firestore collection/query family/listener family/write cadence or provider timer is introduced. Target release is **relay-agent-v108**.
