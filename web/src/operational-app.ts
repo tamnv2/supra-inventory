@@ -4012,6 +4012,12 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#defer-hr-event")?.addEventListener("click", () => {
     setNotice("warning", "Đã chọn Không: dữ liệu hiện tại được giữ nguyên. Snapshot vẫn chờ để có thể quyết định lại sau.");
   });
+  document.querySelector<HTMLButtonElement>("#recheck-hr-event")?.addEventListener("click", () => void run(async () => {
+    await recheckHrEventSync();
+    hrEventSync = await getHrEventSyncState();
+    hrPreview = null;
+    setNotice("success", "Đã kiểm tra lại nguồn nhân sự.");
+  }));
 
   document.querySelector<HTMLFormElement>("#create-user-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
