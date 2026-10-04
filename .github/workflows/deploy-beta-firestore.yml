@@ -65,6 +65,15 @@ jobs:
           ]) {
             if (!rules.includes(marker)) throw new Error('Missing D097 Firestore Rules marker: ' + marker);
           }
+          const relayJobBlock = rules.match(/match \/relay_poc_jobs\/\{jobId\} \{[\s\S]*?\n    \}/)?.[0] || '';
+          if (!relayJobBlock.includes("'agent_login_name'")) {
+            throw new Error('D161 v112 relay_poc_jobs update whitelist must allow agent_login_name');
+          }
+          if (!relayJobBlock.includes("!request.resource.data.keys().hasAny(['agent_login_name'])") ||
+              !relayJobBlock.includes('request.resource.data.agent_login_name.size() <= 180')) {
+            throw new Error('D161 v112 agent_login_name compatibility/bounds guard missing');
+          }
+
           const queueIndex = indexes.indexes?.find(index =>
             index.collectionGroup === 'relay_poc_jobs' &&
             index.queryScope === 'COLLECTION' &&
