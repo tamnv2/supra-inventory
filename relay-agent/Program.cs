@@ -704,6 +704,8 @@ namespace SupraInventoryRelayAgent
         private DateTime _lastAfterHoursPromptAt = DateTime.MinValue;
         private long _lastAfterHoursPromptBoundaryMs;
         private DateTime _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
+        private long _d161LastOvertimeWarningUntilMs;
+        private long _d161LastSleepForegroundBoundaryMs;
         private bool? _lastRelayAllowed;
         private bool? _afterHoursLayoutVisible;
         private DateTime _lastAgentDataSizeRefreshUtc = DateTime.MinValue;
@@ -882,11 +884,8 @@ namespace SupraInventoryRelayAgent
                 RefreshD130ResourceClock();
             };
 
-            // GitHub cannot push directly into a portable EXE. D101 therefore uses
-            // a bounded direct GitHub background check while the Agent is running.
-            _updateTimer.Interval = 30 * 60 * 1000;
-            _updateTimer.Tick += (s, e) => Task.Run(() => TryAutoUpdate(false));
-            _updateTimer.Start();
+            // D161: Agent update is manual-only. No startup check and no 30-minute timer.
+            _updateTimer.Stop();
 
             _logUploadTimer.Interval = 60 * 1000;
             _logUploadTimer.Tick += (s, e) => Task.Run(() =>
@@ -1109,7 +1108,17 @@ namespace SupraInventoryRelayAgent
 
             _manualUpdate.SetBounds(736, 80, 150, 31);
             _manualUpdate.Text = "Kiểm tra cập nhật";
-            _manualUpdate.Click += (s, e) => Task.Run(() => TryAutoUpdate(false));
+            _manualUpdate.Click += (s, e) =>
+            {
+                var answer = MessageBox.Show(
+                    "Kiểm tra kênh cập nhật Agent tin cậy? Nếu có bản mới, hệ thống sẽ tải, kiểm tra SHA-256 rồi khởi động lại Agent.",
+                    "Cập nhật Agent",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
+                if (answer == DialogResult.Yes)
+                    Task.Run(() => TryAutoUpdate(false));
+            };
             agentCard.Controls.Add(_manualUpdate);
 
             _background.SetBounds(886, 80, 120, 31);
@@ -1174,7 +1183,7 @@ namespace SupraInventoryRelayAgent
             _afterHoursStatus.ForeColor = Color.FromArgb(111, 78, 15);
             _afterHoursPanel.Controls.Add(_afterHoursStatus);
             _afterHoursContinue.Text = "Tăng ca thêm 1 giờ";
-            _afterHoursContinue.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.CONTINUE);
+            _afterHoursContinue.Click += (s, e) => ExtendOvertimeOneHour();
             _afterHoursPanel.Controls.Add(_afterHoursContinue);
             _afterHoursStop.Text = "Đúng giờ về";
             _afterHoursStop.Click += (s, e) => SetAfterHoursDecision(AfterHoursDecision.STOP);
@@ -1701,38 +1710,41 @@ namespace SupraInventoryRelayAgent
 
         private void AdjustOvertimeWhileSleeping()
         {
+            ExtendOvertimeOneHour();
+        }
+
+        private void ExtendOvertimeOneHour()
+        {
             if (_businessSchedule == null || _leaderCoordinator == null || !HasAgentSession()) return;
             var now = _businessSchedule.NowOperational();
             if (!_businessSchedule.IsOvertimeSleepWindow(now)) return;
-            var until = _businessSchedule.ManualAdjustmentUntil(now);
-            if (until == DateTime.MinValue || until <= now) return;
             if (!HasReadyConfirmBrowser())
             {
-                _afterHoursStatus.Text = "Cần Web Confirm sẵn sàng trước khi điều chỉnh tăng ca.";
+                _afterHoursStatus.Text = "Cần Web Confirm sẵn sàng trước khi gia hạn tăng ca.";
                 return;
             }
 
             var key = _businessSchedule.ScheduleKey(now);
-            var published = _leaderCoordinator.PublishManualScheduleAdjustment(
-                key,
-                OperationalMs(now),
-                OperationalMs(until));
+            var cutoff = _businessSchedule.NextOvertimeCutoff(now);
+            var published = _leaderCoordinator.PublishOvertimeExtension(
+                key, OperationalMs(now), OperationalMs(cutoff));
             _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
             if (!published)
             {
-                _leaderCoordinator.RefreshSharedScheduleNow();
-                _afterHoursStatus.Text = "Một Agent khác vừa cập nhật ca. Đã đồng bộ trạng thái hiện hành.";
+                _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
+                _afterHoursStatus.Text = "Chưa gia hạn được · đã yêu cầu đồng bộ trạng thái ca hiện hành.";
                 CheckAfterHoursSchedule(true);
                 return;
             }
 
-            _lastAfterHoursPromptAt = DateTime.MinValue;
-            _lastAfterHoursPromptBoundaryMs = 0L;
-            TopMost = false;
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
-            Log("AFTER_HOURS manual_adjust=PASS relay_until=" + until.ToString("HH:mm") +
+            var untilMs = _leaderCoordinator.SharedRelayOverrideUntilMs;
+            var until = untilMs > 0
+                ? DateTimeOffset.FromUnixTimeMilliseconds(untilMs).ToOffset(TimeSpan.FromHours(7)).DateTime
+                : _businessSchedule.ManualAdjustmentUntil(now);
+            Log("AFTER_HOURS d161_extend=PASS relay_until=" + until.ToString("HH:mm") +
                 " schedule_key=" + key);
-            Task.Run(() => _agentLogBridge.TryQueueBoundarySnapshot("OVERTIME_MANUAL_ADJUST"));
+            Task.Run(() => _agentLogBridge.TryQueueBoundarySnapshot("OVERTIME_D161_EXTEND"));
             CheckAfterHoursSchedule(true);
         }
 
@@ -1772,21 +1784,15 @@ namespace SupraInventoryRelayAgent
             TickD157SessionHealth();
             QueueD128BrowserStateRefresh();
             if (_businessSchedule == null) return;
+
             var now = _businessSchedule.NowOperational();
+            var nowMs = OperationalMs(now);
             var defaultAllowed = _businessSchedule.DefaultRelayAllowed(now);
             var coordinator = _leaderCoordinator;
-
-            DateTime boundary;
-            var hasBoundary = _businessSchedule.TryGetPromptBoundary(now, out boundary);
             if (coordinator != null && HasAgentSession() && forcePrompt)
-            {
-                // Explicit user/boundary actions may request one coordinator refresh.
-                // Normal UI ticks consume the schedule already carried by role/lease state.
                 coordinator.RequestRoleRefreshBeforeBusiness();
-            }
 
             var relayAllowed = IsBusinessAllowed();
-
             if (!_lastRelayAllowed.HasValue || _lastRelayAllowed.Value != relayAllowed)
             {
                 _lastRelayAllowed = relayAllowed;
@@ -1796,116 +1802,100 @@ namespace SupraInventoryRelayAgent
             }
 
             var key = _businessSchedule.ScheduleKey(now);
-            var boundaryMs = hasBoundary ? OperationalMs(boundary) : 0L;
-            var earlyStarted = coordinator != null &&
-                               string.Equals(coordinator.SharedScheduleDecision, "EARLY_START", StringComparison.Ordinal) &&
-                               coordinator.SharedRelayOverrideAllows(key, OperationalMs(now));
-            var needsConfirmation =
-                relayAllowed &&
-                !earlyStarted &&
-                coordinator != null &&
-                HasAgentSession() &&
-                hasBoundary &&
-                !coordinator.HasScheduleDecision(key, boundaryMs);
             var activeOverride = !defaultAllowed && relayAllowed && coordinator != null &&
-                                 coordinator.SharedRelayOverrideAllows(key, OperationalMs(now));
+                                 coordinator.SharedRelayOverrideAllows(key, nowMs);
             var frozenOutsideRegular = !defaultAllowed && !relayAllowed;
             var earlyStartWindow = frozenOutsideRegular && _businessSchedule.IsEarlyStartWindow(now);
             var overtimeSleepWindow = frozenOutsideRegular && _businessSchedule.IsOvertimeSleepWindow(now);
 
-            _afterHoursContinue.Visible = needsConfirmation;
-            _afterHoursStop.Visible = needsConfirmation;
+            _afterHoursStop.Visible = false;
+            _afterHoursContinue.Visible = activeOverride || overtimeSleepWindow;
+            _afterHoursContinue.Text = "Gia hạn +1 giờ";
             _afterHoursCancel.Visible = activeOverride;
-            _afterHoursEarlyStart.Visible = !activeOverride && (earlyStartWindow || overtimeSleepWindow);
-            ApplyAfterHoursAgentLayout(needsConfirmation || frozenOutsideRegular || activeOverride);
+            _afterHoursCancel.Text = "Kết thúc tăng ca";
+            _afterHoursEarlyStart.Visible = earlyStartWindow;
+            _afterHoursEarlyStart.Text = "Bật sớm trước 05:45";
+            ApplyAfterHoursAgentLayout(frozenOutsideRegular || activeOverride);
 
-            if (needsConfirmation)
+            if (activeOverride)
             {
-                var until = _businessSchedule.ExtensionUntil(boundary);
-                _afterHoursStatus.Text =
-                    "Xác nhận ca: có tiếp tục relay PDA sau " + boundary.ToString("HH:mm") + " không?";
-                _afterHoursContinue.Text = "Tiếp tục đến " + until.ToString("HH:mm");
-                _afterHoursStop.Text = "Dừng lúc " + boundary.ToString("HH:mm");
-
-                var promptBoundaryMs = OperationalMs(boundary);
-                if (_lastAfterHoursPromptBoundaryMs == promptBoundaryMs)
-                    return;
-
-                _lastAfterHoursPromptAt = now;
-                _lastAfterHoursPromptBoundaryMs = promptBoundaryMs;
-                try
+                _afterHoursPanel.BackColor = Color.FromArgb(255, 247, 226);
+                _afterHoursStatus.ForeColor = Color.FromArgb(111, 78, 15);
+                var untilMs = coordinator.SharedRelayOverrideUntilMs;
+                var until = DateTimeOffset.FromUnixTimeMilliseconds(untilMs)
+                    .ToOffset(TimeSpan.FromHours(7)).DateTime;
+                var remainingMs = Math.Max(0L, untilMs - nowMs);
+                if (remainingMs <= 15L * 60L * 1000L)
                 {
-                    if (!Visible || WindowState == FormWindowState.Minimized)
-                        RestoreFromTray();
-                    else
+                    _afterHoursStatus.Text =
+                        "Cảnh báo: Agent sẽ quay lại trạng thái ngủ lúc " + until.ToString("HH:mm") +
+                        ". Gia hạn +1 giờ nếu vẫn tiếp tục tăng ca.";
+                    if (_d161LastOvertimeWarningUntilMs != untilMs)
                     {
-                        ShowInTaskbar = true;
-                        Show();
-                        Activate();
+                        _d161LastOvertimeWarningUntilMs = untilMs;
+                        try
+                        {
+                            if (!Visible || WindowState == FormWindowState.Minimized) RestoreFromTray();
+                            ShowInTaskbar = true;
+                            Show();
+                            Activate();
+                            _afterHoursPanel.BringToFront();
+                        }
+                        catch { }
+                        Log("AFTER_HOURS d161_t15_warning=SHOW_ONCE until=" + until.ToString("HH:mm"));
                     }
-                    TopMost = true;
-                    BringToFront();
-                    Activate();
-                    _afterHoursPanel.BringToFront();
-                }
-                catch { }
-                Log("AFTER_HOURS prompt=SHOW_ONCE boundary=" + boundary.ToString("HH:mm") +
-                    " next=" + until.ToString("HH:mm"));
-                return;
-            }
-
-            _lastAfterHoursPromptAt = DateTime.MinValue;
-            _lastAfterHoursPromptBoundaryMs = 0L;
-            TopMost = false;
-            if (activeOverride && !needsConfirmation)
-            {
-                var overrideUntil = DateTimeOffset.FromUnixTimeMilliseconds(
-                    coordinator.SharedRelayOverrideUntilMs).ToOffset(TimeSpan.FromHours(7)).DateTime;
-                _afterHoursStatus.Text =
-                    "Đang tăng ca · áp dụng toàn hệ thống đến " + overrideUntil.ToString("HH:mm") +
-                    ". App/PDA và Web dùng cùng trạng thái.";
-                return;
-            }
-
-            if (frozenOutsideRegular)
-            {
-                var next = _businessSchedule.NextRegularStart(now);
-                if (earlyStartWindow)
-                {
-                    _afterHoursStatus.Text =
-                        "Replay PDA đang ngủ · có thể bật sớm từ 05:00 đến 05:45.";
-                    _afterHoursEarlyStart.Text = "Bật sớm trước 05:45";
-                }
-                else if (overtimeSleepWindow)
-                {
-                    var adjustUntil = _businessSchedule.ManualAdjustmentUntil(now);
-                    _afterHoursStatus.Text =
-                        "Replay PDA đang ngủ · không có gia hạn hiện hành. Xác nhận trực tiếp tại Agent vẫn hoạt động.";
-                    _afterHoursEarlyStart.Text = adjustUntil == DateTime.MinValue
-                        ? "Điều chỉnh tăng ca"
-                        : "Điều chỉnh tăng ca · đến " + adjustUntil.ToString("HH:mm");
                 }
                 else
                 {
-                    _afterHoursStatus.Text = "Replay PDA đang ngủ đến " + next.ToString("HH:mm") + ".";
-                    _afterHoursEarlyStart.Text = "Bật sớm trước 05:45";
+                    _afterHoursStatus.Text =
+                        "Đang tăng ca · áp dụng toàn hệ thống đến " + until.ToString("HH:mm") +
+                        ". App/PDA và Web dùng cùng trạng thái.";
                 }
                 return;
             }
 
-            if (relayAllowed && hasBoundary && coordinator != null &&
-                coordinator.HasScheduleDecision(key, boundaryMs))
+            _d161LastOvertimeWarningUntilMs = 0L;
+            TopMost = false;
+            if (overtimeSleepWindow)
             {
-                var decision = coordinator.SharedScheduleDecision;
-                var until = _businessSchedule.ExtensionUntil(boundary);
-                _afterHoursStatus.Text = string.Equals(decision, "CONTINUE", StringComparison.Ordinal)
-                    ? "Đã xác nhận tiếp tục replay đến " + until.ToString("HH:mm") + " trên hệ thống."
-                    : "Đã xác nhận dừng relay tại " + boundary.ToString("HH:mm") + " trên hệ thống.";
+                _afterHoursPanel.BackColor = Color.FromArgb(185, 28, 28);
+                _afterHoursStatus.ForeColor = Color.White;
+                _afterHoursStatus.Text =
+                    "Relay đang ngủ · không có gia hạn hiện hành. Xác nhận tăng ca thêm 1 giờ để hoạt động tiếp.";
+
+                var anchorDate = now.TimeOfDay < AgentBusinessSchedule.OvertimeCutoff
+                    ? now.Date.AddDays(-1)
+                    : now.Date;
+                var sleepBoundaryMs = OperationalMs(anchorDate.Add(AgentBusinessSchedule.RegularEnd));
+                if (_d161LastSleepForegroundBoundaryMs != sleepBoundaryMs)
+                {
+                    _d161LastSleepForegroundBoundaryMs = sleepBoundaryMs;
+                    try
+                    {
+                        if (!Visible || WindowState == FormWindowState.Minimized) RestoreFromTray();
+                        ShowInTaskbar = true;
+                        Show();
+                        Activate();
+                        _afterHoursPanel.BringToFront();
+                    }
+                    catch { }
+                    Log("AFTER_HOURS d161_sleep=SHOW_ONCE boundary=22:15");
+                }
                 return;
             }
 
+            if (earlyStartWindow)
+            {
+                _afterHoursPanel.BackColor = Color.FromArgb(185, 28, 28);
+                _afterHoursStatus.ForeColor = Color.White;
+                _afterHoursStatus.Text = "Relay PDA đang ngủ · có thể bật sớm từ 05:00 đến 05:45.";
+                return;
+            }
+
+            _afterHoursPanel.BackColor = Color.FromArgb(255, 247, 226);
+            _afterHoursStatus.ForeColor = Color.FromArgb(111, 78, 15);
             _afterHoursStatus.Text = relayAllowed
-                ? "Replay PDA hoạt động theo lịch đã xác nhận."
+                ? "Replay PDA hoạt động theo khung kỹ thuật 05:45–22:15."
                 : _businessSchedule.StatusText(now);
         }
 
@@ -3507,7 +3497,6 @@ namespace SupraInventoryRelayAgent
         {
             UserStartupRegistration.EnsureRegistered();
             LogNetworkSnapshot("startup");
-            if (TryAutoUpdate(true)) return;
             RestoreSession();
             AgentBrowserBundle.EnsureBackground(Log);
         }
