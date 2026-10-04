@@ -88,6 +88,8 @@ jobs:
           $d160Ui = Get-Content relay-agent/D160UiHistory.cs -Raw
           $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
           $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
+          $d161Admin = Get-Content relay-agent/D161AdminControl.cs -Raw
+          $core = Get-Content service/src/core.ts -Raw
 
           $releaseVersion = (Get-Content relay-agent/VERSION -Raw).Trim()
           if ($releaseVersion -notmatch '^\d+$' -or [int]$releaseVersion -lt 101) {
@@ -137,6 +139,40 @@ jobs:
               -not $browser.Contains('_successfulReload') -or
               -not $d157Features.Contains('successful_reload_clock_reset=PASS')) {
             throw "D161 reload/page-size/D157 clock guard regression."
+          }
+
+          foreach ($marker in @(
+            'Kích toàn bộ user',
+            'admin',
+            'tamnv2',
+            'VerifyCurrentAgentPasswordForAction',
+            '/api/agent/picker-session/revoke-all-preview',
+            '/api/agent/picker-session/revoke-all',
+            'bulk-' 
+          )) {
+            if (-not $d161Admin.Contains($marker)) { throw "D161 bulk Picker revoke Agent guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            '/api/agent/picker-session/revoke-all-preview',
+            '/api/agent/picker-session/revoke-all',
+            'D161_PRIVILEGED_AGENT_REQUIRED',
+            'clearPickerNotificationTargets',
+            'D161_BULK_PICKER_REVOKE'
+          )) {
+            if (-not $serviceIndex.Contains($marker)) { throw "D161 bulk Picker revoke Worker guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            '/auth/picker-android-session-count',
+            '/auth/revoke-all-picker-android-sessions',
+            'd161_bulk_picker_revoke:',
+            'idempotent_replay'
+          )) {
+            if (-not $core.Contains($marker)) { throw "D161 bulk Picker revoke InventoryCore guard missing: $marker" }
+          }
+          if ($d161Admin.Contains('FirestorePickerSessionControlBaseUrl') -or
+              $rules.Contains('relay_admin_commands') -or
+              $functionsIndex.Contains('relay_admin_commands')) {
+            throw "D161 bulk Picker revoke must reuse existing Worker/session authority without a new Firestore command resource."
           }
 
           foreach ($marker in @(
