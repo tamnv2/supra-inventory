@@ -139,6 +139,29 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        internal void TryQueueGlobalSupportSnapshot(string requestId, string traceId)
+        {
+            try
+            {
+                var safeRequest = AgentDiagnostics.Sanitize(requestId ?? "");
+                var safeTrace = AgentDiagnostics.Sanitize(traceId ?? "");
+                var marker =
+                    "GLOBAL_SUPPORT_REQUEST_ID=" + safeRequest + Environment.NewLine +
+                    "TRACE_ID=" + safeTrace;
+                var path = SealFromCheckpoint("manual", marker);
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                _log(string.IsNullOrWhiteSpace(path)
+                    ? "AGENT LOG global_support=SKIP_EMPTY request=" + safeRequest
+                    : "AGENT LOG global_support=SEALED request=" + safeRequest +
+                      " upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
+            }
+            catch (Exception ex)
+            {
+                _log("AGENT LOG global_support=LOCAL_PENDING type=" + ex.GetType().Name);
+            }
+        }
+
         internal void TryQueueBoundarySnapshot(string reason)
         {
             try
