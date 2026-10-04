@@ -153,6 +153,57 @@ export async function publishAgentSupportLogRequest(
   if (!response.ok) throw new Error(`AGENT_SUPPORT_CONTROL_WRITE_HTTP_${response.status}`);
 }
 
+export async function publishPickerSessionRevocation(
+  env: ProjectionWriteEnv,
+  input: {
+    user_id: string;
+    firebase_uid: string;
+    revoked_generation: number;
+    kicked_at_ms: number;
+    issued_by_user_id: string;
+    issued_by_agent_instance_id: string;
+  },
+): Promise<void> {
+  const token = await accessToken(env);
+  const fields = document({
+    firebase_uid: input.firebase_uid,
+    user_id: input.user_id,
+    revoked_generation: Math.max(1, Math.trunc(input.revoked_generation)),
+    kicked_at_ms: Math.max(0, Math.trunc(input.kicked_at_ms)),
+    kicked_by_user_id: input.issued_by_user_id,
+    kicked_by_agent_id: input.issued_by_agent_instance_id,
+    source: "D161_SINGLE_REVOKE_SERVER_AUTHORITY",
+  }).fields;
+  const mask = [
+    "firebase_uid",
+    "user_id",
+    "revoked_generation",
+    "kicked_at_ms",
+    "kicked_by_user_id",
+    "kicked_by_agent_id",
+    "source",
+  ].map((name) => `updateMask.fieldPaths=${encodeURIComponent(name)}`).join("&");
+  let lastStatus = 0;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch(
+      documentUrl(env, "picker_session_controls", input.firebase_uid) + "?" + mask,
+      {
+        method: "PATCH",
+        headers: {
+          authorization: `Bearer ${token}`,
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ fields }),
+      },
+    );
+    if (response.ok) return;
+    lastStatus = response.status;
+    if (![408, 429, 500, 502, 503, 504].includes(response.status)) break;
+  }
+  throw new Error(`PICKER_SESSION_REVOKE_SIGNAL_HTTP_${lastStatus}`);
+}
+
 async function putDocument(
   env: ProjectionWriteEnv,
   collection: string,
