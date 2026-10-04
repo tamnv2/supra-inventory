@@ -329,7 +329,7 @@ def main() -> None:
     require(relay, "reconcileOperatingScheduleOnce", "D149 PickList one-shot schedule reconciliation")
     require(relay, "FIRESTORE_DOCUMENT", "D149 exact Firestore schedule fallback")
     require(relay, "WORKER_CLOSED exact_get=REQUIRED", "D154 stale Worker schedule exact-get recovery")
-    require(relay, "05:45–22:30", "D154 widened Android operating window")
+    require(relay, "05:45–22:15", "D161 Android technical Replay window")
     require(main_activity, "tvLoginVersion", "D154 login version presentation")
     require(main_activity, "ƯU TIÊN 1 · KHÔNG LÀM PHIỀN + OVERLAY", "D154 prioritized DND/Overlay setup")
     require(firestore_leader, "PublishCancelOvertime", "D154 shared overtime cancellation")
