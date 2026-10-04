@@ -1823,7 +1823,6 @@ namespace SupraInventoryRelayAgent
             }
 
             merged = FilterPickerTombstones(merged);
-            merged = FilterPickerTombstones(merged);
             var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
             var after = PickerSharedStateSignature(merged);
             if (!string.Equals(before, after, StringComparison.Ordinal))
@@ -1994,6 +1993,7 @@ namespace SupraInventoryRelayAgent
                 }
             }
 
+            merged = FilterPickerTombstones(merged);
             var before = PickerSharedStateSignature(_pickerOnlineSnapshot);
             var after = PickerSharedStateSignature(merged);
             if (string.Equals(before, after, StringComparison.Ordinal))
