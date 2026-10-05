@@ -577,6 +577,7 @@ function processBatchAutoSkip(
           auto_skip_mode: "FIRST_REPORT",
           affected_picker_count: targetRows.length,
           correction_deadline_at: correctionDeadline,
+          queue_delta: -1,
         },
         now,
       );
@@ -725,6 +726,7 @@ function processPerPickerAutoSkip(
           auto_skip_deadline_at: String(row.auto_skip_deadline_at || ""),
           final_batch_resolution: finalForBatch,
           correction_deadline_at: correctionDeadline,
+          queue_delta: finalForBatch ? -1 : 0,
         },
         now,
       );
