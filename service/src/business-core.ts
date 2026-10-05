@@ -482,7 +482,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       at,
       at,
     );
-    const eventId = event(state, actor, "REPORT_CREATED", batch.batch_id, ticketId, { sku }, at);
+    const eventId = event(state, actor, "REPORT_CREATED", batch.batch_id, ticketId, { sku, queue_delta: existingBatch ? 0 : 1 }, at);
     audit(state, actor, "REPORT_CREATE", "REPORT_TICKET", ticketId, { batch_id: batch.batch_id, sku }, at);
 
     const payload = {
@@ -573,9 +573,6 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
       at,
       ticketId,
     );
-    const eventId = event(state, actor, "REPORT_WITHDRAWN", ticket.batch_id, ticketId, { sku: ticket.sku }, at);
-    audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
-
     const activeRemaining = firstRow(
       state.storage.sql
         .exec<SqlRow>(
@@ -584,6 +581,17 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
         )
         .toArray(),
     );
+    const queueDelta = Number(activeRemaining?.count || 0) === 0 ? -1 : 0;
+    const eventId = event(
+      state,
+      actor,
+      "REPORT_WITHDRAWN",
+      ticket.batch_id,
+      ticketId,
+      { sku: ticket.sku, queue_delta: queueDelta },
+      at,
+    );
+    audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
     if (Number(activeRemaining?.count || 0) === 0) {
       const timedOut = firstRow(
         state.storage.sql
@@ -733,7 +741,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_RESOLVED",
       batchId,
       null,
-      { resolution, source: "REPORTER", affected_picker_count: affected, correction_deadline_at: correctionDeadline },
+      { resolution, source: "REPORTER", affected_picker_count: affected, correction_deadline_at: correctionDeadline, queue_delta: -1 },
       at,
     );
     audit(state, actor, "BATCH_RESOLVE", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, resolution, source: "REPORTER", affected_picker_count: affected }, at);
