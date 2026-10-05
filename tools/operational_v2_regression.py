@@ -100,6 +100,7 @@ def require_source_markers() -> None:
         "/authorized/operational/reporter/queue",
         "/authorized/operational/reporter/recent",
         "/authorized/operational/realtime/delta",
+        "/authorized/realtime/ticket",
         "authorizeInteractiveIdentity",
         "x-supra-session-generation",
     ):
