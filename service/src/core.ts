@@ -833,6 +833,17 @@ export class InventoryCore {
       if (request.method === "POST" && url.pathname === "/authorized/operational/picker/result-stage") {
         const user = this.authorizeInteractiveIdentity(request, pickerRoles);
         if (user instanceof Response) return user;
+        if (String(request.headers.get("x-supra-session-channel") || "").toUpperCase() === "ANDROID") {
+          await this.reconcileOperatingScheduleExactIfClosed();
+          const windowState = readAndroidAlertWindow(this.state);
+          if (windowState.is_open !== true) {
+            return response({
+              error: "ANDROID_WINDOW_CLOSED",
+              message: "Ngoài cửa sổ kỹ thuật Replay 05:45–22:15 và chưa có lệnh tăng ca/bật sớm hiện hành.",
+              server_now_ms: Number(windowState.server_now_ms || 0),
+            }, 403);
+          }
+        }
         let body: Record<string, unknown> = {};
         try {
           const parsed = await request.json();
