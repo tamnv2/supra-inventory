@@ -5045,18 +5045,19 @@
     },
     {
       "id": "OA097",
-      "status": "PENDING_FIELD_VALIDATION",
+      "status": "WAITING_D162_REPAIR_RUNTIME_DEPLOY",
       "title": "Field-accept D162 usage efficiency under comparable active load",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Firestore / Web / Windows Agent",
-      "reason_owner_only": "D162 technical/runtime/release gates are PASS, but comparable real operating load and final business acceptance require the Owner/company field environment. Technical PASS does not promote D162.",
+      "reason_owner_only": "D162 field usage acceptance remains Owner/company-only, but the Owner-approved realtime badge lazy-queue repair must first pass PR CI, merge and Beta runtime deploy. Do not collect final comparable-load acceptance evidence against the superseded pre-repair Web behavior.",
       "prerequisites": {
         "accepted_base": "D161__OWNER_PASS",
         "d162_main": "9ac67180c310fe56324608e3118671d278f311c6",
         "beta_worker": "PASS__RUN_37344066134",
         "agent": "relay-agent-v114__RELEASED__RUN_37344066196",
         "android": "beta-vc97__UNCHANGED",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "d162_realtime_badge_repair": "OWNER_APPROVED_2026_10_06__IMPLEMENTED_BRANCH_CI_PENDING"
       },
       "shortest_test_path": [
         "Operate Beta normally during a representative active period; do not generate artificial traffic solely for the test.",
@@ -5090,7 +5091,7 @@
         "android": "beta-vc97__UNCHANGED__ASSET_609733318",
         "stable": "OWNER_GATED_UNTOUCHED"
       },
-      "remaining_owner_action": "FIELD_USAGE_AND_BUSINESS_ACCEPTANCE_PENDING",
+      "remaining_owner_action": "WAIT_FOR_D162_REPAIR_RUNTIME_PASS__THEN_FIELD_USAGE_AND_BUSINESS_ACCEPTANCE",
       "closed": false
     }
   ]

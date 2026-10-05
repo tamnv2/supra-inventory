@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-D162 is technically deployed/released on Beta and remains the only open change. Collect comparable active-load Cloudflare/Firestore usage plus business latency/stability evidence under OA097. D162 requires explicit Owner PASS before any D163/unrelated mutation; any failure is repaired under D162. Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
+D162 remains the only open change. The previously released runtime is under an Owner-approved same-D162 realtime badge lazy-queue repair. Complete repair PR CI, merge and Beta runtime deployment first; only then resume OA097 comparable-load Cloudflare/Firestore usage plus business latency/stability evidence. Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 
@@ -1774,3 +1774,11 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Android remains `beta-vc97` hard-locked unchanged.
 - Stable remains OWNER-GATED and untouched.
 - OA097 comparable-load usage/latency validation and explicit Owner PASS remain pending.
+
+## D162 realtime badge lazy-queue repair candidate — 2026-10-06
+
+- Owner approved the same-D162 repair after reporting that the queue/recent split felt non-realtime.
+- Candidate branch: `repair/d162-realtime-badge-lazy-queue`.
+- Behavior: realtime queue badge uses bounded `queue_delta` metadata; full queue rows load only while Operations is visible; Results loads recent data only; unknown/gap state uses one lightweight count reconcile.
+- No Agent/Android/Stable/resource change. Agent remains `relay-agent-v114`; Android remains `beta-vc97`; Stable remains OWNER-GATED.
+- OA097 is temporarily waiting for repaired Beta runtime PASS before comparable-load field acceptance resumes.

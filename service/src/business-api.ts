@@ -179,15 +179,19 @@ async function realtimeAfter(
 
   let batchId = options.batchId || "";
   let eventId = "";
+  const metadata: Record<string, unknown> = { ...(options.metadata || {}) };
   try {
     const payload = (await response.clone().json()) as {
       event_id?: string | null;
       batch_id?: string;
       ticket?: { batch_id?: string };
       acknowledgement?: { batch_id?: string };
+      queue_delta?: unknown;
     };
     eventId = String(payload.event_id || "");
     batchId = String(batchId || payload.batch_id || payload.ticket?.batch_id || payload.acknowledgement?.batch_id || "");
+    const queueDelta = Number(payload.queue_delta);
+    if (Number.isInteger(queueDelta) && queueDelta >= -1 && queueDelta <= 1) metadata.queue_delta = queueDelta;
   } catch {
     // Keep best-effort broadcast behavior.
   }
@@ -200,7 +204,7 @@ async function realtimeAfter(
       tags: options.tags || [],
       batch_id: batchId || null,
       include_batch_picker_users: Boolean(options.includeBatchPickerUsers),
-      metadata: options.metadata || {},
+      metadata,
     });
   } catch {
     // Realtime is best-effort. Authoritative transaction success must not be rolled back by notification failure.

@@ -57,13 +57,13 @@ Released artifacts:
 
 D161 is the accepted Owner-PASS base. D162 is technically released on Beta at main `9ac67180c310fe56324608e3118671d278f311c6` with `relay-agent-v114`; Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
 
-The only open D162 gate is comparable active-load usage/latency validation plus explicit Owner PASS. Do not open D163. If field evidence fails any D162 acceptance target, repair and retest under D162.
+The Owner approved a same-D162 realtime badge lazy-queue repair on 2026-10-06. The repair must pass PR CI, merge and Beta runtime deployment before OA097 comparable-load field validation resumes. Do not open D163.
 
 On the next session:
 1. read `ops/authority-manifest.json`;
 2. read the complete declared `bootstrap_order`;
 3. verify recent commits/CI and relevant live source;
-4. continue D162 OA097 field usage validation or same-D162 repair.
+4. continue the D162 realtime badge repair through CI → merge → Beta runtime PASS, then resume OA097.
 
 ## 6. Resume command
 
@@ -1782,3 +1782,11 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Android remains `beta-vc97` unchanged; Stable remains OWNER-GATED and untouched.
 - OA097 is pending comparable active-load usage/latency evidence and explicit Owner acceptance.
 - No D163 or unrelated mutation is allowed before D162 Owner PASS.
+
+## D162 realtime badge lazy-queue repair candidate — 2026-10-06
+
+- Owner approved the same-D162 repair after reporting that the queue/recent split felt non-realtime.
+- Candidate branch: `repair/d162-realtime-badge-lazy-queue`.
+- Behavior: realtime queue badge uses bounded `queue_delta` metadata; full queue rows load only while Operations is visible; Results loads recent data only; unknown/gap state uses one lightweight count reconcile.
+- No Agent/Android/Stable/resource change. Agent remains `relay-agent-v114`; Android remains `beta-vc97`; Stable remains OWNER-GATED.
+- OA097 is temporarily waiting for repaired Beta runtime PASS before comparable-load field acceptance resumes.

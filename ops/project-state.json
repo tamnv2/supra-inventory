@@ -5318,7 +5318,7 @@
     "technical_pass": true,
     "merge_ready": false,
     "field_usage_validation": "PENDING_COMPARABLE_ACTIVE_LOAD_AND_OWNER_ACCEPTANCE",
-    "next_action": "COLLECT_COMPARABLE_ACTIVE_LOAD_USAGE_AND_LATENCY_EVIDENCE__VERIFY_DO_REDUCTION_FIRESTORE_READ_REDUCTION_NO_WRITE_OR_LATENCY_REGRESSION__THEN_OWNER_PASS_OR_REPAIR_SAME_D162",
+    "next_action": "VALIDATE_SAME_D162_REALTIME_BADGE_REPAIR__PR_CI_AND_AUTHORITY_PASS__MERGE_AND_BETA_DEPLOY__THEN_CONTINUE_OA097_COMPARABLE_ACTIVE_LOAD_USAGE_LATENCY_VALIDATION",
     "completion_evidence": {
       "pr": 447,
       "validated_code_head": "4cc884e428cc445886e61e9e27bede05b6711dd8",
@@ -5357,6 +5357,25 @@
       "android_release": "beta-vc97__UNCHANGED",
       "android_inventory_channel_asset_id": 609733318
     },
-    "merged_main_sha": "9ac67180c310fe56324608e3118671d278f311c6"
+    "merged_main_sha": "9ac67180c310fe56324608e3118671d278f311c6",
+    "repair_candidate": {
+      "owner_approved_date": "2026-10-06",
+      "status": "IMPLEMENTED_BRANCH__CI_PENDING",
+      "branch": "repair/d162-realtime-badge-lazy-queue",
+      "scope": "WEB_SERVICE_ONLY__SAME_D162",
+      "behavior": "REALTIME_BADGE_QUEUE_DELTA__FULL_QUEUE_ONLY_WHEN_OPERATIONS_VISIBLE__RESULTS_RECENT_ONLY__LIGHTWEIGHT_COUNT_RECONCILE_ON_BASELINE_OR_GAP",
+      "provider_impact": "NO_NEW_RESOURCE_POLL_LISTENER_HEARTBEAT_OR_WRITE_CADENCE__QUEUE_DELTA_PIGGYBACK_EXISTING_REALTIME_EVENTS",
+      "agent": "relay-agent-v114__UNCHANGED",
+      "android": "beta-vc97__UNCHANGED",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "validation_required": [
+        "WEB_TYPESCRIPT_BUILD_PASS",
+        "OPERATIONAL_V2_REGRESSION_PASS",
+        "WEB_OPERATIONAL_REGRESSION_PASS",
+        "AUTHORITY_AND_CONTINUITY_PASS",
+        "BETA_DEPLOY_RUNTIME_PASS",
+        "THEN_CONTINUE_OA097_COMPARABLE_LOAD_FIELD_VALIDATION"
+      ]
+    }
   }
 }

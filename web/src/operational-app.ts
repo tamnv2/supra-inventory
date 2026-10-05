@@ -241,6 +241,9 @@ function businessRoleLabel(role: string): string {
 
 function clearRoleScopedViewState(): void {
   queueRows = [];
+  queueBadgeCount = 0;
+  queueBadgeInitialized = false;
+  reporterBadgeLoadGeneration += 1;
   recentRows = [];
   recentOffset = 0;
   recentTotal = 0;
@@ -336,6 +339,9 @@ let realtimeLastSeq = 0;
 let serviceReachable = false;
 let lastWebUpdateAt: Date | null = null;
 let queueRows: ReporterBatch[] = [];
+let queueBadgeCount = 0;
+let queueBadgeInitialized = false;
+let reporterBadgeLoadGeneration = 0;
 let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
 let recentOffset = 0;
@@ -1110,14 +1116,14 @@ function navIcon(key: string): string {
 }
 
 function navButton(section: Section, label: string): string {
-  const noticeCount = section === "operations" && roleOperate() ? queueRows.length : null;
+  const noticeCount = section === "operations" && roleOperate() ? queueBadgeCount : null;
   const notice = noticeCount == null || noticeCount <= 0 ? "" : `<b class="nav-notice-badge" data-operations-nav-count>${noticeCount > 99 ? "99+" : noticeCount}</b>`;
   return `<button class="nav-button ${activeSection === section ? "active" : ""}" data-section="${section}"${activeSection === section ? ' aria-current="page"' : ""}>${navIcon(section)}<span>${esc(label)}</span>${notice}</button>`;
 }
 
 function syncOperationsNavBadge(): void {
   let node = document.querySelector<HTMLElement>("[data-operations-nav-count]");
-  if (queueRows.length <= 0) {
+  if (queueBadgeCount <= 0) {
     node?.remove();
     return;
   }
@@ -1129,7 +1135,7 @@ function syncOperationsNavBadge(): void {
     node.setAttribute("data-operations-nav-count", "");
     button.appendChild(node);
   }
-  node.textContent = queueRows.length > 99 ? "99+" : String(queueRows.length);
+  node.textContent = queueBadgeCount > 99 ? "99+" : String(queueBadgeCount);
 }
 
 function navGroup(title: string, rows: Array<[Section, string]>): string {
@@ -2804,6 +2810,8 @@ async function loadReporterQueueSnapshot(): Promise<void> {
   const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
   queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : queueServerOffsetMs;
   queueRows = queue.items;
+  queueBadgeCount = Math.max(0, Number(queue.total || queue.items.length));
+  queueBadgeInitialized = true;
   syncOperationsNavBadge();
   if (selectedBatchId && !queueRows.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = null;
   const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || filteredQueueRows()[0] || queueRows[0];
@@ -2812,6 +2820,46 @@ async function loadReporterQueueSnapshot(): Promise<void> {
     prefetchBatchDetails(selected.batch_id);
   }
   markWebUpdateReceived();
+}
+
+async function loadReporterQueueBadgeCount(force = false): Promise<void> {
+  if (!roleOperate() || (queueBadgeInitialized && !force)) return;
+  const requestGeneration = ++reporterBadgeLoadGeneration;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const queue = await getReporterQueue(1, 0);
+  if (
+    requestGeneration !== reporterBadgeLoadGeneration ||
+    generation !== sessionViewGeneration ||
+    userId !== (profile?.user_id || "")
+  ) return;
+  queueBadgeCount = Math.max(0, Number(queue.total || 0));
+  queueBadgeInitialized = true;
+  syncOperationsNavBadge();
+  markWebUpdateReceived();
+}
+
+function applyReporterQueueBadgeEvents(events: RealtimeEventFrame[]): boolean {
+  if (!roleOperate() || !queueBadgeInitialized) return false;
+  const queueMutationEvents = new Set([
+    "REPORT_CREATED",
+    "REPORT_WITHDRAWN",
+    "BATCH_RESOLVED",
+    "TICKET_AUTO_SKIP_ALLOWED",
+    "BATCH_AUTO_SKIP_ALLOWED",
+  ]);
+  let next = queueBadgeCount;
+  for (const row of events) {
+    if (!(row.scopes || []).includes("reporter_queue")) continue;
+    const eventName = String(row.event || "").trim().toUpperCase();
+    if (!queueMutationEvents.has(eventName)) continue;
+    const delta = Number(row.metadata?.queue_delta);
+    if (!Number.isInteger(delta) || delta < -1 || delta > 1) return false;
+    next = Math.max(0, next + delta);
+  }
+  queueBadgeCount = next;
+  syncOperationsNavBadge();
+  return true;
 }
 
 async function loadReporterRecentSnapshot(): Promise<void> {
@@ -2842,10 +2890,14 @@ async function loadReporterRecentSnapshot(): Promise<void> {
 }
 
 async function loadOperationsSnapshot(): Promise<void> {
-  await Promise.all([
-    loadReporterQueueSnapshot(),
-    loadReporterRecentSnapshot(),
-  ]);
+  if (activeSection === "results") {
+    await Promise.all([
+      loadReporterRecentSnapshot(),
+      loadReporterQueueBadgeCount(),
+    ]);
+    return;
+  }
+  await loadReporterQueueSnapshot();
 }
 
 async function loadOperations(): Promise<void> {
@@ -3375,6 +3427,9 @@ async function exportReportsExcel(): Promise<void> {
 async function loadSection(section: Section): Promise<void> {
   if (!profile) return;
   let received = false;
+  if (roleOperate() && section !== "operations" && !queueBadgeInitialized) {
+    await loadReporterQueueBadgeCount();
+  }
   if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
   else if (section === "shift" && roleManage()) { await loadShiftOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
@@ -3448,6 +3503,9 @@ function bindShell(): void {
       profile = null;
       notice = null;
       queueRows = [];
+      queueBadgeCount = 0;
+      queueBadgeInitialized = false;
+      reporterBadgeLoadGeneration += 1;
       recentRows = [];
       batchDetails.clear();
       pickerReports = [];
@@ -4299,6 +4357,7 @@ async function importSkuWorkbook(): Promise<void> {
 
 async function reconcileActive(): Promise<boolean> {
   try {
+    if (roleOperate() && activeSection !== "operations") await loadReporterQueueBadgeCount(true);
     if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
     else if (activeSection === "sla" && roleManage()) {
@@ -4345,13 +4404,16 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   const hrRelevant =
     Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT")) && scopes.has("hr_sync");
 
-  // D162: queue and recent are independent realtime projections. Queue scope always
-  // refreshes the global operational badge; recent scope is fetched only while its result
-  // surface is visible. Initial load and dirty/gap reconcile still use the full snapshot.
+  // D162 repair: keep the navigation badge realtime from tiny queue_delta metadata.
+  // Fetch the full queue only while Operations is visible; Results fetches only recent data.
+  // Missing/legacy delta metadata fails closed to one lightweight count read, never a full
+  // off-screen queue snapshot. Dirty/gap reconnects reconcile the count authoritatively.
   if (reporterScopeChanged) {
     try {
+      const queueBadgeExact = !reporterQueueChanged || applyReporterQueueBadgeEvents(events);
       const tasks: Promise<void>[] = [];
-      if (reporterQueueChanged) tasks.push(loadReporterQueueSnapshot());
+      if (reporterQueueChanged && activeSection === "operations") tasks.push(loadReporterQueueSnapshot());
+      else if (reporterQueueChanged && !queueBadgeExact) tasks.push(loadReporterQueueBadgeCount(true));
       if (reporterRecentChanged && activeSection === "results") tasks.push(loadReporterRecentSnapshot());
       if (tasks.length) await Promise.all(tasks);
       if (reporterQueueChanged) syncOperationsNavBadge();

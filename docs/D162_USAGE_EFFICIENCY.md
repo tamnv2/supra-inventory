@@ -75,3 +75,15 @@ D162 implementation PR #447 was merged to `main` at `9ac67180c310fe56324608e3118
 - Android remains `beta-vc97` unchanged; inventory-channel APK asset remains `609733318`.
 - Stable remains OWNER-GATED and untouched.
 - D162 is not Owner-PASS yet. Comparable active-load usage/latency evidence and explicit Owner acceptance remain required; any failure is repaired under D162.
+
+## Realtime badge lazy-queue repair — Owner approved 2026-10-06
+
+The same D162 change is repaired to preserve realtime feel while reducing off-screen reads:
+
+- `reporter_queue` realtime events carry a bounded `queue_delta` in existing event metadata for queue-changing mutations.
+- Web maintains a dedicated realtime queue badge count independent of the full queue rows.
+- Full Reporter queue data is fetched only when **Xử lý báo hàng / Operations** is visible.
+- **Kết quả gần đây / Results** fetches recent-result data only; it does not refresh the queue.
+- A fresh non-Operations surface establishes the badge with a lightweight `getReporterQueue(1, 0)` total read. Normal subsequent queue events update the badge from realtime metadata with no queue fetch.
+- Missing/legacy delta metadata and dirty/gap/reconnect states perform one authoritative lightweight count reconciliation rather than a full off-screen queue snapshot.
+- No new resource, polling, listener, heartbeat or provider-write cadence. Agent v114, Android vc97 and Stable are unchanged.

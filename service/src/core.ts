@@ -507,7 +507,10 @@ export class InventoryCore {
           tags,
           batch_id: effect.batch_id,
           include_batch_picker_users: false,
-          metadata: { source: "SYSTEM_DEADLINE" },
+          metadata: {
+            source: "SYSTEM_DEADLINE",
+            ...(effect.queue_delta == null ? {} : { queue_delta: effect.queue_delta }),
+          },
         }),
       }),
     );
