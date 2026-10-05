@@ -818,7 +818,7 @@ export class InventoryCore {
       if (request.method === "GET" && url.pathname === "/authorized/operational/picker/results") {
         const user = this.authorizeInteractiveIdentity(request, pickerRoles);
         if (user instanceof Response) return user;
-        const enabled = user.shortage_reporting_enabled === 1 || user.shortage_reporting_enabled === true;
+        const enabled = Number(user.shortage_reporting_enabled || 0) === 1;
         if (!enabled) {
           const result = response({ items: [], count: 0, total: 0, reporting_enabled: false });
           const headers = new Headers(result.headers);
