@@ -91,6 +91,7 @@ jobs:
           $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
           $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
           $d161Admin = Get-Content relay-agent/D161AdminControl.cs -Raw
+          $d161Support = Get-Content relay-agent/D161SupportLogControl.cs -Raw
           $core = Get-Content service/src/core.ts -Raw
 
           $releaseVersion = (Get-Content relay-agent/VERSION -Raw).Trim()
@@ -264,6 +265,15 @@ jobs:
               $rules.Contains('relay_admin_commands') -or
               $functionsIndex.Contains('relay_admin_commands')) {
             throw "D161 bulk Picker revoke must reuse existing Worker/session authority without a new Firestore command resource."
+          }
+
+          # D161 v113: the privileged fleet support-log command must be reachable
+          # from the visible Settings > Logs card, not a detached diagnostics page.
+          if (-not $d160Ui.Contains('InitializeD161GlobalSupportLogControl(card);') -or
+              $program.Contains('InitializeD161GlobalSupportLogControl(_technicalPage);') -or
+              -not $d161Support.Contains('Yêu cầu toàn bộ log hệ thống Báo hàng & xác nhận đơn') -or
+              -not $d161Support.Contains('IsD161PrivilegedAgentLogin(session)')) {
+            throw "D161 v113 visible support-log control wiring regression."
           }
 
           # D161 v109 single-kick repair: per-row kick uses one idempotent
