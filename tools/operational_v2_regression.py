@@ -122,6 +122,29 @@ def require_source_markers() -> None:
         if marker not in sla_auto:
             fail(f"D162 queue badge SLA delta missing: {marker}")
 
+    # Live websocket broadcasts must carry the same delta without a new provider or
+    # InventoryCore read. HTTP mutations expose the already-known delta and the
+    # business API forwards it; deadline effects carry it directly to broadcast.
+    for marker in (
+        "queue_delta?: unknown",
+        "metadata.queue_delta = queueDelta",
+        "metadata,",
+    ):
+        if marker not in business_api:
+            fail(f"D162 live business broadcast delta missing: {marker}")
+    for marker in (
+        "queue_delta?: -1 | 0 | 1",
+        "queue_delta: finalForBatch ? -1 : 0",
+    ):
+        if marker not in sla_auto:
+            fail(f"D162 live deadline effect delta missing: {marker}")
+    for marker in (
+        "effect.queue_delta",
+        "queue_delta: effect.queue_delta",
+    ):
+        if marker not in core:
+            fail(f"D162 live deadline broadcast delta missing: {marker}")
+
     schedule_pos = core.find("await scheduleNextOperationalAlarm(this.state);")
     broadcast_pos = core.find("for (const effect of effects) {", core.find("async alarm(): Promise<void>"))
     if schedule_pos < 0 or broadcast_pos < 0 or schedule_pos > broadcast_pos:
