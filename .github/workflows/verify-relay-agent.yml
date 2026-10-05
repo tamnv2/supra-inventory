@@ -213,11 +213,13 @@ jobs:
           if ($listenBody.Contains('HasOperationalReadiness') -or -not $listenBody.Contains('HasAgentSession')) {
             throw "D161 v108 StartListening must require Agent auth but not WMS readiness."
           }
-          if (-not $transport.Contains('var idleRealtime = !_hasActivePda() && D157PendingWakeSignal.IsConnected;') -or
-              -not $transport.Contains('if (!idleRealtime && (restDue ||') -or
+          if (-not $transport.Contains('HealthyListenerActiveWatchdogMs = 10000') -or
+              -not $transport.Contains('HealthyListenerInactiveWatchdogMs = 30000') -or
+              -not $transport.Contains('if (D157PendingWakeSignal.IsConnected)') -or
+              -not $transport.Contains('var restDue = _lastRestPendingQueryMs == 0 ||') -or
               -not $d157.Contains('internal static void WakeTransport()') -or
               -not $d119Features.Contains('transition=0_TO_ACTIVE provider_op=false')) {
-            throw "D161 v108 zero-PDA realtime/REST-fallback usage guard regression."
+            throw "D162 listener-first / bounded REST-watchdog usage guard regression."
           }
           if (-not $leader.Contains('if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;') -or
               -not $d160Pipeline.Contains('_leaderCoordinator.VerifyPrimaryBeforeMutation(session)')) {
