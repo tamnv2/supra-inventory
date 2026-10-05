@@ -685,6 +685,51 @@ export class InventoryCore {
     return rows[0] ?? null;
   }
 
+  private authorizeInteractiveIdentity(
+    request: Request,
+    roles: AppRole[],
+  ): InternalUser | Response {
+    const uid = String(request.headers.get("x-supra-auth-uid") || "").trim();
+    const channel = String(request.headers.get("x-supra-session-channel") || "").trim().toUpperCase();
+    const generation = Math.trunc(Number(request.headers.get("x-supra-session-generation") || 0));
+    if (!uid) return response({ error: "INVALID_AUTH_TOKEN" }, 401);
+    const user = this.getUserByFirebaseUid(uid);
+    if (!user || user.status !== "ACTIVE") return response({ error: "USER_NOT_ACTIVE" }, 403);
+    if (channel !== "WEB" && channel !== "ANDROID") {
+      return response({ error: "SESSION_UPGRADE_REQUIRED" }, 401);
+    }
+    const expected = channel === "WEB"
+      ? Number(user.web_session_generation || 0)
+      : Number(user.android_session_generation || 0);
+    if (!generation || generation !== expected) return response({ error: "SESSION_REPLACED" }, 401);
+    if (!roles.includes(user.role)) return response({ error: "FORBIDDEN" }, 403);
+    return user;
+  }
+
+  private authorizedOperationalResponse(
+    request: Request,
+    user: InternalUser,
+    pathname: string,
+    searchParams?: URLSearchParams,
+    body?: Record<string, unknown>,
+  ): Promise<Response> {
+    const target = new URL(request.url);
+    target.pathname = pathname;
+    target.search = searchParams ? searchParams.toString() : "";
+    const init: RequestInit = { method: body ? "POST" : "GET" };
+    if (body) {
+      init.headers = { "content-type": "application/json" };
+      init.body = JSON.stringify(body);
+    }
+    return handleOperationalV2CoreRequest(this.state, new Request(target.toString(), init))
+      .then((result) => {
+        if (!result) return response({ error: "not_found" }, 404);
+        const headers = new Headers(result.headers);
+        headers.set("x-supra-internal-user-id", user.user_id);
+        return new Response(result.body, { status: result.status, statusText: result.statusText, headers });
+      });
+  }
+
   private async reconcileOperatingScheduleExactIfClosed(): Promise<void> {
     if (readAndroidAlertWindow(this.state).is_open) return;
     if (this.scheduleRecoveryInFlight) {
@@ -749,6 +794,101 @@ export class InventoryCore {
         operational_v2: operationalV2,
         root_password_initialized: Boolean(root?.password_hash && root?.password_salt),
       }, operationalV2.ready ? 200 : 503);
+    }
+
+    // D162: high-volume authenticated operational routes validate Firebase identity,
+    // session generation and role inside InventoryCore, then execute the read/mutation
+    // in the same Durable Object invocation. The Worker still verifies the Firebase
+    // signature before calling these internal-only paths.
+    if (url.pathname.startsWith("/authorized/operational/")) {
+      const pickerRoles: AppRole[] = ["PICKER"];
+      const reporterRoles: AppRole[] = ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"];
+
+      if (request.method === "GET" && url.pathname === "/authorized/operational/picker/reports") {
+        const user = this.authorizeInteractiveIdentity(request, pickerRoles);
+        if (user instanceof Response) return user;
+        if (!user.employee_code) return response({ error: "PICKER_EMPLOYEE_CODE_REQUIRED" }, 409);
+        const params = new URLSearchParams({ user_id: user.user_id, employee_code: user.employee_code });
+        for (const name of ["limit", "offset", "scope"]) {
+          if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+        }
+        return this.authorizedOperationalResponse(request, user, "/operational/picker/reports", params);
+      }
+
+      if (request.method === "GET" && url.pathname === "/authorized/operational/picker/results") {
+        const user = this.authorizeInteractiveIdentity(request, pickerRoles);
+        if (user instanceof Response) return user;
+        const enabled = user.shortage_reporting_enabled === 1 || user.shortage_reporting_enabled === true;
+        if (!enabled) {
+          const result = response({ items: [], count: 0, total: 0, reporting_enabled: false });
+          const headers = new Headers(result.headers);
+          headers.set("x-supra-internal-user-id", user.user_id);
+          return new Response(result.body, { status: result.status, headers });
+        }
+        const params = new URLSearchParams({ user_id: user.user_id });
+        if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+        return this.authorizedOperationalResponse(request, user, "/operational/picker/results", params);
+      }
+
+      if (request.method === "POST" && url.pathname === "/authorized/operational/picker/result-stage") {
+        const user = this.authorizeInteractiveIdentity(request, pickerRoles);
+        if (user instanceof Response) return user;
+        let body: Record<string, unknown> = {};
+        try {
+          const parsed = await request.json();
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed as Record<string, unknown>;
+        } catch {}
+        return this.authorizedOperationalResponse(request, user, "/operational/picker/result-stage", undefined, {
+          ...body,
+          actor: {
+            user_id: user.user_id,
+            employee_code: user.employee_code,
+            role: user.role,
+            display_name: user.display_name,
+          },
+        });
+      }
+
+      if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/queue") {
+        const user = this.authorizeInteractiveIdentity(request, reporterRoles);
+        if (user instanceof Response) return user;
+        const params = new URLSearchParams();
+        for (const name of ["limit", "offset"]) {
+          if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+        }
+        return this.authorizedOperationalResponse(request, user, "/operational/reporter/queue", params);
+      }
+
+      if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/recent") {
+        const user = this.authorizeInteractiveIdentity(request, reporterRoles);
+        if (user instanceof Response) return user;
+        const params = new URLSearchParams();
+        for (const name of ["limit", "offset", "status", "scope", "from", "to"]) {
+          if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+        }
+        return this.authorizedOperationalResponse(request, user, "/operational/reporter/recent", params);
+      }
+
+      if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/batch-tickets") {
+        const user = this.authorizeInteractiveIdentity(request, reporterRoles);
+        if (user instanceof Response) return user;
+        const params = new URLSearchParams({ batch_id: url.searchParams.get("batch_id") || "" });
+        return this.authorizedOperationalResponse(request, user, "/operational/reporter/batch-tickets", params);
+      }
+
+      if (request.method === "GET" && url.pathname === "/authorized/operational/realtime/delta") {
+        const user = this.authorizeInteractiveIdentity(request, ["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"]);
+        if (user instanceof Response) return user;
+        const params = new URLSearchParams({
+          user_id: user.user_id,
+          role: user.role,
+          after_seq: url.searchParams.get("after_seq") || "0",
+        });
+        for (const name of ["limit", "stream_epoch"]) {
+          if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+        }
+        return this.authorizedOperationalResponse(request, user, "/operational/realtime/delta", params);
+      }
     }
 
     if (request.method === "GET" && url.pathname === "/auth/user-by-username") {
