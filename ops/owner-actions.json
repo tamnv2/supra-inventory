@@ -4792,11 +4792,11 @@
     },
     {
       "id": "OA096",
-      "status": "READY_FOR_OWNER_FIELD_RETEST",
+      "status": "CLOSED__OWNER_PASS",
       "title": "Field-accept D161 consolidated Beta candidate",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Web / Android / Windows Agent / HR event sync / support logging",
-      "reason_owner_only": "D161 eighth field repair is merged and technical/runtime/release PASS: Agent v112 plus repaired existing Beta Firestore Rules. Android beta-vc97 remains unchanged. Owner field retest is now required to prove WMS success is followed by durable ACK/PDA success without the prior 20-second timeout.",
+      "reason_owner_only": "Owner explicitly closed D161 as done on 2026-10-05 after D161 v113 technical/runtime/release PASS; no further D161 field action remains.",
       "prerequisites": {
         "accepted_base": "D160__RELAY_AGENT_V97",
         "d161_implementation": "TRANCHE_A_B_C_D_E_MERGED",
@@ -4961,10 +4961,23 @@
           "worker": "PASS__RUN_37214830211__SOURCE_C5673B4E__SCHEMA17_17__OPERATIONAL5_5",
           "stable": "OWNER_GATED_UNTOUCHED",
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
+        },
+        "ninth_field_repair": {
+          "repair_pr": 445,
+          "main_sha": "a246412fc747e04ca99dcef785333bd38925d9b2",
+          "agent": "relay-agent-v113",
+          "release_id": 403819430,
+          "agent_asset_id": 612827259,
+          "agent_sha256": "f474abb09883ec1c9413f26b22fa8f16e2789467696bae5dda3312151296d87d",
+          "agent_run_id": 37326091818,
+          "authority_run_id": 37326091751,
+          "continuity_run_id": 37326091618,
+          "android": "beta-vc97__UNCHANGED",
+          "owner_acceptance": "PASS"
         }
       },
-      "remaining_owner_action": "FIELD_RETEST_AGENT_V112_THEN_EXPLICIT_PASS_OR_NOT_PASS",
-      "closed": false,
+      "remaining_owner_action": "NONE",
+      "closed": true,
       "completion_evidence": {
         "sixth_field_repair": {
           "repair_pr": 439,
@@ -5027,7 +5040,8 @@
           "stable": "OWNER_GATED_UNTOUCHED",
           "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST"
         }
-      }
+      },
+      "owner_result": "PASS__2026_10_05"
     }
   ]
 }

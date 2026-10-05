@@ -3284,3 +3284,20 @@ Owner field evidence on Agent v111 + Android beta-vc97 shows a PickList request 
 - The command remains visible only for Agent login `admin` or `tamnv2`; its existing confirmation and server-side control flow remain unchanged.
 - Agent-only UI/build repair. Android vc97, Web, Worker, provider cadence and Stable are unchanged.
 
+
+
+## D161 Owner field acceptance — PASS — 2026-10-05
+
+Status: **OWNER FIELD ACCEPTED PASS — D161 CLOSED**.
+
+The Owner explicitly instructed to close D161 as done after the D161 v113 Agent repair was merged and released. This promotes D161 to the accepted project base and unlocks the next serial change.
+
+Accepted runtime/release evidence:
+- canonical main: `a246412fc747e04ca99dcef785333bd38925d9b2` (PR #445 merged);
+- Windows Agent: **relay-agent-v113**, release id `403819430`, asset id `612827259`, SHA-256 `f474abb09883ec1c9413f26b22fa8f16e2789467696bae5dda3312151296d87d`;
+- Agent verification run `37326091818` PASS;
+- Repo Authority run `37326091751` PASS and Continuity run `37326091618` PASS;
+- Android remains **beta-vc97 unchanged**;
+- Web remains D161 Version 2; Stable remains **OWNER-GATED and untouched**.
+
+No new persistent provider resource is introduced by this acceptance record. D161 owner action OA096 is closed PASS. The next change may be opened only from this accepted D161 base.
