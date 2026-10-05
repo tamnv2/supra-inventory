@@ -3322,3 +3322,13 @@ Hard invariants:
 - Normal-path latency must be no worse than D161 and should improve where duplicate reads are removed.
 - Full state reconciliation remains mandatory on realtime gap/reconnect or integrity uncertainty.
 - Stable remains **OWNER-GATED and untouched**.
+
+## 2026-10-06 — D162 realtime badge lazy-queue repair — Owner approved
+
+- Owner reported that D162's queue/recent separation reduced realtime feel because the operational badge still depended on refreshing queue data.
+- Approved same-D162 repair: the **Xử lý báo hàng** badge remains realtime, while the full Reporter queue is fetched only when the Operations surface is visible.
+- Queue-count changes piggyback on existing realtime event metadata as bounded `queue_delta` values. No polling, listener family, heartbeat, database/resource or new provider write cadence is introduced.
+- When the badge has no trusted baseline or realtime continuity is dirty/gapped, Web performs one authoritative lightweight queue-count reconciliation; it must not fetch the full off-screen queue merely to repair the badge.
+- The Results surface loads recent-result data only. The Operations surface loads queue data only. A normal off-screen `reporter_queue` event updates the badge from realtime metadata without a queue API read.
+- Missing/legacy queue-delta metadata fails closed to the lightweight count reconciliation. Realtime gaps/reconnects also reconcile the count authoritatively.
+- Windows Agent remains **relay-agent-v114 unchanged**, Android remains **beta-vc97 unchanged**, and Stable remains **OWNER-GATED and untouched**.
