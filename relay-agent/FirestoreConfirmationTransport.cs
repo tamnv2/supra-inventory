@@ -49,6 +49,8 @@ namespace SupraInventoryRelayAgent
         internal const int PrimaryActivePollIntervalMs = 3000;
         internal const int PrimaryInactivePollIntervalMs = 15000;
         internal const int PrimaryHotPollIntervalMs = 1000;
+        internal const int HealthyListenerActiveWatchdogMs = 10000;
+        internal const int HealthyListenerInactiveWatchdogMs = 30000;
         internal const int PrimaryPollIntervalMs = PrimaryActivePollIntervalMs;
         internal const int StandbyPollIntervalMs = 0;
         internal const int MaxDocumentsPerPoll = 100;
@@ -188,17 +190,19 @@ namespace SupraInventoryRelayAgent
                         _relayHealth(true);
                         waitMs = D158RemainingPollWaitMs();
                         var desiredPollMs = D158DesiredPollIntervalMs();
-                        var idleRealtime = !_hasActivePda() && D157PendingWakeSignal.IsConnected;
+                        var listenerHealthy = D157PendingWakeSignal.IsConnected;
                         _state(processed > 0
                             ? (string.IsNullOrWhiteSpace(_lastOutcomeState) ? "Relay: PRIMARY · đã xử lý yêu cầu PDA" : _lastOutcomeState)
-                            : (desiredPollMs == PrimaryHotPollIntervalMs
-                                ? "Relay: PRIMARY · HOT 1s · đang xả burst"
-                                : (desiredPollMs == 2000
-                                    ? "Relay: PRIMARY · realtime đang phục hồi · REST 2s"
-                                    : (desiredPollMs == PrimaryActivePollIntervalMs
-                                        ? "Relay: PRIMARY · PDA hoạt động · 3s"
-                                        : (idleRealtime
-                                            ? "Relay: PRIMARY · 0 PDA · realtime sẵn sàng · REST tạm dừng"
+                            : (listenerHealthy
+                                ? (_hasActivePda()
+                                    ? "Relay: PRIMARY · realtime sẵn sàng · REST watchdog 10s"
+                                    : "Relay: PRIMARY · 0 PDA · realtime sẵn sàng · REST watchdog 30s")
+                                : (desiredPollMs == PrimaryHotPollIntervalMs
+                                    ? "Relay: PRIMARY · HOT 1s · đang xả burst"
+                                    : (desiredPollMs == 2000
+                                        ? "Relay: PRIMARY · realtime đang phục hồi · REST 2s"
+                                        : (desiredPollMs == PrimaryActivePollIntervalMs
+                                            ? "Relay: PRIMARY · realtime lỗi · REST 3s"
                                             : "Relay: PRIMARY · 0 PDA · realtime lỗi · REST dự phòng 15s")))));
                     }
                 }
@@ -226,20 +230,21 @@ namespace SupraInventoryRelayAgent
 
         private int D158DesiredPollIntervalMs()
         {
+            // D162: the gRPC listener is the normal fast path. A bounded REST watchdog
+            // remains below the outer PDA timeout so a silently stale stream cannot
+            // strand a request, while ordinary listener-healthy periods stop paying the
+            // accepted D161 3-second query cadence.
+            if (D157PendingWakeSignal.IsConnected)
+                return _hasActivePda() ? HealthyListenerActiveWatchdogMs : HealthyListenerInactiveWatchdogMs;
             if (NowMs() < _hotUntilMs) return PrimaryHotPollIntervalMs;
             if (!_hasActivePda()) return PrimaryInactivePollIntervalMs;
-            if (!D157PendingWakeSignal.IsConnected && FirestoreQuotaGuard.CanUseD158ResilienceRead)
-                return 2000;
+            if (FirestoreQuotaGuard.CanUseD158ResilienceRead) return 2000;
             return PrimaryActivePollIntervalMs;
         }
 
         private int D158RemainingPollWaitMs()
         {
             var desired = D158DesiredPollIntervalMs();
-            // D161 v108: when zero PDA and realtime listener is healthy, keep the
-            // local 15s supervision cadence but do not force a REST query.
-            if (!_hasActivePda() && D157PendingWakeSignal.IsConnected)
-                return PrimaryInactivePollIntervalMs;
             if (_lastRestPendingQueryMs <= 0) return 1000;
             var elapsed = Math.Max(0L, NowMs() - _lastRestPendingQueryMs);
             return Math.Max(1000, desired - (int)Math.Min(desired, elapsed));
@@ -264,14 +269,11 @@ namespace SupraInventoryRelayAgent
             var listenerDocs = ReadRealtimePendingDocuments();
             var fallbackMs = D158DesiredPollIntervalMs();
             var nowForPoll = NowMs();
-            // D161 v108 usage repair: a healthy realtime listener is the wake path
-            // when no PDA session is active. Suppress only the redundant REST queue
-            // query; never suppress listener-delivered requests. If realtime drops,
-            // MarkConnected(false) wakes this loop and the 15s REST fallback resumes.
-            var idleRealtime = !_hasActivePda() && D157PendingWakeSignal.IsConnected;
-            var restDue = !idleRealtime &&
-                          (_lastRestPendingQueryMs == 0 ||
-                           nowForPoll - _lastRestPendingQueryMs >= fallbackMs);
+            // D162: listener-delivered documents are processed first and immediately.
+            // REST is now a watchdog while the listener is connected, and reverts to
+            // the existing 1s/2s/3s/15s degraded fallback policy when it disconnects.
+            var restDue = _lastRestPendingQueryMs == 0 ||
+                          nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
             if (restDue && fallbackMs == 2000 && !FirestoreQuotaGuard.TryReserveD158ResilienceRead())
             {
                 fallbackMs = PrimaryActivePollIntervalMs;
@@ -280,7 +282,7 @@ namespace SupraInventoryRelayAgent
             }
 
             Task<List<PendingDocument>> restTask = null;
-            if (!idleRealtime && (restDue || (listenerDocs.Count == 0 && _lastRestPendingQueryMs == 0)))
+            if (restDue)
                 restTask = Task.Run(() => ReadPendingDocuments(session));
 
             var cycleSeen = new Dictionary<string, string>(StringComparer.Ordinal);
