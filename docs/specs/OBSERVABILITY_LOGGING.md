@@ -503,6 +503,7 @@ Observability must explicitly prove these Owner-approved requirements:
 Existing D161 authority remains:
 
 - only exact authenticated Agent logins `admin` and `tamnv2` expose the command;
+- the Agent command is presented on the visible Settings Logs card and must not be hosted only on a detached page;
 - backend revalidates authorization;
 - one request has request_id, issued time, TTL and dedupe;
 - only currently authenticated Web/Android/Agent clients respond;
