@@ -3301,3 +3301,24 @@ Accepted runtime/release evidence:
 - Web remains D161 Version 2; Stable remains **OWNER-GATED and untouched**.
 
 No new persistent provider resource is introduced by this acceptance record. D161 owner action OA096 is closed PASS. The next change may be opened only from this accepted D161 base.
+
+
+## D162 usage efficiency and transport simplification — Owner approved — 2026-10-05
+
+Status: **OWNER APPROVED IMPLEMENTATION — BETA ONLY — ANDROID/APK HARD-LOCKED**.
+
+The Owner approved opening D162 immediately after D161 PASS to reduce abnormal Cloudflare Durable Objects and Firestore usage without reducing current speed, realtime behavior, business correctness or operational stability.
+
+Preimplementation review:
+- **base impact:** D162 starts from accepted D161 main `c3791eeae1295020d75be32002e52dc448a5d23e`; all D161 business behavior is preserved unless an internal transport/read-amplification path is explicitly replaced with an equivalent lower-cost path.
+- **affected components:** Beta Service/Worker + InventoryCore Durable Object, Web realtime refresh orchestration, Windows Agent Firestore transport/presence convergence, regression/usage tests and canonical authority.
+- **regression/stability risk:** medium because hot-path transport is changing; mitigation is listener-first with immediate degraded fallback, server-authoritative session checks inside InventoryCore, full reconcile after stream gaps, unchanged WMS mutation fences and no Android contract change.
+- **resource/quota/security impact:** no new persistent resource, collection, secret, listener family, polling family or heartbeat. Existing Beta Cloudflare/Firestore resources only. Authentication remains verified Firebase ID token + authoritative session-generation validation. Stable is untouched.
+- **recommended approach:** remove redundant per-request Operational V2 readiness DO calls; collapse high-volume authorized read/receipt paths to one DO invocation where safe; make Web refresh only scopes changed by realtime; make Agent realtime listener the normal fast path with REST reads as watchdog/degraded fallback; remove presence ACK writes only if repository-wide evidence proves no consumer depends on them; aggregate 4xx telemetry instead of per-request error logging.
+
+Hard invariants:
+- Android remains **beta-vc97 unchanged**: no Android source edit, APK build, version bump or release.
+- WMS browser mutation safety, PRIMARY/generation fences, D161 confirm behavior and 20-second outer contract remain unchanged.
+- Normal-path latency must be no worse than D161 and should improve where duplicate reads are removed.
+- Full state reconciliation remains mandatory on realtime gap/reconnect or integrity uncertainty.
+- Stable remains **OWNER-GATED and untouched**.
