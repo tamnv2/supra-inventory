@@ -356,6 +356,8 @@ let batchDetailLoads = new Set<string>();
 let pendingReporterResolutions = new Map<string, "HAS_STOCK" | "SKIP_ALLOWED">();
 let operationsLoadPromise: Promise<void> | null = null;
 let operationsLoadQueued = false;
+let reporterQueueLoadGeneration = 0;
+let reporterRecentLoadGeneration = 0;
 let slaResponse: SlaResponse | null = null;
 let slaFormDirty = false;
 let slaDraftMode: AutoSkipMode | null = null;
@@ -2789,32 +2791,19 @@ async function loadCompleteReporterQueue(): Promise<Awaited<ReturnType<typeof ge
   return { ...first, items: all, count: all.length, total: Math.max(total, all.length), limit: all.length, offset: 0 };
 }
 
-async function loadOperationsSnapshot(): Promise<void> {
+async function loadReporterQueueSnapshot(): Promise<void> {
+  const requestGeneration = ++reporterQueueLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
-  const [queue, recent] = await Promise.all([
-    loadCompleteReporterQueue(),
-    getReporterRecent(
-      RECENT_PAGE_SIZE,
-      recentOffset,
-      recentStatus,
-      apiRange(recentFrom, recentTo).from,
-      apiRange(recentFrom, recentTo).to,
-    ),
-  ]);
-  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-  const serverNowValue = recent.server_now || queue.server_now || "";
-  const serverNow = serverNowValue ? Date.parse(serverNowValue) : NaN;
-  queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : 0;
+  const queue = await loadCompleteReporterQueue();
+  if (
+    requestGeneration !== reporterQueueLoadGeneration ||
+    generation !== sessionViewGeneration ||
+    userId !== (profile?.user_id || "")
+  ) return;
+  const serverNow = queue.server_now ? Date.parse(queue.server_now) : NaN;
+  queueServerOffsetMs = Number.isFinite(serverNow) ? serverNow - Date.now() : queueServerOffsetMs;
   queueRows = queue.items;
-  if (recent.total > 0 && recentOffset >= recent.total) {
-    recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
-    return loadOperationsSnapshot();
-  }
-  recentRows = recent.items;
-  recentTotal = recent.total;
-  recentTotals = recent.totals;
   syncOperationsNavBadge();
   if (selectedBatchId && !queueRows.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = null;
   const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || filteredQueueRows()[0] || queueRows[0];
@@ -2823,6 +2812,40 @@ async function loadOperationsSnapshot(): Promise<void> {
     prefetchBatchDetails(selected.batch_id);
   }
   markWebUpdateReceived();
+}
+
+async function loadReporterRecentSnapshot(): Promise<void> {
+  const requestGeneration = ++reporterRecentLoadGeneration;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
+  const recent = await getReporterRecent(
+    RECENT_PAGE_SIZE,
+    recentOffset,
+    recentStatus,
+    apiRange(recentFrom, recentTo).from,
+    apiRange(recentFrom, recentTo).to,
+  );
+  if (
+    requestGeneration !== reporterRecentLoadGeneration ||
+    generation !== sessionViewGeneration ||
+    userId !== (profile?.user_id || "")
+  ) return;
+  if (recent.total > 0 && recentOffset >= recent.total) {
+    recentOffset = Math.max(0, Math.floor((recent.total - 1) / RECENT_PAGE_SIZE) * RECENT_PAGE_SIZE);
+    return loadReporterRecentSnapshot();
+  }
+  recentRows = recent.items;
+  recentTotal = recent.total;
+  recentTotals = recent.totals;
+  markWebUpdateReceived();
+}
+
+async function loadOperationsSnapshot(): Promise<void> {
+  await Promise.all([
+    loadReporterQueueSnapshot(),
+    loadReporterRecentSnapshot(),
+  ]);
 }
 
 async function loadOperations(): Promise<void> {
@@ -4311,8 +4334,9 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
-  const reporterScopeChanged =
-    roleOperate() && (scopes.has("reporter_queue") || scopes.has("reporter_recent"));
+  const reporterQueueChanged = roleOperate() && scopes.has("reporter_queue");
+  const reporterRecentChanged = roleOperate() && scopes.has("reporter_recent");
+  const reporterScopeChanged = reporterQueueChanged || reporterRecentChanged;
   const reporterRelevant =
     reporterScopeChanged && (activeSection === "operations" || activeSection === "results");
   const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
@@ -4321,13 +4345,17 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   const hrRelevant =
     Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT")) && scopes.has("hr_sync");
 
-  // D114: the Xử lý báo hàng badge is global operational state, not section-local state.
-  // Reuse the existing realtime event to refresh the authoritative queue even while the
-  // operator is viewing another section. This adds no polling cadence.
-  if (reporterScopeChanged && !reporterRelevant) {
+  // D162: queue and recent are independent realtime projections. Queue scope always
+  // refreshes the global operational badge; recent scope is fetched only while its result
+  // surface is visible. Initial load and dirty/gap reconcile still use the full snapshot.
+  if (reporterScopeChanged) {
     try {
-      await loadOperations();
-      syncOperationsNavBadge();
+      const tasks: Promise<void>[] = [];
+      if (reporterQueueChanged) tasks.push(loadReporterQueueSnapshot());
+      if (reporterRecentChanged && activeSection === "results") tasks.push(loadReporterRecentSnapshot());
+      if (tasks.length) await Promise.all(tasks);
+      if (reporterQueueChanged) syncOperationsNavBadge();
+      if (reporterRelevant) patchActiveSection(true);
     } catch {
       return false;
     }
@@ -4347,6 +4375,7 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
 
   if (!pickerRelevant && !reporterRelevant && !slaRelevant && !scheduleRelevant && !hrRelevant) return true;
   if (hrRelevant && activeSection === "hr") return true;
+  if (reporterRelevant && !pickerRelevant && !slaRelevant && !scheduleRelevant) return true;
   return reconcileActive();
 });
 
