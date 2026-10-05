@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D162_OWNER_APPROVED__IMPLEMENTATION_ACTIVE__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED",
+    "beta": "D162_OWNER_APPROVED__IMPLEMENTATION_ACTIVE__AGENT_V114_TARGET__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -2468,7 +2468,7 @@
     "accepted_base_change_id": "D161",
     "accepted_base_evidence": "OWNER_EXPLICIT_D161_PASS__PR_446_MERGED_MAIN_C3791EEA__AGENT_V113__ANDROID_VC97_UNCHANGED",
     "current_change_id": "D162",
-    "current_change_status": "D162_OWNER_APPROVED__IMPLEMENTATION_ACTIVE",
+    "current_change_status": "D162_OWNER_APPROVED__IMPLEMENTATION_ACTIVE__AGENT_V114_TARGET",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -5311,6 +5311,9 @@
     "new_provider_resources": "NONE",
     "next_change_allowed": false,
     "owner_pass_required": true,
-    "closed": false
+    "closed": false,
+    "agent_target": "relay-agent-v114",
+    "android_current_release": "beta-vc97__UNCHANGED",
+    "presence_control_decision": "RETAIN_ACK__PRODUCER_WRITES_FIXED_RELAY_POC_JOBS_PICKER_PRESENCE_CURRENT_AS_PENDING__ACK_REQUIRED_TO_CLEAR_PENDING_CONTROL_EVENT"
   }
 }
