@@ -7,10 +7,10 @@
 - Project: `supra-inventory`
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
-- Current released Agent: `relay-agent-v107`
-- Beta: `D161_THIRD_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE`
-- Web: `D161_FIELD_REPAIR_WEB_VERSION_2_DEPLOYED__SHIFT_0600_2200__REPLAY_0545_2215__HR_ACTIONABLE_BLOCKS`
-- Android: `D161_FIELD_REPAIR_SIGNED_BETA_VC97__TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_RETEST_PENDING`
+- Current released Agent: `relay-agent-v114`
+- Beta: `D162_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_9AC67180__BETA_DEPLOY_RUN_37344066134__AGENT_V114__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
+- Web: `D162_BETA_DEPLOYED__SERVICE_SINGLE_DO_HOT_PATHS__REPORTER_SCOPE_REFRESH__RUN_37344066134`
+- Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -55,13 +55,15 @@ Released artifacts:
 
 ## 5. Next action
 
-D089 remains the accepted UI/runtime baseline. D091 Firestore infrastructure and field artifacts are ready; the next action is the Owner's one physical Office PDA ↔ Agent transport-only round trip using `relay-agent-v16` + `beta-vc55`.
+D161 is the accepted Owner-PASS base. D162 is technically released on Beta at main `9ac67180c310fe56324608e3118671d278f311c6` with `relay-agent-v114`; Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
+
+The only open D162 gate is comparable active-load usage/latency validation plus explicit Owner PASS. Do not open D163. If field evidence fails any D162 acceptance target, repair and retest under D162.
 
 On the next session:
 1. read `ops/authority-manifest.json`;
 2. read the complete declared `bootstrap_order`;
 3. verify recent commits/CI and relevant live source;
-4. execute the Owner's next explicit requirement from this D089 accepted baseline.
+4. continue D162 OA097 field usage validation or same-D162 repair.
 
 ## 6. Resume command
 
@@ -1769,3 +1771,14 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Main Agent run `37203208163`, Usage run `37203208151`, UI run `37203208149` and D127 run `37203208171` PASS. OA096 is **READY_FOR_OWNER_FIELD_RETEST** for the WMS-not-ready History/explicit-result path.
 
 - Agent v107 EXE SHA-256 `67a371a9e3e51a822344b74a97c93cbf56b5909ff8f374a4210722a8621707ca`; inventory-channel points to the same binary.
+
+
+## D162 technical runtime release checkpoint — 2026-10-05
+
+- D161 is the accepted base; D162 remains the only open change.
+- D162 implementation PR #447 merged at `9ac67180c310fe56324608e3118671d278f311c6`.
+- Beta Worker/Web deploy run `37344066134`: PASS.
+- Agent `relay-agent-v114`: released; verification run `37344066196` PASS.
+- Android remains `beta-vc97` unchanged; Stable remains OWNER-GATED and untouched.
+- OA097 is pending comparable active-load usage/latency evidence and explicit Owner acceptance.
+- No D163 or unrelated mutation is allowed before D162 Owner PASS.
