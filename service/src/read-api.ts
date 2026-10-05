@@ -75,7 +75,7 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
   const url = new URL(request.url);
 
   if (request.method === "POST" && url.pathname === "/api/realtime/ticket") {
-    const user = await requireUser(request, env);
+    const identity = await requireIdentity(request, env);
     let body: { client_type?: string } = {};
     try {
       body = (await request.json()) as { client_type?: string };
@@ -84,16 +84,12 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     }
     const clientType = String(body.client_type || "").toUpperCase();
     if (!["WEB", "ANDROID"].includes(clientType)) return json({ error: "INVALID_CLIENT_TYPE" }, 400);
-    return core(env).fetch("https://inventory-core.internal/realtime/ticket", {
+    const headers = authorizedHeaders(identity);
+    headers.set("content-type", "application/json");
+    return core(env).fetch("https://inventory-core.internal/authorized/realtime/ticket", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        user_id: user.user_id,
-        employee_code: user.employee_code || null,
-        display_name: user.display_name || "",
-        role: user.role,
-        client_type: clientType,
-      }),
+      headers,
+      body: JSON.stringify({ client_type: clientType }),
     });
   }
 
