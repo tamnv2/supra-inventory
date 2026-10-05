@@ -796,6 +796,37 @@ export class InventoryCore {
       }, operationalV2.ready ? 200 : 503);
     }
 
+    if (request.method === "POST" && url.pathname === "/authorized/realtime/ticket") {
+      const user = this.authorizeInteractiveIdentity(request, ["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"]);
+      if (user instanceof Response) return user;
+      let body: { client_type?: string } = {};
+      try { body = (await request.json()) as { client_type?: string }; } catch { body = {}; }
+      const clientType = String(body.client_type || "").trim().toUpperCase();
+      if (clientType !== "WEB" && clientType !== "ANDROID") {
+        return response({ error: "INVALID_CLIENT_TYPE" }, 400);
+      }
+      const target = new URL(request.url);
+      target.pathname = "/realtime/ticket";
+      target.search = "";
+      const ticketRequest = new Request(target.toString(), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.user_id,
+          employee_code: user.employee_code || null,
+          display_name: user.display_name || "",
+          role: user.role,
+          client_type: clientType,
+        }),
+      });
+      const result = await handleReadModelCoreRequest(
+        this.state,
+        ticketRequest,
+        async () => { /* D162: ticket creation does not mutate Picker presence. */ },
+      );
+      return result || response({ error: "not_found" }, 404);
+    }
+
     // D162: high-volume authenticated operational routes validate Firebase identity,
     // session generation and role inside InventoryCore, then execute the read/mutation
     // in the same Durable Object invocation. The Worker still verifies the Firebase
