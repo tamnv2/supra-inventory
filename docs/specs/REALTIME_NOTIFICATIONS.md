@@ -933,3 +933,14 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - Windows Agent Firestore pending listener is the normal request wake path. While connected, REST pending reads are only a bounded watchdog (10s with active PDA, 30s without active PDA). Listener disconnect immediately re-enables the existing degraded 1s/2s/3s/15s fallback policy.
 - The fixed `relay_poc_jobs/picker_presence_current` control document retains its ACK write. Repository review proved the producer deliberately writes it as `PENDING` and the pending-query/listener contract depends on terminal ACK to clear the single-slot control event. Removing that ACK would increase repeated reads and weaken convergence, so D162 does **not** remove it.
 - Android beta-vc97 realtime contract is unchanged.
+
+## D162 realtime badge delta contract
+
+- Reporter queue-changing events reuse the existing realtime stream and add bounded metadata `queue_delta ∈ {-1,0,1}`.
+- `REPORT_CREATED`: `+1` only when a new pending batch is created; another Picker joining an existing pending SKU is `0`.
+- `REPORT_WITHDRAWN`: `-1` only when the last active queue item leaves the pending queue; otherwise `0`.
+- `BATCH_RESOLVED` and `BATCH_AUTO_SKIP_ALLOWED`: `-1`.
+- `TICKET_AUTO_SKIP_ALLOWED`: `-1` only when that ticket resolves the final pending batch; otherwise `0`.
+- SLA warning/escalation events do not change the queue count.
+- Web applies valid deltas immediately to the navigation badge. Missing/invalid delta on a queue-changing event is not guessed; Web reconciles the authoritative lightweight queue total.
+- Dirty realtime cursor, sequence gap or reconnect reconciles the badge count from authoritative state before continuing. No polling cadence is added.
