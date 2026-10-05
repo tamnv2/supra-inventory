@@ -270,3 +270,12 @@ Status: Owner-approved requirement; implementation deferred.
 ## D162 Reporter refresh separation
 
 Reporter queue and recent results are independent read models for realtime refresh. Initial page load and integrity reconciliation may load both in parallel. Normal realtime updates refresh only the changed scope. The global Xử lý báo hàng badge is queue-derived and must never require loading recent-result history merely to update the badge.
+
+## D162 lazy Reporter queue loading
+
+- The **Xử lý báo hàng** navigation badge is independent of full queue row data.
+- When Operations is not visible, normal `reporter_queue` events update only the badge from realtime delta metadata and do not fetch the full queue.
+- Opening **Xử lý báo hàng** performs the authoritative queue read and then keeps the visible list realtime.
+- Opening **Kết quả gần đây** reads recent-result data only; queue rows are not fetched for that screen.
+- If the badge has no trusted baseline, Web may perform one lightweight queue total read using a one-row queue request. This is count reconciliation, not background queue loading.
+- Realtime continuity uncertainty forces authoritative count reconciliation; it does not justify continuous polling or background full-queue reads.
