@@ -2851,7 +2851,7 @@ function applyReporterQueueBadgeEvents(events: RealtimeEventFrame[]): boolean {
   let next = queueBadgeCount;
   for (const row of events) {
     if (!(row.scopes || []).includes("reporter_queue")) continue;
-    const eventName = String(row.event || "");
+    const eventName = String(row.event || "").trim().toUpperCase();
     if (!queueMutationEvents.has(eventName)) continue;
     const delta = Number(row.metadata?.queue_delta);
     if (!Number.isInteger(delta) || delta < -1 || delta > 1) return false;
