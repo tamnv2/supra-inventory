@@ -107,6 +107,21 @@ def require_source_markers() -> None:
         if marker not in core:
             fail(f"D162 single-DO authorization marker missing: {marker}")
 
+    # D162 repair: queue badge deltas must piggyback on existing business events.
+    for marker in (
+        "queue_delta: existingBatch ? 0 : 1",
+        "queue_delta: queueDelta",
+        "queue_delta: -1",
+    ):
+        if marker not in business:
+            fail(f"D162 queue badge business delta missing: {marker}")
+    for marker in (
+        "queue_delta: -1",
+        "queue_delta: finalForBatch ? -1 : 0",
+    ):
+        if marker not in sla_auto:
+            fail(f"D162 queue badge SLA delta missing: {marker}")
+
     schedule_pos = core.find("await scheduleNextOperationalAlarm(this.state);")
     broadcast_pos = core.find("for (const effect of effects) {", core.find("async alarm(): Promise<void>"))
     if schedule_pos < 0 or broadcast_pos < 0 or schedule_pos > broadcast_pos:
