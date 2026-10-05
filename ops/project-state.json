@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D161_EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__AGENT_V112__ANDROID_VC97_UNCHANGED__D160_ACCEPTED_BASE_RESCUE",
+    "beta": "D161_NINTH_FIELD_REPAIR_IMPLEMENTATION_APPROVED__PR_PENDING__AGENT_V113_TARGET__ANDROID_VC97_UNCHANGED__D160_ACCEPTED_BASE_RESCUE",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -2468,7 +2468,7 @@
     "accepted_base_change_id": "D160",
     "accepted_base_evidence": "OWNER_EXPLICIT_D160_PASS__RELAY_AGENT_V97_FIELD_ACCEPTED__2026_10_02__POST_PASS_TESTS_CLOSED_2026_10_03",
     "current_change_id": "D161",
-    "current_change_status": "D161_EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
+    "current_change_status": "D161_NINTH_FIELD_REPAIR_IMPLEMENTATION_APPROVED__PR_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -4298,7 +4298,7 @@
     "test_candidate_source_active": "NO__V98_V99_V100_REMAIN_HISTORY_EVIDENCE_ONLY"
   },
   "d161": {
-    "status": "STARTED__PHASE0A_PASS__PHASE0_SAFETY_PASS__TRANCHE_A_B_C_D_E_MERGED__V112_EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
+    "status": "STARTED__PHASE0A_PASS__PHASE0_SAFETY_PASS__TRANCHE_A_B_C_D_E_MERGED__V113_NINTH_FIELD_REPAIR_IMPLEMENTATION_APPROVED__PR_PENDING",
     "date": "2026-10-04",
     "baseline_change": "D160",
     "accepted_base": "D160__RELAY_AGENT_V97",
@@ -4849,7 +4849,7 @@
       }
     },
     "field_repair": {
-      "status": "EIGHTH_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST",
+      "status": "NINTH_FIELD_REPAIR_IMPLEMENTATION_APPROVED__PR_PENDING",
       "reported_at": "2026-10-04",
       "defects": [
         "WEB_SHIFT_PRESENTATION_STILL_SHOWED_0545_2230_AND_OLD_2230_OVERTIME_COPY",

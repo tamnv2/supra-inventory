@@ -16,8 +16,8 @@ namespace SupraInventoryRelayAgent
         {
             if (host == null) return;
             _d161GlobalSupportLogButton.Text = "Yêu cầu toàn bộ log hệ thống Báo hàng & xác nhận đơn";
-            _d161GlobalSupportLogButton.SetBounds(370, 10, 388, 30);
-            _d161GlobalSupportLogButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _d161GlobalSupportLogButton.SetBounds(18, 140, 500, 34);
+            _d161GlobalSupportLogButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _d161GlobalSupportLogButton.Visible = false;
             _d161GlobalSupportLogButton.Click += (s, e) => BeginD161GlobalSupportLogRequest();
             host.Controls.Add(_d161GlobalSupportLogButton);

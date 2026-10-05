@@ -108,6 +108,7 @@ namespace SupraInventoryRelayAgent
             _d160OpenLogs.Text = "Mở file Logs";
             _d160OpenLogs.Click += (s, e) => AgentDiagnostics.OpenLog();
             card.Controls.Add(_d160OpenLogs);
+            InitializeD161GlobalSupportLogControl(card);
             _connectionPage.Controls.Add(card);
         }
 
