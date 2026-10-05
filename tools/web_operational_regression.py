@@ -483,6 +483,7 @@ def main() -> None:
         'reporterQueueChanged && activeSection === "operations"',
         'reporterRecentChanged && activeSection === "results"',
         "queue_delta",
+        'String(row.event || "").trim().toUpperCase()',
         "getReporterQueue(1, 0)",
     ):
         require(app, d162_marker, f"D162 reporter scope refresh marker {d162_marker}")
