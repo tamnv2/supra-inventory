@@ -474,12 +474,28 @@ def main() -> None:
     # D162 scope-specific Reporter refresh keeps queue and recent independent on normal realtime events.
     for d162_marker in (
         "loadReporterQueueSnapshot",
-        "loadReporterRecentSnapshot",
+        "loadReporterQueueBadgeCount",
+        "applyReporterQueueBadgeEvents",
+        "queueBadgeCount",
+        "queueBadgeInitialized",
         "reporterQueueChanged",
         "reporterRecentChanged",
-        'if (reporterRecentChanged && activeSection === "results")',
+        'reporterQueueChanged && activeSection === "operations"',
+        'reporterRecentChanged && activeSection === "results"',
+        "queue_delta",
+        "getReporterQueue(1, 0)",
     ):
         require(app, d162_marker, f"D162 reporter scope refresh marker {d162_marker}")
+    forbid(
+        app,
+        "if (reporterQueueChanged) tasks.push(loadReporterQueueSnapshot());",
+        "D162 forbids unconditional off-screen full queue refresh",
+    )
+    require(
+        app,
+        'if (activeSection === "results") {\n    await Promise.all([\n      loadReporterRecentSnapshot(),\n      loadReporterQueueBadgeCount(),',
+        "D162 Results loads recent plus lightweight badge count only",
+    )
 
     print("WEB_OPERATIONAL_REGRESSION_PASS")
 
