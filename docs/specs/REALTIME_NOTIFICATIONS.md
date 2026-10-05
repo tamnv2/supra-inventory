@@ -924,3 +924,12 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - Agent ACK payload changes and Firestore Rules changes are a single compatibility contract. CI must reject source states where an emitted ACK field is not allowed by the deployed Rules source.
 - A failed ACK must retain the original Firestore HTTP/canonical error for diagnosis. Diagnostic handling must not dispose the response before a rethrow and must never throw while describing a prior transport exception.
 - No extra ACK write, provider polling, listener/query family or Android heartbeat is introduced. WMS confirmation and PRIMARY/generation mutation fences are unchanged.
+
+
+## D162 — usage-efficient realtime application
+
+- Realtime remains the normal fast path; polling is never introduced as a replacement.
+- Web Reporter events are scope-specific: `reporter_queue` refreshes queue state, `reporter_recent` refreshes recent-result state only when that surface is visible, and dirty/gap reconnect performs full authoritative reconcile.
+- Windows Agent Firestore pending listener is the normal request wake path. While connected, REST pending reads are only a bounded watchdog (10s with active PDA, 30s without active PDA). Listener disconnect immediately re-enables the existing degraded 1s/2s/3s/15s fallback policy.
+- The fixed `relay_poc_jobs/picker_presence_current` control document retains its ACK write. Repository review proved the producer deliberately writes it as `PENDING` and the pending-query/listener contract depends on terminal ACK to clear the single-slot control event. Removing that ACK would increase repeated reads and weaken convergence, so D162 does **not** remove it.
+- Android beta-vc97 realtime contract is unchanged.
