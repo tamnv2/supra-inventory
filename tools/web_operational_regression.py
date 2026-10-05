@@ -471,6 +471,16 @@ def main() -> None:
     require(read_model, '"role-changed"', "role-change realtime close reason")
     require(notifications_core, "role_override", "effective-role FCM targeting")
 
+    # D162 scope-specific Reporter refresh keeps queue and recent independent on normal realtime events.
+    for d162_marker in (
+        "loadReporterQueueSnapshot",
+        "loadReporterRecentSnapshot",
+        "reporterQueueChanged",
+        "reporterRecentChanged",
+        'if (reporterRecentChanged && activeSection === "results")',
+    ):
+        require(app, d162_marker, f"D162 reporter scope refresh marker {d162_marker}")
+
     print("WEB_OPERATIONAL_REGRESSION_PASS")
 
 

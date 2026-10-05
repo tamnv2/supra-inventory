@@ -2562,3 +2562,17 @@ Before returning D161 to Owner field retest:
 9. **Quota/resources:** no new provider resource, listener, query, polling loop, heartbeat or write cadence. Firestore operation count remains the accepted request + terminal ACK model.
 10. **Regression:** v111 Picker-presence convergence, v110 overtime/READY_EMPTY, v109 no-overlay revoke, current WMS mutation fences and Android beta-vc97 remain unchanged.
 11. **Release lineage:** publish monotonic **relay-agent-v112** through the trusted Agent channel and deploy the repaired existing Beta Firestore Rules. D160 v97 remains accepted/rescue until explicit D161 Owner PASS.
+
+
+## D162 acceptance
+
+D162 cannot PASS unless all of the following hold:
+1. Android beta-vc97 source/build/release remains unchanged.
+2. Authority and Continuity PASS.
+3. Operational V2 readiness remains healthy after deployment, while normal business requests no longer issue per-request `/operational/init` probes.
+4. Picker reports/results/receipt and Reporter queue/recent retain session-generation, role and disabled-user enforcement.
+5. Web realtime queue-only events do not fetch recent results; recent-only events do not force queue+recent full reload; dirty/gap reconcile still performs a full snapshot.
+6. Agent listener-delivered PickList requests are processed immediately. With the listener healthy, REST pending queries use the D162 watchdog cadence; on disconnect the accepted fast fallback resumes.
+7. WMS PRIMARY/generation/mutation fences and durable terminal ACK remain unchanged.
+8. Presence single-slot control ACK remains enabled unless a future Owner-approved change replaces its producer/consumer contract.
+9. Under comparable load, DO requests reduce materially (target >=40%) and steady listener-healthy Firestore reads reduce materially (target >=70%) without material p50/p90 latency regression.

@@ -1,4 +1,4 @@
-import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole, type FirebaseIdentity } from "./auth";
 
 interface ReadApiEnv {
   FIREBASE_PROJECT_ID: string;
@@ -16,8 +16,6 @@ interface InternalUser {
   session_channel?: "WEB" | "ANDROID" | "AGENT" | "";
 }
 
-const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"];
-
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
     status,
@@ -29,15 +27,38 @@ function core(env: ReadApiEnv): DurableObjectStub {
   return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
 }
 
-async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[]): Promise<InternalUser> {
+async function requireIdentity(request: Request, env: ReadApiEnv): Promise<FirebaseIdentity> {
   const token = readBearerToken(request);
   if (!token) throw json({ error: "AUTH_REQUIRED" }, 401);
-  let identity;
   try {
-    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
+    return await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
   } catch {
     throw json({ error: "INVALID_AUTH_TOKEN" }, 401);
   }
+}
+
+function authorizedHeaders(identity: FirebaseIdentity): Headers {
+  const headers = new Headers();
+  headers.set("x-supra-auth-uid", identity.uid);
+  headers.set("x-supra-session-channel", identity.sessionChannel);
+  headers.set("x-supra-session-generation", String(identity.sessionGeneration));
+  return headers;
+}
+
+async function publicAuthorizedResponse(response: Response): Promise<Response> {
+  const headers = new Headers(response.headers);
+  headers.delete("x-supra-internal-user-id");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+async function authorizedGet(request: Request, env: ReadApiEnv, path: string): Promise<Response> {
+  const identity = await requireIdentity(request, env);
+  const response = await core(env).fetch(`https://inventory-core.internal${path}`, { headers: authorizedHeaders(identity) });
+  return publicAuthorizedResponse(response);
+}
+
+async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[]): Promise<InternalUser> {
+  const identity = await requireIdentity(request, env);
   const response = await core(env).fetch(`https://inventory-core.internal/auth/user-by-firebase-uid?uid=${encodeURIComponent(identity.uid)}`);
   if (!response.ok) throw json({ error: "AUTH_LOOKUP_FAILED" }, 502);
   const payload = (await response.json()) as { user?: InternalUser | null };
@@ -49,22 +70,12 @@ async function requireUser(request: Request, env: ReadApiEnv, roles?: AppRole[])
   return { ...user, session_channel: identity.sessionChannel };
 }
 
-async function ensureOperationalV2(env: ReadApiEnv): Promise<Response | null> {
-  try {
-    const ready = await core(env).fetch("https://inventory-core.internal/operational/init");
-    return ready.ok ? null : json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
-  } catch {
-    return json({ error: "OPERATIONAL_V2_NOT_READY" }, 503);
-  }
-}
 
 export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<Response | null> {
   const url = new URL(request.url);
 
   if (request.method === "POST" && url.pathname === "/api/realtime/ticket") {
-    const user = await requireUser(request, env);
-    const initFailure = await ensureOperationalV2(env);
-    if (initFailure) return initFailure;
+    const identity = await requireIdentity(request, env);
     let body: { client_type?: string } = {};
     try {
       body = (await request.json()) as { client_type?: string };
@@ -73,16 +84,12 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     }
     const clientType = String(body.client_type || "").toUpperCase();
     if (!["WEB", "ANDROID"].includes(clientType)) return json({ error: "INVALID_CLIENT_TYPE" }, 400);
-    return core(env).fetch("https://inventory-core.internal/realtime/ticket", {
+    const headers = authorizedHeaders(identity);
+    headers.set("content-type", "application/json");
+    return core(env).fetch("https://inventory-core.internal/authorized/realtime/ticket", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        user_id: user.user_id,
-        employee_code: user.employee_code || null,
-        display_name: user.display_name || "",
-        role: user.role,
-        client_type: clientType,
-      }),
+      headers,
+      body: JSON.stringify({ client_type: clientType }),
     });
   }
 
@@ -95,24 +102,17 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
   }
 
   if (request.method === "GET" && url.pathname === "/api/realtime/delta") {
-    const user = await requireUser(request, env);
-    const initFailure = await ensureOperationalV2(env);
-    if (initFailure) return initFailure;
     const params = new URLSearchParams({
-      user_id: user.user_id,
-      role: user.role,
       after_seq: url.searchParams.get("after_seq") || "0",
     });
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
     if (url.searchParams.has("stream_epoch")) params.set("stream_epoch", url.searchParams.get("stream_epoch") || "");
-    return core(env).fetch(`https://inventory-core.internal/operational/realtime/delta?${params.toString()}`);
+    return authorizedGet(request, env, `/authorized/operational/realtime/delta?${params.toString()}`);
   }
 
   if (request.method === "GET" && url.pathname === "/api/realtime/presence") {
     const manager = await requireUser(request, env, ["ADMIN", "ROOT"]);
     if (manager.session_channel === "ANDROID") return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
-    const initFailure = await ensureOperationalV2(env);
-    if (initFailure) return initFailure;
     return core(env).fetch("https://inventory-core.internal/read/realtime/presence");
   }
 
@@ -141,9 +141,6 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
   }
 
   if (url.pathname === "/api/reporter/recent") {
-    await requireUser(request, env, REPORTER_ROLES);
-    const initFailure = await ensureOperationalV2(env);
-    if (initFailure) return initFailure;
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
     if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
@@ -151,15 +148,12 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     if (url.searchParams.has("scope")) params.set("scope", url.searchParams.get("scope") || "");
     if (url.searchParams.has("from")) params.set("from", url.searchParams.get("from") || "");
     if (url.searchParams.has("to")) params.set("to", url.searchParams.get("to") || "");
-    return core(env).fetch(`https://inventory-core.internal/operational/reporter/recent?${params.toString()}`);
+    return authorizedGet(request, env, `/authorized/operational/reporter/recent?${params.toString()}`);
   }
 
   if (url.pathname === "/api/reporter/batch-tickets") {
-    await requireUser(request, env, REPORTER_ROLES);
-    const initFailure = await ensureOperationalV2(env);
-    if (initFailure) return initFailure;
     const params = new URLSearchParams({ batch_id: url.searchParams.get("batch_id") || "" });
-    return core(env).fetch(`https://inventory-core.internal/operational/reporter/batch-tickets?${params.toString()}`);
+    return authorizedGet(request, env, `/authorized/operational/reporter/batch-tickets?${params.toString()}`);
   }
 
   return null;

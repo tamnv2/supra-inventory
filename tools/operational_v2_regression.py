@@ -20,6 +20,8 @@ def require_source_markers() -> None:
     business = (ROOT / "service/src/business-core.ts").read_text(encoding="utf-8")
     sla_auto = (ROOT / "service/src/sla-automation.ts").read_text(encoding="utf-8")
     core = (ROOT / "service/src/core.ts").read_text(encoding="utf-8")
+    business_api = (ROOT / "service/src/business-api.ts").read_text(encoding="utf-8")
+    read_api = (ROOT / "service/src/read-api.ts").read_text(encoding="utf-8")
 
     markers = {
         "immutable result snapshot table": "CREATE TABLE IF NOT EXISTS result_event_snapshots",
@@ -84,6 +86,26 @@ def require_source_markers() -> None:
             fail(f"D070 event/target invariant missing: {required}")
     if "auto_skip_allowed_at IS NULL" not in operational or "auto_skip_allowed_at IS NULL" not in business:
         fail("D070 active Picker projection/dedupe invariant missing")
+
+    # D162: Operational V2 schema is initialized at DO activation. Ordinary API
+    # traffic must not pay an extra /operational/init Durable Object invocation.
+    if "initializeOperationalV2Schema(this.state);" not in core:
+        fail("D162 InventoryCore activation schema initialization missing")
+    if "ensureOperationalV2" in business_api or "ensureOperationalV2" in read_api:
+        fail("D162 per-request operational readiness amplification returned")
+    for marker in (
+        "/authorized/operational/picker/reports",
+        "/authorized/operational/picker/results",
+        "/authorized/operational/picker/result-stage",
+        "/authorized/operational/reporter/queue",
+        "/authorized/operational/reporter/recent",
+        "/authorized/operational/realtime/delta",
+        "/authorized/realtime/ticket",
+        "authorizeInteractiveIdentity",
+        "x-supra-session-generation",
+    ):
+        if marker not in core:
+            fail(f"D162 single-DO authorization marker missing: {marker}")
 
     schedule_pos = core.find("await scheduleNextOperationalAlarm(this.state);")
     broadcast_pos = core.find("for (const effect of effects) {", core.find("async alarm(): Promise<void>"))

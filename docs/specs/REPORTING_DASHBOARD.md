@@ -265,3 +265,8 @@ Status: Owner-approved requirement; implementation deferred.
 - Reporting/dashboard/business summaries use **06:00–22:00 Asia/Ho_Chi_Minh** as the outward normal-shift definition.
 - D161's internal Replay guard **05:45–22:15** does not alter business shift naming, shift comparison labels or normal-shift reporting semantics.
 - Technical Replay availability may be shown separately only with an explicit technical label.
+
+
+## D162 Reporter refresh separation
+
+Reporter queue and recent results are independent read models for realtime refresh. Initial page load and integrity reconciliation may load both in parallel. Normal realtime updates refresh only the changed scope. The global Xử lý báo hàng badge is queue-derived and must never require loading recent-result history merely to update the badge.

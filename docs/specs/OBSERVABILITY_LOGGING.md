@@ -570,3 +570,16 @@ For a PDA confirmation request observed by an authenticated Agent, local History
 
 Agent bulk-revoke and Usage failures must preserve a bounded non-sensitive error code/class sufficient to distinguish authentication/session-contract failure from provider/network failure. Secrets, tokens and raw PickList values remain excluded. These diagnostics create no per-event provider write.
 
+
+
+## D162 — usage telemetry policy
+
+D162 measures comparable-load efficiency rather than raw daily totals. Required evidence is:
+- external HTTP request count versus Durable Object request count;
+- Durable Object storage rows read;
+- Firestore reads/writes;
+- Reporter queue/recent request counts;
+- Agent listener payload versus REST watchdog/fallback reads;
+- p50/p90 latency and transport/reconnect failures.
+
+Repeated expected 4xx classes must be aggregated by route/status/error code when additional telemetry is added. D162 must not create a per-request provider log write or a new heartbeat solely for measurement.
