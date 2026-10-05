@@ -1,4 +1,4 @@
-import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole } from "./auth";
+import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole, type FirebaseIdentity } from "./auth";
 import { sendFcmNotifications } from "./fcm";
 
 interface BusinessEnv {
@@ -54,17 +54,43 @@ async function coreUserByFirebaseUid(env: BusinessEnv, uid: string): Promise<Int
   return payload.user ?? null;
 }
 
-async function requireUser(request: Request, env: BusinessEnv, roles?: AppRole[]): Promise<InternalUser> {
+async function requireIdentity(request: Request, env: BusinessEnv): Promise<FirebaseIdentity> {
   const token = readBearerToken(request);
   if (!token) throw json({ error: "AUTH_REQUIRED" }, 401);
-
-  let identity;
   try {
-    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
+    return await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
   } catch {
     throw json({ error: "INVALID_AUTH_TOKEN" }, 401);
   }
+}
 
+function authorizedHeaders(identity: FirebaseIdentity, contentType = false): Headers {
+  const headers = new Headers();
+  headers.set("x-supra-auth-uid", identity.uid);
+  headers.set("x-supra-session-channel", identity.sessionChannel);
+  headers.set("x-supra-session-generation", String(identity.sessionGeneration));
+  if (contentType) headers.set("content-type", "application/json");
+  return headers;
+}
+
+function publicAuthorizedResponse(response: Response): { response: Response; userId: string } {
+  const userId = response.headers.get("x-supra-internal-user-id") || "";
+  const headers = new Headers(response.headers);
+  headers.delete("x-supra-internal-user-id");
+  return {
+    response: new Response(response.body, { status: response.status, statusText: response.statusText, headers }),
+    userId,
+  };
+}
+
+async function authorizedGet(request: Request, env: BusinessEnv, path: string): Promise<Response> {
+  const identity = await requireIdentity(request, env);
+  const raw = await coreStub(env).fetch(`https://inventory-core.internal${path}`, { headers: authorizedHeaders(identity) });
+  return publicAuthorizedResponse(raw).response;
+}
+
+async function requireUser(request: Request, env: BusinessEnv, roles?: AppRole[]): Promise<InternalUser> {
+  const identity = await requireIdentity(request, env);
   const user = await coreUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
   const sessionError = interactiveSessionError(identity, user);
@@ -116,15 +142,6 @@ function pickerShortageReportingEnabled(user: InternalUser): boolean {
   return user.shortage_reporting_enabled === true || Number(user.shortage_reporting_enabled ?? 0) === 1;
 }
 
-async function ensureOperationalV2(env: BusinessEnv): Promise<Response | null> {
-  try {
-    const response = await coreGet(env, "/operational/init");
-    if (response.ok) return null;
-    return json({ error: "OPERATIONAL_V2_NOT_READY", message: "Hệ thống nghiệp vụ chưa khởi tạo xong. Dịch vụ đang tự phục hồi, vui lòng thử lại." }, 503);
-  } catch {
-    return json({ error: "OPERATIONAL_V2_NOT_READY", message: "Hệ thống nghiệp vụ chưa khởi tạo xong. Dịch vụ đang tự phục hồi, vui lòng thử lại." }, 503);
-  }
-}
 
 function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
   if (key.startsWith("POST /api/picker/") || key.startsWith("GET /api/picker/")) return ["PICKER"];
@@ -378,7 +395,49 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   ]);
   if (!supported.has(key)) return null;
 
-  // Authentication/authorization must happen before any readiness probe. An unauthenticated
+  // D162 high-volume paths verify the Firebase signature in the Worker and perform
+  // authoritative user/session/role validation plus the operation in one InventoryCore call.
+  if (key === "GET /api/picker/reports") {
+    const params = new URLSearchParams();
+    for (const name of ["limit", "offset", "scope"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return authorizedGet(request, env, `/authorized/operational/picker/reports?${params.toString()}`);
+  }
+
+  if (key === "GET /api/picker/results") {
+    const params = new URLSearchParams();
+    if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    return authorizedGet(request, env, `/authorized/operational/picker/results?${params.toString()}`);
+  }
+
+  if (key === "GET /api/reporter/queue") {
+    const params = new URLSearchParams();
+    for (const name of ["limit", "offset"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return authorizedGet(request, env, `/authorized/operational/reporter/queue?${params.toString()}`);
+  }
+
+  if (key === "POST /api/picker/results/receipt") {
+    const identity = await requireIdentity(request, env);
+    const body = await parseObjectBody(request);
+    const raw = await coreStub(env).fetch("https://inventory-core.internal/authorized/operational/picker/result-stage", {
+      method: "POST",
+      headers: authorizedHeaders(identity, true),
+      body: JSON.stringify(body),
+    });
+    const authorized = publicAuthorizedResponse(raw);
+    const stage = String(body.stage || "").toUpperCase();
+    if (stage !== "ACKNOWLEDGED" || !authorized.response.ok) return authorized.response;
+    return realtimeAfter(authorized.response, env, {
+      event: "result_acknowledged",
+      scopes: ["reporter_recent", "picker_reports"],
+      tags: [...REPORTER_TAGS, `user:${authorized.userId}`],
+    });
+  }
+
+  // Authentication/authorization for the remaining lower-volume routes stays explicit.
   // request must never trigger schema work or turn an expected 401/403 into a readiness 503.
   const user = await requireUser(request, env, requiredRolesForBusinessRoute(key));
   if (user.session_channel === "ANDROID" && request.method !== "GET") {
@@ -396,9 +455,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   if (key.startsWith("GET /api/admin/") || key.startsWith("POST /api/admin/") || key.startsWith("PUT /api/admin/")) {
     if (user.session_channel === "ANDROID") return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
   }
-  const initializationFailure = await ensureOperationalV2(env);
-  if (initializationFailure) return initializationFailure;
-
   if (key === "GET /api/admin/alert-window") {
     return coreGet(env, "/notifications/alert-window/reconcile");
   }
@@ -459,15 +515,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     return result;
   }
 
-  if (key === "GET /api/picker/reports") {
-    if (!user.employee_code) return json({ error: "PICKER_EMPLOYEE_CODE_REQUIRED" }, 409);
-    const params = new URLSearchParams({ user_id: user.user_id, employee_code: user.employee_code });
-    if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
-    if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
-    if (url.searchParams.has("scope")) params.set("scope", url.searchParams.get("scope") || "");
-    return coreGet(env, `/operational/picker/reports?${params.toString()}`);
-  }
-
   if (key === "POST /api/picker/reports/withdraw") {
     if (!pickerShortageReportingEnabled(user)) {
       return json({ error: "PICKER_SHORTAGE_REPORTING_DISABLED", message: "Chức năng Báo hàng đang tắt cho tài khoản này." }, 403);
@@ -479,34 +526,6 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       scopes: ["reporter_queue", "reporter_recent", "picker_reports"],
       tags: [...REPORTER_TAGS, `user:${user.user_id}`],
     });
-  }
-
-  if (key === "GET /api/picker/results") {
-    if (!pickerShortageReportingEnabled(user)) {
-      return json({ items: [], count: 0, total: 0, reporting_enabled: false });
-    }
-    const params = new URLSearchParams({ user_id: user.user_id });
-    if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
-    return coreGet(env, `/operational/picker/results?${params.toString()}`);
-  }
-
-  if (key === "POST /api/picker/results/receipt") {
-    const body = await parseObjectBody(request);
-    const response = await corePost(env, "/operational/picker/result-stage", { ...body, actor: actor(user) });
-    const stage = String(body.stage || "").toUpperCase();
-    if (stage !== "ACKNOWLEDGED") return response;
-    return realtimeAfter(response, env, {
-      event: "result_acknowledged",
-      scopes: ["reporter_recent", "picker_reports"],
-      tags: [...REPORTER_TAGS, `user:${user.user_id}`],
-    });
-  }
-
-  if (key === "GET /api/reporter/queue") {
-    const params = new URLSearchParams();
-    if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
-    if (url.searchParams.has("offset")) params.set("offset", url.searchParams.get("offset") || "");
-    return coreGet(env, `/operational/reporter/queue?${params.toString()}`);
   }
 
   if (key === "POST /api/reporter/batches/resolve") {
