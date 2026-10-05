@@ -3277,3 +3277,10 @@ Owner field evidence on Agent v111 + Android beta-vc97 shows a PickList request 
 - CI must verify the Agent ACK payload and Firestore Rules allowlist evolve together so a future new ACK field cannot silently break terminal delivery after a successful WMS mutation.
 - No WMS confirm semantics, Android behavior, Web, Worker business logic, provider resource, listener/query family, polling/heartbeat or normal write cadence changes are authorized.
 - Stable remains OWNER-GATED and untouched. D160 relay-agent-v97 remains the accepted/rescue base until explicit D161 Owner PASS.
+
+## 2026-10-05 — D161 v113 support-log UI repair
+
+- Owner approved moving the existing Agent global support-log command to the visible `Cài đặt → Logs` card because its previous host page was not reachable from the live tab set.
+- The command remains visible only for Agent login `admin` or `tamnv2`; its existing confirmation and server-side control flow remain unchanged.
+- Agent-only UI/build repair. Android vc97, Web, Worker, provider cadence and Stable are unchanged.
+
