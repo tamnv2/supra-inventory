@@ -7,10 +7,10 @@
 - Project: `supra-inventory`
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
-- Current released Agent: `relay-agent-v107`
-- Beta: `D161_THIRD_FIELD_REPAIR_TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__D160_ACCEPTED_BASE_RESCUE`
-- Web: `D161_FIELD_REPAIR_WEB_VERSION_2_DEPLOYED__SHIFT_0600_2200__REPLAY_0545_2215__HR_ACTIONABLE_BLOCKS`
-- Android: `D161_FIELD_REPAIR_SIGNED_BETA_VC97__TECHNICAL_RUNTIME_RELEASE_PASS__OWNER_RETEST_PENDING`
+- Current released Agent: `relay-agent-v114`
+- Beta: `D162_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_9AC67180__BETA_DEPLOY_RUN_37344066134__AGENT_V114__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
+- Web: `D162_BETA_DEPLOYED__SERVICE_SINGLE_DO_HOT_PATHS__REPORTER_SCOPE_REFRESH__RUN_37344066134`
+- Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-Run the single physical Office D091 transport test with `relay-agent-v16` + `beta-vc55`. PASS requires the PDA `KẾT NỐI PDA ↔ AGENT OK` result and the matching short request ID in the Agent FIRESTORE audit. Preserve the D089 accepted baseline.
+D162 is technically deployed/released on Beta and remains the only open change. Collect comparable active-load Cloudflare/Firestore usage plus business latency/stability evidence under OA097. D162 requires explicit Owner PASS before any D163/unrelated mutation; any failure is repaired under D162. Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 
@@ -1763,3 +1763,14 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Main Agent run `37203208163`, Usage run `37203208151`, UI run `37203208149` and D127 run `37203208171` PASS. OA096 is **READY_FOR_OWNER_FIELD_RETEST** for the WMS-not-ready History/explicit-result path.
 
 - Agent v107 EXE SHA-256 `67a371a9e3e51a822344b74a97c93cbf56b5909ff8f374a4210722a8621707ca`; inventory-channel points to the same binary.
+
+
+## D162 technical runtime readiness — 2026-10-05
+
+- Main implementation: `9ac67180c310fe56324608e3118671d278f311c6` from PR #447.
+- Beta Worker/Web: deploy run `37344066134` PASS with post-deploy health/source/schema checks.
+- Agent: `relay-agent-v114`, verify/release run `37344066196` PASS.
+- D162 optimized Service single-DO hot paths, Reporter scope-specific refresh and Agent listener-first watchdog are technically released.
+- Android remains `beta-vc97` hard-locked unchanged.
+- Stable remains OWNER-GATED and untouched.
+- OA097 comparable-load usage/latency validation and explicit Owner PASS remain pending.

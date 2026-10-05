@@ -1,6 +1,6 @@
 # D162 — Usage Efficiency Without Latency Regression
 
-Status: OWNER APPROVED IMPLEMENTATION  
+Status: TECHNICAL RUNTIME RELEASE PASS — FIELD USAGE VALIDATION PENDING  
 Accepted base: D161 / main c3791eeae1295020d75be32002e52dc448a5d23e  
 Environment: Beta only  
 Android: beta-vc97 hard-locked unchanged  
@@ -61,3 +61,17 @@ Under comparable active-PDA/reporter workload:
 ## Fail-closed rules
 
 Any ambiguity about session authority, realtime sequence gap, WMS readiness, PRIMARY/generation ownership or data integrity must reconcile from authoritative state before business mutation. Usage reduction never overrides correctness.
+
+
+## Technical runtime release checkpoint
+
+D162 implementation PR #447 was merged to `main` at `9ac67180c310fe56324608e3118671d278f311c6`.
+
+- Beta Worker/Web deploy run `37344066134`: PASS, including post-deploy health/source/schema/Operational V2 checks.
+- Repo Authority Guard `37344066156` and Project State Guard `37344066136`: PASS on the merged main commit.
+- Verify Beta Relay Agent `37344066196`: PASS.
+- Agent release: `relay-agent-v114`, release id `403935863`; canonical EXE asset id `613144745`, size `7298048` bytes, SHA-256 `dabf4b5e4918f741e6b4d806362d8700d507cc8ee045ea632d63f122581eacfe`.
+- Runtime channel Agent asset id `613144942` now resolves to v114.
+- Android remains `beta-vc97` unchanged; inventory-channel APK asset remains `609733318`.
+- Stable remains OWNER-GATED and untouched.
+- D162 is not Owner-PASS yet. Comparable active-load usage/latency evidence and explicit Owner acceptance remain required; any failure is repaired under D162.

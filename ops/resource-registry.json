@@ -143,7 +143,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D162_TECHNICAL_PASS__PR_447_READY_TO_MERGE__AGENT_V114_TARGET__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED",
+      "status": "D162_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_9AC67180__BETA_DEPLOY_RUN_37344066134__AGENT_V114__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -206,13 +206,13 @@
       "picker_default_password_secret": "PICKER_DEFAULT_PASSWORD",
       "legacy_picker_uninitialized_password_bootstrap": "DEPLOYED_BETA_PASS_PROTECTED_RUNTIME_DEFAULT_WITH_ROOT_BOOTSTRAP_FALLBACK",
       "relay_poc_status": "D125_PICKLIST_RELAY_RETIRED__FIRESTORE_REUSE_FOR_OFFICE_INVENTORY_BRIDGE",
-      "relay_agent_release": "relay-agent-v101__D161_SAFETY__D160_BEHAVIOR__FEATURE_MIN_V102",
+      "relay_agent_release": "relay-agent-v114__D162_TECHNICAL_RUNTIME_RELEASE_PASS",
       "firebase_rtdb_rules_deploy": "D087_PR_GATE_PASS_RUN_35495453228__MAIN_SOURCE_MERGED",
       "deploy_health_proof": "SOURCE_COMMIT_EQUALS_GITHUB_SHA__RUNTIME_SCHEMA_EQUALS_SOURCE_SCHEMA__AGENT_AUTH_MIGRATION_ZERO_REMAINING",
       "deploy_health_proof_status": "D156_PASS_RUN_36645477945__SOURCE_859A7DFB__SCHEMA16_16__AGENT_MIGRATION0_0__OPERATIONAL5_5",
-      "relay_agent_release_target": "relay-agent-v101__D161_SAFETY_VERIFIED",
+      "relay_agent_release_target": "relay-agent-v114__RELEASED",
       "next_signed_beta_release_target": "D161_FEATURE_MIN_VC94",
-      "next_relay_agent_release_target": "D161_FEATURE_MIN_V102",
+      "next_relay_agent_release_target": "D162_FIELD_USAGE_VALIDATION__NO_VERSION_BUMP_UNLESS_REPAIR_REQUIRED",
       "d113_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__OA033_FIELD_READY",
       "d114_source_status": "OWNER_FIELD_ACCEPTED_PASS__POST_PASS_RELAY_DIAGNOSTIC_OPEN",
       "d115_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__SIGNED_BETA_VC71__AGENT_V34__OA035_FIELD_READY",
@@ -354,7 +354,17 @@
       "d161_fourth_field_repair_agent_sha256": "b096d45bea049c847a277921e2039f6fd81c75bbfab22cd0ee1be3bf0a177dbf",
       "d161_fourth_field_repair_inventory_channel_latest_json_asset_id": 609938504,
       "d161_fourth_field_repair_inventory_channel_agent_asset_id": 609938501,
-      "d161_fourth_field_repair_inventory_channel_checksum_asset_id": 609938500
+      "d161_fourth_field_repair_inventory_channel_checksum_asset_id": 609938500,
+      "d162_source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_9AC67180__BETA_DEPLOY_RUN_37344066134__AGENT_V114__FIELD_USAGE_VALIDATION_PENDING",
+      "d162_main_commit": "9ac67180c310fe56324608e3118671d278f311c6",
+      "d162_beta_worker_run_id": 37344066134,
+      "d162_agent_run_id": 37344066196,
+      "d162_agent_release_id": 403935863,
+      "d162_agent_asset_id": 613144745,
+      "d162_agent_size_bytes": 7298048,
+      "d162_agent_sha256": "dabf4b5e4918f741e6b4d806362d8700d507cc8ee045ea632d63f122581eacfe",
+      "d162_inventory_channel_agent_asset_id": 613144942,
+      "d162_android": "beta-vc97__UNCHANGED__ASSET_609733318"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -2489,16 +2499,28 @@
     }
   },
   "d162": {
-    "status": "TECHNICAL_PASS__PR_447_READY_TO_MERGE__FIELD_USAGE_VALIDATION_PENDING",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__FIELD_USAGE_VALIDATION_PENDING",
     "accepted_base": "D161__MAIN_C3791EEA__RELAY_AGENT_V113",
     "resource_change": "NONE_PERSISTENT",
     "cloudflare": "EXISTING_BETA_WORKER_AND_INVENTORYCORE_DURABLE_OBJECT_ONLY",
     "firestore": "EXISTING_DEFAULT_DATABASE_RELAY_POC_JOBS_COORDINATION_PICKER_PRESENCE_ONLY",
     "web": "EXISTING_BETA_WEB_ASSETS",
-    "agent": "relay-agent-v114__TARGET__TECHNICAL_PASS",
-    "android": "beta-vc97__HARD_LOCKED_UNCHANGED",
+    "agent": "relay-agent-v114__RELEASED",
+    "android": "beta-vc97__HARD_LOCKED_UNCHANGED__ASSET_609733318",
     "stable": "OWNER_GATED_UNTOUCHED",
     "provider_impact": "REDUCE_EXISTING_REQUEST_READ_WRITE_CADENCE__NO_NEW_RESOURCE_LISTENER_QUERY_FAMILY_POLL_FAMILY_HEARTBEAT_OR_SECRET",
-    "presence_control": "EXISTING_RELAY_POC_JOBS_PICKER_PRESENCE_CURRENT__ACK_RETAINED_BY_D162_CONTRACT"
+    "presence_control": "EXISTING_RELAY_POC_JOBS_PICKER_PRESENCE_CURRENT__ACK_RETAINED_BY_D162_CONTRACT",
+    "main_sha": "9ac67180c310fe56324608e3118671d278f311c6",
+    "beta_worker_run_id": 37344066134,
+    "agent_run_id": 37344066196,
+    "agent_release_id": 403935863,
+    "agent_asset_id": 613144745,
+    "agent_size_bytes": 7298048,
+    "agent_sha256": "dabf4b5e4918f741e6b4d806362d8700d507cc8ee045ea632d63f122581eacfe",
+    "inventory_channel_release_id": 394587029,
+    "inventory_channel_manifest_asset_id": 613144941,
+    "inventory_channel_agent_asset_id": 613144942,
+    "inventory_channel_checksum_asset_id": 613144938,
+    "field_usage_validation": "PENDING_COMPARABLE_ACTIVE_LOAD"
   }
 }

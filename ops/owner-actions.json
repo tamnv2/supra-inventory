@@ -5042,6 +5042,56 @@
         }
       },
       "owner_result": "PASS__2026_10_05"
+    },
+    {
+      "id": "OA097",
+      "status": "PENDING_FIELD_VALIDATION",
+      "title": "Field-accept D162 usage efficiency under comparable active load",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory Beta / Cloudflare / Firestore / Web / Windows Agent",
+      "reason_owner_only": "D162 technical/runtime/release gates are PASS, but comparable real operating load and final business acceptance require the Owner/company field environment. Technical PASS does not promote D162.",
+      "prerequisites": {
+        "accepted_base": "D161__OWNER_PASS",
+        "d162_main": "9ac67180c310fe56324608e3118671d278f311c6",
+        "beta_worker": "PASS__RUN_37344066134",
+        "agent": "relay-agent-v114__RELEASED__RUN_37344066196",
+        "android": "beta-vc97__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Operate Beta normally during a representative active period; do not generate artificial traffic solely for the test.",
+        "Verify Reporter queue/recent realtime behavior, Picker reporting/results and PickList confirmation remain at least as responsive and stable as D161.",
+        "Collect comparable Cloudflare Durable Object and Firestore usage evidence for the active period; AI compares it with the recorded D162 baseline and acceptance ratios.",
+        "After the evidence review, explicitly report D162 PASS or NOT PASS. Any NOT PASS is repaired under D162."
+      ],
+      "pass_criteria": [
+        "No request loss, stale session authorization, duplicate WMS mutation or material p50/p90 latency regression.",
+        "Overall comparable-load Durable Object requests fall materially with target at least 40 percent versus D161 traffic; repeated Operational V2 readiness traffic is absent.",
+        "Steady listener-healthy Firestore reads fall materially with target at least 70 percent; Firestore writes do not increase.",
+        "Android remains beta-vc97 unchanged and Stable remains untouched.",
+        "Owner explicitly accepts D162 before any D163 or unrelated mutation."
+      ],
+      "technical_evidence": {
+        "merge_pr": 447,
+        "main_sha": "9ac67180c310fe56324608e3118671d278f311c6",
+        "main_ci": "PASS__10_OF_10",
+        "beta_worker_run": 37344066134,
+        "authority_run": 37344066156,
+        "continuity_run": 37344066136,
+        "agent_run": 37344066196,
+        "usage_regression_run": 37344066087,
+        "ui_guard_run": 37344066291,
+        "release": "relay-agent-v114",
+        "release_id": 403935863,
+        "exe_asset_id": 613144745,
+        "exe_size_bytes": 7298048,
+        "exe_sha256": "dabf4b5e4918f741e6b4d806362d8700d507cc8ee045ea632d63f122581eacfe",
+        "inventory_channel_agent_asset_id": 613144942,
+        "android": "beta-vc97__UNCHANGED__ASSET_609733318",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "remaining_owner_action": "FIELD_USAGE_AND_BUSINESS_ACCEPTANCE_PENDING",
+      "closed": false
     }
   ]
 }
