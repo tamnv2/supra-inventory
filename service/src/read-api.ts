@@ -16,8 +16,6 @@ interface InternalUser {
   session_channel?: "WEB" | "ANDROID" | "AGENT" | "";
 }
 
-const REPORTER_ROLES: AppRole[] = ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"];
-
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
     status,
