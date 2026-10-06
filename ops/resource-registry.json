@@ -2532,6 +2532,16 @@
       "agent": "relay-agent-v114__UNCHANGED",
       "android": "beta-vc97__UNCHANGED__ASSET_609733318",
       "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "workspace_tab_counter_repair": {
+      "status": "IMPLEMENTED_BRANCH__CI_PENDING",
+      "branch": "repair/d162-workspace-tab-realtime-counters",
+      "resources": "EXISTING_BETA_WORKER_INVENTORYCORE_REALTIME_ONLY",
+      "provider_impact": "NO_NEW_PERSISTENT_RESOURCE__NO_POLLING_LISTENER_HEARTBEAT_FIRESTORE_READ_WRITE_OR_PROVIDER_WRITE_CADENCE",
+      "counter_reconcile": "ONE_AUTHORIZED_SINGLE_DO_CALL_ON_BASELINE_OR_REALTIME_CONTINUITY_RECOVERY",
+      "agent": "relay-agent-v114__UNCHANGED",
+      "android": "beta-vc97__UNCHANGED__ASSET_609733318",
+      "stable": "OWNER_GATED_UNTOUCHED"
     }
   }
 }

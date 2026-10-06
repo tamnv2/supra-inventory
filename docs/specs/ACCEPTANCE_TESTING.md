@@ -2576,3 +2576,16 @@ D162 cannot PASS unless all of the following hold:
 7. WMS PRIMARY/generation/mutation fences and durable terminal ACK remain unchanged.
 8. Presence single-slot control ACK remains enabled unless a future Owner-approved change replaces its producer/consumer contract.
 9. Under comparable load, DO requests reduce materially (target >=40%) and steady listener-healthy Firestore reads reduce materially (target >=70%) without material p50/p90 latency regression.
+
+## D162 workspace tab realtime counter acceptance
+
+The same-D162 Web repair passes only when all of the following hold on Beta:
+
+1. With **Đang xử lý** visible, a new unique pending SKU changes its tab count immediately from realtime delivery without F5 or tab switching.
+2. Resolving/closing the final pending batch decrements **Đang xử lý** and increments **Kết quả gần đây** when the resulting batch matches the active recent-result date/status filter.
+3. With **Kết quả gần đây** visible, the same transitions update both tab numbers without opening **Đang xử lý**.
+4. With either workspace tab off-screen, its numeric badge remains current while its full list API is not fetched.
+5. `BATCH_CORRECTED` moves the recent count correctly across `SKIP_ALLOWED` / `HAS_STOCK` filters without changing the unfiltered recent total.
+6. `RESULT_ACKNOWLEDGED` does not change the recent batch count.
+7. F5/login and a forced realtime gap/reconnect reconcile both numbers with one lightweight dual-counter request; no count polling is started afterward.
+8. Web/Worker regression, Authority and Project State checks PASS; Agent remains v114, Android remains vc97 and Stable remains untouched.

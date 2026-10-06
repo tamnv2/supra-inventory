@@ -98,6 +98,7 @@ def require_source_markers() -> None:
         "/authorized/operational/picker/results",
         "/authorized/operational/picker/result-stage",
         "/authorized/operational/reporter/queue",
+        "/authorized/operational/reporter/counters",
         "/authorized/operational/reporter/recent",
         "/authorized/operational/realtime/delta",
         "/authorized/realtime/ticket",
@@ -107,43 +108,63 @@ def require_source_markers() -> None:
         if marker not in core:
             fail(f"D162 single-DO authorization marker missing: {marker}")
 
-    # D162 repair: queue badge deltas must piggyback on existing business events.
+    # D162 repair: queue and recent workspace counters piggyback on existing business events.
     for marker in (
         "queue_delta: existingBatch ? 0 : 1",
         "queue_delta: queueDelta",
         "queue_delta: -1",
+        "recent_counter:",
+        'before_status: "SKIP_ALLOWED"',
+        'after_status: "HAS_STOCK"',
     ):
         if marker not in business:
-            fail(f"D162 queue badge business delta missing: {marker}")
+            fail(f"D162 reporter counter business metadata missing: {marker}")
     for marker in (
         "queue_delta: -1",
         "queue_delta: finalForBatch ? -1 : 0",
+        "recent_counter:",
+        'after_status: "SKIP_ALLOWED"',
     ):
         if marker not in sla_auto:
-            fail(f"D162 queue badge SLA delta missing: {marker}")
+            fail(f"D162 reporter counter SLA metadata missing: {marker}")
 
-    # Live websocket broadcasts must carry the same delta without a new provider or
-    # InventoryCore read. HTTP mutations expose the already-known delta and the
-    # business API forwards it; deadline effects carry it directly to broadcast.
+    # One exact counter endpoint is allowed for login/F5/reconnect/gap reconciliation.
+    # Normal realtime events must not perform a count/read call.
+    for marker in (
+        "function reporterCounters",
+        "queue_total:",
+        "recent_total:",
+        '"/operational/reporter/counters"',
+    ):
+        if marker not in operational:
+            fail(f"D162 lightweight reporter counters endpoint missing: {marker}")
+
+    # Live websocket broadcasts must carry the same queue/recent transition metadata
+    # without a new provider or InventoryCore read.
     for marker in (
         "queue_delta?: unknown",
+        "recent_counter?: unknown",
         "metadata.queue_delta = queueDelta",
-        "metadata,",
+        "metadata.recent_counter = payload.recent_counter",
+        "GET /api/reporter/counters",
     ):
         if marker not in business_api:
-            fail(f"D162 live business broadcast delta missing: {marker}")
+            fail(f"D162 live reporter counter broadcast/route missing: {marker}")
     for marker in (
         "queue_delta?: -1 | 0 | 1",
+        "recent_counter?:",
         "queue_delta: finalForBatch ? -1 : 0",
     ):
         if marker not in sla_auto:
-            fail(f"D162 live deadline effect delta missing: {marker}")
+            fail(f"D162 live deadline reporter counter missing: {marker}")
     for marker in (
         "effect.queue_delta",
         "queue_delta: effect.queue_delta",
+        "effect.recent_counter",
+        "recent_counter: effect.recent_counter",
     ):
         if marker not in core:
-            fail(f"D162 live deadline broadcast delta missing: {marker}")
+            fail(f"D162 live deadline broadcast counter metadata missing: {marker}")
 
     schedule_pos = core.find("await scheduleNextOperationalAlarm(this.state);")
     broadcast_pos = core.find("for (const effect of effects) {", core.find("async alarm(): Promise<void>"))

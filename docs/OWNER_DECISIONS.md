@@ -3332,3 +3332,14 @@ Hard invariants:
 - The Results surface loads recent-result data only. The Operations surface loads queue data only. A normal off-screen `reporter_queue` event updates the badge from realtime metadata without a queue API read.
 - Missing/legacy queue-delta metadata fails closed to the lightweight count reconciliation. Realtime gaps/reconnects also reconcile the count authoritatively.
 - Windows Agent remains **relay-agent-v114 unchanged**, Android remains **beta-vc97 unchanged**, and Stable remains **OWNER-GATED and untouched**.
+
+## 2026-10-06 — D162 workspace tab realtime counter repair — Owner approved
+
+- Field review found the two visible Web workspace counts **Đang xử lý** and **Kết quả gần đây** were still derived from loaded list state (`queueRows.length` / `recentTotal`) and therefore changed only after the corresponding tab loaded.
+- This is a same-D162 NOT-PASS repair, not a new change ID.
+- Both workspace counts must update immediately from the existing realtime event stream without polling and without loading an off-screen list.
+- Normal realtime events carry only bounded counter metadata already known by the committed mutation: pending queue uses `queue_delta`; recent results use a before/after `recent_counter` transition so current date/status filters can be updated correctly.
+- F5/login/reconnect/gap may perform one authoritative lightweight Reporter-counter reconciliation for both numbers. That reconciliation must not load either full list.
+- Full **Đang xử lý** rows are read only when Operations is visible. Full **Kết quả gần đây** rows are read only when Results is visible.
+- No new provider resource, Firestore read/write cadence, polling, listener or heartbeat is introduced.
+- Agent remains `relay-agent-v114`, Android remains `beta-vc97`, and Stable remains OWNER-GATED and untouched.

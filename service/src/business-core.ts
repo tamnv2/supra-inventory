@@ -583,16 +583,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
         .toArray(),
     );
     const queueDelta = Number(activeRemaining?.count || 0) === 0 ? -1 : 0;
-    const eventId = event(
-      state,
-      actor,
-      "REPORT_WITHDRAWN",
-      ticket.batch_id,
-      ticketId,
-      { sku: ticket.sku, queue_delta: queueDelta },
-      at,
-    );
-    audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
+    let recentAfterStatus: "SKIP_ALLOWED" | "CLOSED" | null = null;
     if (Number(activeRemaining?.count || 0) === 0) {
       const timedOut = firstRow(
         state.storage.sql
@@ -603,6 +594,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           .toArray(),
       );
       if (Number(timedOut?.count || 0) > 0) {
+        recentAfterStatus = "SKIP_ALLOWED";
         const batchForCorrection = firstRow(
           state.storage.sql.exec<SqlRow>("SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
         );
@@ -626,6 +618,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           ticket.batch_id,
         );
       } else {
+        recentAfterStatus = "CLOSED";
         state.storage.sql.exec(
           `UPDATE report_batches
               SET status = 'CLOSED', updated_at = ?
@@ -636,7 +629,32 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
       }
     }
 
-    const payload = { status: "withdrawn", ticket_id: ticketId, batch_id: ticket.batch_id, withdrawn_at: at, event_id: eventId, queue_delta: queueDelta };
+    const recentCounter = {
+      before_status: null,
+      before_at: null,
+      after_status: recentAfterStatus,
+      after_at: recentAfterStatus ? at : null,
+    };
+    const eventId = event(
+      state,
+      actor,
+      "REPORT_WITHDRAWN",
+      ticket.batch_id,
+      ticketId,
+      { sku: ticket.sku, queue_delta: queueDelta, recent_counter: recentCounter },
+      at,
+    );
+    audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
+
+    const payload = {
+      status: "withdrawn",
+      ticket_id: ticketId,
+      batch_id: ticket.batch_id,
+      withdrawn_at: at,
+      event_id: eventId,
+      queue_delta: queueDelta,
+      recent_counter: recentCounter,
+    };
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 200, payload } satisfies BusinessResult;
   });
@@ -742,7 +760,14 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_RESOLVED",
       batchId,
       null,
-      { resolution, source: "REPORTER", affected_picker_count: affected, correction_deadline_at: correctionDeadline, queue_delta: -1 },
+      {
+        resolution,
+        source: "REPORTER",
+        affected_picker_count: affected,
+        correction_deadline_at: correctionDeadline,
+        queue_delta: -1,
+        recent_counter: { before_status: null, before_at: null, after_status: resolution, after_at: at },
+      },
       at,
     );
     audit(state, actor, "BATCH_RESOLVE", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, resolution, source: "REPORTER", affected_picker_count: affected }, at);
@@ -756,6 +781,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       correction_deadline_at: correctionDeadline,
       event_id: eventId,
       queue_delta: -1,
+      recent_counter: { before_status: null, before_at: null, after_status: resolution, after_at: at },
       resolution_source: "REPORTER",
       resolved_by_user_id: actor.user_id,
       resolved_by_display_name: actor.display_name || actor.employee_code || actor.user_id,
@@ -828,7 +854,19 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_CORRECTED",
       batchId,
       null,
-      { from: "SKIP_ALLOWED", to: "HAS_STOCK", source: "REPORTER_CORRECTION", previous_correction_deadline_at: batch.correction_deadline_at, effective_correction_deadline_at: effectiveCorrectionDeadline },
+      {
+        from: "SKIP_ALLOWED",
+        to: "HAS_STOCK",
+        source: "REPORTER_CORRECTION",
+        previous_correction_deadline_at: batch.correction_deadline_at,
+        effective_correction_deadline_at: effectiveCorrectionDeadline,
+        recent_counter: {
+          before_status: "SKIP_ALLOWED",
+          before_at: batch.resolved_at || null,
+          after_status: "HAS_STOCK",
+          after_at: at,
+        },
+      },
       at,
     );
     audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, from: "SKIP_ALLOWED", to: "HAS_STOCK" }, at);
@@ -839,6 +877,12 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       resolution: "HAS_STOCK",
       corrected_at: at,
       event_id: eventId,
+      recent_counter: {
+        before_status: "SKIP_ALLOWED",
+        before_at: batch.resolved_at || null,
+        after_status: "HAS_STOCK",
+        after_at: at,
+      },
       resolution_source: "REPORTER_CORRECTION",
       resolved_by_user_id: actor.user_id,
       resolved_by_display_name: actor.display_name || actor.employee_code || actor.user_id,

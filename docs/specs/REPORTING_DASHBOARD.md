@@ -279,3 +279,12 @@ Reporter queue and recent results are independent read models for realtime refre
 - Opening **Kết quả gần đây** reads recent-result data only; queue rows are not fetched for that screen.
 - If the badge has no trusted baseline, Web may perform one lightweight queue total read using a one-row queue request. This is count reconciliation, not background queue loading.
 - Realtime continuity uncertainty forces authoritative count reconciliation; it does not justify continuous polling or background full-queue reads.
+
+## D162 realtime workspace tab counts
+
+- The numeric badges shown directly beside **Đang xử lý** and **Kết quả gần đây** must remain current without requiring the operator to click either tab.
+- **Đang xử lý** renders the dedicated realtime queue counter, not `queueRows.length`.
+- **Kết quả gần đây** renders the dedicated realtime recent counter, not the total from the last loaded result page.
+- The recent counter follows the same selected date range/status filter as the Results workspace.
+- Opening a tab loads its full list. Remaining on the other tab does not cause background full-list reads.
+- Reload/login/reconnect may reconcile both counts in one lightweight authoritative request. No periodic count polling is allowed.

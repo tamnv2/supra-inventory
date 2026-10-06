@@ -40,6 +40,7 @@ import {
   getMyProfile,
   getSkuCatalogInfo,
   getReporterBatchTickets,
+  getReporterCounters,
   getReporterQueue,
   getReporterRecent,
   getStoredProfile,
@@ -243,6 +244,8 @@ function clearRoleScopedViewState(): void {
   queueRows = [];
   queueBadgeCount = 0;
   queueBadgeInitialized = false;
+  recentBadgeCount = 0;
+  recentBadgeInitialized = false;
   reporterBadgeLoadGeneration += 1;
   recentRows = [];
   recentOffset = 0;
@@ -341,6 +344,8 @@ let lastWebUpdateAt: Date | null = null;
 let queueRows: ReporterBatch[] = [];
 let queueBadgeCount = 0;
 let queueBadgeInitialized = false;
+let recentBadgeCount = 0;
+let recentBadgeInitialized = false;
 let reporterBadgeLoadGeneration = 0;
 let queueServerOffsetMs = 0;
 let recentRows: ReporterRecentBatch[] = [];
@@ -1424,9 +1429,16 @@ function render(): void {
 
 function renderOperationalTabs(current: "operations" | "results"): string {
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
-    <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b>${queueRows.length}</b></button>
-    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b>${recentTotal}</b></button>
+    <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
+    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b data-workspace-count="results">${recentBadgeCount}</b></button>
   </div>`;
+}
+
+function syncOperationalTabBadges(): void {
+  const operations = document.querySelector<HTMLElement>('[data-workspace-count="operations"]');
+  const results = document.querySelector<HTMLElement>('[data-workspace-count="results"]');
+  if (operations) operations.textContent = String(queueBadgeCount);
+  if (results) results.textContent = String(recentBadgeCount);
 }
 
 function filteredQueueRows(): ReporterBatch[] {
@@ -2813,6 +2825,7 @@ async function loadReporterQueueSnapshot(): Promise<void> {
   queueBadgeCount = Math.max(0, Number(queue.total || queue.items.length));
   queueBadgeInitialized = true;
   syncOperationsNavBadge();
+  syncOperationalTabBadges();
   if (selectedBatchId && !queueRows.some((row) => row.batch_id === selectedBatchId)) selectedBatchId = null;
   const selected = queueRows.find((row) => row.batch_id === selectedBatchId) || filteredQueueRows()[0] || queueRows[0];
   if (selected) {
@@ -2822,21 +2835,77 @@ async function loadReporterQueueSnapshot(): Promise<void> {
   markWebUpdateReceived();
 }
 
-async function loadReporterQueueBadgeCount(force = false): Promise<void> {
-  if (!roleOperate() || (queueBadgeInitialized && !force)) return;
+async function loadReporterTabCounters(force = false): Promise<void> {
+  if (!roleOperate() || ((queueBadgeInitialized && recentBadgeInitialized) && !force)) return;
   const requestGeneration = ++reporterBadgeLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const queue = await getReporterQueue(1, 0);
+  const recentStatus = recentFilter === "ALL" ? "" : recentFilter;
+  const range = apiRange(recentFrom, recentTo);
+  const counters = await getReporterCounters(recentStatus, range.from, range.to);
   if (
     requestGeneration !== reporterBadgeLoadGeneration ||
     generation !== sessionViewGeneration ||
     userId !== (profile?.user_id || "")
   ) return;
-  queueBadgeCount = Math.max(0, Number(queue.total || 0));
+  queueBadgeCount = Math.max(0, Number(counters.queue_total || 0));
+  recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
   queueBadgeInitialized = true;
+  recentBadgeInitialized = true;
   syncOperationsNavBadge();
+  syncOperationalTabBadges();
   markWebUpdateReceived();
+}
+
+type RecentCounterEndpoint = {
+  status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | null;
+  at: string | null;
+};
+
+function recentCounterEndpoint(statusValue: unknown, atValue: unknown): { valid: boolean; endpoint: RecentCounterEndpoint } {
+  if (statusValue == null && atValue == null) return { valid: true, endpoint: { status: null, at: null } };
+  const status = String(statusValue || "").trim().toUpperCase();
+  const at = String(atValue || "").trim();
+  if (!["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(status) || !at || !Number.isFinite(Date.parse(at))) {
+    return { valid: false, endpoint: { status: null, at: null } };
+  }
+  return { valid: true, endpoint: { status: status as RecentCounterEndpoint["status"], at } };
+}
+
+function recentCounterMatches(endpoint: RecentCounterEndpoint): boolean {
+  if (!endpoint.status || !endpoint.at) return false;
+  if (recentFilter !== "ALL" && endpoint.status !== recentFilter) return false;
+  const atMs = Date.parse(endpoint.at);
+  const range = apiRange(recentFrom, recentTo);
+  return atMs >= Date.parse(range.from) && atMs < Date.parse(range.to);
+}
+
+function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
+  if (!roleOperate() || !recentBadgeInitialized) return false;
+  const recentMutationEvents = new Set([
+    "REPORT_WITHDRAWN",
+    "BATCH_RESOLVED",
+    "BATCH_CORRECTED",
+    "TICKET_AUTO_SKIP_ALLOWED",
+    "BATCH_AUTO_SKIP_ALLOWED",
+  ]);
+  let next = recentBadgeCount;
+  for (const row of events) {
+    if (!(row.scopes || []).includes("reporter_recent")) continue;
+    const eventName = String(row.event || "").trim().toUpperCase();
+    if (eventName === "RESULT_ACKNOWLEDGED") continue;
+    if (!recentMutationEvents.has(eventName)) continue;
+    const transition = row.metadata?.recent_counter;
+    if (!transition || typeof transition !== "object" || Array.isArray(transition)) return false;
+    const values = transition as Record<string, unknown>;
+    const before = recentCounterEndpoint(values.before_status, values.before_at);
+    const after = recentCounterEndpoint(values.after_status, values.after_at);
+    if (!before.valid || !after.valid) return false;
+    next += (recentCounterMatches(after.endpoint) ? 1 : 0) - (recentCounterMatches(before.endpoint) ? 1 : 0);
+  }
+  recentBadgeCount = Math.max(0, next);
+  syncOperationalTabBadges();
+  return true;
 }
 
 function applyReporterQueueBadgeEvents(events: RealtimeEventFrame[]): boolean {
@@ -2885,19 +2954,23 @@ async function loadReporterRecentSnapshot(): Promise<void> {
   }
   recentRows = recent.items;
   recentTotal = recent.total;
+  recentBadgeCount = Math.max(0, Number(recent.total || 0));
+  recentBadgeInitialized = true;
   recentTotals = recent.totals;
+  syncOperationalTabBadges();
   markWebUpdateReceived();
 }
 
 async function loadOperationsSnapshot(): Promise<void> {
   if (activeSection === "results") {
-    await Promise.all([
-      loadReporterRecentSnapshot(),
-      loadReporterQueueBadgeCount(),
-    ]);
+    const tasks: Promise<void>[] = [loadReporterRecentSnapshot()];
+    if (!queueBadgeInitialized) tasks.push(loadReporterTabCounters());
+    await Promise.all(tasks);
     return;
   }
-  await loadReporterQueueSnapshot();
+  const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];
+  if (!recentBadgeInitialized) tasks.push(loadReporterTabCounters());
+  await Promise.all(tasks);
 }
 
 async function loadOperations(): Promise<void> {
@@ -3427,8 +3500,8 @@ async function exportReportsExcel(): Promise<void> {
 async function loadSection(section: Section): Promise<void> {
   if (!profile) return;
   let received = false;
-  if (roleOperate() && section !== "operations" && !queueBadgeInitialized) {
-    await loadReporterQueueBadgeCount();
+  if (roleOperate() && section !== "operations" && section !== "results" && (!queueBadgeInitialized || !recentBadgeInitialized)) {
+    await loadReporterTabCounters();
   }
   if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
   else if (section === "shift" && roleManage()) { await loadShiftOperations(); received = true; }
@@ -3505,6 +3578,8 @@ function bindShell(): void {
       queueRows = [];
       queueBadgeCount = 0;
       queueBadgeInitialized = false;
+      recentBadgeCount = 0;
+      recentBadgeInitialized = false;
       reporterBadgeLoadGeneration += 1;
       recentRows = [];
       batchDetails.clear();
@@ -4357,7 +4432,7 @@ async function importSkuWorkbook(): Promise<void> {
 
 async function reconcileActive(): Promise<boolean> {
   try {
-    if (roleOperate() && activeSection !== "operations") await loadReporterQueueBadgeCount(true);
+    if (roleOperate()) await loadReporterTabCounters(true);
     if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
     else if (activeSection === "sla" && roleManage()) {
@@ -4411,12 +4486,20 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   if (reporterScopeChanged) {
     try {
       const queueBadgeExact = !reporterQueueChanged || applyReporterQueueBadgeEvents(events);
+      const recentBadgeExact = !reporterRecentChanged || applyReporterRecentBadgeEvents(events);
+      syncOperationsNavBadge();
+      syncOperationalTabBadges();
+
       const tasks: Promise<void>[] = [];
       if (reporterQueueChanged && activeSection === "operations") tasks.push(loadReporterQueueSnapshot());
-      else if (reporterQueueChanged && !queueBadgeExact) tasks.push(loadReporterQueueBadgeCount(true));
       if (reporterRecentChanged && activeSection === "results") tasks.push(loadReporterRecentSnapshot());
+
+      const needsCounterReconcile =
+        (reporterQueueChanged && !queueBadgeExact && activeSection !== "operations") ||
+        (reporterRecentChanged && !recentBadgeExact && activeSection !== "results");
+      if (needsCounterReconcile) tasks.push(loadReporterTabCounters(true));
+
       if (tasks.length) await Promise.all(tasks);
-      if (reporterQueueChanged) syncOperationsNavBadge();
       if (reporterRelevant) patchActiveSection(true);
     } catch {
       return false;
