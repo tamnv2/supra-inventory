@@ -1026,10 +1026,13 @@ class MainActivity : Activity() {
     }
 
     private fun savePendingSessionEndRuntimeLog(session: AppSession, payload: JSONObject) {
+        // D165: persist the final sanitized bundle synchronously before any
+        // session cleanup. The embedded bundle identity survives retries so the
+        // server/Drive archive can dedupe the same logout boundary.
         runtimeLogPrefs().edit()
             .putString("pending_session_end_user", session.userId)
             .putString("pending_session_end_payload", payload.toString().take(30_000))
-            .apply()
+            .commit()
     }
 
     private fun flushPendingSessionEndRuntimeLog(session: AppSession) {
@@ -1047,7 +1050,7 @@ class MainActivity : Activity() {
             } catch (_: Exception) {
                 JSONObject().put("raw", sanitizeDiagnosticText(raw))
             }
-            val result = uploadAndroidRuntimeLog("INFO", "session_end_deferred", payload)
+            val result = uploadAndroidRuntimeLog("INFO", "session_end_logout", payload)
             if (result.archiveStatus == "DRIVE_SYNCED") {
                 prefs.edit()
                     .remove("pending_session_end_user")
@@ -1480,18 +1483,24 @@ class MainActivity : Activity() {
             }
         } else null
 
+        if (endingSession != null && sessionEndPayload != null) {
+            ensureAndroidRuntimeLogIdentity(sessionEndPayload, "session_end_logout")
+            savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
+        }
+
         stopOperationalClients()
         Thread {
             if (endingSession != null && sessionEndPayload != null) {
                 val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", sessionEndPayload)
-                if (sent.archiveStatus != "DRIVE_SYNCED") {
-                    savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
-                } else {
+                if (sent.archiveStatus == "DRIVE_SYNCED") {
                     runtimeLogPrefs().edit()
                         .remove("pending_session_end_user")
                         .remove("pending_session_end_payload")
                         .apply()
                 }
+                // Otherwise the synchronously persisted final bundle remains
+                // pending and is retried only by the existing bounded same-user
+                // login/resume delivery path.
             }
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
             try { api.logoutInteractive("android:$notificationDeviceId") } catch (_: Exception) { api.clearSession() }
