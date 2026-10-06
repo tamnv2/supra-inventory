@@ -583,3 +583,16 @@ D162 measures comparable-load efficiency rather than raw daily totals. Required 
 - p50/p90 latency and transport/reconnect failures.
 
 Repeated expected 4xx classes must be aggregated by route/status/error code when additional telemetry is added. D162 must not create a per-request provider log write or a new heartbeat solely for measurement.
+
+## D163 — forced Picker logout final-log continuity
+
+- A server-authoritative **Kích User** invalidates the Android Picker session immediately; business/realtime authority is never delayed to wait for logging.
+- Android `beta-vc97` already routes the revoke signal through the normal logout pipeline and emits the existing `INFO / session_end_logout` bundle.
+- The Worker may accept that final bundle after revoke only when all of these are true:
+  - Firebase identity is an Android session;
+  - the account base role is PICKER;
+  - the token generation is exactly one less than the current authoritative Android generation;
+  - source is `ANDROID`, severity is `INFO`, and reason is exactly `session_end_logout`;
+  - the request is the runtime-log upload route.
+- This exception never applies to business APIs, other log reasons, older generations, non-Picker roles, Web or Agent sessions.
+- The accepted bundle follows the existing sanitization, InventoryCore-first persistence, logical boundary/bundle idempotency and archive retry rules. No new polling, heartbeat or provider write cadence is introduced.
