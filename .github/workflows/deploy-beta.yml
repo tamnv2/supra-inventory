@@ -180,6 +180,31 @@ jobs:
           jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "SKU import auth guard JSON mismatch"; head -c 500 "$tmp"; exit 1; }
           echo "Beta business API capability + auth guards PASS"
 
+      - name: Verify Beta PDA registry contract
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+
+          curl -sS --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/health" -o "$tmp"
+          jq -e '.status == "ok" and .pda_registry_configured == true' "$tmp" >/dev/null || {
+            echo "PDA registry binding is not ready"
+            head -c 800 "$tmp"
+            exit 1
+          }
+
+          probe_key="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/pda/registry/status?device_key=${probe_key}")"
+          [ "$code" = "200" ] || { echo "PDA registry status expected HTTP 200, got $code"; head -c 800 "$tmp"; exit 1; }
+          jq -e '.registered == false and .need_payload == true and .registry_schema_version == 1' "$tmp" >/dev/null || {
+            echo "PDA registry status contract mismatch"
+            head -c 800 "$tmp"
+            exit 1
+          }
+          echo "Beta PDA registry public contract PASS"
+
       - name: Verify Beta Web shell
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}

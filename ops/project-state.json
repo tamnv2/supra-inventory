@@ -5426,7 +5426,7 @@
     }
   },
   "cloudflare_beta_permission_probe": {
-    "status": "REPAIRING_TOKEN_VERIFY_ENDPOINT_COMPATIBILITY",
+    "status": "PASS",
     "requested_at": "2026-10-06",
     "purpose": "Verify newly configured CF_API_TOKEN_INVENTORY_BETA before PDA Registry implementation.",
     "branch": "probe/cf-beta-permission",
@@ -5435,10 +5435,13 @@
     "first_runtime_result": "FAIL__ACCOUNT_TOKEN_VERIFY_ENDPOINT_REJECTED_CURRENT_ENVIRONMENT_SECRET",
     "failure_run_id": 37404273494,
     "repair_branch": "repair/cf-token-verify-compat",
-    "repair_scope": "WORKFLOW_PREFLIGHT_ONLY__SUPPORT_ACCOUNT_OWNED_AND_USER_OWNED_API_TOKEN__NO_RUNTIME_LOGIC_CHANGE__STABLE_UNTOUCHED"
+    "repair_scope": "WORKFLOW_PREFLIGHT_ONLY__SUPPORT_ACCOUNT_OWNED_AND_USER_OWNED_API_TOKEN__NO_RUNTIME_LOGIC_CHANGE__STABLE_UNTOUCHED",
+    "verified_run_id": 37404569131,
+    "verified_worker": "supra-inventory-beta",
+    "result": "TOKEN_ACTIVE__WORKER_SERVICE_HTTP200__WRANGLER_DEPLOY_PASS__HEALTH_PASS"
   },
   "pda_registry_beta": {
-    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "status": "BACKEND_RUNTIME_PASS__IDENTIFIER_NORMALIZATION_REPAIR_PENDING_PR_GATES",
     "owner_instruction_date": "2026-10-06",
     "authorization": "PARALLEL_LAUNCHER_PDA_REGISTRY_WORKSTREAM_EXPLICITLY_APPROVED_BY_OWNER",
     "backend_repo": "tamnv2/supra-inventory",
@@ -5451,6 +5454,11 @@
     "sync": "EVENT_DRIVEN_REGISTER_OR_PAYLOAD_CHANGE__WEEKLY_STATUS_WHEN_LAUNCHER_OPENS__NO_BACKGROUND_POLL",
     "reconcile": "EXISTING_DAILY_CRON_ONLY__NO_NEW_CRON",
     "usage_guard": "NO_FIREBASE__NO_HEARTBEAT__NO_PERIODIC_BACKGROUND_SERVICE__SHEET_WRITE_ONLY_CREATED_CHANGED_OR_RECONCILE",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "backend_main_sha": "d4db01096770c51be14d3f246035fc7c2546932d",
+    "backend_deploy_run_id": 37405932995,
+    "backend_typecheck": "PASS",
+    "cloudflare_preflight": "PASS",
+    "normalization_repair": "ALIGN_SERVER_WITH_LAUNCHER_STRIP_NON_ALPHANUMERIC_BEFORE_DEVICE_KEY_SHA256"
   }
 }

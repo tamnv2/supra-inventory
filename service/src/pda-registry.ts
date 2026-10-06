@@ -36,7 +36,7 @@ function text(value: unknown, max = 160): string {
 }
 
 function normalizeIdentifier(value: unknown): string {
-  return text(value, 96).normalize("NFKC").replace(/\s+/g, "").toUpperCase();
+  return text(value, 96).normalize("NFKC").toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
 function safeSource(value: unknown): string {
