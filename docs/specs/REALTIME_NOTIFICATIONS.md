@@ -955,3 +955,22 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - Normal socket/delta processing updates the two tab numbers from event metadata and does not issue a counter or list read.
 - F5/login/realtime gap/reconnect may issue one bounded authoritative dual-counter read. Missing/invalid transition metadata fails closed to that lightweight reconciliation.
 - Full queue/recent snapshots remain visibility-scoped and are never fetched merely to update a tab number.
+
+## D165 proposal-only realtime delta and corrected-result contract
+
+Status: proposal recorded; implementation not started.
+
+Normal D165 realtime processing must prefer an existing authoritative event snapshot/delta over a new full API read:
+- Web queue/recent rows patch only the affected SKU/result when event data is sufficient.
+- Android Picker report/result surfaces patch only affected local state.
+- Android Reporter queue/recent scopes are independent; one scope must not automatically reload the other.
+- Full reconcile remains mandatory only for initial state, real cursor gap, stream-epoch change, incompatible/missing event data or integrity uncertainty.
+- Reconnect itself is not proof of a data gap.
+- Concurrent reconcile triggers coalesce into one in-flight reconcile.
+- No new polling family is allowed.
+
+PER_PICKER overdue transitions use existing realtime delivery plus bounded overdue/count delta metadata; no timeout polling is introduced.
+
+HAS_STOCK corrections create a new versioned result event. Affected Pickers receive a clear Vietnamese “kết quả đã được điều chỉnh” notification and must acknowledge it using the existing critical-result acknowledgement semantics.
+
+Release-note text is not a realtime business event and must reuse the existing update/version manifest path.
