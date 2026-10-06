@@ -3177,12 +3177,15 @@ function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecen
   };
 }
 
-function recentRangeContains(status: ReporterRecentBatch["status"], at: string): boolean {
+function recentDateRangeContains(at: string): boolean {
   if (!at || !Number.isFinite(Date.parse(at))) return false;
   const range = apiRange(recentFrom, recentTo);
   const ms = Date.parse(at);
-  return ms >= Date.parse(range.from) && ms < Date.parse(range.to)
-    && (recentFilter === "ALL" || recentFilter === status);
+  return ms >= Date.parse(range.from) && ms < Date.parse(range.to);
+}
+
+function recentRangeContains(status: ReporterRecentBatch["status"], at: string): boolean {
+  return recentDateRangeContains(at) && (recentFilter === "ALL" || recentFilter === status);
 }
 
 function adjustRecentOutcomeTotal(status: string | null, delta: number, automatic = false): void {
@@ -3255,10 +3258,10 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
           recentExact = false;
         } else {
           const beforeInRange = before.endpoint.status && before.endpoint.at
-            ? recentRangeContains(before.endpoint.status, before.endpoint.at)
+            ? recentDateRangeContains(before.endpoint.at)
             : false;
           const afterInRange = after.endpoint.status && after.endpoint.at
-            ? recentRangeContains(after.endpoint.status, after.endpoint.at)
+            ? recentDateRangeContains(after.endpoint.at)
             : false;
           const automaticAfter = snapshotText(snapshot, "resolution_source") === "SYSTEM_TIMEOUT";
           if (beforeInRange) adjustRecentOutcomeTotal(before.endpoint.status, -1, beforeRow?.resolution_source === "SYSTEM_TIMEOUT");
@@ -3297,12 +3300,6 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
         recentRows = recentRows.filter((item) => item.batch_id !== batchId);
       }
 
-      if (String(event.event || "").toUpperCase() === "RESULT_ACKNOWLEDGED" && row && matches && beforeRow) {
-        recentTotals.acknowledged_count = Math.max(
-          0,
-          recentTotals.acknowledged_count + Number(row.acknowledged_count || 0) - Number(beforeRow.acknowledged_count || 0),
-        );
-      }
     }
   }
 
