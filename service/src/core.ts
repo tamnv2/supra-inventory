@@ -511,6 +511,7 @@ export class InventoryCore {
           metadata: {
             source: "SYSTEM_DEADLINE",
             ...(effect.queue_delta == null ? {} : { queue_delta: effect.queue_delta }),
+            ...(effect.overdue_delta == null ? {} : { overdue_delta: effect.overdue_delta }),
             ...(effect.recent_counter == null ? {} : { recent_counter: effect.recent_counter }),
           },
         }),
