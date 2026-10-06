@@ -5825,6 +5825,9 @@
       "cloudflare": "VERY_LOW__ONE_SMALL_DO_STATE_PLUS_DAILY_EMAIL_AND_EXPLICIT_LOGIN_RESET_REQUESTS",
       "stable": "UNTOUCHED"
     },
-    "launcher_release": "PLANNED_V0.3.24_AFTER_BACKEND_PASS"
+    "launcher_release": "PLANNED_V0.3.24_AFTER_BACKEND_PASS",
+    "email_subject_format": "MẬT KHẨU LAUNCHER HÀNG NGÀY - xxxx",
+    "subject_exposes_code_by_owner_request": true,
+    "last_updated_at": "2026-10-07"
   }
 }
