@@ -187,11 +187,15 @@ async function realtimeAfter(
       ticket?: { batch_id?: string };
       acknowledgement?: { batch_id?: string };
       queue_delta?: unknown;
+      recent_counter?: unknown;
     };
     eventId = String(payload.event_id || "");
     batchId = String(batchId || payload.batch_id || payload.ticket?.batch_id || payload.acknowledgement?.batch_id || "");
     const queueDelta = Number(payload.queue_delta);
     if (Number.isInteger(queueDelta) && queueDelta >= -1 && queueDelta <= 1) metadata.queue_delta = queueDelta;
+    if (payload.recent_counter && typeof payload.recent_counter === "object" && !Array.isArray(payload.recent_counter)) {
+      metadata.recent_counter = payload.recent_counter;
+    }
   } catch {
     // Keep best-effort broadcast behavior.
   }
@@ -382,6 +386,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "GET /api/picker/results",
     "POST /api/picker/results/receipt",
     "GET /api/reporter/queue",
+    "GET /api/reporter/counters",
     "POST /api/reporter/batches/resolve",
     "POST /api/reporter/batches/correct",
     "GET /api/admin/reports",
@@ -421,6 +426,14 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
     return authorizedGet(request, env, `/authorized/operational/reporter/queue?${params.toString()}`);
+  }
+
+  if (key === "GET /api/reporter/counters") {
+    const params = new URLSearchParams();
+    for (const name of ["status", "from", "to"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return authorizedGet(request, env, `/authorized/operational/reporter/counters?${params.toString()}`);
   }
 
   if (key === "POST /api/picker/results/receipt") {
