@@ -958,7 +958,7 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 
 ## D165 realtime delta and corrected-result contract
 
-Status: implementation active on D165 Beta change set; technical validation pending final CI/field gates.
+Status: implementation complete on the D165 Beta change set; automated technical validation PASS. Field/usage acceptance remains Owner-gated.
 
 Normal D165 realtime processing must prefer an existing authoritative event snapshot/delta over a new full API read:
 - Web queue/recent rows patch only the affected SKU/result when event data is sufficient.
