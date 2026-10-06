@@ -589,10 +589,13 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     ).toArray(),
   ) || {};
 
+  const config = readSlaConfig(state);
   return json({
     queue_total: Number(queueTotalRow.total || 0),
     overdue_total: Number(overdueTotalRow.total || 0),
     recent_total: Number(recentTotalRow.total || 0),
+    auto_skip_enabled: Boolean(config?.auto_skip_enabled),
+    auto_skip_mode: config?.auto_skip_mode || null,
     filter_status: status,
     from,
     to,
