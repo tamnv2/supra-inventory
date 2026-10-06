@@ -368,6 +368,7 @@ function mirrorIfPossible(
   payload: Record<string, unknown>,
 ): void {
   if (!env.GOOGLE_RUNTIME_SA_JSON || !env.MANAGEMENT_SHEET_ID) return;
+  if (payload.replayed === true) return;
   const device = payload.device as Record<string, unknown> | undefined;
   const transaction = payload.transaction as Record<string, unknown> | undefined;
   if (!device || !transaction) return;
@@ -435,7 +436,10 @@ async function deviceActionApi(
     return json({ error: "INVALID_JSON" }, 400);
   }
 
-  const idempotencyKey = String(body.idempotency_key ?? "").trim() || randomId("idem");
+  const idempotencyKey = String(body.idempotency_key ?? "").trim();
+  if (!idempotencyKey) {
+    return json({ error: "IDEMPOTENCY_KEY_REQUIRED" }, 400);
+  }
   const common = {
     serial,
     operator_user_id: session.user_id,
