@@ -916,8 +916,6 @@ export class PdaManagementCore {
       const serial = text(body.serial, 120).toUpperCase();
       const newStatus = text(body.usage_status, 30).toUpperCase();
       const condition = text(body.physical_condition, 30).toUpperCase();
-      const conditionId = text(body.condition_id, 100);
-      const conditionName = text(body.condition_name, 120);
       const operatorUserId = text(body.operator_user_id, 80);
       const operatorName = text(body.operator_name, 160);
       const note = text(body.note, 500);
