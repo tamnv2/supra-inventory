@@ -345,7 +345,7 @@ jobs:
             --arg source "$GITHUB_SHA" \
             --arg sha256 "$apk_sha" \
             --argjson size_bytes "$apk_size" \
-            '{schema_version:1, channel:"beta", tag:$tag, name:$name, published_at:$published_at, source:$source, asset_name:"supra-inventory-beta.apk", size_bytes:$size_bytes, sha256:$sha256}' \
+            '{schema_version:1, channel:"beta", tag:$tag, name:$name, published_at:$published_at, source:$source, asset_name:"supra-inventory-beta.apk", size_bytes:$size_bytes, sha256:$sha256, release_notes:["Hiển thị và xử lý báo hàng theo từng Picker chính xác hơn, gồm trạng thái quá hạn.","Đồng bộ danh mục SKU ổn định hơn và tự bảo vệ khi có nhiều tín hiệu cập nhật cùng lúc.","Cập nhật dữ liệu nghiệp vụ theo thời gian thực nhanh hơn, giảm các lần tải lại không cần thiết."]}' \
             > android/dist/pda-latest.json
           gh release upload "$channel" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 android/dist/pda-latest.json --clobber
           echo "Updated stable PDA runtime channel $channel -> $tag"
