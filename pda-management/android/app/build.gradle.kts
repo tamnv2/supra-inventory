@@ -38,6 +38,7 @@ android {
         buildConfigField("String", "APP_SCOPE", quoted("PDA_MANAGEMENT"))
         buildConfigField("String", "UPDATE_RELEASE_API", quoted("https://pda-beta.supra.cc.cd/downloads/app/manifest"))
         buildConfigField("String", "TRUSTED_SIGNER_SHA256", quoted(trustedSignerSha256))
+        buildConfigField("String", "DIAGNOSTIC_UPLOAD_URL", quoted("https://inventory-beta.supra.cc.cd/api/diagnostics/pda-management/upload"))
     }
 
     buildFeatures {
