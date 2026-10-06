@@ -19,7 +19,7 @@ import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
-import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
+import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
@@ -1162,6 +1162,32 @@ export default {
           });
         } catch (error) {
           return json({ error: "AGENT_BROWSER_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "browser_channel_unavailable" }, 503);
+        }
+      }
+
+      if (request.method === "GET" && url.pathname === "/downloads/launcher/latest") {
+        return redirectLatestLauncherApk();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/launcher/latest.sha256") {
+        return redirectLatestLauncherChecksum();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/launcher/manifest") {
+        try {
+          const release = await latestLauncherRelease();
+          return json({
+            channel: "launcher",
+            tag: release.tag,
+            version: release.version,
+            version_code: release.version_code,
+            published_at: release.published_at,
+            source: release.source,
+            size_bytes: release.size_bytes,
+            sha256: release.sha256,
+            apk_path: release.stable_download_path,
+            checksum_path: "/downloads/launcher/latest.sha256",
+          });
+        } catch (error) {
+          return json({ error: "LAUNCHER_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 503);
         }
       }
 
