@@ -379,3 +379,16 @@ Status: Owner-approved target; implementation deferred.
 - Android beta-vc97 is unchanged by this repair. Its existing per-user `picker_session_controls` generation listener is reused only after server authority succeeds.
 - No new role, provider resource, listener family, polling cadence or Stable authority is introduced.
 
+## D165 proposal-only critical re-authentication
+
+Status: proposal recorded; implementation not started.
+
+D165 adds re-authentication to the existing authorized SLA/processing-time save action:
+- existing RBAC remains mandatory;
+- the user must provide the current password for the currently authenticated account;
+- verification is server-side;
+- failed verification performs no configuration mutation;
+- the password is never stored in browser persistence, logs, audit payloads or provider diagnostics;
+- audit contains actor and before/after setting values only.
+
+D165 corrected-result actions retain existing Reporter/Admin/Root operational authorization and additionally require the approved double-confirmation UX. This does not create a new role or broaden access.
