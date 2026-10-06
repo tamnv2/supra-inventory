@@ -112,7 +112,6 @@ def require_source_markers() -> None:
     for marker in (
         "queue_delta: existingBatch ? 0 : 1",
         "queue_delta: queueDelta",
-        "queue_delta: -1",
         "recent_counter:",
         'before_status: "SKIP_ALLOWED"',
         'after_status: "HAS_STOCK"',
@@ -127,6 +126,18 @@ def require_source_markers() -> None:
     ):
         if marker not in sla_auto:
             fail(f"D162 reporter counter SLA metadata missing: {marker}")
+
+    # D165 PER_PICKER keeps the batch pending after timeout, so the business
+    # resolver may compute queue_delta from remaining waiting tickets instead of
+    # carrying the legacy unconditional -1 literal. FIRST_REPORT still closes.
+    for marker in (
+        'auto_skip_mode !== "PER_PICKER"',
+        "final_batch_resolution: false",
+        "overdue_delta:",
+        'scopes: ["reporter_queue", "reporter_overdue", "picker_reports"]',
+    ):
+        if marker not in sla_auto:
+            fail(f"D165 PER_PICKER timeout invariant missing: {marker}")
 
     # One exact counter endpoint is allowed for login/F5/reconnect/gap reconciliation.
     # Normal realtime events must not perform a count/read call.
