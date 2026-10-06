@@ -33,11 +33,11 @@
     "reporting": "D163_OWNER_FIELD_ACCEPTED_PASS__LAZY_EXACT_BATCH_PICKER_DETAIL",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_INVENTORY_IMPLEMENTATION_ACTIVE_FINAL_CI_PENDING__STABLE_UNTOUCHED",
+    "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_INVENTORY_TECHNICAL_PASS_READY_FOR_BETA_MERGE__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
     "agent": "D162_OWNER_ACCEPTED_RELAY_AGENT_V114__D163_OWNER_PASS_UNCHANGED",
-    "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__IMPLEMENTATION_ACTIVE_FINAL_CI_PENDING__FIELD_OWNER_PASS_REQUIRED"
+    "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__IMPLEMENTATION_COMPLETE__TECHNICAL_PASS__FIELD_OWNER_PASS_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_IMPLEMENTATION_STARTED__OWNER_EXPLICIT_START_2026_10_07__D164_PDA_MANAGEMENT_REMAINS_ISOLATED_FIELD_PENDING",
+    "parallel_inventory_change_status": "D165_TECHNICAL_PASS_READY_FOR_BETA_MERGE__OWNER_FIELD_USAGE_ACCEPTANCE_PENDING__D164_PDA_MANAGEMENT_REMAINS_ISOLATED_FIELD_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5651,7 +5651,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "IMPLEMENTATION_ACTIVE__FINAL_CI_VALIDATION",
+    "status": "TECHNICAL_PASS__READY_FOR_BETA_MERGE__FIELD_USAGE_OWNER_PASS_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5667,12 +5667,12 @@
     },
     "purpose": "BALANCE_REALTIME_SPEED_STABILITY_AND_SHARED_ACCOUNT_USAGE_WITHOUT_REGRESSION",
     "scope": {
-      "service": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
-      "web": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
-      "android_bao_hang": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
-      "relay_agent": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
-      "apps_script_drive_logging": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
-      "beta_rtdb_ha_liveness": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
+      "service": "IMPLEMENTED__AUTOMATED_TECHNICAL_PASS",
+      "web": "IMPLEMENTED__AUTOMATED_TECHNICAL_PASS",
+      "android_bao_hang": "IMPLEMENTED__AUTOMATED_TECHNICAL_PASS",
+      "relay_agent": "IMPLEMENTED__AUTOMATED_TECHNICAL_PASS",
+      "apps_script_drive_logging": "IMPLEMENTED__AUTOMATED_TECHNICAL_PASS",
+      "beta_rtdb_ha_liveness": "IMPLEMENTED__AUTOMATED_TECHNICAL_PASS",
       "d1_cold_history": "DEFERRED_NOT_D165",
       "first_report": "UNCHANGED",
       "stable": "FORBIDDEN_WITHOUT_SEPARATE_OWNER_AUTHORIZATION"
@@ -5756,6 +5756,22 @@
     "build_released": false,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "FINAL_CI_AND_AUTHORITY_PASS__MERGE_BETA_ONLY__FIELD_VALIDATE_USAGE_AND_BEHAVIOR__OWNER_PASS"
+    "next_action": "FINAL_CONTINUITY_CI_PASS__MERGE_PR_479_BETA_MAIN__FIELD_VALIDATE_BEHAVIOR_USAGE__OWNER_PASS",
+    "automated_validation": {
+      "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
+      "result": "PASS_16_OF_16_PR_WORKFLOWS",
+      "runs": {
+        "ui_design_guard": 37542209428,
+        "verify_beta_android": 37542209436,
+        "verify_beta_relay_agent": 37542209486,
+        "verify_d159_usage_agent": 37542209514,
+        "repo_authority_guard": 37542209325,
+        "project_state_guard": 37542209408,
+        "beta_firestore_relay": 37542209545,
+        "beta_rtdb_rules": 37542209364,
+        "apps_script_probe": 37542209423
+      },
+      "note": "Final continuity-only commit still requires its own CI before merge."
+    }
   }
 }
