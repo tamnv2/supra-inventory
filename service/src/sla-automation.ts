@@ -29,6 +29,7 @@ export interface OperationalDeadlineEffect {
   picker_user_ids: string[];
   result_event: boolean;
   queue_delta?: -1 | 0 | 1;
+  overdue_delta?: -1 | 0 | 1;
   recent_counter?: {
     before_status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | null;
     before_at: string | null;
@@ -583,7 +584,7 @@ function processBatchAutoSkip(
           source: "SYSTEM_TIMEOUT",
           auto_skip_mode: "FIRST_REPORT",
           affected_picker_count: targetRows.length,
-          correction_deadline_at: null,
+          correction_deadline_at: correctionDeadline,
           queue_delta: -1,
           recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now },
         },
