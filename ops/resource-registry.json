@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D162_OWNER_FIELD_ACCEPTED_PASS__RUNTIME_MAIN_8FCA1FB5__D163_SOURCE_IMPLEMENTATION_ACTIVE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED",
+      "status": "D163_TECHNICAL_RUNTIME_PASS__MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__FORCED_LOGOUT_LOG_CONTINUITY__REPORT_PICKER_DETAIL__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__OWNER_FIELD_PASS_PENDING__STABLE_UNTOUCHED",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -2584,7 +2584,7 @@
     "rekey_continuity": "IMEI1__ANDROID_ID_PLUS_MODEL__SERIAL_NORMALIZED_PLUS_MODEL"
   },
   "d163": {
-    "status": "SOURCE_IMPLEMENTATION_ACTIVE__PR_461_CI_PENDING",
+    "status": "TECHNICAL_RUNTIME_PASS__READY_FOR_OWNER_FIELD_TEST",
     "resource_change": "NONE_PERSISTENT",
     "worker": "EXISTING_BETA_WORKER_AND_INVENTORYCORE_ONLY",
     "logging": "EXISTING_RUNTIME_LOG_BUFFER_AND_ARCHIVE_PATH__FORCED_LOGOUT_GRACE_ONLY",
@@ -2592,6 +2592,16 @@
     "agent": "relay-agent-v114__UNCHANGED",
     "android": "beta-vc97__UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "provider_impact": "NO_NEW_RESOURCE_SCHEMA_LISTENER_POLL_HEARTBEAT_OR_WRITE_CADENCE"
+    "provider_impact": "NO_NEW_RESOURCE_SCHEMA_LISTENER_POLL_HEARTBEAT_OR_WRITE_CADENCE",
+    "main_sha": "d991c83bcf617c4aac523f85337f2b27f9fe3193",
+    "pr": 461,
+    "beta_worker_run_id": 37417036768,
+    "authority_run_id": 37417036762,
+    "project_state_run_id": 37417036737,
+    "ui_guard_run_id": 37417036756,
+    "d127_run_id": 37417036823,
+    "d159_usage_run_id": 37417036861,
+    "web": "D163_BETA_RUNTIME_PASS__REPORT_PICKER_DETAIL_LAZY_EXACT_BATCH__RUN_37417036768",
+    "field_validation": "PENDING_OWNER_OA098"
   }
 }

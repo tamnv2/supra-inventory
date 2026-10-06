@@ -5117,11 +5117,11 @@
     },
     {
       "id": "OA098",
-      "status": "PENDING_TECHNICAL_RELEASE",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
       "title": "Field-accept D163 forced-logout log continuity and reporting Picker detail",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Worker / Web / Android vc97",
-      "reason_owner_only": "Automated checks can prove authentication bounds, build integrity, exact-batch lazy reads and Beta deploy health; physical Kích User log arrival and final Web presentation require Owner/field observation.",
+      "reason_owner_only": "D163 source, CI and Beta runtime are technically PASS. Only physical Kích User behavior and final Web Picker-detail presentation can establish Owner business acceptance.",
       "prerequisites": {
         "accepted_base": "D162__OWNER_PASS__2026_10_06",
         "branch": "d163-kick-logout-report-picker-detail",
@@ -5143,7 +5143,23 @@
         "Android remains beta-vc97, Agent remains relay-agent-v114, Stable remains untouched.",
         "Owner explicitly accepts D163 before D164 or unrelated mutation."
       ],
-      "closed": false
+      "closed": false,
+      "technical_evidence": {
+        "pr": 461,
+        "main_sha": "d991c83bcf617c4aac523f85337f2b27f9fe3193",
+        "beta_worker_run": 37417036768,
+        "authority_run": 37417036762,
+        "project_state_run": 37417036737,
+        "ui_guard_run": 37417036756,
+        "d127_run": 37417036823,
+        "d159_usage_run": 37417036861,
+        "dnd_debug_build_run": 37417036744,
+        "android": "beta-vc97__UNCHANGED",
+        "agent": "relay-agent-v114__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "result": "TECHNICAL_RUNTIME_PASS"
+      },
+      "remaining_owner_action": "RUN_OA098_SHORTEST_TEST_PATH__REPORT_D163_PASS_OR_NOT_PASS"
     }
   ]
 }

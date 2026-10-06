@@ -8,8 +8,8 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D162_OWNER_FIELD_ACCEPTED_PASS__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899__D163_SOURCE_IMPLEMENTATION_ACTIVE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED`
-- Web: `D162_OWNER_ACCEPTED_DUAL_REALTIME_COUNTERS_DEPLOYED__D163_REPORT_PICKER_DETAIL_IMPLEMENTATION_ACTIVE`
+- Beta: `D163_TECHNICAL_RUNTIME_PASS__MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__FORCED_LOGOUT_LOG_CONTINUITY__REPORT_PICKER_DETAIL__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__OWNER_FIELD_PASS_PENDING__STABLE_UNTOUCHED`
+- Web: `D163_BETA_RUNTIME_PASS__REPORT_PICKER_DETAIL_LAZY_EXACT_BATCH__RUN_37417036768`
 - Android: `D161_BETA_VC97__D162_OWNER_PASS__D163_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
@@ -1807,3 +1807,13 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Web **Báo cáo chi tiết** adds lazy **Xem Picker / Ẩn Picker** drill-down using the existing detailed reporting authority with an exact parameterized `batch_id`.
 - No new provider resource, schema, polling, listener, heartbeat or Android/Agent release.
 - OA098 is pending technical release and later Owner field acceptance.
+
+## D163 technical/runtime PASS — 2026-10-06
+
+- PR #461 merged to main `d991c83bcf617c4aac523f85337f2b27f9fe3193`.
+- Beta Worker/Web deploy run `37417036768` PASS, including Web build, Service typecheck, Worker/Web/DO deploy, health/schema/auth/Web-shell/OAuth verification.
+- Main Repo Authority `37417036762`, Project State `37417036737`, UI Design Guard `37417036756`, D127 `37417036823`, D159 usage `37417036861` and DND debug build `37417036744` all PASS.
+- D163 behavior now live on Beta: forced Picker revoke remains immediate while the just-revoked Android Picker generation may submit only the final `INFO/session_end_logout` log; Báo cáo chi tiết exposes lazy exact-`batch_id` Picker detail.
+- Android remains `beta-vc97`; Agent remains `relay-agent-v114`; Stable remains OWNER-GATED and untouched.
+- D163 is **not** Owner PASS yet. OA098 is READY_FOR_OWNER_FIELD_TEST.
+
