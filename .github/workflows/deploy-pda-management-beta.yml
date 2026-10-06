@@ -1,0 +1,56 @@
+name: Deploy PDA Management Beta
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pda-management/service/**"
+      - ".github/workflows/deploy-pda-management-beta.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supra-pda-management-beta-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install and typecheck
+        working-directory: pda-management/service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Deploy isolated Worker
+        working-directory: pda-management/service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config wrangler.beta.toml --keep-vars --var "SOURCE_COMMIT:${GITHUB_SHA}"
+      - name: Verify isolated health
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          for attempt in $(seq 1 12); do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' https://pda-beta.supra.cc.cd/health || true)"
+            status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+            source="$(jq -r '.source_commit // empty' "$tmp" 2>/dev/null || true)"
+            echo "attempt=$attempt http=${code:-000} status=${status:-n/a} source=${source:-none}"
+            if [ "$code" = "200" ] && { [ "$status" = "ok" ] || [ "$status" = "degraded" ]; } && [ "$source" = "$GITHUB_SHA" ]; then
+              exit 0
+            fi
+            [ "$attempt" -ge 12 ] || sleep 5
+          done
+          cat "$tmp"
+          exit 1
