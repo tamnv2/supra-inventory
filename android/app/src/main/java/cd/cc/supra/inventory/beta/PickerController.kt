@@ -27,6 +27,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
+import org.json.JSONObject
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -72,6 +73,7 @@ class PickerController(
     private var historyRenderer: KeyedLinearRenderer? = null
     private var historyList: ListView? = null
     private var selected: SkuItem? = null
+    private var historyReports: List<PickerReport> = emptyList()
     private var pendingResults: List<PickerResult> = emptyList()
     private val withdrawButtons = linkedMapOf<Button, Long>()
     private val relayPocClient = RelayPocClient(activity.applicationContext, api, recordLog) { message ->
@@ -281,14 +283,108 @@ class PickerController(
         }
     }
 
-    fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
+    fun onRealtime(scopes: Set<String>, events: List<RealtimeDeltaEvent>, completion: (Boolean) -> Unit) {
         if (!shortageReportingEnabled) {
             completion(true)
             return
         }
-        if (scopes.contains("sku_catalog")) syncCatalog(auto = true)
-        if (scopes.contains("picker_reports")) refresh(completion)
-        else completion(true)
+        if (!scopes.contains("picker_reports")) {
+            completion(true)
+            return
+        }
+        if (events.isNotEmpty() && applyRealtimeEvents(events)) {
+            completion(true)
+            return
+        }
+        // Initial sync, a real gap, or an incompatible/missing snapshot falls back
+        // to the existing authoritative read. Normal events never need this path.
+        refresh(completion)
+    }
+
+    private fun optNullable(value: JSONObject, key: String): String? =
+        value.optString(key).trim().takeIf { it.isNotBlank() && it != "null" }
+
+    private fun pickerReportFromSnapshot(snapshot: JSONObject): PickerReport? {
+        val ticket = snapshot.optJSONObject("ticket") ?: return null
+        val ticketId = ticket.optString("ticket_id").trim()
+        val batchId = snapshot.optString("batch_id").trim()
+        if (ticketId.isBlank() || batchId.isBlank()) return null
+        val result = snapshot.optJSONObject("result_event")
+        return PickerReport(
+            ticketId = ticketId,
+            batchId = batchId,
+            sku = snapshot.optString("sku"),
+            productName = snapshot.optString("product_name"),
+            status = ticket.optString("ticket_status", "OPEN"),
+            batchStatus = snapshot.optString("batch_status", "PENDING"),
+            resolution = optNullable(ticket, "resolution") ?: optNullable(snapshot, "current_resolution"),
+            reportedAt = ticket.optString("reported_at"),
+            withdrawDeadlineAt = ticket.optString("withdraw_deadline_at"),
+            withdrawnAt = optNullable(ticket, "withdrawn_at"),
+            resolvedAt = optNullable(ticket, "resolved_at"),
+            autoSkipDeadlineAt = optNullable(ticket, "auto_skip_deadline_at"),
+            autoSkipAllowedAt = optNullable(ticket, "auto_skip_allowed_at"),
+            resolutionSource = optNullable(ticket, "resolution_source") ?: optNullable(snapshot, "current_resolution_source"),
+            batchVersion = snapshot.optInt("current_batch_version", 1).coerceAtLeast(1),
+            previousBatchId = optNullable(snapshot, "previous_batch_id"),
+            resultEventId = result?.optString("result_event_id")?.takeIf { it.isNotBlank() },
+            receivedAt = result?.let { optNullable(it, "received_at") },
+            displayedAt = result?.let { optNullable(it, "displayed_at") },
+            acknowledgedAt = result?.let { optNullable(it, "acknowledged_at") },
+        )
+    }
+
+    private fun pickerResultFromSnapshot(snapshot: JSONObject): PickerResult? {
+        val result = snapshot.optJSONObject("result_event") ?: return null
+        val eventId = result.optString("result_event_id").trim()
+        if (eventId.isBlank()) return null
+        return PickerResult(
+            resultEventId = eventId,
+            batchId = snapshot.optString("batch_id"),
+            batchVersion = result.optInt("batch_version", snapshot.optInt("current_batch_version", 1)).coerceAtLeast(1),
+            sku = snapshot.optString("sku"),
+            productName = snapshot.optString("product_name"),
+            status = result.optString("resolution"),
+            resolution = result.optString("resolution"),
+            resolvedAt = optNullable(result, "result_at"),
+            resolutionSource = optNullable(result, "resolution_source"),
+            resolvedByDisplayName = optNullable(result, "resolved_by_display_name"),
+            resolvedByEmployeeCode = optNullable(result, "resolved_by_employee_code"),
+            resolvedByRole = optNullable(result, "resolved_by_role"),
+            receivedAt = optNullable(result, "received_at"),
+            displayedAt = optNullable(result, "displayed_at"),
+            acknowledgedAt = optNullable(result, "acknowledged_at"),
+        )
+    }
+
+    private fun applyRealtimeEvents(events: List<RealtimeDeltaEvent>): Boolean {
+        var changed = false
+        for (event in events) {
+            if (!event.scopes.contains("picker_reports")) continue
+            val eventName = event.event.uppercase()
+            if (eventName == "RESULT_ACKNOWLEDGED") {
+                val resultEventId = event.metadata?.optString("result_event_id").orEmpty()
+                if (resultEventId.isNotBlank()) {
+                    pendingResults = pendingResults.filterNot { it.resultEventId == resultEventId }
+                    changed = true
+                    continue
+                }
+            }
+            val snapshot = event.snapshot ?: return false
+            val report = pickerReportFromSnapshot(snapshot) ?: return false
+            historyReports = historyReports.filterNot { it.ticketId == report.ticketId } + report
+            historyReports = historyReports.sortedByDescending { millis(it.reportedAt) }
+            pickerResultFromSnapshot(snapshot)?.let { result ->
+                pendingResults = pendingResults.filterNot { it.resultEventId == result.resultEventId } + result
+                pendingResults = pendingResults.sortedBy { millis(it.resolvedAt.orEmpty()) }
+            }
+            changed = true
+        }
+        if (!changed) return true
+        renderHistory(historyReports)
+        stageAndShowNextResult()
+        updateReportEnabled()
+        return true
     }
 
     fun applyOperatingScheduleState(open: Boolean) {
@@ -786,8 +882,9 @@ class PickerController(
                 val reports = api.getPickerReports(200)
                 val results = api.getPickerResults(50)
                 activity.runOnUiThread {
+                    historyReports = reports
                     pendingResults = results
-                    renderHistory(reports)
+                    renderHistory(historyReports)
                     stageAndShowNextResult()
                     updateReportEnabled()
                     refreshing = false
