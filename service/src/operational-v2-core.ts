@@ -216,9 +216,12 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
               p.resolved_at AS previous_resolved_at,
               COALESCE(resolver.display_name, '') AS resolved_by_display_name,
               COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS waiting_picker_count,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS overdue_picker_count,
+              COALESCE(s.total_ticket_count,
+                (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id)) AS total_ticket_count,
+              COALESCE(s.waiting_picker_count,
+                (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL)) AS waiting_picker_count,
+              COALESCE(s.overdue_picker_count,
+                (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL)) AS overdue_picker_count,
               (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
                  FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'RESOLVED') AS resolved_picker_count,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
@@ -230,14 +233,17 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
                  WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS first_overdue_at,
               (SELECT MAX(t.auto_skip_allowed_at) FROM report_tickets t
                  WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS latest_overdue_at,
-              (SELECT COUNT(DISTINCT a.target_user_id)
-                 FROM result_acknowledgements a
-                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
-              (SELECT COUNT(DISTINCT a.target_user_id)
-                 FROM result_acknowledgements a
-                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                  AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
+              COALESCE(s.ack_target_count,
+                (SELECT COUNT(DISTINCT a.target_user_id)
+                   FROM result_acknowledgements a
+                  WHERE a.batch_id = b.batch_id AND a.batch_version = b.version)) AS ack_target_count,
+              COALESCE(s.acknowledged_count,
+                (SELECT COUNT(DISTINCT a.target_user_id)
+                   FROM result_acknowledgements a
+                  WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                    AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
          FROM report_batches b
+         LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
          LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
          LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
         WHERE b.batch_id = ?
@@ -756,14 +762,9 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     state.storage.sql.exec<SqlRow>(
       `SELECT COUNT(*) AS total
          FROM report_batches b
+         JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
-          AND EXISTS (
-            SELECT 1
-              FROM report_tickets t
-             WHERE t.batch_id = b.batch_id
-               AND t.status = 'OPEN'
-               AND t.auto_skip_allowed_at IS NULL
-          )`,
+          AND s.waiting_picker_count > 0`,
     ).toArray(),
   ) || {};
 
@@ -788,14 +789,9 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     state.storage.sql.exec<SqlRow>(
       `SELECT COUNT(*) AS total
          FROM report_batches b
+         JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
-          AND EXISTS (
-            SELECT 1
-              FROM report_tickets t
-             WHERE t.batch_id = b.batch_id
-               AND t.status = 'OPEN'
-               AND t.auto_skip_allowed_at IS NOT NULL
-          )`,
+          AND s.overdue_picker_count > 0`,
     ).toArray(),
   ) || {};
 
@@ -840,17 +836,16 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id, b.auto_skip_deadline_at AS batch_auto_skip_at,
             p.resolved_at AS previous_resolved_at,
-            COUNT(t.ticket_id) AS affected_picker_count,
-            MIN(t.reported_at) AS earliest_ticket_at,
-            MIN(t.auto_skip_deadline_at) AS next_picker_auto_skip_at
+            s.waiting_picker_count AS affected_picker_count,
+            (SELECT MIN(t.reported_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS earliest_ticket_at,
+            (SELECT MIN(t.auto_skip_deadline_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS next_picker_auto_skip_at
        FROM report_batches b
-       JOIN report_tickets t
-         ON t.batch_id = b.batch_id
-        AND t.status = 'OPEN'
-        AND t.auto_skip_allowed_at IS NULL
+       JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
       WHERE b.status = 'PENDING'
-      GROUP BY b.batch_id
+        AND s.waiting_picker_count > 0
       ORDER BY b.first_report_at ASC, b.batch_id ASC
       LIMIT ? OFFSET ?`,
     limit,
@@ -906,20 +901,16 @@ function reporterOverdue(state: DurableObjectState, url: URL): Response {
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id,
-            COUNT(t.ticket_id) AS overdue_picker_count,
-            MIN(t.auto_skip_allowed_at) AS first_overdue_at,
-            MAX(t.auto_skip_allowed_at) AS latest_overdue_at,
-            (SELECT COUNT(*) FROM report_tickets waiting
-              WHERE waiting.batch_id = b.batch_id
-                AND waiting.status = 'OPEN'
-                AND waiting.auto_skip_allowed_at IS NULL) AS waiting_picker_count
+            s.overdue_picker_count,
+            (SELECT MIN(t.auto_skip_allowed_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS first_overdue_at,
+            (SELECT MAX(t.auto_skip_allowed_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS latest_overdue_at,
+            s.waiting_picker_count
        FROM report_batches b
-       JOIN report_tickets t
-         ON t.batch_id = b.batch_id
-        AND t.status = 'OPEN'
-        AND t.auto_skip_allowed_at IS NOT NULL
+       JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE b.status = 'PENDING'
-      GROUP BY b.batch_id
+        AND s.overdue_picker_count > 0
       ORDER BY first_overdue_at ASC, b.batch_id ASC
       LIMIT ? OFFSET ?`,
     limit,
@@ -1003,16 +994,20 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
                    FROM report_tickets t
                   WHERE t.batch_id = b.batch_id AND t.status = 'RESOLVED')
             END AS affected_picker_count,
-            (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
+            COALESCE(s.total_ticket_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id)) AS total_ticket_count,
             (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
-            (SELECT COUNT(DISTINCT a.target_user_id)
-               FROM result_acknowledgements a
-              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
-            (SELECT COUNT(DISTINCT a.target_user_id)
-               FROM result_acknowledgements a
-              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
+            COALESCE(s.ack_target_count,
+              (SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version)) AS ack_target_count,
+            COALESCE(s.acknowledged_count,
+              (SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                  AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
        FROM report_batches b
+       LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
       WHERE ${clause}
@@ -1070,10 +1065,14 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const ackTotals = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT
-         COUNT(*) AS ack_target_count,
-         COALESCE(SUM(CASE WHEN a.acknowledged_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS acknowledged_count
-       FROM result_acknowledgements a
-       JOIN report_batches b ON b.batch_id = a.batch_id AND b.version = a.batch_version
+         COALESCE(SUM(COALESCE(s.ack_target_count,
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version))), 0) AS ack_target_count,
+         COALESCE(SUM(COALESCE(s.acknowledged_count,
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL))), 0) AS acknowledged_count
+       FROM report_batches b
+       LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE ${summaryClause}`,
       ...summaryArgs,
     ).toArray(),
