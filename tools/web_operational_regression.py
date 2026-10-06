@@ -522,7 +522,7 @@ def main() -> None:
     require(
         app,
         'const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];\n  if (!recentBadgeInitialized) tasks.push(loadReporterTabCounters());',
-        "D162 Operations loads its list plus only the lightweight missing opposite counter",
+        "D165 Operations loads its list plus only lightweight missing recent/overdue counters",
     )
 
     # D163: forced Picker revoke may upload only the bounded final logout log,
