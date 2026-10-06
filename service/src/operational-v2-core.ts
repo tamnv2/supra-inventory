@@ -1429,8 +1429,8 @@ export function pickerRealtimeSnapshot(
   if (!batchId || !userId) return null;
   const batch = first(state.storage.sql.exec<SqlRow>(
     `SELECT batch_id, sku, product_name, status AS batch_status,
-            resolution AS current_resolution, resolved_at AS current_resolved_at,
-            version AS current_batch_version, previous_batch_id
+            resolution AS current_resolution, resolution_source AS current_resolution_source,
+            resolved_at AS current_resolved_at, version AS current_batch_version, previous_batch_id
        FROM report_batches
       WHERE batch_id = ?
       LIMIT 1`,
@@ -1454,11 +1454,22 @@ export function pickerRealtimeSnapshot(
 
   const result = first(state.storage.sql.exec<SqlRow>(
     `SELECT s.result_event_id, s.batch_version, s.event_type, s.resolution, s.result_at,
-            a.received_at, a.displayed_at, a.acknowledged_at
+            a.received_at, a.displayed_at, a.acknowledged_at,
+            CASE
+              WHEN s.event_type IN ('BATCH_AUTO_SKIP_ALLOWED','TICKET_AUTO_SKIP_ALLOWED') THEN 'SYSTEM_TIMEOUT'
+              WHEN s.event_type = 'BATCH_CORRECTED' THEN 'REPORTER_CORRECTION'
+              ELSE COALESCE(NULLIF(b.resolution_source, ''), 'REPORTER')
+            END AS resolution_source,
+            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+            COALESCE(resolver.employee_code, e.actor_employee_code, '') AS resolved_by_employee_code,
+            COALESCE(resolver.role, '') AS resolved_by_role
        FROM result_event_snapshots s
        JOIN result_acknowledgements a
          ON a.result_event_id = s.result_event_id
         AND a.target_user_id = ?
+       JOIN report_batches b ON b.batch_id = s.batch_id
+       LEFT JOIN report_events e ON e.event_id = s.result_event_id
+       LEFT JOIN users resolver ON resolver.user_id = e.actor_user_id
       WHERE s.result_event_id = ?
       LIMIT 1`,
     userId,
