@@ -381,7 +381,7 @@ Status: Owner-approved target; implementation deferred.
 
 ## D165 critical re-authentication
 
-Status: implementation active on the D165 Beta change set; final technical validation and Owner field acceptance remain pending.
+Status: implementation complete on the D165 Beta change set; automated technical validation PASS. Field/usage acceptance remains Owner-gated.
 
 D165 adds re-authentication to the existing authorized SLA/processing-time save action:
 - existing RBAC remains mandatory;
