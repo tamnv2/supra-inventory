@@ -99,3 +99,18 @@ The same D162 change is repaired to preserve realtime feel while reducing off-sc
 - No new provider resource, polling, listener, heartbeat or write cadence was introduced.
 - Agent remains `relay-agent-v114` unchanged; Android remains `beta-vc97` unchanged; Stable remains OWNER-GATED and untouched.
 - D162 remains open only for OA097 comparable active-load usage/latency evidence and explicit Owner PASS.
+
+## Workspace tab realtime counter repair — Owner approved 2026-10-06
+
+Field review after the first lazy-queue repair found a presentation/state bug: the visible workspace tabs still rendered list-backed counts, so the numbers changed only when the tab was opened.
+
+The same-D162 repair therefore:
+- uses `queueBadgeCount` for the **Đang xử lý** tab;
+- adds a dedicated realtime recent-result counter for **Kết quả gần đây**;
+- piggybacks `recent_counter` before/after transition metadata on existing result realtime events;
+- uses one lightweight dual-counter endpoint only for baseline/reconnect/gap reconciliation;
+- does not poll counters and does not fetch an off-screen full queue/recent list;
+- introduces no new persistent/provider resource, Firestore cadence, listener, heartbeat or provider write;
+- leaves Agent v114, Android vc97 and Stable unchanged.
+
+This repair must pass PR CI/authority, merge and Beta runtime deployment before OA097 comparable-load field acceptance resumes.
