@@ -5117,7 +5117,7 @@
     },
     {
       "id": "OA098",
-      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "status": "PASS",
       "title": "Field-accept D163 forced-logout log continuity and reporting Picker detail",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Worker / Web / Android vc97",
@@ -5143,7 +5143,7 @@
         "Android remains beta-vc97, Agent remains relay-agent-v114, Stable remains untouched.",
         "Owner explicitly accepts D163 before D164 or unrelated mutation."
       ],
-      "closed": false,
+      "closed": true,
       "technical_evidence": {
         "pr": 461,
         "main_sha": "d991c83bcf617c4aac523f85337f2b27f9fe3193",
@@ -5159,7 +5159,9 @@
         "stable": "OWNER_GATED_UNTOUCHED",
         "result": "TECHNICAL_RUNTIME_PASS"
       },
-      "remaining_owner_action": "RUN_OA098_SHORTEST_TEST_PATH__REPORT_D163_PASS_OR_NOT_PASS"
+      "remaining_owner_action": "NONE__D163_CLOSED_OWNER_PASS",
+      "owner_result": "PASS__2026_10_06",
+      "owner_evidence": "Owner explicitly confirmed D163 field acceptance with: ok done 163"
     }
   ]
 }
