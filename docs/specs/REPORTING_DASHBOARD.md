@@ -300,7 +300,7 @@ Reporter queue and recent results are independent read models for realtime refre
 
 ## D165 Quá hạn and result-correction surfaces
 
-Status: implementation active on D165 Beta change set; technical validation pending final CI/field gates.
+Status: implementation complete on the D165 Beta change set; automated technical validation PASS. Field/usage acceptance remains Owner-gated.
 
 For `PER_PICKER`, the Reporter workspace adds a pinned **Quá hạn** tab next to the existing operational tabs. A SKU may be present in both **Đang xử lý** and **Quá hạn** when different Picker tickets are at different deadline states.
 
