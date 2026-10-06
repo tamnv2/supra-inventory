@@ -486,6 +486,28 @@ public final class MainActivity extends Activity {
         dialog.show();
     }
 
+    private void revokeToken(String token) {
+        if (token == null || token.isEmpty()) return;
+        try {
+            URL url = new URL(BuildConfig.API_BASE_URL.replaceAll("/+$", "") + "/api/auth/logout");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(5_000);
+            connection.setReadTimeout(10_000);
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Authorization", "Bearer " + token);
+            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            connection.getOutputStream().write("{}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            try {
+                java.io.InputStream stream = connection.getResponseCode() >= 400
+                    ? connection.getErrorStream() : connection.getInputStream();
+                if (stream != null) stream.close();
+            } catch (Exception ignored) {
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     private void performLogout() {
         String token = sessionToken;
         sessionToken = "";
@@ -493,17 +515,8 @@ public final class MainActivity extends Activity {
         sessionDisplayName = "";
         cachedDevices = new JSONArray();
         renderLogin();
-
         if (!token.isEmpty()) {
-            new Thread(() -> {
-                try {
-                    sessionToken = token;
-                    apiRequest("POST", "/api/auth/logout", new JSONObject(), true);
-                } catch (Exception ignored) {
-                } finally {
-                    sessionToken = "";
-                }
-            }, "pda-mgmt-logout").start();
+            new Thread(() -> revokeToken(token), "pda-mgmt-logout").start();
         }
     }
 
