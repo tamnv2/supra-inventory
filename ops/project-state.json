@@ -5802,5 +5802,29 @@
       },
       "final_result": "TECHNICAL_PASS__FIELD_USAGE_OWNER_PASS_PENDING"
     }
+  },
+  "launcher_daily_password": {
+    "status": "IMPLEMENTED_IN_PR__TECHNICAL_VALIDATION_PENDING",
+    "date": "2026-10-07",
+    "scope": "SUPRA_PDA_LAUNCHER_ADMIN_AUTH__ISOLATED_FROM_D164_D165_BUSINESS_FLOWS",
+    "owner_request": "DAILY_RANDOM_4_DIGIT_CODE__05_00_VIETNAM__FIXED_EMAIL__GLOBAL_RESET_15M__KEEP_EMERGENCY_ADMIN_CODE",
+    "backend": {
+      "authority": "INVENTORYCORE_APP_CONFIG",
+      "recipient": "tam95.supra@gmail.com",
+      "timezone": "Asia/Ho_Chi_Minh",
+      "daily_boundary": "05:00",
+      "reset_cooldown_minutes": 15,
+      "registered_pda_only": true,
+      "public_code_disclosure": "FORBIDDEN",
+      "brute_force_guard": "5_FAILURES_PER_PDA_THEN_5_MINUTE_BLOCK",
+      "mail_retry": "EXISTING_5_MINUTE_CRON__ONLY_05_00_TO_05_30_VN__NO_NEW_PDA_POLLING"
+    },
+    "runtime_impact": {
+      "inventory_business_logic": "UNCHANGED",
+      "firebase": "NO_NEW_READ_WRITE_LISTENER",
+      "cloudflare": "VERY_LOW__ONE_SMALL_DO_STATE_PLUS_DAILY_EMAIL_AND_EXPLICIT_LOGIN_RESET_REQUESTS",
+      "stable": "UNTOUCHED"
+    },
+    "launcher_release": "PLANNED_V0.3.24_AFTER_BACKEND_PASS"
   }
 }
