@@ -3343,3 +3343,41 @@ Hard invariants:
 - Full **Đang xử lý** rows are read only when Operations is visible. Full **Kết quả gần đây** rows are read only when Results is visible.
 - No new provider resource, Firestore read/write cadence, polling, listener or heartbeat is introduced.
 - Agent remains `relay-agent-v114`, Android remains `beta-vc97`, and Stable remains OWNER-GATED and untouched.
+
+## 2026-10-06 — D162 Owner field acceptance — PASS
+
+- Owner explicitly recorded **D162 PASS** after the workspace-tab realtime counter repair was technically deployed on Beta.
+- D162 is closed and promoted to the accepted business base. The final D162 runtime checkpoint remains PR #451 / main `8fca1fb539f2396cefaff621368758336035c00b` with Beta deploy run `37395842899`.
+- Agent remains `relay-agent-v114`, Android remains `beta-vc97`, and Stable remains OWNER-GATED and untouched.
+- OA097 is closed by this explicit Owner acceptance. D163 may now open.
+
+## 2026-10-06 — D163 forced-logout log continuity and reporting Picker detail — Owner approved
+
+Status: **OWNER APPROVED IMPLEMENTATION — BETA SERVICE/WEB — ANDROID VC97 UNCHANGED**.
+
+Owner approved two coordinated D163 changes:
+
+1. **Kích User must preserve the normal logout support-log boundary.**
+   - Server session-generation revoke remains authoritative and immediate.
+   - Android `beta-vc97` is not rebuilt or modified.
+   - After a forced Picker revoke, only the just-revoked Android Picker generation may upload the existing sanitized `INFO / session_end_logout` bundle.
+   - The grace is limited to exactly one generation behind the current Android session generation and applies only to `/api/logs/upload`; no business API, realtime authority, notification registration or other log reason becomes valid again.
+   - Existing runtime-log sanitization, local InventoryCore persistence, archive idempotency and Drive-as-secondary-archive behavior remain unchanged.
+
+2. **Báo cáo chi tiết must expose individual Picker information per report batch/SKU.**
+   - Add a professional **Xem Picker / Ẩn Picker** drill-down directly in the detailed report table.
+   - Picker detail is lazy-loaded only when an operator expands one batch and is requested by exact `batch_id`; do not fan out a request for every visible row.
+   - Show Picker employee code/name, report time, effective result/source, Picker wait duration and result receipt/display/acknowledgement state where applicable.
+   - Reuse the existing detailed-report data authority already used by Excel export. No new database schema or persistent provider resource is introduced.
+
+Preimplementation review:
+- **base impact:** D162 accepted behavior is preserved. D163 changes only the runtime-log authentication exception for one safe final boundary and Web reporting presentation/read shape.
+- **affected components:** Beta Worker/Service, existing InventoryCore reporting query, Web reporting UI/API, regression/authority state.
+- **regression/stability risk:** medium-low. The main security risk is accidentally reviving a revoked session; mitigation is Android + Picker + one-generation-behind + exact INFO/session_end_logout + log-route-only gating. Reporting risk is read amplification; mitigation is one exact-batch lazy read on user expansion.
+- **resource/quota/security impact:** no new persistent resource, secret, schema, polling, listener, heartbeat or provider write cadence. A real forced logout may add one final runtime-log upload that normal logout already performs. Picker detail reads occur only on explicit expansion.
+- **recommended approach:** keep revoke first and authoritative, grant only the bounded final-log exception, and reuse existing reporting-detail authority with exact batch filtering plus lazy Web expansion.
+
+Hard invariants:
+- Android stays `beta-vc97`; Agent stays `relay-agent-v114`.
+- Forced revoke continues to block every business request immediately.
+- Stable remains OWNER-GATED and untouched.
