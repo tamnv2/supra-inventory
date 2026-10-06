@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "BORROW_RETURN_TECHNICAL_PASS__FIELD_TEST_PENDING",
+  "status": "HTTP500_DIAGNOSTIC_REPAIR_IN_PROGRESS",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -60,7 +60,7 @@
     "service_verify_run": 37457159085,
     "deploy_run": 37457159127
   },
-  "next_phase": "OWNER_FIELD_TEST_VC4__THEN_REPAIR_SAME_D164_IF_NEEDED",
+  "next_phase": "CI_PASS__MERGE_PR472__DUAL_WORKER_DEPLOY__DEEP_HEALTH_PASS__VC5_FIELD_RETEST",
   "auth_device_list": {
     "status": "TECHNICAL_PASS",
     "root_bootstrap": true,
@@ -88,5 +88,43 @@
     "deploy_run": 37463239669,
     "service_verify_run": 37463240357,
     "android_verify_run": 37463239804
+  },
+  "repair": {
+    "reported_at": "2026-10-06",
+    "field_issue": "HTTP_500",
+    "pr": 472,
+    "branch": "repair/d164-http500-diagnostics",
+    "causes_addressed": [
+      "CORE_EXPECTED_4XX_WAS_COLLAPSED_TO_GENERIC_500",
+      "CONCURRENT_FIRST_ROOT_BOOTSTRAP_CREATE_RACE",
+      "UNEXPECTED_RUNTIME_EXCEPTION_LACKED_ERROR_ID_AND_DIAGNOSTIC_CONTEXT"
+    ],
+    "deep_health_required": true,
+    "deep_health_checks": [
+      "SQLITE_CORE_HEALTH",
+      "AUTH_STORAGE",
+      "DEVICE_STORAGE",
+      "HR_STORAGE",
+      "PBKDF2_HASH_VERIFY"
+    ],
+    "diagnostics": {
+      "local_ring_buffer": true,
+      "local_max_kb": 320,
+      "manual_prelogin_button": true,
+      "auto_http_5xx": true,
+      "auto_http_5xx_throttle_minutes": 30,
+      "crash_recovery_upload": true,
+      "sensitive_data": [
+        "PASSWORD_NEVER_COLLECTED",
+        "AUTH_TOKEN_NEVER_COLLECTED",
+        "COOKIE_NEVER_COLLECTED",
+        "PRIVATE_KEY_NEVER_COLLECTED",
+        "REQUEST_BODY_NEVER_COLLECTED",
+        "RAW_ANDROID_ID_NEVER_UPLOADED"
+      ],
+      "archive": "INVENTORY_BETA_RUNTIME_LOG_DAILY_PIPELINE",
+      "archive_group": "PDA_MANAGEMENT",
+      "background_poll": false
+    }
   }
 }
