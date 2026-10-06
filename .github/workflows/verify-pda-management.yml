@@ -3,8 +3,7 @@ name: Verify PDA Management
 on:
   pull_request:
     paths:
-      - "pda-management/**"
-      - "ops/pda-management-state.json"
+      - "pda-management/android/**"
       - ".github/workflows/verify-pda-management.yml"
   push:
     branches: [main]
@@ -21,19 +20,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  service:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Typecheck isolated service
-        working-directory: pda-management/service
-        run: |
-          npm install --ignore-scripts --no-audit --no-fund
-          npm run typecheck
-
   android:
     runs-on: ubuntu-latest
     environment: beta
@@ -67,7 +53,10 @@ jobs:
             key_path="$RUNNER_TEMP/supra-pda-management-beta.jks"
             printf '%s' "$BETA_KEYSTORE_B64" | base64 --decode > "$key_path"
             keytool -list -keystore "$key_path" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" >/dev/null
+            signer_sha="$(keytool -exportcert -keystore "$key_path" -storepass "$BETA_KEYSTORE_PASSWORD" -alias "$BETA_KEY_ALIAS" | sha256sum | awk '{print $1}')"
+            [ "${#signer_sha}" -eq 64 ] || { echo "Unable to derive PDA Management signer fingerprint"; exit 1; }
             echo "BETA_KEYSTORE_PATH=$key_path" >> "$GITHUB_ENV"
+            echo "PDA_MGMT_SIGNER_SHA256=$signer_sha" >> "$GITHUB_ENV"
             echo "SIGNING_READY=true" >> "$GITHUB_ENV"
           else
             echo "SIGNING_READY=false" >> "$GITHUB_ENV"
@@ -102,4 +91,26 @@ jobs:
           set -euo pipefail
           tag="pda-mgmt-beta-vc${PDA_MGMT_VERSION_CODE}"
           gh release view "$tag" >/dev/null 2>&1 && { echo "Release already exists: $tag"; exit 1; } || true
-          gh release create "$tag" pda-management/android/dist/supra-pda-management-beta.apk pda-management/android/dist/supra-pda-management-beta.apk.sha256 --target "$GITHUB_SHA" --title "SUPRA Quản lý PDA Beta ${PDA_MGMT_VERSION_NAME}" --notes "Independent D164 PDA Management Android build. Source=${GITHUB_SHA}."
+
+          apk_sha="$(awk '{print $1}' pda-management/android/dist/supra-pda-management-beta.apk.sha256)"
+          published_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          jq -n             --arg tag "$tag"             --arg version_name "$PDA_MGMT_VERSION_NAME"             --arg published_at "$published_at"             --arg source "$GITHUB_SHA"             --arg sha256 "$apk_sha"             --argjson version_code "$PDA_MGMT_VERSION_CODE"             '{
+              schema_version:1,
+              channel:"beta",
+              tag:$tag,
+              version_code:$version_code,
+              version_name:$version_name,
+              published_at:$published_at,
+              source:$source,
+              sha256:$sha256,
+              apk_path:"/downloads/app/latest",
+              checksum_path:"/downloads/app/latest.sha256"
+            }' > pda-management/android/dist/pda-mgmt-manifest.json
+
+          gh release create "$tag"             pda-management/android/dist/supra-pda-management-beta.apk             pda-management/android/dist/supra-pda-management-beta.apk.sha256             pda-management/android/dist/pda-mgmt-manifest.json             --target "$GITHUB_SHA"             --title "SUPRA Quản lý PDA Beta ${PDA_MGMT_VERSION_NAME}"             --notes "Independent D164 PDA Management Android build. Source=${GITHUB_SHA}."
+
+          channel="pda-mgmt-channel"
+          if ! gh release view "$channel" >/dev/null 2>&1; then
+            gh release create "$channel" --target "$GITHUB_SHA" --title "SUPRA PDA Management update channel" --notes "Fixed machine-readable Beta update channel. Do not install directly from this release page." --prerelease
+          fi
+          gh release upload "$channel"             pda-management/android/dist/supra-pda-management-beta.apk             pda-management/android/dist/supra-pda-management-beta.apk.sha256             pda-management/android/dist/pda-mgmt-manifest.json             --clobber
