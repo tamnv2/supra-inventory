@@ -940,9 +940,10 @@ class PickerController(
         if (resultDialogShowing || activity.isFinishing) return
         resultDialogShowing = true
         val isSkip = result.resolution == "SKIP_ALLOWED"
+        val isPendingCorrection = result.resolution == "PENDING"
         val surface = LayoutInflater.from(activity).inflate(R.layout.overlay_alert, null, false)
-        surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else R.drawable.bg_overlay_available)
-        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else "ĐÃ CÓ HÀNG"
+        surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else if (isPendingCorrection) R.drawable.bg_overlay_info else R.drawable.bg_overlay_available)
+        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else if (isPendingCorrection) "KẾT QUẢ ĐÃ ĐIỀU CHỈNH" else "ĐÃ CÓ HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlaySku).text = result.sku
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = result.productName
         val source = result.resolutionSource.orEmpty()
