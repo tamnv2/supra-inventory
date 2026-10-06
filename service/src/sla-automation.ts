@@ -583,7 +583,7 @@ function processBatchAutoSkip(
           source: "SYSTEM_TIMEOUT",
           auto_skip_mode: "FIRST_REPORT",
           affected_picker_count: targetRows.length,
-          correction_deadline_at: correctionDeadline,
+          correction_deadline_at: null,
           queue_delta: -1,
           recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now },
         },
@@ -688,42 +688,10 @@ function processPerPickerAutoSkip(
             AND auto_skip_allowed_at IS NULL`,
         batchId,
       ).toArray());
-      const finalForBatch = Number(remaining?.count || 0) === 0;
-      let correctionDeadline: string | null = null;
+      const finalWaitingTicket = Number(remaining?.count || 0) === 0;
 
-      if (finalForBatch) {
-        const firstReportAt = String((first(state.storage.sql.exec<SqlRow>(
-          "SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1",
-          batchId,
-        ).toArray()) || {}).first_report_at || "");
-        correctionDeadline = config.skip_to_stock_enabled ? deadlineIso(firstReportAt, config.skip_to_stock_minutes) : null;
-        state.storage.sql.exec(
-          `UPDATE report_tickets
-              SET status = 'RESOLVED',
-                  resolved_at = COALESCE(resolved_at, ?),
-                  updated_at = ?
-            WHERE batch_id = ? AND status = 'OPEN'`,
-          now,
-          now,
-          batchId,
-        );
-        state.storage.sql.exec(
-          `UPDATE report_batches
-              SET status = 'SKIP_ALLOWED',
-                  resolution = 'SKIP_ALLOWED',
-                  resolution_source = 'SYSTEM_TIMEOUT',
-                  resolved_at = ?,
-                  resolved_by_user_id = NULL,
-                  correction_deadline_at = ?,
-                  updated_at = ?
-            WHERE batch_id = ? AND status = 'PENDING'`,
-          now,
-          correctionDeadline,
-          now,
-          batchId,
-        );
-      }
-
+      // D165 PER_PICKER: timeout grants this Picker skip eligibility only.
+      // The SKU batch remains PENDING until Invent explicitly resolves it.
       const eventId = insertReportEvent(
         state,
         "TICKET_AUTO_SKIP_ALLOWED",
@@ -734,10 +702,10 @@ function processPerPickerAutoSkip(
           source: "SYSTEM_TIMEOUT",
           auto_skip_mode: "PER_PICKER",
           auto_skip_deadline_at: String(row.auto_skip_deadline_at || ""),
-          final_batch_resolution: finalForBatch,
-          correction_deadline_at: correctionDeadline,
-          queue_delta: finalForBatch ? -1 : 0,
-          ...(finalForBatch ? { recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now } } : {}),
+          final_batch_resolution: false,
+          correction_deadline_at: null,
+          queue_delta: finalWaitingTicket ? -1 : 0,
+          overdue_delta: 1,
         },
         now,
       );
@@ -751,7 +719,7 @@ function processPerPickerAutoSkip(
           batch_id: batchId,
           mode: "PER_PICKER",
           deadline_at: String(row.auto_skip_deadline_at || ""),
-          final_batch_resolution: finalForBatch,
+          final_batch_resolution: false,
         },
         now,
       );
@@ -762,12 +730,12 @@ function processPerPickerAutoSkip(
         batch_id: batchId,
         sku: String(row.sku || ""),
         product_name: String(row.product_name || ""),
-        scopes: ["reporter_queue", ...(finalForBatch ? ["reporter_recent"] : []), "picker_reports"],
+        scopes: ["reporter_queue", "reporter_overdue", "picker_reports"],
         reporter_roles: ["REPORTER", "ADMIN", "ROOT"],
         picker_user_ids: pickerUserId ? [pickerUserId] : [],
         result_event: true,
-        queue_delta: finalForBatch ? -1 : 0,
-        ...(finalForBatch ? { recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now } } : {}),
+        queue_delta: finalWaitingTicket ? -1 : 0,
+        overdue_delta: 1,
         title: "SUPRA Inventory · Được phép bỏ qua",
         body: `${String(row.sku || "SKU")} · ${String(row.product_name || "Chưa có tên sản phẩm")}\nCho phép skip · Hệ thống tự động · Hệ thống`,
       });
