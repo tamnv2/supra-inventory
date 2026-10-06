@@ -23,6 +23,8 @@ PROJECT_KEY = "supra-pda-management"
 MANAGEMENT_SHEET_ID = "1q0XKgsU3AZQPIiX7AW6XxXh1Jfc--P1TmErdemAMUQg"
 REGISTRY_API_BASE = "https://inventory-beta.supra.cc.cd"
 REGISTRY_SHEET_ID = "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI"
+HR_SHEET_ID = "14UcBtXvK_uGHAiKU31Ofw3nwxsTl2IlLPUG9sX8ce7k"
+HR_TAB_NAME = "Nhân sự"
 
 [observability]
 enabled = true
