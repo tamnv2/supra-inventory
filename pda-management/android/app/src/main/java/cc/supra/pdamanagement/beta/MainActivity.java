@@ -393,8 +393,15 @@ public final class MainActivity extends Activity {
 
             TextView detail = new TextView(this);
             String modelText = (manufacturer + " " + model).trim();
+            String borrowerLine = "";
+            if ("BORROWED".equals(usage)) {
+                String borrowerCode = device.optString("borrower_employee_code", "");
+                String borrowerName = device.optString("borrower_name", "");
+                borrowerLine = "\nNgười mượn: " + borrowerCode + " · " + borrowerName;
+            }
             detail.setText((modelText.isEmpty() ? "Chưa có Model" : modelText) +
-                "\nTrạng thái: " + usageLabel(usage) + " · Tình trạng: " + conditionLabel(condition));
+                "\nTrạng thái: " + usageLabel(usage) + " · Tình trạng: " + conditionLabel(condition) +
+                borrowerLine);
             detail.setTextColor(getColor(R.color.text_secondary));
             detail.setTextSize(12);
             detail.setPadding(0, dp(4), 0, 0);
@@ -460,7 +467,7 @@ public final class MainActivity extends Activity {
         pp.topMargin = dp(14);
         box.addView(primary, pp);
 
-        if (!"BORROWED".equals(usage)) {
+        if ("AVAILABLE".equals(usage)) {
             Button statusButton = new Button(this);
             statusButton.setText("Cập nhật trạng thái / tình trạng");
             statusButton.setOnClickListener(v -> showStatusDialog(device));
