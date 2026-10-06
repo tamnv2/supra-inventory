@@ -5544,6 +5544,15 @@
       "stable": "OWNER_GATED_UNTOUCHED",
       "backend_pr": 463,
       "launcher_target": "v0.3.23"
+    },
+    "timezone_sheet": {
+      "timezone": "Asia/Ho_Chi_Minh (UTC+7)",
+      "target": "SUPRA_PDA_REGISTRY_BETA",
+      "columns": "PDA_Devices!Z:AB; Registry_Audit!A",
+      "format": "native_google_sheets_datetime_dd_MM_yyyy_HH_mm_ss",
+      "storage": "numeric Google Sheets date/time serial, derived from authoritative UTC ISO",
+      "history": "one-time conversion of original UTC timestamp text to Vietnam local Sheets datetime",
+      "runtime_impact": "No PDA/Launcher APK change; no additional network reads or Firebase/Cloudflare usage"
     }
   },
   "d163": {
