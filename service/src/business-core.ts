@@ -596,29 +596,34 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           .toArray(),
       );
       if (Number(timedOut?.count || 0) > 0) {
-        recentAfterStatus = "SKIP_ALLOWED";
-        const batchForCorrection = firstRow(
-          state.storage.sql.exec<SqlRow>("SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
-        );
-        const correctionDeadline = correctionDeadlineFromFirstReport(state, String(batchForCorrection?.first_report_at || at));
-        state.storage.sql.exec(
-          `UPDATE report_tickets
-              SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
-            WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL`,
-          at,
-          at,
-          ticket.batch_id,
-        );
-        state.storage.sql.exec(
-          `UPDATE report_batches
-              SET status = 'SKIP_ALLOWED', resolution = 'SKIP_ALLOWED', resolution_source = 'SYSTEM_TIMEOUT',
-                  resolved_at = ?, resolved_by_user_id = NULL, correction_deadline_at = ?, updated_at = ?
-            WHERE batch_id = ? AND status = 'PENDING'`,
-          at,
-          correctionDeadline,
-          at,
-          ticket.batch_id,
-        );
+        const slaConfig = readOperationalSlaConfig(state);
+        if (slaConfig?.auto_skip_mode !== "PER_PICKER") {
+          // Legacy/FIRST_REPORT compatibility only. D165 PER_PICKER never closes
+          // a batch merely because the last still-waiting Picker withdrew.
+          recentAfterStatus = "SKIP_ALLOWED";
+          const batchForCorrection = firstRow(
+            state.storage.sql.exec<SqlRow>("SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
+          );
+          const correctionDeadline = correctionDeadlineFromFirstReport(state, String(batchForCorrection?.first_report_at || at));
+          state.storage.sql.exec(
+            `UPDATE report_tickets
+                SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
+              WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL`,
+            at,
+            at,
+            ticket.batch_id,
+          );
+          state.storage.sql.exec(
+            `UPDATE report_batches
+                SET status = 'SKIP_ALLOWED', resolution = 'SKIP_ALLOWED', resolution_source = 'SYSTEM_TIMEOUT',
+                    resolved_at = ?, resolved_by_user_id = NULL, correction_deadline_at = ?, updated_at = ?
+              WHERE batch_id = ? AND status = 'PENDING'`,
+            at,
+            correctionDeadline,
+            at,
+            ticket.batch_id,
+          );
+        }
       } else {
         recentAfterStatus = "CLOSED";
         state.storage.sql.exec(
