@@ -5045,7 +5045,7 @@
     },
     {
       "id": "OA097",
-      "status": "PENDING_FIELD_VALIDATION",
+      "status": "PASS",
       "title": "Field-accept D162 usage efficiency under comparable active load",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Firestore / Web / Windows Agent",
@@ -5110,7 +5110,39 @@
         "workspace_counter_d127_run": 37395843108,
         "workspace_counter_d159_usage_run": 37395843560
       },
-      "remaining_owner_action": "VERIFY_DUAL_TAB_COUNTER_REALTIME_BEHAVIOR__THEN_FIELD_USAGE_AND_BUSINESS_ACCEPTANCE",
+      "remaining_owner_action": "NONE__D162_CLOSED_OWNER_PASS",
+      "closed": true,
+      "owner_result": "PASS__2026_10_06",
+      "owner_evidence": "Owner explicitly instructed: Ghi nhận D162 pass. Mở D163 xử lí."
+    },
+    {
+      "id": "OA098",
+      "status": "PENDING_TECHNICAL_RELEASE",
+      "title": "Field-accept D163 forced-logout log continuity and reporting Picker detail",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory Beta / Worker / Web / Android vc97",
+      "reason_owner_only": "Automated checks can prove authentication bounds, build integrity, exact-batch lazy reads and Beta deploy health; physical Kích User log arrival and final Web presentation require Owner/field observation.",
+      "prerequisites": {
+        "accepted_base": "D162__OWNER_PASS__2026_10_06",
+        "branch": "d163-kick-logout-report-picker-detail",
+        "android": "beta-vc97__UNCHANGED",
+        "agent": "relay-agent-v114__UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_test_path": [
+        "Login one Picker on PDA, then use Agent Kích User for that Picker. Confirm PDA returns to login normally.",
+        "Verify the forced logout creates the same session-end support-log boundary as normal logout and does not restore any business access.",
+        "Open Web Tổng quan & báo cáo → Báo cáo chi tiết, choose a row and press Xem Picker. Verify only that batch's Pickers appear with MNV/name, report time, result/source, wait time and receipt/ACK state.",
+        "Collapse/reopen, change filters/page and verify no stale Picker detail leaks to another batch.",
+        "Report D163 PASS or NOT PASS; any failure remains D163 repair."
+      ],
+      "pass_criteria": [
+        "Revoked Android Picker cannot perform any business request after Kích User.",
+        "The immediately preceding Android Picker generation may upload only INFO/session_end_logout through the runtime-log route.",
+        "Web Picker detail is lazy and exact-batch; no eager all-row detail fanout or polling is introduced.",
+        "Android remains beta-vc97, Agent remains relay-agent-v114, Stable remains untouched.",
+        "Owner explicitly accepts D163 before D164 or unrelated mutation."
+      ],
       "closed": false
     }
   ]
