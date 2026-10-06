@@ -93,12 +93,25 @@ async function sheetRequest(
   return fetch(url, { ...init, headers });
 }
 
-type SheetIndexEntry = { row: number; payloadHash: string };
+type SheetIndexEntry = {
+  row: number;
+  payloadHash: string;
+  deviceKey: string;
+  imei1: string;
+  androidId: string;
+};
 
-async function readSheetIndex(env: PdaRegistryEnv): Promise<Map<string, SheetIndexEntry>> {
+type SheetIndex = {
+  byDeviceKey: Map<string, SheetIndexEntry>;
+  byImei1: Map<string, SheetIndexEntry>;
+  byAndroidId: Map<string, SheetIndexEntry>;
+};
+
+async function readSheetIndex(env: PdaRegistryEnv): Promise<SheetIndex> {
   const id = sheetId(env);
   const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchGet`);
   url.searchParams.append("ranges", "PDA_Devices!A2:A2000");
+  url.searchParams.append("ranges", "PDA_Devices!F2:G2000");
   url.searchParams.append("ranges", "PDA_Devices!Y2:Y2000");
   url.searchParams.set("majorDimension", "ROWS");
   const response = await sheetRequest(env, url.toString());
@@ -107,17 +120,28 @@ async function readSheetIndex(env: PdaRegistryEnv): Promise<Map<string, SheetInd
     valueRanges?: Array<{ values?: unknown[][] }>;
   };
   const keyRows = payload.valueRanges?.[0]?.values || [];
-  const hashRows = payload.valueRanges?.[1]?.values || [];
-  const result = new Map<string, SheetIndexEntry>();
-  for (let index = 0; index < keyRows.length; index += 1) {
+  const identityRows = payload.valueRanges?.[1]?.values || [];
+  const hashRows = payload.valueRanges?.[2]?.values || [];
+  const byDeviceKey = new Map<string, SheetIndexEntry>();
+  const byImei1 = new Map<string, SheetIndexEntry>();
+  const byAndroidId = new Map<string, SheetIndexEntry>();
+  const rowCount = Math.max(keyRows.length, identityRows.length, hashRows.length);
+  for (let index = 0; index < rowCount; index += 1) {
     const key = String(keyRows[index]?.[0] || "").trim().toLowerCase();
-    if (!DEVICE_KEY_RE.test(key)) continue;
-    result.set(key, {
+    const imei1 = String(identityRows[index]?.[0] || "").trim();
+    const androidId = String(identityRows[index]?.[1] || "").trim();
+    const entry: SheetIndexEntry = {
       row: index + 2,
+      deviceKey: key,
+      imei1,
+      androidId,
       payloadHash: String(hashRows[index]?.[0] || "").trim().toLowerCase(),
-    });
+    };
+    if (DEVICE_KEY_RE.test(key)) byDeviceKey.set(key, entry);
+    if (imei1) byImei1.set(imei1, entry);
+    if (androidId) byAndroidId.set(androidId, entry);
   }
-  return result;
+  return { byDeviceKey, byImei1, byAndroidId };
 }
 
 function rowFor(record: PdaRegistryRecord, includeHumanColumns: boolean): unknown[] {
@@ -197,11 +221,13 @@ async function appendAudit(
 async function syncRecordToSheet(
   env: PdaRegistryEnv,
   record: PdaRegistryRecord,
-  action: "CREATED" | "UPDATED",
+  action: "CREATED" | "UPDATED" | "REKEYED",
   oldHash: string,
 ): Promise<{ synced: boolean; action: string }> {
   const index = await readSheetIndex(env);
-  const existing = index.get(record.device_key);
+  const existing = index.byDeviceKey.get(record.device_key)
+    || (record.imei1 ? index.byImei1.get(record.imei1) : undefined)
+    || (record.android_id ? index.byAndroidId.get(record.android_id) : undefined);
   if (existing && existing.payloadHash === record.payload_hash) {
     return { synced: true, action: "UNCHANGED" };
   }
@@ -320,6 +346,7 @@ export async function handlePdaRegistryApi(
       created: boolean;
       changed: boolean;
       old_hash?: string;
+      rekeyed_from_device_key?: string;
       record: PdaRegistryRecord;
     }>(env, "/pda-registry/upsert", {
       method: "PUT",
@@ -335,7 +362,7 @@ export async function handlePdaRegistryApi(
         const sync = await syncRecordToSheet(
           env,
           result.record,
-          result.created ? "CREATED" : "UPDATED",
+          result.created ? "CREATED" : (result.rekeyed_from_device_key ? "REKEYED" : "UPDATED"),
           String(result.old_hash || ""),
         );
         sheetSynced = sync.synced;
@@ -371,10 +398,12 @@ export async function reconcilePdaRegistrySheet(env: PdaRegistryEnv): Promise<vo
   const missing: PdaRegistryRecord[] = [];
   const changed: Array<{ record: PdaRegistryRecord; row: number; oldHash: string }> = [];
   for (const record of records) {
-    const current = index.get(record.device_key);
+    const current = index.byDeviceKey.get(record.device_key)
+      || (record.imei1 ? index.byImei1.get(record.imei1) : undefined)
+      || (record.android_id ? index.byAndroidId.get(record.android_id) : undefined);
     if (!current) {
       missing.push(record);
-    } else if (current.payloadHash !== record.payload_hash) {
+    } else if (current.payloadHash !== record.payload_hash || current.deviceKey !== record.device_key) {
       changed.push({ record, row: current.row, oldHash: current.payloadHash });
     }
   }

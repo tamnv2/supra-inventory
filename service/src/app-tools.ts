@@ -31,6 +31,18 @@ export type AgentBrowserBundleRelease = {
   sha256: string;
 };
 
+export type LauncherRelease = {
+  version: string;
+  version_code: number;
+  tag: string;
+  published_at: string | null;
+  source: string | null;
+  asset_name: string;
+  size_bytes: number;
+  sha256: string;
+  stable_download_path: string;
+};
+
 type ChannelManifest = {
   tag?: string;
   name?: string;
@@ -58,11 +70,20 @@ const AGENT_BROWSER_MANIFEST_URL = `${CHANNEL_BASE}/agent-browser-latest.json`;
 const AGENT_BROWSER_ASSET_NAME = "Agent.WebView2.FixedRuntime.x64.zip";
 const AGENT_BROWSER_ASSET_URL = `${CHANNEL_BASE}/${AGENT_BROWSER_ASSET_NAME}`;
 const AGENT_BROWSER_CHECKSUM_URL = `${CHANNEL_BASE}/${AGENT_BROWSER_ASSET_NAME}.sha256`;
+
+const LAUNCHER_REPOSITORY = "tamnv2/supra-pda-launcher";
+const LAUNCHER_CHANNEL_TAG = "launcher-channel";
+const LAUNCHER_CHANNEL_BASE = `https://github.com/${LAUNCHER_REPOSITORY}/releases/download/${LAUNCHER_CHANNEL_TAG}`;
+const LAUNCHER_MANIFEST_URL = `${LAUNCHER_CHANNEL_BASE}/launcher-latest.json`;
+const LAUNCHER_ASSET_NAME = "SUPRA-PDA-Launcher-latest.apk";
+const LAUNCHER_ASSET_URL = `${LAUNCHER_CHANNEL_BASE}/${LAUNCHER_ASSET_NAME}`;
+const LAUNCHER_CHECKSUM_URL = `${LAUNCHER_CHANNEL_BASE}/${LAUNCHER_ASSET_NAME}.sha256`;
 const CACHE_MS = 5 * 60_000;
 
 let pdaCache: { expires_at: number; release: PdaAppRelease } | null = null;
 let agentCache: { expires_at: number; release: AgentAppRelease } | null = null;
 let agentBrowserCache: { expires_at: number; release: AgentBrowserBundleRelease } | null = null;
+let launcherCache: { expires_at: number; release: LauncherRelease } | null = null;
 
 function digestFromSha(value: unknown): string | null {
   const sha = String(value || "").trim().toLowerCase();
@@ -182,3 +203,42 @@ export function redirectLatestAgentBrowserChecksum(): Response {
   return stableRedirect(AGENT_BROWSER_CHECKSUM_URL);
 }
 
+
+
+export async function latestLauncherRelease(): Promise<LauncherRelease> {
+  if (launcherCache && launcherCache.expires_at > Date.now()) return launcherCache.release;
+  const manifest = await loadManifest(LAUNCHER_MANIFEST_URL) as ChannelManifest & {
+    version?: string;
+    version_code?: number;
+    tag?: string;
+  };
+  const version = String(manifest.version || "").trim();
+  const tag = String(manifest.tag || "").trim();
+  const versionCode = Math.trunc(Number(manifest.version_code || 0));
+  const sha256 = String(manifest.sha256 || "").trim().toLowerCase();
+  if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error("LAUNCHER_RELEASE_CHANNEL_INVALID_VERSION");
+  if (tag !== `v${version}`) throw new Error("LAUNCHER_RELEASE_CHANNEL_INVALID_TAG");
+  if (!Number.isInteger(versionCode) || versionCode <= 0) throw new Error("LAUNCHER_RELEASE_CHANNEL_INVALID_VERSION_CODE");
+  if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error("LAUNCHER_RELEASE_CHANNEL_INVALID_SHA256");
+  const release: LauncherRelease = {
+    version,
+    version_code: versionCode,
+    tag,
+    published_at: manifest.published_at ? String(manifest.published_at) : null,
+    source: manifest.source ? String(manifest.source) : null,
+    asset_name: LAUNCHER_ASSET_NAME,
+    size_bytes: Math.max(0, Number(manifest.size_bytes || 0)),
+    sha256,
+    stable_download_path: "/downloads/launcher/latest",
+  };
+  launcherCache = { expires_at: Date.now() + CACHE_MS, release };
+  return release;
+}
+
+export function redirectLatestLauncherApk(): Response {
+  return stableRedirect(LAUNCHER_ASSET_URL);
+}
+
+export function redirectLatestLauncherChecksum(): Response {
+  return stableRedirect(LAUNCHER_CHECKSUM_URL);
+}

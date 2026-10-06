@@ -2572,6 +2572,11 @@
     "stable": "OWNER_GATED_UNTOUCHED",
     "sheet_permission": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com__WRITER_CONFIRMED",
     "launcher_release": "v0.3.16",
-    "launcher_apk_sha256": "953313fd04cda936b25d0167795d4b182f21773870fed037626d7e47c7c3c312"
+    "launcher_apk_sha256": "953313fd04cda936b25d0167795d4b182f21773870fed037626d7e47c7c3c312",
+    "first_real_pda": "PASS__V0.3.16__ROW_CREATED",
+    "identifier_repair": "MT90_VENDOR_SUFFIX_STRIP__DEVICEKEY_REKEY_CONTINUITY",
+    "launcher_update_channel": "GITHUB_FIXED_RELEASE_TAG_launcher-channel__STABLE_ASSET_NAMES__BETA_WORKER_MANIFEST_CACHE_5M__NO_PDA_GITHUB_REST_API",
+    "launcher_auto_check": "ON_LAUNCH_MAX_ONCE_PER_6H__MANUAL_ALWAYS_ALLOWED",
+    "launcher_download": "BETA_WORKER_302_TO_FIXED_GITHUB_RELEASE_ASSET__NO_REST_API_QUOTA"
   }
 }
