@@ -2487,7 +2487,10 @@
     },
     "runtime_impact": "D164_ISOLATED_PDA_MANAGEMENT_SCOPE__SEE_ops/pda-management-state.json__INVENTORY_D163_ACCEPTED",
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "parallel_inventory_change_id": "D165",
+    "parallel_inventory_change_status": "D165_IMPLEMENTATION_STARTED__OWNER_EXPLICIT_START_2026_10_07__D164_PDA_MANAGEMENT_REMAINS_ISOLATED_FIELD_PENDING",
+    "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -5648,18 +5651,18 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "OWNER_APPROVED_PROPOSAL_ONLY__IMPLEMENTATION_NOT_STARTED",
+    "status": "IMPLEMENTATION_STARTED__OWNER_EXPLICIT_START_2026_10_07",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
     "authority_document": "docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md",
-    "owner_approval": "APPROVED_TO_RECORD_FULL_PROPOSAL_ONLY__DO_NOT_RUN_CODE__OWNER_WILL_REVERIFY_IN_NEW_SESSION_BEFORE_START",
+    "owner_approval": "OWNER_REVERIFIED_RECORDED_PLAN_AND_EXPLICITLY_STARTED_IMPLEMENTATION__2026_10_07",
     "governance": {
       "current_global_change_remains": "D164",
       "d164_scope": "PDA_MANAGEMENT__INDEPENDENT_ISOLATED",
-      "d165_slot": "DORMANT_PROPOSAL_ONLY__NOT_CURRENT_CHANGE_ID",
-      "implementation_start_gate": "FRESH_BOOTSTRAP__OWNER_REVERIFY_RECORDED_PLAN__EXPLICIT_NEW_START_COMMAND__CHANGE_CONTROL_BOUNDARY_CLEAR",
-      "source_runtime_mutation": false,
+      "d165_slot": "ACTIVE_PARALLEL_INVENTORY_WORKSTREAM__D164_REMAINS_ISOLATED_PDA_MANAGEMENT",
+      "implementation_start_gate": "PASS__FRESH_BOOTSTRAP_AND_OWNER_EXPLICIT_START_2026_10_07",
+      "source_runtime_mutation": true,
       "stable": "OWNER_GATED_UNTOUCHED"
     },
     "purpose": "BALANCE_REALTIME_SPEED_STABILITY_AND_SHARED_ACCOUNT_USAGE_WITHOUT_REGRESSION",
@@ -5747,12 +5750,12 @@
       "ack_p95_ms_approx": 960,
       "failover_objective_seconds": 15
     },
-    "implementation_started": false,
+    "implementation_started": true,
     "code_changed": false,
     "runtime_changed": false,
     "build_released": false,
     "deploy_performed": false,
-    "owner_reverification_required": true,
-    "next_action": "OWNER_NEW_SESSION_FRESH_BOOTSTRAP__VERIFY_D165_RECORD_MATCHES_APPROVAL__ONLY_THEN_EXPLICIT_START_OR_CORRECT_PROPOSAL"
+    "owner_reverification_required": false,
+    "next_action": "IMPLEMENT_D165_ON_CHANGE_BRANCH__CI_AND_AUTHORITY_PASS__MERGE_BETA_ONLY__FIELD_VALIDATE__OWNER_PASS"
   }
 }
