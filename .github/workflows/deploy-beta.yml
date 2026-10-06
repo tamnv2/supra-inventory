@@ -81,9 +81,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
         run: |
           set -euo pipefail
+          # Cloudflare supports both account-owned and user-owned API tokens.
+          # Verify against the account endpoint first, then the user endpoint.
+          # The actual Worker service lookup below remains the authoritative
+          # permission check before Wrangler is allowed to deploy.
           verify="$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify")"
-          [ "$(echo "$verify" | jq -r '.success')" = "true" ] || { echo "Cloudflare token verify failed"; exit 1; }
-          [ "$(echo "$verify" | jq -r '.result.status')" = "active" ] || { echo "Cloudflare token is not active"; exit 1; }
+          if [ "$(echo "$verify" | jq -r '.success // false')" != "true" ]; then
+            verify="$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/user/tokens/verify")"
+          fi
+          [ "$(echo "$verify" | jq -r '.success // false')" = "true" ] || { echo "Cloudflare token verify failed"; exit 1; }
+          [ "$(echo "$verify" | jq -r '.result.status // empty')" = "active" ] || { echo "Cloudflare token is not active"; exit 1; }
           service_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/services/supra-inventory-beta")"
           [ "$service_code" = "200" ] || { echo "Beta Worker API preflight failed: HTTP $service_code"; exit 1; }
           echo "Cloudflare Beta preflight PASS"
