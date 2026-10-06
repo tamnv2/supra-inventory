@@ -2605,5 +2605,10 @@
     "field_validation": "OWNER_PASS__2026_10_06",
     "owner_acceptance": "OWNER_EXPLICIT_D163_PASS__2026_10_06",
     "closed": true
+  },
+  "d165_proposal": {
+    "status": "OWNER_APPROVED_PROPOSAL_ONLY__NO_RUNTIME_CHANGE",
+    "beta_rtdb": "EXISTING_SCOPED_RESOURCE_PROPOSED_FOR_AGENT_HA_LIVENESS_ONLY_AFTER_LATER_OWNER_START",
+    "d1": "DEFERRED_NOT_D165"
   }
 }
