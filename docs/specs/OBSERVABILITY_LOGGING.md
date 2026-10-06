@@ -596,3 +596,21 @@ Repeated expected 4xx classes must be aggregated by route/status/error code when
   - the request is the runtime-log upload route.
 - This exception never applies to business APIs, other log reasons, older generations, non-Picker roles, Web or Agent sessions.
 - The accepted bundle follows the existing sanitization, InventoryCore-first persistence, logical boundary/bundle idempotency and archive retry rules. No new polling, heartbeat or provider write cadence is introduced.
+
+## D165 proposal-only log archive and noise controls
+
+Status: proposal recorded; implementation not started.
+
+All Báo hàng Android/Web/Agent archive bundles must resolve to one canonical `YYYY-MM-DD` child under the scoped Beta Logs parent using Asia/Ho_Chi_Minh.
+
+D165 requires:
+- shared canonical folder identity across Worker and Agent Apps Script paths;
+- race-safe find/create;
+- `bundle_id` idempotency before Drive artifact creation;
+- duplicate filename/content does not create a second archive artifact;
+- Kích User persists the Android sanitized final session-end bundle locally before session cleanup and retries only through existing bounded delivery mechanisms;
+- expected `SUPERSEDED` optimistic-concurrency losses with no health impact are aggregated diagnostics, not one ERROR archive per occurrence.
+
+No password, token, WMS session material or other sensitive value may enter logs.
+
+D165 does not add a logging heartbeat or per-event provider write cadence.
