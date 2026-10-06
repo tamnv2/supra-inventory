@@ -108,7 +108,7 @@ def require_source_markers() -> None:
         if marker not in core:
             fail(f"D162 single-DO authorization marker missing: {marker}")
 
-    # D162 repair: queue and recent workspace counters piggyback on existing business events.
+    # D162/D165: queue and recent workspace counters piggyback on existing business events; PER_PICKER timeout keeps the batch pending.
     for marker in (
         "queue_delta: existingBatch ? 0 : 1",
         "queue_delta: queueDelta",
@@ -118,7 +118,7 @@ def require_source_markers() -> None:
             fail(f"D162 reporter counter business metadata missing: {marker}")
     for marker in (
         "queue_delta: -1",
-        "queue_delta: finalForBatch ? -1 : 0",
+        "queue_delta: finalWaitingTicket ? -1 : 0",
         "recent_counter:",
         'after_status: "SKIP_ALLOWED"',
     ):
@@ -172,7 +172,7 @@ def require_source_markers() -> None:
     for marker in (
         "queue_delta?: -1 | 0 | 1",
         "recent_counter?:",
-        "queue_delta: finalForBatch ? -1 : 0",
+        "queue_delta: finalWaitingTicket ? -1 : 0",
     ):
         if marker not in sla_auto:
             fail(f"D162 live deadline reporter counter missing: {marker}")
