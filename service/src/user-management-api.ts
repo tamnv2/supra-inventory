@@ -4,6 +4,7 @@ import { readHrEmployees, type StoredHrSource } from "./hr-sync";
 import { validateHrSheetSource } from "./hr-source";
 import { refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { ensureHrDriveWatch } from "./hr-event-sync";
+import { isPrivilegedOneTimeUser } from "./privileged-auth";
 
 interface Env {
   APP_ENV: string;
@@ -335,6 +336,12 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
     try {
       const before = userId ? await coreUserById(env, userId) : null;
       if (!before) return json({ error: "USER_NOT_FOUND" }, 404);
+      if (isPrivilegedOneTimeUser(before)) {
+        return json({
+          error: "ONE_TIME_AUTH_ACCOUNT",
+          message: "root/admin/tamnv2 sử dụng mật khẩu một lần hoặc mật khẩu khẩn cấp; không được gán mật khẩu cố định.",
+        }, 409);
+      }
       const derived = await derivePassword(plainPassword);
       const changedResponse = await core(env).fetch("https://inventory-core.internal/admin/users/set-password", {
         method: "POST",
