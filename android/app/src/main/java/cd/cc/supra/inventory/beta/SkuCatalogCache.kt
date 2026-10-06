@@ -63,6 +63,7 @@ class SkuCatalogCache(context: Context) {
         }
     }
 
+    @Synchronized
     fun sync(
         api: InventoryApi,
         progress: (loaded: Int, total: Int) -> Unit = { _, _ -> },
