@@ -15,6 +15,10 @@ function base64ToBytes(value: string): Uint8Array {
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
+function exactArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
 export function normalizeUsername(value: unknown): string {
   return String(value ?? "").trim().toLowerCase();
 }
@@ -29,9 +33,9 @@ export function validPassword(value: string): boolean {
 
 export async function hashPassword(password: string, saltBase64?: string): Promise<{ salt: string; hash: string }> {
   const salt = saltBase64 ? base64ToBytes(saltBase64) : crypto.getRandomValues(new Uint8Array(16));
-  const material = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const material = await crypto.subtle.importKey("raw", exactArrayBuffer(encoder.encode(password)), "PBKDF2", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: 150_000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: exactArrayBuffer(salt), iterations: 150_000, hash: "SHA-256" },
     material,
     256,
   );
@@ -66,7 +70,7 @@ export function randomId(prefix: string): string {
 }
 
 export async function sha256(value: string): Promise<string> {
-  return bytesToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(value))));
+  return bytesToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", exactArrayBuffer(encoder.encode(value)))));
 }
 
 export function constantTimeStringEqual(left: string, right: string): boolean {
