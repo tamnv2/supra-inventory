@@ -475,13 +475,17 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
              NEW.created_at
         FROM report_tickets t
        WHERE t.batch_id = NEW.batch_id
-         AND t.status = 'RESOLVED'
          AND t.picker_user_id IS NOT NULL
          AND t.picker_user_id <> ''
          AND (
            NEW.event_type = 'BATCH_CORRECTED'
-           OR (NEW.event_type = 'BATCH_AUTO_SKIP_ALLOWED' AND t.resolution_source = 'SYSTEM_TIMEOUT')
-           OR (NEW.event_type = 'BATCH_RESOLVED' AND t.resolution_source = 'REPORTER')
+           OR (
+             t.status = 'RESOLVED'
+             AND (
+               (NEW.event_type = 'BATCH_AUTO_SKIP_ALLOWED' AND t.resolution_source = 'SYSTEM_TIMEOUT')
+               OR (NEW.event_type = 'BATCH_RESOLVED' AND t.resolution_source = 'REPORTER')
+             )
+           )
          )
        GROUP BY t.picker_user_id;
     END;
