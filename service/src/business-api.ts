@@ -188,6 +188,7 @@ async function realtimeAfter(
       acknowledgement?: { batch_id?: string };
       queue_delta?: unknown;
       recent_counter?: unknown;
+      overdue_delta?: unknown;
     };
     eventId = String(payload.event_id || "");
     batchId = String(batchId || payload.batch_id || payload.ticket?.batch_id || payload.acknowledgement?.batch_id || "");
@@ -196,6 +197,8 @@ async function realtimeAfter(
     if (payload.recent_counter && typeof payload.recent_counter === "object" && !Array.isArray(payload.recent_counter)) {
       metadata.recent_counter = payload.recent_counter;
     }
+    const overdueDelta = Number(payload.overdue_delta);
+    if (Number.isInteger(overdueDelta) && overdueDelta >= -1 && overdueDelta <= 1) metadata.overdue_delta = overdueDelta;
   } catch {
     // Keep best-effort broadcast behavior.
   }
@@ -239,7 +242,7 @@ function scheduleFcm(
     target: NotificationTarget;
     title: string;
     body: string;
-    resolution?: "HAS_STOCK" | "SKIP_ALLOWED";
+    resolution?: "HAS_STOCK" | "SKIP_ALLOWED" | "PENDING";
   },
 ): void {
   if (!ctx || !env.GOOGLE_RUNTIME_SA_JSON || !response.ok) return;
@@ -549,7 +552,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const response = await corePost(env, "/business/reports/withdraw", { ...body, actor: actor(user) });
     return realtimeAfter(response, env, {
       event: "report_withdrawn",
-      scopes: ["reporter_queue", "reporter_recent", "picker_reports"],
+      scopes: ["reporter_queue", "reporter_overdue", "reporter_recent", "picker_reports"],
       tags: [...REPORTER_TAGS, `user:${user.user_id}`],
     });
   }
@@ -581,21 +584,26 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   if (key === "POST /api/reporter/batches/correct") {
     const body = await parseObjectBody(request);
     const batchId = String(body.batch_id || "").trim();
+    const target = String(body.target || "").trim().toUpperCase();
     const response = await corePost(env, "/business/reporter/correct", { ...body, actor: actor(user) });
     const result = await realtimeAfter(response, env, {
       event: "batch_corrected",
-      scopes: ["reporter_recent", "picker_reports"],
+      scopes: ["reporter_queue", "reporter_overdue", "reporter_recent", "picker_reports"],
       tags: REPORTER_TAGS,
       batchId,
       includeBatchPickerUsers: true,
     });
-    scheduleFcm(result, env, ctx, {
-      event: "batch_corrected",
-      target: { batchId },
-      title: "SUPRA Inventory · Cập nhật kết quả",
-      body: "{sku} · {product}\nCập nhật thành Đã có hàng · {actor} · {role}",
-      resolution: "HAS_STOCK",
-    });
+    if (target === "PENDING" || target === "SKIP_ALLOWED") {
+      scheduleFcm(result, env, ctx, {
+        event: "batch_corrected",
+        target: { batchId },
+        title: "SUPRA Inventory · Kết quả đã được điều chỉnh",
+        body: target === "PENDING"
+          ? "{sku} · {product}\nKết quả đã được điều chỉnh · Đang xử lý lại · {actor} · {role}"
+          : "{sku} · {product}\nKết quả đã được điều chỉnh · Cho phép skip · {actor} · {role}",
+        resolution: target,
+      });
+    }
     return result;
   }
 
