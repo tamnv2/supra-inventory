@@ -728,7 +728,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-04",
+  "last_updated": "2026-10-06",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -5424,5 +5424,13 @@
       "validation_result": "PASS__RUNTIME_DEPLOYED",
       "field_usage_validation": "PENDING_OA097_AND_OWNER_TAB_COUNTER_CONFIRMATION"
     }
+  },
+  "cloudflare_beta_permission_probe": {
+    "status": "PENDING_RUNTIME_VERIFY",
+    "requested_at": "2026-10-06",
+    "purpose": "Verify newly configured CF_API_TOKEN_INVENTORY_BETA before PDA Registry implementation.",
+    "branch": "probe/cf-beta-permission",
+    "pr": 453,
+    "scope": "BETA_ONLY__NO_RUNTIME_LOGIC_CHANGE__STABLE_UNTOUCHED"
   }
 }
