@@ -944,3 +944,14 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - SLA warning/escalation events do not change the queue count.
 - Web applies valid deltas immediately to the navigation badge. Missing/invalid delta on a queue-changing event is not guessed; Web reconciles the authoritative lightweight queue total.
 - Dirty realtime cursor, sequence gap or reconnect reconciles the badge count from authoritative state before continuing. No polling cadence is added.
+
+## D162 workspace tab counter contract
+
+- The Web workspace tabs **Đang xử lý** and **Kết quả gần đây** are realtime projections independent of whether their list surface has been opened.
+- Queue-changing events continue to carry bounded `queue_delta ∈ {-1,0,1}`.
+- Result-changing events carry `recent_counter` with `before_status/before_at/after_status/after_at`. Web computes the count delta against the currently selected recent-result date range and status filter.
+- A correction from `SKIP_ALLOWED` to `HAS_STOCK` is represented as a transition rather than a blind +1 so filtered counts remain exact.
+- `RESULT_ACKNOWLEDGED` changes acknowledgement detail only and never changes the recent-result batch count.
+- Normal socket/delta processing updates the two tab numbers from event metadata and does not issue a counter or list read.
+- F5/login/realtime gap/reconnect may issue one bounded authoritative dual-counter read. Missing/invalid transition metadata fails closed to that lightweight reconciliation.
+- Full queue/recent snapshots remain visibility-scoped and are never fetched merely to update a tab number.
