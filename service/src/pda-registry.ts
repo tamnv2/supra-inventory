@@ -97,12 +97,14 @@ type SheetIndexEntry = {
   row: number;
   payloadHash: string;
   deviceKey: string;
+  serialNormalized: string;
   imei1: string;
   androidId: string;
 };
 
 type SheetIndex = {
   byDeviceKey: Map<string, SheetIndexEntry>;
+  bySerial: Map<string, SheetIndexEntry>;
   byImei1: Map<string, SheetIndexEntry>;
   byAndroidId: Map<string, SheetIndexEntry>;
 };
@@ -111,7 +113,7 @@ async function readSheetIndex(env: PdaRegistryEnv): Promise<SheetIndex> {
   const id = sheetId(env);
   const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchGet`);
   url.searchParams.append("ranges", "PDA_Devices!A2:A2000");
-  url.searchParams.append("ranges", "PDA_Devices!F2:G2000");
+  url.searchParams.append("ranges", "PDA_Devices!E2:G2000");
   url.searchParams.append("ranges", "PDA_Devices!Y2:Y2000");
   url.searchParams.set("majorDimension", "ROWS");
   const response = await sheetRequest(env, url.toString());
@@ -123,25 +125,29 @@ async function readSheetIndex(env: PdaRegistryEnv): Promise<SheetIndex> {
   const identityRows = payload.valueRanges?.[1]?.values || [];
   const hashRows = payload.valueRanges?.[2]?.values || [];
   const byDeviceKey = new Map<string, SheetIndexEntry>();
+  const bySerial = new Map<string, SheetIndexEntry>();
   const byImei1 = new Map<string, SheetIndexEntry>();
   const byAndroidId = new Map<string, SheetIndexEntry>();
   const rowCount = Math.max(keyRows.length, identityRows.length, hashRows.length);
   for (let index = 0; index < rowCount; index += 1) {
     const key = String(keyRows[index]?.[0] || "").trim().toLowerCase();
-    const imei1 = String(identityRows[index]?.[0] || "").trim();
-    const androidId = String(identityRows[index]?.[1] || "").trim();
+    const serialNormalized = String(identityRows[index]?.[0] || "").trim();
+    const imei1 = String(identityRows[index]?.[1] || "").trim();
+    const androidId = String(identityRows[index]?.[2] || "").trim();
     const entry: SheetIndexEntry = {
       row: index + 2,
       deviceKey: key,
+      serialNormalized,
       imei1,
       androidId,
       payloadHash: String(hashRows[index]?.[0] || "").trim().toLowerCase(),
     };
     if (DEVICE_KEY_RE.test(key)) byDeviceKey.set(key, entry);
+    if (serialNormalized) bySerial.set(serialNormalized, entry);
     if (imei1) byImei1.set(imei1, entry);
     if (androidId) byAndroidId.set(androidId, entry);
   }
-  return { byDeviceKey, byImei1, byAndroidId };
+  return { byDeviceKey, bySerial, byImei1, byAndroidId };
 }
 
 function rowFor(record: PdaRegistryRecord, includeHumanColumns: boolean): unknown[] {
@@ -226,6 +232,7 @@ async function syncRecordToSheet(
 ): Promise<{ synced: boolean; action: string }> {
   const index = await readSheetIndex(env);
   const existing = index.byDeviceKey.get(record.device_key)
+    || (record.serial_normalized ? index.bySerial.get(record.serial_normalized) : undefined)
     || (record.imei1 ? index.byImei1.get(record.imei1) : undefined)
     || (record.android_id ? index.byAndroidId.get(record.android_id) : undefined);
   if (existing && existing.payloadHash === record.payload_hash) {
@@ -397,6 +404,7 @@ export async function reconcilePdaRegistrySheet(env: PdaRegistryEnv): Promise<vo
   const changed: Array<{ record: PdaRegistryRecord; row: number; oldHash: string }> = [];
   for (const record of records) {
     const current = index.byDeviceKey.get(record.device_key)
+      || (record.serial_normalized ? index.bySerial.get(record.serial_normalized) : undefined)
       || (record.imei1 ? index.byImei1.get(record.imei1) : undefined)
       || (record.android_id ? index.byAndroidId.get(record.android_id) : undefined);
     if (!current) {
