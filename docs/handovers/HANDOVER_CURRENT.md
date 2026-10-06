@@ -8,9 +8,9 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D162_WORKSPACE_TAB_COUNTER_REPAIR_RUNTIME_PASS__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899__DUAL_REALTIME_COUNTERS__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
-- Web: `D162_WORKSPACE_TAB_DUAL_REALTIME_COUNTERS_DEPLOYED__QUEUE_DELTA__RECENT_TRANSITION__LIGHTWEIGHT_RECONCILE_ONLY__RUN_37395842899`
-- Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
+- Beta: `D162_OWNER_FIELD_ACCEPTED_PASS__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899__D163_SOURCE_IMPLEMENTATION_ACTIVE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED`
+- Web: `D162_OWNER_ACCEPTED_DUAL_REALTIME_COUNTERS_DEPLOYED__D163_REPORT_PICKER_DETAIL_SOURCE_PENDING_PR_CI`
+- Android: `D162_OWNER_ACCEPTED_BETA_VC97__D163_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -55,11 +55,11 @@ Released artifacts:
 
 ## 5. Next action
 
-D161 remains the accepted Owner-PASS base. D162 workspace-tab realtime counter repair PR #451 is deployed on Beta from main `8fca1fb539f2396cefaff621368758336035c00b`; deploy run `37395842899` PASS.
+D162 is now the accepted Owner-PASS base. Workspace-tab realtime counter repair PR #451 is deployed on Beta from main `8fca1fb539f2396cefaff621368758336035c00b`; deploy run `37395842899` PASS. OA097 is closed by the Owner's explicit D162 PASS on 2026-10-06.
 
-Both **Đang xử lý** and **Kết quả gần đây** now use dedicated realtime counters. Normal events update them from existing WebSocket metadata; F5/login/gap/reconnect uses one lightweight dual-counter reconciliation. Agent v114, Android vc97 and Stable are unchanged.
+D163 is the only open change. Source is implemented on `d163-kick-logout-report-picker-detail`: forced Picker revoke remains immediate while the just-revoked Android generation may submit only its final `INFO/session_end_logout` log; Báo cáo chi tiết adds lazy exact-batch **Xem Picker / Ẩn Picker** detail. PR/CI/Beta runtime validation are pending.
 
-OA097 is reopened. First field-check both visible tab numbers without clicking/F5, then continue comparable-load usage/latency validation. Do not open D163 until explicit D162 Owner PASS.
+Agent v114 and Android vc97 are unchanged. Stable remains OWNER-GATED.
 
 ## 6. Resume command
 
@@ -1797,3 +1797,17 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Main Authority `37395842893`, Project State `37395842908`, UI `37395843053`, D127 `37395843108`, D159 `37395843560` all PASS.
 - Agent remains v114; Android remains vc97; Stable remains OWNER-GATED and untouched.
 - OA097 is reopened for field confirmation plus comparable-load usage/latency acceptance.
+
+## D162 Owner acceptance — 2026-10-06
+
+- Owner explicitly recorded D162 PASS. D162 becomes the accepted base and OA097 closes PASS.
+- Accepted D162 runtime checkpoint: PR #451 / main `8fca1fb539f2396cefaff621368758336035c00b`, Beta deploy `37395842899`.
+- Agent v114, Android vc97 and Stable remain unchanged.
+
+## D163 source implementation checkpoint — 2026-10-06
+
+- Current only-open change: D163.
+- Branch `d163-kick-logout-report-picker-detail` contains the approved Service/Web implementation; PR/CI/runtime deploy are pending.
+- Forced Kích User does not delay or weaken revoke. The log route alone may accept the previous Android PICKER generation's exact `INFO/session_end_logout` bundle.
+- Detailed reporting adds on-demand exact-batch Picker rows, reusing the existing Excel-detail data authority and avoiding eager per-row fanout.
+- OA098 will become the physical field gate after technical/runtime PASS.
