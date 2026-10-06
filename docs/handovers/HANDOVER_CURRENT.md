@@ -55,15 +55,15 @@ Released artifacts:
 
 ## 5. Next action
 
-D161 remains the accepted Owner-PASS base. D162 repair PR #449 is runtime PASS on Beta at main `d970790bfd440a50c80751102e7a2fb05f8300e3`; deploy run `37391459092` PASS. Agent remains `relay-agent-v114`, Android remains `beta-vc97`, and Stable remains OWNER-GATED.
+D161 remains the accepted Owner-PASS base. The currently deployed D162 Beta runtime at main `d970790bfd440a50c80751102e7a2fb05f8300e3` has a field-confirmed workspace-tab counter defect: **Đang xử lý** and **Kết quả gần đây** can remain stale until their list tab is loaded.
 
-OA097 comparable-load usage/latency validation is reopened. Do not open D163 until explicit D162 Owner PASS.
+The Owner approved a same-D162 repair on 2026-10-06. Branch `repair/d162-workspace-tab-realtime-counters` implements realtime dual tab counters without polling/full off-screen list reads. OA097 is paused until this repair passes CI, merge and Beta runtime deployment. Agent v114, Android vc97 and Stable are unchanged.
 
 On the next session:
 1. read `ops/authority-manifest.json`;
 2. read the complete declared `bootstrap_order`;
 3. verify recent commits/CI and relevant live source;
-4. continue OA097 comparable active-load validation; any failure is repaired under D162.
+4. continue the D162 workspace-tab counter repair through PR → CI → merge → Beta deploy, then resume OA097.
 
 ## 6. Resume command
 
@@ -1791,3 +1791,11 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Main Authority `37391458033`, Project State `37391458064`, UI `37391458250`, D127 `37391458086` and D159 usage `37391457987` all PASS.
 - Agent remains `relay-agent-v114`; Android remains `beta-vc97`; Stable remains OWNER-GATED and untouched.
 - OA097 is reopened for comparable active-load usage/latency and explicit Owner acceptance.
+
+## D162 workspace tab realtime counter repair candidate — 2026-10-06
+
+- Owner field review confirmed the visible **Đang xử lý** / **Kết quả gần đây** counts were list-backed and changed only after loading the corresponding tab.
+- Same-D162 branch: `repair/d162-workspace-tab-realtime-counters`.
+- Repair uses existing WebSocket metadata for normal updates and one lightweight dual-counter authoritative read only on baseline/gap/reconnect.
+- No polling, full off-screen list read, new provider resource, Firestore cadence, Agent change, Android change or Stable change.
+- OA097 is paused until repaired Beta runtime PASS.
