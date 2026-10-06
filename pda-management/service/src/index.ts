@@ -727,6 +727,7 @@ async function deviceActionApi(
   }
 
   if (action === "status") {
+    if (session.role !== "ROOT") return json({ error: "FORBIDDEN" }, 403);
     const usageStatus = String(body.usage_status ?? "").trim().toUpperCase();
     const condition = String(body.physical_condition ?? "UNKNOWN").trim().toUpperCase();
     const note = String(body.note ?? "").trim().slice(0, 500);
