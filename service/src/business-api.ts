@@ -595,7 +595,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     });
     if (target === "PENDING" || target === "SKIP_ALLOWED") {
       scheduleFcm(result, env, ctx, {
-        event: "batch_corrected",
+        event: target === "PENDING" ? "batch_corrected_pending" : "batch_corrected",
         target: { batchId },
         title: "SUPRA Inventory · Kết quả đã được điều chỉnh",
         body: target === "PENDING"
