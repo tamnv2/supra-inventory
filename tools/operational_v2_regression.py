@@ -113,8 +113,6 @@ def require_source_markers() -> None:
         "queue_delta: existingBatch ? 0 : 1",
         "queue_delta: queueDelta",
         "recent_counter:",
-        'before_status: "SKIP_ALLOWED"',
-        'after_status: "HAS_STOCK"',
     ):
         if marker not in business:
             fail(f"D162 reporter counter business metadata missing: {marker}")
@@ -126,6 +124,16 @@ def require_source_markers() -> None:
     ):
         if marker not in sla_auto:
             fail(f"D162 reporter counter SLA metadata missing: {marker}")
+
+    for marker in (
+        'from: "HAS_STOCK"',
+        'to: target',
+        'before_status: "HAS_STOCK"',
+        'after_status: target === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : null',
+        'corrected_from_version: expectedVersion',
+    ):
+        if marker not in business:
+            fail(f"D165 HAS_STOCK correction invariant missing: {marker}")
 
     # D165 PER_PICKER keeps the batch pending after timeout, so the business
     # resolver may compute queue_delta from remaining waiting tickets instead of
