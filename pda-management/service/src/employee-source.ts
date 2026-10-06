@@ -13,9 +13,13 @@ function cell(row: unknown[], index: number): string {
   return String(row[index] ?? "").trim();
 }
 
+function exactArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
 async function sha256(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
-  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", exactArrayBuffer(bytes)));
   return Array.from(digest).map((item) => item.toString(16).padStart(2, "0")).join("");
 }
 
