@@ -1802,6 +1802,12 @@ public final class MainActivity extends Activity {
         sessionRole = "";
         sessionDisplayName = "";
         cachedDevices = new JSONArray();
+        cachedConditions = new JSONArray();
+        cachedSites = new JSONArray();
+        selectedOperationSerial = "";
+        contentContainer = null;
+        operationSerialInput = null;
+        operationResultContainer = null;
         renderLogin();
         if (!token.isEmpty()) {
             new Thread(() -> revokeToken(token), "pda-mgmt-logout").start();
@@ -1869,25 +1875,26 @@ public final class MainActivity extends Activity {
     }
 
     private void applyUpdateUi(String message) {
-        if (updateButton == null) return;
-        updateButton.setEnabled(!updateCheckRunning);
-        switch (updateGate) {
-            case CHECKING:
-                updateButton.setText("Đang kiểm tra…");
-                break;
-            case AVAILABLE:
-                updateButton.setText("Cập nhật");
-                break;
-            case FAILED:
-                updateButton.setText("Kiểm tra an toàn");
-                break;
-            default:
-                updateButton.setText("Kiểm tra cập nhật");
-                break;
+        if (updateButton != null) {
+            updateButton.setEnabled(!updateCheckRunning);
+            switch (updateGate) {
+                case CHECKING:
+                    updateButton.setText("Đang kiểm tra…");
+                    break;
+                case AVAILABLE:
+                    updateButton.setText("Cập nhật");
+                    break;
+                case FAILED:
+                    updateButton.setText("Kiểm tra an toàn");
+                    break;
+                default:
+                    updateButton.setText("Kiểm tra cập nhật");
+                    break;
+            }
         }
         if (message != null && !message.trim().isEmpty()) {
             setStatus(message, updateGate == UpdateGate.FAILED);
-        } else if (updateGate == UpdateGate.CURRENT || updateGate == UpdateGate.IDLE) {
+        } else if ((updateGate == UpdateGate.CURRENT || updateGate == UpdateGate.IDLE) && status != null) {
             status.setVisibility(View.GONE);
         }
     }
@@ -1895,7 +1902,7 @@ public final class MainActivity extends Activity {
     private void showUpdateAvailable(UpdateInfo info) {
         new AlertDialog.Builder(this)
             .setTitle("Có bản cập nhật " + info.tag)
-            .setMessage("Có thể cập nhật ngay từ màn hình đăng nhập. Cập nhật không yêu cầu đăng nhập tài khoản.")
+            .setMessage("Có thể cập nhật ngay. Bản cập nhật được xác minh checksum và chữ ký trước khi cài đặt.")
             .setNegativeButton("Để sau", null)
             .setPositiveButton("Cập nhật", (dialog, which) -> downloadAndInstallUpdate(info))
             .show();
@@ -2191,6 +2198,12 @@ public final class MainActivity extends Activity {
     }
 
     private void setStatus(String message, boolean error) {
+        if (status == null) {
+            if (message != null && !message.trim().isEmpty()) {
+                Toast.makeText(this, message, error ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
         status.setText(message);
         status.setTextColor(getColor(error ? R.color.red_600 : R.color.text_secondary));
         status.setVisibility(View.VISIBLE);
