@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "HTTP500_REPAIR_TECHNICAL_PASS__VC5_FIELD_RETEST_PENDING",
+  "status": "PROFESSIONAL_WORKSPACE_TECHNICAL_PASS__VC6_FIELD_TEST_PENDING",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -10,17 +10,17 @@
   "registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
   "usage_policy": "NO_HEARTBEAT__NO_ANDROID_BACKGROUND_POLL__NO_FIREBASE_MVP__EVENT_DRIVEN__REVISION_ETAG__SHEET_MIRROR_OFF_CRITICAL_PATH",
   "manual_blocker": "",
-  "main_sha": "ffc024d54aa13ed6f91aedd28da48cd0848a185e",
+  "main_sha": "773356b5c6e82162c7b515123b97cf7af13b4da3",
   "foundation_pr": 465,
   "issue": 464,
-  "verify_run": 37454531259,
-  "deploy_run": 37454531246,
+  "verify_run": 37478684518,
+  "deploy_run": 37478684438,
   "release": {
-    "tag": "pda-mgmt-beta-vc5",
-    "version": "0.1.0-beta.5",
+    "tag": "pda-mgmt-beta-vc6",
+    "version": "0.1.0-beta.6",
     "signed": true,
     "apk": "supra-pda-management-beta.apk",
-    "size_bytes": 5247973
+    "size_bytes": 5294417
   },
   "runtime": {
     "worker": "supra-pda-management-beta",
@@ -30,10 +30,10 @@
     "inventory_runtime_files_changed": false,
     "secrets_verified": true,
     "health": "PASS__SHALLOW_AND_DEEP",
-    "source_commit": "ffc024d54aa13ed6f91aedd28da48cd0848a185e",
+    "source_commit": "773356b5c6e82162c7b515123b97cf7af13b4da3",
     "hr_source_configured": true,
     "deep_health": {
-      "run": 37470465893,
+      "run": 37478684438,
       "storage": true,
       "auth_storage": true,
       "device_storage": true,
@@ -68,7 +68,7 @@
     "service_verify_run": 37457159085,
     "deploy_run": 37457159127
   },
-  "next_phase": "OWNER_FIELD_RETEST_VC5__LOGIN__SEND_LOG_BUTTON__BORROW_RETURN__SAME_D164_REPAIR_IF_NEEDED",
+  "next_phase": "OWNER_FIELD_TEST_VC6__LOGIN__OPERATIONS_SCAN_SUGGEST__BORROW_RETURN_CONDITION__PDA_FILTERS__ROOT_ACCOUNT_CATALOG_SITE__SAME_D164_REPAIR_IF_NEEDED",
   "auth_device_list": {
     "status": "TECHNICAL_PASS",
     "root_bootstrap": true,
@@ -148,5 +148,69 @@
     "diagnostic_release": "pda-mgmt-beta-vc5",
     "inventory_log_receiver_deploy_run": 37470148543,
     "pda_management_deploy_run": 37470465893
+  },
+  "professional_workspace": {
+    "status": "TECHNICAL_PASS__FIELD_TEST_PENDING",
+    "pr": 475,
+    "merge_commit": "773356b5c6e82162c7b515123b97cf7af13b4da3",
+    "release": "pda-mgmt-beta-vc6",
+    "android_verify_run": 37478684518,
+    "service_verify_run": 37478684404,
+    "deploy_run": 37478684438,
+    "ui": "BAO_HANG_VISUAL_LANGUAGE__SUPRA_PDA_IDENTITY",
+    "tabs": [
+      "OPERATIONS",
+      "PDA_LIST",
+      "SETTINGS"
+    ],
+    "operations": {
+      "serial_input_scan": true,
+      "local_serial_suggestions": true,
+      "borrowed_auto_action": "RETURN",
+      "available_auto_action": "BORROW",
+      "employee_suggestions": "DEBOUNCED__HR_CACHE_GUARDED",
+      "physical_condition_required_for_borrow": true,
+      "physical_condition_required_for_return": true
+    },
+    "device_list": {
+      "filters": [
+        "ALL",
+        "AVAILABLE",
+        "BORROWED"
+      ],
+      "site_visible": true,
+      "condition_visible": true,
+      "borrower_visible": true
+    },
+    "root": {
+      "coordinator_crud": true,
+      "coordinator_password_reset_revoke_sessions": true,
+      "coordinator_active_lock": true,
+      "condition_catalog_crud": true,
+      "site_catalog_crud": true,
+      "site_assignment": true,
+      "device_status_admin_only": true
+    },
+    "site_foundation": {
+      "default_sites": [
+        "1291",
+        "1386-1368",
+        "1399",
+        "Inventory",
+        "Outbound"
+      ],
+      "launcher_integration": "DEFERRED_UNTIL_NEXT_LAUNCHER_RELEASE",
+      "launcher_changed": false
+    },
+    "storage": {
+      "durable_object_schema_version": 3,
+      "management_sheet_schema_version": 2,
+      "device_site_condition_columns": true,
+      "transaction_site_condition_columns": true,
+      "catalog_sheet": "PDA_Catalogs",
+      "coordinator_metadata_sheet": "PDA_Users",
+      "passwords_in_sheet": false
+    },
+    "usage": "NO_POLLING__LOCAL_SERIAL_FILTERS__CATALOG_LOAD_ON_SESSION_OR_CHANGE__HR_SUGGEST_DEBOUNCED"
   }
 }
