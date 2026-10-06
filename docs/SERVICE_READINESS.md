@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-D162 remains the only open change. Realtime badge lazy-queue repair PR #449 is deployed on Beta from main `d970790bfd440a50c80751102e7a2fb05f8300e3`; deploy run `37391459092` PASS. Resume OA097 comparable-load Cloudflare/Firestore usage plus business latency/stability evidence. Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
+D162 remains the only open change. Field review found the currently deployed Web workspace-tab counts can stay stale until the corresponding list is loaded. Same-D162 branch `repair/d162-workspace-tab-realtime-counters` repairs both visible counters through existing realtime metadata plus one bounded dual-counter reconcile on baseline/gap/reconnect. OA097 is paused until this repair is merged and deployed. Agent v114 and Android vc97 are unchanged; Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 
@@ -1783,3 +1783,12 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Authority `37391458033`, Project State `37391458064`, UI `37391458250`, D127 `37391458086`, D159 `37391457987` PASS.
 - Agent v114 and Android vc97 are unchanged; Stable remains OWNER-GATED.
 - OA097 is now PENDING_FIELD_VALIDATION.
+
+## D162 workspace tab realtime counter repair candidate — 2026-10-06
+
+- Current deployed Beta runtime remains the prior D162 runtime while this repair is under validation.
+- Owner-approved repair makes both workspace tab numbers independent from loaded list state.
+- Normal changes use existing WebSocket events; no counter polling is introduced.
+- One lightweight authorized dual-counter request is allowed for F5/login/reconnect/gap recovery only.
+- Full queue/recent data remains visibility-scoped.
+- No Agent/Android/Stable or provider-resource change.
