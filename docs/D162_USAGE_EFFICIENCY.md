@@ -87,3 +87,15 @@ The same D162 change is repaired to preserve realtime feel while reducing off-sc
 - A fresh non-Operations surface establishes the badge with a lightweight `getReporterQueue(1, 0)` total read. Normal subsequent queue events update the badge from realtime metadata with no queue fetch.
 - Missing/legacy delta metadata and dirty/gap/reconnect states perform one authoritative lightweight count reconciliation rather than a full off-screen queue snapshot.
 - No new resource, polling, listener, heartbeat or provider-write cadence. Agent v114, Android vc97 and Stable are unchanged.
+
+## Realtime badge lazy-queue repair runtime checkpoint
+
+- Repair PR #449 merged to main `d970790bfd440a50c80751102e7a2fb05f8300e3`.
+- PR checks: 12/12 PASS, including Repo Authority, Project State, Operational V2/Web regression, Worker typecheck, Web production build and Android debug gate.
+- Main Beta Worker/Web deploy run `37391459092`: PASS with post-deploy health/source/schema/auth/business/Web-shell verification.
+- Main Repo Authority run `37391458033`, Project State run `37391458064`, UI run `37391458250`, D127 run `37391458086`, D159 usage run `37391457987`: PASS.
+- Normal off-screen Reporter queue updates now change only the realtime badge through bounded `queue_delta`; full queue reads occur only on the visible Operations surface.
+- Results reads recent-result data only. Missing/legacy delta or realtime gap/reconnect uses one lightweight authoritative queue-total reconciliation.
+- No new provider resource, polling, listener, heartbeat or write cadence was introduced.
+- Agent remains `relay-agent-v114` unchanged; Android remains `beta-vc97` unchanged; Stable remains OWNER-GATED and untouched.
+- D162 remains open only for OA097 comparable active-load usage/latency evidence and explicit Owner PASS.
