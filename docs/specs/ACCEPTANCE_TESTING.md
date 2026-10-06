@@ -2608,7 +2608,7 @@ Field acceptance:
 
 ## D165 acceptance gates
 
-Status: implementation active on the D165 Beta change set. Automated technical gates must PASS before merge; field/usage acceptance remains Owner-gated.
+Status: D165 automated technical gates PASS on the implementation head. Beta merge remains subject to final continuity CI; field/usage acceptance remains Owner-gated.
 
 D165 implementation must prove, under comparable load:
 
