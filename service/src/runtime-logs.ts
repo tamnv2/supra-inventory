@@ -69,8 +69,7 @@ export async function resolveRuntimeLogDailyFolder(
     "trashed = false",
     "mimeType = 'application/vnd.google-apps.folder'",
     `name = '${driveQueryEscape(dateKey)}'`,
-    "appProperties has { key='project' and value='supra-inventory' }",
-    "appProperties has { key='kind' and value='runtime-log-day' }",
+
   ].join(" and ");
   const params = new URLSearchParams({
     q: query,
@@ -109,7 +108,19 @@ export async function resolveRuntimeLogDailyFolder(
     if (!created.ok || !FILE_ID_RE.test(String(createdPayload.id || ""))) {
       throw new Error(`LOGS_DAILY_FOLDER_CREATE_FAILED:${created.status}`);
     }
-    id = String(createdPayload.id);
+    const createdId = String(createdPayload.id);
+    const converge = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+      headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+    });
+    if (!converge.ok) throw new Error(`LOGS_DAILY_FOLDER_CONVERGE_FAILED:${converge.status}`);
+    const convergePayload = await converge.json() as { files?: Array<{ id?: string }> };
+    id = String(convergePayload.files?.[0]?.id || createdId);
+    if (FILE_ID_RE.test(id) && id !== createdId) {
+      await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(createdId)}`, {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${token}` },
+      }).catch(() => undefined);
+    }
   }
 
   dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
@@ -149,10 +160,10 @@ async function archiveIdentityFromEnvelope(content: string, fallbackLogId: strin
     ? await sha256Hex(`${source}|${actorId}|${deviceId}|${boundaryId}`)
     : "";
   return {
-    archiveId: logicalBoundary
-      ? `boundary:${logicalBoundary}`
-      : bundleId
-        ? `bundle:${bundleId}`
+    archiveId: bundleId
+      ? `bundle:${bundleId}`
+      : logicalBoundary
+        ? `boundary:${logicalBoundary}`
         : `runtime:${fallbackLogId}`,
     bundleId,
     boundaryId,
@@ -385,7 +396,7 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
   const traceId = /^[A-Za-z0-9._:-]{1,180}$/.test(suppliedTraceId) ? suppliedTraceId : "";
 
   const kind = runtimeLogKind(body.reason, severity);
-  const filename = `${kind}_${source.toLowerCase()}_${deviceSlug}_${vietnamStamp(generatedAt)}.json`;
+  const filename = `${kind}_${source.toLowerCase()}_${deviceSlug}_${vietnamStamp(generatedAt)}_${bundleId.slice(0, 12)}.json`;
 
   const envelope: Record<string, unknown> = {
     format: "supra-inventory-runtime-log-v2",
@@ -451,6 +462,7 @@ export async function uploadRuntimeLog(
       generated_at: generatedAt,
       received_at: receivedAt,
       content,
+      bundle_id: bundleId,
     }),
   });
   const buffered = await bufferedResponse.json() as {
@@ -487,9 +499,7 @@ export async function uploadRuntimeLog(
     const logicalBoundary = boundaryId
       ? await sha256Hex(`${source}|${actor.user_id}|${String((sanitize(body.device || {}) as Record<string, unknown>).device_id || "")}|${boundaryId}`)
       : "";
-    const archiveId = logicalBoundary
-      ? `boundary:${logicalBoundary}`
-      : `bundle:${bundleId}`;
+    const archiveId = `bundle:${bundleId}`;
     const existing = await findArchivedByIdentity(daily.id, token, archiveId);
     if (existing?.id) {
       await markDriveState(env, localId, String(existing.id));
