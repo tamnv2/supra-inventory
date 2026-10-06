@@ -742,7 +742,14 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_RESOLVED",
       batchId,
       null,
-      { resolution, source: "REPORTER", affected_picker_count: affected, correction_deadline_at: correctionDeadline, queue_delta: -1 },
+      {
+        resolution,
+        source: "REPORTER",
+        affected_picker_count: affected,
+        correction_deadline_at: correctionDeadline,
+        queue_delta: -1,
+        recent_counter: { before_status: null, before_at: null, after_status: resolution, after_at: at },
+      },
       at,
     );
     audit(state, actor, "BATCH_RESOLVE", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, resolution, source: "REPORTER", affected_picker_count: affected }, at);
@@ -756,6 +763,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       correction_deadline_at: correctionDeadline,
       event_id: eventId,
       queue_delta: -1,
+      recent_counter: { before_status: null, before_at: null, after_status: resolution, after_at: at },
       resolution_source: "REPORTER",
       resolved_by_user_id: actor.user_id,
       resolved_by_display_name: actor.display_name || actor.employee_code || actor.user_id,
@@ -828,7 +836,19 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       "BATCH_CORRECTED",
       batchId,
       null,
-      { from: "SKIP_ALLOWED", to: "HAS_STOCK", source: "REPORTER_CORRECTION", previous_correction_deadline_at: batch.correction_deadline_at, effective_correction_deadline_at: effectiveCorrectionDeadline },
+      {
+        from: "SKIP_ALLOWED",
+        to: "HAS_STOCK",
+        source: "REPORTER_CORRECTION",
+        previous_correction_deadline_at: batch.correction_deadline_at,
+        effective_correction_deadline_at: effectiveCorrectionDeadline,
+        recent_counter: {
+          before_status: "SKIP_ALLOWED",
+          before_at: batch.resolved_at || null,
+          after_status: "HAS_STOCK",
+          after_at: at,
+        },
+      },
       at,
     );
     audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, from: "SKIP_ALLOWED", to: "HAS_STOCK" }, at);
@@ -839,6 +859,12 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       resolution: "HAS_STOCK",
       corrected_at: at,
       event_id: eventId,
+      recent_counter: {
+        before_status: "SKIP_ALLOWED",
+        before_at: batch.resolved_at || null,
+        after_status: "HAS_STOCK",
+        after_at: at,
+      },
       resolution_source: "REPORTER_CORRECTION",
       resolved_by_user_id: actor.user_id,
       resolved_by_display_name: actor.display_name || actor.employee_code || actor.user_id,
