@@ -10,6 +10,7 @@ val betaKeystorePath = System.getenv("BETA_KEYSTORE_PATH")
 val betaKeystorePassword = System.getenv("BETA_KEYSTORE_PASSWORD")
 val betaKeyAlias = System.getenv("BETA_KEY_ALIAS")
 val betaKeyPassword = System.getenv("BETA_KEY_PASSWORD")
+val trustedSignerSha256 = System.getenv("PDA_MGMT_SIGNER_SHA256") ?: ""
 val betaSigningReady = listOf(betaKeystorePath, betaKeystorePassword, betaKeyAlias, betaKeyPassword).all { !it.isNullOrBlank() }
 
 android {
@@ -35,6 +36,8 @@ android {
         versionName = appVersionName
         buildConfigField("String", "API_BASE_URL", quoted("https://pda-beta.supra.cc.cd"))
         buildConfigField("String", "APP_SCOPE", quoted("PDA_MANAGEMENT"))
+        buildConfigField("String", "UPDATE_RELEASE_API", quoted("https://pda-beta.supra.cc.cd/downloads/app/manifest"))
+        buildConfigField("String", "TRUSTED_SIGNER_SHA256", quoted(trustedSignerSha256))
     }
 
     buildFeatures {
@@ -53,4 +56,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+
+dependencies {
+    implementation("androidx.core:core:1.17.0")
 }

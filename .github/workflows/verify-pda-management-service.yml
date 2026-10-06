@@ -1,0 +1,34 @@
+name: Verify PDA Management Service
+
+on:
+  pull_request:
+    paths:
+      - "pda-management/service/**"
+      - ".github/workflows/verify-pda-management-service.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pda-management/service/**"
+      - ".github/workflows/verify-pda-management-service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pda-management-service-verify
+  cancel-in-progress: true
+
+jobs:
+  service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Typecheck isolated service
+        working-directory: pda-management/service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
