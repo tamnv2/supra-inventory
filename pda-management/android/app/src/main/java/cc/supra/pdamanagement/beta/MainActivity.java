@@ -317,14 +317,22 @@ public final class MainActivity extends Activity {
         homeStatus.setTextColor(getColor(error ? R.color.red_600 : R.color.text_secondary));
     }
 
+    private void loadDevicesLocal() {
+        loadDevicesPath("/api/devices?local=1", false);
+    }
+
     private void loadDevices(boolean force) {
+        loadDevicesPath("/api/devices" + (force ? "?refresh=1" : ""), force);
+    }
+
+    private void loadDevicesPath(String path, boolean force) {
         if (deviceRefreshRunning || sessionToken.isEmpty()) return;
         deviceRefreshRunning = true;
         setHomeStatus(force ? "Đang đồng bộ Registry..." : "Đang tải danh sách PDA...", false);
 
         new Thread(() -> {
             try {
-                JSONObject result = apiRequest("GET", "/api/devices" + (force ? "?refresh=1" : ""), null, true);
+                JSONObject result = apiRequest("GET", path, null, true);
                 JSONArray devices = result.optJSONArray("devices");
                 if (devices == null) devices = new JSONArray();
                 final JSONArray finalDevices = devices;
@@ -395,6 +403,7 @@ public final class MainActivity extends Activity {
             LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             cp.bottomMargin = dp(8);
+            card.setOnClickListener(v -> showDeviceDialog(device));
             deviceListContainer.addView(card, cp);
         }
 
@@ -406,6 +415,279 @@ public final class MainActivity extends Activity {
             empty.setGravity(Gravity.CENTER);
             empty.setPadding(dp(12), dp(30), dp(12), dp(30));
             deviceListContainer.addView(empty);
+        }
+    }
+
+    private void showDeviceDialog(JSONObject device) {
+        String serial = device.optString("serial", "");
+        String usage = device.optString("usage_status", "AVAILABLE");
+        String condition = device.optString("physical_condition", "UNKNOWN");
+        String borrower = device.optString("borrower_name", "");
+        String employeeCode = device.optString("borrower_employee_code", "");
+        String contractor = device.optString("borrower_contractor", "");
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(20), dp(8), dp(20), dp(4));
+
+        TextView info = new TextView(this);
+        StringBuilder text = new StringBuilder();
+        text.append("Serial: ").append(serial)
+            .append("\nTrạng thái: ").append(usageLabel(usage))
+            .append("\nTình trạng: ").append(conditionLabel(condition));
+        if ("BORROWED".equals(usage)) {
+            text.append("\n\nĐang mượn: ").append(employeeCode).append(" · ").append(borrower);
+            if (!contractor.isEmpty()) text.append(" · ").append(contractor);
+        }
+        info.setText(text.toString());
+        info.setTextColor(getColor(R.color.text_primary));
+        info.setTextSize(13);
+        box.addView(info);
+
+        Button primary = new Button(this);
+        if ("AVAILABLE".equals(usage)) {
+            primary.setText("Ghi nhận mượn");
+            primary.setOnClickListener(v -> showBorrowDialog(device));
+        } else if ("BORROWED".equals(usage)) {
+            primary.setText("Trả PDA");
+            primary.setOnClickListener(v -> showReturnDialog(device));
+        } else {
+            primary.setText("Cập nhật trạng thái");
+            primary.setOnClickListener(v -> showStatusDialog(device));
+        }
+        LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(48));
+        pp.topMargin = dp(14);
+        box.addView(primary, pp);
+
+        if (!"BORROWED".equals(usage)) {
+            Button statusButton = new Button(this);
+            statusButton.setText("Cập nhật trạng thái / tình trạng");
+            statusButton.setOnClickListener(v -> showStatusDialog(device));
+            LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(46));
+            sp.topMargin = dp(6);
+            box.addView(statusButton, sp);
+        }
+
+        Button history = new Button(this);
+        history.setText("Xem lịch sử");
+        history.setOnClickListener(v -> showDeviceHistory(serial));
+        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(46));
+        hp.topMargin = dp(6);
+        box.addView(history, hp);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Chi tiết PDA")
+            .setView(box)
+            .setNegativeButton("Đóng", null)
+            .show();
+    }
+
+    private void showBorrowDialog(JSONObject device) {
+        String serial = device.optString("serial", "");
+        EditText employeeCode = new EditText(this);
+        employeeCode.setHint("Bắn / nhập Mã nhân viên");
+        employeeCode.setSingleLine(true);
+        employeeCode.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(20), dp(4), dp(20), 0);
+
+        TextView hint = new TextView(this);
+        hint.setText("PDA " + serial + "\nQuét thẻ nhân sự hoặc nhập Mã nhân viên.");
+        hint.setTextColor(getColor(R.color.text_secondary));
+        hint.setTextSize(12);
+        box.addView(hint);
+        box.addView(employeeCode, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(52)));
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Ghi nhận mượn PDA")
+            .setView(box)
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Kiểm tra", null)
+            .create();
+
+        dialog.setOnShowListener(ignored -> {
+            employeeCode.requestFocus();
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                String code = employeeCode.getText().toString().trim();
+                if (code.isEmpty()) {
+                    Toast.makeText(this, "Nhập Mã nhân viên.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                new Thread(() -> {
+                    try {
+                        JSONObject result = apiRequest("GET", "/api/employees/" +
+                            java.net.URLEncoder.encode(code, "UTF-8"), null, true);
+                        JSONObject employee = result.optJSONObject("employee");
+                        if (employee == null) throw new IllegalStateException("Không tìm thấy nhân sự.");
+                        runOnUiThread(() -> {
+                            dialog.dismiss();
+                            confirmBorrow(device, employee);
+                        });
+                    } catch (Exception error) {
+                        runOnUiThread(() -> {
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                            Toast.makeText(this,
+                                error.getMessage() == null ? "Không kiểm tra được nhân sự." : error.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                        });
+                    }
+                }, "pda-mgmt-employee-lookup").start();
+            });
+        });
+        dialog.show();
+    }
+
+    private void confirmBorrow(JSONObject device, JSONObject employee) {
+        String serial = device.optString("serial", "");
+        String code = employee.optString("employee_code", "");
+        String name = employee.optString("full_name", "");
+        String contractor = employee.optString("contractor", "");
+
+        new AlertDialog.Builder(this)
+            .setTitle("Xác nhận cho mượn")
+            .setMessage("PDA: " + serial +
+                "\nNgười mượn: " + code + " · " + name +
+                (contractor.isEmpty() ? "" : "\nNhà thầu: " + contractor))
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Xác nhận", (d, w) -> mutateDevice(
+                serial,
+                "borrow",
+                new JSONObject()
+                    .put("employee_code", code)
+                    .put("idempotency_key", UUID.randomUUID().toString()),
+                "Đã ghi nhận mượn PDA."
+            ))
+            .show();
+    }
+
+    private void showReturnDialog(JSONObject device) {
+        String serial = device.optString("serial", "");
+        String borrower = device.optString("borrower_name", "");
+        String employeeCode = device.optString("borrower_employee_code", "");
+        String[] labels = {"Tốt", "Lỗi nhẹ", "Hỏng / cần sửa"};
+        String[] values = {"GOOD", "MINOR_DAMAGE", "DAMAGED"};
+        final int[] selected = {0};
+
+        new AlertDialog.Builder(this)
+            .setTitle("Trả PDA " + serial)
+            .setMessage("Người đang mượn: " + employeeCode + " · " + borrower +
+                "\n\nChọn tình trạng máy khi nhận lại:")
+            .setSingleChoiceItems(labels, 0, (dialog, which) -> selected[0] = which)
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Xác nhận trả", (dialog, which) -> mutateDevice(
+                serial,
+                "return",
+                new JSONObject()
+                    .put("physical_condition", values[selected[0]])
+                    .put("idempotency_key", UUID.randomUUID().toString()),
+                values[selected[0]].equals("DAMAGED")
+                    ? "Đã trả PDA và chuyển sang trạng thái Đang sửa."
+                    : "Đã ghi nhận trả PDA."
+            ))
+            .show();
+    }
+
+    private void showStatusDialog(JSONObject device) {
+        String serial = device.optString("serial", "");
+        String[] labels = {"Sẵn sàng", "Đang sửa", "Ngừng dùng", "Thất lạc"};
+        String[] statuses = {"AVAILABLE", "REPAIR", "DISABLED", "LOST"};
+        String[] conditions = {"GOOD", "DAMAGED", "UNKNOWN", "UNKNOWN"};
+        final int[] selected = {0};
+
+        new AlertDialog.Builder(this)
+            .setTitle("Cập nhật trạng thái " + serial)
+            .setSingleChoiceItems(labels, 0, (dialog, which) -> selected[0] = which)
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Cập nhật", (dialog, which) -> mutateDevice(
+                serial,
+                "status",
+                new JSONObject()
+                    .put("usage_status", statuses[selected[0]])
+                    .put("physical_condition", conditions[selected[0]])
+                    .put("idempotency_key", UUID.randomUUID().toString()),
+                "Đã cập nhật trạng thái PDA."
+            ))
+            .show();
+    }
+
+    private void mutateDevice(String serial, String action, JSONObject payload, String successMessage) {
+        setHomeStatus("Đang xử lý " + serial + "...", false);
+        new Thread(() -> {
+            try {
+                apiRequest("POST", "/api/devices/" + java.net.URLEncoder.encode(serial, "UTF-8") + "/" + action,
+                    payload, true);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show();
+                    setHomeStatus(successMessage, false);
+                    loadDevicesLocal();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    String message = error.getMessage() == null ? "Không thể xử lý PDA." : error.getMessage();
+                    setHomeStatus(message, true);
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                    loadDevicesLocal();
+                });
+            }
+        }, "pda-mgmt-device-mutation").start();
+    }
+
+    private void showDeviceHistory(String serial) {
+        new Thread(() -> {
+            try {
+                JSONObject result = apiRequest("GET",
+                    "/api/devices/" + java.net.URLEncoder.encode(serial, "UTF-8") + "/history",
+                    null, true);
+                JSONArray items = result.optJSONArray("transactions");
+                StringBuilder lines = new StringBuilder();
+                if (items == null || items.length() == 0) {
+                    lines.append("Chưa có lịch sử giao dịch.");
+                } else {
+                    int limit = Math.min(items.length(), 30);
+                    for (int index = 0; index < limit; index++) {
+                        JSONObject item = items.optJSONObject(index);
+                        if (item == null) continue;
+                        String action = item.optString("action", "");
+                        String at = item.optString("occurred_at", "").replace("T", " ");
+                        if (at.length() > 16) at = at.substring(0, 16);
+                        lines.append(historyActionLabel(action))
+                            .append(" · ").append(at);
+                        String employee = item.optString("employee_name", "");
+                        String code = item.optString("employee_code", "");
+                        if (!employee.isEmpty() || !code.isEmpty()) {
+                            lines.append("\n").append(code).append(" · ").append(employee);
+                        }
+                        lines.append("\nThực hiện: ").append(item.optString("operator_name", ""))
+                            .append("\n\n");
+                    }
+                }
+                String message = lines.toString().trim();
+                runOnUiThread(() -> new AlertDialog.Builder(this)
+                    .setTitle("Lịch sử " + serial)
+                    .setMessage(message)
+                    .setPositiveButton("Đóng", null)
+                    .show());
+            } catch (Exception error) {
+                runOnUiThread(() -> Toast.makeText(this,
+                    error.getMessage() == null ? "Không đọc được lịch sử." : error.getMessage(),
+                    Toast.LENGTH_LONG).show());
+            }
+        }, "pda-mgmt-history").start();
+    }
+
+    private String historyActionLabel(String action) {
+        switch (action) {
+            case "BORROW": return "Mượn";
+            case "RETURN": return "Trả";
+            case "STATUS_UPDATE": return "Cập nhật trạng thái";
+            default: return action;
         }
     }
 
