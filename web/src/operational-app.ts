@@ -3051,6 +3051,264 @@ function applyReporterQueueBadgeEvents(events: RealtimeEventFrame[]): boolean {
   return true;
 }
 
+
+function applyReporterOverdueBadgeEvents(events: RealtimeEventFrame[]): boolean {
+  if (!roleOperate() || !overdueBadgeInitialized) return false;
+  let next = overdueBadgeCount;
+  for (const row of events) {
+    if (!(row.scopes || []).includes("reporter_overdue")) continue;
+    const eventName = String(row.event || "").trim().toUpperCase();
+    const raw = row.metadata?.overdue_delta;
+    // Withdrawing a still-waiting Picker can change the overdue row's waiting
+    // count without changing whether that SKU exists in Quá hạn.
+    if (raw == null && eventName === "REPORT_WITHDRAWN") continue;
+    const delta = Number(raw);
+    if (!Number.isInteger(delta) || delta < -1 || delta > 1) return false;
+    next = Math.max(0, next + delta);
+  }
+  overdueBadgeCount = next;
+  syncOperationalTabBadges();
+  return true;
+}
+
+function realtimeSnapshotRecord(event: RealtimeEventFrame): Record<string, unknown> | null {
+  const value = event.snapshot;
+  return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+}
+
+function snapshotText(snapshot: Record<string, unknown>, key: string): string {
+  return String(snapshot[key] ?? "").trim();
+}
+
+function snapshotNumber(snapshot: Record<string, unknown>, key: string): number {
+  const value = Number(snapshot[key] ?? 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function replaceByBatch<T extends { batch_id: string }>(rows: T[], row: T): T[] {
+  const index = rows.findIndex((item) => item.batch_id === row.batch_id);
+  if (index < 0) return [...rows, row];
+  const next = rows.slice();
+  next[index] = row;
+  return next;
+}
+
+function queueRowFromSnapshot(snapshot: Record<string, unknown>): ReporterBatch | null {
+  if (snapshotText(snapshot, "status") !== "PENDING") return null;
+  const waiting = snapshotNumber(snapshot, "waiting_picker_count") || snapshotNumber(snapshot, "open_ticket_count");
+  if (waiting < 1) return null;
+  const firstReportAt = snapshotText(snapshot, "first_report_at");
+  const mode = normalizeAutoSkipMode(snapshot.auto_skip_mode);
+  return {
+    batch_id: snapshotText(snapshot, "batch_id"),
+    sku: snapshotText(snapshot, "sku"),
+    product_name: snapshotText(snapshot, "product_name"),
+    status: "PENDING",
+    first_report_at: firstReportAt,
+    last_report_at: snapshotText(snapshot, "last_report_at") || null,
+    affected_picker_count: waiting,
+    earliest_ticket_at: snapshotText(snapshot, "earliest_ticket_at") || firstReportAt,
+    version: snapshotNumber(snapshot, "version"),
+    previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
+    previous_resolved_at: snapshotText(snapshot, "previous_resolved_at") || null,
+    recurrence_minutes: snapshot.recurrence_minutes == null ? null : snapshotNumber(snapshot, "recurrence_minutes"),
+    sla_state: (["UNCONFIGURED","NORMAL","WARNING","ESCALATED"].includes(snapshotText(snapshot, "sla_state"))
+      ? snapshotText(snapshot, "sla_state")
+      : "UNCONFIGURED") as SlaState,
+    waiting_minutes: snapshotNumber(snapshot, "waiting_minutes"),
+    warning_at: snapshotText(snapshot, "warning_at") || null,
+    escalation_at: snapshotText(snapshot, "escalation_at") || null,
+    auto_skip_enabled: snapshot.auto_skip_enabled === true,
+    auto_skip_mode: mode,
+    auto_skip_at: snapshotText(snapshot, "auto_skip_at") || null,
+  };
+}
+
+function overdueRowFromSnapshot(snapshot: Record<string, unknown>): ReporterOverdueBatch | null {
+  if (snapshotText(snapshot, "status") !== "PENDING") return null;
+  const overdue = snapshotNumber(snapshot, "overdue_picker_count") || snapshotNumber(snapshot, "overdue_ticket_count");
+  if (overdue < 1) return null;
+  const firstOverdueAt = snapshotText(snapshot, "first_overdue_at");
+  return {
+    batch_id: snapshotText(snapshot, "batch_id"),
+    sku: snapshotText(snapshot, "sku"),
+    product_name: snapshotText(snapshot, "product_name"),
+    status: "PENDING",
+    first_report_at: snapshotText(snapshot, "first_report_at"),
+    last_report_at: snapshotText(snapshot, "last_report_at") || null,
+    version: snapshotNumber(snapshot, "version"),
+    previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
+    overdue_picker_count: overdue,
+    waiting_picker_count: snapshotNumber(snapshot, "waiting_picker_count") || snapshotNumber(snapshot, "open_ticket_count"),
+    first_overdue_at: firstOverdueAt,
+    latest_overdue_at: snapshotText(snapshot, "latest_overdue_at") || firstOverdueAt,
+  };
+}
+
+function recentEffectiveAt(snapshot: Record<string, unknown>, event: RealtimeEventFrame): string {
+  return snapshotText(snapshot, "resolved_at") || snapshotText(snapshot, "updated_at") || String(event.server_time || "");
+}
+
+function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecentBatch | null {
+  const status = snapshotText(snapshot, "status");
+  if (!["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(status)) return null;
+  return {
+    batch_id: snapshotText(snapshot, "batch_id"),
+    sku: snapshotText(snapshot, "sku"),
+    product_name: snapshotText(snapshot, "product_name"),
+    status: status as ReporterRecentBatch["status"],
+    first_report_at: snapshotText(snapshot, "first_report_at"),
+    last_report_at: snapshotText(snapshot, "last_report_at") || null,
+    resolved_at: snapshotText(snapshot, "resolved_at") || null,
+    resolved_by_user_id: snapshotText(snapshot, "resolved_by_user_id") || null,
+    resolved_by_display_name: snapshotText(snapshot, "resolved_by_display_name") || null,
+    resolved_by_employee_code: snapshotText(snapshot, "resolved_by_employee_code") || null,
+    resolution: (["HAS_STOCK","SKIP_ALLOWED"].includes(snapshotText(snapshot, "resolution"))
+      ? snapshotText(snapshot, "resolution")
+      : null) as ReporterRecentBatch["resolution"],
+    resolution_source: snapshotText(snapshot, "resolution_source") || null,
+    correction_deadline_at: snapshotText(snapshot, "correction_deadline_at") || null,
+    affected_picker_count: snapshotNumber(snapshot, "affected_picker_count"),
+    version: snapshotNumber(snapshot, "version"),
+    previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
+    previous_resolved_at: snapshotText(snapshot, "previous_resolved_at") || null,
+    ack_target_count: snapshotNumber(snapshot, "ack_target_count"),
+    acknowledged_count: snapshotNumber(snapshot, "acknowledged_count"),
+  };
+}
+
+function recentRangeContains(status: ReporterRecentBatch["status"], at: string): boolean {
+  if (!at || !Number.isFinite(Date.parse(at))) return false;
+  const range = apiRange(recentFrom, recentTo);
+  const ms = Date.parse(at);
+  return ms >= Date.parse(range.from) && ms < Date.parse(range.to)
+    && (recentFilter === "ALL" || recentFilter === status);
+}
+
+function adjustRecentOutcomeTotal(status: string | null, delta: number, automatic = false): void {
+  if (!status || !delta) return;
+  if (status === "HAS_STOCK") recentTotals.has_stock = Math.max(0, recentTotals.has_stock + delta);
+  if (status === "SKIP_ALLOWED") {
+    recentTotals.skip_allowed = Math.max(0, recentTotals.skip_allowed + delta);
+    if (automatic) recentTotals.automatic_skipped = Math.max(0, recentTotals.automatic_skipped + delta);
+  }
+  if (status === "CLOSED") recentTotals.withdrawn = Math.max(0, recentTotals.withdrawn + delta);
+}
+
+function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
+  queueExact: boolean;
+  overdueExact: boolean;
+  recentExact: boolean;
+} {
+  let queueExact = true;
+  let overdueExact = true;
+  let recentExact = true;
+
+  for (const event of events) {
+    const scopes = new Set(event.scopes || []);
+    const touchesQueue = scopes.has("reporter_queue");
+    const touchesOverdue = scopes.has("reporter_overdue");
+    const touchesRecent = scopes.has("reporter_recent");
+    if (!touchesQueue && !touchesOverdue && !touchesRecent) continue;
+
+    const snapshot = realtimeSnapshotRecord(event);
+    const batchId = snapshot ? snapshotText(snapshot, "batch_id") : String(event.batch_id || "");
+    if (!snapshot || !batchId) {
+      if (touchesQueue) queueExact = false;
+      if (touchesOverdue) overdueExact = false;
+      if (touchesRecent) recentExact = false;
+      continue;
+    }
+
+    if (touchesQueue) {
+      const row = queueRowFromSnapshot(snapshot);
+      queueRows = row
+        ? replaceByBatch(queueRows, row).sort((a, b) => a.first_report_at.localeCompare(b.first_report_at) || a.batch_id.localeCompare(b.batch_id))
+        : queueRows.filter((item) => item.batch_id !== batchId);
+      if (selectedBatchId === batchId && !row && activeSection === "operations") {
+        selectedBatchId = filteredQueueRows()[0]?.batch_id || null;
+      }
+    }
+
+    if (touchesOverdue) {
+      const row = overdueRowFromSnapshot(snapshot);
+      overdueRows = row
+        ? replaceByBatch(overdueRows, row).sort((a, b) => a.first_overdue_at.localeCompare(b.first_overdue_at) || a.batch_id.localeCompare(b.batch_id))
+        : overdueRows.filter((item) => item.batch_id !== batchId);
+    }
+
+    if (touchesRecent) {
+      // Non-first pages can shift when a new/removed result arrives. Snapshot data
+      // is exact for the batch but not enough to preserve an arbitrary page window.
+      if (recentOffset > 0) {
+        recentExact = false;
+        continue;
+      }
+
+      const beforeRow = recentRows.find((item) => item.batch_id === batchId) || null;
+      const transition = event.metadata?.recent_counter;
+      if (transition && typeof transition === "object" && !Array.isArray(transition)) {
+        const values = transition as Record<string, unknown>;
+        const before = recentCounterEndpoint(values.before_status, values.before_at);
+        const after = recentCounterEndpoint(values.after_status, values.after_at);
+        if (!before.valid || !after.valid) {
+          recentExact = false;
+        } else {
+          const beforeInRange = before.endpoint.status && before.endpoint.at
+            ? recentRangeContains(before.endpoint.status, before.endpoint.at)
+            : false;
+          const afterInRange = after.endpoint.status && after.endpoint.at
+            ? recentRangeContains(after.endpoint.status, after.endpoint.at)
+            : false;
+          const automaticAfter = snapshotText(snapshot, "resolution_source") === "SYSTEM_TIMEOUT";
+          if (beforeInRange) adjustRecentOutcomeTotal(before.endpoint.status, -1, beforeRow?.resolution_source === "SYSTEM_TIMEOUT");
+          if (afterInRange) adjustRecentOutcomeTotal(after.endpoint.status, 1, automaticAfter);
+
+          if (beforeInRange && beforeRow) {
+            recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count - Number(beforeRow.ack_target_count || 0));
+            recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count - Number(beforeRow.acknowledged_count || 0));
+          } else if (beforeInRange && !beforeRow) {
+            // A correction/removal outside the loaded first page cannot safely
+            // update aggregate ACK totals from a batch-local snapshot.
+            recentExact = false;
+          }
+        }
+      }
+
+      const row = recentRowFromSnapshot(snapshot);
+      const effectiveAt = row ? recentEffectiveAt(snapshot, event) : "";
+      const matches = row ? recentRangeContains(row.status, effectiveAt) : false;
+      if (row && matches) {
+        recentRows = replaceByBatch(recentRows, row)
+          .sort((a, b) => {
+            const aAt = Date.parse(a.resolved_at || a.first_report_at);
+            const bAt = Date.parse(b.resolved_at || b.first_report_at);
+            return bAt - aAt || b.batch_id.localeCompare(a.batch_id);
+          })
+          .slice(0, RECENT_PAGE_SIZE);
+        if (!beforeRow) {
+          recentTotals.ack_target_count += Number(row.ack_target_count || 0);
+          recentTotals.acknowledged_count += Number(row.acknowledged_count || 0);
+        } else {
+          recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count + Number(row.ack_target_count || 0) - Number(beforeRow.ack_target_count || 0));
+          recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count + Number(row.acknowledged_count || 0) - Number(beforeRow.acknowledged_count || 0));
+        }
+      } else {
+        recentRows = recentRows.filter((item) => item.batch_id !== batchId);
+      }
+
+      if (String(event.event || "").toUpperCase() === "RESULT_ACKNOWLEDGED" && row && matches && beforeRow) {
+        recentTotals.acknowledged_count = Math.max(
+          0,
+          recentTotals.acknowledged_count + Number(row.acknowledged_count || 0) - Number(beforeRow.acknowledged_count || 0),
+        );
+      }
+    }
+  }
+
+  return { queueExact, overdueExact, recentExact };
+}
+
 async function loadReporterOverdueSnapshot(): Promise<void> {
   const requestGeneration = ++reporterOverdueLoadGeneration;
   const generation = sessionViewGeneration;
@@ -4644,7 +4902,7 @@ async function importSkuWorkbook(): Promise<void> {
 async function reconcileActive(): Promise<boolean> {
   try {
     if (roleOperate()) await loadReporterTabCounters(true);
-    if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
+    if ((activeSection === "operations" || activeSection === "overdue" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
     else if (activeSection === "sla" && roleManage()) {
       // D138: loadSla owns SLA rendering. Its dirty-form guard must be allowed to
@@ -4680,33 +4938,45 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
   const reporterQueueChanged = roleOperate() && scopes.has("reporter_queue");
+  const reporterOverdueChanged = roleOperate() && scopes.has("reporter_overdue");
   const reporterRecentChanged = roleOperate() && scopes.has("reporter_recent");
-  const reporterScopeChanged = reporterQueueChanged || reporterRecentChanged;
+  const reporterScopeChanged = reporterQueueChanged || reporterOverdueChanged || reporterRecentChanged;
   const reporterRelevant =
-    reporterScopeChanged && (activeSection === "operations" || activeSection === "results");
+    reporterScopeChanged && (activeSection === "operations" || activeSection === "overdue" || activeSection === "results");
   const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
   const scheduleRelevant =
     rolePickPackManage() && activeSection === "shift" && scopes.has("operating_schedule");
   const hrRelevant =
     Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT")) && scopes.has("hr_sync");
 
-  // D162 repair: keep the navigation badge realtime from tiny queue_delta metadata.
-  // Fetch the full queue only while Operations is visible; Results fetches only recent data.
-  // Missing/legacy delta metadata fails closed to one lightweight count read, never a full
-  // off-screen queue snapshot. Dirty/gap reconnects reconcile the count authoritatively.
+  // D165: normal realtime events carry an authoritative batch snapshot.
+  // Patch the exact in-memory row and badges; list APIs are fallback only when
+  // snapshot/transition metadata is insufficient or pagination makes a patch unsafe.
   if (reporterScopeChanged) {
     try {
       const queueBadgeExact = !reporterQueueChanged || applyReporterQueueBadgeEvents(events);
+      const overdueBadgeExact = !reporterOverdueChanged || applyReporterOverdueBadgeEvents(events);
       const recentBadgeExact = !reporterRecentChanged || applyReporterRecentBadgeEvents(events);
+      const patched = applyReporterSnapshotEvents(events);
+
+      if (recentBadgeExact) recentTotal = recentBadgeCount;
       syncOperationsNavBadge();
       syncOperationalTabBadges();
 
       const tasks: Promise<void>[] = [];
-      if (reporterQueueChanged && activeSection === "operations") tasks.push(loadReporterQueueSnapshot());
-      if (reporterRecentChanged && activeSection === "results") tasks.push(loadReporterRecentSnapshot());
+      if (reporterQueueChanged && activeSection === "operations" && !patched.queueExact) {
+        tasks.push(loadReporterQueueSnapshot());
+      }
+      if (reporterOverdueChanged && activeSection === "overdue" && !patched.overdueExact) {
+        tasks.push(loadReporterOverdueSnapshot());
+      }
+      if (reporterRecentChanged && activeSection === "results" && !patched.recentExact) {
+        tasks.push(loadReporterRecentSnapshot());
+      }
 
       const needsCounterReconcile =
         (reporterQueueChanged && !queueBadgeExact && activeSection !== "operations") ||
+        (reporterOverdueChanged && !overdueBadgeExact && activeSection !== "overdue") ||
         (reporterRecentChanged && !recentBadgeExact && activeSection !== "results");
       if (needsCounterReconcile) tasks.push(loadReporterTabCounters(true));
 
