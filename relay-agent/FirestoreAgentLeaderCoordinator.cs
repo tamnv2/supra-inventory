@@ -127,6 +127,19 @@ namespace SupraInventoryRelayAgent
         }
 
         internal bool IsLeader { get { return _role == FirestoreAgentRole.PRIMARY; } }
+        internal bool CanAcknowledgePresenceControl
+        {
+            get
+            {
+                lock (_stateGate)
+                {
+                    return _relayEnabled() &&
+                           _role == FirestoreAgentRole.PRIMARY &&
+                           !string.IsNullOrWhiteSpace(_generation) &&
+                           string.Equals(_primaryId, _instanceId, StringComparison.Ordinal);
+                }
+            }
+        }
         internal bool IsStandby { get { return _role == FirestoreAgentRole.NEXT_A; } }
         internal bool IsNextA { get { return _role == FirestoreAgentRole.NEXT_A; } }
         internal bool IsNextB { get { return _role == FirestoreAgentRole.NEXT_B; } }
