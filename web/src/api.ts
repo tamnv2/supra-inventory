@@ -968,6 +968,8 @@ export async function getReporterCounters(
   queue_total: number;
   overdue_total: number;
   recent_total: number;
+  auto_skip_enabled?: boolean;
+  auto_skip_mode?: AutoSkipMode | null;
   filter_status: string;
   from: string;
   to: string;
