@@ -33,7 +33,7 @@
     "reporting": "D163_BETA_RUNTIME_PASS__LAZY_EXACT_BATCH_PICKER_DETAIL__OWNER_FIELD_PASS_PENDING",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "D147_SERIAL_OWNER_PASS_GATE__D162_OWNER_PASS__D163_TECHNICAL_RUNTIME_PASS__OWNER_FIELD_PASS_PENDING__STABLE_UNTOUCHED",
+    "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__SHARED_BOUNDARY_SERIAL_GATE__D163_TECHNICAL_RUNTIME_PASS_OWNER_FIELD_PENDING__D164_ISOLATED_FOUNDATION__STABLE_UNTOUCHED",
     "owner_acceptance": "D162_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D163_TECHNICAL_RUNTIME_PASS__OWNER_FIELD_PASS_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
     "agent": "D162_OWNER_ACCEPTED_RELAY_AGENT_V114__D163_UNCHANGED"
@@ -48,7 +48,7 @@
     "Do not copy Beta runtime data into Stable.",
     "For finite deploy/build/test jobs: trigger, poll, inspect failure, repair within scope, rerun, and continue until terminal PASS or an Owner-only blocker.",
     "D093 preserves the Owner-field-PASS Firestore carrier. Do not switch PDA-Agent confirmation to Cloudflare/RTDB/Apps Script, do not use the WMS corporate fallback proxy for Firestore or bypass company filtering, keep D092 WMS mutation strictly bounded to confirmSkipItem, and do not touch Stable.",
-    "D147 serial Owner-PASS gate: only one change ID may be active; no new Dxxx or unrelated project mutation may start until the current change has explicit Owner PASS. Technical/CI/runtime/release PASS is not Owner acceptance; NOT PASS must be repaired under the same ID."
+    "Owner concurrent-scope rule (2026-10-06): independent scopes may run under separate Dxxx in parallel. Before mutating a shared boundary already being changed by another active Dxxx, the second change must pause until the first shared-boundary change reaches Owner PASS. Shared boundaries include HR source/sheet contracts, Inventory auth/session contracts, Firebase rules/collections, PDA Registry schema or Launcher registration contract, shared signing/provider settings, and shared data tabs. Technical/CI/runtime PASS is not Owner acceptance for that scope."
   ],
   "owner_accepted_business_rules": [
     "Roles: PICKER, REPORTER, ADMIN, ROOT.",
@@ -109,7 +109,7 @@
     "D119 protected baseline: accepted stable behavior may not be changed for a new feature without explicit impact/risk/cost approval; full-fleet update, no deliberate mixed-version rollout.",
     "D121 Agent-only repair keeps periodic Firestore schedule refresh and Windows system-monitor sampling off the WinForms UI thread, divides the left Overview evenly across Agent/Supra/PickList, and keeps Agent/Relay/Wi-Fi on one responsive row without changing D117/D118 cadence or WMS semantics.",
     "D124 Owner-approved Agent repair removes Windows Overlay, places local confirmation counters in Hệ thống Agent, makes SKU synchronization progress explicit, and locks the Asia/Ho_Chi_Minh daily SKU operation after first Service submission so no automatic/manual duplicate is sent that day.",
-    "D147 Owner-approved governance rule: D146 is the accepted base; one change at a time; base-affecting mutation requires pre-implementation impact/risk review and explicit approval; the next Dxxx is blocked until explicit Owner PASS of the current change.",
+    "Owner override 2026-10-06 supersedes D147 only for concurrency: separate business scopes may have active Dxxx in parallel when their files, builds, deploys, runtime resources and data boundaries are isolated; base-affecting/shared-boundary mutation still requires impact review and is serialized until the earlier shared-boundary change reaches Owner PASS.",
     "D161 Owner-approved collection: GitHub is the durable authority for the consolidated Web/Android/HR repair backlog; D160 remains the accepted runtime base and D161 implementation/build/deploy/provider mutation is forbidden until a separate explicit Owner start command."
   ],
   "completed_capabilities": [
