@@ -953,6 +953,8 @@ export class PdaManagementCore {
         `UPDATE devices
          SET usage_status=?,
              physical_condition=?,
+             condition_id=NULL,
+             condition_name=NULL,
              note=?,
              updated_at=?,
              updated_by=?,
@@ -1025,6 +1027,8 @@ export class PdaManagementCore {
       const body = await request.json() as Record<string, unknown>;
       const serial = text(body.serial, 120).toUpperCase();
       const condition = text(body.physical_condition, 30).toUpperCase();
+      const conditionId = text(body.condition_id, 100);
+      const conditionName = text(body.condition_name, 120);
       const operatorUserId = text(body.operator_user_id, 80);
       const operatorName = text(body.operator_name, 160);
       const note = text(body.note, 500);
