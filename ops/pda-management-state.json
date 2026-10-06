@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "LOGIN_UPDATE_SHELL_TECHNICAL_PASS__AUTH_NEXT",
+  "status": "BORROW_RETURN_TECHNICAL_PASS__FIELD_TEST_PENDING",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -9,18 +9,18 @@
   "management_sheet_id": "1q0XKgsU3AZQPIiX7AW6XxXh1Jfc--P1TmErdemAMUQg",
   "registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
   "usage_policy": "NO_HEARTBEAT__NO_ANDROID_BACKGROUND_POLL__NO_FIREBASE_MVP__EVENT_DRIVEN__REVISION_ETAG__SHEET_MIRROR_OFF_CRITICAL_PATH",
-  "manual_blocker": "Before real auth and Google Sheet mirroring, configure PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD and GOOGLE_RUNTIME_SA_JSON on the new supra-pda-management-beta Worker. Existing Inventory Worker secrets cannot be read back or copied automatically.",
-  "main_sha": "cb45cba268b1a480781c075b54e060e11a45c019",
+  "manual_blocker": "",
+  "main_sha": "b368d58517dc1347c83402185911a2c7975eba8b",
   "foundation_pr": 465,
   "issue": 464,
   "verify_run": 37454531259,
   "deploy_run": 37454531246,
   "release": {
-    "tag": "pda-mgmt-beta-vc1",
-    "version": "0.1.0-beta.1",
+    "tag": "pda-mgmt-beta-vc4",
+    "version": "0.1.0-beta.4",
     "signed": true,
     "apk": "supra-pda-management-beta.apk",
-    "size_bytes": 2105266
+    "size_bytes": 5232121
   },
   "runtime": {
     "worker": "supra-pda-management-beta",
@@ -29,12 +29,11 @@
     "durable_object": "PdaManagementCore",
     "inventory_runtime_files_changed": false,
     "secrets_verified": true,
-    "health": "PASS__ROOT_BOOTSTRAP_SECRET_TRUE__GOOGLE_RUNTIME_SECRET_TRUE"
+    "health": "PASS__STATUS_OK__ROOT_SECRET_TRUE__GOOGLE_SECRET_TRUE",
+    "source_commit": "b368d58517dc1347c83402185911a2c7975eba8b",
+    "hr_source_configured": true
   },
-  "manual_setup_required": [
-    "GOOGLE_RUNTIME_SA_JSON__NEW_WORKER_SECRET__EXISTING_WORKER_SECRET_VALUE_IS_WRITE_ONLY",
-    "PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD__OWNER_CHOSEN_SECRET__NEVER_COMMIT_OR_SEND_IN_CHAT"
-  ],
+  "manual_setup_required": [],
   "sheet_security": "PDA_USERS_MIRROR_EXCLUDES_PASSWORD_HASH_AND_SALT",
   "login_update": {
     "status": "TECHNICAL_PASS",
@@ -61,5 +60,33 @@
     "service_verify_run": 37457159085,
     "deploy_run": 37457159127
   },
-  "next_phase": "ROOT_COORDINATOR_AUTH__REGISTRY_READ_ONLY_DEVICE_LIST__THEN_BORROW_RETURN"
+  "next_phase": "OWNER_FIELD_TEST_VC4__THEN_REPAIR_SAME_D164_IF_NEEDED",
+  "auth_device_list": {
+    "status": "TECHNICAL_PASS",
+    "root_bootstrap": true,
+    "coordinator_accounts": true,
+    "session_hours": 12,
+    "login_rate_limit": "5_FAIL_5M__10_FAIL_30M",
+    "registry_mode": "READ_ONLY__GLOBAL_5M_TTL__30S_FORCE_GUARD",
+    "android_release": "pda-mgmt-beta-vc3"
+  },
+  "borrow_return": {
+    "status": "TECHNICAL_PASS__FIELD_TEST_PENDING",
+    "hr_sheet_id": "14UcBtXvK_uGHAiKU31Ofw3nwxsTl2IlLPUG9sX8ce7k",
+    "hr_tab": "Nhân sự",
+    "hr_mode": "READ_ONLY__GLOBAL_5M_TTL__30S_GUARD__SAFE_CACHE_FALLBACK",
+    "atomic": true,
+    "idempotent": true,
+    "borrowed_device_status_override_blocked": true,
+    "damaged_return_to_repair": true,
+    "history": true,
+    "management_sheet_mirror": "ASYNC_OFF_CRITICAL_PATH",
+    "google_token_cache": true,
+    "firebase": false,
+    "background_poll": false,
+    "release": "pda-mgmt-beta-vc4",
+    "deploy_run": 37463239669,
+    "service_verify_run": 37463240357,
+    "android_verify_run": 37463239804
+  }
 }
