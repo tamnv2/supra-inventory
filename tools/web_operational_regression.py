@@ -471,22 +471,44 @@ def main() -> None:
     require(read_model, '"role-changed"', "role-change realtime close reason")
     require(notifications_core, "role_override", "effective-role FCM targeting")
 
-    # D162 scope-specific Reporter refresh keeps queue and recent independent on normal realtime events.
+    # D162 Reporter lists stay lazy while both workspace tab counters remain realtime.
     for d162_marker in (
         "loadReporterQueueSnapshot",
-        "loadReporterQueueBadgeCount",
+        "loadReporterTabCounters",
         "applyReporterQueueBadgeEvents",
+        "applyReporterRecentBadgeEvents",
         "queueBadgeCount",
         "queueBadgeInitialized",
+        "recentBadgeCount",
+        "recentBadgeInitialized",
+        "syncOperationalTabBadges",
+        'data-workspace-count="operations"',
+        'data-workspace-count="results"',
+        "getReporterCounters",
+        "recent_counter",
         "reporterQueueChanged",
         "reporterRecentChanged",
         'reporterQueueChanged && activeSection === "operations"',
         'reporterRecentChanged && activeSection === "results"',
-        "queue_delta",
+        "needsCounterReconcile",
         'String(row.event || "").trim().toUpperCase()',
-        "getReporterQueue(1, 0)",
     ):
-        require(app, d162_marker, f"D162 reporter scope refresh marker {d162_marker}")
+        require(app, d162_marker, f"D162 reporter realtime counter marker {d162_marker}")
+    forbid(
+        app,
+        'Đang xử lý <b>${queueRows.length}</b>',
+        "D162 workspace pending tab must not derive its badge from loaded queue rows",
+    )
+    forbid(
+        app,
+        'Kết quả gần đây <b>${recentTotal}</b>',
+        "D162 workspace recent tab must not derive its badge from the loaded recent list",
+    )
+    forbid(
+        app,
+        "loadReporterQueueBadgeCount",
+        "D162 superseded queue-only badge reconciliation must stay removed",
+    )
     forbid(
         app,
         "if (reporterQueueChanged) tasks.push(loadReporterQueueSnapshot());",
@@ -494,8 +516,13 @@ def main() -> None:
     )
     require(
         app,
-        'if (activeSection === "results") {\n    await Promise.all([\n      loadReporterRecentSnapshot(),\n      loadReporterQueueBadgeCount(),',
-        "D162 Results loads recent plus lightweight badge count only",
+        'if (activeSection === "results") {\n    const tasks: Promise<void>[] = [loadReporterRecentSnapshot()];',
+        "D162 Results loads its list only when visible",
+    )
+    require(
+        app,
+        'const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];\n  if (!recentBadgeInitialized) tasks.push(loadReporterTabCounters());',
+        "D162 Operations loads its list plus only the lightweight missing opposite counter",
     )
 
     print("WEB_OPERATIONAL_REGRESSION_PASS")
