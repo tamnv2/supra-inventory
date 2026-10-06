@@ -3390,3 +3390,18 @@ Hard invariants:
 - OA098 is now the remaining gate: physical Kích User → login return + final logout-log continuity, plus Web Báo cáo chi tiết → exact selected batch Picker drill-down.
 - Android `beta-vc97`, Agent `relay-agent-v114`, and Stable remain unchanged.
 
+## 2026-10-06 — D163 Owner field acceptance — PASS
+
+Status: **OWNER FIELD ACCEPTED PASS — D163 CLOSED**.
+
+The Owner explicitly confirmed D163 complete with **“ok done 163”** after technical/runtime PASS.
+
+Accepted evidence:
+- implementation PR #461 merged to main `d991c83bcf617c4aac523f85337f2b27f9fe3193`;
+- Beta deploy run `37417036768` PASS;
+- forced Picker Kích User keeps revoke immediate while preserving the normal final `INFO / session_end_logout` support-log boundary;
+- Web **Báo cáo chi tiết** exposes lazy exact-`batch_id` Picker detail;
+- Android remains `beta-vc97`, Agent remains `relay-agent-v114`, Stable remains OWNER-GATED and untouched.
+
+OA098 is closed PASS and D163 is promoted to the accepted Inventory base. The already-authorized **D164 PDA Management** workstream remains an independent isolated scope and continues under `ops/pda-management-state.json`; this acceptance record does not imply D164 Owner PASS.
+
