@@ -1555,7 +1555,7 @@ class MainActivity : Activity() {
             baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
             userId = session.userId,
             log = { message -> recordLog(message) },
-        ) { scopes, completion ->
+        ) { scopes, events, completion ->
             runOnUiThread {
                 if (api.session == null || isFinishing) {
                     completion(false)
@@ -1581,10 +1581,10 @@ class MainActivity : Activity() {
                         completion(true)
                     } else if (session.role == "PICKER") {
                         val controller = pickerController
-                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                        if (controller != null) controller.onRealtime(remainingScopes, events, completion) else completion(true)
                     } else {
                         val controller = reporterController
-                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                        if (controller != null) controller.onRealtime(remainingScopes, events, completion) else completion(true)
                     }
                 }
 
