@@ -667,6 +667,16 @@ function processPerPickerAutoSkip(
         String(ticket.auto_skip_deadline_at) > now
       ) return;
 
+      const existingOverdue = first(state.storage.sql.exec<SqlRow>(
+        `SELECT COUNT(*) AS count
+           FROM report_tickets
+          WHERE batch_id = ?
+            AND status = 'OPEN'
+            AND auto_skip_allowed_at IS NOT NULL`,
+        batchId,
+      ).toArray());
+      const firstOverdueForBatch = Number(existingOverdue?.count || 0) === 0;
+
       state.storage.sql.exec(
         `UPDATE report_tickets
             SET auto_skip_allowed_at = ?,
@@ -706,7 +716,7 @@ function processPerPickerAutoSkip(
           final_batch_resolution: false,
           correction_deadline_at: null,
           queue_delta: finalWaitingTicket ? -1 : 0,
-          overdue_delta: 1,
+          overdue_delta: firstOverdueForBatch ? 1 : 0,
         },
         now,
       );
@@ -736,7 +746,7 @@ function processPerPickerAutoSkip(
         picker_user_ids: pickerUserId ? [pickerUserId] : [],
         result_event: true,
         queue_delta: finalWaitingTicket ? -1 : 0,
-        overdue_delta: 1,
+        overdue_delta: firstOverdueForBatch ? 1 : 0,
         title: "SUPRA Inventory · Được phép bỏ qua",
         body: `${String(row.sku || "SKU")} · ${String(row.product_name || "Chưa có tên sản phẩm")}\nCho phép skip · Hệ thống tự động · Hệ thống`,
       });
