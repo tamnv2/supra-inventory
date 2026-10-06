@@ -5436,5 +5436,21 @@
     "failure_run_id": 37404273494,
     "repair_branch": "repair/cf-token-verify-compat",
     "repair_scope": "WORKFLOW_PREFLIGHT_ONLY__SUPPORT_ACCOUNT_OWNED_AND_USER_OWNED_API_TOKEN__NO_RUNTIME_LOGIC_CHANGE__STABLE_UNTOUCHED"
+  },
+  "pda_registry_beta": {
+    "status": "OWNER_APPROVED__IMPLEMENTATION_IN_PROGRESS",
+    "owner_instruction_date": "2026-10-06",
+    "authorization": "PARALLEL_LAUNCHER_PDA_REGISTRY_WORKSTREAM_EXPLICITLY_APPROVED_BY_OWNER",
+    "backend_repo": "tamnv2/supra-inventory",
+    "launcher_repo": "tamnv2/supra-pda-launcher",
+    "sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
+    "sheet_parent": "1J5bQDqPoQcEPkYIk41x7t-9Nz_HaSnMC",
+    "runtime_service_account": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com",
+    "authority": "INVENTORYCORE_APP_CONFIG__NO_SCHEMA_BUMP",
+    "device_key": "SHA256_IDENTIFIER_SOURCE_PLUS_NORMALIZED_PRIMARY_IDENTIFIER",
+    "sync": "EVENT_DRIVEN_REGISTER_OR_PAYLOAD_CHANGE__WEEKLY_STATUS_WHEN_LAUNCHER_OPENS__NO_BACKGROUND_POLL",
+    "reconcile": "EXISTING_DAILY_CRON_ONLY__NO_NEW_CRON",
+    "usage_guard": "NO_FIREBASE__NO_HEARTBEAT__NO_PERIODIC_BACKGROUND_SERVICE__SHEET_WRITE_ONLY_CREATED_CHANGED_OR_RECONCILE",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
