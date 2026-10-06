@@ -485,7 +485,9 @@ jobs:
           }
           foreach ($marker in @(
             "D161-GW-v2",
-            "D161_LOG_DAY_",
+            "D165_LOG_DAY_",
+            "resolveDailyLogFolder_",
+            "canonicalDailyFolderId_",
             "Asia/Ho_Chi_Minh",
             "drive_synced: true",
             "archive_date: daily.date_key"
