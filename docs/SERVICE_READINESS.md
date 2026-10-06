@@ -8,8 +8,8 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D162_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_9AC67180__BETA_DEPLOY_RUN_37344066134__AGENT_V114__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
-- Web: `D162_BETA_DEPLOYED__SERVICE_SINGLE_DO_HOT_PATHS__REPORTER_SCOPE_REFRESH__RUN_37344066134`
+- Beta: `D162_REPAIR_TECHNICAL_RUNTIME_PASS__MAIN_D970790B__BETA_DEPLOY_RUN_37391459092__REALTIME_BADGE_LAZY_QUEUE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
+- Web: `D162_REALTIME_BADGE_LAZY_QUEUE_DEPLOYED__QUEUE_DELTA_BADGE__FULL_QUEUE_ON_OPERATIONS_ONLY__RESULTS_RECENT_ONLY__RUN_37391459092`
 - Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-D162 remains the only open change. The previously released runtime is under an Owner-approved same-D162 realtime badge lazy-queue repair. Complete repair PR CI, merge and Beta runtime deployment first; only then resume OA097 comparable-load Cloudflare/Firestore usage plus business latency/stability evidence. Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
+D162 remains the only open change. Realtime badge lazy-queue repair PR #449 is deployed on Beta from main `d970790bfd440a50c80751102e7a2fb05f8300e3`; deploy run `37391459092` PASS. Resume OA097 comparable-load Cloudflare/Firestore usage plus business latency/stability evidence. Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 
@@ -1775,10 +1775,11 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Stable remains OWNER-GATED and untouched.
 - OA097 comparable-load usage/latency validation and explicit Owner PASS remain pending.
 
-## D162 realtime badge lazy-queue repair candidate — 2026-10-06
+## D162 realtime badge lazy-queue repair runtime PASS — 2026-10-06
 
-- Owner approved the same-D162 repair after reporting that the queue/recent split felt non-realtime.
-- Candidate branch: `repair/d162-realtime-badge-lazy-queue`.
-- Behavior: realtime queue badge uses bounded `queue_delta` metadata; full queue rows load only while Operations is visible; Results loads recent data only; unknown/gap state uses one lightweight count reconcile.
-- No Agent/Android/Stable/resource change. Agent remains `relay-agent-v114`; Android remains `beta-vc97`; Stable remains OWNER-GATED.
-- OA097 is temporarily waiting for repaired Beta runtime PASS before comparable-load field acceptance resumes.
+- PR #449 merged to main `d970790bfd440a50c80751102e7a2fb05f8300e3`.
+- Beta deploy run `37391459092` PASS; health, Root/schema, auth routing, business guards, Web shell and public OAuth checks passed.
+- Badge is realtime from bounded `queue_delta` metadata; off-screen full queue reads are removed; Results loads recent only.
+- Authority `37391458033`, Project State `37391458064`, UI `37391458250`, D127 `37391458086`, D159 `37391457987` PASS.
+- Agent v114 and Android vc97 are unchanged; Stable remains OWNER-GATED.
+- OA097 is now PENDING_FIELD_VALIDATION.
