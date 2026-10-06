@@ -489,7 +489,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
         (SELECT version FROM report_batches WHERE batch_id = NEW.batch_id),
         CASE NEW.event_type
           WHEN 'REPORT_CREATED' THEN '["reporter_queue","picker_reports"]'
-          WHEN 'REPORT_WITHDRAWN' THEN '["reporter_queue","reporter_recent","picker_reports"]'
+          WHEN 'REPORT_WITHDRAWN' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
           WHEN 'BATCH_RESOLVED' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
           WHEN 'BATCH_CORRECTED' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
           WHEN 'SLA_WARNING' THEN '["reporter_queue"]'
