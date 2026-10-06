@@ -599,7 +599,7 @@ Repeated expected 4xx classes must be aggregated by route/status/error code when
 
 ## D165 log archive and noise controls
 
-Status: implementation active on D165 Beta change set; technical validation pending final CI/field gates.
+Status: implementation complete on the D165 Beta change set; automated technical validation PASS. Field/usage acceptance remains Owner-gated.
 
 All Báo hàng Android/Web/Agent archive bundles must resolve to one canonical `YYYY-MM-DD` child under the scoped Beta Logs parent using Asia/Ho_Chi_Minh.
 
