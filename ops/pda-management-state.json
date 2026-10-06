@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "HTTP500_ROOT_CAUSE_CONFIRMED__PBKDF2_RUNTIME_REPAIR",
+  "status": "HTTP500_REPAIR_TECHNICAL_PASS__VC5_FIELD_RETEST_PENDING",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -10,17 +10,17 @@
   "registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
   "usage_policy": "NO_HEARTBEAT__NO_ANDROID_BACKGROUND_POLL__NO_FIREBASE_MVP__EVENT_DRIVEN__REVISION_ETAG__SHEET_MIRROR_OFF_CRITICAL_PATH",
   "manual_blocker": "",
-  "main_sha": "b368d58517dc1347c83402185911a2c7975eba8b",
+  "main_sha": "ffc024d54aa13ed6f91aedd28da48cd0848a185e",
   "foundation_pr": 465,
   "issue": 464,
   "verify_run": 37454531259,
   "deploy_run": 37454531246,
   "release": {
-    "tag": "pda-mgmt-beta-vc4",
-    "version": "0.1.0-beta.4",
+    "tag": "pda-mgmt-beta-vc5",
+    "version": "0.1.0-beta.5",
     "signed": true,
     "apk": "supra-pda-management-beta.apk",
-    "size_bytes": 5232121
+    "size_bytes": 5247973
   },
   "runtime": {
     "worker": "supra-pda-management-beta",
@@ -29,9 +29,17 @@
     "durable_object": "PdaManagementCore",
     "inventory_runtime_files_changed": false,
     "secrets_verified": true,
-    "health": "PASS__STATUS_OK__ROOT_SECRET_TRUE__GOOGLE_SECRET_TRUE",
-    "source_commit": "b368d58517dc1347c83402185911a2c7975eba8b",
-    "hr_source_configured": true
+    "health": "PASS__SHALLOW_AND_DEEP",
+    "source_commit": "ffc024d54aa13ed6f91aedd28da48cd0848a185e",
+    "hr_source_configured": true,
+    "deep_health": {
+      "run": 37470465893,
+      "storage": true,
+      "auth_storage": true,
+      "device_storage": true,
+      "employee_storage": true,
+      "crypto": true
+    }
   },
   "manual_setup_required": [],
   "sheet_security": "PDA_USERS_MIRROR_EXCLUDES_PASSWORD_HASH_AND_SALT",
@@ -60,7 +68,7 @@
     "service_verify_run": 37457159085,
     "deploy_run": 37457159127
   },
-  "next_phase": "MERGE_PBKDF2_REPAIR__DEPLOY__DEEP_HEALTH_PASS__VC5_FIELD_RETEST",
+  "next_phase": "OWNER_FIELD_RETEST_VC5__LOGIN__SEND_LOG_BUTTON__BORROW_RETURN__SAME_D164_REPAIR_IF_NEEDED",
   "auth_device_list": {
     "status": "TECHNICAL_PASS",
     "root_bootstrap": true,
@@ -133,6 +141,12 @@
       "exact_error": "PBKDF2 iteration counts above 100000 are not supported; D164 requested 150000",
       "repair": "PBKDF2_SHA256_100000_ITERATIONS",
       "security": "PER_USER_16_BYTE_SALT__PBKDF2_SHA256__RUNTIME_MAX_ITERATIONS"
-    }
+    },
+    "status": "TECHNICAL_PASS__FIELD_RETEST_PENDING",
+    "confirmed_root_cause": "CLOUDFLARE_WEBCRYPTO_PBKDF2_MAX_100000__OLD_CONFIG_150000",
+    "fixed_pbkdf2_iterations": 100000,
+    "diagnostic_release": "pda-mgmt-beta-vc5",
+    "inventory_log_receiver_deploy_run": 37470148543,
+    "pda_management_deploy_run": 37470465893
   }
 }
