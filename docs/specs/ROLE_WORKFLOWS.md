@@ -980,7 +980,7 @@ The active Picker search/filter does not change the bulk target set.
 
 ## D165 workflow additions
 
-Status: implementation active on D165 Beta change set; technical validation pending final CI/field gates.
+Status: implementation complete on the D165 Beta change set; automated technical validation PASS. Field/usage acceptance remains Owner-gated.
 
 ### Reporter PER_PICKER overdue workflow
 - Applies only when auto-skip mode is `PER_PICKER`.
