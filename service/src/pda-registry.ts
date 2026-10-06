@@ -354,23 +354,21 @@ export async function handlePdaRegistryApi(
       body: JSON.stringify({ record }),
     });
 
-    let sheetSynced = result.status === "unchanged";
-    let sheetAction = result.status === "unchanged" ? "UNCHANGED" : "PENDING";
+    let sheetSynced = false;
+    let sheetAction = "PENDING";
     let sheetError = "";
-    if (result.changed) {
-      try {
-        const sync = await syncRecordToSheet(
-          env,
-          result.record,
-          result.created ? "CREATED" : (result.rekeyed_from_device_key ? "REKEYED" : "UPDATED"),
-          String(result.old_hash || ""),
-        );
-        sheetSynced = sync.synced;
-        sheetAction = sync.action;
-      } catch (error) {
-        sheetError = error instanceof Error ? error.message : "sheet_sync_failed";
-        console.error("pda_registry_sheet_sync_failed", sheetError);
-      }
+    try {
+      const sync = await syncRecordToSheet(
+        env,
+        result.record,
+        result.created ? "CREATED" : (result.rekeyed_from_device_key ? "REKEYED" : "UPDATED"),
+        String(result.old_hash || ""),
+      );
+      sheetSynced = sync.synced;
+      sheetAction = sync.action;
+    } catch (error) {
+      sheetError = error instanceof Error ? error.message : "sheet_sync_failed";
+      console.error("pda_registry_sheet_sync_failed", sheetError);
     }
 
     return json({
