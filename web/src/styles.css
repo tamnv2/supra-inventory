@@ -311,3 +311,22 @@ button.danger:hover { background:#8f1c13; }
   gap: 8px 12px;
   margin-left: 14px;
 }
+
+
+/* D163 — on-demand Picker detail inside Báo cáo chi tiết. */
+.report-picker-toggle { min-height:36px; padding:7px 11px; white-space:nowrap; }
+.report-picker-detail-row > td { padding:0 12px 14px; background:#f8fbf9; }
+.report-picker-detail-row:hover > td { background:#f8fbf9; }
+.report-picker-detail-panel { border:1px solid var(--line); border-radius:12px; background:var(--panel); overflow:hidden; box-shadow:0 3px 12px rgba(25,72,48,.04); }
+.report-picker-detail-panel.loading { padding:16px; }
+.report-picker-detail-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 16px; background:#f4f8f5; border-bottom:1px solid var(--line); }
+.report-picker-detail-head > div { display:grid; gap:3px; }
+.report-picker-detail-head strong { color:#244734; }
+.report-picker-detail-head span { color:var(--muted); font-size:.8rem; }
+.report-picker-detail-head b { color:var(--green-900); white-space:nowrap; }
+.report-picker-detail-table { overflow:auto; max-height:420px; }
+.report-picker-detail-grid { display:grid; grid-template-columns:minmax(180px,1.2fr) minmax(145px,.9fr) minmax(170px,1fr) minmax(110px,.7fr) minmax(180px,1.1fr); gap:12px; align-items:start; min-width:850px; padding:11px 16px; border-bottom:1px solid #e7eee9; }
+.report-picker-detail-grid:last-child { border-bottom:0; }
+.report-picker-detail-grid.header { position:sticky; top:0; z-index:1; background:#fbfdfc; color:#52645a; font-size:.76rem; font-weight:800; }
+.report-picker-detail-grid > span { display:grid; gap:3px; color:#405149; font-size:.82rem; }
+.report-picker-detail-grid small { color:var(--muted); font-size:.74rem; }

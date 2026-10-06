@@ -614,7 +614,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
 
   if (key === "GET /api/admin/dashboard" || key === "GET /api/admin/reporting" || key === "GET /api/admin/reporting-detail") {
     const params = new URLSearchParams();
-    for (const name of ["from", "to", "status", "query", "limit", "offset"]) {
+    for (const name of ["from", "to", "status", "query", "limit", "offset", "batch_id"]) {
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
     const path = key.endsWith("dashboard")

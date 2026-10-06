@@ -487,6 +487,55 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   return user;
 }
 
+function isRevokedPickerAndroidSessionEndLog(body: Record<string, unknown>): boolean {
+  return (
+    String(body.source || "").trim().toUpperCase() === "ANDROID" &&
+    String(body.severity || "").trim().toUpperCase() === "INFO" &&
+    String(body.reason || "").trim().toLowerCase() === "session_end_logout"
+  );
+}
+
+async function requireRuntimeLogUser(
+  request: Request,
+  env: Env,
+  body: Record<string, unknown>,
+): Promise<InternalUser> {
+  const token = readBearerToken(request);
+  if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
+  let identity;
+  try {
+    identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
+  } catch {
+    throw new Response(JSON.stringify({ error: "INVALID_AUTH_TOKEN" }), { status: 401, headers: { "content-type": "application/json" } });
+  }
+  const user = await getUserByFirebaseUid(env, identity.uid);
+  if (!user || user.status !== "ACTIVE") {
+    throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+  }
+
+  const sessionError = sessionAuthorityError(identity, user);
+  if (!sessionError) return user;
+
+  // D163: a forced Picker logout revokes Android authority before vc97 can upload
+  // its final session bundle. Keep business authority revoked, but allow exactly
+  // one-generation-old Android Picker identity to write only the sanitized
+  // INFO/session_end_logout log. No other route or log reason receives this grace.
+  const currentGeneration = Math.max(0, Number(user.android_session_generation || 0));
+  const tokenGeneration = Math.max(0, Number(identity.sessionGeneration || 0));
+  const revokedSessionEndGrace =
+    sessionError === "SESSION_REPLACED" &&
+    identity.sessionChannel === "ANDROID" &&
+    user.base_role === "PICKER" &&
+    tokenGeneration > 0 &&
+    currentGeneration === tokenGeneration + 1 &&
+    isRevokedPickerAndroidSessionEndLog(body);
+
+  if (!revokedSessionEndGrace) {
+    throw new Response(JSON.stringify({ error: sessionError }), { status: 401, headers: { "content-type": "application/json" } });
+  }
+  return user;
+}
+
 async function requireAgentUser(request: Request, env: Env, roles: AppRole[] = ["ADMIN", "PICKPACK_ADMIN"]): Promise<InternalUser> {
   const token = readBearerToken(request);
   if (!token) throw new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: { "content-type": "application/json" } });
@@ -1754,9 +1803,9 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/logs/upload") {
-        const user = await requireUser(request, env);
         let body: Record<string, unknown> = {};
         try { body = (await request.json()) as Record<string, unknown>; } catch { body = {}; }
+        const user = await requireRuntimeLogUser(request, env, body);
         try {
           return json(await uploadRuntimeLog(env, user, body));
         } catch (error) {

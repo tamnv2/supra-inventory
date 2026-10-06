@@ -288,3 +288,12 @@ Reporter queue and recent results are independent read models for realtime refre
 - The recent counter follows the same selected date range/status filter as the Results workspace.
 - Opening a tab loads its full list. Remaining on the other tab does not cause background full-list reads.
 - Reload/login/reconnect may reconcile both counts in one lightweight authoritative request. No periodic count polling is allowed.
+
+## D163 detailed-report Picker drill-down
+
+- **Báo cáo chi tiết** exposes **Xem Picker / Ẩn Picker** for each report batch/SKU row.
+- Expanding a row loads individual Picker data only for that exact `batch_id`; collapsed rows create no Picker-detail read.
+- Do not eagerly fetch details for all visible report rows and do not add periodic refresh/polling for this drill-down.
+- The expanded panel shows, where available: Picker employee code, display name, report time, effective result and source, Picker wait duration, and result receipt/display/acknowledgement state.
+- The source is the existing reporting-detail authority used by detailed Excel export. Existing report date/status/SKU filters, pagination and export behavior remain unchanged.
+- No new database schema or persistent provider resource is required.

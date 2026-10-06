@@ -525,6 +525,23 @@ def main() -> None:
         "D162 Operations loads its list plus only the lightweight missing opposite counter",
     )
 
+    # D163: forced Picker revoke may upload only the bounded final logout log,
+    # and reporting Picker detail stays lazy/on-demand by exact batch.
+    require(service_index, "requireRuntimeLogUser", "D163 runtime-log auth helper")
+    require(service_index, "currentGeneration === tokenGeneration + 1", "D163 exactly one revoked Android generation grace")
+    require(service_index, 'user.base_role === "PICKER"', "D163 revoked-log grace Picker-only")
+    require(service_index, 'String(body.reason || "").trim().toLowerCase() === "session_end_logout"', "D163 revoked-log grace session-end only")
+    require(service_index, 'const user = await requireRuntimeLogUser(request, env, body);', "D163 log route uses bounded grace")
+    require(business_core, 'url.searchParams.get("batch_id")', "D163 reporting detail exact batch filter")
+    require(business_core, 'where.push("b.batch_id = ?")', "D163 reporting detail parameterized batch filter")
+    require(api, 'batchId?: string;', "D163 Web batch-scoped detail option")
+    require(api, 'params.set("batch_id", options.batchId)', "D163 Web batch detail request")
+    require(app, "reportBatchDetails", "D163 lazy report detail cache")
+    require(app, "loadReportBatchDetails", "D163 lazy detail loader")
+    require(app, 'data-report-picker-detail=', "D163 report Picker detail control")
+    require(app, 'limit: 500', "D163 bounded one-batch Picker detail read")
+    forbid(app, "Promise.all(reportRows.map", "D163 forbids eager all-row Picker detail fanout")
+
     print("WEB_OPERATIONAL_REGRESSION_PASS")
 
 

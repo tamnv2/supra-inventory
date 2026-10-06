@@ -277,6 +277,9 @@ function clearRoleScopedViewState(): void {
   skuAdminTotal = 0;
   dashboardData = null;
   reportRows = [];
+  reportBatchDetails.clear();
+  expandedReportBatches.clear();
+  reportDetailLoads.clear();
   reportTotal = 0;
   slaResponse = null;
   slaFormDirty = false;
@@ -393,6 +396,9 @@ let skuConflictChoices = new Map<string, string>();
 let skuImportProgress = "";
 let dashboardData: AdminDashboard | null = null;
 let reportRows: AdminReportingRow[] = [];
+let reportBatchDetails = new Map<string, AdminReportingDetailRow[]>();
+let expandedReportBatches = new Set<string>();
+let reportDetailLoads = new Set<string>();
 let reportSummary: AdminDashboard | null = null;
 let reportInsights: OperationalInsights | null = null;
 let reportTotal = 0;
@@ -2095,6 +2101,82 @@ function renderDashboard(): string {
   </section>`;
 }
 
+function reportPickerOutcome(row: AdminReportingDetailRow): { label: string; tone: string; source: string } {
+  if (row.ticket_status === "WITHDRAWN") return { label: "Picker đã thu hồi", tone: "closed", source: "Picker tự thu hồi" };
+  const resolution = row.ticket_resolution || row.batch_resolution;
+  const source = row.ticket_resolution_source || row.batch_resolution_source || "";
+  if (resolution === "HAS_STOCK") {
+    return { label: "Đã có hàng", tone: "ok", source: source === "REPORTER_CORRECTION" ? "Invent sửa kết quả" : "Invent xác nhận" };
+  }
+  if (resolution === "SKIP_ALLOWED") {
+    return { label: "Cho phép bỏ qua", tone: "skip", source: source === "SYSTEM_TIMEOUT" ? "Hệ thống · quá hạn" : "Invent xác nhận" };
+  }
+  return { label: "Đang chờ", tone: "pending", source: "Chưa xử lý" };
+}
+
+function reportPickerReceipt(row: AdminReportingDetailRow): string {
+  if (row.ticket_status === "WITHDRAWN") return "Không áp dụng";
+  if (row.result_acknowledged_at) return `Đã xác nhận · ${fmt(row.result_acknowledged_at)}`;
+  if (row.result_displayed_at) return `Đã hiển thị · ${fmt(row.result_displayed_at)}`;
+  if (row.result_received_at) return `Đã nhận · ${fmt(row.result_received_at)}`;
+  if (row.ticket_resolution || row.batch_resolution) return "Chưa xác nhận";
+  return "Chưa có kết quả";
+}
+
+function reportPickerDetailMarkup(batchId: string): string {
+  if (reportDetailLoads.has(batchId)) {
+    return `<div class="report-picker-detail-panel loading"><div class="report-picker-detail-head"><div><strong>Picker báo SKU</strong><span>Đang tải chi tiết đúng đợt báo hàng…</span></div></div></div>`;
+  }
+  const details = reportBatchDetails.get(batchId);
+  if (!details) return "";
+  if (!details.length) {
+    return `<div class="report-picker-detail-panel"><div class="ops-empty">Không có dữ liệu Picker trong đợt này.</div></div>`;
+  }
+  return `<div class="report-picker-detail-panel">
+    <div class="report-picker-detail-head"><div><strong>Picker báo SKU</strong><span>Chi tiết từng Picker trong đúng đợt báo hàng đã chọn.</span></div><b>${details.length.toLocaleString("vi-VN")} lượt</b></div>
+    <div class="report-picker-detail-table">
+      <div class="report-picker-detail-grid header"><span>Picker</span><span>Báo lúc</span><span>Kết quả</span><span>Thời gian chờ</span><span>Nhận kết quả</span></div>
+      ${details.map((item) => {
+        const outcome = reportPickerOutcome(item);
+        return `<div class="report-picker-detail-grid">
+          <span><strong>${esc(item.picker_employee_code || "—")}</strong><small>${esc(item.picker_display_name || "—")}</small></span>
+          <span>${esc(fmt(item.reported_at))}</span>
+          <span><b class="status ${outcome.tone}">${esc(outcome.label)}</b><small>${esc(outcome.source)}</small></span>
+          <span>${item.picker_wait_minutes == null ? "—" : `${Number(item.picker_wait_minutes).toLocaleString("vi-VN")} phút`}</span>
+          <span>${esc(reportPickerReceipt(item))}</span>
+        </div>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
+async function loadReportBatchDetails(batchId: string): Promise<void> {
+  if (!batchId || reportBatchDetails.has(batchId) || reportDetailLoads.has(batchId)) return;
+  reportDetailLoads.add(batchId);
+  if (activeSection === "reports") patchActiveSection(true);
+  try {
+    const range = apiRange(reportFrom, reportTo);
+    const page = await getAdminReportingDetail({
+      from: range.from,
+      to: range.to,
+      status: reportStatus,
+      query: reportQuery,
+      batchId,
+      limit: 500,
+      offset: 0,
+    });
+    reportBatchDetails.set(batchId, page.items.filter((item) => item.batch_id === batchId));
+    markWebUpdateReceived();
+  } catch (error) {
+    expandedReportBatches.delete(batchId);
+    runtimeLogEvent(`Không tải được chi tiết Picker báo cáo: ${error instanceof Error ? error.message : "unknown"}`, "ERROR");
+    setNotice("error", "Không tải được chi tiết Picker của đợt báo hàng. Vui lòng thử lại.");
+  } finally {
+    reportDetailLoads.delete(batchId);
+    if (activeSection === "reports") patchActiveSection(true);
+  }
+}
+
 function renderReports(): string {
   const k = reportSummary?.kpis;
   const outcomes = reportSummary?.outcomes || [];
@@ -2135,7 +2217,7 @@ function renderReports(): string {
     </div>
     <article class="ops-panel">
       <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p>Đang hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${reportTotal.toLocaleString("vi-VN")} bản ghi phù hợp.</p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
-      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td></tr>`; }).join("") || `<tr><td colspan="10" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
+      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="11">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="11" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
   </section>`;
 }
@@ -4341,6 +4423,9 @@ function bindSection(): void {
     reportStatus = String(data.get("status") || "");
     reportQuery = String(data.get("query") || "");
     reportOffset = 0;
+    reportBatchDetails.clear();
+    expandedReportBatches.clear();
+    reportDetailLoads.clear();
     void run(loadReports);
   });
   document.querySelectorAll<HTMLButtonElement>("[data-date-target][data-date-days]").forEach((button) => button.addEventListener("click", () => {
@@ -4359,6 +4444,9 @@ function bindSection(): void {
       reportTo = dateDaysAgo(0);
       syncVisibleDateRange("reports", reportFrom, reportTo);
       reportOffset = 0;
+      reportBatchDetails.clear();
+      expandedReportBatches.clear();
+      reportDetailLoads.clear();
       void run(loadReports);
     }
   }));
@@ -4368,16 +4456,37 @@ function bindSection(): void {
     reportStatus = button.dataset.dashboardStatus || "";
     reportQuery = button.dataset.dashboardSku || "";
     reportOffset = 0;
+    reportBatchDetails.clear();
+    expandedReportBatches.clear();
+    reportDetailLoads.clear();
     navigateToSection("reports", "push");
   }));
   document.querySelector<HTMLButtonElement>("#report-prev")?.addEventListener("click", () => {
     reportOffset = Math.max(0, reportOffset - REPORT_PAGE_SIZE);
+    reportBatchDetails.clear();
+    expandedReportBatches.clear();
+    reportDetailLoads.clear();
     void run(loadReports);
   });
   document.querySelector<HTMLButtonElement>("#report-next")?.addEventListener("click", () => {
     reportOffset += REPORT_PAGE_SIZE;
+    reportBatchDetails.clear();
+    expandedReportBatches.clear();
+    reportDetailLoads.clear();
     void run(loadReports);
   });
+  document.querySelectorAll<HTMLButtonElement>("[data-report-picker-detail]").forEach((button) => button.addEventListener("click", () => {
+    const batchId = button.dataset.reportPickerDetail || "";
+    if (!batchId) return;
+    if (expandedReportBatches.has(batchId)) {
+      expandedReportBatches.delete(batchId);
+      patchActiveSection(true);
+      return;
+    }
+    expandedReportBatches.add(batchId);
+    if (reportBatchDetails.has(batchId)) patchActiveSection(true);
+    else void loadReportBatchDetails(batchId);
+  }));
   document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void run(exportReportsExcel, "none"));
 
   document.querySelector<HTMLButtonElement>("#download-support-log")?.addEventListener("click", downloadSupportDiagnostics);

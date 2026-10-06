@@ -1059,6 +1059,7 @@ export async function getAdminReportingDetail(options: {
   to: string;
   status?: string;
   query?: string;
+  batchId?: string;
   limit?: number;
   offset?: number;
 }): Promise<AdminReportingDetailPage> {
@@ -1070,6 +1071,7 @@ export async function getAdminReportingDetail(options: {
   });
   if (options.status) params.set("status", options.status);
   if (options.query) params.set("query", options.query);
+  if (options.batchId) params.set("batch_id", options.batchId);
   return readJson(await authorizedFetch(`/api/admin/reporting-detail?${params.toString()}`));
 }
 
