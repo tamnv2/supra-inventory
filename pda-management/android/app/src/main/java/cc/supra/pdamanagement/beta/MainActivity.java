@@ -544,6 +544,17 @@ public final class MainActivity extends Activity {
         dialog.show();
     }
 
+    private JSONObject payload(Object... pairs) {
+        JSONObject result = new JSONObject();
+        try {
+            for (int index = 0; index + 1 < pairs.length; index += 2) {
+                result.put(String.valueOf(pairs[index]), pairs[index + 1]);
+            }
+        } catch (Exception ignored) {
+        }
+        return result;
+    }
+
     private void confirmBorrow(JSONObject device, JSONObject employee) {
         String serial = device.optString("serial", "");
         String code = employee.optString("employee_code", "");
@@ -559,9 +570,10 @@ public final class MainActivity extends Activity {
             .setPositiveButton("Xác nhận", (d, w) -> mutateDevice(
                 serial,
                 "borrow",
-                new JSONObject()
-                    .put("employee_code", code)
-                    .put("idempotency_key", UUID.randomUUID().toString()),
+                payload(
+                    "employee_code", code,
+                    "idempotency_key", UUID.randomUUID().toString()
+                ),
                 "Đã ghi nhận mượn PDA."
             ))
             .show();
@@ -584,9 +596,10 @@ public final class MainActivity extends Activity {
             .setPositiveButton("Xác nhận trả", (dialog, which) -> mutateDevice(
                 serial,
                 "return",
-                new JSONObject()
-                    .put("physical_condition", values[selected[0]])
-                    .put("idempotency_key", UUID.randomUUID().toString()),
+                payload(
+                    "physical_condition", values[selected[0]],
+                    "idempotency_key", UUID.randomUUID().toString()
+                ),
                 values[selected[0]].equals("DAMAGED")
                     ? "Đã trả PDA và chuyển sang trạng thái Đang sửa."
                     : "Đã ghi nhận trả PDA."
@@ -608,10 +621,11 @@ public final class MainActivity extends Activity {
             .setPositiveButton("Cập nhật", (dialog, which) -> mutateDevice(
                 serial,
                 "status",
-                new JSONObject()
-                    .put("usage_status", statuses[selected[0]])
-                    .put("physical_condition", conditions[selected[0]])
-                    .put("idempotency_key", UUID.randomUUID().toString()),
+                payload(
+                    "usage_status", statuses[selected[0]],
+                    "physical_condition", conditions[selected[0]],
+                    "idempotency_key", UUID.randomUUID().toString()
+                ),
                 "Đã cập nhật trạng thái PDA."
             ))
             .show();
