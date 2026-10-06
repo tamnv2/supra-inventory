@@ -978,9 +978,9 @@ The active Picker search/filter does not change the bulk target set.
 4. After the Sheet is corrected, recheck recomputes the authoritative snapshot.
 5. Confirmation-required snapshots use explicit Yes/No; No preserves current users and keeps the proposal pending.
 
-## D165 proposal-only workflow additions
+## D165 workflow additions
 
-Status: proposal recorded; implementation not started.
+Status: implementation active on D165 Beta change set; technical validation pending final CI/field gates.
 
 ### Reporter PER_PICKER overdue workflow
 - Applies only when auto-skip mode is `PER_PICKER`.
