@@ -234,7 +234,7 @@ export async function handleLauncherPasswordCoreRequest(
 
     const deviceKey = String(body.device_key || "").trim().toLowerCase();
     const candidate = String(body.code || "").trim();
-
+    if (!DEVICE_KEY_RE.test(deviceKey)) return response({ error: "invalid_device_key" }, 400);
     if (!CODE_RE.test(candidate)) return response({ error: "invalid_code_format" }, 400);
 
     const priorAttempt = readAttempt(state, deviceKey);
@@ -269,7 +269,7 @@ export async function handleLauncherPasswordCoreRequest(
     catch { return response({ error: "invalid_json" }, 400); }
 
     const deviceKey = String(body.device_key || "").trim().toLowerCase();
-
+    if (!DEVICE_KEY_RE.test(deviceKey)) return response({ error: "invalid_device_key" }, 400);
 
     const ensured = ensureState(state, nowMs);
     const resetAvailableMs = Date.parse(ensured.state.reset_available_at || "") || 0;
