@@ -6,9 +6,12 @@ interface ServiceAccountJson {
 
 interface TokenResponse {
   access_token?: string;
+  expires_in?: number;
   error?: string;
   error_description?: string;
 }
+
+const tokenCache = new Map<string, { token: string; expiresAt: number }>();
 
 function base64Url(input: Uint8Array | string): string {
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
@@ -41,6 +44,10 @@ export async function getGoogleServiceAccountAccessToken(
   if (!credentials.client_email || !credentials.private_key) {
     throw new Error("GOOGLE_RUNTIME_SA_JSON_INCOMPLETE");
   }
+
+  const cacheKey = credentials.client_email + "|" + scope;
+  const cached = tokenCache.get(cacheKey);
+  if (cached && cached.expiresAt - Date.now() > 5 * 60_000) return cached.token;
 
   const tokenUri = credentials.token_uri || "https://oauth2.googleapis.com/token";
   const now = Math.floor(Date.now() / 1000);
@@ -79,6 +86,17 @@ export async function getGoogleServiceAccountAccessToken(
   const payload = await response.json() as TokenResponse;
   if (!response.ok || !payload.access_token) {
     throw new Error(payload.error_description || payload.error || "GOOGLE_TOKEN_EXCHANGE_FAILED");
+  }
+  const lifetimeMs = Math.max(10 * 60_000, Number(payload.expires_in || 3600) * 1000);
+  tokenCache.set(cacheKey, {
+    token: payload.access_token,
+    expiresAt: Date.now() + lifetimeMs,
+  });
+  if (tokenCache.size > 8) {
+    const nowMs = Date.now();
+    for (const [key, value] of tokenCache) {
+      if (value.expiresAt <= nowMs) tokenCache.delete(key);
+    }
   }
   return payload.access_token;
 }
