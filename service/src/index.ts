@@ -25,6 +25,7 @@ import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publish
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
 import { handleLauncherDiagnosticLog } from "./launcher-diagnostics";
+import { handlePdaManagementDiagnosticLog } from "./pda-management-diagnostics";
 import { handlePublicInfoPage } from "./public-pages";
 import { sendFcmNotifications } from "./fcm";
 import {
@@ -1922,6 +1923,9 @@ export default {
 
       const launcherDiagnosticResponse = await handleLauncherDiagnosticLog(request, env);
       if (launcherDiagnosticResponse) return launcherDiagnosticResponse;
+
+      const pdaManagementDiagnosticResponse = await handlePdaManagementDiagnosticLog(request, env);
+      if (pdaManagementDiagnosticResponse) return pdaManagementDiagnosticResponse;
 
       const systemResetResponse = await handleSystemResetApi(request, env);
       if (systemResetResponse) return systemResetResponse;
