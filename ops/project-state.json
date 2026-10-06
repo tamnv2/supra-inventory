@@ -33,10 +33,11 @@
     "reporting": "D163_OWNER_FIELD_ACCEPTED_PASS__LAZY_EXACT_BATCH_PICKER_DETAIL",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__STABLE_UNTOUCHED",
+    "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_INVENTORY_PROPOSAL_RECORDED_NOT_STARTED__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D162_OWNER_ACCEPTED_RELAY_AGENT_V114__D163_OWNER_PASS_UNCHANGED"
+    "agent": "D162_OWNER_ACCEPTED_RELAY_AGENT_V114__D163_OWNER_PASS_UNCHANGED",
+    "d165_proposal": "OWNER_APPROVED_PROPOSAL_ONLY__IMPLEMENTATION_NOT_STARTED__OWNER_REVERIFY_AND_EXPLICIT_START_REQUIRED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -5645,5 +5646,113 @@
     "current_status": "HTTP500_REPAIR_TECHNICAL_PASS__VC5_FIELD_RETEST_PENDING",
     "current_scope": "PDA_MANAGEMENT",
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
+  },
+  "d165": {
+    "status": "OWNER_APPROVED_PROPOSAL_ONLY__IMPLEMENTATION_NOT_STARTED",
+    "date": "2026-10-06",
+    "baseline_change": "D163",
+    "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
+    "authority_document": "docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md",
+    "owner_approval": "APPROVED_TO_RECORD_FULL_PROPOSAL_ONLY__DO_NOT_RUN_CODE__OWNER_WILL_REVERIFY_IN_NEW_SESSION_BEFORE_START",
+    "governance": {
+      "current_global_change_remains": "D164",
+      "d164_scope": "PDA_MANAGEMENT__INDEPENDENT_ISOLATED",
+      "d165_slot": "DORMANT_PROPOSAL_ONLY__NOT_CURRENT_CHANGE_ID",
+      "implementation_start_gate": "FRESH_BOOTSTRAP__OWNER_REVERIFY_RECORDED_PLAN__EXPLICIT_NEW_START_COMMAND__CHANGE_CONTROL_BOUNDARY_CLEAR",
+      "source_runtime_mutation": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "purpose": "BALANCE_REALTIME_SPEED_STABILITY_AND_SHARED_ACCOUNT_USAGE_WITHOUT_REGRESSION",
+    "scope": {
+      "service": "PROPOSED",
+      "web": "PROPOSED",
+      "android_bao_hang": "PROPOSED",
+      "relay_agent": "PROPOSED",
+      "apps_script_drive_logging": "PROPOSED",
+      "beta_rtdb_ha_liveness": "PROPOSED_REUSE_EXISTING_SCOPED_RESOURCE",
+      "d1_cold_history": "DEFERRED_NOT_D165",
+      "first_report": "UNCHANGED",
+      "stable": "FORBIDDEN_WITHOUT_SEPARATE_OWNER_AUTHORIZATION"
+    },
+    "approved_requirements": [
+      "ONE_CANONICAL_DAILY_LOG_FOLDER_AND_BUNDLE_ID_IDEMPOTENCY",
+      "USER_FACING_RELEASE_NOTES_WITHOUT_SENSITIVE_INTERNAL_OR_AI_OWNER_ONLY_DETAIL",
+      "PER_PICKER_OVERDUE_TAB_ONLY__FIRST_REPORT_UNCHANGED",
+      "PER_PICKER_TIMEOUT_DOES_NOT_AUTO_CLOSE_WHOLE_BATCH__BATCH_REMAINS_PENDING_FOR_INVENT_REVIEW",
+      "HAS_STOCK_CORRECTION_TO_PENDING_OR_skip_allowed__DOUBLE_CONFIRM__VERSIONED_AUDIT__PICKER_ACK",
+      "HAS_STOCK_TO_PENDING_RESETS_AUTO_SKIP_DEADLINES_FROM_CORRECTION_TIME",
+      "SLA_TIME_SAVE_REQUIRES_CRITICAL_WARNING_AND_CURRENT_ACCOUNT_PASSWORD_REAUTH",
+      "AGENT_KICK_LIST_LOCAL_REFRESH__TEMPORARY_ACTION_NOTICE__FORCED_LOGOUT_FINAL_LOG_DURABILITY",
+      "ANDROID_CATALOG_SYNC_SINGLE_FLIGHT",
+      "WEB_STOP_PROTECTED_REFRESH_AFTER_SESSION_LOSS",
+      "EXPECTED_SUPERSEDED_CONFLICTS_AGGREGATED_NOT_PER_EVENT_ERROR_ARCHIVE",
+      "WEB_REALTIME_EXACT_ROW_PATCH__NO_FULL_LIST_READ_PER_NORMAL_EVENT",
+      "SQL_INDEXES_FOR_HOT_READ_MODELS",
+      "DELTA_FIRST_RECONNECT__FULL_RECONCILE_ONLY_TRUE_GAP_OR_INTEGRITY_UNCERTAINTY",
+      "RTDB_HA_LIVENESS_ONLY__FIRESTORE_AUTHORITY_AND_FALLBACK_RETAINED__15S_OBJECTIVE",
+      "CURRENT_PRIMARY_ONLY_TERMINAL_PRESENCE_CONTROL_ACK",
+      "MATERIALIZED_TRANSACTIONAL_BATCH_SUMMARIES_TO_TRADE_LOW_WRITES_FOR_LOWER_READS",
+      "ANDROID_REALTIME_SCOPE_AND_DELTA_PATCH__NO_BROAD_REFRESH_PER_EVENT",
+      "D1_COLD_HISTORY_OFFLOAD_DEFERRED_PENDING_POST_D165_EVIDENCE"
+    ],
+    "usage_evidence_2026_10_06": {
+      "cloudflare_worker_invocations_24h_approx": 45670,
+      "worker_subrequests_24h_approx": 67310,
+      "worker_errors_observed": 0,
+      "durable_object_rows_read_24h_approx": 63000000,
+      "durable_object_rows_written_observed_low": true,
+      "durable_object_account_period_compute_requests_displayed_approx": 175340,
+      "firestore_reads_24h_approx": 15000,
+      "firestore_writes_24h_approx": 9000,
+      "rtdb_usage": "NEAR_ZERO_BASELINE",
+      "shared_workers_account": "MULTI_PROJECT__INVENTORY_MUST_NOT_CONSUME_FULL_ACCOUNT_ALLOWANCE"
+    },
+    "usage_targets": {
+      "inventory_do_compute_requests_monthly_target": "<=150K_TO_200K_ATTRIBUTABLE",
+      "do_rows_read": "REDUCE_AT_LEAST_70_PERCENT_FROM_APPROX_63M_PER_DAY__TARGET_BELOW_20M_PER_DAY",
+      "firestore_writes": "TARGET_<=3K_PER_DAY",
+      "firestore_reads": "TARGET_<=10K_PER_DAY__PREFERRED_<=8K",
+      "rtdb": "BOUNDED_SMALL_LIVENESS_TRAFFIC_ONLY",
+      "worker_errors": "ZERO_ABSENT_REAL_INCIDENT"
+    },
+    "accepted_trade_policy": {
+      "may_increase": [
+        "DO_SQL_ROWS_WRITTEN_FOR_INDEXES_AND_ATOMIC_SUMMARIES",
+        "MODEST_WORKER_DO_CPU_MEMORY_DURATION_FOR_SAFE_HOT_CACHE",
+        "SMALL_BETA_RTDB_LIVENESS_TRAFFIC",
+        "BOUNDED_FIRESTORE_VERIFY_READS_ONLY_WHEN_REQUIRED_FOR_AUTHORITY"
+      ],
+      "may_not_sacrifice": [
+        "REALTIME_UI",
+        "REALTIME_BUSINESS_DELIVERY",
+        "PICKLIST_PROCESSING_SPEED",
+        "15_SECOND_FAILOVER_OBJECTIVE",
+        "SESSION_AUTHORITY",
+        "WMS_PRIMARY_GENERATION_FENCES",
+        "CORRECTNESS"
+      ],
+      "forbidden": [
+        "NEW_PERIODIC_POLLING_TO_SIMULATE_REALTIME",
+        "SLOWER_REALTIME_SOLELY_FOR_QUOTA",
+        "RTDB_AS_BAO_HANG_BUSINESS_AUTHORITY",
+        "D1_HOT_PATH_MIGRATION_IN_D165",
+        "NEW_PROVIDER_SOLELY_FOR_QUOTA_OPTIMIZATION"
+      ]
+    },
+    "performance_baseline_2026_10_06": {
+      "picklist_p50_seconds_approx": 3.3,
+      "picklist_p90_seconds_approx": 5.7,
+      "picklist_p95_seconds_approx": 6.7,
+      "ack_p50_ms_approx": 452,
+      "ack_p95_ms_approx": 960,
+      "failover_objective_seconds": 15
+    },
+    "implementation_started": false,
+    "code_changed": false,
+    "runtime_changed": false,
+    "build_released": false,
+    "deploy_performed": false,
+    "owner_reverification_required": true,
+    "next_action": "OWNER_NEW_SESSION_FRESH_BOOTSTRAP__VERIFY_D165_RECORD_MATCHES_APPROVAL__ONLY_THEN_EXPLICIT_START_OR_CORRECT_PROPOSAL"
   }
 }
