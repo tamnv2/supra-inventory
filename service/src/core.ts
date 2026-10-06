@@ -894,6 +894,16 @@ export class InventoryCore {
         });
       }
 
+      if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/counters") {
+        const user = this.authorizeInteractiveIdentity(request, reporterRoles);
+        if (user instanceof Response) return user;
+        const params = new URLSearchParams();
+        for (const name of ["status", "from", "to"]) {
+          if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+        }
+        return this.authorizedOperationalResponse(request, user, "/operational/reporter/counters", params);
+      }
+
       if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/queue") {
         const user = this.authorizeInteractiveIdentity(request, reporterRoles);
         if (user instanceof Response) return user;
