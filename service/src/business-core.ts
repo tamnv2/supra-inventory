@@ -418,7 +418,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       state.storage.sql
         .exec<BatchRow>(
           `SELECT batch_id, sku, product_name, status, first_report_at, resolved_at,
-                  resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, created_at, updated_at
+                  resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, version, created_at, updated_at
              FROM report_batches
             WHERE sku = ? AND status = 'PENDING'
             LIMIT 1`,
@@ -460,6 +460,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
         resolution_source: null,
         auto_skip_deadline_at: plan.batch_deadline_at,
         correction_deadline_at: null,
+        version: 1,
         created_at: at,
         updated_at: at,
       };
