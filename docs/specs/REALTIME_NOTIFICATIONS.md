@@ -956,9 +956,9 @@ An authenticated Agent transport remains connected even when Web Confirm is stil
 - F5/login/realtime gap/reconnect may issue one bounded authoritative dual-counter read. Missing/invalid transition metadata fails closed to that lightweight reconciliation.
 - Full queue/recent snapshots remain visibility-scoped and are never fetched merely to update a tab number.
 
-## D165 proposal-only realtime delta and corrected-result contract
+## D165 realtime delta and corrected-result contract
 
-Status: proposal recorded; implementation not started.
+Status: implementation active on D165 Beta change set; technical validation pending final CI/field gates.
 
 Normal D165 realtime processing must prefer an existing authoritative event snapshot/delta over a new full API read:
 - Web queue/recent rows patch only the affected SKU/result when event data is sufficient.
