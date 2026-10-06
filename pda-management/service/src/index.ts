@@ -93,8 +93,9 @@ export default {
     if (request.method === "GET" && url.pathname === "/health") {
       const storage = await coreHealth(env);
       const configReady = Boolean(env.MANAGEMENT_SHEET_ID && env.REGISTRY_API_BASE);
+      const secretsReady = Boolean(env.PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD && env.GOOGLE_RUNTIME_SA_JSON);
       return json({
-        status: storage.status === "ok" && configReady ? "ok" : "degraded",
+        status: storage.status === "ok" && configReady && secretsReady ? "ok" : "degraded",
         environment: env.APP_ENV,
         project: env.PROJECT_KEY,
         source_commit: env.SOURCE_COMMIT || "",
