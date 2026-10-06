@@ -35,7 +35,7 @@ export async function hashPassword(password: string, saltBase64?: string): Promi
   const salt = saltBase64 ? base64ToBytes(saltBase64) : crypto.getRandomValues(new Uint8Array(16));
   const material = await crypto.subtle.importKey("raw", exactArrayBuffer(encoder.encode(password)), "PBKDF2", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt: exactArrayBuffer(salt), iterations: 150_000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: exactArrayBuffer(salt), iterations: 100_000, hash: "SHA-256" },
     material,
     256,
   );
