@@ -24,6 +24,7 @@ import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
+import { ensureDailyLauncherPassword, handleLauncherPasswordApi, shouldRetryDailyLauncherPassword } from "./launcher-password";
 import { handleLauncherDiagnosticLog } from "./launcher-diagnostics";
 import { handlePdaManagementDiagnosticLog } from "./pda-management-diagnostics";
 import { handlePublicInfoPage } from "./public-pages";
@@ -1920,6 +1921,9 @@ export default {
         }
       }
 
+      const launcherPasswordResponse = await handleLauncherPasswordApi(request, env);
+      if (launcherPasswordResponse) return launcherPasswordResponse;
+
       const pdaRegistryResponse = await handlePdaRegistryApi(request, env);
       if (pdaRegistryResponse) return pdaRegistryResponse;
 
@@ -1973,6 +1977,10 @@ export default {
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(ensureHrDriveWatch(env).then(() => undefined).catch((error) =>
         console.error("hr_drive_watch_ensure_failed", error instanceof Error ? error.message : "unknown")));
+      if (shouldRetryDailyLauncherPassword(new Date())) {
+        ctx.waitUntil(ensureDailyLauncherPassword(env).then(() => undefined).catch((error) =>
+          console.error("launcher_password_daily_delivery_failed", error instanceof Error ? error.message : "unknown")));
+      }
       // D136: provider Usage polling/snapshot publication retired. No periodic
       // Monitoring API calls and no usage_current Firestore writes are scheduled.
     }
