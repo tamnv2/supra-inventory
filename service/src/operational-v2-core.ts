@@ -721,6 +721,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL),
            b.updated_at
       FROM report_batches b
+     WHERE 1
     ON CONFLICT(batch_id) DO UPDATE SET
       total_ticket_count = excluded.total_ticket_count,
       waiting_picker_count = excluded.waiting_picker_count,
