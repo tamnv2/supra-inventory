@@ -206,7 +206,7 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
   const row = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-              b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
+              b.resolved_at, b.updated_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
               b.auto_skip_deadline_at, b.version, b.previous_batch_id,
               p.resolved_at AS previous_resolved_at,
               COALESCE(resolver.display_name, '') AS resolved_by_display_name,
