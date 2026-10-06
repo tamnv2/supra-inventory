@@ -114,11 +114,11 @@ namespace SupraInventoryRelayAgent
                         localGenerations,
                         "BULK_KICK_SERVER_AUTHORITY");
 
-                    Ui(() => _pickerOnlineStatus.Text =
+                    Ui(() => ShowD165PickerOperationNotice(
                         "Kích toàn bộ user hoàn tất · " +
                         result.Affected.ToString(CultureInfo.InvariantCulture) +
                         " phiên Picker Android đã bị thu hồi" +
-                        (result.IdempotentReplay ? " · yêu cầu trùng đã được xử lý idempotent." : "."));
+                        (result.IdempotentReplay ? " · yêu cầu trùng đã được xử lý idempotent." : ".")));
                     Log(
                         "D161 BULK_REVOKE result=PASS affected=" +
                         result.Affected.ToString(CultureInfo.InvariantCulture) +

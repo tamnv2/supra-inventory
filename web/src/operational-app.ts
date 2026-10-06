@@ -42,6 +42,7 @@ import {
   getReporterBatchTickets,
   getReporterCounters,
   getReporterQueue,
+  getReporterOverdue,
   getReporterRecent,
   getStoredProfile,
   hasSession,
@@ -86,6 +87,7 @@ import {
   type SystemResetPreview,
   type SystemResetScope,
   type ReporterBatch,
+  type ReporterOverdueBatch,
   type ReporterRecentBatch,
   type SkuCatalogInfo,
   type SkuItem,
@@ -115,6 +117,7 @@ const SKU_CHUNK_SIZE = 1000;
 type Section =
   | "picker"
   | "operations"
+  | "overdue"
   | "results"
   | "shift"
   | "sku"
@@ -197,7 +200,7 @@ function applyTheme(): void {
 applyTheme();
 
 const ROUTABLE_SECTIONS: Section[] = [
-  "picker", "operations", "results", "shift", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account",
+  "picker", "operations", "overdue", "results", "shift", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account",
 ];
 
 function defaultSectionForProfile(value: AppProfile): Section {
@@ -207,9 +210,9 @@ function defaultSectionForProfile(value: AppProfile): Section {
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
-  if (value.role === "REPORTER") return ["operations", "results", "account"].includes(section);
+  if (value.role === "REPORTER") return ["operations", "overdue", "results", "account"].includes(section);
   if (value.role === "PICKPACK_ADMIN") {
-    return ["operations", "results", "shift", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
+    return ["operations", "overdue", "results", "shift", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
   }
   if (section === "system-reset") return value.role === "ROOT" && value.base_role === "ROOT";
   return section !== "picker";
@@ -247,6 +250,10 @@ function clearRoleScopedViewState(): void {
   recentBadgeCount = 0;
   recentBadgeInitialized = false;
   reporterBadgeLoadGeneration += 1;
+  overdueRows = [];
+  overdueBadgeCount = 0;
+  overdueBadgeInitialized = false;
+  perPickerOverdueEnabled = false;
   recentRows = [];
   recentOffset = 0;
   recentTotal = 0;
@@ -347,6 +354,11 @@ let lastWebUpdateAt: Date | null = null;
 let queueRows: ReporterBatch[] = [];
 let queueBadgeCount = 0;
 let queueBadgeInitialized = false;
+let overdueRows: ReporterOverdueBatch[] = [];
+let overdueBadgeCount = 0;
+let overdueBadgeInitialized = false;
+let perPickerOverdueEnabled = false;
+let reporterOverdueLoadGeneration = 0;
 let recentBadgeCount = 0;
 let recentBadgeInitialized = false;
 let reporterBadgeLoadGeneration = 0;
@@ -976,6 +988,7 @@ function restoreUiContext(snapshot: UiContextSnapshot | null): void {
 function activeContent(): string {
   if (activeSection === "picker") return renderPicker();
   if (activeSection === "operations") return renderOperations();
+  if (activeSection === "overdue") return renderOverdue();
   if (activeSection === "results") return renderResults();
   if (activeSection === "shift") return renderShiftOperations();
   if (activeSection === "sku") return renderSku();
@@ -1433,17 +1446,20 @@ function render(): void {
   }, performance.now() - started);
 }
 
-function renderOperationalTabs(current: "operations" | "results"): string {
+function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
     <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
+    ${perPickerOverdueEnabled ? `<button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>` : ""}
     <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b data-workspace-count="results">${recentBadgeCount}</b></button>
   </div>`;
 }
 
 function syncOperationalTabBadges(): void {
   const operations = document.querySelector<HTMLElement>('[data-workspace-count="operations"]');
+  const overdue = document.querySelector<HTMLElement>('[data-workspace-count="overdue"]');
   const results = document.querySelector<HTMLElement>('[data-workspace-count="results"]');
   if (operations) operations.textContent = String(queueBadgeCount);
+  if (overdue) overdue.textContent = String(overdueBadgeCount);
   if (results) results.textContent = String(recentBadgeCount);
 }
 
@@ -1590,6 +1606,25 @@ function updateQueueClockDom(): void {
   }
 }
 
+function renderOverdue(): string {
+  return `<section class="ops-route ops-business-workspace">
+    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>SKU có Picker đã tới mốc tự động cho phép bỏ qua nhưng vẫn chờ Invent chốt kết quả cuối.</p></div></div>
+    ${renderOperationalTabs("overdue")}
+    <article class="ops-panel">
+      <div class="ops-panel-title"><div><h3>SKU quá hạn</h3><p>Mỗi SKU chỉ xuất hiện một lần; số Picker quá hạn và Picker còn chờ được tách riêng.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>SKU / Sản phẩm</th><th>Picker quá hạn</th><th>Picker còn chờ</th><th>Quá hạn đầu tiên</th><th>Thao tác</th></tr></thead><tbody>
+        ${overdueRows.map((row) => `<tr>
+          <td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td>
+          <td><span class="badge warning">${Number(row.overdue_picker_count || 0)} Picker</span></td>
+          <td>${Number(row.waiting_picker_count || 0)} Picker</td>
+          <td>${esc(fmt(row.first_overdue_at))}</td>
+          <td>${roleCanResolve() ? `<div class="user-row-actions"><button class="btn success small" data-overdue-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">ĐÃ CÓ HÀNG</button><button class="btn danger small" data-overdue-resolve="SKIP_ALLOWED" data-batch="${esc(row.batch_id)}">CHO PHÉP SKIP</button></div>` : "Chỉ xem"}</td>
+        </tr>`).join("") || `<tr><td colspan="5" class="empty">Hiện không có SKU quá hạn.</td></tr>`}
+      </tbody></table></div>
+    </article>
+  </section>`;
+}
+
 function renderResults(): string {
   const visible = recentRows;
   const today = dateDaysAgo(0);
@@ -1634,7 +1669,7 @@ function renderResults(): string {
       </form>
       <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
-        ${visible.map((row) => { const canCorrect = roleCanResolve() && row.status === "SKIP_ALLOWED" && row.correction_deadline_at && (Date.now() + queueServerOffsetMs) <= Date.parse(row.correction_deadline_at); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<button class="btn secondary small" data-correct="${esc(row.batch_id)}">Sửa thành Có hàng</button>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+        ${visible.map((row) => { const canCorrect = roleCanResolve() && row.status === "HAS_STOCK"; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn danger small" data-correct="${esc(row.batch_id)}" data-correct-target="SKIP_ALLOWED" data-correct-version="${Number(row.version || 0)}">Sửa - Cho phép Skip</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -1982,6 +2017,7 @@ function renderSla(): string {
 
       <div class="sla-config-footer">
         <div><strong>Lưu ý</strong><span>Hệ thống kiểm tra phiên bản cấu hình trước khi lưu. Nếu một máy khác vừa cập nhật, bản cũ sẽ không được phép ghi đè.</span></div>
+        <label class="field"><span>Mật khẩu tài khoản hiện tại</span><input name="currentPassword" type="password" autocomplete="current-password" required maxlength="128" placeholder="Nhập mật khẩu để xác nhận" /></label>
         <button id="sla-save-button" class="primary" ${slaSaveBusy ? "disabled" : ""}>${slaSaveBusy ? "Đang lưu…" : "Lưu cấu hình toàn hệ thống"}</button>
       </div>
     </form>
@@ -2931,8 +2967,11 @@ async function loadReporterTabCounters(force = false): Promise<void> {
     userId !== (profile?.user_id || "")
   ) return;
   queueBadgeCount = Math.max(0, Number(counters.queue_total || 0));
+  overdueBadgeCount = Math.max(0, Number(counters.overdue_total || 0));
   recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
+  perPickerOverdueEnabled = Boolean(counters.auto_skip_enabled && counters.auto_skip_mode === "PER_PICKER");
   queueBadgeInitialized = true;
+  overdueBadgeInitialized = true;
   recentBadgeInitialized = true;
   syncOperationsNavBadge();
   syncOperationalTabBadges();
@@ -3013,6 +3052,279 @@ function applyReporterQueueBadgeEvents(events: RealtimeEventFrame[]): boolean {
   return true;
 }
 
+
+function applyReporterOverdueBadgeEvents(events: RealtimeEventFrame[]): boolean {
+  if (!roleOperate() || !overdueBadgeInitialized) return false;
+  let next = overdueBadgeCount;
+  for (const row of events) {
+    if (!(row.scopes || []).includes("reporter_overdue")) continue;
+    const eventName = String(row.event || "").trim().toUpperCase();
+    const raw = row.metadata?.overdue_delta;
+    // Withdrawing a still-waiting Picker can change the overdue row's waiting
+    // count without changing whether that SKU exists in Quá hạn.
+    if (raw == null && eventName === "REPORT_WITHDRAWN") continue;
+    const delta = Number(raw);
+    if (!Number.isInteger(delta) || delta < -1 || delta > 1) return false;
+    next = Math.max(0, next + delta);
+  }
+  overdueBadgeCount = next;
+  syncOperationalTabBadges();
+  return true;
+}
+
+function realtimeSnapshotRecord(event: RealtimeEventFrame): Record<string, unknown> | null {
+  const value = event.snapshot;
+  return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+}
+
+function snapshotText(snapshot: Record<string, unknown>, key: string): string {
+  return String(snapshot[key] ?? "").trim();
+}
+
+function snapshotNumber(snapshot: Record<string, unknown>, key: string): number {
+  const value = Number(snapshot[key] ?? 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function replaceByBatch<T extends { batch_id: string }>(rows: T[], row: T): T[] {
+  const index = rows.findIndex((item) => item.batch_id === row.batch_id);
+  if (index < 0) return [...rows, row];
+  const next = rows.slice();
+  next[index] = row;
+  return next;
+}
+
+function queueRowFromSnapshot(snapshot: Record<string, unknown>): ReporterBatch | null {
+  if (snapshotText(snapshot, "status") !== "PENDING") return null;
+  const waiting = snapshotNumber(snapshot, "waiting_picker_count") || snapshotNumber(snapshot, "open_ticket_count");
+  if (waiting < 1) return null;
+  const firstReportAt = snapshotText(snapshot, "first_report_at");
+  const mode = normalizeAutoSkipMode(snapshot.auto_skip_mode);
+  return {
+    batch_id: snapshotText(snapshot, "batch_id"),
+    sku: snapshotText(snapshot, "sku"),
+    product_name: snapshotText(snapshot, "product_name"),
+    status: "PENDING",
+    first_report_at: firstReportAt,
+    last_report_at: snapshotText(snapshot, "last_report_at") || null,
+    affected_picker_count: waiting,
+    earliest_ticket_at: snapshotText(snapshot, "earliest_ticket_at") || firstReportAt,
+    version: snapshotNumber(snapshot, "version"),
+    previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
+    previous_resolved_at: snapshotText(snapshot, "previous_resolved_at") || null,
+    recurrence_minutes: snapshot.recurrence_minutes == null ? null : snapshotNumber(snapshot, "recurrence_minutes"),
+    sla_state: (["UNCONFIGURED","NORMAL","WARNING","ESCALATED"].includes(snapshotText(snapshot, "sla_state"))
+      ? snapshotText(snapshot, "sla_state")
+      : "UNCONFIGURED") as SlaState,
+    waiting_minutes: snapshotNumber(snapshot, "waiting_minutes"),
+    warning_at: snapshotText(snapshot, "warning_at") || null,
+    escalation_at: snapshotText(snapshot, "escalation_at") || null,
+    auto_skip_enabled: snapshot.auto_skip_enabled === true,
+    auto_skip_mode: mode,
+    auto_skip_at: snapshotText(snapshot, "auto_skip_at") || null,
+  };
+}
+
+function overdueRowFromSnapshot(snapshot: Record<string, unknown>): ReporterOverdueBatch | null {
+  if (snapshotText(snapshot, "status") !== "PENDING") return null;
+  const overdue = snapshotNumber(snapshot, "overdue_picker_count") || snapshotNumber(snapshot, "overdue_ticket_count");
+  if (overdue < 1) return null;
+  const firstOverdueAt = snapshotText(snapshot, "first_overdue_at");
+  return {
+    batch_id: snapshotText(snapshot, "batch_id"),
+    sku: snapshotText(snapshot, "sku"),
+    product_name: snapshotText(snapshot, "product_name"),
+    status: "PENDING",
+    first_report_at: snapshotText(snapshot, "first_report_at"),
+    last_report_at: snapshotText(snapshot, "last_report_at") || null,
+    version: snapshotNumber(snapshot, "version"),
+    previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
+    overdue_picker_count: overdue,
+    waiting_picker_count: snapshotNumber(snapshot, "waiting_picker_count") || snapshotNumber(snapshot, "open_ticket_count"),
+    first_overdue_at: firstOverdueAt,
+    latest_overdue_at: snapshotText(snapshot, "latest_overdue_at") || firstOverdueAt,
+  };
+}
+
+function recentEffectiveAt(snapshot: Record<string, unknown>, event: RealtimeEventFrame): string {
+  return snapshotText(snapshot, "resolved_at") || snapshotText(snapshot, "updated_at") || String(event.server_time || "");
+}
+
+function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecentBatch | null {
+  const status = snapshotText(snapshot, "status");
+  if (!["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(status)) return null;
+  return {
+    batch_id: snapshotText(snapshot, "batch_id"),
+    sku: snapshotText(snapshot, "sku"),
+    product_name: snapshotText(snapshot, "product_name"),
+    status: status as ReporterRecentBatch["status"],
+    first_report_at: snapshotText(snapshot, "first_report_at"),
+    last_report_at: snapshotText(snapshot, "last_report_at") || null,
+    resolved_at: snapshotText(snapshot, "resolved_at") || null,
+    resolved_by_user_id: snapshotText(snapshot, "resolved_by_user_id") || null,
+    resolved_by_display_name: snapshotText(snapshot, "resolved_by_display_name") || null,
+    resolved_by_employee_code: snapshotText(snapshot, "resolved_by_employee_code") || null,
+    resolution: (["HAS_STOCK","SKIP_ALLOWED"].includes(snapshotText(snapshot, "resolution"))
+      ? snapshotText(snapshot, "resolution")
+      : null) as ReporterRecentBatch["resolution"],
+    resolution_source: snapshotText(snapshot, "resolution_source") || null,
+    correction_deadline_at: snapshotText(snapshot, "correction_deadline_at") || null,
+    affected_picker_count: snapshotNumber(snapshot, "affected_picker_count"),
+    version: snapshotNumber(snapshot, "version"),
+    previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
+    previous_resolved_at: snapshotText(snapshot, "previous_resolved_at") || null,
+    ack_target_count: snapshotNumber(snapshot, "ack_target_count"),
+    acknowledged_count: snapshotNumber(snapshot, "acknowledged_count"),
+  };
+}
+
+function recentDateRangeContains(at: string): boolean {
+  if (!at || !Number.isFinite(Date.parse(at))) return false;
+  const range = apiRange(recentFrom, recentTo);
+  const ms = Date.parse(at);
+  return ms >= Date.parse(range.from) && ms < Date.parse(range.to);
+}
+
+function recentRangeContains(status: ReporterRecentBatch["status"], at: string): boolean {
+  return recentDateRangeContains(at) && (recentFilter === "ALL" || recentFilter === status);
+}
+
+function adjustRecentOutcomeTotal(status: string | null, delta: number, automatic = false): void {
+  if (!status || !delta) return;
+  if (status === "HAS_STOCK") recentTotals.has_stock = Math.max(0, recentTotals.has_stock + delta);
+  if (status === "SKIP_ALLOWED") {
+    recentTotals.skip_allowed = Math.max(0, recentTotals.skip_allowed + delta);
+    if (automatic) recentTotals.automatic_skipped = Math.max(0, recentTotals.automatic_skipped + delta);
+  }
+  if (status === "CLOSED") recentTotals.withdrawn = Math.max(0, recentTotals.withdrawn + delta);
+}
+
+function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
+  queueExact: boolean;
+  overdueExact: boolean;
+  recentExact: boolean;
+} {
+  let queueExact = true;
+  let overdueExact = true;
+  let recentExact = true;
+
+  for (const event of events) {
+    const scopes = new Set(event.scopes || []);
+    const touchesQueue = scopes.has("reporter_queue");
+    const touchesOverdue = scopes.has("reporter_overdue");
+    const touchesRecent = scopes.has("reporter_recent");
+    if (!touchesQueue && !touchesOverdue && !touchesRecent) continue;
+
+    const snapshot = realtimeSnapshotRecord(event);
+    const batchId = snapshot ? snapshotText(snapshot, "batch_id") : String(event.batch_id || "");
+    if (!snapshot || !batchId) {
+      if (touchesQueue) queueExact = false;
+      if (touchesOverdue) overdueExact = false;
+      if (touchesRecent) recentExact = false;
+      continue;
+    }
+
+    if (touchesQueue) {
+      const row = queueRowFromSnapshot(snapshot);
+      queueRows = row
+        ? replaceByBatch(queueRows, row).sort((a, b) => a.first_report_at.localeCompare(b.first_report_at) || a.batch_id.localeCompare(b.batch_id))
+        : queueRows.filter((item) => item.batch_id !== batchId);
+      if (selectedBatchId === batchId && !row && activeSection === "operations") {
+        selectedBatchId = filteredQueueRows()[0]?.batch_id || null;
+      }
+    }
+
+    if (touchesOverdue) {
+      const row = overdueRowFromSnapshot(snapshot);
+      overdueRows = row
+        ? replaceByBatch(overdueRows, row).sort((a, b) => a.first_overdue_at.localeCompare(b.first_overdue_at) || a.batch_id.localeCompare(b.batch_id))
+        : overdueRows.filter((item) => item.batch_id !== batchId);
+    }
+
+    if (touchesRecent) {
+      // Non-first pages can shift when a new/removed result arrives. Snapshot data
+      // is exact for the batch but not enough to preserve an arbitrary page window.
+      if (recentOffset > 0) {
+        recentExact = false;
+        continue;
+      }
+
+      const beforeRow = recentRows.find((item) => item.batch_id === batchId) || null;
+      const transition = event.metadata?.recent_counter;
+      if (transition && typeof transition === "object" && !Array.isArray(transition)) {
+        const values = transition as Record<string, unknown>;
+        const before = recentCounterEndpoint(values.before_status, values.before_at);
+        const after = recentCounterEndpoint(values.after_status, values.after_at);
+        if (!before.valid || !after.valid) {
+          recentExact = false;
+        } else {
+          const beforeInRange = before.endpoint.status && before.endpoint.at
+            ? recentDateRangeContains(before.endpoint.at)
+            : false;
+          const afterInRange = after.endpoint.status && after.endpoint.at
+            ? recentDateRangeContains(after.endpoint.at)
+            : false;
+          const automaticAfter = snapshotText(snapshot, "resolution_source") === "SYSTEM_TIMEOUT";
+          if (beforeInRange) adjustRecentOutcomeTotal(before.endpoint.status, -1, beforeRow?.resolution_source === "SYSTEM_TIMEOUT");
+          if (afterInRange) adjustRecentOutcomeTotal(after.endpoint.status, 1, automaticAfter);
+
+          if (beforeInRange && beforeRow) {
+            recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count - Number(beforeRow.ack_target_count || 0));
+            recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count - Number(beforeRow.acknowledged_count || 0));
+          } else if (beforeInRange && !beforeRow) {
+            // A correction/removal outside the loaded first page cannot safely
+            // update aggregate ACK totals from a batch-local snapshot.
+            recentExact = false;
+          }
+        }
+      }
+
+      const row = recentRowFromSnapshot(snapshot);
+      const effectiveAt = row ? recentEffectiveAt(snapshot, event) : "";
+      const matches = row ? recentRangeContains(row.status, effectiveAt) : false;
+      if (row && matches) {
+        recentRows = replaceByBatch(recentRows, row)
+          .sort((a, b) => {
+            const aAt = Date.parse(a.resolved_at || a.first_report_at);
+            const bAt = Date.parse(b.resolved_at || b.first_report_at);
+            return bAt - aAt || b.batch_id.localeCompare(a.batch_id);
+          })
+          .slice(0, RECENT_PAGE_SIZE);
+        if (!beforeRow) {
+          recentTotals.ack_target_count += Number(row.ack_target_count || 0);
+          recentTotals.acknowledged_count += Number(row.acknowledged_count || 0);
+        } else {
+          recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count + Number(row.ack_target_count || 0) - Number(beforeRow.ack_target_count || 0));
+          recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count + Number(row.acknowledged_count || 0) - Number(beforeRow.acknowledged_count || 0));
+        }
+      } else {
+        recentRows = recentRows.filter((item) => item.batch_id !== batchId);
+      }
+
+    }
+  }
+
+  return { queueExact, overdueExact, recentExact };
+}
+
+async function loadReporterOverdueSnapshot(): Promise<void> {
+  const requestGeneration = ++reporterOverdueLoadGeneration;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const overdue = await getReporterOverdue(200, 0);
+  if (
+    requestGeneration !== reporterOverdueLoadGeneration ||
+    generation !== sessionViewGeneration ||
+    userId !== (profile?.user_id || "")
+  ) return;
+  overdueRows = overdue.items;
+  overdueBadgeCount = Math.max(0, Number(overdue.total || overdue.items.length));
+  overdueBadgeInitialized = true;
+  perPickerOverdueEnabled = Boolean(overdue.enabled && overdue.auto_skip_mode === "PER_PICKER");
+  syncOperationalTabBadges();
+  markWebUpdateReceived();
+}
+
 async function loadReporterRecentSnapshot(): Promise<void> {
   const requestGeneration = ++reporterRecentLoadGeneration;
   const generation = sessionViewGeneration;
@@ -3046,12 +3358,23 @@ async function loadReporterRecentSnapshot(): Promise<void> {
 async function loadOperationsSnapshot(): Promise<void> {
   if (activeSection === "results") {
     const tasks: Promise<void>[] = [loadReporterRecentSnapshot()];
-    if (!queueBadgeInitialized) tasks.push(loadReporterTabCounters());
+    if (!queueBadgeInitialized || !overdueBadgeInitialized) tasks.push(loadReporterTabCounters());
     await Promise.all(tasks);
     return;
   }
+  if (activeSection === "overdue") {
+    const tasks: Promise<void>[] = [loadReporterOverdueSnapshot()];
+    if (!queueBadgeInitialized || !recentBadgeInitialized) tasks.push(loadReporterTabCounters());
+    await Promise.all(tasks);
+    if (!perPickerOverdueEnabled && profile) {
+      activeSection = "operations";
+      syncSectionHistory(activeSection, "replace");
+      await loadReporterQueueSnapshot();
+    }
+    return;
+  }
   const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];
-  if (!recentBadgeInitialized) tasks.push(loadReporterTabCounters());
+  if (!recentBadgeInitialized || !overdueBadgeInitialized) tasks.push(loadReporterTabCounters());
   await Promise.all(tasks);
 }
 
@@ -3157,6 +3480,13 @@ async function saveSlaConfiguration(form: HTMLFormElement): Promise<void> {
     return;
   }
 
+  if (!window.confirm("CẢNH BÁO: Thay đổi thời gian xử lý có thể làm mốc cho phép Skip của Picker sớm hơn hoặc muộn hơn. Bạn có chắc muốn lưu cấu hình mới?")) return;
+  const currentPassword = String(data.get("currentPassword") || "");
+  if (!currentPassword) {
+    setNotice("warning", "Chưa lưu: cần mật khẩu tài khoản hiện tại để xác nhận.");
+    return;
+  }
+
   const expectedPolicyVersion = Number(slaResponse?.sla?.policy_version || 0);
   const requestId = crypto.randomUUID();
   const saveButton = form.querySelector<HTMLButtonElement>("#sla-save-button");
@@ -3186,6 +3516,7 @@ async function saveSlaConfiguration(form: HTMLFormElement): Promise<void> {
       skip_to_stock_minutes: skipToStockMinutes,
       expected_policy_version: expectedPolicyVersion,
       request_id: requestId,
+      current_password: currentPassword,
     });
 
     const verification = saved.verification;
@@ -3582,10 +3913,10 @@ async function exportReportsExcel(): Promise<void> {
 async function loadSection(section: Section): Promise<void> {
   if (!profile) return;
   let received = false;
-  if (roleOperate() && section !== "operations" && section !== "results" && (!queueBadgeInitialized || !recentBadgeInitialized)) {
+  if (roleOperate() && section !== "operations" && section !== "overdue" && section !== "results" && (!queueBadgeInitialized || !overdueBadgeInitialized || !recentBadgeInitialized)) {
     await loadReporterTabCounters();
   }
-  if ((section === "operations" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
+  if ((section === "operations" || section === "overdue" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
   else if (section === "shift" && roleManage()) { await loadShiftOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
   else if (section === "sku" && rolePickPackManage()) { await loadSkuWorkspace(); received = true; }
@@ -3660,6 +3991,10 @@ function bindShell(): void {
       queueRows = [];
       queueBadgeCount = 0;
       queueBadgeInitialized = false;
+      overdueRows = [];
+      overdueBadgeCount = 0;
+      overdueBadgeInitialized = false;
+      perPickerOverdueEnabled = false;
       recentBadgeCount = 0;
       recentBadgeInitialized = false;
       reporterBadgeLoadGeneration += 1;
@@ -4043,9 +4378,32 @@ function bindSection(): void {
 
   bindReporterActionButtons();
   document.querySelectorAll<HTMLButtonElement>("[data-correct]").forEach((button) => button.addEventListener("click", () => void run(async () => {
-    await correctReporterBatch(button.dataset.correct || "");
+    const batchId = button.dataset.correct || "";
+    const target = button.dataset.correctTarget === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : "PENDING";
+    const expectedVersion = Number(button.dataset.correctVersion || 0);
+    const targetLabel = target === "PENDING" ? "Đang xử lý" : "Cho phép Skip";
+    if (!window.confirm(`Xác nhận sửa kết quả đã thông báo thành “${targetLabel}”?`)) return;
+    if (!window.confirm("CẢNH BÁO: Kết quả đã được gửi cho Picker. Thao tác này sẽ tạo kết quả điều chỉnh mới và yêu cầu Picker xác nhận lại. Tiếp tục?")) return;
+    await correctReporterBatch(batchId, target, expectedVersion);
     await loadOperations();
-    setNotice("success", "Đã sửa kết quả thành Có hàng.");
+    setNotice("success", `Đã điều chỉnh kết quả thành ${targetLabel}.`);
+  })));
+
+  document.querySelectorAll<HTMLButtonElement>("[data-overdue-resolve]").forEach((button) => button.addEventListener("click", () => void run(async () => {
+    const batchId = button.dataset.batch || "";
+    const resolution = button.dataset.overdueResolve === "HAS_STOCK" ? "HAS_STOCK" : "SKIP_ALLOWED";
+    const row = overdueRows.find((item) => item.batch_id === batchId);
+    if (!row) return;
+    const label = resolution === "HAS_STOCK" ? "Đã có hàng" : "Cho phép Skip";
+    if (!window.confirm(`Xác nhận ${label} cho SKU ${row.sku}?`)) return;
+    await resolveReporterBatch(batchId, resolution);
+    overdueRows = overdueRows.filter((item) => item.batch_id !== batchId);
+    overdueBadgeCount = Math.max(0, overdueBadgeCount - 1);
+    queueRows = queueRows.filter((item) => item.batch_id !== batchId);
+    batchDetails.delete(batchId);
+    syncOperationalTabBadges();
+    patchActiveSection(true);
+    setNotice("success", `${row.sku} đã xử lý: ${label}.`);
   })));
   document.querySelectorAll<HTMLButtonElement>("[data-recent-range]").forEach((button) => button.addEventListener("click", () => {
     const preset = button.dataset.recentRange || "";
@@ -4542,7 +4900,7 @@ async function importSkuWorkbook(): Promise<void> {
 async function reconcileActive(): Promise<boolean> {
   try {
     if (roleOperate()) await loadReporterTabCounters(true);
-    if ((activeSection === "operations" || activeSection === "results") && roleOperate()) await loadOperations();
+    if ((activeSection === "operations" || activeSection === "overdue" || activeSection === "results") && roleOperate()) await loadOperations();
     else if (activeSection === "picker" && profile?.role === "PICKER") await loadPicker();
     else if (activeSection === "sla" && roleManage()) {
       // D138: loadSla owns SLA rendering. Its dirty-form guard must be allowed to
@@ -4578,33 +4936,45 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
   const reporterQueueChanged = roleOperate() && scopes.has("reporter_queue");
+  const reporterOverdueChanged = roleOperate() && scopes.has("reporter_overdue");
   const reporterRecentChanged = roleOperate() && scopes.has("reporter_recent");
-  const reporterScopeChanged = reporterQueueChanged || reporterRecentChanged;
+  const reporterScopeChanged = reporterQueueChanged || reporterOverdueChanged || reporterRecentChanged;
   const reporterRelevant =
-    reporterScopeChanged && (activeSection === "operations" || activeSection === "results");
+    reporterScopeChanged && (activeSection === "operations" || activeSection === "overdue" || activeSection === "results");
   const slaRelevant = roleManage() && activeSection === "sla" && scopes.has("sla_settings");
   const scheduleRelevant =
     rolePickPackManage() && activeSection === "shift" && scopes.has("operating_schedule");
   const hrRelevant =
     Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT")) && scopes.has("hr_sync");
 
-  // D162 repair: keep the navigation badge realtime from tiny queue_delta metadata.
-  // Fetch the full queue only while Operations is visible; Results fetches only recent data.
-  // Missing/legacy delta metadata fails closed to one lightweight count read, never a full
-  // off-screen queue snapshot. Dirty/gap reconnects reconcile the count authoritatively.
+  // D165: normal realtime events carry an authoritative batch snapshot.
+  // Patch the exact in-memory row and badges; list APIs are fallback only when
+  // snapshot/transition metadata is insufficient or pagination makes a patch unsafe.
   if (reporterScopeChanged) {
     try {
       const queueBadgeExact = !reporterQueueChanged || applyReporterQueueBadgeEvents(events);
+      const overdueBadgeExact = !reporterOverdueChanged || applyReporterOverdueBadgeEvents(events);
       const recentBadgeExact = !reporterRecentChanged || applyReporterRecentBadgeEvents(events);
+      const patched = applyReporterSnapshotEvents(events);
+
+      if (recentBadgeExact) recentTotal = recentBadgeCount;
       syncOperationsNavBadge();
       syncOperationalTabBadges();
 
       const tasks: Promise<void>[] = [];
-      if (reporterQueueChanged && activeSection === "operations") tasks.push(loadReporterQueueSnapshot());
-      if (reporterRecentChanged && activeSection === "results") tasks.push(loadReporterRecentSnapshot());
+      if (reporterQueueChanged && activeSection === "operations" && !patched.queueExact) {
+        tasks.push(loadReporterQueueSnapshot());
+      }
+      if (reporterOverdueChanged && activeSection === "overdue" && !patched.overdueExact) {
+        tasks.push(loadReporterOverdueSnapshot());
+      }
+      if (reporterRecentChanged && activeSection === "results" && !patched.recentExact) {
+        tasks.push(loadReporterRecentSnapshot());
+      }
 
       const needsCounterReconcile =
         (reporterQueueChanged && !queueBadgeExact && activeSection !== "operations") ||
+        (reporterOverdueChanged && !overdueBadgeExact && activeSection !== "overdue") ||
         (reporterRecentChanged && !recentBadgeExact && activeSection !== "results");
       if (needsCounterReconcile) tasks.push(loadReporterTabCounters(true));
 
@@ -4749,7 +5119,7 @@ window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
 }, 60_000);
 window.setInterval(() => {
-  if (!profile || !roleManage() || activeSection !== "dashboard") return;
+  if (!hasSession() || !profile || !roleManage() || activeSection !== "dashboard") return;
   void getRealtimePresence().then((next) => {
     realtimePresence = next;
     patchActiveSection(true);

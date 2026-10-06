@@ -8,6 +8,7 @@ export type PdaAppRelease = {
   size_bytes: number;
   digest: string | null;
   stable_download_path: string;
+  release_notes: string[];
 };
 
 export type AgentAppRelease = {
@@ -20,6 +21,7 @@ export type AgentAppRelease = {
   size_bytes: number;
   digest: string | null;
   stable_download_path: string;
+  release_notes: string[];
 };
 
 export type AgentBrowserBundleRelease = {
@@ -52,6 +54,7 @@ type ChannelManifest = {
   sha256?: string;
   host_build?: number;
   host_arch?: string;
+  release_notes?: unknown;
 };
 
 const REPOSITORY = "tamnv2/supra-inventory";
@@ -84,6 +87,14 @@ let pdaCache: { expires_at: number; release: PdaAppRelease } | null = null;
 let agentCache: { expires_at: number; release: AgentAppRelease } | null = null;
 let agentBrowserCache: { expires_at: number; release: AgentBrowserBundleRelease } | null = null;
 let launcherCache: { expires_at: number; release: LauncherRelease } | null = null;
+
+function releaseNotes(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item || "").replace(/[\r\n\t]+/g, " ").trim().slice(0, 180))
+    .filter(Boolean)
+    .slice(0, 5);
+}
 
 function digestFromSha(value: unknown): string | null {
   const sha = String(value || "").trim().toLowerCase();
@@ -120,6 +131,7 @@ export async function latestPdaAppRelease(): Promise<PdaAppRelease> {
     size_bytes: Math.max(0, Number(manifest.size_bytes || 0)),
     digest: digestFromSha(manifest.sha256),
     stable_download_path: "/downloads/pda/latest",
+    release_notes: releaseNotes(manifest.release_notes),
   };
   pdaCache = { expires_at: Date.now() + CACHE_MS, release };
   return release;
@@ -140,6 +152,7 @@ export async function latestAgentAppRelease(): Promise<AgentAppRelease> {
     size_bytes: Math.max(0, Number(manifest.size_bytes || 0)),
     digest: digestFromSha(manifest.sha256),
     stable_download_path: "/downloads/agent/latest",
+    release_notes: releaseNotes(manifest.release_notes),
   };
   agentCache = { expires_at: Date.now() + CACHE_MS, release };
   return release;

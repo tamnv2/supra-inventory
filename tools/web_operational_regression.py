@@ -396,7 +396,7 @@ def main() -> None:
     require(business_core, '"dashboard_range_v1:" + userId', "D109 server per-user Dashboard preference key")
     require(app, "Cấu hình chung toàn hệ thống", "D109 global SLA user-facing authority")
     require(business_api, 'event: "sla_settings_updated"', "D109 SLA realtime event")
-    require(business_api, 'scopes: ["sla_settings", "reporter_queue"]', "D109 SLA realtime scope")
+    require(business_api, 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue"]', "D165 SLA realtime scope extends D109 with overdue")
     require(app, 'scopes.has("sla_settings")', "D109 SLA active-view realtime reconcile")
     # D138: a dirty SLA form owns its in-progress control state. Realtime reconcile
     # may refresh server authority, but must not fall through to the generic section
@@ -521,8 +521,8 @@ def main() -> None:
     )
     require(
         app,
-        'const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];\n  if (!recentBadgeInitialized) tasks.push(loadReporterTabCounters());',
-        "D162 Operations loads its list plus only the lightweight missing opposite counter",
+        'const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];\n  if (!recentBadgeInitialized || !overdueBadgeInitialized) tasks.push(loadReporterTabCounters());',
+        "D165 Operations loads its list plus only lightweight missing recent/overdue counters",
     )
 
     # D163: forced Picker revoke may upload only the bounded final logout log,

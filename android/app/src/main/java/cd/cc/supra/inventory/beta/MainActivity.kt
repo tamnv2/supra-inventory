@@ -1026,10 +1026,13 @@ class MainActivity : Activity() {
     }
 
     private fun savePendingSessionEndRuntimeLog(session: AppSession, payload: JSONObject) {
+        // D165: persist the final sanitized bundle synchronously before any
+        // session cleanup. The embedded bundle identity survives retries so the
+        // server/Drive archive can dedupe the same logout boundary.
         runtimeLogPrefs().edit()
             .putString("pending_session_end_user", session.userId)
             .putString("pending_session_end_payload", payload.toString().take(30_000))
-            .apply()
+            .commit()
     }
 
     private fun flushPendingSessionEndRuntimeLog(session: AppSession) {
@@ -1047,7 +1050,7 @@ class MainActivity : Activity() {
             } catch (_: Exception) {
                 JSONObject().put("raw", sanitizeDiagnosticText(raw))
             }
-            val result = uploadAndroidRuntimeLog("INFO", "session_end_deferred", payload)
+            val result = uploadAndroidRuntimeLog("INFO", "session_end_logout", payload)
             if (result.archiveStatus == "DRIVE_SYNCED") {
                 prefs.edit()
                     .remove("pending_session_end_user")
@@ -1480,18 +1483,24 @@ class MainActivity : Activity() {
             }
         } else null
 
+        if (endingSession != null && sessionEndPayload != null) {
+            ensureAndroidRuntimeLogIdentity(sessionEndPayload, "session_end_logout")
+            savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
+        }
+
         stopOperationalClients()
         Thread {
             if (endingSession != null && sessionEndPayload != null) {
                 val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", sessionEndPayload)
-                if (sent.archiveStatus != "DRIVE_SYNCED") {
-                    savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
-                } else {
+                if (sent.archiveStatus == "DRIVE_SYNCED") {
                     runtimeLogPrefs().edit()
                         .remove("pending_session_end_user")
                         .remove("pending_session_end_payload")
                         .apply()
                 }
+                // Otherwise the synchronously persisted final bundle remains
+                // pending and is retried only by the existing bounded same-user
+                // login/resume delivery path.
             }
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
             try { api.logoutInteractive("android:$notificationDeviceId") } catch (_: Exception) { api.clearSession() }
@@ -1555,7 +1564,7 @@ class MainActivity : Activity() {
             baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
             userId = session.userId,
             log = { message -> recordLog(message) },
-        ) { scopes, completion ->
+        ) { scopes, events, completion ->
             runOnUiThread {
                 if (api.session == null || isFinishing) {
                     completion(false)
@@ -1581,10 +1590,10 @@ class MainActivity : Activity() {
                         completion(true)
                     } else if (session.role == "PICKER") {
                         val controller = pickerController
-                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                        if (controller != null) controller.onRealtime(remainingScopes, events, completion) else completion(true)
                     } else {
                         val controller = reporterController
-                        if (controller != null) controller.onRealtime(remainingScopes, completion) else completion(true)
+                        if (controller != null) controller.onRealtime(remainingScopes, events, completion) else completion(true)
                     }
                 }
 
@@ -1665,6 +1674,7 @@ class MainActivity : Activity() {
         val tag: String,
         val apkUrl: String,
         val checksumUrl: String,
+        val releaseNotes: List<String>,
     )
 
     private fun updateGateMessage(): String = when (updateGate) {
@@ -1777,7 +1787,15 @@ class MainActivity : Activity() {
         pendingUpdateInfo = info
         AlertDialog.Builder(this)
             .setTitle("Có bản cập nhật ${info.tag}")
-            .setMessage("Cập nhật ngay hoặc để sau. Việc kiểm tra kênh cập nhật không chặn đăng nhập.")
+            .setMessage(
+                buildString {
+                    append("Cập nhật ngay hoặc để sau. Việc kiểm tra kênh cập nhật không chặn đăng nhập.")
+                    if (info.releaseNotes.isNotEmpty()) {
+                        append("\n\nNội dung cập nhật:\n")
+                        info.releaseNotes.forEach { append("• ").append(it).append("\n") }
+                    }
+                }.trimEnd()
+            )
             .setNegativeButton("Để sau") { _, _ ->
                 updateGate = UpdateGate.DEFERRED
                 applyUpdateGateUi(null)
@@ -1827,8 +1845,17 @@ class MainActivity : Activity() {
         if (!apkPath.startsWith("/") || !checksumPath.startsWith("/")) {
             throw IllegalStateException("Kênh cập nhật thiếu đường dẫn tin cậy.")
         }
+        val notesJson = manifest.optJSONArray("release_notes")
+        val notes = buildList {
+            if (notesJson != null) {
+                for (index in 0 until minOf(notesJson.length(), 5)) {
+                    val text = notesJson.optString(index).replace(Regex("[\\r\\n\\t]+"), " ").trim().take(180)
+                    if (text.isNotBlank()) add(text)
+                }
+            }
+        }
         val base = BuildConfig.API_BASE_URL.trimEnd('/')
-        return UpdateInfo(versionCode, tag, base + apkPath, base + checksumPath)
+        return UpdateInfo(versionCode, tag, base + apkPath, base + checksumPath, notes)
     }
     private fun downloadAndVerify(info: UpdateInfo): File {
         val expected = downloadText(info.checksumUrl, info.tag).trim().split(Regex("\\s+"))[0].lowercase()

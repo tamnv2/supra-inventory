@@ -24,7 +24,7 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
 const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 5;
+export const OPERATIONAL_V2_SCHEMA_VERSION = 6;
 const MAX_DELTA_LIMIT = 200;
 const APP_TODAY_OPEN_SCOPE = "APP_TODAY_OPEN";
 const BUSINESS_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
@@ -53,7 +53,7 @@ function hasColumn(state: DurableObjectState, tableName: string, columnName: str
     .some((row) => row.name === columnName);
 }
 
-function hasSqlObject(state: DurableObjectState, type: "table" | "trigger", name: string): boolean {
+function hasSqlObject(state: DurableObjectState, type: "table" | "trigger" | "index", name: string): boolean {
   return Boolean(first(
     state.storage.sql
       .exec<SqlRow>("SELECT name FROM sqlite_master WHERE type = ? AND name = ? LIMIT 1", type, name)
@@ -144,6 +144,11 @@ export function operationalV2Readiness(state: DurableObjectState): {
     hasSqlObject(state, "table", "result_acknowledgements") &&
     hasSqlObject(state, "table", "result_event_snapshots") &&
     hasSqlObject(state, "table", "notification_delivery_attempts") &&
+    hasSqlObject(state, "table", "batch_summaries") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_ticket_insert") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_ticket_update") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_ack_insert") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_acknowledged") &&
     slaAutomationReadiness(state) &&
     Boolean(readRealtimeStreamEpoch(state)) &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
@@ -201,35 +206,90 @@ function parseJsonArray(value: unknown): string[] {
   }
 }
 
-function currentBatchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
+export function currentBatchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
   if (!batchId) return null;
   const row = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-              b.resolved_at, b.resolution, b.resolution_source, b.correction_deadline_at,
+              b.resolved_at, b.updated_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
               b.auto_skip_deadline_at, b.version, b.previous_batch_id,
               p.resolved_at AS previous_resolved_at,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS open_ticket_count,
+              COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+              COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
+              COALESCE(s.total_ticket_count,
+                (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id)) AS total_ticket_count,
+              COALESCE(s.waiting_picker_count,
+                (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL)) AS waiting_picker_count,
+              COALESCE(s.overdue_picker_count,
+                (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL)) AS overdue_picker_count,
+              (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
+                 FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'RESOLVED') AS resolved_picker_count,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
-              (SELECT COUNT(DISTINCT a.target_user_id)
-                 FROM result_acknowledgements a
-                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
-              (SELECT COUNT(DISTINCT a.target_user_id)
-                 FROM result_acknowledgements a
-                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                  AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
+              (SELECT MIN(t.reported_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS earliest_ticket_at,
+              (SELECT MIN(t.auto_skip_deadline_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS next_picker_auto_skip_at,
+              (SELECT MIN(t.auto_skip_allowed_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS first_overdue_at,
+              (SELECT MAX(t.auto_skip_allowed_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS latest_overdue_at,
+              COALESCE(s.ack_target_count,
+                (SELECT COUNT(DISTINCT a.target_user_id)
+                   FROM result_acknowledgements a
+                  WHERE a.batch_id = b.batch_id AND a.batch_version = b.version)) AS ack_target_count,
+              COALESCE(s.acknowledged_count,
+                (SELECT COUNT(DISTINCT a.target_user_id)
+                   FROM result_acknowledgements a
+                  WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                    AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
          FROM report_batches b
+         LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
          LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
+         LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
         WHERE b.batch_id = ?
         LIMIT 1`,
       batchId,
     ).toArray(),
   );
   if (!row) return null;
+
   const config = readSlaConfig(state);
-  const sla = row.status === "PENDING" ? slaState(String(row.first_report_at || ""), config) : null;
-  return { ...row, ...(sla ? { sla_state: sla.state, waiting_minutes: sla.waiting_minutes } : {}) };
+  const firstReportAt = String(row.first_report_at || "");
+  const previousResolvedAt = String(row.previous_resolved_at || "");
+  const previousResolvedMs = Date.parse(previousResolvedAt);
+  const firstReportMs = Date.parse(firstReportAt);
+  const recurrenceMinutes =
+    Number.isFinite(previousResolvedMs) && Number.isFinite(firstReportMs)
+      ? Math.max(0, Math.round((firstReportMs - previousResolvedMs) / 60_000))
+      : null;
+
+  if (String(row.status || "") !== "PENDING") {
+    return {
+      ...row,
+      affected_picker_count: String(row.status || "") === "CLOSED"
+        ? Number(row.withdrawn_ticket_count || 0)
+        : Number(row.resolved_picker_count || 0),
+      recurrence_minutes: recurrenceMinutes,
+    };
+  }
+
+  const sla = slaState(firstReportAt, config);
+  const deadlines = slaDeadlines(firstReportAt, config);
+  return {
+    ...row,
+    open_ticket_count: Number(row.waiting_picker_count || 0),
+    affected_picker_count: Number(row.waiting_picker_count || 0),
+    sla_state: sla.state,
+    waiting_minutes: sla.waiting_minutes,
+    warning_at: deadlines.warning_at,
+    escalation_at: deadlines.escalation_at,
+    auto_skip_enabled: Boolean(config?.auto_skip_enabled),
+    auto_skip_mode: config?.auto_skip_mode || null,
+    auto_skip_at: config?.auto_skip_enabled
+      ? (config.auto_skip_mode === "FIRST_REPORT" ? (row.auto_skip_deadline_at || null) : (row.next_picker_auto_skip_at || null))
+      : null,
+    recurrence_minutes: recurrenceMinutes,
+  };
 }
 
 function backfillResultEventSnapshots(state: DurableObjectState): void {
@@ -255,7 +315,7 @@ function backfillResultEventSnapshots(state: DurableObjectState): void {
     const resolution = row.event_type === "BATCH_CORRECTED"
       ? String(payload.to || "")
       : String(payload.resolution || "");
-    if (!["HAS_STOCK", "SKIP_ALLOWED"].includes(resolution)) continue;
+    if (!["HAS_STOCK", "SKIP_ALLOWED", "PENDING"].includes(resolution)) continue;
     state.storage.sql.exec(
       `INSERT OR IGNORE INTO result_event_snapshots (
          result_event_id, batch_id, batch_version, event_type, sku, product_name, resolution, result_at, created_at
@@ -291,6 +351,30 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
   sql.exec(`
     CREATE INDEX IF NOT EXISTS idx_report_batches_previous_batch ON report_batches(previous_batch_id);
     CREATE INDEX IF NOT EXISTS idx_report_batches_sku_resolved ON report_batches(sku, resolved_at);
+    CREATE INDEX IF NOT EXISTS idx_report_batches_effective_recent
+      ON report_batches(status, COALESCE(resolved_at, updated_at) DESC, batch_id DESC);
+    CREATE INDEX IF NOT EXISTS idx_report_tickets_picker_user_reported
+      ON report_tickets(picker_user_id, reported_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_report_tickets_picker_employee_reported
+      ON report_tickets(picker_employee_code, reported_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_report_tickets_overdue_open
+      ON report_tickets(batch_id, auto_skip_allowed_at, reported_at)
+      WHERE status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL;
+
+    CREATE TABLE IF NOT EXISTS batch_summaries (
+      batch_id TEXT PRIMARY KEY,
+      total_ticket_count INTEGER NOT NULL DEFAULT 0,
+      waiting_picker_count INTEGER NOT NULL DEFAULT 0,
+      overdue_picker_count INTEGER NOT NULL DEFAULT 0,
+      ack_target_count INTEGER NOT NULL DEFAULT 0,
+      acknowledged_count INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (batch_id) REFERENCES report_batches(batch_id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_batch_summaries_waiting
+      ON batch_summaries(waiting_picker_count, batch_id);
+    CREATE INDEX IF NOT EXISTS idx_batch_summaries_overdue
+      ON batch_summaries(overdue_picker_count, batch_id);
 
     CREATE TABLE IF NOT EXISTS realtime_events (
       seq INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -320,6 +404,8 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
     );
     CREATE INDEX IF NOT EXISTS idx_result_ack_batch_version ON result_acknowledgements(batch_id, batch_version);
     CREATE INDEX IF NOT EXISTS idx_result_ack_target_open ON result_acknowledgements(target_user_id, acknowledged_at, created_at);
+    CREATE INDEX IF NOT EXISTS idx_result_ack_batch_target_created
+      ON result_acknowledgements(batch_id, target_user_id, created_at DESC);
 
     CREATE TABLE IF NOT EXISTS result_event_snapshots (
       result_event_id TEXT PRIMARY KEY,
@@ -328,7 +414,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
       event_type TEXT NOT NULL,
       sku TEXT NOT NULL,
       product_name TEXT NOT NULL,
-      resolution TEXT NOT NULL CHECK (resolution IN ('HAS_STOCK','SKIP_ALLOWED')),
+      resolution TEXT NOT NULL CHECK (resolution IN ('HAS_STOCK','SKIP_ALLOWED','PENDING')),
       result_at TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
@@ -349,6 +435,118 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
       ON notification_delivery_attempts(event_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_notification_delivery_device
       ON notification_delivery_attempts(device_id, created_at);
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_batch_seed;
+    CREATE TRIGGER trg_d165_summary_batch_seed
+      AFTER INSERT ON report_batches
+    BEGIN
+      INSERT OR IGNORE INTO batch_summaries (batch_id, updated_at)
+      VALUES (NEW.batch_id, NEW.updated_at);
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ticket_insert;
+    CREATE TRIGGER trg_d165_summary_ticket_insert
+      AFTER INSERT ON report_tickets
+    BEGIN
+      INSERT OR IGNORE INTO batch_summaries (batch_id, updated_at)
+      VALUES (NEW.batch_id, NEW.updated_at);
+      UPDATE batch_summaries
+         SET total_ticket_count = total_ticket_count + 1,
+             waiting_picker_count = waiting_picker_count +
+               CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END,
+             overdue_picker_count = overdue_picker_count +
+               CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END,
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ticket_update;
+    CREATE TRIGGER trg_d165_summary_ticket_update
+      AFTER UPDATE OF status, auto_skip_allowed_at ON report_tickets
+    BEGIN
+      UPDATE batch_summaries
+         SET waiting_picker_count = MAX(
+               0,
+               waiting_picker_count
+               - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END
+               + CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END
+             ),
+             overdue_picker_count = MAX(
+               0,
+               overdue_picker_count
+               - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END
+               + CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END
+             ),
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ticket_delete;
+    CREATE TRIGGER trg_d165_summary_ticket_delete
+      AFTER DELETE ON report_tickets
+    BEGIN
+      UPDATE batch_summaries
+         SET total_ticket_count = MAX(0, total_ticket_count - 1),
+             waiting_picker_count = MAX(
+               0,
+               waiting_picker_count - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END
+             ),
+             overdue_picker_count = MAX(
+               0,
+               overdue_picker_count - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END
+             ),
+             updated_at = CURRENT_TIMESTAMP
+       WHERE batch_id = OLD.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_batch_version;
+    CREATE TRIGGER trg_d165_summary_batch_version
+      AFTER UPDATE OF version ON report_batches
+      WHEN OLD.version <> NEW.version
+    BEGIN
+      UPDATE batch_summaries
+         SET ack_target_count = (
+               SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = NEW.batch_id AND a.batch_version = NEW.version
+             ),
+             acknowledged_count = (
+               SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = NEW.batch_id AND a.batch_version = NEW.version
+                  AND a.acknowledged_at IS NOT NULL
+             ),
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ack_insert;
+    CREATE TRIGGER trg_d165_summary_ack_insert
+      AFTER INSERT ON result_acknowledgements
+      WHEN NEW.batch_version = (SELECT version FROM report_batches WHERE batch_id = NEW.batch_id)
+    BEGIN
+      INSERT OR IGNORE INTO batch_summaries (batch_id, updated_at)
+      VALUES (NEW.batch_id, NEW.updated_at);
+      UPDATE batch_summaries
+         SET ack_target_count = ack_target_count + 1,
+             acknowledged_count = acknowledged_count +
+               CASE WHEN NEW.acknowledged_at IS NOT NULL THEN 1 ELSE 0 END,
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_acknowledged;
+    CREATE TRIGGER trg_d165_summary_acknowledged
+      AFTER UPDATE OF acknowledged_at ON result_acknowledgements
+      WHEN OLD.acknowledged_at IS NULL
+       AND NEW.acknowledged_at IS NOT NULL
+       AND NEW.batch_version = (SELECT version FROM report_batches WHERE batch_id = NEW.batch_id)
+    BEGIN
+      UPDATE batch_summaries
+         SET acknowledged_count = MIN(ack_target_count, acknowledged_count + 1),
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
 
     DROP TRIGGER IF EXISTS trg_v2_batch_recurrence;
     CREATE TRIGGER trg_v2_batch_recurrence
@@ -429,12 +627,12 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
         (SELECT version FROM report_batches WHERE batch_id = NEW.batch_id),
         CASE NEW.event_type
           WHEN 'REPORT_CREATED' THEN '["reporter_queue","picker_reports"]'
-          WHEN 'REPORT_WITHDRAWN' THEN '["reporter_queue","reporter_recent","picker_reports"]'
-          WHEN 'BATCH_RESOLVED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
-          WHEN 'BATCH_CORRECTED' THEN '["reporter_recent","picker_reports"]'
+          WHEN 'REPORT_WITHDRAWN' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
+          WHEN 'BATCH_RESOLVED' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
+          WHEN 'BATCH_CORRECTED' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
           WHEN 'SLA_WARNING' THEN '["reporter_queue"]'
           WHEN 'SLA_ESCALATED' THEN '["reporter_queue","picker_reports"]'
-          WHEN 'TICKET_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
+          WHEN 'TICKET_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_overdue","picker_reports"]'
           WHEN 'BATCH_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
           WHEN 'RESULT_ACKNOWLEDGED' THEN '["reporter_recent","picker_reports"]'
           ELSE '["operations"]'
@@ -463,13 +661,17 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
              NEW.created_at
         FROM report_tickets t
        WHERE t.batch_id = NEW.batch_id
-         AND t.status = 'RESOLVED'
          AND t.picker_user_id IS NOT NULL
          AND t.picker_user_id <> ''
          AND (
            NEW.event_type = 'BATCH_CORRECTED'
-           OR (NEW.event_type = 'BATCH_AUTO_SKIP_ALLOWED' AND t.resolution_source = 'SYSTEM_TIMEOUT')
-           OR (NEW.event_type = 'BATCH_RESOLVED' AND t.resolution_source = 'REPORTER')
+           OR (
+             t.status = 'RESOLVED'
+             AND (
+               (NEW.event_type = 'BATCH_AUTO_SKIP_ALLOWED' AND t.resolution_source = 'SYSTEM_TIMEOUT')
+               OR (NEW.event_type = 'BATCH_RESOLVED' AND t.resolution_source = 'REPORTER')
+             )
+           )
          )
        GROUP BY t.picker_user_id;
     END;
@@ -498,6 +700,37 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
          AND t.picker_user_id IS NOT NULL
          AND t.picker_user_id <> '';
     END;
+  `);
+
+  // D165: deterministic one-time/backstop rebuild. Runtime mutations after
+  // initialization are maintained by the triggers above in the same SQLite transaction.
+  sql.exec(`
+    INSERT INTO batch_summaries (
+      batch_id, total_ticket_count, waiting_picker_count, overdue_picker_count,
+      ack_target_count, acknowledged_count, updated_at
+    )
+    SELECT b.batch_id,
+           (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id),
+           (SELECT COUNT(*) FROM report_tickets t
+             WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL),
+           (SELECT COUNT(*) FROM report_tickets t
+             WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL),
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version),
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL),
+           b.updated_at
+      FROM report_batches b
+     WHERE 1
+    ON CONFLICT(batch_id) DO UPDATE SET
+      total_ticket_count = excluded.total_ticket_count,
+      waiting_picker_count = excluded.waiting_picker_count,
+      overdue_picker_count = excluded.overdue_picker_count,
+      ack_target_count = excluded.ack_target_count,
+      acknowledged_count = excluded.acknowledged_count,
+      updated_at = excluded.updated_at;
+    DELETE FROM batch_summaries
+     WHERE batch_id NOT IN (SELECT batch_id FROM report_batches);
   `);
 
   backfillResultEventSnapshots(state);
@@ -530,14 +763,9 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     state.storage.sql.exec<SqlRow>(
       `SELECT COUNT(*) AS total
          FROM report_batches b
+         JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
-          AND EXISTS (
-            SELECT 1
-              FROM report_tickets t
-             WHERE t.batch_id = b.batch_id
-               AND t.status = 'OPEN'
-               AND t.auto_skip_allowed_at IS NULL
-          )`,
+          AND s.waiting_picker_count > 0`,
     ).toArray(),
   ) || {};
 
@@ -558,9 +786,23 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     ).toArray(),
   ) || {};
 
+  const overdueTotalRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS total
+         FROM report_batches b
+         JOIN batch_summaries s ON s.batch_id = b.batch_id
+        WHERE b.status = 'PENDING'
+          AND s.overdue_picker_count > 0`,
+    ).toArray(),
+  ) || {};
+
+  const config = readSlaConfig(state);
   return json({
     queue_total: Number(queueTotalRow.total || 0),
+    overdue_total: Number(overdueTotalRow.total || 0),
     recent_total: Number(recentTotalRow.total || 0),
+    auto_skip_enabled: Boolean(config?.auto_skip_enabled),
+    auto_skip_mode: config?.auto_skip_mode || null,
     filter_status: status,
     from,
     to,
@@ -580,14 +822,9 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
     state.storage.sql.exec<SqlRow>(
       `SELECT COUNT(*) AS total
          FROM report_batches b
+         JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
-          AND EXISTS (
-            SELECT 1
-              FROM report_tickets t
-             WHERE t.batch_id = b.batch_id
-               AND t.status = 'OPEN'
-               AND t.auto_skip_allowed_at IS NULL
-          )`,
+          AND s.waiting_picker_count > 0`,
     ).toArray(),
   );
   const total = Number(totalRow?.total || 0);
@@ -595,17 +832,16 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id, b.auto_skip_deadline_at AS batch_auto_skip_at,
             p.resolved_at AS previous_resolved_at,
-            COUNT(t.ticket_id) AS affected_picker_count,
-            MIN(t.reported_at) AS earliest_ticket_at,
-            MIN(t.auto_skip_deadline_at) AS next_picker_auto_skip_at
+            s.waiting_picker_count AS affected_picker_count,
+            (SELECT MIN(t.reported_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS earliest_ticket_at,
+            (SELECT MIN(t.auto_skip_deadline_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS next_picker_auto_skip_at
        FROM report_batches b
-       JOIN report_tickets t
-         ON t.batch_id = b.batch_id
-        AND t.status = 'OPEN'
-        AND t.auto_skip_allowed_at IS NULL
+       JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
       WHERE b.status = 'PENDING'
-      GROUP BY b.batch_id
+        AND s.waiting_picker_count > 0
       ORDER BY b.first_report_at ASC, b.batch_id ASC
       LIMIT ? OFFSET ?`,
     limit,
@@ -633,6 +869,56 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
     };
   });
   return json({ items: rows, count: rows.length, total, limit, offset, server_now: serverNow, sla_configured: Boolean(config), sla: config });
+}
+
+function reporterOverdue(state: DurableObjectState, url: URL): Response {
+  const parsed = Number(url.searchParams.get("limit") || 100);
+  const parsedOffset = Number(url.searchParams.get("offset") || 0);
+  const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+  const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
+  const config = readSlaConfig(state);
+  const serverNow = new Date().toISOString();
+  if (!config?.auto_skip_enabled || config.auto_skip_mode !== "PER_PICKER") {
+    return json({ items: [], count: 0, total: 0, limit, offset, server_now: serverNow, enabled: false, auto_skip_mode: config?.auto_skip_mode || null });
+  }
+
+  const totalRow = first(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS total
+       FROM report_batches b
+       JOIN batch_summaries s ON s.batch_id = b.batch_id
+      WHERE b.status = 'PENDING'
+        AND s.overdue_picker_count > 0`,
+  ).toArray()) || {};
+
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
+            b.version, b.previous_batch_id,
+            s.overdue_picker_count,
+            (SELECT MIN(t.auto_skip_allowed_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS first_overdue_at,
+            (SELECT MAX(t.auto_skip_allowed_at) FROM report_tickets t
+              WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS latest_overdue_at,
+            s.waiting_picker_count
+       FROM report_batches b
+       JOIN batch_summaries s ON s.batch_id = b.batch_id
+      WHERE b.status = 'PENDING'
+        AND s.overdue_picker_count > 0
+      ORDER BY first_overdue_at ASC, b.batch_id ASC
+      LIMIT ? OFFSET ?`,
+    limit,
+    offset,
+  ).toArray();
+
+  return json({
+    items: rows,
+    count: rows.length,
+    total: Number(totalRow.total || 0),
+    limit,
+    offset,
+    server_now: serverNow,
+    enabled: true,
+    auto_skip_mode: "PER_PICKER",
+  });
 }
 
 function reporterRecent(state: DurableObjectState, url: URL): Response {
@@ -700,16 +986,20 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
                    FROM report_tickets t
                   WHERE t.batch_id = b.batch_id AND t.status = 'RESOLVED')
             END AS affected_picker_count,
-            (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
+            COALESCE(s.total_ticket_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id)) AS total_ticket_count,
             (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
-            (SELECT COUNT(DISTINCT a.target_user_id)
-               FROM result_acknowledgements a
-              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
-            (SELECT COUNT(DISTINCT a.target_user_id)
-               FROM result_acknowledgements a
-              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
+            COALESCE(s.ack_target_count,
+              (SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version)) AS ack_target_count,
+            COALESCE(s.acknowledged_count,
+              (SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                  AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
        FROM report_batches b
+       LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
       WHERE ${clause}
@@ -767,10 +1057,14 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const ackTotals = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT
-         COUNT(*) AS ack_target_count,
-         COALESCE(SUM(CASE WHEN a.acknowledged_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS acknowledged_count
-       FROM result_acknowledgements a
-       JOIN report_batches b ON b.batch_id = a.batch_id AND b.version = a.batch_version
+         COALESCE(SUM(COALESCE(s.ack_target_count,
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version))), 0) AS ack_target_count,
+         COALESCE(SUM(COALESCE(s.acknowledged_count,
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL))), 0) AS acknowledged_count
+       FROM report_batches b
+       LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE ${summaryClause}`,
       ...summaryArgs,
     ).toArray(),
@@ -1288,8 +1582,8 @@ export function pickerRealtimeSnapshot(
   if (!batchId || !userId) return null;
   const batch = first(state.storage.sql.exec<SqlRow>(
     `SELECT batch_id, sku, product_name, status AS batch_status,
-            resolution AS current_resolution, resolved_at AS current_resolved_at,
-            version AS current_batch_version, previous_batch_id
+            resolution AS current_resolution, resolution_source AS current_resolution_source,
+            resolved_at AS current_resolved_at, version AS current_batch_version, previous_batch_id
        FROM report_batches
       WHERE batch_id = ?
       LIMIT 1`,
@@ -1313,11 +1607,22 @@ export function pickerRealtimeSnapshot(
 
   const result = first(state.storage.sql.exec<SqlRow>(
     `SELECT s.result_event_id, s.batch_version, s.event_type, s.resolution, s.result_at,
-            a.received_at, a.displayed_at, a.acknowledged_at
+            a.received_at, a.displayed_at, a.acknowledged_at,
+            CASE
+              WHEN s.event_type IN ('BATCH_AUTO_SKIP_ALLOWED','TICKET_AUTO_SKIP_ALLOWED') THEN 'SYSTEM_TIMEOUT'
+              WHEN s.event_type = 'BATCH_CORRECTED' THEN 'REPORTER_CORRECTION'
+              ELSE COALESCE(NULLIF(b.resolution_source, ''), 'REPORTER')
+            END AS resolution_source,
+            COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+            COALESCE(resolver.employee_code, e.actor_employee_code, '') AS resolved_by_employee_code,
+            COALESCE(resolver.role, '') AS resolved_by_role
        FROM result_event_snapshots s
        JOIN result_acknowledgements a
          ON a.result_event_id = s.result_event_id
         AND a.target_user_id = ?
+       JOIN report_batches b ON b.batch_id = s.batch_id
+       LEFT JOIN report_events e ON e.event_id = s.result_event_id
+       LEFT JOIN users resolver ON resolver.user_id = e.actor_user_id
       WHERE s.result_event_id = ?
       LIMIT 1`,
     userId,
@@ -1575,6 +1880,7 @@ export async function handleOperationalV2CoreRequest(state: DurableObjectState, 
 
   if (request.method === "GET" && url.pathname === "/operational/reporter/counters") return reporterCounters(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/queue") return reporterQueue(state, url);
+  if (request.method === "GET" && url.pathname === "/operational/reporter/overdue") return reporterOverdue(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/recent") return reporterRecent(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/batch-tickets") return reporterBatchTickets(state, url);
   if (request.method === "GET" && url.pathname === "/operational/picker/reports") return pickerReports(state, url);

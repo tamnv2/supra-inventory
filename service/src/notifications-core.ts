@@ -261,7 +261,9 @@ async function notificationTargets(state: DurableObjectState, request: Request):
   const batchId = String(body.batch_id || "").trim();
   const resultEventId = String(body.result_event_id || "").trim();
   const resultTargets = targetUsersForResultEvent(state, resultEventId);
-  if (resultTargets.length) {
+  if (resultEventId) {
+    // D165: a result event with zero ACK targets intentionally means zero FCM
+    // fan-out (for example finalizing Skip when every Picker already timed out).
     for (const userId of resultTargets) users.add(userId);
   } else {
     for (const userId of targetUsersForBatch(state, batchId)) users.add(userId);

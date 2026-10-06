@@ -511,6 +511,7 @@ export class InventoryCore {
           metadata: {
             source: "SYSTEM_DEADLINE",
             ...(effect.queue_delta == null ? {} : { queue_delta: effect.queue_delta }),
+            ...(effect.overdue_delta == null ? {} : { overdue_delta: effect.overdue_delta }),
             ...(effect.recent_counter == null ? {} : { recent_counter: effect.recent_counter }),
           },
         }),
@@ -914,6 +915,16 @@ export class InventoryCore {
           if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
         }
         return this.authorizedOperationalResponse(request, user, "/operational/reporter/queue", params);
+      }
+
+      if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/overdue") {
+        const user = this.authorizeInteractiveIdentity(request, reporterRoles);
+        if (user instanceof Response) return user;
+        const params = new URLSearchParams();
+        for (const name of ["limit", "offset"]) {
+          if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+        }
+        return this.authorizedOperationalResponse(request, user, "/operational/reporter/overdue", params);
       }
 
       if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/recent") {

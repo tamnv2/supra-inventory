@@ -75,6 +75,12 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _hasActivePda;
         private readonly Action<bool> _relayHealth;
         private long _lastPollTelemetryMs;
+        private long _presenceAckSupersededCount;
+        private long _presenceAckStandbySkipCount;
+        private long _presenceAckDiagReportedSuperseded;
+        private long _presenceAckDiagReportedStandby;
+        private long _lastPresenceAckDiagnosticMs;
+        private const long PresenceAckDiagnosticIntervalMs = 5L * 60L * 1000L;
         private long _lastRestPendingQueryMs;
         private long _hotUntilMs;
         private int _lastBusinessPendingCount;
@@ -384,6 +390,11 @@ namespace SupraInventoryRelayAgent
                         Route = "PRESENCE_SNAPSHOT",
                         Matches = doc.PresenceSnapshot.Count
                     };
+                    if (_coordinator == null || !_coordinator.CanAcknowledgePresenceControl)
+                    {
+                        RecordPresenceAckDiagnostic(false);
+                        continue;
+                    }
                     if (TryAckControl(session, doc.Name, doc.UpdateTime, "picker_presence_current", applied))
                         processed++;
                     continue;
@@ -990,6 +1001,32 @@ namespace SupraInventoryRelayAgent
                 2);
         }
 
+        private void RecordPresenceAckDiagnostic(bool superseded)
+        {
+            if (superseded)
+                Interlocked.Increment(ref _presenceAckSupersededCount);
+            else
+                Interlocked.Increment(ref _presenceAckStandbySkipCount);
+
+            var now = NowMs();
+            var last = Interlocked.Read(ref _lastPresenceAckDiagnosticMs);
+            if (last > 0 && now - last < PresenceAckDiagnosticIntervalMs) return;
+            if (Interlocked.CompareExchange(ref _lastPresenceAckDiagnosticMs, now, last) != last) return;
+
+            var supersededTotal = Interlocked.Read(ref _presenceAckSupersededCount);
+            var standbyTotal = Interlocked.Read(ref _presenceAckStandbySkipCount);
+            var previousSuperseded = Interlocked.Exchange(ref _presenceAckDiagReportedSuperseded, supersededTotal);
+            var previousStandby = Interlocked.Exchange(ref _presenceAckDiagReportedStandby, standbyTotal);
+            var supersededDelta = Math.Max(0L, supersededTotal - previousSuperseded);
+            var standbyDelta = Math.Max(0L, standbyTotal - previousStandby);
+            if (supersededDelta == 0 && standbyDelta == 0) return;
+
+            _log("D165_DIAG PRESENCE_ACK_CONTROL expected_contention=AGGREGATED" +
+                 " superseded=" + supersededDelta.ToString(CultureInfo.InvariantCulture) +
+                 " standby_skipped=" + standbyDelta.ToString(CultureInfo.InvariantCulture) +
+                 " writer=PRIMARY_ONLY provider_retry=false transport_health_impact=NONE");
+        }
+
         private bool TryAckControl(
             AgentSession session,
             string name,
@@ -1037,12 +1074,10 @@ namespace SupraInventoryRelayAgent
                     string.Equals(canonical, "FAILED_PRECONDITION", StringComparison.OrdinalIgnoreCase);
                 if (superseded)
                 {
-                    _log("D160_DIAG FIRESTORE_CONTROL component=PRESENCE_ACK_CONTROL result=SUPERSEDED" +
-                         " http=" + status +
-                         " canonical=FAILED_PRECONDITION" +
-                         " update_precondition=1" +
-                         " presence_count=" + (outcome == null ? 0 : Math.Max(0, outcome.Matches)) +
-                         " transport_health_impact=NONE");
+                    // D165: CAS remains the safety fence, but a legitimate stale
+                    // snapshot is expected convergence noise. Aggregate it locally
+                    // instead of emitting one archive-worthy diagnostic per race.
+                    RecordPresenceAckDiagnostic(true);
                     try { if (response != null) response.Dispose(); } catch { }
                     return true;
                 }

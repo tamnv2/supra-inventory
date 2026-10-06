@@ -161,6 +161,8 @@ data class RealtimeDeltaEvent(
     val scopes: Set<String>,
     val batchId: String?,
     val batchVersion: Int?,
+    val metadata: JSONObject? = null,
+    val snapshot: JSONObject? = null,
 )
 
 data class RealtimeDelta(
@@ -395,6 +397,8 @@ class InventoryApi(
                 scopes = scopes,
                 batchId = nullable(row, "batch_id"),
                 batchVersion = row.optInt("batch_version", -1).takeIf { it >= 0 },
+                metadata = row.optJSONObject("metadata"),
+                snapshot = row.optJSONObject("snapshot"),
             )
         }
         return RealtimeDelta(

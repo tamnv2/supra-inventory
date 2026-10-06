@@ -379,9 +379,9 @@ Status: Owner-approved target; implementation deferred.
 - Android beta-vc97 is unchanged by this repair. Its existing per-user `picker_session_controls` generation listener is reused only after server authority succeeds.
 - No new role, provider resource, listener family, polling cadence or Stable authority is introduced.
 
-## D165 proposal-only critical re-authentication
+## D165 critical re-authentication
 
-Status: proposal recorded; implementation not started.
+Status: implementation complete on the D165 Beta change set; automated technical validation PASS. Field/usage acceptance remains Owner-gated.
 
 D165 adds re-authentication to the existing authorized SLA/processing-time save action:
 - existing RBAC remains mandatory;

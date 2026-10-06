@@ -2606,11 +2606,11 @@ Field acceptance:
 - kick one logged-in Picker and verify the PDA returns to login while the session-end support log reaches the normal runtime-log pipeline without restoring any business access;
 - in Web **Báo cáo chi tiết**, expand resolved and pending/withdrawn examples, verify the shown Picker list belongs only to the selected batch/SKU, collapse/reopen cleanly, and confirm normal report filtering/export still works.
 
-## D165 proposal-only acceptance gates
+## D165 acceptance gates
 
-Status: proposal recorded; implementation not started.
+Status: D165 automated technical gates PASS on the implementation head. Beta merge remains subject to final continuity CI; field/usage acceptance remains Owner-gated.
 
-Future D165 implementation must prove, under comparable load:
+D165 implementation must prove, under comparable load:
 
 - PER_PICKER Quá hạn separates timed-out and waiting Picker tickets for the same SKU; FIRST_REPORT stays unchanged.
 - HAS_STOCK correction is versioned, double-confirmed, auditable, and re-notified with acknowledgement.

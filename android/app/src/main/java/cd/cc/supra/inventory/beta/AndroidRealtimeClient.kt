@@ -23,7 +23,7 @@ class AndroidRealtimeClient(
     private val baseUrl: String,
     private val userId: String,
     private val log: (String) -> Unit = {},
-    private val onApply: (Set<String>, (Boolean) -> Unit) -> Unit,
+    private val onApply: (Set<String>, List<RealtimeDeltaEvent>, (Boolean) -> Unit) -> Unit,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val executor = Executors.newSingleThreadExecutor()
@@ -196,12 +196,22 @@ class AndroidRealtimeClient(
 
     private fun handleInvalidate(payload: JSONObject) {
         val scopes = readScopes(payload)
+        val frame = RealtimeDeltaEvent(
+            seq = payload.optLong("seq", 0L),
+            event = payload.optString("event"),
+            eventId = payload.optString("event_id"),
+            scopes = scopes,
+            batchId = payload.optString("batch_id").takeIf { it.isNotBlank() },
+            batchVersion = payload.optInt("batch_version", -1).takeIf { it >= 0 },
+            metadata = payload.optJSONObject("metadata"),
+            snapshot = payload.optJSONObject("snapshot"),
+        )
         val directCapabilityControl =
             scopes.contains("picker_reporting_enabled") || scopes.contains("picker_reporting_disabled")
         val seq = payload.optLong("seq", 0L)
         if (seq <= 0L) {
             if (directCapabilityControl) {
-                if (!applyScopesAndWait(scopes)) scheduleDirtyRecovery("capability_control_apply_failed")
+                if (!applyScopesAndWait(scopes, listOf(frame))) scheduleDirtyRecovery("capability_control_apply_failed")
                 return
             }
             scheduleDirtyRecovery("unsequenced_event")
@@ -216,7 +226,7 @@ class AndroidRealtimeClient(
             return
         }
 
-        if (!applyScopesAndWait(scopes)) {
+        if (!applyScopesAndWait(scopes, listOf(frame))) {
             scheduleDirtyRecovery("socket_apply_failed")
             return
         }
@@ -243,13 +253,13 @@ class AndroidRealtimeClient(
                     return
                 }
 
-                val scopes = linkedSetOf<String>()
-                page.events
+                val events = page.events
                     .filter { it.seq > cursor }
                     .sortedBy { it.seq }
-                    .forEach { event -> scopes += event.scopes }
+                val scopes = linkedSetOf<String>()
+                events.forEach { event -> scopes += event.scopes }
 
-                if (!applyScopesAndWait(scopes)) {
+                if (!applyScopesAndWait(scopes, events)) {
                     scheduleDirtyRecovery("$reason:delta_apply_failed")
                     return
                 }
@@ -272,14 +282,14 @@ class AndroidRealtimeClient(
     }
 
     private fun reconcileAndCommit(reason: String, cursor: Long, epoch: String) {
-        if (!applyScopesAndWait(setOf("picker_reports", "reporter_queue", "reporter_recent", "sku_catalog"))) {
+        if (!applyScopesAndWait(setOf("picker_reports", "reporter_queue", "reporter_recent", "sku_catalog"), emptyList())) {
             scheduleDirtyRecovery("$reason:reconcile_apply_failed")
             return
         }
         saveApplied(cursor.coerceAtLeast(0L), epoch)
     }
 
-    private fun applyScopesAndWait(scopes: Set<String>): Boolean {
+    private fun applyScopesAndWait(scopes: Set<String>, events: List<RealtimeDeltaEvent>): Boolean {
         if (scopes.isEmpty() || stopped) return true
         val latch = CountDownLatch(1)
         var success = false
@@ -289,7 +299,7 @@ class AndroidRealtimeClient(
                 return@post
             }
             try {
-                onApply(scopes) {
+                onApply(scopes, events) {
                     success = it
                     latch.countDown()
                 }

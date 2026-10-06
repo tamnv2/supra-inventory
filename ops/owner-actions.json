@@ -5165,7 +5165,7 @@
     },
     {
       "id": "OA099",
-      "status": "PENDING_OWNER_REVERIFY_BEFORE_IMPLEMENTATION",
+      "status": "PASS__OWNER_REVERIFIED_AND_EXPLICITLY_STARTED_D165_2026_10_07",
       "title": "Re-verify recorded D165 proposal before any implementation",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory / GitHub canonical authority",
@@ -5192,8 +5192,10 @@
         "D1 cold-history offload remains deferred beyond D165.",
         "Owner explicitly authorizes implementation only after verification."
       ],
-      "remaining_owner_action": "FUTURE_NEW_SESSION_REVERIFY_THEN_EXPLICIT_START_OR_CORRECT",
-      "closed": false
+      "remaining_owner_action": "NONE_FOR_IMPLEMENTATION_START__OWNER_FIELD_PASS_REQUIRED_AFTER_BETA_VALIDATION",
+      "closed": true,
+      "owner_result": "PASS__2026_10_07",
+      "owner_evidence": "Owner reviewed the canonical D165 detail and explicitly instructed: Ok chốt. Tiến hành chạy code."
     }
   ]
 }

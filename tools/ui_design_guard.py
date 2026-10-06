@@ -407,7 +407,7 @@ checks = {
     "web_d072_system_status_excluded": all(token in WEB_APP for token in [
         'navGroup("HỆ THỐNG", profile.role === "ROOT" && profile.base_role === "ROOT"',
         ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
-        '"picker", "operations", "results", "shift", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account"',
+        '"picker", "operations", "overdue", "results", "shift", "sku", "hr", "users", "sla", "dashboard", "reports", "logs", "tools", "system-reset", "account"',
     ]) and all(token not in WEB_APP for token in [
         "getSystemStatus(",
         'navButton("system"',

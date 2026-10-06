@@ -1161,6 +1161,7 @@ export default {
             digest: release.digest,
             apk_path: release.stable_download_path,
             checksum_path: "/downloads/pda/latest.sha256",
+            release_notes: release.release_notes,
           });
         } catch (error) {
           return json({ error: "PDA_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 503);
@@ -1186,6 +1187,7 @@ export default {
             digest: release.digest,
             exe_path: release.stable_download_path,
             checksum_path: "/downloads/agent/latest.sha256",
+            release_notes: release.release_notes,
           });
         } catch (error) {
           return json({ error: "AGENT_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 503);

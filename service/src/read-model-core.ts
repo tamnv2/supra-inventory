@@ -1,4 +1,4 @@
-import { handleOperationalV2CoreRequest, operationalV2Readiness, pickerCanReceiveRealtimeEvent, pickerRealtimeSnapshot, realtimeStreamMetadata } from "./operational-v2-core";
+import { currentBatchSnapshot, handleOperationalV2CoreRequest, operationalV2Readiness, pickerCanReceiveRealtimeEvent, pickerRealtimeSnapshot, realtimeStreamMetadata } from "./operational-v2-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -407,29 +407,6 @@ function pickerUserTagsForResultEvent(state: DurableObjectState, batchId: string
     .filter((tag) => REALTIME_TAG_RE.test(tag));
 }
 
-function batchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
-  if (!batchId) return null;
-  const row = first(state.storage.sql.exec<SqlRow>(
-    `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-            b.resolved_at, b.resolution, b.correction_deadline_at, b.version, b.previous_batch_id,
-            (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
-            (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN') AS open_ticket_count,
-            (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
-            (SELECT COUNT(DISTINCT a.target_user_id)
-               FROM result_acknowledgements a
-              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
-            (SELECT COUNT(DISTINCT a.target_user_id)
-               FROM result_acknowledgements a
-              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
-       FROM report_batches b
-      WHERE b.batch_id = ?
-      LIMIT 1`,
-    batchId,
-  ).toArray());
-  return row ? { ...row } : null;
-}
-
 function realtimeEvent(state: DurableObjectState, eventId: string): SqlRow | null {
   if (!eventId) return null;
   return first(state.storage.sql.exec<SqlRow>(
@@ -486,6 +463,7 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
   const eventIdentity = eventId || (eventRow ? String(eventRow.event_id || "") : "");
   const ticketId = eventRow?.ticket_id == null ? null : String(eventRow.ticket_id);
   const eventBatchVersion = Number(eventRow?.batch_version || 0);
+  const reporterSnapshot = batchId ? currentBatchSnapshot(state, batchId) : null;
   let sent = 0;
   let failed = 0;
   let filtered = 0;
@@ -521,7 +499,7 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
 
     const snapshot = attachment.role === "PICKER" && !directPickerControl
       ? pickerRealtimeSnapshot(state, batchId, eventIdentity, ticketId, attachment.user_id)
-      : (attachment.role === "PICKER" ? null : (batchId ? batchSnapshot(state, batchId) : null));
+      : (attachment.role === "PICKER" ? null : reporterSnapshot);
     const metadata = attachment.role === "PICKER"
       ? { ...(directPickerControl ? (body.metadata || {}) : {}), ...(batchId ? { batch_id: batchId } : {}) }
       : { ...(body.metadata || {}), ...(batchId ? { batch_id: batchId } : {}) };

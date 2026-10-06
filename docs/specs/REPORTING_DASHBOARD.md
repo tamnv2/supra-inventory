@@ -298,9 +298,9 @@ Reporter queue and recent results are independent read models for realtime refre
 - The source is the existing reporting-detail authority used by detailed Excel export. Existing report date/status/SKU filters, pagination and export behavior remain unchanged.
 - No new database schema or persistent provider resource is required.
 
-## D165 proposal-only Quá hạn and result-correction surfaces
+## D165 Quá hạn and result-correction surfaces
 
-Status: proposal recorded; implementation not started.
+Status: implementation complete on the D165 Beta change set; automated technical validation PASS. Field/usage acceptance remains Owner-gated.
 
 For `PER_PICKER`, the Reporter workspace adds a pinned **Quá hạn** tab next to the existing operational tabs. A SKU may be present in both **Đang xử lý** and **Quá hạn** when different Picker tickets are at different deadline states.
 
