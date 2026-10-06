@@ -5045,11 +5045,11 @@
     },
     {
       "id": "OA097",
-      "status": "PENDING_FIELD_VALIDATION",
+      "status": "WAITING_D162_TAB_COUNTER_REPAIR_RUNTIME_DEPLOY",
       "title": "Field-accept D162 usage efficiency under comparable active load",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Firestore / Web / Windows Agent",
-      "reason_owner_only": "D162 technical/runtime gates including the Owner-approved realtime badge lazy-queue repair are PASS. Final comparable-load usage, latency/stability evidence and business acceptance still require the Owner/company operating environment.",
+      "reason_owner_only": "Owner field review found the visible Web workspace tab counts were not realtime: they changed only after loading the corresponding list. Same-D162 repair is in progress. Final comparable-load usage/business acceptance must wait for repaired Beta runtime.",
       "prerequisites": {
         "accepted_base": "D161__OWNER_PASS",
         "d162_main": "9ac67180c310fe56324608e3118671d278f311c6",
@@ -5058,7 +5058,8 @@
         "android": "beta-vc97__UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
         "d162_realtime_badge_repair": "PASS__PR_449__MAIN_D970790B__BETA_DEPLOY_RUN_37391459092",
-        "d162_current_runtime": "MAIN_D970790B__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED"
+        "d162_current_runtime": "MAIN_D970790B__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED",
+        "d162_workspace_tab_counter_repair": "OWNER_APPROVED_2026_10_06__IMPLEMENTED_BRANCH_CI_PENDING"
       },
       "shortest_test_path": [
         "Operate Beta normally during a representative active period; do not generate artificial traffic solely for the test.",
@@ -5100,7 +5101,7 @@
         "repair_d127_run": 37391458086,
         "repair_d159_usage_run": 37391457987
       },
-      "remaining_owner_action": "FIELD_USAGE_AND_BUSINESS_ACCEPTANCE_PENDING",
+      "remaining_owner_action": "WAIT_FOR_D162_TAB_COUNTER_REPAIR_RUNTIME_PASS__THEN_VERIFY_REALTIME_TAB_COUNTS_AND_RESUME_FIELD_USAGE_ACCEPTANCE",
       "closed": false
     }
   ]
