@@ -3445,3 +3445,17 @@ Usage policy:
 - current PickList latency, realtime behavior, 15-second failover objective, correctness and zero duplicate WMS mutation are hard acceptance guards.
 
 No D165 source/build/runtime action occurred in this authority-only recording.
+
+
+## 2026-10-07 — D165 implementation start — Owner explicit authorization
+
+Status: **IMPLEMENTATION STARTED — BETA/INVENTORY SCOPE ONLY**.
+
+After a fresh authority bootstrap and review of the canonical D165 plan, the Owner explicitly confirmed **“Ok chốt. Tiến hành chạy code.”** This closes OA099 and authorizes D165 implementation on a branch/PR.
+
+Boundary guard:
+- D164 PDA Management remains field-pending and isolated under `pda-management/**`;
+- D165 may run in parallel only inside the Inventory runtime scope already defined by the approved plan;
+- any shared-boundary collision must wait/fail closed rather than merge D164 and D165 behavior;
+- Stable remains OWNER-GATED and untouched;
+- D165 technical/runtime PASS will still require Owner field PASS before promotion to the accepted Inventory base.
