@@ -33,11 +33,11 @@
     "reporting": "D163_OWNER_FIELD_ACCEPTED_PASS__LAZY_EXACT_BATCH_PICKER_DETAIL",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_INVENTORY_PROPOSAL_RECORDED_NOT_STARTED__STABLE_UNTOUCHED",
+    "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_INVENTORY_IMPLEMENTATION_ACTIVE_FINAL_CI_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
     "agent": "D162_OWNER_ACCEPTED_RELAY_AGENT_V114__D163_OWNER_PASS_UNCHANGED",
-    "d165_proposal": "OWNER_APPROVED_PROPOSAL_ONLY__IMPLEMENTATION_NOT_STARTED__OWNER_REVERIFY_AND_EXPLICIT_START_REQUIRED"
+    "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__IMPLEMENTATION_ACTIVE_FINAL_CI_PENDING__FIELD_OWNER_PASS_REQUIRED"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -5651,7 +5651,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "IMPLEMENTATION_ACTIVE__AUTOMATED_VALIDATION_BLOCKED_ON_UI_REAUTH_GATE",
+    "status": "IMPLEMENTATION_ACTIVE__FINAL_CI_VALIDATION",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5756,6 +5756,6 @@
     "build_released": false,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "RESOLVE_UI_REAUTH_GATE_WITHOUT_WEAKENING_SECURITY_GUARD__RERUN_CI__MERGE_BETA_ONLY__FIELD_VALIDATE__OWNER_PASS"
+    "next_action": "FINAL_CI_AND_AUTHORITY_PASS__MERGE_BETA_ONLY__FIELD_VALIDATE_USAGE_AND_BEHAVIOR__OWNER_PASS"
   }
 }
