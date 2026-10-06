@@ -583,16 +583,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
         .toArray(),
     );
     const queueDelta = Number(activeRemaining?.count || 0) === 0 ? -1 : 0;
-    const eventId = event(
-      state,
-      actor,
-      "REPORT_WITHDRAWN",
-      ticket.batch_id,
-      ticketId,
-      { sku: ticket.sku, queue_delta: queueDelta },
-      at,
-    );
-    audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
+    let recentAfterStatus: "SKIP_ALLOWED" | "CLOSED" | null = null;
     if (Number(activeRemaining?.count || 0) === 0) {
       const timedOut = firstRow(
         state.storage.sql
@@ -603,6 +594,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           .toArray(),
       );
       if (Number(timedOut?.count || 0) > 0) {
+        recentAfterStatus = "SKIP_ALLOWED";
         const batchForCorrection = firstRow(
           state.storage.sql.exec<SqlRow>("SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
         );
@@ -626,6 +618,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           ticket.batch_id,
         );
       } else {
+        recentAfterStatus = "CLOSED";
         state.storage.sql.exec(
           `UPDATE report_batches
               SET status = 'CLOSED', updated_at = ?
@@ -636,7 +629,29 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
       }
     }
 
-    const payload = { status: "withdrawn", ticket_id: ticketId, batch_id: ticket.batch_id, withdrawn_at: at, event_id: eventId, queue_delta: queueDelta };
+    const recentCounter = recentAfterStatus
+      ? { before_status: null, before_at: null, after_status: recentAfterStatus, after_at: at }
+      : null;
+    const eventId = event(
+      state,
+      actor,
+      "REPORT_WITHDRAWN",
+      ticket.batch_id,
+      ticketId,
+      { sku: ticket.sku, queue_delta: queueDelta, ...(recentCounter ? { recent_counter: recentCounter } : {}) },
+      at,
+    );
+    audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
+
+    const payload = {
+      status: "withdrawn",
+      ticket_id: ticketId,
+      batch_id: ticket.batch_id,
+      withdrawn_at: at,
+      event_id: eventId,
+      queue_delta: queueDelta,
+      ...(recentCounter ? { recent_counter: recentCounter } : {}),
+    };
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 200, payload } satisfies BusinessResult;
   });
