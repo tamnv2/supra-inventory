@@ -1,6 +1,6 @@
 # D165 — Inventory Reliability, Realtime and Usage Optimization Plan
 
-Status: **OWNER-APPROVED PROPOSAL ONLY — IMPLEMENTATION NOT STARTED**  
+Status: **IMPLEMENTATION STARTED — OWNER EXPLICIT START 2026-10-07**  
 Recorded: 2026-10-06  
 Inventory accepted base: **D163 Owner PASS**  
 Parallel workstream note: **D164 PDA Management remains independent and field-pending under `ops/pda-management-state.json`. D165 is recorded as a dormant proposal and does not replace the current D164 change-control slot.**  
@@ -10,15 +10,14 @@ Stable: **OWNER-GATED — untouched**.
 
 The Owner approved the complete D165 proposal after reviewing D163 live behavior, all 2026-10-06 Báo hàng logs, and refreshed Cloudflare/Firebase/GCP usage screenshots.
 
-This change set records the proposal only. It must **not**:
-- edit runtime source;
-- build APK/Agent;
-- deploy Worker/Firebase/RTDB/Firestore Rules;
-- create provider resources;
-- change Stable;
-- start D165 implementation.
+The proposal-only recording gate was satisfied on 2026-10-07 by a fresh authority bootstrap and explicit Owner start. Implementation remains subject to the following guards:
+- use branch → PR → authority/continuity/component gates → merge;
+- keep D164 PDA Management isolated;
+- change only scoped Beta Inventory resources;
+- keep Stable untouched unless separately Owner-authorized;
+- preserve every realtime/speed/stability acceptance invariant in this document.
 
-A later session must fresh-bootstrap repository authority and re-verify this plan with the Owner. Implementation may start only after an explicit new Owner command confirming that the recorded D165 plan is correct and should be executed, and only when change-control / isolated-boundary governance permits it.
+That required fresh-bootstrap/re-verification occurred on 2026-10-07 and the Owner explicitly started D165. This document remains the implementation contract.
 
 ## 2. Primary objective
 
