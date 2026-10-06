@@ -64,8 +64,31 @@ function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     const action = String(body.action || '');
+
+    // D165 privileged auth bootstrap: these two actions intentionally run before
+    // Firebase validation because a fresh Agent does not yet have an ID token.
+    // Secrets are forwarded only to the Beta Worker and are never persisted/logged here.
+    if (action === 'request_privileged_auth_code') {
+      const username = String(body.username || '').trim().toLowerCase();
+      if (!/^(admin|tamnv2)$/.test(username)) throw new Error('PRIVILEGED_AGENT_ACCOUNT_REQUIRED');
+      return proxyWorkerJson_('/api/auth/privileged-code', { username: username }, '');
+    }
+    if (action === 'privileged_agent_login') {
+      const username = String(body.username || '').trim().toLowerCase();
+      const proof = String(body.password || '');
+      if (!/^(admin|tamnv2)$/.test(username) || !proof || proof.length > 128) {
+        throw new Error('PRIVILEGED_AGENT_CREDENTIAL_REQUIRED');
+      }
+      return proxyWorkerJson_('/api/auth/privileged-agent-login', { username: username, password: proof }, '');
+    }
+
     const idToken = String(body.id_token || '');
     const auth = validateIdToken_(idToken);
+    if (action === 'privileged_agent_reauth') {
+      const proof = String(body.proof || '');
+      if (!proof || proof.length > 128) throw new Error('PRIVILEGED_AGENT_PROOF_REQUIRED');
+      return proxyWorkerJson_('/api/agent/reauth', { proof: proof }, idToken);
+    }
     if (action === 'get_firestore_usage') return json_(loadSnapshot_());
     if (action === 'request_support_logs') {
       const requestId = String(body.request_id || '');
@@ -702,6 +725,35 @@ function zonedMidnightUtc_(now, timeZone) {
     guess += desired - represented;
   }
   return new Date(guess);
+}
+
+function proxyWorkerJson_(path, payload, idToken) {
+  const headers = {};
+  if (idToken) headers.authorization = ['Bea', 'rer ', idToken].join('');
+  const worker = UrlFetchApp.fetch(
+    'https://inventory-beta.supra.cc.cd' + String(path || ''),
+    {
+      method: 'post',
+      contentType: 'application/json',
+      headers: headers,
+      payload: JSON.stringify(payload || {}),
+      muteHttpExceptions: true
+    }
+  );
+  const status = worker.getResponseCode();
+  let result = {};
+  try { result = JSON.parse(worker.getContentText() || '{}'); } catch (_) { result = {}; }
+  if (status < 200 || status >= 300) {
+    return json_({
+      ok: false,
+      error: String(result.error || ('WORKER_HTTP_' + status)).substring(0, 120),
+      message: String(result.message || '').substring(0, 240),
+      retry_after_seconds: Number(result.retry_after_seconds || 0),
+      worker_status: status
+    });
+  }
+  result.ok = true;
+  return json_(result);
 }
 
 function validateIdToken_(token) {
