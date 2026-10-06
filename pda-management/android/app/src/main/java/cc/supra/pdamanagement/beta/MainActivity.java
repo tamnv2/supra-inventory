@@ -1461,6 +1461,18 @@ public final class MainActivity extends Activity {
         if (editing) displayName.setText(existing.optString("display_name", ""));
         addWithTopMargin(form, displayName, 7);
 
+        Spinner statusSpinner = null;
+        if (editing) {
+            statusSpinner = new Spinner(this);
+            statusSpinner.setAdapter(new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                new String[] {"Đang hoạt động", "Tạm khóa"}
+            ));
+            statusSpinner.setSelection("DISABLED".equals(existing.optString("status", "")) ? 1 : 0);
+            addWithTopMargin(form, statusSpinner, 7);
+        }
+
         EditText password = null;
         if (!editing) {
             password = new EditText(this);
@@ -1471,6 +1483,7 @@ public final class MainActivity extends Activity {
         }
 
         final EditText newPassword = password;
+        final Spinner accountStatus = statusSpinner;
         AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle(editing ? "Sửa tài khoản Điều phối" : "Thêm tài khoản Điều phối")
             .setView(form)
@@ -1495,7 +1508,8 @@ public final class MainActivity extends Activity {
                 if (editing) {
                     try {
                         body.put("user_id", existing.optString("user_id", ""));
-                        body.put("status", existing.optString("status", "ACTIVE"));
+                        body.put("status", accountStatus != null && accountStatus.getSelectedItemPosition() == 1
+                            ? "DISABLED" : "ACTIVE");
                     } catch (Exception ignoredJson) {}
                 } else {
                     try { body.put("password", pass); } catch (Exception ignoredJson) {}
