@@ -916,6 +916,16 @@ export class InventoryCore {
         return this.authorizedOperationalResponse(request, user, "/operational/reporter/queue", params);
       }
 
+      if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/overdue") {
+        const user = this.authorizeInteractiveIdentity(request, reporterRoles);
+        if (user instanceof Response) return user;
+        const params = new URLSearchParams();
+        for (const name of ["limit", "offset"]) {
+          if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+        }
+        return this.authorizedOperationalResponse(request, user, "/operational/reporter/overdue", params);
+      }
+
       if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/recent") {
         const user = this.authorizeInteractiveIdentity(request, reporterRoles);
         if (user instanceof Response) return user;
