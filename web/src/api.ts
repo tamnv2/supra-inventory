@@ -820,15 +820,24 @@ export async function authorizedFetch(path: string, init: RequestInit = {}): Pro
     headers.set("accept", "application/json");
     if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
     let response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
-    if (response.status === 401 && session?.refresh_token) {
-      retriedAfter401 = true;
-      await refreshSession();
-      if (!session) return response;
-      const retryHeaders = new Headers(init.headers);
-      retryHeaders.set("authorization", `Bearer ${session.id_token}`);
-      retryHeaders.set("accept", "application/json");
-      if (init.body && !retryHeaders.has("content-type")) retryHeaders.set("content-type", "application/json");
-      response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: retryHeaders });
+    if (response.status === 401) {
+      const authFailure = await response.clone().json().catch(() => null) as { error?: string } | null;
+      const terminalSessionError = ["SESSION_REPLACED", "AUTH_REQUIRED", "INVALID_AUTH_TOKEN", "USER_NOT_ACTIVE"].includes(
+        String(authFailure?.error || "").toUpperCase(),
+      );
+      if (terminalSessionError) {
+        clearSession();
+        window.dispatchEvent(new CustomEvent("supra:session-changed", { detail: { reason: authFailure?.error || "AUTH_REQUIRED" } }));
+      } else if (session?.refresh_token) {
+        retriedAfter401 = true;
+        await refreshSession();
+        if (!session) return response;
+        const retryHeaders = new Headers(init.headers);
+        retryHeaders.set("authorization", `Bearer ${session.id_token}`);
+        retryHeaders.set("accept", "application/json");
+        if (init.body && !retryHeaders.has("content-type")) retryHeaders.set("content-type", "application/json");
+        response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: retryHeaders });
+      }
     }
     emitApiTelemetry({
       name: "authorized_request",
