@@ -2017,6 +2017,7 @@ function renderSla(): string {
 
       <div class="sla-config-footer">
         <div><strong>Lưu ý</strong><span>Hệ thống kiểm tra phiên bản cấu hình trước khi lưu. Nếu một máy khác vừa cập nhật, bản cũ sẽ không được phép ghi đè.</span></div>
+        <label class="field"><span>Mật khẩu tài khoản hiện tại</span><input name="currentPassword" type="password" autocomplete="current-password" required maxlength="128" placeholder="Nhập mật khẩu để xác nhận" /></label>
         <button id="sla-save-button" class="primary" ${slaSaveBusy ? "disabled" : ""}>${slaSaveBusy ? "Đang lưu…" : "Lưu cấu hình toàn hệ thống"}</button>
       </div>
     </form>
@@ -3480,7 +3481,7 @@ async function saveSlaConfiguration(form: HTMLFormElement): Promise<void> {
   }
 
   if (!window.confirm("CẢNH BÁO: Thay đổi thời gian xử lý có thể làm mốc cho phép Skip của Picker sớm hơn hoặc muộn hơn. Bạn có chắc muốn lưu cấu hình mới?")) return;
-  const currentPassword = window.prompt("Nhập mật khẩu tài khoản hiện tại để xác nhận thay đổi quan trọng:") || "";
+  const currentPassword = String(data.get("currentPassword") || "");
   if (!currentPassword) {
     setNotice("warning", "Chưa lưu: cần mật khẩu tài khoản hiện tại để xác nhận.");
     return;
