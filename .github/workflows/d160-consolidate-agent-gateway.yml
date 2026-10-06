@@ -356,7 +356,7 @@ jobs:
             .ok == true and
             .service == "SUPRA_AGENT_OPERATIONS_USAGE_D160" and
             .project == "supra-inventory-beta" and
-            .revision == "D160-GW-v1" and
+            .revision == "D161-GW-v2" and
             .availability.reads == true
           ' "$work/usage-response.json" >/dev/null || fail "authenticated-usage-contract"
 
