@@ -201,18 +201,30 @@ function parseJsonArray(value: unknown): string[] {
   }
 }
 
-function currentBatchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
+export function currentBatchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
   if (!batchId) return null;
   const row = first(
     state.storage.sql.exec<SqlRow>(
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-              b.resolved_at, b.resolution, b.resolution_source, b.correction_deadline_at,
+              b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
               b.auto_skip_deadline_at, b.version, b.previous_batch_id,
               p.resolved_at AS previous_resolved_at,
+              COALESCE(resolver.display_name, '') AS resolved_by_display_name,
+              COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS open_ticket_count,
-              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS overdue_ticket_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS waiting_picker_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS overdue_picker_count,
+              (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
+                 FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'RESOLVED') AS resolved_picker_count,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
+              (SELECT MIN(t.reported_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS earliest_ticket_at,
+              (SELECT MIN(t.auto_skip_deadline_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS next_picker_auto_skip_at,
+              (SELECT MIN(t.auto_skip_allowed_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS first_overdue_at,
+              (SELECT MAX(t.auto_skip_allowed_at) FROM report_tickets t
+                 WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS latest_overdue_at,
               (SELECT COUNT(DISTINCT a.target_user_id)
                  FROM result_acknowledgements a
                 WHERE a.batch_id = b.batch_id AND a.batch_version = b.version) AS ack_target_count,
@@ -222,15 +234,51 @@ function currentBatchSnapshot(state: DurableObjectState, batchId: string): Recor
                   AND a.acknowledged_at IS NOT NULL) AS acknowledged_count
          FROM report_batches b
          LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
+         LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
         WHERE b.batch_id = ?
         LIMIT 1`,
       batchId,
     ).toArray(),
   );
   if (!row) return null;
+
   const config = readSlaConfig(state);
-  const sla = row.status === "PENDING" ? slaState(String(row.first_report_at || ""), config) : null;
-  return { ...row, ...(sla ? { sla_state: sla.state, waiting_minutes: sla.waiting_minutes } : {}) };
+  const firstReportAt = String(row.first_report_at || "");
+  const previousResolvedAt = String(row.previous_resolved_at || "");
+  const previousResolvedMs = Date.parse(previousResolvedAt);
+  const firstReportMs = Date.parse(firstReportAt);
+  const recurrenceMinutes =
+    Number.isFinite(previousResolvedMs) && Number.isFinite(firstReportMs)
+      ? Math.max(0, Math.round((firstReportMs - previousResolvedMs) / 60_000))
+      : null;
+
+  if (String(row.status || "") !== "PENDING") {
+    return {
+      ...row,
+      affected_picker_count: String(row.status || "") === "CLOSED"
+        ? Number(row.withdrawn_ticket_count || 0)
+        : Number(row.resolved_picker_count || 0),
+      recurrence_minutes: recurrenceMinutes,
+    };
+  }
+
+  const sla = slaState(firstReportAt, config);
+  const deadlines = slaDeadlines(firstReportAt, config);
+  return {
+    ...row,
+    open_ticket_count: Number(row.waiting_picker_count || 0),
+    affected_picker_count: Number(row.waiting_picker_count || 0),
+    sla_state: sla.state,
+    waiting_minutes: sla.waiting_minutes,
+    warning_at: deadlines.warning_at,
+    escalation_at: deadlines.escalation_at,
+    auto_skip_enabled: Boolean(config?.auto_skip_enabled),
+    auto_skip_mode: config?.auto_skip_mode || null,
+    auto_skip_at: config?.auto_skip_enabled
+      ? (config.auto_skip_mode === "FIRST_REPORT" ? (row.auto_skip_deadline_at || null) : (row.next_picker_auto_skip_at || null))
+      : null,
+    recurrence_minutes: recurrenceMinutes,
+  };
 }
 
 function backfillResultEventSnapshots(state: DurableObjectState): void {
