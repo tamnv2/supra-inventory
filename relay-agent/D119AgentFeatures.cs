@@ -77,6 +77,7 @@ namespace SupraInventoryRelayAgent
         private readonly TextBox _pickerSearch = new TextBox();
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
         private string _pickerOnlineRenderSignature = "";
+        private int _d165PickerNoticeGeneration;
         private bool? _d119AuthenticatedState;
         private readonly System.Windows.Forms.Timer _d119OpsTimer = new System.Windows.Forms.Timer();
         private FirestorePickerPresenceClient _pickerPresenceClient;
@@ -2050,6 +2051,50 @@ namespace SupraInventoryRelayAgent
             RefreshD119OperationalViews(true);
         }
 
+        private void RestoreD165PickerOperationalStatus()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(RestoreD165PickerOperationalStatus));
+                return;
+            }
+            if (!HasAgentSession())
+            {
+                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
+                return;
+            }
+
+            if (_pickerWindowOpenState.HasValue && !_pickerWindowOpenState.Value)
+            {
+                _pickerOnlineStatus.Text =
+                    _pickerOnlineSnapshot.Count.ToString("N0") +
+                    " Picker đang hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
+                return;
+            }
+
+            var coordinator = _leaderCoordinator;
+            _pickerOnlineStatus.Text =
+                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker đang hoạt động" +
+                (coordinator != null && coordinator.IsLeader ? " · PRIMARY" : " · đồng bộ fleet");
+        }
+
+        private void ShowD165PickerOperationNotice(string text, int milliseconds = 4500)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<string, int>(ShowD165PickerOperationNotice), text, milliseconds);
+                return;
+            }
+
+            var generation = Interlocked.Increment(ref _d165PickerNoticeGeneration);
+            _pickerOnlineStatus.Text = text ?? "";
+            Task.Delay(Math.Max(1500, milliseconds)).ContinueWith(_ =>
+            {
+                if (generation != Volatile.Read(ref _d165PickerNoticeGeneration)) return;
+                try { Ui(RestoreD165PickerOperationalStatus); } catch { }
+            });
+        }
+
         private void RenderD157OperationalListsFromMemory()
         {
             if (!HasAgentSession()) return;
@@ -3130,10 +3175,10 @@ namespace SupraInventoryRelayAgent
                     picker.FirebaseUid,
                     authoritativeGeneration);
                 ApplyD134AgentSyncSnapshot(snapshot);
-                Ui(() => _pickerOnlineStatus.Text =
+                Ui(() => ShowD165PickerOperationNotice(
                     "Đã Kích User " +
                     (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
-                    " · phiên máy chủ đã vô hiệu · PDA được yêu cầu đăng nhập lại.");
+                    " · phiên máy chủ đã vô hiệu · PDA được yêu cầu đăng nhập lại."));
                 Log("PICKER_SESSION kick=PASS user=" + SafeUserLabel(picker.EmployeeCode, picker.UserId) +
                     " generation=" + authoritativeGeneration +
                     " request_id=" + requestId +
@@ -3336,10 +3381,10 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken();
                 var session = SnapshotSession();
                 _pickerContactClient.Send(session, _agentInstanceId, picker, "CHAT_MESSAGE", message);
-                Ui(() => _pickerOnlineStatus.Text =
+                Ui(() => ShowD165PickerOperationNotice(
                     "Đã gửi thông báo tới " +
                     (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
-                    " · Picker xác nhận đóng cảnh báo ngay trên PDA.");
+                    " · Picker xác nhận đóng cảnh báo ngay trên PDA."));
             }
             catch (Exception ex)
             {
@@ -3369,10 +3414,10 @@ namespace SupraInventoryRelayAgent
                 ApplyD134AgentSyncSnapshot(snapshot);
                 Ui(() =>
                 {
-                    _pickerOnlineStatus.Text =
+                    ShowD165PickerOperationNotice(
                         "Đã Liên hệ picker " +
                         (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
-                        " · nút gọi khóa 60 giây trên toàn bộ Agent.";
+                        " · nút gọi khóa 60 giây trên toàn bộ Agent.");
                 });
             }
             catch (Exception ex)
@@ -3410,8 +3455,8 @@ namespace SupraInventoryRelayAgent
                 _pickerContactClient.Resolve(session, _agentInstanceId, command);
                 var snapshot = _agentSyncClient.SetCallResolved(session, picker.UserId, command.AlertId);
                 ApplyD134AgentSyncSnapshot(snapshot);
-                Ui(() => _pickerOnlineStatus.Text =
-                    "Đã kết thúc Liên hệ picker · PDA sẽ đóng cảnh báo; nút gọi vẫn khóa đủ 60 giây.");
+                Ui(() => ShowD165PickerOperationNotice(
+                    "Đã kết thúc Liên hệ picker · PDA sẽ đóng cảnh báo; nút gọi vẫn khóa đủ 60 giây."));
             }
             catch (Exception ex)
             {
