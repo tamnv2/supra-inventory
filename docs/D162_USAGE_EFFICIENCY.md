@@ -114,3 +114,15 @@ The same-D162 repair therefore:
 - leaves Agent v114, Android vc97 and Stable unchanged.
 
 This repair must pass PR CI/authority, merge and Beta runtime deployment before OA097 comparable-load field acceptance resumes.
+
+## Workspace tab realtime counter repair runtime checkpoint
+
+- Repair PR #451 merged to main `8fca1fb539f2396cefaff621368758336035c00b`.
+- PR CI: 12/12 PASS, including Authority, Project State, Operational V2/Web regression, Worker typecheck, Web production build and Android debug gate.
+- Main Beta Worker/Web deploy run `37395842899`: PASS with health/source/schema/auth/business/Web-shell verification.
+- Main Authority `37395842893`, Project State `37395842908`, UI `37395843053`, D127 `37395843108`, D159 usage `37395843560`: PASS.
+- Normal realtime changes update **Đang xử lý** from `queue_delta` and **Kết quả gần đây** from `recent_counter` transitions with no counter/list API call.
+- F5/login/gap/reconnect may perform one lightweight dual-counter authoritative read.
+- Full queue/recent lists remain visibility-scoped; no polling or new provider cadence/resource was introduced.
+- Agent remains v114, Android remains vc97 and Stable remains OWNER-GATED.
+- D162 remains open for OA097 field confirmation, comparable-load usage/latency evidence and explicit Owner PASS.
