@@ -597,9 +597,9 @@ Repeated expected 4xx classes must be aggregated by route/status/error code when
 - This exception never applies to business APIs, other log reasons, older generations, non-Picker roles, Web or Agent sessions.
 - The accepted bundle follows the existing sanitization, InventoryCore-first persistence, logical boundary/bundle idempotency and archive retry rules. No new polling, heartbeat or provider write cadence is introduced.
 
-## D165 proposal-only log archive and noise controls
+## D165 log archive and noise controls
 
-Status: proposal recorded; implementation not started.
+Status: implementation active on D165 Beta change set; technical validation pending final CI/field gates.
 
 All Báo hàng Android/Web/Agent archive bundles must resolve to one canonical `YYYY-MM-DD` child under the scoped Beta Logs parent using Asia/Ho_Chi_Minh.
 
