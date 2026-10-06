@@ -23,6 +23,7 @@ import { latestAgentAppRelease, latestAgentBrowserBundle, latestPdaAppRelease, r
 import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
+import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
 import { handlePublicInfoPage } from "./public-pages";
 import { sendFcmNotifications } from "./fcm";
 import {
@@ -51,6 +52,7 @@ interface Env {
   ROOT_BOOTSTRAP_PASSWORD?: string;
   PICKER_DEFAULT_PASSWORD?: string;
   ARCHIVE_SHEET_ID?: string;
+  PDA_REGISTRY_SHEET_ID?: string;
   RETENTION_DAYS?: string;
   LOGS_FOLDER_ID?: string;
   ARCHIVE_FOLDER_ID?: string;
@@ -1079,6 +1081,7 @@ export default {
           source_commit: env.SOURCE_COMMIT || "",
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
           root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID),
+          pda_registry_configured: Boolean(env.PDA_REGISTRY_SHEET_ID && env.GOOGLE_RUNTIME_SA_JSON),
           storage: core, agent_auth_migration: agentAuthMigration, missing_bindings: missing, timestamp: new Date().toISOString(),
         }, healthy ? 200 : 503);
       }
@@ -1838,6 +1841,9 @@ export default {
         }
       }
 
+      const pdaRegistryResponse = await handlePdaRegistryApi(request, env);
+      if (pdaRegistryResponse) return pdaRegistryResponse;
+
       const systemResetResponse = await handleSystemResetApi(request, env);
       if (systemResetResponse) return systemResetResponse;
 
@@ -1868,6 +1874,8 @@ export default {
     if (controller.cron === "15 20 * * *") {
       ctx.waitUntil(runArchive(env).then(() => undefined).catch((error) =>
         console.error("archive_scheduled_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(reconcilePdaRegistrySheet(env).then(() => undefined).catch((error) =>
+        console.error("pda_registry_reconcile_failed", error instanceof Error ? error.message : "unknown")));
     }
     if (controller.cron === "*/5 * * * *") {
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>

@@ -61,7 +61,18 @@
           "Archive_Events"
         ]
       },
-      "logs_folder_id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo"
+      "logs_folder_id": "17Ealimu__NFxeEzG3mUfivpEEacX_vgo",
+      "pda_registry_sheet": {
+        "name": "SUPRA_PDA_REGISTRY_BETA",
+        "spreadsheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
+        "tabs": [
+          "PDA_Devices",
+          "Registry_Audit",
+          "Registry_System"
+        ],
+        "runtime_service_account_access": "WRITER_CONFIRMED",
+        "parent_folder_id": "1J5bQDqPoQcEPkYIk41x7t-9Nz_HaSnMC"
+      }
     },
     "stable": {
       "name": "Inventory/Stable",
@@ -364,7 +375,9 @@
       "d162_agent_size_bytes": 7298048,
       "d162_agent_sha256": "dabf4b5e4918f741e6b4d806362d8700d507cc8ee045ea632d63f122581eacfe",
       "d162_inventory_channel_agent_asset_id": 613144942,
-      "d162_android": "beta-vc97__UNCHANGED__ASSET_609733318"
+      "d162_android": "beta-vc97__UNCHANGED__ASSET_609733318",
+      "pda_registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
+      "pda_registry_status": "SOURCE_IMPLEMENTATION_PENDING_PR_GATES__SERVER_AUTHORITY_INVENTORYCORE_APP_CONFIG__SHEET_MIRROR__EVENT_DRIVEN__DAILY_EXISTING_CRON_RECONCILE__STABLE_UNTOUCHED"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -2547,5 +2560,15 @@
       "beta_worker_run_id": 37395842899,
       "behavior": "QUEUE_DELTA_AND_RECENT_TRANSITION_TAB_COUNTERS__ONE_DUAL_RECONCILE_ON_BASELINE_OR_REALTIME_RECOVERY__FULL_LISTS_VISIBLE_ONLY"
     }
+  },
+  "pda_registry": {
+    "environment": "beta",
+    "source_status": "SOURCE_IMPLEMENTATION_PENDING_PR_GATES",
+    "authority": "INVENTORYCORE_APP_CONFIG_KEY_PREFIX_pda_registry",
+    "mirror": "GOOGLE_SHEET_SUPRA_PDA_REGISTRY_BETA",
+    "sync_policy": "REGISTER_ON_NEW_OR_PAYLOAD_CHANGE__WEEKLY_STATUS_ON_LAUNCHER_OPEN__NO_BACKGROUND_TIMER__NO_HEARTBEAT",
+    "reconciliation": "DAILY_EXISTING_20_15_CRON__READ_SHEET_INDEX_ONCE__WRITE_ONLY_MISSING_OR_HASH_MISMATCH",
+    "google_auth": "EXISTING_GOOGLE_RUNTIME_SA_JSON__SHEETS_SCOPE__SHARED_WRITER_ON_EXACT_BETA_SHEET",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

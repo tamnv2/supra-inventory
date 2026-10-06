@@ -8,6 +8,7 @@ import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
+import { handlePdaRegistryCoreRequest } from "./pda-registry-core";
 import { handleOperationalV2CoreRequest, initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
@@ -1646,6 +1647,9 @@ export class InventoryCore {
 
     const runtimeLogs = await handleRuntimeLogCoreRequest(this.state, request);
     if (runtimeLogs) return runtimeLogs;
+
+    const pdaRegistry = await handlePdaRegistryCoreRequest(this.state, request);
+    if (pdaRegistry) return pdaRegistry;
 
     const readModel = await handleReadModelCoreRequest(
       this.state,

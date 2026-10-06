@@ -310,6 +310,21 @@
       "exposure": "operational_metadata_existing_public"
     },
     {
+      "key": "pda-registry-sheet-beta",
+      "provider": "Google Sheets",
+      "kind": "spreadsheet",
+      "environment": "beta",
+      "id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
+      "name": "SUPRA_PDA_REGISTRY_BETA",
+      "tabs": [
+        "PDA_Devices",
+        "Registry_Audit",
+        "Registry_System"
+      ],
+      "exposure": "operational_metadata_existing_public",
+      "guard": "BETA_ONLY__RUNTIME_SERVICE_ACCOUNT_WRITER__EVENT_DRIVEN_PDA_REGISTER__DAILY_EXISTING_CRON_RECONCILE__NO_POLLING_HEARTBEAT__STABLE_UNTOUCHED"
+    },
+    {
       "key": "firebase-rtdb-relay-beta",
       "provider": "Firebase",
       "kind": "realtime_database",
