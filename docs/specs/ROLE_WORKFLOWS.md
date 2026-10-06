@@ -977,3 +977,26 @@ The active Picker search/filter does not change the bulk target set.
 3. Web shows bounded row numbers/reasons and a manual **Kiểm tra lại nguồn** action.
 4. After the Sheet is corrected, recheck recomputes the authoritative snapshot.
 5. Confirmation-required snapshots use explicit Yes/No; No preserves current users and keeps the proposal pending.
+
+## D165 proposal-only workflow additions
+
+Status: proposal recorded; implementation not started.
+
+### Reporter PER_PICKER overdue workflow
+- Applies only when auto-skip mode is `PER_PICKER`.
+- Timed-out Picker tickets appear under **Quá hạn** while later/not-yet-timed-out tickets for the same SKU remain under **Đang xử lý**.
+- A timed-out Picker may already have received system Skip eligibility, but the SKU batch remains pending for Invent until explicit resolution.
+- **Đã có hàng** resolves the SKU across both waiting and overdue Picker groups and sends corrected results where needed.
+- **Cho phép Skip** sends a new result only to still-waiting Picker tickets; already-overdue Picker tickets do not receive duplicate Skip.
+
+### HAS_STOCK correction workflow
+Only a current HAS_STOCK result exposes:
+- **Sửa - Đang xử lý**
+- **Sửa - Cho phép Skip**
+
+Both require two confirmations and create a new auditable transition. Reopened processing resets auto-skip deadlines from the correction time.
+
+### SLA-setting workflow
+Saving processing-time / auto-skip settings requires a critical warning and current-account password re-authentication before commit.
+
+`FIRST_REPORT` semantics are unchanged by D165.
