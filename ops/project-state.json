@@ -5441,7 +5441,7 @@
     "result": "TOKEN_ACTIVE__WORKER_SERVICE_HTTP200__WRANGLER_DEPLOY_PASS__HEALTH_PASS"
   },
   "pda_registry_beta": {
-    "status": "BACKEND_RUNTIME_PASS__IDENTIFIER_NORMALIZATION_REPAIR_PENDING_PR_GATES",
+    "status": "TECHNICAL_RUNTIME_RELEASE_PASS__LAUNCHER_V0.3.16__REAL_PDA_FIELD_TEST_PENDING",
     "owner_instruction_date": "2026-10-06",
     "authorization": "PARALLEL_LAUNCHER_PDA_REGISTRY_WORKSTREAM_EXPLICITLY_APPROVED_BY_OWNER",
     "backend_repo": "tamnv2/supra-inventory",
@@ -5455,10 +5455,16 @@
     "reconcile": "EXISTING_DAILY_CRON_ONLY__NO_NEW_CRON",
     "usage_guard": "NO_FIREBASE__NO_HEARTBEAT__NO_PERIODIC_BACKGROUND_SERVICE__SHEET_WRITE_ONLY_CREATED_CHANGED_OR_RECONCILE",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "backend_main_sha": "d4db01096770c51be14d3f246035fc7c2546932d",
-    "backend_deploy_run_id": 37405932995,
+    "backend_main_sha": "5e5b2628c752f98611ed412aaba2cfab188c5452",
+    "backend_deploy_run_id": 37406392755,
     "backend_typecheck": "PASS",
     "cloudflare_preflight": "PASS",
-    "normalization_repair": "ALIGN_SERVER_WITH_LAUNCHER_STRIP_NON_ALPHANUMERIC_BEFORE_DEVICE_KEY_SHA256"
+    "normalization_repair": "ALIGN_SERVER_WITH_LAUNCHER_STRIP_NON_ALPHANUMERIC_BEFORE_DEVICE_KEY_SHA256",
+    "public_contract_smoke": "PASS__STATUS_UNKNOWN_DEVICE_RETURNS_NEED_PAYLOAD__REGISTRY_SCHEMA_1",
+    "sheet_runtime_identity": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com__WRITER_CONFIRMED",
+    "launcher_release": "v0.3.16",
+    "launcher_main_sha": "3f6afdb3378fb873cdb5e134ebfe0d546c9f9c9b",
+    "launcher_apk_sha256": "953313fd04cda936b25d0167795d4b182f21773870fed037626d7e47c7c3c312",
+    "field_test": "PENDING_REAL_PDA_INSTALL_AND_FIRST_ROW_CONFIRMATION"
   }
 }
