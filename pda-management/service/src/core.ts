@@ -399,9 +399,26 @@ export class PdaManagementCore {
           .toArray()
           .map((row) => [row.employee_code, row]),
       );
+      const incomingCodes = new Set(
+        incoming
+          .map((raw) => text(raw.employee_code, 80))
+          .filter(Boolean),
+      );
+      if (existing.size > 0) {
+        const minimumSafe = Math.floor(existing.size * 0.8);
+        if (incomingCodes.size < minimumSafe) {
+          return json({
+            error: "HR_ROW_LOSS_GUARD",
+            existing_count: existing.size,
+            incoming_count: incomingCodes.size,
+          }, 409);
+        }
+      }
+
       let changed = 0;
       let created = 0;
       let updated = 0;
+      let removed = 0;
 
       for (const raw of incoming) {
         const employeeCode = text(raw.employee_code, 80);
@@ -432,11 +449,19 @@ export class PdaManagementCore {
         changed += 1;
       }
 
+      for (const employeeCode of existing.keys()) {
+        if (incomingCodes.has(employeeCode)) continue;
+        sql.exec("DELETE FROM employees WHERE employee_code=?", employeeCode);
+        removed += 1;
+        changed += 1;
+      }
+
       this.setMeta("hr_last_sync_ms", String(Date.now()));
       return json({
         changed,
         created,
         updated,
+        removed,
         hr_last_sync_ms: Number(this.meta("hr_last_sync_ms", "0")) || 0,
       });
     }
