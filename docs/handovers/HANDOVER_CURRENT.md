@@ -8,8 +8,8 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D162_TECHNICAL_RUNTIME_RELEASE_PASS__MAIN_9AC67180__BETA_DEPLOY_RUN_37344066134__AGENT_V114__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
-- Web: `D162_BETA_DEPLOYED__SERVICE_SINGLE_DO_HOT_PATHS__REPORTER_SCOPE_REFRESH__RUN_37344066134`
+- Beta: `D162_REPAIR_TECHNICAL_RUNTIME_PASS__MAIN_D970790B__BETA_DEPLOY_RUN_37391459092__REALTIME_BADGE_LAZY_QUEUE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
+- Web: `D162_REALTIME_BADGE_LAZY_QUEUE_DEPLOYED__QUEUE_DELTA_BADGE__FULL_QUEUE_ON_OPERATIONS_ONLY__RESULTS_RECENT_ONLY__RUN_37391459092`
 - Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
@@ -55,15 +55,15 @@ Released artifacts:
 
 ## 5. Next action
 
-D161 is the accepted Owner-PASS base. D162 is technically released on Beta at main `9ac67180c310fe56324608e3118671d278f311c6` with `relay-agent-v114`; Android remains `beta-vc97` unchanged and Stable remains OWNER-GATED.
+D161 remains the accepted Owner-PASS base. D162 repair PR #449 is runtime PASS on Beta at main `d970790bfd440a50c80751102e7a2fb05f8300e3`; deploy run `37391459092` PASS. Agent remains `relay-agent-v114`, Android remains `beta-vc97`, and Stable remains OWNER-GATED.
 
-The Owner approved a same-D162 realtime badge lazy-queue repair on 2026-10-06. The repair must pass PR CI, merge and Beta runtime deployment before OA097 comparable-load field validation resumes. Do not open D163.
+OA097 comparable-load usage/latency validation is reopened. Do not open D163 until explicit D162 Owner PASS.
 
 On the next session:
 1. read `ops/authority-manifest.json`;
 2. read the complete declared `bootstrap_order`;
 3. verify recent commits/CI and relevant live source;
-4. continue the D162 realtime badge repair through CI → merge → Beta runtime PASS, then resume OA097.
+4. continue OA097 comparable active-load validation; any failure is repaired under D162.
 
 ## 6. Resume command
 
@@ -1783,10 +1783,11 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - OA097 is pending comparable active-load usage/latency evidence and explicit Owner acceptance.
 - No D163 or unrelated mutation is allowed before D162 Owner PASS.
 
-## D162 realtime badge lazy-queue repair candidate — 2026-10-06
+## D162 realtime badge lazy-queue repair runtime PASS — 2026-10-06
 
-- Owner approved the same-D162 repair after reporting that the queue/recent split felt non-realtime.
-- Candidate branch: `repair/d162-realtime-badge-lazy-queue`.
-- Behavior: realtime queue badge uses bounded `queue_delta` metadata; full queue rows load only while Operations is visible; Results loads recent data only; unknown/gap state uses one lightweight count reconcile.
-- No Agent/Android/Stable/resource change. Agent remains `relay-agent-v114`; Android remains `beta-vc97`; Stable remains OWNER-GATED.
-- OA097 is temporarily waiting for repaired Beta runtime PASS before comparable-load field acceptance resumes.
+- Owner-approved same-D162 repair PR #449 merged to main `d970790bfd440a50c80751102e7a2fb05f8300e3`.
+- Beta Worker/Web deploy run `37391459092`: PASS, including health/auth/business/Web-shell checks.
+- Realtime queue badge uses bounded `queue_delta`; full queue rows load only while Operations is visible; Results loads recent only; uncertainty uses a lightweight authoritative count reconcile.
+- Main Authority `37391458033`, Project State `37391458064`, UI `37391458250`, D127 `37391458086` and D159 usage `37391457987` all PASS.
+- Agent remains `relay-agent-v114`; Android remains `beta-vc97`; Stable remains OWNER-GATED and untouched.
+- OA097 is reopened for comparable active-load usage/latency and explicit Owner acceptance.
