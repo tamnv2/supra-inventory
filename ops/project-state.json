@@ -5651,7 +5651,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "IMPLEMENTATION_STARTED__OWNER_EXPLICIT_START_2026_10_07",
+    "status": "IMPLEMENTATION_ACTIVE__AUTOMATED_VALIDATION_BLOCKED_ON_UI_REAUTH_GATE",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5667,12 +5667,12 @@
     },
     "purpose": "BALANCE_REALTIME_SPEED_STABILITY_AND_SHARED_ACCOUNT_USAGE_WITHOUT_REGRESSION",
     "scope": {
-      "service": "PROPOSED",
-      "web": "PROPOSED",
-      "android_bao_hang": "PROPOSED",
-      "relay_agent": "PROPOSED",
-      "apps_script_drive_logging": "PROPOSED",
-      "beta_rtdb_ha_liveness": "PROPOSED_REUSE_EXISTING_SCOPED_RESOURCE",
+      "service": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
+      "web": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
+      "android_bao_hang": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
+      "relay_agent": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
+      "apps_script_drive_logging": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
+      "beta_rtdb_ha_liveness": "IMPLEMENTED_ON_D165_CHANGE_BRANCH__VALIDATION_PENDING",
       "d1_cold_history": "DEFERRED_NOT_D165",
       "first_report": "UNCHANGED",
       "stable": "FORBIDDEN_WITHOUT_SEPARATE_OWNER_AUTHORIZATION"
@@ -5751,11 +5751,11 @@
       "failover_objective_seconds": 15
     },
     "implementation_started": true,
-    "code_changed": false,
-    "runtime_changed": false,
+    "code_changed": true,
+    "runtime_changed": true,
     "build_released": false,
-    "deploy_performed": false,
+    "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "IMPLEMENT_D165_ON_CHANGE_BRANCH__CI_AND_AUTHORITY_PASS__MERGE_BETA_ONLY__FIELD_VALIDATE__OWNER_PASS"
+    "next_action": "RESOLVE_UI_REAUTH_GATE_WITHOUT_WEAKENING_SECURITY_GUARD__RERUN_CI__MERGE_BETA_ONLY__FIELD_VALIDATE__OWNER_PASS"
   }
 }
