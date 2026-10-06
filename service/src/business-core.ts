@@ -1,4 +1,4 @@
-import { correctionDeadlineFromFirstReport, planAutoSkipForNewReport, scheduleNextOperationalAlarm } from "./sla-automation";
+import { correctionDeadlineFromFirstReport, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -47,6 +47,7 @@ interface BatchRow extends SqlRow {
   resolution_source: string | null;
   auto_skip_deadline_at: string | null;
   correction_deadline_at: string | null;
+  version?: number;
   created_at: string;
   updated_at: string;
 }
@@ -716,11 +717,21 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
 
     const at = nowIso();
     const correctionDeadline = resolution === "SKIP_ALLOWED" ? correctionDeadlineFromFirstReport(state, batch.first_report_at) : null;
-    const openCountRow = firstRow(
-      state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS count FROM report_tickets WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL", batchId).toArray(),
-    );
-    const affected = Number(openCountRow?.count || 0);
-    if (affected < 1) return { status: 409, payload: { error: "BATCH_HAS_NO_OPEN_TICKETS" } } satisfies BusinessResult;
+    const ticketCounts = firstRow(
+      state.storage.sql.exec<SqlRow>(
+        `SELECT
+           SUM(CASE WHEN status = 'OPEN' AND auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END) AS waiting_count,
+           SUM(CASE WHEN status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END) AS overdue_count
+         FROM report_tickets WHERE batch_id = ?`,
+        batchId,
+      ).toArray(),
+    ) || {};
+    const waitingCount = Number(ticketCounts.waiting_count || 0);
+    const overdueCount = Number(ticketCounts.overdue_count || 0);
+    const affected = resolution === "HAS_STOCK" ? waitingCount + overdueCount : waitingCount;
+    if (waitingCount + overdueCount < 1) {
+      return { status: 409, payload: { error: "BATCH_HAS_NO_OPEN_TICKETS" } } satisfies BusinessResult;
+    }
 
     state.storage.sql.exec(
       `UPDATE report_batches
@@ -736,24 +747,35 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       at,
       batchId,
     );
-    state.storage.sql.exec(
-      `UPDATE report_tickets
-          SET status = 'RESOLVED', resolution = ?, resolution_source = 'REPORTER',
-              resolved_at = ?, updated_at = ?
-        WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL`,
-      resolution,
-      at,
-      at,
-      batchId,
-    );
-    state.storage.sql.exec(
-      `UPDATE report_tickets
-          SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
-        WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL`,
-      at,
-      at,
-      batchId,
-    );
+    if (resolution === "HAS_STOCK") {
+      state.storage.sql.exec(
+        `UPDATE report_tickets
+            SET status = 'RESOLVED', resolution = 'HAS_STOCK', resolution_source = 'REPORTER',
+                resolved_at = ?, updated_at = ?
+          WHERE batch_id = ? AND status = 'OPEN'`,
+        at,
+        at,
+        batchId,
+      );
+    } else {
+      state.storage.sql.exec(
+        `UPDATE report_tickets
+            SET status = 'RESOLVED', resolution = 'SKIP_ALLOWED', resolution_source = 'REPORTER',
+                resolved_at = ?, updated_at = ?
+          WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL`,
+        at,
+        at,
+        batchId,
+      );
+      state.storage.sql.exec(
+        `UPDATE report_tickets
+            SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
+          WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL`,
+        at,
+        at,
+        batchId,
+      );
+    }
     const eventId = event(
       state,
       actor,
@@ -765,7 +787,8 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
         source: "REPORTER",
         affected_picker_count: affected,
         correction_deadline_at: correctionDeadline,
-        queue_delta: -1,
+        queue_delta: waitingCount > 0 ? -1 : 0,
+        overdue_delta: overdueCount > 0 ? -1 : 0,
         recent_counter: { before_status: null, before_at: null, after_status: resolution, after_at: at },
       },
       at,
@@ -780,7 +803,10 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       resolved_at: at,
       correction_deadline_at: correctionDeadline,
       event_id: eventId,
-      queue_delta: -1,
+      queue_delta: waitingCount > 0 ? -1 : 0,
+      overdue_delta: overdueCount > 0 ? -1 : 0,
+      waiting_picker_count: waitingCount,
+      overdue_picker_count: overdueCount,
       recent_counter: { before_status: null, before_at: null, after_status: resolution, after_at: at },
       resolution_source: "REPORTER",
       resolved_by_user_id: actor.user_id,
@@ -796,13 +822,30 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
 }
 
 async function correctBatch(state: DurableObjectState, request: Request): Promise<BusinessResult> {
-  const body = (await request.json()) as { actor?: Actor; request_id?: string; batch_id?: string };
+  const body = (await request.json()) as {
+    actor?: Actor;
+    request_id?: string;
+    batch_id?: string;
+    target?: string;
+    expected_version?: number;
+  };
   const actor = body.actor;
   const requestId = normalizeRequestId(body.request_id);
   const batchId = String(body.batch_id || "").trim();
-  if (!actor?.user_id || !requestId || !batchId) return { status: 400, payload: { error: "INVALID_INPUT" } };
+  const target = String(body.target || "").trim().toUpperCase();
+  const expectedVersion = Number(body.expected_version);
+  if (
+    !actor?.user_id ||
+    !requestId ||
+    !batchId ||
+    !["PENDING", "SKIP_ALLOWED"].includes(target) ||
+    !Number.isInteger(expectedVersion) ||
+    expectedVersion < 1
+  ) {
+    return { status: 400, payload: { error: "INVALID_INPUT" } };
+  }
 
-  return state.storage.transactionSync(() => {
+  const result = state.storage.transactionSync(() => {
     const scope = `batch_correct:${actor.user_id}`;
     const replay = readIdempotency(state, scope, requestId);
     if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
@@ -811,43 +854,96 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       state.storage.sql
         .exec<BatchRow>(
           `SELECT batch_id, sku, product_name, status, first_report_at, resolved_at,
-                  resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, created_at, updated_at
+                  resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at,
+                  correction_deadline_at, version, created_at, updated_at
              FROM report_batches WHERE batch_id = ? LIMIT 1`,
           batchId,
         )
         .toArray(),
     );
     if (!batch) return { status: 404, payload: { error: "BATCH_NOT_FOUND" } } satisfies BusinessResult;
-    if (batch.status !== "SKIP_ALLOWED" || batch.resolution !== "SKIP_ALLOWED") {
+    if (batch.status !== "HAS_STOCK" || batch.resolution !== "HAS_STOCK") {
       return { status: 409, payload: { error: "BATCH_NOT_CORRECTABLE", status: batch.status, resolution: batch.resolution } } satisfies BusinessResult;
+    }
+    if (Number(batch.version || 0) !== expectedVersion) {
+      return {
+        status: 409,
+        payload: { error: "BATCH_VERSION_CONFLICT", expected_version: expectedVersion, current_version: Number(batch.version || 0) },
+      } satisfies BusinessResult;
     }
 
     const at = nowIso();
-    const effectiveCorrectionDeadline = correctionDeadlineFromFirstReport(state, batch.first_report_at);
-    if (!effectiveCorrectionDeadline) {
-      return { status: 409, payload: { error: "CORRECTION_DISABLED" } } satisfies BusinessResult;
-    }
-    if (Date.parse(at) > Date.parse(effectiveCorrectionDeadline)) {
-      return { status: 409, payload: { error: "CORRECTION_WINDOW_EXPIRED", correction_deadline_at: effectiveCorrectionDeadline } } satisfies BusinessResult;
+    const config = readOperationalSlaConfig(state);
+    const autoSkipAt = config?.auto_skip_enabled
+      ? addMs(at, Math.max(1, Number(config.auto_skip_minutes || 1)) * 60_000)
+      : null;
+
+    if (target === "PENDING") {
+      const batchDeadline = config?.auto_skip_enabled && config.auto_skip_mode === "FIRST_REPORT" ? autoSkipAt : null;
+      const ticketDeadline = config?.auto_skip_enabled && config.auto_skip_mode === "PER_PICKER" ? autoSkipAt : null;
+      state.storage.sql.exec(
+        `UPDATE report_batches
+            SET status = 'PENDING',
+                resolution = NULL,
+                resolution_source = 'REPORTER_CORRECTION',
+                resolved_at = NULL,
+                resolved_by_user_id = NULL,
+                correction_deadline_at = NULL,
+                auto_skip_deadline_at = ?,
+                version = version + 1,
+                updated_at = ?
+          WHERE batch_id = ? AND version = ?`,
+        batchDeadline,
+        at,
+        batchId,
+        expectedVersion,
+      );
+      state.storage.sql.exec(
+        `UPDATE report_tickets
+            SET status = 'OPEN',
+                resolution = NULL,
+                resolution_source = NULL,
+                resolved_at = NULL,
+                auto_skip_allowed_at = NULL,
+                auto_skip_deadline_at = ?,
+                updated_at = ?
+          WHERE batch_id = ? AND status <> 'WITHDRAWN'`,
+        ticketDeadline,
+        at,
+        batchId,
+      );
+    } else {
+      state.storage.sql.exec(
+        `UPDATE report_batches
+            SET status = 'SKIP_ALLOWED',
+                resolution = 'SKIP_ALLOWED',
+                resolution_source = 'REPORTER_CORRECTION',
+                resolved_at = ?,
+                resolved_by_user_id = ?,
+                correction_deadline_at = NULL,
+                auto_skip_deadline_at = NULL,
+                updated_at = ?
+          WHERE batch_id = ? AND version = ?`,
+        at,
+        actor.user_id,
+        at,
+        batchId,
+        expectedVersion,
+      );
+      state.storage.sql.exec(
+        `UPDATE report_tickets
+            SET status = 'RESOLVED',
+                resolution = 'SKIP_ALLOWED',
+                resolution_source = 'REPORTER_CORRECTION',
+                resolved_at = ?,
+                updated_at = ?
+          WHERE batch_id = ? AND status <> 'WITHDRAWN'`,
+        at,
+        at,
+        batchId,
+      );
     }
 
-    state.storage.sql.exec(
-      `UPDATE report_batches
-          SET status = 'HAS_STOCK', resolution = 'HAS_STOCK', resolution_source = 'REPORTER_CORRECTION', resolved_at = ?,
-              resolved_by_user_id = ?, correction_deadline_at = NULL, updated_at = ?
-        WHERE batch_id = ?`,
-      at,
-      actor.user_id,
-      at,
-      batchId,
-    );
-    state.storage.sql.exec(
-      `UPDATE report_tickets
-          SET resolution = 'HAS_STOCK', resolution_source = 'REPORTER_CORRECTION', updated_at = ?
-        WHERE batch_id = ? AND status = 'RESOLVED'`,
-      at,
-      batchId,
-    );
     const eventId = event(
       state,
       actor,
@@ -855,36 +951,50 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       batchId,
       null,
       {
-        from: "SKIP_ALLOWED",
-        to: "HAS_STOCK",
+        from: "HAS_STOCK",
+        to: target,
         source: "REPORTER_CORRECTION",
-        previous_correction_deadline_at: batch.correction_deadline_at,
-        effective_correction_deadline_at: effectiveCorrectionDeadline,
+        corrected_from_version: expectedVersion,
+        queue_delta: target === "PENDING" ? 1 : 0,
+        overdue_delta: 0,
         recent_counter: {
-          before_status: "SKIP_ALLOWED",
+          before_status: "HAS_STOCK",
           before_at: batch.resolved_at || null,
-          after_status: "HAS_STOCK",
-          after_at: at,
+          after_status: target === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : null,
+          after_at: target === "SKIP_ALLOWED" ? at : null,
         },
       },
       at,
     );
-    audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, { sku: batch.sku, product_name: batch.product_name, from: "SKIP_ALLOWED", to: "HAS_STOCK" }, at);
+    audit(state, actor, "BATCH_CORRECT", "REPORT_BATCH", batchId, {
+      sku: batch.sku,
+      product_name: batch.product_name,
+      from: "HAS_STOCK",
+      to: target,
+      corrected_from_version: expectedVersion,
+    }, at);
 
+    const currentVersion = Number((firstRow(state.storage.sql.exec<SqlRow>(
+      "SELECT version FROM report_batches WHERE batch_id = ? LIMIT 1",
+      batchId,
+    ).toArray()) || {}).version || expectedVersion + 1);
     const payload = {
       status: "corrected",
       batch_id: batchId,
-      resolution: "HAS_STOCK",
+      resolution: target,
       corrected_at: at,
       event_id: eventId,
+      queue_delta: target === "PENDING" ? 1 : 0,
+      overdue_delta: 0,
       recent_counter: {
-        before_status: "SKIP_ALLOWED",
+        before_status: "HAS_STOCK",
         before_at: batch.resolved_at || null,
-        after_status: "HAS_STOCK",
-        after_at: at,
+        after_status: target === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : null,
+        after_at: target === "SKIP_ALLOWED" ? at : null,
       },
+      version: currentVersion,
       resolution_source: "REPORTER_CORRECTION",
-      resolved_by_user_id: actor.user_id,
+      resolved_by_user_id: target === "SKIP_ALLOWED" ? actor.user_id : null,
       resolved_by_display_name: actor.display_name || actor.employee_code || actor.user_id,
       resolved_by_employee_code: actor.employee_code || "",
       resolved_by_role: actor.role || "",
@@ -892,6 +1002,9 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 200, payload } satisfies BusinessResult;
   });
+
+  if (result.status === 200 && target === "PENDING") await scheduleNextOperationalAlarm(state);
+  return result;
 }
 
 function reportingRange(url: URL): { from: string; to: string; error?: string } {
