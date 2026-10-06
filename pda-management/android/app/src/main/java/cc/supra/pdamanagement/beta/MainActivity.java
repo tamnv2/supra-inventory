@@ -979,8 +979,8 @@ public final class MainActivity extends Activity {
                             }
                             runOnUiThread(() -> {
                                 if (ticket != employeeSuggestionTicket) return;
-                                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                                    this,
+                                ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                                    MainActivity.this,
                                     android.R.layout.simple_dropdown_item_1line,
                                     labels
                                 );
