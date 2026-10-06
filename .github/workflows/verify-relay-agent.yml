@@ -1642,6 +1642,11 @@ jobs:
             asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
             size_bytes = $size
             sha256 = $sha256
+            release_notes = @(
+              "Chuyển Agent chính/dự phòng ổn định hơn và giữ nguyên cơ chế an toàn khi mất kết nối."
+              "Danh sách Picker cập nhật ngay sau thao tác Kích User; trạng thái thao tác tự trở về màn hình vận hành."
+              "Giảm các thông báo kỹ thuật lặp lại không ảnh hưởng đến xử lý nghiệp vụ."
+            )
           } | ConvertTo-Json -Compress
           $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
           gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
