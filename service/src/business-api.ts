@@ -1,4 +1,4 @@
-import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole, type FirebaseIdentity } from "./auth";
+import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole, type FirebaseIdentity } from "./auth";
 import { sendFcmNotifications } from "./fcm";
 
 interface BusinessEnv {
@@ -613,10 +613,20 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
 
   if (key === "PUT /api/admin/sla") {
     const body = await parseObjectBody(request);
-    const response = await corePut(env, "/operational/sla", { ...body, actor: actor(user) });
+    const currentPassword = String(body.current_password || "");
+    if (
+      !currentPassword ||
+      !user.password_salt ||
+      !user.password_hash ||
+      !(await verifyPassword(currentPassword, user.password_salt, user.password_hash))
+    ) {
+      return json({ error: "CURRENT_PASSWORD_INVALID", message: "Mật khẩu tài khoản hiện tại không đúng." }, 403);
+    }
+    const { current_password: _password, ...safeBody } = body;
+    const response = await corePut(env, "/operational/sla", { ...safeBody, actor: actor(user) });
     return realtimeAfter(response, env, {
       event: "sla_settings_updated",
-      scopes: ["sla_settings", "reporter_queue"],
+      scopes: ["sla_settings", "reporter_queue", "reporter_overdue"],
       tags: REPORTER_TAGS,
     });
   }
