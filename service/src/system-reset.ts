@@ -1,12 +1,8 @@
 import { verifyFirebaseIdToken, readBearerToken } from "./auth";
-import {
-  deleteFirebaseUsers,
-  effectiveAuthEmail,
-  signInWithFirebasePassword,
-  type FirebaseManagedUserSpec,
-} from "./firebase-auth-admin";
+import { deleteFirebaseUsers } from "./firebase-auth-admin";
 import { getServiceAccountAccessToken } from "./hr-source";
 import { sendProjectEmail } from "./google-mail";
+import { verifyCurrentAuthenticationProof } from "./privileged-auth";
 
 interface Env {
   FIREBASE_PROJECT_ID: string;
@@ -139,25 +135,6 @@ function mailFailureMessage(detail: string): string {
   return "Google chưa gửi được email xác nhận. Hệ thống đã ghi nhận mã lỗi an toàn để chẩn đoán; lần gửi thất bại không bị tính vào giới hạn gửi mã.";
 }
 
-async function primaryPasswordValid(env: Env, root: RootUser, password: string): Promise<boolean> {
-  if (!env.FIREBASE_WEB_API_KEY || !root.firebase_uid || !password) return false;
-  try {
-    const authSpec: FirebaseManagedUserSpec = {
-      uid: root.firebase_uid,
-      userId: root.user_id,
-      employeeCode: root.employee_code,
-      displayName: root.display_name,
-      role: "ROOT",
-      status: "ACTIVE",
-      authEmail: root.auth_email,
-    };
-    const session = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, effectiveAuthEmail(authSpec), password);
-    return session.localId === root.firebase_uid;
-  } catch {
-    return false;
-  }
-}
-
 async function coreJson<T>(env: Env, path: string, init?: RequestInit): Promise<T> {
   const response = await core(env).fetch(`https://inventory-core.internal${path}`, init);
   const payload = (await response.json()) as T & { error?: string };
@@ -270,8 +247,12 @@ export async function handleSystemResetApi(request: Request, env: Env): Promise<
     const scopes = normalizeScopes(body.scopes);
     if (!scopes.length) return json({ error: "RESET_SCOPE_REQUIRED" }, 400);
     if (!root.auth_email) return json({ error: "ROOT_RECOVERY_EMAIL_REQUIRED", message: "ROOT cần cấu hình email trước khi đặt lại hệ thống." }, 409);
-    if (!(await primaryPasswordValid(env, root, String(body.password || "")))) {
-      return json({ error: "CURRENT_PASSWORD_INVALID" }, 400);
+    const proof = await verifyCurrentAuthenticationProof(env, root, String(body.password || ""));
+    if (!proof.valid) {
+      return json({
+        error: "CURRENT_PASSWORD_INVALID",
+        message: "Mật khẩu một lần hoặc mật khẩu khẩn cấp không đúng.",
+      }, 400);
     }
     const challengeId = randomChallengeId();
     const code = randomSixDigits();
