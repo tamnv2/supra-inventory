@@ -5817,12 +5817,15 @@
       "registered_pda_only": true,
       "public_code_disclosure": "FORBIDDEN",
       "brute_force_guard": "5_FAILURES_PER_PDA_THEN_5_MINUTE_BLOCK",
-      "mail_retry": "EXISTING_5_MINUTE_CRON__ONLY_05_00_TO_05_30_VN__NO_NEW_PDA_POLLING"
+      "mail_retry": "EXISTING_5_MINUTE_CRON__ONLY_05_00_TO_05_30_VN__NO_NEW_PDA_POLLING",
+      "device_registry_authority": "inventory-core",
+      "password_state_authority": "singleton (preserved existing daily code, reset cooldown, and attempts)",
+      "identity_fix": "WORKER_CHECKS_AUTHORITATIVE_REGISTRY__CORE_PASSWORD_INSTANCE_NO_LONGER_LOOKS_FOR_REGISTRY_RECORD_IN_WRONG_INSTANCE"
     },
     "runtime_impact": {
       "inventory_business_logic": "UNCHANGED",
       "firebase": "NO_NEW_READ_WRITE_LISTENER",
-      "cloudflare": "VERY_LOW__ONE_SMALL_DO_STATE_PLUS_DAILY_EMAIL_AND_EXPLICIT_LOGIN_RESET_REQUESTS",
+      "cloudflare": "ONE_ADDITIONAL_TINY_DO_REGISTRY_READ_PER_EXPLICIT_LAUNCHER_ADMIN_ACTION__NO_BACKGROUND_POLLING",
       "stable": "UNTOUCHED"
     },
     "launcher_release": "PLANNED_V0.3.24_AFTER_BACKEND_PASS",

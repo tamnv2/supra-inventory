@@ -29,7 +29,10 @@ interface InternalPasswordPayload {
   valid?: boolean;
 }
 
+// Password state stays in this Durable Object so current emailed codes remain valid.
 const CORE_NAME = "singleton";
+// PDA registrations are stored by pda-registry.ts in a different Durable Object.
+const REGISTRY_CORE_NAME = "inventory-core";
 const RECIPIENT = "tam95.supra@gmail.com";
 const DEVICE_KEY_RE = /^[a-f0-9]{64}$/;
 
@@ -46,6 +49,33 @@ function json(payload: unknown, status = 200): Response {
 
 function core(env: LauncherPasswordEnv): DurableObjectStub {
   return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName(CORE_NAME));
+}
+
+function registryCore(env: LauncherPasswordEnv): DurableObjectStub {
+  return env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName(REGISTRY_CORE_NAME));
+}
+
+// Registration is checked against the actual PDA registry on each explicit admin
+// operation. Never trust a client-provided "registered" flag, and fail closed
+// when the authoritative registry is unavailable.
+async function requireRegisteredDevice(
+  env: LauncherPasswordEnv,
+  deviceKey: string,
+): Promise<Response | null> {
+  try {
+    const response = await registryCore(env).fetch(
+      `https://inventory-core.internal/pda-registry/status?device_key=${encodeURIComponent(deviceKey)}`,
+    );
+    if (!response.ok) return json({ error: "REGISTRY_UNAVAILABLE" }, 503);
+    const payload = (await response.json()) as { registered?: boolean };
+    if (payload.registered !== true) {
+      return json({ error: "device_not_registered" }, 403);
+    }
+    return null;
+  } catch (error) {
+    console.error("launcher_password_registry_lookup_failed", error instanceof Error ? error.message : "unknown");
+    return json({ error: "REGISTRY_UNAVAILABLE" }, 503);
+  }
 }
 
 async function readPayload(response: Response): Promise<InternalPasswordPayload> {
@@ -137,6 +167,8 @@ export async function handleLauncherPasswordApi(
   if (request.method === "GET" && url.pathname === "/api/launcher/password/status") {
     const deviceKey = String(url.searchParams.get("device_key") || "").trim().toLowerCase();
     if (!DEVICE_KEY_RE.test(deviceKey)) return json({ error: "INVALID_DEVICE_KEY" }, 400);
+    const registrationError = await requireRegisteredDevice(env, deviceKey);
+    if (registrationError) return registrationError;
 
     await ensureDailyBestEffort(env);
     const response = await core(env).fetch(
@@ -157,6 +189,8 @@ export async function handleLauncherPasswordApi(
     const deviceKey = String(body.device_key || "").trim().toLowerCase();
     const code = String(body.code || "").trim();
     if (!DEVICE_KEY_RE.test(deviceKey)) return json({ error: "INVALID_DEVICE_KEY" }, 400);
+    const registrationError = await requireRegisteredDevice(env, deviceKey);
+    if (registrationError) return registrationError;
     if (!/^\d{4}$/.test(code)) return json({ error: "INVALID_CODE_FORMAT" }, 400);
 
     await ensureDailyBestEffort(env);
@@ -179,6 +213,8 @@ export async function handleLauncherPasswordApi(
 
     const deviceKey = String(body.device_key || "").trim().toLowerCase();
     if (!DEVICE_KEY_RE.test(deviceKey)) return json({ error: "INVALID_DEVICE_KEY" }, 400);
+    const registrationError = await requireRegisteredDevice(env, deviceKey);
+    if (registrationError) return registrationError;
 
     const coreResponse = await core(env).fetch("https://inventory-core.internal/launcher-password/reset", {
       method: "POST",

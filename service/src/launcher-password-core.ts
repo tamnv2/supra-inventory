@@ -24,7 +24,6 @@ interface AttemptState {
 
 const STATE_KEY = "launcher_password:state";
 const ATTEMPT_PREFIX = "launcher_password:attempt:";
-const DEVICE_PREFIX = "pda_registry:";
 const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
 const DAILY_START_HOUR = 5;
 const RESET_COOLDOWN_MS = 15 * 60 * 1000;
@@ -113,14 +112,10 @@ function deleteKey(state: DurableObjectState, key: string): void {
   state.storage.sql.exec("DELETE FROM app_config WHERE key = ?", key);
 }
 
-function deviceRegistered(state: DurableObjectState, deviceKey: string): boolean {
-  if (!DEVICE_KEY_RE.test(deviceKey)) return false;
-  const row = state.storage.sql.exec<{ key: string }>(
-    "SELECT key FROM app_config WHERE key = ? LIMIT 1",
-    DEVICE_PREFIX + deviceKey,
-  ).toArray()[0];
-  return Boolean(row);
-}
+// Device registration is verified by the public Worker against the authoritative
+// "inventory-core" Durable Object before reaching this password-only instance.
+// Keeping password state in its original "singleton" instance preserves existing
+// emailed codes, daily validity and the global 15-minute reset cooldown.
 
 function currentState(state: DurableObjectState): LauncherPasswordState | null {
   const value = readJson<LauncherPasswordState>(state, STATE_KEY);
@@ -228,8 +223,6 @@ export async function handleLauncherPasswordCoreRequest(
   }
 
   if (request.method === "GET" && url.pathname === "/launcher-password/status") {
-    const deviceKey = String(url.searchParams.get("device_key") || "").trim().toLowerCase();
-    if (!deviceRegistered(state, deviceKey)) return response({ error: "device_not_registered" }, 403);
     const ensured = ensureState(state, nowMs);
     return response(safeState(ensured.state, nowMs));
   }
@@ -241,7 +234,7 @@ export async function handleLauncherPasswordCoreRequest(
 
     const deviceKey = String(body.device_key || "").trim().toLowerCase();
     const candidate = String(body.code || "").trim();
-    if (!deviceRegistered(state, deviceKey)) return response({ error: "device_not_registered" }, 403);
+    if (!DEVICE_KEY_RE.test(deviceKey)) return response({ error: "invalid_device_key" }, 400);
     if (!CODE_RE.test(candidate)) return response({ error: "invalid_code_format" }, 400);
 
     const priorAttempt = readAttempt(state, deviceKey);
@@ -276,7 +269,7 @@ export async function handleLauncherPasswordCoreRequest(
     catch { return response({ error: "invalid_json" }, 400); }
 
     const deviceKey = String(body.device_key || "").trim().toLowerCase();
-    if (!deviceRegistered(state, deviceKey)) return response({ error: "device_not_registered" }, 403);
+    if (!DEVICE_KEY_RE.test(deviceKey)) return response({ error: "invalid_device_key" }, 400);
 
     const ensured = ensureState(state, nowMs);
     const resetAvailableMs = Date.parse(ensured.state.reset_available_at || "") || 0;
