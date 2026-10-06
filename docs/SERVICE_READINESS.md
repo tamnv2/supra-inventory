@@ -8,9 +8,9 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D163_OWNER_FIELD_ACCEPTED_PASS__MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__FORCED_LOGOUT_LOG_CONTINUITY__REPORT_PICKER_DETAIL__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED`
-- Web: `D163_OWNER_FIELD_ACCEPTED_PASS__REPORT_PICKER_DETAIL_LAZY_EXACT_BATCH__RUN_37417036768`
-- Android: `D161_BETA_VC97__D162_OWNER_PASS__D163_OWNER_PASS_UNCHANGED`
+- Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
+- Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
+- Android: `D165_IMPLEMENTED__CATALOG_SINGLE_FLIGHT__SCOPED_REALTIME_DELTA__LOGOUT_LOG_DURABILITY__TECHNICAL_PASS`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-D163 is Owner-accepted PASS and OA098 is closed. The Inventory Báo hàng accepted base is now D163. Independent D164 PDA Management remains technically PASS and pending its own Owner field test under `ops/pda-management-state.json`; this does not reopen D163. Agent v114 and Android vc97 remain unchanged; Stable remains OWNER-GATED.
+D163 remains the last explicit Owner-accepted Inventory base. D165 is merged to Beta and all observed post-merge technical CI is green after PR #480 repaired the stale D160 gateway revision assertion. D165 still requires field validation of behavior, speed, stability and usage plus explicit Owner PASS. Independent D164 PDA Management remains technically PASS and pending its own Owner field test. Released Agent remains v114; D165 source is aligned to v115. Installed/released Android channel remains vc97 unless a later release record supersedes it. Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 

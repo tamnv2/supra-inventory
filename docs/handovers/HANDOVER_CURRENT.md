@@ -8,9 +8,9 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D163_OWNER_FIELD_ACCEPTED_PASS__MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__FORCED_LOGOUT_LOG_CONTINUITY__REPORT_PICKER_DETAIL__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED`
-- Web: `D163_OWNER_FIELD_ACCEPTED_PASS__REPORT_PICKER_DETAIL_LAZY_EXACT_BATCH__RUN_37417036768`
-- Android: `D161_BETA_VC97__D162_OWNER_PASS__D163_OWNER_PASS_UNCHANGED`
+- Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
+- Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
+- Android: `D165_IMPLEMENTED__CATALOG_SINGLE_FLIGHT__SCOPED_REALTIME_DELTA__LOGOUT_LOG_DURABILITY__TECHNICAL_PASS`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -55,9 +55,9 @@ Released artifacts:
 
 ## 5. Next action
 
-D163 is now the accepted Owner-PASS base. OA098 is closed by the Owner's explicit D163 PASS on 2026-10-06. The independent D164 PDA Management scope remains active at technical PASS / field-test pending under `ops/pda-management-state.json`; its field gate is separate and does not change the accepted Inventory D163 base.
+D163 remains the last explicit Owner-PASS Inventory base. D165 is now merged to Beta and all observed post-merge technical CI is green after PR #480 repaired the stale D160 gateway revision assertion. D165 still requires field validation of behavior, speed, stability and usage plus explicit Owner PASS before it becomes the accepted Inventory base. The independent D164 PDA Management scope remains technical PASS / field-test pending.
 
-Agent v114 and Android vc97 are unchanged. Stable remains OWNER-GATED.
+Released Agent remains v114; D165 source is aligned to v115 but no new Agent release is recorded here. Android installed/released channel remains vc97 unless a later release record supersedes it. Stable remains OWNER-GATED.
 
 ## 6. Resume command
 
