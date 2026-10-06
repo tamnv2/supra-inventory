@@ -107,12 +107,17 @@ export async function handlePdaRegistryCoreRequest(
     // A corrected hardware identifier may legitimately change DeviceKey.
     // Reuse the existing Registry record when the immutable device evidence still matches,
     // instead of creating a duplicate PDA row.
-    if (!current && (String(incoming.imei1 || "").trim() || String(incoming.android_id || "").trim())) {
+    if (!current && (
+      String(incoming.imei1 || "").trim()
+      || String(incoming.android_id || "").trim()
+      || String(incoming.serial_normalized || "").trim()
+    )) {
       const candidates = state.storage.sql.exec<ConfigRow>(
         "SELECT key, value_json, updated_at FROM app_config WHERE key LIKE 'pda_registry:%' ORDER BY key LIMIT 5000",
       ).toArray();
       const incomingImei = String(incoming.imei1 || "").trim();
       const incomingAndroidId = String(incoming.android_id || "").trim();
+      const incomingSerial = String(incoming.serial_normalized || "").trim();
       const incomingModel = String(incoming.model || "").trim().toLowerCase();
       for (const candidateRow of candidates) {
         const candidate = parseRecord(String(candidateRow.value_json || ""));
@@ -121,7 +126,10 @@ export async function handlePdaRegistryCoreRequest(
         const sameAndroidDevice = Boolean(incomingAndroidId)
           && incomingAndroidId === String(candidate.android_id || "").trim()
           && incomingModel === String(candidate.model || "").trim().toLowerCase();
-        if (sameImei || sameAndroidDevice) {
+        const sameSerialDevice = Boolean(incomingSerial)
+          && incomingSerial === String(candidate.serial_normalized || "").trim()
+          && incomingModel === String(candidate.model || "").trim().toLowerCase();
+        if (sameImei || sameAndroidDevice || sameSerialDevice) {
           current = candidate;
           rekeyedFromDeviceKey = candidate.device_key;
           break;
