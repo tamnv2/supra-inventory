@@ -3381,3 +3381,12 @@ Hard invariants:
 - Android stays `beta-vc97`; Agent stays `relay-agent-v114`.
 - Forced revoke continues to block every business request immediately.
 - Stable remains OWNER-GATED and untouched.
+
+## 2026-10-06 — D163 technical/runtime release checkpoint
+
+- D163 implementation PR #461 merged to main `d991c83bcf617c4aac523f85337f2b27f9fe3193`.
+- Beta deploy run `37417036768` and all main authority/regression/build gates PASS.
+- This checkpoint proves technical/runtime readiness only. It does **not** constitute Owner business acceptance.
+- OA098 is now the remaining gate: physical Kích User → login return + final logout-log continuity, plus Web Báo cáo chi tiết → exact selected batch Picker drill-down.
+- Android `beta-vc97`, Agent `relay-agent-v114`, and Stable remain unchanged.
+
