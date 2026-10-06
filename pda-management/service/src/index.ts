@@ -12,7 +12,7 @@ import {
 } from "./auth-crypto";
 import { readRegistryDevices } from "./registry-source";
 import { readEmployees, type EmployeeRecord } from "./employee-source";
-import { mirrorDeviceAndTransaction } from "./management-sheet";
+import { mirrorCatalogItem, mirrorDeviceAndTransaction, mirrorManagementUser } from "./management-sheet";
 import { errorCode, reportServerError, safeErrorMessage } from "./diagnostics";
 
 interface Env {
@@ -243,20 +243,24 @@ async function logout(request: Request, env: Env): Promise<Response> {
   return json({ logged_out: true });
 }
 
-async function usersApi(request: Request, env: Env, session: SessionView): Promise<Response> {
+async function usersApi(request: Request, env: Env, ctx: ExecutionContext, session: SessionView): Promise<Response> {
   if (session.role !== "ROOT") return json({ error: "FORBIDDEN" }, 403);
 
   if (request.method === "GET") {
     return json(await coreJson(env, "/users/list"));
   }
 
-  if (request.method === "POST") {
-    let body: Record<string, unknown>;
-    try {
-      body = await request.json() as Record<string, unknown>;
-    } catch {
-      return json({ error: "INVALID_JSON" }, 400);
-    }
+  if (request.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json() as Record<string, unknown>;
+  } catch {
+    return json({ error: "INVALID_JSON" }, 400);
+  }
+
+  const action = String(body.action ?? "CREATE").trim().toUpperCase();
+  if (action === "CREATE") {
     const username = normalizeUsername(body.username);
     const displayName = String(body.display_name ?? "").trim().slice(0, 120);
     const password = String(body.password ?? "");
@@ -268,12 +272,14 @@ async function usersApi(request: Request, env: Env, session: SessionView): Promi
     }
 
     const material = await hashPassword(password);
+    const userId = randomId("usr");
+    const now = new Date().toISOString();
     try {
       await coreJson(env, "/auth/user/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          user_id: randomId("usr"),
+          user_id: userId,
           username,
           display_name: displayName,
           role: "COORDINATOR",
@@ -287,11 +293,97 @@ async function usersApi(request: Request, env: Env, session: SessionView): Promi
       }
       throw error;
     }
-
+    if (env.GOOGLE_RUNTIME_SA_JSON && env.MANAGEMENT_SHEET_ID) {
+      ctx.waitUntil(
+        mirrorManagementUser(env.GOOGLE_RUNTIME_SA_JSON, env.MANAGEMENT_SHEET_ID, {
+          user_id: userId,
+          username,
+          display_name: displayName,
+          role: "COORDINATOR",
+          status: "ACTIVE",
+          created_at: now,
+          updated_at: now,
+        }, session.user_id).catch((error) => {
+          console.error("pda_management_user_mirror_failed", error instanceof Error ? error.message : "unknown");
+        }),
+      );
+    }
     return json({ created: true }, 201);
   }
 
-  return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+  const userId = String(body.user_id ?? "").trim();
+  if (!userId) return json({ error: "USER_ID_REQUIRED" }, 400);
+
+  if (action === "UPDATE") {
+    const username = normalizeUsername(body.username);
+    const displayName = String(body.display_name ?? "").trim().slice(0, 120);
+    const status = String(body.status ?? "ACTIVE").trim().toUpperCase();
+    if (!validUsername(username) || username === "root" || !displayName || !["ACTIVE","DISABLED"].includes(status)) {
+      return json({ error: "INVALID_USER_UPDATE", message: "Thông tin tài khoản Điều phối không hợp lệ." }, 400);
+    }
+    await coreJson(env, "/auth/user/update", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: userId, username, display_name: displayName, status }),
+    });
+    if (env.GOOGLE_RUNTIME_SA_JSON && env.MANAGEMENT_SHEET_ID) {
+      ctx.waitUntil(
+        mirrorManagementUser(env.GOOGLE_RUNTIME_SA_JSON, env.MANAGEMENT_SHEET_ID, {
+          user_id: userId,
+          username,
+          display_name: displayName,
+          role: "COORDINATOR",
+          status,
+          updated_at: new Date().toISOString(),
+        }, session.user_id).catch((error) => {
+          console.error("pda_management_user_mirror_failed", error instanceof Error ? error.message : "unknown");
+        }),
+      );
+    }
+    return json({ updated: true });
+  }
+
+  if (action === "PASSWORD") {
+    const password = String(body.password ?? "");
+    if (!validPassword(password)) {
+      return json({ error: "INVALID_PASSWORD", message: "Mật khẩu phải có tối thiểu 8 ký tự." }, 400);
+    }
+    const material = await hashPassword(password);
+    await coreJson(env, "/auth/user/password", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: userId, password_salt: material.salt, password_hash: material.hash }),
+    });
+    return json({ updated: true, sessions_revoked: true });
+  }
+
+  if (action === "DELETE") {
+    const users = await coreJson<{ users: Array<Record<string, unknown>> }>(env, "/users/list");
+    const target = users.users.find((item) => String(item.user_id || "") === userId) || null;
+    await coreJson(env, "/auth/user/delete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    if (target && env.GOOGLE_RUNTIME_SA_JSON && env.MANAGEMENT_SHEET_ID) {
+      ctx.waitUntil(
+        mirrorManagementUser(env.GOOGLE_RUNTIME_SA_JSON, env.MANAGEMENT_SHEET_ID, {
+          user_id: userId,
+          username: String(target.username || ""),
+          display_name: String(target.display_name || ""),
+          role: "COORDINATOR",
+          status: "DELETED",
+          created_at: String(target.created_at || ""),
+          updated_at: new Date().toISOString(),
+        }, session.user_id).catch((error) => {
+          console.error("pda_management_user_mirror_failed", error instanceof Error ? error.message : "unknown");
+        }),
+      );
+    }
+    return json({ deleted: true });
+  }
+
+  return json({ error: "INVALID_USER_ACTION" }, 400);
 }
 
 async function syncRegistryIfDue(env: Env, force: boolean): Promise<{ synced: boolean; skipped: string }> {
@@ -415,6 +507,157 @@ function mirrorIfPossible(
   );
 }
 
+async function employeesSearchApi(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const query = String(url.searchParams.get("q") || "").trim().slice(0, 100);
+  if (query.length < 2) return json({ employees: [] });
+  try {
+    await syncEmployeesIfDue(env, false);
+    const result = await coreJson<{ employees: EmployeeRecord[] }>(
+      env,
+      `/employees/search?q=${encodeURIComponent(query)}`,
+    );
+    return json(result);
+  } catch (error) {
+    return json({
+      error: "HR_LOOKUP_FAILED",
+      message: "Không thể tải gợi ý nhân sự lúc này.",
+      detail: error instanceof Error ? error.message : "unknown",
+    }, 503);
+  }
+}
+
+async function catalogItemById(
+  env: Env,
+  catalogType: "CONDITION" | "SITE",
+  itemId: string,
+): Promise<Record<string, unknown> | null> {
+  if (!itemId) return null;
+  try {
+    const result = await coreJson<{ item: Record<string, unknown> }>(
+      env,
+      `/catalogs/get?type=${catalogType}&item_id=${encodeURIComponent(itemId)}`,
+    );
+    return result.item || null;
+  } catch (error) {
+    if (error instanceof CoreHttpError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+function mirrorCatalogIfPossible(
+  ctx: ExecutionContext,
+  env: Env,
+  item: Record<string, unknown> | null,
+): void {
+  if (!item || !env.GOOGLE_RUNTIME_SA_JSON || !env.MANAGEMENT_SHEET_ID) return;
+  ctx.waitUntil(
+    mirrorCatalogItem(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.MANAGEMENT_SHEET_ID,
+      item as never,
+    ).catch((error) => {
+      console.error("pda_management_catalog_mirror_failed", error instanceof Error ? error.message : "unknown");
+    }),
+  );
+}
+
+async function catalogsApi(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  session: SessionView,
+): Promise<Response> {
+  const url = new URL(request.url);
+  if (request.method === "GET") {
+    const requested = String(url.searchParams.get("type") || "").trim().toUpperCase();
+    if (requested) {
+      if (!["CONDITION","SITE"].includes(requested)) return json({ error: "INVALID_CATALOG_TYPE" }, 400);
+      return json(await coreJson(env, `/catalogs/list?type=${requested}`));
+    }
+    const [conditions, sites] = await Promise.all([
+      coreJson<{ items: unknown[] }>(env, "/catalogs/list?type=CONDITION"),
+      coreJson<{ items: unknown[] }>(env, "/catalogs/list?type=SITE"),
+    ]);
+    return json({ conditions: conditions.items, sites: sites.items });
+  }
+
+  if (session.role !== "ROOT") return json({ error: "FORBIDDEN" }, 403);
+  if (request.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json() as Record<string, unknown>;
+  } catch {
+    return json({ error: "INVALID_JSON" }, 400);
+  }
+
+  const action = String(body.action ?? "").trim().toUpperCase();
+  const catalogType = String(body.catalog_type ?? "").trim().toUpperCase();
+  if (!["CONDITION","SITE"].includes(catalogType)) return json({ error: "INVALID_CATALOG_TYPE" }, 400);
+  const type = catalogType as "CONDITION" | "SITE";
+  const name = String(body.name ?? "").trim().slice(0, 120);
+  const legacyCondition = String(body.legacy_condition ?? "").trim().toUpperCase();
+  const sortOrder = Number(body.sort_order || 100) || 100;
+
+  if (action === "CREATE") {
+    if (!name) return json({ error: "CATALOG_NAME_REQUIRED" }, 400);
+    if (type === "CONDITION" && !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(legacyCondition)) {
+      return json({ error: "INVALID_CONDITION_SEVERITY" }, 400);
+    }
+    const result = await coreJson<{ item: Record<string, unknown> }>(env, "/catalogs/create", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        catalog_type: type,
+        item_id: randomId(type === "CONDITION" ? "cond" : "site"),
+        name,
+        legacy_condition: type === "CONDITION" ? legacyCondition : "",
+        sort_order: sortOrder,
+      }),
+    });
+    mirrorCatalogIfPossible(ctx, env, result.item);
+    return json({ created: true, item: result.item }, 201);
+  }
+
+  const itemId = String(body.item_id ?? "").trim();
+  if (!itemId) return json({ error: "CATALOG_ITEM_ID_REQUIRED" }, 400);
+
+  if (action === "UPDATE") {
+    if (!name) return json({ error: "CATALOG_NAME_REQUIRED" }, 400);
+    if (type === "CONDITION" && !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(legacyCondition)) {
+      return json({ error: "INVALID_CONDITION_SEVERITY" }, 400);
+    }
+    const result = await coreJson<{ item: Record<string, unknown> }>(env, "/catalogs/update", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        catalog_type: type,
+        item_id: itemId,
+        name,
+        legacy_condition: type === "CONDITION" ? legacyCondition : "",
+        status: String(body.status ?? "ACTIVE").trim().toUpperCase(),
+        sort_order: sortOrder,
+      }),
+    });
+    mirrorCatalogIfPossible(ctx, env, result.item);
+    return json({ updated: true, item: result.item });
+  }
+
+  if (action === "DELETE") {
+    const before = await catalogItemById(env, type, itemId);
+    await coreJson(env, "/catalogs/delete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ catalog_type: type, item_id: itemId }),
+    });
+    if (before) mirrorCatalogIfPossible(ctx, env, { ...before, status: "DISABLED", updated_at: new Date().toISOString() });
+    return json({ deleted: true });
+  }
+
+  return json({ error: "INVALID_CATALOG_ACTION" }, 400);
+}
+
 async function employeeApi(pathname: string, env: Env): Promise<Response> {
   const match = pathname.match(/^\/api\/employees\/([^/]+)$/);
   const employeeCode = match?.[1] ? decodeURIComponent(match[1]).trim() : "";
@@ -440,7 +683,7 @@ async function deviceActionApi(
   session: SessionView,
 ): Promise<Response | null> {
   const url = new URL(request.url);
-  const match = url.pathname.match(/^\/api\/devices\/([^/]+)\/(borrow|return|status|history)$/);
+  const match = url.pathname.match(/^\/api\/devices\/([^/]+)\/(borrow|return|status|site|history)$/);
   if (!match) return null;
   const serial = decodeURIComponent(match[1]).trim().toUpperCase();
   const action = match[2];
@@ -482,7 +725,9 @@ async function deviceActionApi(
 
   if (action === "borrow") {
     const employeeCode = String(body.employee_code ?? "").trim();
+    const conditionId = String(body.condition_id ?? "").trim();
     if (!employeeCode) return json({ error: "EMPLOYEE_CODE_REQUIRED" }, 400);
+    if (!conditionId) return json({ error: "CONDITION_REQUIRED", message: "Chọn tình trạng ngoại quan PDA." }, 400);
     let employee: EmployeeRecord | null = null;
     try {
       employee = await employeeByCode(env, employeeCode);
@@ -493,22 +738,36 @@ async function deviceActionApi(
       return json({ error: "EMPLOYEE_NOT_FOUND", message: "Không tìm thấy nhân sự theo mã đã nhập." }, 404);
     }
 
+    const condition = await catalogItemById(env, "CONDITION", conditionId);
+    if (!condition || String(condition.status) !== "ACTIVE") {
+      return json({ error: "CONDITION_NOT_FOUND", message: "Tình trạng ngoại quan không còn hiệu lực." }, 409);
+    }
     const result = await coreMutation(env, "/devices/borrow", {
       ...common,
       employee_code: employee.employee_code,
       employee_name: employee.full_name,
       employee_contractor: employee.contractor,
+      condition_id: String(condition.item_id),
+      condition_name: String(condition.name),
+      legacy_condition: String(condition.legacy_condition),
     });
     if (result.status >= 200 && result.status < 300) mirrorIfPossible(ctx, env, result.payload);
     return json(result.payload, result.status);
   }
 
   if (action === "return") {
-    const condition = String(body.physical_condition ?? "").trim().toUpperCase();
+    const conditionId = String(body.condition_id ?? "").trim();
     const note = String(body.note ?? "").trim().slice(0, 500);
+    if (!conditionId) return json({ error: "CONDITION_REQUIRED", message: "Chọn tình trạng ngoại quan PDA." }, 400);
+    const condition = await catalogItemById(env, "CONDITION", conditionId);
+    if (!condition || String(condition.status) !== "ACTIVE") {
+      return json({ error: "CONDITION_NOT_FOUND", message: "Tình trạng ngoại quan không còn hiệu lực." }, 409);
+    }
     const result = await coreMutation(env, "/devices/return", {
       ...common,
-      physical_condition: condition,
+      physical_condition: String(condition.legacy_condition),
+      condition_id: String(condition.item_id),
+      condition_name: String(condition.name),
       note,
     });
     if (result.status >= 200 && result.status < 300) mirrorIfPossible(ctx, env, result.payload);
@@ -516,6 +775,7 @@ async function deviceActionApi(
   }
 
   if (action === "status") {
+    if (session.role !== "ROOT") return json({ error: "FORBIDDEN" }, 403);
     const usageStatus = String(body.usage_status ?? "").trim().toUpperCase();
     const condition = String(body.physical_condition ?? "UNKNOWN").trim().toUpperCase();
     const note = String(body.note ?? "").trim().slice(0, 500);
@@ -524,6 +784,23 @@ async function deviceActionApi(
       usage_status: usageStatus,
       physical_condition: condition,
       note,
+    });
+    if (result.status >= 200 && result.status < 300) mirrorIfPossible(ctx, env, result.payload);
+    return json(result.payload, result.status);
+  }
+
+  if (action === "site") {
+    if (session.role !== "ROOT") return json({ error: "FORBIDDEN" }, 403);
+    const siteId = String(body.site_id ?? "").trim();
+    if (!siteId) return json({ error: "SITE_REQUIRED", message: "Chọn Site PDA." }, 400);
+    const site = await catalogItemById(env, "SITE", siteId);
+    if (!site || String(site.status) !== "ACTIVE") {
+      return json({ error: "SITE_NOT_FOUND", message: "Site PDA không còn hiệu lực." }, 409);
+    }
+    const result = await coreMutation(env, "/devices/site", {
+      ...common,
+      site_id: String(site.item_id),
+      site_name: String(site.name),
     });
     if (result.status >= 200 && result.status < 300) mirrorIfPossible(ctx, env, result.payload);
     return json(result.payload, result.status);
@@ -713,8 +990,12 @@ export default {
       });
     }
 
-    if (url.pathname === "/api/users") return usersApi(request, env, session);
+    if (url.pathname === "/api/users") return usersApi(request, env, ctx, session);
+    if (url.pathname === "/api/catalogs") return catalogsApi(request, env, ctx, session);
     if (url.pathname === "/api/devices" && request.method === "GET") return devicesApi(request, env);
+    if (url.pathname === "/api/employees" && request.method === "GET") {
+      return employeesSearchApi(request, env);
+    }
     if (url.pathname.startsWith("/api/employees/") && request.method === "GET") {
       return employeeApi(url.pathname, env);
     }

@@ -40,6 +40,10 @@ interface TransactionRow extends Record<string, SqlStorageValue> {
   old_usage_status: string | null;
   new_usage_status: string | null;
   physical_condition: string | null;
+  condition_id: string | null;
+  condition_name: string | null;
+  site_id: string | null;
+  site_name: string | null;
   occurred_at: string;
   operator_user_id: string;
   operator_name: string;
@@ -56,6 +60,10 @@ interface DeviceRow extends Record<string, SqlStorageValue> {
   launcher_version: string;
   usage_status: string;
   physical_condition: string;
+  condition_id: string | null;
+  condition_name: string | null;
+  site_id: string | null;
+  site_name: string | null;
   borrower_employee_code: string | null;
   borrower_name: string | null;
   borrower_contractor: string | null;
@@ -209,6 +217,72 @@ export class PdaManagementCore {
     if (!this.hasColumn("transactions", "employee_contractor")) {
       sql.exec("ALTER TABLE transactions ADD COLUMN employee_contractor TEXT");
     }
+    if (!this.hasColumn("devices", "condition_id")) {
+      sql.exec("ALTER TABLE devices ADD COLUMN condition_id TEXT");
+    }
+    if (!this.hasColumn("devices", "condition_name")) {
+      sql.exec("ALTER TABLE devices ADD COLUMN condition_name TEXT");
+    }
+    if (!this.hasColumn("devices", "site_id")) {
+      sql.exec("ALTER TABLE devices ADD COLUMN site_id TEXT");
+    }
+    if (!this.hasColumn("devices", "site_name")) {
+      sql.exec("ALTER TABLE devices ADD COLUMN site_name TEXT");
+    }
+    if (!this.hasColumn("transactions", "condition_id")) {
+      sql.exec("ALTER TABLE transactions ADD COLUMN condition_id TEXT");
+    }
+    if (!this.hasColumn("transactions", "condition_name")) {
+      sql.exec("ALTER TABLE transactions ADD COLUMN condition_name TEXT");
+    }
+    if (!this.hasColumn("transactions", "site_id")) {
+      sql.exec("ALTER TABLE transactions ADD COLUMN site_id TEXT");
+    }
+    if (!this.hasColumn("transactions", "site_name")) {
+      sql.exec("ALTER TABLE transactions ADD COLUMN site_name TEXT");
+    }
+
+    sql.exec(`
+      CREATE TABLE IF NOT EXISTS catalog_items (
+        catalog_type TEXT NOT NULL CHECK (catalog_type IN ('CONDITION','SITE')),
+        item_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        legacy_condition TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
+        sort_order INTEGER NOT NULL DEFAULT 100,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (catalog_type, item_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_catalog_type_status_sort
+        ON catalog_items(catalog_type, status, sort_order, name);
+
+      INSERT INTO catalog_items(catalog_type,item_id,name,legacy_condition,status,sort_order)
+        VALUES ('CONDITION','cond_good','Tốt','GOOD','ACTIVE',10)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+      INSERT INTO catalog_items(catalog_type,item_id,name,legacy_condition,status,sort_order)
+        VALUES ('CONDITION','cond_minor','Trầy xước / lỗi nhẹ','MINOR_DAMAGE','ACTIVE',20)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+      INSERT INTO catalog_items(catalog_type,item_id,name,legacy_condition,status,sort_order)
+        VALUES ('CONDITION','cond_damaged','Hỏng / cần sửa','DAMAGED','ACTIVE',30)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+
+      INSERT INTO catalog_items(catalog_type,item_id,name,status,sort_order)
+        VALUES ('SITE','site_1291','1291','ACTIVE',10)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+      INSERT INTO catalog_items(catalog_type,item_id,name,status,sort_order)
+        VALUES ('SITE','site_1386_1368','1386-1368','ACTIVE',20)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+      INSERT INTO catalog_items(catalog_type,item_id,name,status,sort_order)
+        VALUES ('SITE','site_1399','1399','ACTIVE',30)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+      INSERT INTO catalog_items(catalog_type,item_id,name,status,sort_order)
+        VALUES ('SITE','site_inventory','Inventory','ACTIVE',40)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+      INSERT INTO catalog_items(catalog_type,item_id,name,status,sort_order)
+        VALUES ('SITE','site_outbound','Outbound','ACTIVE',50)
+        ON CONFLICT(catalog_type,item_id) DO NOTHING;
+    `);
   }
 
   private meta(key: string, fallback = ""): string {
@@ -239,7 +313,7 @@ export class PdaManagementCore {
       return json({
         status: "ok",
         storage: "sqlite-do",
-        schema_version: 2,
+        schema_version: 3,
         data_revision: Number(this.meta("data_revision", "1")) || 1,
       });
     }
@@ -379,6 +453,58 @@ export class PdaManagementCore {
       return json({ users });
     }
 
+    if (request.method === "POST" && url.pathname === "/auth/user/update") {
+      const body = await request.json() as Record<string, unknown>;
+      const userId = text(body.user_id, 80);
+      const username = normalizeUsername(body.username);
+      const displayName = text(body.display_name, 120);
+      const status = text(body.status, 20).toUpperCase();
+      if (!userId || !username || !displayName || !["ACTIVE","DISABLED"].includes(status)) {
+        return json({ error: "INVALID_USER_UPDATE" }, 400);
+      }
+      const target = sql.exec<ManagementUser>("SELECT * FROM users WHERE user_id=? LIMIT 1", userId).toArray()[0];
+      if (!target) return json({ error: "USER_NOT_FOUND" }, 404);
+      if (target.role === "ROOT") return json({ error: "ROOT_IMMUTABLE" }, 409);
+      try {
+        sql.exec(
+          "UPDATE users SET username=?, display_name=?, status=?, updated_at=CURRENT_TIMESTAMP WHERE user_id=?",
+          username, displayName, status, userId,
+        );
+      } catch {
+        return json({ error: "USER_EXISTS" }, 409);
+      }
+      if (status !== "ACTIVE") sql.exec("DELETE FROM sessions WHERE user_id=?", userId);
+      return json({ updated: true });
+    }
+
+    if (request.method === "POST" && url.pathname === "/auth/user/password") {
+      const body = await request.json() as Record<string, unknown>;
+      const userId = text(body.user_id, 80);
+      const salt = text(body.password_salt, 200);
+      const hash = text(body.password_hash, 200);
+      if (!userId || !salt || !hash) return json({ error: "INVALID_PASSWORD_UPDATE" }, 400);
+      const target = sql.exec<ManagementUser>("SELECT * FROM users WHERE user_id=? LIMIT 1", userId).toArray()[0];
+      if (!target) return json({ error: "USER_NOT_FOUND" }, 404);
+      if (target.role === "ROOT") return json({ error: "ROOT_IMMUTABLE" }, 409);
+      sql.exec(
+        "UPDATE users SET password_salt=?, password_hash=?, updated_at=CURRENT_TIMESTAMP WHERE user_id=?",
+        salt, hash, userId,
+      );
+      sql.exec("DELETE FROM sessions WHERE user_id=?", userId);
+      return json({ updated: true });
+    }
+
+    if (request.method === "POST" && url.pathname === "/auth/user/delete") {
+      const body = await request.json() as Record<string, unknown>;
+      const userId = text(body.user_id, 80);
+      if (!userId) return json({ error: "INVALID_USER_DELETE" }, 400);
+      const target = sql.exec<ManagementUser>("SELECT * FROM users WHERE user_id=? LIMIT 1", userId).toArray()[0];
+      if (!target) return json({ error: "USER_NOT_FOUND" }, 404);
+      if (target.role === "ROOT") return json({ error: "ROOT_IMMUTABLE" }, 409);
+      sql.exec("DELETE FROM users WHERE user_id=?", userId);
+      return json({ deleted: true });
+    }
+
     if (request.method === "GET" && url.pathname === "/employees/meta") {
       return json({
         hr_last_sync_ms: Number(this.meta("hr_last_sync_ms", "0")) || 0,
@@ -478,6 +604,128 @@ export class PdaManagementCore {
       return json({ employee: employee || null });
     }
 
+    if (request.method === "GET" && url.pathname === "/employees/search") {
+      const query = text(url.searchParams.get("q"), 100);
+      if (query.length < 2) return json({ employees: [] });
+      const like = "%" + query.replaceAll("%", "").replaceAll("_", "") + "%";
+      const employees = sql.exec<EmployeeRow>(
+        `SELECT employee_code, full_name, contractor, source_hash, updated_at
+         FROM employees
+         WHERE employee_code LIKE ? OR full_name LIKE ?
+         ORDER BY CASE WHEN employee_code LIKE ? THEN 0 ELSE 1 END, employee_code
+         LIMIT 8`,
+        like, like, query + "%",
+      ).toArray();
+      return json({ employees });
+    }
+
+    if (request.method === "GET" && url.pathname === "/catalogs/list") {
+      const type = text(url.searchParams.get("type"), 20).toUpperCase();
+      const includeDisabled = url.searchParams.get("include_disabled") === "1";
+      if (!["CONDITION","SITE"].includes(type)) return json({ error: "INVALID_CATALOG_TYPE" }, 400);
+      const items = includeDisabled
+        ? sql.exec<Record<string, SqlStorageValue>>(
+            "SELECT catalog_type,item_id,name,legacy_condition,status,sort_order,created_at,updated_at FROM catalog_items WHERE catalog_type=? ORDER BY sort_order,name",
+            type,
+          ).toArray()
+        : sql.exec<Record<string, SqlStorageValue>>(
+            "SELECT catalog_type,item_id,name,legacy_condition,status,sort_order,created_at,updated_at FROM catalog_items WHERE catalog_type=? AND status='ACTIVE' ORDER BY sort_order,name",
+            type,
+          ).toArray();
+      return json({ items });
+    }
+
+    if (request.method === "GET" && url.pathname === "/catalogs/get") {
+      const type = text(url.searchParams.get("type"), 20).toUpperCase();
+      const itemId = text(url.searchParams.get("item_id"), 100);
+      if (!["CONDITION","SITE"].includes(type) || !itemId) return json({ error: "INVALID_CATALOG_KEY" }, 400);
+      const item = sql.exec<Record<string, SqlStorageValue>>(
+        "SELECT catalog_type,item_id,name,legacy_condition,status,sort_order,created_at,updated_at FROM catalog_items WHERE catalog_type=? AND item_id=? LIMIT 1",
+        type, itemId,
+      ).toArray()[0];
+      return item ? json({ item }) : json({ error: "CATALOG_ITEM_NOT_FOUND" }, 404);
+    }
+
+    if (request.method === "POST" && url.pathname === "/catalogs/create") {
+      const body = await request.json() as Record<string, unknown>;
+      const type = text(body.catalog_type, 20).toUpperCase();
+      const itemId = text(body.item_id, 100);
+      const name = text(body.name, 120);
+      const legacyCondition = text(body.legacy_condition, 30).toUpperCase();
+      const sortOrder = Math.max(0, Math.min(9999, Number(body.sort_order || 100) || 100));
+      if (!["CONDITION","SITE"].includes(type) || !itemId || !name) return json({ error: "INVALID_CATALOG_ITEM" }, 400);
+      if (type === "CONDITION" && !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(legacyCondition)) {
+        return json({ error: "INVALID_CONDITION_SEVERITY" }, 400);
+      }
+      try {
+        sql.exec(
+          "INSERT INTO catalog_items(catalog_type,item_id,name,legacy_condition,status,sort_order) VALUES (?,?,?,?, 'ACTIVE', ?)",
+          type, itemId, name, type === "CONDITION" ? legacyCondition : "", sortOrder,
+        );
+      } catch {
+        return json({ error: "CATALOG_ITEM_EXISTS" }, 409);
+      }
+      const item = sql.exec<Record<string, SqlStorageValue>>(
+        "SELECT catalog_type,item_id,name,legacy_condition,status,sort_order,created_at,updated_at FROM catalog_items WHERE catalog_type=? AND item_id=? LIMIT 1",
+        type, itemId,
+      ).toArray()[0];
+      return json({ created: true, item });
+    }
+
+    if (request.method === "POST" && url.pathname === "/catalogs/update") {
+      const body = await request.json() as Record<string, unknown>;
+      const type = text(body.catalog_type, 20).toUpperCase();
+      const itemId = text(body.item_id, 100);
+      const name = text(body.name, 120);
+      const legacyCondition = text(body.legacy_condition, 30).toUpperCase();
+      const status = text(body.status, 20).toUpperCase();
+      const sortOrder = Math.max(0, Math.min(9999, Number(body.sort_order || 100) || 100));
+      if (!["CONDITION","SITE"].includes(type) || !itemId || !name || !["ACTIVE","DISABLED"].includes(status)) {
+        return json({ error: "INVALID_CATALOG_ITEM" }, 400);
+      }
+      if (type === "CONDITION" && !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(legacyCondition)) {
+        return json({ error: "INVALID_CONDITION_SEVERITY" }, 400);
+      }
+      const current = sql.exec<Record<string, SqlStorageValue>>(
+        "SELECT item_id FROM catalog_items WHERE catalog_type=? AND item_id=? LIMIT 1",
+        type, itemId,
+      ).toArray()[0];
+      if (!current) return json({ error: "CATALOG_ITEM_NOT_FOUND" }, 404);
+      sql.exec(
+        "UPDATE catalog_items SET name=?,legacy_condition=?,status=?,sort_order=?,updated_at=CURRENT_TIMESTAMP WHERE catalog_type=? AND item_id=?",
+        name, type === "CONDITION" ? legacyCondition : "", status, sortOrder, type, itemId,
+      );
+      const item = sql.exec<Record<string, SqlStorageValue>>(
+        "SELECT catalog_type,item_id,name,legacy_condition,status,sort_order,created_at,updated_at FROM catalog_items WHERE catalog_type=? AND item_id=? LIMIT 1",
+        type, itemId,
+      ).toArray()[0];
+      return json({ updated: true, item });
+    }
+
+    if (request.method === "POST" && url.pathname === "/catalogs/delete") {
+      const body = await request.json() as Record<string, unknown>;
+      const type = text(body.catalog_type, 20).toUpperCase();
+      const itemId = text(body.item_id, 100);
+      if (!["CONDITION","SITE"].includes(type) || !itemId) return json({ error: "INVALID_CATALOG_KEY" }, 400);
+      const current = sql.exec<Record<string, SqlStorageValue>>(
+        "SELECT item_id,status FROM catalog_items WHERE catalog_type=? AND item_id=? LIMIT 1",
+        type, itemId,
+      ).toArray()[0];
+      if (!current) return json({ error: "CATALOG_ITEM_NOT_FOUND" }, 404);
+      const activeCount = Number(sql.exec<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM catalog_items WHERE catalog_type=? AND status='ACTIVE'",
+        type,
+      ).toArray()[0]?.count || 0);
+      if (String(current.status) === "ACTIVE" && activeCount <= 1) {
+        return json({ error: "LAST_ACTIVE_CATALOG_ITEM", message: "Phải giữ lại ít nhất một danh mục đang dùng." }, 409);
+      }
+      sql.exec(
+        "UPDATE catalog_items SET status='DISABLED',updated_at=CURRENT_TIMESTAMP WHERE catalog_type=? AND item_id=?",
+        type, itemId,
+      );
+      return json({ deleted: true });
+    }
+
     if (request.method === "GET" && url.pathname === "/devices/meta") {
       return json({
         data_revision: Number(this.meta("data_revision", "1")) || 1,
@@ -550,9 +798,7 @@ export class PdaManagementCore {
 
     if (request.method === "GET" && url.pathname === "/devices/list") {
       const devices = sql.exec<DeviceRow>(`
-        SELECT serial, device_key, model, manufacturer, launcher_version, usage_status,
-               physical_condition, borrower_employee_code, borrower_name, borrower_contractor, borrowed_at,
-               last_returned_at, note, registry_last_seen_at, updated_at, updated_by, revision
+        SELECT *
         FROM devices
         ORDER BY
           CASE usage_status
@@ -583,7 +829,7 @@ export class PdaManagementCore {
       const serial = text(url.searchParams.get("serial"), 120).toUpperCase();
       if (!serial) return json({ error: "INVALID_SERIAL" }, 400);
       const transactions = sql.exec<TransactionRow>(
-        "SELECT transaction_id, serial, action, employee_code, employee_name, employee_contractor, old_usage_status, new_usage_status, physical_condition, occurred_at, operator_user_id, operator_name, note, idempotency_key, revision FROM transactions WHERE serial=? ORDER BY occurred_at DESC LIMIT 100",
+        "SELECT transaction_id, serial, action, employee_code, employee_name, employee_contractor, old_usage_status, new_usage_status, physical_condition, condition_id, condition_name, site_id, site_name, occurred_at, operator_user_id, operator_name, note, idempotency_key, revision FROM transactions WHERE serial=? ORDER BY occurred_at DESC LIMIT 100",
         serial,
       ).toArray();
       return json({ transactions });
@@ -595,12 +841,19 @@ export class PdaManagementCore {
       const employeeCode = text(body.employee_code, 80);
       const employeeName = text(body.employee_name, 160);
       const employeeContractor = text(body.employee_contractor, 120);
+      const conditionId = text(body.condition_id, 100);
+      const conditionName = text(body.condition_name, 120);
+      const legacyCondition = text(body.legacy_condition, 30).toUpperCase();
       const operatorUserId = text(body.operator_user_id, 80);
       const operatorName = text(body.operator_name, 160);
       const idempotencyKey = text(body.idempotency_key, 120);
       const transactionId = text(body.transaction_id, 120);
       const occurredAt = text(body.occurred_at, 80) || new Date().toISOString();
-      if (!serial || !employeeCode || !employeeName || !operatorUserId || !operatorName || !idempotencyKey || !transactionId) {
+      if (
+        !serial || !employeeCode || !employeeName || !conditionId || !conditionName ||
+        !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(legacyCondition) ||
+        !operatorUserId || !operatorName || !idempotencyKey || !transactionId
+      ) {
         return json({ error: "INVALID_BORROW_REQUEST" }, 400);
       }
 
@@ -628,6 +881,9 @@ export class PdaManagementCore {
       sql.exec(
         `UPDATE devices
          SET usage_status='BORROWED',
+             physical_condition=?,
+             condition_id=?,
+             condition_name=?,
              borrower_employee_code=?,
              borrower_name=?,
              borrower_contractor=?,
@@ -636,16 +892,17 @@ export class PdaManagementCore {
              updated_by=?,
              revision=?
          WHERE serial=?`,
+        legacyCondition, conditionId, conditionName,
         employeeCode, employeeName, employeeContractor, occurredAt, occurredAt, operatorUserId, nextRevision, serial,
       );
       sql.exec(
         `INSERT INTO transactions(
           transaction_id, serial, action, employee_code, employee_name, employee_contractor,
-          old_usage_status, new_usage_status, physical_condition, occurred_at,
+          old_usage_status, new_usage_status, physical_condition, condition_id, condition_name, site_id, site_name, occurred_at,
           operator_user_id, operator_name, note, idempotency_key, revision
-        ) VALUES (?, ?, 'BORROW', ?, ?, ?, ?, 'BORROWED', ?, ?, ?, ?, '', ?, ?)`,
+        ) VALUES (?, ?, 'BORROW', ?, ?, ?, ?, 'BORROWED', ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)`,
         transactionId, serial, employeeCode, employeeName, employeeContractor,
-        current.usage_status, current.physical_condition, occurredAt,
+        current.usage_status, legacyCondition, conditionId, conditionName, current.site_id, current.site_name, occurredAt,
         operatorUserId, operatorName, idempotencyKey, nextRevision,
       );
       this.incrementRevision();
@@ -694,6 +951,8 @@ export class PdaManagementCore {
         `UPDATE devices
          SET usage_status=?,
              physical_condition=?,
+             condition_id=NULL,
+             condition_name=NULL,
              note=?,
              updated_at=?,
              updated_by=?,
@@ -716,17 +975,65 @@ export class PdaManagementCore {
       return json({ replayed: false, transaction, device });
     }
 
+    if (request.method === "POST" && url.pathname === "/devices/site") {
+      const body = await request.json() as Record<string, unknown>;
+      const serial = text(body.serial, 120).toUpperCase();
+      const siteId = text(body.site_id, 100);
+      const siteName = text(body.site_name, 120);
+      const operatorUserId = text(body.operator_user_id, 80);
+      const operatorName = text(body.operator_name, 160);
+      const idempotencyKey = text(body.idempotency_key, 120);
+      const transactionId = text(body.transaction_id, 120);
+      const occurredAt = text(body.occurred_at, 80) || new Date().toISOString();
+      if (!serial || !siteId || !siteName || !operatorUserId || !operatorName || !idempotencyKey || !transactionId) {
+        return json({ error: "INVALID_SITE_REQUEST" }, 400);
+      }
+
+      const replay = sql.exec<TransactionRow>(
+        "SELECT * FROM transactions WHERE idempotency_key=? LIMIT 1",
+        idempotencyKey,
+      ).toArray()[0];
+      if (replay) {
+        const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", replay.serial).toArray()[0];
+        return json({ replayed: true, transaction: replay, device });
+      }
+
+      const current = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      if (!current) return json({ error: "DEVICE_NOT_FOUND" }, 404);
+      const nextRevision = Number(current.revision || 0) + 1;
+      sql.exec(
+        "UPDATE devices SET site_id=?,site_name=?,updated_at=?,updated_by=?,revision=? WHERE serial=?",
+        siteId, siteName, occurredAt, operatorUserId, nextRevision, serial,
+      );
+      sql.exec(
+        `INSERT INTO transactions(
+          transaction_id, serial, action, employee_code, employee_name, employee_contractor,
+          old_usage_status, new_usage_status, physical_condition, condition_id, condition_name, site_id, site_name, occurred_at,
+          operator_user_id, operator_name, note, idempotency_key, revision
+        ) VALUES (?, ?, 'SITE_UPDATE', NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)`,
+        transactionId, serial, current.usage_status, current.usage_status, current.physical_condition,
+        current.condition_id, current.condition_name, siteId, siteName, occurredAt,
+        operatorUserId, operatorName, idempotencyKey, nextRevision,
+      );
+      this.incrementRevision();
+      const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      const transaction = sql.exec<TransactionRow>("SELECT * FROM transactions WHERE transaction_id=? LIMIT 1", transactionId).toArray()[0];
+      return json({ replayed: false, transaction, device });
+    }
+
     if (request.method === "POST" && url.pathname === "/devices/return") {
       const body = await request.json() as Record<string, unknown>;
       const serial = text(body.serial, 120).toUpperCase();
       const condition = text(body.physical_condition, 30).toUpperCase();
+      const conditionId = text(body.condition_id, 100);
+      const conditionName = text(body.condition_name, 120);
       const operatorUserId = text(body.operator_user_id, 80);
       const operatorName = text(body.operator_name, 160);
       const note = text(body.note, 500);
       const idempotencyKey = text(body.idempotency_key, 120);
       const transactionId = text(body.transaction_id, 120);
       const occurredAt = text(body.occurred_at, 80) || new Date().toISOString();
-      if (!serial || !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(condition) || !operatorUserId || !operatorName || !idempotencyKey || !transactionId) {
+      if (!serial || !conditionId || !conditionName || !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(condition) || !operatorUserId || !operatorName || !idempotencyKey || !transactionId) {
         return json({ error: "INVALID_RETURN_REQUEST" }, 400);
       }
 
@@ -751,6 +1058,8 @@ export class PdaManagementCore {
         `UPDATE devices
          SET usage_status=?,
              physical_condition=?,
+             condition_id=?,
+             condition_name=?,
              borrower_employee_code=NULL,
              borrower_name=NULL,
              borrower_contractor=NULL,
@@ -761,17 +1070,17 @@ export class PdaManagementCore {
              updated_by=?,
              revision=?
          WHERE serial=?`,
-        newStatus, condition, occurredAt, note, occurredAt, operatorUserId, nextRevision, serial,
+        newStatus, condition, conditionId, conditionName, occurredAt, note, occurredAt, operatorUserId, nextRevision, serial,
       );
       sql.exec(
         `INSERT INTO transactions(
           transaction_id, serial, action, employee_code, employee_name, employee_contractor,
-          old_usage_status, new_usage_status, physical_condition, occurred_at,
+          old_usage_status, new_usage_status, physical_condition, condition_id, condition_name, site_id, site_name, occurred_at,
           operator_user_id, operator_name, note, idempotency_key, revision
-        ) VALUES (?, ?, 'RETURN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, 'RETURN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         transactionId, serial,
         current.borrower_employee_code, current.borrower_name, current.borrower_contractor,
-        current.usage_status, newStatus, condition, occurredAt,
+        current.usage_status, newStatus, condition, conditionId, conditionName, current.site_id, current.site_name, occurredAt,
         operatorUserId, operatorName, note, idempotencyKey, nextRevision,
       );
       this.incrementRevision();

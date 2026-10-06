@@ -6,6 +6,8 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/pda_management_logo"
+        android:roundIcon="@drawable/pda_management_logo"
         android:label="Quản lý PDA Beta"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
