@@ -29,6 +29,12 @@ export interface OperationalDeadlineEffect {
   picker_user_ids: string[];
   result_event: boolean;
   queue_delta?: -1 | 0 | 1;
+  recent_counter?: {
+    before_status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | null;
+    before_at: string | null;
+    after_status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | null;
+    after_at: string | null;
+  };
   title: string;
   body: string;
 }
@@ -579,6 +585,7 @@ function processBatchAutoSkip(
           affected_picker_count: targetRows.length,
           correction_deadline_at: correctionDeadline,
           queue_delta: -1,
+          recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now },
         },
         now,
       );
@@ -603,6 +610,7 @@ function processBatchAutoSkip(
         picker_user_ids: [...new Set(targetRows.map((ticket) => String(ticket.picker_user_id || "")).filter(Boolean))],
         result_event: true,
         queue_delta: -1,
+        recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now },
         title: "SUPRA Inventory · Được phép bỏ qua",
         body: `${String(row.sku || "SKU")} · ${String(row.product_name || "Chưa có tên sản phẩm")}\nCho phép skip · Hệ thống tự động · Hệ thống`,
       });
@@ -729,6 +737,7 @@ function processPerPickerAutoSkip(
           final_batch_resolution: finalForBatch,
           correction_deadline_at: correctionDeadline,
           queue_delta: finalForBatch ? -1 : 0,
+          ...(finalForBatch ? { recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now } } : {}),
         },
         now,
       );
@@ -758,6 +767,7 @@ function processPerPickerAutoSkip(
         picker_user_ids: pickerUserId ? [pickerUserId] : [],
         result_event: true,
         queue_delta: finalForBatch ? -1 : 0,
+        ...(finalForBatch ? { recent_counter: { before_status: null, before_at: null, after_status: "SKIP_ALLOWED", after_at: now } } : {}),
         title: "SUPRA Inventory · Được phép bỏ qua",
         body: `${String(row.sku || "SKU")} · ${String(row.product_name || "Chưa có tên sản phẩm")}\nCho phép skip · Hệ thống tự động · Hệ thống`,
       });
