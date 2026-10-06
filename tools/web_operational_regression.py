@@ -521,7 +521,7 @@ def main() -> None:
     )
     require(
         app,
-        'const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];\n  if (!recentBadgeInitialized) tasks.push(loadReporterTabCounters());',
+        'const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];\n  if (!recentBadgeInitialized || !overdueBadgeInitialized) tasks.push(loadReporterTabCounters());',
         "D165 Operations loads its list plus only lightweight missing recent/overdue counters",
     )
 
