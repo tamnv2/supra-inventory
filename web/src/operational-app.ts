@@ -4749,7 +4749,7 @@ window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
 }, 60_000);
 window.setInterval(() => {
-  if (!profile || !roleManage() || activeSection !== "dashboard") return;
+  if (!hasSession() || !profile || !roleManage() || activeSection !== "dashboard") return;
   void getRealtimePresence().then((next) => {
     realtimePresence = next;
     patchActiveSection(true);
