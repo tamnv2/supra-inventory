@@ -3405,3 +3405,43 @@ Accepted evidence:
 
 OA098 is closed PASS and D163 is promoted to the accepted Inventory base. The already-authorized **D164 PDA Management** workstream remains an independent isolated scope and continues under `ops/pda-management-state.json`; this acceptance record does not imply D164 Owner PASS.
 
+## D165 — Inventory reliability, realtime and usage optimization proposal — Owner approved for recording only — 2026-10-06
+
+Status: **OWNER-APPROVED PROPOSAL ONLY — IMPLEMENTATION NOT STARTED**.
+
+The Owner approved recording the complete D165 proposal after review of D163 live behavior, the complete 2026-10-06 Báo hàng logs and refreshed provider-usage evidence. Canonical detail is `docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md`.
+
+Hard gate:
+- this record does not authorize runtime/source implementation;
+- D165 must be re-verified in a later fresh-bootstrap session and requires a new explicit Owner start command before code/build/deploy;
+- D164 PDA Management remains an independent isolated workstream under `ops/pda-management-state.json`; D165 does not replace the current D164 change-control slot;
+- Stable remains OWNER-GATED and untouched.
+
+Owner-approved D165 scope:
+1. One canonical daily Logs folder for Android/Web/Agent, race-safe folder resolution and `bundle_id` idempotency.
+2. User-facing App/Agent release notes carried by existing update manifests, with no sensitive/internal/AI/Owner-only content.
+3. New **Quá hạn** Reporter tab for `PER_PICKER` only. `FIRST_REPORT` is explicitly unchanged.
+4. In `PER_PICKER`, a Picker may receive automatic Skip eligibility while the SKU batch remains `PENDING` for Invent; the same SKU may simultaneously contain waiting Pickers in Đang xử lý and timed-out Pickers in Quá hạn.
+5. Quá hạn **Đã có hàng** affects all applicable Pickers; Quá hạn **Cho phép Skip** sends new Skip only to still-waiting Pickers and avoids duplicate Skip delivery to already-timed-out Pickers.
+6. Correction source is **HAS_STOCK** only: HAS_STOCK -> PENDING or HAS_STOCK -> SKIP_ALLOWED, with two confirmations, immutable audit and Picker corrected-result acknowledgement. HAS_STOCK -> PENDING resets per-Picker auto-skip deadlines from correction time.
+7. Saving processing/SLA timing configuration requires a critical warning plus server-side verification of the current authenticated user’s password; passwords never enter logs/audit/local storage.
+8. Agent repairs: bulk/single kick list refresh from local authoritative state, temporary action status instead of stale banner, and reliable Android final logout-log persistence after Kích User.
+9. Android catalog synchronization becomes single-flight/coalesced to eliminate overlapping staging corruption.
+10. Web stops protected refresh work after session loss/replacement.
+11. Expected `PRESENCE_ACK_CONTROL SUPERSEDED` concurrency losses remain safe CAS diagnostics and stop generating per-event error archives unless real convergence/health impact exists.
+12. Realtime Web/Android applies exact row/snapshot deltas where sufficient instead of full queue/recent/report/result API reloads per event; full reconcile is reserved for initial load, real gap/epoch mismatch/integrity uncertainty.
+13. Add measured SQL indexes and transactional/materialized batch summary counters to trade very low rows-written usage for much lower rows-read usage.
+14. Reconnect remains fast and delta-first; multiple reconcile triggers coalesce.
+15. Existing Beta RTDB is approved as a **proposal-only HA liveness carrier**: PRIMARY small heartbeat + NEXT_A realtime observation, while Firestore remains authoritative for PRIMARY/generation and remains the fail-closed fallback. The accepted 15-second failover objective may not regress.
+16. Only current authoritative PRIMARY/generation should terminally ACK the single-slot presence control; standby avoids expected redundant write races.
+17. D1 cold-history/report offload is deliberately deferred beyond D165 until post-D165 field evidence.
+
+Usage policy:
+- modest increases in DO SQL writes, CPU/memory/duration and tiny RTDB liveness traffic are acceptable when they measurably reduce DO requests/rows-read or Firestore read/write without weakening behavior;
+- no new periodic polling, no slower realtime, no weaker WMS/PRIMARY/session fences and no new provider solely for quota savings;
+- because the Workers $5 account is shared by multiple projects, Inventory targets <=150k–200k attributable DO compute requests/month after D165, not the full account allowance;
+- target DO rows-read reduction >=70% from the observed ~63M/day baseline, target <20M/day;
+- target Firestore writes <=3k/day and reads <=10k/day, preferred <=8k/day, under comparable load;
+- current PickList latency, realtime behavior, 15-second failover objective, correctness and zero duplicate WMS mutation are hard acceptance guards.
+
+No D165 source/build/runtime action occurred in this authority-only recording.

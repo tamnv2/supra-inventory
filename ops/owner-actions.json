@@ -5162,6 +5162,38 @@
       "remaining_owner_action": "NONE__D163_CLOSED_OWNER_PASS",
       "owner_result": "PASS__2026_10_06",
       "owner_evidence": "Owner explicitly confirmed D163 field acceptance with: ok done 163"
+    },
+    {
+      "id": "OA099",
+      "status": "PENDING_OWNER_REVERIFY_BEFORE_IMPLEMENTATION",
+      "title": "Re-verify recorded D165 proposal before any implementation",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory / GitHub canonical authority",
+      "reason_owner_only": "The Owner explicitly requested D165 to be recorded in full but not executed. A later fresh session must verify that the canonical proposal matches the approved intent before any source, build, rules, provider or runtime mutation begins.",
+      "prerequisites": {
+        "accepted_inventory_base": "D163_OWNER_PASS",
+        "d164": "PDA_MANAGEMENT_INDEPENDENT_ISOLATED__FIELD_PENDING",
+        "d165_authority": "docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md",
+        "d165_status": "OWNER_APPROVED_PROPOSAL_ONLY__IMPLEMENTATION_NOT_STARTED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action": [
+        "In a new chat/session, ask AI to fresh-bootstrap tamnv2/supra-inventory authority and read the complete D165 proposal.",
+        "Verify the recorded D165 scope, especially PER_PICKER-only Quá hạn, HAS_STOCK correction, SLA re-auth, realtime delta optimization, materialized summaries, RTDB HA-liveness with Firestore authority/fallback, and shared-account usage targets.",
+        "If correct, explicitly tell AI to start/implement D165. If anything is wrong, correct the proposal first; do not start code."
+      ],
+      "pass_criteria": [
+        "Fresh GitHub authority confirms D165 is proposal-only and runtime/source were not changed by the recording PR.",
+        "D164 PDA Management remains isolated and is not imported into D165 business scope.",
+        "FIRST_REPORT remains unchanged.",
+        "Correction source is HAS_STOCK only.",
+        "No polling/realtime/speed/stability regression is authorized for usage savings.",
+        "RTDB is liveness only; Firestore remains HA authority and fallback.",
+        "D1 cold-history offload remains deferred beyond D165.",
+        "Owner explicitly authorizes implementation only after verification."
+      ],
+      "remaining_owner_action": "FUTURE_NEW_SESSION_REVERIFY_THEN_EXPLICIT_START_OR_CORRECT",
+      "closed": false
     }
   ]
 }

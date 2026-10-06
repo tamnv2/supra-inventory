@@ -1826,3 +1826,8 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Android remains `beta-vc97`, Agent remains `relay-agent-v114`, and Stable remains OWNER-GATED and untouched.
 - D164 PDA Management continues only as its already-authorized isolated scope and remains separately field-gated.
 
+## D165 proposal-only readiness note — 2026-10-06
+
+D165 is recorded only as an Owner-approved proposal. No D165 runtime source, build, provider configuration or deployment has been changed. Inventory production/Beta runtime readiness remains the D163 accepted state; D164 PDA Management is isolated.
+
+Future D165 implementation is gated by a fresh authority bootstrap, Owner re-verification of `docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md`, and an explicit start command. Stable remains OWNER-GATED.

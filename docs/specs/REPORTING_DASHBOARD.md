@@ -297,3 +297,21 @@ Reporter queue and recent results are independent read models for realtime refre
 - The expanded panel shows, where available: Picker employee code, display name, report time, effective result and source, Picker wait duration, and result receipt/display/acknowledgement state.
 - The source is the existing reporting-detail authority used by detailed Excel export. Existing report date/status/SKU filters, pagination and export behavior remain unchanged.
 - No new database schema or persistent provider resource is required.
+
+## D165 proposal-only Quá hạn and result-correction surfaces
+
+Status: proposal recorded; implementation not started.
+
+For `PER_PICKER`, the Reporter workspace adds a pinned **Quá hạn** tab next to the existing operational tabs. A SKU may be present in both **Đang xử lý** and **Quá hạn** when different Picker tickets are at different deadline states.
+
+Quá hạn groups only tickets with committed `auto_skip_allowed_at`; Đang xử lý groups only still-waiting tickets. Badge/list updates use realtime deltas and exact row patching; opening a tab may perform one authoritative list read.
+
+Quá hạn actions retain the normal **Đã có hàng** and **Cho phép Skip** controls with the scoped behavior defined by D165.
+
+The **Đã có hàng** result surface adds:
+- **Sửa - Đang xử lý**
+- **Sửa - Cho phép Skip**
+
+Both require two confirmations with a high-severity warning. Historical decisions remain visible/auditable.
+
+No D165 behavior change is authorized for `FIRST_REPORT`.
