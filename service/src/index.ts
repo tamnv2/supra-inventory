@@ -24,6 +24,7 @@ import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
+import { handleLauncherDiagnosticLog } from "./launcher-diagnostics";
 import { handlePublicInfoPage } from "./public-pages";
 import { sendFcmNotifications } from "./fcm";
 import {
@@ -1918,6 +1919,9 @@ export default {
 
       const pdaRegistryResponse = await handlePdaRegistryApi(request, env);
       if (pdaRegistryResponse) return pdaRegistryResponse;
+
+      const launcherDiagnosticResponse = await handleLauncherDiagnosticLog(request, env);
+      if (launcherDiagnosticResponse) return launcherDiagnosticResponse;
 
       const systemResetResponse = await handleSystemResetApi(request, env);
       if (systemResetResponse) return systemResetResponse;
