@@ -8,9 +8,9 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D162_WORKSPACE_TAB_COUNTER_REPAIR_RUNTIME_PASS__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899__DUAL_REALTIME_COUNTERS__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
-- Web: `D162_WORKSPACE_TAB_DUAL_REALTIME_COUNTERS_DEPLOYED__QUEUE_DELTA__RECENT_TRANSITION__LIGHTWEIGHT_RECONCILE_ONLY__RUN_37395842899`
-- Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
+- Beta: `D162_OWNER_FIELD_ACCEPTED_PASS__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899__D163_SOURCE_IMPLEMENTATION_ACTIVE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED`
+- Web: `D162_OWNER_ACCEPTED_DUAL_REALTIME_COUNTERS_DEPLOYED__D163_REPORT_PICKER_DETAIL_SOURCE_PENDING_PR_CI`
+- Android: `D162_OWNER_ACCEPTED_BETA_VC97__D163_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-D162 remains the only open change. Workspace-tab realtime counter repair PR #451 is deployed on Beta from main `8fca1fb539f2396cefaff621368758336035c00b`; deploy run `37395842899` PASS. OA097 is reopened for field confirmation of both tab numbers and comparable-load usage/latency evidence. Agent v114 and Android vc97 remain unchanged; Stable remains OWNER-GATED.
+D162 is Owner-accepted PASS and OA097 is closed. D163 is the only open change. Its source branch implements bounded forced-logout final-log continuity plus lazy exact-batch Picker detail in Báo cáo chi tiết. PR/CI/Beta deployment are pending. Agent v114 and Android vc97 remain unchanged; Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 
@@ -1793,3 +1793,17 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Authority `37395842893`, Project State `37395842908`, UI `37395843053`, D127 `37395843108`, D159 `37395843560` PASS.
 - Agent v114, Android vc97 and Stable are unchanged.
 - OA097 is PENDING_FIELD_VALIDATION.
+
+## D162 Owner acceptance — 2026-10-06
+
+- Owner explicitly recorded D162 PASS after PR #451 / main `8fca1fb539f2396cefaff621368758336035c00b` was deployed on Beta.
+- OA097 is closed PASS. D162 is the accepted business base.
+- Agent remains `relay-agent-v114`, Android remains `beta-vc97`, Stable remains OWNER-GATED.
+
+## D163 source implementation checkpoint — 2026-10-06
+
+- Branch: `d163-kick-logout-report-picker-detail`; PR/CI/runtime deployment pending.
+- Service keeps forced revoke immediate and authoritative while allowing only the exactly previous Android PICKER generation to upload `INFO/session_end_logout` through `/api/logs/upload`.
+- Web **Báo cáo chi tiết** adds lazy **Xem Picker / Ẩn Picker** drill-down using the existing detailed reporting authority with an exact parameterized `batch_id`.
+- No new provider resource, schema, polling, listener, heartbeat or Android/Agent release.
+- OA098 is pending technical release and later Owner field acceptance.
