@@ -708,3 +708,16 @@ The HR source form adds a required configured source-header input: **Tên cột 
 
 ### Android Picker
 When Báo hàng is disabled, the Báo hàng tab remains visible but disabled/muted; Xác nhận đơn remains usable and no shortage submit action is enabled.
+
+### D163 reporting Picker detail
+
+Within **Báo cáo chi tiết**, each batch row includes a compact **Xem Picker** action. The action expands an in-table detail panel rather than navigating away or opening a separate page.
+
+The panel:
+- identifies each Picker by employee code and name;
+- shows report time, effective result/source and wait duration;
+- shows result receipt/display/acknowledgement state when relevant;
+- changes the action to **Ẩn Picker** while expanded;
+- displays a bounded loading/empty/error state without replacing the main report table.
+
+Detail data is loaded on demand for the selected batch only. Filtering, paging or changing the report range clears stale expanded detail state.
