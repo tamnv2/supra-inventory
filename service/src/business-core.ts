@@ -193,7 +193,7 @@ function event(
     const resolution = eventType === "BATCH_CORRECTED"
       ? String(payload.to || "")
       : String(payload.resolution || "");
-    if (resolution === "HAS_STOCK" || resolution === "SKIP_ALLOWED") {
+    if (resolution === "HAS_STOCK" || resolution === "SKIP_ALLOWED" || resolution === "PENDING") {
       const batch = firstRow(
         state.storage.sql
           .exec<SqlRow>(
