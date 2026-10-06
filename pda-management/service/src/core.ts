@@ -22,6 +22,32 @@ export interface ManagementSession extends Record<string, SqlStorageValue> {
   expires_at: number;
 }
 
+interface EmployeeRow extends Record<string, SqlStorageValue> {
+  employee_code: string;
+  full_name: string;
+  contractor: string;
+  source_hash: string;
+  updated_at: string;
+}
+
+interface TransactionRow extends Record<string, SqlStorageValue> {
+  transaction_id: string;
+  serial: string;
+  action: string;
+  employee_code: string | null;
+  employee_name: string | null;
+  employee_contractor: string | null;
+  old_usage_status: string | null;
+  new_usage_status: string | null;
+  physical_condition: string | null;
+  occurred_at: string;
+  operator_user_id: string;
+  operator_name: string;
+  note: string;
+  idempotency_key: string;
+  revision: number;
+}
+
 interface DeviceRow extends Record<string, SqlStorageValue> {
   serial: string;
   device_key: string;
@@ -32,6 +58,7 @@ interface DeviceRow extends Record<string, SqlStorageValue> {
   physical_condition: string;
   borrower_employee_code: string | null;
   borrower_name: string | null;
+  borrower_contractor: string | null;
   borrowed_at: string | null;
   last_returned_at: string | null;
   note: string;
@@ -63,6 +90,13 @@ function normalizeUsername(value: unknown): string {
 export class PdaManagementCore {
   constructor(private readonly state: DurableObjectState) {
     this.state.blockConcurrencyWhile(async () => this.initializeSchema());
+  }
+
+  private hasColumn(tableName: string, columnName: string): boolean {
+    return this.state.storage.sql
+      .exec<{ name: string }>(`PRAGMA table_info(${tableName})`)
+      .toArray()
+      .some((column) => column.name === columnName);
   }
 
   private initializeSchema(): void {
@@ -115,6 +149,7 @@ export class PdaManagementCore {
           CHECK (physical_condition IN ('GOOD','MINOR_DAMAGE','DAMAGED','UNKNOWN')),
         borrower_employee_code TEXT,
         borrower_name TEXT,
+        borrower_contractor TEXT,
         borrowed_at TEXT,
         last_returned_at TEXT,
         note TEXT NOT NULL DEFAULT '',
@@ -132,6 +167,7 @@ export class PdaManagementCore {
         action TEXT NOT NULL,
         employee_code TEXT,
         employee_name TEXT,
+        employee_contractor TEXT,
         old_usage_status TEXT,
         new_usage_status TEXT,
         physical_condition TEXT,
@@ -145,13 +181,33 @@ export class PdaManagementCore {
       );
       CREATE INDEX IF NOT EXISTS idx_transactions_serial_time ON transactions(serial, occurred_at DESC);
 
+      CREATE TABLE IF NOT EXISTS employees (
+        employee_code TEXT PRIMARY KEY,
+        full_name TEXT NOT NULL,
+        contractor TEXT NOT NULL DEFAULT '',
+        source_hash TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_employees_name ON employees(full_name);
+
       INSERT INTO meta(key, value) VALUES ('data_revision', '1')
         ON CONFLICT(key) DO NOTHING;
       INSERT INTO meta(key, value) VALUES ('registry_last_sync_ms', '0')
         ON CONFLICT(key) DO NOTHING;
       INSERT INTO meta(key, value) VALUES ('registry_last_attempt_ms', '0')
         ON CONFLICT(key) DO NOTHING;
+      INSERT INTO meta(key, value) VALUES ('hr_last_sync_ms', '0')
+        ON CONFLICT(key) DO NOTHING;
+      INSERT INTO meta(key, value) VALUES ('hr_last_attempt_ms', '0')
+        ON CONFLICT(key) DO NOTHING;
     `);
+
+    if (!this.hasColumn("devices", "borrower_contractor")) {
+      sql.exec("ALTER TABLE devices ADD COLUMN borrower_contractor TEXT");
+    }
+    if (!this.hasColumn("transactions", "employee_contractor")) {
+      sql.exec("ALTER TABLE transactions ADD COLUMN employee_contractor TEXT");
+    }
   }
 
   private meta(key: string, fallback = ""): string {
@@ -322,6 +378,80 @@ export class PdaManagementCore {
       return json({ users });
     }
 
+    if (request.method === "GET" && url.pathname === "/employees/meta") {
+      return json({
+        hr_last_sync_ms: Number(this.meta("hr_last_sync_ms", "0")) || 0,
+        hr_last_attempt_ms: Number(this.meta("hr_last_attempt_ms", "0")) || 0,
+        count: Number(sql.exec<{ count: number }>("SELECT COUNT(*) AS count FROM employees").toArray()[0]?.count || 0),
+      });
+    }
+
+    if (request.method === "POST" && url.pathname === "/employees/mark-attempt") {
+      this.setMeta("hr_last_attempt_ms", String(Date.now()));
+      return json({ ok: true });
+    }
+
+    if (request.method === "PUT" && url.pathname === "/employees/sync") {
+      const body = await request.json() as { records?: Array<Record<string, unknown>> };
+      const incoming = Array.isArray(body.records) ? body.records.slice(0, 5000) : [];
+      const existing = new Map(
+        sql.exec<EmployeeRow>("SELECT employee_code, full_name, contractor, source_hash, updated_at FROM employees")
+          .toArray()
+          .map((row) => [row.employee_code, row]),
+      );
+      let changed = 0;
+      let created = 0;
+      let updated = 0;
+
+      for (const raw of incoming) {
+        const employeeCode = text(raw.employee_code, 80);
+        const fullName = text(raw.full_name, 160);
+        const contractor = text(raw.contractor, 120);
+        const sourceHash = text(raw.source_hash, 80);
+        if (!employeeCode || !fullName || !sourceHash) continue;
+        const current = existing.get(employeeCode);
+        if (!current) {
+          sql.exec(
+            "INSERT INTO employees(employee_code, full_name, contractor, source_hash) VALUES (?, ?, ?, ?)",
+            employeeCode, fullName, contractor, sourceHash,
+          );
+          created += 1;
+          changed += 1;
+          continue;
+        }
+        if (
+          current.full_name === fullName &&
+          current.contractor === contractor &&
+          current.source_hash === sourceHash
+        ) continue;
+        sql.exec(
+          "UPDATE employees SET full_name=?, contractor=?, source_hash=?, updated_at=CURRENT_TIMESTAMP WHERE employee_code=?",
+          fullName, contractor, sourceHash, employeeCode,
+        );
+        updated += 1;
+        changed += 1;
+      }
+
+      this.setMeta("hr_last_sync_ms", String(Date.now()));
+      return json({
+        changed,
+        created,
+        updated,
+        hr_last_sync_ms: Number(this.meta("hr_last_sync_ms", "0")) || 0,
+      });
+    }
+
+    if (request.method === "GET" && url.pathname === "/employees/find") {
+      const employeeCode = text(url.searchParams.get("employee_code"), 80);
+      const employee = employeeCode
+        ? sql.exec<EmployeeRow>(
+            "SELECT employee_code, full_name, contractor, source_hash, updated_at FROM employees WHERE employee_code=? LIMIT 1",
+            employeeCode,
+          ).toArray()[0]
+        : undefined;
+      return json({ employee: employee || null });
+    }
+
     if (request.method === "GET" && url.pathname === "/devices/meta") {
       return json({
         data_revision: Number(this.meta("data_revision", "1")) || 1,
@@ -395,7 +525,7 @@ export class PdaManagementCore {
     if (request.method === "GET" && url.pathname === "/devices/list") {
       const devices = sql.exec<DeviceRow>(`
         SELECT serial, device_key, model, manufacturer, launcher_version, usage_status,
-               physical_condition, borrower_employee_code, borrower_name, borrowed_at,
+               physical_condition, borrower_employee_code, borrower_name, borrower_contractor, borrowed_at,
                last_returned_at, note, registry_last_seen_at, updated_at, updated_by, revision
         FROM devices
         ORDER BY
@@ -413,6 +543,153 @@ export class PdaManagementCore {
         data_revision: Number(this.meta("data_revision", "1")) || 1,
         registry_last_sync_ms: Number(this.meta("registry_last_sync_ms", "0")) || 0,
       });
+    }
+
+    if (request.method === "GET" && url.pathname === "/devices/get") {
+      const serial = text(url.searchParams.get("serial"), 120).toUpperCase();
+      const device = serial
+        ? sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0]
+        : undefined;
+      return device ? json({ device }) : json({ error: "DEVICE_NOT_FOUND" }, 404);
+    }
+
+    if (request.method === "GET" && url.pathname === "/devices/history") {
+      const serial = text(url.searchParams.get("serial"), 120).toUpperCase();
+      if (!serial) return json({ error: "INVALID_SERIAL" }, 400);
+      const transactions = sql.exec<TransactionRow>(
+        "SELECT transaction_id, serial, action, employee_code, employee_name, employee_contractor, old_usage_status, new_usage_status, physical_condition, occurred_at, operator_user_id, operator_name, note, idempotency_key, revision FROM transactions WHERE serial=? ORDER BY occurred_at DESC LIMIT 100",
+        serial,
+      ).toArray();
+      return json({ transactions });
+    }
+
+    if (request.method === "POST" && url.pathname === "/devices/borrow") {
+      const body = await request.json() as Record<string, unknown>;
+      const serial = text(body.serial, 120).toUpperCase();
+      const employeeCode = text(body.employee_code, 80);
+      const employeeName = text(body.employee_name, 160);
+      const employeeContractor = text(body.employee_contractor, 120);
+      const operatorUserId = text(body.operator_user_id, 80);
+      const operatorName = text(body.operator_name, 160);
+      const idempotencyKey = text(body.idempotency_key, 120);
+      const transactionId = text(body.transaction_id, 120);
+      const occurredAt = text(body.occurred_at, 80) || new Date().toISOString();
+      if (!serial || !employeeCode || !employeeName || !operatorUserId || !operatorName || !idempotencyKey || !transactionId) {
+        return json({ error: "INVALID_BORROW_REQUEST" }, 400);
+      }
+
+      const replay = sql.exec<TransactionRow>(
+        "SELECT * FROM transactions WHERE idempotency_key=? LIMIT 1",
+        idempotencyKey,
+      ).toArray()[0];
+      if (replay) {
+        const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", replay.serial).toArray()[0];
+        return json({ replayed: true, transaction: replay, device });
+      }
+
+      const current = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      if (!current) return json({ error: "DEVICE_NOT_FOUND" }, 404);
+      if (current.usage_status !== "AVAILABLE") {
+        return json({
+          error: "DEVICE_NOT_AVAILABLE",
+          usage_status: current.usage_status,
+          borrower_employee_code: current.borrower_employee_code,
+          borrower_name: current.borrower_name,
+        }, 409);
+      }
+
+      const nextRevision = Number(current.revision || 0) + 1;
+      sql.exec(
+        `UPDATE devices
+         SET usage_status='BORROWED',
+             borrower_employee_code=?,
+             borrower_name=?,
+             borrower_contractor=?,
+             borrowed_at=?,
+             updated_at=?,
+             updated_by=?,
+             revision=?
+         WHERE serial=?`,
+        employeeCode, employeeName, employeeContractor, occurredAt, occurredAt, operatorUserId, nextRevision, serial,
+      );
+      sql.exec(
+        `INSERT INTO transactions(
+          transaction_id, serial, action, employee_code, employee_name, employee_contractor,
+          old_usage_status, new_usage_status, physical_condition, occurred_at,
+          operator_user_id, operator_name, note, idempotency_key, revision
+        ) VALUES (?, ?, 'BORROW', ?, ?, ?, ?, 'BORROWED', ?, ?, ?, ?, '', ?, ?)`,
+        transactionId, serial, employeeCode, employeeName, employeeContractor,
+        current.usage_status, current.physical_condition, occurredAt,
+        operatorUserId, operatorName, idempotencyKey, nextRevision,
+      );
+      this.incrementRevision();
+      const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      const transaction = sql.exec<TransactionRow>("SELECT * FROM transactions WHERE transaction_id=? LIMIT 1", transactionId).toArray()[0];
+      return json({ replayed: false, transaction, device });
+    }
+
+    if (request.method === "POST" && url.pathname === "/devices/return") {
+      const body = await request.json() as Record<string, unknown>;
+      const serial = text(body.serial, 120).toUpperCase();
+      const condition = text(body.physical_condition, 30).toUpperCase();
+      const operatorUserId = text(body.operator_user_id, 80);
+      const operatorName = text(body.operator_name, 160);
+      const note = text(body.note, 500);
+      const idempotencyKey = text(body.idempotency_key, 120);
+      const transactionId = text(body.transaction_id, 120);
+      const occurredAt = text(body.occurred_at, 80) || new Date().toISOString();
+      if (!serial || !["GOOD","MINOR_DAMAGE","DAMAGED"].includes(condition) || !operatorUserId || !operatorName || !idempotencyKey || !transactionId) {
+        return json({ error: "INVALID_RETURN_REQUEST" }, 400);
+      }
+
+      const replay = sql.exec<TransactionRow>(
+        "SELECT * FROM transactions WHERE idempotency_key=? LIMIT 1",
+        idempotencyKey,
+      ).toArray()[0];
+      if (replay) {
+        const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", replay.serial).toArray()[0];
+        return json({ replayed: true, transaction: replay, device });
+      }
+
+      const current = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      if (!current) return json({ error: "DEVICE_NOT_FOUND" }, 404);
+      if (current.usage_status !== "BORROWED") {
+        return json({ error: "DEVICE_NOT_BORROWED", usage_status: current.usage_status }, 409);
+      }
+
+      const newStatus = condition === "DAMAGED" ? "REPAIR" : "AVAILABLE";
+      const nextRevision = Number(current.revision || 0) + 1;
+      sql.exec(
+        `UPDATE devices
+         SET usage_status=?,
+             physical_condition=?,
+             borrower_employee_code=NULL,
+             borrower_name=NULL,
+             borrower_contractor=NULL,
+             borrowed_at=NULL,
+             last_returned_at=?,
+             note=?,
+             updated_at=?,
+             updated_by=?,
+             revision=?
+         WHERE serial=?`,
+        newStatus, condition, occurredAt, note, occurredAt, operatorUserId, nextRevision, serial,
+      );
+      sql.exec(
+        `INSERT INTO transactions(
+          transaction_id, serial, action, employee_code, employee_name, employee_contractor,
+          old_usage_status, new_usage_status, physical_condition, occurred_at,
+          operator_user_id, operator_name, note, idempotency_key, revision
+        ) VALUES (?, ?, 'RETURN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        transactionId, serial,
+        current.borrower_employee_code, current.borrower_name, current.borrower_contractor,
+        current.usage_status, newStatus, condition, occurredAt,
+        operatorUserId, operatorName, note, idempotencyKey, nextRevision,
+      );
+      this.incrementRevision();
+      const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      const transaction = sql.exec<TransactionRow>("SELECT * FROM transactions WHERE transaction_id=? LIMIT 1", transactionId).toArray()[0];
+      return json({ replayed: false, transaction, device });
     }
 
     return json({ error: "NOT_FOUND" }, 404);
