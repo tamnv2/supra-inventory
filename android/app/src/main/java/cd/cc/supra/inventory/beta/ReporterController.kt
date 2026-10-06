@@ -15,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.ScrollView
 import android.widget.TextView
+import org.json.JSONObject
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -91,9 +92,139 @@ class ReporterController(
         list = null
     }
 
-    fun onRealtime(scopes: Set<String>, completion: (Boolean) -> Unit) {
-        if (scopes.contains("reporter_queue") || scopes.contains("reporter_recent")) refresh(completion)
-        else completion(true)
+    fun onRealtime(scopes: Set<String>, events: List<RealtimeDeltaEvent>, completion: (Boolean) -> Unit) {
+        val relevant = scopes.contains("reporter_queue") || scopes.contains("reporter_recent")
+        if (!relevant) {
+            completion(true)
+            return
+        }
+        if (events.isNotEmpty() && applyRealtimeEvents(events)) {
+            completion(true)
+            return
+        }
+        // Full authoritative reconcile is reserved for initial state, a real cursor
+        // gap, or incompatible/missing event data.
+        refresh(completion)
+    }
+
+    private fun nullable(value: JSONObject, key: String): String? =
+        value.optString(key).trim().takeIf { it.isNotBlank() && it != "null" }
+
+    private fun reporterBatchFromSnapshot(snapshot: JSONObject): ReporterBatch? {
+        if (snapshot.optString("status") != "PENDING") return null
+        val waiting = snapshot.optInt("waiting_picker_count", snapshot.optInt("open_ticket_count", 0))
+        if (waiting <= 0) return null
+        return ReporterBatch(
+            batchId = snapshot.optString("batch_id"),
+            sku = snapshot.optString("sku"),
+            productName = snapshot.optString("product_name"),
+            firstReportAt = snapshot.optString("first_report_at"),
+            affectedPickerCount = waiting,
+            version = snapshot.optInt("version", 1).coerceAtLeast(1),
+            previousBatchId = nullable(snapshot, "previous_batch_id"),
+            previousResolvedAt = nullable(snapshot, "previous_resolved_at"),
+            recurrenceMinutes = if (snapshot.has("recurrence_minutes") && !snapshot.isNull("recurrence_minutes")) snapshot.optInt("recurrence_minutes") else null,
+            slaState = snapshot.optString("sla_state", "UNCONFIGURED"),
+            waitingMinutes = snapshot.optInt("waiting_minutes", 0),
+            warningAt = nullable(snapshot, "warning_at"),
+            escalationAt = nullable(snapshot, "escalation_at"),
+            autoSkipAt = nullable(snapshot, "auto_skip_at"),
+            autoSkipEnabled = snapshot.optBoolean("auto_skip_enabled", false),
+            autoSkipMode = nullable(snapshot, "auto_skip_mode"),
+            serverNow = null,
+        )
+    }
+
+    private fun reporterRecentFromSnapshot(snapshot: JSONObject): ReporterRecent? {
+        val status = snapshot.optString("status")
+        if (status !in setOf("HAS_STOCK", "SKIP_ALLOWED", "CLOSED")) return null
+        return ReporterRecent(
+            batchId = snapshot.optString("batch_id"),
+            sku = snapshot.optString("sku"),
+            productName = snapshot.optString("product_name"),
+            status = status,
+            firstReportAt = snapshot.optString("first_report_at"),
+            resolvedAt = nullable(snapshot, "resolved_at"),
+            resolutionSource = nullable(snapshot, "resolution_source"),
+            resolvedByDisplayName = nullable(snapshot, "resolved_by_display_name"),
+            resolvedByEmployeeCode = nullable(snapshot, "resolved_by_employee_code"),
+            correctionDeadlineAt = nullable(snapshot, "correction_deadline_at"),
+            correctionAllowed = false,
+            affectedPickerCount = snapshot.optInt("affected_picker_count", 0),
+            version = snapshot.optInt("version", 1).coerceAtLeast(1),
+            previousBatchId = nullable(snapshot, "previous_batch_id"),
+            ackTargetCount = snapshot.optInt("ack_target_count", 0),
+            acknowledgedCount = snapshot.optInt("acknowledged_count", 0),
+        )
+    }
+
+    private fun applyRecentCountDelta(metadata: JSONObject, snapshot: JSONObject): Boolean {
+        val transition = metadata.optJSONObject("recent_counter") ?: return true
+        val before = transition.optString("before_status").takeIf { it in setOf("HAS_STOCK", "SKIP_ALLOWED", "CLOSED") }
+        val after = transition.optString("after_status").takeIf { it in setOf("HAS_STOCK", "SKIP_ALLOWED", "CLOSED") }
+        var hasStock = recentCounts.hasStock
+        var skip = recentCounts.skipAllowed
+        var withdrawn = recentCounts.withdrawn
+        fun change(status: String?, delta: Int) {
+            when (status) {
+                "HAS_STOCK" -> hasStock = (hasStock + delta).coerceAtLeast(0)
+                "SKIP_ALLOWED" -> skip = (skip + delta).coerceAtLeast(0)
+                "CLOSED" -> withdrawn = (withdrawn + delta).coerceAtLeast(0)
+            }
+        }
+        change(before, -1)
+        change(after, 1)
+        recentCounts = ReporterRecentCounts(hasStock = hasStock, skipAllowed = skip, withdrawn = withdrawn)
+        return true
+    }
+
+    private fun applyRealtimeEvents(events: List<RealtimeDeltaEvent>): Boolean {
+        var changed = false
+        for (event in events) {
+            val queueChanged = event.scopes.contains("reporter_queue")
+            val recentChanged = event.scopes.contains("reporter_recent")
+            if (!queueChanged && !recentChanged) continue
+            val snapshot = event.snapshot ?: return false
+            val batchId = snapshot.optString("batch_id").trim()
+            if (batchId.isBlank()) return false
+            val metadata = event.metadata ?: JSONObject()
+
+            if (queueChanged) {
+                val delta = metadata.opt("queue_delta")
+                if (delta != null) {
+                    val parsed = metadata.optInt("queue_delta", Int.MIN_VALUE)
+                    if (parsed !in -1..1) return false
+                    queueTotal = (queueTotal + parsed).coerceAtLeast(0)
+                } else if (event.event.uppercase() !in setOf("SLA_WARNING", "SLA_ESCALATED")) {
+                    return false
+                }
+                val row = reporterBatchFromSnapshot(snapshot)
+                queue = if (row == null) {
+                    queue.filterNot { it.batchId == batchId }
+                } else {
+                    (queue.filterNot { it.batchId == batchId } + row)
+                        .sortedWith(compareBy<ReporterBatch> { it.firstReportAt }.thenBy { it.batchId })
+                }
+            }
+
+            if (recentChanged) {
+                if (!applyRecentCountDelta(metadata, snapshot)) return false
+                val row = reporterRecentFromSnapshot(snapshot)
+                recent = if (row == null) {
+                    recent.filterNot { it.batchId == batchId }
+                } else {
+                    (recent.filterNot { it.batchId == batchId } + row)
+                        .sortedByDescending { millis(it.resolvedAt ?: it.firstReportAt) }
+                        .take(200)
+                }
+            }
+            changed = true
+        }
+        if (!changed) return true
+        updateBadges()
+        renderSelected()
+        scheduleMinuteTicker()
+        return true
     }
 
     private fun scaledSp(base: Float): Float = (base * displayScale).coerceIn(9f, 27f)
