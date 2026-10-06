@@ -95,6 +95,21 @@ export interface ReporterBatch {
   auto_skip_at?: string | null;
 }
 
+export interface ReporterOverdueBatch {
+  batch_id: string;
+  sku: string;
+  product_name: string;
+  status: "PENDING";
+  first_report_at: string;
+  last_report_at?: string | null;
+  version: number;
+  previous_batch_id: string | null;
+  overdue_picker_count: number;
+  waiting_picker_count: number;
+  first_overdue_at: string;
+  latest_overdue_at: string;
+}
+
 export interface ReporterRecentBatch {
   batch_id: string;
   sku: string;
@@ -940,12 +955,18 @@ export async function getReporterQueue(limit = 100, offset = 0): Promise<{ items
   return readJson(await authorizedFetch(`/api/reporter/queue?${params.toString()}`));
 }
 
+export async function getReporterOverdue(limit = 100, offset = 0): Promise<{ items: ReporterOverdueBatch[]; count: number; total: number; limit: number; offset: number; server_now?: string; enabled?: boolean; auto_skip_mode?: AutoSkipMode | null }> {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(Math.max(0, offset)) });
+  return readJson(await authorizedFetch(`/api/reporter/overdue?${params.toString()}`));
+}
+
 export async function getReporterCounters(
   status = "",
   from = "",
   to = "",
 ): Promise<{
   queue_total: number;
+  overdue_total: number;
   recent_total: number;
   filter_status: string;
   from: string;
@@ -1001,10 +1022,19 @@ export async function resolveReporterBatch(batchId: string, resolution: "HAS_STO
   }));
 }
 
-export async function correctReporterBatch(batchId: string): Promise<unknown> {
+export async function correctReporterBatch(
+  batchId: string,
+  target: "PENDING" | "SKIP_ALLOWED",
+  expectedVersion: number,
+): Promise<unknown> {
   return readJson(await authorizedFetch("/api/reporter/batches/correct", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId }),
+    body: JSON.stringify({
+      request_id: crypto.randomUUID(),
+      batch_id: batchId,
+      target,
+      expected_version: expectedVersion,
+    }),
   }));
 }
 
@@ -1026,6 +1056,7 @@ export async function saveAdminSla(input: {
   skip_to_stock_minutes: number;
   expected_policy_version: number;
   request_id: string;
+  current_password: string;
 }): Promise<SlaResponse> {
   return readJson(await authorizedFetch("/api/admin/sla", {
     method: "PUT",
