@@ -66,8 +66,7 @@ function safePayload(payload: InternalPasswordPayload): Record<string, unknown> 
 }
 
 function mailSubject(payload: InternalPasswordPayload): string {
-  const reason = payload.generated_reason === "RESET" ? "Mã quản trị vừa đặt lại" : "Mã quản trị hằng ngày";
-  return `[SUPRA Launcher] ${reason} - ${payload.operational_date}`;
+  return `MẬT KHẨU LAUNCHER HÀNG NGÀY - ${String(payload.code || "").trim()}`;
 }
 
 function mailBody(payload: InternalPasswordPayload): string {
