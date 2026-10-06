@@ -1,0 +1,15 @@
+{
+  "name": "@supra/pda-management-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "deploy:beta": "wrangler deploy --config wrangler.beta.toml --keep-vars"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260916.1",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.132.0"
+  }
+}
