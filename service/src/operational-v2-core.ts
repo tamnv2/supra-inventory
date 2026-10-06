@@ -315,7 +315,7 @@ function backfillResultEventSnapshots(state: DurableObjectState): void {
     const resolution = row.event_type === "BATCH_CORRECTED"
       ? String(payload.to || "")
       : String(payload.resolution || "");
-    if (!["HAS_STOCK", "SKIP_ALLOWED"].includes(resolution)) continue;
+    if (!["HAS_STOCK", "SKIP_ALLOWED", "PENDING"].includes(resolution)) continue;
     state.storage.sql.exec(
       `INSERT OR IGNORE INTO result_event_snapshots (
          result_event_id, batch_id, batch_version, event_type, sku, product_name, resolution, result_at, created_at
@@ -414,7 +414,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
       event_type TEXT NOT NULL,
       sku TEXT NOT NULL,
       product_name TEXT NOT NULL,
-      resolution TEXT NOT NULL CHECK (resolution IN ('HAS_STOCK','SKIP_ALLOWED')),
+      resolution TEXT NOT NULL CHECK (resolution IN ('HAS_STOCK','SKIP_ALLOWED','PENDING')),
       result_at TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
@@ -822,14 +822,9 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
     state.storage.sql.exec<SqlRow>(
       `SELECT COUNT(*) AS total
          FROM report_batches b
+         JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
-          AND EXISTS (
-            SELECT 1
-              FROM report_tickets t
-             WHERE t.batch_id = b.batch_id
-               AND t.status = 'OPEN'
-               AND t.auto_skip_allowed_at IS NULL
-          )`,
+          AND s.waiting_picker_count > 0`,
     ).toArray(),
   );
   const total = Number(totalRow?.total || 0);
@@ -890,13 +885,9 @@ function reporterOverdue(state: DurableObjectState, url: URL): Response {
   const totalRow = first(state.storage.sql.exec<SqlRow>(
     `SELECT COUNT(*) AS total
        FROM report_batches b
+       JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE b.status = 'PENDING'
-        AND EXISTS (
-          SELECT 1 FROM report_tickets t
-           WHERE t.batch_id = b.batch_id
-             AND t.status = 'OPEN'
-             AND t.auto_skip_allowed_at IS NOT NULL
-        )`,
+        AND s.overdue_picker_count > 0`,
   ).toArray()) || {};
 
   const rows = state.storage.sql.exec<SqlRow>(
