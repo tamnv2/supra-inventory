@@ -629,16 +629,19 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
       }
     }
 
-    const recentCounter = recentAfterStatus
-      ? { before_status: null, before_at: null, after_status: recentAfterStatus, after_at: at }
-      : null;
+    const recentCounter = {
+      before_status: null,
+      before_at: null,
+      after_status: recentAfterStatus,
+      after_at: recentAfterStatus ? at : null,
+    };
     const eventId = event(
       state,
       actor,
       "REPORT_WITHDRAWN",
       ticket.batch_id,
       ticketId,
-      { sku: ticket.sku, queue_delta: queueDelta, ...(recentCounter ? { recent_counter: recentCounter } : {}) },
+      { sku: ticket.sku, queue_delta: queueDelta, recent_counter: recentCounter },
       at,
     );
     audit(state, actor, "REPORT_WITHDRAW", "REPORT_TICKET", ticketId, { batch_id: ticket.batch_id, sku: ticket.sku }, at);
@@ -650,7 +653,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
       withdrawn_at: at,
       event_id: eventId,
       queue_delta: queueDelta,
-      ...(recentCounter ? { recent_counter: recentCounter } : {}),
+      recent_counter: recentCounter,
     };
     storeIdempotency(state, scope, requestId, payload, at);
     return { status: 200, payload } satisfies BusinessResult;
