@@ -47,7 +47,7 @@ interface BatchRow extends SqlRow {
   resolution_source: string | null;
   auto_skip_deadline_at: string | null;
   correction_deadline_at: string | null;
-  version?: number;
+  version: number;
   created_at: string;
   updated_at: string;
 }
