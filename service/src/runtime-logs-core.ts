@@ -5,7 +5,7 @@ const MAX_CONTENT_CHARS = 192_000;
 const VALID_SOURCE = new Set(["WEB", "ANDROID"]);
 const VALID_SEVERITY = new Set(["INFO", "ERROR"]);
 const LOCAL_ID_RE = /^local_[a-f0-9]{32}$/;
-const FILENAME_RE = /^(scheduled|manual|error|crash)_(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}\.json$/;
+const FILENAME_RE = /^(scheduled|manual|error|crash)_(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}(?:_[a-f0-9]{12})?\.json$/;
 
 function response(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -55,6 +55,13 @@ export function initializeRuntimeLogSchema(state: DurableObjectState): void {
     CREATE INDEX IF NOT EXISTS idx_runtime_log_buffer_drive_pending
       ON runtime_log_buffer(drive_synced_at, received_at);
   `);
+  const columns = state.storage.sql.exec<{ name: string }>("PRAGMA table_info(runtime_log_buffer)").toArray();
+  if (!columns.some((row) => row.name === "bundle_id")) {
+    state.storage.sql.exec("ALTER TABLE runtime_log_buffer ADD COLUMN bundle_id TEXT");
+  }
+  state.storage.sql.exec(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_runtime_log_buffer_bundle_id ON runtime_log_buffer(bundle_id) WHERE bundle_id IS NOT NULL AND bundle_id <> ''",
+  );
 }
 
 export async function handleRuntimeLogCoreRequest(
@@ -72,6 +79,7 @@ export async function handleRuntimeLogCoreRequest(
       generated_at?: unknown;
       received_at?: unknown;
       content?: unknown;
+      bundle_id?: unknown;
     } = {};
     try {
       body = await request.json() as typeof body;
@@ -85,6 +93,7 @@ export async function handleRuntimeLogCoreRequest(
     const generatedAt = String(body.generated_at || "").trim();
     const receivedAt = String(body.received_at || "").trim();
     const content = String(body.content || "");
+    const bundleId = String(body.bundle_id || "").trim().toLowerCase();
 
     if (
       !FILENAME_RE.test(filename) ||
@@ -93,18 +102,32 @@ export async function handleRuntimeLogCoreRequest(
       !Number.isFinite(Date.parse(generatedAt)) ||
       !Number.isFinite(Date.parse(receivedAt)) ||
       !content ||
-      content.length > MAX_CONTENT_CHARS
+      content.length > MAX_CONTENT_CHARS ||
+      (bundleId && !/^[a-f0-9]{32,64}$/.test(bundleId))
     ) {
       return response({ error: "INVALID_RUNTIME_LOG" }, 400);
     }
 
     prune(state);
+    if (bundleId) {
+      const existing = state.storage.sql.exec<SqlRow>(
+        "SELECT log_id, filename, source, severity, generated_at, received_at, size_bytes, drive_file_id, drive_synced_at, content_text FROM runtime_log_buffer WHERE bundle_id = ? LIMIT 1",
+        bundleId,
+      ).toArray()[0];
+      if (existing) {
+        if (String(existing.content_text || "") !== content) {
+          return response({ error: "RUNTIME_LOG_BUNDLE_ID_CONFLICT" }, 409);
+        }
+        const { content_text: _content, ...file } = existing;
+        return response({ status: "buffered", idempotent_replay: true, file });
+      }
+    }
     const logId = "local_" + crypto.randomUUID().replaceAll("-", "");
     state.storage.sql.exec(
       `INSERT INTO runtime_log_buffer (
          log_id, filename, source, severity, generated_at, received_at,
-         size_bytes, content_text, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         size_bytes, content_text, bundle_id, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        ON CONFLICT(filename) DO UPDATE SET
          source = excluded.source,
          severity = excluded.severity,
@@ -121,6 +144,7 @@ export async function handleRuntimeLogCoreRequest(
       new Date(receivedAt).toISOString(),
       new TextEncoder().encode(content).byteLength,
       content,
+      bundleId || null,
     );
     const row = state.storage.sql.exec<SqlRow>(
       `SELECT log_id, filename, source, severity, generated_at, received_at,
