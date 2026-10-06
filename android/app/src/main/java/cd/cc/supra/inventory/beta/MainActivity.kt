@@ -1674,6 +1674,7 @@ class MainActivity : Activity() {
         val tag: String,
         val apkUrl: String,
         val checksumUrl: String,
+        val releaseNotes: List<String>,
     )
 
     private fun updateGateMessage(): String = when (updateGate) {
@@ -1786,7 +1787,15 @@ class MainActivity : Activity() {
         pendingUpdateInfo = info
         AlertDialog.Builder(this)
             .setTitle("Có bản cập nhật ${info.tag}")
-            .setMessage("Cập nhật ngay hoặc để sau. Việc kiểm tra kênh cập nhật không chặn đăng nhập.")
+            .setMessage(
+                buildString {
+                    append("Cập nhật ngay hoặc để sau. Việc kiểm tra kênh cập nhật không chặn đăng nhập.")
+                    if (info.releaseNotes.isNotEmpty()) {
+                        append("\n\nNội dung cập nhật:\n")
+                        info.releaseNotes.forEach { append("• ").append(it).append("\n") }
+                    }
+                }.trimEnd()
+            )
             .setNegativeButton("Để sau") { _, _ ->
                 updateGate = UpdateGate.DEFERRED
                 applyUpdateGateUi(null)
@@ -1836,8 +1845,17 @@ class MainActivity : Activity() {
         if (!apkPath.startsWith("/") || !checksumPath.startsWith("/")) {
             throw IllegalStateException("Kênh cập nhật thiếu đường dẫn tin cậy.")
         }
+        val notesJson = manifest.optJSONArray("release_notes")
+        val notes = buildList {
+            if (notesJson != null) {
+                for (index in 0 until minOf(notesJson.length(), 5)) {
+                    val text = notesJson.optString(index).replace(Regex("[\\r\\n\\t]+"), " ").trim().take(180)
+                    if (text.isNotBlank()) add(text)
+                }
+            }
+        }
         val base = BuildConfig.API_BASE_URL.trimEnd('/')
-        return UpdateInfo(versionCode, tag, base + apkPath, base + checksumPath)
+        return UpdateInfo(versionCode, tag, base + apkPath, base + checksumPath, notes)
     }
     private fun downloadAndVerify(info: UpdateInfo): File {
         val expected = downloadText(info.checksumUrl, info.tag).trim().split(Regex("\\s+"))[0].lowercase()
