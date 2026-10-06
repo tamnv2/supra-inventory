@@ -961,6 +961,7 @@ class PickerController(
         }
         surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
             if (isSkip) "Cho phép skip · $actor · $roleLabel"
+            else if (isPendingCorrection) "Đang xử lý lại · $actor · $roleLabel"
             else "Đã có hàng · $actor · $roleLabel"
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = "Cảnh báo nghiệp vụ • cần xác nhận để tiếp tục"
         val acknowledge = surface.findViewById<Button>(R.id.btnOverlayAck).apply {
