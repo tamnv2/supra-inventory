@@ -2605,3 +2605,28 @@ Automated/source checks must prove:
 Field acceptance:
 - kick one logged-in Picker and verify the PDA returns to login while the session-end support log reaches the normal runtime-log pipeline without restoring any business access;
 - in Web **Báo cáo chi tiết**, expand resolved and pending/withdrawn examples, verify the shown Picker list belongs only to the selected batch/SKU, collapse/reopen cleanly, and confirm normal report filtering/export still works.
+
+## D165 proposal-only acceptance gates
+
+Status: proposal recorded; implementation not started.
+
+Future D165 implementation must prove, under comparable load:
+
+- PER_PICKER Quá hạn separates timed-out and waiting Picker tickets for the same SKU; FIRST_REPORT stays unchanged.
+- HAS_STOCK correction is versioned, double-confirmed, auditable, and re-notified with acknowledgement.
+- HAS_STOCK -> PENDING resets the deadline from correction time.
+- No request loss, duplicate result, duplicate WMS mutation, or stale session authority.
+- Reconnect with valid cursor/epoch continues by delta; only a real integrity gap triggers full reconcile.
+- Agent kick list/status repairs work without a provider read solely for repaint.
+- Forced Kích User yields exactly one durable final Android logout bundle after bounded retry.
+- Android catalog sync is single-flight.
+- Accepted 15-second failover objective does not regress.
+- Inventory-attributable DO compute requests target <=150k–200k/month.
+- DO rows-read reduce >=70% from the observed ~63M/day baseline, target <20M/day.
+- Firestore writes target <=3k/day; reads target <=10k/day, preferred <=8k/day.
+- RTDB HA-liveness traffic remains bounded and small.
+- Expected SUPERSEDED conflicts no longer produce one archive error per occurrence.
+- PickList processing/ACK latency does not materially regress from the 2026-10-06 field baseline.
+- Stable remains OWNER-GATED.
+
+Technical/runtime PASS never substitutes for explicit Owner field PASS.
