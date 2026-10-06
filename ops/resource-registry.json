@@ -377,7 +377,7 @@
       "d162_inventory_channel_agent_asset_id": 613144942,
       "d162_android": "beta-vc97__UNCHANGED__ASSET_609733318",
       "pda_registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
-      "pda_registry_status": "SOURCE_IMPLEMENTATION_PENDING_PR_GATES__SERVER_AUTHORITY_INVENTORYCORE_APP_CONFIG__SHEET_MIRROR__EVENT_DRIVEN__DAILY_EXISTING_CRON_RECONCILE__STABLE_UNTOUCHED"
+      "pda_registry_status": "TECHNICAL_RUNTIME_RELEASE_PASS__DEPLOY_RUN_37406392755__LAUNCHER_V0.3.16__REAL_PDA_FIELD_TEST_PENDING"
     },
     "stable": {
       "status": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
@@ -2563,12 +2563,15 @@
   },
   "pda_registry": {
     "environment": "beta",
-    "source_status": "SOURCE_IMPLEMENTATION_PENDING_PR_GATES",
+    "source_status": "TECHNICAL_RUNTIME_RELEASE_PASS__BACKEND_MAIN_5E5B2628__DEPLOY_RUN_37406392755__LAUNCHER_V0.3.16__REAL_PDA_FIELD_TEST_PENDING",
     "authority": "INVENTORYCORE_APP_CONFIG_KEY_PREFIX_pda_registry",
     "mirror": "GOOGLE_SHEET_SUPRA_PDA_REGISTRY_BETA",
     "sync_policy": "REGISTER_ON_NEW_OR_PAYLOAD_CHANGE__WEEKLY_STATUS_ON_LAUNCHER_OPEN__NO_BACKGROUND_TIMER__NO_HEARTBEAT",
     "reconciliation": "DAILY_EXISTING_20_15_CRON__READ_SHEET_INDEX_ONCE__WRITE_ONLY_MISSING_OR_HASH_MISMATCH",
     "google_auth": "EXISTING_GOOGLE_RUNTIME_SA_JSON__SHEETS_SCOPE__SHARED_WRITER_ON_EXACT_BETA_SHEET",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "sheet_permission": "inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com__WRITER_CONFIRMED",
+    "launcher_release": "v0.3.16",
+    "launcher_apk_sha256": "953313fd04cda936b25d0167795d4b182f21773870fed037626d7e47c7c3c312"
   }
 }
