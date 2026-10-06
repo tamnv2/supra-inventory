@@ -101,8 +101,35 @@ export async function handlePdaRegistryCoreRequest(
       "SELECT key, value_json, updated_at FROM app_config WHERE key = ? LIMIT 1",
       key,
     ).toArray()[0];
-    const current = currentRow ? parseRecord(String(currentRow.value_json || "")) : null;
-    if (current && current.payload_hash === incoming.payload_hash) {
+    let current = currentRow ? parseRecord(String(currentRow.value_json || "")) : null;
+    let rekeyedFromDeviceKey = "";
+
+    // A corrected hardware identifier may legitimately change DeviceKey.
+    // Reuse the existing Registry record when the immutable device evidence still matches,
+    // instead of creating a duplicate PDA row.
+    if (!current && (String(incoming.imei1 || "").trim() || String(incoming.android_id || "").trim())) {
+      const candidates = state.storage.sql.exec<ConfigRow>(
+        "SELECT key, value_json, updated_at FROM app_config WHERE key LIKE 'pda_registry:%' ORDER BY key LIMIT 5000",
+      ).toArray();
+      const incomingImei = String(incoming.imei1 || "").trim();
+      const incomingAndroidId = String(incoming.android_id || "").trim();
+      const incomingModel = String(incoming.model || "").trim().toLowerCase();
+      for (const candidateRow of candidates) {
+        const candidate = parseRecord(String(candidateRow.value_json || ""));
+        if (!candidate || candidate.device_key === deviceKey) continue;
+        const sameImei = Boolean(incomingImei) && incomingImei === String(candidate.imei1 || "").trim();
+        const sameAndroidDevice = Boolean(incomingAndroidId)
+          && incomingAndroidId === String(candidate.android_id || "").trim()
+          && incomingModel === String(candidate.model || "").trim().toLowerCase();
+        if (sameImei || sameAndroidDevice) {
+          current = candidate;
+          rekeyedFromDeviceKey = candidate.device_key;
+          break;
+        }
+      }
+    }
+
+    if (current && current.payload_hash === incoming.payload_hash && !rekeyedFromDeviceKey) {
       return response({ status: "unchanged", created: false, changed: false, record: current });
     }
 
@@ -125,11 +152,18 @@ export async function handlePdaRegistryCoreRequest(
       JSON.stringify(next),
       now,
     );
+    if (rekeyedFromDeviceKey) {
+      state.storage.sql.exec(
+        "DELETE FROM app_config WHERE key = ?",
+        PREFIX + rekeyedFromDeviceKey,
+      );
+    }
     return response({
       status: current ? "updated" : "created",
       created: !current,
       changed: true,
       old_hash: current?.payload_hash || "",
+      rekeyed_from_device_key: rekeyedFromDeviceKey,
       record: next,
     });
   }
