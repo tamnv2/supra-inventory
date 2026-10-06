@@ -500,12 +500,15 @@ async function deviceActionApi(
 async function devicesApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const force = url.searchParams.get("refresh") === "1";
-  let sync = { synced: false, skipped: "" };
+  const localOnly = url.searchParams.get("local") === "1";
+  let sync = { synced: false, skipped: localOnly ? "LOCAL_ONLY" : "" };
   let syncError = "";
-  try {
-    sync = await syncRegistryIfDue(env, force);
-  } catch (error) {
-    syncError = error instanceof Error ? error.message : "REGISTRY_SYNC_FAILED";
+  if (!localOnly) {
+    try {
+      sync = await syncRegistryIfDue(env, force);
+    } catch (error) {
+      syncError = error instanceof Error ? error.message : "REGISTRY_SYNC_FAILED";
+    }
   }
 
   const list = await coreJson<{
