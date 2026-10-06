@@ -330,12 +330,19 @@ async function syncEmployeesIfDue(
 }
 
 async function employeeByCode(env: Env, employeeCode: string): Promise<EmployeeRecord | null> {
-  await syncEmployeesIfDue(env, false);
+  let syncError: unknown = null;
+  try {
+    await syncEmployeesIfDue(env, false);
+  } catch (error) {
+    syncError = error;
+  }
+
   let result = await coreJson<{ employee: EmployeeRecord | null }>(
     env,
     `/employees/find?employee_code=${encodeURIComponent(employeeCode)}`,
   );
   if (result.employee) return result.employee;
+  if (syncError) throw syncError;
 
   const meta = await coreJson<{ hr_last_attempt_ms: number }>(env, "/employees/meta");
   if (Date.now() - meta.hr_last_attempt_ms >= HR_FORCE_GUARD_MS) {
