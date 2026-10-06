@@ -46,8 +46,10 @@ jobs:
             code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' https://pda-beta.supra.cc.cd/health || true)"
             status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
             source="$(jq -r '.source_commit // empty' "$tmp" 2>/dev/null || true)"
-            echo "attempt=$attempt http=${code:-000} status=${status:-n/a} source=${source:-none}"
-            if [ "$code" = "200" ] && { [ "$status" = "ok" ] || [ "$status" = "degraded" ]; } && [ "$source" = "$GITHUB_SHA" ]; then
+            root_secret="$(jq -r '.root_bootstrap_secret_configured // false' "$tmp" 2>/dev/null || true)"
+            google_secret="$(jq -r '.google_runtime_secret_configured // false' "$tmp" 2>/dev/null || true)"
+            echo "attempt=$attempt http=${code:-000} status=${status:-n/a} source=${source:-none} root_secret=${root_secret:-false} google_secret=${google_secret:-false}"
+            if [ "$code" = "200" ] && [ "$status" = "ok" ] && [ "$source" = "$GITHUB_SHA" ] && [ "$root_secret" = "true" ] && [ "$google_secret" = "true" ]; then
               exit 0
             fi
             [ "$attempt" -ge 12 ] || sleep 5
