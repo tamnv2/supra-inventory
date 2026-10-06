@@ -5,18 +5,27 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -25,6 +34,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public final class MainActivity extends Activity {
     private enum UpdateGate { IDLE, CHECKING, CURRENT, AVAILABLE, DEFERRED, FAILED }
@@ -57,6 +67,15 @@ public final class MainActivity extends Activity {
     private volatile UpdateGate updateGate = UpdateGate.IDLE;
     private UpdateInfo pendingUpdateInfo;
     private File pendingInstallFile;
+
+    private String sessionToken = "";
+    private String sessionRole = "";
+    private String sessionDisplayName = "";
+    private JSONArray cachedDevices = new JSONArray();
+    private LinearLayout deviceListContainer;
+    private EditText deviceSearch;
+    private TextView homeStatus;
+    private volatile boolean deviceRefreshRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,12 +122,389 @@ public final class MainActivity extends Activity {
         loginButton.setOnClickListener(v -> {
             String user = username.getText().toString().trim().toLowerCase();
             String pass = password.getText().toString();
-            if (!user.matches("[a-z0-9._-]{1,64}") || pass.trim().isEmpty()) {
+            if (!user.matches("[a-z0-9._-]{1,64}") || pass.length() < 8) {
                 setStatus("Tên đăng nhập hoặc mật khẩu không hợp lệ.", true);
                 return;
             }
-            setStatus("Nền D164 đã sẵn sàng. Xác thực Root/Điều phối đang được nối ở bước tiếp theo.", false);
+            performLogin(user, pass, password);
         });
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    private String deviceId() {
+        String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        if (androidId != null && !androidId.trim().isEmpty()) return androidId.trim();
+        android.content.SharedPreferences prefs = getSharedPreferences("pda_mgmt_device", MODE_PRIVATE);
+        String current = prefs.getString("device_id", "");
+        if (current != null && !current.isEmpty()) return current;
+        String next = UUID.randomUUID().toString();
+        prefs.edit().putString("device_id", next).apply();
+        return next;
+    }
+
+    private JSONObject apiRequest(String method, String path, JSONObject body, boolean authenticated) throws Exception {
+        URL url = new URL(BuildConfig.API_BASE_URL.replaceAll("/+$", "") + path);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(10_000);
+        connection.setReadTimeout(30_000);
+        connection.setRequestMethod(method);
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("User-Agent", "SUPRA-PDA-Management-Beta/" + BuildConfig.VERSION_NAME);
+        connection.setRequestProperty("X-Supra-Device-Id", deviceId());
+        if (authenticated) {
+            if (sessionToken.isEmpty()) throw new IllegalStateException("Phiên đăng nhập không còn hiệu lực.");
+            connection.setRequestProperty("Authorization", "Bearer " + sessionToken);
+        }
+        if (body != null) {
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            byte[] payload = body.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            connection.getOutputStream().write(payload);
+        }
+
+        int code = connection.getResponseCode();
+        java.io.InputStream stream = code >= 200 && code <= 299 ? connection.getInputStream() : connection.getErrorStream();
+        String text = "";
+        if (stream != null) {
+            try (java.io.InputStream input = stream;
+                 java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream()) {
+                byte[] chunk = new byte[8192];
+                int read;
+                while ((read = input.read(chunk)) > 0) buffer.write(chunk, 0, read);
+                text = buffer.toString("UTF-8");
+            }
+        }
+        JSONObject result = text.trim().isEmpty() ? new JSONObject() : new JSONObject(text);
+        if (code < 200 || code > 299) {
+            String message = result.optString("message", result.optString("error", "HTTP " + code));
+            throw new IllegalStateException(message);
+        }
+        return result;
+    }
+
+    private void performLogin(String username, String password, EditText passwordField) {
+        loginButton.setEnabled(false);
+        progress.setVisibility(View.VISIBLE);
+        setStatus("Đang đăng nhập...", false);
+
+        new Thread(() -> {
+            try {
+                JSONObject result = apiRequest("POST", "/api/auth/login",
+                    new JSONObject().put("username", username).put("password", password), false);
+                String token = result.optString("token", "");
+                JSONObject user = result.optJSONObject("user");
+                if (token.isEmpty() || user == null) throw new IllegalStateException("Phản hồi đăng nhập không hợp lệ.");
+
+                sessionToken = token;
+                sessionRole = user.optString("role", "");
+                sessionDisplayName = user.optString("display_name", username);
+                runOnUiThread(() -> {
+                    progress.setVisibility(View.GONE);
+                    loginButton.setEnabled(true);
+                    passwordField.setText("");
+                    renderHome(user);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    progress.setVisibility(View.GONE);
+                    loginButton.setEnabled(true);
+                    setStatus(error.getMessage() == null ? "Không thể đăng nhập." : error.getMessage(), true);
+                });
+            }
+        }, "pda-mgmt-login").start();
+    }
+
+    private void renderHome(JSONObject user) {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(getColor(R.color.surface));
+        root.setPadding(dp(16), dp(18), dp(16), dp(14));
+
+        TextView title = new TextView(this);
+        title.setText("QUẢN LÝ PDA");
+        title.setTextColor(getColor(R.color.navy_900));
+        title.setTextSize(24);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        root.addView(title);
+
+        TextView identity = new TextView(this);
+        identity.setText(sessionDisplayName + " · " + ("ROOT".equals(sessionRole) ? "Root" : "Điều phối"));
+        identity.setTextColor(getColor(R.color.text_secondary));
+        identity.setTextSize(13);
+        identity.setPadding(0, dp(3), 0, dp(12));
+        root.addView(identity);
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        actions.setGravity(Gravity.CENTER_VERTICAL);
+
+        Button refresh = new Button(this);
+        refresh.setText("Làm mới");
+        refresh.setOnClickListener(v -> loadDevices(true));
+        actions.addView(refresh, new LinearLayout.LayoutParams(0, dp(46), 1f));
+
+        if ("ROOT".equals(sessionRole)) {
+            Button users = new Button(this);
+            users.setText("Thêm Điều phối");
+            users.setOnClickListener(v -> showCreateCoordinator());
+            LinearLayout.LayoutParams up = new LinearLayout.LayoutParams(0, dp(46), 1f);
+            up.setMarginStart(dp(8));
+            actions.addView(users, up);
+        }
+
+        Button logout = new Button(this);
+        logout.setText("Đăng xuất");
+        logout.setOnClickListener(v -> performLogout());
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(46), 1f);
+        lp.setMarginStart(dp(8));
+        actions.addView(logout, lp);
+        root.addView(actions);
+
+        homeStatus = new TextView(this);
+        homeStatus.setText("Đang tải danh sách PDA...");
+        homeStatus.setTextColor(getColor(R.color.text_secondary));
+        homeStatus.setTextSize(12);
+        homeStatus.setPadding(0, dp(10), 0, dp(8));
+        root.addView(homeStatus);
+
+        deviceSearch = new EditText(this);
+        deviceSearch.setHint("Tìm Serial / Model / Trạng thái");
+        deviceSearch.setSingleLine(true);
+        root.addView(deviceSearch, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(50)));
+
+        TextView section = new TextView(this);
+        section.setText("DANH SÁCH PDA");
+        section.setTextColor(getColor(R.color.navy_900));
+        section.setTextSize(13);
+        section.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        section.setPadding(0, dp(14), 0, dp(8));
+        root.addView(section);
+
+        ScrollView scroll = new ScrollView(this);
+        deviceListContainer = new LinearLayout(this);
+        deviceListContainer.setOrientation(LinearLayout.VERTICAL);
+        scroll.addView(deviceListContainer);
+        root.addView(scroll, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        TextView footer = new TextView(this);
+        footer.setText("Beta vc" + BuildConfig.VERSION_CODE + " · " + BuildConfig.VERSION_NAME);
+        footer.setTextColor(getColor(R.color.text_secondary));
+        footer.setTextSize(9);
+        footer.setGravity(Gravity.CENTER);
+        footer.setPadding(0, dp(8), 0, 0);
+        root.addView(footer);
+
+        deviceSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                renderDeviceRows(s == null ? "" : s.toString());
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        setContentView(root);
+        loadDevices(false);
+    }
+
+    private void setHomeStatus(String message, boolean error) {
+        if (homeStatus == null) return;
+        homeStatus.setText(message);
+        homeStatus.setTextColor(getColor(error ? R.color.red_600 : R.color.text_secondary));
+    }
+
+    private void loadDevices(boolean force) {
+        if (deviceRefreshRunning || sessionToken.isEmpty()) return;
+        deviceRefreshRunning = true;
+        setHomeStatus(force ? "Đang đồng bộ Registry..." : "Đang tải danh sách PDA...", false);
+
+        new Thread(() -> {
+            try {
+                JSONObject result = apiRequest("GET", "/api/devices" + (force ? "?refresh=1" : ""), null, true);
+                JSONArray devices = result.optJSONArray("devices");
+                if (devices == null) devices = new JSONArray();
+                final JSONArray finalDevices = devices;
+                long syncMs = result.optLong("registry_last_sync_ms", 0L);
+                String syncError = result.optString("registry_sync_error", "");
+                runOnUiThread(() -> {
+                    deviceRefreshRunning = false;
+                    cachedDevices = finalDevices;
+                    String query = deviceSearch == null ? "" : deviceSearch.getText().toString();
+                    renderDeviceRows(query);
+                    String suffix = syncMs > 0 ? " · Registry đã đồng bộ" : "";
+                    setHomeStatus(finalDevices.length() + " PDA" + suffix +
+                        (syncError.isEmpty() ? "" : " · Đồng bộ Registry tạm lỗi"), !syncError.isEmpty());
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    deviceRefreshRunning = false;
+                    String message = error.getMessage() == null ? "Không tải được danh sách PDA." : error.getMessage();
+                    setHomeStatus(message, true);
+                    if (message.toLowerCase().contains("phiên") || message.toLowerCase().contains("unauthorized")) {
+                        sessionToken = "";
+                        renderLogin();
+                    }
+                });
+            }
+        }, "pda-mgmt-device-list").start();
+    }
+
+    private void renderDeviceRows(String rawQuery) {
+        if (deviceListContainer == null) return;
+        deviceListContainer.removeAllViews();
+        String query = rawQuery == null ? "" : rawQuery.trim().toLowerCase();
+        int visible = 0;
+
+        for (int index = 0; index < cachedDevices.length(); index++) {
+            JSONObject device = cachedDevices.optJSONObject(index);
+            if (device == null) continue;
+            String serial = device.optString("serial", "");
+            String model = device.optString("model", "");
+            String manufacturer = device.optString("manufacturer", "");
+            String usage = device.optString("usage_status", "AVAILABLE");
+            String condition = device.optString("physical_condition", "UNKNOWN");
+            String haystack = (serial + " " + model + " " + manufacturer + " " + usage + " " + condition).toLowerCase();
+            if (!query.isEmpty() && !haystack.contains(query)) continue;
+            visible++;
+
+            LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.setBackgroundResource(R.drawable.bg_card);
+            card.setPadding(dp(14), dp(12), dp(14), dp(12));
+
+            TextView serialView = new TextView(this);
+            serialView.setText(serial);
+            serialView.setTextColor(getColor(R.color.navy_900));
+            serialView.setTextSize(16);
+            serialView.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+            card.addView(serialView);
+
+            TextView detail = new TextView(this);
+            String modelText = (manufacturer + " " + model).trim();
+            detail.setText((modelText.isEmpty() ? "Chưa có Model" : modelText) +
+                "\nTrạng thái: " + usageLabel(usage) + " · Tình trạng: " + conditionLabel(condition));
+            detail.setTextColor(getColor(R.color.text_secondary));
+            detail.setTextSize(12);
+            detail.setPadding(0, dp(4), 0, 0);
+            card.addView(detail);
+
+            LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            cp.bottomMargin = dp(8);
+            deviceListContainer.addView(card, cp);
+        }
+
+        if (visible == 0) {
+            TextView empty = new TextView(this);
+            empty.setText(query.isEmpty() ? "Chưa có PDA trong danh sách." : "Không tìm thấy PDA phù hợp.");
+            empty.setTextColor(getColor(R.color.text_secondary));
+            empty.setTextSize(13);
+            empty.setGravity(Gravity.CENTER);
+            empty.setPadding(dp(12), dp(30), dp(12), dp(30));
+            deviceListContainer.addView(empty);
+        }
+    }
+
+    private String usageLabel(String value) {
+        switch (value) {
+            case "BORROWED": return "Đang mượn";
+            case "REPAIR": return "Đang sửa";
+            case "DISABLED": return "Ngừng dùng";
+            case "LOST": return "Thất lạc";
+            default: return "Sẵn sàng";
+        }
+    }
+
+    private String conditionLabel(String value) {
+        switch (value) {
+            case "GOOD": return "Tốt";
+            case "MINOR_DAMAGE": return "Lỗi nhẹ";
+            case "DAMAGED": return "Hỏng";
+            default: return "Chưa đánh giá";
+        }
+    }
+
+    private void showCreateCoordinator() {
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dp(20), dp(6), dp(20), 0);
+
+        EditText username = new EditText(this);
+        username.setHint("Tài khoản Điều phối");
+        username.setSingleLine(true);
+        form.addView(username);
+
+        EditText name = new EditText(this);
+        name.setHint("Họ tên / Tên hiển thị");
+        name.setSingleLine(true);
+        form.addView(name);
+
+        EditText password = new EditText(this);
+        password.setHint("Mật khẩu tối thiểu 8 ký tự");
+        password.setSingleLine(true);
+        password.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        form.addView(password);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Tạo tài khoản Điều phối")
+            .setView(form)
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Tạo", null)
+            .create();
+
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String user = username.getText().toString().trim().toLowerCase();
+            String display = name.getText().toString().trim();
+            String pass = password.getText().toString();
+            if (!user.matches("[a-z0-9._-]{1,64}") || display.isEmpty() || pass.length() < 8) {
+                Toast.makeText(this, "Kiểm tra lại tài khoản, tên và mật khẩu.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            new Thread(() -> {
+                try {
+                    apiRequest("POST", "/api/users",
+                        new JSONObject().put("username", user).put("display_name", display).put("password", pass), true);
+                    runOnUiThread(() -> {
+                        dialog.dismiss();
+                        Toast.makeText(this, "Đã tạo tài khoản Điều phối.", Toast.LENGTH_SHORT).show();
+                    });
+                } catch (Exception error) {
+                    runOnUiThread(() -> {
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                        Toast.makeText(this,
+                            error.getMessage() == null ? "Không tạo được tài khoản." : error.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                    });
+                }
+            }, "pda-mgmt-create-user").start();
+        }));
+        dialog.show();
+    }
+
+    private void performLogout() {
+        String token = sessionToken;
+        sessionToken = "";
+        sessionRole = "";
+        sessionDisplayName = "";
+        cachedDevices = new JSONArray();
+        renderLogin();
+
+        if (!token.isEmpty()) {
+            new Thread(() -> {
+                try {
+                    sessionToken = token;
+                    apiRequest("POST", "/api/auth/logout", new JSONObject(), true);
+                } catch (Exception ignored) {
+                } finally {
+                    sessionToken = "";
+                }
+            }, "pda-mgmt-logout").start();
+        }
     }
 
     private void maybeSilentUpdateCheck() {
