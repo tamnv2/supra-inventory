@@ -386,6 +386,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     "GET /api/picker/results",
     "POST /api/picker/results/receipt",
     "GET /api/reporter/queue",
+    "GET /api/reporter/overdue",
     "GET /api/reporter/counters",
     "POST /api/reporter/batches/resolve",
     "POST /api/reporter/batches/correct",
@@ -426,6 +427,14 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
     return authorizedGet(request, env, `/authorized/operational/reporter/queue?${params.toString()}`);
+  }
+
+  if (key === "GET /api/reporter/overdue") {
+    const params = new URLSearchParams();
+    for (const name of ["limit", "offset"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return authorizedGet(request, env, `/authorized/operational/reporter/overdue?${params.toString()}`);
   }
 
   if (key === "GET /api/reporter/counters") {
