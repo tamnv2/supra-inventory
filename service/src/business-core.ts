@@ -1191,6 +1191,7 @@ function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResu
   const statusValue = String(url.searchParams.get("status") || "").trim();
   const validStatus = ["PENDING", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
   const query = String(url.searchParams.get("query") || "").trim().slice(0, 500);
+  const batchId = String(url.searchParams.get("batch_id") || "").trim().slice(0, 160);
   const limit = normalizeReportingLimit(url.searchParams.get("limit"));
   const offset = normalizeOffset(url.searchParams.get("offset"));
 
@@ -1198,6 +1199,7 @@ function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResu
   const args: SqlStorageValue[] = [range.from, range.to];
   if (validStatus) { where.push("b.status = ?"); args.push(validStatus); }
   if (query) { where.push("(b.sku LIKE ? OR b.product_name LIKE ?)"); args.push(`%${query}%`, `%${query}%`); }
+  if (batchId) { where.push("b.batch_id = ?"); args.push(batchId); }
   const clause = where.join(" AND ");
 
   const totalRow = firstRow(state.storage.sql.exec<SqlRow>(
@@ -1290,6 +1292,7 @@ function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResu
       to: range.to,
       status: validStatus,
       query,
+      batch_id: batchId,
     },
   };
 }
