@@ -8,9 +8,9 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D163_TECHNICAL_RUNTIME_PASS__MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__FORCED_LOGOUT_LOG_CONTINUITY__REPORT_PICKER_DETAIL__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__OWNER_FIELD_PASS_PENDING__STABLE_UNTOUCHED`
-- Web: `D163_BETA_RUNTIME_PASS__REPORT_PICKER_DETAIL_LAZY_EXACT_BATCH__RUN_37417036768`
-- Android: `D161_BETA_VC97__D162_OWNER_PASS__D163_HARD_LOCKED_UNCHANGED`
+- Beta: `D163_OWNER_FIELD_ACCEPTED_PASS__MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__FORCED_LOGOUT_LOG_CONTINUITY__REPORT_PICKER_DETAIL__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__STABLE_UNTOUCHED`
+- Web: `D163_OWNER_FIELD_ACCEPTED_PASS__REPORT_PICKER_DETAIL_LAZY_EXACT_BATCH__RUN_37417036768`
+- Android: `D161_BETA_VC97__D162_OWNER_PASS__D163_OWNER_PASS_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-D162 is Owner-accepted PASS and OA097 is closed. D163 is the only open change. Its source branch implements bounded forced-logout final-log continuity plus lazy exact-batch Picker detail in Báo cáo chi tiết. PR/CI/Beta deployment are pending. Agent v114 and Android vc97 remain unchanged; Stable remains OWNER-GATED.
+D163 is Owner-accepted PASS and OA098 is closed. The Inventory Báo hàng accepted base is now D163. Independent D164 PDA Management remains technically PASS and pending its own Owner field test under `ops/pda-management-state.json`; this does not reopen D163. Agent v114 and Android vc97 remain unchanged; Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 
@@ -1816,4 +1816,13 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - D163 behavior now live on Beta: forced Picker revoke remains immediate while the just-revoked Android Picker generation may submit only the final `INFO/session_end_logout` log; Báo cáo chi tiết exposes lazy exact-`batch_id` Picker detail.
 - Android remains `beta-vc97`; Agent remains `relay-agent-v114`; Stable remains OWNER-GATED and untouched.
 - D163 is **not** Owner PASS yet. OA098 is READY_FOR_OWNER_FIELD_TEST.
+
+## D163 Owner field acceptance — PASS — 2026-10-06
+
+- Owner explicitly confirmed **D163 PASS** with “ok done 163”.
+- OA098 is closed PASS.
+- Accepted implementation remains PR #461 / main `d991c83bcf617c4aac523f85337f2b27f9fe3193`; Beta deploy run `37417036768` PASS.
+- Accepted D163 behavior: Kích User preserves the normal final logout-log boundary without restoring revoked business authority; Web Báo cáo chi tiết provides lazy exact-batch Picker drill-down.
+- Android remains `beta-vc97`, Agent remains `relay-agent-v114`, and Stable remains OWNER-GATED and untouched.
+- D164 PDA Management continues only as its already-authorized isolated scope and remains separately field-gated.
 
