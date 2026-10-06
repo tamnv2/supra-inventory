@@ -512,6 +512,62 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
   );
 }
 
+function reporterCounters(state: DurableObjectState, url: URL): Response {
+  const statusValue = String(url.searchParams.get("status") || "").trim().toUpperCase();
+  const status = ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
+  const from = String(url.searchParams.get("from") || "").trim();
+  const to = String(url.searchParams.get("to") || "").trim();
+  const fromMs = from ? Date.parse(from) : NaN;
+  const toMs = to ? Date.parse(to) : NaN;
+  if (!from || !to || !Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs) {
+    return json({ error: "INVALID_COUNTER_RANGE" }, 400);
+  }
+  if (toMs - fromMs > 60 * 86_400_000) {
+    return json({ error: "COUNTER_RANGE_TOO_LARGE", max_range_days: 60 }, 400);
+  }
+
+  const queueTotalRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS total
+         FROM report_batches b
+        WHERE b.status = 'PENDING'
+          AND EXISTS (
+            SELECT 1
+              FROM report_tickets t
+             WHERE t.batch_id = b.batch_id
+               AND t.status = 'OPEN'
+               AND t.auto_skip_allowed_at IS NULL
+          )`,
+    ).toArray(),
+  ) || {};
+
+  const recentWhere = [
+    "b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')",
+    "COALESCE(b.resolved_at, b.updated_at) >= ?",
+    "COALESCE(b.resolved_at, b.updated_at) < ?",
+  ];
+  const recentArgs: SqlStorageValue[] = [from, to];
+  if (status) {
+    recentWhere.push("b.status = ?");
+    recentArgs.push(status);
+  }
+  const recentTotalRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS total FROM report_batches b WHERE ${recentWhere.join(" AND ")}`,
+      ...recentArgs,
+    ).toArray(),
+  ) || {};
+
+  return json({
+    queue_total: Number(queueTotalRow.total || 0),
+    recent_total: Number(recentTotalRow.total || 0),
+    filter_status: status,
+    from,
+    to,
+    server_now: new Date().toISOString(),
+  });
+}
+
 function reporterQueue(state: DurableObjectState, url: URL): Response {
   const parsed = Number(url.searchParams.get("limit") || 100);
   const parsedOffset = Number(url.searchParams.get("offset") || 0);
@@ -1517,6 +1573,7 @@ export async function handleOperationalV2CoreRequest(state: DurableObjectState, 
     }, readiness.ready ? 200 : 503);
   }
 
+  if (request.method === "GET" && url.pathname === "/operational/reporter/counters") return reporterCounters(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/queue") return reporterQueue(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/recent") return reporterRecent(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/batch-tickets") return reporterBatchTickets(state, url);
