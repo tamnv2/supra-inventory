@@ -70,6 +70,7 @@ namespace SupraInventoryRelayAgent
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly object _stateGate = new object();
         private readonly AutoResetEvent _wake = new AutoResetEvent(false);
+        private readonly RtdbHaLiveness _rtdbLiveness;
 
         private CancellationTokenSource _cts;
         private volatile FirestoreAgentRole _role = FirestoreAgentRole.DEEP_HIBERNATE;
@@ -119,6 +120,10 @@ namespace SupraInventoryRelayAgent
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
             _stateChanged = stateChanged ?? delegate { };
+            _rtdbLiveness = new RtdbHaLiveness(_instanceId, _log, () =>
+            {
+                try { _wake.Set(); } catch { }
+            });
         }
 
         internal bool IsLeader { get { return _role == FirestoreAgentRole.PRIMARY; } }
@@ -636,6 +641,7 @@ namespace SupraInventoryRelayAgent
             }
             catch { }
 
+            try { _rtdbLiveness.StopObserver(); } catch { }
             try { if (cts != null) cts.Cancel(); } catch { }
             try { if (cts != null) cts.Dispose(); } catch { }
             try { _wake.Set(); } catch { }
@@ -1034,20 +1040,41 @@ namespace SupraInventoryRelayAgent
 
                     if (_relayEnabled() && _role == FirestoreAgentRole.PRIMARY)
                     {
+                        _rtdbLiveness.StopObserver();
                         if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
-                            WritePrimaryLease(session);
+                        {
+                            if (_rtdbLiveness.WriteHeartbeat(session, _generation))
+                                _lastLeaseWriteMs = NowMs();
+                            else
+                                WritePrimaryLease(session);
+                        }
                         waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)Math.Min(PrimaryLeaseHeartbeatMs, Math.Max(0L, NowMs() - _lastLeaseWriteMs)));
                     }
                     else if (_role == FirestoreAgentRole.NEXT_A)
                     {
-                        waitMs = CheckPrimaryLease(session);
+                        _rtdbLiveness.EnsureObserver(session, _generation, _primaryId);
+                        long livenessAgeMs;
+                        if (_rtdbLiveness.TryGetFresh(_generation, _primaryId, out livenessAgeMs))
+                        {
+                            _leaseMissingSinceMs = 0;
+                            waitMs = Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, Math.Max(0L, livenessAgeMs)));
+                        }
+                        else
+                        {
+                            // RTDB is liveness only. Any stale/missing/uncertain signal
+                            // re-enters the accepted Firestore lease path, which verifies
+                            // generation/PRIMARY authority before takeover.
+                            waitMs = CheckPrimaryLease(session);
+                        }
                     }
                     else if (_role == FirestoreAgentRole.NEXT_B)
                     {
+                        _rtdbLiveness.StopObserver();
                         waitMs = startupConvergence ? StartupConvergenceIntervalMs : 60000;
                     }
                     else
                     {
+                        _rtdbLiveness.StopObserver();
                         waitMs = startupConvergence ? StartupConvergenceIntervalMs : 600000;
                     }
 
