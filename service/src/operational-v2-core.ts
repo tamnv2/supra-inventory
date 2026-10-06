@@ -24,7 +24,7 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
 const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 5;
+export const OPERATIONAL_V2_SCHEMA_VERSION = 6;
 const MAX_DELTA_LIMIT = 200;
 const APP_TODAY_OPEN_SCOPE = "APP_TODAY_OPEN";
 const BUSINESS_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
@@ -53,7 +53,7 @@ function hasColumn(state: DurableObjectState, tableName: string, columnName: str
     .some((row) => row.name === columnName);
 }
 
-function hasSqlObject(state: DurableObjectState, type: "table" | "trigger", name: string): boolean {
+function hasSqlObject(state: DurableObjectState, type: "table" | "trigger" | "index", name: string): boolean {
   return Boolean(first(
     state.storage.sql
       .exec<SqlRow>("SELECT name FROM sqlite_master WHERE type = ? AND name = ? LIMIT 1", type, name)
@@ -211,6 +211,7 @@ function currentBatchSnapshot(state: DurableObjectState, batchId: string): Recor
               p.resolved_at AS previous_resolved_at,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id) AS total_ticket_count,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL) AS open_ticket_count,
+              (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS overdue_ticket_count,
               (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id AND t.status = 'WITHDRAWN') AS withdrawn_ticket_count,
               (SELECT COUNT(DISTINCT a.target_user_id)
                  FROM result_acknowledgements a
@@ -291,6 +292,15 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
   sql.exec(`
     CREATE INDEX IF NOT EXISTS idx_report_batches_previous_batch ON report_batches(previous_batch_id);
     CREATE INDEX IF NOT EXISTS idx_report_batches_sku_resolved ON report_batches(sku, resolved_at);
+    CREATE INDEX IF NOT EXISTS idx_report_batches_effective_recent
+      ON report_batches(status, COALESCE(resolved_at, updated_at) DESC, batch_id DESC);
+    CREATE INDEX IF NOT EXISTS idx_report_tickets_picker_user_reported
+      ON report_tickets(picker_user_id, reported_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_report_tickets_picker_employee_reported
+      ON report_tickets(picker_employee_code, reported_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_report_tickets_overdue_open
+      ON report_tickets(batch_id, auto_skip_allowed_at, reported_at)
+      WHERE status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL;
 
     CREATE TABLE IF NOT EXISTS realtime_events (
       seq INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -320,6 +330,8 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
     );
     CREATE INDEX IF NOT EXISTS idx_result_ack_batch_version ON result_acknowledgements(batch_id, batch_version);
     CREATE INDEX IF NOT EXISTS idx_result_ack_target_open ON result_acknowledgements(target_user_id, acknowledged_at, created_at);
+    CREATE INDEX IF NOT EXISTS idx_result_ack_batch_target_created
+      ON result_acknowledgements(batch_id, target_user_id, created_at DESC);
 
     CREATE TABLE IF NOT EXISTS result_event_snapshots (
       result_event_id TEXT PRIMARY KEY,
@@ -430,11 +442,11 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
         CASE NEW.event_type
           WHEN 'REPORT_CREATED' THEN '["reporter_queue","picker_reports"]'
           WHEN 'REPORT_WITHDRAWN' THEN '["reporter_queue","reporter_recent","picker_reports"]'
-          WHEN 'BATCH_RESOLVED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
-          WHEN 'BATCH_CORRECTED' THEN '["reporter_recent","picker_reports"]'
+          WHEN 'BATCH_RESOLVED' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
+          WHEN 'BATCH_CORRECTED' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
           WHEN 'SLA_WARNING' THEN '["reporter_queue"]'
           WHEN 'SLA_ESCALATED' THEN '["reporter_queue","picker_reports"]'
-          WHEN 'TICKET_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
+          WHEN 'TICKET_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_overdue","picker_reports"]'
           WHEN 'BATCH_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
           WHEN 'RESULT_ACKNOWLEDGED' THEN '["reporter_recent","picker_reports"]'
           ELSE '["operations"]'
@@ -558,8 +570,24 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     ).toArray(),
   ) || {};
 
+  const overdueTotalRow = first(
+    state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS total
+         FROM report_batches b
+        WHERE b.status = 'PENDING'
+          AND EXISTS (
+            SELECT 1
+              FROM report_tickets t
+             WHERE t.batch_id = b.batch_id
+               AND t.status = 'OPEN'
+               AND t.auto_skip_allowed_at IS NOT NULL
+          )`,
+    ).toArray(),
+  ) || {};
+
   return json({
     queue_total: Number(queueTotalRow.total || 0),
+    overdue_total: Number(overdueTotalRow.total || 0),
     recent_total: Number(recentTotalRow.total || 0),
     filter_status: status,
     from,
@@ -633,6 +661,64 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
     };
   });
   return json({ items: rows, count: rows.length, total, limit, offset, server_now: serverNow, sla_configured: Boolean(config), sla: config });
+}
+
+function reporterOverdue(state: DurableObjectState, url: URL): Response {
+  const parsed = Number(url.searchParams.get("limit") || 100);
+  const parsedOffset = Number(url.searchParams.get("offset") || 0);
+  const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
+  const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
+  const config = readSlaConfig(state);
+  const serverNow = new Date().toISOString();
+  if (!config?.auto_skip_enabled || config.auto_skip_mode !== "PER_PICKER") {
+    return json({ items: [], count: 0, total: 0, limit, offset, server_now: serverNow, enabled: false, auto_skip_mode: config?.auto_skip_mode || null });
+  }
+
+  const totalRow = first(state.storage.sql.exec<SqlRow>(
+    `SELECT COUNT(*) AS total
+       FROM report_batches b
+      WHERE b.status = 'PENDING'
+        AND EXISTS (
+          SELECT 1 FROM report_tickets t
+           WHERE t.batch_id = b.batch_id
+             AND t.status = 'OPEN'
+             AND t.auto_skip_allowed_at IS NOT NULL
+        )`,
+  ).toArray()) || {};
+
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
+            b.version, b.previous_batch_id,
+            COUNT(t.ticket_id) AS overdue_picker_count,
+            MIN(t.auto_skip_allowed_at) AS first_overdue_at,
+            MAX(t.auto_skip_allowed_at) AS latest_overdue_at,
+            (SELECT COUNT(*) FROM report_tickets waiting
+              WHERE waiting.batch_id = b.batch_id
+                AND waiting.status = 'OPEN'
+                AND waiting.auto_skip_allowed_at IS NULL) AS waiting_picker_count
+       FROM report_batches b
+       JOIN report_tickets t
+         ON t.batch_id = b.batch_id
+        AND t.status = 'OPEN'
+        AND t.auto_skip_allowed_at IS NOT NULL
+      WHERE b.status = 'PENDING'
+      GROUP BY b.batch_id
+      ORDER BY first_overdue_at ASC, b.batch_id ASC
+      LIMIT ? OFFSET ?`,
+    limit,
+    offset,
+  ).toArray();
+
+  return json({
+    items: rows,
+    count: rows.length,
+    total: Number(totalRow.total || 0),
+    limit,
+    offset,
+    server_now: serverNow,
+    enabled: true,
+    auto_skip_mode: "PER_PICKER",
+  });
 }
 
 function reporterRecent(state: DurableObjectState, url: URL): Response {
@@ -1575,6 +1661,7 @@ export async function handleOperationalV2CoreRequest(state: DurableObjectState, 
 
   if (request.method === "GET" && url.pathname === "/operational/reporter/counters") return reporterCounters(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/queue") return reporterQueue(state, url);
+  if (request.method === "GET" && url.pathname === "/operational/reporter/overdue") return reporterOverdue(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/recent") return reporterRecent(state, url);
   if (request.method === "GET" && url.pathname === "/operational/reporter/batch-tickets") return reporterBatchTickets(state, url);
   if (request.method === "GET" && url.pathname === "/operational/picker/reports") return pickerReports(state, url);
