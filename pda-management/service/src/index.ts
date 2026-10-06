@@ -12,7 +12,7 @@ import {
 } from "./auth-crypto";
 import { readRegistryDevices } from "./registry-source";
 import { readEmployees, type EmployeeRecord } from "./employee-source";
-import { mirrorCatalogItem, mirrorDeviceAndTransaction } from "./management-sheet";
+import { mirrorCatalogItem, mirrorDeviceAndTransaction, mirrorManagementUser } from "./management-sheet";
 import { errorCode, reportServerError, safeErrorMessage } from "./diagnostics";
 
 interface Env {
@@ -243,7 +243,7 @@ async function logout(request: Request, env: Env): Promise<Response> {
   return json({ logged_out: true });
 }
 
-async function usersApi(request: Request, env: Env, session: SessionView): Promise<Response> {
+async function usersApi(request: Request, env: Env, ctx: ExecutionContext, session: SessionView): Promise<Response> {
   if (session.role !== "ROOT") return json({ error: "FORBIDDEN" }, 403);
 
   if (request.method === "GET") {
@@ -272,12 +272,14 @@ async function usersApi(request: Request, env: Env, session: SessionView): Promi
     }
 
     const material = await hashPassword(password);
+    const userId = randomId("usr");
+    const now = new Date().toISOString();
     try {
       await coreJson(env, "/auth/user/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          user_id: randomId("usr"),
+          user_id: userId,
           username,
           display_name: displayName,
           role: "COORDINATOR",
@@ -290,6 +292,21 @@ async function usersApi(request: Request, env: Env, session: SessionView): Promi
         return json({ error: "USER_EXISTS", message: "Tài khoản đã tồn tại." }, 409);
       }
       throw error;
+    }
+    if (env.GOOGLE_RUNTIME_SA_JSON && env.MANAGEMENT_SHEET_ID) {
+      ctx.waitUntil(
+        mirrorManagementUser(env.GOOGLE_RUNTIME_SA_JSON, env.MANAGEMENT_SHEET_ID, {
+          user_id: userId,
+          username,
+          display_name: displayName,
+          role: "COORDINATOR",
+          status: "ACTIVE",
+          created_at: now,
+          updated_at: now,
+        }, session.user_id).catch((error) => {
+          console.error("pda_management_user_mirror_failed", error instanceof Error ? error.message : "unknown");
+        }),
+      );
     }
     return json({ created: true }, 201);
   }
@@ -309,6 +326,20 @@ async function usersApi(request: Request, env: Env, session: SessionView): Promi
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ user_id: userId, username, display_name: displayName, status }),
     });
+    if (env.GOOGLE_RUNTIME_SA_JSON && env.MANAGEMENT_SHEET_ID) {
+      ctx.waitUntil(
+        mirrorManagementUser(env.GOOGLE_RUNTIME_SA_JSON, env.MANAGEMENT_SHEET_ID, {
+          user_id: userId,
+          username,
+          display_name: displayName,
+          role: "COORDINATOR",
+          status,
+          updated_at: new Date().toISOString(),
+        }, session.user_id).catch((error) => {
+          console.error("pda_management_user_mirror_failed", error instanceof Error ? error.message : "unknown");
+        }),
+      );
+    }
     return json({ updated: true });
   }
 
@@ -327,11 +358,28 @@ async function usersApi(request: Request, env: Env, session: SessionView): Promi
   }
 
   if (action === "DELETE") {
+    const users = await coreJson<{ users: Array<Record<string, unknown>> }>(env, "/users/list");
+    const target = users.users.find((item) => String(item.user_id || "") === userId) || null;
     await coreJson(env, "/auth/user/delete", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ user_id: userId }),
     });
+    if (target && env.GOOGLE_RUNTIME_SA_JSON && env.MANAGEMENT_SHEET_ID) {
+      ctx.waitUntil(
+        mirrorManagementUser(env.GOOGLE_RUNTIME_SA_JSON, env.MANAGEMENT_SHEET_ID, {
+          user_id: userId,
+          username: String(target.username || ""),
+          display_name: String(target.display_name || ""),
+          role: "COORDINATOR",
+          status: "DELETED",
+          created_at: String(target.created_at || ""),
+          updated_at: new Date().toISOString(),
+        }, session.user_id).catch((error) => {
+          console.error("pda_management_user_mirror_failed", error instanceof Error ? error.message : "unknown");
+        }),
+      );
+    }
     return json({ deleted: true });
   }
 
@@ -942,7 +990,7 @@ export default {
       });
     }
 
-    if (url.pathname === "/api/users") return usersApi(request, env, session);
+    if (url.pathname === "/api/users") return usersApi(request, env, ctx, session);
     if (url.pathname === "/api/catalogs") return catalogsApi(request, env, ctx, session);
     if (url.pathname === "/api/devices" && request.method === "GET") return devicesApi(request, env);
     if (url.pathname === "/api/employees" && request.method === "GET") {
