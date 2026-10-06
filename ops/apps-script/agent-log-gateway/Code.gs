@@ -159,7 +159,7 @@ function doPost(e) {
 function resolveDailyLogFolder_(rootFolder, when) {
   const dateKey = Utilities.formatDate(when || new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'D161_LOG_DAY_' + dateKey;
+  const cacheKey = 'D165_LOG_DAY_' + rootFolder.getId() + '_' + dateKey;
   const cachedId = String(cache.get(cacheKey) || '');
   if (cachedId) {
     try {
@@ -169,10 +169,40 @@ function resolveDailyLogFolder_(rootFolder, when) {
     }
   }
 
-  const matches = rootFolder.getFoldersByName(dateKey);
-  const folder = matches.hasNext() ? matches.next() : rootFolder.createFolder(dateKey);
+  const canonicalId = canonicalDailyFolderId_(rootFolder.getId(), dateKey);
+  const folder = canonicalId
+    ? DriveApp.getFolderById(canonicalId)
+    : createAndConvergeDailyFolder_(rootFolder, dateKey);
   cache.put(cacheKey, folder.getId(), 6 * 60 * 60);
   return { folder: folder, date_key: dateKey };
+}
+
+function canonicalDailyFolderId_(rootId, dateKey) {
+  const query = [
+    "'" + String(rootId).replace(/'/g, "\\'") + "' in parents",
+    "trashed = false",
+    "mimeType = 'application/vnd.google-apps.folder'",
+    "name = '" + String(dateKey).replace(/'/g, "\\'") + "'"
+  ].join(' and ');
+  const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(query) +
+    '&orderBy=createdTime%20asc&pageSize=10&spaces=drive&fields=files(id,name,createdTime)';
+  const response = UrlFetchApp.fetch(url, {
+    method: 'get',
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+    muteHttpExceptions: true
+  });
+  if (response.getResponseCode() !== 200) throw new Error('LOG_DAY_LIST_' + response.getResponseCode());
+  const payload = JSON.parse(response.getContentText() || '{}');
+  return payload.files && payload.files.length ? String(payload.files[0].id || '') : '';
+}
+
+function createAndConvergeDailyFolder_(rootFolder, dateKey) {
+  const created = rootFolder.createFolder(dateKey);
+  const canonicalId = canonicalDailyFolderId_(rootFolder.getId(), dateKey) || created.getId();
+  if (canonicalId !== created.getId()) {
+    try { created.setTrashed(true); } catch (_) {}
+  }
+  return DriveApp.getFolderById(canonicalId);
 }
 
 function loadSnapshot_() {
