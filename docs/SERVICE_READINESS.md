@@ -8,8 +8,8 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D162_REPAIR_TECHNICAL_RUNTIME_PASS__MAIN_D970790B__BETA_DEPLOY_RUN_37391459092__REALTIME_BADGE_LAZY_QUEUE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
-- Web: `D162_REALTIME_BADGE_LAZY_QUEUE_DEPLOYED__QUEUE_DELTA_BADGE__FULL_QUEUE_ON_OPERATIONS_ONLY__RESULTS_RECENT_ONLY__RUN_37391459092`
+- Beta: `D162_WORKSPACE_TAB_COUNTER_REPAIR_RUNTIME_PASS__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899__DUAL_REALTIME_COUNTERS__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
+- Web: `D162_WORKSPACE_TAB_DUAL_REALTIME_COUNTERS_DEPLOYED__QUEUE_DELTA__RECENT_TRANSITION__LIGHTWEIGHT_RECONCILE_ONLY__RUN_37395842899`
 - Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
@@ -47,7 +47,7 @@ D091 infrastructure/runtime/release is PASS: Beta Firestore `(default)` is provi
 
 ## Next action
 
-D162 remains the only open change. Field review found the currently deployed Web workspace-tab counts can stay stale until the corresponding list is loaded. Same-D162 branch `repair/d162-workspace-tab-realtime-counters` repairs both visible counters through existing realtime metadata plus one bounded dual-counter reconcile on baseline/gap/reconnect. OA097 is paused until this repair is merged and deployed. Agent v114 and Android vc97 are unchanged; Stable remains OWNER-GATED.
+D162 remains the only open change. Workspace-tab realtime counter repair PR #451 is deployed on Beta from main `8fca1fb539f2396cefaff621368758336035c00b`; deploy run `37395842899` PASS. OA097 is reopened for field confirmation of both tab numbers and comparable-load usage/latency evidence. Agent v114 and Android vc97 remain unchanged; Stable remains OWNER-GATED.
 
 No manual end-of-session handover is required. GitHub canonical state remains the continuity authority.
 
@@ -1784,11 +1784,12 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Agent v114 and Android vc97 are unchanged; Stable remains OWNER-GATED.
 - OA097 is now PENDING_FIELD_VALIDATION.
 
-## D162 workspace tab realtime counter repair candidate — 2026-10-06
+## D162 workspace tab realtime counter repair runtime PASS — 2026-10-06
 
-- Current deployed Beta runtime remains the prior D162 runtime while this repair is under validation.
-- Owner-approved repair makes both workspace tab numbers independent from loaded list state.
-- Normal changes use existing WebSocket events; no counter polling is introduced.
-- One lightweight authorized dual-counter request is allowed for F5/login/reconnect/gap recovery only.
-- Full queue/recent data remains visibility-scoped.
-- No Agent/Android/Stable or provider-resource change.
+- PR #451 merged to main `8fca1fb539f2396cefaff621368758336035c00b`.
+- Beta deploy run `37395842899` PASS.
+- Queue and recent workspace badges are independent of loaded list rows and update from realtime metadata.
+- One lightweight dual-counter authoritative request is used only for baseline/gap/reconnect recovery; no periodic polling exists.
+- Authority `37395842893`, Project State `37395842908`, UI `37395843053`, D127 `37395843108`, D159 `37395843560` PASS.
+- Agent v114, Android vc97 and Stable are unchanged.
+- OA097 is PENDING_FIELD_VALIDATION.

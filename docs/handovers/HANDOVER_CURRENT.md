@@ -8,8 +8,8 @@
 - SQLite schema: `17`
 - Latest signed Beta APK: `beta-vc97`
 - Current released Agent: `relay-agent-v114`
-- Beta: `D162_REPAIR_TECHNICAL_RUNTIME_PASS__MAIN_D970790B__BETA_DEPLOY_RUN_37391459092__REALTIME_BADGE_LAZY_QUEUE__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
-- Web: `D162_REALTIME_BADGE_LAZY_QUEUE_DEPLOYED__QUEUE_DELTA_BADGE__FULL_QUEUE_ON_OPERATIONS_ONLY__RESULTS_RECENT_ONLY__RUN_37391459092`
+- Beta: `D162_WORKSPACE_TAB_COUNTER_REPAIR_RUNTIME_PASS__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899__DUAL_REALTIME_COUNTERS__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED__FIELD_USAGE_VALIDATION_PENDING__STABLE_UNTOUCHED`
+- Web: `D162_WORKSPACE_TAB_DUAL_REALTIME_COUNTERS_DEPLOYED__QUEUE_DELTA__RECENT_TRANSITION__LIGHTWEIGHT_RECONCILE_ONLY__RUN_37395842899`
 - Android: `D161_OWNER_ACCEPTED_BETA_VC97__D162_HARD_LOCKED_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
@@ -55,15 +55,11 @@ Released artifacts:
 
 ## 5. Next action
 
-D161 remains the accepted Owner-PASS base. The currently deployed D162 Beta runtime at main `d970790bfd440a50c80751102e7a2fb05f8300e3` has a field-confirmed workspace-tab counter defect: **Đang xử lý** and **Kết quả gần đây** can remain stale until their list tab is loaded.
+D161 remains the accepted Owner-PASS base. D162 workspace-tab realtime counter repair PR #451 is deployed on Beta from main `8fca1fb539f2396cefaff621368758336035c00b`; deploy run `37395842899` PASS.
 
-The Owner approved a same-D162 repair on 2026-10-06. Branch `repair/d162-workspace-tab-realtime-counters` implements realtime dual tab counters without polling/full off-screen list reads. OA097 is paused until this repair passes CI, merge and Beta runtime deployment. Agent v114, Android vc97 and Stable are unchanged.
+Both **Đang xử lý** and **Kết quả gần đây** now use dedicated realtime counters. Normal events update them from existing WebSocket metadata; F5/login/gap/reconnect uses one lightweight dual-counter reconciliation. Agent v114, Android vc97 and Stable are unchanged.
 
-On the next session:
-1. read `ops/authority-manifest.json`;
-2. read the complete declared `bootstrap_order`;
-3. verify recent commits/CI and relevant live source;
-4. continue the D162 workspace-tab counter repair through PR → CI → merge → Beta deploy, then resume OA097.
+OA097 is reopened. First field-check both visible tab numbers without clicking/F5, then continue comparable-load usage/latency validation. Do not open D163 until explicit D162 Owner PASS.
 
 ## 6. Resume command
 
@@ -1792,10 +1788,12 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - Agent remains `relay-agent-v114`; Android remains `beta-vc97`; Stable remains OWNER-GATED and untouched.
 - OA097 is reopened for comparable active-load usage/latency and explicit Owner acceptance.
 
-## D162 workspace tab realtime counter repair candidate — 2026-10-06
+## D162 workspace tab realtime counter repair runtime PASS — 2026-10-06
 
-- Owner field review confirmed the visible **Đang xử lý** / **Kết quả gần đây** counts were list-backed and changed only after loading the corresponding tab.
-- Same-D162 branch: `repair/d162-workspace-tab-realtime-counters`.
-- Repair uses existing WebSocket metadata for normal updates and one lightweight dual-counter authoritative read only on baseline/gap/reconnect.
-- No polling, full off-screen list read, new provider resource, Firestore cadence, Agent change, Android change or Stable change.
-- OA097 is paused until repaired Beta runtime PASS.
+- PR #451 merged to main `8fca1fb539f2396cefaff621368758336035c00b`.
+- Beta Worker/Web deploy run `37395842899`: PASS with post-deploy health/auth/business/Web-shell verification.
+- Both workspace tab numbers use dedicated realtime state; normal events do not call a counter/list API.
+- Baseline/gap/reconnect uses one lightweight dual-counter request; full queue/recent lists remain visibility-scoped.
+- Main Authority `37395842893`, Project State `37395842908`, UI `37395843053`, D127 `37395843108`, D159 `37395843560` all PASS.
+- Agent remains v114; Android remains vc97; Stable remains OWNER-GATED and untouched.
+- OA097 is reopened for field confirmation plus comparable-load usage/latency acceptance.

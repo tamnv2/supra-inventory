@@ -5045,11 +5045,11 @@
     },
     {
       "id": "OA097",
-      "status": "WAITING_D162_TAB_COUNTER_REPAIR_RUNTIME_DEPLOY",
+      "status": "PENDING_FIELD_VALIDATION",
       "title": "Field-accept D162 usage efficiency under comparable active load",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Firestore / Web / Windows Agent",
-      "reason_owner_only": "Owner field review found the visible Web workspace tab counts were not realtime: they changed only after loading the corresponding list. Same-D162 repair is in progress. Final comparable-load usage/business acceptance must wait for repaired Beta runtime.",
+      "reason_owner_only": "D162 workspace-tab realtime counter repair is technically deployed on Beta. Final field confirmation of both tab counts plus comparable-load usage, latency/stability and business acceptance require the Owner/company operating environment.",
       "prerequisites": {
         "accepted_base": "D161__OWNER_PASS",
         "d162_main": "9ac67180c310fe56324608e3118671d278f311c6",
@@ -5058,14 +5058,15 @@
         "android": "beta-vc97__UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED",
         "d162_realtime_badge_repair": "PASS__PR_449__MAIN_D970790B__BETA_DEPLOY_RUN_37391459092",
-        "d162_current_runtime": "MAIN_D970790B__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED",
-        "d162_workspace_tab_counter_repair": "OWNER_APPROVED_2026_10_06__IMPLEMENTED_BRANCH_CI_PENDING"
+        "d162_current_runtime": "MAIN_8FCA1FB5__AGENT_V114_UNCHANGED__ANDROID_VC97_UNCHANGED",
+        "d162_workspace_tab_counter_repair": "PASS__PR_451__MAIN_8FCA1FB5__BETA_DEPLOY_RUN_37395842899"
       },
       "shortest_test_path": [
-        "Operate Beta normally during a representative active period; do not generate artificial traffic solely for the test.",
-        "Verify Reporter queue/recent realtime behavior, Picker reporting/results and PickList confirmation remain at least as responsive and stable as D161.",
-        "Collect comparable Cloudflare Durable Object and Firestore usage evidence for the active period; AI compares it with the recorded D162 baseline and acceptance ratios.",
-        "After the evidence review, explicitly report D162 PASS or NOT PASS. Any NOT PASS is repaired under D162."
+        "Keep one workspace tab open and create/resolve a real report from another client. Confirm both visible tab numbers change without clicking the other tab and without F5.",
+        "Repeat while the opposite workspace tab is open. Confirm the off-tab number still changes and its full list is loaded only when opened.",
+        "Operate Beta normally during a representative active period; do not generate artificial traffic solely for the usage test.",
+        "Collect comparable Cloudflare Durable Object and Firestore usage evidence; AI compares it with the recorded D162 baseline and acceptance ratios.",
+        "After evidence review, explicitly report D162 PASS or NOT PASS. Any NOT PASS is repaired under D162."
       ],
       "pass_criteria": [
         "No request loss, stale session authorization, duplicate WMS mutation or material p50/p90 latency regression.",
@@ -5099,9 +5100,17 @@
         "repair_project_state_run": 37391458064,
         "repair_ui_guard_run": 37391458250,
         "repair_d127_run": 37391458086,
-        "repair_d159_usage_run": 37391457987
+        "repair_d159_usage_run": 37391457987,
+        "workspace_counter_repair_pr": 451,
+        "workspace_counter_main_sha": "8fca1fb539f2396cefaff621368758336035c00b",
+        "workspace_counter_beta_worker_run": 37395842899,
+        "workspace_counter_authority_run": 37395842893,
+        "workspace_counter_project_state_run": 37395842908,
+        "workspace_counter_ui_guard_run": 37395843053,
+        "workspace_counter_d127_run": 37395843108,
+        "workspace_counter_d159_usage_run": 37395843560
       },
-      "remaining_owner_action": "WAIT_FOR_D162_TAB_COUNTER_REPAIR_RUNTIME_PASS__THEN_VERIFY_REALTIME_TAB_COUNTS_AND_RESUME_FIELD_USAGE_ACCEPTANCE",
+      "remaining_owner_action": "VERIFY_DUAL_TAB_COUNTER_REALTIME_BEHAVIOR__THEN_FIELD_USAGE_AND_BUSINESS_ACCEPTANCE",
       "closed": false
     }
   ]
