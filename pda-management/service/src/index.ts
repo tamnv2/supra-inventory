@@ -10,6 +10,10 @@ interface Env {
 }
 
 const CORE_NAME = "pda-management-core";
+const CHANNEL_BASE = "https://github.com/tamnv2/supra-inventory/releases/download/pda-mgmt-channel";
+const CHANNEL_MANIFEST_URL = CHANNEL_BASE + "/pda-mgmt-manifest.json";
+const CHANNEL_APK_URL = CHANNEL_BASE + "/supra-pda-management-beta.apk";
+const CHANNEL_CHECKSUM_URL = CHANNEL_BASE + "/supra-pda-management-beta.apk.sha256";
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -44,6 +48,44 @@ async function coreHealth(env: Env): Promise<Record<string, unknown>> {
   }
 }
 
+async function releaseManifest(): Promise<Response> {
+  const upstream = await fetch(CHANNEL_MANIFEST_URL, {
+    headers: {
+      "accept": "application/json",
+      "user-agent": "SUPRA-PDA-Management-Beta-Worker"
+    }
+  });
+  if (!upstream.ok) {
+    return json({ error: "UPDATE_CHANNEL_UNAVAILABLE", upstream_status: upstream.status }, 503);
+  }
+
+  const raw = await upstream.text();
+  try {
+    const manifest = JSON.parse(raw) as Record<string, unknown>;
+    const versionCode = Number(manifest.version_code || 0);
+    const tag = String(manifest.tag || "");
+    const versionName = String(manifest.version_name || "");
+    if (
+      versionCode <= 0 ||
+      tag !== `pda-mgmt-beta-vc${versionCode}` ||
+      versionName !== `0.1.0-beta.${versionCode}`
+    ) {
+      return json({ error: "UPDATE_CHANNEL_INVALID" }, 502);
+    }
+  } catch {
+    return json({ error: "UPDATE_CHANNEL_INVALID_JSON" }, 502);
+  }
+
+  return new Response(raw, {
+    status: 200,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "public, max-age=60",
+      "x-content-type-options": "nosniff"
+    }
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -69,6 +111,18 @@ export default {
           sheet: "mirror-not-critical-path"
         }
       });
+    }
+
+    if (request.method === "GET" && url.pathname === "/downloads/app/manifest") {
+      return releaseManifest();
+    }
+
+    if (request.method === "GET" && url.pathname === "/downloads/app/latest") {
+      return Response.redirect(CHANNEL_APK_URL, 302);
+    }
+
+    if (request.method === "GET" && url.pathname === "/downloads/app/latest.sha256") {
+      return Response.redirect(CHANNEL_CHECKSUM_URL, 302);
     }
 
     if (request.method === "GET" && url.pathname === "/api/config") {
