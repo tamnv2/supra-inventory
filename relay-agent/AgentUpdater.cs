@@ -24,6 +24,7 @@ namespace SupraInventoryRelayAgent
         internal string Tag;
         internal string ExeUrl;
         internal string ChecksumUrl;
+        internal readonly List<string> ReleaseNotes = new List<string>();
     }
 
     internal static class AgentUpdater
@@ -97,7 +98,8 @@ namespace SupraInventoryRelayAgent
             {
                 InstallStarted = true,
                 LatestBuild = latest.Build,
-                Message = "Đang tự cập nhật Agent lên v" + latest.Build + "..."
+                Message = "Đang tự cập nhật Agent lên v" + latest.Build + "..." +
+                    (latest.ReleaseNotes.Count == 0 ? "" : " Nội dung: " + string.Join(" | ", latest.ReleaseNotes.ToArray()))
             };
         }
 
@@ -121,13 +123,26 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Kênh cập nhật Agent có build không khớp tag.");
             }
 
-            return new AgentReleaseInfo
+            var release = new AgentReleaseInfo
             {
                 Build = build,
                 Tag = tag,
                 ExeUrl = AgentConfig.AgentUpdateExeUrl,
                 ChecksumUrl = AgentConfig.AgentUpdateChecksumUrl
             };
+            object notesValue;
+            var notes = manifest.TryGetValue("release_notes", out notesValue) ? notesValue as object[] : null;
+            if (notes != null)
+            {
+                foreach (var item in notes)
+                {
+                    var note = Regex.Replace(Convert.ToString(item) ?? "", "[\\r\\n\\t]+", " ").Trim();
+                    if (note.Length > 180) note = note.Substring(0, 180);
+                    if (!string.IsNullOrWhiteSpace(note)) release.ReleaseNotes.Add(note);
+                    if (release.ReleaseNotes.Count >= 5) break;
+                }
+            }
+            return release;
         }
         private static string DownloadText(string url, string tag)
         {
