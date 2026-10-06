@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "HTTP500_DIAGNOSTIC_REPAIR_IN_PROGRESS",
+  "status": "HTTP500_ROOT_CAUSE_CONFIRMED__PBKDF2_RUNTIME_REPAIR",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -60,7 +60,7 @@
     "service_verify_run": 37457159085,
     "deploy_run": 37457159127
   },
-  "next_phase": "CI_PASS__MERGE_PR472__DUAL_WORKER_DEPLOY__DEEP_HEALTH_PASS__VC5_FIELD_RETEST",
+  "next_phase": "MERGE_PBKDF2_REPAIR__DEPLOY__DEEP_HEALTH_PASS__VC5_FIELD_RETEST",
   "auth_device_list": {
     "status": "TECHNICAL_PASS",
     "root_bootstrap": true,
@@ -125,6 +125,14 @@
       "archive": "INVENTORY_BETA_RUNTIME_LOG_DAILY_PIPELINE",
       "archive_group": "PDA_MANAGEMENT",
       "background_poll": false
+    },
+    "root_cause": {
+      "confirmed": true,
+      "deep_health_run": 37470148631,
+      "error_code": "CRYPTO_ERROR",
+      "exact_error": "PBKDF2 iteration counts above 100000 are not supported; D164 requested 150000",
+      "repair": "PBKDF2_SHA256_100000_ITERATIONS",
+      "security": "PER_USER_16_BYTE_SALT__PBKDF2_SHA256__RUNTIME_MAX_ITERATIONS"
     }
   }
 }
