@@ -1,14 +1,4 @@
-interface ServiceAccountJson {
-  client_email: string;
-  private_key: string;
-  token_uri?: string;
-}
-
-interface TokenResponse {
-  access_token?: string;
-  error?: string;
-  error_description?: string;
-}
+import { getGoogleServiceAccountAccessToken } from "./google-service";
 
 export interface RegistryDevice {
   serial: string;
@@ -91,7 +81,7 @@ function cell(row: unknown[], index: number): string {
 
 export async function readRegistryDevices(rawServiceAccountJson: string, spreadsheetId: string): Promise<RegistryDevice[]> {
   if (!spreadsheetId) throw new Error("REGISTRY_SHEET_ID_REQUIRED");
-  const token = await accessToken(rawServiceAccountJson);
+  const token = await getGoogleServiceAccountAccessToken(rawServiceAccountJson, SHEETS_READ_SCOPE);
   const range = encodeURIComponent("PDA_Devices!A2:AD5000");
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}?majorDimension=ROWS`,
