@@ -238,3 +238,83 @@ export async function mirrorCatalogItem(
   );
   if (!update.ok) throw new Error(`MANAGEMENT_CATALOG_UPDATE_HTTP_${update.status}`);
 }
+
+
+export interface ManagementUserMirror {
+  user_id: string;
+  username: string;
+  display_name: string;
+  role: string;
+  status: string;
+  employee_code?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+async function findManagementUserRow(
+  token: string,
+  spreadsheetId: string,
+  userId: string,
+): Promise<{ row: number; createdAt: string; revision: number } | null> {
+  const range = encodeURIComponent("PDA_Users!A2:J500");
+  const response = await sheetFetch(
+    token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}`,
+  );
+  if (!response.ok) throw new Error(`MANAGEMENT_USER_READ_HTTP_${response.status}`);
+  const payload = await response.json() as { values?: unknown[][] };
+  const rows = Array.isArray(payload.values) ? payload.values : [];
+  for (let index = 0; index < rows.length; index += 1) {
+    if (String(rows[index]?.[0] ?? "").trim() !== userId) continue;
+    return {
+      row: index + 2,
+      createdAt: String(rows[index]?.[6] ?? ""),
+      revision: Number(rows[index]?.[9] ?? 0) || 0,
+    };
+  }
+  return null;
+}
+
+export async function mirrorManagementUser(
+  rawServiceAccountJson: string,
+  spreadsheetId: string,
+  user: ManagementUserMirror,
+  actorUserId: string,
+): Promise<void> {
+  const token = await getGoogleServiceAccountAccessToken(rawServiceAccountJson, SHEETS_WRITE_SCOPE);
+  const existing = await findManagementUserRow(token, spreadsheetId, user.user_id);
+  const now = user.updated_at || new Date().toISOString();
+  const createdAt = user.created_at || existing?.createdAt || now;
+  const revision = (existing?.revision || 0) + 1;
+  const values = [[
+    user.user_id,
+    user.username,
+    user.display_name,
+    user.role,
+    user.status,
+    user.employee_code || "",
+    createdAt,
+    now,
+    actorUserId,
+    revision,
+  ]];
+
+  if (!existing) {
+    const range = encodeURIComponent("PDA_Users!A:J");
+    const append = await sheetFetch(
+      token,
+      `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+      { method: "POST", body: JSON.stringify({ majorDimension: "ROWS", values }) },
+    );
+    if (!append.ok) throw new Error(`MANAGEMENT_USER_APPEND_HTTP_${append.status}`);
+    return;
+  }
+
+  const range = encodeURIComponent(`PDA_Users!A${existing.row}:J${existing.row}`);
+  const update = await sheetFetch(
+    token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}?valueInputOption=RAW`,
+    { method: "PUT", body: JSON.stringify({ majorDimension: "ROWS", values }) },
+  );
+  if (!update.ok) throw new Error(`MANAGEMENT_USER_UPDATE_HTTP_${update.status}`);
+}
