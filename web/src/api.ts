@@ -931,6 +931,25 @@ export async function getReporterQueue(limit = 100, offset = 0): Promise<{ items
   return readJson(await authorizedFetch(`/api/reporter/queue?${params.toString()}`));
 }
 
+export async function getReporterCounters(
+  status = "",
+  from = "",
+  to = "",
+): Promise<{
+  queue_total: number;
+  recent_total: number;
+  filter_status: string;
+  from: string;
+  to: string;
+  server_now?: string;
+}> {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  return readJson(await authorizedFetch(`/api/reporter/counters?${params.toString()}`));
+}
+
 export async function getReporterRecent(
   limit = 50,
   offset = 0,
