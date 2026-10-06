@@ -100,7 +100,8 @@ export class PdaManagementCore {
   }
 
   private initializeSchema(): void {
-    this.state.storage.sql.exec(`
+    const sql = this.state.storage.sql;
+    sql.exec(`
       PRAGMA foreign_keys = ON;
 
       CREATE TABLE IF NOT EXISTS meta (
