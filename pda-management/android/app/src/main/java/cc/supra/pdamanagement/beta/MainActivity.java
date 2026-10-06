@@ -103,7 +103,7 @@ public final class MainActivity extends Activity {
         loginButton.setOnClickListener(v -> {
             String user = username.getText().toString().trim().toLowerCase();
             String pass = password.getText().toString();
-            if (!user.matches("[a-z0-9._-]{1,64}") || pass.isBlank()) {
+            if (!user.matches("[a-z0-9._-]{1,64}") || pass.trim().isEmpty()) {
                 setStatus("Tên đăng nhập hoặc mật khẩu không hợp lệ.", true);
                 return;
             }
@@ -174,7 +174,7 @@ public final class MainActivity extends Activity {
                 updateButton.setText("Kiểm tra cập nhật");
                 break;
         }
-        if (message != null && !message.isBlank()) {
+        if (message != null && !message.trim().isEmpty()) {
             setStatus(message, updateGate == UpdateGate.FAILED);
         } else if (updateGate == UpdateGate.CURRENT || updateGate == UpdateGate.IDLE) {
             status.setVisibility(View.GONE);
@@ -221,7 +221,15 @@ public final class MainActivity extends Activity {
         int code = connection.getResponseCode();
         String text;
         try (java.io.InputStream stream = code >= 200 && code <= 299 ? connection.getInputStream() : connection.getErrorStream()) {
-            text = stream == null ? "" : new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            if (stream == null) {
+                text = "";
+            } else {
+                java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+                byte[] chunk = new byte[8192];
+                int read;
+                while ((read = stream.read(chunk)) > 0) buffer.write(chunk, 0, read);
+                text = buffer.toString("UTF-8");
+            }
         }
         if (code < 200 || code > 299) throw new IllegalStateException("Update manifest HTTP " + code);
 
@@ -265,7 +273,12 @@ public final class MainActivity extends Activity {
             throw new IllegalStateException("Không thay được file cập nhật cũ.");
         }
         if (!temp.renameTo(target)) {
-            java.nio.file.Files.copy(temp.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            try (java.io.FileInputStream input = new java.io.FileInputStream(temp);
+                 java.io.FileOutputStream output = new java.io.FileOutputStream(target)) {
+                byte[] buffer = new byte[64 * 1024];
+                int read;
+                while ((read = input.read(buffer)) > 0) output.write(buffer, 0, read);
+            }
             temp.delete();
         }
         return target;
@@ -305,7 +318,7 @@ public final class MainActivity extends Activity {
             if (code == 301 || code == 302 || code == 303 || code == 307 || code == 308) {
                 String location = connection.getHeaderField("Location");
                 connection.disconnect();
-                if (location == null || location.isBlank()) throw new IllegalStateException("Redirect thiếu Location.");
+                if (location == null || location.trim().isEmpty()) throw new IllegalStateException("Redirect thiếu Location.");
                 current = new URL(current, location);
                 continue;
             }
@@ -353,8 +366,12 @@ public final class MainActivity extends Activity {
         HttpURLConnection connection = openTrustedConnection(url, UpdateResource.ASSET);
         int code = connection.getResponseCode();
         if (code < 200 || code > 299) throw new IllegalStateException("Checksum HTTP " + code);
-        try (java.io.InputStream stream = connection.getInputStream()) {
-            return new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        try (java.io.InputStream stream = connection.getInputStream();
+             java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream()) {
+            byte[] chunk = new byte[8192];
+            int read;
+            while ((read = stream.read(chunk)) > 0) buffer.write(chunk, 0, read);
+            return buffer.toString("UTF-8");
         }
     }
 
@@ -379,7 +396,7 @@ public final class MainActivity extends Activity {
 
     private void verifyInstalledSignerTrusted() throws Exception {
         String expected = BuildConfig.TRUSTED_SIGNER_SHA256.trim().toLowerCase();
-        if (expected.isBlank()) {
+        if (expected.trim().isEmpty()) {
             if (BuildConfig.DEBUG) return;
             throw new IllegalStateException("Release thiếu trusted signer.");
         }
@@ -398,7 +415,7 @@ public final class MainActivity extends Activity {
         if (!info.versionName.equals(archive.versionName)) throw new IllegalStateException("APK cập nhật sai versionName.");
 
         String expectedSigner = BuildConfig.TRUSTED_SIGNER_SHA256.trim().toLowerCase();
-        if (expectedSigner.isBlank() || !signerDigests(archive).contains(expectedSigner)) {
+        if (expectedSigner.trim().isEmpty() || !signerDigests(archive).contains(expectedSigner)) {
             throw new IllegalStateException("APK cập nhật sai chữ ký.");
         }
     }
@@ -414,7 +431,7 @@ public final class MainActivity extends Activity {
         for (android.content.pm.Signature certificate : certificates) {
             byte[] hashed = digest.digest(certificate.toByteArray());
             StringBuilder hex = new StringBuilder();
-            for (byte b : hashed) hex.append(String.format("%02x", b));
+            for (byte b : hashed) hex.append(String.format("%02x", b & 0xff));
             result.add(hex.toString());
         }
         return result;
@@ -428,7 +445,7 @@ public final class MainActivity extends Activity {
             while ((read = input.read(buffer)) > 0) digest.update(buffer, 0, read);
         }
         StringBuilder hex = new StringBuilder();
-        for (byte b : digest.digest()) hex.append(String.format("%02x", b));
+        for (byte b : digest.digest()) hex.append(String.format("%02x", b & 0xff));
         return hex.toString();
     }
 
