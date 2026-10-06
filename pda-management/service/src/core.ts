@@ -628,6 +628,68 @@ export class PdaManagementCore {
       return json({ replayed: false, transaction, device });
     }
 
+    if (request.method === "POST" && url.pathname === "/devices/status") {
+      const body = await request.json() as Record<string, unknown>;
+      const serial = text(body.serial, 120).toUpperCase();
+      const newStatus = text(body.usage_status, 30).toUpperCase();
+      const condition = text(body.physical_condition, 30).toUpperCase();
+      const operatorUserId = text(body.operator_user_id, 80);
+      const operatorName = text(body.operator_name, 160);
+      const note = text(body.note, 500);
+      const idempotencyKey = text(body.idempotency_key, 120);
+      const transactionId = text(body.transaction_id, 120);
+      const occurredAt = text(body.occurred_at, 80) || new Date().toISOString();
+      if (
+        !serial ||
+        !["AVAILABLE","REPAIR","DISABLED","LOST"].includes(newStatus) ||
+        !["GOOD","MINOR_DAMAGE","DAMAGED","UNKNOWN"].includes(condition) ||
+        !operatorUserId || !operatorName || !idempotencyKey || !transactionId
+      ) {
+        return json({ error: "INVALID_STATUS_REQUEST" }, 400);
+      }
+
+      const replay = sql.exec<TransactionRow>(
+        "SELECT * FROM transactions WHERE idempotency_key=? LIMIT 1",
+        idempotencyKey,
+      ).toArray()[0];
+      if (replay) {
+        const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", replay.serial).toArray()[0];
+        return json({ replayed: true, transaction: replay, device });
+      }
+
+      const current = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      if (!current) return json({ error: "DEVICE_NOT_FOUND" }, 404);
+      if (current.usage_status === "BORROWED") {
+        return json({ error: "BORROWED_DEVICE_REQUIRES_RETURN" }, 409);
+      }
+
+      const nextRevision = Number(current.revision || 0) + 1;
+      sql.exec(
+        `UPDATE devices
+         SET usage_status=?,
+             physical_condition=?,
+             note=?,
+             updated_at=?,
+             updated_by=?,
+             revision=?
+         WHERE serial=?`,
+        newStatus, condition, note, occurredAt, operatorUserId, nextRevision, serial,
+      );
+      sql.exec(
+        `INSERT INTO transactions(
+          transaction_id, serial, action, employee_code, employee_name, employee_contractor,
+          old_usage_status, new_usage_status, physical_condition, occurred_at,
+          operator_user_id, operator_name, note, idempotency_key, revision
+        ) VALUES (?, ?, 'STATUS_UPDATE', NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        transactionId, serial, current.usage_status, newStatus, condition, occurredAt,
+        operatorUserId, operatorName, note, idempotencyKey, nextRevision,
+      );
+      this.incrementRevision();
+      const device = sql.exec<DeviceRow>("SELECT * FROM devices WHERE serial=? LIMIT 1", serial).toArray()[0];
+      const transaction = sql.exec<TransactionRow>("SELECT * FROM transactions WHERE transaction_id=? LIMIT 1", transactionId).toArray()[0];
+      return json({ replayed: false, transaction, device });
+    }
+
     if (request.method === "POST" && url.pathname === "/devices/return") {
       const body = await request.json() as Record<string, unknown>;
       const serial = text(body.serial, 120).toUpperCase();
