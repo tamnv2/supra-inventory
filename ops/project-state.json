@@ -5426,11 +5426,15 @@
     }
   },
   "cloudflare_beta_permission_probe": {
-    "status": "PENDING_RUNTIME_VERIFY",
+    "status": "REPAIRING_TOKEN_VERIFY_ENDPOINT_COMPATIBILITY",
     "requested_at": "2026-10-06",
     "purpose": "Verify newly configured CF_API_TOKEN_INVENTORY_BETA before PDA Registry implementation.",
     "branch": "probe/cf-beta-permission",
     "pr": 453,
-    "scope": "BETA_ONLY__NO_RUNTIME_LOGIC_CHANGE__STABLE_UNTOUCHED"
+    "scope": "BETA_ONLY__NO_RUNTIME_LOGIC_CHANGE__STABLE_UNTOUCHED",
+    "first_runtime_result": "FAIL__ACCOUNT_TOKEN_VERIFY_ENDPOINT_REJECTED_CURRENT_ENVIRONMENT_SECRET",
+    "failure_run_id": 37404273494,
+    "repair_branch": "repair/cf-token-verify-compat",
+    "repair_scope": "WORKFLOW_PREFLIGHT_ONLY__SUPPORT_ACCOUNT_OWNED_AND_USER_OWNED_API_TOKEN__NO_RUNTIME_LOGIC_CHANGE__STABLE_UNTOUCHED"
   }
 }
