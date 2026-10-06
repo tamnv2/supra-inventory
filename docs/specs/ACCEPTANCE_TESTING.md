@@ -2589,3 +2589,19 @@ The same-D162 Web repair passes only when all of the following hold on Beta:
 6. `RESULT_ACKNOWLEDGED` does not change the recent batch count.
 7. F5/login and a forced realtime gap/reconnect reconcile both numbers with one lightweight dual-counter request; no count polling is started afterward.
 8. Web/Worker regression, Authority and Project State checks PASS; Agent remains v114, Android remains vc97 and Stable remains untouched.
+
+## D163 acceptance
+
+Automated/source checks must prove:
+- forced-revoke final-log grace is restricted to Android PICKER, exactly one revoked generation, `INFO`, exact `session_end_logout`, and the runtime-log upload route;
+- a revoked generation remains rejected for business requests and for any other log reason;
+- normal current-session runtime-log upload remains unchanged;
+- reporting detail supports an exact parameterized `batch_id` filter;
+- Web does not eagerly fan out Picker-detail requests for all report rows;
+- expanding one report row performs one bounded exact-batch detail read and renders Picker identity/time/result/wait/ACK information;
+- pagination/filter changes clear stale expanded Picker detail state;
+- Android source/build/release remains `beta-vc97` unchanged, Agent remains `relay-agent-v114`, and Stable is untouched.
+
+Field acceptance:
+- kick one logged-in Picker and verify the PDA returns to login while the session-end support log reaches the normal runtime-log pipeline without restoring any business access;
+- in Web **Báo cáo chi tiết**, expand resolved and pending/withdrawn examples, verify the shown Picker list belongs only to the selected batch/SKU, collapse/reopen cleanly, and confirm normal report filtering/export still works.
