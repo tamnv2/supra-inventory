@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "FOUNDATION_SETUP_IN_PROGRESS",
+  "status": "FOUNDATION_TECHNICAL_PASS__MANUAL_SECRETS_PENDING_BEFORE_AUTH",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -9,5 +9,29 @@
   "management_sheet_id": "1q0XKgsU3AZQPIiX7AW6XxXh1Jfc--P1TmErdemAMUQg",
   "registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
   "usage_policy": "NO_HEARTBEAT__NO_ANDROID_BACKGROUND_POLL__NO_FIREBASE_MVP__EVENT_DRIVEN__REVISION_ETAG__SHEET_MIRROR_OFF_CRITICAL_PATH",
-  "manual_blocker": "Before real auth and Google Sheet mirroring, configure PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD and GOOGLE_RUNTIME_SA_JSON on the new supra-pda-management-beta Worker. Existing Inventory Worker secrets cannot be read back or copied automatically."
+  "manual_blocker": "Before real auth and Google Sheet mirroring, configure PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD and GOOGLE_RUNTIME_SA_JSON on the new supra-pda-management-beta Worker. Existing Inventory Worker secrets cannot be read back or copied automatically.",
+  "main_sha": "d4ed91abd33dbdbcbe727212ebc8df7a82beda38",
+  "foundation_pr": 465,
+  "issue": 464,
+  "verify_run": 37454531259,
+  "deploy_run": 37454531246,
+  "release": {
+    "tag": "pda-mgmt-beta-vc1",
+    "version": "0.1.0-beta.1",
+    "signed": true,
+    "apk": "supra-pda-management-beta.apk",
+    "size_bytes": 2105266
+  },
+  "runtime": {
+    "worker": "supra-pda-management-beta",
+    "domain": "pda-beta.supra.cc.cd",
+    "deploy": "PASS",
+    "durable_object": "PdaManagementCore",
+    "inventory_runtime_files_changed": false
+  },
+  "manual_setup_required": [
+    "GOOGLE_RUNTIME_SA_JSON__NEW_WORKER_SECRET__EXISTING_WORKER_SECRET_VALUE_IS_WRITE_ONLY",
+    "PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD__OWNER_CHOSEN_SECRET__NEVER_COMMIT_OR_SEND_IN_CHAT"
+  ],
+  "sheet_security": "PDA_USERS_MIRROR_EXCLUDES_PASSWORD_HASH_AND_SALT"
 }
