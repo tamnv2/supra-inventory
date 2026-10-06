@@ -909,6 +909,7 @@ public final class MainActivity extends Activity {
 
     private void checkForUpdate(boolean silent) {
         if (updateCheckRunning) return;
+        DiagnosticLog.event("UPDATE_CHECK_START", DiagnosticLog.object("silent", silent));
         updateCheckRunning = true;
         updateGate = UpdateGate.CHECKING;
         pendingUpdateInfo = null;
@@ -922,6 +923,10 @@ public final class MainActivity extends Activity {
                     .edit().putLong("last_check_ms", System.currentTimeMillis()).apply();
 
                 if (info.versionCode <= BuildConfig.VERSION_CODE) {
+                    DiagnosticLog.event("UPDATE_CURRENT", DiagnosticLog.object(
+                        "current_version_code", BuildConfig.VERSION_CODE,
+                        "remote_version_code", info.versionCode
+                    ));
                     updateGate = UpdateGate.CURRENT;
                     runOnUiThread(() -> {
                         updateCheckRunning = false;
@@ -930,6 +935,11 @@ public final class MainActivity extends Activity {
                     return;
                 }
 
+                DiagnosticLog.event("UPDATE_AVAILABLE", DiagnosticLog.object(
+                    "current_version_code", BuildConfig.VERSION_CODE,
+                    "remote_version_code", info.versionCode,
+                    "tag", info.tag
+                ));
                 pendingUpdateInfo = info;
                 updateGate = UpdateGate.AVAILABLE;
                 runOnUiThread(() -> {
@@ -938,6 +948,10 @@ public final class MainActivity extends Activity {
                     showUpdateAvailable(info);
                 });
             } catch (Exception error) {
+                DiagnosticLog.event("UPDATE_CHECK_FAILED", DiagnosticLog.object(
+                    "exception", error.getClass().getSimpleName(),
+                    "message", error.getMessage() == null ? "" : error.getMessage()
+                ));
                 updateGate = UpdateGate.DEFERRED;
                 runOnUiThread(() -> {
                     updateCheckRunning = false;
@@ -982,6 +996,10 @@ public final class MainActivity extends Activity {
 
     private void downloadAndInstallUpdate(UpdateInfo info) {
         if (updateCheckRunning) return;
+        DiagnosticLog.event("UPDATE_DOWNLOAD_START", DiagnosticLog.object(
+            "tag", info.tag,
+            "version_code", info.versionCode
+        ));
         updateCheckRunning = true;
         updateGate = UpdateGate.CHECKING;
         applyUpdateUi("Đang tải và xác minh " + info.tag + "...");
@@ -989,6 +1007,11 @@ public final class MainActivity extends Activity {
         new Thread(() -> {
             try {
                 File apk = downloadAndVerify(info);
+                DiagnosticLog.event("UPDATE_DOWNLOAD_VERIFIED", DiagnosticLog.object(
+                    "tag", info.tag,
+                    "version_code", info.versionCode,
+                    "apk_bytes", apk.length()
+                ));
                 runOnUiThread(() -> {
                     updateCheckRunning = false;
                     pendingUpdateInfo = null;
@@ -997,6 +1020,11 @@ public final class MainActivity extends Activity {
                     requestInstall(apk);
                 });
             } catch (Exception error) {
+                DiagnosticLog.event("UPDATE_DOWNLOAD_FAILED", DiagnosticLog.object(
+                    "tag", info.tag,
+                    "exception", error.getClass().getSimpleName(),
+                    "message", error.getMessage() == null ? "" : error.getMessage()
+                ));
                 updateGate = UpdateGate.DEFERRED;
                 runOnUiThread(() -> {
                     updateCheckRunning = false;
