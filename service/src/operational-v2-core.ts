@@ -144,6 +144,11 @@ export function operationalV2Readiness(state: DurableObjectState): {
     hasSqlObject(state, "table", "result_acknowledgements") &&
     hasSqlObject(state, "table", "result_event_snapshots") &&
     hasSqlObject(state, "table", "notification_delivery_attempts") &&
+    hasSqlObject(state, "table", "batch_summaries") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_ticket_insert") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_ticket_update") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_ack_insert") &&
+    hasSqlObject(state, "trigger", "trg_d165_summary_acknowledged") &&
     slaAutomationReadiness(state) &&
     Boolean(readRealtimeStreamEpoch(state)) &&
     hasSqlObject(state, "trigger", "trg_v2_report_event_stream") &&
@@ -350,6 +355,21 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
       ON report_tickets(batch_id, auto_skip_allowed_at, reported_at)
       WHERE status = 'OPEN' AND auto_skip_allowed_at IS NOT NULL;
 
+    CREATE TABLE IF NOT EXISTS batch_summaries (
+      batch_id TEXT PRIMARY KEY,
+      total_ticket_count INTEGER NOT NULL DEFAULT 0,
+      waiting_picker_count INTEGER NOT NULL DEFAULT 0,
+      overdue_picker_count INTEGER NOT NULL DEFAULT 0,
+      ack_target_count INTEGER NOT NULL DEFAULT 0,
+      acknowledged_count INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (batch_id) REFERENCES report_batches(batch_id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_batch_summaries_waiting
+      ON batch_summaries(waiting_picker_count, batch_id);
+    CREATE INDEX IF NOT EXISTS idx_batch_summaries_overdue
+      ON batch_summaries(overdue_picker_count, batch_id);
+
     CREATE TABLE IF NOT EXISTS realtime_events (
       seq INTEGER PRIMARY KEY AUTOINCREMENT,
       event_id TEXT NOT NULL UNIQUE,
@@ -409,6 +429,118 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
       ON notification_delivery_attempts(event_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_notification_delivery_device
       ON notification_delivery_attempts(device_id, created_at);
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_batch_seed;
+    CREATE TRIGGER trg_d165_summary_batch_seed
+      AFTER INSERT ON report_batches
+    BEGIN
+      INSERT OR IGNORE INTO batch_summaries (batch_id, updated_at)
+      VALUES (NEW.batch_id, NEW.updated_at);
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ticket_insert;
+    CREATE TRIGGER trg_d165_summary_ticket_insert
+      AFTER INSERT ON report_tickets
+    BEGIN
+      INSERT OR IGNORE INTO batch_summaries (batch_id, updated_at)
+      VALUES (NEW.batch_id, NEW.updated_at);
+      UPDATE batch_summaries
+         SET total_ticket_count = total_ticket_count + 1,
+             waiting_picker_count = waiting_picker_count +
+               CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END,
+             overdue_picker_count = overdue_picker_count +
+               CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END,
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ticket_update;
+    CREATE TRIGGER trg_d165_summary_ticket_update
+      AFTER UPDATE OF status, auto_skip_allowed_at ON report_tickets
+    BEGIN
+      UPDATE batch_summaries
+         SET waiting_picker_count = MAX(
+               0,
+               waiting_picker_count
+               - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END
+               + CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END
+             ),
+             overdue_picker_count = MAX(
+               0,
+               overdue_picker_count
+               - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END
+               + CASE WHEN NEW.status = 'OPEN' AND NEW.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END
+             ),
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ticket_delete;
+    CREATE TRIGGER trg_d165_summary_ticket_delete
+      AFTER DELETE ON report_tickets
+    BEGIN
+      UPDATE batch_summaries
+         SET total_ticket_count = MAX(0, total_ticket_count - 1),
+             waiting_picker_count = MAX(
+               0,
+               waiting_picker_count - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END
+             ),
+             overdue_picker_count = MAX(
+               0,
+               overdue_picker_count - CASE WHEN OLD.status = 'OPEN' AND OLD.auto_skip_allowed_at IS NOT NULL THEN 1 ELSE 0 END
+             ),
+             updated_at = CURRENT_TIMESTAMP
+       WHERE batch_id = OLD.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_batch_version;
+    CREATE TRIGGER trg_d165_summary_batch_version
+      AFTER UPDATE OF version ON report_batches
+      WHEN OLD.version <> NEW.version
+    BEGIN
+      UPDATE batch_summaries
+         SET ack_target_count = (
+               SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = NEW.batch_id AND a.batch_version = NEW.version
+             ),
+             acknowledged_count = (
+               SELECT COUNT(DISTINCT a.target_user_id)
+                 FROM result_acknowledgements a
+                WHERE a.batch_id = NEW.batch_id AND a.batch_version = NEW.version
+                  AND a.acknowledged_at IS NOT NULL
+             ),
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_ack_insert;
+    CREATE TRIGGER trg_d165_summary_ack_insert
+      AFTER INSERT ON result_acknowledgements
+      WHEN NEW.batch_version = (SELECT version FROM report_batches WHERE batch_id = NEW.batch_id)
+    BEGIN
+      INSERT OR IGNORE INTO batch_summaries (batch_id, updated_at)
+      VALUES (NEW.batch_id, NEW.updated_at);
+      UPDATE batch_summaries
+         SET ack_target_count = ack_target_count + 1,
+             acknowledged_count = acknowledged_count +
+               CASE WHEN NEW.acknowledged_at IS NOT NULL THEN 1 ELSE 0 END,
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
+
+    DROP TRIGGER IF EXISTS trg_d165_summary_acknowledged;
+    CREATE TRIGGER trg_d165_summary_acknowledged
+      AFTER UPDATE OF acknowledged_at ON result_acknowledgements
+      WHEN OLD.acknowledged_at IS NULL
+       AND NEW.acknowledged_at IS NOT NULL
+       AND NEW.batch_version = (SELECT version FROM report_batches WHERE batch_id = NEW.batch_id)
+    BEGIN
+      UPDATE batch_summaries
+         SET acknowledged_count = MIN(ack_target_count, acknowledged_count + 1),
+             updated_at = NEW.updated_at
+       WHERE batch_id = NEW.batch_id;
+    END;
 
     DROP TRIGGER IF EXISTS trg_v2_batch_recurrence;
     CREATE TRIGGER trg_v2_batch_recurrence
@@ -562,6 +694,36 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
          AND t.picker_user_id IS NOT NULL
          AND t.picker_user_id <> '';
     END;
+  `);
+
+  // D165: deterministic one-time/backstop rebuild. Runtime mutations after
+  // initialization are maintained by the triggers above in the same SQLite transaction.
+  sql.exec(`
+    INSERT INTO batch_summaries (
+      batch_id, total_ticket_count, waiting_picker_count, overdue_picker_count,
+      ack_target_count, acknowledged_count, updated_at
+    )
+    SELECT b.batch_id,
+           (SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id = b.batch_id),
+           (SELECT COUNT(*) FROM report_tickets t
+             WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL),
+           (SELECT COUNT(*) FROM report_tickets t
+             WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL),
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version),
+           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL),
+           b.updated_at
+      FROM report_batches b
+    ON CONFLICT(batch_id) DO UPDATE SET
+      total_ticket_count = excluded.total_ticket_count,
+      waiting_picker_count = excluded.waiting_picker_count,
+      overdue_picker_count = excluded.overdue_picker_count,
+      ack_target_count = excluded.ack_target_count,
+      acknowledged_count = excluded.acknowledged_count,
+      updated_at = excluded.updated_at;
+    DELETE FROM batch_summaries
+     WHERE batch_id NOT IN (SELECT batch_id FROM report_batches);
   `);
 
   backfillResultEventSnapshots(state);
