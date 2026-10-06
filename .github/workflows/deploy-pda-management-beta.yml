@@ -56,3 +56,14 @@ jobs:
           done
           cat "$tmp"
           exit 1
+
+      - name: Verify deep runtime pipeline
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS --connect-timeout 5 --max-time 30 -o "$tmp" -w '%{http_code}' https://pda-beta.supra.cc.cd/health/deep || true)"
+          status="$(jq -r '.status // empty' "$tmp" 2>/dev/null || true)"
+          echo "deep_health http=${code:-000} status=${status:-n/a}"
+          cat "$tmp"
+          [ "$code" = "200" ] && [ "$status" = "ok" ]

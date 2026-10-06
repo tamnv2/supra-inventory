@@ -42,6 +42,19 @@ public final class MainActivity extends Activity {
 
     private static final long SILENT_CHECK_INTERVAL_MS = 6L * 60L * 60L * 1000L;
 
+    private static final class ApiException extends Exception {
+        final int statusCode;
+        final String errorId;
+        final String errorCode;
+
+        ApiException(int statusCode, String message, String errorId, String errorCode) {
+            super(message);
+            this.statusCode = statusCode;
+            this.errorId = errorId == null ? "" : errorId;
+            this.errorCode = errorCode == null ? "" : errorCode;
+        }
+    }
+
     private static final class UpdateInfo {
         final int versionCode;
         final String versionName;
@@ -80,6 +93,8 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DiagnosticLog.init(this);
+        DiagnosticLog.event("ACTIVITY_CREATE", DiagnosticLog.object("screen", "login"));
         cleanupUpdateArtifacts();
         renderLogin();
         maybeSilentUpdateCheck();
@@ -105,11 +120,22 @@ public final class MainActivity extends Activity {
         EditText password = findViewById(R.id.etPassword);
         loginButton = findViewById(R.id.btnLogin);
         updateButton = findViewById(R.id.btnLoginUpdate);
+        Button logButton = findViewById(R.id.btnLoginLog);
         progress = findViewById(R.id.progressLogin);
         status = findViewById(R.id.tvLoginStatus);
 
         status.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
+
+        logButton.setOnClickListener(v -> {
+            logButton.setEnabled(false);
+            setStatus("Đang đóng gói và gửi log chẩn đoán...", false);
+            DiagnosticLog.event("MANUAL_LOG_REQUEST", DiagnosticLog.object("screen", "login"));
+            DiagnosticLog.manualUpload((success, message) -> runOnUiThread(() -> {
+                logButton.setEnabled(true);
+                setStatus(message, !success);
+            }));
+        });
 
         updateButton.setOnClickListener(v -> {
             if (pendingUpdateInfo != null && updateGate == UpdateGate.AVAILABLE) {
@@ -126,6 +152,10 @@ public final class MainActivity extends Activity {
                 setStatus("Tên đăng nhập hoặc mật khẩu không hợp lệ.", true);
                 return;
             }
+            DiagnosticLog.event("LOGIN_ATTEMPT", DiagnosticLog.object(
+                "username_present", !user.isEmpty(),
+                "password_length_valid", pass.length() >= 8
+            ));
             performLogin(user, pass, password);
         });
     }
@@ -146,43 +176,65 @@ public final class MainActivity extends Activity {
     }
 
     private JSONObject apiRequest(String method, String path, JSONObject body, boolean authenticated) throws Exception {
-        URL url = new URL(BuildConfig.API_BASE_URL.replaceAll("/+$", "") + path);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(10_000);
-        connection.setReadTimeout(30_000);
-        connection.setRequestMethod(method);
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("User-Agent", "SUPRA-PDA-Management-Beta/" + BuildConfig.VERSION_NAME);
-        connection.setRequestProperty("X-Supra-Device-Id", deviceId());
-        if (authenticated) {
-            if (sessionToken.isEmpty()) throw new IllegalStateException("Phiên đăng nhập không còn hiệu lực.");
-            connection.setRequestProperty("Authorization", "Bearer " + sessionToken);
-        }
-        if (body != null) {
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            byte[] payload = body.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
-            connection.getOutputStream().write(payload);
-        }
-
-        int code = connection.getResponseCode();
-        java.io.InputStream stream = code >= 200 && code <= 299 ? connection.getInputStream() : connection.getErrorStream();
-        String text = "";
-        if (stream != null) {
-            try (java.io.InputStream input = stream;
-                 java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream()) {
-                byte[] chunk = new byte[8192];
-                int read;
-                while ((read = input.read(chunk)) > 0) buffer.write(chunk, 0, read);
-                text = buffer.toString("UTF-8");
+        long started = System.currentTimeMillis();
+        int code = 0;
+        try {
+            URL url = new URL(BuildConfig.API_BASE_URL.replaceAll("/+$", "") + path);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(10_000);
+            connection.setReadTimeout(30_000);
+            connection.setRequestMethod(method);
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("User-Agent", "SUPRA-PDA-Management-Beta/" + BuildConfig.VERSION_NAME);
+            connection.setRequestProperty("X-Supra-Device-Id", deviceId());
+            if (authenticated) {
+                if (sessionToken.isEmpty()) throw new IllegalStateException("Phiên đăng nhập không còn hiệu lực.");
+                connection.setRequestProperty("Authorization", "Bearer " + sessionToken);
             }
+            if (body != null) {
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                byte[] payload = body.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                connection.getOutputStream().write(payload);
+            }
+
+            code = connection.getResponseCode();
+            java.io.InputStream stream = code >= 200 && code <= 299 ? connection.getInputStream() : connection.getErrorStream();
+            String text = "";
+            if (stream != null) {
+                try (java.io.InputStream input = stream;
+                     java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream()) {
+                    byte[] chunk = new byte[8192];
+                    int read;
+                    while ((read = input.read(chunk)) > 0 && buffer.size() < 256_000) buffer.write(chunk, 0, read);
+                    text = buffer.toString("UTF-8");
+                }
+            }
+
+            JSONObject result;
+            try {
+                result = text.trim().isEmpty() ? new JSONObject() : new JSONObject(text);
+            } catch (Exception invalidJson) {
+                DiagnosticLog.network(method, path, code, System.currentTimeMillis() - started, "", "INVALID_JSON_RESPONSE");
+                throw new ApiException(code, "Phản hồi hệ thống không hợp lệ (HTTP " + code + ").", "", "INVALID_JSON_RESPONSE");
+            }
+
+            String errorId = result.optString("error_id", "");
+            String errorCode = result.optString("error_code", result.optString("error", ""));
+            DiagnosticLog.network(method, path, code, System.currentTimeMillis() - started, errorId, errorCode);
+
+            if (code < 200 || code > 299) {
+                String message = result.optString("message", result.optString("error", "HTTP " + code));
+                if (!errorId.isEmpty()) message += " · Mã lỗi: " + errorId;
+                throw new ApiException(code, message, errorId, errorCode);
+            }
+            return result;
+        } catch (ApiException error) {
+            throw error;
+        } catch (Exception error) {
+            DiagnosticLog.networkException(method, path, System.currentTimeMillis() - started, error);
+            throw error;
         }
-        JSONObject result = text.trim().isEmpty() ? new JSONObject() : new JSONObject(text);
-        if (code < 200 || code > 299) {
-            String message = result.optString("message", result.optString("error", "HTTP " + code));
-            throw new IllegalStateException(message);
-        }
-        return result;
     }
 
     private void performLogin(String username, String password, EditText passwordField) {
@@ -201,6 +253,10 @@ public final class MainActivity extends Activity {
                 sessionToken = token;
                 sessionRole = user.optString("role", "");
                 sessionDisplayName = user.optString("display_name", username);
+                DiagnosticLog.event("LOGIN_SUCCESS", DiagnosticLog.object(
+                    "role", sessionRole,
+                    "display_name_present", !sessionDisplayName.isEmpty()
+                ));
                 runOnUiThread(() -> {
                     progress.setVisibility(View.GONE);
                     loginButton.setEnabled(true);
@@ -208,6 +264,13 @@ public final class MainActivity extends Activity {
                     renderHome(user);
                 });
             } catch (Exception error) {
+                DiagnosticLog.event("LOGIN_FAILED", DiagnosticLog.object(
+                    "exception", error.getClass().getSimpleName(),
+                    "message", error.getMessage() == null ? "" : error.getMessage(),
+                    "http_status", error instanceof ApiException ? ((ApiException) error).statusCode : 0,
+                    "error_id", error instanceof ApiException ? ((ApiException) error).errorId : "",
+                    "error_code", error instanceof ApiException ? ((ApiException) error).errorCode : ""
+                ));
                 runOnUiThread(() -> {
                     progress.setVisibility(View.GONE);
                     loginButton.setEnabled(true);
@@ -341,6 +404,11 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     deviceRefreshRunning = false;
                     cachedDevices = finalDevices;
+                    DiagnosticLog.event("DEVICE_LIST_LOADED", DiagnosticLog.object(
+                        "count", finalDevices.length(),
+                        "forced_refresh", force,
+                        "registry_sync_error", syncError
+                    ));
                     String query = deviceSearch == null ? "" : deviceSearch.getText().toString();
                     renderDeviceRows(query);
                     String suffix = syncMs > 0 ? " · Registry đã đồng bộ" : "";
@@ -639,17 +707,26 @@ public final class MainActivity extends Activity {
     }
 
     private void mutateDevice(String serial, String action, JSONObject payload, String successMessage) {
+        DiagnosticLog.action(action, serial, "START");
         setHomeStatus("Đang xử lý " + serial + "...", false);
         new Thread(() -> {
             try {
                 apiRequest("POST", "/api/devices/" + java.net.URLEncoder.encode(serial, "UTF-8") + "/" + action,
                     payload, true);
+                DiagnosticLog.action(action, serial, "SUCCESS");
                 runOnUiThread(() -> {
                     Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show();
                     setHomeStatus(successMessage, false);
                     loadDevicesLocal();
                 });
             } catch (Exception error) {
+                DiagnosticLog.action(action, serial, "FAILED");
+                DiagnosticLog.event("BUSINESS_ACTION_ERROR", DiagnosticLog.object(
+                    "action", action,
+                    "serial", serial,
+                    "exception", error.getClass().getSimpleName(),
+                    "message", error.getMessage() == null ? "" : error.getMessage()
+                ));
                 runOnUiThread(() -> {
                     String message = error.getMessage() == null ? "Không thể xử lý PDA." : error.getMessage();
                     setHomeStatus(message, true);
@@ -812,6 +889,7 @@ public final class MainActivity extends Activity {
     }
 
     private void performLogout() {
+        DiagnosticLog.event("LOGOUT", DiagnosticLog.object("role", sessionRole));
         String token = sessionToken;
         sessionToken = "";
         sessionRole = "";
@@ -831,6 +909,7 @@ public final class MainActivity extends Activity {
 
     private void checkForUpdate(boolean silent) {
         if (updateCheckRunning) return;
+        DiagnosticLog.event("UPDATE_CHECK_START", DiagnosticLog.object("silent", silent));
         updateCheckRunning = true;
         updateGate = UpdateGate.CHECKING;
         pendingUpdateInfo = null;
@@ -844,6 +923,10 @@ public final class MainActivity extends Activity {
                     .edit().putLong("last_check_ms", System.currentTimeMillis()).apply();
 
                 if (info.versionCode <= BuildConfig.VERSION_CODE) {
+                    DiagnosticLog.event("UPDATE_CURRENT", DiagnosticLog.object(
+                        "current_version_code", BuildConfig.VERSION_CODE,
+                        "remote_version_code", info.versionCode
+                    ));
                     updateGate = UpdateGate.CURRENT;
                     runOnUiThread(() -> {
                         updateCheckRunning = false;
@@ -852,6 +935,11 @@ public final class MainActivity extends Activity {
                     return;
                 }
 
+                DiagnosticLog.event("UPDATE_AVAILABLE", DiagnosticLog.object(
+                    "current_version_code", BuildConfig.VERSION_CODE,
+                    "remote_version_code", info.versionCode,
+                    "tag", info.tag
+                ));
                 pendingUpdateInfo = info;
                 updateGate = UpdateGate.AVAILABLE;
                 runOnUiThread(() -> {
@@ -860,6 +948,10 @@ public final class MainActivity extends Activity {
                     showUpdateAvailable(info);
                 });
             } catch (Exception error) {
+                DiagnosticLog.event("UPDATE_CHECK_FAILED", DiagnosticLog.object(
+                    "exception", error.getClass().getSimpleName(),
+                    "message", error.getMessage() == null ? "" : error.getMessage()
+                ));
                 updateGate = UpdateGate.DEFERRED;
                 runOnUiThread(() -> {
                     updateCheckRunning = false;
@@ -904,6 +996,10 @@ public final class MainActivity extends Activity {
 
     private void downloadAndInstallUpdate(UpdateInfo info) {
         if (updateCheckRunning) return;
+        DiagnosticLog.event("UPDATE_DOWNLOAD_START", DiagnosticLog.object(
+            "tag", info.tag,
+            "version_code", info.versionCode
+        ));
         updateCheckRunning = true;
         updateGate = UpdateGate.CHECKING;
         applyUpdateUi("Đang tải và xác minh " + info.tag + "...");
@@ -911,6 +1007,11 @@ public final class MainActivity extends Activity {
         new Thread(() -> {
             try {
                 File apk = downloadAndVerify(info);
+                DiagnosticLog.event("UPDATE_DOWNLOAD_VERIFIED", DiagnosticLog.object(
+                    "tag", info.tag,
+                    "version_code", info.versionCode,
+                    "apk_bytes", apk.length()
+                ));
                 runOnUiThread(() -> {
                     updateCheckRunning = false;
                     pendingUpdateInfo = null;
@@ -919,6 +1020,11 @@ public final class MainActivity extends Activity {
                     requestInstall(apk);
                 });
             } catch (Exception error) {
+                DiagnosticLog.event("UPDATE_DOWNLOAD_FAILED", DiagnosticLog.object(
+                    "tag", info.tag,
+                    "exception", error.getClass().getSimpleName(),
+                    "message", error.getMessage() == null ? "" : error.getMessage()
+                ));
                 updateGate = UpdateGate.DEFERRED;
                 runOnUiThread(() -> {
                     updateCheckRunning = false;

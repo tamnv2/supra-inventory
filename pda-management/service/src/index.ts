@@ -13,6 +13,7 @@ import {
 import { readRegistryDevices } from "./registry-source";
 import { readEmployees, type EmployeeRecord } from "./employee-source";
 import { mirrorDeviceAndTransaction } from "./management-sheet";
+import { errorCode, reportServerError, safeErrorMessage } from "./diagnostics";
 
 interface Env {
   APP_ENV: string;
@@ -77,14 +78,31 @@ function core(env: Env): DurableObjectStub {
   return env.PDA_CORE.get(env.PDA_CORE.idFromName(CORE_NAME));
 }
 
+class CoreHttpError extends Error {
+  constructor(
+    readonly status: number,
+    readonly payload: Record<string, unknown>,
+    path: string,
+  ) {
+    super(String(payload.error || payload.message || `CORE_HTTP_${status}`) + " @ " + path);
+    this.name = "CoreHttpError";
+  }
+}
+
 async function coreJson<T>(
   env: Env,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
   const response = await core(env).fetch("https://pda-core.internal" + path, init);
-  const payload = await response.json() as T & { error?: string };
-  if (!response.ok) throw new Error(payload.error || `CORE_HTTP_${response.status}`);
+  const raw = await response.text();
+  let payload: T & Record<string, unknown>;
+  try {
+    payload = (raw ? JSON.parse(raw) : {}) as T & Record<string, unknown>;
+  } catch {
+    throw new CoreHttpError(response.status || 500, { error: "CORE_INVALID_JSON" }, path);
+  }
+  if (!response.ok) throw new CoreHttpError(response.status, payload, path);
   return payload;
 }
 
@@ -154,18 +172,24 @@ async function login(request: Request, env: Env): Promise<Response> {
     }
 
     const material = await hashPassword(password);
-    await coreJson(env, "/auth/user/create", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        user_id: randomId("usr"),
-        username: "root",
-        display_name: "Root PDA Management",
-        role: "ROOT",
-        password_salt: material.salt,
-        password_hash: material.hash,
-      }),
-    });
+    try {
+      await coreJson(env, "/auth/user/create", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          user_id: randomId("usr"),
+          username: "root",
+          display_name: "Root PDA Management",
+          role: "ROOT",
+          password_salt: material.salt,
+          password_hash: material.hash,
+        }),
+      });
+    } catch (error) {
+      // Concurrent first-login requests may both observe an empty user table.
+      // Treat the second insert as a bootstrap race, not an HTTP 500.
+      if (!(error instanceof CoreHttpError) || error.status !== 409) throw error;
+    }
     userResult = await coreJson(
       env,
       `/auth/user?username=${encodeURIComponent(username)}`,
@@ -573,6 +597,34 @@ async function releaseManifest(): Promise<Response> {
   });
 }
 
+async function deepHealth(env: Env): Promise<Record<string, unknown>> {
+  const checks: Record<string, unknown> = {};
+  try {
+    const storage = await coreJson<Record<string, unknown>>(env, "/health");
+    checks.storage = storage.status === "ok";
+    const users = await coreJson<{ count: number }>(env, "/auth/user-count");
+    checks.auth_storage = Number.isFinite(Number(users.count));
+    const devices = await coreJson<{ count: number }>(env, "/devices/meta");
+    checks.device_storage = Number.isFinite(Number(devices.count));
+    const employees = await coreJson<{ count: number }>(env, "/employees/meta");
+    checks.employee_storage = Number.isFinite(Number(employees.count));
+
+    const probe = "pda-management-deep-health";
+    const derived = await hashPassword(probe);
+    checks.crypto = await verifyPassword(probe, derived.salt, derived.hash);
+
+    const ok = Object.values(checks).every((value) => value === true);
+    return { status: ok ? "ok" : "degraded", checks };
+  } catch (error) {
+    return {
+      status: "degraded",
+      checks,
+      error_code: errorCode(error),
+      error_message: safeErrorMessage(error),
+    };
+  }
+}
+
 async function coreHealth(env: Env): Promise<Record<string, unknown>> {
   try {
     const response = await core(env).fetch("https://pda-core.internal/health");
@@ -587,6 +639,7 @@ export { PdaManagementCore };
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    try {
 
     if (request.method === "GET" && url.pathname === "/health") {
       const storage = await coreHealth(env);
@@ -621,6 +674,11 @@ export default {
           sheet: "mirror-not-critical-path",
         },
       });
+    }
+
+    if (request.method === "GET" && url.pathname === "/health/deep") {
+      const payload = await deepHealth(env);
+      return json(payload, payload.status === "ok" ? 200 : 503);
     }
 
     if (request.method === "GET" && url.pathname === "/downloads/app/manifest") return releaseManifest();
@@ -665,5 +723,33 @@ export default {
     if (deviceAction) return deviceAction;
 
     return json({ error: "NOT_FOUND" }, 404);
+    } catch (error) {
+      if (error instanceof Response) return error;
+
+      if (error instanceof CoreHttpError && error.status >= 400 && error.status < 500) {
+        return json({
+          ...error.payload,
+          error: String(error.payload.error || "REQUEST_FAILED"),
+        }, error.status);
+      }
+
+      const errorId = "pda-" + crypto.randomUUID().replaceAll("-", "").slice(0, 16);
+      const code = errorCode(error);
+      const safeMessage = safeErrorMessage(error);
+      console.error("pda_management_runtime_error", {
+        error_id: errorId,
+        error_code: code,
+        path: url.pathname,
+        method: request.method,
+        message: safeMessage,
+      });
+      ctx.waitUntil(reportServerError(request, env.SOURCE_COMMIT || "", errorId, error));
+      return json({
+        error: "PDA_MANAGEMENT_INTERNAL_ERROR",
+        message: "Lỗi hệ thống. Hãy bấm Gửi log ở màn hình đăng nhập.",
+        error_id: errorId,
+        error_code: code,
+      }, 500);
+    }
   },
 };
