@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "FOUNDATION_TECHNICAL_PASS__MANUAL_SECRETS_PENDING_BEFORE_AUTH",
+  "status": "LOGIN_UPDATE_SHELL_TECHNICAL_PASS__AUTH_NEXT",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -10,7 +10,7 @@
   "registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
   "usage_policy": "NO_HEARTBEAT__NO_ANDROID_BACKGROUND_POLL__NO_FIREBASE_MVP__EVENT_DRIVEN__REVISION_ETAG__SHEET_MIRROR_OFF_CRITICAL_PATH",
   "manual_blocker": "Before real auth and Google Sheet mirroring, configure PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD and GOOGLE_RUNTIME_SA_JSON on the new supra-pda-management-beta Worker. Existing Inventory Worker secrets cannot be read back or copied automatically.",
-  "main_sha": "d4ed91abd33dbdbcbe727212ebc8df7a82beda38",
+  "main_sha": "cb45cba268b1a480781c075b54e060e11a45c019",
   "foundation_pr": 465,
   "issue": 464,
   "verify_run": 37454531259,
@@ -27,11 +27,39 @@
     "domain": "pda-beta.supra.cc.cd",
     "deploy": "PASS",
     "durable_object": "PdaManagementCore",
-    "inventory_runtime_files_changed": false
+    "inventory_runtime_files_changed": false,
+    "secrets_verified": true,
+    "health": "PASS__ROOT_BOOTSTRAP_SECRET_TRUE__GOOGLE_RUNTIME_SECRET_TRUE"
   },
   "manual_setup_required": [
     "GOOGLE_RUNTIME_SA_JSON__NEW_WORKER_SECRET__EXISTING_WORKER_SECRET_VALUE_IS_WRITE_ONLY",
     "PDA_MGMT_ROOT_BOOTSTRAP_PASSWORD__OWNER_CHOSEN_SECRET__NEVER_COMMIT_OR_SEND_IN_CHAT"
   ],
-  "sheet_security": "PDA_USERS_MIRROR_EXCLUDES_PASSWORD_HASH_AND_SALT"
+  "sheet_security": "PDA_USERS_MIRROR_EXCLUDES_PASSWORD_HASH_AND_SALT",
+  "login_update": {
+    "status": "TECHNICAL_PASS",
+    "visual_reference": "BAO_HANG_LOGIN_PALETTE_CARD_INPUT_LAYOUT",
+    "prelogin_update": true,
+    "account_required_for_update": false,
+    "silent_check": "LOCAL_6H_THROTTLE__NO_BACKGROUND_POLL",
+    "update_api": "https://pda-beta.supra.cc.cd/downloads/app/manifest",
+    "release_channel": "pda-mgmt-channel",
+    "github_rest_from_pda": false,
+    "verification": [
+      "SHA256",
+      "PACKAGE_NAME",
+      "VERSION_CODE",
+      "VERSION_NAME",
+      "SIGNER_SHA256"
+    ],
+    "release": {
+      "tag": "pda-mgmt-beta-vc2",
+      "version": "0.1.0-beta.2",
+      "apk_size_bytes": 5199769
+    },
+    "android_run": 37457159177,
+    "service_verify_run": 37457159085,
+    "deploy_run": 37457159127
+  },
+  "next_phase": "ROOT_COORDINATOR_AUTH__REGISTRY_READ_ONLY_DEVICE_LIST__THEN_BORROW_RETURN"
 }
