@@ -150,6 +150,20 @@ async function readSheetIndex(env: PdaRegistryEnv): Promise<SheetIndex> {
   return { byDeviceKey, bySerial, byImei1, byAndroidId };
 }
 
+// Sheets stores date/time as a timezone-free serial. Convert UTC instants into
+// Vietnam wall-clock serials for proper display, sorting and date filtering.
+// Keep authoritative Durable Object timestamps in UTC ISO 8601.
+const VIETNAM_UTC_OFFSET_MS = 7 * 60 * 60 * 1000;
+const SHEETS_UNIX_EPOCH_DAYS = 25569;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function sheetVietnamTime(value: string | Date): number | string {
+  const utcMs = value instanceof Date ? value.getTime() : Date.parse(String(value || ""));
+  return Number.isFinite(utcMs)
+    ? (utcMs + VIETNAM_UTC_OFFSET_MS) / MS_PER_DAY + SHEETS_UNIX_EPOCH_DAYS
+    : "";
+}
+
 function rowFor(record: PdaRegistryRecord, includeHumanColumns: boolean): unknown[] {
   const values: unknown[] = [
     record.device_key,
@@ -177,9 +191,9 @@ function rowFor(record: PdaRegistryRecord, includeHumanColumns: boolean): unknow
     record.launcher_version_code,
     record.registry_schema_version,
     record.payload_hash,
-    record.first_registered_at,
-    record.last_changed_at,
-    record.last_validated_at,
+    sheetVietnamTime(record.first_registered_at),
+    sheetVietnamTime(record.last_changed_at),
+    sheetVietnamTime(record.last_validated_at),
   ];
   if (includeHumanColumns) values.push("ACTIVE", "");
   return values;
@@ -244,7 +258,7 @@ async function syncRecordToSheet(
     await appendValues(env, "PDA_Devices!A:AD", [rowFor(record, true)]);
   }
   await appendAudit(env, [[
-    new Date().toISOString(),
+    sheetVietnamTime(new Date()),
     record.device_key,
     action,
     oldHash,
@@ -440,11 +454,11 @@ export async function reconcilePdaRegistrySheet(env: PdaRegistryEnv): Promise<vo
 
   const auditRows: unknown[][] = [
     ...changed.map((item) => [
-      new Date().toISOString(), item.record.device_key, "RECONCILED_UPDATE",
+      sheetVietnamTime(new Date()), item.record.device_key, "RECONCILED_UPDATE",
       item.oldHash, item.record.payload_hash, "SERVER_RECONCILE", "PASS", `Restored row ${item.row}`,
     ]),
     ...missing.map((record) => [
-      new Date().toISOString(), record.device_key, "RECONCILED_MISSING",
+      sheetVietnamTime(new Date()), record.device_key, "RECONCILED_MISSING",
       "", record.payload_hash, "SERVER_RECONCILE", "PASS", "Restored missing Sheet row",
     ]),
   ];
