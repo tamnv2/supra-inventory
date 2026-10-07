@@ -736,3 +736,7 @@ No extra Android periodic read, listener, heartbeat, Firestore write or client-a
 - Web, Android and Agent show the same ordinary **Tài khoản / Mật khẩu / Đăng nhập** inputs for all supported users. The public form has no **Gửi mã một lần** or account-specific OTP hint.
 - The Web account panel does not offer **Gửi mật khẩu một lần**. Ordinary users retain their permitted password-change controls; protected accounts keep server-enforced no-fixed-password semantics.
 - Consuming a valid protected-account email code automatically triggers the existing next-code email transaction; it does not require an extra button or new periodic task.
+
+## D165 latest field repair — fixed Reporter overdue entry
+
+Supersedes the earlier D165 conditionally inserted tab on Android. Web and Android Reporter each retain a visible Quá hạn navigation choice, including when no Picker is overdue or the selected processing policy is FIRST_REPORT / automatic Skip disabled. Inapplicable policy displays a neutral explanation and zero badge rather than a removed tab; the server must continue to determine eligibility and payload. The two approved HAS_STOCK correction buttons and only pending/overdue numeric badges remain as specified. No new background reads.
