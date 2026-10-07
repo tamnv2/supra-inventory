@@ -1078,3 +1078,12 @@ The Agent **Lịch sử Picker xác nhận PickList** table adds **User Agent x�
 - HR HARD_BLOCK must show the specific safe cause. INVALID_ROWS shows bounded Sheet row numbers and validation reasons without raw row payload. It offers **Kiểm tra lại nguồn**, never a force-apply action.
 - HR CONFIRM_REQUIRED shows explicit **Có · Áp dụng** and **Không · Giữ nguyên**. No means zero mutation and leaves the pending proposal available for a later decision.
 - Agent **Picker đang hoạt động trên PDA** is an authenticated management surface: it remains visible when WMS/Web Confirm is not ready and outside the business window. Only Agent logout/unauthenticated state clears the list. The visible list is fed by the existing authoritative `picker_presence_projection/current` document on the Agent's shared observation stream.
+
+## D165 — Android Reporter compact operational tabs (Owner approved)
+
+- Display up to **four equal-width, pinned** Reporter tabs: **Đang xử lý** / **Quá hạn** / **Đã có hàng** / **Cho phép Skip**. No horizontal scrolling is necessary for the approved tab count.
+- Hide **Quá hạn** when the authoritative policy is not auto-skip-enabled `PER_PICKER`, leaving three equal-width tabs.
+- Only **Đang xử lý** and **Quá hạn** have small corner numeric badges. **Đã có hàng** and **Cho phép Skip** have plain, unbadged labels.
+- Do not display an Android **Picker đã thu hồi** tab. Preserve archival/report visibility and underlying ticket transitions.
+- Retain the professional selected/idle styles, existing text-scale controls and all business-action confirmations. No additional background read/listener is justified to draw these tabs.
+- This section supersedes earlier Android Reporter four/five-tab UI composition instructions, but not the earlier business semantics. Web tab/navigation presentation is not changed by this refinement.

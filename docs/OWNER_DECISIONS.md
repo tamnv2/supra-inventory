@@ -3459,3 +3459,44 @@ Boundary guard:
 - any shared-boundary collision must wait/fail closed rather than merge D164 and D165 behavior;
 - Stable remains OWNER-GATED and untouched;
 - D165 technical/runtime PASS will still require Owner field PASS before promotion to the accepted Inventory base.
+
+
+## 2026-10-07 — D165 Owner field NOT PASS; Android parity and privileged-auth repair
+
+Status: **D165 SAME-CHANGE REPAIR — PR #487 DRAFT — NOT YET RELEASED / NOT OWNER PASS**.
+
+Owner reports D165 privileged-account password change is not live and explicitly requires the two HAS_STOCK correction actions plus the PER_PICKER **Quá hạn** workspace on **Android APK** as well as Web. Continue under D165; do not open D166.
+
+- The already merged D165 Beta worker/Web provided PER_PICKER overdue and HAS_STOCK correction, but Android Reporter remained on four tabs and exposed only the earlier SKIP_ALLOWED -> HAS_STOCK correction. PR #487 repairs that feature gap using the existing scoped APIs.
+- Android Reporter adds a fifth **Quá hạn** tab only when server counters report `auto_skip_enabled=true` and `auto_skip_mode=PER_PICKER`. FIRST_REPORT keeps the existing four-tab arrangement and behavior. The fifth tab is scrollable on small PDAs, while four-tab layout remains equal-width.
+- The overdue list is requested on explicit tab opening and then updated via the existing `reporter_overdue` realtime scope; the badge uses existing authoritative counters and event delta. It shows timed-out and still-waiting Picker counts separately, with both **Đã có hàng** and **Cho phép skip** actions. No extra poll/listener/provider is authorized.
+- Android **Đã có hàng** result rows add **Sửa - Đang xử lý** and **Sửa - Cho phép Skip**. Both require two explicit warning/confirmation steps, one outstanding action per batch, a fresh server-side `expected_version` fence, immutable audit and the existing critical Picker corrected-result delivery/ACK; no client-side mutation without server approval.
+- Existing SKIP_ALLOWED -> HAS_STOCK five-minute correction is preserved.
+- D165 privileged logins `root`, `admin`, `tamnv2` require the authorized one-time-code model via the existing project Google mail sender. PR #487 implements the code request/verification surface and Agent session continuation, **but remains draft and not deployed**.
+- **SECURITY BLOCKER**: The exact requested emergency rule (any numeric >=8-character input merely containing the current Vietnam HHmm within ±5 minutes) is public/predictable and cannot securely authenticate an administrator. This emergency rule must not be activated as a production-capable bypass until the Owner explicitly approves a separate secret-backed emergency factor. Do not record or commit actual codes, credentials or secrets.
+- PR #487 previously failed Project State Guard because canonical state was not updated in the source change set. This repair records decisions/spec/state together, then reruns gates.
+- D164 PDA Management stays isolated and independently field-pending; Stable is OWNER-GATED untouched. Do not promote D165 as Owner PASS without field validation.
+
+## 2026-10-07 — D165 Owner UI refinement — Android Reporter tabs
+
+Owner explicitly requested a same-D165 Reporter APK presentation refinement while D165 PR #487 is under repair:
+
+- Remove the **Picker đã thu hồi** tab from the **Android Reporter** workspace. Historical withdrawals, audit/report data and all server-side lifecycle behavior remain unchanged.
+- Keep the **Đang xử lý** and conditional **Quá hạn** tabs with visible authoritative numeric badges.
+- Remove numeric badges from the **Đã có hàng** and **Cho phép Skip** tabs. The tabs and their report rows/actions stay available.
+- Exactly four operational tabs are visible when `PER_PICKER` auto-skip is enabled: **Đang xử lý · Quá hạn · Đã có hàng · Cho phép Skip**. With `FIRST_REPORT` or disabled per-Picker auto-skip, **Quá hạn** is hidden, leaving three tabs; underlying FIRST_REPORT timeout/transaction semantics are not changed.
+- Tabs share the available width instead of requiring a horizontal-scroll container. No new API request, poll, listener, background timer, database field or provider resource is introduced. Realtime queue/overdue counters remain the only UI badges.
+- This UI-only change applies to **Android Reporter**; Web operations, detailed reporting, withdrawal history and RBAC remain unchanged.
+- PR #487 remains draft until Android/authority/continuity gates pass and the separately documented privileged-login emergency authentication security blocker is resolved. No change to D164; Stable remains Owner-gated.
+
+## 2026-10-07 — D165 explicit Owner override: exact emergency login rule, no added factor
+
+**Status: CURRENT OWNER DECISION. Supersedes the preceding D165 proposal-only independent-secret release blocker.** Owner explicitly rejected adding TOTP, another secret, or any extra emergency-auth factor and ordered continuation of the existing D165 code through technical PASS. The Owner-directed privileged-login contract for the exact `root`, `admin`, `tamnv2` accounts remains:
+
+- No fixed username-specific login passwords. Login uses the existing 4-digit single-use Gmail OTP (subject `MẬT KHẨU BÁO HÀNG {username} - {xxxx}`, delivered to the existing authorized recipient); a successful OTP login consumes it and requests the next one.
+- The alternative emergency login input **must be numeric and >=8 digits**, containing a contiguous 4-digit `HHmm` for the current Vietnam wall-clock minute within **±5 minutes**, anywhere in the input. No additional factor. Server time, not a client-supplied clock, is authoritative.
+- Existing user-role/session-generation fences, Web/Android role restrictions, Agent session restore, critical-action re-auth, immutable audit hygiene and no-token/no-password logging rules remain intact. Stable is untouched.
+
+**Explicit residual security risk:** This clock-only proof is publicly predictable, even with a minimum input length. It is not a secret and cannot independently authenticate a real administrator. The Owner was informed of the account-takeover risk and explicitly directed use of the exact behavior without an extra factor. Prior recommendations to block Beta deployment pending an added secret are therefore superseded as product decisions, not recharacterized as a security improvement. Do not claim this proof is secure or field-validated; future changes require a new Owner decision.
+
+D165 PR #487 must complete existing CI/authority/continuity, merge/deploy only the scoped Beta resources, and record real build/runtime outcomes accurately. Its technical PASS is **not** Owner field/usage PASS. D164 remains independently isolated and Stable remains OWNER-GATED.

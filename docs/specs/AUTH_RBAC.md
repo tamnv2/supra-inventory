@@ -392,3 +392,18 @@ D165 adds re-authentication to the existing authorized SLA/processing-time save 
 - audit contains actor and before/after setting values only.
 
 D165 corrected-result actions retain existing Reporter/Admin/Root operational authorization and additionally require the approved double-confirmation UX. This does not create a new role or broaden access.
+
+
+## D165 privileged OTP draft and emergency-proof security gate
+
+The D165 repair PR proposes replacing fixed credentials for exact `root`, `admin`, `tamnv2` identities with one-time codes sent through the pre-authorized project Gmail transport. The OTP verification remains server-authoritative, one-use and rate-limited, and must not be copied into logs, audit, public repo content or local storage. Valid Agent DPAPI session restore remains distinct from a new privileged login.
+
+**SUPERSEDED SECURITY RECOMMENDATION (by explicit Owner decision 2026-10-07):** The Owner's requested clock-only emergency format (>=8 digits containing current `HHmm` ±5 min) contains no shared secret and cannot be relied upon as an authentication factor. Its implementation in draft PR #487 must **not be promoted to Beta runtime** as an unrestricted bypass. An independent server-verified secret-backed factor or one-time recovery credential is required before release, with a fresh Owner-approved adjustment of the emergency UX. Existing RBAC, session/revoke authority, action re-auth and Stable guard may not be weakened.
+
+## D165 current privileged-login rule — explicit Owner-approved exception (2026-10-07)
+
+**This section supersedes the earlier proposal's “Release blocker” requirement for an additional secret-backed factor.** The Owner explicitly instructed implementation and Beta technical completion **without TOTP, extra static secret, or other additional authentication factor**.
+
+For exact `root`, `admin`, `tamnv2` identities, accept (a) one-use four-digit Gmail OTP with consumption and next-code issuance, or (b) numeric emergency input of at least eight digits that includes the server-derived Vietnam `HHmm` within ±5 minutes anywhere. No fixed password, no other emergency proof. Reject nonnumeric input, missing `HHmm` window, and inputs under eight digits. Preserve the independent normal Firebase session-generation checks and existing role-based access gates.
+
+**Residual risk accepted by the Owner, not resolved:** Server time is public/predictable. The emergency input is **not a real secret** and can permit account takeover. OTP cooldown/rate limiting does not make this alternate clock-only proof secure. This warning is mandatory in the durable decision/audit context; do not hide it or claim security equivalence. Beta field verification and Owner PASS are still separate gates. Stable remains OWNER-GATED.

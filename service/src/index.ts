@@ -19,6 +19,12 @@ import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
 import { sendProjectEmail } from "./google-mail";
+import {
+  PrivilegedAuthError,
+  isPrivilegedOneTimeUser,
+  sendPrivilegedOneTimeCode,
+  verifyPrivilegedProof,
+} from "./privileged-auth";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
@@ -276,6 +282,124 @@ async function ensureFirebaseUid(env: Env, user: InternalUser): Promise<string> 
   return uid;
 }
 
+function randomOpaquePassword(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(48));
+  return [...bytes].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+async function retirePrivilegedStaticPassword(env: Env, original: InternalUser): Promise<InternalUser> {
+  if (!isPrivilegedOneTimeUser(original)) return original;
+  const uid = await ensureFirebaseUid(env, original);
+
+  if ((original.password_hash || original.password_salt) && Number(original.firebase_password_ready || 0) === 1) {
+    if (!env.GOOGLE_RUNTIME_SA_JSON) throw new Error("AUTH_RUNTIME_NOT_CONFIGURED");
+    await updateFirebaseIdentity(
+      env.GOOGLE_RUNTIME_SA_JSON,
+      env.FIREBASE_PROJECT_ID,
+      firebaseUserSpec(original, uid),
+      { password: randomOpaquePassword() },
+    );
+  }
+
+  if (original.password_hash || original.password_salt || Number(original.firebase_password_ready || 0) !== 1) {
+    const retired = await coreJson<{ user?: InternalUser | null }>(env, "/auth/retire-static-password", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: original.user_id }),
+    });
+    return retired.user || (await getUserById(env, original.user_id)) || {
+      ...original,
+      firebase_uid: uid,
+      password_hash: null,
+      password_salt: null,
+      firebase_password_ready: 1,
+      firebase_agent_ready: original.base_role === "ADMIN" ? 1 : original.firebase_agent_ready,
+    };
+  }
+
+  return original.firebase_uid ? original : { ...original, firebase_uid: uid };
+}
+
+function privilegedAuthErrorResponse(error: unknown): Response {
+  if (error instanceof PrivilegedAuthError) {
+    return json({
+      error: error.code,
+      message: error.message,
+      ...(error.retryAfterSeconds > 0 ? { retry_after_seconds: error.retryAfterSeconds } : {}),
+    }, error.status);
+  }
+  return json({ error: "PRIVILEGED_AUTH_UNAVAILABLE", message: "Không xử lý được xác thực một lần." }, 503);
+}
+
+async function requestPrivilegedCode(request: Request, env: Env): Promise<Response> {
+  let body: { username?: string } = {};
+  try { body = (await request.json()) as typeof body; } catch { return json({ error: "INVALID_JSON" }, 400); }
+  const username = String(body.username || "").trim().toLowerCase();
+  if (!/^[a-z0-9._-]{1,64}$/.test(username)) return json({ error: "PRIVILEGED_ACCOUNT_REQUIRED" }, 400);
+  let user = await getUserByUsername(env, username);
+  if (!user || !isPrivilegedOneTimeUser(user)) return json({ error: "PRIVILEGED_ACCOUNT_REQUIRED" }, 404);
+  try {
+    user = await retirePrivilegedStaticPassword(env, user);
+    const issued = await sendPrivilegedOneTimeCode(env, user, false);
+    return json({
+      status: "code_sent",
+      expires_at: issued.expires_at,
+      message: "Đã gửi mật khẩu một lần tới email quản trị.",
+    }, 202);
+  } catch (error) {
+    return privilegedAuthErrorResponse(error);
+  }
+}
+
+async function privilegedAgentLogin(request: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
+  let body: { username?: string; password?: string } = {};
+  try { body = (await request.json()) as typeof body; } catch { return json({ error: "INVALID_JSON" }, 400); }
+  const username = String(body.username || "").trim().toLowerCase();
+  const proof = String(body.password || "");
+  let user = await getUserByUsername(env, username);
+  if (
+    !user ||
+    !isPrivilegedOneTimeUser(user) ||
+    user.base_role !== "ADMIN" ||
+    user.role !== "ADMIN"
+  ) return json({ error: "INVALID_CREDENTIALS" }, 401);
+
+  try {
+    user = await retirePrivilegedStaticPassword(env, user);
+    const verified = await verifyPrivilegedProof(env, user, proof, true);
+    if (!verified.valid) return json({ error: "INVALID_CREDENTIALS" }, 401);
+    const uid = await ensureFirebaseUid(env, user);
+    const customToken = await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, uid, {
+      app_role: user.role,
+      app_base_role: user.base_role,
+      app_user_id: user.user_id,
+      employee_code: user.employee_code || "",
+      app_session_channel: "AGENT",
+      app_session_generation: 0,
+    });
+    const session = await exchangeCustomToken(env, customToken);
+    return json({ ...session, user: publicUser(user), session_channel: "AGENT" });
+  } catch (error) {
+    if (error instanceof PrivilegedAuthError) return privilegedAuthErrorResponse(error);
+    return json({ error: "INVALID_CREDENTIALS" }, 401);
+  }
+}
+
+async function privilegedAgentReauth(request: Request, env: Env): Promise<Response> {
+  const user = await requireAgentUser(request, env, ["ADMIN"]);
+  if (!isPrivilegedOneTimeUser(user)) return json({ error: "PRIVILEGED_ACCOUNT_REQUIRED" }, 403);
+  let body: { proof?: string } = {};
+  try { body = (await request.json()) as typeof body; } catch { return json({ error: "INVALID_JSON" }, 400); }
+  try {
+    const verified = await verifyPrivilegedProof(env, user, String(body.proof || ""), true);
+    if (!verified.valid) return json({ error: "CURRENT_PASSWORD_INVALID", message: "Mật khẩu một lần hoặc mật khẩu khẩn cấp không đúng." }, 403);
+    return json({ status: "verified", mode: verified.mode });
+  } catch (error) {
+    return privilegedAuthErrorResponse(error);
+  }
+}
+
 function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>, user: InternalUser): string | null {
   if (identity.sessionChannel === "AGENT") {
     if (user.role === "ADMIN" && user.base_role === "ADMIN") return null;
@@ -363,12 +487,23 @@ async function ensureAgentFirebaseReady(env: Env, user: InternalUser): Promise<v
 
 async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrated: number; failed: number; remaining: number; agent_migrated: number; agent_failed: number; agent_remaining: number }> {
   if (!env.GOOGLE_RUNTIME_SA_JSON) return { migrated: 0, failed: 1, remaining: 0, agent_migrated: 0, agent_failed: 1, agent_remaining: 0 };
+
+  let privilegedFailed = 0;
+  for (const login of ["root", "admin", "tamnv2"]) {
+    try {
+      const account = await getUserByUsername(env, login);
+      if (account && isPrivilegedOneTimeUser(account)) await retirePrivilegedStaticPassword(env, account);
+    } catch {
+      privilegedFailed += 1;
+    }
+  }
+
   const candidates = await coreJson<{ items: InternalUser[]; count: number }>(
     env,
     "/auth/firebase-migration-candidates?role=ADMIN&limit=50",
   );
   let migrated = 0;
-  let failed = 0;
+  let failed = privilegedFailed;
   for (const candidate of candidates.items || []) {
     try {
       await ensureFirebasePasswordReady(env, candidate);
@@ -739,43 +874,51 @@ async function login(request: Request, env: Env): Promise<Response> {
   // Server mutation gates still enforce the effective operating state.
   const operatingWindow = channel === "ANDROID" ? await androidOperatingWindow(env) : undefined;
 
-  try {
-    user = await ensureFirebasePasswordReady(env, user);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "AUTH_MIGRATION_FAILED";
-    const status = message === "PASSWORD_NOT_INITIALIZED" ? 503 : 502;
-    return json({ error: message, message: "Không chuẩn bị được tài khoản Firebase." }, status);
-  }
-
-  const uid = String(user.firebase_uid || "");
-  const email = effectiveAuthEmail(firebaseUserSpec(user, uid));
-  try {
-    let credential;
+  let uid = "";
+  if (isPrivilegedOneTimeUser(user)) {
     try {
-      credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
-    } catch {
-      // D099 migration repair: D098 imported legacy PBKDF2 material into Firebase.
-      // If Firebase cannot verify that imported credential but InventoryCore can
-      // still prove the supplied password against the canonical legacy hash,
-      // set the same password natively in Firebase once and retry. Plaintext
-      // exists only in this login request and is never persisted/logged.
-      const legacyValid = Boolean(
-        user.password_hash &&
-        user.password_salt &&
-        await verifyPassword(password, user.password_salt, user.password_hash)
-      );
-      if (!legacyValid) return json({ error: "INVALID_CREDENTIALS" }, 401);
-      await updateFirebaseIdentity(
-        env.GOOGLE_RUNTIME_SA_JSON,
-        env.FIREBASE_PROJECT_ID,
-        firebaseUserSpec(user, uid),
-        { password },
-      );
-      credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+      user = await retirePrivilegedStaticPassword(env, user);
+      const verified = await verifyPrivilegedProof(env, user, password, true);
+      if (!verified.valid) return json({ error: "INVALID_CREDENTIALS" }, 401);
+      uid = await ensureFirebaseUid(env, user);
+    } catch (error) {
+      if (error instanceof PrivilegedAuthError) return privilegedAuthErrorResponse(error);
+      return json({ error: "INVALID_CREDENTIALS" }, 401);
     }
-    if (credential.localId !== uid) return json({ error: "INVALID_CREDENTIALS" }, 401);
-  } catch {
-    return json({ error: "INVALID_CREDENTIALS" }, 401);
+  } else {
+    try {
+      user = await ensureFirebasePasswordReady(env, user);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "AUTH_MIGRATION_FAILED";
+      const status = message === "PASSWORD_NOT_INITIALIZED" ? 503 : 502;
+      return json({ error: message, message: "Không chuẩn bị được tài khoản Firebase." }, status);
+    }
+
+    uid = String(user.firebase_uid || "");
+    const email = effectiveAuthEmail(firebaseUserSpec(user, uid));
+    try {
+      let credential;
+      try {
+        credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+      } catch {
+        const legacyValid = Boolean(
+          user.password_hash &&
+          user.password_salt &&
+          await verifyPassword(password, user.password_salt, user.password_hash)
+        );
+        if (!legacyValid) return json({ error: "INVALID_CREDENTIALS" }, 401);
+        await updateFirebaseIdentity(
+          env.GOOGLE_RUNTIME_SA_JSON,
+          env.FIREBASE_PROJECT_ID,
+          firebaseUserSpec(user, uid),
+          { password },
+        );
+        credential = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, email, password);
+      }
+      if (credential.localId !== uid) return json({ error: "INVALID_CREDENTIALS" }, 401);
+    } catch {
+      return json({ error: "INVALID_CREDENTIALS" }, 401);
+    }
   }
 
   const activated = await activateInteractiveSession(env, user.user_id, channel, deviceId, Boolean(body.force));
@@ -853,6 +996,12 @@ async function setRootEffectiveRole(request: Request, env: Env): Promise<Respons
 async function changePassword(request: Request, env: Env): Promise<Response> {
   if (!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY) return json({ error: "AUTH_RUNTIME_NOT_CONFIGURED" }, 503);
   let user = await requireUser(request, env);
+  if (isPrivilegedOneTimeUser(user)) {
+    return json({
+      error: "ONE_TIME_AUTH_ACCOUNT",
+      message: "Tài khoản này sử dụng mật khẩu một lần hoặc mật khẩu khẩn cấp và không có mật khẩu cố định.",
+    }, 409);
+  }
   user = await ensureFirebasePasswordReady(env, user);
   const body = (await request.json()) as { current_password?: string; new_password?: string };
   const current = String(body.current_password || "");
@@ -931,6 +1080,7 @@ async function requestPasswordReset(request: Request, env: Env): Promise<Respons
       normalizeAuthEmail(user.auth_email) !== recoveryEmail
     ) return accepted();
 
+    if (isPrivilegedOneTimeUser(user)) return accepted();
     user = await ensureFirebasePasswordReady(env, user);
     const token = randomState() + randomState();
     tokenHash = await hashRecoveryToken(token);
@@ -1002,6 +1152,9 @@ async function confirmPasswordReset(request: Request, env: Env): Promise<Respons
   let user = await getUserById(env, verified.user_id);
   if (!user || user.status !== "ACTIVE" || !["ROOT", "ADMIN"].includes(user.base_role)) {
     return json({ error: "RECOVERY_USER_INVALID" }, 400);
+  }
+  if (isPrivilegedOneTimeUser(user)) {
+    return json({ error: "ONE_TIME_AUTH_ACCOUNT", message: "Tài khoản này không sử dụng mật khẩu cố định." }, 409);
   }
   user = await ensureFirebasePasswordReady(env, user);
   const uid = String(user.firebase_uid || "");
@@ -1271,6 +1424,8 @@ export default {
         });
       }
 
+      if (request.method === "POST" && url.pathname === "/api/auth/privileged-code") return requestPrivilegedCode(request, env);
+      if (request.method === "POST" && url.pathname === "/api/auth/privileged-agent-login") return privilegedAgentLogin(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/login") return login(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/refresh") return refreshSession(request, env);
       if (request.method === "POST" && url.pathname === "/api/auth/logout") return logoutInteractiveSession(request, env);
@@ -1288,6 +1443,10 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/admin/system-status") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
+        return privilegedAgentReauth(request, env);
       }
 
       if (request.method === "GET" && url.pathname === "/api/agent/usage") {

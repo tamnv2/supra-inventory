@@ -19,8 +19,8 @@
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS",
-    "android": "D165_IMPLEMENTED__CATALOG_SINGLE_FLIGHT__SCOPED_REALTIME_DELTA__LOGOUT_LOG_DURABILITY__TECHNICAL_PASS",
-    "latest_beta_apk": "beta-vc97",
+    "android": "D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__NOT_RELEASED__SIGNED_BETA_VC98",
+    "latest_beta_apk": "beta-vc98",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -36,7 +36,7 @@
     "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_MERGED_BETA_POST_MERGE_CI_ALL_GREEN__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D165_RELAY_AGENT_V115_SOURCE__RTDB_HA_LIVENESS__LOCAL_KICK_STATUS_REPAIR__TECHNICAL_PASS__FIELD_OWNER_PASS_PENDING",
+    "agent": "D165_PR_487_AGENT_V116_SOURCE__SIGNED_RELAY_AGENT_V115_CURRENT__BETA_RELEASE_PENDING__OWNER_FIELD_PASS_PENDING",
     "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING"
   },
   "hard_guards": [
@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-06",
+  "last_updated": "2026-10-07",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_MERGED_BETA__POST_MERGE_CI_REPAIR_D160_STALE_REVISION_GATE__OWNER_FIELD_USAGE_ACCEPTANCE_PENDING",
+    "parallel_inventory_change_status": "D165_PR_487_EXPLICIT_OWNER_EXACT_CLOCK_EMERGENCY_RULE_APPROVED__SOURCE_CI_PASS__BETA_MERGE_PENDING__OWNER_FIELD_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,12 +5660,12 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING",
+    "status": "D165_PR_487_OWNER_EXACT_LOGIN_RULE_APPROVED__SOURCE_CI_PASS__BETA_MERGE_PENDING__FIELD_USAGE_PASS_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
     "authority_document": "docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md",
-    "owner_approval": "OWNER_REVERIFIED_RECORDED_PLAN_AND_EXPLICITLY_STARTED_IMPLEMENTATION__2026_10_07",
+    "owner_approval": "OWNER_EXPLICIT_D165_ORIGINAL_APPROVAL_PLUS_2026_10_07_EXACT_EMERGENCY_AUTH_NO_EXTRA_FACTOR_OVERRIDE",
     "governance": {
       "current_global_change_remains": "D164",
       "d164_scope": "PDA_MANAGEMENT__INDEPENDENT_ISOLATED",
@@ -5765,7 +5765,7 @@
     "build_released": false,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "FIELD_VALIDATE_BEHAVIOR_SPEED_STABILITY_AND_USAGE__OWNER_EXPLICIT_PASS_REQUIRED",
+    "next_action": "MERGE_PR_487_AFTER_AUTHORITY_CONTINUITY_CI_PASS__VERIFY_BETA_WEB_ANDROID_AGENT_RELEASE__OWNER_FIELD_USAGE_PASS_LATER",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -5810,6 +5810,84 @@
         "d160_agent_gateway": 37543657663
       },
       "final_result": "TECHNICAL_PASS__FIELD_USAGE_OWNER_PASS_PENDING"
+    },
+    "repair_2026_10_07": {
+      "change_id": "D165",
+      "pr": 487,
+      "branch": "repair/d165-privileged-one-time-auth-v2",
+      "status": "DRAFT__ANDROID_PARITY_AUTH_CODE_PRESENT__AUTH_EMERGENCY_SECURITY_BLOCKER__CI_PENDING",
+      "android": "PER_PICKER_OVERDUE_TAB__HAS_STOCK_TO_PENDING_OR_SKIP_DOUBLE_CONFIRM__FIRST_REPORT_UNCHANGED",
+      "auth": "PRIVILEGED_OTP_4_DIGIT_VIA_EXISTING_MAIL__HHMM_ONLY_EMERGENCY_INSECURE_BLOCKED",
+      "accepted_base": "D163_OWNER_PASS",
+      "parallel_d164": "ISOLATED_UNCHANGED",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "owner_field_pass": "PENDING"
+    },
+    "owner_ui_refinement_2026_10_07": {
+      "platform": "ANDROID_REPORTER_ONLY",
+      "visible_when_per_picker_enabled": [
+        "PENDING",
+        "OVERDUE",
+        "HAS_STOCK",
+        "SKIP_ALLOWED"
+      ],
+      "visible_other_modes": [
+        "PENDING",
+        "HAS_STOCK",
+        "SKIP_ALLOWED"
+      ],
+      "count_badges": [
+        "PENDING",
+        "OVERDUE"
+      ],
+      "removed_tab_from_ui_only": "WITHDRAWN",
+      "server_history": "UNCHANGED",
+      "web": "UNCHANGED",
+      "new_provider_or_poll": "NONE",
+      "status": "SOURCE_CI_16_OF_16_PASS__ANDROID_BUILD_PASS__FIELD_PENDING__NO_RELEASE",
+      "security_blocker": "CLOCK_ONLY_EMERGENCY_PROOF_MUST_NOT_DEPLOY_WITHOUT_INDEPENDENT_SECRET_BACKED_FACTOR"
+    },
+    "ci_2026_10_07_reporter_refinement": {
+      "validated_branch_head": "aaf72d511ba4aabcf3cd20f9cea6654837afd13e",
+      "pr": 487,
+      "checks": "PASS_16_OF_16",
+      "android_compilation": "PASS__RUN_37552102792",
+      "ui_design_guard": "PASS__RUN_37552102699",
+      "continuity": "PASS__RUN_37552102704",
+      "repo_authority": "PASS__RUN_37552102795",
+      "relay_agent": "PASS__RUN_37552102697",
+      "publish_signed_apk": "NOT_PERFORMED__DRAFT_PR_AND_SECURITY_GATE",
+      "security_gate": "OWNER_SUPERSEDED_EXTRA_FACTOR_BLOCKER__EXACT_REQUESTED_RULE_ACCEPTED_WITH_KNOWN_RISK",
+      "owner_field_acceptance": "PENDING",
+      "stable": "UNTOUCHED"
+    },
+    "privileged_auth_owner_exception_2026_10_07": {
+      "status": "OWNER_EXPLICIT_CURRENT_DECISION_SUPERSEDES_PREVIOUS_EXTRA_FACTOR_RELEASE_BLOCKER",
+      "accounts": [
+        "root",
+        "admin",
+        "tamnv2"
+      ],
+      "otp": "FOUR_DIGITS_EMAIL_ONCE_CONSUMED_ROTATE_AFTER_SUCCESS",
+      "emergency": "NUMERIC_AT_LEAST_8_DIGITS_CONTAINS_SERVER_VIETNAM_HHMM_ANYWHERE_PLUS_MINUS_5_MINUTES",
+      "additional_factor": "OWNER_EXPLICITLY_REJECTED_NO_TOTP_OR_STATIC_SECRET",
+      "known_residual_risk": "PUBLICLY_PREDICTABLE_EMERGENCY_PROOF__PRIVILEGED_ACCOUNT_TAKEOVER_POSSIBLE__OWNER_INFORMED_AND_ACCEPTED",
+      "fixed_password": "RETIRED",
+      "rbac_and_session_fences": "UNCHANGED",
+      "repo_secrets": "NONE",
+      "scope": "BETA_ONLY",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "field_owner_pass": "PENDING"
+    },
+    "verified_published_baseline_2026_10_07": {
+      "android_release": "beta-vc98",
+      "android_release_source": "7c97ff686b06b3b5d827a7daf84ab6df7c49adad",
+      "agent_release": "relay-agent-v115",
+      "agent_release_status": "PUBLISHED",
+      "next_source_agent_version": "116",
+      "next_signed_android_version": "MONOTONIC_RUNTIME_COMPUTED_NEXT",
+      "verification_source": "GITHUB_RELEASES_API",
+      "d165_pr_487_released": false
     }
   },
   "launcher_daily_password": {

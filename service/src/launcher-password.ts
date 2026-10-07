@@ -33,7 +33,8 @@ interface InternalPasswordPayload {
 const CORE_NAME = "singleton";
 // PDA registrations are stored by pda-registry.ts in a different Durable Object.
 const REGISTRY_CORE_NAME = "inventory-core";
-const RECIPIENT = "tam95.supra@gmail.com";
+export const PROJECT_ADMIN_EMAIL = "tam95.supra@gmail.com";
+const RECIPIENT = PROJECT_ADMIN_EMAIL;
 const DEVICE_KEY_RE = /^[a-f0-9]{64}$/;
 
 function json(payload: unknown, status = 200): Response {

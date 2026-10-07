@@ -30,7 +30,7 @@ class ReporterController(
     initialFilter: String = "PENDING",
     private val displayScale: Float = 1f,
 ) {
-    private enum class Filter { PENDING, HAS_STOCK, SKIP_ALLOWED, WITHDRAWN }
+    private enum class Filter { PENDING, OVERDUE, HAS_STOCK, SKIP_ALLOWED }
 
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
@@ -44,9 +44,9 @@ class ReporterController(
     private val confirmingBatchIds = mutableSetOf<String>()
 
     private var filter = when (initialFilter.uppercase()) {
+        "OVERDUE" -> Filter.OVERDUE
         "HAS_STOCK" -> Filter.HAS_STOCK
         "SKIP_ALLOWED" -> Filter.SKIP_ALLOWED
-        "WITHDRAWN", "CLOSED" -> Filter.WITHDRAWN
         else -> Filter.PENDING
     }
 
@@ -56,6 +56,11 @@ class ReporterController(
     private val badges = linkedMapOf<Filter, TextView>()
     private var queue: List<ReporterBatch> = emptyList()
     private var queueTotal = 0
+    private var overdueRows: List<ReporterOverdueBatch> = emptyList()
+    private var overdueTotal = 0
+    private var overdueEnabled = false
+    private var overdueLoaded = false
+    private var overdueLoading = false
     private var recent: List<ReporterRecent> = emptyList()
     private var recentCounts = ReporterRecentCounts()
 
@@ -76,9 +81,9 @@ class ReporterController(
         applyDisplayScale(root)
         list = root.findViewById(R.id.listIssues)
         bindTab(root, Filter.PENDING, R.id.tabReporterPendingBox, R.id.tabReporterPending, R.id.badgeReporterPending)
-        bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock, R.id.badgeReporterHasStock)
-        bindTab(root, Filter.SKIP_ALLOWED, R.id.tabReporterSkipBox, R.id.tabReporterSkip, R.id.badgeReporterSkip)
-        bindTab(root, Filter.WITHDRAWN, R.id.tabReporterWithdrawnBox, R.id.tabReporterWithdrawn, R.id.badgeReporterWithdrawn)
+        bindTab(root, Filter.OVERDUE, R.id.tabReporterOverdueBox, R.id.tabReporterOverdue, R.id.badgeReporterOverdue)
+        bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock)
+        bindTab(root, Filter.SKIP_ALLOWED, R.id.tabReporterSkipBox, R.id.tabReporterSkip)
         updateTabs()
         scheduleMinuteTicker()
         refresh()
@@ -93,7 +98,7 @@ class ReporterController(
     }
 
     fun onRealtime(scopes: Set<String>, events: List<RealtimeDeltaEvent>, completion: (Boolean) -> Unit) {
-        val relevant = scopes.contains("reporter_queue") || scopes.contains("reporter_recent")
+        val relevant = scopes.contains("reporter_queue") || scopes.contains("reporter_overdue") || scopes.contains("reporter_recent")
         if (!relevant) {
             completion(true)
             return
@@ -132,6 +137,22 @@ class ReporterController(
             autoSkipEnabled = snapshot.optBoolean("auto_skip_enabled", false),
             autoSkipMode = nullable(snapshot, "auto_skip_mode"),
             serverNow = null,
+        )
+    }
+
+    private fun reporterOverdueFromSnapshot(snapshot: JSONObject): ReporterOverdueBatch? {
+        if (snapshot.optString("status") != "PENDING") return null
+        val overdue = snapshot.optInt("overdue_picker_count", snapshot.optInt("overdue_ticket_count", 0))
+        if (overdue < 1) return null
+        return ReporterOverdueBatch(
+            batchId = snapshot.optString("batch_id"),
+            sku = snapshot.optString("sku"),
+            productName = snapshot.optString("product_name"),
+            firstReportAt = snapshot.optString("first_report_at"),
+            firstOverdueAt = nullable(snapshot, "first_overdue_at"),
+            overduePickerCount = overdue,
+            waitingPickerCount = snapshot.optInt("waiting_picker_count", snapshot.optInt("open_ticket_count", 0)),
+            version = snapshot.optInt("version", 1).coerceAtLeast(1),
         )
     }
 
@@ -182,8 +203,9 @@ class ReporterController(
         var changed = false
         for (event in events) {
             val queueChanged = event.scopes.contains("reporter_queue")
+            val overdueChanged = event.scopes.contains("reporter_overdue")
             val recentChanged = event.scopes.contains("reporter_recent")
-            if (!queueChanged && !recentChanged) continue
+            if (!queueChanged && !overdueChanged && !recentChanged) continue
             val snapshot = event.snapshot ?: return false
             val batchId = snapshot.optString("batch_id").trim()
             if (batchId.isBlank()) return false
@@ -204,6 +226,23 @@ class ReporterController(
                 } else {
                     (queue.filterNot { it.batchId == batchId } + row)
                         .sortedWith(compareBy<ReporterBatch> { it.firstReportAt }.thenBy { it.batchId })
+                }
+            }
+
+            if (overdueChanged) {
+                if (!metadata.has("overdue_delta")) return false
+                val delta = metadata.optInt("overdue_delta", Int.MIN_VALUE)
+                if (delta !in -1..1) return false
+                overdueTotal = (overdueTotal + delta).coerceAtLeast(0)
+                if (overdueLoaded) {
+                    val row = reporterOverdueFromSnapshot(snapshot)
+                    overdueRows = if (row == null) {
+                        overdueRows.filterNot { it.batchId == batchId }
+                    } else {
+                        (overdueRows.filterNot { it.batchId == batchId } + row)
+                            .sortedWith(compareBy<ReporterOverdueBatch> { it.firstOverdueAt ?: it.firstReportAt }.thenBy { it.batchId })
+                            .take(200)
+                    }
                 }
             }
 
@@ -257,23 +296,24 @@ class ReporterController(
         }
     }
 
-    private fun bindTab(root: View, value: Filter, boxId: Int, labelId: Int, badgeId: Int) {
+    private fun bindTab(root: View, value: Filter, boxId: Int, labelId: Int, badgeId: Int? = null) {
         val box = root.findViewById<FrameLayout>(boxId)
         val label = root.findViewById<TextView>(labelId)
-        val badge = root.findViewById<TextView>(badgeId)
+        val badge = badgeId?.let { root.findViewById<TextView>(it) }
         tabBoxes[value] = box
         tabLabels[value] = label
-        badges[value] = badge
+        if (badge != null) badges[value] = badge
         box.setOnClickListener { selectFilter(value) }
         label.setOnClickListener { selectFilter(value) }
-        badge.setOnClickListener { selectFilter(value) }
+        badge?.setOnClickListener { selectFilter(value) }
     }
 
     private fun selectFilter(value: Filter) {
-        if (filter == value) return
+        if (filter == value || (value == Filter.OVERDUE && !overdueEnabled)) return
         filter = value
         updateTabs()
         renderSelected()
+        if (value == Filter.OVERDUE && !overdueLoaded) loadOverdue()
     }
 
     private fun scheduleMinuteTicker() {
@@ -298,7 +338,15 @@ class ReporterController(
             try {
                 val nextQueue = api.getReporterQueueSnapshot(200)
                 val nextRecent = api.getReporterRecentSnapshot(200)
+                val nextCounters = api.getReporterCountersSnapshot()
+                val canShowOverdue = nextCounters.autoSkipEnabled && nextCounters.autoSkipMode == "PER_PICKER"
+                val nextOverdue = if (canShowOverdue && filter == Filter.OVERDUE) api.getReporterOverdueSnapshot(200) else null
                 activity.runOnUiThread {
+                    if (list == null) {
+                        refreshing = false
+                        finishRefreshWaiters(false)
+                        return@runOnUiThread
+                    }
                     val queueServerNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
                     val serverNow = nextRecent.serverNowMs.takeIf { it > 0L } ?: queueServerNow
                     queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
@@ -306,6 +354,11 @@ class ReporterController(
                     queueTotal = nextQueue.total
                     recent = nextRecent.items
                     recentCounts = nextRecent.counts
+                    overdueEnabled = canShowOverdue
+                    overdueTotal = if (canShowOverdue) nextCounters.overdueTotal else 0
+                    overdueRows = nextOverdue?.items ?: emptyList()
+                    overdueLoaded = nextOverdue != null
+                    if (!overdueEnabled && filter == Filter.OVERDUE) filter = Filter.PENDING
                     updateBadges()
                     renderSelected()
                     scheduleMinuteTicker()
@@ -346,10 +399,11 @@ class ReporterController(
     }
 
     private fun updateBadges() {
+        // D165: Reporter only shows actionable queue counts. Resolved-result
+        // badges were intentionally removed; data/history are unchanged.
+        tabBoxes[Filter.OVERDUE]?.visibility = if (overdueEnabled) View.VISIBLE else View.GONE
         setBadge(Filter.PENDING, queueTotal)
-        setBadge(Filter.HAS_STOCK, recentCounts.hasStock)
-        setBadge(Filter.SKIP_ALLOWED, recentCounts.skipAllowed)
-        setBadge(Filter.WITHDRAWN, recentCounts.withdrawn)
+        setBadge(Filter.OVERDUE, overdueTotal)
     }
 
     private fun setBadge(value: Filter, count: Int) {
@@ -359,7 +413,6 @@ class ReporterController(
     private fun recentRows(): List<ReporterRecent> = when (filter) {
         Filter.HAS_STOCK -> recent.filter { it.status == "HAS_STOCK" }
         Filter.SKIP_ALLOWED -> recent.filter { it.status == "SKIP_ALLOWED" }
-        Filter.WITHDRAWN -> recent.filter { it.status == "CLOSED" }
         else -> emptyList()
     }
 
@@ -371,12 +424,80 @@ class ReporterController(
             if (queue.isNotEmpty()) {
                 target.setOnItemClickListener { _, _, position, _ -> queue.getOrNull(position)?.let(::showTickets) }
             }
+        } else if (filter == Filter.OVERDUE) {
+            target.adapter = overdueAdapter(overdueRows)
+            target.setOnItemClickListener { _, _, position, _ ->
+                overdueRows.getOrNull(position)?.let { showTickets(it.batchId, it.sku) }
+            }
         } else {
             val rows = recentRows()
             target.adapter = recentAdapter(rows)
         }
         scheduleMinuteTicker()
         updateTabs()
+    }
+
+    // The overdue list is lazy: tab counters are cheap; list rows are fetched
+    // only on first opening, then patched from the existing realtime stream.
+    private fun loadOverdue() {
+        if (!overdueEnabled || overdueLoaded || overdueLoading || list == null) return
+        overdueLoading = true
+        setStatus("Đang tải SKU quá hạn…")
+        Thread {
+            try {
+                val next = api.getReporterOverdueSnapshot(200)
+                activity.runOnUiThread {
+                    if (list == null) return@runOnUiThread
+                    overdueLoading = false
+                    overdueEnabled = next.enabled && next.autoSkipMode == "PER_PICKER"
+                    overdueRows = if (overdueEnabled) next.items else emptyList()
+                    overdueTotal = if (overdueEnabled) next.total else 0
+                    overdueLoaded = overdueEnabled
+                    if (!overdueEnabled && filter == Filter.OVERDUE) filter = Filter.PENDING
+                    updateBadges()
+                    renderSelected()
+                }
+            } catch (e: Exception) {
+                activity.runOnUiThread {
+                    overdueLoading = false
+                    setStatus(friendlyError(e))
+                }
+            }
+        }.start()
+    }
+
+    private fun overdueAdapter(rows: List<ReporterOverdueBatch>): BaseAdapter = object : BaseAdapter() {
+        override fun getCount(): Int = rows.size
+        override fun getItem(position: Int): ReporterOverdueBatch = rows[position]
+        override fun getItemId(position: Int): Long = rows[position].batchId.hashCode().toLong()
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val created = convertView == null
+            val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
+            if (created) applyDisplayScale(view)
+            val row = getItem(position)
+            bindCommon(view, row.sku, row.productName, "${row.overduePickerCount} quá hạn")
+            view.findViewById<LinearLayout>(R.id.reporterRowRoot).background = kit.rounded(kit.orangeSoft, kit.skipStroke, 7)
+            view.findViewById<TextView>(R.id.tvReporterMeta).apply {
+                text = "Quá hạn: ${row.overduePickerCount} Picker · Còn chờ: ${row.waitingPickerCount} Picker\nLần đầu: ${timestamp(row.firstOverdueAt)}"
+                setTextColor(kit.orange)
+            }
+            val busy = processingBatchIds.contains(row.batchId) || confirmingBatchIds.contains(row.batchId)
+            view.findViewById<Button>(R.id.btnReporterHasStock).apply {
+                visibility = View.VISIBLE
+                text = "Đã có hàng"
+                isEnabled = !busy
+                alpha = if (busy) 0.45f else 1f
+                setOnClickListener { confirmResolution(row.batchId, row.sku, row.productName, "HAS_STOCK", "Đã có hàng") }
+            }
+            view.findViewById<Button>(R.id.btnReporterSkip).apply {
+                visibility = View.VISIBLE
+                text = "Cho phép skip"
+                isEnabled = !busy
+                alpha = if (busy) 0.45f else 1f
+                setOnClickListener { confirmResolution(row.batchId, row.sku, row.productName, "SKIP_ALLOWED", "Cho phép skip") }
+            }
+            return view
+        }
     }
 
     private fun pendingAdapter(rows: List<ReporterBatch>): BaseAdapter = object : BaseAdapter() {
@@ -421,8 +542,8 @@ class ReporterController(
             skip.alpha = if (busy) 0.45f else 1f
             hasStock.text = if (busy) "Đang xử lý…" else "Đã có hàng"
             skip.text = if (busy) "Đang xử lý…" else "Cho phép skip"
-            hasStock.setOnClickListener { confirmResolution(row, "HAS_STOCK", "Đã có hàng") }
-            skip.setOnClickListener { confirmResolution(row, "SKIP_ALLOWED", "Cho phép skip") }
+            hasStock.setOnClickListener { confirmResolution(row.batchId, row.sku, row.productName, "HAS_STOCK", "Đã có hàng") }
+            skip.setOnClickListener { confirmResolution(row.batchId, row.sku, row.productName, "SKIP_ALLOWED", "Cho phép skip") }
             root.contentDescription = "SKU ${row.sku}, ${timing.first} phút, ${slaLabel(timing.second)}"
             return view
         }
@@ -445,20 +566,35 @@ class ReporterController(
             val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
             val deadlineMs = millis(row.correctionDeadlineAt)
             val remainingMs = (deadlineMs - calibratedNow).coerceAtLeast(0L)
-            val canCorrect = row.status == "SKIP_ALLOWED" && row.correctionAllowed && deadlineMs > 0L && remainingMs > 0L
-            actions.visibility = if (canCorrect) View.VISIBLE else View.GONE
-            hasStock.visibility = if (canCorrect) View.VISIBLE else View.GONE
-            skip.visibility = View.GONE
-            if (canCorrect) {
-                val totalSeconds = (remainingMs + 999L) / 1_000L
-                val minutes = totalSeconds / 60L
-                val seconds = totalSeconds % 60L
-                hasStock.text = "Sửa thành Đã có hàng · %02d:%02d".format(minutes, seconds)
-                hasStock.isEnabled = !processingBatchIds.contains(row.batchId)
-                hasStock.alpha = if (hasStock.isEnabled) 1f else 0.45f
-                hasStock.setOnClickListener { confirmCorrection(row) }
-            } else {
-                hasStock.setOnClickListener(null)
+            val canCorrectSkip = row.status == "SKIP_ALLOWED" && row.correctionAllowed && deadlineMs > 0L && remainingMs > 0L
+            val canCorrectStock = row.status == "HAS_STOCK"
+            val busy = processingBatchIds.contains(row.batchId) || confirmingBatchIds.contains(row.batchId)
+            actions.visibility = if (canCorrectSkip || canCorrectStock) View.VISIBLE else View.GONE
+            hasStock.visibility = if (canCorrectSkip || canCorrectStock) View.VISIBLE else View.GONE
+            skip.visibility = if (canCorrectStock) View.VISIBLE else View.GONE
+            hasStock.isEnabled = !busy
+            skip.isEnabled = !busy
+            hasStock.alpha = if (busy) 0.45f else 1f
+            skip.alpha = if (busy) 0.45f else 1f
+            when {
+                canCorrectStock -> {
+                    hasStock.text = "Sửa - Đang xử lý"
+                    skip.text = "Sửa - Cho phép Skip"
+                    hasStock.setOnClickListener { confirmStockCorrection(row, "PENDING", "Đang xử lý") }
+                    skip.setOnClickListener { confirmStockCorrection(row, "SKIP_ALLOWED", "Cho phép Skip") }
+                }
+                canCorrectSkip -> {
+                    val totalSeconds = (remainingMs + 999L) / 1_000L
+                    val minutes = totalSeconds / 60L
+                    val seconds = totalSeconds % 60L
+                    hasStock.text = "Sửa thành Đã có hàng · %02d:%02d".format(minutes, seconds)
+                    hasStock.setOnClickListener { confirmCorrection(row) }
+                    skip.setOnClickListener(null)
+                }
+                else -> {
+                    hasStock.setOnClickListener(null)
+                    skip.setOnClickListener(null)
+                }
             }
             val root = view.findViewById<LinearLayout>(R.id.reporterRowRoot)
             val colors = when (row.status) {
@@ -495,42 +631,92 @@ class ReporterController(
         view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.VISIBLE
     }
 
-    private fun confirmResolution(row: ReporterBatch, resolution: String, label: String) {
-        if (processingBatchIds.contains(row.batchId) || !confirmingBatchIds.add(row.batchId)) return
+    private fun confirmResolution(batchId: String, sku: String, productName: String, resolution: String, label: String) {
+        if (processingBatchIds.contains(batchId) || !confirmingBatchIds.add(batchId)) return
         (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
         val dialog = AlertDialog.Builder(activity)
             .setTitle("Xác nhận $label?")
-            .setMessage("${row.sku} - ${row.productName}\nXác nhận xử lý SKU này?")
+            .setMessage("$sku - $productName\nXác nhận xử lý SKU này?")
             .setNegativeButton("Huỷ", null)
-            .setPositiveButton("Xác nhận") { _, _ -> resolveDirect(row, resolution, label) }
+            .setPositiveButton("Xác nhận") { _, _ -> resolveDirect(batchId, sku, resolution, label) }
             .create()
         dialog.setOnDismissListener {
-            confirmingBatchIds.remove(row.batchId)
+            confirmingBatchIds.remove(batchId)
             (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
         }
         dialog.show()
     }
 
-    private fun resolveDirect(row: ReporterBatch, resolution: String, label: String) {
-        if (!processingBatchIds.add(row.batchId)) return
+    private fun resolveDirect(batchId: String, sku: String, resolution: String, label: String) {
+        if (!processingBatchIds.add(batchId)) return
         (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
-        setStatus("Đang cập nhật ${row.sku}…")
+        setStatus("Đang cập nhật $sku…")
         Thread {
             try {
-                api.resolveBatch(row.batchId, resolution)
+                api.resolveBatch(batchId, resolution)
                 activity.runOnUiThread {
-                    processingBatchIds.remove(row.batchId)
-                    setStatus("Đã xử lý ${row.sku}: $label.")
+                    processingBatchIds.remove(batchId)
+                    setStatus("Đã xử lý $sku: $label.")
                     refresh()
                 }
             } catch (e: Exception) {
                 activity.runOnUiThread {
-                    processingBatchIds.remove(row.batchId)
+                    processingBatchIds.remove(batchId)
                     setStatus(friendlyError(e))
                     refresh()
                 }
             }
         }.start()
+    }
+
+    private fun confirmStockCorrection(row: ReporterRecent, target: String, label: String) {
+        if (processingBatchIds.contains(row.batchId) || !confirmingBatchIds.add(row.batchId)) return
+        (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+        var secondOpened = false
+        val first = AlertDialog.Builder(activity)
+            .setTitle("Sửa kết quả Đã có hàng?")
+            .setMessage("${row.sku} - ${row.productName}\nChuyển kết quả sang $label?")
+            .setNegativeButton("Huỷ", null)
+            .setPositiveButton("Tiếp tục") { _, _ ->
+                secondOpened = true
+                val second = AlertDialog.Builder(activity)
+                    .setTitle("CẢNH BÁO: Thay đổi kết quả đã gửi")
+                    .setMessage("Kết quả Đã có hàng đã được thông báo cho Picker. Thay đổi sang $label sẽ tạo kết quả điều chỉnh mới và yêu cầu Picker xác nhận lại. Tiếp tục?")
+                    .setNegativeButton("Huỷ", null)
+                    .setPositiveButton("Xác nhận sửa") { _, _ ->
+                        if (processingBatchIds.add(row.batchId)) {
+                            (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+                            Thread {
+                                try {
+                                    api.correctResolvedBatch(row.batchId, target, row.version)
+                                    activity.runOnUiThread {
+                                        processingBatchIds.remove(row.batchId)
+                                        setStatus("Đã sửa ${row.sku} thành $label.")
+                                        refresh()
+                                    }
+                                } catch (e: Exception) {
+                                    activity.runOnUiThread {
+                                        processingBatchIds.remove(row.batchId)
+                                        setStatus(friendlyError(e))
+                                        refresh()
+                                    }
+                                }
+                            }.start()
+                        }
+                    }.create()
+                second.setOnDismissListener {
+                    confirmingBatchIds.remove(row.batchId)
+                    (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+                }
+                second.show()
+            }.create()
+        first.setOnDismissListener {
+            if (!secondOpened) {
+                confirmingBatchIds.remove(row.batchId)
+                (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
+            }
+        }
+        first.show()
     }
 
     private fun confirmCorrection(row: ReporterRecent) {
@@ -566,10 +752,12 @@ class ReporterController(
             }.show()
     }
 
-    private fun showTickets(row: ReporterBatch) {
+    private fun showTickets(row: ReporterBatch) = showTickets(row.batchId, row.sku)
+
+    private fun showTickets(batchId: String, sku: String) {
         Thread {
             try {
-                val tickets = api.getBatchTickets(row.batchId)
+                val tickets = api.getBatchTickets(batchId)
                 activity.runOnUiThread {
                     val text = if (tickets.isEmpty()) "Không có Picker trong batch." else tickets.joinToString("\n\n") {
                         val ack = if (it.resultEventId != null) {
@@ -585,7 +773,7 @@ class ReporterController(
                         })
                     }
                     AlertDialog.Builder(activity)
-                        .setTitle("${row.sku} · ${tickets.size} Picker")
+                        .setTitle("$sku · ${tickets.size} Picker")
                         .setView(scroll)
                         .setPositiveButton("Đóng", null)
                         .show()
