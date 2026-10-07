@@ -3476,3 +3476,15 @@ Owner reports D165 privileged-account password change is not live and explicitly
 - **SECURITY BLOCKER**: The exact requested emergency rule (any numeric >=8-character input merely containing the current Vietnam HHmm within ±5 minutes) is public/predictable and cannot securely authenticate an administrator. This emergency rule must not be activated as a production-capable bypass until the Owner explicitly approves a separate secret-backed emergency factor. Do not record or commit actual codes, credentials or secrets.
 - PR #487 previously failed Project State Guard because canonical state was not updated in the source change set. This repair records decisions/spec/state together, then reruns gates.
 - D164 PDA Management stays isolated and independently field-pending; Stable is OWNER-GATED untouched. Do not promote D165 as Owner PASS without field validation.
+
+## 2026-10-07 — D165 Owner UI refinement — Android Reporter tabs
+
+Owner explicitly requested a same-D165 Reporter APK presentation refinement while D165 PR #487 is under repair:
+
+- Remove the **Picker đã thu hồi** tab from the **Android Reporter** workspace. Historical withdrawals, audit/report data and all server-side lifecycle behavior remain unchanged.
+- Keep the **Đang xử lý** and conditional **Quá hạn** tabs with visible authoritative numeric badges.
+- Remove numeric badges from the **Đã có hàng** and **Cho phép Skip** tabs. The tabs and their report rows/actions stay available.
+- Exactly four operational tabs are visible when `PER_PICKER` auto-skip is enabled: **Đang xử lý · Quá hạn · Đã có hàng · Cho phép Skip**. With `FIRST_REPORT` or disabled per-Picker auto-skip, **Quá hạn** is hidden, leaving three tabs; underlying FIRST_REPORT timeout/transaction semantics are not changed.
+- Tabs share the available width instead of requiring a horizontal-scroll container. No new API request, poll, listener, background timer, database field or provider resource is introduced. Realtime queue/overdue counters remain the only UI badges.
+- This UI-only change applies to **Android Reporter**; Web operations, detailed reporting, withdrawal history and RBAC remain unchanged.
+- PR #487 remains draft until Android/authority/continuity gates pass and the separately documented privileged-login emergency authentication security blocker is resolved. No change to D164; Stable remains Owner-gated.
