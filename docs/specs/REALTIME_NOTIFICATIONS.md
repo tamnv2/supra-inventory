@@ -974,3 +974,7 @@ PER_PICKER overdue transitions use existing realtime delivery plus bounded overd
 HAS_STOCK corrections create a new versioned result event. Affected Pickers receive a clear Vietnamese “kết quả đã được điều chỉnh” notification and must acknowledge it using the existing critical-result acknowledgement semantics.
 
 Release-note text is not a realtime business event and must reuse the existing update/version manifest path.
+
+### D165 corrected Skip result delivery (2026-10-07)
+
+Use the existing `BATCH_CORRECTED` immutable result event, batch-scoped Picker ACK recipients and `batch_corrected` Android FCM event for **both** Skip → PENDING and Skip → HAS_STOCK. The formerly divergent `batch_corrected_pending` notification category is not used because Android's existing result overlay/ACK listener only recognizes `batch_corrected`. Include former/new result state, SKU, product, correcting Inventory actor, and correction reason in notification body and Picker result/overlay. Read the historical event payload (`from`), not the current batch state, when replaying an unacknowledged correction. Preserve exact user/event authorization, realtime cursor/seq and version-fenced ACK. No new timer, general Picker recipient query, Firebase business channel or periodic fetch.
