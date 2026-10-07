@@ -358,12 +358,18 @@ async function privilegedAgentLogin(request: Request, env: Env): Promise<Respons
   const username = String(body.username || "").trim().toLowerCase();
   const proof = String(body.password || "");
   let user = await getUserByUsername(env, username);
-  if (
-    !user ||
-    !isPrivilegedOneTimeUser(user) ||
-    user.base_role !== "ADMIN" ||
-    user.role !== "ADMIN"
-  ) return json({ error: "INVALID_CREDENTIALS" }, 401);
+  if (!user || !isPrivilegedOneTimeUser(user)) {
+    return json({ error: "INVALID_CREDENTIALS" }, 401);
+  }
+  const agentRoleAllowed =
+    (user.base_role === "ADMIN" && user.role === "ADMIN") ||
+    (user.base_role === "PICKPACK_ADMIN" && user.role === "PICKPACK_ADMIN");
+  if (!agentRoleAllowed) {
+    return json({
+      error: "AGENT_ROLE_REQUIRED",
+      message: "Tài khoản này không có quyền Agent hiện hành.",
+    }, 403);
+  }
 
   try {
     user = await retirePrivilegedStaticPassword(env, user);
@@ -387,7 +393,7 @@ async function privilegedAgentLogin(request: Request, env: Env): Promise<Respons
 }
 
 async function privilegedAgentReauth(request: Request, env: Env): Promise<Response> {
-  const user = await requireAgentUser(request, env, ["ADMIN"]);
+  const user = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
   if (!isPrivilegedOneTimeUser(user)) return json({ error: "PRIVILEGED_ACCOUNT_REQUIRED" }, 403);
   let body: { proof?: string } = {};
   try { body = (await request.json()) as typeof body; } catch { return json({ error: "INVALID_JSON" }, 400); }
