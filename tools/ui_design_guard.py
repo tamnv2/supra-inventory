@@ -469,7 +469,8 @@ checks = {
     "android_picker_uses_legacy_result_overlay": "R.layout.overlay_alert" in ANDROID_PICKER and "R.id.btnOverlayAck" in ANDROID_PICKER and "R.drawable.bg_overlay_skip" in ANDROID_PICKER and "R.drawable.bg_overlay_available" in ANDROID_PICKER,
     "client_ui_has_no_internal_implementation_prose": all(token not in (WEB_UI + ANDROID_ALL) for token in ["Owner duyệt UI", "sẽ được nối sau", "đang transplant", "logic lưu sẽ"]),
     "android_picker_ack": "XÁC NHẬN ĐÃ NHẬN" in ANDROID_PICKER and "acknowledgeResult" in ANDROID_API,
-    "android_d111_reporter_confirmed_actions": all(token in ANDROID_REPORTER for token in ["confirmResolution(row, \"HAS_STOCK\"", "confirmResolution(row, \"SKIP_ALLOWED\"", "processingBatchIds", "confirmingBatchIds", '.setPositiveButton("Xác nhận")', "scheduleMinuteTicker"]),
+    "android_d111_reporter_confirmed_actions": all(token in ANDROID_REPORTER for token in ["confirmResolution(row.batchId, row.sku, row.productName, \"HAS_STOCK\"", "confirmResolution(row.batchId, row.sku, row.productName, \"SKIP_ALLOWED\"", "processingBatchIds", "confirmingBatchIds", '.setPositiveButton("Xác nhận")', "scheduleMinuteTicker"]),
+    "android_d165_reporter_overdue_and_stock_correction": all(token in ANDROID_REPORTER for token in ["Filter.OVERDUE", "api.getReporterOverdueSnapshot", "confirmStockCorrection", "correctResolvedBatch", "reporter_overdue"]) and "R.id.tabReporterOverdue" in ANDROID_REPORTER and "getReporterOverdueSnapshot" in ANDROID_API,
     "android_d110_role_gate": all(token in SERVICE_INDEX for token in [
         'channel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")',
         "CLIENT_ROLE_NOT_ALLOWED",
