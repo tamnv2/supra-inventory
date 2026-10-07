@@ -59,8 +59,7 @@
             android:layout_weight="1"
             android:background="@drawable/bg_picker_tab_idle"
             android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone">
+            android:focusable="true">
             <TextView
                 android:id="@+id/tabReporterOverdue"
                 android:layout_width="match_parent"
@@ -135,6 +134,15 @@
                 android:textStyle="bold" />
         </FrameLayout>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvReporterOverdueInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        android:visibility="gone" />
 
     <ListView
         android:id="@+id/listIssues"
