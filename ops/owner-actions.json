@@ -5199,28 +5199,28 @@
     },
     {
       "id": "OA100",
-      "status": "D165_PR491_SOURCE_NEUTRAL_LOGIN_UI_VALIDATION_PENDING__THEN_OWNER_FIELD_TEST",
+      "status": "READY_FOR_OWNER_FIELD_TEST__D165_VC100_AGENT_V117_BETA_WORKER_TECHNICAL_PASS",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
-      "reason_owner_only": "Pre-existing Beta technical releases and Gateway readback PASS do not certify the new neutral-login UI. PR #491 must pass builds and Beta release first. Only real account email, Agent Office, Android PDA and comparable-load usage validate actual OTP rotation and field behavior.",
+      "reason_owner_only": "PR #491 passed 14/14 PR CI and 11/11 main CI; Beta Worker/Web, signed Android vc100, Agent v117 and the existing distribution channel are released. Only an actual authorized mailbox, company Office Agent/PDA and comparable-load usage can validate the privileged OTP email consumption/reissue and business field correctness.",
       "prerequisites": {
         "accepted_inventory_base": "D163_OWNER_PASS",
-        "d165_runtime": "PR_487_488_489_MERGED_SOURCE_CI_PASS",
-        "android": "beta-vc99__RELEASED",
-        "agent": "relay-agent-v116__RELEASED",
-        "worker": "BETA_DEPLOY_PASS__RUN_37553374710",
-        "apps_script_gateway": "EXISTING_SCRIPT_DEPLOYED_AND_LIVE_HANDLER_PROBED_PASS__RUN_37554446509",
+        "d165_runtime": "PR_491_MERGED__SOURCE_MAIN_ALL_CI_PASS",
+        "android": "beta-vc100__SIGNED_PUBLISHED",
+        "agent": "relay-agent-v117__SIGNED_PUBLISHED",
+        "worker": "BETA_DEPLOY_PASS__RUN_37558186044",
+        "apps_script_gateway": "EXISTING_GATEWAY_PREVIOUS_D165_PROVIDER_READBACK_PASS__RUN_37554446509__NOT_MODIFIED_BY_PR491",
         "stable": "OWNER_GATED_UNTOUCHED",
         "security_risk": "OWNER_EXPLICIT_ACCEPTED_PUBLICLY_PREDICTABLE_HHMM_EMERGENCY_PROOF",
-        "neutral_login_ui": "PR_491_REQUIRES_MERGE_AND_NEW_SIGNED_BETA_ANDROID_AGENT_RELEASE",
+        "neutral_login_ui": "PR_491_MERGED_MAIN_ECAD23EB__UI_BUTTONS_REMOVED__RELEASED",
         "agent_candidate_version": "117"
       },
       "shortest_test_path": [
-        "On newly published Beta Web, Android and Agent verify the normal username/password login: no public one-time-code request button, special username list or emergency-code hint. Log in with an already-issued valid four-digit code; confirm consumption and automatic next-code email (same existing subject). If code expired after 15 minutes, the current D165 approved emergency method is the existing recovery path; do not paste codes into chat/logs.",
+        "Install/update signed Android beta-vc100 and Windows Agent v117; refresh Beta Web. All login screens must show only ordinary account/password login without OTP request/hints. Enter a fresh 4-digit code already received by the authorized Owner mailbox into the password field; successful OTP consumption must trigger a new email automatically using the approved subject. A code issued more than 15 minutes ago expires; do not paste credentials to chat.",
         "Test the Owner-required emergency numeric minimum-8-digit server-HHmm-within-5-minutes login on Beta; confirm invalid or stale values fail; understand the predictable credential's account-takeover risk.",
-        "On Agent v116, verify fresh admin login via existing Gateway, local valid session restore, protected-action re-auth, and logout behavior from company Office.",
-        "On Reporter APK beta-vc99 in PER_PICKER, verify four tabs and only two badges (Đang xử lý / Quá hạn); test HAS_STOCK correction double confirmation and no duplicate picker Skip. FIRST_REPORT shows three tabs; Picker đã thu hồi is hidden on APK but remains in history.",
+        "On Agent v117, verify fresh authorized admin/tamnv2 login via existing Gateway, local saved-session recovery, protected-action re-auth and logout using the company Office network.",
+        "On Reporter APK beta-vc100 in PER_PICKER verify four tabs and numeric badges only on Đang xử lý/Quá hạn; test HAS_STOCK correction double confirmation and no duplicate Picker Skip. FIRST_REPORT shows three tabs; Picker đã thu hồi is UI-hidden but still retained in history.",
         "Observe normal operational load for comparable Cloudflare DO and Firestore read/write, realtime update latency, PickList speed and failover before declaring D165 PASS."
       ],
       "pass_criteria": [
@@ -5231,9 +5231,10 @@
         "No material regression of realtime, throughput, stability, 15-second HA objective or excessive provider usage.",
         "Owner explicitly reports D165 PASS after actual field/usage evidence. CI/runtime PASS alone is not Owner PASS.",
         "Stable remains untouched.",
-        "Web/Android/Agent have generic password login and no manual one-time-code request affordance; successful one-time-code login automatically mails the next code."
+        "Web/Android/Agent have generic password login and no manual one-time-code request affordance; successful one-time-code login automatically mails the next code.",
+        "Beta releases confirmed Android vc100, Agent v117, Web Worker on merged PR #491, with no Stable or D164 mutation."
       ],
-      "remaining_owner_action": "WAIT_FOR_PR491_TECHNICAL_BETA_RELEASE__THEN_OA100_REAL_FIELD_AND_USAGE_OWNER_PASS",
+      "remaining_owner_action": "FIELD_VALIDATE_VC100_AGENT_V117_WEB_OTP_MAIL_ROTATION_AND_NORMAL_WORKFLOWS__COMPARE_REAL_USAGE__OWNER_EXPLICIT_PASS",
       "closed": false
     }
   ]
