@@ -87,6 +87,16 @@ def main() -> None:
     sla_auto = read("service/src/sla-automation.ts")
     web = read("web/src/operational-app.ts")
 
+    # D165: no-target 400 on Skip correction is a release blocker.
+    for marker in ('confirmResolvedCorrection(row, "PENDING", "Đang xử lý")',
+                   'confirmResolvedCorrection(row, "HAS_STOCK", "Đã có hàng")',
+                   'api.correctResolvedBatch(row.batchId, target, row.version)',
+                   'Sửa - Đang xử lý', 'Sửa - Đã có hàng'):
+        require(reporter, marker, "D165 Skip correction UI/contract")
+    forbid(inventory_api, 'fun correctBatch(batchId: String): JSONObject', "retired INVALID_INPUT correction call")
+    require(picker, "correctionFromStatus", "D165 Picker correction origin display")
+    require(picker, "chuyển trạng thái SKU từ", "D165 Picker correction reason and state message")
+
     # F09/F11 + D110: Picker keeps keyed history; Reporter uses bounded XML ListView adapters with per-batch mutation locking.
     require(keyed, "class KeyedLinearRenderer", "keyed list renderer")
     require(picker, "historyRenderer", "Picker keyed history")
