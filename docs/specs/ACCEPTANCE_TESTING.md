@@ -2630,3 +2630,15 @@ D165 implementation must prove, under comparable load:
 - Stable remains OWNER-GATED.
 
 Technical/runtime PASS never substitutes for explicit Owner field PASS.
+
+
+## D165 same-change repair — acceptance additions (Android + privileged login)
+
+1. Under PER_PICKER with auto-skip enabled, Reporter APK shows five pinned/scrollable tabs including **Quá hạn**, with badge and list matching Web; under FIRST_REPORT the original four equally spaced tabs and behavior remain unchanged.
+2. A SKU with both waiting and timed-out tickets appears in both appropriate tabs. Quá hạn has both final action buttons. Resolve refreshes both platforms and sends no duplicate auto-skip to already timed-out Pickers.
+3. In Android **Đã có hàng**, both **Sửa - Đang xử lý** and **Sửa - Cho phép Skip** use two confirmations and `expected_version`. Cancel leaves results unchanged; stale/duplicate submission is rejected and reconciles.
+4. Corrections retain audit and critical Picker corrected-result ACK; Skip-to-Stock correction and normal pending actions remain available.
+5. Realtime normal events patch queue/overdue/recent locally; no new periodic poll, listener family or per-event full SQL reload.
+6. OTP: protected usernames cannot use the old static password; one-time 4-digit email code is single-use and time-limited, invalid/expired/rate-limited codes fail closed; verify email subject, post-success rotation and session restore.
+7. **Security gate**: clock-only >=8 digit emergency proof containing HHmm is insufficient by itself; do not deploy it to production-capable Beta login until an independent secret-backed factor is approved and tested.
+8. Complete PR UI, Android compile, Agent, Worker, authority and Project State gates. Beta runtime/physical field and Owner PASS remain separate; Stable never auto-promotes.
