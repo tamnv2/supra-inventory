@@ -1410,10 +1410,18 @@ function renderCriticalResult(): string {
   const result = pickerResults.find((row) => !row.acknowledged_at);
   if (!result) return "";
   const isSkip = result.resolution === "SKIP_ALLOWED";
+  const isPending = result.resolution === "PENDING";
+  const from = result.correction_from_status === "SKIP_ALLOWED" ? "Skip" : result.correction_from_status === "HAS_STOCK" ? "Đã có hàng" : "";
+  const to = isPending ? "Đang xử lý" : isSkip ? "Skip" : "Đã có hàng";
+  const actor = result.resolved_by_display_name || result.resolved_by_employee_code || "Nhân sự Inventory";
+  const reason = from && result.resolution_source === "REPORTER_CORRECTION"
+    ? `Báo hàng ${result.sku} chuyển trạng thái SKU từ ${from} sang ${to}. Lý do: ${actor} sửa kết quả.`
+    : isPending ? "Người xử lý đã chuyển SKU về trạng thái đang xử lý."
+    : isSkip ? "Người xử lý đã xác nhận SKU này được phép bỏ qua." : "Người xử lý đã xác nhận SKU này đã có hàng.";
   return `<div class="critical-result"><div class="critical-box ${isSkip ? "skip-result" : ""}">
-    <h2>${isSkip ? "ĐƯỢC PHÉP BỎ QUA" : "ĐÃ CÓ HÀNG"}</h2>
+    <h2>${isPending ? "ĐANG XỬ LÝ LẠI" : isSkip ? "ĐƯỢC PHÉP BỎ QUA" : "ĐÃ CÓ HÀNG"}</h2>
     <div class="critical-sku">${esc(result.sku)}</div><div class="product-name">${esc(result.product_name)}</div>
-    <p>${isSkip ? "Người xử lý đã xác nhận SKU này được phép bỏ qua." : "Người xử lý đã xác nhận SKU này đã có hàng."}</p>
+    <p>${esc(reason)}</p>
     <button class="btn report-button ${isSkip ? "danger" : "success"}" id="ack-result" data-event="${esc(result.result_event_id)}">XÁC NHẬN ĐÃ NHẬN</button>
   </div></div>`;
 }
