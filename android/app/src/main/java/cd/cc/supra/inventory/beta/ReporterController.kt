@@ -581,7 +581,7 @@ class ReporterController(
             val busy = processingBatchIds.contains(row.batchId) || confirmingBatchIds.contains(row.batchId)
             actions.visibility = if (canCorrectSkip || canCorrectStock) View.VISIBLE else View.GONE
             hasStock.visibility = if (canCorrectSkip || canCorrectStock) View.VISIBLE else View.GONE
-            skip.visibility = if (canCorrectStock) View.VISIBLE else View.GONE
+            skip.visibility = if (canCorrectSkip || canCorrectStock) View.VISIBLE else View.GONE
             hasStock.isEnabled = !busy
             skip.isEnabled = !busy
             hasStock.alpha = if (busy) 0.45f else 1f
@@ -590,16 +590,17 @@ class ReporterController(
                 canCorrectStock -> {
                     hasStock.text = "Sửa - Đang xử lý"
                     skip.text = "Sửa - Cho phép Skip"
-                    hasStock.setOnClickListener { confirmStockCorrection(row, "PENDING", "Đang xử lý") }
-                    skip.setOnClickListener { confirmStockCorrection(row, "SKIP_ALLOWED", "Cho phép Skip") }
+                    hasStock.setOnClickListener { confirmResolvedCorrection(row, "PENDING", "Đang xử lý") }
+                    skip.setOnClickListener { confirmResolvedCorrection(row, "SKIP_ALLOWED", "Cho phép Skip") }
                 }
                 canCorrectSkip -> {
                     val totalSeconds = (remainingMs + 999L) / 1_000L
                     val minutes = totalSeconds / 60L
                     val seconds = totalSeconds % 60L
-                    hasStock.text = "Sửa thành Đã có hàng · %02d:%02d".format(minutes, seconds)
-                    hasStock.setOnClickListener { confirmCorrection(row) }
-                    skip.setOnClickListener(null)
+                    hasStock.text = "Sửa - Đang xử lý"
+                    skip.text = "Sửa - Đã có hàng"
+                    hasStock.setOnClickListener { confirmResolvedCorrection(row, "PENDING", "Đang xử lý") }
+                    skip.setOnClickListener { confirmResolvedCorrection(row, "HAS_STOCK", "Đã có hàng") }
                 }
                 else -> {
                     hasStock.setOnClickListener(null)
@@ -623,11 +624,15 @@ class ReporterController(
                 else -> ""
             }
             view.findViewById<TextView>(R.id.tvReporterMeta).apply {
-                text = if (responseTime.isNullOrBlank()) {
+                val correctionInfo = if (canCorrectSkip) {
+                    val secondsLeft = (remainingMs + 999L) / 1_000L
+                    "\nCòn sửa Skip: %02d:%02d".format(secondsLeft / 60L, secondsLeft % 60L)
+                } else ""
+                text = (if (responseTime.isNullOrBlank()) {
                     "Báo lúc: $reportTime"
                 } else {
                     "Báo lúc: $reportTime\nInvent phản hồi lúc: $responseTime" + if (responder.isBlank()) "" else " bởi $responder"
-                }
+                }) + correctionInfo
                 setTextColor(colors.third)
             }
             return view
@@ -679,19 +684,25 @@ class ReporterController(
         }.start()
     }
 
-    private fun confirmStockCorrection(row: ReporterRecent, target: String, label: String) {
+    private fun confirmResolvedCorrection(row: ReporterRecent, target: String, label: String) {
+        if (row.status == "SKIP_ALLOWED" && (!row.correctionAllowed ||
+                millis(row.correctionDeadlineAt) <= System.currentTimeMillis() + queueServerOffsetMs)) {
+            setStatus("Đã hết thời gian hoặc chưa bật cho phép sửa kết quả Skip.")
+            return
+        }
         if (processingBatchIds.contains(row.batchId) || !confirmingBatchIds.add(row.batchId)) return
         (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
         var secondOpened = false
+        val previous = if (row.status == "SKIP_ALLOWED") "Skip" else "Đã có hàng"
         val first = AlertDialog.Builder(activity)
-            .setTitle("Sửa kết quả Đã có hàng?")
-            .setMessage("${row.sku} - ${row.productName}\nChuyển kết quả sang $label?")
+            .setTitle("Sửa kết quả $previous?")
+            .setMessage("${row.sku} - ${row.productName}\nChuyển từ $previous sang $label?")
             .setNegativeButton("Huỷ", null)
             .setPositiveButton("Tiếp tục") { _, _ ->
                 secondOpened = true
                 val second = AlertDialog.Builder(activity)
                     .setTitle("CẢNH BÁO: Thay đổi kết quả đã gửi")
-                    .setMessage("Kết quả Đã có hàng đã được thông báo cho Picker. Thay đổi sang $label sẽ tạo kết quả điều chỉnh mới và yêu cầu Picker xác nhận lại. Tiếp tục?")
+                    .setMessage("Kết quả $previous đã được thông báo cho Picker. Thay đổi sang $label sẽ tạo kết quả điều chỉnh mới và chỉ gửi tới Picker đã báo SKU này. Tiếp tục?")
                     .setNegativeButton("Huỷ", null)
                     .setPositiveButton("Xác nhận sửa") { _, _ ->
                         if (processingBatchIds.add(row.batchId)) {
@@ -729,38 +740,6 @@ class ReporterController(
         first.show()
     }
 
-    private fun confirmCorrection(row: ReporterRecent) {
-        val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
-        if (millis(row.correctionDeadlineAt) <= calibratedNow) {
-            setStatus("Đã hết thời gian cho phép sửa kết quả.")
-            (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
-            return
-        }
-        AlertDialog.Builder(activity)
-            .setTitle("Sửa thành Đã có hàng?")
-            .setMessage("${row.sku} - ${row.productName}\nLịch sử Cho phép skip ban đầu vẫn được giữ.")
-            .setNegativeButton("Huỷ", null)
-            .setPositiveButton("Xác nhận") { _, _ ->
-                if (!processingBatchIds.add(row.batchId)) return@setPositiveButton
-                (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
-                Thread {
-                    try {
-                        api.correctBatch(row.batchId)
-                        activity.runOnUiThread {
-                            processingBatchIds.remove(row.batchId)
-                            setStatus("Đã sửa ${row.sku} thành Đã có hàng.")
-                            refresh()
-                        }
-                    } catch (e: Exception) {
-                        activity.runOnUiThread {
-                            processingBatchIds.remove(row.batchId)
-                            setStatus(friendlyError(e))
-                            refresh()
-                        }
-                    }
-                }.start()
-            }.show()
-    }
 
     private fun showTickets(row: ReporterBatch) = showTickets(row.batchId, row.sku)
 
