@@ -1134,22 +1134,25 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 50));
   const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
+  const includeTotal = String(url.searchParams.get("include_total") || "1") !== "0";
   const todayStart = appTodayOpen ? appTodayStartIso() : "";
   const scopeFilter = appTodayOpen
     ? " AND (t.reported_at >= ? OR (t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING'))"
     : "";
   if (!userId || !employeeCode) return json({ error: "INVALID_INPUT" }, 400);
-  const args: SqlStorageValue[] = [userId, userId, userId, userId, userId, employeeCode];
+  const args: SqlStorageValue[] = [userId, userId, userId, employeeCode];
   if (appTodayOpen) args.push(todayStart);
-  const totalRow = first(
-    state.storage.sql.exec<SqlRow>(
-      `SELECT COUNT(*) AS total
-         FROM report_tickets t
-         JOIN report_batches b ON b.batch_id = t.batch_id
-        WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}`,
-      ...(appTodayOpen ? [userId, employeeCode, todayStart] : [userId, employeeCode]),
-    ).toArray(),
-  );
+  const totalRow = includeTotal
+    ? first(
+        state.storage.sql.exec<SqlRow>(
+          `SELECT COUNT(*) AS total
+             FROM report_tickets t
+             JOIN report_batches b ON b.batch_id = t.batch_id
+            WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}`,
+          ...(appTodayOpen ? [userId, employeeCode, todayStart] : [userId, employeeCode]),
+        ).toArray(),
+      )
+    : null;
   args.push(limit, offset);
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT t.ticket_id, t.batch_id, t.sku, b.product_name, t.status,
@@ -1160,36 +1163,21 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
             COALESCE(t.resolution_source, b.resolution_source) AS resolution_source,
             b.correction_deadline_at,
             b.version AS batch_version, b.previous_batch_id,
-            (
-              SELECT a.result_event_id
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS result_event_id,
-            (
-              SELECT a.received_at
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS received_at,
-            (
-              SELECT a.displayed_at
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS displayed_at,
-            (
-              SELECT a.acknowledged_at
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS acknowledged_at
+            a.result_event_id,
+            a.received_at,
+            a.displayed_at,
+            a.acknowledged_at
        FROM report_tickets t
        JOIN report_batches b ON b.batch_id = t.batch_id
+       LEFT JOIN result_acknowledgements a
+         ON a.result_event_id = (
+              SELECT a2.result_event_id
+                FROM result_acknowledgements a2
+               WHERE a2.batch_id = b.batch_id AND a2.target_user_id = ?
+               ORDER BY a2.created_at DESC
+               LIMIT 1
+            )
+        AND a.target_user_id = ?
       WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}
       ORDER BY CASE
         WHEN t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING' THEN 0
@@ -1201,7 +1189,7 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
   return json({
     items: rows,
     count: rows.length,
-    total: Number(totalRow?.total || 0),
+    total: includeTotal ? Number(totalRow?.total || 0) : null,
     limit,
     offset,
     scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
@@ -1266,7 +1254,23 @@ async function updateResultStage(state: DurableObjectState, request: Request): P
       resultEventId,
       actor.user_id,
     ).toArray());
-    if (!row) return { status: 404, payload: { error: "RESULT_ACK_NOT_FOUND" } };
+    if (!row) {
+      // D166: receipt delivery is an idempotent terminal edge. Old Android
+      // clients persisted result_event_id values and retried every resume when
+      // the acknowledgement row had already been retired/not targeted, turning
+      // one stale signal into an unbounded 404 storm. Treat "already gone" as a
+      // successful terminal no-op; authorization still happens before this
+      // internal mutation is reached.
+      return {
+        status: 200,
+        payload: {
+          status: "gone",
+          terminal: true,
+          reason: "RESULT_ACK_NOT_FOUND",
+          result_event_id: resultEventId,
+        },
+      };
+    }
 
     const at = new Date().toISOString();
     if (stage === "RECEIVED") {
