@@ -57,7 +57,7 @@ def main() -> None:
     app_tools = read("service/src/app-tools.ts")
 
     # D165: resolved Skip corrections and Picker confirmation retain exact-batch authority.
-    for marker in ('row.correction_allowed === true', 'Sửa - Đã có hàng',
+    for marker in ('row.correction_allowed === true', 'Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}',
                    'data-correct-target="PENDING"', 'Báo hàng ${result.sku} chuyển trạng thái'):
         require(app, marker, "D165 Web Skip/Picker correction presentation")
     require(api, '"PENDING" | "SKIP_ALLOWED" | "HAS_STOCK"', "D165 versioned correction API")
