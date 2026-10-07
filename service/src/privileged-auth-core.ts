@@ -92,6 +92,12 @@ export async function handlePrivilegedAuthCoreRequest(
     }
 
     const previous = readState(state, userId);
+    if (previous && !previous.expires_at) {
+      // Issued durable OTP remains the ONLY valid code until consumed.
+      // Public pre-login issuance and automatic send paths must not replace it,
+      // even with bypass_cooldown. This also prevents reset/mail spam.
+      return response({ error: "code_pending_until_consumed" }, 409);
+    }
     const previousIssuedMs = Date.parse(previous?.issued_at || "") || 0;
     if (!body.bypass_cooldown && previousIssuedMs && nowMs - previousIssuedMs < ISSUE_COOLDOWN_MS) {
       return response({
