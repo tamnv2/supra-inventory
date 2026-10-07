@@ -10,7 +10,7 @@
 - Current released Agent: `relay-agent-v114`
 - Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
 - Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
-- Android: `D165_IMPLEMENTED__CATALOG_SINGLE_FLIGHT__SCOPED_REALTIME_DELTA__LOGOUT_LOG_DURABILITY__TECHNICAL_PASS`
+- Android: D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__NOT_RELEASED__SIGNED_BETA_VC97
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1831,3 +1831,9 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 D165 is recorded only as an Owner-approved proposal. No D165 runtime source, build, provider configuration or deployment has been changed. Inventory production/Beta runtime readiness remains the D163 accepted state; D164 PDA Management is isolated.
 
 Future D165 implementation is gated by a fresh authority bootstrap, Owner re-verification of `docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md`, and an explicit start command. Stable remains OWNER-GATED.
+
+## D165 Android Reporter compact-tab refinement — 2026-10-07
+
+- PR #487 proposes the Android Reporter UI-only tab refinement: four tabs in active PER_PICKER auto-skip, otherwise three; badges on Đang xử lý and Quá hạn only. The Picker đã thu hồi tab is removed from Android presentation, not audit/history.
+- The signed runtime APK is still beta-vc97 pending a successful newer Beta release and field validation; no Web modification is part of this UI refinement.
+- Predictable clock-only privileged emergency authentication is a blocker. Do not merge or deploy PR #487 until the independent secret-backed proof is authorized, implemented and validated. Stable stays Owner-gated.
