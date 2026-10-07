@@ -726,6 +726,23 @@ def main() -> None:
     require(web, "resolveInitialSection", "Web direct-route resolver")
     require(web, "canAccessSection", "Web route RBAC")
 
+    # D165 field repair: the Worker requires bounded ISO from/to dates for the
+    # existing Reporter counter endpoint. An unbounded Android request fails with
+    # INVALID_COUNTER_RANGE and aborts the entire Reporter initial load.
+    reporter_layout = read("android/app/src/main/res/layout/view_invent.xml")
+    require(inventory_api, 'getReporterCountersSnapshot(serverNowMs: Long)', "D165 counters server-clock contract")
+    require(inventory_api, 'businessDate.plusDays(1).atStartOfDay(zone).toInstant().toString()', "D165 bounded business-day end")
+    require(inventory_api, '/api/reporter/counters?from=$from&to=$to', "D165 counters include valid range")
+    require(reporter, 'api.getReporterCountersSnapshot(nextRecent.serverNowMs)', "D165 counters use server date")
+    forbid(inventory_api, 'request("GET", "/api/reporter/counters")', "D165 invalid unbounded counter call")
+    overdue_xml = reporter_layout.split('@+id/tabReporterOverdueBox"', 1)[1].split("</FrameLayout>", 1)[0]
+    forbid(overdue_xml, 'android:visibility="gone"', "D165 overdue tab never hidden in XML")
+    forbid(reporter, 'tabBoxes[Filter.OVERDUE]?.visibility = if (overdueEnabled)', "D165 overdue tab must not hide at runtime")
+    forbid(reporter, '(value == Filter.OVERDUE && !overdueEnabled)', "D165 overdue tab always selectable")
+    require(reporter_layout, '@+id/tvReporterOverdueInfo', "D165 inactive policy displays explanatory empty state")
+    forbid(web, 'perPickerOverdueEnabled ? `<button type="button" class="workspace-tab', "D165 Web overdue tab never hidden")
+    forbid(web, 'if (!perPickerOverdueEnabled && profile)', "D165 Web overdue route never redirects away")
+
     print("ANDROID_OPERATIONAL_REGRESSION_PASS")
 
 
