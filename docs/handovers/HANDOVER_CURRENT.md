@@ -1896,3 +1896,7 @@ Published v118 is field NOT PASS for D165 privileged login. New Agent logs show 
 Root cause is source-level role parity: D165 privileged Worker/client/re-auth accepted only ADMIN, although current Agent + Firestore authority accepts ADMIN or PICKPACK_ADMIN. Repair branch `repair/d165-agent-privileged-role-parity-v119` aligns D165 with the existing operator matrix, normalizes composite special usernames, and advances Agent candidate to v119. No Stable/D164 change; Owner D165 PASS still pending.
 
 Canonical current-status markers for authority guard: sqlite_schema=17; latest_beta_apk=beta-vc102; web=D165_MAIN_91C169E9_BETA_WORKER_WEB_DEPLOY_PASS__OWNER_FIELD_PENDING; android=D165_SIGNED_BETA_VC102__SKIP_CORRECTION_AND_OTP_REPAIR_TECHNICAL_PASS__OWNER_FIELD_PENDING.
+
+## D165 Agent v119 technical release — Owner retest pending
+
+PR #497 merged main `1278b202`; all 11 main workflows PASS. Beta Worker deploy `37569696945` PASS and official `relay-agent-v119` published by run `37569696832`. The v118 ADMIN-only privileged path is replaced by the canonical ADMIN-or-PICKPACK_ADMIN Agent operator matrix plus normalized special login. No new resource/provider/polling or Stable mutation. Android remains signed `beta-vc102`. OA100 now requires real Office OTP + HHmm retest and the outstanding vc102 Skip-correction/usage field checks; no Owner PASS inferred.
