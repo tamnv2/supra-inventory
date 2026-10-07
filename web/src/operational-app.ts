@@ -1253,8 +1253,8 @@ function renderLogin(): void {
       ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
       <form id="login-form">
         <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Nhập tài khoản" value="${esc(rememberedUsername)}" /></label>
-        <label>Mật khẩu<div class="password-input-wrap"><input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" /><button id="toggle-login-password" class="password-eye" type="button" aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button></div></label>
-        <div class="login-options"><label class="remember-login"><input name="rememberLogin" type="checkbox" ${rememberedUsername ? "checked" : ""}/><span>Lưu thông tin đăng nhập</span></label><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
+        <label>Mật khẩu / mã xác nhận<div class="password-input-wrap"><input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Mật khẩu, mã một lần hoặc khẩn cấp" /><button id="toggle-login-password" class="password-eye" type="button" aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button></div></label>
+        <div class="login-options"><label class="remember-login"><input name="rememberLogin" type="checkbox" ${rememberedUsername ? "checked" : ""}/><span>Lưu tên đăng nhập</span></label><button id="request-privileged-code" type="button" class="login-link">Gửi mã một lần</button><button id="forgot-password" type="button" class="login-link">Lấy lại mật khẩu</button></div>
         <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
       </form>
       <form id="reset-password-form" class="login-reset-form" hidden>
@@ -1293,7 +1293,7 @@ function renderLogin(): void {
         localStorage.setItem(REMEMBER_LOGIN_KEY, username);
         try {
           const PasswordCredentialCtor = (window as unknown as { PasswordCredential?: new (data: { id: string; password: string; name?: string }) => Credential }).PasswordCredential;
-          if (PasswordCredentialCtor && navigator.credentials?.store) {
+          if (!privilegedOneTimeLogin(username) && PasswordCredentialCtor && navigator.credentials?.store) {
             await navigator.credentials.store(new PasswordCredentialCtor({ id: username, password, name: username }));
           }
         } catch {
@@ -1327,6 +1327,15 @@ function renderLogin(): void {
     button.setAttribute("aria-pressed", String(!visible));
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
+  });
+
+  document.querySelector<HTMLButtonElement>("#request-privileged-code")?.addEventListener("click", () => {
+    const username = String(document.querySelector<HTMLInputElement>("#login-form input[name='username']")?.value || "").trim();
+    void run(async () => {
+      if (!privilegedOneTimeLogin(username)) throw new Error("Gửi mã một lần chỉ áp dụng cho root, admin hoặc tamnv2.");
+      const message = await requestPrivilegedOneTimeCode(username);
+      setNotice("success", message);
+    }, "none");
   });
 
   document.querySelector<HTMLButtonElement>("#forgot-password")?.addEventListener("click", () => {
@@ -1938,7 +1947,7 @@ function renderUsers(): string {
               ? `<label class="bulk-picker-check" title="Chọn tài khoản để xóa"><input type="checkbox" data-managed-user-select="${esc(user.user_id)}" ${selectedManagedUserIds.has(user.user_id) ? "checked" : ""}/><span aria-hidden="true"></span></label>`
               : `<span class="bulk-not-applicable">—</span>`;
           const actions = canManageListedUser(user)
-            ? `<div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button><button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button></div>`
+            ? `<div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button>${privilegedOneTimeManagedUser(user) ? `<span class="ops-readonly">Mật khẩu một lần</span>` : `<button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button>`}</div>`
             : `<span class="ops-readonly">${user.role === "ROOT" ? "Tài khoản gốc được bảo vệ" : "Không thuộc quyền quản lý hiện tại"}</span>`;
           const contractor = isPicker ? (user.contractor_name || "—") : "—";
           const reporting = isPicker
@@ -2032,7 +2041,7 @@ function renderSla(): string {
 
       <div class="sla-config-footer">
         <div><strong>Lưu ý</strong><span>Hệ thống kiểm tra phiên bản cấu hình trước khi lưu. Nếu một máy khác vừa cập nhật, bản cũ sẽ không được phép ghi đè.</span></div>
-        <label class="field"><span>Mật khẩu tài khoản hiện tại</span><input name="currentPassword" type="password" autocomplete="current-password" required maxlength="128" placeholder="Nhập mật khẩu để xác nhận" /></label>
+        <label class="field"><span>Mật khẩu / mã xác nhận</span><input name="currentPassword" type="password" autocomplete="current-password" required maxlength="128" placeholder="Mật khẩu hiện tại, mã một lần hoặc khẩn cấp" /></label>
         <button id="sla-save-button" class="primary" ${slaSaveBusy ? "disabled" : ""}>${slaSaveBusy ? "Đang lưu…" : "Lưu cấu hình toàn hệ thống"}</button>
       </div>
     </form>
@@ -2759,7 +2768,7 @@ function renderSystemReset(): string {
   const allSelected = items.every((item) => systemResetSelected.has(item.scope));
   return `<section class="ops-route reset-workspace">
     <div class="business-page-head"><div><h2>Đặt lại hệ thống</h2><p>Chỉ đưa dữ liệu runtime đã chọn về 0. Không thay source code, logic nghiệp vụ, giao diện, schema, Google Sheet/Drive hoặc Stable.</p></div></div>
-    <div class="notice warning"><strong>ROOT được bảo toàn tuyệt đối:</strong> tài khoản ROOT, mật khẩu, Firebase identity và email khôi phục không nằm trong phạm vi reset.</div>
+    <div class="notice warning"><strong>ROOT được bảo toàn tuyệt đối:</strong> tài khoản ROOT, cơ chế mật khẩu một lần/khẩn cấp, Firebase identity và email khôi phục không nằm trong phạm vi reset.</div>
     <div class="reset-toolbar">
       <label class="reset-all"><input id="reset-select-all" type="checkbox" ${allSelected ? "checked" : ""}/> <strong>Chọn toàn bộ dữ liệu runtime</strong></label>
       <button class="secondary" id="reset-refresh-preview">Cập nhật số lượng</button>
@@ -2773,16 +2782,16 @@ function renderSystemReset(): string {
       </label>`).join("")}
     </div>
     <article class="ops-panel reset-security-panel">
-      <div class="ops-panel-title"><div><h3>Xác nhận bảo mật 2 lớp</h3><p>Bước 1 xác minh mật khẩu ROOT. Bước 2 nhập mã 6 chữ số gửi tới email ROOT đã đăng ký. Mã có hiệu lực 10 phút và tối đa 5 lần thử.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Xác nhận bảo mật 2 lớp</h3><p>Bước 1 xác minh ROOT bằng mật khẩu một lần hoặc mật khẩu khẩn cấp. Bước 2 nhập mã 6 chữ số gửi tới email ROOT đã đăng ký. Mã có hiệu lực 10 phút và tối đa 5 lần thử.</p></div></div>
       <div class="ops-form-grid">
-        <label class="span">Mật khẩu ROOT hiện tại<input id="reset-root-password" type="password" autocomplete="current-password" ${systemResetChallenge ? "disabled" : ""}/></label>
+        <label class="span">Mã một lần / mật khẩu khẩn cấp ROOT<input id="reset-root-password" type="password" autocomplete="current-password" ${systemResetChallenge ? "disabled" : ""}/></label>
         ${systemResetChallenge ? `<div class="notice success span">Đã gửi mã tới ${esc(systemResetChallenge.emailHint)}. Hết hạn: ${esc(fmt(systemResetChallenge.expiresAt))}.</div>
           <label class="span">Mã xác nhận 6 chữ số<input id="reset-otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" /></label>
           <div class="ops-form-actions"><button class="danger" id="reset-execute">XÁC NHẬN ĐẶT LẠI</button><button class="secondary" id="reset-cancel-challenge">Huỷ mã hiện tại</button></div>`
           : `<div class="ops-form-actions"><button class="danger" id="reset-request-code" ${systemResetSelected.size ? "" : "disabled"}>XÁC MINH MẬT KHẨU & GỬI MÃ</button></div>`}
       </div>
     </article>
-    <div class="system-limit-box"><strong>Không bị tác động</strong><div>Tài khoản ROOT, mật khẩu và email ROOT; Google Sheet nhân sự; dữ liệu Google Drive; mã nguồn GitHub; cấu trúc dữ liệu; logic, giao diện và kịch bản; Stable; tài khoản WMS.</div></div>
+    <div class="system-limit-box"><strong>Không bị tác động</strong><div>Tài khoản ROOT, cơ chế xác thực ROOT và email ROOT; Google Sheet nhân sự; dữ liệu Google Drive; mã nguồn GitHub; cấu trúc dữ liệu; logic, giao diện và kịch bản; Stable; tài khoản WMS.</div></div>
   </section>`;
 }
 
@@ -2878,17 +2887,19 @@ function renderShiftOperations(): string {
 
 function renderAccount(): string {
   const recoveryEmailAllowed = profile?.base_role === "ROOT" || profile?.base_role === "ADMIN";
+  const oneTime = privilegedOneTimeProfile(profile);
   return `<section class="ops-route account-workspace">
     <div class="heading"><div><h2>Tài khoản</h2></div></div>
     <div class="account-grid">
-      <article class="ops-panel"><div class="ops-panel-title"><div><h3>Đổi mật khẩu</h3></div></div><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article>
-      ${recoveryEmailAllowed ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Email khôi phục mật khẩu</h3><p>Dùng để nhận liên kết đặt lại mật khẩu từ màn hình đăng nhập.</p></div></div><form id="auth-email-form" class="ops-form-grid"><label class="span">Email đăng ký<input name="email" type="email" autocomplete="email" required value="${esc(profile?.auth_email || "")}" /></label><div class="ops-form-actions"><button class="primary">Lưu email</button></div></form></article>` : ""}
+      ${oneTime
+        ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Mật khẩu một lần</h3><p>Tài khoản này không sử dụng mật khẩu cố định. Mã đăng nhập mới được gửi tới email quản trị.</p></div></div><div class="ops-form-actions"><button type="button" class="primary" id="account-request-privileged-code">Gửi mật khẩu một lần</button></div></article>`
+        : `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Đổi mật khẩu</h3></div></div><form id="password-form" class="ops-form-grid"><label class="span">Mật khẩu hiện tại<input name="current" type="password" required /></label><label class="span">Mật khẩu mới<input name="next" type="password" required /></label><div class="ops-form-actions"><button class="primary">Đổi mật khẩu</button></div></form></article>`}
+      ${recoveryEmailAllowed ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Email khôi phục</h3><p>${oneTime ? "Dùng cho xác nhận hệ thống khác; mật khẩu đăng nhập một lần gửi về email quản trị trung tâm." : "Dùng để nhận liên kết đặt lại mật khẩu từ màn hình đăng nhập."}</p></div></div><form id="auth-email-form" class="ops-form-grid"><label class="span">Email đăng ký<input name="email" type="email" autocomplete="email" required value="${esc(profile?.auth_email || "")}" /></label><div class="ops-form-actions"><button class="primary">Lưu email</button></div></form></article>` : ""}
       ${roleOperate() ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xác nhận thao tác</h3></div></div><label class="account-setting-row"><input id="skip-delay-setting" type="checkbox" ${skipDelayEnabled ? "checked" : ""}/><span><strong>Chờ 5 giây trước khi xác nhận bỏ qua</strong><small>Giúp hạn chế bấm nhầm thao tác bỏ qua SKU.</small></span></label></article>` : ""}
       ${"Notification" in window ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Thông báo nền</h3></div></div><div class="account-setting-row"><span><strong>Thông báo khi Web đang ẩn</strong><small>Trạng thái hiện tại: ${Notification.permission === "granted" ? "Đã cho phép" : Notification.permission === "denied" ? "Đã chặn trong trình duyệt" : "Chưa cấp quyền"}</small></span>${Notification.permission === "default" ? '<button class="secondary" id="request-browser-notifications">Cho phép</button>' : ""}</div></article>` : ""}
     </div>
   </section>`;
 }
-
 async function run(fn: () => Promise<void>, renderMode: "section" | "full" | "none" = "section"): Promise<void> {
   if (busy) return;
   const started = performance.now();
@@ -4863,6 +4874,14 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#export-reports")?.addEventListener("click", () => void run(exportReportsExcel, "none"));
 
   document.querySelector<HTMLButtonElement>("#download-support-log")?.addEventListener("click", downloadSupportDiagnostics);
+  document.querySelector<HTMLButtonElement>("#account-request-privileged-code")?.addEventListener("click", () => {
+    void run(async () => {
+      if (!profile) throw new Error("Chưa có phiên đăng nhập.");
+      const message = await requestPrivilegedOneTimeCode(profile.employee_code || profile.user_id);
+      setNotice("success", message);
+    });
+  });
+
   document.querySelector<HTMLFormElement>("#password-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
