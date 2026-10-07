@@ -1837,3 +1837,9 @@ Future D165 implementation is gated by a fresh authority bootstrap, Owner re-ver
 - PR #487 proposes the Android Reporter UI-only tab refinement: four tabs in active PER_PICKER auto-skip, otherwise three; badges on Đang xử lý and Quá hạn only. The Picker đã thu hồi tab is removed from Android presentation, not audit/history.
 - The signed runtime APK is still beta-vc97 pending a successful newer Beta release and field validation; no Web modification is part of this UI refinement.
 - Predictable clock-only privileged emergency authentication is a blocker. Do not merge or deploy PR #487 until the independent secret-backed proof is authorized, implemented and validated. Stable stays Owner-gated.
+
+## D165 source technical CI checkpoint — 2026-10-07
+
+- D165 PR #487 source at `aaf72d511ba4aabcf3cd20f9cea6654837afd13e` passed **16/16 triggered GitHub Actions checks**, including Android resource linking/assembly, UI Design Guard, Project State Guard, Repo Authority Guard and Relay Agent verification.
+- This is **source technical PASS only**. The PR remains draft: the predictable HHmm-only privileged emergency authentication lacks the required independent secret-backed factor.
+- No merge or signed Beta APK auto-update release resulted from this PR. Existing signed Beta APK remains `beta-vc97`, and Stable remains Owner-gated. Owner device/field tests and usage acceptance are still pending.

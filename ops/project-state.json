@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR_487_AUTH_SECURITY_GATE__ANDROID_REPORTER_REFINEMENT_CI_PENDING__OWNER_FIELD_PASS_PENDING",
+    "parallel_inventory_change_status": "D165_PR_487_SOURCE_CI_16_OF_16_PASS__SECURITY_EMERGENCY_FACTOR_OWNER_DECISION_PENDING__FIELD_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_PR_487_ANDROID_REPORTER_UI_REPAIR_COMMITTED__CI_AND_SECURITY_GATE_PENDING",
+    "status": "D165_PR_487_SOURCE_CI_16_OF_16_PASS__PR_DRAFT__SECURITY_GATE_BLOCKED__OWNER_FIELD_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5844,8 +5844,22 @@
       "server_history": "UNCHANGED",
       "web": "UNCHANGED",
       "new_provider_or_poll": "NONE",
-      "status": "SOURCE_COMMITTED_PR_487__ANDROID_AND_AUTHORITY_CI_PENDING",
+      "status": "SOURCE_CI_16_OF_16_PASS__ANDROID_BUILD_PASS__FIELD_PENDING__NO_RELEASE",
       "security_blocker": "CLOCK_ONLY_EMERGENCY_PROOF_MUST_NOT_DEPLOY_WITHOUT_INDEPENDENT_SECRET_BACKED_FACTOR"
+    },
+    "ci_2026_10_07_reporter_refinement": {
+      "validated_branch_head": "aaf72d511ba4aabcf3cd20f9cea6654837afd13e",
+      "pr": 487,
+      "checks": "PASS_16_OF_16",
+      "android_compilation": "PASS__RUN_37552102792",
+      "ui_design_guard": "PASS__RUN_37552102699",
+      "continuity": "PASS__RUN_37552102704",
+      "repo_authority": "PASS__RUN_37552102795",
+      "relay_agent": "PASS__RUN_37552102697",
+      "publish_signed_apk": "NOT_PERFORMED__DRAFT_PR_AND_SECURITY_GATE",
+      "security_gate": "BLOCKED__CLOCK_ONLY_EMERGENCY_SECRET_FACTOR_NOT_APPROVED",
+      "owner_field_acceptance": "PENDING",
+      "stable": "UNTOUCHED"
     }
   },
   "launcher_daily_password": {

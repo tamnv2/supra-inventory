@@ -1847,3 +1847,9 @@ D165 PR #487 stays draft. Android PER_PICKER overdue and HAS_STOCK correction pa
 - PR #487 includes Android Reporter UI-only consolidation: conditional four/three tabs, no Picker đã thu hồi tab, no completed-state badges, counts only Đang xử lý and Quá hạn.
 - Android APK remains beta-vc97 until a newer signed Beta candidate is built and released; current PR source is not yet released.
 - Privileged emergency clock-only authentication remains a blocking security gate. No Beta merge/production-capable release or Stable promotion is authorized while unresolved.
+
+## D165 source technical CI checkpoint — 2026-10-07
+
+- D165 PR #487 source at `aaf72d511ba4aabcf3cd20f9cea6654837afd13e` passed **16/16 triggered GitHub Actions checks**, including Android resource linking/assembly, UI Design Guard, Project State Guard, Repo Authority Guard and Relay Agent verification.
+- This is **source technical PASS only**. The PR remains draft: the predictable HHmm-only privileged emergency authentication lacks the required independent secret-backed factor.
+- No merge or signed Beta APK auto-update release resulted from this PR. Existing signed Beta APK remains `beta-vc97`, and Stable remains Owner-gated. Owner device/field tests and usage acceptance are still pending.
