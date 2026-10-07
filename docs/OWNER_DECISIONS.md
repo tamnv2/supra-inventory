@@ -3600,3 +3600,19 @@ Governance:
 - Any reuse/new resource for the consolidated model requires later project-scope reconciliation and explicit Owner approval.
 - Stable remains OWNER-GATED and untouched.
 
+
+
+## 2026-10-08 — D166 opened; D165 superseded without Owner PASS after full usage/reliability review
+
+**CURRENT OWNER DECISION. Supersedes the earlier instruction to keep D165 as the active serial change.**
+
+After supplying the complete 2026-10-07 Cloudflare/Firebase/GCP usage evidence and the Inventory/Agent runtime log folders, the Owner explicitly instructed the project to finish the analysis and **open D166 to repair the model comprehensively**.
+
+- D165 is closed as **superseded without Owner PASS**. Its technical/deployment evidence remains historical evidence, but it is not promoted to accepted base.
+- D163 remains the last Owner-accepted Inventory base until D166 receives explicit field + usage PASS.
+- D166 scope is canonicalized in `docs/D166_INVENTORY_USAGE_RELIABILITY_RESET.md`: terminate stale receipt retry amplification, repair Android diagnostic JSON/lifecycle crashes, close ignored HTTP response bodies, reduce hot DO/Worker read/request amplification, and complete delta-first realtime behavior without slowing PickList/realtime/failover.
+- The shared-account planning policy is **Inventory 30% · Pick Pack 30% · Alpha 30% · shared/resilience reserve 10%**. Alpha's allocation is internally subdivided only among Alpha projects unless the Owner explicitly rebalances the global policy.
+- Provider quota families are not physically interchangeable. Balancing is architectural: use bounded writes/indexes/projections or low-use RTDB liveness where they reduce a more constrained request/read meter without changing business correctness.
+- Shared Inventory/Pick Pack data may use the 10% reserve where appropriate; normal operations must not plan to consume that reserve.
+- Stable remains OWNER-GATED and untouched. D164 remains cancelled; its future consolidated operations successor stays separate from this D166 Inventory repair.
+- D166 field acceptance requires comparable-load evidence. CI/runtime PASS alone is not Owner PASS.
