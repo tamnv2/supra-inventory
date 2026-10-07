@@ -416,6 +416,7 @@ class MainActivity : Activity() {
             passwordVisibility.contentDescription = if (passwordVisible) "Ẩn mật khẩu" else "Hiện mật khẩu"
         }
         val login = findViewById<Button>(R.id.btnLogin)
+        val oneTimeCode = findViewById<Button>(R.id.btnOneTimeCode)
         val progress = findViewById<ProgressBar>(R.id.progressLogin)
         loginProgress = progress
         status = findViewById(R.id.tvLoginError)
@@ -440,6 +441,33 @@ class MainActivity : Activity() {
         username.setOnEditorActionListener(submitLoginFromKeyboard)
         password.setOnEditorActionListener(submitLoginFromKeyboard)
 
+        oneTimeCode.setOnClickListener {
+            val user = username.text.toString().trim().lowercase()
+            if (user !in setOf("root", "admin", "tamnv2")) {
+                setStatus("Gửi mã một lần chỉ áp dụng cho root, admin hoặc tamnv2.")
+                return@setOnClickListener
+            }
+            oneTimeCode.isEnabled = false
+            progress.visibility = View.VISIBLE
+            status.visibility = View.GONE
+            Thread {
+                try {
+                    val message = api.requestPrivilegedOneTimeCode(user)
+                    runOnUiThread {
+                        progress.visibility = View.GONE
+                        oneTimeCode.isEnabled = true
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        progress.visibility = View.GONE
+                        oneTimeCode.isEnabled = true
+                        setStatus(friendlyError(e))
+                    }
+                }
+            }.start()
+        }
+
         login.setOnClickListener {
             if (updateGate == UpdateGate.FAILED) {
                 setStatus(updateGateMessage())
@@ -448,7 +476,7 @@ class MainActivity : Activity() {
             val user = username.text.toString().trim().lowercase()
             val pass = password.text.toString().trimEnd('\r', '\n')
             if (!user.matches(Regex("[a-z0-9._-]{1,64}")) || pass.isBlank()) {
-                setStatus("Tên đăng nhập hoặc mật khẩu không hợp lệ.")
+                setStatus("Tên đăng nhập hoặc mật khẩu/mã xác nhận không hợp lệ.")
                 return@setOnClickListener
             }
             fun attemptLogin(force: Boolean) {
