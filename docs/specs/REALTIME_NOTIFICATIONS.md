@@ -978,3 +978,15 @@ Release-note text is not a realtime business event and must reuse the existing u
 ### D165 corrected Skip result delivery (2026-10-07)
 
 Use the existing `BATCH_CORRECTED` immutable result event, batch-scoped Picker ACK recipients and `batch_corrected` Android FCM event for **both** Skip → PENDING and Skip → HAS_STOCK. The formerly divergent `batch_corrected_pending` notification category is not used because Android's existing result overlay/ACK listener only recognizes `batch_corrected`. Include former/new result state, SKU, product, correcting Inventory actor, and correction reason in notification body and Picker result/overlay. Read the historical event payload (`from`), not the current batch state, when replaying an unacknowledged correction. Preserve exact user/event authorization, realtime cursor/seq and version-fenced ACK. No new timer, general Picker recipient query, Firebase business channel or periodic fetch.
+
+
+## D166 terminal receipt and delta-first contract — 2026-10-08
+
+D166 supersedes D165 without promoting it to accepted base. D163 remains accepted until explicit D166 Owner PASS.
+
+- An authenticated Picker result receipt for a result event whose acknowledgement row is already absent/retired is a terminal idempotent no-op, returned as 2xx. Old clients must therefore stop retrying it.
+- A terminal no-op ACK never emits a synthetic `result_acknowledged` realtime event.
+- New Android delivery must avoid concurrent duplicate RECEIVED/ACK sends for the same result event and use bounded retry only for recoverable transport/server failures.
+- Normal realtime events patch the exact local projection. Full Picker report/result or Reporter list reconciliation is reserved for initial load, explicit refresh, true cursor gap, epoch mismatch, incompatible event data or integrity uncertainty.
+- If a per-user/result projection is introduced to remove global delta scans, it may spend bounded indexed writes to save repeated reads, but authorization and immutable result-event authority remain unchanged.
+- No polling family may be introduced as a realtime substitute.
