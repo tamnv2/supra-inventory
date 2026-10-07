@@ -3527,3 +3527,9 @@ This is **technical/runtime PASS only**: OTP email delivery and Agent Office log
 - **Risk/review:** accepted D163 Inventory base unchanged; affected only Web/Android/Agent login display and UI regression guard; no new resource, periodic fetch, quota cadence, security role grant, or Stable mutation. Regression focus: normal login, OTP consume/next-mail, expired-code/error, Agent session continuity, Android packaging and user account UI. The Owner explicitly ordered this same-D165 correction.
 
 D165 technical/build/deploy evidence from prior PRs remains valid only for the **previous published artifacts**; this new UI source correction requires its own CI/release and field acceptance before declaring D165 complete.
+
+## 2026-10-07 — D165 neutral-login UX repair release checkpoint (technical PASS, field pending)
+
+D165 PR #491 merged to main `ecad23eb2217d3ea4abf97c8c0b1baf3ce4f387f` after **14/14 PR CI PASS**. The resulting main source passed **11/11** workflows including Beta Worker deployment run `37558186044`. The official signed Beta Android release is **`beta-vc100`** and official Windows Agent release is **`relay-agent-v117`**, with refreshed `inventory-channel` assets. No Stable release, new resource, periodic provider quota or D164 PDA Management mutation occurred.
+
+Client login forms are neutral; no visible OTP request button or privileged-user list. The existing server one-use four-digit code consumption and automatic next-email issue path is unchanged. The previous 15-minute OTP expiry remains and cannot be silently represented as a durable daily rolling password. **OA100 remains field/usage acceptance pending** for real email delivery, Agent Office session, device UI and comparable-load usage; no Owner PASS is inferred from code or GitHub release checks. The already documented publicly predictable clock-only emergency fallback is still a serious security risk.
