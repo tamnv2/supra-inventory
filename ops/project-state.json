@@ -19,7 +19,7 @@
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS",
-    "android": "D165_IMPLEMENTED__CATALOG_SINGLE_FLIGHT__SCOPED_REALTIME_DELTA__LOGOUT_LOG_DURABILITY__TECHNICAL_PASS",
+    "android": "D165_ANDROID_OVERDUE_CORRECTIONS_IN_PR_487_NOT_YET_RELEASED__SIGNED_BETA_VC97_UNCHANGED",
     "latest_beta_apk": "beta-vc97",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-06",
+  "last_updated": "2026-10-07",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_MERGED_BETA__POST_MERGE_CI_REPAIR_D160_STALE_REVISION_GATE__OWNER_FIELD_USAGE_ACCEPTANCE_PENDING",
+    "parallel_inventory_change_status": "D165_PR_487_AUTH_SECURITY_GATE_AND_ANDROID_PARITY_REPAIR__OWNER_FIELD_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING",
+    "status": "D165_PR_487_REPAIR_DRAFT__TECHNICAL_AND_FIELD_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": false,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "FIELD_VALIDATE_BEHAVIOR_SPEED_STABILITY_AND_USAGE__OWNER_EXPLICIT_PASS_REQUIRED",
+    "next_action": "CI_PASS__BLOCK_CLOCK_ONLY_EMERGENCY_BYPASS__OWNER_SECRET_FACTOR_APPROVAL_BEFORE_MERGE",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -5810,6 +5810,18 @@
         "d160_agent_gateway": 37543657663
       },
       "final_result": "TECHNICAL_PASS__FIELD_USAGE_OWNER_PASS_PENDING"
+    },
+    "repair_2026_10_07": {
+      "change_id": "D165",
+      "pr": 487,
+      "branch": "repair/d165-privileged-one-time-auth-v2",
+      "status": "DRAFT__ANDROID_PARITY_AUTH_CODE_PRESENT__AUTH_EMERGENCY_SECURITY_BLOCKER__CI_PENDING",
+      "android": "PER_PICKER_OVERDUE_TAB__HAS_STOCK_TO_PENDING_OR_SKIP_DOUBLE_CONFIRM__FIRST_REPORT_UNCHANGED",
+      "auth": "PRIVILEGED_OTP_4_DIGIT_VIA_EXISTING_MAIL__HHMM_ONLY_EMERGENCY_INSECURE_BLOCKED",
+      "accepted_base": "D163_OWNER_PASS",
+      "parallel_d164": "ISOLATED_UNCHANGED",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "owner_field_pass": "PENDING"
     }
   },
   "launcher_daily_password": {
