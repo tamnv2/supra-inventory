@@ -320,3 +320,7 @@ No D165 behavior change is authorized for `FIRST_REPORT`.
 ## D165 Android Reporter display parity
 
 The existing Web PER_PICKER **Quá hạn** and HAS_STOCK correction semantics also apply to Android Reporter. The Android fifth tab is conditional on authoritative policy; list reads are lazy while count/snapshot changes follow the existing event stream. Quá hạn and Đang xử lý may show the same SKU with different subsets of affected Pickers. No change to FIRST_REPORT or the Web reporting/detailed export semantics.
+
+## D165 Android-only Reporter badge/tab simplification
+
+The Android Reporter operational strip shows up to four states (Đang xử lý, conditional Quá hạn, Đã có hàng, Cho phép Skip), rather than five. Only Đang xử lý and Quá hạn show count badges. Picker đã thu hồi is not displayed as an Android tab; it is **not** deleted from server history, Web reporting or exported evidence. This is a presentation-only change and must not change authoritative overdue counters, lazy list reads, correction actions, realtime delivery, or FIRST_REPORT business logic. Web remains unchanged.
