@@ -2679,3 +2679,14 @@ Technical/runtime PASS never substitutes for explicit Owner field PASS.
 - Main: **11/11 checks PASS**, Beta Worker/Web deploy `37558186044` PASS, signed `beta-vc100` release and `relay-agent-v117` release published to the existing channel.
 - **Technical PASS is not Owner field PASS:** actual 4-digit-code email delivery and next-code issuance, OTP expiration, new login from company Agent Office, critical-action re-auth, Android Reporter correction flow and measured speed/stability/usage still require OA100 physical verification.
 - Stable owner gate unchanged; D164 independent PDA-management runtime not touched.
+
+## D165 field-NOT-PASS repair gate — counter range and four persistent tabs
+
+Evidence from Android vc100 on 2026-10-07: REPORTER login/refresh produced `INVALID_COUNTER_RANGE`. Source trace: Android lacked `from` and `to` while Worker required them. Repeat the regression matrix on the next signed Beta APK:
+
+1. Login Reporter on Android MT90 and refresh Reporter workspace. `GET /api/reporter/counters` must supply bounded ISO Vietnam-day `from`/`to` derived from the preceding server timestamp; no `INVALID_COUNTER_RANGE`, and queue/recent/badges must all load.
+2. Test auto-skip disabled, FIRST_REPORT enabled and PER_PICKER enabled, each with 0 overdue items. All four Android Reporter tabs and all three Web workspace tabs remain visible. Quá hạn count is 0 and, for inapplicable modes, the panel explains the empty state. No tab auto-switch or redirect.
+3. Under PER_PICKER with one SKU's Picker tickets split into overdue/waiting, validate simultaneous pending and overdue listing, zero duplicate Skip delivery, HAS_STOCK to PENDING/SKIP_ALLOWED two confirmations, expected_version/audit and critical result ACK on Picker.
+4. Test refresh/relogin, network DNS/WebSocket brief loss/recovery and invalid/stale auth: correct in-memory counters and lists without any new poll, per-event full SQL reload, concurrent mutation or stale-session access.
+5. Regression scope from D163 to D165: D163 forced logout final log, lazy exact-batch Web Picker details, D165 realtime delta/partial snapshots, catalog single-flight, SLA reauth, privileged OTP consume/next-email/expiry, Agent HA/picklist ACK/failover, shared Firebase/DO usage. CI/test may prove code/build, but physical Office/PDA/mailbox and comparable-load quotas still need Owner field PASS.
+6. Do not promote D165 to Owner PASS or Stable from CI alone. D164 PDA Management stays isolated.
