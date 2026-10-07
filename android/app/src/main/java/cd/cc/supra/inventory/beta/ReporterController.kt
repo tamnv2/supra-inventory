@@ -233,7 +233,7 @@ class ReporterController(
                 if (!metadata.has("overdue_delta")) return false
                 val delta = metadata.optInt("overdue_delta", Int.MIN_VALUE)
                 if (delta !in -1..1) return false
-                overdueTotal = (overdueTotal + delta).coerceAtLeast(0)
+                overdueTotal = if (overdueEnabled) (overdueTotal + delta).coerceAtLeast(0) else 0
                 if (overdueLoaded) {
                     val row = reporterOverdueFromSnapshot(snapshot)
                     overdueRows = if (row == null) {
