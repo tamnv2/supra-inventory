@@ -18,9 +18,9 @@
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D165_BETA_DEPLOYED__ALWAYS_VISIBLE_OVERDUE_TAB_REPAIR_PENDING_CI",
-    "android": "D165_SIGNED_BETA_VC100_FIELD_NOT_PASS_INVALID_COUNTER_RANGE__D165_REPAIR_BRANCH_PENDING_CI",
-    "latest_beta_apk": "beta-vc100",
+    "web": "D165_FIELD_REPAIR_BETA_WEB_DEPLOY_PASS__OVERDUE_TAB_ALWAYS_VISIBLE__OWNER_FIELD_PENDING",
+    "android": "D165_FIELD_REPAIR_SIGNED_BETA_VC101__REPORTER_COUNTER_AND_ALWAYS_VISIBLE_OVERDUE__MAIN_CI_PASS__OWNER_FIELD_PENDING",
+    "latest_beta_apk": "beta-vc101",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -36,7 +36,7 @@
     "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_MERGED_BETA_POST_MERGE_CI_ALL_GREEN__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D165_AGENT_V116_AND_EXISTING_BETA_APPS_SCRIPT_OTP_GATEWAY__PROVIDER_DEPLOY_AND_LIVE_HANDLER_PASS__OWNER_FIELD_PENDING",
+    "agent": "D165_AGENT_V117__UNCHANGED_BY_VC101_FIELD_REPAIR__OWNER_FIELD_PENDING",
     "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING"
   },
   "hard_guards": [
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_VC100_FIELD_NOT_PASS_COUNTER_RANGE__REPAIR_BRANCH_CI_AND_NEW_SIGNED_BETA_RELEASE_PENDING",
+    "parallel_inventory_change_status": "D165_PR493_MERGED_MAIN_B640AC57__10_OF_10_MAIN_CI_PASS__WEB_BETA_DEPLOY_PASS__ANDROID_SIGNED_VC101_RELEASED__OWNER_FIELD_AND_USAGE_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_OWNER_FIELD_NOT_PASS_VC100_INVALID_COUNTER_RANGE__REPAIR_IN_BRANCH__CI_RELEASE_PENDING",
+    "status": "D165_REPAIR_VC101_SIGNED_BETA_DEPLOYED__ALL_MAIN_CI_PASS__READY_FOR_OWNER_FIELD_TEST_NOT_OWNER_PASS",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "D165_REPAIR_PR_AUTHORITY_CONTINUITY_ANDROID_WEB_CI__BETA_RELEASE__THEN_OA100_FIELD_AND_USAGE_RETEST",
+    "next_action": "OA100_TEST_ANDROID_VC101_WEB_BETA_AGENT_V117_PRIVILEGED_EMAIL_AND_NORMAL_LOAD__OWNER_EXPLICIT_D165_PASS_PENDING",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -5987,7 +5987,7 @@
       "field_owner_pass": "PENDING"
     },
     "field_repair_2026_10_07": {
-      "status": "SOURCE_REPAIR_BRANCH__CI_AND_BETA_RELEASE_NOT_YET_VERIFIED",
+      "status": "TECHNICAL_RUNTIME_RELEASE_PASS__READY_FOR_OWNER_FIELD_RETEST__USAGE_NOT_FIELD_VERIFIED",
       "accepted_base": "D163_OWNER_PASS_UNCHANGED",
       "evidence": {
         "source": "ANDROID_VC100_FIELD_LOG_2026_10_07",
@@ -6042,8 +6042,26 @@
         "OWNER_PDA_WEB_OFFICE_EMAIL_USAGE_FIELD_RETEST"
       ],
       "owner_approval": "EXPLICIT_USER_REQUEST_SAME_D165_REPAIR_AND_COMPLETE_BEFORE_TEST",
-      "owner_pass": "PENDING",
-      "branch": "repair/d165-counter-range-always-visible-overdue"
+      "owner_pass": "PENDING_ACTUAL_FIELD_AND_COMPARABLE_LOAD",
+      "branch": "repair/d165-counter-range-always-visible-overdue",
+      "release": {
+        "pr": 493,
+        "merged_main": "b640ac576e628ac64ad162766c972502499092a3",
+        "pr_checks": "PASS_13_OF_13",
+        "main_checks": "PASS_10_OF_10",
+        "beta_worker_run": 37560667192,
+        "worker": "PASS",
+        "ui_guard_run": 37560667270,
+        "android_run": 37560667253,
+        "android": "beta-vc101",
+        "android_release_id": 405305194,
+        "android_apk_asset_id": 617295842,
+        "android_signed_apk_size_bytes": 19184340,
+        "channel": "inventory-channel__PDA_APK_AND_LATEST_MANIFEST_REFRESHED",
+        "agent": "relay-agent-v117__UNCHANGED",
+        "d164": "ISOLATED_UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      }
     }
   },
   "launcher_daily_password": {
