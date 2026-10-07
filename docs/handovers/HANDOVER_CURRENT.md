@@ -6,17 +6,17 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `17`
-- Latest signed Beta APK: beta-vc100
+- Latest signed Beta APK: beta-vc101
 - Current released Agent: relay-agent-v117
 - Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
-- Web: D165_BETA_DEPLOYED__ALWAYS_VISIBLE_OVERDUE_TAB_REPAIR_PENDING_CI
-- Android: D165_SIGNED_BETA_VC100_FIELD_NOT_PASS_INVALID_COUNTER_RANGE__D165_REPAIR_BRANCH_PENDING_CI
+- Web: D165_FIELD_REPAIR_BETA_WEB_DEPLOY_PASS__OVERDUE_TAB_ALWAYS_VISIBLE__OWNER_FIELD_PENDING
+- Android: D165_FIELD_REPAIR_SIGNED_BETA_VC101__REPORTER_COUNTER_AND_ALWAYS_VISIBLE_OVERDUE__MAIN_CI_PASS__OWNER_FIELD_PENDING
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
 ## D165 current field-repair checkpoint
 
-D165 vc100 Reporter field NOT PASS on 2026-10-07: `/api/reporter/counters` lacked bounded `from/to`, producing `INVALID_COUNTER_RANGE`; the correction is in PR #493 and has not yet passed CI or been released. Both Android and Web overdue navigation remain visible even when disabled/FIRST_REPORT, while the underlying PER_PICKER overdue data rule remains unchanged. Prior signed vc100 and Agent v117 are still the last confirmed released artifacts. D163 accepted base and Stable gate unchanged.
+D165 field-repair PR #493 merged to main `b640ac576e628ac64ad162766c972502499092a3`: 13/13 PR gates and 10/10 main CI PASS, including Web build, Android signed build, business/realtime/authority/continuity guards. Beta Web/Worker deploy run `37560667192` PASS; signed Android `beta-vc101` release `405305194`, asset `617295842`, is published through the existing `inventory-channel`; Agent `relay-agent-v117` unchanged. Prior vc100 Reporter login defect `INVALID_COUNTER_RANGE` is repaired in source with server-day API bounds, and overdue tabs remain visible with an honest zero/inapplicable state. This is **technical/runtime/release PASS only**. Reporter physical PDA, protected-account email OTP/Agent Office, normal latency/stability and comparable-load usage remain Owner field/acceptance pending under OA100. D163 remains the last accepted Inventory base; D164 independent and Stable untouched.
 
 ## 2. Accepted D089 baseline
 
