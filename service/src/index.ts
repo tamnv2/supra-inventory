@@ -145,6 +145,12 @@ function json(payload: unknown, status = 200, extraHeaders?: HeadersInit): Respo
   return new Response(JSON.stringify(payload, null, 2), { status, headers });
 }
 
+async function discardResponse(response: Response): Promise<void> {
+  try {
+    if (response.body) await response.body.cancel();
+  } catch {}
+}
+
 function html(body: string, status = 200, extraHeaders?: HeadersInit): Response {
   const headers = new Headers(extraHeaders);
   headers.set("content-type", "text/html; charset=utf-8");
