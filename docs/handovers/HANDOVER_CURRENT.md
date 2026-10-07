@@ -10,7 +10,7 @@
 - Current released Agent: `relay-agent-v114`
 - Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
 - Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
-- Android: `D165_IMPLEMENTED__CATALOG_SINGLE_FLIGHT__SCOPED_REALTIME_DELTA__LOGOUT_LOG_DURABILITY__TECHNICAL_PASS`
+- Android: `D165_ANDROID_OVERDUE_CORRECTIONS_IN_PR_487_NOT_YET_RELEASED__SIGNED_BETA_VC97_UNCHANGED`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1837,3 +1837,7 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 - D165 source/runtime/build/deploy status: **NOT STARTED**.
 - Next D165 action is Owner re-verification in a fresh session. Do not start code until the Owner explicitly starts D165 after that verification.
 - Stable remains OWNER-GATED.
+
+## D165 repair checkpoint — 2026-10-07
+
+D165 PR #487 stays draft. Android PER_PICKER overdue and HAS_STOCK correction parity is coded but not yet released. Privileged OTP source is present but the predictable clock-only emergency bypass is a security blocker. Do not merge/promote before a secret-backed emergency proof is approved and all gates pass. D164 isolated; Stable Owner-gated.
