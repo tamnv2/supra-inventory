@@ -940,3 +940,12 @@ Android remains `beta-vc92` hard-locked. No provider resource, Firestore cadence
 - Inventory channel Agent asset **609938501** matches the same size/SHA; manifest asset is **609938504** and checksum asset **609938500**. Android remains **beta-vc97** with existing APK asset **609733318** and SHA-256 `28626e6058695cf81797c5eb32362365e1408645002d3f0f6b4bdd20c0771e19`.
 - No new persistent provider resource, Firestore listener/query family, write cadence, Android heartbeat or Stable mutation was introduced. D160 relay-agent-v97 remains the accepted rescue base until explicit Owner D161 PASS.
 - Status: **TECHNICAL/RUNTIME/RELEASE PASS — READY FOR OWNER FIELD RETEST**, not Owner PASS.
+
+## 2026-10-07 — D164 cancellation and future consolidated operations direction
+
+D164 standalone PDA Management is **Owner-cancelled without Owner PASS** and is not part of the accepted base. Existing D164 Beta code/artifacts/resources are frozen historical/reuse candidates; no deletion, redeployment, migration or repurposing is authorized by the cancellation record.
+
+The Owner's successor direction is a future consolidated model for **Nhân sự, ra/vào ca, công nhật, CCDC (including PDA), biên bản and nhận hàng rớt**. This future model is documented in `docs/specs/OPERATIONS_MANAGEMENT.md`, has no change ID yet, and must not be implemented while D165 remains pending Owner PASS. This direction does not expand active runtime/resource scope by itself; any later resource activation requires explicit scope reconciliation.
+
+Current accepted Inventory base remains D163. Current open change is D165. Stable remains OWNER-GATED.
+
