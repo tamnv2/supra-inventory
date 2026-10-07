@@ -109,6 +109,31 @@ data class ReporterQueueSnapshot(
     val total: Int,
 )
 
+data class ReporterOverdueBatch(
+    val batchId: String,
+    val sku: String,
+    val productName: String,
+    val firstReportAt: String,
+    val firstOverdueAt: String?,
+    val overduePickerCount: Int,
+    val waitingPickerCount: Int,
+    val version: Int,
+)
+
+data class ReporterOverdueSnapshot(
+    val items: List<ReporterOverdueBatch>,
+    val total: Int,
+    val enabled: Boolean,
+    val autoSkipMode: String?,
+)
+
+data class ReporterCountersSnapshot(
+    val queueTotal: Int,
+    val overdueTotal: Int,
+    val autoSkipEnabled: Boolean,
+    val autoSkipMode: String?,
+)
+
 data class ReporterRecentCounts(
     val hasStock: Int = 0,
     val skipAllowed: Int = 0,
@@ -544,6 +569,41 @@ class InventoryApi(
         return ReporterQueueSnapshot(rows, payload.optInt("total", rows.size))
     }
 
+    fun getReporterCountersSnapshot(): ReporterCountersSnapshot {
+        val payload = request("GET", "/api/reporter/counters")
+        return ReporterCountersSnapshot(
+            queueTotal = payload.optInt("queue_total", 0),
+            overdueTotal = payload.optInt("overdue_total", 0),
+            autoSkipEnabled = payload.optBoolean("auto_skip_enabled", false),
+            autoSkipMode = nullable(payload, "auto_skip_mode"),
+        )
+    }
+
+    fun getReporterOverdueSnapshot(limit: Int = 200): ReporterOverdueSnapshot {
+        val payload = request("GET", "/api/reporter/overdue?limit=$limit")
+        val array = payload.optJSONArray("items") ?: JSONArray()
+        val rows = ArrayList<ReporterOverdueBatch>(array.length())
+        for (index in 0 until array.length()) {
+            val row = array.optJSONObject(index) ?: continue
+            rows += ReporterOverdueBatch(
+                batchId = row.optString("batch_id"),
+                sku = row.optString("sku"),
+                productName = row.optString("product_name"),
+                firstReportAt = row.optString("first_report_at"),
+                firstOverdueAt = nullable(row, "first_overdue_at"),
+                overduePickerCount = row.optInt("overdue_picker_count", 0),
+                waitingPickerCount = row.optInt("waiting_picker_count", 0),
+                version = row.optInt("version", 1),
+            )
+        }
+        return ReporterOverdueSnapshot(
+            items = rows,
+            total = payload.optInt("total", rows.size),
+            enabled = payload.optBoolean("enabled", false),
+            autoSkipMode = nullable(payload, "auto_skip_mode"),
+        )
+    }
+
     fun getReporterRecent(limit: Int = 100): List<ReporterRecent> = getReporterRecentSnapshot(limit).items
 
     fun getReporterRecentSnapshot(limit: Int = 200): ReporterRecentSnapshot {
@@ -606,6 +666,16 @@ class InventoryApi(
     fun correctBatch(batchId: String): JSONObject = request(
         "POST", "/api/reporter/batches/correct",
         JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId),
+    )
+
+    // D165: HAS_STOCK corrections use the same server version fence as Web.
+    fun correctResolvedBatch(batchId: String, target: String, expectedVersion: Int): JSONObject = request(
+        "POST", "/api/reporter/batches/correct",
+        JSONObject()
+            .put("request_id", UUID.randomUUID().toString())
+            .put("batch_id", batchId)
+            .put("target", target)
+            .put("expected_version", expectedVersion),
     )
 
     fun refreshSessionForRelay(): AppSession {
