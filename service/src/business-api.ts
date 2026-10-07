@@ -567,7 +567,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const response = await corePost(env, "/business/reporter/resolve", { ...body, actor: actor(user) });
     const result = await realtimeAfter(response, env, {
       event: "batch_resolved",
-      scopes: ["reporter_queue", "reporter_recent", "picker_reports"],
+      scopes: ["reporter_queue", "reporter_overdue", "reporter_recent", "picker_reports"],
       tags: REPORTER_TAGS,
       batchId,
       includeBatchPickerUsers: true,
