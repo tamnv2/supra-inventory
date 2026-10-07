@@ -3567,3 +3567,11 @@ Owner field evidence on published Agent v118 shows both the current emailed OTP 
 Code review identifies the defect: general Agent authority and Firestore Rules accept immutable/effective `ADMIN/ADMIN` **or** `PICKPACK_ADMIN/PICKPACK_ADMIN`, but D165 `privilegedAgentLogin` and its client token validation were hard-coded to `ADMIN/ADMIN` only; D165 re-auth also requested only `ADMIN`. This contradicts the already accepted Agent operator matrix and the D165 requirement that exact privileged Agent logins `admin` and `tamnv2` use OTP/emergency authentication.
 
 Owner directed immediate same-D165 repair. Worker privileged login/re-auth must use the existing Agent operator matrix without granting ROOT/REPORTER access. Agent must normalize composite internal usernames such as `admin:tamnv2` to the visible canonical login before the privileged Worker request and validate returned claims with the same `IsAgentOperatorRole` predicate as ordinary Agent auth. Candidate version advances to v119. Stable remains OWNER-GATED; D164 remains isolated; D163 remains the last Owner-accepted Inventory base.
+
+## 2026-10-07 — D165 Agent v119 technical release checkpoint
+
+Same-D165 repair PR #497 merged to main `1278b2025494e61e0bd952bb3b1ebb84c2338ee1`. PR checks completed with 14 success, 9 conditional skips and zero failures. Main push completed **11/11 workflows PASS**, including Beta Worker deployment run `37569696945`, Agent verification/release run `37569696832`, UI Design Guard `37569696705`, Repo Authority `37569696776` and Project State Guard `37569696712`. Official prerelease `relay-agent-v119` is published.
+
+v119 aligns D165 privileged login/re-auth with the already-authorized Agent operator matrix: immutable/effective `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN`; exact special login is normalized before request; ROOT/Reporter remain denied. OTP persistence/rotation, Owner-approved HHmm emergency proof, Firestore session fences, Android signed `beta-vc102`, D164 isolation and Stable OWNER-GATED are unchanged.
+
+This is **technical/build/deploy PASS only**. Owner physical Agent OTP/HHmm retest, vc102 Skip-correction retest and comparable-load usage/stability remain OA100; do not mark D165 Owner PASS from CI.
