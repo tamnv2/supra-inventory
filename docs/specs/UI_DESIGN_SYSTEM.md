@@ -1087,3 +1087,7 @@ The Agent **Lịch sử Picker xác nhận PickList** table adds **User Agent x�
 - Do not display an Android **Picker đã thu hồi** tab. Preserve archival/report visibility and underlying ticket transitions.
 - Retain the professional selected/idle styles, existing text-scale controls and all business-action confirmations. No additional background read/listener is justified to draw these tabs.
 - This section supersedes earlier Android Reporter four/five-tab UI composition instructions, but not the earlier business semantics. Web tab/navigation presentation is not changed by this refinement.
+
+## D165 neutral privileged-login presentation — Owner correction 2026-10-07
+
+On Inventory Web, Android Báo hàng and Windows Agent, the login surface is deliberately neutral: ordinary **Tài khoản**, **Mật khẩu**, and **Đăng nhập** affordances, no special OTP/emergency placeholder, no send-code button, no public list of protected usernames. The Web logged-in Account surface also removes the manual OTP-send card/action; account administration must not label protected rows as **Mật khẩu một lần**. Authentication distinctions remain server-side and are not to be advertised in unauthenticated UI. Preserve all existing normal-user controls and layout density; no new polling, resource or realtime listener follows from this presentation change.
