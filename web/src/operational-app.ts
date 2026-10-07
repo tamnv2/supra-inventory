@@ -51,6 +51,7 @@ import {
   loginWithPassword,
   logoutInteractiveSession,
   requestPasswordReset,
+  requestPrivilegedOneTimeCode,
   confirmPasswordReset,
   updateMyAuthEmail,
   ApiError,
@@ -113,6 +114,20 @@ import {
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const PRODUCT_CREDIT = "Phát triển hệ thống · tamnv2 | Pick Pack 1291";
 const SKU_CHUNK_SIZE = 1000;
+
+function privilegedOneTimeLogin(value: string | null | undefined): boolean {
+  const raw = String(value || "").trim().toLowerCase();
+  const tail = raw.includes(":") ? raw.split(":").pop() || "" : raw;
+  return tail === "root" || tail === "admin" || tail === "tamnv2";
+}
+
+function privilegedOneTimeProfile(value: AppProfile | null | undefined): boolean {
+  return Boolean(value && (privilegedOneTimeLogin(value.employee_code) || privilegedOneTimeLogin(value.user_id)));
+}
+
+function privilegedOneTimeManagedUser(value: ManagedUser | null | undefined): boolean {
+  return Boolean(value && (privilegedOneTimeLogin(value.employee_code) || privilegedOneTimeLogin(value.user_id)));
+}
 
 type Section =
   | "picker"
