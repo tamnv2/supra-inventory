@@ -1,6 +1,6 @@
 {
   "change_id": "D164",
-  "status": "PROFESSIONAL_WORKSPACE_TECHNICAL_PASS__VC6_FIELD_TEST_PENDING",
+  "status": "OWNER_CANCELLED_2026_10_07__NO_OWNER_PASS__NO_PROMOTION",
   "owner_authorized_at": "2026-10-06",
   "scope": "PDA_MANAGEMENT",
   "repository": "tamnv2/supra-inventory",
@@ -9,7 +9,7 @@
   "management_sheet_id": "1q0XKgsU3AZQPIiX7AW6XxXh1Jfc--P1TmErdemAMUQg",
   "registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
   "usage_policy": "NO_HEARTBEAT__NO_ANDROID_BACKGROUND_POLL__NO_FIREBASE_MVP__EVENT_DRIVEN__REVISION_ETAG__SHEET_MIRROR_OFF_CRITICAL_PATH",
-  "manual_blocker": "",
+  "manual_blocker": "OWNER_CANCELLED_STANDALONE_D164_DIRECTION",
   "main_sha": "773356b5c6e82162c7b515123b97cf7af13b4da3",
   "foundation_pr": 465,
   "issue": 464,
@@ -68,7 +68,7 @@
     "service_verify_run": 37457159085,
     "deploy_run": 37457159127
   },
-  "next_phase": "OWNER_FIELD_TEST_VC6__LOGIN__OPERATIONS_SCAN_SUGGEST__BORROW_RETURN_CONDITION__PDA_FILTERS__ROOT_ACCOUNT_CATALOG_SITE__SAME_D164_REPAIR_IF_NEEDED",
+  "next_phase": "CLOSED_CANCELLED__NO_D164_FIELD_TEST_OR_NEW_RUNTIME_MUTATION",
   "auth_device_list": {
     "status": "TECHNICAL_PASS",
     "root_bootstrap": true,
@@ -212,5 +212,18 @@
       "passwords_in_sheet": false
     },
     "usage": "NO_POLLING__LOCAL_SERIAL_FILTERS__CATALOG_LOAD_ON_SESSION_OR_CHANGE__HR_SUGGEST_DEBOUNCED"
+  },
+  "cancellation": {
+    "status": "OWNER_CANCELLED",
+    "cancelled_at": "2026-10-07",
+    "owner_direction": "REPLACE_STANDALONE_PDA_MANAGEMENT_WITH_CONSOLIDATED_WORKFORCE_OPERATIONS_MODEL",
+    "successor_spec": "docs/specs/OPERATIONS_MANAGEMENT.md",
+    "owner_pass": false,
+    "accepted_base_promotion": false,
+    "runtime_action": "NONE__FREEZE_EXISTING_BETA_ARTIFACTS_AND_RESOURCES",
+    "source_action": "NONE__KEEP_AS_HISTORICAL_REUSE_REFERENCE",
+    "resource_action": "NONE__NO_DELETE_REDEPLOY_OR_REPURPOSE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "governance": "SUCCESSOR_IMPLEMENTATION_BLOCKED_UNTIL_D165_OWNER_PASS_AND_NEW_CHANGE_APPROVAL"
   }
 }
