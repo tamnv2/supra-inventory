@@ -401,6 +401,22 @@ class ReporterController(
     }
 
     private fun updateBadges() {
+        // Keep the accepted four-tab layout; enable horizontal scrolling only
+        // when PER_PICKER exposes a fifth tab.
+        val strip = list?.rootView?.findViewById<LinearLayout>(R.id.reporterTabs)
+        strip?.layoutParams?.let { params ->
+            val width = if (overdueEnabled) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
+            if (params.width != width) {
+                params.width = width
+                strip.layoutParams = params
+            }
+        }
+        for ((_, box) in tabBoxes) {
+            val params = box.layoutParams as? LinearLayout.LayoutParams ?: continue
+            params.width = if (overdueEnabled) kit.dp((104 * displayScale).roundToInt().coerceIn(94, 130)) else 0
+            params.weight = if (overdueEnabled) 0f else 1f
+            box.layoutParams = params
+        }
         tabBoxes[Filter.OVERDUE]?.visibility = if (overdueEnabled) View.VISIBLE else View.GONE
         setBadge(Filter.PENDING, queueTotal)
         setBadge(Filter.OVERDUE, overdueTotal)
