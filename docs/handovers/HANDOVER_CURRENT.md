@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `17`
-- Latest signed Beta APK: `beta-vc97`
-- Current released Agent: `relay-agent-v114`
+- Latest signed Beta APK: `beta-vc98`
+- Current released Agent: `relay-agent-v115`
 - Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
 - Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
-- Android: `D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__NOT_RELEASED__SIGNED_BETA_VC97`
+- Android: `D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__NOT_RELEASED__SIGNED_BETA_VC98`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -313,7 +313,7 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEP
 - Web: `D100_BETA_RUNTIME_PASS__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_V25_CANONICAL__D099_LOGIN_FIX_PRESERVED`
 - Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`
 - Latest signed Beta APK: `beta-vc62`
-- Agent: `relay-agent-v25`
+- Agent: D165_PR_487_AGENT_V116_SOURCE__SIGNED_RELAY_AGENT_V115_CURRENT__BETA_RELEASE_PENDING__OWNER_FIELD_PASS_PENDING
 - SQLite schema: `10`
 - Next: OA019 physical Agent/PDA acceptance and OA020 ROOT reset-mail field acceptance. Stable remains OWNER-GATED.
 
@@ -1857,3 +1857,7 @@ D165 PR #487 stays draft. Android PER_PICKER overdue and HAS_STOCK correction pa
 ## D165 Owner emergency-login decision supersession — 2026-10-07
 
 **Current explicit Owner instruction overrides the earlier proposal's TOTP/secret-backed recovery release blocker.** PR #487 may progress through normal CI, scoped Beta merge, Worker/Android/Agent release checks using the exact numeric >=8-digit emergency string with Vietnam server-time HHmm ±5 minutes, without any additional secret factor. The Owner was explicitly informed that this public clock-only pattern can permit account takeover; it is a recorded accepted risk, **not a secure credential**. Prior security-blocker warnings in this derived historical view are superseded by the current decision; other RBAC/session protections still apply. D165 field/usage Owner PASS remains pending. D164 isolated; Stable untouched.
+
+## D165 live signed-release baseline correction — 2026-10-07
+
+Direct GitHub Releases evidence confirms the already-published Beta Android `beta-vc98` (target commit `7c97ff686b06b3b5d827a7daf84ab6df7c49adad`) and Windows Agent `relay-agent-v115`. Earlier vc97/v114 values in the historical state are superseded for the **current published release**; they remain correct in older accepted-base checkpoints. PR #487 Android changes are **not** yet released; its Agent source declares v116. After CI/merge the monotonic signed APK release and Agent v116 must be verified and continuity advanced separately. Stable untouched.
