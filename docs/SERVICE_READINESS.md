@@ -302,7 +302,7 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEP
 - Web: `D100_BETA_RUNTIME_PASS__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_V25_CANONICAL__D099_LOGIN_FIX_PRESERVED`
 - Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`
 - Latest signed Beta APK: `beta-vc62`
-- Agent: D165_RELAY_AGENT_V116_RELEASED__EXISTING_GOOGLE_GATEWAY_D165_SYNC_PENDING__FIELD_OWNER_PASS_PENDING
+- Agent: D165_AGENT_V116_AND_EXISTING_BETA_APPS_SCRIPT_OTP_GATEWAY__PROVIDER_DEPLOY_AND_LIVE_HANDLER_PASS__OWNER_FIELD_PENDING
 - SQLite schema: `10`
 - Next: OA019 physical Agent/PDA acceptance and OA020 ROOT reset-mail field acceptance. Stable remains OWNER-GATED.
 
@@ -1861,3 +1861,10 @@ Direct GitHub Releases evidence confirms the already-published Beta Android `bet
 ## D165 Gateway provider readback repair — 2026-10-07
 
 The first new Beta Gateway workflow run `37553946690` failed **after** the existing deployment-update API returned its matching ID/version, because the immediate CLI deployment-list readback differed. Live effectiveness is not yet confirmed. Same-D165 repair replaces the single post-deploy listing assertion with bounded authoritative REST deployment readback and a harmless rejected-username live Web App probe, without creating resources or logging secrets. Do not mark Agent Office OTP functional or Owner field PASS until the repaired provider workflow succeeds and field tests pass.
+
+## D165 final automated Beta checkpoint — 2026-10-07
+
+- Merged PRs: #487 (D165 OTP + Android Reporter), #488 (existing Beta Agent Gateway deployment automation), #489 (REST + harmless live-handler verification repair).
+- Signed release baseline: Android `beta-vc99`, Agent `relay-agent-v116`. Cloudflare Worker Beta PASS; Google Apps Script existing Beta deployment version readback **and** live invalid-username handler PASS (run `37554446509`). The earlier immediate CLI-list readback failure was repaired; no new Script, deployment or secrets.
+- D165 technical/runtime release and provider gates **PASS**. **Not D165 Owner PASS**: physical OTP email, Agent Office login, Android correction/overdue and normal-load usage/latency/failover remain to be field-accepted under OA100.
+- The Owner-required HHmm-only privileged emergency fallback is publicly predictable and retains account-takeover exposure; no additional factor was authorized. Stable remains Owner-gated and D164 remains isolated.

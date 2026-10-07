@@ -36,7 +36,7 @@
     "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_MERGED_BETA_POST_MERGE_CI_ALL_GREEN__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D165_RELAY_AGENT_V116_RELEASED__EXISTING_GOOGLE_GATEWAY_D165_SYNC_PENDING__FIELD_OWNER_PASS_PENDING",
+    "agent": "D165_AGENT_V116_AND_EXISTING_BETA_APPS_SCRIPT_OTP_GATEWAY__PROVIDER_DEPLOY_AND_LIVE_HANDLER_PASS__OWNER_FIELD_PENDING",
     "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING"
   },
   "hard_guards": [
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR_487_MERGED_BETA_VC99_AGENT_V116__EXISTING_GATEWAY_DEPLOYMENT_READBACK_REPAIR_ACTIVE__FIELD_PENDING",
+    "parallel_inventory_change_status": "D165_PR_487_488_489_MERGED__BETA_SOURCE_RELEASE_GATEWAY_PASS__FIELD_USAGE_OWNER_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_BETA_RELEASED_VC99_AGENT_V116__GATEWAY_VERSION_READBACK_REPAIR_PENDING__FIELD_USAGE_PASS_PENDING",
+    "status": "D165_BETA_SOURCE_RELEASE_GATEWAY_TECHNICAL_PASS__PR_487_488_489__FIELD_USAGE_OWNER_PASS_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "MERGE_PR_487_AFTER_AUTHORITY_CONTINUITY_CI_PASS__VERIFY_BETA_WEB_ANDROID_AGENT_RELEASE__OWNER_FIELD_USAGE_PASS_LATER",
+    "next_action": "OWNER_FIELD_VALIDATE_WEB_OTP_ANDROID_REPORTER_AGENT_GATEWAY_OFFICE_LOGIN_AND_USAGE__EXPLICIT_D165_PASS_REQUIRED",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -5895,7 +5895,7 @@
       "script_identity": "EXACT_CANONICAL_NAME_MATCH_AND_EXISTING_DEPLOYMENT_URL_MATCH",
       "credential_source": "EXISTING_GITHUB_BETA_CLASPRC_JSON_SECRET_AND_AGENTS_GATEWAY_URL_VAR",
       "delivery": "SCOPED_EXISTING_DEPLOYMENT_ONLY_NO_NEW_SCRIPT",
-      "status": "FIRST_RUN_PUSH_AND_DEPLOY_COMMAND_SUCCESS__CLASP_IMMEDIATE_LIST_READBACK_FAILED__REST_GET_AND_HARMLESS_LIVE_HANDLER_PROBE_REPAIR_PENDING",
+      "status": "PASS__EXISTING_BETA_APPS_SCRIPT_DEPLOYMENT_UPDATED_IN_PLACE__REST_VERSION_READBACK_AND_INVALID_USERNAME_LIVE_HANDLER_PROBE",
       "owner_decision": "SAME_D165_LOGIN_COMPLETION",
       "stable": "OWNER_GATED_UNTOUCHED",
       "risk_guard": "FAIL_CLOSED_ON_MISSING_OR_AMBIGUOUS_SCRIPT_ID_OR_DEPLOYMENT",
@@ -5907,6 +5907,19 @@
         "last_command": "EXISTING_VERSION_REDEPLOY_RESPONSE_MATCHED",
         "followup": "EXACT_DEPLOYMENT_REST_READBACK_WITH_BOUNDED_RETRIES_AND_INVALID_USERNAME_LIVE_HANDLER_PROOF",
         "field_owner_pass": "PENDING"
+      },
+      "final_provider_evidence": {
+        "workflow_run": 37554446509,
+        "main_commit": "bcc8f77438d943a5e51b419e63bd11a6b66b1e19",
+        "run_status": "SUCCESS",
+        "script_identity": "EXACT_MATCH_SINGLE_EXISTING_SCOPED_NAME",
+        "deployment": "EXACT_EXISTING_BETA_URL_DEPLOYMENT_ID",
+        "version_readback": "PASS_VIA_SCRIPT_API_EXACT_DEPLOYMENT_GET",
+        "live_handler": "PASS_SAFE_INVALID_USERNAME_BEFORE_WORKER_OR_MAIL",
+        "real_otp_and_office_field": "NOT_TESTED",
+        "new_script_created": false,
+        "new_deployment_created": false,
+        "stable": "OWNER_GATED_UNTOUCHED"
       }
     },
     "post_merge_487": {
@@ -5918,8 +5931,17 @@
       "worker_status": "PASS",
       "signed_releases": "PUBLISHED",
       "gateway": "PENDING_SOURCE_DEPLOYMENT",
-      "field_owner_pass": "PENDING"
-    }
+      "field_owner_pass": "PENDING",
+      "agent_gateway": "PASS__D165_REDEPLOY_IN_PLACE__MAIN_BCC8F774__RUN_37554446509",
+      "main_ci_487": "PASS_13_OF_13",
+      "main_ci_489": "PASS_9_OF_9",
+      "prs": [
+        487,
+        488,
+        489
+      ]
+    },
+    "owner_pass_required": true
   },
   "launcher_daily_password": {
     "status": "IMPLEMENTED_IN_PR__TECHNICAL_VALIDATION_PENDING",

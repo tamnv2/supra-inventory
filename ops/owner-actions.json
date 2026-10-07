@@ -5196,6 +5196,42 @@
       "closed": true,
       "owner_result": "PASS__2026_10_07",
       "owner_evidence": "Owner reviewed the canonical D165 detail and explicitly instructed: Ok chốt. Tiến hành chạy code."
+    },
+    {
+      "id": "OA100",
+      "status": "READY_FOR_OWNER_FIELD_TEST",
+      "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
+      "reason_owner_only": "Source CI, signed releases, Cloudflare Beta deploy, and existing Apps Script version/handler readback passed. Only the Owner's real email inbox, on-site Windows Agent, Android PDA, user roles and representative business load can prove OTP mail/session and field/usage correctness.",
+      "prerequisites": {
+        "accepted_inventory_base": "D163_OWNER_PASS",
+        "d165_runtime": "PR_487_488_489_MERGED_SOURCE_CI_PASS",
+        "android": "beta-vc99__RELEASED",
+        "agent": "relay-agent-v116__RELEASED",
+        "worker": "BETA_DEPLOY_PASS__RUN_37553374710",
+        "apps_script_gateway": "EXISTING_SCRIPT_DEPLOYED_AND_LIVE_HANDLER_PROBED_PASS__RUN_37554446509",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "security_risk": "OWNER_EXPLICIT_ACCEPTED_PUBLICLY_PREDICTABLE_HHMM_EMERGENCY_PROOF"
+      },
+      "shortest_test_path": [
+        "On Beta Web request a code for a privileged account; verify one email with the requested subject and confirm a single successful login consumes it and issues a new code. Never paste codes to chat/logs.",
+        "Test the Owner-required emergency numeric minimum-8-digit server-HHmm-within-5-minutes login on Beta; confirm invalid or stale values fail; understand the predictable credential's account-takeover risk.",
+        "On Agent v116, verify fresh admin login via existing Gateway, local valid session restore, protected-action re-auth, and logout behavior from company Office.",
+        "On Reporter APK beta-vc99 in PER_PICKER, verify four tabs and only two badges (Đang xử lý / Quá hạn); test HAS_STOCK correction double confirmation and no duplicate picker Skip. FIRST_REPORT shows three tabs; Picker đã thu hồi is hidden on APK but remains in history.",
+        "Observe normal operational load for comparable Cloudflare DO and Firestore read/write, realtime update latency, PickList speed and failover before declaring D165 PASS."
+      ],
+      "pass_criteria": [
+        "One-time OTP is single use, rotates and is emailed to the approved recipient; no old fixed privileged password remains active.",
+        "Emergency clock-only rule matches the Owner's exact numeric >=8 digit and Vietnam HHmm +/-5 minute requirement. Residual account-takeover risk explicitly remains accepted.",
+        "Agent v116 authenticated Office login works through deployed Apps Script Gateway, and protected actions respect RBAC/session fences.",
+        "APK vc99 Reporter tabs and counts meet Owner-approved UI, correct/overdue flows have expected Picker ACK and versioned audit, normal daily history remains intact.",
+        "No material regression of realtime, throughput, stability, 15-second HA objective or excessive provider usage.",
+        "Owner explicitly reports D165 PASS after actual field/usage evidence. CI/runtime PASS alone is not Owner PASS.",
+        "Stable remains untouched."
+      ],
+      "remaining_owner_action": "RUN_MINIMAL_BETA_FIELD_AND_USAGE_ACCEPTANCE__OWNER_EXPLICIT_PASS_OR_NOT_PASS_REQUIRED",
+      "closed": false
     }
   ]
 }
