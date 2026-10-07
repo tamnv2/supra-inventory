@@ -10,7 +10,7 @@
 - Current released Agent: `relay-agent-v114`
 - Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
 - Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
-- Android: `D165_ANDROID_OVERDUE_CORRECTIONS_IN_PR_487_NOT_YET_RELEASED__SIGNED_BETA_VC97_UNCHANGED`
+- Android: `D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__NOT_RELEASED__SIGNED_BETA_VC97`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -1841,3 +1841,9 @@ The Owner explicitly confirmed **D157 PASS** after field validation of the relea
 ## D165 repair checkpoint — 2026-10-07
 
 D165 PR #487 stays draft. Android PER_PICKER overdue and HAS_STOCK correction parity is coded but not yet released. Privileged OTP source is present but the predictable clock-only emergency bypass is a security blocker. Do not merge/promote before a secret-backed emergency proof is approved and all gates pass. D164 isolated; Stable Owner-gated.
+
+## D165 Android Reporter compact-tab refinement — 2026-10-07
+
+- PR #487 includes Android Reporter UI-only consolidation: conditional four/three tabs, no Picker đã thu hồi tab, no completed-state badges, counts only Đang xử lý and Quá hạn.
+- Android APK remains beta-vc97 until a newer signed Beta candidate is built and released; current PR source is not yet released.
+- Privileged emergency clock-only authentication remains a blocking security gate. No Beta merge/production-capable release or Stable promotion is authorized while unresolved.
