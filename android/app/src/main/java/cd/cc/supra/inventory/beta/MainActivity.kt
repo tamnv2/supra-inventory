@@ -1031,7 +1031,7 @@ class MainActivity : Activity() {
         // server/Drive archive can dedupe the same logout boundary.
         runtimeLogPrefs().edit()
             .putString("pending_session_end_user", session.userId)
-            .putString("pending_session_end_payload", payload.toString().take(30_000))
+            .putString("pending_session_end_payload", payload.toString())
             .commit()
     }
 
