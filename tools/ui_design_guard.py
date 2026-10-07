@@ -47,6 +47,7 @@ WEB_APPROVED_ICON_EXISTS = (ROOT / "web/public/app-icon.png").is_file()
 ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 RELAY_PROGRAM = read("relay-agent/Program.cs")
+SERVICE_PRIVILEGED_AUTH = read("service/src/privileged-auth.ts")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
 
 SERVICE_OPS = read("service/src/operational-v2-core.ts")
@@ -70,6 +71,8 @@ DESIGN_SPEC = read("docs/specs/UI_DESIGN_SYSTEM.md")
 DECISIONS = read("docs/OWNER_DECISIONS.md")
 
 checks = {
+    "d165_otp_auto_rotates_in_worker": "await sendPrivilegedOneTimeCode(env, user, true)" in SERVICE_PRIVILEGED_AUTH and "await verifyPrivilegedProof(env, user, password, true)" in SERVICE_INDEX,
+    "d165_neutral_login_without_otp_request_controls": all(token not in WEB_APP for token in ["id=\"request-privileged-code\"", "id=\"account-request-privileged-code\"", "Gửi mã một lần chỉ áp dụng", "Mật khẩu, mã một lần hoặc khẩn cấp"]) and all(token not in ANDROID_LOGIN_XML for token in ["btnOneTimeCode", "GỬI MẬT KHẨU MỘT LẦN", "mã một lần hoặc khẩn cấp"]) and "oneTimeCode.setOnClickListener" not in ANDROID_MAIN and "_d165SendAuthCode" not in RELAY_PROGRAM,
     "authority_direct_legacy_transplant": "D057" in DECISIONS and "direct legacy presentation transplant" in DESIGN_SPEC.lower(),
     "authority_d058_owner_web_review": "D058" in DECISIONS and "Owner-reviewed desktop shell refinement" in DESIGN_SPEC,
     "authority_d059_web_header_review": "D059" in DECISIONS and "Owner-reviewed header and identity refinement" in DESIGN_SPEC,
