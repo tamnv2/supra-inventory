@@ -721,3 +721,12 @@ The panel:
 - displays a bounded loading/empty/error state without replacing the main report table.
 
 Detail data is loaded on demand for the selected batch only. Filtering, paging or changing the report range clears stale expanded detail state.
+
+
+## D165 Android Reporter parity — operational controls
+
+When auto-skip policy is `PER_PICKER`, Android adds a visually pinned **Quá hạn** tab with badge and a scrollable five-tab strip. In `FIRST_REPORT` the original four tabs continue to occupy equal width. A Quá hạn row displays SKU, product, overdue Picker count, still-waiting count, first overdue time and buttons **Đã có hàng** / **Cho phép skip**. Picker ticket detail is lazy, opened only on row selection.
+
+A recent **Đã có hàng** row offers **Sửa - Đang xử lý** and **Sửa - Cho phép Skip**. First confirmation names the SKU and proposed change. Second confirmation prominently warns that Pickers were already notified and will need to acknowledge a corrected result. Cancel at either stage changes nothing. The final API request supplies the latest known batch version; server rejection on version conflict/role/eligibility requires a refresh rather than local forced success. Existing Skip-to-Stock correction is unchanged.
+
+No extra Android periodic read, listener, heartbeat, Firestore write or client-auth bypass is authorized.
