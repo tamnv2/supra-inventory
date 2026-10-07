@@ -20,6 +20,7 @@
     "docs/specs/REPORTING_DASHBOARD.md",
     "docs/specs/UI_DESIGN_SYSTEM.md",
     "docs/specs/ACCEPTANCE_TESTING.md",
+    "docs/specs/OPERATIONS_MANAGEMENT.md",
     "docs/OPERATING_PROTOCOL.md",
     "ops/resource-registry.json",
     "recent_commits_and_ci",
@@ -43,7 +44,8 @@
       "docs/specs/OBSERVABILITY_LOGGING.md",
       "docs/specs/REPORTING_DASHBOARD.md",
       "docs/specs/UI_DESIGN_SYSTEM.md",
-      "docs/specs/ACCEPTANCE_TESTING.md"
+      "docs/specs/ACCEPTANCE_TESTING.md",
+      "docs/specs/OPERATIONS_MANAGEMENT.md"
     ],
     "implementation": [
       "service/",
