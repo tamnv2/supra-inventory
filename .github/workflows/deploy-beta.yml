@@ -256,7 +256,9 @@ jobs:
       # Never print OTPs: the existing Worker/Gmail sender mails the three
       # account-specific codes solely to the already-authorized mailbox.
       - name: D165 send initial persistent privileged codes to Owner
-        if: github.event_name == 'push' && contains(github.event.head_commit.message, 'D165: OTP Agent and Skip correction repair')
+        if: >-
+          github.event_name == 'push' &&
+          contains(github.event.head_commit.message, 'D165: OTP Agent and Skip correction repair')
         shell: bash
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
