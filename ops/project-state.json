@@ -6123,6 +6123,13 @@
       "owner_field_pass": "PENDING"
     }
   },
+  "d166": {
+    "status": "IMPLEMENTATION_OPEN__NOT_DEPLOYED",
+    "date": "2026-10-08",
+    "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
+    "authority_document": "docs/D166_INVENTORY_USAGE_RELIABILITY_RESET.md",
+    "owner_pass": "PENDING"
+  },
   "launcher_daily_password": {
     "status": "IMPLEMENTED_IN_PR__TECHNICAL_VALIDATION_PENDING",
     "date": "2026-10-07",
