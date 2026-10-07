@@ -8,11 +8,6 @@
     android:paddingEnd="8dp"
     android:paddingBottom="0dp">
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:fillViewport="true"
-        android:horizontalScrollBarEnabled="false">
     <LinearLayout
         android:id="@+id/reporterTabs"
         android:layout_width="match_parent"
@@ -116,22 +111,6 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="10sp"
                 android:textStyle="bold" />
-            <TextView
-                android:id="@+id/badgeReporterHasStock"
-                android:layout_width="wrap_content"
-                android:layout_height="18dp"
-                android:layout_gravity="top|end"
-                android:layout_marginTop="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_reporter_tab_badge_idle"
-                android:gravity="center"
-                android:minWidth="18dp"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:text="0"
-                android:textColor="@color/text_primary"
-                android:textSize="9sp"
-                android:textStyle="bold" />
         </FrameLayout>
 
         <FrameLayout
@@ -154,64 +133,8 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="10sp"
                 android:textStyle="bold" />
-            <TextView
-                android:id="@+id/badgeReporterSkip"
-                android:layout_width="wrap_content"
-                android:layout_height="18dp"
-                android:layout_gravity="top|end"
-                android:layout_marginTop="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_reporter_tab_badge_idle"
-                android:gravity="center"
-                android:minWidth="18dp"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:text="0"
-                android:textColor="@color/text_primary"
-                android:textSize="9sp"
-                android:textStyle="bold" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/tabReporterWithdrawnBox"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_picker_tab_idle"
-            android:clickable="true"
-            android:focusable="true">
-            <TextView
-                android:id="@+id/tabReporterWithdrawn"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:maxLines="2"
-                android:paddingStart="3dp"
-                android:paddingEnd="13dp"
-                android:text="Picker đã thu hồi"
-                android:textColor="@color/text_secondary"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/badgeReporterWithdrawn"
-                android:layout_width="wrap_content"
-                android:layout_height="18dp"
-                android:layout_gravity="top|end"
-                android:layout_marginTop="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_reporter_tab_badge_idle"
-                android:gravity="center"
-                android:minWidth="18dp"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:text="0"
-                android:textColor="@color/text_primary"
-                android:textSize="9sp"
-                android:textStyle="bold" />
         </FrameLayout>
     </LinearLayout>
-    </HorizontalScrollView>
-
 
     <ListView
         android:id="@+id/listIssues"
