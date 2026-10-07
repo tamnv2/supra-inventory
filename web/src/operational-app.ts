@@ -1463,7 +1463,7 @@ function render(): void {
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
     <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
-    `<button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>`
+    <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
     <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b data-workspace-count="results">${recentBadgeCount}</b></button>
   </div>`;
 }
