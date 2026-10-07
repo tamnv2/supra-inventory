@@ -3575,3 +3575,28 @@ Same-D165 repair PR #497 merged to main `1278b2025494e61e0bd952bb3b1ebb84c2338ee
 v119 aligns D165 privileged login/re-auth with the already-authorized Agent operator matrix: immutable/effective `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN`; exact special login is normalized before request; ROOT/Reporter remain denied. OTP persistence/rotation, Owner-approved HHmm emergency proof, Firestore session fences, Android signed `beta-vc102`, D164 isolation and Stable OWNER-GATED are unchanged.
 
 This is **technical/build/deploy PASS only**. Owner physical Agent OTP/HHmm retest, vc102 Skip-correction retest and comparable-load usage/stability remain OA100; do not mark D165 Owner PASS from CI.
+
+## 2026-10-07 — D164 standalone PDA Management cancelled; successor becomes consolidated workforce/operations model
+
+Status: **OWNER DECISION — D164 CANCELLED WITHOUT OWNER PASS; SUCCESSOR DIRECTION RECORDED ONLY**.
+
+The Owner explicitly cancelled the standalone D164 PDA Management direction and decided not to continue building PDA management as a separate product. D164 had reached technical/runtime Beta readiness but had not received Owner field PASS; therefore it is closed as **cancelled**, is not promoted to the accepted base, and its Beta artifacts/resources are frozen rather than deleted or repurposed by this decision.
+
+The replacement direction is one consolidated operational management model containing:
+- Nhân sự;
+- ra/vào ca;
+- công nhật;
+- quản lý công cụ dụng cụ (CCDC), with **PDA treated as one CCDC asset type**;
+- quản lý biên bản;
+- nhận hàng rớt.
+
+Canonical successor scope is recorded in `docs/specs/OPERATIONS_MANAGEMENT.md`.
+
+Governance:
+- D163 remains the accepted Inventory base.
+- D165 becomes the current open change and still requires explicit Owner field/usage PASS.
+- No new change ID is assigned to the consolidated model while D165 remains open.
+- Existing D164 source, releases and Beta runtime resources remain historical/reuse candidates only; this decision authorizes no delete, deploy, migration or repurpose.
+- Any reuse/new resource for the consolidated model requires later project-scope reconciliation and explicit Owner approval.
+- Stable remains OWNER-GATED and untouched.
+
