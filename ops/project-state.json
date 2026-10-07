@@ -6124,10 +6124,17 @@
     }
   },
   "d166": {
-    "status": "IMPLEMENTATION_OPEN__NOT_DEPLOYED",
+    "status": "IMPLEMENTATION_OPEN__OWNER_EXPLICIT_START_2026_10_08__BRANCH_ACTIVE__NOT_DEPLOYED",
     "date": "2026-10-08",
+    "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
     "authority_document": "docs/D166_INVENTORY_USAGE_RELIABILITY_RESET.md",
+    "predecessor": "D165__CLOSED_SUPERSEDED_WITHOUT_OWNER_PASS",
+    "branch": "d166-usage-reliability",
+    "purpose": "FIX_RELIABILITY_AND_USAGE_AMPLIFICATION_WITHOUT_SPEED_REALTIME_FAILOVER_REGRESSION",
+    "budget_policy": "INVENTORY_30__PICK_PACK_30__ALPHA_30__SHARED_RESILIENCE_10",
+    "quota_rule": "PROVIDER_METERS_NOT_INTERCHANGEABLE__BALANCE_ARCHITECTURE_NOT_QUOTA_UNITS",
+    "stable": "OWNER_GATED_UNTOUCHED",
     "owner_pass": "PENDING"
   },
   "launcher_daily_password": {
