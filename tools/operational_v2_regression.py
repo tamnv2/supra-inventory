@@ -125,15 +125,40 @@ def require_source_markers() -> None:
         if marker not in sla_auto:
             fail(f"D162 reporter counter SLA metadata missing: {marker}")
 
+    # D165 source of truth supports BOTH resolved result directions, applies
+    # the first-report Skip correction timer server-side, and uses optimistic
+    # versioned writes. Android/Web must not use the retired empty POST body.
     for marker in (
-        'from: "HAS_STOCK"',
-        'to: target',
-        'before_status: "HAS_STOCK"',
-        'after_status: target === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : null',
-        'corrected_from_version: expectedVersion',
+        '["PENDING", "SKIP_ALLOWED", "HAS_STOCK"].includes(target)',
+        'from === "HAS_STOCK" && batch.resolution === "HAS_STOCK"',
+        'from === "SKIP_ALLOWED" && batch.resolution === "SKIP_ALLOWED"',
+        'SKIP_CORRECTION_EXPIRED',
+        'SKIP_CORRECTION_DISABLED',
+        'correctionDeadlineFromFirstReport(state, batch.first_report_at)',
+        'Number(batch.version || 0) !== expectedVersion',
+        'recentCounter',
+        '"BATCH_CORRECTED"',
+        'resolution_source = \'REPORTER_CORRECTION\'',
+        'target === "PENDING" ? 1 : 0',
     ):
         if marker not in business:
-            fail(f"D165 HAS_STOCK correction invariant missing: {marker}")
+            fail(f"D165 cross-direction correction invariant missing: {marker}")
+    android_api = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt").read_text(encoding="utf-8")
+    android_reporter = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt").read_text(encoding="utf-8")
+    web = (ROOT / "web/src/operational-app.ts").read_text(encoding="utf-8")
+    for marker in ('"PENDING", "Đang xử lý"', '"HAS_STOCK", "Đã có hàng"', 'row.version'):
+        if marker not in android_reporter:
+            fail(f"D165 Android Skip correction action missing: {marker}")
+    if 'fun correctBatch(batchId: String)' in android_api:
+        fail("D165 old no-target/no-version Android correction helper returned")
+    for marker in ('row.correction_allowed === true', 'data-correct-target="PENDING"', 'data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}"'):
+        if marker not in web:
+            fail(f"D165 Web resolved Skip correction missing: {marker}")
+    for marker in ('correction_from_status: fromStatus', 'result_event_id: resultEventId || null', 'target: { batchId }', 'Báo hàng {sku}'):
+        if marker not in business_api:
+            fail(f"D165 Picker FCM correction metadata/target missing: {marker}")
+    if 'WHERE a.result_event_id = ? AND a.target_user_id = ?' not in operational:
+        fail("D165 Picker realtime authorization must remain exact-event targeted")
 
     # D165 PER_PICKER keeps the batch pending after timeout, so the business
     # resolver may compute queue_delta from remaining waiting tickets instead of

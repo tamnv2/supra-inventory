@@ -37,7 +37,7 @@
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
     "agent": "D165_AGENT_V117__UNCHANGED_BY_VC101_FIELD_REPAIR__OWNER_FIELD_PENDING",
-    "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING"
+    "d165_proposal": "D165_FIELD_NOT_PASS__OTP_AGENT_SKIP_CORRECTION_REPAIR_UNDER_REVIEW__OWNER_PASS_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR493_MERGED_MAIN_B640AC57__10_OF_10_MAIN_CI_PASS__WEB_BETA_DEPLOY_PASS__ANDROID_SIGNED_VC101_RELEASED__OWNER_FIELD_AND_USAGE_PASS_PENDING",
+    "parallel_inventory_change_status": "D165_OWNER_FIELD_NOT_PASS_VC101_SKIP_CORRECTION_AND_AGENT_V117_LOGIN__D165_SAME_CHANGE_REPAIR_BRANCH_CI_AND_RELEASE_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_REPAIR_VC101_SIGNED_BETA_DEPLOYED__ALL_MAIN_CI_PASS__READY_FOR_OWNER_FIELD_TEST_NOT_OWNER_PASS",
+    "status": "D165_FIELD_NOT_PASS_VC101_SKIP_CORRECTION_AND_AGENT_V117_LOGIN__REPAIR_SOURCE_IN_REVIEW__OWNER_PASS_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "OA100_TEST_ANDROID_VC101_WEB_BETA_AGENT_V117_PRIVILEGED_EMAIL_AND_NORMAL_LOAD__OWNER_EXPLICIT_D165_PASS_PENDING",
+    "next_action": "COMPLETE_D165_PR_REPAIR_CI_BRANCH_MERGE__PUBLISH_SIGNED_ANDROID_NEXT_VC_AND_AGENT_V118__VERIFY_INITIAL_MAIL_DELIVERY_AND_OWNER_FIELD_USAGE_PASS",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -6062,6 +6062,24 @@
         "d164": "ISOLATED_UNCHANGED",
         "stable": "OWNER_GATED_UNTOUCHED"
       }
+    },
+    "owner_report_2026_10_07_second_repair": {
+      "status": "OWNER_FIELD_NOT_PASS",
+      "source": "SIGNED_ANDROID_VC101_MANUAL_LOG_20261007_093758__REPEATED_INVALID_INPUT_SKIP_CORRECTION__AGENT_V117_PRIVILEGED_LOGIN_CLEARS_USERNAME_SILENTLY",
+      "approval": "OWNER_EXPLICIT_IMPLEMENT_RUN_CODE_PASS_ALL",
+      "scope": "D165_INVENTORY_RUNTIME_ONLY__D164_ISOLATED__STABLE_OWNER_GATED",
+      "branch": "repair/d165-otp-agent-skip-correction",
+      "resolution": "SOURCE_PATCHED_UNDER_BRANCH__CI_PR_AND_RELEASE_NOT_YET_VALIDATED",
+      "changes": [
+        "UNIFIED_VERSIONED_SKIP_TO_PENDING_OR_HAS_STOCK_WITH_FIRST_REPORT_SLA_DEADLINE",
+        "ANDROID_AND_WEB_TWO_SKIP_CORRECTION_BUTTONS",
+        "EXACT_BATCH_EVENT_PICKER_FCM_ACK_BEFORE_AFTER_ACTOR",
+        "OTP_PERSIST_UNTIL_CONSUMED_AND_AUTO_EMAIL_NEXT__FIRST_ISSUE_3_ACCOUNTS_POST_DEPLOY",
+        "AGENT_V118_WORKER_FIRST_GATEWAY_FALLBACK_TRANSPORT_ONLY__VISIBLE_ERROR_PRESERVE_USERNAME"
+      ],
+      "risk": "CLOCK_BASED_EMERGENCY_NOT_A_SECRET__FOUR_DIGIT_PERPETUAL_OTP_STILL_BRUTE_FORCE_RISK__OWNER_ACKNOWLEDGED",
+      "usage": "NO_ADDED_POLL_LISTENER_PROVIDER__FIELD_USAGE_COMPARISON_PENDING",
+      "owner_pass": "PENDING"
     }
   },
   "launcher_daily_password": {

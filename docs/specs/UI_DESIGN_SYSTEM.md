@@ -1095,3 +1095,7 @@ On Inventory Web, Android Báo hàng and Windows Agent, the login surface is del
 ## D165 latest Owner field refinement — never hide Reporter overdue tab
 
 Supersedes D165's earlier conditional three/four-tab visual composition only. Android Reporter has four equal-width, fixed tabs **Đang xử lý / Quá hạn / Đã có hàng / Cho phép Skip** in every policy mode; Web always includes its Quá hạn workspace tab. The Quá hạn badge is 0 when inapplicable, and a muted empty-state message explains why the list is empty. Only Đang xử lý and Quá hạn have numeric Android badges; the withdrawn tab remains absent. UI must never hide or forcibly navigate away from Quá hạn based on `auto_skip_enabled` or `auto_skip_mode`; business permission remains server-authoritative. No extra UI polling.
+
+### D165 correction UX and Agent login failure (2026-10-07)
+
+Android Reporter/Web result-tab Skip cards show two equal-importance, clearly named actions: **Sửa - Đang xử lý** and **Sửa - Đã có hàng** only within the policy-authorized window; the existing has-stock correction presentation is retained. Android shows remaining permitted time without adding another timer. Picker overlay/Web Picker result explicitly states *Báo hàng {SKU} chuyển trạng thái SKU từ Skip sang Đang xử lý/Đã có hàng. Lý do: {người xử lý} sửa kết quả*, with new ACK. Windows Agent failed login retains the typed account, erases password and displays a sanitized visible failure dialog; no privileged-code request control or list of special accounts appears on the public login form.

@@ -1410,10 +1410,18 @@ function renderCriticalResult(): string {
   const result = pickerResults.find((row) => !row.acknowledged_at);
   if (!result) return "";
   const isSkip = result.resolution === "SKIP_ALLOWED";
+  const isPending = result.resolution === "PENDING";
+  const from = result.correction_from_status === "SKIP_ALLOWED" ? "Skip" : result.correction_from_status === "HAS_STOCK" ? "Đã có hàng" : "";
+  const to = isPending ? "Đang xử lý" : isSkip ? "Skip" : "Đã có hàng";
+  const actor = result.resolved_by_display_name || result.resolved_by_employee_code || "Nhân sự Inventory";
+  const reason = from && result.resolution_source === "REPORTER_CORRECTION"
+    ? `Báo hàng ${result.sku} chuyển trạng thái SKU từ ${from} sang ${to}. Lý do: ${actor} sửa kết quả.`
+    : isPending ? "Người xử lý đã chuyển SKU về trạng thái đang xử lý."
+    : isSkip ? "Người xử lý đã xác nhận SKU này được phép bỏ qua." : "Người xử lý đã xác nhận SKU này đã có hàng.";
   return `<div class="critical-result"><div class="critical-box ${isSkip ? "skip-result" : ""}">
-    <h2>${isSkip ? "ĐƯỢC PHÉP BỎ QUA" : "ĐÃ CÓ HÀNG"}</h2>
+    <h2>${isPending ? "ĐANG XỬ LÝ LẠI" : isSkip ? "ĐƯỢC PHÉP BỎ QUA" : "ĐÃ CÓ HÀNG"}</h2>
     <div class="critical-sku">${esc(result.sku)}</div><div class="product-name">${esc(result.product_name)}</div>
-    <p>${isSkip ? "Người xử lý đã xác nhận SKU này được phép bỏ qua." : "Người xử lý đã xác nhận SKU này đã có hàng."}</p>
+    <p>${esc(reason)}</p>
     <button class="btn report-button ${isSkip ? "danger" : "success"}" id="ack-result" data-event="${esc(result.result_event_id)}">XÁC NHẬN ĐÃ NHẬN</button>
   </div></div>`;
 }
@@ -1684,7 +1692,7 @@ function renderResults(): string {
       </form>
       <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
-        ${visible.map((row) => { const canCorrect = roleCanResolve() && row.status === "HAS_STOCK"; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn danger small" data-correct="${esc(row.batch_id)}" data-correct-target="SKIP_ALLOWED" data-correct-version="${Number(row.version || 0)}">Sửa - Cho phép Skip</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+        ${visible.map((row) => { const canCorrect = roleCanResolve() && (row.status === "HAS_STOCK" || (row.status === "SKIP_ALLOWED" && row.correction_allowed === true)); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -4394,9 +4402,9 @@ function bindSection(): void {
   bindReporterActionButtons();
   document.querySelectorAll<HTMLButtonElement>("[data-correct]").forEach((button) => button.addEventListener("click", () => void run(async () => {
     const batchId = button.dataset.correct || "";
-    const target = button.dataset.correctTarget === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : "PENDING";
+    const target = button.dataset.correctTarget === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : button.dataset.correctTarget === "HAS_STOCK" ? "HAS_STOCK" : "PENDING";
     const expectedVersion = Number(button.dataset.correctVersion || 0);
-    const targetLabel = target === "PENDING" ? "Đang xử lý" : "Cho phép Skip";
+    const targetLabel = target === "PENDING" ? "Đang xử lý" : target === "HAS_STOCK" ? "Đã có hàng" : "Cho phép Skip";
     if (!window.confirm(`Xác nhận sửa kết quả đã thông báo thành “${targetLabel}”?`)) return;
     if (!window.confirm("CẢNH BÁO: Kết quả đã được gửi cho Picker. Thao tác này sẽ tạo kết quả điều chỉnh mới và yêu cầu Picker xác nhận lại. Tiếp tục?")) return;
     await correctReporterBatch(batchId, target, expectedVersion);

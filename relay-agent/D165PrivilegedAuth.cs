@@ -105,42 +105,45 @@ namespace SupraInventoryRelayAgent
             string bearerToken,
             out int status)
         {
-            Exception gatewayError = null;
-            if (D165GatewayConfigured())
-            {
-                try
-                {
-                    var gatewayFields = new Dictionary<string, object>(fields ?? new Dictionary<string, object>());
-                    if (!string.IsNullOrWhiteSpace(bearerToken)) gatewayFields["id_token"] = bearerToken;
-                    var gateway = D165PostThroughGateway(action, gatewayFields, out status);
-                    object ok;
-                    if (gateway.TryGetValue("ok", out ok) && Convert.ToBoolean(ok)) return gateway;
-                    object workerStatus;
-                    if (gateway.TryGetValue("worker_status", out workerStatus))
-                    {
-                        int parsed;
-                        if (int.TryParse(Convert.ToString(workerStatus), out parsed)) status = parsed;
-                    }
-                    return gateway;
-                }
-                catch (Exception ex)
-                {
-                    gatewayError = ex;
-                }
-            }
-
+            // D165: use the same authoritative Worker login verifier as Web.
+            // Office can block Cloudflare; fall back to the existing scoped Apps
+            // Script relay on TRANSPORT failures only, never on HTTP auth denial.
+            Exception directError = null;
             try
             {
-                return D165PostJson(
+                var direct = D165PostJson(
                     AgentConfig.ApiBaseUrl.TrimEnd('/') + workerPath,
                     fields,
                     bearerToken,
                     out status);
+                AgentDiagnostics.Write("D165 PRIVILEGED_AUTH route=WORKER result=HTTP_" + status);
+                return direct;
             }
-            catch
+            catch (Exception ex)
             {
-                if (gatewayError != null) throw gatewayError;
-                throw;
+                directError = ex;
+                AgentDiagnostics.Write("D165 PRIVILEGED_AUTH route=WORKER transport=FAIL type=" + ex.GetType().Name);
+            }
+
+            if (!D165GatewayConfigured()) throw directError;
+            try
+            {
+                var gatewayFields = new Dictionary<string, object>(fields ?? new Dictionary<string, object>());
+                if (!string.IsNullOrWhiteSpace(bearerToken)) gatewayFields["id_token"] = bearerToken;
+                var gateway = D165PostThroughGateway(action, gatewayFields, out status);
+                object workerStatus;
+                if (gateway.TryGetValue("worker_status", out workerStatus))
+                {
+                    int parsed;
+                    if (int.TryParse(Convert.ToString(workerStatus), out parsed)) status = parsed;
+                }
+                AgentDiagnostics.Write("D165 PRIVILEGED_AUTH route=GATEWAY result=HTTP_" + status);
+                return gateway;
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("D165 PRIVILEGED_AUTH route=GATEWAY transport=FAIL type=" + ex.GetType().Name);
+                throw new InvalidOperationException("Không kết nối được máy chủ xác thực Báo hàng qua cả Worker và Gateway.");
             }
         }
 

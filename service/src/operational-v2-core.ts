@@ -1224,6 +1224,8 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
               WHEN e.event_type = 'BATCH_CORRECTED' THEN 'REPORTER_CORRECTION'
               ELSE COALESCE(NULLIF(b.resolution_source, ''), 'REPORTER')
             END AS resolution_source,
+            CASE WHEN e.event_type = 'BATCH_CORRECTED'
+              THEN json_extract(e.payload_json, '$.from') ELSE NULL END AS correction_from_status,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
             COALESCE(resolver.employee_code, e.actor_employee_code, '') AS resolved_by_employee_code,
             COALESCE(resolver.role, '') AS resolved_by_role
@@ -1613,6 +1615,8 @@ export function pickerRealtimeSnapshot(
               WHEN s.event_type = 'BATCH_CORRECTED' THEN 'REPORTER_CORRECTION'
               ELSE COALESCE(NULLIF(b.resolution_source, ''), 'REPORTER')
             END AS resolution_source,
+            CASE WHEN e.event_type = 'BATCH_CORRECTED'
+              THEN json_extract(e.payload_json, '$.from') ELSE NULL END AS correction_from_status,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
             COALESCE(resolver.employee_code, e.actor_employee_code, '') AS resolved_by_employee_code,
             COALESCE(resolver.role, '') AS resolved_by_role

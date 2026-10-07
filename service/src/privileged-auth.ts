@@ -123,7 +123,7 @@ async function cancelIssuedCode(env: PrivilegedAuthEnv, user: PrivilegedAuthUser
       body: JSON.stringify({ user_id: user.user_id, revision }),
     });
   } catch {
-    // Best effort only. Any undelivered challenge remains short-lived.
+    // Best effort. A failed email invalidates only the unsent challenge revision.
   }
 }
 
@@ -148,7 +148,7 @@ export async function sendPrivilegedOneTimeCode(
         "",
         `Tài khoản: ${username}`,
         `Mật khẩu một lần: ${code}`,
-        "Mã chỉ dùng được một lần và có hiệu lực trong 15 phút.",
+        "Mã có hiệu lực cho tới lần sử dụng thành công, không tự hết hạn theo thời gian.",
         "",
         "Không chuyển tiếp email này cho người không có quyền.",
       ].join("\r\n"),

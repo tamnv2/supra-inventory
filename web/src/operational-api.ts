@@ -114,9 +114,14 @@ export interface PickerResultV2 {
   created_at: string;
   sku: string;
   product_name: string;
-  status: "HAS_STOCK" | "SKIP_ALLOWED";
-  resolution: "HAS_STOCK" | "SKIP_ALLOWED";
+  status: "HAS_STOCK" | "SKIP_ALLOWED" | "PENDING";
+  resolution: "HAS_STOCK" | "SKIP_ALLOWED" | "PENDING";
   resolved_at: string | null;
+  correction_from_status?: string | null;
+  resolution_source?: string | null;
+  resolved_by_display_name?: string | null;
+  resolved_by_employee_code?: string | null;
+  resolved_by_role?: string | null;
 }
 
 export interface OperationalInsights {
@@ -198,10 +203,14 @@ export async function resolveBatchV2(batchId: string, resolution: "HAS_STOCK" | 
   }));
 }
 
-export async function correctBatchV2(batchId: string): Promise<unknown> {
+export async function correctBatchV2(
+  batchId: string,
+  target: "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
+  expectedVersion: number,
+): Promise<unknown> {
   return readJson(await operationalFetch("/api/reporter/batches/correct", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId, target, expected_version: expectedVersion }),
   }));
 }
 

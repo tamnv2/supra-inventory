@@ -740,3 +740,7 @@ No extra Android periodic read, listener, heartbeat, Firestore write or client-a
 ## D165 latest field repair — fixed Reporter overdue entry
 
 Supersedes the earlier D165 conditionally inserted tab on Android. Web and Android Reporter each retain a visible Quá hạn navigation choice, including when no Picker is overdue or the selected processing policy is FIRST_REPORT / automatic Skip disabled. Inapplicable policy displays a neutral explanation and zero badge rather than a removed tab; the server must continue to determine eligibility and payload. The two approved HAS_STOCK correction buttons and only pending/overdue numeric badges remain as specified. No new background reads.
+
+### D165 Reporter Skip correction controls (2026-10-07)
+
+For a Skip result in the SLA-permitted correction interval, show **Sửa - Đang xử lý** and **Sửa - Đã có hàng** on Reporter Android and Web, with two confirmations and a short remaining-time indication on Android. The correction call is always `POST /api/reporter/batches/correct` with `request_id`, `batch_id`, `target` (`PENDING`/`HAS_STOCK`), and `expected_version`. The previous empty-body Android `correctBatch` helper is retired. Existing HAS_STOCK correction actions continue to use the same versioned endpoint.

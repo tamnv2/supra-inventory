@@ -251,6 +251,49 @@ jobs:
           [ "$code" = "401" ] || { echo "D146 broker expected unauthenticated HTTP 401, got $code"; cat "$tmp"; exit 1; }
           grep -q 'INTERNAL_IDENTITY_REQUIRED' "$tmp"
           echo "D146 protected Agent Drive broker PASS"
+      # One-shot D165 Owner-requested issuance. Trigger ONLY on this repair's
+      # squash-merge commit, after the new Worker is deployed and checked.
+      # Never print OTPs: the existing Worker/Gmail sender mails the three
+      # account-specific codes solely to the already-authorized mailbox.
+      - name: D165 send initial persistent privileged codes to Owner
+        if: >-
+          github.event_name == 'push' &&
+          contains(github.event.head_commit.message, 'D165: OTP Agent and Skip correction repair')
+        shell: bash
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          for username in root admin tamnv2; do
+            passed=false
+            outcome=unknown
+            for attempt in 1 2 3; do
+              tmp="$(mktemp)"
+              status="$(curl -sS --connect-timeout 5 --max-time 25 -o "$tmp" -w '%{http_code}' \
+                -H 'content-type: application/json' \
+                --data "{\"username\":\"$username\"}" \
+                "https://${BETA_HOSTNAME}/api/auth/privileged-code" || true)"
+              # Never print the email body, OTP, or provider API response.
+              if [ "$status" = "202" ]; then
+                passed=true
+                outcome=sent
+              elif [ "$status" = "409" ] && jq -e '.error == "CODE_PENDING_UNTIL_CONSUMED"' "$tmp" >/dev/null 2>&1; then
+                # Safe retry: an already-sent code stays valid until consumed.
+                # Re-running deploy must not replace or email a different code.
+                passed=true
+                outcome=already_pending
+              fi
+              rm -f "$tmp"
+              if [ "$passed" = "true" ]; then break; fi
+              if [ "$attempt" -lt 3 ]; then sleep 35; fi
+            done
+            if [ "$passed" != "true" ]; then
+              echo "::error::D165 initial OTP provisioning failed for $username (last HTTP $status)."
+              exit 1
+            fi
+            echo "D165 persistent OTP provisioning for $username: $outcome (mailbox is the only code destination)."
+          done
+
       - name: Verify Beta Google OAuth start
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}

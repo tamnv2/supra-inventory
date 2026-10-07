@@ -5199,44 +5199,45 @@
     },
     {
       "id": "OA100",
-      "status": "READY_FOR_OWNER_FIELD_TEST__D165_BETA_VC101_WEB_WORKER_DEPLOY_MAIN_CI_10_OF_10_PASS__AGENT_V117",
+      "status": "D165_FIELD_NOT_PASS_SIGNED_VC101_SKIP_AND_AGENT_V117__REPAIR_BRANCH_IN_REVIEW__OWNER_FIELD_AND_USAGE_PASS_PENDING",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
-      "reason_owner_only": "PR #493 merged and 13/13 PR plus 10/10 main CI PASS; Beta Web/Worker deployed, Android vc101 signed and released to official auto-update channel. The previous Reporter vc100 INVALID_COUNTER_RANGE defect is repaired at API source level and guard tested. Only physical PDA/Office/mail/usage evidence can establish field correctness and Owner D165 PASS.",
+      "reason_owner_only": "Owner field vc101 Skip correction INVALID_INPUT and Agent v117 silent privileged login failure; D165 same-change repair on scoped Beta. OTP Owner override: no expiry until successful use, with next-mail auto-issue. PR CI/release and physical use still pending.",
       "prerequisites": {
         "accepted_inventory_base": "D163_OWNER_PASS",
         "d165_runtime": "PR_493_MERGED_MAIN_B640AC57__WEB_WORKER_DEPLOY_PASS__ANDROID_SIGNED_VC101",
-        "android": "beta-vc101__SIGNED_PUBLISHED",
-        "agent": "relay-agent-v117__SIGNED_PUBLISHED",
+        "android": "beta-vc101__CURRENT_PUBLISHED__NEXT_SIGNED_BETA_VERSION_AFTER_REPAIR_MERGE",
+        "agent": "relay-agent-v117__CURRENT_PUBLISHED__V118_REPAIR_PENDING",
         "worker": "BETA_DEPLOY_PASS__RUN_37560667192",
         "apps_script_gateway": "EXISTING_GATEWAY_PREVIOUS_D165_PROVIDER_READBACK_PASS__RUN_37554446509__NOT_MODIFIED_BY_PR491",
         "stable": "OWNER_GATED_UNTOUCHED",
         "security_risk": "OWNER_EXPLICIT_ACCEPTED_PUBLICLY_PREDICTABLE_HHMM_EMERGENCY_PROOF",
         "neutral_login_ui": "PR_491_MERGED_UI_UNCHANGED__VC101_INHERITS",
-        "agent_candidate_version": "117"
+        "agent_candidate_version": "118__SOURCE_PATCHED_NOT_RELEASED"
       },
       "shortest_test_path": [
-        "On PDA, update Inventory Beta to signed vc101 through its normal update entry and verify displayed version (Web Beta is already deployed).",
-        "Sign in Reporter on MT90; enter and reopen four Reporter tabs. Repeat with auto-skip disabled, FIRST_REPORT and PER_PICKER without losing Quá hạn or seeing INVALID_COUNTER_RANGE.",
-        "With PER_PICKER enabled, create a timed-out Picker and a waiting Picker under one SKU; verify badges, actions, corrected Picker notification and ACK without duplicate Skip.",
-        "Check Web Beta always shows Quá hạn, including disabled/empty policy with badge zero; verify D163 forced logout final log and exact-batch Picker detail still work.",
-        "On real Office Agent/mailbox, validate OTP rotation, 15-minute expiry, Agent v117 PickList/HA and compare realtime latency/usage; report D165 PASS only after field evidence."
+        "After Beta repair release, update signed Android from vc101 and Windows Agent from v117 to the official next candidate v118.",
+        "In Android/Web Reporter Skip tab, within configured first-report correction deadline, test both Sửa - Đang xử lý and Sửa - Đã có hàng; confirm expired window blocked and no INVALID_INPUT.",
+        "Use two Pickers reporting one SKU and one unrelated Picker; confirm only two event ACK/FCM and Web/Android Picker message with Skip → new state and correcting user's name.",
+        "Check Agent privilege OTP login and numeric emergency HHmm ±5 minutes on Office v118; verify failure dialog retains username and no plaintext proof in logs.",
+        "Check initial root/admin/tamnv2 four-digit codes arrived in the already-approved mailbox, stay valid after >15 minutes until first use, and rotate once after successful use.",
+        "Compare Web/App/Agent realtime, core SQL/read/write, FCM, Firebase usage and D163 preserved workflows; explicit Owner D165 PASS remains required."
       ],
       "pass_criteria": [
         "One-time OTP is single use, rotates and is emailed to the approved recipient; no old fixed privileged password remains active.",
         "Emergency clock-only rule matches the Owner's exact numeric >=8 digit and Vietnam HHmm +/-5 minute requirement. Residual account-takeover risk explicitly remains accepted.",
-        "Agent v117 authenticated Office login works through deployed Apps Script Gateway, and protected actions respect RBAC/session fences.",
+        "Agent v118 authenticated Office login works through deployed Apps Script Gateway, and protected actions respect RBAC/session fences.",
         "APK vc101 Reporter tabs and counts meet Owner-approved UI, correct/overdue flows have expected Picker ACK and versioned audit, normal daily history remains intact.",
         "No material regression of realtime, throughput, stability, 15-second HA objective or excessive provider usage.",
         "Owner explicitly reports D165 PASS after actual field/usage evidence. CI/runtime PASS alone is not Owner PASS.",
         "Stable remains untouched.",
         "Web/Android/Agent have generic password login and no manual one-time-code request affordance; successful one-time-code login automatically mails the next code.",
-        "Beta releases confirmed Android vc101, Agent v117, Web Worker on merged PR #491, with no Stable or D164 mutation.",
+        "Beta releases confirmed post-repair signed Android, Agent v118, Web Worker on merged PR #491, with no Stable or D164 mutation.",
         "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
         "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "FIELD_VALIDATE_SIGNED_VC101_REPORTER_ALL_MODES_AND_NO_COUNTER_400__WEB_BETA__AGENT_V117_PRIVILEGED_AUTH_OTP_EMAIL__COMPARE_USAGE_SPEED_STABILITY__OWNER_EXPLICIT_D165_PASS",
+      "remaining_owner_action": "REPAIR_PR_CI_DEPLOY_SIGNED_BETA_AND_AGENT_V118_THEN_FIELD_TEST_EXACT_SKIP_TO_PENDING_OR_STOCK__PICKER_ACK__MAIL_3_INITIAL_OTP_AND_15MIN_PLUS__REAL_OFFICE_AGENT_HHMM__USAGE_STABILITY__EXPLICIT_OWNER_PASS",
       "closed": false,
       "field_repair_2026_10_07": {
         "result": "NOT_PASS_VC100",
@@ -5252,6 +5253,17 @@
           "worker_run": 37560667192,
           "android_run": 37560667253,
           "agent": "relay-agent-v117__UNCHANGED"
+        },
+        "second_owner_failure": {
+          "reported": "2026-10-07",
+          "status": "NOT_PASS",
+          "log": "manual_android_20261007_093758",
+          "error": "SKIP_CORRECTION_INVALID_INPUT_HTTP400",
+          "agent": "V117_PRIVILEGED_LOGIN_UI_CLEARS_USERNAME_NO_VISIBLE_ERROR",
+          "branch": "repair/d165-otp-agent-skip-correction",
+          "deploy": "NOT_YET",
+          "ci": "NOT_YET",
+          "owner_pass": "PENDING"
         }
       }
     }
