@@ -351,6 +351,7 @@ class PickerController(
             resolvedByDisplayName = optNullable(result, "resolved_by_display_name"),
             resolvedByEmployeeCode = optNullable(result, "resolved_by_employee_code"),
             resolvedByRole = optNullable(result, "resolved_by_role"),
+            correctionFromStatus = optNullable(result, "correction_from_status"),
             receivedAt = optNullable(result, "received_at"),
             displayedAt = optNullable(result, "displayed_at"),
             acknowledgedAt = optNullable(result, "acknowledged_at"),
@@ -959,8 +960,20 @@ class PickerController(
             result.resolvedByRole == "PICKPACK_ADMIN" -> "Quản trị Pick Pack"
             else -> "Inventory"
         }
+        val previousStatus = when (result.correctionFromStatus) {
+            "SKIP_ALLOWED" -> "Skip"
+            "HAS_STOCK" -> "Đã có hàng"
+            else -> ""
+        }
+        val newStatus = when (result.resolution) {
+            "PENDING" -> "Đang xử lý"
+            "SKIP_ALLOWED" -> "Skip"
+            else -> "Đã có hàng"
+        }
         surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
-            if (isSkip) "Cho phép skip · $actor · $roleLabel"
+            if (source == "REPORTER_CORRECTION" && previousStatus.isNotBlank()) {
+                "Báo hàng ${result.sku} chuyển trạng thái SKU từ $previousStatus sang $newStatus.\nLý do: $actor ($roleLabel) đã sửa kết quả."
+            } else if (isSkip) "Cho phép skip · $actor · $roleLabel"
             else if (isPendingCorrection) "Đang xử lý lại · $actor · $roleLabel"
             else "Đã có hàng · $actor · $roleLabel"
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = "Cảnh báo nghiệp vụ • cần xác nhận để tiếp tục"
