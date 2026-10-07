@@ -1191,11 +1191,12 @@ async function confirmPasswordReset(request: Request, env: Env): Promise<Respons
       body: JSON.stringify({ user_id: user.user_id }),
     });
   }
-  await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/consume", {
+  const consumed = await coreStub(env).fetch("https://inventory-core.internal/auth/password-recovery/consume", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ token_hash: tokenHash }),
   });
+  await discardResponse(consumed);
   return json({ status: "password_reset", message: "Đã đặt lại mật khẩu. Hãy đăng nhập lại." });
 }
 
