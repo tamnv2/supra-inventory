@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
+    "beta": "D165_FIELD_REPAIR_PR495_BETA_WORKER_WEB_DEPLOY_PASS__AGENT_V118_ANDROID_VC102_RELEASED__OWNER_FIELD_USAGE_PASS_PENDING__STABLE_UNTOUCHED",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D165_FIELD_REPAIR_BETA_WEB_DEPLOY_PASS__OVERDUE_TAB_ALWAYS_VISIBLE__OWNER_FIELD_PENDING",
-    "android": "D165_FIELD_REPAIR_SIGNED_BETA_VC101__REPORTER_COUNTER_AND_ALWAYS_VISIBLE_OVERDUE__MAIN_CI_PASS__OWNER_FIELD_PENDING",
-    "latest_beta_apk": "beta-vc101",
+    "web": "D165_SKIP_CORRECTION_WEB_BETA_DEPLOY_PASS__OWNER_FIELD_PENDING",
+    "android": "D165_SKIP_CORRECTION_SIGNED_BETA_VC102__MAIN_CI_PASS__OWNER_FIELD_PENDING",
+    "latest_beta_apk": "beta-vc102",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -36,8 +36,8 @@
     "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_MERGED_BETA_POST_MERGE_CI_ALL_GREEN__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D165_AGENT_V117__UNCHANGED_BY_VC101_FIELD_REPAIR__OWNER_FIELD_PENDING",
-    "d165_proposal": "D165_FIELD_NOT_PASS__OTP_AGENT_SKIP_CORRECTION_REPAIR_UNDER_REVIEW__OWNER_PASS_PENDING"
+    "agent": "D165_AGENT_V118_PUBLISHED__PRIVILEGED_AUTH_REPAIR__OWNER_OFFICE_FIELD_PENDING",
+    "d165_proposal": "D165_PR495_MERGED_MAIN_91C169E9__PR_CI_14_OF_14_PASS__MAIN_CI_11_OF_11_PASS__WEB_BETA_DEPLOY_AND_3_INITIAL_OTP_MAILS_PASS__SIGNED_ANDROID_VC102_RELEASED__AGENT_V118_PUBLISHED__OWNER_FIELD_USAGE_PENDING"
   },
   "hard_guards": [
     "Legacy Báo hàng 1291 presentation may be transplanted only under D057; legacy backend/provider/auth/storage/database/credentials remain forbidden.",
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_OWNER_FIELD_NOT_PASS_VC101_SKIP_CORRECTION_AND_AGENT_V117_LOGIN__D165_SAME_CHANGE_REPAIR_BRANCH_CI_AND_RELEASE_PENDING",
+    "parallel_inventory_change_status": "D165_PR495_MERGED_MAIN_91C169E9__PR_CI_14_OF_14_PASS__MAIN_CI_11_OF_11_PASS__WEB_BETA_DEPLOY_AND_3_INITIAL_OTP_MAILS_PASS__SIGNED_ANDROID_VC102_RELEASED__AGENT_V118_PUBLISHED__OWNER_FIELD_USAGE_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_FIELD_NOT_PASS_VC101_SKIP_CORRECTION_AND_AGENT_V117_LOGIN__REPAIR_SOURCE_IN_REVIEW__OWNER_PASS_PENDING",
+    "status": "D165_REPAIR_VC102_SIGNED_BETA_DEPLOYED__AGENT_V118_PUBLISHED__INITIAL_OTP_3_SENT__MAIN_CI_ALL_PASS__OWNER_FIELD_PENDING_NOT_OWNER_PASS",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "COMPLETE_D165_PR_REPAIR_CI_BRANCH_MERGE__PUBLISH_SIGNED_ANDROID_NEXT_VC_AND_AGENT_V118__VERIFY_INITIAL_MAIL_DELIVERY_AND_OWNER_FIELD_USAGE_PASS",
+    "next_action": "OWNER_TEST_VC102_SKIP_TO_PENDING_AND_STOCK_PICKER_ACK__AGENT_V118_REAL_AUTH_OTP_HHMM__GMAIL_CODES_3__COMPARABLE_USAGE_AND_SPEED__EXPLICIT_OWNER_D165_PASS",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -6069,7 +6069,7 @@
       "approval": "OWNER_EXPLICIT_IMPLEMENT_RUN_CODE_PASS_ALL",
       "scope": "D165_INVENTORY_RUNTIME_ONLY__D164_ISOLATED__STABLE_OWNER_GATED",
       "branch": "repair/d165-otp-agent-skip-correction",
-      "resolution": "SOURCE_PATCHED_UNDER_BRANCH__CI_PR_AND_RELEASE_NOT_YET_VALIDATED",
+      "resolution": "PR495_MERGED_MAIN_91C169E9__BETA_WORKER_WEB_PASS__SIGNED_VC102__AGENT_V118__3_OTP_INITIAL_EMAILS_ISSUED__CI_ALL_PASS__FIELD_PENDING",
       "changes": [
         "UNIFIED_VERSIONED_SKIP_TO_PENDING_OR_HAS_STOCK_WITH_FIRST_REPORT_SLA_DEADLINE",
         "ANDROID_AND_WEB_TWO_SKIP_CORRECTION_BUTTONS",
@@ -6079,7 +6079,49 @@
       ],
       "risk": "CLOCK_BASED_EMERGENCY_NOT_A_SECRET__FOUR_DIGIT_PERPETUAL_OTP_STILL_BRUTE_FORCE_RISK__OWNER_ACKNOWLEDGED",
       "usage": "NO_ADDED_POLL_LISTENER_PROVIDER__FIELD_USAGE_COMPARISON_PENDING",
-      "owner_pass": "PENDING"
+      "owner_pass": "PENDING",
+      "branch_ci": "PASS_14_OF_14",
+      "main_ci": "PASS_11_OF_11"
+    },
+    "release_2026_10_07_second_repair": {
+      "repair_pr": 495,
+      "merge_commit": "91c169e9bcb08f158a3702996d7f5b901a069d18",
+      "pr_checks": "PASS_14_OF_14",
+      "main_workflows": "PASS_11_OF_11",
+      "beta_web_worker_deploy": {
+        "status": "PASS",
+        "run_id": 37567523891
+      },
+      "signed_android": {
+        "release": "beta-vc102",
+        "run_id": 37567523875,
+        "status": "PUBLISHED_OFFICIAL_CHANNEL"
+      },
+      "windows_agent": {
+        "release": "relay-agent-v118",
+        "run_id": 37567523913,
+        "status": "PUBLISHED_OFFICIAL_CHANNEL"
+      },
+      "mail_bootstrap": {
+        "status": "WORKER_EMAIL_ISSUANCE_HTTP202_3_OF_3",
+        "accounts": [
+          "root",
+          "admin",
+          "tamnv2"
+        ],
+        "mailbox": "ALREADY_AUTHORIZED_IN_RUNTIME_CONFIG__NO_SECRET_IN_REPO",
+        "worker_run_id": 37567523891,
+        "physical_delivery": "OWNER_CONFIRM_PENDING"
+      },
+      "acceptance": {
+        "source_build_ci": "PASS",
+        "provider_deploy": "PASS",
+        "owner_office_and_pda_field": "PENDING",
+        "usage_comparable_load": "PENDING",
+        "owner_explicit_d165_pass": "PENDING"
+      },
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "d164": "PDA_MANAGEMENT_ISOLATED_UNCHANGED"
     }
   },
   "launcher_daily_password": {
