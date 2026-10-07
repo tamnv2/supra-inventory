@@ -425,7 +425,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   // authoritative user/session/role validation plus the operation in one InventoryCore call.
   if (key === "GET /api/picker/reports") {
     const params = new URLSearchParams();
-    for (const name of ["limit", "offset", "scope"]) {
+    for (const name of ["limit", "offset", "scope", "include_total"]) {
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
     return authorizedGet(request, env, `/authorized/operational/picker/reports?${params.toString()}`);
@@ -472,6 +472,17 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const authorized = publicAuthorizedResponse(raw);
     const stage = String(body.stage || "").toUpperCase();
     if (stage !== "ACKNOWLEDGED" || !authorized.response.ok) return authorized.response;
+
+    // D166: a retired/stale result receipt is a terminal idempotent no-op.
+    // Do not manufacture a reporter realtime event when there was no
+    // acknowledgement row to advance.
+    try {
+      const receipt = (await authorized.response.clone().json()) as { terminal?: boolean; status?: string };
+      if (receipt.terminal === true || receipt.status === "gone") return authorized.response;
+    } catch {
+      // Existing successful mutation responses remain backward compatible.
+    }
+
     return realtimeAfter(authorized.response, env, {
       event: "result_acknowledged",
       scopes: ["reporter_recent", "picker_reports"],
