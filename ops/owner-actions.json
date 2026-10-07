@@ -5199,7 +5199,7 @@
     },
     {
       "id": "OA100",
-      "status": "READY_FOR_OWNER_FIELD_RETEST__D165_AGENT_V119_RELEASED__WORKER_DEPLOY_MAIN_11_OF_11_PASS__OWNER_USAGE_PASS_PENDING",
+      "status": "CLOSED__SUPERSEDED_BY_D166_WITHOUT_D165_OWNER_PASS",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
@@ -5237,8 +5237,8 @@
         "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
         "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "UPDATE_TO_AGENT_V119__TEST_LATEST_UNCONSUMED_OTP_AND_HHMM_ON_REAL_OFFICE_AGENT__VERIFY_PICKLIST_HA__RETEST_VC102_SKIP_CORRECTION__COMPARE_USAGE_STABILITY__EXPLICIT_D165_PASS",
-      "closed": false,
+      "remaining_owner_action": "NONE__SUPERSEDED_BY_D166",
+      "closed": true,
       "field_repair_2026_10_07": {
         "result": "NOT_PASS_VC100",
         "cause": "ANDROID_COUNTERS_HTTP400_MISSING_FROM_TO",
@@ -5288,7 +5288,32 @@
           "field_retest": "PENDING",
           "owner_pass": "PENDING"
         }
-      }
+      },
+      "owner_result": "NOT_PASS_SUPERSEDED__2026_10_08"
+    },
+    {
+      "id": "OA101",
+      "status": "OPEN__D166_FIELD_AND_USAGE_ACCEPTANCE_PENDING",
+      "title": "Field-accept D166 reliability and shared-account usage reset",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory Beta / Cloudflare / Firebase / Windows Agent / Android",
+      "reason_owner_only": "D166 requires representative physical-field speed/realtime/failover evidence and normalized provider usage evidence before acceptance.",
+      "prerequisites": {
+        "accepted_inventory_base": "D163_OWNER_PASS",
+        "d165": "CLOSED_SUPERSEDED_WITHOUT_OWNER_PASS",
+        "authority": "docs/D166_INVENTORY_USAGE_RELIABILITY_RESET.md",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "pass_criteria": [
+        "No stale result receipt retry storm.",
+        "No invalid diagnostic JSON or update-dialog lifecycle crash.",
+        "No D166-attributable stalled-response warning in a representative shift.",
+        "No material PickList speed, realtime UI or failover regression.",
+        "Normalized Worker/DO request and read amplification materially improves.",
+        "Owner explicitly reports D166 PASS."
+      ],
+      "remaining_owner_action": "WAIT_FOR_D166_TECHNICAL_PASS_AND_BETA_FIELD_USAGE_RETEST",
+      "closed": false
     }
   ]
 }
