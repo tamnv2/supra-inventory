@@ -324,3 +324,7 @@ The existing Web PER_PICKER **Quá hạn** and HAS_STOCK correction semantics al
 ## D165 Android-only Reporter badge/tab simplification
 
 The Android Reporter operational strip shows up to four states (Đang xử lý, conditional Quá hạn, Đã có hàng, Cho phép Skip), rather than five. Only Đang xử lý and Quá hạn show count badges. Picker đã thu hồi is not displayed as an Android tab; it is **not** deleted from server history, Web reporting or exported evidence. This is a presentation-only change and must not change authoritative overdue counters, lazy list reads, correction actions, realtime delivery, or FIRST_REPORT business logic. Web remains unchanged.
+
+## D165 always-visible overdue presentation
+
+Quá hạn is an always-visible **navigation** tab on Web and Android Reporter; it is an actionable **data** view only when authoritative auto-skip is enabled in PER_PICKER mode. In other modes, display zero with an explanatory empty state without modifying the existing FIRST_REPORT deadline model. The existing limited overdue API read occurs only on explicit tab opening. Android counter lookups use a valid bounded Vietnam calendar-day interval derived from the preceding server timestamp, avoiding `INVALID_COUNTER_RANGE`. No new API/provider/poll family is introduced.

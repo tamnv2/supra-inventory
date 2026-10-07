@@ -233,7 +233,7 @@ class ReporterController(
                 if (!metadata.has("overdue_delta")) return false
                 val delta = metadata.optInt("overdue_delta", Int.MIN_VALUE)
                 if (delta !in -1..1) return false
-                overdueTotal = (overdueTotal + delta).coerceAtLeast(0)
+                overdueTotal = if (overdueEnabled) (overdueTotal + delta).coerceAtLeast(0) else 0
                 if (overdueLoaded) {
                     val row = reporterOverdueFromSnapshot(snapshot)
                     overdueRows = if (row == null) {
@@ -309,7 +309,7 @@ class ReporterController(
     }
 
     private fun selectFilter(value: Filter) {
-        if (filter == value || (value == Filter.OVERDUE && !overdueEnabled)) return
+        if (filter == value) return
         filter = value
         updateTabs()
         renderSelected()
@@ -338,7 +338,7 @@ class ReporterController(
             try {
                 val nextQueue = api.getReporterQueueSnapshot(200)
                 val nextRecent = api.getReporterRecentSnapshot(200)
-                val nextCounters = api.getReporterCountersSnapshot()
+                val nextCounters = api.getReporterCountersSnapshot(nextRecent.serverNowMs)
                 val canShowOverdue = nextCounters.autoSkipEnabled && nextCounters.autoSkipMode == "PER_PICKER"
                 val nextOverdue = if (canShowOverdue && filter == Filter.OVERDUE) api.getReporterOverdueSnapshot(200) else null
                 activity.runOnUiThread {
@@ -358,9 +358,11 @@ class ReporterController(
                     overdueTotal = if (canShowOverdue) nextCounters.overdueTotal else 0
                     overdueRows = nextOverdue?.items ?: emptyList()
                     overdueLoaded = nextOverdue != null
-                    if (!overdueEnabled && filter == Filter.OVERDUE) filter = Filter.PENDING
                     updateBadges()
                     renderSelected()
+                    // If Quá hạn was tapped during the initial counters request,
+                    // complete its one lazy list fetch once policy arrives.
+                    if (filter == Filter.OVERDUE && overdueEnabled && !overdueLoaded) loadOverdue()
                     scheduleMinuteTicker()
                     refreshing = false
                     if (refreshDirty) {
@@ -401,7 +403,6 @@ class ReporterController(
     private fun updateBadges() {
         // D165: Reporter only shows actionable queue counts. Resolved-result
         // badges were intentionally removed; data/history are unchanged.
-        tabBoxes[Filter.OVERDUE]?.visibility = if (overdueEnabled) View.VISIBLE else View.GONE
         setBadge(Filter.PENDING, queueTotal)
         setBadge(Filter.OVERDUE, overdueTotal)
     }
@@ -425,6 +426,13 @@ class ReporterController(
                 target.setOnItemClickListener { _, _, position, _ -> queue.getOrNull(position)?.let(::showTickets) }
             }
         } else if (filter == Filter.OVERDUE) {
+            val info = target.rootView.findViewById<TextView>(R.id.tvReporterOverdueInfo)
+            info?.visibility = if (!overdueEnabled || (overdueLoaded && overdueRows.isEmpty())) View.VISIBLE else View.GONE
+            info?.text = if (!overdueEnabled) {
+                "Tự động cho phép Skip theo từng Picker chưa được bật. Chưa có SKU quá hạn cần xử lý."
+            } else {
+                "Hiện không có SKU quá hạn cần xử lý."
+            }
             target.adapter = overdueAdapter(overdueRows)
             target.setOnItemClickListener { _, _, position, _ ->
                 overdueRows.getOrNull(position)?.let { showTickets(it.batchId, it.sku) }
@@ -432,6 +440,9 @@ class ReporterController(
         } else {
             val rows = recentRows()
             target.adapter = recentAdapter(rows)
+        }
+        if (filter != Filter.OVERDUE) {
+            target.rootView.findViewById<TextView>(R.id.tvReporterOverdueInfo)?.visibility = View.GONE
         }
         scheduleMinuteTicker()
         updateTabs()
@@ -453,7 +464,6 @@ class ReporterController(
                     overdueRows = if (overdueEnabled) next.items else emptyList()
                     overdueTotal = if (overdueEnabled) next.total else 0
                     overdueLoaded = overdueEnabled
-                    if (!overdueEnabled && filter == Filter.OVERDUE) filter = Filter.PENDING
                     updateBadges()
                     renderSelected()
                 }

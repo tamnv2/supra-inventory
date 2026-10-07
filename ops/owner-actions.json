@@ -5199,11 +5199,11 @@
     },
     {
       "id": "OA100",
-      "status": "READY_FOR_OWNER_FIELD_TEST__D165_VC100_AGENT_V117_BETA_WORKER_TECHNICAL_PASS",
+      "status": "D165_VC100_FIELD_NOT_PASS_INVALID_COUNTER_RANGE__REPAIR_BRANCH_CI_RELEASE_PENDING",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
-      "reason_owner_only": "PR #491 passed 14/14 PR CI and 11/11 main CI; Beta Worker/Web, signed Android vc100, Agent v117 and the existing distribution channel are released. Only an actual authorized mailbox, company Office Agent/PDA and comparable-load usage can validate the privileged OTP email consumption/reissue and business field correctness.",
+      "reason_owner_only": "Owner Reporter MT90 Android vc100 log proved an INVALID_COUNTER_RANGE defect and missing overdue tab during field login/refresh. Source repair now adds bounded counter range and always-visible overdue tabs to Web/Android; requires PR CI/authority, signed Beta release and Owner retest of actual PDA, mail/Agent and usage before D165 PASS.",
       "prerequisites": {
         "accepted_inventory_base": "D163_OWNER_PASS",
         "d165_runtime": "PR_491_MERGED__SOURCE_MAIN_ALL_CI_PASS",
@@ -5217,11 +5217,11 @@
         "agent_candidate_version": "117"
       },
       "shortest_test_path": [
-        "Install/update signed Android beta-vc100 and Windows Agent v117; refresh Beta Web. All login screens must show only ordinary account/password login without OTP request/hints. Enter a fresh 4-digit code already received by the authorized Owner mailbox into the password field; successful OTP consumption must trigger a new email automatically using the approved subject. A code issued more than 15 minutes ago expires; do not paste credentials to chat.",
-        "Test the Owner-required emergency numeric minimum-8-digit server-HHmm-within-5-minutes login on Beta; confirm invalid or stale values fail; understand the predictable credential's account-takeover risk.",
-        "On Agent v117, verify fresh authorized admin/tamnv2 login via existing Gateway, local saved-session recovery, protected-action re-auth and logout using the company Office network.",
-        "On Reporter APK beta-vc100 in PER_PICKER verify four tabs and numeric badges only on Đang xử lý/Quá hạn; test HAS_STOCK correction double confirmation and no duplicate Picker Skip. FIRST_REPORT shows three tabs; Picker đã thu hồi is UI-hidden but still retained in history.",
-        "Observe normal operational load for comparable Cloudflare DO and Firestore read/write, realtime update latency, PickList speed and failover before declaring D165 PASS."
+        "After a new signed Beta Android release, install/update and check the displayed version before field acceptance.",
+        "Sign in Reporter on MT90; enter and reopen four Reporter tabs. Repeat with auto-skip disabled, FIRST_REPORT and PER_PICKER without losing Quá hạn or seeing INVALID_COUNTER_RANGE.",
+        "With PER_PICKER enabled, create a timed-out Picker and a waiting Picker under one SKU; verify badges, actions, corrected Picker notification and ACK without duplicate Skip.",
+        "Check Web Beta always shows Quá hạn, including disabled/empty policy with badge zero; verify D163 forced logout final log and exact-batch Picker detail still work.",
+        "On real Office Agent/mailbox, validate OTP rotation, 15-minute expiry, Agent v117 PickList/HA and compare realtime latency/usage; report D165 PASS only after field evidence."
       ],
       "pass_criteria": [
         "One-time OTP is single use, rotates and is emailed to the approved recipient; no old fixed privileged password remains active.",
@@ -5232,10 +5232,20 @@
         "Owner explicitly reports D165 PASS after actual field/usage evidence. CI/runtime PASS alone is not Owner PASS.",
         "Stable remains untouched.",
         "Web/Android/Agent have generic password login and no manual one-time-code request affordance; successful one-time-code login automatically mails the next code.",
-        "Beta releases confirmed Android vc100, Agent v117, Web Worker on merged PR #491, with no Stable or D164 mutation."
+        "Beta releases confirmed Android vc100, Agent v117, Web Worker on merged PR #491, with no Stable or D164 mutation.",
+        "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
+        "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "FIELD_VALIDATE_VC100_AGENT_V117_WEB_OTP_MAIL_ROTATION_AND_NORMAL_WORKFLOWS__COMPARE_REAL_USAGE__OWNER_EXPLICIT_PASS",
-      "closed": false
+      "remaining_owner_action": "WAIT_FOR_CI_SIGNED_BETA_RELEASE_BEFORE_PDA_WEB_OFFICE_OTP_REAL_LOAD_TEST__OWNER_D165_EXPLICIT_PASS_STILL_REQUIRED",
+      "closed": false,
+      "field_repair_2026_10_07": {
+        "result": "NOT_PASS_VC100",
+        "cause": "ANDROID_COUNTERS_HTTP400_MISSING_FROM_TO",
+        "branch": "repair/d165-counter-range-always-visible-overdue",
+        "new_behavior": "ANDROID_FOUR_TABS_ALWAYS_WEB_OVERDUE_ALWAYS__DISABLED_POLICY_EMPTY_ZERO",
+        "status": "TECHNICAL_TEST_AND_BETA_RELEASE_PENDING",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      }
     }
   ]
 }

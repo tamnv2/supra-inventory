@@ -6,6 +6,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.time.Instant
+import java.time.ZoneId
 import java.util.UUID
 
 data class AppSession(
@@ -559,8 +561,16 @@ class InventoryApi(
         return ReporterQueueSnapshot(rows, payload.optInt("total", rows.size))
     }
 
-    fun getReporterCountersSnapshot(): ReporterCountersSnapshot {
-        val payload = request("GET", "/api/reporter/counters")
+    fun getReporterCountersSnapshot(serverNowMs: Long): ReporterCountersSnapshot {
+        // The Worker validates a bounded from/to range even when Android only
+        // consumes queue/overdue counters. Use the preceding server snapshot
+        // clock, not the PDA clock, to keep the Vietnam business-day boundary.
+        val zone = ZoneId.of("Asia/Ho_Chi_Minh")
+        val nowMs = serverNowMs.takeIf { it > 0L } ?: System.currentTimeMillis()
+        val businessDate = Instant.ofEpochMilli(nowMs).atZone(zone).toLocalDate()
+        val from = businessDate.atStartOfDay(zone).toInstant().toString()
+        val to = businessDate.plusDays(1).atStartOfDay(zone).toInstant().toString()
+        val payload = request("GET", "/api/reporter/counters?from=$from&to=$to")
         return ReporterCountersSnapshot(
             queueTotal = payload.optInt("queue_total", 0),
             overdueTotal = payload.optInt("overdue_total", 0),

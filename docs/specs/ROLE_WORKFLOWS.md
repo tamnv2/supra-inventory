@@ -1014,3 +1014,9 @@ For a server-authorized REPORTER/ADMIN Android workspace:
 ## D165 Owner refinement — Android Reporter tab set (supersedes earlier five/four-tab presentation)
 
 Android Reporter uses **Đang xử lý**, conditional **Quá hạn** (`PER_PICKER` auto-skip enabled only), **Đã có hàng**, and **Cho phép Skip**. The prior **Picker đã thu hồi** visible tab is retired from Android only; withdrawn tickets remain in server audit/report history and the existing API data contract. Numeric tab counters appear **only** on Đang xử lý and Quá hạn. FIRST_REPORT transaction and deadline semantics are unchanged; the presentation shows three tabs when Quá hạn is inapplicable. No new polling, listener or provider work is permitted.
+
+## D165 field repair — overdue is always a navigable UI tab, policy still authoritative
+
+Supersedes only the D165 three-tab display under FIRST_REPORT or auto-skip disabled: Web and Android Reporter always expose four navigation tabs, with Quá hạn always present. When `auto_skip_enabled=false` or `auto_skip_mode != PER_PICKER`, Quá hạn shows count zero and an explanatory empty state; it does not create a new business workflow, query new overdue items in the Android background, or change FIRST_REPORT processing. When enabled PER_PICKER, existing exact overdue tickets, versioned result transitions, ACK and audit remain unchanged.
+
+Reporter Android requests `/api/reporter/counters` with ISO `from`/`to` for the current Vietnam calendar day derived from the authoritative `server_now_ms` already returned by the Reporter recent snapshot. Missing-bounds HTTP 400 must no longer abort the entire Reporter initial refresh. Existing Web range handling and existing realtime scopes remain unchanged. Login, reconnect and ordinary result resolution are regression-critical.

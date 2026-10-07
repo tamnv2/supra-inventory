@@ -1463,7 +1463,7 @@ function render(): void {
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
     <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
-    ${perPickerOverdueEnabled ? `<button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>` : ""}
+    <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
     <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b data-workspace-count="results">${recentBadgeCount}</b></button>
   </div>`;
 }
@@ -1626,6 +1626,7 @@ function renderOverdue(): string {
     ${renderOperationalTabs("overdue")}
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>SKU quá hạn</h3><p>Mỗi SKU chỉ xuất hiện một lần; số Picker quá hạn và Picker còn chờ được tách riêng.</p></div></div>
+      ${!perPickerOverdueEnabled ? `<p class="muted">Tự động cho phép Skip theo từng Picker chưa được bật. Chưa có SKU quá hạn cần xử lý.</p>` : ""}
       <div class="table-wrap"><table><thead><tr><th>SKU / Sản phẩm</th><th>Picker quá hạn</th><th>Picker còn chờ</th><th>Quá hạn đầu tiên</th><th>Thao tác</th></tr></thead><tbody>
         ${overdueRows.map((row) => `<tr>
           <td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td>
@@ -2981,9 +2982,9 @@ async function loadReporterTabCounters(force = false): Promise<void> {
     userId !== (profile?.user_id || "")
   ) return;
   queueBadgeCount = Math.max(0, Number(counters.queue_total || 0));
-  overdueBadgeCount = Math.max(0, Number(counters.overdue_total || 0));
-  recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
   perPickerOverdueEnabled = Boolean(counters.auto_skip_enabled && counters.auto_skip_mode === "PER_PICKER");
+  overdueBadgeCount = perPickerOverdueEnabled ? Math.max(0, Number(counters.overdue_total || 0)) : 0;
+  recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
   queueBadgeInitialized = true;
   overdueBadgeInitialized = true;
   recentBadgeInitialized = true;
@@ -3069,6 +3070,11 @@ function applyReporterQueueBadgeEvents(events: RealtimeEventFrame[]): boolean {
 
 function applyReporterOverdueBadgeEvents(events: RealtimeEventFrame[]): boolean {
   if (!roleOperate() || !overdueBadgeInitialized) return false;
+  if (!perPickerOverdueEnabled) {
+    overdueBadgeCount = 0;
+    syncOperationalTabBadges();
+    return true;
+  }
   let next = overdueBadgeCount;
   for (const row of events) {
     if (!(row.scopes || []).includes("reporter_overdue")) continue;
@@ -3380,11 +3386,6 @@ async function loadOperationsSnapshot(): Promise<void> {
     const tasks: Promise<void>[] = [loadReporterOverdueSnapshot()];
     if (!queueBadgeInitialized || !recentBadgeInitialized) tasks.push(loadReporterTabCounters());
     await Promise.all(tasks);
-    if (!perPickerOverdueEnabled && profile) {
-      activeSection = "operations";
-      syncSectionHistory(activeSection, "replace");
-      await loadReporterQueueSnapshot();
-    }
     return;
   }
   const tasks: Promise<void>[] = [loadReporterQueueSnapshot()];

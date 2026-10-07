@@ -1091,3 +1091,7 @@ The Agent **Lịch sử Picker xác nhận PickList** table adds **User Agent x�
 ## D165 neutral privileged-login presentation — Owner correction 2026-10-07
 
 On Inventory Web, Android Báo hàng and Windows Agent, the login surface is deliberately neutral: ordinary **Tài khoản**, **Mật khẩu**, and **Đăng nhập** affordances, no special OTP/emergency placeholder, no send-code button, no public list of protected usernames. The Web logged-in Account surface also removes the manual OTP-send card/action; account administration must not label protected rows as **Mật khẩu một lần**. Authentication distinctions remain server-side and are not to be advertised in unauthenticated UI. Preserve all existing normal-user controls and layout density; no new polling, resource or realtime listener follows from this presentation change.
+
+## D165 latest Owner field refinement — never hide Reporter overdue tab
+
+Supersedes D165's earlier conditional three/four-tab visual composition only. Android Reporter has four equal-width, fixed tabs **Đang xử lý / Quá hạn / Đã có hàng / Cho phép Skip** in every policy mode; Web always includes its Quá hạn workspace tab. The Quá hạn badge is 0 when inapplicable, and a muted empty-state message explains why the list is empty. Only Đang xử lý and Quá hạn have numeric Android badges; the withdrawn tab remains absent. UI must never hide or forcibly navigate away from Quá hạn based on `auto_skip_enabled` or `auto_skip_mode`; business permission remains server-authoritative. No extra UI polling.
