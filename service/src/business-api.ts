@@ -257,6 +257,7 @@ function scheduleFcm(
         batch_id?: string;
         ticket?: { batch_id?: string };
         resolution_source?: string;
+        from_status?: string;
         resolved_by_display_name?: string;
         resolved_by_employee_code?: string;
         resolved_by_role?: string;
@@ -298,6 +299,9 @@ function scheduleFcm(
       const resolverName = String(mutation.resolved_by_display_name || mutation.resolved_by_employee_code || "").trim();
       const resolverRole = String(mutation.resolved_by_role || "").trim().toUpperCase();
       const resolutionSource = String(mutation.resolution_source || "").trim();
+      const fromStatus = String(mutation.from_status || "").trim().toUpperCase();
+      const fromLabel = fromStatus === "SKIP_ALLOWED" ? "Skip" : fromStatus === "HAS_STOCK" ? "Đã có hàng" : "Trạng thái trước";
+      const toLabel = options.resolution === "PENDING" ? "Đang xử lý" : options.resolution === "HAS_STOCK" ? "Đã có hàng" : "Skip";
       const humanResolver = resolverName || (resolutionSource === "SYSTEM_TIMEOUT" ? "Hệ thống tự động" : "Nhân sự Inventory");
       const roleLabel = resolutionSource === "SYSTEM_TIMEOUT" ? "Hệ thống" : resolverRoleLabel(resolverRole);
       const renderedBody = options.body
@@ -305,7 +309,9 @@ function scheduleFcm(
         .replaceAll("{product}", batchProductName || "Chưa có tên sản phẩm")
         .replaceAll("{actor}", humanResolver)
         .replaceAll("{role}", roleLabel)
-        .replaceAll("{source}", resolutionSource || "REPORTER");
+        .replaceAll("{source}", resolutionSource || "REPORTER")
+        .replaceAll("{from_status}", fromLabel)
+        .replaceAll("{to_status}", toLabel);
       const delivery = await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON!, env.FIREBASE_PROJECT_ID, tokens, {
         title: options.title,
         body: renderedBody,
@@ -322,6 +328,9 @@ function scheduleFcm(
           resolver_role: resolverRole,
           resolver_role_label: roleLabel,
           resolution_source: resolutionSource,
+          correction_from_status: fromStatus,
+          correction_to_status: options.resolution || "",
+          correction_reason: fromStatus ? "REPORTER_CORRECTION" : "",
         },
       });
       await corePost(env, "/notifications/delivery-attempts", {
@@ -597,15 +606,15 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       batchId,
       includeBatchPickerUsers: true,
     });
-    if (target === "PENDING" || target === "SKIP_ALLOWED") {
+    if (["PENDING", "SKIP_ALLOWED", "HAS_STOCK"].includes(target)) {
+      // BATCH_CORRECTED creates version-specific ACK targets from the exact batch
+      // reporters. Never widen FCM to all Pickers or send an additional poll.
       scheduleFcm(result, env, ctx, {
         event: target === "PENDING" ? "batch_corrected_pending" : "batch_corrected",
         target: { batchId },
-        title: "SUPRA Inventory · Kết quả đã được điều chỉnh",
-        body: target === "PENDING"
-          ? "{sku} · {product}\nKết quả đã được điều chỉnh · Đang xử lý lại · {actor} · {role}"
-          : "{sku} · {product}\nKết quả đã được điều chỉnh · Cho phép skip · {actor} · {role}",
-        resolution: target,
+        title: "SUPRA Inventory · Sửa kết quả báo hàng",
+        body: "Báo hàng {sku} · {product}\\nSKU chuyển trạng thái từ {from_status} sang {to_status}.\\nLý do: {actor} ({role}) sửa kết quả.",
+        resolution: target as "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
       });
     }
     return result;
