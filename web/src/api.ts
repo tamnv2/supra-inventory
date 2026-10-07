@@ -746,6 +746,16 @@ export async function logoutInteractiveSession(): Promise<void> {
   }
 }
 
+export async function requestPrivilegedOneTimeCode(username: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/privileged-code`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ username: username.trim() }),
+  });
+  const result = await readJson<{ status: string; message?: string }>(response);
+  return result.message || "Đã gửi mật khẩu một lần tới email quản trị.";
+}
+
 export async function requestPasswordReset(username: string, email: string): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/api/auth/password-reset`, {
     method: "POST",

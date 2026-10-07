@@ -1,10 +1,14 @@
-import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole, type FirebaseIdentity } from "./auth";
+import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type AppRole, type FirebaseIdentity } from "./auth";
+import { verifyCurrentAuthenticationProof } from "./privileged-auth";
 import { sendFcmNotifications } from "./fcm";
 
 interface BusinessEnv {
   FIREBASE_PROJECT_ID: string;
   INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
+  GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
+  GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
+  GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
 }
 
 interface InternalUser {
@@ -614,13 +618,12 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   if (key === "PUT /api/admin/sla") {
     const body = await parseObjectBody(request);
     const currentPassword = String(body.current_password || "");
-    if (
-      !currentPassword ||
-      !user.password_salt ||
-      !user.password_hash ||
-      !(await verifyPassword(currentPassword, user.password_salt, user.password_hash))
-    ) {
-      return json({ error: "CURRENT_PASSWORD_INVALID", message: "Mật khẩu tài khoản hiện tại không đúng." }, 403);
+    const proof = await verifyCurrentAuthenticationProof(env, user, currentPassword);
+    if (!proof.valid) {
+      return json({
+        error: "CURRENT_PASSWORD_INVALID",
+        message: "Mật khẩu xác nhận không đúng. Tài khoản đặc quyền dùng mật khẩu một lần hoặc mật khẩu khẩn cấp.",
+      }, 403);
     }
     const { current_password: _password, ...safeBody } = body;
     const response = await corePut(env, "/operational/sla", { ...safeBody, actor: actor(user) });

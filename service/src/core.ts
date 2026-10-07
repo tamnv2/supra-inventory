@@ -10,6 +10,7 @@ import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
 import { handlePdaRegistryCoreRequest } from "./pda-registry-core";
 import { handleLauncherPasswordCoreRequest } from "./launcher-password-core";
+import { handlePrivilegedAuthCoreRequest } from "./privileged-auth-core";
 import { handleOperationalV2CoreRequest, initializeOperationalV2Schema, operationalV2Readiness } from "./operational-v2-core";
 import {
   processOperationalDeadlines,
@@ -1479,6 +1480,32 @@ export class InventoryCore {
       return response({ user: this.getUserByUsername(userId) });
     }
 
+    if (request.method === "PUT" && url.pathname === "/auth/retire-static-password") {
+      const body = (await request.json()) as { user_id?: string };
+      const userId = String(body.user_id || "").trim();
+      if (!userId) return response({ error: "invalid_input" }, 400);
+      const user = this.getUserById(userId);
+      if (!user) return response({ error: "user_not_found" }, 404);
+      const employee = String(user.employee_code || "").trim().toLowerCase();
+      const id = String(user.user_id || "").trim().toLowerCase();
+      const tail = id.includes(":") ? id.split(":").pop() || "" : "";
+      if (![employee, id, tail].some((value) => value === "root" || value === "admin" || value === "tamnv2")) {
+        return response({ error: "privileged_one_time_account_required" }, 403);
+      }
+      this.state.storage.sql.exec(
+        `UPDATE users
+            SET password_salt = NULL,
+                password_hash = NULL,
+                password_changed_at = CURRENT_TIMESTAMP,
+                firebase_password_ready = 1,
+                firebase_agent_ready = CASE WHEN role = 'ADMIN' THEN 1 ELSE firebase_agent_ready END,
+                updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?`,
+        userId,
+      );
+      return response({ status: "static_password_retired", user: this.getUserById(userId) });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/set-password") {
       const body = (await request.json()) as { user_id?: string; password_salt?: string; password_hash?: string };
       if (!body.user_id || !body.password_salt || !body.password_hash) return response({ error: "invalid_input" }, 400);
@@ -1659,6 +1686,9 @@ export class InventoryCore {
 
     const runtimeLogs = await handleRuntimeLogCoreRequest(this.state, request);
     if (runtimeLogs) return runtimeLogs;
+
+    const privilegedAuth = await handlePrivilegedAuthCoreRequest(this.state, request);
+    if (privilegedAuth) return privilegedAuth;
 
     const launcherPassword = await handleLauncherPasswordCoreRequest(this.state, request);
     if (launcherPassword) return launcherPassword;
