@@ -1085,13 +1085,7 @@ namespace SupraInventoryRelayAgent
             _username.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             agentCard.Controls.Add(_username);
 
-            agentCard.Controls.Add(new Label { Name = "agent-auth-password-label", Left = 288, Top = 64, Width = 102, Height = 18, Text = "Mật khẩu / mã" });
-            _d165SendAuthCode.SetBounds(394, 60, 94, 22);
-            _d165SendAuthCode.Text = "Gửi mã 1 lần";
-            _d165SendAuthCode.FlatStyle = FlatStyle.Flat;
-            _d165SendAuthCode.Font = new Font("Segoe UI", 8F);
-            _d165SendAuthCode.Click += (s, e) => Task.Run(() => RequestD165OneTimeCode());
-            agentCard.Controls.Add(_d165SendAuthCode);
+            agentCard.Controls.Add(new Label { Name = "agent-auth-password-label", Left = 288, Top = 64, Width = 102, Height = 18, Text = "Mật khẩu" });
             _password.SetBounds(288, 82, 200, 27);
             _password.UseSystemPasswordChar = true;
             KeyEventHandler submitAgentLogin = (s, e) =>
@@ -3865,7 +3859,6 @@ namespace SupraInventoryRelayAgent
                 _username.Enabled = !authenticated;
                 _password.Enabled = !authenticated;
                 _pair.Enabled = !authenticated;
-                _d165SendAuthCode.Enabled = !authenticated;
                 _logout.Enabled = authenticated;
                 _pair.Text = authenticated ? "Đã xác minh Agent" : "Đăng nhập Agent";
                 if (authenticated && !string.IsNullOrWhiteSpace(loginName))
