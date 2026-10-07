@@ -1888,3 +1888,11 @@ The first new Beta Gateway workflow run `37553946690` failed **after** the exist
 Owner vc101 test NOT PASS. Attached MT90 log identifies repeated `INVALID_INPUT` from Android unversioned Skip correction. Also Agent v117 silently clears username on failed privileged login. Owner approved durable single-use four-digit OTP (no 15-minute TTL), auto-issued replacement only after consumption, three initial emails to preauthorized mailbox, unchanged HHmm ±5-minute emergency, and a dual-button Skip→PENDING/Stock correction with exact-batch Picker alert+ACK.
 
 Repair branch `repair/d165-otp-agent-skip-correction` updates business-core Worker, Android Reporter/Picker, Web, Worker FCM, OTP core, Agent next candidate v118, GitHub Beta deployment one-shot mail provision, and regression guards. Branch CI/merge/release and field verification are **not PASS until actually observed**; previous Beta signed vc101 / Agent v117 remain the currently published artifacts until replacement. D163 accepted; D164 PDA Management isolated; Stable OWNER-GATED.
+
+## D165 v118 Agent field failure / v119 repair
+
+Published v118 is field NOT PASS for D165 privileged login. New Agent logs show `D165 PRIVILEGED_AUTH route=WORKER result=HTTP_401` followed by `INVALID_CREDENTIALS` for both OTP and HHmm, while the same workstation later authenticates a normal PICKPACK_ADMIN account and Firestore Agent session successfully. Web OTP also succeeds.
+
+Root cause is source-level role parity: D165 privileged Worker/client/re-auth accepted only ADMIN, although current Agent + Firestore authority accepts ADMIN or PICKPACK_ADMIN. Repair branch `repair/d165-agent-privileged-role-parity-v119` aligns D165 with the existing operator matrix, normalizes composite special usernames, and advances Agent candidate to v119. No Stable/D164 change; Owner D165 PASS still pending.
+
+Canonical current-status markers for authority guard: sqlite_schema=17; latest_beta_apk=beta-vc102; web=D165_MAIN_91C169E9_BETA_WORKER_WEB_DEPLOY_PASS__OWNER_FIELD_PENDING; android=D165_SIGNED_BETA_VC102__SKIP_CORRECTION_AND_OTP_REPAIR_TECHNICAL_PASS__OWNER_FIELD_PENDING.

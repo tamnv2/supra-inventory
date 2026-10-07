@@ -199,13 +199,17 @@ namespace SupraInventoryRelayAgent
 
         private AgentSession D165PrivilegedAgentLogin(string username, string proof)
         {
+            var normalizedLogin = CleanAgentUsername(username).Trim().ToLowerInvariant();
+            if (!IsD165OneTimeAgentLogin(normalizedLogin))
+                throw new InvalidOperationException("Tài khoản này không dùng cơ chế đăng nhập đặc quyền Agent.");
+
             int status;
             var root = D165GatewayFirst(
                 "privileged_agent_login",
                 "/api/auth/privileged-agent-login",
                 new Dictionary<string, object>
                 {
-                    { "username", username.Trim().ToLowerInvariant() },
+                    { "username", normalizedLogin },
                     { "password", proof }
                 },
                 "",
@@ -229,8 +233,7 @@ namespace SupraInventoryRelayAgent
             var baseRole = FirebaseClaimFromIdToken(idToken, "app_base_role");
             var appUserId = FirebaseClaimFromIdToken(idToken, "app_user_id");
             if (!string.Equals(audience, AgentConfig.FirebaseProjectId, StringComparison.Ordinal) ||
-                !string.Equals(role, "ADMIN", StringComparison.Ordinal) ||
-                !string.Equals(baseRole, "ADMIN", StringComparison.Ordinal) ||
+                !IsAgentOperatorRole(role, baseRole) ||
                 string.IsNullOrWhiteSpace(appUserId) ||
                 string.IsNullOrWhiteSpace(refreshToken))
                 throw new InvalidOperationException("Phiên Agent đặc quyền không hợp lệ.");
@@ -241,7 +244,7 @@ namespace SupraInventoryRelayAgent
                 RefreshToken = refreshToken,
                 UserId = firebaseUid,
                 AppUserId = appUserId,
-                LoginName = username.Trim(),
+                LoginName = normalizedLogin,
                 Role = role,
                 BaseRole = baseRole,
                 ExpiresUtc = DateTime.UtcNow.AddSeconds(Math.Max(60, ParseInt(root, "expires_in", 3600)))

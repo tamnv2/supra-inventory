@@ -5199,30 +5199,30 @@
     },
     {
       "id": "OA100",
-      "status": "D165_FIELD_NOT_PASS_SIGNED_VC101_SKIP_AND_AGENT_V117__REPAIR_BRANCH_IN_REVIEW__OWNER_FIELD_AND_USAGE_PASS_PENDING",
+      "status": "D165_AGENT_V118_FIELD_NOT_PASS_PRIVILEGED_ROLE_PARITY__V119_REPAIR_CI_RELEASE_PENDING__OWNER_FIELD_USAGE_PASS_PENDING",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
-      "reason_owner_only": "Owner field vc101 Skip correction INVALID_INPUT and Agent v117 silent privileged login failure; D165 same-change repair on scoped Beta. OTP Owner override: no expiry until successful use, with next-mail auto-issue. PR CI/release and physical use still pending.",
+      "reason_owner_only": "Published v118 reaches Beta Worker directly but receives 401 INVALID_CREDENTIALS for privileged OTP and HHmm; Web OTP works and same workstation ordinary PICKPACK_ADMIN Agent login/Firestore claim works. Source root cause: D165 privileged path was ADMIN-only while canonical Agent authority is ADMIN or PICKPACK_ADMIN.",
       "prerequisites": {
         "accepted_inventory_base": "D163_OWNER_PASS",
         "d165_runtime": "PR_493_MERGED_MAIN_B640AC57__WEB_WORKER_DEPLOY_PASS__ANDROID_SIGNED_VC101",
-        "android": "beta-vc101__CURRENT_PUBLISHED__NEXT_SIGNED_BETA_VERSION_AFTER_REPAIR_MERGE",
-        "agent": "relay-agent-v117__CURRENT_PUBLISHED__V118_REPAIR_PENDING",
-        "worker": "BETA_DEPLOY_PASS__RUN_37560667192",
+        "android": "beta-vc102__SIGNED_PUBLISHED__UNCHANGED_BY_AGENT_V119_SOURCE_REPAIR",
+        "agent": "relay-agent-v118__PUBLISHED_FIELD_NOT_PASS__V119_REPAIR_SOURCE",
+        "worker": "MAIN_91C169E9_DEPLOY_RUN_37567523891_PASS__V119_ROLE_PARITY_WORKER_DEPLOY_PENDING",
         "apps_script_gateway": "EXISTING_GATEWAY_PREVIOUS_D165_PROVIDER_READBACK_PASS__RUN_37554446509__NOT_MODIFIED_BY_PR491",
         "stable": "OWNER_GATED_UNTOUCHED",
         "security_risk": "OWNER_EXPLICIT_ACCEPTED_PUBLICLY_PREDICTABLE_HHMM_EMERGENCY_PROOF",
         "neutral_login_ui": "PR_491_MERGED_UI_UNCHANGED__VC101_INHERITS",
-        "agent_candidate_version": "118__SOURCE_PATCHED_NOT_RELEASED"
+        "agent_candidate_version": "119__ROLE_PARITY_REPAIR_BRANCH_CI_PENDING"
       },
       "shortest_test_path": [
-        "After Beta repair release, update signed Android from vc101 and Windows Agent from v117 to the official next candidate v118.",
-        "In Android/Web Reporter Skip tab, within configured first-report correction deadline, test both Sửa - Đang xử lý and Sửa - Đã có hàng; confirm expired window blocked and no INVALID_INPUT.",
-        "Use two Pickers reporting one SKU and one unrelated Picker; confirm only two event ACK/FCM and Web/Android Picker message with Skip → new state and correcting user's name.",
-        "Check Agent privilege OTP login and numeric emergency HHmm ±5 minutes on Office v118; verify failure dialog retains username and no plaintext proof in logs.",
-        "Check initial root/admin/tamnv2 four-digit codes arrived in the already-approved mailbox, stay valid after >15 minutes until first use, and rotate once after successful use.",
-        "Compare Web/App/Agent realtime, core SQL/read/write, FCM, Firebase usage and D163 preserved workflows; explicit Owner D165 PASS remains required."
+        "Install/update official Agent v119 after release and verify displayed version 119.",
+        "Login exact privileged admin/tamnv2 using the latest unconsumed emailed OTP; confirm Agent session and no INVALID_CREDENTIALS.",
+        "Logout then test the approved numeric >=8-digit HHmm ±5-minute proof; confirm same Agent authority and session claim.",
+        "Verify a normal PICKPACK_ADMIN Agent account still signs in; ROOT/Reporter remain rejected.",
+        "Run one PickList through normal confirmation and check primary/standby HA remains unchanged.",
+        "Retest vc102 Skip correction + targeted Picker ACK separately, then compare usage/stability and explicitly report D165 PASS only if field behavior is correct."
       ],
       "pass_criteria": [
         "One-time OTP is single use, rotates and is emailed to the approved recipient; no old fixed privileged password remains active.",
@@ -5237,7 +5237,7 @@
         "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
         "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "REPAIR_PR_CI_DEPLOY_SIGNED_BETA_AND_AGENT_V118_THEN_FIELD_TEST_EXACT_SKIP_TO_PENDING_OR_STOCK__PICKER_ACK__MAIL_3_INITIAL_OTP_AND_15MIN_PLUS__REAL_OFFICE_AGENT_HHMM__USAGE_STABILITY__EXPLICIT_OWNER_PASS",
+      "remaining_owner_action": "AFTER_V119_TECHNICAL_RELEASE_TEST_PRIVILEGED_OTP_AND_HHMM_ON_REAL_AGENT_FOR_ADMIN_OR_PICKPACK_ADMIN__VERIFY_NORMAL_AGENT_PICKLIST_HA__THEN_USAGE_STABILITY_AND_EXPLICIT_D165_PASS",
       "closed": false,
       "field_repair_2026_10_07": {
         "result": "NOT_PASS_VC100",
@@ -5263,6 +5263,19 @@
           "branch": "repair/d165-otp-agent-skip-correction",
           "deploy": "NOT_YET",
           "ci": "NOT_YET",
+          "owner_pass": "PENDING"
+        },
+        "agent_v118_failure": {
+          "status": "NOT_PASS",
+          "version": "relay-agent-v118",
+          "beta_worker_route": "DIRECT_WORKER_HTTP_401",
+          "otp": "FAIL_INVALID_CREDENTIALS",
+          "emergency_hhmm": "FAIL_INVALID_CREDENTIALS",
+          "web_otp": "PASS",
+          "ordinary_pickpack_admin_agent": "PASS_FIREBASE_AND_FIRESTORE_CLAIM",
+          "root_cause": "PRIVILEGED_AGENT_PATH_ADMIN_ONLY_ROLE_CHECK",
+          "repair_branch": "repair/d165-agent-privileged-role-parity-v119",
+          "target_version": "119",
           "owner_pass": "PENDING"
         }
       }

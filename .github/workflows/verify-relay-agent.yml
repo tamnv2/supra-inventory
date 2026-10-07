@@ -76,6 +76,7 @@ jobs:
           $projection = Get-Content service/src/firestore-projection.ts -Raw
           $sync = Get-Content relay-agent/FirestoreAgentSync.cs -Raw
           $serviceIndex = Get-Content service/src/index.ts -Raw
+          $d165Privileged = Get-Content relay-agent/D165PrivilegedAuth.cs -Raw
           $notifications = Get-Content service/src/notifications-core.ts -Raw
           $notificationApi = Get-Content service/src/notification-api.ts -Raw
           $agentLogBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
@@ -164,9 +165,18 @@ jobs:
             'async function requireAgentUser',
             'AGENT_SESSION_REQUIRED',
             'firebase_agent_ready',
-            'requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"])'
+            'requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"])',
+            'user.base_role === "PICKPACK_ADMIN" && user.role === "PICKPACK_ADMIN"',
+            'AGENT_ROLE_REQUIRED'
           )) {
             if (-not $serviceIndex.Contains($marker)) { throw "D161 Agent API auth repair guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'var normalizedLogin = CleanAgentUsername(username).Trim().ToLowerInvariant();',
+            '!IsAgentOperatorRole(role, baseRole)',
+            'LoginName = normalizedLogin'
+          )) {
+            if (-not $d165Privileged.Contains($marker)) { throw "D165 privileged Agent role-parity guard missing: $marker" }
           }
           foreach ($marker in @(
             'PRIMARY_DEGRADED_RECEIVER',
