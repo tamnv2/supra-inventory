@@ -1036,7 +1036,7 @@ export async function resolveReporterBatch(batchId: string, resolution: "HAS_STO
 
 export async function correctReporterBatch(
   batchId: string,
-  target: "PENDING" | "SKIP_ALLOWED",
+  target: "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
   expectedVersion: number,
 ): Promise<unknown> {
   return readJson(await authorizedFetch("/api/reporter/batches/correct", {
