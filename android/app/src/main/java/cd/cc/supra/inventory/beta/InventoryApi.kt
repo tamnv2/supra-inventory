@@ -265,16 +265,6 @@ class InventoryApi(
         }
     }
 
-    fun requestPrivilegedOneTimeCode(username: String): String {
-        val payload = request(
-            method = "POST",
-            path = "/api/auth/privileged-code",
-            body = JSONObject().put("username", username.trim().lowercase()),
-            authorized = false,
-        )
-        return payload.optString("message", "Đã gửi mật khẩu một lần tới email quản trị.")
-    }
-
     fun login(username: String, password: String, deviceId: String, force: Boolean = false): AppSession {
         val payload = request(
             method = "POST",
