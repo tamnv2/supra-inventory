@@ -19,8 +19,8 @@
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS",
-    "android": "D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__NOT_RELEASED__SIGNED_BETA_VC98",
-    "latest_beta_apk": "beta-vc98",
+    "android": "D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__SIGNED_BETA_VC99_RELEASED__FIELD_PENDING",
+    "latest_beta_apk": "beta-vc99",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -36,7 +36,7 @@
     "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_MERGED_BETA_POST_MERGE_CI_ALL_GREEN__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D165_PR_487_AGENT_V116_SOURCE__SIGNED_RELAY_AGENT_V115_CURRENT__BETA_RELEASE_PENDING__OWNER_FIELD_PASS_PENDING",
+    "agent": "D165_RELAY_AGENT_V116_RELEASED__EXISTING_GOOGLE_GATEWAY_D165_SYNC_PENDING__FIELD_OWNER_PASS_PENDING",
     "d165_proposal": "OWNER_REVERIFIED_AND_EXPLICITLY_STARTED__MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING"
   },
   "hard_guards": [
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR_487_EXPLICIT_OWNER_EXACT_CLOCK_EMERGENCY_RULE_APPROVED__SOURCE_CI_PASS__BETA_MERGE_PENDING__OWNER_FIELD_PASS_PENDING",
+    "parallel_inventory_change_status": "D165_PR_487_MERGED_BETA_VC99_AGENT_V116__GATEWAY_DEPLOY_AUTOMATION_PR_PENDING__OWNER_FIELD_USAGE_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_PR_487_OWNER_EXACT_LOGIN_RULE_APPROVED__SOURCE_CI_PASS__BETA_MERGE_PENDING__FIELD_USAGE_PASS_PENDING",
+    "status": "D165_PR_487_MERGED__WORKER_BETA_PASS__SIGNED_VC99_AND_AGENT_V116__GATEWAY_DEPLOY_PENDING__FIELD_USAGE_PASS_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5762,7 +5762,7 @@
     "implementation_started": true,
     "code_changed": true,
     "runtime_changed": true,
-    "build_released": false,
+    "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
     "next_action": "MERGE_PR_487_AFTER_AUTHORITY_CONTINUITY_CI_PASS__VERIFY_BETA_WEB_ANDROID_AGENT_RELEASE__OWNER_FIELD_USAGE_PASS_LATER",
@@ -5888,6 +5888,30 @@
       "next_signed_android_version": "MONOTONIC_RUNTIME_COMPUTED_NEXT",
       "verification_source": "GITHUB_RELEASES_API",
       "d165_pr_487_released": false
+    },
+    "gateway_deployment_extension_2026_10_07": {
+      "purpose": "PUBLISH_OWNER_APPROVED_D165_AGENT_OTP_ACTIONS_TO_EXISTING_GOOGLE_APPS_SCRIPT_GATEWAY",
+      "resource_key": "apps-script-agent-log-gateway-beta-d158",
+      "script_identity": "EXACT_CANONICAL_NAME_MATCH_AND_EXISTING_DEPLOYMENT_URL_MATCH",
+      "credential_source": "EXISTING_GITHUB_BETA_CLASPRC_JSON_SECRET_AND_AGENTS_GATEWAY_URL_VAR",
+      "delivery": "SCOPED_EXISTING_DEPLOYMENT_ONLY_NO_NEW_SCRIPT",
+      "status": "WORKFLOW_SOURCE_PENDING_PR_AND_MAIN_DEPLOY",
+      "owner_decision": "SAME_D165_LOGIN_COMPLETION",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "risk_guard": "FAIL_CLOSED_ON_MISSING_OR_AMBIGUOUS_SCRIPT_ID_OR_DEPLOYMENT",
+      "new_usage": "NONE_PERIODIC",
+      "new_provider": "NONE"
+    },
+    "post_merge_487": {
+      "pr": 487,
+      "merge_sha": "bc69c212e7d220cbb26d528995263eccb9fbad10",
+      "android_release": "beta-vc99",
+      "agent_release": "relay-agent-v116",
+      "beta_worker_main_run": 37553374710,
+      "worker_status": "PASS",
+      "signed_releases": "PUBLISHED",
+      "gateway": "PENDING_SOURCE_DEPLOYMENT",
+      "field_owner_pass": "PENDING"
     }
   },
   "launcher_daily_password": {

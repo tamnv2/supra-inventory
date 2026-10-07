@@ -6,11 +6,11 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `17`
-- Latest signed Beta APK: `beta-vc98`
-- Current released Agent: `relay-agent-v115`
+- Latest signed Beta APK: `beta-vc99`
+- Current released Agent: `relay-agent-v116`
 - Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
 - Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
-- Android: `D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__NOT_RELEASED__SIGNED_BETA_VC98`
+- Android: `D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__SIGNED_BETA_VC99_RELEASED__FIELD_PENDING`
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
 
@@ -313,7 +313,7 @@ Status: **TECHNICAL / RUNTIME / RELEASE PASS — OA019 + OA020 OWNER FIELD ACCEP
 - Web: `D100_BETA_RUNTIME_PASS__ROOT_ONLY_SYSTEM_RESET__TOOLS_AGENT_V25_CANONICAL__D099_LOGIN_FIX_PRESERVED`
 - Android: `D099_SIGNED_BETA_VC62_LOGIN_REPAIR__D100_NO_ANDROID_RUNTIME_CHANGE`
 - Latest signed Beta APK: `beta-vc62`
-- Agent: D165_PR_487_AGENT_V116_SOURCE__SIGNED_RELAY_AGENT_V115_CURRENT__BETA_RELEASE_PENDING__OWNER_FIELD_PASS_PENDING
+- Agent: D165_RELAY_AGENT_V116_RELEASED__EXISTING_GOOGLE_GATEWAY_D165_SYNC_PENDING__FIELD_OWNER_PASS_PENDING
 - SQLite schema: `10`
 - Next: OA019 physical Agent/PDA acceptance and OA020 ROOT reset-mail field acceptance. Stable remains OWNER-GATED.
 
@@ -1861,3 +1861,9 @@ D165 PR #487 stays draft. Android PER_PICKER overdue and HAS_STOCK correction pa
 ## D165 live signed-release baseline correction — 2026-10-07
 
 Direct GitHub Releases evidence confirms the already-published Beta Android `beta-vc98` (target commit `7c97ff686b06b3b5d827a7daf84ab6df7c49adad`) and Windows Agent `relay-agent-v115`. Earlier vc97/v114 values in the historical state are superseded for the **current published release**; they remain correct in older accepted-base checkpoints. PR #487 Android changes are **not** yet released; its Agent source declares v116. After CI/merge the monotonic signed APK release and Agent v116 must be verified and continuity advanced separately. Stable untouched.
+
+## D165 PR #487 merged — Agent Gateway deploy dependency (2026-10-07)
+
+- D165 source PR #487 merged at `bc69c212e7d220cbb26d528995263eccb9fbad10`. Beta Worker deploy PASS, signed Android `beta-vc99` and Windows Agent `relay-agent-v116` published. Existing historical documentation may reference older release versions but the current signed channel is vc99/v116.
+- New D165 Agent privileged-auth actions are checked into `ops/apps-script/agent-log-gateway/Code.gs` but their **existing production-capable Beta Web App deployment must be updated in place**. A scoped fail-closed GitHub automation is proposed to push/version/redeploy the same Script using the existing Beta credential/URL variables, and read back the same deployment ID. It must not create a new Script/provider, alter Stable, or expose operational identifiers/secrets.
+- Physical Office Agent login, OTP and usage/field Owner PASS still pending. Owner's exact clock-only proof exception remains in effect with the documented predictable-login account-takeover risk.
