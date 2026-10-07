@@ -392,3 +392,10 @@ D165 adds re-authentication to the existing authorized SLA/processing-time save 
 - audit contains actor and before/after setting values only.
 
 D165 corrected-result actions retain existing Reporter/Admin/Root operational authorization and additionally require the approved double-confirmation UX. This does not create a new role or broaden access.
+
+
+## D165 privileged OTP draft and emergency-proof security gate
+
+The D165 repair PR proposes replacing fixed credentials for exact `root`, `admin`, `tamnv2` identities with one-time codes sent through the pre-authorized project Gmail transport. The OTP verification remains server-authoritative, one-use and rate-limited, and must not be copied into logs, audit, public repo content or local storage. Valid Agent DPAPI session restore remains distinct from a new privileged login.
+
+**Release blocker:** The Owner's requested clock-only emergency format (>=8 digits containing current `HHmm` ±5 min) contains no shared secret and cannot be relied upon as an authentication factor. Its implementation in draft PR #487 must **not be promoted to Beta runtime** as an unrestricted bypass. An independent server-verified secret-backed factor or one-time recovery credential is required before release, with a fresh Owner-approved adjustment of the emergency UX. Existing RBAC, session/revoke authority, action re-auth and Stable guard may not be weakened.
