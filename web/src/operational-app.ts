@@ -2982,9 +2982,9 @@ async function loadReporterTabCounters(force = false): Promise<void> {
     userId !== (profile?.user_id || "")
   ) return;
   queueBadgeCount = Math.max(0, Number(counters.queue_total || 0));
-  overdueBadgeCount = Math.max(0, Number(counters.overdue_total || 0));
-  recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
   perPickerOverdueEnabled = Boolean(counters.auto_skip_enabled && counters.auto_skip_mode === "PER_PICKER");
+  overdueBadgeCount = perPickerOverdueEnabled ? Math.max(0, Number(counters.overdue_total || 0)) : 0;
+  recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
   queueBadgeInitialized = true;
   overdueBadgeInitialized = true;
   recentBadgeInitialized = true;
@@ -3070,6 +3070,11 @@ function applyReporterQueueBadgeEvents(events: RealtimeEventFrame[]): boolean {
 
 function applyReporterOverdueBadgeEvents(events: RealtimeEventFrame[]): boolean {
   if (!roleOperate() || !overdueBadgeInitialized) return false;
+  if (!perPickerOverdueEnabled) {
+    overdueBadgeCount = 0;
+    syncOperationalTabBadges();
+    return true;
+  }
   let next = overdueBadgeCount;
   for (const row of events) {
     if (!(row.scopes || []).includes("reporter_overdue")) continue;
