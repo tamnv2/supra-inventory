@@ -1213,7 +1213,7 @@ async function logoutInteractiveSession(request: Request, env: Env): Promise<Res
   try { body = (await request.json()) as { device_id?: string }; } catch { body = {}; }
   const deviceId = String(body.device_id || "").trim().slice(0, 160);
   if (deviceId && identity.sessionGeneration > 0) {
-    await coreStub(env).fetch("https://inventory-core.internal/auth/end-session", {
+    const ended = await coreStub(env).fetch("https://inventory-core.internal/auth/end-session", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -1223,6 +1223,7 @@ async function logoutInteractiveSession(request: Request, env: Env): Promise<Res
         device_id: deviceId,
       }),
     });
+    await discardResponse(ended);
     await closeUserRealtime(env, user.user_id, identity.sessionChannel);
     if (identity.sessionChannel === "ANDROID" && user.base_role === "PICKER") {
       await refreshPickerProjectionBestEffort(env, "LOGOUT", [{ user_id: user.user_id, session_generation: identity.sessionGeneration }]);
