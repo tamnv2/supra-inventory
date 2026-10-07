@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR491_NEUTRAL_LOGIN_UI_REPAIR_IN_CI__OWNER_FIELD_PASS_PENDING",
+    "parallel_inventory_change_status": "D165_PR491_MERGED__BETA_WORKER_ANDROID_VC100_AGENT_V117_ALL_MAIN_CI_PASS__OWNER_FIELD_USAGE_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_BETA_SOURCE_RELEASE_GATEWAY_TECHNICAL_PASS__PR_487_488_489__FIELD_USAGE_OWNER_PASS_PENDING",
+    "status": "D165_BETA_NEUTRAL_LOGIN_UI_SOURCE_RELEASE_PASS__ANDROID_VC100_AGENT_V117_WORKER_MAIN_ECAD23EB__FIELD_USAGE_OWNER_PASS_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "FINISH_PR491_CHECKS_AND_BETA_RELEASE__THEN_OA100_FIELD_OTP_ANDROID_AGENT_USAGE_OWNER_PASS",
+    "next_action": "OA100_FIELD_VALIDATE_SIGNED_VC100_AGENT_V117_WEB_BETA_OTP_ROTATION_AND_USAGE__EXPLICIT_OWNER_PASS_REQUIRED",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -5943,7 +5943,7 @@
     },
     "owner_pass_required": true,
     "login_ui_repair_2026_10_07": {
-      "status": "PR_491_IN_PROGRESS__SOURCE_AND_OWNER_SPECS_UPDATED__CHECKS_PENDING",
+      "status": "PR_491_MERGED__BETA_WORKER_WEB_DEPLOY_PASS__SIGNED_ANDROID_VC100_AND_AGENT_V117_RELEASE_PASS__OA100_FIELD_PENDING",
       "owner_request": "USE_UNIFORM_ACCOUNT_PASSWORD_LOGIN__REMOVE_VISIBLE_OTP_REQUEST_AND_PRIVILEGED_ACCOUNT_LIST_IN_WEB_ANDROID_AGENT",
       "otp_backend": "VALID_SINGLE_USE_CODE_CONSUMED_AND_NEXT_CODE_SENT_AUTOMATICALLY__EXISTING_D165_LOGIC_UNCHANGED",
       "same_change_id": "D165",
@@ -5957,7 +5957,33 @@
       "security": "CLOCK_HHMM_ONLY_EMERGENCY_REMAINS_PUBLICLY_PREDICTABLE__NO_SECURITY_CLAIM_FROM_HIDING_UI",
       "beta_only": true,
       "stable": "OWNER_GATED_UNTOUCHED",
-      "owner_pass": "PENDING"
+      "owner_pass": "PENDING_FIELD_AND_USAGE",
+      "merge_commit": "ecad23eb2217d3ea4abf97c8c0b1baf3ce4f387f",
+      "pre_merge_checks": "PASS_14_OF_14",
+      "main_checks": "PASS_11_OF_11",
+      "beta_worker_deploy_run": 37558186044,
+      "beta_worker_deploy": "PASS",
+      "android_release": "beta-vc100",
+      "android_release_id": 405286992,
+      "android_release_sha256": "cc73dcf0541e9759c8b257eca83ead39014abbedc078caa797445700a2b73202",
+      "agent_release": "relay-agent-v117",
+      "agent_release_id": 405286820,
+      "agent_release_sha256": "44921a64e0cc0e733f5f08625b821849cb2f8d8788e6e9c1707bc711fa6fdcc6",
+      "agent_channel": "inventory-channel__UPDATED_RELEASE_AND_CHECKSUM",
+      "android_channel": "inventory-channel__UPDATED_RELEASE_AND_CHECKSUM",
+      "worker": "BETA_HEALTH_PASS_ON_MAIN_SOURCE",
+      "new_runtime_published": true
+    },
+    "post_merge_491": {
+      "pr": 491,
+      "merge_commit": "ecad23eb2217d3ea4abf97c8c0b1baf3ce4f387f",
+      "beta_worker_main_run": 37558186044,
+      "beta_worker_pass": true,
+      "main_ci_result": "PASS_11_OF_11",
+      "android": "beta-vc100__SIGNED_RELEASE",
+      "agent": "relay-agent-v117__RELEASE",
+      "channel": "inventory-channel__BOTH_CURRENT_RELEASE_ASSETS",
+      "field_owner_pass": "PENDING"
     }
   },
   "launcher_daily_password": {

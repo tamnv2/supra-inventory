@@ -2672,3 +2672,10 @@ Technical/runtime PASS never substitutes for explicit Owner field PASS.
 2. For a privileged account, the one-time four-digit code is supplied to the ordinary password field. After accepted one-time proof, the previous code is consumed, and the Worker automatically issues/sends a **different fresh random code** to the established authorized mailbox using the existing subject contract. No user action beyond login is needed; reuse of the consumed code must fail. If mail delivery fails, do not claim a delivery PASS merely because source CI passed.
 3. Preserve current 15-minute expiry, existing emergency flow (with its explicitly known predictable-clock vulnerability), session generation/RBAC, Agent DPAPI session restore and critical-action re-auth. The absence of a request button does not entitle an expired code to log in; document the expiry field-test outcome.
 4. Verify Web build, Android signed-release build, Agent build, UI Design Guard, Repo Authority Guard and Project State continuity checks before Beta-only release. No Stable deployment; D165 Owner field/usage PASS is independent of CI PASS.
+
+## D165 neutral-login Beta release evidence — 2026-10-07
+
+- PR #491 merge: `ecad23eb2217d3ea4abf97c8c0b1baf3ce4f387f`, **14/14 PR checks PASS**.
+- Main: **11/11 checks PASS**, Beta Worker/Web deploy `37558186044` PASS, signed `beta-vc100` release and `relay-agent-v117` release published to the existing channel.
+- **Technical PASS is not Owner field PASS:** actual 4-digit-code email delivery and next-code issuance, OTP expiration, new login from company Agent Office, critical-action re-auth, Android Reporter correction flow and measured speed/stability/usage still require OA100 physical verification.
+- Stable owner gate unchanged; D164 independent PDA-management runtime not touched.
