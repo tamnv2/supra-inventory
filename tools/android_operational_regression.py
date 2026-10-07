@@ -734,6 +734,7 @@ def main() -> None:
     require(inventory_api, 'businessDate.plusDays(1).atStartOfDay(zone).toInstant().toString()', "D165 bounded business-day end")
     require(inventory_api, '/api/reporter/counters?from=$from&to=$to', "D165 counters include valid range")
     require(reporter, 'api.getReporterCountersSnapshot(nextRecent.serverNowMs)', "D165 counters use server date")
+    require(reporter, 'if (filter == Filter.OVERDUE && overdueEnabled && !overdueLoaded) loadOverdue()', "D165 tap-during-initial-load lazy overdue fetch")
     forbid(inventory_api, 'request("GET", "/api/reporter/counters")', "D165 invalid unbounded counter call")
     overdue_xml = reporter_layout.split('@+id/tabReporterOverdueBox"', 1)[1].split("</FrameLayout>", 1)[0]
     forbid(overdue_xml, 'android:visibility="gone"', "D165 overdue tab never hidden in XML")
