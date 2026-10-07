@@ -610,7 +610,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       // BATCH_CORRECTED creates version-specific ACK targets from the exact batch
       // reporters. Never widen FCM to all Pickers or send an additional poll.
       scheduleFcm(result, env, ctx, {
-        event: target === "PENDING" ? "batch_corrected_pending" : "batch_corrected",
+        event: "batch_corrected", // All targets use the existing Android overlay/ACK event key.
         target: { batchId },
         title: "SUPRA Inventory · Sửa kết quả báo hàng",
         body: "Báo hàng {sku} · {product}\nSKU chuyển trạng thái từ {from_status} sang {to_status}.\nLý do: {actor} ({role}) sửa kết quả.",
