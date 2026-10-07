@@ -13,7 +13,6 @@ interface PrivilegedOtpState {
 }
 
 const KEY_PREFIX = "privileged_auth:otp:";
-const OTP_TTL_MS = 15 * 60 * 1000;
 const ISSUE_COOLDOWN_MS = 30 * 1000;
 const MAX_FAILURES = 5;
 const ATTEMPT_BLOCK_MS = 5 * 60 * 1000;
@@ -105,7 +104,7 @@ export async function handlePrivilegedAuthCoreRequest(
       revision: Math.max(0, Number(previous?.revision || 0)) + 1,
       code_hash: codeHash,
       issued_at: new Date(nowMs).toISOString(),
-      expires_at: new Date(nowMs + OTP_TTL_MS).toISOString(),
+      expires_at: "", // D165: no wall-clock expiry; consumed atomically at first successful use.
       failures: 0,
       blocked_until: "",
     };
@@ -142,12 +141,6 @@ export async function handlePrivilegedAuthCoreRequest(
         error: "too_many_attempts",
         retry_after_seconds: Math.max(1, Math.ceil((blockedUntilMs - nowMs) / 1000)),
       }, 429);
-    }
-
-    const expiresMs = Date.parse(current.expires_at || "") || 0;
-    if (!expiresMs || expiresMs < nowMs) {
-      deleteState(state, userId);
-      return response({ valid: false, error: "code_expired" }, 401);
     }
 
     if (safeEqualHex(current.code_hash, candidateHash)) {
