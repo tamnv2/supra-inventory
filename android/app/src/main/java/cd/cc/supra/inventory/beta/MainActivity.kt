@@ -1788,6 +1788,7 @@ class MainActivity : Activity() {
 
     private fun showUpdateAvailable(info: UpdateInfo) {
         pendingUpdateInfo = info
+        if (isFinishing || isDestroyed) return
         AlertDialog.Builder(this)
             .setTitle("Có bản cập nhật ${info.tag}")
             .setMessage(
