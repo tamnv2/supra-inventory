@@ -2634,13 +2634,13 @@ Technical/runtime PASS never substitutes for explicit Owner field PASS.
 
 ## D165 same-change repair — acceptance additions (Android + privileged login)
 
-1. Under PER_PICKER with auto-skip enabled, Reporter APK shows five pinned/scrollable tabs including **Quá hạn**, with badge and list matching Web; under FIRST_REPORT the original four equally spaced tabs and behavior remain unchanged.
+1. **SUPERSEDED display count by the later Owner UI refinement:** under PER_PICKER, Reporter APK shows four pinned tabs including **Quá hạn**; under FIRST_REPORT, three tabs. Functional overdue/stock-correction behavior and realtime badge correctness must match Web.
 2. A SKU with both waiting and timed-out tickets appears in both appropriate tabs. Quá hạn has both final action buttons. Resolve refreshes both platforms and sends no duplicate auto-skip to already timed-out Pickers.
 3. In Android **Đã có hàng**, both **Sửa - Đang xử lý** and **Sửa - Cho phép Skip** use two confirmations and `expected_version`. Cancel leaves results unchanged; stale/duplicate submission is rejected and reconciles.
 4. Corrections retain audit and critical Picker corrected-result ACK; Skip-to-Stock correction and normal pending actions remain available.
 5. Realtime normal events patch queue/overdue/recent locally; no new periodic poll, listener family or per-event full SQL reload.
 6. OTP: protected usernames cannot use the old static password; one-time 4-digit email code is single-use and time-limited, invalid/expired/rate-limited codes fail closed; verify email subject, post-success rotation and session restore.
-7. **Security gate**: clock-only >=8 digit emergency proof containing HHmm is insufficient by itself; do not deploy it to production-capable Beta login until an independent secret-backed factor is approved and tested.
+7. **SUPERSEDED release blocker — current Owner-approved exception:** Verify the exact server-side numeric >=8-digit input containing Vietnam HHmm within ±5 minutes; reject wrong/non-numeric/short values and check the preserved fixed-password retirement, OTP consumption/rotation, session authority and role gates. The Owner explicitly accepts the unavoidable predictability/account-takeover risk and refuses an added factor (see AUTH_RBAC); CI PASS does not mean security hardening.
 8. Complete PR UI, Android compile, Agent, Worker, authority and Project State gates. Beta runtime/physical field and Owner PASS remain separate; Stable never auto-promotes.
 
 ## D165 Android Reporter compact-tab acceptance (same-change Owner refinement)
@@ -2650,4 +2650,11 @@ Technical/runtime PASS never substitutes for explicit Owner field PASS.
 3. No Android Picker đã thu hồi tab or numeric badges on Đã có hàng / Cho phép Skip; withdrawn history remains available through existing Web/reporting exports.
 4. Android resource linking and Kotlin compile PASS; tab layout fits PDA width and normal text-scale interactions. No manual scroll/F5 is required for badge accuracy.
 5. Quá hạn lazy read and realtime delta/row patch remain intact, no new polling/listener/background provider requests, correction actions still double-confirm and use server version fencing.
-6. Security blocker on clock-only privileged emergency authentication remains active. Do not merge/deploy Beta until independently approved secret-backed emergency proof and required CI gates PASS; no Stable mutation.
+6. **SUPERSEDED by explicit Owner decision 2026-10-07:** No additional emergency secret-backed factor is required for scoped Beta technical release; still record the known predictable-clock account-takeover risk, require all CI/authority/continuity gates and preserve Stable untouched.
+
+## D165 Owner-finalized login/CI acceptance (2026-10-07)
+
+- Preserve the exact owner-specified emergency numeric proof; test minute rollovers, server Vietnam time ±5 minutes, length >=8, location anywhere in string, and rejection of malformed/nonnumeric/out-of-window strings. No additional factor may be introduced without a new Owner decision.
+- Test OTP single-use and next-mail issuance, fixed-password retirement and no credential material in logs/audits/repository. Validate Agent session continuity and protected-action re-auth.
+- Document the known account-takeover exposure of the predictable proof; **16/16 automated source tests are technical evidence, not proof of privileged-auth security, field behavior or Owner business acceptance**.
+- Require PR authority + continuity PASS, Beta Worker deploy/health check, signed Beta APK release verification and Agent release verification where applicable; never deploy Stable without separate Owner approval.

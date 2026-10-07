@@ -1843,3 +1843,7 @@ Future D165 implementation is gated by a fresh authority bootstrap, Owner re-ver
 - D165 PR #487 source at `aaf72d511ba4aabcf3cd20f9cea6654837afd13e` passed **16/16 triggered GitHub Actions checks**, including Android resource linking/assembly, UI Design Guard, Project State Guard, Repo Authority Guard and Relay Agent verification.
 - This is **source technical PASS only**. The PR remains draft: the predictable HHmm-only privileged emergency authentication lacks the required independent secret-backed factor.
 - No merge or signed Beta APK auto-update release resulted from this PR. Existing signed Beta APK remains `beta-vc97`, and Stable remains Owner-gated. Owner device/field tests and usage acceptance are still pending.
+
+## D165 Owner emergency-login decision supersession — 2026-10-07
+
+**Current explicit Owner instruction overrides the earlier proposal's TOTP/secret-backed recovery release blocker.** PR #487 may progress through normal CI, scoped Beta merge, Worker/Android/Agent release checks using the exact numeric >=8-digit emergency string with Vietnam server-time HHmm ±5 minutes, without any additional secret factor. The Owner was explicitly informed that this public clock-only pattern can permit account takeover; it is a recorded accepted risk, **not a secure credential**. Prior security-blocker warnings in this derived historical view are superseded by the current decision; other RBAC/session protections still apply. D165 field/usage Owner PASS remains pending. D164 isolated; Stable untouched.

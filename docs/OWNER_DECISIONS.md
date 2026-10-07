@@ -3488,3 +3488,15 @@ Owner explicitly requested a same-D165 Reporter APK presentation refinement whil
 - Tabs share the available width instead of requiring a horizontal-scroll container. No new API request, poll, listener, background timer, database field or provider resource is introduced. Realtime queue/overdue counters remain the only UI badges.
 - This UI-only change applies to **Android Reporter**; Web operations, detailed reporting, withdrawal history and RBAC remain unchanged.
 - PR #487 remains draft until Android/authority/continuity gates pass and the separately documented privileged-login emergency authentication security blocker is resolved. No change to D164; Stable remains Owner-gated.
+
+## 2026-10-07 — D165 explicit Owner override: exact emergency login rule, no added factor
+
+**Status: CURRENT OWNER DECISION. Supersedes the preceding D165 proposal-only independent-secret release blocker.** Owner explicitly rejected adding TOTP, another secret, or any extra emergency-auth factor and ordered continuation of the existing D165 code through technical PASS. The Owner-directed privileged-login contract for the exact `root`, `admin`, `tamnv2` accounts remains:
+
+- No fixed username-specific login passwords. Login uses the existing 4-digit single-use Gmail OTP (subject `MẬT KHẨU BÁO HÀNG {username} - {xxxx}`, delivered to the existing authorized recipient); a successful OTP login consumes it and requests the next one.
+- The alternative emergency login input **must be numeric and >=8 digits**, containing a contiguous 4-digit `HHmm` for the current Vietnam wall-clock minute within **±5 minutes**, anywhere in the input. No additional factor. Server time, not a client-supplied clock, is authoritative.
+- Existing user-role/session-generation fences, Web/Android role restrictions, Agent session restore, critical-action re-auth, immutable audit hygiene and no-token/no-password logging rules remain intact. Stable is untouched.
+
+**Explicit residual security risk:** This clock-only proof is publicly predictable, even with a minimum input length. It is not a secret and cannot independently authenticate a real administrator. The Owner was informed of the account-takeover risk and explicitly directed use of the exact behavior without an extra factor. Prior recommendations to block Beta deployment pending an added secret are therefore superseded as product decisions, not recharacterized as a security improvement. Do not claim this proof is secure or field-validated; future changes require a new Owner decision.
+
+D165 PR #487 must complete existing CI/authority/continuity, merge/deploy only the scoped Beta resources, and record real build/runtime outcomes accurately. Its technical PASS is **not** Owner field/usage PASS. D164 remains independently isolated and Stable remains OWNER-GATED.
