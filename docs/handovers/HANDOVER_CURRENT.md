@@ -1882,3 +1882,9 @@ The first new Beta Gateway workflow run `37553946690` failed **after** the exist
 - Signed release baseline: Android `beta-vc99`, Agent `relay-agent-v116`. Cloudflare Worker Beta PASS; Google Apps Script existing Beta deployment version readback **and** live invalid-username handler PASS (run `37554446509`). The earlier immediate CLI-list readback failure was repaired; no new Script, deployment or secrets.
 - D165 technical/runtime release and provider gates **PASS**. **Not D165 Owner PASS**: physical OTP email, Agent Office login, Android correction/overdue and normal-load usage/latency/failover remain to be field-accepted under OA100.
 - The Owner-required HHmm-only privileged emergency fallback is publicly predictable and retains account-takeover exposure; no additional factor was authorized. Stable remains Owner-gated and D164 remains isolated.
+
+## D165 active second field repair — 2026-10-07
+
+Owner vc101 test NOT PASS. Attached MT90 log identifies repeated `INVALID_INPUT` from Android unversioned Skip correction. Also Agent v117 silently clears username on failed privileged login. Owner approved durable single-use four-digit OTP (no 15-minute TTL), auto-issued replacement only after consumption, three initial emails to preauthorized mailbox, unchanged HHmm ±5-minute emergency, and a dual-button Skip→PENDING/Stock correction with exact-batch Picker alert+ACK.
+
+Repair branch `repair/d165-otp-agent-skip-correction` updates business-core Worker, Android Reporter/Picker, Web, Worker FCM, OTP core, Agent next candidate v118, GitHub Beta deployment one-shot mail provision, and regression guards. Branch CI/merge/release and field verification are **not PASS until actually observed**; previous Beta signed vc101 / Agent v117 remain the currently published artifacts until replacement. D163 accepted; D164 PDA Management isolated; Stable OWNER-GATED.
