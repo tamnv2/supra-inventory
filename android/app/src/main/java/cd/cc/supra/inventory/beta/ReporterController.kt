@@ -30,7 +30,7 @@ class ReporterController(
     initialFilter: String = "PENDING",
     private val displayScale: Float = 1f,
 ) {
-    private enum class Filter { PENDING, OVERDUE, HAS_STOCK, SKIP_ALLOWED, WITHDRAWN }
+    private enum class Filter { PENDING, OVERDUE, HAS_STOCK, SKIP_ALLOWED }
 
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
@@ -47,7 +47,6 @@ class ReporterController(
         "OVERDUE" -> Filter.OVERDUE
         "HAS_STOCK" -> Filter.HAS_STOCK
         "SKIP_ALLOWED" -> Filter.SKIP_ALLOWED
-        "WITHDRAWN", "CLOSED" -> Filter.WITHDRAWN
         else -> Filter.PENDING
     }
 
@@ -83,9 +82,8 @@ class ReporterController(
         list = root.findViewById(R.id.listIssues)
         bindTab(root, Filter.PENDING, R.id.tabReporterPendingBox, R.id.tabReporterPending, R.id.badgeReporterPending)
         bindTab(root, Filter.OVERDUE, R.id.tabReporterOverdueBox, R.id.tabReporterOverdue, R.id.badgeReporterOverdue)
-        bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock, R.id.badgeReporterHasStock)
-        bindTab(root, Filter.SKIP_ALLOWED, R.id.tabReporterSkipBox, R.id.tabReporterSkip, R.id.badgeReporterSkip)
-        bindTab(root, Filter.WITHDRAWN, R.id.tabReporterWithdrawnBox, R.id.tabReporterWithdrawn, R.id.badgeReporterWithdrawn)
+        bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock)
+        bindTab(root, Filter.SKIP_ALLOWED, R.id.tabReporterSkipBox, R.id.tabReporterSkip)
         updateTabs()
         scheduleMinuteTicker()
         refresh()
@@ -298,16 +296,16 @@ class ReporterController(
         }
     }
 
-    private fun bindTab(root: View, value: Filter, boxId: Int, labelId: Int, badgeId: Int) {
+    private fun bindTab(root: View, value: Filter, boxId: Int, labelId: Int, badgeId: Int? = null) {
         val box = root.findViewById<FrameLayout>(boxId)
         val label = root.findViewById<TextView>(labelId)
-        val badge = root.findViewById<TextView>(badgeId)
+        val badge = badgeId?.let { root.findViewById<TextView>(it) }
         tabBoxes[value] = box
         tabLabels[value] = label
-        badges[value] = badge
+        if (badge != null) badges[value] = badge
         box.setOnClickListener { selectFilter(value) }
         label.setOnClickListener { selectFilter(value) }
-        badge.setOnClickListener { selectFilter(value) }
+        badge?.setOnClickListener { selectFilter(value) }
     }
 
     private fun selectFilter(value: Filter) {
@@ -401,28 +399,11 @@ class ReporterController(
     }
 
     private fun updateBadges() {
-        // Keep the accepted four-tab layout; enable horizontal scrolling only
-        // when PER_PICKER exposes a fifth tab.
-        val strip = list?.rootView?.findViewById<LinearLayout>(R.id.reporterTabs)
-        strip?.layoutParams?.let { params ->
-            val width = if (overdueEnabled) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
-            if (params.width != width) {
-                params.width = width
-                strip.layoutParams = params
-            }
-        }
-        for ((_, box) in tabBoxes) {
-            val params = box.layoutParams as? LinearLayout.LayoutParams ?: continue
-            params.width = if (overdueEnabled) kit.dp((104 * displayScale).roundToInt().coerceIn(94, 130)) else 0
-            params.weight = if (overdueEnabled) 0f else 1f
-            box.layoutParams = params
-        }
+        // D165: Reporter only shows actionable queue counts. Resolved-result
+        // badges were intentionally removed; data/history are unchanged.
         tabBoxes[Filter.OVERDUE]?.visibility = if (overdueEnabled) View.VISIBLE else View.GONE
         setBadge(Filter.PENDING, queueTotal)
         setBadge(Filter.OVERDUE, overdueTotal)
-        setBadge(Filter.HAS_STOCK, recentCounts.hasStock)
-        setBadge(Filter.SKIP_ALLOWED, recentCounts.skipAllowed)
-        setBadge(Filter.WITHDRAWN, recentCounts.withdrawn)
     }
 
     private fun setBadge(value: Filter, count: Int) {
@@ -432,7 +413,6 @@ class ReporterController(
     private fun recentRows(): List<ReporterRecent> = when (filter) {
         Filter.HAS_STOCK -> recent.filter { it.status == "HAS_STOCK" }
         Filter.SKIP_ALLOWED -> recent.filter { it.status == "SKIP_ALLOWED" }
-        Filter.WITHDRAWN -> recent.filter { it.status == "CLOSED" }
         else -> emptyList()
     }
 
