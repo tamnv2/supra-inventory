@@ -478,7 +478,8 @@ class InventoryApi(
     )
 
     fun getPickerReports(limit: Int = 200): List<PickerReport> {
-        val payload = request("GET", "/api/picker/reports?limit=$limit&scope=APP_TODAY_OPEN")
+        // D166: Android never consumes the expensive total COUNT from this hot list.
+        val payload = request("GET", "/api/picker/reports?limit=$limit&scope=APP_TODAY_OPEN&include_total=0")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<PickerReport>(array.length())
         for (index in 0 until array.length()) {
