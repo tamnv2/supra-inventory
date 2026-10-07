@@ -84,6 +84,7 @@ data class PickerResult(
     val receivedAt: String?,
     val displayedAt: String?,
     val acknowledgedAt: String?,
+    val correctionFromStatus: String? = null,
 )
 
 data class ReporterBatch(
@@ -516,6 +517,7 @@ class InventoryApi(
                 resolvedByDisplayName = nullable(row, "resolved_by_display_name"),
                 resolvedByEmployeeCode = nullable(row, "resolved_by_employee_code"),
                 resolvedByRole = nullable(row, "resolved_by_role"),
+                correctionFromStatus = nullable(row, "correction_from_status"),
                 receivedAt = nullable(row, "received_at"), displayedAt = nullable(row, "displayed_at"),
                 acknowledgedAt = nullable(row, "acknowledged_at"),
             )
@@ -663,11 +665,8 @@ class InventoryApi(
         JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId).put("resolution", resolution),
     )
 
-    fun correctBatch(batchId: String): JSONObject = request(
-        "POST", "/api/reporter/batches/correct",
-        JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId),
-    )
-
+        // Corrected results must carry target and expected_version; the old
+        // no-argument Skip helper caused INVALID_INPUT on Worker D165.
     // D165: HAS_STOCK corrections use the same server version fence as Web.
     fun correctResolvedBatch(batchId: String, target: String, expectedVersion: Int): JSONObject = request(
         "POST", "/api/reporter/batches/correct",
