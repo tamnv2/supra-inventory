@@ -119,9 +119,45 @@ jobs:
           [ -n "$version" ] || { echo "::error::Unable to determine new Apps Script version"; exit 1; }
           clasp --json create-deployment --deploymentId "$gateway_deployment" --versionNumber "$version" --description "D165-Beta-Privileged-OTP-${GITHUB_RUN_ID}" > deployed.json
           jq -e --arg id "$gateway_deployment" --arg v "$version" '.deploymentId == $id and (.versionNumber|tostring) == $v' deployed.json >/dev/null || exit 1
-          clasp --json list-deployments > after.json
-          jq -e --arg id "$gateway_deployment" --arg v "$version" 'map(select(.deploymentId == $id and ((.versionNumber|tostring) == $v))) | length == 1' after.json >/dev/null || {
-            echo "::error::Existing Gateway deployment version readback mismatch"
+          # The deployment REST GET is authoritative; Google can temporarily
+          # return a stale list immediately after an in-place redeploy.
+          # Retry only readback; never create another deployment or switch ID.
+          verified=false
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            http="$(curl -sS --max-time 20 -o "$work/deployment-check.json" -w '%{http_code}' \
+              -H "Authorization: Bearer $access_token" \
+              "https://script.googleapis.com/v1/projects/${script_id}/deployments/${gateway_deployment}")"
+            if [ "$http" = "200" ] && jq -e --arg id "$gateway_deployment" --arg v "$version" \
+              '.deploymentId == $id and (.deploymentConfig.versionNumber|tostring) == $v' \
+              "$work/deployment-check.json" >/dev/null; then
+              verified=true
+              break
+            fi
+            sleep 3
+          done
+          [ "$verified" = "true" ] || {
+            echo "::error::Existing Gateway REST deployment-version readback mismatch"
             exit 1
           }
-          echo "D165_BETA_EXISTING_GATEWAY_PUSH_VERSION_REDEPLOY_READBACK_PASS"
+
+          # Harmless live Web App probe: an invalid username must be rejected
+          # by the NEW D165 handler before mail, Worker or any data mutation.
+          # The previous Gateway cannot produce this exact validation error.
+          live_ok=false
+          for attempt in 1 2 3 4 5 6; do
+            http="$(curl -sS -L --max-time 25 -o "$work/invalid-user-probe.json" -w '%{http_code}' \
+              -H "Content-Type: application/json" \
+              --data '{"action":"request_privileged_auth_code","username":"invalid-d165-probe"}' \
+              "$AGENT_GATEWAY_URL")"
+            if [ "$http" = "200" ] && jq -e '.ok == false and .error == "PRIVILEGED_AGENT_ACCOUNT_REQUIRED"' \
+              "$work/invalid-user-probe.json" >/dev/null 2>&1; then
+              live_ok=true
+              break
+            fi
+            sleep 3
+          done
+          [ "$live_ok" = "true" ] || {
+            echo "::error::Existing Gateway new D165 action not yet visible at published URL"
+            exit 1
+          }
+          echo "D165_BETA_EXISTING_GATEWAY_DEPLOYMENT_AND_LIVE_HANDLER_PASS"

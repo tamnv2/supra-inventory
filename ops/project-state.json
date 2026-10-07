@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR_487_MERGED_BETA_VC99_AGENT_V116__GATEWAY_DEPLOY_AUTOMATION_PR_PENDING__OWNER_FIELD_USAGE_PASS_PENDING",
+    "parallel_inventory_change_status": "D165_PR_487_MERGED_BETA_VC99_AGENT_V116__EXISTING_GATEWAY_DEPLOYMENT_READBACK_REPAIR_ACTIVE__FIELD_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_PR_487_MERGED__WORKER_BETA_PASS__SIGNED_VC99_AND_AGENT_V116__GATEWAY_DEPLOY_PENDING__FIELD_USAGE_PASS_PENDING",
+    "status": "D165_BETA_RELEASED_VC99_AGENT_V116__GATEWAY_VERSION_READBACK_REPAIR_PENDING__FIELD_USAGE_PASS_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5895,12 +5895,19 @@
       "script_identity": "EXACT_CANONICAL_NAME_MATCH_AND_EXISTING_DEPLOYMENT_URL_MATCH",
       "credential_source": "EXISTING_GITHUB_BETA_CLASPRC_JSON_SECRET_AND_AGENTS_GATEWAY_URL_VAR",
       "delivery": "SCOPED_EXISTING_DEPLOYMENT_ONLY_NO_NEW_SCRIPT",
-      "status": "WORKFLOW_SOURCE_PENDING_PR_AND_MAIN_DEPLOY",
+      "status": "FIRST_RUN_PUSH_AND_DEPLOY_COMMAND_SUCCESS__CLASP_IMMEDIATE_LIST_READBACK_FAILED__REST_GET_AND_HARMLESS_LIVE_HANDLER_PROBE_REPAIR_PENDING",
       "owner_decision": "SAME_D165_LOGIN_COMPLETION",
       "stable": "OWNER_GATED_UNTOUCHED",
       "risk_guard": "FAIL_CLOSED_ON_MISSING_OR_AMBIGUOUS_SCRIPT_ID_OR_DEPLOYMENT",
       "new_usage": "NONE_PERIODIC",
-      "new_provider": "NONE"
+      "new_provider": "NONE",
+      "first_run": {
+        "workflow_run": 37553946690,
+        "status": "FAILED_POST_DEPLOY_READBACK_ONLY",
+        "last_command": "EXISTING_VERSION_REDEPLOY_RESPONSE_MATCHED",
+        "followup": "EXACT_DEPLOYMENT_REST_READBACK_WITH_BOUNDED_RETRIES_AND_INVALID_USERNAME_LIVE_HANDLER_PROOF",
+        "field_owner_pass": "PENDING"
+      }
     },
     "post_merge_487": {
       "pr": 487,
