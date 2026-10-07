@@ -198,10 +198,14 @@ export async function resolveBatchV2(batchId: string, resolution: "HAS_STOCK" | 
   }));
 }
 
-export async function correctBatchV2(batchId: string): Promise<unknown> {
+export async function correctBatchV2(
+  batchId: string,
+  target: "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
+  expectedVersion: number,
+): Promise<unknown> {
   return readJson(await operationalFetch("/api/reporter/batches/correct", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId, target, expected_version: expectedVersion }),
   }));
 }
 
