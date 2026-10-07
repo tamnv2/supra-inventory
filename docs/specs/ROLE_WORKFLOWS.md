@@ -1010,3 +1010,7 @@ For a server-authorized REPORTER/ADMIN Android workspace:
 - The Quá hạn **Đã có hàng** and **Cho phép skip** actions are server-authoritative. The latter never re-notifies tickets already auto-skipped; the former delivers corrected HAS_STOCK to affected users while keeping earlier timeout history.
 - HAS_STOCK result rows allow explicit correction to PENDING or SKIP_ALLOWED, each with two confirmations and expected-version concurrency checking. Server emits an auditable new result and an explicit corrected-result Picker acknowledgement. Existing SKIP_ALLOWED-to-HAS_STOCK correction is preserved.
 - Android-only source changes are D165 corrective work, not a new change ID. Beta owner/field PASS remains pending.
+
+## D165 Owner refinement — Android Reporter tab set (supersedes earlier five/four-tab presentation)
+
+Android Reporter uses **Đang xử lý**, conditional **Quá hạn** (`PER_PICKER` auto-skip enabled only), **Đã có hàng**, and **Cho phép Skip**. The prior **Picker đã thu hồi** visible tab is retired from Android only; withdrawn tickets remain in server audit/report history and the existing API data contract. Numeric tab counters appear **only** on Đang xử lý and Quá hạn. FIRST_REPORT transaction and deadline semantics are unchanged; the presentation shows three tabs when Quá hạn is inapplicable. No new polling, listener or provider work is permitted.
