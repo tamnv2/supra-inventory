@@ -5199,25 +5199,25 @@
     },
     {
       "id": "OA100",
-      "status": "D165_VC100_FIELD_NOT_PASS_INVALID_COUNTER_RANGE__REPAIR_BRANCH_CI_RELEASE_PENDING",
+      "status": "READY_FOR_OWNER_FIELD_TEST__D165_BETA_VC101_WEB_WORKER_DEPLOY_MAIN_CI_10_OF_10_PASS__AGENT_V117",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
-      "reason_owner_only": "Owner Reporter MT90 Android vc100 log proved an INVALID_COUNTER_RANGE defect and missing overdue tab during field login/refresh. Source repair now adds bounded counter range and always-visible overdue tabs to Web/Android; requires PR CI/authority, signed Beta release and Owner retest of actual PDA, mail/Agent and usage before D165 PASS.",
+      "reason_owner_only": "PR #493 merged and 13/13 PR plus 10/10 main CI PASS; Beta Web/Worker deployed, Android vc101 signed and released to official auto-update channel. The previous Reporter vc100 INVALID_COUNTER_RANGE defect is repaired at API source level and guard tested. Only physical PDA/Office/mail/usage evidence can establish field correctness and Owner D165 PASS.",
       "prerequisites": {
         "accepted_inventory_base": "D163_OWNER_PASS",
-        "d165_runtime": "PR_491_MERGED__SOURCE_MAIN_ALL_CI_PASS",
-        "android": "beta-vc100__SIGNED_PUBLISHED",
+        "d165_runtime": "PR_493_MERGED_MAIN_B640AC57__WEB_WORKER_DEPLOY_PASS__ANDROID_SIGNED_VC101",
+        "android": "beta-vc101__SIGNED_PUBLISHED",
         "agent": "relay-agent-v117__SIGNED_PUBLISHED",
-        "worker": "BETA_DEPLOY_PASS__RUN_37558186044",
+        "worker": "BETA_DEPLOY_PASS__RUN_37560667192",
         "apps_script_gateway": "EXISTING_GATEWAY_PREVIOUS_D165_PROVIDER_READBACK_PASS__RUN_37554446509__NOT_MODIFIED_BY_PR491",
         "stable": "OWNER_GATED_UNTOUCHED",
         "security_risk": "OWNER_EXPLICIT_ACCEPTED_PUBLICLY_PREDICTABLE_HHMM_EMERGENCY_PROOF",
-        "neutral_login_ui": "PR_491_MERGED_MAIN_ECAD23EB__UI_BUTTONS_REMOVED__RELEASED",
+        "neutral_login_ui": "PR_491_MERGED_UI_UNCHANGED__VC101_INHERITS",
         "agent_candidate_version": "117"
       },
       "shortest_test_path": [
-        "After a new signed Beta Android release, install/update and check the displayed version before field acceptance.",
+        "On PDA, update Inventory Beta to signed vc101 through its normal update entry and verify displayed version (Web Beta is already deployed).",
         "Sign in Reporter on MT90; enter and reopen four Reporter tabs. Repeat with auto-skip disabled, FIRST_REPORT and PER_PICKER without losing Quá hạn or seeing INVALID_COUNTER_RANGE.",
         "With PER_PICKER enabled, create a timed-out Picker and a waiting Picker under one SKU; verify badges, actions, corrected Picker notification and ACK without duplicate Skip.",
         "Check Web Beta always shows Quá hạn, including disabled/empty policy with badge zero; verify D163 forced logout final log and exact-batch Picker detail still work.",
@@ -5226,25 +5226,33 @@
       "pass_criteria": [
         "One-time OTP is single use, rotates and is emailed to the approved recipient; no old fixed privileged password remains active.",
         "Emergency clock-only rule matches the Owner's exact numeric >=8 digit and Vietnam HHmm +/-5 minute requirement. Residual account-takeover risk explicitly remains accepted.",
-        "Agent v116 authenticated Office login works through deployed Apps Script Gateway, and protected actions respect RBAC/session fences.",
-        "APK vc99 Reporter tabs and counts meet Owner-approved UI, correct/overdue flows have expected Picker ACK and versioned audit, normal daily history remains intact.",
+        "Agent v117 authenticated Office login works through deployed Apps Script Gateway, and protected actions respect RBAC/session fences.",
+        "APK vc101 Reporter tabs and counts meet Owner-approved UI, correct/overdue flows have expected Picker ACK and versioned audit, normal daily history remains intact.",
         "No material regression of realtime, throughput, stability, 15-second HA objective or excessive provider usage.",
         "Owner explicitly reports D165 PASS after actual field/usage evidence. CI/runtime PASS alone is not Owner PASS.",
         "Stable remains untouched.",
         "Web/Android/Agent have generic password login and no manual one-time-code request affordance; successful one-time-code login automatically mails the next code.",
-        "Beta releases confirmed Android vc100, Agent v117, Web Worker on merged PR #491, with no Stable or D164 mutation.",
+        "Beta releases confirmed Android vc101, Agent v117, Web Worker on merged PR #491, with no Stable or D164 mutation.",
         "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
         "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "WAIT_FOR_CI_SIGNED_BETA_RELEASE_BEFORE_PDA_WEB_OFFICE_OTP_REAL_LOAD_TEST__OWNER_D165_EXPLICIT_PASS_STILL_REQUIRED",
+      "remaining_owner_action": "FIELD_VALIDATE_SIGNED_VC101_REPORTER_ALL_MODES_AND_NO_COUNTER_400__WEB_BETA__AGENT_V117_PRIVILEGED_AUTH_OTP_EMAIL__COMPARE_USAGE_SPEED_STABILITY__OWNER_EXPLICIT_D165_PASS",
       "closed": false,
       "field_repair_2026_10_07": {
         "result": "NOT_PASS_VC100",
         "cause": "ANDROID_COUNTERS_HTTP400_MISSING_FROM_TO",
         "branch": "repair/d165-counter-range-always-visible-overdue",
         "new_behavior": "ANDROID_FOUR_TABS_ALWAYS_WEB_OVERDUE_ALWAYS__DISABLED_POLICY_EMPTY_ZERO",
-        "status": "TECHNICAL_TEST_AND_BETA_RELEASE_PENDING",
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "status": "PR493_13_OF_13_CI_PASS__MAIN_10_OF_10_CI_PASS__WEB_DEPLOY_PASS__SIGNED_VC101_RELEASED__OWNER_FIELD_PENDING",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "release": {
+          "main_sha": "b640ac576e628ac64ad162766c972502499092a3",
+          "android_release": "beta-vc101",
+          "android_release_id": 405305194,
+          "worker_run": 37560667192,
+          "android_run": 37560667253,
+          "agent": "relay-agent-v117__UNCHANGED"
+        }
       }
     }
   ]
