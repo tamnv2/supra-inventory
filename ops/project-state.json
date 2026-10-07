@@ -18,9 +18,9 @@
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS",
-    "android": "D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__SIGNED_BETA_VC99_RELEASED__FIELD_PENDING",
-    "latest_beta_apk": "beta-vc99",
+    "web": "D165_BETA_DEPLOYED__ALWAYS_VISIBLE_OVERDUE_TAB_REPAIR_PENDING_CI",
+    "android": "D165_SIGNED_BETA_VC100_FIELD_NOT_PASS_INVALID_COUNTER_RANGE__D165_REPAIR_BRANCH_PENDING_CI",
+    "latest_beta_apk": "beta-vc100",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR491_MERGED__BETA_WORKER_ANDROID_VC100_AGENT_V117_ALL_MAIN_CI_PASS__OWNER_FIELD_USAGE_PASS_PENDING",
+    "parallel_inventory_change_status": "D165_VC100_FIELD_NOT_PASS_COUNTER_RANGE__REPAIR_BRANCH_CI_AND_NEW_SIGNED_BETA_RELEASE_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_BETA_NEUTRAL_LOGIN_UI_SOURCE_RELEASE_PASS__ANDROID_VC100_AGENT_V117_WORKER_MAIN_ECAD23EB__FIELD_USAGE_OWNER_PASS_PENDING",
+    "status": "D165_OWNER_FIELD_NOT_PASS_VC100_INVALID_COUNTER_RANGE__REPAIR_IN_BRANCH__CI_RELEASE_PENDING",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "OA100_FIELD_VALIDATE_SIGNED_VC100_AGENT_V117_WEB_BETA_OTP_ROTATION_AND_USAGE__EXPLICIT_OWNER_PASS_REQUIRED",
+    "next_action": "D165_REPAIR_PR_AUTHORITY_CONTINUITY_ANDROID_WEB_CI__BETA_RELEASE__THEN_OA100_FIELD_AND_USAGE_RETEST",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -5845,7 +5845,8 @@
       "web": "UNCHANGED",
       "new_provider_or_poll": "NONE",
       "status": "SOURCE_CI_16_OF_16_PASS__ANDROID_BUILD_PASS__FIELD_PENDING__NO_RELEASE",
-      "security_blocker": "CLOCK_ONLY_EMERGENCY_PROOF_MUST_NOT_DEPLOY_WITHOUT_INDEPENDENT_SECRET_BACKED_FACTOR"
+      "security_blocker": "CLOCK_ONLY_EMERGENCY_PROOF_MUST_NOT_DEPLOY_WITHOUT_INDEPENDENT_SECRET_BACKED_FACTOR",
+      "superseded_by": "D165_FIELD_REPAIR_2026_10_07_ALWAYS_VISIBLE_FOUR_TABS"
     },
     "ci_2026_10_07_reporter_refinement": {
       "validated_branch_head": "aaf72d511ba4aabcf3cd20f9cea6654837afd13e",
@@ -5984,6 +5985,65 @@
       "agent": "relay-agent-v117__RELEASE",
       "channel": "inventory-channel__BOTH_CURRENT_RELEASE_ASSETS",
       "field_owner_pass": "PENDING"
+    },
+    "field_repair_2026_10_07": {
+      "status": "SOURCE_REPAIR_BRANCH__CI_AND_BETA_RELEASE_NOT_YET_VERIFIED",
+      "accepted_base": "D163_OWNER_PASS_UNCHANGED",
+      "evidence": {
+        "source": "ANDROID_VC100_FIELD_LOG_2026_10_07",
+        "error": "INVALID_COUNTER_RANGE",
+        "root_cause": "ANDROID_GET_REPORTER_COUNTERS_WITHOUT_REQUIRED_FROM_TO__WORKER_HTTP400",
+        "recurrences_local_time": [
+          "08:43:57",
+          "08:49:43"
+        ],
+        "network": "TRANSIENT_WEBSOCKET_DNS_RECONNECTED__NO_CONFIRMED_DATA_LOSS"
+      },
+      "approved_ui": {
+        "android_tabs": [
+          "PENDING",
+          "OVERDUE",
+          "HAS_STOCK",
+          "SKIP_ALLOWED"
+        ],
+        "web_overdue_tab": "ALWAYS_VISIBLE",
+        "applicable_overdue_business": "AUTO_SKIP_ENABLED_AND_PER_PICKER_ONLY",
+        "inapplicable_overdue": "BADGE_ZERO_AND_EXPLANATORY_EMPTY",
+        "picker_withdrawal_history": "PRESERVED"
+      },
+      "scope": {
+        "android": "COUNTER_RANGE_FIX_FROM_RECENT_SERVER_CLOCK__OVERDUE_UI_FIXED_TABS",
+        "web": "OVERDUE_TAB_FIXED_VISIBLE_AND_ZERO_IN_DISABLED_MODE",
+        "service": "UNMODIFIED_EXISTING_STRICT_RANGE_API",
+        "agent": "UNMODIFIED_V117",
+        "firebase": "UNMODIFIED",
+        "d164": "ISOLATED_UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "impact": {
+        "accepted_d163": "NO_PROMOTION_OR_RETROACTIVE_CHANGE",
+        "risk": "MEDIUM_LOW__ANDROID_INITIAL_REFRESH_AND_POLICY_TRANSITIONS__REQUIRES_SIGNED_PDA_FIELD_TEST",
+        "new_api_calls": 0,
+        "new_timers": 0,
+        "new_listeners": 0,
+        "new_provider_resources": 0,
+        "new_storage_writes": 0,
+        "speed_stability": "NO_INTENDED_REGRESSION",
+        "usage": "NO_NEW_BACKGROUND_USAGE__EXISTING_ENDPOINT_ONLY"
+      },
+      "required_checks": [
+        "ANDROID_COMPILE_SIGNED_BUILD",
+        "WEB_BUILD_BETA_DEPLOY",
+        "ANDROID_OPERATIONAL_REGRESSION",
+        "UI_DESIGN_GUARD",
+        "REPO_AUTHORITY",
+        "PROJECT_STATE_CONTINUITY",
+        "D163_D165_FLOW_SMOKE",
+        "OWNER_PDA_WEB_OFFICE_EMAIL_USAGE_FIELD_RETEST"
+      ],
+      "owner_approval": "EXPLICIT_USER_REQUEST_SAME_D165_REPAIR_AND_COMPLETE_BEFORE_TEST",
+      "owner_pass": "PENDING",
+      "branch": "repair/d165-counter-range-always-visible-overdue"
     }
   },
   "launcher_daily_password": {
