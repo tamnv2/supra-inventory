@@ -613,7 +613,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
         event: target === "PENDING" ? "batch_corrected_pending" : "batch_corrected",
         target: { batchId },
         title: "SUPRA Inventory · Sửa kết quả báo hàng",
-        body: "Báo hàng {sku} · {product}\\nSKU chuyển trạng thái từ {from_status} sang {to_status}.\\nLý do: {actor} ({role}) sửa kết quả.",
+        body: "Báo hàng {sku} · {product}\nSKU chuyển trạng thái từ {from_status} sang {to_status}.\nLý do: {actor} ({role}) sửa kết quả.",
         resolution: target as "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
       });
     }
