@@ -6,13 +6,17 @@
 
 - Project: `supra-inventory`
 - SQLite schema: `17`
-- Latest signed Beta APK: `beta-vc99`
-- Current released Agent: `relay-agent-v116`
+- Latest signed Beta APK: beta-vc100
+- Current released Agent: relay-agent-v117
 - Beta: `D165_MERGED_BETA__POST_MERGE_CI_ALL_GREEN__FIELD_USAGE_OWNER_PASS_PENDING__STABLE_UNTOUCHED`
-- Web: `D165_IMPLEMENTED__REALTIME_EXACT_ROW_PATCH__OVERDUE_CORRECTION_SLA_REAUTH__TECHNICAL_PASS`
-- Android: `D165_PR_487_ANDROID_REPORTER_4_OR_3_TABS__PENDING_OVERDUE_BADGES_ONLY__SIGNED_BETA_VC99_RELEASED__FIELD_PENDING`
+- Web: D165_BETA_DEPLOYED__ALWAYS_VISIBLE_OVERDUE_TAB_REPAIR_PENDING_CI
+- Android: D165_SIGNED_BETA_VC100_FIELD_NOT_PASS_INVALID_COUNTER_RANGE__D165_REPAIR_BRANCH_PENDING_CI
 - D089: **OWNER ACCEPTED PASS**
 - Stable: `OWNER_GATED`
+
+## D165 current field-repair checkpoint
+
+D165 vc100 Reporter field NOT PASS on 2026-10-07: `/api/reporter/counters` lacked bounded `from/to`, producing `INVALID_COUNTER_RANGE`; the correction is in PR #493 and has not yet passed CI or been released. Both Android and Web overdue navigation remain visible even when disabled/FIRST_REPORT, while the underlying PER_PICKER overdue data rule remains unchanged. Prior signed vc100 and Agent v117 are still the last confirmed released artifacts. D163 accepted base and Stable gate unchanged.
 
 ## 2. Accepted D089 baseline
 
