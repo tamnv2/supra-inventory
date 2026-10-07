@@ -771,9 +771,9 @@ namespace SupraInventoryRelayAgent
             {
                 if (!VerifyCurrentAgentPasswordForAction(
                     "Đăng xuất Agent",
-                    "Nhập mật khẩu Agent hiện tại để đăng xuất và xóa phiên Agent đã lưu trên máy này.",
+                    "Nhập mật khẩu xác nhận. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp.",
                     "Đăng xuất",
-                    "Mật khẩu Agent không đúng. Phiên Agent vẫn được giữ nguyên."))
+                    "Mật khẩu xác nhận không đúng. Phiên Agent vẫn được giữ nguyên."))
                     return;
                 Task.Run(() => LogoutAgent());
             };
@@ -1085,7 +1085,13 @@ namespace SupraInventoryRelayAgent
             _username.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             agentCard.Controls.Add(_username);
 
-            agentCard.Controls.Add(new Label { Name = "agent-auth-password-label", Left = 288, Top = 64, Width = 90, Height = 18, Text = "Mật khẩu" });
+            agentCard.Controls.Add(new Label { Name = "agent-auth-password-label", Left = 288, Top = 64, Width = 102, Height = 18, Text = "Mật khẩu / mã" });
+            _d165SendAuthCode.SetBounds(394, 60, 94, 22);
+            _d165SendAuthCode.Text = "Gửi mã 1 lần";
+            _d165SendAuthCode.FlatStyle = FlatStyle.Flat;
+            _d165SendAuthCode.Font = new Font("Segoe UI", 8F);
+            _d165SendAuthCode.Click += (s, e) => Task.Run(() => RequestD165OneTimeCode());
+            agentCard.Controls.Add(_d165SendAuthCode);
             _password.SetBounds(288, 82, 200, 27);
             _password.UseSystemPasswordChar = true;
             KeyEventHandler submitAgentLogin = (s, e) =>
@@ -2278,29 +2284,14 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
-            using (var dialog = new ExitPasswordDialog(session.AppUserId))
-            {
-                if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
-                var password = dialog.PasswordValue;
-                try
-                {
-                    if (!ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password))
-                    {
-                        MessageBox.Show(
-                            "Mật khẩu ADMIN không đúng hoặc phiên cũ chưa có bộ xác minh tắt Agent. Hãy đăng nhập ADMIN lại tại Tổng quan rồi thử lại.",
-                            "Không thể tắt Agent",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                        return;
-                    }
-                }
-                finally
-                {
-                    password = null;
-                }
-            }
+            if (!VerifyCurrentAgentPasswordForAction(
+                    "Tắt SUPRA Inventory Agent",
+                    "Nhập mật khẩu xác nhận để tắt Agent. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp.",
+                    "Tắt Agent",
+                    "Mật khẩu xác nhận không đúng. Agent vẫn tiếp tục chạy."))
+                return;
 
-            AgentDiagnostics.Write("AGENT EXIT authorized admin=" + session.AppUserId + " method=local_dpapi_verifier");
+            AgentDiagnostics.Write("AGENT EXIT authorized admin=" + session.AppUserId + " method=d165_current_auth_proof");
             AgentRuntimeGuard.MarkPlannedExit();
             _allowExit = true;
             Close();
@@ -2721,9 +2712,23 @@ namespace SupraInventoryRelayAgent
                 var password = dialog.PasswordValue;
                 try
                 {
-                    if (ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password)) return true;
+                    var privileged = IsD165OneTimeAgentLogin(DisplayAgentUsername(session));
+                    var verified = privileged
+                        ? VerifyD165PrivilegedAgentProof(session, password)
+                        : ExitAuthorization.Verify(ExitVerifierFile, session.AppUserId, password);
+                    if (verified) return true;
                     MessageBox.Show(
                         invalidPasswordMessage,
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D165 PRIVILEGED_AUTH reauth=FAIL type=" + ex.GetType().Name);
+                    MessageBox.Show(
+                        "Không xác minh được mật khẩu: " + SafeMessage(ex),
                         title,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
@@ -2739,7 +2744,7 @@ namespace SupraInventoryRelayAgent
                 title,
                 message,
                 confirmText,
-                "Mật khẩu Agent không đúng. Web hiện tại vẫn được giữ nguyên.");
+                "Mật khẩu xác nhận không đúng. Web hiện tại vẫn được giữ nguyên.");
         }
 
         private static string BrowserStateLabel(string state)
@@ -3755,7 +3760,10 @@ namespace SupraInventoryRelayAgent
             try
             {
                 LogNetworkSnapshot("admin-firebase-login");
-                var next = FirebasePasswordLoginDirect(email, password);
+                var privilegedOneTime = IsD165OneTimeAgentLogin(email);
+                var next = privilegedOneTime
+                    ? D165PrivilegedAgentLogin(email, password)
+                    : FirebasePasswordLoginDirect(email, password);
                 var claim = _agentSessionGate.Claim(next, _agentInstanceId, false);
                 if (claim.Conflict)
                 {
@@ -3782,7 +3790,14 @@ namespace SupraInventoryRelayAgent
 
                 lock (_sessionLock) _session = next;
                 SaveStoredSession(next);
-                ExitAuthorization.SaveVerifier(ExitVerifierFile, next.AppUserId, password);
+                if (privilegedOneTime)
+                {
+                    try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
+                }
+                else
+                {
+                    ExitAuthorization.SaveVerifier(ExitVerifierFile, next.AppUserId, password);
+                }
                 Ui(() =>
                 {
                     _password.Clear();
@@ -3812,7 +3827,7 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Log("Đăng nhập Agent Firebase thất bại: " + SafeMessage(ex));
+                Log("Đăng nhập Agent thất bại: " + SafeMessage(ex));
             }
             finally
             {
@@ -3850,6 +3865,7 @@ namespace SupraInventoryRelayAgent
                 _username.Enabled = !authenticated;
                 _password.Enabled = !authenticated;
                 _pair.Enabled = !authenticated;
+                _d165SendAuthCode.Enabled = !authenticated;
                 _logout.Enabled = authenticated;
                 _pair.Text = authenticated ? "Đã xác minh Agent" : "Đăng nhập Agent";
                 if (authenticated && !string.IsNullOrWhiteSpace(loginName))
