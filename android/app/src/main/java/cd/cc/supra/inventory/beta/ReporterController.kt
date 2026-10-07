@@ -594,9 +594,6 @@ class ReporterController(
                     skip.setOnClickListener { confirmResolvedCorrection(row, "SKIP_ALLOWED", "Cho phép Skip") }
                 }
                 canCorrectSkip -> {
-                    val totalSeconds = (remainingMs + 999L) / 1_000L
-                    val minutes = totalSeconds / 60L
-                    val seconds = totalSeconds % 60L
                     hasStock.text = "Sửa - Đang xử lý"
                     skip.text = "Sửa - Đã có hàng"
                     hasStock.setOnClickListener { confirmResolvedCorrection(row, "PENDING", "Đang xử lý") }
