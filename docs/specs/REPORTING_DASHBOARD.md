@@ -315,3 +315,8 @@ The **Đã có hàng** result surface adds:
 Both require two confirmations with a high-severity warning. Historical decisions remain visible/auditable.
 
 No D165 behavior change is authorized for `FIRST_REPORT`.
+
+
+## D165 Android Reporter display parity
+
+The existing Web PER_PICKER **Quá hạn** and HAS_STOCK correction semantics also apply to Android Reporter. The Android fifth tab is conditional on authoritative policy; list reads are lazy while count/snapshot changes follow the existing event stream. Quá hạn and Đang xử lý may show the same SKU with different subsets of affected Pickers. No change to FIRST_REPORT or the Web reporting/detailed export semantics.
