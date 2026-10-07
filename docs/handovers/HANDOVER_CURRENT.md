@@ -1894,3 +1894,5 @@ Repair branch `repair/d165-otp-agent-skip-correction` updates business-core Work
 Published v118 is field NOT PASS for D165 privileged login. New Agent logs show `D165 PRIVILEGED_AUTH route=WORKER result=HTTP_401` followed by `INVALID_CREDENTIALS` for both OTP and HHmm, while the same workstation later authenticates a normal PICKPACK_ADMIN account and Firestore Agent session successfully. Web OTP also succeeds.
 
 Root cause is source-level role parity: D165 privileged Worker/client/re-auth accepted only ADMIN, although current Agent + Firestore authority accepts ADMIN or PICKPACK_ADMIN. Repair branch `repair/d165-agent-privileged-role-parity-v119` aligns D165 with the existing operator matrix, normalizes composite special usernames, and advances Agent candidate to v119. No Stable/D164 change; Owner D165 PASS still pending.
+
+Canonical current-status markers for authority guard: sqlite_schema=17; latest_beta_apk=beta-vc102; web=D165_MAIN_91C169E9_BETA_WORKER_WEB_DEPLOY_PASS__OWNER_FIELD_PENDING; android=D165_SIGNED_BETA_VC102__SKIP_CORRECTION_AND_OTP_REPAIR_TECHNICAL_PASS__OWNER_FIELD_PENDING.
