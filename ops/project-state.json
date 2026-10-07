@@ -2468,8 +2468,8 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D163",
     "accepted_base_evidence": "OWNER_EXPLICIT_D163_PASS__2026_10_06__PR_461_MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__AGENT_V114__ANDROID_VC97",
-    "current_change_id": "D164",
-    "current_change_status": "D164_PROFESSIONAL_WORKSPACE_TECHNICAL_PASS__PDA_MGMT_BETA_VC6__OWNER_FIELD_TEST_PENDING__ISOLATED_SCOPE",
+    "current_change_id": "D165",
+    "current_change_status": "D165_PR497_MERGED_MAIN_1278B202__MAIN_11_OF_11_PASS__BETA_WORKER_DEPLOY_PASS__AGENT_V119_RELEASED__OWNER_FIELD_AND_USAGE_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,12 +2485,12 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D164_ISOLATED_PDA_MANAGEMENT_SCOPE__SEE_ops/pda-management-state.json__INVENTORY_D163_ACCEPTED",
-    "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
+    "runtime_impact": "D165_INVENTORY_RUNTIME_ACTIVE__D164_OWNER_CANCELLED_NO_RUNTIME_MUTATION",
+    "resource_change": "NONE_FROM_D164_CANCELLATION__D164_EXISTING_BETA_ARTIFACTS_FROZEN__D165_EXISTING_SCOPED_RESOURCES_ONLY",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR497_MERGED_MAIN_1278B202__MAIN_11_OF_11_PASS__BETA_WORKER_DEPLOY_PASS__AGENT_V119_RELEASED__OWNER_FIELD_AND_USAGE_PASS_PENDING",
-    "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
+    "parallel_inventory_change_id": "NONE__D165_IS_CURRENT_GLOBAL_CHANGE",
+    "parallel_inventory_change_status": "NOT_APPLICABLE__D164_OWNER_CANCELLED",
+    "parallel_boundary": "D164_CANCELLED__NO_ACTIVE_PARALLEL_WORKSTREAM__SUCCESSOR_MODEL_BLOCKED_UNTIL_D165_OWNER_PASS"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -5667,9 +5667,9 @@
     "authority_document": "docs/D165_INVENTORY_RELIABILITY_USAGE_PLAN.md",
     "owner_approval": "OWNER_EXPLICIT_D165_ORIGINAL_APPROVAL_PLUS_2026_10_07_EXACT_EMERGENCY_AUTH_NO_EXTRA_FACTOR_OVERRIDE",
     "governance": {
-      "current_global_change_remains": "D164",
-      "d164_scope": "PDA_MANAGEMENT__INDEPENDENT_ISOLATED",
-      "d165_slot": "ACTIVE_PARALLEL_INVENTORY_WORKSTREAM__D164_REMAINS_ISOLATED_PDA_MANAGEMENT",
+      "current_global_change_remains": "D165",
+      "d164_scope": "OWNER_CANCELLED_2026_10_07__NO_PROMOTION__FROZEN_REFERENCE_ONLY",
+      "d165_slot": "CURRENT_GLOBAL_CHANGE__OWNER_FIELD_AND_USAGE_PASS_PENDING",
       "implementation_start_gate": "PASS__FRESH_BOOTSTRAP_AND_OWNER_EXPLICIT_START_2026_10_07",
       "source_runtime_mutation": true,
       "stable": "OWNER_GATED_UNTOUCHED"
@@ -6152,5 +6152,19 @@
     "email_subject_format": "MẬT KHẨU LAUNCHER HÀNG NGÀY - xxxx",
     "subject_exposes_code_by_owner_request": true,
     "last_updated_at": "2026-10-07"
+  },
+  "d164_cancellation": {
+    "status": "OWNER_CANCELLED_2026_10_07__CLOSED_WITHOUT_OWNER_PASS",
+    "previous_status": "PROFESSIONAL_WORKSPACE_TECHNICAL_PASS__VC6_FIELD_TEST_PENDING",
+    "accepted_base": "D163_OWNER_PASS_UNCHANGED",
+    "promotion": false,
+    "field_test": "CANCELLED_NOT_REQUIRED",
+    "successor_direction": "CONSOLIDATED_WORKFORCE_OPERATIONS_MANAGEMENT",
+    "successor_spec": "docs/specs/OPERATIONS_MANAGEMENT.md",
+    "successor_change_id": "UNASSIGNED_UNTIL_D165_OWNER_PASS",
+    "runtime_mutation": "NONE",
+    "resource_mutation": "NONE",
+    "code_deletion": "NONE__HISTORICAL_REUSE_REFERENCE_RETAINED",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
