@@ -360,6 +360,9 @@ class ReporterController(
                     overdueLoaded = nextOverdue != null
                     updateBadges()
                     renderSelected()
+                    // If Quá hạn was tapped during the initial counters request,
+                    // complete its one lazy list fetch once policy arrives.
+                    if (filter == Filter.OVERDUE && overdueEnabled && !overdueLoaded) loadOverdue()
                     scheduleMinuteTicker()
                     refreshing = false
                     if (refreshDirty) {
