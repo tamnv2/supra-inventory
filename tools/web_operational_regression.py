@@ -56,6 +56,14 @@ def main() -> None:
     google_mail = read("service/src/google-mail.ts")
     app_tools = read("service/src/app-tools.ts")
 
+    # D165: resolved Skip corrections and Picker confirmation retain exact-batch authority.
+    for marker in ('row.correction_allowed === true', 'Sửa - Đã có hàng',
+                   'data-correct-target="PENDING"', 'Báo hàng ${result.sku} chuyển trạng thái'):
+        require(app, marker, "D165 Web Skip/Picker correction presentation")
+    require(api, '"PENDING" | "SKIP_ALLOWED" | "HAS_STOCK"', "D165 versioned correction API")
+    require(business_core, 'SKIP_CORRECTION_EXPIRED', "D165 server-side Skip correction window")
+    require(business_api, 'correction_from_status: fromStatus', "D165 FCM correction origin metadata")
+
     # D148: pending badge and client-side shift reporting remain quota-neutral.
     require(app, "function syncOperationsNavBadge()", "D148 operations badge sync")
     require(app, 'document.createElement("b")', "D148 zero-to-positive badge recreation")
