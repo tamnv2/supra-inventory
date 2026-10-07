@@ -3747,10 +3747,15 @@ namespace SupraInventoryRelayAgent
             if (email.Length == 0 || password.Length == 0)
             {
                 Log("Nhập tài khoản Quản trị Invent hoặc Quản trị Pick Pack và mật khẩu.");
-                Ui(() => _pair.Enabled = true);
+                Ui(() => {
+                    _pair.Enabled = true;
+                    _agentAuthStatus.Text = "Vui lòng nhập đủ tài khoản và mật khẩu.";
+                    _agentAuthStatus.Visible = true;
+                });
                 return;
             }
 
+            var loginFailure = "";
             try
             {
                 LogNetworkSnapshot("admin-firebase-login");
@@ -3821,12 +3826,28 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Log("Đăng nhập Agent thất bại: " + SafeMessage(ex));
+                loginFailure = SafeMessage(ex);
+                Log("D165 AGENT_LOGIN result=FAIL type=" + ex.GetType().Name + " detail=" + loginFailure);
             }
             finally
             {
                 password = null;
                 SetAgentAuthUi(HasAgentSession());
+                if (!string.IsNullOrWhiteSpace(loginFailure))
+                {
+                    var safeFailure = loginFailure;
+                    Ui(() =>
+                    {
+                        _agentAuthStatus.Text = "Đăng nhập thất bại: " + safeFailure;
+                        _agentAuthStatus.ForeColor = Color.FromArgb(180, 76, 60);
+                        _agentAuthStatus.Visible = true;
+                        MessageBox.Show(this,
+                            "Không thể đăng nhập Agent.\r\n" + safeFailure +
+                            "\r\nTài khoản vẫn được giữ để thử lại; chỉ mật khẩu đã được xóa.",
+                            "Đăng nhập Agent không thành công",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    });
+                }
             }
         }
 
@@ -3865,7 +3886,8 @@ namespace SupraInventoryRelayAgent
                     _username.Text = loginName;
                 if (!authenticated)
                 {
-                    _username.Clear();
+                    // Keep the username visible after a failed attempt; never
+                    // retain the proof (OTP/emergency/ordinary password).
                     _password.Clear();
                 }
                 _agentAuthStatus.Text = authenticated
