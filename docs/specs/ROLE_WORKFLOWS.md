@@ -1000,3 +1000,13 @@ Both require two confirmations and create a new auditable transition. Reopened p
 Saving processing-time / auto-skip settings requires a critical warning and current-account password re-authentication before commit.
 
 `FIRST_REPORT` semantics are unchanged by D165.
+
+
+## D165 Owner repair — Android Reporter parity
+
+For a server-authorized REPORTER/ADMIN Android workspace:
+- Under `PER_PICKER` with auto-skip enabled, show the pinned **Quá hạn** tab and authoritative count in addition to the four existing state tabs. FIRST_REPORT uses the unchanged four-tab workflow.
+- A PENDING SKU may be in Đang xử lý (waiting Pickers) and Quá hạn (timed-out Pickers) simultaneously. Opening Quá hạn performs one bounded first list read; existing realtime event/scope updates rows and badges without polling.
+- The Quá hạn **Đã có hàng** and **Cho phép skip** actions are server-authoritative. The latter never re-notifies tickets already auto-skipped; the former delivers corrected HAS_STOCK to affected users while keeping earlier timeout history.
+- HAS_STOCK result rows allow explicit correction to PENDING or SKIP_ALLOWED, each with two confirmations and expected-version concurrency checking. Server emits an auditable new result and an explicit corrected-result Picker acknowledgement. Existing SKIP_ALLOWED-to-HAS_STOCK correction is preserved.
+- Android-only source changes are D165 corrective work, not a new change ID. Beta owner/field PASS remains pending.
