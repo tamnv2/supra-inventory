@@ -15,6 +15,7 @@ Read the matching spec before changing that area:
 - `UI_DESIGN_SYSTEM.md` — Owner-selected **Legacy Operational UI V2** design authority.
 - `ACCEPTANCE_TESTING.md` — CI/runtime/device/Owner acceptance levels and regression expectations.
 - `D160_AGENT_LIFECYCLE.md` — Owner-approved same-D160 v97 overlay/history startup lifecycle repair and its acceptance contract.
+- `OPERATIONS_MANAGEMENT.md` — future consolidated Nhân sự / ca / công nhật / CCDC (including PDA) / biên bản / nhận hàng rớt model; direction recorded only until D165 Owner PASS.
 
 Implementation plan for the approved rebaseline:
 - `../plans/LEGACY_OPERATIONAL_REBASELINE_V1.md`
