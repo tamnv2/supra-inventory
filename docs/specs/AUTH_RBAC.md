@@ -415,3 +415,9 @@ Fresh Windows Agent privileged OTP login/request and re-auth require the scoped 
 ### D165 Beta Agent Gateway provider outcome (2026-10-07)
 
 The existing Script/deployment has been updated in place from the canonical source and provider readback confirms version/URL continuity. Safe invalid-username request gives the new D165 allowlist error before any email or business mutation. GitHub Actions run `37554446509` PASS. This is not proof that a real privileged user received a code, that Agent Office login works, or that a publicly predictable clock-only proof is secure; those remain Owner field/accepted-risk boundaries.
+
+## D165 OTP client presentation correction — 2026-10-07
+
+Exact protected-account server authorization is unchanged. A protected account enters its four-digit single-use code into the ordinary **Mật khẩu** field; a successful Worker verification consumes it and automatically generates/sends the following code via the existing project email transport. No additional explicit send/request step belongs to the user-facing Web/Android/Agent login flow. The generic public UI must not enumerate the privileged usernames or advertise the OTP/emergency mechanism. Ordinary account authentication and role gates are unchanged.
+
+The previously implemented OTP expires 15 minutes after issue; an expired next code must not be accepted, and no automatic expiry extension or mail polling is authorized by this UI correction. The already accepted predictable clock-only emergency bypass remains an acknowledged account-takeover vulnerability; omitting its description from the login screen does not mitigate it.

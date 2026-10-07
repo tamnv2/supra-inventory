@@ -71,7 +71,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="15dp"
-                android:text="Mật khẩu / mã xác nhận"
+                android:text="Mật khẩu"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
@@ -91,7 +91,7 @@
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:gravity="center_vertical"
-                    android:hint="Mật khẩu, mã một lần hoặc khẩn cấp"
+                    android:hint="Nhập mật khẩu"
                     android:imeOptions="actionDone"
                     android:inputType="textPassword"
                     android:includeFontPadding="false"
@@ -111,15 +111,6 @@
                     android:src="@android:drawable/ic_menu_view" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/btnOneTimeCode"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_button_secondary"
-                android:text="GỬI MẬT KHẨU MỘT LẦN"
-                android:textAllCaps="false"
-                android:textSize="13sp" />
 
             <Button
                 android:id="@+id/btnLogin"

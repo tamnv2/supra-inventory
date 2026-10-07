@@ -2489,7 +2489,7 @@
     "resource_change": "D164_ISOLATED_PDA_MANAGEMENT_RESOURCES_ONLY__INVENTORY_D163_NO_RUNTIME_CHANGE_FROM_ACCEPTANCE_RECORD",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D165",
-    "parallel_inventory_change_status": "D165_PR_487_488_489_MERGED__BETA_SOURCE_RELEASE_GATEWAY_PASS__FIELD_USAGE_OWNER_PASS_PENDING",
+    "parallel_inventory_change_status": "D165_PR491_NEUTRAL_LOGIN_UI_REPAIR_IN_CI__OWNER_FIELD_PASS_PENDING",
     "parallel_boundary": "D164=pda-management/**__D165=inventory_runtime_service_web_android_relay-agent_logging__SHARED_BOUNDARY_SECOND_ARRIVAL_WAITS"
   },
   "d147": {
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "OWNER_FIELD_VALIDATE_WEB_OTP_ANDROID_REPORTER_AGENT_GATEWAY_OFFICE_LOGIN_AND_USAGE__EXPLICIT_D165_PASS_REQUIRED",
+    "next_action": "FINISH_PR491_CHECKS_AND_BETA_RELEASE__THEN_OA100_FIELD_OTP_ANDROID_AGENT_USAGE_OWNER_PASS",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -5941,7 +5941,24 @@
         489
       ]
     },
-    "owner_pass_required": true
+    "owner_pass_required": true,
+    "login_ui_repair_2026_10_07": {
+      "status": "PR_491_IN_PROGRESS__SOURCE_AND_OWNER_SPECS_UPDATED__CHECKS_PENDING",
+      "owner_request": "USE_UNIFORM_ACCOUNT_PASSWORD_LOGIN__REMOVE_VISIBLE_OTP_REQUEST_AND_PRIVILEGED_ACCOUNT_LIST_IN_WEB_ANDROID_AGENT",
+      "otp_backend": "VALID_SINGLE_USE_CODE_CONSUMED_AND_NEXT_CODE_SENT_AUTOMATICALLY__EXISTING_D165_LOGIC_UNCHANGED",
+      "same_change_id": "D165",
+      "branch": "repair/d165-otp-auto-rotate-clean-login-ui",
+      "pr": 491,
+      "agent_candidate_source_version": "117",
+      "previous_published": "ANDROID_BETA_VC99__AGENT_V116",
+      "new_provider_resource": false,
+      "new_scheduled_quota": false,
+      "known_limitation": "OTP_15_MIN_TTL_MEANS_FUTURE_LOGIN_WITH_EXPIRED_NEXT_CODE_REQUIRES_ALREADY_APPROVED_EMERGENCY_PATH",
+      "security": "CLOCK_HHMM_ONLY_EMERGENCY_REMAINS_PUBLICLY_PREDICTABLE__NO_SECURITY_CLAIM_FROM_HIDING_UI",
+      "beta_only": true,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "owner_pass": "PENDING"
+    }
   },
   "launcher_daily_password": {
     "status": "IMPLEMENTED_IN_PR__TECHNICAL_VALIDATION_PENDING",

@@ -730,3 +730,9 @@ When auto-skip policy is `PER_PICKER`, Android adds a visually pinned **Quá h�
 A recent **Đã có hàng** row offers **Sửa - Đang xử lý** and **Sửa - Cho phép Skip**. First confirmation names the SKU and proposed change. Second confirmation prominently warns that Pickers were already notified and will need to acknowledge a corrected result. Cancel at either stage changes nothing. The final API request supplies the latest known batch version; server rejection on version conflict/role/eligibility requires a refresh rather than local forced success. Existing Skip-to-Stock correction is unchanged.
 
 No extra Android periodic read, listener, heartbeat, Firestore write or client-auth bypass is authorized.
+
+## D165 neutral login form clarification — 2026-10-07
+
+- Web, Android and Agent show the same ordinary **Tài khoản / Mật khẩu / Đăng nhập** inputs for all supported users. The public form has no **Gửi mã một lần** or account-specific OTP hint.
+- The Web account panel does not offer **Gửi mật khẩu một lần**. Ordinary users retain their permitted password-change controls; protected accounts keep server-enforced no-fixed-password semantics.
+- Consuming a valid protected-account email code automatically triggers the existing next-code email transaction; it does not require an extra button or new periodic task.
