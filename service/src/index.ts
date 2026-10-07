@@ -580,11 +580,12 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
 
 async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
   try {
-    await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
+    const response = await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ user_id: userId, client_type: channel || "", reason: "session-replaced" }),
     });
+    await discardResponse(response);
   } catch {
     // HTTP auth generation remains authoritative even if an old socket closes on its next lifecycle edge.
   }
