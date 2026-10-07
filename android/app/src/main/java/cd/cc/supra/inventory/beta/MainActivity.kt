@@ -834,7 +834,7 @@ class MainActivity : Activity() {
             .put("recent_events", JSONArray(localLog.toList().takeLast(80).map(::sanitizeDiagnosticText)))
             .put("recent_errors", JSONArray(errors))
 
-        return root.toString(2).take(16_000)
+        return root.toString(2)
     }
 
     private fun hasValidatedInternet(): Boolean {
