@@ -411,3 +411,7 @@ For exact `root`, `admin`, `tamnv2` identities, accept (a) one-use four-digit Gm
 ### D165 Agent Operations Gateway live-deploy dependency
 
 Fresh Windows Agent privileged OTP login/request and re-auth require the scoped Beta Apps Script Gateway to run D165 `request_privileged_auth_code`, `privileged_agent_login` and `privileged_agent_reauth` handlers. The existing App Script deployment must be updated in-place through exact canonical Script + deployment matching (no new Script ID or public endpoint). The Worker remains the authentication authority; Agent and Gateway store/log no raw proofs. Releasing a compiled Agent without publishing the corresponding Gateway handler is **not** functional field PASS.
+
+### D165 Beta Agent Gateway provider outcome (2026-10-07)
+
+The existing Script/deployment has been updated in place from the canonical source and provider readback confirms version/URL continuity. Safe invalid-username request gives the new D165 allowlist error before any email or business mutation. GitHub Actions run `37554446509` PASS. This is not proof that a real privileged user received a code, that Agent Office login works, or that a publicly predictable clock-only proof is secure; those remain Owner field/accepted-risk boundaries.

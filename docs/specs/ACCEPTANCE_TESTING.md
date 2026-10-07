@@ -2658,3 +2658,10 @@ Technical/runtime PASS never substitutes for explicit Owner field PASS.
 - Test OTP single-use and next-mail issuance, fixed-password retirement and no credential material in logs/audits/repository. Validate Agent session continuity and protected-action re-auth.
 - Document the known account-takeover exposure of the predictable proof; **16/16 automated source tests are technical evidence, not proof of privileged-auth security, field behavior or Owner business acceptance**.
 - Require PR authority + continuity PASS, Beta Worker deploy/health check, signed Beta APK release verification and Agent release verification where applicable; never deploy Stable without separate Owner approval.
+
+## D165 Beta technical completion / field gate split (2026-10-07)
+
+- GitHub PRs #487, #488, #489 merged with mandatory authority/continuity/Android/Agent source gates PASS. Worker main Beta deployment PASS. Signed Android `beta-vc99` and Agent `relay-agent-v116` published.
+- Apps Script Gateway existing Script version/deployment readback and nonmutating D165 pre-auth allowlist handler probe PASS: run `37554446509`. No new Script/deployment/provider, Stable unchanged.
+- **Not yet field PASS:** actual Gmail OTP send/consume/reissue, Agent real Office authentication/session restore, Reporter/Pickers physical UI ACK behavior, comparable-load speed/failover/usage. Owner must explicitly accept after these field checks (OA100).
+- The clock-only emergency login is publicly predictable; Owner explicitly directed keeping that format without a separate factor. Test exact functional behavior, but do **not** treat technical PASS as proof of credential security.
