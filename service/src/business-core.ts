@@ -888,9 +888,9 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       // The correction window starts with the FIRST report, not with the Skip click.
       // Enforce this on the authoritative server for both Skip -> Pending/Has Stock.
       const deadline = correctionDeadlineFromFirstReport(state, batch.first_report_at);
-      if (!deadline) return { status: 409, payload: { error: "SKIP_CORRECTION_DISABLED" } } satisfies BusinessResult;
+      if (!deadline) return { status: 409, payload: { error: "SKIP_CORRECTION_DISABLED", message: "Web chưa bật cho phép sửa kết quả Skip." } } satisfies BusinessResult;
       if (!Number.isFinite(Date.parse(deadline)) || Date.parse(deadline) <= Date.parse(at)) {
-        return { status: 409, payload: { error: "SKIP_CORRECTION_EXPIRED", correction_deadline_at: deadline } } satisfies BusinessResult;
+        return { status: 409, payload: { error: "SKIP_CORRECTION_EXPIRED", message: "Đã hết thời gian cho phép sửa Skip tính từ lần báo SKU đầu tiên.", correction_deadline_at: deadline } } satisfies BusinessResult;
       }
     }
 
