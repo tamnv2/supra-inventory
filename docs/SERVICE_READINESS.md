@@ -1876,3 +1876,7 @@ The first new Beta Gateway workflow run `37553946690` failed **after** the exist
 ## D165 active correction repair / no field PASS (2026-10-07)
 
 Owner reported vc101 Android Skip-result correction HTTP 400 `INVALID_INPUT` (source mismatch) and Agent v117 privileged login UI silently reset. Repair scope: Worker unified versioned Skip→PENDING/HAS_STOCK transitions with server-side SLA timer, result-event Picker ACK/FCM targeting and explicit actor/from/to message; Android/Web dual actions and Picker dialogs; persistent four-digit OTP until consumed/auto-reissued and one-time initial Owner mail; Agent v118 direct Worker auth with Office Gateway transport fallback and visible sanitized error. Branch `repair/d165-otp-agent-skip-correction` is an unaccepted D165 continuation; only CI/release readbacks can elevate technical status, actual Owner field/usage PASS remains pending. Stable and D164 unchanged; no added provider/polling cadence.
+
+## D165 v119 Agent privileged-auth repair pending CI
+
+v118 field evidence isolates the failure to the Worker privileged endpoint: direct Worker 401 occurs before Firestore claim, while ordinary PICKPACK_ADMIN Firebase/Firestore Agent login succeeds on the same machine. Repair changes only D165 privileged Worker/re-auth role gating, Agent special-username normalization/token validation, Agent v119 version and regression guards. No new provider, polling, DB schema, notification cadence or Stable mutation. Beta deploy/release and physical Owner retest are still pending.
