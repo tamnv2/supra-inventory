@@ -1882,3 +1882,7 @@ Owner reported vc101 Android Skip-result correction HTTP 400 `INVALID_INPUT` (so
 v118 field evidence isolates the failure to the Worker privileged endpoint: direct Worker 401 occurs before Firestore claim, while ordinary PICKPACK_ADMIN Firebase/Firestore Agent login succeeds on the same machine. Repair changes only D165 privileged Worker/re-auth role gating, Agent special-username normalization/token validation, Agent v119 version and regression guards. No new provider, polling, DB schema, notification cadence or Stable mutation. Beta deploy/release and physical Owner retest are still pending.
 
 Canonical current-status markers for authority guard: sqlite_schema=17; latest_beta_apk=beta-vc102; web=D165_MAIN_91C169E9_BETA_WORKER_WEB_DEPLOY_PASS__OWNER_FIELD_PENDING; android=D165_SIGNED_BETA_VC102__SKIP_CORRECTION_AND_OTP_REPAIR_TECHNICAL_PASS__OWNER_FIELD_PENDING.
+
+## D165 Agent v119 release readiness — technical PASS
+
+Main `1278b202` post-merge 11/11 workflows PASS. Beta Worker deployment run `37569696945` PASS; Agent verification/release run `37569696832` PASS and `relay-agent-v119` is published. v119 privileged auth now matches existing ADMIN/PICKPACK_ADMIN Agent authority and retains ROOT denial, DPAPI, Firebase/Firestore and HHmm/OTP proof boundaries. Android remains `beta-vc102`. Runtime/field acceptance and comparable usage remain pending Owner OA100.

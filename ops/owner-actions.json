@@ -5199,22 +5199,22 @@
     },
     {
       "id": "OA100",
-      "status": "D165_AGENT_V118_FIELD_NOT_PASS_PRIVILEGED_ROLE_PARITY__V119_REPAIR_CI_RELEASE_PENDING__OWNER_FIELD_USAGE_PASS_PENDING",
+      "status": "READY_FOR_OWNER_FIELD_RETEST__D165_AGENT_V119_RELEASED__WORKER_DEPLOY_MAIN_11_OF_11_PASS__OWNER_USAGE_PASS_PENDING",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
-      "reason_owner_only": "Published v118 reaches Beta Worker directly but receives 401 INVALID_CREDENTIALS for privileged OTP and HHmm; Web OTP works and same workstation ordinary PICKPACK_ADMIN Agent login/Firestore claim works. Source root cause: D165 privileged path was ADMIN-only while canonical Agent authority is ADMIN or PICKPACK_ADMIN.",
+      "reason_owner_only": "PR #497 repaired the v118 privileged Agent role-parity defect. Main 1278b202 passed 11/11 workflows, Beta Worker deploy PASS, Agent v119 published. Physical Office OTP/HHmm and comparable-load usage remain Owner-only evidence.",
       "prerequisites": {
         "accepted_inventory_base": "D163_OWNER_PASS",
         "d165_runtime": "PR_493_MERGED_MAIN_B640AC57__WEB_WORKER_DEPLOY_PASS__ANDROID_SIGNED_VC101",
         "android": "beta-vc102__SIGNED_PUBLISHED__UNCHANGED_BY_AGENT_V119_SOURCE_REPAIR",
-        "agent": "relay-agent-v118__PUBLISHED_FIELD_NOT_PASS__V119_REPAIR_SOURCE",
-        "worker": "MAIN_91C169E9_DEPLOY_RUN_37567523891_PASS__V119_ROLE_PARITY_WORKER_DEPLOY_PENDING",
+        "agent": "relay-agent-v119__PUBLISHED__MAIN_RUN_37569696832_PASS",
+        "worker": "D165_PR497_MAIN_1278B202__BETA_DEPLOY_RUN_37569696945_PASS",
         "apps_script_gateway": "EXISTING_GATEWAY_PREVIOUS_D165_PROVIDER_READBACK_PASS__RUN_37554446509__NOT_MODIFIED_BY_PR491",
         "stable": "OWNER_GATED_UNTOUCHED",
         "security_risk": "OWNER_EXPLICIT_ACCEPTED_PUBLICLY_PREDICTABLE_HHMM_EMERGENCY_PROOF",
         "neutral_login_ui": "PR_491_MERGED_UI_UNCHANGED__VC101_INHERITS",
-        "agent_candidate_version": "119__ROLE_PARITY_REPAIR_BRANCH_CI_PENDING"
+        "agent_candidate_version": "119__PUBLISHED_READY_FOR_FIELD_RETEST"
       },
       "shortest_test_path": [
         "Install/update official Agent v119 after release and verify displayed version 119.",
@@ -5237,7 +5237,7 @@
         "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
         "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "AFTER_V119_TECHNICAL_RELEASE_TEST_PRIVILEGED_OTP_AND_HHMM_ON_REAL_AGENT_FOR_ADMIN_OR_PICKPACK_ADMIN__VERIFY_NORMAL_AGENT_PICKLIST_HA__THEN_USAGE_STABILITY_AND_EXPLICIT_D165_PASS",
+      "remaining_owner_action": "UPDATE_TO_AGENT_V119__TEST_LATEST_UNCONSUMED_OTP_AND_HHMM_ON_REAL_OFFICE_AGENT__VERIFY_PICKLIST_HA__RETEST_VC102_SKIP_CORRECTION__COMPARE_USAGE_STABILITY__EXPLICIT_D165_PASS",
       "closed": false,
       "field_repair_2026_10_07": {
         "result": "NOT_PASS_VC100",
@@ -5276,6 +5276,16 @@
           "root_cause": "PRIVILEGED_AGENT_PATH_ADMIN_ONLY_ROLE_CHECK",
           "repair_branch": "repair/d165-agent-privileged-role-parity-v119",
           "target_version": "119",
+          "owner_pass": "PENDING"
+        },
+        "agent_v119_release": {
+          "pr": 497,
+          "main_sha": "1278b2025494e61e0bd952bb3b1ebb84c2338ee1",
+          "main_ci": "11_OF_11_PASS",
+          "worker_run": 37569696945,
+          "agent_run": 37569696832,
+          "release": "relay-agent-v119",
+          "field_retest": "PENDING",
           "owner_pass": "PENDING"
         }
       }
