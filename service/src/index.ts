@@ -994,11 +994,12 @@ async function setRootEffectiveRole(request: Request, env: Env): Promise<Respons
   if (!result.user) return json({ error: "ROOT_ROLE_UPDATE_FAILED" }, 502);
 
   try {
-    await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
+    const response = await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ user_id: actor.user_id, reason: "role-changed" }),
     });
+    await discardResponse(response);
   } catch {
     // HTTP authorization already uses the new effective role; realtime reconnect will refresh role projection.
   }
