@@ -2642,3 +2642,12 @@ Technical/runtime PASS never substitutes for explicit Owner field PASS.
 6. OTP: protected usernames cannot use the old static password; one-time 4-digit email code is single-use and time-limited, invalid/expired/rate-limited codes fail closed; verify email subject, post-success rotation and session restore.
 7. **Security gate**: clock-only >=8 digit emergency proof containing HHmm is insufficient by itself; do not deploy it to production-capable Beta login until an independent secret-backed factor is approved and tested.
 8. Complete PR UI, Android compile, Agent, Worker, authority and Project State gates. Beta runtime/physical field and Owner PASS remain separate; Stable never auto-promotes.
+
+## D165 Android Reporter compact-tab acceptance (same-change Owner refinement)
+
+1. With server `auto_skip_enabled=true` and `auto_skip_mode=PER_PICKER`, APK shows exactly four tabs: Đang xử lý, Quá hạn, Đã có hàng, Cho phép Skip. Only the first two show numeric badges, with counts agreeing with Web/authoritative data.
+2. With `FIRST_REPORT` or disabled PER_PICKER timeout, APK shows exactly three tabs (without Quá hạn), retaining only Đang xử lý badge and unchanged FIRST_REPORT business semantics.
+3. No Android Picker đã thu hồi tab or numeric badges on Đã có hàng / Cho phép Skip; withdrawn history remains available through existing Web/reporting exports.
+4. Android resource linking and Kotlin compile PASS; tab layout fits PDA width and normal text-scale interactions. No manual scroll/F5 is required for badge accuracy.
+5. Quá hạn lazy read and realtime delta/row patch remain intact, no new polling/listener/background provider requests, correction actions still double-confirm and use server version fencing.
+6. Security blocker on clock-only privileged emergency authentication remains active. Do not merge/deploy Beta until independently approved secret-backed emergency proof and required CI gates PASS; no Stable mutation.
