@@ -7,6 +7,7 @@ interface LauncherDiagnosticEnv {
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
   LOGS_FOLDER_ID?: string;
+  LAUNCHER_LOGS_FOLDER_ID?: string;
 }
 
 const CORE_NAME = "inventory-core";
@@ -54,6 +55,26 @@ export async function handleLauncherDiagnosticLog(
   env: LauncherDiagnosticEnv,
 ): Promise<Response | null> {
   const url = new URL(request.url);
+  if (request.method === "GET" && url.pathname === "/api/pda/launcher/logs/status") {
+    if (env.APP_ENV !== "beta") return json({ error: "NOT_FOUND" }, 404);
+    const deviceKey = String(url.searchParams.get("device_key") || "").trim().toLowerCase();
+    const bundleId = String(url.searchParams.get("bundle_id") || "").trim().toLowerCase();
+    if (!DEVICE_KEY_RE.test(deviceKey) || !/^[a-f0-9]{32,64}$/.test(bundleId)) {
+      return json({ error: "INVALID_LAUNCHER_RECEIPT_QUERY" }, 400);
+    }
+    if (!(await isRegisteredDevice(env, deviceKey))) {
+      return json({ error: "PDA_NOT_REGISTERED" }, 403);
+    }
+    const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName(CORE_NAME));
+    const result = await core.fetch(
+      `https://inventory-core.internal/runtime-logs/launcher-archive-status?device_key=${encodeURIComponent(deviceKey)}&bundle_id=${encodeURIComponent(bundleId)}`,
+    );
+    const receipt = await result.json() as { status?: string; archived?: boolean };
+    return json({
+      status: result.ok ? (receipt.archived === true ? "DRIVE_SYNCED" : "BUFFERED") : "NOT_FOUND",
+      archived: result.ok && receipt.archived === true,
+    }, result.status === 404 ? 404 : result.ok ? 200 : 503);
+  }
   if (request.method !== "POST" || url.pathname !== "/api/pda/launcher/logs") return null;
 
   if (env.APP_ENV !== "beta") return json({ error: "NOT_FOUND" }, 404);
@@ -115,8 +136,10 @@ export async function handleLauncherDiagnosticLog(
   const summary = record(payload.summary);
 
   try {
+    // Use an independent root folder for Launcher; preserve Inventory logs root.
+    if (!env.LAUNCHER_LOGS_FOLDER_ID) return json({ error: "LAUNCHER_LOG_FOLDER_NOT_CONFIGURED" }, 503);
     const result = await uploadRuntimeLog(
-      env,
+      { ...env, LOGS_FOLDER_ID: env.LAUNCHER_LOGS_FOLDER_ID },
       {
         user_id: "launcher-system",
         employee_code: null,
@@ -161,7 +184,14 @@ export async function handleLauncherDiagnosticLog(
         },
       },
     );
-    return json({ status: "accepted", result });
+    // A 202 only acknowledges the Durable Object buffer, NOT Drive.
+    // Launcher must retain its local JSONL until DRIVE_SYNCED is confirmed.
+    const archived = result.archive_status === "DRIVE_SYNCED";
+    return json({
+      status: archived ? "DRIVE_SYNCED" : "BUFFERED",
+      archived,
+      archive_status: String(result.archive_status || "DEFERRED"),
+    }, archived ? 200 : 202);
   } catch (error) {
     return json({
       error: "LAUNCHER_LOG_UPLOAD_FAILED",

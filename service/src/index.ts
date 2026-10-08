@@ -32,6 +32,7 @@ import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
 import { ensureDailyLauncherPassword, handleLauncherPasswordApi, shouldRetryDailyLauncherPassword } from "./launcher-password";
 import { handleLauncherDiagnosticLog } from "./launcher-diagnostics";
+import { resolveLauncherManifest, validateLauncherRules, loadLauncherUpdateConfig } from "./launcher-update-policy";
 import { handlePdaManagementDiagnosticLog } from "./pda-management-diagnostics";
 import { handlePublicInfoPage } from "./public-pages";
 import { sendFcmNotifications } from "./fcm";
@@ -64,6 +65,7 @@ interface Env {
   PDA_REGISTRY_SHEET_ID?: string;
   RETENTION_DAYS?: string;
   LOGS_FOLDER_ID?: string;
+  LAUNCHER_LOGS_FOLDER_ID?: string;
   ARCHIVE_FOLDER_ID?: string;
   EXPORTS_FOLDER_ID?: string;
   SOURCE_COMMIT?: string;
@@ -1384,24 +1386,38 @@ export default {
       if (request.method === "GET" && url.pathname === "/downloads/launcher/latest.sha256") {
         return redirectLatestLauncherChecksum();
       }
+      if (request.method === "GET" && /^\/downloads\/launcher\/releases\/\d+\.\d+\.\d+$/.test(url.pathname)) {
+        const version = url.pathname.substring("/downloads/launcher/releases/".length);
+        return new Response(null, { status: 302, headers: {
+          "location": `https://github.com/tamnv2/supra-pda-launcher/releases/download/v${version}/SUPRA-PDA-Launcher-v${version}.apk`,
+          "cache-control": "public, max-age=300",
+        } });
+      }
       if (request.method === "GET" && url.pathname === "/downloads/launcher/manifest") {
         try {
           const release = await latestLauncherRelease();
-          return json({
-            channel: "launcher",
-            tag: release.tag,
-            version: release.version,
-            version_code: release.version_code,
-            published_at: release.published_at,
-            source: release.source,
-            size_bytes: release.size_bytes,
-            sha256: release.sha256,
-            apk_path: release.stable_download_path,
-            checksum_path: "/downloads/launcher/latest.sha256",
-          });
+          const resolved = await resolveLauncherManifest(env, url.searchParams.get("device_key"), release);
+          return json(resolved);
         } catch (error) {
           return json({ error: "LAUNCHER_RELEASE_CHANNEL_UNAVAILABLE", message: error instanceof Error ? error.message : "release_channel_unavailable" }, 503);
         }
+      }
+      if (url.pathname === "/api/admin/launcher/update-policies" && request.method === "GET") {
+        await requireUser(request, env, ["ROOT", "ADMIN"]);
+        return json(await loadLauncherUpdateConfig(env));
+      }
+      if (url.pathname === "/api/admin/launcher/update-policies" && request.method === "PUT") {
+        const user = await requireUser(request, env, ["ROOT"]);
+        const raw = await request.json() as { expected_revision?: unknown; rules?: unknown };
+        let rules;
+        try { rules = validateLauncherRules(raw.rules); }
+        catch (error) { return json({ error: error instanceof Error ? error.message : "INVALID_UPDATE_POLICIES" }, 400); }
+        const revision = Number(raw.expected_revision);
+        if (!Number.isSafeInteger(revision) || revision < 0) return json({ error: "INVALID_EXPECTED_REVISION" }, 400);
+        return coreStub(env).fetch("https://inventory-core.internal/launcher-update/policies", {
+          method: "PUT", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ rules, expected_revision: revision, updated_by: user.user_id }),
+        });
       }
 
       if (request.method === "GET" && url.pathname === "/api/system/capabilities") {
