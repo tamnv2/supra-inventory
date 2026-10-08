@@ -344,3 +344,7 @@ The optional exported `providers/cloudflare_workers.json` contains scoped Beta W
 ### D166 Cloudflare Usage bridge revised
 
 The proposed Agent v122 ZIP may now contain `providers/cloudflare_workers.json`, `providers/cloudflare_do_account.json` (explicit blocked namespace status, no unscoped DO data), and `providers/cloudflare_billing_account.json` (shared-account Workers-family metered usage, not Inventory invoice). The time-series CSV carries `cf_worker_requests`, `cf_worker_errors`, `cf_worker_subrequests`; DO account columns remain blank until scoped. The Agent still offers only manual Today VN / rolling 24h / 06–22h export. Server-only Cloudflare read access uses existing Beta Worker, never Script Properties/Agent credentials. ZIP must distinguish provider sampling, hourly boundaries, shared account, N/A and failed metrics.
+
+### D166 field failure and UI safety — 2026-10-09
+
+Existing v122 Agent Usage export button is correct; user experienced `D166_PROVIDER_NOT_READY` because of a server-side Gateway provider postprocessing defect. Patch Gateway only; **do not** add background export, polling, extra log traffic or alter tab UI without a separate accepted requirement. ZIP remains manually downloaded and per-provider status is explicit, even when Cloudflare API data is unavailable.

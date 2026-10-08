@@ -968,3 +968,7 @@ Owner reports adding read-only Cloudflare token to the GitHub `beta` environment
 ### D166 v122 Beta Worker bridge decision — 2026-10-09
 
 Owner approved the **existing Beta Worker** as the safe Cloudflare read-only Usage proxy using GitHub Beta Environment secret `D166_CF_READ_TOKEN` provisioned by GitHub Actions post-health. Agent v122 local ZIP adds Cloudflare Worker hour metrics and account-wide metered usage (separately labeled). Apps Script retains only Firebase ID-token validation and passes the token to Worker; it receives no Cloudflare credentials. The earlier Script Properties workaround and direct Cloudflare Apps Script API code are superseded. InventoryCore DO namespace is not identified in project scope: do not query or attribute account-wide DO. D165 v120 remains accepted deployed runtime; D166 v122 remains candidate pending PR/CI/runtime/field gates. Stable unchanged.
+
+### D166 field repair checkpoint (2026-10-09)
+
+Owner reports Agent v122 manual Usage ZIP repeatedly `D166_PROVIDER_NOT_READY`, field acceptance NOT PASS. Existing Beta Apps Script D166 hourly merge refers to undefined `d166CloudflareNumber_`; isolated server-side Gateway repair and mocked runtime regression are underway, no worker/Agent EXE change. D165 Agent v120 remains accepted PRIMARY; v122 standby field retry required after technical deployment. Stable OWNER-GATED.
