@@ -1900,3 +1900,7 @@ Repair PR #501 merged on main `8da8f905caee7574c359f23f74022410c2506b5d`. PR 14/
 ## 2026-10-08 — D165 Owner PASS / accepted Beta base
 
 Owner explicitly accepts released D165 Agent v120 and all deployed D165 Beta components as the current baseline. Prior "Owner field pending" text is historical and superseded. The acceptance **does not claim** recurring HA PRIMARY reversions, RTDB HTTP 403/SSE timeout or abnormal Firestore usage are resolved. These findings are deferred for D166 **after Owner submits full end-of-shift logs at/after 22:00 VN**. No D166 active code change, no rollback of Agent v120, no APK update and no Stable promotion.
+
+### Canonical D165 accepted-state marker snapshot (2026-10-08)
+- `D165_OWNER_ACCEPTED_PASS__DEPLOYED_BETA_WEB_WORKER_UNCHANGED`
+- `D165_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC102_UNCHANGED`
