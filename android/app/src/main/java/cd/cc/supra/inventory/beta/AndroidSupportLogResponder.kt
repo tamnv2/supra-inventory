@@ -97,7 +97,7 @@ object AndroidSupportLogResponder {
                     .put("model", Build.MODEL.take(80))
                     .put("sdk_int", Build.VERSION.SDK_INT))
                 .put("journal", journal)
-                .put("d166_usage_audit", D166UsageAudit.snapshot())
+                .put("d166_usage_audit", D166UsageAudit.snapshot(journal))
 
             val bundleId = sha256Hex("ANDROID|$deviceId|${session.userId}|$requestId")
             val response = api.uploadRuntimeLog(
