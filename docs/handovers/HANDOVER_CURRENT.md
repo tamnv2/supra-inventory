@@ -1914,3 +1914,7 @@ Repair PR #501 merged on main `8da8f905caee7574c359f23f74022410c2506b5d`. PR 14/
 ## 2026-10-08 — Current accepted base D165 / Agent v120; D166 after end-of-shift evidence
 
 Derived continuity checkpoint. Owner explicitly clarified **D165 PASS / CLOSED** for **all already-deployed D165 Beta code** including Agent `relay-agent-v120`, Android `beta-vc102` and existing Web/Worker/RTDB rules. This is not a hold, rollback, halt or claim that high Reads/HA role flapping is fixed. Known open evidence includes repeated PRIMARY takeover after targeted handoff between v120 Agents, RTDB HTTP 403/timeouts/SSE listener behavior and Firestore lease/usage mismatch. Owner intends to submit Agent+Android+Web and Usage evidence after 22:00 VN; later analyze the complete day and open D166 only after review/approval. For any new session, bootstrap canonical state and GitHub decisions. Stable stays OWNER-GATED and untouched.
+
+### Canonical D165 accepted-state marker snapshot (2026-10-08)
+- `D165_OWNER_ACCEPTED_PASS__DEPLOYED_BETA_WEB_WORKER_UNCHANGED`
+- `D165_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC102_UNCHANGED`
