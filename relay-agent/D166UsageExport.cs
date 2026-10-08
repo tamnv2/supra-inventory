@@ -96,12 +96,12 @@ namespace SupraInventoryRelayAgent
 
         private static string D166Csv(object rows)
         {
-            var sb = new StringBuilder("hour_start_utc,hour_label_vn,reads,writes,deletes,rtdb_sent_bytes,rtdb_payload_bytes,sheets_requests,drive_requests\n");
+            var sb = new StringBuilder("hour_start_utc,hour_label_vn,reads,writes,deletes,rtdb_sent_bytes,rtdb_payload_bytes,rtdb_api_hits,rtdb_https_requests,sheets_requests,drive_requests\n");
             foreach (var value in D160UsageJson.List(rows))
             {
                 var row = D160UsageJson.Map(value);
                 string[] keys = { "hour_start", "hour_label_vn", "reads", "writes", "deletes",
-                    "rtdb_sent_bytes", "rtdb_payload_bytes", "sheets_requests", "drive_requests" };
+                    "rtdb_sent_bytes", "rtdb_payload_bytes", "rtdb_api_hits", "rtdb_https_requests", "sheets_requests", "drive_requests" };
                 for (int i = 0; i < keys.Length; i++)
                 {
                     if (i > 0) sb.Append(',');
