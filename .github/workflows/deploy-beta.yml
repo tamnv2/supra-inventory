@@ -183,6 +183,24 @@ jobs:
             | jq -e 'any(.[]; .name=="D166_CF_READ_TOKEN")' >/dev/null
           echo "D166_WORKER_BETA_SECRET_NAME_READBACK_PASS"
 
+      - name: D166 verify read-only endpoint rejects unauthenticated callers
+        shell: bash
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl -sS --max-time 15 -o "$tmp" -w '%{http_code}' \
+            -H 'content-type: application/json' \
+            --data '{"start_at":"2026-10-08T06:00:00Z","end_at":"2026-10-08T06:01:00Z"}' \
+            "https://${BETA_HOSTNAME}/api/agent/d166/usage")"
+          [ "$code" = "401" ] || { echo "::error::D166 unauthenticated request expected HTTP 401, got $code"; exit 1; }
+          jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || {
+            echo "::error::D166 unauthenticated error code mismatch"; exit 1;
+          }
+          echo "D166_WORKER_BETA_UNAUTHENTICATED_FAIL_CLOSED_PASS"
+
       - name: Verify Beta auth API routing and Root bootstrap path
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
