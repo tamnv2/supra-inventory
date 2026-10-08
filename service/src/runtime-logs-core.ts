@@ -155,6 +155,36 @@ export async function handleRuntimeLogCoreRequest(
     return response({ status: "buffered", file: row || null });
   }
 
+  // Minimal receipt lookup for the PDA client. Never return log contents,
+  // Drive IDs or employee/device details to an unauthenticated caller.
+  // A receipt is only valid for the registered DeviceKey that uploaded it.
+  if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-archive-status") {
+    const bundleId = String(url.searchParams.get("bundle_id") || "").trim().toLowerCase();
+    const deviceKey = String(url.searchParams.get("device_key") || "").trim().toLowerCase();
+    if (!/^[a-f0-9]{32,64}$/.test(bundleId) || !/^[a-f0-9]{64}$/.test(deviceKey)) {
+      return response({ error: "INVALID_LAUNCHER_ARCHIVE_RECEIPT" }, 400);
+    }
+    const row = state.storage.sql.exec<SqlRow>(
+      "SELECT drive_file_id, drive_synced_at, content_text FROM runtime_log_buffer WHERE bundle_id = ? LIMIT 1",
+      bundleId,
+    ).toArray()[0];
+    if (!row) return response({ status: "NOT_FOUND", archived: false }, 404);
+    try {
+      const log = JSON.parse(String(row.content_text || "")) as Record<string, unknown>;
+      const device = log.device && typeof log.device === "object"
+        ? log.device as Record<string, unknown> : {};
+      if (String(log.actor && typeof log.actor === "object"
+          ? (log.actor as Record<string, unknown>).user_id : "") !== "launcher-system"
+          || String(device.device_key || "").toLowerCase() !== deviceKey) {
+        return response({ status: "NOT_FOUND", archived: false }, 404);
+      }
+    } catch {
+      return response({ status: "NOT_FOUND", archived: false }, 404);
+    }
+    const archived = Boolean(row.drive_file_id && row.drive_synced_at);
+    return response({ status: archived ? "DRIVE_SYNCED" : "BUFFERED", archived });
+  }
+
   if (request.method === "GET" && url.pathname === "/runtime-logs/pending-drive") {
     prune(state);
     const limitRaw = Number(url.searchParams.get("limit") || 20);
