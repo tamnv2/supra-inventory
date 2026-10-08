@@ -328,3 +328,7 @@ The Android Reporter operational strip shows up to four states (Đang xử lý, 
 ## D165 always-visible overdue presentation
 
 Quá hạn is an always-visible **navigation** tab on Web and Android Reporter; it is an actionable **data** view only when authoritative auto-skip is enabled in PER_PICKER mode. In other modes, display zero with an explanatory empty state without modifying the existing FIRST_REPORT deadline model. The existing limited overdue API read occurs only on explicit tab opening. Android counter lookups use a valid bounded Vietnam calendar-day interval derived from the preceding server timestamp, avoiding `INVALID_COUNTER_RANGE`. No new API/provider/poll family is introduced.
+
+### 2026-10-08 — D166 restricted Agent Usage export idea (OWNER RESEARCH ONLY)
+
+A proposed `Tải số liệu Usage để phân tích` button belongs inside the **already restricted** Agent Thông tin Usage tab, not Web/Android. Proposed windows are Today Vietnam and rolling last 24 hours; output is a local ZIP with explicit coverage, cached provider data and `N/A` when unsupported. The existing fixed 15-minute refresh remains unchanged. Owner approved **research/proposal only**; no UI/code/Gateway/Billing implementation is in this change. Exact impact/security/cost assessment lives in `docs/D166_USAGE_EVIDENCE_EXPORT_PROPOSAL.md`.

@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D166_REQUESTED__RESEARCH_COSTS_APIS_EXPORT_ZIP_ON_DEMAND__PROPOSAL_ONLY_UNTIL_EXPLICIT_IMPLEMENTATION_APPROVAL",
+  "next_action": "D166_PROPOSAL_REVIEW__OWNER_APPROVAL_REQUIRED_BEFORE_AGENT_UI_GATEWAY_OR_PROVIDER_CHANGES__AWAIT_22H_LOG_BUNDLE_FOR_HA_ANALYSIS",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2468,10 +2468,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "GOV-QUOTA-20261008",
     "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
-    "current_change_id": "NONE",
-    "current_change_status": "GOV-QUOTA-20261008_OWNER_PASS_CLOSED__D166_ELIGIBLE_FOR_PROPOSAL_OPEN",
+    "current_change_id": "D166",
+    "current_change_status": "D166_OWNER_REQUESTED_OPEN__RESEARCH_AND_IMPACT_PROPOSAL_ONLY__IMPLEMENTATION_APPROVAL_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2488,9 +2488,9 @@
     "runtime_impact": "D165_BETA_BASELINE_ACCEPTED_AS_DEPLOYED__KNOWN_HA_ROLE_FLAP_AND_USAGE_LEFT_FOR_POST_22H_D166_ANALYSIS__NO_ROLLBACK",
     "resource_change": "NONE_FROM_D164_CANCELLATION__D164_EXISTING_BETA_ARTIFACTS_FROZEN__D165_EXISTING_SCOPED_RESOURCES_ONLY",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "parallel_inventory_change_id": "NONE__D166_RESEARCH_PENDING_FORMAL_OPEN",
-    "parallel_inventory_change_status": "GOVERNANCE_CLOSED__D166_REQUESTED_NOT_YET_OPEN",
-    "parallel_boundary": "GOVERNANCE_ACCEPTED_ONLY__D165_RUNTIME_BASE_UNCHANGED__STABLE_OWNER_GATED",
+    "parallel_inventory_change_id": "D166__PROPOSAL_ONLY",
+    "parallel_inventory_change_status": "D166_ANALYSIS_OPEN__NO_AGENT_CODE_OR_PROVIDER_MUTATION",
+    "parallel_boundary": "D165_ACCEPTED_RUNTIME_BASE__GOV_QUOTA_OWNER_PASS__D166_RESEARCH_AND_PROPOSAL_ONLY",
     "accepted_runtime_base_change_id": "D165"
   },
   "d147": {
@@ -6283,5 +6283,19 @@
     },
     "separate_provider_billing_approval": "NOT_GIVEN",
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
+  },
+  "d166": {
+    "status": "OPEN_PROPOSAL_ONLY__IMPLEMENTATION_NOT_APPROVED",
+    "opened_on": "2026-10-08",
+    "owner_command": "GOV-QUOTA-20261008 PASS; open D166 and first research/analyze/propose Agent Usage ZIP download, costs vs screenshots",
+    "accepted_runtime_base": "D165_AGENT_V120_ANDROID_VC102_BETA_WEB_WORKER_RTDB",
+    "governance_base": "GOV-QUOTA-20261008_OWNER_PASS",
+    "scope": "AGENT_USAGE_ON_DEMAND_ZIP_ANALYSIS__FIREBASE_GOOGLE_CLOUDFLARE_AND_OTHER_SCOPED_METRICS_COST_RESEARCH__NO_RUNTIME_CHANGE",
+    "proposal_document": "docs/D166_USAGE_EVIDENCE_EXPORT_PROPOSAL.md",
+    "implementation_approval": "PENDING_EXPLICIT_OWNER_APPROVAL",
+    "provider_changes": "FORBIDDEN_UNTIL_APPROVED",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "eod_logs": "AWAIT_OWNER_UPLOAD_FOR_SEPARATE_HA_USAGE_ROOT_CAUSE_ANALYSIS",
+    "next": "PRESENT_RECOMMENDED_PHASE_A_AND_OPTIONAL_PROVIDER_EXTENSIONS_FOR_OWNER_DECISION"
   }
 }
