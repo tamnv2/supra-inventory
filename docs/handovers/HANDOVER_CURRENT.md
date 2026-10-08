@@ -1900,3 +1900,7 @@ Canonical current-status markers for authority guard: sqlite_schema=17; latest_b
 ## D165 Agent v119 technical release — Owner retest pending
 
 PR #497 merged main `1278b202`; all 11 main workflows PASS. Beta Worker deploy `37569696945` PASS and official `relay-agent-v119` published by run `37569696832`. The v118 ADMIN-only privileged path is replaced by the canonical ADMIN-or-PICKPACK_ADMIN Agent operator matrix plus normalized special login. No new resource/provider/polling or Stable mutation. Android remains signed `beta-vc102`. OA100 now requires real Office OTP + HHmm retest and the outstanding vc102 Skip-correction/usage field checks; no Owner PASS inferred.
+
+## D165 08/10 Owner-approved HA/Usage repair — v120 staging only
+
+After examining additional 08/10 morning logs, Owner approved a D165 continuation correcting existing Beta RTDB `ha_liveness` role parity with Agent `ADMIN` / `PICKPACK_ADMIN`, and avoiding repeated SSE retry wakeups of the Firestore HA lease fallback. Agent v120 is manual update only; existing v119 PRIMARY and installed Android vc102 continue operating until deliberate Owner-controlled standby-first testing. Before handoff wait for in-flight PickList results, verify WMS readiness and role/generation, then test real ACK on new PRIMARY. No new resource or Stable mutation. CI, Beta RTDB deployment, actual usage improvement and Owner field/usage PASS are not yet proven merely by branch source. Continue using repo authority/state over this derived view.
