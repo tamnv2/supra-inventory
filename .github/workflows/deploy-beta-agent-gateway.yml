@@ -25,6 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Syntax-check existing Beta Apps Script source
+        shell: bash
+        run: node --check --input-type=commonjs < ops/apps-script/agent-log-gateway/Code.gs
+
       - name: Enforce existing Beta script boundary
         shell: bash
         run: |
