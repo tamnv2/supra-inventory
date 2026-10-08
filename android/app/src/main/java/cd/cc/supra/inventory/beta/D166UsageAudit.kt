@@ -5,6 +5,45 @@ import org.json.JSONObject
 
 /** D166: summarize the journal at an existing support-log boundary. No timer, IO or listener. */
 internal object D166UsageAudit {
+    private val metricLock = Any()
+    private val apiCounts = linkedMapOf<String, Long>()
+    private val apiElapsedMs = linkedMapOf<String, Long>()
+    private const val MAX_API_KEYS = 72
+
+    // Existing HTTP operation boundary only; never persists per request or changes retry behavior.
+    internal fun recordApi(method: String, path: String, status: Int, elapsedMs: Long) {
+        try {
+            val family = when {
+                path.startsWith("/api/skus/catalog") -> "CATALOG"
+                path.startsWith("/api/picker/reports") -> "PICKER_REPORTS"
+                path.startsWith("/api/picker/results") -> "PICKER_RESULTS"
+                path.startsWith("/api/reporter/") -> "REPORTER"
+                path.startsWith("/api/realtime/") -> "REALTIME"
+                path.startsWith("/api/auth/") -> "AUTH"
+                path.startsWith("/api/notifications/") -> "NOTIFICATIONS"
+                path.startsWith("/api/logs/upload") -> "LOG_UPLOAD"
+                else -> "OTHER"
+            }
+            val outcome = when {
+                status in 200..299 -> "OK"
+                status == 0 -> "NETWORK_ERROR"
+                status == 401 -> "AUTH_401"
+                status == 403 -> "AUTH_403"
+                status == 429 -> "RATE_429"
+                status >= 500 -> "SERVER_5XX"
+                else -> "OTHER_ERROR"
+            }
+            val hour = java.time.Instant.now().atOffset(java.time.ZoneOffset.UTC)
+                .toString().take(13)
+            val key = hour + "|" + family + "|" + method.take(6).uppercase() + "|" + outcome
+            synchronized(metricLock) {
+                if (!apiCounts.containsKey(key) && apiCounts.size >= MAX_API_KEYS) return
+                apiCounts[key] = (apiCounts[key] ?: 0L) + 1L
+                apiElapsedMs[key] = (apiElapsedMs[key] ?: 0L) + elapsedMs.coerceIn(0L, 120000L)
+            }
+        } catch (_: Exception) { }
+    }
+
     internal fun snapshot(journal: JSONObject? = null): JSONObject {
         val events = journal?.optJSONArray("recent_events") ?: JSONArray()
         val byHour = linkedMapOf<String, Int>()
@@ -30,8 +69,14 @@ internal object D166UsageAudit {
             .put("journal_dropped_events", journal?.optLong("dropped_events", 0L) ?: 0L)
             .put("journal_first_sequence", journal?.optLong("first_sequence", 0L) ?: 0L)
             .put("journal_last_sequence", journal?.optLong("last_sequence", 0L) ?: 0L)
-            .put("http_attempts", JSONObject.NULL)
-            .put("http_reason", "NOT_INSTRUMENTED_YET")
+            .put("http_source", "RAM_PER_ATTEMPT_NOT_PROVIDER_BILLING")
+            .put("http_groups", synchronized(metricLock) {
+                val out = JSONArray()
+                for ((key, n) in apiCounts)
+                    out.put(JSONObject().put("utc_hour_route_method_status", key)
+                        .put("attempts", n).put("elapsed_sum_ms", apiElapsedMs[key] ?: 0L))
+                out
+            })
             .put("hourly", counts)
     }
 }
