@@ -5199,7 +5199,7 @@
     },
     {
       "id": "OA100",
-      "status": "READY_FOR_OWNER_FIELD_RETEST__D165_AGENT_V119_RELEASED__WORKER_DEPLOY_MAIN_11_OF_11_PASS__OWNER_USAGE_PASS_PENDING",
+      "status": "D165_V120_HA_SOURCE_CI_PENDING__OWNER_STANDBY_FIRST_FIELD_AND_USAGE_PASS_PENDING",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
@@ -5237,7 +5237,7 @@
         "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
         "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "UPDATE_TO_AGENT_V119__TEST_LATEST_UNCONSUMED_OTP_AND_HHMM_ON_REAL_OFFICE_AGENT__VERIFY_PICKLIST_HA__RETEST_VC102_SKIP_CORRECTION__COMPARE_USAGE_STABILITY__EXPLICIT_D165_PASS",
+      "remaining_owner_action": "AFTER_V120_RELEASE__UPDATE_ONLY_NEXT_A_FIRST__VERIFY_WMS_FIRESTORE_RTDB__NO_ACTIVE_BATCH__AUTHORIZED_PRIMARY_HANDOFF__FIELD_CONFIRM_ACK__UPDATE_REMAINING_AGENTS__COMPARE_USAGE__EXPLICIT_D165_PASS",
       "closed": false,
       "field_repair_2026_10_07": {
         "result": "NOT_PASS_VC100",
@@ -5288,6 +5288,21 @@
           "field_retest": "PENDING",
           "owner_pass": "PENDING"
         }
+      },
+      "ha_usage_repair_2026_10_08": {
+        "status": "V120_SOURCE_REPAIR_PENDING_CI_RELEASE__OWNER_STAGE_TEST_NOT_YET_STARTED",
+        "owner_approved": true,
+        "owner_test_steps": [
+          "Update only NEXT_A (not the active PRIMARY) after published candidate is ready",
+          "Verify WMS page ready and Agent standby realtime/RTDB health",
+          "Wait until the current PRIMARY has no active confirmation batch or unresolved WMS result",
+          "Use existing authorized targeted PRIMARY handoff; verify exactly one active PRIMARY and real Picker confirm/ACK",
+          "Only then update other Agents one at a time",
+          "Provide comparable 1-hour Firestore Reads/Writes and reconnect/RTDB evidence"
+        ],
+        "hold": "DO_NOT_FORCE_PRIMARY_RESTART_OR_AUTOMATIC_ALL_FLEET_UPDATE",
+        "user_action_required_now": "NONE_UNTIL_RELEASE_READY",
+        "owner_pass": "PENDING"
       }
     }
   ]

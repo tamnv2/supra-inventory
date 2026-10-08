@@ -47,6 +47,10 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
+      - name: D165 Beta RTDB HA role/fallback regression guard
+        shell: pwsh
+        run: python tools/d165_rtdb_ha_regression.py
+
       - name: D126 browser UI confirmation and protected regression guard
         shell: pwsh
         run: |
@@ -1653,9 +1657,9 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "Chuyển Agent chính/dự phòng ổn định hơn và giữ nguyên cơ chế an toàn khi mất kết nối."
-              "Danh sách Picker cập nhật ngay sau thao tác Kích User; trạng thái thao tác tự trở về màn hình vận hành."
-              "Giảm các thông báo kỹ thuật lặp lại không ảnh hưởng đến xử lý nghiệp vụ."
+              "Sửa xác thực RTDB của Agent quản trị và tối ưu phục hồi kết nối dự phòng."
+              "Giữ nguyên luồng xác nhận PickList và kiểm tra an toàn khi chuyển Agent chính."
+              "Chỉ cập nhật thủ công từng Agent: nâng cấp máy phụ trước, kiểm thử rồi mới nâng cấp toàn bộ."
             )
           } | ConvertTo-Json -Compress
           $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8

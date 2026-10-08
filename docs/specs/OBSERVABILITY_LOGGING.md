@@ -614,3 +614,7 @@ D165 requires:
 No password, token, WMS session material or other sensitive value may enter logs.
 
 D165 does not add a logging heartbeat or per-event provider write cadence.
+
+### D165 RTDB HA field-repair diagnostics (08/10)
+
+The existing Agent local journal may record transition-only RTDB observer/write failure and recovery with a bounded non-sensitive `HTTP_<status>` or `NETWORK_<WebExceptionStatus>` failure class. Do not log request URLs, URL query parameters, ID tokens, Firebase credential content, passwords or payloads. Repeated RTDB SSE failures must not emit a new HA-coordinator wake every retry. No extra Firebase/Firestore request, listener, heartbeat, log upload or provider write may be introduced for this diagnostic. Evaluate usage by comparable active-PDA/confirmation intervals and component-specific fallbacks; PR/CI evidence does not prove billed-read reduction.
