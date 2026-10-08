@@ -4,6 +4,7 @@ interface RuntimeLogsEnv {
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
   LOGS_FOLDER_ID?: string;
+  LAUNCHER_LOGS_FOLDER_ID?: string;
 }
 
 export type RuntimeLogActor = {
@@ -613,7 +614,21 @@ async function archiveBufferedJson(
   const content = String(item.content || "");
   if (!/^local_[a-f0-9]{32}$/.test(logId) || !filename || !content) throw new Error("INVALID_BUFFERED_RUNTIME_LOG");
 
-  const daily = await resolveRuntimeLogDailyFolder(env, token);
+  // Retain the dedicated Launcher destination even when Drive archival was
+  // deferred and the server retries hours or days after initial reception.
+  const isLauncher = /^scheduled_android_launcher-|^error_android_launcher-|^crash_android_launcher-/i.test(filename);
+  if (isLauncher && !env.LAUNCHER_LOGS_FOLDER_ID) throw new Error("LAUNCHER_LOG_FOLDER_NOT_CONFIGURED");
+  const destination = isLauncher
+    ? { ...env, LOGS_FOLDER_ID: env.LAUNCHER_LOGS_FOLDER_ID }
+    : env;
+  let sourceDate = new Date();
+  try {
+    const parsed = JSON.parse(content) as { generated_at?: string };
+    if (parsed.generated_at && Number.isFinite(Date.parse(parsed.generated_at))) {
+      sourceDate = new Date(parsed.generated_at);
+    }
+  } catch { /* Reconcile legacy malformed headers under current day. */ }
+  const daily = await resolveRuntimeLogDailyFolder(destination, token, sourceDate);
   const identity = await archiveIdentityFromEnvelope(content, logId);
   const archiveId = identity.archiveId;
   const existing = await findArchivedByIdentity(daily.id, token, archiveId);
