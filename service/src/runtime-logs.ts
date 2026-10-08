@@ -496,7 +496,15 @@ export async function uploadRuntimeLog(
     const token = await refreshGoogleAccessToken(env);
     await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
 
-    const daily = await resolveRuntimeLogDailyFolder(env, token, new Date(generatedAt));
+    // PDA Launcher runs two device-local daily slots. An evening event may
+    // legitimately be sealed into tomorrow's 13:30 bucket: archive by the
+    // filename's logical Vietnam date, not its last event timestamp.
+    const launcherDay = actor.user_id === "launcher-system"
+      && body.payload && typeof body.payload === "object"
+      ? String((body.payload as Record<string, unknown>).date || "") : "";
+    const archiveTimestamp = /^\\d{4}-\\d{2}-\\d{2}$/.test(launcherDay)
+      ? new Date(`${launcherDay}T12:00:00+07:00`) : new Date(generatedAt);
+    const daily = await resolveRuntimeLogDailyFolder(env, token, archiveTimestamp);
     const logicalBoundary = boundaryId
       ? await sha256Hex(`${source}|${actor.user_id}|${String((sanitize(body.device || {}) as Record<string, unknown>).device_id || "")}|${boundaryId}`)
       : "";
@@ -623,8 +631,16 @@ async function archiveBufferedJson(
     : env;
   let sourceDate = new Date();
   try {
-    const parsed = JSON.parse(content) as { generated_at?: string };
-    if (parsed.generated_at && Number.isFinite(Date.parse(parsed.generated_at))) {
+    const parsed = JSON.parse(content) as {
+      generated_at?: string;
+      actor?: {user_id?: string};
+      payload?: { date?: string };
+    };
+    const launcherDay = parsed.actor?.user_id === "launcher-system"
+      ? String(parsed.payload?.date || "") : "";
+    if (/^\\d{4}-\\d{2}-\\d{2}$/.test(launcherDay)) {
+      sourceDate = new Date(`${launcherDay}T12:00:00+07:00`);
+    } else if (parsed.generated_at && Number.isFinite(Date.parse(parsed.generated_at))) {
       sourceDate = new Date(parsed.generated_at);
     }
   } catch { /* Reconcile legacy malformed headers under current day. */ }
