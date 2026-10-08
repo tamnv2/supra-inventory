@@ -972,3 +972,8 @@ Owner approved the **existing Beta Worker** as the safe Cloudflare read-only Usa
 ### D166 field repair checkpoint (2026-10-09)
 
 Owner reports Agent v122 manual Usage ZIP repeatedly `D166_PROVIDER_NOT_READY`, field acceptance NOT PASS. Existing Beta Apps Script D166 hourly merge refers to undefined `d166CloudflareNumber_`; isolated server-side Gateway repair and mocked runtime regression are underway, no worker/Agent EXE change. D165 Agent v120 remains accepted PRIMARY; v122 standby field retry required after technical deployment. Stable OWNER-GATED.
+
+
+### D166 log-only observability decision (09/10/2026)
+
+Owner formally selected Agent v122 as the official **next Agent development base**, successor v123 may be built for diagnostics only. This does not retroactively prove the v122 Usage ZIP field test passed; the separate post-Gateway-repair ZIP verification remains open. 06/10 and 08/10 Usage/read anomaly analysis is durable in `docs/D166_USAGE_AUDIT_2026-10-06_08.md`; compare again after 09/10 logs before deciding an optimization plan. Agent v123/Android/Web may add bounded local-only aggregated diagnostics through existing log packaging, without any business/HA/confirm/realtime/poll/secret/provider resource change. No Firestore/DO repair authorization yet; Stable OWNER-GATED.
