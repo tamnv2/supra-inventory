@@ -58,6 +58,71 @@ export function validateLauncherRules(raw: unknown): LauncherUpdateRule[] {
   });
 }
 
+/**
+ * Before an enabled policy reaches any PDA, verify the owner's exact
+ * release scope, signed APK SHA and explicit selected cohort. This reads a
+ * public, privacy-safe receipt from the signed GitHub Release only during
+ * a ROOT policy write; it never adds network calls to PDA manifest checks.
+ *
+ * Publishing the APK alone is inert. A rule that differs by even one
+ * DeviceKey, model, version, required flag or hash is rejected.
+ */
+export async function verifyLauncherOwnerApproval(
+  rules: LauncherUpdateRule[],
+): Promise<void> {
+  const receiptByVersion = new Map<string, Record<string, unknown>>();
+  for (const rule of rules) {
+    if (!rule.enabled) continue; // Draft/paused policies may be edited offline.
+    if (!receiptByVersion.has(rule.version)) {
+      const url = `https://github.com/tamnv2/supra-pda-launcher/releases/download/v${rule.version}/launcher-rollout-receipt.json`;
+      let response: Response;
+      try {
+        response = await fetch(url, { headers: { accept: "application/json" }, redirect: "follow" });
+      } catch {
+        throw new Error("OWNER_APPROVAL_RELEASE_UNREACHABLE");
+      }
+      if (!response.ok) throw new Error("OWNER_APPROVAL_RELEASE_NOT_PUBLISHED");
+      const raw = await response.text();
+      if (raw.length > 10_000) throw new Error("OWNER_APPROVAL_RECEIPT_TOO_LARGE");
+      let receipt: Record<string, unknown>;
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("INVALID");
+        receipt = parsed as Record<string, unknown>;
+      } catch {
+        throw new Error("OWNER_APPROVAL_RECEIPT_INVALID");
+      }
+      receiptByVersion.set(rule.version, receipt);
+    }
+    const receipt = receiptByVersion.get(rule.version)!;
+    const canonicalTargets = rule.scope === "MODEL"
+      ? rule.targets.map(t => t.toUpperCase()) : rule.scope === "DEVICE"
+        ? rule.targets.map(t => t.toLowerCase()) : rule.targets;
+    const canonical = JSON.stringify({
+      scope: rule.scope, targets: canonicalTargets, version: rule.version,
+    });
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+    const scopeSha = Array.from(new Uint8Array(digest))
+      .map(n => n.toString(16).padStart(2, "0")).join("");
+    const expectedId = `owner-v${rule.version.replaceAll(".", "-")}-${rule.scope.toLowerCase()}`;
+    if (receipt.schema !== "supra.launcher.owner_receipt.v1"
+      || receipt.approved_by !== "tamnv2"
+      || !/^https:\/\/github\.com\/tamnv2\/supra-pda-launcher\/actions\/runs\/[0-9]+$/.test(String(receipt.approval_run || ""))
+      || receipt.version !== rule.version
+      || receipt.version_code !== rule.version_code
+      || receipt.scope !== rule.scope
+      || receipt.scope_sha256 !== scopeSha
+      || receipt.sha256 !== rule.sha256
+      || receipt.target_count !== rule.targets.length
+      || receipt.required !== rule.required
+      || receipt.rollout_enabled !== false
+      || receipt.policy_id !== expectedId
+      || rule.id !== expectedId) {
+      throw new Error("OWNER_APPROVAL_SCOPE_OR_SIGNATURE_MISMATCH");
+    }
+  }
+}
+
 export async function loadLauncherUpdateConfig(env: Env): Promise<LauncherUpdateConfig> {
   const response = await core(env).fetch("https://inventory-core.internal/launcher-update/policies");
   if (!response.ok) throw new Error("UPDATE_CONFIG_UNAVAILABLE");
