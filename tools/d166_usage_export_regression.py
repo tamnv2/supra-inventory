@@ -9,7 +9,7 @@ gateway=source("ops/apps-script/agent-log-gateway/Code.gs")
 usage=source("relay-agent/D160Usage.cs")
 version=source("relay-agent/VERSION").strip()
 config=source("relay-agent/AgentConfig.cs")
-assert version == "122" and "AgentBuild = 122;" in config
+assert int(version) >= 122 and f"AgentBuild = {version};" in config
 for token in (
     "Tải số liệu Usage để phân tích", "get_usage_export",
     "D160UsageAllowedForCurrentSession", "D166_SESSION_CHANGED",
