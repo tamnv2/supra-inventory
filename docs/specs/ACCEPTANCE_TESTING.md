@@ -2769,3 +2769,13 @@ Owner selects Agent v122 as development base, and explicitly authorizes v123 log
 6. Security test rejects any token/password/Authorization/WMS session/doc IDs/employee identity/PL/SKU in new diagnostics keys/fields. Counter categories are fixed allowlist; unknown routes coalesced.
 7. Field A/B 06–22h with comparable PDA/Agent load: record Firestore reads/writes, gRPC listener reconnect, RTDB SSE, agent role changes, WMS confirm time P50/P90/P99, ACK and device CPU/RAM/power. Confirm provider request count has not risen because of observability itself. Existing bundle bytes may rise slightly, record measured delta, not falsely claim 0.
 8. No production optimization before separate Owner approval; Stable OWNER-GATED; Owner controls field acceptance/release.
+
+## D166 — Android Báo hàng mandatory-update, no defer (Owner backlog, not implemented)
+
+- Given a newer **approved, trusted, signed** APK in the canonical Beta release channel for the installed package, old Android app is blocked before login **and** before any new business action in an already-authenticated app, at the next safe checkpoint. UI has **Cập nhật ngay**, and never presents **Để sau**, **Bỏ qua**, **Tiếp tục dùng bản cũ** or an Android Back/dialog-dismiss bypass.
+- A release draft, irrelevant channel/package, invalid signature/hash or unapproved candidate never becomes an automatic fleet-blocking update. Preserve D039/D055 trusted-channel versionCode, versionName, package ID, SHA-256 and signing certificate checks.
+- If a request/confirmation/ACK was already in flight when the update became required, preserve truthful terminal result and exactly-once/business idempotency; reject **new** actions after the gate activates, without silently cancelling in-flight ACK.
+- Installer cancellation, download/permission/storage failure, offline/unverifiable channel or corrupt APK show a clear blocked/retry state, **never** old-version business access. Installed valid new version is independently reverified before unblocking.
+- Verify startup, pre-login, foreground resume and supported existing-version signal paths. Update detection is bounded and may reuse existing transport/cache; no unbounded periodic release polling, new Firestore listener/document read cadence or excess GitHub/Cloudflare traffic.
+- Log failure reasons without identifiers, secrets or repetitive provider uploads. Test on real MT90/DT50 Android 11 as well as source/CI. Field PASS and Owner PASS are separate from build/release PASS.
+- This is documentation/backlog only under **D166**; no APK/runtime mutation, Beta mass update or Stable deployment is authorized by this entry. Full owner requirement: `docs/D166_APPROVED_BACKLOG.md`.
