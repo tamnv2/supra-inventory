@@ -94,7 +94,7 @@ function doPost(e) {
       // Existing Firebase role validation is mandatory; new action cannot run pre-auth.
       const mode = String(body.window || 'today');
       if (['today', 'rolling', 'shift'].indexOf(mode) < 0) throw new Error('D166_WINDOW_INVALID');
-      return json_(collectD166UsageExport_(mode));
+      return json_(collectD166UsageExport_(mode, idToken));
     }
     if (action === 'request_support_logs') {
       const requestId = String(body.request_id || '');
@@ -848,7 +848,7 @@ function json_(value) {
  * 15-minute D160 tab cache and never writes Firestore or cloud business data.
  * All Monitoring queries are restricted to the existing Beta Cloud project.
  */
-function collectD166UsageExport_(mode) {
+function collectD166UsageExport_(mode, idToken) {
   const now = new Date();
   const vietnam = 'Asia/Ho_Chi_Minh';
   let start = new Date(now.getTime() - DAY_MS);
@@ -996,9 +996,9 @@ function collectD166UsageExport_(mode) {
       driveQuota.status = 'HTTP_' + response.getResponseCode();
     }
   } catch (_) { driveQuota.status = 'READ_UNAVAILABLE'; }
-  const cloudflare = collectD166Cloudflare_(start, end);
+  const cloudflare = collectD166Cloudflare_(start, end, idToken);
   function attachCloudflare(source, fields) {
-    if (source.status !== 'OK') return;
+    if (source.status !== 'OK' && source.status !== 'PARTIAL') return;
     (source.hourly || []).forEach(point => {
       const row = hours[point.hour_start_utc];
       if (!row) return;
@@ -1009,7 +1009,7 @@ function collectD166UsageExport_(mode) {
     });
   }
   attachCloudflare(cloudflare.workers, {requests:'cf_worker_requests',errors:'cf_worker_errors',subrequests:'cf_worker_subrequests'});
-  attachCloudflare(cloudflare.durable_objects_account, {rowsRead:'cf_do_account_rows_read',rowsWritten:'cf_do_account_rows_written'});
+  // Durable Object account totals are excluded until InventoryCore namespace scope is verified.
   const hourly = Object.keys(hours).sort().map(key => hours[key]);
   return {
     ok: true,
@@ -1060,7 +1060,8 @@ function collectD166UsageExport_(mode) {
       },
       source: 'GOOGLE_CLOUD_MONITORING_AND_DRIVE_ABOUT_READ_ONLY',
       monitoring_queries_per_click: specs.length,
-      cloudflare_requests_per_click: 3,
+      cloudflare_bridge_requests_per_click: 1,
+      cloudflare_provider_queries_per_click: cloudflare.collection && cloudflare.collection.requests || 0,
       google_drive_api_reads_per_click: 1,
       firestore_document_operations_added: 0,
       provider_notes: [
@@ -1076,91 +1077,38 @@ function collectD166UsageExport_(mode) {
 
 
 // D166 provider values are read only from pre-provisioned server-side Script Properties.
-function d166CloudflareNumber_(value) {
-  const n = Number(value);
-  return (value == null || !Number.isFinite(n) || n < 0) ? null : n;
-}
-// Provider errors must never reveal raw Cloudflare response bodies or secrets.
-function d166CloudflareHttp_(url, token, payload) {
-  try {
-    const opts = {
-      method: payload ? 'post' : 'get',
-      headers: {Authorization: 'Bearer ' + token,Accept:'application/json'},
-      muteHttpExceptions: true
-    };
-    if (payload) {opts.contentType='application/json';opts.payload=JSON.stringify(payload);}
-    const res = UrlFetchApp.fetch(url, opts);
-    const code = res.getResponseCode();
-    if (code < 200 || code >= 300) return {ok:false,status:'HTTP_'+code};
-    const body = JSON.parse(res.getContentText() || '{}');
-    if (body.success === false || (Array.isArray(body.errors) && body.errors.length))
-      return {ok:false,status:'PROVIDER_ERROR'};
-    return {ok:true,body:body};
-  } catch (_) {return {ok:false,status:'UNAVAILABLE'};}
-}
-function d166CloudflareQuery_(token, account, query, start, end, dataset) {
-  const response = d166CloudflareHttp_('https://api.cloudflare.com/client/v4/graphql',token,
-    {query:query,variables:{accountTag:account,start:start.toISOString(),end:end.toISOString()}});
-  if (!response.ok) return {status:response.status,source:'CLOUDFLARE_GRAPHQL'};
-  const accounts = response.body.data && response.body.data.viewer && response.body.data.viewer.accounts || [];
-  if (accounts.length !== 1) return {status:'ACCOUNT_SCOPE_ERROR',source:'CLOUDFLARE_GRAPHQL'};
-  const rows = accounts[0][dataset];
-  if (!Array.isArray(rows)) return {status:'DATASET_UNAVAILABLE',source:'CLOUDFLARE_GRAPHQL'};
-  const hourly = {};
-  rows.forEach(row => {
-    const name = String(row.dimensions && row.dimensions.datetimeHour || '');
-    if (!/^\d{4}-\d\d-\d\dT\d\d:/.test(name)) return;
-    const hour = new Date(name).toISOString();
-    const item = hourly[hour] || (hourly[hour] = {hour_start_utc:hour});
-    const keys = dataset === 'workersInvocationsAdaptiveGroups'
-      ? ['requests','errors','subrequests'] : ['rowsRead','rowsWritten','duration'];
-    keys.forEach(key=>{
-      const n = d166CloudflareNumber_(row.sum && row.sum[key]);
-      if (n !== null) item[key]=(item[key] || 0)+n;
-    });
+// Gateway forwards only authenticated Agent ID tokens. It neither receives nor
+// stores Cloudflare API credentials; the scoped Worker holds the Cloudflare secret.
+function collectD166Cloudflare_(start,end,idToken) {
+  const unavailable = (status) => ({
+    workers: {status:status,scope:'INVENTORY_BETA_WORKER_ONLY'},
+    durable_objects_account: {status:'NAMESPACE_NOT_CANONICALLY_SCOPED',scope:'SHARED_ACCOUNT_NOT_QUERIED'},
+    billing_account: {status:status,scope:'SHARED_ACCOUNT_UNATTRIBUTABLE'},
+    collection: {requests:0}
   });
-  return {
-    status: rows.length >= 100 ? 'TRUNCATED' : (rows.length ? 'OK' : 'NO_DATA'),
-    source:'CLOUDFLARE_GRAPHQL',row_count:rows.length,
-    hourly:Object.keys(hourly).sort().map(key=>hourly[key]),
-    sampled_or_delayed_possible:true
-  };
-}
-function collectD166Cloudflare_(start,end) {
-  const props=PropertiesService.getScriptProperties();
-  const token=String(props.getProperty('D166_CF_READ_TOKEN') || '');
-  const account=String(props.getProperty('D166_CF_ACCOUNT_ID') || '');
-  const missing={status:'NOT_CONFIGURED',source:'CLOUDFLARE'};
-  if (!/^[a-f0-9]{32}$/.test(account) || !/^[A-Za-z0-9_-]{20,256}$/.test(token))
-    return {workers:missing,durable_objects_account:missing,billing_account:missing};
-  const workerQuery='query($accountTag:string,$start:string,$end:string){viewer{accounts(filter:{accountTag:$accountTag}){workersInvocationsAdaptiveGroups(limit:100,filter:{scriptName:"supra-inventory-beta",datetime_geq:$start,datetime_leq:$end}){dimensions{datetimeHour}sum{requests errors subrequests}}}}}';
-  const doQuery='query($accountTag:string,$start:string,$end:string){viewer{accounts(filter:{accountTag:$accountTag}){durableObjectsPeriodicGroups(limit:100,filter:{datetime_geq:$start,datetime_leq:$end}){dimensions{datetimeHour}sum{rowsRead rowsWritten duration}}}}}';
-  const workers=d166CloudflareQuery_(token,account,workerQuery,start,end,'workersInvocationsAdaptiveGroups');
-  workers.scope='INVENTORY_BETA_WORKER_ONLY';
-  const durable=d166CloudflareQuery_(token,account,doQuery,start,end,'durableObjectsPeriodicGroups');
-  // InventoryCore namespace ID is not canonically registered. This account
-  // aggregate is not Inventory usage; do not expose other namespaces' IDs.
-  durable.scope='SHARED_ACCOUNT_UNATTRIBUTABLE_NOT_INVENTORY';
-  const response=d166CloudflareHttp_(
-    'https://api.cloudflare.com/client/v4/accounts/'+account+'/billable-usage',token,null);
-  const billing={
-    status:response.ok?'UNSUPPORTED_RESPONSE':response.status,
-    source:'CLOUDFLARE_BILLABLE_USAGE_V1',period:'CURRENT_MONTH_PROVIDER_LAG',
-    scope:'SHARED_ACCOUNT_UNATTRIBUTABLE_NOT_INVENTORY',actual_invoice:false
-  };
-  if (response.ok && Array.isArray(response.body.result)) {
-    const records=response.body.result;
-    billing.status=records.length>=250?'TRUNCATED':'OK';
-    billing.cost_data_complete=records.every(row=>typeof row.BilledCost==='number');
-    billing.metrics=records.slice(0,250).map(row=>({
-      metric_id:String(row.x_BillableMetricId||'').slice(0,100),
-      description:String(row.ChargeDescription||'').slice(0,120),
-      charge_period_start:String(row.ChargePeriodStart||'').slice(0,24),
-      consumed_quantity:d166CloudflareNumber_(row.ConsumedQuantity),
-      consumed_unit:String(row.ConsumedUnit||'').slice(0,40),
-      billed_cost:typeof row.BilledCost==='number'?row.BilledCost:null,
-      billing_currency:String(row.BillingCurrency||'').slice(0,12)
-    }));
-  }
-  return {workers:workers,durable_objects_account:durable,billing_account:billing};
+  if (!idToken) return unavailable('AUTH_REQUIRED');
+  try {
+    const res=UrlFetchApp.fetch(
+      'https://inventory-beta.supra.cc.cd/api/agent/d166/usage',{
+        method:'post',
+        contentType:'application/json',
+        headers:{authorization:'Bearer '+idToken},
+        payload:JSON.stringify({start_at:start.toISOString(),end_at:end.toISOString()}),
+        muteHttpExceptions:true
+      });
+    const status=res.getResponseCode();
+    if(status!==200) return unavailable('WORKER_HTTP_'+status);
+    const parsed=JSON.parse(res.getContentText()||'{}');
+    if(parsed.ok!==true ||
+       parsed.service!=='SUPRA_D166_CLOUDFLARE_WORKER_READONLY' ||
+       parsed.project!==PROJECT_ID ||
+       !parsed.cloudflare) return unavailable('WORKER_IDENTITY_ERROR');
+    const d=parsed.cloudflare;
+    return {
+      workers:d.workers || unavailable('MISSING').workers,
+      durable_objects_account:d.durable_objects_account || unavailable('MISSING').durable_objects_account,
+      billing_account:d.billing_account || unavailable('MISSING').billing_account,
+      collection:d.collection || {requests:0}
+    };
+  } catch (_) {return unavailable('WORKER_UNAVAILABLE');}
 }
