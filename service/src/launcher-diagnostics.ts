@@ -7,6 +7,7 @@ interface LauncherDiagnosticEnv {
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
   LOGS_FOLDER_ID?: string;
+  LAUNCHER_LOGS_FOLDER_ID?: string;
 }
 
 const CORE_NAME = "inventory-core";
@@ -115,8 +116,10 @@ export async function handleLauncherDiagnosticLog(
   const summary = record(payload.summary);
 
   try {
+    // Use an independent root folder for Launcher; preserve Inventory logs root.
+    if (!env.LAUNCHER_LOGS_FOLDER_ID) return json({ error: "LAUNCHER_LOG_FOLDER_NOT_CONFIGURED" }, 503);
     const result = await uploadRuntimeLog(
-      env,
+      { ...env, LOGS_FOLDER_ID: env.LAUNCHER_LOGS_FOLDER_ID },
       {
         user_id: "launcher-system",
         employee_code: null,
