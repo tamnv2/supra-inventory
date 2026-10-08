@@ -5349,6 +5349,31 @@
       "closed": true,
       "owner_result": "PASS__GOV-QUOTA-20261008",
       "owner_evidence": "Owner explicitly replied GOV-QUOTA-20261008 PASS and requested opening D166."
+    },
+    {
+      "id": "OA102",
+      "status": "PENDING_D166_IMPLEMENTATION_SCOPE_APPROVAL",
+      "title": "Approve D166 Usage ZIP implementation scope",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
+      "reason_owner_only": "Owner explicitly opened D166 for research and proposal first. Any agent UI/ZIP implementation or expanded provider access must receive explicit approval after review of cost, security, quota, affected components and regression risks.",
+      "prerequisites": {
+        "accepted_governance": "GOV-QUOTA-20261008_OWNER_PASS",
+        "accepted_runtime": "D165_OWNER_PASS_AGENT_V120_ANDROID_VC102",
+        "proposal": "docs/D166_USAGE_EVIDENCE_EXPORT_PROPOSAL.md",
+        "source": "RESEARCH_ONLY_NO_IMPLEMENTATION"
+      },
+      "shortest_action": [
+        "Review proposed Phase A: on-demand local Desktop ZIP of existing cached Agent Usage, Today VN / last 24h, manifest, N/A and no runtime/provider changes outside approved implementation scope.",
+        "Approve Phase A implementation explicitly or revise its boundaries. Phase B Cloudflare/server token, Firebase RTDB metric additions, Google API/Billing import require separate explicit approval."
+      ],
+      "pass_criteria": [
+        "No deployment, provider secret, billing configuration or runtime code from proposal-only merge.",
+        "Protect D165 confirmation/HA, Web/Android and existing privileged Usage allowlist.",
+        "Verify costs and missing-provider reporting are honest; no claim of exact expense from Monitoring time series."
+      ],
+      "remaining_owner_action": "Owner decision on D166 implementation phase/scope after reading analysis. Owner may supply post-22h Agent/Android/Web logs separately for HA/usage root-cause review.",
+      "closed": false
     }
   ]
 }
