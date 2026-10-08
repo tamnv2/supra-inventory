@@ -1896,3 +1896,7 @@ Source branch `repair/d165-rtdb-ha-rule-fallback-v120` is the Owner-approved D16
 Repair PR #501 merged on main `8da8f905caee7574c359f23f74022410c2506b5d`. PR 14/14 CI PASS; main 11/11 CI PASS. Existing Beta RTDB rules deployment `37753063966` completed PUT and readback verification PASS. Agent v120 release `406624841` and main Agent workflow `37753064105` PASS; `inventory-channel` now advertises manually installable v120, with EXE SHA-256 `72c59e4fb29737f4edac45426d9886ca5f7346ab51fb4ce49c6ab45e8e1775ad`. Signed Android Beta remains vc102 with no APK source change on this repair. Stable is untouched.
 
 **Owner field not yet PASS:** install v120 on NEXT_A only, verify connected RTDB/WMS, wait for zero in-flight confirmation, perform authorized targeted PRIMARY handoff, confirm real Picker PickList/ACK, then update remaining Agents one at a time. Compare Firebase billed Reads/Writes on similar workload before declaring usage success. D165 remains unaccepted until explicit Owner PASS.
+
+## 2026-10-08 — D165 Owner PASS / accepted Beta base
+
+Owner explicitly accepts released D165 Agent v120 and all deployed D165 Beta components as the current baseline. Prior "Owner field pending" text is historical and superseded. The acceptance **does not claim** recurring HA PRIMARY reversions, RTDB HTTP 403/SSE timeout or abnormal Firestore usage are resolved. These findings are deferred for D166 **after Owner submits full end-of-shift logs at/after 22:00 VN**. No D166 active code change, no rollback of Agent v120, no APK update and no Stable promotion.
