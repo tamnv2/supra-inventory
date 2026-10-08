@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "GOV-QUOTA-20261008",
     "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
     "current_change_id": "D166",
-    "current_change_status": "D166_V122_ZIP_FIELD_FAIL_PROVIDER_NOT_READY__GATEWAY_HOURLY_PARSER_REPAIR_IN_PROGRESS__OWNER_NOT_PASS",
+    "current_change_status": "D166_V122_USAGE_GATEWAY_HELPER_REPAIR_TECHNICAL_PASS__OWNER_FIELD_ZIP_RETEST_NOT_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D166_BETA_APPS_SCRIPT_READONLY_EXPORT_REPAIR_PENDING__D165_AGENT_V120_ACCEPTED__WMS_HA_ACK_UNCHANGED",
+    "runtime_impact": "EXISTING_BETA_GATEWAY_D166_PARSER_FIX_DEPLOY_PASS_37818739635__D165_AGENT_V120_ACCEPTED__NO_AGENT_OR_WORKER_REDEPLOY",
     "resource_change": "EXISTING_BETA_WORKER_SECRET_BINDING_PROPOSED__OWNER_APPROVED__NOT_DEPLOYED__STABLE_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D166__PROPOSAL_ONLY",
@@ -6301,7 +6301,7 @@
     "candidate_pr": 509,
     "deployment_gate": "OWNER_REPORTED_D160_MIGRATION_WORKFLOW_DISABLED__VERIFY_PROVIDER_DISABLED_AND_PRESERVE_D165_LOG_AUTH",
     "ci_status": "D165_HA_WMS_AND_AGENT_BUILD_PASS__D159_GATEWAY_REMOTE_TIMEOUT_RETRY_PENDING",
-    "field_acceptance": "NOT_PASS__PROVIDER_NOT_READY__OWNER_RETEST_PENDING",
+    "field_acceptance": "NOT_PASS__GATEWAY_REPAIR_TECHNICAL_PASS__OWNER_V122_ZIP_RETEST_PENDING",
     "phase_c_inputs": [
       "ZIP_PROVIDER_USAGE_ON_DEMAND",
       "OWNER_PROVIDER_SCREENSHOTS",
@@ -6334,7 +6334,7 @@
     },
     "phase_c": "AWAIT_OWNER_V121_USAGE_ZIP_AND_PROVIDED_PROVIDER_SCREENSHOTS_PLUS_AGENT_ANDROID_WEB_LOGS",
     "cloudflare_candidate": {
-      "status": "OWNER_FIELD_NOT_PASS__D166_PROVIDER_NOT_READY__GATEWAY_UNDEFINED_NUMBER_HELPER",
+      "status": "D166_GATEWAY_HOURLY_HELPER_FIXED__TECHNICAL_DEPLOY_PASS__OWNER_FIELD_RETEST_PENDING",
       "branch": "feature/d166-cloudflare-usage-readonly",
       "pr": 511,
       "agent_candidate": 122,
@@ -6345,7 +6345,7 @@
       "durable_objects": "BLOCKED_NAMESPACE_NOT_CANONICALLY_SCOPED",
       "google_billing_bigquery": "NOT_AUTHORIZED",
       "deployment": "POST_MERGE_BETA_WORKER_HEALTH_AND_SECRET_NAME_READBACK_PENDING",
-      "next": "OWNER_INSTALL_V122_STANDBY__EXPORT_ZIP__CHECK_PROVIDER_SECTIONS_AND_WMS_HA_ACK__EXPLICIT_OWNER_PASS",
+      "next": "OWNER_RETRY_AGENT_V122_ON_STANDBY__SEND_USAGE_ZIP_OR_ERROR",
       "accepted_runtime": "D165_AGENT_V120",
       "stable": "OWNER_GATED_UNCHANGED",
       "merged_pr": 511,
@@ -6368,13 +6368,21 @@
       "prior_smoke_404": "OBSERVED_RUN_37815507756__ROOT_CAUSE_NOT_PROVEN",
       "gateway_deploy": "PASS_37815507761",
       "agent_v122": "TECHNICAL_RELEASE_PASS_37815507718__MANUAL_STANDBY_ONLY",
-      "owner_field_pass": "NOT_PASS__RETRY_V122_ZIP_AFTER_GATEWAY_DEPLOY",
+      "owner_field_pass": "NOT_PASS__AWAIT_RETRY_AFTER_FIX",
       "last_owner_field_report": "2026-10-09 00:27-00:33 VN__3X D166_PROVIDER_NOT_READY",
       "root_source_defect": "D166_CLOUDFLARE_NUMBER_HELPER_UNDEFINED_IN_APPS_SCRIPT",
       "root_runtime_cause": "HYPOTHESIS_PENDING_AUTHENTICATED_GATEWAY_READBACK",
       "repair_branch": "fix/d166-cloudflare-hourly-number-helper",
       "repair_scope": "APPS_SCRIPT_GATEWAY_ONLY_NO_AGENT_EXE",
-      "ci_gate": "VM_GATEWAY_OK_HOURLY_AND_HTTP429_PARTIAL"
+      "ci_gate": "VM_GATEWAY_OK_HOURLY_AND_HTTP429_PARTIAL",
+      "repair_pr": 514,
+      "repair_merge_sha": "4600acca2b7e2934480006bc31a0329816553aba",
+      "repair_gateway_deploy_run": 37818739635,
+      "repair_gateway_deploy_status": "PASS_EXISTING_SCRIPT_IN_PLACE_REST_REVISION_AND_SAFE_LIVE_HANDLER",
+      "repair_ci": "PASS_14_OF_14_EXECUTING_CHECKS",
+      "repair_regression": "PASS_MOCK_WORKER_OK_HOURLY_AND_HTTP429_BILLING403_PARTIAL",
+      "app_binary": "AGENT_V122_UNCHANGED__NO_REINSTALL_REQUIRED",
+      "authenticated_provider": "NOT_FIELD_RETESTED"
     }
   },
   "launcher_v0325_update_logs": {

@@ -5352,7 +5352,7 @@
     },
     {
       "id": "OA102",
-      "status": "D166_V122_FIELD_NOT_PASS__GATEWAY_FIX_IN_PROGRESS",
+      "status": "PENDING_OWNER_V122_ZIP_RETEST_AFTER_D166_GATEWAY_FIX_PASS",
       "title": "Approve D166 Usage ZIP implementation scope",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
@@ -5375,7 +5375,7 @@
         "Candidate v121 export ZIP is actually verified on standby Windows, with no secrets or extra background reads.",
         "Source missing/overquota represented as N/A plus dashboard screenshot URL; soft spend budget maintained."
       ],
-      "remaining_owner_action": "Chờ Gateway D166 fix deploy và CI PASS, sau đó giữ Agent v122 trên máy phụ, xuất lại ZIP Usage (không cần cài EXE mới) và gửi ZIP hoặc lỗi chính xác. Không chuyển Agent phụ lên PRIMARY và không sửa v120.",
+      "remaining_owner_action": "Không cần cập nhật lại Agent. Giữ v120 PRIMARY; trên Agent phụ đã cài v122, vào Thông tin Usage → Tải số liệu Usage để phân tích, chọn 24 giờ hoặc Hôm nay, gửi ZIP hoặc ảnh lỗi mới. Sau khi đối chiếu Cloudflare trong ZIP và WMS/HA/ACK, Owner phản hồi D166 PASS hoặc NOT PASS.",
       "closed": false,
       "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs",
       "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs",
@@ -5400,12 +5400,13 @@
         "worker_run": 37816448917,
         "agent_release_run": 37815507718,
         "gateway_run": 37815507761,
-        "owner_next": "V122_STANDBY_ZIP_AND_WMS_HA_ACK_FIELD_RETEST__OWNER_PASS_REQUIRED",
+        "owner_next": "EXISTING_V122_STANDBY_ZIP_RETRY__NO_EXE_UPDATE_REQUIRED",
         "closed": false,
         "field_error": "2026-10-09_00:27_00:33_D166_PROVIDER_NOT_READY",
-        "field_status": "NOT_PASS__SERVER_SIDE_FIX_PENDING",
+        "field_status": "NOT_PASS_UNTIL_V122_ZIP_RETRY",
         "next": "RETRY_V122_ZIP_AFTER_GATEWAY_REDEPLOY",
-        "no_owner_action_until_deploy": true
+        "no_owner_action_until_deploy": false,
+        "gateway_fix": "PR514_MERGED_4600ACCA__DEPLOY_37818739635_PASS"
       }
     }
   ]
