@@ -6167,4 +6167,29 @@
     "code_deletion": "NONE__HISTORICAL_REUSE_REFERENCE_RETAINED",
     "stable": "OWNER_GATED_UNTOUCHED"
   }
+,
+  "launcher_v0325_update_logs": {
+    "status": "IMPLEMENTED_ON_ISOLATED_BRANCH__PR500_OPEN__CI_AND_OWNER_FIELD_PASS_PENDING__NOT_DEPLOYED",
+    "change_date": "2026-10-08",
+    "authority": "Owner request: common Launcher v0.3.25 foundation, target future updates by ALL/MODEL/DEVICE, DT50-only deep battery logs, 13:30 and 21:30 VN +/-15m daily log uploads",
+    "repository_launcher": "tamnv2/supra-pda-launcher PR32",
+    "repository_inventory": "tamnv2/supra-inventory PR500",
+    "api": {
+      "manifest": "/downloads/launcher/manifest?device_key=<registered_sha256_key>",
+      "policy_get_put": "/api/admin/launcher/update-policies",
+      "admin_write": "ROOT_ONLY",
+      "storage": "inventory-core app_config, optimistic revision",
+      "fallback": "stable v0.3.25 for unidentified/old clients"
+    },
+    "drive": {
+      "folder_id": "1Gm-O5nl_ITXZJ1SaLDAOeYaYcpmJ16YO",
+      "folder_name": "PDA Management",
+      "behavior": "date subfolder, buffered retry stays in same root",
+      "shared_logs": "unchanged"
+    },
+    "rollout": "NOT_RELEASED__DO_NOT_PROMOTE_UNTIL_CI_AND_PHYSICAL_PDA_TEST",
+    "service_usage": "on-demand registry DO read + revision config read per manifest; no new Firebase listeners/periodic usage",
+    "security": "no raw Serial/MEID in Launcher battery logs; policy targets device_key; explicit ROOT auth for writes",
+    "stable": "UNTOUCHED"
+  }
 }
