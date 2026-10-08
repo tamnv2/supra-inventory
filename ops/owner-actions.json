@@ -5352,7 +5352,7 @@
     },
     {
       "id": "OA102",
-      "status": "PENDING_D166_IMPLEMENTATION_SCOPE_APPROVAL",
+      "status": "OWNER_APPROVED_A_B_C__D166_CANDIDATE_CI_AND_SAFE_GATE_PENDING",
       "title": "Approve D166 Usage ZIP implementation scope",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
@@ -5372,8 +5372,9 @@
         "Protect D165 confirmation/HA, Web/Android and existing privileged Usage allowlist.",
         "Verify costs and missing-provider reporting are honest; no claim of exact expense from Monitoring time series."
       ],
-      "remaining_owner_action": "Owner decision on D166 implementation phase/scope after reading analysis. Owner may supply post-22h Agent/Android/Web logs separately for HA/usage root-cause review.",
-      "closed": false
+      "remaining_owner_action": "No owner action for source changes. Manual standby test only after safe verified release; do not update active v120 yet.",
+      "closed": false,
+      "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs"
     }
   ]
 }
