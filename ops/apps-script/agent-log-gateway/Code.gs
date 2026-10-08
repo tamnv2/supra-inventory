@@ -998,8 +998,10 @@ function collectD166UsageExport_(mode, idToken) {
   } catch (_) { driveQuota.status = 'READ_UNAVAILABLE'; }
   const cloudflare = collectD166Cloudflare_(start, end, idToken);
   function attachCloudflare(source, fields) {
-    if (source.status !== 'OK' && source.status !== 'PARTIAL') return;
-    (source.hourly || []).forEach(point => {
+    if (!source || (source.status !== 'OK' && source.status !== 'PARTIAL') ||
+        !Array.isArray(source.hourly)) return;
+    source.hourly.forEach(point => {
+      if (!point || typeof point.hour_start_utc !== 'string') return;
       const row = hours[point.hour_start_utc];
       if (!row) return;
       Object.keys(fields).forEach(key => {
@@ -1076,7 +1078,15 @@ function collectD166UsageExport_(mode, idToken) {
 
 
 
-// D166 provider values are read only from pre-provisioned server-side Script Properties.
+// D166 provider values are read only from the existing scoped Beta Worker.
+// D166: Cloudflare analytics values can be null, missing, numeric strings or
+// non-finite; never turn unavailable data into zero in exported CSV.
+function d166CloudflareNumber_(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
 // Gateway forwards only authenticated Agent ID tokens. It neither receives nor
 // stores Cloudflare API credentials; the scoped Worker holds the Cloudflare secret.
 function collectD166Cloudflare_(start,end,idToken) {
