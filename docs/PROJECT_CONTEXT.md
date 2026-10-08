@@ -949,3 +949,6 @@ The Owner's successor direction is a future consolidated model for **Nhân sự,
 
 Current accepted Inventory base remains D163. Current open change is D165. Stable remains OWNER-GATED.
 
+## 2026-10-08 — D165 Owner PASS of deployed Beta baseline; D166 later after 22:00 logs
+
+Owner explicitly accepts all D165 code as already deployed, including Agent `v120`, signed Android `vc102` and deployed Beta Web/Worker/RTDB HA Rules. D165 is closed and becomes the accepted base. **This is not a rollback and not a technical assertion that HA/Usage are healthy.** Field-observed repeated PRIMARY takeover after targeted handoff, RTDB SSE/HTTP 403/timeout behavior, and high Firestore Reads/Writes remain known issues for comprehensive D166 analysis after the Owner sends end-of-shift 06:00–22:00 logs. Do not open D166 or mutate any code before those materials are reviewed and Owner agrees to the optimization plan. Stable OWNER-GATED unchanged.
