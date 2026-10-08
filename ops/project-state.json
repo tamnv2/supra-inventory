@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D163",
     "accepted_base_evidence": "OWNER_EXPLICIT_D163_PASS__2026_10_06__PR_461_MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__AGENT_V114__ANDROID_VC97",
     "current_change_id": "D165",
-    "current_change_status": "D165_PR497_MERGED_MAIN_1278B202__MAIN_11_OF_11_PASS__BETA_WORKER_DEPLOY_PASS__AGENT_V119_RELEASED__OWNER_FIELD_AND_USAGE_PASS_PENDING",
+    "current_change_status": "D165_ACTIVE_V120_HA_RTDB_REPAIR_BRANCH_CI_PENDING__V119_LIVE__OWNER_FIELD_AND_USAGE_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "OA100_OWNER_FIELD_RETEST_AGENT_V119_PRIVILEGED_OTP_AND_HHMM__THEN_RETEST_VC102_SKIP_CORRECTION_AND_COMPARE_USAGE__EXPLICIT_OWNER_D165_PASS",
+    "next_action": "D165_V120_HA_REPAIR_BRANCH_TO_PR__CI_AND_DEPLOY_BETA__OWNER_STANDBY_FIRST_THEN_TARGETED_HANDOFF__OWNER_USAGE_PASS_PENDING",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -6121,6 +6121,32 @@
         "STABLE_OWNER_GATED"
       ],
       "owner_field_pass": "PENDING"
+    },
+    "ha_rtdb_usage_repair_2026_10_08": {
+      "status": "OWNER_APPROVED_SOURCE_REPAIR__V120_PR_CI_PENDING__BETA_DEPLOY_RELEASE_NOT_YET_VERIFIED__OWNER_FIELD_PENDING",
+      "owner_command": "UPGRADE_STANDBY_FIRST__TARGETED_HANDOFF_AFTER_NO_ACTIVE_BATCH__FIELD_PASS_BEFORE_OTHER_AGENTS",
+      "root_cause": "AGENT_PICKPACK_ADMIN_TOKEN_VS_RTDB_HA_ADMIN_ONLY_RULES__OBSERVED_FIRESTORE_LEASE_FALLBACK",
+      "impacted_components": [
+        "firebase/database.rules.json (Beta scoped ha_liveness only)",
+        "relay-agent/RtdbHaLiveness.cs",
+        "relay-agent/VERSION",
+        "relay-agent/AgentConfig.cs",
+        "Agent regression guard"
+      ],
+      "untouched": [
+        "android",
+        "web",
+        "service",
+        "stable",
+        "other RTDB branches",
+        "WMS confirmation mutation/ACK semantics"
+      ],
+      "security": "MATCHED_ADMIN_OR_PICKPACK_ADMIN_AGENT_ROLE_BASE_ROLE__NO_SECRETS_IN_LOGS",
+      "safety": "15_SECOND_FAILOVER_OBJECTIVE_UNCHANGED__FIRESTORE_AUTHORITY_FALLBACK__MANUAL_UPDATES_ONLY",
+      "rollout": "RELEASE_V120_AFTER_PR_CI_PASS__OWNER_UPDATES_NEXT_A__FIELD_VERIFY__AUTHORIZED_HANDOFF_WHEN_IDLE__UPGRADE_REMAINING_ONE_BY_ONE",
+      "usage_goal": "COMPARE_HOURLY_FIRESTORE_READS_WRITES_RTDB_HEALTH_WITH_EQUIVALENT_PDA_AND_CONFIRMATION_LOAD__DO_NOT_CLAIM_SAVING_PRE_FIELD",
+      "accepted_base": "D163_OWNER_PASS_UNCHANGED",
+      "owner_pass": "PENDING"
     }
   },
   "launcher_daily_password": {
