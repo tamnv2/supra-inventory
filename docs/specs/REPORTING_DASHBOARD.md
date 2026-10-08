@@ -340,3 +340,7 @@ The earlier D166 proposal-only entry is superseded: in v121 candidate the existi
 ### D166 Cloudflare Usage ZIP candidate — not deployed/field accepted
 
 The optional exported `providers/cloudflare_workers.json` contains scoped Beta Worker metrics; `providers/cloudflare_do_account.json` and `providers/cloudflare_billing_account.json` are explicitly shared-account, not Inventory costs. Hourly CSV columns are prefixed `cf_worker_` or `cf_do_account_` to prevent blending sources. Only manual ZIP export, independently of Agent confirmation/failover/ACK. Unknown/missing and truncated records are separate statuses. Billing data may lag and is not an invoice. GitHub Beta Environment token presence alone is not enough to activate collection until provisioned server-side.
+
+### D166 Cloudflare Usage bridge revised
+
+The proposed Agent v122 ZIP may now contain `providers/cloudflare_workers.json`, `providers/cloudflare_do_account.json` (explicit blocked namespace status, no unscoped DO data), and `providers/cloudflare_billing_account.json` (shared-account Workers-family metered usage, not Inventory invoice). The time-series CSV carries `cf_worker_requests`, `cf_worker_errors`, `cf_worker_subrequests`; DO account columns remain blank until scoped. The Agent still offers only manual Today VN / rolling 24h / 06–22h export. Server-only Cloudflare read access uses existing Beta Worker, never Script Properties/Agent credentials. ZIP must distinguish provider sampling, hourly boundaries, shared account, N/A and failed metrics.
