@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D165_PR501_MERGED_MAIN_8DA8F905__MAIN_11_OF_11_PASS__BETA_RTDB_RULES_READBACK_PASS__AGENT_V120_RELEASED__OWNER_FIELD_USAGE_PASS_PENDING__STABLE_UNTOUCHED",
+      "status": "D165_OWNER_ACCEPTED_PASS_2026_10_08__BETA_RTDB_RULES_V120_AGENT_AND_VC102_ANDROID_ACCEPTED_AS_DEPLOYED__HA_USAGE_KNOWN_ISSUES_DEFERRED__STABLE_UNTOUCHED",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -2621,7 +2621,7 @@
     "closed": true
   },
   "d165_proposal": {
-    "status": "D165_HA_RTDB_BETA_REPAIR_DEPLOY_READBACK_PASS__OWNER_FIELD_USAGE_PASS_PENDING",
+    "status": "D165_OWNER_PASS_AS_DEPLOYED__EXISTING_BETA_RTDB_HA__D166_USAGE_ANALYSIS_PENDING",
     "beta_rtdb": "BETA_HA_LIVENESS_ACTIVE__ROLE_PARITY_RULE_DEPLOY_READBACK_PASS__MAIN_8DA8F905__RUN_37753063966__FIRESTORE_AUTHORITY_RETAINED",
     "d1": "DEFERRED_NOT_D165"
   },
@@ -2640,7 +2640,19 @@
     "release_sha256": "72c59e4fb29737f4edac45426d9886ca5f7346ab51fb4ce49c6ab45e8e1775ad",
     "android_release": "UNCHANGED_SIGNED_BETA_VC102__NO_08_10_ANDROID_SOURCE_DIFF",
     "update_policy": "MANUAL_ONLY_STANDBY_FIRST",
-    "owner_field_pass": "PENDING",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "owner_field_pass": "PASS_D165_AS_DEPLOYED__KNOWN_HA_ROLE_FLAP_AND_QUOTA_DEFERRED_TO_D166",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "accepted_base": "D165_OWNER_PASS_2026_10_08",
+    "known_deferred_issues": "RTDB_SSE_PARSE_TIMEOUT_HTTP403__PRIMARY_REVERSIONS__FIRESTORE_READS_WRITES_QUOTA__NO_FIX_RELEASE_IN_D165"
+  },
+  "d165_closeout_2026_10_08": {
+    "status": "OWNER_EXPLICIT_PASS__BASELINE_FROZEN_AS_DEPLOYED",
+    "accepted_change_id": "D165",
+    "agent_release": "relay-agent-v120",
+    "android_release": "beta-vc102",
+    "deployed_rules_run": 37753063966,
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "d166": "NOT_OPEN__OWNER_END_SHIFT_LOGS_AFTER_22H_PENDING",
+    "known_ha_issue": "PRIMARY_ROLE_REVERSIONS_AFTER_HANDOFF_REMAIN_FOR_D166"
   }
 }
