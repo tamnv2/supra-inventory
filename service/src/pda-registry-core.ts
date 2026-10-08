@@ -64,6 +64,40 @@ export async function handlePdaRegistryCoreRequest(
 ): Promise<Response | null> {
   const url = new URL(request.url);
 
+  // Stored in the same Durable Object as the PDA registry; the public endpoint
+  // is read-only. Only the authenticated Worker admin route can write policies.
+  if (request.method === "GET" && url.pathname === "/launcher-update/policies") {
+    const row = state.storage.sql.exec<ConfigRow>(
+      "SELECT key, value_json, updated_at FROM app_config WHERE key = ? LIMIT 1",
+      "launcher_update:policies",
+    ).toArray()[0];
+    return response(row ? JSON.parse(String(row.value_json)) : { revision: 0, rules: [] });
+  }
+
+  if (request.method === "PUT" && url.pathname === "/launcher-update/policies") {
+    const body = await request.json() as Record<string, unknown>;
+    const currentRow = state.storage.sql.exec<ConfigRow>(
+      "SELECT key, value_json, updated_at FROM app_config WHERE key = ? LIMIT 1",
+      "launcher_update:policies",
+    ).toArray()[0];
+    const previous = currentRow ? JSON.parse(String(currentRow.value_json)) as {revision?:number} : {};
+    if (body.expected_revision !== (previous.revision || 0)) return response({ error: "UPDATE_POLICY_REVISION_CONFLICT" }, 409);
+    const next = {
+      revision: (previous.revision || 0) + 1,
+      rules: body.rules,
+      updated_by: String(body.updated_by || "root").slice(0, 80),
+      updated_at: new Date().toISOString(),
+    };
+    state.storage.sql.exec(
+      `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+       VALUES (?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET
+         value_json=excluded.value_json, updated_at=excluded.updated_at,
+         updated_by=excluded.updated_by`,
+      "launcher_update:policies", JSON.stringify(next), next.updated_at, next.updated_by,
+    );
+    return response(next);
+  }
+
   if (request.method === "GET" && url.pathname === "/pda-registry/status") {
     const deviceKey = String(url.searchParams.get("device_key") || "").trim().toLowerCase();
     if (!DEVICE_KEY_RE.test(deviceKey)) return response({ error: "invalid_device_key" }, 400);
