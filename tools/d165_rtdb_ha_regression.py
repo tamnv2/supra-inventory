@@ -32,7 +32,7 @@ assert "return \"HTTP_\" + (int)response.StatusCode" in agent
 assert "idToken" not in agent.split("private static string SafeFailureCode(", 1)[1].split("private static long NowMs()", 1)[0]
 config = (root / "relay-agent/AgentConfig.cs").read_text(encoding="utf-8")
 version = (root / "relay-agent/VERSION").read_text(encoding="utf-8").strip()
-assert version == "120" and "internal const int AgentBuild = 120;" in config
+assert version.isdigit() and int(version) >= 120 and ("internal const int AgentBuild = " + version + ";") in config
 program = (root / "relay-agent/Program.cs").read_text(encoding="utf-8")
 assert "// D161: Agent update is manual-only" in program
 assert "_updateTimer.Stop();" in program
