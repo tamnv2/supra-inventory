@@ -2680,7 +2680,7 @@
     "known_ha_issue": "PRIMARY_ROLE_REVERSIONS_AFTER_HANDOFF_REMAIN_FOR_D166"
   },
   "d166_usage_zip": {
-    "status": "OWNER_APPROVED_A_B_C__V121_CANDIDATE_UNRELEASED",
+    "status": "AGENT_V121_TECHNICAL_RELEASE_PASS__EXISTING_BETA_GATEWAY_DEPLOY_PASS__OWNER_FIELD_PENDING",
     "owner_approval": "2026-10-08",
     "scope": "INVENTORY_BETA_ONLY",
     "agent_candidate": "121",
@@ -2708,6 +2708,23 @@
       "monthly_sent_limit",
       "storage_total_bytes",
       "rules_evaluation_count"
-    ]
+    ],
+    "release": {
+      "tag": "relay-agent-v121",
+      "release_id": 407021794,
+      "merge_sha": "93d2104194226d411882549938ea1fdc4c00bab5",
+      "assets": [
+        "Agent.Auto.Confirm.Pick.Pack.exe",
+        "Agent.Auto.Confirm.Pick.Pack.exe.sha256"
+      ],
+      "channel": "inventory-channel"
+    },
+    "gateway": {
+      "existing_scoped_script_only": true,
+      "deploy_run": 37805621341,
+      "status": "PASS"
+    },
+    "accepted_runtime": "D165_AGENT_V120_OWNER_PASS__NO_FLEET_UPDATE",
+    "legacy_d159_ci": "FAIL_CONFIGURED_RETIRED_D159_URL__TRACK_SEPARATELY"
   }
 }
