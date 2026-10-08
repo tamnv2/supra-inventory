@@ -107,9 +107,14 @@ jobs:
           [[ "${CF_ACCOUNT_ID:-}" =~ ^[0-9a-fA-F]{32}$ ]] || { echo "::error::Cloudflare account ID invalid"; exit 1; }
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
-          status="$(curl -fsS --max-time 20 -o "$tmp" -w '%{http_code}' \
+          status="$(curl -sS --max-time 20 -o "$tmp" -w '%{http_code}' \
             -H "Authorization: Bearer $D166_CF_READ_TOKEN" \
-            "https://api.cloudflare.com/client/v4/user/tokens/verify" || true)"
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/tokens/verify" || true)"
+          if [ "$status" != "200" ] || ! jq -e '.success==true and .result.status=="active"' "$tmp" >/dev/null 2>&1; then
+            status="$(curl -sS --max-time 20 -o "$tmp" -w '%{http_code}' \
+              -H "Authorization: Bearer $D166_CF_READ_TOKEN" \
+              "https://api.cloudflare.com/client/v4/user/tokens/verify" || true)"
+          fi
           [ "$status" = "200" ] && jq -e '.success==true and .result.status=="active"' "$tmp" >/dev/null || {
             echo "::error::D166 Cloudflare read-only token verification failed"; exit 1;
           }
