@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D166_DRAFT_PR_CI__FIX_EXISTING_GATEWAY_DEPLOY_WORKFLOW_RACE_OR_FAIL_CLOSED__D165_V120_PRESERVED",
+  "next_action": "D166_PR509_FINAL_CI_AND_GATEWAY_INPLACE_DEPLOY_GATES__DO_NOT_FORCE_UPDATE_V120_PRIMARY",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "GOV-QUOTA-20261008",
     "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
     "current_change_id": "D166",
-    "current_change_status": "D166_A_B_C_OWNER_APPROVED__V121_DRAFT_SOURCE_ONLY__CI_AND_DEPLOY_RISK_GATE_PENDING",
+    "current_change_status": "D166_OWNER_APPROVED_A_B_C__AGENT_V121_CANDIDATE_SOURCE_BUILT__NO_MERGE_OR_RELEASE_UNTIL_GATES",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,11 +2485,11 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D165_ACCEPTED_V120_UNCHANGED__D166_V121_UNMERGED_CANDIDATE",
+    "runtime_impact": "D165_V120_ACCEPTED_OPERATIONAL_BASE__D166_V121_CANDIDATE_READ_ONLY_EXPORT_NOT_DEPLOYED",
     "resource_change": "NONE_FROM_D164_CANCELLATION__D164_EXISTING_BETA_ARTIFACTS_FROZEN__D165_EXISTING_SCOPED_RESOURCES_ONLY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D166__PROPOSAL_ONLY",
-    "parallel_inventory_change_status": "D166_ANALYSIS_OPEN__NO_AGENT_CODE_OR_PROVIDER_MUTATION",
+    "parallel_inventory_change_status": "D166_IMPLEMENTATION_OWNER_APPROVED__FIELD_PASS_PENDING",
     "parallel_boundary": "D165_ACCEPTED_RUNTIME_BASE__GOV_QUOTA_OWNER_PASS__D166_RESEARCH_AND_PROPOSAL_ONLY",
     "accepted_runtime_base_change_id": "D165"
   },
@@ -6285,19 +6285,28 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
-    "status": "OWNER_APPROVED_A_B_C__IMPLEMENTATION_DRAFT_UNMERGED__GATEWAY_DEPLOY_COLLISION_REVIEW",
+    "status": "OWNER_APPROVED_A_B_C__V121_CANDIDATE_PR509_REVIEW_PENDING",
     "opened_on": "2026-10-08",
     "owner_command": "GOV-QUOTA-20261008 PASS; open D166 and first research/analyze/propose Agent Usage ZIP download, costs vs screenshots",
     "accepted_runtime_base": "D165_AGENT_V120_ANDROID_VC102_BETA_WEB_WORKER_RTDB",
     "governance_base": "GOV-QUOTA-20261008_OWNER_PASS",
     "scope": "AGENT_USAGE_ON_DEMAND_ZIP_ANALYSIS__FIREBASE_GOOGLE_CLOUDFLARE_AND_OTHER_SCOPED_METRICS_COST_RESEARCH__NO_RUNTIME_CHANGE",
     "proposal_document": "docs/D166_USAGE_EVIDENCE_EXPORT_PROPOSAL.md",
-    "implementation_approval": "EXPLICIT_OWNER_A_B_C_2026_10_08",
-    "provider_changes": "FORBIDDEN_UNTIL_APPROVED",
+    "implementation_approval": "EXPLICIT_OWNER_A_B_C_LOW_COST_AUTO_AND_MANUAL_SCREENSHOT_FALLBACK_2026_10_08",
+    "provider_changes": "EXISTING_BETA_APPS_SCRIPT_GATEWAY_ONLY__NO_NEW_RESOURCE_CLOUDFLARE_TOKEN",
     "stable": "OWNER_GATED_UNTOUCHED",
     "eod_logs": "AWAIT_OWNER_UPLOAD_FOR_SEPARATE_HA_USAGE_ROOT_CAUSE_ANALYSIS",
-    "next": "INSPECT_D160_AUTOMATIC_MIGRATION_AND_GATEWAY_DEPLOY_CONCURRENCY__CI_TEST_PR__DO_NOT_MERGE_BEFORE_SAFE_GATES",
-    "agent_candidate": "relay-agent-v121"
+    "next": "FINAL_CI_REVIEW_AND_GATEWAY_DEPLOY_RESTRICTIONS__STANDBY_AGENT_V121_FIELD_TEST",
+    "agent_candidate": "relay-agent-v121",
+    "candidate_pr": 509,
+    "deployment_gate": "OWNER_REPORTED_D160_MIGRATION_WORKFLOW_DISABLED__VERIFY_PROVIDER_DISABLED_AND_PRESERVE_D165_LOG_AUTH",
+    "ci_status": "D165_HA_WMS_AND_AGENT_BUILD_PASS__D159_GATEWAY_REMOTE_TIMEOUT_RETRY_PENDING",
+    "field_acceptance": "OWNER_PASS_PENDING__V120_STAYS_LIVE",
+    "phase_c_inputs": [
+      "ZIP_PROVIDER_USAGE_ON_DEMAND",
+      "OWNER_PROVIDER_SCREENSHOTS",
+      "OWNER_SEPARATE_AGENT_ANDROID_WEB_LOGS"
+    ]
   },
   "launcher_v0325_update_logs": {
     "status": "OWNER_APPROVED_RELEASE_2026_10_08__PRE_DEPLOY_MERGE_AND_CI_PENDING",
