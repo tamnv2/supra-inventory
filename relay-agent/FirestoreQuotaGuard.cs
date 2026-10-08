@@ -31,6 +31,11 @@ namespace SupraInventoryRelayAgent
         private static int _deleteBand;
         private static readonly Dictionary<string, long> ByComponent =
             new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        // D166: RAM-only, capped per-hour operation counts; not a billed-read claim.
+        private static readonly Dictionary<string, long> D166Hourly = new Dictionary<string, long>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, long> D166Outcomes = new Dictionary<string, long>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, long> D166ElapsedMs = new Dictionary<string, long>(StringComparer.Ordinal);
+        private const int D166MaxKeys = 320;
 
         internal static void Record(string method, string url, string component, Action<string> log)
         {
@@ -51,6 +56,7 @@ namespace SupraInventoryRelayAgent
                 long current;
                 ByComponent.TryGetValue(key, out current);
                 ByComponent[key] = current + 1L;
+                D166CountNoLock(D166Hourly, D166Hour() + "|" + (isRead ? "READ" : (isWrite ? "WRITE" : "DELETE")) + "|" + key, 1);
 
                 var readBand = Band(_reads, SoftReadsPerDay);
                 var writeBand = Band(_writes, SoftWritesPerDay);
@@ -93,6 +99,7 @@ namespace SupraInventoryRelayAgent
                 long current;
                 ByComponent.TryGetValue(key, out current);
                 ByComponent[key] = current + additional;
+                D166CountNoLock(D166Hourly, D166Hour() + "|READ_EXTRA_DOCS|" + key, additional);
 
                 var readBand = Band(_reads, SoftReadsPerDay);
                 if (readBand > _readBand)
@@ -111,6 +118,59 @@ namespace SupraInventoryRelayAgent
             }
 
             if (warning != null && log != null) log(warning);
+        }
+
+        // D166: called only by an existing Firestore REST request, adds no network request,
+        // timer, log-file write or change to success/retry/control flow.
+        internal static void RecordOutcome(string component, string method, bool success, long elapsedMs, string failureClass)
+        {
+            lock (Gate)
+            {
+                ResetIfDayChangedNoLock();
+                var label = D166Hour() + "|" + Safe(component) + "|" + Safe(method) + "|" +
+                    (success ? "SUCCESS" : (failureClass == "HTTP_401" || failureClass == "HTTP_403" ||
+                    failureClass == "HTTP_429" || failureClass == "HTTP_5XX" || failureClass == "NETWORK" ? failureClass : "OTHER_FAILURE"));
+                D166CountNoLock(D166Outcomes, label, 1);
+                D166CountNoLock(D166ElapsedMs, label, Math.Max(0L, Math.Min(120000L, elapsedMs)));
+            }
+        }
+
+        internal static string SnapshotUsageAudit()
+        {
+            lock (Gate)
+            {
+                ResetIfDayChangedNoLock();
+                return "D166_USAGE_AUDIT schema=1 source=AGENT_ESTIMATE_NOT_BILLING quota_day=" + _dayKey +
+                    " reads=" + _reads.ToString(CultureInfo.InvariantCulture) +
+                    " writes=" + _writes.ToString(CultureInfo.InvariantCulture) +
+                    " deletes=" + _deletes.ToString(CultureInfo.InvariantCulture) +
+                    " hourly=" + D166Format(D166Hourly) +
+                    " outcomes=" + D166Format(D166Outcomes) +
+                    " elapsed_ms_sum=" + D166Format(D166ElapsedMs) +
+                    " incomplete=PROCESS_LOCAL_RESTART_RESETS_COUNTS";
+            }
+        }
+
+        private static string D166Hour()
+        {
+            return DateTime.UtcNow.AddHours(7).ToString("yyyyMMddTHH", CultureInfo.InvariantCulture);
+        }
+
+        private static void D166CountNoLock(Dictionary<string, long> target, string key, long delta)
+        {
+            long old;
+            if (target.TryGetValue(key, out old)) target[key] = old + delta;
+            else if (target.Count < D166MaxKeys) target[key] = delta;
+            else { target.TryGetValue("OVERFLOW", out old); target["OVERFLOW"] = old + delta; }
+        }
+
+        private static string D166Format(Dictionary<string, long> source)
+        {
+            var entries = new List<string>(source.Count);
+            foreach (var pair in source)
+                entries.Add(pair.Key + ":" + pair.Value.ToString(CultureInfo.InvariantCulture));
+            entries.Sort(StringComparer.Ordinal);
+            return entries.Count == 0 ? "NONE" : string.Join(",", entries.ToArray());
         }
 
         internal static bool AllowOptionalFastPath()
@@ -231,6 +291,9 @@ namespace SupraInventoryRelayAgent
             _writeBand = 0;
             _deleteBand = 0;
             ByComponent.Clear();
+            D166Hourly.Clear();
+            D166Outcomes.Clear();
+            D166ElapsedMs.Clear();
         }
 
         private static string ProviderQuotaDayKey()
