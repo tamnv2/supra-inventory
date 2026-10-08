@@ -80,7 +80,8 @@ namespace SupraInventoryRelayAgent
             catch (Exception ex)
             {
                 if (_lastWriteHealthy)
-                    _log("RTDB HA liveness unavailable; Firestore lease fallback active type=" + ex.GetType().Name);
+                    _log("RTDB HA liveness unavailable; Firestore lease fallback active type=" + ex.GetType().Name +
+                         " reason=" + SafeFailureCode(ex));
                 _lastWriteHealthy = false;
                 return false;
             }
@@ -193,9 +194,14 @@ namespace SupraInventoryRelayAgent
                 {
                     if (token.IsCancellationRequested) return;
                     if (_lastStreamHealthy)
-                        _log("RTDB HA realtime observer unavailable; Firestore lease fallback armed type=" + ex.GetType().Name);
-                    _lastStreamHealthy = false;
-                    try { _updated(); } catch { }
+                    {
+                        _log("RTDB HA realtime observer unavailable; Firestore lease fallback armed type=" + ex.GetType().Name +
+                             " reason=" + SafeFailureCode(ex));
+                        _lastStreamHealthy = false;
+                        // Only signal on HEALTHY -> UNAVAILABLE. Repeated failed SSE retries
+                        // must not wake the HA coordinator into an extra Firestore lease GET.
+                        try { _updated(); } catch { }
+                    }
                     if (token.WaitHandle.WaitOne(1000)) return;
                 }
             }
@@ -266,6 +272,20 @@ namespace SupraInventoryRelayAgent
             }
             catch { }
             return request;
+        }
+
+        // Diagnostic category only: never expose request URLs, query-string ID tokens,
+        // transport exception messages or serialized authentication material.
+        private static string SafeFailureCode(Exception error)
+        {
+            var web = error as WebException;
+            if (web != null)
+            {
+                var response = web.Response as HttpWebResponse;
+                if (response != null) return "HTTP_" + (int)response.StatusCode;
+                return "NETWORK_" + web.Status;
+            }
+            return error == null ? "UNKNOWN" : error.GetType().Name;
         }
 
         private static long NowMs()

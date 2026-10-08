@@ -614,3 +614,15 @@ D165 requires:
 No password, token, WMS session material or other sensitive value may enter logs.
 
 D165 does not add a logging heartbeat or per-event provider write cadence.
+
+### D165 RTDB HA field-repair diagnostics (08/10)
+
+The existing Agent local journal may record transition-only RTDB observer/write failure and recovery with a bounded non-sensitive `HTTP_<status>` or `NETWORK_<WebExceptionStatus>` failure class. Do not log request URLs, URL query parameters, ID tokens, Firebase credential content, passwords or payloads. Repeated RTDB SSE failures must not emit a new HA-coordinator wake every retry. No extra Firebase/Firestore request, listener, heartbeat, log upload or provider write may be introduced for this diagnostic. Evaluate usage by comparable active-PDA/confirmation intervals and component-specific fallbacks; PR/CI evidence does not prove billed-read reduction.
+
+### 2026-10-08 — Accepted D165 log and instrumentation baseline / prospective D166 post-shift analysis
+
+Owner has accepted D165 as deployed with Agent `v120` and current Android/Web logs. This **does not mean** existing RTDB SSE, Firestore fallback and unexpected PRIMARY role changes have passed reliability or quota analysis. For future D166, first ingest Owner-supplied Agent/Android/Web logs and hourly Firebase/Cloudflare usage after 22:00 Vietnam time, align records by **event timestamps** across the 06:00–22:00 shift (not archive upload time), correlate handoffs, RTDB failures, Firestore role/lease checks, active PDA and PickList volume, and classify verified causes versus hypotheses. Do not add polling, upload schedules, request logging or new telemetry providers without approved D166 impact/resource review. D166 is not opened by this D165 PASS-only continuity update.
+
+### 2026-10-08 — SUPRA Shared Quota Governance (documentation-only)
+
+Owner-approved alert policy: independently track each genuinely shared provider metric and Google Cloud USD 10/month **soft** budget, with 30/30/30/10 accounting and 70/85/95% warnings plus 100% escalation. Reports show project attribution, provider quota/billing-cycle clock, local Vietnam rendering, usage slope/forecast, source, and last-known freshness. On missing or delayed data show unavailable rather than zero. Deduplicate alerts and avoid new provider polling, log storms, scheduled per-client reads or background writes. Central reserve use and paid overruns require Owner decision. Do **not** cut critical logs, Picker notification ACK, Picklist confirmations, HA, or realtime as an automatic quota action. This is a policy specification, not authorization to add dashboards, alerts, probes, provider billing resources or runtime code. See `docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md`.

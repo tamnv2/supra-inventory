@@ -1900,3 +1900,21 @@ Canonical current-status markers for authority guard: sqlite_schema=17; latest_b
 ## D165 Agent v119 technical release — Owner retest pending
 
 PR #497 merged main `1278b202`; all 11 main workflows PASS. Beta Worker deploy `37569696945` PASS and official `relay-agent-v119` published by run `37569696832`. The v118 ADMIN-only privileged path is replaced by the canonical ADMIN-or-PICKPACK_ADMIN Agent operator matrix plus normalized special login. No new resource/provider/polling or Stable mutation. Android remains signed `beta-vc102`. OA100 now requires real Office OTP + HHmm retest and the outstanding vc102 Skip-correction/usage field checks; no Owner PASS inferred.
+
+## D165 08/10 Owner-approved HA/Usage repair — v120 staging only
+
+After examining additional 08/10 morning logs, Owner approved a D165 continuation correcting existing Beta RTDB `ha_liveness` role parity with Agent `ADMIN` / `PICKPACK_ADMIN`, and avoiding repeated SSE retry wakeups of the Firestore HA lease fallback. Agent v120 is manual update only; existing v119 PRIMARY and installed Android vc102 continue operating until deliberate Owner-controlled standby-first testing. Before handoff wait for in-flight PickList results, verify WMS readiness and role/generation, then test real ACK on new PRIMARY. No new resource or Stable mutation. CI, Beta RTDB deployment, actual usage improvement and Owner field/usage PASS are not yet proven merely by branch source. Continue using repo authority/state over this derived view.
+
+## 2026-10-08 — D165 v120 Agent / Beta RTDB deployed and released
+
+Repair PR #501 merged on main `8da8f905caee7574c359f23f74022410c2506b5d`. PR 14/14 CI PASS; main 11/11 CI PASS. Existing Beta RTDB rules deployment `37753063966` completed PUT and readback verification PASS. Agent v120 release `406624841` and main Agent workflow `37753064105` PASS; `inventory-channel` now advertises manually installable v120, with EXE SHA-256 `72c59e4fb29737f4edac45426d9886ca5f7346ab51fb4ce49c6ab45e8e1775ad`. Signed Android Beta remains vc102 with no APK source change on this repair. Stable is untouched.
+
+**Owner field not yet PASS:** install v120 on NEXT_A only, verify connected RTDB/WMS, wait for zero in-flight confirmation, perform authorized targeted PRIMARY handoff, confirm real Picker PickList/ACK, then update remaining Agents one at a time. Compare Firebase billed Reads/Writes on similar workload before declaring usage success. D165 remains unaccepted until explicit Owner PASS.
+
+## 2026-10-08 — Current accepted base D165 / Agent v120; D166 after end-of-shift evidence
+
+Derived continuity checkpoint. Owner explicitly clarified **D165 PASS / CLOSED** for **all already-deployed D165 Beta code** including Agent `relay-agent-v120`, Android `beta-vc102` and existing Web/Worker/RTDB rules. This is not a hold, rollback, halt or claim that high Reads/HA role flapping is fixed. Known open evidence includes repeated PRIMARY takeover after targeted handoff between v120 Agents, RTDB HTTP 403/timeouts/SSE listener behavior and Firestore lease/usage mismatch. Owner intends to submit Agent+Android+Web and Usage evidence after 22:00 VN; later analyze the complete day and open D166 only after review/approval. For any new session, bootstrap canonical state and GitHub decisions. Stable stays OWNER-GATED and untouched.
+
+### Canonical D165 accepted-state marker snapshot (2026-10-08)
+- `D165_OWNER_ACCEPTED_PASS__DEPLOYED_BETA_WEB_WORKER_UNCHANGED`
+- `D165_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC102_UNCHANGED`

@@ -5199,7 +5199,7 @@
     },
     {
       "id": "OA100",
-      "status": "READY_FOR_OWNER_FIELD_RETEST__D165_AGENT_V119_RELEASED__WORKER_DEPLOY_MAIN_11_OF_11_PASS__OWNER_USAGE_PASS_PENDING",
+      "status": "CLOSED_OWNER_ACCEPTED_PASS__D165_AS_DEPLOYED_V120_AND_VC102__2026_10_08",
       "title": "Field-accept D165 privileged login and Android Reporter parity with usage checks",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Cloudflare / Google Apps Script Agent Operations Gateway / Windows Agent / Android",
@@ -5237,8 +5237,8 @@
         "No INVALID_COUNTER_RANGE at Reporter Android login or refresh; Android counter request uses bounded Vietnam-day range from server timestamp.",
         "All four Android Reporter tabs and Web Quá hạn workspace entry remain visible in all auto-skip modes; disabled/FIRST_REPORT gives explanatory empty state and 0 badge."
       ],
-      "remaining_owner_action": "UPDATE_TO_AGENT_V119__TEST_LATEST_UNCONSUMED_OTP_AND_HHMM_ON_REAL_OFFICE_AGENT__VERIFY_PICKLIST_HA__RETEST_VC102_SKIP_CORRECTION__COMPARE_USAGE_STABILITY__EXPLICIT_D165_PASS",
-      "closed": false,
+      "remaining_owner_action": "NONE__D165_CLOSED__AFTER_22H_OWNER_LOGS_SUPPORT_SEPARATE_D166_REVIEW",
+      "closed": true,
       "field_repair_2026_10_07": {
         "result": "NOT_PASS_VC100",
         "cause": "ANDROID_COUNTERS_HTTP400_MISSING_FROM_TO",
@@ -5288,7 +5288,67 @@
           "field_retest": "PENDING",
           "owner_pass": "PENDING"
         }
+      },
+      "ha_usage_repair_2026_10_08": {
+        "status": "D165_CLOSED__NO_AGENT_ROLLBACK__D166_REVIEW_AFTER_END_OF_SHIFT_LOGS",
+        "owner_approved": true,
+        "owner_test_steps": [
+          "Update only NEXT_A (not the active PRIMARY) after published candidate is ready",
+          "Verify WMS page ready and Agent standby realtime/RTDB health",
+          "Wait until the current PRIMARY has no active confirmation batch or unresolved WMS result",
+          "Use existing authorized targeted PRIMARY handoff; verify exactly one active PRIMARY and real Picker confirm/ACK",
+          "Only then update other Agents one at a time",
+          "Provide comparable 1-hour Firestore Reads/Writes and reconnect/RTDB evidence"
+        ],
+        "hold": "D165_NO_NEW_PATCH__KEEP_DEPLOYED_V120__NO_AUTOMATIC_UPDATE__STABLE_OWNER_GATED",
+        "user_action_required_now": "NONE__OWNER_SENDS_END_SHIFT_LOGS_AFTER_22H_FOR_FUTURE_D166_ANALYSIS",
+        "owner_pass": "PASS_D165_AS_DEPLOYED__KNOWN_HA_USAGE_TO_D166",
+        "pr": 501,
+        "main_sha": "8da8f905caee7574c359f23f74022410c2506b5d",
+        "rtdb_rules_run": 37753063966,
+        "agent_release": "relay-agent-v120",
+        "agent_release_run": 37753064105
+      },
+      "owner_acceptance": {
+        "result": "PASS",
+        "date": "2026-10-08",
+        "owner_statement": "chốt v120 và các code 165 đã triển khai, ghi nhận coi như pass",
+        "scope": "D165_AS_DEPLOYED",
+        "known_issues_deferred": "HA_PRIMARY_FLAP_AND_FIRESTORE_QUOTA_D166_AFTER_SHIFT_LOGS",
+        "no_rollback": true,
+        "stable": "OWNER_GATED"
       }
+    },
+    {
+      "id": "OA101",
+      "status": "CLOSED_OWNER_EXPLICIT_PASS_2026_10_08",
+      "title": "Accept SUPRA Shared Quota Governance authority-only closeout",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory / GitHub canonical authority",
+      "reason_owner_only": "Repo Authority and Project State CI plus PR merge are technical proof only. Owner must explicitly accept final recorded policy to close the serial governance change before a new D166 or unrelated Inventory change.",
+      "prerequisites": {
+        "policy_approved": "OWNER_EXPLICIT_2026_10_08",
+        "change_id": "GOV-QUOTA-20261008",
+        "primary_pr": 504,
+        "primary_pr_merged_main_sha": "05b81cd2efaaa98abcf710fd4ddfb8ed11467f6b",
+        "required_checks": "AUTHORITY_PASS__CONTINUITY_PASS",
+        "runtime": "UNCHANGED_D165_AGENT_V120_ANDROID_VC102_WEB_WORKER_RTDB",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action": [
+        "Review docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md on main and confirm the recorded 30/30/30/10 split, USD 10 soft Google Cloud budget, 70/85/95% alerts, Free account plans, and Beta-only future direction.",
+        "Reply GOV-QUOTA-20261008 PASS or NOT PASS. If NOT PASS, repair under the same governance workstream, not D166."
+      ],
+      "pass_criteria": [
+        "No provider billing, alert settings, Cloudflare/Firebase, app/Worker/Agent or other-project resource changed.",
+        "The repository's policy, project context, relevant specs, registry and project state agree.",
+        "Stable remains registered OWNER_GATED and existing D165 Beta runtime remains untouched.",
+        "Separate project/billing identity verification and configuration remains blocked until separate Owner approval."
+      ],
+      "remaining_owner_action": "NONE__GOV_QUOTA_OWNER_ACCEPTED_PASS",
+      "closed": true,
+      "owner_result": "PASS__GOV-QUOTA-20261008",
+      "owner_evidence": "Owner explicitly replied GOV-QUOTA-20261008 PASS and requested opening D166."
     }
   ]
 }
