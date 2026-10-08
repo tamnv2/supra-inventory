@@ -631,9 +631,33 @@
         "sqlite_row_reads": 0.02,
         "sqlite_row_writes": 0.6,
         "sqlite_storage_bytes": 12.87
-      }
+      },
+      "historical_governance_status": "HISTORICAL_D098_35_PERCENT__SUPERSEDED_BY_GOV_QUOTA_20261008_FOR_NEW_BUDGET_POLICY__RUNTIME_GUARDS_UNCHANGED"
     },
-    "system_reset": "ON_DEMAND_ONLY__NO_POLLING__SQLITE_DELETE_ROWS_PLUS_FIREBASE_AUTH_BATCH_DELETE_PLUS_OPTIONAL_FIRESTORE_DOCUMENT_DELETES_PLUS_ONE_GMAIL_SEND_PER_CHALLENGE"
+    "system_reset": "ON_DEMAND_ONLY__NO_POLLING__SQLITE_DELETE_ROWS_PLUS_FIREBASE_AUTH_BATCH_DELETE_PLUS_OPTIONAL_FIRESTORE_DOCUMENT_DELETES_PLUS_ONE_GMAIL_SEND_PER_CHALLENGE",
+    "shared_quota_governance": {
+      "policy": "OWNER_APPROVED_AUTHORITY_ONLY_2026_10_08",
+      "allocation_percent": {
+        "inventory": 30,
+        "pick_pack": 30,
+        "third_project_unverified": 30,
+        "reserve": 10
+      },
+      "cloudflare_workers_paid_base_usd": 5,
+      "google_cloud_blaze_soft_budget_usd": 10,
+      "google_consumer_plan": "FREE",
+      "github_plan": "FREE",
+      "warning_percent": [
+        70,
+        85,
+        95
+      ],
+      "hard_business_cutoff": false,
+      "provider_mutation": "NOT_AUTHORIZED",
+      "stable": "EXISTING_OWNER_GATED_UNTOUCHED",
+      "third_project": "UNKNOWN_NOT_IN_INVENTORY_SCOPE",
+      "doc": "docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md"
+    }
   },
   "runtime_logs": {
     "environment": "beta",

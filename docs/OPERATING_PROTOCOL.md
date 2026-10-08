@@ -322,3 +322,7 @@ This is authority capture only. Do not implement runtime/source/provider changes
 
 Observability implementation must reuse existing scoped Beta resources where possible, add zero provider write per local event, add no polling/listener cadence, and reconcile project scope before any unavoidable new persistent resource. Stable remains OWNER-GATED.
 
+
+## 2026-10-08 — Shared Quota Governance authority-only approval and execution boundary
+
+Owner approved the 30/30/30/10 allocation across **verified shared provider pools**; Cloudflare Workers Paid USD 5/month, Google Cloud/Firebase Blaze USD 10/month **soft budget** and Google/GitHub Free stay unchanged. Inventory's external mutation rights remain restricted to `ops/project-scope.json`; other projects remain out of scope. Existing Stable resources remain OWNER-GATED and Beta is the future Inventory development target. Quota alerts must use provider-authoritative cached/read-only measurements and warn at 70/85/95% with no automatic hard cutoff. Accounting entries and alerts are proposals; enabling Google/Cloudflare Billing alert delivery, automation, payments, new projects, runtime guards or service plans requires a new impact review and separate explicit approval. The 10% reserve requires Owner allocation approval. The current authority-only PR must pass GitHub Repo Authority/Project State continuity/secret gates before merge. Preserve D165 deployed baseline and defer separate D166 HA/usage implementation pending real shift logs and Owner scope approval.
