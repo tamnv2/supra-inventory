@@ -2726,5 +2726,17 @@
     },
     "accepted_runtime": "D165_AGENT_V120_OWNER_PASS__NO_FLEET_UPDATE",
     "legacy_d159_ci": "FAIL_CONFIGURED_RETIRED_D159_URL__TRACK_SEPARATELY"
+  },
+  "d166_cloudflare_readonly_candidate": {
+    "status": "OWNER_GITHUB_SECRET_REPORTED__NOT_VALIDATED_OR_DEPLOYED",
+    "scope": "EXISTING_CLOUDFLARE_ACCOUNT_PLUS_WORKER_BETA__NO_NEW_PROVIDER_RESOURCE",
+    "credential_reference": "GITHUB_ENV_BETA_SECRET_D166_CF_READ_TOKEN",
+    "account_id_source": "GITHUB_VAR_CF_ACCOUNT_ID",
+    "worker": "supra-inventory-beta",
+    "cloudflare_do": "SHARED_ACCOUNT_UNATTRIBUTABLE__INVENTORYCORE_NAMESPACE_ID_NOT_VERIFIED",
+    "billing": "SHARED_ACCOUNT_UNATTRIBUTABLE__INVOICE_NOT_PROVEN",
+    "agent": 122,
+    "secret_delivery": "BLOCKED__GITHUB_SECRET_DOES_NOT_AUTO_POPULATE_APPS_SCRIPT",
+    "stable": "OWNER_GATED"
   }
 }
