@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D165_PR497_MERGED_MAIN_1278B202__MAIN_11_OF_11_PASS__BETA_WORKER_DEPLOY_PASS__AGENT_V119_RELEASED__OWNER_FIELD_USAGE_PASS_PENDING__STABLE_UNTOUCHED",
+      "status": "D165_PR501_MERGED_MAIN_8DA8F905__MAIN_11_OF_11_PASS__BETA_RTDB_RULES_READBACK_PASS__AGENT_V120_RELEASED__OWNER_FIELD_USAGE_PASS_PENDING__STABLE_UNTOUCHED",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -2621,8 +2621,26 @@
     "closed": true
   },
   "d165_proposal": {
-    "status": "OWNER_APPROVED_PROPOSAL_ONLY__NO_RUNTIME_CHANGE",
-    "beta_rtdb": "EXISTING_SCOPED_RESOURCE_PROPOSED_FOR_AGENT_HA_LIVENESS_ONLY_AFTER_LATER_OWNER_START",
+    "status": "D165_HA_RTDB_BETA_REPAIR_DEPLOY_READBACK_PASS__OWNER_FIELD_USAGE_PASS_PENDING",
+    "beta_rtdb": "BETA_HA_LIVENESS_ACTIVE__ROLE_PARITY_RULE_DEPLOY_READBACK_PASS__MAIN_8DA8F905__RUN_37753063966__FIRESTORE_AUTHORITY_RETAINED",
     "d1": "DEFERRED_NOT_D165"
+  },
+  "d165_ha_usage_repair_2026_10_08": {
+    "scope": "EXISTING_BETA_FIREBASE_RTDB_HA_LIVENESS_ONLY__NO_NEW_RESOURCE",
+    "rules": "DEPLOY_AND_READBACK_VERIFIED",
+    "deploy_run": 37753063966,
+    "source_main": "8da8f905caee7574c359f23f74022410c2506b5d",
+    "agent_release": "relay-agent-v120",
+    "agent_release_id": 406624841,
+    "agent_release_run": 37753064105,
+    "channel": "inventory-channel",
+    "channel_release_id": 394587029,
+    "channel_manifest_asset_id": 621285453,
+    "channel_exe_asset_id": 621285458,
+    "release_sha256": "72c59e4fb29737f4edac45426d9886ca5f7346ab51fb4ce49c6ab45e8e1775ad",
+    "android_release": "UNCHANGED_SIGNED_BETA_VC102__NO_08_10_ANDROID_SOURCE_DIFF",
+    "update_policy": "MANUAL_ONLY_STANDBY_FIRST",
+    "owner_field_pass": "PENDING",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

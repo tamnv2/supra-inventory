@@ -333,8 +333,8 @@
       "location": "asia-southeast1",
       "url": "https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app",
       "exposure": "public_identifier",
-      "status": "D165_PROPOSAL_RECORDED__NO_RUNTIME_CHANGE",
-      "guard": "D165 may reuse this existing Beta RTDB only for Agent HA liveness after a later explicit Owner implementation start. Firestore remains HA authority/fallback. No business transaction data and no Stable use."
+      "status": "D165_BETA_HA_LIVENESS_RULE_PARITY_DEPLOY_READBACK_PASS__PR501_MAIN_8DA8F905__RUN_37753063966",
+      "guard": "Existing Beta RTDB HA liveness only; Agent ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN session; Firestore remains authority/fallback. No business transaction data, no new resource and no Stable access."
     },
     {
       "key": "apps-script-agent-log-gateway-beta-d158",

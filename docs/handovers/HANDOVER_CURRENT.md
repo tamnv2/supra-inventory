@@ -1904,3 +1904,9 @@ PR #497 merged main `1278b202`; all 11 main workflows PASS. Beta Worker deploy `
 ## D165 08/10 Owner-approved HA/Usage repair — v120 staging only
 
 After examining additional 08/10 morning logs, Owner approved a D165 continuation correcting existing Beta RTDB `ha_liveness` role parity with Agent `ADMIN` / `PICKPACK_ADMIN`, and avoiding repeated SSE retry wakeups of the Firestore HA lease fallback. Agent v120 is manual update only; existing v119 PRIMARY and installed Android vc102 continue operating until deliberate Owner-controlled standby-first testing. Before handoff wait for in-flight PickList results, verify WMS readiness and role/generation, then test real ACK on new PRIMARY. No new resource or Stable mutation. CI, Beta RTDB deployment, actual usage improvement and Owner field/usage PASS are not yet proven merely by branch source. Continue using repo authority/state over this derived view.
+
+## 2026-10-08 — D165 v120 Agent / Beta RTDB deployed and released
+
+Repair PR #501 merged on main `8da8f905caee7574c359f23f74022410c2506b5d`. PR 14/14 CI PASS; main 11/11 CI PASS. Existing Beta RTDB rules deployment `37753063966` completed PUT and readback verification PASS. Agent v120 release `406624841` and main Agent workflow `37753064105` PASS; `inventory-channel` now advertises manually installable v120, with EXE SHA-256 `72c59e4fb29737f4edac45426d9886ca5f7346ab51fb4ce49c6ab45e8e1775ad`. Signed Android Beta remains vc102 with no APK source change on this repair. Stable is untouched.
+
+**Owner field not yet PASS:** install v120 on NEXT_A only, verify connected RTDB/WMS, wait for zero in-flight confirmation, perform authorized targeted PRIMARY handoff, confirm real Picker PickList/ACK, then update remaining Agents one at a time. Compare Firebase billed Reads/Writes on similar workload before declaring usage success. D165 remains unaccepted until explicit Owner PASS.
