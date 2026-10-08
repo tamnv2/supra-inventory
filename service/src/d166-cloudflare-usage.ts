@@ -62,7 +62,7 @@ export async function collectD166Cf(env:D166CfEnv,start:Date,end:Date):Promise<{
   // is workersInvocationsAdaptive (NOT workersInvocationsAdaptiveGroups).
   // Avoid dimensions and request sum only: each alias aggregates its own hour.
   const fields=buckets.map(h=>
-    h.alias+':workersInvocationsAdaptive(limit:1,filter:{scriptName:"'+WORKER+'",datetime_geq:"'+h.at.toISOString()+'",datetime_leq:"'+h.until.toISOString()+'"}){sum{requests errors subrequests}}'
+    h.alias+':workersInvocationsAdaptive(limit:1,filter:{scriptName:"'+WORKER+'",datetime_geq:"'+h.at.toISOString()+'",datetime_leq:"'+new Date(h.until.getTime()-1).toISOString()+'"}){sum{requests errors subrequests}}'
   ).join(' ');
   const graphql='query($accountTag:string){viewer{accounts(filter:{accountTag:$accountTag}){'+fields+'}}}';
   const cf=await readApi(CF+'/graphql',key,{query:graphql,variables:{accountTag:account}});
@@ -76,7 +76,8 @@ export async function collectD166Cf(env:D166CfEnv,start:Date,end:Date):Promise<{
       let partial=false;
       for(const h of buckets){
         const records=accounts[0][h.alias];
-        if(!Array.isArray(records)||records.length!==1){partial=true;continue;}
+        if(!Array.isArray(records)||records.length>1){partial=true;continue;}
+        if(records.length===0){hourly.push({hour_start_utc:new Date(Math.floor(h.at.getTime()/HOUR)*HOUR).toISOString(),requests:0,errors:0,subrequests:0});continue;}
         const row=records[0] as Record<string,unknown>;
         const sums=(row.sum||{}) as Record<string,unknown>;
         hourly.push({hour_start_utc:new Date(Math.floor(h.at.getTime()/HOUR)*HOUR).toISOString(),
@@ -92,9 +93,9 @@ export async function collectD166Cf(env:D166CfEnv,start:Date,end:Date):Promise<{
   if(billingRes.ok){
     const rows=billingRes.body?.result;
     if(Array.isArray(rows)){
-      billing.status=rows.length>200?'TRUNCATED':'OK';
+      billing.status=rows.length>200?'TRUNCATED':rows.length?'OK':'NO_DATA';
       billing.rows=rows.length;
-      billing.metrics=rows.slice(0,200).map((v:unknown)=>{
+      billing.metrics=rows.slice(0,200).filter((v:unknown)=>{const x=v as Record<string,unknown>; return /workers|durable object/i.test(String(x.ServiceFamilyName||'')+' '+String(x.ServiceName||''));}).map((v:unknown)=>{
         const x=v as Record<string,unknown>;
         return {metric_id:String(x.x_BillableMetricId||'').slice(0,100),
           description:String(x.ChargeDescription||'').slice(0,140),
