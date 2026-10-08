@@ -82,7 +82,7 @@ def main() -> None:
     require(android_rt, "fun diagnosticSnapshot()", "Android realtime diagnostics")
     require(android_main, "buildSupportDiagnostics()", "Android support snapshot")
     require(android_main, "sanitizeDiagnosticText", "Android diagnostics sanitizer")
-    require(android_main, '.take(16_000)', "Android diagnostics size bound")
+    require(android_main, 'd166_bounded_json', "Android valid size-bounded diagnostics JSON")
     diagnostics_block = android_main.split("private fun buildSupportDiagnostics()", 1)[1].split("private fun hasValidatedInternet", 1)[0]
     for forbidden in ("idToken", "refreshToken", "password", "ROOT_BOOTSTRAP", "BETA_KEYSTORE"):
         forbid(diagnostics_block, forbidden, f"Android diagnostics credential {forbidden}")
