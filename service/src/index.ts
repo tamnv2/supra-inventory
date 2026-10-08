@@ -32,7 +32,7 @@ import { maybeRunRelayAuditExport } from "./relay-audit";
 import { handlePdaRegistryApi, reconcilePdaRegistrySheet } from "./pda-registry";
 import { ensureDailyLauncherPassword, handleLauncherPasswordApi, shouldRetryDailyLauncherPassword } from "./launcher-password";
 import { handleLauncherDiagnosticLog } from "./launcher-diagnostics";
-import { resolveLauncherManifest, validateLauncherRules, loadLauncherUpdateConfig } from "./launcher-update-policy";
+import { resolveLauncherManifest, validateLauncherRules, loadLauncherUpdateConfig, verifyLauncherOwnerApproval } from "./launcher-update-policy";
 import { handlePdaManagementDiagnosticLog } from "./pda-management-diagnostics";
 import { handlePublicInfoPage } from "./public-pages";
 import { sendFcmNotifications } from "./fcm";
@@ -1414,6 +1414,16 @@ export default {
         catch (error) { return json({ error: error instanceof Error ? error.message : "INVALID_UPDATE_POLICIES" }, 400); }
         const revision = Number(raw.expected_revision);
         if (!Number.isSafeInteger(revision) || revision < 0) return json({ error: "INVALID_EXPECTED_REVISION" }, 400);
+        // Separate deployment gate: a ROOT operator cannot enable an
+        // arbitrary version/scope without the owner's GitHub Actions receipt.
+        // Missing or mismatching receipts fail closed, prior policy unchanged.
+        try {
+          await verifyLauncherOwnerApproval(rules);
+        } catch (error) {
+          return json({
+            error: error instanceof Error ? error.message : "OWNER_APPROVAL_REQUIRED",
+          }, 409);
+        }
         return coreStub(env).fetch("https://inventory-core.internal/launcher-update/policies", {
           method: "PUT", headers: { "content-type": "application/json" },
           body: JSON.stringify({ rules, expected_revision: revision, updated_by: user.user_id }),
