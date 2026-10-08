@@ -402,6 +402,13 @@ namespace SupraInventoryRelayAgent
                 if (!string.IsNullOrWhiteSpace(prefix))
                     content = prefix + Environment.NewLine + content;
                 content = AgentDiagnostics.SanitizeBundle(content);
+                // D166 log-only audit: attach local estimates to an already-sealed upload.
+                // No extra logging timer, Firestore operation or Drive artifact is created.
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    try { content = FirestoreQuotaGuard.SnapshotUsageAudit() + Environment.NewLine + content; }
+                    catch { /* never block or change normal log sealing */ }
+                }
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     WriteCheckpoint(now);
