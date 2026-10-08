@@ -5375,7 +5375,7 @@
         "Candidate v121 export ZIP is actually verified on standby Windows, with no secrets or extra background reads.",
         "Source missing/overquota represented as N/A plus dashboard screenshot URL; soft spend budget maintained."
       ],
-      "remaining_owner_action": "Cài v121 trên một Agent phụ theo cơ chế cập nhật thủ công, thử xuất ZIP (Hôm nay/24h/ca), xác nhận vẫn xử lý Picklist/HA/ACK bình thường; gửi ZIP+ảnh Cloudflare/Billing nếu có+log Agent/Web/Android ngày cần phân tích; chỉ mở rộng đội máy sau khi Owner chốt D166 field PASS.",
+      "remaining_owner_action": "Sau khi v122 đạt technical CI/deployment PASS: cài thủ công v122 trên Agent phụ, xuất ZIP D166, kiểm tra giữ nguyên Picklist/HA/ACK và gửi ZIP để đối chiếu. Chỉ Owner PASS mới cho triển khai rộng.",
       "closed": false,
       "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs",
       "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs",
@@ -5389,10 +5389,12 @@
         "legacy_d159_canary": "FAIL_RETIRED_GATEWAY_URL__UNRELATED_TO_NEW_D166_SOURCE"
       },
       "d166_cloudflare_addendum": {
-        "owner_approval": "CLOUDFLARE_READ_ONLY__2026_10_08",
-        "owner_reported_github_secret": "D166_CF_READ_TOKEN__GITHUB_ENV_BETA__VALUE_NOT_READ",
-        "next": "SECURE_SCRIPT_PROPERTY_PROVISIONING_AND_PROVIDER_FIELD_TEST_PENDING__DO_NOT_DEPLOY_V122",
-        "owner_action_now": "NONE_BEYOND_COMPLETED_GITHUB_SECRET__AWAIT_SAFE_PROVISIONING_METHOD"
+        "owner_approval": "2026-10-09_EXISTING_BETA_WORKER_READONLY_ENDPOINT_AND_SERVER_SECRET_BRIDGE",
+        "owner_reported_github_secret": "D166_CF_READ_TOKEN__GITHUB_ENV_BETA__NOT_READ_BY_ASSISTANT",
+        "manual_action": "NONE_NOW__PREVIOUS_GITHUB_SECRET_ALREADY_CREATED",
+        "implementation": "PR511_CANDIDATE__BRANCH_TEST_AND_SAFE_DEPLOY_ONLY_AFTER_REQUIRED_CHECKS_PASS",
+        "owner_action_after_technical": "TEST_V122_ON_STANDBY__SEND_USAGE_ZIP__PASS_OR_NOT_PASS",
+        "guard": "D165_V120_ACCEPTED__NO_AUTO_PRIMARY_SWITCH__STABLE_OWNER_GATED"
       }
     }
   ]
