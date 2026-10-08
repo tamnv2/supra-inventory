@@ -89,7 +89,6 @@ function doPost(e) {
       if (!proof || proof.length > 128) throw new Error('PRIVILEGED_AGENT_PROOF_REQUIRED');
       return proxyWorkerJson_('/api/agent/reauth', { proof: proof }, idToken);
     }
-    if (action === 'provision_d166_cloudflare') return json_(provisionD166Cloudflare_(auth, body));
     if (action === 'get_firestore_usage') return json_(loadSnapshot_());
     if (action === 'get_usage_export') {
       // Existing Firebase role validation is mandatory; new action cannot run pre-auth.
@@ -1076,23 +1075,7 @@ function collectD166UsageExport_(mode) {
 
 
 
-// D166: Only an ephemeral GitHub Actions Firebase identity may provision the
-// read-only Cloudflare token. Regular Agent logins cannot assert this identity.
-// More than 50 script properties is supported by PropertiesService (UI limit).
-function provisionD166Cloudflare_(auth, body) {
-  if (auth.role !== 'ADMIN' || auth.app_user_id !== 'd166-cloudflare-ci' ||
-      !/^d166-gh-[0-9]{1,24}-[0-9]{1,5}$/.test(auth.uid))
-    throw new Error('D166_PROVISION_FORBIDDEN');
-  const id = String(body.account_id || '');
-  const token = String(body.read_token || '');
-  if (!/^[a-f0-9]{32}$/.test(id) || !/^[A-Za-z0-9_-]{20,256}$/.test(token))
-    throw new Error('D166_CONFIG_INVALID');
-  PropertiesService.getScriptProperties().setProperties({
-    D166_CF_READ_TOKEN: token,
-    D166_CF_ACCOUNT_ID: id
-  }, false);
-  return {ok:true,service:'D166_CF_PROVISION',configured:true};
-}
+// D166 provider values are read only from pre-provisioned server-side Script Properties.
 function d166CloudflareNumber_(value) {
   const n = Number(value);
   return (value == null || !Number.isFinite(n) || n < 0) ? null : n;
