@@ -3600,3 +3600,12 @@ Governance:
 - Any reuse/new resource for the consolidated model requires later project-scope reconciliation and explicit Owner approval.
 - Stable remains OWNER-GATED and untouched.
 
+## 2026-10-08 — D165 HA usage repair: Owner-approved staged Agent rollout
+
+Status: **OWNER APPROVED IMPLEMENTATION — D165 CONTINUATION; FIELD PASS PENDING**.
+
+Owner approved a Beta-only RTDB HA-role parity repair and bounded observer-retry wake improvement after 08/10 field logs exposed high Firestore Reads. Preserve existing APK, Web/Worker, WMS mutation/ACK contract, 15-second HA safety objective, Firestore authoritative role/generation fences, and the accepted D163 base. Stable remains OWNER-GATED.
+
+Rollout: build/release a manually updated Agent candidate (v120). Owner updates NEXT_A/standby first while v119 PRIMARY continues processing; verifies standby readiness, then explicitly uses the existing authorized PRIMARY handoff control after all in-flight confirmations settle. Only after real PickList confirmation and HA field PASS does Owner update remaining Agent machines. Never initiate a remote/forced installation or automatically switch PRIMARY. Comparably loaded Firestore/RTDB usage, fallback and errors are measured before D165 Owner PASS. If RTDB becomes unhealthy, existing Firestore lease fallback and fail-closed mutation fences remain mandatory.
+
+The RTDB change is restricted to already-scoped Beta `relay_poc/coordination/ha_liveness` permissions: authenticated `AGENT` sessions with matching `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN`; no Picker/Web/ROOT or blanket RTDB access. Client logging reports sanitized HTTP/transport error classes only, without tokens or URLs.
