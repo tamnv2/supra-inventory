@@ -5387,6 +5387,12 @@
         "existing_beta_gateway_deploy": "PASS",
         "agent_channel": "inventory-channel",
         "legacy_d159_canary": "FAIL_RETIRED_GATEWAY_URL__UNRELATED_TO_NEW_D166_SOURCE"
+      },
+      "d166_cloudflare_addendum": {
+        "owner_approval": "CLOUDFLARE_READ_ONLY__2026_10_08",
+        "owner_reported_github_secret": "D166_CF_READ_TOKEN__GITHUB_ENV_BETA__VALUE_NOT_READ",
+        "next": "SECURE_SCRIPT_PROPERTY_PROVISIONING_AND_PROVIDER_FIELD_TEST_PENDING__DO_NOT_DEPLOY_V122",
+        "owner_action_now": "NONE_BEYOND_COMPLETED_GITHUB_SECRET__AWAIT_SAFE_PROVISIONING_METHOD"
       }
     }
   ]
