@@ -5352,7 +5352,7 @@
     },
     {
       "id": "OA102",
-      "status": "PENDING_OWNER_V121_STANDBY_FIELD_TEST_AND_PHASE_C_EVIDENCE",
+      "status": "PENDING_OWNER_V122_STANDBY_FIELD_TEST_AND_D166_CLOUDFLARE_ZIP",
       "title": "Approve D166 Usage ZIP implementation scope",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
@@ -5375,7 +5375,7 @@
         "Candidate v121 export ZIP is actually verified on standby Windows, with no secrets or extra background reads.",
         "Source missing/overquota represented as N/A plus dashboard screenshot URL; soft spend budget maintained."
       ],
-      "remaining_owner_action": "Sau khi v122 đạt technical CI/deployment PASS: cài thủ công v122 trên Agent phụ, xuất ZIP D166, kiểm tra giữ nguyên Picklist/HA/ACK và gửi ZIP để đối chiếu. Chỉ Owner PASS mới cho triển khai rộng.",
+      "remaining_owner_action": "Cài Agent v122 trên một Agent phụ, không chuyển PRIMARY. Vào Thông tin Usage > Tải số liệu Usage để phân tích > chọn Ca/Hôm nay, gửi ZIP đã tạo. Xác nhận luồng WMS/Picklist/HA/ACK bình thường; phản hồi D166 PASS hoặc NOT PASS. Không gửi token.",
       "closed": false,
       "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs",
       "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs",
@@ -5395,8 +5395,13 @@
         "implementation": "PR511_CANDIDATE__BRANCH_TEST_AND_SAFE_DEPLOY_ONLY_AFTER_REQUIRED_CHECKS_PASS",
         "owner_action_after_technical": "ONLY_TEST_V122_ON_STANDBY_AFTER_WORKER_AUTH_AND_PROVIDER_RUNTIME_CHECK_PASS",
         "guard": "D165_V120_ACCEPTED__NO_AUTO_PRIMARY_SWITCH__STABLE_OWNER_GATED",
-        "runtime": "UNAUTHENTICATED_WORKER_ENDPOINT_HTTP404_NOT_PASS__POST_SECRET_DIAG_REPAIR_PENDING",
-        "no_owner_action_during_repair": true
+        "runtime": "WORKER_BETA_AND_GATEWAY_DEPLOY_TECHNICAL_PASS__WORKER_HTTP401_UNAUTH_PASS__V122_PRERELEASE_PASS",
+        "no_owner_action_during_repair": true,
+        "worker_run": 37816448917,
+        "agent_release_run": 37815507718,
+        "gateway_run": 37815507761,
+        "owner_next": "V122_STANDBY_ZIP_AND_WMS_HA_ACK_FIELD_RETEST__OWNER_PASS_REQUIRED",
+        "closed": false
       }
     }
   ]

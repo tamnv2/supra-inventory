@@ -2743,3 +2743,7 @@ D166 PR #511 must: (a) run Worker TypeScript and D166 security/static regression
 ### D166 post-secret routing failure repair
 
 PR #511 main Worker source and Gateway deployed but live unauthorized `/api/agent/d166/usage` check observed HTTP 404. The expected result is **401 AUTH_REQUIRED**, not 404. Repair CI adds one post-secret `/health` check preserving Beta environment and exact current main commit and a bounded 10×5-second unauthorized POST check after Worker secret version roll, logging only safe status/error code. Beta deploy must fail closed if Worker bindings/source changed or the protected endpoint remains unverified; v122 Owner rollout prohibited until provider and field evidence PASS.
+
+### D166 2026-10-09 final technical runtime checkpoint, field still pending
+
+PR #511 and #512 required GitHub PR CI PASS (16/16 and 13/13 executing checks respectively). Worker Beta deploy final run 37816448917 PASS: active Cloudflare read token, Beta Worker source/env health before+after secret, secret binding-name readback, unauthenticated `POST /api/agent/d166/usage` 401 AUTH_REQUIRED, existing auth/SQLite/OAuth/PDA regression PASS. Gateway in-place deployment 37815507761 PASS and Agent v122 prerelease build/release 37815507718 PASS. Tests not yet proven: logged-in `admin`/`tamnv2` actual Cloudflare Worker GraphQL, billing available or N/A, ZIP checksum/content, real standby Agent WMS/Picklist/HA/ACK stability, Owner field acceptance. Keep D166 OPEN, Stable OWNER-GATED, accepted D165 v120 until Owner PASS.
