@@ -1,0 +1,45 @@
+name: D166 Cloudflare Usage Read-Only Guard
+
+on:
+  pull_request:
+    paths:
+      - "service/src/d166-cloudflare-usage.ts"
+      - "service/src/index.ts"
+      - "ops/apps-script/agent-log-gateway/**"
+      - "relay-agent/D166UsageExport.cs"
+      - "tools/d166_cloudflare_regression.py"
+      - ".github/workflows/deploy-beta.yml"
+      - ".github/workflows/verify-d166-cloudflare.yml"
+  push:
+    branches: [main]
+    paths:
+      - "service/src/d166-cloudflare-usage.ts"
+      - "service/src/index.ts"
+      - "ops/apps-script/agent-log-gateway/**"
+      - "relay-agent/D166UsageExport.cs"
+      - "tools/d166_cloudflare_regression.py"
+      - ".github/workflows/deploy-beta.yml"
+      - ".github/workflows/verify-d166-cloudflare.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  d166-worker-usage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: D166 read-only security and scope regression
+        run: python tools/d166_cloudflare_regression.py
+      - name: Install existing service dependencies
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Typecheck existing Beta Worker + D166 bridge
+        working-directory: service
+        run: npm run typecheck
