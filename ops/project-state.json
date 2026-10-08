@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "GOV-QUOTA-20261008",
     "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
     "current_change_id": "D166",
-    "current_change_status": "D166_V122_WORKER_BETA_CLOUDFLARE_BRIDGE_CANDIDATE__PR511_CI_AND_DEPLOY_GATE_PENDING__OWNER_FIELD_PENDING",
+    "current_change_status": "D166_V122_RELEASE_AND_GATEWAY_PASS__BETA_WORKER_POST_SECRET_AUTH_SMOKE_HTTP404_NOT_PASS__REPAIR_IN_SAME_D166",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "NO_DEPLOY_YET__D165_AGENT_V120_ACCEPTED_PRIMARY_UNCHANGED__V121_EXISTING_GATEWAY_BASE",
+    "runtime_impact": "BETA_WORKER_AND_GATEWAY_V122_MERGED_DEPLOYED__BETA_WORKER_HEALTH_PRE_SECRET_PASS__SECRET_NAME_READBACK_PASS__AUTH_SMOKE_404_FAIL__D165_AGENT_V120_ACCEPTED",
     "resource_change": "EXISTING_BETA_WORKER_SECRET_BINDING_PROPOSED__OWNER_APPROVED__NOT_DEPLOYED__STABLE_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D166__PROPOSAL_ONLY",
@@ -6334,7 +6334,7 @@
     },
     "phase_c": "AWAIT_OWNER_V121_USAGE_ZIP_AND_PROVIDED_PROVIDER_SCREENSHOTS_PLUS_AGENT_ANDROID_WEB_LOGS",
     "cloudflare_candidate": {
-      "status": "BRANCH_PR511__OWNER_APPROVED_EXISTING_BETA_WORKER_BRIDGE__CI_PENDING",
+      "status": "MAIN_PR511_MERGED__WORKER_AUTH_SMOKE_HTTP404_FAIL__REPAIR_OPEN",
       "branch": "feature/d166-cloudflare-usage-readonly",
       "pr": 511,
       "agent_candidate": 122,
@@ -6346,8 +6346,20 @@
       "google_billing_bigquery": "NOT_AUTHORIZED",
       "deployment": "POST_MERGE_BETA_WORKER_HEALTH_AND_SECRET_NAME_READBACK_PENDING",
       "next": "CI_PASS_AND_OWNER_APPROVED_MERGE__PROVIDER_READBACK__STANDBY_V122_FIELD_TEST__OWNER_PASS",
-      "accepted_runtime": "D165_AGENT_V120__UNCHANGED",
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "accepted_runtime": "D165_AGENT_V120",
+      "stable": "OWNER_GATED_UNCHANGED",
+      "merged_pr": 511,
+      "merged_sha": "5c71cd0d8aaf8b8264f43a7450eb4220d17cdf03",
+      "worker_deploy_run": 37815507756,
+      "worker_deploy_status": "FAIL__AUTH_SMOKE_HTTP404_EXPECT_401",
+      "gateway_deploy_run": 37815507761,
+      "gateway_deploy_status": "PASS",
+      "agent_release_run": 37815507718,
+      "agent_release": "relay-agent-v122",
+      "agent_status": "TECHNICAL_RELEASE_PASS__OWNER_FIELD_NOT_PASS",
+      "worker_health_before_secret": "PASS",
+      "worker_secret_name_readback": "PASS",
+      "repair": "ONE_POST_SECRET_HEALTH_SOURCE_ENV_READBACK_PLUS_BOUNDED_10X5_SEC_AUTH_RETRY"
     }
   },
   "launcher_v0325_update_logs": {
