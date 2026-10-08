@@ -1,4 +1,5 @@
 import { InventoryCore } from "./core";
+import { collectD166Cf } from "./d166-cloudflare-usage";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
   effectiveAuthEmail,
@@ -70,6 +71,8 @@ interface Env {
   EXPORTS_FOLDER_ID?: string;
   SOURCE_COMMIT?: string;
   LOAD_TEST_TOKEN?: string;
+  D166_CF_READ_TOKEN?: string;
+  D166_CF_ACCOUNT_ID?: string;
 }
 
 interface InternalUser {
@@ -1479,6 +1482,29 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
         return privilegedAgentReauth(request, env);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/agent/d166/usage") {
+        if (env.APP_ENV !== "beta") return json({error:"D166_BETA_ONLY"},404);
+        const operator = await requireAgentUser(request,env,["ADMIN","PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role ||
+          !["admin","tamnv2"].includes(String(operator.employee_code || "").trim().toLowerCase()))
+          return json({error:"D166_PRIVILEGED_AGENT_REQUIRED"},403);
+        let body: {start_at?:string;end_at?:string}={};
+        try {body=(await request.json()) as typeof body;} catch {return json({error:"D166_INVALID_JSON"},400);}
+        const a=String(body.start_at || "");
+        const b=String(body.end_at || "");
+        if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(a) ||
+            !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(b))
+          return json({error:"D166_INVALID_WINDOW"},400);
+        const start=new Date(a), end=new Date(b), now=Date.now();
+        if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) ||
+            end.getTime()<=start.getTime() || end.getTime()-start.getTime()>24*60*60*1000 ||
+            end.getTime()>now+5*60*1000 || start.getTime()<now-26*60*60*1000)
+          return json({error:"D166_WINDOW_OUT_OF_SCOPE"},400);
+        const value=await collectD166Cf(env,start,end);
+        return json({ok:true,service:"SUPRA_D166_CLOUDFLARE_WORKER_READONLY",project:"supra-inventory-beta",
+          generated_at:new Date().toISOString(),cloudflare:value});
       }
 
       if (request.method === "GET" && url.pathname === "/api/agent/usage") {

@@ -94,7 +94,7 @@ function doPost(e) {
       // Existing Firebase role validation is mandatory; new action cannot run pre-auth.
       const mode = String(body.window || 'today');
       if (['today', 'rolling', 'shift'].indexOf(mode) < 0) throw new Error('D166_WINDOW_INVALID');
-      return json_(collectD166UsageExport_(mode));
+      return json_(collectD166UsageExport_(mode, idToken));
     }
     if (action === 'request_support_logs') {
       const requestId = String(body.request_id || '');
@@ -848,7 +848,7 @@ function json_(value) {
  * 15-minute D160 tab cache and never writes Firestore or cloud business data.
  * All Monitoring queries are restricted to the existing Beta Cloud project.
  */
-function collectD166UsageExport_(mode) {
+function collectD166UsageExport_(mode, idToken) {
   const now = new Date();
   const vietnam = 'Asia/Ho_Chi_Minh';
   let start = new Date(now.getTime() - DAY_MS);
@@ -996,6 +996,20 @@ function collectD166UsageExport_(mode) {
       driveQuota.status = 'HTTP_' + response.getResponseCode();
     }
   } catch (_) { driveQuota.status = 'READ_UNAVAILABLE'; }
+  const cloudflare = collectD166Cloudflare_(start, end, idToken);
+  function attachCloudflare(source, fields) {
+    if (source.status !== 'OK' && source.status !== 'PARTIAL') return;
+    (source.hourly || []).forEach(point => {
+      const row = hours[point.hour_start_utc];
+      if (!row) return;
+      Object.keys(fields).forEach(key => {
+        const value = d166CloudflareNumber_(point[key]);
+        if (value !== null) row[fields[key]] = value;
+      });
+    });
+  }
+  attachCloudflare(cloudflare.workers, {requests:'cf_worker_requests',errors:'cf_worker_errors',subrequests:'cf_worker_subrequests'});
+  // Durable Object account totals are excluded until InventoryCore namespace scope is verified.
   const hourly = Object.keys(hours).sort().map(key => hours[key]);
   return {
     ok: true,
@@ -1031,19 +1045,23 @@ function collectD166UsageExport_(mode) {
     },
     metrics: metrics,
     google_drive_account: driveQuota,
+    cloudflare: cloudflare,
     hourly: hourly,
     status: {
       metric_availability: availability,
       warnings: warnings,
       unsupported_sources: {
-        cloudflare_workers_do: 'MANUAL_SCREENSHOT_AUTHORIZED_SERVER_TOKEN_UNAVAILABLE',
-        cloudflare_billing: 'MANUAL_SCREENSHOT',
+        cloudflare_workers_do: cloudflare.workers.status,
+        cloudflare_do_account: cloudflare.durable_objects_account.status,
+        cloudflare_billing: cloudflare.billing_account.status,
         google_cloud_billing: 'MANUAL_BILLING_REPORT_CSV_OR_SCREENSHOT',
         github_account_usage: 'OUT_OF_SCOPE_ACCOUNT_WIDE',
         unregistered_resources: 'NOT_IN_INVENTORY_SCOPE'
       },
       source: 'GOOGLE_CLOUD_MONITORING_AND_DRIVE_ABOUT_READ_ONLY',
       monitoring_queries_per_click: specs.length,
+      cloudflare_bridge_requests_per_click: 1,
+      cloudflare_provider_queries_per_click: cloudflare.collection && cloudflare.collection.requests || 0,
       google_drive_api_reads_per_click: 1,
       firestore_document_operations_added: 0,
       provider_notes: [
@@ -1056,3 +1074,41 @@ function collectD166UsageExport_(mode) {
   };
 }
 
+
+
+// D166 provider values are read only from pre-provisioned server-side Script Properties.
+// Gateway forwards only authenticated Agent ID tokens. It neither receives nor
+// stores Cloudflare API credentials; the scoped Worker holds the Cloudflare secret.
+function collectD166Cloudflare_(start,end,idToken) {
+  const unavailable = (status) => ({
+    workers: {status:status,scope:'INVENTORY_BETA_WORKER_ONLY'},
+    durable_objects_account: {status:'NAMESPACE_NOT_CANONICALLY_SCOPED',scope:'SHARED_ACCOUNT_NOT_QUERIED'},
+    billing_account: {status:status,scope:'SHARED_ACCOUNT_UNATTRIBUTABLE'},
+    collection: {requests:0}
+  });
+  if (!idToken) return unavailable('AUTH_REQUIRED');
+  try {
+    const res=UrlFetchApp.fetch(
+      'https://inventory-beta.supra.cc.cd/api/agent/d166/usage',{
+        method:'post',
+        contentType:'application/json',
+        headers:{authorization:'Bearer '+idToken},
+        payload:JSON.stringify({start_at:start.toISOString(),end_at:end.toISOString()}),
+        muteHttpExceptions:true
+      });
+    const status=res.getResponseCode();
+    if(status!==200) return unavailable('WORKER_HTTP_'+status);
+    const parsed=JSON.parse(res.getContentText()||'{}');
+    if(parsed.ok!==true ||
+       parsed.service!=='SUPRA_D166_CLOUDFLARE_WORKER_READONLY' ||
+       parsed.project!==PROJECT_ID ||
+       !parsed.cloudflare) return unavailable('WORKER_IDENTITY_ERROR');
+    const d=parsed.cloudflare;
+    return {
+      workers:d.workers || unavailable('MISSING').workers,
+      durable_objects_account:d.durable_objects_account || unavailable('MISSING').durable_objects_account,
+      billing_account:d.billing_account || unavailable('MISSING').billing_account,
+      collection:d.collection || {requests:0}
+    };
+  } catch (_) {return unavailable('WORKER_UNAVAILABLE');}
+}

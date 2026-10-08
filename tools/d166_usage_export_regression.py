@@ -9,7 +9,7 @@ gateway=source("ops/apps-script/agent-log-gateway/Code.gs")
 usage=source("relay-agent/D160Usage.cs")
 version=source("relay-agent/VERSION").strip()
 config=source("relay-agent/AgentConfig.cs")
-assert version == "121" and "AgentBuild = 121;" in config
+assert version == "122" and "AgentBuild = 122;" in config
 for token in (
     "Tải số liệu Usage để phân tích", "get_usage_export",
     "D160UsageAllowedForCurrentSession", "D166_SESSION_CHANGED",
@@ -33,3 +33,12 @@ assert "BrowserCookies" not in agent and "WmsToken" not in agent
 assert 'const CACHE_TTL_SECONDS = 15 * 60;' in gateway
 assert "new Date(now.getTime() - DAY_MS)" in gateway
 print("D166_USAGE_ZIP_STATIC_GUARD=PASS")
+
+# Cloudflare is an optional authenticated Beta Worker bridge, not Apps Script secret.
+for entry in ("providers/cloudflare_workers.json", "providers/cloudflare_do_account.json", "providers/cloudflare_billing_account.json", "cf_do_account_rows_read"):
+    assert entry in agent, f"missing Cloudflare export field: {entry}"
+assert "collectD166Cloudflare_(start, end, idToken)" in gateway
+assert "/api/agent/d166/usage" in gateway
+assert "D166_CF_READ_TOKEN" not in gateway
+assert "provision_d166_cloudflare" not in gateway
+print("D166_CLOUDFLARE_WORKER_BRIDGE_STATIC_GUARD=PASS")
