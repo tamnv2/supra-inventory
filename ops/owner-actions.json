@@ -5352,7 +5352,7 @@
     },
     {
       "id": "OA102",
-      "status": "OWNER_APPROVED_A_B_C__TECHNICAL_CANDIDATE_AND_RELEASE_GATES_PENDING",
+      "status": "PENDING_OWNER_V121_STANDBY_FIELD_TEST_AND_PHASE_C_EVIDENCE",
       "title": "Approve D166 Usage ZIP implementation scope",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
@@ -5375,10 +5375,19 @@
         "Candidate v121 export ZIP is actually verified on standby Windows, with no secrets or extra background reads.",
         "Source missing/overquota represented as N/A plus dashboard screenshot URL; soft spend budget maintained."
       ],
-      "remaining_owner_action": "No further owner action currently needed for source PR. After safe release, manually trial v121 on standby Agent, send ZIP+screenshots+logs, explicitly D166 PASS/NOT PASS. Do not mass-update v120 PRIMARY.",
+      "remaining_owner_action": "Cài v121 trên một Agent phụ theo cơ chế cập nhật thủ công, thử xuất ZIP (Hôm nay/24h/ca), xác nhận vẫn xử lý Picklist/HA/ACK bình thường; gửi ZIP+ảnh Cloudflare/Billing nếu có+log Agent/Web/Android ngày cần phân tích; chỉ mở rộng đội máy sau khi Owner chốt D166 field PASS.",
       "closed": false,
       "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs",
-      "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs"
+      "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs",
+      "technical_evidence": {
+        "pr": 509,
+        "merge_sha": "93d2104194226d411882549938ea1fdc4c00bab5",
+        "candidate_release": "relay-agent-v121",
+        "agent_windows_ci": "PASS",
+        "existing_beta_gateway_deploy": "PASS",
+        "agent_channel": "inventory-channel",
+        "legacy_d159_canary": "FAIL_RETIRED_GATEWAY_URL__UNRELATED_TO_NEW_D166_SOURCE"
+      }
     }
   ]
 }
