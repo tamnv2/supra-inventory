@@ -5352,7 +5352,7 @@
     },
     {
       "id": "OA102",
-      "status": "OWNER_APPROVED_A_B_C__D166_CANDIDATE_CI_AND_SAFE_GATE_PENDING",
+      "status": "OWNER_APPROVED_A_B_C__TECHNICAL_CANDIDATE_AND_RELEASE_GATES_PENDING",
       "title": "Approve D166 Usage ZIP implementation scope",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
@@ -5370,11 +5370,15 @@
       "pass_criteria": [
         "No deployment, provider secret, billing configuration or runtime code from proposal-only merge.",
         "Protect D165 confirmation/HA, Web/Android and existing privileged Usage allowlist.",
-        "Verify costs and missing-provider reporting are honest; no claim of exact expense from Monitoring time series."
+        "Verify costs and missing-provider reporting are honest; no claim of exact expense from Monitoring time series.",
+        "Scoped existing Beta Gateway updated in-place only; no D160 migration overlaps and D165 privileged login, logs and HA remain functional.",
+        "Candidate v121 export ZIP is actually verified on standby Windows, with no secrets or extra background reads.",
+        "Source missing/overquota represented as N/A plus dashboard screenshot URL; soft spend budget maintained."
       ],
-      "remaining_owner_action": "No owner action for source changes. Manual standby test only after safe verified release; do not update active v120 yet.",
+      "remaining_owner_action": "No further owner action currently needed for source PR. After safe release, manually trial v121 on standby Agent, send ZIP+screenshots+logs, explicitly D166 PASS/NOT PASS. Do not mass-update v120 PRIMARY.",
       "closed": false,
-      "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs"
+      "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs",
+      "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs"
     }
   ]
 }
