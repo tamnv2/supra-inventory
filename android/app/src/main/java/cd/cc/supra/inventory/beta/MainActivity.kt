@@ -835,7 +835,25 @@ class MainActivity : Activity() {
             .put("recent_events", JSONArray(localLog.toList().takeLast(80).map(::sanitizeDiagnosticText)))
             .put("recent_errors", JSONArray(errors))
 
-        return root.toString(2).take(16_000)
+        // D166 logging-only: never cut a serialized JSON string midway (invalid JSON).
+        var serialized = root.toString()
+        if (serialized.length <= 16_000) return serialized
+        root.remove("recent_events")
+        root.remove("recent_errors")
+        val journalEvents = root.optJSONObject("journal")?.optJSONArray("recent_events")
+        if (journalEvents != null) {
+            while (root.toString().length > 16_000 && journalEvents.length() > 0) journalEvents.remove(0)
+        }
+        root.put("d166_bounded_json", true)
+        serialized = root.toString()
+        if (serialized.length <= 16_000) return serialized
+        root.remove("journal")
+        serialized = root.toString()
+        if (serialized.length <= 16_000) return serialized
+        return JSONObject().put("format", "supra-inventory-support-v2")
+            .put("d166_bounded_json", true)
+            .put("d166_usage_audit", D166UsageAudit.snapshot())
+            .toString()
     }
 
     private fun hasValidatedInternet(): Boolean {
