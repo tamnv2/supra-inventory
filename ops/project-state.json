@@ -13,7 +13,7 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D165_PR497_MERGED_MAIN_1278B202__MAIN_11_OF_11_PASS__BETA_WORKER_DEPLOY_PASS__AGENT_V119_RELEASED__OWNER_FIELD_USAGE_PASS_PENDING__STABLE_UNTOUCHED",
+    "beta": "D165_PR501_MERGED_MAIN_8DA8F905__MAIN_11_OF_11_PASS__BETA_RTDB_RULES_READBACK_PASS__AGENT_V120_RELEASED__OWNER_FIELD_USAGE_PASS_PENDING__STABLE_UNTOUCHED",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
@@ -36,7 +36,7 @@
     "governance": "OWNER_PARALLEL_ISOLATED_SCOPES_2026_10_06__D163_OWNER_PASS__D164_PDA_MANAGEMENT_TECHNICAL_PASS_FIELD_PENDING__D165_MERGED_BETA_POST_MERGE_CI_ALL_GREEN__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_acceptance": "D163_OWNER_FIELD_ACCEPTED_PASS__2026_10_06__D164_ISOLATED_FIELD_PENDING",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D165_AGENT_V119_RELEASED__PRIVILEGED_ADMIN_OR_PICKPACK_ADMIN_ROLE_PARITY_REPAIRED__OWNER_FIELD_RETEST_PENDING",
+    "agent": "D165_AGENT_V120_RELEASED__BETA_HA_RTDB_PARITY_FALLBACK_WAKE_REPAIRED__MANUAL_STANDBY_FIRST__OWNER_FIELD_PENDING",
     "d165_proposal": "D165_TECHNICAL_RELEASE_PASS_V119__OWNER_FIELD_AND_USAGE_PASS_PENDING"
   },
   "hard_guards": [
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D163",
     "accepted_base_evidence": "OWNER_EXPLICIT_D163_PASS__2026_10_06__PR_461_MAIN_D991C83B__BETA_DEPLOY_RUN_37417036768__AGENT_V114__ANDROID_VC97",
     "current_change_id": "D165",
-    "current_change_status": "D165_ACTIVE_V120_HA_RTDB_REPAIR_BRANCH_CI_PENDING__V119_LIVE__OWNER_FIELD_AND_USAGE_PASS_PENDING",
+    "current_change_status": "D165_PR501_MERGED_8DA8F905__MAIN_11_OF_11_PASS__BETA_RTDB_RULES_READBACK_PASS__AGENT_V120_RELEASED_MANUAL_ONLY__OWNER_STANDBY_FIELD_USAGE_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -5660,7 +5660,7 @@
     "current_note": "Confirmed root cause: Cloudflare WebCrypto PBKDF2 rejects iterations above 100000; D164 used 150000. Repaired to PBKDF2-SHA256 100000 with per-user salt. Deep runtime health PASS for storage/auth/device/HR/crypto. vc5 adds prelogin Send Log with privacy redaction and existing Beta daily log archive."
   },
   "d165": {
-    "status": "D165_PR497_MERGED_MAIN_1278B202__WORKER_DEPLOY_PASS__AGENT_V119_RELEASED__OWNER_FIELD_RETEST_PENDING_NOT_OWNER_PASS",
+    "status": "D165_PR501_MERGED_MAIN_8DA8F905__RTDB_BETA_RULES_DEPLOY_PASS__AGENT_V120_RELEASED__OWNER_FIELD_RETEST_PENDING_NOT_OWNER_PASS",
     "date": "2026-10-06",
     "baseline_change": "D163",
     "accepted_inventory_base": "D163__OWNER_PASS__2026_10_06",
@@ -5765,7 +5765,7 @@
     "build_released": true,
     "deploy_performed": true,
     "owner_reverification_required": false,
-    "next_action": "D165_V120_HA_REPAIR_BRANCH_TO_PR__CI_AND_DEPLOY_BETA__OWNER_STANDBY_FIRST_THEN_TARGETED_HANDOFF__OWNER_USAGE_PASS_PENDING",
+    "next_action": "OWNER_UPDATES_ONLY_NEXT_A_TO_AGENT_V120__VERIFY_WMS_AND_HA__SAFE_TARGETED_HANDOFF__REAL_PICKLIST_ACK__THEN_REMAINING_AGENTS__COMPARE_HOURLY_READS_WRITES__EXPLICIT_D165_PASS_PENDING",
     "automated_validation": {
       "implementation_head": "b40df9c5a620e881e417ff7e19d7aea8da34551b",
       "result": "PASS_16_OF_16_PR_WORKFLOWS",
@@ -6123,7 +6123,7 @@
       "owner_field_pass": "PENDING"
     },
     "ha_rtdb_usage_repair_2026_10_08": {
-      "status": "OWNER_APPROVED_SOURCE_REPAIR__V120_PR_CI_PENDING__BETA_DEPLOY_RELEASE_NOT_YET_VERIFIED__OWNER_FIELD_PENDING",
+      "status": "PR501_MERGED__MAIN_CI_11_OF_11_PASS__BETA_RTDB_RULES_DEPLOY_READBACK_PASS__AGENT_V120_RELEASED__OWNER_FIELD_PENDING",
       "owner_command": "UPGRADE_STANDBY_FIRST__TARGETED_HANDOFF_AFTER_NO_ACTIVE_BATCH__FIELD_PASS_BEFORE_OTHER_AGENTS",
       "root_cause": "AGENT_PICKPACK_ADMIN_TOKEN_VS_RTDB_HA_ADMIN_ONLY_RULES__OBSERVED_FIRESTORE_LEASE_FALLBACK",
       "impacted_components": [
@@ -6146,7 +6146,18 @@
       "rollout": "RELEASE_V120_AFTER_PR_CI_PASS__OWNER_UPDATES_NEXT_A__FIELD_VERIFY__AUTHORIZED_HANDOFF_WHEN_IDLE__UPGRADE_REMAINING_ONE_BY_ONE",
       "usage_goal": "COMPARE_HOURLY_FIRESTORE_READS_WRITES_RTDB_HEALTH_WITH_EQUIVALENT_PDA_AND_CONFIRMATION_LOAD__DO_NOT_CLAIM_SAVING_PRE_FIELD",
       "accepted_base": "D163_OWNER_PASS_UNCHANGED",
-      "owner_pass": "PENDING"
+      "owner_pass": "PENDING",
+      "pr": 501,
+      "main_sha": "8da8f905caee7574c359f23f74022410c2506b5d",
+      "rtdb_deploy_run": 37753063966,
+      "agent_release_run": 37753064105,
+      "agent_release": "relay-agent-v120",
+      "release_id": 406624841,
+      "channel_manifest_asset_id": 621285453,
+      "channel_exe_asset_id": 621285458,
+      "android_source_diff": false,
+      "field": "NOT_TESTED_BY_OWNER_YET",
+      "usage_after_deploy": "PENDING_COMPARABLE_LOAD"
     }
   },
   "launcher_daily_password": {
