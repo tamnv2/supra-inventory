@@ -2468,10 +2468,10 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D165",
     "accepted_base_evidence": "OWNER_EXPLICIT_D165_PASS__2026_10_08__FREEZE_DEPLOYED_BETA_WEB_ANDROID_VC102_AGENT_V120__KNOWN_HA_AND_USAGE_OPTIMIZATION_DEFERRED_TO_D166_AFTER_22H_LOG_REVIEW",
-    "current_change_id": "NONE",
-    "current_change_status": "NO_ACTIVE_CHANGE__D165_OWNER_ACCEPTED_PASS__D166_NOT_OPEN_AWAIT_22H_LOG_BUNDLE",
+    "current_change_id": "GOV-QUOTA-20261008",
+    "current_change_status": "OWNER_POLICY_AND_AUTHORITY_ONLY_PR_APPROVED__TECHNICAL_CI_MERGE_REQUIRED__POST_MERGE_OWNER_PASS_NOT_YET_RECORDED",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": true,
+    "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2488,9 +2488,9 @@
     "runtime_impact": "D165_BETA_BASELINE_ACCEPTED_AS_DEPLOYED__KNOWN_HA_ROLE_FLAP_AND_USAGE_LEFT_FOR_POST_22H_D166_ANALYSIS__NO_ROLLBACK",
     "resource_change": "NONE_FROM_D164_CANCELLATION__D164_EXISTING_BETA_ARTIFACTS_FROZEN__D165_EXISTING_SCOPED_RESOURCES_ONLY",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "parallel_inventory_change_id": "NONE__D165_CLOSED__D166_NOT_OPEN",
-    "parallel_inventory_change_status": "NONE_ACTIVE__D166_PLANNED_AFTER_FINAL_LOG_ANALYSIS",
-    "parallel_boundary": "D164_CANCELLED__D165_OWNER_PASS__SUCCESSOR_CHANGE_MAY_OPEN_ONLY_ON_LATER_OWNER_LOG_REVIEW"
+    "parallel_inventory_change_id": "GOV-QUOTA-20261008__D166_NOT_OPEN",
+    "parallel_inventory_change_status": "GOV_AUTHORITY_CHANGE_OPEN__D166_BLOCKED_UNTIL_OWNER_PASS",
+    "parallel_boundary": "GOV_AUTHORITY_ONLY_DOCUMENTATION__NO_BETA_RUNTIME_OR_STABLE_CHANGE__D166_REMAINS_SEPARATE"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -6229,5 +6229,50 @@
     "resource_mutation": "NONE",
     "code_deletion": "NONE__HISTORICAL_REUSE_REFERENCE_RETAINED",
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "shared_quota_governance": {
+    "change_id": "GOV-QUOTA-20261008",
+    "owner_policy_approval": "EXPLICIT_2026_10_08",
+    "implementation_scope": "INVENTORY_REPO_AUTHORITY_ONLY__NO_PROVIDER_OR_RUNTIME_CHANGES",
+    "status": "OWNER_APPROVED_AUTHORITY_PR__GITHUB_CI_AND_MERGE_EVIDENCE_PENDING",
+    "allocation_percent": {
+      "inventory": 30,
+      "pick_pack": 30,
+      "third_project_unverified": 30,
+      "reserve": 10
+    },
+    "google_cloud_usd_monthly_soft_budget": 10,
+    "google_cloud_allocation_usd": {
+      "inventory": 3,
+      "pick_pack": 3,
+      "third_project_unverified": 3,
+      "reserve": 1
+    },
+    "cloudflare_workers_base_usd_monthly": 5,
+    "cloudflare_plan": "WORKERS_PAID_SHARED_ACCOUNT__OVERAGE_NOT_CAPPED",
+    "google_account": "CONSUMER_FREE",
+    "github_plan": "FREE",
+    "other_providers": "FREE_UNLESS_SEPARATELY_OWNER_APPROVED",
+    "warning_percent": [
+      70,
+      85,
+      95
+    ],
+    "escalation_percent": 100,
+    "auto_cutoff": false,
+    "auto_plan_upgrade": false,
+    "reserve_spend_requires_owner_approval": true,
+    "account_login_does_not_prove_shared_billing": true,
+    "inventory_environment_policy": "FUTURE_DEVELOPMENT_BETA_ONLY__EXISTING_STABLE_OWNER_GATED_UNTOUCHED",
+    "accepted_base_unchanged": "D165__AGENT_V120__ANDROID_VC102__BETA_WEB_WORKER_RTDB",
+    "d166": "SEPARATE_PENDING_END_SHIFT_LOGS__NOT_OPEN",
+    "pending_separate_approvals": [
+      "provider_account_and_billing_linkage_discovery",
+      "billing_budget_and_alert_configuration",
+      "third_project_identity_and_resource_scope",
+      "any_runtime_or_provider_resource_mutation"
+    ],
+    "authority_file": "docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md",
+    "owner_business_acceptance": "PENDING_POST_MERGE_EXPLICIT_PASS"
   }
 }
