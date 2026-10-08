@@ -120,7 +120,20 @@
       "kind": "worker",
       "environment": "beta",
       "name": "supra-inventory-beta",
-      "exposure": "public_identifier"
+      "exposure": "public_identifier",
+      "d166_usage_readonly": {
+        "endpoint": "POST_/api/agent/d166/usage",
+        "scope": "EXISTING_BETA_WORKER_ONLY",
+        "cloudflare_secret_name": "D166_CF_READ_TOKEN",
+        "secret_source": "github_beta_environment_secret",
+        "account_id_source": "github_variable:CF_ACCOUNT_ID",
+        "upstream": "CLOUDFLARE_READ_ONLY_GRAPHQL_AND_BILLABLE_USAGE",
+        "access": "EXISTING_FIREBASE_AGENT_ADMIN_PICKPACK_ADMIN_AND_EXACT_ADMIN_TAMNV2",
+        "duration_window": "MAX_24H_ONLY",
+        "owner_approval": "2026-10-09",
+        "stable": "OWNER_GATED_UNCHANGED",
+        "do_namespace": "NOT_CANONICALLY_REGISTERED__FAIL_CLOSED"
+      }
     },
     {
       "key": "worker-stable",
