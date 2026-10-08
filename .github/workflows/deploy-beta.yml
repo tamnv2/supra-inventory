@@ -191,15 +191,35 @@ jobs:
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
-          code="$(curl -sS --max-time 15 -o "$tmp" -w '%{http_code}' \
-            -H 'content-type: application/json' \
-            --data '{"start_at":"2026-10-08T06:00:00Z","end_at":"2026-10-08T06:01:00Z"}' \
-            "https://${BETA_HOSTNAME}/api/agent/d166/usage")"
-          [ "$code" = "401" ] || { echo "::error::D166 unauthenticated request expected HTTP 401, got $code"; exit 1; }
-          jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || {
-            echo "::error::D166 unauthenticated error code mismatch"; exit 1;
+          # A secret put publishes a separate Worker version. Verify that all
+          # existing bindings and source commit survive that version transition.
+          health="$(mktemp)"
+          trap 'rm -f "$tmp" "$health"' EXIT
+          health_code="$(curl -sS --max-time 25 -o "$health" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+          expected="${GITHUB_SHA}"
+          current="$(jq -r '.source_commit // ""' "$health" 2>/dev/null || true)"
+          environment="$(jq -r '.environment // ""' "$health" 2>/dev/null || true)"
+          [ "$health_code" = "200" ] && [ "$current" = "$expected" ] && [ "$environment" = "beta" ] || {
+            echo "::error::D166 Worker post-secret health/source binding mismatch (http=${health_code:-000}, env=${environment:-none}, commit_match=$([ "$current" = "$expected" ] && echo true || echo false))"
+            exit 1
           }
-          echo "D166_WORKER_BETA_UNAUTHENTICATED_FAIL_CLOSED_PASS"
+          echo "D166_WORKER_SECRET_VERSION_SOURCE_AND_ENV_PASS"
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            code="$(curl -sS --max-time 15 -o "$tmp" -w '%{http_code}' \
+              -H 'content-type: application/json' \
+              --data '{"start_at":"2026-10-08T06:00:00Z","end_at":"2026-10-08T06:01:00Z"}' \
+              "https://${BETA_HOSTNAME}/api/agent/d166/usage" || true)"
+            reason="$(jq -r '.error // "NO_ERROR_FIELD"' "$tmp" 2>/dev/null | tr -cd 'A-Za-z0-9_-' | head -c 64 || true)"
+            if [ "$code" = "401" ] && [ "$reason" = "AUTH_REQUIRED" ]; then
+              echo "D166_WORKER_BETA_UNAUTHENTICATED_FAIL_CLOSED_PASS"
+              exit 0
+            fi
+            echo "D166 probe attempt=$attempt http=${code:-000} reason=${reason:-EMPTY}"
+            [ "$attempt" -lt 10 ] || break
+            sleep 5
+          done
+          echo "::error::D166 unauthenticated request failed fail-closed readback after bounded propagation window"
+          exit 1
 
       - name: Verify Beta auth API routing and Root bootstrap path
         env:
