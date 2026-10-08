@@ -1386,7 +1386,7 @@ export default {
       if (request.method === "GET" && url.pathname === "/downloads/launcher/latest.sha256") {
         return redirectLatestLauncherChecksum();
       }
-      if (request.method === "GET" && /^\\/downloads\\/launcher\\/releases\\/\\d+\\.\\d+\\.\\d+$/.test(url.pathname)) {
+      if (request.method === "GET" && /^\/downloads\/launcher\/releases\/\d+\.\d+\.\d+$/.test(url.pathname)) {
         const version = url.pathname.substring("/downloads/launcher/releases/".length);
         return new Response(null, { status: 302, headers: {
           "location": `https://github.com/tamnv2/supra-pda-launcher/releases/download/v${version}/SUPRA-PDA-Launcher-v${version}.apk`,
