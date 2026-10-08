@@ -116,7 +116,20 @@ export async function handleRuntimeLogCoreRequest(
       ).toArray()[0];
       if (existing) {
         if (String(existing.content_text || "") !== content) {
-          return response({ error: "RUNTIME_LOG_BUNDLE_ID_CONFLICT" }, 409);
+          // The envelope's received_at is regenerated on a retry. Compare
+          // the actual log contents and immutable identity without that
+          // server-generated timestamp before declaring a bundle conflict.
+          let sameImmutablePayload = false;
+          try {
+            const previous = JSON.parse(String(existing.content_text || "")) as Record<string, unknown>;
+            const incoming = JSON.parse(content) as Record<string, unknown>;
+            delete previous.received_at;
+            delete incoming.received_at;
+            sameImmutablePayload = JSON.stringify(previous) === JSON.stringify(incoming);
+          } catch { /* Fail closed on malformed envelopes. */ }
+          if (!sameImmutablePayload) {
+            return response({ error: "RUNTIME_LOG_BUNDLE_ID_CONFLICT" }, 409);
+          }
         }
         const { content_text: _content, ...file } = existing;
         return response({ status: "buffered", idempotent_replay: true, file });
