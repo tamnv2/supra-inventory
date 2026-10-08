@@ -1886,3 +1886,7 @@ Canonical current-status markers for authority guard: sqlite_schema=17; latest_b
 ## D165 Agent v119 release readiness — technical PASS
 
 Main `1278b202` post-merge 11/11 workflows PASS. Beta Worker deployment run `37569696945` PASS; Agent verification/release run `37569696832` PASS and `relay-agent-v119` is published. v119 privileged auth now matches existing ADMIN/PICKPACK_ADMIN Agent authority and retains ROOT denial, DPAPI, Firebase/Firestore and HHmm/OTP proof boundaries. Android remains `beta-vc102`. Runtime/field acceptance and comparable usage remain pending Owner OA100.
+
+## D165 08/10 RTDB HA repair — Agent v120 source candidate
+
+Source branch `repair/d165-rtdb-ha-rule-fallback-v120` is the Owner-approved D165 continuation after field evidence of ~3.8–4.1k Firestore Reads/hour. Scope: existing Beta RTDB HA rule role parity for ADMIN/PICKPACK_ADMIN Agent; transition-only observer failure wake and sanitized RTDB failure class in Agent v120. No Android, Web, Worker, Stable or WMS business contract change. v119 remains the active operator version until main CI, RTDB deploy and release are verified. The Agent release remains manual-install only; Owner upgrades standby first, transfers PRIMARY only after in-flight batch settles, tests real confirmation/ACK and then upgrades the remaining Agents. Technical, provider, field and usage PASS must each be verified; D165 Owner PASS still pending.
