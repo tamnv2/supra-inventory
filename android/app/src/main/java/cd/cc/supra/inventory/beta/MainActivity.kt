@@ -831,6 +831,7 @@ class MainActivity : Activity() {
                 .put("count", skuCache.count)
                 .put("version", sanitizeDiagnosticText(skuCache.version).take(160)))
             .put("journal", androidPersistentJournalSnapshot())
+            .put("d166_usage_audit", D166UsageAudit.snapshot(androidPersistentJournalSnapshot()))
             .put("recent_events", JSONArray(localLog.toList().takeLast(80).map(::sanitizeDiagnosticText)))
             .put("recent_errors", JSONArray(errors))
 
