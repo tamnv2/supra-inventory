@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "GOV-QUOTA-20261008",
     "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
     "current_change_id": "D166",
-    "current_change_status": "D166_V122_RELEASE_AND_GATEWAY_PASS__BETA_WORKER_POST_SECRET_AUTH_SMOKE_HTTP404_NOT_PASS__REPAIR_IN_SAME_D166",
+    "current_change_status": "D166_V122_BETA_WORKER_AND_GATEWAY_TECHNICAL_RUNTIME_PASS__OWNER_FIELD_AND_PROVIDER_READBACK_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "BETA_WORKER_AND_GATEWAY_V122_MERGED_DEPLOYED__BETA_WORKER_HEALTH_PRE_SECRET_PASS__SECRET_NAME_READBACK_PASS__AUTH_SMOKE_404_FAIL__D165_AGENT_V120_ACCEPTED",
+    "runtime_impact": "WORKER_BETA_DEPLOY_PASS_RUN_37816448917__GATEWAY_PASS_37815507761__AGENT_V122_RELEASE_PASS_37815507718__D165_V120_ACCEPTED_DEPLOYED",
     "resource_change": "EXISTING_BETA_WORKER_SECRET_BINDING_PROPOSED__OWNER_APPROVED__NOT_DEPLOYED__STABLE_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D166__PROPOSAL_ONLY",
@@ -6301,7 +6301,7 @@
     "candidate_pr": 509,
     "deployment_gate": "OWNER_REPORTED_D160_MIGRATION_WORKFLOW_DISABLED__VERIFY_PROVIDER_DISABLED_AND_PRESERVE_D165_LOG_AUTH",
     "ci_status": "D165_HA_WMS_AND_AGENT_BUILD_PASS__D159_GATEWAY_REMOTE_TIMEOUT_RETRY_PENDING",
-    "field_acceptance": "OWNER_PASS_PENDING__V120_STAYS_LIVE",
+    "field_acceptance": "PENDING__AGENT_V122_STANDBY_AND_REAL_CLOUDFLARE_ZIP_REVIEW",
     "phase_c_inputs": [
       "ZIP_PROVIDER_USAGE_ON_DEMAND",
       "OWNER_PROVIDER_SCREENSHOTS",
@@ -6334,7 +6334,7 @@
     },
     "phase_c": "AWAIT_OWNER_V121_USAGE_ZIP_AND_PROVIDED_PROVIDER_SCREENSHOTS_PLUS_AGENT_ANDROID_WEB_LOGS",
     "cloudflare_candidate": {
-      "status": "MAIN_PR511_MERGED__WORKER_AUTH_SMOKE_HTTP404_FAIL__REPAIR_OPEN",
+      "status": "MAIN_DEPLOY_BETA_WORKER_AUTH_TECHNICAL_PASS__PROVIDER_DATA_AND_OWNER_FIELD_PENDING",
       "branch": "feature/d166-cloudflare-usage-readonly",
       "pr": 511,
       "agent_candidate": 122,
@@ -6345,7 +6345,7 @@
       "durable_objects": "BLOCKED_NAMESPACE_NOT_CANONICALLY_SCOPED",
       "google_billing_bigquery": "NOT_AUTHORIZED",
       "deployment": "POST_MERGE_BETA_WORKER_HEALTH_AND_SECRET_NAME_READBACK_PENDING",
-      "next": "CI_PASS_AND_OWNER_APPROVED_MERGE__PROVIDER_READBACK__STANDBY_V122_FIELD_TEST__OWNER_PASS",
+      "next": "OWNER_INSTALL_V122_STANDBY__EXPORT_ZIP__CHECK_PROVIDER_SECTIONS_AND_WMS_HA_ACK__EXPLICIT_OWNER_PASS",
       "accepted_runtime": "D165_AGENT_V120",
       "stable": "OWNER_GATED_UNCHANGED",
       "merged_pr": 511,
@@ -6359,7 +6359,16 @@
       "agent_status": "TECHNICAL_RELEASE_PASS__OWNER_FIELD_NOT_PASS",
       "worker_health_before_secret": "PASS",
       "worker_secret_name_readback": "PASS",
-      "repair": "ONE_POST_SECRET_HEALTH_SOURCE_ENV_READBACK_PLUS_BOUNDED_10X5_SEC_AUTH_RETRY"
+      "repair": "ONE_POST_SECRET_HEALTH_SOURCE_ENV_READBACK_PLUS_BOUNDED_10X5_SEC_AUTH_RETRY",
+      "final_worker_deploy_run": 37816448917,
+      "final_worker_deploy_status": "PASS",
+      "after_secret_worker_health": "PASS_EXACT_MAIN_SHA_AND_BETA",
+      "unauthenticated_endpoint": "PASS_HTTP_401_AUTH_REQUIRED",
+      "credential": "CLOUDFLARE_READ_TOKEN_ACTIVE_AND_WORKER_SECRET_NAME_READBACK_PASS",
+      "prior_smoke_404": "OBSERVED_RUN_37815507756__ROOT_CAUSE_NOT_PROVEN",
+      "gateway_deploy": "PASS_37815507761",
+      "agent_v122": "TECHNICAL_RELEASE_PASS_37815507718__MANUAL_STANDBY_ONLY",
+      "owner_field_pass": "PENDING"
     }
   },
   "launcher_v0325_update_logs": {

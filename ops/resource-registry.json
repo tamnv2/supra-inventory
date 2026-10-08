@@ -2728,7 +2728,7 @@
     "legacy_d159_ci": "FAIL_CONFIGURED_RETIRED_D159_URL__TRACK_SEPARATELY"
   },
   "d166_cloudflare_readonly_candidate": {
-    "status": "MERGED_MAIN__BETA_WORKER_DEPLOY_PRE_SECRET_HEALTH_AND_SECRET_READBACK_PASS__AUTH_HTTP404_FAIL__REPAIR_PENDING",
+    "status": "BETA_WORKER_AND_GATEWAY_TECHNICAL_RUNTIME_PASS__OWNER_FIELD_PENDING",
     "scope": "EXISTING_BETA_WORKER_ONLY",
     "credential_reference": "GITHUB_ENV_BETA_SECRET_D166_CF_READ_TOKEN__PROMOTE_ONLY_AS_WORKER_RUNTIME_SECRET_AFTER_HEALTH",
     "account_id_source": "GITHUB_VAR_CF_ACCOUNT_ID",
@@ -2739,13 +2739,18 @@
     "gateway": "EXISTING_BETA_AGENT_OPERATIONS_GATEWAY__FORWARD_FIREBASE_ID_TOKEN_ONLY",
     "secret_delivery": "GITHUB_MAIN_DEPLOY_WORKER_AFTER_HEALTH__SEPARATE_WRANGLER_SECRET_PUT__READBACK_NAME",
     "owner_approval": "OWNER_2026_10_09_APPROVED_BETA_WORKER_READONLY_BRIDGE",
-    "stable": "OWNER_GATED",
+    "stable": "OWNER_GATED_UNTOUCHED",
     "pr": 511,
     "sha": "5c71cd0d8aaf8b8264f43a7450eb4220d17cdf03",
     "gateway_deploy": "PASS_37815507761",
-    "worker_deploy": "FAIL_37815507756__UNAUTH_ENDPOINT_404",
+    "worker_deploy": "PASS_37816448917",
     "source_in_use": "UNKNOWN_AFTER_SECRET_VERSION__CHECK_PENDING",
     "owner_field_pass": "NO",
-    "accepted_agent": "v120"
+    "accepted_agent": "v120",
+    "agent_v122_release": "PASS_37815507718",
+    "worker_secret": "BINDING_NAME_READBACK_PASS__VALUE_NOT_EXPOSED",
+    "http_auth": "UNAUTH_POST_HTTP401_PASS",
+    "authenticated_provider": "NOT_VERIFIED",
+    "owner_pass": "PENDING"
   }
 }
