@@ -47,6 +47,10 @@ jobs:
             throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
           }
 
+      - name: D166 Usage ZIP export regression guard
+        shell: pwsh
+        run: python tools/d166_usage_export_regression.py
+
       - name: D165 Beta RTDB HA role/fallback regression guard
         shell: pwsh
         run: python tools/d165_rtdb_ha_regression.py
