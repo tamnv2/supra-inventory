@@ -6285,6 +6285,17 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "android_mandatory_update_backlog": {
+      "requirement_id": "D166-ANDROID-FORCE-UPDATE",
+      "owner_approved_date_vn": "2026-10-09",
+      "status": "BACKLOG_APPROVED__CODE_NOT_STARTED__FIELD_NOT_PASS",
+      "scope": "INVENTORY_ANDROID_BETA_ONLY__NOT_LAUNCHER_PDA_MANAGEMENT_AGENT_WEB_OR_STABLE",
+      "rule": "EVERY_APPROVED_SIGNED_NEW_APK_REQUIRED__NO_DEFER_OR_BYPASS__BLOCK_PRELOGIN_AND_NEW_IN_SESSION_ACTIONS",
+      "safety": "COMPLETE_INFLIGHT_OPERATIONS_ACK_SAFELY__FAIL_CLOSED_INSTALL_ERRORS__NO_NEW_BACKGROUND_POLLING",
+      "reference": "docs/D166_APPROVED_BACKLOG.md",
+      "runtime_change": "NONE",
+      "implementation_gate": "OWNER_APPROVAL_AFTER_IMPACT_REVIEW_REQUIRED"
+    },
     "usage_audit_2026_10_09": {
       "owner_scope": "V122_SELECTED_OFFICIAL_AGENT_BASE__V123_LOG_ONLY__APP_WEB_LOG_ONLY__NO_USAGE_OPTIMIZATION_APPROVED",
       "evidence": "docs/D166_USAGE_AUDIT_2026-10-06_08.md",
