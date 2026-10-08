@@ -2727,6 +2727,20 @@
     "accepted_runtime": "D165_AGENT_V120_OWNER_PASS__NO_FLEET_UPDATE",
     "legacy_d159_ci": "FAIL_CONFIGURED_RETIRED_D159_URL__TRACK_SEPARATELY"
   },
+  "d166_owner_selected_v122_and_v123_diagnostics": {
+    "scope": "EXISTING_INVENTORY_BETA_ONLY__NO_NEW_RESOURCE",
+    "owner_selected_agent_base": "relay-agent-v122",
+    "base_acceptance": "OWNER_2026_10_09_OFFICIAL_AGENT_DEVELOPMENT_BASE_NOT_D166_FULL_PASS",
+    "agent_candidate": "relay-agent-v123",
+    "agent_candidate_scope": "FIRESTORE_RAM_AGGREGATE_AND_EXISTING_SUPPORT_LOG_BUNDLE_ONLY",
+    "android": "BETA_LOG_ONLY_NEXT_RELEASE__VC102_CURRENT_UNTIL_BUILD_PASS",
+    "web": "BETA_LOG_ONLY_VERSION_3_CANDIDATE",
+    "usage_evidence": "docs/D166_USAGE_AUDIT_2026-10-06_08.md",
+    "upstream_usage_change": "ZERO_EXTRA_PROVIDER_REQUEST_OR_FIRESTORE_DOC_READ_WRITE__BOUNDED_EXISTING_LOG_PAYLOAD_BYTES",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "field_acceptance": "PENDING_CI_AND_OWNER_TEST",
+    "firebase_write_or_schema_change": "NONE"
+  },
   "d166_cloudflare_readonly_candidate": {
     "status": "BETA_WORKER_AND_GATEWAY_TECHNICAL_RUNTIME_PASS__OWNER_FIELD_PENDING",
     "scope": "EXISTING_BETA_WORKER_ONLY",
