@@ -433,3 +433,7 @@ Windows Agent `admin` and `tamnv2` use the same Worker-authenticated OTP or exac
 Privileged Agent login is not a new permission grant. It MUST match the existing Agent operator authority exactly: effective/base `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN`. `ROOT`, `REPORTER`, `PICKER`, role-mismatched identities and ROOT effective-role simulation remain invalid for Agent. The exact D165 privileged login names remain `admin` and `tamnv2`.
 
 The client normalizes composite internal identifiers to their visible login tail before the privileged Worker request, then validates Firebase claims using the same Agent operator predicate as ordinary password auth. Privileged re-auth uses the same two allowed operator roles. Authentication proof rules are unchanged: current unconsumed 4-digit OTP or numeric >=8-digit Vietnam HHmm ±5-minute emergency proof. Proof values are never logged.
+
+### D165 Beta RTDB HA authorization repair (08/10)
+
+Only for existing Beta `relay_poc/coordination/ha_liveness`: read/write require Firebase-authenticated `app_session_channel=AGENT` and matching role/base-role pair `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN`. The liveness payload `agent_admin_user_id` must match the verified `app_user_id`; `generation` and heartbeat shape remain validated. This is parity with existing Agent authentication, not a new role or access to unrelated RTDB paths. Keep global deny-by-default and forbid Picker, Reporter, ROOT and Web sessions. Firestore stays authoritative for PRIMARY/generation and WMS mutation.
