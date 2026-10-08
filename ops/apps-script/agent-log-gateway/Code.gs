@@ -886,6 +886,16 @@ function collectD166UsageExport_(mode) {
     monitoringMetricSpec_('agent_log_function_requests', METRICS.functionRequests,
       'resource.type="cloud_run_revision" AND resource.labels.service_name="agentloguploadwritten"',
       start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_api_hits', 'firebasedatabase.googleapis.com/network/api_hits_count',
+      storageFilter, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_https_requests', 'firebasedatabase.googleapis.com/network/https_requests_count',
+      storageFilter, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_connections', 'firebasedatabase.googleapis.com/network/active_connections',
+      storageFilter, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_monthly_sent', 'firebasedatabase.googleapis.com/network/monthly_sent',
+      storageFilter, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_monthly_sent_limit', 'firebasedatabase.googleapis.com/network/monthly_sent_limit',
+      storageFilter, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
     monitoringMetricSpec_('rtdb_sent_bytes', 'firebasedatabase.googleapis.com/network/sent_bytes_count',
       storageFilter, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
     monitoringMetricSpec_('rtdb_payload_bytes', 'firebasedatabase.googleapis.com/network/sent_payload_bytes_count',
@@ -910,6 +920,7 @@ function collectD166UsageExport_(mode) {
       hour_label_vn: Utilities.formatDate(when, vietnam, 'yyyy-MM-dd HH:mm'),
       reads: null, writes: null, deletes: null,
       rtdb_sent_bytes: null, rtdb_payload_bytes: null,
+      rtdb_api_hits: null, rtdb_https_requests: null,
       sheets_requests: null, drive_requests: null
     };
   }
@@ -917,7 +928,7 @@ function collectD166UsageExport_(mode) {
   const availability = {};
   const warnings = [];
   const sumFields = ['reads','writes','deletes','rtdb_sent_bytes',
-    'rtdb_payload_bytes','sheets_requests','drive_requests'];
+    'rtdb_payload_bytes','rtdb_api_hits','rtdb_https_requests','sheets_requests','drive_requests'];
   const gaugeKeys = ['storage','connections','listeners','function_instances','rtdb_storage_bytes'];
   specs.forEach(spec => {
     const result = results[spec.key] || { series: [], error: 'MISSING_RESULT' };
@@ -1007,6 +1018,10 @@ function collectD166UsageExport_(mode) {
       success_groups: Object.keys(availability).filter(k => availability[k] === 'OK').length,
       failed_groups: warnings.length,
       firebasedatabase_sent_bytes: metrics.rtdb_sent_bytes.total,
+      firebasedatabase_api_hits: metrics.rtdb_api_hits.total,
+      firebasedatabase_https_requests: metrics.rtdb_https_requests.total,
+      firebasedatabase_connections_peak: metrics.rtdb_connections.peak_point,
+      firebasedatabase_monthly_sent_bytes: metrics.rtdb_monthly_sent.latest,
       firestore_reads: metrics.reads.total,
       firestore_writes: metrics.writes.total,
       firestore_deletes: metrics.deletes.total,
