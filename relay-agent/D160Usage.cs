@@ -161,7 +161,7 @@ namespace SupraInventoryRelayAgent
                 RowCount = 3,
                 ColumnCount = 1
             };
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 76));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 112));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 330));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             _d160UsagePage.Controls.Add(root);
@@ -190,6 +190,7 @@ namespace SupraInventoryRelayAgent
             _d160UsageRefresh.Text = "Cập nhật ngay";
             _d160UsageRefresh.Click += async (s, e) => await RefreshD160UsageAsync(true);
             header.Controls.Add(_d160UsageRefresh);
+            InitializeD166UsageExportUi(header);
             header.Resize += (s, e) =>
             {
                 _d160UsageRefresh.Left = Math.Max(10, header.ClientSize.Width - _d160UsageRefresh.Width - 8);

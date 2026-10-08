@@ -90,6 +90,12 @@ function doPost(e) {
       return proxyWorkerJson_('/api/agent/reauth', { proof: proof }, idToken);
     }
     if (action === 'get_firestore_usage') return json_(loadSnapshot_());
+    if (action === 'get_usage_export') {
+      // Existing Firebase role validation is mandatory; new action cannot run pre-auth.
+      const mode = String(body.window || 'today');
+      if (['today', 'rolling', 'shift'].indexOf(mode) < 0) throw new Error('D166_WINDOW_INVALID');
+      return json_(collectD166UsageExport_(mode));
+    }
     if (action === 'request_support_logs') {
       const requestId = String(body.request_id || '');
       if (!/^support-[A-Za-z0-9]{16,80}$/.test(requestId)) throw new Error('INVALID_SUPPORT_REQUEST_ID');
@@ -500,7 +506,7 @@ function fetchMetrics_(specs, token) {
     }
     try {
       const payload = JSON.parse(response.getContentText() || '{}');
-      out[key] = { series: payload.timeSeries || [], error: null };
+      out[key] = { series: payload.timeSeries || [], error: null, truncated: !!payload.nextPageToken };
     } catch (_) {
       out[key] = { series: [], error: 'MONITORING_BAD_JSON' };
     }
@@ -835,3 +841,203 @@ function json_(value) {
     .createTextOutput(JSON.stringify(value))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+
+/**
+ * D166: one explicit Owner-initiated export request. Not used by the existing
+ * 15-minute D160 tab cache and never writes Firestore or cloud business data.
+ * All Monitoring queries are restricted to the existing Beta Cloud project.
+ */
+function collectD166UsageExport_(mode) {
+  const now = new Date();
+  const vietnam = 'Asia/Ho_Chi_Minh';
+  let start = new Date(now.getTime() - DAY_MS);
+  let shiftEnd = now;
+  if (mode === 'today') {
+    start = zonedMidnightUtc_(now, vietnam);
+  } else if (mode === 'shift') {
+    const localDay = Utilities.formatDate(now, vietnam, 'yyyy-MM-dd');
+    const dateParts = localDay.split('-').map(Number);
+    const localReference = new Date(Date.UTC(dateParts[0], dateParts[1]-1, dateParts[2], 6, 0, 0));
+    start = new Date(localReference.getTime() - 7 * HOUR_MS);
+    if (now.getTime() < start.getTime()) start = new Date(start.getTime() - DAY_MS);
+    shiftEnd = new Date(start.getTime() + 16 * HOUR_MS);
+  }
+  const end = new Date(Math.min(now.getTime(), shiftEnd.getTime()));
+  const token = ScriptApp.getOAuthToken();
+  const storageFilter = 'resource.type="firebase_namespace"';
+  const firestoreKeys = ['reads','writes','deletes','connections','listeners','rules','storage'];
+  const specs = [
+    metricSpec_('reads', METRICS.reads, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    metricSpec_('writes', METRICS.writes, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    metricSpec_('deletes', METRICS.deletes, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    metricSpec_('connections', METRICS.connections, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    metricSpec_('listeners', METRICS.listeners, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    metricSpec_('rules', METRICS.rules, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', ['metric.labels.result']),
+    metricSpec_('storage', METRICS.storage, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    consumedApiMetricSpec_('fcm_requests', SERVICE_ENDPOINTS.fcm, start, end),
+    consumedApiMetricSpec_('identity_requests', SERVICE_ENDPOINTS.identityToolkit, start, end),
+    consumedApiMetricSpec_('secure_token_requests', SERVICE_ENDPOINTS.secureToken, start, end),
+    consumedApiMetricSpec_('sheets_requests', 'sheets.googleapis.com', start, end),
+    consumedApiMetricSpec_('drive_requests', 'drive.googleapis.com', start, end),
+    cloudRunMetricSpec_('function_requests', METRICS.functionRequests, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', ['metric.labels.response_code_class']),
+    cloudRunMetricSpec_('function_instances', METRICS.functionInstances, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    cloudRunMetricSpec_('function_billable_time', METRICS.functionBillableTime, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('agent_log_function_requests', METRICS.functionRequests,
+      'resource.type="cloud_run_revision" AND resource.labels.service_name="agentloguploadwritten"',
+      start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_sent_bytes', 'firebasedatabase.googleapis.com/network/sent_bytes_count',
+      storageFilter, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_payload_bytes', 'firebasedatabase.googleapis.com/network/sent_payload_bytes_count',
+      storageFilter, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_protocol_bytes', 'firebasedatabase.googleapis.com/network/sent_payload_and_protocol_bytes_count',
+      storageFilter, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_storage_bytes', 'firebasedatabase.googleapis.com/storage/total_bytes',
+      storageFilter, start, end, '3600s', 'ALIGN_MAX', 'REDUCE_SUM', []),
+    monitoringMetricSpec_('rtdb_rules_count', 'firebasedatabase.googleapis.com/rules/evaluation_count',
+      storageFilter, start, end, '3600s', 'ALIGN_SUM', 'REDUCE_SUM', [])
+  ];
+  // One batch per explicit click. No timer, retry loop, sampling daemon or write.
+  const results = fetchMetrics_(specs, token);
+  const firstHour = Math.floor(start.getTime() / HOUR_MS) * HOUR_MS;
+  const endHour = Math.floor(end.getTime() / HOUR_MS) * HOUR_MS;
+  const hours = {};
+  for (let t = firstHour; t <= endHour && t < firstHour + 26 * HOUR_MS; t += HOUR_MS) {
+    const when = new Date(t);
+    const key = when.toISOString();
+    hours[key] = {
+      hour_start: key,
+      hour_label_vn: Utilities.formatDate(when, vietnam, 'yyyy-MM-dd HH:mm'),
+      reads: null, writes: null, deletes: null,
+      rtdb_sent_bytes: null, rtdb_payload_bytes: null,
+      sheets_requests: null, drive_requests: null
+    };
+  }
+  const metrics = {};
+  const availability = {};
+  const warnings = [];
+  const sumFields = ['reads','writes','deletes','rtdb_sent_bytes',
+    'rtdb_payload_bytes','sheets_requests','drive_requests'];
+  const gaugeKeys = ['storage','connections','listeners','function_instances','rtdb_storage_bytes'];
+  specs.forEach(spec => {
+    const result = results[spec.key] || { series: [], error: 'MISSING_RESULT' };
+    const list = result.series || [];
+    const error = result.error || null;
+    const truncated = result.truncated === true;
+    const points = [];
+    list.forEach(row => (row.points || []).forEach(p => {
+      const n = pointNumber_(p);
+      const at = pointEndMs_(p);
+      if (at > 0 && Number.isFinite(n)) points.push({ at: at, value: n });
+    }));
+    let total = 0;
+    let peak = 0;
+    let current = null;
+    let last = -1;
+    const hourlySum = {};
+    points.forEach(p => {
+      total += p.value;
+      if (p.value > peak) peak = p.value;
+      if (p.at > last) { last = p.at; current = p.value; }
+      const key = new Date(Math.floor((p.at - 1) / HOUR_MS) * HOUR_MS).toISOString();
+      hourlySum[key] = Number(hourlySum[key] || 0) + p.value;
+    });
+    const empty = !error && points.length === 0;
+    availability[spec.key] = error ? 'ERROR' : (truncated ? 'TRUNCATED' : (empty ? 'NO_DATA' : 'OK'));
+    if (error) warnings.push(spec.key + ':' + error);
+    else if (truncated) warnings.push(spec.key + ':PAGE_LIMIT');
+    metrics[spec.key] = {
+      status: availability[spec.key],
+      total: error || empty || truncated ? null : Math.round(total),
+      peak_point: error || empty || truncated ? null : Math.round(peak),
+      latest: error || empty || truncated ? null : Math.round(current),
+      time_series_count: list.length,
+      last_point_at: last > 0 ? new Date(last).toISOString() : null,
+      error_code: error
+    };
+    if (sumFields.indexOf(spec.key) >= 0) {
+      Object.keys(hours).forEach(key => {
+        hours[key][spec.key] = !error && !empty && !truncated ?
+          Math.round(Number(hourlySum[key] || 0)) : null;
+      });
+    }
+  });
+
+  // Existing Owner-authorized full Drive OAuth scope; one read-only metadata
+  // request, not a folder listing. This is a shared Google account snapshot.
+  let driveQuota = { status: 'UNAVAILABLE', account_scope: 'SHARED_GOOGLE_ACCOUNT_NOT_INVENTORY_ATTRIBUTABLE' };
+  try {
+    const response = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
+      headers: { Authorization: 'Bearer ' + token },
+      muteHttpExceptions: true
+    });
+    if (response.getResponseCode() === 200) {
+      const parsed = JSON.parse(response.getContentText() || '{}');
+      const quota = parsed.storageQuota || {};
+      driveQuota = {
+        status: 'OK',
+        account_scope: 'SHARED_GOOGLE_ACCOUNT_NOT_INVENTORY_ATTRIBUTABLE',
+        limit_bytes: quota.limit || null,
+        usage_bytes: quota.usage || null,
+        usage_in_drive_bytes: quota.usageInDrive || null
+      };
+    } else {
+      driveQuota.status = 'HTTP_' + response.getResponseCode();
+    }
+  } catch (_) { driveQuota.status = 'READ_UNAVAILABLE'; }
+  const hourly = Object.keys(hours).sort().map(key => hours[key]);
+  return {
+    ok: true,
+    service: 'SUPRA_AGENT_USAGE_EXPORT_D166',
+    revision: GATEWAY_REVISION,
+    project: PROJECT_ID,
+    generated_at: now.toISOString(),
+    window: {
+      mode: mode,
+      start_at: start.toISOString(),
+      end_at: end.toISOString(),
+      timezone: vietnam,
+      provider_firestore_timezone: 'America/Los_Angeles',
+      provider_firestore_quota_day_start: zonedMidnightUtc_(now, 'America/Los_Angeles').toISOString(),
+      partial_hour_possible: true,
+      monitoring_data_delay_possible: true
+    },
+    summary: {
+      metric_groups_requested: specs.length,
+      success_groups: Object.keys(availability).filter(k => availability[k] === 'OK').length,
+      failed_groups: warnings.length,
+      firebasedatabase_sent_bytes: metrics.rtdb_sent_bytes.total,
+      firestore_reads: metrics.reads.total,
+      firestore_writes: metrics.writes.total,
+      firestore_deletes: metrics.deletes.total,
+      warning_count: warnings.length,
+      cost_usd: null,
+      cost_status: 'BILLING_NOT_AVAILABLE_USE_OWNER_SCREENSHOT'
+    },
+    metrics: metrics,
+    google_drive_account: driveQuota,
+    hourly: hourly,
+    status: {
+      metric_availability: availability,
+      warnings: warnings,
+      unsupported_sources: {
+        cloudflare_workers_do: 'MANUAL_SCREENSHOT_AUTHORIZED_SERVER_TOKEN_UNAVAILABLE',
+        cloudflare_billing: 'MANUAL_SCREENSHOT',
+        google_cloud_billing: 'MANUAL_BILLING_REPORT_CSV_OR_SCREENSHOT',
+        github_account_usage: 'OUT_OF_SCOPE_ACCOUNT_WIDE',
+        unregistered_resources: 'NOT_IN_INVENTORY_SCOPE'
+      },
+      source: 'GOOGLE_CLOUD_MONITORING_AND_DRIVE_ABOUT_READ_ONLY',
+      monitoring_queries_per_click: specs.length,
+      google_drive_api_reads_per_click: 1,
+      firestore_document_operations_added: 0,
+      provider_notes: [
+        'Actual Billing cost is unavailable from this API and must not be estimated as exact USD.',
+        'Monitoring API calls count returned time series against the billing-account read tier.',
+        'No-data is not equivalent to zero activity; provider data can lag.',
+        'Current Drive storage is a shared-account snapshot, not 24h usage.'
+      ]
+    }
+  };
+}
+
