@@ -589,3 +589,9 @@ Before code starts, verify at minimum:
 - usage targets and performance invariants remain acceptable.
 
 Only after that verification and a new explicit Owner start command may runtime implementation begin.
+
+## 2026-10-08 — D165 field-repair continuation: RTDB role parity and Agent v120
+
+Observed 08/10 billed Firestore reads ~3.8–4.1k/hour under active load, with RTDB unavailable and Firestore lease fallback events in Agent logs. Source audit found mismatch: Agent sessions may be `PICKPACK_ADMIN`, while Beta RTDB `ha_liveness` rules allowed only `ADMIN`. This source-level defect is confirmed; exact attribution of billed Reads needs post-fix Monitoring.
+
+Owner authorized a low-risk staged repair: extend only the existing Beta `ha_liveness` rules to authenticated AGENT matching ADMIN or PICKPACK_ADMIN role/base-role, and stop repeated SSE transport failures from waking the HA coordinator every second after the initial health transition. Keep failover safety, Firestore authority, 10s PRIMARY heartbeat, existing fallback and realtime/WMS/ACK pipeline unchanged. Agent v120 is manual-update only. Owner installs on NEXT_A first, validates, explicitly transfers PRIMARY when no in-flight confirmations, validates confirmation/ACK, then updates remaining Agents. No Android, Web, Worker, Stable or new resource mutation. Technical/CI/deploy and Owner field/usage PASS are distinct.
