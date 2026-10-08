@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -67,6 +68,8 @@ namespace SupraInventoryRelayAgent
                         ? ApplyFreshSystemProxy(request, url)
                         : ApplyDefaultWindowsProxy(request, url));
                 FirestoreQuotaGuard.Record(method, url, component, log);
+                // D166: elapsed time aggregated in RAM; never emits a per-request log or provider call.
+                var d166Elapsed = Stopwatch.StartNew();
                 try
                 {
                     if (body != null)
@@ -80,10 +83,19 @@ namespace SupraInventoryRelayAgent
                     using (var response = (HttpWebResponse)request.GetResponse())
                     using (var stream = response.GetResponseStream())
                     using (var reader = stream == null ? null : new StreamReader(stream))
-                        return reader == null ? "" : reader.ReadToEnd();
+                    {
+                        var result = reader == null ? "" : reader.ReadToEnd();
+                        try { FirestoreQuotaGuard.RecordOutcome(component, method, true, d166Elapsed.ElapsedMilliseconds, ""); } catch { }
+                        return result;
+                    }
                 }
                 catch (WebException ex)
                 {
+                    var status = 0;
+                    try { status = ex.Response is HttpWebResponse ? (int)((HttpWebResponse)ex.Response).StatusCode : 0; } catch { }
+                    var errorClass = status == 401 ? "HTTP_401" : status == 403 ? "HTTP_403" :
+                        status == 429 ? "HTTP_429" : status >= 500 ? "HTTP_5XX" : status == 0 ? "NETWORK" : "OTHER_FAILURE";
+                    try { FirestoreQuotaGuard.RecordOutcome(component, method, false, d166Elapsed.ElapsedMilliseconds, errorClass); } catch { }
                     last = ex;
                     if (attempt < attempts && IsTransient(ex))
                     {
@@ -97,6 +109,11 @@ namespace SupraInventoryRelayAgent
                         Thread.Sleep(attempt == 1 ? 350 : 900);
                         continue;
                     }
+                    throw;
+                }
+                catch (Exception)
+                {
+                    try { FirestoreQuotaGuard.RecordOutcome(component, method, false, d166Elapsed.ElapsedMilliseconds, "OTHER_FAILURE"); } catch { }
                     throw;
                 }
             }
