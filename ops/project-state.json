@@ -6332,4 +6332,20 @@
     "security": "no raw Serial/MEID in Launcher battery logs; policy targets device_key; explicit ROOT auth for writes",
     "stable": "UNTOUCHED"
   }
+,
+  "launcher_owner_release_scope_guard": {
+    "status": "IMPLEMENTED_ON_ISOLATED_PR_508__CI_PENDING__NOT_DEPLOYED",
+    "change_date": "2026-10-08",
+    "owner_decision": "For EVERY Launcher release newer than 0.3.25, ask owner to approve scope ALL/MODEL/DEVICE and exact target devices/models BEFORE release; no inherited approval.",
+    "launcher_repo_pr": "tamnv2/supra-pda-launcher PR33",
+    "inventory_repo_pr": "tamnv2/supra-inventory PR508",
+    "release_gate": "workflow_dispatch on main only, actual GitHub actor tamnv2, version+scope confirmation, reject push/tag auto-release and duplicate signed release; no future launcher-channel promotion",
+    "scope_proof": "public privacy-safe owner receipt contains version, SHA256 APK, scope, target count and canonical SHA256 of selected list; no raw Serial/MEID/device key in public asset",
+    "activation_gate": "ROOT policy PUT verifies active rule against owner release receipt, including exact signed APK sha, scope, target digest and policy id; no extra per-PDA request",
+    "existing_client": "v0.3.25 remains unchanged, no immediate forced update",
+    "changes_to_agent_inventory_business_flows": "NONE",
+    "future_policy": "selected devices continue mandatory update; other devices remain eligible only for their existing policies",
+    "rollout_state": "NOT_ACTIVE_UNTIL_OWNER_SELECTS_FUTURE_RELEASE",
+    "stable": "UNTOUCHED"
+  }
 }
