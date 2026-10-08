@@ -960,3 +960,7 @@ Owner-approved SUPRA cross-project **planning** policy is documented in `docs/SU
 ## D166 2026-10-08 — Owner-approved A+B+C Usage ZIP (candidate v121)
 
 Owner expanded the initially research-only D166 to implement a **manual** Agent Usage ZIP exporter and as many authorized low-cost Beta-scoped provider read metrics as practical. This does not authorize new Cloudflare tokens, other-project resource reads or a paid BigQuery billing pipeline; links/screenshots supplement unavailable services. D165 Agent v120 remains the only accepted deployed Agent. A v121 candidate may be validated on standby after CI and safe in-place Gateway deployment; no automatic primary switch or Stable rollout. The old D160 migration workflow was reported disabled by Owner on 2026-10-08 and still requires deployment-safety verification before main merge.
+
+## D166 Cloudflare usage analysis candidate — 2026-10-08
+
+Owner reports adding read-only Cloudflare token to the GitHub `beta` environment. D166 optional v122 ZIP reader is being prepared on a short-lived branch; direct Cloudflare API credentials are not embedded in Agent/Worker and cannot be inferred as synchronized into Apps Script. Durable Object and Billing metrics remain shared-account only, never automatically attributed to Inventory. Credential provisioning and live provider tests are pending; D165 v120 accepted live Agent unchanged. No Stable mutation.
