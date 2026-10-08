@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D166_PR509_FINAL_CI_AND_GATEWAY_INPLACE_DEPLOY_GATES__DO_NOT_FORCE_UPDATE_V120_PRIMARY",
+  "next_action": "D166_OWNER_FIELD_TEST_V121_STANDBY_AND_24H_ZIP__UPLOAD_SCREENSHOTS_AND_FULL_LOGS__LEGACY_D159_CI_OUTSTANDING",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "GOV-QUOTA-20261008",
     "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
     "current_change_id": "D166",
-    "current_change_status": "D166_OWNER_APPROVED_A_B_C__AGENT_V121_CANDIDATE_SOURCE_BUILT__NO_MERGE_OR_RELEASE_UNTIL_GATES",
+    "current_change_status": "D166_V121_AGENT_RELEASE_AND_BETA_GATEWAY_TECHNICAL_PASS__FIELD_AND_PHASE_C_OWNER_ACCEPTANCE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,11 +2485,11 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D165_V120_ACCEPTED_OPERATIONAL_BASE__D166_V121_CANDIDATE_READ_ONLY_EXPORT_NOT_DEPLOYED",
+    "runtime_impact": "BETA_GATEWAY_SCOPED_READ_ONLY_D166_DEPLOYED__AGENT_V121_PUBLISHED_NOT_FIELD_ACCEPTED__D165_PRIMARY_V120_UNCHANGED",
     "resource_change": "NONE_FROM_D164_CANCELLATION__D164_EXISTING_BETA_ARTIFACTS_FROZEN__D165_EXISTING_SCOPED_RESOURCES_ONLY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D166__PROPOSAL_ONLY",
-    "parallel_inventory_change_status": "D166_IMPLEMENTATION_OWNER_APPROVED__FIELD_PASS_PENDING",
+    "parallel_inventory_change_status": "D166_RELEASED_CANDIDATE_V121__D165_V120_ACCEPTED_DEPLOYED_BASE_UNCHANGED",
     "parallel_boundary": "D165_ACCEPTED_RUNTIME_BASE__GOV_QUOTA_OWNER_PASS__D166_RESEARCH_AND_PROPOSAL_ONLY",
     "accepted_runtime_base_change_id": "D165"
   },
@@ -6285,7 +6285,7 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
-    "status": "OWNER_APPROVED_A_B_C__V121_CANDIDATE_PR509_REVIEW_PENDING",
+    "status": "TECHNICAL_BUILD_RELEASE_PASS__EXISTING_BETA_GATEWAY_DEPLOY_PASS__V121_FIELD_PASS_PENDING",
     "opened_on": "2026-10-08",
     "owner_command": "GOV-QUOTA-20261008 PASS; open D166 and first research/analyze/propose Agent Usage ZIP download, costs vs screenshots",
     "accepted_runtime_base": "D165_AGENT_V120_ANDROID_VC102_BETA_WEB_WORKER_RTDB",
@@ -6296,7 +6296,7 @@
     "provider_changes": "EXISTING_BETA_APPS_SCRIPT_GATEWAY_ONLY__NO_NEW_RESOURCE_CLOUDFLARE_TOKEN",
     "stable": "OWNER_GATED_UNTOUCHED",
     "eod_logs": "AWAIT_OWNER_UPLOAD_FOR_SEPARATE_HA_USAGE_ROOT_CAUSE_ANALYSIS",
-    "next": "FINAL_CI_REVIEW_AND_GATEWAY_DEPLOY_RESTRICTIONS__STANDBY_AGENT_V121_FIELD_TEST",
+    "next": "MANUAL_STANDBY_V121_FIELD_TEST__SAVE_ZIP_AND_SEND_EVIDENCE__OWNER_PASS_REQUIRED_BEFORE_FLEET_ROLLOUT",
     "agent_candidate": "relay-agent-v121",
     "candidate_pr": 509,
     "deployment_gate": "OWNER_REPORTED_D160_MIGRATION_WORKFLOW_DISABLED__VERIFY_PROVIDER_DISABLED_AND_PRESERVE_D165_LOG_AUTH",
@@ -6306,7 +6306,33 @@
       "ZIP_PROVIDER_USAGE_ON_DEMAND",
       "OWNER_PROVIDER_SCREENSHOTS",
       "OWNER_SEPARATE_AGENT_ANDROID_WEB_LOGS"
-    ]
+    ],
+    "merge_pr": 509,
+    "merge_commit": "93d2104194226d411882549938ea1fdc4c00bab5",
+    "agent_release": {
+      "tag": "relay-agent-v121",
+      "release_id": 407021794,
+      "asset_exe": "Agent.Auto.Confirm.Pick.Pack.exe",
+      "asset_sha256": "Agent.Auto.Confirm.Pick.Pack.exe.sha256",
+      "channel": "inventory-channel",
+      "release_published_at_utc": "2026-10-08T16:04:32Z",
+      "technical_ci": "PASS",
+      "owner_field_pass": "PENDING"
+    },
+    "gateway_deployment": {
+      "target": "EXISTING_SCOPED_BETA_AGENT_OPERATIONS_GATEWAY",
+      "workflow_run": 37805621341,
+      "technical_status": "PASS",
+      "new_resource": false
+    },
+    "main_ci": {
+      "authority": "PASS",
+      "continuity": "PASS",
+      "relay_agent": "PASS",
+      "legacy_d159_test": "FAIL__RETIRED_D159_GATEWAY_IDENTITY_PROBE_REFERENCES_OBSOLETE_URL__NONREQUIRED_MAIN_CHECK",
+      "legacy_probe_followup": "CANNOT_MODIFY_LEGACY_WORKFLOW_WITH_CURRENT_TOOL_PERMISSIONS"
+    },
+    "phase_c": "AWAIT_OWNER_V121_USAGE_ZIP_AND_PROVIDED_PROVIDER_SCREENSHOTS_PLUS_AGENT_ANDROID_WEB_LOGS"
   },
   "launcher_v0325_update_logs": {
     "status": "OWNER_APPROVED_RELEASE_2026_10_08__PRE_DEPLOY_MERGE_AND_CI_PENDING",
@@ -6331,8 +6357,7 @@
     "service_usage": "on-demand registry DO read + revision config read per manifest; no new Firebase listeners/periodic usage",
     "security": "no raw Serial/MEID in Launcher battery logs; policy targets device_key; explicit ROOT auth for writes",
     "stable": "UNTOUCHED"
-  }
-,
+  },
   "launcher_owner_release_scope_guard": {
     "status": "IMPLEMENTED_ON_ISOLATED_PR_508__CI_PENDING__NOT_DEPLOYED",
     "change_date": "2026-10-08",
