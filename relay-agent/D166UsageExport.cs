@@ -96,12 +96,13 @@ namespace SupraInventoryRelayAgent
 
         private static string D166Csv(object rows)
         {
-            var sb = new StringBuilder("hour_start_utc,hour_label_vn,reads,writes,deletes,rtdb_sent_bytes,rtdb_payload_bytes,rtdb_api_hits,rtdb_https_requests,sheets_requests,drive_requests\n");
+            var sb = new StringBuilder("hour_start_utc,hour_label_vn,reads,writes,deletes,rtdb_sent_bytes,rtdb_payload_bytes,rtdb_api_hits,rtdb_https_requests,sheets_requests,drive_requests,cf_worker_requests,cf_worker_errors,cf_worker_subrequests,cf_do_account_rows_read,cf_do_account_rows_written\n");
             foreach (var value in D160UsageJson.List(rows))
             {
                 var row = D160UsageJson.Map(value);
                 string[] keys = { "hour_start", "hour_label_vn", "reads", "writes", "deletes",
-                    "rtdb_sent_bytes", "rtdb_payload_bytes", "rtdb_api_hits", "rtdb_https_requests", "sheets_requests", "drive_requests" };
+                    "rtdb_sent_bytes", "rtdb_payload_bytes", "rtdb_api_hits", "rtdb_https_requests", "sheets_requests", "drive_requests",
+                        "cf_worker_requests", "cf_worker_errors", "cf_worker_subrequests", "cf_do_account_rows_read", "cf_do_account_rows_written" };
                 for (int i = 0; i < keys.Length; i++)
                 {
                     if (i > 0) sb.Append(',');
@@ -159,7 +160,7 @@ namespace SupraInventoryRelayAgent
                             { "timezone", "Asia/Ho_Chi_Minh" },
                             { "selected_window", mode },
                             { "source_project", AgentConfig.FirebaseProjectId },
-                            { "source", "existing Beta Agent Operations Gateway + Google Cloud Monitoring" },
+                            { "source", "existing Beta Agent Operations Gateway + Google Cloud Monitoring + optional Cloudflare Analytics/Billable Usage" },
                             { "window", D160UsageJson.Value(evidence, "window") },
                             { "scope", "Inventory Beta only; shared account totals are never attributed to Inventory" },
                             { "billing", "Not an invoice; provider Monitoring metrics can be delayed or incomplete" }
@@ -168,6 +169,10 @@ namespace SupraInventoryRelayAgent
                         D166AddText(zip, "summary.json", _d166Json.Serialize(D160UsageJson.Value(evidence, "summary")), checksums);
                         D166AddText(zip, "providers/monitoring.json", _d166Json.Serialize(D160UsageJson.Value(evidence, "metrics")), checksums);
                         D166AddText(zip, "providers/google_drive_account.json", _d166Json.Serialize(D160UsageJson.Value(evidence, "google_drive_account")), checksums);
+                        var cloudflare = D160UsageJson.Child(evidence, "cloudflare");
+                        D166AddText(zip, "providers/cloudflare_workers.json", _d166Json.Serialize(D160UsageJson.Value(cloudflare, "workers")), checksums);
+                        D166AddText(zip, "providers/cloudflare_do_account.json", _d166Json.Serialize(D160UsageJson.Value(cloudflare, "durable_objects_account")), checksums);
+                        D166AddText(zip, "providers/cloudflare_billing_account.json", _d166Json.Serialize(D160UsageJson.Value(cloudflare, "billing_account")), checksums);
                         D166AddText(zip, "usage_hourly.csv", D166Csv(D160UsageJson.Value(evidence, "hourly")), checksums);
                         D166AddText(zip, "collection_status.json", _d166Json.Serialize(D160UsageJson.Value(evidence, "status")), checksums);
                         D166AddText(zip, "manual_dashboard_links.txt",
@@ -186,7 +191,9 @@ namespace SupraInventoryRelayAgent
                             "Today's Vietnam window is distinct from the Firestore provider quota day (Pacific).\n" +
                             "N/A and errors in collection_status.json do not mean usage zero.\n" +
                             "Use screenshots/CSV for Cloudflare and actual provider invoices when API data is unavailable.\n" +
-                            "Do not treat summary metrics as exact billed USD.\n", checksums);
+                            "Do not treat summary metrics as exact billed USD.\n" +
+                            "Cloudflare Workers metrics are script-scoped; Durable Objects and billable usage are SHARED account totals, not Inventory attribution.\n" +
+                            "Unavailable or delayed Cloudflare metrics are N/A, never zero. No secrets are exported.\n", checksums);
                         D166AddText(zip, "checksums.sha256", string.Join("\n", checksums) + "\n", new List<string>());
                     }
                     File.Move(temporary, target);
