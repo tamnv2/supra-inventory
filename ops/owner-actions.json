@@ -5318,6 +5318,35 @@
         "no_rollback": true,
         "stable": "OWNER_GATED"
       }
+    },
+    {
+      "id": "OA101",
+      "status": "PENDING_OWNER_EXPLICIT_PASS_AFTER_AUTHORITY_MERGE",
+      "title": "Accept SUPRA Shared Quota Governance authority-only closeout",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory / GitHub canonical authority",
+      "reason_owner_only": "Repo Authority and Project State CI plus PR merge are technical proof only. Owner must explicitly accept final recorded policy to close the serial governance change before a new D166 or unrelated Inventory change.",
+      "prerequisites": {
+        "policy_approved": "OWNER_EXPLICIT_2026_10_08",
+        "change_id": "GOV-QUOTA-20261008",
+        "primary_pr": 504,
+        "primary_pr_merged_main_sha": "05b81cd2efaaa98abcf710fd4ddfb8ed11467f6b",
+        "required_checks": "AUTHORITY_PASS__CONTINUITY_PASS",
+        "runtime": "UNCHANGED_D165_AGENT_V120_ANDROID_VC102_WEB_WORKER_RTDB",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "shortest_action": [
+        "Review docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md on main and confirm the recorded 30/30/30/10 split, USD 10 soft Google Cloud budget, 70/85/95% alerts, Free account plans, and Beta-only future direction.",
+        "Reply GOV-QUOTA-20261008 PASS or NOT PASS. If NOT PASS, repair under the same governance workstream, not D166."
+      ],
+      "pass_criteria": [
+        "No provider billing, alert settings, Cloudflare/Firebase, app/Worker/Agent or other-project resource changed.",
+        "The repository's policy, project context, relevant specs, registry and project state agree.",
+        "Stable remains registered OWNER_GATED and existing D165 Beta runtime remains untouched.",
+        "Separate project/billing identity verification and configuration remains blocked until separate Owner approval."
+      ],
+      "remaining_owner_action": "Owner explicit GOV-QUOTA-20261008 PASS or NOT PASS after merged authority is reviewed.",
+      "closed": false
     }
   ]
 }

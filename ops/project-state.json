@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D165",
     "accepted_base_evidence": "OWNER_EXPLICIT_D165_PASS__2026_10_08__FREEZE_DEPLOYED_BETA_WEB_ANDROID_VC102_AGENT_V120__KNOWN_HA_AND_USAGE_OPTIMIZATION_DEFERRED_TO_D166_AFTER_22H_LOG_REVIEW",
     "current_change_id": "GOV-QUOTA-20261008",
-    "current_change_status": "OWNER_POLICY_AND_AUTHORITY_ONLY_PR_APPROVED__TECHNICAL_CI_MERGE_REQUIRED__POST_MERGE_OWNER_PASS_NOT_YET_RECORDED",
+    "current_change_status": "AUTHORITY_ONLY_GOVERNANCE_POLICY_MERGED_PR504__REQUIRED_CI_PASS__POST_MERGE_OWNER_ACCEPTANCE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -6234,7 +6234,7 @@
     "change_id": "GOV-QUOTA-20261008",
     "owner_policy_approval": "EXPLICIT_2026_10_08",
     "implementation_scope": "INVENTORY_REPO_AUTHORITY_ONLY__NO_PROVIDER_OR_RUNTIME_CHANGES",
-    "status": "OWNER_APPROVED_AUTHORITY_PR__GITHUB_CI_AND_MERGE_EVIDENCE_PENDING",
+    "status": "RECORDING_PR504_MERGED__AUTHORITY_AND_CONTINUITY_PASS__OWNER_ACCEPTANCE_PENDING",
     "allocation_percent": {
       "inventory": 30,
       "pick_pack": 30,
@@ -6273,6 +6273,13 @@
       "any_runtime_or_provider_resource_mutation"
     ],
     "authority_file": "docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md",
-    "owner_business_acceptance": "PENDING_POST_MERGE_EXPLICIT_PASS"
+    "owner_business_acceptance": "PENDING_POST_MERGE_EXPLICIT_PASS",
+    "recording_pr": 504,
+    "recording_merge_sha": "05b81cd2efaaa98abcf710fd4ddfb8ed11467f6b",
+    "recording_pr_required_checks": {
+      "authority": "PASS",
+      "continuity": "PASS"
+    },
+    "separate_provider_billing_approval": "NOT_GIVEN"
   }
 }
