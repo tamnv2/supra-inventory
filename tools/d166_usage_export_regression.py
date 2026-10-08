@@ -34,11 +34,11 @@ assert 'const CACHE_TTL_SECONDS = 15 * 60;' in gateway
 assert "new Date(now.getTime() - DAY_MS)" in gateway
 print("D166_USAGE_ZIP_STATIC_GUARD=PASS")
 
-# D166 optional Cloudflare sources never include token or require provider success.
+# Cloudflare is an optional authenticated Beta Worker bridge, not Apps Script secret.
 for entry in ("providers/cloudflare_workers.json", "providers/cloudflare_do_account.json", "providers/cloudflare_billing_account.json", "cf_do_account_rows_read"):
     assert entry in agent, f"missing Cloudflare export field: {entry}"
-assert "collectD166Cloudflare_(start, end)" in gateway
-assert "D166_CF_READ_TOKEN" in gateway and "CLOUDFLARE_ANALYTICS_TOKEN" not in gateway
-assert "SHARED_ACCOUNT_UNATTRIBUTABLE_NOT_INVENTORY" in gateway
+assert "collectD166Cloudflare_(start, end, idToken)" in gateway
+assert "/api/agent/d166/usage" in gateway
+assert "D166_CF_READ_TOKEN" not in gateway
 assert "provision_d166_cloudflare" not in gateway
-print("D166_CLOUDFLARE_READONLY_STATIC_GUARD=PASS")
+print("D166_CLOUDFLARE_WORKER_BRIDGE_STATIC_GUARD=PASS")
