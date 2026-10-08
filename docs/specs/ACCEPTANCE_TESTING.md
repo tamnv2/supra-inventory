@@ -2755,3 +2755,17 @@ A reproducible source defect was found after user field failure `D166_PROVIDER_N
 ### D166 provider-not-ready fix technical receipt (2026-10-09)
 
 PR #514 source/Gateway VM + Repo Authority/Continuity and relevant guards passed, and the in-place existing Beta Gateway deployment [run 37818739635](https://github.com/tamnv2/supra-inventory/actions/runs/37818739635) passed its deployment version REST readback and no-mutation live endpoint check. The mock proves JSON construction when Cloudflare hourly succeeds and when upstream returns 429/403; **this does not prove real authenticated live provider/ZIP behavior**. Field gate: Owner keeps accepted PRIMARY v120, uses existing v122 standby, clicks Usage ZIP once, verifies ZIP exists and contains expected JSON plus checksums, reports PASS/NOT PASS. Do not close D166 before Owner PASS.
+
+
+### D166 Agent v123 / Android-Web log-only acceptance matrix (09/10/2026)
+
+Owner selects Agent v122 as development base, and explicitly authorizes v123 log-only plus Android/Web log-only. Existing D166 ZIP issue is an independent field retest; do not mislabel whole D166 PASS.
+
+1. Confirm `relay-agent/VERSION=123`, AgentConfig/assembly match and parent source includes D166 v122 Usage ZIP; compare Git diff to ensure only FirestoreQuotaGuard, FirestoreHttpTransport, AgentLogUploadBridge and version markers changed on Agent.
+2. Build Agent Windows PASS; run existing D165 HA/confirm/ACK/security tests without modifying business code; perform no automatic PRIMARY takeover or company-wide update.
+3. Check RAM-only `D166_USAGE_AUDIT` attached **only** to already requested/manual/scheduled Agent log upload. No new per-event journal file write, new network event, timer, listener, Firestore document read/write, RTDB refresh, or periodic Usage pull. Counts explicitly estimated (not billed), split safe component/UTC+7 hour; test empty/overflow/per-process reboot.
+4. Android compile PASS with unchanged report/confirm/realtime behavior; central existing HTTP attempts produce bounded RAM counters; Global and manual support bundle include totals and journal lost/gap markers. Verify all support JSON remains valid when >16KB and forced-kick/logout logs are not dropped.
+5. Web TypeScript build PASS; existing event-driven API/realtime/long-task logs summarized on archive only; no new Web timer/network call. Confirm version bump affects only release label, no UI/workflow semantics.
+6. Security test rejects any token/password/Authorization/WMS session/doc IDs/employee identity/PL/SKU in new diagnostics keys/fields. Counter categories are fixed allowlist; unknown routes coalesced.
+7. Field A/B 06–22h with comparable PDA/Agent load: record Firestore reads/writes, gRPC listener reconnect, RTDB SSE, agent role changes, WMS confirm time P50/P90/P99, ACK and device CPU/RAM/power. Confirm provider request count has not risen because of observability itself. Existing bundle bytes may rise slightly, record measured delta, not falsely claim 0.
+8. No production optimization before separate Owner approval; Stable OWNER-GATED; Owner controls field acceptance/release.

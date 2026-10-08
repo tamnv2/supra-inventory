@@ -401,6 +401,36 @@ function localStorageStats(): Record<string, unknown> {
   };
 }
 
+// D166: summarize already-recorded telemetry at an existing log boundary only.
+// No additional event listener, polling, timer, fetch or persistent journal write.
+function d166UsageAudit(): Record<string, unknown> {
+  const rows = new Map<string, { n: number; errors: number; samples: number; elapsed_ms: number; max_ms: number }>();
+  for (const event of events) {
+    if (!["API", "REALTIME", "PERF", "NETWORK", "PAGE", "SESSION", "UI"].includes(event.category)) continue;
+    const safeName = /^[A-Za-z0-9_.-]{1,48}$/.test(event.name) ? event.name : "other";
+    const key = event.category + ":" + safeName;
+    if (!rows.has(key) && rows.size >= 75) continue;
+    const row = rows.get(key) || { n: 0, errors: 0, samples: 0, elapsed_ms: 0, max_ms: 0 };
+    row.n++;
+    if (event.level === "ERROR") row.errors++;
+    if (typeof event.duration_ms === "number" && Number.isFinite(event.duration_ms)) {
+      const elapsed = Math.max(0, Math.min(120000, event.duration_ms));
+      row.samples++;
+      row.elapsed_ms += elapsed;
+      row.max_ms = Math.max(row.max_ms, elapsed);
+    }
+    rows.set(key, row);
+  }
+  return {
+    schema: "d166-web-runtime-usage-v1",
+    source: "BOUNDED_LOCAL_EVENTS_NOT_PROVIDER_BILLING",
+    captured_events: events.length,
+    process_uptime_ms: Math.max(0, Date.now() - startedAt),
+    note: "Counts limited by 420-event RAM buffer, not whole-day network traffic",
+    groups: [...rows.entries()].map(([group, summary]) => ({ group, ...summary })),
+  };
+}
+
 function runtimePayload(reason: string): Record<string, unknown> {
   const perf = performance as Performance & { memory?: { usedJSHeapSize?: number; totalJSHeapSize?: number; jsHeapSizeLimit?: number } };
   const connection = (navigator as Navigator & { connection?: { effectiveType?: string; downlink?: number; rtt?: number; saveData?: boolean } }).connection;
@@ -457,6 +487,7 @@ function runtimePayload(reason: string): Record<string, unknown> {
       active_element: describeElement(document.activeElement),
     },
     storage: localStorageStats(),
+    d166_usage_audit: d166UsageAudit(),
     state: sanitize(snapshotProvider()),
     journal: journalSnapshot(),
     recent_events: events.slice(-260),

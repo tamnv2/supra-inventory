@@ -650,3 +650,18 @@ The scoped Beta Worker + existing Apps Script Gateway CI/deploy is technically P
 ### D166 v122 on-demand ZIP field repair — 2026-10-09
 
 On three manual clicks Agent reported `D166_PROVIDER_NOT_READY` while Gateway produced no usable JSON for ZIP. The Gateway D166 hourly Cloudflare aggregation references the missing `d166CloudflareNumber_` parser; restore it without altering the existing monitoring cadence, picklist confirm, business writes or Cloudflare polling volume. Null/missing, nonnumeric, negative and nonfinite metric values remain null (not zero); actual valid zero must remain zero. If Cloudflare returns 403/429/unavailable, complete the available provider ZIP with explicit status instead of treating the whole export as failed. CI must execute the actual Apps Script D166 export using mocked Cloudflare success and provider failure, preserving checksum/local-only Agent ZIP implementation. Owner field ZIP retry required; no field PASS yet.
+
+
+### D166 Owner-approved zero-extra-call forensic audit (Agent v123, Android, Web; 09/10/2026)
+
+**Scope:** new log fields and their local-only aggregation, with no service/HA business mutation. See `docs/D166_USAGE_AUDIT_2026-10-06_08.md`. v122 is the Owner-selected next Agent baseline. v123 must inherit its WMS/Firestore/RTDB behavior exactly. Existing versioned App/Web logging surfaces may gain bounded data only.
+
+**Agent:** use existing `FirestoreQuotaGuard.Record` local estimates by method/component and VN hour; track REST attempts/elapsed/outcome in RAM after each existing attempt, never log a request/response body, URL with IDs, API secrets or token. `D166_USAGE_AUDIT` is a bounded header in the current Agent sealed log, with local process/partial-day source labeling, not provider billing. If source counters overflow, emit explicit overflow count. Do not conflate `Listen` callback delivery, REST operations and billed document reads.
+
+**Android:** count existing HTTP attempt/status/elapsed by allowlisted route family in RAM (0 extra network/storage operation); report bounded journal window, sequence and dropped event count in existing local/manual/global-support bundle. Keep valid JSON on 16KB fallback instead of truncating serialized text; never upgrade from support-error into business crash. Counters reset on process restart; label partial uptime.
+
+**Web:** aggregate already captured API/realtime/status/long task metrics only when the existing support bundle is constructed; preserve existing event listener and scheduled-log cadence. Do not retain new raw payload/headers/URL parameters. Never put credential/private/account numbers in public GitHub.
+
+**Verification:** Agent/WMS/HA/ACK fields unchanged; compile & feature guards PASS; Android debug/release compile, Web typecheck and existing regressions PASS; no new import of provider SDK or periodic task; prove manual/scheduled upload counts unchanged; record median/P95 local CPU/heap/battery impact via representative field testing, and check bundle byte overhead bounded. Strictly zero new *provider requests and document operations*; a new field necessarily adds bounded payload bytes. Report N/A/unknown when billed Firestore Read attribution cannot be inferred from local estimates. Preserve Beta only, Stable OWNER-GATED.
+
+**Provider drill-down needed before ANY fix:** Agent per-component Firestore GET/RunQuery/listener initial/relisten/lease poll/ACK and RTDB fallback, with hourly PDA-hours and Picklist throughput, compare provider Firestore 06/08/09 daily billable readings and GCP API method. User-facing bug/behavior changes are not authorized by this log-only scope.
