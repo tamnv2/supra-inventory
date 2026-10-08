@@ -1,0 +1,41 @@
+name: D166 Log Only Regression
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/**"
+      - "web/src/runtime-logger.ts"
+      - "web/src/web-version.ts"
+      - "tools/d166_log_only_regression.py"
+      - ".github/workflows/d166-log-only-regression.yml"
+  push:
+    branches: [main]
+    paths:
+      - "relay-agent/**"
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/**"
+      - "web/src/runtime-logger.ts"
+      - "web/src/web-version.ts"
+      - "tools/d166_log_only_regression.py"
+      - ".github/workflows/d166-log-only-regression.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  log-only-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check D166 log-only evidence hooks and version
+        run: python tools/d166_log_only_regression.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Verify Web TypeScript
+        working-directory: web
+        run: |
+          npm ci
+          npm run typecheck
