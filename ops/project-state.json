@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "AFTER_22H_OWNER_SUBMITS_FULL_SHIFT_AGENT_ANDROID_WEB_LOGS_AND_USAGE__REVIEW_THEN_OPEN_D166_ANALYSIS_OPTIMIZATION__NO_D165_ROLLBACK",
+  "next_action": "D166_REQUESTED__RESEARCH_COSTS_APIS_EXPORT_ZIP_ON_DEMAND__PROPOSAL_ONLY_UNTIL_EXPLICIT_IMPLEMENTATION_APPROVAL",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2466,12 +2466,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D165",
-    "accepted_base_evidence": "OWNER_EXPLICIT_D165_PASS__2026_10_08__FREEZE_DEPLOYED_BETA_WEB_ANDROID_VC102_AGENT_V120__KNOWN_HA_AND_USAGE_OPTIMIZATION_DEFERRED_TO_D166_AFTER_22H_LOG_REVIEW",
-    "current_change_id": "GOV-QUOTA-20261008",
-    "current_change_status": "AUTHORITY_ONLY_GOVERNANCE_POLICY_MERGED_PR504__REQUIRED_CI_PASS__POST_MERGE_OWNER_ACCEPTANCE_PENDING",
+    "accepted_base_change_id": "GOV-QUOTA-20261008",
+    "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
+    "current_change_id": "NONE",
+    "current_change_status": "GOV-QUOTA-20261008_OWNER_PASS_CLOSED__D166_ELIGIBLE_FOR_PROPOSAL_OPEN",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2488,9 +2488,10 @@
     "runtime_impact": "D165_BETA_BASELINE_ACCEPTED_AS_DEPLOYED__KNOWN_HA_ROLE_FLAP_AND_USAGE_LEFT_FOR_POST_22H_D166_ANALYSIS__NO_ROLLBACK",
     "resource_change": "NONE_FROM_D164_CANCELLATION__D164_EXISTING_BETA_ARTIFACTS_FROZEN__D165_EXISTING_SCOPED_RESOURCES_ONLY",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "parallel_inventory_change_id": "GOV-QUOTA-20261008__D166_NOT_OPEN",
-    "parallel_inventory_change_status": "GOV_AUTHORITY_CHANGE_OPEN__D166_BLOCKED_UNTIL_OWNER_PASS",
-    "parallel_boundary": "GOV_AUTHORITY_ONLY_DOCUMENTATION__NO_BETA_RUNTIME_OR_STABLE_CHANGE__D166_REMAINS_SEPARATE"
+    "parallel_inventory_change_id": "NONE__D166_RESEARCH_PENDING_FORMAL_OPEN",
+    "parallel_inventory_change_status": "GOVERNANCE_CLOSED__D166_REQUESTED_NOT_YET_OPEN",
+    "parallel_boundary": "GOVERNANCE_ACCEPTED_ONLY__D165_RUNTIME_BASE_UNCHANGED__STABLE_OWNER_GATED",
+    "accepted_runtime_base_change_id": "D165"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -6234,7 +6235,7 @@
     "change_id": "GOV-QUOTA-20261008",
     "owner_policy_approval": "EXPLICIT_2026_10_08",
     "implementation_scope": "INVENTORY_REPO_AUTHORITY_ONLY__NO_PROVIDER_OR_RUNTIME_CHANGES",
-    "status": "RECORDING_PR504_MERGED__AUTHORITY_AND_CONTINUITY_PASS__OWNER_ACCEPTANCE_PENDING",
+    "status": "OWNER_EXPLICIT_PASS__POLICY_ONLY_MERGED_PR504_AND_CLOSEOUT_PR505",
     "allocation_percent": {
       "inventory": 30,
       "pick_pack": 30,
@@ -6273,13 +6274,14 @@
       "any_runtime_or_provider_resource_mutation"
     ],
     "authority_file": "docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md",
-    "owner_business_acceptance": "PENDING_POST_MERGE_EXPLICIT_PASS",
+    "owner_business_acceptance": "PASS__GOV-QUOTA-20261008__2026-10-08",
     "recording_pr": 504,
     "recording_merge_sha": "05b81cd2efaaa98abcf710fd4ddfb8ed11467f6b",
     "recording_pr_required_checks": {
       "authority": "PASS",
       "continuity": "PASS"
     },
-    "separate_provider_billing_approval": "NOT_GIVEN"
+    "separate_provider_billing_approval": "NOT_GIVEN",
+    "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   }
 }

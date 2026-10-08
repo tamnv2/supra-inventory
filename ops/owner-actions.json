@@ -5321,7 +5321,7 @@
     },
     {
       "id": "OA101",
-      "status": "PENDING_OWNER_EXPLICIT_PASS_AFTER_AUTHORITY_MERGE",
+      "status": "CLOSED_OWNER_EXPLICIT_PASS_2026_10_08",
       "title": "Accept SUPRA Shared Quota Governance authority-only closeout",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory / GitHub canonical authority",
@@ -5345,8 +5345,10 @@
         "Stable remains registered OWNER_GATED and existing D165 Beta runtime remains untouched.",
         "Separate project/billing identity verification and configuration remains blocked until separate Owner approval."
       ],
-      "remaining_owner_action": "Owner explicit GOV-QUOTA-20261008 PASS or NOT PASS after merged authority is reviewed.",
-      "closed": false
+      "remaining_owner_action": "NONE__GOV_QUOTA_OWNER_ACCEPTED_PASS",
+      "closed": true,
+      "owner_result": "PASS__GOV-QUOTA-20261008",
+      "owner_evidence": "Owner explicitly replied GOV-QUOTA-20261008 PASS and requested opening D166."
     }
   ]
 }
