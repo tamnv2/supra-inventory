@@ -17,8 +17,8 @@
           ".read": "auth != null && auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN'"
         },
         "ha_liveness": {
-          ".read": "auth != null && auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN'",
-          ".write": "auth != null && auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN'",
+          ".read": "auth != null && auth.token.app_session_channel == 'AGENT' && ((auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN') || (auth.token.app_role == 'PICKPACK_ADMIN' && auth.token.app_base_role == 'PICKPACK_ADMIN'))",
+          ".write": "auth != null && auth.token.app_session_channel == 'AGENT' && ((auth.token.app_role == 'ADMIN' && auth.token.app_base_role == 'ADMIN') || (auth.token.app_role == 'PICKPACK_ADMIN' && auth.token.app_base_role == 'PICKPACK_ADMIN'))",
           ".validate": "newData.val() == null || (newData.hasChildren(['agent_instance_id','agent_admin_user_id','generation','heartbeat_at_ms','wms_ready']) && newData.child('agent_instance_id').isString() && newData.child('agent_admin_user_id').val() == auth.token.app_user_id && newData.child('generation').isString() && newData.child('heartbeat_at_ms').isNumber() && newData.child('heartbeat_at_ms').val() >= 0 && newData.child('wms_ready').val() == true)"
         }
       },
