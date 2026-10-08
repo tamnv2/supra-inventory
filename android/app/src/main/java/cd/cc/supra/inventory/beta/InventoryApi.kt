@@ -742,12 +742,18 @@ class InventoryApi(
                 setRequestProperty("Content-Type", "application/json; charset=utf-8")
             }
         }
+        val metricStart = android.os.SystemClock.elapsedRealtime()
+        var metricStatus = 0
         return try {
             if (body != null) connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
             val code = connection.responseCode
+            metricStatus = code
             val stream = if (code in 200..299) connection.inputStream else connection.errorStream
             code to stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-        } finally { connection.disconnect() }
+        } finally {
+            try { D166UsageAudit.recordApi(method, path, metricStatus, android.os.SystemClock.elapsedRealtime() - metricStart) } catch (_: Exception) { }
+            connection.disconnect()
+        }
     }
 
     private fun parsePayload(text: String): JSONObject = try {
