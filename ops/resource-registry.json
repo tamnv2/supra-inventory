@@ -2685,7 +2685,7 @@
     "scope": "INVENTORY_BETA_ONLY",
     "agent_candidate": "121",
     "provider": "EXISTING_BETA_AGENT_OPERATIONS_GATEWAY",
-    "monitoring_targeted_metric_queries_per_click": 21,
+    "monitoring_targeted_metric_queries_per_click": 26,
     "drive_metadata_reads_per_click": 1,
     "firestore_document_reads_or_writes_for_export": 0,
     "auth": "EXISTING_PRIVILEGED_FIREBASE_ID_TOKEN_AND_EXACT_AGENT_UI_LOGIN",
@@ -2696,6 +2696,18 @@
     "d160_migration_workflow": "OWNER_REPORTED_DISABLED__API_STATE_NOT_INDEPENDENTLY_VERIFIED",
     "d165_runtime": "V120_OWNER_PASS",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "pr": 509
+    "pr": 509,
+    "rtdb_metric_families": [
+      "sent_bytes",
+      "payload_bytes",
+      "payload_and_protocol_bytes",
+      "api_hits",
+      "https_requests",
+      "active_connections",
+      "monthly_sent",
+      "monthly_sent_limit",
+      "storage_total_bytes",
+      "rules_evaluation_count"
+    ]
   }
 }
