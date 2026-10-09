@@ -37,7 +37,7 @@ namespace SupraSkuRecorder
             StartPosition = FormStartPosition.CenterScreen;
             var bar = new TableLayoutPanel
             {
-                Dock = DockStyle.Top, Height = 48, ColumnCount = 7, RowCount = 1,
+                Dock = DockStyle.Top, Height = 48, ColumnCount = 8, RowCount = 1,
                 Padding = new Padding(6)
             };
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 125));
@@ -46,6 +46,7 @@ namespace SupraSkuRecorder
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 125));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
+            bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             AddButton(bar, 0, "Bin Inventory", () => Navigate(WmsStart));
             AddButton(bar, 1, "Inventory Beta", () => Navigate(InventoryStart));
@@ -58,7 +59,8 @@ namespace SupraSkuRecorder
             });
             AddButton(bar, 4, "Quét nút SKU", () => { _ = CaptureSkuUiAsync(); });
             AddButton(bar, 5, "Kiểm tra Excel", SelectSkuWorkbook);
-            bar.Controls.Add(status, 6, 0);
+            AddButton(bar, 6, "Thử Tìm→Export", () => { _ = StartManualSkuExportAsync(); });
+            bar.Controls.Add(status, 7, 0);
             Controls.Add(browser);
             Controls.Add(bar);
             Shown += async (sender, args) => await Initialize();
