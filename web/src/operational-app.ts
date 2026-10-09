@@ -1623,7 +1623,7 @@ function updateQueueClockDom(): void {
     const now = Date.now() + queueServerOffsetMs;
     document.querySelectorAll<HTMLElement>("[data-correction-deadline]").forEach((actions) => {
       const expiry = Date.parse(actions.dataset.correctionDeadline || "");
-      if (!Number.isFinite(expiry) || expiry <= now) actions.hidden = true;
+      if (!Number.isFinite(expiry) || expiry <= now) actions.style.display = "none";
     });
   }
   if (activeSection !== "operations") return;
@@ -3239,6 +3239,7 @@ function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecen
       : null) as ReporterRecentBatch["resolution"],
     resolution_source: snapshotText(snapshot, "resolution_source") || null,
     correction_deadline_at: snapshotText(snapshot, "correction_deadline_at") || null,
+    correction_allowed: snapshot["correction_allowed"] === true,
     affected_picker_count: snapshotNumber(snapshot, "affected_picker_count"),
     version: snapshotNumber(snapshot, "version"),
     previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
