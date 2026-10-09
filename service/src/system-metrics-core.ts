@@ -164,7 +164,7 @@ export async function handleSystemMetricsCoreRequest(state: DurableObjectState, 
       },
       // Existing ROOT/Admin system metrics call only: no additional DO SQL,
       // Firestore, RTDB, Worker or Google provider requests from this export.
-      d166_sql_diagnostics: d166SqlUsageSnapshot(),
+      d166_sql_diagnostics: d166SqlUsageSnapshot(state),
       accounts: {
         total: tableRows.users,
         by_role: accountRoles,
