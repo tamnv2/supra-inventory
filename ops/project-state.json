@@ -6285,6 +6285,17 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "android_http_diagnostics_candidate": {
+      "change_id": "D166_ANDROID_PICKER_HTTP_STATUS_CLASSIFICATION",
+      "state": "DRAFT_PR_CI_PENDING__NOT_DEPLOYED",
+      "branch": "d166-android-http-usage-categories",
+      "scope": "RAM_ONLY_GROUPED_REQUEST_STATUS_AND_WHITELISTED_BUSINESS_ERRORS",
+      "status_buckets": ["400","404","408","409","422","401","403","429","5xx","network"],
+      "privacy": "NO_RAW_ERROR_TEXT_OR_BUSINESS_IDENTIFIERS",
+      "quota": "NO_NEW_PROVIDER_REQUESTS_OR_BACKGROUND_TIMERS",
+      "owner_field_pass": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
