@@ -678,3 +678,12 @@ Status: **Owner requirement recorded, analysis/risk only. No code or provider mu
 - Add tests for cross-path simultaneous first upload, errors/races, 00:00 VN, cache expiration, network retries, Drive readback, no loss/duplication and no additional scheduled polling or impact to Picklist/ACK.
 
 Reference: `docs/D166_APPROVED_BACKLOG.md` / `D166-LOG-FOLDER-DUPLICATE`. Stable Owner-gated.
+
+
+### D166 Launcher on-demand buffer diagnostics (09/10/2026)
+
+- A **ROOT real base-role** can explicitly inspect the existing last-seven-day Launcher runtime-log buffer through Beta Web Nhật ký / Log Android. Worker/InventoryCore return only counts of received / Drive-synced / pending / pending-with-error, first/last timestamp and sanitized error **classes** from at most 30 recent failed archive records; no raw log content, filenames, DeviceKeys, Drive file IDs, employee identifiers or OAuth credentials.
+- Each user click additionally performs one metadata GET against the **already-configured** Launcher Drive folder using the **Worker's existing Drive OAuth refresh token**, reporting safe permission/status categories only. The OAuth check confirms folder metadata access/capability, not actual file archival.
+- Do not auto-query on Web navigation, tab change, refresh or a recurring timer. Existing Web/Android/Agent realtime, support-log cadence, retention, transfer and archive paths remain unchanged. No new provider resources, no Drive mutations.
+- Launcher logical date matching in server initial archive and queued retry is corrected to parse `YYYY-MM-DD`, not to silently interpret it as last-event date. Separate D166 duplicate folder write-race backlog remains owner-gated and unchanged.
+- See `docs/D166_LAUNCHER_LOG_SERVICE_DIAGNOSTICS.md`. Field PASS requires owner-authenticated response, cause classification, actual Drive file creation/visibility and PDA `DRIVE_SYNCED` confirmation; CI is not runtime proof.

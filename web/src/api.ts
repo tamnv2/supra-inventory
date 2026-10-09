@@ -481,6 +481,26 @@ export interface AndroidAlertWindowState {
   updated_by: string | null;
 }
 
+// Manual ROOT-only 7-day Launcher service-buffer diagnostics. No raw device IDs.
+export interface LauncherLogDiagnostics {
+  window_days: number;
+  authority: string;
+  received: number;
+  drive_synced: number;
+  pending_drive: number;
+  pending_with_error: number;
+  first_received_at: string | null;
+  last_received_at: string | null;
+  recent_failure_sample_count: number;
+  recent_failure_classes: Record<string, number>;
+  checked_at: string;
+  drive_folder_check?: { status: string; can_add_children: boolean | null };
+}
+
+export async function getLauncherLogDiagnostics(): Promise<LauncherLogDiagnostics> {
+  return readJson(await authorizedFetch("/api/admin/launcher/logs/diagnostics", { cache: "no-store" }));
+}
+
 export interface RuntimeLogItem {
   id: string;
   name: string;

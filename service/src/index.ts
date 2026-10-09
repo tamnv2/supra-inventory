@@ -15,7 +15,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
-import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog } from "./runtime-logs";
+import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog, probeLauncherArchiveFolder } from "./runtime-logs";
 import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
@@ -2032,6 +2032,21 @@ export default {
           return json(await uploadRuntimeLog(env, user, body));
         } catch (error) {
           return json({ error: "LOG_UPLOAD_FAILED", message: error instanceof Error ? error.message : "log_upload_failed" }, 502);
+        }
+      }
+      // D166 Launcher incident: explicit ROOT-only read of existing Core buffer.
+      // No additional polling, content export, Drive mutation or new service.
+      if (request.method === "GET" && url.pathname === "/api/admin/launcher/logs/diagnostics") {
+        const operator = await requireUser(request, env, ["ROOT"]);
+        if (operator.base_role !== "ROOT") return json({ error: "ROOT_REQUIRED" }, 403);
+        try {
+          const [report, drive] = await Promise.all([
+            coreJson<Record<string, unknown>>(env, "/runtime-logs/launcher-diagnostics"),
+            probeLauncherArchiveFolder(env),
+          ]);
+          return json({ ...report, drive_folder_check: drive });
+        } catch {
+          return json({ error: "LAUNCHER_LOG_DIAGNOSTICS_UNAVAILABLE" }, 503);
         }
       }
       if (request.method === "GET" && url.pathname === "/api/admin/logs") {
