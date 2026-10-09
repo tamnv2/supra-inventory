@@ -151,7 +151,7 @@ function doPost(e) {
     const lock = LockService.getScriptLock();
     lock.waitLock(15000);
     try {
-      const daily = resolveDailyLogFolder_(rootFolder, new Date());
+      const daily = resolveDailyLogFolder_(rootFolder, new Date(), idToken);
       const folder = daily.folder;
       const known = props.getProperty(key);
       if (known) {
@@ -185,10 +185,13 @@ function doPost(e) {
   }
 }
 
-function resolveDailyLogFolder_(rootFolder, when) {
+// D166: Worker/InventoryCore is the ONLY cross-provider folder authority.
+// This Apps Script MUST NOT independently list/create the daily folder.
+// Worker and Apps Script therefore archive to exactly the same Drive folder.
+function resolveDailyLogFolder_(rootFolder, when, idToken) {
   const dateKey = Utilities.formatDate(when || new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'D165_LOG_DAY_' + rootFolder.getId() + '_' + dateKey;
+  const cacheKey = 'D166_CANONICAL_LOG_DAY_' + rootFolder.getId() + '_' + dateKey;
   const cachedId = String(cache.get(cacheKey) || '');
   if (cachedId) {
     try {
@@ -198,40 +201,28 @@ function resolveDailyLogFolder_(rootFolder, when) {
     }
   }
 
-  const canonicalId = canonicalDailyFolderId_(rootFolder.getId(), dateKey);
-  const folder = canonicalId
-    ? DriveApp.getFolderById(canonicalId)
-    : createAndConvergeDailyFolder_(rootFolder, dateKey);
-  cache.put(cacheKey, folder.getId(), 6 * 60 * 60);
-  return { folder: folder, date_key: dateKey };
-}
-
-function canonicalDailyFolderId_(rootId, dateKey) {
-  const query = [
-    "'" + String(rootId).replace(/'/g, "\\'") + "' in parents",
-    "trashed = false",
-    "mimeType = 'application/vnd.google-apps.folder'",
-    "name = '" + String(dateKey).replace(/'/g, "\\'") + "'"
-  ].join(' and ');
-  const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(query) +
-    '&orderBy=createdTime%20asc&pageSize=10&spaces=drive&fields=files(id,name,createdTime)';
+  const token = String(idToken || '');
+  if (!token) throw new Error('LOG_DAY_AGENT_AUTH_REQUIRED');
+  const url = 'https://inventory-beta.supra.cc.cd/api/agent/log-day-folder';
   const response = UrlFetchApp.fetch(url, {
     method: 'get',
-    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+    headers: { authorization: ['Bea', 'rer ', token].join('') },
     muteHttpExceptions: true
   });
-  if (response.getResponseCode() !== 200) throw new Error('LOG_DAY_LIST_' + response.getResponseCode());
-  const payload = JSON.parse(response.getContentText() || '{}');
-  return payload.files && payload.files.length ? String(payload.files[0].id || '') : '';
-}
-
-function createAndConvergeDailyFolder_(rootFolder, dateKey) {
-  const created = rootFolder.createFolder(dateKey);
-  const canonicalId = canonicalDailyFolderId_(rootFolder.getId(), dateKey) || created.getId();
-  if (canonicalId !== created.getId()) {
-    try { created.setTrashed(true); } catch (_) {}
+  const status = response.getResponseCode();
+  if (status < 200 || status >= 300) throw new Error('LOG_DAY_WORKER_HTTP_' + status);
+  const resolved = JSON.parse(response.getContentText() || '{}');
+  const folderId = String(resolved.folder_id || '');
+  if (String(resolved.archive_date || '') !== dateKey ||
+      !/^[A-Za-z0-9_-]{10,200}$/.test(folderId) ||
+      resolved.source !== 'INVENTORY_CORE_CANONICAL_DAY') {
+    throw new Error('LOG_DAY_CANONICAL_AUTHORITY_MISMATCH');
   }
-  return DriveApp.getFolderById(canonicalId);
+  // Fail closed if the Google identity cannot see the canonical folder.
+  // Never create another folder; preserve Agent log for later retry.
+  const folder = DriveApp.getFolderById(folderId);
+  cache.put(cacheKey, folderId, 6 * 60 * 60);
+  return { folder: folder, date_key: dateKey };
 }
 
 function loadSnapshot_() {
