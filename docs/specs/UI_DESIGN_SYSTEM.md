@@ -1099,3 +1099,12 @@ Supersedes D165's earlier conditional three/four-tab visual composition only. An
 ### D165 correction UX and Agent login failure (2026-10-07)
 
 Android Reporter/Web result-tab Skip cards show two equal-importance, clearly named actions: **Sửa - Đang xử lý** and **Sửa - Đã có hàng** only within the policy-authorized window; the existing has-stock correction presentation is retained. Android shows remaining permitted time without adding another timer. Picker overlay/Web Picker result explicitly states *Báo hàng {SKU} chuyển trạng thái SKU từ Skip sang Đang xử lý/Đã có hàng. Lý do: {người xử lý} sửa kết quả*, with new ACK. Windows Agent failed login retains the typed account, erases password and displays a sanitized visible failure dialog; no privileged-code request control or list of special accounts appears on the public login form.
+
+
+## D166 — Web tabs and correction action visibility, future design backlog only (Owner 09/10/2026)
+
+**Record, do not render yet.** Investigate replacing Web `Kết quả gần đây` with exactly five operator tabs: `Đang xử lý`, `Quá hạn`, `Đã có hàng`, `Cho phép Skip`, `Picker đã thu hồi`. This is Web-only; the existing Android Reporter four-tab design and withdrawn-tab removal remain authoritative until another Owner instruction. Realtime count treatments, filtering, navigation state and result/report cross-links require later UX/usage analysis.
+
+For both Web and Android, within a single shared configurable correction window (e.g. 15 minutes), surface correction actions for both `HAS_STOCK` and `SKIP_ALLOWED`. After deadline **hide** all relevant `Sửa` buttons; do not treat hidden controls as substitute for server deadline check. Pending analysis must reconcile current UI and server fields; no styling or behavior is changed by this document.
+
+The Owner separately requests design analysis for the SKU storage-area label **as it was at the report date** and location-based summary/detailed reporting (e.g. LTA or Shelving), subject to verified data source and scope approval. Never show inferred/missing area as verified. `docs/D166_APPROVED_BACKLOG.md` is the backlog authority.
