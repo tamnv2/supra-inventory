@@ -787,16 +787,22 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     "COALESCE(b.resolved_at, b.updated_at) < ?",
   ];
   const recentArgs: SqlStorageValue[] = [from, to];
-  if (status) {
-    recentWhere.push("b.status = ?");
-    recentArgs.push(status);
-  }
+  // D166: one already-required counter query supplies all three outcome-tab
+  // badges, even while inactive. No extra DO invocation or independent poll.
   const recentTotalRow = first(
     state.storage.sql.exec<SqlRow>(
-      `SELECT COUNT(*) AS total FROM report_batches b WHERE ${recentWhere.join(" AND ")}`,
+      `SELECT COUNT(*) AS total,
+              SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END) AS has_stock_total,
+              SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END) AS skip_allowed_total,
+              SUM(CASE WHEN b.status = 'CLOSED' THEN 1 ELSE 0 END) AS withdrawn_total
+         FROM report_batches b WHERE ${recentWhere.join(" AND ")}`,
       ...recentArgs,
     ).toArray(),
   ) || {};
+  const filteredRecentTotal = status === "HAS_STOCK" ? Number(recentTotalRow.has_stock_total || 0)
+    : status === "SKIP_ALLOWED" ? Number(recentTotalRow.skip_allowed_total || 0)
+    : status === "CLOSED" ? Number(recentTotalRow.withdrawn_total || 0)
+    : Number(recentTotalRow.total || 0);
 
   const overdueTotalRow = first(
     state.storage.sql.exec<SqlRow>(
@@ -812,7 +818,10 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
   return json({
     queue_total: Number(queueTotalRow.total || 0),
     overdue_total: Number(overdueTotalRow.total || 0),
-    recent_total: Number(recentTotalRow.total || 0),
+    recent_total: filteredRecentTotal,
+    has_stock_total: Number(recentTotalRow.has_stock_total || 0),
+    skip_allowed_total: Number(recentTotalRow.skip_allowed_total || 0),
+    withdrawn_total: Number(recentTotalRow.withdrawn_total || 0),
     auto_skip_enabled: Boolean(config?.auto_skip_enabled),
     auto_skip_mode: config?.auto_skip_mode || null,
     filter_status: status,
