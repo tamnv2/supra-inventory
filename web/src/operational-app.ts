@@ -385,8 +385,9 @@ let recentOffset = 0;
 let recentTotal = 0;
 const RECENT_PAGE_SIZE = 50;
 let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
+let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
-let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
+let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
 let recentFrom = dateDaysAgo(0);
 let recentTo = dateDaysAgo(0);
 let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
@@ -1475,20 +1476,28 @@ function render(): void {
 }
 
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
+  // D166: exactly five visible status tabs. All badges use ONE existing
+  // counter snapshot and ONE versioned realtime delta stream, not five polls.
+  const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
+    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}">${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
     <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
     <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
-    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b data-workspace-count="results">${recentBadgeCount}</b></button>
+    ${outcomeTab("HAS_STOCK", "Đã có hàng")}
+    ${outcomeTab("SKIP_ALLOWED", "Cho phép Skip")}
+    ${outcomeTab("CLOSED", "Picker đã thu hồi")}
   </div>`;
 }
 
 function syncOperationalTabBadges(): void {
   const operations = document.querySelector<HTMLElement>('[data-workspace-count="operations"]');
   const overdue = document.querySelector<HTMLElement>('[data-workspace-count="overdue"]');
-  const results = document.querySelector<HTMLElement>('[data-workspace-count="results"]');
   if (operations) operations.textContent = String(queueBadgeCount);
   if (overdue) overdue.textContent = String(overdueBadgeCount);
-  if (results) results.textContent = String(recentBadgeCount);
+  for (const status of ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const) {
+    const badge = document.querySelector<HTMLElement>(`[data-workspace-count="${status}"]`);
+    if (badge) badge.textContent = String(resultTabBadgeCounts[status]);
+  }
 }
 
 function filteredQueueRows(): ReporterBatch[] {
@@ -3039,7 +3048,7 @@ async function loadReporterQueueSnapshot(): Promise<void> {
 }
 
 async function loadReporterTabCounters(force = false): Promise<void> {
-  if (!roleOperate() || ((queueBadgeInitialized && recentBadgeInitialized) && !force)) return;
+  if (!roleOperate() || ((queueBadgeInitialized && overdueBadgeInitialized && recentBadgeInitialized) && !force)) return;
   const requestGeneration = ++reporterBadgeLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
@@ -3055,6 +3064,11 @@ async function loadReporterTabCounters(force = false): Promise<void> {
   perPickerOverdueEnabled = Boolean(counters.auto_skip_enabled && counters.auto_skip_mode === "PER_PICKER");
   overdueBadgeCount = perPickerOverdueEnabled ? Math.max(0, Number(counters.overdue_total || 0)) : 0;
   recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
+  resultTabBadgeCounts = {
+    HAS_STOCK: Math.max(0, Number(counters.has_stock_total || 0)),
+    SKIP_ALLOWED: Math.max(0, Number(counters.skip_allowed_total || 0)),
+    CLOSED: Math.max(0, Number(counters.withdrawn_total || 0)),
+  };
   queueBadgeInitialized = true;
   overdueBadgeInitialized = true;
   recentBadgeInitialized = true;
@@ -3096,6 +3110,7 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
     "BATCH_AUTO_SKIP_ALLOWED",
   ]);
   let next = recentBadgeCount;
+  const nextTabs = { ...resultTabBadgeCounts };
   for (const row of events) {
     if (!(row.scopes || []).includes("reporter_recent")) continue;
     const eventName = String(row.event || "").trim().toUpperCase();
@@ -3108,8 +3123,18 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
     const after = recentCounterEndpoint(values.after_status, values.after_at);
     if (!before.valid || !after.valid) return false;
     next += (recentCounterMatches(after.endpoint) ? 1 : 0) - (recentCounterMatches(before.endpoint) ? 1 : 0);
+    // Every inactive tab remains realtime on the same authoritative delta.
+    if (before.endpoint.status && before.endpoint.at && recentDateRangeContains(before.endpoint.at))
+      nextTabs[before.endpoint.status] -= 1;
+    if (after.endpoint.status && after.endpoint.at && recentDateRangeContains(after.endpoint.at))
+      nextTabs[after.endpoint.status] += 1;
   }
   recentBadgeCount = Math.max(0, next);
+  resultTabBadgeCounts = {
+    HAS_STOCK: Math.max(0, nextTabs.HAS_STOCK),
+    SKIP_ALLOWED: Math.max(0, nextTabs.SKIP_ALLOWED),
+    CLOSED: Math.max(0, nextTabs.CLOSED),
+  };
   syncOperationalTabBadges();
   return true;
 }
@@ -4082,6 +4107,7 @@ function bindShell(): void {
       overdueBadgeInitialized = false;
       perPickerOverdueEnabled = false;
       recentBadgeCount = 0;
+      resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
       recentBadgeInitialized = false;
       reporterBadgeLoadGeneration += 1;
       recentRows = [];
@@ -4265,6 +4291,15 @@ function bindReporterActionButtons(root: ParentNode = document): void {
 }
 
 function bindSection(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-workspace-result-filter]").forEach((button) => button.addEventListener("click", () => {
+    const target = button.dataset.workspaceResultFilter;
+    if (!profile || !roleOperate() || !["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(target || "")) return;
+    if (activeSection === "results" && recentFilter === target) return;
+    recentFilter = target as typeof recentFilter;
+    recentOffset = 0;
+    if (activeSection !== "results") navigateToSection("results", "push");
+    else void run(async () => { await loadOperations(); patchActiveSection(true); });
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.workspaceSection as Section;
     if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
@@ -4506,7 +4541,8 @@ function bindSection(): void {
     else return;
     syncVisibleDateRange("recent", recentFrom, recentTo);
     recentOffset = 0;
-    void run(loadOperations);
+    // One counter reconcile for the new date scope, not one per tab.
+    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
   }));
   document.querySelector<HTMLFormElement>("#recent-range-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -4525,7 +4561,8 @@ function bindSection(): void {
     recentFrom = from;
     recentTo = to;
     recentOffset = 0;
-    void run(loadOperations);
+    // Match all five badge counts to the selected reporting range.
+    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
   });
   document.querySelector<HTMLButtonElement>("#recent-open-report")?.addEventListener("click", () => {
     reportFrom = recentFrom;
