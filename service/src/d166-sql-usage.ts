@@ -115,3 +115,20 @@ export function d166SqlUsageSnapshot(): {
       .sort((a, b) => a.hour_utc.localeCompare(b.hour_utc) || a.query_id.localeCompare(b.query_id)),
   };
 }
+
+/**
+ * Drop-in replacement only for selected expensive SELECT statements.
+ * Preserves the same SQL, parameter binding and returned result rows.
+ */
+export function d166MeasuredSqlRows<T extends Record<string, SqlStorageValue>>(
+  state: DurableObjectState,
+  queryId: D166SqlQueryId,
+  sql: string,
+  ...bindings: SqlStorageValue[]
+): T[] {
+  const start = Date.now();
+  const cursor = state.storage.sql.exec<T>(sql, ...bindings);
+  const rows = cursor.toArray();
+  recordD166SqlUsage(queryId, cursor, start);
+  return rows;
+}
