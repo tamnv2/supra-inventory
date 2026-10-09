@@ -1,3 +1,4 @@
+import { d166SqlUsageSnapshot } from "./d166-sql-usage";
 type SqlRow = Record<string, SqlStorageValue>;
 
 function first<T extends SqlRow>(rows: T[]): T | null {
@@ -161,6 +162,9 @@ export async function handleSystemMetricsCoreRequest(state: DurableObjectState, 
         database_size_bytes: state.storage.sql.databaseSize,
         table_rows: tableRows,
       },
+      // Existing ROOT/Admin system metrics call only: no additional DO SQL,
+      // Firestore, RTDB, Worker or Google provider requests from this export.
+      d166_sql_diagnostics: d166SqlUsageSnapshot(state),
       accounts: {
         total: tableRows.users,
         by_role: accountRoles,

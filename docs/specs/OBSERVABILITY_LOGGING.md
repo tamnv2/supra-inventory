@@ -687,3 +687,8 @@ Reference: `docs/D166_APPROVED_BACKLOG.md` / `D166-LOG-FOLDER-DUPLICATE`. Stable
 - Do not auto-query on Web navigation, tab change, refresh or a recurring timer. Existing Web/Android/Agent realtime, support-log cadence, retention, transfer and archive paths remain unchanged. No new provider resources, no Drive mutations.
 - Launcher logical date matching in server initial archive and queued retry is corrected to parse `YYYY-MM-DD`, not to silently interpret it as last-event date. Separate D166 duplicate folder write-race backlog remains owner-gated and unchanged.
 - See `docs/D166_LAUNCHER_LOG_SERVICE_DIAGNOSTICS.md`. Field PASS requires owner-authenticated response, cause classification, actual Drive file creation/visibility and PDA `DRIVE_SYNCED` confirmation; CI is not runtime proof.
+
+
+### D166 SQL Usage instrumentation — initial diagnostic candidate
+
+Measure only three suspected DO SELECT hot paths via already-executed cursor counters. Save bounded aggregated per-hour metrics in DO isolate memory, not SQL/Firestore/R2/RTDB; no extra timers or reads/writes. Label measurements `ISOLATE_PROCESS_LOCAL_RESTART_RESETS__ESTIMATE_NOT_BILLING`. Existing authorized on-demand system metrics returns `d166_sql_diagnostics` with only query ID, 24–36h buckets, execution count, rows-read, rows-written, max and simple elapsed ms. Never collect query arguments, SQL result rows, SKU, PL, personnel, tokens, device IDs or raw errors. Do not mistake these partial counters for total Cloudflare DO account billing. Verify nonzero provider reports match relative trend only; expand coverage after safe sampling demonstrates hotspots.
