@@ -1,0 +1,50 @@
+name: D166 Verify Published Beta Update Channel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-d166-postrelease-channel.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  beta-channel-readback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check scoped Beta PDA and Agent channel after signed publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          readonly base='https://inventory-beta.supra.cc.cd'
+          readonly expected_pda='beta-vc104'
+          readonly expected_agent='relay-agent-v124'
+          readonly expected_floor='104'
+          attempt=0
+          complete=false
+          while (( attempt < 18 )); do
+            attempt=$((attempt + 1))
+            pda_file="$(mktemp)"
+            agent_file="$(mktemp)"
+            pda_code="$(curl -sS --connect-timeout 8 --max-time 18 --output "$pda_file" --write-out '%{http_code}' "$base/downloads/pda/manifest" || true)"
+            agent_code="$(curl -sS --connect-timeout 8 --max-time 18 --output "$agent_file" --write-out '%{http_code}' "$base/downloads/agent/manifest" || true)"
+            pda_tag="$(jq -r '.tag // empty' "$pda_file" 2>/dev/null || true)"
+            pda_floor="$(jq -r '.minimum_version_code // empty | tostring' "$pda_file" 2>/dev/null || true)"
+            agent_tag="$(jq -r '.tag // empty' "$agent_file" 2>/dev/null || true)"
+            rm -f "$pda_file" "$agent_file"
+            if [[ "$pda_code" == "200" && "$agent_code" == "200" &&
+                  "$pda_tag" == "$expected_pda" && "$pda_floor" == "$expected_floor" &&
+                  "$agent_tag" == "$expected_agent" ]]; then
+              echo "D166_BETA_POSTRELEASE_READBACK_PASS PDA=$pda_tag MIN_CODE=$pda_floor AGENT=$agent_tag"
+              complete=true
+              break
+            fi
+            echo "D166 readback waiting (attempt=$attempt; pda_http=$pda_code; agent_http=$agent_code; expected channel/floor not yet consistent)"
+            if (( attempt < 18 )); then sleep 20; fi
+          done
+          if [[ "$complete" != "true" ]]; then
+            echo "::error::D166_BETA_POSTRELEASE_READBACK_NOT_PASS; do not claim mandatory update is active."
+            exit 1
+          fi
