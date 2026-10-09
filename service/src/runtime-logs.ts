@@ -412,6 +412,7 @@ async function launcherFolderFromCore(env: RuntimeLogsEnv): Promise<string> {
  */
 export async function ensureLauncherLogsDestination(env: RuntimeLogsEnv): Promise<void> {
   if (!env.INVENTORY_CORE || Date.now() < launcherProvisionNextAttemptAt) return;
+  let claimNonce = "";
   try {
     if (await launcherFolderFromCore(env)) {
       launcherProvisionNextAttemptAt = Date.now() + 6 * 60 * 60_000;
@@ -426,6 +427,7 @@ export async function ensureLauncherLogsDestination(env: RuntimeLogsEnv): Promis
       launcherProvisionNextAttemptAt = Date.now() + 5 * 60_000;
       return;
     }
+    claimNonce = claim.nonce;
     const token = await refreshGoogleAccessToken(env);
     const query = new URLSearchParams({
       q: `name = '${driveQueryEscape(MANAGED_LAUNCHER_FOLDER_NAME)}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
@@ -511,7 +513,17 @@ export async function ensureLauncherLogsDestination(env: RuntimeLogsEnv): Promis
     console.log("launcher_drive_folder_recovery=PASS smoke_archive=VERIFIED");
   } catch (error) {
     launcherProvisionNextAttemptAt = Date.now() + 5 * 60_000;
-    console.error("launcher_drive_folder_recovery=FAILED", error instanceof Error ? error.message : "unknown");
+    const raw = error instanceof Error ? error.message : "unknown";
+    const safe = /^LAUNCHER_FOLDER_[A-Z_]+(?:_HTTP_[0-9]{3})?$/.test(raw)
+      ? raw : "LAUNCHER_FOLDER_UNEXPECTED_FAILURE";
+    if (claimNonce) {
+      await core(env).fetch("https://inventory-core.internal/runtime-logs/launcher-folder/failure", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ nonce: claimNonce, error: safe }),
+      }).catch(() => undefined);
+    }
+    console.error("launcher_drive_folder_recovery=FAILED", safe);
   }
 }
 

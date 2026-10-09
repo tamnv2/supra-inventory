@@ -1281,6 +1281,9 @@ export default {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
         const core = await checkCore(env);
+        const launcherFolder = await coreJson<{
+          folder_id?: string; last_error?: string; updated_at?: string;
+        }>(env, "/runtime-logs/launcher-folder").catch(() => ({folder_id:"",last_error:"",updated_at:""}));
         let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0, agent_migrated: 0, agent_failed: 0, agent_remaining: 0 };
         if (core.ok && env.GOOGLE_RUNTIME_SA_JSON) {
           try {
@@ -1298,6 +1301,11 @@ export default {
           required_bindings: bindingPresence, oauth_refresh_token_configured: Boolean(env.GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN),
           root_bootstrap_secret_configured: Boolean(env.ROOT_BOOTSTRAP_PASSWORD), logs_folder_configured: Boolean(env.LOGS_FOLDER_ID),
           pda_registry_configured: Boolean(env.PDA_REGISTRY_SHEET_ID && env.GOOGLE_RUNTIME_SA_JSON),
+          launcher_archive: {
+            worker_owned_folder_ready: Boolean(launcherFolder.folder_id),
+            last_setup_error: String(launcherFolder.last_error || "").slice(0, 80),
+            updated_at: launcherFolder.updated_at || null,
+          },
           storage: core, agent_auth_migration: agentAuthMigration, missing_bindings: missing, timestamp: new Date().toISOString(),
         }, healthy ? 200 : 503);
       }
