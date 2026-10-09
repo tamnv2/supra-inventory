@@ -274,8 +274,16 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
 
   const sla = slaState(firstReportAt, config);
   const deadlines = slaDeadlines(firstReportAt, config);
+  const resolvedStatus = String(row.status || "");
+  const correctionExpiryMs = Date.parse(String(row.correction_deadline_at || ""));
   return {
     ...row,
+    correction_allowed: Boolean(
+      config?.skip_to_stock_enabled &&
+      (resolvedStatus === "HAS_STOCK" || resolvedStatus === "SKIP_ALLOWED") &&
+      Number.isFinite(correctionExpiryMs) &&
+      correctionExpiryMs > Date.now()
+    ),
     open_ticket_count: Number(row.waiting_picker_count || 0),
     affected_picker_count: Number(row.waiting_picker_count || 0),
     sla_state: sla.state,
