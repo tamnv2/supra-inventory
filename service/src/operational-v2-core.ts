@@ -10,6 +10,47 @@ import {
 
 type SqlRow = Record<string, SqlStorageValue>;
 
+// D166: fixed query-ID, in-memory SQL cost samples. Never store SQL texts,
+// bindings, account identifiers, SKU, tokens or personal information.
+// Process-local only; hibernation/restarts reset these ESTIMATES (not Billing).
+type SqlUsageStat = { calls: number; rows_read: number; rows_written: number };
+const sqlUsage = new WeakMap<DurableObjectState, Map<string, SqlUsageStat>>();
+const ALLOWED_SQL_QUERY_IDS = new Set([
+  "BATCH_SNAPSHOT", "RECENT_PAGE_TOTAL", "RECENT_PAGE_ROWS",
+  "RECENT_STATUS_TOTALS", "RECENT_ACK_TOTALS",
+]);
+function noteSqlUsage(
+  state: DurableObjectState,
+  queryId: string,
+  cursor: { rowsRead: number; rowsWritten: number },
+): void {
+  if (!ALLOWED_SQL_QUERY_IDS.has(queryId)) return;
+  let metrics = sqlUsage.get(state);
+  if (!metrics) {
+    metrics = new Map();
+    sqlUsage.set(state, metrics);
+  }
+  const sample = metrics.get(queryId) || { calls: 0, rows_read: 0, rows_written: 0 };
+  const read = Number(cursor.rowsRead);
+  const write = Number(cursor.rowsWritten);
+  sample.calls++;
+  if (Number.isFinite(read) && read >= 0) sample.rows_read += read;
+  if (Number.isFinite(write) && write >= 0) sample.rows_written += write;
+  metrics.set(queryId, sample);
+}
+export function operationalSqlUsageSnapshot(state: DurableObjectState): {
+  basis: string;
+  query_metrics: { query_id: string; calls: number; rows_read: number; rows_written: number }[];
+} {
+  const metrics = sqlUsage.get(state);
+  return {
+    basis: "PROCESS_LOCAL_SINCE_LAST_DO_ACTIVATION__NOT_PROVIDER_BILLING__NO_PERSISTENCE",
+    query_metrics: [...(metrics || new Map<string, SqlUsageStat>()).entries()]
+      .map(([query_id, v]) => ({ query_id, ...v }))
+      .sort((a, b) => b.rows_read - a.rows_read),
+  };
+}
+
 type Actor = {
   user_id: string;
   employee_code: string | null;
@@ -208,8 +249,7 @@ function parseJsonArray(value: unknown): string[] {
 
 export function currentBatchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
   if (!batchId) return null;
-  const row = first(
-    state.storage.sql.exec<SqlRow>(
+  const cursor = state.storage.sql.exec<SqlRow>(
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
               b.resolved_at, b.updated_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
               b.auto_skip_deadline_at, b.version, b.previous_batch_id,
@@ -249,8 +289,9 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
         WHERE b.batch_id = ?
         LIMIT 1`,
       batchId,
-    ).toArray(),
-  );
+    );
+  const row = first(cursor.toArray());
+  noteSqlUsage(state, "BATCH_SNAPSHOT", cursor);
   if (!row) return null;
 
   const config = readSlaConfig(state);
