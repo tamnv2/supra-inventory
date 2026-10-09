@@ -131,3 +131,8 @@ Tham chiếu: Owner Decision **D039**, **D055**; `docs/specs/ACCEPTANCE_TESTING.
 - **Cần phân tích sau:** xác định các entrypoint tạo Picker hiện tại; mapping capability tại DB/API/HR batch; cách xử lý tài khoản trùng, tạo lại, restore, status inactive, lỗi giữa các bước; log/audit/role permission; đồng bộ UI và tác động quota. Chốt điều kiện nghiệm thu trên Beta trước rollout và Owner field PASS.
 
 **Gate:** Chỉ ghi yêu cầu backlog trong D166. Không thay đổi dữ liệu tài khoản, không sửa Web/Android/Worker, không update HR Sheet, không triển khai provider, không tác động Stable. Mọi thay đổi runtime phải qua đánh giá tác động, Owner duyệt riêng, branch → PR → authority/continuity + hồi quy → Beta field test → Owner PASS.
+
+
+### 2026-10-10 — D166 NEW PICKER DEFAULT ON: scoped Beta implementation candidate
+
+Owner approved moving beyond analysis toward implementation within D166. Verified creation paths: Web managed-account creation rejects role PICKER; the source-authoritative HR apply creates new Picker users in `service/src/user-management-core.ts`. Change **only the new Picker INSERT** to `shortage_reporting_enabled=1`. For already existing Pickers, rename/contractor update, HR re-apply, sync retry and session refresh, retain the current flag and revision without re-enabling or extra backend writes. Keep the D156 structural one-time migration (historical Picker defaults OFF) unchanged, and keep the database column default zero for fail-closed legacy/unapproved insertions. Display true capability from server on next existing session/profile refresh; no new polling or listener. Record new capability policy in HR sync response metadata (non-PII). PR CI and actual Owner Beta field test remain mandatory; no Stable deployment or bulk HR overwrite.
