@@ -2789,3 +2789,15 @@ Owner selects Agent v122 as development base, and explicitly authorizes v123 log
 - Compare logical `bundle_id` / content hash / file ID before and after, including duplicate retries; no log loss, no duplicate artifact, no accidental local deletion, no extra normal provider polling or log-upload cadence.
 - For already-existing duplicates, generate non-destructive full inventory and verify any later Owner-approved reconciliation with no loss/collision or cross-parent move. CI/source proof is not Owner field PASS; require real Google Drive metadata + source correlation to confirm actual incident root cause.
 - Scope remains D166 backlog with explicit Owner impact gate before implementation; do not deploy, mutate existing Google Drive folders or Stable for this documentation change.
+
+
+## D166 — Four Owner future-analysis backlog items (09/10/2026; NOT IMPLEMENTED)
+
+These are **future acceptance topics to define after analysis**, not evidence that functionality exists, a command to run tests on production, or Owner PASS:
+
+1. **Shared correction setting:** configure a controlled test 15-minute example and verify `HAS_STOCK` and `SKIP_ALLOWED` use exactly the same correction time basis, button visibility expires on Web/Android, and server rejects late/raced/stale/replayed requests. Existing correction permissions, two-step confirmations, audit and targeted result ACK must not regress.
+2. **Web five tabs:** Web operations shows `Đang xử lý / Quá hạn / Đã có hàng / Cho phép Skip / Picker đã thu hồi` instead of `Kết quả gần đây`, with exact classification, navigable history, authoritative counts/realtime and no new full-list polling; Android Reporter retains its existing approved tabs.
+3. **Daily Agent SKU proposal:** before any test with Supra, Owner must approve the D126 authority exception and controlled integration scope. Then cover Agent startup/browser readiness, separate browsing context, scheduled one successful run per business day across multiple agents, export file format/integrity/recency, accepted import result, conflict handling, failure/retry/resume, interrupted downloads, no false DONE, no session extraction/credential logging, and unchanged WMS Confirm/HA/ACK/Usage.
+4. **As-of-report location and report redesign:** subject to D002 scope approval and verifiable data source, verify area as of event/report date, SKU transfers/multiple or missing areas, historical export and filtering, grouped shortage frequency accuracy, and revised overview/detail layouts. Never silently backfill uncertain labels or introduce employee scoring unrelated to Owner intent.
+
+Until Owner calls for analysis and separately authorizes implementation: **no runtime, provider, database, UX, or deployment changes**. Stable remains OWNER-GATED. Requirement details in `docs/D166_APPROVED_BACKLOG.md`.
