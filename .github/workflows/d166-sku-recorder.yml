@@ -63,6 +63,14 @@ jobs:
           "$hash *SUPRA.SKU.Recorder.exe" | Set-Content "dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256"
           Write-Host "D166_STANDALONE_EXE=PASS SHA256=$hash"
 
+      - name: ZIP export repeat and event-content regression
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "dist/sku-recorder/SUPRA.SKU.Recorder.exe").Path
+          $proc = Start-Process -FilePath $exe -ArgumentList '--self-test-export' -Wait -PassThru -NoNewWindow
+          if ($proc.ExitCode -ne 0) { throw "ZIP export self-test failed ($($proc.ExitCode))." }
+          Write-Host "D166_ZIP_EXPORT_REPEAT_AND_CONTENT=PASS"
+
       - uses: actions/upload-artifact@v4
         with:
           name: D166-SKU-Recorder-win-x64
