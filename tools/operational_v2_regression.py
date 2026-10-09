@@ -160,6 +160,27 @@ def require_source_markers() -> None:
     if 'WHERE a.result_event_id = ? AND a.target_user_id = ?' not in operational:
         fail("D165 Picker realtime authorization must remain exact-event targeted")
 
+    # D166 hot query cost instrumentation is in-memory, privacy-safe and
+    # uses DO cursor counters instead of extra SELECT COUNT or log writes.
+    system_metrics = (ROOT / "service/src/system-metrics-core.ts").read_text(encoding="utf-8")
+    for marker in (
+        'const ALLOWED_SQL_QUERY_IDS = new Set([',
+        '"BATCH_SNAPSHOT"',
+        '"RECENT_PAGE_TOTAL"',
+        '"RECENT_PAGE_ROWS"',
+        '"RECENT_STATUS_TOTALS"',
+        '"RECENT_ACK_TOTALS"',
+        'cursor.rowsRead',
+        'cursor.rowsWritten',
+        'basis: "PROCESS_LOCAL_SINCE_LAST_DO_ACTIVATION__NOT_PROVIDER_BILLING__NO_PERSISTENCE"',
+    ):
+        if marker not in operational:
+            fail(f"D166 bounded DO SQL telemetry contract missing: {marker}")
+    if 'query_usage: operationalSqlUsageSnapshot(state)' not in system_metrics:
+        fail("D166 DO query cost must piggyback on existing admin Metrics response")
+    if 'SQL_QUERY_TEXT' in operational or 'query_sql_text' in system_metrics:
+        fail("D166 query log must never include raw SQL statements or bindings")
+
     # D165 PER_PICKER keeps the batch pending after timeout, so the business
     # resolver may compute queue_delta from remaining waiting tickets instead of
     # carrying the legacy unconditional -1 literal. FIRST_REPORT still closes.
