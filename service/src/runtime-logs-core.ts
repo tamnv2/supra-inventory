@@ -168,6 +168,51 @@ export async function handleRuntimeLogCoreRequest(
     return response({ status: "buffered", file: row || null });
   }
 
+  // D166: manual, ROOT-gated Worker diagnostics. Only aggregated Launcher
+  // metadata; the API never exports filenames, DeviceKeys, payloads or Drive IDs.
+  if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-diagnostics") {
+    const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    const selector = `source = 'ANDROID'
+        AND (filename LIKE 'scheduled_android_launcher-%'
+          OR filename LIKE 'error_android_launcher-%'
+          OR filename LIKE 'crash_android_launcher-%'
+          OR filename LIKE 'manual_android_launcher-%')
+        AND received_at >= ?`;
+    const totals = state.storage.sql.exec<SqlRow>(
+      `SELECT COUNT(*) AS received,
+              SUM(CASE WHEN drive_file_id IS NOT NULL AND drive_synced_at IS NOT NULL THEN 1 ELSE 0 END) AS synced,
+              SUM(CASE WHEN drive_file_id IS NULL THEN 1 ELSE 0 END) AS pending,
+              SUM(CASE WHEN drive_file_id IS NULL AND last_drive_error IS NOT NULL THEN 1 ELSE 0 END) AS failed,
+              MIN(received_at) AS first_received_at, MAX(received_at) AS last_received_at
+         FROM runtime_log_buffer WHERE ${selector}`, since,
+    ).toArray()[0] || {};
+    const failedRows = state.storage.sql.exec<SqlRow>(
+      `SELECT last_drive_error FROM runtime_log_buffer
+        WHERE ${selector} AND drive_file_id IS NULL AND last_drive_error IS NOT NULL
+        ORDER BY received_at DESC LIMIT 30`, since,
+    ).toArray();
+    const errorCounts: Record<string, number> = {};
+    for (const row of failedRows) {
+      const raw = String(row.last_drive_error || "");
+      const match = /^(LOGS_[A-Z_]+|LAUNCHER_LOG_[A-Z_]+)(?::(\d{3}))?/.exec(raw);
+      const safe = match ? match[1] + (match[2] ? "_HTTP_" + match[2] : "") : "OTHER_ARCHIVE_FAILURE";
+      errorCounts[safe] = (errorCounts[safe] || 0) + 1;
+    }
+    return response({
+      window_days: 7,
+      authority: "INVENTORY_CORE_BUFFER",
+      received: Number(totals.received || 0),
+      drive_synced: Number(totals.synced || 0),
+      pending_drive: Number(totals.pending || 0),
+      pending_with_error: Number(totals.failed || 0),
+      first_received_at: totals.first_received_at || null,
+      last_received_at: totals.last_received_at || null,
+      recent_failure_sample_count: failedRows.length,
+      recent_failure_classes: errorCounts,
+      checked_at: new Date().toISOString(),
+    });
+  }
+
   // Minimal receipt lookup for the PDA client. Never return log contents,
   // Drive IDs or employee/device details to an unauthenticated caller.
   // A receipt is only valid for the registered DeviceKey that uploaded it.
