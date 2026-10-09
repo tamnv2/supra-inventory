@@ -6285,6 +6285,20 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "canonical_log_folder_candidate": {
+      "change_id": "D166_DRIVE_SINGLE_AUTHORITY_PER_VN_DAY",
+      "status": "SCOPED_DRAFT_PR__CI_PENDING__NO_GATEWAY_OR_WORKER_DEPLOYMENT",
+      "branch": "d166-unified-runtime-log-day-folder",
+      "single_authority": "INVENTORY_CORE_DO_DAY_FOLDER_ATOMIC_LEASE",
+      "agents": "APPS_SCRIPT_AUTHENTICATED_WORKER_CANONICAL_FOLDER_ONLY",
+      "fallback": "FAIL_CLOSED_RETAIN_LOG_NO_DUPLICATE_FOLDER",
+      "rollout_order": "BETA_WORKER_BEFORE_APPS_SCRIPT_OWNER_FIELD_GATE",
+      "existing_history": "NO_MOVE_OR_DELETE_OF_OLD_DUPLICATE_FOLDERS",
+      "usage": "ONCE_PER_DAY_DO_LEASE_WITH_6H_CLIENT_CACHE",
+      "field_pass": false,
+      "runtime_deployed": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
