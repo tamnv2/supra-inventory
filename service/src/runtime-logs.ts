@@ -345,6 +345,47 @@ async function refreshGoogleAccessToken(env: RuntimeLogsEnv): Promise<string> {
   return payload.access_token;
 }
 
+// Manual ROOT-only preflight: use the SAME OAuth refresh token and target
+// folder as archive writes, without writing files or exposing credentials.
+export async function probeLauncherArchiveFolder(env: RuntimeLogsEnv): Promise<{
+  status: string;
+  can_add_children: boolean | null;
+}> {
+  const folderId = env.LAUNCHER_LOGS_FOLDER_ID || "";
+  if (!FILE_ID_RE.test(folderId)) return { status: "FOLDER_NOT_CONFIGURED", can_add_children: null };
+  let token: string;
+  try {
+    token = await refreshGoogleAccessToken(env);
+  } catch {
+    return { status: "GOOGLE_OAUTH_UNAVAILABLE", can_add_children: null };
+  }
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?fields=id,mimeType,capabilities%2FcanAddChildren`,
+      {
+        headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+        signal: AbortSignal.timeout(9000),
+      },
+    );
+    if (!response.ok) {
+      return { status: `DRIVE_FOLDER_HTTP_${response.status}`, can_add_children: null };
+    }
+    const folder = await response.json() as {
+      mimeType?: string;
+      capabilities?: { canAddChildren?: boolean };
+    };
+    if (folder.mimeType !== "application/vnd.google-apps.folder") {
+      return { status: "DRIVE_TARGET_NOT_FOLDER", can_add_children: null };
+    }
+    return {
+      status: folder.capabilities?.canAddChildren === true ? "ACCESSIBLE_WRITABLE" : "ACCESSIBLE_WRITE_NOT_CONFIRMED",
+      can_add_children: folder.capabilities?.canAddChildren === true,
+    };
+  } catch {
+    return { status: "DRIVE_FOLDER_CHECK_UNAVAILABLE", can_add_children: null };
+  }
+}
+
 function archiveErrorCode(error: unknown): string {
   const raw = error instanceof Error ? error.message : "drive_sync_failed";
   return scrubText(raw).slice(0, 300);
@@ -502,7 +543,7 @@ export async function uploadRuntimeLog(
     const launcherDay = actor.user_id === "launcher-system"
       && body.payload && typeof body.payload === "object"
       ? String((body.payload as Record<string, unknown>).date || "") : "";
-    const archiveTimestamp = /^\\d{4}-\\d{2}-\\d{2}$/.test(launcherDay)
+    const archiveTimestamp = /^\d{4}-\d{2}-\d{2}$/.test(launcherDay)
       ? new Date(`${launcherDay}T12:00:00+07:00`) : new Date(generatedAt);
     const daily = await resolveRuntimeLogDailyFolder(env, token, archiveTimestamp);
     const logicalBoundary = boundaryId
@@ -638,7 +679,7 @@ async function archiveBufferedJson(
     };
     const launcherDay = parsed.actor?.user_id === "launcher-system"
       ? String(parsed.payload?.date || "") : "";
-    if (/^\\d{4}-\\d{2}-\\d{2}$/.test(launcherDay)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(launcherDay)) {
       sourceDate = new Date(`${launcherDay}T12:00:00+07:00`);
     } else if (parsed.generated_at && Number.isFinite(Date.parse(parsed.generated_at))) {
       sourceDate = new Date(parsed.generated_at);
