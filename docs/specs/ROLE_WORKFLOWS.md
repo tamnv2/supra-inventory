@@ -1036,3 +1036,8 @@ Each correction creates one result event/ACK for the Picker users of this batch 
 - Reporting: research as-of-report-date storage area (LTA/Shelving examples), shortage frequency by SKU/area, and a revised overview/detailed reports package. **D002 forbids current bin/location master management**, so no source/schema enrichment without a separate approved scope decision.
 
 These four are documentation-only Owner backlog additions under D166. Implementation, API/schema/provider access, and release are not authorized. Details: `docs/D166_APPROVED_BACKLOG.md`.
+
+
+## D166-NEW-PICKER-REPORTING-DEFAULT-ON — Future Picker creation workflow (backlog only, 09/10/2026)
+
+Owner wants a **newly created Picker account** to have **Báo hàng enabled automatically** after successful account creation. Evaluate each Inventory account provisioning route (HR Sheet validated synchronization/batch-apply and any explicitly supported Admin creation path) and its failed/duplicate/retry semantics. Do not treat a preexisting Picker whose HR metadata changed as a new Picker, do not reenable explicitly disabled existing accounts and do not reverse the D156 one-time default-OFF migration. Current D156 default-OFF remains the deployed rule **until explicit future Owner implementation approval**. Preserve existing capability check, role inheritance, Picker notices and quota/realtime behavior. See D166 backlog and Auth RBAC future proposal.

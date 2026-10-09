@@ -115,3 +115,19 @@ Tham chiếu: Owner Decision **D039**, **D055**; `docs/specs/ACCEPTANCE_TESTING.
 - Cả bốn mục là **backlog để phân tích sau** trong đúng `D166`; chưa nghiên cứu kết luận/triển khai giải pháp, chưa chỉnh sửa source hoặc provider, chưa thêm quota calls, không thay đổi Stable. Không đánh đồng `recorded` với `implemented` hoặc `Owner field PASS`.
 - Khi Owner yêu cầu mở phân tích: đánh giá tác động cơ sở D165/D166, các spec đang xung đột, UI Web/Android/Agent, dữ liệu & source authority, quyền/bảo mật, failure modes, realtime/HA/ACK, ngân sách Usage, hồi quy và phương án triển khai từng bước. Chỉ sửa code sau **phê duyệt riêng của Owner**.
 - Các spec liên quan: `docs/specs/FORMS.md`, `docs/specs/REPORTING_DASHBOARD.md`, `docs/specs/UI_DESIGN_SYSTEM.md`, `docs/specs/SKU_MASTER.md`, `docs/specs/ACCEPTANCE_TESTING.md`; các quyết định lịch sử D002/D126 tiếp tục có hiệu lực **đối với runtime hiện tại**.
+
+
+---
+
+## D166-NEW-PICKER-REPORTING-DEFAULT-ON — Tự động bật Báo hàng khi tạo tài khoản Picker mới
+
+**Owner bổ sung:** 09/10/2026 (Asia/Ho_Chi_Minh). **Trạng thái:** YÊU CẦU BACKLOG ĐÃ GHI NHẬN — CHỜ PHÂN TÍCH/CHỐT PHƯƠNG ÁN — CHƯA SỬA CODE, CHƯA TRIỂN KHAI.
+
+- **Mục tiêu:** mọi tài khoản có vai trò nền `PICKER` **được tạo mới thành công** trong SUPRA Inventory sẽ khởi tạo quyền **Báo hàng = BẬT** (`shortage_reporting_enabled=true`) một cách tự động, thay vì cần Admin/Root bật thủ công sau khi tạo. Không thay đổi quyền của các vai trò khác.
+- **Đối tượng:** cần rà soát **tất cả các luồng thực sự tạo mới Picker** thuộc phạm vi Inventory (đặc biệt tạo từ đồng bộ nhân sự/HR, áp dụng batch đã được duyệt và tạo tài khoản nếu UI/API hỗ trợ). Không nhầm đồng bộ cập nhật thông tin của một tài khoản đã tồn tại thành một lần tạo mới.
+- **Tài khoản Picker hiện hữu:** không tự động bật lại, không chạy migration đổi quyền hàng loạt; giữ nguyên các lựa chọn bật/tắt mà người quản trị đã thực hiện. Sau khi Picker được tạo, thao tác tắt/bật có thẩm quyền vẫn được giữ nguyên qua lần đồng bộ HR tiếp theo.
+- **Tính đúng đắn:** chỉ cấp capability sau khi giao dịch tạo tài khoản được hệ thống xác nhận thành công; tránh tạo trùng/tự bật lại do retry, HR re-sync, đổi tên/nhà thầu, cập nhật metadata, khôi phục hay login. Backend là authority của capability; UI Web/Android thể hiện ngay trạng thái thật bằng cơ chế đồng bộ hiện hữu, không thêm polling/lắng nghe mới.
+- **Xung đột authority phải giải quyết ở giai đoạn phân tích:** quyết định **D156** hiện quy định tài khoản Picker mới **mặc định TẮT Báo hàng** và đã chạy migration tắt một lần cho Picker cũ. Yêu cầu Owner mới là **định hướng thay đổi mặc định cho tài khoản tạo trong tương lai**, nhưng vì Owner chỉ yêu cầu ghi backlog nên **D156 vẫn có hiệu lực với hệ thống đang chạy** cho tới khi thiết kế và code mới được phê duyệt/triển khai. Không tái chạy hoặc đảo ngược migration D156.
+- **Cần phân tích sau:** xác định các entrypoint tạo Picker hiện tại; mapping capability tại DB/API/HR batch; cách xử lý tài khoản trùng, tạo lại, restore, status inactive, lỗi giữa các bước; log/audit/role permission; đồng bộ UI và tác động quota. Chốt điều kiện nghiệm thu trên Beta trước rollout và Owner field PASS.
+
+**Gate:** Chỉ ghi yêu cầu backlog trong D166. Không thay đổi dữ liệu tài khoản, không sửa Web/Android/Worker, không update HR Sheet, không triển khai provider, không tác động Stable. Mọi thay đổi runtime phải qua đánh giá tác động, Owner duyệt riêng, branch → PR → authority/continuity + hồi quy → Beta field test → Owner PASS.
