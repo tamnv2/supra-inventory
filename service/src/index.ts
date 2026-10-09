@@ -1283,7 +1283,7 @@ export default {
         const core = await checkCore(env);
         const launcherFolder = await coreJson<{
           folder_id?: string; last_error?: string; updated_at?: string;
-        }>(env, "/runtime-logs/launcher-folder").catch(() => ({}));
+        }>(env, "/runtime-logs/launcher-folder").catch(() => ({folder_id:"",last_error:"",updated_at:""}));
         let agentAuthMigration = { migrated: 0, failed: 0, remaining: 0, agent_migrated: 0, agent_failed: 0, agent_remaining: 0 };
         if (core.ok && env.GOOGLE_RUNTIME_SA_JSON) {
           try {
