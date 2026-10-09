@@ -1532,6 +1532,11 @@ jobs:
           (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
           (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
 
+      - name: D166 Firebase RTDB SSE runtime fixture (net48, no credentials)
+        shell: powershell
+        run: |
+          & ./tools/d166_rtdb_sse_runtime_fixture.ps1 -AgentAssembly "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe"
+
       - name: D102 night schedule regression
         shell: pwsh
         run: |
