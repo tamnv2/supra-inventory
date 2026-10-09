@@ -2801,3 +2801,13 @@ These are **future acceptance topics to define after analysis**, not evidence th
 4. **As-of-report location and report redesign:** subject to D002 scope approval and verifiable data source, verify area as of event/report date, SKU transfers/multiple or missing areas, historical export and filtering, grouped shortage frequency accuracy, and revised overview/detail layouts. Never silently backfill uncertain labels or introduce employee scoring unrelated to Owner intent.
 
 Until Owner calls for analysis and separately authorizes implementation: **no runtime, provider, database, UX, or deployment changes**. Stable remains OWNER-GATED. Requirement details in `docs/D166_APPROVED_BACKLOG.md`.
+
+
+### D166-WEB-DATE-RANGE — Shared date filter for five Web tabs (future tests, backlog only)
+
+- On a fresh Web operations visit, `Hôm nay` is the selected date in `Asia/Ho_Chi_Minh`; all five proposed tabs use a single visible interval. Switching tabs does not reset custom dates.
+- Choose a valid different inclusive `Từ ngày`–`Đến ngày` range, apply, and verify displayed rows/counts match the actual query window in each status tab; avoid mixing all-time/current totals with date-filtered rows.
+- Invalid/reversed/out-of-policy intervals cannot silently apply. Quick reset to `Hôm nay` also updates both visible controls and the authoritative query state.
+- At 23:59/00:01 Vietnam and for historical dates, test timestamp basis for each tab and current-status-vs-as-of reconstruction; unknown/unsupported historical semantics must never be presented as verified.
+- Test back/forward/context restore, page navigation, realtime result corrections, pagination and role permissions; ensure no fresh full-list read of all five tabs on every tab/date change and no new high-frequency provider polling.
+- Tests apply **only after Owner separately approves analysis/design and implementation** of D166 Web five-tab feature; this documentation change does not authorize runtime code or deployment.
