@@ -350,6 +350,7 @@ async function refreshGoogleAccessToken(env: RuntimeLogsEnv): Promise<string> {
 export async function probeLauncherArchiveFolder(env: RuntimeLogsEnv): Promise<{
   status: string;
   can_add_children: boolean | null;
+  folder_url?: string;
 }> {
   const folderId = (await launcherFolderFromCore(env).catch(() => "")) || env.LAUNCHER_LOGS_FOLDER_ID || "";
   if (!FILE_ID_RE.test(folderId)) return { status: "FOLDER_NOT_CONFIGURED", can_add_children: null };
@@ -380,6 +381,7 @@ export async function probeLauncherArchiveFolder(env: RuntimeLogsEnv): Promise<{
     return {
       status: folder.capabilities?.canAddChildren === true ? "ACCESSIBLE_WRITABLE" : "ACCESSIBLE_WRITE_NOT_CONFIRMED",
       can_add_children: folder.capabilities?.canAddChildren === true,
+      folder_url: `https://drive.google.com/drive/folders/${folderId}`,
     };
   } catch {
     return { status: "DRIVE_FOLDER_CHECK_UNAVAILABLE", can_add_children: null };
