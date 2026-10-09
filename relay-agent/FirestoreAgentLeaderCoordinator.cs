@@ -95,6 +95,9 @@ namespace SupraInventoryRelayAgent
         private long _lastLeaseWriteMs;
         private long _leaseMissingSinceMs;
         private long _lastTakeoverProbeMs;
+        private long _lastTakeoverLivenessCheckMs;
+        private long _primaryWmsUnreadySinceMs;
+        private int _primaryWmsUnreadySamples;
         private string _sharedScheduleKey = "";
         private string _sharedScheduleDecision = "";
         private long _sharedRelayOverrideUntilMs;
@@ -1179,6 +1182,16 @@ namespace SupraInventoryRelayAgent
                     _generation = snapshot.Generation ?? "";
                     if (!_wmsReady())
                     {
+                        // D166: a single temporary WMS/browser readiness failure
+                        // must not eject PRIMARY. Require two samples >=15s apart.
+                        var nowUnready = NowMs();
+                        if (_primaryWmsUnreadySinceMs == 0) _primaryWmsUnreadySinceMs = nowUnready;
+                        _primaryWmsUnreadySamples++;
+                        if (_primaryWmsUnreadySamples < 2 || nowUnready - _primaryWmsUnreadySinceMs < 15000)
+                        {
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId, snapshot.StandbyAgentInstanceId, "PRIMARY_WMS_SUSPECT");
+                            return;
+                        }
                         // D161 repair: if no ready standby exists, retain one PRIMARY as
                         // a degraded receiver. It may consume/ACK PDA requests with the
                         // explicit WMS_SESSION_REQUIRED terminal result, while the D160
@@ -1204,6 +1217,8 @@ namespace SupraInventoryRelayAgent
                         }
                         continue;
                     }
+                    _primaryWmsUnreadySinceMs = 0;
+                    _primaryWmsUnreadySamples = 0;
                     SetRole(FirestoreAgentRole.PRIMARY, snapshot.PrimaryAgentInstanceId, snapshot.StandbyAgentInstanceId, "ACTIVE");
                     return;
                 }
@@ -1724,6 +1739,11 @@ namespace SupraInventoryRelayAgent
                     _fleetRefreshRequested = true;
                     if (role == FirestoreAgentRole.PRIMARY) _lastLeaseWriteMs = 0;
                     if (role != FirestoreAgentRole.NEXT_A) _leaseMissingSinceMs = 0;
+                    if (role != FirestoreAgentRole.PRIMARY)
+                    {
+                        _primaryWmsUnreadySinceMs = 0;
+                        _primaryWmsUnreadySamples = 0;
+                    }
                 }
             }
             if (!changed) return;
@@ -1981,8 +2001,7 @@ namespace SupraInventoryRelayAgent
                 var missingAge = now - _leaseMissingSinceMs;
                 if (missingAge >= FailoverAfterMs)
                 {
-                    PromoteStandbyForTakeover();
-                    return 1000;
+                    return VerifyPrimaryDownBeforeTakeover(session);
                 }
                 return Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, Math.Max(0L, missingAge)));
             }
@@ -1991,12 +2010,42 @@ namespace SupraInventoryRelayAgent
             var ageMs = Math.Max(0L, now - leaseUpdatedMs);
             if (ageMs >= FailoverAfterMs)
             {
-                PromoteStandbyForTakeover();
-                return 1000;
+                return VerifyPrimaryDownBeforeTakeover(session);
             }
 
             if (ageMs < PrimaryLeaseHeartbeatMs)
                 return Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)ageMs);
+            return 1000;
+        }
+
+        // A stale Firestore lease is not proof of death when the PRIMARY
+        // refreshed RTDB instead of Firestore. Probe only after SUSPECT.
+        private int VerifyPrimaryDownBeforeTakeover(AgentSession session)
+        {
+            var now = NowMs();
+            if (_lastTakeoverLivenessCheckMs != 0 &&
+                now - _lastTakeoverLivenessCheckMs < 5000) return 5000;
+            _lastTakeoverLivenessCheckMs = now;
+            var proof = _rtdbLiveness.ProbePrimary(session, _generation, _primaryId);
+            if (proof == RtdbPrimaryProbeStatus.HEALTHY)
+            {
+                _leaseMissingSinceMs = 0;
+                return 5000;
+            }
+            if (proof == RtdbPrimaryProbeStatus.DIFFERENT)
+            {
+                _refreshBeforeBusiness = true;
+                _log("FIRESTORE HA takeover=DEFER evidence=RTDB_PRIMARY_CHANGED");
+                return 1000;
+            }
+            if (proof == RtdbPrimaryProbeStatus.UNAVAILABLE)
+            {
+                // A partition cannot prove PRIMARY death; preserve safety.
+                _log("FIRESTORE HA takeover=DEFER evidence=UNVERIFIED_PRIMARY_LIVENESS");
+                return 5000;
+            }
+            _log("FIRESTORE HA takeover=CHECK evidence=RTDB_HEARTBEAT_STALE");
+            PromoteStandbyForTakeover(); // generation-fenced CAS and WMS guard
             return 1000;
         }
 
