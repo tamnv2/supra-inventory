@@ -262,10 +262,21 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
       ? Math.max(0, Math.round((firstReportMs - previousResolvedMs) / 60_000))
       : null;
 
-  if (String(row.status || "") !== "PENDING") {
+  const resolvedStatus = String(row.status || "");
+  if (resolvedStatus !== "PENDING") {
+    // Result snapshots must carry the SAME server-authoritative edit eligibility
+    // as the initial result list. This path feeds both Android and Web deltas.
+    const correctionExpiryMs = Date.parse(String(row.correction_deadline_at || ""));
+    const correctionAllowed = Boolean(
+      config?.skip_to_stock_enabled &&
+      (resolvedStatus === "HAS_STOCK" || resolvedStatus === "SKIP_ALLOWED") &&
+      Number.isFinite(correctionExpiryMs) &&
+      correctionExpiryMs > Date.now()
+    );
     return {
       ...row,
-      affected_picker_count: String(row.status || "") === "CLOSED"
+      correction_allowed: correctionAllowed,
+      affected_picker_count: resolvedStatus === "CLOSED"
         ? Number(row.withdrawn_ticket_count || 0)
         : Number(row.resolved_picker_count || 0),
       recurrence_minutes: recurrenceMinutes,
@@ -274,16 +285,9 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
 
   const sla = slaState(firstReportAt, config);
   const deadlines = slaDeadlines(firstReportAt, config);
-  const resolvedStatus = String(row.status || "");
-  const correctionExpiryMs = Date.parse(String(row.correction_deadline_at || ""));
   return {
     ...row,
-    correction_allowed: Boolean(
-      config?.skip_to_stock_enabled &&
-      (resolvedStatus === "HAS_STOCK" || resolvedStatus === "SKIP_ALLOWED") &&
-      Number.isFinite(correctionExpiryMs) &&
-      correctionExpiryMs > Date.now()
-    ),
+    correction_allowed: false,
     open_ticket_count: Number(row.waiting_picker_count || 0),
     affected_picker_count: Number(row.waiting_picker_count || 0),
     sla_state: sla.state,
