@@ -5352,7 +5352,7 @@
     },
     {
       "id": "OA102",
-      "status": "PENDING_D166_V123_LOG_ONLY_CI_AND_OWNER_FIELD_CHECK",
+      "status": "PENDING_D166_INTEGRATED_PR541_CI_AND_FIELD_OWNER_GATE",
       "title": "Approve D166 Usage ZIP implementation scope",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
@@ -5375,7 +5375,17 @@
         "Candidate v121 export ZIP is actually verified on standby Windows, with no secrets or extra background reads.",
         "Source missing/overquota represented as N/A plus dashboard screenshot URL; soft spend budget maintained."
       ],
-      "remaining_owner_action": "Owner đã xác nhận v122 là nền chính thức; chờ bản v123 log-only và App/Web log-only qua CI, sau đó kiểm tra log thực tế + riêng chức năng ZIP v122 đã sửa Gateway. Chưa phê duyệt sửa logic Firestore/DO/HA.",
+      "remaining_owner_action": "D166 tích hợp mã ứng viên Beta trên PR #541; vẫn cần CI tích hợp PASS, xác minh bảo mật/quota, thử nghiệm standby Agent/PDA/Drive và Owner duyệt phạm vi phát hành trước bất cứ merge gây deploy. Field thực tế, Usage ZIP v122 và Owner D166 PASS vẫn chờ bằng chứng.",
+      "d166_integration_2026_10_10": {
+        "pr": 541,
+        "scope": "BETA_SOURCE_ONLY__EIGHT_D166_CANDIDATES__NO_AUTO_SKU_OR_LOCATION",
+        "technical_state": "SOURCE_CHECKS_18_SUCCESS_10_CONDITIONAL_SKIP_0_FAILURE_ON_SHA_3C80FDC__RECEIPT_STATE_COMMIT_RECHECK_PENDING__NOT_OWNER_PASS",
+        "manual_now": "NONE__OWNER_ALREADY_AUTHORIZED_ALL_BETA_PDA_RELEASE_2026_10_10__PER_DEVICE_INSTALL_NOT_YET_PROVEN",
+        "manual_after_technical": "NO_MORE_RELEASE_SCOPE_APPROVAL_FOR_ALL_BETA_PDA__OWNER_REAL_DEVICE_AGENT_PDA_DRIVE_ZIP_USAGE_VALIDATION_AND_EXPLICIT_D166_PASS_REQUIRED",
+        "release_scope_approval": "OWNER_EXPLICIT_2026_10_10_ALL_BETA_PDA__AGENT_V124_ANDROID_VC104_WEB_WORKER_EXISTING_GATEWAY",
+        "field_pass": false,
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
       "closed": false,
       "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs",
       "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs",

@@ -15,7 +15,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
-import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination } from "./runtime-logs";
+import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent } from "./runtime-logs";
 import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
@@ -73,6 +73,8 @@ interface Env {
   LOAD_TEST_TOKEN?: string;
   D166_CF_READ_TOKEN?: string;
   D166_CF_ACCOUNT_ID?: string;
+  // D166 Owner-gated version floor. Unset or 0 means updates stay optional.
+  PDA_MIN_VERSION_CODE_BETA?: string;
 }
 
 interface InternalUser {
@@ -1327,6 +1329,15 @@ export default {
             channel: "beta",
             tag: release.tag,
             version_code: Number(release.tag.replace("beta-vc", "")),
+            // D166 Owner approved a mandatory ALL-PDA Beta vc104 rollout.
+            // Arm the floor only AFTER vc104 is signed and on the public release channel.
+            // The optional Beta environment override can lower the floor during recovery.
+            minimum_version_code: Number(release.tag.replace("beta-vc", "")) >= 104
+              ? Math.min(
+                  Number(release.tag.replace("beta-vc", "")),
+                  Math.max(0, Math.trunc(Number(env.PDA_MIN_VERSION_CODE_BETA || "104") || 0)),
+                )
+              : 0,
             name: release.name,
             published_at: release.published_at,
             source: release.source,
@@ -1513,6 +1524,16 @@ export default {
         const value=await collectD166Cf(env,start,end);
         return json({ok:true,service:"SUPRA_D166_CLOUDFLARE_WORKER_READONLY",project:"supra-inventory-beta",
           generated_at:new Date().toISOString(),cloudflare:value});
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/agent/log-day-folder") {
+        if (env.APP_ENV !== "beta") return json({ error: "LOG_DAY_BETA_ONLY" }, 404);
+        // Authorized Agent session only. The folder ID is metadata needed
+        // by the Apps Script uploader; never return OAuth material.
+        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        const selected = await resolveRuntimeLogDayForAgent(env);
+        return json({ ok: true, archive_date: selected.dateKey, folder_id: selected.id,
+          source: "INVENTORY_CORE_CANONICAL_DAY" });
       }
 
       if (request.method === "GET" && url.pathname === "/api/agent/usage") {

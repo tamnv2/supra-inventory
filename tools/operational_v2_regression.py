@@ -71,6 +71,74 @@ def require_source_markers() -> None:
         if marker not in haystacks[name]:
             fail(f"source invariant missing: {name}")
 
+    # D166 per-query SQL cursor measurements: existing statement results only,
+    # bounded/aggregated in memory. No second query, network call or PII.
+    metrics = (ROOT / "service/src/d166-sql-usage.ts").read_text(encoding="utf-8")
+    system_metrics = (ROOT / "service/src/system-metrics-core.ts").read_text(encoding="utf-8")
+    for marker in (
+        '"BATCH_SNAPSHOT"',
+        '"RECENT_RESULTS_COUNT"',
+        '"RECENT_RESULTS_PAGE"',
+        '"RECENT_STATUS_TOTALS"',
+        '"RECENT_ACK_TOTALS"',
+        'const allBuckets = new WeakMap<DurableObjectState, Map<string, Sample>>()',
+        'recordD166SqlUsage(state, queryId, cursor, start);',
+        'const cursor = state.storage.sql.exec<T>(sql, ...bindings);',
+        'const rows = cursor.toArray();',
+        'recordD166SqlUsage(state, queryId, cursor, start);',
+        'ISOLATE_PROCESS_LOCAL_RESTART_RESETS__ESTIMATE_NOT_BILLING',
+        'const MAX_BUCKET_HOURS = 36',
+    ):
+        if marker not in metrics:
+            fail(f"D166 SQL cursor measurement contract missing: {marker}")
+    for marker in (
+        'd166MeasuredSqlRows<SqlRow>(state, "BATCH_SNAPSHOT"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS"',
+    ):
+        if marker not in operational:
+            fail(f"D166 expensive Inventory SQL lacks cursor instrumentation: {marker}")
+    if 'd166_sql_diagnostics: d166SqlUsageSnapshot(state)' not in system_metrics:
+        fail("D166 SQL diagnostics missing from existing on-demand metrics endpoint")
+
+    # D166: exactly one InventoryCore daily-folder authority across Worker
+    # and Apps Script. No independent Apps Script create/list fallback, no
+    # per-log SQL/Drive folder creation and no deletion of existing folders.
+    folder_core = (ROOT / "service/src/runtime-logs-core.ts").read_text(encoding="utf-8")
+    folder_worker = (ROOT / "service/src/runtime-logs.ts").read_text(encoding="utf-8")
+    folder_agent = (ROOT / "ops/apps-script/agent-log-gateway/Code.gs").read_text(encoding="utf-8")
+    service_index = (ROOT / "service/src/index.ts").read_text(encoding="utf-8")
+    for marker in (
+        "CREATE TABLE IF NOT EXISTS runtime_log_daily_folders",
+        '"/runtime-logs/day-folder/lease"',
+        '"/runtime-logs/day-folder/commit"',
+        '"/runtime-logs/day-folder/release"',
+        "lease_until_ms <= ?",
+    ):
+        if marker not in folder_core:
+            fail(f"D166 shared daily-log authority missing: {marker}")
+    for marker in (
+        'runtime-logs/day-folder?parent_id=',
+        'LOG_DAY_PROVISIONING_IN_PROGRESS',
+        'LOG_DAY_COMMIT_VERIFY_FAILED',
+        'resolveRuntimeLogDayForAgent(',
+    ):
+        if marker not in folder_worker:
+            fail(f"D166 Worker canonical folder adoption missing: {marker}")
+    for marker in (
+        "function resolveDailyLogFolder_(rootFolder, when, idToken)",
+        "/api/agent/log-day-folder",
+        "LOG_DAY_CANONICAL_AUTHORITY_MISMATCH",
+    ):
+        if marker not in folder_agent:
+            fail(f"D166 Apps Script canonical folder adoption missing: {marker}")
+    if "rootFolder.createFolder(dateKey)" in folder_agent or "createAndConvergeDailyFolder_" in folder_agent:
+        fail("D166 Apps Script independent Drive folder creation must be retired")
+    if 'request.method === "GET" && url.pathname === "/api/agent/log-day-folder"' not in service_index:
+        fail("D166 authenticated canonical log folder Worker endpoint missing")
+
     if "pickerCanReceiveRealtimeEvent" not in read_model or "pickerRealtimeSnapshot" not in read_model:
         fail("broadcast is not using Picker-authorized projection")
     if "status = 'RESOLVED'" not in notifications or "result_event_id" not in notifications:
@@ -125,16 +193,17 @@ def require_source_markers() -> None:
         if marker not in sla_auto:
             fail(f"D162 reporter counter SLA metadata missing: {marker}")
 
-    # D165 source of truth supports BOTH resolved result directions, applies
-    # the first-report Skip correction timer server-side, and uses optimistic
-    # versioned writes. Android/Web must not use the retired empty POST body.
+    # D166 supersedes the D165 first-report correction timer: both resolved
+    # states share the published-result deadline with optimistic version fences.
+    # The FIRST_REPORT/PER_PICKER SLA auto-skip clock remains separate.
     for marker in (
         '["PENDING", "SKIP_ALLOWED", "HAS_STOCK"].includes(target)',
         'from === "HAS_STOCK" && batch.resolution === "HAS_STOCK"',
         'from === "SKIP_ALLOWED" && batch.resolution === "SKIP_ALLOWED"',
-        'SKIP_CORRECTION_EXPIRED',
-        'SKIP_CORRECTION_DISABLED',
-        'correctionDeadlineFromFirstReport(state, batch.first_report_at)',
+        'RESULT_CORRECTION_EXPIRED',
+        'RESULT_CORRECTION_DISABLED',
+        'const deadline = batch.correction_deadline_at;',
+        'batch.correction_deadline_at || correctionDeadlineFromResult(state, at)',
         'Number(batch.version || 0) !== expectedVersion',
         'recentCounter',
         '"BATCH_CORRECTED"',
@@ -143,6 +212,32 @@ def require_source_markers() -> None:
     ):
         if marker not in business:
             fail(f"D165 cross-direction correction invariant missing: {marker}")
+    if 'correctionDeadlineFromFirstReport' in business:
+        fail("D166 correction must not use the first-report SLA timestamp")
+    for marker in ('correctionEnabled &&', 'correction_deadline_at: correctionDeadline', 'readSlaConfig(state)?.skip_to_stock_enabled'):
+        if marker not in operational:
+            fail(f"D166 one SLA read per result page and shared deadline missing: {marker}")
+
+    # D166 delta parity: currentBatchSnapshot formerly returned a resolved
+    # row before adding correction_allowed. A passing initial list test did
+    # not catch the missing realtime privilege. Assert the resolved branch
+    # itself includes eligibility BEFORE its return (not only PENDING rows).
+    snap_start = operational.find("export function currentBatchSnapshot(")
+    snap_end = operational.find("function backfillResultEventSnapshots(", snap_start)
+    snap = operational[snap_start:snap_end]
+    resolved = snap.split('if (resolvedStatus !== "PENDING") {', 1)
+    if len(resolved) != 2:
+        fail("D166 snapshot lacks explicit resolved-state branch")
+    resolved_body = resolved[1].split("const sla = slaState(", 1)[0]
+    for token in (
+        "correction_allowed: correctionAllowed",
+        'resolvedStatus === "HAS_STOCK"',
+        'resolvedStatus === "SKIP_ALLOWED"',
+        "correctionExpiryMs > Date.now()",
+        "config?.skip_to_stock_enabled",
+    ):
+        if token not in resolved_body:
+            fail(f"D166 realtime result correction eligibility omitted: {token}")
     android_api = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt").read_text(encoding="utf-8")
     android_reporter = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt").read_text(encoding="utf-8")
     web = (ROOT / "web/src/operational-app.ts").read_text(encoding="utf-8")
@@ -159,6 +254,10 @@ def require_source_markers() -> None:
             fail(f"D165 Picker FCM correction metadata/target missing: {marker}")
     if 'WHERE a.result_event_id = ? AND a.target_user_id = ?' not in operational:
         fail("D165 Picker realtime authorization must remain exact-event targeted")
+    if 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue", "reporter_recent"]' not in business_api:
+        fail("D166 correction setting toggles must invalidate result eligibility over existing realtime")
+    if 'counted from first published result' not in operational:
+        fail("D166 service config validation still advertises obsolete first-report correction clock")
 
     # D165 PER_PICKER keeps the batch pending after timeout, so the business
     # resolver may compute queue_delta from remaining waiting tickets instead of

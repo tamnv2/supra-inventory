@@ -1,5 +1,5 @@
+import { d166MeasuredSqlRows } from "./d166-sql-usage";
 import {
-  correctionDeadlineFromFirstReport,
   initializeSlaAutomationSchema,
   readOperationalSlaConfig,
   scheduleNextOperationalAlarm,
@@ -209,7 +209,7 @@ function parseJsonArray(value: unknown): string[] {
 export function currentBatchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
   if (!batchId) return null;
   const row = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "BATCH_SNAPSHOT",
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
               b.resolved_at, b.updated_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
               b.auto_skip_deadline_at, b.version, b.previous_batch_id,
@@ -249,7 +249,7 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
         WHERE b.batch_id = ?
         LIMIT 1`,
       batchId,
-    ).toArray(),
+    ),
   );
   if (!row) return null;
 
@@ -263,10 +263,21 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
       ? Math.max(0, Math.round((firstReportMs - previousResolvedMs) / 60_000))
       : null;
 
-  if (String(row.status || "") !== "PENDING") {
+  const resolvedStatus = String(row.status || "");
+  if (resolvedStatus !== "PENDING") {
+    // Result snapshots must carry the SAME server-authoritative edit eligibility
+    // as the initial result list. This path feeds both Android and Web deltas.
+    const correctionExpiryMs = Date.parse(String(row.correction_deadline_at || ""));
+    const correctionAllowed = Boolean(
+      config?.skip_to_stock_enabled &&
+      (resolvedStatus === "HAS_STOCK" || resolvedStatus === "SKIP_ALLOWED") &&
+      Number.isFinite(correctionExpiryMs) &&
+      correctionExpiryMs > Date.now()
+    );
     return {
       ...row,
-      affected_picker_count: String(row.status || "") === "CLOSED"
+      correction_allowed: correctionAllowed,
+      affected_picker_count: resolvedStatus === "CLOSED"
         ? Number(row.withdrawn_ticket_count || 0)
         : Number(row.resolved_picker_count || 0),
       recurrence_minutes: recurrenceMinutes,
@@ -277,6 +288,7 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
   const deadlines = slaDeadlines(firstReportAt, config);
   return {
     ...row,
+    correction_allowed: false,
     open_ticket_count: Number(row.waiting_picker_count || 0),
     affected_picker_count: Number(row.waiting_picker_count || 0),
     sla_state: sla.state,
@@ -775,16 +787,22 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     "COALESCE(b.resolved_at, b.updated_at) < ?",
   ];
   const recentArgs: SqlStorageValue[] = [from, to];
-  if (status) {
-    recentWhere.push("b.status = ?");
-    recentArgs.push(status);
-  }
+  // D166: one already-required counter query supplies all three outcome-tab
+  // badges, even while inactive. No extra DO invocation or independent poll.
   const recentTotalRow = first(
     state.storage.sql.exec<SqlRow>(
-      `SELECT COUNT(*) AS total FROM report_batches b WHERE ${recentWhere.join(" AND ")}`,
+      `SELECT COUNT(*) AS total,
+              SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END) AS has_stock_total,
+              SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END) AS skip_allowed_total,
+              SUM(CASE WHEN b.status = 'CLOSED' THEN 1 ELSE 0 END) AS withdrawn_total
+         FROM report_batches b WHERE ${recentWhere.join(" AND ")}`,
       ...recentArgs,
     ).toArray(),
   ) || {};
+  const filteredRecentTotal = status === "HAS_STOCK" ? Number(recentTotalRow.has_stock_total || 0)
+    : status === "SKIP_ALLOWED" ? Number(recentTotalRow.skip_allowed_total || 0)
+    : status === "CLOSED" ? Number(recentTotalRow.withdrawn_total || 0)
+    : Number(recentTotalRow.total || 0);
 
   const overdueTotalRow = first(
     state.storage.sql.exec<SqlRow>(
@@ -800,7 +818,10 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
   return json({
     queue_total: Number(queueTotalRow.total || 0),
     overdue_total: Number(overdueTotalRow.total || 0),
-    recent_total: Number(recentTotalRow.total || 0),
+    recent_total: filteredRecentTotal,
+    has_stock_total: Number(recentTotalRow.has_stock_total || 0),
+    skip_allowed_total: Number(recentTotalRow.skip_allowed_total || 0),
+    withdrawn_total: Number(recentTotalRow.withdrawn_total || 0),
     auto_skip_enabled: Boolean(config?.auto_skip_enabled),
     auto_skip_mode: config?.auto_skip_mode || null,
     filter_status: status,
@@ -954,13 +975,13 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const clause = where.join(" AND ");
 
   const totalRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT",
       `SELECT COUNT(*) AS total FROM report_batches b WHERE ${clause}`,
       ...args,
-    ).toArray(),
+    ),
   ) || {};
 
-  const rows = state.storage.sql.exec<SqlRow>(
+  const rows = d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE",
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
@@ -1008,21 +1029,23 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     ...args,
     limit,
     offset,
-  ).toArray();
+  );
 
   const serverNowMs = Date.now();
   const serverNow = new Date(serverNowMs).toISOString();
+  // Read SLA configuration ONCE per list request, not once per result row.
+  // The deadline is persisted when the outcome is published and never
+  // recomputed from the first out-of-stock report.
+  const correctionEnabled = readSlaConfig(state)?.skip_to_stock_enabled === true;
   const projectedRows = rows.map((row) => {
-    const correctionDeadline = String(row.status || "") === "SKIP_ALLOWED"
-      ? correctionDeadlineFromFirstReport(state, String(row.first_report_at || ""))
-      : null;
+    const correctionDeadline = String(row.correction_deadline_at || "").trim() || null;
     const correctionDeadlineMs = correctionDeadline ? Date.parse(correctionDeadline) : NaN;
     return {
       ...row,
       correction_deadline_at: correctionDeadline,
       correction_allowed: Boolean(
-        String(row.status || "") === "SKIP_ALLOWED" &&
-        correctionDeadline &&
+        correctionEnabled &&
+        ["HAS_STOCK", "SKIP_ALLOWED"].includes(String(row.status || "")) &&
         Number.isFinite(correctionDeadlineMs) &&
         correctionDeadlineMs > serverNowMs
       ),
@@ -1043,7 +1066,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   }
   const summaryClause = summaryWhere.join(" AND ");
   const totalsRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS",
       `SELECT
          COALESCE(SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
          COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
@@ -1052,10 +1075,10 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
        FROM report_batches b
       WHERE ${summaryClause}`,
       ...summaryArgs,
-    ).toArray(),
+    ),
   ) || {};
   const ackTotals = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS",
       `SELECT
          COALESCE(SUM(COALESCE(s.ack_target_count,
            (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
@@ -1067,7 +1090,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE ${summaryClause}`,
       ...summaryArgs,
-    ).toArray(),
+    ),
   ) || {};
 
   return json({
@@ -1403,7 +1426,7 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
         auto_skip_enabled: "boolean",
         auto_skip_mode: "FIRST_REPORT|PER_PICKER",
         skip_to_stock_enabled: "boolean; default true",
-        skip_to_stock_minutes: "1..10080; counted from first report",
+        skip_to_stock_minutes: "1..10080; counted from first published result",
       },
     }, 400);
   }

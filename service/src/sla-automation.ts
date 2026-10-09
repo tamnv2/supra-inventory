@@ -117,13 +117,13 @@ export function readOperationalSlaConfig(state: DurableObjectState): Operational
   return row ? parseConfig(row.value_json, row.updated_at, row.updated_by) : null;
 }
 
-export function correctionDeadlineFromFirstReport(
+export function correctionDeadlineFromResult(
   state: DurableObjectState,
-  firstReportAt: string,
+  resultPublishedAt: string,
 ): string | null {
   const config = readOperationalSlaConfig(state);
   if (!config?.skip_to_stock_enabled) return null;
-  return deadlineIso(firstReportAt, config.skip_to_stock_minutes);
+  return deadlineIso(resultPublishedAt, config.skip_to_stock_minutes);
 }
 
 export function validateOperationalSlaConfig(input: {
@@ -521,7 +521,7 @@ function processBatchAutoSkip(
 
     state.storage.transactionSync(() => {
       const current = first(state.storage.sql.exec<SqlRow>(
-        "SELECT status, auto_skip_deadline_at FROM report_batches WHERE batch_id = ? LIMIT 1",
+        "SELECT status, auto_skip_deadline_at, correction_deadline_at FROM report_batches WHERE batch_id = ? LIMIT 1",
         batchId,
       ).toArray());
       if (!current || String(current.status) !== "PENDING" || !current.auto_skip_deadline_at || String(current.auto_skip_deadline_at) > now) return;
@@ -537,11 +537,9 @@ function processBatchAutoSkip(
       ).toArray();
       if (!targetRows.length) return;
 
-      const firstReportAt = String((first(state.storage.sql.exec<SqlRow>(
-        "SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1",
-        batchId,
-      ).toArray()) || {}).first_report_at || "");
-      const correctionDeadline = config.skip_to_stock_enabled ? deadlineIso(firstReportAt, config.skip_to_stock_minutes) : null;
+      // Correction is a separate outcome-publication window, not an SLA since first report.
+      const correctionDeadline = String(current.correction_deadline_at || "") ||
+        (config.skip_to_stock_enabled ? deadlineIso(now, config.skip_to_stock_minutes) : null);
       state.storage.sql.exec(
         `UPDATE report_tickets
             SET status = 'RESOLVED',

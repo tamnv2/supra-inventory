@@ -518,7 +518,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
           `INSERT INTO users (
              user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled,
              role, status, created_at, updated_at, password_salt, password_hash, password_changed_at
-           ) VALUES (?, NULL, ?, ?, ?, 0, 'PICKER', 'ACTIVE', ?, ?, ?, ?, ?)`,
+           ) VALUES (?, NULL, ?, ?, ?, 1, 'PICKER', 'ACTIVE', ?, ?, ?, ?, ?)`,
           `picker:${code}:${crypto.randomUUID()}`, code, incomingUser.display_name, incomingUser.contractor_name || null,
           at, at, body.picker_password_salt, body.picker_password_hash, at,
         );
@@ -539,7 +539,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
     applied_at: at,
     pre_apply: plan,
     absence_policy: "NO_AUTOMATIC_DISABLE",
-    reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156",
+    reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED_D166",
     source_fingerprint: String(body.source_fingerprint || "").slice(0, 80) || null,
     source_row_count: Math.max(0, Math.trunc(Number(body.source_row_count || normalized.employees.length))),
     decision: String(body.decision || "MANUAL_CONFIRM").slice(0, 40),
@@ -552,7 +552,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
       applied_at: at,
       request_id: body.request_id,
       absence_policy: "NO_AUTOMATIC_DISABLE",
-      reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156",
+      reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED_D166",
       source_fingerprint: String(body.source_fingerprint || "").slice(0, 80) || null,
       source_row_count: Math.max(0, Math.trunc(Number(body.source_row_count || normalized.employees.length))),
       decision: String(body.decision || "MANUAL_CONFIRM").slice(0, 40),

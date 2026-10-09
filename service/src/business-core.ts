@@ -1,4 +1,4 @@
-import { correctionDeadlineFromFirstReport, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
+import { correctionDeadlineFromResult, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -601,10 +601,10 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           // Legacy/FIRST_REPORT compatibility only. D165 PER_PICKER never closes
           // a batch merely because the last still-waiting Picker withdrew.
           recentAfterStatus = "SKIP_ALLOWED";
-          const batchForCorrection = firstRow(
-            state.storage.sql.exec<SqlRow>("SELECT first_report_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
+          const priorCorrection = firstRow(
+            state.storage.sql.exec<SqlRow>("SELECT correction_deadline_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
           );
-          const correctionDeadline = correctionDeadlineFromFirstReport(state, String(batchForCorrection?.first_report_at || at));
+          const correctionDeadline = String(priorCorrection?.correction_deadline_at || "") || correctionDeadlineFromResult(state, at);
           state.storage.sql.exec(
             `UPDATE report_tickets
                 SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
@@ -722,7 +722,9 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
     if (batch.status !== "PENDING") return { status: 409, payload: { error: "BATCH_NOT_PENDING", status: batch.status } } satisfies BusinessResult;
 
     const at = nowIso();
-    const correctionDeadline = resolution === "SKIP_ALLOWED" ? correctionDeadlineFromFirstReport(state, batch.first_report_at) : null;
+    // First result starts the shared correction window. Re-resolving a corrected
+    // PENDING batch must not silently extend an already-issued deadline.
+    const correctionDeadline = batch.correction_deadline_at || correctionDeadlineFromResult(state, at);
     const ticketCounts = firstRow(
       state.storage.sql.exec<SqlRow>(
         `SELECT
@@ -884,14 +886,14 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
 
     const at = nowIso();
     const config = readOperationalSlaConfig(state);
-    if (from === "SKIP_ALLOWED") {
-      // The correction window starts with the FIRST report, not with the Skip click.
-      // Enforce this on the authoritative server for both Skip -> Pending/Has Stock.
-      const deadline = correctionDeadlineFromFirstReport(state, batch.first_report_at);
-      if (!deadline) return { status: 409, payload: { error: "SKIP_CORRECTION_DISABLED", message: "Web chưa bật cho phép sửa kết quả Skip." } } satisfies BusinessResult;
-      if (!Number.isFinite(Date.parse(deadline)) || Date.parse(deadline) <= Date.parse(at)) {
-        return { status: 409, payload: { error: "SKIP_CORRECTION_EXPIRED", message: "Đã hết thời gian cho phép sửa Skip tính từ lần báo SKU đầu tiên.", correction_deadline_at: deadline } } satisfies BusinessResult;
-      }
+    // Same server-enforced correction policy for HAS_STOCK and SKIP_ALLOWED.
+    // Existing outcomes without an issued deadline are not retroactively opened.
+    const deadline = batch.correction_deadline_at;
+    if (!config?.skip_to_stock_enabled || !deadline) {
+      return { status: 409, payload: { error: "RESULT_CORRECTION_DISABLED", message: "Không có cửa sổ sửa kết quả hợp lệ hoặc tính năng đã tắt." } } satisfies BusinessResult;
+    }
+    if (!Number.isFinite(Date.parse(deadline)) || Date.parse(deadline) <= Date.parse(at)) {
+      return { status: 409, payload: { error: "RESULT_CORRECTION_EXPIRED", message: "Đã hết thời gian cho phép sửa kết quả.", correction_deadline_at: deadline } } satisfies BusinessResult;
     }
 
     const autoSkipAt = config?.auto_skip_enabled
@@ -907,7 +909,6 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
                 resolution_source = 'REPORTER_CORRECTION',
                 resolved_at = NULL,
                 resolved_by_user_id = NULL,
-                correction_deadline_at = NULL,
                 auto_skip_deadline_at = ?,
                 version = version + 1,
                 updated_at = ?
@@ -934,7 +935,6 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
                 resolution_source = 'REPORTER_CORRECTION',
                 resolved_at = ?,
                 resolved_by_user_id = ?,
-                correction_deadline_at = NULL,
                 auto_skip_deadline_at = NULL,
                 updated_at = ?
           WHERE batch_id = ? AND version = ?`,
@@ -997,6 +997,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       from_status: from,
       resolution: target,
       corrected_at: at,
+      correction_deadline_at: deadline,
       event_id: eventId,
       queue_delta: target === "PENDING" ? 1 : 0,
       overdue_delta: 0,

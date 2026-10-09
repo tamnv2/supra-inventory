@@ -721,6 +721,11 @@ class InventoryApi(
         val payload = parsePayload(response.second)
         if (response.first !in 200..299) {
             val code = payload.optString("error", "HTTP_${response.first}")
+            // D166: no new network/storage write and never record response body.
+            // Classify known Picker-result failures in the existing RAM audit.
+            if (path.startsWith("/api/picker/results")) {
+                try { D166UsageAudit.recordPickerResultError(response.first, code) } catch (_: Exception) { }
+            }
             val message = payload.optString("message").ifBlank { code }
             if (response.first == 401) updateSession(null)
             throw ApiException(response.first, code, message)

@@ -61,10 +61,28 @@ def main() -> None:
                    'data-correct-target="PENDING"', 'Báo hàng ${result.sku} chuyển trạng thái'):
         require(app, marker, "D165 Web Skip/Picker correction presentation")
     require(api, '"PENDING" | "SKIP_ALLOWED" | "HAS_STOCK"', "D165 versioned correction API")
-    require(business_core, 'SKIP_CORRECTION_EXPIRED', "D165 server-side Skip correction window")
+    require(business_core, 'RESULT_CORRECTION_EXPIRED', "D166 server-side shared result correction window")
     require(business_api, 'correction_from_status: fromStatus', "D165 FCM correction origin metadata")
 
     # D148: pending badge and client-side shift reporting remain quota-neutral.
+    # D166: exactly five operational status tabs on one existing realtime
+    # stream and one grouped counters call; no per-tab list polling.
+    for label in ("Đang xử lý", "Quá hạn", "Đã có hàng", "Cho phép Skip", "Picker đã thu hồi"):
+        require(app, label, "D166 five-tab workspace label " + label)
+    for marker in (
+        'data-workspace-result-filter="${status}"',
+        'data-workspace-count="${status}"',
+        'nextTabs[before.endpoint.status] -= 1;',
+        'nextTabs[after.endpoint.status] += 1;',
+        'resultTabBadgeCounts = {',
+        'loadReporterTabCounters(true)',
+    ):
+        require(app, marker, "D166 five-tab existing delta/count contract")
+    for marker in ("has_stock_total:", "skip_allowed_total:", "withdrawn_total:"):
+        require(operational_core, marker, "D166 grouped status count in existing SQL")
+    for marker in ("has_stock_total?: number", "skip_allowed_total?: number", "withdrawn_total?: number"):
+        require(api, marker, "D166 typed grouped status counts")
+
     require(app, "function syncOperationsNavBadge()", "D148 operations badge sync")
     require(app, 'document.createElement("b")', "D148 zero-to-positive badge recreation")
     require(app, 'data-operations-nav-count', "D148 operations badge marker")
@@ -218,7 +236,7 @@ def main() -> None:
     require(sla_auto, 'auto_skip_mode: AutoSkipMode', "D070 service config model")
     require(unified_css, ".sla-threshold-grid", "D070 three-threshold layout")
     require(unified_css, ".sla-auto-policy", "D070 automatic-Skip policy layout")
-    # D113: reference-inspired login, queue badge, independently switchable SLA controls and first-report correction window.
+    # D113 settings are preserved; D166 independently anchors correction to result publication, not first report.
     require(app, 'Phát triển hệ thống · tamnv2 | Pick Pack 1291', "D113 developer footer")
     require(app, 'name="rememberLogin"', "D113 remember-login control")
     require(app, 'id="toggle-login-password"', "D113 password visibility control")
@@ -232,7 +250,7 @@ def main() -> None:
     require(app, 'if (!requestedMode)', "D113 mandatory auto-skip mode validation")
     require(api, 'skip_to_stock_minutes: number', "D113 Web correction-window model")
     require(sla_auto, 'skip_to_stock_enabled: boolean', "D113 service correction-window switch")
-    require(sla_auto, 'correctionDeadlineFromFirstReport', "D113 first-report correction deadline authority")
+    require(sla_auto, 'correctionDeadlineFromResult', "D166 published-result correction deadline authority")
     require(sla_auto, 'config.warning_enabled', "D113 warning switch enforcement")
     require(sla_auto, 'config.escalation_enabled', "D113 escalation switch enforcement")
     require(app, 'const nextSla = await getAdminSla();', "D113 primary SLA config load independent of secondary insights")
@@ -404,7 +422,7 @@ def main() -> None:
     require(business_core, '"dashboard_range_v1:" + userId', "D109 server per-user Dashboard preference key")
     require(app, "Cấu hình chung toàn hệ thống", "D109 global SLA user-facing authority")
     require(business_api, 'event: "sla_settings_updated"', "D109 SLA realtime event")
-    require(business_api, 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue"]', "D165 SLA realtime scope extends D109 with overdue")
+    require(business_api, 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue", "reporter_recent"]', "D166 SLA realtime scope also invalidates resolved correction eligibility")
     require(app, 'scopes.has("sla_settings")', "D109 SLA active-view realtime reconcile")
     # D138: a dirty SLA form owns its in-progress control state. Realtime reconcile
     # may refresh server authority, but must not fall through to the generic section
@@ -491,7 +509,7 @@ def main() -> None:
         "recentBadgeInitialized",
         "syncOperationalTabBadges",
         'data-workspace-count="operations"',
-        'data-workspace-count="results"',
+        'data-workspace-count="${status}"',
         "getReporterCounters",
         "recent_counter",
         "reporterQueueChanged",

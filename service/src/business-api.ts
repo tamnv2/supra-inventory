@@ -638,7 +638,10 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const response = await corePut(env, "/operational/sla", { ...safeBody, actor: actor(user) });
     return realtimeAfter(response, env, {
       event: "sla_settings_updated",
-      scopes: ["sla_settings", "reporter_queue", "reporter_overdue"],
+      // Existing authenticated realtime channel invalidates result correction
+      // eligibility when Admin toggles the shared setting; clients reconcile
+      // once on change rather than polling for active correction windows.
+      scopes: ["sla_settings", "reporter_queue", "reporter_overdue", "reporter_recent"],
       tags: REPORTER_TAGS,
     });
   }

@@ -754,6 +754,44 @@ def main() -> None:
     forbid(web, 'perPickerOverdueEnabled ? `<button type="button" class="workspace-tab', "D165 Web overdue tab never hidden")
     forbid(web, 'if (!perPickerOverdueEnabled && profile)', "D165 Web overdue route never redirects away")
 
+    # D166: distinguish HTTP 400/404/409/422 rather than combining thousands
+    # of response errors in OTHER_ERROR; never record raw error message/body.
+    d166_audit = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAudit.kt")
+    for marker in (
+        'status == 400 -> "HTTP_400"',
+        'status == 404 -> "HTTP_404"',
+        'status == 409 -> "HTTP_409"',
+        'status == 422 -> "HTTP_422"',
+        'http_dropped_samples',
+        'http_business_error_dropped_samples',
+        'internal fun recordPickerResultError(status: Int, code: String)',
+        'else -> "OTHER_BUSINESS_ERROR"',
+    ):
+        require(d166_audit, marker, "D166 bounded error classification")
+    require(inventory_api, 'D166UsageAudit.recordPickerResultError(response.first, code)', "D166 failed receipt error class")
+    forbid(d166_audit, 'put("message"', "D166 must not upload raw API message")
+    forbid(d166_audit, 'put("sku"', "D166 no SKU in telemetry")
+
+    # D166: signed APK manifest optional floor, owner-approved only.
+    # No forced device logout/ACK abort; current session can finish.
+    for marker in (
+        "UpdateGate.MANDATORY",
+        "minimumVersionCode = manifest.optInt(\"minimum_version_code\", 0)",
+        'getSharedPreferences("d166_update_floor", MODE_PRIVATE)',
+        "loginButton?.isEnabled = updateGate != UpdateGate.FAILED &&",
+        "updateGate != UpdateGate.MANDATORY",
+        'if (api.session != null) builder.setNegativeButton("Tiếp tục phiên hiện tại")',
+        "UPDATE_FOREGROUND_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L",
+        "if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.DEFERRED",
+        "verifyDownloadedApk(temp, info)",
+    ):
+        require(main_activity, marker, "D166 mandatory signed-APK gate")
+    service = read("service/src/index.ts")
+    require(service, "PDA_MIN_VERSION_CODE_BETA?: string;", "D166 beta owner-gated minimum version")
+    require(service, 'minimum_version_code: Number(release.tag.replace("beta-vc", "")) >= 104', "D166 minimum only after signed approved vc104 channel")
+    require(service, "Math.min(", "D166 minimum version clamped to published signed channel")
+    require(service, 'PDA_MIN_VERSION_CODE_BETA || "104"', "D166 Owner-approved all-PDA vc104 default")
+
     print("ANDROID_OPERATIONAL_REGRESSION_PASS")
 
 
