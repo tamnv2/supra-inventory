@@ -53,3 +53,14 @@
 **Đang chờ Owner duyệt phương án tác động này trước khi chỉnh code.** Owner có thể chốt giới hạn `POC ghi log thủ công; Beta standby; không upload/cron/auto-click`. Sau khi duyệt: branch mới từ current main → PR → authority/continuity/Windows host+Agent build/security/regression PASS → merge → Agent prerelease Beta, thử standby và field review; KHÔNG promote primary hoặc Stable tự động.
 
 Chỉ một change ID **D166**, không mở D167 và không coi technical PASS là Owner PASS.
+
+
+## Owner implementation approval and actual candidate (09/10/2026)
+
+Owner explicitly approved **one standalone Windows executable** for a manually operated SKU browser and logging process, with reuse of the *existing Agent browser session* and **no coupling to other Agent duties**. This approval is limited to the **D166 recorder POC**. No automated daily SKU sync, WMS/API extraction, automatic file download, automatic service upload, provider permissions, production Agent redeploy or Stable access is approved.
+
+Implemented on separate PR #524 branch as standalone project \`sku-browser-recorder/\`, \`SUPRA.SKU.Recorder.exe\`. The product uses the running Agent-owned WebView2 Fixed runtime/profile and compatible environment options to open a separate visible WebView2 control without touching Agent source. Manual buttons navigate to the registered Supra WMS UI and Inventory **Beta** Web; local JSONL records bounded sanitized navigation, allowlisted UI clicks, download completion/interruption and Inventory file selection; one-click Desktop ZIP. It does **not** record raw file names, SKU, PickList, text inputs, cookies, credentials or HTTP bodies. Actual server import completion cannot be inferred from a UI click, so import remains **unverified**.
+
+**Residual risk:** existing Agent DevTools discovery can select the first WMS page by host. Sharing browser profile/process means strictly zero interference is **not proven**. Until a separately reviewed confirm target-affinity repair, run this executable only on a **standby laptop when Confirm Picklist is not operational**, not on active PRIMARY. Do not assert that same-user profile sharing guarantees the website reuses a logged-in identity; website login may be required. No direct Agent source edits were made.
+
+GitHub Actions build/guard and uploaded Windows x64 single-file artifact provide **technical CI evidence only**. Physical Windows browser/login/manual download/Inventory import and HA/ACK regression remain **Owner field acceptance pending**. Full Windows procedure and constraints: \`sku-browser-recorder/README.md\`. Stable remains OWNER-GATED; D126 remains current production SKU master update authority.
