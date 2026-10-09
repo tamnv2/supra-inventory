@@ -8,6 +8,12 @@ namespace SupraSkuRecorder
         private static void Main(string[] args)
         {
             if (args != null && Array.Exists(args,
+                arg => string.Equals(arg, "--self-test-sku", StringComparison.Ordinal)))
+            {
+                Environment.ExitCode = SkuWorkbookSelfTest.Run();
+                return;
+            }
+            if (args != null && Array.Exists(args,
                 arg => string.Equals(arg, "--self-test-export", StringComparison.Ordinal)))
             {
                 Environment.ExitCode = RecorderSelfTest.Run();
