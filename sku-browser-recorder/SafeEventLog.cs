@@ -73,7 +73,16 @@ namespace SupraSkuRecorder
                         FileAccess.ReadWrite, FileShare.None))
                     using (var archive = new ZipArchive(stream, ZipArchiveMode.Create))
                     {
-                        archive.CreateEntryFromFile(FilePath, "events.jsonl");
+                        // The JSONL writer still holds FileAccess.Write. On Windows
+                        // ZipFile.CreateEntryFromFile opens its source with FileShare.Read,
+                        // which rejects the already-open writer (sharing violation).
+                        // Explicit FileShare.ReadWrite permits a consistent, lock-held
+                        // read snapshot without stopping/reopening the live logger.
+                        var events = archive.CreateEntry("events.jsonl");
+                        using (var source = new FileStream(FilePath, FileMode.Open,
+                            FileAccess.Read, FileShare.ReadWrite))
+                        using (var target = events.Open())
+                            source.CopyTo(target);
                         var entry = archive.CreateEntry("manifest.json");
                         using (var output = new StreamWriter(entry.Open(), new UTF8Encoding(false)))
                             output.Write(JsonSerializer.Serialize(new
