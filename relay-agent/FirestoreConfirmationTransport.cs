@@ -49,7 +49,11 @@ namespace SupraInventoryRelayAgent
         internal const int PrimaryActivePollIntervalMs = 3000;
         internal const int PrimaryInactivePollIntervalMs = 15000;
         internal const int PrimaryHotPollIntervalMs = 1000;
-        internal const int HealthyListenerActiveWatchdogMs = 10000;
+        // D166: +2s ONLY on the healthy-listener, active-PDA REST safety
+        // watchdog. Listener payload, hot queue, degraded transport, WMS
+        // execution and ACK are unchanged. The extra scheduling wait is
+        // bounded to 2s (field E2E distribution still requires validation).
+        internal const int HealthyListenerActiveWatchdogMs = 12000;
         internal const int HealthyListenerInactiveWatchdogMs = 30000;
         internal const int PrimaryPollIntervalMs = PrimaryActivePollIntervalMs;
         internal const int StandbyPollIntervalMs = 0;
