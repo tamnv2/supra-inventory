@@ -206,7 +206,7 @@ namespace SupraInventoryRelayAgent
                                 eventName = line.Substring(6).Trim();
                             else if (line.StartsWith("data:", StringComparison.Ordinal))
                             {
-                                if (eventData.Length > 0) eventData.Append("\\n");
+                                if (eventData.Length > 0) eventData.Append("\n");
                                 eventData.Append(line.Substring(5).TrimStart());
                             }
                         }
