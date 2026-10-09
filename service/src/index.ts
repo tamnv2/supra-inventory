@@ -1329,12 +1329,15 @@ export default {
             channel: "beta",
             tag: release.tag,
             version_code: Number(release.tag.replace("beta-vc", "")),
-            // The floor is inert until an Owner-approved Beta variable is set.
-            // Clamp to a published signed release so a typo cannot brick login.
-            minimum_version_code: Math.min(
-              Number(release.tag.replace("beta-vc", "")),
-              Math.max(0, Math.trunc(Number(env.PDA_MIN_VERSION_CODE_BETA || "0") || 0)),
-            ),
+            // D166 Owner approved a mandatory ALL-PDA Beta vc104 rollout.
+            // Arm the floor only AFTER vc104 is signed and on the public release channel.
+            // The optional Beta environment override can lower the floor during recovery.
+            minimum_version_code: Number(release.tag.replace("beta-vc", "")) >= 104
+              ? Math.min(
+                  Number(release.tag.replace("beta-vc", "")),
+                  Math.max(0, Math.trunc(Number(env.PDA_MIN_VERSION_CODE_BETA || "104") || 0)),
+                )
+              : 0,
             name: release.name,
             published_at: release.published_at,
             source: release.source,
