@@ -2820,3 +2820,12 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
 4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
 5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
+
+
+### D166 new Picker default reporting ON (candidate)
+
+- In a clean HR apply, a truly new Picker gets reporting enabled (1) as part of its first user INSERT.
+- Subsequent identical HR apply makes no new account or extra reporting revision write; explicit admin disable remains disabled through HR resync, contractor update, name change, login, and metadata updates.
+- One-time historical D156 migration stays preserved; account default at schema level remains fail-closed (0) for unspecified/unapproved code paths.
+- Android/Web continue reading existing authoritative capability with zero new client polling, zero new Firestore writes, and zero new subscriptions. Roles other than PICKER are unchanged.
+- Empty/duplicate-conflicting HR preview/apply and credential rollback should not grant capability. Verify HR-creation source path is the only actual Picker provisioning route before field rollout.
