@@ -6285,6 +6285,17 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "new_picker_default_on_candidate": {
+      "scope": "HR_CREATE_PICKER_ONLY__NO_EXISTING_PICKER_MUTATION",
+      "state": "BETA_BRANCH_PR_CI_PENDING__NOT_DEPLOYED",
+      "branch": "d166-new-picker-reporting-default-on",
+      "creator": "service/src/user-management-core.ts:hrApply",
+      "policy": "PRESERVE_EXISTING__NEW_PICKER_ENABLED_D166",
+      "historical_migration": "D156_EXISTING_PICKERS_DEFAULT_OFF_MIGRATION_UNCHANGED",
+      "quota": "NO_NEW_PROVIDER_POLLING_OR_WRITES",
+      "owner_field_pass": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
