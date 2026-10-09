@@ -788,7 +788,9 @@ def main() -> None:
         require(main_activity, marker, "D166 mandatory signed-APK gate")
     service = read("service/src/index.ts")
     require(service, "PDA_MIN_VERSION_CODE_BETA?: string;", "D166 beta owner-gated minimum version")
-    require(service, "minimum_version_code: Math.min(", "D166 no forced update above released APK")
+    require(service, 'minimum_version_code: Number(release.tag.replace("beta-vc", "")) >= 104', "D166 minimum only after signed approved vc104 channel")
+    require(service, "Math.min(", "D166 minimum version clamped to published signed channel")
+    require(service, 'PDA_MIN_VERSION_CODE_BETA || "104"', "D166 Owner-approved all-PDA vc104 default")
 
     print("ANDROID_OPERATIONAL_REGRESSION_PASS")
 
