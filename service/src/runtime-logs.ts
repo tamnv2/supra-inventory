@@ -57,75 +57,124 @@ export async function resolveRuntimeLogDailyFolder(
   token: string,
   archiveDate = new Date(),
 ): Promise<{ id: string; dateKey: string }> {
-  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID))
+    throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
   const dateKey = vietnamDateKey(archiveDate);
-  const cacheKey = `${env.LOGS_FOLDER_ID}:${dateKey}`;
+  const rootId = env.LOGS_FOLDER_ID;
+  const cacheKey = `${rootId}:${dateKey}`;
   const cached = dailyFolderCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now() && FILE_ID_RE.test(cached.id)) {
+  if (cached && cached.expiresAt > Date.now() && FILE_ID_RE.test(cached.id))
     return { id: cached.id, dateKey };
+
+  // D166: InventoryCore is the ONLY cross-provider folder authority.
+  // No independent Worker/AppsScript create and no new periodic polling.
+  const parentUrl = `https://inventory-core.internal/runtime-logs/day-folder?parent_id=${encodeURIComponent(rootId)}&day_vn=${encodeURIComponent(dateKey)}`;
+  const authority = core(env);
+  const existing = await authority.fetch(parentUrl);
+  if (!existing.ok) throw new Error("LOG_DAY_AUTHORITY_UNAVAILABLE");
+  const existingValue = await existing.json() as { folder_id?: string };
+  if (FILE_ID_RE.test(String(existingValue.folder_id || ""))) {
+    const id = String(existingValue.folder_id);
+    dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
+    return { id, dateKey };
   }
 
-  const query = [
-    `'${driveQueryEscape(env.LOGS_FOLDER_ID)}' in parents`,
-    "trashed = false",
-    "mimeType = 'application/vnd.google-apps.folder'",
-    `name = '${driveQueryEscape(dateKey)}'`,
-
-  ].join(" and ");
-  const params = new URLSearchParams({
-    q: query,
-    orderBy: "createdTime asc",
-    pageSize: "2",
-    spaces: "drive",
-    fields: "files(id,name,createdTime,appProperties)",
+  const claim = await authority.fetch("https://inventory-core.internal/runtime-logs/day-folder/lease", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ parent_id: rootId, day_vn: dateKey }),
   });
-  const listed = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
-    headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-  });
-  if (!listed.ok) throw new Error(`LOGS_DAILY_FOLDER_LIST_FAILED:${listed.status}`);
-  const payload = await listed.json() as { files?: Array<{ id?: string }> };
-  let id = String(payload.files?.[0]?.id || "");
+  if (!claim.ok) throw new Error("LOG_DAY_LEASE_UNAVAILABLE");
+  const lease = await claim.json() as { acquired?: boolean; nonce?: string; folder_id?: string };
+  if (FILE_ID_RE.test(String(lease.folder_id || ""))) {
+    const id = String(lease.folder_id);
+    dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
+    return { id, dateKey };
+  }
+  if (!lease.acquired || !lease.nonce) throw new Error("LOG_DAY_PROVISIONING_IN_PROGRESS");
 
-  if (!FILE_ID_RE.test(id)) {
-    const created = await fetch("https://www.googleapis.com/drive/v3/files?fields=id,name,createdTime,appProperties", {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        accept: "application/json",
-        "content-type": "application/json; charset=utf-8",
-      },
-      body: JSON.stringify({
-        name: dateKey,
-        parents: [env.LOGS_FOLDER_ID],
-        mimeType: "application/vnd.google-apps.folder",
-        appProperties: {
-          project: "supra-inventory",
-          kind: "runtime-log-day",
-          archive_date: dateKey,
-        },
-      }),
+  try {
+    const query = [
+      `'${driveQueryEscape(rootId)}' in parents`,
+      "trashed = false",
+      "mimeType = 'application/vnd.google-apps.folder'",
+      `name = '${driveQueryEscape(dateKey)}'`,
+    ].join(" and ");
+    const params = new URLSearchParams({
+      q: query,
+      orderBy: "createdTime asc",
+      pageSize: "2",
+      spaces: "drive",
+      fields: "files(id,name,createdTime,appProperties)",
     });
-    const createdPayload = await created.json() as { id?: string };
-    if (!created.ok || !FILE_ID_RE.test(String(createdPayload.id || ""))) {
-      throw new Error(`LOGS_DAILY_FOLDER_CREATE_FAILED:${created.status}`);
-    }
-    const createdId = String(createdPayload.id);
-    const converge = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+    const listed = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
       headers: { authorization: `Bearer ${token}`, accept: "application/json" },
     });
-    if (!converge.ok) throw new Error(`LOGS_DAILY_FOLDER_CONVERGE_FAILED:${converge.status}`);
-    const convergePayload = await converge.json() as { files?: Array<{ id?: string }> };
-    id = String(convergePayload.files?.[0]?.id || createdId);
-    if (FILE_ID_RE.test(id) && id !== createdId) {
-      await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(createdId)}`, {
-        method: "DELETE",
-        headers: { authorization: `Bearer ${token}` },
-      }).catch(() => undefined);
+    if (!listed.ok) throw new Error(`LOGS_DAILY_FOLDER_LIST_FAILED:${listed.status}`);
+    const payload = await listed.json() as { files?: Array<{ id?: string }> };
+    let id = String(payload.files?.[0]?.id || "");
+    if (!FILE_ID_RE.test(id)) {
+      const created = await fetch("https://www.googleapis.com/drive/v3/files?fields=id,name,createdTime,appProperties", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          accept: "application/json",
+          "content-type": "application/json; charset=utf-8",
+        },
+        body: JSON.stringify({
+          name: dateKey,
+          parents: [rootId],
+          mimeType: "application/vnd.google-apps.folder",
+          appProperties: {
+            project: "supra-inventory",
+            kind: "runtime-log-day",
+            archive_date: dateKey,
+          },
+        }),
+      });
+      const createdPayload = await created.json() as { id?: string };
+      if (!created.ok || !FILE_ID_RE.test(String(createdPayload.id || "")))
+        throw new Error(`LOGS_DAILY_FOLDER_CREATE_FAILED:${created.status}`);
+      const createdId = String(createdPayload.id);
+      // Existing historical folders are retained. Converge to the oldest
+      // visible one without deleting/moving files under a separate authority.
+      const converge = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+        headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+      });
+      if (!converge.ok) throw new Error(`LOGS_DAILY_FOLDER_CONVERGE_FAILED:${converge.status}`);
+      const convergePayload = await converge.json() as { files?: Array<{ id?: string }> };
+      id = String(convergePayload.files?.[0]?.id || createdId);
     }
-  }
+    if (!FILE_ID_RE.test(id)) throw new Error("LOG_DAY_FOLDER_ID_INVALID");
 
-  dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
-  return { id, dateKey };
+    const commit = await authority.fetch("https://inventory-core.internal/runtime-logs/day-folder/commit", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ parent_id: rootId, day_vn: dateKey, nonce: lease.nonce, folder_id: id }),
+    });
+    if (!commit.ok) throw new Error("LOG_DAY_COMMIT_FAILED");
+    const committed = await commit.json() as { committed?: boolean; folder_id?: string };
+    if (!committed.committed || String(committed.folder_id || "") !== id)
+      throw new Error("LOG_DAY_COMMIT_VERIFY_FAILED");
+    dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
+    return { id, dateKey };
+  } catch (error) {
+    await authority.fetch("https://inventory-core.internal/runtime-logs/day-folder/release", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ parent_id: rootId, day_vn: dateKey, nonce: lease.nonce }),
+    }).catch(() => undefined);
+    throw error;
+  }
+}
+
+/** Authenticated Agent/App Script path shares exactly the same Worker authority. */
+export async function resolveRuntimeLogDayForAgent(
+  env: RuntimeLogsEnv,
+): Promise<{ id: string; dateKey: string }> {
+  // The resolver's DO fast path avoids Drive calls once the date is canonical.
+  const token = await refreshGoogleAccessToken(env);
+  return resolveRuntimeLogDailyFolder(env, token, new Date());
 }
 
 async function sha256Hex(value: string): Promise<string> {
