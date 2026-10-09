@@ -6285,6 +6285,17 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "android_http_status_telemetry_candidate": {
+      "scope": "GROUPED_IN_MEMORY_HTTP_STATUS_DIAGNOSTICS_ONLY",
+      "branch": "d166-android-http-error-usage-audit",
+      "status": "BETA_SOURCE_CI_PENDING__NOT_DEPLOYED",
+      "api_behavior": "UNMODIFIED",
+      "new_provider_requests": 0,
+      "privacy": "ROUTE_FAMILY_METHOD_STATUS_BUCKET_ONLY",
+      "max_memory_keys": 180,
+      "owner_field_pass": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
