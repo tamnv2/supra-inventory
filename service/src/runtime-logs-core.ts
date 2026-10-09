@@ -69,6 +69,10 @@ export function initializeRuntimeLogSchema(state: DurableObjectState): void {
   state.storage.sql.exec(
     "INSERT OR IGNORE INTO launcher_log_folder(singleton) VALUES (1)",
   );
+  const folderColumns = state.storage.sql.exec<{ name: string }>("PRAGMA table_info(launcher_log_folder)").toArray();
+  if (!folderColumns.some(row => row.name === "last_error")) {
+    state.storage.sql.exec("ALTER TABLE launcher_log_folder ADD COLUMN last_error TEXT NOT NULL DEFAULT ''");
+  }
   const columns = state.storage.sql.exec<{ name: string }>("PRAGMA table_info(runtime_log_buffer)").toArray();
   if (!columns.some((row) => row.name === "bundle_id")) {
     state.storage.sql.exec("ALTER TABLE runtime_log_buffer ADD COLUMN bundle_id TEXT");
@@ -87,11 +91,13 @@ export async function handleRuntimeLogCoreRequest(
 
   if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-folder") {
     const row = state.storage.sql.exec<SqlRow>(
-      "SELECT folder_id, lease_until_ms FROM launcher_log_folder WHERE singleton = 1",
+      "SELECT folder_id, lease_until_ms, last_error, updated_at FROM launcher_log_folder WHERE singleton = 1",
     ).toArray()[0];
     return response({
       folder_id: String(row?.folder_id || ""),
       provisioning_in_progress: Number(row?.lease_until_ms || 0) > Date.now(),
+      last_error: String(row?.last_error || ""),
+      updated_at: String(row?.updated_at || ""),
     });
   }
   if (request.method === "POST" && url.pathname === "/runtime-logs/launcher-folder/lease") {
@@ -113,6 +119,21 @@ export async function handleRuntimeLogCoreRequest(
       nonce: String(row?.lease_token || "") === nonce ? nonce : "",
     });
   }
+  if (request.method === "POST" && url.pathname === "/runtime-logs/launcher-folder/failure") {
+    const body = await request.json().catch(() => ({})) as { nonce?: unknown; error?: unknown };
+    const nonce = String(body.nonce || "");
+    const error = String(body.error || "");
+    if (!/^[a-f0-9-]{36}$/.test(nonce) || !/^LAUNCHER_FOLDER_[A-Z_]+(?:_HTTP_[0-9]{3})?$/.test(error)) {
+      return response({ error: "INVALID_LAUNCHER_FOLDER_FAILURE" }, 400);
+    }
+    state.storage.sql.exec(
+      `UPDATE launcher_log_folder SET last_error = ?, lease_token = '',
+          lease_until_ms = 0, updated_at = CURRENT_TIMESTAMP
+          WHERE singleton = 1 AND folder_id = '' AND lease_token = ?`,
+      error, nonce,
+    );
+    return response({ recorded: true });
+  }
   if (request.method === "POST" && url.pathname === "/runtime-logs/launcher-folder/commit") {
     const body = await request.json().catch(() => ({})) as { nonce?: unknown; folder_id?: unknown };
     const folderId = String(body.folder_id || "").trim();
@@ -122,7 +143,7 @@ export async function handleRuntimeLogCoreRequest(
     }
     state.storage.sql.exec(
       `UPDATE launcher_log_folder SET folder_id = ?, lease_token = '',
-         lease_until_ms = 0, updated_at = CURRENT_TIMESTAMP
+         lease_until_ms = 0, last_error = '', updated_at = CURRENT_TIMESTAMP
          WHERE singleton = 1 AND folder_id = '' AND lease_token = ?`,
       folderId, nonce,
     );
