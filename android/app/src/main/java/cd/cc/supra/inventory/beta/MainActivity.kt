@@ -102,6 +102,8 @@ class MainActivity : Activity() {
     private var verifiedMinimumVersionCode: Int = 0
     private fun mandatoryUpdateKnown(): Boolean = verifiedMinimumVersionCode > BuildConfig.VERSION_CODE
     @Volatile private var updateCheckRunning = false
+    private var lastUpdateCheckElapsedMs = 0L
+    private val UPDATE_FOREGROUND_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L
     @Volatile private var logoutRunning = false
     @Volatile private var roleSyncRunning = false
     @Volatile private var operatingWindowCheckRunning = false
@@ -245,7 +247,14 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
-        if (::api.isInitialized && api.session != null && updateGate == UpdateGate.CURRENT) {
+        if (::api.isInitialized && api.session != null && !updateCheckRunning &&
+            android.os.SystemClock.elapsedRealtime() - lastUpdateCheckElapsedMs >= UPDATE_FOREGROUND_CHECK_INTERVAL_MS) {
+            // Foreground-only, max once per 6h, no new timer or background poll.
+            checkForUpdate(silent = true)
+        }
+        if (::api.isInitialized && api.session != null &&
+            (updateGate == UpdateGate.CURRENT || updateGate == UpdateGate.MANDATORY)) {
+            // Do not block result receipts/ACK for an already-running session.
             reconcileNotificationSignal()
             reconcileSkuCatalogRefresh()
             drainOverlayAcknowledgements()
@@ -1737,6 +1746,7 @@ class MainActivity : Activity() {
     private fun checkForUpdate(silent: Boolean) {
         if (!::updateButton.isInitialized || updateCheckRunning) return
         updateCheckRunning = true
+        lastUpdateCheckElapsedMs = android.os.SystemClock.elapsedRealtime()
         updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.CHECKING
         pendingUpdateInfo = null
         applyUpdateGateUi(if (!silent) "Đang kiểm tra bản cập nhật Beta..." else null)
