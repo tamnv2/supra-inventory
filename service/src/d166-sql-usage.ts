@@ -12,7 +12,9 @@
 export type D166SqlQueryId =
   | "BATCH_SNAPSHOT"
   | "RECENT_RESULTS_COUNT"
-  | "RECENT_RESULTS_PAGE";
+  | "RECENT_RESULTS_PAGE"
+  | "RECENT_STATUS_TOTALS"
+  | "RECENT_ACK_TOTALS";
 
 type SqlCursorUsage = {
   readonly rowsRead?: number;
@@ -37,8 +39,17 @@ const QUERY_IDS = new Set<D166SqlQueryId>([
   "BATCH_SNAPSHOT",
   "RECENT_RESULTS_COUNT",
   "RECENT_RESULTS_PAGE",
+  "RECENT_STATUS_TOTALS",
+  "RECENT_ACK_TOTALS",
 ]);
-const buckets = new Map<string, Sample>();
+// Cloudflare can co-host distinct Durable Objects inside the same isolate.
+// Never mix the cost of different DO instance states in a module-global map.
+const allBuckets = new WeakMap<DurableObjectState, Map<string, Sample>>();
+function getBuckets(state: DurableObjectState): Map<string, Sample> {
+  let buckets = allBuckets.get(state);
+  if (!buckets) { buckets = new Map<string, Sample>(); allBuckets.set(state, buckets); }
+  return buckets;
+}
 
 function finiteNonnegative(input: unknown): number | null {
   const n = Number(input);
@@ -46,11 +57,13 @@ function finiteNonnegative(input: unknown): number | null {
 }
 
 export function recordD166SqlUsage(
+  state: DurableObjectState,
   queryId: D166SqlQueryId,
   cursor: SqlCursorUsage,
   startedAtMs: number,
 ): void {
   if (!QUERY_IDS.has(queryId)) return;
+  const buckets = getBuckets(state);
   const now = Date.now();
   const hour = new Date(now).toISOString().slice(0, 13) + ":00:00Z";
   const key = hour + "|" + queryId;
@@ -88,7 +101,7 @@ export function recordD166SqlUsage(
     sample.max_latency_ms = Math.max(sample.max_latency_ms, elapsed);
   }
 
-  // Memory cap independent of client load; at most 36h * 3 query types.
+  // Memory cap independent of client load; 36h * 5 allowlisted queries.
   const cutoff = now - MAX_BUCKET_HOURS * 60 * 60 * 1000;
   if (buckets.size > QUERY_IDS.size * MAX_BUCKET_HOURS) {
     for (const [k, v] of buckets) {
@@ -103,7 +116,7 @@ export function recordD166SqlUsage(
   }
 }
 
-export function d166SqlUsageSnapshot(): {
+export function d166SqlUsageSnapshot(state: DurableObjectState): {
   coverage: string;
   source: string;
   rows: Sample[];
@@ -111,7 +124,7 @@ export function d166SqlUsageSnapshot(): {
   return {
     coverage: "ISOLATE_PROCESS_LOCAL_RESTART_RESETS__ESTIMATE_NOT_BILLING",
     source: "SQL_CURSOR_ROWS_READ_WRITTEN_AFTER_EXECUTION",
-    rows: [...buckets.values()].map((item) => ({ ...item }))
+    rows: [...getBuckets(state).values()].map((item) => ({ ...item }))
       .sort((a, b) => a.hour_utc.localeCompare(b.hour_utc) || a.query_id.localeCompare(b.query_id)),
   };
 }
@@ -129,6 +142,6 @@ export function d166MeasuredSqlRows<T extends Record<string, SqlStorageValue>>(
   const start = Date.now();
   const cursor = state.storage.sql.exec<T>(sql, ...bindings);
   const rows = cursor.toArray();
-  recordD166SqlUsage(queryId, cursor, start);
+  recordD166SqlUsage(state, queryId, cursor, start);
   return rows;
 }
