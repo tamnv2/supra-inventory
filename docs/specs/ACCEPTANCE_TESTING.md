@@ -2820,3 +2820,8 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
 4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
 5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
+
+
+## 2026-10-10 — D166 Android grouped HTTP outcome telemetry (candidate)
+
+Existing `D166UsageAudit.recordApi` grouped all unexpected 4xx into `OTHER_ERROR`, hiding whether Picker result ACK failures were 400/404/409/422. In the same **existing in-RAM per-attempt counter**, split BAD_REQUEST_400, NOT_FOUND_404, CONFLICT_409, GONE_410, UNPROCESSABLE_422, REQUEST_TIMEOUT_408, AUTH, NETWORK, 5xx, RATE and OTHER_HTTP_nn. No URL path, SKU/PL, user IDs, device serial, payload, credentials, token or exception messages are included; path is reduced to allowlisted route family and method before recording. Increase bounded distinct-key cap from 72 to 180 and count `http_dropped_metric_attempts` so D167 can see incomplete sample coverage. No new timer, network call, disk write, retry, Firebase listener or API request. This is diagnostics ONLY, not a fix for observed ACK errors; classify true business error codes and retry policy after field data is collected. CI/real MT90/DT50 battery and privacy gate required before Beta rollout; Stable untouched.
