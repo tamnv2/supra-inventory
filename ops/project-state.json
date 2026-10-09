@@ -6299,6 +6299,14 @@
           "id": "D166-WEB-FIVE-STATUS-TABS",
           "scope": "INVENTORY_BETA_WEB_ONLY",
           "goal": "REPLACE_RECENT_RESULTS_WITH_PENDING_OVERDUE_HAS_STOCK_SKIP_ALLOWED_PICKER_WITHDRAWN_TABS",
+          "date_filter": {
+            "requirement_id": "D166-WEB-DATE-RANGE",
+            "default": "TODAY_ASIA_HO_CHI_MINH",
+            "selection": "SHARED_INCLUSIVE_FROM_DATE_TO_DATE_APPLY_ACROSS_ALL_FIVE_TABS",
+            "on_tab_switch": "PRESERVE_SELECTED_RANGE",
+            "analysis_open": "PER_STATUS_DATE_BASIS__CURRENT_VS_HISTORIC_STATUS__DATA_RANGE_LIMITS__PAGINATION__REALTIME_USAGE",
+            "implementation_status": "BACKLOG_ONLY__ANALYSIS_DEFERRED"
+          },
           "state": "BACKLOG_ONLY"
         },
         {
