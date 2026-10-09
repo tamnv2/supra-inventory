@@ -5,8 +5,14 @@ namespace SupraSkuRecorder
     internal static class Program
     {
         [STAThread]
-        private static void Main()
+        private static void Main(string[] args)
         {
+            if (args != null && Array.Exists(args,
+                arg => string.Equals(arg, "--self-test-export", StringComparison.Ordinal)))
+            {
+                Environment.ExitCode = RecorderSelfTest.Run();
+                return;
+            }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new RecorderForm());
