@@ -76,10 +76,13 @@ namespace SupraSkuRecorder
                     using (var stream = sheet.Open())
                     using (var reader = XmlReader.Create(stream, ReaderSettings()))
                     {
-                        while (reader.Read())
+                        while (!reader.EOF)
                         {
                             if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "row")
+                            {
+                                reader.Read();
                                 continue;
+                            }
                             var row = (XElement)XNode.ReadFrom(reader);
                             int rowNum;
                             if (!int.TryParse((string)row.Attribute("r"), out rowNum) || rowNum < 1)
@@ -171,17 +174,19 @@ namespace SupraSkuRecorder
             var strings = new List<string>();
             using (var reader = XmlReader.Create(entry.Open(), ReaderSettings()))
             {
-                while (reader.Read())
+                while (!reader.EOF)
                 {
-                    if (reader.NodeType == XmlNodeType.Element && reader.LocalName == "si")
+                    if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "si")
                     {
-                        if (strings.Count >= 600000) throw new InvalidDataException();
-                        var node = (XElement)XNode.ReadFrom(reader);
-                        var value = string.Concat(node.Descendants(N + "t")
-                            .Select(x => x.Value));
-                        if (value.Length > 5000) throw new InvalidDataException();
-                        strings.Add(value);
+                        reader.Read();
+                        continue;
                     }
+                    if (strings.Count >= 600000) throw new InvalidDataException();
+                    var node = (XElement)XNode.ReadFrom(reader);
+                    var value = string.Concat(node.Descendants(N + "t")
+                        .Select(x => x.Value));
+                    if (value.Length > 5000) throw new InvalidDataException();
+                    strings.Add(value);
                 }
             }
             return strings;
