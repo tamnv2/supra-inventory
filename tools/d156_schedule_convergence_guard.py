@@ -65,8 +65,10 @@ require(android_api, "val shortageReportingEnabled: Boolean = false", "Android f
 require(android_api, "parseCapabilityBoolean", "D161 Android robust reporting boolean parser")
 require(android_api, "shortageReportingRevision", "D161 Android reporting revision authority")
 require(android_api, "same revision conflict: fail closed", "D161 same-revision conflict fail closed")
-require(users_core, "?, NULL, ?, ?, ?, 0, 'PICKER'", "new HR Picker reporting default off")
-require(users_core, 'reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_DISABLED_D156"', "HR post-migration preservation policy")
+require(users_core, "?, NULL, ?, ?, ?, 1, 'PICKER'", "D166 newly created HR Picker reporting default ON")
+forbid(users_core, "?, NULL, ?, ?, ?, 0, 'PICKER'", "D156 retired future Picker default OFF")
+require(users_core, 'reporting_capability_policy: "PRESERVE_EXISTING__NEW_PICKER_ENABLED_D166"', "D166 HR only-newly-created reporting capability")
+require(users_core, "const pickerByCode = new Map(existing.filter((u) => u.role === \"PICKER\"", "HR existing accounts matched before insert")
 require(notifications, "COALESCE(shortage_reporting_enabled, 0)", "notification eligibility fail closed")
 require(operational, "COALESCE(u.shortage_reporting_enabled, 0)", "realtime result eligibility fail closed")
 
