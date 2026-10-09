@@ -41,4 +41,38 @@ transport = (root / "relay-agent/FirestoreConfirmationTransport.cs").read_text(e
 assert "internal const long MaxPendingAgeMs = 20000L;" in transport
 assert "VerifyPrimaryForBusinessIngress" in transport
 assert "VerifyPrimaryBeforeMutation" in (root / "relay-agent/FirestoreAgentLeaderCoordinator.cs").read_text(encoding="utf-8")
-print("D165 RTDB HA role parity, bounded observer wake, Agent v120 manual-update guard PASS")
+
+# D166: Firebase REST SSE uses event: put/patch then
+# data: {"path":"/","data":{...}}. Flat decoding silently erased
+# Agent PRIMARY heartbeat and caused unnecessary Firestore fallback.
+for marker in (
+    'line.StartsWith("event:", StringComparison.Ordinal)',
+    'line.StartsWith("data:", StringComparison.Ordinal)',
+    'ApplyStreamData(eventName, eventData.ToString())',
+    'ReadString(envelope, "path")',
+    'envelope.TryGetValue("data", out payload)',
+    'if (eventName != "put" && eventName != "patch") return;',
+    'data.ContainsKey("heartbeat_at_ms")',
+    'eventName == "cancel" || eventName == "auth_revoked"',
+    'ProbePrimary(',
+    'RtdbPrimaryProbeStatus.STALE',
+    'RtdbPrimaryProbeStatus.UNAVAILABLE',
+):
+    assert marker in agent, ("D166 SSE event/active-proof missing", marker)
+
+coordinator = (root / "relay-agent/FirestoreAgentLeaderCoordinator.cs").read_text(encoding="utf-8")
+probe = coordinator.split("private int VerifyPrimaryDownBeforeTakeover(", 1)
+assert len(probe) == 2
+for marker in (
+    "RtdbPrimaryProbeStatus.HEALTHY",
+    "RtdbPrimaryProbeStatus.DIFFERENT",
+    "RtdbPrimaryProbeStatus.UNAVAILABLE",
+    "PromoteStandbyForTakeover();",
+    "_lastTakeoverLivenessCheckMs < 5000",
+    "_primaryWmsUnreadySamples < 2",
+    "nowUnready - _primaryWmsUnreadySinceMs < 15000",
+):
+    assert marker in coordinator, ("D166 HA safety proof missing", marker)
+assert "return VerifyPrimaryDownBeforeTakeover(session);" in coordinator
+assert coordinator.count("return VerifyPrimaryDownBeforeTakeover(session);") == 2
+print("D166 RTDB nested SSE and bounded active failover safety guard PASS")
