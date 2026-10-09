@@ -50,31 +50,51 @@ namespace SupraSkuRecorder
             }
         }
 
-        internal void ExportZip(string destination)
+        // Each export is immutable and uniquely named, including repeated exports
+        // in the same recording session. A failed attempt cannot corrupt a prior ZIP.
+        internal string ExportZip(string folder)
         {
-            lock (gate) { if (!closed) writer.Flush(); }
-            if (File.Exists(destination)) throw new IOException("ZIP đã tồn tại.");
-            var temp = destination + ".tmp";
-            if (File.Exists(temp)) File.Delete(temp);
-            try
+            if (string.IsNullOrWhiteSpace(folder))
+                throw new ArgumentException("Missing export folder.", nameof(folder));
+            Directory.CreateDirectory(folder);
+            var name = "SUPRA_SKU_Recorder_" + RunId + "_" +
+                DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff") + "_" +
+                Guid.NewGuid().ToString("N").Substring(0, 8) + ".zip";
+            var destination = Path.Combine(folder, name);
+            var staging = Path.Combine(folder, "." + name + ".partial");
+            lock (gate)
             {
-                using (var archive = ZipFile.Open(temp, ZipArchiveMode.Create))
+                if (closed) throw new ObjectDisposedException(nameof(SafeEventLog));
+                writer.Flush();
+                try
                 {
-                    archive.CreateEntryFromFile(FilePath, "events.jsonl");
-                    var entry = archive.CreateEntry("manifest.json");
-                    using (var output = new StreamWriter(entry.Open(), new UTF8Encoding(false)))
-                        output.Write(JsonSerializer.Serialize(new
-                        {
-                            schema = "D166_SKU_RECORDER_1", run = RunId,
-                            mode = "manual_observation_only",
-                            credential_read = false, agent_mutation = false,
-                            service_import_verified = false,
-                            note = "UI metadata and local download events; server commit is unverified"
-                        }));
+                    // CreateNew prevents an accidental overwrite or stale-file reuse.
+                    using (var stream = new FileStream(staging, FileMode.CreateNew,
+                        FileAccess.ReadWrite, FileShare.None))
+                    using (var archive = new ZipArchive(stream, ZipArchiveMode.Create))
+                    {
+                        archive.CreateEntryFromFile(FilePath, "events.jsonl");
+                        var entry = archive.CreateEntry("manifest.json");
+                        using (var output = new StreamWriter(entry.Open(), new UTF8Encoding(false)))
+                            output.Write(JsonSerializer.Serialize(new
+                            {
+                                schema = "D166_SKU_RECORDER_1", run = RunId,
+                                mode = "manual_observation_only",
+                                credential_read = false, agent_mutation = false,
+                                service_import_verified = false,
+                                note = "UI events and local download outcomes only; no server import proof"
+                            }));
+                    }
+                    // Do not overwrite any successful ZIP created earlier.
+                    File.Move(staging, destination);
+                    return destination;
                 }
-                File.Move(temp, destination);
+                finally
+                {
+                    try { if (File.Exists(staging)) File.Delete(staging); }
+                    catch { /* Keep prior exports intact; no sensitive diagnostics. */ }
+                }
             }
-            finally { if (File.Exists(temp)) File.Delete(temp); }
         }
 
         public void Dispose()
