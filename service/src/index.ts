@@ -15,7 +15,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
-import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog } from "./runtime-logs";
+import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog, probeLauncherArchiveFolder } from "./runtime-logs";
 import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
@@ -2040,8 +2040,11 @@ export default {
         const operator = await requireUser(request, env, ["ROOT"]);
         if (operator.base_role !== "ROOT") return json({ error: "ROOT_REQUIRED" }, 403);
         try {
-          const report = await coreJson<Record<string, unknown>>(env, "/runtime-logs/launcher-diagnostics");
-          return json(report);
+          const [report, drive] = await Promise.all([
+            coreJson<Record<string, unknown>>(env, "/runtime-logs/launcher-diagnostics"),
+            probeLauncherArchiveFolder(env),
+          ]);
+          return json({ ...report, drive_folder_check: drive });
         } catch {
           return json({ error: "LAUNCHER_LOG_DIAGNOSTICS_UNAVAILABLE" }, 503);
         }
