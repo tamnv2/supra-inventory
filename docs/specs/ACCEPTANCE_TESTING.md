@@ -2820,3 +2820,10 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
 4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
 5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
+
+
+## 2026-10-10 — D166 DO SQL rows-read instrumentation candidate (Beta)
+
+Goal: attribute the observed 126M/day DO SQL Rows Read to actual **normalized query IDs** before changing data/index/summary semantics. The source candidate instruments exactly five existing hot queries: BATCH_SNAPSHOT, RECENT_PAGE_TOTAL, RECENT_PAGE_ROWS, RECENT_STATUS_TOTALS, RECENT_ACK_TOTALS. It reads `cursor.rowsRead/rowsWritten` **after consuming the existing SQL cursor** and aggregates in a bounded per-DO-state WeakMap; **zero additional SQL queries, DO invocations, database writes or periodic network calls**. Metrics are exposed only in the already-existing authenticated `/admin/system-metrics` response under `sqlite.query_usage` with `PROCESS_LOCAL_SINCE_LAST_DO_ACTIVATION__NOT_PROVIDER_BILLING__NO_PERSISTENCE` and allowlisted constant query IDs, counts and aggregated cost. No SQL statements, bindings, users, SKU, PL, exception text, or raw data logged.
+
+Important constraints: A DO restart/hibernation loses these counters and summary is only a partial sample; do not extrapolate to provider billing or 24h totals without coverage. Use measured per-query attribution to justify each later index, materialized summary or coalescing change, with before/after per-operation cost/latency/ACL checks. Keep historical FIRST_REPORT/PER_PICKER SLA and results untouched. Beta candidate PR/CI and OWNER field acceptance, no Stable deploy. Automatic Agent SKU, location analytics excluded.
