@@ -385,8 +385,9 @@ let recentOffset = 0;
 let recentTotal = 0;
 const RECENT_PAGE_SIZE = 50;
 let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
+let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
-let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "ALL";
+let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
 let recentFrom = dateDaysAgo(0);
 let recentTo = dateDaysAgo(0);
 let queueFilter: "ALL" | "WARNING" | "ESCALATED" = "ALL";
@@ -1473,20 +1474,28 @@ function render(): void {
 }
 
 function renderOperationalTabs(current: "operations" | "overdue" | "results"): string {
+  // D166: exactly five visible status tabs. All badges use ONE existing
+  // counter snapshot and ONE versioned realtime delta stream, not five polls.
+  const outcomeTab = (status: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED", label: string) =>
+    `<button type="button" class="workspace-tab ${current === "results" && recentFilter === status ? "active" : ""}" data-workspace-result-filter="${status}">${label} <b data-workspace-count="${status}">${resultTabBadgeCounts[status]}</b></button>`;
   return `<div class="workspace-tabs" role="tablist" aria-label="Vận hành báo hàng">
     <button type="button" class="workspace-tab ${current === "operations" ? "active" : ""}" data-workspace-section="operations">Đang xử lý <b data-workspace-count="operations">${queueBadgeCount}</b></button>
     <button type="button" class="workspace-tab ${current === "overdue" ? "active" : ""}" data-workspace-section="overdue">Quá hạn <b data-workspace-count="overdue">${overdueBadgeCount}</b></button>
-    <button type="button" class="workspace-tab ${current === "results" ? "active" : ""}" data-workspace-section="results">Kết quả gần đây <b data-workspace-count="results">${recentBadgeCount}</b></button>
+    ${outcomeTab("HAS_STOCK", "Đã có hàng")}
+    ${outcomeTab("SKIP_ALLOWED", "Cho phép Skip")}
+    ${outcomeTab("CLOSED", "Picker đã thu hồi")}
   </div>`;
 }
 
 function syncOperationalTabBadges(): void {
   const operations = document.querySelector<HTMLElement>('[data-workspace-count="operations"]');
   const overdue = document.querySelector<HTMLElement>('[data-workspace-count="overdue"]');
-  const results = document.querySelector<HTMLElement>('[data-workspace-count="results"]');
   if (operations) operations.textContent = String(queueBadgeCount);
   if (overdue) overdue.textContent = String(overdueBadgeCount);
-  if (results) results.textContent = String(recentBadgeCount);
+  for (const status of ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const) {
+    const badge = document.querySelector<HTMLElement>(`[data-workspace-count="${status}"]`);
+    if (badge) badge.textContent = String(resultTabBadgeCounts[status]);
+  }
 }
 
 function filteredQueueRows(): ReporterBatch[] {
@@ -3021,6 +3030,11 @@ async function loadReporterTabCounters(force = false): Promise<void> {
   perPickerOverdueEnabled = Boolean(counters.auto_skip_enabled && counters.auto_skip_mode === "PER_PICKER");
   overdueBadgeCount = perPickerOverdueEnabled ? Math.max(0, Number(counters.overdue_total || 0)) : 0;
   recentBadgeCount = Math.max(0, Number(counters.recent_total || 0));
+  resultTabBadgeCounts = {
+    HAS_STOCK: Math.max(0, Number(counters.has_stock_total || 0)),
+    SKIP_ALLOWED: Math.max(0, Number(counters.skip_allowed_total || 0)),
+    CLOSED: Math.max(0, Number(counters.withdrawn_total || 0)),
+  };
   queueBadgeInitialized = true;
   overdueBadgeInitialized = true;
   recentBadgeInitialized = true;
