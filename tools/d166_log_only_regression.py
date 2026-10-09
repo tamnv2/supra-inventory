@@ -1,8 +1,9 @@
 from pathlib import Path
 
 root=Path('relay-agent')
-assert (root/'VERSION').read_text().strip()=='123'
-assert 'AgentBuild = 123' in (root/'AgentConfig.cs').read_text()
+agent_build = int((root/'VERSION').read_text().strip())
+assert agent_build >= 123, 'D166 v123 diagnostics must remain present in later Agent releases'
+assert f'AgentBuild = {agent_build}' in (root/'AgentConfig.cs').read_text()
 assert 'SnapshotUsageAudit()' in (root/'FirestoreQuotaGuard.cs').read_text()
 assert 'FirestoreQuotaGuard.SnapshotUsageAudit()' in (root/'AgentLogUploadBridge.cs').read_text()
 assert 'FirestoreQuotaGuard.RecordOutcome(' in (root/'FirestoreHttpTransport.cs').read_text()
