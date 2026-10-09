@@ -404,7 +404,7 @@ def main() -> None:
     require(business_core, '"dashboard_range_v1:" + userId', "D109 server per-user Dashboard preference key")
     require(app, "Cấu hình chung toàn hệ thống", "D109 global SLA user-facing authority")
     require(business_api, 'event: "sla_settings_updated"', "D109 SLA realtime event")
-    require(business_api, 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue"]', "D165 SLA realtime scope extends D109 with overdue")
+    require(business_api, 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue", "reporter_recent"]', "D166 SLA realtime scope also invalidates resolved correction eligibility")
     require(app, 'scopes.has("sla_settings")', "D109 SLA active-view realtime reconcile")
     # D138: a dirty SLA form owns its in-progress control state. Realtime reconcile
     # may refresh server authority, but must not fall through to the generic section
