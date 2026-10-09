@@ -437,3 +437,10 @@ The client normalizes composite internal identifiers to their visible login tail
 ### D165 Beta RTDB HA authorization repair (08/10)
 
 Only for existing Beta `relay_poc/coordination/ha_liveness`: read/write require Firebase-authenticated `app_session_channel=AGENT` and matching role/base-role pair `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN`. The liveness payload `agent_admin_user_id` must match the verified `app_user_id`; `generation` and heartbeat shape remain validated. This is parity with existing Agent authentication, not a new role or access to unrelated RTDB paths. Keep global deny-by-default and forbid Picker, Reporter, ROOT and Web sessions. Firestore stays authoritative for PRIMARY/generation and WMS mutation.
+
+
+## D166-NEW-PICKER-REPORTING-DEFAULT-ON — Owner proposed future default (09/10/2026, backlog only)
+
+Owner requests new `PICKER` user provisioning to automatically initialize `shortage_reporting_enabled=true` for **newly created accounts only**. Existing Picker capability, D156 one-time migration history, and later authorized Admin/Root toggles remain unchanged. HR re-sync, restore, retry or existing-user metadata updates must **never implicitly re-enable** a Picker already set OFF. Evaluate HR provisioning/approval paths and any scoped account-creation API; server remains final RBAC/capability authority.
+
+**Not yet effective:** D156's default-OFF for new Pickers remains live until a separately approved implementation supersedes that part of D156. This is a documentation-only D166 backlog amendment and does not authorize changing user data, service logic, security policy, role grants, deployments or Stable.
