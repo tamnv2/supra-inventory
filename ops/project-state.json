@@ -6285,6 +6285,19 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "mandatory_pda_update_candidate": {
+      "change_id": "D166_SIGNED_APK_OWNER_GATED_MIN_VERSION",
+      "status": "DRAFT_PR_CI_PENDING__NOT_DEPLOYED",
+      "branch": "d166-android-owner-gated-mandatory-update",
+      "version_floor": "PDA_MIN_VERSION_CODE_BETA_OPTIONAL_DEFAULT_ZERO_OWNER_APPROVAL_REQUIRED",
+      "min_floor_scope": "BETA_SIGNED_PUBLISHED_RELEASE_ONLY",
+      "client_behavior": "BLOCK_NEW_LOGIN__PRESERVE_AUTHENTICATED_ACK_IN_FLIGHT",
+      "check_cadence": "FOREGROUND_MAX_ONCE_6H__NO_NEW_BACKGROUND_TIMER",
+      "rollback": "VERIFIED_LOWER_FLOOR_RESOLVES_MANDATORY",
+      "owner_field_pass": false,
+      "runtime_deployed": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
