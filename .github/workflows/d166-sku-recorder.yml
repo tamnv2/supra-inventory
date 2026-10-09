@@ -86,8 +86,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "sku-recorder-d166-v1.1.0"
+          $tag = "sku-recorder-d166-v3-preflight1"
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) { throw "Tag exists: do not overwrite existing release." }
-          gh release create $tag "dist/sku-recorder/SUPRA.SKU.Recorder.exe" "dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256" --title "D166 SKU Recorder v1.1 - manual evidence only" --notes "Standalone Windows x64 manual recorder. Agent WebView2 must be running with the same Windows user. No automatic SKU sync, import or Agent deployment. Test on standby only." --prerelease --target "$env:GITHUB_SHA"
+          gh release create $tag "dist/sku-recorder/SUPRA.SKU.Recorder.exe" "dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256" --title "D166 SKU Recorder V3 preflight - observation only" --notes "Standalone Windows x64 manual recorder. Agent WebView2 must be running with the same Windows user. No automatic SKU sync, import or Agent deployment. Test on standby only." --prerelease --target "$env:GITHUB_SHA"
           if ($LASTEXITCODE -ne 0) { throw "Prerelease failed." }
