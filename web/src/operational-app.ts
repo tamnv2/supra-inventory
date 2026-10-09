@@ -1064,6 +1064,7 @@ function patchActiveSection(preserveContext = true): void {
   bindSection();
   patchOverlays();
   restoreUiContext(snapshot);
+  scheduleCorrectionExpiry();
   runtimeLogMetric("RENDER", "patch_active_section", {
     section: activeSection,
     preserve_context: preserveContext,
@@ -1465,6 +1466,7 @@ function render(): void {
   renderShell(activeContent());
   bindSection();
   restoreUiContext(snapshot);
+  scheduleCorrectionExpiry();
   runtimeLogMetric("RENDER", "full_shell", {
     section: activeSection,
     dom_nodes: app.querySelectorAll("*").length,
@@ -1616,16 +1618,34 @@ function renderOperationRow(row: ReporterBatch): string {
   </article>`;
 }
 
-function updateQueueClockDom(): void {
-  // Reuse the existing local 15s UI clock: expire correction buttons without
-  // adding network polling, provider reads or a timer per result.
-  if (activeSection === "results") {
-    const now = Date.now() + queueServerOffsetMs;
-    document.querySelectorAll<HTMLElement>("[data-correction-deadline]").forEach((actions) => {
-      const expiry = Date.parse(actions.dataset.correctionDeadline || "");
-      if (!Number.isFinite(expiry) || expiry <= now) actions.style.display = "none";
-    });
+// One-shot timer for the next visible expiry, not a timer per SKU and never
+// a provider request. The existing server-side deadline remains authoritative.
+let correctionExpiryTimer: number | null = null;
+
+function scheduleCorrectionExpiry(): void {
+  if (correctionExpiryTimer !== null) {
+    window.clearTimeout(correctionExpiryTimer);
+    correctionExpiryTimer = null;
   }
+  if (activeSection !== "results") return;
+
+  const now = Date.now() + queueServerOffsetMs;
+  let nextExpiry = Number.POSITIVE_INFINITY;
+  document.querySelectorAll<HTMLElement>("[data-correction-deadline]").forEach((actions) => {
+    const expiry = Date.parse(actions.dataset.correctionDeadline || "");
+    if (!Number.isFinite(expiry) || expiry <= now) {
+      actions.style.display = "none";
+    } else {
+      nextExpiry = Math.min(nextExpiry, expiry);
+    }
+  });
+  if (Number.isFinite(nextExpiry)) {
+    const wait = Math.min(2_147_483_647, Math.max(1, nextExpiry - now + 20));
+    correctionExpiryTimer = window.setTimeout(scheduleCorrectionExpiry, wait);
+  }
+}
+
+function updateQueueClockDom(): void {
   if (activeSection !== "operations") return;
   for (const row of queueRows) {
     const timing = liveQueueTiming(row);
