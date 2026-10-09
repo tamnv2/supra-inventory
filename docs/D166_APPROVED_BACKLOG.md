@@ -1,10 +1,12 @@
-# D166 — Owner-approved backlog: Android mandatory update và trùng thư mục Logs hằng ngày
+# D166 — Owner-approved backlog / các yêu cầu đã ghi nhận, chờ triển khai hoặc phân tích
 
 **Ghi nhận Owner:** 09/10/2026 (Asia/Ho_Chi_Minh)  
 **Trạng thái:** YÊU CẦU ĐÃ CHỐT / CHƯA TRIỂN KHAI / CHƯA FIELD PASS  
-**Phạm vi:** Android APK **Báo hàng — SUPRA Inventory Beta**, áp dụng cho các vai trò Picker, Reporter, Admin, Root. Không mặc nhiên áp dụng cho Launcher, ứng dụng Quản lý PDA, Windows Agent hay Web. Stable vẫn OWNER-GATED.
+**Phạm vi chung:** Các hạng mục khác nhau trong SUPRA Inventory Beta; mỗi hạng mục quy định phạm vi riêng. Chỉ ghi nhận Owner yêu cầu không mặc nhiên cho phép triển khai code, thay đổi provider hoặc phát hành. Stable luôn OWNER-GATED.
 
 ## Yêu cầu nghiệp vụ (D166-ANDROID-FORCE-UPDATE)
+
+**Phạm vi riêng:** Android APK Báo hàng Inventory Beta, Picker/Reporter/Admin/Root; không bao gồm Launcher, Quản lý PDA, Windows Agent, Web hoặc Stable.
 
 Khi có **phiên bản APK mới đã được phát hành chính thức, được ký số và được phê duyệt cho đúng kênh/phạm vi cập nhật**, bản APK cũ **không được tiếp tục sử dụng**. Màn hình cập nhật có hành động chính **Cập nhật ngay**; **không có** “Để sau”, “Bỏ qua”, “Tiếp tục dùng bản cũ”, đóng hộp thoại để vào nghiệp vụ, hoặc Back để lách chặn. Đây là cập nhật bắt buộc cho mọi lần phát hành hợp lệ, không phụ thuộc nhãn “critical/optional”.
 
@@ -68,3 +70,43 @@ Tham chiếu: Owner Decision **D039**, **D055**; `docs/specs/ACCEPTANCE_TESTING.
 5. So sánh Drive API calls, Cloudflare requests, thời gian lưu file trước/sau; không thêm periodic polling/heartbeat, không giảm tốc độ xử lý nghiệp vụ/realtime/ACK.
 
 **Gate:** Hạng mục này chỉ là ghi nhận backlog trong D166; không thay đổi runtime, không dọn thư mục lịch sử, không deploy. Chỉ triển khai sau khi Owner duyệt riêng phương án tác động (Worker, Apps Script, Drive OAuth, quota, rollback, kiểm thử). Stable vẫn OWNER-GATED. Tham chiếu `docs/specs/OBSERVABILITY_LOGGING.md` và `docs/specs/ACCEPTANCE_TESTING.md`.
+
+
+---
+
+## D166 backlog bổ sung ngày 09/10/2026 — BỐN ĐỀ XUẤT CHỜ PHÂN TÍCH
+
+**Owner command:** Tạm thời ghi vào backlog D166, phân tích sau. **Trạng thái của tất cả mục dưới đây:** `REQUIREMENT_RECORDED__ANALYSIS_DEFERRED__NO_IMPLEMENTATION_APPROVAL`. Không sửa logic/UX/API/schema, không bật tính năng tự động, không phát hành APK/Agent/Web hoặc chạy tác vụ trên Supra. Đây là yêu cầu khảo sát/chốt giải pháp tương lai, **không phải Owner PASS hay triển khai D166**.
+
+### D166-HAS-STOCK-SHARED-CORRECTION-WINDOW — Đồng nhất thời gian sửa kết quả
+
+- Đối với SKU **Đã có hàng** (`HAS_STOCK`), cho phép thao tác **Sửa trạng thái** trong cùng số phút được cấu hình trên Web cho **Cho phép Skip** (`SKIP_ALLOWED`), không có hai cửa sổ thời gian khác nhau. Ví dụ setting là **15 phút** thì cả hai trạng thái được sửa trong 15 phút theo cùng quy tắc tính thời gian được duyệt.
+- Hết cửa sổ hợp lệ phải **ẩn hoàn toàn các nút Sửa**, không chỉ disable, trên **cả Web và ứng dụng Android Reporter**. Thời hạn thực tế và quyền sửa do server xác thực; người dùng không thể dùng UI cũ, request cũ hoặc sai giờ thiết bị để sửa sau hạn.
+- Giữ các hướng chuyển trạng thái đã cho phép và quy trình xác nhận/cảnh báo, audit, cập nhật realtime, Picker nhận thông báo kết quả sửa/ACK, expected-version chống ghi đè. Không tự mở thêm hướng chuyển trạng thái ngoài những hướng hiện hữu.
+- **Để phân tích sau:** đối chiếu setting hiện có `skip_to_stock_minutes`, cờ cho phép sửa, mốc bắt đầu tính thời gian (hiện gắn với báo SKU đầu tiên), giao diện khi không còn quyền sửa và hành vi đối với bản ghi đã quá hạn trước khi đổi setting. Không tự thay đổi SLA/thời gian mặc định ở bước ghi backlog.
+
+### D166-WEB-FIVE-STATUS-TABS — Thay Kết quả gần đây bằng năm tab trạng thái trên Web
+
+- Tại khu vực vận hành Web, **thay giao diện Kết quả gần đây** bằng bộ tab: **Đang xử lý / Quá hạn / Đã có hàng / Cho phép Skip / Picker đã thu hồi**.
+- Tab hiển thị đúng dữ liệu theo trạng thái, giữ nghiệp vụ đang có, thao tác hợp lệ, số đếm nếu được xác định ở giai đoạn thiết kế; bảo toàn realtime, chuyển trạng thái, quyền xem, phân trang, báo cáo lịch sử và khả năng theo dõi kết quả. Không xoá dữ liệu lịch sử hoặc ngầm bỏ báo cáo kết quả.
+- **Chỉ áp dụng đề xuất Web**; không tự thêm `Picker đã thu hồi` lại trên Android Reporter (D165 hiện ẩn tab Android). Cấu trúc tab/badge, phạm vi lọc ngày, quan hệ giữa `Quá hạn` và `Đang xử lý`, và tác động API/Usage sẽ được phân tích sau.
+
+### D166-AGENT-AUTOMATIC-DAILY-SKU-BROWSER — Nghiên cứu tự đồng bộ SKU hằng ngày qua trình duyệt Supra
+
+- Owner đề nghị **nghiên cứu phương án**: Agent sau khi khởi động và ổn định sẽ mở **một trình duyệt Supra bổ sung**, điều hướng tới màn hình xuất/cập nhật SKU, tải file SKU, đưa file qua quy trình upload danh mục SKU của Inventory; chỉ đánh dấu **DONE** sau khi toàn bộ quy trình đã xử lý và hệ thống xác nhận kết quả.
+- **Chưa cho phép thực thi:** D126 hiện rút quyền tự động đồng bộ SKU từ WMS/Supra và chỉ giữ **import file thủ công**. Đề xuất mới có xung đột với quy tắc hiện hành, yêu cầu so sánh an toàn/bảo mật/quyền truy cập, tính hợp lệ cách thao tác UI, phạm vi thông tin cho phép, nguồn file, quyền nhập và tác động nghiệp vụ **trước khi Owner cho phép khôi phục một phần tính năng**.
+- **Các tình huống bắt buộc đưa vào phân tích sau:** Agent vừa khởi động nhưng chưa sẵn sàng/WMS chưa đăng nhập, login/MFA/captcha, WebView2/session tách biệt, giờ ngoài ca, nhiều Agent cùng online hoặc failover, tải thiếu/file cũ/file sai định dạng, mất mạng, timeout, trùng SKU/đổi tên, import một phần, restart giữa chừng, hoàn tất nhưng mất ACK, tránh chạy lại hoặc ghi trùng; xác minh đầu-cuối bằng dữ liệu server, retry an toàn/có kiểm soát, báo lỗi rõ thay vì báo DONE giả.
+- Không làm gián đoạn **WMS Confirm Picklist, PRIMARY/standby, ACK, realtime**, không ghi lại/lấy trích xuất mật khẩu/cookie/token/session WMS, không tự bật browser automation hoặc cron/điều khiển provider trong bước backlog. Chi phí Usage / tần suất 1 lần/ngày và kịch bản không có Agent ổn định cần tính toán khi phân tích.
+
+### D166-LOCATION-AS-OF-REPORT-ANALYTICS — Khu vực chứa hàng tại ngày báo và tái thiết kế báo cáo
+
+- Nghiên cứu khả năng Web hiển thị **khu vực chứa hàng của SKU tại thời điểm/ngày phát sinh báo hết hàng**, ví dụ nhóm **LTA** hoặc **Shelving**. Không lấy vị trí mới nhất hôm nay để gán ngược cho báo cáo lịch sử nếu SKU từng đổi khu vực.
+- Bổ sung phương án báo cáo **SKU/khu vực nào thường phát sinh báo hết hàng**, phân tích xu hướng theo thời gian, lọc và phân nhóm theo khu vực; đánh giá lại cấu trúc nội dung của **Báo cáo tổng quan** và **Báo cáo chi tiết** hiện tại, đề xuất phần nên thêm, chỉnh hoặc loại bỏ để phù hợp nghiệp vụ. Không tự thiết kế thêm xếp hạng hiệu suất cá nhân Picker hoặc chỉ số không có dữ liệu hợp lệ.
+- **Để phân tích sau:** xác định nguồn dữ liệu khu vực tin cậy và quyền sử dụng; mức phân loại LTA/Shelving hay chi tiết hơn; thời điểm chụp snapshot/cơ chế ghi lịch sử và xử lý SKU đổi vị trí, SKU nhiều khu vực, dữ liệu thiếu/không xác minh được; thay đổi dữ liệu/API/filter/export, quyền xem và chi phí lưu trữ/Usage. Nếu chưa có nguồn lịch sử, phải phân biệt `UNKNOWN` với dữ liệu đã xác thực; không suy đoán hoặc backfill sai.
+- **Scope conflict phải rà soát trước code:** D002/D116 hiện chỉ quản lý SKU + tên sản phẩm, không quản lý bin/location/pickface. Owner mới cho phép **nghiên cứu** mở rộng góc nhìn báo hàng theo khu vực, **chưa** chấp thuận mở rộng SKU master, kho vị trí, WMS synchronization hoặc nhập trường vị trí mới. Cần trình Owner lựa chọn mô hình dữ liệu và phân quyền rồi mới cập nhật scope nghiệp vụ.
+
+### Ranh giới chung và yêu cầu ghi nhận
+
+- Cả bốn mục là **backlog để phân tích sau** trong đúng `D166`; chưa nghiên cứu kết luận/triển khai giải pháp, chưa chỉnh sửa source hoặc provider, chưa thêm quota calls, không thay đổi Stable. Không đánh đồng `recorded` với `implemented` hoặc `Owner field PASS`.
+- Khi Owner yêu cầu mở phân tích: đánh giá tác động cơ sở D165/D166, các spec đang xung đột, UI Web/Android/Agent, dữ liệu & source authority, quyền/bảo mật, failure modes, realtime/HA/ACK, ngân sách Usage, hồi quy và phương án triển khai từng bước. Chỉ sửa code sau **phê duyệt riêng của Owner**.
+- Các spec liên quan: `docs/specs/FORMS.md`, `docs/specs/REPORTING_DASHBOARD.md`, `docs/specs/UI_DESIGN_SYSTEM.md`, `docs/specs/SKU_MASTER.md`, `docs/specs/ACCEPTANCE_TESTING.md`; các quyết định lịch sử D002/D126 tiếp tục có hiệu lực **đối với runtime hiện tại**.

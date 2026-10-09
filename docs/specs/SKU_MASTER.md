@@ -109,3 +109,10 @@ A successful Web SKU import must refresh logged-in PDAs without requiring logout
 4. Android persists a bounded local “catalog refresh pending” marker when the silent FCM arrives. Resume and the existing low-cost local runtime tick consume the marker and perform the same version/delta-aware sync.
 5. The Worker remains the SKU authority; the push is an invalidation signal, not the data payload. The PDA still verifies server catalog count/version and uses the existing delta/full fallback logic.
 6. Failure is retriable and must not require the user to sign out. No new polling cadence is introduced.
+
+
+## D166 — Future-analysis-only Agent daily SKU file import concept (09/10/2026)
+
+Owner asked to **record and analyze later** an optional daily flow: after Agent startup and readiness, use a **separate controlled browser** to visit Supra's SKU export screen, download SKU file, and submit through the Inventory catalog import path; declare DONE only after authenticated server-side completion. Assessment must cover simultaneous Agents/single daily execution, current active Picklist/HA/ACK safety, browser readiness/manual login, source/file validation, deduplication, rename conflicts and existing SKU-import guarantees, partial progress/restart/retry/outage, error messaging, current day boundaries and bounded usage.
+
+**No implementation approval.** D126 supersedes legacy D119/D124 and keeps the **manual-file-only SKU source** and automatic WMS/Supra SKU sync retired. This potential future revision must go through a new explicit Owner decision after analysis; do not enable existing dormant Agent SKU jobs, extract browser credential/session material, add timers, interact with Supra, or mutate any catalog now. Reference: `docs/D166_APPROVED_BACKLOG.md`.

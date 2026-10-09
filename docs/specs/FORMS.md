@@ -744,3 +744,10 @@ Supersedes the earlier D165 conditionally inserted tab on Android. Web and Andro
 ### D165 Reporter Skip correction controls (2026-10-07)
 
 For a Skip result in the SLA-permitted correction interval, show **Sửa - Đang xử lý** and **Sửa - Đã có hàng** on Reporter Android and Web, with two confirmations and a short remaining-time indication on Android. The correction call is always `POST /api/reporter/batches/correct` with `request_id`, `batch_id`, `target` (`PENDING`/`HAS_STOCK`), and `expected_version`. The previous empty-body Android `correctBatch` helper is retired. Existing HAS_STOCK correction actions continue to use the same versioned endpoint.
+
+
+## D166 pending-analysis backlog — shared correction window (Owner 09/10/2026; NO IMPLEMENTATION)
+
+Owner wants **Đã có hàng** (`HAS_STOCK`) and **Cho phép Skip** (`SKIP_ALLOWED`) result correction actions to use **one configurable duration**: for example 15 minutes applies equally to both. After expiry, the corresponding **Sửa** buttons disappear on **both Web and Android Reporter**, while server-side deadline/version/role checks still reject stale or forged submissions. Existing correction directions, confirmations, audit, realtime/Picker notification and ACK remain protected.
+
+**Research only.** Before implementation reconcile current `skip_to_stock_minutes`/correction flag and first-report timestamp semantics with the required shared window, including live setting changes and historical result rows. No automatic changes to settings, API, release, timeout scheduling, or active app UX from this entry. Details: `docs/D166_APPROVED_BACKLOG.md`.

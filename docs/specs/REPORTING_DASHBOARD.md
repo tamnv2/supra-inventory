@@ -348,3 +348,10 @@ The proposed Agent v122 ZIP may now contain `providers/cloudflare_workers.json`,
 ### D166 field failure and UI safety — 2026-10-09
 
 Existing v122 Agent Usage export button is correct; user experienced `D166_PROVIDER_NOT_READY` because of a server-side Gateway provider postprocessing defect. Patch Gateway only; **do not** add background export, polling, extra log traffic or alter tab UI without a separate accepted requirement. ZIP remains manually downloaded and per-provider status is explicit, even when Cloudflare API data is unavailable.
+
+
+## D166 pending-analysis backlog — Web five-tab operations and as-of-location reporting (Owner 09/10/2026)
+
+**Not implemented.** Owner requests the Web operations area to replace the `Kết quả gần đây` view with **Đang xử lý / Quá hạn / Đã có hàng / Cho phép Skip / Picker đã thu hồi**. Preserve existing business semantics, permissions, realtime/delta/badges where valid, audit and historic reporting; data/status eligibility and UI query efficiency need later design review. **Android Reporter presentation is unchanged** (its withdrawn tab remains hidden).
+
+Owner also requests a **research plan** for showing a SKU's storage-area category **as of the report date** (e.g. LTA/Shelving) and reports of which SKUs/areas repeatedly have shortages; revisit the existing overview and detailed report structure, fields and export. Exact classification/source, historical snapshots, missing-data handling, period semantics, confidence and data retention must be evaluated; do not assert location data exist. **D002 currently forbids bin/location SKU-master management**. This proposal does not yet authorize adding location fields or external Supra/WMS reads. No Web/API/schema change until later separate Owner-approved impact review. Full requirements: `docs/D166_APPROVED_BACKLOG.md`.
