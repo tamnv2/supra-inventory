@@ -509,7 +509,7 @@ def main() -> None:
         "recentBadgeInitialized",
         "syncOperationalTabBadges",
         'data-workspace-count="operations"',
-        'data-workspace-count="results"',
+        'data-workspace-count="${status}"',
         "getReporterCounters",
         "recent_counter",
         "reporterQueueChanged",
