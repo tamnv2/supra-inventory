@@ -1,3 +1,4 @@
+import { d166MeasuredSqlRows } from "./d166-sql-usage";
 import {
   correctionDeadlineFromFirstReport,
   initializeSlaAutomationSchema,
@@ -209,7 +210,7 @@ function parseJsonArray(value: unknown): string[] {
 export function currentBatchSnapshot(state: DurableObjectState, batchId: string): Record<string, unknown> | null {
   if (!batchId) return null;
   const row = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "BATCH_SNAPSHOT",
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
               b.resolved_at, b.updated_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
               b.auto_skip_deadline_at, b.version, b.previous_batch_id,
@@ -249,7 +250,7 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
         WHERE b.batch_id = ?
         LIMIT 1`,
       batchId,
-    ).toArray(),
+    ),
   );
   if (!row) return null;
 
@@ -954,13 +955,13 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const clause = where.join(" AND ");
 
   const totalRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT",
       `SELECT COUNT(*) AS total FROM report_batches b WHERE ${clause}`,
       ...args,
-    ).toArray(),
+    ),
   ) || {};
 
-  const rows = state.storage.sql.exec<SqlRow>(
+  const rows = d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE",
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
@@ -1008,7 +1009,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     ...args,
     limit,
     offset,
-  ).toArray();
+  );
 
   const serverNowMs = Date.now();
   const serverNow = new Date(serverNowMs).toISOString();
@@ -1043,7 +1044,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   }
   const summaryClause = summaryWhere.join(" AND ");
   const totalsRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS",
       `SELECT
          COALESCE(SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
          COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
@@ -1052,10 +1053,10 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
        FROM report_batches b
       WHERE ${summaryClause}`,
       ...summaryArgs,
-    ).toArray(),
+    ),
   ) || {};
   const ackTotals = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS",
       `SELECT
          COALESCE(SUM(COALESCE(s.ack_target_count,
            (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
@@ -1067,7 +1068,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE ${summaryClause}`,
       ...summaryArgs,
-    ).toArray(),
+    ),
   ) || {};
 
   return json({

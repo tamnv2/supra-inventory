@@ -71,6 +71,38 @@ def require_source_markers() -> None:
         if marker not in haystacks[name]:
             fail(f"source invariant missing: {name}")
 
+    # D166 per-query SQL cursor measurements: existing statement results only,
+    # bounded/aggregated in memory. No second query, network call or PII.
+    metrics = (ROOT / "service/src/d166-sql-usage.ts").read_text(encoding="utf-8")
+    system_metrics = (ROOT / "service/src/system-metrics-core.ts").read_text(encoding="utf-8")
+    for marker in (
+        '"BATCH_SNAPSHOT"',
+        '"RECENT_RESULTS_COUNT"',
+        '"RECENT_RESULTS_PAGE"',
+        '"RECENT_STATUS_TOTALS"',
+        '"RECENT_ACK_TOTALS"',
+        'const allBuckets = new WeakMap<DurableObjectState, Map<string, Sample>>()',
+        'recordD166SqlUsage(state, queryId, cursor, start);',
+        'const cursor = state.storage.sql.exec<T>(sql, ...bindings);',
+        'const rows = cursor.toArray();',
+        'recordD166SqlUsage(state, queryId, cursor, start);',
+        'ISOLATE_PROCESS_LOCAL_RESTART_RESETS__ESTIMATE_NOT_BILLING',
+        'const MAX_BUCKET_HOURS = 36',
+    ):
+        if marker not in metrics:
+            fail(f"D166 SQL cursor measurement contract missing: {marker}")
+    for marker in (
+        'd166MeasuredSqlRows<SqlRow>(state, "BATCH_SNAPSHOT"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS"',
+    ):
+        if marker not in operational:
+            fail(f"D166 expensive Inventory SQL lacks cursor instrumentation: {marker}")
+    if 'd166_sql_diagnostics: d166SqlUsageSnapshot(state)' not in system_metrics:
+        fail("D166 SQL diagnostics missing from existing on-demand metrics endpoint")
+
     if "pickerCanReceiveRealtimeEvent" not in read_model or "pickerRealtimeSnapshot" not in read_model:
         fail("broadcast is not using Picker-authorized projection")
     if "status = 'RESOLVED'" not in notifications or "result_event_id" not in notifications:
