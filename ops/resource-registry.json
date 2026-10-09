@@ -2741,6 +2741,19 @@
     "field_acceptance": "PENDING_CI_AND_OWNER_TEST",
     "firebase_write_or_schema_change": "NONE"
   },
+  "d166_beta_integrated_release_2026_10_10": {
+    "scope": "EXISTING_BETA_ONLY__NO_NEW_PROVIDER_RESOURCE",
+    "main_sha": "20ef736a78de3d253f6636b5518d31bded6a4c4e",
+    "worker": "supra-inventory-beta__DEPLOY_37998960458_PASS",
+    "gateway": "EXISTING_BETA_AGENT_OPERATIONS_GATEWAY__IN_PLACE_REDEPLOY_RUN_37998960531_ATTEMPT_2_PASS",
+    "agent": "relay-agent-v124__RELEASE_AND_CHANNEL_PASS__NOT_ALL_WINDOWS_INSTALLED",
+    "android": "beta-vc104__SIGNED_RELEASE_AND_CHANNEL_PASS__ALL_BETA_PDA_MINIMUM_VERSION_104_AFTER_SIGNED_PUBLICATION__NOT_ALL_DEVICES_INSTALLED",
+    "agent_sha256": "6d792ba176e4f48fddf8efe8e2303bcd6bd8372fc893a82f2f1894a58a1033ff",
+    "android_sha256": "5ad1e877fde607039f6563160faa8b3a5959dd1846e65aea85041f0e58b03684",
+    "channel": "inventory-channel",
+    "field_and_owner_pass": "PENDING",
+    "stable": "OWNER_GATED_UNTOUCHED"
+  },
   "d166_cloudflare_readonly_candidate": {
     "status": "BETA_WORKER_AND_GATEWAY_TECHNICAL_RUNTIME_PASS__OWNER_FIELD_PENDING",
     "scope": "EXISTING_BETA_WORKER_ONLY",
