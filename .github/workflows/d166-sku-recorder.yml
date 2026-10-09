@@ -1,0 +1,84 @@
+name: D166 Standalone SKU Recorder
+
+on:
+  pull_request:
+    paths:
+      - "sku-browser-recorder/**"
+      - ".github/workflows/d166-sku-recorder.yml"
+  push:
+    branches: [main]
+    paths:
+      - "sku-browser-recorder/**"
+      - ".github/workflows/d166-sku-recorder.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Standalone observation and privacy guard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = Get-ChildItem sku-browser-recorder -Filter '*.cs'
+          $content = ($files | Get-Content -Raw) -join [Environment]::NewLine
+          foreach ($forbidden in @(
+            'Network.enable','GetCookiesAsync','document.cookie',
+            'WebResourceRequested','Storage.getCookies',
+            'Firestore','firebase.googleapis.com',
+            'Page.navigate','HttpClient(', 'localStorage.getItem',
+            'sessionStorage.getItem'
+          )) {
+            if ($content.Contains($forbidden)) { throw "Forbidden recorder capability: $forbidden" }
+          }
+          foreach ($required in @(
+            'AgentBrowserIdentity.Find()',
+            'CoreWebView2Environment.CreateAsync',
+            'DOWNLOAD_COMPLETED',
+            'UPLOAD_FILE_SELECTED',
+            'ScopedUrl',
+            'RecorderScript.Value',
+            'UI_ACTION'
+          )) {
+            if (-not $content.Contains($required)) { throw "Missing recorder guard: $required" }
+          }
+          Write-Host "D166_STANDALONE_SOURCE_GUARD=PASS"
+
+      - name: Build Windows single-file EXE
+        shell: pwsh
+        run: |
+          dotnet publish sku-browser-recorder/SupraSkuRecorder.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None --output dist/sku-recorder
+          if ($LASTEXITCODE -ne 0) { throw "Recorder build failed." }
+          $exe = "dist/sku-recorder/SUPRA.SKU.Recorder.exe"
+          if (-not (Test-Path $exe)) { throw "Missing published executable." }
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash *SUPRA.SKU.Recorder.exe" | Set-Content "dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256"
+          Write-Host "D166_STANDALONE_EXE=PASS SHA256=$hash"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: D166-SKU-Recorder-win-x64
+          path: |
+            dist/sku-recorder/SUPRA.SKU.Recorder.exe
+            dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256
+          retention-days: 30
+
+      - name: Publish standalone prerelease on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "sku-recorder-d166-v1"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) { throw "Tag exists: do not overwrite existing release." }
+          gh release create $tag "dist/sku-recorder/SUPRA.SKU.Recorder.exe" "dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256" --title "D166 SKU Recorder v1 - manual evidence only" --notes "Standalone Windows x64 manual recorder. Agent WebView2 must be running with the same Windows user. No automatic SKU sync, import or Agent deployment. Test on standby only." --prerelease --target "$env:GITHUB_SHA"
+          if ($LASTEXITCODE -ne 0) { throw "Prerelease failed." }
