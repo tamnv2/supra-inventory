@@ -28,3 +28,12 @@ The owner approved investigation and a safe fix of Launcher log delivery without
 - Privacy: log filenames, raw IDs, serialized log contents and OAuth error messages are not returned to browser.
 - Rollback: revert the D166 backend/Web commit(s); existing Core data and Drive files unchanged.
 - Release gate: GitHub CI + Beta deploy technically PASS before owner Web click; no claim of ROOT field PASS without owner-authenticated runtime evidence.
+
+
+## 09/10/2026 — Owner approved remote OAuth folder repair
+
+- ROOT runtime evidence at 17:49 VN: last-seven-day Launcher buffer received=0, Drive worker OAuth check for old manually-created `PDA Management` folder returned HTTP 404.
+- Two separate faults: no Launcher POST persisted into InventoryCore, and the previous Drive folder is inaccessible to the Worker OAuth client.
+- The Launcher v0.3.25 manifest does not explicitly declare `android.permission.ACCESS_NETWORK_STATE`, yet preflight calls `ConnectivityManager.getActiveNetwork()` and catches a thrown permission exception as `networkUsable=false`. APK-side repair requires an Android APK update and user/device management intervention; changing backend alone cannot grant this permission to an already-installed APK.
+- Owner approved remote Worker-side repair with a new OAuth-created Drive folder; leave the old folder and all earlier data untouched. The existing Beta 5-minute cron performs bounded one-time provisioning; a single SQLite authority/lease records the canonical folder ID; archived files and pending retries select it. Before adopting the folder Worker writes a clearly tagged `_SERVICE_ARCHIVE_CHECK.json` and independently reads it back. This is **not an actual PDA log**.
+- ROOT read-only Web diagnostic reports the managed folder status and verified link; full end-to-end status is pending an actual PDA Launcher POST, InventoryCore acknowledgement and real Launcher file in Drive. No new automatic PDA push/install capability is claimed.
