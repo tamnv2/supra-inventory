@@ -1064,6 +1064,7 @@ function patchActiveSection(preserveContext = true): void {
   bindSection();
   patchOverlays();
   restoreUiContext(snapshot);
+  scheduleCorrectionExpiry();
   runtimeLogMetric("RENDER", "patch_active_section", {
     section: activeSection,
     preserve_context: preserveContext,
@@ -1465,6 +1466,7 @@ function render(): void {
   renderShell(activeContent());
   bindSection();
   restoreUiContext(snapshot);
+  scheduleCorrectionExpiry();
   runtimeLogMetric("RENDER", "full_shell", {
     section: activeSection,
     dom_nodes: app.querySelectorAll("*").length,
@@ -1616,6 +1618,33 @@ function renderOperationRow(row: ReporterBatch): string {
   </article>`;
 }
 
+// One-shot timer for the next visible expiry, not a timer per SKU and never
+// a provider request. The existing server-side deadline remains authoritative.
+let correctionExpiryTimer: number | null = null;
+
+function scheduleCorrectionExpiry(): void {
+  if (correctionExpiryTimer !== null) {
+    window.clearTimeout(correctionExpiryTimer);
+    correctionExpiryTimer = null;
+  }
+  if (activeSection !== "results") return;
+
+  const now = Date.now() + queueServerOffsetMs;
+  let nextExpiry = Number.POSITIVE_INFINITY;
+  document.querySelectorAll<HTMLElement>("[data-correction-deadline]").forEach((actions) => {
+    const expiry = Date.parse(actions.dataset.correctionDeadline || "");
+    if (!Number.isFinite(expiry) || expiry <= now) {
+      actions.style.display = "none";
+    } else {
+      nextExpiry = Math.min(nextExpiry, expiry);
+    }
+  });
+  if (Number.isFinite(nextExpiry)) {
+    const wait = Math.min(2_147_483_647, Math.max(1, nextExpiry - now + 20));
+    correctionExpiryTimer = window.setTimeout(scheduleCorrectionExpiry, wait);
+  }
+}
+
 function updateQueueClockDom(): void {
   if (activeSection !== "operations") return;
   for (const row of queueRows) {
@@ -1696,7 +1725,12 @@ function renderResults(): string {
       </form>
       <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
-        ${visible.map((row) => { const canCorrect = roleCanResolve() && (row.status === "HAS_STOCK" || (row.status === "SKIP_ALLOWED" && row.correction_allowed === true)); const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+        ${visible.map((row) => { const correctionEnd = Date.parse(row.correction_deadline_at || "");
+          const canCorrect = roleCanResolve() &&
+            (row.status === "HAS_STOCK" || row.status === "SKIP_ALLOWED") &&
+            row.correction_allowed === true &&
+            Number.isFinite(correctionEnd) &&
+            correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -2036,8 +2070,8 @@ function renderSla(): string {
         </article>
         <article class="sla-policy-card">
           <span class="sla-policy-kicker">Sửa kết quả</span>
-          <h4>Skip → Đã có hàng</h4>
-          <label class="sla-radio-row"><input name="skipToStockEnabled" type="checkbox" ${correctionEnabled ? "checked" : ""}/><span><strong>Cho phép sửa kết quả</strong><small>Tính từ lần báo đầu tiên của SKU, không tính từ lúc bấm Skip.</small></span></label>
+          <h4>Đã có hàng / Cho phép Skip</h4>
+          <label class="sla-radio-row"><input name="skipToStockEnabled" type="checkbox" ${correctionEnabled ? "checked" : ""}/><span><strong>Cho phép sửa kết quả</strong><small>Cùng một thời hạn cho cả hai trạng thái, tính từ lúc công bố kết quả; độc lập với mốc quá hạn.</small></span></label>
           <label class="sla-minute-field compact"><span>Cho phép trong</span><input name="skipToStockMinutes" type="number" min="1" max="10080" value="${configured ? esc(sla!.skip_to_stock_minutes) : ""}" required /><b>phút</b></label>
         </article>
       </div>
@@ -2053,7 +2087,7 @@ function renderSla(): string {
       <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong id="sla-warning-count">${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
       <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong id="sla-escalated-count">${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
       <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động bỏ qua</span><strong>${autoEnabled ? "Đang bật" : "Đang tắt"}</strong></article>
-      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Skip → Đã có hàng</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
+      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Sửa kết quả Đã có hàng / Skip</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
     </section>
   </section>`;
 }
@@ -3225,6 +3259,7 @@ function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecen
       : null) as ReporterRecentBatch["resolution"],
     resolution_source: snapshotText(snapshot, "resolution_source") || null,
     correction_deadline_at: snapshotText(snapshot, "correction_deadline_at") || null,
+    correction_allowed: snapshot["correction_allowed"] === true,
     affected_picker_count: snapshotNumber(snapshot, "affected_picker_count"),
     version: snapshotNumber(snapshot, "version"),
     previous_batch_id: snapshotText(snapshot, "previous_batch_id") || null,
@@ -5094,6 +5129,12 @@ window.addEventListener("pageshow", () => {
   // D141: browsers may restore form controls on reload/back-forward navigation.
   // Re-assert explicit SLA server/draft authority after page restoration.
   requestAnimationFrame(() => syncSlaModeControlsFromState());
+  // D166: a suspended browser may throttle the one-shot expiry timer.
+  // Recheck visibility locally before presenting any edit control again.
+  scheduleCorrectionExpiry();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") scheduleCorrectionExpiry();
 });
 
 async function bootstrap(): Promise<void> {

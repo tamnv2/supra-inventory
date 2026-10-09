@@ -131,3 +131,15 @@ Tham chiếu: Owner Decision **D039**, **D055**; `docs/specs/ACCEPTANCE_TESTING.
 - **Cần phân tích sau:** xác định các entrypoint tạo Picker hiện tại; mapping capability tại DB/API/HR batch; cách xử lý tài khoản trùng, tạo lại, restore, status inactive, lỗi giữa các bước; log/audit/role permission; đồng bộ UI và tác động quota. Chốt điều kiện nghiệm thu trên Beta trước rollout và Owner field PASS.
 
 **Gate:** Chỉ ghi yêu cầu backlog trong D166. Không thay đổi dữ liệu tài khoản, không sửa Web/Android/Worker, không update HR Sheet, không triển khai provider, không tác động Stable. Mọi thay đổi runtime phải qua đánh giá tác động, Owner duyệt riêng, branch → PR → authority/continuity + hồi quy → Beta field test → Owner PASS.
+
+
+## 2026-10-09 — D166 Implementation candidate: shared result correction setting (Owner explicitly requested)
+
+This section **supersedes the research-only gate for the shared correction setting only**; other D166 backlog items remain gated. No Beta/Stable deploy, automatic APK rollout or field PASS is implied.
+
+- Retain the existing Admin Web setting and API field names `skip_to_stock_enabled` + `skip_to_stock_minutes`; rename display to **Cho phép sửa kết quả — Đã có hàng / Cho phép Skip**. No duplicate setting or backend/provider poll.
+- All final batch outcomes `HAS_STOCK` and `SKIP_ALLOWED` receive `correction_deadline_at = first_result_published_at + skip_to_stock_minutes` when enabled. This is **NOT** the FIRST_REPORT/PER_PICKER SLA clock; overdue and auto-skip scheduling are unchanged.
+- On correction HAS_STOCK↔SKIP_ALLOWED or to PENDING and back within the same batch, keep the first result's deadline to prevent indefinite extensions. The server checks both states against the same stored deadline, current enable flag, role and expected-version fence. When disabled/expired/no legacy deadline, actions are unavailable. Previously resolved rows without a stored deadline are not retroactively reopened; previous Skip deadlines are not silently extended.
+- Server returns `correction_allowed` and `correction_deadline_at` using existing result list/realtime frames; Web and Android hide buttons using existing client UI timers, never additional reads. Android 1s ticker runs only when an active visible correction countdown exists.
+- Keep the two-step confirmation, single batch mutation, exact affected-Picker notifications/ACK, audit and realtime, and existing API routes. If Admin changes the duration, already-issued stored deadlines do not change; turning the feature off blocks future corrections immediately.
+- CI/field acceptance: manual stock, manual skip, system-timeout skip, 15-minute example (08:25 outcome → expiry 08:40), close-before/end boundary, 409 for stale-version, disabled and expired, repeated-correction no extension, Web/PDA aligned, realtime update without new provider polling, privacy and battery protections. Stage under Beta PR; no production deploy until tests and Owner gate.

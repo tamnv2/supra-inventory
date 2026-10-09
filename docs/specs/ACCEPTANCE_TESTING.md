@@ -2820,3 +2820,13 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
 4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
 5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
+
+
+### D166 — shared HAS_STOCK/SKIP_ALLOWED result correction candidate: required test matrix
+
+- Keep the existing SLA setting names/wire fields; do not create a second setting. Both resolved states use **first result published at** + same duration, not `first_report_at`, including `SYSTEM_TIMEOUT` final batch Skip. FIRST_REPORT/PER_PICKER overdue clocks remain independent.
+- At 08:00 shortage, 08:25 published result, 15-minute edit setting: both statuses correctable at 08:39:59, not at 08:40:00; verify version/permissions/idempotency and 409 after deadline.
+- Change HAS_STOCK→SKIP_ALLOWED→PENDING→HAS_STOCK within the same batch: original expiry stays fixed, no repeat grant.
+- Toggling setting OFF immediately blocks, toggling ON respects a persisted unexpired deadline. Changing configured duration affects subsequent first outcomes, not existing issued deadlines. Legacy records without stored deadline remain unavailable for edit.
+- Web/Android hide correction actions locally while page remains open, without new network, timer per row, Firestore subscription, DO poll or service cost; realtime snapshots carry eligibility and stored expiry through the existing event stream.
+- Confirm FCM target list, exact affected Picker ACK, two-step confirmation and audit still work; manually/realtime/system-timed outcome handling remains parity-safe. Acceptance requires full Beta CI/field test, no immediate release or Stable mutation.

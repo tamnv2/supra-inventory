@@ -1,5 +1,4 @@
 import {
-  correctionDeadlineFromFirstReport,
   initializeSlaAutomationSchema,
   readOperationalSlaConfig,
   scheduleNextOperationalAlarm,
@@ -263,10 +262,21 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
       ? Math.max(0, Math.round((firstReportMs - previousResolvedMs) / 60_000))
       : null;
 
-  if (String(row.status || "") !== "PENDING") {
+  const resolvedStatus = String(row.status || "");
+  if (resolvedStatus !== "PENDING") {
+    // Result snapshots must carry the SAME server-authoritative edit eligibility
+    // as the initial result list. This path feeds both Android and Web deltas.
+    const correctionExpiryMs = Date.parse(String(row.correction_deadline_at || ""));
+    const correctionAllowed = Boolean(
+      config?.skip_to_stock_enabled &&
+      (resolvedStatus === "HAS_STOCK" || resolvedStatus === "SKIP_ALLOWED") &&
+      Number.isFinite(correctionExpiryMs) &&
+      correctionExpiryMs > Date.now()
+    );
     return {
       ...row,
-      affected_picker_count: String(row.status || "") === "CLOSED"
+      correction_allowed: correctionAllowed,
+      affected_picker_count: resolvedStatus === "CLOSED"
         ? Number(row.withdrawn_ticket_count || 0)
         : Number(row.resolved_picker_count || 0),
       recurrence_minutes: recurrenceMinutes,
@@ -277,6 +287,7 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
   const deadlines = slaDeadlines(firstReportAt, config);
   return {
     ...row,
+    correction_allowed: false,
     open_ticket_count: Number(row.waiting_picker_count || 0),
     affected_picker_count: Number(row.waiting_picker_count || 0),
     sla_state: sla.state,
@@ -1012,17 +1023,19 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
 
   const serverNowMs = Date.now();
   const serverNow = new Date(serverNowMs).toISOString();
+  // Read SLA configuration ONCE per list request, not once per result row.
+  // The deadline is persisted when the outcome is published and never
+  // recomputed from the first out-of-stock report.
+  const correctionEnabled = readSlaConfig(state)?.skip_to_stock_enabled === true;
   const projectedRows = rows.map((row) => {
-    const correctionDeadline = String(row.status || "") === "SKIP_ALLOWED"
-      ? correctionDeadlineFromFirstReport(state, String(row.first_report_at || ""))
-      : null;
+    const correctionDeadline = String(row.correction_deadline_at || "").trim() || null;
     const correctionDeadlineMs = correctionDeadline ? Date.parse(correctionDeadline) : NaN;
     return {
       ...row,
       correction_deadline_at: correctionDeadline,
       correction_allowed: Boolean(
-        String(row.status || "") === "SKIP_ALLOWED" &&
-        correctionDeadline &&
+        correctionEnabled &&
+        ["HAS_STOCK", "SKIP_ALLOWED"].includes(String(row.status || "")) &&
         Number.isFinite(correctionDeadlineMs) &&
         correctionDeadlineMs > serverNowMs
       ),
@@ -1403,7 +1416,7 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
         auto_skip_enabled: "boolean",
         auto_skip_mode: "FIRST_REPORT|PER_PICKER",
         skip_to_stock_enabled: "boolean; default true",
-        skip_to_stock_minutes: "1..10080; counted from first report",
+        skip_to_stock_minutes: "1..10080; counted from first published result",
       },
     }, 400);
   }
