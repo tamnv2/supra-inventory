@@ -3014,7 +3014,7 @@ async function loadReporterQueueSnapshot(): Promise<void> {
 }
 
 async function loadReporterTabCounters(force = false): Promise<void> {
-  if (!roleOperate() || ((queueBadgeInitialized && recentBadgeInitialized) && !force)) return;
+  if (!roleOperate() || ((queueBadgeInitialized && overdueBadgeInitialized && recentBadgeInitialized) && !force)) return;
   const requestGeneration = ++reporterBadgeLoadGeneration;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
@@ -4506,7 +4506,8 @@ function bindSection(): void {
     else return;
     syncVisibleDateRange("recent", recentFrom, recentTo);
     recentOffset = 0;
-    void run(loadOperations);
+    // One counter reconcile for the new date scope, not one per tab.
+    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
   }));
   document.querySelector<HTMLFormElement>("#recent-range-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -4525,7 +4526,8 @@ function bindSection(): void {
     recentFrom = from;
     recentTo = to;
     recentOffset = 0;
-    void run(loadOperations);
+    // Match all five badge counts to the selected reporting range.
+    void run(async () => { await Promise.all([loadOperations(), loadReporterTabCounters(true)]); });
   });
   document.querySelector<HTMLButtonElement>("#recent-open-report")?.addEventListener("click", () => {
     reportFrom = recentFrom;
