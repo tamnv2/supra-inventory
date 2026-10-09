@@ -754,6 +754,24 @@ def main() -> None:
     forbid(web, 'perPickerOverdueEnabled ? `<button type="button" class="workspace-tab', "D165 Web overdue tab never hidden")
     forbid(web, 'if (!perPickerOverdueEnabled && profile)', "D165 Web overdue route never redirects away")
 
+    # D166: distinguish HTTP 400/404/409/422 rather than combining thousands
+    # of response errors in OTHER_ERROR; never record raw error message/body.
+    d166_audit = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAudit.kt")
+    for marker in (
+        'status == 400 -> "HTTP_400"',
+        'status == 404 -> "HTTP_404"',
+        'status == 409 -> "HTTP_409"',
+        'status == 422 -> "HTTP_422"',
+        'http_dropped_samples',
+        'http_business_error_dropped_samples',
+        'internal fun recordPickerResultError(status: Int, code: String)',
+        'else -> "OTHER_BUSINESS_ERROR"',
+    ):
+        require(d166_audit, marker, "D166 bounded error classification")
+    require(inventory_api, 'D166UsageAudit.recordPickerResultError(response.first, code)', "D166 failed receipt error class")
+    forbid(d166_audit, 'put("message"', "D166 must not upload raw API message")
+    forbid(d166_audit, 'put("sku"', "D166 no SKU in telemetry")
+
     print("ANDROID_OPERATIONAL_REGRESSION_PASS")
 
 
