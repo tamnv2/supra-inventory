@@ -186,6 +186,10 @@ def require_source_markers() -> None:
             fail(f"D165 Picker FCM correction metadata/target missing: {marker}")
     if 'WHERE a.result_event_id = ? AND a.target_user_id = ?' not in operational:
         fail("D165 Picker realtime authorization must remain exact-event targeted")
+    if 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue", "reporter_recent"]' not in business_api:
+        fail("D166 correction setting toggles must invalidate result eligibility over existing realtime")
+    if 'counted from first published result' not in operational:
+        fail("D166 service config validation still advertises obsolete first-report correction clock")
 
     # D165 PER_PICKER keeps the batch pending after timeout, so the business
     # resolver may compute queue_delta from remaining waiting tickets instead of
