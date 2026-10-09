@@ -6285,6 +6285,17 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "ha_rtdb_protocol_candidate": {
+      "branch": "d166-ha-rtdb-stream-parser",
+      "status": "BETA_SOURCE_AND_CI_CANDIDATE__NOT_DEPLOYED__OWNER_FIELD_PASS_PENDING",
+      "base_agent_version": 123,
+      "scope": "SSE_NESTED_PUT_PATCH_PARSER__BOUNDED_DIRECT_RTDB_PRIMARY_CHALLENGE__WMS_READINESS_HYSTERESIS",
+      "evidence": "FIREBASE_OFFICIAL_RTDB_SSE_PATH_DATA_ENVELOPE__MAIN_PREVIOUS_PARSER_FLAT",
+      "acceptance": "NO_FALSE_PRIMARY_SWITCH_WHEN_HEALTHY__ACTIVE_DEAD_PROOF__GENERATION_FENCING__NO_EXTRA_HEALTHY_NETWORK_POLL",
+      "trade_off": "UNCERTAIN_NETWORK_PARTITION_REMAINS_PRIMARY_UNVERIFIED__DO_NOT_PROMOTE",
+      "owner_field_pass": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
