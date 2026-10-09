@@ -55,6 +55,20 @@ export function initializeRuntimeLogSchema(state: DurableObjectState): void {
     CREATE INDEX IF NOT EXISTS idx_runtime_log_buffer_drive_pending
       ON runtime_log_buffer(drive_synced_at, received_at);
   `);
+  // Separate single-row authority for OAuth-created Launcher archive folder.
+  // This is not part of the general Inventory logs parent or retention.
+  state.storage.sql.exec(`
+    CREATE TABLE IF NOT EXISTS launcher_log_folder (
+      singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+      folder_id TEXT NOT NULL DEFAULT '',
+      lease_token TEXT NOT NULL DEFAULT '',
+      lease_until_ms INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  state.storage.sql.exec(
+    "INSERT OR IGNORE INTO launcher_log_folder(singleton) VALUES (1)",
+  );
   const columns = state.storage.sql.exec<{ name: string }>("PRAGMA table_info(runtime_log_buffer)").toArray();
   if (!columns.some((row) => row.name === "bundle_id")) {
     state.storage.sql.exec("ALTER TABLE runtime_log_buffer ADD COLUMN bundle_id TEXT");
@@ -70,6 +84,54 @@ export async function handleRuntimeLogCoreRequest(
 ): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/runtime-logs/")) return null;
+
+  if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-folder") {
+    const row = state.storage.sql.exec<SqlRow>(
+      "SELECT folder_id, lease_until_ms FROM launcher_log_folder WHERE singleton = 1",
+    ).toArray()[0];
+    return response({
+      folder_id: String(row?.folder_id || ""),
+      provisioning_in_progress: Number(row?.lease_until_ms || 0) > Date.now(),
+    });
+  }
+  if (request.method === "POST" && url.pathname === "/runtime-logs/launcher-folder/lease") {
+    const now = Date.now();
+    const nonce = crypto.randomUUID();
+    // Atomic compare-and-claim in the existing single InventoryCore object.
+    state.storage.sql.exec(
+      `UPDATE launcher_log_folder SET lease_token = ?, lease_until_ms = ?,
+         updated_at = CURRENT_TIMESTAMP
+         WHERE singleton = 1 AND folder_id = '' AND lease_until_ms <= ?`,
+      nonce, now + 90_000, now,
+    );
+    const row = state.storage.sql.exec<SqlRow>(
+      "SELECT folder_id, lease_token FROM launcher_log_folder WHERE singleton = 1",
+    ).toArray()[0];
+    return response({
+      acquired: String(row?.lease_token || "") === nonce,
+      folder_id: String(row?.folder_id || ""),
+      nonce: String(row?.lease_token || "") === nonce ? nonce : "",
+    });
+  }
+  if (request.method === "POST" && url.pathname === "/runtime-logs/launcher-folder/commit") {
+    const body = await request.json().catch(() => ({})) as { nonce?: unknown; folder_id?: unknown };
+    const folderId = String(body.folder_id || "").trim();
+    const nonce = String(body.nonce || "").trim();
+    if (!/^[A-Za-z0-9_-]{10,200}$/.test(folderId) || !/^[a-f0-9-]{36}$/.test(nonce)) {
+      return response({ error: "INVALID_LAUNCHER_FOLDER_COMMIT" }, 400);
+    }
+    state.storage.sql.exec(
+      `UPDATE launcher_log_folder SET folder_id = ?, lease_token = '',
+         lease_until_ms = 0, updated_at = CURRENT_TIMESTAMP
+         WHERE singleton = 1 AND folder_id = '' AND lease_token = ?`,
+      folderId, nonce,
+    );
+    const row = state.storage.sql.exec<SqlRow>(
+      "SELECT folder_id FROM launcher_log_folder WHERE singleton = 1",
+    ).toArray()[0];
+    const committed = String(row?.folder_id || "") === folderId;
+    return response({ committed, folder_id: String(row?.folder_id || "") }, committed ? 200 : 409);
+  }
 
   if (request.method === "POST" && url.pathname === "/runtime-logs/upsert") {
     let body: {

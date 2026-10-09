@@ -494,7 +494,7 @@ export interface LauncherLogDiagnostics {
   recent_failure_sample_count: number;
   recent_failure_classes: Record<string, number>;
   checked_at: string;
-  drive_folder_check?: { status: string; can_add_children: boolean | null };
+  drive_folder_check?: { status: string; can_add_children: boolean | null; folder_url?: string };
 }
 
 export async function getLauncherLogDiagnostics(): Promise<LauncherLogDiagnostics> {

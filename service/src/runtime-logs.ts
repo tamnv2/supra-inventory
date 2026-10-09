@@ -350,8 +350,9 @@ async function refreshGoogleAccessToken(env: RuntimeLogsEnv): Promise<string> {
 export async function probeLauncherArchiveFolder(env: RuntimeLogsEnv): Promise<{
   status: string;
   can_add_children: boolean | null;
+  folder_url?: string;
 }> {
-  const folderId = env.LAUNCHER_LOGS_FOLDER_ID || "";
+  const folderId = (await launcherFolderFromCore(env).catch(() => "")) || env.LAUNCHER_LOGS_FOLDER_ID || "";
   if (!FILE_ID_RE.test(folderId)) return { status: "FOLDER_NOT_CONFIGURED", can_add_children: null };
   let token: string;
   try {
@@ -380,9 +381,137 @@ export async function probeLauncherArchiveFolder(env: RuntimeLogsEnv): Promise<{
     return {
       status: folder.capabilities?.canAddChildren === true ? "ACCESSIBLE_WRITABLE" : "ACCESSIBLE_WRITE_NOT_CONFIRMED",
       can_add_children: folder.capabilities?.canAddChildren === true,
+      folder_url: `https://drive.google.com/drive/folders/${folderId}`,
     };
   } catch {
     return { status: "DRIVE_FOLDER_CHECK_UNAVAILABLE", can_add_children: null };
+  }
+}
+
+const MANAGED_LAUNCHER_FOLDER_NAME = "SUPRA Launcher Logs Beta - Worker Managed";
+let launcherManagedFolderCache = { id: "", expiresAt: 0 };
+let launcherProvisionNextAttemptAt = 0;
+
+async function launcherFolderFromCore(env: RuntimeLogsEnv): Promise<string> {
+  if (!env.INVENTORY_CORE) return "";
+  const now = Date.now();
+  if (launcherManagedFolderCache.expiresAt > now) return launcherManagedFolderCache.id;
+  const result = await core(env).fetch("https://inventory-core.internal/runtime-logs/launcher-folder");
+  if (!result.ok) throw new Error("LAUNCHER_FOLDER_CORE_UNAVAILABLE");
+  const payload = await result.json() as { folder_id?: string };
+  const id = String(payload.folder_id || "");
+  launcherManagedFolderCache = { id: FILE_ID_RE.test(id) ? id : "", expiresAt: now + (id ? 10 * 60_000 : 20_000) };
+  return launcherManagedFolderCache.id;
+}
+
+/**
+ * Repair the manually-created Drive folder 404 without broadening OAuth scopes.
+ * Provision inside the existing authorized Google user's My Drive root, then
+ * persist one canonical ID in InventoryCore before changing archive targets.
+ * Only run from the existing 5-minute scheduled maintenance.
+ */
+export async function ensureLauncherLogsDestination(env: RuntimeLogsEnv): Promise<void> {
+  if (!env.INVENTORY_CORE || Date.now() < launcherProvisionNextAttemptAt) return;
+  try {
+    if (await launcherFolderFromCore(env)) {
+      launcherProvisionNextAttemptAt = Date.now() + 6 * 60 * 60_000;
+      return;
+    }
+    const lease = await core(env).fetch("https://inventory-core.internal/runtime-logs/launcher-folder/lease", {
+      method: "POST",
+    });
+    if (!lease.ok) throw new Error("LAUNCHER_FOLDER_LEASE_FAILED");
+    const claim = await lease.json() as { acquired?: boolean; nonce?: string; folder_id?: string };
+    if (!claim.acquired || !claim.nonce) {
+      launcherProvisionNextAttemptAt = Date.now() + 5 * 60_000;
+      return;
+    }
+    const token = await refreshGoogleAccessToken(env);
+    const query = new URLSearchParams({
+      q: `name = '${driveQueryEscape(MANAGED_LAUNCHER_FOLDER_NAME)}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+      spaces: "drive",
+      orderBy: "createdTime asc",
+      pageSize: "10",
+      fields: "files(id,name,mimeType,createdTime,capabilities/canAddChildren)",
+    });
+    const listed = await fetch(`https://www.googleapis.com/drive/v3/files?${query}`, {
+      headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+    });
+    if (!listed.ok) throw new Error(`LAUNCHER_FOLDER_LIST_HTTP_${listed.status}`);
+    const candidates = await listed.json() as { files?: Array<{ id?: string; capabilities?: {canAddChildren?: boolean} }> };
+    let folderId = (candidates.files || []).find(f => FILE_ID_RE.test(String(f.id || ""))
+      && f.capabilities?.canAddChildren === true)?.id || "";
+    if (!folderId) {
+      const created = await fetch("https://www.googleapis.com/drive/v3/files?fields=id,mimeType,capabilities/canAddChildren", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json; charset=utf-8",
+        },
+        // No parents: OAuth-created folder is visible and writable with drive.file
+        // while the existing manually-created folder remains untouched.
+        body: JSON.stringify({
+          name: MANAGED_LAUNCHER_FOLDER_NAME,
+          mimeType: "application/vnd.google-apps.folder",
+          appProperties: { project: "supra-inventory", scope: "launcher-logs-beta", created_by: "worker-oauth" },
+        }),
+      });
+      const data = await created.json().catch(() => ({})) as { id?: string };
+      if (!created.ok || !FILE_ID_RE.test(String(data.id || ""))) {
+        throw new Error(`LAUNCHER_FOLDER_CREATE_HTTP_${created.status}`);
+      }
+      folderId = String(data.id);
+    }
+    // A real write+read-back proves the Worker can archive child files.
+    // Clearly NOT an actual PDA log, so it does not pollute Launcher counters.
+    const body = JSON.stringify({
+      type: "launcher_service_drive_transport_probe",
+      generated_at: new Date().toISOString(),
+      note: "Worker-to-Drive connectivity proof only; NOT a PDA diagnostic log",
+    });
+    const boundary = "launcher_archive_check_" + crypto.randomUUID().replaceAll("-", "");
+    const metadata = JSON.stringify({
+      name: "_SERVICE_ARCHIVE_CHECK.json", parents: [folderId], mimeType: "application/json",
+      appProperties: { kind: "launcher-service-archive-check" },
+    });
+    const multipart = [
+      `--${boundary}`, "Content-Type: application/json; charset=UTF-8", "",
+      metadata, `--${boundary}`, "Content-Type: application/json; charset=UTF-8", "",
+      body, `--${boundary}--`, "",
+    ].join("\r\n");
+    const uploaded = await fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,parents",
+      {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": `multipart/related; boundary=${boundary}` },
+        body: multipart,
+      },
+    );
+    const archive = await uploaded.json().catch(() => ({})) as {id?: string; parents?: string[]};
+    if (!uploaded.ok || !archive.id || !(archive.parents || []).includes(folderId)) {
+      throw new Error(`LAUNCHER_FOLDER_ARCHIVE_CHECK_HTTP_${uploaded.status}`);
+    }
+    const confirmed = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(archive.id)}?fields=id,parents`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    if (!confirmed.ok) throw new Error(`LAUNCHER_FOLDER_VERIFY_HTTP_${confirmed.status}`);
+    const verified = await confirmed.json() as { id?: string; parents?: string[] };
+    if (verified.id !== archive.id || !(verified.parents || []).includes(folderId)) {
+      throw new Error("LAUNCHER_FOLDER_ARCHIVE_READBACK_MISMATCH");
+    }
+    const commit = await core(env).fetch("https://inventory-core.internal/runtime-logs/launcher-folder/commit", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ nonce: claim.nonce, folder_id: folderId }),
+    });
+    if (!commit.ok) throw new Error(`LAUNCHER_FOLDER_COMMIT_HTTP_${commit.status}`);
+    launcherManagedFolderCache = { id: folderId, expiresAt: Date.now() + 10 * 60_000 };
+    launcherProvisionNextAttemptAt = Date.now() + 6 * 60 * 60_000;
+    console.log("launcher_drive_folder_recovery=PASS smoke_archive=VERIFIED");
+  } catch (error) {
+    launcherProvisionNextAttemptAt = Date.now() + 5 * 60_000;
+    console.error("launcher_drive_folder_recovery=FAILED", error instanceof Error ? error.message : "unknown");
   }
 }
 
@@ -535,7 +664,11 @@ export async function uploadRuntimeLog(
 
   try {
     const token = await refreshGoogleAccessToken(env);
-    await maybeCleanupRuntimeLogs(env, token).catch(() => undefined);
+    const effectiveFolder = actor.user_id === "launcher-system"
+      ? ((await launcherFolderFromCore(env)) || env.LOGS_FOLDER_ID)
+      : env.LOGS_FOLDER_ID;
+    const archiveEnv = { ...env, LOGS_FOLDER_ID: effectiveFolder };
+    await maybeCleanupRuntimeLogs(archiveEnv, token).catch(() => undefined);
 
     // PDA Launcher runs two device-local daily slots. An evening event may
     // legitimately be sealed into tomorrow's 13:30 bucket: archive by the
@@ -545,7 +678,7 @@ export async function uploadRuntimeLog(
       ? String((body.payload as Record<string, unknown>).date || "") : "";
     const archiveTimestamp = /^\d{4}-\d{2}-\d{2}$/.test(launcherDay)
       ? new Date(`${launcherDay}T12:00:00+07:00`) : new Date(generatedAt);
-    const daily = await resolveRuntimeLogDailyFolder(env, token, archiveTimestamp);
+    const daily = await resolveRuntimeLogDailyFolder(archiveEnv, token, archiveTimestamp);
     const logicalBoundary = boundaryId
       ? await sha256Hex(`${source}|${actor.user_id}|${String((sanitize(body.device || {}) as Record<string, unknown>).device_id || "")}|${boundaryId}`)
       : "";
@@ -668,7 +801,7 @@ async function archiveBufferedJson(
   const isLauncher = /^scheduled_android_launcher-|^error_android_launcher-|^crash_android_launcher-/i.test(filename);
   if (isLauncher && !env.LAUNCHER_LOGS_FOLDER_ID) throw new Error("LAUNCHER_LOG_FOLDER_NOT_CONFIGURED");
   const destination = isLauncher
-    ? { ...env, LOGS_FOLDER_ID: env.LAUNCHER_LOGS_FOLDER_ID }
+    ? { ...env, LOGS_FOLDER_ID: (await launcherFolderFromCore(env)) || env.LAUNCHER_LOGS_FOLDER_ID }
     : env;
   let sourceDate = new Date();
   try {
