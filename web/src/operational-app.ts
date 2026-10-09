@@ -5129,6 +5129,12 @@ window.addEventListener("pageshow", () => {
   // D141: browsers may restore form controls on reload/back-forward navigation.
   // Re-assert explicit SLA server/draft authority after page restoration.
   requestAnimationFrame(() => syncSlaModeControlsFromState());
+  // D166: a suspended browser may throttle the one-shot expiry timer.
+  // Recheck visibility locally before presenting any edit control again.
+  scheduleCorrectionExpiry();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") scheduleCorrectionExpiry();
 });
 
 async function bootstrap(): Promise<void> {
