@@ -1416,7 +1416,7 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
         auto_skip_enabled: "boolean",
         auto_skip_mode: "FIRST_REPORT|PER_PICKER",
         skip_to_stock_enabled: "boolean; default true",
-        skip_to_stock_minutes: "1..10080; counted from first report",
+        skip_to_stock_minutes: "1..10080; counted from first published result",
       },
     }, 400);
   }
