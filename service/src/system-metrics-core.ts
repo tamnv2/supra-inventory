@@ -1,3 +1,5 @@
+import { operationalSqlUsageSnapshot } from "./operational-v2-core";
+
 type SqlRow = Record<string, SqlStorageValue>;
 
 function first<T extends SqlRow>(rows: T[]): T | null {
@@ -160,6 +162,9 @@ export async function handleSystemMetricsCoreRequest(state: DurableObjectState, 
       sqlite: {
         database_size_bytes: state.storage.sql.databaseSize,
         table_rows: tableRows,
+        // D166: process-local hot SQL query cost estimate, no SQL read/write
+        // performed just to assemble this statistic.
+        query_usage: operationalSqlUsageSnapshot(state),
       },
       accounts: {
         total: tableRows.users,
