@@ -73,6 +73,8 @@ interface Env {
   LOAD_TEST_TOKEN?: string;
   D166_CF_READ_TOKEN?: string;
   D166_CF_ACCOUNT_ID?: string;
+  // D166 Owner-gated version floor. Unset or 0 means updates stay optional.
+  PDA_MIN_VERSION_CODE_BETA?: string;
 }
 
 interface InternalUser {
@@ -1327,6 +1329,12 @@ export default {
             channel: "beta",
             tag: release.tag,
             version_code: Number(release.tag.replace("beta-vc", "")),
+            // The floor is inert until an Owner-approved Beta variable is set.
+            // Clamp to a published signed release so a typo cannot brick login.
+            minimum_version_code: Math.min(
+              Number(release.tag.replace("beta-vc", "")),
+              Math.max(0, Math.trunc(Number(env.PDA_MIN_VERSION_CODE_BETA || "0") || 0)),
+            ),
             name: release.name,
             published_at: release.published_at,
             source: release.source,
