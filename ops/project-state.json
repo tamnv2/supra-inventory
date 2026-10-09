@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "GOV-QUOTA-20261008",
     "accepted_base_evidence": "OWNER_EXPLICIT_GOV-QUOTA-20261008_PASS__POLICY_ONLY_AFTER_PR504_PR505_MERGED__D165_REMAINS_DEPLOYED_RUNTIME_BASE",
     "current_change_id": "D166",
-    "current_change_status": "D166_OWNER_AUTHORIZED_BETA_ALL_PDA_RELEASE__BUILD_AND_DEPLOY_PENDING",
+    "current_change_status": "D166_BETA_RELEASE_PUBLISHED__WORKER_GATEWAY_CI_PASS__MANDATORY_PDA_VC104_POLICY__FIELD_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -6285,8 +6285,31 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+
+    "beta_release_receipt_2026_10_10": {
+      "status": "PUBLISHED_TECHNICAL_PASS__FLEET_INSTALL_AND_OWNER_PASS_PENDING",
+      "main_sha": "20ef736a78de3d253f6636b5518d31bded6a4c4e",
+      "pr": 541,
+      "worker_deploy_run": 37998960458,
+      "agent_gateway_deploy_run": 37998960531,
+      "agent_gateway_deploy_attempt": 2,
+      "android_release_run": 37998960515,
+      "agent_release_run": 37998960499,
+      "android_tag": "beta-vc104",
+      "android_apk_sha256": "5ad1e877fde607039f6563160faa8b3a5959dd1846e65aea85041f0e58b03684",
+      "agent_tag": "relay-agent-v124",
+      "agent_exe_sha256": "6d792ba176e4f48fddf8efe8e2303bcd6bd8372fc893a82f2f1894a58a1033ff",
+      "release_channel": "inventory-channel__AGENT_AND_PDA_ASSETS_PROMOTED",
+      "all_beta_pda_policy": "MIN_VERSION_104_AFTER_CHANNEL_VC104__INSTALLED_OLD_APK_NOT_RETROACTIVELY_ENFORCEABLE",
+      "agent_fleet": "RELEASE_PUBLISHED_NOT_ALL_WINDOWS_INSTALLED__NO_ACTIVE_PRIMARY_FORCED_TERMINATION",
+      "provider_live_public_manifest_readback": "NOT_VERIFIED__LIVE_FETCH_BLOCKED",
+      "device_field_acceptance": "PENDING",
+      "usage_reduction": "NOT_PROVEN",
+      "owner_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
     "integration_2026_10_10": {
-      "status": "INTEGRATED_DRAFT_PR541__TECHNICAL_CI_18_PASS_10_CONDITIONAL_SKIPS__NO_MERGE_DEPLOY_FIELD_PASS",
+      "status": "D166_BETA_WORKER_GATEWAY_DEPLOY_PASS__AGENT_V124_ANDROID_VC104_RELEASE_PUBLISHED__OWNER_DEVICE_FIELD_PENDING",
       "owner_request": "2026-10-10_CONTINUE_SAME_D166_UNTIL_PASS",
       "branch": "integrate/d166-beta-cohesion-20261010",
       "pr": 541,
@@ -6321,7 +6344,7 @@
         "DAILY_LOG_SHARED_OAUTH_ACCESS_FIELD_PROOF_PENDING",
         "SIGNED_ANDROID_FLEET_SCOPE_NOT_APPROVED"
       ],
-      "release": "DRAFT_PR_ONLY__NO_NEW_APK_OR_EXE_PROMOTED__ANDROID_MIN_VERSION_DEFAULT_0",
+      "release": "MAIN_20EF736A__AGENT_RELAY_AGENT_V124_CHANNEL_PASS__ANDROID_BETA_VC104_CHANNEL_PASS__MIN_VERSION_104_AFTER_SIGNED_CHANNEL",
       "required_ci": "REPO_AUTHORITY__PROJECT_STATE_CONTINUITY__UI_WEB_TYPESCRIPT__ANDROID__RELAY_AGENT__OPERATIONAL_REGRESSION",
     "validated_head_before_receipt": "3c80fdc19a194ab2e6c9e6bcbf944f9dd8782cb8__28_CHECKS__18_SUCCESS__10_CONDITIONAL_SKIPPED__0_FAILURE",
     "technical_caveat": "NO_GITHUB_MAIN_MERGE_NO_WORKER_GATEWAY_OR_SIGNED_APK_PROMOTION_NO_REAL_DEVICE_FIELD_OR_PROVIDER_QUOTA_PROOF",
@@ -6334,15 +6357,15 @@
       "pda_mandatory_floor": "104_ONLY_AFTER_SIGNED_CHANNEL_HAS_VC104__NO_INFLIGHT_ACK_ABORT",
       "agent_update": "RELEASE_CHANNEL_V124__CURRENT_OLD_INSTALLED_AGENT_MAY_REQUIRE_OPERATOR_UPDATE__NO_FORCED_PRIMARY_RESTART",
       "rollout_scope": "ALL_BETA_PDA__NOT_STABLE__NOT_LAUNCHER",
-      "release_ci": "PENDING_V124_AND_PDA_MIN_VERSION_CI",
-      "deploy_checks": "PENDING_ACTUAL_RUN_EVIDENCE",
+      "release_ci": "MAIN_20EF736A__PR541_18_SUCCESS_10_CONDITIONAL_SKIP__ANDROID_AND_AGENT_MAIN_WORKFLOWS_PASS",
+      "deploy_checks": "BETA_WORKER_37998960458_PASS__GATEWAY_37998960531_ATTEMPT_2_PASS__ANDROID_37998960515_PASS__AGENT_37998960499_PASS",
       "owner_field_pass": false,
       "blocked_claims": "NEVER_CALL_ALL_INSTALLED_DEVICES_UPGRADED_FROM_PUBLISHED_MANIFEST_ALONE"
     },
     "owner_acceptance": "PENDING_EXPLICIT_D166_FIELD_PASS",
       "accepted_runtime_base": "AGENT_V122_SELECTED__D165_WEB_ANDROID_VC102_ACCEPTED_WITH_V123_DIAGNOSTIC_RELEASE_PROVENANCE",
       "stable": "OWNER_GATED_UNTOUCHED",
-      "next": "REPAIR_COMBINED_CI_AND_DOCUMENT_ALL_SOURCE_DIFFS__STAGE_BETA_FIELD_ONLY_AFTER_OWNER_RELEASE_AUTHORIZATION"
+      "next": "OWNER_FIELD_TEST_ACTUAL_PDA_UPDATES_AGENT_PRIMARY_SAFE_TRANSFER_USAGE_LOGS_AND_DRIVE__NEVER_CALL_FLEET_INSTALLED_FROM_CHANNEL_ONLY"
     },
     "shared_result_correction_candidate": {
       "scope": "D166_BETA_SHARED_HAS_STOCK_SKIP_ALLOWED_CORRECTION_SETTING",
