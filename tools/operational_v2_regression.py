@@ -79,9 +79,13 @@ def require_source_markers() -> None:
         '"BATCH_SNAPSHOT"',
         '"RECENT_RESULTS_COUNT"',
         '"RECENT_RESULTS_PAGE"',
+        '"RECENT_STATUS_TOTALS"',
+        '"RECENT_ACK_TOTALS"',
+        'const allBuckets = new WeakMap<DurableObjectState, Map<string, Sample>>()',
+        'recordD166SqlUsage(state, queryId, cursor, start);',
         'const cursor = state.storage.sql.exec<T>(sql, ...bindings);',
         'const rows = cursor.toArray();',
-        'recordD166SqlUsage(queryId, cursor, start);',
+        'recordD166SqlUsage(state, queryId, cursor, start);',
         'ISOLATE_PROCESS_LOCAL_RESTART_RESETS__ESTIMATE_NOT_BILLING',
         'const MAX_BUCKET_HOURS = 36',
     ):
@@ -91,10 +95,12 @@ def require_source_markers() -> None:
         'd166MeasuredSqlRows<SqlRow>(state, "BATCH_SNAPSHOT"',
         'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"',
         'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS"',
+        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS"',
     ):
         if marker not in operational:
             fail(f"D166 expensive Inventory SQL lacks cursor instrumentation: {marker}")
-    if 'd166_sql_diagnostics: d166SqlUsageSnapshot()' not in system_metrics:
+    if 'd166_sql_diagnostics: d166SqlUsageSnapshot(state)' not in system_metrics:
         fail("D166 SQL diagnostics missing from existing on-demand metrics endpoint")
 
     if "pickerCanReceiveRealtimeEvent" not in read_model or "pickerRealtimeSnapshot" not in read_model:
