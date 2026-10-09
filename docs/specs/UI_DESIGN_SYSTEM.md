@@ -1108,3 +1108,8 @@ Android Reporter/Web result-tab Skip cards show two equal-importance, clearly na
 For both Web and Android, within a single shared configurable correction window (e.g. 15 minutes), surface correction actions for both `HAS_STOCK` and `SKIP_ALLOWED`. After deadline **hide** all relevant `Sửa` buttons; do not treat hidden controls as substitute for server deadline check. Pending analysis must reconcile current UI and server fields; no styling or behavior is changed by this document.
 
 The Owner separately requests design analysis for the SKU storage-area label **as it was at the report date** and location-based summary/detailed reporting (e.g. LTA or Shelving), subject to verified data source and scope approval. Never show inferred/missing area as verified. `docs/D166_APPROVED_BACKLOG.md` is the backlog authority.
+
+
+### D166-WEB-DATE-RANGE — Proposed shared date controls for Web operations (backlog only)
+
+When the **Web-only** D166 five-tab design is considered, place a single visible date selection **Hôm nay / Từ ngày / Đến ngày / Xem (Áp dụng)** at the workspace level rather than five independent per-tab selectors. The visible and authoritative selected range must match, remain stable while switching **Đang xử lý / Quá hạn / Đã có hàng / Cho phép Skip / Picker đã thu hồi**, and default to `Asia/Ho_Chi_Minh` Hôm nay on a fresh visit. The five tabs must not show mismatched dates or historical badges presented as present-day realtime counts. Apply range changes intentionally, with bounded server reads; do not add auto-refresh timers. Historical status attribution and date semantics require Owner-approved analysis. **No current Web layout or Android Reporter change is authorized.**
