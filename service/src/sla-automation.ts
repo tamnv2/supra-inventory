@@ -521,7 +521,7 @@ function processBatchAutoSkip(
 
     state.storage.transactionSync(() => {
       const current = first(state.storage.sql.exec<SqlRow>(
-        "SELECT status, auto_skip_deadline_at FROM report_batches WHERE batch_id = ? LIMIT 1",
+        "SELECT status, auto_skip_deadline_at, correction_deadline_at FROM report_batches WHERE batch_id = ? LIMIT 1",
         batchId,
       ).toArray());
       if (!current || String(current.status) !== "PENDING" || !current.auto_skip_deadline_at || String(current.auto_skip_deadline_at) > now) return;
@@ -538,7 +538,8 @@ function processBatchAutoSkip(
       if (!targetRows.length) return;
 
       // Correction is a separate outcome-publication window, not an SLA since first report.
-      const correctionDeadline = config.skip_to_stock_enabled ? deadlineIso(now, config.skip_to_stock_minutes) : null;
+      const correctionDeadline = String(current.correction_deadline_at || "") ||
+        (config.skip_to_stock_enabled ? deadlineIso(now, config.skip_to_stock_minutes) : null);
       state.storage.sql.exec(
         `UPDATE report_tickets
             SET status = 'RESOLVED',
