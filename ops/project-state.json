@@ -6285,6 +6285,20 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "new_picker_reporting_default_on_backlog": {
+      "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
+      "owner_requested_date_vn": "2026-10-09",
+      "status": "BACKLOG_RECORDED__ANALYSIS_DEFERRED__CODE_NOT_STARTED__FIELD_NOT_PASS",
+      "future_goal": "NEWLY_CREATED_PICKER_ACCOUNTS_DEFAULT_SHORTAGE_REPORTING_ENABLED_TRUE",
+      "scope": "INVENTORY_BETA_PICKER_PROVISIONING_ONLY__HR_AND_OTHER_VERIFIED_CREATION_ENTRYPOINTS",
+      "preserve": "EXISTING_PICKER_SETTINGS__ADMIN_ROOT_EXPLICIT_TOGGLE__D156_ONE_TIME_MIGRATION_HISTORY",
+      "authority_conflict": "D156_NEW_PICKER_DEFAULT_OFF_STILL_ACTIVE_UNTIL_SEPARATE_OWNER_APPROVED_IMPLEMENTATION",
+      "reference": "docs/D166_APPROVED_BACKLOG.md",
+      "runtime_change": "NONE",
+      "provider_change": "NONE",
+      "implementation_gate": "OWNER_APPROVAL_AFTER_IMPACT_REVIEW_REQUIRED",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
     "launcher_log_service_diagnostics_2026_10_09": {
       "status": "ROOT_FIELD_PROBE_20261009_RECEIVED_0_DRIVE_404__OAUTH_FOLDER_REMOTE_REPAIR_CODE_CANDIDATE",
       "approval": "OWNER_2026_10_09_INVESTIGATE_AND_FIX_IF_SAFE",
