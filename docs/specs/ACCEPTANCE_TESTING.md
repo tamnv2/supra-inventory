@@ -2820,3 +2820,12 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
 4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
 5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
+
+
+### D166 canonical log folder field acceptance
+
+- Parallel Web+Android uploads and Agent Apps Script upload for VN day resolve the *same* canonical Drive folder ID, without adding an independent Drive folder or scheduled provider poll.
+- Existing 2-folder historical days remain unchanged; do not delete/move/merge without separate Owner approval.
+- Crash between claim/list/create/commit, Drive 403/404/timeout, OAuth mismatch and simultaneous claimant: never delete unsynced files; Agent retains local log; Worker retries buffered log. If access denied on Apps Script, fail closed rather than create another folder.
+- Verify SHA/bundle idempotency, exact once Drive upload under retries, and cleanup of local log only when Drive persisted. Compare Drive API calls and Cloudflare DO SQL before/after.
+- Field rollout order: Worker/DO Beta readiness, gateway Apps Script Beta, one day pilot; neither Stable nor Agent auto-SKU modified.
