@@ -2820,3 +2820,12 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
 4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
 5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
+
+
+### D166 Web five status tabs and zero extra realtime polling
+
+- Five visible tabs render unconditionally for Reporter, with nonzero and zero badges on inactive views. Values agree with existing grouped status counters on login, refresh and date-range change.
+- HAS_STOCK/SKIP_ALLOWED/CLOSED counters come from one grouped reporterCounters SELECT, not three SELECTs or client list downloads; newly arriving before→after result-status events adjust affected counters. On cursor gap/unknown delta, one counters reconciliation resets authoritative totals.
+- Do not load inactive result table rows. Confirm pressing one outcome tab navigates the same existing result view with matching status filter. Date range results and outcome badges agree.
+- Current open PENDING and per-Picker Quá hạn must not silently disappear due to result-date selection; historical as-of filter for open queues remains blocked until source event-time logic is designed.
+- Check accessible five-tab display and no overflow on mobile/tablet widths, session switching/range races, WebSocket reconnect, stale-event ordering, SLA alarm, and permissions. No extra periodic requests.

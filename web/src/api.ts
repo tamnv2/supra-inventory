@@ -1002,6 +1002,9 @@ export async function getReporterCounters(
   queue_total: number;
   overdue_total: number;
   recent_total: number;
+  has_stock_total?: number;
+  skip_allowed_total?: number;
+  withdrawn_total?: number;
   auto_skip_enabled?: boolean;
   auto_skip_mode?: AutoSkipMode | null;
   filter_status: string;

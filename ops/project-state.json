@@ -6285,6 +6285,18 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "web_five_tabs_candidate": {
+      "change_id": "D166_WEB_FIVE_STATUS_TABS_DELTA_BADGES",
+      "state": "BETA_DRAFT_PR_NOT_DEPLOYED_CI_OWNER_FIELD_PENDING",
+      "branch": "d166-web-five-status-badges",
+      "tabs": ["PENDING","OVERDUE","HAS_STOCK","SKIP_ALLOWED","CLOSED"],
+      "count_backend": "EXISTING_REPORTED_COUNTERS_GROUPED_ONCE",
+      "realtime": "EXISTING_ONE_DELTA_STREAM_NO_TAB_POLLING",
+      "historical_date_scope": "RESOLVED_RESULTS_ONLY__OPEN_QUEUE_HISTORY_NOT_FALSIFIED",
+      "runtime_deployed": false,
+      "owner_field_pass": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
