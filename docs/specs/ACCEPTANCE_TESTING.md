@@ -2811,3 +2811,12 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 - At 23:59/00:01 Vietnam and for historical dates, test timestamp basis for each tab and current-status-vs-as-of reconstruction; unknown/unsupported historical semantics must never be presented as verified.
 - Test back/forward/context restore, page navigation, realtime result corrections, pagination and role permissions; ensure no fresh full-list read of all five tabs on every tab/date change and no new high-frequency provider polling.
 - Tests apply **only after Owner separately approves analysis/design and implementation** of D166 Web five-tab feature; this documentation change does not authorize runtime code or deployment.
+
+
+## D166-NEW-PICKER-REPORTING-DEFAULT-ON — Future acceptance scenarios (Owner backlog only, 09/10/2026)
+
+1. Once the later approved design is deployed: creating a genuinely **new** Picker through every in-scope creation path (validated HR single-user auto-apply, approved HR batch, other supported account-creation path) commits `shortage_reporting_enabled=true` atomically/authoritatively, and the authenticated Picker Web/Android capability reflects ON without a manual follow-up toggle.
+2. Re-running identical HR sync, changing name/contractor, editing an existing Picker, retrying a partial/uncertain create and recreating from stale input do not reset an existing OFF/ON capability or produce duplicate accounts/revision increments.
+3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
+4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
+5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
