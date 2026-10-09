@@ -72,6 +72,14 @@ jobs:
           if ($proc.ExitCode -ne 0) { throw "ZIP export self-test failed ($($proc.ExitCode))." }
           Write-Host "D166_ZIP_EXPORT_REPEAT_AND_CONTENT=PASS"
 
+      - name: Synthetic SKU workbook validation regression
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "dist/sku-recorder/SUPRA.SKU.Recorder.exe").Path
+          $proc = Start-Process -FilePath $exe -ArgumentList '--self-test-sku' -Wait -PassThru -NoNewWindow
+          if ($proc.ExitCode -ne 0) { throw "SKU report validation selftest FAILED ($($proc.ExitCode))." }
+          Write-Host "D166_SKU_OOXML_VALIDATE_DEDUPE_CONFLICT_SITE=PASS"
+
       - uses: actions/upload-artifact@v4
         with:
           name: D166-SKU-Recorder-win-x64
