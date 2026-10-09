@@ -32,6 +32,7 @@ import {
   getRealtimePresence,
   getRuntimeLogDetail,
   getRuntimeLogs,
+  getLauncherLogDiagnostics,
   getSystemResetPreview,
   requestSystemResetChallenge,
   executeSystemReset,
@@ -83,6 +84,7 @@ import {
   type RealtimePresence,
   type RuntimeLogDetail,
   type RuntimeLogItem,
+  type LauncherLogDiagnostics,
   type SystemStatusSnapshot,
   type SystemResetPreview,
   type SystemResetScope,
@@ -316,6 +318,7 @@ function clearRoleScopedViewState(): void {
   systemResetSelected.clear();
   runtimeLogs = [];
   runtimeLogDetail = null;
+  launcherLogDiagnostics = null;
   runtimeLogPageTokens = [""];
   runtimeLogPageIndex = 0;
   runtimeLogNextPageToken = "";
@@ -446,6 +449,7 @@ let logDays = 30;
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
+let launcherLogDiagnostics: LauncherLogDiagnostics | null = null;
 const RUNTIME_LOG_PAGE_SIZE = 50;
 let runtimeLogPageTokens: string[] = [""];
 let runtimeLogPageIndex = 0;
@@ -2706,6 +2710,23 @@ function renderLogs(): string {
       ${[30,60,90].map((days) => `<button type="button" class="btn secondary small${logDays === days ? " active" : ""}" aria-pressed="${logDays === days}" data-log-days="${days}">${days} ngày</button>`).join("")}
       <span class="muted">Dữ liệu quá 90 ngày được tự động dọn khỏi vùng lưu nhật ký vận hành.</span>
     </div>
+    ${!auditActive && logView === "ANDROID" && profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `
+      <article class="ops-panel">
+        <div class="ops-panel-title"><div><h3>Kiểm tra log Launcher trên Service</h3><p>Chỉ ROOT · đọc bộ đệm InventoryCore khi bấm nút, không tải log từ PDA và không tạo thêm lượt kiểm tra nền.</p></div>
+          <button type="button" class="secondary" id="check-launcher-logs">Kiểm tra service</button>
+        </div>
+        ${launcherLogDiagnostics ? `
+          <div class="ops-summary-grid">
+            <div>Đã nhận trong 7 ngày: <strong>${Number(launcherLogDiagnostics.received || 0).toLocaleString("vi-VN")}</strong></div>
+            <div>Đã xác nhận Drive: <strong>${Number(launcherLogDiagnostics.drive_synced || 0).toLocaleString("vi-VN")}</strong></div>
+            <div>Đang chờ Drive: <strong>${Number(launcherLogDiagnostics.pending_drive || 0).toLocaleString("vi-VN")}</strong></div>
+            <div>Chờ Drive có lỗi: <strong>${Number(launcherLogDiagnostics.pending_with_error || 0).toLocaleString("vi-VN")}</strong></div>
+          </div>
+          <p class="muted">Nhận gần nhất: ${launcherLogDiagnostics.last_received_at ? esc(fmt(launcherLogDiagnostics.last_received_at)) : "Chưa có"} · Kiểm tra lúc: ${esc(fmt(launcherLogDiagnostics.checked_at))}</p>
+          <p>${launcherLogDiagnostics.received === 0 ? "Service chưa ghi nhận log Launcher trong 7 ngày: kiểm tra lịch gửi, kết nối và DeviceKey trên PDA." : launcherLogDiagnostics.pending_drive > 0 ? "Service đã nhận log Launcher nhưng còn tồn đọng trước bước Drive. Kiểm tra nhóm lỗi lưu trữ bên dưới." : "Service đã nhận log; không còn log Launcher chờ Drive trong cửa sổ 7 ngày."}</p>
+          <p class="muted">Nhóm lỗi gần nhất (${Number(launcherLogDiagnostics.recent_failure_sample_count || 0)} mẫu): ${Object.entries(launcherLogDiagnostics.recent_failure_classes || {}).map(([name,count]) => `${esc(name)}: ${Number(count)}`).join(" · ") || "Không ghi nhận lỗi lưu Drive"}</p>
+        ` : `<p class="muted">Chưa kiểm tra. Bấm “Kiểm tra service” để đọc trạng thái thực tế.</p>`}
+      </article>` : ""}
     ${auditActive ? `
       <article class="ops-panel audit-history-panel">
         <div class="ops-panel-title"><div><h3>Lịch sử thao tác Admin / Reporter / Root</h3><p>Không ghi thao tác Picker vào danh sách này. Dữ liệu được lưu tại hệ thống nghiệp vụ và phân trang giới hạn.</p></div><span>${auditPageFrom}–${auditPageTo} / ${auditTotal.toLocaleString("vi-VN")}</span></div>
@@ -4294,6 +4315,11 @@ function bindSection(): void {
     if (selectedBatchId) prefetchBatchDetails(selectedBatchId);
   }));
 
+  document.querySelector<HTMLButtonElement>("#check-launcher-logs")?.addEventListener("click", () => void run(async () => {
+    if (profile?.role !== "ROOT" || profile?.base_role !== "ROOT") throw new Error("Chỉ ROOT thực được kiểm tra bộ đệm log Launcher.");
+    launcherLogDiagnostics = await getLauncherLogDiagnostics();
+    markWebUpdateReceived();
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-log-view]").forEach((button) => button.addEventListener("click", () => {
     const raw = String(button.dataset.logView || "WEB").toUpperCase();
     const next: "WEB" | "ANDROID" | "AUDIT" = raw === "ANDROID" ? "ANDROID" : raw === "AUDIT" ? "AUDIT" : "WEB";
