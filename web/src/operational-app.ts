@@ -2722,6 +2722,7 @@ function renderLogs(): string {
             <div>Đang chờ Drive: <strong>${Number(launcherLogDiagnostics.pending_drive || 0).toLocaleString("vi-VN")}</strong></div>
             <div>Chờ Drive có lỗi: <strong>${Number(launcherLogDiagnostics.pending_with_error || 0).toLocaleString("vi-VN")}</strong></div>
           </div>
+          <p>Quyền thư mục Drive theo OAuth Worker: <strong>${esc(launcherLogDiagnostics.drive_folder_check?.status || "CHƯA_XÁC_MINH")}</strong></p>
           <p class="muted">Nhận gần nhất: ${launcherLogDiagnostics.last_received_at ? esc(fmt(launcherLogDiagnostics.last_received_at)) : "Chưa có"} · Kiểm tra lúc: ${esc(fmt(launcherLogDiagnostics.checked_at))}</p>
           <p>${launcherLogDiagnostics.received === 0 ? "Service chưa ghi nhận log Launcher trong 7 ngày: kiểm tra lịch gửi, kết nối và DeviceKey trên PDA." : launcherLogDiagnostics.pending_drive > 0 ? "Service đã nhận log Launcher nhưng còn tồn đọng trước bước Drive. Kiểm tra nhóm lỗi lưu trữ bên dưới." : "Service đã nhận log; không còn log Launcher chờ Drive trong cửa sổ 7 ngày."}</p>
           <p class="muted">Nhóm lỗi gần nhất (${Number(launcherLogDiagnostics.recent_failure_sample_count || 0)} mẫu): ${Object.entries(launcherLogDiagnostics.recent_failure_classes || {}).map(([name,count]) => `${esc(name)}: ${Number(count)}`).join(" · ") || "Không ghi nhận lỗi lưu Drive"}</p>
