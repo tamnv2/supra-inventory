@@ -15,7 +15,7 @@ namespace SupraSkuRecorder
         internal const string WmsHost = "wms-supra.winmart.vn";
         internal const string AuthHost = "auth-supra.winmart.vn";
         internal const string InventoryHost = "inventory-beta.supra.cc.cd";
-        internal const string WmsStart = "https://wms-supra.winmart.vn/";
+        internal const string WmsStart = "https://wms-supra.winmart.vn/sft3/app/report/bin-inventory";
         internal const string InventoryStart = "https://inventory-beta.supra.cc.cd/";
         internal readonly WebView2 browser = new WebView2 { Dock = DockStyle.Fill };
         internal readonly SafeEventLog log = new SafeEventLog();
@@ -45,7 +45,7 @@ namespace SupraSkuRecorder
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            AddButton(bar, 0, "Mở Supra", () => Navigate(WmsStart));
+            AddButton(bar, 0, "Bin Inventory", () => Navigate(WmsStart));
             AddButton(bar, 1, "Inventory Beta", () => Navigate(InventoryStart));
             AddButton(bar, 2, "Xuất log ZIP", Export);
             AddButton(bar, 3, "Dừng / Tiếp", () =>
@@ -127,23 +127,54 @@ namespace SupraSkuRecorder
 
         private void Export()
         {
-            try
+            log.Write("EVIDENCE_EXPORT_START", "zip", "manual");
+            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            var local = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData), "SUPRA", "SKU-Recorder", "Exports");
+            var attempts = new List<string>();
+            string output = null;
+            string destinationAlias = "";
+            foreach (var target in new[]
             {
-                log.Write("EVIDENCE_EXPORTED", "zip", "manual");
-                var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                var path = Path.Combine(desktop, "SUPRA_SKU_Recorder_" + log.RunId + ".zip");
-                log.ExportZip(path);
-                status.Text = "Đã xuất ZIP trên Desktop";
-                MessageBox.Show("Đã xuất ZIP. Log chỉ ghi nhận thao tác giao diện " +
-                    "và tải file, không xác nhận việc import thành công trên server.",
-                    "SKU Recorder", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch
+                new { Folder = desktop, Alias = "desktop" },
+                new { Folder = local, Alias = "local_backup" }
+            })
             {
-                log.Write("EVIDENCE_EXPORT_FAILED", "zip", "io_error");
-                MessageBox.Show("Không xuất được ZIP. Kiểm tra quyền ghi Desktop " +
-                    "và đảm bảo không có ZIP trùng tên.", "SKU Recorder");
+                try
+                {
+                    output = log.ExportZip(target.Folder);
+                    destinationAlias = target.Alias;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    // Classification only: never expose exception messages, which may
+                    // contain local profile paths or filesystem names.
+                    var category = ex is UnauthorizedAccessException ? "permission_denied" :
+                        ex is IOException ? "file_io" :
+                        ex is ArgumentException ? "invalid_path" : "unexpected";
+                    log.Write("EVIDENCE_EXPORT_RETRY", target.Alias, category,
+                        unchecked((uint)ex.HResult));
+                    attempts.Add(target.Alias + ": " + category +
+                        " (0x" + ex.HResult.ToString("X8") + ")");
+                }
             }
+            if (output == null)
+            {
+                log.Write("EVIDENCE_EXPORT_FAILED", "zip", "all_locations_failed");
+                MessageBox.Show("Không thể lưu ZIP ở Desktop hoặc thư mục dự phòng.\n" +
+                    string.Join("\n", attempts) +
+                    "\n\nNhật ký JSONL gốc vẫn được giữ trong thư mục dữ liệu người dùng.",
+                    "SKU Recorder - lỗi xuất log", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            log.Write("EVIDENCE_EXPORTED", destinationAlias, "success");
+            status.Text = "Đã xuất ZIP: " + destinationAlias;
+            MessageBox.Show("Đã xuất ZIP thành công:\n" + output +
+                "\n\nMỗi lần xuất sẽ tạo tệp mới, không ghi đè ZIP trước đó." +
+                "\nDữ liệu chỉ ghi nhận thao tác và tải tệp, chưa xác minh SKU được Service nhập.",
+                "SKU Recorder", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
     }
 }
