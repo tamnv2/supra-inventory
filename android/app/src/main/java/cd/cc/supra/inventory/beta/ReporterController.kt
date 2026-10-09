@@ -64,12 +64,22 @@ class ReporterController(
     private var recent: List<ReporterRecent> = emptyList()
     private var recentCounts = ReporterRecentCounts()
 
-    // One shared UI ticker. SKIP correction needs second-level countdown; PENDING
-    // keeps minute-boundary refresh. Neither path performs network I/O per tick.
+    // One existing local UI ticker. Run at one-second granularity only when
+    // a visible result still has a live correction deadline. No network calls.
+    private fun hasVisibleCorrectionCountdown(): Boolean {
+        val status = when (filter) {
+            Filter.HAS_STOCK -> "HAS_STOCK"
+            Filter.SKIP_ALLOWED -> "SKIP_ALLOWED"
+            else -> return false
+        }
+        val now = System.currentTimeMillis() + queueServerOffsetMs
+        return recent.any { it.status == status && it.correctionAllowed && millis(it.correctionDeadlineAt) > now }
+    }
+
     private val minuteTicker = object : Runnable {
         override fun run() {
             if ((filter == Filter.PENDING && queue.isNotEmpty()) ||
-                (filter == Filter.SKIP_ALLOWED && recent.isNotEmpty())
+                filter == Filter.HAS_STOCK || filter == Filter.SKIP_ALLOWED
             ) {
                 (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
             }
@@ -170,7 +180,7 @@ class ReporterController(
             resolvedByDisplayName = nullable(snapshot, "resolved_by_display_name"),
             resolvedByEmployeeCode = nullable(snapshot, "resolved_by_employee_code"),
             correctionDeadlineAt = nullable(snapshot, "correction_deadline_at"),
-            correctionAllowed = false,
+            correctionAllowed = snapshot.optBoolean("correction_allowed", false),
             affectedPickerCount = snapshot.optInt("affected_picker_count", 0),
             version = snapshot.optInt("version", 1).coerceAtLeast(1),
             previousBatchId = nullable(snapshot, "previous_batch_id"),
@@ -319,7 +329,7 @@ class ReporterController(
     private fun scheduleMinuteTicker() {
         handler.removeCallbacks(minuteTicker)
         val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
-        val delay = if (filter == Filter.SKIP_ALLOWED) {
+        val delay = if (hasVisibleCorrectionCountdown()) {
             (1_000L - (calibratedNow % 1_000L) + 30L).coerceIn(250L, 1_030L)
         } else {
             (60_000L - (calibratedNow % 60_000L) + 80L).coerceIn(1_000L, 60_080L)
@@ -576,8 +586,9 @@ class ReporterController(
             val calibratedNow = System.currentTimeMillis() + queueServerOffsetMs
             val deadlineMs = millis(row.correctionDeadlineAt)
             val remainingMs = (deadlineMs - calibratedNow).coerceAtLeast(0L)
-            val canCorrectSkip = row.status == "SKIP_ALLOWED" && row.correctionAllowed && deadlineMs > 0L && remainingMs > 0L
-            val canCorrectStock = row.status == "HAS_STOCK"
+            val allowed = row.correctionAllowed && deadlineMs > 0L && remainingMs > 0L
+            val canCorrectSkip = row.status == "SKIP_ALLOWED" && allowed
+            val canCorrectStock = row.status == "HAS_STOCK" && allowed
             val busy = processingBatchIds.contains(row.batchId) || confirmingBatchIds.contains(row.batchId)
             actions.visibility = if (canCorrectSkip || canCorrectStock) View.VISIBLE else View.GONE
             hasStock.visibility = if (canCorrectSkip || canCorrectStock) View.VISIBLE else View.GONE
@@ -621,9 +632,9 @@ class ReporterController(
                 else -> ""
             }
             view.findViewById<TextView>(R.id.tvReporterMeta).apply {
-                val correctionInfo = if (canCorrectSkip) {
+                val correctionInfo = if (canCorrectSkip || canCorrectStock) {
                     val secondsLeft = (remainingMs + 999L) / 1_000L
-                    "\nCòn sửa Skip: %02d:%02d".format(secondsLeft / 60L, secondsLeft % 60L)
+                    "\nCòn sửa kết quả: %02d:%02d".format(secondsLeft / 60L, secondsLeft % 60L)
                 } else ""
                 text = (if (responseTime.isNullOrBlank()) {
                     "Báo lúc: $reportTime"
@@ -682,9 +693,9 @@ class ReporterController(
     }
 
     private fun confirmResolvedCorrection(row: ReporterRecent, target: String, label: String) {
-        if (row.status == "SKIP_ALLOWED" && (!row.correctionAllowed ||
-                millis(row.correctionDeadlineAt) <= System.currentTimeMillis() + queueServerOffsetMs)) {
-            setStatus("Đã hết thời gian hoặc chưa bật cho phép sửa kết quả Skip.")
+        if (!row.correctionAllowed ||
+                millis(row.correctionDeadlineAt) <= System.currentTimeMillis() + queueServerOffsetMs) {
+            setStatus("Đã hết thời gian hoặc chưa bật cho phép sửa kết quả.")
             return
         }
         if (processingBatchIds.contains(row.batchId) || !confirmingBatchIds.add(row.batchId)) return
