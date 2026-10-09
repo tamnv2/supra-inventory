@@ -1,5 +1,4 @@
 import {
-  correctionDeadlineFromFirstReport,
   initializeSlaAutomationSchema,
   readOperationalSlaConfig,
   scheduleNextOperationalAlarm,
@@ -1012,17 +1011,19 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
 
   const serverNowMs = Date.now();
   const serverNow = new Date(serverNowMs).toISOString();
+  // Read SLA configuration ONCE per list request, not once per result row.
+  // The deadline is persisted when the outcome is published and never
+  // recomputed from the first out-of-stock report.
+  const correctionEnabled = readSlaConfig(state)?.skip_to_stock_enabled === true;
   const projectedRows = rows.map((row) => {
-    const correctionDeadline = String(row.status || "") === "SKIP_ALLOWED"
-      ? correctionDeadlineFromFirstReport(state, String(row.first_report_at || ""))
-      : null;
+    const correctionDeadline = String(row.correction_deadline_at || "").trim() || null;
     const correctionDeadlineMs = correctionDeadline ? Date.parse(correctionDeadline) : NaN;
     return {
       ...row,
       correction_deadline_at: correctionDeadline,
       correction_allowed: Boolean(
-        String(row.status || "") === "SKIP_ALLOWED" &&
-        correctionDeadline &&
+        correctionEnabled &&
+        ["HAS_STOCK", "SKIP_ALLOWED"].includes(String(row.status || "")) &&
         Number.isFinite(correctionDeadlineMs) &&
         correctionDeadlineMs > serverNowMs
       ),
