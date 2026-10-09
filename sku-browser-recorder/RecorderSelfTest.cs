@@ -10,6 +10,7 @@ namespace SupraSkuRecorder
         {
             var root = Path.Combine(Path.GetTempPath(),
                 "d166-sku-recorder-test-" + Guid.NewGuid().ToString("N"));
+            var phase = "prepare";
             try
             {
                 Directory.CreateDirectory(root);
@@ -18,12 +19,16 @@ namespace SupraSkuRecorder
                 {
                     runId = log.RunId;
                     log.Write("UI_ACTION", "supra_wms", "DOWNLOAD");
+                    phase = "first_export";
                     first = log.ExportZip(root);
                     log.Write("DOWNLOAD_COMPLETED", "xlsx", "local_file_only", 71234);
+                    phase = "second_export";
                     second = log.ExportZip(root);
                 }
+                phase = "check_files";
                 if (first == second || !File.Exists(first) || !File.Exists(second))
                     throw new IOException("Repeat export did not preserve unique ZIP files.");
+                phase = "inspect_archive";
                 using (var zip = ZipFile.OpenRead(second))
                 {
                     if (zip.GetEntry("events.jsonl") == null ||
@@ -42,7 +47,7 @@ namespace SupraSkuRecorder
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("D166_ZIP_EXPORT=FAIL type=" + ex.GetType().Name);
+                Console.Error.WriteLine("D166_ZIP_EXPORT=FAIL phase=" + phase + " type=" + ex.GetType().Name + " hresult=0x" + ex.HResult.ToString("X8"));
                 return 1;
             }
             finally
