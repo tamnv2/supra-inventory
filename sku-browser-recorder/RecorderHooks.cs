@@ -115,6 +115,21 @@ namespace SupraSkuRecorder
                     {
                         Log("UI_ACTION", HostAlias(source), code);
                     }
+                    else if (kind == "trace")
+                    {
+                        var signature = Property(root, "ext");
+                        long index = -1;
+                        JsonElement field;
+                        if (root.TryGetProperty("size", out field) &&
+                            field.ValueKind == JsonValueKind.Number)
+                            field.TryGetInt64(out index);
+                        if (index >= 0 && index < 160 &&
+                            new[] { "sync", "excel", "download", "export",
+                                "search", "confirm", "other" }.Contains(code) &&
+                            System.Text.RegularExpressions.Regex.IsMatch(signature,
+                                "^(button|a|div|span)_[0-9a-f]{8}$"))
+                            Log("UI_CLICK_TRACE", code, signature, index);
+                    }
                     else if (kind == "file" && code == "UPLOAD_SELECTED")
                     {
                         var ext = Property(root, "ext");
