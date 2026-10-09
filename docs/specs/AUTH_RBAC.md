@@ -444,3 +444,8 @@ Only for existing Beta `relay_poc/coordination/ha_liveness`: read/write require 
 Owner requests new `PICKER` user provisioning to automatically initialize `shortage_reporting_enabled=true` for **newly created accounts only**. Existing Picker capability, D156 one-time migration history, and later authorized Admin/Root toggles remain unchanged. HR re-sync, restore, retry or existing-user metadata updates must **never implicitly re-enable** a Picker already set OFF. Evaluate HR provisioning/approval paths and any scoped account-creation API; server remains final RBAC/capability authority.
 
 **Not yet effective:** D156's default-OFF for new Pickers remains live until a separately approved implementation supersedes that part of D156. This is a documentation-only D166 backlog amendment and does not authorize changing user data, service logic, security policy, role grants, deployments or Stable.
+
+
+### D166 Picker creation reporting capability (supersedes only future account defaults from D156)
+
+For genuinely NEW HR-created Picker records, issue `shortage_reporting_enabled=1` in the authoritative DO transaction. Existing Picker capability settings are immutable under HR sync/retry/rename/contractor updates, even if manually disabled. D156's historical one-time existing-user migration remains intentionally in place. No new network read/write is required for a newly created Picker beyond the existing creation transaction. Admin/ROOT disable capability still works, with existing revision fencing. Managed-account creation cannot create a Picker and is out of scope. Beta candidate only until Owner field PASS.
