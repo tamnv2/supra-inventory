@@ -115,3 +115,14 @@ Tham chiếu: Owner Decision **D039**, **D055**; `docs/specs/ACCEPTANCE_TESTING.
 - Cả bốn mục là **backlog để phân tích sau** trong đúng `D166`; chưa nghiên cứu kết luận/triển khai giải pháp, chưa chỉnh sửa source hoặc provider, chưa thêm quota calls, không thay đổi Stable. Không đánh đồng `recorded` với `implemented` hoặc `Owner field PASS`.
 - Khi Owner yêu cầu mở phân tích: đánh giá tác động cơ sở D165/D166, các spec đang xung đột, UI Web/Android/Agent, dữ liệu & source authority, quyền/bảo mật, failure modes, realtime/HA/ACK, ngân sách Usage, hồi quy và phương án triển khai từng bước. Chỉ sửa code sau **phê duyệt riêng của Owner**.
 - Các spec liên quan: `docs/specs/FORMS.md`, `docs/specs/REPORTING_DASHBOARD.md`, `docs/specs/UI_DESIGN_SYSTEM.md`, `docs/specs/SKU_MASTER.md`, `docs/specs/ACCEPTANCE_TESTING.md`; các quyết định lịch sử D002/D126 tiếp tục có hiệu lực **đối với runtime hiện tại**.
+
+
+---
+
+## D166-AGENT-SKU-MANUAL-RECORDER — Owner yêu cầu bản ghi log, mở impact review ngày 09/10/2026
+
+Owner mới yêu cầu xây dựng trình duyệt nhẹ dùng cơ chế phiên Agent để **quan sát thao tác thủ công đồng bộ và tải file SKU**, làm bằng chứng cho phương án tự động hóa tương lai. Yêu cầu này mở lại **phân tích thiết kế recorder** trong cùng D166, nhưng **không** chấp thuận tự động đồng bộ/import SKU hoặc WMS API. D126 vẫn chi phối runtime hiện tại.
+
+Kiểm tra live source: Agent hiện dùng một WebView2 Fixed environment và profile riêng; chọn CDP target theo host WMS có rủi ro gắn nhầm khi thêm tab. Phương án đề xuất: WebView2 phụ trong **cùng host/environment** (không copy cookies/token); chỉ chạy theo yêu cầu, ghi navigation/click metadata allowlisted, download lifecycle, thời gian/lỗi, xuất ZIP local đã redacted. Không tự click, không đọc nội dung file, không gọi API WMS, không upload SKU, không cron, không đổi Confirm/HA/ACK hoặc Firebase/Cloudflare cadence. Test trên standby trước.
+
+**Gate:** Impact review và 10 acceptance tests ghi tại `docs/D166_SKU_BROWSER_RECORDER_PROPOSAL.md`; **chưa có Owner approval cho implementation sau review, chưa build/release và chưa field PASS**. Phải Owner xác nhận phạm vi POC thủ công Beta standby trước branch code; Stable OWNER-GATED.
