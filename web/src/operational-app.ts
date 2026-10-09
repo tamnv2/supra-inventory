@@ -2712,7 +2712,7 @@ function renderLogs(): string {
     </div>
     ${!auditActive && logView === "ANDROID" && profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Kiểm tra log Launcher trên Service</h3><p>Chỉ ROOT · đọc bộ đệm InventoryCore khi bấm nút, không tải log từ PDA và không tạo thêm lượt kiểm tra nền.</p></div>
+        <div class="ops-panel-title"><div><h3>Kiểm tra log Launcher trên Service</h3><p>Dành cho quản trị hệ thống. Chỉ truy vấn khi bấm nút, không tải log từ PDA và không tạo thêm lượt kiểm tra nền.</p></div>
           <button type="button" class="secondary" id="check-launcher-logs">Kiểm tra service</button>
         </div>
         ${launcherLogDiagnostics ? `
