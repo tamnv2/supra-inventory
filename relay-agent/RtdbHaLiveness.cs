@@ -8,6 +8,14 @@ using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
 {
+    internal enum RtdbPrimaryProbeStatus
+    {
+        HEALTHY,
+        STALE,
+        DIFFERENT,
+        UNAVAILABLE
+    }
+
     // D165: RTDB carries only ephemeral HA liveness. Firestore role/generation
     // remains authoritative and is always re-checked before takeover/WMS mutation.
     internal sealed class RtdbHaLiveness : IDisposable
@@ -84,6 +92,55 @@ namespace SupraInventoryRelayAgent
                          " reason=" + SafeFailureCode(ex));
                 _lastWriteHealthy = false;
                 return false;
+            }
+        }
+
+        // Only used AFTER a standby has already detected an expired Firestore
+        // lease. One bounded RTDB GET prevents a stale fallback lease from
+        // ejecting a still-healthy PRIMARY. No polling while the SSE is healthy.
+        internal RtdbPrimaryProbeStatus ProbePrimary(
+            AgentSession session, string generation, string expectedPrimary)
+        {
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken) ||
+                string.IsNullOrWhiteSpace(generation) || string.IsNullOrWhiteSpace(expectedPrimary))
+                return RtdbPrimaryProbeStatus.UNAVAILABLE;
+            try
+            {
+                var request = CreateRequest("GET", session.IdToken, 3500);
+                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var stream = response.GetResponseStream())
+                using (var reader = stream == null ? null : new StreamReader(stream))
+                {
+                    if (reader == null) return RtdbPrimaryProbeStatus.UNAVAILABLE;
+                    var raw = reader.ReadToEnd();
+                    if (raw.Trim() == "null") return RtdbPrimaryProbeStatus.STALE;
+                    var data = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                    if (data == null) return RtdbPrimaryProbeStatus.UNAVAILABLE;
+                    var primary = ReadString(data, "agent_instance_id");
+                    var observedGeneration = ReadString(data, "generation");
+                    if (!string.Equals(primary, expectedPrimary, StringComparison.Ordinal) ||
+                        !string.Equals(observedGeneration, generation, StringComparison.Ordinal))
+                        return RtdbPrimaryProbeStatus.DIFFERENT;
+                    var heartbeat = ReadLong(data, "heartbeat_at_ms");
+                    var age = NowMs() - heartbeat;
+                    // Future clock skew is not proof of health or death.
+                    if (heartbeat <= 0 || age < -5000) return RtdbPrimaryProbeStatus.UNAVAILABLE;
+                    if (age >= FirestoreAgentLeaderCoordinator.FailoverAfterMs)
+                        return RtdbPrimaryProbeStatus.STALE;
+                    lock (_gate)
+                    {
+                        _primaryId = primary;
+                        _generation = observedGeneration;
+                        _heartbeatAtMs = heartbeat;
+                    }
+                    return RtdbPrimaryProbeStatus.HEALTHY;
+                }
+            }
+            catch (Exception)
+            {
+                // RTDB timeout/authorization failure is UNKNOWN, not evidence
+                // of the PRIMARY being offline. Do not log token/URL/body.
+                return RtdbPrimaryProbeStatus.UNAVAILABLE;
             }
         }
 
