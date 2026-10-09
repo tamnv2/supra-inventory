@@ -6285,6 +6285,43 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "future_analysis_backlog_2026_10_09": {
+      "status": "OWNER_REQUIREMENTS_RECORDED__ANALYSIS_DEFERRED__NO_IMPLEMENTATION_APPROVAL",
+      "owner_request": "TEMPORARILY_RECORD_FOUR_ITEMS_IN_D166__ANALYZE_LATER",
+      "items": [
+        {
+          "id": "D166-HAS-STOCK-SHARED-CORRECTION-WINDOW",
+          "scope": "INVENTORY_BETA_WEB_AND_ANDROID_REPORTER",
+          "goal": "SAME_CONFIGURED_CORRECTION_MINUTES_FOR_HAS_STOCK_AND_SKIP_ALLOWED__HIDE_CORRECTION_BUTTON_AFTER_DEADLINE",
+          "state": "BACKLOG_ONLY"
+        },
+        {
+          "id": "D166-WEB-FIVE-STATUS-TABS",
+          "scope": "INVENTORY_BETA_WEB_ONLY",
+          "goal": "REPLACE_RECENT_RESULTS_WITH_PENDING_OVERDUE_HAS_STOCK_SKIP_ALLOWED_PICKER_WITHDRAWN_TABS",
+          "state": "BACKLOG_ONLY"
+        },
+        {
+          "id": "D166-AGENT-AUTOMATIC-DAILY-SKU-BROWSER",
+          "scope": "INVENTORY_BETA_AGENT_AND_SKU_IMPORT_PROPOSAL_ONLY",
+          "goal": "ANALYZE_ONE_DAILY_POST_STARTUP_BROWSER_BASED_SUPRA_SKU_FILE_EXPORT_AND_IMPORT_WITH_ERROR_RESILIENCE",
+          "authority_conflict": "D126_MANUAL_SKU_FILE_ONLY__NO_WMS_SKU_AUTOMATION_UNTIL_SEPARATE_OWNER_AUTHORIZATION",
+          "state": "BACKLOG_ONLY"
+        },
+        {
+          "id": "D166-LOCATION-AS-OF-REPORT-ANALYTICS",
+          "scope": "INVENTORY_BETA_WEB_REPORTING_PROPOSAL_ONLY",
+          "goal": "ANALYZE_AS_OF_REPORT_DATE_STORAGE_AREA_LTA_SHELVING_AND_REDESIGN_OVERVIEW_DETAILED_REPORTS",
+          "authority_conflict": "D002_SKU_NAME_ONLY__NO_LOCATION_FIELD_OR_WMS_DATA_SOURCE_APPROVED",
+          "state": "BACKLOG_ONLY"
+        }
+      ],
+      "reference": "docs/D166_APPROVED_BACKLOG.md",
+      "implementation_gate": "DEFER_TO_LATER_OWNER_ANALYSIS_AND_EXPLICIT_IMPLEMENTATION_APPROVAL",
+      "runtime_change": "NONE",
+      "provider_change": "NONE",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
     "duplicate_daily_log_folder_backlog": {
       "requirement_id": "D166-LOG-FOLDER-DUPLICATE",
       "owner_approved_date_vn": "2026-10-09",
