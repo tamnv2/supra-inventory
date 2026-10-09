@@ -53,13 +53,13 @@ namespace SupraSkuRecorder
                     "<si><t>SKU-TEST-0001</t></si><si><t>Synthetic Test Product</t></si>" +
                     "<si><t>SKU-TEST-0002</t></si><si><t>Synthetic Test Product B</t></si>" +
                     "<si><t>Synthetic Test Product Changed</t></si>" +
-                    "<si><t>OTHER DC</t></si></sst>");
+                    "<si><t>OTHER DC</t></si><si><t>Khách hàng</t></si><si><t>WIN</t></si></sst>");
                 Put(zip, "xl/worksheets/sheet1.xml",
                     "<worksheet xmlns='" + Ns + "'><sheetData>" +
-                    Row(1, Cell("B1", 2) + Cell("C1", 0) + Cell("D1", 1)) +
-                    Row(2, Cell("B2", otherWarehouse ? 9 : 3) + Cell("C2", 4) + Cell("D2", 5)) +
-                    Row(3, Cell("B3", 3) + Cell("C3", 4) + Cell("D3", conflicting ? 8 : 5)) +
-                    Row(4, Cell("B4", 3) + Cell("C4", 6) + Cell("D4", 7)) +
+                    Row(1, Cell("A1", 10) + Cell("B1", 2) + Cell("C1", 0) + Cell("D1", 1)) +
+                    Row(2, Cell("A2", 11) + Cell("B2", otherWarehouse ? 9 : 3) + Cell("C2", 4) + Cell("D2", 5)) +
+                    Row(3, Cell("A3", 11) + Cell("B3", 3) + Cell("C3", 4) + Cell("D3", conflicting ? 8 : 5)) +
+                    Row(4, Cell("A4", 11) + Cell("B4", 3) + Cell("C4", 6) + Cell("D4", 7)) +
                     "</sheetData></worksheet>");
             }
         }
