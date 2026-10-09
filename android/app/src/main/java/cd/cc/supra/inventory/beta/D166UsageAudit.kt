@@ -8,7 +8,11 @@ internal object D166UsageAudit {
     private val metricLock = Any()
     private val apiCounts = linkedMapOf<String, Long>()
     private val apiElapsedMs = linkedMapOf<String, Long>()
-    private const val MAX_API_KEYS = 72
+    private const val MAX_API_KEYS = 256
+    private const val MAX_ERROR_KEYS = 64
+    private var droppedApiAttempts = 0L
+    private var droppedBusinessErrors = 0L
+    private val businessErrorCounts = linkedMapOf<String, Long>()
 
     // Existing HTTP operation boundary only; never persists per request or changes retry behavior.
     internal fun recordApi(method: String, path: String, status: Int, elapsedMs: Long) {
@@ -30,18 +34,49 @@ internal object D166UsageAudit {
                 status == 401 -> "AUTH_401"
                 status == 403 -> "AUTH_403"
                 status == 429 -> "RATE_429"
+                status == 400 -> "HTTP_400"
+                status == 404 -> "HTTP_404"
+                status == 408 -> "HTTP_408"
+                status == 409 -> "HTTP_409"
+                status == 422 -> "HTTP_422"
+                status in 400..499 -> "HTTP_4XX_OTHER"
                 status >= 500 -> "SERVER_5XX"
-                else -> "OTHER_ERROR"
+                else -> "OTHER_STATUS"
             }
             val hour = java.time.Instant.now().atOffset(java.time.ZoneOffset.UTC)
                 .toString().take(13)
             val key = hour + "|" + family + "|" + method.take(6).uppercase() + "|" + outcome
             synchronized(metricLock) {
-                if (!apiCounts.containsKey(key) && apiCounts.size >= MAX_API_KEYS) return
+                if (!apiCounts.containsKey(key) && apiCounts.size >= MAX_API_KEYS) {
+                    droppedApiAttempts++
+                    return
+                }
                 apiCounts[key] = (apiCounts[key] ?: 0L) + 1L
                 apiElapsedMs[key] = (apiElapsedMs[key] ?: 0L) + elapsedMs.coerceIn(0L, 120000L)
             }
         } catch (_: Exception) { }
+    }
+
+    // Business error code is explicitly allowlisted; do not archive raw
+    // server error payloads, text, URLs, identifiers or arbitrary codes.
+    internal fun recordPickerResultError(status: Int, code: String) {
+        if (status in 200..299) return
+        val safeCode = when (code) {
+            "RESULT_NOT_READY", "RESULT_ACK_NOT_FOUND", "RESULT_ALREADY_ACKNOWLEDGED",
+            "RESULT_EVENT_NOT_FOUND", "RECEIPT_NOT_READY", "RECEIPT_NOT_FOUND",
+            "RESULT_NOT_FOUND", "BATCH_VERSION_CONFLICT", "RESULT_CORRECTION_EXPIRED",
+            "RESULT_CORRECTION_DISABLED", "RESULT_ACK_CONFLICT" -> code
+            else -> "OTHER_BUSINESS_ERROR"
+        }
+        val hour = java.time.Instant.now().toString().take(13)
+        val key = hour + "|PICKER_RESULTS|" + safeCode
+        synchronized(metricLock) {
+            if (!businessErrorCounts.containsKey(key) && businessErrorCounts.size >= MAX_ERROR_KEYS) {
+                droppedBusinessErrors++
+                return
+            }
+            businessErrorCounts[key] = (businessErrorCounts[key] ?: 0L) + 1L
+        }
     }
 
     internal fun snapshot(journal: JSONObject? = null): JSONObject {
@@ -70,6 +105,14 @@ internal object D166UsageAudit {
             .put("journal_first_sequence", journal?.optLong("first_sequence", 0L) ?: 0L)
             .put("journal_last_sequence", journal?.optLong("last_sequence", 0L) ?: 0L)
             .put("http_source", "RAM_PER_ATTEMPT_NOT_PROVIDER_BILLING")
+            .put("http_dropped_samples", synchronized(metricLock) { droppedApiAttempts })
+            .put("http_business_error_dropped_samples", synchronized(metricLock) { droppedBusinessErrors })
+            .put("http_business_errors", synchronized(metricLock) {
+                val out = JSONArray()
+                for ((key, n) in businessErrorCounts)
+                    out.put(JSONObject().put("utc_hour_route_error_class", key).put("attempts", n))
+                out
+            })
             .put("http_groups", synchronized(metricLock) {
                 val out = JSONArray()
                 for ((key, n) in apiCounts)
