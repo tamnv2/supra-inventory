@@ -1818,23 +1818,35 @@ class MainActivity : Activity() {
 
     private fun showUpdateAvailable(info: UpdateInfo) {
         pendingUpdateInfo = info
-        AlertDialog.Builder(this)
-            .setTitle("Có bản cập nhật ${info.tag}")
+        val mandatory = info.minimumVersionCode > BuildConfig.VERSION_CODE
+        val builder = AlertDialog.Builder(this)
+            .setTitle(if (mandatory) "Bắt buộc cập nhật ${info.tag}" else "Có bản cập nhật ${info.tag}")
             .setMessage(
                 buildString {
-                    append("Cập nhật ngay hoặc để sau. Việc kiểm tra kênh cập nhật không chặn đăng nhập.")
+                    append(if (mandatory)
+                        "Đây là bản cập nhật bắt buộc đã được hệ thống xác minh. Để tránh mất xác nhận Picklist/ACK đang thực hiện, phiên làm việc hiện tại không bị ngắt giữa chừng. Cần cập nhật trước lần đăng nhập mới."
+                        else "Cập nhật ngay hoặc để sau. Bản cập nhật này chưa bắt buộc.")
                     if (info.releaseNotes.isNotEmpty()) {
                         append("\n\nNội dung cập nhật:\n")
                         info.releaseNotes.forEach { append("• ").append(it).append("\n") }
                     }
                 }.trimEnd()
             )
-            .setNegativeButton("Để sau") { _, _ ->
+            .setPositiveButton("Cập nhật") { _, _ -> downloadAndInstallUpdate(info) }
+        if (mandatory) {
+            // Existing authenticated PDA sessions must finish ACK before
+            // downloading/restarting; do not create a forced activity kill.
+            if (api.session != null) builder.setNegativeButton("Tiếp tục phiên hiện tại") { _, _ ->
+                applyUpdateGateUi("Cần cập nhật trước lần đăng nhập tiếp theo.")
+            }
+            else builder.setCancelable(false)
+        } else {
+            builder.setNegativeButton("Để sau") { _, _ ->
                 updateGate = UpdateGate.DEFERRED
                 applyUpdateGateUi(null)
             }
-            .setPositiveButton("Cập nhật") { _, _ -> downloadAndInstallUpdate(info) }
-            .show()
+        }
+        builder.show()
     }
 
     private fun downloadAndInstallUpdate(info: UpdateInfo) {
@@ -1851,11 +1863,15 @@ class MainActivity : Activity() {
                     requestInstall(apk)
                 }
             } catch (error: Exception) {
-                updateGate = UpdateGate.DEFERRED
+                updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.DEFERRED
                 runOnUiThread {
                     updateCheckRunning = false
-                    applyUpdateGateUi("Không thể hoàn tất cập nhật. Có thể tiếp tục sử dụng bản hiện tại.")
-                    recordLog("UPDATE_DOWNLOAD_DEFERRED: ${error.message}")
+                    applyUpdateGateUi(if (mandatoryUpdateKnown())
+                        "Cập nhật bắt buộc chưa hoàn tất. Hãy thử lại; phiên đang chạy không bị ngắt."
+                        else "Không thể hoàn tất cập nhật. Có thể tiếp tục sử dụng bản hiện tại.")
+                    // Strict structured diagnostics, never record exception
+                    // messages, download URLs or credentials.
+                    recordLog("UPDATE_DOWNLOAD_FAILED: " + error.javaClass.simpleName)
                 }
             }
         }.start()
