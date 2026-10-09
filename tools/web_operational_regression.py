@@ -65,6 +65,24 @@ def main() -> None:
     require(business_api, 'correction_from_status: fromStatus', "D165 FCM correction origin metadata")
 
     # D148: pending badge and client-side shift reporting remain quota-neutral.
+    # D166: exactly five operational status tabs on one existing realtime
+    # stream and one grouped counters call; no per-tab list polling.
+    for label in ("Đang xử lý", "Quá hạn", "Đã có hàng", "Cho phép Skip", "Picker đã thu hồi"):
+        require(app, label, "D166 five-tab workspace label " + label)
+    for marker in (
+        'data-workspace-result-filter="${status}"',
+        'data-workspace-count="${status}"',
+        'nextTabs[before.endpoint.status] -= 1;',
+        'nextTabs[after.endpoint.status] += 1;',
+        'resultTabBadgeCounts = {',
+        'loadReporterTabCounters(true)',
+    ):
+        require(app, marker, "D166 five-tab existing delta/count contract")
+    for marker in ("has_stock_total:", "skip_allowed_total:", "withdrawn_total:"):
+        require(operational_core, marker, "D166 grouped status count in existing SQL")
+    for marker in ("has_stock_total?: number", "skip_allowed_total?: number", "withdrawn_total?: number"):
+        require(api, marker, "D166 typed grouped status counts")
+
     require(app, "function syncOperationsNavBadge()", "D148 operations badge sync")
     require(app, 'document.createElement("b")', "D148 zero-to-positive badge recreation")
     require(app, 'data-operations-nav-count', "D148 operations badge marker")
