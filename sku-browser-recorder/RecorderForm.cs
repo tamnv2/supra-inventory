@@ -37,13 +37,14 @@ namespace SupraSkuRecorder
             StartPosition = FormStartPosition.CenterScreen;
             var bar = new TableLayoutPanel
             {
-                Dock = DockStyle.Top, Height = 48, ColumnCount = 5, RowCount = 1,
+                Dock = DockStyle.Top, Height = 48, ColumnCount = 6, RowCount = 1,
                 Padding = new Padding(6)
             };
-            bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
-            bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
+            bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 125));
+            bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
+            bar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 125));
             bar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             AddButton(bar, 0, "Bin Inventory", () => Navigate(WmsStart));
             AddButton(bar, 1, "Inventory Beta", () => Navigate(InventoryStart));
@@ -54,7 +55,8 @@ namespace SupraSkuRecorder
                 log.Write("RECORDING_TOGGLE", recording ? "enabled" : "disabled", "manual");
                 status.Text = recording ? "Đang ghi lại thao tác" : "Đã tạm dừng ghi";
             });
-            bar.Controls.Add(status, 4, 0);
+            AddButton(bar, 4, "Quét nút SKU", () => { _ = CaptureSkuUiAsync(); });
+            bar.Controls.Add(status, 5, 0);
             Controls.Add(browser);
             Controls.Add(bar);
             Shown += async (sender, args) => await Initialize();
