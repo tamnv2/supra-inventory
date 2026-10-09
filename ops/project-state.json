@@ -6287,7 +6287,7 @@
   "d166": {
 
     "beta_release_receipt_2026_10_10": {
-      "status": "PUBLISHED_TECHNICAL_PASS__FLEET_INSTALL_AND_OWNER_PASS_PENDING",
+      "status": "BETA_RELEASE_PLUS_LIVE_MANIFEST_FLOOR_PASS__FLEET_INSTALL_AND_OWNER_PASS_PENDING",
       "main_sha": "20ef736a78de3d253f6636b5518d31bded6a4c4e",
       "pr": 541,
       "worker_deploy_run": 37998960458,
@@ -6302,9 +6302,9 @@
       "release_channel": "inventory-channel__AGENT_AND_PDA_ASSETS_PROMOTED",
       "all_beta_pda_policy": "MIN_VERSION_104_AFTER_CHANNEL_VC104__INSTALLED_OLD_APK_NOT_RETROACTIVELY_ENFORCEABLE",
       "agent_fleet": "RELEASE_PUBLISHED_NOT_ALL_WINDOWS_INSTALLED__NO_ACTIVE_PRIMARY_FORCED_TERMINATION",
-      "provider_live_public_manifest_readback": "NEW_BETA_ONLY_GITHUB_ACTION_CHANNEL_CHECK_PROPOSED__NOT_YET_PASS",
+      "provider_live_public_manifest_readback": "PASS_RUN_37999876849__PDA_BETA_VC104__MIN_CODE_104__AGENT_RELAY_AGENT_V124",
       "channel_readback_ci_source": ".github/workflows/verify-d166-postrelease-channel.yml__LIVE_GET_PDA_AND_AGENT_MANIFEST__18X20S_BOUND",
-      "channel_readback_ci_status": "PENDING_PR_AND_MAIN_RUN",
+      "channel_readback_ci_status": "PASS_MAIN_37999876849__HTTP200_BOTH_RELEASE_MANIFESTS_MATCH_EXPECTED",
       "device_field_acceptance": "PENDING",
       "usage_reduction": "NOT_PROVEN",
       "owner_pass": false,
