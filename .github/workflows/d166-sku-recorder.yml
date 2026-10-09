@@ -50,6 +50,7 @@ jobs:
           )) {
             if (-not $content.Contains($required)) { throw "Missing recorder guard: $required" }
           }
+          if (-not $content.Contains('sft3/app/report/bin-inventory')) { throw 'Direct Bin Inventory navigation missing.' }
           Write-Host "D166_STANDALONE_SOURCE_GUARD=PASS"
 
       - name: Build Windows single-file EXE
@@ -85,8 +86,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "sku-recorder-d166-v1"
+          $tag = "sku-recorder-d166-v1.1.0"
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) { throw "Tag exists: do not overwrite existing release." }
-          gh release create $tag "dist/sku-recorder/SUPRA.SKU.Recorder.exe" "dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256" --title "D166 SKU Recorder v1 - manual evidence only" --notes "Standalone Windows x64 manual recorder. Agent WebView2 must be running with the same Windows user. No automatic SKU sync, import or Agent deployment. Test on standby only." --prerelease --target "$env:GITHUB_SHA"
+          gh release create $tag "dist/sku-recorder/SUPRA.SKU.Recorder.exe" "dist/sku-recorder/SUPRA.SKU.Recorder.exe.sha256" --title "D166 SKU Recorder v1.1 - manual evidence only" --notes "Standalone Windows x64 manual recorder. Agent WebView2 must be running with the same Windows user. No automatic SKU sync, import or Agent deployment. Test on standby only." --prerelease --target "$env:GITHUB_SHA"
           if ($LASTEXITCODE -ne 0) { throw "Prerelease failed." }
