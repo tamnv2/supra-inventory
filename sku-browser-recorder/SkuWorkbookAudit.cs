@@ -73,6 +73,7 @@ namespace SupraSkuRecorder
                     var skuColumn = "";
                     var nameColumn = "";
                     var siteColumn = "";
+                    var customerColumn = "";
                     using (var stream = sheet.Open())
                     using (var reader = XmlReader.Create(stream, ReaderSettings()))
                     {
@@ -101,6 +102,7 @@ namespace SupraSkuRecorder
                                     if (value == "ten san pham" || value == "product name")
                                         nameColumn = item.Key;
                                     if (value == "dc site") siteColumn = item.Key;
+                                    if (value == "khach hang") customerColumn = item.Key;
                                 }
                                 if (skuColumn.Length > 0 && nameColumn.Length > 0 &&
                                     skuColumn != nameColumn)
@@ -125,8 +127,11 @@ namespace SupraSkuRecorder
                             }
                             // The Owner's source is DC 1291 - Urban only.
                             // Fail closed rather than import an unrecognized warehouse.
-                            if (siteColumn.Length == 0)
-                                return Reject(result, "missing_site_column");
+                            if (siteColumn.Length == 0 || customerColumn.Length == 0)
+                                return Reject(result, "missing_provenance_columns");
+                            if (!string.Equals(Cell(fields, customerColumn).Trim(), "WIN",
+                                StringComparison.OrdinalIgnoreCase))
+                                return Reject(result, "unexpected_customer");
                             var site = Cell(fields, siteColumn).Trim();
                             if (!string.Equals(site, "1291 - Urban", StringComparison.OrdinalIgnoreCase))
                                 return Reject(result, "unexpected_dc_site");
