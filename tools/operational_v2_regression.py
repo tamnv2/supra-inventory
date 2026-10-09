@@ -125,16 +125,17 @@ def require_source_markers() -> None:
         if marker not in sla_auto:
             fail(f"D162 reporter counter SLA metadata missing: {marker}")
 
-    # D165 source of truth supports BOTH resolved result directions, applies
-    # the first-report Skip correction timer server-side, and uses optimistic
-    # versioned writes. Android/Web must not use the retired empty POST body.
+    # D166 supersedes the D165 first-report correction timer: both resolved
+    # states share the published-result deadline with optimistic version fences.
+    # The FIRST_REPORT/PER_PICKER SLA auto-skip clock remains separate.
     for marker in (
         '["PENDING", "SKIP_ALLOWED", "HAS_STOCK"].includes(target)',
         'from === "HAS_STOCK" && batch.resolution === "HAS_STOCK"',
         'from === "SKIP_ALLOWED" && batch.resolution === "SKIP_ALLOWED"',
-        'SKIP_CORRECTION_EXPIRED',
-        'SKIP_CORRECTION_DISABLED',
-        'correctionDeadlineFromFirstReport(state, batch.first_report_at)',
+        'RESULT_CORRECTION_EXPIRED',
+        'RESULT_CORRECTION_DISABLED',
+        'const deadline = batch.correction_deadline_at;',
+        'batch.correction_deadline_at || correctionDeadlineFromResult(state, at)',
         'Number(batch.version || 0) !== expectedVersion',
         'recentCounter',
         '"BATCH_CORRECTED"',
@@ -143,6 +144,32 @@ def require_source_markers() -> None:
     ):
         if marker not in business:
             fail(f"D165 cross-direction correction invariant missing: {marker}")
+    if 'correctionDeadlineFromFirstReport' in business:
+        fail("D166 correction must not use the first-report SLA timestamp")
+    for marker in ('correctionEnabled &&', 'correction_deadline_at: correctionDeadline', 'readSlaConfig(state)?.skip_to_stock_enabled'):
+        if marker not in operational:
+            fail(f"D166 one SLA read per result page and shared deadline missing: {marker}")
+
+    # D166 delta parity: currentBatchSnapshot formerly returned a resolved
+    # row before adding correction_allowed. A passing initial list test did
+    # not catch the missing realtime privilege. Assert the resolved branch
+    # itself includes eligibility BEFORE its return (not only PENDING rows).
+    snap_start = operational.find("export function currentBatchSnapshot(")
+    snap_end = operational.find("function backfillResultEventSnapshots(", snap_start)
+    snap = operational[snap_start:snap_end]
+    resolved = snap.split('if (resolvedStatus !== "PENDING") {', 1)
+    if len(resolved) != 2:
+        fail("D166 snapshot lacks explicit resolved-state branch")
+    resolved_body = resolved[1].split("const sla = slaState(", 1)[0]
+    for token in (
+        "correction_allowed: correctionAllowed",
+        'resolvedStatus === "HAS_STOCK"',
+        'resolvedStatus === "SKIP_ALLOWED"',
+        "correctionExpiryMs > Date.now()",
+        "config?.skip_to_stock_enabled",
+    ):
+        if token not in resolved_body:
+            fail(f"D166 realtime result correction eligibility omitted: {token}")
     android_api = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt").read_text(encoding="utf-8")
     android_reporter = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt").read_text(encoding="utf-8")
     web = (ROOT / "web/src/operational-app.ts").read_text(encoding="utf-8")
@@ -159,6 +186,10 @@ def require_source_markers() -> None:
             fail(f"D165 Picker FCM correction metadata/target missing: {marker}")
     if 'WHERE a.result_event_id = ? AND a.target_user_id = ?' not in operational:
         fail("D165 Picker realtime authorization must remain exact-event targeted")
+    if 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue", "reporter_recent"]' not in business_api:
+        fail("D166 correction setting toggles must invalidate result eligibility over existing realtime")
+    if 'counted from first published result' not in operational:
+        fail("D166 service config validation still advertises obsolete first-report correction clock")
 
     # D165 PER_PICKER keeps the batch pending after timeout, so the business
     # resolver may compute queue_delta from remaining waiting tickets instead of

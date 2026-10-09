@@ -6285,6 +6285,28 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "shared_result_correction_candidate": {
+      "scope": "D166_BETA_SHARED_HAS_STOCK_SKIP_ALLOWED_CORRECTION_SETTING",
+      "state": "BRANCH_CODE_CANDIDATE__CI_AND_FIELD_NOT_YET_PASS__NOT_DEPLOYED",
+      "branch": "d166-shared-result-correction-window",
+      "existing_setting": "skip_to_stock_enabled__skip_to_stock_minutes",
+      "server_anchor": "FIRST_PUBLISHED_RESULT_AT__NOT_FIRST_REPORT_SLA",
+      "deadline_policy": "ONE_STORED_DEADLINE_FOR_BOTH_RESOLVED_STATES__PRESERVED_ACROSS_CORRECTIONS",
+      "legacy_policy": "NO_RETROACTIVE_GRANT_TO_ROWS_WITHOUT_DEADLINE__NO_RETROACTIVE_CONFIG_WINDOW_REWRITE",
+      "impacted_components": [
+        "service/src/sla-automation.ts",
+        "service/src/business-core.ts",
+        "service/src/operational-v2-core.ts",
+        "web/src/operational-app.ts",
+        "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt",
+        "android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt"
+      ],
+      "usage_guard": "NO_NEW_PROVIDER_POLLING__SINGLE_SLA_READ_PER_RECENT_PAGE__EXISTING_UI_TIMER",
+      "tests": "PENDING_BRANCH_PR_CI_AND_BETA_FIELD",
+      "owner_field_pass": false,
+      "runtime_deployed": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
