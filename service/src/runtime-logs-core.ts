@@ -55,6 +55,20 @@ export function initializeRuntimeLogSchema(state: DurableObjectState): void {
     CREATE INDEX IF NOT EXISTS idx_runtime_log_buffer_drive_pending
       ON runtime_log_buffer(drive_synced_at, received_at);
   `);
+  // D166: one atomic parent+VN-day authority shared by Worker and Apps Script.
+  // Unlike two independent Drive list/create/cache paths, only this DO lease
+  // holder may create the day's folder. Stored values never enter diagnostics.
+  state.storage.sql.exec(`
+    CREATE TABLE IF NOT EXISTS runtime_log_daily_folders (
+      parent_id TEXT NOT NULL,
+      day_vn TEXT NOT NULL,
+      folder_id TEXT NOT NULL DEFAULT '',
+      lease_token TEXT NOT NULL DEFAULT '',
+      lease_until_ms INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY(parent_id, day_vn)
+    );
+  `);
   // Separate single-row authority for OAuth-created Launcher archive folder.
   // This is not part of the general Inventory logs parent or retention.
   state.storage.sql.exec(`
@@ -105,6 +119,76 @@ export async function handleRuntimeLogCoreRequest(
 ): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/runtime-logs/")) return null;
+
+  // D166: only same InventoryCore executes these atomically. Caller
+  // authorization is enforced by Worker; do not expose this internal path.
+  if (url.pathname.startsWith("/runtime-logs/day-folder")) {
+    const body = request.method === "POST"
+      ? await request.json().catch(() => ({})) as Record<string, unknown>
+      : {};
+    const parent = String(request.method === "GET" ? url.searchParams.get("parent_id") : body.parent_id || "");
+    const day = String(request.method === "GET" ? url.searchParams.get("day_vn") : body.day_vn || "");
+    if (!/^[A-Za-z0-9_-]{10,200}$/.test(parent) || !/^\d{4}-\d{2}-\d{2}$/.test(day))
+      return response({ error: "LOG_DAY_SCOPE_INVALID" }, 400);
+    state.storage.sql.exec(
+      "INSERT OR IGNORE INTO runtime_log_daily_folders(parent_id, day_vn) VALUES (?, ?)",
+      parent, day,
+    );
+    if (request.method === "GET" && url.pathname === "/runtime-logs/day-folder") {
+      const existing = state.storage.sql.exec<SqlRow>(
+        "SELECT folder_id, lease_until_ms FROM runtime_log_daily_folders WHERE parent_id = ? AND day_vn = ?",
+        parent, day,
+      ).toArray()[0];
+      return response({
+        folder_id: String(existing?.folder_id || ""),
+        provisioning_in_progress: Number(existing?.lease_until_ms || 0) > Date.now(),
+      });
+    }
+    if (request.method === "POST" && url.pathname === "/runtime-logs/day-folder/lease") {
+      const token = crypto.randomUUID();
+      const now = Date.now();
+      state.storage.sql.exec(
+        `UPDATE runtime_log_daily_folders SET lease_token = ?, lease_until_ms = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE parent_id = ? AND day_vn = ? AND folder_id = '' AND lease_until_ms <= ?`,
+        token, now + 90000, parent, day, now,
+      );
+      const current = state.storage.sql.exec<SqlRow>(
+        "SELECT folder_id, lease_token FROM runtime_log_daily_folders WHERE parent_id = ? AND day_vn = ?",
+        parent, day,
+      ).toArray()[0];
+      const acquired = String(current?.lease_token || "") === token;
+      return response({ acquired, nonce: acquired ? token : "", folder_id: String(current?.folder_id || "") });
+    }
+    if (request.method === "POST" && url.pathname === "/runtime-logs/day-folder/commit") {
+      const nonce = String(body.nonce || "");
+      const folderId = String(body.folder_id || "");
+      if (!/^[a-f0-9-]{36}$/.test(nonce) || !/^[A-Za-z0-9_-]{10,200}$/.test(folderId))
+        return response({ error: "LOG_DAY_COMMIT_INVALID" }, 400);
+      state.storage.sql.exec(
+        `UPDATE runtime_log_daily_folders SET folder_id = ?, lease_token = '', lease_until_ms = 0,
+          updated_at = CURRENT_TIMESTAMP
+          WHERE parent_id = ? AND day_vn = ? AND folder_id = '' AND lease_token = ?`,
+        folderId, parent, day, nonce,
+      );
+      const current = state.storage.sql.exec<SqlRow>(
+        "SELECT folder_id FROM runtime_log_daily_folders WHERE parent_id = ? AND day_vn = ?",
+        parent, day,
+      ).toArray()[0];
+      const selected = String(current?.folder_id || "");
+      return response({ committed: selected === folderId, folder_id: selected }, selected === folderId ? 200 : 409);
+    }
+    if (request.method === "POST" && url.pathname === "/runtime-logs/day-folder/release") {
+      const nonce = String(body.nonce || "");
+      if (!/^[a-f0-9-]{36}$/.test(nonce)) return response({ error: "LOG_DAY_RELEASE_INVALID" }, 400);
+      state.storage.sql.exec(
+        `UPDATE runtime_log_daily_folders SET lease_token = '', lease_until_ms = 0, updated_at = CURRENT_TIMESTAMP
+          WHERE parent_id = ? AND day_vn = ? AND folder_id = '' AND lease_token = ?`,
+        parent, day, nonce,
+      );
+      return response({ released: true });
+    }
+    return response({ error: "LOG_DAY_ACTION_INVALID" }, 405);
+  }
 
   if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-folder") {
     const row = state.storage.sql.exec<SqlRow>(

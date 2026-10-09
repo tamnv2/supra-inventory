@@ -687,3 +687,8 @@ Reference: `docs/D166_APPROVED_BACKLOG.md` / `D166-LOG-FOLDER-DUPLICATE`. Stable
 - Do not auto-query on Web navigation, tab change, refresh or a recurring timer. Existing Web/Android/Agent realtime, support-log cadence, retention, transfer and archive paths remain unchanged. No new provider resources, no Drive mutations.
 - Launcher logical date matching in server initial archive and queued retry is corrected to parse `YYYY-MM-DD`, not to silently interpret it as last-event date. Separate D166 duplicate folder write-race backlog remains owner-gated and unchanged.
 - See `docs/D166_LAUNCHER_LOG_SERVICE_DIAGNOSTICS.md`. Field PASS requires owner-authenticated response, cause classification, actual Drive file creation/visibility and PDA `DRIVE_SYNCED` confirmation; CI is not runtime proof.
+
+
+### D166 single daily-log folder ownership and safe failure
+
+Canonical folder is recorded once per VN day in InventoryCore under (parent folder, day). Every uploader uses same ID, with a short atomic claim and no independent App Script create. No folder IDs/parent IDs, OAuth tokens, business identifiers or failed Drive HTTP response text appear in diagnostic logs. A failed cross-account access is a visible typed error and retained log, not a newly created duplicate. Do not trash historical duplicate folders. Validate actual Drive access, bundle deduplication, retry, and log-on-PDA deletion only after Drive confirms persistence. Service first / gateway second cutover is mandatory.

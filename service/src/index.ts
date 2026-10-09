@@ -15,7 +15,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
-import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination } from "./runtime-logs";
+import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent } from "./runtime-logs";
 import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
@@ -1513,6 +1513,16 @@ export default {
         const value=await collectD166Cf(env,start,end);
         return json({ok:true,service:"SUPRA_D166_CLOUDFLARE_WORKER_READONLY",project:"supra-inventory-beta",
           generated_at:new Date().toISOString(),cloudflare:value});
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/agent/log-day-folder") {
+        if (env.APP_ENV !== "beta") return json({ error: "LOG_DAY_BETA_ONLY" }, 404);
+        // Authorized Agent session only. The folder ID is metadata needed
+        // by the Apps Script uploader; never return OAuth material.
+        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        const selected = await resolveRuntimeLogDayForAgent(env);
+        return json({ ok: true, archive_date: selected.dateKey, folder_id: selected.id,
+          source: "INVENTORY_CORE_CANONICAL_DAY" });
       }
 
       if (request.method === "GET" && url.pathname === "/api/agent/usage") {

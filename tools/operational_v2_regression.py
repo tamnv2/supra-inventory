@@ -71,6 +71,42 @@ def require_source_markers() -> None:
         if marker not in haystacks[name]:
             fail(f"source invariant missing: {name}")
 
+    # D166: exactly one InventoryCore daily-folder authority across Worker
+    # and Apps Script. No independent Apps Script create/list fallback, no
+    # per-log SQL/Drive folder creation and no deletion of existing folders.
+    folder_core = (ROOT / "service/src/runtime-logs-core.ts").read_text(encoding="utf-8")
+    folder_worker = (ROOT / "service/src/runtime-logs.ts").read_text(encoding="utf-8")
+    folder_agent = (ROOT / "ops/apps-script/agent-log-gateway/Code.gs").read_text(encoding="utf-8")
+    service_index = (ROOT / "service/src/index.ts").read_text(encoding="utf-8")
+    for marker in (
+        "CREATE TABLE IF NOT EXISTS runtime_log_daily_folders",
+        '"/runtime-logs/day-folder/lease"',
+        '"/runtime-logs/day-folder/commit"',
+        '"/runtime-logs/day-folder/release"',
+        "lease_until_ms <= ?",
+    ):
+        if marker not in folder_core:
+            fail(f"D166 shared daily-log authority missing: {marker}")
+    for marker in (
+        'runtime-logs/day-folder?parent_id=',
+        'LOG_DAY_PROVISIONING_IN_PROGRESS',
+        'LOG_DAY_COMMIT_VERIFY_FAILED',
+        'resolveRuntimeLogDayForAgent(',
+    ):
+        if marker not in folder_worker:
+            fail(f"D166 Worker canonical folder adoption missing: {marker}")
+    for marker in (
+        "function resolveDailyLogFolder_(rootFolder, when, idToken)",
+        "/api/agent/log-day-folder",
+        "LOG_DAY_CANONICAL_AUTHORITY_MISMATCH",
+    ):
+        if marker not in folder_agent:
+            fail(f"D166 Apps Script canonical folder adoption missing: {marker}")
+    if "rootFolder.createFolder(dateKey)" in folder_agent or "createAndConvergeDailyFolder_" in folder_agent:
+        fail("D166 Apps Script independent Drive folder creation must be retired")
+    if 'request.method === "GET" && url.pathname === "/api/agent/log-day-folder"' not in service_index:
+        fail("D166 authenticated canonical log folder Worker endpoint missing")
+
     if "pickerCanReceiveRealtimeEvent" not in read_model or "pickerRealtimeSnapshot" not in read_model:
         fail("broadcast is not using Picker-authorized projection")
     if "status = 'RESOLVED'" not in notifications or "result_event_id" not in notifications:
