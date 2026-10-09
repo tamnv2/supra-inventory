@@ -3076,6 +3076,7 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
     "BATCH_AUTO_SKIP_ALLOWED",
   ]);
   let next = recentBadgeCount;
+  const nextTabs = { ...resultTabBadgeCounts };
   for (const row of events) {
     if (!(row.scopes || []).includes("reporter_recent")) continue;
     const eventName = String(row.event || "").trim().toUpperCase();
@@ -3088,8 +3089,18 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
     const after = recentCounterEndpoint(values.after_status, values.after_at);
     if (!before.valid || !after.valid) return false;
     next += (recentCounterMatches(after.endpoint) ? 1 : 0) - (recentCounterMatches(before.endpoint) ? 1 : 0);
+    // Every inactive tab remains realtime on the same authoritative delta.
+    if (before.endpoint.status && before.endpoint.at && recentDateRangeContains(before.endpoint.at))
+      nextTabs[before.endpoint.status] -= 1;
+    if (after.endpoint.status && after.endpoint.at && recentDateRangeContains(after.endpoint.at))
+      nextTabs[after.endpoint.status] += 1;
   }
   recentBadgeCount = Math.max(0, next);
+  resultTabBadgeCounts = {
+    HAS_STOCK: Math.max(0, nextTabs.HAS_STOCK),
+    SKIP_ALLOWED: Math.max(0, nextTabs.SKIP_ALLOWED),
+    CLOSED: Math.max(0, nextTabs.CLOSED),
+  };
   syncOperationalTabBadges();
   return true;
 }
@@ -4061,6 +4072,7 @@ function bindShell(): void {
       overdueBadgeInitialized = false;
       perPickerOverdueEnabled = false;
       recentBadgeCount = 0;
+      resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
       recentBadgeInitialized = false;
       reporterBadgeLoadGeneration += 1;
       recentRows = [];
@@ -4244,6 +4256,15 @@ function bindReporterActionButtons(root: ParentNode = document): void {
 }
 
 function bindSection(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-workspace-result-filter]").forEach((button) => button.addEventListener("click", () => {
+    const target = button.dataset.workspaceResultFilter;
+    if (!profile || !roleOperate() || !["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(target || "")) return;
+    if (activeSection === "results" && recentFilter === target) return;
+    recentFilter = target as typeof recentFilter;
+    recentOffset = 0;
+    if (activeSection !== "results") navigateToSection("results", "push");
+    else void run(async () => { await loadOperations(); patchActiveSection(true); });
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-workspace-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.workspaceSection as Section;
     if (!profile || !next || next === activeSection || !canAccessSection(next, profile)) return;
