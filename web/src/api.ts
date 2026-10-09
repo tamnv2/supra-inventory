@@ -483,6 +483,10 @@ export interface AndroidAlertWindowState {
 
 // Manual ROOT-only 7-day Launcher service-buffer diagnostics. No raw device IDs.
 export interface LauncherLogDiagnostics {
+  ingress_monitor_started_at?: string | null;
+  ingress_http_attempts?: number;
+  ingress_http_statuses?: Record<string, number>;
+  ingress_last_at?: string | null;
   window_days: number;
   authority: string;
   received: number;

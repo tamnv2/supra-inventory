@@ -73,6 +73,23 @@ export function initializeRuntimeLogSchema(state: DurableObjectState): void {
   if (!folderColumns.some(row => row.name === "last_error")) {
     state.storage.sql.exec("ALTER TABLE launcher_log_folder ADD COLUMN last_error TEXT NOT NULL DEFAULT ''");
   }
+  // Only per-day status counts; no device keys, IP, request bodies or tokens.
+  state.storage.sql.exec(`
+    CREATE TABLE IF NOT EXISTS launcher_log_ingress_counter (
+      day_vn TEXT NOT NULL,
+      http_status INTEGER NOT NULL,
+      hit_count INTEGER NOT NULL DEFAULT 0,
+      last_received_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY(day_vn, http_status)
+    )
+  `);
+  state.storage.sql.exec(`
+    CREATE TABLE IF NOT EXISTS launcher_log_ingress_monitor (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  state.storage.sql.exec("INSERT OR IGNORE INTO launcher_log_ingress_monitor(id) VALUES (1)");
   const columns = state.storage.sql.exec<{ name: string }>("PRAGMA table_info(runtime_log_buffer)").toArray();
   if (!columns.some((row) => row.name === "bundle_id")) {
     state.storage.sql.exec("ALTER TABLE runtime_log_buffer ADD COLUMN bundle_id TEXT");
@@ -253,6 +270,25 @@ export async function handleRuntimeLogCoreRequest(
 
   // D166: manual, ROOT-gated Worker diagnostics. Only aggregated Launcher
   // metadata; the API never exports filenames, DeviceKeys, payloads or Drive IDs.
+  if (request.method === "POST" && url.pathname === "/runtime-logs/launcher-ingress-metric") {
+    const body = await request.json().catch(() => ({})) as { http_status?: unknown };
+    const status = Number(body.http_status);
+    if (!Number.isInteger(status) || status < 200 || status > 599) {
+      return response({ error: "INVALID_LAUNCHER_INGRESS_STATUS" }, 400);
+    }
+    const dayVn = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(new Date());
+    state.storage.sql.exec(
+      `INSERT INTO launcher_log_ingress_counter(day_vn,http_status,hit_count)
+       VALUES (?,?,1)
+       ON CONFLICT(day_vn,http_status) DO UPDATE SET
+          hit_count=hit_count+1,last_received_at=CURRENT_TIMESTAMP`,
+      dayVn, status,
+    );
+    return response({ recorded: true });
+  }
+
   if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-diagnostics") {
     const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
     const selector = `source = 'ANDROID'
@@ -281,7 +317,31 @@ export async function handleRuntimeLogCoreRequest(
       const safe = match ? match[1] + (match[2] ? "_HTTP_" + match[2] : "") : "OTHER_ARCHIVE_FAILURE";
       errorCounts[safe] = (errorCounts[safe] || 0) + 1;
     }
+    const ingressSince = new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10);
+    const ingressRows = state.storage.sql.exec<SqlRow>(
+      `SELECT http_status, SUM(hit_count) AS hits, MAX(last_received_at) AS latest
+       FROM launcher_log_ingress_counter WHERE day_vn >= ?
+       GROUP BY http_status ORDER BY http_status`, ingressSince,
+    ).toArray();
+    const ingressMonitor = state.storage.sql.exec<SqlRow>(
+      "SELECT started_at FROM launcher_log_ingress_monitor WHERE id = 1",
+    ).toArray()[0];
+    const ingressCodes: Record<string, number> = {};
+    let ingressTotal = 0;
+    let ingressLatest: string | null = null;
+    for (const row of ingressRows) {
+      const status = Number(row.http_status);
+      const count = Number(row.hits || 0);
+      ingressCodes[String(status)] = count;
+      ingressTotal += count;
+      const latest = String(row.latest || "");
+      if (latest && (!ingressLatest || latest > ingressLatest)) ingressLatest = latest;
+    }
     return response({
+      ingress_monitor_started_at: ingressMonitor?.started_at || null,
+      ingress_http_attempts: ingressTotal,
+      ingress_http_statuses: ingressCodes,
+      ingress_last_at: ingressLatest,
       window_days: 7,
       authority: "INVENTORY_CORE_BUFFER",
       received: Number(totals.received || 0),

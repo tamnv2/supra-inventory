@@ -50,7 +50,7 @@ async function isRegisteredDevice(env: LauncherDiagnosticEnv, deviceKey: string)
   return payload.registered === true;
 }
 
-export async function handleLauncherDiagnosticLog(
+async function processLauncherDiagnosticLog(
   request: Request,
   env: LauncherDiagnosticEnv,
 ): Promise<Response | null> {
@@ -198,4 +198,36 @@ export async function handleLauncherDiagnosticLog(
       message: error instanceof Error ? error.message : "upload_failed",
     }, 502);
   }
+}
+
+
+// D166 on-demand incident observability: one small SQLite counter increment
+// per actual Launcher POST, including rejected requests. No device key,
+// IP, payload, URL query or other identifying fields are persisted.
+export async function handleLauncherDiagnosticLog(
+  request: Request,
+  env: LauncherDiagnosticEnv,
+): Promise<Response | null> {
+  const pathname = new URL(request.url).pathname;
+  if (request.method !== "POST" || pathname !== "/api/pda/launcher/logs") {
+    return processLauncherDiagnosticLog(request, env);
+  }
+  let result: Response;
+  try {
+    result = await processLauncherDiagnosticLog(request, env)
+      || json({ error: "LAUNCHER_UPLOAD_ROUTE_MISSING" }, 404);
+  } catch {
+    result = json({ error: "LAUNCHER_UPLOAD_UNEXPECTED_FAILURE" }, 503);
+  }
+  try {
+    const core = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName(CORE_NAME));
+    await core.fetch("https://inventory-core.internal/runtime-logs/launcher-ingress-metric", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ http_status: result.status }),
+    });
+  } catch {
+    // Telemetry must never change the actual Launcher upload response.
+  }
+  return result;
 }
