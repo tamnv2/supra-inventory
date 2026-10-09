@@ -754,6 +754,24 @@ def main() -> None:
     forbid(web, 'perPickerOverdueEnabled ? `<button type="button" class="workspace-tab', "D165 Web overdue tab never hidden")
     forbid(web, 'if (!perPickerOverdueEnabled && profile)', "D165 Web overdue route never redirects away")
 
+    # D166: signed APK manifest optional floor, owner-approved only.
+    # No forced device logout/ACK abort; current session can finish.
+    for marker in (
+        "UpdateGate.MANDATORY",
+        "minimumVersionCode = manifest.optInt(\"minimum_version_code\", 0)",
+        'getSharedPreferences("d166_update_floor", MODE_PRIVATE)',
+        "loginButton?.isEnabled = updateGate != UpdateGate.FAILED &&",
+        "updateGate != UpdateGate.MANDATORY",
+        'if (api.session != null) builder.setNegativeButton("Tiếp tục phiên hiện tại")',
+        "UPDATE_FOREGROUND_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L",
+        "if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.DEFERRED",
+        "verifyDownloadedApk(temp, info)",
+    ):
+        require(main_activity, marker, "D166 mandatory signed-APK gate")
+    service = read("service/src/index.ts")
+    require(service, "PDA_MIN_VERSION_CODE_BETA?: string;", "D166 beta owner-gated minimum version")
+    require(service, "minimum_version_code: Math.min(", "D166 no forced update above released APK")
+
     print("ANDROID_OPERATIONAL_REGRESSION_PASS")
 
 
