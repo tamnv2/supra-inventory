@@ -39,3 +39,11 @@ For minimal coupling, **recommended authentication is independent Inventory nati
 - Technical CI self-test and source guards can PASS; real browser/session and exact Owner ZIP failure reproduction remain **FIELD PASS PENDING**.
 - Retain Owner's operational failure evidence as a reported symptom. Do not claim filesystem/root cause proven solely by code inspection.
 - Branch → PR → authority/continuity PASS → merge, no direct main pushes. Stable remains OWNER-GATED.
+
+## Windows CI root-cause confirmation and fixed artifact (09/10/2026)
+
+**Reproduced FAIL:** Windows test run `37940857513` failed during the **first ZIP export** with `IOException HResult=0x80070020` (sharing violation). The true original cause was not just filename reuse: `SafeEventLog` held `events.jsonl` open for WRITE, while `ZipFile.CreateEntryFromFile` opened the same source with `FileShare.Read`, which refuses the existing writer under Windows' bidirectional file-sharing rules. Generic popup previously concealed this.
+
+**Source repair:** stream the existing log file into a ZIP entry through an explicit `FileStream(FileAccess.Read, FileShare.ReadWrite)` while holding the event writer lock, preserving consistent read and avoiding closing the logger. Retain unique-name/nonoverwrite exports and Desktop → LocalAppData fallback with categorized safe error reporting.
+
+**Regression PASS:** Windows workflow `37940935150` passed compilation, source privacy guard, and an executable headless test that exports **two ZIPs in one session**, verifies distinct names, and checks the second ZIP includes events added after the first. CI artifact `11620328949` `D166-SKU-Recorder-win-x64` is a POC test candidate, not a verified Owner device/field PASS. SHA-256 is included in the artifact. No change to Agent/WMS confirmation code or production Service/Android/Web/Worker/Stable.
