@@ -687,3 +687,8 @@ Reference: `docs/D166_APPROVED_BACKLOG.md` / `D166-LOG-FOLDER-DUPLICATE`. Stable
 - Do not auto-query on Web navigation, tab change, refresh or a recurring timer. Existing Web/Android/Agent realtime, support-log cadence, retention, transfer and archive paths remain unchanged. No new provider resources, no Drive mutations.
 - Launcher logical date matching in server initial archive and queued retry is corrected to parse `YYYY-MM-DD`, not to silently interpret it as last-event date. Separate D166 duplicate folder write-race backlog remains owner-gated and unchanged.
 - See `docs/D166_LAUNCHER_LOG_SERVICE_DIAGNOSTICS.md`. Field PASS requires owner-authenticated response, cause classification, actual Drive file creation/visibility and PDA `DRIVE_SYNCED` confirmation; CI is not runtime proof.
+
+
+### D166 Android P1 receipt status evidence (candidate)
+
+D166 in-RAM metrics distinguish HTTP 400, 404, 408, 409, 422, 401, 403, 429, 5xx and network errors; separately count strictly allowlisted Picker result error enums. No arbitrary response code string, user-generated message, API payload, SKU/PL, URL or identifier may enter telemetry. Fixed-size maps and dropped-sample counters, no more disk IO or provider calls. D167 compares hour, status and failed ACK reasons against successful confirmations and real provider usage to decide whether request retry reductions are safe.
