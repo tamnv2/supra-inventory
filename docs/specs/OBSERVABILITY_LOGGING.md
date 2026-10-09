@@ -665,3 +665,16 @@ On three manual clicks Agent reported `D166_PROVIDER_NOT_READY` while Gateway pr
 **Verification:** Agent/WMS/HA/ACK fields unchanged; compile & feature guards PASS; Android debug/release compile, Web typecheck and existing regressions PASS; no new import of provider SDK or periodic task; prove manual/scheduled upload counts unchanged; record median/P95 local CPU/heap/battery impact via representative field testing, and check bundle byte overhead bounded. Strictly zero new *provider requests and document operations*; a new field necessarily adds bounded payload bytes. Report N/A/unknown when billed Firestore Read attribution cannot be inferred from local estimates. Preserve Beta only, Stable OWNER-GATED.
 
 **Provider drill-down needed before ANY fix:** Agent per-component Firestore GET/RunQuery/listener initial/relisten/lease poll/ACK and RTDB fallback, with hourly PDA-hours and Picklist throughput, compare provider Firestore 06/08/09 daily billable readings and GCP API method. User-facing bug/behavior changes are not authorized by this log-only scope.
+
+
+## D166 — Duplicate daily Logs folders: source investigation and safe repair backlog (09/10/2026)
+
+Status: **Owner requirement recorded, analysis/risk only. No code or provider mutation approved.** The D165 one-folder-per-Vietnam-day specification remains authoritative and field duplicate reports mean it is not yet proven operationally.
+
+- Inspect both known folder creators: Worker `service/src/runtime-logs.ts#resolveRuntimeLogDailyFolder` and Apps Script `ops/apps-script/agent-log-gateway/Code.gs#resolveDailyLogFolder_`; their LIST→CREATE→re-LIST convergence, local 6-hour caches and script-only lock are not cross-system atomic guarantees. The exact real-world duplicate trigger must be established with provider folder IDs, parent IDs, timestamps, creator actor, source logs and deployed revisions before claiming root cause.
+- Verify all archive entrypoints (Agent direct Gateway and fallback drain; Android/Web Worker), timezone midnight, delayed retry and distinct `BETA_LOG_FOLDER_ID` vs `LOGS_FOLDER_ID` scope consistency. Follow the existing canonical Beta Logs parent; no new folder/root in another project.
+- Repair design must ensure a single authoritative daily folder ID and safe race/idempotent behavior across both writers, while keeping bounded Drive API operations and archived `bundle_id` semantics. Do not return `DRIVE_SYNCED` on intermediate staging or prune local evidence prematurely.
+- Historical duplicates: audit and stage a non-destructive merge plan with file ID/hash/bundle identity before any move/delete. No automatic trash of pre-existing populated folder; Owner approval is required for cleanup.
+- Add tests for cross-path simultaneous first upload, errors/races, 00:00 VN, cache expiration, network retries, Drive readback, no loss/duplication and no additional scheduled polling or impact to Picklist/ACK.
+
+Reference: `docs/D166_APPROVED_BACKLOG.md` / `D166-LOG-FOLDER-DUPLICATE`. Stable Owner-gated.
