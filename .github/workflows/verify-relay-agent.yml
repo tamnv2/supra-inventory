@@ -503,9 +503,9 @@ jobs:
           }
           foreach ($marker in @(
             "D161-GW-v2",
-            "D165_LOG_DAY_",
+            "/api/agent/log-day-folder",
             "resolveDailyLogFolder_",
-            "canonicalDailyFolderId_",
+            "LOG_DAY_CANONICAL_AUTHORITY_MISMATCH",
             "Asia/Ho_Chi_Minh",
             "drive_synced: true",
             "archive_date: daily.date_key"
