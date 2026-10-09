@@ -149,6 +149,27 @@ def require_source_markers() -> None:
     for marker in ('correctionEnabled &&', 'correction_deadline_at: correctionDeadline', 'readSlaConfig(state)?.skip_to_stock_enabled'):
         if marker not in operational:
             fail(f"D166 one SLA read per result page and shared deadline missing: {marker}")
+
+    # D166 delta parity: currentBatchSnapshot formerly returned a resolved
+    # row before adding correction_allowed. A passing initial list test did
+    # not catch the missing realtime privilege. Assert the resolved branch
+    # itself includes eligibility BEFORE its return (not only PENDING rows).
+    snap_start = operational.find("export function currentBatchSnapshot(")
+    snap_end = operational.find("function backfillResultEventSnapshots(", snap_start)
+    snap = operational[snap_start:snap_end]
+    resolved = snap.split('if (resolvedStatus !== "PENDING") {', 1)
+    if len(resolved) != 2:
+        fail("D166 snapshot lacks explicit resolved-state branch")
+    resolved_body = resolved[1].split("const sla = slaState(", 1)[0]
+    for token in (
+        "correction_allowed: correctionAllowed",
+        'resolvedStatus === "HAS_STOCK"',
+        'resolvedStatus === "SKIP_ALLOWED"',
+        "correctionExpiryMs > Date.now()",
+        "config?.skip_to_stock_enabled",
+    ):
+        if token not in resolved_body:
+            fail(f"D166 realtime result correction eligibility omitted: {token}")
     android_api = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt").read_text(encoding="utf-8")
     android_reporter = (ROOT / "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt").read_text(encoding="utf-8")
     web = (ROOT / "web/src/operational-app.ts").read_text(encoding="utf-8")
