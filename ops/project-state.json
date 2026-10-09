@@ -6285,6 +6285,20 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "sql_instrumentation_candidate": {
+      "change_id": "D166_SQL_CURSOR_USAGE_MEASUREMENT_BETA",
+      "state": "DRAFT_PR_CI_PENDING__NO_DEPLOYMENT__OWNER_FIELD_PASS_REQUIRED",
+      "branch": "d166-do-sql-usage-instrumentation",
+      "scope": ["BATCH_SNAPSHOT","RECENT_RESULTS_COUNT","RECENT_RESULTS_PAGE"],
+      "metric_source": "SqlStorageCursor.rowsRead_rowsWritten",
+      "reporting": "existing_admin_system_metrics_response",
+      "coverage": "ISOLATE_PROCESS_LOCAL_RESTART_RESETS__ESTIMATE_NOT_BILLING",
+      "resource_impact": "NO_NEW_NETWORK_TIMER_SQL_QUERY_REMOTE_WRITE",
+      "pii_protection": "QUERY_IDS_AGGREGATE_ONLY__NO_BINDINGS_OR_RESULTS",
+      "runtime_deployed": false,
+      "owner_field_pass": false,
+      "stable": "UNTOUCHED"
+    },
     "new_picker_reporting_default_on_backlog": {
       "requirement_id": "D166-NEW-PICKER-REPORTING-DEFAULT-ON",
       "owner_requested_date_vn": "2026-10-09",
