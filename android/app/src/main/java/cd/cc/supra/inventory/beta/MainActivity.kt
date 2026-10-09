@@ -71,7 +71,7 @@ private fun configureFirestoreOnlineOnly() {
 }
 
 class MainActivity : Activity() {
-    private enum class UpdateGate { CHECKING, CURRENT, REQUIRED, DEFERRED, FAILED }
+    private enum class UpdateGate { CHECKING, CURRENT, REQUIRED, MANDATORY, DEFERRED, FAILED }
 
     private data class OperationalPage(
         val shell: LinearLayout,
@@ -99,7 +99,11 @@ class MainActivity : Activity() {
     private var pendingInstallFile: File? = null
     private var pendingUpdateInfo: UpdateInfo? = null
     @Volatile private var updateGate = UpdateGate.CHECKING
+    private var verifiedMinimumVersionCode: Int = 0
+    private fun mandatoryUpdateKnown(): Boolean = verifiedMinimumVersionCode > BuildConfig.VERSION_CODE
     @Volatile private var updateCheckRunning = false
+    private var lastUpdateCheckElapsedMs = 0L
+    private val UPDATE_FOREGROUND_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L
     @Volatile private var logoutRunning = false
     @Volatile private var roleSyncRunning = false
     @Volatile private var operatingWindowCheckRunning = false
@@ -141,6 +145,9 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         kit = InventoryUi(this)
+        verifiedMinimumVersionCode = getSharedPreferences("d166_update_floor", MODE_PRIVATE)
+            .getInt("verified_minimum_version_code", 0).coerceAtLeast(0)
+        if (mandatoryUpdateKnown()) updateGate = UpdateGate.MANDATORY
         cleanupUpdateArtifacts()
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             renderFatal("Thiết bị cần Android 11 trở lên.")
@@ -240,7 +247,14 @@ class MainActivity : Activity() {
         if (::api.isInitialized && api.session == null && updateGate != UpdateGate.CURRENT && !updateCheckRunning) {
             checkForUpdate(silent = true)
         }
-        if (::api.isInitialized && api.session != null && updateGate == UpdateGate.CURRENT) {
+        if (::api.isInitialized && api.session != null && !updateCheckRunning &&
+            android.os.SystemClock.elapsedRealtime() - lastUpdateCheckElapsedMs >= UPDATE_FOREGROUND_CHECK_INTERVAL_MS) {
+            // Foreground-only, max once per 6h, no new timer or background poll.
+            checkForUpdate(silent = true)
+        }
+        if (::api.isInitialized && api.session != null &&
+            (updateGate == UpdateGate.CURRENT || updateGate == UpdateGate.MANDATORY)) {
+            // Do not block result receipts/ACK for an already-running session.
             reconcileNotificationSignal()
             reconcileSkuCatalogRefresh()
             drainOverlayAcknowledgements()
@@ -427,7 +441,7 @@ class MainActivity : Activity() {
 
         status.visibility = View.GONE
         progress.visibility = View.GONE
-        login.isEnabled = updateGate != UpdateGate.FAILED
+        login.isEnabled = updateGate != UpdateGate.FAILED && updateGate != UpdateGate.MANDATORY
         applyUpdateGateUi(message)
         checkForUpdate(silent = true)
 
@@ -441,7 +455,7 @@ class MainActivity : Activity() {
         password.setOnEditorActionListener(submitLoginFromKeyboard)
 
         login.setOnClickListener {
-            if (updateGate == UpdateGate.FAILED) {
+            if (updateGate == UpdateGate.FAILED || updateGate == UpdateGate.MANDATORY) {
                 setStatus(updateGateMessage())
                 return@setOnClickListener
             }
@@ -468,7 +482,7 @@ class MainActivity : Activity() {
                         if (e is ApiException && e.code == "SESSION_ACTIVE_OTHER_DEVICE" && !force) {
                             runOnUiThread {
                                 progress.visibility = View.GONE
-                                login.isEnabled = updateGate != UpdateGate.FAILED
+                                login.isEnabled = updateGate != UpdateGate.FAILED && updateGate != UpdateGate.MANDATORY
                                 AlertDialog.Builder(this@MainActivity)
                                     .setTitle("Tài khoản đang dùng trên App/PDA khác")
                                     .setMessage(e.message + "\n\nTiếp tục sẽ đăng xuất phiên App/PDA cũ. Web và Agent không bị ảnh hưởng.")
@@ -479,7 +493,7 @@ class MainActivity : Activity() {
                         } else {
                             runOnUiThread {
                                 progress.visibility = View.GONE
-                                login.isEnabled = updateGate != UpdateGate.FAILED
+                                login.isEnabled = updateGate != UpdateGate.FAILED && updateGate != UpdateGate.MANDATORY
                                 setStatus(friendlyError(e))
                             }
                         }
@@ -1693,6 +1707,7 @@ class MainActivity : Activity() {
 
     private data class UpdateInfo(
         val versionCode: Int,
+        val minimumVersionCode: Int,
         val tag: String,
         val apkUrl: String,
         val checksumUrl: String,
@@ -1703,17 +1718,19 @@ class MainActivity : Activity() {
         UpdateGate.CHECKING -> "Đang kiểm tra bản cập nhật nền. Vẫn có thể đăng nhập."
         UpdateGate.CURRENT -> "Đang dùng bản Beta mới nhất."
         UpdateGate.REQUIRED -> "Có bản cập nhật Beta mới."
+        UpdateGate.MANDATORY -> "Bắt buộc cập nhật Beta trước khi đăng nhập mới."
         UpdateGate.DEFERRED -> "Chưa kiểm tra được kênh cập nhật. Có thể tiếp tục đăng nhập."
         UpdateGate.FAILED -> "Không xác minh được chữ ký ứng dụng đang cài. Đăng nhập đã bị chặn."
     }
 
     private fun applyUpdateGateUi(message: String? = null) {
-        loginButton?.isEnabled = updateGate != UpdateGate.FAILED && !logoutRunning
+        loginButton?.isEnabled = updateGate != UpdateGate.FAILED &&
+            updateGate != UpdateGate.MANDATORY && !logoutRunning
         loginProgress?.visibility = if (logoutRunning) View.VISIBLE else View.GONE
         if (::updateButton.isInitialized) {
             updateButton.isEnabled = !updateCheckRunning
             updateButton.text = when (updateGate) {
-                UpdateGate.REQUIRED -> "Cập nhật"
+                UpdateGate.REQUIRED, UpdateGate.MANDATORY -> "Cập nhật"
                 UpdateGate.DEFERRED -> "Thử lại"
                 UpdateGate.FAILED -> "Kiểm tra an toàn"
                 else -> if (updateCheckRunning) "Đang kiểm tra…" else "Kiểm tra cập nhật"
@@ -1729,7 +1746,8 @@ class MainActivity : Activity() {
     private fun checkForUpdate(silent: Boolean) {
         if (!::updateButton.isInitialized || updateCheckRunning) return
         updateCheckRunning = true
-        updateGate = UpdateGate.CHECKING
+        lastUpdateCheckElapsedMs = android.os.SystemClock.elapsedRealtime()
+        updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.CHECKING
         pendingUpdateInfo = null
         applyUpdateGateUi(if (!silent) "Đang kiểm tra bản cập nhật Beta..." else null)
         Thread {
@@ -1750,11 +1768,11 @@ class MainActivity : Activity() {
                 val info = try {
                     fetchLatestUpdate()
                 } catch (channel: Exception) {
-                    updateGate = UpdateGate.DEFERRED
+                    updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.DEFERRED
                     runOnUiThread {
                         updateCheckRunning = false
                         if (restoringSessionScreen) updateButton.visibility = View.VISIBLE
-                        applyUpdateGateUi(if (!silent) "Không kết nối được kênh cập nhật. Có thể tiếp tục sử dụng bản hiện tại." else null)
+                        applyUpdateGateUi(if (mandatoryUpdateKnown()) "Chưa kiểm tra lại được phiên bản bắt buộc. Cần cập nhật theo chính sách đã xác minh." else if (!silent) "Không kết nối được kênh cập nhật. Có thể tiếp tục sử dụng bản hiện tại." else null)
                         recordLog("UPDATE_CHECK_DEFERRED: ${channel.message}")
                         if (restoringSessionScreen && api.session != null) {
                             tryRestoreSessionAfterUpdateCheck()
@@ -1763,6 +1781,9 @@ class MainActivity : Activity() {
                     return@Thread
                 }
 
+                verifiedMinimumVersionCode = info.minimumVersionCode
+                getSharedPreferences("d166_update_floor", MODE_PRIVATE).edit()
+                    .putInt("verified_minimum_version_code", verifiedMinimumVersionCode).apply()
                 if (info.versionCode <= BuildConfig.VERSION_CODE) {
                     cleanupUpdateArtifacts()
                     updateGate = if (info.versionCode == BuildConfig.VERSION_CODE) UpdateGate.CURRENT else UpdateGate.DEFERRED
@@ -1782,17 +1803,17 @@ class MainActivity : Activity() {
                 }
 
                 pendingUpdateInfo = info
-                updateGate = UpdateGate.REQUIRED
+                updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.REQUIRED
                 runOnUiThread {
                     updateCheckRunning = false
                     applyUpdateGateUi("Có bản cập nhật ${info.tag}.")
                     showUpdateAvailable(info)
                 }
             } catch (error: Exception) {
-                updateGate = UpdateGate.DEFERRED
+                updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.DEFERRED
                 runOnUiThread {
                     updateCheckRunning = false
-                    applyUpdateGateUi(if (!silent) "Kiểm tra cập nhật chưa hoàn tất. Có thể tiếp tục sử dụng bản hiện tại." else null)
+                    applyUpdateGateUi(if (mandatoryUpdateKnown()) "Chưa thể xác minh lại bản cập nhật bắt buộc." else if (!silent) "Kiểm tra cập nhật chưa hoàn tất. Có thể tiếp tục sử dụng bản hiện tại." else null)
                     recordLog("UPDATE_CHECK_DEFERRED: ${error.message}")
                 }
             }
@@ -1807,23 +1828,35 @@ class MainActivity : Activity() {
 
     private fun showUpdateAvailable(info: UpdateInfo) {
         pendingUpdateInfo = info
-        AlertDialog.Builder(this)
-            .setTitle("Có bản cập nhật ${info.tag}")
+        val mandatory = info.minimumVersionCode > BuildConfig.VERSION_CODE
+        val builder = AlertDialog.Builder(this)
+            .setTitle(if (mandatory) "Bắt buộc cập nhật ${info.tag}" else "Có bản cập nhật ${info.tag}")
             .setMessage(
                 buildString {
-                    append("Cập nhật ngay hoặc để sau. Việc kiểm tra kênh cập nhật không chặn đăng nhập.")
+                    append(if (mandatory)
+                        "Đây là bản cập nhật bắt buộc đã được hệ thống xác minh. Để tránh mất xác nhận Picklist/ACK đang thực hiện, phiên làm việc hiện tại không bị ngắt giữa chừng. Cần cập nhật trước lần đăng nhập mới."
+                        else "Cập nhật ngay hoặc để sau. Bản cập nhật này chưa bắt buộc.")
                     if (info.releaseNotes.isNotEmpty()) {
                         append("\n\nNội dung cập nhật:\n")
                         info.releaseNotes.forEach { append("• ").append(it).append("\n") }
                     }
                 }.trimEnd()
             )
-            .setNegativeButton("Để sau") { _, _ ->
+            .setPositiveButton("Cập nhật") { _, _ -> downloadAndInstallUpdate(info) }
+        if (mandatory) {
+            // Existing authenticated PDA sessions must finish ACK before
+            // downloading/restarting; do not create a forced activity kill.
+            if (api.session != null) builder.setNegativeButton("Tiếp tục phiên hiện tại") { _, _ ->
+                applyUpdateGateUi("Cần cập nhật trước lần đăng nhập tiếp theo.")
+            }
+            else builder.setCancelable(false)
+        } else {
+            builder.setNegativeButton("Để sau") { _, _ ->
                 updateGate = UpdateGate.DEFERRED
                 applyUpdateGateUi(null)
             }
-            .setPositiveButton("Cập nhật") { _, _ -> downloadAndInstallUpdate(info) }
-            .show()
+        }
+        builder.show()
     }
 
     private fun downloadAndInstallUpdate(info: UpdateInfo) {
@@ -1840,11 +1873,15 @@ class MainActivity : Activity() {
                     requestInstall(apk)
                 }
             } catch (error: Exception) {
-                updateGate = UpdateGate.DEFERRED
+                updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.DEFERRED
                 runOnUiThread {
                     updateCheckRunning = false
-                    applyUpdateGateUi("Không thể hoàn tất cập nhật. Có thể tiếp tục sử dụng bản hiện tại.")
-                    recordLog("UPDATE_DOWNLOAD_DEFERRED: ${error.message}")
+                    applyUpdateGateUi(if (mandatoryUpdateKnown())
+                        "Cập nhật bắt buộc chưa hoàn tất. Hãy thử lại; phiên đang chạy không bị ngắt."
+                        else "Không thể hoàn tất cập nhật. Có thể tiếp tục sử dụng bản hiện tại.")
+                    // Strict structured diagnostics, never record exception
+                    // messages, download URLs or credentials.
+                    recordLog("UPDATE_DOWNLOAD_FAILED: " + error.javaClass.simpleName)
                 }
             }
         }.start()
@@ -1859,6 +1896,7 @@ class MainActivity : Activity() {
         val manifest = JSONObject(text)
         val tag = manifest.optString("tag")
         val versionCode = manifest.optInt("version_code", -1)
+        val minimumVersionCode = manifest.optInt("minimum_version_code", 0).coerceAtLeast(0)
         if (!tag.matches(Regex("^beta-vc\\d+$")) || versionCode <= 0 || tag != "beta-vc$versionCode") {
             throw IllegalStateException("Kênh cập nhật Beta không hợp lệ.")
         }
@@ -1877,7 +1915,8 @@ class MainActivity : Activity() {
             }
         }
         val base = BuildConfig.API_BASE_URL.trimEnd('/')
-        return UpdateInfo(versionCode, tag, base + apkPath, base + checksumPath, notes)
+        if (minimumVersionCode > versionCode) throw IllegalStateException("Phiên bản bắt buộc chưa có bản phát hành phù hợp.")
+        return UpdateInfo(versionCode, minimumVersionCode, tag, base + apkPath, base + checksumPath, notes)
     }
     private fun downloadAndVerify(info: UpdateInfo): File {
         val expected = downloadText(info.checksumUrl, info.tag).trim().split(Regex("\\s+"))[0].lowercase()

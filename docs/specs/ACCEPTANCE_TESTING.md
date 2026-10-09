@@ -2820,3 +2820,13 @@ Until Owner calls for analysis and separately authorizes implementation: **no ru
 3. Existing Pickers remain as they were; historical one-time D156 migration marker is not reset, and Admin/Root intentional disable remains effective across sync, relogin/restart and app reconnect.
 4. Verify server-side access controls, RBAC, capability version/concurrency, no permission escalation to non-Picker roles, no extra periodic polling/Firestore read/write storm, and unchanged WMS/HA/ACK/Stable behavior.
 5. D156 still governs Beta **before** approved implementation; these are future tests only, not PASS or authorization to change live Picker capability.
+
+
+### D166 mandatory PDA signed version floor candidate
+
+- No floor or zero: optional update behavior unchanged; no additional update polling.
+- Valid Beta `minimum_version_code` above installed APK: new login blocked; update dialog cannot be deferred at login, signed/checksummed package required.
+- Previously verified min floor is preserved after network failure, but a successfully verified lower floor can clear the mandatory flag. A verified release version older than minimum is rejected as an invalid mandate.
+- Already logged-in PDA with pending result receipt/overlay ACK is not force-logged-out/restarted; current session can finish and install later. Foreground update checks are no more frequent than one per six hours.
+- Test secure signer downgrade/tamper, offline, mismatched version, installed current version, mid-confirmation, picker ACK, reporter result receipt, MT90/DT50 battery, operational window.
+- Owner approves which signed vc is minimum before nonzero Beta configuration. Existing old APK installations cannot be retrospectively forced by code they have not installed; never claim full deployment by passing CI.
