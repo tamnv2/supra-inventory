@@ -8,7 +8,8 @@ internal object D166UsageAudit {
     private val metricLock = Any()
     private val apiCounts = linkedMapOf<String, Long>()
     private val apiElapsedMs = linkedMapOf<String, Long>()
-    private const val MAX_API_KEYS = 72
+    private const val MAX_API_KEYS = 180
+    private var droppedHttpMetrics = 0L
 
     // Existing HTTP operation boundary only; never persists per request or changes retry behavior.
     internal fun recordApi(method: String, path: String, status: Int, elapsedMs: Long) {
@@ -29,15 +30,24 @@ internal object D166UsageAudit {
                 status == 0 -> "NETWORK_ERROR"
                 status == 401 -> "AUTH_401"
                 status == 403 -> "AUTH_403"
+                status == 400 -> "BAD_REQUEST_400"
+                status == 404 -> "NOT_FOUND_404"
+                status == 408 -> "REQUEST_TIMEOUT_408"
+                status == 409 -> "CONFLICT_409"
+                status == 410 -> "GONE_410"
+                status == 422 -> "UNPROCESSABLE_422"
                 status == 429 -> "RATE_429"
-                status >= 500 -> "SERVER_5XX"
-                else -> "OTHER_ERROR"
+                status in 500..599 -> "SERVER_5XX"
+                else -> "OTHER_HTTP_${status.coerceIn(0, 999)}"
             }
             val hour = java.time.Instant.now().atOffset(java.time.ZoneOffset.UTC)
                 .toString().take(13)
             val key = hour + "|" + family + "|" + method.take(6).uppercase() + "|" + outcome
             synchronized(metricLock) {
-                if (!apiCounts.containsKey(key) && apiCounts.size >= MAX_API_KEYS) return
+                if (!apiCounts.containsKey(key) && apiCounts.size >= MAX_API_KEYS) {
+                    droppedHttpMetrics++
+                    return
+                }
                 apiCounts[key] = (apiCounts[key] ?: 0L) + 1L
                 apiElapsedMs[key] = (apiElapsedMs[key] ?: 0L) + elapsedMs.coerceIn(0L, 120000L)
             }
@@ -70,6 +80,8 @@ internal object D166UsageAudit {
             .put("journal_first_sequence", journal?.optLong("first_sequence", 0L) ?: 0L)
             .put("journal_last_sequence", journal?.optLong("last_sequence", 0L) ?: 0L)
             .put("http_source", "RAM_PER_ATTEMPT_NOT_PROVIDER_BILLING")
+            .put("http_group_cap", MAX_API_KEYS)
+            .put("http_dropped_metric_attempts", synchronized(metricLock) { droppedHttpMetrics })
             .put("http_groups", synchronized(metricLock) {
                 val out = JSONArray()
                 for ((key, n) in apiCounts)
