@@ -6285,6 +6285,19 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
+    "duplicate_daily_log_folder_backlog": {
+      "requirement_id": "D166-LOG-FOLDER-DUPLICATE",
+      "owner_approved_date_vn": "2026-10-09",
+      "status": "BACKLOG_RECORDED__SOURCE_RACE_RISK_IDENTIFIED__FIELD_ROOT_CAUSE_UNCONFIRMED__CODE_NOT_STARTED",
+      "issue": "TWO_DIFFERENT_DRIVE_FOLDER_IDS_WITH_SAME_YYYY_MM_DD_UNDER_BETA_LOGS_PARENT",
+      "investigation": "DRIVE_METADATA_PARENT_CREATEDTIME_ACTOR_AND_WORKER_VS_APPS_SCRIPT_CREATE_CACHE_RETRY_CONCURRENCY",
+      "implementation_goal": "ONE_CANONICAL_DAY_FOLDER_ID_ACROSS_ALL_WRITERS__IDEMPOTENT_BUNDLE_ARCHIVE__DRIVE_SYNCED_ONLY_AFTER_PROOF",
+      "historical_folder_policy": "DO_NOT_MOVE_OR_DELETE_EXISTING_POPULATED_FOLDERS_WITHOUT_OWNER_REVIEW",
+      "reference": "docs/D166_APPROVED_BACKLOG.md",
+      "runtime_change": "NONE",
+      "implementation_gate": "OWNER_APPROVAL_AFTER_IMPACT_REVIEW_REQUIRED",
+      "field_acceptance": "PENDING"
+    },
     "android_mandatory_update_backlog": {
       "requirement_id": "D166-ANDROID-FORCE-UPDATE",
       "owner_approved_date_vn": "2026-10-09",
