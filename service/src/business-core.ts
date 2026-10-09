@@ -601,7 +601,10 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
           // Legacy/FIRST_REPORT compatibility only. D165 PER_PICKER never closes
           // a batch merely because the last still-waiting Picker withdrew.
           recentAfterStatus = "SKIP_ALLOWED";
-          const correctionDeadline = correctionDeadlineFromResult(state, at);
+          const priorCorrection = firstRow(
+            state.storage.sql.exec<SqlRow>("SELECT correction_deadline_at FROM report_batches WHERE batch_id = ? LIMIT 1", ticket.batch_id).toArray(),
+          );
+          const correctionDeadline = String(priorCorrection?.correction_deadline_at || "") || correctionDeadlineFromResult(state, at);
           state.storage.sql.exec(
             `UPDATE report_tickets
                 SET status = 'RESOLVED', resolved_at = COALESCE(resolved_at, ?), updated_at = ?
