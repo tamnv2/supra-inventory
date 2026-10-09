@@ -128,7 +128,7 @@ export async function handleRuntimeLogCoreRequest(
       : {};
     const parent = String(request.method === "GET" ? url.searchParams.get("parent_id") : body.parent_id || "");
     const day = String(request.method === "GET" ? url.searchParams.get("day_vn") : body.day_vn || "");
-    if (!/^[A-Za-z0-9_-]{10,200}$/.test(parent) || !/^\\d{4}-\\d{2}-\\d{2}$/.test(day))
+    if (!/^[A-Za-z0-9_-]{10,200}$/.test(parent) || !/^\d{4}-\d{2}-\d{2}$/.test(day))
       return response({ error: "LOG_DAY_SCOPE_INVALID" }, 400);
     state.storage.sql.exec(
       "INSERT OR IGNORE INTO runtime_log_daily_folders(parent_id, day_vn) VALUES (?, ?)",
