@@ -22,6 +22,40 @@ namespace SupraSkuRecorder
       kind: kind, code: code, ext: ext || 'none', size: size || 0
     })); } catch (_) {}
   }
+  const digest = value => {
+    let hash = 2166136261;
+    for (let i = 0; i < value.length; i++)
+      hash = Math.imul(hash ^ value.charCodeAt(i), 16777619) >>> 0;
+    return hash.toString(16).padStart(8, '0');
+  };
+  const actionAlias = value => {
+    const v = String(value || '').normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (['đồng bộ','cập nhật','sync','synchronize'].includes(v)) return 'sync';
+    if (['tải excel','xuất excel','export excel'].includes(v)) return 'excel';
+    if (['download','tải xuống','tải file'].includes(v)) return 'download';
+    if (['xuất','export'].includes(v)) return 'export';
+    if (['tìm kiếm','search'].includes(v)) return 'search';
+    if (['xác nhận','confirm'].includes(v)) return 'confirm';
+    return 'other';
+  };
+  document.addEventListener('click', e => {
+    if (location.hostname !== 'wms-supra.winmart.vn' ||
+        location.pathname !== '/sft3/app/report/bin-inventory') return;
+    const el = e.target && e.target.closest &&
+      e.target.closest('button,a,[role=button]');
+    if (!el) return;
+    const visible = [...document.querySelectorAll('button,a,[role=button]')]
+      .filter(node => node.getBoundingClientRect && node.getBoundingClientRect().width > 0 &&
+        node.getBoundingClientRect().height > 0).slice(0,160);
+    const index = visible.indexOf(el);
+    if (index < 0 || index > 159) return;
+    const kind = (el.tagName || '').toLowerCase();
+    const classes = String(el.className && typeof el.className === 'string' ? el.className : '')
+      .split(/\s+/).filter(c => /^[a-zA-Z][a-zA-Z0-9_-]{0,48}$/.test(c)).slice(0,6).join('.');
+    const signature = digest(kind + '|' + classes + '|' + index);
+    const title = el.innerText || el.getAttribute('aria-label') || el.getAttribute('title') || '';
+    send('trace', actionAlias(title), kind + '_' + signature, index);
+  }, true);
   document.addEventListener('click', e => {
     const element = e.target && e.target.closest &&
       e.target.closest('button,a,[role=button],input[type=button],input[type=submit]');
