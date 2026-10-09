@@ -44,11 +44,18 @@ namespace SupraSkuRecorder
                 op.StateChanged += (sender, args) =>
                 {
                     if (op.State == CoreWebView2DownloadState.Completed)
+                    {
                         Log("DOWNLOAD_COMPLETED", extension, "local_file_only",
                             Math.Max(0L, op.BytesReceived));
+                        if (extension == "xlsx")
+                            CaptureDownloadCompletion(op.ResultFilePath, true);
+                    }
                     if (op.State == CoreWebView2DownloadState.Interrupted)
+                    {
                         Log("DOWNLOAD_INTERRUPTED", extension, "browser_error",
                             Math.Max(0L, op.BytesReceived));
+                        CaptureDownloadCompletion(op.ResultFilePath, false);
+                    }
                 };
             };
             core.NewWindowRequested += async (s, e) =>
