@@ -85,6 +85,8 @@ namespace SupraSkuRecorder
                 case "row_limit":
                 case "missing_header":
                 case "missing_site_column":
+                case "missing_provenance_columns":
+                case "unexpected_customer":
                 case "unexpected_dc_site":
                 case "invalid_sku_rows":
                 case "source_name_conflict":
