@@ -751,3 +751,8 @@ For a Skip result in the SLA-permitted correction interval, show **Sửa - Đang
 Owner wants **Đã có hàng** (`HAS_STOCK`) and **Cho phép Skip** (`SKIP_ALLOWED`) result correction actions to use **one configurable duration**: for example 15 minutes applies equally to both. After expiry, the corresponding **Sửa** buttons disappear on **both Web and Android Reporter**, while server-side deadline/version/role checks still reject stale or forged submissions. Existing correction directions, confirmations, audit, realtime/Picker notification and ACK remain protected.
 
 **Research only.** Before implementation reconcile current `skip_to_stock_minutes`/correction flag and first-report timestamp semantics with the required shared window, including live setting changes and historical result rows. No automatic changes to settings, API, release, timeout scheduling, or active app UX from this entry. Details: `docs/D166_APPROVED_BACKLOG.md`.
+
+
+### D166-WEB-DATE-RANGE — Web operations shared date-range form (proposed only)
+
+The prospective D166 five-tab operations Web UI has one shared date filter: **Hôm nay** default according to `Asia/Ho_Chi_Minh`, editable **Từ ngày** and **Đến ngày**, and an explicit **Xem/Áp dụng** action. Both boundary days are included. Reject invalid/reversed intervals with a visible explanation, and use existing validated hot-report range constraints pending later analysis. Tab selection must not silently reset/rewrite the selected interval; the API payload must use the same dates that the controls show. No Web changes or extra provider requests are permitted during backlog recording.
