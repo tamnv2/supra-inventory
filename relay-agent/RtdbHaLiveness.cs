@@ -181,12 +181,34 @@ namespace SupraInventoryRelayAgent
                         if (!_lastStreamHealthy)
                             _log("RTDB HA realtime observer recovered.");
                         _lastStreamHealthy = true;
+                        // Firebase EventSource frames are "event:" + "data:" + a blank line.
+                        // Its data JSON is {"path":"/","data":{...}}, not a flat
+                        // heartbeat object. Keep both event type and nested payload.
+                        var eventName = "";
+                        var eventData = new StringBuilder();
                         while (!token.IsCancellationRequested)
                         {
                             var line = reader.ReadLine();
                             if (line == null) break;
-                            if (!line.StartsWith("data:", StringComparison.Ordinal)) continue;
-                            ApplyStreamData(line.Substring(5).Trim());
+                            if (line.Length == 0)
+                            {
+                                if (eventData.Length > 0)
+                                {
+                                    if (eventName == "cancel" || eventName == "auth_revoked")
+                                        throw new IOException("RTDB_HA_STREAM_ACCESS_REVOKED");
+                                    ApplyStreamData(eventName, eventData.ToString());
+                                }
+                                eventName = "";
+                                eventData.Length = 0;
+                                continue;
+                            }
+                            if (line.StartsWith("event:", StringComparison.Ordinal))
+                                eventName = line.Substring(6).Trim();
+                            else if (line.StartsWith("data:", StringComparison.Ordinal))
+                            {
+                                if (eventData.Length > 0) eventData.Append("\\n");
+                                eventData.Append(line.Substring(5).TrimStart());
+                            }
                         }
                     }
                 }
@@ -207,32 +229,88 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private void ApplyStreamData(string raw)
+        private void ApplyStreamData(string eventName, string raw)
         {
+            if (eventName != "put" && eventName != "patch") return;
             try
             {
+                // Firebase REST SSE envelope: {"path":"/","data":{...}}.
+                // Never accept keep-alive or a malformed frame as PRIMARY proof.
                 var envelope = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                object dataObj;
-                var data = envelope != null && envelope.TryGetValue("data", out dataObj)
-                    ? dataObj as Dictionary<string, object>
-                    : null;
-                if (data == null) return;
-
-                var primary = ReadString(data, "agent_instance_id");
-                var generation = ReadString(data, "generation");
-                var heartbeat = ReadLong(data, "heartbeat_at_ms");
+                if (envelope == null) return;
+                var path = ReadString(envelope, "path");
+                object payload;
+                if (!envelope.TryGetValue("data", out payload)) return;
+                var data = payload as Dictionary<string, object>;
+                var updated = false;
                 lock (_gate)
                 {
-                    _primaryId = primary;
-                    _generation = generation;
-                    _heartbeatAtMs = heartbeat;
+                    if (path == "/")
+                    {
+                        if (data == null)
+                        {
+                            if (eventName != "put") return;
+                            _primaryId = "";
+                            _generation = "";
+                            _heartbeatAtMs = 0;
+                            updated = true;
+                        }
+                        else if (eventName == "put")
+                        {
+                            // Full authoritative root replacement.
+                            _primaryId = ReadString(data, "agent_instance_id");
+                            _generation = ReadString(data, "generation");
+                            _heartbeatAtMs = ReadLong(data, "heartbeat_at_ms");
+                            updated = true;
+                        }
+                        else
+                        {
+                            // Firebase PATCH only updates the supplied children.
+                            // Do not erase valid generation/id if only heartbeat changed.
+                            if (data.ContainsKey("agent_instance_id"))
+                            {
+                                _primaryId = ReadString(data, "agent_instance_id");
+                                updated = true;
+                            }
+                            if (data.ContainsKey("generation"))
+                            {
+                                _generation = ReadString(data, "generation");
+                                updated = true;
+                            }
+                            if (data.ContainsKey("heartbeat_at_ms"))
+                            {
+                                _heartbeatAtMs = ReadLong(data, "heartbeat_at_ms");
+                                updated = true;
+                            }
+                        }
+                    }
+                    else if (eventName == "put")
+                    {
+                        // A write to a single child is represented as a scalar.
+                        if (path == "/agent_instance_id")
+                        {
+                            _primaryId = payload == null ? "" : Convert.ToString(payload) ?? "";
+                            updated = true;
+                        }
+                        else if (path == "/generation")
+                        {
+                            _generation = payload == null ? "" : Convert.ToString(payload) ?? "";
+                            updated = true;
+                        }
+                        else if (path == "/heartbeat_at_ms")
+                        {
+                            try { _heartbeatAtMs = payload == null ? 0 : Convert.ToInt64(payload); }
+                            catch { _heartbeatAtMs = 0; }
+                            updated = true;
+                        }
+                    }
                 }
-                try { _updated(); } catch { }
+                if (updated) try { _updated(); } catch { }
             }
             catch
             {
-                // A malformed/non-data SSE frame is not authority. NEXT_A falls
-                // back to Firestore if no valid fresh heartbeat is available.
+                // Never treat malformed SSE or credential/error text as authority,
+                // and never log the frame contents (may contain credentials).
             }
         }
 
