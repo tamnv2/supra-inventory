@@ -2779,3 +2779,13 @@ Owner selects Agent v122 as development base, and explicitly authorizes v123 log
 - Verify startup, pre-login, foreground resume and supported existing-version signal paths. Update detection is bounded and may reuse existing transport/cache; no unbounded periodic release polling, new Firestore listener/document read cadence or excess GitHub/Cloudflare traffic.
 - Log failure reasons without identifiers, secrets or repetitive provider uploads. Test on real MT90/DT50 Android 11 as well as source/CI. Field PASS and Owner PASS are separate from build/release PASS.
 - This is documentation/backlog only under **D166**; no APK/runtime mutation, Beta mass update or Stable deployment is authorized by this entry. Full owner requirement: `docs/D166_APPROVED_BACKLOG.md`.
+
+
+## D166 — Duplicate `YYYY-MM-DD` Logs folder regression and field acceptance (backlog only)
+
+- Start with no folder for a controlled Beta date and deliver simultaneous Web, Android and Agent support bundles through Worker and Apps Script. A single canonical Drive folder ID must be resolved under the exact scoped `Inventory/Beta/Logs` parent, regardless of delivery order, retries or multiple client instances.
+- Simulate eventual consistency / stale LIST, concurrent CREATE, independent caches, cross-path lock contention, failed trash/delete, API 403/429/5xx, timeout, restart, and late retry. No second populated folder survives; no successful `DRIVE_SYNCED` response with missing/unverifiable file.
+- At Vietnam midnight, archive by actual trusted archive date, retain original event time in metadata; do not split a single archive date into folders or mix project parent IDs.
+- Compare logical `bundle_id` / content hash / file ID before and after, including duplicate retries; no log loss, no duplicate artifact, no accidental local deletion, no extra normal provider polling or log-upload cadence.
+- For already-existing duplicates, generate non-destructive full inventory and verify any later Owner-approved reconciliation with no loss/collision or cross-parent move. CI/source proof is not Owner field PASS; require real Google Drive metadata + source correlation to confirm actual incident root cause.
+- Scope remains D166 backlog with explicit Owner impact gate before implementation; do not deploy, mutate existing Google Drive folders or Stable for this documentation change.
