@@ -1026,3 +1026,13 @@ Reporter Android requests `/api/reporter/counters` with ISO `from`/`to` for the 
 After a SKU is marked Skip, and only while Web SLA **Cho phép sửa kết quả** is enabled and the configured window from the *first SKU report* has not elapsed, Reporter/Admin can select **Sửa - Đang xử lý** or **Sửa - Đã có hàng** from the Skip result tab on Web or Android. Both require explicit confirmation (two steps), server-side previous-state+expected-version+deadline fencing and immutable audit; stale updates fail with an actionable error. Transition to pending reopens nonwithdrawn tickets and restarts applicable timeout countdown from correction; transition to HAS_STOCK resolves them as stocked. The inverse prior HAS_STOCK → PENDING/SKIP workflow stays intact.
 
 Each correction creates one result event/ACK for the Picker users of this batch only, using the existing realtime+FCM pipeline. Notification texts include `SKU`, product, **Skip → Đang xử lý** or **Skip → Đã có hàng**, the responsible Inventory user and that this was a result correction; no unassociated Picker should receive it. Web and Android Picker surfaces present the same meaning, without extra polling.
+
+
+## D166 — Future workflow proposals, no runtime authorization (09/10/2026)
+
+- Result correction: research a single SLA-configured 15-minute-example correction window for both **Đã có hàng** and **Cho phép Skip**; hide expired **Sửa** controls on Web and Android, validate eligibility server-side, preserve version-fenced audit, targeted Picker corrected results and ACK.
+- Web operations: research five tabs **Đang xử lý / Quá hạn / Đã có hàng / Cho phép Skip / Picker đã thu hồi** replacing current recent-results surface. Do not change Android withdrawn-tab policy.
+- Agent daily SKU: research after-startup-ready, separate Supra browser UI → SKU file export → existing Inventory import → confirmed DONE; cover multi-Agent coordination, interrupted runs, wrong/stale files, login/session limits, noninterference with PRIMARY/ACK. **D126 manual SKU only remains runtime authority until Owner explicitly changes it**; no browser automation now.
+- Reporting: research as-of-report-date storage area (LTA/Shelving examples), shortage frequency by SKU/area, and a revised overview/detailed reports package. **D002 forbids current bin/location master management**, so no source/schema enrichment without a separate approved scope decision.
+
+These four are documentation-only Owner backlog additions under D166. Implementation, API/schema/provider access, and release are not authorized. Details: `docs/D166_APPROVED_BACKLOG.md`.
