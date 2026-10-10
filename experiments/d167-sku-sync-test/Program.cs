@@ -12,10 +12,7 @@ namespace D167SkuSyncTest
         private static int Main(string[] args)
         {
             if (args.Length == 1 && args[0] == "--self-test")
-            {
-                Console.WriteLine("D167 test program startup PASS");
-                return 0;
-            }
+                return SelfTests.Run();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
