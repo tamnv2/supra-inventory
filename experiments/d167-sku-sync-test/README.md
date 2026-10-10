@@ -1,41 +1,30 @@
-# D167 — Agent test độc lập: một nút Đồng bộ SKU
+# D167 — Standalone SKU Sync Test (Windows x64, Beta only)
 
-Trạng thái: **CODE CANDIDATE / NO RELEASE / NO LIVE E2E PROOF**. Đây là mã thử nghiệm riêng trong `experiments/`, KHÔNG thay đổi hay phát hành `relay-agent/` chính. Không có WMS/browser profile cloning hoặc truy xuất DPAPI, token, cookie, chữ ký từ tiến trình đang chạy.
+**Status: code compiled / Windows CI offline tests; real Office WMS + Inventory end-to-end not yet field-proven.**
 
-## Kiểm tra mã VBA tham khảo
+This EXE is **completely separate from Relay Agent v124**. It does not read the Agent's session, DPAPI files, process memory, WMS profile, or browser DevTools. The existing Confirm Picklist workflow, primary/standby lease, Firestore and PDA app remain unchanged. No existing service needs an update for the default login mode.
 
-Owner đã cung cấp `Export_VBA_10102026_203855.zip` riêng tư để phân tích, không commit vào repo. Trong mã VBA:
-- `Mod_Supra_Download.bas` tạo HMAC-SHA256 và nonce mới cho request, dùng WinHTTP GET và đọc responseBody dạng binary.
-- `Mod_CheckNewOrderStock_Status.bas` minh họa thao tác download binary, áp header theo phiên hợp lệ.
-- `Mod_LicenseGate.bas` hỗ trợ nhiều đường kết nối proxy theo PAC, Windows settings và cấu hình Office.
-- Không có bằng chứng thực tế rằng WMS API `exportBinStocks` đã trả HTTP 200 trong môi trường Agent v124. Mã VBA không phải giấy phép sao chép session hoặc token.
+## Owner field test
 
-## Đã kiểm chứng trong source, không phải nhận định
+1. Download the `D167-SKU-Sync-Test-Windows-x64-NOT-DEPLOYED` artifact from the successful GitHub Actions run on draft PR #549. Extract it, open `D167-SKU-Sync-Test.exe` on the authorized Windows workstation (requires .NET Framework 4.8 and Microsoft Edge).
+2. Click **1. MỞ & ĐĂNG NHẬP SUPRA**, log in to the company's legitimate WMS page **in the separate Edge window**. Leave it open. No Supra password is entered or saved by the EXE.
+3. Enter Inventory username and password (including current one-time credential for privileged accounts, where applicable), and click **2. ĐĂNG NHẬP INVENTORY**. This uses the existing Beta Service `/api/auth/login` **WEB channel** and receives a real Firebase ID token **in the test process only**. It does not use the main Agent's Firebase identity. An existing Web session on another device can cause `WEB_SESSION_CONFLICT`; it will not be replaced without explicitly selecting the checkbox. Do not select it if other Web work must remain active.
+4. Click **3. ĐỒNG BỘ SKU**. The EXE will: extract allowlisted API request headers from its own browser traffic into RAM; create a per-request HMAC signature/nonce (per the provided VBA's algorithm), GET the sanctioned HY1 `exportBinStocks` endpoint, validate and save XLSX on Desktop, parse only `SKU` and `Tên sản phẩm`, preview every chunk of 1,000 SKU, then POST actual chunks to the current `/api/admin/skus/import` Beta Service route.
+5. If server reports existing-name conflicts, the tester asks for direct approval using the **current Service contract** before any mutation. Otherwise it applies automatically. The test then reads back representative SKU/name pairs from `GET /api/skus` and prints `DONE` only if each chunk has a terminal imported receipt and readback agrees.
 
-- Service có route `POST /api/admin/skus/import` đi tới `/business/skus/import-v2`, hỗ trợ `dry_run`, `request_id`, `source_hash`, `confirm_name_changes` và tối đa 2.000 SKU/lô.
-- Hiện `interactiveSessionError()` bác bỏ channel `AGENT` bằng `SESSION_UPGRADE_REQUIRED`. Test này có **candidate chưa triển khai** cho riêng import route: AGENT session generation=0, base/effective role trùng, ADMIN hoặc PICKPACK_ADMIN.
-- Agent chính lưu Firebase refresh token trong tệp DPAPI CurrentUser, nhưng không cung cấp một public IPC interface giao việc xuất SKU. WMS Confirm browser chỉ dùng DevTools DOM, hiện có guard `session_extract=false`. D126 còn cấm lấy lại request-session material và gọi WMS API trực tiếp.
-- Vì vậy một EXE thứ hai không thể an toàn lấy nguyên phiên của Agent chính mà không có thay đổi/ủy quyền giao tiếp thêm. Không dựng tính năng đọc bộ nhớ/DPAPI của app chính hay chiếm cổng DevTools.
+## Limits and evidence
 
-## Hợp đồng thử nghiệm
+- A Beta upload is **a real business data write**, even from an independent EXE. No stable endpoint, position, LTA/Shelving, stock quantity, or schedule is changed.
+- WMS API export may be blocked by corporate proxy, session headers or vendor request changes. The EXE shows a specific safe status code and will not claim success in that case.
+- The transient browser traffic observer only records a strict allowlist of HTTPS API request headers from `api-supra.winmart.vn`. It does not write, display or emit WMS secrets. Browser cookies follow Chromium's separate local profile security.
+- Real WMS HTTP 200, returned XLSX, real Inventory Service import and subsequent catalog readback **cannot be proved by CI**. They require Owner field test using the authorized logged-in WMS/Inventory accounts.
+- Firebase WEB login may conflict with an existing Web session. This test never forces session takeover without the owner's explicit checkbox.
+- Field acceptance must also confirm zero disruption to primary/standby Confirm Picklist. Keep Agent v124 as-is.
+- The provided VBA is reference material only. Never put VBA configuration, raw customer catalog or sensitive session/header values into the public repository.
 
-App độc lập `D167-SKU-Sync-Test.exe` có một nút **ĐỒNG BỘ SKU**. Nút gửi đúng một command `SKU_EXPORT_IMPORT` với request_id lên Windows named pipe `Supra.Inventory.D167SkuTest`, nhận reply gồm status + downloaded + uploaded. Chỉ hiển thị thành công khi **cả hai** đã được xác nhận true.
+## Code and build
 
-**Hiện main Agent v124 chưa có broker named pipe này**. Bản test sẽ hiển thị **CHƯA KẾT NỐI**, không báo thành công giả, không tác động Web/WMS/Service. Windows CI self-test dùng fake broker và chỉ chứng minh giao diện/IPC, không chứng minh export/import.
-
-### Để test thực tế một nút mà không lộ phiên
-
-Cần Owner chấp thuận một phần giao tiếp tối thiểu ở Agent chính:
-1. Một endpoint named pipe **bị hạn chế cùng Windows user và caller được xác thực**; không trả token/cookie/header/signed request.
-2. Main Agent tự thực hiện GET read-only đã cho phép bằng đúng browser session của chính nó; không đụng DOM/confirm job đang xử lý, không dùng Network capture.
-3. Phần xác thực Inventory Agent dùng trong quy trình nhập SKU; Worker chỉ chấp nhận route/import và role đã chốt; toàn bộ lưu lượng đều Beta.
-4. Broker trả file/metadata và Server receipt có kiểm chứng, bao gồm số SKU/rows và kết quả import; không ghi log phiên.
-5. Giữ nguyên preview/conflict/không xóa SKU vắng mặt, không cập nhật vị trí.
-
-Nếu Owner tiếp tục yêu cầu **không sửa bất kỳ dòng nào ở Agent chính**, phải sử dụng một phiên WMS độc lập được cấp quyền trong Agent test thay vì lấy phiên ngầm của main. Hai điều kiện không thể đồng thời đảm bảo theo mã hiện hành.
-
-## Gate
-
-Branch → draft PR → Windows build + self-test + repo authority/continuity. **No merge, no Worker deploy, no release channel, no Stable, no real SKU import** ở giai đoạn code-only. Main Agent/Confirm và người dùng đang hoạt động không thay đổi.
-
-Bằng chứng còn thiếu: E2E trên Windows Office, WMS signed GET 200, Excel parser với workbook gốc, route Firebase AGENT live 200, Service import receipt, kiểm tra Web SKU catalog, quan sát không ảnh hưởng Confirm và Usage.
+- Project: `experiments/d167-sku-sync-test/D167SkuSyncTest.csproj`, .NET Framework 4.8 Windows Forms x64.
+- GitHub Actions: `.github/workflows/verify-d167-sku-sync-test.yml`.
+- Offline `--self-test`: test parsing Unicode, leading-zero SKU, dedupe and conflicting names using synthetic XLSX, **no live provider calls**.
+- PR #549: draft and not merged. Builds upload the independent EXE as a GitHub Actions artifact. No update to Agent's release manifest or Beta Worker deployment is part of this code-only checkpoint.
