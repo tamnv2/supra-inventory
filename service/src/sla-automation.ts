@@ -1,4 +1,5 @@
 import { mealAdjustedDeadline, dueMealPrompts, nextMealPromptMs } from "./meal-break-core";
+import { processD167OverdueReminders, processD167DayClose, nextD167OverdueAlarmMs } from "./d167-overdue-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -21,7 +22,7 @@ export interface OperationalSlaConfig {
 }
 
 export interface OperationalDeadlineEffect {
-  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required";
+  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required" | "d167_overdue_reminder_30" | "d167_overdue_reminder_60" | "batch_day_end_auto_skip";
   event_id: string;
   batch_id: string;
   sku: string;
@@ -676,6 +677,12 @@ function processPerPickerAutoSkip(
         batchId,
       ).toArray());
       const firstOverdueForBatch = Number(existingOverdue?.count || 0) === 0;
+      if (firstOverdueForBatch) {
+        state.storage.sql.exec(
+          "UPDATE report_batches SET d167_first_overdue_at = COALESCE(d167_first_overdue_at, ?) WHERE batch_id = ? AND status = 'PENDING'",
+          now, batchId,
+        );
+      }
 
       state.storage.sql.exec(
         `UPDATE report_tickets
@@ -763,6 +770,8 @@ export function processOperationalDeadlines(
   processBatchAutoSkip(state, config, nowMs, effects);
   processPerPickerAutoSkip(state, config, nowMs, effects);
   if (config) processWarningAndEscalation(state, config, nowMs, effects);
+  effects.push(...processD167OverdueReminders(state, nowMs));
+  effects.push(...processD167DayClose(state, nowMs));
   const mealPrompts = dueMealPrompts(state, nowMs);
   for (const prompt of mealPrompts) {
     effects.push({
@@ -836,6 +845,8 @@ export async function scheduleNextOperationalAlarm(state: DurableObjectState): P
 
   const nextPrompt = nextMealPromptMs(state);
   if (nextPrompt != null) candidates.push(nextPrompt);
+  const nextOverdue = nextD167OverdueAlarmMs(state);
+  if (nextOverdue != null) candidates.push(nextOverdue);
   if (!candidates.length) {
     await state.storage.deleteAlarm();
     return;
