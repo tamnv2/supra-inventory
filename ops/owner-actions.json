@@ -5352,7 +5352,7 @@
     },
     {
       "id": "OA102",
-      "status": "PENDING_D166_INTEGRATED_PR541_CI_AND_FIELD_OWNER_GATE",
+      "status": "CLOSED_D166_LIMITED_OWNER_PASS_UPDATE_NO_REPORTED_ERRORS__D167_ZIP_FIELD_VALIDATION_PENDING",
       "title": "Approve D166 Usage ZIP implementation scope",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Windows Agent / Existing Apps Script Gateway",
@@ -5375,7 +5375,7 @@
         "Candidate v121 export ZIP is actually verified on standby Windows, with no secrets or extra background reads.",
         "Source missing/overquota represented as N/A plus dashboard screenshot URL; soft spend budget maintained."
       ],
-      "remaining_owner_action": "D166 tích hợp mã ứng viên Beta trên PR #541; vẫn cần CI tích hợp PASS, xác minh bảo mật/quota, thử nghiệm standby Agent/PDA/Drive và Owner duyệt phạm vi phát hành trước bất cứ merge gây deploy. Field thực tế, Usage ZIP v122 và Owner D166 PASS vẫn chờ bằng chứng.",
+      "remaining_owner_action": "NO_IMMEDIATE_ACTION__D167_AWAITS_LOGS_AND_PROVIDER_USAGE_WHEN_OWNER_HAS_DATA__ZIP_AND_HA_FIELD_VALIDATION_CARRIED_FORWARD",
       "d166_integration_2026_10_10": {
         "pr": 541,
         "scope": "BETA_SOURCE_ONLY__EIGHT_D166_CANDIDATES__NO_AUTO_SKU_OR_LOCATION",
@@ -5388,9 +5388,11 @@
         "installed_all_agent": "NOT_PROVEN__OLD_AGENT_AUTO_UPDATE_NOT_REMOTE_TRIGGERABLE_WITH_THIS_CONNECTOR",
         "release_scope_approval": "OWNER_EXPLICIT_2026_10_10_ALL_BETA_PDA__AGENT_V124_ANDROID_VC104_WEB_WORKER_EXISTING_GATEWAY",
         "field_pass": false,
-        "stable": "OWNER_GATED_UNTOUCHED"
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "scope_limited_owner_pass": true,
+        "field_validation_transferred": "docs/D167_BACKLOG.md"
       },
-      "closed": false,
+      "closed": true,
       "owner_approval": "2026-10-08 implement maximum low-cost Usage ZIP + manual screenshot links; phase C with logs",
       "owner_implementation_approval": "2026-10-08: extend Phase A+B together for all low-cost, authorized Inventory Beta usage; provide screenshots and links for unavailable/expensive; Phase C ZIP+screenshots+logs",
       "technical_evidence": {
@@ -5415,13 +5417,37 @@
         "agent_release_run": 37815507718,
         "gateway_run": 37815507761,
         "owner_next": "EXISTING_V122_STANDBY_ZIP_RETRY__NO_EXE_UPDATE_REQUIRED",
-        "closed": false,
+        "closed": true,
         "field_error": "2026-10-09_00:27_00:33_D166_PROVIDER_NOT_READY",
         "field_status": "NOT_PASS_UNTIL_V122_ZIP_RETRY",
-        "next": "RETRY_V122_ZIP_AFTER_GATEWAY_REDEPLOY",
+        "next": "D167_EVIDENCE_REVIEW_WHEN_OWNER_PROVIDES_USAGE_ZIP_AND_PROVIDER_SCREENSHOTS",
         "no_owner_action_until_deploy": false,
         "gateway_fix": "PR514_MERGED_4600ACCA__DEPLOY_37818739635_PASS"
-      }
+      },
+      "closed_at_vn": "2026-10-10",
+      "owner_release_acceptance": "D166_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__NOT_COMPLETE_ZIP_USAGE_OR_FLEET_FIELD_PASS"
+    },
+    {
+      "id": "OA103",
+      "status": "D167_EVIDENCE_AWAITED_WHEN_AVAILABLE__NO_IMMEDIATE_OWNER_ACTION_REQUIRED",
+      "title": "D167 usage/log evidence and field verification for D166 carried issues",
+      "resource_key": "repo-authority",
+      "provider": "SUPRA Inventory Beta / Existing Web Android Windows Agent Service providers",
+      "reason_owner_only": "Real in-company PDA and Windows Agent version/confirm/failover behavior and screenshots/log ZIP of provider usage cannot be proven from GitHub release manifests alone; Owner may send existing evidence when collected.",
+      "source_change": "D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY_2026_10_10",
+      "backlog_document": "docs/D167_BACKLOG.md",
+      "priority": "WAIT_LOGS__NO_SCHEDULE_OR_AUTOMATION_TO_REQUEST_OWNER_NOW",
+      "recommended_owner_evidence_when_ready": [
+        "existing sanitized Agent Usage ZIP and runtime support logs",
+        "Cloudflare Worker/DO SQL and Firebase Firestore RTDB Usage screenshots or export for comparable shifts",
+        "installed MT90 DT50 Android version and relevant Agent v124 version with no sensitive device identifiers",
+        "realtime WMS confirm/ACK/HA timestamps and selected five-tab/correction/Drive logs outcomes"
+      ],
+      "manual_action_now": "NONE__WAIT_UNTIL_OWNER_PROVIDES_AVAILABLE_LOGS_AND_RELEVANT_SOURCE_EVIDENCE",
+      "constraints": "NO_SECRET_OR_PERSONAL_IDENTIFIERS_IN_PUBLIC_GITHUB__STABLE_OWNER_GATED__NO_NEW_DEPLOY",
+      "code_or_deploy_approval": false,
+      "owner_field_pass": false,
+      "closed": false
     }
   ]
 }
