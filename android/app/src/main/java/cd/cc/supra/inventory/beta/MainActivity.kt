@@ -488,7 +488,7 @@ class MainActivity : Activity() {
                                     .setMessage(e.message + "\n\nTiếp tục sẽ đăng xuất phiên App/PDA cũ. Web và Agent không bị ảnh hưởng.")
                                     .setNegativeButton("Huỷ", null)
                                     .setPositiveButton("Tiếp tục") { _, _ -> attemptLogin(true) }
-                                    .show()
+                                    .create().also { safelyShowDialog(it) }
                             }
                         } else {
                             runOnUiThread {
@@ -537,7 +537,7 @@ class MainActivity : Activity() {
                     .setMessage("Hệ thống sẽ kiểm tra kênh Beta một lần.")
                     .setNegativeButton("Huỷ", null)
                     .setPositiveButton("Tìm kiếm") { _, _ -> checkForUpdate(silent = false) }
-                    .show()
+                    .create().also { safelyShowDialog(it) }
             }
         }
         findViewById<TextView>(R.id.btnLog).setOnClickListener { showSupportDiagnostics() }
@@ -766,13 +766,27 @@ class MainActivity : Activity() {
         realtimeClient = null
     }
 
+    private fun safelyShowDialog(dialog: AlertDialog): Boolean {
+        // A queued background/OTA/session callback may outlive the Activity's
+        // window token even before onDestroy finishes (D167 BadToken crash).
+        if (isFinishing || isDestroyed) return false
+        return try {
+            dialog.show()
+            true
+        } catch (_: android.view.WindowManager.BadTokenException) {
+            false
+        } catch (_: IllegalStateException) {
+            false
+        }
+    }
+
     private fun confirmLogout() {
         AlertDialog.Builder(this)
             .setTitle("Đăng xuất?")
             .setMessage("Phiên làm việc hiện tại sẽ kết thúc.")
             .setNegativeButton("Huỷ", null)
             .setPositiveButton("Đăng xuất") { _, _ -> logoutWithNotificationCleanup() }
-            .show()
+            .create().also { safelyShowDialog(it) }
     }
 
     private fun showSupportDiagnostics() {
@@ -802,7 +816,7 @@ class MainActivity : Activity() {
                 }
                 startActivity(Intent.createChooser(intent, "Chia sẻ log hỗ trợ"))
             }
-            .show()
+            .create().also { safelyShowDialog(it) }
     }
 
     private fun buildSupportDiagnostics(): String {
@@ -1455,24 +1469,40 @@ class MainActivity : Activity() {
     }
 
     private fun drainOverlayAcknowledgements() {
-        if (overlayAckDrainRunning || api.session?.role != "PICKER") return
-        val events = NotificationSignalStore.pendingOverlayAcks(applicationContext)
+        // D167: never replay a PDA's ACK for a different account. The old
+        // unscoped queue is retained for safe recovery, not auto-attributed.
+        val owner = api.session ?: return
+        if (overlayAckDrainRunning || owner.role != "PICKER") return
+        val events = NotificationSignalStore.pendingOverlayAcks(applicationContext, owner.userId)
         if (events.isEmpty()) return
         overlayAckDrainRunning = true
         Thread {
             try {
                 for (eventId in events) {
+                    if (api.session?.userId != owner.userId) break
                     try {
                         api.acknowledgeResult(eventId)
-                        NotificationSignalStore.clearOverlayAck(applicationContext, eventId)
+                        NotificationSignalStore.clearOverlayAck(applicationContext, eventId, owner.userId)
+                    } catch (error: ApiException) {
+                        if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
+                            // Permanent/not-authorized-to-this-user result: preserve
+                            // evidence, avoid another 60-second retry storm.
+                            // Do not claim that the server recorded this ACK.
+                            NotificationSignalStore.quarantineOverlayAck(
+                                applicationContext, eventId, owner.userId, "RESULT_ACK_NOT_FOUND"
+                            )
+                        }
+                        // All transient failures remain pending for session/network recovery.
                     } catch (_: Exception) {
-                        // Keep it queued. A later authenticated resume will retry.
+                        // Keep the ACK pending; no extra request or timer.
                     }
                 }
             } finally {
                 runOnUiThread {
                     overlayAckDrainRunning = false
-                    pickerController?.refresh()
+                    if (!isFinishing && !isDestroyed && api.session?.userId == owner.userId) {
+                        pickerController?.refresh()
+                    }
                 }
             }
         }.start()
@@ -1497,7 +1527,7 @@ class MainActivity : Activity() {
             .setView(logoutLoading)
             .setCancelable(false)
             .create()
-        logoutDialog.show()
+        if (!safelyShowDialog(logoutDialog)) { logoutRunning = false; return }
 
         operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
         operatingWindowTask = null
@@ -1858,7 +1888,7 @@ class MainActivity : Activity() {
                 applyUpdateGateUi(null)
             }
         }
-        builder.show()
+        safelyShowDialog(builder.create())
     }
 
     private fun downloadAndInstallUpdate(info: UpdateInfo) {
