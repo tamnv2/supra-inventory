@@ -126,6 +126,11 @@ export function processD167OverdueReminders(
     `SELECT batch_id,sku,product_name,d167_first_overdue_at
        FROM report_batches
       WHERE status='PENDING' AND d167_first_overdue_at IS NOT NULL
+        AND EXISTS (
+          SELECT 1 FROM report_tickets t
+          WHERE t.batch_id = report_batches.batch_id AND t.status = 'OPEN'
+            AND t.auto_skip_allowed_at IS NOT NULL
+        )
       ORDER BY d167_first_overdue_at ASC LIMIT ?`,MAX_BATCHES*5,
   ).toArray();
   for(const row of active){
@@ -161,6 +166,11 @@ export function processD167DayClose(
        FROM report_batches WHERE status='PENDING'
          AND first_report_at >= ? AND first_report_at <= ?
          AND d167_first_overdue_at IS NOT NULL
+         AND EXISTS (
+           SELECT 1 FROM report_tickets t
+           WHERE t.batch_id = report_batches.batch_id AND t.status = 'OPEN'
+             AND t.auto_skip_allowed_at IS NOT NULL
+         )
        ORDER BY first_report_at ASC LIMIT ?`,
     effective,now,MAX_BATCHES*4,
   ).toArray();
@@ -249,7 +259,13 @@ export function processD167DayClose(
 export function nextD167OverdueAlarmMs(state: DurableObjectState, nowMs=Date.now()):number|null{
   const due:number[]=[];
   const records=state.storage.sql.exec<SqlRow>(
-    "SELECT batch_id,d167_first_overdue_at,first_report_at FROM report_batches WHERE status='PENDING' AND d167_first_overdue_at IS NOT NULL ORDER BY d167_first_overdue_at LIMIT 250",
+    "SELECT batch_id,d167_first_overdue_at,first_report_at FROM report_batches WHERE status='PENDING' AND d167_first_overdue_at IS NOT NULL
+       AND EXISTS (
+         SELECT 1 FROM report_tickets t
+         WHERE t.batch_id = report_batches.batch_id AND t.status = 'OPEN'
+           AND t.auto_skip_allowed_at IS NOT NULL
+       )
+       ORDER BY d167_first_overdue_at LIMIT 250",
   ).toArray();
   const effective=startAt(state);
   for(const row of records){
