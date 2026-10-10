@@ -168,6 +168,10 @@ namespace SupraInventoryRelayAgent
                         D166AddText(zip, "manifest.json", _d166Json.Serialize(manifest), checksums);
                         D166AddText(zip, "summary.json", _d166Json.Serialize(D160UsageJson.Value(evidence, "summary")), checksums);
                         D166AddText(zip, "providers/monitoring.json", _d166Json.Serialize(D160UsageJson.Value(evidence, "metrics")), checksums);
+                        // D167: exactly one Owner-click scoped Worker -> DO in-RAM snapshot.
+                        // No new timer, Firebase read/write or provider account metric query.
+                        D166AddText(zip, "providers/inventorycore_d167_local.json",
+                            _d166Json.Serialize(D160UsageJson.Value(evidence, "d167_inventorycore_diagnostics")), checksums);
                         D166AddText(zip, "providers/google_drive_account.json", _d166Json.Serialize(D160UsageJson.Value(evidence, "google_drive_account")), checksums);
                         var cloudflare = D160UsageJson.Child(evidence, "cloudflare");
                         D166AddText(zip, "providers/cloudflare_workers.json", _d166Json.Serialize(D160UsageJson.Value(cloudflare, "workers")), checksums);
@@ -188,6 +192,7 @@ namespace SupraInventoryRelayAgent
                             "SUPRA Inventory D166 Usage Evidence\n" +
                             "Only scoped Beta usage; no WMS logs, passwords, ID tokens, Picker data or API keys.\n" +
                             "Match with separate Agent/Android/Web log bundle by event time, not upload time.\n" +
+                            "D167 InventoryCore evidence is a process-local diagnostic snapshot, not billed DO requests or SQL rows.\n" +
                             "Today's Vietnam window is distinct from the Firestore provider quota day (Pacific).\n" +
                             "N/A and errors in collection_status.json do not mean usage zero.\n" +
                             "Use screenshots/CSV for Cloudflare and actual provider invoices when API data is unavailable.\n" +
