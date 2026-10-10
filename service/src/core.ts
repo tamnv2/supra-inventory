@@ -290,6 +290,8 @@ export class InventoryCore {
     if (!this.hasColumn("users", "android_session_generation")) sql.exec("ALTER TABLE users ADD COLUMN android_session_generation INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "android_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN android_session_device_id TEXT");
     if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
+    if (!this.hasColumn("users", "last_login_at")) sql.exec("ALTER TABLE users ADD COLUMN last_login_at TEXT");
+    if (!this.hasColumn("users", "last_login_channel")) sql.exec("ALTER TABLE users ADD COLUMN last_login_channel TEXT");
     if (!this.hasColumn("users", "contractor_name")) sql.exec("ALTER TABLE users ADD COLUMN contractor_name TEXT");
     if (!this.hasColumn("users", "shortage_reporting_enabled")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "shortage_reporting_revision")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_revision INTEGER NOT NULL DEFAULT 0");
@@ -1015,6 +1017,22 @@ export class InventoryCore {
         userId,
       );
       return response({ status: "firebase_agent_ready" });
+    }
+
+    // D167: Record a successful token exchange, never a password attempt or a
+    // refresh/heartbeat. Internal Durable Object route only; no public API.
+    if (request.method === "PUT" && url.pathname === "/auth/record-successful-login") {
+      const body = (await request.json()) as { user_id?: string; channel?: string };
+      const userId = String(body.user_id || "").trim();
+      const channel = String(body.channel || "").trim().toUpperCase();
+      if (!userId || !["WEB", "ANDROID", "AGENT"].includes(channel)) {
+        return response({ error: "INVALID_LOGIN_EVENT" }, 400);
+      }
+      this.state.storage.sql.exec(
+        "UPDATE users SET last_login_at = CURRENT_TIMESTAMP, last_login_channel = ? WHERE user_id = ? AND status = 'ACTIVE'",
+        channel, userId,
+      );
+      return response({ status: "recorded" });
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/activate-session") {
