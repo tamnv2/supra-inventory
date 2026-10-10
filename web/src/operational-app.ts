@@ -1038,7 +1038,7 @@ function mainMarkup(): string {
 function patchOverlays(): void {
   const root = document.querySelector<HTMLElement>("#overlay-root");
   if (!root) return;
-  root.innerHTML = `${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}`;
+  root.innerHTML = `${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}${renderD167MealOverlay()}`;
   bindOverlay();
 }
 
@@ -1392,7 +1392,7 @@ function renderShell(content: string): void {
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
     <main id="content" class="content main" data-active-section="${esc(activeSection)}">${content}</main>
     <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>
-    <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
+    <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}${renderD167MealOverlay()}</div>
   </div>`;
   bindShell();
 }
@@ -2929,6 +2929,46 @@ function renderTools(): string {
   </section>`;
 }
 
+function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
+  const record = period === "LUNCH" ? d167MealState?.lunch : d167MealState?.dinner;
+  const title = period === "LUNCH" ? "Nghỉ trưa" : "Nghỉ tối";
+  const early = period === "LUNCH" ? "11:00–11:30" : "18:00–18:30";
+  const late = period === "LUNCH" ? "11:30–12:00" : "18:30–19:00";
+  const selected = record?.choice === "EARLY" ? early : late;
+  return `<article class="ops-panel d167-meal-card">
+    <div class="ops-panel-title"><div><h3>${title}</h3><p>${period === "LUNCH" ? "Nhắc Reporter lúc 10:55" : "Nhắc Reporter lúc 17:55"} (giờ Việt Nam)</p></div>
+      <span class="badge ${record ? "good" : "warning"}">${record ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
+    ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · ${esc(record.confirmed_name || "Reporter")} xác nhận lúc ${esc(fmt(record.confirmed_at))}</div>` :
+      `<div class="ops-note">Nếu chưa ai xác nhận, Service tạm dừng tự động Skip trong toàn bộ ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"} để phòng ngừa Skip sai. Reporter vẫn xử lý thủ công bình thường.</div>`}
+    <form class="d167-meal-form" data-d167-meal-form="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
+      <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
+        <option value="EARLY">${early}</option><option value="LATE">${late}</option>
+      </select></label>
+      <button class="primary" ${record || !roleCanResolve() ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
+    </form>
+  </article>`;
+}
+
+function renderD167MealOverlay(): string {
+  if (!roleCanResolve() || !d167MealState) return "";
+  const period = d167MealState.lunch_prompt_due ? "LUNCH" : d167MealState.dinner_prompt_due ? "DINNER" : null;
+  if (!period) return "";
+  const first = period === "LUNCH" ? "11:00–11:30" : "18:00–18:30";
+  const second = period === "LUNCH" ? "11:30–12:00" : "18:30–19:00";
+  return `<div class="modal d167-meal-overlay" role="dialog" aria-modal="true" aria-label="Xác nhận giờ nghỉ">
+    <div class="modal-box" style="max-width:520px;text-align:left">
+      <p class="muted">CA VẬN HÀNH · ${esc(d167MealState.day_vn)}</p>
+      <h2>Chọn giờ ${period === "LUNCH" ? "nghỉ trưa" : "nghỉ tối"}</h2>
+      <p>Vui lòng xác nhận khoảng nghỉ của đội Reporter. Trong khoảng đã xác nhận, hệ thống chỉ tạm dừng <strong>đồng hồ tự động Skip</strong>; xử lý báo hàng thủ công vẫn bình thường.</p>
+      <form id="d167-meal-overlay-form" data-period="${period}">
+        <label class="sla-radio-row"><input type="radio" name="choice" value="EARLY" required checked/><span><strong>${first}</strong></span></label>
+        <label class="sla-radio-row"><input type="radio" name="choice" value="LATE" required/><span><strong>${second}</strong></span></label>
+        <div class="modal-actions"><button type="submit" class="primary">Xác nhận giờ nghỉ</button></div>
+      </form>
+      <p class="muted">Chỉ xác nhận đầu tiên hợp lệ được ghi nhận. Các Reporter khác sẽ tự đóng thông báo.</p>
+    </div></div>`;
+}
+
 function renderShiftOperations(): string {
   const state = androidAlertWindow;
   const status = state == null
@@ -2961,6 +3001,11 @@ function renderShiftOperations(): string {
       <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
       <div class="ops-note">Ca bình thường 06:00–22:00. Cửa sổ kỹ thuật Replay hoạt động 05:45–22:15; nếu không có gia hạn thì chuyển SLEEP lúc 22:15. Sau 22:15, Agent có thể Gia hạn +1 giờ; cảnh báo T-15 áp dụng cho mốc tăng ca đang hoạt động; tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent.</div>
     </article>
+    <div class="business-page-head"><div><h2>Giờ nghỉ ăn · tạm dừng tự động Skip</h2><p>Hai lựa chọn mỗi buổi, đồng bộ toàn bộ Reporter; xác nhận một lần, không tác động thao tác thủ công.</p></div></div>
+    <div class="ops-grid-two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">
+      ${renderMealStatusCard("LUNCH")}
+      ${renderMealStatusCard("DINNER")}
+    </div>
   </section>`;
 }
 
