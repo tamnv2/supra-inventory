@@ -28,7 +28,6 @@ namespace D167SkuSyncTest
         private readonly TextBox user = new TextBox();
         private readonly TextBox password = new TextBox();
         private readonly CheckBox forceWeb = new CheckBox();
-        private readonly CheckBox agentChannel = new CheckBox();
         private readonly Label info = new Label();
         private readonly TextBox log = new TextBox();
         private readonly WmsSession wms;
@@ -64,10 +63,7 @@ namespace D167SkuSyncTest
             Controls.Add(new Label { Left = 405, Top = 128, Width = 90, Text = "Mật khẩu / OTP:" });
             password.SetBounds(502, 122, 238, 28); password.UseSystemPasswordChar = true; Controls.Add(password);
 
-            agentChannel.SetBounds(20, 162, 220, 28);
-            agentChannel.Text = "Phiên AGENT riêng (đặc quyền)";
-            agentChannel.Checked = false; Controls.Add(agentChannel);
-            forceWeb.SetBounds(250, 162, 490, 28);
+            forceWeb.SetBounds(20, 162, 720, 28);
             forceWeb.Text = "Cho phép thay thế phiên WEB khác nếu bị báo xung đột";
             Controls.Add(forceWeb);
 
@@ -88,7 +84,7 @@ namespace D167SkuSyncTest
             log.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
             Controls.Add(log);
             Write("Bản test biệt lập. Mặc định WEB: có thể xung đột phiên WEB hiện tại; không tự cưỡng chế đăng nhập.");
-            Write("AGENT chỉ dùng khi Beta Service đã được duyệt triển khai route nhập SKU cho Agent.");
+            Write("Sử dụng đăng nhập Firebase WEB trên EXE test để nhập qua Service Beta hiện hành, không yêu cầu deploy Service.");
         }
 
         private async Task SignIn()
@@ -96,15 +92,14 @@ namespace D167SkuSyncTest
             if (running) return;
             var u = user.Text.Trim();
             var secret = password.Text;
-            var special = agentChannel.Checked;
             var force = forceWeb.Checked;
             if (u.Length == 0 || secret.Length == 0) { Write("Cần nhập tài khoản và mật khẩu/mã một lần."); return; }
             running = true; SetButtons(false);
             try
             {
-                var role = await Task.Run(() => inventory.Login(u, secret, special, force));
-                info.Text = "Inventory đã đăng nhập: " + role + (special ? " / AGENT" : " / WEB");
-                Write("INVENTORY LOGIN PASS: " + role + (special ? " / AGENT" : " / WEB"));
+                var role = await Task.Run(() => inventory.Login(u, secret, force));
+                info.Text = "Đã đăng nhập Firebase: " + role + " / WEB";
+                Write("FIREBASE INVENTORY LOGIN PASS: " + role + " / WEB");
             }
             catch (AppError ex)
             {
