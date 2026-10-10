@@ -3807,3 +3807,14 @@ Owner accepted the D167 SKU+location design in principle but narrowed **executio
 **Security/feasibility gate:** D126 main-Agent Web Confirm browser is managed by the main process and deliberately does not extract Supra credentials or expose a cross-process session broker. A separate program shall not read main Agent DPAPI material, capture WMS browser credentials through remote debugging, or take over the Confirm process. Test UI may prepare a credential-free IPC request, but real one-click sharing needs a separate Owner-approved in-process broker/permissioned export handler in main Agent, or a separately authorized WMS login in the test application. These are not covered by approval to build an independent test. Do not claim actual upload or WMS 200 until it is observed.
 
 The Owner's proposed later automatic daily import and LTA/Shelving as-of snapshots remain design-approved in principle, **implementation deferred until the narrow end-to-end SKU test passes and a further Owner code/deploy instruction**. Stable OWNER-GATED; D167 remains open.
+
+
+## 2026-10-10 — D167 Owner correction: standalone login independently, build REAL SKU Service import
+
+Owner clarified that the D167 test must perform **actual** Supra export and actual Inventory Service SKU import, not just prove a standalone GUI or local IPC. Owner explicitly chose **Phase 0 option 2: independently authenticate Supra and Firebase on the test EXE, then press a single SKU synchronization button**. The main Agent V124 must remain unchanged and serving Confirm Picklist; no cross-process token/session reuse.
+
+This **supersedes** the earlier D167 design requiring a main Agent IPC broker for the test. An isolated Edge browser profile captures allowlisted API request headers transiently from its own logged-in Supra browsing context; the test signs a read-only HY1 export request, extracts only SKU and product name, invokes existing chunked and previewed SKU import Beta API, then verifies catalog readback. Existing Server name-collision approval remains intact. No SKU position history and no daily scheduler are implemented.
+
+To remove any provider deployment prerequisite, standalone EXE uses the **already supported Firebase WEB interactive session** (`/api/auth/login`) on Beta, not an AGENT-channel token. This may conflict with an existing WEB session, therefore a second-login takeover is explicitly opt-in, never implicit. No Worker/Service source change is required or retained in the Phase 0 PR. The D167 Beta AGENT import-route candidate previously explored was reverted as unnecessary.
+
+Authorization: **build code and CI only**. Not authorized: merge, publish/update production Agent, deploy Worker, touch Stable, or execute actual WMS/Inventory credentials from remote AI environment. Live E2E remains Owner field-test pending; technical CI may pass without field PASS.
