@@ -234,7 +234,7 @@ class CriticalOverlayService : Service() {
             when (current.mode) {
                 MODE_RESULT -> {
                     if (current.alertId.isNotBlank()) {
-                        NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId)
+                        NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId, InteractiveSessionStore.load(applicationContext)?.userId.orEmpty())
                     }
                 }
                 MODE_PICKER_CHAT -> {
@@ -252,7 +252,7 @@ class CriticalOverlayService : Service() {
         when (current.mode) {
             MODE_RESULT -> {
                 if (userAcknowledged) {
-                    acknowledgeResultAsync(current.alertId)
+                    acknowledgeResultAsync(current.alertId, InteractiveSessionStore.load(applicationContext)?.userId.orEmpty())
                 } else {
                     releaseUnacknowledgedResult(current)
                 }
@@ -266,17 +266,18 @@ class CriticalOverlayService : Service() {
         if (
             item.mode == MODE_RESULT &&
             item.alertId.isNotBlank() &&
-            !NotificationSignalStore.isOverlayAckPending(applicationContext, item.alertId)
+            !NotificationSignalStore.isOverlayAckPending(applicationContext, item.alertId, InteractiveSessionStore.load(applicationContext)?.userId.orEmpty())
         ) {
             NotificationSignalStore.clearResultOverlayPresented(applicationContext, item.alertId)
         }
     }
 
-    private fun acknowledgeResultAsync(eventId: String) {
-        if (eventId.isBlank()) return
+    private fun acknowledgeResultAsync(eventId: String, ownerUserId: String) {
+        if (eventId.isBlank() || ownerUserId.isBlank()) return
         Thread {
             try {
                 val session = InteractiveSessionStore.load(applicationContext) ?: return@Thread
+                if (session.userId != ownerUserId) return@Thread
                 val api = InventoryApi(
                     baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
                     userAgent = "SUPRA-Inventory-Beta/" + BuildConfig.VERSION_NAME,
@@ -284,7 +285,12 @@ class CriticalOverlayService : Service() {
                 )
                 api.restoreSession(session)
                 api.acknowledgeResult(eventId)
-                NotificationSignalStore.clearOverlayAck(applicationContext, eventId)
+                NotificationSignalStore.clearOverlayAck(applicationContext, eventId, ownerUserId)
+            } catch (error: ApiException) {
+                if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
+                    NotificationSignalStore.quarantineOverlayAck(applicationContext, eventId, ownerUserId, "RESULT_ACK_NOT_FOUND")
+                }
+                // Other errors remain pending in the correct account.
             } catch (_: Exception) {
                 // Keep the durable local pending ACK. MainActivity retries later.
             }
