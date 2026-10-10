@@ -449,3 +449,12 @@ Owner requests new `PICKER` user provisioning to automatically initialize `short
 ### D166 Picker creation reporting capability (supersedes only future account defaults from D156)
 
 For genuinely NEW HR-created Picker records, issue `shortage_reporting_enabled=1` in the authoritative DO transaction. Existing Picker capability settings are immutable under HR sync/retry/rename/contractor updates, even if manually disabled. D156's historical one-time existing-user migration remains intentionally in place. No new network read/write is required for a newly created Picker beyond the existing creation transaction. Admin/ROOT disable capability still works, with existing revision fencing. Managed-account creation cannot create a Picker and is out of scope. Beta candidate only until Owner field PASS.
+
+## D167 code-only SKU import route candidate
+
+The nondeployed Beta source candidate permits the exact SKU-import POST route for a Firebase AGENT session only when the server confirms an active user with matching ADMIN/ADMIN or PICKPACK_ADMIN/PICKPACK_ADMIN base/effective role and AGENT generation zero. Every other route retains the existing interactive-session contract. This does not authorize new WMS privileges or change the D126 main Agent browser contract. Owner approval to deploy is still pending.
+
+
+## D167 — Isolated tester now uses current WEB auth; supersedes earlier Agent import exception
+
+The latest Owner-approved Phase 0 design has NO new Agent auth/session exception in Worker: the independently installed test EXE calls `/api/auth/login` with `client_type=WEB` and holds its own Firebase ID token only in process memory. It must not access the current main Agent's tokens, browser profile or hidden APIs. The server already authorizes `/api/admin/skus/import` via established role policy. The candidate AGENT-channel exception described above was reverted from the draft PR and must NOT be deployed as part of this test. Interactive Web session conflicts must not be silently forced; require an explicit choice. WMS credential capture is limited to the test's own authenticated browser, RAM-only and allowlisted request headers. These isolated D167 test permissions do not expand the D126 main Agent's WMS authority.
