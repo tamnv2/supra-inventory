@@ -2223,6 +2223,37 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
       if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
 
+      // D167: Reporter-owned meal confirmation, available to both Web and Android.
+      // The durable object accepts the first valid confirmation only.
+      if (url.pathname === "/api/reporter/meal-break") {
+        if (request.method !== "GET" && request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        const actor = await requireUser(request, env, ["REPORTER", "ADMIN", "ROOT"]);
+        if (request.method === "GET") {
+          return coreStub(env).fetch("https://inventory-core.internal/d167/meal/state");
+        }
+        const input = await request.json() as { period?: string; choice?: string };
+        const result = await coreStub(env).fetch("https://inventory-core.internal/d167/meal/confirm", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            period: input.period, choice: input.choice, actor_id: actor.user_id,
+            actor_name: actor.display_name || actor.employee_code || "",
+          }),
+        });
+        const payload = await result.json() as Record<string, unknown>;
+        if (result.ok && payload.status === "CONFIRMED" && payload.deadlines_adjusted) {
+          await coreStub(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+            method: "POST", headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              event: "meal_break_confirmed", event_id: crypto.randomUUID(),
+              scopes: ["meal_break", "reporter_queue", "reporter_overdue"],
+              tags: ["role:REPORTER", "role:ADMIN", "role:ROOT"],
+              metadata: { period: payload.period, day_vn: payload.day_vn, confirmed_at: payload.confirmed_at },
+            }),
+          }).catch(() => undefined);
+        }
+        return json(payload, result.status);
+      }
       if (url.pathname.startsWith("/api/")) return json({ error: "not_found" }, 404);
       if ((request.method === "GET" || request.method === "HEAD") && env.ASSETS) return env.ASSETS.fetch(request);
       return json({ error: "not_found" }, 404);
