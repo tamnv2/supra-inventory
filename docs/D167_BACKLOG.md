@@ -75,3 +75,19 @@ Owner limits Phase 0 to real WMS SKU+name export and direct Inventory Service im
 Supersedes the earlier D167 IPC-only experiment: implement the standalone EXE with **own isolated Edge Supra login + own Beta Firebase WEB login**, then one-click HMAC-signed exportBinStocks GET, XLSX SKU/name extraction, Service import preview/apply in ≤1,000 SKU chunks, readback confirmation. The EXE has no dependency on the existing main Agent session or an Agent broker. The branch reverted the unnecessary AGENT-channel Worker auth candidate. No Service/Worker deployment or Agent release required. Workbook-derived LTA/Shelving locations, automatic daily runs and reporting dashboards remain DEFERRED.
 
 Evidence: Windows CI artifact and offline tests expected; live WMS export HTTP 200 and Beta Service writes need explicit field test. Current status CODE-ONLY, NO MAIN MERGE/DEPLOY, FIELD E2E NOT RUN.
+
+## 2026-10-10 — Owner field screenshot: standalone SKU import E2E PASS, limited evidence
+
+Owner supplied a test-window screenshot of the independent D167 application following real Supra/Inventory login. Observed log at 21:46 local workstation time:
+
+- `File hợp lệ: 2492 SKU khác nhau`.
+- `preview 3 lô` and `PREVIEW PASS: 3 lô; mới=5; khác tên=0`.
+- `Service đã commit lô 1/3`, `2/3`, `3/3` with no rejected chunks.
+- `ĐỐI SOÁT PASS: 3 SKU mẫu trùng mã/tên đã gửi`.
+- `DONE - ĐÃ GHI THẬT VÀO INVENTORY BETA: tổng=2492; mới=5; đổi tên=0; không đổi=2487. Không thay đổi vị trí.`
+
+**Assessment**: one-click **standalone Beta SKU+name upload field workflow PASS by provided UI log**. This is stronger than earlier CI-only evidence: 2,492 SKU seen, 5 inserted, 2,487 unchanged, 3/3 acknowledged committed, 3 sampled SKU/names read back successfully. Screenshot is application-generated evidence; no separate direct service/database log inspection and **not an exhaustive 2,492-SKU readback**. It does not prove a scheduled unattended daily run, location snapshots or Confirm Picklist regression acceptance.
+
+**Owner PASS governance**: screenshot proves the narrow field test success, but is not an explicit Owner declaration accepting **all** D167 backlog requirements. D167 remains open, draft PR remains unmerged, Stable unchanged, no automatic integration or deployment authorized.
+
+**Canonical scope exception pending**: `ops/project-scope.json` still declares `supra-api-d080.allowed_stock_export = FORBIDDEN_D126`. Owner has since approved D167's isolated read-only test, which has produced evidence, but the guard has not been reconciled. Before a permanent/main Agent scheduled sync or any broader WMS API use, record a narrowly defined Owner-approved stock-export exception in scope and corresponding SKU/AUTH specs, without relaxing D126 production Confirm Picklist browser-only protection.
