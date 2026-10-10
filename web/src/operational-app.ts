@@ -447,6 +447,8 @@ let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } |
 let systemResetSelected = new Set<SystemResetScope>();
 let logView: "WEB" | "ANDROID" | "AUDIT" = "WEB";
 let logDays = 30;
+let logFrom = dateDaysAgo(6);
+let logTo = dateDaysAgo(0);
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
@@ -2750,10 +2752,12 @@ function renderLogs(): string {
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
       <button type="button" class="workspace-tab ${logView === "AUDIT" ? "active" : ""}" data-log-view="AUDIT">Lịch sử thao tác</button>
     </div>
-    <div class="toolbar log-retention-window" aria-label="Khoảng nhật ký">
-      ${[30,60,90].map((days) => `<button type="button" class="btn secondary small${logDays === days ? " active" : ""}" aria-pressed="${logDays === days}" data-log-days="${days}">${days} ngày</button>`).join("")}
-      <span class="muted">Dữ liệu quá 90 ngày được tự động dọn khỏi vùng lưu nhật ký vận hành.</span>
-    </div>
+    <form id="log-date-range" class="toolbar log-retention-window" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap" aria-label="Khoảng nhật ký">
+      <label>Từ ngày<input type="date" name="from" value="${esc(logFrom)}" max="${esc(dateDaysAgo(0))}" required /></label>
+      <label>Đến ngày<input type="date" name="to" value="${esc(logTo)}" max="${esc(dateDaysAgo(0))}" required /></label>
+      <button class="secondary" type="submit">Áp dụng</button>
+      <span class="muted">Nhật ký hiện lưu tối đa 90 ngày; chỉ tải trang được yêu cầu.</span>
+    </form>
     ${!auditActive && logView === "ANDROID" && profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `
       <article class="ops-panel">
         <div class="ops-panel-title"><div><h3>Kiểm tra log Launcher trên Service</h3><p>Dành cho quản trị hệ thống. Chỉ truy vấn khi bấm nút, không tải log từ PDA và không tạo thêm lượt kiểm tra nền.</p></div>
@@ -3890,6 +3894,8 @@ async function loadLogs(): Promise<void> {
       role: auditRole,
       query: auditQuery,
       days: logDays,
+      from: apiRange(logFrom, logTo).from,
+      to: apiRange(logFrom, logTo).to,
       limit: AUDIT_PAGE_SIZE,
       offset: auditOffset,
     });
@@ -3905,7 +3911,8 @@ async function loadLogs(): Promise<void> {
   }
   runtimeLogSource = logView;
   const pageToken = runtimeLogPageTokens[runtimeLogPageIndex] || "";
-  const result = await getRuntimeLogs(runtimeLogSource, RUNTIME_LOG_PAGE_SIZE, logDays, pageToken);
+  const result = await getRuntimeLogs(runtimeLogSource, RUNTIME_LOG_PAGE_SIZE, logDays, pageToken,
+    apiRange(logFrom, logTo).from, apiRange(logFrom, logTo).to);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   runtimeLogs = result.items;
   runtimeLogNextPageToken = result.next_page_token || "";
@@ -4419,17 +4426,22 @@ function bindSection(): void {
       markWebUpdateReceived();
     });
   }));
-  document.querySelectorAll<HTMLButtonElement>("[data-log-days]").forEach((button) => button.addEventListener("click", () => {
-    const days = Number(button.dataset.logDays || 30);
-    if (![30, 60, 90].includes(days) || days === logDays) return;
-    logDays = days;
+  document.querySelector<HTMLFormElement>("#log-date-range")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const fields = new FormData(event.currentTarget as HTMLFormElement);
+    const from = String(fields.get("from") || "");
+    const to = String(fields.get("to") || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) ||
+      from > to || to > dateDaysAgo(0) || Date.parse(to) - Date.parse(from) > 365 * 86_400_000) {
+      setNotice("warning", "Chọn ngày bắt đầu/kết thúc hợp lệ, không vượt quá hôm nay.");
+      return;
+    }
+    logFrom = from; logTo = to;
     auditOffset = 0;
     runtimeLogDetail = null;
-    runtimeLogPageTokens = [""];
-    runtimeLogPageIndex = 0;
-    runtimeLogNextPageToken = "";
+    runtimeLogPageTokens = [""]; runtimeLogPageIndex = 0; runtimeLogNextPageToken = "";
     void run(loadLogs);
-  }));
+  });
 
   document.querySelector<HTMLFormElement>("#audit-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
