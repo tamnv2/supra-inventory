@@ -20,6 +20,7 @@ import {
 import { sendFcmNotifications } from "./fcm";
 import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow } from "./alert-window-core";
 import { initializeMealSchema, getMealChoiceState, confirmMealChoice, recalculateMealAdjustedDeadlines } from "./meal-break-core";
+import { initializeD167OverdueSchema } from "./d167-overdue-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 
 const SCHEMA_VERSION = 17;
@@ -393,6 +394,8 @@ export class InventoryCore {
     if (!this.hasColumn("report_batches", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_auto_skip_minutes INTEGER");
     if (!this.hasColumn("report_tickets", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_tickets ADD COLUMN d167_auto_skip_minutes INTEGER");
     initializeOperationalV2Schema(this.state);
+    if (!this.hasColumn("report_batches", "d167_first_overdue_at")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_first_overdue_at TEXT");
+    initializeD167OverdueSchema(this.state);
     initializeRuntimeLogSchema(this.state);
 
     sql.exec(
@@ -529,6 +532,14 @@ export class InventoryCore {
 
   private reporterSummary(effect: OperationalDeadlineEffect, count: number): { title: string; body: string; event: string } {
     if (count <= 1) return { title: effect.title, body: effect.body, event: effect.event };
+    if (effect.event === "d167_overdue_reminder_30" || effect.event === "d167_overdue_reminder_60") {
+      return { title: "SUPRA Inventory · Cảnh báo quá hạn nghiêm trọng",
+        body: `${count} SKU vẫn chưa được chốt; mở Quá hạn để xử lý.`, event: effect.event };
+    }
+    if (effect.event === "batch_day_end_auto_skip") {
+      return { title: "SUPRA Inventory · Chốt tồn cuối ngày", body: `${count} SKU quá hạn đã tự chốt Skip lúc 03:00.`,
+        event: effect.event };
+    }
     if (effect.event === "sla_warning") {
       return {
         title: "SUPRA Inventory · SKU sắp quá hạn",
