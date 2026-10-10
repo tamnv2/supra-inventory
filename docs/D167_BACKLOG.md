@@ -64,3 +64,7 @@
 - D166 release proof: `docs/OWNER_DECISIONS.md` 2026-10-10, public manifest readback and GitHub main history.
 
 **Mọi phát hiện D167 cập nhật chính backlog/decision/spec/state trong cùng nhánh change; không thay đổi resource/provider/app trong lần mở backlog này.**
+
+## 2026-10-10 — Isolated one-button SKU test candidate
+
+Owner limits Phase 0 to real WMS SKU+name export and direct Inventory Service import. No location/Shelving/LTA, daily automation or normal Agent release. Draft PR #549 prepares a standalone Windows one-button IPC requester and a narrow Beta Service AGENT import-auth code change; neither is deployed. Main Agent currently lacks the IPC broker. Consequently the test can verify local IPC only, and no WMS download or Service commit has been demonstrated. An approved minimal bridge or a separately authenticated WMS test session remains necessary for truthful field E2E.
