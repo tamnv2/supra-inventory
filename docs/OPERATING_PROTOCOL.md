@@ -109,9 +109,8 @@ Only final truthful NOT_FOUND affects the Picker strike counter. Any session/net
 
 The Workers Paid account is shared with other Owner projects. SUPRA Inventory must not assume the whole $5 included allowance is available.
 
-- Inventory design ceiling is **35% of each relevant included usage metric** at the approved max-load envelope.
-- 65% is reserved for other projects.
-- The ceiling is evaluated per metric; averaging metrics is forbidden.
+- **HISTORICAL, SUPERSEDED 2026-10-08 / 2026-10-10:** original D098 Inventory 35% and 65% reserved for others. Current verified genuinely shared-pool allocation is 30% Inventory / 30% Pick Pack / 30% verified third project / 10% central reserve; see `docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md`.
+- Individual provider meters still use real technical quotas and pricing. This does **not** prevent redesigning workloads to exploit genuinely underused, compatible service/metric families under the newer 2026-10-10 Owner instruction.
 - Hibernatable realtime, event-driven invalidation, bounded reconnect and delta recovery are preferred over polling.
 - A new feature that materially increases Worker/DO/SQLite usage must include a bounded projection/test before technical PASS.
 - Paid-plan availability does not authorize unbounded monitoring/provider polling.
@@ -326,3 +325,15 @@ Observability implementation must reuse existing scoped Beta resources where pos
 ## 2026-10-08 — Shared Quota Governance authority-only approval and execution boundary
 
 Owner approved the 30/30/30/10 allocation across **verified shared provider pools**; Cloudflare Workers Paid USD 5/month, Google Cloud/Firebase Blaze USD 10/month **soft budget** and Google/GitHub Free stay unchanged. Inventory's external mutation rights remain restricted to `ops/project-scope.json`; other projects remain out of scope. Existing Stable resources remain OWNER-GATED and Beta is the future Inventory development target. Quota alerts must use provider-authoritative cached/read-only measurements and warn at 70/85/95% with no automatic hard cutoff. Accounting entries and alerts are proposals; enabling Google/Cloudflare Billing alert delivery, automation, payments, new projects, runtime guards or service plans requires a new impact review and separate explicit approval. The 10% reserve requires Owner allocation approval. The current authority-only PR must pass GitHub Repo Authority/Project State continuity/secret gates before merge. Preserve D165 deployed baseline and defer separate D166 HA/usage implementation pending real shift logs and Owner scope approval.
+
+
+## 2026-10-10 — D166 Owner instruction precedence, cross-metric usage optimization and corrected budget
+
+**Current explicit Owner-confirmed direction; supersedes conflicting earlier instructions on the same subject/scope.** Preserve superseded rules as historical evidence but remove their active normative effect. A newer AI suggestion, unapproved draft or incomplete technical release is **not** an Owner decision. An explicit Owner correction takes precedence over older D-number text; record decision + affected spec/state in the same authorized D166 workstream. This rule cannot bypass project-scope, secret handling, Stable gating, D166 serial Owner PASS or the separate Owner approval required for runtime/provider changes.
+
+- **Actively analyze cross-metric workload rebalancing**: when one metric A is constrained and B/C have underused legitimate free headroom, assess moving actual processing/data flow from A to B/C while preserving **identical business outcomes and at least equivalent speed, realtime, HA, safety, ACK and audit quality**. Do not interpret illustrative A/B/C count redistribution as conversion of provider quota units or equivalent cost. Measure different units and tariffs independently, report alternatives, comparable before/after evidence and rollback, then obtain Owner authorization before code/provider mutation.
+- **Budget**: Cloudflare Workers Paid base USD 5/month is the only subscription currently reported paid. Firebase/Google Cloud Blaze should stay inside its actual free allowance wherever possible. The combined contingency for **all incremental provider usage charges** (including Cloudflare overages, if any) is **USD 5/month total**, not per-service or per-project; internal planning total **USD 10/month**. Provider invoices can exceed this without an enforceable cap. Prior Google Cloud USD 10/month soft allocation and USD 15 combined target are **SUPERSEDED**. No automatic paid upgrade, billable activation, service shutdown or exception spending.
+- **Drive**: currently free; Owner may separately authorize a Google AI Pro/Gemini Pro 5 TB storage entitlement if needed. Do not assume subscribed today, and distinguish storage from Drive/Sheets API calls and rate limits.
+- **Unchanged**: 30/30/30/10 only for verified shared account-level quota fairness, provider-specific metrics/quotas, 70/85/95/100 soft alerts, scoped resource boundary, Beta/Stable rules and no loss of real-time service quality. Never conflate financial reserve with shared usage allocation.
+
+Canonical detail and active supersession ledger: `docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md`. D166 remains open for actual usage evidence and Owner field PASS; this documentation change does not release software.
