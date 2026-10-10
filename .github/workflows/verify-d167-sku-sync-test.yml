@@ -28,12 +28,17 @@ jobs:
           if ($code -match 'Process\.Kill\s*\(' -or $code -match 'Process\.Start\s*\(' -or $code -match 'DataProtectionScope\.LocalMachine') {
             throw 'D167 test may not spawn or stop primary Agent/WMS processes or use machine-wide secrets.'
           }
-          if ($code -notmatch 'dry_run' -or $code -notmatch 'requires_confirmation' -or $code -notmatch 'same-user') {
-            throw 'Preview/confirmation or session boundary missing.'
+          if ($code -notmatch 'NamedPipeClientStream' -or $code -notmatch 'SKU_EXPORT_IMPORT') {
+            throw 'The independent tester must use only the declared IPC contract.'
           }
-          if ($code -match '(?i)(x-signature|authorization|refresh_token).*Console\.WriteLine') {
-            throw 'Potential sensitive header logging.'
+          if ($code -match 'ProtectedData\.Unprotect' -or $code -match 'Network\.enable' -or $code -match 'Win32_Process') {
+            throw 'Unauthorized cross-process session access detected.'
           }
+      - name: Verify local IPC self-test (no provider calls)
+        shell: pwsh
+        run: |
+          & 'experiments/d167-sku-sync-test/bin/Release/net48/D167-SKU-Sync-Test.exe' --self-test
+          if ($LASTEXITCODE -ne 0) { throw "D167 self-test failed: $LASTEXITCODE" }
       - uses: actions/upload-artifact@v4
         with:
           name: D167-SKU-Sync-Test-Windows-x64-NOT-DEPLOYED
