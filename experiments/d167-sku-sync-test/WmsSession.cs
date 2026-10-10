@@ -27,6 +27,8 @@ namespace D167SkuSyncTest
         private int seq;
         private Dictionary<string, string> headers;
         private readonly Dictionary<string, bool> allowedRequests = new Dictionary<string, bool>();
+        private readonly Dictionary<string, Dictionary<string, object>> pendingExtraInfo =
+            new Dictionary<string, Dictionary<string, object>>();
 
         internal WmsSession(Action<string> note) { log = note; }
         internal bool IsOpen { get { return browser != null && !browser.HasExited; } }
@@ -49,7 +51,7 @@ namespace D167SkuSyncTest
                 " --new-window \"https://wms-supra.winmart.vn/sft3/app/dashboard\"";
             browser = Process.Start(new ProcessStartInfo(edge, args) { UseShellExecute = true });
             if (browser == null) throw new AppError("EDGE_START_FAILED");
-            lock (gate) { headers = null; allowedRequests.Clear(); }
+            lock (gate) { headers = null; allowedRequests.Clear(); pendingExtraInfo.Clear(); }
             var target = WaitTarget(TimeSpan.FromSeconds(15));
             socket = new ClientWebSocket();
             socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(15);
@@ -187,21 +189,38 @@ namespace D167SkuSyncTest
                     var allowed = Uri.TryCreate(uriText, UriKind.Absolute, out url) &&
                         url.Scheme == "https" &&
                         String.Equals(url.Host,"api-supra.winmart.vn",StringComparison.OrdinalIgnoreCase);
+                    Dictionary<string,object> pending = null;
                     lock(gate)
                     {
                         if (!String.IsNullOrWhiteSpace(id))
                         {
                             allowedRequests[id] = allowed;
+                            pendingExtraInfo.TryGetValue(id, out pending);
+                            pendingExtraInfo.Remove(id);
                             if (allowedRequests.Count > 2500) allowedRequests.Clear();
                         }
                     }
-                    if (allowed) ObserveHeaders(D(request,"headers"));
+                    if (allowed)
+                    {
+                        ObserveHeaders(D(request,"headers"));
+                        if (pending != null) ObserveHeaders(pending);
+                    }
                 }
                 else if (method == "Network.requestWillBeSentExtraInfo")
                 {
-                    bool allowed;
-                    lock(gate) allowed = allowedRequests.TryGetValue(id,out allowed) && allowed;
-                    if (allowed) ObserveHeaders(D(param,"headers"));
+                    bool allowed = false;
+                    bool known;
+                    var raw = D(param,"headers");
+                    lock(gate)
+                    {
+                        known = allowedRequests.TryGetValue(id,out allowed);
+                        if (!known && !String.IsNullOrWhiteSpace(id) && raw != null)
+                        {
+                            pendingExtraInfo[id] = raw;
+                            if (pendingExtraInfo.Count > 2500) pendingExtraInfo.Clear();
+                        }
+                    }
+                    if (known && allowed) ObserveHeaders(raw);
                 }
             }
             catch (Exception) { /* A malformed unrelated WMS event is not an auth failure. */ }
