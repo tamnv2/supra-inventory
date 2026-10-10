@@ -2902,3 +2902,10 @@ The Owner explicitly **PASSes the D166 update at the no-newly-reported-error che
 ## D167 independent SKU test gate
 
 Build the standalone one-button Windows GUI and run a synthetic IPC round trip in CI. Those checks prove only GUI/protocol preparation, not WMS 200 or Service imported status. Live proof requires a separately approved and secured bridge or independently authenticated test browser, actual export file, parsed SKU/name, server preview, durable import receipt, Web catalog readback and zero Confirm regression. Do not merge or deploy from a code-only draft PR. Stable remains OWNER-GATED.
+
+
+## D167 REAL test acceptance — isolated Supra/Firebase login
+
+**Code gate**: Windows Release build; offline synthetic XLSX UTF-8, leading-zero, duplicate and inconsistent-name regression; route/path/static safety and Project Authority/Continuity PASS; artifact only, no release/deploy. The previous IPC-only test checkpoint is superseded.
+
+**Live field gate not covered by GitHub CI**: Owner signs into the isolated Supra Edge browser; signs into Firebase Inventory Beta with valid WEB-session authority; clicks one button; WMS read-only export signed GET returns HTTP 200 with XLSX magic bytes; file is saved to Desktop; parser extracts deduped SKU+name; every preview chunk returns a valid receipt; existing server name-conflict consent respected; every apply chunk responds imported with matching total; exact SKU/name readback matches across beginning/middle/end of batch; no stock positions changed; main Agent Confirm flow never stops or loses primary lease. Any HTTP 401/403, proxy error, header capture failure, conflict refusal, partial write or readback mismatch is NOT PASS. A code-build PASS is not field PASS.
