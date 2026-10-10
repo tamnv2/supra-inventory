@@ -1051,6 +1051,7 @@ function collectD166UsageExport_(mode, idToken) {
     metrics: metrics,
     google_drive_account: driveQuota,
     cloudflare: cloudflare,
+    d167_inventorycore_diagnostics: cloudflare.d167_inventorycore_diagnostics || {status:'UNAVAILABLE'},
     hourly: hourly,
     status: {
       metric_availability: availability,
@@ -1097,7 +1098,8 @@ function collectD166Cloudflare_(start,end,idToken) {
     workers: {status:status,scope:'INVENTORY_BETA_WORKER_ONLY'},
     durable_objects_account: {status:'NAMESPACE_NOT_CANONICALLY_SCOPED',scope:'SHARED_ACCOUNT_NOT_QUERIED'},
     billing_account: {status:status,scope:'SHARED_ACCOUNT_UNATTRIBUTABLE'},
-    collection: {requests:0}
+    collection: {requests:0},
+    d167_inventorycore_diagnostics: {status:'UNAVAILABLE'}
   });
   if (!idToken) return unavailable('AUTH_REQUIRED');
   try {
@@ -1121,7 +1123,8 @@ function collectD166Cloudflare_(start,end,idToken) {
       workers:d.workers || unavailable('MISSING').workers,
       durable_objects_account:d.durable_objects_account || unavailable('MISSING').durable_objects_account,
       billing_account:d.billing_account || unavailable('MISSING').billing_account,
-      collection:d.collection || {requests:0}
+      collection:d.collection || {requests:0},
+      d167_inventorycore_diagnostics:parsed.d167_inventorycore_diagnostics || {status:'NOT_INCLUDED'}
     };
   } catch (_) {return unavailable('WORKER_UNAVAILABLE');}
 }
