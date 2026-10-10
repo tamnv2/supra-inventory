@@ -205,10 +205,13 @@ export function processD167DayClose(
       state.storage.sql.exec(
         `UPDATE report_batches SET status='SKIP_ALLOWED',resolution='SKIP_ALLOWED',
           resolution_source='SYSTEM_DAY_END',resolved_at=?,resolved_by_user_id=NULL,
-          correction_deadline_at=?,version=version+1,updated_at=?
+          correction_deadline_at=?,updated_at=?
           WHERE batch_id=? AND status='PENDING'`,
         now,correctionDeadline,now,batchId,
       );
+      const newBatchVersion=one(state.storage.sql.exec<SqlRow>(
+        "SELECT version FROM report_batches WHERE batch_id=? LIMIT 1",batchId
+      ).toArray());
       const payload={
         resolution:"SKIP_ALLOWED",source:"SYSTEM_DAY_END",business_date_vn:day,
         first_overdue_at:String(latest.d167_first_overdue_at||""),
@@ -221,7 +224,7 @@ export function processD167DayClose(
         `INSERT OR IGNORE INTO result_event_snapshots
         (result_event_id,batch_id,batch_version,event_type,sku,product_name,resolution,result_at,created_at)
         VALUES (?,?,?,?,? ,?,'SKIP_ALLOWED',?,?)`,
-        id,batchId,Number(latest.version||0)+1,"BATCH_DAY_END_AUTO_SKIP",
+        id,batchId,Number(newBatchVersion?.version||1),"BATCH_DAY_END_AUTO_SKIP",
         String(row.sku||""),String(row.product_name||""),now,now,
       );
       audit(state,batchId,"BATCH_DAY_END_AUTO_SKIP",payload,now);
