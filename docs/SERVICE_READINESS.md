@@ -1904,3 +1904,18 @@ Owner explicitly accepts released D165 Agent v120 and all deployed D165 Beta com
 ### Canonical D165 accepted-state marker snapshot (2026-10-08)
 - `D165_OWNER_ACCEPTED_PASS__DEPLOYED_BETA_WEB_WORKER_UNCHANGED`
 - `D165_OWNER_ACCEPTED_PASS__SIGNED_BETA_VC102_UNCHANGED`
+
+
+## Derived snapshot 2026-10-10 — D166 limited Owner PASS; D167 evidence backlog
+
+**GENERATED/DERIVED CONTINUITY VIEW — not canonical authority.** Reflects `ops/project-state.json` and `docs/D167_BACKLOG.md`. Older D165/D166 snapshots elsewhere above are historical and superseded by the latest accepted Owner direction. The Owner PASSes D166 only as **no newly reported problem from the release update**, NOT all backlog requirements, all installations, HA/ACK field proof, provider Usage optimization or complete historical Web reporting.
+
+Current canonical marker snapshot for CI (do not interpret channel as fleet installed):
+- SQLite schema: `17`.
+- Latest Beta APK/channel: `beta-vc104__SIGNED_CHANNEL_PUBLISHED_NOT_ALL_DEVICES_INSTALLED`.
+- Web: `D166_BETA_WEB_WORKER_DEPLOYED__OWNER_NO_REPORTED_UPDATE_ERROR_PASS__D167_WEB_HISTORY_FIELD_VALIDATION_PENDING`.
+- Android: `D166_BETA_SIGNED_VC104_RELEASED_AND_MIN_FLOOR_104_MANIFEST__INSTALLED_PDA_COUNT_UNVERIFIED__D167_FIELD_GATE`.
+- Windows Agent official channel: `relay-agent-v124` (actual installed fleet unverified).
+- Change-control accepted release baseline: `D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY`.
+- Active next workstream: **D167 BACKLOG / AWAIT LOGS**, code and deploy **not approved**. Source: `docs/D167_BACKLOG.md`.
+- Stable: **OWNER-GATED — untouched**.
