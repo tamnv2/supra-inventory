@@ -118,6 +118,7 @@ data class ReporterOverdueBatch(
     val productName: String,
     val firstReportAt: String,
     val firstOverdueAt: String?,
+    val reminderLevel: Int = 0,
     val overduePickerCount: Int,
     val waitingPickerCount: Int,
     val version: Int,
@@ -340,6 +341,11 @@ class InventoryApi(
         if (next != current) updateSession(next)
         return next
     }
+
+    fun getD167MealState(): JSONObject = request("GET", "/api/reporter/meal-break")
+
+    fun confirmD167Meal(period: String, choice: String): JSONObject =
+        request("POST", "/api/reporter/meal-break", JSONObject().put("period", period).put("choice", choice))
 
     fun getAndroidOperatingWindow(): AndroidOperatingWindow {
         val parsed = parseOperatingWindow(request("GET", "/api/auth/android-window"))
@@ -593,6 +599,7 @@ class InventoryApi(
                 productName = row.optString("product_name"),
                 firstReportAt = row.optString("first_report_at"),
                 firstOverdueAt = nullable(row, "first_overdue_at"),
+                reminderLevel = row.optInt("reminder_level", 0),
                 overduePickerCount = row.optInt("overdue_picker_count", 0),
                 waitingPickerCount = row.optInt("waiting_picker_count", 0),
                 version = row.optInt("version", 1),

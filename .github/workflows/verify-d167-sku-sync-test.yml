@@ -1,0 +1,57 @@
+name: D167 isolated SKU test build (no release)
+
+on:
+  pull_request:
+    paths:
+      - "experiments/d167-sku-sync-test/**"
+      - ".github/workflows/verify-d167-sku-sync-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-only:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build independent Windows GUI
+        shell: pwsh
+        run: dotnet build experiments/d167-sku-sync-test/D167SkuSyncTest.csproj -c Release --nologo -warnaserror
+      - name: Static safety checks
+        shell: pwsh
+        run: |
+          $root = 'experiments/d167-sku-sync-test'
+          $ui = Get-Content "$root/Program.cs" -Raw
+          $wms = Get-Content "$root/WmsSession.cs" -Raw
+          $flow = Get-Content "$root/SkuSyncFlow.cs" -Raw
+          $api = Get-Content "$root/InventoryClient.cs" -Raw
+          $xlsx = Get-Content "$root/SkuWorkbook.cs" -Raw
+          if ($ui -notmatch 'ĐỒNG BỘ SKU' -or $ui -notmatch 'ĐĂNG NHẬP INVENTORY' -or $ui -notmatch 'ĐĂNG NHẬP SUPRA') {
+            throw 'Three-step independent login/sync UI is required.'
+          }
+          if ($wms -notmatch 'Network.enable' -or $wms -notmatch 'api-supra.winmart.vn' -or $flow -notmatch 'exportBinStocks' -or $flow -notmatch 'x-signature-nonce') {
+            throw 'WMS signed export or isolated browser capture is missing.'
+          }
+          if ($flow -notmatch 'PreviewOrImport' -or $flow -notmatch 'VerifyStoredSku' -or $xlsx -notmatch 'product_name' -and $xlsx -notmatch 'ProductName') {
+            throw 'Import preview, commit receipt, catalog readback or SKU+name parse missing.'
+          }
+          foreach ($text in @($ui,$wms,$flow,$api,$xlsx)) {
+            if ($text -match 'ProtectedData.Unprotect' -or $text -match 'DataProtectionScope.LocalMachine' -or $text -match 'Process.Kill' -or $text -match 'session.bin' -or $text -match 'RelayPoc') {
+              throw 'Forbidden main-Agent session extraction or cross-process mutation.'
+            }
+          }
+      - name: Verify standalone offline startup test (no provider calls)
+        shell: pwsh
+        run: |
+          dotnet run --project experiments/d167-sku-sync-test/D167SkuSyncTest.csproj -c Release --no-build -- --self-test
+          if ($LASTEXITCODE -ne 0) { throw "D167 offline test failed" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: D167-SKU-Sync-Test-Windows-x64-NOT-DEPLOYED
+          path: experiments/d167-sku-sync-test/bin/Release/net48/D167-SKU-Sync-Test.exe
+          if-no-files-found: error
+          retention-days: 14

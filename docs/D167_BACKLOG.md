@@ -65,6 +65,51 @@
 
 **Mọi phát hiện D167 cập nhật chính backlog/decision/spec/state trong cùng nhánh change; không thay đổi resource/provider/app trong lần mở backlog này.**
 
+## 2026-10-10 — Isolated one-button SKU test candidate
+
+Owner limits Phase 0 to real WMS SKU+name export and direct Inventory Service import. No location/Shelving/LTA, daily automation or normal Agent release. Draft PR #549 prepares a standalone Windows one-button IPC requester and a narrow Beta Service AGENT import-auth code change; neither is deployed. Main Agent currently lacks the IPC broker. Consequently the test can verify local IPC only, and no WMS download or Service commit has been demonstrated. An approved minimal bridge or a separately authenticated WMS test session remains necessary for truthful field E2E.
+
+
+## 2026-10-10 — Owner approves Option 2: independent LIVE-capable SKU test EXE
+
+Supersedes the earlier D167 IPC-only experiment: implement the standalone EXE with **own isolated Edge Supra login + own Beta Firebase WEB login**, then one-click HMAC-signed exportBinStocks GET, XLSX SKU/name extraction, Service import preview/apply in ≤1,000 SKU chunks, readback confirmation. The EXE has no dependency on the existing main Agent session or an Agent broker. The branch reverted the unnecessary AGENT-channel Worker auth candidate. No Service/Worker deployment or Agent release required. Workbook-derived LTA/Shelving locations, automatic daily runs and reporting dashboards remain DEFERRED.
+
+Evidence: Windows CI artifact and offline tests expected; live WMS export HTTP 200 and Beta Service writes need explicit field test. Current status CODE-ONLY, NO MAIN MERGE/DEPLOY, FIELD E2E NOT RUN.
+
+## 2026-10-10 — Owner field screenshot: standalone SKU import E2E PASS, limited evidence
+
+Owner supplied a test-window screenshot of the independent D167 application following real Supra/Inventory login. Observed log at 21:46 local workstation time:
+
+- `File hợp lệ: 2492 SKU khác nhau`.
+- `preview 3 lô` and `PREVIEW PASS: 3 lô; mới=5; khác tên=0`.
+- `Service đã commit lô 1/3`, `2/3`, `3/3` with no rejected chunks.
+- `ĐỐI SOÁT PASS: 3 SKU mẫu trùng mã/tên đã gửi`.
+- `DONE - ĐÃ GHI THẬT VÀO INVENTORY BETA: tổng=2492; mới=5; đổi tên=0; không đổi=2487. Không thay đổi vị trí.`
+
+**Assessment**: one-click **standalone Beta SKU+name upload field workflow PASS by provided UI log**. This is stronger than earlier CI-only evidence: 2,492 SKU seen, 5 inserted, 2,487 unchanged, 3/3 acknowledged committed, 3 sampled SKU/names read back successfully. Screenshot is application-generated evidence; no separate direct service/database log inspection and **not an exhaustive 2,492-SKU readback**. It does not prove a scheduled unattended daily run, location snapshots or Confirm Picklist regression acceptance.
+
+**Owner PASS governance**: screenshot proves the narrow field test success, but is not an explicit Owner declaration accepting **all** D167 backlog requirements. D167 remains open, draft PR remains unmerged, Stable unchanged, no automatic integration or deployment authorized.
+
+**Canonical scope exception pending**: `ops/project-scope.json` still declares `supra-api-d080.allowed_stock_export = FORBIDDEN_D126`. Owner has since approved D167's isolated read-only test, which has produced evidence, but the guard has not been reconciled. Before a permanent/main Agent scheduled sync or any broader WMS API use, record a narrowly defined Owner-approved stock-export exception in scope and corresponding SKU/AUTH specs, without relaxing D126 production Confirm Picklist browser-only protection.
+
+## 2026-10-10 — Additional D167 proposals A–F: Owner approval boundary
+
+**A–D: Owner explicitly approved the proposed plan, NOT yet code/deploy.**
+- **D167-A-WEB-RESULT-DATE-UX (APPROVED_DESIGN):** Remove duplicate lower result-status filter buttons beneath the top HAS_STOCK/SKIP_ALLOWED/CLOSED tabs; place presets Today/Yesterday/7-day/30-day and from/to/apply in a single responsive toolbar row. Preserve one status authority, existing bounded paged read model and correction controls.
+- **D167-B-HR-SETTLE (APPROVED_DESIGN):** Google Drive Watch notifications currently trigger immediate `processHrSnapshot`, and partial 3-column entry can produce `INVALID_ROWS/HARD_BLOCK`; `hr-sync.ts` currently checks missing employee code/name but not missing contractor. Propose event coalescing + bounded stability/debounce for partial user edits, do not auto-apply incomplete rows, retain last valid snapshot, validate employee_code/display_name/contractor_name (subject to Owner confirming contractor nonblank for every row), distinguish short `WAITING_FOR_COMPLETION` from genuine persistent invalid source; protect duplicates/source corruption and DO quota. Illustrative settle 30 seconds, bounded persistent warning 2 minutes; not yet live-configured.
+- **D167-C-LOG-DATE-RANGE (APPROVED_DESIGN):** Replace 30/60/90 day UI controls with VN calendar start/end. Audit log uses SQL date index and existing pagination; Web/Android runtime logs use DO buffer indexed by source and received_at. No unbounded historical fetch or claim of >90-day retention. Existing audit/runtime buffer prune at 90 days; historical Drive archival requires separate accessible read scope/design. Manual range apply only, not polling.
+- **D167-D-LAST-LOGIN (APPROVED_DESIGN):** Show last successful login date/time and channel in managed-account list. Existing Web/Android `*_session_started_at` are active-session fields cleared at logout, not true durable last login. Proposed indexed/durable `last_login_at`/channel or equivalent; one write per confirmed login event, never per refresh/heartbeat; account list adds fields to same bounded API. AGENT channel requires authorized identity path to be verified; no bulk Firebase reads.
+ 
+**E–F: New Owner requests for detailed analysis/proposal, not a code approval.**
+- **D167-E-MEAL-PAUSE (PROPOSAL_ONLY):** At 10:55 VN, Reporter MUST select one lunch interval 11:00–11:30 or 11:30–12:00; at 17:55 VN select 18:00–18:30 or 18:30–19:00. One service-authoritative first valid confirmation/day/meal via atomic CAS, broadcast realtime dismissal to all Reporter clients; pending choice persists for offline/newly connected client. Only AUTO-SKIP elapsed SLA minutes pause inside selected meal; Picker reporting and manual Reporter outcomes continue. Preserve distinct FIRST_REPORT/PER_PICKER deadlines and explicit correction window unchanged. Ex: 10-minute timeout, lunch 11:30–12:00: reported 11:25=>12:05; 11:35/11:55=>12:10. Consider fail-closed no-confirmation hold over whole candidate hour with admin escalation (requires Owner approval because it can delay automatic skip beyond 30 minutes). Reconcile old/new deadlines and next DO Alarm atomically; no per-device timer writes.
+- **D167-F-OVERDUE-REMINDED-DAY-CLOSE (PROPOSAL_ONLY):** PER_PICKER overdue is only picker-granted skip: SKU batch stays PENDING. Persist first_overdue_at for the batch/episode, never reset on later Picker joining. If not human-resolved, once-only serious reminder at +30 min, second at +60 min, suppressed/cancelled by terminal outcome. Show persistent actionable reporter notification, grouped FCM best-effort, no 30-minute polling. At exactly 03:00 VN on day N+1 close eligible still-PENDING batch whose *first-report VN business day* is N and has an overdue Picker. Mark batch SKIP_ALLOWED with `SYSTEM_DAY_END` separate from `SYSTEM_TIMEOUT`, audit + result event/snapshot + appropriate Picker notifications; don't duplicate preexisting ticket timeout result/ACK. If any OPEN non-overdue tickets belong to the same overdue batch, owner-proposed close-out resolves them too (explicit stronger-than-PER_PICKER rule). No override of human HAS_STOCK/manual SKIP/withdrawn; conditional transaction and idempotency with alarm catch-up. Reporting uses day of `first_report_at` for business grouping while preserving real `resolved_at` 03:00 N+1. Current Web result tabs filter `COALESCE(resolved_at,updated_at)`, inconsistent with current detailed reporting's `first_report_at` predicate; resolve consistently before field release. A still-PENDING N batch may absorb N+1 reports of same SKU under current `business-core.ts`; design date-isolated handling without duplicate OPEN picker tickets before rollout.
+- **Evidence/risks:** `service/src/sla-automation.ts` is authoritative for deadline and alarm (not Web clocks); `operational-v2-core.ts` provides first overdue as MIN ticket time; `business-core.ts` currently reuses PENDING SKU independent of day; `reporterRecent` currently filters by resolution time; meal pause / 03:00 may alter user-facing Skip timing and require regression tests for cross-midnight, HA, correction, realtime/FCM/ACK and quota.
+- **Controls:** no code mutation for E/F before Owner selects final fallback policy and approves code. Existing D167 code-only vs deploy separation continues; Stable OWNER-GATED, no new unregistered resources.
+
+## 2026-10-10 — D167 resume: code and Beta deployment authorized
+
+Owner ordered resuming D167 code and deploying the accepted Beta scope. PR #548 and PR #549 reached 18/18 GitHub workflow successes before the latest continuity update; they are still DRAFT and NOT MERGED. The GitHub integration refused the draft-to-ready transition; GitHub REST also rejected a direct merge of a draft PR (HTTP 405). No release or service deployment has occurred under D167. Preserve D166 Agent v124 and Android vc104 as the live baseline until verified rollout. Keep Stable OWNER-GATED. A–F source candidates and standalone SKU test must not be called full business PASS; field acceptance, actual quota and device versions remain unverified. WMS API authority is narrowly confined by ops/project-scope.json to the separately authenticated D167 read-only experiment, not the normal Agent or Worker runtime.
+
 
 ## D167 CODE-ONLY dual-track source authorization — 10/10/2026
 

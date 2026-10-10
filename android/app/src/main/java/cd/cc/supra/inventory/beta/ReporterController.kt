@@ -160,6 +160,7 @@ class ReporterController(
             productName = snapshot.optString("product_name"),
             firstReportAt = snapshot.optString("first_report_at"),
             firstOverdueAt = nullable(snapshot, "first_overdue_at"),
+            reminderLevel = snapshot.optInt("reminder_level", 0),
             overduePickerCount = overdue,
             waitingPickerCount = snapshot.optInt("waiting_picker_count", snapshot.optInt("open_ticket_count", 0)),
             version = snapshot.optInt("version", 1).coerceAtLeast(1),
@@ -498,7 +499,12 @@ class ReporterController(
             bindCommon(view, row.sku, row.productName, "${row.overduePickerCount} quá hạn")
             view.findViewById<LinearLayout>(R.id.reporterRowRoot).background = kit.rounded(kit.orangeSoft, kit.skipStroke, 7)
             view.findViewById<TextView>(R.id.tvReporterMeta).apply {
-                text = "Quá hạn: ${row.overduePickerCount} Picker · Còn chờ: ${row.waitingPickerCount} Picker\nLần đầu: ${timestamp(row.firstOverdueAt)}"
+                val warning = when {
+                    row.reminderLevel >= 60 -> "CẢNH BÁO LẦN 2 · Chưa xử lý sau 60 phút"
+                    row.reminderLevel >= 30 -> "CẢNH BÁO NGHIÊM TRỌNG · Chưa xử lý sau 30 phút"
+                    else -> "Đang chờ Reporter chốt"
+                }
+                text = "$warning\nQuá hạn: ${row.overduePickerCount} Picker · Còn chờ: ${row.waitingPickerCount} Picker\nLần đầu: ${timestamp(row.firstOverdueAt)}"
                 setTextColor(kit.orange)
             }
             val busy = processingBatchIds.contains(row.batchId) || confirmingBatchIds.contains(row.batchId)
