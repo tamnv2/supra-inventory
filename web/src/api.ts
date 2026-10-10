@@ -170,6 +170,8 @@ export interface ManagedUser {
   firebase_password_ready?: boolean;
   created_at: string;
   updated_at: string;
+  last_login_at?: string | null;
+  last_login_channel?: "WEB" | "ANDROID" | "AGENT" | null;
 }
 
 export interface HrSyncPreview {
