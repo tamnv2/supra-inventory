@@ -1005,7 +1005,9 @@ class PickerController(
 
             // D135: acknowledgement is local-first on the in-app full-screen path too.
             // Network/session state must never trap the Picker behind this dialog.
-            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId, api.session?.userId.orEmpty())
+            val ownerUserId = api.session?.userId.orEmpty()
+            if (ownerUserId.isBlank()) return@setOnClickListener
+            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId, ownerUserId)
             acknowledge.isEnabled = false
             acknowledge.text = "ĐÃ GHI NHẬN"
             try { dialog.dismiss() } catch (_: Exception) { }
@@ -1015,9 +1017,17 @@ class PickerController(
 
             Thread {
                 try {
+                    if (api.session?.userId != ownerUserId) return@Thread
                     api.acknowledgeResult(eventId)
-                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId, api.session?.userId.orEmpty())
+                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId, ownerUserId)
                     activity.runOnUiThread { refresh() }
+                } catch (error: ApiException) {
+                    if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
+                        NotificationSignalStore.quarantineOverlayAck(
+                            activity.applicationContext, eventId, ownerUserId, "RESULT_ACK_NOT_FOUND"
+                        )
+                    }
+                    // For network/5xx errors keep the scoped ACK pending.
                 } catch (_: Exception) {
                     // Keep pending locally. MainActivity retries after a valid session/network returns.
                 }
