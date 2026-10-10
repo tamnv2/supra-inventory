@@ -392,6 +392,10 @@ async function privilegedAgentLogin(request: Request, env: Env): Promise<Respons
       app_session_generation: 0,
     });
     const session = await exchangeCustomToken(env, customToken);
+    await coreJson(env, "/auth/record-successful-login", {
+      method: "PUT", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id, channel: "AGENT" }),
+    });
     return json({ ...session, user: publicUser(user), session_channel: "AGENT" });
   } catch (error) {
     if (error instanceof PrivilegedAuthError) return privilegedAuthErrorResponse(error);
@@ -955,6 +959,10 @@ async function login(request: Request, env: Env): Promise<Response> {
   });
   try {
     const session = await exchangeCustomToken(env, customToken);
+    await coreJson(env, "/auth/record-successful-login", {
+      method: "PUT", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id, channel }),
+    });
     const relayCustomToken = channel === "ANDROID"
       ? await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, uid, {
           app_role: user.role,
