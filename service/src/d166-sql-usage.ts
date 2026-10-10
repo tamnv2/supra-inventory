@@ -14,7 +14,17 @@ export type D166SqlQueryId =
   | "RECENT_RESULTS_COUNT"
   | "RECENT_RESULTS_PAGE"
   | "RECENT_STATUS_TOTALS"
-  | "RECENT_ACK_TOTALS";
+  | "RECENT_ACK_TOTALS"
+  | "REPORTER_QUEUE_COUNT"
+  | "REPORTER_QUEUE_PAGE"
+  | "REPORTER_OVERDUE_COUNT"
+  | "REPORTER_OVERDUE_PAGE"
+  | "PICKER_REPORTS_COUNT"
+  | "PICKER_REPORTS_PAGE"
+  | "PICKER_RESULTS_PENDING"
+  | "COUNTER_QUEUE_TOTAL"
+  | "COUNTER_RECENT_TOTAL"
+  | "COUNTER_OVERDUE_TOTAL";
 
 type SqlCursorUsage = {
   readonly rowsRead?: number;
@@ -41,6 +51,16 @@ const QUERY_IDS = new Set<D166SqlQueryId>([
   "RECENT_RESULTS_PAGE",
   "RECENT_STATUS_TOTALS",
   "RECENT_ACK_TOTALS",
+  "REPORTER_QUEUE_COUNT",
+  "REPORTER_QUEUE_PAGE",
+  "REPORTER_OVERDUE_COUNT",
+  "REPORTER_OVERDUE_PAGE",
+  "PICKER_REPORTS_COUNT",
+  "PICKER_REPORTS_PAGE",
+  "PICKER_RESULTS_PENDING",
+  "COUNTER_QUEUE_TOTAL",
+  "COUNTER_RECENT_TOTAL",
+  "COUNTER_OVERDUE_TOTAL",
 ]);
 // Cloudflare can co-host distinct Durable Objects inside the same isolate.
 // Never mix the cost of different DO instance states in a module-global map.
@@ -101,7 +121,7 @@ export function recordD166SqlUsage(
     sample.max_latency_ms = Math.max(sample.max_latency_ms, elapsed);
   }
 
-  // Memory cap independent of client load; 36h * 5 allowlisted queries.
+  // Memory cap independent of client load; 36h * allowlisted queries.
   const cutoff = now - MAX_BUCKET_HOURS * 60 * 60 * 1000;
   if (buckets.size > QUERY_IDS.size * MAX_BUCKET_HOURS) {
     for (const [k, v] of buckets) {

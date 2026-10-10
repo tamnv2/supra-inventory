@@ -1,3 +1,6 @@
+import { mealAdjustedDeadline, dueMealPrompts, nextMealPromptMs } from "./meal-break-core";
+import { processD167OverdueReminders, processD167DayClose, nextD167OverdueAlarmMs } from "./d167-overdue-core";
+
 type SqlRow = Record<string, SqlStorageValue>;
 
 export type AutoSkipMode = "FIRST_REPORT" | "PER_PICKER";
@@ -19,7 +22,7 @@ export interface OperationalSlaConfig {
 }
 
 export interface OperationalDeadlineEffect {
-  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed";
+  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required" | "d167_overdue_reminder_30" | "d167_overdue_reminder_60" | "batch_day_end_auto_skip";
   event_id: string;
   batch_id: string;
   sku: string;
@@ -253,7 +256,7 @@ export function planAutoSkipForNewReport(
     return {
       config,
       batch_deadline_at: input.existing_batch_deadline_at || null,
-      ticket_deadline_at: deadlineIso(input.reported_at, config.auto_skip_minutes),
+      ticket_deadline_at: mealAdjustedDeadline(state, input.reported_at, config.auto_skip_minutes),
     };
   }
 
@@ -265,7 +268,7 @@ export function planAutoSkipForNewReport(
     return { config, batch_deadline_at: deadline, ticket_deadline_at: deadline };
   }
 
-  const deadline = deadlineIso(input.reported_at, config.auto_skip_minutes);
+  const deadline = mealAdjustedDeadline(state, input.reported_at, config.auto_skip_minutes);
   return { config, batch_deadline_at: deadline, ticket_deadline_at: deadline };
 }
 
@@ -674,6 +677,12 @@ function processPerPickerAutoSkip(
         batchId,
       ).toArray());
       const firstOverdueForBatch = Number(existingOverdue?.count || 0) === 0;
+      if (firstOverdueForBatch) {
+        state.storage.sql.exec(
+          "UPDATE report_batches SET d167_first_overdue_at = COALESCE(d167_first_overdue_at, ?) WHERE batch_id = ? AND status = 'PENDING'",
+          now, batchId,
+        );
+      }
 
       state.storage.sql.exec(
         `UPDATE report_tickets
@@ -761,6 +770,22 @@ export function processOperationalDeadlines(
   processBatchAutoSkip(state, config, nowMs, effects);
   processPerPickerAutoSkip(state, config, nowMs, effects);
   if (config) processWarningAndEscalation(state, config, nowMs, effects);
+  effects.push(...processD167OverdueReminders(state, nowMs));
+  effects.push(...processD167DayClose(state, nowMs));
+  const mealPrompts = dueMealPrompts(state, nowMs);
+  for (const prompt of mealPrompts) {
+    effects.push({
+      event: "meal_selection_required",
+      event_id: prompt.event_id,
+      batch_id: "",
+      sku: "", product_name: "",
+      scopes: ["meal_break"],
+      reporter_roles: ["REPORTER", "ADMIN", "ROOT"],
+      picker_user_ids: [], result_event: false,
+      title: "SUPRA Inventory · Xác nhận giờ ăn",
+      body: prompt.period === "LUNCH" ? "Chọn giờ nghỉ trưa trong Ca vận hành." : "Chọn giờ nghỉ tối trong Ca vận hành.",
+    });
+  }
   return effects;
 }
 
@@ -818,6 +843,10 @@ export async function scheduleNextOperationalAlarm(state: DurableObjectState): P
     if (Number.isFinite(ms)) candidates.push(ms);
   }
 
+  const nextPrompt = nextMealPromptMs(state);
+  if (nextPrompt != null) candidates.push(nextPrompt);
+  const nextOverdue = nextD167OverdueAlarmMs(state);
+  if (nextOverdue != null) candidates.push(nextOverdue);
   if (!candidates.length) {
     await state.storage.deleteAlarm();
     return;

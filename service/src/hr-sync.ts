@@ -19,6 +19,7 @@ export interface HrEmployee {
 export type HrInvalidRowReason =
   | "INVALID_EMPLOYEE_CODE"
   | "MISSING_DISPLAY_NAME"
+  | "MISSING_CONTRACTOR_NAME"
   | "DISPLAY_NAME_TOO_LONG"
   | "CONTRACTOR_TOO_LONG";
 
@@ -74,6 +75,7 @@ export async function readHrEmployees(rawServiceAccountJson: string, source: Sto
     const invalidReasons: HrInvalidRowReason[] = [];
     if (!/^[a-z0-9._-]{1,64}$/.test(employeeCode)) invalidReasons.push("INVALID_EMPLOYEE_CODE");
     if (!displayName) invalidReasons.push("MISSING_DISPLAY_NAME");
+    if (!contractorName) invalidReasons.push("MISSING_CONTRACTOR_NAME");
     if (displayName.length > 200) invalidReasons.push("DISPLAY_NAME_TOO_LONG");
     if (contractorName.length > 200) invalidReasons.push("CONTRACTOR_TOO_LONG");
     if (invalidReasons.length) {

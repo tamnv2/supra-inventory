@@ -8,6 +8,9 @@ on:
       - "web/src/runtime-logger.ts"
       - "web/src/web-version.ts"
       - "tools/d166_log_only_regression.py"
+      - "tools/d167_dual_track_regression.py"
+      - "service/src/**"
+      - "ops/apps-script/agent-log-gateway/Code.gs"
       - ".github/workflows/d166-log-only-regression.yml"
   push:
     branches: [main]
@@ -17,6 +20,9 @@ on:
       - "web/src/runtime-logger.ts"
       - "web/src/web-version.ts"
       - "tools/d166_log_only_regression.py"
+      - "tools/d167_dual_track_regression.py"
+      - "service/src/**"
+      - "ops/apps-script/agent-log-gateway/Code.gs"
       - ".github/workflows/d166-log-only-regression.yml"
 
 permissions:
@@ -29,6 +35,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check D166 log-only evidence hooks and version
         run: python tools/d166_log_only_regression.py
+      - name: Check D167 dual-track ACK, HA, DO and export safety
+        run: python tools/d167_dual_track_regression.py
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

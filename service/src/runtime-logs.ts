@@ -1045,6 +1045,8 @@ export async function listRuntimeLogs(
   limitValue: number,
   daysValue = 30,
   pageTokenValue = "",
+  fromValue = "",
+  toValue = "",
 ): Promise<Record<string, unknown>> {
   const source = normalizeSource(sourceValue);
   const limit = Math.max(1, Math.min(500, Number(limitValue || 100)));
@@ -1057,6 +1059,7 @@ export async function listRuntimeLogs(
     limit: String(limit),
     days: String(days),
   });
+  if (fromValue && toValue) { params.set("from", fromValue); params.set("to", toValue); }
   if (pageToken) params.set("page_token", pageToken);
   const response = await core(env).fetch(
     `https://inventory-core.internal/runtime-logs/list?${params.toString()}`,

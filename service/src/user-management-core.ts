@@ -23,6 +23,8 @@ interface UserRow extends SqlRow {
   firebase_password_ready: number;
   created_at: string;
   updated_at: string;
+  last_login_at: string | null;
+  last_login_channel: string | null;
 }
 
 function response(payload: unknown, status = 200): Response {
@@ -73,12 +75,13 @@ function safeUser(row: UserRow): Record<string, unknown> {
     firebase_password_ready: Number(row.firebase_password_ready || 0) === 1,
     password_initialized: Boolean(row.password_hash && row.password_salt), password_changed_at: row.password_changed_at,
     created_at: row.created_at, updated_at: row.updated_at,
+    last_login_at: row.last_login_at || null, last_login_channel: row.last_login_channel || null,
   };
 }
 
 function getUser(state: DurableObjectState, userId: string): UserRow | null {
   return first(state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
+    `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel
        FROM users WHERE user_id = ? LIMIT 1`, userId,
   ).toArray());
 }
@@ -122,7 +125,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
 
   const rows = state.storage.sql.exec<UserRow>(
     `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
-            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
+            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel
        FROM users
        ${clause}
       ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'PICKPACK_ADMIN' THEN 3 WHEN 'REPORTER' THEN 4 ELSE 5 END,
@@ -181,7 +184,7 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
     return response({ error: "USER_CREATE_ADMIN_EMAIL_REQUIRED", message: "Tài khoản Quản trị bắt buộc có email đăng ký." }, 400);
   }
   const existing = first(state.storage.sql.exec<UserRow>(
-    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
+    `SELECT user_id, firebase_uid, employee_code, display_name, role, status, password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel
        FROM users WHERE lower(employee_code) = lower(?) OR lower(user_id) = lower(?) LIMIT 1`, username, username,
   ).toArray());
   if (existing) return response({ error: "USER_IDENTIFIER_EXISTS", user: safeUser(existing) }, 409);
@@ -364,7 +367,7 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
   }
   let targets = state.storage.sql.exec<UserRow>(
     `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
-            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at
+            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel
        FROM users WHERE role = 'PICKER' ORDER BY employee_code ASC`,
   ).toArray();
   const excludedIds = Array.isArray(body.excluded_user_ids)
@@ -440,7 +443,7 @@ function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: str
   const incoming = new Map(employees.map((item) => [item.employee_code, item]));
   const existing = state.storage.sql.exec<UserRow>(
     `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
-            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
+            password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel FROM users`,
   ).toArray();
   const byCode = new Map(existing.filter((u) => u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
   const collisions: Array<{ employee_code: string; role: AppRole; user_id: string }> = [];
@@ -508,7 +511,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
   state.storage.transactionSync(() => {
     const existing = state.storage.sql.exec<UserRow>(
       `SELECT user_id, firebase_uid, employee_code, display_name, contractor_name, shortage_reporting_enabled, shortage_reporting_revision, role, status,
-              password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at FROM users`,
+              password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel FROM users`,
     ).toArray();
     const pickerByCode = new Map(existing.filter((u) => u.role === "PICKER" && u.employee_code).map((u) => [String(u.employee_code).toLowerCase(), u]));
     for (const [code, incomingUser] of incoming) {

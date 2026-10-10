@@ -1072,6 +1072,7 @@ namespace SupraInventoryRelayAgent
                         long livenessAgeMs;
                         if (_rtdbLiveness.TryGetFresh(_generation, _primaryId, out livenessAgeMs))
                         {
+                            FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "RTDB_FRESH");
                             _leaseMissingSinceMs = 0;
                             waitMs = Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, Math.Max(0L, livenessAgeMs)));
                         }
@@ -1080,6 +1081,7 @@ namespace SupraInventoryRelayAgent
                             // RTDB is liveness only. Any stale/missing/uncertain signal
                             // re-enters the accepted Firestore lease path, which verifies
                             // generation/PRIMARY authority before takeover.
+                            FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "RTDB_NOT_FRESH_FIRESTORE_FALLBACK");
                             waitMs = CheckPrimaryLease(session);
                         }
                     }
@@ -1958,6 +1960,7 @@ namespace SupraInventoryRelayAgent
             long leaseUpdatedMs = 0;
             try
             {
+                FirestoreQuotaGuard.RecordHaDiagnostic("PRIMARY_LEASE", "GET_ATTEMPT");
                 var raw = SendJson("GET", LeaseUrl(generation), session.IdToken, null, "", 5000, true, "PRIMARY_LEASE_READ");
                 var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
                 if (doc != null)
@@ -2027,6 +2030,7 @@ namespace SupraInventoryRelayAgent
                 now - _lastTakeoverLivenessCheckMs < 5000) return 5000;
             _lastTakeoverLivenessCheckMs = now;
             var proof = _rtdbLiveness.ProbePrimary(session, _generation, _primaryId);
+            FirestoreQuotaGuard.RecordHaDiagnostic("PRIMARY_TAKEOVER_PROBE", proof.ToString());
             if (proof == RtdbPrimaryProbeStatus.HEALTHY)
             {
                 _leaseMissingSinceMs = 0;

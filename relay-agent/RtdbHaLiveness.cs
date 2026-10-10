@@ -77,6 +77,7 @@ namespace SupraInventoryRelayAgent
                 if (!_lastWriteHealthy)
                     _log("RTDB HA liveness write recovered.");
                 _lastWriteHealthy = true;
+                FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_HEARTBEAT", "SUCCESS");
                 lock (_gate)
                 {
                     _primaryId = _instanceId;
@@ -91,6 +92,7 @@ namespace SupraInventoryRelayAgent
                     _log("RTDB HA liveness unavailable; Firestore lease fallback active type=" + ex.GetType().Name +
                          " reason=" + SafeFailureCode(ex));
                 _lastWriteHealthy = false;
+                FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_HEARTBEAT", SafeFailureCode(ex));
                 return false;
             }
         }
@@ -238,6 +240,7 @@ namespace SupraInventoryRelayAgent
                         if (!_lastStreamHealthy)
                             _log("RTDB HA realtime observer recovered.");
                         _lastStreamHealthy = true;
+                        FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_SSE", "CONNECTED");
                         // Firebase EventSource frames are "event:" + "data:" + a blank line.
                         // Its data JSON is {"path":"/","data":{...}}, not a flat
                         // heartbeat object. Keep both event type and nested payload.
@@ -272,6 +275,7 @@ namespace SupraInventoryRelayAgent
                 catch (Exception ex)
                 {
                     if (token.IsCancellationRequested) return;
+                    FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_SSE_FAILURE", SafeFailureCode(ex));
                     if (_lastStreamHealthy)
                     {
                         _log("RTDB HA realtime observer unavailable; Firestore lease fallback armed type=" + ex.GetType().Name +

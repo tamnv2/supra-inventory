@@ -1557,6 +1557,7 @@ jobs:
           retention-days: 14
 
       - name: Resolve official Fixed WebView2 package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
         run: |
           npm install --no-save playwright-core@1.55.0

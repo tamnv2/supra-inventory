@@ -3796,3 +3796,50 @@ D166 Android minimum version was specifically approved for **ALL Beta PDA**, imp
 **Owner execution order:** wait for log and relevant real provider measurements, compare and analyze, then propose specific fixes and rank by impact. Owner decides whether to run code or run code plus deploy. A mere D167 backlog record is not code, provider mutation or Beta release authorization. D166 limited PASS is not blanket D167 PASS, nor waiver of Stable OWNER-GATED, scope, no-secrets, HA/ACK, business correctness, quota target or approval boundaries. Documentation-only transition; current running service, accounts, client version, update channel and Stable remain unchanged.
 
 **Evidence and source:** `docs/D166_APPROVED_BACKLOG.md`, `docs/D167_BACKLOG.md`, `docs/D166_USAGE_AUDIT_2026-10-06_08.md`, `docs/specs/ACCEPTANCE_TESTING.md`, `ops/project-state.json`. The D166 acceptance label is specifically `OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY` and unfinished D166 checks are `TRANSFERRED_D167_EVIDENCE_PENDING`.
+
+
+## 2026-10-10 — D167 Owner approval: isolated first-stage SKU Sync test, no main Agent change
+
+Owner accepted the D167 SKU+location design in principle but narrowed **execution order**: before changing the production Agent/workflows, build a **separate one-button Agent test**. Initial proof is limited to getting `REPORT_BIN_INVENTORY` from the authorized Supra source and submitting **SKU + product name only** to the existing Inventory Service import semantics. Do not implement position/as-of reporting, new daily scheduler, or special SKU rename/duplicate business rules during this initial phase.
+
+**Code-only scope:** independent `experiments/d167-sku-sync-test` GUI and a separate, strictly route-scoped Beta AGENT Firebase import-auth candidate. No main Agent code change, release, main merge or Beta Worker deployment is approved by this instruction. Server-authoritative role policy still applies; same account being able to upload from WEB is not proof AGENT channel is accepted (current Worker rejects AGENT with SESSION_UPGRADE_REQUIRED).
+
+**Security/feasibility gate:** D126 main-Agent Web Confirm browser is managed by the main process and deliberately does not extract Supra credentials or expose a cross-process session broker. A separate program shall not read main Agent DPAPI material, capture WMS browser credentials through remote debugging, or take over the Confirm process. Test UI may prepare a credential-free IPC request, but real one-click sharing needs a separate Owner-approved in-process broker/permissioned export handler in main Agent, or a separately authorized WMS login in the test application. These are not covered by approval to build an independent test. Do not claim actual upload or WMS 200 until it is observed.
+
+The Owner's proposed later automatic daily import and LTA/Shelving as-of snapshots remain design-approved in principle, **implementation deferred until the narrow end-to-end SKU test passes and a further Owner code/deploy instruction**. Stable OWNER-GATED; D167 remains open.
+
+
+## 2026-10-10 — D167 Owner correction: standalone login independently, build REAL SKU Service import
+
+Owner clarified that the D167 test must perform **actual** Supra export and actual Inventory Service SKU import, not just prove a standalone GUI or local IPC. Owner explicitly chose **Phase 0 option 2: independently authenticate Supra and Firebase on the test EXE, then press a single SKU synchronization button**. The main Agent V124 must remain unchanged and serving Confirm Picklist; no cross-process token/session reuse.
+
+This **supersedes** the earlier D167 design requiring a main Agent IPC broker for the test. An isolated Edge browser profile captures allowlisted API request headers transiently from its own logged-in Supra browsing context; the test signs a read-only HY1 export request, extracts only SKU and product name, invokes existing chunked and previewed SKU import Beta API, then verifies catalog readback. Existing Server name-collision approval remains intact. No SKU position history and no daily scheduler are implemented.
+
+To remove any provider deployment prerequisite, standalone EXE uses the **already supported Firebase WEB interactive session** (`/api/auth/login`) on Beta, not an AGENT-channel token. This may conflict with an existing WEB session, therefore a second-login takeover is explicitly opt-in, never implicit. No Worker/Service source change is required or retained in the Phase 0 PR. The D167 Beta AGENT import-route candidate previously explored was reverted as unnecessary.
+
+Authorization: **build code and CI only**. Not authorized: merge, publish/update production Agent, deploy Worker, touch Stable, or execute actual WMS/Inventory credentials from remote AI environment. Live E2E remains Owner field-test pending; technical CI may pass without field PASS.
+
+## 2026-10-10 — D167 supplemental items: A–D design accepted, E–F proposal under review
+
+Owner explicitly accepted analysis/proposal **A, B, C and D** and ordered their inclusion in planned D167 code scope when code is separately requested: (A) remove duplicate result-status buttons and one-row date presets/manual apply; (B) delay HR sync on incomplete three-field spreadsheet entry using stable-snapshot coalescing; (C) manual VN date ranges in Log Web/Android/Audit instead of just 30/60/90 presets, without automatically extending 90-day retention; (D) persist and display last successful account login time with no periodic polling. This approval concerns **design/scope**, not an instruction to implement or deploy now.
+
+Owner separately requested **analysis and proposal** for: (E) Reporter selection via 10:55/17:55 mandatory prompt of one half-hour lunch/evening interval, synchronized across Reporters, pause **only auto-skip** elapsed time during the confirmed break while retaining manual actions; (F) first PER_PICKER overdue SKU batch reminder +30m, second +60m, then conditional system SKIP finalization of eligible unresolved day-N batches at **03:00 VN day N+1**, displayed in reporting on original report day. E/F are **PROPOSED_NOT_YET_OWNER_APPROVED**, notably the fail-closed fallback if no Reporter confirms and handling of new N+1 reports joining N batch.
+
+All implementation remains subject to separate Owner **chạy code**; D167 Beta code-only is PR/CI without merge/deploy, Stable OWNER-GATED. Preserve source of truth for WMS, SLA corrections, human vs automatic Skip, result ACK and D166 base.
+
+## 2026-10-10 — D167 Owner orders code continuation plus Beta deployment
+
+Owner explicitly instructed the D167 work to resume through source changes, CI, and Beta deployment, superseding prior design-only and code-only waiting checkpoints for the agreed D167 A–F and diagnostics scope. No authorization for Stable, broader WMS automation, new providers, or unreviewed scope. Maintain the accepted D166 runtime while both PRs remain unmerged, use monotonically versioned Agent/Android releases, and require full branch CI before any scoped merge. The GitHub connector could not transition PR #548 from Draft to Ready for review, so deployment is not yet possible; do not mark it complete. Standalone D167 SKU import screenshot is limited evidence, not confirmation of full-catalog reconciliation or scheduled daily import. Operator field acceptance and provider usage optimization remain pending.
+
+
+## 2026-10-10 — D167 — Owner authorizes two parallel CODE-ONLY tracks
+
+**Instruction:** Implement source and PR/CI simultaneously for (A) defects supported by the 10/10 evidence, and (B) targeted missing forensic attribution. This is explicit **chạy code**, **not** an authorization to merge any executable change that triggers Beta deployment, change the runtime, publish APK/EXE/update manifests, modify security rules or touch Stable. CODE READY is reported after verified mandatory CI; deployment requires the Owner's next explicit approval.
+
+**A — fixes:** (1) Android Picker result-ACK HTTP 404 retry storm: bind pending ACK to authenticated Picker, prevent indefinite retry of the server's exact `RESULT_ACK_NOT_FOUND`, retain quarantined evidence and legacy unscoped ACKs without replaying them under an unknown account; never mislabel 404 as server ACK success. (2) Prevent Android Activity window-token `BadTokenException` on dialogs after Activity teardown. (3) Correct Usage ZIP Monitoring hour-bucket attribution when provider interval start exists and accurately distinguish `NO_DATA`, hard failures, and truncation.
+
+**B — forensic evidence:** use existing Agent local log only for RTDB SSE/heartbeat failure class, PRIMARY/standby freshness and Firestore lease-fallback reasons; extend already-running InventoryCore SQL cursor attribution to queue/overdue/picker/counter queries and classify DO request ingress by fixed, privacy-safe route families; add exactly one read-only internal DO snapshot to each **manual Owner-click** Usage ZIP through the existing authorized Beta Worker/Gateway, with no new timers, Firestore read/write, RTDB traffic or permanent resource. Partial, process-local data MUST be marked estimate/not billing. The external RTDB Rules denial path/actual Cloudflare billed SQL/DO costs still require provider-level corroboration, not fabricated attribution.
+
+**Safety/impact:** Android, Agent, existing Beta Worker, InventoryCore and existing Apps Script gateway source. Possible regressions include loss of legitimate ACK, failure to show mandatory UI, HA false takeover and quota overhead. Bound changes by existing role authority, preserve WMS/ACK safety, avoid secrets, add CI regression guards and real-device re-test after separately approved release. Legacy ACK migration is *not* inferred across users. If a complete repair requires changing live resources during CODE ONLY, stop and seek explicit exception approval.
+
+**Status:** D167 branch/PR source candidate, CI/field/Owner approval independent. D166 limited Owner PASS stays the accepted runtime base; Stable OWNER-GATED.

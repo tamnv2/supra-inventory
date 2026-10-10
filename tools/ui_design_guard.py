@@ -381,7 +381,7 @@ checks = {
         'navGroup("QUẢN LÝ", [["sku", "Danh mục SKU"], ["users", "Nhân sự & tài khoản"], ["sla", "Thời gian xử lý"]])',
         '? [["logs", "Nhật ký"], ["tools", "Công cụ"], ["system-reset", "Đặt lại hệ thống"]]',
         ': [["logs", "Nhật ký"], ["tools", "Công cụ"]])',
-        'return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);',
+        'return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["shift", "Ca vận hành"]]);',
     ]) and WEB_APP.count('["system-reset", "Đặt lại hệ thống"]') == 1,
     "web_d063_merged_workspaces": all(token in WEB_APP for token in [
         "renderOperationalTabs",

@@ -1,0 +1,43 @@
+name: D167 predeploy product verify (no deployment)
+on:
+  pull_request:
+    paths:
+      - "service/**"
+      - "web/**"
+      - "android/**"
+      - "relay-agent/**"
+      - ".github/workflows/verify-d167-product.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Web packages
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build Web
+        working-directory: web
+        run: npm run build
+      - name: Install Worker packages
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Typecheck Worker/InventoryCore
+        working-directory: service
+        run: npm run typecheck
+      - name: D167 scope safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'mealAdjustedDeadline' service/src/sla-automation.ts
+          grep -q 'd167_first_overdue_at' service/src/sla-automation.ts
+          grep -q 'SYSTEM_DAY_END' service/src/d167-overdue-core.ts
+          grep -q 'MISSING_CONTRACTOR_NAME' service/src/hr-sync.ts
+          grep -q 'last_login_at' service/src/user-management-core.ts
+          grep -q 'D167MealState' web/src/api.ts
+          echo "D167 source gates PASS (live field pending)"

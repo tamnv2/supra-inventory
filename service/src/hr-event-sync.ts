@@ -57,6 +57,7 @@ type HrSyncState = {
   updated_at?: string;
   updated_by?: string;
   trigger?: string;
+  wait_started_at?: string;
 };
 
 const DRIVE_READ_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
@@ -323,8 +324,37 @@ export async function processHrSnapshot(env: HrEventEnv, trigger = "DRIVE_WATCH"
   }
 
   const fingerprint = await sourceFingerprint(source, read);
-  const claimed = await claimSnapshot(env, fingerprint);
   const previous = await readSync(env);
+  const incomplete = read.invalid_row_details.length > 0 &&
+    read.invalid_row_details.every(row => row.reasons.every(reason =>
+      ["INVALID_EMPLOYEE_CODE", "MISSING_DISPLAY_NAME", "MISSING_CONTRACTOR_NAME"].includes(reason)
+    ));
+  // A source row under human edit is not an immediate business error.
+  if (incomplete && !read.duplicate_conflicts.length) {
+    const same = previous.fingerprint === fingerprint;
+    const started = same && previous.wait_started_at ? previous.wait_started_at : new Date().toISOString();
+    const duration = Date.now() - Date.parse(started);
+    const expired = Number.isFinite(duration) && duration >= 120_000;
+    const waiting: HrSyncState = {
+      ...previous,
+      status: expired ? "HARD_BLOCK" : "WAITING_FOR_COMPLETION",
+      decision: expired ? "HARD_BLOCK" : undefined,
+      hard_block_code: expired ? "INVALID_ROWS" : null,
+      fingerprint,
+      wait_started_at: started,
+      pending_fingerprint: "",
+      ...hardBlockEvidence(read),
+      updated_at: new Date().toISOString(),
+      updated_by: "system:d167-hr-settle",
+      trigger,
+    };
+    if (!same || previous.status !== waiting.status) {
+      await saveSync(env, waiting);
+      if (expired && previous.status !== "HARD_BLOCK") await broadcast(env, "hr_sync_blocked", waiting);
+    }
+    return waiting;
+  }
+  const claimed = await claimSnapshot(env, fingerprint);
   if (!claimed) {
     return { ...previous, fingerprint, status: previous.status || "NO_CHANGE" };
   }
@@ -358,6 +388,7 @@ export async function processHrSnapshot(env: HrEventEnv, trigger = "DRIVE_WATCH"
     updated_at: new Date().toISOString(),
     updated_by: "system:d161-hr-watch",
     trigger,
+    wait_started_at: "",
   };
 
   if (classification.decision === "HARD_BLOCK") {
@@ -417,6 +448,16 @@ async function stopChannel(accessToken: string, watch: HrWatchState | null): Pro
     },
     body: JSON.stringify({ id: watch.channel_id, resourceId: watch.resource_id }),
   }).catch(() => undefined);
+}
+
+export async function retryIncompleteHrSnapshotIfDue(env: HrEventEnv): Promise<void> {
+  if (env.APP_ENV !== "beta") return;
+  const prior = await readSync(env).catch(() => ({} as HrSyncState));
+  if (prior.status !== "WAITING_FOR_COMPLETION" || !prior.wait_started_at) return;
+  const due = Date.parse(prior.wait_started_at) + 120_000;
+  if (Number.isFinite(due) && Date.now() >= due) {
+    await processHrSnapshot(env, "D167_INCOMPLETE_RECHECK");
+  }
 }
 
 export async function ensureHrDriveWatch(env: HrEventEnv, force = false): Promise<Record<string, unknown>> {

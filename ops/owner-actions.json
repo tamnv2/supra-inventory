@@ -5429,25 +5429,28 @@
     },
     {
       "id": "OA103",
-      "status": "D167_EVIDENCE_AWAITED_WHEN_AVAILABLE__NO_IMMEDIATE_OWNER_ACTION_REQUIRED",
-      "title": "D167 usage/log evidence and field verification for D166 carried issues",
+      "status": "D167_CODE_READY_CANDIDATE__AWAIT_OWNER_DEPLOY_APPROVAL__FIELD_RETEST_AFTER_DEPLOY",
+      "title": "D167 code-only PR awaiting Owner deploy approval and field retest",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Existing Web Android Windows Agent Service providers",
       "reason_owner_only": "Real in-company PDA and Windows Agent version/confirm/failover behavior and screenshots/log ZIP of provider usage cannot be proven from GitHub release manifests alone; Owner may send existing evidence when collected.",
-      "source_change": "D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY_2026_10_10",
+      "source_change": "D167_OWNER_CODE_ONLY_DUAL_TRACK_2026_10_10__DRAFT_PR_548",
       "backlog_document": "docs/D167_BACKLOG.md",
-      "priority": "WAIT_LOGS__NO_SCHEDULE_OR_AUTOMATION_TO_REQUEST_OWNER_NOW",
+      "priority": "OWNER_DEPLOY_DECISION__NO_DEVICE_ACTION_UNTIL_APPROVED",
       "recommended_owner_evidence_when_ready": [
         "existing sanitized Agent Usage ZIP and runtime support logs",
         "Cloudflare Worker/DO SQL and Firebase Firestore RTDB Usage screenshots or export for comparable shifts",
         "installed MT90 DT50 Android version and relevant Agent v124 version with no sensitive device identifiers",
         "realtime WMS confirm/ACK/HA timestamps and selected five-tab/correction/Drive logs outcomes"
       ],
-      "manual_action_now": "NONE__WAIT_UNTIL_OWNER_PROVIDES_AVAILABLE_LOGS_AND_RELEVANT_SOURCE_EVIDENCE",
+      "manual_action_now": "REVIEW_PR_548_CODE_READY_RECEIPT__EXPLICIT_DEPLOY_APPROVAL_NEEDED_BEFORE_MERGE",
       "constraints": "NO_SECRET_OR_PERSONAL_IDENTIFIERS_IN_PUBLIC_GITHUB__STABLE_OWNER_GATED__NO_NEW_DEPLOY",
       "code_or_deploy_approval": false,
       "owner_field_pass": false,
-      "closed": false
+      "closed": false,
+      "owner_code_only_approval": true,
+      "owner_deploy_approval": false,
+      "accepted_runtime": "D166_UPDATE_NO_REPORTED_ERRORS_ONLY__UNCHANGED"
     }
   ]
 }

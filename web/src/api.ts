@@ -107,6 +107,7 @@ export interface ReporterOverdueBatch {
   overdue_picker_count: number;
   waiting_picker_count: number;
   first_overdue_at: string;
+  reminder_level?: number;
   latest_overdue_at: string;
 }
 
@@ -170,6 +171,8 @@ export interface ManagedUser {
   firebase_password_ready?: boolean;
   created_at: string;
   updated_at: string;
+  last_login_at?: string | null;
+  last_login_channel?: "WEB" | "ANDROID" | "AGENT" | null;
 }
 
 export interface HrSyncPreview {
@@ -1203,6 +1206,8 @@ export async function getAdminAuditHistory(options: {
   limit?: number;
   offset?: number;
   days?: number;
+  from?: string;
+  to?: string;
 } = {}): Promise<AdminAuditPage> {
   const params = new URLSearchParams({
     limit: String(options.limit || 100),
@@ -1210,7 +1215,8 @@ export async function getAdminAuditHistory(options: {
   });
   if (options.role) params.set("role", options.role);
   if (options.query) params.set("query", options.query);
-  params.set("days", String([30, 60, 90].includes(Number(options.days)) ? Number(options.days) : 30));
+  if (options.from && options.to) { params.set("from", options.from); params.set("to", options.to); }
+  else params.set("days", String([30, 60, 90].includes(Number(options.days)) ? Number(options.days) : 30));
   return readJson(await authorizedFetch(`/api/admin/audit-history?${params.toString()}`));
 }
 
@@ -1220,6 +1226,31 @@ export async function getPdaAppRelease(): Promise<{ status: string; release: Pda
 
 export async function getAgentAppRelease(): Promise<{ status: string; release: AgentAppRelease }> {
   return readJson(await authorizedFetch("/api/admin/agent-app"));
+}
+
+export interface D167MealState {
+  day_vn: string;
+  server_now: string;
+  lunch: { choice: "EARLY" | "LATE"; start_ms: number; end_ms: number; confirmed_at: string; confirmed_by: string; confirmed_name: string } | null;
+  dinner: { choice: "EARLY" | "LATE"; start_ms: number; end_ms: number; confirmed_at: string; confirmed_by: string; confirmed_name: string } | null;
+  lunch_prompt_due: boolean;
+  dinner_prompt_due: boolean;
+  unconfirmed_fallback: string;
+}
+
+export async function getD167MealState(): Promise<D167MealState> {
+  return readJson(await authorizedFetch("/api/reporter/meal-break"));
+}
+
+export async function confirmD167Meal(
+  period: "LUNCH" | "DINNER",
+  choice: "EARLY" | "LATE",
+): Promise<{ status: string; day_vn: string; period: string; choice: string; confirmed_at: string }> {
+  return readJson(await authorizedFetch("/api/reporter/meal-break", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ period, choice }),
+  }));
 }
 
 export async function getAndroidAlertWindow(): Promise<AndroidAlertWindowState> {
@@ -1241,12 +1272,15 @@ export async function getRuntimeLogs(
   limit = 50,
   days = 30,
   pageToken = "",
+  from = "",
+  to = "",
 ): Promise<RuntimeLogList> {
   const params = new URLSearchParams({
     source,
     limit: String(Math.max(1, Math.min(200, limit))),
     days: String([30, 60, 90].includes(Number(days)) ? Number(days) : 30),
   });
+  if (from && to) { params.set("from", from); params.set("to", to); }
   if (pageToken) params.set("page_token", pageToken);
   return readJson(await authorizedFetch(`/api/admin/logs?${params.toString()}`));
 }

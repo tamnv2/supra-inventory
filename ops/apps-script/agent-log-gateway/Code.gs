@@ -694,9 +694,15 @@ function pointEndMs_(point) {
 }
 
 function pointHourKey_(point) {
+  // Prefer the interval start for a delta/counter point. The prior endpoint
+  // bucketing could attribute a partially aligned 16:00 reading to the wrong
+  // clock hour when the Owner clicked in the middle of an hour.
+  const startRaw = point && point.interval && point.interval.startTime;
+  const startMs = startRaw ? new Date(startRaw).getTime() : NaN;
   const endMs = pointEndMs_(point);
   if (!endMs) return '';
-  return new Date(Math.floor((endMs - 1) / HOUR_MS) * HOUR_MS).toISOString();
+  const start = Number.isFinite(startMs) && startMs > 0 && startMs < endMs ? startMs : endMs - 1;
+  return new Date(Math.floor(start / HOUR_MS) * HOUR_MS).toISOString();
 }
 
 function nextZonedMidnightUtc_(now, timeZone) {
@@ -930,7 +936,8 @@ function collectD166UsageExport_(mode, idToken) {
     list.forEach(row => (row.points || []).forEach(p => {
       const n = pointNumber_(p);
       const at = pointEndMs_(p);
-      if (at > 0 && Number.isFinite(n)) points.push({ at: at, value: n });
+      const hour = pointHourKey_(p);
+      if (at > 0 && hour && Number.isFinite(n)) points.push({ at: at, hour: hour, value: n });
     }));
     let total = 0;
     let peak = 0;
@@ -941,13 +948,14 @@ function collectD166UsageExport_(mode, idToken) {
       total += p.value;
       if (p.value > peak) peak = p.value;
       if (p.at > last) { last = p.at; current = p.value; }
-      const key = new Date(Math.floor((p.at - 1) / HOUR_MS) * HOUR_MS).toISOString();
+      const key = p.hour;
       hourlySum[key] = Number(hourlySum[key] || 0) + p.value;
     });
     const empty = !error && points.length === 0;
     availability[spec.key] = error ? 'ERROR' : (truncated ? 'TRUNCATED' : (empty ? 'NO_DATA' : 'OK'));
     if (error) warnings.push(spec.key + ':' + error);
     else if (truncated) warnings.push(spec.key + ':PAGE_LIMIT');
+    else if (empty) warnings.push(spec.key + ':NO_DATA');
     metrics[spec.key] = {
       status: availability[spec.key],
       total: error || empty || truncated ? null : Math.round(total),
@@ -1018,12 +1026,16 @@ function collectD166UsageExport_(mode, idToken) {
       provider_firestore_timezone: 'America/Los_Angeles',
       provider_firestore_quota_day_start: zonedMidnightUtc_(now, 'America/Los_Angeles').toISOString(),
       partial_hour_possible: true,
-      monitoring_data_delay_possible: true
+      monitoring_data_delay_possible: true,
+      hourly_bucket_policy: 'PROVIDER_INTERVAL_START_WHEN_PRESENT__FALLBACK_END_MINUS_1MS',
+      interval_boundary_partial_or_missing_possible: true
     },
     summary: {
       metric_groups_requested: specs.length,
       success_groups: Object.keys(availability).filter(k => availability[k] === 'OK').length,
-      failed_groups: warnings.length,
+      unavailable_groups: Object.keys(availability).filter(k => availability[k] !== 'OK').length,
+      no_data_groups: Object.keys(availability).filter(k => availability[k] === 'NO_DATA').length,
+      failed_groups: Object.keys(availability).filter(k => availability[k] === 'ERROR' || availability[k] === 'TRUNCATED').length,
       firebasedatabase_sent_bytes: metrics.rtdb_sent_bytes.total,
       firebasedatabase_api_hits: metrics.rtdb_api_hits.total,
       firebasedatabase_https_requests: metrics.rtdb_https_requests.total,
@@ -1039,6 +1051,7 @@ function collectD166UsageExport_(mode, idToken) {
     metrics: metrics,
     google_drive_account: driveQuota,
     cloudflare: cloudflare,
+    d167_inventorycore_diagnostics: cloudflare.d167_inventorycore_diagnostics || {status:'UNAVAILABLE'},
     hourly: hourly,
     status: {
       metric_availability: availability,
@@ -1085,7 +1098,8 @@ function collectD166Cloudflare_(start,end,idToken) {
     workers: {status:status,scope:'INVENTORY_BETA_WORKER_ONLY'},
     durable_objects_account: {status:'NAMESPACE_NOT_CANONICALLY_SCOPED',scope:'SHARED_ACCOUNT_NOT_QUERIED'},
     billing_account: {status:status,scope:'SHARED_ACCOUNT_UNATTRIBUTABLE'},
-    collection: {requests:0}
+    collection: {requests:0},
+    d167_inventorycore_diagnostics: {status:'UNAVAILABLE'}
   });
   if (!idToken) return unavailable('AUTH_REQUIRED');
   try {
@@ -1109,7 +1123,8 @@ function collectD166Cloudflare_(start,end,idToken) {
       workers:d.workers || unavailable('MISSING').workers,
       durable_objects_account:d.durable_objects_account || unavailable('MISSING').durable_objects_account,
       billing_account:d.billing_account || unavailable('MISSING').billing_account,
-      collection:d.collection || {requests:0}
+      collection:d.collection || {requests:0},
+      d167_inventorycore_diagnostics:parsed.d167_inventorycore_diagnostics || {status:'NOT_INCLUDED'}
     };
   } catch (_) {return unavailable('WORKER_UNAVAILABLE');}
 }

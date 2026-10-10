@@ -452,14 +452,14 @@
       "url": "https://api-supra.winmart.vn",
       "exposure": "public_corporate_hostname",
       "allowed_probe": "FORBIDDEN_D126",
-      "guard": "D126_FORBIDS_PROJECT_RUNTIME_WMS_API_USE_FOR_PICKLIST_OR_SKU",
+      "guard": "D126_FORBIDS_NORMAL_AGENT_WORKER_RUNTIME_WMS_API_USE__D167_STANDALONE_OWNER_APPROVED_TEST_READ_ONLY_SKU_NAME_EXPORT_EXCEPTION",
       "allowed_lookup": "FORBIDDEN_D126",
       "allowed_confirmation": "FORBIDDEN_D126",
       "confirmation_contract": "FORBIDDEN_D126__BROWSER_UI_ONLY",
       "allowed_stock_lookup": "FORBIDDEN_D126",
-      "allowed_stock_export": "FORBIDDEN_D126",
-      "stock_scope_guard": "D126_SKU_SOURCE_MANUAL_FILE_ONLY",
-      "status": "D126_HISTORICAL_REFERENCE__ALL_PROJECT_RUNTIME_API_CALLS_FORBIDDEN"
+      "allowed_stock_export": "D167_ISOLATED_STANDALONE_TEST_EXE_READ_ONLY_SKU_NAME_EXPORT_ONLY__NO_AGENT_WORKER_OR_DAILY_AUTOMATION",
+      "stock_scope_guard": "D126_NORMAL_RUNTIME_MANUAL_FILE_ONLY__D167_SEPARATE_TEST_EXE_READ_ONLY_EXPORT_OWNER_APPROVED",
+      "status": "D126_NORMAL_RUNTIME_FORBIDDEN__D167_ONE_OFF_ISOLATED_SKU_TEST_EXCEPTION__NO_PERSISTED_WMS_SECRETS"
     },
     {
       "key": "wincommerce-proxy-fallback-d080",

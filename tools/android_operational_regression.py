@@ -382,7 +382,8 @@ def main() -> None:
     queue_finish = critical_overlay.find("private fun finishActive")
     queue_ack = critical_overlay.find("NotificationSignalStore.markOverlayAckPending", queue_finish)
     queue_remove = critical_overlay.find("removeOverlay()", queue_finish)
-    queue_network = critical_overlay.find("acknowledgeResultAsync(current.alertId)", queue_finish)
+    queue_network = critical_overlay.find("acknowledgeResultAsync(current.alertId,", queue_finish)
+    require(critical_overlay, "ownerUserId", "D167 owner-scoped overlay ACK session guard")
     if min(queue_finish, queue_ack, queue_remove, queue_network) < 0 or not (queue_ack < queue_remove < queue_network):
         fail("D148 result queue must persist local ACK before dismiss and network ACK")
     require(picker, "activeResultDialog", "D135 in-app result dialog lifecycle")

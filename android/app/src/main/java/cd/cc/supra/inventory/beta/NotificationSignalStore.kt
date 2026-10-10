@@ -123,32 +123,93 @@ object NotificationSignalStore {
             .orEmpty()
             .contains(alertId)
 
-    @Synchronized
-    fun markOverlayAckPending(context: Context, eventId: String) {
-        if (!eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val values = prefs.getStringSet(KEY_OVERLAY_ACK_PENDING, emptySet()).orEmpty().toMutableSet()
-        values += eventId
-        prefs.edit().putStringSet(KEY_OVERLAY_ACK_PENDING, values).apply()
+    // D167: ACKs belong to the authenticated Picker, never to another account
+    // using the same PDA. Legacy unscoped ACKs remain intact for evidence/recovery,
+    // but are never replayed under a guessed account.
+    private fun scopedAckKey(userId: String, suffix: String): String {
+        require(userId.isNotBlank()) { "Picker session required for ACK storage" }
+        val hash = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(userId.toByteArray(Charsets.UTF_8))
+            .take(12).joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        return "overlay_ack_${suffix}_v2_$hash"
     }
 
-    fun pendingOverlayAcks(context: Context): Set<String> =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getStringSet(KEY_OVERLAY_ACK_PENDING, emptySet())
-            .orEmpty()
-            .filter { it.matches(Regex("[A-Za-z0-9._:-]{1,128}")) }
-            .toSet()
+    @Synchronized
+    fun markOverlayAckPending(context: Context, eventId: String, userId: String) {
+        if (!eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}")) || userId.isBlank()) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val key = scopedAckKey(userId, "pending")
+        val values = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+        values += eventId
+        prefs.edit().putStringSet(key, values).apply()
+    }
 
-    fun isOverlayAckPending(context: Context, eventId: String): Boolean =
-        pendingOverlayAcks(context).contains(eventId)
+    fun pendingOverlayAcks(context: Context, userId: String): Set<String> {
+        if (userId.isBlank()) return emptySet()
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(scopedAckKey(userId, "pending"), emptySet()).orEmpty()
+            .filter { it.matches(Regex("[A-Za-z0-9._:-]{1,128}")) }.toSet()
+    }
 
     @Synchronized
-    fun clearOverlayAck(context: Context, eventId: String) {
+    fun reconcileLegacyOverlayAcks(context: Context, userId: String, serverPendingEventIds: Set<String>): Int {
+        // Upgrade only the legacy IDs which the authoritative server has just
+        // returned as pending for this exact Picker. Unknown/foreign IDs remain
+        // quarantined locally, never replayed under the wrong account.
+        if (userId.isBlank() || serverPendingEventIds.isEmpty()) return 0
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val values = prefs.getStringSet(KEY_OVERLAY_ACK_PENDING, emptySet()).orEmpty().toMutableSet()
-        if (values.remove(eventId)) prefs.edit().putStringSet(KEY_OVERLAY_ACK_PENDING, values).apply()
+        val legacy = prefs.getStringSet(KEY_OVERLAY_ACK_PENDING, emptySet()).orEmpty().toMutableSet()
+        val proven = legacy.intersect(serverPendingEventIds)
+            .filter { it.matches(Regex("[A-Za-z0-9._:-]{1,128}")) }.toSet()
+        if (proven.isEmpty()) return 0
+        val pendingKey = scopedAckKey(userId, "pending")
+        val pending = prefs.getStringSet(pendingKey, emptySet()).orEmpty().toMutableSet()
+        pending.addAll(proven)
+        legacy.removeAll(proven)
+        prefs.edit().putStringSet(pendingKey, pending)
+            .putStringSet(KEY_OVERLAY_ACK_PENDING, legacy).apply()
+        return proven.size
+    }
+
+    fun legacyUnscopedAckCount(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(KEY_OVERLAY_ACK_PENDING, emptySet()).orEmpty().size
+
+    fun quarantinedOverlayAckCount(context: Context, userId: String): Int {
+        if (userId.isBlank()) return 0
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(scopedAckKey(userId, "quarantine"), emptySet()).orEmpty().size
+    }
+
+    fun isOverlayAckPending(context: Context, eventId: String, userId: String): Boolean =
+        pendingOverlayAcks(context, userId).contains(eventId)
+
+    @Synchronized
+    fun quarantineOverlayAck(context: Context, eventId: String, userId: String, reason: String) {
+        if (userId.isBlank() || !eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val pendingKey = scopedAckKey(userId, "pending")
+        val quarantineKey = scopedAckKey(userId, "quarantine")
+        val pending = prefs.getStringSet(pendingKey, emptySet()).orEmpty().toMutableSet()
+        if (!pending.remove(eventId)) return
+        val quarantined = prefs.getStringSet(quarantineKey, emptySet()).orEmpty().toMutableSet()
+        quarantined += "$eventId|${reason.take(40)}"
+        prefs.edit().putStringSet(pendingKey, pending).putStringSet(quarantineKey, quarantined).apply()
+        // A server-side 404 is not a successful ACK. Keep local evidence and
+        // allow a future authoritative result to be presented again.
         clearResultOverlayPresented(context, eventId)
     }
+
+    @Synchronized
+    fun clearOverlayAck(context: Context, eventId: String, userId: String) {
+        if (userId.isBlank()) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val key = scopedAckKey(userId, "pending")
+        val values = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+        if (values.remove(eventId)) prefs.edit().putStringSet(key, values).apply()
+        clearResultOverlayPresented(context, eventId)
+    }
+
 }
 
 object InteractiveSessionStore {

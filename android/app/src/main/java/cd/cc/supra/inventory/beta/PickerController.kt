@@ -880,8 +880,17 @@ class PickerController(
         refreshing = true
         Thread {
             try {
+                val ownerUserId = api.session?.userId.orEmpty()
                 val reports = api.getPickerReports(200)
                 val results = api.getPickerResults(50)
+                if (ownerUserId.isNotBlank() && api.session?.userId == ownerUserId) {
+                    // No extra read: reconcile a legacy locally queued ACK only
+                    // against the existing server-authorized pending results.
+                    NotificationSignalStore.reconcileLegacyOverlayAcks(
+                        activity.applicationContext, ownerUserId,
+                        results.map { it.resultEventId }.toSet()
+                    )
+                }
                 activity.runOnUiThread {
                     historyReports = reports
                     pendingResults = results
@@ -921,7 +930,7 @@ class PickerController(
         val result = pendingResults.firstOrNull { it.acknowledgedAt == null } ?: return
         if (
             NotificationSignalStore.isResultOverlayPresented(activity.applicationContext, result.resultEventId) ||
-            NotificationSignalStore.isOverlayAckPending(activity.applicationContext, result.resultEventId)
+            NotificationSignalStore.isOverlayAckPending(activity.applicationContext, result.resultEventId, api.session?.userId.orEmpty())
         ) {
             return
         }
@@ -1005,7 +1014,9 @@ class PickerController(
 
             // D135: acknowledgement is local-first on the in-app full-screen path too.
             // Network/session state must never trap the Picker behind this dialog.
-            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId)
+            val ownerUserId = api.session?.userId.orEmpty()
+            if (ownerUserId.isBlank()) return@setOnClickListener
+            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId, ownerUserId)
             acknowledge.isEnabled = false
             acknowledge.text = "ĐÃ GHI NHẬN"
             try { dialog.dismiss() } catch (_: Exception) { }
@@ -1015,9 +1026,17 @@ class PickerController(
 
             Thread {
                 try {
+                    if (api.session?.userId != ownerUserId) return@Thread
                     api.acknowledgeResult(eventId)
-                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId)
+                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId, ownerUserId)
                     activity.runOnUiThread { refresh() }
+                } catch (error: ApiException) {
+                    if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
+                        NotificationSignalStore.quarantineOverlayAck(
+                            activity.applicationContext, eventId, ownerUserId, "RESULT_ACK_NOT_FOUND"
+                        )
+                    }
+                    // For network/5xx errors keep the scoped ACK pending.
                 } catch (_: Exception) {
                     // Keep pending locally. MainActivity retries after a valid session/network returns.
                 }

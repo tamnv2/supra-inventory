@@ -24,7 +24,7 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
 const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 6;
+export const OPERATIONAL_V2_SCHEMA_VERSION = 7;
 const MAX_DELTA_LIMIT = 200;
 const APP_TODAY_OPEN_SCOPE = "APP_TODAY_OPEN";
 const BUSINESS_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
@@ -646,6 +646,9 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
           WHEN 'SLA_ESCALATED' THEN '["reporter_queue","picker_reports"]'
           WHEN 'TICKET_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_overdue","picker_reports"]'
           WHEN 'BATCH_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
+          WHEN 'BATCH_DAY_END_AUTO_SKIP' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
+          WHEN 'D167_OVERDUE_REMINDER_30' THEN '["reporter_overdue"]'
+          WHEN 'D167_OVERDUE_REMINDER_60' THEN '["reporter_overdue"]'
           WHEN 'RESULT_ACKNOWLEDGED' THEN '["reporter_recent","picker_reports"]'
           ELSE '["operations"]'
         END,
@@ -657,7 +660,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
     DROP TRIGGER IF EXISTS trg_v2_result_ack_targets;
     CREATE TRIGGER trg_v2_result_ack_targets
       AFTER INSERT ON report_events
-      WHEN NEW.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED','BATCH_AUTO_SKIP_ALLOWED')
+      WHEN NEW.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED','BATCH_AUTO_SKIP_ALLOWED','BATCH_DAY_END_AUTO_SKIP')
         AND NEW.batch_id IS NOT NULL
     BEGIN
       INSERT OR IGNORE INTO result_acknowledgements (
@@ -681,6 +684,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
              t.status = 'RESOLVED'
              AND (
                (NEW.event_type = 'BATCH_AUTO_SKIP_ALLOWED' AND t.resolution_source = 'SYSTEM_TIMEOUT')
+               OR (NEW.event_type = 'BATCH_DAY_END_AUTO_SKIP' AND t.resolution_source = 'SYSTEM_DAY_END')
                OR (NEW.event_type = 'BATCH_RESOLVED' AND t.resolution_source = 'REPORTER')
              )
            )
@@ -772,32 +776,32 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
   }
 
   const queueTotalRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "COUNTER_QUEUE_TOTAL", 
       `SELECT COUNT(*) AS total
          FROM report_batches b
          JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
           AND s.waiting_picker_count > 0`,
-    ).toArray(),
+    ),
   ) || {};
 
   const recentWhere = [
     "b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')",
-    "COALESCE(b.resolved_at, b.updated_at) >= ?",
-    "COALESCE(b.resolved_at, b.updated_at) < ?",
+    "b.first_report_at >= ?",
+    "b.first_report_at < ?",
   ];
   const recentArgs: SqlStorageValue[] = [from, to];
   // D166: one already-required counter query supplies all three outcome-tab
   // badges, even while inactive. No extra DO invocation or independent poll.
   const recentTotalRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "COUNTER_RECENT_TOTAL", 
       `SELECT COUNT(*) AS total,
               SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END) AS has_stock_total,
               SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END) AS skip_allowed_total,
               SUM(CASE WHEN b.status = 'CLOSED' THEN 1 ELSE 0 END) AS withdrawn_total
          FROM report_batches b WHERE ${recentWhere.join(" AND ")}`,
       ...recentArgs,
-    ).toArray(),
+    ),
   ) || {};
   const filteredRecentTotal = status === "HAS_STOCK" ? Number(recentTotalRow.has_stock_total || 0)
     : status === "SKIP_ALLOWED" ? Number(recentTotalRow.skip_allowed_total || 0)
@@ -805,13 +809,13 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     : Number(recentTotalRow.total || 0);
 
   const overdueTotalRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "COUNTER_OVERDUE_TOTAL", 
       `SELECT COUNT(*) AS total
          FROM report_batches b
          JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
           AND s.overdue_picker_count > 0`,
-    ).toArray(),
+    ),
   ) || {};
 
   const config = readSlaConfig(state);
@@ -840,16 +844,16 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
   const serverNowMs = Date.now();
   const serverNow = new Date(serverNowMs).toISOString();
   const totalRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "REPORTER_QUEUE_COUNT", 
       `SELECT COUNT(*) AS total
          FROM report_batches b
          JOIN batch_summaries s ON s.batch_id = b.batch_id
         WHERE b.status = 'PENDING'
           AND s.waiting_picker_count > 0`,
-    ).toArray(),
+    ),
   );
   const total = Number(totalRow?.total || 0);
-  const rows = state.storage.sql.exec<SqlRow>(
+  const rows = d166MeasuredSqlRows<SqlRow>(state, "REPORTER_QUEUE_PAGE", 
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id, b.auto_skip_deadline_at AS batch_auto_skip_at,
             p.resolved_at AS previous_resolved_at,
@@ -867,7 +871,7 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
       LIMIT ? OFFSET ?`,
     limit,
     offset,
-  ).toArray().map((row) => {
+  ).map((row) => {
     const firstReportAt = String(row.first_report_at || "");
     const sla = slaState(firstReportAt, config, serverNowMs);
     const deadlines = slaDeadlines(firstReportAt, config);
@@ -903,18 +907,24 @@ function reporterOverdue(state: DurableObjectState, url: URL): Response {
     return json({ items: [], count: 0, total: 0, limit, offset, server_now: serverNow, enabled: false, auto_skip_mode: config?.auto_skip_mode || null });
   }
 
-  const totalRow = first(state.storage.sql.exec<SqlRow>(
+  const totalRow = first(d166MeasuredSqlRows<SqlRow>(state, "REPORTER_OVERDUE_COUNT", 
     `SELECT COUNT(*) AS total
        FROM report_batches b
        JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE b.status = 'PENDING'
         AND s.overdue_picker_count > 0`,
-  ).toArray()) || {};
+  )) || {};
 
-  const rows = state.storage.sql.exec<SqlRow>(
+  const rows = d166MeasuredSqlRows<SqlRow>(state, "REPORTER_OVERDUE_PAGE", 
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id,
             s.overdue_picker_count,
+            b.d167_first_overdue_at,
+            (SELECT CASE WHEN EXISTS(
+              SELECT 1 FROM d167_overdue_reminder_events r WHERE r.batch_id = b.batch_id AND r.level = 60
+            ) THEN 60 WHEN EXISTS(
+              SELECT 1 FROM d167_overdue_reminder_events r WHERE r.batch_id = b.batch_id AND r.level = 30
+            ) THEN 30 ELSE 0 END) AS reminder_level,
             (SELECT MIN(t.auto_skip_allowed_at) FROM report_tickets t
               WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS first_overdue_at,
             (SELECT MAX(t.auto_skip_allowed_at) FROM report_tickets t
@@ -928,7 +938,7 @@ function reporterOverdue(state: DurableObjectState, url: URL): Response {
       LIMIT ? OFFSET ?`,
     limit,
     offset,
-  ).toArray();
+  );
 
   return json({
     items: rows,
@@ -966,9 +976,9 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const args: SqlStorageValue[] = [];
   if (appTodayOpen) { where.push("b.first_report_at >= ?"); args.push(todayStart); }
   if (from && to) {
-    where.push("COALESCE(b.resolved_at, b.updated_at) >= ?");
+    where.push("b.first_report_at >= ?");
     args.push(from);
-    where.push("COALESCE(b.resolved_at, b.updated_at) < ?");
+    where.push("b.first_report_at < ?");
     args.push(to);
   }
   if (status) { where.push("b.status = ?"); args.push(status); }
@@ -1059,9 +1069,9 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const summaryArgs: SqlStorageValue[] = [];
   if (appTodayOpen) { summaryWhere.push("b.first_report_at >= ?"); summaryArgs.push(todayStart); }
   if (from && to) {
-    summaryWhere.push("COALESCE(b.resolved_at, b.updated_at) >= ?");
+    summaryWhere.push("b.first_report_at >= ?");
     summaryArgs.push(from);
-    summaryWhere.push("COALESCE(b.resolved_at, b.updated_at) < ?");
+    summaryWhere.push("b.first_report_at < ?");
     summaryArgs.push(to);
   }
   const summaryClause = summaryWhere.join(" AND ");
@@ -1070,7 +1080,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       `SELECT
          COALESCE(SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
          COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
-         COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' AND b.resolution_source = 'SYSTEM_TIMEOUT' THEN 1 ELSE 0 END), 0) AS automatic_skipped,
+         COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' AND b.resolution_source IN ('SYSTEM_TIMEOUT','SYSTEM_DAY_END') THEN 1 ELSE 0 END), 0) AS automatic_skipped,
          COALESCE(SUM(CASE WHEN b.status = 'CLOSED' THEN 1 ELSE 0 END), 0) AS withdrawn
        FROM report_batches b
       WHERE ${summaryClause}`,
@@ -1165,16 +1175,16 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
   const args: SqlStorageValue[] = [userId, userId, userId, userId, userId, employeeCode];
   if (appTodayOpen) args.push(todayStart);
   const totalRow = first(
-    state.storage.sql.exec<SqlRow>(
+    d166MeasuredSqlRows<SqlRow>(state, "PICKER_REPORTS_COUNT", 
       `SELECT COUNT(*) AS total
          FROM report_tickets t
          JOIN report_batches b ON b.batch_id = t.batch_id
         WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}`,
       ...(appTodayOpen ? [userId, employeeCode, todayStart] : [userId, employeeCode]),
-    ).toArray(),
+    ),
   );
   args.push(limit, offset);
-  const rows = state.storage.sql.exec<SqlRow>(
+  const rows = d166MeasuredSqlRows<SqlRow>(state, "PICKER_REPORTS_PAGE", 
     `SELECT t.ticket_id, t.batch_id, t.sku, b.product_name, t.status,
             t.reported_at, t.withdraw_deadline_at, t.withdrawn_at, t.resolved_at,
             t.auto_skip_deadline_at, t.auto_skip_allowed_at,
@@ -1220,7 +1230,7 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
       END ASC, t.reported_at DESC
       LIMIT ? OFFSET ?`,
     ...args,
-  ).toArray();
+  );
   return json({
     items: rows,
     count: rows.length,
@@ -1237,7 +1247,7 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
   const parsed = Number(url.searchParams.get("limit") || 20);
   const limit = Math.max(1, Math.min(100, Number.isFinite(parsed) ? Math.trunc(parsed) : 20));
   if (!userId) return json({ error: "USER_ID_REQUIRED" }, 400);
-  const rows = state.storage.sql.exec<SqlRow>(
+  const rows = d166MeasuredSqlRows<SqlRow>(state, "PICKER_RESULTS_PENDING", 
     `SELECT a.result_event_id, a.batch_id, a.batch_version, a.received_at, a.displayed_at, a.acknowledged_at,
             a.created_at,
             s.sku, s.product_name, s.resolution AS status, s.resolution, s.result_at AS resolved_at,
@@ -1262,7 +1272,7 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
       LIMIT ?`,
     userId,
     limit,
-  ).toArray();
+  );
   return json({ items: rows, count: rows.length });
 }
 

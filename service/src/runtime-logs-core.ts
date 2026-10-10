@@ -519,18 +519,24 @@ export async function handleRuntimeLogCoreRequest(
       if (!match) return response({ error: "INVALID_LOG_PAGE_TOKEN" }, 400);
       offset = Math.max(0, Math.min(10_000_000, Number(match[1])));
     }
-    const from = new Date(Date.now() - days * 86_400_000).toISOString();
+    const fromValue = String(url.searchParams.get("from") || "");
+    const toValue = String(url.searchParams.get("to") || "");
+    const parsedFrom = Date.parse(fromValue), parsedTo = Date.parse(toValue);
+    if ((fromValue || toValue) &&
+        (!fromValue || !toValue || !Number.isFinite(parsedFrom) || !Number.isFinite(parsedTo) ||
+          parsedTo <= parsedFrom || parsedTo - parsedFrom > 366 * 86_400_000)) {
+      return response({ error: "INVALID_RUNTIME_LOG_DATE_RANGE" }, 400);
+    }
+    const from = fromValue ? new Date(parsedFrom).toISOString() : new Date(Date.now() - days * 86_400_000).toISOString();
+    const to = toValue ? new Date(parsedTo).toISOString() : new Date(Date.now() + 86_400_000).toISOString();
     const rows = state.storage.sql.exec<SqlRow>(
       `SELECT log_id, filename, source, severity, generated_at, received_at,
               size_bytes, drive_file_id, drive_synced_at
          FROM runtime_log_buffer
-        WHERE source = ? AND received_at >= ?
+        WHERE source = ? AND received_at >= ? AND received_at < ?
         ORDER BY received_at DESC, log_id DESC
         LIMIT ? OFFSET ?`,
-      source,
-      from,
-      limit + 1,
-      offset,
+      source, from, to, limit + 1, offset,
     ).toArray();
     const hasMore = rows.length > limit;
     const visible = rows.slice(0, limit);
