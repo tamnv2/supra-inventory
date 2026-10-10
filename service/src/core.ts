@@ -19,6 +19,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow } from "./alert-window-core";
+import { initializeMealSchema, getMealChoiceState, confirmMealChoice, recalculateMealAdjustedDeadlines } from "./meal-break-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 
 const SCHEMA_VERSION = 17;
@@ -388,6 +389,9 @@ export class InventoryCore {
     }
 
     initializeBusinessSchema(this.state);
+    initializeMealSchema(this.state);
+    if (!this.hasColumn("report_batches", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_auto_skip_minutes INTEGER");
+    if (!this.hasColumn("report_tickets", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_tickets ADD COLUMN d167_auto_skip_minutes INTEGER");
     initializeOperationalV2Schema(this.state);
     initializeRuntimeLogSchema(this.state);
 
@@ -786,6 +790,22 @@ export class InventoryCore {
   async fetch(request: Request): Promise<Response> {
     this.pruneAuditRetentionIfDue();
     const url = new URL(request.url);
+
+    if (request.method === "GET" && url.pathname === "/d167/meal/state") {
+      return response(getMealChoiceState(this.state));
+    }
+    if (request.method === "POST" && url.pathname === "/d167/meal/confirm") {
+      const body = await request.json() as { period?: string; choice?: string; actor_id?: string; actor_name?: string };
+      const result = confirmMealChoice(this.state, body);
+      if (result.changed) {
+        // Deadline recalculation and rearming are separate from confirming
+        // the durable one-winner choice. A failed projection cannot overwrite it.
+        const adjusted = recalculateMealAdjustedDeadlines(this.state);
+        await scheduleNextOperationalAlarm(this.state);
+        return response({ ...result.payload, deadlines_adjusted: adjusted }, result.status);
+      }
+      return response(result.payload, result.status);
+    }
 
     if (request.method === "GET" && url.pathname === "/notifications/alert-window/reconcile") {
       await this.reconcileOperatingScheduleExactIfClosed();
