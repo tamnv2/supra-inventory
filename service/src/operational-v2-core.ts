@@ -24,7 +24,7 @@ type RealtimeRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
 const SLA_CONFIG_KEY = "operational_sla_v1";
 const OPERATIONAL_SCHEMA_KEY = "operational_v2_schema_version";
 const REALTIME_STREAM_EPOCH_KEY = "realtime_stream_epoch_v1";
-export const OPERATIONAL_V2_SCHEMA_VERSION = 6;
+export const OPERATIONAL_V2_SCHEMA_VERSION = 7;
 const MAX_DELTA_LIMIT = 200;
 const APP_TODAY_OPEN_SCOPE = "APP_TODAY_OPEN";
 const BUSINESS_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
@@ -660,7 +660,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
     DROP TRIGGER IF EXISTS trg_v2_result_ack_targets;
     CREATE TRIGGER trg_v2_result_ack_targets
       AFTER INSERT ON report_events
-      WHEN NEW.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED','BATCH_AUTO_SKIP_ALLOWED')
+      WHEN NEW.event_type IN ('BATCH_RESOLVED','BATCH_CORRECTED','BATCH_AUTO_SKIP_ALLOWED','BATCH_DAY_END_AUTO_SKIP')
         AND NEW.batch_id IS NOT NULL
     BEGIN
       INSERT OR IGNORE INTO result_acknowledgements (
@@ -684,6 +684,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
              t.status = 'RESOLVED'
              AND (
                (NEW.event_type = 'BATCH_AUTO_SKIP_ALLOWED' AND t.resolution_source = 'SYSTEM_TIMEOUT')
+               OR (NEW.event_type = 'BATCH_DAY_END_AUTO_SKIP' AND t.resolution_source = 'SYSTEM_DAY_END')
                OR (NEW.event_type = 'BATCH_RESOLVED' AND t.resolution_source = 'REPORTER')
              )
            )
