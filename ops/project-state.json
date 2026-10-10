@@ -845,7 +845,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D167_STANDALONE_SKU_TEST_CODE_READY_CI_GATE__FIELD_E2E_PENDING__NO_DEPLOY",
+  "active_workstream": "D167_STANDALONE_SKU_FIELD_IMPORT_EVIDENCE_PASS__OWNER_FULL_D167_PASS_PENDING",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_STANDALONE_SKU_TEST_PR_549__CODE_ONLY__FIELD_REAL_IMPORT_NOT_PROVEN",
+    "current_change_status": "D167_STANDALONE_BETA_SKU_TEST_FIELD_LOG_PASS__PR_549_UNMERGED__OWNER_FULL_ACCEPTANCE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2489,7 +2489,7 @@
     "resource_change": "NONE__DOCUMENTATION_STATE_TRANSITION_ONLY__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
-    "parallel_inventory_change_status": "D167_OWNER_APPROVED_STANDALONE_INDEPENDENT_BROWSER_FIREBASE_CODE_ONLY",
+    "parallel_inventory_change_status": "D167_OWNER_SUPPLIED_FIELD_LOG_2492_SKU_3_BATCHES_COMMITTED_5_NEW_2487_UNCHANGED",
     "parallel_boundary": "D166_RELEASE_UPDATE_STABILITY_ACCEPTED_ONLY__D167_UNVERIFIED_TESTS_AND_POSTPONED_WORK_TRACKED_SEPARATELY",
     "accepted_runtime_base_change_id": "D166"
   },
@@ -6738,14 +6738,14 @@
   "d167": {
     "opened_on_vn": "2026-10-10",
     "opened_by": "OWNER_EXPLICIT_D166_LIMITED_PASS_AND_DEFERRED_HANDOFF",
-    "status": "ISOLATED_SKU_TEST_BRANCH_PR__WINDOWS_CI__FIELD_WMS_AND_SERVICE_PENDING",
+    "status": "ISOLATED_SKU_NAME_IMPORT_FIELD_EVIDENCE_PASS__OTHER_BACKLOG_UNFINISHED",
     "source": "docs/D167_BACKLOG.md",
     "accepted_base": "D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY",
     "owner_code_approval": true,
     "owner_deploy_approval": false,
-    "implementation_status": "STANDALONE_WINFORMS_OWN_EDGE_WMS_OWN_FIREBASE_WEB_SIGNED_GET_XLSX_PARSE_SERVICE_IMPORT_AND_READBACK__UNMERGED",
+    "implementation_status": "STANDALONE_WINFORMS_EXE_FIELD_LOG_SHOWS_REAL_BETA_IMPORT__MAIN_AGENT_UNCHANGED",
     "provider_changes": "NONE__CURRENT_BETA_WEB_AUTH_SKU_IMPORT_API_REUSED",
-    "next": "WINDOWS_BUILD_AND_AUTHORITATIVE_CI_PASS; OWNER_FIELD_TEST_EXE_IN_OFFICE_WMS_WITH_BETA_USER; OWNER_EXPLICIT_FIELD_PASS",
+    "next": "FIELD_PROOF_ACCEPTED_AS_EVIDENCE_ONLY__OBTAIN_OWNER_DECISION_ON_NEXT CODE SCOPE; RECONCILE_WMS_RESOURCE_GUARD_BEFORE_INTEGRATION; KEEP PR DRAFT",
     "inherited_evidence_group_ids": [
       "D167-USAGE-ROOT-CAUSE",
       "D167-CROSS-METER-OPTIMIZATION",
@@ -6771,10 +6771,10 @@
     "source_already_published_d166": "EIGHT_INTEGRATED_CANDIDATES_FROM_PR541__VERIFY_FIELD_BEFORE_PROPOSING_NEW_CODE",
     "code_ready_gate": "OWNER_CHAY_CODE_BRANCH_PR_CI_ONLY__OWNER_DEPLOY_APPROVAL_SEPARATE_UNLESS_COMBINED_COMMAND",
     "constraints": "PRESERVE_EXISTING_REALTIME_WMS_ACK_HA_USAGE_AND_NO_SECRETS__STABLE_OWNER_GATED",
-    "owner_business_acceptance": "PENDING_D167",
+    "owner_business_acceptance": "NARROW_STANDALONE_SKU_TEST_SCREENSHOT_SUCCESS__NO_EXPLICIT_OWNER_PASS_OF_ALL_D167",
     "backlog_items_are_not_implementation_approval": true,
     "isolated_sku_test_2026_10_10": {
-      "status": "DRAFT_PR_549_INDEPENDENT_EXECUTABLE__NO_LIVE_WMS_OR_SERVICE_E2E_EVIDENCE",
+      "status": "OWNER_FIELD_SCREENSHOT_STANDALONE_BETA_SKU_IMPORT_PASS__REQUIRES_OWNER_FORMAL_ACCEPTANCE",
       "mode": "OWN_EDGE_WMS_PROFILE__OWN_FIREBASE_BETA_WEB_SESSION",
       "owner_scope": "SINGLE_BUTTON_DOWNLOAD_EXPORTBINSTOCKS__PARSE_SKU_AND_NAME__REAL_SERVICE_UPLOAD__CATALOG_READBACK",
       "branch": "d167-sku-sync-isolated-test-20261010",
@@ -6789,9 +6789,23 @@
       "existing_service_route": "POST /api/admin/skus/import",
       "browser_session_capture": "TEST_BROWSER_ONLY_RAM_ALLOWLIST",
       "web_session_takeover": "EXPLICIT_OPT_IN",
-      "wms_export_proven": false,
-      "service_commit_proven": false,
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "wms_export_proven": "INDIRECT_BY_SUCCESSFUL_APP_WORKFLOW_AND_VALID_XLSX__NO_RAW_HTTP_CAPTURE",
+      "service_commit_proven": "THREE_APP_COMMIT_RECEIPTS__NO_INDEPENDENT_DB_READ",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "field_test": {
+        "source": "Owner-provided standalone EXE screenshot",
+        "time_local_as_shown": "21:46",
+        "unique_sku": 2492,
+        "preview_batches": 3,
+        "committed_batches": 3,
+        "new_skus": 5,
+        "renamed_skus": 0,
+        "unchanged_skus": 2487,
+        "conflicts": 0,
+        "readback_matched_sample_skus": 3,
+        "full_catalog_reconciled": false
+      },
+      "scope_guard_conflict": "supra-api-d080.allowed_stock_export_FORBIDDEN_D126__REQUIRES_RECONCILIATION_BEFORE_MAIN_INTEGRATION"
     }
   }
 }
