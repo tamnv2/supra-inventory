@@ -1,4 +1,5 @@
 import { correctionDeadlineFromResult, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
+import { mealAdjustedDeadline } from "./meal-break-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -438,13 +439,14 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       const batchId = crypto.randomUUID();
       state.storage.sql.exec(
         `INSERT INTO report_batches (
-           batch_id, sku, product_name, status, first_report_at, auto_skip_deadline_at, created_at, updated_at
-         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?)`,
+           batch_id, sku, product_name, status, first_report_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
+         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, ?)`,
         batchId,
         sku,
         skuRow.product_name,
         at,
         plan.batch_deadline_at,
+        plan.config?.auto_skip_enabled && plan.config.auto_skip_mode === "FIRST_REPORT" ? plan.config.auto_skip_minutes : null,
         at,
         at,
       );
@@ -471,8 +473,8 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     state.storage.sql.exec(
       `INSERT INTO report_tickets (
          ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
-         reported_at, withdraw_deadline_at, auto_skip_deadline_at, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?)`,
+         reported_at, withdraw_deadline_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?)`,
       ticketId,
       batch.batch_id,
       actor.user_id,
@@ -481,6 +483,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       at,
       withdrawDeadline,
       plan.ticket_deadline_at,
+      plan.config?.auto_skip_enabled && plan.config.auto_skip_mode === "PER_PICKER" ? plan.config.auto_skip_minutes : null,
       at,
       at,
     );
@@ -897,7 +900,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
     }
 
     const autoSkipAt = config?.auto_skip_enabled
-      ? addMs(at, Math.max(1, Number(config.auto_skip_minutes || 1)) * 60_000)
+      ? mealAdjustedDeadline(state, at, Math.max(1, Number(config.auto_skip_minutes || 1)))
       : null;
     if (target === "PENDING") {
       const batchDeadline = config?.auto_skip_enabled && config.auto_skip_mode === "FIRST_REPORT" ? autoSkipAt : null;
@@ -910,10 +913,11 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
                 resolved_at = NULL,
                 resolved_by_user_id = NULL,
                 auto_skip_deadline_at = ?,
+                d167_auto_skip_minutes = ?,
                 version = version + 1,
                 updated_at = ?
           WHERE batch_id = ? AND version = ?`,
-        batchDeadline, at, batchId, expectedVersion,
+        batchDeadline, batchDeadline ? config?.auto_skip_minutes : null, at, batchId, expectedVersion,
       );
       state.storage.sql.exec(
         `UPDATE report_tickets
@@ -923,9 +927,10 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
                 resolved_at = NULL,
                 auto_skip_allowed_at = NULL,
                 auto_skip_deadline_at = ?,
+                d167_auto_skip_minutes = ?,
                 updated_at = ?
           WHERE batch_id = ? AND status <> 'WITHDRAWN'`,
-        ticketDeadline, at, batchId,
+        ticketDeadline, ticketDeadline ? config?.auto_skip_minutes : null, at, batchId,
       );
     } else {
       state.storage.sql.exec(
