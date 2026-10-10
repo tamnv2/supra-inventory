@@ -68,3 +68,10 @@
 ## 2026-10-10 — Isolated one-button SKU test candidate
 
 Owner limits Phase 0 to real WMS SKU+name export and direct Inventory Service import. No location/Shelving/LTA, daily automation or normal Agent release. Draft PR #549 prepares a standalone Windows one-button IPC requester and a narrow Beta Service AGENT import-auth code change; neither is deployed. Main Agent currently lacks the IPC broker. Consequently the test can verify local IPC only, and no WMS download or Service commit has been demonstrated. An approved minimal bridge or a separately authenticated WMS test session remains necessary for truthful field E2E.
+
+
+## 2026-10-10 — Owner approves Option 2: independent LIVE-capable SKU test EXE
+
+Supersedes the earlier D167 IPC-only experiment: implement the standalone EXE with **own isolated Edge Supra login + own Beta Firebase WEB login**, then one-click HMAC-signed exportBinStocks GET, XLSX SKU/name extraction, Service import preview/apply in ≤1,000 SKU chunks, readback confirmation. The EXE has no dependency on the existing main Agent session or an Agent broker. The branch reverted the unnecessary AGENT-channel Worker auth candidate. No Service/Worker deployment or Agent release required. Workbook-derived LTA/Shelving locations, automatic daily runs and reporting dashboards remain DEFERRED.
+
+Evidence: Windows CI artifact and offline tests expected; live WMS export HTTP 200 and Beta Service writes need explicit field test. Current status CODE-ONLY, NO MAIN MERGE/DEPLOY, FIELD E2E NOT RUN.
