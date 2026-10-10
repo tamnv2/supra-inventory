@@ -341,6 +341,11 @@ class InventoryApi(
         return next
     }
 
+    fun getD167MealState(): JSONObject = request("GET", "/api/reporter/meal-break")
+
+    fun confirmD167Meal(period: String, choice: String): JSONObject =
+        request("POST", "/api/reporter/meal-break", JSONObject().put("period", period).put("choice", choice))
+
     fun getAndroidOperatingWindow(): AndroidOperatingWindow {
         val parsed = parseOperatingWindow(request("GET", "/api/auth/android-window"))
         lastOperatingWindow = parsed
