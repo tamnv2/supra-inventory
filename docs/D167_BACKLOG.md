@@ -64,3 +64,10 @@
 - D166 release proof: `docs/OWNER_DECISIONS.md` 2026-10-10, public manifest readback and GitHub main history.
 
 **Mọi phát hiện D167 cập nhật chính backlog/decision/spec/state trong cùng nhánh change; không thay đổi resource/provider/app trong lần mở backlog này.**
+
+
+## D167 CODE-ONLY dual-track source authorization — 10/10/2026
+
+Owner explicitly authorized running source code in parallel for (A) evidence-supported ACK 404/Android BadToken/Usage ZIP fixes and (B) missing targeted RTDB HA/Firestore fallback/InventoryCore SQL/DO route forensic attribution. Work belongs to one D167 change on a short-lived branch and PR. This **supersedes** the initial D167 analysis-only restriction for these exact items **only**. Owner has **not** authorized merge-to-main if it deploys Beta, live service mutation, Agent/APK release, mandatory OTA, Firebase Rules mutation, third-party scope expansion, or Stable. Keep all unimplemented Auto SKU and historical location concepts deferred.
+
+Code acceptance criteria: no cross-account ACK replay or silent ACK loss; exact 404 quarantined (not ACKed) with trace and no retry storm; Activity window-token guard; correct Usage no-data and hourly attribution; HA outcome counters and SELECT cursor/DO route group aggregates are RAM-bounded and have zero additional scheduled provider operations; the explicit manual Usage export may add exactly **one** InventoryCore in-memory read routed by already privileged Beta Worker. CI authority/continuity plus Android/Agent/TypeScript/gateway regressions must pass. Field measurements, 6-Agent/500-PDA behavior, WMS confirmation, billing/Rules root-cause and Owner business PASS remain **unverified until separately authorized deployment and retest**.
