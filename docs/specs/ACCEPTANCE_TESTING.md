@@ -2868,3 +2868,22 @@ The earlier statement that usage cannot be shifted between metrics is superseded
 - **Proof and rollback:** two representative comparable shifts for an implemented change, use actual provider usage/bills rather than local proxy alone; fail closed if free-tier scope/cost authority unknown; explicit Owner approval for any release/provider modification and rollback after regression. No D166 Owner field PASS from mere policy PR.
 
 The 2026-10-08 30/30/30/10 sharing rule continues for **verified shared pools only**; later explicit Owner directives on the same subject/scope supersede old text with history retained. This contract introduces **no runtime instrumentation, new API call, provider configuration or build by itself**.
+
+
+### 2026-10-10 — CODE READY vs DEPLOYED vs OWNER PASS acceptance matrix (Owner-approved governance)
+
+Current higher-priority Owner instructions distinguish **pre-release technical readiness**, **actual scoped rollout** and **real-device/Owner acceptance**. Earlier automatic publication based only on a main-push or green checks is no longer approved under a code-only instruction.
+
+| Command / phase | Allowed | Required PASS proof | Explicitly forbidden without later approval |
+| --- | --- | --- | --- |
+| Analyze/propose | repository bootstrap; inspect logs and code; compare source, cost, safety, suggest approach | evidence-backed impact, resource/security/HA/Usage risks and Owner decision needed | new unapproved source/provider/live mutation |
+| `Chạy code` | branch/PR; source and test fixes; security/static/build/regression CI; private/non-promoted APK/Agent/WS artifacts; non-mutating validation | all applicable predeploy checks pass; exact branch/SHA, test results, coverage gaps, rollback and release scope recorded | merging a runtime-affecting PR into auto-deploying main; live Worker/Web/Gateway/Rules/Functions mutation; Android/Agent publish; channel/force-update changes |
+| `Duyệt triển khai` | exact candidate/approved scope promotion; merge/deploy/release and runtime probes | predeploy PASS reconfirmed plus genuine deploy/run/source/manifest/install/Usage data as relevant | unapproved target resource, unrelated change, Stable, bypass of test/release guards |
+| `Sửa code và triển khai` together | predeploy stage followed immediately by previously approved scoped promotion, without an extra Owner CODE READY checkpoint | same exact source/CI/security/deploy gates and post-deploy field verification as separate commands | pretending Owner field PASS or extending beyond approved service/version/rollout scope |
+| Owner field PASS | record real business/device/latency/HA/ACK/log/Usage verification and explicit acceptance | manual Owner PASS recorded in `ops/project-state.json` | promoting a technical/release-only PASS to accepted base |
+
+**Co-mutation exception:** If a meaningful code/test gate cannot pass without touching a live provider/Worker/Web/App/Agent/PDA, report the blocker, actual resource, before/after plan, quota/security/data and rollback; do not execute until the Owner explicitly approves that **specific** exception. Inability to test full real-device behavior before install is an honest field-pending gap, not reason to silently deploy. Genuine `CODE READY` means 100% of required executable **pre-deployment** tests passed, not proof software is defect-free under all real-world conditions.
+
+**Critical CI/CD regression check to implement in a separate Owner-authorized code change:** assert that PR-only candidate work creates no live resource writes, user-downloadable releases, version-channel changes or mandatory update floors; assert that all actual mutation routes (main push, workflow dispatch, reruns and protected environment) fail closed absent verified explicit Owner deploy authorization scoped to candidate SHA and targets; assert code-only PR cannot auto-merge into currently auto-deploying `main`. Preserve Beta/Stable separation, secret boundaries, current session/PDA/Agent operation continuity and rollback evidence. Until checks and workflow hardening are implemented and PASS, this policy is **recorded but not yet enforced by automation**.
+
+D166 remains Owner field-pending and the only open Dxxx workstream. Historical early automatic-release conventions are `SUPERSEDED_BY:OWNER_2026_10_10_CODE_READY_DEPLOY_GATE` where they conflict with code-only authorization.
