@@ -1983,7 +1983,7 @@ function renderUsers(): string {
     <article class="ops-panel ops-users-panel">
       <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>ROOT được ẩn khỏi danh sách. Picker dùng thao tác hàng loạt riêng; ROOT có thể chọn Admin / Quản trị Pick Pack / Reporter để xóa.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
       <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button><button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button>${canLifecyclePickerBulk ? `<button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button>` : ""}<span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
-      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
@@ -2000,8 +2000,8 @@ function renderUsers(): string {
           const reporting = isPicker
             ? `<span class="badge ${user.shortage_reporting_enabled !== false ? "good" : "closed"}">${user.shortage_reporting_enabled !== false ? "Đang bật" : "Đang tắt"}</span>`
             : "—";
-          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(contractor)}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${actions}</td></tr>`;
-        }).join("") : `<tr><td colspan="8" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(contractor)}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${user.last_login_at ? `${esc(fmt(user.last_login_at))}<div class="tiny muted">${esc(user.last_login_channel || "")}</div>` : "Chưa ghi nhận"}</td><td>${actions}</td></tr>`;
+        }).join("") : `<tr><td colspan="9" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Trang hiển thị ${pageStart}–${pageEnd}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
