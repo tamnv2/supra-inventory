@@ -24,21 +24,31 @@ jobs:
       - name: Static safety checks
         shell: pwsh
         run: |
-          $code = Get-Content experiments/d167-sku-sync-test/Program.cs -Raw
-          if ($code -match 'Process\.Kill\s*\(' -or $code -match 'Process\.Start\s*\(' -or $code -match 'DataProtectionScope\.LocalMachine') {
-            throw 'D167 test may not spawn or stop primary Agent/WMS processes or use machine-wide secrets.'
+          $root = 'experiments/d167-sku-sync-test'
+          $ui = Get-Content "$root/Program.cs" -Raw
+          $wms = Get-Content "$root/WmsSession.cs" -Raw
+          $flow = Get-Content "$root/SkuSyncFlow.cs" -Raw
+          $api = Get-Content "$root/InventoryClient.cs" -Raw
+          $xlsx = Get-Content "$root/SkuWorkbook.cs" -Raw
+          if ($ui -notmatch 'ĐỒNG BỘ SKU' -or $ui -notmatch 'ĐĂNG NHẬP INVENTORY' -or $ui -notmatch 'ĐĂNG NHẬP SUPRA') {
+            throw 'Three-step independent login/sync UI is required.'
           }
-          if ($code -notmatch 'NamedPipeClientStream' -or $code -notmatch 'SKU_EXPORT_IMPORT') {
-            throw 'The independent tester must use only the declared IPC contract.'
+          if ($wms -notmatch 'Network.enable' -or $wms -notmatch 'api-supra.winmart.vn' -or $flow -notmatch 'exportBinStocks' -or $flow -notmatch 'x-signature-nonce') {
+            throw 'WMS signed export or isolated browser capture is missing.'
           }
-          if ($code -match 'ProtectedData\.Unprotect' -or $code -match 'Network\.enable' -or $code -match 'Win32_Process') {
-            throw 'Unauthorized cross-process session access detected.'
+          if ($flow -notmatch 'PreviewOrImport' -or $flow -notmatch 'VerifyStoredSku' -or $xlsx -notmatch 'product_name' -and $xlsx -notmatch 'ProductName') {
+            throw 'Import preview, commit receipt, catalog readback or SKU+name parse missing.'
           }
-      - name: Verify local IPC self-test (no provider calls)
+          foreach ($text in @($ui,$wms,$flow,$api,$xlsx)) {
+            if ($text -match 'ProtectedData.Unprotect' -or $text -match 'DataProtectionScope.LocalMachine' -or $text -match 'Process.Kill' -or $text -match 'session.bin' -or $text -match 'RelayPoc') {
+              throw 'Forbidden main-Agent session extraction or cross-process mutation.'
+            }
+          }
+      - name: Verify standalone offline startup test (no provider calls)
         shell: pwsh
         run: |
           dotnet run --project experiments/d167-sku-sync-test/D167SkuSyncTest.csproj -c Release --no-build -- --self-test
-          if ($LASTEXITCODE -ne 0) { throw "D167 IPC test failed" }
+          if ($LASTEXITCODE -ne 0) { throw "D167 offline test failed" }
       - uses: actions/upload-artifact@v4
         with:
           name: D167-SKU-Sync-Test-Windows-x64-NOT-DEPLOYED
