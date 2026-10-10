@@ -1689,7 +1689,8 @@ function renderOverdue(): string {
           <td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td>
           <td><span class="badge warning">${Number(row.overdue_picker_count || 0)} Picker</span></td>
           <td>${Number(row.waiting_picker_count || 0)} Picker</td>
-          <td>${esc(fmt(row.first_overdue_at))}</td>
+          <td>${esc(fmt(row.first_overdue_at))}${Number(row.reminder_level || 0) >= 30 ?
+            `<div class="badge danger" style="margin-top:6px">CẢNH BÁO ${Number(row.reminder_level || 0) >= 60 ? "LẦN 2 · 60 PHÚT" : "NGHIÊM TRỌNG · 30 PHÚT"}</div>` : ""}</td>
           <td>${roleCanResolve() ? `<div class="user-row-actions"><button class="btn success small" data-overdue-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">ĐÃ CÓ HÀNG</button><button class="btn danger small" data-overdue-resolve="SKIP_ALLOWED" data-batch="${esc(row.batch_id)}">CHO PHÉP SKIP</button></div>` : "Chỉ xem"}</td>
         </tr>`).join("") || `<tr><td colspan="5" class="empty">Hiện không có SKU quá hạn.</td></tr>`}
       </tbody></table></div>
@@ -3313,12 +3314,13 @@ function overdueRowFromSnapshot(snapshot: Record<string, unknown>): ReporterOver
     overdue_picker_count: overdue,
     waiting_picker_count: snapshotNumber(snapshot, "waiting_picker_count") || snapshotNumber(snapshot, "open_ticket_count"),
     first_overdue_at: firstOverdueAt,
+    reminder_level: reminderLevel,
     latest_overdue_at: snapshotText(snapshot, "latest_overdue_at") || firstOverdueAt,
   };
 }
 
 function recentEffectiveAt(snapshot: Record<string, unknown>, event: RealtimeEventFrame): string {
-  return snapshotText(snapshot, "resolved_at") || snapshotText(snapshot, "updated_at") || String(event.server_time || "");
+  return snapshotText(snapshot, "first_report_at") || snapshotText(snapshot, "resolved_at") || String(event.server_time || "");
 }
 
 function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecentBatch | null {
