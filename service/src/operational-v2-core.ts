@@ -646,6 +646,9 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
           WHEN 'SLA_ESCALATED' THEN '["reporter_queue","picker_reports"]'
           WHEN 'TICKET_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_overdue","picker_reports"]'
           WHEN 'BATCH_AUTO_SKIP_ALLOWED' THEN '["reporter_queue","reporter_recent","picker_reports"]'
+          WHEN 'BATCH_DAY_END_AUTO_SKIP' THEN '["reporter_queue","reporter_overdue","reporter_recent","picker_reports"]'
+          WHEN 'D167_OVERDUE_REMINDER_30' THEN '["reporter_overdue"]'
+          WHEN 'D167_OVERDUE_REMINDER_60' THEN '["reporter_overdue"]'
           WHEN 'RESULT_ACKNOWLEDGED' THEN '["reporter_recent","picker_reports"]'
           ELSE '["operations"]'
         END,
@@ -783,8 +786,8 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
 
   const recentWhere = [
     "b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')",
-    "COALESCE(b.resolved_at, b.updated_at) >= ?",
-    "COALESCE(b.resolved_at, b.updated_at) < ?",
+    "b.first_report_at >= ?",
+    "b.first_report_at < ?",
   ];
   const recentArgs: SqlStorageValue[] = [from, to];
   // D166: one already-required counter query supplies all three outcome-tab
@@ -915,6 +918,12 @@ function reporterOverdue(state: DurableObjectState, url: URL): Response {
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.version, b.previous_batch_id,
             s.overdue_picker_count,
+            b.d167_first_overdue_at,
+            (SELECT CASE WHEN EXISTS(
+              SELECT 1 FROM d167_overdue_reminder_events r WHERE r.batch_id = b.batch_id AND r.level = 60
+            ) THEN 60 WHEN EXISTS(
+              SELECT 1 FROM d167_overdue_reminder_events r WHERE r.batch_id = b.batch_id AND r.level = 30
+            ) THEN 30 ELSE 0 END) AS reminder_level,
             (SELECT MIN(t.auto_skip_allowed_at) FROM report_tickets t
               WHERE t.batch_id = b.batch_id AND t.status = 'OPEN' AND t.auto_skip_allowed_at IS NOT NULL) AS first_overdue_at,
             (SELECT MAX(t.auto_skip_allowed_at) FROM report_tickets t
@@ -966,9 +975,9 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const args: SqlStorageValue[] = [];
   if (appTodayOpen) { where.push("b.first_report_at >= ?"); args.push(todayStart); }
   if (from && to) {
-    where.push("COALESCE(b.resolved_at, b.updated_at) >= ?");
+    where.push("b.first_report_at >= ?");
     args.push(from);
-    where.push("COALESCE(b.resolved_at, b.updated_at) < ?");
+    where.push("b.first_report_at < ?");
     args.push(to);
   }
   if (status) { where.push("b.status = ?"); args.push(status); }
@@ -1059,9 +1068,9 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const summaryArgs: SqlStorageValue[] = [];
   if (appTodayOpen) { summaryWhere.push("b.first_report_at >= ?"); summaryArgs.push(todayStart); }
   if (from && to) {
-    summaryWhere.push("COALESCE(b.resolved_at, b.updated_at) >= ?");
+    summaryWhere.push("b.first_report_at >= ?");
     summaryArgs.push(from);
-    summaryWhere.push("COALESCE(b.resolved_at, b.updated_at) < ?");
+    summaryWhere.push("b.first_report_at < ?");
     summaryArgs.push(to);
   }
   const summaryClause = summaryWhere.join(" AND ");
@@ -1070,7 +1079,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       `SELECT
          COALESCE(SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END), 0) AS has_stock,
          COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' THEN 1 ELSE 0 END), 0) AS skip_allowed,
-         COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' AND b.resolution_source = 'SYSTEM_TIMEOUT' THEN 1 ELSE 0 END), 0) AS automatic_skipped,
+         COALESCE(SUM(CASE WHEN b.status = 'SKIP_ALLOWED' AND b.resolution_source IN ('SYSTEM_TIMEOUT','SYSTEM_DAY_END') THEN 1 ELSE 0 END), 0) AS automatic_skipped,
          COALESCE(SUM(CASE WHEN b.status = 'CLOSED' THEN 1 ELSE 0 END), 0) AS withdrawn
        FROM report_batches b
       WHERE ${summaryClause}`,
