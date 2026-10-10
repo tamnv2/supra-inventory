@@ -37,8 +37,8 @@ jobs:
       - name: Verify local IPC self-test (no provider calls)
         shell: pwsh
         run: |
-          & 'experiments/d167-sku-sync-test/bin/Release/net48/D167-SKU-Sync-Test.exe' --self-test
-          if ($LASTEXITCODE -ne 0) { throw "D167 self-test failed: $LASTEXITCODE" }
+          dotnet run --project experiments/d167-sku-sync-test/D167SkuSyncTest.csproj -c Release --no-build -- --self-test
+          if ($LASTEXITCODE -ne 0) { throw "D167 IPC test failed" }
       - uses: actions/upload-artifact@v4
         with:
           name: D167-SKU-Sync-Test-Windows-x64-NOT-DEPLOYED
