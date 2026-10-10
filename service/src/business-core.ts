@@ -1,5 +1,5 @@
 import { correctionDeadlineFromResult, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
-import { mealAdjustedDeadline } from "./meal-break-core";
+import { mealAdjustedDeadline, vnDayAt, vnMidnightMs } from "./meal-break-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -415,6 +415,11 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     }
 
     const at = nowIso();
+    // D167: New VN business day starts a new batch even when yesterday's SKU
+    // remains PENDING for the scheduled 03:00 day-end resolution.
+    const businessDayStart = vnMidnightMs(vnDayAt(Date.parse(at)));
+    const dayStartIso = new Date(businessDayStart).toISOString();
+    const dayEndIso = new Date(businessDayStart + 86_400_000).toISOString();
     let batch = firstRow(
       state.storage.sql
         .exec<BatchRow>(
@@ -422,8 +427,9 @@ async function createReport(state: DurableObjectState, request: Request): Promis
                   resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, version, created_at, updated_at
              FROM report_batches
             WHERE sku = ? AND status = 'PENDING'
-            LIMIT 1`,
-          sku,
+              AND first_report_at >= ? AND first_report_at < ?
+            ORDER BY first_report_at ASC LIMIT 1`,
+          sku, dayStartIso, dayEndIso,
         )
         .toArray(),
     );
