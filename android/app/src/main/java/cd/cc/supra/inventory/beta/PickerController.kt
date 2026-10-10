@@ -921,7 +921,7 @@ class PickerController(
         val result = pendingResults.firstOrNull { it.acknowledgedAt == null } ?: return
         if (
             NotificationSignalStore.isResultOverlayPresented(activity.applicationContext, result.resultEventId) ||
-            NotificationSignalStore.isOverlayAckPending(activity.applicationContext, result.resultEventId)
+            NotificationSignalStore.isOverlayAckPending(activity.applicationContext, result.resultEventId, api.session?.userId.orEmpty())
         ) {
             return
         }
@@ -1005,7 +1005,7 @@ class PickerController(
 
             // D135: acknowledgement is local-first on the in-app full-screen path too.
             // Network/session state must never trap the Picker behind this dialog.
-            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId)
+            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId, api.session?.userId.orEmpty())
             acknowledge.isEnabled = false
             acknowledge.text = "ĐÃ GHI NHẬN"
             try { dialog.dismiss() } catch (_: Exception) { }
@@ -1016,7 +1016,7 @@ class PickerController(
             Thread {
                 try {
                     api.acknowledgeResult(eventId)
-                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId)
+                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId, api.session?.userId.orEmpty())
                     activity.runOnUiThread { refresh() }
                 } catch (_: Exception) {
                     // Keep pending locally. MainActivity retries after a valid session/network returns.
