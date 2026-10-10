@@ -1,0 +1,42 @@
+name: D167 isolated SKU test build (no release)
+
+on:
+  pull_request:
+    paths:
+      - "experiments/d167-sku-sync-test/**"
+      - ".github/workflows/verify-d167-sku-sync-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-only:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build independent Windows GUI
+        shell: pwsh
+        run: dotnet build experiments/d167-sku-sync-test/D167SkuSyncTest.csproj -c Release --nologo -warnaserror
+      - name: Static safety checks
+        shell: pwsh
+        run: |
+          $code = Get-Content experiments/d167-sku-sync-test/Program.cs -Raw
+          if ($code -match 'Process\.Kill\s*\(' -or $code -match 'Process\.Start\s*\(' -or $code -match 'DataProtectionScope\.LocalMachine') {
+            throw 'D167 test may not spawn or stop primary Agent/WMS processes or use machine-wide secrets.'
+          }
+          if ($code -notmatch 'dry_run' -or $code -notmatch 'requires_confirmation' -or $code -notmatch 'same-user') {
+            throw 'Preview/confirmation or session boundary missing.'
+          }
+          if ($code -match '(?i)(x-signature|authorization|refresh_token).*Console\.WriteLine') {
+            throw 'Potential sensitive header logging.'
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: D167-SKU-Sync-Test-Windows-x64-NOT-DEPLOYED
+          path: experiments/d167-sku-sync-test/bin/Release/net48/D167-SKU-Sync-Test.exe
+          if-no-files-found: error
+          retention-days: 14
