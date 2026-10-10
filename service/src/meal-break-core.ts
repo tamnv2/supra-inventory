@@ -137,13 +137,14 @@ export function confirmMealChoice(
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     day, period, choice, slot.from, slot.to, new Date(nowMs).toISOString(), actorId, actorName,
   );
+  const inserted = first(state.storage.sql.exec<SqlRow>("SELECT changes() AS count").toArray());
   const current = first(state.storage.sql.exec<SqlRow>(
     "SELECT choice, starts_at_ms, ends_at_ms, confirmed_at, confirmed_by, confirmed_name FROM d167_meal_choices WHERE day_vn = ? AND period = ?",
     day, period,
   ).toArray());
   if (!current) return { status: 500, payload: { error: "MEAL_CHOICE_NOT_SAVED" }, changed: false };
   const winner = String(current.confirmed_by) === actorId && String(current.choice) === choice;
-  const changed = winner && String(current.confirmed_at) === new Date(nowMs).toISOString();
+  const changed = Number(inserted?.count || 0) === 1;
   return {
     status: winner ? 200 : 409, changed,
     payload: {
@@ -190,4 +191,40 @@ export function dueMealPrompts(state: DurableObjectState, nowMs = Date.now()): A
     result.push({ day_vn: day, period, event_id: crypto.randomUUID() });
   }
   return result;
+}
+
+export function recalculateMealAdjustedDeadlines(state: DurableObjectState): { batches: number; tickets: number } {
+  const batchRows = state.storage.sql.exec<SqlRow>(
+    "SELECT batch_id, first_report_at, d167_auto_skip_minutes AS minutes FROM report_batches WHERE status = 'PENDING' AND d167_auto_skip_minutes > 0"
+  ).toArray();
+  let batches = 0, tickets = 0;
+  for (const row of batchRows) {
+    const deadline = mealAdjustedDeadline(state, String(row.first_report_at || ""), Number(row.minutes));
+    if (!deadline) continue;
+    state.storage.sql.exec(
+      "UPDATE report_batches SET auto_skip_deadline_at = ? WHERE batch_id = ? AND status = 'PENDING'",
+      deadline, row.batch_id,
+    );
+    state.storage.sql.exec(
+      "UPDATE report_tickets SET auto_skip_deadline_at = ? WHERE batch_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL",
+      deadline, row.batch_id,
+    );
+    batches++;
+  }
+  const ticketRows = state.storage.sql.exec<SqlRow>(
+    `SELECT t.ticket_id, t.reported_at, t.d167_auto_skip_minutes AS minutes
+       FROM report_tickets t JOIN report_batches b ON b.batch_id = t.batch_id
+      WHERE b.status = 'PENDING' AND t.status = 'OPEN'
+        AND t.auto_skip_allowed_at IS NULL AND t.d167_auto_skip_minutes > 0`
+  ).toArray();
+  for (const row of ticketRows) {
+    const deadline = mealAdjustedDeadline(state, String(row.reported_at || ""), Number(row.minutes));
+    if (!deadline) continue;
+    state.storage.sql.exec(
+      "UPDATE report_tickets SET auto_skip_deadline_at = ? WHERE ticket_id = ? AND status = 'OPEN' AND auto_skip_allowed_at IS NULL",
+      deadline, row.ticket_id,
+    );
+    tickets++;
+  }
+  return { batches, tickets };
 }
