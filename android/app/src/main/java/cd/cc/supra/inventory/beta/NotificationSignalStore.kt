@@ -151,6 +151,26 @@ object NotificationSignalStore {
             .filter { it.matches(Regex("[A-Za-z0-9._:-]{1,128}")) }.toSet()
     }
 
+    @Synchronized
+    fun reconcileLegacyOverlayAcks(context: Context, userId: String, serverPendingEventIds: Set<String>): Int {
+        // Upgrade only the legacy IDs which the authoritative server has just
+        // returned as pending for this exact Picker. Unknown/foreign IDs remain
+        // quarantined locally, never replayed under the wrong account.
+        if (userId.isBlank() || serverPendingEventIds.isEmpty()) return 0
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val legacy = prefs.getStringSet(KEY_OVERLAY_ACK_PENDING, emptySet()).orEmpty().toMutableSet()
+        val proven = legacy.intersect(serverPendingEventIds)
+            .filter { it.matches(Regex("[A-Za-z0-9._:-]{1,128}")) }.toSet()
+        if (proven.isEmpty()) return 0
+        val pendingKey = scopedAckKey(userId, "pending")
+        val pending = prefs.getStringSet(pendingKey, emptySet()).orEmpty().toMutableSet()
+        pending.addAll(proven)
+        legacy.removeAll(proven)
+        prefs.edit().putStringSet(pendingKey, pending)
+            .putStringSet(KEY_OVERLAY_ACK_PENDING, legacy).apply()
+        return proven.size
+    }
+
     fun legacyUnscopedAckCount(context: Context): Int =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getStringSet(KEY_OVERLAY_ACK_PENDING, emptySet()).orEmpty().size
