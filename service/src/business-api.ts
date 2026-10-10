@@ -93,11 +93,20 @@ async function authorizedGet(request: Request, env: BusinessEnv, path: string): 
   return publicAuthorizedResponse(raw).response;
 }
 
-async function requireUser(request: Request, env: BusinessEnv, roles?: AppRole[]): Promise<InternalUser> {
+async function requireUser(request: Request, env: BusinessEnv, roles?: AppRole[], allowAgentSkuImport = false): Promise<InternalUser> {
   const identity = await requireIdentity(request, env);
   const user = await coreUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw json({ error: "USER_NOT_ACTIVE" }, 403);
-  const sessionError = interactiveSessionError(identity, user);
+  // D167 isolated SKU import only: a real AGENT/ADMIN or AGENT/PICKPACK_ADMIN
+  // session may use the existing Server-authorized SKU import path. This never
+  // upgrades other interactive-session APIs, WMS rights, or report mutations.
+  const dedicatedAgentSkuImport =
+    allowAgentSkuImport &&
+    identity.sessionChannel === "AGENT" &&
+    identity.sessionGeneration === 0 &&
+    user.base_role === user.role &&
+    (user.role === "ADMIN" || user.role === "PICKPACK_ADMIN");
+  const sessionError = dedicatedAgentSkuImport ? null : interactiveSessionError(identity, user);
   if (sessionError) throw json({ error: sessionError }, 401);
   if (roles && !roles.includes(user.role)) throw json({ error: "FORBIDDEN" }, 403);
   return { ...user, session_channel: identity.sessionChannel };
@@ -481,7 +490,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
 
   // Authentication/authorization for the remaining lower-volume routes stays explicit.
   // request must never trigger schema work or turn an expected 401/403 into a readiness 503.
-  const user = await requireUser(request, env, requiredRolesForBusinessRoute(key));
+  const user = await requireUser(request, env, requiredRolesForBusinessRoute(key), key === "POST /api/admin/skus/import");
   if (user.session_channel === "ANDROID" && request.method !== "GET") {
     const windowResponse = await coreGet(env, "/notifications/alert-window/reconcile");
     if (!windowResponse.ok) return json({ error: "ANDROID_WINDOW_UNAVAILABLE" }, 503);
