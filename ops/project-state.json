@@ -6929,6 +6929,46 @@
       "runtime_implementation_approval_from_this_rule": false,
       "billing_reduction_proven": false,
       "owner_d167_pass": false
+    },
+    "owner_review_2026_10_11": {
+      "status": "OWNER_FIELD_CORRECTIONS_CAPTURED__ANALYSIS_WORD_SELECTION_PENDING__NO_NEW_RUNTIME_CODE_OR_DEPLOY",
+      "last_owner_accepted_base": "D166_LIMITED_PASS_UNCHANGED",
+      "installed_beta_technical_baseline": "WEB_WORKER_GATEWAY__ANDROID_VC105__AGENT_V125__OWNER_D167_FIELD_PASS_PENDING",
+      "owner_final_rules": {
+        "live_tabs_no_history": [
+          "PENDING",
+          "OVERDUE"
+        ],
+        "historical_date_filter_tabs": [
+          "HAS_STOCK",
+          "SKIP_ALLOWED",
+          "CLOSED"
+        ],
+        "log_custom_date_range": "D167_C_OWNER_FIELD_OK__DO_NOT_REWORK_WITHOUT_REGRESSION"
+      },
+      "owner_field_not_pass": [
+        "D167_A_TOOLBAR_TOO_CLOSE_TO_RESULTS",
+        "D167_B_HR_WAITING_FOR_COMPLETION_STUCK_OR_SLOW",
+        "D167_D_LAST_LOGIN_DISPLAY_8_TO_9H_STALE"
+      ],
+      "review_required": [
+        "D167_E_MEAL_PAUSE_AND_NO_CHOICE_FALLBACK",
+        "D167_F_REMINDER_DAY_N_CLOSE_CROSS_MIDNIGHT",
+        "D167_PRIMARY_AGENT_AUTO_DAILY_SKU",
+        "D167_LTA_SHELVING_AS_OF_LOCATION_SCOPE",
+        "LOW_OVERHEAD_LOG_GAPS_ALL_CLIENTS_AND_PROVIDER_BILLING"
+      ],
+      "code_evidence": {
+        "hr_incomplete_recheck": "EXISTING_FIVE_MINUTE_CRON_RESCUE_AND_DRIVE_WATCH__FIELD_DELAY_REPORTED",
+        "login_time": "UTC_SQL_CURRENT_TIMESTAMP__WEB_DATE_PARSE_NO_TIMEZONE__7H_SKEW_HYPOTHESIS_NEEDS_TRACE",
+        "pending_sku_day": "DAY_SCOPED_INSERT_WITH_GLOBAL_UNIQUE_PENDING_SKU_INDEX__SOURCE_CONFLICT",
+        "missing_meal_choice": "CURRENT_FULL_CANDIDATE_HOUR_AUTO_SKIP_PAUSE__OWNER_FALLBACK_CHOICE_PENDING"
+      },
+      "change_type": "GOVERNANCE_DOCS_AND_STATE_ONLY",
+      "next": "OWNER_RETURNS_EDITED_PRIVATE_WORD_DECISIONS__THEN_AUTHORIZE_SCOPED_SOURCE_AND_RELEASE",
+      "new_periodic_provider_reads_or_pda_timers_authorized": false,
+      "new_beta_version_released": false,
+      "owner_d167_pass": false
     }
   }
 }
