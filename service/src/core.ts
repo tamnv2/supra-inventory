@@ -5,7 +5,8 @@ import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
-import { recordD167DoRequest } from "./d167-route-usage";
+import { recordD167DoRequest, snapshotD167DoRequests } from "./d167-route-usage";
+import { d166SqlUsageSnapshot } from "./d166-sql-usage";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
@@ -787,6 +788,18 @@ export class InventoryCore {
     const url = new URL(request.url);
     // D167: classify this already-running DO request; zero SQL/network/write overhead.
     recordD167DoRequest(this.state, request.method, url.pathname);
+
+    if (request.method === "GET" && url.pathname === "/diagnostics/d167/usage") {
+      // Only the privileged Worker bridge may route here. No SQL, provider
+      // API, alarm, listener or durable storage write is performed.
+      return response({
+        status: "OK",
+        generated_at: new Date().toISOString(),
+        d166_sql_diagnostics: d166SqlUsageSnapshot(this.state),
+        d167_do_request_diagnostics: snapshotD167DoRequests(this.state),
+        scope: "EXISTING_INVENTORYCORE_DO_PROCESS_LOCAL_ESTIMATE_NOT_BILLING",
+      });
+    }
 
     if (request.method === "GET" && url.pathname === "/notifications/alert-window/reconcile") {
       await this.reconcileOperatingScheduleExactIfClosed();
