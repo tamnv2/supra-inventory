@@ -982,3 +982,8 @@ Use the existing `BATCH_CORRECTED` immutable result event, batch-scoped Picker A
 ### 2026-10-08 — Shared-quota policy does not relax realtime/HA safety
 
 The SUPRA-wide 30/30/30/10 budget and Google Cloud USD 10 soft alert thresholds are internal planning metrics, **not** runtime caps. Existing D165 Beta realtime, Firebase session/generation fences, Agent PRIMARY/standby failover, WMS UI confirmation, Picker result ACK and fallback remain unchanged. A provider-usage anomaly is investigated with logs/evidence before any later Owner-approved D166 optimization. No quota-triggered denial, forced disconnect, slower critical ACK or provider write suppression is authorized by the policy-only change. `docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md` controls the budgeting terminology.
+
+
+### D167 — code-only Android Picker ACK 404 safety amendment
+
+A PDA may change authenticated Picker user. Pending result ACKs are now keyed by authenticated user to prevent replay under a different Picker identity. Existing legacy unscoped ACKs are retained as bounded local recovery evidence and are **not** attributed to any new session automatically. Exact server `RESULT_ACK_NOT_FOUND` is not success and must not be retried indefinitely; retain a local quarantined record for future triage and only retry genuinely transient/network failures. No new polling, timer, Firestore/RTDB listener or backend mutation route is allowed. The server remains authority for result ACK. Guard background callback Dialog creation against invalid Activity window tokens without overriding the mandatory-version gate. This is Owner-authorized PR-only code, not field PASS.
