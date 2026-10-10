@@ -26,6 +26,8 @@ import {
   getAdminAuditHistory,
   getAgentAppRelease,
   getAndroidAlertWindow,
+  getD167MealState,
+  confirmD167Meal,
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
@@ -73,6 +75,7 @@ import {
   type AdminReportingDetailRow,
   type AgentAppRelease,
   type AndroidAlertWindowState,
+  type D167MealState,
   type AutoSkipMode,
   type BatchPickerTicket,
   type HrSourceResponse,
@@ -226,7 +229,7 @@ function defaultSectionForProfile(value: AppProfile): Section {
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
-  if (value.role === "REPORTER") return ["operations", "overdue", "results", "account"].includes(section);
+  if (value.role === "REPORTER") return ["operations", "overdue", "results", "shift", "account"].includes(section);
   if (value.role === "PICKPACK_ADMIN") {
     return ["operations", "overdue", "results", "shift", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
   }
@@ -447,6 +450,8 @@ let systemResetChallenge: { id: string; expiresAt: string; emailHint: string } |
 let systemResetSelected = new Set<SystemResetScope>();
 let logView: "WEB" | "ANDROID" | "AUDIT" = "WEB";
 let logDays = 30;
+let logFrom = dateDaysAgo(6);
+let logTo = dateDaysAgo(0);
 let runtimeLogSource: "WEB" | "ANDROID" = "WEB";
 let runtimeLogs: RuntimeLogItem[] = [];
 let runtimeLogDetail: RuntimeLogDetail | null = null;
@@ -464,6 +469,7 @@ const AUDIT_PAGE_SIZE = 100;
 let pdaAppRelease: PdaAppRelease | null = null;
 let agentAppRelease: AgentAppRelease | null = null;
 let androidAlertWindow: AndroidAlertWindowState | null = null;
+let d167MealState: D167MealState | null = null;
 let pdaQrDataUrl = "";
 const reportNoticeBySku = new Map<string, number>();
 let pickerQuery = "";
@@ -836,6 +842,7 @@ function statusLabel(status: string): string {
 
 function resolutionSourceLabel(source: string | null | undefined): string {
   if (source === "SYSTEM_TIMEOUT") return "Hệ thống tự động · quá hạn phản hồi";
+  if (source === "SYSTEM_DAY_END") return "Hệ thống tự động · chốt tồn lúc 03:00";
   if (source === "REPORTER_CORRECTION") return "Nhân sự sửa kết quả";
   if (source === "REPORTER") return "Nhân sự xác nhận";
   return "—";
@@ -847,7 +854,7 @@ function resolutionActorLabel(row: {
   resolved_by_employee_code?: string | null;
   resolved_by_user_id?: string | null;
 }): string {
-  if (row.resolution_source === "SYSTEM_TIMEOUT") return "Hệ thống";
+  if (["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || ""))) return "Hệ thống";
   const name = String(row.resolved_by_display_name || "").trim();
   const code = String(row.resolved_by_employee_code || "").trim();
   if (name && code) return `${name} · ${code}`;
@@ -1032,7 +1039,7 @@ function mainMarkup(): string {
 function patchOverlays(): void {
   const root = document.querySelector<HTMLElement>("#overlay-root");
   if (!root) return;
-  root.innerHTML = `${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}`;
+  root.innerHTML = `${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}${renderD167MealOverlay()}`;
   bindOverlay();
 }
 
@@ -1197,7 +1204,7 @@ function renderNav(): string {
     return navButton("picker", "Báo thiếu hàng");
   }
   if (profile.role === "REPORTER") {
-    return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);
+    return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["shift", "Ca vận hành"]]);
   }
   if (profile.role === "PICKPACK_ADMIN") {
     return [
@@ -1386,7 +1393,7 @@ function renderShell(content: string): void {
     <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
     <main id="content" class="content main" data-active-section="${esc(activeSection)}">${content}</main>
     <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>
-    <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}</div>
+    <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}${renderD167MealOverlay()}</div>
   </div>`;
   bindShell();
 }
@@ -1682,7 +1689,8 @@ function renderOverdue(): string {
           <td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td>
           <td><span class="badge warning">${Number(row.overdue_picker_count || 0)} Picker</span></td>
           <td>${Number(row.waiting_picker_count || 0)} Picker</td>
-          <td>${esc(fmt(row.first_overdue_at))}</td>
+          <td>${esc(fmt(row.first_overdue_at))}${Number(row.reminder_level || 0) >= 30 ?
+            `<div class="badge danger" style="margin-top:6px">CẢNH BÁO ${Number(row.reminder_level || 0) >= 60 ? "LẦN 2 · 60 PHÚT" : "NGHIÊM TRỌNG · 30 PHÚT"}</div>` : ""}</td>
           <td>${roleCanResolve() ? `<div class="user-row-actions"><button class="btn success small" data-overdue-resolve="HAS_STOCK" data-batch="${esc(row.batch_id)}">ĐÃ CÓ HÀNG</button><button class="btn danger small" data-overdue-resolve="SKIP_ALLOWED" data-batch="${esc(row.batch_id)}">CHO PHÉP SKIP</button></div>` : "Chỉ xem"}</td>
         </tr>`).join("") || `<tr><td colspan="5" class="empty">Hiện không có SKU quá hạn.</td></tr>`}
       </tbody></table></div>
@@ -1721,25 +1729,26 @@ function renderResults(): string {
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Khoảng kết quả</h3><p>Theo thời điểm xử lý; tối đa 60 ngày. Tổng quan và bảng bên dưới dùng cùng khoảng này.</p></div><button class="secondary" id="recent-open-report">Mở báo cáo chi tiết</button></div>
-      <div class="filters">
-        <button class="filter ${rangeId === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
-        <button class="filter ${rangeId === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
-        <button class="filter ${rangeId === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
-        <button class="filter ${rangeId === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
+      <div class="toolbar recent-range-toolbar" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+        <div class="filters" style="display:flex;gap:6px;flex-wrap:wrap;align-self:flex-end">
+          <button class="filter ${rangeId === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
+          <button class="filter ${rangeId === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
+          <button class="filter ${rangeId === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
+          <button class="filter ${rangeId === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
+        </div>
+        <form id="recent-range-form" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;min-width:0">
+          <label style="min-width:146px">Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" required /></label>
+          <label style="min-width:146px">Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" required /></label>
+          <button class="secondary" type="submit">Áp dụng</button>
+        </form>
       </div>
-      <form id="recent-range-form" class="ops-form-grid">
-        <label>Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" required /></label>
-        <label>Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" required /></label>
-        <div class="ops-form-actions"><button class="secondary">Áp dụng khoảng ngày</button></div>
-      </form>
-      <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
         ${visible.map((row) => { const correctionEnd = Date.parse(row.correction_deadline_at || "");
           const canCorrect = roleCanResolve() &&
             (row.status === "HAS_STOCK" || row.status === "SKIP_ALLOWED") &&
             row.correction_allowed === true &&
             Number.isFinite(correctionEnd) &&
-            correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+            correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || "")) ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -1758,7 +1767,7 @@ function renderPicker(): string {
       ${!onlineForMutation() ? `<div class="notice warning">Cần kết nối mạng để báo hàng. Hệ thống không có chế độ offline.</div>` : ""}
     </div>
     <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY & CHƯA XỬ LÝ</h1><p class="tiny muted">Hiển thị báo hôm nay và các báo cũ chưa hoàn tất.</p></div></div>
-    <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${row.resolution_source === "SYSTEM_TIMEOUT" ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Không có báo hàng phù hợp.</div>`}</div>
+    <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || "")) ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Không có báo hàng phù hợp.</div>`}</div>
     <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${pickerReportTotal.toLocaleString("vi-VN")}</span><div><button class="secondary" id="picker-history-prev" ${pickerReportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="picker-history-next" ${pickerReportOffset + PICKER_REPORT_PAGE_SIZE >= pickerReportTotal ? "disabled" : ""}>Trang sau</button></div></div>
   </section>`;
 }
@@ -1982,7 +1991,7 @@ function renderUsers(): string {
     <article class="ops-panel ops-users-panel">
       <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>ROOT được ẩn khỏi danh sách. Picker dùng thao tác hàng loạt riêng; ROOT có thể chọn Admin / Quản trị Pick Pack / Reporter để xóa.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
       <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button><button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button>${canLifecyclePickerBulk ? `<button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button>` : ""}<span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
-      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
@@ -1999,8 +2008,8 @@ function renderUsers(): string {
           const reporting = isPicker
             ? `<span class="badge ${user.shortage_reporting_enabled !== false ? "good" : "closed"}">${user.shortage_reporting_enabled !== false ? "Đang bật" : "Đang tắt"}</span>`
             : "—";
-          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(contractor)}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${actions}</td></tr>`;
-        }).join("") : `<tr><td colspan="8" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(contractor)}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${user.last_login_at ? `${esc(fmt(user.last_login_at))}<div class="tiny muted">${esc(user.last_login_channel || "")}</div>` : "Chưa ghi nhận"}</td><td>${actions}</td></tr>`;
+        }).join("") : `<tr><td colspan="9" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Trang hiển thị ${pageStart}–${pageEnd}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -2195,7 +2204,7 @@ function renderDashboard(): string {
       <div class="ops-panel-title"><div><h3>Kết quả xử lý gần đây</h3><p>Hiển thị rõ người đã xác nhận Có hàng / Cho phép bỏ qua; trường hợp quá hạn tự động hiển thị Hệ thống.</p></div></div>
       ${recentResolutions.length ? `<div class="resolution-activity-list">${recentResolutions.map((row) => {
         const actor = resolutionActorLabel(row);
-        const automatic = row.resolution_source === "SYSTEM_TIMEOUT";
+        const automatic = ["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || ""));
         return `<div class="resolution-activity-row"><div class="resolution-activity-sku"><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><span class="badge ${row.status === "HAS_STOCK" ? "ok" : "skip"}">${esc(statusLabel(row.status))}</span><div class="resolution-activity-actor"><span>Người xử lý</span><strong>${esc(actor)}</strong></div><div class="resolution-activity-time"><span>${automatic ? "Nguồn" : "Xử lý lúc"}</span><strong>${automatic ? "Hệ thống · quá hạn" : esc(fmt(row.resolved_at))}</strong></div></div>`;
       }).join("")}</div>` : `<div class="v5-empty">Chưa có kết quả xử lý trong khoảng thời gian này.</div>`}
     </article>
@@ -2215,7 +2224,7 @@ function reportPickerOutcome(row: AdminReportingDetailRow): { label: string; ton
     return { label: "Đã có hàng", tone: "ok", source: source === "REPORTER_CORRECTION" ? "Invent sửa kết quả" : "Invent xác nhận" };
   }
   if (resolution === "SKIP_ALLOWED") {
-    return { label: "Cho phép bỏ qua", tone: "skip", source: source === "SYSTEM_TIMEOUT" ? "Hệ thống · quá hạn" : "Invent xác nhận" };
+    return { label: "Cho phép bỏ qua", tone: "skip", source: ["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(source || "")) ? "Hệ thống · tự động" : "Invent xác nhận" };
   }
   return { label: "Đang chờ", tone: "pending", source: "Chưa xử lý" };
 }
@@ -2323,7 +2332,7 @@ function renderReports(): string {
     </div>
     <article class="ops-panel">
       <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p>Đang hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${reportTotal.toLocaleString("vi-VN")} bản ghi phù hợp.</p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
-      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="11">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="11" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
+      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || "")) ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="11">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="11" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
   </section>`;
 }
@@ -2749,10 +2758,12 @@ function renderLogs(): string {
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
       <button type="button" class="workspace-tab ${logView === "AUDIT" ? "active" : ""}" data-log-view="AUDIT">Lịch sử thao tác</button>
     </div>
-    <div class="toolbar log-retention-window" aria-label="Khoảng nhật ký">
-      ${[30,60,90].map((days) => `<button type="button" class="btn secondary small${logDays === days ? " active" : ""}" aria-pressed="${logDays === days}" data-log-days="${days}">${days} ngày</button>`).join("")}
-      <span class="muted">Dữ liệu quá 90 ngày được tự động dọn khỏi vùng lưu nhật ký vận hành.</span>
-    </div>
+    <form id="log-date-range" class="toolbar log-retention-window" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap" aria-label="Khoảng nhật ký">
+      <label>Từ ngày<input type="date" name="from" value="${esc(logFrom)}" max="${esc(dateDaysAgo(0))}" required /></label>
+      <label>Đến ngày<input type="date" name="to" value="${esc(logTo)}" max="${esc(dateDaysAgo(0))}" required /></label>
+      <button class="secondary" type="submit">Áp dụng</button>
+      <span class="muted">Nhật ký hiện lưu tối đa 90 ngày; chỉ tải trang được yêu cầu.</span>
+    </form>
     ${!auditActive && logView === "ANDROID" && profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `
       <article class="ops-panel">
         <div class="ops-panel-title"><div><h3>Kiểm tra log Launcher trên Service</h3><p>Dành cho quản trị hệ thống. Chỉ truy vấn khi bấm nút, không tải log từ PDA và không tạo thêm lượt kiểm tra nền.</p></div>
@@ -2920,6 +2931,46 @@ function renderTools(): string {
   </section>`;
 }
 
+function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
+  const record = period === "LUNCH" ? d167MealState?.lunch : d167MealState?.dinner;
+  const title = period === "LUNCH" ? "Nghỉ trưa" : "Nghỉ tối";
+  const early = period === "LUNCH" ? "11:00–11:30" : "18:00–18:30";
+  const late = period === "LUNCH" ? "11:30–12:00" : "18:30–19:00";
+  const selected = record?.choice === "EARLY" ? early : late;
+  return `<article class="ops-panel d167-meal-card">
+    <div class="ops-panel-title"><div><h3>${title}</h3><p>${period === "LUNCH" ? "Nhắc Reporter lúc 10:55" : "Nhắc Reporter lúc 17:55"} (giờ Việt Nam)</p></div>
+      <span class="badge ${record ? "good" : "warning"}">${record ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
+    ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · ${esc(record.confirmed_name || "Reporter")} xác nhận lúc ${esc(fmt(record.confirmed_at))}</div>` :
+      `<div class="ops-note">Nếu chưa ai xác nhận, Service tạm dừng tự động Skip trong toàn bộ ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"} để phòng ngừa Skip sai. Reporter vẫn xử lý thủ công bình thường.</div>`}
+    <form class="d167-meal-form" data-d167-meal-form="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
+      <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
+        <option value="EARLY">${early}</option><option value="LATE">${late}</option>
+      </select></label>
+      <button class="primary" ${record || !roleCanResolve() || !(period === "LUNCH" ? d167MealState?.lunch_prompt_due : d167MealState?.dinner_prompt_due) ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
+    </form>
+  </article>`;
+}
+
+function renderD167MealOverlay(): string {
+  if (!roleCanResolve() || !d167MealState) return "";
+  const period = d167MealState.lunch_prompt_due ? "LUNCH" : d167MealState.dinner_prompt_due ? "DINNER" : null;
+  if (!period) return "";
+  const first = period === "LUNCH" ? "11:00–11:30" : "18:00–18:30";
+  const second = period === "LUNCH" ? "11:30–12:00" : "18:30–19:00";
+  return `<div class="modal d167-meal-overlay" role="dialog" aria-modal="true" aria-label="Xác nhận giờ nghỉ">
+    <div class="modal-box" style="max-width:520px;text-align:left">
+      <p class="muted">CA VẬN HÀNH · ${esc(d167MealState.day_vn)}</p>
+      <h2>Chọn giờ ${period === "LUNCH" ? "nghỉ trưa" : "nghỉ tối"}</h2>
+      <p>Vui lòng xác nhận khoảng nghỉ của đội Reporter. Trong khoảng đã xác nhận, hệ thống chỉ tạm dừng <strong>đồng hồ tự động Skip</strong>; xử lý báo hàng thủ công vẫn bình thường.</p>
+      <form id="d167-meal-overlay-form" data-period="${period}">
+        <label class="sla-radio-row"><input type="radio" name="choice" value="EARLY" required checked/><span><strong>${first}</strong></span></label>
+        <label class="sla-radio-row"><input type="radio" name="choice" value="LATE" required/><span><strong>${second}</strong></span></label>
+        <div class="modal-actions"><button type="submit" class="primary">Xác nhận giờ nghỉ</button></div>
+      </form>
+      <p class="muted">Chỉ xác nhận đầu tiên hợp lệ được ghi nhận. Các Reporter khác sẽ tự đóng thông báo.</p>
+    </div></div>`;
+}
+
 function renderShiftOperations(): string {
   const state = androidAlertWindow;
   const status = state == null
@@ -2952,6 +3003,11 @@ function renderShiftOperations(): string {
       <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
       <div class="ops-note">Ca bình thường 06:00–22:00. Cửa sổ kỹ thuật Replay hoạt động 05:45–22:15; nếu không có gia hạn thì chuyển SLEEP lúc 22:15. Sau 22:15, Agent có thể Gia hạn +1 giờ; cảnh báo T-15 áp dụng cho mốc tăng ca đang hoạt động; tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent.</div>
     </article>
+    <div class="business-page-head"><div><h2>Giờ nghỉ ăn · tạm dừng tự động Skip</h2><p>Hai lựa chọn mỗi buổi, đồng bộ toàn bộ Reporter; xác nhận một lần, không tác động thao tác thủ công.</p></div></div>
+    <div class="ops-grid-two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">
+      ${renderMealStatusCard("LUNCH")}
+      ${renderMealStatusCard("DINNER")}
+    </div>
   </section>`;
 }
 
@@ -3245,6 +3301,7 @@ function overdueRowFromSnapshot(snapshot: Record<string, unknown>): ReporterOver
   const overdue = snapshotNumber(snapshot, "overdue_picker_count") || snapshotNumber(snapshot, "overdue_ticket_count");
   if (overdue < 1) return null;
   const firstOverdueAt = snapshotText(snapshot, "first_overdue_at");
+  const reminderLevel = snapshotNumber(snapshot, "reminder_level");
   return {
     batch_id: snapshotText(snapshot, "batch_id"),
     sku: snapshotText(snapshot, "sku"),
@@ -3257,12 +3314,13 @@ function overdueRowFromSnapshot(snapshot: Record<string, unknown>): ReporterOver
     overdue_picker_count: overdue,
     waiting_picker_count: snapshotNumber(snapshot, "waiting_picker_count") || snapshotNumber(snapshot, "open_ticket_count"),
     first_overdue_at: firstOverdueAt,
+    reminder_level: reminderLevel,
     latest_overdue_at: snapshotText(snapshot, "latest_overdue_at") || firstOverdueAt,
   };
 }
 
 function recentEffectiveAt(snapshot: Record<string, unknown>, event: RealtimeEventFrame): string {
-  return snapshotText(snapshot, "resolved_at") || snapshotText(snapshot, "updated_at") || String(event.server_time || "");
+  return snapshotText(snapshot, "first_report_at") || snapshotText(snapshot, "resolved_at") || String(event.server_time || "");
 }
 
 function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecentBatch | null {
@@ -3380,7 +3438,7 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
           const afterInRange = after.endpoint.status && after.endpoint.at
             ? recentDateRangeContains(after.endpoint.at)
             : false;
-          const automaticAfter = snapshotText(snapshot, "resolution_source") === "SYSTEM_TIMEOUT";
+          const automaticAfter = ["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(snapshotText(snapshot, "resolution_source"));
           if (beforeInRange) adjustRecentOutcomeTotal(before.endpoint.status, -1, beforeRow?.resolution_source === "SYSTEM_TIMEOUT");
           if (afterInRange) adjustRecentOutcomeTotal(after.endpoint.status, 1, automaticAfter);
 
@@ -3889,6 +3947,8 @@ async function loadLogs(): Promise<void> {
       role: auditRole,
       query: auditQuery,
       days: logDays,
+      from: apiRange(logFrom, logTo).from,
+      to: apiRange(logFrom, logTo).to,
       limit: AUDIT_PAGE_SIZE,
       offset: auditOffset,
     });
@@ -3904,7 +3964,8 @@ async function loadLogs(): Promise<void> {
   }
   runtimeLogSource = logView;
   const pageToken = runtimeLogPageTokens[runtimeLogPageIndex] || "";
-  const result = await getRuntimeLogs(runtimeLogSource, RUNTIME_LOG_PAGE_SIZE, logDays, pageToken);
+  const result = await getRuntimeLogs(runtimeLogSource, RUNTIME_LOG_PAGE_SIZE, logDays, pageToken,
+    apiRange(logFrom, logTo).from, apiRange(logFrom, logTo).to);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   runtimeLogs = result.items;
   runtimeLogNextPageToken = result.next_page_token || "";
@@ -3912,15 +3973,29 @@ async function loadLogs(): Promise<void> {
   markWebUpdateReceived();
 }
 
-async function loadShiftOperations(): Promise<void> {
-  if (!roleManage()) return;
+async function loadD167MealState(): Promise<void> {
+  if (!roleCanResolve()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  let alertWindowResult: AndroidAlertWindowState | null = null;
-  try { alertWindowResult = await getAndroidAlertWindow(); } catch { alertWindowResult = null; }
+  const fresh = await getD167MealState();
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-  androidAlertWindow = alertWindowResult;
+  d167MealState = fresh;
+  patchOverlays();
+}
+
+async function loadShiftOperations(): Promise<void> {
+  if (!roleOperate()) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const [alertResult, mealResult] = await Promise.all([
+    roleManage() ? getAndroidAlertWindow().catch(() => null) : Promise.resolve(null),
+    roleCanResolve() ? getD167MealState().catch(() => null) : Promise.resolve(null),
+  ]);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  androidAlertWindow = alertResult;
+  d167MealState = mealResult;
   markWebUpdateReceived();
+  patchOverlays();
 }
 
 async function loadTools(): Promise<void> {
@@ -4028,7 +4103,7 @@ async function loadSection(section: Section): Promise<void> {
     await loadReporterTabCounters();
   }
   if ((section === "operations" || section === "overdue" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
-  else if (section === "shift" && roleManage()) { await loadShiftOperations(); received = true; }
+  else if (section === "shift" && roleOperate()) { await loadShiftOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
   else if (section === "sku" && rolePickPackManage()) { await loadSkuWorkspace(); received = true; }
   else if (section === "hr" && rolePickPackManage()) {
@@ -4170,7 +4245,28 @@ async function commitReporterResolution(batch: ReporterBatch, resolution: "HAS_S
   }
 }
 
+async function submitD167Meal(period: "LUNCH" | "DINNER", choice: "EARLY" | "LATE"): Promise<void> {
+  if (!roleCanResolve()) return;
+  try {
+    await confirmD167Meal(period, choice);
+    await loadD167MealState();
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("success", "Đã xác nhận giờ nghỉ; đồng bộ tới toàn bộ Reporter.");
+  } catch (error) {
+    await loadD167MealState().catch(() => undefined);
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("warning", error instanceof Error ? error.message : "Giờ nghỉ đã được Reporter khác chốt.");
+  }
+}
+
 function bindOverlay(): void {
+  document.querySelector<HTMLFormElement>("#d167-meal-overlay-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const period = form.dataset.period === "DINNER" ? "DINNER" : "LUNCH";
+    const choice = new FormData(form).get("choice") === "LATE" ? "LATE" : "EARLY";
+    void submitD167Meal(period, choice);
+  });
   document.querySelector<HTMLButtonElement>("#cancel-stock")?.addEventListener("click", () => {
     stockConfirm = null;
     patchOverlays();
@@ -4397,6 +4493,12 @@ function bindSection(): void {
     launcherLogDiagnostics = await getLauncherLogDiagnostics();
     markWebUpdateReceived();
   }));
+  document.querySelectorAll<HTMLFormElement>("[data-d167-meal-form]").forEach((form) => form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const period = form.dataset.d167MealForm === "DINNER" ? "DINNER" : "LUNCH";
+    const choice = new FormData(form).get("choice") === "LATE" ? "LATE" : "EARLY";
+    void submitD167Meal(period, choice);
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-log-view]").forEach((button) => button.addEventListener("click", () => {
     const raw = String(button.dataset.logView || "WEB").toUpperCase();
     const next: "WEB" | "ANDROID" | "AUDIT" = raw === "ANDROID" ? "ANDROID" : raw === "AUDIT" ? "AUDIT" : "WEB";
@@ -4418,17 +4520,22 @@ function bindSection(): void {
       markWebUpdateReceived();
     });
   }));
-  document.querySelectorAll<HTMLButtonElement>("[data-log-days]").forEach((button) => button.addEventListener("click", () => {
-    const days = Number(button.dataset.logDays || 30);
-    if (![30, 60, 90].includes(days) || days === logDays) return;
-    logDays = days;
+  document.querySelector<HTMLFormElement>("#log-date-range")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const fields = new FormData(event.currentTarget as HTMLFormElement);
+    const from = String(fields.get("from") || "");
+    const to = String(fields.get("to") || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) ||
+      from > to || to > dateDaysAgo(0) || Date.parse(to) - Date.parse(from) > 365 * 86_400_000) {
+      setNotice("warning", "Chọn ngày bắt đầu/kết thúc hợp lệ, không vượt quá hôm nay.");
+      return;
+    }
+    logFrom = from; logTo = to;
     auditOffset = 0;
     runtimeLogDetail = null;
-    runtimeLogPageTokens = [""];
-    runtimeLogPageIndex = 0;
-    runtimeLogNextPageToken = "";
+    runtimeLogPageTokens = [""]; runtimeLogPageIndex = 0; runtimeLogNextPageToken = "";
     void run(loadLogs);
-  }));
+  });
 
   document.querySelector<HTMLFormElement>("#audit-filter")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -4571,13 +4678,6 @@ function bindSection(): void {
     reportOffset = 0;
     navigateToSection("reports");
   });
-  document.querySelectorAll<HTMLButtonElement>("[data-result-filter]").forEach((button) => button.addEventListener("click", () => {
-    const next = button.dataset.resultFilter as typeof recentFilter;
-    if (!["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(next)) return;
-    recentFilter = next;
-    recentOffset = 0;
-    void run(loadOperations);
-  }));
   document.querySelector<HTMLButtonElement>("#recent-prev")?.addEventListener("click", () => {
     recentOffset = Math.max(0, recentOffset - RECENT_PAGE_SIZE);
     void run(loadOperations);
@@ -5059,7 +5159,14 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       }
     }
   }
-  if (context.source === "reconcile") return reconcileActive();
+  if (context.source === "reconcile") {
+    if (roleCanResolve()) await loadD167MealState().catch(() => undefined);
+    return reconcileActive();
+  }
+  if (roleCanResolve() && events.some(e => (e.scopes || []).includes("meal_break"))) {
+    await loadD167MealState().catch(() => undefined);
+    if (activeSection === "shift") patchActiveSection(true);
+  }
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
@@ -5185,6 +5292,7 @@ async function bootstrap(): Promise<void> {
     activeSection = resolveInitialSection(profile);
     syncSectionHistory(activeSection, "replace");
     await loadSection(activeSection);
+    if (roleCanResolve()) await loadD167MealState().catch(() => undefined);
     render();
     window.dispatchEvent(new CustomEvent("supra:session-changed"));
   } catch (error) {
