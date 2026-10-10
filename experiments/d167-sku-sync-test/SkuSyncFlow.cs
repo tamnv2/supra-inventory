@@ -87,7 +87,10 @@ namespace D167SkuSyncTest
                     throw new AppError("SERVICE_APPLY_UNCERTAIN_CHUNK_"+(i+1)+"_"+ex.GetType().Name);
                 }
                 if (InventoryClient.Str(result,"status")!="imported" ||
-                    InventoryClient.Num(result,"total")!=chunks[i].Count)
+                    InventoryClient.Num(result,"total")!=chunks[i].Count ||
+                    InventoryClient.Num(result,"inserted")+
+                    InventoryClient.Num(result,"updated")+
+                    InventoryClient.Num(result,"unchanged") != chunks[i].Count)
                     throw new AppError("SERVICE_COMMIT_RECEIPT_INVALID_CHUNK_"+(i+1));
                 inserted+=InventoryClient.Num(result,"inserted");
                 updated+=InventoryClient.Num(result,"updated");
