@@ -26,6 +26,8 @@ import {
   getAdminAuditHistory,
   getAgentAppRelease,
   getAndroidAlertWindow,
+  getD167MealState,
+  confirmD167Meal,
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
@@ -73,6 +75,7 @@ import {
   type AdminReportingDetailRow,
   type AgentAppRelease,
   type AndroidAlertWindowState,
+  type D167MealState,
   type AutoSkipMode,
   type BatchPickerTicket,
   type HrSourceResponse,
@@ -226,7 +229,7 @@ function defaultSectionForProfile(value: AppProfile): Section {
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
-  if (value.role === "REPORTER") return ["operations", "overdue", "results", "account"].includes(section);
+  if (value.role === "REPORTER") return ["operations", "overdue", "results", "shift", "account"].includes(section);
   if (value.role === "PICKPACK_ADMIN") {
     return ["operations", "overdue", "results", "shift", "sku", "hr", "users", "dashboard", "reports", "account"].includes(section);
   }
@@ -466,6 +469,7 @@ const AUDIT_PAGE_SIZE = 100;
 let pdaAppRelease: PdaAppRelease | null = null;
 let agentAppRelease: AgentAppRelease | null = null;
 let androidAlertWindow: AndroidAlertWindowState | null = null;
+let d167MealState: D167MealState | null = null;
 let pdaQrDataUrl = "";
 const reportNoticeBySku = new Map<string, number>();
 let pickerQuery = "";
@@ -1199,7 +1203,7 @@ function renderNav(): string {
     return navButton("picker", "Báo thiếu hàng");
   }
   if (profile.role === "REPORTER") {
-    return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"]]);
+    return navGroup("VẬN HÀNH", [["operations", "Xử lý báo hàng"], ["shift", "Ca vận hành"]]);
   }
   if (profile.role === "PICKPACK_ADMIN") {
     return [
@@ -3920,15 +3924,29 @@ async function loadLogs(): Promise<void> {
   markWebUpdateReceived();
 }
 
-async function loadShiftOperations(): Promise<void> {
-  if (!roleManage()) return;
+async function loadD167MealState(): Promise<void> {
+  if (!roleCanResolve()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  let alertWindowResult: AndroidAlertWindowState | null = null;
-  try { alertWindowResult = await getAndroidAlertWindow(); } catch { alertWindowResult = null; }
+  const fresh = await getD167MealState();
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
-  androidAlertWindow = alertWindowResult;
+  d167MealState = fresh;
+  patchOverlays();
+}
+
+async function loadShiftOperations(): Promise<void> {
+  if (!roleOperate()) return;
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id || "";
+  const [alertResult, mealResult] = await Promise.all([
+    roleManage() ? getAndroidAlertWindow().catch(() => null) : Promise.resolve(null),
+    roleCanResolve() ? getD167MealState().catch(() => null) : Promise.resolve(null),
+  ]);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  androidAlertWindow = alertResult;
+  d167MealState = mealResult;
   markWebUpdateReceived();
+  patchOverlays();
 }
 
 async function loadTools(): Promise<void> {
@@ -4036,7 +4054,7 @@ async function loadSection(section: Section): Promise<void> {
     await loadReporterTabCounters();
   }
   if ((section === "operations" || section === "overdue" || section === "results") && roleOperate()) { await loadOperations(); received = true; }
-  else if (section === "shift" && roleManage()) { await loadShiftOperations(); received = true; }
+  else if (section === "shift" && roleOperate()) { await loadShiftOperations(); received = true; }
   else if (section === "picker" && profile.role === "PICKER") { await loadPicker(); received = true; }
   else if (section === "sku" && rolePickPackManage()) { await loadSkuWorkspace(); received = true; }
   else if (section === "hr" && rolePickPackManage()) {
