@@ -1,3 +1,5 @@
+import { mealAdjustedDeadline, dueMealPrompts, nextMealPromptMs } from "./meal-break-core";
+
 type SqlRow = Record<string, SqlStorageValue>;
 
 export type AutoSkipMode = "FIRST_REPORT" | "PER_PICKER";
@@ -19,7 +21,7 @@ export interface OperationalSlaConfig {
 }
 
 export interface OperationalDeadlineEffect {
-  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed";
+  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required";
   event_id: string;
   batch_id: string;
   sku: string;
@@ -253,7 +255,7 @@ export function planAutoSkipForNewReport(
     return {
       config,
       batch_deadline_at: input.existing_batch_deadline_at || null,
-      ticket_deadline_at: deadlineIso(input.reported_at, config.auto_skip_minutes),
+      ticket_deadline_at: mealAdjustedDeadline(state, input.reported_at, config.auto_skip_minutes),
     };
   }
 
@@ -265,7 +267,7 @@ export function planAutoSkipForNewReport(
     return { config, batch_deadline_at: deadline, ticket_deadline_at: deadline };
   }
 
-  const deadline = deadlineIso(input.reported_at, config.auto_skip_minutes);
+  const deadline = mealAdjustedDeadline(state, input.reported_at, config.auto_skip_minutes);
   return { config, batch_deadline_at: deadline, ticket_deadline_at: deadline };
 }
 
@@ -761,6 +763,20 @@ export function processOperationalDeadlines(
   processBatchAutoSkip(state, config, nowMs, effects);
   processPerPickerAutoSkip(state, config, nowMs, effects);
   if (config) processWarningAndEscalation(state, config, nowMs, effects);
+  const mealPrompts = dueMealPrompts(state, nowMs);
+  for (const prompt of mealPrompts) {
+    effects.push({
+      event: "meal_selection_required",
+      event_id: prompt.event_id,
+      batch_id: "",
+      sku: "", product_name: "",
+      scopes: ["meal_break"],
+      reporter_roles: ["REPORTER", "ADMIN", "ROOT"],
+      picker_user_ids: [], result_event: false,
+      title: "SUPRA Inventory · Xác nhận giờ ăn",
+      body: prompt.period === "LUNCH" ? "Chọn giờ nghỉ trưa trong Ca vận hành." : "Chọn giờ nghỉ tối trong Ca vận hành.",
+    });
+  }
   return effects;
 }
 
@@ -818,6 +834,8 @@ export async function scheduleNextOperationalAlarm(state: DurableObjectState): P
     if (Number.isFinite(ms)) candidates.push(ms);
   }
 
+  const nextPrompt = nextMealPromptMs(state);
+  if (nextPrompt != null) candidates.push(nextPrompt);
   if (!candidates.length) {
     await state.storage.deleteAlarm();
     return;
