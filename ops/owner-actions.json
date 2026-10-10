@@ -5460,6 +5460,13 @@
         "agent_run": 38088441614,
         "required_ci": "15_OF_15_PASS",
         "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "latest_owner_review_2026_10_11": {
+        "status": "D167_OWNER_CHOICE_WORD_PENDING__A_B_D_NOT_PASS__C_OK__LIVE_TWO_TABS_NO_HISTORY",
+        "field_owner_pass": false,
+        "owner_can_return_document": "PRIVATE_WORD_DECISION_FORM_NO_SECRET_UPLOAD_TO_PUBLIC_GITHUB",
+        "manual_action_now": "NONE_TO_KEEP_TECHNICAL_BETA_RELEASE__OWNER_MAY_CHOOSE_PROPOSALS_WHEN_READY",
+        "note": "A/B/D field failures and E/F/SKU/area scope remain under same D167; next source/deploy requires exact permission"
       }
     }
   ]
