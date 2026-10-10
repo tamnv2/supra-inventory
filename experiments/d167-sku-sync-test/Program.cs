@@ -51,8 +51,6 @@ namespace D167SkuSyncTest
             using (var pipe = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut))
             {
                 pipe.Connect(3000);
-                pipe.ReadTimeout = 15000;
-                pipe.WriteTimeout = 3000;
                 using (var reader = new StreamReader(pipe, Encoding.UTF8, false, 1024, true))
                 using (var writer = new StreamWriter(pipe, new UTF8Encoding(false), 1024, true) { AutoFlush = true })
                 {
