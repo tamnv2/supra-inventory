@@ -227,6 +227,12 @@ class CriticalOverlayService : Service() {
 
     private fun finishActive(userAcknowledged: Boolean) {
         val current = activeAlert ?: return
+        val ownerUserId = if (current.mode == MODE_RESULT)
+            InteractiveSessionStore.load(applicationContext)?.userId.orEmpty() else ""
+        // Never display an ACK success/dismiss a result before it is durably
+        // queued for an identified Picker. Keep the overlay for recovery.
+        if (userAcknowledged && current.mode == MODE_RESULT &&
+            (current.alertId.isBlank() || ownerUserId.isBlank())) return
 
         // Preserve the accepted D133/D135 local-first contract: durable local
         // acknowledgement state is written before the visible item is removed.
@@ -234,7 +240,7 @@ class CriticalOverlayService : Service() {
             when (current.mode) {
                 MODE_RESULT -> {
                     if (current.alertId.isNotBlank()) {
-                        NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId, InteractiveSessionStore.load(applicationContext)?.userId.orEmpty())
+                        NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId, ownerUserId)
                     }
                 }
                 MODE_PICKER_CHAT -> {
@@ -252,7 +258,7 @@ class CriticalOverlayService : Service() {
         when (current.mode) {
             MODE_RESULT -> {
                 if (userAcknowledged) {
-                    acknowledgeResultAsync(current.alertId, InteractiveSessionStore.load(applicationContext)?.userId.orEmpty())
+                    acknowledgeResultAsync(current.alertId, ownerUserId)
                 } else {
                     releaseUnacknowledgedResult(current)
                 }
