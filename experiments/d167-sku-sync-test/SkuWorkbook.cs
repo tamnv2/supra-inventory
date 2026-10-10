@@ -36,13 +36,15 @@ namespace D167SkuSyncTest
                 var nameCol = -1;
                 var rows = 0;
                 using (var stream = sheet.Open())
-                using (var reader = System.Xml.XmlReader.Create(stream,
-                    new System.Xml.XmlReaderSettings { DtdProcessing = System.Xml.DtdProcessing.Prohibit, XmlResolver = null }))
                 {
-                    while (reader.Read())
+                    var readerSettings = new System.Xml.XmlReaderSettings {
+                        DtdProcessing = System.Xml.DtdProcessing.Prohibit, XmlResolver = null
+                    };
+                    XDocument document;
+                    using (var xmlReader = System.Xml.XmlReader.Create(stream, readerSettings))
+                        document = XDocument.Load(xmlReader);
+                    foreach (var row in document.Descendants(SpreadsheetNs + "row"))
                     {
-                        if (reader.NodeType != System.Xml.XmlNodeType.Element || reader.LocalName != "row") continue;
-                        var row = (XElement)XNode.ReadFrom(reader);
                         var cells = Cells(row, shared);
                         if (!headerFound)
                         {
