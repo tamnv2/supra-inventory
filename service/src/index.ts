@@ -42,6 +42,7 @@ import {
   ensureHrDriveWatch,
   handleHrDriveWatchNotification,
   processHrSnapshot,
+  retryIncompleteHrSnapshotIfDue,
   readHrEventState,
 } from "./hr-event-sync";
 
@@ -392,6 +393,10 @@ async function privilegedAgentLogin(request: Request, env: Env): Promise<Respons
       app_session_generation: 0,
     });
     const session = await exchangeCustomToken(env, customToken);
+    await coreJson(env, "/auth/record-successful-login", {
+      method: "PUT", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id, channel: "AGENT" }),
+    });
     return json({ ...session, user: publicUser(user), session_channel: "AGENT" });
   } catch (error) {
     if (error instanceof PrivilegedAuthError) return privilegedAuthErrorResponse(error);
@@ -955,6 +960,10 @@ async function login(request: Request, env: Env): Promise<Response> {
   });
   try {
     const session = await exchangeCustomToken(env, customToken);
+    await coreJson(env, "/auth/record-successful-login", {
+      method: "PUT", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id, channel }),
+    });
     const relayCustomToken = channel === "ANDROID"
       ? await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON, uid, {
           app_role: user.role,
@@ -2101,6 +2110,8 @@ export default {
             Number(url.searchParams.get("limit") || 50),
             Number(url.searchParams.get("days") || 30),
             String(url.searchParams.get("page_token") || ""),
+            String(url.searchParams.get("from") || ""),
+            String(url.searchParams.get("to") || ""),
           ));
         } catch (error) {
           return json({ error: "LOG_LIST_FAILED", message: error instanceof Error ? error.message : "log_list_failed" }, 502);
@@ -2226,6 +2237,37 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
       if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
 
+      // D167: Reporter-owned meal confirmation, available to both Web and Android.
+      // The durable object accepts the first valid confirmation only.
+      if (url.pathname === "/api/reporter/meal-break") {
+        if (request.method !== "GET" && request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        const actor = await requireUser(request, env, ["REPORTER", "ADMIN", "ROOT"]);
+        if (request.method === "GET") {
+          return coreStub(env).fetch("https://inventory-core.internal/d167/meal/state");
+        }
+        const input = await request.json() as { period?: string; choice?: string };
+        const result = await coreStub(env).fetch("https://inventory-core.internal/d167/meal/confirm", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            period: input.period, choice: input.choice, actor_id: actor.user_id,
+            actor_name: actor.display_name || actor.employee_code || "",
+          }),
+        });
+        const payload = await result.json() as Record<string, unknown>;
+        if (result.ok && payload.status === "CONFIRMED" && payload.deadlines_adjusted) {
+          await coreStub(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+            method: "POST", headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              event: "meal_break_confirmed", event_id: crypto.randomUUID(),
+              scopes: ["meal_break", "reporter_queue", "reporter_overdue"],
+              tags: ["role:REPORTER", "role:ADMIN", "role:ROOT"],
+              metadata: { period: payload.period, day_vn: payload.day_vn, confirmed_at: payload.confirmed_at },
+            }),
+          }).catch(() => undefined);
+        }
+        return json(payload, result.status);
+      }
       if (url.pathname.startsWith("/api/")) return json({ error: "not_found" }, 404);
       if ((request.method === "GET" || request.method === "HEAD") && env.ASSETS) return env.ASSETS.fetch(request);
       return json({ error: "not_found" }, 404);
@@ -2253,6 +2295,8 @@ export default {
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(ensureHrDriveWatch(env).then(() => undefined).catch((error) =>
         console.error("hr_drive_watch_ensure_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(retryIncompleteHrSnapshotIfDue(env).catch((error) =>
+        console.error("hr_incomplete_recheck_failed", error instanceof Error ? error.message : "unknown")));
       if (shouldRetryDailyLauncherPassword(new Date())) {
         ctx.waitUntil(ensureDailyLauncherPassword(env).then(() => undefined).catch((error) =>
           console.error("launcher_password_daily_delivery_failed", error instanceof Error ? error.message : "unknown")));

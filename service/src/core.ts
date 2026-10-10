@@ -21,6 +21,8 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow } from "./alert-window-core";
+import { initializeMealSchema, getMealChoiceState, confirmMealChoice, recalculateMealAdjustedDeadlines } from "./meal-break-core";
+import { initializeD167OverdueSchema } from "./d167-overdue-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 
 const SCHEMA_VERSION = 17;
@@ -292,6 +294,8 @@ export class InventoryCore {
     if (!this.hasColumn("users", "android_session_generation")) sql.exec("ALTER TABLE users ADD COLUMN android_session_generation INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "android_session_device_id")) sql.exec("ALTER TABLE users ADD COLUMN android_session_device_id TEXT");
     if (!this.hasColumn("users", "android_session_started_at")) sql.exec("ALTER TABLE users ADD COLUMN android_session_started_at TEXT");
+    if (!this.hasColumn("users", "last_login_at")) sql.exec("ALTER TABLE users ADD COLUMN last_login_at TEXT");
+    if (!this.hasColumn("users", "last_login_channel")) sql.exec("ALTER TABLE users ADD COLUMN last_login_channel TEXT");
     if (!this.hasColumn("users", "contractor_name")) sql.exec("ALTER TABLE users ADD COLUMN contractor_name TEXT");
     if (!this.hasColumn("users", "shortage_reporting_enabled")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0");
     if (!this.hasColumn("users", "shortage_reporting_revision")) sql.exec("ALTER TABLE users ADD COLUMN shortage_reporting_revision INTEGER NOT NULL DEFAULT 0");
@@ -388,7 +392,12 @@ export class InventoryCore {
     }
 
     initializeBusinessSchema(this.state);
+    initializeMealSchema(this.state);
+    if (!this.hasColumn("report_batches", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_auto_skip_minutes INTEGER");
+    if (!this.hasColumn("report_tickets", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_tickets ADD COLUMN d167_auto_skip_minutes INTEGER");
     initializeOperationalV2Schema(this.state);
+    if (!this.hasColumn("report_batches", "d167_first_overdue_at")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_first_overdue_at TEXT");
+    initializeD167OverdueSchema(this.state);
     initializeRuntimeLogSchema(this.state);
 
     sql.exec(
@@ -525,6 +534,14 @@ export class InventoryCore {
 
   private reporterSummary(effect: OperationalDeadlineEffect, count: number): { title: string; body: string; event: string } {
     if (count <= 1) return { title: effect.title, body: effect.body, event: effect.event };
+    if (effect.event === "d167_overdue_reminder_30" || effect.event === "d167_overdue_reminder_60") {
+      return { title: "SUPRA Inventory · Cảnh báo quá hạn nghiêm trọng",
+        body: `${count} SKU vẫn chưa được chốt; mở Quá hạn để xử lý.`, event: effect.event };
+    }
+    if (effect.event === "batch_day_end_auto_skip") {
+      return { title: "SUPRA Inventory · Chốt tồn cuối ngày", body: `${count} SKU quá hạn đã tự chốt Skip lúc 03:00.`,
+        event: effect.event };
+    }
     if (effect.event === "sla_warning") {
       return {
         title: "SUPRA Inventory · SKU sắp quá hạn",
@@ -801,6 +818,22 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "GET" && url.pathname === "/d167/meal/state") {
+      return response(getMealChoiceState(this.state));
+    }
+    if (request.method === "POST" && url.pathname === "/d167/meal/confirm") {
+      const body = await request.json() as { period?: string; choice?: string; actor_id?: string; actor_name?: string };
+      const result = confirmMealChoice(this.state, body);
+      if (result.changed) {
+        // Deadline recalculation and rearming are separate from confirming
+        // the durable one-winner choice. A failed projection cannot overwrite it.
+        const adjusted = recalculateMealAdjustedDeadlines(this.state);
+        await scheduleNextOperationalAlarm(this.state);
+        return response({ ...result.payload, deadlines_adjusted: adjusted }, result.status);
+      }
+      return response(result.payload, result.status);
+    }
+
     if (request.method === "GET" && url.pathname === "/notifications/alert-window/reconcile") {
       await this.reconcileOperatingScheduleExactIfClosed();
       return response(readAndroidAlertWindow(this.state));
@@ -1031,6 +1064,22 @@ export class InventoryCore {
         userId,
       );
       return response({ status: "firebase_agent_ready" });
+    }
+
+    // D167: Record a successful token exchange, never a password attempt or a
+    // refresh/heartbeat. Internal Durable Object route only; no public API.
+    if (request.method === "PUT" && url.pathname === "/auth/record-successful-login") {
+      const body = (await request.json()) as { user_id?: string; channel?: string };
+      const userId = String(body.user_id || "").trim();
+      const channel = String(body.channel || "").trim().toUpperCase();
+      if (!userId || !["WEB", "ANDROID", "AGENT"].includes(channel)) {
+        return response({ error: "INVALID_LOGIN_EVENT" }, 400);
+      }
+      this.state.storage.sql.exec(
+        "UPDATE users SET last_login_at = CURRENT_TIMESTAMP, last_login_channel = ? WHERE user_id = ? AND status = 'ACTIVE'",
+        channel, userId,
+      );
+      return response({ status: "recorded" });
     }
 
     if (request.method === "PUT" && url.pathname === "/auth/activate-session") {
