@@ -1522,8 +1522,22 @@ export default {
             end.getTime()>now+5*60*1000 || start.getTime()<now-26*60*60*1000)
           return json({error:"D166_WINDOW_OUT_OF_SCOPE"},400);
         const value=await collectD166Cf(env,start,end);
+        // D167: one extra already-scoped InventoryCore internal read per
+        // *manual* Owner export; the handler returns only in-RAM counters,
+        // never SQL rows/identifiers or a new provider metric query.
+        let inventorycoreDiagnostics: unknown = {status:"UNAVAILABLE"};
+        try {
+          const diagnosticResponse=await coreStub(env).fetch("https://inventory-core.internal/diagnostics/d167/usage");
+          if (diagnosticResponse.ok) {
+            inventorycoreDiagnostics=await diagnosticResponse.json();
+          } else {
+            inventorycoreDiagnostics={status:"HTTP_"+diagnosticResponse.status};
+          }
+        } catch {
+          inventorycoreDiagnostics={status:"INTERNAL_READ_UNAVAILABLE"};
+        }
         return json({ok:true,service:"SUPRA_D166_CLOUDFLARE_WORKER_READONLY",project:"supra-inventory-beta",
-          generated_at:new Date().toISOString(),cloudflare:value});
+          generated_at:new Date().toISOString(),cloudflare:value,d167_inventorycore_diagnostics:inventorycoreDiagnostics});
       }
 
       if (request.method === "GET" && url.pathname === "/api/agent/log-day-folder") {
