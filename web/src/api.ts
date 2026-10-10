@@ -1227,6 +1227,31 @@ export async function getAgentAppRelease(): Promise<{ status: string; release: A
   return readJson(await authorizedFetch("/api/admin/agent-app"));
 }
 
+export interface D167MealState {
+  day_vn: string;
+  server_now: string;
+  lunch: { choice: "EARLY" | "LATE"; start_ms: number; end_ms: number; confirmed_at: string; confirmed_by: string; confirmed_name: string } | null;
+  dinner: { choice: "EARLY" | "LATE"; start_ms: number; end_ms: number; confirmed_at: string; confirmed_by: string; confirmed_name: string } | null;
+  lunch_prompt_due: boolean;
+  dinner_prompt_due: boolean;
+  unconfirmed_fallback: string;
+}
+
+export async function getD167MealState(): Promise<D167MealState> {
+  return readJson(await authorizedFetch("/api/reporter/meal-break"));
+}
+
+export async function confirmD167Meal(
+  period: "LUNCH" | "DINNER",
+  choice: "EARLY" | "LATE",
+): Promise<{ status: string; day_vn: string; period: string; choice: string; confirmed_at: string }> {
+  return readJson(await authorizedFetch("/api/reporter/meal-break", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ period, choice }),
+  }));
+}
+
 export async function getAndroidAlertWindow(): Promise<AndroidAlertWindowState> {
   return readJson(await authorizedFetch("/api/admin/alert-window"));
 }
