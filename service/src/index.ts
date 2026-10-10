@@ -2095,6 +2095,8 @@ export default {
             Number(url.searchParams.get("limit") || 50),
             Number(url.searchParams.get("days") || 30),
             String(url.searchParams.get("page_token") || ""),
+            String(url.searchParams.get("from") || ""),
+            String(url.searchParams.get("to") || ""),
           ));
         } catch (error) {
           return json({ error: "LOG_LIST_FAILED", message: error instanceof Error ? error.message : "log_list_failed" }, 502);
