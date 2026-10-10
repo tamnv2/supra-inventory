@@ -90,6 +90,10 @@ class MainActivity : Activity() {
     private var loginProgress: ProgressBar? = null
     private var pickerController: PickerController? = null
     private var reporterController: ReporterController? = null
+    private var d167MealDialog: AlertDialog? = null
+    @Volatile private var d167MealFetching = false
+    private var d167MealPromptKey = ""
+
     private var adminLauncherController: AdminLauncherController? = null
     private var realtimeClient: AndroidRealtimeClient? = null
     private var activeCallWatcher: PickerActiveCallWatcher? = null
@@ -205,6 +209,8 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        d167MealDialog?.dismiss()
+        d167MealDialog = null
         statusHideTask?.let { uiHandler.removeCallbacks(it) }
         operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
         operatingWindowTask = null
@@ -261,6 +267,7 @@ class MainActivity : Activity() {
             ensurePickerActiveCallWatcher(api.session!!)
             applyOperatingSchedulePresentation()
             syncEffectiveRole()
+            reconcileD167MealPrompt()
         }
     }
 
@@ -564,6 +571,7 @@ class MainActivity : Activity() {
             }
         }
         startRealtime(session)
+        if (session.role == "REPORTER" || session.role == "ADMIN") reconcileD167MealPrompt()
         if (session.role == "PICKER") {
             ensurePickerActiveCallWatcher(session)
         } else {
@@ -1589,6 +1597,68 @@ class MainActivity : Activity() {
         }
     }
 
+    // The Android overlay mirrors exactly the Service-owned Ca vận hành
+    // choice. One user wins by server CAS; all other Reporter windows dismiss
+    // on realtime, app foreground, or authenticated reconciliation.
+    private fun reconcileD167MealPrompt() {
+        val current = api.session ?: return
+        if (current.role != "REPORTER" && current.role != "ADMIN") return
+        if (d167MealFetching || isFinishing) return
+        d167MealFetching = true
+        Thread {
+            val state = try { api.getD167MealState() } catch (_: Exception) { null }
+            runOnUiThread {
+                d167MealFetching = false
+                if (isFinishing || api.session?.userId != current.userId || state == null) return@runOnUiThread
+                val day = state.optString("day_vn")
+                val period = when {
+                    state.optBoolean("lunch_prompt_due", false) -> "LUNCH"
+                    state.optBoolean("dinner_prompt_due", false) -> "DINNER"
+                    else -> ""
+                }
+                val key = if (period.isNotBlank()) "$day:$period" else ""
+                if (period.isBlank()) {
+                    d167MealDialog?.dismiss()
+                    d167MealDialog = null
+                    d167MealPromptKey = ""
+                } else if (d167MealDialog == null || d167MealPromptKey != key) {
+                    d167MealDialog?.dismiss()
+                    d167MealPromptKey = key
+                    val options = if (period == "LUNCH") arrayOf("11:00 – 11:30", "11:30 – 12:00")
+                    else arrayOf("18:00 – 18:30", "18:30 – 19:00")
+                    var chosen = 0
+                    val dialog = AlertDialog.Builder(this@MainActivity)
+                        .setTitle(if (period == "LUNCH") "Ca vận hành · Xác nhận giờ nghỉ trưa" else "Ca vận hành · Xác nhận giờ nghỉ tối")
+                        .setMessage("Chọn giờ nghỉ của đội Reporter. Đồng hồ tự động Skip tạm dừng trong khoảng nghỉ; xác nhận thủ công vẫn bình thường. Chỉ Reporter xác nhận đầu tiên được ghi nhận.")
+                        .setSingleChoiceItems(options, 0) { _, which -> chosen = which }
+                        .setPositiveButton("Xác nhận giờ nghỉ", null)
+                        .create()
+                    d167MealDialog = dialog
+                    dialog.setCancelable(false)
+                    dialog.setCanceledOnTouchOutside(false)
+                    dialog.setOnShowListener {
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                            Thread {
+                                val error = try {
+                                    api.confirmD167Meal(period, if (chosen == 0) "EARLY" else "LATE")
+                                    null
+                                } catch (e: Exception) { e.message ?: e.javaClass.simpleName }
+                                runOnUiThread {
+                                    if (error != null && !isFinishing) {
+                                        Toast.makeText(this@MainActivity, "Xác nhận giờ nghỉ: $error", Toast.LENGTH_LONG).show()
+                                    }
+                                    reconcileD167MealPrompt()
+                                }
+                            }.start()
+                        }
+                    }
+                    dialog.show()
+                }
+            }
+        }.start()
+    }
+
     private fun startRealtime(session: AppSession) {
         realtimeClient?.stop()
         realtimeClient = AndroidRealtimeClient(
@@ -1604,6 +1674,10 @@ class MainActivity : Activity() {
                     return@runOnUiThread
                 }
 
+                if (scopes.contains("meal_break") &&
+                    (session.role == "REPORTER" || session.role == "ADMIN")) {
+                    reconcileD167MealPrompt()
+                }
                 val reportingEnabledEvent = scopes.contains("picker_reporting_enabled")
                 val reportingDisabledEvent = scopes.contains("picker_reporting_disabled")
                 if (session.role == "PICKER" && (reportingEnabledEvent || reportingDisabledEvent)) {
@@ -1612,7 +1686,7 @@ class MainActivity : Activity() {
                     // unversioned realtime value that could overwrite a newer state.
                     syncEffectiveRole()
                 }
-                val capabilityScopes = setOf("picker_reporting_enabled", "picker_reporting_disabled")
+                val capabilityScopes = setOf("picker_reporting_enabled", "picker_reporting_disabled", "meal_break")
                 val afterCapability = scopes.filterNot { it in capabilityScopes }.toSet()
                 val catalogChanged = afterCapability.contains("sku_catalog")
                 val remainingScopes = if (catalogChanged) afterCapability.filterNot { it == "sku_catalog" }.toSet() else afterCapability
