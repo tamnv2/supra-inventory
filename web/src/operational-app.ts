@@ -1721,18 +1721,19 @@ function renderResults(): string {
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Khoảng kết quả</h3><p>Theo thời điểm xử lý; tối đa 60 ngày. Tổng quan và bảng bên dưới dùng cùng khoảng này.</p></div><button class="secondary" id="recent-open-report">Mở báo cáo chi tiết</button></div>
-      <div class="filters">
-        <button class="filter ${rangeId === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
-        <button class="filter ${rangeId === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
-        <button class="filter ${rangeId === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
-        <button class="filter ${rangeId === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
+      <div class="toolbar recent-range-toolbar" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+        <div class="filters" style="display:flex;gap:6px;flex-wrap:wrap;align-self:flex-end">
+          <button class="filter ${rangeId === "TODAY" ? "active" : ""}" data-recent-range="TODAY">Hôm nay</button>
+          <button class="filter ${rangeId === "YESTERDAY" ? "active" : ""}" data-recent-range="YESTERDAY">Hôm qua</button>
+          <button class="filter ${rangeId === "D7" ? "active" : ""}" data-recent-range="D7">7 ngày</button>
+          <button class="filter ${rangeId === "D30" ? "active" : ""}" data-recent-range="D30">30 ngày</button>
+        </div>
+        <form id="recent-range-form" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;min-width:0">
+          <label style="min-width:146px">Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" required /></label>
+          <label style="min-width:146px">Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" required /></label>
+          <button class="secondary" type="submit">Áp dụng</button>
+        </form>
       </div>
-      <form id="recent-range-form" class="ops-form-grid">
-        <label>Từ ngày<input type="date" name="from" value="${esc(recentFrom)}" max="${esc(today)}" required /></label>
-        <label>Đến ngày<input type="date" name="to" value="${esc(recentTo)}" max="${esc(today)}" required /></label>
-        <div class="ops-form-actions"><button class="secondary">Áp dụng khoảng ngày</button></div>
-      </form>
-      <div class="filters">${(["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"] as const).map((id) => `<button class="filter ${recentFilter === id ? "active" : ""}" data-result-filter="${id}">${id === "ALL" ? "Tất cả kết quả" : statusLabel(id)}</button>`).join("")}</div>
       <div class="table-wrap result-audit-table"><table><thead><tr><th>SKU / Sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Picker ảnh hưởng</th><th>Picker đã nhận</th><th>Thời điểm xử lý</th><th>Phát sinh lại</th><th>Thao tác</th></tr></thead><tbody>
         ${visible.map((row) => { const correctionEnd = Date.parse(row.correction_deadline_at || "");
           const canCorrect = roleCanResolve() &&
@@ -4571,13 +4572,6 @@ function bindSection(): void {
     reportOffset = 0;
     navigateToSection("reports");
   });
-  document.querySelectorAll<HTMLButtonElement>("[data-result-filter]").forEach((button) => button.addEventListener("click", () => {
-    const next = button.dataset.resultFilter as typeof recentFilter;
-    if (!["ALL", "HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(next)) return;
-    recentFilter = next;
-    recentOffset = 0;
-    void run(loadOperations);
-  }));
   document.querySelector<HTMLButtonElement>("#recent-prev")?.addEventListener("click", () => {
     recentOffset = Math.max(0, recentOffset - RECENT_PAGE_SIZE);
     void run(loadOperations);
