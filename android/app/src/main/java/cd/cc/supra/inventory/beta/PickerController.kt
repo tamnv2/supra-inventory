@@ -880,8 +880,17 @@ class PickerController(
         refreshing = true
         Thread {
             try {
+                val ownerUserId = api.session?.userId.orEmpty()
                 val reports = api.getPickerReports(200)
                 val results = api.getPickerResults(50)
+                if (ownerUserId.isNotBlank() && api.session?.userId == ownerUserId) {
+                    // No extra read: reconcile a legacy locally queued ACK only
+                    // against the existing server-authorized pending results.
+                    NotificationSignalStore.reconcileLegacyOverlayAcks(
+                        activity.applicationContext, ownerUserId,
+                        results.map { it.resultEventId }.toSet()
+                    )
+                }
                 activity.runOnUiThread {
                     historyReports = reports
                     pendingResults = results
