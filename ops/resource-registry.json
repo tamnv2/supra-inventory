@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY_2026_10_10__BETA_WORKER_WEB_GATEWAY_DEPLOYED__ANDROID_SIGNED_VC104_AGENT_V124_CHANNEL_PUBLISHED__FLEET_INSTALL_USAGE_HA_FIELD_EVIDENCE_MOVED_D167__STABLE_UNTOUCHED",
+      "status": "D167_BETA_SOURCE_DEPLOY_PASS_MAIN_9BCFF631__WORKER_WEB_GATEWAY__SIGNED_ANDROID_VC105_AGENT_V125_CHANNEL__FIELD_INSTALLS_AND_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -2779,5 +2779,21 @@
     "http_auth": "UNAUTH_POST_HTTP401_PASS",
     "authenticated_provider": "NOT_VERIFIED",
     "owner_pass": "PENDING"
+  },
+  "d167_beta_integrated_release_2026_10_11": {
+    "scope": "EXISTING_INVENTORY_BETA_ONLY__NO_NEW_PROVIDER_RESOURCE",
+    "main_sha": "9bcff631fed9c3bde6f164b223da94968e0e700a",
+    "pr": 550,
+    "integration_ci": "20_OF_20_PASS",
+    "main_ci": "15_OF_15_PASS",
+    "worker": "supra-inventory-beta__DEPLOY_RUN_38088441632_PASS",
+    "gateway": "EXISTING_BETA_AGENT_OPERATIONS_GATEWAY__RUN_38088441588_PASS",
+    "android": "beta-vc105__SIGNED_RELEASE_AND_INVENTORY_CHANNEL_PASS__REAL_DEVICE_INSTALL_PENDING",
+    "agent": "relay-agent-v125__SIGNED_BINARY_RELEASE_AND_CHANNEL_PASS__REAL_WINDOWS_INSTALL_PENDING",
+    "channel": "inventory-channel",
+    "minimum_android_floor": "DO_NOT_ASSUME_105__EXISTING_POLICY_INDEPENDENT",
+    "field_and_owner_pass": "PENDING",
+    "usage_reduction": "NOT_PROVEN",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }

@@ -124,3 +124,16 @@ Code acceptance criteria: no cross-account ACK replay or silent ACK loss; exact 
 - PR CI snapshot: **18 SUCCESS, 10 CONDITIONAL SKIPPED, 0 FAILURE** (28 checks), including Android compile, Relay Agent Windows build, Worker TypeScript/build, existing D165/D166 usage/HA/gateway regressions, D167 safety regression, authority/project-state security/continuity checks.
 - Scope remains **CODE ONLY**; no merge, no Beta Worker/Apps Script/Android/Agent runtime release, no forced update and no Stable mutation. Final documentation-only continuity commit may rerun CI; it cannot override the strict Owner deployment gate.
 - Field validity: ACK 404 reduction, RTDB Rules rejection root cause, Cloudflare billed DO attribution, Android crash absence, real PDA fleet and P95 latency still REQUIRE separately approved Beta rollout and measurements; no field PASS is claimed.
+
+## 2026-10-11 — D167 combined Beta source and release: technical PASS; Owner field pending
+
+Owner approved continuing code and deployment on 2026-10-10, then marked PR #548 and #549 **Ready for review**. Their source was integrated on PR **#550** to avoid an untested partial `main` rollout. Exact integration-head GitHub Actions: **20/20 SUCCESS**, 0 failed. Merged PR #550 to `main` at **`9bcff631fed9c3bde6f164b223da94968e0e700a`**. Exact main-source GitHub Actions: **15/15 SUCCESS**, 0 failed.
+
+- Existing **Inventory Beta** Worker/Web/InventoryCore: deploy workflow **38088441632 PASS**; existing Beta Agent Operations Gateway: **38088441588 PASS**. No new resources; Stable unchanged.
+- Signed Android Beta release **`beta-vc105`** and existing `inventory-channel` assets: workflow **38088441571 PASS**. Existing minimum-version floor must not be misreported as automatically raised to 105, and fleet installation is unverified.
+- Windows Agent Beta release **`relay-agent-v125`** and `inventory-channel` assets: workflow **38088441614 PASS**. Actual Windows installs/failover/confirmation speed remain unverified.
+- Fix before merge: `service/src/d167-overdue-core.ts` now schedules reminder/day-close only for batches with currently OPEN overdue tickets, preventing repeated expired alarm rearming on stale batch-overdue timestamps. The combined release TypeScript and regression CI passed.
+- A–F Beta source was deployed, **but field behavior is not yet PASS**. Verify Web date toolbar, partial HR sync protection, VN custom log range, last successful login, selected Reporter meal break/auto-skip pause, +30/+60-minute overdue reminders and 03:00 day-close with real shifts. No fabricated provider savings.
+- Standalone WMS SKU test remains an isolated, explicitly scoped read-only exception in `ops/project-scope.json`; no scheduled primary-Agent Supra API export, location/Shelving report or WMS mutation was authorized by this release.
+
+**Acceptance boundary:** Release and CI PASS is **not** Owner D167 PASS, nor proof all PDA/Agent installations, full business acceptance, actual Firestore/DO billed usage reduction or historical data reconstruction. The latest Owner-accepted baseline ID remains **D166** until explicit D167 Owner PASS. OA103 remains open for field evidence when available. No D168 and no Stable mutation.

@@ -5429,28 +5429,38 @@
     },
     {
       "id": "OA103",
-      "status": "D167_CODE_READY_CANDIDATE__AWAIT_OWNER_DEPLOY_APPROVAL__FIELD_RETEST_AFTER_DEPLOY",
+      "status": "D167_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING",
       "title": "D167 code-only PR awaiting Owner deploy approval and field retest",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Existing Web Android Windows Agent Service providers",
       "reason_owner_only": "Real in-company PDA and Windows Agent version/confirm/failover behavior and screenshots/log ZIP of provider usage cannot be proven from GitHub release manifests alone; Owner may send existing evidence when collected.",
-      "source_change": "D167_OWNER_CODE_ONLY_DUAL_TRACK_2026_10_10__DRAFT_PR_548",
+      "source_change": "D167_PR550_MAIN_9BCFF631__OWNER_CODE_AND_BETA_DEPLOY_APPROVED_2026_10_10",
       "backlog_document": "docs/D167_BACKLOG.md",
-      "priority": "OWNER_DEPLOY_DECISION__NO_DEVICE_ACTION_UNTIL_APPROVED",
+      "priority": "FIELD_EVIDENCE_WHEN_AVAILABLE__NO_AUTOMATED_OWNER_PASS",
       "recommended_owner_evidence_when_ready": [
         "existing sanitized Agent Usage ZIP and runtime support logs",
         "Cloudflare Worker/DO SQL and Firebase Firestore RTDB Usage screenshots or export for comparable shifts",
         "installed MT90 DT50 Android version and relevant Agent v124 version with no sensitive device identifiers",
         "realtime WMS confirm/ACK/HA timestamps and selected five-tab/correction/Drive logs outcomes"
       ],
-      "manual_action_now": "REVIEW_PR_548_CODE_READY_RECEIPT__EXPLICIT_DEPLOY_APPROVAL_NEEDED_BEFORE_MERGE",
+      "manual_action_now": "NONE_REQUIRED_TO_COMPLETE_BETA_GITHUB_RELEASE__FIELD_EVIDENCE_WHEN_AVAILABLE",
       "constraints": "NO_SECRET_OR_PERSONAL_IDENTIFIERS_IN_PUBLIC_GITHUB__STABLE_OWNER_GATED__NO_NEW_DEPLOY",
-      "code_or_deploy_approval": false,
+      "code_or_deploy_approval": true,
       "owner_field_pass": false,
       "closed": false,
       "owner_code_only_approval": true,
-      "owner_deploy_approval": false,
-      "accepted_runtime": "D166_UPDATE_NO_REPORTED_ERRORS_ONLY__UNCHANGED"
+      "owner_deploy_approval": true,
+      "accepted_runtime": "AGENT_V125_AND_ANDROID_VC105_BETA_RELEASED_TECHNICALLY__INSTALLED_FLEET_NOT_PROVEN",
+      "technical_receipt": {
+        "pr": 550,
+        "main": "9bcff631fed9c3bde6f164b223da94968e0e700a",
+        "worker_run": 38088441632,
+        "gateway_run": 38088441588,
+        "android_run": 38088441571,
+        "agent_run": 38088441614,
+        "required_ci": "15_OF_15_PASS",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      }
     }
   ]
 }

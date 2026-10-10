@@ -1933,3 +1933,12 @@ Current canonical marker snapshot for CI (do not interpret channel as fleet inst
 - Change-control accepted release baseline: `D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY`.
 - Active next workstream: **D167 BACKLOG / AWAIT LOGS**, code and deploy **not approved**. Source: `docs/D167_BACKLOG.md`.
 - Stable: **OWNER-GATED — untouched**.
+
+## 2026-10-11 — Derived D167 Beta technical release marker (supersedes older D166 view)
+- SQLite schema: `17`.
+- Latest Beta APK/channel: `beta-vc105__SIGNED_CHANNEL_PUBLISHED__DEVICE_INSTALL_COUNTS_UNVERIFIED`.
+- Web: `D167_BETA_WEB_WORKER_DEPLOY_PASS__HISTORY_AND_UI_FIELD_RETEST_PENDING`.
+- Android: `D167_SIGNED_BETA_VC105_RELEASE_CHANNEL_PASS__INSTALLED_FLEET_UNKNOWN__MINIMUM_VERSION_FLOOR_NOT_INFERRED`.
+- Windows Agent: `relay-agent-v125` published, real fleet version unverified.
+- Main Beta deployment: `9bcff631fed9c3bde6f164b223da94968e0e700a`, 15/15 main workflows PASS.
+- D167 Owner acceptance: **PENDING**, previous D166 accepted base unchanged; Stable untouched.
