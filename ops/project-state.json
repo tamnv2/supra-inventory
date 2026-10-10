@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_STANDALONE_FIELD_LOG_PASS__A_D_DESIGN_APPROVED__E_F_PROPOSAL_PENDING__CODE_DEPLOY_NOT_AUTHORIZED",
+    "current_change_status": "D167_A_F_CODE_AND_BETA_ROLLOUT_OWNER_APPROVED__PR549_CI_PASS__DRAFT_REVIEW_TOOL_BLOCKED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -6738,14 +6738,14 @@
   "d167": {
     "opened_on_vn": "2026-10-10",
     "opened_by": "OWNER_EXPLICIT_D166_LIMITED_PASS_AND_DEFERRED_HANDOFF",
-    "status": "ISOLATED_SKU_NAME_IMPORT_FIELD_EVIDENCE_PASS__OTHER_BACKLOG_UNFINISHED",
+    "status": "ISOLATED_SKU_FIELD_PASS_LIMITED__A_F_SOURCE_CODE_READY__BETA_NOT_DEPLOYED",
     "source": "docs/D167_BACKLOG.md",
     "accepted_base": "D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY",
     "owner_code_approval": true,
-    "owner_deploy_approval": false,
+    "owner_deploy_approval": true,
     "implementation_status": "STANDALONE_WINFORMS_EXE_FIELD_LOG_SHOWS_REAL_BETA_IMPORT__MAIN_AGENT_UNCHANGED",
     "provider_changes": "NONE__CURRENT_BETA_WEB_AUTH_SKU_IMPORT_API_REUSED",
-    "next": "OWNER_REVIEW_E_F_FALLBACK_AND_NEXT_DAY_JOIN_POLICY_THEN_EXPLICIT_CHAY_CODE_TO_PREPARE_A_F_PR_ONLY__DEPLOY_SEPARATE",
+    "next": "OWNER_APPROVED_A_F_CODE_AND_BETA_DEPLOY__PR549_DRAFT_REVIEW_TRANSITION_TOOL_BLOCKED__FIELD_PASS_PENDING",
     "inherited_evidence_group_ids": [
       "D167-USAGE-ROOT-CAUSE",
       "D167-CROSS-METER-OPTIMIZATION",
@@ -6810,32 +6810,32 @@
     "supplemental_2026_10_10": {
       "a_result_date_layout": {
         "design_approved": true,
-        "code_approved": false,
+        "code_approved": true,
         "deployed": false,
         "issue": "DUPLICATE_LOWER_STATUS_FILTER_AND_THREE_ROW_DATE_FORM"
       },
       "b_hr_partial_entry": {
         "design_approved": true,
-        "code_approved": false,
+        "code_approved": true,
         "deployed": false,
         "issue": "DRIVE_WATCH_IMMEDIATE_SNAPSHOT_HARD_BLOCK_ON_PARTIAL_THREE_COLUMN_ENTRY",
         "guard": "preserve_last_accepted_snapshot"
       },
       "c_log_custom_range": {
         "design_approved": true,
-        "code_approved": false,
+        "code_approved": true,
         "deployed": false,
         "retention": "CURRENT_90_DAY_DO_BUFFER_AND_AUDIT_UNCHANGED",
         "guard": "bounded_manual_queries"
       },
       "d_last_login": {
         "design_approved": true,
-        "code_approved": false,
+        "code_approved": true,
         "deployed": false,
         "source": "SESSION_ACTIVATION_SUCCESS__NOT_REFRESH_HEARTBEAT"
       },
       "e_reporter_meal_pause": {
-        "status": "ANALYSIS_PROPOSAL_ONLY__OWNER_CODE_POLICY_APPROVAL_PENDING",
+        "status": "CODE_CANDIDATE__OWNER_COMBINED_CODE_DEPLOY_COMMAND__FIELD_PENDING",
         "overlay_times_vn": [
           "10:55",
           "17:55"
@@ -6852,7 +6852,7 @@
         "missing_confirmation_fallback": "RECOMMENDED_FULL_CANDIDATE_HOUR_HOLD__NOT_APPROVED"
       },
       "f_overdue_remind_and_close": {
-        "status": "ANALYSIS_PROPOSAL_ONLY__OWNER_CODE_POLICY_APPROVAL_PENDING",
+        "status": "CODE_CANDIDATE__OWNER_COMBINED_CODE_DEPLOY_COMMAND__FIELD_PENDING",
         "mode": "PER_PICKER_PENDING_AFTER_TICKET_TIMEOUT",
         "remind_minutes_after_first_overdue": [
           30,
@@ -6863,7 +6863,7 @@
         "business_day_source": "first_report_at_vn",
         "needs_cross_midnight_join_resolution": true
       },
-      "plan_status": "A_D_OWNER_DESIGN_APPROVED_E_F_PROPOSAL_ONLY__NO_ADDITIONAL_PRODUCT_CODE_OR_PROVIDER_DEPLOY"
+      "plan_status": "A_F_SOURCE_CODE_READY__OWNER_BETA_DEPLOY_APPROVED__PR_DRAFT_GITHUB_TOOL_BLOCKED__NO_LIVE_DEPLOY"
     }
   }
 }
