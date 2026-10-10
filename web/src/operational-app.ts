@@ -2944,7 +2944,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
       <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
         <option value="EARLY">${early}</option><option value="LATE">${late}</option>
       </select></label>
-      <button class="primary" ${record || !roleCanResolve() ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
+      <button class="primary" ${record || !roleCanResolve() || !(period === "LUNCH" ? d167MealState?.lunch_prompt_due : d167MealState?.dinner_prompt_due) ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
     </form>
   </article>`;
 }
@@ -4241,7 +4241,28 @@ async function commitReporterResolution(batch: ReporterBatch, resolution: "HAS_S
   }
 }
 
+async function submitD167Meal(period: "LUNCH" | "DINNER", choice: "EARLY" | "LATE"): Promise<void> {
+  if (!roleCanResolve()) return;
+  try {
+    await confirmD167Meal(period, choice);
+    await loadD167MealState();
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("success", "Đã xác nhận giờ nghỉ; đồng bộ tới toàn bộ Reporter.");
+  } catch (error) {
+    await loadD167MealState().catch(() => undefined);
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("warning", error instanceof Error ? error.message : "Giờ nghỉ đã được Reporter khác chốt.");
+  }
+}
+
 function bindOverlay(): void {
+  document.querySelector<HTMLFormElement>("#d167-meal-overlay-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const period = form.dataset.period === "DINNER" ? "DINNER" : "LUNCH";
+    const choice = new FormData(form).get("choice") === "LATE" ? "LATE" : "EARLY";
+    void submitD167Meal(period, choice);
+  });
   document.querySelector<HTMLButtonElement>("#cancel-stock")?.addEventListener("click", () => {
     stockConfirm = null;
     patchOverlays();
@@ -4467,6 +4488,12 @@ function bindSection(): void {
     if (profile?.role !== "ROOT" || profile?.base_role !== "ROOT") throw new Error("Chỉ ROOT thực được kiểm tra bộ đệm log Launcher.");
     launcherLogDiagnostics = await getLauncherLogDiagnostics();
     markWebUpdateReceived();
+  }));
+  document.querySelectorAll<HTMLFormElement>("[data-d167-meal-form]").forEach((form) => form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const period = form.dataset.d167MealForm === "DINNER" ? "DINNER" : "LUNCH";
+    const choice = new FormData(form).get("choice") === "LATE" ? "LATE" : "EARLY";
+    void submitD167Meal(period, choice);
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-log-view]").forEach((button) => button.addEventListener("click", () => {
     const raw = String(button.dataset.logView || "WEB").toUpperCase();
@@ -5128,7 +5155,14 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
       }
     }
   }
-  if (context.source === "reconcile") return reconcileActive();
+  if (context.source === "reconcile") {
+    if (roleCanResolve()) await loadD167MealState().catch(() => undefined);
+    return reconcileActive();
+  }
+  if (roleCanResolve() && events.some(e => (e.scopes || []).includes("meal_break"))) {
+    await loadD167MealState().catch(() => undefined);
+    if (activeSection === "shift") patchActiveSection(true);
+  }
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
@@ -5254,6 +5288,7 @@ async function bootstrap(): Promise<void> {
     activeSection = resolveInitialSection(profile);
     syncSectionHistory(activeSection, "replace");
     await loadSection(activeSection);
+    if (roleCanResolve()) await loadD167MealState().catch(() => undefined);
     render();
     window.dispatchEvent(new CustomEvent("supra:session-changed"));
   } catch (error) {
