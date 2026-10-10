@@ -35,6 +35,7 @@ namespace SupraInventoryRelayAgent
         private static readonly Dictionary<string, long> D166Hourly = new Dictionary<string, long>(StringComparer.Ordinal);
         private static readonly Dictionary<string, long> D166Outcomes = new Dictionary<string, long>(StringComparer.Ordinal);
         private static readonly Dictionary<string, long> D166ElapsedMs = new Dictionary<string, long>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, long> D167HaEvents = new Dictionary<string, long>(StringComparer.Ordinal);
         private const int D166MaxKeys = 320;
 
         internal static void Record(string method, string url, string component, Action<string> log)
@@ -135,6 +136,17 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // D167: diagnostic-only HA cause classification. Reuses the existing
+        // sealed Agent log; no provider call, poll, disk I/O or new timer.
+        internal static void RecordHaDiagnostic(string cause, string outcome)
+        {
+            lock (Gate)
+            {
+                ResetIfDayChangedNoLock();
+                D166CountNoLock(D167HaEvents, D166Hour() + "|" + Safe(cause) + "|" + Safe(outcome), 1);
+            }
+        }
+
         internal static string SnapshotUsageAudit()
         {
             lock (Gate)
@@ -147,6 +159,7 @@ namespace SupraInventoryRelayAgent
                     " hourly=" + D166Format(D166Hourly) +
                     " outcomes=" + D166Format(D166Outcomes) +
                     " elapsed_ms_sum=" + D166Format(D166ElapsedMs) +
+                    " d167_ha_events=" + D166Format(D167HaEvents) +
                     " incomplete=PROCESS_LOCAL_RESTART_RESETS_COUNTS";
             }
         }
@@ -294,6 +307,7 @@ namespace SupraInventoryRelayAgent
             D166Hourly.Clear();
             D166Outcomes.Clear();
             D166ElapsedMs.Clear();
+            D167HaEvents.Clear();
         }
 
         private static string ProviderQuotaDayKey()
