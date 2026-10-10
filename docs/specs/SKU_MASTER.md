@@ -120,3 +120,8 @@ Owner asked to **record and analyze later** an optional daily flow: after Agent 
 ## D167 test-first checkpoint (2026-10-10)
 
 Owner requests an isolated one-button test of Supra Bin Inventory download and import of SKU + product name only, before location data or automatic daily scheduling. No change to current catalog conflict, no-delete, chunk preview/apply rules. The current production source stays manual under D126 until a verified and Owner-approved runtime change. The isolated test candidate has no operational WMS session bridge today; test E2E is blocked rather than passed.
+
+
+## D167 — Independently authenticated Windows test, SKU/name only (supersedes earlier IPC-only draft)
+
+Owner explicitly approved an isolated experiment with its OWN signed-in Supra browser and its OWN Firebase WEB Beta login. For this limited test, the test executable may issue a read-only authorized `exportBinStocks` GET and use the existing authenticated `POST /api/admin/skus/import` Service endpoint, respecting real role/session authority. Test data `SKU + product_name` only; do not ingest locations or quantities. Preserve chunk preview, conflict confirmation, request-id idempotency and no-delete semantics. No new business-rule mutation is implied beyond executing the existing authorized import API. D126 restrictions on the operational main Agent and its WMS Confirm session remain unchanged, and no production Agent/Worker modifications are approved.
