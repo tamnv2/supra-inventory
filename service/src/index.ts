@@ -42,6 +42,7 @@ import {
   ensureHrDriveWatch,
   handleHrDriveWatchNotification,
   processHrSnapshot,
+  retryIncompleteHrSnapshotIfDue,
   readHrEventState,
 } from "./hr-event-sync";
 
@@ -2249,6 +2250,8 @@ export default {
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(ensureHrDriveWatch(env).then(() => undefined).catch((error) =>
         console.error("hr_drive_watch_ensure_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(retryIncompleteHrSnapshotIfDue(env).catch((error) =>
+        console.error("hr_incomplete_recheck_failed", error instanceof Error ? error.message : "unknown")));
       if (shouldRetryDailyLauncherPassword(new Date())) {
         ctx.waitUntil(ensureDailyLauncherPassword(env).then(() => undefined).catch((error) =>
           console.error("launcher_password_daily_delivery_failed", error instanceof Error ? error.message : "unknown")));
