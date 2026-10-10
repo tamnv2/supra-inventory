@@ -22,23 +22,19 @@ namespace D167SkuSyncTest
         internal bool IsAuthenticated { get { lock (guard) return !String.IsNullOrWhiteSpace(refreshToken); } }
         internal string Role { get { lock (guard) return role; } }
 
-        internal string Login(string username, string password, bool asAgent, bool forceWeb)
+        internal string Login(string username, string password, bool forceWeb)
         {
-            var path = asAgent ? "/api/auth/privileged-agent-login" : "/api/auth/login";
-            var body = asAgent
-                ? new Dictionary<string, object> { { "username", username }, { "password", password } }
-                : new Dictionary<string, object> {
-                    { "username", username }, { "password", password }, { "client_type", "WEB" },
-                    { "device_id", "d167-sku-test-" + Environment.MachineName.ToLowerInvariant() },
-                    { "force", forceWeb }
-                  };
-            var json = Fetch("POST", path, serializer.Serialize(body), null);
+            var body = new Dictionary<string, object> {
+                { "username", username }, { "password", password }, { "client_type", "WEB" },
+                { "device_id", "d167-sku-test-" + Environment.MachineName.ToLowerInvariant() },
+                { "force", forceWeb }
+            };
+            var json = Fetch("POST", "/api/auth/login", serializer.Serialize(body), null);
             var user = Dict(json,"user");
             var nextRole = Str(user,"role");
             if (nextRole != "ADMIN" && nextRole != "PICKPACK_ADMIN" && nextRole != "ROOT")
                 throw new AppError("INVENTORY_ROLE_NOT_ALLOWED");
-            if (asAgent && nextRole != "ADMIN" && nextRole != "PICKPACK_ADMIN")
-                throw new AppError("INVENTORY_AGENT_ROLE_NOT_ALLOWED");
+
             var nextId = Str(json,"id_token");
             var nextRefresh = Str(json,"refresh_token");
             if (nextId.Length == 0 || nextRefresh.Length == 0)
