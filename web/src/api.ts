@@ -107,6 +107,7 @@ export interface ReporterOverdueBatch {
   overdue_picker_count: number;
   waiting_picker_count: number;
   first_overdue_at: string;
+  reminder_level?: number;
   latest_overdue_at: string;
 }
 
