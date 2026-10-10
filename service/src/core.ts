@@ -5,6 +5,7 @@ import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
+import { recordD167DoRequest } from "./d167-route-usage";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
@@ -784,6 +785,8 @@ export class InventoryCore {
   async fetch(request: Request): Promise<Response> {
     this.pruneAuditRetentionIfDue();
     const url = new URL(request.url);
+    // D167: classify this already-running DO request; zero SQL/network/write overhead.
+    recordD167DoRequest(this.state, request.method, url.pathname);
 
     if (request.method === "GET" && url.pathname === "/notifications/alert-window/reconcile") {
       await this.reconcileOperatingScheduleExactIfClosed();
