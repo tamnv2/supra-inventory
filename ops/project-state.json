@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D167_WAIT_OWNER_UPLOAD_LOGS_PROVIDER_USAGE_AND_FIELD_EVIDENCE__ANALYZE_RANK_BACKLOG_THEN_REQUEST_SEPARATE_CODE_OR_COMBINED_DEPLOY_AUTHORIZATION",
+  "next_action": "D167_INTEGRATION_PR_CI_GATES__MERGE_MAIN_AFTER_PASS__BETA_VERIFY__OWNER_FIELD_ACCEPTANCE_PENDING",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-10",
+  "last_updated": "2026-10-11",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -845,7 +845,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D167_CODE_READY_PR548_DRAFT__OWNER_DEPLOY_GATE_PENDING",
+  "active_workstream": "D167_INTEGRATED_BETA_CANDIDATE__CI_PENDING",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_OWNER_APPROVED_CODE_AND_BETA_DEPLOY__CI_AND_RELEASE_PENDING",
+    "current_change_status": "D167_OWNER_AUTHORIZED_COMBINED_CODE_AND_BETA_DEPLOY__INTEGRATION_CI_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,11 +2485,11 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "NONE__ONLY_UNMERGED_D167_BRANCH_CODE__D166_RELEASED_RUNTIME_UNCHANGED",
+    "runtime_impact": "NONE_UNTIL_BETA_MAIN_MERGE",
     "resource_change": "NONE__DOCUMENTATION_STATE_TRANSITION_ONLY__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
-    "parallel_inventory_change_status": "OWNER_CODE_ONLY_APPROVAL_CONSUMED__CI_SOURCE_PASS__NO_DEPLOY",
+    "parallel_inventory_change_status": "D167_OWNER_SUPPLIED_FIELD_LOG_2492_SKU_3_BATCHES_COMMITTED_5_NEW_2487_UNCHANGED",
     "parallel_boundary": "D166_RELEASE_UPDATE_STABILITY_ACCEPTED_ONLY__D167_UNVERIFIED_TESTS_AND_POSTPONED_WORK_TRACKED_SEPARATELY",
     "accepted_runtime_base_change_id": "D166"
   },
@@ -6738,14 +6738,14 @@
   "d167": {
     "opened_on_vn": "2026-10-10",
     "opened_by": "OWNER_EXPLICIT_D166_LIMITED_PASS_AND_DEFERRED_HANDOFF",
-    "status": "BETA_ROLLOUT_APPROVED__V125_CANDIDATE__CI_PENDING",
+    "status": "D167_COMBINED_SOURCE_READY_FOR_CI__NOT_DEPLOYED",
     "source": "docs/D167_BACKLOG.md",
     "accepted_base": "D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY",
     "owner_code_approval": true,
     "owner_deploy_approval": true,
-    "implementation_status": "CODE_READY_SOURCE_PR_ONLY__NO_RELEASE_OR_RUNTIME_MUTATION",
-    "provider_changes": "NONE__NO_NEW_RESOURCE_OR_BILLING_CHANGE",
-    "next": "WAIT_AGENT_V125_CI_PASS_THEN_MERGE_PR548_FOR_BETA_ONLY__FIELD_RETEST_PENDING",
+    "implementation_status": "INTEGRATE_PR548_PLUS_PR549__COMBINED_CI_PENDING",
+    "provider_changes": "NONE__CURRENT_BETA_WEB_AUTH_SKU_IMPORT_API_REUSED",
+    "next": "CHECK_ALL_INTEGRATION_CI_PASS__MERGE_MAIN_BETA_ONLY__VERIFY_RUNTIME_RELEASE_AND_FIELD",
     "inherited_evidence_group_ids": [
       "D167-USAGE-ROOT-CAUSE",
       "D167-CROSS-METER-OPTIMIZATION",
@@ -6771,7 +6771,7 @@
     "source_already_published_d166": "EIGHT_INTEGRATED_CANDIDATES_FROM_PR541__VERIFY_FIELD_BEFORE_PROPOSING_NEW_CODE",
     "code_ready_gate": "OWNER_CHAY_CODE_BRANCH_PR_CI_ONLY__OWNER_DEPLOY_APPROVAL_SEPARATE_UNLESS_COMBINED_COMMAND",
     "constraints": "PRESERVE_EXISTING_REALTIME_WMS_ACK_HA_USAGE_AND_NO_SECRETS__STABLE_OWNER_GATED",
-    "owner_business_acceptance": "PENDING_DEPLOY_AND_FIELD_RETEST",
+    "owner_business_acceptance": "FIELD_PASS_PENDING__NO_RELEASE_CLAIM",
     "backlog_items_are_not_implementation_approval": true,
     "branch": "d167/code-only-fixes-and-usage-evidence-20261010",
     "code_scope": [
@@ -6792,6 +6792,103 @@
     "pr_url": "https://github.com/tamnv2/supra-inventory/pull/548",
     "verified_code_sha": "be619cd92eb349698a543be2d2b324e9a0a79c02",
     "deploy_status": "NOT_APPLIED__D166_RUNTIME_UNCHANGED",
-    "field_validation": "NOT_STARTED__REQUIRES_OWNER_DEPLOY_GO"
+    "field_validation": "NOT_STARTED__REQUIRES_OWNER_DEPLOY_GO",
+    "isolated_sku_test_2026_10_10": {
+      "status": "OWNER_FIELD_SCREENSHOT_STANDALONE_BETA_SKU_IMPORT_PASS__REQUIRES_OWNER_FORMAL_ACCEPTANCE",
+      "mode": "OWN_EDGE_WMS_PROFILE__OWN_FIREBASE_BETA_WEB_SESSION",
+      "owner_scope": "SINGLE_BUTTON_DOWNLOAD_EXPORTBINSTOCKS__PARSE_SKU_AND_NAME__REAL_SERVICE_UPLOAD__CATALOG_READBACK",
+      "branch": "d167-sku-sync-isolated-test-20261010",
+      "main_agent_modified": false,
+      "service_source_change": false,
+      "provider_deployed": false,
+      "wms_login_separate": true,
+      "inventory_login_separate": true,
+      "auto_daily_schedule": false,
+      "sku_locations": false,
+      "broker_needed": false,
+      "existing_service_route": "POST /api/admin/skus/import",
+      "browser_session_capture": "TEST_BROWSER_ONLY_RAM_ALLOWLIST",
+      "web_session_takeover": "EXPLICIT_OPT_IN",
+      "wms_export_proven": "INDIRECT_BY_SUCCESSFUL_APP_WORKFLOW_AND_VALID_XLSX__NO_RAW_HTTP_CAPTURE",
+      "service_commit_proven": "THREE_APP_COMMIT_RECEIPTS__NO_INDEPENDENT_DB_READ",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "field_test": {
+        "source": "Owner-provided standalone EXE screenshot",
+        "time_local_as_shown": "21:46",
+        "unique_sku": 2492,
+        "preview_batches": 3,
+        "committed_batches": 3,
+        "new_skus": 5,
+        "renamed_skus": 0,
+        "unchanged_skus": 2487,
+        "conflicts": 0,
+        "readback_matched_sample_skus": 3,
+        "full_catalog_reconciled": false
+      },
+      "scope_guard_conflict": "supra-api-d080.allowed_stock_export_FORBIDDEN_D126__REQUIRES_RECONCILIATION_BEFORE_MAIN_INTEGRATION"
+    },
+    "supplemental_2026_10_10": {
+      "a_result_date_layout": {
+        "design_approved": true,
+        "code_approved": true,
+        "deployed": false,
+        "issue": "DUPLICATE_LOWER_STATUS_FILTER_AND_THREE_ROW_DATE_FORM"
+      },
+      "b_hr_partial_entry": {
+        "design_approved": true,
+        "code_approved": true,
+        "deployed": false,
+        "issue": "DRIVE_WATCH_IMMEDIATE_SNAPSHOT_HARD_BLOCK_ON_PARTIAL_THREE_COLUMN_ENTRY",
+        "guard": "preserve_last_accepted_snapshot"
+      },
+      "c_log_custom_range": {
+        "design_approved": true,
+        "code_approved": true,
+        "deployed": false,
+        "retention": "CURRENT_90_DAY_DO_BUFFER_AND_AUDIT_UNCHANGED",
+        "guard": "bounded_manual_queries"
+      },
+      "d_last_login": {
+        "design_approved": true,
+        "code_approved": true,
+        "deployed": false,
+        "source": "SESSION_ACTIVATION_SUCCESS__NOT_REFRESH_HEARTBEAT"
+      },
+      "e_reporter_meal_pause": {
+        "status": "CODE_CANDIDATE__OWNER_COMBINED_CODE_DEPLOY_COMMAND__FIELD_PENDING",
+        "overlay_times_vn": [
+          "10:55",
+          "17:55"
+        ],
+        "lunch_candidates": [
+          "11:00-11:30",
+          "11:30-12:00"
+        ],
+        "evening_candidates": [
+          "18:00-18:30",
+          "18:30-19:00"
+        ],
+        "auto_skip_only_pause": true,
+        "missing_confirmation_fallback": "RECOMMENDED_FULL_CANDIDATE_HOUR_HOLD__NOT_APPROVED"
+      },
+      "f_overdue_remind_and_close": {
+        "status": "CODE_CANDIDATE__OWNER_COMBINED_CODE_DEPLOY_COMMAND__FIELD_PENDING",
+        "mode": "PER_PICKER_PENDING_AFTER_TICKET_TIMEOUT",
+        "remind_minutes_after_first_overdue": [
+          30,
+          60
+        ],
+        "day_close": "03:00_ASIA_HO_CHI_MINH_N_PLUS_1",
+        "proposed_actor": "SYSTEM_DAY_END",
+        "business_day_source": "first_report_at_vn",
+        "needs_cross_midnight_join_resolution": true
+      },
+      "plan_status": "A_F_SOURCE_CODE_READY__OWNER_BETA_DEPLOY_APPROVED__PR_DRAFT_GITHUB_TOOL_BLOCKED__NO_LIVE_DEPLOY"
+    },
+    "integration_branch": "integrate/d167-beta-release-20261011",
+    "integration_source_prs": [
+      548,
+      549
+    ]
   }
 }

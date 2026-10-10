@@ -1,4 +1,5 @@
 import { correctionDeadlineFromResult, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
+import { mealAdjustedDeadline, vnDayAt, vnMidnightMs } from "./meal-break-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -414,6 +415,11 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     }
 
     const at = nowIso();
+    // D167: New VN business day starts a new batch even when yesterday's SKU
+    // remains PENDING for the scheduled 03:00 day-end resolution.
+    const businessDayStart = vnMidnightMs(vnDayAt(Date.parse(at)));
+    const dayStartIso = new Date(businessDayStart).toISOString();
+    const dayEndIso = new Date(businessDayStart + 86_400_000).toISOString();
     let batch = firstRow(
       state.storage.sql
         .exec<BatchRow>(
@@ -421,8 +427,9 @@ async function createReport(state: DurableObjectState, request: Request): Promis
                   resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, version, created_at, updated_at
              FROM report_batches
             WHERE sku = ? AND status = 'PENDING'
-            LIMIT 1`,
-          sku,
+              AND first_report_at >= ? AND first_report_at < ?
+            ORDER BY first_report_at ASC LIMIT 1`,
+          sku, dayStartIso, dayEndIso,
         )
         .toArray(),
     );
@@ -438,13 +445,14 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       const batchId = crypto.randomUUID();
       state.storage.sql.exec(
         `INSERT INTO report_batches (
-           batch_id, sku, product_name, status, first_report_at, auto_skip_deadline_at, created_at, updated_at
-         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?)`,
+           batch_id, sku, product_name, status, first_report_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
+         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, ?)`,
         batchId,
         sku,
         skuRow.product_name,
         at,
         plan.batch_deadline_at,
+        plan.config?.auto_skip_enabled && plan.config.auto_skip_mode === "FIRST_REPORT" ? plan.config.auto_skip_minutes : null,
         at,
         at,
       );
@@ -471,8 +479,8 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     state.storage.sql.exec(
       `INSERT INTO report_tickets (
          ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
-         reported_at, withdraw_deadline_at, auto_skip_deadline_at, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?)`,
+         reported_at, withdraw_deadline_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?)`,
       ticketId,
       batch.batch_id,
       actor.user_id,
@@ -481,6 +489,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       at,
       withdrawDeadline,
       plan.ticket_deadline_at,
+      plan.config?.auto_skip_enabled && plan.config.auto_skip_mode === "PER_PICKER" ? plan.config.auto_skip_minutes : null,
       at,
       at,
     );
@@ -897,7 +906,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
     }
 
     const autoSkipAt = config?.auto_skip_enabled
-      ? addMs(at, Math.max(1, Number(config.auto_skip_minutes || 1)) * 60_000)
+      ? mealAdjustedDeadline(state, at, Math.max(1, Number(config.auto_skip_minutes || 1)))
       : null;
     if (target === "PENDING") {
       const batchDeadline = config?.auto_skip_enabled && config.auto_skip_mode === "FIRST_REPORT" ? autoSkipAt : null;
@@ -910,10 +919,11 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
                 resolved_at = NULL,
                 resolved_by_user_id = NULL,
                 auto_skip_deadline_at = ?,
+                d167_auto_skip_minutes = ?,
                 version = version + 1,
                 updated_at = ?
           WHERE batch_id = ? AND version = ?`,
-        batchDeadline, at, batchId, expectedVersion,
+        batchDeadline, batchDeadline ? config?.auto_skip_minutes : null, at, batchId, expectedVersion,
       );
       state.storage.sql.exec(
         `UPDATE report_tickets
@@ -923,9 +933,10 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
                 resolved_at = NULL,
                 auto_skip_allowed_at = NULL,
                 auto_skip_deadline_at = ?,
+                d167_auto_skip_minutes = ?,
                 updated_at = ?
           WHERE batch_id = ? AND status <> 'WITHDRAWN'`,
-        ticketDeadline, at, batchId,
+        ticketDeadline, ticketDeadline ? config?.auto_skip_minutes : null, at, batchId,
       );
     } else {
       state.storage.sql.exec(
@@ -1453,12 +1464,21 @@ function adminAuditHistory(state: DurableObjectState, url: URL): BusinessResult 
   const daysValue = Number(url.searchParams.get("days") || 30);
   const days = [30, 60, 90].includes(daysValue) ? daysValue : 30;
   const cutoff = new Date(Date.now() - days * 86_400_000).toISOString();
+  const from = String(url.searchParams.get("from") || "");
+  const to = String(url.searchParams.get("to") || "");
+  const fromMs = Date.parse(from);
+  const toMs = Date.parse(to);
+  if ((from || to) && (!from || !to || !Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs ||
+     toMs - fromMs > 366 * 86_400_000)) {
+    return { status: 400, payload: { error: "INVALID_AUDIT_DATE_RANGE" } };
+  }
   const limit = normalizeReportingLimit(url.searchParams.get("limit"));
   const offset = normalizeOffset(url.searchParams.get("offset"));
   const roleExpr = "COALESCE(NULLIF(a.actor_role,''), u.role, '')";
   const nameExpr = "COALESCE(NULLIF(a.actor_display_name,''), u.display_name, NULLIF(a.actor_employee_code,''), a.actor_user_id, '')";
   const where = [roleExpr + " IN ('REPORTER','ADMIN','ROOT')", "a.created_at >= ?"];
-  const args: SqlStorageValue[] = [cutoff];
+  const args: SqlStorageValue[] = [from ? new Date(fromMs).toISOString() : cutoff];
+  if (from) { where.push("a.created_at < ?"); args.push(new Date(toMs).toISOString()); }
   if (role) {
     where.push(roleExpr + " = ?");
     args.push(role);
