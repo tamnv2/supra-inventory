@@ -2,7 +2,7 @@
 
 **Ghi nhận Owner:** 10/10/2026 (Asia/Ho_Chi_Minh)  
 **Phạm vi:** SUPRA Inventory Beta và những tương tác được phép bên trong `ops/project-scope.json`. Stable OWNER-GATED. Dòng Launcher liên quan đến Inventory chỉ điều tra phần backend/log thuộc repo này; APK Launcher thuộc repo khác không được tự thay đổi.
-**Trạng thái D167:** `BACKLOG_OPEN__AWAIT_EVIDENCE_AND_OWNER_ANALYSIS__NO_CODE_OR_DEPLOY_APPROVAL`.
+**Trạng thái hiện tại (11/10/2026):** `D167_BETA_TECHNICAL_RELEASE_PASS__FIELD_AND_OWNER_PASS_PENDING`; xem [bản đối chiếu main/source và phương án tối ưu 11/10](D167_SYSTEM_REVIEW_2026-10-11.md). Trạng thái `BACKLOG_OPEN__AWAIT_EVIDENCE_AND_OWNER_ANALYSIS__NO_CODE_OR_DEPLOY_APPROVAL` phía dưới chỉ phản ánh thời điểm mở D167 ban đầu, đã được Owner cho phép code và triển khai Beta trong PR #550; chưa có Owner field PASS.
 **Đóng D166:** `OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY`. Owner báo **đợt cập nhật D166 chưa phát sinh lỗi được ghi nhận tại thời điểm chốt**. Đây là Owner PASS **phạm vi ổn định cập nhật**, không phải tuyên bố đã PASS tất cả tính năng, toàn bộ PDA/Agent cài phiên bản mới, báo cáo lịch sử, HA, hiệu quả Usage hoặc từng kịch bản hiện trường.
 
 ## 1. Chỉ đạo và quy tắc tiếp nhận
@@ -137,3 +137,7 @@ Owner approved continuing code and deployment on 2026-10-10, then marked PR #548
 - Standalone WMS SKU test remains an isolated, explicitly scoped read-only exception in `ops/project-scope.json`; no scheduled primary-Agent Supra API export, location/Shelving report or WMS mutation was authorized by this release.
 
 **Acceptance boundary:** Release and CI PASS is **not** Owner D167 PASS, nor proof all PDA/Agent installations, full business acceptance, actual Firestore/DO billed usage reduction or historical data reconstruction. The latest Owner-accepted baseline ID remains **D166** until explicit D167 Owner PASS. OA103 remains open for field evidence when available. No D168 and no Stable mutation.
+
+## 2026-10-11 — Owner repo-first consistency and usage-balance review
+
+Owner yêu cầu AI luôn đọc authority/logic GitHub mới nhất trước mọi phân tích, đối chiếu Agent/Android/Web/Worker/DO/Gateway/Firebase/Drive như một mô hình thống nhất, và so nhiều phương án tối ưu Usage mà không suy giảm realtime, độ trễ, HA, ACK hoặc ổn định. Ghi nhận dưới **D167 hiện tại**, không mở change khác và không phát hành runtime mới. Tài liệu phân loại đủ 15 tồn đọng + A–F, phân biệt technical release/field pass/unknown billing, và ba rủi ro mã nguồn được chứng minh tại `docs/D167_SYSTEM_REVIEW_2026-10-11.md`: (1) batch mới qua ngày vs unique `idx_pending_batch_sku`, (2) lựa chọn giờ ăn thiếu => pause cả giờ chưa được Owner chốt, (3) day-close 03:00 theo batch và tương tác vé mới qua ngày. Chưa gọi là lỗi runtime đã xảy ra khi chưa có trace. Đề xuất P0 sửa code chỉ **sau Owner duyệt phương án/ảnh hưởng**, giữ D167 chưa Owner PASS.
