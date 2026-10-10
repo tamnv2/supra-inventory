@@ -2855,3 +2855,16 @@ After Owner authorized release for all Beta PDA and the coordinated Agent/Web/Se
 ### D166 signed Beta release channel — live public readback verification
 
 Following signed vc104 and Agent v124 channel publication, the bounded Beta-only readback workflow `.github/workflows/verify-d166-postrelease-channel.yml` checks both existing unauthenticated release manifests from exact scoped `inventory-beta.supra.cc.cd`. PASS requires PDA tag `beta-vc104`, `minimum_version_code=104` and Agent tag `relay-agent-v124` in the public endpoint responses with HTTP 200. Retry is bounded to 18 attempts separated by 20 seconds to allow the existing five-minute Worker manifest cache to expire; no new provider resource, business data access, Firestore/DO query or periodic polling is introduced. Failure is explicit and cannot be mistaken for installed-device or Owner field PASS. Device-level update and in-flight ACK verification remain separate.
+
+
+### D166 — 2026-10-10 Owner quota-rebalance / spending policy acceptance contract (analysis only)
+
+The earlier statement that usage cannot be shifted between metrics is superseded **for real workload redesign**; literal transfer of provider quota units is still invalid. A proposed move from overloaded metric A to underused B/C must PASS all of these **before** separate Owner approval to implement:
+
+- **Measured comparable baseline:** same business event/confirmed Picklist volume and representative PDA-hours, Agent-hours, Web session load; provider-traced A/B/C usage split by account/project/metric and reset period, including free allowance, dollar rate, missing values labelled `N/A` and uncertainty.
+- **Causal work transfer:** explicit old-vs-new dataflow showing exactly how measured A request/read/write is avoided and what B/C workload is incurred, without claiming A request count equals B bytes/queries/writes or merely moving internal budget numbers.
+- **Quantified impact and total monthly cost:** expected A reduction and B/C additions, rate/minute/free-tier headroom, Cloudflare/Firestore/RTDB/Drive/Sheets/CPU/egress effects and combined incremental provider-charge forecast compared with **USD 5/month total contingency**. No separate Google Cloud USD 10/month soft budget.
+- **Business parity and regression:** InventoryCore authoritative transactions, no duplicate WMS confirm/ACK, HA single PRIMARY/session generation, realtime status/critical notification, business/worker failure recovery, RBAC, local log durability, no new provider poll/write explosion; compare p50/p90/p95 confirmation and ACK under matched load, plus Android battery and device field behavior when relevant.
+- **Proof and rollback:** two representative comparable shifts for an implemented change, use actual provider usage/bills rather than local proxy alone; fail closed if free-tier scope/cost authority unknown; explicit Owner approval for any release/provider modification and rollback after regression. No D166 Owner field PASS from mere policy PR.
+
+The 2026-10-08 30/30/30/10 sharing rule continues for **verified shared pools only**; later explicit Owner directives on the same subject/scope supersede old text with history retained. This contract introduces **no runtime instrumentation, new API call, provider configuration or build by itself**.

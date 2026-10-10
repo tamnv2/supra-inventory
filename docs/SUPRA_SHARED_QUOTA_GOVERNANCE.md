@@ -1,60 +1,70 @@
-# SUPRA Shared Quota Governance — Owner-approved policy (2026-10-08)
+# SUPRA Shared Quota Governance — Owner policy (2026-10-08; revised 2026-10-10)
 
-Status: **OWNER POLICY APPROVED; AUTHORITY-ONLY RECORD**. Scope of this file is governance/account-level planning **as it relates to SUPRA Inventory**; it does not authorize mutation of any other project's resources. Canonical Inventory repository: `tamnv2/supra-inventory`. Existing D165 Beta deployed baseline is preserved, and D166 remains reserved for a future separate post-shift HA/usage analysis.
+Status: **OWNER-APPROVED POLICY — 2026-10-10 REVISION ACTIVE; DOCUMENTATION ONLY**.
+Authority: explicit Owner instruction of 2026-10-10 supersedes incompatible 2026-10-08 wording on **cross-metric workload optimization, financial reserve and Google Drive capacity planning**. Original `GOV-QUOTA-20261008` Owner PASS remains historical. This revision is recorded inside the ongoing D166 usage-analysis scope; it **does not** mean D166 has Owner field PASS or permit opening D167. Inventory resource mutations are limited to `ops/project-scope.json`; Stable remains Owner-gated.
 
-## 1. Owner-approved provider plans and financial envelope
+## 1. Current plans and spending envelope (Owner correction 2026-10-10)
 
-- Cloudflare: existing **Workers Paid USD 5/month base subscription**, shared provider account; no plan change. The base fee is **not** a hard limit on additional usage charges, taxes or independent products.
-- Firebase / Google Cloud: **Blaze (pay as you go)**. Aggregate internal **soft budget USD 10/month** for applicable Google Cloud billable charges, not an enforceable spending ceiling and not a directive to disable services. Usage/charges must be checked against actual Cloud Billing projects, billing accounts and SKU invoices before claiming project allocation.
-- Google consumer account (Drive, Sheets, Gmail): **Free**. No automatic upgrade to Google One/Google AI Pro, Google Workspace, or any paid Google product. Google AI Pro is not a substitute for API or Cloud Billing quota increase.
-- GitHub: **Free**. Other providers: Free unless separately explicitly authorized by Owner.
-- Illustrative **monthly financial planning target: USD 15** = USD 5 Cloudflare base + USD 10 Google Cloud soft budget, **excluding Cloudflare overage, taxes, noncovered Google costs and separately authorized services**. Do not present USD 15 as a guaranteed invoice cap.
+- **Cloudflare:** Workers Paid base subscription currently **USD 5/month**; this is the only service subscription the Owner currently reports paying. It is a fixed fee, not an overage ceiling. Usage exceeding included limits may cause additional charges.
+- **Firebase / Google Cloud:** Blaze billing is enabled, but all design and operation must **prioritize staying within applicable actual free-tier allowances**. Blaze is not itself a USD 0 guarantee.
+- **One shared incremental-cost contingency reserve:** **maximum internal target USD 5/month across ALL additional provider usage charges combined**, including any Cloudflare overage, Firebase/Google Cloud billed usage and other currently-free products that incur usage charges. **Do not** interpret this as USD 5 per service, per project or per metric. There is **no longer a separate Google Cloud USD 10/month soft budget**. Do not pre-allocate/spend the reserve without Owner approval.
+- **Planning total:** USD 5 Cloudflare base + up to USD 5 combined additional usage = **USD 10/month internal target**. This is not an enforceable provider invoice cap. Taxes, FX, existing unrelated subscriptions and billing-account scope must be checked separately; alert on risk before incurring expense.
+- **Google Drive / Sheets / Gmail:** currently operated on free access. Drive storage capacity is **not a primary optimization constraint** because the Owner may use/upgrade to a **Google AI Pro (Gemini Pro) plan offering 5 TB storage** if/when separately confirmed and authorized. Do not claim a 5 TB entitlement is active today, automatically purchase it, or mistake storage entitlement for unlimited Drive/Sheets API rate, file, bandwidth, permission or Apps Script quotas.
+- **GitHub and remaining services:** free-tier by default; no automatic plan upgrade or new paid product.
 
-## 2. Allocation of genuinely shared pools
+**Superseded 2026-10-08 finance statements:** the Google Cloud USD 10 monthly soft ceiling, its USD 3/3/3/1 allocations and the USD 15/month combined illustrative target are historical, **NOT ACTIVE**. Keep only as auditable superseded history, not as current thresholds.
 
-Internal allocation: **Inventory 30% / Pick Pack 30% / third project (identity pending verification) 30% / central reserve 10%**. Each usage metric is tracked independently (requests, CPU, storage, reads, writes, network, billable SKU cost). It is invalid to transfer spare usage of one metric into another or to assume all provider quotas are account-wide.
+## 2. Shared-account planning vs technical quota pools
 
-Google Cloud USD 10 soft budget: Inventory USD 3 / Pick Pack USD 3 / third project USD 3 / reserve USD 1 per month. Cloudflare base subscription is a shared overhead; for internal cost reporting only, USD 1.50 / USD 1.50 / USD 1.50 / USD 0.50 are illustrative 30/30/30/10 allocations **of the fixed base fee**, not additional purchasable capacity or a charge limit.
+Maintain the previously approved **Inventory 30% / Pick Pack 30% / third project (identity unverified) 30% / central reserve 10%** *only* as internal fairness/planning for **verified, actually shared account-level pools**. It does not automatically divide dedicated project/database free allowances, force equal usage per provider metric, or earmark the combined USD 5 financial contingency. A third project's resources remain out of Inventory mutation scope; unverified pools are `N/A`, not assumed shared.
 
-**Quota scope must be verified per product:** Cloudflare Workers/Durable Objects/D1/R2/KV/Queues have distinct billing and included-usage pools. Firebase project/database and Google Cloud Billing Account have differing scopes; separate eligible Firestore project/database free tiers must **not** be arbitrarily divided between unrelated projects. Google Sheets/Drive API scopes can vary by Cloud project, user, request weight and daily/minute reset. Shared consumer Google storage excludes already-used personal Gmail/Drive/Photos storage before splitting remaining allocatable capacity. GitHub REST API auth vs unauthenticated limits, public Actions runners and artifact/storage are separate.
+Actual read/write/request/CPU/storage/egress quotas, billing rates, free-tier scopes and reset periods must be measured **individually**. Different metrics are not financially or technically fungible merely because they have unused numerical headroom. Do not algebraically transfer one provider quota to another, and do not add unlike units as a cost or efficiency score.
 
-**Provider account login ownership does not establish a single shared technical quota pool or a shared Billing Account.** Enumerate project IDs only from verified provider resources; never infer a third-project identity or edit its resources from Inventory authority. Inventory's `ops/project-scope.json` remains the only mutation boundary.
+## 3. Mandatory cross-metric workload rebalance investigation (Owner correction 2026-10-10)
 
-## 3. Alerts and Owner control
+**New instruction replacing the earlier absolute prohibition on using spare usage across metrics:**
 
-Soft-budget alerts at **70%, 85%, 95%** of each applicable project allocation and overall monthly USD 10 Google Cloud budget; at **100%** report an over-budget incident, without automatically stopping or throttling business-critical services.
+When one quota family (A) is near/above its internal safe target and other existing authorized metric families (B/C) have material free headroom, **proactively investigate and propose redesigning the same business operation** so that some genuine work moves from A to B/C. The objective is to reduce the constrained metric's actual consumption / expected bill, use otherwise underutilized free allowances, and achieve **equivalent or better verified business results**, not to transfer the provider's quota units.
 
-- 70%: inform and reconcile trend/cycle/forecast with actual load.
-- 85%: investigate leading drivers and propose noncritical efficiency options for Owner review.
-- 95%: high-priority notification with forecasts and concrete actions requiring approval.
-- 100%/forecast breach: alert Owner and maintain critical workflows. Central 10% reserve requires **explicit Owner approval** before reallocation; there is no silent cross-project borrowing.
-- For Cloudflare, monitor actual usage for each relevant included metric as well as possible overage; USD 5 Workers Paid fee remains payable independently of use. Any overage approval is separate from the USD 10 Google budget.
-- Use actual provider quota/reset/billing periods (Firestore daily quota vs Workers monthly included use vs API per-minute quotas); provide Vietnam-local operational reports without misrepresenting reset boundaries.
-- Monitor forecasts and abnormal *rate of consumption* before static threshold crossings. Include data freshness, provider reporting latency, actual vs estimated vs missing values, service/project attribution and anti-duplicate alert suppression.
-- Never claim a provider has 0 usage when data is unavailable; mark `N/A` and last-updated time.
-- Do not add short-cadence quota polling, per-device accounting writes or usage-driven network spikes. Prefer existing provider billing alerts/monitoring, cached read-only metrics and event/log analysis.
+Owner illustration: current A=100, B=5, C=5, targets 50 each; **illustrative alternative** A=40, B=30, C=40 with the same abstract total 110. These figures illustrate workload allocation, **not** a proof that 1 A request equals 1 B event or 1 C write. Real proposals must normalize units, usage cycle, prices and service effects.
 
-**Business protection:** No automatic provider upgrade, enforced billing cap, scale-to-zero, credential changes, quota-based blocking of reports or Picklist confirmations, loss of Picker ACK/session fences, weakened realtime/HA, or removal of important logs. Any runtime/provider/billing mutation demands a separate explicit Owner authorization and regression/security/usage review.
+For every genuine over-target/hot metric, produce a comparative decision record:
+1. **Baseline:** exact provider/project/metric ownership, billing/free-tier denominator, quota/reset window, source freshness, consumption rate, per-hour/PDA-hour/Agent-hour/per-1,000-business-operations workload, likely root cause and attribution confidence.
+2. **Candidate alternatives:** existing scoped services/underused metric families; what processing/data flow can actually move, what cannot, why; expected A reduction, B/C additions, provider per-operation tariff/free-tier risk, RAM/CPU/network/latency/storage effects, failure mode and extra operational complexity.
+3. **Business equivalence:** maintain InventoryCore authoritative transactions, correct WMS/Agent single-PRIMARY fencing, idempotency, Picker ACK, result/event ordering, RBAC, audit/privacy, realtime UI, confirm P50/P90/P95, HA and device battery/stability at least as good as the accepted comparable baseline.
+4. **No hidden cross-subsidy:** distinguish a measured architecture change from mere ratio/budget redistribution. Confirm no independent B/C per-minute, per-user, per-project, storage, API request or concurrency limit is exceeded; an alternative that shifts cost or bottleneck elsewhere is not an optimization.
+5. **Cost and rollback:** forecast total combined incremental monthly spend against the **USD 5** shared contingency and compare at least two representative equivalent shifts before claiming savings; include rollback and release scope.
+6. **Decision gate:** report measured findings and ranked proposals to Owner. **No automatic provider migration, extra service activation, plan upgrade, infrastructure refactor or behavior change** until separate explicit Owner approval after impact review.
 
-## 4. Inventory Beta and Stable
+Prioritize targeted SQL/query reductions, listener and query deduplication, batched events/exports, local ephemeral aggregation, safe caching and existing free/low-usage channels if they truly reduce the constrained meter. Examples are **candidates**, not authorization to make Drive/Sheets the transaction authority or weaken online-only reporting.
 
-Inventory future development is **Beta-first / no new Stable build planned**. This is a planning decision only: existing Stable resources, source configuration and scope entries remain intact and **OWNER-GATED**. Do not delete, deprovision, modify, deploy to, or activate Stable. Beta operates real business traffic and must retain production-grade availability and safeguards. D165 Agent v120, Android vc102, Web/Worker and existing Firebase RTDB rules remain unchanged. D166 HA/Firestore/RTDB investigation is separate and not opened by this documentation-only decision.
+**Non-negotiable optimization invariants:** no worse speed/realtime/availability/correctness; no lost or duplicate confirmations/ACK; no new polling storms, expensive log writes or sensitive-data exposure. A small increase in a low-used metric is acceptable only if an actual measured net benefit is established. If no safe cross-metric substitute exists, say so; optimize A directly.
 
-## 5. Audit and pending separate approvals
+## 4. Monitoring, alerting and Owner control
 
-This change records policy only. It does not create/modify Cloudflare Billing or Workers, Google Cloud budgets/alerts, Firebase resource/rules, Sheets/Drive/Apps Script, GitHub settings, SDK/Agent/PDA/Web/Worker, or another repository. Before operationalizing alerts/budgets:
-1. Read-only inventory provider account, Cloudflare usage, exact Google Cloud projects and actual Billing Account linkage, Drive used/free storage, GitHub repo/private/public entitlements, and the third project's canonical identity. Unknown/external resources fail closed.
-2. Confirm which pools truly aggregate, the corresponding provider quota sources and free-tier eligibility, and whether costs are gross/net of credits and tax.
-3. Present exact provider configuration steps, any Owner-only billing permissions, alert delivery channel, impact/rollback, optional new resources, and request **separate approval**.
-4. For Inventory-only authority follow the repository's branch -> PR -> authority and continuity PASS -> merge gate. A technical CI pass or policy approval is **not** a claim of runtime PASS or post-change Owner acceptance.
+Use provider-verified metrics and distinct quota periods. Soft usage alert levels **70% / 85% / 95% / 100%** remain applicable per relevant safe target and actual free/included quota, and additionally forecast **combined incremental monthly provider charges** relative to the shared USD 5 contingency:
+- 70%: trend and root-cause review, identify alternative B/C headroom.
+- 85%: investigate rebalance candidates with comparable usage and operational evidence.
+- 95%: urgent Owner report with cost forecast, tradeoffs and rollback options.
+- 100% / forecast over USD 5: escalate immediately; **do not silently spend, auto-upgrade, or stop critical operations**. Owner decides the mitigation/exception.
 
-Official reference starting points (read/reverify at configuration time):
-- https://developers.cloudflare.com/workers/platform/pricing/
-- https://developers.cloudflare.com/durable-objects/platform/pricing/
-- https://firebase.google.com/docs/firestore/quotas
-- https://firebase.google.com/pricing
-- https://cloud.google.com/billing/docs/how-to/budgets
-- https://developers.google.com/workspace/sheets/api/limits
-- https://developers.google.com/drive/api/guides/limits
-- https://developers.google.com/apps-script/guides/services/quotas
-- https://docs.github.com/en/billing
+Monitoring must distinguish account vs project billing, gross vs credits, real billed usage vs estimated usage vs `N/A`, provider day vs Vietnam operating day, and missing/stale samples. Prefer existing provider native billing alerts, cached read-only metrics and local log analysis; no short-cadence usage polling or extra provider writes just to measure usage.
+
+## 5. Owner-instruction precedence / supersession
+
+**A later explicit Owner-confirmed directive overrides an earlier directive on the same subject and same scope from its effective confirmation date**, even if the older directive is present in a prior D-number, handover, spec, historical decision, or this governance file. Mark the older rule `SUPERSEDED_BY:<decision/date>` in active policy references; retain historical text/evidence for audit, but it has **no active normative force** where it conflicts. Unrelated/non-conflicting portions continue. Distinguish later suggestions or AI interpretations from actual Owner-confirmed decisions; no speculative overrides.
+
+Apply the current explicit Owner instruction above historical GitHub text for the active task, then persist it through the same authorized branch/PR/CI flow. This precedence **does not waive** resource scope, secret safety, Stable Owner-gate, serial D166 Owner-PASS gate, or separate approval for runtime/billing mutations. Where newer Owner scope or exact meaning is unclear, reconcile the conflict rather than inventing permissions.
+
+Specific supersessions:
+- 2026-10-10 workload rebalance investigation **supersedes** the 2026-10-08 statement `It is invalid to transfer spare usage of one metric into another` **only insofar as that statement prohibited proposing real, measured cross-metric workload redesign**. Literal technical-quota conversion remains impossible.
+- 2026-10-10 combined incremental **USD 5** reserve **supersedes** the separate Google Cloud USD 10 soft budget and its USD 15 total planning example.
+- 2026-10-10 Drive optional 5 TB path **supersedes** treating consumer Drive storage exhaustion as a dominant near-term constraint; API limits and actual plan eligibility remain.
+
+## 6. Scope, deployment and verification boundary
+
+This revision is **authority/spec/state only**; does not mutate provider billing, Cloudflare, GCP/Firebase, Drive/Sheets/Apps Script, signed artifacts, Web/Android/Agent runtime, or unrelated projects. D166 release vc104/v124 and its outstanding real-device/usage/Owner field gates are unchanged. Stable remains **OWNER-GATED**.
+
+Before implementing any rebalance or enabling a budget alert: verify actual provider fee/included quota by SKU/project, repository scope, security and operational regression; show the Owner baseline, option matrix, monthly forecast, rollout/rollback and explicit approval request. Branch → PR → Repo Authority + Project State continuity PASS → merge; no direct main push. All new decisions are tracked in `docs/OWNER_DECISIONS.md` and relevant spec/state within the same authorized change set.
+
+References: https://developers.cloudflare.com/workers/platform/pricing/ ; https://firebase.google.com/pricing ; https://firebase.google.com/docs/firestore/quotas ; https://cloud.google.com/billing/docs/how-to/budgets ; https://one.google.com/intl/vi_vn/about/google-ai-plans/ ; https://developers.google.com/drive/api/guides/limits

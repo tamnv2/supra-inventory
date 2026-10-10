@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-08",
+  "last_updated": "2026-10-10",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -6242,16 +6242,26 @@
       "third_project_unverified": 30,
       "reserve": 10
     },
-    "google_cloud_usd_monthly_soft_budget": 10,
-    "google_cloud_allocation_usd": {
+    "superseded_2026_10_08_google_cloud_soft_budget_usd_month": 10,
+    "superseded_2026_10_08_google_cloud_allocation_usd": {
       "inventory": 3,
       "pick_pack": 3,
       "third_project_unverified": 3,
       "reserve": 1
     },
+    "incremental_usage_contingency_usd_month_combined": 5,
+    "planned_total_usd_month_including_cloudflare_base": 10,
+    "incremental_contingency_scope": "ALL_SERVICES_COMBINED_INCLUDING_CLOUDFLARE_OVERAGES__NOT_PER_PROVIDER__NOT_ENFORCEABLE_BILLING_CAP",
+    "firebase_blaze": "ENABLED__PREFER_VERIFIED_FREE_TIER",
+    "cross_metric_optimization": "RESEARCH_REAL_WORKLOAD_REBALANCE_FROM_CONSTRAINED_A_TO_UNDERUSED_B_C__NO_LITERAL_QUOTA_TRANSFER__PRESERVE_BUSINESS_PERFORMANCE",
+    "shared_pool_allocation": "30_30_30_10_ONLY_FOR_VERIFIED_ACCOUNT_SHARED_POOLS__NOT_METRIC_FUNGIBILITY_OR_FINANCIAL_RESERVE",
+    "policy_revision_date_vn": "2026-10-10",
+    "policy_revision_workstream": "D166_OWNER_INSTRUCTION_GOVERNANCE_ONLY__RUNTIME_UNCHANGED__FIELD_PENDING",
+    "owner_directive_precedence": "LATEST_EXPLICIT_OWNER_CONFIRMED_SAME_SUBJECT_AND_SCOPE_OVERRIDES_OLDER__MARK_SUPERSEDED_RETAIN_HISTORY",
+    "google_drive_capacity": "FREE_NOW__OPTIONAL_GOOGLE_AI_PRO_5TB_ONLY_AFTER_OWNER_AUTHORIZATION__STORAGE_NOT_API_QUOTA",
     "cloudflare_workers_base_usd_monthly": 5,
     "cloudflare_plan": "WORKERS_PAID_SHARED_ACCOUNT__OVERAGE_NOT_CAPPED",
-    "google_account": "CONSUMER_FREE",
+    "google_account": "CONSUMER_FREE__DRIVE_OPTIONAL_UPGRADE_NOT_ACTIVE",
     "github_plan": "FREE",
     "other_providers": "FREE_UNLESS_SEPARATELY_OWNER_APPROVED",
     "warning_percent": [
@@ -6266,7 +6276,7 @@
     "account_login_does_not_prove_shared_billing": true,
     "inventory_environment_policy": "FUTURE_DEVELOPMENT_BETA_ONLY__EXISTING_STABLE_OWNER_GATED_UNTOUCHED",
     "accepted_base_unchanged": "D165__AGENT_V120__ANDROID_VC102__BETA_WEB_WORKER_RTDB",
-    "d166": "SEPARATE_PENDING_END_SHIFT_LOGS__NOT_OPEN",
+    "d166": "ACTIVE_RELEASE_VC104_AGENT_V124__OWNER_FIELD_PASS_PENDING__POLICY_REVISION_WITHIN_D166",
     "pending_separate_approvals": [
       "provider_account_and_billing_linkage_discovery",
       "billing_budget_and_alert_configuration",
@@ -6285,7 +6295,31 @@
     "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
   },
   "d166": {
-
+    "owner_usage_policy_revision_2026_10_10": {
+      "status": "OWNER_APPROVED_USAGE_POLICY_CHANGE__DOCUMENTATION_ONLY__NO_RUNTIME_PROVIDER_OR_RELEASE_MUTATION",
+      "scope": "D166_USAGE_OPTIMIZATION_ANALYSIS__EXISTING_BETA_INVENTORY_ONLY",
+      "owner_decision": "LATEST_CONFIRMED_OWNER_INSTRUCTION_SUPERSEDES_EARLIER_SAME_ISSUE_SCOPE",
+      "cross_metric": "RESEARCH_WORKLOAD_REBALANCE_TO_UNDERUSED_FREE_CAPACITY_NOT_LITERAL_QUOTA_TRANSFER",
+      "financial": "CLOUDFLARE_BASE_USD_5_PLUS_COMBINED_INCREMENTAL_CONTINGENCY_USD_5_PER_MONTH",
+      "firebase": "BLAZE_ENABLED_FREE_TIER_PREFERRED",
+      "drive": "CURRENTLY_FREE__OPTIONAL_OWNER_APPROVED_GOOGLE_AI_PRO_5TB",
+      "superseded": [
+        "GOV_QUOTA_20261008_GOOGLE_CLOUD_USD_10_MONTH_SOFT_BUDGET_AND_USD_15_TOTAL",
+        "D098_INVENTORY_SHARED_WORKERS_35_PERCENT",
+        "ABSOLUTE_PROHIBITION_ON_REAL_CROSS_METRIC_WORKLOAD_REBALANCE"
+      ],
+      "accepted_base_unchanged": true,
+      "device_field_pass": false,
+      "owner_d166_pass": false,
+      "specs": [
+        "docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md",
+        "docs/OWNER_DECISIONS.md",
+        "docs/OPERATING_PROTOCOL.md",
+        "docs/specs/ACCEPTANCE_TESTING.md"
+      ],
+      "implementation": "NONE__OWNER_REVIEW_REQUIRED_FOR_CANDIDATE_RUNTIME_REBALANCE",
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
     "beta_release_receipt_2026_10_10": {
       "status": "BETA_RELEASE_PLUS_LIVE_MANIFEST_FLOOR_PASS__FLEET_INSTALL_AND_OWNER_PASS_PENDING",
       "main_sha": "20ef736a78de3d253f6636b5518d31bded6a4c4e",
