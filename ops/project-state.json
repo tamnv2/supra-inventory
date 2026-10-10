@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_STANDALONE_BETA_SKU_TEST_FIELD_LOG_PASS__PR_549_UNMERGED__OWNER_FULL_ACCEPTANCE_PENDING",
+    "current_change_status": "D167_STANDALONE_FIELD_LOG_PASS__A_D_DESIGN_APPROVED__E_F_PROPOSAL_PENDING__CODE_DEPLOY_NOT_AUTHORIZED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -6745,7 +6745,7 @@
     "owner_deploy_approval": false,
     "implementation_status": "STANDALONE_WINFORMS_EXE_FIELD_LOG_SHOWS_REAL_BETA_IMPORT__MAIN_AGENT_UNCHANGED",
     "provider_changes": "NONE__CURRENT_BETA_WEB_AUTH_SKU_IMPORT_API_REUSED",
-    "next": "FIELD_PROOF_ACCEPTED_AS_EVIDENCE_ONLY__OBTAIN_OWNER_DECISION_ON_NEXT CODE SCOPE; RECONCILE_WMS_RESOURCE_GUARD_BEFORE_INTEGRATION; KEEP PR DRAFT",
+    "next": "OWNER_REVIEW_E_F_FALLBACK_AND_NEXT_DAY_JOIN_POLICY_THEN_EXPLICIT_CHAY_CODE_TO_PREPARE_A_F_PR_ONLY__DEPLOY_SEPARATE",
     "inherited_evidence_group_ids": [
       "D167-USAGE-ROOT-CAUSE",
       "D167-CROSS-METER-OPTIMIZATION",
@@ -6806,6 +6806,64 @@
         "full_catalog_reconciled": false
       },
       "scope_guard_conflict": "supra-api-d080.allowed_stock_export_FORBIDDEN_D126__REQUIRES_RECONCILIATION_BEFORE_MAIN_INTEGRATION"
+    },
+    "supplemental_2026_10_10": {
+      "a_result_date_layout": {
+        "design_approved": true,
+        "code_approved": false,
+        "deployed": false,
+        "issue": "DUPLICATE_LOWER_STATUS_FILTER_AND_THREE_ROW_DATE_FORM"
+      },
+      "b_hr_partial_entry": {
+        "design_approved": true,
+        "code_approved": false,
+        "deployed": false,
+        "issue": "DRIVE_WATCH_IMMEDIATE_SNAPSHOT_HARD_BLOCK_ON_PARTIAL_THREE_COLUMN_ENTRY",
+        "guard": "preserve_last_accepted_snapshot"
+      },
+      "c_log_custom_range": {
+        "design_approved": true,
+        "code_approved": false,
+        "deployed": false,
+        "retention": "CURRENT_90_DAY_DO_BUFFER_AND_AUDIT_UNCHANGED",
+        "guard": "bounded_manual_queries"
+      },
+      "d_last_login": {
+        "design_approved": true,
+        "code_approved": false,
+        "deployed": false,
+        "source": "SESSION_ACTIVATION_SUCCESS__NOT_REFRESH_HEARTBEAT"
+      },
+      "e_reporter_meal_pause": {
+        "status": "ANALYSIS_PROPOSAL_ONLY__OWNER_CODE_POLICY_APPROVAL_PENDING",
+        "overlay_times_vn": [
+          "10:55",
+          "17:55"
+        ],
+        "lunch_candidates": [
+          "11:00-11:30",
+          "11:30-12:00"
+        ],
+        "evening_candidates": [
+          "18:00-18:30",
+          "18:30-19:00"
+        ],
+        "auto_skip_only_pause": true,
+        "missing_confirmation_fallback": "RECOMMENDED_FULL_CANDIDATE_HOUR_HOLD__NOT_APPROVED"
+      },
+      "f_overdue_remind_and_close": {
+        "status": "ANALYSIS_PROPOSAL_ONLY__OWNER_CODE_POLICY_APPROVAL_PENDING",
+        "mode": "PER_PICKER_PENDING_AFTER_TICKET_TIMEOUT",
+        "remind_minutes_after_first_overdue": [
+          30,
+          60
+        ],
+        "day_close": "03:00_ASIA_HO_CHI_MINH_N_PLUS_1",
+        "proposed_actor": "SYSTEM_DAY_END",
+        "business_day_source": "first_report_at_vn",
+        "needs_cross_midnight_join_resolution": true
+      },
+      "plan_status": "A_D_OWNER_DESIGN_APPROVED_E_F_PROPOSAL_ONLY__NO_ADDITIONAL_PRODUCT_CODE_OR_PROVIDER_DEPLOY"
     }
   }
 }
