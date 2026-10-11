@@ -26,6 +26,9 @@ namespace SupraInventoryRelayAgent
         internal const string SheetsProbeUrl = "https://sheets.googleapis.com/v4/spreadsheets/office-probe";
         internal const string DriveProbeUrl = "https://www.googleapis.com/drive/v3/about?fields=user";
         internal const string WmsPicklistConfirmUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm";
+        // D167 explicitly approved read-only WMS report UI; export stays inside
+        // the already authenticated managed WebView2 profile.
+        internal const string WmsBinInventoryUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/report/bin-inventory";
         internal const string GitHubReleasesApi = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
         // D158: populated by the Beta build environment for the scoped
         // Apps Script Office field candidate after Owner provisioning. Runtime
