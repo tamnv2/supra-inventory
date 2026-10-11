@@ -10,6 +10,7 @@ import {
   type FirebaseManagedUserSpec,
 } from "./firebase-auth-admin";
 import { handleBusinessApi } from "./business-api";
+import { verifyD167AgentPrimary } from "./d167-sku-ha";
 import { handleReadApi } from "./read-api";
 import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
@@ -1506,6 +1507,38 @@ export default {
       if (request.method === "GET" && url.pathname === "/api/admin/system-status") {
         await requireUser(request, env, ["ADMIN", "ROOT"]);
         return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
+      }
+
+      // D167 scoped, source-only SKU sync. Agent auth AND authoritative current
+      // Firestore PRIMARY generation are required before every state mutation.
+      // GETs are Agent-authenticated but do not query HA or start a WMS export.
+      if (url.pathname.startsWith("/api/agent/d167/skus/")) {
+        if (env.APP_ENV !== "beta") return json({ error: "D167_BETA_ONLY" }, 404);
+        const operator = await requireAgentUser(request, env, ["ADMIN","PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        const action = url.pathname.slice("/api/agent/d167/skus/".length);
+        if (!["schedule","status","claim","stage","preview","publish"].includes(action))
+          return json({ error: "NOT_FOUND" }, 404);
+        if (request.method === "GET") {
+          if (action !== "schedule" && action !== "status") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+          return coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action + url.search);
+        }
+        if (request.method !== "POST" || !["claim","stage","preview","publish"].includes(action))
+          return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+        let input: Record<string, unknown>;
+        try {
+          const raw = await request.json();
+          if (!raw || typeof raw !== "object" || Array.isArray(raw)) return json({ error: "INVALID_JSON" }, 400);
+          input = raw as Record<string, unknown>;
+        } catch { return json({ error: "INVALID_JSON" }, 400); }
+        const leader = await verifyD167AgentPrimary(
+          env, String(input.instance_id || ""), String(input.generation || ""),
+        );
+        if (!leader) return json({ error: "NOT_CURRENT_FIREBASE_PRIMARY" }, 409);
+        return coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action, {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ ...input, actor_user_id: operator.user_id }),
+        });
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
