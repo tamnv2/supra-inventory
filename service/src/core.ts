@@ -546,7 +546,7 @@ export class InventoryCore {
         body: `${count} SKU vẫn chưa được chốt; mở Quá hạn để xử lý.`, event: effect.event };
     }
     if (effect.event === "batch_day_end_auto_skip") {
-      return { title: "SUPRA Inventory · Chốt tồn cuối ngày", body: `${count} SKU quá hạn đã tự chốt Skip lúc 03:00.`,
+      return { title: "SUPRA Inventory · Chốt tồn cuối ngày", body: `${count} SKU chưa được Inventory xử lý đã được hệ thống tự chốt Skip lúc 03:00.`,
         event: effect.event };
     }
     if (effect.event === "sla_warning") {
