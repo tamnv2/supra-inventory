@@ -5503,6 +5503,16 @@
         "storage_schema": "17/17",
         "operational_schema": "7/7",
         "qa_field_pending": true
+      },
+      "agent_sku_area_reporting_priority_2026_10_11": {
+        "status": "DESIGN_SPEC_PREPARED__NOT_CODE_READY",
+        "design": "docs/D167_AGENT_SKU_AREA_REPORT_DESIGN_2026-10-11.md",
+        "owner_priority": "D05_D06_D07__REPORT_DETAIL_DASHBOARD_BEFORE_WEB_OPERATIONS_UI_FOLLOWUP",
+        "owner_business_rules": "EXISTING_D167_D05_D06_D07_ALREADY_LOCKED",
+        "verify_later": "REAL_WMS_EXPORT_AREA_COLUMNS_AND_IN_PROFILE_DOWNLOAD_BEFORE_CLAIMING_AREA_PASS",
+        "executable_permission": "NOT_GRANTED_BY_DESIGN_SETUP_REQUEST",
+        "deployment_permission": "NOT_GRANTED_BY_DESIGN_SETUP_REQUEST",
+        "stable": "OWNER_GATED_UNTOUCHED"
       }
     }
   ]

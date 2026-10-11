@@ -385,3 +385,8 @@ A day-N shortage may remain unresolved until the conditional 03:00 VN N+1 finali
 ## 2026-10-11 — D167 Owner D03/D04/D07 report rules
 
 Live pending and overdue tabs do not need history filtering; the three terminal-result tabs retain it. Every day-N unfinished pending batch becomes SKIP_ALLOWED by SYSTEM_DAY_END at 03:00 N+1 with distinct styling, explicit system source, business day N and actual action timestamp. New-day duplicate SKU/Picker reports have independent business-day batches. Report area grouping uses only verified LTA/Shelving temporal intervals; before first observation display UNKNOWN. Do not infer past location from today's SKU area and never add stock quantities. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
+
+
+## 2026-10-11 — D167 reporting + area source-of-truth design candidate (NOT CODED)
+
+Owner prioritizes redesign of Tổng quan/Báo cáo chi tiết together with D05/D06/D07. Refer to `docs/D167_AGENT_SKU_AREA_REPORT_DESIGN_2026-10-11.md` for metric grain, immutable `LTA/SHELVING/UNKNOWN` area as of report time, live-vs-selected-period split, `SYSTEM_TIMEOUT` vs `SYSTEM_DAY_END` vs Reporter provenance, full-filter Excel parity, schema/index/usage and 03:00 N+1 attribution. Existing `service/src/business-core.ts` has mixed ticket/batch/resolution/live counts; Web Dashboard counts only SYSTEM_TIMEOUT as auto Skip while Excel groups both auto sources. This is verified design debt and must not be reported as fixed. UNKNOWN before first source proof; no retroactive area, no exact bin or stock management. Spec-only; await explicit `chạy code` / release gate.

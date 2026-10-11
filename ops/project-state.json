@@ -7046,6 +7046,26 @@
       "deploy_url": "https://github.com/tamnv2/supra-inventory/actions/runs/38109855709",
       "beta_deploy_technical_pass": true,
       "postdeploy_ci": "MAIN_10_OF_11_SUCCESS__CANARY_DENIED_OWNER_GATE_AT_JOB_FIRST_STEP__NO_CANARY_MUTATION__TRIGGER_CORRECTION_PR_REQUIRED"
+    },
+    "agent_sku_area_reporting_design_2026_10_11": {
+      "status": "DESIGN_PROPOSED__SOURCE_AUDITED__NO_EXECUTABLE_CODE__NO_DEPLOY",
+      "owner_priority": "D167_PRIMARY_AGENT_DAILY_SKU__LTA_SHELVING_HISTORY__REPORT_DASHBOARD_DETAIL_FIRST__WEB_OPERATIONS_UI_REVIEW_DEFERRED",
+      "authority": "docs/D167_AGENT_SKU_AREA_REPORT_DESIGN_2026-10-11.md",
+      "current_main": "8ccb0177481e89e1fdc86e9e03670138c0412135",
+      "code_implementation": false,
+      "wms_test_source": "EXPERIMENT_STANDALONE_EXPORT_SKU_NAME_ONLY__NOT_PRODUCTION_PRIMARY_AGENT",
+      "verified_lta_shelving_export_header": false,
+      "agent_same_managed_browser_export_proof": false,
+      "recommended_import": "ONE_SUCCESSFUL_JOB_PER_VN_DAY__SERVER_LEASE_GENERATION_FENCE__STAGE_VALIDATE_OPERATOR_RENAME_APPROVAL__NO_DELETION__COMMIT_AND_FULL_READBACK",
+      "reports": "BUSINESS_DAY_COHORT__AREA_AT_REPORT_TIME__SOURCE_SPLIT_HUMAN_TIMEOUT_DAY_END__UNKNOWN_BEFORE_OBSERVATION",
+      "pending_owner_technical_evidence": [
+        "REAL_EXPORT_AREA_COLUMNS",
+        "SAME_MANAGED_BROWSER_SAFE_EXPORT",
+        "MULTI_AREA_ATTRIBUTION",
+        "SQL_5K_ATOMIC_BENCHMARK"
+      ],
+      "next": "WAIT_EXPLICIT_OWNER_CHAY_CODE_BEFORE_IMPL__KEEP_D167_OPEN__NO_DEPLOY_STABLE_OWNER_GATED",
+      "field_owner_pass": false
     }
   }
 }
