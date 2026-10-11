@@ -92,6 +92,7 @@ function rosterRows(state: DurableObjectState): D167CatalogRow[] {
   return list.map(x => ({
     sku: String(x.sku), product_name: String(x.product_name),
     active: x.active == null || Number(x.active) === 1,
+    has_active_record: x.active != null,
     area: String(x.area || "UNKNOWN") as D167Area,
     area_verified: Number(x.area_verified || 0) === 1,
     area_reason: "CACHED",
@@ -266,6 +267,11 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     const meta = row(state,"SELECT revision,last_full_day,published_at FROM d167_sku_meta WHERE id=1") || {};
     const baseTime = meta.published_at ? Date.parse(String(meta.published_at)) : 0;
     const plan = planSkuChanges(existing,staged,slotMode(slot),baseTime);
+    const existingBySku = new Map(existing.map(x => [x.sku,x]));
+    const changedSkus = new Set([
+      ...plan.create.map(x=>x.sku), ...plan.update.map(x=>x.sku), ...plan.activate,
+      ...plan.conflicts.map(x=>x.sku),
+    ]);
     const updates = new Map(plan.update.map(x => [x.sku,x]));
     const summary = { created:plan.create.length,updated:plan.update.length,
       activated:plan.activate.length,hidden:plan.hide.length,unchanged:plan.unchanged,
@@ -285,7 +291,15 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       if (!current || current.state === "DONE" || current.generation !== generation || current.owner_id !== instance)
         return false;
       for (const x of staged) {
-        const old = row(state,"SELECT product_name FROM sku_master WHERE sku=?",x.sku);
+        const prior = existingBySku.get(x.sku);
+        // rosterRows already read the entire current master in one SQL cursor.
+        // Do not issue two more SQL row-reads for every unchanged item on
+        // each daily FULL, nor write unchanged SKU metadata. The first FULL
+        // still initializes a metadata row for every pre-existing SKU.
+        if (prior?.has_active_record && !changedSkus.has(x.sku)) continue;
+        const old = prior
+          ? { product_name: prior.product_name }
+          : null;
         if (!old) state.storage.sql.exec(
           "INSERT INTO sku_master (sku,product_name,source_hash,created_at,updated_at) VALUES (?,?,?,?,?)",
           x.sku,x.product_name,String(job.fingerprint),at,at);
@@ -293,7 +307,10 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
           (updates.get(x.sku)?.name !== undefined ||
            (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="product_name"))))
           state.storage.sql.exec("UPDATE sku_master SET product_name=?,updated_at=? WHERE sku=?",x.product_name,at,x.sku);
-        const prev = row(state,"SELECT area,area_verified,active FROM d167_sku_active WHERE sku=?",x.sku);
+        const prev = prior?.has_active_record
+          ? { area: prior.area, area_verified: prior.area_verified ? 1 : 0,
+              active: prior.active ? 1 : 0 }
+          : null;
         const trustedUnknown = ["MULTIPLE_AREA","INVALID_PICKABLE_LOCATION"].includes(x.area_reason);
         const applyArea = (x.area_verified || trustedUnknown) && (!prev || updates.get(x.sku)?.area !== undefined ||
           (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="area")));
