@@ -119,6 +119,20 @@ function skuCatalogDelta(state: DurableObjectState, url: URL): Response {
   const afterUpdatedAt = String(url.searchParams.get("after_updated_at") || since).trim();
   const afterSku = String(url.searchParams.get("after_sku") || "").trim();
   if (!since || !afterUpdatedAt) return response({ error: "CATALOG_DELTA_CURSOR_REQUIRED" }, 400);
+  // Active SKU membership may change without changing sku_master.updated_at:
+  // a hidden SKU has no tombstone in the legacy delta payload. An old Android
+  // cache that saw the previous membership MUST perform a full staged refresh.
+  // The existing Android client treats HTTP 409 as delta failure and safely
+  // falls back to /api/skus/catalog, preserving the installed-version contract.
+  const membership = state.storage.sql.exec<SqlRow>(
+    "SELECT membership_changed_at FROM d167_sku_meta WHERE id=1 LIMIT 1",
+  ).toArray()[0];
+  const membershipAt = Date.parse(String(membership?.membership_changed_at || ""));
+  const cursorAt = Date.parse(since);
+  if (Number.isFinite(membershipAt) &&
+      (!Number.isFinite(cursorAt) || cursorAt < membershipAt)) {
+    return response({ error: "CATALOG_MEMBERSHIP_CHANGED_FULL_REQUIRED" }, 409);
+  }
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT sku, product_name, updated_at
        FROM sku_master
