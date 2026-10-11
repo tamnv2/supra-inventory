@@ -231,6 +231,7 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     let updated = 0;
     let unchanged = 0;
     const touched: string[] = [];
+    const reactivated: string[] = [];
 
     for (const item of items) {
       const existing = firstRow(
@@ -251,7 +252,13 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
         inserted += 1;
         touched.push(item.sku);
       } else if (existing.product_name === item.product_name) {
-        unchanged += 1;
+        const member = state.storage.sql.exec<{active:number}>(
+          "SELECT active FROM d167_sku_active WHERE sku=?",item.sku).toArray()[0];
+        if (member && Number(member.active) === 0) {
+          reactivated.push(item.sku);
+        } else {
+          unchanged += 1;
+        }
       } else {
         state.storage.sql.exec(
           `UPDATE sku_master
@@ -272,9 +279,13 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     for (const sku of touched) {
       state.storage.sql.exec("INSERT INTO d167_sku_active (sku,active,area,area_verified,last_web_name_at) VALUES (?,1,'UNKNOWN',0,?) ON CONFLICT(sku) DO UPDATE SET active=1,last_web_name_at=excluded.last_web_name_at",sku,at);
     }
-    if (touched.length) state.storage.sql.exec("UPDATE d167_sku_meta SET revision=revision+1,published_at=? WHERE id=1",at);
+    for (const sku of reactivated) {
+      state.storage.sql.exec("UPDATE d167_sku_active SET active=1 WHERE sku=? AND active=0",sku);
+    }
+    if (touched.length || reactivated.length)
+      state.storage.sql.exec("UPDATE d167_sku_meta SET revision=revision+1,published_at=? WHERE id=1",at);
 
-    if (inserted > 0 || updated > 0) {
+    if (inserted > 0 || updated > 0 || reactivated.length > 0) {
       const meta = state.storage.sql.exec<SqlRow>("SELECT item_count FROM sku_catalog_meta WHERE id = 1 LIMIT 1").toArray()[0];
       if (!meta) {
         state.storage.sql.exec(
@@ -298,6 +309,8 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
       inserted,
       updated,
       unchanged,
+      reactivated: reactivated.length,
+      catalog_revision: catalogRevision + (touched.length || reactivated.length ? 1 : 0),
       source_hash: sourceHash,
       imported_at: at,
     };
