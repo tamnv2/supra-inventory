@@ -7,8 +7,6 @@ on:
       - "service/**"
       - "web/**"
       - "android/**"
-      - ".github/workflows/deploy-beta.yml"
-      - ".github/workflows/verify-apps.yml"
   workflow_dispatch:
 
 permissions:

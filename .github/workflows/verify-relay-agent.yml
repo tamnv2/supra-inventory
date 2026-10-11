@@ -17,7 +17,6 @@ on:
       - "firebase/database.rules.json"
       - "firebase/firestore.rules"
       - "firebase/firestore.indexes.json"
-      - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:
 
 permissions:

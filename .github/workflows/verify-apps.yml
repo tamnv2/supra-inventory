@@ -13,7 +13,6 @@ on:
       - "android/**"
       - "firebase/database.rules.json"
       - "firebase/firestore.rules"
-      - ".github/workflows/verify-apps.yml"
   workflow_dispatch:
 
 permissions:

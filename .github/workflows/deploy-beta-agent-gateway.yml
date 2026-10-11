@@ -9,7 +9,6 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/deploy-beta-agent-gateway.yml"
       - "ops/apps-script/agent-log-gateway/**"
       - "tools/d166_gateway_hourly_regression.cjs"
   workflow_dispatch:

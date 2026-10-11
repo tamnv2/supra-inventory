@@ -20,7 +20,6 @@ on:
       - "firebase/firestore.rules"
       - "firebase/firestore.indexes.json"
       - "firebase.json"
-      - ".github/workflows/deploy-beta-firestore.yml"
   workflow_dispatch:
 
 permissions:
