@@ -425,6 +425,7 @@ let hrEventSync: HrEventSyncState | null = null;
 let hrWebRows: HrEmployeeInput[] = [];
 let hrWebPreview: HrSyncPreview | null = null;
 let hrWebFilename = "";
+let hrWebRequestSeq = 0;
 let pendingWorkbook: ParsedSkuWorkbook | null = null;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
 let skuAdminQuery = "";
@@ -4708,24 +4709,36 @@ function bindSection(): void {
   document.querySelector<HTMLFormElement>("#hr-manual-form")?.addEventListener("submit", event => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
+    const seq = ++hrWebRequestSeq;
+    hrWebRows = [{
+      employee_code: String(data.get("employeeCode") || "").trim().toLowerCase(),
+      display_name: String(data.get("displayName") || "").trim(),
+      contractor_name: String(data.get("contractorName") || "").trim(),
+    }];
+    hrWebPreview = null;
+    hrWebFilename = "Nhập trực tiếp";
+    const rows = hrWebRows;
+    patchActiveSection(true); // Pending preview is never an enabled Apply.
     void run(async () => {
-      hrWebRows = [{
-        employee_code: String(data.get("employeeCode") || "").trim().toLowerCase(),
-        display_name: String(data.get("displayName") || "").trim(),
-        contractor_name: String(data.get("contractorName") || "").trim(),
-      }];
-      hrWebPreview = await previewHrWebInput(hrWebRows);
-      hrWebFilename = "Nhập trực tiếp";
+      const preview = await previewHrWebInput(rows);
+      if (seq !== hrWebRequestSeq) return; // Ignore out-of-order responses.
+      hrWebPreview = preview;
       patchActiveSection(true);
     });
   });
   document.querySelector<HTMLInputElement>("#hr-excel-file")?.addEventListener("change", event => {
     const file = (event.currentTarget as HTMLInputElement).files?.[0];
     if (!file) return;
+    const seq = ++hrWebRequestSeq;
+    hrWebRows = []; hrWebPreview = null; hrWebFilename = file.name;
+    patchActiveSection(true);
     void run(async () => {
-      hrWebRows = await parseHrWorkbook(file);
-      hrWebPreview = await previewHrWebInput(hrWebRows);
-      hrWebFilename = file.name;
+      const rows = await parseHrWorkbook(file);
+      if (seq !== hrWebRequestSeq) return;
+      hrWebRows = rows;
+      const preview = await previewHrWebInput(rows);
+      if (seq !== hrWebRequestSeq) return;
+      hrWebPreview = preview;
       patchActiveSection(true);
     });
   });
@@ -4733,9 +4746,13 @@ function bindSection(): void {
     if (!hrWebPreview || !hrWebRows.length) throw new Error("Chưa có dữ liệu đã xem trước.");
     const changed = Number(hrWebPreview.rename || 0) + Number(hrWebPreview.contractor_update || 0);
     if (changed > 0 && !window.confirm(`Xác nhận cập nhật thông tin của ${changed} Picker đã tồn tại? Mã trùng sẽ giữ nguyên vai trò và trạng thái tài khoản.`)) return;
-    await applyHrWebInput(hrWebRows, hrWebPreview, changed > 0);
-    const applied = hrWebRows.length;
-    hrWebRows = []; hrWebPreview = null; hrWebFilename = "";
+    const seq = ++hrWebRequestSeq;
+    const rows = hrWebRows, preview = hrWebPreview;
+    await applyHrWebInput(rows, preview, changed > 0);
+    const applied = rows.length;
+    if (seq === hrWebRequestSeq) {
+      hrWebRows = []; hrWebPreview = null; hrWebFilename = "";
+    }
     await loadUsers();
     patchActiveSection(true);
     setNotice("success", `Đã ghi nhận ${applied} nhân sự. Tài khoản không có trong file vẫn được giữ nguyên.`);
