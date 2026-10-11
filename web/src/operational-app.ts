@@ -22,6 +22,7 @@ import {
   createManagedUser,
   deleteManagedUsers,
   getAdminDashboard,
+  getD167AreaSummary,
   getAdminOperationalInsights,
   getAdminReporting,
   getAdminReportingDetail,
@@ -436,6 +437,8 @@ const SKU_PAGE_SIZE = 100;
 let skuConflictChoices = new Map<string, string>();
 let skuImportProgress = "";
 let dashboardData: AdminDashboard | null = null;
+let d167DashboardAreas: Awaited<ReturnType<typeof getD167AreaSummary>> | null = null;
+let d167ReportAreas: Awaited<ReturnType<typeof getD167AreaSummary>> | null = null;
 let reportRows: AdminReportingRow[] = [];
 let reportBatchDetails = new Map<string, AdminReportingDetailRow[]>();
 let expandedReportBatches = new Set<string>();
@@ -2024,6 +2027,23 @@ function renderReportTabs(current: "dashboard" | "reports"): string {
   </div>`;
 }
 
+function d167AreaSummaryMarkup(data: Awaited<ReturnType<typeof getD167AreaSummary>> | null): string {
+  if (!data) return `<article class="ops-panel"><div class="ops-panel-title"><h3>Khu vực tại thời điểm báo thiếu</h3></div><p>Chưa tải được số liệu lịch sử khu vực; các chỉ số vận hành hiện có không bị thay đổi.</p></article>`;
+  const byArea = new Map(data.areas.map(entry => [entry.area, entry]));
+  return `<article class="ops-panel">
+    <div class="ops-panel-title"><div><h3>LTA / Shelving theo lịch sử báo thiếu</h3><p>${esc(data.from_vn)} – ${esc(data.to_vn)} · ghi nhận theo thời điểm báo đầu tiên, không dùng vị trí hiện tại</p></div></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Khu vực</th><th>Đợt báo</th><th>Lượt Picker báo</th><th>SKU khác nhau</th><th>Đã có hàng</th><th>Cho phép Skip</th><th>Thu hồi</th><th>Đang xử lý</th></tr></thead>
+      <tbody>${(["LTA","SHELVING","UNKNOWN"] as const).map(area => {
+        const item=byArea.get(area);
+        const value=(key: "batches" | "picker_reports" | "distinct_skus" | "has_stock" | "skip_allowed" | "closed" | "pending") => Number(item?.[key] || 0).toLocaleString("vi-VN");
+        return `<tr><td>${esc(d167AreaLabel(area))}</td><td>${value("batches")}</td><td>${value("picker_reports")}</td><td>${value("distinct_skus")}</td><td>${value("has_stock")}</td><td>${value("skip_allowed")}</td><td>${value("closed")}</td><td>${value("pending")}</td></tr>`;
+      }).join("")}</tbody>
+    </table></div>
+    <p class="ops-subtle">Tổng ${Number(data.totals.batches || 0).toLocaleString("vi-VN")} đợt · ${Number(data.totals.picker_reports || 0).toLocaleString("vi-VN")} lượt. Trước lần xác minh nguồn đầu tiên: Chưa xác định. Không hồi tố khu vực.</p>
+  </article>`;
+}
+
 function renderDashboard(): string {
   const k = dashboardData?.kpis;
   const recurrence = operationalInsights?.recurrence?.top_skus || [];
@@ -2059,6 +2079,7 @@ function renderDashboard(): string {
       </form>
     </article>
 
+    ${d167AreaSummaryMarkup(d167DashboardAreas)}
     <div class="report-section-title"><h3>Tình trạng hiện tại</h3><span>Dữ liệu trực tiếp từ hệ thống</span></div>
     <section class="business-summary-grid business-summary-grid-5 pro-kpi-grid">
       <button type="button" class="business-summary-card summary-filter-card primary" data-dashboard-status="PENDING"><span>SKU đang chờ xử lý</span><strong>${pending}</strong><small>Mở báo cáo chi tiết đang chờ</small></button>
@@ -2229,6 +2250,7 @@ function renderReports(): string {
         <button class="primary report-filter-submit">Xem báo cáo</button>
       </form>
     </article>
+    ${d167AreaSummaryMarkup(d167ReportAreas)}
     <section class="business-summary-grid business-summary-grid-6 pro-report-kpis">
       <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong><small>Trong khoảng thời gian đã chọn</small></article>
       <article class="business-summary-card primary-soft"><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong><small>Số SKU khác nhau trong kỳ</small></article>
@@ -3755,13 +3777,15 @@ async function loadDashboard(): Promise<void> {
     dashboardPreferenceLoadedUserId = userId;
   }
   const range = apiRange(dashboardFrom, dashboardTo);
-  const [nextDashboard, nextInsights] = await Promise.all([
+  const [nextDashboard, nextInsights, nextAreas] = await Promise.all([
     getAdminDashboard(range.from, range.to),
     getAdminOperationalInsights(range.from, range.to),
+    getD167AreaSummary(dashboardFrom, dashboardTo).catch(() => null),
   ]);
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   dashboardData = nextDashboard;
   operationalInsights = nextInsights;
+  d167DashboardAreas = nextAreas;
   markWebUpdateReceived();
   void getRealtimePresence().then((nextPresence) => {
     if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
@@ -3790,10 +3814,12 @@ async function loadReports(): Promise<void> {
   void Promise.all([
     getAdminDashboard(range.from, range.to),
     getAdminOperationalInsights(range.from, range.to),
-  ]).then(([summary, insights]) => {
+    getD167AreaSummary(reportFrom, reportTo).catch(() => null),
+  ]).then(([summary, insights, areas]) => {
     if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     reportSummary = summary;
     reportInsights = insights;
+    d167ReportAreas = areas;
     if (activeSection === "reports") patchActiveSection(true);
   }).catch((error) => runtimeLogEvent(`Không tải được tổng hợp báo cáo: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
 }
