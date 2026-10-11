@@ -40,7 +40,8 @@ export function initializeD167SkuSyncSchema(state: DurableObjectState): void {
     );
     CREATE TABLE IF NOT EXISTS d167_sku_meta (
       id INTEGER PRIMARY KEY CHECK (id=1), revision INTEGER NOT NULL DEFAULT 0,
-      last_full_day TEXT, published_at TEXT
+      last_full_day TEXT, published_at TEXT,
+      membership_changed_at TEXT
     );
     INSERT OR IGNORE INTO d167_sku_meta (id,revision) VALUES (1,0);
     CREATE TABLE IF NOT EXISTS d167_sku_active (
@@ -362,7 +363,13 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
         SELECT 1,COUNT(*),MAX(updated_at) FROM sku_master`);
       const nameModified = plan.create.length > 0 || plan.update.some(item => item.name !== undefined)
         || (body.approve_conflicts === true && plan.conflicts.some(c => c.field === "product_name"));
-      const membershipModified = plan.hide.length > 0 || plan.activate.length > 0;
+      const membershipModified = plan.hide.length > 0 || plan.activate.length > 0 ||
+        plan.create.length > 0;
+      // Android delta cannot express catalog removals. Record one monotonic
+      // server-side membership epoch so old Android builds fall back to an
+      // authoritative full refresh rather than accepting a stale local set.
+      if (membershipModified) state.storage.sql.exec(
+        "UPDATE d167_sku_meta SET membership_changed_at=? WHERE id=1",at);
       // Android catalog-info version must change on membership changes even when
       // sku_master name/updated_at stays intact; no-op and area-only jobs do not
       // unnecessarily wake every PDA catalog consumer.
