@@ -107,8 +107,8 @@ export function getMealChoiceState(state: DurableObjectState, nowMs = Date.now()
     server_now: new Date(nowMs).toISOString(),
     lunch,
     dinner,
-    lunch_prompt_due: !lunch && nowMs >= base + (10*60+55)*60_000 && nowMs < base + 12*60*60_000,
-    dinner_prompt_due: !dinner && nowMs >= base + (17*60+55)*60_000 && nowMs < base + 19*60*60_000,
+    lunch_prompt_due: !lunch && nowMs >= base + (10*60+55)*60_000 && nowMs < base + 11*60*60_000,
+    dinner_prompt_due: !dinner && nowMs >= base + (17*60+55)*60_000 && nowMs < base + 18*60*60_000,
     unconfirmed_fallback: "DEFAULT_LATE_30_MINUTES",
   };
 }
@@ -125,7 +125,7 @@ export function confirmMealChoice(
   }
   const day = vnDayAt(nowMs), base = vnMidnightMs(day);
   const begin = base + (period === "LUNCH" ? 10*60+55 : 17*60+55)*60_000;
-  const end = base + (period === "LUNCH" ? 12*60 : 19*60)*60_000;
+  const end = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
   if (nowMs < begin || nowMs >= end) {
     return { status: 409, payload: { error: "MEAL_CONFIRM_OUTSIDE_WINDOW", day_vn: day }, changed: false };
   }
