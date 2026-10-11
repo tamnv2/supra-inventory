@@ -7,6 +7,11 @@ on:
       - "android/**"
       - "relay-agent/**"
       - ".github/workflows/verify-d167-product.yml"
+      - ".github/workflows/deploy-beta*.yml"
+      - ".github/workflows/verify-apps.yml"
+      - ".github/workflows/verify-relay-agent.yml"
+      - "tools/d167_*"
+      - "ops/d167-release-authorization.json"
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +35,10 @@ jobs:
       - name: Typecheck Worker/InventoryCore
         working-directory: service
         run: npm run typecheck
+      - name: D167 actual VN-day, meal and ACK regression
+        run: python3 tools/d167_day_boundary_regression.py
+      - name: D167 code-only release denial
+        run: python3 tools/d167_release_gate.py --self-test
       - name: D167 scope safety
         shell: bash
         run: |
