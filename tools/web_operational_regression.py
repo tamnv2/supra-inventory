@@ -186,6 +186,12 @@ def main() -> None:
     require(api, '"/api/admin/hr-web/preview"', "D167 source-free HR preview")
     require(api, '"/api/admin/hr-web/apply"', "D167 source-free HR apply")
     require(users_core, "HR_CHANGE_REVIEW_REQUIRED", "D167 server-verified conflict approval")
+    # Any failed/slow preview must invalidate the previous Apply candidate.
+    require(app, "let hrWebRequestSeq = 0", "D167 HR preview revision fencing")
+    require(app, "if (seq !== hrWebRequestSeq) return", "D167 ignore stale HR preview responses")
+    require(app, "hrWebPreview = null;", "D167 invalidate stale HR authorization")
+    require(app, "const rows = hrWebRows, preview = hrWebPreview", "D167 capture applied HR snapshot")
+
 
     # D068: instant route feedback, browser history, toast notices and targeted SKU detail refresh.
     require(app, "function navigateToSection(", "instant section navigation")
