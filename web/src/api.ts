@@ -69,6 +69,7 @@ export interface SkuImportChunkResult {
   requires_confirmation?: boolean;
   conflicts?: SkuNameChangeConflict[];
   idempotent_replay?: boolean;
+  catalog_revision?: number;
 }
 
 export type SlaState = "UNCONFIGURED" | "NORMAL" | "WARNING" | "ESCALATED";
@@ -332,6 +333,7 @@ export interface AdminDashboard {
 export interface AdminReportingRow {
   batch_id: string;
   sku: string;
+  area_at_first_report?: "LTA" | "SHELVING" | "UNKNOWN";
   product_name: string;
   status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
   first_report_at: string;
@@ -362,6 +364,8 @@ export interface AdminReportingPage {
 export interface AdminReportingDetailRow {
   batch_id: string;
   sku: string;
+  area_at_first_report?: "LTA" | "SHELVING" | "UNKNOWN";
+  area_at_picker_report?: "LTA" | "SHELVING" | "UNKNOWN";
   product_name: string;
   batch_status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
   first_report_at: string;
@@ -959,7 +963,7 @@ export async function saveHrSource(sheetUrl: string, tabName: string, employeeCo
 
 export async function importSkuChunk(
   items: SkuItem[],
-  options: { requestId: string; sourceHash: string; dryRun?: boolean; confirmNameChanges?: boolean },
+  options: { requestId: string; sourceHash: string; dryRun?: boolean; confirmNameChanges?: boolean; expectedCatalogRevision?: number },
 ): Promise<SkuImportChunkResult> {
   return readJson(await authorizedFetch("/api/admin/skus/import", {
     method: "POST",
@@ -968,6 +972,7 @@ export async function importSkuChunk(
       source_hash: options.sourceHash,
       dry_run: Boolean(options.dryRun),
       confirm_name_changes: Boolean(options.confirmNameChanges),
+      expected_catalog_revision: options.expectedCatalogRevision,
       items,
     }),
   }));
