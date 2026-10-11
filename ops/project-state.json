@@ -7118,6 +7118,25 @@
       "stable": "OWNER_GATED"
     },
     "code_only_three_slot_implementation_2026_10_11": {
+      "owner_workbook_evidence_2026_10_10": {
+        "source": "OWNER_UPLOADED_HY1_REPORT_BIN_INVENTORY_LOCAL_READ_ONLY",
+        "schema_headers_verified": true,
+        "site_verified": "1291 - Urban",
+        "source_rows": 8848,
+        "distinct_skus": 2493,
+        "pickable_rows": 4904,
+        "pickable_skus": 2207,
+        "known_lta_skus": 1017,
+        "known_shelving_skus": 1190,
+        "no_pickable_unknown_skus": 286,
+        "conflicting_sku_names": 0,
+        "mixed_known_lta_shelving_skus": 0,
+        "private_rows_committed_to_public_repo": false,
+        "prior_standalone_agent_test": "OWNER_OBSERVED_SUCCESS__NO_RETEST_REQUIRED",
+        "code_test": "SYNTHETIC_AGGREGATE_SHAPE_REGRESSION_ADDED_PR559",
+        "actual_managed_primary_browser_export_proved": false,
+        "end_to_end_three_slot_proved": false
+      },
       "status": "CODE_IMPLEMENTATION_IN_PROGRESS__NOT_CODE_READY__NO_RUNTIME_DEPLOY",
       "source_branch": "d167-code-three-slot-sku-area-report-20261011",
       "pr": 559,
