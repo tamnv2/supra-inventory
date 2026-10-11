@@ -135,7 +135,8 @@ export function planSkuChanges(
     // column is a different case: it MUST preserve previously verified area.
     const observedUnknown = ["MULTIPLE_AREA", "INVALID_PICKABLE_LOCATION"].includes(row.area_reason);
     const areaObserved = row.area_verified || observedUnknown;
-    const wmsAreaChanged = areaObserved && (prev.last_wms_area === null || prev.last_wms_area !== row.area);
+    const wmsAreaChanged = areaObserved && (prev.last_wms_area === null || prev.last_wms_area !== row.area ||
+      (prev.area === row.area && prev.area_verified !== row.area_verified));
     if (wmsAreaChanged && prev.area !== row.area) {
       if (prev.manual_area_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
         sku: row.sku, field: "area", current: prev.area, incoming: row.area,
