@@ -15,6 +15,7 @@ meal = (ROOT / "service/src/meal-break-core.ts").read_text(encoding="utf-8")
 hr = (ROOT / "service/src/user-management-core.ts").read_text(encoding="utf-8")
 api = (ROOT / "service/src/user-management-api.ts").read_text(encoding="utf-8")
 web = (ROOT / "web/src/hr-web-panel.ts").read_text(encoding="utf-8")
+sla = (ROOT / "service/src/sla-automation.ts").read_text(encoding="utf-8")
 
 
 def need(cond, explanation):
@@ -32,6 +33,25 @@ need("DEFAULT_LATE_30_MINUTES" in meal and "SYSTEM_MEAL_DEFAULT" in meal, "late 
 need("HR_CHANGE_REVIEW_REQUIRED" in hr and "!contractor" in hr, "contractor/rename approval missing")
 need("hr-web/preview" in api and "hr-web/apply" in api, "direct Web API missing")
 need('id="hr-excel-file"' in web and 'id="hr-manual-form"' in web, "Web/Excel HR inputs missing")
+# A mixed waiting/overdue day-N batch must notify EVERY OPEN Picker once,
+# and may decrement the overdue counter only if it was actually nonzero.
+need("AND status='OPEN' AND picker_user_id IS NOT NULL" in over,
+     "03:00 Picker result fanout excludes overdue tickets")
+need("picker_user_ids:affectedUsers,result_event:true" in over,
+     "03:00 result must include all open Picker ACK targets")
+need("overdue_delta:overdue>0?-1:0" in over,
+     "03:00 falsely decrements the overdue badge for never-overdue SKU")
+need("Number.isFinite(closeAt)" in over,
+     "03:00 invalid timestamp can crash entire alarm")
+need(sla.index("effects.push(...processD167DayClose(state, nowMs))") <
+     sla.index("effects.push(...processD167OverdueReminders(state, nowMs))"),
+     "03:00 day-close must supersede delayed overdue reminders")
+need(sla.index("effects.push(...processD167DayClose(state, nowMs))") <
+     sla.index("processBatchAutoSkip(state, config, nowMs, effects)"),
+     "03:00 day-close must supersede ordinary timeout within the same alarm")
+need("if (promptAt > nowMs) {" in meal and
+     "if (cutoffAt > nowMs) {" in meal,
+     "11:00/18:00 default must remain armed after 10:55/17:55 alert")
 
 con = sqlite3.connect(":memory:")
 con.executescript('''
