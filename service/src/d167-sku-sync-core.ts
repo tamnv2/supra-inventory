@@ -155,6 +155,44 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     if (Number(job.lease_until_ms || 0) > Date.now()
       && String(job.generation || "") === generation && String(job.owner_id || "") !== instance)
       return response({ error: "JOB_LEASED" }, 409);
+    // Fingerprint fast path: midday/evening complete WMS export is byte-for-byte
+    // semantically unchanged vs the last verified source. No 2500-SKU staging,
+    // no catalog UPDATE and no area-history event; one tiny slot receipt only.
+    const proposedFingerprint = String(body.fingerprint || "").trim().toLowerCase();
+    const proposedCount = Number(body.source_rows);
+    if (slot !== "INITIAL_05" && /^[a-f0-9]{64}$/.test(proposedFingerprint) &&
+        Number.isSafeInteger(proposedCount) && proposedCount >= 1 && proposedCount <= 5000) {
+      const priorSlot = slot === "DELTA_12" ? "INITIAL_05" : "DELTA_12";
+      let prior = row(state,
+        "SELECT fingerprint,total_rows FROM d167_sku_jobs WHERE day_vn=? AND slot=? AND state='DONE'",
+        day, priorSlot);
+      if (!prior && slot === "DELTA_19") prior = row(state,
+        "SELECT fingerprint,total_rows FROM d167_sku_jobs WHERE day_vn=? AND slot='INITIAL_05' AND state='DONE'",
+        day);
+      if (prior && prior.fingerprint === proposedFingerprint &&
+          Number(prior.total_rows) === proposedCount) {
+        const done = state.storage.transactionSync(() => {
+          const current = row(state,
+            "SELECT state FROM d167_sku_jobs WHERE day_vn=? AND slot=?",day,slot);
+          if (!current || current.state === "DONE") return false;
+          const at = new Date().toISOString();
+          const receipt = JSON.stringify({
+            day_vn:day,slot,source_rows:proposedCount,
+            fingerprint:proposedFingerprint,created:0,updated:0,
+            activated:0,hidden:0,unchanged:proposedCount,
+            source_unchanged:true,completed_at:at
+          });
+          state.storage.sql.exec(`UPDATE d167_sku_jobs SET state='DONE', fingerprint=?,
+            total_rows=?,complete_at=?,receipt_json=?,owner_id=?,generation=?,
+            lease_until_ms=0,updated_at=? WHERE day_vn=? AND slot=?`,
+            proposedFingerprint,proposedCount,at,receipt,instance,generation,at,day,slot);
+          return true;
+        });
+        if (!done) return response({error:"JOB_CHANGED"},409);
+        return response({status:"DONE",slot,day_vn:day,
+          source_unchanged:true,staging_rows_written:0});
+      }
+    }
     // The WORKER verifies that this generation and instance are current Firebase HA PRIMARY
     // immediately before forwarding every POST; the DO fence protects in-flight prior leaders.
     const rev = row(state,"SELECT revision FROM d167_sku_meta WHERE id=1");
@@ -171,7 +209,9 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     if (!Array.isArray(items) || !items.length || items.length > 1000) return response({ error: "INVALID_CHUNK_SIZE" }, 400);
     if (!["CLAIMED", "STAGING"].includes(String(job.state))) return response({ error: "JOB_NOT_STAGING" }, 409);
     const expectedCount = Number(body.expected_count);
-    if (!Number.isSafeInteger(expectedCount) || expectedCount < 1 || expectedCount > 5_000) return response({ error: "INVALID_MANIFEST" }, 400);
+    if (!Number.isSafeInteger(expectedCount) || expectedCount < 1 || expectedCount > 5_000 ||
+        !/^[a-f0-9]{64}$/.test(String(body.fingerprint || "").trim().toLowerCase()))
+      return response({ error: "INVALID_MANIFEST" }, 400);
     if (job.fingerprint && (String(job.fingerprint) !== String(body.fingerprint) || Number(job.total_rows) !== expectedCount))
       return response({ error: "SOURCE_CHANGED_DURING_STAGING" }, 409);
     const seen = new Set<string>();
