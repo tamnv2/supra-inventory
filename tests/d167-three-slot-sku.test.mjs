@@ -109,3 +109,32 @@ test("previously hidden SKU is reactivated when source returns it", () => {
   assert.deepEqual(plan.activate,["001"]);
   assert.deepEqual(plan.hide,[]);
 });
+
+
+test("Owner WMS export 2026-10-10 aggregate-shape regression without private source rows",()=>{
+  // Source evidence: 8848 data rows, 2493 unique SKU, 4904 pickable lines,
+  // 1017 LTA SKU, 1190 Shelving SKU, 286 SKU with no pickable location.
+  // All row identifiers and names here are synthetic, not the original export.
+  const rows=[];
+  for(let i=0;i<2493;i++){
+    const sku=String(10000000+i);
+    const location=i<1017 ? "LTA.16.14" : i<2207 ? "42.03.02" : "TL.1.1";
+    rows.push({sku,product_name:"Synthetic SKU "+i,storage_location:location,pickable:i<2207});
+  }
+  for(let i=0;i<2697;i++){
+    const j=i%2207;
+    rows.push({sku:String(10000000+j),product_name:"Synthetic SKU "+j,
+      storage_location:j<1017?"LTA.16.15":"42.03.03",pickable:true});
+  }
+  for(let i=0;i<3658;i++){
+    const j=i%2493;
+    rows.push({sku:String(10000000+j),product_name:"Synthetic SKU "+j,
+      storage_location:"TL.1.1",pickable:false});
+  }
+  assert.equal(rows.length,8848);
+  const list=normalizeSourceRows(rows,{site_verified:true,location_header_present:true});
+  assert.equal(list.length,2493);
+  assert.equal(list.filter(x=>x.area==="LTA").length,1017);
+  assert.equal(list.filter(x=>x.area==="SHELVING").length,1190);
+  assert.equal(list.filter(x=>x.area==="UNKNOWN"&&x.area_reason==="NO_PICKABLE_LOCATION").length,286);
+});
