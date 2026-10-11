@@ -181,11 +181,14 @@ export function nextMealPromptMs(state: DurableObjectState, nowMs = Date.now()):
     const base = vnMidnightMs(day);
     for (const period of ["LUNCH","DINNER"] as const) {
       const promptAt = base + (period === "LUNCH" ? 10*60+55 : 17*60+55)*60_000;
-      if (promptAt <= nowMs) continue;
-      const found = first(state.storage.sql.exec<SqlRow>(
-        "SELECT 1 AS done FROM d167_meal_prompt_markers WHERE day_vn = ? AND period = ?", day, period,
-      ).toArray());
-      if (!found) candidates.push(promptAt);
+      if (promptAt > nowMs) {
+        const found = first(state.storage.sql.exec<SqlRow>(
+          "SELECT 1 AS done FROM d167_meal_prompt_markers WHERE day_vn = ? AND period = ?", day, period,
+        ).toArray());
+        if (!found) candidates.push(promptAt);
+      }
+      // The 11:00/18:00 default deadline must stay armed even AFTER the
+      // 10:55/17:55 prompt fired; otherwise unselected slots remain unrecorded.
       const cutoffAt = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
       if (cutoffAt > nowMs) {
         const chosen = first(state.storage.sql.exec<SqlRow>(
