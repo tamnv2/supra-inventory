@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "change_id": "D167",
+  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
+  "approved_source_sha": null,
+  "approved_components": [],
+  "owner_approval_reference": null,
+  "approved_at_vn": null,
+  "note": "Owner deploy approval is a separate, explicit instruction. Technical PASS does not grant release authority."
+}

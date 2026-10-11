@@ -13,6 +13,8 @@ import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
   applyHrPickerSync,
+  applyHrWebInput,
+  previewHrWebInput,
   confirmHrEventSync,
   recheckHrEventSync,
   changeMyPassword,
@@ -100,6 +102,8 @@ import {
   type SlaState,
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
+import { parseHrWorkbook, downloadHrExample, type HrEmployeeInput } from "./hr-excel";
+import { renderHrWeb } from "./hr-web-panel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
 import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, queueWebSupportLogRequest, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
@@ -418,6 +422,10 @@ let excludedPickerIds = new Set<string>();
 let hrSource: HrSourceResponse | null = null;
 let hrPreview: HrSyncPreview | null = null;
 let hrEventSync: HrEventSyncState | null = null;
+let hrWebRows: HrEmployeeInput[] = [];
+let hrWebPreview: HrSyncPreview | null = null;
+let hrWebFilename = "";
+let hrWebRequestSeq = 0;
 let pendingWorkbook: ParsedSkuWorkbook | null = null;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
 let skuAdminQuery = "";
@@ -512,8 +520,12 @@ function esc(value: unknown): string {
 
 function fmt(value: string | null | undefined): string {
   if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? value : d.toLocaleString("vi-VN", { hour12: false });
+  // SQLite CURRENT_TIMESTAMP is a UTC datetime without an offset; parse it as UTC.
+  const normalized = value.length === 19 && value[10] === " " ? value.replace(" ", "T") + "Z" : value;
+  const d = new Date(normalized);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleString("vi-VN", {
+    hour12: false, timeZone: "Asia/Ho_Chi_Minh",
+  });
 }
 
 function formatHeaderUpdate(value: Date | null): string {
@@ -842,7 +854,7 @@ function statusLabel(status: string): string {
 
 function resolutionSourceLabel(source: string | null | undefined): string {
   if (source === "SYSTEM_TIMEOUT") return "Hệ thống tự động · quá hạn phản hồi";
-  if (source === "SYSTEM_DAY_END") return "Hệ thống tự động · chốt tồn lúc 03:00";
+  if (source === "SYSTEM_DAY_END") return "Hệ thống tự cho phép Skip · Inventory chưa xử lý lúc 03:00";
   if (source === "REPORTER_CORRECTION") return "Nhân sự sửa kết quả";
   if (source === "REPORTER") return "Nhân sự xác nhận";
   return "—";
@@ -1748,7 +1760,7 @@ function renderResults(): string {
             (row.status === "HAS_STOCK" || row.status === "SKIP_ALLOWED") &&
             row.correction_allowed === true &&
             Number.isFinite(correctionEnd) &&
-            correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || "")) ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
+            correctionEnd > Date.now() + queueServerOffsetMs; const source = row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : resolutionActorLabel(row); return `<tr><td><strong>${esc(row.sku)}</strong><div class="tiny muted">${esc(row.product_name)}</div></td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : "closed"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${Number(row.affected_picker_count)}</td><td>${row.status === "CLOSED" ? "Không áp dụng" : `${Number(row.acknowledged_count || 0)}/${Number(row.ack_target_count || 0)}`}</td><td>${esc(fmt(row.resolved_at || row.first_report_at))}</td><td>${row.previous_batch_id ? `<span class="badge warning">Có</span>` : "Không"}</td><td>${canCorrect ? `<div class="user-row-actions" data-correction-deadline="${esc(row.correction_deadline_at || "")}"><button class="btn secondary small" data-correct="${esc(row.batch_id)}" data-correct-target="PENDING" data-correct-version="${Number(row.version || 0)}">Sửa - Đang xử lý</button><button class="btn ${row.status === "SKIP_ALLOWED" ? "success" : "danger"} small" data-correct="${esc(row.batch_id)}" data-correct-target="${row.status === "SKIP_ALLOWED" ? "HAS_STOCK" : "SKIP_ALLOWED"}" data-correct-version="${Number(row.version || 0)}">Sửa - ${row.status === "SKIP_ALLOWED" ? "Đã có hàng" : "Cho phép Skip"}</button></div>` : "—"}</td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">Chưa có kết quả phù hợp trong khoảng ngày đã chọn.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${recentTotal.toLocaleString("vi-VN")} kết quả</span><div><button class="secondary" id="recent-prev" ${recentOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="recent-next" ${recentOffset + RECENT_PAGE_SIZE >= recentTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -1824,112 +1836,7 @@ function renderPeopleTabs(current: "users" | "hr"): string {
 }
 
 function renderHr(): string {
-  const source = hrSource?.source;
-  const eventState = hrEventSync?.sync || {};
-  const eventPlan = eventState.plan || {};
-  const eventStatus = String(eventState.status || "CHƯA CÓ TÍN HIỆU");
-  const watch = hrEventSync?.watch;
-  const watchUntil = watch?.expires_at_ms
-    ? fmt(new Date(Number(watch.expires_at_ms)).toISOString())
-    : "Chưa đăng ký";
-  const hardBlockLabels: Record<string, string> = {
-    DUPLICATE_CONFLICT: "Trùng Mã nhân viên nhưng thông tin không đồng nhất",
-    INVALID_ROWS: "Có dòng nhân sự không hợp lệ",
-    EMPTY_SOURCE: "Nguồn nhân sự rỗng",
-    NON_PICKER_COLLISION: "Mã nhân viên trùng tài khoản không phải Picker",
-    SOURCE_ROW_LOSS_OVER_20_PERCENT: "Số dòng nguồn giảm quá 20%",
-    HEADER_CHANGED: "Tên cột nguồn đã thay đổi",
-    SOURCE_ACCESS_FAILED: "Không đọc được Google Sheet",
-    SOURCE_READ_FAILED: "Không đọc được snapshot nhân sự",
-  };
-  const pendingFingerprint = String(eventState.pending_fingerprint || "");
-  const canManageEvent = Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT"));
-  const canConfirmEvent = Boolean(pendingFingerprint && canManageEvent);
-  const invalidReasonLabels: Record<string, string> = {
-    INVALID_EMPLOYEE_CODE: "Mã nhân viên trống hoặc có ký tự không được phép",
-    MISSING_DISPLAY_NAME: "Họ và tên đang để trống",
-    DISPLAY_NAME_TOO_LONG: "Họ và tên vượt 200 ký tự",
-    CONTRACTOR_TOO_LONG: "Nhà thầu vượt 200 ký tự",
-  };
-  const invalidRowDetails = Array.isArray(eventState.invalid_row_details)
-    ? eventState.invalid_row_details.slice(0, 20)
-    : [];
-  const invalidRowsHtml = invalidRowDetails.length
-    ? `<div class="ops-note"><b>Dòng cần sửa:</b><ul>${invalidRowDetails.map((item) => {
-        const reasons = Array.isArray(item.reasons) && item.reasons.length
-          ? item.reasons.map((reason) => invalidReasonLabels[String(reason)] || String(reason)).join("; ")
-          : "Dữ liệu không hợp lệ";
-        return `<li>Dòng <b>${Number(item.row || 0)}</b>: ${esc(reasons)}</li>`;
-      }).join("")}</ul></div>`
-    : "";
-  const duplicateCodes = Array.isArray(eventState.duplicate_employee_codes)
-    ? eventState.duplicate_employee_codes.slice(0, 20)
-    : [];
-  const duplicateHtml = duplicateCodes.length
-    ? `<div class="ops-note"><b>Mã nhân viên bị trùng thông tin:</b> ${duplicateCodes.map((value) => esc(value)).join(", ")}</div>`
-    : "";
-  const hardBlockCode = String(eventState.hard_block_code || "");
-  const hardBlockHelp: Record<string, string> = {
-    INVALID_ROWS: "Sửa đúng các dòng được liệt kê trên Google Sheet rồi bấm Kiểm tra lại. Không cho phép ép áp dụng khi dữ liệu nguồn chưa hợp lệ.",
-    DUPLICATE_CONFLICT: "Chuẩn hóa mỗi Mã nhân viên về một bộ Họ tên/Nhà thầu duy nhất rồi bấm Kiểm tra lại.",
-    EMPTY_SOURCE: "Khôi phục dữ liệu nhân sự trong nguồn rồi bấm Kiểm tra lại.",
-    NON_PICKER_COLLISION: "Xử lý tài khoản đang trùng Mã nhân viên nhưng không phải Picker trước khi đồng bộ.",
-    SOURCE_ROW_LOSS_OVER_20_PERCENT: "Kiểm tra việc mất dòng nguồn. Hệ thống giữ nguyên user hiện tại cho đến khi nguồn hợp lệ.",
-    HEADER_CHANGED: "Kiểm tra lại tên cột Mã nhân viên/Họ và tên/Nhà thầu và xác nhận lại nguồn.",
-    SOURCE_ACCESS_FAILED: "Kiểm tra quyền truy cập Google Sheet rồi bấm Kiểm tra lại.",
-    SOURCE_READ_FAILED: "Kiểm tra nguồn Google Sheet/kết nối rồi bấm Kiểm tra lại.",
-  };
-  const eventClass = eventStatus === "HARD_BLOCK"
-    ? "error"
-    : eventStatus === "CONFIRM_REQUIRED"
-      ? "warning"
-      : eventStatus === "APPLIED"
-        ? "success"
-        : "";
-  return `<section class="ops-route people-workspace">
-    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Quản lý tài khoản, nguồn nhân sự và đồng bộ Picker trong cùng một nghiệp vụ.</p></div></div>
-    ${renderPeopleTabs("hr")}
-    <article class="ops-panel ops-staff-source">
-      <div class="ops-panel-title"><div><h3>Google Sheet nhân sự</h3><p>Nhập link, tên tab và đúng tên cột đang sử dụng.</p></div></div>
-      <form id="hr-source-form" class="ops-form-grid">
-        <label class="span">Link Google Sheet<input name="sheetUrl" value="${esc(source?.sheet_url || "")}" required /></label>
-        <label>Tên tab<input name="tabName" value="${esc(source?.tab_name || "")}" required /></label>
-        <label>Tên cột Mã nhân viên<input name="employeeCodeHeader" value="${esc(source?.mnv_header || "Mã nhân viên")}" required /></label>
-        <label>Tên cột Họ và tên<input name="fullNameHeader" value="${esc(source?.full_name_header || "Họ và tên")}" required /></label>
-        <label>Tên cột Nhà thầu<input name="contractorHeader" value="${esc(source?.contractor_header || "Nhà thầu")}" required /></label>
-        <div class="ops-form-actions"><button class="primary">Xác nhận nguồn</button></div>
-      </form>
-    </article>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Đồng bộ tự động D161</h3><p>Google Drive chỉ đánh thức hệ thống khi file thay đổi; máy chủ luôn đọc lại Sheet và kiểm tra toàn bộ snapshot trước khi áp dụng.</p></div></div>
-      ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? `
-        <section class="ops-status-strip">
-          <span>Watch <b>${watch?.configured ? "Đang hoạt động" : "Chưa hoạt động"}</b></span>
-          <span>Gia hạn đến <b>${esc(watchUntil)}</b></span>
-          <span>Trạng thái <b>${esc(eventStatus)}</b></span>
-          <span>Dòng nguồn <b>${Number(eventState.source_row_count || 0).toLocaleString("vi-VN")}</b></span>
-        </section>
-        ${eventStatus === "CONFIRM_REQUIRED" ? `<div class="notice warning">
-          <b>Snapshot mới cần quyết định:</b> tạo mới <b>${Number(eventPlan.create || 0)}</b>, cập nhật thông tin <b>${Number(eventPlan.existing_info_updates || 0)}</b>.
-          <div>Dữ liệu hiện tại chưa thay đổi.</div>
-          ${canConfirmEvent ? `<div class="ops-form-actions"><button class="primary" id="confirm-hr-event">Có · Áp dụng</button><button class="secondary" id="defer-hr-event">Không · Giữ nguyên</button></div>` : ""}
-        </div>` : ""}
-        ${eventStatus === "HARD_BLOCK" ? `<div class="notice error">
-          <div><b>Đồng bộ đang bị chặn:</b> ${esc(hardBlockLabels[hardBlockCode] || hardBlockCode || "Cần kiểm tra nguồn nhân sự")}.</div>
-          ${invalidRowsHtml}${duplicateHtml}
-          <div><b>Cách xử lý:</b> ${esc(hardBlockHelp[hardBlockCode] || "Kiểm tra nguồn nhân sự, sửa nguyên nhân rồi kiểm tra lại.")}</div>
-          <div>Dữ liệu người dùng hiện tại được giữ nguyên.</div>
-          ${canManageEvent ? `<div class="ops-form-actions"><button class="secondary" id="recheck-hr-event">Kiểm tra lại nguồn</button></div>` : ""}
-        </div>` : ""}
-        ${eventClass === "success" ? `<div class="notice success">Snapshot gần nhất đã được áp dụng và xác minh theo fingerprint nguồn.</div>` : ""}
-      ` : `<div class="ops-empty">Trạng thái đồng bộ tự động chỉ hiển thị cho Admin/Root.</div>`}
-    </article>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Kiểm tra thủ công</h3><p>Xem trước vẫn dùng dữ liệu máy chủ đọc trực tiếp từ nguồn hiện tại.</p></div></div>
-      <div class="ops-form-actions"><button class="secondary" id="preview-hr">Xem trước</button>${hrPreview ? `<button class="primary" id="apply-hr">Áp dụng</button>` : ""}</div>
-      ${hrPreview ? `<section class="ops-status-strip"><span>Nguồn <b>${hrPreview.total_source}</b></span><span>Tạo mới <b>${hrPreview.create}</b></span><span>Đổi tên <b>${hrPreview.rename}</b></span><span>Đổi nhà thầu <b>${hrPreview.contractor_update || 0}</b></span><span>Không đổi <b>${hrPreview.unchanged}</b></span></section>` : `<div class="ops-empty">Chưa có bản xem trước.</div>`}
-    </article>
-  </section>`;
+  return renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, renderPeopleTabs("hr"), profile?.role === "ADMIN" || profile?.role === "ROOT");
 }
 
 function canManageListedUser(user: ManagedUser): boolean {
@@ -2332,7 +2239,7 @@ function renderReports(): string {
     </div>
     <article class="ops-panel">
       <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p>Đang hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${reportTotal.toLocaleString("vi-VN")} bản ghi phù hợp.</p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
-      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || "")) ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="11">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="11" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
+      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="11">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="11" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
   </section>`;
 }
@@ -4798,6 +4705,58 @@ function bindSection(): void {
     }
   }));
 
+  document.querySelector<HTMLButtonElement>("#download-hr-example")?.addEventListener("click", downloadHrExample);
+  document.querySelector<HTMLFormElement>("#hr-manual-form")?.addEventListener("submit", event => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    const seq = ++hrWebRequestSeq;
+    hrWebRows = [{
+      employee_code: String(data.get("employeeCode") || "").trim().toLowerCase(),
+      display_name: String(data.get("displayName") || "").trim(),
+      contractor_name: String(data.get("contractorName") || "").trim(),
+    }];
+    hrWebPreview = null;
+    hrWebFilename = "Nhập trực tiếp";
+    const rows = hrWebRows;
+    patchActiveSection(true); // Pending preview is never an enabled Apply.
+    void run(async () => {
+      const preview = await previewHrWebInput(rows);
+      if (seq !== hrWebRequestSeq) return; // Ignore out-of-order responses.
+      hrWebPreview = preview;
+      patchActiveSection(true);
+    });
+  });
+  document.querySelector<HTMLInputElement>("#hr-excel-file")?.addEventListener("change", event => {
+    const file = (event.currentTarget as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const seq = ++hrWebRequestSeq;
+    hrWebRows = []; hrWebPreview = null; hrWebFilename = file.name;
+    patchActiveSection(true);
+    void run(async () => {
+      const rows = await parseHrWorkbook(file);
+      if (seq !== hrWebRequestSeq) return;
+      hrWebRows = rows;
+      const preview = await previewHrWebInput(rows);
+      if (seq !== hrWebRequestSeq) return;
+      hrWebPreview = preview;
+      patchActiveSection(true);
+    });
+  });
+  document.querySelector<HTMLButtonElement>("#hr-apply-web")?.addEventListener("click", () => void run(async () => {
+    if (!hrWebPreview || !hrWebRows.length) throw new Error("Chưa có dữ liệu đã xem trước.");
+    const changed = Number(hrWebPreview.rename || 0) + Number(hrWebPreview.contractor_update || 0);
+    if (changed > 0 && !window.confirm(`Xác nhận cập nhật thông tin của ${changed} Picker đã tồn tại? Mã trùng sẽ giữ nguyên vai trò và trạng thái tài khoản.`)) return;
+    const seq = ++hrWebRequestSeq;
+    const rows = hrWebRows, preview = hrWebPreview;
+    await applyHrWebInput(rows, preview, changed > 0);
+    const applied = rows.length;
+    if (seq === hrWebRequestSeq) {
+      hrWebRows = []; hrWebPreview = null; hrWebFilename = "";
+    }
+    await loadUsers();
+    patchActiveSection(true);
+    setNotice("success", `Đã ghi nhận ${applied} nhân sự. Tài khoản không có trong file vẫn được giữ nguyên.`);
+  }));
   document.querySelector<HTMLFormElement>("#hr-source-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);

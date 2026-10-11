@@ -1,4 +1,4 @@
-import { mealAdjustedDeadline, dueMealPrompts, nextMealPromptMs } from "./meal-break-core";
+import { mealAdjustedDeadline, dueMealDefaults, dueMealPrompts, nextMealPromptMs } from "./meal-break-core";
 import { processD167OverdueReminders, processD167DayClose, nextD167OverdueAlarmMs } from "./d167-overdue-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
@@ -22,7 +22,7 @@ export interface OperationalSlaConfig {
 }
 
 export interface OperationalDeadlineEffect {
-  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required" | "d167_overdue_reminder_30" | "d167_overdue_reminder_60" | "batch_day_end_auto_skip";
+  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required" | "d167_overdue_reminder_30" | "d167_overdue_reminder_60" | "batch_day_end_auto_skip" | "meal_break_defaulted";
   event_id: string;
   batch_id: string;
   sku: string;
@@ -767,11 +767,23 @@ export function processOperationalDeadlines(
 ): OperationalDeadlineEffect[] {
   const effects: OperationalDeadlineEffect[] = [];
   const config = readOperationalSlaConfig(state);
+  // Close the preceding VN business day first. A delayed 03:00 alarm must not
+  // emit a stale +30/+60 reminder or ordinary timeout after the final result.
+  effects.push(...processD167DayClose(state, nowMs));
   processBatchAutoSkip(state, config, nowMs, effects);
   processPerPickerAutoSkip(state, config, nowMs, effects);
   if (config) processWarningAndEscalation(state, config, nowMs, effects);
   effects.push(...processD167OverdueReminders(state, nowMs));
-  effects.push(...processD167DayClose(state, nowMs));
+  const defaults = dueMealDefaults(state, nowMs);
+  for (const result of defaults) {
+    effects.push({
+      event: "meal_break_defaulted", event_id: result.event_id,
+      batch_id: "", sku: "", product_name: "", scopes: ["meal_break"],
+      reporter_roles: ["REPORTER","ADMIN","ROOT"], picker_user_ids: [], result_event: false,
+      title: "SUPRA Inventory · Giờ ăn mặc định",
+      body: result.period === "LUNCH" ? "Hệ thống mặc định giờ ăn 11:30–12:00." : "Hệ thống mặc định giờ ăn 18:30–19:00.",
+    });
+  }
   const mealPrompts = dueMealPrompts(state, nowMs);
   for (const prompt of mealPrompts) {
     effects.push({

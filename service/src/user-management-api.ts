@@ -225,6 +225,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
     "GET /api/admin/users", "POST /api/admin/users", "PATCH /api/admin/users",
     "PUT /api/admin/users/password", "POST /api/admin/users/delete", "POST /api/admin/pickers/bulk",
     "PUT /api/admin/hr-source-v2", "POST /api/admin/hr-sync/preview", "POST /api/admin/hr-sync/apply",
+    "POST /api/admin/hr-web/preview", "POST /api/admin/hr-web/apply",
   ]);
   const key = `${request.method} ${url.pathname}`;
   if (!supported.has(key)) return null;
@@ -422,6 +423,28 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
     }
     return json(payload);
   }
+  if (key === "POST /api/admin/hr-web/preview" || key === "POST /api/admin/hr-web/apply") {
+    if (user.role !== "ADMIN" && user.role !== "ROOT") return json({error:"FORBIDDEN"},403);
+    const body = await bodyObject(request);
+    if (!Array.isArray(body.employees) || body.employees.length < 1 || body.employees.length > 5000)
+      return json({error:"INVALID_HR_WEB_ROWS"},400);
+    const apply = key.endsWith("/apply");
+    if (apply && (body.confirm !== true || typeof body.request_id !== "string"))
+      return json({error:"HR_CONFIRM_REQUIRED"},400);
+    const pickerDefault = apply ? await derivePickerDefault(env).catch(() => null) : null;
+    if (apply && !pickerDefault) return json({error:"PICKER_DEFAULT_PASSWORD_NOT_CONFIGURED"},503);
+    const payload = {
+      ...body, actor: actor(user), decision: "WEB_EXCEL_OWNER_CONFIRMED",
+      ...(pickerDefault ? {picker_password_salt: pickerDefault.salt, picker_password_hash: pickerDefault.hash} : {}),
+    };
+    const res = await core(env).fetch("https://inventory-core.internal/admin/hr-sync/" + (apply ? "apply" : "preview"), {
+      method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(payload),
+    });
+    if (apply && res.ok) await refreshPickerProjectionBestEffort(env);
+    return res;
+  }
+  if (key === "PUT /api/admin/hr-source-v2" || key.startsWith("POST /api/admin/hr-sync/"))
+    return json({error:"HR_SHEET_SOURCE_RETIRED_USE_WEB_EXCEL"},410);
   if (key === "PUT /api/admin/hr-source-v2") {
     if (!env.GOOGLE_RUNTIME_SA_JSON) return json({ error: "GOOGLE_RUNTIME_NOT_CONFIGURED" }, 503);
     const body = await bodyObject(request);

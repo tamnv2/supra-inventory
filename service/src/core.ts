@@ -197,8 +197,6 @@ export class InventoryCore {
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (batch_id) REFERENCES report_batches(batch_id)
       );
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_open_ticket_picker_sku
-        ON report_tickets(picker_employee_code, sku) WHERE status = 'OPEN';
       CREATE INDEX IF NOT EXISTS idx_report_tickets_batch ON report_tickets(batch_id, status, reported_at);
       CREATE INDEX IF NOT EXISTS idx_report_tickets_reported_at_batch ON report_tickets(reported_at, batch_id, picker_employee_code);
 
@@ -392,6 +390,15 @@ export class InventoryCore {
     }
 
     initializeBusinessSchema(this.state);
+    if (!this.hasColumn("report_batches", "business_day_vn")) sql.exec("ALTER TABLE report_batches ADD COLUMN business_day_vn TEXT");
+    if (!this.hasColumn("report_tickets", "business_day_vn")) sql.exec("ALTER TABLE report_tickets ADD COLUMN business_day_vn TEXT");
+    sql.exec("UPDATE report_batches SET business_day_vn = date(first_report_at, '+7 hours') WHERE business_day_vn IS NULL");
+    sql.exec("UPDATE report_tickets SET business_day_vn = date(reported_at, '+7 hours') WHERE business_day_vn IS NULL");
+    sql.exec("DROP INDEX IF EXISTS idx_pending_batch_sku");
+    sql.exec("DROP INDEX IF EXISTS idx_open_ticket_picker_sku");
+    sql.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_d167_pending_sku_day ON report_batches(sku, business_day_vn) WHERE status = 'PENDING'");
+    sql.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_d167_open_picker_sku_day ON report_tickets(picker_employee_code, sku, business_day_vn) WHERE status = 'OPEN'");
+    sql.exec("CREATE INDEX IF NOT EXISTS idx_d167_pending_day ON report_batches(status, business_day_vn, first_report_at)");
     initializeMealSchema(this.state);
     if (!this.hasColumn("report_batches", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_auto_skip_minutes INTEGER");
     if (!this.hasColumn("report_tickets", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_tickets ADD COLUMN d167_auto_skip_minutes INTEGER");
@@ -539,7 +546,7 @@ export class InventoryCore {
         body: `${count} SKU vẫn chưa được chốt; mở Quá hạn để xử lý.`, event: effect.event };
     }
     if (effect.event === "batch_day_end_auto_skip") {
-      return { title: "SUPRA Inventory · Chốt tồn cuối ngày", body: `${count} SKU quá hạn đã tự chốt Skip lúc 03:00.`,
+      return { title: "SUPRA Inventory · Chốt tồn cuối ngày", body: `${count} SKU chưa được Inventory xử lý đã được hệ thống tự chốt Skip lúc 03:00.`,
         event: effect.event };
     }
     if (effect.event === "sla_warning") {

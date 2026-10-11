@@ -11,7 +11,6 @@ on:
     paths:
       - "functions/**"
       - "firebase.json"
-      - ".github/workflows/deploy-beta-functions.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,10 +22,16 @@ jobs:
     environment: beta
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      - name: D167 Owner release authorization for functions
+        if: github.event_name != 'pull_request'
+        run: python3 tools/d167_release_gate.py --component functions
 
       - name: Install and build Functions
         run: |

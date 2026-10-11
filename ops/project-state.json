@@ -6745,7 +6745,7 @@
     "owner_deploy_approval": true,
     "implementation_status": "MERGED_PR550_MAIN_9bcff631__BETA_RUNTIME_RELEASE_PASS",
     "provider_changes": "EXISTING_BETA_RESOURCES_ONLY__NO_NEW_PROVIDER",
-    "next": "AWAIT_OWNER_EXPLICIT_CHAY_CODE_FOR_D01_D10_SCOPED_IMPLEMENTATION__THEN_CODE_READY_HOLD__TRIEN_KHAI_APPROVAL_SEPARATE",
+    "next": "PR555_CODE_READY_HOLD__AWAIT_OWNER_EXPLICIT_DEPLOY_GO__D05_D07_SEPARATE_PENDING__D167_OWNER_FIELD_PASS_NOT_CLAIMED",
     "inherited_evidence_group_ids": [
       "D167-USAGE-ROOT-CAUSE",
       "D167-CROSS-METER-OPTIMIZATION",
@@ -6969,7 +6969,7 @@
     },
     "owner_decisions_d01_d10_2026_10_11": {
       "authority": "docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md",
-      "status": "OWNER_BUSINESS_DECISIONS_FINALIZED__CODE_NOT_REQUESTED__BETA_RELEASE_NOT_AUTHORIZED",
+      "status": "D01_D04_D06_D08_D10_SCOPED_CODE_READY_PR555__OWNER_DEPLOY_APPROVAL_PENDING",
       "d01": "WEB_DIRECT_PLUS_XLSX_EXAMPLE_IMPORT_REPLACE_HR_GSHEET_AUTOSYNC_AFTER_SAFE_CUTOVER",
       "d02": "UNSELECTED_MEAL_DEFAULT_LATE_LUNCH_1130_1200_DINNER_1830_1900",
       "d03": "ALL_UNHANDLED_PENDING_DAY_N_BOTH_WAITING_OVERDUE_SYSTEM_DAY_END_0300_N_PLUS_1_DISTINCT_UI",
@@ -6980,7 +6980,7 @@
       "d08": "EVENT_LOCAL_BOUNDED_LOGS_NO_NEW_SCHEDULE_NO_LAUNCHER_MUTATION",
       "d09": "BETA_WIDE_AFTER_PR_CI_AND_EXPLICIT_OWNER_SCOPED_DEPLOY_APPROVAL__TEST_ONLY_ON_REQUEST",
       "d10": "CHAY_CODE_PR_ONLY_CODE_READY_STOP__TRIEN_KHAI_DEPLOYS_APPROVED_SCOPE_AUTOMATICALLY",
-      "source_code_status": "D01_D02_D03_D04_D05_D06_D07_NEW_REQUIREMENTS_NOT_YET_IMPLEMENTED_OR_RELEASED",
+      "source_code_status": "D01_D04_D06_D08_D10_SCOPED_SOURCE_PASS_PR555__D05_D07_PENDING__NOT_MERGED_OR_DEPLOYED",
       "source_proven_gaps": [
         "HR_DRIVE_WATCH_STILL_SOURCE",
         "MEAL_NO_CHOICE_FULL_HOUR_FALLBACK",
@@ -6991,7 +6991,7 @@
         "CI_CD_RELEASE_GATE_POLICY_NOT_WORKFLOW_ENFORCED"
       ],
       "no_new_runtime_or_provider_change": true,
-      "code_authorization_for_this_scope": false,
+      "code_authorization_for_this_scope": true,
       "deploy_authorization_for_this_scope": false,
       "d167_owner_business_pass": false,
       "launcher_changes": false,
@@ -7013,6 +7013,29 @@
       "HR_GSHEET_AS_ACCOUNT_CREATION_SOURCE_AFTER_SAFE_CUTOVER",
       "MEAL_FALLBACK_FULL_CANDIDATE_HOUR",
       "DAY_CLOSE_REQUIRES_OVERDUE_OPEN_TICKET"
-    ]
+    ],
+    "d167_code_only_pr555": {
+      "state": "CODE_READY_ALL_APPLICABLE_PREDEPLOY_CHECKS_PASS__AWAIT_OWNER_DEPLOY_APPROVAL",
+      "owner_approved_code": true,
+      "owner_approved_deploy": false,
+      "exclude": [
+        "D05",
+        "D07"
+      ],
+      "pr": 555,
+      "branch": "d167-code-only-20261011",
+      "latest_source_evidence": "D167_PR555_CODE_CANDIDATE__2026_10_11__SEE_DOCS_CHECKPOINT",
+      "release_gate": "ALL_LIVE_BETA_RELEASE_LANES_FAIL_CLOSED_UNTIL_EXPLICIT_OWNER_PERMIT__RECEIPT_UNAPPROVED",
+      "tests": "VN_DAY_SQL_FIXTURE__WEB_HR_STALE_PREVIEW__WEB_BUILD__SERVICE_TYPECHECK__ANDROID_AND_AGENT_CI_PENDING",
+      "business_field_pass": false,
+      "usage_reduction_proven": false,
+      "code_ready": true,
+      "verified_source_sha": "d7679da16ff44a4243f15e264fd31b2248d38a75",
+      "verified_ci": "19_OF_19_SUCCESS__0_FAILURE__0_CANCELLATION__D167_PREDEPLOY_WEB_SERVICE_ANDROID_AGENT_UI_AUTHORITY_CONTINUITY",
+      "mandatory_predeploy_checks": "PASS_2026_10_11_SHA_d7679da",
+      "beta_runtime_effect": "NONE_FROM_PR555__CURRENT_BETA_PR550_VC105_AGENT_V125_UNCHANGED",
+      "physical_field_pass": false,
+      "next": "EXPLICIT_OWNER_APPROVAL_REQUIRED_FOR_SCOPED_D167_BETA_DEPLOYMENT__DO_NOT_MERGE_WITHOUT_GO"
+    }
   }
 }

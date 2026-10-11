@@ -427,7 +427,7 @@ function normalizeHrEmployees(items: HrEmployee[]): { employees: Array<{ employe
     const code = normalizeLogin(item.employee_code);
     const name = normalizeName(item.display_name);
     const contractor = normalizeName(item.contractor_name);
-    if (!validLogin(code) || !name || name.length > 200 || contractor.length > 200) { invalid.push(index + 1); return; }
+    if (!validLogin(code) || !name || !contractor || name.length > 200 || contractor.length > 200) { invalid.push(index + 1); return; }
     const old = map.get(code);
     if (old && (old.display_name !== name || old.contractor_name !== contractor)) duplicates.add(code);
     else map.set(code, { display_name: name, contractor_name: contractor });
@@ -499,6 +499,8 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
     source_fingerprint?: unknown;
     source_row_count?: unknown;
     decision?: unknown;
+    confirm_changed?: boolean;
+    expected_plan?: { create: number; rename: number; contractor_update: number };
   };
   const actor = body.actor;
   if (!actor?.user_id || !["ADMIN","ROOT"].includes(actor.role) || !Array.isArray(body.employees) || body.confirm !== true || !validRequestId(body.request_id) || !validPasswordPart(body.picker_password_salt) || !validPasswordPart(body.picker_password_hash)) return response({ error: "INVALID_HR_SYNC" }, 400);
@@ -506,6 +508,15 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
   if (normalized.invalid.length || normalized.duplicates.length) return response({ error: "INVALID_HR_ROWS", invalid_rows: normalized.invalid.slice(0,100), duplicate_conflicts: normalized.duplicates.slice(0,100) }, 400);
   const plan = hrPlan(state, normalized.employees) as { collisions?: unknown[] };
   if ((plan.collisions || []).length) return response({ error: "HR_EMPLOYEE_CODE_COLLIDES_NON_PICKER", ...plan }, 409);
+  if (body.expected_plan && (
+    Number(body.expected_plan.create) !== Number((plan as {create:number}).create) ||
+    Number(body.expected_plan.rename) !== Number((plan as {rename:number}).rename) ||
+    Number(body.expected_plan.contractor_update) !== Number((plan as {contractor_update:number}).contractor_update)
+  )) return response({ error: "HR_PREVIEW_STALE", ...plan }, 409);
+
+  if (body.decision === "WEB_EXCEL_OWNER_CONFIRMED" &&
+      (Number((plan as {rename:number}).rename) + Number((plan as {contractor_update:number}).contractor_update)) > 0 && !body.confirm_changed)
+    return response({ error: "HR_CHANGE_REVIEW_REQUIRED" }, 409);
   const incoming = new Map(normalized.employees.map((item) => [item.employee_code, item]));
   const at = new Date().toISOString();
   state.storage.transactionSync(() => {

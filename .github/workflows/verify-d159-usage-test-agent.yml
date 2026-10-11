@@ -19,15 +19,6 @@ on:
     paths:
       - "usage-test-agent/**"
       - "ops/apps-script/firestore-usage-gateway-d159/**"
-      - ".github/workflows/verify-d159-usage-test-agent.yml"
-      - "ops/project-state.json"
-      - "ops/project-scope.json"
-      - "ops/resource-registry.json"
-      - "ops/owner-actions.json"
-      - "docs/OWNER_DECISIONS.md"
-      - "docs/specs/AUTH_RBAC.md"
-      - "docs/specs/UI_DESIGN_SYSTEM.md"
-      - "docs/specs/ACCEPTANCE_TESTING.md"
   workflow_dispatch:
 
 permissions:
@@ -44,7 +35,15 @@ jobs:
       FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: D167 Owner release gate (usage-test-agent)
+        if: github.event_name != 'pull_request'
+        run: python tools/d167_release_gate.py --component usage-test-agent
       - name: Detect D159 release payload changes
         id: release_scope
         shell: pwsh

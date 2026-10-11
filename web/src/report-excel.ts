@@ -111,7 +111,7 @@ export function downloadReportWorkbook(
   const outcome = (status: string) => Number(outcomes.find((row) => row.status === status)?.count || 0);
   const sourceCount = (status: string, source: string) =>
     Number(sources.find((row) => row.status === status && row.resolution_source === source)?.count || 0);
-  const automaticSkip = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT");
+  const automaticSkip = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT") + sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
   const humanSkip = Math.max(0, outcome("SKIP_ALLOWED") - automaticSkip);
 
   const summaryTable: unknown[][] = [
