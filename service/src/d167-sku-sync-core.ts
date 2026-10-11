@@ -315,11 +315,23 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
         }
       }
       if (slot==="INITIAL_05") {
-        // An absent SKU is inactive only in the complete initial FULL; history untouched.
-        // Exclude SKUs present in the staged manifest without rewriting unchanged ones.
+        // The pre-D167 master may have historical SKUs with NO d167_sku_active
+        // metadata row. Merely UPDATE-ing active=1 cannot hide those SKUs.
+        // One set-based INSERT records them inactive on the FIRST valid FULL
+        // without deleting sku_master, reports, histories or any tickets.
+        state.storage.sql.exec(`INSERT OR IGNORE INTO d167_sku_active
+          (sku,active,area,area_verified)
+          SELECT s.sku,0,'UNKNOWN',0 FROM sku_master s
+          WHERE NOT EXISTS(
+            SELECT 1 FROM d167_sku_stage st
+            WHERE st.day_vn=? AND st.slot=? AND st.sku=s.sku
+          )`,day,slot);
+        // Later FULL snapshots touch only membership changes; DELTA never hides.
         state.storage.sql.exec(`UPDATE d167_sku_active SET active=0
-          WHERE active=1 AND sku NOT IN
-            (SELECT sku FROM d167_sku_stage WHERE day_vn=? AND slot=?)`,day,slot);
+          WHERE active=1 AND NOT EXISTS(
+            SELECT 1 FROM d167_sku_stage st
+            WHERE st.day_vn=? AND st.slot=? AND st.sku=d167_sku_active.sku
+          )`,day,slot);
       }
       // Entire staged manifest must be materialized in the active catalog
       // before publishing DONE. This SQL readback occurs inside the same atomic
