@@ -330,6 +330,24 @@ export interface AdminDashboard {
   top_skus: Array<{ sku: string; product_name: string; report_count: number; picker_count: number }>;
 }
 
+export interface D167AreaSummary {
+  from_vn: string;
+  to_vn: string;
+  generated_at: string;
+  area_evidence: string;
+  areas: Array<{
+    area: "LTA" | "SHELVING" | "UNKNOWN";
+    batches: number;
+    distinct_skus: number;
+    picker_reports: number;
+    has_stock: number;
+    skip_allowed: number;
+    closed: number;
+    pending: number;
+  }>;
+  totals: { batches: number; picker_reports: number };
+}
+
 export interface AdminReportingRow {
   batch_id: string;
   sku: string;
@@ -1115,6 +1133,11 @@ export async function saveAdminSla(input: {
 export async function getAdminOperationalInsights(from: string, to: string): Promise<OperationalInsights> {
   const params = new URLSearchParams({ from, to });
   return readJson(await authorizedFetch(`/api/admin/operational-insights?${params.toString()}`));
+}
+
+export async function getD167AreaSummary(fromVn: string, toVn: string): Promise<D167AreaSummary> {
+  const params = new URLSearchParams({ from: fromVn, to: toVn });
+  return readJson(await authorizedFetch(`/api/admin/d167/report/summary?${params.toString()}`));
 }
 
 export async function getAdminDashboard(from: string, to: string): Promise<AdminDashboard> {
