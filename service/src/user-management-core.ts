@@ -427,7 +427,7 @@ function normalizeHrEmployees(items: HrEmployee[]): { employees: Array<{ employe
     const code = normalizeLogin(item.employee_code);
     const name = normalizeName(item.display_name);
     const contractor = normalizeName(item.contractor_name);
-    if (!validLogin(code) || !name || name.length > 200 || contractor.length > 200) { invalid.push(index + 1); return; }
+    if (!validLogin(code) || !name || !contractor || name.length > 200 || contractor.length > 200) { invalid.push(index + 1); return; }
     const old = map.get(code);
     if (old && (old.display_name !== name || old.contractor_name !== contractor)) duplicates.add(code);
     else map.set(code, { display_name: name, contractor_name: contractor });
