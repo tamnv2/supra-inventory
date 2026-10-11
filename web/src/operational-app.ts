@@ -13,6 +13,8 @@ import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
   applyHrPickerSync,
+  applyHrWebInput,
+  previewHrWebInput,
   confirmHrEventSync,
   recheckHrEventSync,
   changeMyPassword,
@@ -100,6 +102,7 @@ import {
   type SlaState,
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
+import { parseHrWorkbook, downloadHrExample, type HrEmployeeInput } from "./hr-excel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
 import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, queueWebSupportLogRequest, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
