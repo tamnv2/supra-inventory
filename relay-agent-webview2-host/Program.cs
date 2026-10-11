@@ -174,12 +174,15 @@ namespace SupraInventoryWebView2Host
                     return;
                 }
 
-                if (string.Equals(target.AbsolutePath, "/sft3/app/report/bin-inventory",
-                    StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(target.AbsolutePath,
+                        "/sft3/app/saleorder/auto-pickpack-confirm", StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(target.Fragment,"#d167-sku-readonly",StringComparison.Ordinal))
                 {
-                    // This exact read-only report route is the only D167 child
-                    // allowed to remain hidden. Other Supra popups retain the
-                    // previously field-proven v67 visible/opener flow.
+                    // Only this uniquely marked side tab is hidden. It first
+                    // loads the previously registered WMS page, then uses the
+                    // actual visible WMS Bin Inventory menu to navigate. No
+                    // guessed report route, navigation of the real Confirm tab,
+                    // or change to v67 popup semantics for any other request.
                     if (_skuExportWeb != null)
                     {
                         var retiredSku = _skuExportWeb;
