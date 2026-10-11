@@ -3933,3 +3933,12 @@ Các điều kiện BẮT BUỘC:
 - Kiểm thử: nguồn 0/2.5k/5k SKU, no-op, ba slot đúng cửa sổ và random ổn định, nhiều Agent tranh PRIMARY, restart/failover, WMS chậm/offline, FULL thất bại, lượt DELTA bị chồng, Web manual edit trước/sau source, ẩn chỉ ở FULL, UNKNOWN vs thiếu field, LTA↔Shelving as-of reports, SLA/ACK/03:00, usage/read/write/CPU và độ trễ Confirm.
 
 **Phạm vi/governance:** Chỉ resource Beta trong `ops/project-scope.json`; Stable OWNER-GATED. D167 vẫn OPEN, CODE READY chưa có, không có deploy mới hay Owner field PASS từ quyết định này.
+
+### D167 — Owner combined code + Beta rollout instruction (2026-10-11, latest)
+
+Owner explicitly orders continuing **all previously approved D167 implementation work** to completion and then deploying the exact approved Inventory Beta scope without requesting a redundant second CODE READY approval. This supersedes the earlier code-only instruction for the still-open D167 PR #559, but does not reopen/change business rules or approve unsafe shortcuts.
+
+- Scope: read-only same-managed-browser PRIMARY Agent WMS 05 FULL / randomized 12 and 19 DELTA; InventoryCore day-roster, HA/fingerprint/CAS, historical LTA/Shelving, Web Dashboard/detail/Excel parity, associated existing Android SKU-cache compatibility and bounded regression fixes. Existing HR/meal/03:00 fixes remain D167 acceptance items.
+- **Executable release is conditional on real CODE READY**: exact reviewed source SHA, protection/authority/continuity CI, Windows build/browser boundary proof, atomic 2.5k–5k SQL and no-regression tests, correct downstream realtime/ACK/catalog behavior, resource/quota/security review and rollback. A prior independent Edge tester's successful WMS/API import proves only the isolated test path, not the Agent WebView2 integration.
+- Allowed target after all required gates pass: the **existing Inventory Beta** Agent/Web/Worker/InventoryCore and only affected registered Beta clients, with an updated exact-SHA scoped release receipt. Stable, Launcher, outside-project tools, new provider resources and WMS mutation remain outside this approval.
+- Until that point: keep PR #559 draft/unmerged and no Beta runtime deployment, even if unrelated CI checks are green. Technical release, real installed fleet, company-WMS end-to-end, cost reduction and final Owner PASS remain distinct evidence levels.
