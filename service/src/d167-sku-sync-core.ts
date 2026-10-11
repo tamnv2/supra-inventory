@@ -256,7 +256,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     // not a client-supplied fingerprint or a sparse three-row readback.
     const canonical = staged.map(x => [
       x.sku, x.product_name, x.area, x.area_verified ? "1" : "0", x.area_reason,
-    ].join("\\t")).join("\\n");
+    ].join("\t")).join("\n");
     const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
     const computed = Array.from(new Uint8Array(digest), x => x.toString(16).padStart(2,"0")).join("");
     if (computed !== String(job.fingerprint).toLowerCase())
