@@ -121,6 +121,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            // D167 code-only schedule validation. Does not start the Agent UI,
+            // WMS browser, Firebase, or any provider request.
+            var d167SkuScheduleTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d167-sku-schedule-self-test", StringComparison.OrdinalIgnoreCase));
+            if (d167SkuScheduleTest)
+            {
+                try
+                {
+                    bool pass = D167SkuSchedule.SelfTest();
+                    AgentDiagnostics.Write("D167_SKU_SCHEDULE_SELFTEST " + (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 16;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D167_SKU_SCHEDULE_SELFTEST error=" + ex.GetType().Name);
+                    Environment.ExitCode = 17;
+                }
+                return;
+            }
+
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
