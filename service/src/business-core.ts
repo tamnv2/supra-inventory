@@ -239,8 +239,6 @@ export function initializeBusinessSchema(state: DurableObjectState): void {
       PRIMARY KEY (scope, idempotency_key)
     );
     CREATE INDEX IF NOT EXISTS idx_idempotency_created_at ON idempotency_keys(created_at);
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_pending_batch_sku
-      ON report_batches(sku) WHERE status = 'PENDING';
   `);
 }
 
