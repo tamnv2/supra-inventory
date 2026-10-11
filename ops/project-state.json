@@ -6991,7 +6991,7 @@
         "CI_CD_RELEASE_GATE_POLICY_NOT_WORKFLOW_ENFORCED"
       ],
       "no_new_runtime_or_provider_change": true,
-      "code_authorization_for_this_scope": false,
+      "code_authorization_for_this_scope": true,
       "deploy_authorization_for_this_scope": false,
       "d167_owner_business_pass": false,
       "launcher_changes": false,
@@ -7013,6 +7013,17 @@
       "HR_GSHEET_AS_ACCOUNT_CREATION_SOURCE_AFTER_SAFE_CUTOVER",
       "MEAL_FALLBACK_FULL_CANDIDATE_HOUR",
       "DAY_CLOSE_REQUIRES_OVERDUE_OPEN_TICKET"
-    ]
+    ],
+    "d167_code_only_pr555": {
+      "state": "IN_PROGRESS",
+      "owner_approved_code": true,
+      "owner_approved_deploy": false,
+      "exclude": [
+        "D05",
+        "D07"
+      ],
+      "pr": 555,
+      "branch": "d167-code-only-20261011"
+    }
   }
 }
