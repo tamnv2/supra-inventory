@@ -705,6 +705,7 @@ namespace SupraInventoryRelayAgent
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
         private readonly FirestoreAgentSessionGate _agentSessionGate;
         private FirestoreAgentLeaderCoordinator _leaderCoordinator;
+        private readonly D167SkuCoordinator _d167SkuCoordinator;
         private readonly object _sessionLock = new object();
         private AgentSession _session;
         private CancellationTokenSource _listenCts;
@@ -752,6 +753,15 @@ namespace SupraInventoryRelayAgent
             _supraBrowser = new SupraConfirmBrowser(
                 message => Log(message),
                 () => MarkD157SuccessfulReload());
+            _d167SkuCoordinator = new D167SkuCoordinator(
+                _supraBrowser, SnapshotSession, EnsureFreshToken,
+                () => HasAgentSession() && _supraBrowserReady &&
+                      _supraBrowser != null && _supraBrowser.IsAgentOwnedMode() &&
+                      _leaderCoordinator != null && _leaderCoordinator.IsLeader &&
+                      !string.IsNullOrWhiteSpace(_leaderCoordinator.Generation),
+                () => Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)!=0,
+                () => _leaderCoordinator == null ? "" : _leaderCoordinator.Generation,
+                _agentInstanceId, ConfirmD167SkuWebConflict, message => Log(message));
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
@@ -880,6 +890,7 @@ namespace SupraInventoryRelayAgent
                 StopListening();
                 StopD134AgentSync();
                 StopLeaderCoordination();
+                try { _d167SkuCoordinator.Dispose(); } catch {}
                 _trayMonitorTimer.Stop();
                 _logUploadTimer.Stop();
                 _afterHoursTimer.Stop();
@@ -3285,6 +3296,29 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private bool ConfirmD167SkuWebConflict(int count)
+        {
+            // Conflict approval belongs to the active authorized Agent operator,
+            // not a silent background reconciliation or the WMS login.
+            if(!HasAgentSession() || IsDisposed || Disposing)return false;
+            bool answer=false;
+            Action show=() => {
+                if(IsDisposed || Disposing || !HasAgentSession())return;
+                answer=MessageBox.Show(this,
+                    "Nguồn SKU Supra có "+count+" thay đổi xung đột với chỉnh sửa Web trong ngày.\n" +
+                    "Chỉ xác nhận khi được phép thay thế các giá trị Web đã chỉnh sửa.",
+                    "D167 · Xác nhận xung đột SKU",
+                    MessageBoxButtons.YesNo,MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2)==DialogResult.Yes;
+            };
+            try {
+                if(InvokeRequired)Invoke(show);
+                else show();
+            } catch {return false;}
+            return answer && HasAgentSession() && _leaderCoordinator != null &&
+                _leaderCoordinator.IsLeader;
+        }
+
         private void StartLeaderCoordination()
         {
             if (_leaderCoordinator != null) return;
@@ -3300,6 +3334,9 @@ namespace SupraInventoryRelayAgent
                 (role, primaryId) =>
                 {
                     ApplyD140AgentSyncRole(role);
+                    if (role == FirestoreAgentRole.PRIMARY)
+                        _d167SkuCoordinator.OnPrimaryOrWmsReady();
+                    else _d167SkuCoordinator.OnLostPrimary();
                     Ui(() =>
                     {
                         var roleText = role == FirestoreAgentRole.PRIMARY
@@ -3322,6 +3359,7 @@ namespace SupraInventoryRelayAgent
             StopD157AgentFeatures();
             var coordinator = _leaderCoordinator;
             _leaderCoordinator = null;
+            _d167SkuCoordinator.OnLostPrimary();
             ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE);
             try { if (coordinator != null) coordinator.Stop(); } catch { }
         }
@@ -3381,6 +3419,8 @@ namespace SupraInventoryRelayAgent
                 var coordinator = _leaderCoordinator;
                 if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
             }
+            if (_supraBrowserReady && _d167SkuCoordinator != null)
+                _d167SkuCoordinator.OnPrimaryOrWmsReady();
             ReconcileOperationalReadiness();
         }
 
