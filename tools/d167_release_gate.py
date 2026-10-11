@@ -40,10 +40,23 @@ def main():
     args = parser.parse_args()
     data = receipt()
     if args.self_test:
-        if (data.get("status") != "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY"
-                or data.get("approved_source_sha") or data.get("approved_components")):
-            fail("code-only branch incorrectly includes deployment permission")
-        print("D167_CODE_ONLY_RELEASE_DENIAL_PASS")
+        if data.get("status") == "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY":
+            if data.get("approved_source_sha") or data.get("approved_components"):
+                fail("code-only branch incorrectly includes deployment permission")
+            print("D167_CODE_ONLY_RELEASE_DENIAL_PASS")
+        elif data.get("status") == "OWNER_EXPLICIT_DEPLOY_APPROVED":
+            sha = str(data.get("approved_source_sha") or "")
+            ref = str(data.get("owner_approval_reference") or "")
+            components = data.get("approved_components", [])
+            if (not re.fullmatch("[0-9a-f]{40}", sha)
+                    or not ref.startswith("OWNER_EXPLICIT_D167_DEPLOY_")
+                    or not isinstance(components, list)
+                    or not components or not set(components) <= COMPONENTS
+                    or git("merge-base", "--is-ancestor", sha, "HEAD").returncode):
+                fail("Owner release receipt does not match the tested code candidate")
+            print("D167_OWNER_RECEIPT_PREFLIGHT_PASS")
+        else:
+            fail("unrecognized release status")
         return
     if not args.component:
         fail("missing release component")
