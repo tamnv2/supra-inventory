@@ -79,7 +79,7 @@ export async function handleD167AreaReportCoreRequest(
   if(kind==="summary")return send({
     from_vn:range.start,to_vn:range.end,generated_at:new Date().toISOString(),
     area_filter:area,status_filter:status,areas:summary,
-    totals:summary.reduce((a,x)=>({
+    totals:summary.reduce<{batches:number;picker_reports:number}>((a,x)=>({
       batches:a.batches+Number(x.batches||0),picker_reports:a.picker_reports+Number(x.picker_reports||0)
     }),{batches:0,picker_reports:0}),
     area_evidence:"VERIFIED_AS_OF_FIRST_REPORT_OR_UNKNOWN",
