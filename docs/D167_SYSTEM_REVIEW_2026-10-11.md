@@ -99,3 +99,8 @@ Evidence confidence meanings: **CODE PROVEN** = actual source path + merged sour
 ## 8. Change-control receipt
 
 This file records Owner-requested **analysis/reconciliation only** under open D167. Cross-component review rules are recorded in `AGENTS.md`, `docs/OPERATING_PROTOCOL.md`, `docs/OWNER_DECISIONS.md`, and `docs/specs/ACCEPTANCE_TESTING.md`; implementation state is separately tracked in `ops/project-state.json`. No WMS/Inventory provider calls, new source feature, quotas, billing or Stable state are modified. Branch→PR→authority + continuity CI required; docs-only merge allowed only if demonstrably no runtime deploy side effect. Full D167 Owner business acceptance remains PENDING.
+
+
+## Update: Owner locked D01–D10 after this evidence review
+
+This is an earlier analysis baseline. The later, controlling decisions are in `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`: use Web/Excel HR instead of GSheet account sync; default late 30-minute meals; 03:00 close ALL day-N PENDING whether or not overdue; independent next-day SKU/Picker reports; daily PRIMARY SKU job after 05:00 in the managed browser; new SKU automatically, rename requires Agent confirmation and absent remains; only LTA/Shelving temporal area, UNKNOWN before verified history; low-overhead logs and no Launcher mutation; staged code-only followed by scoped Owner Beta deployment. Proposed historical Pending/Overdue reconstruction and full-hour meal hold are superseded. Runtime source still needs to be changed under a later code instruction.
