@@ -3,7 +3,10 @@ on:
   pull_request:
     paths:
       - "service/src/d167-sku-*.ts"
-      - "relay-agent/D167SkuSchedule.cs"
+      - "relay-agent/D167Sku*.cs"
+      - "relay-agent/SupraConfirmBrowserD167.cs"
+      - "relay-agent/SupraConfirmBrowser.cs"
+      - "relay-agent-webview2-host/**"
       - "relay-agent/Program.cs"
       - "tests/d167-three-slot-sku.test.mjs"
       - "tests/d167-full-roster-sql.test.py"
@@ -33,6 +36,9 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
+      - name: Build D167 managed WebView2 host (no release)
+        shell: pwsh
+        run: dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release --nologo
       - name: Build isolated Windows Agent (no release)
         shell: pwsh
         run: dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release --nologo
