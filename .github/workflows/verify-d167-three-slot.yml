@@ -6,6 +6,7 @@ on:
       - "relay-agent/D167SkuSchedule.cs"
       - "relay-agent/Program.cs"
       - "tests/d167-three-slot-sku.test.mjs"
+      - "tests/d167-full-roster-sql.test.py"
       - ".github/workflows/verify-d167-three-slot.yml"
   workflow_dispatch:
 permissions:
@@ -20,6 +21,8 @@ jobs:
           node-version: "22"
       - name: D167 source and diff behavior
         run: node --experimental-strip-types --test tests/d167-three-slot-sku.test.mjs
+      - name: D167 existing-master FULL/DELTA SQL migration regression
+        run: python3 tests/d167-full-roster-sql.test.py
       - name: Type-check InventoryCore
         working-directory: service
         run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck
