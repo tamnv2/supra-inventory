@@ -6745,7 +6745,7 @@
     "owner_deploy_approval": true,
     "implementation_status": "MERGED_PR550_MAIN_9bcff631__BETA_RUNTIME_RELEASE_PASS",
     "provider_changes": "EXISTING_BETA_RESOURCES_ONLY__NO_NEW_PROVIDER",
-    "next": "PR555_CODE_READY_HOLD__AWAIT_OWNER_EXPLICIT_DEPLOY_GO__D05_D07_SEPARATE_PENDING__D167_OWNER_FIELD_PASS_NOT_CLAIMED",
+    "next": "D167_PR555_EXPLICIT_OWNER_DEPLOY_APPROVED__WAIT_PR_CI_MAIN_MERGE_BETA_WORKER_WEB_HEALTH__FIELD_OWNER_PASS_PENDING",
     "inherited_evidence_group_ids": [
       "D167-USAGE-ROOT-CAUSE",
       "D167-CROSS-METER-OPTIMIZATION",
@@ -7015,27 +7015,32 @@
       "DAY_CLOSE_REQUIRES_OVERDUE_OPEN_TICKET"
     ],
     "d167_code_only_pr555": {
-      "state": "CODE_READY_ALL_APPLICABLE_PREDEPLOY_CHECKS_PASS__AWAIT_OWNER_DEPLOY_APPROVAL",
+      "state": "OWNER_EXPLICIT_DEPLOY_APPROVED__PR555_RELEASE_GATE__DEPLOY_PENDING",
       "owner_approved_code": true,
-      "owner_approved_deploy": false,
+      "owner_approved_deploy": true,
       "exclude": [
         "D05",
         "D07"
       ],
       "pr": 555,
       "branch": "d167-code-only-20261011",
-      "latest_source_evidence": "D167_PR555_CODE_CANDIDATE__2026_10_11__SEE_DOCS_CHECKPOINT",
-      "release_gate": "ALL_LIVE_BETA_RELEASE_LANES_FAIL_CLOSED_UNTIL_EXPLICIT_OWNER_PERMIT__RECEIPT_UNAPPROVED",
+      "latest_source_evidence": "D167_PR555_APPROVED_PREDEPLOY_SOURCE_1462458e__CI_FINAL_HEAD_PENDING",
+      "release_gate": "APPROVAL_RECORDED__ACTUAL_BETA_DEPLOY_PENDING_MAIN_MERGE_AND_HEALTH",
       "tests": "VN_DAY_SQL_FIXTURE__WEB_HR_STALE_PREVIEW__WEB_BUILD__SERVICE_TYPECHECK__ANDROID_AND_AGENT_CI_PENDING",
       "business_field_pass": false,
       "usage_reduction_proven": false,
       "code_ready": true,
-      "verified_source_sha": "d7679da16ff44a4243f15e264fd31b2248d38a75",
+      "verified_source_sha": "1462458e5405c548142b3171fc119986ac6962e0",
       "verified_ci": "19_OF_19_SUCCESS__0_FAILURE__0_CANCELLATION__D167_PREDEPLOY_WEB_SERVICE_ANDROID_AGENT_UI_AUTHORITY_CONTINUITY",
       "mandatory_predeploy_checks": "PASS_2026_10_11_SHA_d7679da",
-      "beta_runtime_effect": "NONE_FROM_PR555__CURRENT_BETA_PR550_VC105_AGENT_V125_UNCHANGED",
+      "beta_runtime_effect": "PENDING_DEPLOY__DO_NOT_CLAIM_LIVE_BEFORE_WORKFLOW_HEALTH",
       "physical_field_pass": false,
-      "next": "EXPLICIT_OWNER_APPROVAL_REQUIRED_FOR_SCOPED_D167_BETA_DEPLOYMENT__DO_NOT_MERGE_WITHOUT_GO"
+      "next": "APPROVED_SCOPED_BETA_WORKER_WEB_SERVICE_MAIN_MERGE_ONLY_AFTER_CI__CHECK_DEPLOY_AND_READBACK",
+      "approved_source_sha": "1462458e5405c548142b3171fc119986ac6962e0",
+      "approved_components": [
+        "worker"
+      ],
+      "owner_deploy_authorization": "OWNER_EXPLICIT_D167_DEPLOY_20261011_PR555_WEB_WORKER_SERVICE"
     }
   }
 }
