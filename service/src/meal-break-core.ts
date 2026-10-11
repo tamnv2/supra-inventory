@@ -19,8 +19,8 @@ function first<T extends SqlRow>(rows: T[]): T | null { return rows[0] || null; 
 function slotFor(day: string, period: MealPeriod, choice: MealChoice | null): { from: number; to: number } {
   const base = vnMidnightMs(day);
   const start = period === "LUNCH" ? 11 : 18;
-  const startMinutes = start * 60 + (choice === "LATE" ? 30 : 0);
-  const endMinutes = choice ? startMinutes + 30 : start * 60 + 60;
+  const startMinutes = start * 60 + (choice !== "EARLY" ? 30 : 0);
+  const endMinutes = startMinutes + 30;
   return { from: base + startMinutes * 60_000, to: base + endMinutes * 60_000 };
 }
 
@@ -109,7 +109,7 @@ export function getMealChoiceState(state: DurableObjectState, nowMs = Date.now()
     dinner,
     lunch_prompt_due: !lunch && nowMs >= base + (10*60+55)*60_000 && nowMs < base + 12*60*60_000,
     dinner_prompt_due: !dinner && nowMs >= base + (17*60+55)*60_000 && nowMs < base + 19*60*60_000,
-    unconfirmed_fallback: "AUTO_SKIP_PAUSED_DURING_FULL_CANDIDATE_HOUR",
+    unconfirmed_fallback: "DEFAULT_LATE_30_MINUTES",
   };
 }
 
