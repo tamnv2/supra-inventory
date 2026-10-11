@@ -575,6 +575,8 @@ def main() -> None:
     require(app, 'limit: 500', "D163 bounded one-batch Picker detail read")
     forbid(app, "Promise.all(reportRows.map", "D163 forbids eager all-row Picker detail fanout")
 
+    import runpy
+    runpy.run_path(str(ROOT / "tools/d167_day_boundary_regression.py"), run_name="__main__")
     print("WEB_OPERATIONAL_REGRESSION_PASS")
 
 
