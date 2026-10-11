@@ -499,6 +499,8 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
     source_fingerprint?: unknown;
     source_row_count?: unknown;
     decision?: unknown;
+    confirm_changed?: boolean;
+    expected_plan?: { create: number; rename: number; contractor_update: number };
   };
   const actor = body.actor;
   if (!actor?.user_id || !["ADMIN","ROOT"].includes(actor.role) || !Array.isArray(body.employees) || body.confirm !== true || !validRequestId(body.request_id) || !validPasswordPart(body.picker_password_salt) || !validPasswordPart(body.picker_password_hash)) return response({ error: "INVALID_HR_SYNC" }, 400);
