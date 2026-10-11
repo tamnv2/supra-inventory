@@ -2056,7 +2056,8 @@ function renderDashboard(): string {
   const hasStock = count("HAS_STOCK");
   const skipped = count("SKIP_ALLOWED");
   const automaticSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT");
-  const humanSkipped = Math.max(0, skipped - automaticSkipped);
+  const dayEndSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
+  const humanSkipped = Math.max(0, skipped - automaticSkipped - dayEndSkipped);
   const withdrawn = count("CLOSED");
   const pending = Number(k?.pending_batch_count || 0);
   const totalResolved = Math.max(0, hasStock + skipped + withdrawn);
@@ -2231,7 +2232,8 @@ function renderReports(): string {
   const count = (status: string) => Number(outcomes.find((row) => row.status === status)?.count || 0);
   const sourceCount = (status: string, source: string) => Number(resolutionSources.find((row) => row.status === status && row.resolution_source === source)?.count || 0);
   const automaticSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT");
-  const humanSkipped = Math.max(0, count("SKIP_ALLOWED") - automaticSkipped);
+  const dayEndSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
+  const humanSkipped = Math.max(0, count("SKIP_ALLOWED") - automaticSkipped - dayEndSkipped);
   const recurrenceCount = reportInsights?.recurrence?.top_skus?.length || 0;
   const reportWarningCount = Number(reportInsights?.sla?.warning_count || 0);
   const reportOverdueCount = Number(reportInsights?.sla?.escalated_count || 0);
@@ -2251,6 +2253,7 @@ function renderReports(): string {
       </form>
     </article>
     ${d167AreaSummaryMarkup(d167ReportAreas)}
+    <p class="ops-subtle">Nguồn cho phép Skip trong kỳ: Inventory xác nhận ${humanSkipped.toLocaleString("vi-VN")} · Hệ thống quá hạn ${automaticSkipped.toLocaleString("vi-VN")} · Hệ thống tự chốt 03:00 ${dayEndSkipped.toLocaleString("vi-VN")}.</p>
     <section class="business-summary-grid business-summary-grid-6 pro-report-kpis">
       <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong><small>Trong khoảng thời gian đã chọn</small></article>
       <article class="business-summary-card primary-soft"><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong><small>Số SKU khác nhau trong kỳ</small></article>
