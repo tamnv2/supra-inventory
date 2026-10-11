@@ -1,6 +1,6 @@
 # D167 — CODE ONLY Implementation Checkpoint (2026-10-11)
 
-**Authority:** Owner explicitly instructed continued D167 coding to CODE READY, **excluding D05 (PRIMARY automatic daily SKU) and D07 (LTA/Shelving historical area)** as separately pending. PR [#555](https://github.com/tamnv2/supra-inventory/pull/555), branch `d167-code-only-20261011`. This document records a source candidate; **not CODE READY until final head all applicable CI PASS** and not a Beta deploy/Owner field PASS.
+**Authority:** Owner explicitly instructed continued D167 coding to CODE READY, **excluding D05 (PRIMARY automatic daily SKU) and D07 (LTA/Shelving historical area)** as separately pending. PR [#555](https://github.com/tamnv2/supra-inventory/pull/555), branch `d167-code-only-20261011`. This document records a source candidate; **CODE READY technical checks PASS at verified source SHA; final documentation-only continuity commit rechecks pending** and not a Beta deploy/Owner field PASS.
 
 ## Implementation / contract evidence
 
@@ -25,6 +25,13 @@
 - **Rollback:** current Beta vc105/Agent v125/Web remains unchanged by PR #555. On later deployment, protect legacy HR data and day-batch SQLite migration; rolling back source alone is unsafe if day-scoped duplicate records have already been written. Require rollout readback and forward-compatible schema or a verified backup/repair plan before execution.
 
 ## Exit criteria
-1. Final exact PR-head applicable workflows terminal PASS (cancelled superseded heads are not PASS).
+1. Verified source commit has 19/19 terminal PASS, 0 failures/cancellations; final docs-only continuity head must also PASS before PR Ready.
 2. Source/version/CI references in `ops/project-state.json` reconciled and required authority/continuity PASS.
 3. Mark PR Ready for review / `CODE_READY_ALL_APPLICABLE_PREDEPLOY_CHECKS_PASS` only after #1–2. Do **not** merge PR or touch Beta/Stable, APK, EXE, service, Gateway, update channel or WMS until separate Owner `duyệt triển khai`.
+
+## CODE READY technical receipt — 2026-10-11
+
+- **Verified code/source/head:** `d7679da16ff44a4243f15e264fd31b2248d38a75` ([commit](https://github.com/tamnv2/supra-inventory/commit/d7679da16ff44a4243f15e264fd31b2248d38a75)).
+- **GitHub Actions:** 19/19 `completed/success`, zero failures or cancellations on that exact head, including `D167 predeploy product verify (no deployment)` [run 38102524592](https://github.com/tamnv2/supra-inventory/actions/runs/38102524592), Android build [run 38102524570](https://github.com/tamnv2/supra-inventory/actions/runs/38102524570), UI Android debug [run 38102524582](https://github.com/tamnv2/supra-inventory/actions/runs/38102524582), Agent [run 38102524552](https://github.com/tamnv2/supra-inventory/actions/runs/38102524552), Repo Authority and Project State guards.
+- **Gates:** explicit Owner deploy permission `NOT GRANTED`; release receipt still `CODE_ONLY_NOT_APPROVED_FOR_DEPLOY`; PR #555 stays unmerged, Beta/Stable untouched by this code-only change. D05/D07 excluded and pending. Real-device field PASS, installed fleet and metered Usage savings not proven.
+- **Last documentation commit:** updates only this receipt and canonical continuity state; required authority/continuity CI still re-runs on that new head. Do not conflate previous commit CI with a modified source SHA.

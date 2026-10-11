@@ -5443,7 +5443,7 @@
         "installed MT90 DT50 Android version and relevant Agent v124 version with no sensitive device identifiers",
         "realtime WMS confirm/ACK/HA timestamps and selected five-tab/correction/Drive logs outcomes"
       ],
-      "manual_action_now": "NO_OWNER_ACTION_DURING_D167_PR555_CODE_ONLY_CI__NEXT_GATE_EXPLICIT_DEPLOY_APPROVAL",
+      "manual_action_now": "NO_ACTION_NEEDED_TO_COMPLETE_CODE__EXPLICIT_OWNER_DEPLOY_APPROVAL_REQUIRED_BEFORE_MERGE_RELEASE",
       "constraints": "NO_SECRET_OR_PERSONAL_IDENTIFIERS_IN_PUBLIC_GITHUB__STABLE_OWNER_GATED__NO_NEW_DEPLOY",
       "code_or_deploy_approval": true,
       "owner_field_pass": false,
@@ -5476,7 +5476,7 @@
         "field_owner_pass": false
       },
       "d167_pr555_code_ready_candidate": {
-        "status": "SOURCE_CANDIDATE_FINAL_CI_PENDING",
+        "status": "CODE_READY_ALL_APPLICABLE_PREDEPLOY_CHECKS_PASS__OWNER_DEPLOY_APPROVAL_PENDING",
         "branch": "d167-code-only-20261011",
         "pr": 555,
         "owner_authorized_code": true,
@@ -5488,7 +5488,9 @@
         "beta_runtime_mutation": false,
         "accepted_base": "D166_LIMITED_OWNER_PASS",
         "field_owner_pass": false,
-        "next_action": "NO_OWNER_ACTION_UNTIL_VERIFIED_CODE_READY__THEN_EXPLICIT_TRIEN_KHAI"
+        "next_action": "EXPLICIT_OWNER_BETA_DEPLOY_APPROVAL_FOR_PR555_AFTER_REVIEW",
+        "verified_source_sha": "d7679da16ff44a4243f15e264fd31b2248d38a75",
+        "verified_ci": "19_OF_19_SUCCESS_2026_10_11"
       }
     }
   ]
