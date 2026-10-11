@@ -761,3 +761,8 @@ The prospective D166 five-tab operations Web UI has one shared date filter: **H�
 ### D166 correction setting implementation candidate — supersedes earlier first-report correction copy
 
 Reuse the existing Web SLA controls `skipToStockEnabled` and `skipToStockMinutes` (wire fields `skip_to_stock_enabled`, `skip_to_stock_minutes`). Rename the display to **Cho phép sửa kết quả — Đã có hàng / Cho phép Skip**. The shared edit window starts at the **first published result** (not at first report). `HAS_STOCK` and `SKIP_ALLOWED` both hide their edit buttons when the authoritative persisted `correction_deadline_at` expires; server repeats the same deadline and version check. No new setting, endpoint, polling or independent Android timer. On prior results with no issued stored deadline, do not retroactively grant corrections. The FIRST_REPORT/PER_PICKER overdue/auto-skip logic is separate and unchanged.
+
+
+## D167 2026-10-11 — HR nhập trực tiếp và Excel
+
+Owner thay nguồn tạo tài khoản Picker từ Google Sheets sang nhập trực tiếp trên Web hoặc tải mẫu Excel rồi upload. Ba cột bắt buộc: Mã nhân viên, Họ và tên, Nhà thầu. Cần có bước xem trước, kiểm tra thiếu thông tin, trùng mã, khác tên hoặc nhà thầu, xác nhận xung đột, chặn trùng quyền và ghi nhật ký. Tài khoản cũ không có trong file không bị xóa hay khóa. Thực hiện trên nhánh code sau khi Owner ra lệnh chạy code; chưa triển khai.
