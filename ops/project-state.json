@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D167_COLLECT_SANITIZED_FIELD_EVIDENCE_FOR_ACK_HA_USAGE_WEB_REPORTER_MEAL_OVERDUE_HR_AND_RELEASE_INSTALLS__NO_OWNER_PASS_YET",
+  "next_action": "D167_PR559_CODE_ONLY_IMPLEMENTATION_IN_PROGRESS__WAIT_ALL_REQUIRED_CI_AND_REMAINING_SOURCE_PROOF__OWNER_DEPLOY_GATED",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -7048,11 +7048,11 @@
       "postdeploy_ci": "MAIN_10_OF_11_SUCCESS__CANARY_DENIED_OWNER_GATE_AT_JOB_FIRST_STEP__NO_CANARY_MUTATION__TRIGGER_CORRECTION_PR_REQUIRED"
     },
     "agent_sku_area_reporting_design_2026_10_11": {
-      "status": "DESIGN_PROPOSED__SOURCE_AUDITED__NO_EXECUTABLE_CODE__NO_DEPLOY",
+      "status": "CODE_IN_PROGRESS_PR559__FIELD_AND_CODE_READY_GATES_PENDING__NO_DEPLOY",
       "owner_priority": "PRIMARY_AGENT_THREE_SLOTS_PER_VN_DAY_INITIAL_05_FULL_DELTA_12_RANDOM_DELTA_19_RANDOM__AREA_HISTORY_AND_REPORTS_FIRST",
       "authority": "docs/D167_AGENT_SKU_AREA_REPORT_DESIGN_2026-10-11.md",
       "current_main": "8ccb0177481e89e1fdc86e9e03670138c0412135",
-      "code_implementation": false,
+      "code_implementation": true,
       "wms_test_source": "EXPERIMENT_STANDALONE_EXPORT_SKU_NAME_ONLY__NOT_PRODUCTION_PRIMARY_AGENT",
       "verified_lta_shelving_export_header": false,
       "agent_same_managed_browser_export_proof": false,
@@ -7064,7 +7064,7 @@
         "MULTI_AREA_ATTRIBUTION",
         "SQL_5K_ATOMIC_BENCHMARK"
       ],
-      "next": "OWNER_THREE_SLOT_BUSINESS_RULE_LOCKED_DOC_ONLY__WAIT_EXPLICIT_CHAY_CODE__NO_BETA_DEPLOY__STABLE_GATED",
+      "next": "FINISH_AGENT_MANAGED_WMS_SOURCE_PROOF__REPORTING_UI__REAL_SQL_INTEGRATION_TESTS__NO_DEPLOY",
       "field_owner_pass": false
     },
     "three_slot_sku_owner_decision_2026_10_11": {
@@ -7116,6 +7116,51 @@
       "beta_deploy_permission": false,
       "field_owner_pass": false,
       "stable": "OWNER_GATED"
+    },
+    "code_only_three_slot_implementation_2026_10_11": {
+      "status": "CODE_IMPLEMENTATION_IN_PROGRESS__NOT_CODE_READY__NO_RUNTIME_DEPLOY",
+      "source_branch": "d167-code-three-slot-sku-area-report-20261011",
+      "pr": 559,
+      "owner_code_authorized": true,
+      "owner_deploy_authorized": false,
+      "implemented_source": [
+        "service/src/d167-sku-sync-logic.ts",
+        "service/src/d167-sku-sync-core.ts",
+        "service/src/d167-sku-ha.ts",
+        "service/src/d167-area-report-core.ts",
+        "service/src/core.ts",
+        "service/src/index.ts",
+        "service/src/business-core.ts",
+        "service/src/sku-import-core.ts",
+        "service/src/read-model-core.ts",
+        "tests/d167-three-slot-sku.test.mjs"
+      ],
+      "delivered_contracts": [
+        "VN_THREE_SLOTS_ONE_RECEIPT_PER_SLOT",
+        "FULL_HIDES_ABSENT_NO_DELETION",
+        "DELTA_SPARSE_NO_SOURCE_MISSING_HIDE",
+        "WMS_SKU_NAME_COARSE_AREA_NORMALIZER",
+        "STAGED_SOURCE_LEASE_AND_HA_FENCE",
+        "WEB_MANUAL_NAME_REVISION",
+        "PICKER_CURRENT_DAY_ACTIVE_GUARD",
+        "AREA_INTERVALS_READ_MODEL_AND_REPORT_API"
+      ],
+      "tests_observed": [
+        "D167_PURE_TESTS_10_OF_10_PASS_2026_10_11"
+      ],
+      "tests_pending": [
+        "INVENTORYCORE_SQL_TRANSACTION_5K_BENCHMARK",
+        "HA_SAME_BROWSER_REAL_WMS_EXPORT",
+        "AGENT_EXECUTOR_INTEGRATION",
+        "WEB_REPORTING_UI_PARITY",
+        "ANDROID_CACHE_FIELD_SMOKE",
+        "FULL_READBACK_FROM_REAL_PROVIDER",
+        "D167_COMPLETE_CI_PASS"
+      ],
+      "physical_field_pass": false,
+      "release_approved": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "next": "CONTINUE_IMPLEMENTATION_IN_SAME_D167_DRAFT_PR__REQUIRE_CI_AUTHORITY_AND_CONTINUITY_PASS__NO_MERGE_NO_DEPLOY"
     }
   }
 }
