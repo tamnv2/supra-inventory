@@ -84,3 +84,28 @@ test("new WMS name conflicting same field manual revision requires explicit appr
   const plan=planSkuChanges([manual],update,"DELTA",100);
   assert.equal(plan.update.length,0);assert.equal(plan.conflicts[0].field,"product_name");
 });
+
+test("ambiguous source supersedes an old known area with UNKNOWN", () => {
+  const previous=old("4712","Product","LTA");
+  const ambiguous={sku:"4712",product_name:"Product",area:"UNKNOWN",
+    area_verified:false,area_reason:"MULTIPLE_AREA"};
+  const plan=planSkuChanges([previous],[ambiguous],"DELTA",100);
+  assert.equal(plan.update.length,1);
+  assert.equal(plan.update[0].area,"UNKNOWN");
+  assert.equal(plan.update[0].area_verified,false);
+});
+test("missing area column must preserve old LTA/Shelving evidence", () => {
+  const previous=old("4712","Product","LTA");
+  const missing={sku:"4712",product_name:"Product",area:"UNKNOWN",
+    area_verified:false,area_reason:"MISSING_AREA_COLUMN"};
+  const plan=planSkuChanges([previous],[missing],"DELTA",100);
+  assert.equal(plan.update.length,0);
+});
+test("previously hidden SKU is reactivated when source returns it", () => {
+  const previous={...old("001","Item"),active:false};
+  const incoming={sku:"001",product_name:"Item",area:"LTA",
+    area_verified:true,area_reason:"VERIFIED"};
+  const plan=planSkuChanges([previous],[incoming],"DELTA",100);
+  assert.deepEqual(plan.activate,["001"]);
+  assert.deepEqual(plan.hide,[]);
+});
