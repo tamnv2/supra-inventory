@@ -203,7 +203,8 @@ export function dueMealPrompts(state: DurableObjectState, nowMs = Date.now()): A
   const day = vnDayAt(nowMs), base = vnMidnightMs(day);
   for (const period of ["LUNCH","DINNER"] as const) {
     const promptAt = base + (period === "LUNCH" ? 10*60+55 : 17*60+55)*60_000;
-    if (nowMs < promptAt) continue;
+    const cutoffAt = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
+    if (nowMs < promptAt || nowMs >= cutoffAt) continue;
     const already = first(state.storage.sql.exec<SqlRow>(
       "SELECT 1 AS done FROM d167_meal_prompt_markers WHERE day_vn = ? AND period = ?", day, period,
     ).toArray());
