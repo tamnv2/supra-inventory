@@ -572,6 +572,7 @@ export async function confirmHrPending(
   expectedFingerprint: string,
 ): Promise<{ status: string; state: HrSyncState }> {
   const current = await readSync(env);
+  if (env.APP_ENV === "beta") return { status: "SHEET_INTAKE_RETIRED_WEB_EXCEL", state: current };
   const expected = String(expectedFingerprint || "").trim().toLowerCase();
   if (
     current.status !== "CONFIRM_REQUIRED" ||
