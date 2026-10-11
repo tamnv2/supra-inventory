@@ -1531,6 +1531,12 @@ export default {
           if (!raw || typeof raw !== "object" || Array.isArray(raw)) return json({ error: "INVALID_JSON" }, 400);
           input = raw as Record<string, unknown>;
         } catch { return json({ error: "INVALID_JSON" }, 400); }
+        // A PICKPACK_ADMIN may run the ordinary already-fenced SKU job,
+        // but overriding a same-field Web edit requires an Inventory ADMIN
+        // credential. Never trust only the Agent's local Yes/No dialog.
+        if (action === "publish" && input.approve_conflicts === true &&
+            operator.role !== "ADMIN")
+          return json({ error: "D167_ADMIN_CONFLICT_APPROVAL_REQUIRED" }, 403);
         const leader = await verifyD167AgentPrimary(
           env, String(input.instance_id || ""), String(input.generation || ""),
         );
