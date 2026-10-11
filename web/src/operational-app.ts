@@ -103,6 +103,7 @@ import {
 } from "./api";
 import { parseSkuExcel, type ParsedSkuWorkbook } from "./sku-excel";
 import { parseHrWorkbook, downloadHrExample, type HrEmployeeInput } from "./hr-excel";
+import { renderHrWeb } from "./hr-web-panel";
 import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
 import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, queueWebSupportLogRequest, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
@@ -1830,112 +1831,7 @@ function renderPeopleTabs(current: "users" | "hr"): string {
 }
 
 function renderHr(): string {
-  const source = hrSource?.source;
-  const eventState = hrEventSync?.sync || {};
-  const eventPlan = eventState.plan || {};
-  const eventStatus = String(eventState.status || "CHƯA CÓ TÍN HIỆU");
-  const watch = hrEventSync?.watch;
-  const watchUntil = watch?.expires_at_ms
-    ? fmt(new Date(Number(watch.expires_at_ms)).toISOString())
-    : "Chưa đăng ký";
-  const hardBlockLabels: Record<string, string> = {
-    DUPLICATE_CONFLICT: "Trùng Mã nhân viên nhưng thông tin không đồng nhất",
-    INVALID_ROWS: "Có dòng nhân sự không hợp lệ",
-    EMPTY_SOURCE: "Nguồn nhân sự rỗng",
-    NON_PICKER_COLLISION: "Mã nhân viên trùng tài khoản không phải Picker",
-    SOURCE_ROW_LOSS_OVER_20_PERCENT: "Số dòng nguồn giảm quá 20%",
-    HEADER_CHANGED: "Tên cột nguồn đã thay đổi",
-    SOURCE_ACCESS_FAILED: "Không đọc được Google Sheet",
-    SOURCE_READ_FAILED: "Không đọc được snapshot nhân sự",
-  };
-  const pendingFingerprint = String(eventState.pending_fingerprint || "");
-  const canManageEvent = Boolean(profile && (profile.role === "ADMIN" || profile.role === "ROOT"));
-  const canConfirmEvent = Boolean(pendingFingerprint && canManageEvent);
-  const invalidReasonLabels: Record<string, string> = {
-    INVALID_EMPLOYEE_CODE: "Mã nhân viên trống hoặc có ký tự không được phép",
-    MISSING_DISPLAY_NAME: "Họ và tên đang để trống",
-    DISPLAY_NAME_TOO_LONG: "Họ và tên vượt 200 ký tự",
-    CONTRACTOR_TOO_LONG: "Nhà thầu vượt 200 ký tự",
-  };
-  const invalidRowDetails = Array.isArray(eventState.invalid_row_details)
-    ? eventState.invalid_row_details.slice(0, 20)
-    : [];
-  const invalidRowsHtml = invalidRowDetails.length
-    ? `<div class="ops-note"><b>Dòng cần sửa:</b><ul>${invalidRowDetails.map((item) => {
-        const reasons = Array.isArray(item.reasons) && item.reasons.length
-          ? item.reasons.map((reason) => invalidReasonLabels[String(reason)] || String(reason)).join("; ")
-          : "Dữ liệu không hợp lệ";
-        return `<li>Dòng <b>${Number(item.row || 0)}</b>: ${esc(reasons)}</li>`;
-      }).join("")}</ul></div>`
-    : "";
-  const duplicateCodes = Array.isArray(eventState.duplicate_employee_codes)
-    ? eventState.duplicate_employee_codes.slice(0, 20)
-    : [];
-  const duplicateHtml = duplicateCodes.length
-    ? `<div class="ops-note"><b>Mã nhân viên bị trùng thông tin:</b> ${duplicateCodes.map((value) => esc(value)).join(", ")}</div>`
-    : "";
-  const hardBlockCode = String(eventState.hard_block_code || "");
-  const hardBlockHelp: Record<string, string> = {
-    INVALID_ROWS: "Sửa đúng các dòng được liệt kê trên Google Sheet rồi bấm Kiểm tra lại. Không cho phép ép áp dụng khi dữ liệu nguồn chưa hợp lệ.",
-    DUPLICATE_CONFLICT: "Chuẩn hóa mỗi Mã nhân viên về một bộ Họ tên/Nhà thầu duy nhất rồi bấm Kiểm tra lại.",
-    EMPTY_SOURCE: "Khôi phục dữ liệu nhân sự trong nguồn rồi bấm Kiểm tra lại.",
-    NON_PICKER_COLLISION: "Xử lý tài khoản đang trùng Mã nhân viên nhưng không phải Picker trước khi đồng bộ.",
-    SOURCE_ROW_LOSS_OVER_20_PERCENT: "Kiểm tra việc mất dòng nguồn. Hệ thống giữ nguyên user hiện tại cho đến khi nguồn hợp lệ.",
-    HEADER_CHANGED: "Kiểm tra lại tên cột Mã nhân viên/Họ và tên/Nhà thầu và xác nhận lại nguồn.",
-    SOURCE_ACCESS_FAILED: "Kiểm tra quyền truy cập Google Sheet rồi bấm Kiểm tra lại.",
-    SOURCE_READ_FAILED: "Kiểm tra nguồn Google Sheet/kết nối rồi bấm Kiểm tra lại.",
-  };
-  const eventClass = eventStatus === "HARD_BLOCK"
-    ? "error"
-    : eventStatus === "CONFIRM_REQUIRED"
-      ? "warning"
-      : eventStatus === "APPLIED"
-        ? "success"
-        : "";
-  return `<section class="ops-route people-workspace">
-    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Quản lý tài khoản, nguồn nhân sự và đồng bộ Picker trong cùng một nghiệp vụ.</p></div></div>
-    ${renderPeopleTabs("hr")}
-    <article class="ops-panel ops-staff-source">
-      <div class="ops-panel-title"><div><h3>Google Sheet nhân sự</h3><p>Nhập link, tên tab và đúng tên cột đang sử dụng.</p></div></div>
-      <form id="hr-source-form" class="ops-form-grid">
-        <label class="span">Link Google Sheet<input name="sheetUrl" value="${esc(source?.sheet_url || "")}" required /></label>
-        <label>Tên tab<input name="tabName" value="${esc(source?.tab_name || "")}" required /></label>
-        <label>Tên cột Mã nhân viên<input name="employeeCodeHeader" value="${esc(source?.mnv_header || "Mã nhân viên")}" required /></label>
-        <label>Tên cột Họ và tên<input name="fullNameHeader" value="${esc(source?.full_name_header || "Họ và tên")}" required /></label>
-        <label>Tên cột Nhà thầu<input name="contractorHeader" value="${esc(source?.contractor_header || "Nhà thầu")}" required /></label>
-        <div class="ops-form-actions"><button class="primary">Xác nhận nguồn</button></div>
-      </form>
-    </article>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Đồng bộ tự động D161</h3><p>Google Drive chỉ đánh thức hệ thống khi file thay đổi; máy chủ luôn đọc lại Sheet và kiểm tra toàn bộ snapshot trước khi áp dụng.</p></div></div>
-      ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? `
-        <section class="ops-status-strip">
-          <span>Watch <b>${watch?.configured ? "Đang hoạt động" : "Chưa hoạt động"}</b></span>
-          <span>Gia hạn đến <b>${esc(watchUntil)}</b></span>
-          <span>Trạng thái <b>${esc(eventStatus)}</b></span>
-          <span>Dòng nguồn <b>${Number(eventState.source_row_count || 0).toLocaleString("vi-VN")}</b></span>
-        </section>
-        ${eventStatus === "CONFIRM_REQUIRED" ? `<div class="notice warning">
-          <b>Snapshot mới cần quyết định:</b> tạo mới <b>${Number(eventPlan.create || 0)}</b>, cập nhật thông tin <b>${Number(eventPlan.existing_info_updates || 0)}</b>.
-          <div>Dữ liệu hiện tại chưa thay đổi.</div>
-          ${canConfirmEvent ? `<div class="ops-form-actions"><button class="primary" id="confirm-hr-event">Có · Áp dụng</button><button class="secondary" id="defer-hr-event">Không · Giữ nguyên</button></div>` : ""}
-        </div>` : ""}
-        ${eventStatus === "HARD_BLOCK" ? `<div class="notice error">
-          <div><b>Đồng bộ đang bị chặn:</b> ${esc(hardBlockLabels[hardBlockCode] || hardBlockCode || "Cần kiểm tra nguồn nhân sự")}.</div>
-          ${invalidRowsHtml}${duplicateHtml}
-          <div><b>Cách xử lý:</b> ${esc(hardBlockHelp[hardBlockCode] || "Kiểm tra nguồn nhân sự, sửa nguyên nhân rồi kiểm tra lại.")}</div>
-          <div>Dữ liệu người dùng hiện tại được giữ nguyên.</div>
-          ${canManageEvent ? `<div class="ops-form-actions"><button class="secondary" id="recheck-hr-event">Kiểm tra lại nguồn</button></div>` : ""}
-        </div>` : ""}
-        ${eventClass === "success" ? `<div class="notice success">Snapshot gần nhất đã được áp dụng và xác minh theo fingerprint nguồn.</div>` : ""}
-      ` : `<div class="ops-empty">Trạng thái đồng bộ tự động chỉ hiển thị cho Admin/Root.</div>`}
-    </article>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Kiểm tra thủ công</h3><p>Xem trước vẫn dùng dữ liệu máy chủ đọc trực tiếp từ nguồn hiện tại.</p></div></div>
-      <div class="ops-form-actions"><button class="secondary" id="preview-hr">Xem trước</button>${hrPreview ? `<button class="primary" id="apply-hr">Áp dụng</button>` : ""}</div>
-      ${hrPreview ? `<section class="ops-status-strip"><span>Nguồn <b>${hrPreview.total_source}</b></span><span>Tạo mới <b>${hrPreview.create}</b></span><span>Đổi tên <b>${hrPreview.rename}</b></span><span>Đổi nhà thầu <b>${hrPreview.contractor_update || 0}</b></span><span>Không đổi <b>${hrPreview.unchanged}</b></span></section>` : `<div class="ops-empty">Chưa có bản xem trước.</div>`}
-    </article>
-  </section>`;
+  return renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, renderPeopleTabs("hr"), profile?.role === "ADMIN" || profile?.role === "ROOT");
 }
 
 function canManageListedUser(user: ManagedUser): boolean {
