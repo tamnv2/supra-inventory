@@ -1,5 +1,6 @@
 import { handleBusinessRequest, initializeBusinessSchema } from "./business-core";
 import { handleSkuImportCoreRequest } from "./sku-import-core";
+import { initializeD167SkuSyncSchema, handleD167SkuCoreRequest } from "./d167-sku-sync-core";
 import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
@@ -390,6 +391,7 @@ export class InventoryCore {
     }
 
     initializeBusinessSchema(this.state);
+    initializeD167SkuSyncSchema(this.state);
     if (!this.hasColumn("report_batches", "business_day_vn")) sql.exec("ALTER TABLE report_batches ADD COLUMN business_day_vn TEXT");
     if (!this.hasColumn("report_tickets", "business_day_vn")) sql.exec("ALTER TABLE report_tickets ADD COLUMN business_day_vn TEXT");
     sql.exec("UPDATE report_batches SET business_day_vn = date(first_report_at, '+7 hours') WHERE business_day_vn IS NULL");
@@ -1734,6 +1736,9 @@ export class InventoryCore {
 
     const operationalV2 = await handleOperationalV2CoreRequest(this.state, request);
     if (operationalV2) return operationalV2;
+
+    const d167Sku = await handleD167SkuCoreRequest(this.state, request);
+    if (d167Sku) return d167Sku;
 
     const skuImport = await handleSkuImportCoreRequest(this.state, request);
     if (skuImport) return skuImport;
