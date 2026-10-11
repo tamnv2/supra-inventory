@@ -395,29 +395,24 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     );
     if (!skuRow) return { status: 404, payload: { error: "SKU_NOT_FOUND", sku } } satisfies BusinessResult;
 
+    const at = nowIso();
+    const businessDay = vnDayAt(Date.parse(at));
     const existing = firstRow(
-      state.storage.sql
-        .exec<TicketRow>(
-          `SELECT ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
-                  reported_at, withdraw_deadline_at, withdrawn_at, resolved_at
-             FROM report_tickets
-            WHERE picker_employee_code = ? AND sku = ? AND status = 'OPEN'
-            LIMIT 1`,
-          actor.employee_code,
-          sku,
-        )
-        .toArray(),
+      state.storage.sql.exec<TicketRow>(
+        `SELECT ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
+                reported_at, withdraw_deadline_at, withdrawn_at, resolved_at
+           FROM report_tickets
+          WHERE picker_employee_code = ? AND sku = ? AND status = 'OPEN'
+            AND business_day_vn = ? LIMIT 1`,
+        actor.employee_code, sku, businessDay,
+      ).toArray(),
     );
     if (existing) {
       return { status: 409, payload: { error: "ALREADY_REPORTED", ticket: existing } } satisfies BusinessResult;
     }
 
-    const at = nowIso();
     // D167: New VN business day starts a new batch even when yesterday's SKU
     // remains PENDING for the scheduled 03:00 day-end resolution.
-    const businessDayStart = vnMidnightMs(vnDayAt(Date.parse(at)));
-    const dayStartIso = new Date(businessDayStart).toISOString();
-    const dayEndIso = new Date(businessDayStart + 86_400_000).toISOString();
     let batch = firstRow(
       state.storage.sql
         .exec<BatchRow>(
@@ -425,9 +420,9 @@ async function createReport(state: DurableObjectState, request: Request): Promis
                   resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, version, created_at, updated_at
              FROM report_batches
             WHERE sku = ? AND status = 'PENDING'
-              AND first_report_at >= ? AND first_report_at < ?
+              AND business_day_vn = ?
             ORDER BY first_report_at ASC LIMIT 1`,
-          sku, dayStartIso, dayEndIso,
+          sku, businessDay,
         )
         .toArray(),
     );
