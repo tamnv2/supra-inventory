@@ -225,6 +225,13 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     const scope = `sku_import_v2:${actor.user_id}`;
     const replay = readIdempotency(state, scope, requestId);
     if (replay) return { ...replay, idempotent_replay: true };
+    // Repeat the revision fence *inside* the write transaction: a Web preview
+    // may become stale while another Web/PRIMARY request commits.
+    const actualRevision = Number(state.storage.sql.exec<{revision:number}>(
+      "SELECT revision FROM d167_sku_meta WHERE id=1").toArray()[0]?.revision ?? 0);
+    if (body.expected_catalog_revision != null &&
+        Number(body.expected_catalog_revision) !== actualRevision)
+      return { error:"SKU_CATALOG_REVISION_CHANGED",catalog_revision:actualRevision };
 
     const at = new Date().toISOString();
     let inserted = 0;
@@ -310,7 +317,7 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
       updated,
       unchanged,
       reactivated: reactivated.length,
-      catalog_revision: catalogRevision + (touched.length || reactivated.length ? 1 : 0),
+      catalog_revision: actualRevision + (touched.length || reactivated.length ? 1 : 0),
       source_hash: sourceHash,
       imported_at: at,
     };
@@ -319,6 +326,7 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     return payload;
   });
 
+  if ("error" in result) return response(result,409);
   return response(result);
 }
 
