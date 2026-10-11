@@ -61,7 +61,11 @@ function skuCatalogInfo(state: DurableObjectState): Response {
   if (!row) {
     row = state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS count, MAX(updated_at) AS max_updated_at FROM sku_master").toArray()[0] || {};
   }
-  const count = Number(row.count || 0);
+  const full = state.storage.sql.exec<SqlRow>("SELECT last_full_day FROM d167_sku_meta WHERE id=1").toArray()[0];
+  const live = full?.last_full_day
+    ? state.storage.sql.exec<SqlRow>("SELECT COUNT(*) AS count FROM d167_sku_active WHERE active=1").toArray()[0]
+    : null;
+  const count = Number(live?.count ?? row.count ?? 0);
   const maxUpdatedAt = String(row.max_updated_at || "");
 
   const lastSync = state.storage.sql.exec<SqlRow>(
@@ -97,7 +101,8 @@ function skuCatalog(state: DurableObjectState, url: URL): Response {
     .exec<SqlRow>(
       `SELECT sku, product_name, updated_at
          FROM sku_master
-        WHERE sku > ?
+        WHERE sku > ? AND ((SELECT last_full_day FROM d167_sku_meta WHERE id=1) IS NULL
+          OR EXISTS(SELECT 1 FROM d167_sku_active a WHERE a.sku=sku_master.sku AND a.active=1))
         ORDER BY sku ASC
         LIMIT ?`,
       after,
