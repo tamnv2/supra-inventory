@@ -22,7 +22,7 @@ export interface OperationalSlaConfig {
 }
 
 export interface OperationalDeadlineEffect {
-  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required" | "d167_overdue_reminder_30" | "d167_overdue_reminder_60" | "batch_day_end_auto_skip";
+  event: "sla_warning" | "sla_escalated" | "ticket_auto_skip_allowed" | "batch_auto_skip_allowed" | "meal_selection_required" | "d167_overdue_reminder_30" | "d167_overdue_reminder_60" | "batch_day_end_auto_skip" | "meal_break_defaulted";
   event_id: string;
   batch_id: string;
   sku: string;
