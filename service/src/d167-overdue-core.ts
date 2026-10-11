@@ -170,7 +170,8 @@ export function processD167DayClose(
   const out: OperationalDeadlineEffect[]=[];
   for(const row of candidates){
     const batchId=String(row.batch_id||"");
-    if(!batchId||dayCloseAt(String(row.first_report_at||""))>nowMs)continue;
+    const closeAt = dayCloseAt(String(row.first_report_at || ""));
+    if (!batchId || !Number.isFinite(closeAt) || closeAt > nowMs) continue;
     const day=vnDayAt(Date.parse(String(row.first_report_at)));
     let effect:OperationalDeadlineEffect|null=null;
     state.storage.transactionSync(()=>{
@@ -186,9 +187,11 @@ export function processD167DayClose(
          FROM report_tickets WHERE batch_id=?`,batchId,
       ).toArray())||{};
       const waiting=Number(count.waiting||0),overdue=Number(count.overdue||0);
-      const waitingUsers=state.storage.sql.exec<SqlRow>(
+      // The same final result applies to ALL unresolved Pickers, including
+      // those already marked overdue. Both groups require realtime + FCM ACK.
+      const affectedUsers=state.storage.sql.exec<SqlRow>(
         `SELECT DISTINCT picker_user_id AS id FROM report_tickets
-          WHERE batch_id=? AND status='OPEN' AND auto_skip_allowed_at IS NULL AND picker_user_id IS NOT NULL`,
+          WHERE batch_id=? AND status='OPEN' AND picker_user_id IS NOT NULL`,
         batchId,
       ).toArray().map(r=>String(r.id||"")).filter(Boolean);
       state.storage.sql.exec(
@@ -235,8 +238,8 @@ export function processD167DayClose(
         sku:String(row.sku||""),product_name:String(row.product_name||""),
         scopes:["reporter_queue","reporter_overdue","reporter_recent","picker_reports"],
         reporter_roles:["REPORTER","ADMIN","ROOT"],
-        picker_user_ids:waitingUsers,result_event:true,
-        queue_delta:waiting>0?-1:0,overdue_delta:-1,
+        picker_user_ids:affectedUsers,result_event:true,
+        queue_delta:waiting>0?-1:0,overdue_delta:overdue>0?-1:0,
         recent_counter:{before_status:null,before_at:null,after_status:"SKIP_ALLOWED",after_at:now},
         title:"SUPRA Inventory · Tự chốt cuối ngày",
         body:`SKU ${String(row.sku||"")} được hệ thống cho phép Skip do Inventory chưa xử lý trong ngày ${day} (chốt 03:00).`,
