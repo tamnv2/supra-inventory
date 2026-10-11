@@ -2264,6 +2264,16 @@ export default {
       const readResponse = await handleReadApi(request, env);
       if (readResponse) return readResponse;
 
+      // D167 temporal area reporting: authenticated existing management roles only.
+      // Source is InventoryCore historical report batches, not live WMS/bin data.
+      if (request.method === "GET" && url.pathname.startsWith("/api/admin/d167/report/")) {
+        if (env.APP_ENV !== "beta") return json({ error: "D167_BETA_ONLY" }, 404);
+        await requireUser(request, env, ["ROOT", "ADMIN", "PICKPACK_ADMIN"]);
+        const path = url.pathname.slice("/api/admin/d167/report/".length);
+        if (!["summary","detail","timeline"].includes(path)) return json({ error: "NOT_FOUND" }, 404);
+        return coreStub(env).fetch("https://inventory-core.internal/d167/report/" + path + url.search);
+      }
+
       const businessResponse = await handleBusinessApi(request, env, ctx);
       if (businessResponse) return businessResponse;
 
