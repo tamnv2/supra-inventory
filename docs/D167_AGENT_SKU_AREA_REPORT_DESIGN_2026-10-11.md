@@ -140,3 +140,15 @@ Build shared server-side `report_scope(from_vn,to_vn,area,status,as_of)` and one
 - **Track P4:** End-to-end non-regression and usage test, owner-gated Beta release of exact affected Agent+Worker+Web scope only after explicit `duyệt triển khai`; Android only if proven changes are actually required; Stable separate authorization.
 
 **Approval ledger:** Existing D167 D05/D06/D07 business rules are Owner-locked, current turn selects implementation planning priority. The detailed mechanics above are explicitly **recommended/subject to source proof**, NOT newly claimed Owner decisions, and **no executable source edit or provider deploy is authorized by this planning receipt**.
+
+## 2026-10-11 21:33 VN — AUTHORITATIVE OWNER SUPERSESSION: three daily SKU jobs
+
+This addendum supersedes original sections describing **one WMS export/one DONE for the entire day**, universal Agent rename approval, and no daily active roster. Owner approved:
+- `INITIAL_05`: after 05:00 upon PRIMARY/WMS ready, a fully validated FULL SNAPSHOT builds/replaces the active roster for that VN shift-day. Source-absent SKU hidden, NOT deleted. Normal changed cross-day names/area from complete trusted WMS source automatically accepted.
+- `DELTA_12`: stable randomized target 12:00–12:15; `DELTA_19`: stable randomized target 19:00–19:15. Each downloads fresh read-only WMS source in the same managed Agent browser; applies only per-SKU new/changed name/verified coarse area; missing SKU in later source does NOT hide active roster.
+- Exactly one `DONE` per `(VN day, slot)`, with immutable receipt even when zero SKU fields changed; server-coordinated target selection, HA generation lease, abort/coalesce stale attempts, no repeated source writes or provider polling. If morning FULL is still missing when next slot is eligible, establish FULL first, never DELTA against yesterday's set.
+- Manual Web uploads default PATCH with explicit separate FULL REPLACE; same-day conflicting Web vs Agent changes to an overlapping field require CAS/preview/privileged approval. WMS source unchanged since prior WMS observation cannot silently revert Web manual edits.
+- First-slot FULL only hides absent SKU, never erases records/history/open tickets; no-op per normalized SKU/name/coarse-area leads to zero SKU-row mutations. A complete reliable file with zero pickable locations gives UNKNOWN; absent/malformed area headers or partial source cannot erase existing location. Keep temporal area-as-of-report history, no backdating.
+- Implement diff-based active-set membership (writes only membership symmetric difference), stable source fingerprint/slots, one-shot local scheduling on existing readiness and HA signals, atomic publication and complete readback. Protect WMS Confirm and avoid new Firebase/DO timers.
+
+The binding Owner decision and scenario/acceptance details are in `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`. Current content above is historical design except compatible security/HA/area-report requirements. **DOCS/SPEC ONLY: no CODE READY, Beta runtime deploy, or Stable change.**
