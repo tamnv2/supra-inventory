@@ -1,7 +1,7 @@
 /** D167 InventoryCore-only three-slot SKU ledger and atomic sparse publish.
  * No public route may forward here without a verified Agent PRIMARY/generation.
  */
-import { normalizeSourceRows, planSkuChanges, randomSlotTarget, slotMode, slotWindow,
+import { planSkuChanges, randomSlotTarget, slotMode,
   vnDayAt, type D167Slot, type D167Sku, type D167CatalogRow, type D167Area } from "./d167-sku-sync-logic";
 
 type Row = Record<string, string | number | null>;
@@ -156,9 +156,10 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       return response({ error: "JOB_LEASED" }, 409);
     // The WORKER verifies that this generation and instance are current Firebase HA PRIMARY
     // immediately before forwarding every POST; the DO fence protects in-flight prior leaders.
+    const rev = row(state,"SELECT revision FROM d167_sku_meta WHERE id=1");
     state.storage.sql.exec(`UPDATE d167_sku_jobs SET owner_id=?,generation=?,
-      lease_until_ms=?,state='CLAIMED',updated_at=? WHERE day_vn=? AND slot=?`,
-      instance, generation, Date.now() + 15 * 60_000, new Date().toISOString(), day, slot);
+      lease_until_ms=?,state='CLAIMED',expected_revision=?,updated_at=? WHERE day_vn=? AND slot=?`,
+      instance, generation, Date.now() + 15 * 60_000,Number(rev?.revision||0),new Date().toISOString(), day, slot);
     if (job.generation && job.generation !== generation) state.storage.sql.exec(
       "DELETE FROM d167_sku_stage WHERE day_vn=? AND slot=?", day, slot);
     return response({ status: "CLAIMED", slot, day_vn: day, mode: slotMode(slot), lease_expires_in_ms: 15*60_000 });
@@ -214,12 +215,15 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     const meta = row(state,"SELECT revision,last_full_day,published_at FROM d167_sku_meta WHERE id=1") || {};
     const baseTime = meta.published_at ? Date.parse(String(meta.published_at)) : 0;
     const plan = planSkuChanges(existing,staged,slotMode(slot),baseTime);
+    const updates = new Map(plan.update.map(x => [x.sku,x]));
     const summary = { created:plan.create.length,updated:plan.update.length,
       activated:plan.activate.length,hidden:plan.hide.length,unchanged:plan.unchanged,
       conflicts:plan.conflicts };
     if (action === "preview") return response({ status: "PREVIEW", ...summary });
     if (plan.conflicts.length && body.approve_conflicts !== true)
       return response({ error:"MANUAL_WEB_CONFLICT_APPROVAL_REQUIRED",...summary },409);
+    if (Number(job.expected_revision || 0) !== Number(meta.revision || 0))
+      return response({ error:"CATALOG_REVISION_CHANGED_REPREVIEW_REQUIRED" },409);
     if (slot !== "INITIAL_05" && String(meta.last_full_day || "") !== day)
       return response({ error: "INITIAL_FULL_NOT_PUBLISHED" }, 409);
     const at = new Date().toISOString();
@@ -235,23 +239,27 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
           "INSERT INTO sku_master (sku,product_name,source_hash,created_at,updated_at) VALUES (?,?,?,?,?)",
           x.sku,x.product_name,String(job.fingerprint),at,at);
         else if (old.product_name !== x.product_name &&
-          (!plan.conflicts.some(c=>c.sku===x.sku&&c.field==="product_name") || body.approve_conflicts===true))
+          (updates.get(x.sku)?.name !== undefined ||
+           (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="product_name"))))
           state.storage.sql.exec("UPDATE sku_master SET product_name=?,updated_at=? WHERE sku=?",x.product_name,at,x.sku);
         const prev = row(state,"SELECT area,area_verified,active FROM d167_sku_active WHERE sku=?",x.sku);
-        if (x.area_verified && (!prev || prev.area !== x.area || Number(prev.area_verified)!==1))
-          auditArea(state,x,day,slot,at);
+        const applyArea = x.area_verified && (!prev || updates.get(x.sku)?.area !== undefined ||
+          (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="area")));
+        if (applyArea) auditArea(state,x,day,slot,at);
         if (!prev) state.storage.sql.exec(`INSERT INTO d167_sku_active
           (sku,active,area,area_verified,last_wms_name,last_wms_area,last_wms_observed_at)
           VALUES (?,?,?,?,?,?,?)`,x.sku,1,x.area,x.area_verified?1:0,x.product_name,x.area_verified?x.area:null,at);
         else {
-          const effectiveArea = x.area_verified ? x.area : String(prev.area);
-          const areaVerified = x.area_verified ? 1 : Number(prev.area_verified);
-          const needsUpdate = Number(prev.active)!==1 || prev.area!==effectiveArea
-            || !old || old.product_name!==x.product_name;
+          const effectiveArea = applyArea ? x.area : String(prev.area);
+          const areaVerified = applyArea ? 1 : Number(prev.area_verified);
+          const nameChanged = !old || (old.product_name!==x.product_name &&
+            (updates.get(x.sku)?.name !== undefined ||
+             (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="product_name"))));
+          const needsUpdate = Number(prev.active)!==1 || prev.area!==effectiveArea || nameChanged;
           if (needsUpdate) state.storage.sql.exec(`UPDATE d167_sku_active
             SET active=1,area=?,area_verified=?,last_wms_name=?,last_wms_area=?,
             last_wms_observed_at=? WHERE sku=?`,
-            effectiveArea,areaVerified,x.product_name,x.area_verified?x.area:null,at,x.sku);
+            effectiveArea,areaVerified,x.product_name,x.area_verified?x.area:prev.area,at,x.sku);
         }
       }
       if (slot==="INITIAL_05") {
@@ -270,10 +278,10 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       else if (summary.created+summary.updated+summary.activated>0)
         state.storage.sql.exec("UPDATE d167_sku_meta SET revision=revision+1,published_at=? WHERE id=1",at);
       // Cache item_count tracks the canonical master; hidden rows remain historical.
-      state.storage.sql.exec(`INSERT INTO sku_catalog_meta (id,item_count,max_updated_at)
-        SELECT 1,COUNT(*),MAX(updated_at) FROM sku_master
-        ON CONFLICT(id) DO UPDATE SET item_count=excluded.item_count,
-        max_updated_at=excluded.max_updated_at`);
+      state.storage.sql.exec(`INSERT OR IGNORE INTO sku_catalog_meta (id,item_count,max_updated_at)
+        SELECT 1,COUNT(*),MAX(updated_at) FROM sku_master`);
+      state.storage.sql.exec(`UPDATE sku_catalog_meta SET item_count=(SELECT COUNT(*) FROM sku_master),
+        max_updated_at=(SELECT MAX(updated_at) FROM sku_master) WHERE id=1`);
       return true;
     });
     if (!committed) return response({ error:"HA_FENCED" },409);
