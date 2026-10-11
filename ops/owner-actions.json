@@ -5443,7 +5443,7 @@
         "installed MT90 DT50 Android version and relevant Agent v124 version with no sensitive device identifiers",
         "realtime WMS confirm/ACK/HA timestamps and selected five-tab/correction/Drive logs outcomes"
       ],
-      "manual_action_now": "NONE_REQUIRED_TO_COMPLETE_BETA_GITHUB_RELEASE__FIELD_EVIDENCE_WHEN_AVAILABLE",
+      "manual_action_now": "NO_OWNER_ACTION_DURING_D167_PR555_CODE_ONLY_CI__NEXT_GATE_EXPLICIT_DEPLOY_APPROVAL",
       "constraints": "NO_SECRET_OR_PERSONAL_IDENTIFIERS_IN_PUBLIC_GITHUB__STABLE_OWNER_GATED__NO_NEW_DEPLOY",
       "code_or_deploy_approval": true,
       "owner_field_pass": false,
@@ -5474,6 +5474,21 @@
         "implementation_owner_action": "EXPLICIT_CHAY_CODE",
         "deployment_owner_action": "SEPARATE_EXPLICIT_TRIEN_KHAI",
         "field_owner_pass": false
+      },
+      "d167_pr555_code_ready_candidate": {
+        "status": "SOURCE_CANDIDATE_FINAL_CI_PENDING",
+        "branch": "d167-code-only-20261011",
+        "pr": 555,
+        "owner_authorized_code": true,
+        "owner_authorized_deploy": false,
+        "excluded": [
+          "D05",
+          "D07"
+        ],
+        "beta_runtime_mutation": false,
+        "accepted_base": "D166_LIMITED_OWNER_PASS",
+        "field_owner_pass": false,
+        "next_action": "NO_OWNER_ACTION_UNTIL_VERIFIED_CODE_READY__THEN_EXPLICIT_TRIEN_KHAI"
       }
     }
   ]
