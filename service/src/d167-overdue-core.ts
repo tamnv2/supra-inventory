@@ -159,14 +159,13 @@ export function processD167OverdueReminders(
 export function processD167DayClose(
   state: DurableObjectState, nowMs: number,
 ): OperationalDeadlineEffect[] {
-  const effective=startAt(state);
   const now=new Date(nowMs).toISOString();
   const candidates=state.storage.sql.exec<SqlRow>(
     `SELECT batch_id,sku,product_name,first_report_at,d167_first_overdue_at,version
        FROM report_batches WHERE status='PENDING'
-         AND first_report_at >= ? AND first_report_at <= ?
+         AND first_report_at <= ?
        ORDER BY first_report_at ASC LIMIT ?`,
-    effective,now,MAX_BATCHES*4,
+    now,MAX_BATCHES*4,
   ).toArray();
   const out: OperationalDeadlineEffect[]=[];
   for(const row of candidates){
