@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - "service/src/d167-sku-*.ts"
+      - "relay-agent/D167SkuSchedule.cs"
+      - "relay-agent/Program.cs"
       - "tests/d167-three-slot-sku.test.mjs"
       - ".github/workflows/verify-d167-three-slot.yml"
   workflow_dispatch:
@@ -21,3 +23,24 @@ jobs:
       - name: Type-check InventoryCore
         working-directory: service
         run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck
+  agent-schedule:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build isolated Windows Agent (no release)
+        shell: pwsh
+        run: dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release --nologo
+      - name: D167 offline VN slot and failover guard
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $test = Start-Process -FilePath $exe -ArgumentList "--d167-sku-schedule-self-test" -PassThru
+          if (-not $test.WaitForExit(20000)) {
+            try { $test.Kill() } catch {}
+            throw "D167 Agent scheduler test timed out."
+          }
+          if ($test.ExitCode -ne 0) { throw "D167 Agent schedule failed exit=$($test.ExitCode)" }
+          Write-Host "D167 offline Agent slot self-test PASS; no WMS/Firebase activity."
