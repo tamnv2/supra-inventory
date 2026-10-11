@@ -28,6 +28,8 @@ def forbid(text: str, marker: str, name: str) -> None:
 
 def main() -> None:
     app = read("web/src/operational-app.ts")
+    hr_panel = read("web/src/hr-web-panel.ts")
+    hr_excel = read("web/src/hr-excel.ts")
     api = read("web/src/api.ts")
     operational_api = read("web/src/operational-api.ts")
     business_api = read("service/src/business-api.ts")
@@ -175,10 +177,15 @@ def main() -> None:
     require(app, '<span>Ca bình thường</span><strong>06:00–22:00</strong>', "business shift outward label")
     require(app, "Cửa sổ kỹ thuật Replay · 05:45–22:15", "technical Replay label")
     forbid(app, "05:45–22:30", "obsolete 22:30 Web schedule copy")
-    require(app, 'id="recheck-hr-event"', "HR hard-block recheck action")
-    require(app, 'id="defer-hr-event"', "HR confirmation No action")
-    require(app, "invalid_row_details", "HR invalid-row diagnostics presentation")
-    require(api, "recheckHrEventSync", "HR bounded recheck API")
+    # D167 Owner superseded Google Sheet HR Watch by direct Web + validated .xlsx import.
+    require(hr_panel, 'id="hr-manual-form"', "D167 direct HR Web entry")
+    require(hr_panel, 'id="download-hr-example"', "D167 example workbook download")
+    require(hr_panel, 'id="hr-excel-file"', "D167 explicit Excel upload")
+    require(hr_panel, 'id="hr-apply-web"', "D167 reviewed HR apply")
+    require(hr_excel, "parseHrWorkbook", "D167 Excel row validation")
+    require(api, '"/api/admin/hr-web/preview"', "D167 source-free HR preview")
+    require(api, '"/api/admin/hr-web/apply"', "D167 source-free HR apply")
+    require(users_core, "HR_CHANGE_REVIEW_REQUIRED", "D167 server-verified conflict approval")
 
     # D068: instant route feedback, browser history, toast notices and targeted SKU detail refresh.
     require(app, "function navigateToSection(", "instant section navigation")
