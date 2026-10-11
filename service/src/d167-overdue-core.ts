@@ -165,12 +165,6 @@ export function processD167DayClose(
     `SELECT batch_id,sku,product_name,first_report_at,d167_first_overdue_at,version
        FROM report_batches WHERE status='PENDING'
          AND first_report_at >= ? AND first_report_at <= ?
-         AND d167_first_overdue_at IS NOT NULL
-         AND EXISTS (
-           SELECT 1 FROM report_tickets t
-           WHERE t.batch_id = report_batches.batch_id AND t.status = 'OPEN'
-             AND t.auto_skip_allowed_at IS NOT NULL
-         )
        ORDER BY first_report_at ASC LIMIT ?`,
     effective,now,MAX_BATCHES*4,
   ).toArray();
@@ -185,7 +179,7 @@ export function processD167DayClose(
         "SELECT status,d167_first_overdue_at,version FROM report_batches WHERE batch_id=? LIMIT 1",
         batchId,
       ).toArray());
-      if(latest?.status!=="PENDING"||!latest.d167_first_overdue_at)return;
+      if(latest?.status!=="PENDING")return;
       const count=one(state.storage.sql.exec<SqlRow>(
         `SELECT
            SUM(CASE WHEN status='OPEN' AND auto_skip_allowed_at IS NULL THEN 1 ELSE 0 END) AS waiting,
@@ -193,7 +187,6 @@ export function processD167DayClose(
          FROM report_tickets WHERE batch_id=?`,batchId,
       ).toArray())||{};
       const waiting=Number(count.waiting||0),overdue=Number(count.overdue||0);
-      if(overdue<=0)return;
       const waitingUsers=state.storage.sql.exec<SqlRow>(
         `SELECT DISTINCT picker_user_id AS id FROM report_tickets
           WHERE batch_id=? AND status='OPEN' AND auto_skip_allowed_at IS NULL AND picker_user_id IS NOT NULL`,
@@ -207,7 +200,7 @@ export function processD167DayClose(
         now,now,now,batchId,
       );
       state.storage.sql.exec(
-        `UPDATE report_tickets SET status='RESOLVED',resolved_at=COALESCE(resolved_at,?),updated_at=?
+        `UPDATE report_tickets SET status='RESOLVED',resolution='SKIP_ALLOWED',resolution_source='SYSTEM_DAY_END',resolved_at=COALESCE(resolved_at,?),updated_at=?
          WHERE batch_id=? AND status='OPEN' AND auto_skip_allowed_at IS NOT NULL`,
         now,now,batchId,
       );
@@ -215,7 +208,7 @@ export function processD167DayClose(
       state.storage.sql.exec(
         `UPDATE report_batches SET status='SKIP_ALLOWED',resolution='SKIP_ALLOWED',
           resolution_source='SYSTEM_DAY_END',resolved_at=?,resolved_by_user_id=NULL,
-          correction_deadline_at=?,updated_at=?
+          correction_deadline_at=?,version=version+1,updated_at=?
           WHERE batch_id=? AND status='PENDING'`,
         now,correctionDeadline,now,batchId,
       );
@@ -226,7 +219,7 @@ export function processD167DayClose(
         resolution:"SKIP_ALLOWED",source:"SYSTEM_DAY_END",business_date_vn:day,
         first_overdue_at:String(latest.d167_first_overdue_at||""),
         waiting_picker_count:waiting,already_overdue_picker_count:overdue,
-        queue_delta:waiting>0?-1:0,overdue_delta:-1,
+        queue_delta:waiting>0?-1:0,overdue_delta:overdue>0?-1:0,
         recent_counter:{before_status:null,before_at:null,after_status:"SKIP_ALLOWED",after_at:now},
       };
       const id=storeSystemEvent(state,batchId,"BATCH_DAY_END_AUTO_SKIP",payload,now);
@@ -246,8 +239,8 @@ export function processD167DayClose(
         picker_user_ids:waitingUsers,result_event:true,
         queue_delta:waiting>0?-1:0,overdue_delta:-1,
         recent_counter:{before_status:null,before_at:null,after_status:"SKIP_ALLOWED",after_at:now},
-        title:"SUPRA Inventory · Tự chốt tồn quá hạn",
-        body:`SKU ${String(row.sku||"")} được hệ thống chốt Skip lúc 03:00 cho ngày ${day}.`,
+        title:"SUPRA Inventory · Tự chốt cuối ngày",
+        body:`SKU ${String(row.sku||"")} được hệ thống cho phép Skip do Inventory chưa xử lý trong ngày ${day} (chốt 03:00).`,
       };
     });
     if(effect)out.push(effect);
