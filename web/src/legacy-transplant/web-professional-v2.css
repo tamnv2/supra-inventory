@@ -1730,3 +1730,7 @@ body[data-theme="dark"] .sla-config-error {
   color:#f6aaa3 !important;
 }
 
+
+/* D167 A: result date / data separation */
+.recent-range-toolbar { margin-bottom: 20px !important; padding-bottom: 16px !important; border-bottom: 1px solid #ccd5dd; }
+.recent-range-toolbar + .result-audit-table { margin-top: 8px !important; }
