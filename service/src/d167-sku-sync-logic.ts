@@ -23,6 +23,8 @@ export interface D167Sku {
 }
 export interface D167CatalogRow extends D167Sku {
   active: boolean;
+  /** Whether a row already exists in the day-activation metadata table. */
+  has_active_record?: boolean;
   last_wms_name: string | null;
   last_wms_area: D167Area | null;
   manual_name_revision: number;
