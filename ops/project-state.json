@@ -2486,7 +2486,7 @@
       "explicit_owner_approval_required_before_mutation": true
     },
     "runtime_impact": "D167_PR555_BETA_WEB_WORKER_INVENTORYCORE_UPDATED_MAIN_D360752C_HEALTH_PASS__ANDROID_VC105_AGENT_V125_UNCHANGED__FLEET_FIELD_UNVERIFIED",
-    "resource_change": "NONE__DOCUMENTATION_STATE_TRANSITION_ONLY__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED",
+    "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
     "parallel_inventory_change_status": "D167_PR555_BETA_WORKER_WEB_RELEASE_PASS__BUSINESS_QUOTA_FIELD_TEST_PENDING",
@@ -7049,14 +7049,14 @@
     },
     "agent_sku_area_reporting_design_2026_10_11": {
       "status": "DESIGN_PROPOSED__SOURCE_AUDITED__NO_EXECUTABLE_CODE__NO_DEPLOY",
-      "owner_priority": "D167_PRIMARY_AGENT_DAILY_SKU__LTA_SHELVING_HISTORY__REPORT_DASHBOARD_DETAIL_FIRST__WEB_OPERATIONS_UI_REVIEW_DEFERRED",
+      "owner_priority": "PRIMARY_AGENT_THREE_SLOTS_PER_VN_DAY_INITIAL_05_FULL_DELTA_12_RANDOM_DELTA_19_RANDOM__AREA_HISTORY_AND_REPORTS_FIRST",
       "authority": "docs/D167_AGENT_SKU_AREA_REPORT_DESIGN_2026-10-11.md",
       "current_main": "8ccb0177481e89e1fdc86e9e03670138c0412135",
       "code_implementation": false,
       "wms_test_source": "EXPERIMENT_STANDALONE_EXPORT_SKU_NAME_ONLY__NOT_PRODUCTION_PRIMARY_AGENT",
       "verified_lta_shelving_export_header": false,
       "agent_same_managed_browser_export_proof": false,
-      "recommended_import": "ONE_SUCCESSFUL_JOB_PER_VN_DAY__SERVER_LEASE_GENERATION_FENCE__STAGE_VALIDATE_OPERATOR_RENAME_APPROVAL__NO_DELETION__COMMIT_AND_FULL_READBACK",
+      "recommended_import": "THREE_SLOT_HA_FENCED__INITIAL_AFTER_05_FULL_ACTIVE_ROSTER__DELTA_RANDOM_12_00_TO_12_15__DELTA_RANDOM_19_00_TO_19_15__SKIP_IDENTICAL_SKU_WRITES__WEB_MANUAL_CONFLICT_REVISION_CAS__HIDE_MISSING_ONLY_ON_FULL__FULL_READBACK",
       "reports": "BUSINESS_DAY_COHORT__AREA_AT_REPORT_TIME__SOURCE_SPLIT_HUMAN_TIMEOUT_DAY_END__UNKNOWN_BEFORE_OBSERVATION",
       "pending_owner_technical_evidence": [
         "REAL_EXPORT_AREA_COLUMNS",
@@ -7064,8 +7064,58 @@
         "MULTI_AREA_ATTRIBUTION",
         "SQL_5K_ATOMIC_BENCHMARK"
       ],
-      "next": "WAIT_EXPLICIT_OWNER_CHAY_CODE_BEFORE_IMPL__KEEP_D167_OPEN__NO_DEPLOY_STABLE_OWNER_GATED",
+      "next": "OWNER_THREE_SLOT_BUSINESS_RULE_LOCKED_DOC_ONLY__WAIT_EXPLICIT_CHAY_CODE__NO_BETA_DEPLOY__STABLE_GATED",
       "field_owner_pass": false
+    },
+    "three_slot_sku_owner_decision_2026_10_11": {
+      "status": "OWNER_APPROVED_BUSINESS_LOGIC__DESIGN_ONLY__NOT_CODE_READY__NOT_DEPLOYED",
+      "authority": "docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md",
+      "supersedes": "D05_ONE_DONE_PER_DAY__D06_UNIVERSAL_RENAME_CONFIRMATION__NO_DAILY_ACTIVE_MEMBERSHIP",
+      "timezone": "Asia/Ho_Chi_Minh",
+      "slots": [
+        {
+          "key": "INITIAL_05",
+          "eligibility": "AFTER_05_IF_PRIMARY_AND_WMS_READY",
+          "mode": "FULL",
+          "missing_source_sku": "HIDE_ACTIVE_KEEP_HISTORY"
+        },
+        {
+          "key": "DELTA_12",
+          "random_window": "12:00-12:15",
+          "mode": "DELTA",
+          "missing_source_sku": "PRESERVE_ACTIVE"
+        },
+        {
+          "key": "DELTA_19",
+          "random_window": "19:00-19:15",
+          "mode": "DELTA",
+          "missing_source_sku": "PRESERVE_ACTIVE"
+        }
+      ],
+      "owner_business_guards": [
+        "ONE_VERIFIED_DONE_PER_VN_DATE_SLOT",
+        "SOURCE_IDENTICAL_SKU_NAME_AREA_NO_SKU_MUTATION",
+        "MISSING_INITIAL_FULL_NEXT_VALID_EXPORT_INITIALIZES_FULL",
+        "WEB_DEFAULT_PATCH_SEPARATE_APPROVED_FULL_REPLACE",
+        "MANUAL_WEB_SAME_FIELD_CAS_CONFLICT_REQUIRES_PRIVILEGED_RESOLUTION",
+        "NO_DELETION_NO_AREA_RETROACTIVE_HISTORY",
+        "NO_NEW_PROVIDER_POLLING",
+        "NO_WMS_AUTH_EXFILTRATION",
+        "HA_PRIMARY_FENCING"
+      ],
+      "affected_components_future": [
+        "relay-agent",
+        "service/InventoryCore",
+        "web/SKU",
+        "web/reporting"
+      ],
+      "no_new_resource": true,
+      "wms_real_area_source_verified": false,
+      "same_managed_browser_proof_verified": false,
+      "code_permission": false,
+      "beta_deploy_permission": false,
+      "field_owner_pass": false,
+      "stable": "OWNER_GATED"
     }
   }
 }
