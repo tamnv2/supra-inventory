@@ -102,7 +102,7 @@ function rosterRows(state: DurableObjectState): D167CatalogRow[] {
   }));
 }
 function auditArea(state: DurableObjectState, item: D167Sku, day: string, slot: string, at: string): void {
-  if (!item.area_verified) return;
+  if (!item.area_verified && !["MULTIPLE_AREA","INVALID_PICKABLE_LOCATION"].includes(item.area_reason)) return;
   const prev = row(state, "SELECT area FROM d167_sku_area_history WHERE sku=? AND effective_to IS NULL", item.sku);
   if (prev && prev.area === item.area) return;
   if (prev) state.storage.sql.exec("UPDATE d167_sku_area_history SET effective_to=? WHERE sku=? AND effective_to IS NULL", at, item.sku);
@@ -293,7 +293,8 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
            (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="product_name"))))
           state.storage.sql.exec("UPDATE sku_master SET product_name=?,updated_at=? WHERE sku=?",x.product_name,at,x.sku);
         const prev = row(state,"SELECT area,area_verified,active FROM d167_sku_active WHERE sku=?",x.sku);
-        const applyArea = x.area_verified && (!prev || updates.get(x.sku)?.area !== undefined ||
+        const trustedUnknown = ["MULTIPLE_AREA","INVALID_PICKABLE_LOCATION"].includes(x.area_reason);
+        const applyArea = (x.area_verified || trustedUnknown) && (!prev || updates.get(x.sku)?.area !== undefined ||
           (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="area")));
         if (applyArea) auditArea(state,x,day,slot,at);
         if (!prev) state.storage.sql.exec(`INSERT INTO d167_sku_active
@@ -301,15 +302,16 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
           VALUES (?,?,?,?,?,?,?)`,x.sku,1,x.area,x.area_verified?1:0,x.product_name,x.area_verified?x.area:null,at);
         else {
           const effectiveArea = applyArea ? x.area : String(prev.area);
-          const areaVerified = applyArea ? 1 : Number(prev.area_verified);
+          const areaVerified = applyArea ? (x.area_verified?1:0) : Number(prev.area_verified);
           const nameChanged = !old || (old.product_name!==x.product_name &&
             (updates.get(x.sku)?.name !== undefined ||
              (body.approve_conflicts === true && plan.conflicts.some(c=>c.sku===x.sku&&c.field==="product_name"))));
-          const needsUpdate = Number(prev.active)!==1 || prev.area!==effectiveArea || nameChanged;
+          const needsUpdate = Number(prev.active)!==1 || prev.area!==effectiveArea ||
+            Number(prev.area_verified)!==areaVerified || nameChanged;
           if (needsUpdate) state.storage.sql.exec(`UPDATE d167_sku_active
             SET active=1,area=?,area_verified=?,last_wms_name=?,last_wms_area=?,
             last_wms_observed_at=? WHERE sku=?`,
-            effectiveArea,areaVerified,x.product_name,x.area_verified?x.area:prev.area,at,x.sku);
+            effectiveArea,areaVerified,x.product_name,applyArea?x.area:prev.area,at,x.sku);
         }
       }
       if (slot==="INITIAL_05") {
