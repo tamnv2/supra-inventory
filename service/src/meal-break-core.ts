@@ -157,6 +157,23 @@ export function confirmMealChoice(
   };
 }
 
+export function dueMealDefaults(state: DurableObjectState, nowMs = Date.now()): Array<{day_vn:string;period:MealPeriod;event_id:string}> {
+  const day = vnDayAt(nowMs), base = vnMidnightMs(day);
+  const events: Array<{day_vn:string;period:MealPeriod;event_id:string}> = [];
+  for (const period of ["LUNCH", "DINNER"] as const) {
+    const cutoff = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
+    if (nowMs < cutoff) continue;
+    const slot = slotFor(day, period, "LATE");
+    state.storage.sql.exec(
+      "INSERT OR IGNORE INTO d167_meal_choices (day_vn,period,choice,starts_at_ms,ends_at_ms,confirmed_at,confirmed_by,confirmed_name) VALUES (?,?,'LATE',?,?,?,?,?)",
+      day, period, slot.from, slot.to, new Date(nowMs).toISOString(), "SYSTEM_MEAL_DEFAULT", "Hệ thống mặc định",
+    );
+    const changed = first(state.storage.sql.exec<SqlRow>("SELECT changes() AS count").toArray());
+    if (Number(changed?.count || 0) === 1) events.push({ day_vn: day, period, event_id: crypto.randomUUID() });
+  }
+  return events;
+}
+
 export function nextMealPromptMs(state: DurableObjectState, nowMs = Date.now()): number | null {
   const candidates: number[] = [];
   for (let d = 0; d <= 1; d++) {
