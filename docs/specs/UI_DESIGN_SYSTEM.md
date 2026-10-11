@@ -1122,3 +1122,7 @@ The previously proposed five-tab Web operation bar is now a **branch/CI design c
 ### 2026-10-11 — D167 Owner observed UI A NOT PASS, scope of five tabs confirmed
 
 The D167 result date presets + manual dates remain approved; only **HAS_STOCK, SKIP_ALLOWED and CLOSED** require date filtering, while LIVE `Đang xử lý` and `Quá hạn` do not. Owner reports insufficient visual space between the date toolbar and the result data table. Proposed UX candidate: grouped date controls, visually discernible lower spacing/divider, responsive wrapping and clear date-scope label, while preserving one authoritative filter state and no extra API requests or realtime listeners. This is a *field-observed layout concern and proposed correction*, NOT source code already applied. Acceptance needs screenshots at desktop/PDA-supported viewport and zoom; D167-C custom log dates are Owner OK and should not be modified without a regression reason.
+
+## 2026-10-11 — D167 Owner display decisions
+
+Mark 03:00 day-close results distinctively from Reporter Skip, explaining that the system automatically permitted Skip because Inventory did not act. Live Đang xử lý/Quá hạn remain without historical controls, and only the three resolved tabs use date filters. Retain requested separation between date toolbar and result table. The HR interface should offer direct entry, a downloadable Excel template, upload preview, row-level conflicts and an explicit approval action. Do not modify Launcher UI. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
