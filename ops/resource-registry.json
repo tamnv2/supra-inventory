@@ -2810,5 +2810,31 @@
     "deploy_permission": "NOT_REQUESTED_IN_D01_D10_SELECTION",
     "acceptance": "D167_FIELD_OWNER_PASS_PENDING",
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d167_pr555_beta_web_worker_2026_10_11": {
+    "authorization": "OWNER_EXPLICIT_D167_DEPLOY_20261011_PR555_WEB_WORKER_SERVICE",
+    "existing_resource_scope": "INVENTORY_BETA_WORKER_WEB_INVENTORYCORE_ONLY__NO_NEW_RESOURCE",
+    "pr": 555,
+    "approved_source_sha": "1462458e5405c548142b3171fc119986ac6962e0",
+    "main_sha": "d360752cfd4dde2d3cc6e2206fffbeb63d5a14ee",
+    "deployment_workflow": "Deploy Beta Worker",
+    "deploy_run": 38109855709,
+    "worker": "supra-inventory-beta",
+    "hostname": "inventory-beta.supra.cc.cd",
+    "health_status": "HTTP_200_OK_SOURCE_COMMIT_MATCH",
+    "sqlite_schema": "17_OF_17",
+    "operational_schema": "7_OF_7",
+    "apps_script": "UNCHANGED",
+    "firebase": "UNCHANGED",
+    "android": "BETA_VC105_UNCHANGED",
+    "agent": "RELAY_AGENT_V125_UNCHANGED",
+    "sku_automatic_primary": "D05_PENDING",
+    "historical_area": "D07_PENDING",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "technical_release": "PASS",
+    "installed_fleet": "NOT_VERIFIED",
+    "field_and_owner_pass": "PENDING",
+    "provider_billing_impact": "NOT_VERIFIED",
+    "canary_guard": "PUSH_RUN_38109855733_DENIED_BEFORE_PROVIDER_MUTATION__FIX_EMPTY_PUSH_PATH"
   }
 }

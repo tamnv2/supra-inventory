@@ -9,10 +9,6 @@ on:
       - "ops/project-state.json"
       - "ops/resource-registry.json"
       - "docs/OWNER_DECISIONS.md"
-  push:
-    branches:
-      - main
-    paths:
   workflow_dispatch:
 
 permissions:
