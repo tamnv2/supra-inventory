@@ -130,3 +130,8 @@ Owner explicitly approved an isolated experiment with its OWN signed-in Supra br
 ## 2026-10-11 — D167 Owner D05/D06/D07 supersedes D126 SKU source design
 
 A ready PRIMARY Agent may execute a single daily read-only SKU export from its existing managed WMS browser after 05:00 VN. Record day-scoped job completion and source fingerprint so no Agent repeats a completed job. New valid SKU add automatically; changed names require Agent approval; absent SKU remains unchanged. Retain the existing Web manual import option. Add only LTA/Shelving historical classification, with effective_from/to and UNKNOWN before the first verified observation; no stock quantity or bin management. This is an approved business rule, not a release or source-code implementation. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
+
+
+## 2026-10-11 — D167 PRIMARY daily SKU sync source-backed design proposal (NOT CODED)
+
+Owner prioritizes D05/D06 now, D07 area history and analytics before the remaining Web operation-screen corrections. Proposed tightly coupled contract and tested-source blockers: `docs/D167_AGENT_SKU_AREA_REPORT_DESIGN_2026-10-11.md`. Current separate SKU test parses only SKU/name and uses its own browser; do NOT promote its header/signature capture into Agent or treat three sampled readbacks as complete catalog reconciliation. A safe production job must remain in existing managed browser, use a dedicated AGENT-auth scoped Inventory API, server-owned VN daily generation-fenced durable job/preview/rename approval and complete readback; no SKU deletion, no WMS auth extraction and no Confirm interruption. No actual code/release authorization in this design PR.
