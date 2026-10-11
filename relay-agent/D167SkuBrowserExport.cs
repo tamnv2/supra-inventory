@@ -14,7 +14,8 @@ namespace SupraInventoryRelayAgent
     // read. No cookie/header/token observer, no signed HTTP client, no mutation.
     internal static class D167SkuBrowserExport
     {
-        private const string RequiredPath = "/sft3/app/report/bin-inventory";
+        private const string SidePath = "/sft3/app/saleorder/auto-pickpack-confirm";
+        private const string Marker = "#d167-sku-readonly";
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
 
         internal static D167SkuWorkbook Export(SupraConfirmBrowser browser, Func<bool> stillPrimary)
@@ -36,6 +37,10 @@ namespace SupraInventoryRelayAgent
                 socket.ConnectAsync(new Uri(wsUrl), CancellationToken.None).GetAwaiter().GetResult();
                 Command(socket, "Runtime.enable", null, TimeSpan.FromSeconds(5), 1);
                 WaitUiReady(socket, deadline, stillPrimary);
+                // Follow the actual application's menu rather than guessing
+                // an unsupported /report URL. The child is a separate browser.
+                ClickOneExactNavigation(socket, "bin inventory", 80);
+                WaitBinInventoryUi(socket, deadline, stillPrimary);
                 ClickOneExact(socket, "tim kiem", 2);
                 // Search is a required first step; never download a prior
                 // cached report without reissuing the current-page Search.
@@ -80,7 +85,8 @@ namespace SupraInventoryRelayAgent
                             if (!Uri.TryCreate(Value(t, "url"), UriKind.Absolute, out page) ||
                                 page.Scheme != "https" ||
                                 !string.Equals(page.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase) ||
-                                !string.Equals(page.AbsolutePath, RequiredPath, StringComparison.OrdinalIgnoreCase))
+                                !string.Equals(page.AbsolutePath,SidePath,StringComparison.OrdinalIgnoreCase) ||
+                                !string.Equals(page.Fragment,Marker,StringComparison.Ordinal))
                                 continue;
                             var target = Value(t, "webSocketDebuggerUrl");
                             if (!Uri.TryCreate(target, UriKind.Absolute, out socket) ||
@@ -105,15 +111,48 @@ namespace SupraInventoryRelayAgent
             {
                 if (!primary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
                 var status = Evaluate(socket,
-                    "(() => JSON.stringify({path:location.pathname,ready:document.readyState,buttons:Array.from(document.querySelectorAll('button')).length}))()",
+                    "(() => JSON.stringify({path:location.pathname,hash:location.hash,ready:document.readyState,links:Array.from(document.querySelectorAll('a,button,[role=menuitem]')).length}))()",
                     100 + tries);
                 var obj = Json.DeserializeObject(status) as Dictionary<string, object>;
-                if (obj != null && Value(obj, "path") == RequiredPath &&
-                    Value(obj, "ready") == "complete" &&
-                    Convert.ToInt32(obj["buttons"]) > 0) return;
+                if (obj != null && Value(obj,"path")==SidePath &&
+                    Value(obj,"hash")==Marker && Value(obj,"ready")=="complete" &&
+                    Convert.ToInt32(obj["links"])>0) return;
                 Thread.Sleep(350);
             }
             throw new InvalidOperationException("D167_BIN_INVENTORY_NOT_READY");
+        }
+
+        private static void ClickOneExactNavigation(ClientWebSocket socket,string name,int id)
+        {
+            var script = "(() => {" +
+                "const norm=s=>String(s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase().replace(/\\s+/g,' ');" +
+                "const v=Array.from(document.querySelectorAll('a,button,[role=menuitem]')).filter(x=>norm(x.innerText)===" +
+                Json.Serialize(name) + "&&!x.disabled&&x.offsetParent!==null);" +
+                "if(v.length!==1)return JSON.stringify({count:v.length,clicked:false});" +
+                "v[0].click();return JSON.stringify({count:1,clicked:true});})()";
+            var found=Json.DeserializeObject(Evaluate(socket,script,id)) as Dictionary<string,object>;
+            if(found==null || Convert.ToInt32(found["count"])!=1 ||
+                !Convert.ToBoolean(found["clicked"]))
+                throw new InvalidOperationException("D167_BIN_INVENTORY_MENU_NOT_UNIQUE");
+        }
+
+        private static void WaitBinInventoryUi(ClientWebSocket socket,DateTime deadline,
+            Func<bool> primary)
+        {
+            for(var tries=0;DateTime.UtcNow<deadline&&tries<80;tries++)
+            {
+                if(!primary())throw new InvalidOperationException("D167_LOST_PRIMARY");
+                var script = "(() => {const norm=s=>String(s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase().replace(/\\s+/g,' ');" +
+                    "const b=Array.from(document.querySelectorAll('button')).filter(x=>x.offsetParent!==null&&!x.disabled).map(x=>norm(x.innerText));" +
+                    "return JSON.stringify({host:location.hostname,search:b.filter(x=>x==='tim kiem').length,export:b.filter(x=>x==='export').length});})()";
+                var result=Json.DeserializeObject(Evaluate(socket,script,200+tries)) as Dictionary<string,object>;
+                if(result!=null &&
+                    string.Equals(Value(result,"host"),"wms-supra.winmart.vn",StringComparison.OrdinalIgnoreCase) &&
+                    Convert.ToInt32(result["search"])==1 &&
+                    Convert.ToInt32(result["export"])==1)return;
+                Thread.Sleep(400);
+            }
+            throw new InvalidOperationException("D167_BIN_INVENTORY_UI_NOT_VERIFIED");
         }
 
         private static void ClickOneExact(ClientWebSocket socket, string name, int id)
