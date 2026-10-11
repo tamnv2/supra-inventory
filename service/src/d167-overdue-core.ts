@@ -261,6 +261,15 @@ export function nextD167OverdueAlarmMs(state: DurableObjectState, nowMs=Date.now
        ORDER BY d167_first_overdue_at LIMIT 250`,
   ).toArray();
   const effective=startAt(state);
+  // Day-close must be armed for every pending batch, not only overdue batches.
+  const firstPending=one(state.storage.sql.exec<SqlRow>(
+    "SELECT first_report_at FROM report_batches WHERE status='PENDING' AND first_report_at >= ? ORDER BY first_report_at LIMIT 1",
+    effective,
+  ).toArray());
+  if (firstPending?.first_report_at) {
+    const close=dayCloseAt(String(firstPending.first_report_at));
+    if (Number.isFinite(close)) due.push(close);
+  }
   for(const row of records){
     const id=String(row.batch_id||""), firstMs=Date.parse(String(row.d167_first_overdue_at||""));
     if(!Number.isFinite(firstMs))continue;
