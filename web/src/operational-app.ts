@@ -853,7 +853,7 @@ function statusLabel(status: string): string {
 
 function resolutionSourceLabel(source: string | null | undefined): string {
   if (source === "SYSTEM_TIMEOUT") return "Hệ thống tự động · quá hạn phản hồi";
-  if (source === "SYSTEM_DAY_END") return "Hệ thống tự động · chốt tồn lúc 03:00";
+  if (source === "SYSTEM_DAY_END") return "Hệ thống tự cho phép Skip · Inventory chưa xử lý lúc 03:00";
   if (source === "REPORTER_CORRECTION") return "Nhân sự sửa kết quả";
   if (source === "REPORTER") return "Nhân sự xác nhận";
   return "—";
