@@ -19,8 +19,8 @@ function first<T extends SqlRow>(rows: T[]): T | null { return rows[0] || null; 
 function slotFor(day: string, period: MealPeriod, choice: MealChoice | null): { from: number; to: number } {
   const base = vnMidnightMs(day);
   const start = period === "LUNCH" ? 11 : 18;
-  const startMinutes = start * 60 + (choice === "LATE" ? 30 : 0);
-  const endMinutes = choice ? startMinutes + 30 : start * 60 + 60;
+  const startMinutes = start * 60 + (choice !== "EARLY" ? 30 : 0);
+  const endMinutes = startMinutes + 30;
   return { from: base + startMinutes * 60_000, to: base + endMinutes * 60_000 };
 }
 
@@ -107,9 +107,9 @@ export function getMealChoiceState(state: DurableObjectState, nowMs = Date.now()
     server_now: new Date(nowMs).toISOString(),
     lunch,
     dinner,
-    lunch_prompt_due: !lunch && nowMs >= base + (10*60+55)*60_000 && nowMs < base + 12*60*60_000,
-    dinner_prompt_due: !dinner && nowMs >= base + (17*60+55)*60_000 && nowMs < base + 19*60*60_000,
-    unconfirmed_fallback: "AUTO_SKIP_PAUSED_DURING_FULL_CANDIDATE_HOUR",
+    lunch_prompt_due: !lunch && nowMs >= base + (10*60+55)*60_000 && nowMs < base + 11*60*60_000,
+    dinner_prompt_due: !dinner && nowMs >= base + (17*60+55)*60_000 && nowMs < base + 18*60*60_000,
+    unconfirmed_fallback: "DEFAULT_LATE_30_MINUTES",
   };
 }
 
@@ -125,7 +125,7 @@ export function confirmMealChoice(
   }
   const day = vnDayAt(nowMs), base = vnMidnightMs(day);
   const begin = base + (period === "LUNCH" ? 10*60+55 : 17*60+55)*60_000;
-  const end = base + (period === "LUNCH" ? 12*60 : 19*60)*60_000;
+  const end = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
   if (nowMs < begin || nowMs >= end) {
     return { status: 409, payload: { error: "MEAL_CONFIRM_OUTSIDE_WINDOW", day_vn: day }, changed: false };
   }
@@ -157,6 +157,23 @@ export function confirmMealChoice(
   };
 }
 
+export function dueMealDefaults(state: DurableObjectState, nowMs = Date.now()): Array<{day_vn:string;period:MealPeriod;event_id:string}> {
+  const day = vnDayAt(nowMs), base = vnMidnightMs(day);
+  const events: Array<{day_vn:string;period:MealPeriod;event_id:string}> = [];
+  for (const period of ["LUNCH", "DINNER"] as const) {
+    const cutoff = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
+    if (nowMs < cutoff) continue;
+    const slot = slotFor(day, period, "LATE");
+    state.storage.sql.exec(
+      "INSERT OR IGNORE INTO d167_meal_choices (day_vn,period,choice,starts_at_ms,ends_at_ms,confirmed_at,confirmed_by,confirmed_name) VALUES (?,?,'LATE',?,?,?,?,?)",
+      day, period, slot.from, slot.to, new Date(nowMs).toISOString(), "SYSTEM_MEAL_DEFAULT", "Hệ thống mặc định",
+    );
+    const changed = first(state.storage.sql.exec<SqlRow>("SELECT changes() AS count").toArray());
+    if (Number(changed?.count || 0) === 1) events.push({ day_vn: day, period, event_id: crypto.randomUUID() });
+  }
+  return events;
+}
+
 export function nextMealPromptMs(state: DurableObjectState, nowMs = Date.now()): number | null {
   const candidates: number[] = [];
   for (let d = 0; d <= 1; d++) {
@@ -164,11 +181,21 @@ export function nextMealPromptMs(state: DurableObjectState, nowMs = Date.now()):
     const base = vnMidnightMs(day);
     for (const period of ["LUNCH","DINNER"] as const) {
       const promptAt = base + (period === "LUNCH" ? 10*60+55 : 17*60+55)*60_000;
-      if (promptAt <= nowMs) continue;
-      const found = first(state.storage.sql.exec<SqlRow>(
-        "SELECT 1 AS done FROM d167_meal_prompt_markers WHERE day_vn = ? AND period = ?", day, period,
-      ).toArray());
-      if (!found) candidates.push(promptAt);
+      if (promptAt > nowMs) {
+        const found = first(state.storage.sql.exec<SqlRow>(
+          "SELECT 1 AS done FROM d167_meal_prompt_markers WHERE day_vn = ? AND period = ?", day, period,
+        ).toArray());
+        if (!found) candidates.push(promptAt);
+      }
+      // The 11:00/18:00 default deadline must stay armed even AFTER the
+      // 10:55/17:55 prompt fired; otherwise unselected slots remain unrecorded.
+      const cutoffAt = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
+      if (cutoffAt > nowMs) {
+        const chosen = first(state.storage.sql.exec<SqlRow>(
+          "SELECT 1 AS selected FROM d167_meal_choices WHERE day_vn = ? AND period = ?", day, period,
+        ).toArray());
+        if (!chosen) candidates.push(cutoffAt);
+      }
     }
   }
   return candidates.length ? Math.min(...candidates) : null;
@@ -179,7 +206,8 @@ export function dueMealPrompts(state: DurableObjectState, nowMs = Date.now()): A
   const day = vnDayAt(nowMs), base = vnMidnightMs(day);
   for (const period of ["LUNCH","DINNER"] as const) {
     const promptAt = base + (period === "LUNCH" ? 10*60+55 : 17*60+55)*60_000;
-    if (nowMs < promptAt) continue;
+    const cutoffAt = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
+    if (nowMs < promptAt || nowMs >= cutoffAt) continue;
     const already = first(state.storage.sql.exec<SqlRow>(
       "SELECT 1 AS done FROM d167_meal_prompt_markers WHERE day_vn = ? AND period = ?", day, period,
     ).toArray());

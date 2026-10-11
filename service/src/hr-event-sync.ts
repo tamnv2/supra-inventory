@@ -310,6 +310,8 @@ async function storeBlockedSourceError(env: HrEventEnv, trigger: string, error: 
 }
 
 export async function processHrSnapshot(env: HrEventEnv, trigger = "DRIVE_WATCH"): Promise<HrSyncState> {
+  // D167 D01: direct Web/Excel input is the only account writer. Retired sheet watch is read-only legacy evidence.
+  if (env.APP_ENV === "beta") return { status: "SHEET_INTAKE_RETIRED_WEB_EXCEL", trigger };
   if (env.APP_ENV !== "beta") return { status: "DISABLED_NON_BETA" };
   if (!env.GOOGLE_RUNTIME_SA_JSON) return storeBlockedSourceError(env, trigger, new Error("GOOGLE_RUNTIME_NOT_CONFIGURED"));
 
@@ -461,6 +463,7 @@ export async function retryIncompleteHrSnapshotIfDue(env: HrEventEnv): Promise<v
 }
 
 export async function ensureHrDriveWatch(env: HrEventEnv, force = false): Promise<Record<string, unknown>> {
+  if (env.APP_ENV === "beta") return { status: "hr_sheet_intake_retired" };
   if (env.APP_ENV !== "beta") return { status: "disabled_non_beta" };
   if (!env.GOOGLE_RUNTIME_SA_JSON) return { status: "runtime_not_configured" };
   const source = await readSource(env);
@@ -569,6 +572,7 @@ export async function confirmHrPending(
   expectedFingerprint: string,
 ): Promise<{ status: string; state: HrSyncState }> {
   const current = await readSync(env);
+  if (env.APP_ENV === "beta") return { status: "SHEET_INTAKE_RETIRED_WEB_EXCEL", state: current };
   const expected = String(expectedFingerprint || "").trim().toLowerCase();
   if (
     current.status !== "CONFIRM_REQUIRED" ||

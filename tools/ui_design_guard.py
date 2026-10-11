@@ -21,6 +21,8 @@ WEB_OPS = read("web/src/legacy-transplant/ops-console.css")
 WEB_UNIFIED = read("web/src/legacy-transplant/web-unified-ui.css")
 WEB_PRO = read("web/src/legacy-transplant/web-professional-v2.css")
 WEB_REPORT_EXCEL = read("web/src/report-excel.ts")
+WEB_HR_PANEL = read("web/src/hr-web-panel.ts")
+WEB_HR_EXCEL = read("web/src/hr-excel.ts")
 
 ANDROID_MAIN = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt")
 ANDROID_PICKER = read("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt")
@@ -448,7 +450,7 @@ checks = {
     "web_recurrence_surface": "previous_batch_id" in WEB_API and "Tái phát" in WEB_UI,
     "web_realtime_delta": "/api/realtime/delta" in WEB_RT and "lastSeq" in WEB_RT and "location.reload" not in WEB_RT,
     "web_existing_management_preserved": all(token in WEB_API for token in ["/api/admin/hr-source-v2", "/api/admin/users/password", "/api/admin/pickers/bulk"]),
-    "web_flexible_hr_mapping": all(token in WEB_UI for token in ["employeeCodeHeader", "fullNameHeader", "Tên cột Mã nhân viên", "Tên cột Họ và tên"]),
+    "web_flexible_hr_mapping": all(token in WEB_HR_PANEL for token in ["hr-manual-form", "hr-excel-file", "download-hr-example", "Mã nhân viên", "Họ và tên", "Nhà thầu"]) and all(token in WEB_HR_EXCEL for token in ["parseHrWorkbook", "downloadHrExample", "MAX_ROWS"]) and all(token in WEB_API for token in ["/api/admin/hr-web/preview", "/api/admin/hr-web/apply"]),
     "web_transplant_files_are_presentation_only": "fetch(" not in WEB_FAST and "fetch(" not in WEB_DASH and "fetch(" not in WEB_WAREHOUSE and "fetch(" not in WEB_OPS,
 
     "android_adaptive_launcher_icon": 'android:icon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and 'android:roundIcon="@drawable/app_icon_d089"' in ANDROID_MANIFEST and ANDROID_APPROVED_ICON_EXISTS,

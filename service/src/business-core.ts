@@ -1,5 +1,5 @@
 import { correctionDeadlineFromResult, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
-import { mealAdjustedDeadline, vnDayAt, vnMidnightMs } from "./meal-break-core";
+import { mealAdjustedDeadline, vnDayAt } from "./meal-break-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -239,8 +239,6 @@ export function initializeBusinessSchema(state: DurableObjectState): void {
       PRIMARY KEY (scope, idempotency_key)
     );
     CREATE INDEX IF NOT EXISTS idx_idempotency_created_at ON idempotency_keys(created_at);
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_pending_batch_sku
-      ON report_batches(sku) WHERE status = 'PENDING';
   `);
 }
 
@@ -397,29 +395,24 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     );
     if (!skuRow) return { status: 404, payload: { error: "SKU_NOT_FOUND", sku } } satisfies BusinessResult;
 
+    const at = nowIso();
+    const businessDay = vnDayAt(Date.parse(at));
     const existing = firstRow(
-      state.storage.sql
-        .exec<TicketRow>(
-          `SELECT ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
-                  reported_at, withdraw_deadline_at, withdrawn_at, resolved_at
-             FROM report_tickets
-            WHERE picker_employee_code = ? AND sku = ? AND status = 'OPEN'
-            LIMIT 1`,
-          actor.employee_code,
-          sku,
-        )
-        .toArray(),
+      state.storage.sql.exec<TicketRow>(
+        `SELECT ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
+                reported_at, withdraw_deadline_at, withdrawn_at, resolved_at
+           FROM report_tickets
+          WHERE picker_employee_code = ? AND sku = ? AND status = 'OPEN'
+            AND business_day_vn = ? LIMIT 1`,
+        actor.employee_code, sku, businessDay,
+      ).toArray(),
     );
     if (existing) {
       return { status: 409, payload: { error: "ALREADY_REPORTED", ticket: existing } } satisfies BusinessResult;
     }
 
-    const at = nowIso();
     // D167: New VN business day starts a new batch even when yesterday's SKU
     // remains PENDING for the scheduled 03:00 day-end resolution.
-    const businessDayStart = vnMidnightMs(vnDayAt(Date.parse(at)));
-    const dayStartIso = new Date(businessDayStart).toISOString();
-    const dayEndIso = new Date(businessDayStart + 86_400_000).toISOString();
     let batch = firstRow(
       state.storage.sql
         .exec<BatchRow>(
@@ -427,9 +420,9 @@ async function createReport(state: DurableObjectState, request: Request): Promis
                   resolved_by_user_id, resolution, resolution_source, auto_skip_deadline_at, correction_deadline_at, version, created_at, updated_at
              FROM report_batches
             WHERE sku = ? AND status = 'PENDING'
-              AND first_report_at >= ? AND first_report_at < ?
+              AND business_day_vn = ?
             ORDER BY first_report_at ASC LIMIT 1`,
-          sku, dayStartIso, dayEndIso,
+          sku, businessDay,
         )
         .toArray(),
     );
@@ -445,11 +438,12 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       const batchId = crypto.randomUUID();
       state.storage.sql.exec(
         `INSERT INTO report_batches (
-           batch_id, sku, product_name, status, first_report_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
-         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, ?)`,
+           batch_id, sku, product_name, status, business_day_vn, first_report_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
+         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
         batchId,
         sku,
         skuRow.product_name,
+        businessDay,
         at,
         plan.batch_deadline_at,
         plan.config?.auto_skip_enabled && plan.config.auto_skip_mode === "FIRST_REPORT" ? plan.config.auto_skip_minutes : null,
@@ -478,14 +472,15 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     const withdrawDeadline = addMs(at, WITHDRAW_WINDOW_MS);
     state.storage.sql.exec(
       `INSERT INTO report_tickets (
-         ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
+         ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status, business_day_vn,
          reported_at, withdraw_deadline_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?)`,
+       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?)`,
       ticketId,
       batch.batch_id,
       actor.user_id,
       actor.employee_code,
       sku,
+      businessDay,
       at,
       withdrawDeadline,
       plan.ticket_deadline_at,

@@ -1730,3 +1730,10 @@ body[data-theme="dark"] .sla-config-error {
   color:#f6aaa3 !important;
 }
 
+
+/* D167 A: result date / data separation */
+.recent-range-toolbar { margin-bottom: 20px !important; padding-bottom: 16px !important; border-bottom: 1px solid #ccd5dd; }
+.recent-range-toolbar + .result-audit-table { margin-top: 8px !important; }
+
+/* D167: separately mark system 03:00 close from ordinary overdue timeout. */
+.resolution-source.day-end { color:#aa5100!important; font-weight:800!important; border-left:3px solid #cc7800; padding-left:8px; }
