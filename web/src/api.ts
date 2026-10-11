@@ -1422,6 +1422,25 @@ export async function applyHrPickerSync(): Promise<unknown> {
   }));
 }
 
+export type HrWebEmployee = { employee_code: string; display_name: string; contractor_name: string };
+
+export async function previewHrWebInput(employees: HrWebEmployee[]): Promise<HrSyncPreview> {
+  return readJson(await authorizedFetch("/api/admin/hr-web/preview", {
+    method: "POST", body: JSON.stringify({ employees }),
+  }));
+}
+
+export async function applyHrWebInput(employees: HrWebEmployee[], preview: HrSyncPreview, confirmChanged: boolean): Promise<unknown> {
+  return readJson(await authorizedFetch("/api/admin/hr-web/apply", {
+    method: "POST",
+    body: JSON.stringify({ employees, request_id: crypto.randomUUID(), confirm: true,
+      confirm_changed: confirmChanged,
+      expected_plan: {create: preview.create, rename: preview.rename, contractor_update: preview.contractor_update},
+      source_row_count: employees.length,
+    }),
+  }));
+}
+
 export async function getHrEventSyncState(): Promise<HrEventSyncState> {
   return readJson(await authorizedFetch("/api/admin/hr-sync/event-state"));
 }
