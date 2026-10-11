@@ -84,6 +84,13 @@ function doPost(e) {
 
     const idToken = String(body.id_token || '');
     const auth = validateIdToken_(idToken);
+    if (action === 'd167_sku_sync') {
+      // D167 uses the existing Agent Operations Gateway solely as a secure
+      // Office-reachable transport to Inventory Beta. WMS auth never crosses
+      // this gateway. The Worker re-verifies Agent RBAC and Firebase HA
+      // PRIMARY lease/generation on every business mutation.
+      return proxyD167SkuRequest_(body, idToken);
+    }
     if (action === 'privileged_agent_reauth') {
       const proof = String(body.proof || '');
       if (!proof || proof.length > 128) throw new Error('PRIVILEGED_AGENT_PROOF_REQUIRED');
@@ -728,6 +735,42 @@ function zonedMidnightUtc_(now, timeZone) {
     guess += desired - represented;
   }
   return new Date(guess);
+}
+
+function proxyD167SkuRequest_(request, idToken) {
+  const operation = String(request.operation || '');
+  if (['schedule','status','claim','stage','preview','publish'].indexOf(operation) < 0)
+    throw new Error('D167_INVALID_OPERATION');
+  const data = request.data;
+  if (!data || typeof data !== 'object' || Array.isArray(data))
+    throw new Error('D167_INVALID_REQUEST');
+  const day = String(data.day_vn || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day))
+    throw new Error('D167_INVALID_VN_DAY');
+  const isGet = operation === 'schedule' || operation === 'status';
+  const slot = String(data.slot || '');
+  if (!isGet || operation === 'status') {
+    if (['INITIAL_05','DELTA_12','DELTA_19'].indexOf(slot) < 0)
+      throw new Error('D167_INVALID_SLOT');
+  }
+  const url = 'https://inventory-beta.supra.cc.cd/api/agent/d167/skus/' + operation +
+    (isGet ? '?day_vn=' + encodeURIComponent(day) +
+      (operation === 'status' ? '&slot=' + encodeURIComponent(slot) : '') : '');
+  const headers = { authorization: ['Bea','rer ',idToken].join('') };
+  const payload = JSON.stringify(data);
+  if (payload.length > 500000) throw new Error('D167_SKU_REQUEST_OVERSIZE');
+  const opts = { method: isGet ? 'get' : 'post', headers: headers,
+    muteHttpExceptions: true };
+  if (!isGet) { opts.contentType = 'application/json'; opts.payload = payload; }
+  const response = UrlFetchApp.fetch(url, opts);
+  const status = response.getResponseCode();
+  let value = {};
+  try { value = JSON.parse(response.getContentText() || '{}'); } catch (_) {}
+  if (status < 200 || status >= 300) {
+    return json_({ok:false, worker_status:status,
+      error:String(value.error || 'D167_WORKER_ERROR').substring(0,120)});
+  }
+  return json_(Object.assign({}, value, {ok:true}));
 }
 
 function proxyWorkerJson_(path, payload, idToken) {
