@@ -125,3 +125,8 @@ Owner requests an isolated one-button test of Supra Bin Inventory download and i
 ## D167 — Independently authenticated Windows test, SKU/name only (supersedes earlier IPC-only draft)
 
 Owner explicitly approved an isolated experiment with its OWN signed-in Supra browser and its OWN Firebase WEB Beta login. For this limited test, the test executable may issue a read-only authorized `exportBinStocks` GET and use the existing authenticated `POST /api/admin/skus/import` Service endpoint, respecting real role/session authority. Test data `SKU + product_name` only; do not ingest locations or quantities. Preserve chunk preview, conflict confirmation, request-id idempotency and no-delete semantics. No new business-rule mutation is implied beyond executing the existing authorized import API. D126 restrictions on the operational main Agent and its WMS Confirm session remain unchanged, and no production Agent/Worker modifications are approved.
+
+
+## 2026-10-11 — D167 Owner D05/D06/D07 supersedes D126 SKU source design
+
+A ready PRIMARY Agent may execute a single daily read-only SKU export from its existing managed WMS browser after 05:00 VN. Record day-scoped job completion and source fingerprint so no Agent repeats a completed job. New valid SKU add automatically; changed names require Agent approval; absent SKU remains unchanged. Retain the existing Web manual import option. Add only LTA/Shelving historical classification, with effective_from/to and UNKNOWN before the first verified observation; no stock quantity or bin management. This is an approved business rule, not a release or source-code implementation. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
