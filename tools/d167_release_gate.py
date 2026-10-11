@@ -8,10 +8,12 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPONENTS = {"worker", "gateway", "firestore", "rtdb", "functions", "android", "agent"}
+COMPONENTS = {"worker", "gateway", "firestore", "rtdb", "functions", "android", "agent",
+              "pda-management", "usage-test-agent", "canary", "legacy-gateway-migration"}
 PROTECTED = ("service/", "web/", "android/", "relay-agent/", "functions/",
              "firebase/", "firebase.json", "ops/apps-script/", ".github/workflows/",
-             "tools/", "ops/project-scope.json", "ops/resource-registry.json")
+             "tools/", "pda-management/", "usage-test-agent/", "ops/apps-script/automation-canary/",
+             "ops/project-scope.json", "ops/resource-registry.json")
 
 
 def fail(message):
