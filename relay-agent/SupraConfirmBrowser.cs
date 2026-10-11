@@ -195,6 +195,34 @@ namespace SupraInventoryRelayAgent
             lock (_gate) return _launchMode == BrowserLaunchMode.Agent;
         }
 
+        // D167: request a separate read-only Bin Inventory tab in the existing
+        // WebView2 user-controlled profile, never navigate/reload Confirm.
+        // The bundled host keeps this exact child hidden and allows only a
+        // scoped Excel download. No WMS credential or API header is inspected.
+        internal int OpenD167HiddenSkuExportPage()
+        {
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                if (_launchMode != BrowserLaunchMode.Agent || _port <= 0 ||
+                    _socket == null || _socket.State != WebSocketState.Open)
+                    throw new InvalidOperationException("D167_MANAGED_BROWSER_NOT_READY");
+                var source = _json.Serialize(AgentConfig.WmsBinInventoryUiReferenceUrl);
+                var expression = "(() => { window.open(" + source +
+                    ", '_blank'); return JSON.stringify({requested:true}); })()";
+                // User gesture applies only to a read-only popup of the exact
+                // allowlisted report page. The main Confirm page remains intact.
+                CommandNoLock("Runtime.evaluate", new Dictionary<string, object>
+                {
+                    { "expression", expression },
+                    { "returnByValue", true },
+                    { "userGesture", true }
+                }, TimeSpan.FromSeconds(5));
+                _log("D167_SKU_BROWSER hidden_page=REQUESTED main_confirm_navigation=UNCHANGED");
+                return _port;
+            }
+        }
+
         internal bool IsDesktopSelected()
         {
             lock (_gate) return _launchMode == BrowserLaunchMode.Desktop;
@@ -2511,7 +2539,11 @@ namespace SupraInventoryRelayAgent
                                 Uri pageUri;
                                 if (Uri.TryCreate(url, UriKind.Absolute, out pageUri) &&
                                     string.Equals(pageUri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
-                                    string.Equals(pageUri.Host, WmsHost, StringComparison.OrdinalIgnoreCase))
+                                    string.Equals(pageUri.Host, WmsHost, StringComparison.OrdinalIgnoreCase) &&
+                                    // Never reattach the confirmation controller to
+                                    // the D167 background Bin Inventory target.
+                                    !string.Equals(pageUri.AbsolutePath,
+                                        "/sft3/app/report/bin-inventory", StringComparison.OrdinalIgnoreCase))
                                     return ws;
                             }
                             if (!requireWms && !string.IsNullOrWhiteSpace(fallback)) return fallback;
