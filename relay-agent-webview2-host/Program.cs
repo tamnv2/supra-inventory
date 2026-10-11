@@ -143,6 +143,15 @@ namespace SupraInventoryWebView2Host
                 {
                     BeginInvoke(new Action(() =>
                     {
+                        // A read-only SKU side-page renderer crash must never
+                        // terminate the user-confirmation browser or its WMS
+                        // session. The export attempt fails independently.
+                        if (ReferenceEquals(view, _skuExportWeb))
+                        {
+                            try { Controls.Remove(view); view.Dispose(); } catch { }
+                            _skuExportWeb = null;
+                            return;
+                        }
                         Environment.ExitCode = 3;
                         Close();
                     }));
