@@ -25,11 +25,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+
+      - name: D167 Owner release authorization for worker
+        if: github.event_name != 'pull_request'
+        run: python3 tools/d167_release_gate.py --component worker
 
       - name: Verify Firebase Web config
         env:

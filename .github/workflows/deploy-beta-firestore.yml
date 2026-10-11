@@ -36,6 +36,12 @@ jobs:
     environment: beta
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: D167 Owner release authorization for firestore
+        if: github.event_name != 'pull_request'
+        run: python3 tools/d167_release_gate.py --component firestore
 
       - name: Validate D097 Firestore source
         shell: bash
@@ -178,6 +184,7 @@ jobs:
           echo "D099 Firebase email/password provider ENABLED"
 
       - name: D099 synthetic PBKDF2 Firebase sign-in probe
+        if: github.event_name != 'pull_request'
         shell: bash
         env:
           FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}

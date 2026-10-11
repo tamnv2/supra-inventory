@@ -57,9 +57,15 @@ jobs:
     environment: beta
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: D167 Owner release authorization for gateway
+        if: github.event_name != 'pull_request'
+        run: python3 tools/d167_release_gate.py --component gateway
+
       - name: Install pinned Apps Script CLI
         run: npm install --global @google/clasp@3.4.1 --ignore-scripts --no-audit --no-fund
       - name: Fail-closed existing-deployment update

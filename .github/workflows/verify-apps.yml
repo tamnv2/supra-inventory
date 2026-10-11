@@ -36,7 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+      - name: D167 Owner release authorization for android
+        if: github.event_name != 'pull_request'
+        run: python3 tools/d167_release_gate.py --component android
+
       - name: Detect Android release-relevant source change
         shell: bash
         run: |

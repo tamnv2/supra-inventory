@@ -35,6 +35,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+
+      - name: D167 Owner release authorization for rtdb
+        if: github.event_name != 'pull_request'
+        run: python3 tools/d167_release_gate.py --component rtdb
 
       - name: Validate Rules source and target
         shell: bash

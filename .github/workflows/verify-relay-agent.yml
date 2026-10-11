@@ -32,10 +32,16 @@ jobs:
       AGENT_LOG_GATEWAY_URL_BETA: ${{ vars.AGENT_LOG_GATEWAY_URL_BETA }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
+
+      - name: D167 Owner release authorization for agent
+        if: github.event_name != 'pull_request'
+        run: python3 tools/d167_release_gate.py --component agent
 
       - name: Validate Agent build channel
         shell: pwsh
