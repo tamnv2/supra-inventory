@@ -197,8 +197,6 @@ export class InventoryCore {
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (batch_id) REFERENCES report_batches(batch_id)
       );
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_open_ticket_picker_sku
-        ON report_tickets(picker_employee_code, sku) WHERE status = 'OPEN';
       CREATE INDEX IF NOT EXISTS idx_report_tickets_batch ON report_tickets(batch_id, status, reported_at);
       CREATE INDEX IF NOT EXISTS idx_report_tickets_reported_at_batch ON report_tickets(reported_at, batch_id, picker_employee_code);
 
