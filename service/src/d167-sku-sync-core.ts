@@ -98,6 +98,7 @@ function rosterRows(state: DurableObjectState): D167CatalogRow[] {
     last_wms_area: x.last_wms_area == null ? null : String(x.last_wms_area) as D167Area,
     manual_name_revision: x.last_web_name_at ? Date.parse(String(x.last_web_name_at)) : 0,
     manual_area_revision: x.last_web_area_at ? Date.parse(String(x.last_web_area_at)) : 0,
+    last_wms_observed_ms: x.last_wms_observed_at ? Date.parse(String(x.last_wms_observed_at)) : 0,
   }));
 }
 function auditArea(state: DurableObjectState, item: D167Sku, day: string, slot: string, at: string): void {
