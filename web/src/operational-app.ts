@@ -4700,6 +4700,42 @@ function bindSection(): void {
     }
   }));
 
+  document.querySelector<HTMLButtonElement>("#download-hr-example")?.addEventListener("click", downloadHrExample);
+  document.querySelector<HTMLFormElement>("#hr-manual-form")?.addEventListener("submit", event => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    void run(async () => {
+      hrWebRows = [{
+        employee_code: String(data.get("employeeCode") || "").trim().toLowerCase(),
+        display_name: String(data.get("displayName") || "").trim(),
+        contractor_name: String(data.get("contractorName") || "").trim(),
+      }];
+      hrWebPreview = await previewHrWebInput(hrWebRows);
+      hrWebFilename = "Nhập trực tiếp";
+      patchActiveSection(true);
+    });
+  });
+  document.querySelector<HTMLInputElement>("#hr-excel-file")?.addEventListener("change", event => {
+    const file = (event.currentTarget as HTMLInputElement).files?.[0];
+    if (!file) return;
+    void run(async () => {
+      hrWebRows = await parseHrWorkbook(file);
+      hrWebPreview = await previewHrWebInput(hrWebRows);
+      hrWebFilename = file.name;
+      patchActiveSection(true);
+    });
+  });
+  document.querySelector<HTMLButtonElement>("#hr-apply-web")?.addEventListener("click", () => void run(async () => {
+    if (!hrWebPreview || !hrWebRows.length) throw new Error("Chưa có dữ liệu đã xem trước.");
+    const changed = Number(hrWebPreview.rename || 0) + Number(hrWebPreview.contractor_update || 0);
+    if (changed > 0 && !window.confirm(`Xác nhận cập nhật thông tin của ${changed} Picker đã tồn tại? Mã trùng sẽ giữ nguyên vai trò và trạng thái tài khoản.`)) return;
+    await applyHrWebInput(hrWebRows, hrWebPreview, changed > 0);
+    const applied = hrWebRows.length;
+    hrWebRows = []; hrWebPreview = null; hrWebFilename = "";
+    await loadUsers();
+    patchActiveSection(true);
+    setNotice("success", `Đã ghi nhận ${applied} nhân sự. Tài khoản không có trong file vẫn được giữ nguyên.`);
+  }));
   document.querySelector<HTMLFormElement>("#hr-source-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
