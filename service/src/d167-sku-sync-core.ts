@@ -281,8 +281,16 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       // Cache item_count tracks the canonical master; hidden rows remain historical.
       state.storage.sql.exec(`INSERT OR IGNORE INTO sku_catalog_meta (id,item_count,max_updated_at)
         SELECT 1,COUNT(*),MAX(updated_at) FROM sku_master`);
-      state.storage.sql.exec(`UPDATE sku_catalog_meta SET item_count=(SELECT COUNT(*) FROM sku_master),
-        max_updated_at=(SELECT MAX(updated_at) FROM sku_master) WHERE id=1`);
+      const nameModified = plan.create.length > 0 || plan.update.some(item => item.name !== undefined)
+        || (body.approve_conflicts === true && plan.conflicts.some(c => c.field === "product_name"));
+      const membershipModified = plan.hide.length > 0 || plan.activate.length > 0;
+      // Android catalog-info version must change on membership changes even when
+      // sku_master name/updated_at stays intact; no-op and area-only jobs do not
+      // unnecessarily wake every PDA catalog consumer.
+      state.storage.sql.exec(`UPDATE sku_catalog_meta
+        SET item_count=(SELECT COUNT(*) FROM sku_master),
+            max_updated_at=CASE WHEN ? THEN ? ELSE COALESCE((SELECT MAX(updated_at) FROM sku_master),max_updated_at) END
+        WHERE id=1`,nameModified || membershipModified ? 1 : 0,at);
       return true;
     });
     if (!committed) return response({ error:"HA_FENCED" },409);
