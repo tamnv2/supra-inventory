@@ -252,6 +252,15 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       area:String(item.area) as D167Area,area_verified:Number(item.area_verified)===1,
       area_reason:String(item.area_reason),
     }));
+    // Verify the entire canonical SKU/name/area manifest on the trusted Service,
+    // not a client-supplied fingerprint or a sparse three-row readback.
+    const canonical = staged.map(x => [
+      x.sku, x.product_name, x.area, x.area_verified ? "1" : "0", x.area_reason,
+    ].join("\\t")).join("\\n");
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+    const computed = Array.from(new Uint8Array(digest), x => x.toString(16).padStart(2,"0")).join("");
+    if (computed !== String(job.fingerprint).toLowerCase())
+      return response({ error:"SOURCE_FINGERPRINT_MISMATCH" },409);
     const existing = rosterRows(state);
     const meta = row(state,"SELECT revision,last_full_day,published_at FROM d167_sku_meta WHERE id=1") || {};
     const baseTime = meta.published_at ? Date.parse(String(meta.published_at)) : 0;
@@ -309,6 +318,22 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
         state.storage.sql.exec(`UPDATE d167_sku_active SET active=0
           WHERE active=1 AND sku NOT IN
             (SELECT sku FROM d167_sku_stage WHERE day_vn=? AND slot=?)`,day,slot);
+      }
+      // Entire staged manifest must be materialized in the active catalog
+      // before publishing DONE. This SQL readback occurs inside the same atomic
+      // transaction, so failures roll back all catalog and history mutations.
+      const bad = row(state,`SELECT COUNT(*) AS n FROM d167_sku_stage st
+        LEFT JOIN sku_master s ON s.sku=st.sku
+        LEFT JOIN d167_sku_active a ON a.sku=st.sku
+        WHERE st.day_vn=? AND st.slot=?
+          AND (s.sku IS NULL OR a.sku IS NULL OR a.active!=1)`,day,slot);
+      if (Number(bad?.n || 0)>0) throw new Error("D167_FULL_MANIFEST_READBACK_MISMATCH");
+      if (slot==="INITIAL_05") {
+        const unexpected = row(state,`SELECT COUNT(*) AS n FROM d167_sku_active a
+          WHERE a.active=1 AND NOT EXISTS(
+            SELECT 1 FROM d167_sku_stage st WHERE st.day_vn=? AND st.slot=? AND st.sku=a.sku
+          )`,day,slot);
+        if (Number(unexpected?.n||0)>0) throw new Error("D167_FULL_ACTIVE_SET_READBACK_MISMATCH");
       }
       const receipt = JSON.stringify({ day_vn:day,slot, fingerprint:job.fingerprint,
         source_rows:entries.length,...summary, completed_at:at });
