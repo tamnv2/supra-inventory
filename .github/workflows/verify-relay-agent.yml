@@ -690,7 +690,7 @@ jobs:
             if (-not $ops.Contains($marker)) { throw "D127 v67 responsive Supra layout guard missing: $marker" }
           }
           foreach ($marker in @(
-            'RequiredHostBuild = 10',
+            'RequiredHostBuild = 11',
             'RequiredHostArch = "x64"',
             'host-build.txt',
             'host-arch.txt',
