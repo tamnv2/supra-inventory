@@ -27,6 +27,7 @@ export interface D167CatalogRow extends D167Sku {
   last_wms_area: D167Area | null;
   manual_name_revision: number;
   manual_area_revision: number;
+  last_wms_observed_ms?: number;
 }
 export interface D167Diff {
   create: D167Sku[];
@@ -125,13 +126,13 @@ export function planSkuChanges(
     const change: { sku: string; name?: string; area?: D167Area; area_verified?: boolean } = { sku: row.sku };
     const wmsNameChanged = prev.last_wms_name === null || prev.last_wms_name !== row.product_name;
     if (wmsNameChanged && prev.product_name !== row.product_name) {
-      if (prev.manual_name_revision > baselineRevision) plan.conflicts.push({
+      if (prev.manual_name_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
         sku: row.sku, field: "product_name", current: prev.product_name, incoming: row.product_name,
       }); else change.name = row.product_name;
     }
     const wmsAreaChanged = row.area_verified && (prev.last_wms_area === null || prev.last_wms_area !== row.area);
     if (wmsAreaChanged && prev.area !== row.area) {
-      if (prev.manual_area_revision > baselineRevision) plan.conflicts.push({
+      if (prev.manual_area_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
         sku: row.sku, field: "area", current: prev.area, incoming: row.area,
       }); else { change.area = row.area; change.area_verified = true; }
     }
