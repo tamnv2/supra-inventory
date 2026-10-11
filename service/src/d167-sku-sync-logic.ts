@@ -130,11 +130,16 @@ export function planSkuChanges(
         sku: row.sku, field: "product_name", current: prev.product_name, incoming: row.product_name,
       }); else change.name = row.product_name;
     }
-    const wmsAreaChanged = row.area_verified && (prev.last_wms_area === null || prev.last_wms_area !== row.area);
+    // A verified complete WMS export with simultaneous LTA + Shelving or a
+    // malformed pickable code is demonstrably UNKNOWN now. Missing area
+    // column is a different case: it MUST preserve previously verified area.
+    const observedUnknown = ["MULTIPLE_AREA", "INVALID_PICKABLE_LOCATION"].includes(row.area_reason);
+    const areaObserved = row.area_verified || observedUnknown;
+    const wmsAreaChanged = areaObserved && (prev.last_wms_area === null || prev.last_wms_area !== row.area);
     if (wmsAreaChanged && prev.area !== row.area) {
       if (prev.manual_area_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
         sku: row.sku, field: "area", current: prev.area, incoming: row.area,
-      }); else { change.area = row.area; change.area_verified = true; }
+      }); else { change.area = row.area; change.area_verified = row.area_verified; }
     }
     if (change.name !== undefined || change.area !== undefined) plan.update.push(change);
     else if (prev.active) plan.unchanged += 1;
