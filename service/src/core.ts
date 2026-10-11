@@ -390,6 +390,15 @@ export class InventoryCore {
     }
 
     initializeBusinessSchema(this.state);
+    if (!this.hasColumn("report_batches", "business_day_vn")) sql.exec("ALTER TABLE report_batches ADD COLUMN business_day_vn TEXT");
+    if (!this.hasColumn("report_tickets", "business_day_vn")) sql.exec("ALTER TABLE report_tickets ADD COLUMN business_day_vn TEXT");
+    sql.exec("UPDATE report_batches SET business_day_vn = date(first_report_at, '+7 hours') WHERE business_day_vn IS NULL");
+    sql.exec("UPDATE report_tickets SET business_day_vn = date(reported_at, '+7 hours') WHERE business_day_vn IS NULL");
+    sql.exec("DROP INDEX IF EXISTS idx_pending_batch_sku");
+    sql.exec("DROP INDEX IF EXISTS idx_open_ticket_picker_sku");
+    sql.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_d167_pending_sku_day ON report_batches(sku, business_day_vn) WHERE status = 'PENDING'");
+    sql.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_d167_open_picker_sku_day ON report_tickets(picker_employee_code, sku, business_day_vn) WHERE status = 'OPEN'");
+    sql.exec("CREATE INDEX IF NOT EXISTS idx_d167_pending_day ON report_batches(status, business_day_vn, first_report_at)");
     initializeMealSchema(this.state);
     if (!this.hasColumn("report_batches", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_auto_skip_minutes INTEGER");
     if (!this.hasColumn("report_tickets", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_tickets ADD COLUMN d167_auto_skip_minutes INTEGER");
