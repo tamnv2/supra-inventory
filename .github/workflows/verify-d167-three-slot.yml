@@ -1,0 +1,23 @@
+name: D167 three-slot SKU pure contract (code only)
+on:
+  pull_request:
+    paths:
+      - "service/src/d167-sku-*.ts"
+      - "tests/d167-three-slot-sku.test.mjs"
+      - ".github/workflows/verify-d167-three-slot.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: D167 source and diff behavior
+        run: node --experimental-strip-types --test tests/d167-three-slot-sku.test.mjs
+      - name: Type-check InventoryCore
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck
