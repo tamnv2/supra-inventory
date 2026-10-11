@@ -5090,11 +5090,17 @@ async function importSkuWorkbook(): Promise<void> {
   if (wb.conflicts.some((conflict) => !skuConflictChoices.get(conflict.sku))) throw new Error("Cần chọn tên sản phẩm cho toàn bộ SKU xung đột trong file.");
   const items: SkuItem[] = [...wb.items, ...wb.conflicts.map((conflict) => ({ sku: conflict.sku, product_name: skuConflictChoices.get(conflict.sku)! }))];
   const databaseConflicts: string[] = [];
+  let previewRevision: number | null = null;
   for (let offset = 0; offset < items.length; offset += SKU_CHUNK_SIZE) {
     const chunk = items.slice(offset, offset + SKU_CHUNK_SIZE);
     skuImportProgress = `Kiểm tra ${Math.min(offset + chunk.length, items.length).toLocaleString("vi-VN")} / ${items.length.toLocaleString("vi-VN")} SKU...`;
     render();
     const result = await importSkuChunk(chunk, { requestId: crypto.randomUUID(), sourceHash: wb.source_hash, dryRun: true });
+    if (result.catalog_revision != null) {
+      if (previewRevision != null && previewRevision !== result.catalog_revision)
+        throw new Error("Danh mục SKU thay đổi khi kiểm tra; cần xem trước lại file trước khi cập nhật.");
+      previewRevision = result.catalog_revision;
+    }
     for (const conflict of result.conflicts || []) databaseConflicts.push(`${conflict.sku}: ${conflict.current_product_name} → ${conflict.incoming_product_name}`);
   }
   if (databaseConflicts.length && !window.confirm(`Có ${databaseConflicts.length} SKU đổi tên so với danh mục hiện tại. Xác nhận cập nhật tên?\n\n${databaseConflicts.slice(0, 15).join("\n")}`)) {
@@ -5102,9 +5108,15 @@ async function importSkuWorkbook(): Promise<void> {
     return;
   }
   let processed = 0;
+  let expectedCatalogRevision = previewRevision;
   for (let offset = 0; offset < items.length; offset += SKU_CHUNK_SIZE) {
     const chunk = items.slice(offset, offset + SKU_CHUNK_SIZE);
-    await importSkuChunk(chunk, { requestId: crypto.randomUUID(), sourceHash: wb.source_hash, confirmNameChanges: databaseConflicts.length > 0 });
+    const applied = await importSkuChunk(chunk, {
+      requestId: crypto.randomUUID(), sourceHash: wb.source_hash,
+      confirmNameChanges: databaseConflicts.length > 0,
+      expectedCatalogRevision: expectedCatalogRevision ?? undefined,
+    });
+    if (applied.catalog_revision != null) expectedCatalogRevision = applied.catalog_revision;
     processed += chunk.length;
     skuImportProgress = `Đã cập nhật ${processed.toLocaleString("vi-VN")} / ${items.length.toLocaleString("vi-VN")} SKU.`;
     render();
