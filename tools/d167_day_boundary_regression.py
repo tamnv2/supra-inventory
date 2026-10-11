@@ -56,7 +56,7 @@ assert con.execute("SELECT business_day_vn FROM report_batches WHERE batch_id='o
 for table, args in (("report_batches", ("dup","000123","PENDING","2026-10-10T17:00:01Z","2026-10-11")),
                     ("report_tickets", ("dup","picker-a","000123","OPEN","2026-10-10T17:00:01Z","2026-10-11"))):
     try:
-        con.execute("INSERT INTO " + table + " VALUES(?,?,?,?,?)",args)
+        con.execute("INSERT INTO " + table + (" VALUES(?,?,?,?,?,?)" if table == "report_tickets" else " VALUES(?,?,?,?,?)"), args)
     except sqlite3.IntegrityError:
         pass
     else:
