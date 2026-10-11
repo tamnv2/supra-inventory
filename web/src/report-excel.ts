@@ -48,6 +48,9 @@ function addSheet(
 
 function resolutionSourceLabel(value: string | null | undefined): string {
   if (value === "SYSTEM_TIMEOUT") return "Hệ thống tự động do quá hạn";
+  if (value === "SYSTEM_DAY_END") return "Hệ thống chốt 03:00, Inventory chưa xử lý";
+  if (value === "REPORTER") return "Inventory xác nhận";
+  if (value === "REPORTER_CORRECTION") return "Inventory sửa kết quả";
   if (value === "HUMAN") return "Invent xử lý";
   if (value === "CORRECTION") return "Invent sửa kết quả";
   if (!value) return "";
@@ -111,7 +114,9 @@ export function downloadReportWorkbook(
   const outcome = (status: string) => Number(outcomes.find((row) => row.status === status)?.count || 0);
   const sourceCount = (status: string, source: string) =>
     Number(sources.find((row) => row.status === status && row.resolution_source === source)?.count || 0);
-  const automaticSkip = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT") + sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
+  const timeoutSkip = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT");
+  const dayEndSkip = sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
+  const automaticSkip = timeoutSkip + dayEndSkip;
   const humanSkip = Math.max(0, outcome("SKIP_ALLOWED") - automaticSkip);
 
   const summaryTable: unknown[][] = [
@@ -133,7 +138,8 @@ export function downloadReportWorkbook(
     ["KẾT QUẢ", "SỐ ĐỢT"],
     ["Đã có hàng", outcome("HAS_STOCK")],
     ["Bỏ qua bởi Invent", humanSkip],
-    ["Tự động bỏ qua do quá hạn", automaticSkip],
+    ["Tự động bỏ qua do quá hạn", timeoutSkip],
+    ["Tự động cho phép Skip lúc 03:00", dayEndSkip],
     ["Picker thu hồi", outcome("CLOSED")],
     ["Đang chờ", outcome("PENDING")],
     ["", ""],
@@ -144,6 +150,21 @@ export function downloadReportWorkbook(
   ];
   const summarySheet = addSheet(workbook, "Tổng quan", summaryTable, [34, 44], false);
   summarySheet["!merges"] = [XLSX.utils.decode_range("A1:B1")];
+
+  const areaLabel = (x: string | null | undefined) =>
+    x === "LTA" ? "LTA" : x === "SHELVING" ? "Shelving" : "Chưa xác định";
+  const areaTable: unknown[][] = [["Khu vực lúc báo", "Đợt báo", "Lượt Picker báo", "SKU khác nhau",
+    "Đã có hàng", "Cho phép Skip", "Thu hồi", "Đang xử lý"]];
+  for (const label of ["LTA","Shelving","Chưa xác định"]) {
+    const scoped = rows.filter(row => areaLabel(row.area_at_first_report) === label);
+    const ticker = details.filter(row => areaLabel(row.area_at_picker_report) === label);
+    areaTable.push([label,scoped.length,ticker.length,new Set(scoped.map(x => x.sku)).size,
+      scoped.filter(x=>x.status==="HAS_STOCK").length,
+      scoped.filter(x=>x.status==="SKIP_ALLOWED").length,
+      scoped.filter(x=>x.status==="CLOSED").length,
+      scoped.filter(x=>x.status==="PENDING").length]);
+  }
+  addSheet(workbook,"Theo khu vực",areaTable,[25,16,20,20,18,20,16,18]);
 
   const shiftKeys: ShiftKey[] = ["CA_1", "CA_2", "OVERTIME"];
   const shiftStats = new Map<ShiftKey, {
@@ -210,13 +231,14 @@ export function downloadReportWorkbook(
 
   const batchTable: unknown[][] = [
     [
-      "Batch ID", "SKU", "Tên sản phẩm", "Kết quả", "Nguồn xử lý", "MNV xử lý", "Người xử lý",
+      "Batch ID", "SKU", "Khu vực lúc báo", "Tên sản phẩm", "Kết quả", "Nguồn xử lý", "MNV xử lý", "Người xử lý",
       "Ca phát sinh", "Báo lần đầu", "Xử lý xong", "Thời gian xử lý (phút)", "Đang mở", "Tổng lượt báo",
       "Hạn sửa Skip→Có hàng",
     ],
     ...rows.map((row) => [
       row.batch_id,
       row.sku,
+      row.area_at_first_report === "UNKNOWN" || !row.area_at_first_report ? "Chưa xác định" : row.area_at_first_report === "SHELVING" ? "Shelving" : "LTA",
       row.product_name,
       statusLabel(row.status),
       row.status === "CLOSED" ? "Picker tự thu hồi" : resolutionSourceLabel(row.resolution_source),
@@ -231,11 +253,11 @@ export function downloadReportWorkbook(
       safeDate(row.correction_deadline_at),
     ]),
   ];
-  addSheet(workbook, "Đợt báo hàng", batchTable, [36, 18, 46, 22, 28, 16, 28, 22, 22, 22, 24, 12, 14, 22]);
+  addSheet(workbook, "Đợt báo hàng", batchTable, [36, 18, 24, 46, 22, 28, 16, 28, 22, 22, 22, 24, 12, 14, 22]);
 
   const detailTable: unknown[][] = [
     [
-      "Batch ID", "Ticket ID", "SKU", "Tên sản phẩm", "Kết quả đợt", "Trạng thái Picker",
+      "Batch ID", "Ticket ID", "SKU", "Khu vực lúc Picker báo", "Tên sản phẩm", "Kết quả đợt", "Trạng thái Picker",
       "MNV Picker", "Tên Picker", "Ca phát sinh", "Picker báo lúc", "Hạn thu hồi", "Picker thu hồi lúc",
       "Picker/đợt xử lý lúc", "Thời gian Picker chờ (phút)", "Tự động Skip dự kiến",
       "Tự động Skip được cấp", "Kết quả Picker", "Nguồn kết quả", "MNV Invent xử lý",
@@ -247,6 +269,7 @@ export function downloadReportWorkbook(
       row.batch_id,
       row.ticket_id,
       row.sku,
+      row.area_at_picker_report === "UNKNOWN" || !row.area_at_picker_report ? "Chưa xác định" : row.area_at_picker_report === "SHELVING" ? "Shelving" : "LTA",
       row.product_name,
       statusLabel(row.batch_status),
       ticketStatusLabel(row.ticket_status),
@@ -276,7 +299,7 @@ export function downloadReportWorkbook(
     ]),
   ];
   addSheet(workbook, "Chi tiết Picker", detailTable, [
-    36, 36, 18, 46, 20, 20, 16, 28, 22, 22, 22, 22, 22, 24, 22, 22, 20, 28, 16, 28,
+    36, 36, 18, 24, 46, 20, 20, 16, 28, 22, 22, 22, 22, 22, 24, 22, 22, 20, 28, 16, 28,
     22, 22, 22, 22, 22, 22, 22, 36, 22,
   ]);
 
