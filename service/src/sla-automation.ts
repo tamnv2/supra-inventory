@@ -767,11 +767,13 @@ export function processOperationalDeadlines(
 ): OperationalDeadlineEffect[] {
   const effects: OperationalDeadlineEffect[] = [];
   const config = readOperationalSlaConfig(state);
+  // Close the preceding VN business day first. A delayed 03:00 alarm must not
+  // emit a stale +30/+60 reminder or ordinary timeout after the final result.
+  effects.push(...processD167DayClose(state, nowMs));
   processBatchAutoSkip(state, config, nowMs, effects);
   processPerPickerAutoSkip(state, config, nowMs, effects);
   if (config) processWarningAndEscalation(state, config, nowMs, effects);
   effects.push(...processD167OverdueReminders(state, nowMs));
-  effects.push(...processD167DayClose(state, nowMs));
   const defaults = dueMealDefaults(state, nowMs);
   for (const result of defaults) {
     effects.push({
