@@ -384,3 +384,12 @@ Before Owner is asked to authorize code, supply: (1) desired business invariant 
 Prioritize reducing **wasteful repeat queries, re-listens, unchanged snapshots, duplicate event fan-out, expensive SQL scans, redundant archive operations and polling**, but only after measuring them and proving that their removal does not impair notification, HA takeover, WMS confirm or picker ACK. Cross-meter redistribution is not a quota transfer: measure per-provider real billed meters and normalize by device/Agent-hour, tickets, picklists and comparable shifts. Instrument locally/within existing streams first, no new tight monitoring loop just to observe usage.
 
 A recommendation without verified source shall be expressly qualified and may not be treated as accepted business authority. Changes must first pass source and contract review, branch/PR, authority and continuity checks, scoped CI, then the exact Owner deploy gate. Technical CI, release publication, installed-device proof, provider billing and business Owner PASS are distinct states. Stable remains OWNER-GATED; all new resources fail closed. See `AGENTS.md`, `docs/specs/ACCEPTANCE_TESTING.md`, `docs/D167_SYSTEM_REVIEW_2026-10-11.md`.
+
+## 2026-10-11 — Owner D09/D10 final CODE READY / deploy sequencing
+
+D167 Owner explicitly confirms two-stage authorization. 
+
+- `chạy code` means finish **code, tests, CI and CODE READY** on a branch/PR, and STOP. Do not merge any runtime-impacting PR to main while push-to-main publishes Beta. Do not update Web, Worker, Android APK, Windows Agent EXE/channel, Firebase resources or other runtime during this stage.
+- A later `duyệt triển khai` for exact candidate SHA/scope permits the assistant to perform all available merge, Beta release/OTA and verification steps without requiring extra manual Owner action. Default broad Beta rollout within approved scope, unless Owner specifically asks for a separate test/canary. A release is not Owner field PASS.
+- CI/CD requires technical enforcement across auto-push, manual dispatch and rerun before declaring the above guaranteed. PR CI success alone is not deployment approval. Stable always needs separate explicit Owner permission.
+- These D09/D10 are Owner-locked process policy, not present authorization to run code or deploy D167. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
