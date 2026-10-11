@@ -1297,6 +1297,10 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
 
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
+            COALESCE((SELECT h.area FROM d167_sku_area_history h
+                WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+                  AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+                ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') AS area_at_first_report,
             b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
             COALESCE(
@@ -1371,6 +1375,14 @@ function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResu
         COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
         COALESCE(resolver.display_name, '') AS resolved_by_display_name,
         t.ticket_id,
+        COALESCE((SELECT h.area FROM d167_sku_area_history h
+                WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+                  AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+                ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') AS area_at_first_report,
+        COALESCE((SELECT h.area FROM d167_sku_area_history h
+                WHERE h.sku=t.sku AND h.effective_from<=t.reported_at
+                  AND (h.effective_to IS NULL OR h.effective_to>t.reported_at)
+                ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') AS area_at_picker_report,
         t.picker_user_id,
         t.picker_employee_code,
         COALESCE(picker.display_name, '') AS picker_display_name,
