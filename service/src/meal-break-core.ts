@@ -186,6 +186,13 @@ export function nextMealPromptMs(state: DurableObjectState, nowMs = Date.now()):
         "SELECT 1 AS done FROM d167_meal_prompt_markers WHERE day_vn = ? AND period = ?", day, period,
       ).toArray());
       if (!found) candidates.push(promptAt);
+      const cutoffAt = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
+      if (cutoffAt > nowMs) {
+        const chosen = first(state.storage.sql.exec<SqlRow>(
+          "SELECT 1 AS selected FROM d167_meal_choices WHERE day_vn = ? AND period = ?", day, period,
+        ).toArray());
+        if (!chosen) candidates.push(cutoffAt);
+      }
     }
   }
   return candidates.length ? Math.min(...candidates) : null;
