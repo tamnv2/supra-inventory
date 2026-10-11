@@ -6,7 +6,7 @@ namespace SupraInventoryRelayAgent
 {
     internal sealed partial class SupraConfirmBrowser
     {
-        // D167: request a separate read-only Bin Inventory tab in the existing
+        // D167: request a separate side tab starting at the registered WMS page in the existing
         // WebView2 user-controlled profile, never navigate/reload Confirm.
         // The bundled host keeps this exact child hidden and allows only a
         // scoped Excel download. No WMS credential or API header is inspected.
@@ -18,7 +18,7 @@ namespace SupraInventoryRelayAgent
                 if (_launchMode != BrowserLaunchMode.Agent || _port <= 0 ||
                     _socket == null || _socket.State != WebSocketState.Open)
                     throw new InvalidOperationException("D167_MANAGED_BROWSER_NOT_READY");
-                var source = _json.Serialize(AgentConfig.WmsBinInventoryUiReferenceUrl);
+                var source = _json.Serialize(AgentConfig.WmsPicklistConfirmUiReferenceUrl + AgentConfig.WmsSkuSideTabFragment);
                 var expression = "(() => { window.open(" + source +
                     ", '_blank'); return JSON.stringify({requested:true}); })()";
                 // User gesture applies only to a read-only popup of the exact
