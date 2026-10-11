@@ -2512,10 +2512,11 @@ namespace SupraInventoryRelayAgent
                                 if (Uri.TryCreate(url, UriKind.Absolute, out pageUri) &&
                                     string.Equals(pageUri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
                                     string.Equals(pageUri.Host, WmsHost, StringComparison.OrdinalIgnoreCase) &&
-                                    // Never reattach the confirmation controller to
-                                    // the D167 background Bin Inventory target.
-                                    !string.Equals(pageUri.AbsolutePath,
-                                        "/sft3/app/report/bin-inventory", StringComparison.OrdinalIgnoreCase))
+                                    // The marked read-only side tab may start on
+                                    // the exact same Confirm route; never attach
+                                    // the main controller to that distinct tab.
+                                    !string.Equals(pageUri.Fragment,
+                                        AgentConfig.WmsSkuSideTabFragment, StringComparison.Ordinal))
                                     return ws;
                             }
                             if (!requireWms && !string.IsNullOrWhiteSpace(fallback)) return fallback;
