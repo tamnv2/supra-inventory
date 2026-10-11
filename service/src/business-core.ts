@@ -1,5 +1,5 @@
 import { correctionDeadlineFromResult, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
-import { mealAdjustedDeadline, vnDayAt, vnMidnightMs } from "./meal-break-core";
+import { mealAdjustedDeadline, vnDayAt } from "./meal-break-core";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -438,11 +438,12 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       const batchId = crypto.randomUUID();
       state.storage.sql.exec(
         `INSERT INTO report_batches (
-           batch_id, sku, product_name, status, first_report_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
-         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, ?)`,
+           batch_id, sku, product_name, status, business_day_vn, first_report_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
+         ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
         batchId,
         sku,
         skuRow.product_name,
+        businessDay,
         at,
         plan.batch_deadline_at,
         plan.config?.auto_skip_enabled && plan.config.auto_skip_mode === "FIRST_REPORT" ? plan.config.auto_skip_minutes : null,
@@ -471,14 +472,15 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     const withdrawDeadline = addMs(at, WITHDRAW_WINDOW_MS);
     state.storage.sql.exec(
       `INSERT INTO report_tickets (
-         ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status,
+         ticket_id, batch_id, picker_user_id, picker_employee_code, sku, status, business_day_vn,
          reported_at, withdraw_deadline_at, auto_skip_deadline_at, d167_auto_skip_minutes, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?)`,
+       ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?)`,
       ticketId,
       batch.batch_id,
       actor.user_id,
       actor.employee_code,
       sku,
+      businessDay,
       at,
       withdrawDeadline,
       plan.ticket_deadline_at,
