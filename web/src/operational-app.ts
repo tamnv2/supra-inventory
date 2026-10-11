@@ -519,8 +519,13 @@ function esc(value: unknown): string {
 
 function fmt(value: string | null | undefined): string {
   if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? value : d.toLocaleString("vi-VN", { hour12: false });
+  // SQLite CURRENT_TIMESTAMP is a UTC datetime without an offset; parse it as UTC.
+  const normalized = /^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/.test(value)
+    ? value.replace(" ", "T") + "Z" : value;
+  const d = new Date(normalized);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleString("vi-VN", {
+    hour12: false, timeZone: "Asia/Ho_Chi_Minh",
+  });
 }
 
 function formatHeaderUpdate(value: Date | null): string {
