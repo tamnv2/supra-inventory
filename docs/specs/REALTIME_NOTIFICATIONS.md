@@ -997,3 +997,7 @@ A PDA may change authenticated Picker user. Pending result ACKs are now keyed by
 ## 2026-10-11 — D167 deployed Beta notification contract; field proof remains open
 
 The earlier D167 meal/overdue PROPOSAL_ONLY language describes design origin. PR #550 technically deployed existing Beta Worker/Web/Android/Agent v125 notification and reminder sources, including selected Reporter meal event, per-picker overdue reminder and day-close result event. No assertion of delivered FCM, cross-device dismissal, exact Picker result ACK, or complete 03:00 behavior is justified until real field traces. Source audit finds day-N/day-(N+1) simultaneous pending-SKU uniqueness conflict and missing meal-choice full-hour hold; both require an Owner-reviewed cross-component decision and tests before any repair. No new polling, broad FCM fan-out or weaker ACK gate is authorized. See `docs/D167_SYSTEM_REVIEW_2026-10-11.md`.
+
+## 2026-10-11 — D167 Owner D02–D04 final event contract
+
+Without Reporter selection, auto-skip pauses in the later meal interval only: 11:30–12:00 and 18:30–19:00 VN. At 03:00 VN next day, every remaining day-N PENDING SKU is system-closed as SKIP_ALLOWED, even if no ticket has reached overdue. Web/Android must distinguish SYSTEM_DAY_END from human confirmation and deliver a correctly scoped existing realtime/FCM result with Picker ACK. New-day reports have independent batch IDs and ACK versions; do not introduce extra polling. Detailed design is in docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.

@@ -3867,3 +3867,29 @@ Owner **confirms D167-C (custom VN date range in Web/Android/Audit logs) OK**; a
 Owner requests **completion of D167**, including the formerly postponed primary-Agent daily auto SKU export/import and SKU area LTA/Shelving historical reporting, with balanced cost/pin/realtime. Any new diagnostic information in Web/Android/Agent/Service must be **bounded, privacy-safe, event-driven/local where possible, and not create new frequent polling, write amplification, battery drain or unapproved provider cost**. D167 Agent v125 and Android vc105 are interim technical releases, not project completion.
 
 **Execution interpretation:** analyze repo source deeply, prepare an editable Word decision dossier for Owner to choose unresolved business/scope options and return; then reconcile selected decisions with authority and seek exact agreed code/deploy instruction under the existing Owner gate. Owner's requested planning and confirmation of specific existing features do **not** on their own authorize unreviewed SQL migration, WMS production automation, location-scope expansion, signed APK/Agent release or Stable mutation. All follow-on fixes remain within D167. See `docs/D167_BACKLOG.md` latest entry and `docs/D167_SYSTEM_REVIEW_2026-10-11.md`; no filled Owner Word file or private data is published to public GitHub.
+
+## 2026-10-11 — Owner explicitly locks D167 D01–D10 (supersedes previous unresolved Word choices)
+
+All ten D01–D10 selections were supplied directly by Owner in the current session, not inferred from an old draft. Canonical detailed requirements, scoped safeguards, code-impact contracts, regression tests and outstanding *implementation mechanics* are at `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`. This paragraph gives the controlling order; the full D01–D10 file is part of decision authority and supersedes related prior D167 speculative alternatives.
+
+**D01:** Web one-person direct Picker entry plus downloadable example Excel (.xlsx) and Excel upload/preview/apply replaces HR Google Sheet source for account creation. Validate duplicate employee IDs, conflicting names and contractor/vendor, missing information and non-Picker collisions before mutation. Preserve Picker role, no-delete/no-disable-on-absence, existing account/reporting preference and HR source data; do not delete the old Sheet.
+
+**D02:** If Reporter does not choose lunch/dinner meal slot, **default the later 30-minute slot**: `11:30–12:00`, `18:30–19:00` VN. The current full-hour no-choice fallback is explicitly **SUPERSEDED**. Only AUTO-SKIP pauses; user/Reporter manual actions and corrections stay available.
+
+**D03:** At 03:00 VN on N+1, mark **ALL** day-N still-PENDING SKUs (both waiting and overdue, regardless of whether any Picker overdue) `SKIP_ALLOWED` by `SYSTEM_DAY_END`. Visually distinguish, audit and notify that Inventory did not act and **system** closed automatically. Current source's overdue-only eligibility is **SUPERSEDED**. Preserve human-resolved/withdrawn tickets and immutable origin/business-day.
+
+**D04:** New VN date ⇒ separate pending batch and ticket even for same SKU and same Picker. Same-day duplicate is forbidden. Existing global unique pending-SKU and OPEN Picker-SKU indexes/queries require coordinated migration/repair; never silently drop constraints.
+
+**D05:** Active PRIMARY Agent after 05:00 VN when WMS ready shall automatically perform **one** daily SKU sync from the already authenticated main Agent managed browser session; daily DONE makes all Agents skip further runs, fingerprint and leader-generation fencing prevent duplicate commits. Owner explicitly allows this **narrow read-only SKU export extension** beyond the D126 manual-file-only blanket for this business operation; no WMS mutation, no direct PickList APIs, no credential extraction outside managed browser.
+
+**D06:** New valid SKU auto-add; renamed SKU requires one deliberate confirmation in Agent per candidate set; missing-from-file never auto-delete.
+
+**D07:** Historical **LTA / Shelving only** classification with per-SKU `effective_from/effective_to` change records; history before the first verifiable observation is `UNKNOWN`. This is coarse **read-only reporting metadata**, not live bin/stock management. Owner authorizes exact limited scope extension to existing Inventory Beta data model, subject to provenance and safe normalization.
+
+**D08:** No new logging schedule; bounded event-local Web/Android/Agent/Service counters on existing hooks, user-triggered ZIP/screenshot when needed. **Launcher PDA model/repository completely excluded**. Preserve battery, usage, realtime, speed and security.
+
+**D09:** After code/PR/CI PASS and exact Owner deployment approval, deploy approved Beta scope broadly; use special test rollout only when Owner requests. No Stable action without distinct approval.
+
+**D10:** `chạy code` ⇒ CODE READY **only**, stop BEFORE any production/Beta resource, Web, app, Agent, service, GitHub release/OTA mutation. `duyệt triển khai` ⇒ AI executes approved merge/release/deploy itself in exact scope, with post-deploy verification. Existing main-push auto-release workflows require technical gate before implementation of this policy can be called enforced. Branch→PR→authority/continuity PASS always; no direct main push.
+
+**Status:** These are **Owner-approved REQUIREMENTS, not a `chạy code` or `triển khai` instruction**. Previous D167 PR #550 Beta vc105/Agent v125 remain technical releases, field/Owner acceptance pending. Source/spec/scope/registry/state changes in this decision-only PR do not make new runtime features live; Stable untouched.

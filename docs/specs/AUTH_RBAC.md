@@ -458,3 +458,9 @@ The nondeployed Beta source candidate permits the exact SKU-import POST route fo
 ## D167 — Isolated tester now uses current WEB auth; supersedes earlier Agent import exception
 
 The latest Owner-approved Phase 0 design has NO new Agent auth/session exception in Worker: the independently installed test EXE calls `/api/auth/login` with `client_type=WEB` and holds its own Firebase ID token only in process memory. It must not access the current main Agent's tokens, browser profile or hidden APIs. The server already authorizes `/api/admin/skus/import` via established role policy. The candidate AGENT-channel exception described above was reverted from the draft PR and must NOT be deployed as part of this test. Interactive Web session conflicts must not be silently forced; require an explicit choice. WMS credential capture is limited to the test's own authenticated browser, RAM-only and allowlisted request headers. These isolated D167 test permissions do not expand the D126 main Agent's WMS authority.
+
+## 2026-10-11 — D167 Owner-approved HR and SKU role boundaries
+
+D01 Web manual/Excel Picker enrollment uses the established ROOT/ADMIN authenticated HR permission, a common preview and explicit commit for changed names or contractors. Existing disabled reporting flags are preserved; missing Excel rows do not deactivate Picker accounts; a matching code in a non-Picker account is a blocking conflict.
+
+D05 extends PRIMARY Agent permission narrowly to read-only daily SKU export from the authorized existing managed-browser session, using an approved Inventory administrative path. It does not extend WMS PickList mutation privileges or reveal session data. Primary-generation and day-level idempotency are mandatory. See `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`. No code or Beta deploy permission follows from this specification.

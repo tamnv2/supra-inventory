@@ -977,3 +977,8 @@ Owner reports Agent v122 manual Usage ZIP repeatedly `D166_PROVIDER_NOT_READY`, 
 ### D166 log-only observability decision (09/10/2026)
 
 Owner formally selected Agent v122 as the official **next Agent development base**, successor v123 may be built for diagnostics only. This does not retroactively prove the v122 Usage ZIP field test passed; the separate post-Gateway-repair ZIP verification remains open. 06/10 and 08/10 Usage/read anomaly analysis is durable in `docs/D166_USAGE_AUDIT_2026-10-06_08.md`; compare again after 09/10 logs before deciding an optimization plan. Agent v123/Android/Web may add bounded local-only aggregated diagnostics through existing log packaging, without any business/HA/confirm/realtime/poll/secret/provider resource change. No Firestore/DO repair authorization yet; Stable OWNER-GATED.
+
+
+## Current D167 Owner D01–D10 business decisions (11/10/2026)
+
+The next target design uses Web manual/Excel Picker enrollment in place of GSheet account sync; a default late Reporter meal window; system Skip of all day-N pending batches at 03:00 N+1; independent same-SKU and same-Picker next-day reports; one daily PRIMARY Agent SKU read-only export from the existing managed browser after 05:00 VN; Agent approval for SKU renaming and no SKU deletion; temporal LTA/Shelving reporting with UNKNOWN before verified history; no new logging schedules or Launcher changes. Owner's two-stage code-only and scoped Beta deployment process remains mandatory. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md and ops/project-scope.json. No source implementation or release is claimed.

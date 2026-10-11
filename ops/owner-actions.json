@@ -5462,11 +5462,18 @@
         "stable": "OWNER_GATED_UNTOUCHED"
       },
       "latest_owner_review_2026_10_11": {
-        "status": "D167_OWNER_CHOICE_WORD_PENDING__A_B_D_NOT_PASS__C_OK__LIVE_TWO_TABS_NO_HISTORY",
+        "status": "D167_D01_D10_FINAL_DECISIONS_RECEIVED__CODE_COMMAND_AND_RELEASE_APPROVAL_PENDING",
         "field_owner_pass": false,
         "owner_can_return_document": "PRIVATE_WORD_DECISION_FORM_NO_SECRET_UPLOAD_TO_PUBLIC_GITHUB",
-        "manual_action_now": "NONE_TO_KEEP_TECHNICAL_BETA_RELEASE__OWNER_MAY_CHOOSE_PROPOSALS_WHEN_READY",
-        "note": "A/B/D field failures and E/F/SKU/area scope remain under same D167; next source/deploy requires exact permission"
+        "manual_action_now": "NO_MANUAL_ACTION_REQUIRED_FOR_DECISION_RECORD__WAIT_FOR_EXPLICIT_OWNER_CHAY_CODE",
+        "note": "Owner chốt D01–D10 trực tiếp. D09/D10 tách CODE READY vs scoped release. Không xóa GSheet cũ, không tác động Launcher/Stable, không phát hành runtime trong PR tài liệu."
+      },
+      "d167_owner_d01_d10_decision_received": {
+        "status": "OWNER_APPROVED_BUSINESS_REQUIREMENTS__CODE_NOT_REQUESTED",
+        "authority": "docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md",
+        "implementation_owner_action": "EXPLICIT_CHAY_CODE",
+        "deployment_owner_action": "SEPARATE_EXPLICIT_TRIEN_KHAI",
+        "field_owner_pass": false
       }
     }
   ]

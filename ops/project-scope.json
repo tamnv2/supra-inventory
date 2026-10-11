@@ -266,7 +266,8 @@
       "name": "Nhân sự _ Beta",
       "tab": "Nhân sự",
       "exposure": "operational_metadata_existing_public",
-      "note": "test source only; product source remains Admin/Root configurable. D161 Phase 0A proved the selected verified HR source can be resolved through the least-privilege runtime identity and complete files.watch initial sync, replacement/renewal and channels.stop cleanup without changing HR rows. D161 Tranche E uses the same Beta-only capability for the configured source."
+      "note": "test source only; product source remains Admin/Root configurable. D161 Phase 0A proved the selected verified HR source can be resolved through the least-privilege runtime identity and complete files.watch initial sync, replacement/renewal and channels.stop cleanup without changing HR rows. D161 Tranche E uses the same Beta-only capability for the configured source.",
+      "d167_future_role": "LEGACY_HR_ACCOUNT_SOURCE_TO_RETIRE_AFTER_WEB_EXCEL_CUTOVER__DO_NOT_DELETE_EXISTING_SHEET"
     },
     {
       "key": "d161-hr-drive-watch-beta",
@@ -441,7 +442,8 @@
       "guard": "D126_D127_BROWSER_UI_ONLY__DASHBOARD_POPUP_TARGET_MAY_ONLY_ARISE_FROM_PAGE_CLICK__NO_DIRECT_SESSION_NAVIGATION__NO_SESSION_CAPTURE_EXTRACTION_REPLAY__NO_API",
       "allowed_reference_page": "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm",
       "status": "D127_V67_CHILD_POPUP_FLOW_OWNER_FIELD_PASS",
-      "observed_dashboard_popup_target": "https://wms-supra.winmart.vn/sft3/session"
+      "observed_dashboard_popup_target": "https://wms-supra.winmart.vn/sft3/session",
+      "d167_owner_future_scope": "PRIMARY_MANAGED_BROWSER_READ_ONLY_SKU_EXPORT_AFTER_05_VN__REQUIRES_CODE_AND_DEPLOY"
     },
     {
       "key": "supra-api-d080",
@@ -459,7 +461,8 @@
       "allowed_stock_lookup": "FORBIDDEN_D126",
       "allowed_stock_export": "D167_ISOLATED_STANDALONE_TEST_EXE_READ_ONLY_SKU_NAME_EXPORT_ONLY__NO_AGENT_WORKER_OR_DAILY_AUTOMATION",
       "stock_scope_guard": "D126_NORMAL_RUNTIME_MANUAL_FILE_ONLY__D167_SEPARATE_TEST_EXE_READ_ONLY_EXPORT_OWNER_APPROVED",
-      "status": "D126_NORMAL_RUNTIME_FORBIDDEN__D167_ONE_OFF_ISOLATED_SKU_TEST_EXCEPTION__NO_PERSISTED_WMS_SECRETS"
+      "status": "D126_NORMAL_RUNTIME_FORBIDDEN__D167_ONE_OFF_ISOLATED_SKU_TEST_EXCEPTION__NO_PERSISTED_WMS_SECRETS",
+      "d167_owner_future_scope": "READ_ONLY_SKU_EXPORT_VIA_MAIN_PRIMARY_AGENT_MANAGED_BROWSER_ONLY__NO_DIRECT_PICKLIST_API__NO_ACTIVE_RUNTIME_GRANT"
     },
     {
       "key": "wincommerce-proxy-fallback-d080",
@@ -660,12 +663,27 @@
     "Pickface Damage 1291 resources",
     "SupraCore resources",
     "VHDCHY resources",
-    "location/bin/pickface inventory management",
+    "live location/bin/pickface inventory management; D167 Owner-approved exception allows read-only coarse LTA/Shelving report-area temporal metadata on registered Inventory Beta resources only, not quantity or bin/pickface operations",
     "stock quantity management",
     "Office-network fallback/provider research except the Owner-approved D146 Google-first Agent support-log transport (Agent -> Firestore -> Beta Google Function -> Drive; Worker only brokers the short-lived Drive upload session)",
     "all offline business modes, offline report/mutation outboxes, direct-to-Sheet fallback, or alternate offline transaction paths",
     "all programmatic capture, extraction, persistence, refresh, replay or use of Supra/WMS user-session cookies, headers, tokens, signatures or browser-profile authentication material outside the user-controlled D126 managed browser context",
     "all direct WMS/API PickList lookup or confirmation and all project-driven WMS mutation outside D126 semantic browser-UI automation of the registered Confirm PickList page",
-    "all WMS/Tồn Bin-derived automatic or Agent-triggered SKU master synchronization under D126"
-  ]
+    "all WMS/Tồn Bin-derived automatic or Agent-triggered SKU master synchronization under D126 EXCEPT Owner D167 D05 narrowly approved future PRIMARY managed-browser read-only daily SKU export; no WMS mutation or session material export outside managed browser; code/deployment authorization separate"
+  ],
+  "d167_owner_approved_scope_2026_10_11": {
+    "status": "OWNER_BUSINESS_SCOPE_APPROVED__NO_EXECUTABLE_CODE_NO_RUNTIME_ENABLEMENT",
+    "decisions": "docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md",
+    "existing_endpoints": [
+      "supra-wms-ui-d080",
+      "supra-api-d080"
+    ],
+    "permitted_future_read_only": "PRIMARY_AGENT_AFTER_05_VN_MANAGED_BROWSER_WMS_SKU_EXPORT",
+    "permitted_future_reporting": "INVENTORYCORE_COARSE_LTA_SHELVING_TEMPORAL_AREA_HISTORY_NO_BIN_MANAGEMENT_NO_STOCK_QUANTITY",
+    "hr_entry_source": "WEB_DIRECT_OR_VALIDATED_EXCEL_NO_HR_SHEET_AUTOSYNC_AFTER_CUTOVER",
+    "wms_auth_material": "MUST_REMAIN_WITHIN_USER_CONTROLLED_MANAGED_BROWSER",
+    "mutations_and_creds_outside_browser": "FORBIDDEN",
+    "code_and_beta_deploy": "EXPLICIT_SEPARATE_OWNER_COMMANDS_REQUIRED",
+    "stable": "OWNER_GATED_UNTOUCHED"
+  }
 }

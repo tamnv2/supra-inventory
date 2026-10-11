@@ -52,3 +52,7 @@ Before implementation starts, create a new Owner-approved change only after D165
 - resource map and reuse-vs-new-resource decision;
 - migration policy for any D164 data/artifacts;
 - Beta acceptance plan.
+
+## 2026-10-11 — latest D167 scope clarification
+
+Previous D165 status statements above are historical and superseded by canonical ops/project-state.json. Owner D01–D10 authorizes future D167 Web/Excel Picker onboarding, read-only coarse LTA/Shelving reporting and automated PRIMARY read-only SKU export, not the cancelled D164 PDA Management application. Launcher and other project repositories remain excluded. D167 is currently OPEN and D166 remains Owner-accepted base; no new code or deployment is approved by this decision receipt. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.

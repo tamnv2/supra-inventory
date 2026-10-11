@@ -521,3 +521,7 @@ D161 diagnostic journals are support evidence only and never become an alternate
 - Android/Agent evidence is not destructively pruned until positive Drive synchronization.
 - Diagnostics persistence does not authorize any new business transport or mutation path.
 
+
+## D167 2026-10-11 — nhân sự Excel và lịch sử khu vực
+
+Việc chuyển nguồn tạo tài khoản Picker từ GSheet sang Web/Excel không xóa, khóa hay ghi đè tài khoản đang có khi không xuất hiện trong file. Nguồn nhân sự cũ chỉ ngừng đồng bộ sau khi Beta kiểm thử đạt; không xóa bảng tính nguồn và không thay đổi cơ chế lưu trữ lịch sử Sheets/Drive khác. Chỉ lưu kết quả dữ liệu nhập hợp lệ, audit tối thiểu và bằng chứng xung đột cần thiết, không lưu Excel chứa nhân sự vào public GitHub. LTA/Shelving lưu biến động quan sát được theo effective_from/effective_to; trước thời điểm có dữ liệu được xác thực đầu tiên phải trả UNKNOWN, không hồi tố khu vực. Chi tiết trong docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
