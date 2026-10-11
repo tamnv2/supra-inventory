@@ -520,8 +520,7 @@ function esc(value: unknown): string {
 function fmt(value: string | null | undefined): string {
   if (!value) return "—";
   // SQLite CURRENT_TIMESTAMP is a UTC datetime without an offset; parse it as UTC.
-  const normalized = /^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/.test(value)
-    ? value.replace(" ", "T") + "Z" : value;
+  const normalized = value.length === 19 && value[10] === " " ? value.replace(" ", "T") + "Z" : value;
   const d = new Date(normalized);
   return Number.isNaN(d.getTime()) ? value : d.toLocaleString("vi-VN", {
     hour12: false, timeZone: "Asia/Ho_Chi_Minh",
