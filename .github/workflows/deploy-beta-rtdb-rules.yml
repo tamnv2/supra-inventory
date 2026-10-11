@@ -35,8 +35,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
+        with:
+          fetch-depth: 0
 
       - name: D167 Owner release authorization for rtdb
         if: github.event_name != 'pull_request'

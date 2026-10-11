@@ -39,9 +39,13 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: D167 Owner release authorization for agent
         if: github.event_name != 'pull_request'
-        run: python3 tools/d167_release_gate.py --component agent
+        run: python tools/d167_release_gate.py --component agent
 
       - name: Validate Agent build channel
         shell: pwsh
