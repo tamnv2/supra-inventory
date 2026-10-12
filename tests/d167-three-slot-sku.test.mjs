@@ -202,3 +202,18 @@ test("D167 Web FULL REPLACE is guarded separately from PATCH", async () => {
   assert.match(web, /if \(skuImportFullReplace\)/);
   assert.match(web, /importSkuChunk\(chunk,/);
 });
+
+test("D167 Web optional LTA/Shelving column preserves history and unknown fields", async () => {
+  const { readFileSync } = await import("node:fs");
+  const parser = readFileSync(new URL("../web/src/sku-excel.ts", import.meta.url), "utf8");
+  const patch = readFileSync(new URL("../service/src/sku-import-core.ts", import.meta.url), "utf8");
+  const full = readFileSync(new URL("../service/src/d167-web-full-replace.ts", import.meta.url), "utf8");
+  assert.match(parser, /AREA_HEADERS/);
+  assert.match(parser, /sameSkuAreaImpossible|cùng SKU có khu vực LTA\/Shelving mâu thuẫn/);
+  assert.match(patch, /if \(!item.area\) continue/);
+  assert.match(patch, /last_web_area_at/);
+  assert.match(patch, /WEB_APPROVED_PATCH/);
+  assert.match(full, /WEB_APPROVED_FULL/);
+  assert.match(full, /area_updated:toAreaChanged.length/);
+  assert.match(full, /last_web_area_at/);
+});
