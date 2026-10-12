@@ -18,6 +18,7 @@ export interface AppProfile {
 export interface SkuItem {
   sku: string;
   product_name: string;
+  area?: "LTA" | "SHELVING";
   source_hash?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -1025,7 +1026,7 @@ export async function importSkuFullReplace(
       expected_source_hash:options.expectedSourceHash,
       confirm_full_replace:options.confirmFullReplace===true,
       confirm_name_changes:options.confirmNameChanges===true,
-      items:items.map(({sku,product_name})=>({sku,product_name})),
+      items:items.map(({sku,product_name,area})=>({sku,product_name,...(area?{area}:{})})),
     }),
   }));
 }
