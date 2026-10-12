@@ -10,6 +10,7 @@ export type ReportExcelMeta = {
   from: string;
   to: string;
   status: string;
+  area?: "LTA" | "SHELVING" | "UNKNOWN";
   query: string;
   generatedAt: Date;
 };
@@ -123,6 +124,8 @@ export function downloadReportWorkbook(
     ["BÁO CÁO VẬN HÀNH INVENTORY", ""],
     ["Khoảng dữ liệu", `${meta.from} → ${meta.to}`],
     ["Bộ lọc kết quả", meta.status ? statusLabel(meta.status) : "Tất cả kết quả"],
+    ["Bộ lọc khu vực của đợt và chi tiết Picker", meta.area === "LTA" ? "LTA" : meta.area === "SHELVING" ? "Shelving" : meta.area === "UNKNOWN" ? "Chưa xác định" : "Tất cả khu vực"],
+    ["Phạm vi KPI tổng quan", "Toàn bộ khu vực theo khoảng ngày; không áp dụng lọc khu vực"],
     ["Bộ lọc SKU / tên", meta.query || "Tất cả"],
     ["Thời điểm xuất", meta.generatedAt],
     ["", ""],
