@@ -8,7 +8,7 @@
   "pr": 559,
   "status": "D167_PR559_BETA_TECHNICAL_DEPLOY_PASS__FIELD_OWNER_PASS_PENDING",
   "last_checkpoint": {
-    "id": "D167-E023",
+    "id": "D167-E024",
     "date_vn": "2026-10-12"
   },
   "deployment_gate": {
@@ -449,6 +449,34 @@
       ],
       "next_action": "Verify field rollout of v126/vc106 on designated devices; validate real SKU daily FULL/DELTA/area and picker acceptance, monitor representative billed usage, then obtain Owner D167 business acceptance.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/559 ; https://github.com/tamnv2/supra-inventory/actions/runs/38272307735 ; https://github.com/tamnv2/supra-inventory/actions/runs/38272307815 ; https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc106 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v126"
+    },
+    {
+      "id": "D167-E024",
+      "date_vn": "2026-10-12",
+      "topic": "Owner requests analysis and proposal for an Agent SKU update tab, instant password-confirmed manual sync, rich local status, minimal provider usage",
+      "kind": "PROPOSAL",
+      "status": "AWAITING_OWNER_REVIEW__PROPOSAL_ONLY__NO_CODE_NO_DEPLOY",
+      "owner_approval": null,
+      "facts": [
+        "Owner requests a new Windows Agent tab named Cập nhật SKU showing three daily automatic windows, actual DONE/failure, SKU and coarse LTA/SHELViNG/UNKNOWN information, and a password-confirmed Cập nhật ngay button. Owner requests a low/near-zero incremental provider-usage design and a proposal before implementation.",
+        "Verified main after D167 PR559 and PR564: Agent v126 D167SkuCoordinator owns event-triggered one-shot timer and Schedule(day); Agent D167SkuServiceClient parses only slot, state and scheduled_at_ms, while InventoryCore ensureSchedule SELECT already returns complete_at and receipt_json, and status exposes receipt totals. Agent Program.cs currently only adds Tổng quan and Cài đặt top-level pages. Existing VerifyCurrentAgentPasswordForAction supports normal local verifier and privileged server OTP/emergency proof. Firebase operator/PRIMARY HA and InventoryCore lease are authoritative for SKU writes.",
+        "Current InventoryCore rejects all non-DONE slot POSTs before scheduled_at_ms and prevents rerunning DONE; manual click requires a new explicit server-authorized idempotent manual run contract, NOT merely calling Queue or resetting a DONE slot. Keep daily verified FULL prerequisite, three scheduled slots, HA fenced generation/CAS, source/WMS read-only and Confirm latency guard.",
+        "Recommended read UX uses only cached Schedule GET response, existing Agent HA/WMS events and local result snapshot; no new idle poll/timer, Firebase listener/document, per-PDA or per-SKU sync. Extend already-selected response parsing and the same authoritative DONE receipt to show source rows, created/updated/activated/hidden/unchanged, completed_at, source unchanged and source/actor. Add coarse area counts during already-performed workbook parse or publish and distinguish WMS observation vs authoritative live catalog. Detailed SKU list from bounded local last-verified workbook only, marked STALE after restart/failover; only explicit user-driven on-demand server page query if Owner specifically requires restart-persistent remote catalog access.",
+        "Proposed manual default: when no validated same-day FULL, run one validated FULL; if today's FULL exists, run DELTA. Same-day manual FULL must satisfy the daily gate and not duplicate morning slot; subsequent manual DELTA must be a distinct run ID and must not silently mark 12/19 DONE or suppress scheduled runs. Server enforces current authenticated eligible Agent, PRIMARY generation, WMS readiness, serial exclusion for Confirm, atomic preview/conflicts, password reauthentication and deduplication. Display proper skipped noon coalescence and system/API/permission error types. No passwords, WMS headers or raw dataset in logs.",
+        "Usage options reviewed: status quo log-only => zero new usage but poor discoverability; client-only presentation => almost zero provider usage but no true instant manual run; recommended event-fed client view + fenced on-demand manual job => zero extra recurring reads when idle and only bounded WMS export/Worker-Gateway/SQL/HA operations per manual click. Baseline source staging uploads 500 SKU/request, i.e. 5 chunks/2500 and 10 chunks/5000, with fingerprint fast path when identical; these are code-path estimates, not measured billable savings."
+      ],
+      "alternatives": [
+        "O0 no change, logs only: no new spend; fails Owner UX and manual action.",
+        "O1 Agent-only UI with local trigger of existing scheduled Queue: low additional read cost but cannot bypass server time and DONE gate; REJECT.",
+        "O2 recommended: tab local-first + reuse existing schedule/receipt + new fenced manual FULL/DELTA job contract only when clicked, with security and audited receipts; defer any persistent detailed catalog remote query until need is demonstrated."
+      ],
+      "open_questions": [
+        "Approval needed to code O2 and final UX details. Recommended default: manual FULL if daily FULL not yet valid, otherwise DELTA; a forced complete FULL REPLACE after daily FULL requires a separate privileged confirmation, not implicit default.",
+        "Whether a successful manual update inside the 12:00-12:15/19:00-19:15 scheduled window may satisfy its scheduled DELTA slot, or all three scheduled observations must still execute independently; recommendation is do not silently consume a slot.",
+        "Whether user wants a full searchable 5000-row SKU table after Agent restarts; recommended last snapshot only with clear stale/unknown indicator and explicit read-on-demand if essential."
+      ],
+      "next_action": "Present source-backed UX/manual-safety/quota proposal; await explicit Owner 'chốt/chạy code'. No Agent, Worker, Gateway, Android, Stable or actual WMS mutation or release is authorized by this proposal.",
+      "evidence": "main 7d22ad6514ea65132e62dad47f717cc3164d013b; relay-agent/{D167SkuCoordinator.cs,D167SkuServiceClient.cs,D167SkuSchedule.cs,Program.cs,ExitAuthorization.cs,D165PrivilegedAuth.cs}; service/src/{d167-sku-sync-core.ts,index.ts,d167-sku-ha.ts}; https://github.com/tamnv2/supra-inventory/pull/559"
     }
   ],
   "resume": {
@@ -476,13 +504,15 @@
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
-      "Separate Stable deployment approval only if Owner explicitly requests"
+      "Separate Stable deployment approval only if Owner explicitly requests",
+      "D167-E024 — Agent SKU tab with 3 daily slots, low-usage local status and password-confirmed instantaneous manual FULL/DELTA: proposal only, Owner review pending; no code/deploy authorized."
     ],
     "blocked": [
       "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity"
     ],
     "next_actions": [
-      "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance"
+      "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance",
+      "After Owner review of D167-E024, implement only upon explicit code permission; retain Beta release/Stable separate gate and test REAL WMS/HA/Confirm/usage before field acceptance."
     ],
     "release_boundary": "D167_PR559_BETA_TECHNICAL_RELEASE_COMPLETE__STABLE_GATED__D167_FIELD_OWNER_PASS_PENDING"
   }
