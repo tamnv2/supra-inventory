@@ -8,7 +8,7 @@
   "pr": 568,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
-    "id": "D167-E037",
+    "id": "D167-E038",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "stable_deploy_permission": false,
     "new_owner_approval_required": false,
     "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
-    "approved_source_sha": "060be766de6fc1e9840ea0e62cdc4c5e65331e07",
+    "approved_source_sha": "c4b9ba520990d1100b1bfb872b4c4fa02ca11424",
     "approved_components": [
       "agent"
     ]
@@ -729,6 +729,23 @@
       ],
       "next_action": "Document the approved option and keep PR568 Draft until a secure authenticated browser-native or officially supported WMS export route is available and implemented. Do not merge/release v128 as a functional fix without corresponding evidence.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; WebView2 host + D167 SKU source in PR568; Owner command 2026-10-13"
+    },
+    {
+      "id": "D167-E038",
+      "date_vn": "2026-10-13",
+      "topic": "Owner explicitly requests Agent v128 Beta field trial with additional safe diagnostic logs despite export not yet proven",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_SCOPED_DIAGNOSTIC_BETA_TRIAL__SOURCE_AND_CI_IN_PROGRESS__FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests putting the already implemented hidden same-profile secondary WebView2 workflow into Agent v128 for direct field trial, and enhanced logs to find any remaining failure; the trial is intentionally diagnostic, not claim of functional WMS export repair.",
+        "D167SkuCoordinator source commit 0311acd2 adds bounded phase and elapsed-ms logs for manual precheck/auth/side-browser export and Service upload, plus scheduled slot export stage/elapsed. It does not log WMS API credentials/headers/tokens/cookies/request bodies/URLs, create polling, change HA fences, Service state or Confirm interactions.",
+        "Regression test commit c4b9ba5 includes source diagnostics assertions. Owner-approved release source SHA c4b9ba520990d1100b1bfb872b4c4fa02ca11424, component Agent Beta only; change authorization receipt updated on the same working PR branch.",
+        "Do not claim WMS XLSX, FULL/DELTA or Service DONE operational pass from CI. If SKU export fails, stage/phase and safe error code should establish next repair. Current 3 scheduled SKU slots retain their business rules.",
+        "Release only after exact PR head CI authority, continuity, Agent build and source regression PASS; no Stable, service/Gateway, Android, Launcher, new resource or mandatory OTA, no modification of WMS credentials/auth handling."
+      ],
+      "next_action": "Update decision/spec/state authority if tool permits, rerun 16/16 exact CI, merge approved PR568 through GitHub review gate and verify signed Beta Agent v128 release/channel. Provide field-test instructions and remaining WMS PASS boundary.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; source commit 0311acd2f6e3ea71df057fef476e8650dfc90345 ; regression SHA c4b9ba520990d1100b1bfb872b4c4fa02ca11424"
     }
   ],
   "resume": {
@@ -764,7 +781,8 @@
       "Await real installed Agent v127 PRIMARY session WMS manual+three-slot FULL/DELTA and HA/Confirm/provider quota Owner field acceptance; technical release completed.",
       "PR568 D167 UI tab reorder source-only + field SKU direct-GET header acquisition failure review; no deploy or confirmed root cause.",
       "Main-Agent WMS source approved concept; implementation not verified, existing v128 UI/diagnostic source pending two continuity/authority guards.",
-      "PR568 Agent v128 MAIN managed-WMS auth-source integration remains pending security-reviewed supported implementation; current source is UI/diagnostic only."
+      "PR568 Agent v128 MAIN managed-WMS auth-source integration remains pending security-reviewed supported implementation; current source is UI/diagnostic only.",
+      "D167-E038 Agent v128 diagnostic Beta release: bounded phase+elapsed logging source committed; CI/release channel checks pending."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -791,6 +809,6 @@
       "Retain PR568 Draft; obtain supported reviewed implementation/guard adjustment, then exact-head 16/16 PASS and release signed Agent Beta; field SKU DONE readback separately.",
       "Keep PR568 Draft; resolve WMS read-only main browser integration through approved security-reviewed source path, rerun exact PR CI, then consider authorized Agent-only Beta release; no fleet/field PASS yet."
     ],
-    "release_boundary": "PR568_GUARDS_AND_NETWORK_DIAGNOSTICS_16_OF_16_PASS__MAIN_WMS_SESSION_SOURCE_UNIMPLEMENTED__NO_V128_RELEASE__STABLE_GATED"
+    "release_boundary": "OWNER_SCOPED_AGENT_V128_BETA_DIAGNOSTIC_RELEASE_ALLOWED_ON_CI__FIELD_SKU_WMS_AUTH_UNVERIFIED__STABLE_GATED"
   }
 }
