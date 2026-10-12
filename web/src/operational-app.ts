@@ -1825,7 +1825,7 @@ function renderSku(): string {
       <article class="ops-panel">
         <div class="ops-panel-title"><div><h3>Cập nhật danh mục từ Excel</h3><p>File được kiểm tra trước khi ghi. SKU trùng mã nhưng khác tên phải được xác nhận rõ ràng.</p></div></div>
         <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
-        <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xoá SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
+        <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""} ${profile?.role !== "ROOT" && profile?.role !== "ADMIN" ? "disabled" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xoá SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
         ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : `<div class="ops-note">Hệ thống giữ nguyên danh mục hiện tại cho tới khi file hợp lệ và bạn xác nhận cập nhật.</div>`}
         ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
         ${wb && !wb.conflicts.length ? `<div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div>` : ""}
@@ -4724,6 +4724,10 @@ function bindSection(): void {
     void run(loadSkuWorkspace);
   });
 
+  document.querySelector<HTMLInputElement>("#sku-full-replace")?.addEventListener("change", (event) => {
+    skuImportFullReplace = (event.currentTarget as HTMLInputElement).checked &&
+      (profile?.role === "ROOT" || profile?.role === "ADMIN");
+  });
   document.querySelector<HTMLInputElement>("#sku-file")?.addEventListener("change", (event) => {
     const file = (event.currentTarget as HTMLInputElement).files?.[0];
     if (!file) return;
