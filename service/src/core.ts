@@ -1,5 +1,6 @@
 import { handleBusinessRequest, initializeBusinessSchema } from "./business-core";
 import { handleSkuImportCoreRequest } from "./sku-import-core";
+import { handleD167WebFullReplace } from "./d167-web-full-replace";
 import { initializeD167SkuSyncSchema, handleD167SkuCoreRequest } from "./d167-sku-sync-core";
 import { handleD167AreaReportCoreRequest } from "./d167-area-report-core";
 import { handleReadModelCoreRequest } from "./read-model-core";
@@ -1746,6 +1747,8 @@ export class InventoryCore {
 
     const skuImport = await handleSkuImportCoreRequest(this.state, request);
     if (skuImport) return skuImport;
+    const fullReplace = await handleD167WebFullReplace(this.state, request);
+    if (fullReplace) return fullReplace;
 
     const archive = await handleArchiveCoreRequest(this.state, request);
     if (archive) return archive;
