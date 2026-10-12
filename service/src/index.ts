@@ -25,6 +25,7 @@ import {
   isPrivilegedOneTimeUser,
   sendPrivilegedOneTimeCode,
   verifyPrivilegedProof,
+  verifyCurrentAuthenticationProof,
 } from "./privileged-auth";
 import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
@@ -2236,6 +2237,53 @@ export default {
 
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
       if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
+
+      // D167 Web-only privileged meal amendment. Never relay the password/proof
+      // into InventoryCore or include it in audit/realtime/provider payloads.
+      if (url.pathname === "/api/reporter/meal-break/edit") {
+        if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        const actor = await requireUser(request, env, ["REPORTER", "ADMIN", "ROOT"]);
+        let input: {
+          period?:string; choice?:string; current_password?:string;
+          expected_day_vn?:string; expected_confirmed_at?:string;
+        };
+        try {
+          const body = await request.json();
+          if (!body || typeof body !== "object" || Array.isArray(body))
+            return json({ error: "INVALID_MEAL_EDIT" }, 400);
+          input = body as typeof input;
+        } catch { return json({ error: "INVALID_MEAL_EDIT" }, 400); }
+        const proofText = String(input.current_password || "");
+        if (proofText.length < 1 || proofText.length > 128)
+          return json({ error: "CURRENT_PASSWORD_INVALID", message: "Cần nhập đúng mật khẩu xác nhận." }, 403);
+        const proof = await verifyCurrentAuthenticationProof(env, actor, proofText);
+        if (!proof.valid)
+          return json({ error: "CURRENT_PASSWORD_INVALID", message: "Mật khẩu hoặc mã xác nhận không đúng." }, 403);
+        const result = await coreStub(env).fetch("https://inventory-core.internal/d167/meal/edit", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            period: input.period, choice: input.choice,
+            expected_day_vn: input.expected_day_vn,
+            expected_confirmed_at: input.expected_confirmed_at,
+            actor_id: actor.user_id, actor_name: actor.display_name || actor.employee_code || "",
+            actor_role: actor.role, credential_mode: proof.mode,
+          }),
+        });
+        const payload = await result.json() as Record<string, unknown>;
+        if (result.ok && payload.status === "UPDATED") {
+          await coreStub(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+            method: "POST", headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              event: "meal_break_confirmed", event_id: crypto.randomUUID(),
+              scopes: ["meal_break", "reporter_queue", "reporter_overdue"],
+              tags: ["role:REPORTER", "role:ADMIN", "role:ROOT"],
+              metadata: { period: payload.period, day_vn: payload.day_vn,
+                confirmed_at: payload.confirmed_at, source: "WEB_AUTHORIZED_MEAL_EDIT" },
+            }),
+          }).catch(() => undefined);
+        }
+        return json(payload, result.status);
+      }
 
       // D167: Reporter-owned meal confirmation, available to both Web and Android.
       // The durable object accepts the first valid confirmation only.
