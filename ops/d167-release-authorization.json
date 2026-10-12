@@ -6,7 +6,7 @@
   "approved_components": [
     "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_20261012_PR560_DEPLOY_IMMEDIATELY",
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR560_MEAL_IMMEDIATE_BETA_WEB_WORKER",
   "approved_at_vn": "2026-10-12T11:15:00+07:00",
   "note": "Owner authorized immediate deploy of PR560 only. Preserve PR559 code-only. Scope remains Beta Web/Worker/InventoryCore; no APK, Agent or Stable."
 }
