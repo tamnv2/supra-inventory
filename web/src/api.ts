@@ -1149,6 +1149,7 @@ export async function getAdminReporting(options: {
   from: string;
   to: string;
   status?: string;
+  area?: "LTA" | "SHELVING" | "UNKNOWN";
   query?: string;
   limit?: number;
   offset?: number;
@@ -1160,6 +1161,7 @@ export async function getAdminReporting(options: {
     offset: String(options.offset || 0),
   });
   if (options.status) params.set("status", options.status);
+  if (options.area) params.set("area", options.area);
   if (options.query) params.set("query", options.query);
   return readJson(await authorizedFetch(`/api/admin/reporting?${params.toString()}`));
 }
@@ -1168,6 +1170,7 @@ export async function getAdminReportingDetail(options: {
   from: string;
   to: string;
   status?: string;
+  area?: "LTA" | "SHELVING" | "UNKNOWN";
   query?: string;
   batchId?: string;
   limit?: number;
@@ -1180,6 +1183,7 @@ export async function getAdminReportingDetail(options: {
     offset: String(options.offset || 0),
   });
   if (options.status) params.set("status", options.status);
+  if (options.area) params.set("area", options.area);
   if (options.query) params.set("query", options.query);
   if (options.batchId) params.set("batch_id", options.batchId);
   return readJson(await authorizedFetch(`/api/admin/reporting-detail?${params.toString()}`));
