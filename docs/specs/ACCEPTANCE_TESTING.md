@@ -2955,3 +2955,9 @@ Before CODE READY, test Web/Excel Picker import against mandatory 3-field templa
 - Verify 0/2.5k/5k data, manifest/fingerprint/idempotency, exact restored active set, full readback, 05:00–05:45 business schedule independence, zero new regular provider polls/FCM blast, source area timeline and Dashboard/Detail/Excel as-of alignment. Compare actual provider usage and Confirm p95/p99; CI/field tests must be distinguished.
 
 **Status:** Owner business logic locked, tests/code/deploy/field PASS not yet performed. See `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`.
+
+
+
+## D167 2026-10-12 — final CODE PASS and release-ready contract
+
+**Hard-source tests:** fail 409 and display exact Web/Android Picker/Reporter warning when date N has no FULL, including 00:00–05:00 VN, WMS outage, Agent not PRIMARY, old Android; no reporter action/history/critical ACK block. Web PATCH must not bypass; Web authorized FULL REPLACE with validated roster and Agent INITIAL FULL both unlock; no-op FULL also sends one day-ready wake, no-op/area-only DELTA no device blast. End-to-end retries, midnight/03:00, HA generation, signed read-only WMS GET allowlist, ephemeral RAM-only request headers and no Web Confirm main-page click/reload/navigation, no auth material in logs. Verify SQL 0/2.5k/5k and anomaly/stage atomicity, Web/manual race, report/Excel as-of history, Android full/delta cache and mixed-version gate. **Build artifacts before deploy:** signed Android candidate, Windows Agent/managed WebView2 host, TypeScript Worker and Web, exact HEAD CI/authority/state/continuity/security regressions. If company WMS, physical 6-Agent, Android/PDA, or paid provider usage cannot be tested in nondeploying CI, record FIELD_PENDING separately, never label proven. Keep PR Draft/unmerged; new exact-SHA Owner deploy approval required for any service, Web, Agent, APK, Firebase/Gateway or Stable change.

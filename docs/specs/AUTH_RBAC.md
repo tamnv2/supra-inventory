@@ -464,3 +464,9 @@ The latest Owner-approved Phase 0 design has NO new Agent auth/session exception
 D01 Web manual/Excel Picker enrollment uses the established ROOT/ADMIN authenticated HR permission, a common preview and explicit commit for changed names or contractors. Existing disabled reporting flags are preserved; missing Excel rows do not deactivate Picker accounts; a matching code in a non-Picker account is a blocking conflict.
 
 D05 extends PRIMARY Agent permission narrowly to read-only daily SKU export from the authorized existing managed-browser session, using an approved Inventory administrative path. It does not extend WMS PickList mutation privileges or reveal session data. Primary-generation and day-level idempotency are mandatory. See `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`. No code or Beta deploy permission follows from this specification.
+
+
+
+## D167 Owner 2026-10-12 — narrowly bounded ephemeral WMS session-use exception
+
+Supersedes D126's generic prohibition **only** for registered Bin Inventory read-only XLSX GET run by an authenticated current PRIMARY Agent. The Agent may observe allowlisted WMS API request headers from its **own managed WebView2 authenticated session** and hold them in process RAM only long enough for a separate direct HTTPS GET, with a new scoped request nonce/signature. No cookie/password/refresh-token storage, log, cross-process forwarding, refresh replay, external relay, WMS write/PickList API or direct modification of the Confirm UI. Verify current Agent PRIMARY generation and authenticated Inventory service role at source commit boundaries; revoke/fail closed if session unavailable. All other D126 WMS limitations remain active. Existing registered Beta resources only, Stable Owner-gated.

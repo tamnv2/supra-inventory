@@ -1001,3 +1001,9 @@ The earlier D167 meal/overdue PROPOSAL_ONLY language describes design origin. PR
 ## 2026-10-11 — D167 Owner D02–D04 final event contract
 
 Without Reporter selection, auto-skip pauses in the later meal interval only: 11:30–12:00 and 18:30–19:00 VN. At 03:00 VN next day, every remaining day-N PENDING SKU is system-closed as SKIP_ALLOWED, even if no ticket has reached overdue. Web/Android must distinguish SYSTEM_DAY_END from human confirmation and deliver a correctly scoped existing realtime/FCM result with Picker ACK. New-day reports have independent batch IDs and ACK versions; do not introduce extra polling. Detailed design is in docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
+
+
+
+## D167 SKU day-ready notification — 2026-10-12
+
+On the **first verified Agent INITIAL FULL or Web authorized FULL REPLACE of a VN day**, broadcast an existing-scoped SKU catalog reconciliation event and send bounded existing FCM wake even if no catalog name/membership row changed. Client re-reads authoritative `/api/skus/catalog-info` `sku_day_ready`, `sku_day_vn`, `sku_day_last_full`; this enables new reports without logout. Subsequent DELTA uses the same notification only for actual names/active-membership changes; area-only/semantic-no-op does not fan out to PDAs. Web PATCH with real catalog change retains existing event semantics but **never** establishes daily FULL readiness. No FCM success claim before provider/device evidence; results/ACK/Confirm flows unchanged.
