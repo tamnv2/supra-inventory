@@ -2980,3 +2980,8 @@ Required SOURCE CODE contract: owner Reporter/Admin/ROOT permit before earliest 
 
 ## D167 2026-10-12 — Agent v127 manual SKU tab acceptance
 CI/source: tab present alongside Tổng quan/Cài đặt; 05 FULL / randomized 12/19 DELTA schedule exact persisted receipts; bounded five recent manual jobs and local SKU search, no new polling or Firebase listeners. Test normal credential, privileged OTP/emergency, wrong/missing proof, revoked Agent role, standby/no-primary, WMS absent, Confirm busy, double click and concurrent two Agents. No FULL today: verified initial FULL can run early without altering scheduled target and readies today's Picker Web/Android; after FULL: unique idempotent MANUAL_DELTA run never consumes the 12/19 slot or hides missing SKUs, preserves temporal LTA/Shelving and stale Web conflict CAS. Test 0/2500/5000 synthetic rows, no-op fingerprint, abort/failover halfway, network timeout after commit, same-day boundary and version rollback. Verify actual office WMS export and quota/latency/HA on physical Agent before field PASS; signed Agent channel publication alone is not device install or Owner PASS.
+
+
+## D167 2026-10-13 — Agent tab order / disabled SKU button UI-only test
+
+Source regression must assert top-level `TabPages.Add` sequence `_overviewPage` → `_connectionPage` → `_d167SkuPage`, while existing other pages retain their order and the SKU-tab `SelectedIndexChanged` status refresh still fires. STANDBY + WMS ready must leave `Cập nhật ngay` disabled and must not call manual-start; authenticated PRIMARY + WMS ready may enable it, subject to the existing running-job lock and server-side reauthentication/HA proof. No additional scheduled usage. Build/CI PASS is not physical UI screenshot or Owner field PASS.
