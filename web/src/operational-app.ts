@@ -3537,7 +3537,9 @@ async function loadPicker(): Promise<void> {
   const [reports, results, catalog] = await Promise.all([
     getPickerReportsV2(PICKER_REPORT_PAGE_SIZE, pickerReportOffset, "APP_TODAY_OPEN"),
     getPickerResultsV2(120),
-    getSkuCatalogInfo(),
+    skuCatalogInfo?.sku_day_vn === dateDaysAgo(0)
+      ? Promise.resolve(skuCatalogInfo)
+      : getSkuCatalogInfo(),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   if (reports.total > 0 && pickerReportOffset >= reports.total) {
