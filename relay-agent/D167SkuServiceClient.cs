@@ -116,7 +116,30 @@ namespace SupraInventoryRelayAgent
             var approved = false;
             if (conflicts > 0 || abnormalFull)
             {
-                if (confirmConflicts == null || !confirmConflicts(conflicts))
+                var approvalLines = new List<string>();
+                if (abnormalFull)
+                    approvalLines.Add("Bất thường: FULL sẽ ẩn " + Long(preview,"hidden") +
+                        "/" + Long(preview,"previous_active") +
+                        " SKU đang hoạt động. Xác minh file WMS xuất đầy đủ trước khi đồng ý.");
+                if (conflicts > 0)
+                {
+                    approvalLines.Add("Xung đột với chỉnh sửa Web: " + conflicts + " SKU.");
+                    var sample = (preview["conflicts"] as object[] ?? new object[0]).Take(5);
+                    foreach (var item in sample)
+                    {
+                        var fields = item as Dictionary<string,object>;
+                        if (fields == null) continue;
+                        Func<string,string> compact = key => {
+                            var value = Str(fields,key).Replace("\r"," ").Replace("\n"," ");
+                            return value.Substring(0, Math.Min(value.Length, 70));
+                        };
+                        approvalLines.Add(compact("sku") + " [" + compact("field") + "] " +
+                            compact("current") + " → " + compact("incoming"));
+                    }
+                    if (conflicts > 5) approvalLines.Add("... và các mục khác.");
+                }
+                approvalLines.Add("Nếu từ chối, trạng thái SKU hiện tại được giữ nguyên.");
+                if (confirmConflicts == null || !confirmConflicts(string.Join("\n",approvalLines)))
                     throw new InvalidOperationException("D167_SKU_CONFLICT_AWAITING_APPROVAL");
                 if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
                 approved = true;
