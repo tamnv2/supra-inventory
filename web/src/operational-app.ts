@@ -5126,6 +5126,7 @@ async function importSkuWorkbook(): Promise<void> {
       "Tổng SKU trong file: " + preview.source_rows +
       "\nSKU mới: " + preview.created +
       "\nĐổi tên: " + preview.renamed +
+      "\nCập nhật khu vực LTA/Shelving: " + preview.area_updated +
       "\nKích hoạt lại: " + preview.reactivated +
       "\nSKU sẽ ẨN (không xoá): " + preview.hidden +
       "\nSKU đang hoạt động trước đó: " + preview.previous_active +
@@ -5140,7 +5141,7 @@ async function importSkuWorkbook(): Promise<void> {
       expectedCatalogRevision: preview.catalog_revision,
       expectedSourceHash: preview.source_hash,
       confirmFullReplace: true,
-      confirmNameChanges: preview.renamed > 0,
+      confirmNameChanges: preview.renamed > 0 || preview.area_updated > 0,
     });
     if (outcome.status !== "DONE")
       throw new Error("Chưa xác nhận được kết quả FULL REPLACE.");
@@ -5166,7 +5167,7 @@ async function importSkuWorkbook(): Promise<void> {
     }
     for (const conflict of result.conflicts || []) databaseConflicts.push(`${conflict.sku}: ${conflict.current_product_name} → ${conflict.incoming_product_name}`);
   }
-  if (databaseConflicts.length && !window.confirm(`Có ${databaseConflicts.length} SKU đổi tên so với danh mục hiện tại. Xác nhận cập nhật tên?\n\n${databaseConflicts.slice(0, 15).join("\n")}`)) {
+  if (databaseConflicts.length && !window.confirm(`Có ${databaseConflicts.length} thay đổi tên/khu vực so với danh mục hiện tại. Xác nhận cập nhật?\n\n${databaseConflicts.slice(0, 15).join("\n")}`)) {
     skuImportProgress = "Đã dừng trước khi cập nhật vì chưa xác nhận đổi tên SKU hiện hữu.";
     return;
   }
