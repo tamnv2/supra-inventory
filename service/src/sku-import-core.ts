@@ -306,7 +306,32 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     for (const sku of reactivated) {
       state.storage.sql.exec("UPDATE d167_sku_active SET active=1 WHERE sku=? AND active=0",sku);
     }
-    if (touched.length || reactivated.length)
+    let areaUpdated = 0;
+    for (const item of items) {
+      if (!item.area) continue; // Optional field omitted: preserve trusted prior area.
+      const previous=firstRow(state.storage.sql.exec<{area:string;area_verified:number}>(
+        "SELECT area,area_verified FROM d167_sku_active WHERE sku=?",item.sku).toArray());
+      if (previous && previous.area===item.area && Number(previous.area_verified)===1) continue;
+      state.storage.sql.exec(`INSERT INTO d167_sku_active
+        (sku,active,area,area_verified,last_web_area_at)
+        VALUES (?,1,?,1,?)
+        ON CONFLICT(sku) DO UPDATE SET active=1,area=excluded.area,
+          area_verified=1,last_web_area_at=excluded.last_web_area_at`,item.sku,item.area,at);
+      const current=firstRow(state.storage.sql.exec<{area:string}>(
+        "SELECT area FROM d167_sku_area_history WHERE sku=? AND effective_to IS NULL",
+        item.sku).toArray());
+      if (!current || current.area!==item.area) {
+        if (current) state.storage.sql.exec(
+          "UPDATE d167_sku_area_history SET effective_to=? WHERE sku=? AND effective_to IS NULL",
+          at,item.sku);
+        const day=new Date(Date.now()+7*3600_000).toISOString().slice(0,10);
+        state.storage.sql.exec(
+          "INSERT INTO d167_sku_area_history(sku,area,effective_from,day_vn,source_slot) VALUES (?,?,?,?,?)",
+          item.sku,item.area,at,day,"WEB_APPROVED_PATCH");
+      }
+      areaUpdated += 1;
+    }
+    if (touched.length || reactivated.length || areaUpdated)
       state.storage.sql.exec("UPDATE d167_sku_meta SET revision=revision+1,published_at=? WHERE id=1",at);
 
     if (inserted > 0 || updated > 0 || reactivated.length > 0) {
@@ -334,7 +359,8 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
       updated,
       unchanged,
       reactivated: reactivated.length,
-      catalog_revision: actualRevision + (touched.length || reactivated.length ? 1 : 0),
+      area_updated: areaUpdated,
+      catalog_revision: actualRevision + (touched.length || reactivated.length || areaUpdated ? 1 : 0),
       source_hash: sourceHash,
       imported_at: at,
     };
