@@ -2256,6 +2256,7 @@ function renderReports(): string {
       </form>
     </article>
     ${d167AreaSummaryMarkup(d167ReportAreas)}
+    <p class="ops-subtle">Khu vực được chọn áp dụng cho bảng đợt báo, chi tiết Picker và Excel. KPI tổng quan / cơ cấu kết quả / bảng phân vùng phía trên vẫn thống kê toàn bộ khu vực trong khoảng ngày.</p>
     <p class="ops-subtle">Nguồn cho phép Skip trong kỳ: Inventory xác nhận ${humanSkipped.toLocaleString("vi-VN")} · Hệ thống quá hạn ${automaticSkipped.toLocaleString("vi-VN")} · Hệ thống tự chốt 03:00 ${dayEndSkipped.toLocaleString("vi-VN")}.</p>
     <section class="business-summary-grid business-summary-grid-6 pro-report-kpis">
       <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong><small>Trong khoảng thời gian đã chọn</small></article>
