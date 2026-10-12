@@ -61,3 +61,11 @@ Owner explicitly supersedes the earlier 2026-10-11 combined D167 PR #559 code+Be
 | Manual Web FULL REPLACE | Optional only for Admin/Root; PATCH default; bounded FULL preview and explicit confirmation, revision+source-hash CAS, one atomic SQL catalog publish, no SKU/history deletion, inactive tombstones/membership epoch, readback, audit, idempotent lost-response receipt | Source CI/SQLite regression, actual 5k DO resource benchmark and PDA field pending |
 
 **No provider resources, secrets, new WMS mutation, runtime release, Agent/Android app channel or Stable changes.** Workstream updates are recorded in `ops/change-continuity/D167.json`. Code-only proof remains separate from field acceptance and Owner D167 PASS. The last exact-head CI verdict must be read from GitHub, never taken from an earlier passing commit.
+
+### D167 manual Web SKU area source parity (2026-10-12)
+
+- SKU Excel parser now supports an **optional** `Khu vực` / `Area` column with only `LTA` or `Shelving`; absent/blank column does not erase an existing area; a duplicate SKU carrying contradictory areas fails source validation.
+- Default Web PATCH previews same-name and same-field area edits. Explicit operator confirmation and catalog revision CAS precede any new admin-approved area interval. `WEB_APPROVED_PATCH` stores source class; intervals start at the approval timestamp and never retroactively change old reports.
+- Root/Admin-only optional Web FULL REPLACE also accepts an area column; previews all category/name/membership changes and requires affirmative confirmation, then atomic source-hash/revision-fenced publish, complete membership readback, `WEB_APPROVED_FULL` interval, audit and idempotent receipt. History and hidden SKU remain physically preserved.
+- Area-only and semantic no-op Web imports do not emit PDA catalogue refresh/FCM; only actual names/active memberships change the Android catalogue version.
+- **CI/field distinction:** branch TypeScript/Windows/SQL contract validations are code evidence; installed PDA ACK/HA, company WMS profile, real SQL 5k latency and provider billing are **FIELD_PENDING**. Do not mark operational Owner PASS from workflow success.
