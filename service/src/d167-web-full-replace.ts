@@ -57,7 +57,10 @@ export async function handleD167WebFullReplace(
     status:"PREVIEW",source_hash:sourceHash,catalog_revision:revision,
     source_rows:incoming.length,previous_active:active.length,
     created:toCreate.length,renamed:toRename.length,reactivated:toActivate.length,
-    hidden,unchanged:incoming.length-toCreate.length-toRename.length-toActivate.length,
+    hidden,unchanged:incoming.filter(x=>{
+      const old=bySku.get(x.sku);
+      return old && old.product_name===x.product_name && old.active!==0;
+    }).length,
     name_conflicts:toRename.slice(0,25).map(x=>({
       sku:x.sku,current:bySku.get(x.sku)!.product_name,incoming:x.product_name,
     })),
@@ -100,6 +103,7 @@ export async function handleD167WebFullReplace(
           x.product_name,sourceHash,at,x.sku);
       }
       const nameEdited=!original||original.product_name!==x.product_name;
+      if (original && original.active===1 && !nameEdited) continue;
       state.storage.sql.exec(`INSERT INTO d167_sku_active
         (sku,active,area,area_verified,last_web_name_at)
         VALUES (?,1,'UNKNOWN',0,?)
@@ -131,7 +135,7 @@ export async function handleD167WebFullReplace(
       SELECT 1,COUNT(*),MAX(updated_at) FROM sku_master`);
     if (changed) state.storage.sql.exec(`UPDATE sku_catalog_meta
       SET item_count=(SELECT COUNT(*) FROM sku_master),max_updated_at=? WHERE id=1`,at);
-    const payload={status:"DONE",...preview,catalog_revision:revision+(changed?1:0),completed_at:at};
+    const payload={...preview,status:"DONE",catalog_revision:revision+(changed?1:0),completed_at:at};
     state.storage.sql.exec(`INSERT INTO audit_log
       (audit_id,actor_user_id,actor_employee_code,action,target_type,target_id,metadata_json,created_at)
       VALUES (?,?,?,?,?,?,?,?)`,
