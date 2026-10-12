@@ -85,34 +85,47 @@ namespace SupraInventoryRelayAgent
         {
             if (Interlocked.CompareExchange(ref running,1,0)!=0)
                 throw new InvalidOperationException("D167_SKU_JOB_ALREADY_RUNNING");
+            var manualTrace=System.Diagnostics.Stopwatch.StartNew();
+            var manualPhase="PRIMARY_CHECK";
             try
             {
                 if(!isPrimaryReady() || confirmBusy())
                     throw new InvalidOperationException("D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY");
                 var day=D167SkuSchedule.VNNow().ToString("yyyy-MM-dd");
                 var runId=Guid.NewGuid().ToString("N");
-                log("D167_SKU manual=STAGE step=AUTHORIZE_BEGIN");
+                manualPhase="AUTHORIZE_BEGIN";
+                log("D167_SKU manual=STAGE step=AUTHORIZE_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 var slot=service.ManualStart(day,instanceId,generation(),runId,credential);
-                log("D167_SKU manual=STAGE step=AUTHORIZE_DONE");
+                manualPhase="AUTHORIZE_DONE";
+                log("D167_SKU manual=STAGE step=AUTHORIZE_DONE elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 NotifyStatus(null,"Đang xuất SKU WMS theo yêu cầu...");
                 log("D167_SKU manual=STAGE step=WMS_EXPORT_BEGIN");
                 var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
-                    stage=>log("D167_SKU export_stage="+stage));
-                log("D167_SKU manual=STAGE step=WMS_EXPORT_DONE sku_count="+workbook.Items.Count);
+                    stage=>{
+                        manualPhase="EXPORT_"+stage;
+                        log("D167_SKU manual=TRACE export_stage="+stage+
+                            " elapsed_ms="+manualTrace.ElapsedMilliseconds);
+                    });
+                manualPhase="WMS_EXPORT_DONE";
+                log("D167_SKU manual=STAGE step=WMS_EXPORT_DONE sku_count="+workbook.Items.Count+
+                    " elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 if(!isPrimaryReady()||confirmBusy())
                     throw new InvalidOperationException("D167_MANUAL_CONFIRM_PRIORITY");
-                log("D167_SKU manual=STAGE step=SERVICE_UPLOAD_BEGIN");
+                manualPhase="SERVICE_UPLOAD_BEGIN";
+                log("D167_SKU manual=STAGE step=SERVICE_UPLOAD_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 if(!service.UploadAndPublish(day,slot,instanceId,generation(),workbook,confirmConflicts))
                     throw new InvalidOperationException("D167_MANUAL_RECEIPT_UNVERIFIED");
                 lastVerifiedWorkbook=workbook;
                 NotifyStatus(service.Schedule(day),"Cập nhật thủ công DONE, đã xác minh Service.");
-                log("D167_SKU manual=DONE area_snapshot_count="+workbook.Items.Count);
+                log("D167_SKU manual=DONE area_snapshot_count="+workbook.Items.Count+
+                    " elapsed_ms="+manualTrace.ElapsedMilliseconds);
             }
             catch(Exception e)
             {
                 NotifyStatus(null,"Cập nhật thủ công chưa thành công: "+e.GetType().Name);
                 log("D167_SKU manual=FAILED error_type="+e.GetType().Name+
-                    " error_code="+SafeErrorCode(e));
+                    " error_code="+SafeErrorCode(e)+" phase="+manualPhase+
+                    " elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 throw;
             }
             finally
@@ -196,19 +209,24 @@ namespace SupraInventoryRelayAgent
                 activeKey=key;
             }
             if(!isPrimaryReady()||confirmBusy()){Arm(TimeSpan.FromMinutes(5));return;}
+            var slotTrace=System.Diagnostics.Stopwatch.StartNew();
             log("D167_SKU slot="+eligible.Slot+" stage=EXPORT_BEGIN");
             var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
-                    stage=>log("D167_SKU export_stage="+stage));
+                    stage=>log("D167_SKU slot="+eligible.Slot+" export_stage="+stage+
+                        " elapsed_ms="+slotTrace.ElapsedMilliseconds));
             if(!isPrimaryReady())throw new InvalidOperationException("D167_PRIMARY_LOST_AFTER_EXPORT");
-            log("D167_SKU slot="+eligible.Slot+" stage=WMS_EXPORT_DONE sku_count="+workbook.Items.Count);
+            log("D167_SKU slot="+eligible.Slot+" stage=WMS_EXPORT_DONE sku_count="+workbook.Items.Count+
+                " elapsed_ms="+slotTrace.ElapsedMilliseconds);
             // Conditional Service CAS/HA authority checks happen again on each
             // upload stage and publish, independently from this UI process.
-            log("D167_SKU slot="+eligible.Slot+" stage=SERVICE_UPLOAD_BEGIN");
+            log("D167_SKU slot="+eligible.Slot+" stage=SERVICE_UPLOAD_BEGIN elapsed_ms="+
+                slotTrace.ElapsedMilliseconds);
             var success=service.UploadAndPublish(day,eligible.Slot,instanceId,generation(),
                 workbook,confirmConflicts);
             if(!success)throw new InvalidOperationException("D167_DONE_NOT_VERIFIED");
             lastVerifiedWorkbook=workbook;
-            log("D167_SKU slot="+eligible.Slot+" stage=DONE count="+workbook.Items.Count);
+            log("D167_SKU slot="+eligible.Slot+" stage=DONE count="+workbook.Items.Count+
+                " elapsed_ms="+slotTrace.ElapsedMilliseconds);
             NotifyStatus(slots,"Đã ghi nhận xong, đang đồng bộ biên nhận...");
             // Schedule remaining slots once, not on every WMS/HA event.
             Arm(TimeSpan.FromSeconds(2));
