@@ -109,10 +109,11 @@ function audit(
   );
 }
 
-function planChunk(state: DurableObjectState, items: Array<{ sku: string; product_name: string }>) {
+function planChunk(state: DurableObjectState, items: Array<{ sku: string; product_name: string; area?: string }>) {
   let inserted = 0;
   let updated = 0;
   let unchanged = 0;
+  let area_updated = 0;
   const conflicts: Array<{ sku: string; current_product_name: string; incoming_product_name: string }> = [];
 
   for (const item of items) {
@@ -133,9 +134,21 @@ function planChunk(state: DurableObjectState, items: Array<{ sku: string; produc
         incoming_product_name: item.product_name,
       });
     }
+    if (item.area) {
+      const oldArea=firstRow(state.storage.sql.exec<{area:string;area_verified:number}>(
+        "SELECT area,area_verified FROM d167_sku_active WHERE sku=?", item.sku).toArray());
+      if (!oldArea || oldArea.area!==item.area || Number(oldArea.area_verified)!==1) {
+        area_updated += 1;
+        if (existing && oldArea) conflicts.push({
+          sku:item.sku,
+          current_product_name:"Khu vực: " + oldArea.area,
+          incoming_product_name:"Khu vực: " + item.area,
+        });
+      }
+    }
   }
 
-  return { inserted, updated, unchanged, conflicts };
+  return { inserted, updated, unchanged, area_updated, conflicts };
 }
 
 async function importSkuChunk(state: DurableObjectState, request: Request): Promise<Response> {
@@ -200,6 +213,7 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
       inserted: plan.inserted,
       updated: plan.updated,
       unchanged: plan.unchanged,
+      area_updated: plan.area_updated,
       conflict_count: plan.conflicts.length,
       requires_confirmation: plan.conflicts.length > 0,
       conflicts: plan.conflicts,
