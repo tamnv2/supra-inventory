@@ -1,0 +1,30 @@
+name: D167 Web Meal Edit Verify Only
+on:
+  pull_request:
+    paths:
+      - "service/src/meal-break-core.ts"
+      - "service/src/core.ts"
+      - "service/src/index.ts"
+      - "web/src/api.ts"
+      - "web/src/operational-app.ts"
+      - "tests/d167-meal-edit.test.mjs"
+      - ".github/workflows/verify-d167-meal-edit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  meal-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Owner meal authorization and CAS tests
+        run: node --experimental-strip-types --test tests/d167-meal-edit.test.mjs
+      - name: Check Worker/InventoryCore TypeScript
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck
+      - name: Compile Web app
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run build

@@ -3933,3 +3933,8 @@ Các điều kiện BẮT BUỘC:
 - Kiểm thử: nguồn 0/2.5k/5k SKU, no-op, ba slot đúng cửa sổ và random ổn định, nhiều Agent tranh PRIMARY, restart/failover, WMS chậm/offline, FULL thất bại, lượt DELTA bị chồng, Web manual edit trước/sau source, ẩn chỉ ở FULL, UNKNOWN vs thiếu field, LTA↔Shelving as-of reports, SLA/ACK/03:00, usage/read/write/CPU và độ trễ Confirm.
 
 **Phạm vi/governance:** Chỉ resource Beta trong `ops/project-scope.json`; Stable OWNER-GATED. D167 vẫn OPEN, CODE READY chưa có, không có deploy mới hay Owner field PASS từ quyết định này.
+
+
+### D167 2026-10-12 — Owner approves scoped Web-only password-confirmed Reporter meal edit
+
+Owner clarified “giờ nghỉ” in Ca vận hành and ordered implementation. Existing first Reporter confirmation for the team's fixed half-hour lunch and dinner slots remains. The confirming Reporter or Admin/ROOT may **correct** the slot on Web after verifying the CURRENT account password (privileged identity: existing OTP/emergency proof). Cutoff: STRICTLY before 11:00 VN lunch or 18:00 VN dinner, not retroactive; CAS expected confirmed timestamp and VN date. InventoryCore atomically updates the selected slot, audit before/after/actor and recalculates future pending automatic Skip deadlines; broadcast existing `meal_break`, `reporter_queue`, `reporter_overdue` to existing clients. Old Android, Agent and WMS remain unchanged. The requested Beta release is narrowly **Web + Worker/InventoryCore**; do not merge unrelated unshipped PR559 Agent/APK/SKU code. The operating instruction remains to release during an approved after-shift window rather than disrupt live fulfillment. Stable remains separately OWNER-GATED.

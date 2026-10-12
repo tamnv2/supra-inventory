@@ -7116,6 +7116,20 @@
       "beta_deploy_permission": false,
       "field_owner_pass": false,
       "stable": "OWNER_GATED"
+    },
+    "meal_break_web_password_edit_2026_10_12": {
+      "owner_approved": true,
+      "scope": "ISOLATED_D167_WEB_AND_WORKER_INVENTORYCORE_ONLY",
+      "cutoff": "BEFORE_11_00_LUNCH_BEFORE_18_00_DINNER_VN",
+      "roles": "ORIGINAL_CONFIRMING_REPORTER_OR_ADMIN_ROOT",
+      "proof": "CURRENT_ACCOUNT_PASSWORD_OR_PRIVILEGED_OTP_EMERGENCY",
+      "contract": "EXISTING_MEAL_BREAK_REPORTER_QUEUE_OVERDUE_REALTIME__NO_APK_OR_AGENT_UPDATE",
+      "source": "d167-web-meal-edit-scoped-20261012",
+      "technical_ci": "PENDING",
+      "live_deploy": "NOT_DEPLOYED",
+      "stable": "OWNER_GATED",
+      "security": "CAS_SQL_AUDIT_NO_SECRET_FORWARDED",
+      "same_open_change_id": "D167"
     }
   }
 }
