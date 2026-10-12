@@ -366,3 +366,31 @@ test("D167 Agent SKU tab follows Cài đặt; STANDBY remains read-only", async 
   assert.match(skuUi, /_d167SkuRun\.Enabled=!_d167SkuManualActive && primary && _supraBrowserReady && HasAgentSession\(\)/);
   assert.match(skuUi, /!_leaderCoordinator\.IsLeader \|\| !_supraBrowserReady/);
 });
+
+
+test("D167 v128 diagnoses existing direct API export safely without changing WMS Confirm", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const exporter=readFileSync(new URL("../relay-agent/D167SkuBrowserExport.cs",import.meta.url),"utf8");
+  const direct=readFileSync(new URL("../relay-agent/D167SkuDirectExport.cs",import.meta.url),"utf8");
+  const ui=readFileSync(new URL("../relay-agent/D167SkuUi.cs",import.meta.url),"utf8");
+  const program=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const version=readFileSync(new URL("../relay-agent/VERSION",import.meta.url),"utf8").trim();
+  const config=readFileSync(new URL("../relay-agent/AgentConfig.cs",import.meta.url),"utf8");
+  assert.equal(version, "128");
+  assert.match(config,/AgentBuild = 128;/);
+  assert.match(program,/_mainTabs\.TabPages\.Add\(_overviewPage\);\s*_mainTabs\.TabPages\.Add\(_connectionPage\);\s*_mainTabs\.TabPages\.Add\(_d167SkuPage\);/);
+  for(const step of ["SIDE_OPEN","SIDE_TARGET_DISCOVERY","SIDE_CDP_CONNECT","SIDE_NETWORK_ENABLE","SIDE_RELOAD","SIDE_AUTH_OBSERVE","DIRECT_GET","XLSX_PARSE"]) {
+    assert.ok(exporter.includes('onStage("'+step+'")'),"missing safe phase "+step);
+  }
+  for(const step of ["AUTHORIZE_BEGIN","AUTHORIZE_DONE","WMS_EXPORT_BEGIN","WMS_EXPORT_DONE","SERVICE_UPLOAD_BEGIN"]) {
+    assert.ok(coordinator.includes("step="+step),"missing support stage "+step);
+  }
+  assert.match(coordinator,/SafeErrorCode\(Exception error\)/);
+  assert.match(coordinator,/error_code="\+SafeErrorCode\(e\)/);
+  assert.match(ui,/D167SkuCoordinator\.SafeErrorCode\(e\)/);
+  assert.match(direct,/HTTP_"\+\(\(int\)http\.StatusCode\)/);
+  assert.doesNotMatch(coordinator, /log\([^;]*e\.Message/);
+  assert.doesNotMatch(exporter,/Network\.setExtraHTTPHeaders|Page\.navigate|ClickOneExact/);
+  assert.match(direct,/req\.Method="GET"/);
+});
