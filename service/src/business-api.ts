@@ -516,6 +516,15 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const suppliedHash = String(body.source_hash || "").trim();
     const sourceHash = suppliedHash || (await sha256Hex(JSON.stringify(items)));
     const response = await corePost(env, "/business/skus/import-v2", { ...body, source_hash: sourceHash, actor: actor(user) });
+    if (response.ok) {
+      const payload=await response.clone().json() as {
+        inserted?:number; updated?:number; reactivated?:number; status?:string;
+      };
+      // A dry-run, no-op or area-only Web edit must not wake every PDA.
+      if (payload.status==="preview" ||
+          Number(payload.inserted||0)+Number(payload.updated||0)+Number(payload.reactivated||0)===0)
+        return response;
+    }
     const result = await realtimeAfter(response, env, {
       event: "sku_catalog_updated",
       scopes: ["sku_catalog"],
@@ -535,7 +544,13 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const response = await corePost(env, "/business/skus/full-replace", {
       ...body, items, source_hash: sourceHash, actor: actor(user),
     });
-    if (body.dry_run === true) return response;
+    if (body.dry_run === true || !response.ok) return response;
+    const summary=await response.clone().json() as {
+      created?:number; renamed?:number; reactivated?:number; hidden?:number;
+    };
+    if (Number(summary.created||0)+Number(summary.renamed||0)+
+        Number(summary.reactivated||0)+Number(summary.hidden||0)===0)
+      return response;
     const result = await realtimeAfter(response, env, {
       event: "sku_catalog_updated",
       scopes: ["sku_catalog"],
