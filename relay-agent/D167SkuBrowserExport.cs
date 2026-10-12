@@ -18,48 +18,37 @@ namespace SupraInventoryRelayAgent
         private const string Marker = "#d167-sku-readonly";
         private static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
 
+        // Owner 2026-10-12: no UI Search/Export automation for SKU. The
+        // existing managed browser supplies an ephemeral authorized WMS API
+        // request context; a separate, allowlisted GET downloads the workbook.
+        // The Confirm Picklist page is never navigated, reloaded or clicked.
         internal static D167SkuWorkbook Export(SupraConfirmBrowser browser, Func<bool> stillPrimary)
         {
             if (browser == null || stillPrimary == null || !stillPrimary())
                 throw new InvalidOperationException("D167_NOT_READY_PRIMARY");
-            // Host must be D167-aware. A missing side page/download causes a
-            // visible fail-closed result, NEVER navigation away from Confirm.
             var port = browser.OpenD167HiddenSkuExportPage();
             var deadline = DateTime.UtcNow.AddSeconds(105);
             var wsUrl = FindSidePage(port, deadline);
-            var folder = Path.Combine(AgentBrowserStorage.CurrentRoot, "D167SkuDownloads");
-            Directory.CreateDirectory(folder);
-            var previous = new HashSet<string>(Directory.GetFiles(folder, "D167_BIN_INVENTORY_*.xlsx"),
-                StringComparer.OrdinalIgnoreCase);
             using (var socket = new ClientWebSocket())
             {
-                string downloadedFile = null;
                 try
                 {
                     socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
                     socket.ConnectAsync(new Uri(wsUrl), CancellationToken.None).GetAwaiter().GetResult();
-                    Command(socket, "Runtime.enable", null, TimeSpan.FromSeconds(5), 1);
-                    WaitUiReady(socket, deadline, stillPrimary);
-                    // Follow the visible WMS navigation within this isolated child,
-                    // never navigate or mutate the main Confirm Picklist tab.
-                    ClickOneExactNavigation(socket, "bin inventory", 80);
-                    WaitBinInventoryUi(socket, deadline, stillPrimary);
-                    ClickOneExact(socket, "tim kiem", 2);
-                    Thread.Sleep(1500);
+                    Command(socket, "Network.enable", null, TimeSpan.FromSeconds(5), 1);
+                    // This reload affects ONLY the isolated hidden side tab.
+                    // It must never touch the live Confirm tab or WMS mutation API.
+                    Command(socket, "Page.reload", new Dictionary<string, object> {
+                        { "ignoreCache", false }
+                    }, TimeSpan.FromSeconds(5), 2);
+                    var headers = D167SkuDirectExport.CaptureAuthorizedHeaders(socket,
+                        deadline, stillPrimary);
                     if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
-                    ClickOneExact(socket, "export", 3);
-                    downloadedFile = WaitCompleteXlsx(folder, previous, deadline, stillPrimary);
-                    return D167SkuWorkbook.Parse(File.ReadAllBytes(downloadedFile));
+                    var data = D167SkuDirectExport.DownloadReadOnly(headers, stillPrimary);
+                    return D167SkuWorkbook.Parse(data);
                 }
                 finally
                 {
-                    // Cleanup must also run when Search, Export, timeout or workbook
-                    // validation fails. Otherwise retries could target a stale hidden
-                    // tab and leave partially parsed private reports on disk.
-                    if (downloadedFile != null)
-                    {
-                        try { File.Delete(downloadedFile); } catch { }
-                    }
                     try
                     {
                         if (socket.State == WebSocketState.Open)
