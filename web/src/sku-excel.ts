@@ -3,6 +3,7 @@ import { readSheet } from "read-excel-file/browser";
 export interface ParsedSkuItem {
   sku: string;
   product_name: string;
+  area?: "LTA" | "SHELVING";
 }
 
 export interface ParsedSkuConflictCandidate {
@@ -13,6 +14,7 @@ export interface ParsedSkuConflictCandidate {
 export interface ParsedSkuConflict {
   sku: string;
   candidates: ParsedSkuConflictCandidate[];
+  area?: "LTA" | "SHELVING";
 }
 
 export interface ParsedSkuWorkbook {
@@ -56,17 +58,20 @@ function normalizeHeader(value: unknown): string {
 
 const SKU_HEADERS = new Set(["sku", "ma sku", "sku code", "item sku", "ma hang"]);
 const PRODUCT_HEADERS = new Set(["ten san pham", "ten sp", "product name", "ten hang", "san pham"]);
+const AREA_HEADERS = new Set(["khu vuc", "khu vuc luu tru", "area", "storage area"]);
 
-function findHeader(rows: unknown[][]): { rowIndex: number; skuIndex: number; nameIndex: number } | null {
+function findHeader(rows: unknown[][]): { rowIndex: number; skuIndex: number; nameIndex: number; areaIndex: number } | null {
   for (let rowIndex = 0; rowIndex < Math.min(rows.length, HEADER_SCAN_ROWS); rowIndex += 1) {
     let skuIndex = -1;
     let nameIndex = -1;
+    let areaIndex = -1;
     for (let columnIndex = 0; columnIndex < rows[rowIndex].length; columnIndex += 1) {
       const header = normalizeHeader(rows[rowIndex][columnIndex]);
       if (SKU_HEADERS.has(header)) skuIndex = columnIndex;
       if (PRODUCT_HEADERS.has(header)) nameIndex = columnIndex;
+      if (AREA_HEADERS.has(header)) areaIndex = columnIndex;
     }
-    if (skuIndex >= 0 && nameIndex >= 0 && skuIndex !== nameIndex) return { rowIndex, skuIndex, nameIndex };
+    if (skuIndex >= 0 && nameIndex >= 0 && skuIndex !== nameIndex) return { rowIndex, skuIndex, nameIndex, areaIndex };
   }
   return null;
 }
@@ -88,15 +93,25 @@ export async function parseSkuExcel(file: File): Promise<ParsedSkuWorkbook> {
 
   const variants = new Map<string, Map<string, number[]>>();
   const invalidRows: string[] = [];
+  const areasBySku = new Map<string, "LTA" | "SHELVING">();
   let skippedBlankRows = 0;
   let totalDataRows = 0;
 
   for (let rowIndex = header.rowIndex + 1; rowIndex < rows.length; rowIndex += 1) {
     let sku = "";
     let productName = "";
+    let selectedArea: "LTA" | "SHELVING" | undefined;
     try {
       sku = text(rows[rowIndex][header.skuIndex]);
       productName = text(rows[rowIndex][header.nameIndex]).replace(/\s+/g, " ");
+      if (header.areaIndex >= 0) {
+        const supplied = normalizeHeader(rows[rowIndex][header.areaIndex]);
+        if (supplied) {
+          if (supplied !== "lta" && supplied !== "shelving")
+            throw new Error("Khu vực chỉ được là LTA, Shelving hoặc để trống.");
+          selectedArea = supplied === "lta" ? "LTA" : "SHELVING";
+        }
+      }
     } catch (error) {
       invalidRows.push(`Dòng ${rowIndex + 1}: ${error instanceof Error ? error.message : "SKU không hợp lệ"}`);
       continue;
@@ -122,6 +137,14 @@ export async function parseSkuExcel(file: File): Promise<ParsedSkuWorkbook> {
       continue;
     }
 
+    if (selectedArea) {
+      const previous = areasBySku.get(sku);
+      if (previous && previous !== selectedArea) {
+        invalidRows.push("Dòng " + (rowIndex + 1) + ": cùng SKU có khu vực LTA/Shelving mâu thuẫn.");
+        continue;
+      }
+      areasBySku.set(sku, selectedArea);
+    }
     let names = variants.get(sku);
     if (!names) {
       names = new Map<string, number[]>();
@@ -147,9 +170,9 @@ export async function parseSkuExcel(file: File): Promise<ParsedSkuWorkbook> {
     const totalOccurrences = candidates.reduce((sum, candidate) => sum + candidate.rows.length, 0);
     mergedDuplicateRows += Math.max(0, totalOccurrences - candidates.length);
     if (candidates.length === 1) {
-      items.push({ sku, product_name: candidates[0].product_name });
+      items.push({ sku, product_name: candidates[0].product_name, ...(areasBySku.has(sku) ? {area: areasBySku.get(sku)} : {}) });
     } else {
-      conflicts.push({ sku, candidates });
+      conflicts.push({ sku, candidates, ...(areasBySku.has(sku) ? {area: areasBySku.get(sku)} : {}) });
     }
   }
 
