@@ -5525,5 +5525,16 @@
         "field_validation": "PENDING_REAL_WMS_PDA_AGENT_PROVIDER_EVIDENCE_AFTER_SEPARATE_APPROVAL"
       }
     }
-  ]
+  ],
+  "d167_owner_2026_10_12_final_code_only": {
+    "code_permission": true,
+    "deploy_permission": false,
+    "owner_field_pass": false,
+    "warning": "VERIFY_CURRENT_DAY_FULL_BEFORE_NEW_PICKER_REPORT",
+    "web_manual": "ONLY_VERIFIED_ADMIN_FULL_REPLACE",
+    "wms_transport": "CURRENT_PRIMARY_MANAGED_SESSION_RAM_HEADERS_ALLOWLISTED_READONLY_SIGNED_API_GET",
+    "cancelled_proposals": "HR_SHEET_PARTIAL_FIX__LIVE_QUEUE_HISTORICAL_ASOF__ONE_SKU_DONE__UNIVERSAL_RENAME_CONFIRM__UNMEASURED_CROSS_METER_ROLLOUT",
+    "owner_action_now": "NONE__COMPLETE_SOURCE_CI_ONLY",
+    "future_owner_action": "EXPLICIT_EXACT_SHA_BETA_DEPLOY_APPROVAL"
+  }
 }

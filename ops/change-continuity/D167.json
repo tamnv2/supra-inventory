@@ -8,9 +8,9 @@
   "pr": 559,
   "status": "SOURCE_CODE_READY_19_OF_19_PRE_RECEIPT__DRAFT_PR__FIELD_PENDING__NO_DEPLOY",
   "last_checkpoint": {
-    "id": "D167-CT-20261012-005",
+    "id": "D167-CT-20261012-006",
     "date_vn": "2026-10-12",
-    "topic": "Source conflict audit: existing fixes reconciled, 05:00 missed FULL availability policy pending",
+    "topic": "Owner daily FULL, WMS API transport, cancellations and code-source reconciliation",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -252,13 +252,57 @@
       ],
       "next_action": "Do not cancel D167 or revert released PR555. Retain PR559 unmerged under CODE PASS ONLY. Present P0 source-vs-business policy risk, preserve already released fixes and cancel superseded feature proposals; obtain explicit Owner approval before changing code/deploy.",
       "evidence": "PR559 service/src/business-core.ts createReport SKU_TODAY_SYNC_PENDING; main service/src/core.ts day index; main service/src/meal-break-core.ts slotFor; main service/src/d167-overdue-core.ts; main service/src/hr-event-sync.ts; main web/src/operational-app.ts fmt; GitHub Actions PR559 19/19 before this checkpoint"
+    },
+    {
+      "id": "D167-E014",
+      "date_vn": "2026-10-12",
+      "topic": "Owner final daily FULL prerequisite, controlled WMS API session reuse and cancellations",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED_CODE_ONLY_NOT_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Every new Picker shortage report for VN date N requires verified FULL of date N; no stale N-1 roster or pre-05 grace. If missing, Web/Android Picker/Reporter show the exact Pick Pack/Invent specialist warning; existing tickets, resolution, result ACK, Confirm continue.",
+        "Agent current PRIMARY WMS managed-browser session supplies only allowlisted ephemeral API headers in local Agent process RAM. XLSX downloaded independently via signed read-only Bin Inventory GET; main Confirm tab MUST NOT be navigated/clicked/reloaded, no auth persistence or cross-process sharing.",
+        "Validated, explicit Web Admin/Root FULL REPLACE qualifies to mark current VN day ready. Partial Web PATCH is not proof of current full active roster.",
+        "Owner confirms cancelling five superseded proposals: further HR Sheet partial autosync fix; historical PENDING/OVERDUE as-of; one SKU DONE per day; universal cross-day rename approval; deployment of unmeasured cross-meter workload shift.",
+        "Owner requires genuine complete buildable, release-ready CODE PASS: after future exact-scope deploy order no further functional coding expected; project remains CODE ONLY now, no merge or Beta/Stable runtime changes."
+      ],
+      "supersedes": [
+        "D167-E013:missing-FULL fallback proposal",
+        "D167 old D126 blanket exclusion for narrowly scoped in-process WMS export"
+      ],
+      "next_action": "Reconcile source/server warnings and WMS API direct GET, run all exact-HEAD required CI, keep draft/no deploy",
+      "evidence": "docs/OWNER_DECISIONS.md#2026-10-12--d167-owner-quyết-định-sku-ngày-hiện-tại"
+    },
+    {
+      "id": "D167-E015",
+      "date_vn": "2026-10-12",
+      "topic": "D167 source implementation of Owner daily FULL and API-only read-only SKU transport",
+      "kind": "STATUS",
+      "status": "SOURCE_COMMITTED__EXACT_HEAD_CI_PENDING__NOT_CODE_PASS",
+      "owner_approval": true,
+      "facts": [
+        "Unmerged PR559 modifies service createReport: rejects all new-day Picker shortage before same-day verified FULL; /api/skus/catalog-info exposes day-ready/date and exact UI warning; Web Picker/Reporter, Android Picker/Reporter warning and Picker submit guards added.",
+        "First verified Agent INITIAL FULL or explicit Web FULL REPLACE broadcasts day-ready to Web/Android even for catalog semantic no-op; standalone PATCH does not open day; DELTA area-only does not force PDA refresh.",
+        "Agent now opens only isolated side browser context for ephemeral WMS API auth observation, then separately performs scoped read-only signed XLSX GET; no SKU Search/Export UI click; main Confirm unchanged.",
+        "Static test guards added, updated 2026-10-12 Owner decisions/specs/scope metadata; new build/test verdict from final SHA remains pending.",
+        "No runtime deploy/Agent version channel/Android APK or WMS provider job started by these source commits."
+      ],
+      "open_questions": [
+        "Check managed WMS session header capture under real company authenticated PRIMARY after Owner deployment; SOURCE compile is not physical proof.",
+        "Check signed Android release-ready artifact and Agent v126 EXE availability in GitHub CI, not only unit tests.",
+        "Verify cloud/provider hours and actual downstream notifications after separately approved Beta rollout."
+      ],
+      "next_action": "Read final PR HEAD, inspect Android/Agent/service/web/continuity CI and repair failures before claiming CODE PASS; no merge/deploy.",
+      "evidence": "PR559 code commits 6a3c9e54, 949d4932, 8ef82be2, af679f2f, 28331575; github source CI pending"
     }
   ],
   "resume": {
     "approved": [
       "D167 requirements D01–D10 và ba slot FULL/DELTA, LTA/Shelving/UNKNOWN, no delete",
       "Lệnh mới 2026-10-12: CODE PASS ONLY / giữ PR #559 Draft",
-      "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal"
+      "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal",
+      "Owner 2026-10-12: same-VN-day FULL hard gate; Web FULL or Agent qualifies, PATCH does not; exact Picker/Reporter warning; WMS ephemeral signed API GET; cancel superseded backlog"
     ],
     "implemented": [
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
@@ -268,22 +312,20 @@
       "D167 Source CODE READY (19/19 source-head CI PASS at 9f04a577); final Docs/State receipt HEAD CI is rechecked separately"
     ],
     "in_progress": [
-      "Final exact-head CI readback after recording CODE READY receipt; no additional source work authorized or deployed"
+      "CI and code non-regression for new day-full gate, Android/Web warnings, Agent direct WMS read-only export and FCM/WS wake; no deploy"
     ],
     "pending_approval": [
       "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
-      "Owner field acceptance and separate Stable authorization",
-      "Business policy for missing INITIAL_05 FULL after 05:00 versus shortage-report availability before source modification"
+      "Owner field acceptance and separate Stable authorization"
     ],
     "blocked": [
       "Real managed WMS/PRIMARY same-profile export, physical 6-Agent HA/PDA/ACK, provider billing and latency cannot be proven without separate field activation; not source code CI evidence",
-      "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction"
+      "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction",
+      "Actual Office WMS API-session proof remains FIELD_PENDING, no live WMS access in source-only approval"
     ],
     "next_actions": [
-      "Owner risk decision on unconditional 05:00 report 409 vs bounded last-verified active roster; no unilateral business override",
-      "Read final PR #559 HEAD and verify required exact-head CI after receipt",
-      "STOP code-only without merge, deploy or service mutation",
-      "When Owner next calls 'tiếp tục D167', summarize source CODE READY and field/deploy gates from main+PR journal"
+      "Review exact branch HEAD required CI and signed Android/Agent build receipts; fix failures; STOP before any merge/deploy",
+      "After future Owner explicit deploy permission, release exact signed candidate and verify WMS/6-Agent/PDA/usage field"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }

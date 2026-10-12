@@ -7138,7 +7138,7 @@
         "actual_managed_primary_browser_export_proved": false,
         "end_to_end_three_slot_proved": false
       },
-      "status": "D167_PR559_SOURCE_CODE_READY__19_OF_19_CI_PASS__FIELD_PENDING__NO_RUNTIME_DEPLOY",
+      "status": "D167_PR559_OWNER_20261012_NEW_DAILY_SKU_API_TRANSPORT_UI_WARNING_SOURCE_COMMITTED__FINAL_CI_PENDING__NO_DEPLOY",
       "source_branch": "d167-code-three-slot-sku-area-report-20261011",
       "pr": 559,
       "owner_code_authorized": true,
@@ -7204,12 +7204,23 @@
       "physical_field_pass": false,
       "release_approved": false,
       "stable": "OWNER_GATED_UNTOUCHED",
-      "next": "CODE_READY_SOURCE_ONLY__STOP_DRAFT_PR559_UNMERGED__REQUIRE_NEW_EXPLICIT_OWNER_BETA_DEPLOY_APPROVAL_FOR_FIELD",
+      "next": "REPAIR_ANY_CI_FAIL__SOURCE_AND_SIGNED_BUILD_ARTIFACT_PASS__STOP_BEFORE_MERGE_OR_BETA__FIELD_PROOF_AFTER_OWNER_DEPLOY",
       "owner_latest_gate_2026_10_12": "OWNER_CODE_PASS_ONLY_STOP_BEFORE_MAIN_MERGE_OR_BETA_RELEASE",
       "post_code_ready_action": "STOP_DRAFT_PR559__WAIT_NEW_EXPLICIT_OWNER_DEPLOY_APPROVAL_EXACT_SHA_AND_SCOPE",
       "prior_combined_deploy_authorization": "SUPERSEDED_FOR_UNDEPLOYED_D167_PR559_ONLY__PR555_HISTORICAL_RELEASE_UNCHANGED",
       "ci_mode": "SOURCE_ONLY_19_OF_19_PASS_AT_PRE_RECEIPT_SHA__RECHECK_LAST_RECEIPT_COMMIT",
-      "outstanding_evidence": "UNVERIFIED_WMS_AGENT_BROWSER_AND_REAL_DEVICE_TESTS_REMAIN_PENDING_IF_CI_CANNOT_PROVE"
+      "outstanding_evidence": "UNVERIFIED_WMS_AGENT_BROWSER_AND_REAL_DEVICE_TESTS_REMAIN_PENDING_IF_CI_CANNOT_PROVE",
+      "source_last_reviewed_sha": "60dbc3db35c6ce97fcb7e7993fa60eaf5701684a",
+      "source_code_ready": false,
+      "daily_full_owner_policy": "BLOCK_NEW_PICKER_REPORT_ANY_VN_HOUR_UNTIL_VERIFIED_TODAY_FULL__AGENT_INITIAL_FULL_OR_WEB_FULL_REPLACE",
+      "transport_owner_override": "AUTHORIZED_RAM_ONLY_HEADER_CAPTURE_FROM_CURRENT_PRIMARY_WMS_MANAGED_BROWSER_FOR_ALLOWLISTED_DIRECT_SIGNED_GET__NO_CONFIRM_UI_CLICK",
+      "downstream_sync": "FIRST_FULL_NOOP_STILL_PUSHES_SKU_CATALOG_WARMUP_EVENT_FOR_CLIENT_READINESS",
+      "new_pending_ci": [
+        "VERIFY_BETA_ANDROID_AFTER_WARNING_CODE",
+        "VERIFY_BETA_RELAY_AGENT_AFTER_DIRECT_WMS_API_EXPORT",
+        "D167_THREE_SLOT_SOURCE_TESTS_AFTER_20261012",
+        "D167_FINAL_EXACT_HEAD_CONTINUITY_AND_AUTHORITY"
+      ]
     },
     "pr559_owner_latest_2026_10_12": {
       "scope": "THREE_SLOT_AGENT_SKU_FULL_HIDE_TEMPORAL_AREA_WEB_OVERVIEW_DETAIL_EXCEL_AND_REGRESSIONS",
@@ -7224,6 +7235,28 @@
       "pr": 559,
       "prior_2026_10_11_combined_deploy": "REVOKED_FOR_UNDEPLOYED_PR559_SCOPE",
       "preserved_beta_release": "PR555_ALREADY_DEPLOYED_UNCHANGED"
+    },
+    "owner_final_2026_10_12_after_reconcile": {
+      "accepted": true,
+      "change_id": "D167",
+      "source_scope": "PR559_CODE_ONLY",
+      "blocked_until_today_full": true,
+      "manual_full_qualifies": true,
+      "manual_patch_qualifies": false,
+      "warning_roles": [
+        "PICKER",
+        "REPORTER"
+      ],
+      "wms_session_api_mode": "EPHEMERAL_HEADER_REUSE_IN_CURRENT_AGENT_RAM_READ_ONLY_BIN_EXPORT_ONLY",
+      "superseded_backlog": [
+        "HR_SHEET_WAITING_FOR_COMPLETION_FIX",
+        "PENDING_OVERDUE_HISTORICAL_AS_OF",
+        "ONE_SKU_DONE_PER_DAY",
+        "RENAME_APPROVE_ALL_CROSS_DAY",
+        "UNMEASURED_CROSS_METER_PROVIDER_ROLLOUT"
+      ],
+      "main_beta_unchanged": true,
+      "owner_field_pass": false
     }
   },
   "change_continuity": {

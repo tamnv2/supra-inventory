@@ -667,12 +667,12 @@
     "stock quantity management",
     "Office-network fallback/provider research except the Owner-approved D146 Google-first Agent support-log transport (Agent -> Firestore -> Beta Google Function -> Drive; Worker only brokers the short-lived Drive upload session)",
     "all offline business modes, offline report/mutation outboxes, direct-to-Sheet fallback, or alternate offline transaction paths",
-    "all programmatic capture, extraction, persistence, refresh, replay or use of Supra/WMS user-session cookies, headers, tokens, signatures or browser-profile authentication material outside the user-controlled D126 managed browser context",
+    "all persistent, external, logged, cross-process, replayed or general-purpose use of Supra/WMS cookies, passwords, headers, tokens, signatures or authentication; ONLY D167 Owner 2026-10-12 allows transient allowlisted WMS API request headers in RAM of current authorized PRIMARY Agent solely for same-session direct signed read-only Bin Inventory export GET, without altering Confirm tab, no other WMS API",
     "all direct WMS/API PickList lookup or confirmation and all project-driven WMS mutation outside D126 semantic browser-UI automation of the registered Confirm PickList page",
-    "all WMS/Tồn Bin-derived automatic or Agent-triggered SKU master synchronization under D126 EXCEPT Owner D167 D05 narrowly approved future PRIMARY managed-browser read-only daily SKU export; no WMS mutation or session material export outside managed browser; code/deployment authorization separate"
+    "all WMS/Tồn Bin-derived autonomous SKU master synchronization under D126 EXCEPT Owner D167 PRIMARY three-slot signed GET read-only Bin Inventory export sourced from its current authenticated managed WMS browser, with ephemeral in-process auth only, no WMS mutation, and CODE ONLY until separate Owner deploy"
   ],
   "d167_owner_approved_scope_2026_10_11": {
-    "status": "OWNER_BUSINESS_SCOPE_APPROVED__NO_EXECUTABLE_CODE_NO_RUNTIME_ENABLEMENT",
+    "status": "OWNER_BUSINESS_AND_CODE_ONLY_APPROVED__CURRENT_PR559_DRAFT__BETA_NOT_DEPLOYED",
     "decisions": "docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md",
     "existing_endpoints": [
       "supra-wms-ui-d080",
@@ -681,10 +681,13 @@
     "permitted_future_read_only": "PRIMARY_AGENT_MANAGED_BROWSER_THREE_DAILY_READ_ONLY_WMS_SKU_EXPORT_SLOTS__INITIAL_AFTER_05_FULL__RANDOM_12_00_TO_12_15_DELTA__RANDOM_19_00_TO_19_15_DELTA",
     "permitted_future_reporting": "INVENTORYCORE_COARSE_LTA_SHELVING_TEMPORAL_AREA_HISTORY_NO_BIN_MANAGEMENT_NO_STOCK_QUANTITY",
     "hr_entry_source": "WEB_DIRECT_OR_VALIDATED_EXCEL_NO_HR_SHEET_AUTOSYNC_AFTER_CUTOVER",
-    "wms_auth_material": "MUST_REMAIN_WITHIN_USER_CONTROLLED_MANAGED_BROWSER",
-    "mutations_and_creds_outside_browser": "FORBIDDEN",
+    "wms_auth_material": "OWNER_D167_20261012_EPHEMERAL_ALLOWLISTED_API_REQUEST_HEADERS_RAM_ONLY_CURRENT_AGENT_MANAGED_BROWSER__NO_PERSISTENCE_LOG_CLOUD",
+    "mutations_and_creds_outside_browser": "ONLY_EPHEMERAL_AGENT_PROCESS_HEADERS_TO_REGISTERED_READ_ONLY_EXPORT_GET__ALL_CREDENTIAL_STORAGE_REPLAY_EXTERNAL_TRANSMISSION_AND_WMS_MUTATION_FORBIDDEN",
     "code_and_beta_deploy": "EXPLICIT_SEPARATE_OWNER_COMMANDS_REQUIRED",
     "stable": "OWNER_GATED_UNTOUCHED",
-    "owner_three_slot_decision": "OWNER_BUSINESS_APPROVED__REUSE_REGISTERED_BETA_WMS_RESOURCE__NO_EXECUTABLE_AUTHORIZATION__NO_STABLE"
+    "owner_three_slot_decision": "OWNER_BUSINESS_APPROVED__REUSE_REGISTERED_BETA_WMS_RESOURCE__NO_EXECUTABLE_AUTHORIZATION__NO_STABLE",
+    "daily_readiness": "VN_DAY_VERIFIED_AGENT_INITIAL_FULL_OR_AUTHORIZED_WEB_FULL_ONLY__PATCH_NOT_SUFFICIENT__NEW_PICKER_REPORT_BLOCKED_UNTIL_READY",
+    "new_runtime_authority": "NONE_CODE_ONLY__NEW_OWNER_DEPLOY_REQUIRED",
+    "cancellation": "SHEET_PARTIAL_FIX__HISTORICAL_LIVE_PENDING_OVERDUE__ONCE_PER_DAY__UNIVERSAL_RENAME_CONFIRM__UNMEASURED_CROSS_METER_ROLLOUT"
   }
 }
