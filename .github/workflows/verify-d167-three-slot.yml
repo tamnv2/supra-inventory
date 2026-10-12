@@ -7,6 +7,10 @@ on:
       - "service/src/d167-area-report-core.ts"
       - "service/src/sku-import-core.ts"
       - "service/src/business-core.ts"
+      - "service/src/meal-break-core.ts"
+      - "service/src/core.ts"
+      - "service/src/index.ts"
+      - "tests/d167-meal-edit.test.mjs"
       - "service/src/business-api.ts"
       - "service/src/read-model-core.ts"
       - "web/src/sku-excel.ts"
@@ -37,6 +41,8 @@ jobs:
           node-version: "22"
       - name: D167 source and diff behavior
         run: node --experimental-strip-types --test tests/d167-three-slot-sku.test.mjs
+      - name: D167 authenticated meal period edit policy and source contract
+        run: node --experimental-strip-types --test tests/d167-meal-edit.test.mjs
       - name: D167 existing-master FULL/DELTA SQL migration regression
         run: python3 tests/d167-full-roster-sql.test.py
       - name: Type-check InventoryCore

@@ -4280,7 +4280,8 @@ async function submitD167MealEdit(form: HTMLFormElement): Promise<void> {
     setNotice("error", error instanceof Error ? error.message : "Không đổi được giờ nghỉ.");
   } finally {
     if (button?.isConnected) button.disabled = false;
-    form.querySelector<HTMLInputElement>('input[name="currentPassword"]')?.setAttribute("value", "");
+    const passwordField = form.querySelector<HTMLInputElement>('input[name="currentPassword"]');
+    if (passwordField) passwordField.value = "";
   }
 }
 
