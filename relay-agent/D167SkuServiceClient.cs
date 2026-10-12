@@ -14,6 +14,8 @@ namespace SupraInventoryRelayAgent
         internal string Slot = "";
         internal string State = "";
         internal long ScheduledAtMs;
+    internal string CompleteAt = "";
+    internal string ReceiptJson = "";
     }
 
     // D167 authenticates with the existing Agent Firebase ID token. The
@@ -28,6 +30,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<AgentSession> session;
         private readonly Action ensureFreshToken;
         private readonly Func<bool> stillPrimary;
+        internal List<D167SkuSlotStatus> RecentManual { get; private set; } = new List<D167SkuSlotStatus>();
 
         internal D167SkuServiceClient(Func<AgentSession> currentSession,
             Action refresh, Func<bool> currentPrimary)
@@ -54,10 +57,43 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidDataException("D167_SCHEDULE_SLOT_INVALID");
                 output.Add(new D167SkuSlotStatus {
                     Day = Str(x,"day_vn"), Slot = slot, State = Str(x,"state"),
-                    ScheduledAtMs = Long(x,"scheduled_at_ms")
+                    ScheduledAtMs = Long(x,"scheduled_at_ms"),
+                    CompleteAt = Str(x,"complete_at"), ReceiptJson=Str(x,"receipt_json")
                 });
             }
+            var manual = new List<D167SkuSlotStatus>();
+            if (r.TryGetValue("recent_manual",out value))
+            {
+                foreach(var item in value as object[] ?? new object[0])
+                {
+                    var row = item as Dictionary<string,object>;
+                    if(row==null) continue;
+                    manual.Add(new D167SkuSlotStatus {
+                        Day=day, Slot=Str(row,"slot"),State=Str(row,"state"),
+                        CompleteAt=Str(row,"complete_at"),ReceiptJson=Str(row,"receipt_json"),
+                        ScheduledAtMs=Long(row,"authorized_at_ms")
+                    });
+                }
+            }
+            RecentManual=manual;
             return output;
+        }
+
+        internal string ManualStart(string day,string instanceId,string generation,
+            string runId,string credential)
+        {
+            if (string.IsNullOrEmpty(credential) || credential.Length>128)
+                throw new InvalidOperationException("D167_MANUAL_PROOF_REQUIRED");
+            var r=Send("manual-start",new Dictionary<string,object>{
+                {"day_vn",day},{"instance_id",instanceId},{"generation",generation},
+                {"run_id",runId},{"proof",credential}
+            });
+            if (Str(r,"status")!="AUTHORIZED") throw new InvalidOperationException("D167_MANUAL_NOT_AUTHORIZED");
+            var slot=Str(r,"slot");
+            if (slot!="INITIAL_05" && !System.Text.RegularExpressions.Regex.IsMatch(slot,
+                @"^MANUAL_DELTA_[a-f0-9]{32}$"))
+                throw new InvalidDataException("D167_MANUAL_SLOT_INVALID");
+            return slot;
         }
 
         internal string State(string day,string slot)
