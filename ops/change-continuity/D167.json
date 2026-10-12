@@ -8,7 +8,7 @@
   "pr": 568,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
-    "id": "D167-E036",
+    "id": "D167-E037",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -703,6 +703,32 @@
       ],
       "next_action": "Explain to Owner that hidden same-profile WebView2 is already in current v128 source and is insufficient by itself; no code/release change from this analysis. Require a proven safe authorized export path and real field evidence before any v128 release claim.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; relay-agent/SupraConfirmBrowserD167.cs ; relay-agent-webview2-host/Program.cs ; relay-agent/D167SkuBrowserExport.cs ; relay-agent/D167SkuDirectExport.cs ; PR HEAD b6b49657f2fb36d68bed6bea345bbf2a78656add"
+    },
+    {
+      "id": "D167-E037",
+      "date_vn": "2026-10-13",
+      "topic": "Owner explicitly directs implementation of hidden same-profile secondary WebView2 WMS SKU export under D167 v128",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_EXISTING_HIDDEN_WEBVIEW_APPROACH__EXPORT_AUTH_BARRIER_UNRESOLVED__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner's newest message explicitly directs proceeding with the hidden secondary Agent Web browser launched from the main WMS Agent while remaining invisible; source should reuse the browser session/profile and obtain SKU Excel without interrupting Confirm.",
+        "PR568 relay-agent-webview2-host/Program.cs and relay-agent/SupraConfirmBrowserD167.cs ALREADY implement the requested hidden same-environment WebView2 child, launched via window.open with unique marker; only proper read-only authenticated export is incomplete.",
+        "Main WMS page and hidden child share WebView2 environment/profile, but their JavaScript memory authorization state is not guaranteed to be shared. The existing child CDP header-capture and separate HTTP header replay in D167SkuBrowserExport/DirectExport is the exact previously security-blocked flow, not a repaired browser-native export.",
+        "Security-safe alternatives assessed: genuine WMS-managed in-browser export/official documented read-only API using browser-managed credentials. Current project does not document an authenticated browser-native export trigger or official permission without header/token extraction; no field/device proof. Do not fabricate success or substitute a likely-unauthorized API/header bypass.",
+        "PR568 latest code CI reported successful at the prior observed exact head; after this documentation checkpoint HEAD CI must be rechecked. Released Beta Agent still v127. No Stable, service, Firebase, Android or WMS mutation is authorized."
+      ],
+      "alternatives": [
+        "Do not duplicate the hidden child: it already exists in source.",
+        "Do not implement secret/header capture, credential replay or browser process injection to defeat tool-security refusal.",
+        "Keep the hidden child isolated from Confirm; prove WMS-sanctioned browser-native API/export support, then wire that supported transport into the existing D167 FULL/DELTA Service receipt and run field tests."
+      ],
+      "open_questions": [
+        "Whether approved WMS first-party API/export works in the same-profile hidden browser without extraction or replay of sensitive WMS authorization values remains unknown.",
+        "The current connected tools cannot access the private live WMS page/session for physical verification; real successful XLSX/Service DONE cannot be asserted."
+      ],
+      "next_action": "Document the approved option and keep PR568 Draft until a secure authenticated browser-native or officially supported WMS export route is available and implemented. Do not merge/release v128 as a functional fix without corresponding evidence.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; WebView2 host + D167 SKU source in PR568; Owner command 2026-10-13"
     }
   ],
   "resume": {
