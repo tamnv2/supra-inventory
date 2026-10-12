@@ -175,7 +175,7 @@ namespace SupraInventoryRelayAgent
                 // Log only the numeric status; never stringify provider bodies,
                 // request URLs, authorization headers, cookies or signatures.
                 var http=e.Response as HttpWebResponse;
-                var code=http==null ? "NETWORK_"+e.Status.ToString() :
+                var code=http==null ? "NETWORK_"+e.Status.ToString().ToUpperInvariant() :
                     "HTTP_"+((int)http.StatusCode).ToString();
                 throw new InvalidOperationException("D167_WMS_EXPORT_"+code);
             }
