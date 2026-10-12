@@ -5513,6 +5513,16 @@
         "executable_permission": "NOT_GRANTED_BY_DESIGN_SETUP_REQUEST",
         "deployment_permission": "NOT_GRANTED_BY_DESIGN_SETUP_REQUEST",
         "stable": "OWNER_GATED_UNTOUCHED"
+      },
+      "latest_owner_d167_pr559_2026_10_12": {
+        "approval": "CODE_READY_ONLY_AND_STOP",
+        "owner_action_now": "NONE__CONTINUE_NONDEPLOYING_SOURCE_AND_CI",
+        "manual_action_after_ready": "OWNER_EXPLICIT_NEW_DEPLOY_APPROVAL_FOR_EXACT_SHA_AND_BETA_COMPONENT_SCOPE",
+        "previous_combined_release_instruction": "SUPERSEDED_FOR_UNDEPLOYED_PR559",
+        "no_merge": true,
+        "no_runtime_mutation": true,
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "field_validation": "PENDING_REAL_WMS_PDA_AGENT_PROVIDER_EVIDENCE_AFTER_SEPARATE_APPROVAL"
       }
     }
   ]
