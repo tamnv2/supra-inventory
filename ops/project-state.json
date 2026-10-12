@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D167_PR559_CODE_ONLY_IMPLEMENTATION_IN_PROGRESS__WAIT_ALL_REQUIRED_CI_AND_REMAINING_SOURCE_PROOF__OWNER_DEPLOY_GATED",
+  "next_action": "D167_PR559_CONTINUE_CODE_TEST_CI_TO_CODE_READY_ONLY__STOP_DRAFT_NO_MERGE_NO_DEPLOY__WAIT_EXPLICIT_NEW_OWNER_APPROVAL",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2491,7 +2491,8 @@
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
     "parallel_inventory_change_status": "D167_PR555_BETA_WORKER_WEB_RELEASE_PASS__BUSINESS_QUOTA_FIELD_TEST_PENDING",
     "parallel_boundary": "D166_RELEASE_UPDATE_STABILITY_ACCEPTED_ONLY__D167_UNVERIFIED_TESTS_AND_POSTPONED_WORK_TRACKED_SEPARATELY",
-    "accepted_runtime_base_change_id": "D166"
+    "accepted_runtime_base_change_id": "D166",
+    "pr559_release_gate": "OWNER_2026_10_12_CODE_PASS_ONLY__NO_MERGE_NO_DEPLOY__OLDER_COMBINED_APPROVAL_REVOKED_FOR_PR559"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7179,7 +7180,26 @@
       "physical_field_pass": false,
       "release_approved": false,
       "stable": "OWNER_GATED_UNTOUCHED",
-      "next": "CONTINUE_IMPLEMENTATION_IN_SAME_D167_DRAFT_PR__REQUIRE_CI_AUTHORITY_AND_CONTINUITY_PASS__NO_MERGE_NO_DEPLOY"
+      "next": "CONTINUE_IMPLEMENTATION_IN_SAME_D167_DRAFT_PR__REQUIRE_CI_AUTHORITY_AND_CONTINUITY_PASS__NO_MERGE_NO_DEPLOY",
+      "owner_latest_gate_2026_10_12": "OWNER_CODE_PASS_ONLY_STOP_BEFORE_MAIN_MERGE_OR_BETA_RELEASE",
+      "post_code_ready_action": "STOP_DRAFT_PR559__WAIT_NEW_EXPLICIT_OWNER_DEPLOY_APPROVAL_EXACT_SHA_AND_SCOPE",
+      "prior_combined_deploy_authorization": "SUPERSEDED_FOR_UNDEPLOYED_D167_PR559_ONLY__PR555_HISTORICAL_RELEASE_UNCHANGED",
+      "ci_mode": "SOURCE_ONLY_NO_BETA_PROVIDER_MUTATION_NO_RELEASE_NO_WMS_LIVE_TEST",
+      "outstanding_evidence": "UNVERIFIED_WMS_AGENT_BROWSER_AND_REAL_DEVICE_TESTS_REMAIN_PENDING_IF_CI_CANNOT_PROVE"
+    },
+    "pr559_owner_latest_2026_10_12": {
+      "scope": "THREE_SLOT_AGENT_SKU_FULL_HIDE_TEMPORAL_AREA_WEB_OVERVIEW_DETAIL_EXCEL_AND_REGRESSIONS",
+      "approval": "CONTINUE_CODE_AND_CI_TO_SOURCE_PASS_ONLY",
+      "code_pass": "PENDING",
+      "owner_deploy_approval": false,
+      "owner_d167_pass": false,
+      "merge_to_main": "FORBIDDEN_UNTIL_NEW_EXPLICIT_OWNER_DEPLOY_APPROVAL",
+      "runtime_mutation": "FORBIDDEN_BETA_AND_STABLE",
+      "effect_on_running_model": "NONE_WHILE_BRANCH_CI_REMAIN_NONDEPLOYING",
+      "branch": "d167-code-three-slot-sku-area-report-20261011",
+      "pr": 559,
+      "prior_2026_10_11_combined_deploy": "REVOKED_FOR_UNDEPLOYED_PR559_SCOPE",
+      "preserved_beta_release": "PR555_ALREADY_DEPLOYED_UNCHANGED"
     }
   }
 }
