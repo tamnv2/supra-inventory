@@ -243,3 +243,21 @@ test("D167 recovered PRIMARY import never mixes two distinct staged source files
   assert.match(claim, /fingerprint=CASE WHEN \? THEN NULL ELSE fingerprint END/);
   assert.match(claim, /total_rows=CASE WHEN \? THEN 0 ELSE total_rows END/);
 });
+
+test("D167 midnight boundary: yesterday Web rename does not block today FULL", () => {
+  const prev = {
+    ...old("482","Web yesterday","LTA"),
+    product_name: "Web yesterday", last_wms_name: "Original WMS",
+    last_wms_observed_ms: Date.parse("2026-10-10T23:00:00Z"),
+    manual_name_revision: Date.parse("2026-10-11T13:00:00Z"),
+  };
+  const incoming = [{
+    sku:"482",product_name:"Morning WMS",area:"LTA",
+    area_verified:true,area_reason:"VERIFIED",
+  }];
+  const previousVn = planSkuChanges([prev],incoming,"FULL",0,"2026-10-11");
+  assert.equal(previousVn.conflicts.length,1,"same-day Web edit requires approval");
+  const nextVn = planSkuChanges([prev],incoming,"FULL",0,"2026-10-12");
+  assert.equal(nextVn.conflicts.length,0,"past-day Web edit cannot block new morning");
+  assert.equal(nextVn.update[0].name,"Morning WMS");
+});
