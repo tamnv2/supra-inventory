@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D167",
+  "accepted_base": "D166_LIMITED_OWNER_PASS",
+  "working_branch": "d167-code-three-slot-sku-area-report-20261011",
+  "pr": 559,
+  "status": "OPEN__SOURCE_IN_PROGRESS__CODE_PASS_PENDING__NO_DEPLOY",
+  "last_checkpoint": {
+    "id": "D167-CT-20261012-001",
+    "date_vn": "2026-10-12",
+    "topic": "Owner yêu cầu GitHub ghi đầy đủ trao đổi và khôi phục Dxxx",
+    "verified_branch_only": true
+  },
+  "deployment_gate": {
+    "owner_latest": "2026-10-12 CODE_PASS_ONLY",
+    "code_permission": true,
+    "merge_permission": false,
+    "beta_deploy_permission": false,
+    "stable_deploy_permission": false,
+    "new_owner_approval_required": true,
+    "prior_combined_approval": "SUPERSEDED_FOR_UNDEPLOYED_PR559"
+  },
+  "entries": [
+    {
+      "id": "D167-E001",
+      "date_vn": "2026-10-10",
+      "topic": "D166 limited PASS, mở D167",
+      "kind": "DECISION",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Owner chấp nhận D166 trong phạm vi bản cập nhật chưa ghi nhận lỗi mới; vấn đề tồn đọng về field/usage không được coi đã PASS",
+        "D167 là current open change; Stable OWNER-GATED"
+      ],
+      "next_action": "Giữ backlog chưa nghiệm thu trong D167, không mở D168",
+      "evidence": "ops/project-state.json#change_control"
+    },
+    {
+      "id": "D167-E002",
+      "date_vn": "2026-10-11",
+      "topic": "D01–D10: HR, giờ ăn, 03:00, ngày nghiệp vụ, SKU, LTA/Shelving, báo cáo, log, quy trình",
+      "kind": "DECISION",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Web nhập nhân sự trực tiếp/Excel; fallback giờ ăn; chốt chưa xử lý 03:00 N+1; batch tách theo ngày",
+        "Sổ kỹ thuật Repo đã ghi quyết định, nhưng field PASS của các mục là riêng biệt"
+      ],
+      "next_action": "Tiếp tục nghiệm thu theo hạng mục; không coi yêu cầu đã chốt là đã triển khai",
+      "evidence": "docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md"
+    },
+    {
+      "id": "D167-E003",
+      "date_vn": "2026-10-11",
+      "topic": "Đồng bộ SKU 3 lần/ngày",
+      "kind": "DECISION",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "INITIAL_05 FULL sau 05:00 VN; lần 2 DELTA random 12:00–12:15; lần 3 DELTA random 19:00–19:15",
+        "FULL ẩn SKU vắng mặt nhưng không xóa/làm mất lịch sử; DELTA không ẩn khi file thiếu",
+        "Giữ CAS, HA generation, sparse diff, lịch sử khu vực theo thời điểm quan sát; Web PATCH với conflict guard"
+      ],
+      "next_action": "Hoàn thiện nguồn Agent WMS managed-browser, staging/readback và regression",
+      "evidence": "docs/OWNER_DECISIONS.md#2026-10-11-2133-vn"
+    },
+    {
+      "id": "D167-E004",
+      "date_vn": "2026-10-11",
+      "topic": "PR #555 đã triển khai Web/Worker Beta, Owner field PASS chưa có",
+      "kind": "STATUS",
+      "status": "TECHNICAL_RELEASE_PASS_ONLY",
+      "owner_approval": true,
+      "facts": [
+        "PR #555 Worker/Web/InventoryCore Beta đã technical release; Agent v125/Android vc105 từ release trước chưa chứng minh đã cài lên máy thực tế",
+        "Điểm này không phải bằng chứng FULL SKU ba lần/ngày đã chạy"
+      ],
+      "next_action": "Không rollback hoặc nâng cấp runtime vì thay đổi quy trình bộ nhớ",
+      "evidence": "ops/project-state.json#change_control"
+    },
+    {
+      "id": "D167-E005",
+      "date_vn": "2026-10-11",
+      "topic": "Mã nguồn D167 đồng bộ SKU và báo cáo trên Draft PR #559",
+      "kind": "STATUS",
+      "status": "IN_PROGRESS",
+      "owner_approval": true,
+      "facts": [
+        "PR #559 có nguồn Agent browser, scheduler, InventoryCore SQL SKU/area, report APIs, Web report/Excel và test",
+        "Nguồn thực WMS trên Agent managed profile, HA six-Agent, 2.5k–5k SQL/performance, Android catalog/ACK và field provider evidence chưa chứng minh",
+        "Các workflow xanh không đồng nghĩa CODE READY hoặc field PASS"
+      ],
+      "next_action": "Hoàn thiện regression và chứng cứ CODE PASS, không merge/deploy",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559"
+    },
+    {
+      "id": "D167-E006",
+      "date_vn": "2026-10-12",
+      "topic": "Ảnh hưởng đến mô hình chạy và phương án chuyển Agent chính",
+      "kind": "DISCUSSION",
+      "status": "ANALYZED_NOT_DEPLOYED",
+      "owner_approval": null,
+      "facts": [
+        "Chuyển máy PRIMARY chỉ chuyển Agent xác nhận/đồng bộ, không tách được ảnh hưởng dữ liệu chung",
+        "Rủi ro Confirm Picklist bị chặn bởi modal hoặc scheduler, FULL thiếu nguồn ẩn nhầm hàng, client cache và SLA/ACK"
+      ],
+      "next_action": "Khắc phục nguy cơ trong CODE PASS; thử vận hành thật chỉ sau phê duyệt triển khai mới",
+      "evidence": "relay-agent/Program.cs; service/src/d167-sku-sync-core.ts"
+    },
+    {
+      "id": "D167-E007",
+      "date_vn": "2026-10-12",
+      "topic": "Owner chốt dừng ở CODE PASS, không triển khai",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Hoàn thiện toàn bộ D167 scope được duyệt trong nhánh PR #559; chạy code/tests/CI thôi",
+        "Không merge main, không Beta/Stable deploy, Agent/APK/OTA/channel release, không bật WMS scheduled sync, không thay live SKU dữ liệu",
+        "Chỉ có Owner phê duyệt triển khai mới để mở khóa; chỉ đạo code+deploy cũ bị thay thế trong phạm vi PR559 chưa triển khai"
+      ],
+      "next_action": "Sau CODE PASS: báo cáo exact SHA và checkpoint, dừng",
+      "evidence": "docs/OWNER_DECISIONS.md#2026-10-12-code-pass-only"
+    },
+    {
+      "id": "D167-E008",
+      "date_vn": "2026-10-12",
+      "topic": "Yêu cầu ghi nhớ xuyên phiên chat từ GitHub",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Owner yêu cầu mỗi lượt trao đổi có thông tin mới phải được ghi trong repo: đã trao đổi/chốt/không chốt/còn dở/test/error/next action",
+        "Từ phiên chat mới: 'tiếp tục Dxxx' phải bootstrap main + active PR branch, không dựa vào AI memory",
+        "Repo công khai nên chỉ lưu tóm tắt kỹ thuật không nhạy cảm; có thể không ghi khi lượt đọc-only thật sự không thay đổi trạng thái"
+      ],
+      "next_action": "Duy trì journal theo từng lượt thảo luận có nội dung mới, kiểm tra GitHub write/readback; giữ nguyên CODE PASS ONLY",
+      "evidence": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
+      "alternatives": [
+        "Chỉ ghi sau Owner chốt (không đủ)",
+        "Lưu transcript nguyên văn (không phù hợp repo công khai)",
+        "Nhật ký chủ đề + checkpoint hiện trạng qua nhánh PR (CHỌN)"
+      ],
+      "open_questions": []
+    }
+  ],
+  "resume": {
+    "approved": [
+      "D167 requirements D01–D10 và ba slot FULL/DELTA, LTA/Shelving/UNKNOWN, no delete",
+      "Lệnh mới 2026-10-12: CODE PASS ONLY / giữ PR #559 Draft",
+      "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal"
+    ],
+    "implemented": [
+      "D167 Web/Worker Beta phần đã release từ PR #555; không chứng minh field PASS",
+      "PR #559 source candidate: Agent browser/Service SKU-area/Web report Excel đã có code"
+    ],
+    "in_progress": [
+      "CODE PASS PR #559: Agent WMS managed-browser, 5k SQL/recovery HA, Android catalog/ACK, report/Excel parity, usage regressions",
+      "Thiết lập repo-first per-turn GitHub continuity và CI journal guard"
+    ],
+    "pending_approval": [
+      "Owner riêng duyệt triển khai Beta theo exact SHA/scope sau CODE PASS",
+      "Owner nghiệm thu thực tế sau triển khai; Stable luôn Owner-gated"
+    ],
+    "blocked": [
+      "Chưa có real field WMS/HA/PDA proof cho PR #559; không được claim FIELD PASS",
+      "Mọi quyền triển khai PR #559 đã tạm khóa theo yêu cầu mới"
+    ],
+    "next_actions": [
+      "Ghi và kiểm tra repo-first continuity protocol/journal and CI guard trên PR #559",
+      "Tiếp tục D167 code-only và kết thúc với CODE PASS evidence; dừng trước merge/deploy",
+      "Khi Owner gọi 'tiếp tục D167': đọc main + active PR head + journal trước khi phân tích/phản hồi"
+    ],
+    "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
+  }
+}
