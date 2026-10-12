@@ -46,3 +46,18 @@ Owner explicitly supersedes the earlier 2026-10-11 combined D167 PR #559 code+Be
 - Validate current managed-browser integration statically and in isolated nonmutating CI. Any proof that necessarily requires real company WMS, live PRIMARY or physical PDA remains explicitly `FIELD_PENDING`, not fictitious CODE PASS. Owner will separately approve a scoped release/field validation later.
 - Retain the existing 3-slot behavior, day-scoped FULL/DELTA, no deletion, atomic publish, historical area, reporting/Excel correctness, HA/ACK and quota regressions as mandatory CODE READY requirements.
 - The 2026-10-11 Beta PR #555 technical release is historical and is not rolled back; new release permission is **not inherited**.
+
+## 2026-10-12 — Continued implementation / FULL REPLACE and reporting parity
+
+**Latest Owner command:** finish source and CI to CODE PASS only; Draft PR #559 remains unmerged and **no release/deploy**. The original entries above saying the Agent executor or same-managed-browser export are "not implemented" are stale regarding *source presence*: the branch now contains `relay-agent/D167SkuCoordinator.cs`, `D167SkuBrowserExport.cs`, `SupraConfirmBrowserD167.cs`, hosted WebView2 child handling, and `D167SkuServiceClient.cs`. Real Office WMS / company multi-Agent field E2E remains **unproven** and must not be conflated with existence/CI of this source.
+
+| Scope | Current source implementation | Verification boundary |
+| --- | --- | --- |
+| PDA Confirm protection | Agent includes automatic D160 PDA work **and** manual work in the SKU export busy predicate; runtime approval dialog is created by the background job without a blocking main Agent-UI Invoke | Windows Agent CI compile, actual WMS latency field PENDING |
+| FULL safety | Preview/approve guard for unexpectedly large active roster reduction (previous active >=300 and hide >max(150,40%)); no change to existing history; no silent large hide | Source guards + synthetic SQL, production provider/5k DO CPU unmeasured |
+| Intraday staging | Noon DELTA coalesces durably into evening if still open once evening scheduled, Agent does not replay stale noon | Source/test guard, 6-Agent physical HA pending |
+| Source cleanup | Agent deletes parsed XLSX and closes only hidden isolated WMS child target, preserving Confirm page | Windows build, managed WebView2 live proof pending |
+| Report area coherence | Batch and Picker detail area filters use historical as-of SQL; Web filter/Excel pagination includes LTA/Shelving/UNKNOWN; overall KPI is labelled all-area | Web/Service build source proof, company dataset numbers pending |
+| Manual Web FULL REPLACE | Optional only for Admin/Root; PATCH default; bounded FULL preview and explicit confirmation, revision+source-hash CAS, one atomic SQL catalog publish, no SKU/history deletion, inactive tombstones/membership epoch, readback, audit, idempotent lost-response receipt | Source CI/SQLite regression, actual 5k DO resource benchmark and PDA field pending |
+
+**No provider resources, secrets, new WMS mutation, runtime release, Agent/Android app channel or Stable changes.** Workstream updates are recorded in `ops/change-continuity/D167.json`. Code-only proof remains separate from field acceptance and Owner D167 PASS. The last exact-head CI verdict must be read from GitHub, never taken from an earlier passing commit.
