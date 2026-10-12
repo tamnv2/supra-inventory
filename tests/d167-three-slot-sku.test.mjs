@@ -186,3 +186,19 @@ test("D167 Web report and Excel preserve identical as-of area filters", async ()
   assert.match(ui, /area: reportArea \|\| undefined/);
   assert.match(excel, /Bộ lọc khu vực của đợt và chi tiết Picker/);
 });
+
+test("D167 Web FULL REPLACE is guarded separately from PATCH", async () => {
+  const { readFileSync } = await import("node:fs");
+  const core = readFileSync(new URL("../service/src/d167-web-full-replace.ts", import.meta.url), "utf8");
+  const business = readFileSync(new URL("../service/src/business-api.ts", import.meta.url), "utf8");
+  const web = readFileSync(new URL("../web/src/operational-app.ts", import.meta.url), "utf8");
+  assert.match(core, /FULL_REPLACE_REQUIRES_CONFIRMATION/);
+  assert.match(core, /FULL_REPLACE_STALE_PREVIEW/);
+  assert.match(core, /FULL_REPLACE_READBACK_MISMATCH/);
+  assert.match(core, /INSERT OR IGNORE INTO d167_sku_active/);
+  assert.match(business, /POST \/api\/admin\/skus\/full-replace/);
+  assert.match(web, /confirmFullReplace: true/);
+  assert.match(web, /preview\.hidden/);
+  assert.match(web, /if \(skuImportFullReplace\)/);
+  assert.match(web, /importSkuChunk\(chunk,/);
+});
