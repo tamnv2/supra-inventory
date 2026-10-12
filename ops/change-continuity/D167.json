@@ -4,11 +4,11 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-code-three-slot-sku-area-report-20261011",
-  "pr": 559,
+  "working_branch": "d167-agent-sku-tab-manual-20261012",
+  "pr": 566,
   "status": "D167_PR559_BETA_TECHNICAL_DEPLOY_PASS__FIELD_OWNER_PASS_PENDING",
   "last_checkpoint": {
-    "id": "D167-E024",
+    "id": "D167-E025",
     "date_vn": "2026-10-12"
   },
   "deployment_gate": {
@@ -477,6 +477,27 @@
       ],
       "next_action": "Present source-backed UX/manual-safety/quota proposal; await explicit Owner 'chốt/chạy code'. No Agent, Worker, Gateway, Android, Stable or actual WMS mutation or release is authorized by this proposal.",
       "evidence": "main 7d22ad6514ea65132e62dad47f717cc3164d013b; relay-agent/{D167SkuCoordinator.cs,D167SkuServiceClient.cs,D167SkuSchedule.cs,Program.cs,ExitAuthorization.cs,D165PrivilegedAuth.cs}; service/src/{d167-sku-sync-core.ts,index.ts,d167-sku-ha.ts}; https://github.com/tamnv2/supra-inventory/pull/559"
+    },
+    {
+      "id": "D167-E025",
+      "date_vn": "2026-10-12",
+      "topic": "Owner approves D167-E024 and explicitly orders implementation/release of protected Agent SKU tab on registered Inventory Beta",
+      "kind": "DECISION",
+      "status": "OWNER_APPROVED_IMPLEMENTATION_AND_SCOPED_BETA_RELEASE__SOURCE_AND_CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly says 'ok chốt. triển khai' after D167-E024 recommendation: this is approval to code, test and release existing-scoped Inventory Beta Agent/Worker/InventoryCore/Gateway only; Android, Stable, Launcher and new provider resources remain unchanged.",
+        "Implement Agent SKU tab with scheduled three slots status, DONE/readback, locally sourced SKU/name/coarse area, compact manual history, manual password/OTP protected source run and very low idle usage.",
+        "Manual before daily FULL reuses INITIAL_05 and may bypass its clock target after fresh server verification; manual after same-day FULL creates separate unique MANUAL_DELTA run without hiding SKU or consuming scheduled 12/19 slots. Same HA PRIMARY gate, WMS managed read-only export, existing SQL CAS staging and conflict guard, Confirm precedence.",
+        "New candidate branch d167-agent-sku-tab-manual-20261012 and PR #566 contain work-in-progress source; v127 is a planned signed Agent channel candidate only, not released proof. Baseline D167 PR559 Beta vc106/v126 remains technically published, actual fleet/field and Owner PASS unknown.",
+        "Security contract: Worker verifies current Agent account password or privileged OTP/emergency and authoritative PRIMARY, strips proof before Core; Gateway only forwards credential ephemerally. Local UI never logs/stores proof; no extra polling, listeners, stock/bin queries or per-device reads.",
+        "Source currently staged for Agent UI/client/coordinator, Worker/Core, existing Apps Script Gateway, tests and Owner decision/spec documentation; exact CI gates and release receipt to be completed before merge."
+      ],
+      "alternatives": [
+        "O2 chosen: local event-driven tab and password-verified, separately fenced manual FULL/DELTA; no new provider resources."
+      ],
+      "next_action": "Finish complete Windows/.NET build and TS/Node tests, review concurrency/security/usage regressions, obtain exact CI source SHA, update release authorization to approved source and ensure authority+continuity PASS before Beta merge/release. Keep D167 field PASS pending.",
+      "evidence": "Owner chat 2026-10-12 'ok chốt. triển khai'; https://github.com/tamnv2/supra-inventory/pull/566 ; prior proposal https://github.com/tamnv2/supra-inventory/pull/565"
     }
   ],
   "resume": {
@@ -486,7 +507,8 @@
       "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal",
       "Owner 2026-10-12: same-VN-day FULL hard gate; Web FULL or Agent qualifies, PATCH does not; exact Picker/Reporter warning; WMS ephemeral signed API GET; cancel superseded backlog",
       "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged",
-      "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved"
+      "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved",
+      "D167-E025: Owner explicitly approves Agent SKU update tab + server-password-protected run-now with no new polling, existing Inventory Beta rollout after CI; Agent v127 candidate."
     ],
     "implemented": [
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
@@ -500,7 +522,8 @@
       "2026-10-12 D167 PR559 Beta technical release merged main 54ee8e51: Worker/Gateway/Android vc106/Agent v126 plus Fixed WebView2 bundle, 14/14 main workflows success"
     ],
     "in_progress": [
-      "Await physical fleet and real company WMS/HA/ACK/area/usage acceptance; no further CODE READY feature known excluded"
+      "Await physical fleet and real company WMS/HA/ACK/area/usage acceptance; no further CODE READY feature known excluded",
+      "D167 PR566 implementation Agent v127 + Worker/InventoryCore + existing Agent Gateway pending PR checks and exact source release gate."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -512,8 +535,9 @@
     ],
     "next_actions": [
       "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance",
-      "After Owner review of D167-E024, implement only upon explicit code permission; retain Beta release/Stable separate gate and test REAL WMS/HA/Confirm/usage before field acceptance."
+      "After Owner review of D167-E024, implement only upon explicit code permission; retain Beta release/Stable separate gate and test REAL WMS/HA/Confirm/usage before field acceptance.",
+      "PR566 exact CI/source QA, scope/protected runtime release receipt; then Owner-approved Beta Agent v127 Worker/Gateway channel publication and readback; field installation still unverified."
     ],
-    "release_boundary": "D167_PR559_BETA_TECHNICAL_RELEASE_COMPLETE__STABLE_GATED__D167_FIELD_OWNER_PASS_PENDING"
+    "release_boundary": "D167_PR566_OWNER_APPROVED_EXISTING_BETA_RELEASE_AFTER_SOURCE_CI__STABLE_GATED__FIELD_OWNER_PASS_PENDING"
   }
 }
