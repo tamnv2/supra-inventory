@@ -7164,5 +7164,28 @@
       "field_owner_pass": false,
       "rollback": "NO_ROLLBACK_PERFORMED__NO_FIELD_MUTATION_PROVEN"
     }
+  },
+  "d167_web_visual_layout_20261012": {
+    "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
+    "scope": [
+      "web/src/operational-app.ts",
+      "web/src/legacy-transplant/d167-web-layout-density.css"
+    ],
+    "workspaces": [
+      "ROOT_RESET",
+      "RUNTIME_LOGS",
+      "SLA_TIMING",
+      "USERS"
+    ],
+    "change_id": "D167",
+    "accepted_base": "D166_OWNER_LIMITED_PASS",
+    "beta_deploy": "OWNER_EXPLICIT_20261012_PR563_WEB_ASSETS_PLUS_UNCHANGED_BETA_WORKER_APPROVED",
+    "stable": "UNCHANGED_OWNER_GATED",
+    "other_d167_pending": "UNCHANGED",
+    "field_pass": "PENDING",
+    "validation": "SOURCE_CANDIDATE_84290C93__CI_14_OF_14_PASS_PRE_AUTH__POST_AUTH_CI_PENDING",
+    "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR563_WEB_LAYOUT_FOUR_AREAS_BETA",
+    "approved_source_sha": "84290c93dc6cfb74d30f972d8b8ef6d4868b007a",
+    "release_workflow": "Deploy Beta Worker__ONLY_AFTER_REQUIRED_PR_CHECKS_PASS"
   }
 }

@@ -2,11 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a",
+  "approved_source_sha": "84290c93dc6cfb74d30f972d8b8ef6d4868b007a",
   "approved_components": [
     "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR561_CONTINUOUS_EARLY_MEAL_EDIT_BETA",
-  "approved_at_vn": "2026-10-12T19:21:00+07:00",
-  "note": "Owner explicitly commands deploy now of isolated D167 PR561: continuous EARLY->LATE meal correction at any instant before 12:00 lunch / 19:00 dinner VN. Only existing Beta Web assets+Worker/InventoryCore; retain LATE pre-11:00/18:00 lock, password/privileged proof, CAS and pending-only auto-Skip. Source-approved executable SHA 0e4757f2... must remain ancestor, no protected-file delta after it. No PR559 merge, APK, Agent, Gateway, Firebase, WMS, Stable, new resources or scheduled automation."
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR563_WEB_LAYOUT_FOUR_AREAS_BETA",
+  "approved_at_vn": "2026-10-12T21:13:22+07:00",
+  "note": "Owner replies 'oke' to the precise scope question in D167 PR563: publish only approved four-area Web UI changes to existing Beta Web by redeploying registered Beta Worker/InventoryCore with unchanged service source, API, schema, auth, data, cron, security and runtime contracts. Candidate executable SHA 84290c93dc6cfb74d30f972d8b8ef6d4868b007a is immutable ancestor; no protected-code delta afterward. PR559 and all other pending D167 scopes remain excluded; no Android/Agent/Firebase/Gateway/Stable/resources/OTA deployment. CI + deploy health must pass; Owner field PASS remains pending."
 }

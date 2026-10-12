@@ -1,0 +1,117 @@
+/* D167 UI-only density adjustments. Scoped to four Web workspaces.
+   No JS state, API, auth, realtime or business transitions are changed. */
+
+/* 1. Root reset: maintain complete descriptions but avoid tall, empty tiles. */
+.reset-workspace { gap: 12px; }
+.reset-workspace .reset-card-grid { gap: 9px; align-items: stretch; }
+.reset-workspace .ops-panel.reset-card {
+  min-height: 0 !important;
+  padding: 12px 14px !important;
+  gap: 9px;
+  align-items: center;
+  grid-template-columns: 18px minmax(0,1fr) auto;
+}
+.reset-workspace .reset-card-copy { gap: 3px; min-width: 0; }
+.reset-workspace .reset-card-copy strong { font-size: 13px; line-height: 1.3; }
+.reset-workspace .reset-card-copy small { display:block; font-size: 11px; line-height: 1.35; overflow-wrap: break-word; }
+.reset-workspace .reset-card > b { font-size: 12px; align-self: start; }
+.reset-workspace .reset-toolbar { padding: 9px 12px; }
+.reset-workspace .reset-security-panel { padding: 14px 16px !important; }
+
+/* 2. Logs: the date picker belongs to the toolbar, not the following list. */
+.logs-workspace #log-date-range.log-retention-window {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px 12px;
+  flex-wrap: wrap;
+  margin: 0 0 18px !important;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--pro-border, #dce4eb);
+}
+.logs-workspace #log-date-range > label { min-width: 142px; }
+.logs-workspace #log-date-range > .muted { align-self: flex-end; line-height: 1.45; padding-bottom: 4px; }
+.logs-workspace #log-date-range + .logs-layout,
+.logs-workspace #log-date-range + .ops-panel { margin-top: 0; }
+
+/* 3. SLA: live policy overview now precedes the authority metadata. */
+.sla-professional > .sla-current-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  gap: 9px;
+  margin: 0 !important;
+}
+.sla-professional > .sla-current-grid .sla-current-card {
+  min-width: 0;
+  min-height: 54px;
+  padding: 10px 12px;
+  gap: 8px;
+}
+.sla-professional > .sla-current-grid .sla-current-card span { line-height: 1.35; }
+.sla-professional > .sla-current-grid .sla-current-card strong {
+  font-size: 16px;
+  text-align: right;
+  white-space: nowrap;
+}
+.sla-professional > .sla-authority-strip > div { padding: 10px 12px; }
+.sla-professional > .sla-authority-strip span { font-size: 10px; }
+.sla-professional > .sla-authority-strip strong { font-size: 12px; }
+
+/* 4. Staff: compact counters and align creation/search workflows. */
+.users-workspace .business-summary-grid { gap: 9px !important; margin-bottom: 12px !important; }
+.users-workspace .business-summary-card { min-height: 0; padding: 10px 12px !important; }
+.users-workspace .business-summary-card strong { margin: 3px 0; font-size: 21px; }
+.users-workspace .users-top-grid {
+  grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr);
+  gap: 10px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+.users-workspace .users-create-panel,
+.users-workspace .users-filter-panel { min-width: 0; margin-bottom: 0 !important; padding: 14px 16px !important; }
+.users-workspace .users-top-grid .ops-panel-title { margin-bottom: 10px !important; }
+.users-workspace .users-form-grid { gap: 9px 10px; }
+.users-workspace .users-form-grid input,
+.users-workspace .users-form-grid select { min-height: 38px; padding: 7px 9px; }
+.users-workspace .users-create-form { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.users-workspace .users-create-form .ops-form-actions {
+  grid-column: 3 / 4;
+  align-self: end;
+  justify-content: flex-end;
+  padding: 0 !important;
+}
+.users-workspace .users-filter-form { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.users-workspace .users-filter-form label.span { grid-column: 1 / -1; }
+.users-workspace .users-filter-form .ops-form-actions {
+  grid-column: 4 / 5;
+  padding: 0 !important;
+  align-self: end;
+  justify-content: stretch;
+}
+.users-workspace .users-filter-form .ops-form-actions > button { width: 100%; }
+.users-workspace .users-top-grid button { min-height: 38px; }
+.users-workspace .ops-users-panel { margin-top: 0; }
+
+/* Viewports: never force cramped text boxes on smaller screens. */
+@media (max-width: 1400px) {
+  .users-workspace .users-top-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 980px) {
+  .sla-professional > .sla-current-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width: 780px) {
+  .reset-workspace .reset-card-grid { grid-template-columns: 1fr; }
+  .users-workspace .users-create-form,
+  .users-workspace .users-filter-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .users-workspace .users-create-form .ops-form-actions,
+  .users-workspace .users-filter-form .ops-form-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .users-workspace .users-filter-form .ops-form-actions > button { width: auto; }
+}
+@media (max-width: 520px) {
+  .sla-professional > .sla-current-grid { grid-template-columns: 1fr !important; }
+  .users-workspace .users-create-form,
+  .users-workspace .users-filter-form { grid-template-columns: 1fr; }
+  .users-workspace .users-filter-form label.span { grid-column: auto; }
+  .users-workspace .users-create-form .ops-form-actions,
+  .users-workspace .users-filter-form .ops-form-actions { grid-column: auto; }
+  .logs-workspace #log-date-range > label { width: 100%; }
+}
