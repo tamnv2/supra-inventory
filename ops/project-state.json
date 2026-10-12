@@ -7138,7 +7138,7 @@
         "actual_managed_primary_browser_export_proved": false,
         "end_to_end_three_slot_proved": false
       },
-      "status": "D167_PR559_COMPLETE_SOURCE_CODE_READY__20_OF_20_EXACT_SOURCE_SHA_CI_PASS__SIGNED_ANDROID_VC106_AND_AGENT_V126_BUILD_ARTIFACTS_READY__OWNER_DEPLOY_PENDING",
+      "status": "D167_PR559_MEAL_BREAK_WEB_ONLY_SCOPE_ADDED__EXACT_HEAD_CI_PENDING__NO_DEPLOY",
       "source_branch": "d167-code-three-slot-sku-area-report-20261011",
       "pr": 559,
       "owner_code_authorized": true,
@@ -7214,7 +7214,7 @@
       "ci_mode": "SOURCE_ONLY_19_OF_19_PASS_AT_PRE_RECEIPT_SHA__RECHECK_LAST_RECEIPT_COMMIT",
       "outstanding_evidence": "UNVERIFIED_WMS_AGENT_BROWSER_AND_REAL_DEVICE_TESTS_REMAIN_PENDING_IF_CI_CANNOT_PROVE",
       "source_last_reviewed_sha": "60dbc3db35c6ce97fcb7e7993fa60eaf5701684a",
-      "source_code_ready": true,
+      "source_code_ready": false,
       "daily_full_owner_policy": "BLOCK_NEW_PICKER_REPORT_ANY_VN_HOUR_UNTIL_VERIFIED_TODAY_FULL__AGENT_INITIAL_FULL_OR_WEB_FULL_REPLACE",
       "transport_owner_override": "AUTHORIZED_RAM_ONLY_HEADER_CAPTURE_FROM_CURRENT_PRIMARY_WMS_MANAGED_BROWSER_FOR_ALLOWLISTED_DIRECT_SIGNED_GET__NO_CONFIRM_UI_CLICK",
       "downstream_sync": "FIRST_FULL_NOOP_STILL_PUSHES_SKU_CATALOG_WARMUP_EVENT_FOR_CLIENT_READINESS",
@@ -7293,6 +7293,23 @@
       "owner_field_pass": false,
       "source_code_ready": true,
       "source_ci_evidence_sha": "33bcb727f9d96e53c9478858198a167ff18aa1ab"
+    },
+    "meal_break_web_password_edit_2026_10_12": {
+      "owner_clarified": "REPORTER_MEAL_BREAK_TIME",
+      "owner_action": "APPROVED_IMPLEMENTATION_AND_SCOPED_DEPLOY_NOT_FULL_D167_PR559_RELEASE",
+      "scope": "WEB_WORKER_INVENTORYCORE_ONLY",
+      "source_status": "IMPLEMENTED_ON_PR559__CI_PENDING_EXACT_HEAD",
+      "permission": "ORIGINAL_REPORTER_OR_ADMIN_ROOT",
+      "window": "ONLY_BEFORE_EARLIEST_BREAK_START_11_00_LUNCH_18_00_DINNER_VN",
+      "proof": "CURRENT_ACCOUNT_PASSWORD_OR_EXISTING_PRIVILEGED_OTP_EMERGENCY",
+      "auth_data_never_forwarded": true,
+      "service_cas": "EXPECTED_CONFIRMED_AT_AND_DAY",
+      "recalc": "PENDING_AUTO_SKIP_SQL_TRANSACTION_AND_REARM",
+      "notification": "EXISTING_MEAL_BREAK_REPORTER_QUEUE_OVERDUE_SCOPES",
+      "apk_change": false,
+      "agent_change": false,
+      "production_change": false,
+      "stable_owner_gate": true
     }
   },
   "change_continuity": {
@@ -7302,7 +7319,7 @@
     "journal": "ops/change-continuity/D167.json",
     "working_branch": "d167-code-three-slot-sku-area-report-20261011",
     "pr": 559,
-    "latest_checkpoint_id": "D167-CT-20261012-007",
+    "latest_checkpoint_id": "D167-CT-20261012-008",
     "checkpoint_date_vn": "2026-10-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",

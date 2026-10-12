@@ -6,11 +6,11 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-code-three-slot-sku-area-report-20261011",
   "pr": 559,
-  "status": "SOURCE_CODE_READY_20_OF_20_EXACT_SOURCE_SHA__SIGN_ANDROID_VC106_AGENT_V126_BUILD_ARTIFACTS__DRAFT_NO_DEPLOY",
+  "status": "D167_NEW_WEB_ONLY_MEAL_EDIT_IMPLEMENTED_CI_PENDING__PR559_DRAFT_NO_DEPLOY",
   "last_checkpoint": {
-    "id": "D167-CT-20261012-007",
+    "id": "D167-CT-20261012-008",
     "date_vn": "2026-10-12",
-    "topic": "All Owner-locked D167 CODE READY exact source CI and build artifacts, code-only hold",
+    "topic": "Owner approved Web-only meal edit with current password; implemented; CI and deployment gate separate",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -315,6 +315,26 @@
       ],
       "next_action": "Reverify GitHub final documentation/continuity HEAD CI, then stop on CODE READY; do not merge or deploy until new Owner scoped authorization.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/559; https://github.com/tamnv2/supra-inventory/commit/33bcb727f9d96e53c9478858198a167ff18aa1ab; GitHub Actions runs 38201200829,38201200873,38201200863,38201200848"
+    },
+    {
+      "id": "D167-E017",
+      "date_vn": "2026-10-12",
+      "topic": "Owner confirms Web edit of already confirmed Reporter meal slot with password, approves scoped implementation",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED_WEB_WORKER_INVENTORYCORE_ONLY__NO_APK_AGENT__CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner confirms the requested time is Reporter meal break in Ca vận hành, not a device clock; explicitly instructs implement/deploy.",
+        "Original confirming Reporter or Admin/ROOT on Web validates their current-account password or privileged proof to switch EARLY/LATE before 11:00/18:00 VN; no APK or Agent code change.",
+        "Existing D167 Worker and InventoryCore first-winner POST remain unmodified. Separate guarded /api/reporter/meal-break/edit uses same-day confirmed_at CAS, SQLite atomic recalc/audit, Service alarm and existing realtime meal_break/queue/overdue scopes.",
+        "Already committed code PR559: service/src/meal-break-core.ts, core.ts, index.ts, web/src/api.ts, operational-app.ts; contract test tests/d167-meal-edit.test.mjs and workflow verify-d167-three-slot.yml.",
+        "Owner previously required no runtime updates during active shift. PR559 includes unshipped Agent/APK and SKU changes; do not deploy entire broad draft PR to satisfy Web-only request. Stable Owner-gated."
+      ],
+      "open_questions": [
+        "Exact post-shift Beta release vehicle for Web+Service-only feature without broad PR559: create a separate D167 scoped PR/reconcile main then Owner-authorized deployment."
+      ],
+      "next_action": "Pass exact final head CI, prepare isolated same-D167 Web+Service Beta release after shift, preserve draft PR559 and avoid Android/Agent changes.",
+      "evidence": "Owner chat 2026-10-12 confirms giờ nghỉ; GitHub PR559 source and test paths"
     }
   ],
   "resume": {
@@ -333,7 +353,7 @@
       "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known"
     ],
     "in_progress": [
-      "Final documentation/state-only checkpoint SHA CI readback, no executable modifications or release permitted"
+      "Web-only meal edit new D167 code and its exact head CI, ready for scoped post-shift Beta release; no broad PR559 merge"
     ],
     "pending_approval": [
       "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
@@ -345,9 +365,9 @@
       "Actual Office WMS API-session proof remains FIELD_PENDING, no live WMS access in source-only approval"
     ],
     "next_actions": [
-      "Confirm documentation-only continuity commit CI; stop D167 Draft PR559 at CODE READY",
-      "Obtain new Owner exact-SHA component-scoped Beta deployment instruction before merge/release",
-      "After approved deploy: company WMS read-only GET, 6-Agent HA/Confirm latency, Android SKU/ACK, SQL/CPU/provider metered usage field verification"
+      "Complete current source CI and verify meal edit tests",
+      "Prepare D167 isolated Web/Worker meal edit PR from main for after-shift rollout without Agent/APK/SKU changes",
+      "Do not auto-publish broad Draft PR559; preserve existing field operations"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
