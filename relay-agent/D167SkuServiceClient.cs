@@ -208,7 +208,8 @@ namespace SupraInventoryRelayAgent
 
         private Dictionary<string, object> Send(string operation,Dictionary<string,object> data)
         {
-            if (!stillPrimary()) throw new InvalidOperationException("D167_NOT_PRIMARY");
+            if (!stillPrimary() && operation!="schedule" && operation!="status")
+                throw new InvalidOperationException("D167_NOT_PRIMARY");
             ensureFreshToken();
             var auth = session();
             if (auth == null || string.IsNullOrWhiteSpace(auth.IdToken))
