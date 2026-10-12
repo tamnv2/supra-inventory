@@ -218,9 +218,8 @@ export function editMealChoice(
     const slot = slotFor(day, period as MealPeriod, choice as MealChoice);
     const at = new Date(nowMs).toISOString();
     const altered = state.storage.sql.exec(
-      "UPDATE d167_meal_choices SET choice=?,starts_at_ms=?,ends_at_ms=?,confirmed_at=?,confirmed_by=?,confirmed_name=? WHERE day_vn=? AND period=? AND confirmed_at=? AND choice=?",
-      choice, slot.from, slot.to, at, actorId, String(body.actor_name || "").slice(0, 120),
-      day, period, expectedAt, String(prior.choice),
+      "UPDATE d167_meal_choices SET choice=?,starts_at_ms=?,ends_at_ms=?,confirmed_at=? WHERE day_vn=? AND period=? AND confirmed_at=? AND choice=?",
+      choice, slot.from, slot.to, at, day, period, expectedAt, String(prior.choice),
     );
     const affected = first(state.storage.sql.exec<SqlRow>("SELECT changes() AS n").toArray());
     if (Number(affected?.n || 0) !== 1)
@@ -232,7 +231,9 @@ export function editMealChoice(
       day + ":" + period, JSON.stringify({
         day_vn: day, period, before_choice: String(prior.choice),
         after_choice: choice, before_confirmed_at: expectedAt,
-        after_confirmed_at: at, credential_mode: String(body.credential_mode || "PASSWORD"),
+        after_confirmed_at: at, edited_by: actorId,
+        edited_name: String(body.actor_name || "").slice(0, 120),
+        credential_mode: String(body.credential_mode || "PASSWORD"),
         recalculated,
       }), at,
     );
@@ -240,8 +241,8 @@ export function editMealChoice(
       status: 200, changed: true,
       payload: { status: "UPDATED", day_vn: day, period,
         choice, start_ms: slot.from, end_ms: slot.to,
-        confirmed_at: at, confirmed_by: actorId,
-        confirmed_name: String(body.actor_name || "").slice(0, 120),
+        confirmed_at: at, confirmed_by: String(prior.confirmed_by),
+        confirmed_name: String(prior.confirmed_name || ""),
         deadlines_adjusted: recalculated },
     };
   });
