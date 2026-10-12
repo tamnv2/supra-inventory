@@ -388,7 +388,7 @@ test("D167 v128 diagnoses existing direct API export safely without changing WMS
   }
   assert.match(coordinator,/manualTrace=System\.Diagnostics\.Stopwatch\.StartNew\(\)/);
   assert.match(coordinator,/manual=FAILED error_type/);
-  assert.match(coordinator,/phase="+manualPhase/);
+  assert.match(coordinator,/phase="\+manualPhase/);
   assert.match(coordinator,/manual=TRACE export_stage/);
   assert.match(coordinator,/slotTrace=System\.Diagnostics\.Stopwatch\.StartNew\(\)/);
   assert.match(coordinator,/elapsed_ms=/);
