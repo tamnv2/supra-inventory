@@ -739,3 +739,22 @@ body[data-theme="dark"] .tools-workspace .secondary {
   color: #dbe5f0 !important;
   border-color: #35445a !important;
 }
+
+
+/* D167 Owner A: separate the resolved-result date controls from their table.
+   Pure presentation, no date/filter/network/request contract changes. */
+.ops-business-workspace .recent-range-toolbar {
+  margin-bottom: 20px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 1px solid var(--ui-line) !important;
+  row-gap: 12px !important;
+}
+.ops-business-workspace .recent-range-toolbar + .result-audit-table {
+  margin-top: 4px !important;
+}
+@media (max-width: 640px) {
+  .ops-business-workspace .recent-range-toolbar {
+    margin-bottom: 16px !important;
+    padding-bottom: 12px !important;
+  }
+}

@@ -2511,7 +2511,12 @@ namespace SupraInventoryRelayAgent
                                 Uri pageUri;
                                 if (Uri.TryCreate(url, UriKind.Absolute, out pageUri) &&
                                     string.Equals(pageUri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
-                                    string.Equals(pageUri.Host, WmsHost, StringComparison.OrdinalIgnoreCase))
+                                    string.Equals(pageUri.Host, WmsHost, StringComparison.OrdinalIgnoreCase) &&
+                                    // The marked read-only side tab may start on
+                                    // the exact same Confirm route; never attach
+                                    // the main controller to that distinct tab.
+                                    !string.Equals(pageUri.Fragment,
+                                        AgentConfig.WmsSkuSideTabFragment, StringComparison.Ordinal))
                                     return ws;
                             }
                             if (!requireWms && !string.IsNullOrWhiteSpace(fallback)) return fallback;

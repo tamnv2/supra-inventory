@@ -23,6 +23,7 @@ import {
   createManagedUser,
   deleteManagedUsers,
   getAdminDashboard,
+  getD167AreaSummary,
   getAdminOperationalInsights,
   getAdminReporting,
   getAdminReportingDetail,
@@ -54,6 +55,7 @@ import {
   getStoredProfile,
   hasSession,
   importSkuChunk,
+  importSkuFullReplace,
   listManagedUsers,
   loginWithPassword,
   logoutInteractiveSession,
@@ -429,7 +431,20 @@ let hrWebPreview: HrSyncPreview | null = null;
 let hrWebFilename = "";
 let hrWebRequestSeq = 0;
 let pendingWorkbook: ParsedSkuWorkbook | null = null;
+let skuImportFullReplace = false;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
+
+// Server-confirmed FULL membership is required; PATCH changes never unlock a new day.
+function skuDayReady(): boolean {
+  return skuCatalogInfo?.sku_day_ready === true && skuCatalogInfo.sku_day_vn === dateDaysAgo(0);
+}
+function skuDayBanner(): string {
+  if (skuDayReady()) return "";
+  const message = skuCatalogInfo?.sku_day_warning ||
+    "Đang xác nhận danh sách SKU của ngày hôm nay. Chưa thể tạo báo thiếu mới.";
+  return `<div class="notice warning" role="alert" data-d167-sku-day-warning>${esc(message)}</div>`;
+}
+
 let skuAdminQuery = "";
 let skuAdminItems: SkuItem[] = [];
 let skuAdminOffset = 0;
@@ -438,6 +453,8 @@ const SKU_PAGE_SIZE = 100;
 let skuConflictChoices = new Map<string, string>();
 let skuImportProgress = "";
 let dashboardData: AdminDashboard | null = null;
+let d167DashboardAreas: Awaited<ReturnType<typeof getD167AreaSummary>> | null = null;
+let d167ReportAreas: Awaited<ReturnType<typeof getD167AreaSummary>> | null = null;
 let reportRows: AdminReportingRow[] = [];
 let reportBatchDetails = new Map<string, AdminReportingDetailRow[]>();
 let expandedReportBatches = new Set<string>();
@@ -452,6 +469,7 @@ let dashboardTo = dateDaysAgo(0);
 let reportFrom = dateDaysAgo(0);
 let reportTo = dateDaysAgo(0);
 let reportStatus = "";
+let reportArea: "" | "LTA" | "SHELVING" | "UNKNOWN" = "";
 let reportQuery = "";
 let serviceHealth: Record<string, unknown> | null = null;
 let systemStatus: SystemStatusSnapshot | null = null;
@@ -1594,6 +1612,7 @@ function renderOperations(): string {
   const overdueCount = queueRows.filter((row) => liveQueueTiming(row).state === "ESCALATED").length;
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
   return `<section id="fastEvents" class="fast-events ops-business-workspace">
+    ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Theo dõi và xử lý các SKU Picker đang báo hết hàng.</p></div></div>
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
@@ -1693,6 +1712,7 @@ function updateQueueClockDom(): void {
 
 function renderOverdue(): string {
   return `<section class="ops-route ops-business-workspace">
+    ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>SKU có Picker đã tới mốc tự động cho phép bỏ qua nhưng vẫn chờ Invent chốt kết quả cuối.</p></div></div>
     ${renderOperationalTabs("overdue")}
     <article class="ops-panel">
@@ -1732,6 +1752,7 @@ function renderResults(): string {
   const pageFrom = recentTotal ? recentOffset + 1 : 0;
   const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
   return `<section class="ops-route ops-business-workspace">
+    ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Kiểm tra kết quả đã xử lý và tình trạng Picker nhận kết quả.</p></div></div>
     ${renderOperationalTabs("results")}
     <section class="business-summary-grid business-summary-grid-5">
@@ -1774,10 +1795,11 @@ function renderPicker(): string {
   const pageFrom = pickerReportTotal ? pickerReportOffset + 1 : 0;
   const pageTo = Math.min(pickerReportTotal, pickerReportOffset + pickerReports.length);
   return `<section class="picker-workspace"><div class="page-head"><div><h1>Báo SKU hết hàng</h1></div></div>
+    ${skuDayBanner()}
     <div class="card"><input id="picker-sku-input" class="sku-input picker-input" placeholder="Nhập / quét SKU" value="${esc(pickerQuery)}" autocomplete="off" />
       ${pickerSuggestions.length ? `<div class="suggestions">${pickerSuggestions.slice(0, 12).map((item) => `<button class="suggestion" data-pick-sku="${esc(item.sku)}"><strong>${esc(item.sku)}</strong> · ${esc(item.product_name)}</button>`).join("")}</div>` : ""}
       <div class="selected-sku">${pickerSelected ? `<strong>${esc(pickerSelected.sku)}</strong><span>${esc(pickerSelected.product_name)}</span>` : `<span>Chưa chọn SKU hợp lệ</span>`}</div>
-      <button id="picker-report" class="btn report-button" ${!pickerSelected || !onlineForMutation() || busy ? "disabled" : ""}>BÁO HẾT HÀNG</button>
+      <button id="picker-report" class="btn report-button" ${!pickerSelected || !skuDayReady() || !onlineForMutation() || busy ? "disabled" : ""}>BÁO HẾT HÀNG</button>
       ${!onlineForMutation() ? `<div class="notice warning">Cần kết nối mạng để báo hàng. Hệ thống không có chế độ offline.</div>` : ""}
     </div>
     <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY & CHƯA XỬ LÝ</h1><p class="tiny muted">Hiển thị báo hôm nay và các báo cũ chưa hoàn tất.</p></div></div>
@@ -1819,8 +1841,9 @@ function renderSku(): string {
         <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
       </article>
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Cập nhật danh mục từ Excel</h3><p>File được kiểm tra trước khi ghi. SKU trùng mã nhưng khác tên phải được xác nhận rõ ràng.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Cập nhật danh mục từ Excel</h3><p>File được kiểm tra trước khi ghi. SKU trùng mã nhưng khác tên phải được xác nhận rõ ràng. Có thể thêm cột Khu vực (LTA/Shelving); để trống là giữ nguyên khu vực hiện tại.</p></div></div>
         <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
+        <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""} ${profile?.role !== "ROOT" && profile?.role !== "ADMIN" ? "disabled" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xoá SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
         ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : `<div class="ops-note">Hệ thống giữ nguyên danh mục hiện tại cho tới khi file hợp lệ và bạn xác nhận cập nhật.</div>`}
         ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
         ${wb && !wb.conflicts.length ? `<div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div>` : ""}
@@ -2027,6 +2050,23 @@ function renderReportTabs(current: "dashboard" | "reports"): string {
   </div>`;
 }
 
+function d167AreaSummaryMarkup(data: Awaited<ReturnType<typeof getD167AreaSummary>> | null): string {
+  if (!data) return `<article class="ops-panel"><div class="ops-panel-title"><h3>Khu vực tại thời điểm báo thiếu</h3></div><p>Chưa tải được số liệu lịch sử khu vực; các chỉ số vận hành hiện có không bị thay đổi.</p></article>`;
+  const byArea = new Map(data.areas.map(entry => [entry.area, entry]));
+  return `<article class="ops-panel">
+    <div class="ops-panel-title"><div><h3>LTA / Shelving theo lịch sử báo thiếu</h3><p>${esc(data.from_vn)} – ${esc(data.to_vn)} · ghi nhận theo thời điểm báo đầu tiên, không dùng vị trí hiện tại</p></div></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Khu vực</th><th>Đợt báo</th><th>Lượt Picker báo</th><th>SKU khác nhau</th><th>Đã có hàng</th><th>Cho phép Skip</th><th>Thu hồi</th><th>Đang xử lý</th></tr></thead>
+      <tbody>${(["LTA","SHELVING","UNKNOWN"] as const).map(area => {
+        const item=byArea.get(area);
+        const value=(key: "batches" | "picker_reports" | "distinct_skus" | "has_stock" | "skip_allowed" | "closed" | "pending") => Number(item?.[key] || 0).toLocaleString("vi-VN");
+        return `<tr><td>${esc(d167AreaLabel(area))}</td><td>${value("batches")}</td><td>${value("picker_reports")}</td><td>${value("distinct_skus")}</td><td>${value("has_stock")}</td><td>${value("skip_allowed")}</td><td>${value("closed")}</td><td>${value("pending")}</td></tr>`;
+      }).join("")}</tbody>
+    </table></div>
+    <p class="ops-subtle">Tổng ${Number(data.totals.batches || 0).toLocaleString("vi-VN")} đợt · ${Number(data.totals.picker_reports || 0).toLocaleString("vi-VN")} lượt. Trước lần xác minh nguồn đầu tiên: Chưa xác định. Không hồi tố khu vực.</p>
+  </article>`;
+}
+
 function renderDashboard(): string {
   const k = dashboardData?.kpis;
   const recurrence = operationalInsights?.recurrence?.top_skus || [];
@@ -2039,7 +2079,8 @@ function renderDashboard(): string {
   const hasStock = count("HAS_STOCK");
   const skipped = count("SKIP_ALLOWED");
   const automaticSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT");
-  const humanSkipped = Math.max(0, skipped - automaticSkipped);
+  const dayEndSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
+  const humanSkipped = Math.max(0, skipped - automaticSkipped - dayEndSkipped);
   const withdrawn = count("CLOSED");
   const pending = Number(k?.pending_batch_count || 0);
   const totalResolved = Math.max(0, hasStock + skipped + withdrawn);
@@ -2062,6 +2103,7 @@ function renderDashboard(): string {
       </form>
     </article>
 
+    ${d167AreaSummaryMarkup(d167DashboardAreas)}
     <div class="report-section-title"><h3>Tình trạng hiện tại</h3><span>Dữ liệu trực tiếp từ hệ thống</span></div>
     <section class="business-summary-grid business-summary-grid-5 pro-kpi-grid">
       <button type="button" class="business-summary-card summary-filter-card primary" data-dashboard-status="PENDING"><span>SKU đang chờ xử lý</span><strong>${pending}</strong><small>Mở báo cáo chi tiết đang chờ</small></button>
@@ -2165,7 +2207,7 @@ function reportPickerDetailMarkup(batchId: string): string {
         const outcome = reportPickerOutcome(item);
         return `<div class="report-picker-detail-grid">
           <span><strong>${esc(item.picker_employee_code || "—")}</strong><small>${esc(item.picker_display_name || "—")}</small></span>
-          <span>${esc(fmt(item.reported_at))}</span>
+          <span>${esc(fmt(item.reported_at))}<small>${esc(d167AreaLabel(item.area_at_picker_report))}</small></span>
           <span><b class="status ${outcome.tone}">${esc(outcome.label)}</b><small>${esc(outcome.source)}</small></span>
           <span>${item.picker_wait_minutes == null ? "—" : `${Number(item.picker_wait_minutes).toLocaleString("vi-VN")} phút`}</span>
           <span>${esc(reportPickerReceipt(item))}</span>
@@ -2185,6 +2227,7 @@ async function loadReportBatchDetails(batchId: string): Promise<void> {
       from: range.from,
       to: range.to,
       status: reportStatus,
+      area: reportArea || undefined,
       query: reportQuery,
       batchId,
       limit: 500,
@@ -2202,6 +2245,10 @@ async function loadReportBatchDetails(batchId: string): Promise<void> {
   }
 }
 
+function d167AreaLabel(value: string | null | undefined): string {
+  return value === "LTA" ? "LTA" : value === "SHELVING" ? "Shelving" : "Chưa xác định";
+}
+
 function renderReports(): string {
   const k = reportSummary?.kpis;
   const outcomes = reportSummary?.outcomes || [];
@@ -2209,7 +2256,8 @@ function renderReports(): string {
   const count = (status: string) => Number(outcomes.find((row) => row.status === status)?.count || 0);
   const sourceCount = (status: string, source: string) => Number(resolutionSources.find((row) => row.status === status && row.resolution_source === source)?.count || 0);
   const automaticSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_TIMEOUT");
-  const humanSkipped = Math.max(0, count("SKIP_ALLOWED") - automaticSkipped);
+  const dayEndSkipped = sourceCount("SKIP_ALLOWED", "SYSTEM_DAY_END");
+  const humanSkipped = Math.max(0, count("SKIP_ALLOWED") - automaticSkipped - dayEndSkipped);
   const recurrenceCount = reportInsights?.recurrence?.top_skus?.length || 0;
   const reportWarningCount = Number(reportInsights?.sla?.warning_count || 0);
   const reportOverdueCount = Number(reportInsights?.sla?.escalated_count || 0);
@@ -2224,10 +2272,14 @@ function renderReports(): string {
       <form id="report-filter" class="report-filter-grid report-filter-compact report-filter-detail">
         ${renderCompactDateRange("reports", reportFrom, reportTo)}
         <label>Kết quả<select name="status"><option value="">Tất cả kết quả</option>${["PENDING","HAS_STOCK","SKIP_ALLOWED","CLOSED"].map((state) => `<option value="${state}" ${reportStatus === state ? "selected" : ""}>${esc(statusLabel(state))}</option>`).join("")}</select></label>
+        <label>Khu vực lúc báo<select name="area"><option value="">Tất cả khu vực</option>${(["LTA","SHELVING","UNKNOWN"] as const).map(area => `<option value="${area}" ${reportArea === area ? "selected" : ""}>${esc(d167AreaLabel(area))}</option>`).join("")}</select></label>
         <label class="report-query-field">SKU / tên sản phẩm<input name="query" value="${esc(reportQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" /></label>
         <button class="primary report-filter-submit">Xem báo cáo</button>
       </form>
     </article>
+    ${d167AreaSummaryMarkup(d167ReportAreas)}
+    <p class="ops-subtle">Khu vực được chọn áp dụng cho bảng đợt báo, chi tiết Picker và Excel. KPI tổng quan / cơ cấu kết quả / bảng phân vùng phía trên vẫn thống kê toàn bộ khu vực trong khoảng ngày.</p>
+    <p class="ops-subtle">Nguồn cho phép Skip trong kỳ: Inventory xác nhận ${humanSkipped.toLocaleString("vi-VN")} · Hệ thống quá hạn ${automaticSkipped.toLocaleString("vi-VN")} · Hệ thống tự chốt 03:00 ${dayEndSkipped.toLocaleString("vi-VN")}.</p>
     <section class="business-summary-grid business-summary-grid-6 pro-report-kpis">
       <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong><small>Trong khoảng thời gian đã chọn</small></article>
       <article class="business-summary-card primary-soft"><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong><small>Số SKU khác nhau trong kỳ</small></article>
@@ -2242,7 +2294,7 @@ function renderReports(): string {
     </div>
     <article class="ops-panel">
       <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p>Đang hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${reportTotal.toLocaleString("vi-VN")} bản ghi phù hợp.</p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
-      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="11">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="11" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
+      <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Khu vực lúc báo</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(d167AreaLabel(row.area_at_first_report))}</td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="12">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="12" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
   </section>`;
 }
@@ -3010,6 +3062,12 @@ async function loadReporterQueueSnapshot(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const queue = await loadCompleteReporterQueue();
+  // Reuse the queue refresh on initial entry or a VN date boundary only;
+  // never add a provider polling loop to each realtime badge update.
+  if (!skuCatalogInfo || skuCatalogInfo.sku_day_vn !== dateDaysAgo(0)) {
+    const catalog = await getSkuCatalogInfo();
+    if (generation === sessionViewGeneration && userId === (profile?.user_id || "")) skuCatalogInfo = catalog;
+  }
   if (
     requestGeneration !== reporterQueueLoadGeneration ||
     generation !== sessionViewGeneration ||
@@ -3497,15 +3555,19 @@ async function loadOperations(): Promise<void> {
 async function loadPicker(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [reports, results] = await Promise.all([
+  const [reports, results, catalog] = await Promise.all([
     getPickerReportsV2(PICKER_REPORT_PAGE_SIZE, pickerReportOffset, "APP_TODAY_OPEN"),
     getPickerResultsV2(120),
+    skuCatalogInfo?.sku_day_vn === dateDaysAgo(0)
+      ? Promise.resolve(skuCatalogInfo)
+      : getSkuCatalogInfo(),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   if (reports.total > 0 && pickerReportOffset >= reports.total) {
     pickerReportOffset = Math.max(0, Math.floor((reports.total - 1) / PICKER_REPORT_PAGE_SIZE) * PICKER_REPORT_PAGE_SIZE);
     return loadPicker();
   }
+  skuCatalogInfo = catalog;
   pickerReports = reports.items;
   pickerReportTotal = reports.total;
   pickerResults = results.items;
@@ -3772,13 +3834,15 @@ async function loadDashboard(): Promise<void> {
     dashboardPreferenceLoadedUserId = userId;
   }
   const range = apiRange(dashboardFrom, dashboardTo);
-  const [nextDashboard, nextInsights] = await Promise.all([
+  const [nextDashboard, nextInsights, nextAreas] = await Promise.all([
     getAdminDashboard(range.from, range.to),
     getAdminOperationalInsights(range.from, range.to),
+    getD167AreaSummary(dashboardFrom, dashboardTo).catch(() => null),
   ]);
   if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   dashboardData = nextDashboard;
   operationalInsights = nextInsights;
+  d167DashboardAreas = nextAreas;
   markWebUpdateReceived();
   void getRealtimePresence().then((nextPresence) => {
     if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
@@ -3796,6 +3860,7 @@ async function loadReports(): Promise<void> {
     from: range.from,
     to: range.to,
     status: reportStatus,
+    area: reportArea || undefined,
     query: reportQuery,
     limit: REPORT_PAGE_SIZE,
     offset: reportOffset,
@@ -3807,10 +3872,12 @@ async function loadReports(): Promise<void> {
   void Promise.all([
     getAdminDashboard(range.from, range.to),
     getAdminOperationalInsights(range.from, range.to),
-  ]).then(([summary, insights]) => {
+    getD167AreaSummary(reportFrom, reportTo).catch(() => null),
+  ]).then(([summary, insights, areas]) => {
     if (generation !== reportLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     reportSummary = summary;
     reportInsights = insights;
+    d167ReportAreas = areas;
     if (activeSection === "reports") patchActiveSection(true);
   }).catch((error) => runtimeLogEvent(`Không tải được tổng hợp báo cáo: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
 }
@@ -3965,6 +4032,7 @@ async function exportReportsExcel(): Promise<void> {
       from: range.from,
       to: range.to,
       status: reportStatus,
+      area: reportArea || undefined,
       query: reportQuery,
       limit: pageSize,
       offset,
@@ -3985,6 +4053,7 @@ async function exportReportsExcel(): Promise<void> {
       from: range.from,
       to: range.to,
       status: reportStatus,
+      area: reportArea || undefined,
       query: reportQuery,
       limit: pageSize,
       offset,
@@ -4008,6 +4077,7 @@ async function exportReportsExcel(): Promise<void> {
       from: reportFrom,
       to: reportTo,
       status: reportStatus,
+      area: reportArea || undefined,
       query: reportQuery,
       generatedAt: new Date(),
     },
@@ -4739,6 +4809,10 @@ function bindSection(): void {
     void run(loadSkuWorkspace);
   });
 
+  document.querySelector<HTMLInputElement>("#sku-full-replace")?.addEventListener("change", (event) => {
+    skuImportFullReplace = (event.currentTarget as HTMLInputElement).checked &&
+      (profile?.role === "ROOT" || profile?.role === "ADMIN");
+  });
   document.querySelector<HTMLInputElement>("#sku-file")?.addEventListener("change", (event) => {
     const file = (event.currentTarget as HTMLInputElement).files?.[0];
     if (!file) return;
@@ -5025,6 +5099,8 @@ function bindSection(): void {
     reportFrom = String(data.get("from"));
     reportTo = String(data.get("to"));
     reportStatus = String(data.get("status") || "");
+    const areaCandidate = String(data.get("area") || "");
+    reportArea = areaCandidate === "LTA" || areaCandidate === "SHELVING" || areaCandidate === "UNKNOWN" ? areaCandidate : "";
     reportQuery = String(data.get("query") || "");
     reportOffset = 0;
     reportBatchDetails.clear();
@@ -5117,23 +5193,79 @@ async function importSkuWorkbook(): Promise<void> {
   const wb = pendingWorkbook;
   if (!wb) throw new Error("Chưa chọn file Excel.");
   if (wb.conflicts.some((conflict) => !skuConflictChoices.get(conflict.sku))) throw new Error("Cần chọn tên sản phẩm cho toàn bộ SKU xung đột trong file.");
-  const items: SkuItem[] = [...wb.items, ...wb.conflicts.map((conflict) => ({ sku: conflict.sku, product_name: skuConflictChoices.get(conflict.sku)! }))];
+  const items: SkuItem[] = [...wb.items, ...wb.conflicts.map((conflict) => ({ sku: conflict.sku, product_name: skuConflictChoices.get(conflict.sku)!, ...(conflict.area ? {area:conflict.area} : {}) }))];
+  if (skuImportFullReplace) {
+    if (profile?.role !== "ROOT" && profile?.role !== "ADMIN")
+      throw new Error("Chỉ Root/Admin được thay toàn bộ danh mục SKU.");
+    skuImportProgress = "Đang kiểm tra toàn bộ danh mục trước khi thay thế...";
+    const preview = await importSkuFullReplace(items, {
+      requestId: crypto.randomUUID(),
+      dryRun: true,
+    });
+    if (preview.status !== "PREVIEW" || preview.source_rows !== items.length)
+      throw new Error("Xem trước FULL REPLACE chưa hoàn chỉnh.");
+    const comparison = (preview.name_conflicts || []).slice(0, 10).map(row =>
+      row.sku + ": " + row.current + " → " + row.incoming).join("\n");
+    const details =
+      "THAY TOÀN BỘ DANH MỤC SKU HIỆU LỰC?\n\n" +
+      "Tổng SKU trong file: " + preview.source_rows +
+      "\nSKU mới: " + preview.created +
+      "\nĐổi tên: " + preview.renamed +
+      "\nCập nhật khu vực LTA/Shelving: " + preview.area_updated +
+      "\nKích hoạt lại: " + preview.reactivated +
+      "\nSKU sẽ ẨN (không xoá): " + preview.hidden +
+      "\nSKU đang hoạt động trước đó: " + preview.previous_active +
+      (comparison ? "\n\nVí dụ thay đổi tên:\n" + comparison : "") +
+      "\n\nLịch sử báo hàng và SKU cũ vẫn được giữ. Nếu dữ liệu không đầy đủ, hãy từ chối.";
+    if (!window.confirm(details)) {
+      skuImportProgress = "Đã huỷ FULL REPLACE; danh mục chưa thay đổi.";
+      return;
+    }
+    const outcome = await importSkuFullReplace(items, {
+      requestId: crypto.randomUUID(),
+      expectedCatalogRevision: preview.catalog_revision,
+      expectedSourceHash: preview.source_hash,
+      confirmFullReplace: true,
+      confirmNameChanges: preview.renamed > 0 || preview.area_updated > 0,
+    });
+    if (outcome.status !== "DONE")
+      throw new Error("Chưa xác nhận được kết quả FULL REPLACE.");
+    pendingWorkbook = null;
+    skuConflictChoices.clear();
+    skuImportFullReplace = false;
+    skuImportProgress = "FULL REPLACE thành công: " + outcome.source_rows +
+      " SKU từ file, " + outcome.hidden + " SKU cũ được ẩn.";
+    setNotice("success", skuImportProgress);
+    return;
+  }
   const databaseConflicts: string[] = [];
+  let previewRevision: number | null = null;
   for (let offset = 0; offset < items.length; offset += SKU_CHUNK_SIZE) {
     const chunk = items.slice(offset, offset + SKU_CHUNK_SIZE);
     skuImportProgress = `Kiểm tra ${Math.min(offset + chunk.length, items.length).toLocaleString("vi-VN")} / ${items.length.toLocaleString("vi-VN")} SKU...`;
     render();
     const result = await importSkuChunk(chunk, { requestId: crypto.randomUUID(), sourceHash: wb.source_hash, dryRun: true });
+    if (result.catalog_revision != null) {
+      if (previewRevision != null && previewRevision !== result.catalog_revision)
+        throw new Error("Danh mục SKU thay đổi khi kiểm tra; cần xem trước lại file trước khi cập nhật.");
+      previewRevision = result.catalog_revision;
+    }
     for (const conflict of result.conflicts || []) databaseConflicts.push(`${conflict.sku}: ${conflict.current_product_name} → ${conflict.incoming_product_name}`);
   }
-  if (databaseConflicts.length && !window.confirm(`Có ${databaseConflicts.length} SKU đổi tên so với danh mục hiện tại. Xác nhận cập nhật tên?\n\n${databaseConflicts.slice(0, 15).join("\n")}`)) {
+  if (databaseConflicts.length && !window.confirm(`Có ${databaseConflicts.length} thay đổi tên/khu vực so với danh mục hiện tại. Xác nhận cập nhật?\n\n${databaseConflicts.slice(0, 15).join("\n")}`)) {
     skuImportProgress = "Đã dừng trước khi cập nhật vì chưa xác nhận đổi tên SKU hiện hữu.";
     return;
   }
   let processed = 0;
+  let expectedCatalogRevision = previewRevision;
   for (let offset = 0; offset < items.length; offset += SKU_CHUNK_SIZE) {
     const chunk = items.slice(offset, offset + SKU_CHUNK_SIZE);
-    await importSkuChunk(chunk, { requestId: crypto.randomUUID(), sourceHash: wb.source_hash, confirmNameChanges: databaseConflicts.length > 0 });
+    const applied = await importSkuChunk(chunk, {
+      requestId: crypto.randomUUID(), sourceHash: wb.source_hash,
+      confirmNameChanges: databaseConflicts.length > 0,
+      expectedCatalogRevision: expectedCatalogRevision ?? undefined,
+    });
+    if (applied.catalog_revision != null) expectedCatalogRevision = applied.catalog_revision;
     processed += chunk.length;
     skuImportProgress = `Đã cập nhật ${processed.toLocaleString("vi-VN")} / ${items.length.toLocaleString("vi-VN")} SKU.`;
     render();
@@ -5187,6 +5319,13 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   }
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
+  if (scopes.has("sku_catalog") && profile) {
+    // Recheck server-owned VN-day FULL state on an existing realtime event.
+    // Never infer a valid daily roster from a partial Web PATCH.
+    skuCatalogInfo = await getSkuCatalogInfo();
+    if (["picker", "operations", "overdue", "results", "sku"].includes(activeSection))
+      patchActiveSection(true);
+  }
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
   const reporterQueueChanged = roleOperate() && scopes.has("reporter_queue");
   const reporterOverdueChanged = roleOperate() && scopes.has("reporter_overdue");

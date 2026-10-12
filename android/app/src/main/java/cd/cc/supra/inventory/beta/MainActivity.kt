@@ -117,6 +117,42 @@ class MainActivity : Activity() {
     private var permissionGateActive = false
     private var permissionManualReview = false
     private var restoringSessionScreen = false
+    @Volatile private var skuDayCheckBusy = false
+    private var lastVerifiedSkuDay = ""
+    private var skuDayReady: Boolean? = null
+    private var skuDayWarningView: TextView? = null
+    private val skuDayNotice = "Danh sách SKU chưa được cập nhật cho ngày hôm nay. Vui lòng liên hệ Chuyên viên Pick Pack / Invent để cập nhật trước khi vào ca."
+
+    private fun currentSkuDayVn(): String = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        .withZone(ZoneId.of("Asia/Ho_Chi_Minh")).format(Instant.now())
+
+    private fun refreshDailySkuStatus(force: Boolean = false) {
+        if (!::api.isInitialized) return
+        val session = api.session ?: return
+        val day = currentSkuDayVn()
+        if (skuDayCheckBusy || (!force && lastVerifiedSkuDay == day)) return
+        skuDayCheckBusy = true
+        Thread {
+            val info = try { api.getCatalogInfo() } catch (_: Exception) { null }
+            runOnUiThread {
+                skuDayCheckBusy = false
+                if (api.session?.userId != session.userId) return@runOnUiThread
+                lastVerifiedSkuDay = day
+                skuDayReady = info?.skuDayReady == true && info.skuDayVn == currentSkuDayVn()
+                showDailySkuWarning()
+            }
+        }.start()
+    }
+
+    private fun showDailySkuWarning() {
+        val ready = skuDayReady == true && lastVerifiedSkuDay == currentSkuDayVn()
+        skuDayWarningView?.apply {
+            text = skuDayNotice
+            visibility = if (ready) View.GONE else View.VISIBLE
+        }
+        pickerController?.applySkuDayReady(ready)
+    }
+
     private var operatingWindowTask: Runnable? = null
     private var operatingScheduleReceiverRegistered = false
     private val operatingScheduleReceiver = object : BroadcastReceiver() {
@@ -132,6 +168,8 @@ class MainActivity : Activity() {
             // Periodic PDA INFO-log uploads are retired; session-end/error/crash/manual
             // paths own support-log delivery so idle or unused PDAs create no log traffic.
             reconcileSkuCatalogRefresh()
+            // Local once-per-VN-day rollover check, not a new frequent network poll.
+            if (::api.isInitialized && api.session != null && lastVerifiedSkuDay != currentSkuDayVn()) refreshDailySkuStatus()
             if (::api.isInitialized && api.session?.role == "PICKER") {
                 drainOverlayAcknowledgements()
             }
@@ -313,6 +351,7 @@ class MainActivity : Activity() {
     private fun reconcileSkuCatalogRefresh() {
         if (!::api.isInitialized || api.session == null) return
         if (!NotificationSignalStore.consumeSkuCatalogRefresh(applicationContext)) return
+        refreshDailySkuStatus(force = true)
         val current = api.session
         if (current?.role == "PICKER" && !current.shortageReportingEnabled) return
         syncSkuCatalogAsync("push")
@@ -331,6 +370,7 @@ class MainActivity : Activity() {
                         if (result.updated) "Đã tự cập nhật Master SKU · ${result.count} SKU · $reason"
                         else "Master SKU đã mới nhất · ${result.count} SKU · $reason"
                     )
+                    refreshDailySkuStatus(force = true)
                     onDone(true)
                 }
             } catch (error: Exception) {
@@ -570,6 +610,10 @@ class MainActivity : Activity() {
                 })
             }
         }
+        lastVerifiedSkuDay = ""
+        skuDayReady = null
+        showDailySkuWarning()
+        refreshDailySkuStatus(force = true)
         startRealtime(session)
         if (session.role == "REPORTER" || session.role == "ADMIN") reconcileD167MealPrompt()
         if (session.role == "PICKER") {
@@ -642,6 +686,15 @@ class MainActivity : Activity() {
         host.removeAllViews()
         val view = layoutInflater.inflate(layoutId, host, false)
         host.addView(view)
+        skuDayWarningView = TextView(this).apply {
+            text = skuDayNotice
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.rgb(164, 71, 24))
+            setPadding(kit.dp(12), kit.dp(10), kit.dp(12), kit.dp(10))
+            visibility = View.GONE
+        }
+        if (view is LinearLayout) view.addView(skuDayWarningView, 0)
         return view
     }
 
@@ -711,6 +764,7 @@ class MainActivity : Activity() {
             pickerDisplayScale(session),
             session.shortageReportingEnabled,
         ).also { it.render(view) }
+        showDailySkuWarning()
     }
 
     private fun renderReporterHome(session: AppSession, showLauncherBack: Boolean, initialFilter: String = "PENDING") {
@@ -721,6 +775,7 @@ class MainActivity : Activity() {
         val view = replaceContent(R.layout.view_invent) as LinearLayout
         reporterController = ReporterController(this, api, kit, ::setStatus, ::friendlyError, initialFilter, reporterDisplayScale(session))
             .also { it.render(view) }
+        showDailySkuWarning()
     }
 
     private fun renderAdminResults(session: AppSession) {
@@ -1737,7 +1792,10 @@ class MainActivity : Activity() {
                 val skipCatalogForDisabledPicker =
                     session.role == "PICKER" && api.session?.shortageReportingEnabled == false
                 if (catalogChanged && !skipCatalogForDisabledPicker) syncSkuCatalogAsync("realtime", applyRemaining)
-                else applyRemaining(true)
+                else {
+                    if (catalogChanged) refreshDailySkuStatus(force = true)
+                    applyRemaining(true)
+                }
             }
         }.also { it.start() }
     }

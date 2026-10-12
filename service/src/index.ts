@@ -10,6 +10,7 @@ import {
   type FirebaseManagedUserSpec,
 } from "./firebase-auth-admin";
 import { handleBusinessApi } from "./business-api";
+import { verifyD167AgentPrimary } from "./d167-sku-ha";
 import { handleReadApi } from "./read-api";
 import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
@@ -1509,6 +1510,78 @@ export default {
         return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
       }
 
+      // D167 scoped, source-only SKU sync. Agent auth AND authoritative current
+      // Firestore PRIMARY generation are required before every state mutation.
+      // GETs are Agent-authenticated but do not query HA or start a WMS export.
+      if (url.pathname.startsWith("/api/agent/d167/skus/")) {
+        if (env.APP_ENV !== "beta") return json({ error: "D167_BETA_ONLY" }, 404);
+        const operator = await requireAgentUser(request, env, ["ADMIN","PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        const action = url.pathname.slice("/api/agent/d167/skus/".length);
+        if (!["schedule","status","claim","stage","preview","publish"].includes(action))
+          return json({ error: "NOT_FOUND" }, 404);
+        if (request.method === "GET") {
+          if (action !== "schedule" && action !== "status") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+          return coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action + url.search);
+        }
+        if (request.method !== "POST" || !["claim","stage","preview","publish"].includes(action))
+          return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+        let input: Record<string, unknown>;
+        try {
+          const raw = await request.json();
+          if (!raw || typeof raw !== "object" || Array.isArray(raw)) return json({ error: "INVALID_JSON" }, 400);
+          input = raw as Record<string, unknown>;
+        } catch { return json({ error: "INVALID_JSON" }, 400); }
+        // A PICKPACK_ADMIN may run the ordinary already-fenced SKU job,
+        // but overriding a same-field Web edit requires an Inventory ADMIN
+        // credential. Never trust only the Agent's local Yes/No dialog.
+        if (action === "publish" && input.approve_conflicts === true &&
+            operator.role !== "ADMIN")
+          return json({ error: "D167_ADMIN_CONFLICT_APPROVAL_REQUIRED" }, 403);
+        const leader = await verifyD167AgentPrimary(
+          env, String(input.instance_id || ""), String(input.generation || ""),
+        );
+        if (!leader) return json({ error: "NOT_CURRENT_FIREBASE_PRIMARY" }, 409);
+        const operation = await coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action, {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ ...input, actor_user_id: operator.user_id }),
+        });
+        if (action !== "publish" || !operation.ok) return operation;
+        const published = await operation.clone().json() as {
+          status?:string; sku_day_first_full?:boolean; catalog_changed?:boolean;
+        };
+        // First daily FULL must unlock Web/PDA even if every product row is
+        // semantically unchanged. DELTA with only area changes must not wake PDA.
+        if (published.status !== "DONE" ||
+            (published.sku_day_first_full !== true && published.catalog_changed !== true))
+          return operation;
+        ctx.waitUntil((async () => {
+          try {
+            await coreStub(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+              method:"POST",headers:{"content-type":"application/json"},
+              body:JSON.stringify({event:"sku_catalog_updated",scopes:["sku_catalog"],
+                tags:["role:PICKER","role:REPORTER","role:ADMIN"],
+                metadata:{source:"AGENT_SKU_VERIFIED",first_full:published.sku_day_first_full===true}}),
+            });
+            if (!env.GOOGLE_RUNTIME_SA_JSON) return;
+            const targets = await coreStub(env).fetch("https://inventory-core.internal/notifications/targets",{
+              method:"POST",headers:{"content-type":"application/json"},
+              body:JSON.stringify({roles:["PICKER","REPORTER","ADMIN"],user_ids:[]}),
+            });
+            if (!targets.ok) return;
+            const body = await targets.json() as {tokens?:string[]};
+            if (!body.tokens?.length) return;
+            await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON,
+              env.FIREBASE_PROJECT_ID,body.tokens,{
+                title:"",body:"",data:{event:"sku_catalog_updated",source:"AGENT_SKU_VERIFIED"},
+              });
+          } catch {
+            // Best effort delivery: never undo committed catalog or re-run WMS.
+          }
+        })());
+        return operation;
+      }
+
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
         return privilegedAgentReauth(request, env);
       }
@@ -2231,6 +2304,16 @@ export default {
 
       const readResponse = await handleReadApi(request, env);
       if (readResponse) return readResponse;
+
+      // D167 temporal area reporting: authenticated existing management roles only.
+      // Source is InventoryCore historical report batches, not live WMS/bin data.
+      if (request.method === "GET" && url.pathname.startsWith("/api/admin/d167/report/")) {
+        if (env.APP_ENV !== "beta") return json({ error: "D167_BETA_ONLY" }, 404);
+        await requireUser(request, env, ["ROOT", "ADMIN", "PICKPACK_ADMIN"]);
+        const path = url.pathname.slice("/api/admin/d167/report/".length);
+        if (!["summary","detail","timeline"].includes(path)) return json({ error: "NOT_FOUND" }, 404);
+        return coreStub(env).fetch("https://inventory-core.internal/d167/report/" + path + url.search);
+      }
 
       const businessResponse = await handleBusinessApi(request, env, ctx);
       if (businessResponse) return businessResponse;

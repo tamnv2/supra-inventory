@@ -4,9 +4,11 @@
   "project_key": "supra-inventory",
   "bootstrap_order": [
     "AGENTS.md",
+    "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "docs/PROJECT_CONTEXT.md",
     "ops/project-scope.json",
     "ops/project-state.json",
+    "ops/change-continuity/D167.json",
     "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/README.md",
@@ -52,7 +54,9 @@
       "web/",
       "android/"
     ],
-    "ci": ".github/workflows/"
+    "ci": ".github/workflows/",
+    "discussion_continuity_protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
+    "active_change_discussion": "ops/change-continuity/D167.json"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -73,7 +77,12 @@
     "owner_only_manual_action_change": [
       "ops/owner-actions.json"
     ],
-    "derived_view_freshness": "CI_FAIL_IF_CURRENT_STATE_MARKERS_MISMATCH"
+    "derived_view_freshness": "CI_FAIL_IF_CURRENT_STATE_MARKERS_MISMATCH",
+    "substantive_discussion_checkpoint": [
+      "ops/change-continuity/D167.json",
+      "relevant docs/OWNER_DECISIONS.md or docs/specs/* ONLY when Owner approved",
+      "ops/project-state.json WHEN meaningful work state changes"
+    ]
   },
   "security": {
     "repository_visibility": "public",
@@ -90,5 +99,17 @@
     "not_pass_rule": "If Owner reports NOT PASS/FAIL, repair the same change ID until Owner explicitly records PASS.",
     "impact_review_rule": "Before implementing any change that may affect the accepted base, present impact, affected components, regression/resource/security/quota risks and a recommended approach; implementation requires explicit Owner approval.",
     "technical_pass_not_owner_pass": true
+  },
+  "working_ref_discovery": {
+    "main_accepted_authority": "READ_MAIN_BOOTSTRAP_FIRST",
+    "active_branch_from": [
+      "ops/project-state.json#d167.code_only_three_slot_implementation_2026_10_11.source_branch",
+      "GitHub open PR head"
+    ],
+    "active_working_change_id": "D167",
+    "active_working_pr": 559,
+    "ref_rule": "FETCH_BRANCH_MANIFEST_FULL_BOOTSTRAP_AND_OPS_CHANGE_CONTINUITY_AFTER_MAIN",
+    "freshness": "RESOLVE_LATEST_BRANCH_HEAD_AND_CI_EVERY_SUBSTANTIVE_DXXX_TURN",
+    "conflict_rule": "LATEST_OWNER_COMMAND_OVERRIDES_BRANCH_RELEASE_PERMISSION__MAIN_ACCEPTED_BASE_UNCHANGED"
   }
 }

@@ -21,5 +21,6 @@ jobs:
         run: |
           python3 tools/project_state_guard.py
           python3 tools/authority_guard.py
+          python3 tools/change_continuity_guard.py
       - name: Public repository secret-value heuristic guard
         run: python3 tools/public_repo_secret_guard.py

@@ -2,7 +2,7 @@ namespace SupraInventoryRelayAgent
 {
     internal static class AgentConfig
     {
-        internal const int AgentBuild = 125;
+        internal const int AgentBuild = 126;
         internal const string ApiBaseUrl = "https://inventory-beta.supra.cc.cd";
         internal const string FirebaseProjectId = "supra-inventory-beta";
         internal const string FirebaseApiKey = "__FIREBASE_API_KEY_BETA__";
@@ -26,6 +26,10 @@ namespace SupraInventoryRelayAgent
         internal const string SheetsProbeUrl = "https://sheets.googleapis.com/v4/spreadsheets/office-probe";
         internal const string DriveProbeUrl = "https://www.googleapis.com/drive/v3/about?fields=user";
         internal const string WmsPicklistConfirmUiReferenceUrl = "https://wms-supra.winmart.vn/sft3/app/saleorder/auto-pickpack-confirm";
+        // D167 opens a uniquely identified side tab at the already registered
+        // WMS Confirm URL, then navigates through Bin Inventory UI only.
+        // The actual report route is NOT assumed or hardcoded.
+        internal const string WmsSkuSideTabFragment = "#d167-sku-readonly";
         internal const string GitHubReleasesApi = "https://api.github.com/repos/tamnv2/supra-inventory/releases?per_page=30";
         // D158: populated by the Beta build environment for the scoped
         // Apps Script Office field candidate after Owner provisioning. Runtime

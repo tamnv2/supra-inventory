@@ -73,6 +73,9 @@ namespace SupraInventoryWebView2Host
         private CoreWebView2Environment _environment;
         private WebView2 _activeWeb;
         private readonly List<WebView2> _childWebViews = new List<WebView2>();
+        // D167: a read-only SKU export lives in a different hidden WebView2
+        // with the SAME managed environment/profile. Never replace the Confirm tab.
+        private WebView2 _skuExportWeb;
 
         internal BrowserForm(HostOptions options)
         {
@@ -140,6 +143,15 @@ namespace SupraInventoryWebView2Host
                 {
                     BeginInvoke(new Action(() =>
                     {
+                        // A read-only SKU side-page renderer crash must never
+                        // terminate the user-confirmation browser or its WMS
+                        // session. The export attempt fails independently.
+                        if (ReferenceEquals(view, _skuExportWeb))
+                        {
+                            try { Controls.Remove(view); view.Dispose(); } catch { }
+                            _skuExportWeb = null;
+                            return;
+                        }
                         Environment.ExitCode = 3;
                         Close();
                     }));
@@ -159,6 +171,33 @@ namespace SupraInventoryWebView2Host
                     !string.Equals(target.Host, "wms-supra.winmart.vn", StringComparison.OrdinalIgnoreCase))
                 {
                     e.Handled = true;
+                    return;
+                }
+
+                if (string.Equals(target.AbsolutePath,
+                        "/sft3/app/saleorder/auto-pickpack-confirm", StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(target.Fragment,"#d167-sku-readonly",StringComparison.Ordinal))
+                {
+                    // Only this uniquely marked side tab is hidden. It first
+                    // loads the previously registered WMS page, then uses the
+                    // actual visible WMS Bin Inventory menu to navigate. No
+                    // guessed report route, navigation of the real Confirm tab,
+                    // or change to v67 popup semantics for any other request.
+                    if (_skuExportWeb != null)
+                    {
+                        var retiredSku = _skuExportWeb;
+                        _skuExportWeb = null;
+                        try { Controls.Remove(retiredSku); retiredSku.Dispose(); } catch { }
+                    }
+                    var skuChild = new WebView2 { Width = 1, Height = 1, Visible = false };
+                    Controls.Add(skuChild);
+                    await ConfigureWebViewAsync(skuChild);
+                    skuChild.CoreWebView2.DownloadStarting += OnSkuDownloadStarting;
+                    _skuExportWeb = skuChild;
+                    e.NewWindow = skuChild.CoreWebView2;
+                    e.Handled = true;
+                    // Do not change _activeWeb, visibility, focus, Confirm DOM,
+                    // WMS login, confirmation counters or refresh timers.
                     return;
                 }
 
@@ -193,6 +232,39 @@ namespace SupraInventoryWebView2Host
             finally
             {
                 deferral.Complete();
+            }
+        }
+
+        private void OnSkuDownloadStarting(object sender, CoreWebView2DownloadStartingEventArgs e)
+        {
+            // Never persist arbitrary browser downloads into the SKU directory.
+            // Only a bounded read-only HY1 Bin Inventory Excel export is allowed.
+            var url = e.DownloadOperation?.Uri ?? "";
+            var name = Path.GetFileName(e.ResultFilePath ?? "");
+            Uri origin;
+            var permitted = (Uri.TryCreate(url, UriKind.Absolute, out origin) &&
+                ((origin.Scheme == "https" &&
+                    string.Equals(origin.Host, "api-supra.winmart.vn", StringComparison.OrdinalIgnoreCase))
+                 || (url.StartsWith("blob:https://wms-supra.winmart.vn/", StringComparison.OrdinalIgnoreCase))));
+            if (!permitted || !name.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) ||
+                (name.IndexOf("BIN", StringComparison.OrdinalIgnoreCase) < 0 &&
+                 name.IndexOf("INVENTORY", StringComparison.OrdinalIgnoreCase) < 0))
+            {
+                e.Cancel = true;
+                return;
+            }
+            try
+            {
+                var parent = Directory.GetParent(_options.Profile);
+                if (parent == null) throw new IOException("SKU export directory missing.");
+                var folder = Path.Combine(parent.FullName, "D167SkuDownloads");
+                Directory.CreateDirectory(folder);
+                e.ResultFilePath = Path.Combine(folder,
+                    "D167_BIN_INVENTORY_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff") + ".xlsx");
+            }
+            catch
+            {
+                e.Cancel = true;
             }
         }
 

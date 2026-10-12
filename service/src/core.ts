@@ -1,5 +1,8 @@
 import { handleBusinessRequest, initializeBusinessSchema } from "./business-core";
 import { handleSkuImportCoreRequest } from "./sku-import-core";
+import { handleD167WebFullReplace } from "./d167-web-full-replace";
+import { initializeD167SkuSyncSchema, handleD167SkuCoreRequest } from "./d167-sku-sync-core";
+import { handleD167AreaReportCoreRequest } from "./d167-area-report-core";
 import { handleReadModelCoreRequest } from "./read-model-core";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
@@ -390,6 +393,7 @@ export class InventoryCore {
     }
 
     initializeBusinessSchema(this.state);
+    initializeD167SkuSyncSchema(this.state);
     if (!this.hasColumn("report_batches", "business_day_vn")) sql.exec("ALTER TABLE report_batches ADD COLUMN business_day_vn TEXT");
     if (!this.hasColumn("report_tickets", "business_day_vn")) sql.exec("ALTER TABLE report_tickets ADD COLUMN business_day_vn TEXT");
     sql.exec("UPDATE report_batches SET business_day_vn = date(first_report_at, '+7 hours') WHERE business_day_vn IS NULL");
@@ -838,6 +842,13 @@ export class InventoryCore {
         await scheduleNextOperationalAlarm(this.state);
         return response({ ...result.payload, deadlines_adjusted: adjusted }, result.status);
       }
+      return response(result.payload, result.status);
+    }
+
+    if (request.method === "POST" && url.pathname === "/d167/meal/edit") {
+      const body = await request.json() as Parameters<typeof editMealChoice>[1];
+      const result = editMealChoice(this.state, body);
+      if (result.changed) await scheduleNextOperationalAlarm(this.state);
       return response(result.payload, result.status);
     }
 
@@ -1742,8 +1753,16 @@ export class InventoryCore {
     const operationalV2 = await handleOperationalV2CoreRequest(this.state, request);
     if (operationalV2) return operationalV2;
 
+    const d167Report = await handleD167AreaReportCoreRequest(this.state, request);
+    if (d167Report) return d167Report;
+
+    const d167Sku = await handleD167SkuCoreRequest(this.state, request);
+    if (d167Sku) return d167Sku;
+
     const skuImport = await handleSkuImportCoreRequest(this.state, request);
     if (skuImport) return skuImport;
+    const fullReplace = await handleD167WebFullReplace(this.state, request);
+    if (fullReplace) return fullReplace;
 
     const archive = await handleArchiveCoreRequest(this.state, request);
     if (archive) return archive;

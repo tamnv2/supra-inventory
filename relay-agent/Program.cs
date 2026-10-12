@@ -121,6 +121,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            // D167 code-only schedule validation. Does not start the Agent UI,
+            // WMS browser, Firebase, or any provider request.
+            var d167SkuScheduleTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d167-sku-schedule-self-test", StringComparison.OrdinalIgnoreCase));
+            if (d167SkuScheduleTest)
+            {
+                try
+                {
+                    bool pass = D167SkuSchedule.SelfTest();
+                    AgentDiagnostics.Write("D167_SKU_SCHEDULE_SELFTEST " + (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 16;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D167_SKU_SCHEDULE_SELFTEST error=" + ex.GetType().Name);
+                    Environment.ExitCode = 17;
+                }
+                return;
+            }
+
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
@@ -685,12 +705,16 @@ namespace SupraInventoryRelayAgent
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
         private readonly FirestoreAgentSessionGate _agentSessionGate;
         private FirestoreAgentLeaderCoordinator _leaderCoordinator;
+        private readonly D167SkuCoordinator _d167SkuCoordinator;
         private readonly object _sessionLock = new object();
         private AgentSession _session;
         private CancellationTokenSource _listenCts;
         private bool _allowExit;
         private bool _updateCheckRunning;
         private int _manualPicklistOperationRunning;
+        // D167: automatic PDA confirmation pipeline is independent of manual Picklist commands.
+        // Track both so a background WMS export yields to business ACK/confirm work.
+        private int _d167AutomaticConfirmRunning;
         private long _localPdaRequests;
         private long _localAgentResponses;
         private long _localConfirmSuccess;
@@ -732,6 +756,16 @@ namespace SupraInventoryRelayAgent
             _supraBrowser = new SupraConfirmBrowser(
                 message => Log(message),
                 () => MarkD157SuccessfulReload());
+            _d167SkuCoordinator = new D167SkuCoordinator(
+                _supraBrowser, SnapshotSession, EnsureFreshToken,
+                () => HasAgentSession() && _supraBrowserReady &&
+                      _supraBrowser != null && _supraBrowser.IsAgentOwnedMode() &&
+                      _leaderCoordinator != null && _leaderCoordinator.IsLeader &&
+                      !string.IsNullOrWhiteSpace(_leaderCoordinator.Generation),
+                () => Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)!=0 ||
+                      Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning,0,0)!=0,
+                () => _leaderCoordinator == null ? "" : _leaderCoordinator.Generation,
+                _agentInstanceId, ConfirmD167SkuWebConflict, message => Log(message));
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
@@ -860,6 +894,7 @@ namespace SupraInventoryRelayAgent
                 StopListening();
                 StopD134AgentSync();
                 StopLeaderCoordination();
+                try { _d167SkuCoordinator.Dispose(); } catch {}
                 _trayMonitorTimer.Stop();
                 _logUploadTimer.Stop();
                 _afterHoursTimer.Stop();
@@ -3265,6 +3300,27 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private bool ConfirmD167SkuWebConflict(string previewText)
+        {
+            // Called by the SKU background worker. Do NOT Invoke/BeginInvoke a
+            // modal box owned by the main Agent window: that would stop UI
+            // responsiveness and could delay live PDA PickList confirmations.
+            if(!HasAgentSession() || IsDisposed || Disposing || string.IsNullOrWhiteSpace(previewText))
+                return false;
+            try
+            {
+                var approved = MessageBox.Show(
+                    previewText,
+                    "D167 · Duyệt nguồn SKU",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2) == DialogResult.Yes;
+                return approved && HasAgentSession() && _leaderCoordinator != null &&
+                    _leaderCoordinator.IsLeader;
+            }
+            catch { return false; }
+        }
+
         private void StartLeaderCoordination()
         {
             if (_leaderCoordinator != null) return;
@@ -3280,6 +3336,9 @@ namespace SupraInventoryRelayAgent
                 (role, primaryId) =>
                 {
                     ApplyD140AgentSyncRole(role);
+                    if (role == FirestoreAgentRole.PRIMARY)
+                        _d167SkuCoordinator.OnPrimaryOrWmsReady();
+                    else _d167SkuCoordinator.OnLostPrimary();
                     Ui(() =>
                     {
                         var roleText = role == FirestoreAgentRole.PRIMARY
@@ -3302,6 +3361,7 @@ namespace SupraInventoryRelayAgent
             StopD157AgentFeatures();
             var coordinator = _leaderCoordinator;
             _leaderCoordinator = null;
+            _d167SkuCoordinator.OnLostPrimary();
             ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE);
             try { if (coordinator != null) coordinator.Stop(); } catch { }
         }
@@ -3361,6 +3421,8 @@ namespace SupraInventoryRelayAgent
                 var coordinator = _leaderCoordinator;
                 if (coordinator != null) coordinator.RequestRoleRefreshBeforeBusiness();
             }
+            if (_supraBrowserReady && _d167SkuCoordinator != null)
+                _d167SkuCoordinator.OnPrimaryOrWmsReady();
             ReconcileOperationalReadiness();
         }
 
@@ -4396,7 +4458,11 @@ namespace SupraInventoryRelayAgent
             List<FirestoreConfirmationWorkItem> works,
             Action<string, FirestoreConfirmationOutcome> terminalCallback)
         {
-            return ProcessFirestoreConfirmationsD160(works, terminalCallback);
+            // D167: do not mistake an idle manual grid for an idle PRIMARY.
+            // The PDA relay's D160 automatic pipeline also owns the live Confirm tab.
+            Interlocked.Increment(ref _d167AutomaticConfirmRunning);
+            try { return ProcessFirestoreConfirmationsD160(works, terminalCallback); }
+            finally { Interlocked.Decrement(ref _d167AutomaticConfirmRunning); }
         }
 
         private static bool IsSafeBrowserFailure(SupraBrowserConfirmResult result)

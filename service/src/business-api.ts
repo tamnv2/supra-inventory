@@ -152,6 +152,7 @@ function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
   if (key.startsWith("GET /api/reporter/")) return REPORTER_READ_ROLES;
   if (key.startsWith("POST /api/reporter/")) return REPORTER_ROLES;
   if (key === "POST /api/admin/skus/import") return PICKPACK_REPORT_ROLES;
+  if (key === "POST /api/admin/skus/full-replace") return ["ADMIN","ROOT"];
   if ([
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
@@ -395,6 +396,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   const key = `${request.method} ${url.pathname}`;
   const supported = new Set([
     "POST /api/admin/skus/import",
+    "POST /api/admin/skus/full-replace",
     "GET /api/skus",
     "POST /api/picker/reports",
     "GET /api/picker/reports",
@@ -514,11 +516,48 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     const suppliedHash = String(body.source_hash || "").trim();
     const sourceHash = suppliedHash || (await sha256Hex(JSON.stringify(items)));
     const response = await corePost(env, "/business/skus/import-v2", { ...body, source_hash: sourceHash, actor: actor(user) });
+    if (response.ok) {
+      const payload=await response.clone().json() as {
+        inserted?:number; updated?:number; reactivated?:number; status?:string;
+      };
+      // A dry-run, no-op or area-only Web edit must not wake every PDA.
+      if (payload.status==="preview" ||
+          Number(payload.inserted||0)+Number(payload.updated||0)+Number(payload.reactivated||0)===0)
+        return response;
+    }
     const result = await realtimeAfter(response, env, {
       event: "sku_catalog_updated",
       scopes: ["sku_catalog"],
       tags: ["role:PICKER", "role:REPORTER", "role:ADMIN"],
       metadata: { source: "WEB_SKU_IMPORT" },
+    });
+    scheduleCatalogRefreshFcm(result, env, ctx);
+    return result;
+  }
+
+  if (key === "POST /api/admin/skus/full-replace") {
+    const body = await parseObjectBody(request);
+    const items = Array.isArray(body.items) ? body.items : [];
+    // The Worker computes the source identity from the exact submitted roster;
+    // no caller-controlled source hash may bypass the CAS approval preview.
+    const sourceHash = await sha256Hex(JSON.stringify(items));
+    const response = await corePost(env, "/business/skus/full-replace", {
+      ...body, items, source_hash: sourceHash, actor: actor(user),
+    });
+    if (body.dry_run === true || !response.ok) return response;
+    const summary=await response.clone().json() as {
+      created?:number; renamed?:number; reactivated?:number; hidden?:number;
+      sku_day_first_full?:boolean;
+    };
+    if (Number(summary.created||0)+Number(summary.renamed||0)+
+        Number(summary.reactivated||0)+Number(summary.hidden||0)===0 &&
+        summary.sku_day_first_full!==true)
+      return response;
+    const result = await realtimeAfter(response, env, {
+      event: "sku_catalog_updated",
+      scopes: ["sku_catalog"],
+      tags: ["role:PICKER", "role:REPORTER", "role:ADMIN"],
+      metadata: { source: "WEB_SKU_FULL_REPLACE" },
     });
     scheduleCatalogRefreshFcm(result, env, ctx);
     return result;

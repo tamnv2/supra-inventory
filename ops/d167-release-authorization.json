@@ -2,11 +2,14 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "84290c93dc6cfb74d30f972d8b8ef6d4868b007a",
+  "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
   "approved_components": [
-    "worker"
+    "worker",
+    "gateway",
+    "android",
+    "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR563_WEB_LAYOUT_FOUR_AREAS_BETA",
-  "approved_at_vn": "2026-10-12T21:13:22+07:00",
-  "note": "Owner replies 'oke' to the precise scope question in D167 PR563: publish only approved four-area Web UI changes to existing Beta Web by redeploying registered Beta Worker/InventoryCore with unchanged service source, API, schema, auth, data, cron, security and runtime contracts. Candidate executable SHA 84290c93dc6cfb74d30f972d8b8ef6d4868b007a is immutable ancestor; no protected-code delta afterward. PR559 and all other pending D167 scopes remain excluded; no Android/Agent/Firebase/Gateway/Stable/resources/OTA deployment. CI + deploy health must pass; Owner field PASS remains pending."
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_ALL_CODE_READY_BETA",
+  "approved_at_vn": "2026-10-12T22:18:00+07:00",
+  "note": "Owner explicitly orders rollout of all D167 items that have passed code. PR559 integrated source commit is exact approved ancestor and later documentation changes are unprotected; allow existing scoped Beta Worker+Web/InventoryCore, Apps Script Gateway, Android signed vc106 and Windows Agent v126 release only after fresh PR CI and existing release guards PASS. Do not change Stable, Launcher, provider resource IDs or mandatory Android floor solely by this approval. D167 business field PASS pending. Integrated Web TypeScript duplicate-helper regression repaired at exact executable SHA c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c; no executable files permitted beyond this SHA during release receipt."
 }

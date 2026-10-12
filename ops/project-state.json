@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D167_COLLECT_SANITIZED_FIELD_EVIDENCE_FOR_ACK_HA_USAGE_WEB_REPORTER_MEAL_OVERDUE_HR_AND_RELEASE_INSTALLS__NO_OWNER_PASS_YET",
+  "next_action": "D167_SOURCE_CODE_READY_PR559__WAIT_NEW_EXPLICIT_OWNER_DEPLOY_PERMISSION__NO_MERGE_NO_BETA_NO_STABLE",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-11",
+  "last_updated": "2026-10-12",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_PR561_BETA_WEB_WORKER_SOURCE_MERGED__RUNTIME_FIELD_OWNER_PASS_PENDING",
+    "current_change_status": "D167_PR559_BETA_DEPLOY_APPROVED__INTEGRATION_CI_RECHECK_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2491,7 +2491,8 @@
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
     "parallel_inventory_change_status": "D167_PR555_BETA_WORKER_WEB_RELEASE_PASS__BUSINESS_QUOTA_FIELD_TEST_PENDING",
     "parallel_boundary": "D166_RELEASE_UPDATE_STABILITY_ACCEPTED_ONLY__D167_UNVERIFIED_TESTS_AND_POSTPONED_WORK_TRACKED_SEPARATELY",
-    "accepted_runtime_base_change_id": "D166"
+    "accepted_runtime_base_change_id": "D166",
+    "pr559_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_FULL_BETA_PASS_CODE__STABLE_OWNER_GATED"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -6738,14 +6739,14 @@
   "d167": {
     "opened_on_vn": "2026-10-10",
     "opened_by": "OWNER_EXPLICIT_D166_LIMITED_PASS_AND_DEFERRED_HANDOFF",
-    "status": "D167_PR555_BETA_WEB_WORKER_DEPLOY_TECHNICAL_PASS__FIELD_AND_OWNER_PASS_PENDING",
+    "status": "D167_PR559_BETA_DEPLOY_AUTHORIZED__INTEGRATION_CI_AND_FIELD_PENDING",
     "source": "docs/D167_BACKLOG.md",
     "accepted_base": "D166_OWNER_PASS_RELEASE_UPDATE_NO_REPORTED_ERRORS_ONLY",
     "owner_code_approval": true,
     "owner_deploy_approval": true,
     "implementation_status": "MERGED_PR550_MAIN_9bcff631__BETA_RUNTIME_RELEASE_PASS",
     "provider_changes": "EXISTING_BETA_RESOURCES_ONLY__NO_NEW_PROVIDER",
-    "next": "FIELD_TEST_D167_PR555_BETA_WEB_EXCEL_MEAL_DAY_END_AND_PICKER_ACK__D05_D07_PENDING",
+    "next": "VERIFY_INTEGRATED_PR559_CI_AND_APPROVED_BETA_RELEASE; POST_RELEASE_HEALTH_AND_FLEET_FIELD_PENDING",
     "inherited_evidence_group_ids": [
       "D167-USAGE-ROOT-CAUSE",
       "D167-CROSS-METER-OPTIMIZATION",
@@ -7048,11 +7049,11 @@
       "postdeploy_ci": "MAIN_10_OF_11_SUCCESS__CANARY_DENIED_OWNER_GATE_AT_JOB_FIRST_STEP__NO_CANARY_MUTATION__TRIGGER_CORRECTION_PR_REQUIRED"
     },
     "agent_sku_area_reporting_design_2026_10_11": {
-      "status": "DESIGN_PROPOSED__SOURCE_AUDITED__NO_EXECUTABLE_CODE__NO_DEPLOY",
+      "status": "CODE_IN_PROGRESS_PR559__FIELD_AND_CODE_READY_GATES_PENDING__NO_DEPLOY",
       "owner_priority": "PRIMARY_AGENT_THREE_SLOTS_PER_VN_DAY_INITIAL_05_FULL_DELTA_12_RANDOM_DELTA_19_RANDOM__AREA_HISTORY_AND_REPORTS_FIRST",
       "authority": "docs/D167_AGENT_SKU_AREA_REPORT_DESIGN_2026-10-11.md",
       "current_main": "8ccb0177481e89e1fdc86e9e03670138c0412135",
-      "code_implementation": false,
+      "code_implementation": true,
       "wms_test_source": "EXPERIMENT_STANDALONE_EXPORT_SKU_NAME_ONLY__NOT_PRODUCTION_PRIMARY_AGENT",
       "verified_lta_shelving_export_header": false,
       "agent_same_managed_browser_export_proof": false,
@@ -7064,7 +7065,7 @@
         "MULTI_AREA_ATTRIBUTION",
         "SQL_5K_ATOMIC_BENCHMARK"
       ],
-      "next": "OWNER_THREE_SLOT_BUSINESS_RULE_LOCKED_DOC_ONLY__WAIT_EXPLICIT_CHAY_CODE__NO_BETA_DEPLOY__STABLE_GATED",
+      "next": "FINISH_AGENT_MANAGED_WMS_SOURCE_PROOF__REPORTING_UI__REAL_SQL_INTEGRATION_TESTS__NO_DEPLOY",
       "field_owner_pass": false
     },
     "three_slot_sku_owner_decision_2026_10_11": {
@@ -7163,7 +7164,210 @@
       "runtime_health_verified": false,
       "field_owner_pass": false,
       "rollback": "NO_ROLLBACK_PERFORMED__NO_FIELD_MUTATION_PROVEN"
+    },
+    "code_only_three_slot_implementation_2026_10_11": {
+      "owner_workbook_evidence_2026_10_10": {
+        "source": "OWNER_UPLOADED_HY1_REPORT_BIN_INVENTORY_LOCAL_READ_ONLY",
+        "schema_headers_verified": true,
+        "site_verified": "1291 - Urban",
+        "source_rows": 8848,
+        "distinct_skus": 2493,
+        "pickable_rows": 4904,
+        "pickable_skus": 2207,
+        "known_lta_skus": 1017,
+        "known_shelving_skus": 1190,
+        "no_pickable_unknown_skus": 286,
+        "conflicting_sku_names": 0,
+        "mixed_known_lta_shelving_skus": 0,
+        "private_rows_committed_to_public_repo": false,
+        "prior_standalone_agent_test": "OWNER_OBSERVED_SUCCESS__NO_RETEST_REQUIRED",
+        "code_test": "SYNTHETIC_AGGREGATE_SHAPE_REGRESSION_ADDED_PR559",
+        "actual_managed_primary_browser_export_proved": false,
+        "end_to_end_three_slot_proved": false
+      },
+      "status": "D167_PR559_MEAL_BREAK_WEB_ONLY_SCOPE_ADDED__EXACT_HEAD_CI_PENDING__NO_DEPLOY",
+      "source_branch": "d167-code-three-slot-sku-area-report-20261011",
+      "pr": 559,
+      "owner_code_authorized": true,
+      "owner_deploy_authorized": false,
+      "implemented_source": [
+        "service/src/d167-sku-sync-logic.ts",
+        "service/src/d167-sku-sync-core.ts",
+        "service/src/d167-sku-ha.ts",
+        "service/src/d167-area-report-core.ts",
+        "service/src/core.ts",
+        "service/src/index.ts",
+        "service/src/business-core.ts",
+        "service/src/sku-import-core.ts",
+        "service/src/read-model-core.ts",
+        "tests/d167-three-slot-sku.test.mjs",
+        "relay-agent/D167SkuBrowserExport.cs",
+        "relay-agent/D167SkuCoordinator.cs",
+        "relay-agent/D167SkuSchedule.cs",
+        "relay-agent/D167SkuServiceClient.cs",
+        "relay-agent/Program.cs",
+        "relay-agent-webview2-host/Program.cs",
+        "service/src/d167-web-full-replace.ts",
+        "service/src/business-api.ts",
+        "web/src/report-excel.ts",
+        "web/src/operational-app.ts",
+        "tests/d167-full-roster-sql.test.py"
+      ],
+      "delivered_contracts": [
+        "VN_THREE_SLOTS_ONE_RECEIPT_PER_SLOT",
+        "FULL_HIDES_ABSENT_NO_DELETION",
+        "DELTA_SPARSE_NO_SOURCE_MISSING_HIDE",
+        "WMS_SKU_NAME_COARSE_AREA_NORMALIZER",
+        "STAGED_SOURCE_LEASE_AND_HA_FENCE",
+        "WEB_MANUAL_NAME_REVISION",
+        "PICKER_CURRENT_DAY_ACTIVE_GUARD",
+        "AREA_INTERVALS_READ_MODEL_AND_REPORT_API",
+        "AGENT_AUTOMATIC_AND_MANUAL_CONFIRM_BUSY_GUARD",
+        "NORMALIZED_READONLY_WMS_SIDE_TAB_EXPORT_SOURCE",
+        "TRUNCATED_FULL_LARGE_HIDE_APPROVAL_REQUIRED",
+        "COALESCED_NOON_INTO_EVENING_SLOT",
+        "WEB_REPORT_DETAIL_EXCEL_ASOF_AREA_FILTER",
+        "WEB_ADMIN_ROOT_EXPLICIT_FULL_REPLACE_PREVIEW_CAS_ATOMIC_NO_DELETE",
+        "WEB_FULL_REPLACE_IDEMPOTENT_COMMIT_RECEIPT",
+        "SYNTHETIC_5000_SKU_FULL_DELTA_SQL_FIXTURE"
+      ],
+      "tests_observed": [
+        "D167_PURE_TESTS_10_OF_10_PASS_2026_10_11",
+        "D167_PR559_SOURCE_CI_19_OF_19_PASS_SHA_9f04a57718f0",
+        "D167_AGENT_MANAGED_HOST_WINDOWS_BUILD_AND_OFFLINE_SCHEDULE_PASS",
+        "D167_WORKER_WEB_TYPECHECK_AND_SOURCE_TESTS_PASS",
+        "D167_5000_SYNTHETIC_SQL_FULL_DELTA_PASS",
+        "D167_CURRENT_VN_DAY_MANUAL_CONFLICT_TESTS_PASS",
+        "D167_HA_STAGE_RECLAIM_AND_WMS_CHILD_CLEANUP_SOURCE_TESTS_PASS",
+        "D167_GITHUB_AUTHORITY_CONTINUITY_GUARDS_PASS",
+        "D167_OWNER_20261012_EXACT_SOURCE_HEAD_33BCB727__GITHUB_20_OF_20_PASS",
+        "D167_SIGNED_ANDROID_VC106_PR_BUILD_ARTIFACT_PASS",
+        "D167_AGENT_V126_AND_WEBVIEW2_PR_BUILD_ARTIFACT_PASS"
+      ],
+      "tests_pending": [
+        "REAL_OFFICE_MANAGED_WMS_SAME_PROFILE_EXPORT_AND_HA_FIELD_AFTER_DEPLOY_APPROVAL",
+        "REAL_6_AGENT_TAKEOVER_AND_CONFIRM_PICKLIST_LATENCY_FIELD_AFTER_DEPLOY_APPROVAL",
+        "PHYSICAL_ANDROID_CATALOG_RESYNC_ACK_VERSION_COMPATIBILITY_AFTER_DEPLOY_APPROVAL",
+        "PROVIDER_INVENTORYCORE_2500_TO_5000_CPU_SQL_AND_CLOUDFLARE_FIREBASE_BILLED_USAGE_FIELD_AFTER_DEPLOY_APPROVAL",
+        "OWNER_D167_FIELD_PASS__NOT_YET"
+      ],
+      "physical_field_pass": false,
+      "release_approved": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "next": "OWNER_EXPLICIT_BETA_RELEASE_ONLY_AFTER_SHA_SCOPE_APPROVAL__COMPANY_WMS_PDA_HA_ACK_BILLING_FIELD_TEST_POST_RELEASE",
+      "owner_latest_gate_2026_10_12": "OWNER_CODE_PASS_ONLY_STOP_BEFORE_MAIN_MERGE_OR_BETA_RELEASE",
+      "post_code_ready_action": "STOP_DRAFT_PR559_NO_MERGE_NO_BETA_NO_STABLE__AWAIT_NEW_EXPLICIT_OWNER_EXACT_SHA_COMPONENTS_DEPLOY_APPROVAL",
+      "prior_combined_deploy_authorization": "SUPERSEDED_FOR_UNDEPLOYED_D167_PR559_ONLY__PR555_HISTORICAL_RELEASE_UNCHANGED",
+      "ci_mode": "SOURCE_ONLY_19_OF_19_PASS_AT_PRE_RECEIPT_SHA__RECHECK_LAST_RECEIPT_COMMIT",
+      "outstanding_evidence": "UNVERIFIED_WMS_AGENT_BROWSER_AND_REAL_DEVICE_TESTS_REMAIN_PENDING_IF_CI_CANNOT_PROVE",
+      "source_last_reviewed_sha": "60dbc3db35c6ce97fcb7e7993fa60eaf5701684a",
+      "source_code_ready": false,
+      "daily_full_owner_policy": "BLOCK_NEW_PICKER_REPORT_ANY_VN_HOUR_UNTIL_VERIFIED_TODAY_FULL__AGENT_INITIAL_FULL_OR_WEB_FULL_REPLACE",
+      "transport_owner_override": "AUTHORIZED_RAM_ONLY_HEADER_CAPTURE_FROM_CURRENT_PRIMARY_WMS_MANAGED_BROWSER_FOR_ALLOWLISTED_DIRECT_SIGNED_GET__NO_CONFIRM_UI_CLICK",
+      "downstream_sync": "FIRST_FULL_NOOP_STILL_PUSHES_SKU_CATALOG_WARMUP_EVENT_FOR_CLIENT_READINESS",
+      "new_pending_ci": [
+        "VERIFY_BETA_ANDROID_AFTER_WARNING_CODE",
+        "VERIFY_BETA_RELAY_AGENT_AFTER_DIRECT_WMS_API_EXPORT",
+        "D167_THREE_SLOT_SOURCE_TESTS_AFTER_20261012",
+        "D167_FINAL_EXACT_HEAD_CONTINUITY_AND_AUTHORITY"
+      ],
+      "source_verified_sha": "33bcb727f9d96e53c9478858198a167ff18aa1ab",
+      "source_verified_workflows": "20_OF_20_SUCCESS_0_FAILED_0_RUNNING",
+      "source_worker_web_typecheck": "PASS",
+      "source_agent_build": "PASS_V126_MANAGED_WEBVIEW2_HOST_CI_RUN_38201200873",
+      "source_android_signed_build": "PASS_VC106_CI_RUN_38201200829",
+      "signed_android_artifact": {
+        "run_id": 38201200829,
+        "id": 11725801963,
+        "name": "supra-inventory-beta-apk",
+        "version_code": 106,
+        "release_published": false
+      },
+      "agent_build_artifact": {
+        "run_id": 38201200873,
+        "id": 11726001330,
+        "name": "supra-inventory-relay-poc-agent",
+        "version": 126,
+        "release_published": false
+      },
+      "complete_source_scope": [
+        "PRIMARY_MANAGED_BROWSER_RAM_ONLY_SIGNED_READONLY_WMS_EXPORT_GET",
+        "INITIAL_05_FULL_DELTA_12_DELTA_19",
+        "VN_DAY_VERIFIED_FULL_REPORT_PRECONDITION_ANDROID_WEB_WARNINGS",
+        "WEB_MANUAL_FULL_REPLACE_QUALIFIES_PATCH_DOES_NOT",
+        "REALTIME_FCM_FIRST_FULL_NOOP_WAKE",
+        "HA_LEDGER_STAGE_MANIFEST_AND_SPARSE_RECONCILE",
+        "AREA_LTA_SHELVING_TEMPORAL_AND_WEB_EXCEL_REPORT",
+        "WEB_HR_DIRECT_AND_EXCEL_OLD_SHEET_WRITER_RETIRED",
+        "MINIMAL_LOGS_AND_EXISTING_ACK_WMS_CONFIRM_CONTRACTS"
+      ],
+      "pending_feature_code": []
+    },
+    "pr559_owner_latest_2026_10_12": {
+      "scope": "THREE_SLOT_AGENT_SKU_FULL_HIDE_TEMPORAL_AREA_WEB_OVERVIEW_DETAIL_EXCEL_AND_REGRESSIONS",
+      "approval": "CONTINUE_CODE_AND_CI_TO_SOURCE_PASS_ONLY",
+      "code_pass": "SOURCE_CODE_READY_19_OF_19_PRE_RECEIPT_SHA_9f04a57718f0",
+      "owner_deploy_approval": true,
+      "owner_d167_pass": false,
+      "merge_to_main": "FORBIDDEN_UNTIL_NEW_EXPLICIT_OWNER_DEPLOY_APPROVAL",
+      "runtime_mutation": "FORBIDDEN_BETA_AND_STABLE",
+      "effect_on_running_model": "NONE_WHILE_BRANCH_CI_REMAIN_NONDEPLOYING",
+      "branch": "d167-code-three-slot-sku-area-report-20261011",
+      "pr": 559,
+      "prior_2026_10_11_combined_deploy": "REVOKED_FOR_UNDEPLOYED_PR559_SCOPE",
+      "preserved_beta_release": "PR555_ALREADY_DEPLOYED_UNCHANGED",
+      "owner_code_approval": true,
+      "latest_owner_instruction": "2026-10-12: Triển khai D167 toàn bộ mục đã PASS code; các mục chưa đạt CODE READY tiếp tục pending.",
+      "approved_components": [
+        "worker",
+        "gateway",
+        "agent",
+        "android"
+      ],
+      "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
+      "approved_scope": "EXISTING_BETA_WORKER_WEB_INVENTORYCORE_GATEWAY_AGENT_V126_ANDROID_VC106__STABLE_GATED",
+      "owner_business_pass": false,
+      "source_status": "INTEGRATED_CODE_REPAIRED_C6BC865B__FRESH_CI_PENDING"
+    },
+    "owner_final_2026_10_12_after_reconcile": {
+      "accepted": true,
+      "change_id": "D167",
+      "source_scope": "PR559_CODE_ONLY",
+      "blocked_until_today_full": true,
+      "manual_full_qualifies": true,
+      "manual_patch_qualifies": false,
+      "warning_roles": [
+        "PICKER",
+        "REPORTER"
+      ],
+      "wms_session_api_mode": "EPHEMERAL_HEADER_REUSE_IN_CURRENT_AGENT_RAM_READ_ONLY_BIN_EXPORT_ONLY",
+      "superseded_backlog": [
+        "HR_SHEET_WAITING_FOR_COMPLETION_FIX",
+        "PENDING_OVERDUE_HISTORICAL_AS_OF",
+        "ONE_SKU_DONE_PER_DAY",
+        "RENAME_APPROVE_ALL_CROSS_DAY",
+        "UNMEASURED_CROSS_METER_PROVIDER_ROLLOUT"
+      ],
+      "main_beta_unchanged": true,
+      "owner_field_pass": false,
+      "source_code_ready": true,
+      "source_ci_evidence_sha": "33bcb727f9d96e53c9478858198a167ff18aa1ab"
     }
+  },
+  "change_continuity": {
+    "model": "REPO_FIRST_ACCEPTED_MAIN_AND_ACTIVE_PR_DISCUSSION_JOURNAL",
+    "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
+    "current_change_id": "D167",
+    "journal": "ops/change-continuity/D167.json",
+    "working_branch": "d167-code-three-slot-sku-area-report-20261011",
+    "pr": 559,
+    "latest_checkpoint_id": "D167-CT-20261012-008",
+    "checkpoint_date_vn": "2026-10-12",
+    "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
+    "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
+    "owner_release_gate": "CODE_PASS_ONLY_NO_MERGE_NO_DEPLOY__NEW_EXPLICIT_OWNER_APPROVAL_REQUIRED",
+    "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
+    "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",

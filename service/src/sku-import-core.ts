@@ -18,6 +18,7 @@ interface IdempotencyRow extends SqlRow {
 type SkuImportItem = {
   sku?: unknown;
   product_name?: unknown;
+  area?: unknown;
 };
 
 const MAX_CHUNK_ITEMS = 2000;
@@ -108,10 +109,11 @@ function audit(
   );
 }
 
-function planChunk(state: DurableObjectState, items: Array<{ sku: string; product_name: string }>) {
+function planChunk(state: DurableObjectState, items: Array<{ sku: string; product_name: string; area?: string }>) {
   let inserted = 0;
   let updated = 0;
   let unchanged = 0;
+  let area_updated = 0;
   const conflicts: Array<{ sku: string; current_product_name: string; incoming_product_name: string }> = [];
 
   for (const item of items) {
@@ -132,9 +134,21 @@ function planChunk(state: DurableObjectState, items: Array<{ sku: string; produc
         incoming_product_name: item.product_name,
       });
     }
+    if (item.area) {
+      const oldArea=firstRow(state.storage.sql.exec<{area:string;area_verified:number}>(
+        "SELECT area,area_verified FROM d167_sku_active WHERE sku=?", item.sku).toArray());
+      if (!oldArea || oldArea.area!==item.area || Number(oldArea.area_verified)!==1) {
+        area_updated += 1;
+        if (existing && oldArea) conflicts.push({
+          sku:item.sku,
+          current_product_name:"Khu vực: " + oldArea.area,
+          incoming_product_name:"Khu vực: " + item.area,
+        });
+      }
+    }
   }
 
-  return { inserted, updated, unchanged, conflicts };
+  return { inserted, updated, unchanged, area_updated, conflicts };
 }
 
 async function importSkuChunk(state: DurableObjectState, request: Request): Promise<Response> {
@@ -144,6 +158,7 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     source_hash?: string;
     dry_run?: boolean;
     confirm_name_changes?: boolean;
+    expected_catalog_revision?: number;
     items?: SkuImportItem[];
   };
   const actor = body.actor;
@@ -157,9 +172,11 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     index,
     sku: normalizeSku(item.sku),
     product_name: normalizeProductName(item.product_name),
+    area: String(item.area ?? "").trim().toUpperCase(),
   }));
   const invalid = normalized.filter(
-    (item) => !item.sku || !item.product_name || item.sku.length > 128 || item.product_name.length > 500,
+    (item) => !item.sku || !item.product_name || item.sku.length > 128 || item.product_name.length > 500 ||
+      (item.area !== "" && item.area !== "LTA" && item.area !== "SHELVING"),
   );
   if (invalid.length) {
     return response(
@@ -182,17 +199,21 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     return response({ error: "DUPLICATE_SKU_IN_CHUNK", skus: [...duplicates].slice(0, 100) }, 400);
   }
 
-  const items = normalized.map(({ sku, product_name }) => ({ sku, product_name }));
+  const items = normalized.map(({ sku, product_name, area }) => ({ sku, product_name, area: area || undefined }));
   const sourceHash = String(body.source_hash || "").trim() || null;
   const plan = planChunk(state, items);
+  const revisionRow = state.storage.sql.exec<{ revision: number }>("SELECT revision FROM d167_sku_meta WHERE id=1").toArray()[0];
+  const catalogRevision = Number(revisionRow?.revision ?? 0);
 
   if (body.dry_run) {
     return response({
       status: "preview",
+      catalog_revision: catalogRevision,
       total: items.length,
       inserted: plan.inserted,
       updated: plan.updated,
       unchanged: plan.unchanged,
+      area_updated: plan.area_updated,
       conflict_count: plan.conflicts.length,
       requires_confirmation: plan.conflicts.length > 0,
       conflicts: plan.conflicts,
@@ -200,6 +221,8 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     });
   }
 
+  if (body.expected_catalog_revision != null && Number(body.expected_catalog_revision) !== catalogRevision)
+    return response({ error: "SKU_CATALOG_REVISION_CHANGED", catalog_revision: catalogRevision }, 409);
   if (plan.conflicts.length > 0 && !body.confirm_name_changes) {
     return response(
       {
@@ -219,11 +242,20 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     const scope = `sku_import_v2:${actor.user_id}`;
     const replay = readIdempotency(state, scope, requestId);
     if (replay) return { ...replay, idempotent_replay: true };
+    // Repeat the revision fence *inside* the write transaction: a Web preview
+    // may become stale while another Web/PRIMARY request commits.
+    const actualRevision = Number(state.storage.sql.exec<{revision:number}>(
+      "SELECT revision FROM d167_sku_meta WHERE id=1").toArray()[0]?.revision ?? 0);
+    if (body.expected_catalog_revision != null &&
+        Number(body.expected_catalog_revision) !== actualRevision)
+      return { error:"SKU_CATALOG_REVISION_CHANGED",catalog_revision:actualRevision };
 
     const at = new Date().toISOString();
     let inserted = 0;
     let updated = 0;
     let unchanged = 0;
+    const touched: string[] = [];
+    const reactivated: string[] = [];
 
     for (const item of items) {
       const existing = firstRow(
@@ -242,8 +274,15 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
           at,
         );
         inserted += 1;
+        touched.push(item.sku);
       } else if (existing.product_name === item.product_name) {
-        unchanged += 1;
+        const member = state.storage.sql.exec<{active:number}>(
+          "SELECT active FROM d167_sku_active WHERE sku=?",item.sku).toArray()[0];
+        if (member && Number(member.active) === 0) {
+          reactivated.push(item.sku);
+        } else {
+          unchanged += 1;
+        }
       } else {
         state.storage.sql.exec(
           `UPDATE sku_master
@@ -255,10 +294,47 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
           item.sku,
         );
         updated += 1;
+        touched.push(item.sku);
       }
     }
 
-    if (inserted > 0 || updated > 0) {
+    // Web PATCH is day-scoped: only changed SKUs reactivate.
+    // Same-field manual edits are recorded for source reconciliation.
+    for (const sku of touched) {
+      state.storage.sql.exec("INSERT INTO d167_sku_active (sku,active,area,area_verified,last_web_name_at) VALUES (?,1,'UNKNOWN',0,?) ON CONFLICT(sku) DO UPDATE SET active=1,last_web_name_at=excluded.last_web_name_at",sku,at);
+    }
+    for (const sku of reactivated) {
+      state.storage.sql.exec("UPDATE d167_sku_active SET active=1 WHERE sku=? AND active=0",sku);
+    }
+    let areaUpdated = 0;
+    for (const item of items) {
+      if (!item.area) continue; // Optional field omitted: preserve trusted prior area.
+      const previous=firstRow(state.storage.sql.exec<{area:string;area_verified:number}>(
+        "SELECT area,area_verified FROM d167_sku_active WHERE sku=?",item.sku).toArray());
+      if (previous && previous.area===item.area && Number(previous.area_verified)===1) continue;
+      state.storage.sql.exec(`INSERT INTO d167_sku_active
+        (sku,active,area,area_verified,last_web_area_at)
+        VALUES (?,1,?,1,?)
+        ON CONFLICT(sku) DO UPDATE SET active=1,area=excluded.area,
+          area_verified=1,last_web_area_at=excluded.last_web_area_at`,item.sku,item.area,at);
+      const current=firstRow(state.storage.sql.exec<{area:string}>(
+        "SELECT area FROM d167_sku_area_history WHERE sku=? AND effective_to IS NULL",
+        item.sku).toArray());
+      if (!current || current.area!==item.area) {
+        if (current) state.storage.sql.exec(
+          "UPDATE d167_sku_area_history SET effective_to=? WHERE sku=? AND effective_to IS NULL",
+          at,item.sku);
+        const day=new Date(Date.now()+7*3600_000).toISOString().slice(0,10);
+        state.storage.sql.exec(
+          "INSERT INTO d167_sku_area_history(sku,area,effective_from,day_vn,source_slot) VALUES (?,?,?,?,?)",
+          item.sku,item.area,at,day,"WEB_APPROVED_PATCH");
+      }
+      areaUpdated += 1;
+    }
+    if (touched.length || reactivated.length || areaUpdated)
+      state.storage.sql.exec("UPDATE d167_sku_meta SET revision=revision+1,published_at=? WHERE id=1",at);
+
+    if (inserted > 0 || updated > 0 || reactivated.length > 0) {
       const meta = state.storage.sql.exec<SqlRow>("SELECT item_count FROM sku_catalog_meta WHERE id = 1 LIMIT 1").toArray()[0];
       if (!meta) {
         state.storage.sql.exec(
@@ -282,6 +358,9 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
       inserted,
       updated,
       unchanged,
+      reactivated: reactivated.length,
+      area_updated: areaUpdated,
+      catalog_revision: actualRevision + (touched.length || reactivated.length || areaUpdated ? 1 : 0),
       source_hash: sourceHash,
       imported_at: at,
     };
@@ -290,6 +369,7 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     return payload;
   });
 
+  if ("error" in result) return response(result,409);
   return response(result);
 }
 

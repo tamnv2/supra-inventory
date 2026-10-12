@@ -1,0 +1,474 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D167",
+  "accepted_base": "D166_LIMITED_OWNER_PASS",
+  "working_branch": "d167-code-three-slot-sku-area-report-20261011",
+  "pr": 559,
+  "status": "D167_PR559_INTEGRATED_OWNER_APPROVED_BETA_DEPLOY__FRESH_CI_PENDING",
+  "last_checkpoint": {
+    "id": "D167-E022",
+    "date_vn": "2026-10-12"
+  },
+  "deployment_gate": {
+    "owner_latest": "2026-10-12 BETA_DEPLOY_APPROVED",
+    "code_permission": true,
+    "merge_permission": true,
+    "beta_deploy_permission": true,
+    "stable_deploy_permission": false,
+    "new_owner_approval_required": false,
+    "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
+    "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
+    "approved_components": [
+      "worker",
+      "gateway",
+      "agent",
+      "android"
+    ]
+  },
+  "entries": [
+    {
+      "id": "D167-E001",
+      "date_vn": "2026-10-10",
+      "topic": "D166 limited PASS, mở D167",
+      "kind": "DECISION",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Owner chấp nhận D166 trong phạm vi bản cập nhật chưa ghi nhận lỗi mới; vấn đề tồn đọng về field/usage không được coi đã PASS",
+        "D167 là current open change; Stable OWNER-GATED"
+      ],
+      "next_action": "Giữ backlog chưa nghiệm thu trong D167, không mở D168",
+      "evidence": "ops/project-state.json#change_control"
+    },
+    {
+      "id": "D167-E002",
+      "date_vn": "2026-10-11",
+      "topic": "D01–D10: HR, giờ ăn, 03:00, ngày nghiệp vụ, SKU, LTA/Shelving, báo cáo, log, quy trình",
+      "kind": "DECISION",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Web nhập nhân sự trực tiếp/Excel; fallback giờ ăn; chốt chưa xử lý 03:00 N+1; batch tách theo ngày",
+        "Sổ kỹ thuật Repo đã ghi quyết định, nhưng field PASS của các mục là riêng biệt"
+      ],
+      "next_action": "Tiếp tục nghiệm thu theo hạng mục; không coi yêu cầu đã chốt là đã triển khai",
+      "evidence": "docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md"
+    },
+    {
+      "id": "D167-E003",
+      "date_vn": "2026-10-11",
+      "topic": "Đồng bộ SKU 3 lần/ngày",
+      "kind": "DECISION",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "INITIAL_05 FULL sau 05:00 VN; lần 2 DELTA random 12:00–12:15; lần 3 DELTA random 19:00–19:15",
+        "FULL ẩn SKU vắng mặt nhưng không xóa/làm mất lịch sử; DELTA không ẩn khi file thiếu",
+        "Giữ CAS, HA generation, sparse diff, lịch sử khu vực theo thời điểm quan sát; Web PATCH với conflict guard"
+      ],
+      "next_action": "Hoàn thiện nguồn Agent WMS managed-browser, staging/readback và regression",
+      "evidence": "docs/OWNER_DECISIONS.md#2026-10-11-2133-vn"
+    },
+    {
+      "id": "D167-E004",
+      "date_vn": "2026-10-11",
+      "topic": "PR #555 đã triển khai Web/Worker Beta, Owner field PASS chưa có",
+      "kind": "STATUS",
+      "status": "TECHNICAL_RELEASE_PASS_ONLY",
+      "owner_approval": true,
+      "facts": [
+        "PR #555 Worker/Web/InventoryCore Beta đã technical release; Agent v125/Android vc105 từ release trước chưa chứng minh đã cài lên máy thực tế",
+        "Điểm này không phải bằng chứng FULL SKU ba lần/ngày đã chạy"
+      ],
+      "next_action": "Không rollback hoặc nâng cấp runtime vì thay đổi quy trình bộ nhớ",
+      "evidence": "ops/project-state.json#change_control"
+    },
+    {
+      "id": "D167-E005",
+      "date_vn": "2026-10-11",
+      "topic": "Mã nguồn D167 đồng bộ SKU và báo cáo trên Draft PR #559",
+      "kind": "STATUS",
+      "status": "IN_PROGRESS",
+      "owner_approval": true,
+      "facts": [
+        "PR #559 có nguồn Agent browser, scheduler, InventoryCore SQL SKU/area, report APIs, Web report/Excel và test",
+        "Nguồn thực WMS trên Agent managed profile, HA six-Agent, 2.5k–5k SQL/performance, Android catalog/ACK và field provider evidence chưa chứng minh",
+        "Các workflow xanh không đồng nghĩa CODE READY hoặc field PASS"
+      ],
+      "next_action": "Hoàn thiện regression và chứng cứ CODE PASS, không merge/deploy",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559"
+    },
+    {
+      "id": "D167-E006",
+      "date_vn": "2026-10-12",
+      "topic": "Ảnh hưởng đến mô hình chạy và phương án chuyển Agent chính",
+      "kind": "DISCUSSION",
+      "status": "ANALYZED_NOT_DEPLOYED",
+      "owner_approval": null,
+      "facts": [
+        "Chuyển máy PRIMARY chỉ chuyển Agent xác nhận/đồng bộ, không tách được ảnh hưởng dữ liệu chung",
+        "Rủi ro Confirm Picklist bị chặn bởi modal hoặc scheduler, FULL thiếu nguồn ẩn nhầm hàng, client cache và SLA/ACK"
+      ],
+      "next_action": "Khắc phục nguy cơ trong CODE PASS; thử vận hành thật chỉ sau phê duyệt triển khai mới",
+      "evidence": "relay-agent/Program.cs; service/src/d167-sku-sync-core.ts"
+    },
+    {
+      "id": "D167-E007",
+      "date_vn": "2026-10-12",
+      "topic": "Owner chốt dừng ở CODE PASS, không triển khai",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Hoàn thiện toàn bộ D167 scope được duyệt trong nhánh PR #559; chạy code/tests/CI thôi",
+        "Không merge main, không Beta/Stable deploy, Agent/APK/OTA/channel release, không bật WMS scheduled sync, không thay live SKU dữ liệu",
+        "Chỉ có Owner phê duyệt triển khai mới để mở khóa; chỉ đạo code+deploy cũ bị thay thế trong phạm vi PR559 chưa triển khai"
+      ],
+      "next_action": "Sau CODE PASS: báo cáo exact SHA và checkpoint, dừng",
+      "evidence": "docs/OWNER_DECISIONS.md#2026-10-12-code-pass-only"
+    },
+    {
+      "id": "D167-E008",
+      "date_vn": "2026-10-12",
+      "topic": "Yêu cầu ghi nhớ xuyên phiên chat từ GitHub",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Owner yêu cầu mỗi lượt trao đổi có thông tin mới phải được ghi trong repo: đã trao đổi/chốt/không chốt/còn dở/test/error/next action",
+        "Từ phiên chat mới: 'tiếp tục Dxxx' phải bootstrap main + active PR branch, không dựa vào AI memory",
+        "Repo công khai nên chỉ lưu tóm tắt kỹ thuật không nhạy cảm; có thể không ghi khi lượt đọc-only thật sự không thay đổi trạng thái"
+      ],
+      "next_action": "Duy trì journal theo từng lượt thảo luận có nội dung mới, kiểm tra GitHub write/readback; giữ nguyên CODE PASS ONLY",
+      "evidence": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
+      "alternatives": [
+        "Chỉ ghi sau Owner chốt (không đủ)",
+        "Lưu transcript nguyên văn (không phù hợp repo công khai)",
+        "Nhật ký chủ đề + checkpoint hiện trạng qua nhánh PR (CHỌN)"
+      ],
+      "open_questions": []
+    },
+    {
+      "id": "D167-E009",
+      "date_vn": "2026-10-12",
+      "topic": "Owner yêu cầu tiếp tục toàn bộ D167 CODE PASS ONLY; Agent SKU FULL/DELTA, LTA/Shelving, Web/Excel và không triển khai",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_IMPLEMENTATION_COMPLETED_FOR_CURRENT_SCOPE__CI_VERIFICATION_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner chỉ cho phép tiếp tục sửa code/CI trên Draft PR #559; tuyệt đối không merge main hoặc deploy Beta/Stable, không phát hành Agent/APK/OTA.",
+        "D167 Agent ưu tiên Confirm PDA đang chạy cũng như lệnh thủ công; duyệt xung đột và giảm SKU bất thường không khóa UI Confirm.",
+        "FULL 05:00 có guard cảnh báo khi nguồn giảm bất thường và cần xác nhận; DELTA trưa được SKIPPED/coalesced khi đã tới lượt tối; tránh snapshot cũ.",
+        "Đã bổ sung kiểm thử SQL synthetic 5000 SKU với hide/no-delete/DELTA/no-op; không thay cho 5000 SKU D1 provider CPU benchmark.",
+        "Báo cáo Web, báo cáo Picker chi tiết và Excel thống nhất area filter LTA/Shelving/UNKNOWN theo thời điểm báo; KPI all-area được gắn nhãn khác phạm vi.",
+        "Web upload SKU PATCH vẫn là mặc định; Root/Admin có FULL REPLACE riêng, xem trước số thêm/đổi/ẩn và xác nhận; atomic CAS, no-delete, complete readback, Android membership epoch, audit và idempotent receipt.",
+        "Tất cả source mới nằm trên working branch PR #559; không có provider mutation/Agent phiên WMS thật/thiết bị thực tế.",
+        "Điểm còn cần field proof: cùng WebView2 managed profile WMS live export, 6 Agent takeover, Android refresh/ACK và measured Cloudflare/Firebase usage/latency."
+      ],
+      "next_action": "Kiểm tra exact HEAD toàn bộ 19 workflow; sửa lỗi nếu có; cập nhật code-ready evidence nhưng không claim field PASS, giữ Draft PR559 và chờ lệnh deploy mới.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559",
+      "alternatives": [
+        "Giữ PATCH mặc định, chỉ bật Web FULL khi Admin/Root lựa chọn và xác nhận",
+        "Không chuyển chi phí hay thêm polling Firebase/DO cho công việc đồng bộ"
+      ],
+      "open_questions": []
+    },
+    {
+      "id": "D167-E010",
+      "date_vn": "2026-10-12",
+      "topic": "D167 code-only Web SKU manual PATCH and FULL REPLACE with optional verified area; avoid PDA wake on no-op",
+      "kind": "TECHNICAL_FINDING",
+      "status": "SOURCE_IMPLEMENTED__EXACT_HEAD_CI_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "Kiểm tra source thấy Web SKU Excel cũ chỉ có SKU và Tên, chưa hỗ trợ vị trí LTA/Shelving tùy chọn dù Owner-approved Web field diff/CAS.",
+        "Đã mở rộng parser Excel chấp nhận cột Khu vực tùy chọn, chỉ LTA hoặc Shelving; trống/thiếu cột giữ nguyên area hiện tại, trùng SKU khác khu vực bị chặn.",
+        "Web PATCH preview khác tên/khu vực và yêu cầu confirmation; trong giao dịch có CAS và tạo verified as-of WEB_APPROVED_PATCH interval đúng thời điểm, không hồi tố báo cáo trước.",
+        "Web FULL REPLACE Admin/Root preview, confirmation, CAS, atomic staging, no delete, readback and idempotent receipt; cho phép area tùy chọn và ghi history WEB_APPROVED_FULL.",
+        "Worker tránh broadcast sku_catalog_updated / PDA FCM nếu import no-op hay chỉ thay khu vực; nguồn report as-of vẫn đọc trực tiếp DO.",
+        "Source CI chỉ chứng minh typecheck/fixtures, chưa chứng minh đủ CPU/usage của 5k full/6-agent hoặc lần xuất WMS thật."
+      ],
+      "next_action": "Kiểm tra exact-head Github CI tổng thể, các source route Web/Worker/Agent; sửa lỗi nếu có; báo nguồn CODE PASS riêng field.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559"
+    },
+    {
+      "id": "D167-E011",
+      "date_vn": "2026-10-12",
+      "topic": "Resume D167 repo-first, fix actual WMS/Web conflict timestamp, day rollover, HA retry and hidden-tab cleanup",
+      "kind": "TECHNICAL_FINDING",
+      "status": "CODE_FIXES_COMMITTED__FINAL_EXACT_HEAD_CI_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "Read main and current Draft PR #559 authority and continuity; 19/19 CI passed earlier PR working HEAD, no runtime deployment.",
+        "Fixed missing persisted a.last_wms_observed_at from InventoryCore roster SELECT, preventing an incorrect zero/old baseline in manual Web-vs-WMS same-field conflict decisions.",
+        "Fixed Owner INITIAL_05 policy: past-VN-day manual Web edits can be superseded by fresh verified morning FULL; current VN day's manual edit still requires field-conflict confirmation.",
+        "Fixed same-generation/different-source and owner-switch retry by clearing stale staging/fingerprint/count atomically on claim; protects whole-file manifest verification.",
+        "Moved hidden WebView2 child close and raw XLSX deletion to connected-export cleanup even when WMS click/download/parse fails; no navigation to Confirm.",
+        "Broadened D167 source-only CI on Web FULL/PATCH/area/report/Excel paths and added focused nonprovider regression assertions.",
+        "No Cloudflare/WMS/Firebase provider invocation, no release, no main merge, no change to accepted Web/Worker/Android/Agent runtime.",
+        "Real managed WMS tab, 6-PC takeover, physical PDA/ACK, 2.5k–5k InventoryCore DO CPU and provider billed usage remain field-only not proven."
+      ],
+      "next_action": "Read back current PR #559 exact HEAD SHA and all required CI; fix any source failure, then mark source CODE PASS only if all required checks succeed, preserve Draft and no deploy.",
+      "evidence": "docs/D167_CODE_ONLY_PROGRESS_2026-10-11.md#2026-10-12--fresh-code-pass-audit-source-fixes-and-cross-module-regression"
+    },
+    {
+      "id": "D167-E012",
+      "date_vn": "2026-10-12",
+      "topic": "D167 source-only CODE READY after exact source-head CI 19/19; unchanged no-deploy boundary",
+      "kind": "STATUS",
+      "status": "CODE_READY_SOURCE_ONLY__19_19_PRE_RECEIPT_CI_PASS__FIELD_OWNER_PASS_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "GitHub PR #559 source head 9f04a57718f0aca6421a248a1f03dd01deb6bd4c: 19/19 workflows completed SUCCESS, including D167 three-slot source contract, Windows Agent build, Worker typecheck, Repo Authority Guard, Project State Guard, Web/Agent predeploy guards.",
+        "Implemented/corrected Web/WMS same-day conflict timestamp and VN day rollover, stale HA retry source staging, WMS child cleanup on failure, 5000 synthetic SQL and report/Excel source parity. Source-only code passes the required available non-deploy CI at that exact SHA.",
+        "This approval class is only SOURCE CODE READY, not Office WMS end-to-end, physical Android/6-Agent, Cloudflare/Firebase billed usage, release, deployment, business Owner PASS, or Stable.",
+        "Mô hình chạy hiện tại không nhận bất kỳ thay đổi code nào từ PR #559; no new resource or credential."
+      ],
+      "next_action": "Recheck CI exact newest documentation/state-receipt HEAD; then STOP D167 Draft PR559 with no merge/Agent/APK/Web/Worker deploy. Await new Owner exact-scope deploy approval before Beta/field.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/commit/9f04a57718f0aca6421a248a1f03dd01deb6bd4c"
+    },
+    {
+      "id": "D167-E013",
+      "date_vn": "2026-10-12",
+      "topic": "D167 code/installed-source conflict audit — distinguish resolved legacy issues from new SKU freshness availability risk",
+      "kind": "TECHNICAL_FINDING",
+      "status": "REVIEW_FINDINGS_PENDING_OWNER_SCOPE_DECISION__NO_CODE_OR_DEPLOY_CHANGE",
+      "owner_approval": null,
+      "facts": [
+        "Exact preceding PR559 HEAD c8386753c3fab89b86b32a6ca091192ae034779b: 19/19 completed PR CI SUCCESS, Draft/unmerged, no PR559 Beta release; main PR550/555 Beta technical releases remain unchanged. Field and Owner PASS not proven.",
+        "Already fixed in deployed main PR555: legacy global pending-SKU/PICKER uniqueness migrated to VN-day index, missing Reporter meal selection uses 30-minute later default, 03:00 day-end closes all day-N unresolved; outdated D167_SYSTEM_REVIEW P0-F1/P0-F2/P0-F3 text is historical, not evidence these source bugs remain.",
+        "New source-level operational contract risk: PR559 service/src/business-core.ts unconditionally returns HTTP 409 SKU_TODAY_SYNC_PENDING for every new Picker shortage submission after 05:00 VN until that VN date INITIAL_FULL has succeeded. If Agent/WMS not ready/outage, operational Báo hàng availability depends on WMS despite legacy separated transaction path. Design not yet Owner reconciled; this is a proven control-flow condition, NOT proven physical incident.",
+        "Main Beta HR Google Sheet event writer is retired via early Beta return in hr-event-sync.ts; old partial-sheet WAITING_FOR_COMPLETION optimization is superseded by Web/Excel onboarding, with old Sheet data retained. Do not reimplement or delete legacy data.",
+        "Owner D167-C VN log date filter is field OK; A spacing has CSS source in unmerged PR559, field not passed; D last-login timezone formatting correction exists in main fmt() but field timestamp freshness root cause not closed.",
+        "D167 three-slot SKU, area temporal, overview/detail/Excel and Web PATCH/FULL code present in PR559, source and synthetic 5K test PASS; real managed WMS export, six-Agent HA/Confirm, Android cache/ACK and provider billed usage remain field pending.",
+        "Release Owner guard is coded for core Beta Worker/Gateway/Agent/Firestore/RTDB workflows; older independent cancelled PDA-management verification workflow has main-push release path not covered by same receipt. Do not touch unrelated resource without separate authorized impact reconciliation."
+      ],
+      "alternatives": [
+        "O0 leave 05:00 fail-closed behavior but explicitly design and test downtime user guidance/availability window; only if Owner chooses strict same-day SKU freshness at cost of outage.",
+        "O1 preferred business-continuity review: decouple missed WMS FULL from unconditional report rejection via bounded, clearly marked last-verified roster policy with audit and strict invalid/hidden SKU guards; exact policy requires Owner approval because Owner currently requires daily active roster.",
+        "O2 avoid duplicating SKU catalog in Firebase/Sheets or installing extra polling; preserve single InventoryCore source of truth."
+      ],
+      "open_questions": [
+        "Which explicit outage rule wins when after 05:00 PRIMARY/WMS cannot complete a FULL: block all Picker reports or temporarily use clearly marked last-known verified roster?",
+        "Does Owner want a limited source-only repair of the 05:00 gate and corresponding regression tests before any PR559 Beta deployment approval?",
+        "Validate real branch CI after any documentation checkpoint; never imply final source-head 19/19 establishes physical or billing PASS."
+      ],
+      "next_action": "Do not cancel D167 or revert released PR555. Retain PR559 unmerged under CODE PASS ONLY. Present P0 source-vs-business policy risk, preserve already released fixes and cancel superseded feature proposals; obtain explicit Owner approval before changing code/deploy.",
+      "evidence": "PR559 service/src/business-core.ts createReport SKU_TODAY_SYNC_PENDING; main service/src/core.ts day index; main service/src/meal-break-core.ts slotFor; main service/src/d167-overdue-core.ts; main service/src/hr-event-sync.ts; main web/src/operational-app.ts fmt; GitHub Actions PR559 19/19 before this checkpoint"
+    },
+    {
+      "id": "D167-E014",
+      "date_vn": "2026-10-12",
+      "topic": "Owner final daily FULL prerequisite, controlled WMS API session reuse and cancellations",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED_CODE_ONLY_NOT_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Every new Picker shortage report for VN date N requires verified FULL of date N; no stale N-1 roster or pre-05 grace. If missing, Web/Android Picker/Reporter show the exact Pick Pack/Invent specialist warning; existing tickets, resolution, result ACK, Confirm continue.",
+        "Agent current PRIMARY WMS managed-browser session supplies only allowlisted ephemeral API headers in local Agent process RAM. XLSX downloaded independently via signed read-only Bin Inventory GET; main Confirm tab MUST NOT be navigated/clicked/reloaded, no auth persistence or cross-process sharing.",
+        "Validated, explicit Web Admin/Root FULL REPLACE qualifies to mark current VN day ready. Partial Web PATCH is not proof of current full active roster.",
+        "Owner confirms cancelling five superseded proposals: further HR Sheet partial autosync fix; historical PENDING/OVERDUE as-of; one SKU DONE per day; universal cross-day rename approval; deployment of unmeasured cross-meter workload shift.",
+        "Owner requires genuine complete buildable, release-ready CODE PASS: after future exact-scope deploy order no further functional coding expected; project remains CODE ONLY now, no merge or Beta/Stable runtime changes."
+      ],
+      "supersedes": [
+        "D167-E013"
+      ],
+      "next_action": "Reconcile source/server warnings and WMS API direct GET, run all exact-HEAD required CI, keep draft/no deploy",
+      "evidence": "docs/OWNER_DECISIONS.md#2026-10-12--d167-owner-quyết-định-sku-ngày-hiện-tại"
+    },
+    {
+      "id": "D167-E015",
+      "date_vn": "2026-10-12",
+      "topic": "D167 source implementation of Owner daily FULL and API-only read-only SKU transport",
+      "kind": "STATUS",
+      "status": "SOURCE_COMMITTED__EXACT_HEAD_CI_PENDING__NOT_CODE_PASS",
+      "owner_approval": true,
+      "facts": [
+        "Unmerged PR559 modifies service createReport: rejects all new-day Picker shortage before same-day verified FULL; /api/skus/catalog-info exposes day-ready/date and exact UI warning; Web Picker/Reporter, Android Picker/Reporter warning and Picker submit guards added.",
+        "First verified Agent INITIAL FULL or explicit Web FULL REPLACE broadcasts day-ready to Web/Android even for catalog semantic no-op; standalone PATCH does not open day; DELTA area-only does not force PDA refresh.",
+        "Agent now opens only isolated side browser context for ephemeral WMS API auth observation, then separately performs scoped read-only signed XLSX GET; no SKU Search/Export UI click; main Confirm unchanged.",
+        "Static test guards added, updated 2026-10-12 Owner decisions/specs/scope metadata; new build/test verdict from final SHA remains pending.",
+        "No runtime deploy/Agent version channel/Android APK or WMS provider job started by these source commits."
+      ],
+      "open_questions": [
+        "Check managed WMS session header capture under real company authenticated PRIMARY after Owner deployment; SOURCE compile is not physical proof.",
+        "Check signed Android release-ready artifact and Agent v126 EXE availability in GitHub CI, not only unit tests.",
+        "Verify cloud/provider hours and actual downstream notifications after separately approved Beta rollout."
+      ],
+      "next_action": "Read final PR HEAD, inspect Android/Agent/service/web/continuity CI and repair failures before claiming CODE PASS; no merge/deploy.",
+      "evidence": "PR559 code commits 6a3c9e54, 949d4932, 8ef82be2, af679f2f, 28331575; github source CI pending"
+    },
+    {
+      "id": "D167-E016",
+      "date_vn": "2026-10-12",
+      "topic": "D167 Owner final CODE READY exact source SHA 33bcb727, signed Android vc106 and Agent v126 artifacts; field pending and no deploy",
+      "kind": "TEST",
+      "status": "SOURCE_CODE_READY_20_OF_20_GITHUB_CI_PASS__SIGNED_BUILD_ARTIFACTS_READY__NO_DEPLOY",
+      "owner_approval": null,
+      "facts": [
+        "Exact PR559 source SHA 33bcb727f9d96e53c9478858198a167ff18aa1ab passed 20/20 GitHub pull-request workflows 0 failures; includes Authority Guard, State Guard, D167 source contract, Windows Agent v126 and managed WebView2 host, signed Android vc106, Worker/Web TS and predeploy guards.",
+        "CI signed Android artifact supra-inventory-beta-apk at run 38201200829 artifact 11725801963; Windows Agent v126 artifact supra-inventory-relay-poc-agent at run 38201200873 artifact 11726001330. Artifacts are source-only PR build outputs, not GitHub release/OTA/channel publication.",
+        "Owner-locked VN-day SKU FULL report gate, Web/Android Picker/Reporter warnings, Web FULL vs PATCH, WMS same PRIMARY transient in-process API headers via direct signed allowlisted read-only GET, SKU first-FULL wake and area/detail/Excel are in PR559 source; cancelled old plans explicitly superseded.",
+        "No further Owner-approved feature implementation is currently known missing from source at verified SHA; production WMS browser/session compatibility, six-Agent takeover/WMS Confirm p95/p99, physical PDA SKU/ACK, billed usage remain post-deploy FIELD_PENDING. CODE READY excludes field or Owner PASS.",
+        "Existing main Beta PR550/555 vc105/Agent v125 and D166 accepted base remain untouched. PR559 DRAFT unmerged; all runtime mutations forbidden until new Owner explicit exact-scope deploy approval."
+      ],
+      "open_questions": [
+        "Future Owner exact-SHA approved Beta deploy scope should include Worker/Web/InventoryCore, existing authorized Agent Operations Gateway bridge, Windows Agent v126, signed Android vc106 if no other release intervenes.",
+        "Physical WMS managed-profile session and direct signed GET must be tested in the company on deployment; field incompatibilities would require same D167 repair after actual evidence, not fabricated CODE PASS."
+      ],
+      "next_action": "Reverify GitHub final documentation/continuity HEAD CI, then stop on CODE READY; do not merge or deploy until new Owner scoped authorization.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559; https://github.com/tamnv2/supra-inventory/commit/33bcb727f9d96e53c9478858198a167ff18aa1ab; GitHub Actions runs 38201200829,38201200873,38201200863,38201200848"
+    },
+    {
+      "id": "D167-E017",
+      "date_vn": "2026-10-12",
+      "topic": "Owner confirms Web edit of already confirmed Reporter meal slot with password, approves scoped implementation",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED_WEB_WORKER_INVENTORYCORE_ONLY__NO_APK_AGENT__CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner confirms the requested time is Reporter meal break in Ca vận hành, not a device clock; explicitly instructs implement/deploy.",
+        "Original confirming Reporter or Admin/ROOT on Web validates their current-account password or privileged proof to switch EARLY/LATE before 11:00/18:00 VN; no APK or Agent code change.",
+        "Existing D167 Worker and InventoryCore first-winner POST remain unmodified. Separate guarded /api/reporter/meal-break/edit uses same-day confirmed_at CAS, SQLite atomic recalc/audit, Service alarm and existing realtime meal_break/queue/overdue scopes.",
+        "Already committed code PR559: service/src/meal-break-core.ts, core.ts, index.ts, web/src/api.ts, operational-app.ts; contract test tests/d167-meal-edit.test.mjs and workflow verify-d167-three-slot.yml.",
+        "Owner previously required no runtime updates during active shift. PR559 includes unshipped Agent/APK and SKU changes; do not deploy entire broad draft PR to satisfy Web-only request. Stable Owner-gated."
+      ],
+      "open_questions": [
+        "Exact post-shift Beta release vehicle for Web+Service-only feature without broad PR559: create a separate D167 scoped PR/reconcile main then Owner-authorized deployment."
+      ],
+      "next_action": "Pass exact final head CI, prepare isolated same-D167 Web+Service Beta release after shift, preserve draft PR559 and avoid Android/Agent changes.",
+      "evidence": "Owner chat 2026-10-12 confirms giờ nghỉ; GitHub PR559 source and test paths"
+    },
+    {
+      "id": "D167-E018",
+      "date_vn": "2026-10-12",
+      "topic": "Scoped D167 meal edit PR560 code CI PASS and after-shift deployment scheduled; broad PR559 stays CODE ONLY",
+      "kind": "STATUS",
+      "status": "WEB_WORKER_MEAL_EDIT_PR560_17_OF_17_CI_PASS__BETA_DEPLOY_SCHEDULED_AFTER_SHIFT__NOT_YET_DEPLOYED",
+      "owner_approval": true,
+      "facts": [
+        "Owner clarified edit concerns Reporter team lunch/dinner under Ca vận hành and authorized implementation/deployment for that scoped feature only.",
+        "Web/Worker/InventoryCore authorized edit implemented inside D167 PR559; its source+docs checked HEAD 59e37c123de5b04a4b7efd0e3afe60187a66109a with 20/20 workflows PASS.",
+        "Independent D167 scoped PR560 https://github.com/tamnv2/supra-inventory/pull/560 created from main with only Web+Worker/InventoryCore, unit tests/CI and decisions/state plus owner-gated release receipt; exact HEAD 26c53b750590d3fe161a7df13fe504b13dbf7821 shows 17/17 GitHub CI PASS, 0 failures.",
+        "Release receipt approved_source_sha 785a339a51089c54b1a88096a2f90fe9e8df1c1c, approved_components=[worker], owner ref OWNER_EXPLICIT_D167_DEPLOY_20261012_PR560_WEB_MEAL_AFTER_SHIFT; user ordered deployment but earlier after-shift constraint remains in force.",
+        "Scheduled exact one-time after-shift scoped deployment check for 2026-10-12 22:15 VN; will verify GitHub authority/CI, merge PR560 only if safe, inspect Worker/Web Beta deploy and readback. NOT deployed at this checkpoint. No Android/Agent APK/EXE, WMS, other Firebase resource or Stable change.",
+        "PR559 remains Draft, no merge/no deployment, planned Agent v126 and Android vc106 continue to be code-only pending separate explicit Owner full-scope instruction."
+      ],
+      "next_action": "At scheduled 22:15 VN follow strict gate for PR560 Beta Worker/Web only. If error or outside window fail closed and report; never release PR559. Record actual runtime result as separate checkpoint, not as CODE PASS.",
+      "evidence": "GitHub PR560 checks 17/17 at 26c53b750590d3fe161a7df13fe504b13dbf7821; original PR559 20/20 at 59e37c123de5b04a4b7efd0e3afe60187a66109a; automation title Triển khai giờ nghỉ D167"
+    },
+    {
+      "id": "D167-E019",
+      "date_vn": "2026-10-12",
+      "topic": "Owner clarifies EARLY meal edit is a continuous time interval, not specific example minutes",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_MEAL_EARLY_CUTOFF_REFINEMENT__PR561_CODE_ONLY_CI_PENDING__NO_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "11:15, 11:35, 18:15 and 18:35 were only examples. For previously confirmed EARLY 11:00–11:30 / 18:00–18:30, original Reporter or ADMIN/ROOT may correct to LATE any instant until strictly before 12:00 lunch / 19:00 dinner VN.",
+        "Already selected LATE keeps existing original pre-11:00/pre-18:00 restriction; never infer special one-time unlock minutes.",
+        "Worker verifies current password or privileged proof, InventoryCore enforces VN day and CAS, recalc only pending tickets and alarm; already completed automatic or manual Skip or ACK never reversed.",
+        "Isolated Draft PR561 from main: d167-meal-edit-early-window-20261012 includes service/Web/tests/Owner decisions/ROLE_WORKFLOWS/ACCEPTANCE/state. PR559 remains Draft. No new provider resource, Android/Agent/WMS/Stable or scheduling changes."
+      ],
+      "open_questions": [
+        "Latest PR561 exact HEAD GitHub CI and source/type tests remain to be verified. No permission to merge/release this new executable candidate."
+      ],
+      "next_action": "Check PR561 required CI until terminal PASS or real failure; preserve code-only branch and Owner-gated deployment.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/561"
+    },
+    {
+      "id": "D167-E020",
+      "date_vn": "2026-10-12",
+      "topic": "D167 EARLY meal edit isolated PR561 code-ready validation",
+      "kind": "TEST",
+      "status": "CODE_READY_15_OF_15_GITHUB_WORKFLOWS_SUCCESS__NO_DEPLOY",
+      "owner_approval": null,
+      "facts": [
+        "PR561 isolated from current main. Exact executable/documentation HEAD 0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a has 15/15 GitHub workflows success with zero failure including D167 meal edit guard, Repo Authority Guard, Project State Guard and predeploy verify.",
+        "EARLY-to-LATE correction now accepted at every instant after the original confirmation and strictly before 12:00 lunch or 19:00 dinner, including 11:15 and 11:35; LATE selection pre-11:00/pre-18:00 cutoff unchanged.",
+        "Web and Worker/InventoryCore coordinated; original Reporter/admin/root current-account proof, transaction CAS and audit, pending-only Auto Skip recalculation and existing realtime preserved. No additional provider service, polling or device release.",
+        "PR561 remains Draft/unmerged awaiting future explicit Owner approval to deploy new exact source. PR559 remains Draft/unmerged."
+      ],
+      "open_questions": [
+        "Field check of EARLY-to-LATE correction after 11:30/18:30 with pending vs previously completed automatic Skip must follow a separately authorized Beta deploy."
+      ],
+      "next_action": "Keep PR561 CODE READY without merge/deployment; require exact-SHA Owner deploy instruction for this correction, independent from broader PR559.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/561; SHA 0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a"
+    },
+    {
+      "id": "D167-E021",
+      "date_vn": "2026-10-12",
+      "topic": "Owner explicitly deploys all D167 CODE READY items to registered Beta scope",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_ALL_CODE_READY_BETA_RELEASE__INTEGRATION_TEST_REQUIRED",
+      "owner_approval": true,
+      "facts": [
+        "Owner's latest explicit instruction supersedes PR559 CODE_PASS_ONLY deployment hold for items with verified CODE READY; this is scoped Beta authorization, not Stable nor Owner field PASS.",
+        "PR559 executable source CODE READY at 33bcb727 with 20/20 GitHub checks and Android vc106/Windows Agent v126 signed build artifacts; final branch HEAD before integration ecf68449 was docs receipt only.",
+        "Latest main c9f8580 contains later meal EARLY continuous edit and Web four-layout adjustment, which must survive integration without downgrades.",
+        "Integration source parent c23802100b6d5040ed50b72bc19c7ab736fe5d25 preserves PR559 plus main and must pass fresh PR authority, state, Android, Agent, Web/Worker, D167 and release-gate CI before merge.",
+        "Allowed existing Beta release components: worker (bundled Web/InventoryCore), gateway, signed android vc106, Agent v126; no Stable, Launcher or new provider resources; no mandatory floor claim until readback.",
+        "Business/physical acceptance requires WMS-managed PRIMARY real export, three-slot day/failover, 03:00 and meal behavior, device installation, ACK/latency, area/provenance and measured provider usage."
+      ],
+      "next_action": "Complete exact merged HEAD CI, repair under D167 if needed, merge only after PASS, then inspect Beta workflow release and health; report per-item pass/pending.",
+      "evidence": "Owner explicit chat 2026-10-12 'Triển khai D167 toàn bộ các mục đã pass code'; https://github.com/tamnv2/supra-inventory/pull/559 ; integrated parent c23802100b6d5040ed50b72bc19c7ab736fe5d25",
+      "supersedes": [
+        "D167-E016",
+        "D167-E020"
+      ]
+    },
+    {
+      "id": "D167-E022",
+      "date_vn": "2026-10-12",
+      "topic": "D167 integrated Web helper duplicate detected by PR CI and repaired before Beta rollout",
+      "kind": "STATUS",
+      "status": "SOURCE_REPAIRED_C6BC865B__PR_CI_RERUN_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "Exact integrated PR head e08f6fdf initial PR CI failed Web TypeScript because Web API editD167Meal and operation submitD167MealEdit had byte-for-byte duplicate definitions following reconciliation of PR559 with later PR561 main changes.",
+        "Source-only D167 repair commit c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c removes the duplicated helpers without altering the actual meal correction, API contract, Web layout, Worker/Agent/Android or source features.",
+        "Owner scoped Beta release approval remains unchanged; exact executable SHA in release receipt is updated to c6bc865b; CI must PASS anew before main merge or runtime publication."
+      ],
+      "next_action": "Verify all PR559 exact HEAD workflow checks before merge; confirm release gate and maintain Beta-only authorization.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559; failed run 38271429444 and repair source c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c"
+    }
+  ],
+  "resume": {
+    "approved": [
+      "D167 requirements D01–D10 và ba slot FULL/DELTA, LTA/Shelving/UNKNOWN, no delete",
+      "Lệnh mới 2026-10-12: CODE PASS ONLY / giữ PR #559 Draft",
+      "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal",
+      "Owner 2026-10-12: same-VN-day FULL hard gate; Web FULL or Agent qualifies, PATCH does not; exact Picker/Reporter warning; WMS ephemeral signed API GET; cancel superseded backlog",
+      "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged",
+      "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved"
+    ],
+    "implemented": [
+      "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
+      "D167 PR #559 source: PRIMARY WMS managed-side-tab scheduler + 3 slot, FULL hide/DELTA safe, HA/CAS, LTA/Shelving temporal history, dashboard/detail/Excel filters, Web PATCH vs explicit Admin FULL REPLACE, regression fixtures",
+      "Web manual SKU Excel optional LTA/Shelving, PATCH/FULL confirmed as-of provenance and no catalog blast when unchanged/area-only",
+      "2026-10-12 fresh source audit: correct last_wms_observed SQL cursor, only same-VN-day Web conflicts, atomic stale-stage HA recovery, WMS child cleanup on errors, expanded code-only CI contract paths",
+      "D167 Source CODE READY (19/19 source-head CI PASS at 9f04a577); final Docs/State receipt HEAD CI is rechecked separately",
+      "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known",
+      "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent",
+      "D167 meal EARLY continuous edit correction PR561 exact HEAD 0e4757f2: 15/15 CI PASS, Draft/unmerged, no deploy"
+    ],
+    "in_progress": [
+      "Integrate PR559 with main meal correction and four-area Web layout; verify fresh CI before Beta release"
+    ],
+    "pending_approval": [
+      "Owner D167 business/physical field PASS pending",
+      "Separate Stable deploy remains OWNER-GATED"
+    ],
+    "blocked": [
+      "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity"
+    ],
+    "next_actions": [
+      "Verify exact merged PR HEAD CI; after PASS merge PR559 through existing release gate",
+      "Read back Beta Worker/Web/Gateway and Android vc106 / Agent v126 release channels",
+      "Report actual release results and remaining field acceptance separately"
+    ],
+    "release_boundary": "BETA_ONLY_WORKER_GATEWAY_ANDROID_AGENT_APPROVED_AFTER_CI__STABLE_GATED__NO_FIELD_PASS"
+  }
+}

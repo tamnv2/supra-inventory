@@ -41,7 +41,12 @@ data class AndroidOperatingWindow(
 )
 
 data class SkuItem(val sku: String, val productName: String)
-data class CatalogInfo(val count: Int, val version: String)
+data class CatalogInfo(
+    val count: Int, val version: String,
+    val skuDayReady: Boolean = false,
+    val skuDayVn: String = "",
+    val skuDayWarning: String? = null,
+)
 data class CatalogPage(val items: List<SkuItem>, val nextAfter: String?)
 data class CatalogDeltaPage(val items: List<SkuItem>, val nextUpdatedAt: String?, val nextSku: String?)
 
@@ -449,7 +454,13 @@ class InventoryApi(
 
     fun getCatalogInfo(): CatalogInfo {
         val payload = request("GET", "/api/skus/catalog-info")
-        return CatalogInfo(payload.optInt("count", 0), payload.optString("version"))
+        return CatalogInfo(
+            count = payload.optInt("count", 0),
+            version = payload.optString("version"),
+            skuDayReady = payload.optBoolean("sku_day_ready", false),
+            skuDayVn = payload.optString("sku_day_vn"),
+            skuDayWarning = payload.optString("sku_day_warning").takeIf { it.isNotBlank() && it != "null" },
+        )
     }
 
     fun getCatalogPage(after: String, limit: Int = 2000): CatalogPage {

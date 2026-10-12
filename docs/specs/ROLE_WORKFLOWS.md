@@ -1082,3 +1082,14 @@ The first authenticated Reporter sets early/late period using the existing Web/A
 ## 2026-10-12 — D167 continuous correction of an incorrectly selected EARLY meal slot
 
 Supersede universal before-11:00/18:00 cutoff in the previous D167 meal-edit paragraph for an already confirmed EARLY slot only. On Web, any time after confirmation and strictly before 12:00 VN for lunch EARLY (11:00–11:30), or before 19:00 VN for dinner EARLY (18:00–18:30), an authorized original Reporter / ADMIN / ROOT can reauthenticate and change to LATE. 11:15, 11:35, 18:15, 18:35 are merely sample timestamps, not special minutes. Once choice is LATE, retain its original pre-11:00/pre-18:00 restriction. Preserve server clock, valid proof, VN date, CAS, original confirming Reporter, audit, pending-only deadline recalculation, alarms and realtime. Already completed Skip and other final outcomes remain immutable. No Android/Agent/WMS/Stable release authorized.
+
+
+
+## D167 Owner 2026-10-12 — Verified roster prerequisite, all operator surfaces
+
+A new Picker shortage transaction on day N is accepted only if the authoritative InventoryCore ledger contains a validated FULL publication for the **same Asia/Ho_Chi_Minh day N**, from authorized Agent or explicit Web FULL REPLACE. There is no 05:00 grace to report using day N-1 data, and manual Web PATCH cannot mark N ready. Before readiness, Picker/Reporter Web/Android receive a visible warning: “Danh sách SKU chưa được cập nhật cho ngày hôm nay. Vui lòng liên hệ Chuyên viên Pick Pack / Invent để cập nhật trước khi vào ca.” Picker new-report controls remain disabled; Service independently returns 409 `SKU_TODAY_SYNC_PENDING` to old clients. Older tickets/Reporter resolutions/ACK/withdrawals, live tabs/history and independent Picklist confirmation are **not blocked**. Upon FULL DONE, realtime and silent FCM initiate client recheck, including unchanged roster. No offline fallback.
+
+
+## D167 2026-10-12 — Editing confirmed meal period via Web
+
+Once a Reporter selects a meal slot for the day, only that same Reporter, or an ADMIN/ROOT, may replace it **on Web only** after verifying CURRENT account credential (privileged actor: OTP/emergency proof). Until 11:00 VN for lunch or 18:00 VN for dinner, Web displays form “Đổi giờ nghỉ” plus masked password and posts `/api/reporter/meal-break/edit` with current confirmed timestamp as CAS. Do not forward proof into InventoryCore, audit log, realtime or telemetry. In Core, one transaction checks day/role/old timestamp and updates one row, recomputes unexpired pending-auto-Skip mốc, audits before/after and re-arms deadline; old auto-Skip decisions/Picker ACK do not change. Existing Web/Android `meal_break` realtime scopes reuse old contract with no APK or Agent change. Android continues to show original preselection dialog, and its reconciliation dismisses stale one-winner overlays. Once 11:00/18:00 has passed, edit is rejected by Core even with valid password.

@@ -18,6 +18,7 @@ export interface AppProfile {
 export interface SkuItem {
   sku: string;
   product_name: string;
+  area?: "LTA" | "SHELVING";
   source_hash?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -25,6 +26,10 @@ export interface SkuItem {
 
 export interface SkuCatalogInfo {
   count: number;
+  sku_day_ready: boolean;
+  sku_day_vn: string;
+  sku_day_last_full: string | null;
+  sku_day_warning: string | null;
   max_updated_at: string | null;
   version: string;
   last_sync_at?: string | null;
@@ -69,6 +74,7 @@ export interface SkuImportChunkResult {
   requires_confirmation?: boolean;
   conflicts?: SkuNameChangeConflict[];
   idempotent_replay?: boolean;
+  catalog_revision?: number;
 }
 
 export type SlaState = "UNCONFIGURED" | "NORMAL" | "WARNING" | "ESCALATED";
@@ -329,9 +335,28 @@ export interface AdminDashboard {
   top_skus: Array<{ sku: string; product_name: string; report_count: number; picker_count: number }>;
 }
 
+export interface D167AreaSummary {
+  from_vn: string;
+  to_vn: string;
+  generated_at: string;
+  area_evidence: string;
+  areas: Array<{
+    area: "LTA" | "SHELVING" | "UNKNOWN";
+    batches: number;
+    distinct_skus: number;
+    picker_reports: number;
+    has_stock: number;
+    skip_allowed: number;
+    closed: number;
+    pending: number;
+  }>;
+  totals: { batches: number; picker_reports: number };
+}
+
 export interface AdminReportingRow {
   batch_id: string;
   sku: string;
+  area_at_first_report?: "LTA" | "SHELVING" | "UNKNOWN";
   product_name: string;
   status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
   first_report_at: string;
@@ -362,6 +387,8 @@ export interface AdminReportingPage {
 export interface AdminReportingDetailRow {
   batch_id: string;
   sku: string;
+  area_at_first_report?: "LTA" | "SHELVING" | "UNKNOWN";
+  area_at_picker_report?: "LTA" | "SHELVING" | "UNKNOWN";
   product_name: string;
   batch_status: "PENDING" | "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED";
   first_report_at: string;
@@ -959,7 +986,7 @@ export async function saveHrSource(sheetUrl: string, tabName: string, employeeCo
 
 export async function importSkuChunk(
   items: SkuItem[],
-  options: { requestId: string; sourceHash: string; dryRun?: boolean; confirmNameChanges?: boolean },
+  options: { requestId: string; sourceHash: string; dryRun?: boolean; confirmNameChanges?: boolean; expectedCatalogRevision?: number },
 ): Promise<SkuImportChunkResult> {
   return readJson(await authorizedFetch("/api/admin/skus/import", {
     method: "POST",
@@ -968,7 +995,44 @@ export async function importSkuChunk(
       source_hash: options.sourceHash,
       dry_run: Boolean(options.dryRun),
       confirm_name_changes: Boolean(options.confirmNameChanges),
+      expected_catalog_revision: options.expectedCatalogRevision,
       items,
+    }),
+  }));
+}
+
+export type SkuFullReplaceResult = {
+  status: "PREVIEW" | "DONE";
+  source_hash: string;
+  catalog_revision: number;
+  source_rows: number;
+  previous_active: number;
+  created: number;
+  renamed: number;
+  area_updated: number;
+  reactivated: number;
+  hidden: number;
+  unchanged: number;
+  name_conflicts: Array<{ sku:string; current:string; incoming:string }>;
+  area_conflicts: Array<{ sku:string; current:string; incoming:string }>;
+  completed_at?: string;
+};
+
+export async function importSkuFullReplace(
+  items: SkuItem[],
+  options: { requestId:string; dryRun?:boolean; expectedCatalogRevision?:number;
+    expectedSourceHash?:string; confirmFullReplace?:boolean; confirmNameChanges?:boolean },
+): Promise<SkuFullReplaceResult> {
+  return readJson(await authorizedFetch("/api/admin/skus/full-replace", {
+    method: "POST",
+    body: JSON.stringify({
+      request_id:options.requestId,
+      dry_run:options.dryRun===true,
+      expected_catalog_revision:options.expectedCatalogRevision,
+      expected_source_hash:options.expectedSourceHash,
+      confirm_full_replace:options.confirmFullReplace===true,
+      confirm_name_changes:options.confirmNameChanges===true,
+      items:items.map(({sku,product_name,area})=>({sku,product_name,...(area?{area}:{})})),
     }),
   }));
 }
@@ -1112,6 +1176,11 @@ export async function getAdminOperationalInsights(from: string, to: string): Pro
   return readJson(await authorizedFetch(`/api/admin/operational-insights?${params.toString()}`));
 }
 
+export async function getD167AreaSummary(fromVn: string, toVn: string): Promise<D167AreaSummary> {
+  const params = new URLSearchParams({ from: fromVn, to: toVn });
+  return readJson(await authorizedFetch(`/api/admin/d167/report/summary?${params.toString()}`));
+}
+
 export async function getAdminDashboard(from: string, to: string): Promise<AdminDashboard> {
   const params = new URLSearchParams({ from, to });
   return readJson(await authorizedFetch(`/api/admin/dashboard?${params.toString()}`));
@@ -1121,6 +1190,7 @@ export async function getAdminReporting(options: {
   from: string;
   to: string;
   status?: string;
+  area?: "LTA" | "SHELVING" | "UNKNOWN";
   query?: string;
   limit?: number;
   offset?: number;
@@ -1132,6 +1202,7 @@ export async function getAdminReporting(options: {
     offset: String(options.offset || 0),
   });
   if (options.status) params.set("status", options.status);
+  if (options.area) params.set("area", options.area);
   if (options.query) params.set("query", options.query);
   return readJson(await authorizedFetch(`/api/admin/reporting?${params.toString()}`));
 }
@@ -1140,6 +1211,7 @@ export async function getAdminReportingDetail(options: {
   from: string;
   to: string;
   status?: string;
+  area?: "LTA" | "SHELVING" | "UNKNOWN";
   query?: string;
   batchId?: string;
   limit?: number;
@@ -1152,6 +1224,7 @@ export async function getAdminReportingDetail(options: {
     offset: String(options.offset || 0),
   });
   if (options.status) params.set("status", options.status);
+  if (options.area) params.set("area", options.area);
   if (options.query) params.set("query", options.query);
   if (options.batchId) params.set("batch_id", options.batchId);
   return readJson(await authorizedFetch(`/api/admin/reporting-detail?${params.toString()}`));

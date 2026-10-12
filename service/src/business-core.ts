@@ -343,7 +343,8 @@ function searchSkus(state: DurableObjectState, url: URL): BusinessResult {
   const query = String(url.searchParams.get("query") || "").trim();
   const limit = normalizeLimit(url.searchParams.get("limit"), 100);
   const offset = normalizeOffset(url.searchParams.get("offset"));
-  const where = query ? "WHERE sku LIKE ? OR product_name LIKE ?" : "";
+  const activePredicate = "(SELECT last_full_day FROM d167_sku_meta WHERE id=1) IS NULL OR EXISTS (SELECT 1 FROM d167_sku_active d WHERE d.sku=sku_master.sku AND d.active=1)";
+  const where = query ? `WHERE (sku LIKE ? OR product_name LIKE ?) AND (${activePredicate})` : `WHERE (${activePredicate})`;
   const args: SqlStorageValue[] = query ? [`%${query}%`, `%${query}%`] : [];
   const totalRow = firstRow(state.storage.sql.exec<SqlRow>(
     `SELECT COUNT(*) AS total FROM sku_master ${where}`,
@@ -396,6 +397,21 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     if (!skuRow) return { status: 404, payload: { error: "SKU_NOT_FOUND", sku } } satisfies BusinessResult;
 
     const at = nowIso();
+    const dayForSku = vnDayAt(Date.parse(at));
+    // Owner 2026-10-12: no new-day shortage report before a verified FULL roster,
+    // including the 00:00-05:00 VN boundary; old tickets/results/ACK remain usable.
+    const skuSync = firstRow(state.storage.sql.exec<SqlRow>(
+      "SELECT last_full_day FROM d167_sku_meta WHERE id=1").toArray());
+    // D167: Never accept new Picker shortage reports from yesterday's unverified
+    // roster after 05:00; existing tickets/resolutions/ACK are not affected.
+    if (String(skuSync?.last_full_day || "") !== dayForSku)
+      return { status: 409, payload: { error: "SKU_TODAY_SYNC_PENDING", day_vn: dayForSku } } satisfies BusinessResult;
+    if (String(skuSync?.last_full_day || "") === dayForSku) {
+      const active = firstRow(state.storage.sql.exec<SqlRow>(
+        "SELECT active FROM d167_sku_active WHERE sku=? LIMIT 1", sku).toArray());
+      if (!active || Number(active.active) !== 1)
+        return { status: 409, payload: { error: "SKU_NOT_ACTIVE_TODAY", sku } } satisfies BusinessResult;
+    }
     const businessDay = vnDayAt(Date.parse(at));
     const existing = firstRow(
       state.storage.sql.exec<TicketRow>(
@@ -1270,7 +1286,17 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
   const offset = normalizeOffset(url.searchParams.get("offset"));
 
   const where: string[] = ["b.first_report_at >= ?", "b.first_report_at < ?"];
+  const selectedArea = String(url.searchParams.get("area") || "").trim().toUpperCase();
+  if (selectedArea && !["LTA", "SHELVING", "UNKNOWN"].includes(selectedArea))
+    return { status: 400, payload: { error: "INVALID_D167_REPORT_AREA" } };
   const args: SqlStorageValue[] = [range.from, range.to];
+  if (selectedArea) {
+    where.push(`COALESCE((SELECT h.area FROM d167_sku_area_history h
+      WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+        AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+      ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') = ?`);
+    args.push(selectedArea);
+  }
   if (validStatus) { where.push("b.status = ?"); args.push(validStatus); }
   if (query) { where.push("(b.sku LIKE ? OR b.product_name LIKE ?)"); args.push(`%${query}%`, `%${query}%`); }
   const clause = where.join(" AND ");
@@ -1282,6 +1308,10 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
 
   const rows = state.storage.sql.exec<SqlRow>(
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.resolved_at,
+            COALESCE((SELECT h.area FROM d167_sku_area_history h
+                WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+                  AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+                ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') AS area_at_first_report,
             b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
             COALESCE(
@@ -1325,7 +1355,17 @@ function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResu
   const offset = normalizeOffset(url.searchParams.get("offset"));
 
   const where: string[] = ["b.first_report_at >= ?", "b.first_report_at < ?"];
+  const selectedArea = String(url.searchParams.get("area") || "").trim().toUpperCase();
+  if (selectedArea && !["LTA", "SHELVING", "UNKNOWN"].includes(selectedArea))
+    return { status: 400, payload: { error: "INVALID_D167_REPORT_AREA" } };
   const args: SqlStorageValue[] = [range.from, range.to];
+  if (selectedArea) {
+    where.push(`COALESCE((SELECT h.area FROM d167_sku_area_history h
+      WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+        AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+      ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') = ?`);
+    args.push(selectedArea);
+  }
   if (validStatus) { where.push("b.status = ?"); args.push(validStatus); }
   if (query) { where.push("(b.sku LIKE ? OR b.product_name LIKE ?)"); args.push(`%${query}%`, `%${query}%`); }
   if (batchId) { where.push("b.batch_id = ?"); args.push(batchId); }
@@ -1356,6 +1396,14 @@ function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResu
         COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
         COALESCE(resolver.display_name, '') AS resolved_by_display_name,
         t.ticket_id,
+        COALESCE((SELECT h.area FROM d167_sku_area_history h
+                WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+                  AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+                ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') AS area_at_first_report,
+        COALESCE((SELECT h.area FROM d167_sku_area_history h
+                WHERE h.sku=t.sku AND h.effective_from<=t.reported_at
+                  AND (h.effective_to IS NULL OR h.effective_to>t.reported_at)
+                ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') AS area_at_picker_report,
         t.picker_user_id,
         t.picker_employee_code,
         COALESCE(picker.display_name, '') AS picker_display_name,
