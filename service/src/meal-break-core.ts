@@ -157,11 +157,11 @@ export function confirmMealChoice(
   };
 }
 
-
 /**
- * Editing an already confirmed meal period is deliberately narrower than the
- * original Reporter first-choice flow.  No post-start edits: those could
- * retroactively change whether an already granted automatic Skip was timely.
+ * Owner D167 correction: EARLY may be changed to LATE at any instant before
+ * the end of the complete meal hour (12:00/19:00 VN); these are intervals,
+ * not isolated minute markers. LATE retains the original pre-11:00/18:00
+ * cutoff. An edit never undoes a Skip already committed.
  */
 export function mealEditPolicy(args: {
   period: string; choice: string; role: string; actorId: string;
@@ -176,9 +176,14 @@ export function mealEditPolicy(args: {
   if (args.role !== "ADMIN" && args.role !== "ROOT" &&
       !(args.role === "REPORTER" && args.actorId === args.originalActor))
     return "MEAL_EDIT_FORBIDDEN";
+  if (!["EARLY", "LATE"].includes(args.oldChoice)) return "INVALID_MEAL_EDIT";
   const base = vnMidnightMs(args.dayVn);
-  const earliest = base + (args.period === "LUNCH" ? 11 * 60 : 18 * 60) * 60_000;
-  if (args.nowMs >= earliest) return "MEAL_EDIT_WINDOW_CLOSED";
+  // Keep the existing LATE restriction. Only the incorrectly confirmed
+  // EARLY slot receives the extended correction interval.
+  const cutoffMinute = (args.period === "LUNCH" ? 11 : 18) * 60 +
+    (args.oldChoice === "EARLY" ? 60 : 0);
+  if (args.nowMs >= base + cutoffMinute * 60_000)
+    return "MEAL_EDIT_WINDOW_CLOSED";
   return null;
 }
 
@@ -219,9 +224,8 @@ export function editMealChoice(
     const slot = slotFor(day, period as MealPeriod, choice as MealChoice);
     const at = new Date(nowMs).toISOString();
     const altered = state.storage.sql.exec(
-      "UPDATE d167_meal_choices SET choice=?,starts_at_ms=?,ends_at_ms=?,confirmed_at=?,confirmed_by=?,confirmed_name=? WHERE day_vn=? AND period=? AND confirmed_at=? AND choice=?",
-      choice, slot.from, slot.to, at, actorId, String(body.actor_name || "").slice(0, 120),
-      day, period, expectedAt, String(prior.choice),
+      "UPDATE d167_meal_choices SET choice=?,starts_at_ms=?,ends_at_ms=?,confirmed_at=? WHERE day_vn=? AND period=? AND confirmed_at=? AND choice=?",
+      choice, slot.from, slot.to, at, day, period, expectedAt, String(prior.choice),
     );
     const affected = first(state.storage.sql.exec<SqlRow>("SELECT changes() AS n").toArray());
     if (Number(affected?.n || 0) !== 1)
@@ -233,7 +237,9 @@ export function editMealChoice(
       day + ":" + period, JSON.stringify({
         day_vn: day, period, before_choice: String(prior.choice),
         after_choice: choice, before_confirmed_at: expectedAt,
-        after_confirmed_at: at, credential_mode: String(body.credential_mode || "PASSWORD"),
+        after_confirmed_at: at, edited_by: actorId,
+        edited_name: String(body.actor_name || "").slice(0, 120),
+        credential_mode: String(body.credential_mode || "PASSWORD"),
         recalculated,
       }), at,
     );
@@ -241,8 +247,8 @@ export function editMealChoice(
       status: 200, changed: true,
       payload: { status: "UPDATED", day_vn: day, period,
         choice, start_ms: slot.from, end_ms: slot.to,
-        confirmed_at: at, confirmed_by: actorId,
-        confirmed_name: String(body.actor_name || "").slice(0, 120),
+        confirmed_at: at, confirmed_by: String(prior.confirmed_by),
+        confirmed_name: String(prior.confirmed_name || ""),
         deadlines_adjusted: recalculated },
     };
   });

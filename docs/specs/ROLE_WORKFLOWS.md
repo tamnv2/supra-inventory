@@ -1074,6 +1074,16 @@ The latest Owner selections replace prior `D167 proposed` wording above. They ar
 PRIMARY Agent has three authorized future read-only managed-browser SKU jobs per VN date, not one: `INITIAL_05` after 05:00 ready is the day's full SKU active-list replacement (hide missing, not delete), then `DELTA_12` at one randomized 12:00–12:15 target and `DELTA_19` at one randomized 19:00–19:15 target perform sparse actual name/coarse-area changes without hiding absent SKUs. Server owns per-slot HA-generation fenced claim/one verified DONE and stable randomized schedule, no new frequent polling. Initial valid full source wins over previous day's name/area without per-SKU confirmation, while Web manual same-day changed field must not be silently overwritten by a later Agent source; require versioned preview/privileged conflict approval. Web manual imports default PATCH with separate guarded FULL REPLACE. Same normalized WMS SKU/name/area causes zero SKU-row/history write. Failure/defer does not mark DONE. Existing Confirm Picklist remains priority. See `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`. Design only, executable and Beta release separately Owner-gated.
 
 
+## D167 — Web-only protected edit of confirmed team meal slot (Owner 2026-10-12)
+
+The first authenticated Reporter sets early/late period using the existing Web/Android flow. A subsequent **Web only** correction is allowed to the same Reporter or an Admin/Root only before 11:00 for lunch / 18:00 for dinner (VN). Masked credential input reauthenticates current signed-in identity on the Worker. Core rejects incorrect/expired proof, another Reporter, wrong date, unchanged or invalid choice, stale CAS and late edit. A successful change audits who/what/when, recalculates not-yet-resolved auto-Skip deadlines and informs all Reporters through the existing meal-break event. No APK or Agent feature update needed.
+
+
+## 2026-10-12 — D167 continuous correction of an incorrectly selected EARLY meal slot
+
+Supersede universal before-11:00/18:00 cutoff in the previous D167 meal-edit paragraph for an already confirmed EARLY slot only. On Web, any time after confirmation and strictly before 12:00 VN for lunch EARLY (11:00–11:30), or before 19:00 VN for dinner EARLY (18:00–18:30), an authorized original Reporter / ADMIN / ROOT can reauthenticate and change to LATE. 11:15, 11:35, 18:15, 18:35 are merely sample timestamps, not special minutes. Once choice is LATE, retain its original pre-11:00/pre-18:00 restriction. Preserve server clock, valid proof, VN date, CAS, original confirming Reporter, audit, pending-only deadline recalculation, alarms and realtime. Already completed Skip and other final outcomes remain immutable. No Android/Agent/WMS/Stable release authorized.
+
+
 
 ## D167 Owner 2026-10-12 — Verified roster prerequisite, all operator surfaces
 

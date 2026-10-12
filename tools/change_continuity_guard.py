@@ -116,12 +116,22 @@ def main() -> None:
 
     if change == "D167":
         gate = journal.get("deployment_gate", {})
-        if gate.get("owner_latest") != "2026-10-12 CODE_PASS_ONLY":
+        owner_latest = gate.get("owner_latest")
+        if owner_latest == "2026-10-12 CODE_PASS_ONLY":
+            if any(gate.get(x) is not False for x in ("merge_permission", "beta_deploy_permission", "stable_deploy_permission")):
+                fail("Owner CODE PASS ONLY release gate violated")
+            if state.get("d167", {}).get("pr559_owner_latest_2026_10_12", {}).get("owner_deploy_approval") is not False:
+                fail("D167 state release gate mismatch")
+        elif owner_latest == "2026-10-12 BETA_DEPLOY_APPROVED":
+            authorization = load("ops/d167-release-authorization.json")
+            if not gate.get("merge_permission") or not gate.get("beta_deploy_permission") or gate.get("stable_deploy_permission") is not False:
+                fail("D167 Beta-only approval scope mismatch")
+            if state.get("d167", {}).get("pr559_owner_latest_2026_10_12", {}).get("owner_deploy_approval") is not True:
+                fail("D167 Owner approval missing")
+            if authorization.get("status") != "OWNER_EXPLICIT_DEPLOY_APPROVED":
+                fail("D167 release receipt missing")
+        else:
             fail("D167 latest Owner instruction missing")
-        if any(gate.get(x) is not False for x in ("merge_permission", "beta_deploy_permission", "stable_deploy_permission")):
-            fail("Owner CODE PASS ONLY release gate violated")
-        if state.get("d167", {}).get("pr559_owner_latest_2026_10_12", {}).get("owner_deploy_approval") is not False:
-            fail("D167 state release gate mismatch")
         if "#559" not in (ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
             fail("Owner decision PR marker absent")
 

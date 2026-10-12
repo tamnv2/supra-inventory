@@ -9,6 +9,7 @@ import "./legacy-transplant/workflow-v4-ux.css";
 import "./legacy-transplant/web-fast-ui.css";
 import "./legacy-transplant/web-unified-ui.css";
 import "./legacy-transplant/web-professional-v2.css";
+import "./legacy-transplant/d167-web-layout-density.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -1899,7 +1900,7 @@ function renderUsers(): string {
     <div class="users-top-grid">
       <article class="ops-panel users-create-panel">
         <div class="ops-panel-title"><div><h3>${canCreateManaged ? "Tạo tài khoản nghiệp vụ" : "Quản lý Picker"}</h3><p>${canCreateManaged ? "Tạo Người xử lý báo hàng hoặc vai trò quản trị được phép. Picker được đồng bộ từ nguồn nhân sự." : "Quản trị Pick Pack chỉ quản lý Picker; không tạo Reporter hay Quản trị Invent."}</p></div></div>
-        ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid">
+        ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
           <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
@@ -1910,7 +1911,7 @@ function renderUsers(): string {
       </article>
       <article class="ops-panel users-filter-panel">
         <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, nhà thầu, quyền hoặc trạng thái.</p></div></div>
-        <form id="user-filter-form" class="users-form-grid">
+        <form id="user-filter-form" class="users-form-grid users-filter-form">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / nhà thầu / tài khoản" /></label>
           <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","PICKPACK_ADMIN","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
           <label>Trạng thái<select name="status"><option value="">Tất cả trạng thái</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>Đang hoạt động</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>Đã dừng</option></select></label>
@@ -1975,6 +1976,13 @@ function renderSla(): string {
       <div class="sla-authority-badges"><span class="global-setting-badge">Cấu hình máy chủ</span><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
     </div>
 
+
+    <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
+      <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong id="sla-warning-count">${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong id="sla-escalated-count">${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động bỏ qua</span><strong>${autoEnabled ? "Đang bật" : "Đang tắt"}</strong></article>
+      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Sửa kết quả Đã có hàng / Skip</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
+    </section>
     <section class="sla-authority-strip">
       <div><span>Trạng thái</span><strong>${configured ? "Đã đồng bộ" : "Chưa thiết lập"}</strong></div>
       <div><span>Cập nhật gần nhất</span><strong>${esc(updatedAt)}</strong></div>
@@ -2032,12 +2040,6 @@ function renderSla(): string {
       </div>
     </form>
 
-    <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
-      <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong id="sla-warning-count">${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
-      <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong id="sla-escalated-count">${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
-      <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động bỏ qua</span><strong>${autoEnabled ? "Đang bật" : "Đang tắt"}</strong></article>
-      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Sửa kết quả Đã có hàng / Skip</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
-    </section>
   </section>`;
 }
 
@@ -2718,7 +2720,7 @@ function renderLogs(): string {
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
       <button type="button" class="workspace-tab ${logView === "AUDIT" ? "active" : ""}" data-log-view="AUDIT">Lịch sử thao tác</button>
     </div>
-    <form id="log-date-range" class="toolbar log-retention-window" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap" aria-label="Khoảng nhật ký">
+    <form id="log-date-range" class="toolbar log-retention-window" aria-label="Khoảng nhật ký">
       <label>Từ ngày<input type="date" name="from" value="${esc(logFrom)}" max="${esc(dateDaysAgo(0))}" required /></label>
       <label>Đến ngày<input type="date" name="to" value="${esc(logTo)}" max="${esc(dateDaysAgo(0))}" required /></label>
       <button class="secondary" type="submit">Áp dụng</button>
@@ -2897,8 +2899,12 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
   const early = period === "LUNCH" ? "11:00–11:30" : "18:00–18:30";
   const late = period === "LUNCH" ? "11:30–12:00" : "18:30–19:00";
   const selected = record?.choice === "EARLY" ? early : late;
+  // EARLY: edit continuously until 12:00/19:00 VN, including the second
+  // half-hour. LATE retains the original 11:00/18:00 VN cutoff.
+  const cutoffUtcHour = (period === "LUNCH" ? 4 : 11) +
+    (record?.choice === "EARLY" ? 1 : 0);
   const cutoff = d167MealState ? Date.parse(d167MealState.day_vn + "T00:00:00Z") +
-    (period === "LUNCH" ? 4 : 11) * 60 * 60_000 : 0; // 11:00/18:00 VN in UTC.
+    cutoffUtcHour * 60 * 60_000 : 0;
   const mayEdit = Boolean(record && profile &&
     (profile.role === "ADMIN" || profile.role === "ROOT" ||
      (profile.role === "REPORTER" && profile.user_id === record.confirmed_by)) &&
@@ -2906,7 +2912,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
   return `<article class="ops-panel d167-meal-card">
     <div class="ops-panel-title"><div><h3>${title}</h3><p>${period === "LUNCH" ? "Nhắc Reporter lúc 10:55" : "Nhắc Reporter lúc 17:55"} (giờ Việt Nam)</p></div>
       <span class="badge ${record ? "good" : "warning"}">${record ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
-    ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · ${esc(record.confirmed_name || "Reporter")} xác nhận lúc ${esc(fmt(record.confirmed_at))}</div>` :
+    ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · Người xác nhận ban đầu: ${esc(record.confirmed_name || "Reporter")} · Cập nhật gần nhất: ${esc(fmt(record.confirmed_at))}</div>` :
       `<div class="ops-note">Nếu chưa ai xác nhận, Service tạm dừng tự động Skip trong toàn bộ ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"} để phòng ngừa Skip sai. Reporter vẫn xử lý thủ công bình thường.</div>`}
     ${mayEdit ? `<form class="d167-meal-edit" data-d167-meal-edit="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
       <label><span>Đổi giờ nghỉ</span><select name="choice" required>
@@ -2915,7 +2921,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
       </select></label>
       <label><span>Mật khẩu xác nhận</span><input type="password" name="currentPassword" autocomplete="off" required maxlength="128" /></label>
       <button class="secondary" type="submit">Xác nhận đổi giờ</button>
-    </form><p class="tiny muted">Chỉ sửa trước ${period === "LUNCH" ? "11:00" : "18:00"} (giờ Việt Nam). Hệ thống tự đồng bộ các Reporter.</p>` : ""}
+    </form><p class="tiny muted">Cho phép đổi liên tục trước ${period === "LUNCH" ? (record?.choice === "EARLY" ? "12:00" : "11:00") : (record?.choice === "EARLY" ? "19:00" : "18:00")} (giờ Việt Nam). Hệ thống tự đồng bộ các Reporter.</p>` : ""}
     <form class="d167-meal-form" data-d167-meal-form="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
       <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
         <option value="EARLY">${early}</option><option value="LATE">${late}</option>
@@ -4248,6 +4254,40 @@ async function submitD167Meal(period: "LUNCH" | "DINNER", choice: "EARLY" | "LAT
     await loadD167MealState().catch(() => undefined);
     if (activeSection === "shift") patchActiveSection(true);
     setNotice("warning", error instanceof Error ? error.message : "Giờ nghỉ đã được Reporter khác chốt.");
+  }
+}
+
+async function submitD167MealEdit(form: HTMLFormElement): Promise<void> {
+  const period: "LUNCH" | "DINNER" = form.dataset.d167MealEdit === "DINNER" ? "DINNER" : "LUNCH";
+  const old = period === "LUNCH" ? d167MealState?.lunch : d167MealState?.dinner;
+  const day = d167MealState?.day_vn || "";
+  if (!old || !day) {
+    setNotice("warning", "Giờ nghỉ đã thay đổi hoặc chưa được xác nhận. Tải lại trước khi sửa.");
+    return;
+  }
+  const data = new FormData(form);
+  const choice = data.get("choice") === "LATE" ? "LATE" : "EARLY";
+  const password = String(data.get("currentPassword") || "");
+  if (!password || choice === old.choice) {
+    setNotice("warning", choice === old.choice ? "Hãy chọn giờ khác giờ hiện tại." : "Cần nhập mật khẩu xác nhận.");
+    return;
+  }
+  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  try {
+    await editD167Meal(period, choice, password, day, old.confirmed_at);
+    await loadD167MealState();
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("success", "Đã đổi giờ nghỉ và đồng bộ lại mốc tự động Skip của các phiếu chưa xử lý.");
+  } catch (error) {
+    await loadD167MealState().catch(() => undefined);
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("error", error instanceof Error ? error.message : "Không đổi được giờ nghỉ.");
+  } finally {
+    if (button?.isConnected) button.disabled = false;
+    const passwordField = form.querySelector<HTMLInputElement>('input[name="currentPassword"]');
+    if (passwordField) passwordField.value = "";
   }
 }
 

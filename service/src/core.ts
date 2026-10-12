@@ -852,6 +852,13 @@ export class InventoryCore {
       return response(result.payload, result.status);
     }
 
+    if (request.method === "POST" && url.pathname === "/d167/meal/edit") {
+      const body = await request.json() as Parameters<typeof editMealChoice>[1];
+      const result = editMealChoice(this.state, body);
+      if (result.changed) await scheduleNextOperationalAlarm(this.state);
+      return response(result.payload, result.status);
+    }
+
     if (request.method === "GET" && url.pathname === "/notifications/alert-window/reconcile") {
       await this.reconcileOperatingScheduleExactIfClosed();
       return response(readAndroidAlertWindow(this.state));

@@ -31,6 +31,8 @@ jobs:
       - name: Build Web
         working-directory: web
         run: npm run build
+      - name: D167 Web visual layout contract (UI only)
+        run: node --test tests/d167-web-layout.test.mjs
       - name: Install Worker packages
         working-directory: service
         run: npm install --ignore-scripts --no-audit --no-fund
