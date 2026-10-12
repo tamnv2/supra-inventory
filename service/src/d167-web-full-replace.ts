@@ -40,6 +40,20 @@ export async function handleD167WebFullReplace(
     seen.add(sku);
     incoming.push({sku,product_name});
   }
+  // A lost HTTP response after an atomic successful FULL must be recoverable
+  // by the same idempotency key even though the catalog revision advanced.
+  const scope="d167_web_full_replace:"+actor.user_id;
+  if (body.dry_run!==true) {
+    const old=state.storage.sql.exec<{response_json:string}>(
+      "SELECT response_json FROM idempotency_keys WHERE scope=? AND idempotency_key=?",
+      scope,requestId).toArray()[0];
+    if (old) {
+      const receipt=JSON.parse(old.response_json) as Record<string,unknown>;
+      if (receipt.source_hash!==sourceHash)
+        return sendFull({error:"FULL_REPLACE_IDEMPOTENCY_KEY_REUSED"},409);
+      return sendFull({...receipt,idempotent_replay:true});
+    }
+  }
   const master=state.storage.sql.exec<ExistingFullRow>(`
     SELECT s.sku,s.product_name,a.active FROM sku_master s
     LEFT JOIN d167_sku_active a ON a.sku=s.sku ORDER BY s.sku
@@ -73,7 +87,6 @@ export async function handleD167WebFullReplace(
   if (Number(body.expected_catalog_revision)!==revision ||
       body.expected_source_hash!==sourceHash)
     return sendFull({error:"FULL_REPLACE_STALE_PREVIEW"},409);
-  const scope="d167_web_full_replace:"+actor.user_id;
   const result=state.storage.transactionSync(()=>{
     const replay=state.storage.sql.exec<{response_json:string}>(
       "SELECT response_json FROM idempotency_keys WHERE scope=? AND idempotency_key=?",
