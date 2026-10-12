@@ -49,3 +49,7 @@ Store a faithful **technical/decision summary**, not raw chat transcripts, crede
 ## Verification
 
 `tools/change_continuity_guard.py` enforces journal structure, current Dxxx pointer, latest release boundary, and repo-first manifest discovery on CI. Passing that guard proves **structural consistency**, not that every spoken sentence was captured, nor runtime/field correctness.
+
+## Supersession 2026-10-12 — New Owner D167 full CODE READY Beta release
+
+Latest Owner explicitly authorized only the registered Beta rollout of PR #559's CODE READY source following current-main integration and passing exact PR CI; the earlier CODE PASS ONLY instruction is superseded for this scope. Stable remains separately Owner-gated. The release receipt, continuity journal and state must agree. Never mark field/Owner D167 PASS from CI or GitHub channel publication.

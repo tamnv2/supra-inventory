@@ -2,11 +2,14 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "1462458e5405c548142b3171fc119986ac6962e0",
+  "approved_source_sha": "c23802100b6d5040ed50b72bc19c7ab736fe5d25",
   "approved_components": [
-    "worker"
+    "worker",
+    "gateway",
+    "android",
+    "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261011_PR555_WEB_WORKER_SERVICE",
-  "approved_at_vn": "2026-10-11T10:48:00+07:00",
-  "note": "Owner explicitly instructed 'triển khai' immediately after D167 PR #555 CODE READY. Approves existing Beta Web assets, Worker/InventoryCore Service and required SQL migrations ONLY. D05/D07 remain pending; no Agent/Android APK/Firebase/Apps Script/Stable/Launcher release under this authorization. GitHub merge must retain exact approved source SHA as ancestor (merge method, never squash/rebase)."
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_ALL_CODE_READY_BETA",
+  "approved_at_vn": "2026-10-12T22:18:00+07:00",
+  "note": "Owner explicitly orders rollout of all D167 items that have passed code. PR559 integrated source commit is exact approved ancestor and later documentation changes are unprotected; allow existing scoped Beta Worker+Web/InventoryCore, Apps Script Gateway, Android signed vc106 and Windows Agent v126 release only after fresh PR CI and existing release guards PASS. Do not change Stable, Launcher, provider resource IDs or mandatory Android floor solely by this approval. D167 business field PASS pending."
 }

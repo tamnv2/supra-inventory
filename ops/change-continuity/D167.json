@@ -6,16 +6,26 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-code-three-slot-sku-area-report-20261011",
   "pr": 559,
-  "status": "D167_PR559_SOURCE_CODE_READY__PR560_WEB_MEAL_EDIT_17_OF_17_CI_PASS_SCHEDULED_POSTSHIFT__NO_RELEASE_YET",
-  "last_checkpoint": "D167-E020",
+  "status": "D167_PR559_INTEGRATED_OWNER_APPROVED_BETA_DEPLOY__FRESH_CI_PENDING",
+  "last_checkpoint": {
+    "id": "D167-E021",
+    "date_vn": "2026-10-12"
+  },
   "deployment_gate": {
-    "owner_latest": "2026-10-12 CODE_PASS_ONLY",
+    "owner_latest": "2026-10-12 BETA_DEPLOY_APPROVED",
     "code_permission": true,
-    "merge_permission": false,
-    "beta_deploy_permission": false,
+    "merge_permission": true,
+    "beta_deploy_permission": true,
     "stable_deploy_permission": false,
-    "new_owner_approval_required": true,
-    "prior_combined_approval": "SUPERSEDED_FOR_UNDEPLOYED_PR559"
+    "new_owner_approval_required": false,
+    "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
+    "approved_source_sha": "c23802100b6d5040ed50b72bc19c7ab736fe5d25",
+    "approved_components": [
+      "worker",
+      "gateway",
+      "agent",
+      "android"
+    ]
   },
   "entries": [
     {
@@ -386,6 +396,28 @@
       ],
       "next_action": "Keep PR561 CODE READY without merge/deployment; require exact-SHA Owner deploy instruction for this correction, independent from broader PR559.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/561; SHA 0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a"
+    },
+    {
+      "id": "D167-E021",
+      "date_vn": "2026-10-12",
+      "topic": "Owner explicitly deploys all D167 CODE READY items to registered Beta scope",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_ALL_CODE_READY_BETA_RELEASE__INTEGRATION_TEST_REQUIRED",
+      "owner_approval": true,
+      "facts": [
+        "Owner's latest explicit instruction supersedes PR559 CODE_PASS_ONLY deployment hold for items with verified CODE READY; this is scoped Beta authorization, not Stable nor Owner field PASS.",
+        "PR559 executable source CODE READY at 33bcb727 with 20/20 GitHub checks and Android vc106/Windows Agent v126 signed build artifacts; final branch HEAD before integration ecf68449 was docs receipt only.",
+        "Latest main c9f8580 contains later meal EARLY continuous edit and Web four-layout adjustment, which must survive integration without downgrades.",
+        "Integration source parent c23802100b6d5040ed50b72bc19c7ab736fe5d25 preserves PR559 plus main and must pass fresh PR authority, state, Android, Agent, Web/Worker, D167 and release-gate CI before merge.",
+        "Allowed existing Beta release components: worker (bundled Web/InventoryCore), gateway, signed android vc106, Agent v126; no Stable, Launcher or new provider resources; no mandatory floor claim until readback.",
+        "Business/physical acceptance requires WMS-managed PRIMARY real export, three-slot day/failover, 03:00 and meal behavior, device installation, ACK/latency, area/provenance and measured provider usage."
+      ],
+      "next_action": "Complete exact merged HEAD CI, repair under D167 if needed, merge only after PASS, then inspect Beta workflow release and health; report per-item pass/pending.",
+      "evidence": "Owner explicit chat 2026-10-12 'Triển khai D167 toàn bộ các mục đã pass code'; https://github.com/tamnv2/supra-inventory/pull/559 ; integrated parent c23802100b6d5040ed50b72bc19c7ab736fe5d25",
+      "supersedes": [
+        "D167-E016",
+        "D167-E020"
+      ]
     }
   ],
   "resume": {
@@ -394,7 +426,8 @@
       "Lệnh mới 2026-10-12: CODE PASS ONLY / giữ PR #559 Draft",
       "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal",
       "Owner 2026-10-12: same-VN-day FULL hard gate; Web FULL or Agent qualifies, PATCH does not; exact Picker/Reporter warning; WMS ephemeral signed API GET; cancel superseded backlog",
-      "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged"
+      "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged",
+      "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved"
     ],
     "implemented": [
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
@@ -407,25 +440,20 @@
       "D167 meal EARLY continuous edit correction PR561 exact HEAD 0e4757f2: 15/15 CI PASS, Draft/unmerged, no deploy"
     ],
     "in_progress": [
-      "Scoped PR560 owner-authorized Beta Worker/Web release scheduled after shift, no production mutation yet; PR559 remains draft/code only"
+      "Integrate PR559 with main meal correction and four-area Web layout; verify fresh CI before Beta release"
     ],
     "pending_approval": [
-      "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
-      "Owner field acceptance and separate Stable authorization",
-      "Separate exact-SHA Owner deploy approval for PR561 after CODE READY",
-      "Deploy approval for isolated code-ready PR561 Web+Worker/InventoryCore EARLY edit interval"
+      "Owner D167 business/physical field PASS pending",
+      "Separate Stable deploy remains OWNER-GATED"
     ],
     "blocked": [
-      "Real managed WMS/PRIMARY same-profile export, physical 6-Agent HA/PDA/ACK, provider billing and latency cannot be proven without separate field activation; not source code CI evidence",
-      "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction",
-      "Actual Office WMS API-session proof remains FIELD_PENDING, no live WMS access in source-only approval"
+      "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity"
     ],
     "next_actions": [
-      "After shift confirm PR560 CI, owner release receipt and safe Beta Worker/Web merge+health readback; else stop and report",
-      "Preserve PR559 Draft until separate full D167 deploy Owner authorization",
-      "Verify PR561 CI and keep unmerged until explicit Owner deployment authorization",
-      "Keep PR561 Draft until owner release command; do not auto-deploy"
+      "Verify exact merged PR HEAD CI; after PASS merge PR559 through existing release gate",
+      "Read back Beta Worker/Web/Gateway and Android vc106 / Agent v126 release channels",
+      "Report actual release results and remaining field acceptance separately"
     ],
-    "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
+    "release_boundary": "BETA_ONLY_WORKER_GATEWAY_ANDROID_AGENT_APPROVED_AFTER_CI__STABLE_GATED__NO_FIELD_PASS"
   }
 }
