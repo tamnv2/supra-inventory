@@ -69,3 +69,38 @@ Owner explicitly supersedes the earlier 2026-10-11 combined D167 PR #559 code+Be
 - Root/Admin-only optional Web FULL REPLACE also accepts an area column; previews all category/name/membership changes and requires affirmative confirmation, then atomic source-hash/revision-fenced publish, complete membership readback, `WEB_APPROVED_FULL` interval, audit and idempotent receipt. History and hidden SKU remain physically preserved.
 - Area-only and semantic no-op Web imports do not emit PDA catalogue refresh/FCM; only actual names/active memberships change the Android catalogue version.
 - **CI/field distinction:** branch TypeScript/Windows/SQL contract validations are code evidence; installed PDA ACK/HA, company WMS profile, real SQL 5k latency and provider billing are **FIELD_PENDING**. Do not mark operational Owner PASS from workflow success.
+
+
+## 2026-10-12 — Fresh CODE PASS audit: source fixes and cross-module regression
+
+This update was made after a new authority bootstrap against `main` followed by the exact PR #559 working HEAD. The Owner instruction remains **CODE PASS ONLY**; all changes below are unmerged source/CI with **zero permitted runtime deployment**.
+
+### Direct code-proven findings and repairs
+
+1. **Missing WMS observation timestamp in SQL cursor (PROVEN source bug)** — `rosterRows()` in `service/src/d167-sku-sync-core.ts` computed `last_wms_observed_ms` from `x.last_wms_observed_at`, but its SQL SELECT did not include this column. This silently substituted an empty observation baseline, risking false Web-vs-WMS same-field conflicts. Fixed the cursor and added a regression asserting selector+consumer parity.
+2. **Old-day Web changes incorrectly blocking INITIAL_05 (PROVEN pure business-rule bug)** — same-field conflict detection previously compared only revision timestamps, without enforcing **the current Vietnamese business day**. Added `currentVnDay` to `planSkuChanges` and server invocation: yesterday's manual field may be superseded by today's morning verified WMS FULL, while a **same-day** manual field keeps explicit approval protection. Added source tests for both sides of VN midnight.
+3. **Expired HA/source retry could contaminate the next stage (PROVEN source recovery gap)** — prior `claim` retained old per-slot staged rows and fingerprint if an incomplete job was reclaimed by the same HA generation with a different file. Now source-change or ownership-change claim atomically clears stale stage and resets staged identity/count. Identical manifest reuse remains safe; a finalized DONE is immutable. Added structural regression for the transaction/reset.
+4. **Hidden WMS child persisted after an exception (PROVEN source cleanup gap)** — closing the isolated WebView2 child was previously in the success-path parse `finally`. Export/search timeout or invalid UI could leave a hidden child tab and poison next retry's page selection. Moved close/delete into the entire connected export's `finally`; no Confirm tab navigation. Actual office WMS UI is still field evidence pending.
+5. **Coupled CI path coverage (PROVEN workflow scope gap)** — broadened `.github/workflows/verify-d167-three-slot.yml` to run D167 Agent/Worker/Web contract checks when SKU Web FULL, area reporting, PATCH, Excel, shared business-api, read-model and operational Web source change, rather than only the narrow `d167-sku-*.ts` paths.
+
+### Requirement → contract → regression → evidence
+
+| Requirement / edge | Owner-backed invariant | Code surfaces | Evidence/gate |
+| --- | --- | --- | --- |
+| Agent 05 FULL and 12/19 DELTA | One server-owned slot target/receipt, never duplicate source writes | D167SkuCoordinator, d167-sku-sync-core | VN-slot synthetic contract + Windows Agent build; real WMS field PENDING |
+| PRIMARY ownership and source retry | No mixed workbook after HA/source replacement, no stale generation publish | d167-sku-ha, d167-sku-sync-core | Atomic reset-source contract + HA guard; physical 6-Agent test PENDING |
+| Web manual overlap before midnight | Only same-VN-day changed field requires conflict approval | d167-sku-sync-logic, roster SQL | Date-boundary and column-consumer source tests; provider race PENDING |
+| Abnormal truncated FULL | Never silently hide mass active SKUs, preserve all master/ticket/history | d167-sku-sync-core, D167SkuServiceClient | Preview approval + synthetic 5k SQL fixture; actual 5k DO CPU PENDING |
+| WMS child browser timeout | Never navigate Confirm or retain raw XLSX after parsed export | D167SkuBrowserExport + WebView2 host | Source fail-safe cleanup, Agent compile; live WMS export PENDING |
+| Android membership/resync | Hidden SKU absent in authoritative catalog, legacy PDA fallback refresh | read-model-core, Android cache | Source catalog/409 protocol guard; installed PDA ACK PENDING |
+| Temporal reporting and full Excel | As-of LTA/Shelving UNKNOWN with no pre-evidence backfill; same detail filters and label KPI scope | d167-area-report-core, business-core, web/report-excel | Worker/Web typecheck and code guards; field historical cohort PENDING |
+| Web SKU FULL vs PATCH | Default PATCH, Admin/Root opted-in FULL with preview/CAS, no destructive delete | d167-web-full-replace, sku-import-core, operational-app | Source/SQL tests, role guard CI; live provider and Web workflow PENDING |
+
+### Resource / cost / impact decision
+
+- **Baseline no-change:** no new activity but leaves source-proven stale observation/conflict/staging/hidden-tab correctness bugs.
+- **Chosen direct repair:** existing InventoryCore SQLite and managed Agent process, synthetic test and CI only. No new Firebase listeners, polling, scheduler, product resource, Data API, WMS API or provider token handling. Baseline productivity/ACK risk reduced by failure closure; request/CPU results remain *unmeasured*.
+- **Cross-provider alternative:** moving scheduler/coordinator polling to Firebase/Cloudflare would add billed reads/writes and a second HA actor with correctness risk; rejected absent a measured equivalence advantage. Firebase reads, Cloudflare Worker invocations/CPU/DO SQL rows and WMS exports are different unit meters and may not be combined as one count.
+- **Rollout:** forbidden pending Owner exact-SHA Beta authorization. Any field measured p95/p99 latency, six-PC takeover, 2.5k–5k DO CPU, Android catalog/ACK, provider billing requires a separately approved Beta deployment/field proof. Stable remains untouched.
+
+**No false CODE READY or FIELD PASS:** final CODE PASS still needs success for *the final source+continuity commit SHA* across all required nondeploying CI. Source-only green is not installed Agent/PDA, real operational behavior, billing savings or D167 Owner PASS.
