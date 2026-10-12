@@ -7379,7 +7379,7 @@
       "owner_approval": "2026-10-12_OK_CHOT_TRiEN_KHAI",
       "source_branch": "d167-agent-sku-tab-manual-20261012",
       "pr": 566,
-      "status": "IMPLEMENTING__PR_CI_AND_EXACT_RELEASE_GATE_PENDING",
+      "status": "CODE_READY_PR566_EXACT_SOURCE_893AD216_20_OF_20_CI_PASS__BETA_RELEASE_FINAL_GATE_PENDING",
       "agent_target_version": 127,
       "source_runtime_scopes": [
         "agent",
@@ -7394,7 +7394,9 @@
       "automatic_schedule": "INITIAL_05_DELTA_12_DELTA_19_UNCHANGED",
       "manual_mode": "FIRST_FULL_REUSES_INITIAL_05_ELSE_MANUAL_DELTA_UNIQUE_SLOT",
       "periodic_provider_reads_added": 0,
-      "field_owner_pass": false
+      "field_owner_pass": false,
+      "approved_source_sha": "893ad2163022c2daef9f9183d8a7e2562f4a535d",
+      "owner_release_approval": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA"
     }
   },
   "change_continuity": {
@@ -7404,7 +7406,7 @@
     "journal": "ops/change-continuity/D167.json",
     "working_branch": "d167-agent-sku-tab-manual-20261012",
     "pr": 566,
-    "latest_checkpoint_id": "D167-E025",
+    "latest_checkpoint_id": "D167-E026",
     "checkpoint_date_vn": "2026-10-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
