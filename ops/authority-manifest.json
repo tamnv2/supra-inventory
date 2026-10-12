@@ -103,11 +103,11 @@
   "working_ref_discovery": {
     "main_accepted_authority": "READ_MAIN_BOOTSTRAP_FIRST",
     "active_branch_from": [
-      "ops/project-state.json#d167.code_only_three_slot_implementation_2026_10_11.source_branch",
+      "ops/project-state.json#change_continuity.working_branch",
       "GitHub open PR head"
     ],
     "active_working_change_id": "D167",
-    "active_working_pr": 559,
+    "active_working_pr": 566,
     "ref_rule": "FETCH_BRANCH_MANIFEST_FULL_BOOTSTRAP_AND_OPS_CHANGE_CONTINUITY_AFTER_MAIN",
     "freshness": "RESOLVE_LATEST_BRANCH_HEAD_AND_CI_EVERY_SUBSTANTIVE_DXXX_TURN",
     "conflict_rule": "LATEST_OWNER_COMMAND_OVERRIDES_BRANCH_RELEASE_PERMISSION__MAIN_ACCEPTED_BASE_UNCHANGED"
