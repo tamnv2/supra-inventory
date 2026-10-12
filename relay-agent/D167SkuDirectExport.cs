@@ -172,8 +172,12 @@ namespace SupraInventoryRelayAgent
             }
             catch (WebException e)
             {
-                // Never stringify the request, URL with auth, or provider body.
-                throw new InvalidOperationException("D167_WMS_EXPORT_"+e.Status.ToString());
+                // Log only the numeric status; never stringify provider bodies,
+                // request URLs, authorization headers, cookies or signatures.
+                var http=e.Response as HttpWebResponse;
+                var code=http==null ? "NETWORK_"+e.Status.ToString() :
+                    "HTTP_"+((int)http.StatusCode).ToString();
+                throw new InvalidOperationException("D167_WMS_EXPORT_"+code);
             }
         }
 
