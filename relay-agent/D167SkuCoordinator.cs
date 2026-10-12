@@ -57,6 +57,19 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // Only a fixed, code-owned D167 failure code is safe for support logs.
+        // Never print raw provider messages, WMS payloads or credentials.
+        internal static string SafeErrorCode(Exception error)
+        {
+            var message=error==null ? "" : error.Message ?? "";
+            if(message.Length<6 || message.Length>100 ||
+                !message.StartsWith("D167_",StringComparison.Ordinal)) return "UNKNOWN";
+            foreach(var c in message)
+                if(!((c>='A'&&c<='Z') || (c>='0'&&c<='9') || c=='_'))
+                    return "UNKNOWN";
+            return message;
+        }
+
         internal void RequestStatus()
         {
             if (Interlocked.CompareExchange(ref running,0,0)!=0) return;
@@ -78,11 +91,16 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY");
                 var day=D167SkuSchedule.VNNow().ToString("yyyy-MM-dd");
                 var runId=Guid.NewGuid().ToString("N");
+                log("D167_SKU manual=STAGE step=AUTHORIZE_BEGIN");
                 var slot=service.ManualStart(day,instanceId,generation(),runId,credential);
+                log("D167_SKU manual=STAGE step=AUTHORIZE_DONE");
                 NotifyStatus(null,"Đang xuất SKU WMS theo yêu cầu...");
+                log("D167_SKU manual=STAGE step=WMS_EXPORT_BEGIN");
                 var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy());
+                log("D167_SKU manual=STAGE step=WMS_EXPORT_DONE sku_count="+workbook.Items.Count);
                 if(!isPrimaryReady()||confirmBusy())
                     throw new InvalidOperationException("D167_MANUAL_CONFIRM_PRIORITY");
+                log("D167_SKU manual=STAGE step=SERVICE_UPLOAD_BEGIN");
                 if(!service.UploadAndPublish(day,slot,instanceId,generation(),workbook,confirmConflicts))
                     throw new InvalidOperationException("D167_MANUAL_RECEIPT_UNVERIFIED");
                 lastVerifiedWorkbook=workbook;
@@ -92,7 +110,8 @@ namespace SupraInventoryRelayAgent
             catch(Exception e)
             {
                 NotifyStatus(null,"Cập nhật thủ công chưa thành công: "+e.GetType().Name);
-                log("D167_SKU manual=FAILED error_type="+e.GetType().Name);
+                log("D167_SKU manual=FAILED error_type="+e.GetType().Name+
+                    " error_code="+SafeErrorCode(e));
                 throw;
             }
             finally
@@ -119,7 +138,8 @@ namespace SupraInventoryRelayAgent
                 {
                     // Error categories only: no credentials, source rows or WMS
                     // locations are logged. Retry only via a bounded local timer.
-                    log("D167_SKU sync=DEFER error_type="+e.GetType().Name);
+                    log("D167_SKU sync=DEFER error_type="+e.GetType().Name+
+                        " error_code="+SafeErrorCode(e));
                     Arm(TimeSpan.FromMinutes(15));
                 }
                 finally { Interlocked.Exchange(ref running,0); }
@@ -178,8 +198,10 @@ namespace SupraInventoryRelayAgent
             log("D167_SKU slot="+eligible.Slot+" stage=EXPORT_BEGIN");
             var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy());
             if(!isPrimaryReady())throw new InvalidOperationException("D167_PRIMARY_LOST_AFTER_EXPORT");
+            log("D167_SKU slot="+eligible.Slot+" stage=WMS_EXPORT_DONE sku_count="+workbook.Items.Count);
             // Conditional Service CAS/HA authority checks happen again on each
             // upload stage and publish, independently from this UI process.
+            log("D167_SKU slot="+eligible.Slot+" stage=SERVICE_UPLOAD_BEGIN");
             var success=service.UploadAndPublish(day,eligible.Slot,instanceId,generation(),
                 workbook,confirmConflicts);
             if(!success)throw new InvalidOperationException("D167_DONE_NOT_VERIFIED");
