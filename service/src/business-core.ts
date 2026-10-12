@@ -1285,7 +1285,17 @@ function adminReporting(state: DurableObjectState, url: URL): BusinessResult {
   const offset = normalizeOffset(url.searchParams.get("offset"));
 
   const where: string[] = ["b.first_report_at >= ?", "b.first_report_at < ?"];
+  const selectedArea = String(url.searchParams.get("area") || "").trim().toUpperCase();
+  if (selectedArea && !["LTA", "SHELVING", "UNKNOWN"].includes(selectedArea))
+    return { status: 400, payload: { error: "INVALID_D167_REPORT_AREA" } };
   const args: SqlStorageValue[] = [range.from, range.to];
+  if (selectedArea) {
+    where.push(`COALESCE((SELECT h.area FROM d167_sku_area_history h
+      WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+        AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+      ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') = ?`);
+    args.push(selectedArea);
+  }
   if (validStatus) { where.push("b.status = ?"); args.push(validStatus); }
   if (query) { where.push("(b.sku LIKE ? OR b.product_name LIKE ?)"); args.push(`%${query}%`, `%${query}%`); }
   const clause = where.join(" AND ");
@@ -1344,7 +1354,17 @@ function adminReportingDetail(state: DurableObjectState, url: URL): BusinessResu
   const offset = normalizeOffset(url.searchParams.get("offset"));
 
   const where: string[] = ["b.first_report_at >= ?", "b.first_report_at < ?"];
+  const selectedArea = String(url.searchParams.get("area") || "").trim().toUpperCase();
+  if (selectedArea && !["LTA", "SHELVING", "UNKNOWN"].includes(selectedArea))
+    return { status: 400, payload: { error: "INVALID_D167_REPORT_AREA" } };
   const args: SqlStorageValue[] = [range.from, range.to];
+  if (selectedArea) {
+    where.push(`COALESCE((SELECT h.area FROM d167_sku_area_history h
+      WHERE h.sku=b.sku AND h.effective_from<=b.first_report_at
+        AND (h.effective_to IS NULL OR h.effective_to>b.first_report_at)
+      ORDER BY h.effective_from DESC LIMIT 1),'UNKNOWN') = ?`);
+    args.push(selectedArea);
+  }
   if (validStatus) { where.push("b.status = ?"); args.push(validStatus); }
   if (query) { where.push("(b.sku LIKE ? OR b.product_name LIKE ?)"); args.push(`%${query}%`, `%${query}%`); }
   if (batchId) { where.push("b.batch_id = ?"); args.push(batchId); }
