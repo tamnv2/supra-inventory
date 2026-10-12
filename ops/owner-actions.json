@@ -5558,7 +5558,7 @@
     "future_owner_action": "EXPLICIT_EXACT_SHA_BETA_DEPLOY_APPROVAL"
   },
   "d167_agent_sku_tab_manual_2026_10_12": {
-    "status": "OWNER_APPROVED_CODE_AND_BETA_DEPLOY_AFTER_EXACT_PR_CI",
+    "status": "SCOPED_BETA_AGENT_V127_WORKER_GATEWAY_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
     "proposed_pr": 566,
     "agent_version_candidate": 127,
     "resource_scope": "EXISTING_INVENTORY_BETA_WORKER_GATEWAY_AGENT_ONLY",
@@ -5566,6 +5566,11 @@
     "beta_release_gate": "FRESH_SOURCE_PR_CI_PASS_AND_EXACT_SOURCE_SHA",
     "stable": "OWNER_GATED",
     "android": "UNCHANGED",
-    "field_acceptance": "PENDING_REAL_WMS_PRIMARY_HA_AND_INSTALLED_AGENT"
+    "field_acceptance": "PENDING_REAL_WMS_PRIMARY_HA_AND_INSTALLED_AGENT",
+    "release_main_sha": "d14a481a890150b7f9438dcc04b2cae07e3cf3a2",
+    "worker_run": 38282063883,
+    "gateway_run": 38282063892,
+    "agent_run": 38282063816,
+    "release": "relay-agent-v127"
   }
 }
