@@ -66,7 +66,7 @@ test("Core uses CAS, SQL transaction, audit and postchange alarm without changin
  assert.match(router,/url\.pathname === "\/d167\/meal\/edit"/);
  assert.match(router,/scheduleNextOperationalAlarm\(this\.state\)/);
  assert.match(app,/data-d167-meal-edit/);
- assert.match(app,/record\\?\\.choice === "EARLY" \\? 1 : 0/);
+ assert.ok(app.includes('record?.choice === "EARLY" ? 1 : 0'));
  assert.match(app,/Cho phép đổi liên tục trước/);
  assert.match(app,/editD167Meal\(period, choice, password, day, old\.confirmed_at\)/);
 });
