@@ -31,6 +31,7 @@ import {
   getAndroidAlertWindow,
   getD167MealState,
   confirmD167Meal,
+  editD167Meal,
   getAdminSla,
   getDashboardPreference,
   getPdaAppRelease,
@@ -2896,11 +2897,25 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
   const early = period === "LUNCH" ? "11:00–11:30" : "18:00–18:30";
   const late = period === "LUNCH" ? "11:30–12:00" : "18:30–19:00";
   const selected = record?.choice === "EARLY" ? early : late;
+  const cutoff = d167MealState ? Date.parse(d167MealState.day_vn + "T00:00:00Z") +
+    (period === "LUNCH" ? 4 : 11) * 60 * 60_000 : 0; // 11:00/18:00 VN in UTC.
+  const mayEdit = Boolean(record && profile &&
+    (profile.role === "ADMIN" || profile.role === "ROOT" ||
+     (profile.role === "REPORTER" && profile.user_id === record.confirmed_by)) &&
+    Date.now() < cutoff);
   return `<article class="ops-panel d167-meal-card">
     <div class="ops-panel-title"><div><h3>${title}</h3><p>${period === "LUNCH" ? "Nhắc Reporter lúc 10:55" : "Nhắc Reporter lúc 17:55"} (giờ Việt Nam)</p></div>
       <span class="badge ${record ? "good" : "warning"}">${record ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
     ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · ${esc(record.confirmed_name || "Reporter")} xác nhận lúc ${esc(fmt(record.confirmed_at))}</div>` :
       `<div class="ops-note">Nếu chưa ai xác nhận, Service tạm dừng tự động Skip trong toàn bộ ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"} để phòng ngừa Skip sai. Reporter vẫn xử lý thủ công bình thường.</div>`}
+    ${mayEdit ? `<form class="d167-meal-edit" data-d167-meal-edit="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
+      <label><span>Đổi giờ nghỉ</span><select name="choice" required>
+        <option value="EARLY" ${record?.choice === "EARLY" ? "selected" : ""}>${early}</option>
+        <option value="LATE" ${record?.choice === "LATE" ? "selected" : ""}>${late}</option>
+      </select></label>
+      <label><span>Mật khẩu xác nhận</span><input type="password" name="currentPassword" autocomplete="off" required maxlength="128" /></label>
+      <button class="secondary" type="submit">Xác nhận đổi giờ</button>
+    </form><p class="tiny muted">Chỉ sửa trước ${period === "LUNCH" ? "11:00" : "18:00"} (giờ Việt Nam). Hệ thống tự đồng bộ các Reporter.</p>` : ""}
     <form class="d167-meal-form" data-d167-meal-form="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
       <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
         <option value="EARLY">${early}</option><option value="LATE">${late}</option>
@@ -4236,6 +4251,39 @@ async function submitD167Meal(period: "LUNCH" | "DINNER", choice: "EARLY" | "LAT
   }
 }
 
+async function submitD167MealEdit(form: HTMLFormElement): Promise<void> {
+  const period: "LUNCH" | "DINNER" = form.dataset.d167MealEdit === "DINNER" ? "DINNER" : "LUNCH";
+  const old = period === "LUNCH" ? d167MealState?.lunch : d167MealState?.dinner;
+  const day = d167MealState?.day_vn || "";
+  if (!old || !day) {
+    setNotice("warning", "Giờ nghỉ đã thay đổi hoặc chưa được xác nhận. Tải lại trước khi sửa.");
+    return;
+  }
+  const data = new FormData(form);
+  const choice = data.get("choice") === "LATE" ? "LATE" : "EARLY";
+  const password = String(data.get("currentPassword") || "");
+  if (!password || choice === old.choice) {
+    setNotice("warning", choice === old.choice ? "Hãy chọn giờ khác giờ hiện tại." : "Cần nhập mật khẩu xác nhận.");
+    return;
+  }
+  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  try {
+    await editD167Meal(period, choice, password, day, old.confirmed_at);
+    await loadD167MealState();
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("success", "Đã đổi giờ nghỉ và đồng bộ lại mốc tự động Skip của các phiếu chưa xử lý.");
+  } catch (error) {
+    await loadD167MealState().catch(() => undefined);
+    if (activeSection === "shift") patchActiveSection(true);
+    setNotice("error", error instanceof Error ? error.message : "Không đổi được giờ nghỉ.");
+  } finally {
+    if (button?.isConnected) button.disabled = false;
+    form.querySelector<HTMLInputElement>('input[name="currentPassword"]')?.setAttribute("value", "");
+  }
+}
+
 function bindOverlay(): void {
   document.querySelector<HTMLFormElement>("#d167-meal-overlay-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -4469,6 +4517,10 @@ function bindSection(): void {
     if (profile?.role !== "ROOT" || profile?.base_role !== "ROOT") throw new Error("Chỉ ROOT thực được kiểm tra bộ đệm log Launcher.");
     launcherLogDiagnostics = await getLauncherLogDiagnostics();
     markWebUpdateReceived();
+  }));
+  document.querySelectorAll<HTMLFormElement>("[data-d167-meal-edit]").forEach((form) => form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void submitD167MealEdit(form);
   }));
   document.querySelectorAll<HTMLFormElement>("[data-d167-meal-form]").forEach((form) => form.addEventListener("submit", (event) => {
     event.preventDefault();
