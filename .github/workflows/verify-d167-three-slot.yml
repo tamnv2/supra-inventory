@@ -3,6 +3,16 @@ on:
   pull_request:
     paths:
       - "service/src/d167-sku-*.ts"
+      - "service/src/d167-web-full-replace.ts"
+      - "service/src/d167-area-report-core.ts"
+      - "service/src/sku-import-core.ts"
+      - "service/src/business-core.ts"
+      - "service/src/business-api.ts"
+      - "service/src/read-model-core.ts"
+      - "web/src/sku-excel.ts"
+      - "web/src/report-excel.ts"
+      - "web/src/operational-app.ts"
+      - "web/src/api.ts"
       - "relay-agent/D167Sku*.cs"
       - "relay-agent/SupraConfirmBrowserD167.cs"
       - "relay-agent/SupraConfirmBrowser.cs"
