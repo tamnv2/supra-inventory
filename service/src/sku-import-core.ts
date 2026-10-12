@@ -18,6 +18,7 @@ interface IdempotencyRow extends SqlRow {
 type SkuImportItem = {
   sku?: unknown;
   product_name?: unknown;
+  area?: unknown;
 };
 
 const MAX_CHUNK_ITEMS = 2000;
@@ -158,9 +159,11 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     index,
     sku: normalizeSku(item.sku),
     product_name: normalizeProductName(item.product_name),
+    area: String(item.area ?? "").trim().toUpperCase(),
   }));
   const invalid = normalized.filter(
-    (item) => !item.sku || !item.product_name || item.sku.length > 128 || item.product_name.length > 500,
+    (item) => !item.sku || !item.product_name || item.sku.length > 128 || item.product_name.length > 500 ||
+      (item.area !== "" && item.area !== "LTA" && item.area !== "SHELVING"),
   );
   if (invalid.length) {
     return response(
@@ -183,7 +186,7 @@ async function importSkuChunk(state: DurableObjectState, request: Request): Prom
     return response({ error: "DUPLICATE_SKU_IN_CHUNK", skus: [...duplicates].slice(0, 100) }, 400);
   }
 
-  const items = normalized.map(({ sku, product_name }) => ({ sku, product_name }));
+  const items = normalized.map(({ sku, product_name, area }) => ({ sku, product_name, area: area || undefined }));
   const sourceHash = String(body.source_hash || "").trim() || null;
   const plan = planChunk(state, items);
   const revisionRow = state.storage.sql.exec<{ revision: number }>("SELECT revision FROM d167_sku_meta WHERE id=1").toArray()[0];
