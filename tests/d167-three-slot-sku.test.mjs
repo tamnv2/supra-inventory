@@ -159,3 +159,14 @@ test("D167 Agent automatic PDA Confirm stays independent of SKU export and appro
   assert.match(client, /approve_large_hide/);
   assert.match(client, /Func<string,bool> confirmConflicts/);
 });
+
+test("D167 noon slot is durably coalesced into evening", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../service/src/d167-sku-sync-core.ts", import.meta.url), "utf8");
+  const agent = readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs", import.meta.url), "utf8");
+  assert.match(source, /COALESCED_INTO_DELTA_19/);
+  assert.match(source, /state='SKIPPED'/);
+  assert.match(source, /SLOT_COALESCED_INTO_EVENING/);
+  assert.match(agent, /s\.State!="SKIPPED"/);
+  assert.match(agent, /s\.Slot!="DELTA_12" \|\| !eveningDue/);
+});
