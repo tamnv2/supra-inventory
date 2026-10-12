@@ -22,6 +22,7 @@ namespace SupraInventoryRelayAgent
         private readonly DataGridView _d167SkuSlots=new DataGridView();
         private readonly DataGridView _d167SkuManualHistory=new DataGridView();
         private readonly DataGridView _d167SkuDetail=new DataGridView();
+        private bool _d167SkuManualActive;
         private D167SkuWorkbook _d167SkuLastWorkbook;
         private List<D167SkuSlotStatus> _d167SkuLastSlots=new List<D167SkuSlotStatus>();
         private List<D167SkuSlotStatus> _d167SkuLastManual=new List<D167SkuSlotStatus>();
@@ -202,7 +203,7 @@ namespace SupraInventoryRelayAgent
                 _d167SkuHeadline.Text=today+" · "+(first!=null&&first.State=="DONE"?"FULL đã xác minh":"FULL chưa xác minh")+
                     " · "+(primary?"PRIMARY":"STANDBY")+" · WMS "+(_supraBrowserReady?"sẵn sàng":"chưa sẵn sàng")+
                     (string.IsNullOrEmpty(message)?"":"\n"+message);
-                _d167SkuRun.Enabled=primary && _supraBrowserReady && HasAgentSession();
+                _d167SkuRun.Enabled=!_d167SkuManualActive && primary && _supraBrowserReady && HasAgentSession();
                 if(_d167SkuLastWorkbook!=null)
                 {
                     var items=_d167SkuLastWorkbook.Items;
@@ -252,6 +253,7 @@ namespace SupraInventoryRelayAgent
                 if(ShowProtectedInputDialog(dialog)!=DialogResult.OK) return;
                 var proof=dialog.PasswordValue;
                 if(string.IsNullOrWhiteSpace(proof)) return;
+                _d167SkuManualActive=true;
                 _d167SkuRun.Enabled=false;
                 _d167SkuHeadline.Text="Đang xác minh quyền và thực hiện cập nhật SKU theo yêu cầu...";
                 Task.Run(()=>{
@@ -265,8 +267,9 @@ namespace SupraInventoryRelayAgent
                     finally
                     {
                         proof=null;
-                        Ui(()=>{ if(!IsDisposed) _d167SkuRun.Enabled=
-                            _leaderCoordinator!=null && _leaderCoordinator.IsLeader && _supraBrowserReady;});
+                        Ui(()=>{ if(!IsDisposed) { _d167SkuManualActive=false;
+                            _d167SkuRun.Enabled=_leaderCoordinator!=null &&
+                                _leaderCoordinator.IsLeader && _supraBrowserReady; }});
                     }
                 });
             }
