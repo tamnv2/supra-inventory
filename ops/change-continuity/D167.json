@@ -8,9 +8,9 @@
   "pr": 559,
   "status": "SOURCE_CODE_READY_19_OF_19_PRE_RECEIPT__DRAFT_PR__FIELD_PENDING__NO_DEPLOY",
   "last_checkpoint": {
-    "id": "D167-CT-20261012-004",
+    "id": "D167-CT-20261012-005",
     "date_vn": "2026-10-12",
-    "topic": "D167 CODE READY source-only after 19 of 19 CI; no deploy",
+    "topic": "Source conflict audit: existing fixes reconciled, 05:00 missed FULL availability policy pending",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -223,6 +223,35 @@
       ],
       "next_action": "Recheck CI exact newest documentation/state-receipt HEAD; then STOP D167 Draft PR559 with no merge/Agent/APK/Web/Worker deploy. Await new Owner exact-scope deploy approval before Beta/field.",
       "evidence": "https://github.com/tamnv2/supra-inventory/commit/9f04a57718f0aca6421a248a1f03dd01deb6bd4c"
+    },
+    {
+      "id": "D167-E013",
+      "date_vn": "2026-10-12",
+      "topic": "D167 code/installed-source conflict audit — distinguish resolved legacy issues from new SKU freshness availability risk",
+      "kind": "TECHNICAL_FINDING",
+      "status": "REVIEW_FINDINGS_PENDING_OWNER_SCOPE_DECISION__NO_CODE_OR_DEPLOY_CHANGE",
+      "owner_approval": null,
+      "facts": [
+        "Exact preceding PR559 HEAD c8386753c3fab89b86b32a6ca091192ae034779b: 19/19 completed PR CI SUCCESS, Draft/unmerged, no PR559 Beta release; main PR550/555 Beta technical releases remain unchanged. Field and Owner PASS not proven.",
+        "Already fixed in deployed main PR555: legacy global pending-SKU/PICKER uniqueness migrated to VN-day index, missing Reporter meal selection uses 30-minute later default, 03:00 day-end closes all day-N unresolved; outdated D167_SYSTEM_REVIEW P0-F1/P0-F2/P0-F3 text is historical, not evidence these source bugs remain.",
+        "New source-level operational contract risk: PR559 service/src/business-core.ts unconditionally returns HTTP 409 SKU_TODAY_SYNC_PENDING for every new Picker shortage submission after 05:00 VN until that VN date INITIAL_FULL has succeeded. If Agent/WMS not ready/outage, operational Báo hàng availability depends on WMS despite legacy separated transaction path. Design not yet Owner reconciled; this is a proven control-flow condition, NOT proven physical incident.",
+        "Main Beta HR Google Sheet event writer is retired via early Beta return in hr-event-sync.ts; old partial-sheet WAITING_FOR_COMPLETION optimization is superseded by Web/Excel onboarding, with old Sheet data retained. Do not reimplement or delete legacy data.",
+        "Owner D167-C VN log date filter is field OK; A spacing has CSS source in unmerged PR559, field not passed; D last-login timezone formatting correction exists in main fmt() but field timestamp freshness root cause not closed.",
+        "D167 three-slot SKU, area temporal, overview/detail/Excel and Web PATCH/FULL code present in PR559, source and synthetic 5K test PASS; real managed WMS export, six-Agent HA/Confirm, Android cache/ACK and provider billed usage remain field pending.",
+        "Release Owner guard is coded for core Beta Worker/Gateway/Agent/Firestore/RTDB workflows; older independent cancelled PDA-management verification workflow has main-push release path not covered by same receipt. Do not touch unrelated resource without separate authorized impact reconciliation."
+      ],
+      "alternatives": [
+        "O0 leave 05:00 fail-closed behavior but explicitly design and test downtime user guidance/availability window; only if Owner chooses strict same-day SKU freshness at cost of outage.",
+        "O1 preferred business-continuity review: decouple missed WMS FULL from unconditional report rejection via bounded, clearly marked last-verified roster policy with audit and strict invalid/hidden SKU guards; exact policy requires Owner approval because Owner currently requires daily active roster.",
+        "O2 avoid duplicating SKU catalog in Firebase/Sheets or installing extra polling; preserve single InventoryCore source of truth."
+      ],
+      "open_questions": [
+        "Which explicit outage rule wins when after 05:00 PRIMARY/WMS cannot complete a FULL: block all Picker reports or temporarily use clearly marked last-known verified roster?",
+        "Does Owner want a limited source-only repair of the 05:00 gate and corresponding regression tests before any PR559 Beta deployment approval?",
+        "Validate real branch CI after any documentation checkpoint; never imply final source-head 19/19 establishes physical or billing PASS."
+      ],
+      "next_action": "Do not cancel D167 or revert released PR555. Retain PR559 unmerged under CODE PASS ONLY. Present P0 source-vs-business policy risk, preserve already released fixes and cancel superseded feature proposals; obtain explicit Owner approval before changing code/deploy.",
+      "evidence": "PR559 service/src/business-core.ts createReport SKU_TODAY_SYNC_PENDING; main service/src/core.ts day index; main service/src/meal-break-core.ts slotFor; main service/src/d167-overdue-core.ts; main service/src/hr-event-sync.ts; main web/src/operational-app.ts fmt; GitHub Actions PR559 19/19 before this checkpoint"
     }
   ],
   "resume": {
@@ -243,13 +272,15 @@
     ],
     "pending_approval": [
       "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
-      "Owner field acceptance and separate Stable authorization"
+      "Owner field acceptance and separate Stable authorization",
+      "Business policy for missing INITIAL_05 FULL after 05:00 versus shortage-report availability before source modification"
     ],
     "blocked": [
       "Real managed WMS/PRIMARY same-profile export, physical 6-Agent HA/PDA/ACK, provider billing and latency cannot be proven without separate field activation; not source code CI evidence",
       "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction"
     ],
     "next_actions": [
+      "Owner risk decision on unconditional 05:00 report 409 vs bounded last-verified active roster; no unilateral business override",
       "Read final PR #559 HEAD and verify required exact-head CI after receipt",
       "STOP code-only without merge, deploy or service mutation",
       "When Owner next calls 'tiếp tục D167', summarize source CODE READY and field/deploy gates from main+PR journal"
