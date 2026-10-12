@@ -6,11 +6,11 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-code-three-slot-sku-area-report-20261011",
   "pr": 559,
-  "status": "OPEN__SOURCE_IN_PROGRESS__CODE_PASS_PENDING__NO_DEPLOY",
+  "status": "SOURCE_CODE_READY_19_OF_19_PRE_RECEIPT__DRAFT_PR__FIELD_PENDING__NO_DEPLOY",
   "last_checkpoint": {
-    "id": "D167-CT-20261012-003",
+    "id": "D167-CT-20261012-004",
     "date_vn": "2026-10-12",
-    "topic": "D167 source-audit fixes and final code-only CI gate",
+    "topic": "D167 CODE READY source-only after 19 of 19 CI; no deploy",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -207,6 +207,22 @@
       ],
       "next_action": "Read back current PR #559 exact HEAD SHA and all required CI; fix any source failure, then mark source CODE PASS only if all required checks succeed, preserve Draft and no deploy.",
       "evidence": "docs/D167_CODE_ONLY_PROGRESS_2026-10-11.md#2026-10-12--fresh-code-pass-audit-source-fixes-and-cross-module-regression"
+    },
+    {
+      "id": "D167-E012",
+      "date_vn": "2026-10-12",
+      "topic": "D167 source-only CODE READY after exact source-head CI 19/19; unchanged no-deploy boundary",
+      "kind": "STATUS",
+      "status": "CODE_READY_SOURCE_ONLY__19_19_PRE_RECEIPT_CI_PASS__FIELD_OWNER_PASS_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "GitHub PR #559 source head 9f04a57718f0aca6421a248a1f03dd01deb6bd4c: 19/19 workflows completed SUCCESS, including D167 three-slot source contract, Windows Agent build, Worker typecheck, Repo Authority Guard, Project State Guard, Web/Agent predeploy guards.",
+        "Implemented/corrected Web/WMS same-day conflict timestamp and VN day rollover, stale HA retry source staging, WMS child cleanup on failure, 5000 synthetic SQL and report/Excel source parity. Source-only code passes the required available non-deploy CI at that exact SHA.",
+        "This approval class is only SOURCE CODE READY, not Office WMS end-to-end, physical Android/6-Agent, Cloudflare/Firebase billed usage, release, deployment, business Owner PASS, or Stable.",
+        "Mô hình chạy hiện tại không nhận bất kỳ thay đổi code nào từ PR #559; no new resource or credential."
+      ],
+      "next_action": "Recheck CI exact newest documentation/state-receipt HEAD; then STOP D167 Draft PR559 with no merge/Agent/APK/Web/Worker deploy. Await new Owner exact-scope deploy approval before Beta/field.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/commit/9f04a57718f0aca6421a248a1f03dd01deb6bd4c"
     }
   ],
   "resume": {
@@ -219,24 +235,24 @@
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
       "D167 PR #559 source: PRIMARY WMS managed-side-tab scheduler + 3 slot, FULL hide/DELTA safe, HA/CAS, LTA/Shelving temporal history, dashboard/detail/Excel filters, Web PATCH vs explicit Admin FULL REPLACE, regression fixtures",
       "Web manual SKU Excel optional LTA/Shelving, PATCH/FULL confirmed as-of provenance and no catalog blast when unchanged/area-only",
-      "2026-10-12 fresh source audit: correct last_wms_observed SQL cursor, only same-VN-day Web conflicts, atomic stale-stage HA recovery, WMS child cleanup on errors, expanded code-only CI contract paths"
+      "2026-10-12 fresh source audit: correct last_wms_observed SQL cursor, only same-VN-day Web conflicts, atomic stale-stage HA recovery, WMS child cleanup on errors, expanded code-only CI contract paths",
+      "D167 Source CODE READY (19/19 source-head CI PASS at 9f04a577); final Docs/State receipt HEAD CI is rechecked separately"
     ],
     "in_progress": [
-      "Read exact PR #559 final-head 19 source-only workflows and repair failures",
-      "Reconcile source CODE PASS only; real Office/Android/Provider field proof remains pending separately"
+      "Final exact-head CI readback after recording CODE READY receipt; no additional source work authorized or deployed"
     ],
     "pending_approval": [
-      "Owner riêng duyệt triển khai Beta theo exact SHA/scope sau CODE PASS",
-      "Owner nghiệm thu thực tế sau triển khai; Stable luôn Owner-gated"
+      "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
+      "Owner field acceptance and separate Stable authorization"
     ],
     "blocked": [
       "Real managed WMS/PRIMARY same-profile export, physical 6-Agent HA/PDA/ACK, provider billing and latency cannot be proven without separate field activation; not source code CI evidence",
       "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction"
     ],
     "next_actions": [
-      "Verify exact final-head Agent build, Worker/Web source contract, repo authority and continuity CI",
-      "If 19/19 source-only CI PASS, record source CODE PASS while PR #559 remains Draft and unmerged",
-      "No Beta/Stable/Agent/OTA/live WMS updates without new explicit Owner deployment authorization"
+      "Read final PR #559 HEAD and verify required exact-head CI after receipt",
+      "STOP code-only without merge, deploy or service mutation",
+      "When Owner next calls 'tiếp tục D167', summarize source CODE READY and field/deploy gates from main+PR journal"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
