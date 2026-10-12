@@ -67,6 +67,9 @@ function skuCatalogInfo(state: DurableObjectState): Response {
     : null;
   const count = Number(live?.count ?? row.count ?? 0);
   const maxUpdatedAt = String(row.max_updated_at || "");
+  const dayVn = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+  const lastFullDay = String(full?.last_full_day || "");
+  const skuDayReady = lastFullDay === dayVn;
 
   const lastSync = state.storage.sql.exec<SqlRow>(
     `SELECT created_at, actor_user_id, metadata_json
@@ -83,6 +86,10 @@ function skuCatalogInfo(state: DurableObjectState): Response {
 
   return response({
     count,
+    sku_day_ready: skuDayReady,
+    sku_day_vn: dayVn,
+    sku_day_last_full: lastFullDay || null,
+    sku_day_warning: skuDayReady ? null : "Danh sách SKU chưa được cập nhật cho ngày hôm nay. Vui lòng liên hệ Chuyên viên Pick Pack / Invent để cập nhật trước khi vào ca.",
     max_updated_at: maxUpdatedAt || null,
     version: `${count}:${maxUpdatedAt}`,
     last_sync_at: lastSync?.created_at ? String(lastSync.created_at) : null,

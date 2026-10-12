@@ -431,6 +431,18 @@ let hrWebRequestSeq = 0;
 let pendingWorkbook: ParsedSkuWorkbook | null = null;
 let skuImportFullReplace = false;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
+
+// Server-confirmed FULL membership is required; PATCH changes never unlock a new day.
+function skuDayReady(): boolean {
+  return skuCatalogInfo?.sku_day_ready === true && skuCatalogInfo.sku_day_vn === dateDaysAgo(0);
+}
+function skuDayBanner(): string {
+  if (skuDayReady()) return "";
+  const message = skuCatalogInfo?.sku_day_warning ||
+    "Đang xác nhận danh sách SKU của ngày hôm nay. Chưa thể tạo báo thiếu mới.";
+  return `<div class="notice warning" role="alert" data-d167-sku-day-warning>${esc(message)}</div>`;
+}
+
 let skuAdminQuery = "";
 let skuAdminItems: SkuItem[] = [];
 let skuAdminOffset = 0;
@@ -1598,6 +1610,7 @@ function renderOperations(): string {
   const overdueCount = queueRows.filter((row) => liveQueueTiming(row).state === "ESCALATED").length;
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
   return `<section id="fastEvents" class="fast-events ops-business-workspace">
+    ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Theo dõi và xử lý các SKU Picker đang báo hết hàng.</p></div></div>
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
@@ -1697,6 +1710,7 @@ function updateQueueClockDom(): void {
 
 function renderOverdue(): string {
   return `<section class="ops-route ops-business-workspace">
+    ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>SKU có Picker đã tới mốc tự động cho phép bỏ qua nhưng vẫn chờ Invent chốt kết quả cuối.</p></div></div>
     ${renderOperationalTabs("overdue")}
     <article class="ops-panel">
@@ -1736,6 +1750,7 @@ function renderResults(): string {
   const pageFrom = recentTotal ? recentOffset + 1 : 0;
   const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
   return `<section class="ops-route ops-business-workspace">
+    ${skuDayBanner()}
     <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Kiểm tra kết quả đã xử lý và tình trạng Picker nhận kết quả.</p></div></div>
     ${renderOperationalTabs("results")}
     <section class="business-summary-grid business-summary-grid-5">
@@ -1778,10 +1793,11 @@ function renderPicker(): string {
   const pageFrom = pickerReportTotal ? pickerReportOffset + 1 : 0;
   const pageTo = Math.min(pickerReportTotal, pickerReportOffset + pickerReports.length);
   return `<section class="picker-workspace"><div class="page-head"><div><h1>Báo SKU hết hàng</h1></div></div>
+    ${skuDayBanner()}
     <div class="card"><input id="picker-sku-input" class="sku-input picker-input" placeholder="Nhập / quét SKU" value="${esc(pickerQuery)}" autocomplete="off" />
       ${pickerSuggestions.length ? `<div class="suggestions">${pickerSuggestions.slice(0, 12).map((item) => `<button class="suggestion" data-pick-sku="${esc(item.sku)}"><strong>${esc(item.sku)}</strong> · ${esc(item.product_name)}</button>`).join("")}</div>` : ""}
       <div class="selected-sku">${pickerSelected ? `<strong>${esc(pickerSelected.sku)}</strong><span>${esc(pickerSelected.product_name)}</span>` : `<span>Chưa chọn SKU hợp lệ</span>`}</div>
-      <button id="picker-report" class="btn report-button" ${!pickerSelected || !onlineForMutation() || busy ? "disabled" : ""}>BÁO HẾT HÀNG</button>
+      <button id="picker-report" class="btn report-button" ${!pickerSelected || !skuDayReady() || !onlineForMutation() || busy ? "disabled" : ""}>BÁO HẾT HÀNG</button>
       ${!onlineForMutation() ? `<div class="notice warning">Cần kết nối mạng để báo hàng. Hệ thống không có chế độ offline.</div>` : ""}
     </div>
     <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY & CHƯA XỬ LÝ</h1><p class="tiny muted">Hiển thị báo hôm nay và các báo cũ chưa hoàn tất.</p></div></div>
@@ -3025,6 +3041,12 @@ async function loadReporterQueueSnapshot(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const queue = await loadCompleteReporterQueue();
+  // Reuse the queue refresh on initial entry or a VN date boundary only;
+  // never add a provider polling loop to each realtime badge update.
+  if (!skuCatalogInfo || skuCatalogInfo.sku_day_vn !== dateDaysAgo(0)) {
+    const catalog = await getSkuCatalogInfo();
+    if (generation === sessionViewGeneration && userId === (profile?.user_id || "")) skuCatalogInfo = catalog;
+  }
   if (
     requestGeneration !== reporterQueueLoadGeneration ||
     generation !== sessionViewGeneration ||
@@ -3512,15 +3534,17 @@ async function loadOperations(): Promise<void> {
 async function loadPicker(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [reports, results] = await Promise.all([
+  const [reports, results, catalog] = await Promise.all([
     getPickerReportsV2(PICKER_REPORT_PAGE_SIZE, pickerReportOffset, "APP_TODAY_OPEN"),
     getPickerResultsV2(120),
+    getSkuCatalogInfo(),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   if (reports.total > 0 && pickerReportOffset >= reports.total) {
     pickerReportOffset = Math.max(0, Math.floor((reports.total - 1) / PICKER_REPORT_PAGE_SIZE) * PICKER_REPORT_PAGE_SIZE);
     return loadPicker();
   }
+  skuCatalogInfo = catalog;
   pickerReports = reports.items;
   pickerReportTotal = reports.total;
   pickerResults = results.items;

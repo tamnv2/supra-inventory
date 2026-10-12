@@ -26,6 +26,10 @@ export interface SkuItem {
 
 export interface SkuCatalogInfo {
   count: number;
+  sku_day_ready: boolean;
+  sku_day_vn: string;
+  sku_day_last_full: string | null;
+  sku_day_warning: string | null;
   max_updated_at: string | null;
   version: string;
   last_sync_at?: string | null;

@@ -398,12 +398,13 @@ async function createReport(state: DurableObjectState, request: Request): Promis
 
     const at = nowIso();
     const dayForSku = vnDayAt(Date.parse(at));
-    const nowVNHour = new Date(Date.parse(at) + 7 * 3600_000).getUTCHours();
+    // Owner 2026-10-12: no new-day shortage report before a verified FULL roster,
+    // including the 00:00-05:00 VN boundary; old tickets/results/ACK remain usable.
     const skuSync = firstRow(state.storage.sql.exec<SqlRow>(
       "SELECT last_full_day FROM d167_sku_meta WHERE id=1").toArray());
     // D167: Never accept new Picker shortage reports from yesterday's unverified
     // roster after 05:00; existing tickets/resolutions/ACK are not affected.
-    if (nowVNHour >= 5 && String(skuSync?.last_full_day || "") !== dayForSku)
+    if (String(skuSync?.last_full_day || "") !== dayForSku)
       return { status: 409, payload: { error: "SKU_TODAY_SYNC_PENDING", day_vn: dayForSku } } satisfies BusinessResult;
     if (String(skuSync?.last_full_day || "") === dayForSku) {
       const active = firstRow(state.storage.sql.exec<SqlRow>(
