@@ -1,5 +1,20 @@
 # SERVICE_READINESS — Derived current view
 
+## Trạng thái D167 mới nhất — 2026-10-12 (derived from GitHub canonical authority)
+
+- SQLite schema: 17
+- Latest signed Beta APK: beta-vc106__SIGNED_CHANNEL_PUBLISHED__FLEET_INSTALLED_UNVERIFIED
+- Beta Web: D167_PR559_BETA_WORKER_WEB_DEPLOY_HEALTH_PASS__FIELD_PENDING
+- Android: D167_SIGNED_BETA_VC106_RELEASE_PASS__FLEET_INSTALLS_UNVERIFIED
+- Beta: D167_PR559_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V126_TECHNICAL_PASS__FIELD_PENDING
+- Agent: D167_RELAY_AGENT_V126_FIXED_WEBVIEW2_CHANNEL_RELEASE_PASS__FLEET_HA_UNVERIFIED
+- Source merge: D167 PR #559, main `54ee8e51fbc25201e63e7059cdf2b2f0f1aff65c`.
+- Verified technical release: PR 21/21; main workflows 14/14 PASS. Worker/Web/InventoryCore run 38272307735; Gateway 38272307739; signed Android beta-vc106 run 38272307806; Windows Agent v126 run 38272307815.
+- **Đã phát hành kỹ thuật trên Beta; cài đặt thực tế từng PDA/Agent, WMS SKU FULL/DELTA, realtime/ACK/HA, đối soát dữ liệu, Usage và Owner nghiệm thu còn PENDING. Stable không thay đổi.**
+- Các ghi chú phiên bản cũ phía dưới chỉ là lịch sử; luôn dùng `ops/project-state.json` cho trạng thái hiện tại.
+
+---
+
 > DERIVED VIEW. Canonical live status is `ops/project-state.json`; resource identity/evidence is `ops/resource-registry.json`.
 
 ## Current markers
