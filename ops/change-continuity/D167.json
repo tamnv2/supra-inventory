@@ -6,9 +6,9 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-code-three-slot-sku-area-report-20261011",
   "pr": 559,
-  "status": "D167_PR559_INTEGRATED_OWNER_APPROVED_BETA_DEPLOY__FRESH_CI_PENDING",
+  "status": "D167_PR559_BETA_TECHNICAL_DEPLOY_PASS__FIELD_OWNER_PASS_PENDING",
   "last_checkpoint": {
-    "id": "D167-E022",
+    "id": "D167-E023",
     "date_vn": "2026-10-12"
   },
   "deployment_gate": {
@@ -433,6 +433,22 @@
       ],
       "next_action": "Verify all PR559 exact HEAD workflow checks before merge; confirm release gate and maintain Beta-only authorization.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/559; failed run 38271429444 and repair source c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c"
+    },
+    {
+      "id": "D167-E023",
+      "date_vn": "2026-10-12",
+      "topic": "D167 PR559 integrated CODE READY Beta Worker/Web/Gateway/Android vc106/Agent v126 release succeeded",
+      "kind": "STATUS",
+      "status": "BETA_TECHNICAL_DEPLOY_PASS__D167_FIELD_OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner-authorized PR559 merged through required PR gate to main 54ee8e51fbc25201e63e7059cdf2b2f0f1aff65c after exact PR 21/21 CI PASS.",
+        "Main SHA 54ee8e51 passed 14/14 GitHub push workflows including Worker/Web/InventoryCore Beta deploy+health+schema, existing Apps Script Gateway, signed Android beta-vc106 release and Agent relay-agent-v126 plus Fixed WebView2 bundle.",
+        "Beta Worker deploy run 38272307735 PASS; Gateway run 38272307739 PASS; Android run 38272307806 PASS; Agent run 38272307815 PASS. Signed vc106 and Agent v126 GitHub Release assets were read back.",
+        "No Stable deployment or new provider resource; device installations, real PRIMARY WMS/session export, multi-Agent HA/PDA ACK, 03:00/day rollover, LTA/Shelving reports and provider billed usage remain field-unverified; Owner D167 PASS must not be invented."
+      ],
+      "next_action": "Verify field rollout of v126/vc106 on designated devices; validate real SKU daily FULL/DELTA/area and picker acceptance, monitor representative billed usage, then obtain Owner D167 business acceptance.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559 ; https://github.com/tamnv2/supra-inventory/actions/runs/38272307735 ; https://github.com/tamnv2/supra-inventory/actions/runs/38272307815 ; https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc106 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v126"
     }
   ],
   "resume": {
@@ -452,23 +468,22 @@
       "D167 Source CODE READY (19/19 source-head CI PASS at 9f04a577); final Docs/State receipt HEAD CI is rechecked separately",
       "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known",
       "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent",
-      "D167 meal EARLY continuous edit correction PR561 exact HEAD 0e4757f2: 15/15 CI PASS, Draft/unmerged, no deploy"
+      "D167 meal EARLY continuous edit correction PR561 exact HEAD 0e4757f2: 15/15 CI PASS, Draft/unmerged, no deploy",
+      "2026-10-12 D167 PR559 Beta technical release merged main 54ee8e51: Worker/Gateway/Android vc106/Agent v126 plus Fixed WebView2 bundle, 14/14 main workflows success"
     ],
     "in_progress": [
-      "Integrate PR559 with main meal correction and four-area Web layout; verify fresh CI before Beta release"
+      "Await physical fleet and real company WMS/HA/ACK/area/usage acceptance; no further CODE READY feature known excluded"
     ],
     "pending_approval": [
-      "Owner D167 business/physical field PASS pending",
-      "Separate Stable deploy remains OWNER-GATED"
+      "D167 Owner business FIELD PASS on actual fleet",
+      "Separate Stable deployment approval only if Owner explicitly requests"
     ],
     "blocked": [
       "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity"
     ],
     "next_actions": [
-      "Verify exact merged PR HEAD CI; after PASS merge PR559 through existing release gate",
-      "Read back Beta Worker/Web/Gateway and Android vc106 / Agent v126 release channels",
-      "Report actual release results and remaining field acceptance separately"
+      "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance"
     ],
-    "release_boundary": "BETA_ONLY_WORKER_GATEWAY_ANDROID_AGENT_APPROVED_AFTER_CI__STABLE_GATED__NO_FIELD_PASS"
+    "release_boundary": "D167_PR559_BETA_TECHNICAL_RELEASE_COMPLETE__STABLE_GATED__D167_FIELD_OWNER_PASS_PENDING"
   }
 }

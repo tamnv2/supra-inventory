@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D167_BETA_SOURCE_DEPLOY_PASS_MAIN_9BCFF631__WORKER_WEB_GATEWAY__SIGNED_ANDROID_VC105_AGENT_V125_CHANNEL__FIELD_INSTALLS_AND_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
+      "status": "D167_PR559_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V126_TECHNICAL_PASS__FIELD_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -2849,5 +2849,29 @@
     "owner_pass": false,
     "daily_readiness": "SAME_VN_DAY_VERIFIED_AGENT_INITIAL_FULL_OR_WEB_FULL_REPLACE__WEB_PATCH_NOT_FULL",
     "deployment_permission": false
+  },
+  "d167_pr559_beta_release_2026_10_12": {
+    "authority": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_ALL_CODE_READY_BETA",
+    "resource_scope": "EXISTING_REGISTERED_INVENTORY_BETA_ONLY",
+    "technical_status": "PASS_GITHUB_WORKER_WEB_GATEWAY_ANDROID_AGENT",
+    "pr": 559,
+    "main_sha": "54ee8e51fbc25201e63e7059cdf2b2f0f1aff65c",
+    "approved_executable_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
+    "pr_head_sha": "17f40905f15a33022dc957d76c9e18e2e60775d1",
+    "predeploy_ci": "21_OF_21_SUCCESS",
+    "main_workflows": "14_OF_14_SUCCESS",
+    "scope": "EXISTING_INVENTORY_BETA_ONLY__WORKER_WEB_INVENTORYCORE_GATEWAY_ANDROID_VC106_AGENT_V126",
+    "worker_run": 38272307735,
+    "gateway_run": 38272307739,
+    "android_run": 38272307806,
+    "agent_run": 38272307815,
+    "android_release": "beta-vc106",
+    "agent_release": "relay-agent-v126",
+    "web_worker_health": "PASS_PER_GITHUB_DEPLOY_WORKFLOW",
+    "agent_fixed_webview2_bundle": "PUBLISH_WORKFLOW_PASS",
+    "fleet_installed": "UNVERIFIED",
+    "field_owner_pass": false,
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "notes": "Technical deploy and GitHub release/asset pass do not prove physical installed PDA/Agent fleet, real WMS job success, QUOTA savings or Owner D167 PASS; no new resource created."
   }
 }
