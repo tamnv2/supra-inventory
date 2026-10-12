@@ -547,9 +547,11 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     if (body.dry_run === true || !response.ok) return response;
     const summary=await response.clone().json() as {
       created?:number; renamed?:number; reactivated?:number; hidden?:number;
+      sku_day_first_full?:boolean;
     };
     if (Number(summary.created||0)+Number(summary.renamed||0)+
-        Number(summary.reactivated||0)+Number(summary.hidden||0)===0)
+        Number(summary.reactivated||0)+Number(summary.hidden||0)===0 &&
+        summary.sku_day_first_full!==true)
       return response;
     const result = await realtimeAfter(response, env, {
       event: "sku_catalog_updated",

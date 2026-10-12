@@ -324,6 +324,8 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     if (slot !== "INITIAL_05" && String(meta.last_full_day || "") !== day)
       return response({ error: "INITIAL_FULL_NOT_PUBLISHED" }, 409);
     const at = new Date().toISOString();
+    const firstVerifiedFullToday = slot === "INITIAL_05" && String(meta.last_full_day || "") !== day;
+    let catalogChanged = false;
     const committed = state.storage.transactionSync(() => {
       // Complete source is staged before any visible mutation. All changes publish together.
       // No WMS stock/bin quantities or browser authentication data are stored.
@@ -422,6 +424,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
         || (body.approve_conflicts === true && plan.conflicts.some(c => c.field === "product_name"));
       const membershipModified = plan.hide.length > 0 || plan.activate.length > 0 ||
         plan.create.length > 0;
+      catalogChanged = nameModified || membershipModified;
       // Android delta cannot express catalog removals. Record one monotonic
       // server-side membership epoch so old Android builds fall back to an
       // authoritative full refresh rather than accepting a stale local set.
@@ -437,7 +440,8 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       return true;
     });
     if (!committed) return response({ error:"HA_FENCED" },409);
-    return response({ status:"DONE",...summary,day_vn:day,slot });
+    return response({ status:"DONE",...summary,day_vn:day,slot,
+      sku_day_first_full:firstVerifiedFullToday,catalog_changed:catalogChanged });
   }
   return response({ error:"NOT_FOUND" },404);
 }

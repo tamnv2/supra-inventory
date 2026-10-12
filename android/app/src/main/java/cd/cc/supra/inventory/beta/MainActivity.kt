@@ -1792,7 +1792,10 @@ class MainActivity : Activity() {
                 val skipCatalogForDisabledPicker =
                     session.role == "PICKER" && api.session?.shortageReportingEnabled == false
                 if (catalogChanged && !skipCatalogForDisabledPicker) syncSkuCatalogAsync("realtime", applyRemaining)
-                else applyRemaining(true)
+                else {
+                    if (catalogChanged) refreshDailySkuStatus(force = true)
+                    applyRemaining(true)
+                }
             }
         }.also { it.start() }
     }

@@ -171,7 +171,8 @@ export async function handleD167WebFullReplace(
       SELECT 1,COUNT(*),MAX(updated_at) FROM sku_master`);
     if (toCreate.length+toRename.length+toActivate.length+hidden>0) state.storage.sql.exec(`UPDATE sku_catalog_meta
       SET item_count=(SELECT COUNT(*) FROM sku_master),max_updated_at=? WHERE id=1`,at);
-    const payload={...preview,status:"DONE",catalog_revision:revision+(changed?1:0),completed_at:at};
+    const payload={...preview,status:"DONE",catalog_revision:revision+(changed?1:0),completed_at:at,
+      sku_day_first_full:String(meta?.last_full_day || "") !== day};
     state.storage.sql.exec(`INSERT INTO audit_log
       (audit_id,actor_user_id,actor_employee_code,action,target_type,target_id,metadata_json,created_at)
       VALUES (?,?,?,?,?,?,?,?)`,

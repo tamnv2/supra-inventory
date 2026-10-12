@@ -1541,10 +1541,44 @@ export default {
           env, String(input.instance_id || ""), String(input.generation || ""),
         );
         if (!leader) return json({ error: "NOT_CURRENT_FIREBASE_PRIMARY" }, 409);
-        return coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action, {
+        const operation = await coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action, {
           method: "POST", headers: { "content-type": "application/json" },
           body: JSON.stringify({ ...input, actor_user_id: operator.user_id }),
         });
+        if (action !== "publish" || !operation.ok) return operation;
+        const published = await operation.clone().json() as {
+          status?:string; sku_day_first_full?:boolean; catalog_changed?:boolean;
+        };
+        // First daily FULL must unlock Web/PDA even if every product row is
+        // semantically unchanged. DELTA with only area changes must not wake PDA.
+        if (published.status !== "DONE" ||
+            (published.sku_day_first_full !== true && published.catalog_changed !== true))
+          return operation;
+        ctx.waitUntil((async () => {
+          try {
+            await coreStub(env).fetch("https://inventory-core.internal/realtime/broadcast", {
+              method:"POST",headers:{"content-type":"application/json"},
+              body:JSON.stringify({event:"sku_catalog_updated",scopes:["sku_catalog"],
+                tags:["role:PICKER","role:REPORTER","role:ADMIN"],
+                metadata:{source:"AGENT_SKU_VERIFIED",first_full:published.sku_day_first_full===true}}),
+            });
+            if (!env.GOOGLE_RUNTIME_SA_JSON) return;
+            const targets = await coreStub(env).fetch("https://inventory-core.internal/notifications/targets",{
+              method:"POST",headers:{"content-type":"application/json"},
+              body:JSON.stringify({roles:["PICKER","REPORTER","ADMIN"],user_ids:[]}),
+            });
+            if (!targets.ok) return;
+            const body = await targets.json() as {tokens?:string[]};
+            if (!body.tokens?.length) return;
+            await sendFcmNotifications(env.GOOGLE_RUNTIME_SA_JSON,
+              env.FIREBASE_PROJECT_ID,body.tokens,{
+                title:"",body:"",data:{event:"sku_catalog_updated",source:"AGENT_SKU_VERIFIED"},
+              });
+          } catch {
+            // Best effort delivery: never undo committed catalog or re-run WMS.
+          }
+        })());
+        return operation;
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {

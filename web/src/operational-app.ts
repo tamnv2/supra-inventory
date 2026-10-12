@@ -5258,6 +5258,13 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
   }
 
   const scopes = new Set(events.flatMap((row) => row.scopes || []));
+  if (scopes.has("sku_catalog") && profile) {
+    // Recheck server-owned VN-day FULL state on an existing realtime event.
+    // Never infer a valid daily roster from a partial Web PATCH.
+    skuCatalogInfo = await getSkuCatalogInfo();
+    if (["picker", "operations", "overdue", "results", "sku"].includes(activeSection))
+      patchActiveSection(true);
+  }
   const pickerRelevant = profile?.role === "PICKER" && activeSection === "picker" && scopes.has("picker_reports");
   const reporterQueueChanged = roleOperate() && scopes.has("reporter_queue");
   const reporterOverdueChanged = roleOperate() && scopes.has("reporter_overdue");
