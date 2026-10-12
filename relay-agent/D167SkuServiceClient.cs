@@ -112,8 +112,9 @@ namespace SupraInventoryRelayAgent
             object raw;
             if (preview.TryGetValue("conflicts",out raw))
                 conflicts = (raw as object[] ?? new object[0]).Length;
+            var abnormalFull = preview.ContainsKey("requires_large_hide_approval") && Convert.ToBoolean(preview["requires_large_hide_approval"]);
             var approved = false;
-            if (conflicts > 0)
+            if (conflicts > 0 || abnormalFull)
             {
                 if (confirmConflicts == null || !confirmConflicts(conflicts))
                     throw new InvalidOperationException("D167_SKU_CONFLICT_AWAITING_APPROVAL");
@@ -122,6 +123,7 @@ namespace SupraInventoryRelayAgent
             }
             var publish = Copy(proof);
             publish["approve_conflicts"] = approved;
+            publish["approve_large_hide"] = abnormalFull && approved;
             var receipt = Send("publish",publish);
             if (Str(receipt,"status") != "DONE")
                 throw new InvalidOperationException("D167_SKU_PUBLISH_UNCERTAIN");
