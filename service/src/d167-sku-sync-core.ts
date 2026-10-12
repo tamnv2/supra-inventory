@@ -99,7 +99,7 @@ function ensureSchedule(state: DurableObjectState, day: string): Row[] {
 function rosterRows(state: DurableObjectState): D167CatalogRow[] {
   const list = state.storage.sql.exec<Row>(`
     SELECT s.sku,s.product_name,a.active,a.area,a.area_verified,a.last_wms_name,a.last_wms_area,
-      a.last_web_name_at,a.last_web_area_at
+      a.last_web_name_at,a.last_web_area_at,a.last_wms_observed_at
     FROM sku_master s LEFT JOIN d167_sku_active a ON a.sku=s.sku
     ORDER BY s.sku
   `).toArray();
