@@ -26,6 +26,9 @@ jobs:
       - name: Validate canonical project state
         run: python tools/project_state_guard.py
 
+      - name: Validate current Dxxx GitHub discussion ledger (read-only)
+        run: python3 tools/change_continuity_guard.py
+
       - name: Require state update for meaningful implementation changes
         shell: bash
         env:
