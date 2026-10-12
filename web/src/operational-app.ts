@@ -4291,40 +4291,6 @@ async function submitD167MealEdit(form: HTMLFormElement): Promise<void> {
   }
 }
 
-async function submitD167MealEdit(form: HTMLFormElement): Promise<void> {
-  const period: "LUNCH" | "DINNER" = form.dataset.d167MealEdit === "DINNER" ? "DINNER" : "LUNCH";
-  const old = period === "LUNCH" ? d167MealState?.lunch : d167MealState?.dinner;
-  const day = d167MealState?.day_vn || "";
-  if (!old || !day) {
-    setNotice("warning", "Giờ nghỉ đã thay đổi hoặc chưa được xác nhận. Tải lại trước khi sửa.");
-    return;
-  }
-  const data = new FormData(form);
-  const choice = data.get("choice") === "LATE" ? "LATE" : "EARLY";
-  const password = String(data.get("currentPassword") || "");
-  if (!password || choice === old.choice) {
-    setNotice("warning", choice === old.choice ? "Hãy chọn giờ khác giờ hiện tại." : "Cần nhập mật khẩu xác nhận.");
-    return;
-  }
-  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-  if (button?.disabled) return;
-  if (button) button.disabled = true;
-  try {
-    await editD167Meal(period, choice, password, day, old.confirmed_at);
-    await loadD167MealState();
-    if (activeSection === "shift") patchActiveSection(true);
-    setNotice("success", "Đã đổi giờ nghỉ và đồng bộ lại mốc tự động Skip của các phiếu chưa xử lý.");
-  } catch (error) {
-    await loadD167MealState().catch(() => undefined);
-    if (activeSection === "shift") patchActiveSection(true);
-    setNotice("error", error instanceof Error ? error.message : "Không đổi được giờ nghỉ.");
-  } finally {
-    if (button?.isConnected) button.disabled = false;
-    const passwordField = form.querySelector<HTMLInputElement>('input[name="currentPassword"]');
-    if (passwordField) passwordField.value = "";
-  }
-}
-
 function bindOverlay(): void {
   document.querySelector<HTMLFormElement>("#d167-meal-overlay-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
