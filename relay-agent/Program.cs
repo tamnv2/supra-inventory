@@ -766,6 +766,7 @@ namespace SupraInventoryRelayAgent
                       Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning,0,0)!=0,
                 () => _leaderCoordinator == null ? "" : _leaderCoordinator.Generation,
                 _agentInstanceId, ConfirmD167SkuWebConflict, message => Log(message));
+            _d167SkuCoordinator.StatusChanged += RenderD167SkuStatus;
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
@@ -1048,11 +1049,15 @@ namespace SupraInventoryRelayAgent
                 page.BackColor = Color.FromArgb(243, 246, 248);
             _overviewPage.AutoScroll = false;
             _mainTabs.TabPages.Add(_overviewPage);
+            _mainTabs.TabPages.Add(_d167SkuPage);
             _mainTabs.TabPages.Add(_connectionPage);
+            InitD167SkuTab();
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
                     _leaderCoordinator.RequestFleetRefresh();
+                if (_mainTabs.SelectedTab == _d167SkuPage && _d167SkuCoordinator != null)
+                    _d167SkuCoordinator.RequestStatus();
             };
 
             var footer = new Panel
