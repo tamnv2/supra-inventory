@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_PR568_AGENT_V128_UI_SAFE_DIAGNOSTIC_CI_PENDING__OWNER_BETA_AGENT_ONLY_APPROVED__FIELD_PENDING",
+    "current_change_status": "D167_PR568_AGENT_V128_SOURCE_BUILD_PASS__PR_FINAL_GUARD_FAIL__NO_RELEASE__FIELD_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D167_AGENT_V127_BETA_ACTUAL__V128_NOT_YET_RELEASED__UI_STAGE_ERROR_DIAG_SOURCE_PR568__STABLE_UNTOUCHED",
+    "runtime_impact": "D167_AGENT_V127_BETA_REMAINS_RELEASED__V128_DRAFT_UNMERGED_DUE_AUTHORITY_GUARDS__ANDROID_STABLE_UNTOUCHED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -7425,11 +7425,11 @@
     "journal": "ops/change-continuity/D167.json",
     "working_branch": "d167-agent-tabs-order-20261013",
     "pr": 568,
-    "latest_checkpoint_id": "D167-E030",
+    "latest_checkpoint_id": "D167-E031",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "OWNER_20261013_AGENT_V128_BETA_ONLY_AFTER_CI__MAIN_WMS_HEADER_CAPTURE_NOT_IMPLEMENTED__STABLE_GATED",
+    "owner_release_gate": "OWNER_20261013_AGENT_V128_BETA_APPROVED_BUT_GUARD_FAIL__NO_MERGE_NO_RELEASE__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7459,7 +7459,7 @@
   "d167_agent_sku_field_diagnostic_20261013": {
     "change_id": "D167",
     "working_pr": 568,
-    "status": "PR568_V128_CODE_CANDIDATE_CI_RUNNING__SIGNED_BETA_NOT_YET_RELEASED__FIELD_PENDING",
+    "status": "PR568_V128_SOURCE_BUILD_PASS__CI_14_16_GUARD_FAIL__NO_RELEASE",
     "field_evidence": "2026-10-13 00:34:23 WMS isolated header-capture child requested; 00:35:07 manual failed with only InvalidOperationException in sanitized Agent log",
     "source_contract": "WMS managed browser auth headers RAM-only in hidden child; signed read-only exportBinStocks HTTPS GET downloads XLSX; no WMS DOM SKU scrape or Confirm reload",
     "prior_standalone_field": "OWN_EDGE_PROFILE_DIRECT_GET_2492_SKU_3_IMPORT_CHUNKS_NOT_INTEGRATED_PROOF",
@@ -7467,8 +7467,10 @@
     "new_release_authorized": true,
     "field_pass": false,
     "stable": "OWNER_GATED",
-    "next": "Check PR568 exact CI + v128 prerelease/asset receipt then Owner field retry; if v128 reveals exact WMS export failure, propose targeted code repair without bypassing session security",
+    "next": "Human authorized maintainer review of continuity validation; retest current agent auth path; no CI bypass or Beta release until PASS",
     "approved_source_sha": "060be766de6fc1e9840ea0e62cdc4c5e65331e07",
-    "source_scope": "Windows Agent only: tab order, safe D167 stage/error code and numeric WMS export status; unchanged direct signed GET and hidden same-profile auth context; direct main target capture rejected/not implemented"
+    "source_scope": "Windows Agent only: tab order, safe D167 stage/error code and numeric WMS export status; unchanged direct signed GET and hidden same-profile auth context; direct main target capture rejected/not implemented",
+    "actual_released_agent": "v127",
+    "blocker": "CHANGE_CONTINUITY_GUARD_FAIL_NEW_OWNER_20261013_GATE_UNSUPPORTED__TOOL_SAFETY_DENIED_GUARD_CHANGE_AND_ACTIVE_MAIN_SESSION_CAPTURE"
   }
 }
