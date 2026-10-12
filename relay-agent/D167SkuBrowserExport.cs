@@ -10,8 +10,10 @@ using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
 {
-    // D167: Same managed WebView2 profile, separate hidden tab, UI-only WMS
-    // read. No cookie/header/token observer, no signed HTTP client, no mutation.
+    // Existing managed WMS session supplies transient request headers in RAM.
+    // The isolated child is only a header-acquisition surface; the Excel
+    // download is an allowlisted, freshly signed read-only HTTPS GET.
+    // Never alter the live Confirm tab or persist any session material.
     internal static class D167SkuBrowserExport
     {
         private const string SidePath = "/sft3/app/saleorder/auto-pickpack-confirm";
@@ -22,29 +24,38 @@ namespace SupraInventoryRelayAgent
         // existing managed browser supplies an ephemeral authorized WMS API
         // request context; a separate, allowlisted GET downloads the workbook.
         // The Confirm Picklist page is never navigated, reloaded or clicked.
-        internal static D167SkuWorkbook Export(SupraConfirmBrowser browser, Func<bool> stillPrimary)
+        internal static D167SkuWorkbook Export(SupraConfirmBrowser browser,
+            Func<bool> stillPrimary, Action<string> onStage = null)
         {
             if (browser == null || stillPrimary == null || !stillPrimary())
                 throw new InvalidOperationException("D167_NOT_READY_PRIMARY");
+            if(onStage!=null) onStage("SIDE_OPEN");
             var port = browser.OpenD167HiddenSkuExportPage();
             var deadline = DateTime.UtcNow.AddSeconds(105);
+            if(onStage!=null) onStage("SIDE_TARGET_DISCOVERY");
             var wsUrl = FindSidePage(port, deadline);
             using (var socket = new ClientWebSocket())
             {
                 try
                 {
                     socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+                    if(onStage!=null) onStage("SIDE_CDP_CONNECT");
                     socket.ConnectAsync(new Uri(wsUrl), CancellationToken.None).GetAwaiter().GetResult();
+                    if(onStage!=null) onStage("SIDE_NETWORK_ENABLE");
                     Command(socket, "Network.enable", null, TimeSpan.FromSeconds(5), 1);
                     // This reload affects ONLY the isolated hidden side tab.
                     // It must never touch the live Confirm tab or WMS mutation API.
+                    if(onStage!=null) onStage("SIDE_RELOAD");
                     Command(socket, "Page.reload", new Dictionary<string, object> {
                         { "ignoreCache", false }
                     }, TimeSpan.FromSeconds(5), 2);
+                    if(onStage!=null) onStage("SIDE_AUTH_OBSERVE");
                     var headers = D167SkuDirectExport.CaptureAuthorizedHeaders(socket,
                         deadline, stillPrimary);
                     if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
+                    if(onStage!=null) onStage("DIRECT_GET");
                     var data = D167SkuDirectExport.DownloadReadOnly(headers, stillPrimary);
+                    if(onStage!=null) onStage("XLSX_PARSE");
                     return D167SkuWorkbook.Parse(data);
                 }
                 finally

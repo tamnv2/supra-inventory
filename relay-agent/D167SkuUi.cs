@@ -261,7 +261,8 @@ namespace SupraInventoryRelayAgent
                     catch(Exception e)
                     {
                         Ui(()=>MessageBox.Show("Chưa cập nhật SKU: "+e.GetType().Name+
-                            ". Xem trạng thái và nhật ký kỹ thuật an toàn trên Agent.",
+                            " ("+D167SkuCoordinator.SafeErrorCode(e)+")."+
+                            " Xem nhật ký Agent để biết bước thất bại.",
                             "Cập nhật SKU",MessageBoxButtons.OK,MessageBoxIcon.Warning));
                     }
                     finally

@@ -2,13 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "893ad2163022c2daef9f9183d8a7e2562f4a535d",
+  "approved_source_sha": "c4b9ba520990d1100b1bfb872b4c4fa02ca11424",
   "approved_components": [
-    "worker",
-    "gateway",
     "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA",
-  "approved_at_vn": "2026-10-12T23:25:00+07:00",
-  "note": "Latest Owner command approves Agent Cập nhật SKU manual authenticated FULL/DELTA and Beta rollout after code/CI. Reviewed source SHA 893ad216 is exact ancestor; permit only existing Inventory Beta Worker+InventoryCore/Web bundle, existing Apps Script Agent Gateway and Windows Agent v127; Android vc106, Launcher, Firebase resources, Stable and mandatory fleet update unchanged. Worker strips current-account password/OTP before Core; auth/HA security tested by source guards and Windows build. Field/Owner acceptance is separately pending."
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V128_UI_SAFE_DIAGNOSTIC_BETA",
+  "approved_at_vn": "2026-10-13",
+  "note": "Owner 2026-10-13 explicitly requests release of Agent v128 to test existing hidden same-profile WMS WebView2 export, with additional bounded local stage/phase/elapsed diagnostics. Release scope is existing Beta Agent only, based on exact vetted source c4b9ba520990d1100b1bfb872b4c4fa02ca11424; no WMS auth/header handling change, no forced OTA, no Worker/Gateway/Android/Stable, and field SKU export remains unverified. A signed diagnostic release does not prove WMS export or Service DONE."
 }

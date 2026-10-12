@@ -722,3 +722,14 @@ Log enhancements are restricted to bounded counters on existing Web/Android/Agen
 
 ## D167 2026-10-12 — Minimal-usage manual SKU tab
 The Agent SKU tab consumes the existing per-slot Service schedule and durable receipts plus local workbook memory. No new interval/heartbeat, WMS API query, Firebase listener/document, per-SKU provider query, Android wake or periodic upload for UI. On demand status read is one existing Gateway->Worker->InventoryCore request chain; a manually authorized FULL/DELTA uses existing export, bounded 500-SKU stage chunks, fingerprint no-op path, transactional receipt readback and current HA verification. Track distinct per-manual-run request/read/write/cpu/Confirm latency when comparing representative shifts; 5 uploads/2500 SKU or 10/5000 before ancillary requests are code-derived, not measured billing savings. Log only bounded category, slot, counts and timestamps, never password/OTP, WMS headers/session/stock rows.
+
+
+## D167 2026-10-13 — Agent v128 SKU diagnostic without secret leakage
+
+Manual/automatic SKU export logs bounded stages through existing local support-log collector only: AUTHORIZE_BEGIN/DONE, WMS_EXPORT_BEGIN/DONE, SIDE_OPEN/TARGET_DISCOVERY/CDP_CONNECT/NETWORK_ENABLE/RELOAD/AUTH_OBSERVE, DIRECT_GET, XLSX_PARSE, SERVICE_UPLOAD_BEGIN and durable DONE. Failure includes only exception type and allowlisted fixed `D167_[A-Z0-9_]*` error code; other messages map to `UNKNOWN`. Read-only WMS API HTTP failures expose **numeric HTTP status only**, not provider response body, URI query, header/token/cookie, signature, employee/SKU row or personal data. No extra Firebase listeners/provider reads, scheduled jobs, WMS API requests or remote telemetry compared with v127. Successful CI is not real main-browser session API verification.
+
+## D167 Agent v128 Beta — chẩn đoán luồng SKU theo chặng
+
+Owner 2026-10-13 duyệt thử nghiệm Agent v128 với WebView2 phụ ẩn đã có sẵn trong cùng browser environment/profile và yêu cầu log đủ để tìm điểm lỗi trước khi nghiệm thu. `D167SkuCoordinator` ghi log sự kiện cục bộ (không có timer/log upload mới) gồm: `manual=STAGE`, `manual=TRACE export_stage`, `manual=FAILED phase/error_type/error_code/elapsed_ms`, `slot=INITIAL_05|DELTA_12|DELTA_19 export_stage/elapsed_ms`, `SERVICE_UPLOAD_BEGIN` và `DONE` chỉ sau khi có Service receipt. Mốc `export_stage` của từng callback là **đã bắt đầu bước**, không mặc nhiên chứng minh bước đó đã hoàn tất; mã lỗi cuối cùng phải được đọc cùng giai đoạn trước đó.
+
+Tuyệt đối không ghi giá trị WMS auth headers, cookie/token/session, credential, URL có query, response body hoặc nội dung SKU trong log. Không làm thay đổi hành vi WMS Confirm, quyền PRIMARY, HA/lease, lịch ba slot, FULL/DELTA hoặc realtime/PDA. Phát hành bản Beta diagnostic chỉ chứng minh channel/build; WMS export và cập nhật thực tế vẫn FIELD_PENDING. Nếu lỗi ở bước xác thực, không sử dụng cách trích xuất/phát lại bí mật để vượt chặn bảo mật.

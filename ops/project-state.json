@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-12",
+  "last_updated": "2026-10-13",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_PR566_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_ACCEPTANCE_PENDING",
+    "current_change_status": "D167_PR568_V128_BETA_DIAGNOSTIC_RELEASE_AUTHORIZED__CI_PENDING__FIELD_SKU_UNVERIFIED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D167_PR566_MAIN_D14A481A_WORKER_WEB_GATEWAY_AGENT_V127_RELEASE_PASS__ANDROID_VC106_STABLE_UNTOUCHED__FIELD_PENDING",
+    "runtime_impact": "D167_AGENT_V127_BETA_CURRENT_UNTIL_PR568_GATED_DIAGNOSTIC_V128_RELEASE__STABLE_UNTOUCHED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -2494,7 +2494,8 @@
     "accepted_runtime_base_change_id": "D166",
     "pr559_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_FULL_BETA_PASS_CODE__STABLE_OWNER_GATED",
     "d167_agent_sku_manual_2026_10_12": "OWNER_APPROVED_CODE_AND_EXISTING_SCOPED_BETA__SOURCE_CI_PENDING__OWNER_FIELD_PASS_PENDING",
-    "pr566_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA"
+    "pr566_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA",
+    "pr568_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V128_UI_SAFE_DIAGNOSTIC_BETA__STABLE_UNTOUCHED"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7415,6 +7416,21 @@
         "field_owner_pass": false,
         "billed_usage_savings": "UNVERIFIED"
       }
+    },
+    "pr568_guard_repair_2026_10_13": {
+      "status": "PR568_EXACT_SOURCE_CI_16_OF_16_PASS__GUARD_AND_NETWORK_DIAGNOSTICS_ONLY__WMS_SOURCE_NOT_FIXED__NO_RELEASE",
+      "code_commit": "4cb92198878db32f1220a88cda26bbfea5a57f11",
+      "guard_fix": "EXACT_OWNER_2026_10_13_AGENT_ONLY_BETA_AUTHORITY__STABLE_FALSE_CHECKS_RETAINED",
+      "pr": 568,
+      "ci": "16_OF_16_SUCCESS_ZERO_FAIL_AT_4CB92198",
+      "wms_main_session_source": "NOT_IMPLEMENTED__SECURITY_REVIEW_REQUIRED",
+      "agent_beta_last_published": "relay-agent-v127",
+      "owner_field_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "no_new_resource": true,
+      "latest_tested_source_sha": "cd104822f2d8de76ca5b866ac8f6c0351df3c4f8",
+      "latest_tested_source_ci": "16_OF_16_SUCCESS_ZERO_FAIL",
+      "network_error_classification": "UPPERCASE_CODE_ONLY_WITH_TEST_NO_SECRETS"
     }
   },
   "change_continuity": {
@@ -7422,13 +7438,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
-    "working_branch": "d167-agent-sku-tab-manual-20261012",
-    "pr": 566,
-    "latest_checkpoint_id": "D167-E027",
-    "checkpoint_date_vn": "2026-10-12",
+    "working_branch": "d167-agent-tabs-order-20261013",
+    "pr": 568,
+    "latest_checkpoint_id": "D167-E038",
+    "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "OWNER_APPROVED_PR566_SCOPED_BETA_AFTER_CODE_CI__STABLE_GATED",
+    "owner_release_gate": "OWNER_APPROVED_AGENT_V128_BETA_DIAGNOSTIC_FIELD_TRIAL_AFTER_CI__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7454,5 +7470,25 @@
     "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR563_WEB_LAYOUT_FOUR_AREAS_BETA",
     "approved_source_sha": "84290c93dc6cfb74d30f972d8b8ef6d4868b007a",
     "release_workflow": "Deploy Beta Worker__ONLY_AFTER_REQUIRED_PR_CHECKS_PASS"
+  },
+  "d167_agent_sku_field_diagnostic_20261013": {
+    "change_id": "D167",
+    "working_pr": 568,
+    "status": "OWNER_APPROVED_MAIN_SESSION_AND_SCOPED_BETA__SAFE_WMS_INTEGRATION_NOT_IMPLEMENTED__EXACT_CI_GUARD_BLOCKED__NO_RELEASE",
+    "field_evidence": "2026-10-13 00:34:23 WMS isolated header-capture child requested; 00:35:07 manual failed with only InvalidOperationException in sanitized Agent log",
+    "source_contract": "WMS managed browser auth headers RAM-only in hidden child; signed read-only exportBinStocks HTTPS GET downloads XLSX; no WMS DOM SKU scrape or Confirm reload",
+    "prior_standalone_field": "OWN_EDGE_PROFILE_DIRECT_GET_2492_SKU_3_IMPORT_CHUNKS_NOT_INTEGRATED_PROOF",
+    "ui_only_approved": "TOP_LEVEL_AGENT_TABS_OVERVIEW_SETTINGS_SKU; PRIMARY_ONLY_RUN_GUARD_UNCHANGED",
+    "new_release_authorized": true,
+    "field_pass": false,
+    "stable": "OWNER_GATED",
+    "next": "Security-reviewed supported main Agent WMS read-only API context integration and continuity guard update required; no bypass, 16/16 exact CI then Agent-only Beta release and field test",
+    "approved_source_sha": "060be766de6fc1e9840ea0e62cdc4c5e65331e07",
+    "source_scope": "Windows Agent only: tab order, safe D167 stage/error code and numeric WMS export status; unchanged direct signed GET and hidden same-profile auth context; direct main target capture rejected/not implemented",
+    "actual_released_agent": "v127",
+    "blocker": "CHANGE_CONTINUITY_GUARD_FAIL_NEW_OWNER_20261013_GATE_UNSUPPORTED__TOOL_SAFETY_DENIED_GUARD_CHANGE_AND_ACTIVE_MAIN_SESSION_CAPTURE",
+    "owner_main_agent_source_authorized": true,
+    "main_agent_source_implemented": false,
+    "owner_beta_deploy_confirmed_20261013": true
   }
 }

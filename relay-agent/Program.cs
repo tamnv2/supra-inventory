@@ -1049,8 +1049,8 @@ namespace SupraInventoryRelayAgent
                 page.BackColor = Color.FromArgb(243, 246, 248);
             _overviewPage.AutoScroll = false;
             _mainTabs.TabPages.Add(_overviewPage);
-            _mainTabs.TabPages.Add(_d167SkuPage);
             _mainTabs.TabPages.Add(_connectionPage);
+            _mainTabs.TabPages.Add(_d167SkuPage);
             InitD167SkuTab();
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {

@@ -484,3 +484,8 @@ Only `REPORTER` matching `d167_meal_choices.confirmed_by`, `ADMIN`, or `ROOT` ma
 
 ## D167 2026-10-12 — Agent manual SKU import credential and server authority
 A manual SKU job may be started by an authenticated AGENT session with eligible ADMIN/PICKPACK_ADMIN base and effective role only on the currently server-verified PRIMARY generation and instance. The Worker requires a fresh current-account proof via existing verifyCurrentAuthenticationProof (ordinary password, or privileged one-time/emergency mode) before minting the manual job; it drops proof before sending only actor, verified mode, day/run-id and PRIMARY metadata to InventoryCore. Do not rely on a local Yes/No dialog or local verifier alone. Each subsequent claim/stage/preview/publish remains HA fenced and Agent-authenticated. Existing specific ADMIN-only conflicting Web-field override and large-hide user approval apply independently; no new rights granted to Picker/Reporter/standby or Stable.
+
+
+## D167 2026-10-13 — Được Owner cho phép nguồn phiên WMS Agent chính
+
+Bổ sung vào ngoại lệ ngày 12/10: Owner cho phép chọn phiên WMS đang hoạt động trong Agent chính làm nguồn hợp lệ cho thao tác xuất SKU read-only, thay vì phụ thuộc trang ẩn. Giới hạn quyền chỉ ở Agent PRIMARY có phiên xác thực thực sự hợp lệ và chứng thực độc lập của Service. Không suy ra quyền truy xuất bí mật ngoài ứng dụng, vượt phạm vi API được phép, bỏ qua guard bảo mật, chia sẻ phiên sang Agent khác hoặc phát hành Stable. Cần bằng chứng triển khai và kiểm tra trường hợp failover/mất phiên trước khi xác nhận an toàn.
