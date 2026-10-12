@@ -138,3 +138,24 @@ test("Owner WMS export 2026-10-10 aggregate-shape regression without private sou
   assert.equal(list.filter(x=>x.area==="SHELVING").length,1190);
   assert.equal(list.filter(x=>x.area==="UNKNOWN"&&x.area_reason==="NO_PICKABLE_LOCATION").length,286);
 });
+
+test("D167 source guard preserves active SKU on unusually small FULL unless approved", async () => {
+  const { readFileSync } = await import("node:fs");
+  const service = readFileSync(new URL("../service/src/d167-sku-sync-core.ts", import.meta.url), "utf8");
+  assert.match(service, /requiresLargeHideApproval/);
+  assert.match(service, /FULL_ACTIVE_SET_DROP_REQUIRES_APPROVAL/);
+  assert.match(service, /approve_large_hide/);
+  assert.match(service, /plan\.hide\.length > largeHideThreshold/);
+});
+
+test("D167 Agent automatic PDA Confirm stays independent of SKU export and approval UI", async () => {
+  const { readFileSync } = await import("node:fs");
+  const agent = readFileSync(new URL("../relay-agent/Program.cs", import.meta.url), "utf8");
+  const client = readFileSync(new URL("../relay-agent/D167SkuServiceClient.cs", import.meta.url), "utf8");
+  assert.match(agent, /Interlocked\.Increment\(ref _d167AutomaticConfirmRunning\)/);
+  assert.match(agent, /Interlocked\.Decrement\(ref _d167AutomaticConfirmRunning\)/);
+  assert.match(agent, /Interlocked\.CompareExchange\(ref _d167AutomaticConfirmRunning/);
+  assert.doesNotMatch(agent, /MessageBox\.Show\(this,\s*previewText/);
+  assert.match(client, /approve_large_hide/);
+  assert.match(client, /Func<string,bool> confirmConflicts/);
+});
