@@ -6,11 +6,11 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-code-three-slot-sku-area-report-20261011",
   "pr": 559,
-  "status": "D167_NEW_WEB_ONLY_MEAL_EDIT_IMPLEMENTED_CI_PENDING__PR559_DRAFT_NO_DEPLOY",
+  "status": "D167_PR559_SOURCE_CODE_READY__PR560_WEB_MEAL_EDIT_17_OF_17_CI_PASS_SCHEDULED_POSTSHIFT__NO_RELEASE_YET",
   "last_checkpoint": {
-    "id": "D167-CT-20261012-008",
+    "id": "D167-CT-20261012-009",
     "date_vn": "2026-10-12",
-    "topic": "Owner approved Web-only meal edit with current password; implemented; CI and deployment gate separate",
+    "topic": "Owner scoped Web meal edit ready PR560 and after-shift deployment guarded; PR559 unchanged",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -335,6 +335,24 @@
       ],
       "next_action": "Pass exact final head CI, prepare isolated same-D167 Web+Service Beta release after shift, preserve draft PR559 and avoid Android/Agent changes.",
       "evidence": "Owner chat 2026-10-12 confirms giờ nghỉ; GitHub PR559 source and test paths"
+    },
+    {
+      "id": "D167-E018",
+      "date_vn": "2026-10-12",
+      "topic": "Scoped D167 meal edit PR560 code CI PASS and after-shift deployment scheduled; broad PR559 stays CODE ONLY",
+      "kind": "STATUS",
+      "status": "WEB_WORKER_MEAL_EDIT_PR560_17_OF_17_CI_PASS__BETA_DEPLOY_SCHEDULED_AFTER_SHIFT__NOT_YET_DEPLOYED",
+      "owner_approval": true,
+      "facts": [
+        "Owner clarified edit concerns Reporter team lunch/dinner under Ca vận hành and authorized implementation/deployment for that scoped feature only.",
+        "Web/Worker/InventoryCore authorized edit implemented inside D167 PR559; its source+docs checked HEAD 59e37c123de5b04a4b7efd0e3afe60187a66109a with 20/20 workflows PASS.",
+        "Independent D167 scoped PR560 https://github.com/tamnv2/supra-inventory/pull/560 created from main with only Web+Worker/InventoryCore, unit tests/CI and decisions/state plus owner-gated release receipt; exact HEAD 26c53b750590d3fe161a7df13fe504b13dbf7821 shows 17/17 GitHub CI PASS, 0 failures.",
+        "Release receipt approved_source_sha 785a339a51089c54b1a88096a2f90fe9e8df1c1c, approved_components=[worker], owner ref OWNER_EXPLICIT_D167_DEPLOY_20261012_PR560_WEB_MEAL_AFTER_SHIFT; user ordered deployment but earlier after-shift constraint remains in force.",
+        "Scheduled exact one-time after-shift scoped deployment check for 2026-10-12 22:15 VN; will verify GitHub authority/CI, merge PR560 only if safe, inspect Worker/Web Beta deploy and readback. NOT deployed at this checkpoint. No Android/Agent APK/EXE, WMS, other Firebase resource or Stable change.",
+        "PR559 remains Draft, no merge/no deployment, planned Agent v126 and Android vc106 continue to be code-only pending separate explicit Owner full-scope instruction."
+      ],
+      "next_action": "At scheduled 22:15 VN follow strict gate for PR560 Beta Worker/Web only. If error or outside window fail closed and report; never release PR559. Record actual runtime result as separate checkpoint, not as CODE PASS.",
+      "evidence": "GitHub PR560 checks 17/17 at 26c53b750590d3fe161a7df13fe504b13dbf7821; original PR559 20/20 at 59e37c123de5b04a4b7efd0e3afe60187a66109a; automation title Triển khai giờ nghỉ D167"
     }
   ],
   "resume": {
@@ -350,10 +368,11 @@
       "Web manual SKU Excel optional LTA/Shelving, PATCH/FULL confirmed as-of provenance and no catalog blast when unchanged/area-only",
       "2026-10-12 fresh source audit: correct last_wms_observed SQL cursor, only same-VN-day Web conflicts, atomic stale-stage HA recovery, WMS child cleanup on errors, expanded code-only CI contract paths",
       "D167 Source CODE READY (19/19 source-head CI PASS at 9f04a577); final Docs/State receipt HEAD CI is rechecked separately",
-      "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known"
+      "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known",
+      "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent"
     ],
     "in_progress": [
-      "Web-only meal edit new D167 code and its exact head CI, ready for scoped post-shift Beta release; no broad PR559 merge"
+      "Scoped PR560 owner-authorized Beta Worker/Web release scheduled after shift, no production mutation yet; PR559 remains draft/code only"
     ],
     "pending_approval": [
       "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
@@ -365,9 +384,8 @@
       "Actual Office WMS API-session proof remains FIELD_PENDING, no live WMS access in source-only approval"
     ],
     "next_actions": [
-      "Complete current source CI and verify meal edit tests",
-      "Prepare D167 isolated Web/Worker meal edit PR from main for after-shift rollout without Agent/APK/SKU changes",
-      "Do not auto-publish broad Draft PR559; preserve existing field operations"
+      "After shift confirm PR560 CI, owner release receipt and safe Beta Worker/Web merge+health readback; else stop and report",
+      "Preserve PR559 Draft until separate full D167 deploy Owner authorization"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
