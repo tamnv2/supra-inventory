@@ -4,12 +4,12 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-agent-sku-tab-manual-20261012",
-  "pr": 566,
-  "status": "D167_PR559_BETA_TECHNICAL_DEPLOY_PASS__FIELD_OWNER_PASS_PENDING",
+  "working_branch": "d167-agent-tabs-order-20261013",
+  "pr": 568,
+  "status": "D167_BETA_V127_RELEASED_FIELD_PENDING__PR568_UI_SOURCE_DRAFT_AND_SKU_EXPORT_DIAGNOSTIC",
   "last_checkpoint": {
-    "id": "D167-E027",
-    "date_vn": "2026-10-12"
+    "id": "D167-E029",
+    "date_vn": "2026-10-13"
   },
   "deployment_gate": {
     "owner_latest": "2026-10-12 BETA_DEPLOY_APPROVED",
@@ -529,6 +529,47 @@
       ],
       "next_action": "Field-check installed Windows Agent v127 on PRIMARY, current WMS session and successful manual FULL/DELTA readback, 3 scheduled slots, Confirm latency, standby HA and representative provider usage. Await explicit D167 Owner business FIELD PASS.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/566 ; https://github.com/tamnv2/supra-inventory/actions/runs/38282063883 ; https://github.com/tamnv2/supra-inventory/actions/runs/38282063892 ; https://github.com/tamnv2/supra-inventory/actions/runs/38282063816 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v127"
+    },
+    {
+      "id": "D167-E028",
+      "date_vn": "2026-10-13",
+      "topic": "Owner field screenshot confirms STANDBY SKU run button and requests Agent SKU tab after Settings",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_AGENT_UI_TAB_REORDER__PR568_SOURCE_ONLY__CI_PENDING_NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner screenshot of Agent v127 shows STANDBY and WMS ready, SKU button correctly greyed; this is intended PRIMARY-only server HA protection, not a hidden control.",
+        "Owner expressly commands top-level tab order Tổng quan > Cài đặt > Cập nhật SKU, later tabs unchanged. Implemented only Agent UI reorder, source contract regression, UI/acceptance spec and Owner ledger on D167 branch PR568 Draft.",
+        "Stable, Android, InventoryCore data, WMS and provider deployments are unchanged. This finding does not constitute D167 Owner business PASS."
+      ],
+      "next_action": "Run PR568 source checks and retain Draft; do not merge or publish Agent update without separate Owner release approval. Verify actual field SKU manual failure independently.",
+      "evidence": "GitHub PR568; relay-agent/Program.cs; docs/specs/UI_DESIGN_SYSTEM.md; tests/d167-three-slot-sku.test.mjs; 2026-10-13 Owner field screenshot (not stored in public repo)."
+    },
+    {
+      "id": "D167-E029",
+      "date_vn": "2026-10-13",
+      "topic": "Reconcile tested direct WMS SKU API exporter with v127 hidden-tab header-capture integration and loss of failure attribution",
+      "kind": "TECHNICAL_FINDING",
+      "status": "DIRECT_READ_ONLY_API_CONFIRMED__HIDDEN_SIDE_TAB_ONLY_HEADER_CAPTURE__EXACT_FIELD_FAILURE_STAGE_UNVERIFIED",
+      "owner_approval": null,
+      "facts": [
+        "Owner corrects previous assistant statement: SKU file is NOT scraped from hidden WMS DOM or downloaded by auto-click; official design uses ephemeral allowlisted authentication headers from existing managed WMS session and a fresh signed direct HTTPS GET to registered read-only exportBinStocks endpoint.",
+        "Earlier standalone tester used its OWN Edge WMS profile and direct export GET; Owner-provided evidence shows 2,492 unique SKUs, three import batches and sample readbacks. That standalone proof is not an end-to-end demonstration of current PRIMARY managed WebView2 session integration.",
+        "Current Agent v127 D167SkuBrowserExport.Export opens marked isolated hidden child, reloads only that child to observe in-RAM authenticated request headers with CDP; D167SkuDirectExport then directly GETs XLSX; current Confirm main tab is not navigated or clicked by SKU path. This extra tab is a header-acquisition mechanism, not the file-download mechanism.",
+        "Field support log on 2026-10-13 shows PRIMARY and WMS preflight PASS, D167_SKU_BROWSER hidden_page=REQUESTED at 00:34:23 and D167_SKU manual=FAILED error_type=InvalidOperationException at 00:35:07. No observed DONE receipt. Existing UI and log strip exact safe exception code and stage, so WMS auth capture vs direct GET vs HA/publish cannot be distinguished from the available log alone.",
+        "Integrated hidden child is allowed by newer Owner D167 source instructions, but is not independently field-PASS. Avoid claiming header capture succeeded merely because hidden_page REQUESTED was logged."
+      ],
+      "alternatives": [
+        "O0 keep v127 unchanged and obtain stage/error identifier via existing sanitized runtime log where available; current logs insufficient to assign root cause.",
+        "O1 recommended diagnostic/source-only enhancement after Owner approval: bounded named stage and safe fixed error code, HA generation/ready state and duration on existing Agent local/support log; no raw headers/cookies/token, URLs, XLSX rows or new remote telemetry; single v127 reproduction before deciding behavior change.",
+        "O2 evaluate obtaining same scoped request headers from already observed managed main WebView2 traffic in Agent process memory without opening/reloading a hidden tab; only use after proving fresh auth traffic and no Confirm slowdown, else retain isolated capture as fallback. No bypass of security or active primary gate."
+      ],
+      "open_questions": [
+        "Which safe exception message/stage actually failed in field? Existing v127 logs only InvalidOperationException.",
+        "Can managed main WebView2 passively supply fresh allowlisted auth headers with proven readiness without invoking extra navigation or waiting indefinitely? Needs instrumented test, not assumption."
+      ],
+      "next_action": "Propose smallest source-only safe stage/error logging repair, compare test exporter to v127 contract and obtain Owner approval before changing SKU acquisition behavior or Beta release; keep PR568 UI-only source branch Draft.",
+      "evidence": "ops/project-state.json#d167.isolated_sku_test_2026_10_10; docs/D167_CODE_ONLY_PROGRESS_2026-10-11.md; relay-agent/D167SkuBrowserExport.cs; relay-agent/D167SkuDirectExport.cs; relay-agent/SupraConfirmBrowserD167.cs; relay-agent/D167SkuCoordinator.cs; sanitized Inventory Beta Agent log dated 2026-10-13 (not stored publicly)."
     }
   ],
   "resume": {
@@ -555,7 +596,8 @@
       "D167 PR566 20/20 exact PR CI and 13/13 main workflows PASS: Beta Worker/Web/InventoryCore, Gateway and Windows Agent signed prerelease relay-agent-v127 with Fixed WebView2 bundle."
     ],
     "in_progress": [
-      "Await real installed Agent v127 PRIMARY session WMS manual+three-slot FULL/DELTA and HA/Confirm/provider quota Owner field acceptance; technical release completed."
+      "Await real installed Agent v127 PRIMARY session WMS manual+three-slot FULL/DELTA and HA/Confirm/provider quota Owner field acceptance; technical release completed.",
+      "PR568 D167 UI tab reorder source-only + field SKU direct-GET header acquisition failure review; no deploy or confirmed root cause."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -563,14 +605,16 @@
       "D167-E024 — Agent SKU tab with 3 daily slots, low-usage local status and password-confirmed instantaneous manual FULL/DELTA: proposal only, Owner review pending; no code/deploy authorized."
     ],
     "blocked": [
-      "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity"
+      "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity",
+      "v127 manual SKU InvalidOperationException is not attributable to an exact stage: log sanitizes to exception class only; source-only diagnostic proposal needs Owner approval."
     ],
     "next_actions": [
       "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance",
       "After Owner review of D167-E024, implement only upon explicit code permission; retain Beta release/Stable separate gate and test REAL WMS/HA/Confirm/usage before field acceptance.",
       "PR566 exact CI/source QA, scope/protected runtime release receipt; then Owner-approved Beta Agent v127 Worker/Gateway channel publication and readback; field installation still unverified.",
-      "Field install v127 and observe real authenticated manual SKU update at registered Beta, watch Confirm latency/HA and actual Cloudflare/Gateway usage before Owner D167 FIELD PASS."
+      "Field install v127 and observe real authenticated manual SKU update at registered Beta, watch Confirm latency/HA and actual Cloudflare/Gateway usage before Owner D167 FIELD PASS.",
+      "PR568 source checks, then obtain Owner-scoped release approval before any Agent v128; do not change WMS API/credentials or stable while root cause unverified."
     ],
-    "release_boundary": "D167_PR566_BETA_TECHNICAL_RELEASE_COMPLETE__VC106_UNCHANGED__STABLE_GATED__FIELD_OWNER_PASS_PENDING"
+    "release_boundary": "D167_AGENT_V127_BETA_RELEASED__PR568_DRAFT_SOURCE_ONLY_NO_MERGE_DEPLOY__SKU_ERROR_FIELD_PENDING__STABLE_OWNER_GATED"
   }
 }
