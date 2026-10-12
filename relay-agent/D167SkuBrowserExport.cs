@@ -58,6 +58,10 @@ namespace SupraInventoryRelayAgent
                     // Raw WMS export includes internal location data; never
                     // retain it after parsing normalized, bounded SKU metadata.
                     try { File.Delete(path); } catch { }
+                    // Close only this side page. Keep the managed Confirm tab alive
+                    // across all three WMS exports and avoid accumulating hidden tabs.
+                    try { Command(socket, "Page.close", null, TimeSpan.FromSeconds(4), 950); }
+                    catch { }
                 }
             }
         }
