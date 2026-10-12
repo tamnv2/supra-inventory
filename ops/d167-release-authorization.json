@@ -2,11 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "1462458e5405c548142b3171fc119986ac6962e0",
+  "approved_source_sha": "87f98baac4d514dad265d1bb5c391601ef97b4cd",
   "approved_components": [
     "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261011_PR555_WEB_WORKER_SERVICE",
-  "approved_at_vn": "2026-10-11T10:48:00+07:00",
-  "note": "Owner explicitly instructed 'triển khai' immediately after D167 PR #555 CODE READY. Approves existing Beta Web assets, Worker/InventoryCore Service and required SQL migrations ONLY. D05/D07 remain pending; no Agent/Android APK/Firebase/Apps Script/Stable/Launcher release under this authorization. GitHub merge must retain exact approved source SHA as ancestor (merge method, never squash/rebase)."
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR560_MEAL_IMMEDIATE_BETA_WEB_WORKER",
+  "approved_at_vn": "2026-10-12T11:15:00+07:00",
+  "note": "Owner authorized immediate deploy of PR560 only. Preserve PR559 code-only. Scope remains Beta Web/Worker/InventoryCore; no APK, Agent or Stable."
 }

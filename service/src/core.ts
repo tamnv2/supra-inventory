@@ -21,7 +21,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow } from "./alert-window-core";
-import { initializeMealSchema, getMealChoiceState, confirmMealChoice, recalculateMealAdjustedDeadlines } from "./meal-break-core";
+import { initializeMealSchema, getMealChoiceState, confirmMealChoice, editMealChoice, recalculateMealAdjustedDeadlines } from "./meal-break-core";
 import { initializeD167OverdueSchema } from "./d167-overdue-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 
@@ -838,6 +838,13 @@ export class InventoryCore {
         await scheduleNextOperationalAlarm(this.state);
         return response({ ...result.payload, deadlines_adjusted: adjusted }, result.status);
       }
+      return response(result.payload, result.status);
+    }
+
+    if (request.method === "POST" && url.pathname === "/d167/meal/edit") {
+      const body = await request.json() as Parameters<typeof editMealChoice>[1];
+      const result = editMealChoice(this.state, body);
+      if (result.changed) await scheduleNextOperationalAlarm(this.state);
       return response(result.payload, result.status);
     }
 

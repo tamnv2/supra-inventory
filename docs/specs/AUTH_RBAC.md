@@ -464,3 +464,8 @@ The latest Owner-approved Phase 0 design has NO new Agent auth/session exception
 D01 Web manual/Excel Picker enrollment uses the established ROOT/ADMIN authenticated HR permission, a common preview and explicit commit for changed names or contractors. Existing disabled reporting flags are preserved; missing Excel rows do not deactivate Picker accounts; a matching code in a non-Picker account is a blocking conflict.
 
 D05 extends PRIMARY Agent permission narrowly to read-only daily SKU export from the authorized existing managed-browser session, using an approved Inventory administrative path. It does not extend WMS PickList mutation privileges or reveal session data. Primary-generation and day-level idempotency are mandatory. See `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`. No code or Beta deploy permission follows from this specification.
+
+
+## D167 meal period Web correction proof (2026-10-12)
+
+Permitted: original confirming `REPORTER`, any `ADMIN`, `ROOT` while within before-start cutoff. Denied: other Reporter, Picker, PickPack Admin, stale/foreign role. Worker uses current authenticated actor and existing current-password or privileged OTP/emergency proof, never trusts caller actor or forwards the secret to InventoryCore. Core independently checks stored `confirmed_by`, `confirmed_at` and VN date transactionally; logs only credential **mode** and before/after selection, no credential contents. Compatible with older Android clients and existing events.

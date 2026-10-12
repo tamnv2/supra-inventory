@@ -2955,3 +2955,8 @@ Before CODE READY, test Web/Excel Picker import against mandatory 3-field templa
 - Verify 0/2.5k/5k data, manifest/fingerprint/idempotency, exact restored active set, full readback, 05:00–05:45 business schedule independence, zero new regular provider polls/FCM blast, source area timeline and Dashboard/Detail/Excel as-of alignment. Compare actual provider usage and Confirm p95/p99; CI/field tests must be distinguished.
 
 **Status:** Owner business logic locked, tests/code/deploy/field PASS not yet performed. See `docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md`.
+
+
+## D167 same-scope Owner-approved Web-only meal edit (2026-10-12)
+
+Tests: correct original Reporter/Admin/Root and valid password/OTP before 11:00/18:00, different Reporter or PickPackAdmin reject; wrong/missing secret reject without mutation; stale `confirmed_at` conflict, no-op choice, wrong VN day and 11:00/18:00 boundary reject; SQL atomic recalc updates only PENDING live rows, audit logs old/new but no proof, Service deadline alarm rearmed; existing `meal_break` realtime resumes Web/Android and original Android overlay unaffected. Web+Service TypeScript builds and PR GitHub CI PASS before Beta merge; physical paid-provider field tests after deployment, no APK/Agent release. Never merge unrelated PR559 scope as part of this feature.

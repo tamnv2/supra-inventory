@@ -7116,6 +7116,24 @@
       "beta_deploy_permission": false,
       "field_owner_pass": false,
       "stable": "OWNER_GATED"
+    },
+    "meal_break_web_password_edit_2026_10_12": {
+      "owner_approved": true,
+      "scope": "ISOLATED_D167_WEB_AND_WORKER_INVENTORYCORE_ONLY",
+      "cutoff": "BEFORE_11_00_LUNCH_BEFORE_18_00_DINNER_VN",
+      "roles": "ORIGINAL_CONFIRMING_REPORTER_OR_ADMIN_ROOT",
+      "proof": "CURRENT_ACCOUNT_PASSWORD_OR_PRIVILEGED_OTP_EMERGENCY",
+      "contract": "EXISTING_MEAL_BREAK_REPORTER_QUEUE_OVERDUE_REALTIME__NO_APK_OR_AGENT_UPDATE",
+      "source": "d167-web-meal-edit-scoped-20261012",
+      "technical_ci": "17_OF_17_PASS_EXECUTABLE_HEAD_87F98BAA__FINAL_RELEASE_DOC_CI_PENDING",
+      "live_deploy": "OWNER_APPROVED_IMMEDIATE_BETA__NOT_YET_DEPLOYED",
+      "stable": "OWNER_GATED",
+      "security": "CAS_SQL_AUDIT_NO_SECRET_FORWARDED",
+      "same_open_change_id": "D167",
+      "release_pr": 560,
+      "approved_executable_sha": "87f98baac4d514dad265d1bb5c391601ef97b4cd",
+      "latest_owner_instruction": "IMMEDIATE_SCOPED_WEB_WORKER_DEPLOY_ONLY__NO_SCHEDULE__PR559_CODE_ONLY",
+      "d167_scheduled_deploy_automations": "BOTH_DISABLED"
     }
   }
 }
