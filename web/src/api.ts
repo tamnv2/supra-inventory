@@ -1005,10 +1005,12 @@ export type SkuFullReplaceResult = {
   previous_active: number;
   created: number;
   renamed: number;
+  area_updated: number;
   reactivated: number;
   hidden: number;
   unchanged: number;
   name_conflicts: Array<{ sku:string; current:string; incoming:string }>;
+  area_conflicts: Array<{ sku:string; current:string; incoming:string }>;
   completed_at?: string;
 };
 
