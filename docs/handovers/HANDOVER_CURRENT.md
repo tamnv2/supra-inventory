@@ -4,13 +4,13 @@
 
 - SQLite schema: 17
 - Latest signed Beta APK: beta-vc106__SIGNED_CHANNEL_PUBLISHED__FLEET_INSTALLED_UNVERIFIED
-- Beta Web: D167_PR559_BETA_WORKER_WEB_DEPLOY_HEALTH_PASS__FIELD_PENDING
+- Beta Web: D167_PR566_BETA_WORKER_WEB_DEPLOY_HEALTH_PASS__FIELD_PENDING
 - Android: D167_SIGNED_BETA_VC106_RELEASE_PASS__FLEET_INSTALLS_UNVERIFIED
-- Beta: D167_PR559_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V126_TECHNICAL_PASS__FIELD_PENDING
-- Agent: D167_RELAY_AGENT_V126_FIXED_WEBVIEW2_CHANNEL_RELEASE_PASS__FLEET_HA_UNVERIFIED
-- Source merge: D167 PR #559, main `54ee8e51fbc25201e63e7059cdf2b2f0f1aff65c`.
-- Verified technical release: PR 21/21; main workflows 14/14 PASS. Worker/Web/InventoryCore run 38272307735; Gateway 38272307739; signed Android beta-vc106 run 38272307806; Windows Agent v126 run 38272307815.
-- **Đã phát hành kỹ thuật trên Beta; cài đặt thực tế từng PDA/Agent, WMS SKU FULL/DELTA, realtime/ACK/HA, đối soát dữ liệu, Usage và Owner nghiệm thu còn PENDING. Stable không thay đổi.**
+- Beta: D167_PR566_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V127_TECHNICAL_PASS__FIELD_PENDING
+- Agent: D167_RELAY_AGENT_V127_SKU_MANUAL_TAB_FIXED_WEBVIEW2_CHANNEL_RELEASE_PASS__FLEET_HA_UNVERIFIED
+- Source merge: D167 PR #566, main `d14a481a890150b7f9438dcc04b2cae07e3cf3a2`.
+- Verified technical release: PR 20/20; main workflows 13/13 PASS. Worker/Web/InventoryCore run 38282063883; existing Agent Operations Gateway run 38282063892; Windows Agent v127 release and Fixed WebView2 bundle run 38282063816. Android beta-vc106 unchanged.
+- **Đã phát hành kỹ thuật Beta Agent v127, Worker và Gateway; chưa có bằng chứng đã cài v127 trên máy thực, kiểm thử WMS SKU FULL/DELTA, thao tác password, Confirm/HA, usage thực tế hoặc Owner D167 PASS. Stable không thay đổi.**
 - Các ghi chú phiên bản cũ phía dưới chỉ là lịch sử; luôn dùng `ops/project-state.json` cho trạng thái hiện tại.
 
 ---

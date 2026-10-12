@@ -13,12 +13,12 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D167_PR559_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V126_TECHNICAL_PASS__FIELD_PENDING",
+    "beta": "D167_PR566_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V127_TECHNICAL_PASS__FIELD_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D167_PR559_BETA_WORKER_WEB_DEPLOY_HEALTH_PASS__FIELD_PENDING",
+    "web": "D167_PR566_BETA_WORKER_WEB_DEPLOY_HEALTH_PASS__FIELD_PENDING",
     "android": "D167_SIGNED_BETA_VC106_RELEASE_PASS__FLEET_INSTALLS_UNVERIFIED",
     "latest_beta_apk": "beta-vc106__SIGNED_CHANNEL_PUBLISHED__FLEET_INSTALLED_UNVERIFIED",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
@@ -33,10 +33,10 @@
     "reporting": "D163_OWNER_FIELD_ACCEPTED_PASS__LAZY_EXACT_BATCH_PICKER_DETAIL",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "D167_PR559_SCOPED_BETA_RELEASE_TECHNICAL_PASS__D167_OWNER_FIELD_PASS_PENDING__STABLE_GATED",
-    "owner_acceptance": "D166_LIMITED_OWNER_PASS_BASE__D167_PR559_TECHNICAL_RELEASE_PASS_NOT_OWNER_FIELD_PASS",
+    "governance": "D167_PR566_SCOPED_BETA_TECHNICAL_PASS__OWNER_FIELD_PASS_PENDING__STABLE_GATED",
+    "owner_acceptance": "D166_LIMITED_OWNER_PASS_BASE__D167_PR566_TECHNICAL_RELEASE_PASS_NOT_OWNER_FIELD_PASS",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D167_RELAY_AGENT_V126_FIXED_WEBVIEW2_CHANNEL_RELEASE_PASS__FLEET_HA_UNVERIFIED",
+    "agent": "D167_RELAY_AGENT_V127_SKU_MANUAL_TAB_FIXED_WEBVIEW2_CHANNEL_RELEASE_PASS__FLEET_HA_UNVERIFIED",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_PR559_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_ACCEPTANCE_PENDING",
+    "current_change_status": "D167_PR566_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_ACCEPTANCE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D167_PR559_MAIN_54EE8E51_WORKER_WEB_GATEWAY_SIGNED_VC106_AGENT_V126_RELEASE_PASS__STABLE_UNTOUCHED__FIELD_PENDING",
+    "runtime_impact": "D167_PR566_MAIN_D14A481A_WORKER_WEB_GATEWAY_AGENT_V127_RELEASE_PASS__ANDROID_VC106_STABLE_UNTOUCHED__FIELD_PENDING",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -2493,7 +2493,8 @@
     "parallel_boundary": "D166_RELEASE_UPDATE_STABILITY_ACCEPTED_ONLY__D167_UNVERIFIED_TESTS_AND_POSTPONED_WORK_TRACKED_SEPARATELY",
     "accepted_runtime_base_change_id": "D166",
     "pr559_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_FULL_BETA_PASS_CODE__STABLE_OWNER_GATED",
-    "d167_agent_sku_manual_2026_10_12": "OWNER_APPROVED_CODE_AND_EXISTING_SCOPED_BETA__SOURCE_CI_PENDING__OWNER_FIELD_PASS_PENDING"
+    "d167_agent_sku_manual_2026_10_12": "OWNER_APPROVED_CODE_AND_EXISTING_SCOPED_BETA__SOURCE_CI_PENDING__OWNER_FIELD_PASS_PENDING",
+    "pr566_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7379,7 +7380,7 @@
       "owner_approval": "2026-10-12_OK_CHOT_TRiEN_KHAI",
       "source_branch": "d167-agent-sku-tab-manual-20261012",
       "pr": 566,
-      "status": "CODE_READY_PR566_EXACT_SOURCE_893AD216_20_OF_20_CI_PASS__BETA_RELEASE_FINAL_GATE_PENDING",
+      "status": "PR566_EXISTING_BETA_WORKER_WEB_GATEWAY_AGENT_V127_RELEASE_TECHNICAL_PASS__FLEET_FIELD_PENDING",
       "agent_target_version": 127,
       "source_runtime_scopes": [
         "agent",
@@ -7396,7 +7397,24 @@
       "periodic_provider_reads_added": 0,
       "field_owner_pass": false,
       "approved_source_sha": "893ad2163022c2daef9f9183d8a7e2562f4a535d",
-      "owner_release_approval": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA"
+      "owner_release_approval": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA",
+      "release_receipt": {
+        "pr": 566,
+        "pr_ci": "20_OF_20_SUCCESS",
+        "source_sha": "893ad2163022c2daef9f9183d8a7e2562f4a535d",
+        "main_sha": "d14a481a890150b7f9438dcc04b2cae07e3cf3a2",
+        "main_ci": "13_OF_13_SUCCESS",
+        "worker_run": 38282063883,
+        "gateway_run": 38282063892,
+        "agent_run": 38282063816,
+        "agent_release": "relay-agent-v127",
+        "agent_fixed_webview2_bundle": "PUBLISH_WORKFLOW_PASS",
+        "android": "BETA_VC106_UNCHANGED",
+        "stable": "OWNER_GATED_UNTOUCHED",
+        "field_installed": "UNVERIFIED",
+        "field_owner_pass": false,
+        "billed_usage_savings": "UNVERIFIED"
+      }
     }
   },
   "change_continuity": {
@@ -7406,7 +7424,7 @@
     "journal": "ops/change-continuity/D167.json",
     "working_branch": "d167-agent-sku-tab-manual-20261012",
     "pr": 566,
-    "latest_checkpoint_id": "D167-E026",
+    "latest_checkpoint_id": "D167-E027",
     "checkpoint_date_vn": "2026-10-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
