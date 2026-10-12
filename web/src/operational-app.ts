@@ -9,6 +9,7 @@ import "./legacy-transplant/workflow-v4-ux.css";
 import "./legacy-transplant/web-fast-ui.css";
 import "./legacy-transplant/web-unified-ui.css";
 import "./legacy-transplant/web-professional-v2.css";
+import "./legacy-transplant/d167-web-layout-density.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -1876,7 +1877,7 @@ function renderUsers(): string {
     <div class="users-top-grid">
       <article class="ops-panel users-create-panel">
         <div class="ops-panel-title"><div><h3>${canCreateManaged ? "Tạo tài khoản nghiệp vụ" : "Quản lý Picker"}</h3><p>${canCreateManaged ? "Tạo Người xử lý báo hàng hoặc vai trò quản trị được phép. Picker được đồng bộ từ nguồn nhân sự." : "Quản trị Pick Pack chỉ quản lý Picker; không tạo Reporter hay Quản trị Invent."}</p></div></div>
-        ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid">
+        ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
           <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
@@ -1887,7 +1888,7 @@ function renderUsers(): string {
       </article>
       <article class="ops-panel users-filter-panel">
         <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, nhà thầu, quyền hoặc trạng thái.</p></div></div>
-        <form id="user-filter-form" class="users-form-grid">
+        <form id="user-filter-form" class="users-form-grid users-filter-form">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / nhà thầu / tài khoản" /></label>
           <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","PICKPACK_ADMIN","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
           <label>Trạng thái<select name="status"><option value="">Tất cả trạng thái</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>Đang hoạt động</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>Đã dừng</option></select></label>
@@ -1952,6 +1953,13 @@ function renderSla(): string {
       <div class="sla-authority-badges"><span class="global-setting-badge">Cấu hình máy chủ</span><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
     </div>
 
+
+    <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
+      <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong id="sla-warning-count">${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong id="sla-escalated-count">${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
+      <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động bỏ qua</span><strong>${autoEnabled ? "Đang bật" : "Đang tắt"}</strong></article>
+      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Sửa kết quả Đã có hàng / Skip</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
+    </section>
     <section class="sla-authority-strip">
       <div><span>Trạng thái</span><strong>${configured ? "Đã đồng bộ" : "Chưa thiết lập"}</strong></div>
       <div><span>Cập nhật gần nhất</span><strong>${esc(updatedAt)}</strong></div>
@@ -2009,12 +2017,6 @@ function renderSla(): string {
       </div>
     </form>
 
-    <section class="sla-current-grid" aria-label="Tình trạng hiện tại">
-      <article class="sla-current-card warning"><span>SKU đang cảnh báo</span><strong id="sla-warning-count">${warningEnabled ? Number(insight?.warning_count || 0) : "Tắt"}</strong></article>
-      <article class="sla-current-card danger"><span>SKU đã quá hạn</span><strong id="sla-escalated-count">${escalationEnabled ? Number(insight?.escalated_count || 0) : "Tắt"}</strong></article>
-      <article class="sla-current-card ${autoEnabled ? "auto" : ""}"><span>Tự động bỏ qua</span><strong>${autoEnabled ? "Đang bật" : "Đang tắt"}</strong></article>
-      <article class="sla-current-card ${correctionEnabled ? "auto" : ""}"><span>Sửa kết quả Đã có hàng / Skip</span><strong>${correctionEnabled ? `${Number(sla?.skip_to_stock_minutes || 0)} phút` : "Đang tắt"}</strong></article>
-    </section>
   </section>`;
 }
 
@@ -2666,7 +2668,7 @@ function renderLogs(): string {
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
       <button type="button" class="workspace-tab ${logView === "AUDIT" ? "active" : ""}" data-log-view="AUDIT">Lịch sử thao tác</button>
     </div>
-    <form id="log-date-range" class="toolbar log-retention-window" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap" aria-label="Khoảng nhật ký">
+    <form id="log-date-range" class="toolbar log-retention-window" aria-label="Khoảng nhật ký">
       <label>Từ ngày<input type="date" name="from" value="${esc(logFrom)}" max="${esc(dateDaysAgo(0))}" required /></label>
       <label>Đến ngày<input type="date" name="to" value="${esc(logTo)}" max="${esc(dateDaysAgo(0))}" required /></label>
       <button class="secondary" type="submit">Áp dụng</button>
