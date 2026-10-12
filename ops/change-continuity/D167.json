@@ -8,9 +8,9 @@
   "pr": 559,
   "status": "OPEN__SOURCE_IN_PROGRESS__CODE_PASS_PENDING__NO_DEPLOY",
   "last_checkpoint": {
-    "id": "D167-CT-20261012-001",
+    "id": "D167-CT-20261012-002",
     "date_vn": "2026-10-12",
-    "topic": "Owner yêu cầu GitHub ghi đầy đủ trao đổi và khôi phục Dxxx",
+    "topic": "D167 Owner code pass implementation resume and scoped source regression",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -144,6 +144,31 @@
         "Nhật ký chủ đề + checkpoint hiện trạng qua nhánh PR (CHỌN)"
       ],
       "open_questions": []
+    },
+    {
+      "id": "D167-E009",
+      "date_vn": "2026-10-12",
+      "topic": "Owner yêu cầu tiếp tục toàn bộ D167 CODE PASS ONLY; Agent SKU FULL/DELTA, LTA/Shelving, Web/Excel và không triển khai",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_IMPLEMENTATION_COMPLETED_FOR_CURRENT_SCOPE__CI_VERIFICATION_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner chỉ cho phép tiếp tục sửa code/CI trên Draft PR #559; tuyệt đối không merge main hoặc deploy Beta/Stable, không phát hành Agent/APK/OTA.",
+        "D167 Agent ưu tiên Confirm PDA đang chạy cũng như lệnh thủ công; duyệt xung đột và giảm SKU bất thường không khóa UI Confirm.",
+        "FULL 05:00 có guard cảnh báo khi nguồn giảm bất thường và cần xác nhận; DELTA trưa được SKIPPED/coalesced khi đã tới lượt tối; tránh snapshot cũ.",
+        "Đã bổ sung kiểm thử SQL synthetic 5000 SKU với hide/no-delete/DELTA/no-op; không thay cho 5000 SKU D1 provider CPU benchmark.",
+        "Báo cáo Web, báo cáo Picker chi tiết và Excel thống nhất area filter LTA/Shelving/UNKNOWN theo thời điểm báo; KPI all-area được gắn nhãn khác phạm vi.",
+        "Web upload SKU PATCH vẫn là mặc định; Root/Admin có FULL REPLACE riêng, xem trước số thêm/đổi/ẩn và xác nhận; atomic CAS, no-delete, complete readback, Android membership epoch, audit và idempotent receipt.",
+        "Tất cả source mới nằm trên working branch PR #559; không có provider mutation/Agent phiên WMS thật/thiết bị thực tế.",
+        "Điểm còn cần field proof: cùng WebView2 managed profile WMS live export, 6 Agent takeover, Android refresh/ACK và measured Cloudflare/Firebase usage/latency."
+      ],
+      "next_action": "Kiểm tra exact HEAD toàn bộ 19 workflow; sửa lỗi nếu có; cập nhật code-ready evidence nhưng không claim field PASS, giữ Draft PR559 và chờ lệnh deploy mới.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559",
+      "alternatives": [
+        "Giữ PATCH mặc định, chỉ bật Web FULL khi Admin/Root lựa chọn và xác nhận",
+        "Không chuyển chi phí hay thêm polling Firebase/DO cho công việc đồng bộ"
+      ],
+      "open_questions": []
     }
   ],
   "resume": {
@@ -153,25 +178,25 @@
       "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal"
     ],
     "implemented": [
-      "D167 Web/Worker Beta phần đã release từ PR #555; không chứng minh field PASS",
-      "PR #559 source candidate: Agent browser/Service SKU-area/Web report Excel đã có code"
+      "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
+      "D167 PR #559 source: PRIMARY WMS managed-side-tab scheduler + 3 slot, FULL hide/DELTA safe, HA/CAS, LTA/Shelving temporal history, dashboard/detail/Excel filters, Web PATCH vs explicit Admin FULL REPLACE, regression fixtures"
     ],
     "in_progress": [
-      "CODE PASS PR #559: Agent WMS managed-browser, 5k SQL/recovery HA, Android catalog/ACK, report/Excel parity, usage regressions",
-      "Thiết lập repo-first per-turn GitHub continuity và CI journal guard"
+      "Verify all exact-head PR #559 non-deploying CI and repair any failure",
+      "Reconcile source-only CODE READY claim with 5k synthetic tests vs real DO/Office provider performance"
     ],
     "pending_approval": [
       "Owner riêng duyệt triển khai Beta theo exact SHA/scope sau CODE PASS",
       "Owner nghiệm thu thực tế sau triển khai; Stable luôn Owner-gated"
     ],
     "blocked": [
-      "Chưa có real field WMS/HA/PDA proof cho PR #559; không được claim FIELD PASS",
-      "Mọi quyền triển khai PR #559 đã tạm khóa theo yêu cầu mới"
+      "Real managed WMS/PRIMARY same-profile export, physical 6-Agent HA/PDA/ACK, provider billing and latency cannot be proven without separate field activation; not source code CI evidence",
+      "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction"
     ],
     "next_actions": [
-      "Ghi và kiểm tra repo-first continuity protocol/journal and CI guard trên PR #559",
-      "Tiếp tục D167 code-only và kết thúc với CODE PASS evidence; dừng trước merge/deploy",
-      "Khi Owner gọi 'tiếp tục D167': đọc main + active PR head + journal trước khi phân tích/phản hồi"
+      "Complete exact-head CI + code-only safety proof and reconcile CODE READY in state",
+      "Stop before merge/deploy; require new exact SHA/scope Owner deployment permission",
+      "At 'tiếp tục D167' load main authority then PR559 journal and fresh checks"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
