@@ -152,6 +152,7 @@ function requiredRolesForBusinessRoute(key: string): AppRole[] | undefined {
   if (key.startsWith("GET /api/reporter/")) return REPORTER_READ_ROLES;
   if (key.startsWith("POST /api/reporter/")) return REPORTER_ROLES;
   if (key === "POST /api/admin/skus/import") return PICKPACK_REPORT_ROLES;
+  if (key === "POST /api/admin/skus/full-replace") return ["ADMIN","ROOT"];
   if ([
     "GET /api/admin/reports",
     "GET /api/admin/dashboard",
@@ -395,6 +396,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   const key = `${request.method} ${url.pathname}`;
   const supported = new Set([
     "POST /api/admin/skus/import",
+    "POST /api/admin/skus/full-replace",
     "GET /api/skus",
     "POST /api/picker/reports",
     "GET /api/picker/reports",
@@ -519,6 +521,26 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       scopes: ["sku_catalog"],
       tags: ["role:PICKER", "role:REPORTER", "role:ADMIN"],
       metadata: { source: "WEB_SKU_IMPORT" },
+    });
+    scheduleCatalogRefreshFcm(result, env, ctx);
+    return result;
+  }
+
+  if (key === "POST /api/admin/skus/full-replace") {
+    const body = await parseObjectBody(request);
+    const items = Array.isArray(body.items) ? body.items : [];
+    // The Worker computes the source identity from the exact submitted roster;
+    // no caller-controlled source hash may bypass the CAS approval preview.
+    const sourceHash = await sha256Hex(JSON.stringify(items));
+    const response = await corePost(env, "/business/skus/full-replace", {
+      ...body, items, source_hash: sourceHash, actor: actor(user),
+    });
+    if (body.dry_run === true) return response;
+    const result = await realtimeAfter(response, env, {
+      event: "sku_catalog_updated",
+      scopes: ["sku_catalog"],
+      tags: ["role:PICKER", "role:REPORTER", "role:ADMIN"],
+      metadata: { source: "WEB_SKU_FULL_REPLACE" },
     });
     scheduleCatalogRefreshFcm(result, env, ctx);
     return result;
