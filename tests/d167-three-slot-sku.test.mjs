@@ -226,9 +226,12 @@ test("D167 persisted WMS timestamp drives true same-day Web conflict CAS", async
   assert.ok(rosterSelect, "roster query is present");
   assert.match(rosterSelect[0], /SELECT[\s\S]*a\.last_wms_observed_at[\s\S]*FROM sku_master/);
   assert.match(rosterSelect[0], /last_wms_observed_ms: x\.last_wms_observed_at/);
-  // The side page must close on all timeout/error routes, not only a parsed XLSX.
-  assert.match(agent, /finally\s*\{[\s\S]*File\.Delete\(downloadedFile\)[\s\S]*Page\.close/);
-  assert.match(agent, /downloadedFile = WaitCompleteXlsx/);
+  // Owner 12/10: WMS auth comes from a separate managed side tab but the
+  // workbook is fetched by a distinct allowlisted GET, not UI Search/Export.
+  assert.match(agent, /D167SkuDirectExport\.CaptureAuthorizedHeaders/);
+  assert.match(agent, /D167SkuDirectExport\.DownloadReadOnly/);
+  assert.doesNotMatch(agent, /ClickOneExact|WaitCompleteXlsx|ClickOneExactNavigation/);
+  assert.match(agent, /finally\s*\{[\s\S]*Page\.close/);
 });
 
 test("D167 recovered PRIMARY import never mixes two distinct staged source files", async () => {
@@ -260,4 +263,50 @@ test("D167 midnight boundary: yesterday Web rename does not block today FULL", (
   const nextVn = planSkuChanges([prev],incoming,"FULL",0,"2026-10-12");
   assert.equal(nextVn.conflicts.length,0,"past-day Web edit cannot block new morning");
   assert.equal(nextVn.update[0].name,"Morning WMS");
+});
+
+
+test("D167 Owner day freshness blocks all new-day reports until an authorized FULL", async () => {
+  const {readFileSync}=await import("node:fs");
+  const core=readFileSync(new URL("../service/src/business-core.ts",import.meta.url),"utf8");
+  const info=readFileSync(new URL("../service/src/read-model-core.ts",import.meta.url),"utf8");
+  const full=readFileSync(new URL("../service/src/d167-web-full-replace.ts",import.meta.url),"utf8");
+  const web=readFileSync(new URL("../web/src/operational-app.ts",import.meta.url),"utf8");
+  const android=readFileSync(new URL("../android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt",import.meta.url),"utf8");
+  assert.match(core,/String\(skuSync\?\.last_full_day \|\| ""\) !== dayForSku/);
+  assert.doesNotMatch(core,/nowVNHour\s*>=\s*5/);
+  assert.match(core,/SKU_TODAY_SYNC_PENDING/);
+  assert.match(info,/sku_day_ready: skuDayReady/);
+  assert.match(info,/sku_day_warning:/);
+  assert.match(full,/last_full_day=\?/);
+  assert.match(full,/sku_day_first_full/);
+  assert.match(web,/skuDayBanner\(\)/);
+  assert.match(web,/!skuDayReady\(\)/);
+  assert.match(android,/private var skuDayReady = false/);
+  assert.match(android,/skuDayReady && shortageReportingEnabled/);
+});
+
+test("D167 read-only signed API GET uses only short-lived managed WMS headers", async () => {
+  const {readFileSync}=await import("node:fs");
+  const direct=readFileSync(new URL("../relay-agent/D167SkuDirectExport.cs",import.meta.url),"utf8");
+  const source=readFileSync(new URL("../relay-agent/D167SkuBrowserExport.cs",import.meta.url),"utf8");
+  assert.match(direct,/Network\.requestWillBeSent/);
+  assert.match(direct,/Network\.requestWillBeSentExtraInfo/);
+  assert.match(direct,/https:\/\/api-supra\.winmart\.vn\/sft3-hy1\/api\/v1\/report\/stock\/exportBinStocks/);
+  assert.match(direct,/req\.Method="GET"/);
+  assert.match(direct,/req\.AllowAutoRedirect=false/);
+  assert.match(direct,/HMACSHA256/);
+  assert.doesNotMatch(direct,/File\.WriteAllBytes|Network\.setExtraHTTPHeaders|Page\.navigate/);
+  assert.doesNotMatch(source,/ClickOneExact|WaitCompleteXlsx|ClickOneExactNavigation/);
+});
+
+test("D167 first FULL wakes SKU freshness clients even on a catalog no-op", async () => {
+  const {readFileSync}=await import("node:fs");
+  const agent=readFileSync(new URL("../service/src/d167-sku-sync-core.ts",import.meta.url),"utf8");
+  const web=readFileSync(new URL("../service/src/business-api.ts",import.meta.url),"utf8");
+  const router=readFileSync(new URL("../service/src/index.ts",import.meta.url),"utf8");
+  assert.match(agent,/sku_day_first_full:firstVerifiedFullToday/);
+  assert.match(web,/summary\.sku_day_first_full!==true/);
+  assert.match(router,/published\.sku_day_first_full !== true && published\.catalog_changed !== true/);
+  assert.match(router,/event:"sku_catalog_updated",scopes:\["sku_catalog"\]/);
 });
