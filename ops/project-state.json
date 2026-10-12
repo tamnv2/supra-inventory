@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D167_PR559_CONTINUE_CODE_TEST_CI_TO_CODE_READY_ONLY__STOP_DRAFT_NO_MERGE_NO_DEPLOY__WAIT_EXPLICIT_NEW_OWNER_APPROVAL",
+  "next_action": "D167_PR559_GITHUB_FIRST_RESUME_AND_DISCUSSION_CAPTURE_READY__CONTINUE_CODE_PASS_ONLY__NO_MERGE_NO_DEPLOY",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -7201,5 +7201,20 @@
       "prior_2026_10_11_combined_deploy": "REVOKED_FOR_UNDEPLOYED_PR559_SCOPE",
       "preserved_beta_release": "PR555_ALREADY_DEPLOYED_UNCHANGED"
     }
+  },
+  "change_continuity": {
+    "model": "REPO_FIRST_ACCEPTED_MAIN_AND_ACTIVE_PR_DISCUSSION_JOURNAL",
+    "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
+    "current_change_id": "D167",
+    "journal": "ops/change-continuity/D167.json",
+    "working_branch": "d167-code-three-slot-sku-area-report-20261011",
+    "pr": 559,
+    "latest_checkpoint_id": "D167-CT-20261012-001",
+    "checkpoint_date_vn": "2026-10-12",
+    "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
+    "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
+    "owner_release_gate": "CODE_PASS_ONLY_NO_MERGE_NO_DEPLOY__NEW_EXPLICIT_OWNER_APPROVAL_REQUIRED",
+    "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
+    "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   }
 }
