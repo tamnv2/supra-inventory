@@ -1,0 +1,51 @@
+# Repo-first discussion and Dxxx continuation protocol
+
+**Authority class:** process policy for SUPRA Inventory only. **Owner instruction:** 2026-10-12, within still-open D167. This file does not grant implementation/release/Stable access. Public repo: no secrets, staff personal data, source Excel rows, device IDs or WMS session material.
+
+## Why this exists
+
+The earlier repo-first bootstrap preserved accepted decisions and runtime state but did not guarantee that an unfinished **discussion, candidate, counterproposal, technical finding, rejection, or next action** would survive a fresh chat. A new chat may also bootstrap `main` while the latest approved CODE-ONLY work exists solely in an **unmerged Draft PR**. This protocol closes those two continuity gaps with an append-only working ledger and an explicit accepted-vs-working authority split.
+
+## Mandatory retrieval before a substantive Dxxx answer, including `tiếp tục Dxxx`
+
+1. **Always fresh-read GitHub**: fetch `ops/authority-manifest.json` from `main`, consume its full `bootstrap_order` in declared order, including current Owner decisions, resource scope, work state, relevant source/CI and active-release evidence. Do not treat AI memory or prior chat handover as authority. If GitHub is unavailable, say **REPO_NOT_VERIFIED** and avoid decisions, CODE PASS, deploy claims and mutation based on guesses.
+2. Determine current Dxxx, accepted base, and **unmerged working PR** from `ops/project-state.json`, `ops/owner-actions.json` and current GitHub open-PR metadata. Resolve an exact branch and HEAD SHA. If an Owner asks `tiếp tục D167`, inspect the current D167 PR/branch even if its latest changes do not exist on `main`. If the requested Dxxx is not current, retrieve its recorded closed/paused snapshot without opening a new change behind the Owner-PASS gate.
+3. Fetch the **working-ref** `ops/authority-manifest.json` and consume its bootstrap order as well. Read `ops/change-continuity/Dxxx.json` at the same working HEAD SHA (if the file is missing, explicitly report the missing ledger; do not fabricate its contents). Check pending Owner commands, discussions, proposal states, blockers, test evidence, follow-up and intended no-deploy boundary. Inspect recent PR commit history / CI and actual relevant source to reconcile any stale field in the journal.
+4. Present a **compact verified resume snapshot** before working: `Đã chốt | Đã xử lý và chứng cứ | Đang làm | Chưa chốt | Bị chặn | Bước tiếp theo | Ranh giới triển khai`. Use exact file/commit/PR evidence, separate `SOURCE_TEST_PASS`, `CODE_READY`, `RELEASE_PASS`, `FIELD_PASS` and `OWNER_PASS`. Old decisions remain traceable as `SUPERSEDED`. Never turn a proposal into Owner approval.
+5. At any conflict: the **latest explicit Owner directive** has first priority; `main` is the accepted base, and an authorized active Draft branch records only its own **working** continuation. Branch state cannot silently redefine accepted runtime, expand resource scope or authorize merge/deploy. Halt on unresolved scope/security/approval conflict; record it.
+6. Before each substantial Dxxx reply **when new content has been introduced**, persist its sanitized, complete semantic checkpoint via a GitHub commit on the Dxxx working branch (or other authorized change branch), then read back the resulting SHA/file. Include a pointer to the newest checkpoint in `ops/project-state.json` when the required status/next action changes. Do not answer `đã lưu` without a confirmed commit/readback.
+7. If a turn is genuinely read-only and changes no decision, candidate, finding, blocker or task state, no duplicate commit is necessary. But substantive technical conclusions, new alternatives, rejections, corrections, test results, Owner commands and unfinished investigations **must** be written; not only accepted decisions. If there are too many linked threads, retain their individual IDs and full semantic context rather than a lossy one-paragraph recap.
+8. GitHub cannot guarantee autonomous write access in every ChatGPT execution context. If repo write is unavailable, disclose **CHECKPOINT_NOT_SAVED**, provide the proposed short checkpoint in the reply, and **do not** misrepresent it as durable. Ask for access only when tool access genuinely cannot be restored; never fall back to pretending memory is synchronized.
+
+## Durable two-layer record
+
+| Authority layer | Canonical location | Meaning |
+| --- | --- | --- |
+| Accepted base / current release | `main` `ops/project-state.json`, `docs/OWNER_DECISIONS.md`, specs, real CI/deploy evidence | What Owner has accepted and what is actually released |
+| Active Dxxx working memory | Open PR working HEAD; `ops/change-continuity/Dxxx.json`, current branch decisions/spec/state, PR/CI/code | Discussion/implementation progress not yet released, including rejected and open options |
+
+**Required journal fields:**
+- `change_id`, `source_repo`, `working_branch`, `pr`, `accepted_base`, `last_checkpoint`, `deployment_gate`.
+- `entries[]` with unique immutable `id`, `date_vn`, `topic`, `kind` (`OWNER_COMMAND`, `DISCUSSION`, `PROPOSAL`, `DECISION`, `TECHNICAL_FINDING`, `TEST`, `BLOCKER`, `STATUS`), `status`, `owner_approval`, `facts`, `alternatives`, `open_questions`, `next_action`, `evidence` and `supersedes` where applicable. Omit empty optional arrays, not unverified constraints.
+- `resume` state with explicitly separated `approved`, `implemented`, `in_progress`, `pending_approval`, `blocked`, `next_actions` and `release_boundary`. Do not mark GitHub CI PASS as field PASS.
+- Append new entry when the subject changes or a decision/status shifts; **never overwrite history to pretend a disagreement never occurred**. Mark old entry as superseded via a new entry referencing its ID. Avoid redundant duplicate entries for no-op queries.
+
+**Checkpoint write transaction (all on same working branch / PR):**
+- Relevant Owner decision -> `docs/OWNER_DECISIONS.md` + affected spec/operating policy **and** journal entry.
+- Proposal or unapproved discussion -> journal `PROPOSED`/`DISCUSSING`, **not** canonical Owner-approved spec.
+- Code/CI/field evidence -> journal `TECHNICAL_FINDING`/`TEST`, working `ops/project-state.json` when state changes, link PR/head/run.
+- Owner-only action -> `ops/owner-actions.json` when genuinely necessary, with no premature Owner PASS.
+- Resource identity changes -> `ops/project-scope.json` + `ops/resource-registry.json` only on explicit Owner authorization.
+- Verify JSON schema/CI and readback. On write conflict, refetch latest branch HEAD, merge **semantic entries**, not last-writer-wins overwrite. Never force-push, commit secrets, push main directly or merge unapproved runtime work.
+
+## D167 resume example and current release gate
+
+`Tiếp tục D167` => bootstrap `main` => discover **Draft PR #559** from active state/Open PR => fetch exact working HEAD => read `ops/change-continuity/D167.json` plus working decisions/spec/state/code/CI => print verified resume summary => carry out only already-authorized **CODE PASS** tasks. **STOP before merge, Beta/Stable deploy, Agent/Android release, OTA, WMS runtime automation or SKU catalog mutation** until a **new explicit Owner deploy decision**. Previously deployed PR #555 is a historical release fact, not an authorization to deploy PR #559.
+
+## Confidentiality and practical limits
+
+Store a faithful **technical/decision summary**, not raw chat transcripts, credentials, private files, emails, names, company-sensitive SKU/bin details or customer/employee data. Where private evidence exists, store only a non-sensitive evidence descriptor and verification status, not content. Repo is public. GitHub per-turn writes consume API/CI budget and create commits: minimize duplicate no-op writes, never omit new material information. Automated full chat-history ingestion cannot be guaranteed solely by repository instructions; the assistant must actually perform and verify each checkpoint using available GitHub tools.
+
+## Verification
+
+`tools/change_continuity_guard.py` enforces journal structure, current Dxxx pointer, latest release boundary, and repo-first manifest discovery on CI. Passing that guard proves **structural consistency**, not that every spoken sentence was captured, nor runtime/field correctness.
