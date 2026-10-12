@@ -2492,7 +2492,8 @@
     "parallel_inventory_change_status": "D167_PR555_BETA_WORKER_WEB_RELEASE_PASS__BUSINESS_QUOTA_FIELD_TEST_PENDING",
     "parallel_boundary": "D166_RELEASE_UPDATE_STABILITY_ACCEPTED_ONLY__D167_UNVERIFIED_TESTS_AND_POSTPONED_WORK_TRACKED_SEPARATELY",
     "accepted_runtime_base_change_id": "D166",
-    "pr559_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_FULL_BETA_PASS_CODE__STABLE_OWNER_GATED"
+    "pr559_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_FULL_BETA_PASS_CODE__STABLE_OWNER_GATED",
+    "d167_agent_sku_manual_2026_10_12": "OWNER_APPROVED_CODE_AND_EXISTING_SCOPED_BETA__SOURCE_CI_PENDING__OWNER_FIELD_PASS_PENDING"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7372,6 +7373,28 @@
       "fleet_installed": "UNVERIFIED",
       "field_owner_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "agent_sku_tab_manual_2026_10_12": {
+      "change_id": "D167",
+      "owner_approval": "2026-10-12_OK_CHOT_TRiEN_KHAI",
+      "source_branch": "d167-agent-sku-tab-manual-20261012",
+      "pr": 566,
+      "status": "IMPLEMENTING__PR_CI_AND_EXACT_RELEASE_GATE_PENDING",
+      "agent_target_version": 127,
+      "source_runtime_scopes": [
+        "agent",
+        "worker",
+        "gateway"
+      ],
+      "use_existing_scope": true,
+      "no_new_provider_resource": true,
+      "stable": "OWNER_GATED",
+      "android": "UNCHANGED_VC106",
+      "manual_password": "WORKER_AUTHENTICATED_AGENT_CREDENTIAL",
+      "automatic_schedule": "INITIAL_05_DELTA_12_DELTA_19_UNCHANGED",
+      "manual_mode": "FIRST_FULL_REUSES_INITIAL_05_ELSE_MANUAL_DELTA_UNIQUE_SLOT",
+      "periodic_provider_reads_added": 0,
+      "field_owner_pass": false
     }
   },
   "change_continuity": {
@@ -7379,13 +7402,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
-    "working_branch": "d167-code-three-slot-sku-area-report-20261011",
-    "pr": 559,
-    "latest_checkpoint_id": "D167-CT-20261012-008",
+    "working_branch": "d167-agent-sku-tab-manual-20261012",
+    "pr": 566,
+    "latest_checkpoint_id": "D167-E025",
     "checkpoint_date_vn": "2026-10-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "CODE_PASS_ONLY_NO_MERGE_NO_DEPLOY__NEW_EXPLICIT_OWNER_APPROVAL_REQUIRED",
+    "owner_release_gate": "OWNER_APPROVED_PR566_SCOPED_BETA_AFTER_CODE_CI__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
