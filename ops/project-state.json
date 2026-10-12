@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_OWNER_IMPL_AND_BETA_GO_AHEAD__PR568_MAIN_AGENT_WMS_SOURCE_NOT_IMPLEMENTED__CI_14_16_BLOCKED",
+    "current_change_status": "D167_PR568_GUARD_16_OF_16_CI_PASS__MAIN_WMS_SOURCE_NOT_IMPLEMENTED__NO_V128_RELEASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7416,6 +7416,18 @@
         "field_owner_pass": false,
         "billed_usage_savings": "UNVERIFIED"
       }
+    },
+    "pr568_guard_repair_2026_10_13": {
+      "status": "PR568_EXACT_SOURCE_CI_16_OF_16_PASS__WMS_SOURCE_NOT_FIXED__NO_RELEASE",
+      "code_commit": "4cb92198878db32f1220a88cda26bbfea5a57f11",
+      "guard_fix": "EXACT_OWNER_2026_10_13_AGENT_ONLY_BETA_AUTHORITY__STABLE_FALSE_CHECKS_RETAINED",
+      "pr": 568,
+      "ci": "16_OF_16_SUCCESS_ZERO_FAIL_AT_4CB92198",
+      "wms_main_session_source": "NOT_IMPLEMENTED__SECURITY_REVIEW_REQUIRED",
+      "agent_beta_last_published": "relay-agent-v127",
+      "owner_field_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "no_new_resource": true
     }
   },
   "change_continuity": {
@@ -7425,7 +7437,7 @@
     "journal": "ops/change-continuity/D167.json",
     "working_branch": "d167-agent-tabs-order-20261013",
     "pr": 568,
-    "latest_checkpoint_id": "D167-E033",
+    "latest_checkpoint_id": "D167-E034",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
