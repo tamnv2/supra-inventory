@@ -10,7 +10,7 @@
   "last_checkpoint": {
     "id": "D167-CT-20261012-003",
     "date_vn": "2026-10-12",
-    "topic": "Optional Web area and no-op usage guard added to D167 code-only PR",
+    "topic": "D167 source-audit fixes and final code-only CI gate",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -187,6 +187,26 @@
       ],
       "next_action": "Kiểm tra exact-head Github CI tổng thể, các source route Web/Worker/Agent; sửa lỗi nếu có; báo nguồn CODE PASS riêng field.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/559"
+    },
+    {
+      "id": "D167-E011",
+      "date_vn": "2026-10-12",
+      "topic": "Resume D167 repo-first, fix actual WMS/Web conflict timestamp, day rollover, HA retry and hidden-tab cleanup",
+      "kind": "TECHNICAL_FINDING",
+      "status": "CODE_FIXES_COMMITTED__FINAL_EXACT_HEAD_CI_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "Read main and current Draft PR #559 authority and continuity; 19/19 CI passed earlier PR working HEAD, no runtime deployment.",
+        "Fixed missing persisted a.last_wms_observed_at from InventoryCore roster SELECT, preventing an incorrect zero/old baseline in manual Web-vs-WMS same-field conflict decisions.",
+        "Fixed Owner INITIAL_05 policy: past-VN-day manual Web edits can be superseded by fresh verified morning FULL; current VN day's manual edit still requires field-conflict confirmation.",
+        "Fixed same-generation/different-source and owner-switch retry by clearing stale staging/fingerprint/count atomically on claim; protects whole-file manifest verification.",
+        "Moved hidden WebView2 child close and raw XLSX deletion to connected-export cleanup even when WMS click/download/parse fails; no navigation to Confirm.",
+        "Broadened D167 source-only CI on Web FULL/PATCH/area/report/Excel paths and added focused nonprovider regression assertions.",
+        "No Cloudflare/WMS/Firebase provider invocation, no release, no main merge, no change to accepted Web/Worker/Android/Agent runtime.",
+        "Real managed WMS tab, 6-PC takeover, physical PDA/ACK, 2.5k–5k InventoryCore DO CPU and provider billed usage remain field-only not proven."
+      ],
+      "next_action": "Read back current PR #559 exact HEAD SHA and all required CI; fix any source failure, then mark source CODE PASS only if all required checks succeed, preserve Draft and no deploy.",
+      "evidence": "docs/D167_CODE_ONLY_PROGRESS_2026-10-11.md#2026-10-12--fresh-code-pass-audit-source-fixes-and-cross-module-regression"
     }
   ],
   "resume": {
@@ -198,11 +218,12 @@
     "implemented": [
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
       "D167 PR #559 source: PRIMARY WMS managed-side-tab scheduler + 3 slot, FULL hide/DELTA safe, HA/CAS, LTA/Shelving temporal history, dashboard/detail/Excel filters, Web PATCH vs explicit Admin FULL REPLACE, regression fixtures",
-      "Web manual SKU Excel optional LTA/Shelving, PATCH/FULL confirmed as-of provenance and no catalog blast when unchanged/area-only"
+      "Web manual SKU Excel optional LTA/Shelving, PATCH/FULL confirmed as-of provenance and no catalog blast when unchanged/area-only",
+      "2026-10-12 fresh source audit: correct last_wms_observed SQL cursor, only same-VN-day Web conflicts, atomic stale-stage HA recovery, WMS child cleanup on errors, expanded code-only CI contract paths"
     ],
     "in_progress": [
-      "Exact-head GitHub authority/continuity and Agent/Worker/Web code-only CI",
-      "Code-ready scope/evidence reconciliation; physical field proof separate"
+      "Read exact PR #559 final-head 19 source-only workflows and repair failures",
+      "Reconcile source CODE PASS only; real Office/Android/Provider field proof remains pending separately"
     ],
     "pending_approval": [
       "Owner riêng duyệt triển khai Beta theo exact SHA/scope sau CODE PASS",
@@ -213,9 +234,9 @@
       "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction"
     ],
     "next_actions": [
-      "Verify exact-head CI and fix only in-scope failures",
-      "Keep Draft/unmerged PR559 and preserve Beta/Stable runtime",
-      "Resume using main/working PR/journal source"
+      "Verify exact final-head Agent build, Worker/Web source contract, repo authority and continuity CI",
+      "If 19/19 source-only CI PASS, record source CODE PASS while PR #559 remains Draft and unmerged",
+      "No Beta/Stable/Agent/OTA/live WMS updates without new explicit Owner deployment authorization"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
