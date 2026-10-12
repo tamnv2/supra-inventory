@@ -5109,6 +5109,49 @@ async function importSkuWorkbook(): Promise<void> {
   if (!wb) throw new Error("Chưa chọn file Excel.");
   if (wb.conflicts.some((conflict) => !skuConflictChoices.get(conflict.sku))) throw new Error("Cần chọn tên sản phẩm cho toàn bộ SKU xung đột trong file.");
   const items: SkuItem[] = [...wb.items, ...wb.conflicts.map((conflict) => ({ sku: conflict.sku, product_name: skuConflictChoices.get(conflict.sku)! }))];
+  if (skuImportFullReplace) {
+    if (profile?.role !== "ROOT" && profile?.role !== "ADMIN")
+      throw new Error("Chỉ Root/Admin được thay toàn bộ danh mục SKU.");
+    skuImportProgress = "Đang kiểm tra toàn bộ danh mục trước khi thay thế...";
+    const preview = await importSkuFullReplace(items, {
+      requestId: crypto.randomUUID(),
+      dryRun: true,
+    });
+    if (preview.status !== "PREVIEW" || preview.source_rows !== items.length)
+      throw new Error("Xem trước FULL REPLACE chưa hoàn chỉnh.");
+    const comparison = (preview.name_conflicts || []).slice(0, 10).map(row =>
+      row.sku + ": " + row.current + " → " + row.incoming).join("\n");
+    const details =
+      "THAY TOÀN BỘ DANH MỤC SKU HIỆU LỰC?\n\n" +
+      "Tổng SKU trong file: " + preview.source_rows +
+      "\nSKU mới: " + preview.created +
+      "\nĐổi tên: " + preview.renamed +
+      "\nKích hoạt lại: " + preview.reactivated +
+      "\nSKU sẽ ẨN (không xoá): " + preview.hidden +
+      "\nSKU đang hoạt động trước đó: " + preview.previous_active +
+      (comparison ? "\n\nVí dụ thay đổi tên:\n" + comparison : "") +
+      "\n\nLịch sử báo hàng và SKU cũ vẫn được giữ. Nếu dữ liệu không đầy đủ, hãy từ chối.";
+    if (!window.confirm(details)) {
+      skuImportProgress = "Đã huỷ FULL REPLACE; danh mục chưa thay đổi.";
+      return;
+    }
+    const outcome = await importSkuFullReplace(items, {
+      requestId: crypto.randomUUID(),
+      expectedCatalogRevision: preview.catalog_revision,
+      expectedSourceHash: preview.source_hash,
+      confirmFullReplace: true,
+      confirmNameChanges: preview.renamed > 0,
+    });
+    if (outcome.status !== "DONE")
+      throw new Error("Chưa xác nhận được kết quả FULL REPLACE.");
+    pendingWorkbook = null;
+    skuConflictChoices.clear();
+    skuImportFullReplace = false;
+    skuImportProgress = "FULL REPLACE thành công: " + outcome.source_rows +
+      " SKU từ file, " + outcome.hidden + " SKU cũ được ẩn.";
+    setNotice("success", skuImportProgress);
+    return;
+  }
   const databaseConflicts: string[] = [];
   let previewRevision: number | null = null;
   for (let offset = 0; offset < items.length; offset += SKU_CHUNK_SIZE) {
