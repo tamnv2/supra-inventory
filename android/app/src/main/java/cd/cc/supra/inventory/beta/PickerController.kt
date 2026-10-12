@@ -48,6 +48,14 @@ class PickerController(
 ) {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private var operatingWindowOpen = OperatingScheduleStore.isOpen(activity.applicationContext)
+    // Do not send a new shortage before the Service confirms today's FULL roster.
+    // Confirm Picklist, prior tickets and critical-result ACK are not gated.
+    private var skuDayReady = false
+
+    fun applySkuDayReady(ready: Boolean) {
+        skuDayReady = ready
+        updateReportEnabled()
+    }
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
     private val handler = Handler(Looper.getMainLooper())
     private var searchTask: Runnable? = null
@@ -728,7 +736,7 @@ class PickerController(
     }
 
     private fun updateReportEnabled() {
-        val ready = shortageReportingEnabled && operatingWindowOpen && selected != null && isOnline() && !syncing
+        val ready = skuDayReady && shortageReportingEnabled && operatingWindowOpen && selected != null && isOnline() && !syncing
         reportButton?.apply {
             isEnabled = ready
             alpha = if (ready) 1.0f else 0.42f
@@ -834,6 +842,11 @@ class PickerController(
     }
 
     private fun submit() {
+        if (!skuDayReady) {
+            updateReportEnabled()
+            setStatus("Danh sách SKU chưa được cập nhật cho ngày hôm nay. Vui lòng liên hệ Chuyên viên Pick Pack / Invent để cập nhật trước khi vào ca.")
+            return
+        }
         if (!shortageReportingEnabled) {
             updateReportEnabled()
             setStatus("Báo hàng đang tắt cho tài khoản này.")
