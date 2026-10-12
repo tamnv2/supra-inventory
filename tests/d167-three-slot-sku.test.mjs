@@ -217,3 +217,16 @@ test("D167 Web optional LTA/Shelving column preserves history and unknown fields
   assert.match(full, /area_updated:toAreaChanged.length/);
   assert.match(full, /last_web_area_at/);
 });
+
+test("D167 persisted WMS timestamp drives true same-day Web conflict CAS", async () => {
+  const { readFileSync } = await import("node:fs");
+  const core = readFileSync(new URL("../service/src/d167-sku-sync-core.ts", import.meta.url), "utf8");
+  const agent = readFileSync(new URL("../relay-agent/D167SkuBrowserExport.cs", import.meta.url), "utf8");
+  const rosterSelect = core.match(/function rosterRows\([\s\S]*?\}\nfunction auditArea/);
+  assert.ok(rosterSelect, "roster query is present");
+  assert.match(rosterSelect[0], /SELECT[\s\S]*a\.last_wms_observed_at[\s\S]*FROM sku_master/);
+  assert.match(rosterSelect[0], /last_wms_observed_ms: x\.last_wms_observed_at/);
+  // The side page must close on all timeout/error routes, not only a parsed XLSX.
+  assert.match(agent, /finally\s*\{[\s\S]*File\.Delete\(downloadedFile\)[\s\S]*Page\.close/);
+  assert.match(agent, /downloadedFile = WaitCompleteXlsx/);
+});
