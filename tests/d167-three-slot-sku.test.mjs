@@ -355,3 +355,14 @@ test("D167 manual DELTA and automatic three-slot schedule remain independent", a
   assert.match(client,/SourceRows|source_rows|ReceiptJson/);
   assert.doesNotMatch(core,/DELETE FROM sku_master/);
 });
+
+
+test("D167 Agent SKU tab follows Cài đặt; STANDBY remains read-only", async () => {
+  const {readFileSync}=await import("node:fs");
+  const program=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const skuUi=readFileSync(new URL("../relay-agent/D167SkuUi.cs",import.meta.url),"utf8");
+  assert.match(program, /_mainTabs\.TabPages\.Add\(_overviewPage\);\s*_mainTabs\.TabPages\.Add\(_connectionPage\);\s*_mainTabs\.TabPages\.Add\(_d167SkuPage\);/);
+  assert.match(program, /_mainTabs\.SelectedTab == _d167SkuPage && _d167SkuCoordinator != null/);
+  assert.match(skuUi, /_d167SkuRun\.Enabled=!_d167SkuManualActive && primary && _supraBrowserReady && HasAgentSession\(\)/);
+  assert.match(skuUi, /!_leaderCoordinator\.IsLeader \|\| !_supraBrowserReady/);
+});
