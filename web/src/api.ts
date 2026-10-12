@@ -996,6 +996,40 @@ export async function importSkuChunk(
   }));
 }
 
+export type SkuFullReplaceResult = {
+  status: "PREVIEW" | "DONE";
+  source_hash: string;
+  catalog_revision: number;
+  source_rows: number;
+  previous_active: number;
+  created: number;
+  renamed: number;
+  reactivated: number;
+  hidden: number;
+  unchanged: number;
+  name_conflicts: Array<{ sku:string; current:string; incoming:string }>;
+  completed_at?: string;
+};
+
+export async function importSkuFullReplace(
+  items: SkuItem[],
+  options: { requestId:string; dryRun?:boolean; expectedCatalogRevision?:number;
+    expectedSourceHash?:string; confirmFullReplace?:boolean; confirmNameChanges?:boolean },
+): Promise<SkuFullReplaceResult> {
+  return readJson(await authorizedFetch("/api/admin/skus/full-replace", {
+    method: "POST",
+    body: JSON.stringify({
+      request_id:options.requestId,
+      dry_run:options.dryRun===true,
+      expected_catalog_revision:options.expectedCatalogRevision,
+      expected_source_hash:options.expectedSourceHash,
+      confirm_full_replace:options.confirmFullReplace===true,
+      confirm_name_changes:options.confirmNameChanges===true,
+      items:items.map(({sku,product_name})=>({sku,product_name})),
+    }),
+  }));
+}
+
 export async function searchSkus(query = "", limit = 100, offset = 0): Promise<SkuSearchPage> {
   const params = new URLSearchParams({ query, limit: String(limit), offset: String(Math.max(0, offset)) });
   return readJson(await authorizedFetch(`/api/skus?${params.toString()}`));
