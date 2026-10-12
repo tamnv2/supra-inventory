@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_PR561_SCOPED_BETA_DEPLOY_OWNER_APPROVED__PR_CI_AND_RUNTIME_PENDING__OWNER_FIELD_PASS_PENDING",
+    "current_change_status": "D167_PR561_BETA_WEB_WORKER_SOURCE_MERGED__RUNTIME_FIELD_OWNER_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D167_PR555_BETA_WEB_WORKER_INVENTORYCORE_UPDATED_MAIN_D360752C_HEALTH_PASS__ANDROID_VC105_AGENT_V125_UNCHANGED__FLEET_FIELD_UNVERIFIED",
+    "runtime_impact": "D167_PR561_SCOPED_WEB_WORKER_SOURCE_MERGED_MAIN_82A4F540__LIVE_BETA_DEPLOY_HEALTH_NOT_VERIFIED__ANDROID_AGENT_STABLE_UNTOUCHED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -7136,7 +7136,7 @@
       "d167_scheduled_deploy_automations": "BOTH_DISABLED"
     },
     "meal_break_early_window_correction_2026_10_12": {
-      "status": "OWNER_EXPLICIT_PR561_BETA_DEPLOY_APPROVED__SOURCE_15_OF_15_CI_PASS__RELEASE_PENDING",
+      "status": "PR561_MERGED_MAIN__GITHUB_PUSH_BETA_WORKFLOW_TRIGGER_ELIGIBLE__RUNTIME_VERIFICATION_PENDING",
       "supersedes": "MEAL_EDIT_EARLY_CHOICE_CUTOFF_BEFORE_11_OR_18_ONLY",
       "when_selected_early": "CONTINUOUS_EDIT_ANYTIME_AFTER_CONFIRMATION_AND_BEFORE_12_LUNCH_OR_19_DINNER_VN",
       "when_selected_late": "KEEP_EXISTING_CUTOFF_BEFORE_11_LUNCH_OR_18_DINNER_VN",
@@ -7156,8 +7156,13 @@
       "owner_deploy_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR561_CONTINUOUS_EARLY_MEAL_EDIT_BETA",
       "owner_deploy_scope": "EXISTING_BETA_WEB_WORKER_INVENTORYCORE_ONLY__NO_STABLE_OR_PR559",
       "approved_source_sha": "0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a",
-      "release_state": "UNMERGED_AWAIT_FINAL_PR_CI_AND_OWNER_GATE",
-      "d167_owner_pass": false
+      "release_state": "PR561_MERGED_MAIN_82A4F540__WORKER_WEB_DEPLOY_RUN_AND_HEALTH_NOT_INDEPENDENTLY_VERIFIED",
+      "d167_owner_pass": false,
+      "merge_sha": "82a4f540abee3f50deb5ea52e5e83c29954238d5",
+      "exact_pr_ci": "PR561_HEAD_7CAD0955_15_OF_15_PASS",
+      "runtime_health_verified": false,
+      "field_owner_pass": false,
+      "rollback": "NO_ROLLBACK_PERFORMED__NO_FIELD_MUTATION_PROVEN"
     }
   }
 }
