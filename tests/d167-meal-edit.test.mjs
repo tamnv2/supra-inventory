@@ -41,6 +41,10 @@ test("Core uses CAS, SQL transaction, audit and postchange alarm without changin
  assert.match(core,/WHERE day_vn=\? AND period=\? AND confirmed_at=\? AND choice=\?/);
  assert.match(core,/recalculateMealAdjustedDeadlines\(state\)/);
  assert.match(core,/MEAL_BREAK_EDIT/);
+ assert.ok(core.includes("SET choice=?,starts_at_ms=?,ends_at_ms=?,confirmed_at=? WHERE"));
+ assert.ok(!core.includes("SET choice=?,starts_at_ms=?,ends_at_ms=?,confirmed_at=?,confirmed_by=?"));
+ assert.ok(core.includes("confirmed_by: String(prior.confirmed_by)"));
+ assert.ok(core.includes("edited_by: actorId"));
  assert.match(router,/url\.pathname === "\/d167\/meal\/edit"/);
  assert.match(router,/scheduleNextOperationalAlarm\(this\.state\)/);
  assert.match(app,/data-d167-meal-edit/);
