@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D167_BETA_SOURCE_DEPLOY_PASS_MAIN_9BCFF631__WORKER_WEB_GATEWAY__SIGNED_ANDROID_VC105_AGENT_V125_CHANNEL__FIELD_INSTALLS_AND_OWNER_PASS_PENDING__STABLE_UNTOUCHED",
+      "status": "D167_PR559_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V126_TECHNICAL_PASS__FIELD_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
