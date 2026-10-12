@@ -15,7 +15,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> isPrimaryReady;
         private readonly Func<bool> confirmBusy;
         private readonly Func<string> generation;
-        private readonly Func<int,bool> confirmConflicts;
+        private readonly Func<string,bool> confirmConflicts;
         private readonly Action<string> log;
         private readonly string instanceId;
         private readonly object gate=new object();
@@ -30,7 +30,7 @@ namespace SupraInventoryRelayAgent
             Func<AgentSession> currentSession,Action ensureFreshToken,
             Func<bool> primaryReady,Func<bool> confirmationBusy,
             Func<string> primaryGeneration,string currentInstanceId,
-            Func<int,bool> approveConflicts,Action<string> logger)
+            Func<string,bool> approveConflicts,Action<string> logger)
         {
             browser=managedBrowser;
             isPrimaryReady=primaryReady;
