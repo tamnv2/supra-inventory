@@ -33,34 +33,38 @@ namespace SupraInventoryRelayAgent
                 StringComparer.OrdinalIgnoreCase);
             using (var socket = new ClientWebSocket())
             {
-                socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
-                socket.ConnectAsync(new Uri(wsUrl), CancellationToken.None).GetAwaiter().GetResult();
-                Command(socket, "Runtime.enable", null, TimeSpan.FromSeconds(5), 1);
-                WaitUiReady(socket, deadline, stillPrimary);
-                // Follow the actual application's menu rather than guessing
-                // an unsupported /report URL. The child is a separate browser.
-                ClickOneExactNavigation(socket, "bin inventory", 80);
-                WaitBinInventoryUi(socket, deadline, stillPrimary);
-                ClickOneExact(socket, "tim kiem", 2);
-                // Search is a required first step; never download a prior
-                // cached report without reissuing the current-page Search.
-                Thread.Sleep(1500);
-                if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
-                ClickOneExact(socket, "export", 3);
-                var path = WaitCompleteXlsx(folder, previous, deadline, stillPrimary);
+                string downloadedFile = null;
                 try
                 {
-                    var bytes = File.ReadAllBytes(path);
-                    return D167SkuWorkbook.Parse(bytes);
+                    socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+                    socket.ConnectAsync(new Uri(wsUrl), CancellationToken.None).GetAwaiter().GetResult();
+                    Command(socket, "Runtime.enable", null, TimeSpan.FromSeconds(5), 1);
+                    WaitUiReady(socket, deadline, stillPrimary);
+                    // Follow the visible WMS navigation within this isolated child,
+                    // never navigate or mutate the main Confirm Picklist tab.
+                    ClickOneExactNavigation(socket, "bin inventory", 80);
+                    WaitBinInventoryUi(socket, deadline, stillPrimary);
+                    ClickOneExact(socket, "tim kiem", 2);
+                    Thread.Sleep(1500);
+                    if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
+                    ClickOneExact(socket, "export", 3);
+                    downloadedFile = WaitCompleteXlsx(folder, previous, deadline, stillPrimary);
+                    return D167SkuWorkbook.Parse(File.ReadAllBytes(downloadedFile));
                 }
                 finally
                 {
-                    // Raw WMS export includes internal location data; never
-                    // retain it after parsing normalized, bounded SKU metadata.
-                    try { File.Delete(path); } catch { }
-                    // Close only this side page. Keep the managed Confirm tab alive
-                    // across all three WMS exports and avoid accumulating hidden tabs.
-                    try { Command(socket, "Page.close", null, TimeSpan.FromSeconds(4), 950); }
+                    // Cleanup must also run when Search, Export, timeout or workbook
+                    // validation fails. Otherwise retries could target a stale hidden
+                    // tab and leave partially parsed private reports on disk.
+                    if (downloadedFile != null)
+                    {
+                        try { File.Delete(downloadedFile); } catch { }
+                    }
+                    try
+                    {
+                        if (socket.State == WebSocketState.Open)
+                            Command(socket, "Page.close", null, TimeSpan.FromSeconds(4), 950);
+                    }
                     catch { }
                 }
             }
