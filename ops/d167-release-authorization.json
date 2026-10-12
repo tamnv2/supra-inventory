@@ -2,11 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "785a339a51089c54b1a88096a2f90fe9e8df1c1c",
+  "approved_source_sha": "87f98baac4d514dad265d1bb5c391601ef97b4cd",
   "approved_components": [
     "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR560_WEB_MEAL_AFTER_SHIFT",
+  "owner_approval_reference": "OWNER_EXPLICIT_20261012_PR560_DEPLOY_IMMEDIATELY",
   "approved_at_vn": "2026-10-12T11:15:00+07:00",
-  "note": "Owner explicitly approved implementing and deploying only Web+Worker/InventoryCore for password-confirmed correction of Reporter team meal time in D167. Release is constrained to AFTER 22:00 VN operational shift, when all exact-PR source/authority/continuity CI pass. No D167 Draft PR559 merge, no Android APK or Windows Agent release, no WMS/Firebase/other provider configuration changes, no Stable. Exact source SHA 785a339a is the authorized executable change candidate; later receipts/continuity docs are non-executable."
+  "note": "Owner authorized immediate deploy of PR560 only. Preserve PR559 code-only. Scope remains Beta Web/Worker/InventoryCore; no APK, Agent or Stable."
 }
