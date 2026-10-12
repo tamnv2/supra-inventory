@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_PR559_INTEGRATED_RELEASE_APPROVED__PREDEPLOY_CI_PENDING",
+    "current_change_status": "D167_PR559_BETA_DEPLOY_APPROVED__INTEGRATION_CI_RECHECK_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7324,9 +7324,10 @@
         "agent",
         "android"
       ],
-      "approved_source_sha": "c23802100b6d5040ed50b72bc19c7ab736fe5d25",
+      "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
       "approved_scope": "EXISTING_BETA_WORKER_WEB_INVENTORYCORE_GATEWAY_AGENT_V126_ANDROID_VC106__STABLE_GATED",
-      "owner_business_pass": false
+      "owner_business_pass": false,
+      "source_status": "INTEGRATED_CODE_REPAIRED_C6BC865B__FRESH_CI_PENDING"
     },
     "owner_final_2026_10_12_after_reconcile": {
       "accepted": true,

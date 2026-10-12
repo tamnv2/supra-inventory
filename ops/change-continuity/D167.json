@@ -8,7 +8,7 @@
   "pr": 559,
   "status": "D167_PR559_INTEGRATED_OWNER_APPROVED_BETA_DEPLOY__FRESH_CI_PENDING",
   "last_checkpoint": {
-    "id": "D167-E021",
+    "id": "D167-E022",
     "date_vn": "2026-10-12"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "stable_deploy_permission": false,
     "new_owner_approval_required": false,
     "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
-    "approved_source_sha": "c23802100b6d5040ed50b72bc19c7ab736fe5d25",
+    "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
     "approved_components": [
       "worker",
       "gateway",
@@ -418,6 +418,21 @@
         "D167-E016",
         "D167-E020"
       ]
+    },
+    {
+      "id": "D167-E022",
+      "date_vn": "2026-10-12",
+      "topic": "D167 integrated Web helper duplicate detected by PR CI and repaired before Beta rollout",
+      "kind": "STATUS",
+      "status": "SOURCE_REPAIRED_C6BC865B__PR_CI_RERUN_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "Exact integrated PR head e08f6fdf initial PR CI failed Web TypeScript because Web API editD167Meal and operation submitD167MealEdit had byte-for-byte duplicate definitions following reconciliation of PR559 with later PR561 main changes.",
+        "Source-only D167 repair commit c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c removes the duplicated helpers without altering the actual meal correction, API contract, Web layout, Worker/Agent/Android or source features.",
+        "Owner scoped Beta release approval remains unchanged; exact executable SHA in release receipt is updated to c6bc865b; CI must PASS anew before main merge or runtime publication."
+      ],
+      "next_action": "Verify all PR559 exact HEAD workflow checks before merge; confirm release gate and maintain Beta-only authorization.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559; failed run 38271429444 and repair source c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c"
     }
   ],
   "resume": {

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "c23802100b6d5040ed50b72bc19c7ab736fe5d25",
+  "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
   "approved_components": [
     "worker",
     "gateway",
@@ -11,5 +11,5 @@
   ],
   "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_ALL_CODE_READY_BETA",
   "approved_at_vn": "2026-10-12T22:18:00+07:00",
-  "note": "Owner explicitly orders rollout of all D167 items that have passed code. PR559 integrated source commit is exact approved ancestor and later documentation changes are unprotected; allow existing scoped Beta Worker+Web/InventoryCore, Apps Script Gateway, Android signed vc106 and Windows Agent v126 release only after fresh PR CI and existing release guards PASS. Do not change Stable, Launcher, provider resource IDs or mandatory Android floor solely by this approval. D167 business field PASS pending."
+  "note": "Owner explicitly orders rollout of all D167 items that have passed code. PR559 integrated source commit is exact approved ancestor and later documentation changes are unprotected; allow existing scoped Beta Worker+Web/InventoryCore, Apps Script Gateway, Android signed vc106 and Windows Agent v126 release only after fresh PR CI and existing release guards PASS. Do not change Stable, Launcher, provider resource IDs or mandatory Android floor solely by this approval. D167 business field PASS pending. Integrated Web TypeScript duplicate-helper regression repaired at exact executable SHA c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c; no executable files permitted beyond this SHA during release receipt."
 }
