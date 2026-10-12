@@ -213,11 +213,26 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     // The WORKER verifies that this generation and instance are current Firebase HA PRIMARY
     // immediately before forwarding every POST; the DO fence protects in-flight prior leaders.
     const rev = row(state,"SELECT revision FROM d167_sku_meta WHERE id=1");
-    state.storage.sql.exec(`UPDATE d167_sku_jobs SET owner_id=?,generation=?,
-      lease_until_ms=?,state='CLAIMED',expected_revision=?,updated_at=? WHERE day_vn=? AND slot=?`,
-      instance, generation, Date.now() + 15 * 60_000,Number(rev?.revision||0),new Date().toISOString(), day, slot);
-    if (job.generation && job.generation !== generation) state.storage.sql.exec(
-      "DELETE FROM d167_sku_stage WHERE day_vn=? AND slot=?", day, slot);
+    // An expired/incomplete job can be reclaimed with a *different* fresh
+    // WMS snapshot. Old staging/fingerprint must be reset together, otherwise
+    // retries remain permanently SOURCE_CHANGED_DURING_STAGING (or accidentally
+    // mix two full files). Reuse a partial stage only for the identical manifest.
+    const reclaimDifferentSource = Boolean(job.fingerprint &&
+      String(job.fingerprint).toLowerCase() !== proposedFingerprint);
+    const reclaimOtherOwner = Boolean((job.generation && job.generation !== generation) ||
+      (job.owner_id && job.owner_id !== instance));
+    const resetStage = reclaimDifferentSource || reclaimOtherOwner;
+    state.storage.transactionSync(() => {
+      if (resetStage) state.storage.sql.exec(
+        "DELETE FROM d167_sku_stage WHERE day_vn=? AND slot=?", day, slot);
+      state.storage.sql.exec(`UPDATE d167_sku_jobs SET owner_id=?,generation=?,
+        lease_until_ms=?,state='CLAIMED',expected_revision=?,updated_at=?,
+        fingerprint=CASE WHEN ? THEN NULL ELSE fingerprint END,
+        total_rows=CASE WHEN ? THEN 0 ELSE total_rows END WHERE day_vn=? AND slot=?`,
+        instance, generation, Date.now() + 15 * 60_000,
+        Number(rev?.revision||0),new Date().toISOString(),
+        resetStage?1:0,resetStage?1:0,day,slot);
+    });
     return response({ status: "CLAIMED", slot, day_vn: day, mode: slotMode(slot), lease_expires_in_ms: 15*60_000 });
   }
   if (!guard(body, job)) return response({ error: "HA_FENCED_OR_EXPIRED" }, 409);
