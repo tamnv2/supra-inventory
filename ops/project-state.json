@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D167_PR559_GITHUB_FIRST_RESUME_AND_DISCUSSION_CAPTURE_READY__CONTINUE_CODE_PASS_ONLY__NO_MERGE_NO_DEPLOY",
+  "next_action": "D167_PR559_CODE_ONLY_EXACT_HEAD_CI_PENDING__NO_MERGE_NO_BETA_NO_STABLE__FIELD_EVIDENCE_AFTER_NEW_OWNER_DEPLOY",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -7138,7 +7138,7 @@
         "actual_managed_primary_browser_export_proved": false,
         "end_to_end_three_slot_proved": false
       },
-      "status": "CODE_IMPLEMENTATION_IN_PROGRESS__NOT_CODE_READY__NO_RUNTIME_DEPLOY",
+      "status": "D167_PR559_SOURCE_FEATURES_IMPLEMENTED__EXACT_HEAD_CI_VERIFYING__NO_RUNTIME_DEPLOY",
       "source_branch": "d167-code-three-slot-sku-area-report-20261011",
       "pr": 559,
       "owner_code_authorized": true,
@@ -7153,7 +7153,18 @@
         "service/src/business-core.ts",
         "service/src/sku-import-core.ts",
         "service/src/read-model-core.ts",
-        "tests/d167-three-slot-sku.test.mjs"
+        "tests/d167-three-slot-sku.test.mjs",
+        "relay-agent/D167SkuBrowserExport.cs",
+        "relay-agent/D167SkuCoordinator.cs",
+        "relay-agent/D167SkuSchedule.cs",
+        "relay-agent/D167SkuServiceClient.cs",
+        "relay-agent/Program.cs",
+        "relay-agent-webview2-host/Program.cs",
+        "service/src/d167-web-full-replace.ts",
+        "service/src/business-api.ts",
+        "web/src/report-excel.ts",
+        "web/src/operational-app.ts",
+        "tests/d167-full-roster-sql.test.py"
       ],
       "delivered_contracts": [
         "VN_THREE_SLOTS_ONE_RECEIPT_PER_SLOT",
@@ -7163,34 +7174,39 @@
         "STAGED_SOURCE_LEASE_AND_HA_FENCE",
         "WEB_MANUAL_NAME_REVISION",
         "PICKER_CURRENT_DAY_ACTIVE_GUARD",
-        "AREA_INTERVALS_READ_MODEL_AND_REPORT_API"
+        "AREA_INTERVALS_READ_MODEL_AND_REPORT_API",
+        "AGENT_AUTOMATIC_AND_MANUAL_CONFIRM_BUSY_GUARD",
+        "NORMALIZED_READONLY_WMS_SIDE_TAB_EXPORT_SOURCE",
+        "TRUNCATED_FULL_LARGE_HIDE_APPROVAL_REQUIRED",
+        "COALESCED_NOON_INTO_EVENING_SLOT",
+        "WEB_REPORT_DETAIL_EXCEL_ASOF_AREA_FILTER",
+        "WEB_ADMIN_ROOT_EXPLICIT_FULL_REPLACE_PREVIEW_CAS_ATOMIC_NO_DELETE",
+        "WEB_FULL_REPLACE_IDEMPOTENT_COMMIT_RECEIPT",
+        "SYNTHETIC_5000_SKU_FULL_DELTA_SQL_FIXTURE"
       ],
       "tests_observed": [
         "D167_PURE_TESTS_10_OF_10_PASS_2026_10_11"
       ],
       "tests_pending": [
-        "INVENTORYCORE_SQL_TRANSACTION_5K_BENCHMARK",
-        "HA_SAME_BROWSER_REAL_WMS_EXPORT",
-        "AGENT_EXECUTOR_INTEGRATION",
-        "WEB_REPORTING_UI_PARITY",
-        "ANDROID_CACHE_FIELD_SMOKE",
-        "FULL_READBACK_FROM_REAL_PROVIDER",
-        "D167_COMPLETE_CI_PASS"
+        "EXACT_HEAD_ALL_REQUIRED_SOURCE_CI_COMPLETED_PASS",
+        "REAL_MANAGED_WMS_PROFILE_SIDE_TAB_AND_6_AGENT_HA_FIELD_AFTER_SEPARATE_APPROVAL",
+        "REAL_DO_2500_TO_5000_SQL_CPU_PERFORMANCE_USAGE_AND_ANDROID_CACHE_ACK_FIELD_AFTER_DEPLOY",
+        "OPTIONAL_WEB_EXCEL_COARSE_AREA_COLUMN_CONTRACT_NOT_IMPLEMENTED_AWAIT_VERIFIED_SOURCE_POLICY"
       ],
       "physical_field_pass": false,
       "release_approved": false,
       "stable": "OWNER_GATED_UNTOUCHED",
-      "next": "CONTINUE_IMPLEMENTATION_IN_SAME_D167_DRAFT_PR__REQUIRE_CI_AUTHORITY_AND_CONTINUITY_PASS__NO_MERGE_NO_DEPLOY",
+      "next": "FINISH_PR559_EXACT_HEAD_CI_AND_SOURCE_REGRESSION__NO_MERGE_NO_DEPLOY__FIELD_PROOF_SEPARATE",
       "owner_latest_gate_2026_10_12": "OWNER_CODE_PASS_ONLY_STOP_BEFORE_MAIN_MERGE_OR_BETA_RELEASE",
       "post_code_ready_action": "STOP_DRAFT_PR559__WAIT_NEW_EXPLICIT_OWNER_DEPLOY_APPROVAL_EXACT_SHA_AND_SCOPE",
       "prior_combined_deploy_authorization": "SUPERSEDED_FOR_UNDEPLOYED_D167_PR559_ONLY__PR555_HISTORICAL_RELEASE_UNCHANGED",
-      "ci_mode": "SOURCE_ONLY_NO_BETA_PROVIDER_MUTATION_NO_RELEASE_NO_WMS_LIVE_TEST",
+      "ci_mode": "SOURCE_ONLY_NONDEPLOYING__LIVE_FIELD_TEST_NOT_ALLOWED",
       "outstanding_evidence": "UNVERIFIED_WMS_AGENT_BROWSER_AND_REAL_DEVICE_TESTS_REMAIN_PENDING_IF_CI_CANNOT_PROVE"
     },
     "pr559_owner_latest_2026_10_12": {
       "scope": "THREE_SLOT_AGENT_SKU_FULL_HIDE_TEMPORAL_AREA_WEB_OVERVIEW_DETAIL_EXCEL_AND_REGRESSIONS",
       "approval": "CONTINUE_CODE_AND_CI_TO_SOURCE_PASS_ONLY",
-      "code_pass": "PENDING",
+      "code_pass": "EXACT_HEAD_CI_PENDING",
       "owner_deploy_approval": false,
       "owner_d167_pass": false,
       "merge_to_main": "FORBIDDEN_UNTIL_NEW_EXPLICIT_OWNER_DEPLOY_APPROVAL",
@@ -7209,7 +7225,7 @@
     "journal": "ops/change-continuity/D167.json",
     "working_branch": "d167-code-three-slot-sku-area-report-20261011",
     "pr": 559,
-    "latest_checkpoint_id": "D167-CT-20261012-001",
+    "latest_checkpoint_id": "D167-CT-20261012-002",
     "checkpoint_date_vn": "2026-10-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
