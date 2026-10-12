@@ -235,13 +235,11 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     const proposedCount = Number(body.source_rows);
     if (slot !== "INITIAL_05" && /^[a-f0-9]{64}$/.test(proposedFingerprint) &&
         Number.isSafeInteger(proposedCount) && proposedCount >= 1 && proposedCount <= 5000) {
-      const priorSlot = slot === "DELTA_12" ? "INITIAL_05" : "DELTA_12";
-      let prior = row(state,
-        "SELECT fingerprint,total_rows FROM d167_sku_jobs WHERE day_vn=? AND slot=? AND state='DONE'",
-        day, priorSlot);
-      if (!prior && slot === "DELTA_19") prior = row(state,
-        "SELECT fingerprint,total_rows FROM d167_sku_jobs WHERE day_vn=? AND slot='INITIAL_05' AND state='DONE'",
-        day);
+      // The latest verified WMS observation (including manual DELTA) is authoritative
+      // for the no-op fast path. No catalog or area-history writes if unchanged.
+      const prior = row(state,`SELECT fingerprint,total_rows FROM d167_sku_jobs
+        WHERE day_vn=? AND state='DONE' AND fingerprint IS NOT NULL
+        ORDER BY complete_at DESC LIMIT 1`,day);
       if (prior && prior.fingerprint === proposedFingerprint &&
           Number(prior.total_rows) === proposedCount) {
         const done = state.storage.transactionSync(() => {
