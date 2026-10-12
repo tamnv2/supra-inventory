@@ -8,7 +8,7 @@
   "pr": 566,
   "status": "D167_PR559_BETA_TECHNICAL_DEPLOY_PASS__FIELD_OWNER_PASS_PENDING",
   "last_checkpoint": {
-    "id": "D167-E025",
+    "id": "D167-E026",
     "date_vn": "2026-10-12"
   },
   "deployment_gate": {
@@ -19,12 +19,11 @@
     "stable_deploy_permission": false,
     "new_owner_approval_required": false,
     "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
-    "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
+    "approved_source_sha": "893ad2163022c2daef9f9183d8a7e2562f4a535d",
     "approved_components": [
       "worker",
       "gateway",
-      "agent",
-      "android"
+      "agent"
     ]
   },
   "entries": [
@@ -498,6 +497,22 @@
       ],
       "next_action": "Finish complete Windows/.NET build and TS/Node tests, review concurrency/security/usage regressions, obtain exact CI source SHA, update release authorization to approved source and ensure authority+continuity PASS before Beta merge/release. Keep D167 field PASS pending.",
       "evidence": "Owner chat 2026-10-12 'ok chốt. triển khai'; https://github.com/tamnv2/supra-inventory/pull/566 ; prior proposal https://github.com/tamnv2/supra-inventory/pull/565"
+    },
+    {
+      "id": "D167-E026",
+      "date_vn": "2026-10-12",
+      "topic": "Agent SKU tab manual protected source ready and PR566 first exact code SHA CI 20/20 PASS",
+      "kind": "TEST",
+      "status": "CODE_READY_SOURCE_PR566_893AD216__BETA_RELEASE_PR_FINAL_GATE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Verified exact source candidate 893ad2163022c2daef9f9183d8a7e2562f4a535d in PR566 passed 20/20 GitHub PR workflows including Windows Agent v127 build, Agent D167 scheduler offline self-test, D167 three-slot source/SQL tests, Web/Worker TypeScript, source-security guards, Project State Guard and Repo Authority Guard.",
+        "New Windows Agent SKU tab uses local event-driven schedule/receipt and workbook memory; no extra polling or Firebase listener. Current account proof in gateway is checked at Worker before Core manually authorizes INITIAL_05 FULL or unique manual DELTA. Manual does not suppress noon/evening jobs, and long-held FULL/DELTA receives HA CAS fencing and readback.",
+        "Owner Beta deploy authority exact reviewed SHA has been updated in ops/d167-release-authorization.json to 893ad216, allowing only existing Inventory Beta worker/gateway/agent v127 (not Android/Launcher/Stable). This authorization update itself is docs-only and needs exact new PR HEAD authority/continuity/release gate PASS before merge.",
+        "PR CI is source/build evidence, not real office WMS/PDA fleet, provider costs or Owner field PASS. Baseline currently released signed Agent v126 and Android vc106 remain untouched until successful gated Beta runtime release."
+      ],
+      "next_action": "Verify final PR566 docs/authorization HEAD CI and release-gate before merge; then inspect Worker/Gateway/Agent v127 push-main Beta workflows, exact signed artifacts and known field/usage gaps.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/566 ; exact PR source 893ad2163022c2daef9f9183d8a7e2562f4a535d ; 20/20 PR Github Actions success"
     }
   ],
   "resume": {
@@ -519,11 +534,13 @@
       "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known",
       "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent",
       "D167 meal EARLY continuous edit correction PR561 exact HEAD 0e4757f2: 15/15 CI PASS, Draft/unmerged, no deploy",
-      "2026-10-12 D167 PR559 Beta technical release merged main 54ee8e51: Worker/Gateway/Android vc106/Agent v126 plus Fixed WebView2 bundle, 14/14 main workflows success"
+      "2026-10-12 D167 PR559 Beta technical release merged main 54ee8e51: Worker/Gateway/Android vc106/Agent v126 plus Fixed WebView2 bundle, 14/14 main workflows success",
+      "D167 Agent SKU tab and protected manual FULL/DELTA PR566 exact source 893ad216 passed 20/20 GitHub PR CI (Windows build, D167 SKU tests, authority, continuity)."
     ],
     "in_progress": [
       "Await physical fleet and real company WMS/HA/ACK/area/usage acceptance; no further CODE READY feature known excluded",
-      "D167 PR566 implementation Agent v127 + Worker/InventoryCore + existing Agent Gateway pending PR checks and exact source release gate."
+      "D167 PR566 implementation Agent v127 + Worker/InventoryCore + existing Agent Gateway pending PR checks and exact source release gate.",
+      "PR566 new Owner exact source release receipt and final-HEAD CI gates before authorized Beta Worker/Gateway/Agent v127 publication."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -538,6 +555,6 @@
       "After Owner review of D167-E024, implement only upon explicit code permission; retain Beta release/Stable separate gate and test REAL WMS/HA/Confirm/usage before field acceptance.",
       "PR566 exact CI/source QA, scope/protected runtime release receipt; then Owner-approved Beta Agent v127 Worker/Gateway channel publication and readback; field installation still unverified."
     ],
-    "release_boundary": "D167_PR566_OWNER_APPROVED_EXISTING_BETA_RELEASE_AFTER_SOURCE_CI__STABLE_GATED__FIELD_OWNER_PASS_PENDING"
+    "release_boundary": "D167_PR566_TESTED_SOURCE_893AD216_OWNER_BETA_APPROVAL_RECEIPTED__RELEASE_FINAL_CI_PENDING__STABLE_GATED__FIELD_PENDING"
   }
 }
