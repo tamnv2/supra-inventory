@@ -7,12 +7,7 @@
   "working_branch": "d167-code-three-slot-sku-area-report-20261011",
   "pr": 559,
   "status": "D167_PR559_SOURCE_CODE_READY__PR560_WEB_MEAL_EDIT_17_OF_17_CI_PASS_SCHEDULED_POSTSHIFT__NO_RELEASE_YET",
-  "last_checkpoint": {
-    "id": "D167-CT-20261012-009",
-    "date_vn": "2026-10-12",
-    "topic": "Owner scoped Web meal edit ready PR560 and after-shift deployment guarded; PR559 unchanged",
-    "verified_branch_only": true
-  },
+  "last_checkpoint": "D167-E019",
   "deployment_gate": {
     "owner_latest": "2026-10-12 CODE_PASS_ONLY",
     "code_permission": true,
@@ -353,6 +348,25 @@
       ],
       "next_action": "At scheduled 22:15 VN follow strict gate for PR560 Beta Worker/Web only. If error or outside window fail closed and report; never release PR559. Record actual runtime result as separate checkpoint, not as CODE PASS.",
       "evidence": "GitHub PR560 checks 17/17 at 26c53b750590d3fe161a7df13fe504b13dbf7821; original PR559 20/20 at 59e37c123de5b04a4b7efd0e3afe60187a66109a; automation title Triển khai giờ nghỉ D167"
+    },
+    {
+      "id": "D167-E019",
+      "date_vn": "2026-10-12",
+      "topic": "Owner clarifies EARLY meal edit is a continuous time interval, not specific example minutes",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_MEAL_EARLY_CUTOFF_REFINEMENT__PR561_CODE_ONLY_CI_PENDING__NO_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "11:15, 11:35, 18:15 and 18:35 were only examples. For previously confirmed EARLY 11:00–11:30 / 18:00–18:30, original Reporter or ADMIN/ROOT may correct to LATE any instant until strictly before 12:00 lunch / 19:00 dinner VN.",
+        "Already selected LATE keeps existing original pre-11:00/pre-18:00 restriction; never infer special one-time unlock minutes.",
+        "Worker verifies current password or privileged proof, InventoryCore enforces VN day and CAS, recalc only pending tickets and alarm; already completed automatic or manual Skip or ACK never reversed.",
+        "Isolated Draft PR561 from main: d167-meal-edit-early-window-20261012 includes service/Web/tests/Owner decisions/ROLE_WORKFLOWS/ACCEPTANCE/state. PR559 remains Draft. No new provider resource, Android/Agent/WMS/Stable or scheduling changes."
+      ],
+      "open_questions": [
+        "Latest PR561 exact HEAD GitHub CI and source/type tests remain to be verified. No permission to merge/release this new executable candidate."
+      ],
+      "next_action": "Check PR561 required CI until terminal PASS or real failure; preserve code-only branch and Owner-gated deployment.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/561"
     }
   ],
   "resume": {
@@ -360,7 +374,8 @@
       "D167 requirements D01–D10 và ba slot FULL/DELTA, LTA/Shelving/UNKNOWN, no delete",
       "Lệnh mới 2026-10-12: CODE PASS ONLY / giữ PR #559 Draft",
       "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal",
-      "Owner 2026-10-12: same-VN-day FULL hard gate; Web FULL or Agent qualifies, PATCH does not; exact Picker/Reporter warning; WMS ephemeral signed API GET; cancel superseded backlog"
+      "Owner 2026-10-12: same-VN-day FULL hard gate; Web FULL or Agent qualifies, PATCH does not; exact Picker/Reporter warning; WMS ephemeral signed API GET; cancel superseded backlog",
+      "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged"
     ],
     "implemented": [
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
@@ -372,11 +387,13 @@
       "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent"
     ],
     "in_progress": [
-      "Scoped PR560 owner-authorized Beta Worker/Web release scheduled after shift, no production mutation yet; PR559 remains draft/code only"
+      "Scoped PR560 owner-authorized Beta Worker/Web release scheduled after shift, no production mutation yet; PR559 remains draft/code only",
+      "Isolated draft PR561 changes meal-edit window Web+Worker only, CI pending and not deployed"
     ],
     "pending_approval": [
       "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
-      "Owner field acceptance and separate Stable authorization"
+      "Owner field acceptance and separate Stable authorization",
+      "Separate exact-SHA Owner deploy approval for PR561 after CODE READY"
     ],
     "blocked": [
       "Real managed WMS/PRIMARY same-profile export, physical 6-Agent HA/PDA/ACK, provider billing and latency cannot be proven without separate field activation; not source code CI evidence",
@@ -385,7 +402,8 @@
     ],
     "next_actions": [
       "After shift confirm PR560 CI, owner release receipt and safe Beta Worker/Web merge+health readback; else stop and report",
-      "Preserve PR559 Draft until separate full D167 deploy Owner authorization"
+      "Preserve PR559 Draft until separate full D167 deploy Owner authorization",
+      "Verify PR561 CI and keep unmerged until explicit Owner deployment authorization"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
