@@ -296,7 +296,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     const existing = rosterRows(state);
     const meta = row(state,"SELECT revision,last_full_day,published_at FROM d167_sku_meta WHERE id=1") || {};
     const baseTime = meta.published_at ? Date.parse(String(meta.published_at)) : 0;
-    const plan = planSkuChanges(existing,staged,slotMode(slot),baseTime);
+    const plan = planSkuChanges(existing,staged,slotMode(slot),baseTime,day);
     const existingBySku = new Map(existing.map(x => [x.sku,x]));
     const changedSkus = new Set([
       ...plan.create.map(x=>x.sku), ...plan.update.map(x=>x.sku), ...plan.activate,
