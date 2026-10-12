@@ -78,14 +78,19 @@ namespace SupraInventoryRelayAgent
             // morning FULL is still undone, that FULL always takes precedence.
             var doneFull=slots.Any(s=>s.Slot=="INITIAL_05"&&s.State=="DONE");
             var nowMs=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var due=slots.Where(s=>s.ScheduledAtMs<=nowMs&&s.State!="DONE")
+            var eveningDue=slots.Any(s=>s.Slot=="DELTA_19" && s.ScheduledAtMs<=nowMs);
+            var due=slots.Where(s=>s.ScheduledAtMs<=nowMs &&
+                s.State!="DONE" && s.State!="SKIPPED" &&
+                // The service durably coalesces an unfinished noon slot once
+                // evening is due. Ignore stale cached noon state as well.
+                (s.Slot!="DELTA_12" || !eveningDue))
                 .OrderBy(s=>s.ScheduledAtMs).ToList();
             var eligible=!doneFull
                 ? due.FirstOrDefault(s=>s.Slot=="INITIAL_05")
                 : due.OrderByDescending(s=>s.ScheduledAtMs).FirstOrDefault();
             if(eligible==null)
             {
-                var next=slots.Where(s=>s.State!="DONE"&&s.ScheduledAtMs>nowMs)
+                var next=slots.Where(s=>s.State!="DONE"&&s.State!="SKIPPED"&&s.ScheduledAtMs>nowMs)
                     .OrderBy(s=>s.ScheduledAtMs).FirstOrDefault();
                 if(next!=null)
                     Arm(TimeSpan.FromMilliseconds(Math.Max(5000,next.ScheduledAtMs-nowMs)));
