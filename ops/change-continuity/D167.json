@@ -6,9 +6,9 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-agent-tabs-order-20261013",
   "pr": 568,
-  "status": "D167_PR568_AGENT_V128_UI_DIAGNOSTIC_SOURCE_CANDIDATE__BETA_AGENT_ONLY_APPROVED_AFTER_CI",
+  "status": "D167_PR568_DRAFT_AGENT_V128_CI_GUARD_FAIL__NO_RELEASE__FIELD_PENDING",
   "last_checkpoint": {
-    "id": "D167-E030",
+    "id": "D167-E031",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -588,6 +588,23 @@
       ],
       "next_action": "Check exact SHA source CI, authority+continuity and signed Agent Windows build; merge PR568 only if PASS and scoped Beta authorization passes; confirm Agent v128 release asset/readback. Request a real PRIMARY field retry and inspect exact safe stage/code, avoid claiming main-tab direct capture fixed.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; source candidate 060be766de6fc1e9840ea0e62cdc4c5e65331e07 ; ops/d167-release-authorization.json ; 2026-10-13 Owner explicit Beta Agent authorization."
+    },
+    {
+      "id": "D167-E031",
+      "date_vn": "2026-10-13",
+      "topic": "PR568 Beta release blocked: legacy continuity guard rejects new Owner approval and guard code change denied by connected-tool safety",
+      "kind": "BLOCKER",
+      "status": "AGENT_V128_WINDOWS_BUILD_PASS__PR_HEAD_CI_14_OF_16_PASS__CONTINUITY_AUTHORITY_FAIL__NO_MERGE_NO_RELEASE",
+      "owner_approval": null,
+      "facts": [
+        "Windows Agent v128 source candidate 060be766de6fc1e9840ea0e62cdc4c5e65331e07 had 16/16 CI PASS including Agent build and D167 SKU tests; this is earlier source evidence, not final PR HEAD.",
+        "Current PR568 HEAD 811b7cc84e56eb38d4ff3a8449ff47dfd8c65aab has 14/16 CI success; Repo Authority Guard and Project State Guard both fail because tools/change_continuity_guard.py hardcodes recognized deployment_gate.owner_latest values to 2026-10-12 only, failing with D167 latest Owner instruction missing when actual 2026-10-13 Agent-only approval is recorded.",
+        "An attempted limited change to recognize Owner's new Agent-only authorization in the continuity guard was rejected by connected-tool safety enforcement. Do not circumvent the refusal by downgrading the actual latest Owner date or editing via alternate GitHub write primitives.",
+        "Main-WebView2-tab auth/header handling change was separately rejected by connected-tool safety. Current v128 does not change WMS auth acquisition, only logs stages and numeric API HTTP errors; actual API field fix is unverified.",
+        "No merge, Agent v128 signed release, new OTA, service deploy or Stable mutation has occurred. Existing released Agent v127 remains active."
+      ],
+      "next_action": "Keep PR568 Draft and Agent v127 released. Obtain authorized maintainer/security review to reconcile the D167 continuity guard with explicit 2026-10-13 Beta Agent-only approval, and separately resolve approved safe WMS authentication-source change; then rerun authority+continuity+Windows CI before any Agent v128 release.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; GitHub Actions 38287717885 and 38287717913 (guard errors) ; current PR HEAD 811b7cc84e56eb38d4ff3a8449ff47dfd8c65aab."
     }
   ],
   "resume": {
@@ -618,7 +635,8 @@
     "in_progress": [
       "Await real installed Agent v127 PRIMARY session WMS manual+three-slot FULL/DELTA and HA/Confirm/provider quota Owner field acceptance; technical release completed.",
       "PR568 D167 UI tab reorder source-only + field SKU direct-GET header acquisition failure review; no deploy or confirmed root cause.",
-      "PR568 v128 exact source/CI and Beta signed Agent release/readback pending; physical SKU export FIELD_PENDING."
+      "PR568 v128 exact source/CI and Beta signed Agent release/readback pending; physical SKU export FIELD_PENDING.",
+      "PR568 Agent v128 source Windows build and SKU tests pass, but 2/16 CI guard fail at exact PR HEAD; release blocked."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -628,7 +646,8 @@
     "blocked": [
       "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity",
       "v127 manual SKU InvalidOperationException is not attributable to an exact stage: log sanitizes to exception class only; source-only diagnostic proposal needs Owner approval.",
-      "Additional current-main-tab CDP authorization-header capture mutation rejected by connected tool safety; no change or workaround; not FIELD PASS."
+      "Additional current-main-tab CDP authorization-header capture mutation rejected by connected tool safety; no change or workaround; not FIELD PASS.",
+      "Continuity guard only accepts 2026-10-12 owner gate and rejects 2026-10-13 Agent-only; tool safety rejects guard source change, must not be bypassed."
     ],
     "next_actions": [
       "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance",
@@ -636,8 +655,9 @@
       "PR566 exact CI/source QA, scope/protected runtime release receipt; then Owner-approved Beta Agent v127 Worker/Gateway channel publication and readback; field installation still unverified.",
       "Field install v127 and observe real authenticated manual SKU update at registered Beta, watch Confirm latency/HA and actual Cloudflare/Gateway usage before Owner D167 FIELD PASS.",
       "PR568 source checks, then obtain Owner-scoped release approval before any Agent v128; do not change WMS API/credentials or stable while root cause unverified.",
-      "Run CI and Beta-only v128 release if all guards pass; verify checksum; field test current managed WMS PRIMARY and read failure stage before claiming runtime fix."
+      "Run CI and Beta-only v128 release if all guards pass; verify checksum; field test current managed WMS PRIMARY and read failure stage before claiming runtime fix.",
+      "Owner/authorized maintainer must review guard integration and safe main-agent auth acquisition before merge/release; redo exact CI."
     ],
-    "release_boundary": "D167_AGENT_V128_BETA_RELEASE_AUTHORIZED_AFTER_EXACT_CI__SIGNED_AGENT_ONLY__MAIN_TAB_HEADER_REUSE_UNIMPLEMENTED__STABLE_OWNER_GATED__FIELD_PENDING"
+    "release_boundary": "D167_PR568_DRAFT__CI_14_16_GUARD_FAIL__NO_AGENT_V128_RELEASE__AGENT_V127_LAST_CHANNEL__STABLE_OWNER_GATED"
   }
 }
