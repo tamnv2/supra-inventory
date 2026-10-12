@@ -273,12 +273,22 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       ...plan.conflicts.map(x=>x.sku),
     ]);
     const updates = new Map(plan.update.map(x => [x.sku,x]));
+    // D167 source-completeness safety: a structurally valid but truncated WMS
+    // export must not silently hide most of an established active catalog.
+    // Normal sparse daily absences proceed without an extra operator action.
+    const previousActive = existing.filter(x => x.active).length;
+    const largeHideThreshold = Math.max(150, Math.floor(previousActive * 0.40));
+    const requiresLargeHideApproval = slot === "INITIAL_05" && previousActive >= 300
+      && plan.hide.length > largeHideThreshold;
     const summary = { created:plan.create.length,updated:plan.update.length,
       activated:plan.activate.length,hidden:plan.hide.length,unchanged:plan.unchanged,
+      previous_active:previousActive,requires_large_hide_approval:requiresLargeHideApproval,
       conflicts:plan.conflicts };
     if (action === "preview") return response({ status: "PREVIEW", ...summary });
     if (plan.conflicts.length && body.approve_conflicts !== true)
       return response({ error:"MANUAL_WEB_CONFLICT_APPROVAL_REQUIRED",...summary },409);
+    if (requiresLargeHideApproval && body.approve_large_hide !== true)
+      return response({ error:"FULL_ACTIVE_SET_DROP_REQUIRES_APPROVAL",...summary },409);
     if (Number(job.expected_revision || 0) !== Number(meta.revision || 0))
       return response({ error:"CATALOG_REVISION_CHANGED_REPREVIEW_REQUIRED" },409);
     if (slot !== "INITIAL_05" && String(meta.last_full_day || "") !== day)
