@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D167_PR559_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V126_TECHNICAL_PASS__FIELD_PENDING",
+      "status": "D167_PR566_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V127_TECHNICAL_PASS__FIELD_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
@@ -2873,5 +2873,26 @@
     "field_owner_pass": false,
     "stable": "OWNER_GATED_UNTOUCHED",
     "notes": "Technical deploy and GitHub release/asset pass do not prove physical installed PDA/Agent fleet, real WMS job success, QUOTA savings or Owner D167 PASS; no new resource created."
+  },
+  "d167_pr566_agent_sku_manual_beta_release_2026_10_12": {
+    "resource_scope": "EXISTING_REGISTERED_INVENTORY_BETA_ONLY",
+    "owner_approval": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA",
+    "pr": 566,
+    "merge_sha": "d14a481a890150b7f9438dcc04b2cae07e3cf3a2",
+    "approved_source_sha": "893ad2163022c2daef9f9183d8a7e2562f4a535d",
+    "pr_ci": "20_OF_20_SUCCESS",
+    "main_workflows": "13_OF_13_SUCCESS",
+    "worker_run": 38282063883,
+    "gateway_run": 38282063892,
+    "agent_run": 38282063816,
+    "agent_release": "relay-agent-v127",
+    "fixed_browser": "PUBLISH_WORKFLOW_PASS",
+    "android_release": "beta-vc106__UNCHANGED",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "sku_manual_tab": "WORKER_PASSWORD_REAUTH_AND_PRIMARY_FENCED_MANUAL_FULL_DELTA",
+    "provider_resource_change": "NONE",
+    "fleet_installed": "UNVERIFIED",
+    "field_owner_pass": false,
+    "billed_usage_savings": "UNVERIFIED"
   }
 }
