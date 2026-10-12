@@ -3300,27 +3300,25 @@ namespace SupraInventoryRelayAgent
             });
         }
 
-        private bool ConfirmD167SkuWebConflict(int count)
+        private bool ConfirmD167SkuWebConflict(string previewText)
         {
-            // Conflict approval belongs to the active authorized Agent operator,
-            // not a silent background reconciliation or the WMS login.
-            if(!HasAgentSession() || IsDisposed || Disposing)return false;
-            bool answer=false;
-            Action show=() => {
-                if(IsDisposed || Disposing || !HasAgentSession())return;
-                answer=MessageBox.Show(this,
-                    "Nguồn SKU Supra có "+count+" thay đổi xung đột với chỉnh sửa Web trong ngày.\n" +
-                    "Chỉ xác nhận khi được phép thay thế các giá trị Web đã chỉnh sửa.",
-                    "D167 · Xác nhận xung đột SKU",
-                    MessageBoxButtons.YesNo,MessageBoxIcon.Warning,
-                    MessageBoxDefaultButton.Button2)==DialogResult.Yes;
-            };
-            try {
-                if(InvokeRequired)Invoke(show);
-                else show();
-            } catch {return false;}
-            return answer && HasAgentSession() && _leaderCoordinator != null &&
-                _leaderCoordinator.IsLeader;
+            // Called by the SKU background worker. Do NOT Invoke/BeginInvoke a
+            // modal box owned by the main Agent window: that would stop UI
+            // responsiveness and could delay live PDA PickList confirmations.
+            if(!HasAgentSession() || IsDisposed || Disposing || string.IsNullOrWhiteSpace(previewText))
+                return false;
+            try
+            {
+                var approved = MessageBox.Show(
+                    previewText,
+                    "D167 · Duyệt nguồn SKU",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2) == DialogResult.Yes;
+                return approved && HasAgentSession() && _leaderCoordinator != null &&
+                    _leaderCoordinator.IsLeader;
+            }
+            catch { return false; }
         }
 
         private void StartLeaderCoordination()
