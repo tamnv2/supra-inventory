@@ -2894,5 +2894,21 @@
     "fleet_installed": "UNVERIFIED",
     "field_owner_pass": false,
     "billed_usage_savings": "UNVERIFIED"
+  },
+  "d167_pr568_agent_v128_beta_release_2026_10_13": {
+    "status": "BETA_TECHNICAL_RELEASE_PASS__FIELD_WMS_SKU_UNVERIFIED",
+    "authorization": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V128_UI_SAFE_DIAGNOSTIC_BETA",
+    "scope": "EXISTING_INVENTORY_BETA_WINDOWS_AGENT_ONLY",
+    "merged_pr": 568,
+    "merged_main_sha": "a0106e697de3b81f7f8fd2c5e732b842c6cab182",
+    "main_agent_release_run": 38323957784,
+    "agent_release": "relay-agent-v128",
+    "agent_exe_asset_sha256": "9d55f3b57b78e8ace62826ef7123203bcafd66862849940d340a3c0c7144c2d5",
+    "channel_exe_digest_matched": true,
+    "webview2_fixed_bundle": "PRESENT_IN_EXISTING_CHANNEL__NO_NEW_RUNTIME_CHANGE",
+    "latest_channel_manifest": "UPDATED_2026_10_12T23_49_03Z",
+    "code_feature": "EXISTING_HIDDEN_CHILD_SHARED_PROFILE__SAFE_STAGE_PHASE_ELAPSED_LOGS__WMS_AUTH_SOURCE_UNCHANGED",
+    "field": "REAL_MAIN_WMS_SESSION_XLSX_DOWNLOAD_SERVICE_DONE_HA_CONFIRM_PROVIDER_USAGE_OWNER_PASS_ALL_PENDING",
+    "unchanged": "WORKER_GATEWAY_ANDROID_STABLE_LAUNCHER_FLEET_MANDATORY_UPDATE_AND_NEW_RESOURCE"
   }
 }
