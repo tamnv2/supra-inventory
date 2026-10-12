@@ -37,3 +37,12 @@
 - A **synthetic** regression recreates these aggregate counts, not actual product details. Real-file completeness/parse has been inspected; this does not prove the new PRIMARY managed-browser export API, real 3-slot automation, durable 5k-row SQL performance, installed-vehicle field tests, or per-provider usage.
 - **Remaining engineering barrier is integration, not the prior standalone test**: the successful tester uses its own Edge login/profile and an external HTTP export with in-RAM header capture; current Owner D167 security policy requires executing the export inside the **existing Agent managed WMS browser/profile** without exporting/replaying its authentication outside that browser. The tester's credential-handling path must not be copied to the new production Agent.
 - D167 CODE READY still depends on completing this same-browser integration, exact WMS source validation, report/Excel parity, full catalog readback, 5k SQL / multi-Agent / Android compatibility regressions and PR checks. **No Beta or Stable deployment is claimed.**
+
+## 2026-10-12 — Owner CODE PASS ONLY hold, no deploy
+
+Owner explicitly supersedes the earlier 2026-10-11 combined D167 PR #559 code+Beta rollout instruction **for work not yet released**. Finish the entire approved source and all non-deploying CI/regression to CODE READY; **STOP with this PR Draft and unmerged**. No Worker/Web/DO, Agent EXE/channel, Android APK/OTA, Firebase Rules, Apps Script Gateway, live WMS automation, live SKU catalog mutation, Beta or Stable deployment. Existing installed Beta releases remain untouched.
+
+- PR CI may build/check source and use synthetic/mock fixtures, but must not publish artifacts to release channels, change production provider resources, run live WMS jobs or enable SKU-hiding flags.
+- Validate current managed-browser integration statically and in isolated nonmutating CI. Any proof that necessarily requires real company WMS, live PRIMARY or physical PDA remains explicitly `FIELD_PENDING`, not fictitious CODE PASS. Owner will separately approve a scoped release/field validation later.
+- Retain the existing 3-slot behavior, day-scoped FULL/DELTA, no deletion, atomic publish, historical area, reporting/Excel correctness, HA/ACK and quota regressions as mandatory CODE READY requirements.
+- The 2026-10-11 Beta PR #555 technical release is historical and is not rolled back; new release permission is **not inherited**.
