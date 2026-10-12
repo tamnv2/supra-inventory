@@ -5429,8 +5429,8 @@
     },
     {
       "id": "OA103",
-      "status": "D167_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING",
-      "title": "D167 code-only PR awaiting Owner deploy approval and field retest",
+      "status": "D167_PR559_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING",
+      "title": "D167 Beta release technical PASS; Owner field acceptance pending",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Existing Web Android Windows Agent Service providers",
       "reason_owner_only": "Real in-company PDA and Windows Agent version/confirm/failover behavior and screenshots/log ZIP of provider usage cannot be proven from GitHub release manifests alone; Owner may send existing evidence when collected.",
@@ -5450,7 +5450,7 @@
       "closed": false,
       "owner_code_only_approval": true,
       "owner_deploy_approval": true,
-      "accepted_runtime": "AGENT_V125_AND_ANDROID_VC105_BETA_RELEASED_TECHNICALLY__INSTALLED_FLEET_NOT_PROVEN",
+      "accepted_runtime": "D167_PR559_BETA_VC106_AGENT_V126_WORKER_WEB_GATEWAY_CHANNEL_TECHNICAL_PASS__FLEET_UNVERIFIED",
       "technical_receipt": {
         "pr": 550,
         "main": "9bcff631fed9c3bde6f164b223da94968e0e700a",
@@ -5523,6 +5523,26 @@
         "no_runtime_mutation": true,
         "stable": "OWNER_GATED_UNTOUCHED",
         "field_validation": "PENDING_REAL_WMS_PDA_AGENT_PROVIDER_EVIDENCE_AFTER_SEPARATE_APPROVAL"
+      },
+      "latest_d167_pr559_beta_release": {
+        "pr": 559,
+        "main_sha": "54ee8e51fbc25201e63e7059cdf2b2f0f1aff65c",
+        "approved_executable_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
+        "pr_head_sha": "17f40905f15a33022dc957d76c9e18e2e60775d1",
+        "predeploy_ci": "21_OF_21_SUCCESS",
+        "main_workflows": "14_OF_14_SUCCESS",
+        "scope": "EXISTING_INVENTORY_BETA_ONLY__WORKER_WEB_INVENTORYCORE_GATEWAY_ANDROID_VC106_AGENT_V126",
+        "worker_run": 38272307735,
+        "gateway_run": 38272307739,
+        "android_run": 38272307806,
+        "agent_run": 38272307815,
+        "android_release": "beta-vc106",
+        "agent_release": "relay-agent-v126",
+        "web_worker_health": "PASS_PER_GITHUB_DEPLOY_WORKFLOW",
+        "agent_fixed_webview2_bundle": "PUBLISH_WORKFLOW_PASS",
+        "fleet_installed": "UNVERIFIED",
+        "field_owner_pass": false,
+        "stable": "OWNER_GATED_UNTOUCHED"
       }
     }
   ],
