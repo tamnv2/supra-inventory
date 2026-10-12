@@ -230,3 +230,16 @@ test("D167 persisted WMS timestamp drives true same-day Web conflict CAS", async
   assert.match(agent, /finally\s*\{[\s\S]*File\.Delete\(downloadedFile\)[\s\S]*Page\.close/);
   assert.match(agent, /downloadedFile = WaitCompleteXlsx/);
 });
+
+test("D167 recovered PRIMARY import never mixes two distinct staged source files", async () => {
+  const { readFileSync } = await import("node:fs");
+  const core = readFileSync(new URL("../service/src/d167-sku-sync-core.ts", import.meta.url), "utf8");
+  const claim = core.slice(core.indexOf('if (action === "claim")'), core.indexOf('if (!guard(body, job))'));
+  assert.match(claim, /reclaimDifferentSource/);
+  assert.match(claim, /reclaimOtherOwner/);
+  assert.match(claim, /resetStage/);
+  assert.match(claim, /transactionSync\(\(\) => \{/);
+  assert.match(claim, /DELETE FROM d167_sku_stage WHERE day_vn/);
+  assert.match(claim, /fingerprint=CASE WHEN \? THEN NULL ELSE fingerprint END/);
+  assert.match(claim, /total_rows=CASE WHEN \? THEN 0 ELSE total_rows END/);
+});
