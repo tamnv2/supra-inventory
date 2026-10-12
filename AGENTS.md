@@ -96,3 +96,13 @@ Applies **before any analysis, proposal, edit, deletion, addition, optimization 
 5. **Serial approval unchanged.** This governance addition belongs to existing D167 only. It authorizes neither executable code nor Beta/Stable deployment, WMS automation, new provider resources, nor D167 Owner PASS; preserve branch→PR→authority/continuity CI→gated promotion.
 
 Canonical extended checklist and status reconciliation: `docs/D167_SYSTEM_REVIEW_2026-10-11.md`.
+
+## Repo-backed discussion checkpoints and exact Dxxx resume (Owner 2026-10-12)
+
+**MUST** read GitHub before every substantive Dxxx analysis, proposal, answer, code, review or resume—not just before mutation. Start at `main:ops/authority-manifest.json`, consume its complete declared `bootstrap_order` in order. Use the main state to discover the currently open Dxxx Draft PR; read that PR's **fresh HEAD** and its own `ops/authority-manifest.json`, full bootstrap, `ops/change-continuity/Dxxx.json`, source and current CI. The accepted base lives on `main`; the unmerged PR is the **working discussion/code state**, not released authority. Do not use AI memory or stale handover in preference to either.
+
+For `tiếp tục Dxxx`, first report the verified snapshot: Owner-approved decisions; open/unapproved discussions; completed source/CI work and exact evidence; ongoing tasks; failed/blockers; next authorized step; code/release/Owner-PASS gates. A superseded proposal stays traceable and must never be silently treated as Owner-approved.
+
+**Every substantive exchange must produce a GitHub discussion checkpoint BEFORE claiming it has been retained:** new question requiring analysis, proposed option, Owner approval/refusal, change of scope, technical evidence, CI result, unresolved item, next action. Append a sanitized entry to the current Dxxx working journal and read back its commit; adjust Owner decision/spec/state/action files **only as required for their proper authority layer**. A true read-only/no-new-information answer needs no duplicate commit. Do not commit raw chat or secrets to this public repo; on unavailable GitHub write, report `CHECKPOINT_NOT_SAVED` truthfully, never pretend that AI memory is GitHub.
+
+D167 latest Owner directive 2026-10-12 is **CODE PASS ONLY** for Draft PR #559: no merge to main, no Beta/Stable deploy, no Agent/Android releases/channels/OTA, no active WMS/SKU runtime mutation until a **new explicit Owner deployment approval**. Historical PR #555 Beta release remains unchanged. Detailed procedure: `docs/CHANGE_CONTINUITY_PROTOCOL.md`.
