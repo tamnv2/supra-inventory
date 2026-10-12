@@ -7,14 +7,17 @@ import { planSkuChanges, randomSlotTarget, slotMode,
 type Row = Record<string, string | number | null>;
 const SLOTS: D167Slot[] = ["INITIAL_05", "DELTA_12", "DELTA_19"];
 const JKEY = "HY1_SKU_MASTER";
+const MANUAL_SLOT = /^MANUAL_DELTA_[a-f0-9]{32}$/;
+const isManualDelta = (slot: string) => MANUAL_SLOT.test(slot);
 const response = (payload: unknown, status = 200) => new Response(JSON.stringify(payload), {
   status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
 });
 function row(state: DurableObjectState, sql: string, ...args: SqlStorageValue[]): Row | null {
   return state.storage.sql.exec<Row>(sql, ...args).toArray()[0] ?? null;
 }
-function safeSlot(v: unknown): D167Slot | null {
-  return SLOTS.includes(v as D167Slot) ? v as D167Slot : null;
+function safeSlot(v: unknown): string | null {
+  const slot = String(v || "");
+  return SLOTS.includes(slot as D167Slot) || isManualDelta(slot) ? slot : null;
 }
 function guard(input: Record<string, unknown>, job: Row): boolean {
   return String(input.instance_id || "") === String(job.owner_id || "")
@@ -32,6 +35,13 @@ export function initializeD167SkuSyncSchema(state: DurableObjectState): void {
       complete_at TEXT, receipt_json TEXT, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (day_vn,slot)
     );
+    CREATE TABLE IF NOT EXISTS d167_sku_manual_authority (
+      day_vn TEXT NOT NULL, run_id TEXT NOT NULL, slot TEXT NOT NULL,
+      actor_id TEXT NOT NULL, authorized_at_ms INTEGER NOT NULL,
+      PRIMARY KEY(day_vn,run_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_d167_manual_day_slot
+      ON d167_sku_manual_authority(day_vn,slot);
     CREATE TABLE IF NOT EXISTS d167_sku_stage (
       day_vn TEXT NOT NULL, slot TEXT NOT NULL, sku TEXT NOT NULL,
       product_name TEXT NOT NULL, area TEXT NOT NULL, area_verified INTEGER NOT NULL,
@@ -132,7 +142,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/d167/skus/")) return null;
   const action = url.pathname.slice("/d167/skus/".length);
-  if (!["schedule", "claim", "stage", "preview", "publish", "status"].includes(action))
+  if (!["schedule", "claim", "stage", "preview", "publish", "status", "manual-start"].includes(action))
     return response({ error: "NOT_FOUND" }, 404);
   let body: Record<string, unknown> = {};
   if (request.method === "POST") {
@@ -146,7 +156,45 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   if (day !== vnDayAt(Date.now())) return response({ error: "DAY_NOT_CURRENT" }, 409);
   const slot = safeSlot(body.slot || url.searchParams.get("slot"));
   if (action === "schedule" && request.method === "GET") {
-    return response({ day_vn: day, slots: ensureSchedule(state, day) });
+    const slots = ensureSchedule(state, day);
+    const recent = state.storage.sql.exec<Row>(`SELECT j.slot,j.state,j.complete_at,j.receipt_json,m.authorized_at_ms
+      FROM d167_sku_manual_authority m JOIN d167_sku_jobs j
+        ON j.day_vn=m.day_vn AND j.slot=m.slot
+      WHERE m.day_vn=? ORDER BY m.authorized_at_ms DESC LIMIT 5`,day).toArray();
+    return response({ day_vn:day, slots, recent_manual:recent });
+  }
+  if (action === "manual-start" && request.method === "POST") {
+    // Proof is verified by the Worker, stripped from its forwarded payload.
+    if (body.manual_start_verified !== true || !/^[a-f0-9]{32}$/.test(String(body.run_id || "")) ||
+        !String(body.actor_user_id || "").trim())
+      return response({error:"MANUAL_AUTH_REQUIRED"},403);
+    ensureSchedule(state,day);
+    const runId=String(body.run_id);
+    const existing=row(state,"SELECT slot FROM d167_sku_manual_authority WHERE day_vn=? AND run_id=?",day,runId);
+    if (existing) return response({status:"AUTHORIZED",slot:existing.slot,
+      mode:existing.slot==="INITIAL_05"?"FULL":"DELTA",idempotent:true});
+    const active=row(state,`SELECT slot FROM d167_sku_jobs WHERE day_vn=?
+      AND lease_until_ms>? AND state IN ('CLAIMED','STAGING') LIMIT 1`,day,Date.now());
+    if (active) return response({error:"SKU_JOB_IN_PROGRESS"},409);
+    const meta=row(state,"SELECT last_full_day FROM d167_sku_meta WHERE id=1");
+    const full = String(meta?.last_full_day || "")===day;
+    const chosen=full?"MANUAL_DELTA_"+runId:"INITIAL_05";
+    if (!full) {
+      const prior=row(state,`SELECT state FROM d167_sku_jobs WHERE day_vn=? AND slot='INITIAL_05'`,day);
+      if (!prior || prior.state==="DONE") return response({error:"INITIAL_FULL_STATE_CONFLICT"},409);
+      const authorized=row(state,`SELECT run_id FROM d167_sku_manual_authority
+        WHERE day_vn=? AND slot='INITIAL_05' AND authorized_at_ms>? LIMIT 1`,
+        day,Date.now()-15*60_000);
+      if (authorized) return response({error:"MANUAL_FULL_ALREADY_AUTHORIZED"},409);
+    }
+    state.storage.transactionSync(()=>{
+      if(full) state.storage.sql.exec(`INSERT OR IGNORE INTO d167_sku_jobs
+        (day_vn,slot,scheduled_at_ms) VALUES(?,?,?)`,day,chosen,Date.now());
+      state.storage.sql.exec(`INSERT INTO d167_sku_manual_authority
+        (day_vn,run_id,slot,actor_id,authorized_at_ms) VALUES(?,?,?,?,?)`,
+        day,runId,chosen,String(body.actor_user_id),Date.now());
+    });
+    return response({status:"AUTHORIZED",slot:chosen,mode:full?"DELTA":"FULL"});
   }
   if (!slot) return response({ error: "INVALID_SLOT" }, 400);
   ensureSchedule(state, day);
@@ -158,7 +206,12 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   if (request.method !== "POST") return response({ error: "METHOD_NOT_ALLOWED" }, 405);
   if (job.state === "DONE") return response({ status: "DONE", receipt: JSON.parse(String(job.receipt_json || "{}")) });
   if (job.state === "SKIPPED") return response({ error:"SLOT_COALESCED_INTO_EVENING",receipt:job.receipt_json },409);
-  if (Date.now() < Number(job.scheduled_at_ms)) return response({ error: "NOT_SCHEDULED_YET" }, 409);
+  const manual = row(state,`SELECT actor_id,authorized_at_ms FROM d167_sku_manual_authority
+    WHERE day_vn=? AND slot=? ORDER BY authorized_at_ms DESC LIMIT 1`,day,slot);
+  const manualAuthorized = manual && Date.now()-Number(manual.authorized_at_ms)<15*60_000;
+  if (isManualDelta(slot) && !manual) return response({error:"MANUAL_JOB_UNAUTHORIZED"},403);
+  if (Date.now() < Number(job.scheduled_at_ms) && !manualAuthorized)
+    return response({ error: "NOT_SCHEDULED_YET" }, 409);
   const instance = String(body.instance_id || "");
   const generation = String(body.generation || "");
   if (!/^[A-Za-z0-9:_-]{6,150}$/.test(instance) || !/^[A-Za-z0-9-]{16,150}$/.test(generation))
@@ -167,8 +220,11 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   if (action === "claim") {
     const previousFull = row(state,
       "SELECT complete_at FROM d167_sku_jobs WHERE day_vn=? AND slot='INITIAL_05' AND state='DONE'", day);
-    if (slot !== "INITIAL_05" && !previousFull)
-      return response({ error: "INITIAL_FULL_REQUIRED" }, 409);
+    if (slot !== "INITIAL_05" && !previousFull) {
+      const meta=row(state,"SELECT last_full_day FROM d167_sku_meta WHERE id=1");
+      if (String(meta?.last_full_day || "")!==day)
+        return response({ error: "INITIAL_FULL_REQUIRED" }, 409);
+    }
     if (Number(job.lease_until_ms || 0) > Date.now()
       && String(job.generation || "") === generation && String(job.owner_id || "") !== instance)
       return response({ error: "JOB_LEASED" }, 409);
@@ -197,7 +253,8 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
             day_vn:day,slot,source_rows:proposedCount,
             fingerprint:proposedFingerprint,created:0,updated:0,
             activated:0,hidden:0,unchanged:proposedCount,
-            source_unchanged:true,completed_at:at
+            source_unchanged:true,completed_at:at,
+            manual:Boolean(manual),actor_id:manual?.actor_id||null
           });
           state.storage.sql.exec(`UPDATE d167_sku_jobs SET state='DONE', fingerprint=?,
             total_rows=?,complete_at=?,receipt_json=?,owner_id=?,generation=?,
@@ -233,7 +290,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
         Number(rev?.revision||0),new Date().toISOString(),
         resetStage?1:0,resetStage?1:0,day,slot);
     });
-    return response({ status: "CLAIMED", slot, day_vn: day, mode: slotMode(slot), lease_expires_in_ms: 15*60_000 });
+    return response({ status: "CLAIMED", slot, day_vn: day, mode: slotMode(slot==="INITIAL_05"?"INITIAL_05":"DELTA_12"), lease_expires_in_ms: 15*60_000 });
   }
   if (!guard(body, job)) return response({ error: "HA_FENCED_OR_EXPIRED" }, 409);
   if (action === "stage") {
@@ -296,7 +353,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     const existing = rosterRows(state);
     const meta = row(state,"SELECT revision,last_full_day,published_at FROM d167_sku_meta WHERE id=1") || {};
     const baseTime = meta.published_at ? Date.parse(String(meta.published_at)) : 0;
-    const plan = planSkuChanges(existing,staged,slotMode(slot),baseTime,day);
+    const plan = planSkuChanges(existing,staged,slotMode(slot==="INITIAL_05"?"INITIAL_05":"DELTA_12"),baseTime,day);
     const existingBySku = new Map(existing.map(x => [x.sku,x]));
     const changedSkus = new Set([
       ...plan.create.map(x=>x.sku), ...plan.update.map(x=>x.sku), ...plan.activate,
@@ -410,7 +467,11 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
         if (Number(unexpected?.n||0)>0) throw new Error("D167_FULL_ACTIVE_SET_READBACK_MISMATCH");
       }
       const receipt = JSON.stringify({ day_vn:day,slot, fingerprint:job.fingerprint,
-        source_rows:entries.length,...summary, completed_at:at });
+        source_rows:entries.length,...summary, completed_at:at,
+        manual:Boolean(manual),actor_id:manual?.actor_id||null,
+        area_lta:staged.filter(x=>x.area==="LTA").length,
+        area_shelving:staged.filter(x=>x.area==="SHELVING").length,
+        area_unknown:staged.filter(x=>x.area==="UNKNOWN").length });
       state.storage.sql.exec(`UPDATE d167_sku_jobs SET state='DONE',complete_at=?,receipt_json=?,
         lease_until_ms=0,updated_at=? WHERE day_vn=? AND slot=?`,at,receipt,at,day,slot);
       if (slot==="INITIAL_05") state.storage.sql.exec(
