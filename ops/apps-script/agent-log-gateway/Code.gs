@@ -739,7 +739,7 @@ function zonedMidnightUtc_(now, timeZone) {
 
 function proxyD167SkuRequest_(request, idToken) {
   const operation = String(request.operation || '');
-  if (['schedule','status','claim','stage','preview','publish'].indexOf(operation) < 0)
+  if (['schedule','status','claim','stage','preview','publish','manual-start'].indexOf(operation) < 0)
     throw new Error('D167_INVALID_OPERATION');
   const data = request.data;
   if (!data || typeof data !== 'object' || Array.isArray(data))
@@ -749,8 +749,9 @@ function proxyD167SkuRequest_(request, idToken) {
     throw new Error('D167_INVALID_VN_DAY');
   const isGet = operation === 'schedule' || operation === 'status';
   const slot = String(data.slot || '');
-  if (!isGet || operation === 'status') {
-    if (['INITIAL_05','DELTA_12','DELTA_19'].indexOf(slot) < 0)
+  if ((!isGet && operation !== 'manual-start') || operation === 'status') {
+    if (['INITIAL_05','DELTA_12','DELTA_19'].indexOf(slot) < 0 &&
+        !/^MANUAL_DELTA_[a-f0-9]{32}$/.test(slot))
       throw new Error('D167_INVALID_SLOT');
   }
   const url = 'https://inventory-beta.supra.cc.cd/api/agent/d167/skus/' + operation +
