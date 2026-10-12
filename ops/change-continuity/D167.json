@@ -6,9 +6,9 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-agent-tabs-order-20261013",
   "pr": 568,
-  "status": "D167_PR568_DRAFT_AGENT_V128_CI_GUARD_FAIL__NO_RELEASE__FIELD_PENDING",
+  "status": "D167_OWNER_MAIN_AGENT_SESSION_SOURCE_APPROVED__PR568_FIELD_AND_CI_BLOCKED",
   "last_checkpoint": {
-    "id": "D167-E031",
+    "id": "D167-E032",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -605,6 +605,27 @@
       ],
       "next_action": "Keep PR568 Draft and Agent v127 released. Obtain authorized maintainer/security review to reconcile the D167 continuity guard with explicit 2026-10-13 Beta Agent-only approval, and separately resolve approved safe WMS authentication-source change; then rerun authority+continuity+Windows CI before any Agent v128 release.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; GitHub Actions 38287717885 and 38287717913 (guard errors) ; current PR HEAD 811b7cc84e56eb38d4ff3a8449ff47dfd8c65aab."
+    },
+    {
+      "id": "D167-E032",
+      "date_vn": "2026-10-13",
+      "topic": "Owner explicitly permits main managed Agent WMS session as read-only SKU API source; security/CI gates remain",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_SCOPE_APPROVED__MAIN_AGENT_WMS_READ_ONLY_SOURCE__IMPLEMENTATION_BLOCKED__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner states 'Anh duyệt được phép lấy từ agent chính' following the D167 v128 main-WMS session proposal, granting explicit business permission to use the signed-in WMS session currently controlled by PRIMARY Agent as the source context for read-only SKU export.",
+        "The intended approach must keep existing HTTPS read-only XLSX export scope and independently verified Service/HA authorization. No click/reload/navigation of the live Confirm PickList tab, credential persistence, unapproved cross-Agent sharing, WMS mutation, additional resource, Stable or device-force update.",
+        "Agent v128 PR568 still only changes tab ordering and diagnostic stage/error logging; it does not implement successful direct source use from the active main WMS tab. Earlier tool safety denied session-target handling and continuity guard adjustment; the new Owner business permission does not itself override platform safety enforcement.",
+        "PR568 last verified source commit 96286816a4a4c0edc05ad3222bc74e1ccaa31813 has 14/16 PR CI success, with Project State Guard and Repo Authority Guard failing on new Owner date handling in tools/change_continuity_guard.py. No merge/release; Agent v127 remains released.",
+        "Persisted Owner permission to docs/OWNER_DECISIONS.md, docs/specs/SKU_MASTER.md, docs/specs/AUTH_RBAC.md on PR568 without exposing WMS credential/headers in a public repository."
+      ],
+      "open_questions": [
+        "Can an approved first-party browser-context API operation avoid moving sensitive WMS session material into an external replay client and preserve Confirm latency? Must establish with supported safe integration; current connector denied previous target handling.",
+        "Can the authorized maintainer modify the D167 continuity guard to recognize the new scoped Owner decision without weakening guard verification? Exact PR CI required before release."
+      ],
+      "next_action": "Preserve PR568 as Draft until a supported safe managed-browser API integration and 16/16 CI can be demonstrated; then authorize only previously approved Agent Beta release scope. Do not claim direct-main integration or SKU DONE.",
+      "evidence": "Owner command 2026-10-13 in conversation; PR568 https://github.com/tamnv2/supra-inventory/pull/568 ; files docs/OWNER_DECISIONS.md, docs/specs/SKU_MASTER.md, docs/specs/AUTH_RBAC.md."
     }
   ],
   "resume": {
@@ -616,7 +637,8 @@
       "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged",
       "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved",
       "D167-E025: Owner explicitly approves Agent SKU update tab + server-password-protected run-now with no new polling, existing Inventory Beta rollout after CI; Agent v127 candidate.",
-      "2026-10-13 Owner authorizes v128 Beta Agent-only release after CI: tab order + secure SKU export diagnostic; no Worker/Android/Stable."
+      "2026-10-13 Owner authorizes v128 Beta Agent-only release after CI: tab order + secure SKU export diagnostic; no Worker/Android/Stable.",
+      "2026-10-13 Owner explicitly permits use of authenticated PRIMARY Agent main managed WMS session as SKU read-only API source; no Confirm mutation or credential persistence."
     ],
     "implemented": [
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
@@ -636,7 +658,8 @@
       "Await real installed Agent v127 PRIMARY session WMS manual+three-slot FULL/DELTA and HA/Confirm/provider quota Owner field acceptance; technical release completed.",
       "PR568 D167 UI tab reorder source-only + field SKU direct-GET header acquisition failure review; no deploy or confirmed root cause.",
       "PR568 v128 exact source/CI and Beta signed Agent release/readback pending; physical SKU export FIELD_PENDING.",
-      "PR568 Agent v128 source Windows build and SKU tests pass, but 2/16 CI guard fail at exact PR HEAD; release blocked."
+      "PR568 Agent v128 source Windows build and SKU tests pass, but 2/16 CI guard fail at exact PR HEAD; release blocked.",
+      "Main-Agent WMS source approved concept; implementation not verified, existing v128 UI/diagnostic source pending two continuity/authority guards."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -656,8 +679,9 @@
       "Field install v127 and observe real authenticated manual SKU update at registered Beta, watch Confirm latency/HA and actual Cloudflare/Gateway usage before Owner D167 FIELD PASS.",
       "PR568 source checks, then obtain Owner-scoped release approval before any Agent v128; do not change WMS API/credentials or stable while root cause unverified.",
       "Run CI and Beta-only v128 release if all guards pass; verify checksum; field test current managed WMS PRIMARY and read failure stage before claiming runtime fix.",
-      "Owner/authorized maintainer must review guard integration and safe main-agent auth acquisition before merge/release; redo exact CI."
+      "Owner/authorized maintainer must review guard integration and safe main-agent auth acquisition before merge/release; redo exact CI.",
+      "Resolve authorized safe main-browser WMS API integration and strict CI guard mismatch before any Beta Agent release."
     ],
-    "release_boundary": "D167_PR568_DRAFT__CI_14_16_GUARD_FAIL__NO_AGENT_V128_RELEASE__AGENT_V127_LAST_CHANNEL__STABLE_OWNER_GATED"
+    "release_boundary": "D167_MAIN_AGENT_WMS_SOURCE_OWNER_APPROVED__PR568_DRAFT_CI_14_16__NO_V128_RELEASE__V127_REMAINS__STABLE_OWNER_GATED"
   }
 }
