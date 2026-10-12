@@ -8,9 +8,9 @@
   "pr": 559,
   "status": "OPEN__SOURCE_IN_PROGRESS__CODE_PASS_PENDING__NO_DEPLOY",
   "last_checkpoint": {
-    "id": "D167-CT-20261012-002",
+    "id": "D167-CT-20261012-003",
     "date_vn": "2026-10-12",
-    "topic": "D167 Owner code pass implementation resume and scoped source regression",
+    "topic": "Optional Web area and no-op usage guard added to D167 code-only PR",
     "verified_branch_only": true
   },
   "deployment_gate": {
@@ -169,6 +169,24 @@
         "Không chuyển chi phí hay thêm polling Firebase/DO cho công việc đồng bộ"
       ],
       "open_questions": []
+    },
+    {
+      "id": "D167-E010",
+      "date_vn": "2026-10-12",
+      "topic": "D167 code-only Web SKU manual PATCH and FULL REPLACE with optional verified area; avoid PDA wake on no-op",
+      "kind": "TECHNICAL_FINDING",
+      "status": "SOURCE_IMPLEMENTED__EXACT_HEAD_CI_PENDING",
+      "owner_approval": null,
+      "facts": [
+        "Kiểm tra source thấy Web SKU Excel cũ chỉ có SKU và Tên, chưa hỗ trợ vị trí LTA/Shelving tùy chọn dù Owner-approved Web field diff/CAS.",
+        "Đã mở rộng parser Excel chấp nhận cột Khu vực tùy chọn, chỉ LTA hoặc Shelving; trống/thiếu cột giữ nguyên area hiện tại, trùng SKU khác khu vực bị chặn.",
+        "Web PATCH preview khác tên/khu vực và yêu cầu confirmation; trong giao dịch có CAS và tạo verified as-of WEB_APPROVED_PATCH interval đúng thời điểm, không hồi tố báo cáo trước.",
+        "Web FULL REPLACE Admin/Root preview, confirmation, CAS, atomic staging, no delete, readback and idempotent receipt; cho phép area tùy chọn và ghi history WEB_APPROVED_FULL.",
+        "Worker tránh broadcast sku_catalog_updated / PDA FCM nếu import no-op hay chỉ thay khu vực; nguồn report as-of vẫn đọc trực tiếp DO.",
+        "Source CI chỉ chứng minh typecheck/fixtures, chưa chứng minh đủ CPU/usage của 5k full/6-agent hoặc lần xuất WMS thật."
+      ],
+      "next_action": "Kiểm tra exact-head Github CI tổng thể, các source route Web/Worker/Agent; sửa lỗi nếu có; báo nguồn CODE PASS riêng field.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/559"
     }
   ],
   "resume": {
@@ -179,11 +197,12 @@
     ],
     "implemented": [
       "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
-      "D167 PR #559 source: PRIMARY WMS managed-side-tab scheduler + 3 slot, FULL hide/DELTA safe, HA/CAS, LTA/Shelving temporal history, dashboard/detail/Excel filters, Web PATCH vs explicit Admin FULL REPLACE, regression fixtures"
+      "D167 PR #559 source: PRIMARY WMS managed-side-tab scheduler + 3 slot, FULL hide/DELTA safe, HA/CAS, LTA/Shelving temporal history, dashboard/detail/Excel filters, Web PATCH vs explicit Admin FULL REPLACE, regression fixtures",
+      "Web manual SKU Excel optional LTA/Shelving, PATCH/FULL confirmed as-of provenance and no catalog blast when unchanged/area-only"
     ],
     "in_progress": [
-      "Verify all exact-head PR #559 non-deploying CI and repair any failure",
-      "Reconcile source-only CODE READY claim with 5k synthetic tests vs real DO/Office provider performance"
+      "Exact-head GitHub authority/continuity and Agent/Worker/Web code-only CI",
+      "Code-ready scope/evidence reconciliation; physical field proof separate"
     ],
     "pending_approval": [
       "Owner riêng duyệt triển khai Beta theo exact SHA/scope sau CODE PASS",
@@ -194,9 +213,9 @@
       "All Beta/Stable deployment and main merge are forbidden by latest Owner instruction"
     ],
     "next_actions": [
-      "Complete exact-head CI + code-only safety proof and reconcile CODE READY in state",
-      "Stop before merge/deploy; require new exact SHA/scope Owner deployment permission",
-      "At 'tiếp tục D167' load main authority then PR559 journal and fresh checks"
+      "Verify exact-head CI and fix only in-scope failures",
+      "Keep Draft/unmerged PR559 and preserve Beta/Stable runtime",
+      "Resume using main/working PR/journal source"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
