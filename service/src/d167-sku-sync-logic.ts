@@ -115,6 +115,7 @@ export function normalizeSourceRows(
 export function planSkuChanges(
   existing: D167CatalogRow[], incoming: D167Sku[], mode: D167JobMode,
   baselineRevision: number,
+  currentVnDay?: string,
 ): D167Diff {
   const bySku = new Map(existing.map(row => [row.sku, row]));
   const seen = new Set<string>();
@@ -126,9 +127,16 @@ export function planSkuChanges(
     if (!prev) { plan.create.push(row); continue; }
     if (!prev.active) plan.activate.push(row.sku);
     const change: { sku: string; name?: string; area?: D167Area; area_verified?: boolean } = { sku: row.sku };
+    // Owner INITIAL_05 FULL refresh may supersede yesterday's manual Web data.
+    // A legitimate same-day Web edit remains protected until the operator
+    // approves the overlapping WMS field change (no backdating of either).
+    const isProtectedSameDayEdit = (manualRevision: number) =>
+      manualRevision > 0 && (!currentVnDay || vnDayAt(manualRevision) === currentVnDay);
+
     const wmsNameChanged = prev.last_wms_name === null || prev.last_wms_name !== row.product_name;
     if (wmsNameChanged && prev.product_name !== row.product_name) {
-      if (prev.manual_name_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
+      if (isProtectedSameDayEdit(prev.manual_name_revision) &&
+          prev.manual_name_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
         sku: row.sku, field: "product_name", current: prev.product_name, incoming: row.product_name,
       }); else change.name = row.product_name;
     }
@@ -140,7 +148,8 @@ export function planSkuChanges(
     const wmsAreaChanged = areaObserved && (prev.last_wms_area === null || prev.last_wms_area !== row.area ||
       (prev.area === row.area && prev.area_verified !== row.area_verified));
     if (wmsAreaChanged && prev.area !== row.area) {
-      if (prev.manual_area_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
+      if (isProtectedSameDayEdit(prev.manual_area_revision) &&
+          prev.manual_area_revision > (prev.last_wms_observed_ms ?? baselineRevision)) plan.conflicts.push({
         sku: row.sku, field: "area", current: prev.area, incoming: row.area,
       }); else { change.area = row.area; change.area_verified = row.area_verified; }
     }
