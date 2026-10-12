@@ -584,7 +584,7 @@
         "New Owner release receipt allows AGENT-ONLY existing Beta release after source/authority/continuity build checks. The main WMS browser, Confirm code, Worker, Gateway, Android and Stable remain unchanged."
       ],
       "supersedes": [
-        "D167-E029 pending safe error code diagnostics are now source implemented; active main-tab capture remains blocked/not implemented."
+        "D167-E029"
       ],
       "next_action": "Check exact SHA source CI, authority+continuity and signed Agent Windows build; merge PR568 only if PASS and scoped Beta authorization passes; confirm Agent v128 release asset/readback. Request a real PRIMARY field retry and inspect exact safe stage/code, avoid claiming main-tab direct capture fixed.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; source candidate 060be766de6fc1e9840ea0e62cdc4c5e65331e07 ; ops/d167-release-authorization.json ; 2026-10-13 Owner explicit Beta Agent authorization."
