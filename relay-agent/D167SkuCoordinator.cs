@@ -59,7 +59,7 @@ namespace SupraInventoryRelayAgent
 
         internal void RequestStatus()
         {
-            if (!isPrimaryReady() || Interlocked.CompareExchange(ref running,0,0)!=0) return;
+            if (Interlocked.CompareExchange(ref running,0,0)!=0) return;
             Task.Run(()=>{
                 try { NotifyStatus(service.Schedule(D167SkuSchedule.VNNow().ToString("yyyy-MM-dd")),""); }
                 catch(Exception e) { NotifyStatus(null,"Không kiểm tra được Service: "+e.GetType().Name); }
