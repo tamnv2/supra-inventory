@@ -4008,3 +4008,10 @@ Code-reconciled boundary: the isolated old Edge tester succeeded; deployed v127 
 ## D167 Owner bổ sung 2026-10-13 — dùng phiên WMS Agent chính cho cập nhật SKU
 
 Owner trực tiếp xác nhận cho phép triển khai sử dụng phiên WMS đã đăng nhập trong Agent chính làm nguồn xác thực của luồng SKU read-only. Giữ nguyên điều kiện PRIMARY, quyền Agent hiện tại, xác thực thao tác thủ công, API export XLSX chỉ đọc đã đăng ký và các quy tắc FULL/DELTA; không can thiệp click, reload hoặc điều hướng tab Confirm PickList. Ưu tiên cơ chế gọi API trong ngữ cảnh trình duyệt được quản lý mà không lưu, hiển thị hay chuyển tiếp thông tin phiên nhạy cảm. Quyết định cho phép phạm vi nghiệp vụ, không phải bằng chứng đã triển khai thành công hoặc cho phép bỏ qua kiểm tra bảo mật, continuity hay CI. Việc kết nối trực tiếp tab WMS chính vẫn chưa được thực hiện do thao tác trước đó bị công cụ chặn; chỉ ghi nhận Owner approval trong PR #568, chờ giải pháp được kiểm tra và chấp thuận về bảo mật.
+
+
+## D167 2026-10-13 — Owner xác nhận triển khai Agent Beta sau khi dùng phiên WMS chính
+
+Owner tiếp tục xác nhận **“Ok triển khai”** sau quyết định cho phép dùng phiên WMS xác thực đang chạy của Agent PRIMARY làm nguồn cập nhật SKU. Phạm vi: chỉ Windows Agent Beta trong D167/PR #568; tab **Tổng quan → Cài đặt → Cập nhật SKU**, xuất Excel Bin Inventory bằng API read-only được đăng ký, lưu trữ phiên/credential không được phép, không click/reload tab Confirm PickList, không vượt quyền PRIMARY và xác thực thao tác thủ công; cần biên nhận Service DONE để công nhận hoàn tất.
+
+Quyết định này cấp quyền tiến hành triển khai kỹ thuật và phát hành **chỉ khi** source, bảo vệ bảo mật, authority, continuity và exact-head CI đều PASS. Không cấp quyền tắt guard hay giả trạng thái PASS. Code PR #568 hiện chưa có cơ chế xác thực lấy trực tiếp từ WMS tab chính được kiểm thử, còn 2/16 CI bảo vệ lỗi do parser mốc Owner, và sửa đổi nhạy cảm bị công cụ chặn. Vì vậy **chưa merge/phát hành v128; v127 Beta hiện hành và Stable không đổi**. Owner không phải duyệt lại cùng phạm vi; phần bị chặn cần được khắc phục theo quy trình chính thức.
