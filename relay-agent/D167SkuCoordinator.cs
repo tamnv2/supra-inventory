@@ -96,7 +96,8 @@ namespace SupraInventoryRelayAgent
                 log("D167_SKU manual=STAGE step=AUTHORIZE_DONE");
                 NotifyStatus(null,"Đang xuất SKU WMS theo yêu cầu...");
                 log("D167_SKU manual=STAGE step=WMS_EXPORT_BEGIN");
-                var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy());
+                var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
+                    stage=>log("D167_SKU export_stage="+stage));
                 log("D167_SKU manual=STAGE step=WMS_EXPORT_DONE sku_count="+workbook.Items.Count);
                 if(!isPrimaryReady()||confirmBusy())
                     throw new InvalidOperationException("D167_MANUAL_CONFIRM_PRIORITY");
@@ -196,7 +197,8 @@ namespace SupraInventoryRelayAgent
             }
             if(!isPrimaryReady()||confirmBusy()){Arm(TimeSpan.FromMinutes(5));return;}
             log("D167_SKU slot="+eligible.Slot+" stage=EXPORT_BEGIN");
-            var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy());
+            var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
+                    stage=>log("D167_SKU export_stage="+stage));
             if(!isPrimaryReady())throw new InvalidOperationException("D167_PRIMARY_LOST_AFTER_EXPORT");
             log("D167_SKU slot="+eligible.Slot+" stage=WMS_EXPORT_DONE sku_count="+workbook.Items.Count);
             // Conditional Service CAS/HA authority checks happen again on each
