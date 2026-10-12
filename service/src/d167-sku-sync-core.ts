@@ -75,6 +75,20 @@ function ensureSchedule(state: DurableObjectState, day: string): Row[] {
       state.storage.sql.exec(`INSERT INTO d167_sku_jobs (day_vn,slot,scheduled_at_ms)
         VALUES (?,?,?)`, day, slot, scheduled);
     }
+    // The evening job supersedes an uncompleted noon DELTA. Never let a
+    // delayed primary retry publish a stale noon snapshot after evening.
+    const evening = row(state,
+      "SELECT scheduled_at_ms FROM d167_sku_jobs WHERE day_vn=? AND slot='DELTA_19'",
+      day);
+    if (evening && Date.now() >= Number(evening.scheduled_at_ms)) {
+      const now = new Date().toISOString();
+      const receipt = JSON.stringify({ day_vn:day, slot:"DELTA_12",
+        reason:"COALESCED_INTO_DELTA_19", skipped_at:now });
+      state.storage.sql.exec(`UPDATE d167_sku_jobs
+        SET state='SKIPPED', receipt_json=?, lease_until_ms=0, updated_at=?
+        WHERE day_vn=? AND slot='DELTA_12'
+          AND state NOT IN ('DONE','SKIPPED')`, receipt,now,day);
+    }
     return state.storage.sql.exec<Row>(
       "SELECT day_vn,slot,state,scheduled_at_ms,complete_at,receipt_json FROM d167_sku_jobs WHERE day_vn=? ORDER BY scheduled_at_ms",
       day,
@@ -143,6 +157,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       complete_at: job.complete_at, receipt: job.receipt_json ? JSON.parse(String(job.receipt_json)) : null });
   if (request.method !== "POST") return response({ error: "METHOD_NOT_ALLOWED" }, 405);
   if (job.state === "DONE") return response({ status: "DONE", receipt: JSON.parse(String(job.receipt_json || "{}")) });
+  if (job.state === "SKIPPED") return response({ error:"SLOT_COALESCED_INTO_EVENING",receipt:job.receipt_json },409);
   if (Date.now() < Number(job.scheduled_at_ms)) return response({ error: "NOT_SCHEDULED_YET" }, 409);
   const instance = String(body.instance_id || "");
   const generation = String(body.generation || "");
