@@ -157,6 +157,97 @@ export function confirmMealChoice(
   };
 }
 
+/**
+ * Editing an already confirmed meal period is deliberately narrower than the
+ * original Reporter first-choice flow.  No post-start edits: those could
+ * retroactively change whether an already granted automatic Skip was timely.
+ */
+export function mealEditPolicy(args: {
+  period: string; choice: string; role: string; actorId: string;
+  originalActor: string; oldChoice: string; dayVn: string;
+  nowMs: number; expectedDay: string;
+}): string | null {
+  if (!["LUNCH", "DINNER"].includes(args.period) ||
+      !["EARLY", "LATE"].includes(args.choice) ||
+      !args.actorId || !args.originalActor ||
+      args.expectedDay !== args.dayVn) return "INVALID_MEAL_EDIT";
+  if (args.choice === args.oldChoice) return "MEAL_CHOICE_UNCHANGED";
+  if (args.role !== "ADMIN" && args.role !== "ROOT" &&
+      !(args.role === "REPORTER" && args.actorId === args.originalActor))
+    return "MEAL_EDIT_FORBIDDEN";
+  const base = vnMidnightMs(args.dayVn);
+  const earliest = base + (args.period === "LUNCH" ? 11 * 60 : 18 * 60) * 60_000;
+  if (args.nowMs >= earliest) return "MEAL_EDIT_WINDOW_CLOSED";
+  return null;
+}
+
+export function editMealChoice(
+  state: DurableObjectState,
+  body: {
+    period?: string; choice?: string; expected_day_vn?: string;
+    expected_confirmed_at?: string; actor_id?: string;
+    actor_name?: string; actor_role?: string; credential_mode?: string;
+  },
+  nowMs = Date.now(),
+): { status: number; payload: Record<string, unknown>; changed: boolean } {
+  const day = vnDayAt(nowMs);
+  const period = String(body.period || "");
+  const choice = String(body.choice || "");
+  const actorId = String(body.actor_id || "").trim();
+  const expectedAt = String(body.expected_confirmed_at || "").trim();
+  if (!expectedAt || expectedAt.length > 80 ||
+      !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(expectedAt))
+    return { status: 400, payload: { error: "MEAL_EDIT_EXPECTED_VERSION_REQUIRED" }, changed: false };
+  // Mutation and recalculation share a DO SQLite transaction.  Concurrent Web
+  // edits race on the original confirmed_at CAS and never create lost updates.
+  const result = state.storage.transactionSync(() => {
+    const prior = first(state.storage.sql.exec<SqlRow>(
+      "SELECT choice, confirmed_at, confirmed_by, confirmed_name FROM d167_meal_choices WHERE day_vn=? AND period=?",
+      day, period,
+    ).toArray());
+    if (!prior) return { status: 409, payload: { error: "MEAL_NOT_CONFIRMED" }, changed: false };
+    const denial = mealEditPolicy({
+      period, choice, role: String(body.actor_role || ""), actorId,
+      originalActor: String(prior.confirmed_by || ""), oldChoice: String(prior.choice || ""),
+      dayVn: day, expectedDay: String(body.expected_day_vn || ""), nowMs,
+    });
+    if (denial) return { status: denial === "MEAL_EDIT_FORBIDDEN" ? 403 : 409,
+      payload: { error: denial }, changed: false };
+    if (expectedAt !== String(prior.confirmed_at || ""))
+      return { status: 409, payload: { error: "MEAL_EDIT_STALE_CONFIRMATION" }, changed: false };
+    const slot = slotFor(day, period as MealPeriod, choice as MealChoice);
+    const at = new Date(nowMs).toISOString();
+    const altered = state.storage.sql.exec(
+      "UPDATE d167_meal_choices SET choice=?,starts_at_ms=?,ends_at_ms=?,confirmed_at=?,confirmed_by=?,confirmed_name=? WHERE day_vn=? AND period=? AND confirmed_at=? AND choice=?",
+      choice, slot.from, slot.to, at, actorId, String(body.actor_name || "").slice(0, 120),
+      day, period, expectedAt, String(prior.choice),
+    );
+    const affected = first(state.storage.sql.exec<SqlRow>("SELECT changes() AS n").toArray());
+    if (Number(affected?.n || 0) !== 1)
+      return { status: 409, payload: { error: "MEAL_EDIT_CONFLICT_RETRY" }, changed: false };
+    const recalculated = recalculateMealAdjustedDeadlines(state);
+    state.storage.sql.exec(
+      "INSERT INTO audit_log (audit_id,actor_user_id,actor_employee_code,action,target_type,target_id,metadata_json,created_at) VALUES (?,?,?,?,?,?,?,?)",
+      crypto.randomUUID(), actorId, null, "MEAL_BREAK_EDIT", "MEAL_BREAK",
+      day + ":" + period, JSON.stringify({
+        day_vn: day, period, before_choice: String(prior.choice),
+        after_choice: choice, before_confirmed_at: expectedAt,
+        after_confirmed_at: at, credential_mode: String(body.credential_mode || "PASSWORD"),
+        recalculated,
+      }), at,
+    );
+    return {
+      status: 200, changed: true,
+      payload: { status: "UPDATED", day_vn: day, period,
+        choice, start_ms: slot.from, end_ms: slot.to,
+        confirmed_at: at, confirmed_by: actorId,
+        confirmed_name: String(body.actor_name || "").slice(0, 120),
+        deadlines_adjusted: recalculated },
+    };
+  });
+  return result;
+}
+
 export function dueMealDefaults(state: DurableObjectState, nowMs = Date.now()): Array<{day_vn:string;period:MealPeriod;event_id:string}> {
   const day = vnDayAt(nowMs), base = vnMidnightMs(day);
   const events: Array<{day_vn:string;period:MealPeriod;event_id:string}> = [];
