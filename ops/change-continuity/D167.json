@@ -268,8 +268,7 @@
         "Owner requires genuine complete buildable, release-ready CODE PASS: after future exact-scope deploy order no further functional coding expected; project remains CODE ONLY now, no merge or Beta/Stable runtime changes."
       ],
       "supersedes": [
-        "D167-E013:missing-FULL fallback proposal",
-        "D167 old D126 blanket exclusion for narrowly scoped in-process WMS export"
+        "D167-E013"
       ],
       "next_action": "Reconcile source/server warnings and WMS API direct GET, run all exact-HEAD required CI, keep draft/no deploy",
       "evidence": "docs/OWNER_DECISIONS.md#2026-10-12--d167-owner-quyết-định-sku-ngày-hiện-tại"
