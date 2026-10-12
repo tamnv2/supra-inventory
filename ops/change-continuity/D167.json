@@ -7,7 +7,7 @@
   "working_branch": "d167-code-three-slot-sku-area-report-20261011",
   "pr": 559,
   "status": "D167_PR559_SOURCE_CODE_READY__PR560_WEB_MEAL_EDIT_17_OF_17_CI_PASS_SCHEDULED_POSTSHIFT__NO_RELEASE_YET",
-  "last_checkpoint": "D167-E019",
+  "last_checkpoint": "D167-E020",
   "deployment_gate": {
     "owner_latest": "2026-10-12 CODE_PASS_ONLY",
     "code_permission": true,
@@ -367,6 +367,25 @@
       ],
       "next_action": "Check PR561 required CI until terminal PASS or real failure; preserve code-only branch and Owner-gated deployment.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/561"
+    },
+    {
+      "id": "D167-E020",
+      "date_vn": "2026-10-12",
+      "topic": "D167 EARLY meal edit isolated PR561 code-ready validation",
+      "kind": "TEST",
+      "status": "CODE_READY_15_OF_15_GITHUB_WORKFLOWS_SUCCESS__NO_DEPLOY",
+      "owner_approval": null,
+      "facts": [
+        "PR561 isolated from current main. Exact executable/documentation HEAD 0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a has 15/15 GitHub workflows success with zero failure including D167 meal edit guard, Repo Authority Guard, Project State Guard and predeploy verify.",
+        "EARLY-to-LATE correction now accepted at every instant after the original confirmation and strictly before 12:00 lunch or 19:00 dinner, including 11:15 and 11:35; LATE selection pre-11:00/pre-18:00 cutoff unchanged.",
+        "Web and Worker/InventoryCore coordinated; original Reporter/admin/root current-account proof, transaction CAS and audit, pending-only Auto Skip recalculation and existing realtime preserved. No additional provider service, polling or device release.",
+        "PR561 remains Draft/unmerged awaiting future explicit Owner approval to deploy new exact source. PR559 remains Draft/unmerged."
+      ],
+      "open_questions": [
+        "Field check of EARLY-to-LATE correction after 11:30/18:30 with pending vs previously completed automatic Skip must follow a separately authorized Beta deploy."
+      ],
+      "next_action": "Keep PR561 CODE READY without merge/deployment; require exact-SHA Owner deploy instruction for this correction, independent from broader PR559.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/561; SHA 0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a"
     }
   ],
   "resume": {
@@ -384,16 +403,17 @@
       "2026-10-12 fresh source audit: correct last_wms_observed SQL cursor, only same-VN-day Web conflicts, atomic stale-stage HA recovery, WMS child cleanup on errors, expanded code-only CI contract paths",
       "D167 Source CODE READY (19/19 source-head CI PASS at 9f04a577); final Docs/State receipt HEAD CI is rechecked separately",
       "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known",
-      "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent"
+      "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent",
+      "D167 meal EARLY continuous edit correction PR561 exact HEAD 0e4757f2: 15/15 CI PASS, Draft/unmerged, no deploy"
     ],
     "in_progress": [
-      "Scoped PR560 owner-authorized Beta Worker/Web release scheduled after shift, no production mutation yet; PR559 remains draft/code only",
-      "Isolated draft PR561 changes meal-edit window Web+Worker only, CI pending and not deployed"
+      "Scoped PR560 owner-authorized Beta Worker/Web release scheduled after shift, no production mutation yet; PR559 remains draft/code only"
     ],
     "pending_approval": [
       "New explicit Owner approval for exact-SHA Beta deployment, WMS field rollout, Web/Worker/Agent/Android scope",
       "Owner field acceptance and separate Stable authorization",
-      "Separate exact-SHA Owner deploy approval for PR561 after CODE READY"
+      "Separate exact-SHA Owner deploy approval for PR561 after CODE READY",
+      "Deploy approval for isolated code-ready PR561 Web+Worker/InventoryCore EARLY edit interval"
     ],
     "blocked": [
       "Real managed WMS/PRIMARY same-profile export, physical 6-Agent HA/PDA/ACK, provider billing and latency cannot be proven without separate field activation; not source code CI evidence",
@@ -403,7 +423,8 @@
     "next_actions": [
       "After shift confirm PR560 CI, owner release receipt and safe Beta Worker/Web merge+health readback; else stop and report",
       "Preserve PR559 Draft until separate full D167 deploy Owner authorization",
-      "Verify PR561 CI and keep unmerged until explicit Owner deployment authorization"
+      "Verify PR561 CI and keep unmerged until explicit Owner deployment authorization",
+      "Keep PR561 Draft until owner release command; do not auto-deploy"
     ],
     "release_boundary": "NO_MERGE_NO_BETA_NO_STABLE_NO_AGENT_ANDROID_RELEASE_NO_OTA_NO_WMS_RUNTIME_NO_LIVE_SKU_MUTATION"
   }
