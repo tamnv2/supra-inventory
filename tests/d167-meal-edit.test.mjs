@@ -10,9 +10,27 @@ test("original Reporter or Admin/ROOT can amend before earliest start",()=>{
  assert.equal(mealEditPolicy({...data,role:"ADMIN",actorId:"other"}),null);
  assert.equal(mealEditPolicy({...data,role:"ROOT",actorId:"other"}),null);
 });
-test("cannot change after earliest meal start or if current day changed",()=>{
- assert.equal(mealEditPolicy({...data,nowMs:vnMidnightMs(day)+11*60*60_000}),"MEAL_EDIT_WINDOW_CLOSED");
- assert.equal(mealEditPolicy({...data,period:"DINNER",nowMs:vnMidnightMs(day)+18*60*60_000}),"MEAL_EDIT_WINDOW_CLOSED");
+test("EARLY lunch edit is continuous, including 11:15 and 11:35, until before 12:00",()=>{
+ const base=vnMidnightMs(day);
+ for(const [hour,min] of [[10,56],[11,0],[11,15],[11,29],[11,30],[11,35],[11,59]]) {
+  assert.equal(mealEditPolicy({...data,nowMs:base+(hour*60+min)*60_000}),null);
+ }
+ assert.equal(mealEditPolicy({...data,nowMs:base+12*60*60_000-1}),null);
+ assert.equal(mealEditPolicy({...data,nowMs:base+12*60*60_000}),"MEAL_EDIT_WINDOW_CLOSED");
+});
+test("EARLY dinner edit is continuous until before 19:00",()=>{
+ const base=vnMidnightMs(day), dinner={...data,period:"DINNER"};
+ for(const [hour,min] of [[17,56],[18,0],[18,15],[18,30],[18,35],[18,59]]) {
+  assert.equal(mealEditPolicy({...dinner,nowMs:base+(hour*60+min)*60_000}),null);
+ }
+ assert.equal(mealEditPolicy({...dinner,nowMs:base+19*60*60_000}),"MEAL_EDIT_WINDOW_CLOSED");
+});
+test("selected LATE retains its original pre-start correction boundary and VN day CAS",()=>{
+ const base=vnMidnightMs(day);
+ const late={...data,oldChoice:"LATE",choice:"EARLY"};
+ assert.equal(mealEditPolicy({...late,nowMs:base+11*60*60_000-1}),null);
+ assert.equal(mealEditPolicy({...late,nowMs:base+11*60*60_000}),"MEAL_EDIT_WINDOW_CLOSED");
+ assert.equal(mealEditPolicy({...late,period:"DINNER",nowMs:base+18*60*60_000}),"MEAL_EDIT_WINDOW_CLOSED");
  assert.equal(mealEditPolicy({...data,expectedDay:"2026-10-11"}),"INVALID_MEAL_EDIT");
 });
 test("other Reporter, non-allowed role, invalid payload and no-op cannot edit",()=>{
@@ -48,5 +66,7 @@ test("Core uses CAS, SQL transaction, audit and postchange alarm without changin
  assert.match(router,/url\.pathname === "\/d167\/meal\/edit"/);
  assert.match(router,/scheduleNextOperationalAlarm\(this\.state\)/);
  assert.match(app,/data-d167-meal-edit/);
+ assert.ok(app.includes('record?.choice === "EARLY" ? 1 : 0'));
+ assert.match(app,/Cho phép đổi liên tục trước/);
  assert.match(app,/editD167Meal\(period, choice, password, day, old\.confirmed_at\)/);
 });

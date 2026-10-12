@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_PR555_BETA_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PASS_PENDING",
+    "current_change_status": "D167_PR561_SCOPED_BETA_DEPLOY_OWNER_APPROVED__PR_CI_AND_RUNTIME_PENDING__OWNER_FIELD_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7134,6 +7134,30 @@
       "approved_executable_sha": "87f98baac4d514dad265d1bb5c391601ef97b4cd",
       "latest_owner_instruction": "IMMEDIATE_SCOPED_WEB_WORKER_DEPLOY_ONLY__NO_SCHEDULE__PR559_CODE_ONLY",
       "d167_scheduled_deploy_automations": "BOTH_DISABLED"
+    },
+    "meal_break_early_window_correction_2026_10_12": {
+      "status": "OWNER_EXPLICIT_PR561_BETA_DEPLOY_APPROVED__SOURCE_15_OF_15_CI_PASS__RELEASE_PENDING",
+      "supersedes": "MEAL_EDIT_EARLY_CHOICE_CUTOFF_BEFORE_11_OR_18_ONLY",
+      "when_selected_early": "CONTINUOUS_EDIT_ANYTIME_AFTER_CONFIRMATION_AND_BEFORE_12_LUNCH_OR_19_DINNER_VN",
+      "when_selected_late": "KEEP_EXISTING_CUTOFF_BEFORE_11_LUNCH_OR_18_DINNER_VN",
+      "note": "11_15_11_35_18_15_18_35_ARE_EXAMPLES_NOT_FIXED_TIMES",
+      "scope": [
+        "BETA_WEB_CODE_ONLY",
+        "WORKER_INVENTORYCORE_CODE_ONLY"
+      ],
+      "security_and_consistency": "REAUTH_PASSWORD_OR_PRIVILEGED_PROOF__ROLE_ORIGINAL_CONFIRMING_REPORTER_OR_ADMIN_ROOT__VN_DATE_CAS__AUDIT__PENDING_AUTO_SKIP_ONLY__NO_RETROACTIVE_SKIP_ROLLBACK",
+      "regression": "SOURCE_SHA_B01E2E632B7381BCA3F9F3A32983C61A354C1858_15_OF_15_PASS__WEB_SERVICE_BUILD_NODES_AND_AUTHORITY_CI__DOC_FINAL_SHA_PENDING",
+      "owner_approved": true,
+      "code_permission": true,
+      "deploy_permission": true,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "other_d167_pr559": "DRAFT_CODE_ONLY_UNMERGED",
+      "code_ready": true,
+      "owner_deploy_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR561_CONTINUOUS_EARLY_MEAL_EDIT_BETA",
+      "owner_deploy_scope": "EXISTING_BETA_WEB_WORKER_INVENTORYCORE_ONLY__NO_STABLE_OR_PR559",
+      "approved_source_sha": "0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a",
+      "release_state": "UNMERGED_AWAIT_FINAL_PR_CI_AND_OWNER_GATE",
+      "d167_owner_pass": false
     }
   }
 }

@@ -2,11 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "87f98baac4d514dad265d1bb5c391601ef97b4cd",
+  "approved_source_sha": "0e4757f2af7846ddf6c60d6ddfb5bacd3b550e7a",
   "approved_components": [
     "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR560_MEAL_IMMEDIATE_BETA_WEB_WORKER",
-  "approved_at_vn": "2026-10-12T11:15:00+07:00",
-  "note": "Owner authorized immediate deploy of PR560 only. Preserve PR559 code-only. Scope remains Beta Web/Worker/InventoryCore; no APK, Agent or Stable."
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR561_CONTINUOUS_EARLY_MEAL_EDIT_BETA",
+  "approved_at_vn": "2026-10-12T19:21:00+07:00",
+  "note": "Owner explicitly commands deploy now of isolated D167 PR561: continuous EARLY->LATE meal correction at any instant before 12:00 lunch / 19:00 dinner VN. Only existing Beta Web assets+Worker/InventoryCore; retain LATE pre-11:00/18:00 lock, password/privileged proof, CAS and pending-only auto-Skip. Source-approved executable SHA 0e4757f2... must remain ancestor, no protected-file delta after it. No PR559 merge, APK, Agent, Gateway, Firebase, WMS, Stable, new resources or scheduled automation."
 }

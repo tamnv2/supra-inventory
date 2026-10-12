@@ -2845,8 +2845,12 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
   const early = period === "LUNCH" ? "11:00–11:30" : "18:00–18:30";
   const late = period === "LUNCH" ? "11:30–12:00" : "18:30–19:00";
   const selected = record?.choice === "EARLY" ? early : late;
+  // EARLY: edit continuously until 12:00/19:00 VN, including the second
+  // half-hour. LATE retains the original 11:00/18:00 VN cutoff.
+  const cutoffUtcHour = (period === "LUNCH" ? 4 : 11) +
+    (record?.choice === "EARLY" ? 1 : 0);
   const cutoff = d167MealState ? Date.parse(d167MealState.day_vn + "T00:00:00Z") +
-    (period === "LUNCH" ? 4 : 11) * 60 * 60_000 : 0; // 11:00/18:00 VN in UTC.
+    cutoffUtcHour * 60 * 60_000 : 0;
   const mayEdit = Boolean(record && profile &&
     (profile.role === "ADMIN" || profile.role === "ROOT" ||
      (profile.role === "REPORTER" && profile.user_id === record.confirmed_by)) &&
@@ -2863,7 +2867,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
       </select></label>
       <label><span>Mật khẩu xác nhận</span><input type="password" name="currentPassword" autocomplete="off" required maxlength="128" /></label>
       <button class="secondary" type="submit">Xác nhận đổi giờ</button>
-    </form><p class="tiny muted">Chỉ sửa trước ${period === "LUNCH" ? "11:00" : "18:00"} (giờ Việt Nam). Hệ thống tự đồng bộ các Reporter.</p>` : ""}
+    </form><p class="tiny muted">Cho phép đổi liên tục trước ${period === "LUNCH" ? (record?.choice === "EARLY" ? "12:00" : "11:00") : (record?.choice === "EARLY" ? "19:00" : "18:00")} (giờ Việt Nam). Hệ thống tự đồng bộ các Reporter.</p>` : ""}
     <form class="d167-meal-form" data-d167-meal-form="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
       <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
         <option value="EARLY">${early}</option><option value="LATE">${late}</option>
