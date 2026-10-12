@@ -7134,6 +7134,24 @@
       "approved_executable_sha": "87f98baac4d514dad265d1bb5c391601ef97b4cd",
       "latest_owner_instruction": "IMMEDIATE_SCOPED_WEB_WORKER_DEPLOY_ONLY__NO_SCHEDULE__PR559_CODE_ONLY",
       "d167_scheduled_deploy_automations": "BOTH_DISABLED"
+    },
+    "meal_break_early_window_correction_2026_10_12": {
+      "status": "OWNER_APPROVED__SOURCE_COMMITTED__CI_PENDING__NO_DEPLOY",
+      "supersedes": "MEAL_EDIT_EARLY_CHOICE_CUTOFF_BEFORE_11_OR_18_ONLY",
+      "when_selected_early": "CONTINUOUS_EDIT_ANYTIME_AFTER_CONFIRMATION_AND_BEFORE_12_LUNCH_OR_19_DINNER_VN",
+      "when_selected_late": "KEEP_EXISTING_CUTOFF_BEFORE_11_LUNCH_OR_18_DINNER_VN",
+      "note": "11_15_11_35_18_15_18_35_ARE_EXAMPLES_NOT_FIXED_TIMES",
+      "scope": [
+        "BETA_WEB_CODE_ONLY",
+        "WORKER_INVENTORYCORE_CODE_ONLY"
+      ],
+      "security_and_consistency": "REAUTH_PASSWORD_OR_PRIVILEGED_PROOF__ROLE_ORIGINAL_CONFIRMING_REPORTER_OR_ADMIN_ROOT__VN_DATE_CAS__AUDIT__PENDING_AUTO_SKIP_ONLY__NO_RETROACTIVE_SKIP_ROLLBACK",
+      "regression": "EXACT_12_00_19_00_BOUNDARY_AND_LATE_RESTRICTION__PR_SOURCE_CI_PENDING",
+      "owner_approved": true,
+      "code_permission": true,
+      "deploy_permission": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "other_d167_pr559": "DRAFT_CODE_ONLY_UNMERGED"
     }
   }
 }
