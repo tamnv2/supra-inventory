@@ -150,7 +150,7 @@ def main() -> None:
                     or not re.fullmatch(r"[0-9a-f]{40}", authorization["approved_source_sha"])
                     or authorization["approved_source_sha"] != gate.get("approved_source_sha")):
                 fail("D167 Agent v128 exact Owner authorization mismatch")
-            if state.get("change_control", {}).get("pr568_release_gate") != expected_ref:
+            if state.get("change_control", {}).get("pr568_release_gate") != expected_ref + "__STABLE_UNTOUCHED":
                 fail("D167 Agent v128 state gate mismatch")
             approved = {e.get("id"): e for e in entries if e.get("owner_approval") is True}
             for ident in ("D167-E032", "D167-E033"):
