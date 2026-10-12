@@ -390,6 +390,8 @@ test("D167 v128 diagnoses existing direct API export safely without changing WMS
   assert.match(coordinator,/error_code="\+SafeErrorCode\(e\)/);
   assert.match(ui,/D167SkuCoordinator\.SafeErrorCode\(e\)/);
   assert.match(direct,/HTTP_"\+\(\(int\)http\.StatusCode\)/);
+  // SafeErrorCode accepts uppercase only; WebExceptionStatus enum names are mixed-case.
+  assert.match(direct,/NETWORK_"\+e\.Status\.ToString\(\)\.ToUpperInvariant\(\)/);
   assert.doesNotMatch(coordinator, /log\([^;]*e\.Message/);
   assert.doesNotMatch(exporter,/Network\.setExtraHTTPHeaders|Page\.navigate|ClickOneExact/);
   assert.match(direct,/req\.Method="GET"/);
