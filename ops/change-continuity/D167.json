@@ -8,7 +8,7 @@
   "pr": 568,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
-    "id": "D167-E035",
+    "id": "D167-E036",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -677,6 +677,32 @@
       ],
       "next_action": "Keep PR568 Draft. Obtain permitted security-reviewed read-only WMS authentication source in active PRIMARY browser without changing Confirm or extracting/storing session secrets, rerun CI and field test. Do not merge/release v128 or claim SKU DONE or Owner PASS prematurely.",
       "evidence": "https://github.com/tamnv2/supra-inventory/commit/cd104822f2d8de76ca5b866ac8f6c0351df3c4f8 ; https://github.com/tamnv2/supra-inventory/pull/568"
+    },
+    {
+      "id": "D167-E036",
+      "date_vn": "2026-10-13",
+      "topic": "Owner asks whether a hidden secondary Agent WebView sharing the main WMS login/profile can fix v128 SKU export",
+      "kind": "TECHNICAL_FINDING",
+      "status": "ALREADY_IMPLEMENTED_IN_PR568__AUTH_EXPORT_NOT_PROVEN__DISCUSSION_ONLY",
+      "owner_approval": null,
+      "facts": [
+        "Owner proposes a hidden child WMS browser opened from main Agent, reusing the signed-in session as the read-only SKU Excel data source without interrupting Confirm.",
+        "PR568 HEAD b6b49657 already implements this geometry: SupraConfirmBrowserD167.OpenD167HiddenSkuExportPage invokes window.open with a bounded marker; relay-agent-webview2-host/Program.cs NewWindowRequested creates a 1x1 Visible=false child under the same CoreWebView2Environment/profile, without changing the active Confirm WebView.",
+        "Existing D167SkuBrowserExport obtains a separate side-tab CDP target and then uses D167SkuDirectExport to capture transient authorization headers from side-tab Network events before issuing a separate allowlisted HTTPS GET. This is materially the same sensitive authentication-replay boundary previously blocked by connected-tool safety.",
+        "Sharing WebView2 environment/profile provides shared browser storage including cookies but does not guarantee cross-page in-memory authorization headers or an authenticated export API call; an actual child popup and a WMS-authorized read-only export must be tested separately. A UI popup request log does not prove export success.",
+        "Exact PR568 head b6b49657 GitHub PR checks show 16 successful relevant jobs (including relay-agent, authority, continuity, source-contract) and 10 skipped; Agent v128 remains Draft, no release and no real WMS/SKU DONE evidence. PR568's stage/log fixes are not a functional WMS authentication repair."
+      ],
+      "alternatives": [
+        "A: Retain current hidden child and diagnose at safe stage-code level whether child created, logged in and API export could be authorized; no auth/header/token material in logs.",
+        "B: Only through an authorized, security-reviewed browser-native or official WMS export integration, perform the read-only export inside the authenticated browser context without extracting/replaying credentials in a separate HTTP client; check cross-origin/auth feasibility first.",
+        "C: Retain validated Admin Web Excel import/manual test flow until a compliant unattended WMS integration is proven; do not claim automatic daily SKU DONE."
+      ],
+      "open_questions": [
+        "Does WMS recognize the hidden child's shared browser session for its export function without exposing bearer/token/signature material?",
+        "Is there a supported officially authorized read-only export path that avoids cross-context credential extraction and the previously enforced tool security block?"
+      ],
+      "next_action": "Explain to Owner that hidden same-profile WebView2 is already in current v128 source and is insufficient by itself; no code/release change from this analysis. Require a proven safe authorized export path and real field evidence before any v128 release claim.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; relay-agent/SupraConfirmBrowserD167.cs ; relay-agent-webview2-host/Program.cs ; relay-agent/D167SkuBrowserExport.cs ; relay-agent/D167SkuDirectExport.cs ; PR HEAD b6b49657f2fb36d68bed6bea345bbf2a78656add"
     }
   ],
   "resume": {
@@ -717,7 +743,8 @@
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
       "Separate Stable deployment approval only if Owner explicitly requests",
-      "D167-E024 — Agent SKU tab with 3 daily slots, low-usage local status and password-confirmed instantaneous manual FULL/DELTA: proposal only, Owner review pending; no code/deploy authorized."
+      "D167-E024 — Agent SKU tab with 3 daily slots, low-usage local status and password-confirmed instantaneous manual FULL/DELTA: proposal only, Owner review pending; no code/deploy authorized.",
+      "D167-E036 — Hidden same-profile WMS child is already implemented; evaluate only security-reviewed native/official export path, no new source/deploy approved in this discussion."
     ],
     "blocked": [
       "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity",
