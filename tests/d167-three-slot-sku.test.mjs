@@ -386,6 +386,12 @@ test("D167 v128 diagnoses existing direct API export safely without changing WMS
   for(const step of ["AUTHORIZE_BEGIN","AUTHORIZE_DONE","WMS_EXPORT_BEGIN","WMS_EXPORT_DONE","SERVICE_UPLOAD_BEGIN"]) {
     assert.ok(coordinator.includes("step="+step),"missing support stage "+step);
   }
+  assert.match(coordinator,/manualTrace=System\.Diagnostics\.Stopwatch\.StartNew\(\)/);
+  assert.match(coordinator,/manual=FAILED error_type/);
+  assert.match(coordinator,/phase="+manualPhase/);
+  assert.match(coordinator,/manual=TRACE export_stage/);
+  assert.match(coordinator,/slotTrace=System\.Diagnostics\.Stopwatch\.StartNew\(\)/);
+  assert.match(coordinator,/elapsed_ms=/);
   assert.match(coordinator,/SafeErrorCode\(Exception error\)/);
   assert.match(coordinator,/error_code="\+SafeErrorCode\(e\)/);
   assert.match(ui,/D167SkuCoordinator\.SafeErrorCode\(e\)/);
