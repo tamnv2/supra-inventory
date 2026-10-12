@@ -1518,13 +1518,13 @@ export default {
         const operator = await requireAgentUser(request, env, ["ADMIN","PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const action = url.pathname.slice("/api/agent/d167/skus/".length);
-        if (!["schedule","status","claim","stage","preview","publish"].includes(action))
+        if (!["schedule","status","claim","stage","preview","publish","manual-start"].includes(action))
           return json({ error: "NOT_FOUND" }, 404);
         if (request.method === "GET") {
           if (action !== "schedule" && action !== "status") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
           return coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action + url.search);
         }
-        if (request.method !== "POST" || !["claim","stage","preview","publish"].includes(action))
+        if (request.method !== "POST" || !["claim","stage","preview","publish","manual-start"].includes(action))
           return json({ error: "METHOD_NOT_ALLOWED" }, 405);
         let input: Record<string, unknown>;
         try {
@@ -1532,6 +1532,26 @@ export default {
           if (!raw || typeof raw !== "object" || Array.isArray(raw)) return json({ error: "INVALID_JSON" }, 400);
           input = raw as Record<string, unknown>;
         } catch { return json({ error: "INVALID_JSON" }, 400); }
+        if (action === "manual-start") {
+          const proof=String(input.proof || "");
+          const runId=String(input.run_id || "");
+          if (!proof || proof.length>128 || !/^[a-f0-9]{32}$/.test(runId))
+            return json({error:"D167_MANUAL_PROOF_OR_RUN_INVALID"},403);
+          const verified=await verifyCurrentAuthenticationProof(env,operator,proof);
+          if (!verified.valid) return json({error:"CURRENT_PASSWORD_INVALID"},403);
+          const leader=await verifyD167AgentPrimary(env,
+            String(input.instance_id||""),String(input.generation||""));
+          if (!leader) return json({error:"NOT_CURRENT_FIREBASE_PRIMARY"},409);
+          // Never forward the credential or trust client-submitted actor/proof mode.
+          return coreStub(env).fetch("https://inventory-core.internal/d167/skus/manual-start",{
+            method:"POST",headers:{"content-type":"application/json"},
+            body:JSON.stringify({
+              day_vn:input.day_vn,run_id:runId,manual_start_verified:true,
+              actor_user_id:operator.user_id,verified_mode:verified.mode,
+              instance_id:input.instance_id,generation:input.generation,
+            }),
+          });
+        }
         // A PICKPACK_ADMIN may run the ordinary already-fenced SKU job,
         // but overriding a same-field Web edit requires an Inventory ADMIN
         // credential. Never trust only the Agent's local Yes/No dialog.

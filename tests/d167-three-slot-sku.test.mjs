@@ -310,3 +310,48 @@ test("D167 first FULL wakes SKU freshness clients even on a catalog no-op", asyn
   assert.match(router,/published\.sku_day_first_full !== true && published\.catalog_changed !== true/);
   assert.match(router,/event:"sku_catalog_updated",scopes:\["sku_catalog"\]/);
 });
+
+
+test("D167 manual Agent SKU sync requires Worker password + PRIMARY, never creates a Firebase listener", async () => {
+  const {readFileSync}=await import("node:fs");
+  const api=readFileSync(new URL("../service/src/index.ts",import.meta.url),"utf8");
+  const core=readFileSync(new URL("../service/src/d167-sku-sync-core.ts",import.meta.url),"utf8");
+  const gateway=readFileSync(new URL("../ops/apps-script/agent-log-gateway/Code.gs",import.meta.url),"utf8");
+  const agent=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const ui=readFileSync(new URL("../relay-agent/D167SkuUi.cs",import.meta.url),"utf8");
+  assert.match(api,/action === "manual-start"/);
+  assert.match(api,/verifyCurrentAuthenticationProof\(env,operator,proof\)/);
+  assert.match(api,/verifyD167AgentPrimary\(env,/);
+  assert.match(api,/manual_start_verified:true/);
+  assert.match(core,/manual_start_verified !== true/);
+  assert.match(core,/d167_sku_manual_authority/);
+  assert.match(core,/MANUAL_DELTA_\[a-f0-9\]\{32\}/);
+  assert.match(core,/run_id TEXT NOT NULL/);
+  assert.match(core,/MANUAL_FULL_ALREADY_AUTHORIZED/);
+  assert.match(core,/manualAuthorized/);
+  assert.match(core,/manual:\s*Boolean\(manual\)/);
+  assert.match(gateway,/manual-start/);
+  assert.match(agent,/Interlocked\.CompareExchange\(ref running,1,0\)/);
+  assert.match(agent,/RunManual\(string credential\)/);
+  assert.match(agent,/service\.ManualStart/);
+  assert.match(ui,/AgentPasswordVerificationDialog/);
+  assert.match(ui,/StatusChanged|RenderD167SkuStatus/);
+  assert.doesNotMatch(ui,/Firestore|setInterval|System\.Threading\.Timer/);
+});
+
+test("D167 manual DELTA and automatic three-slot schedule remain independent", async () => {
+  const {readFileSync}=await import("node:fs");
+  const core=readFileSync(new URL("../service/src/d167-sku-sync-core.ts",import.meta.url),"utf8");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const client=readFileSync(new URL("../relay-agent/D167SkuServiceClient.cs",import.meta.url),"utf8");
+  assert.match(core,/const SLOTS: D167Slot\[\] = \["INITIAL_05", "DELTA_12", "DELTA_19"\]/);
+  assert.match(core,/const chosen=full\?"MANUAL_DELTA_"\+runId:"INITIAL_05"/);
+  assert.match(core,/if\(full\) state\.storage\.sql\.exec/);
+  assert.match(core,/slot==="INITIAL_05"\?"INITIAL_05":"DELTA_12"/);
+  assert.match(core,/source_unchanged:true,completed_at:at/);
+  assert.match(core,/state='DONE' AND fingerprint IS NOT NULL/);
+  assert.match(coordinator,/service\.Schedule\(day\)/);
+  assert.match(client,/RecentManual/);
+  assert.match(client,/SourceRows|source_rows|ReceiptJson/);
+  assert.doesNotMatch(core,/DELETE FROM sku_master/);
+});

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +26,8 @@ namespace SupraInventoryRelayAgent
         private string activeKey="";
         private int running;
         private bool disposed;
+        private D167SkuWorkbook lastVerifiedWorkbook;
+        internal event Action<List<D167SkuSlotStatus>,List<D167SkuSlotStatus>,D167SkuWorkbook,string> StatusChanged;
 
         internal D167SkuCoordinator(SupraConfirmBrowser managedBrowser,
             Func<AgentSession> currentSession,Action ensureFreshToken,
@@ -41,6 +44,63 @@ namespace SupraInventoryRelayAgent
             log=logger ?? delegate {};
             service=new D167SkuServiceClient(currentSession,ensureFreshToken,primaryReady);
             timer=new Timer(_=>Queue(),null,Timeout.Infinite,Timeout.Infinite);
+        }
+
+        private void NotifyStatus(List<D167SkuSlotStatus> slots,string message)
+        {
+            var handler=StatusChanged;
+            if(handler!=null)
+            {
+                try { handler(slots==null?new List<D167SkuSlotStatus>():slots.ToList(),
+                    service.RecentManual.ToList(),lastVerifiedWorkbook,message); }
+                catch(Exception e) { log("D167_SKU_UI error_type="+e.GetType().Name); }
+            }
+        }
+
+        internal void RequestStatus()
+        {
+            if (Interlocked.CompareExchange(ref running,0,0)!=0) return;
+            Task.Run(()=>{
+                try { NotifyStatus(service.Schedule(D167SkuSchedule.VNNow().ToString("yyyy-MM-dd")),""); }
+                catch(Exception e) { NotifyStatus(null,"Không kiểm tra được Service: "+e.GetType().Name); }
+            });
+        }
+
+        // Manual operation is serialized with the existing scheduled workflow.
+        // The server validates current-account password/OTP AND current HA lease.
+        internal void RunManual(string credential)
+        {
+            if (Interlocked.CompareExchange(ref running,1,0)!=0)
+                throw new InvalidOperationException("D167_SKU_JOB_ALREADY_RUNNING");
+            try
+            {
+                if(!isPrimaryReady() || confirmBusy())
+                    throw new InvalidOperationException("D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY");
+                var day=D167SkuSchedule.VNNow().ToString("yyyy-MM-dd");
+                var runId=Guid.NewGuid().ToString("N");
+                var slot=service.ManualStart(day,instanceId,generation(),runId,credential);
+                NotifyStatus(null,"Đang xuất SKU WMS theo yêu cầu...");
+                var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy());
+                if(!isPrimaryReady()||confirmBusy())
+                    throw new InvalidOperationException("D167_MANUAL_CONFIRM_PRIORITY");
+                if(!service.UploadAndPublish(day,slot,instanceId,generation(),workbook,confirmConflicts))
+                    throw new InvalidOperationException("D167_MANUAL_RECEIPT_UNVERIFIED");
+                lastVerifiedWorkbook=workbook;
+                NotifyStatus(service.Schedule(day),"Cập nhật thủ công DONE, đã xác minh Service.");
+                log("D167_SKU manual=DONE area_snapshot_count="+workbook.Items.Count);
+            }
+            catch(Exception e)
+            {
+                NotifyStatus(null,"Cập nhật thủ công chưa thành công: "+e.GetType().Name);
+                log("D167_SKU manual=FAILED error_type="+e.GetType().Name);
+                throw;
+            }
+            finally
+            {
+                Interlocked.Exchange(ref running,0);
+                // Re-evaluate the unchanged three-slot schedule once after manual.
+                Queue();
+            }
         }
 
         internal void OnPrimaryOrWmsReady()
@@ -73,6 +133,7 @@ namespace SupraInventoryRelayAgent
             if(local.Hour < 5) {Arm(TimeSpan.FromHours(Math.Max(0.1,5-local.TimeOfDay.TotalHours)));return;}
             var day=local.ToString("yyyy-MM-dd");
             var slots=service.Schedule(day);
+            NotifyStatus(slots,"");
             // Service owns one randomized persisted scheduled_at_ms per slot.
             // Only the newest scheduled eligible DELTA is acted on. If the
             // morning FULL is still undone, that FULL always takes precedence.
@@ -122,7 +183,9 @@ namespace SupraInventoryRelayAgent
             var success=service.UploadAndPublish(day,eligible.Slot,instanceId,generation(),
                 workbook,confirmConflicts);
             if(!success)throw new InvalidOperationException("D167_DONE_NOT_VERIFIED");
+            lastVerifiedWorkbook=workbook;
             log("D167_SKU slot="+eligible.Slot+" stage=DONE count="+workbook.Items.Count);
+            NotifyStatus(slots,"Đã ghi nhận xong, đang đồng bộ biên nhận...");
             // Schedule remaining slots once, not on every WMS/HA event.
             Arm(TimeSpan.FromSeconds(2));
         }

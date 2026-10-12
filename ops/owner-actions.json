@@ -5556,5 +5556,16 @@
     "cancelled_proposals": "HR_SHEET_PARTIAL_FIX__LIVE_QUEUE_HISTORICAL_ASOF__ONE_SKU_DONE__UNIVERSAL_RENAME_CONFIRM__UNMEASURED_CROSS_METER_ROLLOUT",
     "owner_action_now": "NONE__COMPLETE_SOURCE_CI_ONLY",
     "future_owner_action": "EXPLICIT_EXACT_SHA_BETA_DEPLOY_APPROVAL"
+  },
+  "d167_agent_sku_tab_manual_2026_10_12": {
+    "status": "OWNER_APPROVED_CODE_AND_BETA_DEPLOY_AFTER_EXACT_PR_CI",
+    "proposed_pr": 566,
+    "agent_version_candidate": 127,
+    "resource_scope": "EXISTING_INVENTORY_BETA_WORKER_GATEWAY_AGENT_ONLY",
+    "owner_approved": "2026-10-12_OK_CHOT_TRiEN_KHAI",
+    "beta_release_gate": "FRESH_SOURCE_PR_CI_PASS_AND_EXACT_SOURCE_SHA",
+    "stable": "OWNER_GATED",
+    "android": "UNCHANGED",
+    "field_acceptance": "PENDING_REAL_WMS_PRIMARY_HA_AND_INSTALLED_AGENT"
   }
 }

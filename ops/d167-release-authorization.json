@@ -2,14 +2,13 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c",
+  "approved_source_sha": "893ad2163022c2daef9f9183d8a7e2562f4a535d",
   "approved_components": [
     "worker",
     "gateway",
-    "android",
     "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_ALL_CODE_READY_BETA",
-  "approved_at_vn": "2026-10-12T22:18:00+07:00",
-  "note": "Owner explicitly orders rollout of all D167 items that have passed code. PR559 integrated source commit is exact approved ancestor and later documentation changes are unprotected; allow existing scoped Beta Worker+Web/InventoryCore, Apps Script Gateway, Android signed vc106 and Windows Agent v126 release only after fresh PR CI and existing release guards PASS. Do not change Stable, Launcher, provider resource IDs or mandatory Android floor solely by this approval. D167 business field PASS pending. Integrated Web TypeScript duplicate-helper regression repaired at exact executable SHA c6bc865b78e9b16f3dc83a47788cdd4fa7a68b2c; no executable files permitted beyond this SHA during release receipt."
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA",
+  "approved_at_vn": "2026-10-12T23:25:00+07:00",
+  "note": "Latest Owner command approves Agent Cập nhật SKU manual authenticated FULL/DELTA and Beta rollout after code/CI. Reviewed source SHA 893ad216 is exact ancestor; permit only existing Inventory Beta Worker+InventoryCore/Web bundle, existing Apps Script Agent Gateway and Windows Agent v127; Android vc106, Launcher, Firebase resources, Stable and mandatory fleet update unchanged. Worker strips current-account password/OTP before Core; auth/HA security tested by source guards and Windows build. Field/Owner acceptance is separately pending."
 }
