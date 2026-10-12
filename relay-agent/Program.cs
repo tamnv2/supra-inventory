@@ -712,6 +712,9 @@ namespace SupraInventoryRelayAgent
         private bool _allowExit;
         private bool _updateCheckRunning;
         private int _manualPicklistOperationRunning;
+        // D167: automatic PDA confirmation pipeline is independent of manual Picklist commands.
+        // Track both so a background WMS export yields to business ACK/confirm work.
+        private int _d167AutomaticConfirmRunning;
         private long _localPdaRequests;
         private long _localAgentResponses;
         private long _localConfirmSuccess;
@@ -759,7 +762,8 @@ namespace SupraInventoryRelayAgent
                       _supraBrowser != null && _supraBrowser.IsAgentOwnedMode() &&
                       _leaderCoordinator != null && _leaderCoordinator.IsLeader &&
                       !string.IsNullOrWhiteSpace(_leaderCoordinator.Generation),
-                () => Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)!=0,
+                () => Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)!=0 ||
+                      Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning,0,0)!=0,
                 () => _leaderCoordinator == null ? "" : _leaderCoordinator.Generation,
                 _agentInstanceId, ConfirmD167SkuWebConflict, message => Log(message));
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
@@ -4456,7 +4460,11 @@ namespace SupraInventoryRelayAgent
             List<FirestoreConfirmationWorkItem> works,
             Action<string, FirestoreConfirmationOutcome> terminalCallback)
         {
-            return ProcessFirestoreConfirmationsD160(works, terminalCallback);
+            // D167: do not mistake an idle manual grid for an idle PRIMARY.
+            // The PDA relay's D160 automatic pipeline also owns the live Confirm tab.
+            Interlocked.Increment(ref _d167AutomaticConfirmRunning);
+            try { return ProcessFirestoreConfirmationsD160(works, terminalCallback); }
+            finally { Interlocked.Decrement(ref _d167AutomaticConfirmRunning); }
         }
 
         private static bool IsSafeBrowserFailure(SupraBrowserConfirmResult result)
