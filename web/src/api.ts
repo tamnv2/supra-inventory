@@ -1326,6 +1326,23 @@ export async function confirmD167Meal(
   }));
 }
 
+export async function editD167Meal(
+  period: "LUNCH" | "DINNER",
+  choice: "EARLY" | "LATE",
+  password: string,
+  dayVn: string,
+  expectedConfirmedAt: string,
+): Promise<{ status: string; day_vn: string; period: string; choice: string; confirmed_at: string }> {
+  return readJson(await authorizedFetch("/api/reporter/meal-break/edit", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      period, choice, current_password: password,
+      expected_day_vn: dayVn, expected_confirmed_at: expectedConfirmedAt,
+    }),
+  }));
+}
+
 export async function getAndroidAlertWindow(): Promise<AndroidAlertWindowState> {
   return readJson(await authorizedFetch("/api/admin/alert-window"));
 }
