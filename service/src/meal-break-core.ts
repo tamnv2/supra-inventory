@@ -158,9 +158,10 @@ export function confirmMealChoice(
 }
 
 /**
- * Editing an already confirmed meal period is deliberately narrower than the
- * original Reporter first-choice flow.  No post-start edits: those could
- * retroactively change whether an already granted automatic Skip was timely.
+ * Owner D167 correction: EARLY may be changed to LATE at any instant before
+ * the end of the complete meal hour (12:00/19:00 VN); these are intervals,
+ * not isolated minute markers. LATE retains the original pre-11:00/18:00
+ * cutoff. An edit never undoes a Skip already committed.
  */
 export function mealEditPolicy(args: {
   period: string; choice: string; role: string; actorId: string;
@@ -175,9 +176,14 @@ export function mealEditPolicy(args: {
   if (args.role !== "ADMIN" && args.role !== "ROOT" &&
       !(args.role === "REPORTER" && args.actorId === args.originalActor))
     return "MEAL_EDIT_FORBIDDEN";
+  if (!["EARLY", "LATE"].includes(args.oldChoice)) return "INVALID_MEAL_EDIT";
   const base = vnMidnightMs(args.dayVn);
-  const earliest = base + (args.period === "LUNCH" ? 11 * 60 : 18 * 60) * 60_000;
-  if (args.nowMs >= earliest) return "MEAL_EDIT_WINDOW_CLOSED";
+  // Keep the existing LATE restriction. Only the incorrectly confirmed
+  // EARLY slot receives the extended correction interval.
+  const cutoffMinute = (args.period === "LUNCH" ? 11 : 18) * 60 +
+    (args.oldChoice === "EARLY" ? 60 : 0);
+  if (args.nowMs >= base + cutoffMinute * 60_000)
+    return "MEAL_EDIT_WINDOW_CLOSED";
   return null;
 }
 
