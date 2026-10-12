@@ -170,3 +170,19 @@ test("D167 noon slot is durably coalesced into evening", async () => {
   assert.match(agent, /s\.State!="SKIPPED"/);
   assert.match(agent, /s\.Slot!="DELTA_12" \|\| !eveningDue/);
 });
+
+test("D167 Web report and Excel preserve identical as-of area filters", async () => {
+  const { readFileSync } = await import("node:fs");
+  const service = readFileSync(new URL("../service/src/business-core.ts", import.meta.url), "utf8");
+  const api = readFileSync(new URL("../web/src/api.ts", import.meta.url), "utf8");
+  const ui = readFileSync(new URL("../web/src/operational-app.ts", import.meta.url), "utf8");
+  const excel = readFileSync(new URL("../web/src/report-excel.ts", import.meta.url), "utf8");
+  assert.ok(service.split('error: "INVALID_D167_REPORT_AREA"').length >= 3,
+    "both batch and Picker detail reject invalid area");
+  assert.ok(service.split("args.push(selectedArea);").length >= 3,
+    "same as-of batch area filter reaches both report SQL paths");
+  assert.ok(api.split('params.set("area", options.area)').length >= 3,
+    "API forwards report area for detail and Picker rows");
+  assert.match(ui, /area: reportArea \|\| undefined/);
+  assert.match(excel, /Bộ lọc khu vực của đợt và chi tiết Picker/);
+});
