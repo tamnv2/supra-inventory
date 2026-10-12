@@ -453,6 +453,7 @@ let dashboardTo = dateDaysAgo(0);
 let reportFrom = dateDaysAgo(0);
 let reportTo = dateDaysAgo(0);
 let reportStatus = "";
+let reportArea: "" | "LTA" | "SHELVING" | "UNKNOWN" = "";
 let reportQuery = "";
 let serviceHealth: Record<string, unknown> | null = null;
 let systemStatus: SystemStatusSnapshot | null = null;
@@ -2248,6 +2249,7 @@ function renderReports(): string {
       <form id="report-filter" class="report-filter-grid report-filter-compact report-filter-detail">
         ${renderCompactDateRange("reports", reportFrom, reportTo)}
         <label>Kết quả<select name="status"><option value="">Tất cả kết quả</option>${["PENDING","HAS_STOCK","SKIP_ALLOWED","CLOSED"].map((state) => `<option value="${state}" ${reportStatus === state ? "selected" : ""}>${esc(statusLabel(state))}</option>`).join("")}</select></label>
+        <label>Khu vực lúc báo<select name="area"><option value="">Tất cả khu vực</option>${(["LTA","SHELVING","UNKNOWN"] as const).map(area => `<option value="${area}" ${reportArea === area ? "selected" : ""}>${esc(d167AreaLabel(area))}</option>`).join("")}</select></label>
         <label class="report-query-field">SKU / tên sản phẩm<input name="query" value="${esc(reportQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" /></label>
         <button class="primary report-filter-submit">Xem báo cáo</button>
       </form>
@@ -4999,6 +5001,8 @@ function bindSection(): void {
     reportFrom = String(data.get("from"));
     reportTo = String(data.get("to"));
     reportStatus = String(data.get("status") || "");
+    const areaCandidate = String(data.get("area") || "");
+    reportArea = areaCandidate === "LTA" || areaCandidate === "SHELVING" || areaCandidate === "UNKNOWN" ? areaCandidate : "";
     reportQuery = String(data.get("query") || "");
     reportOffset = 0;
     reportBatchDetails.clear();
