@@ -69,7 +69,7 @@ namespace SupraInventoryRelayAgent
         }
 
         internal bool UploadAndPublish(string day,string slot,string instanceId,
-            string generation,D167SkuWorkbook workbook,Func<int,bool> confirmConflicts)
+            string generation,D167SkuWorkbook workbook,Func<string,bool> confirmConflicts)
         {
             if (workbook == null || workbook.Items.Count == 0 || workbook.Items.Count > 5000)
                 throw new InvalidDataException("D167_SKU_INVALID_WORKBOOK");
