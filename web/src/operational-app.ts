@@ -2854,7 +2854,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
   return `<article class="ops-panel d167-meal-card">
     <div class="ops-panel-title"><div><h3>${title}</h3><p>${period === "LUNCH" ? "Nhắc Reporter lúc 10:55" : "Nhắc Reporter lúc 17:55"} (giờ Việt Nam)</p></div>
       <span class="badge ${record ? "good" : "warning"}">${record ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
-    ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · ${esc(record.confirmed_name || "Reporter")} xác nhận lúc ${esc(fmt(record.confirmed_at))}</div>` :
+    ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · Người xác nhận ban đầu: ${esc(record.confirmed_name || "Reporter")} · Cập nhật gần nhất: ${esc(fmt(record.confirmed_at))}</div>` :
       `<div class="ops-note">Nếu chưa ai xác nhận, Service tạm dừng tự động Skip trong toàn bộ ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"} để phòng ngừa Skip sai. Reporter vẫn xử lý thủ công bình thường.</div>`}
     ${mayEdit ? `<form class="d167-meal-edit" data-d167-meal-edit="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
       <label><span>Đổi giờ nghỉ</span><select name="choice" required>
