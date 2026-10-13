@@ -10,7 +10,7 @@ export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | nu
   const conflictCount = preview?.collisions?.length || 0;
   const changeCount = Number(preview?.rename || 0) + Number(preview?.contractor_update || 0);
   return `<section class="ops-route people-workspace">
-    <div class="business-page-head"><h3>Nhập và cập nhật nhân sự Picker</h3></div>
+    <div class="business-page-head"><h3>Thêm và cập nhật Picker</h3></div>
     ${tabs}
     <div class="ops-layout">
       <article class="ops-panel">
@@ -29,8 +29,8 @@ export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | nu
         <div class="ops-note">Các mã nhân viên không xuất hiện trong file sẽ được giữ nguyên; không tự xóa, khóa hay bật lại tài khoản cũ.</div>
       </article>
     </div>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Xem trước và xử lý mâu thuẫn</h3><p>Không ghi dữ liệu trước khi xác nhận.</p></div><span>${esc(filename || "Nhập trực tiếp")}</span></div>
+    <article class="ops-panel" ${rows.length ? "" : "hidden"}>
+      <div class="ops-panel-title"><div><h3>Xem trước thay đổi</h3></div><span>${esc(filename || "Nhập trực tiếp")}</span></div>
       ${rows.length ? `<section class="ops-status-strip"><span>Mã hợp lệ <b>${rows.length}</b></span><span>Tạo mới <b>${Number(preview?.create || 0)}</b></span><span>Đổi tên <b>${Number(preview?.rename || 0)}</b></span><span>Đổi Nhà thầu <b>${Number(preview?.contractor_update || 0)}</b></span><span>Không đổi <b>${Number(preview?.unchanged || 0)}</b></span></section>` : '<div class="ops-empty">Chưa nhập thông tin nhân sự.</div>'}
       ${conflictCount ? `<div class="notice error"><b>Không thể áp dụng:</b> ${conflictCount} mã trùng tài khoản không phải Picker. ${preview?.collisions.slice(0,10).map(x => esc(x.employee_code) + " (" + esc(x.role) + ")").join(", ")}</div>` : ""}
       ${changeCount ? `<div class="notice warning">${changeCount} thay đổi tên/Nhà thầu cần phê duyệt trước khi ghi.</div>` : ""}
