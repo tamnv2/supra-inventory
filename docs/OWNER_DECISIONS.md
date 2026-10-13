@@ -4046,3 +4046,21 @@ The other reported Agent/Confirm/network/session issues are **deferred, not appr
 5. **Launcher PDA/Launcher Logs:** PENDING tại dự án Launcher riêng do Owner xử lý/chốt bên đó. D167 **không có quyền triển khai APK Launcher hoặc tự tiếp quản đầu việc này**. Chỉ nhận lại phần tích hợp trong Inventory khi có quyết định mới và resource scope hợp lệ.
 
 Các mục D167 còn lại đã phát hành Beta nhưng chờ nghiệm thu không được gắn nhãn `chưa triển khai`. Mục #2/#3/#5 giữ nguyên pending, không nhập chúng vào đợt triển khai chỉ vì quy tắc #4 đã được chốt.
+
+## D167 — Agent-only non-SKU v130 (Owner 2026-10-13)
+
+Owner explicitly approves the five previously proposed **Windows Agent-only** non-SKU maintenance items from the 12 October Agent log review and commands **run code and deploy** after all exact-head safety/continuity/CI gates pass. The later direct Owner command supersedes E046's *deferred-other-Agent* state for exactly these five items, not for other backlog.
+
+**Approved Beta boundary:** `relay-agent/**` Windows Agent v130, Agent-specific regression evidence and the associated canonical authority/continuity and release-gate records. No changes to Android/PDA APK, Web frontend, Worker/Service, Google Apps Script, Firebase/RTDB rules, Firestore schema, WMS backend or Stable. No additional cloud polling, reads, writes or subscribed listeners. Existing manual-only Agent update remains manual: upgrade an available standby first; only consider PRIMARY after live HA readiness and empty active job check. No fleet-wide forced update or assertion of zero interruption without field evidence.
+
+**Five approved code/diagnostic items:**
+
+1. Classify DNS/timeout/connectivity, provider 401/403, session absence, and network recovery in local Agent logs; coalesce repeat incidents with duration/count.
+2. Skip stale *auxiliary* WMS session-health reload when login/logout, browser-operation or manual confirmation state changed after enqueue. Do not bypass the primary role/lease or WMS confirmation fences.
+3. Preserve the existing immediate error upload fingerprint/global limits, but reduce redundant local suppression-log rows; never delete pending bundles before existing Drive-confirmed receipt.
+4. Make bulk Picker revocation preview HTTP 403 an explicit server-permission denial with sanitized diagnostic reason and no unauthorized retry, session revocation, UI success claim or Worker-rule workaround.
+5. Record RTDB observer flap counts and outage durations locally; leave all existing realtime stream retry, 15-second liveness, fallback and takeover authority unchanged.
+
+**Existing safety boundaries:** post-final-click `CONFIRM_IN_PROGRESS_OR_UNCERTAIN` cannot be auto-retried blindly, ACK does not prove WMS success; existing healthy-listener REST watchdog and lease heartbeat stay unchanged. Version/release candidate must pass exact PR HEAD CI, including authority/continuity/HA/Confirm/usage guards; release receipt authorizes only `agent`. New Agent v130 is a Beta technical candidate until GitHub release and per-machine field checks prove it. No implied D167 business/Owner PASS.
+
+**Separate Web SKU page request — ANALYSIS/PROPOSAL ONLY (no Web or Service change approved in this command):** screenshot dated 13 Oct shows 05:38:46 labeled `Đồng bộ Agent gần nhất` despite Owner's manual Web Excel import, and 07:54:25 labeled `Dữ liệu thay đổi gần nhất` though Owner identifies it as Agent FULL. Current `service/src/read-model-core.ts` defines `last_sync_at` from the newest `SKU_IMPORT_CHUNK` audit action **without source filter**, `max_updated_at` from catalog metadata, and `version` as `count:max_updated_at`. `web/src/operational-app.ts` misleadingly brands the untyped `last_sync_at` an Agent event and gives the technical version its own large summary card. Propose separate source-attested Web manual/Agent FULL/delta timeline and active catalog status with clock/date/operator/results, collapsible technical version and compact 3-column layout; genuine source distinction needs authoritative Service provenance or an already proven endpoint and **separate Owner approval**. A Web-only label correction can say `Lần ghi nhận nhập dữ liệu gần nhất (chưa phân loại nguồn)` without guessing.
