@@ -17,6 +17,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> confirmBusy;
         private readonly Func<string> generation;
         private readonly Func<string,bool> confirmConflicts;
+        private readonly Func<IDisposable> openWorkerNetwork;
         private readonly Action<string> log;
         private readonly string instanceId;
         private readonly object gate=new object();
@@ -34,7 +35,8 @@ namespace SupraInventoryRelayAgent
             Func<AgentSession> currentSession,Action ensureFreshToken,
             Func<bool> primaryReady,Func<bool> confirmationBusy,
             Func<string> primaryGeneration,string currentInstanceId,
-            Action<string> ensureSkuLease,Func<string,bool> approveConflicts,Action<string> logger)
+            Action<string> ensureSkuLease,Func<IDisposable> workerNetwork,
+            Func<string,bool> approveConflicts,Action<string> logger)
         {
             browser=managedBrowser;
             isPrimaryReady=primaryReady;
@@ -42,6 +44,7 @@ namespace SupraInventoryRelayAgent
             generation=primaryGeneration;
             instanceId=currentInstanceId ?? "";
             confirmConflicts=approveConflicts;
+            openWorkerNetwork=workerNetwork ?? throw new ArgumentNullException("workerNetwork");
             log=logger ?? delegate {};
             service=new D167SkuServiceClient(currentSession,ensureFreshToken,primaryReady,ensureSkuLease);
             timer=new Timer(_=>Queue(),null,Timeout.Infinite,Timeout.Infinite);
@@ -89,6 +92,7 @@ namespace SupraInventoryRelayAgent
             var manualTrace=System.Diagnostics.Stopwatch.StartNew();
             var manualPhase="PRIMARY_CHECK";
             string activeSlot=null,activeGrant=null,activeGeneration=null,activeDay=null;
+            IDisposable workerNetworkScope=null;
             try
             {
                 if(!isPrimaryReady() || confirmBusy())
@@ -98,6 +102,7 @@ namespace SupraInventoryRelayAgent
                 var runId=Guid.NewGuid().ToString("N");
                 manualPhase="AUTHORIZE_BEGIN";
                 log("D167_SKU manual=STAGE step=AUTHORIZE_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
+                workerNetworkScope=openWorkerNetwork();
                 var slot=service.ManualStart(day,instanceId,generation(),runId,credential);
                 activeSlot=slot;
                 activeGeneration=generation();
@@ -140,6 +145,8 @@ namespace SupraInventoryRelayAgent
             }
             finally
             {
+                try { if(workerNetworkScope!=null)workerNetworkScope.Dispose(); }
+                catch(Exception e) {log("D168_NETWORK restore=FAILED type="+e.GetType().Name);}
                 Interlocked.Exchange(ref running,0);
                 // Re-evaluate the unchanged three-slot schedule once after manual.
                 Queue();
@@ -180,6 +187,8 @@ namespace SupraInventoryRelayAgent
             var local=D167SkuSchedule.VNNow();
             if(local.Hour < 5) {Arm(TimeSpan.FromHours(Math.Max(0.1,5-local.TimeOfDay.TotalHours)));return;}
             var day=local.ToString("yyyy-MM-dd");
+            using(var workerNetworkScope=openWorkerNetwork())
+            {
             var slots=service.Schedule(day);
             NotifyStatus(slots,"");
             // Service owns one randomized persisted scheduled_at_ms per slot.
@@ -256,6 +265,7 @@ namespace SupraInventoryRelayAgent
             {
                 service.Abort(day,eligible.Slot,instanceId,activeGeneration,grant);
                 throw;
+            }
             }
         }
 
