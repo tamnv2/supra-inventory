@@ -62,8 +62,14 @@ def main() -> None:
     if journal.get("source_repo") != "tamnv2/supra-inventory" or journal.get("change_id") != change:
         fail("journal repo/change mismatch")
     if journal.get("accepted_base") != state.get("change_control", {}).get("accepted_base_change_id") + "_LIMITED_OWNER_PASS":
-        # Other Dxxx can have different Owner-PASS detail strings: for D167 the string is locked.
-        if change == "D167":
+        # A completed change preserves its entry baseline, while project-state
+        # promotes the Owner-accepted change itself as the new accepted base.
+        closeout = (change == "D167"
+                    and journal.get("deployment_gate", {}).get("owner_latest")
+                        == "2026-10-13 D167_OWNER_LIMITED_PASS_CLOSEOUT"
+                    and journal.get("accepted_base") == "D166_LIMITED_OWNER_PASS"
+                    and state.get("change_control", {}).get("accepted_base_change_id") == "D167")
+        if change == "D167" and not closeout:
             fail("accepted base mismatch")
     if journal.get("pr") != manifest.get("working_ref_discovery", {}).get("active_working_pr"):
         fail("PR pointer mismatch")
