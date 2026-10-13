@@ -93,6 +93,7 @@ namespace SupraInventoryRelayAgent
             var manualPhase="PRIMARY_CHECK";
             string activeSlot=null,activeGrant=null,activeGeneration=null,activeDay=null;
             IDisposable workerNetworkScope=null;
+            D167SkuWorkbook officeWorkbook=null;
             try
             {
                 if(!isPrimaryReady() || confirmBusy())
@@ -102,6 +103,17 @@ namespace SupraInventoryRelayAgent
                 var runId=Guid.NewGuid().ToString("N");
                 manualPhase="AUTHORIZE_BEGIN";
                 log("D167_SKU manual=STAGE step=AUTHORIZE_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
+                // Office must export read-only WMS data before any WLAN switch.
+                // Password/OTP is still verified by Worker BEFORE any staging
+                // or catalog change. Discard the snapshot on failed proof.
+                if(service.WorkerRouteStatus()=="NETWORK_UNREACHABLE")
+                {
+                    manualPhase="OFFICE_WMS_EXPORT";
+                    officeWorkbook=D167SkuBrowserExport.Export(browser,
+                        ()=>isPrimaryReady()&&!confirmBusy(),
+                        stage=>log("D168_SKU manual_office_export="+stage));
+                    manualPhase="AUTHORIZE_BEGIN";
+                }
                 workerNetworkScope=openWorkerNetwork();
                 var slot=service.ManualStart(day,instanceId,generation(),runId,credential);
                 activeSlot=slot;
@@ -111,7 +123,7 @@ namespace SupraInventoryRelayAgent
                 log("D167_SKU manual=STAGE step=AUTHORIZE_DONE elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 NotifyStatus(null,"Đã xác minh tài khoản. Đang tải danh sách SKU từ hệ thống kho...");
                 log("D167_SKU manual=STAGE step=WMS_EXPORT_BEGIN");
-                var workbook=D167SkuBrowserExport.Export(browser,()=>!confirmBusy(),
+                var workbook=officeWorkbook ?? D167SkuBrowserExport.Export(browser,()=>!confirmBusy(),
                     stage=>{
                         manualPhase="EXPORT_"+stage;
                         log("D167_SKU manual=TRACE export_stage="+stage+
