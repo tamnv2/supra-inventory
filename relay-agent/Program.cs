@@ -771,6 +771,20 @@ namespace SupraInventoryRelayAgent
                         throw new InvalidOperationException("D167_SKU_PRIMARY_CHANGED");
                     _leaderCoordinator.EnsureD167SkuPrimaryLease(expected);
                 },
+                () => {
+                    EnsureFreshToken();
+                    var actor=SnapshotSession();
+                    if(actor==null || string.IsNullOrWhiteSpace(actor.IdToken))
+                        throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
+                    return D168NetworkRoute.OpenWorkerSession(
+                        actor.IdToken,
+                        () => HasAgentSession() && _supraBrowserReady &&
+                            _leaderCoordinator!=null && _leaderCoordinator.IsLeader &&
+                            Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)==0 &&
+                            Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning,0,0)==0,
+                        RequestD168NetworkSwitchPermission,
+                        message => Log(message));
+                },
                 ConfirmD167SkuWebConflict, message => Log(message));
             _d167SkuCoordinator.StatusChanged += RenderD167SkuStatus;
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
@@ -1495,6 +1509,7 @@ namespace SupraInventoryRelayAgent
                 }
             };
             networkCard.Controls.Add(autoStartOption);
+            InitializeD168WorkerWifiControls(networkCard);
             _connectionPage.Controls.Add(networkCard);
 
 
