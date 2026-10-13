@@ -39,3 +39,11 @@
 - **Release:** bổ sung test chuyên biệt D168 với failure/HA network matrix; PR exact-head Authority + Continuity + Agent + Android + Worker + regressions PASS; xác nhận runtime Beta bằng receipt; update Agent theo rollout có kiểm soát; cuối cùng Owner nghiệm thu riêng. Stable OWNER-GATED.
 
 **Kết luận:** PR #591 là code D168 đang làm, chưa phải bản sẵn sàng phát hành. Bước kế tiếp bắt buộc là tích hợp an toàn Worker/WLAN vào job và sửa test cho PASS, sau đó mới xem xét release Beta đúng lệnh Owner E018.
+
+## 2026-10-14 — Kiểm tra nhầm Ready và tiếp tục sửa code
+
+- Owner ấn nhầm **Ready for review**; PR #591 đã được đưa về **Draft**, không merge và không có D168 release receipt. Các workflow PR đặt GitHub Environment beta có thể tạo lịch sử deployment `Active` nhưng kiểm tra run cho thấy Firestore `MUTATE=false`, RTDB `DEPLOY_RULES=false`, Agent/Android chỉ upload build artifact, bỏ qua các bước official release.
+- D168-REQ-006: sửa `UserStartupRegistration.SetEnabled` để xác minh thực tế `HKCU Run`, hoàn nguyên thiết lập nếu Windows từ chối đăng ký; bổ sung static regression.
+- D168 SKU manual: sửa trường hợp việc cập nhật vượt qua 00:00 VN và gặp lỗi. `Abort` phải hủy lease của **ngày bắt đầu** thay vì hôm sau; thêm static regression để ngăn lỗi.
+- Các source fix này chưa chứng minh P0 OFFICE→Worker, 05h FULL, physical WLAN/Confirm/ACK hay tiết kiệm Usage. Release guard không được bỏ cho tới khi luồng chuyển mạng thật được tích hợp và E2E kiểm chứng.
+- Một chỉnh sửa thêm để siết phiên được chọn trong gửi liên hệ nhóm bị công cụ từ chối và không được đưa vào PR. Không được giả là đã xử lý.
