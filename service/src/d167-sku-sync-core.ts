@@ -209,11 +209,14 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   const manual = row(state,`SELECT actor_id,authorized_at_ms FROM d167_sku_manual_authority
     WHERE day_vn=? AND slot=? ORDER BY authorized_at_ms DESC LIMIT 1`,day,slot);
   const manualAuthorized = manual && Date.now()-Number(manual.authorized_at_ms)<15*60_000;
-  if (manual && String(body.actor_user_id || "") !== String(manual.actor_id))
+  // An expired manual FULL must not block the next legitimate automatic
+  // PRIMARY owner. MANUAL_DELTA remains bound to its approving operator.
+  if (manual && (manualAuthorized || isManualDelta(slot)) &&
+      String(body.actor_user_id || "") !== String(manual.actor_id))
     return response({ error: "MANUAL_OPERATOR_CHANGED" },403);
   // Verified Worker operator identity travels with the existing Core mutation.
   // No extra provider read or user lookup is required.
-  const actorId = String(manual?.actor_id || body.actor_user_id || "").slice(0,128);
+  const actorId = String((manualAuthorized || isManualDelta(slot)) ? manual?.actor_id : body.actor_user_id || "").slice(0,128);
   const actorDisplay = String(body.actor_display || "").trim()
     .replace(/[\r\n\t]/g," ").slice(0,120) || "Tài khoản Agent đã xác thực";
   if (isManualDelta(slot) && !manual) return response({error:"MANUAL_JOB_UNAUTHORIZED"},403);
