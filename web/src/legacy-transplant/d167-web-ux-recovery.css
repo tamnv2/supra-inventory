@@ -70,3 +70,15 @@
   .users-workspace .people-workspace .ops-layout { grid-template-columns:1fr; }
   .users-workspace .users-mode-tabs { width:100%; }
 }
+
+/* Contextual bulk commands: three menus, not a wall of destructive buttons. */
+.users-workspace .user-bulk-context { gap:8px; }
+.users-workspace .user-bulk-dropdown { position:relative; }
+.users-workspace .user-bulk-dropdown > summary { display:flex; align-items:center; gap:7px; padding:7px 11px; min-height:34px; border:1px solid var(--pro-border,#dce3eb); border-radius:7px; background:var(--pro-surface,#fff); cursor:pointer; list-style:none; font-size:12px; font-weight:600; }
+.users-workspace .user-bulk-dropdown > summary::after { content:"⌄"; font-size:13px; color:var(--pro-muted); }
+.users-workspace .user-bulk-dropdown > summary::-webkit-details-marker { display:none; }
+.users-workspace .user-bulk-dropdown[open] { z-index:30; }
+.users-workspace .user-bulk-dropdown-menu { position:absolute; z-index:31; display:flex; flex-direction:column; gap:3px; top:38px; left:0; min-width:168px; padding:6px; border:1px solid var(--pro-border,#dce3eb); border-radius:8px; background:var(--pro-surface,#fff); box-shadow:0 8px 22px #121e321f; }
+.users-workspace .user-bulk-dropdown-menu button { width:100%; text-align:left; border:0; background:transparent; min-height:34px; border-radius:6px; padding:7px 9px; font-size:12px; }
+.users-workspace .user-bulk-dropdown-menu button:hover { background:var(--pro-surface-soft,#f3f6fb); }
+.users-workspace .user-bulk-dropdown-menu button.danger { color:#af3324; }
