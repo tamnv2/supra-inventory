@@ -108,6 +108,8 @@ namespace SupraInventoryRelayAgent
                 // or catalog change. Discard the snapshot on failed proof.
                 if(service.WorkerRouteStatus()=="NETWORK_UNREACHABLE")
                 {
+                    if(!D168NetworkRoute.HasApprovedFallback())
+                        throw new InvalidOperationException("D167_NETWORK_PROFILES_NOT_APPROVED");
                     manualPhase="OFFICE_WMS_EXPORT";
                     officeWorkbook=D167SkuBrowserExport.Export(browser,
                         ()=>isPrimaryReady()&&!confirmBusy(),
@@ -206,6 +208,8 @@ namespace SupraInventoryRelayAgent
             // PRIMARY at reserve; a speculative export never implies DONE.
             if(service.WorkerRouteStatus()=="NETWORK_UNREACHABLE")
             {
+                if(!D168NetworkRoute.HasApprovedFallback())
+                    throw new InvalidOperationException("D167_NETWORK_PROFILES_NOT_APPROVED");
                 if(!isPrimaryReady() || confirmBusy()) {Arm(TimeSpan.FromMinutes(5));return;}
                 officeWorkbook=D167SkuBrowserExport.Export(browser,
                     ()=>isPrimaryReady()&&!confirmBusy(),
