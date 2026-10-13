@@ -30,14 +30,16 @@ namespace SupraInventoryRelayAgent
         private readonly Func<AgentSession> session;
         private readonly Action ensureFreshToken;
         private readonly Func<bool> stillPrimary;
+        private readonly Action<string> refreshSkuPrimaryLease;
         internal List<D167SkuSlotStatus> RecentManual { get; private set; } = new List<D167SkuSlotStatus>();
 
         internal D167SkuServiceClient(Func<AgentSession> currentSession,
-            Action refresh, Func<bool> currentPrimary)
+            Action refresh, Func<bool> currentPrimary,Action<string> ensureSkuLease)
         {
             session = currentSession;
             ensureFreshToken = refresh;
             stillPrimary = currentPrimary;
+            refreshSkuPrimaryLease = ensureSkuLease ?? throw new ArgumentNullException("ensureSkuLease");
         }
 
         internal List<D167SkuSlotStatus> Schedule(string day)
@@ -211,6 +213,13 @@ namespace SupraInventoryRelayAgent
             if (!stillPrimary() && operation!="schedule" && operation!="status")
                 throw new InvalidOperationException("D167_NOT_PRIMARY");
             ensureFreshToken();
+            if (operation!="schedule" && operation!="status")
+            {
+                object proofGeneration;
+                if (!data.TryGetValue("generation",out proofGeneration))
+                    throw new InvalidOperationException("D167_SKU_PRIMARY_PROOF_REQUIRED");
+                refreshSkuPrimaryLease(Convert.ToString(proofGeneration));
+            }
             var auth = session();
             if (auth == null || string.IsNullOrWhiteSpace(auth.IdToken))
                 throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
