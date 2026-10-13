@@ -2150,7 +2150,7 @@ function d167AreaSummaryMarkup(data: Awaited<ReturnType<typeof getD167AreaSummar
   if (!data) return `<article class="ops-panel"><div class="ops-panel-title"><h3>Khu vực tại thời điểm báo thiếu</h3></div><p>Chưa tải được số liệu lịch sử khu vực; các chỉ số vận hành hiện có không bị thay đổi.</p></article>`;
   const byArea = new Map(data.areas.map(entry => [entry.area, entry]));
   return `<article class="ops-panel">
-    <div class="ops-panel-title"><div><h3>LTA / Shelving theo lịch sử báo thiếu</h3><p>${esc(data.from_vn)} – ${esc(data.to_vn)} · ghi nhận theo thời điểm báo đầu tiên, không dùng vị trí hiện tại</p></div></div>
+    <div class="ops-panel-title"><div><h3>LTA / Shelving theo lịch sử báo thiếu</h3><p>${esc(data.from_vn)} – ${esc(data.to_vn)}</p></div></div>
     <div class="table-wrap"><table>
       <thead><tr><th>Khu vực</th><th>Đợt báo</th><th>Lượt Picker báo</th><th>SKU khác nhau</th><th>Đã có hàng</th><th>Cho phép Skip</th><th>Thu hồi</th><th>Đang xử lý</th></tr></thead>
       <tbody>${(["LTA","SHELVING","UNKNOWN"] as const).map(area => {
@@ -2159,7 +2159,7 @@ function d167AreaSummaryMarkup(data: Awaited<ReturnType<typeof getD167AreaSummar
         return `<tr><td>${esc(d167AreaLabel(area))}</td><td>${value("batches")}</td><td>${value("picker_reports")}</td><td>${value("distinct_skus")}</td><td>${value("has_stock")}</td><td>${value("skip_allowed")}</td><td>${value("closed")}</td><td>${value("pending")}</td></tr>`;
       }).join("")}</tbody>
     </table></div>
-    <p class="ops-subtle">Tổng ${Number(data.totals.batches || 0).toLocaleString("vi-VN")} đợt · ${Number(data.totals.picker_reports || 0).toLocaleString("vi-VN")} lượt. Trước lần xác minh nguồn đầu tiên: Chưa xác định. Không hồi tố khu vực.</p>
+    <p class="ops-subtle">Tổng ${Number(data.totals.batches || 0).toLocaleString("vi-VN")} đợt · ${Number(data.totals.picker_reports || 0).toLocaleString("vi-VN")} lượt.</p>
   </article>`;
 }
 
@@ -2374,8 +2374,8 @@ function renderReports(): string {
       </form>
     </article>
     ${d167AreaSummaryMarkup(d167ReportAreas)}
-    <p class="ops-subtle">Khu vực được chọn áp dụng cho bảng đợt báo, chi tiết Picker và Excel. KPI tổng quan / cơ cấu kết quả / bảng phân vùng phía trên vẫn thống kê toàn bộ khu vực trong khoảng ngày.</p>
-    <p class="ops-subtle">Nguồn cho phép Skip trong kỳ: Inventory xác nhận ${humanSkipped.toLocaleString("vi-VN")} · Hệ thống quá hạn ${automaticSkipped.toLocaleString("vi-VN")} · Hệ thống tự chốt 03:00 ${dayEndSkipped.toLocaleString("vi-VN")}.</p>
+    <p class="ops-subtle">Lọc khu vực áp dụng cho danh sách và Excel.</p>
+    <p class="ops-subtle">Nguồn Skip: Invent ${humanSkipped.toLocaleString("vi-VN")} · Hệ thống quá hạn ${automaticSkipped.toLocaleString("vi-VN")} · Hệ thống tự chốt 03:00 ${dayEndSkipped.toLocaleString("vi-VN")}.</p>
     <section class="business-summary-grid business-summary-grid-6 pro-report-kpis">
       <article class="business-summary-card primary"><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong></article>
       <article class="business-summary-card primary-soft"><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong></article>
@@ -2389,7 +2389,7 @@ function renderReports(): string {
       <article class="ops-panel"><div class="ops-panel-title"><div><h3>Điểm cần theo dõi</h3></div></div><div class="pro-watch-grid"><div class="warning"><span>Sắp quá thời gian</span><strong>${reportWarningCount}</strong></div><div class="danger"><span>Đã quá thời gian</span><strong>${reportOverdueCount}</strong></div><div class="automatic"><span>Tự động bỏ qua quá hạn</span><strong>${automaticSkipped}</strong></div><div><span>SKU nổi bật phát sinh lại</span><strong>${recurrenceCount}</strong></div><div><span>Thời gian xử lý bình quân</span><strong>${k?.avg_resolution_minutes == null ? "—" : `${k.avg_resolution_minutes} phút`}</strong></div></div></article>
     </div>
     <article class="ops-panel">
-      <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p>Đang hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${reportTotal.toLocaleString("vi-VN")} bản ghi phù hợp.</p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p></p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
       <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Khu vực lúc báo</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(d167AreaLabel(row.area_at_first_report))}</td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="12">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="12" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
   </section>`;
@@ -2518,7 +2518,7 @@ function renderSystem(): string {
 
   return `<section class="ops-route system-workspace">
     <div class="business-page-head">
-      <div><h2>Trạng thái hệ thống</h2><p>Theo dõi tình trạng, mức sử dụng và giới hạn của các dịch vụ.</p></div>
+      <div><h2>Trạng thái hệ thống</h2><p></p></div>
       <button class="secondary" id="refresh-system">Cập nhật số liệu</button>
     </div>
 
@@ -2529,7 +2529,7 @@ function renderSystem(): string {
     </div>
 
     <section class="business-summary-grid business-summary-grid-4">
-      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small>Dịch vụ chính</small></article>
+      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small></small></article>
       <article class="business-summary-card primary"><span>Dữ liệu đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% giới hạn vùng dữ liệu` : "Đang đo dung lượng"}</small></article>
       <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên Web/PDA · không tính Agent</small></article>
       <article class="business-summary-card"><span>Google Drive</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Chưa đọc được giới hạn"}</small></article>
@@ -2538,7 +2538,7 @@ function renderSystem(): string {
     <div class="system-service-grid">
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Website & dịch vụ xử lý</h3></div><b class="system-health ${serviceReachable ? "ok" : "bad"}">${serviceReachable ? "Đang hoạt động" : "Mất kết nối"}</b></div>
-        <p class="system-service-desc">Cung cấp website và xử lý các yêu cầu nghiệp vụ.</p>
+        <p class="system-service-desc"></p>
         <div class="system-facts">
           <div><span>Kết nối Internet</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
           <div><span>Đồng bộ tức thời</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
@@ -2550,7 +2550,7 @@ function renderSystem(): string {
 
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">Cloudflare</span><h3>Cơ sở dữ liệu nghiệp vụ</h3></div><b class="system-health ok">Sẵn sàng</b></div>
-        <p class="system-service-desc">Lưu SKU, báo hàng, lịch sử xử lý và cấu hình hệ thống.</p>
+        <p class="system-service-desc"></p>
         ${usageBar(dbSize, doLimit, "Dung lượng dữ liệu")}
         <div class="system-facts">
           <div><span>SKU</span><b>${systemNum(business.sku_count).toLocaleString("vi-VN")}</b></div>
@@ -2563,7 +2563,7 @@ function renderSystem(): string {
 
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Đăng nhập & tài khoản</h3></div><b class="system-health ${systemNum(accounts.total) ? "ok" : "warn"}">${systemNum(accounts.total) ? "Hoạt động" : "Chưa có dữ liệu"}</b></div>
-        <p class="system-service-desc">Quản lý đăng nhập và phiên sử dụng của người dùng.</p>
+        <p class="system-service-desc"></p>
         <div class="system-facts">
           <div><span>Tài khoản ứng dụng</span><b>${systemNum(accounts.total).toLocaleString("vi-VN")}</b></div>
           <div><span>Đã liên kết đăng nhập</span><b>${systemNum(accounts.firebase_linked).toLocaleString("vi-VN")}</b></div>
@@ -2576,7 +2576,7 @@ function renderSystem(): string {
 
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">Firebase</span><h3>Thông báo ứng dụng</h3></div><b class="system-health ${systemNum(delivery.FAILED) ? "warn" : "ok"}">${systemNum(delivery.FAILED) ? "Có lỗi gửi" : "Bình thường"}</b></div>
-        <p class="system-service-desc">Gửi thông báo đến thiết bị khi có kết quả hoặc thay đổi cần chú ý.</p>
+        <p class="system-service-desc"></p>
         <div class="system-facts">
           <div><span>Thiết bị Android</span><b>${systemNum(devices.ANDROID).toLocaleString("vi-VN")}</b></div>
           <div><span>Thiết bị Web</span><b>${systemNum(devices.WEB).toLocaleString("vi-VN")}</b></div>
@@ -2587,7 +2587,7 @@ function renderSystem(): string {
 
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">Google Drive</span><h3>Lưu trữ file</h3></div><b class="system-health ${drive.status === "ok" ? "ok" : "warn"}">${drive.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
-        <p class="system-service-desc">Lưu nhật ký, dữ liệu lịch sử và file xuất.</p>
+        <p class="system-service-desc"></p>
         ${driveUsed == null ? `<div class="system-usage-line"><span>Dung lượng tài khoản</span><strong>Chưa đọc được</strong></div>` : usageBar(driveUsed, driveLimit, "Dung lượng tài khoản Google")}
         <div class="system-folder-grid">
           <div><span>Nhật ký</span><b>${systemNum(logsFolder.item_count)} file · ${fmtBytes(logsFolder.binary_size_bytes)}</b></div>
@@ -2598,7 +2598,7 @@ function renderSystem(): string {
 
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">Google Sheets</span><h3>Nguồn nhân sự & lưu trữ</h3></div><b class="system-health ${hr.configured ? "ok" : "warn"}">${hr.configured ? "Đã cấu hình" : "Chưa cấu hình"}</b></div>
-        <p class="system-service-desc">Đọc danh sách nhân sự và lưu dữ liệu lịch sử theo đợt.</p>
+        <p class="system-service-desc"></p>
         <div class="system-facts">
           <div><span>Nhân sự nguồn</span><b>${systemNum(hr.data_row_count).toLocaleString("vi-VN")} dòng</b></div>
           <div><span>Tab nhân sự</span><b>${esc(String(hr.tab_name || "—"))}</b></div>
@@ -2609,7 +2609,7 @@ function renderSystem(): string {
 
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">GitHub</span><h3>Phiên bản ứng dụng</h3></div><b class="system-health ${github.status === "ok" ? "ok" : "warn"}">${github.status === "ok" ? "Đã kết nối" : "Chưa đọc được"}</b></div>
-        <p class="system-service-desc">Theo dõi phiên bản ứng dụng đang phát hành.</p>
+        <p class="system-service-desc"></p>
         <div class="system-facts">
           <div><span>Phiên bản mới nhất</span><b>${esc(String(release.tag || "—").replace(/^beta[-_]?/i, ""))}</b></div>
           <div><span>Ngày phát hành</span><b>${release.published_at ? esc(fmt(String(release.published_at))) : "—"}</b></div>
@@ -2619,7 +2619,7 @@ function renderSystem(): string {
 
       <article class="ops-panel system-service-card">
         <div class="system-service-head"><div><span class="system-provider">Kết nối trực tiếp</span><h3>Đồng bộ tức thời</h3></div><b class="system-health ${realtimeState === "connected" ? "ok" : "warn"}">${realtimeState === "connected" ? "Đã kết nối" : "Đang nối lại"}</b></div>
-        <p class="system-service-desc">Cập nhật thay đổi giữa các thiết bị đang sử dụng.</p>
+        <p class="system-service-desc"></p>
         <div class="system-facts">
           <div><span>Người online</span><b>${systemNum(realtime.online_users)}</b></div>
           <div><span>Phiên online</span><b>${systemNum(realtime.online_sessions)}</b></div>
@@ -2659,7 +2659,7 @@ function renderSystem(): string {
           <div><span>Phản hồi bình quân</span><b>${systemNum(loadTest.average_ms).toFixed(1)} ms</b></div>
           <div><span>95% yêu cầu dưới</span><b>${systemNum(loadTest.p95_ms).toFixed(1)} ms</b></div>
         </div>
-        <p class="system-test-note">Hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}. Đây là số liệu đo thực tế tại thời điểm kiểm tra.</p>
+        <p class="system-test-note">Hoàn thành ${esc(String(loadTest.completed_at ? fmt(String(loadTest.completed_at)) : "—"))}.</p>
       ` : `<div class="ops-empty">Chưa có kết quả kiểm tra tải.</div>`}
     </article>
   </section>`;
