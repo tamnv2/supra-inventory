@@ -305,6 +305,7 @@ type PickerProjectionPayload = {
     display_name?: unknown;
     contractor_name?: unknown;
     device_id?: unknown;
+    app_version?: unknown;
     login_at?: unknown;
     device_seen_at?: unknown;
     status?: unknown;
