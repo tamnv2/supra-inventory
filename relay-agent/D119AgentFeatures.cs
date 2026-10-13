@@ -281,6 +281,13 @@ namespace SupraInventoryRelayAgent
                 HeaderText = "Nguồn xác nhận",
                 Width = 116
             });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "AppVersion",
+                HeaderText = "Phiên bản App",
+                Width = 118,
+                MinimumWidth = 90
+            });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "KickUser",
@@ -1554,6 +1561,7 @@ namespace SupraInventoryRelayAgent
                 DisplayName = work.PickerDisplayName ?? "",
                 ContractorName = existing == null ? "" : (existing.ContractorName ?? ""),
                 DeviceId = "",
+                AppVersion = "",
                 LoginAt = "",
                 DeviceSeenAt = DateTime.UtcNow.ToString("o"),
                 Status = "PDA_READY"
@@ -1854,6 +1862,7 @@ namespace SupraInventoryRelayAgent
                     item.DisplayName ?? "",
                     item.ContractorName ?? "",
                     item.DeviceId ?? "",
+                    item.AppVersion ?? "",
                     item.LoginAt ?? "",
                     item.Source ?? "LOGIN",
                     item.SessionGeneration.ToString()
@@ -2208,6 +2217,7 @@ namespace SupraInventoryRelayAgent
                         name,
                         contractor,
                         source,
+                        string.IsNullOrWhiteSpace(picker.AppVersion) ? "Chưa ghi nhận" : picker.AppVersion,
                         "Kích User",
                         "Liên hệ picker",
                         resolveText)];
