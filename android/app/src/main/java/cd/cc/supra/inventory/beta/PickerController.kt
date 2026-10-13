@@ -3,6 +3,9 @@ package cd.cc.supra.inventory.beta
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.net.ConnectivityManager
@@ -46,6 +49,18 @@ class PickerController(
     private val displayScale: Float = 1f,
     private var shortageReportingEnabled: Boolean = false,
 ) {
+    private fun attachSkuCopy(view: View, sku: String) {
+        view.setOnLongClickListener {
+            val text = sku.trim()
+            if (text.isNotBlank()) {
+                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("SKU", text))
+                setStatus("Đã sao chép SKU $text")
+            }
+            true
+        }
+    }
+
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private var operatingWindowOpen = OperatingScheduleStore.isOpen(activity.applicationContext)
     // Do not send a new shortage before the Service confirms today's FULL roster.
@@ -967,7 +982,10 @@ class PickerController(
         val surface = LayoutInflater.from(activity).inflate(R.layout.overlay_alert, null, false)
         surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else if (isPendingCorrection) R.drawable.bg_overlay_info else R.drawable.bg_overlay_available)
         surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else if (isPendingCorrection) "KẾT QUẢ ĐÃ ĐIỀU CHỈNH" else "ĐÃ CÓ HÀNG"
-        surface.findViewById<TextView>(R.id.tvOverlaySku).text = result.sku
+        surface.findViewById<TextView>(R.id.tvOverlaySku).apply {
+            text = result.sku
+            attachSkuCopy(this, result.sku)
+        }
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = result.productName
         val source = result.resolutionSource.orEmpty()
         val actor = result.resolvedByDisplayName
@@ -1119,6 +1137,7 @@ class PickerController(
             setPadding(kit.dp(10), kit.dp(7), kit.dp(10), kit.dp(7))
             addView(TextView(activity).apply {
                 text = "${row.sku} - ${row.productName}"
+                attachSkuCopy(this, row.sku)
                 textSize = scaledSp(14.5f)
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
