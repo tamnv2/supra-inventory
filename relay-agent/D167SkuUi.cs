@@ -61,7 +61,20 @@ namespace SupraInventoryRelayAgent
                 case "D167_WORKER_REJECTED":
                     return "Máy chủ không chấp nhận quyền cập nhật hoặc đang có lượt xử lý khác. Vui lòng kiểm tra nhật ký.";
                 case "D167_SKU_JOB_ALREADY_RUNNING":
+                case "D167_NETWORK_SWITCH_ALREADY_RUNNING":
                     return "Đang có một lượt cập nhật SKU khác.";
+                case "D167_NETWORK_PROFILES_NOT_APPROVED":
+                    return "Chưa chọn được Wi-Fi Internet đã lưu hoặc chưa xác định được mạng để khôi phục. Hãy kiểm tra Cài đặt.";
+                case "D167_NETWORK_SWITCH_DEFERRED":
+                    return "Đã hoãn chuyển mạng. Hệ thống sẽ thử cập nhật lại sau 15 phút.";
+                case "D167_NETWORK_SWITCH_BUSY":
+                    return "Agent đang xử lý xác nhận đơn hoặc thay đổi vai trò. Sẽ thử cập nhật khi an toàn.";
+                case "D167_NETWORK_SWITCH_FAILED":
+                case "D167_NETWORK_WORKER_NOT_READY":
+                case "D167_WORKER_UNAVAILABLE_NO_SAFE_SWITCH":
+                    return "Chưa kết nối được Worker qua mạng được phép. Danh sách SKU chưa được cập nhật.";
+                case "D167_NETWORK_RESTORE_FAILED":
+                    return "Không khôi phục được Wi-Fi ban đầu. Vui lòng kiểm tra kết nối Windows ngay.";
                 case "D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY":
                     return "Máy Agent chính hoặc trang xác nhận đơn chưa sẵn sàng.";
                 case "D167_SKU_CONFLICT_AWAITING_APPROVAL":
