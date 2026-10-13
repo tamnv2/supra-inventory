@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E020",
+    "id": "D168-E021",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -25,7 +25,7 @@
       "EXISTING_FIRESTORE_BETA"
     ],
     "new_owner_approval_required": false,
-    "current_pr_scope": "PR591_DRAFT_AGAIN__APPROVED_D168_CODE_IN_PROGRESS__NO_RELEASE",
+    "current_pr_scope": "D168_PR591_SOURCE_CONTINUES__EXACT_HEAD_CI_AND_FIELD_GATES_PENDING",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -490,6 +490,33 @@
       ],
       "next_action": "Keep Draft PR591; repair P0 WLAN/SKU daily FULL and D168 group-contact session selection on approved tools, await complete exact-head CI, never merge or deploy until safety tests PASS and real field evidence is possible.",
       "evidence": "PR #591; GitHub convert_pull_request_to_draft readback; PR-head 35a7f577->9f19e293; workflow run 38475195398 failed specific D168 no-WLAN wiring test; code commits 2af72f733bf1b845594575d96d6c4743a3116bec and 9f19e293a857b17c64f5fd6e7481774c15523a79; docs/D168_RELEASE_READINESS_2026-10-14.md"
+    },
+    {
+      "id": "D168-E021",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs completion of all previously approved D168 code and gated Beta rollout",
+      "status": "SOURCE_WORK_CONTINUES__EXACT_HEAD_CI_PENDING__RUNTIME_NOT_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner authorizes finishing all remaining D168 source, tests and Beta deployment when release checks pass. This does not grant Stable deployment.",
+        "PR591 was reverified open Draft, without merge. Source commits for Agent Windows startup validation and SKU date rollover were retained.",
+        "Latest Agent source now invokes the existing approved saved-network helper for SKU work. The helper requires confirmed Worker access and a verified original-network restore.",
+        "For automatic SKU updates, the source attempts a read-only WMS export before switching network when the current path cannot reach Worker.",
+        "The Windows/Android build and SKU contract checks must be evaluated again on the exact final PR head. Physical service DONE, HA and Picker ACK remain unverified.",
+        "A prior attempt to update the complete SKU spec was rejected by the editing tool. Do not claim that spec update was saved."
+      ],
+      "alternatives": [
+        "Keep the current Beta runtime unchanged until all required safety tests pass.",
+        "Continue on the same D168 PR; no unrelated resource or Stable change."
+      ],
+      "open_questions": [
+        "Does the final candidate meet the morning FULL and changeover behavior on an actual Agent PC?",
+        "Can the whole fleet be updated safely without interrupting confirmation work?",
+        "Does the manual SKU authorization order satisfy the approved workflow when network switching is needed?"
+      ],
+      "next_action": "Complete remaining D168 source and end-to-end tests, resolve the manual SKU ordering decision, then release existing Beta resources only after gates pass.",
+      "evidence": "PR591 source and CI; owner current command; docs/D168_RELEASE_READINESS_2026-10-14.md"
     }
   ],
   "resume": {
