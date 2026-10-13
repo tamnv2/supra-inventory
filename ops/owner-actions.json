@@ -5576,5 +5576,25 @@
     "gateway_run": 38282063892,
     "agent_run": 38282063816,
     "release": "relay-agent-v127"
+  },
+  "d168_beta_field_trial_2026_10_14": {
+    "change_id": "D168",
+    "journal": "D168-E029",
+    "approval": "OWNER_EXPLICIT_BETA_RELEASE_FOR_DIRECT_FIELD_ACCEPTANCE",
+    "predeploy_owner_action": "NONE__OWNER_ACCEPTS_UNVERIFIED_NETWORK_FIELD_RISK",
+    "postrelease_owner_action": "TEST_ON_REAL_AGENT_PDA_WINDOWS__REPORT_PASS_OR_FAIL_UNDER_SAME_D168",
+    "required_test_topics": [
+      "WIFI_OFFICE_INTERNET_SWITCH_RESTORE",
+      "AGENT_V131_WORKER_D168_SKU_INITIAL_05_FULL_AND_DONE",
+      "PICKLIST_CONFIRM_TERMINAL_ACK_HA",
+      "ANDROID_NEW_BETA_PICKER_REPORTER_UI",
+      "PICKER_PRESENCE_AND_GROUP_CONTACT",
+      "LOG_UPLOAD_AND_QUOTA"
+    ],
+    "physical_field_verified": false,
+    "field_pass": false,
+    "owner_business_pass": false,
+    "stable": "OWNER_GATED",
+    "note": "Owner explicitly waived pre-release device field validation to test whole Beta model after synchronized rollout; never infer that tests occurred."
   }
 }
