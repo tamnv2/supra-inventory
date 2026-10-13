@@ -489,3 +489,8 @@ A manual SKU job may be started by an authenticated AGENT session with eligible 
 ## D167 2026-10-13 — Được Owner cho phép nguồn phiên WMS Agent chính
 
 Bổ sung vào ngoại lệ ngày 12/10: Owner cho phép chọn phiên WMS đang hoạt động trong Agent chính làm nguồn hợp lệ cho thao tác xuất SKU read-only, thay vì phụ thuộc trang ẩn. Giới hạn quyền chỉ ở Agent PRIMARY có phiên xác thực thực sự hợp lệ và chứng thực độc lập của Service. Không suy ra quyền truy xuất bí mật ngoài ứng dụng, vượt phạm vi API được phép, bỏ qua guard bảo mật, chia sẻ phiên sang Agent khác hoặc phát hành Stable. Cần bằng chứng triển khai và kiểm tra trường hợp failover/mất phiên trước khi xác nhận an toàn.
+
+
+## D167 2026-10-13 — WMS read-only source choice settled
+
+Owner withdraws the separate request to obtain WMS authentication **directly from the active MAIN Confirm tab**. Continue using the existing isolated same-profile Agent WebView2 child for the registered read-only SKU export; enforce the same PRIMARY/generation/fail-closed, in-memory-only, least-privilege and no-secret-in-logs conditions. Nothing authorizes extracting new secrets, changing WMS Confirm, modifying the Agent authentication model, or using credentials outside the existing permitted operation. Historical MAIN-tab proposal remains documented solely as SUPERSEDED.

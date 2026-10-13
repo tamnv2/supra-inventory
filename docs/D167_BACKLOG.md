@@ -191,3 +191,18 @@ Owner trực tiếp chỉ thị **triển khai D167 toàn bộ các mục đã P
 Owner approved deployment of all D167 CODE READY items to registered Inventory Beta. After latest-main integration with PR #561 meal correction and PR #563 Web layout and repair of duplicate Web helpers, exact PR #559 HEAD `17f40905` passed **21/21** GitHub workflows. Merge to `main` **`54ee8e51fbc25201e63e7059cdf2b2f0f1aff65c`**. Existing Beta Worker/Web/InventoryCore deploy and protected health/SQL checks PASS [run 38272307735](https://github.com/tamnv2/supra-inventory/actions/runs/38272307735); existing Apps Script Gateway PASS [38272307739](https://github.com/tamnv2/supra-inventory/actions/runs/38272307739); signed Android **beta-vc106** released [38272307806](https://github.com/tamnv2/supra-inventory/actions/runs/38272307806); Windows Agent **relay-agent-v126** and fixed WebView2 package released [38272307815](https://github.com/tamnv2/supra-inventory/actions/runs/38272307815). Exact main push workflows: **14/14 SUCCESS**. No Stable, Launcher or new resource changed.
 
 **Field/Owner acceptance is NOT technical release.** Fleet installed version counts, real PRIMARY WMS session export/API, 05 FULL + randomized 12/19 DELTA, high-volume SQL readback, cross-day SKU cutoff and 03:00, LTA/Shelving historical report equality, Reporter meal change under load, device notification/ACK, multi-Agent HA/WMS confirm p95/p99, full-drive Logs and billed Firestore/DO Usage are still FIELD_PENDING. No false actual quota savings, no forced OTA assumption. D167 remains OPEN; Owner D167 PASS remains pending; D166 limited accepted base unchanged.
+
+
+## 2026-10-13 — Owner reclassified outstanding work (supersedes the earlier pending-status snapshot)
+
+This section is the latest Owner scope classification; early 10/10–10/12 candidate statuses above are historical and do not override completed release receipts.
+
+| Ref | Owner outcome | Consequence |
+| --- | --- | --- |
+| MAIN WMS Confirm-tab direct authentication for SKU | **CANCELLED / SUPERSEDED** | Existing Agent isolated same-profile WebView2 child accepted; no separate implementation/deploy required. |
+| Other Agent 12/10 log faults / [D167-E044/E045 proposals] | **PENDING IN DIFFERENT DISCUSSION** | No implementation/release approval from this checkpoint; do not interfere with that PR/conversation. |
+| Firestore/Cloudflare/other usage optimization | **PENDING ADDITIONAL LOGS / MEASUREMENT** | No speculative cadence/SQL/transport rewrite or quota claim. |
+| CODE ONLY vs COMBINED CODE+DEPLOY commands | **OWNER APPROVED PROCESS** | Exact behavior in docs/OPERATING_PROTOCOL.md and docs/OWNER_DECISIONS.md. No runtime rollout implied. |
+| Launcher PDA logs/APK | **DEFER TO LAUNCHER PROJECT** | Owner will determine scope there; no Inventory-side Launcher APK changes. |
+
+Do **not** classify Beta-released code awaiting field signoff as "unimplemented". Only unresolved/unapproved work remains pending; Stable remains Owner-gated.
