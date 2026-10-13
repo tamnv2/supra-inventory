@@ -4,15 +4,15 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-web-impact-analysis-20261013",
-  "pr": 578,
-  "status": "D167_E053_OWNER_APPROVED_WEB_310_ACCOUNT_MEAL_BETA__CODE_IN_PR578_CI_PENDING",
+  "working_branch": "d167-web-ux-notpass-comprehensive-20261013",
+  "pr": 580,
+  "status": "D167_E055_OWNER_NOT_PASS_WEB310__WEB311_CODE_PR580_CI_PENDING",
   "last_checkpoint": {
-    "id": "D167-E053",
+    "id": "D167-E055",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 WEB_UI_ACCOUNT_MEAL_BETA_APPROVED",
+    "owner_latest": "2026-10-13 WEB311_REPAIR_UNDER_E053_BETA_SCOPE",
     "code_permission": true,
     "merge_permission": true,
     "beta_deploy_permission": true,
@@ -21,10 +21,10 @@
     "approved_components": [
       "worker"
     ],
-    "current_pr_scope": "PR578_WEB_310_ACCOUNT_MEAL_HISTORY_WORKER_BETA_ONLY__NO_AGENT_ANDROID_STABLE",
+    "current_pr_scope": "PR580_D167_WEB311_WEB_UI_ONLY_BETA_WORKER__NO_NEW_DATA_SERVICE_AGENT_ANDROID_STABLE",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "6280e6691f10b5b610a9a8c866c08f7c2e784191",
+    "approved_source_sha": "605b6f684b47b9d16b276b1fb3e5c9e7e1d0ee90",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -1130,6 +1130,32 @@
       ],
       "next_action": "Finish exact source CI including Web production build, Worker typecheck, D167/UI/role/regression tests, Repo Authority Guard, Project State Guard and continuity guard; repair CI failures, ensure Owner receipt source ancestor; mark PR ready, merge via approved guard, verify Beta deploy/health and report factual status.",
       "evidence": "Current Owner explicit 2026-10-13 final instruction; GitHub PR578; docs/OWNER_DECISIONS.md D167 Web 3.1.0; web/src/operational-app.ts api.ts web-version.ts; service/src/meal-break-core.ts alert-window-core.ts d167-shift-history.ts user-management-core.ts; tests/d167-web-layout.test.mjs"
+    },
+    {
+      "id": "D167-E055",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": false,
+      "topic": "Owner rejects deployed Web 3.1.0 (copy not thoroughly audited; account/Picker tabs contradictory and overlapping; SLA layout not actually corrected), demands coherent complete D167 repair",
+      "status": "OWNER_NOT_PASS__REPAIR_EXISTING_D167_SCOPE__WEB_311_SOURCE_IN_PR580_CI_PENDING",
+      "facts": [
+        "Owner explicitly reports extremely poor D167 Web 3.1.0 acceptance: unnecessary Owner/AI guidance appears across many routes not only screenshots, account creation and manual/Excel personnel workspaces show mismatched controls/content, SLA layout did not sufficiently increase useful visible density. This is Owner NOT PASS despite previous CI and Beta Worker health PASS.",
+        "Root cause verified in main: Web copy fix was limited literal string replacements, without cross-route content inventory or acceptance guard. Personnel account area had two independent toggle booleans usersCreateOpen and usersHrOpen, allowing contradictory content simultaneous, and old renderPeopleTabs legacy route still existed. SLA previous fix only shrank top overview/authority cards while lower threshold and policies retained wide padded original layout.",
+        "Remediation is patch version 3.1.1, no change ID bump: scan all Web render routes and HR forms, delete/simplify explanatory prose, preserve safety/risk warnings, replace both independent panels with exactly one usersView list|create|import and role-gated tabs, list only in list mode, return after apply; role-specific filters, safe bulk dropdown, protected admin/tamnv2. Compact three SLA threshold cards in one desktop row and two policy cards next row, responsive and keeping all form names and CAS/auth.",
+        "New static CI test tests/d167-web-ux-consistency.test.mjs plus existing SKU/role/SLA/regression guard adjustments prevents reintroducing duplicate People views, old owner phrases and high unbounded copy. No Worker/Service business logic, SQL schema, data or quotas changed; Web assets are distributed via existing scoped Beta Worker.",
+        "Owner's previous E053 'chạy code và triển khai luôn' approval remains the Beta Web/Worker release instruction for this same failed change D167. E055 is a field NOT PASS and explicitly does not authorize new resources, Stable, Android, Agent, new business logic or Owner business PASS. Source receipt and CI must be repinned to exact reviewed branch code SHA."
+      ],
+      "alternatives": [
+        "Do not treat 3.1.0 CI PASS as field PASS. If 3.1.1 UI acceptance fails, repair D167 again before Stable.",
+        "Do not delete important hazard/security/input consequence text; move technical installer help to collapsed details where useful.",
+        "Fail-closed if GitHub PR580 cannot pass complete authority/continuity/product guards and Beta source-gated deployment."
+      ],
+      "open_questions": [
+        "After source CI PASS and scoped Beta deployment, Owner must visually inspect every authorized route and confirm field PASS; no claim that automated source checks replace interactive manual usability.",
+        "Historical D167 release evidence PR579 is docs-only and remains separate; supersede/close only after conflict-safe continuity merge, not by direct main push."
+      ],
+      "next_action": "Complete content and functional tests; obtain exact branch CI, update E055 source SHA and receipt and release guard, merge PR580 branch→PR only after authority+continuity/product PASS, observe Beta Worker health, retain Stable untouched.",
+      "evidence": "Owner 2026-10-13 explicit NOT PASS in active chat; PR578 5cedab0 released Beta with technical PASS, source web/src/operational-app.ts and hr-web-panel.ts; PR580 same D167 repair branch; docs/OWNER_DECISIONS.md Web 3.1.1 correction."
     }
   ],
   "resume": {
@@ -1159,13 +1185,15 @@
       "Docs-only PR576 postrelease evidence: authority/continuity CI and merge; Agent v130 already published, do NOT release again.",
       "PR577 Web SKU provenance/layout source, auth, regression and predeploy CI; Beta Worker/Web release pending.",
       "D167-E050 docs-only impact checkpoint; source and runtime unchanged.",
-      "D167 PR578 Web/Worker v3.1.0 source candidate, UI regression/build/authority/continuity CI pending."
+      "D167 PR578 Web/Worker v3.1.0 source candidate, UI regression/build/authority/continuity CI pending.",
+      "E055 Owner NOT PASS Web 3.1.0; corrective Web 3.1.1 code in PR580, exact-head CI required."
     ],
     "pending_approval": [
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
       "Usage/cross-meter optimization pending further real log/provider measurements.",
       "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
-      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending."
+      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending.",
+      "D167 Web 3.1.1 Owner field/business PASS pending after corrected Beta release."
     ],
     "blocked": [
       "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
@@ -1183,6 +1211,6 @@
       "After explicit Owner approval for E050 only: branch/PR code+CI, no Worker/Web publication from this docs-only checkpoint.",
       "Present E052 proposal; hold combined Web/Service release until Owner accepts account-list design and all CI/continuity gates pass."
     ],
-    "release_boundary": "D167_E053_APPROVED_BETA_WORKER_WEB_ONLY_AFTER_EXACT_SHA_CI__STABLE_OWNER_GATED_NO_AGENT_ANDROID"
+    "release_boundary": "D167_E055_WEB311_SAME_SCOPE_E053_BETA_ONLY_CODE_AND_CI_PENDING__STABLE_OWNER_GATED__FIELD_FAIL"
   }
 }
