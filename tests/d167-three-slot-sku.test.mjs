@@ -379,7 +379,7 @@ test("D167 v128 diagnoses existing direct API export safely without changing WMS
   const config=readFileSync(new URL("../relay-agent/AgentConfig.cs",import.meta.url),"utf8");
   // Verify the version/build agreement without pinning a retired v129 Agent.
   // This read-only Web fix must not roll back an already released v130 binary.
-  assert.ok(/^\\d+$/.test(version) && Number(version) >= 129);
+  assert.ok(/^[0-9]+$/.test(version) && Number(version) >= 129);
   assert.match(config, new RegExp("AgentBuild = " + version + ";"));
   assert.match(program,/_mainTabs\.TabPages\.Add\(_overviewPage\);\s*_mainTabs\.TabPages\.Add\(_connectionPage\);\s*_mainTabs\.TabPages\.Add\(_d167SkuPage\);/);
   for(const step of ["SIDE_OPEN","SIDE_TARGET_DISCOVERY","SIDE_CDP_CONNECT","SIDE_NETWORK_ENABLE","SIDE_RELOAD","SIDE_AUTH_OBSERVE","DIRECT_GET","XLSX_PARSE"]) {
