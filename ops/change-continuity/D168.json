@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-sku-copy-invent-actor-pending-20261013",
-  "pr": 583,
+  "working_branch": "d168-agent-ops-four-pending-20261013",
+  "pr": 585,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E003",
+    "id": "D168-E007",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR583_D168_RECORD_TWO_PENDING_SKU_ANDROID_UI_REQUESTS_DOCS_ONLY_NO_RELEASE",
+    "current_pr_scope": "PR585_D168_FOUR_AGENT_REQUESTS_DOCS_ONLY_NO_RUNTIME_CHANGE",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -77,6 +77,70 @@
       ],
       "next_action": "When Owner requests analysis, inspect result event schema, actor display name/user ID, realtime/API responses, local time conversions and role access; recommend reuse existing payload, bounded cached joins and no new polling before Owner authorizes code.",
       "evidence": "Owner chat 2026-10-13 request #2 to record pending D168 feature; docs/D168_BACKLOG.md#d168-req-002"
+    },
+    {
+      "id": "D168-E004",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "topic": "Display each active Picker Android App version in Agent list after confirmation-source column",
+      "status": "OWNER_REQUESTED_RECORD_ONLY__PENDING_ANALYSIS__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Agent online Picker list should show the App version for each Picker.",
+        "New column must appear directly after the existing confirmation source and before row action buttons.",
+        "Analyze whether version already flows through existing login/session/presence data to avoid extra requests."
+      ],
+      "next_action": "Review current Agent source and evidence when Owner requests analysis; propose a low-Usage solution for approval before code or deployment.",
+      "evidence": "Owner direct D168 backlog request 2026-10-13; docs/D168_BACKLOG.md",
+      "supersedes": []
+    },
+    {
+      "id": "D168-E005",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "topic": "Review stale Picker online list following bulk kick and logout, with minimal usage",
+      "status": "OWNER_REQUESTED_RECORD_ONLY__PENDING_ANALYSIS__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Owner observed that Picker entries can remain after all users are kicked or after logout.",
+        "Analyze online lifecycle, refresh logic, event handling, caches, disconnect/reconnect, multiple Agents and usage.",
+        "Favor accurate event-driven updates through existing channels, with bounded reconciliation when needed."
+      ],
+      "next_action": "Review current Agent source and evidence when Owner requests analysis; propose a low-Usage solution for approval before code or deployment.",
+      "evidence": "Owner direct D168 backlog request 2026-10-13; docs/D168_BACKLOG.md",
+      "supersedes": []
+    },
+    {
+      "id": "D168-E006",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "topic": "Remove SKU list/search from Agent SKU tab; propose useful information and multi-Agent sync",
+      "status": "OWNER_REQUESTED_RECORD_ONLY__PENDING_ANALYSIS__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Remove SKU list and SKU search controls from Agent SKU tab.",
+        "Investigate more useful operational status and diagnostics to replace that space; final UI is not yet approved.",
+        "Synchronize SKU tab information across Agents automatically while reusing an existing data channel where possible, and measure extra usage before choosing a design."
+      ],
+      "next_action": "Review current Agent source and evidence when Owner requests analysis; propose a low-Usage solution for approval before code or deployment.",
+      "evidence": "Owner direct D168 backlog request 2026-10-13; docs/D168_BACKLOG.md",
+      "supersedes": []
+    },
+    {
+      "id": "D168-E007",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "topic": "Offer enable/disable Agent startup with Windows in Settings",
+      "status": "OWNER_REQUESTED_RECORD_ONLY__PENDING_ANALYSIS__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Add an option in Agent Settings for starting Agent automatically with Windows.",
+        "Analyze startup method, per-machine setting, permissions, duplicate-instance behavior and impact on background activity.",
+        "Starting the app must not imply unrelated workflow actions."
+      ],
+      "next_action": "Review current Agent source and evidence when Owner requests analysis; propose a low-Usage solution for approval before code or deployment.",
+      "evidence": "Owner direct D168 backlog request 2026-10-13; docs/D168_BACKLOG.md",
+      "supersedes": []
     }
   ],
   "resume": {
@@ -90,7 +154,7 @@
       "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "PR583 docs-only journal/backlog checkpoint; authority and continuity CI verification pending; no runtime changes"
+      "PR585 docs-only checkpoint of four Agent requests pending CI and merge"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -98,13 +162,17 @@
       "Future log/error fixes, fleet/HA confirmation, full CI/CD invocation gate review require scoped evidence and Owner command",
       "Stable is OWNER-GATED",
       "D168-REQ-001: Android long-press visible SKU to local clipboard across Picker/Reporter and all listed states; pending source/UI analysis, no code approval",
-      "D168-REQ-002: Inventory response actor full name/time from existing events/payload when available; pending schema/realtime/permission/Usage analysis, no code approval"
+      "D168-REQ-002: Inventory response actor full name/time from existing events/payload when available; pending schema/realtime/permission/Usage analysis, no code approval",
+      "D168-REQ-003: Agent online Picker App-version column after confirmation source",
+      "D168-REQ-004: Picker online presence accuracy after logout/kick with minimal Usage",
+      "D168-REQ-005: Agent SKU tab UI redesign and cross-Agent state synchronization reusing existing channels",
+      "D168-REQ-006: Agent Settings option for Windows auto-start"
     ],
     "blocked": [],
     "next_actions": [
-      "After PR583 authority/continuity CI passes, merge docs-only and retain D168 as current OPEN change",
-      "Await Owner's future request to analyze D168-REQ-001 and D168-REQ-002 in source detail; do not implement or deploy without explicit approval"
+      "Verify and merge docs-only PR585 with continuity and authority checks; no deployment",
+      "Await Owner request for detailed source/log analysis of D168-REQ-003..006"
     ],
-    "release_boundary": "D168_OPEN_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_GRANTED__D167_RELEASE_UNCHANGED__STABLE_OWNER_GATED"
+    "release_boundary": "D168_FOUR_AGENT_PENDING_ANALYSIS__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
   }
 }
