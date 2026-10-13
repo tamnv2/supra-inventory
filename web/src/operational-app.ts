@@ -1912,13 +1912,6 @@ function renderSku(): string {
   </section>`;
 }
 
-function renderPeopleTabs(current: "users" | "hr"): string {
-  return `<div class="workspace-tabs" role="tablist" aria-label="Nhân sự và tài khoản">
-    <button type="button" class="workspace-tab ${current === "users" ? "active" : ""}" data-workspace-section="users">Danh sách tài khoản</button>
-    <button type="button" class="workspace-tab ${current === "hr" ? "active" : ""}" data-workspace-section="hr">Nguồn nhân sự & đồng bộ Picker</button>
-  </div>`;
-}
-
 function renderHr(): string {
   // Legacy deep link reuses the same People workflow; never renders a second tab system.
   usersView = profile?.role === "ADMIN" || profile?.role === "ROOT" ? "import" : "list";
