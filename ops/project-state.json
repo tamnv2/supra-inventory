@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_OPEN__SEVEN_PENDING_REQUESTS_RECORDED__ANALYSIS_ONLY_NO_CODE_OR_DEPLOY",
+    "current_change_status": "D168_OPEN__AGENT_LOG_DIAGNOSIS_RECORDED__ANALYSIS_ONLY_NO_CODE_OR_DEPLOY",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,9 +7449,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D168",
     "journal": "ops/change-continuity/D168.json",
-    "working_branch": "d168-picker-group-contact-backlog-20261013",
-    "pr": 586,
-    "latest_checkpoint_id": "D168-E008",
+    "working_branch": "d168-agent-log-upload-diagnosis-20261013",
+    "pr": 587,
+    "latest_checkpoint_id": "D168-E009",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7747,6 +7747,8 @@
           "D168-REQ-004"
         ]
       }
-    ]
+    ],
+    "latest_checkpoint_id": "D168-E009",
+    "log_upload_diagnosis": "OWNER_PROVIDED_ONE_AGENT_LOCAL_TRACE__PENDING_OWNER_APPROVAL__NO_CODE_NO_DEPLOY"
   }
 }
