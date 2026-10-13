@@ -114,7 +114,7 @@ export function getMealChoiceState(state: DurableObjectState, nowMs = Date.now()
 }
 
 export function confirmMealChoice(
-  state: DurableObjectState, body: { period?: string; choice?: string; actor_id?: string; actor_name?: string },
+  state: DurableObjectState, body: { period?: string; choice?: string; actor_id?: string; actor_name?: string; allow_early_web?: boolean },
   nowMs = Date.now(),
 ): { status: number; payload: Record<string, unknown>; changed: boolean } {
   const period = String(body.period || "") as MealPeriod;
@@ -126,7 +126,10 @@ export function confirmMealChoice(
   const day = vnDayAt(nowMs), base = vnMidnightMs(day);
   const begin = base + (period === "LUNCH" ? 10*60+55 : 17*60+55)*60_000;
   const end = base + (period === "LUNCH" ? 11*60 : 18*60)*60_000;
-  if (nowMs < begin || nowMs >= end) {
+  // A Web session can select the current VN-day meal early. Existing Android
+  // reminder window stays unchanged; only the authenticated Worker may set this flag.
+  const earliest = body.allow_early_web === true ? base : begin;
+  if (nowMs < earliest || nowMs >= end) {
     return { status: 409, payload: { error: "MEAL_CONFIRM_OUTSIDE_WINDOW", day_vn: day }, changed: false };
   }
   const slot = slotFor(day, period, choice);
@@ -145,6 +148,12 @@ export function confirmMealChoice(
   if (!current) return { status: 500, payload: { error: "MEAL_CHOICE_NOT_SAVED" }, changed: false };
   const winner = String(current.confirmed_by) === actorId && String(current.choice) === choice;
   const changed = Number(inserted?.count || 0) === 1;
+  if (changed) state.storage.sql.exec(
+    "INSERT INTO audit_log (audit_id,actor_user_id,actor_employee_code,action,target_type,target_id,metadata_json,created_at) VALUES (?,?,?,?,?,?,?,?)",
+    crypto.randomUUID(), actorId, null, "MEAL_BREAK_CONFIRM", "MEAL_BREAK", day + ":" + period,
+    JSON.stringify({ day_vn: day, period, choice, confirmed_name: actorName, source: body.allow_early_web ? "WEB_EARLY" : "REPORTER_CONFIRM" }),
+    new Date(nowMs).toISOString(),
+  );
   return {
     status: winner ? 200 : 409, changed,
     payload: {
@@ -267,7 +276,14 @@ export function dueMealDefaults(state: DurableObjectState, nowMs = Date.now()): 
       day, period, slot.from, slot.to, new Date(nowMs).toISOString(), "SYSTEM_MEAL_DEFAULT", "Hệ thống mặc định",
     );
     const changed = first(state.storage.sql.exec<SqlRow>("SELECT changes() AS count").toArray());
-    if (Number(changed?.count || 0) === 1) events.push({ day_vn: day, period, event_id: crypto.randomUUID() });
+    if (Number(changed?.count || 0) === 1) {
+      state.storage.sql.exec(
+        "INSERT INTO audit_log (audit_id,actor_user_id,actor_employee_code,action,target_type,target_id,metadata_json,created_at) VALUES (?,?,?,?,?,?,?,?)",
+        crypto.randomUUID(), "SYSTEM_MEAL_DEFAULT", null, "MEAL_BREAK_DEFAULT", "MEAL_BREAK", day + ":" + period,
+        JSON.stringify({ day_vn: day, period, choice: "LATE", source: "SYSTEM_DEFAULT" }), new Date(nowMs).toISOString(),
+      );
+      events.push({ day_vn: day, period, event_id: crypto.randomUUID() });
+    }
   }
   return events;
 }
