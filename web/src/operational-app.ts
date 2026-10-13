@@ -1634,7 +1634,7 @@ function renderOperations(): string {
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
   return `<section id="fastEvents" class="fast-events ops-business-workspace">
     ${skuDayBanner()}
-    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Theo dõi và xử lý các SKU Picker đang báo hết hàng.</p></div></div>
+    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
       <button type="button" class="business-summary-card summary-filter-card primary ${queueFilter === "ALL" ? "active" : ""}" data-queue-filter="ALL"><span>SKU đang chờ xử lý</span><strong>${queueRows.length.toLocaleString("vi-VN")}</strong><small>${affected.toLocaleString("vi-VN")} Picker đang bị ảnh hưởng</small></button>
@@ -1873,7 +1873,7 @@ function renderSku(): string {
     </section>
     ${!todayReady ? `<p class="notice warning">${esc(skuCatalogInfo?.sku_day_warning || "Chưa xác nhận danh mục SKU hôm nay.")}</p>` : ""}
     <article class="ops-panel sku-provenance-panel">
-      <div class="ops-panel-title"><div><h3>Nhật ký cập nhật theo nguồn</h3><p>Web lấy từ nhật ký nhập Excel; Agent lấy từ biên nhận DONE thực tế. Không nhận diện nguồn bằng thời điểm sửa dữ liệu.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Nhật ký cập nhật theo nguồn</h3></div></div>
       <div class="sku-provenance-grid">
         ${latestEvent("Web nhập Excel gần nhất", provenance?.latest_web)}
         ${latestEvent("Agent FULL gần nhất", provenance?.latest_agent_full)}
@@ -1886,7 +1886,7 @@ function renderSku(): string {
       </details>
     </article>
     <article class="ops-panel sku-search-panel">
-      <div class="ops-panel-title"><div><h3>Tra cứu danh mục hiện tại</h3><p>Tra cứu theo SKU hoặc tên sản phẩm; danh sách này chỉ gồm SKU đang hiệu lực.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Tra cứu danh mục hiện tại</h3></div></div>
       <form id="sku-admin-search-form" class="sku-admin-search">
         <input name="query" value="${esc(skuAdminQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" autocomplete="off"/>
         <button class="secondary">Tìm kiếm</button>
@@ -1898,7 +1898,7 @@ function renderSku(): string {
       <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
     <details id="sku-import-details" class="ops-panel sku-import-details" ${skuExcelExpanded || wb ? "open" : ""}>
-      <summary><strong>Cập nhật danh mục từ Excel</strong><small>Chỉ mở khi cần tải file hoặc thay đổi danh mục; mặc định không ảnh hưởng màn hình tra cứu.</small></summary>
+      <summary><strong>Cập nhật danh mục từ Excel</strong></summary>
       <div class="sku-import-inner">
         <p class="ops-note">File được kiểm tra trước khi ghi. SKU trùng mã khác tên cần được xác nhận. Có thể thêm cột Khu vực (LTA/Shelving); để trống giữ nguyên vị trí.</p>
         <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx"/></label></div>
@@ -1980,7 +1980,7 @@ function renderUsers(): string {
     </section>
     <div class="users-top-grid">
       <article class="ops-panel users-create-panel" ${usersCreateOpen && canCreateManaged ? "" : "hidden"}>
-        <div class="ops-panel-title"><div><h3>${canCreateManaged ? "Tạo tài khoản nghiệp vụ" : "Quản lý Picker"}</h3><p>${canCreateManaged ? "Tạo Người xử lý báo hàng hoặc vai trò quản trị được phép. Picker được đồng bộ từ nguồn nhân sự." : "Quản trị Pick Pack chỉ quản lý Picker; không tạo Reporter hay Quản trị Invent."}</p></div></div>
+        <div class="ops-panel-title"><h3>Tạo tài khoản</h3></div>
         ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
@@ -1991,7 +1991,7 @@ function renderUsers(): string {
         </form>` : `<div class="ops-readonly">Thêm Picker mới qua Nguồn nhân sự và đồng bộ Picker.</div>`}
       </article>
       <article class="ops-panel users-filter-panel">
-        <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, nhà thầu, quyền hoặc trạng thái.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3></div></div>
         <form id="user-filter-form" class="users-form-grid users-filter-form">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / nhà thầu / tài khoản" /></label>
           <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","PICKPACK_ADMIN","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
@@ -2050,7 +2050,7 @@ function renderUsers(): string {
 function renderSla(): string {
   if (!slaResponse) {
     return `<section class="ops-route sla-workspace">
-      <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Cấu hình chung toàn hệ thống.</p></div><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
+      <div class="business-page-head"><div><h2>Thời gian xử lý</h2></div><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
       <article class="ops-panel sla-loading-panel"><strong>Đang đồng bộ cấu hình hiện hành</strong><span>Web không hiển thị giá trị mặc định thay thế trong lúc chờ máy chủ để tránh nhầm cấu hình.</span></article>
     </section>`;
   }
@@ -2071,7 +2071,7 @@ function renderSla(): string {
   const updatedAt = sla?.updated_at ? fmt(sla.updated_at) : "Chưa có";
   return `<section class="ops-route sla-workspace sla-professional">
     <div class="business-page-head sla-page-head">
-      <div><h2>Thời gian xử lý</h2><p>Thiết lập một lần, áp dụng đồng nhất cho toàn bộ Reporter/Admin/Root và mọi thiết bị.</p></div>
+      <div><h2>Thời gian xử lý</h2></div>
       <div class="sla-authority-badges"><span class="global-setting-badge">Cấu hình máy chủ</span><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
     </div>
 
@@ -2193,7 +2193,7 @@ function renderDashboard(): string {
   const affectedInPeriod = Number(k?.affected_picker_count || 0);
   const recurrenceSkuCount = recurrence.length;
   return `<section class="v5-root report-workspace">
-    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Toàn cảnh vận hành báo hàng theo thời gian được chọn.</p></div></div>
+    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2></div></div>
     ${renderReportTabs("dashboard")}
     <article class="ops-panel report-filter-panel">
       <form id="dashboard-filter" class="report-filter-row report-filter-compact">
@@ -2214,7 +2214,7 @@ function renderDashboard(): string {
 
     <div class="report-layout-two">
       <article class="ops-panel presence-panel">
-        <div class="ops-panel-title"><div><h3>Người đang online theo quyền</h3><p>Chỉ Web + PDA; Agent không được tính. Một tài khoản được tính một lần dù mở nhiều phiên cùng quyền.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Người đang online theo quyền</h3></div></div>
         <div class="presence-grid">
           <div><span>Người lấy hàng</span><strong>${Number(roleOnline.PICKER || 0)}</strong></div>
           <div><span>Người xử lý báo hàng</span><strong>${Number(roleOnline.REPORTER || 0)}</strong></div>
@@ -2223,7 +2223,7 @@ function renderDashboard(): string {
         </div>
       </article>
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Khối lượng trong kỳ</h3><p>Các chỉ số chính theo khoảng thời gian đã chọn.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Khối lượng trong kỳ</h3></div></div>
         <div class="presence-grid pro-period-grid">
           <div><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong></div>
           <div><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong></div>
@@ -2237,7 +2237,7 @@ function renderDashboard(): string {
 
     <div class="report-layout-two">
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Kết quả xử lý</h3><p>Tỷ trọng các kết quả đã khép lại trong kỳ.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Kết quả xử lý</h3></div></div>
         <div class="v5-outcome-bars">
           <div class="v5-outcome-line"><div><span>Đã có hàng</span><b>${hasStock}</b></div><div class="v5-track"><i class="green" style="width:${outcomePct(hasStock)}%"></i></div><small>${outcomePct(hasStock)}%</small></div>
           <div class="v5-outcome-line"><div><span>Bỏ qua bởi nhân sự</span><b>${humanSkipped}</b></div><div class="v5-track"><i class="red" style="width:${outcomePct(humanSkipped)}%"></i></div><small>${outcomePct(humanSkipped)}%</small></div>
@@ -2246,13 +2246,13 @@ function renderDashboard(): string {
         </div>
       </article>
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>SKU phát sinh lại</h3><p>Ưu tiên xem các SKU đã xử lý nhưng tiếp tục được báo lại.</p></div></div>
+        <div class="ops-panel-title"><div><h3>SKU phát sinh lại</h3></div></div>
         ${recurrence.length ? `<div class="v5-rank-list">${recurrence.slice(0,8).map((row,index) => `<div class="v5-rank-row"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${Number(row.recurrence_count)} lần</em></div>`).join("")}</div>` : `<div class="v5-empty">Không có SKU phát sinh lại trong kỳ.</div>`}
       </article>
     </div>
 
     <article class="ops-panel pro-resolution-activity">
-      <div class="ops-panel-title"><div><h3>Kết quả xử lý gần đây</h3><p>Hiển thị rõ người đã xác nhận Có hàng / Cho phép bỏ qua; trường hợp quá hạn tự động hiển thị Hệ thống.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Kết quả xử lý gần đây</h3></div></div>
       ${recentResolutions.length ? `<div class="resolution-activity-list">${recentResolutions.map((row) => {
         const actor = resolutionActorLabel(row);
         const automatic = ["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || ""));
@@ -2813,7 +2813,7 @@ function renderLogs(): string {
   const auditPageTo = Math.min(auditTotal, auditOffset + auditRows.length);
   const auditActive = logView === "AUDIT";
   return `<section class="ops-route logs-workspace">
-    <div class="business-page-head"><div><h2>Nhật ký</h2><p>Log kỹ thuật và lịch sử thao tác nghiệp vụ được tách riêng để dễ tra cứu.</p></div>${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
+    <div class="business-page-head"><div><h2>Nhật ký</h2></div>${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
     <div class="workspace-tabs" role="tablist" aria-label="Nguồn nhật ký">
       <button type="button" class="workspace-tab ${logView === "WEB" ? "active" : ""}" data-log-view="WEB">Log Web</button>
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
