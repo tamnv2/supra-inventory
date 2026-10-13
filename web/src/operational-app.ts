@@ -11,6 +11,7 @@ import "./legacy-transplant/web-unified-ui.css";
 import "./legacy-transplant/web-professional-v2.css";
 import "./legacy-transplant/d167-web-layout-density.css";
 import "./legacy-transplant/d167-sku-provenance.css";
+import "./legacy-transplant/d167-web-compact-accounts.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -32,6 +33,7 @@ import {
   getAgentAppRelease,
   getAndroidAlertWindow,
   getD167MealState,
+  getD167ShiftHistory,
   confirmD167Meal,
   editD167Meal,
   getAdminSla,
@@ -84,6 +86,7 @@ import {
   type AgentAppRelease,
   type AndroidAlertWindowState,
   type D167MealState,
+  type D167ShiftHistory,
   type AutoSkipMode,
   type BatchPickerTicket,
   type HrSourceResponse,
@@ -510,6 +513,8 @@ let pdaAppRelease: PdaAppRelease | null = null;
 let agentAppRelease: AgentAppRelease | null = null;
 let androidAlertWindow: AndroidAlertWindowState | null = null;
 let d167MealState: D167MealState | null = null;
+let d167ShiftHistory: D167ShiftHistory | null = null;
+let shiftHistoryDays = 7;
 let pdaQrDataUrl = "";
 const reportNoticeBySku = new Map<string, number>();
 let pickerQuery = "";
@@ -530,7 +535,11 @@ let userShortageReporting = "";
 let userOffset = 0;
 let userTotal = 0;
 let allPickerSelection = false;
-const USER_PAGE_SIZE = 100;
+const USER_PAGE_SIZE = 50;
+let usersBulkMode = false;
+let usersCreateOpen = false;
+let usersHrOpen = false;
+let usersGlobalTargetCount: number | null = null;
 let editUserId: string | null = null;
 let passwordUserId: string | null = null;
 let selectedBatchId: string | null = null;
@@ -2976,7 +2985,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
       <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
         <option value="EARLY">${early}</option><option value="LATE">${late}</option>
       </select></label>
-      <button class="primary" ${record || !roleCanResolve() || !(period === "LUNCH" ? d167MealState?.lunch_prompt_due : d167MealState?.dinner_prompt_due) ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
+      <button class="primary" ${record || !roleCanResolve() || !d167MealState || Date.now() >= Date.parse(d167MealState.day_vn + "T00:00:00Z") + (period === "LUNCH" ? 4 : 11) * 3600000 ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
     </form>
   </article>`;
 }
@@ -3023,21 +3032,19 @@ function renderShiftOperations(): string {
             ? "Đã huỷ tăng ca"
             : "Theo lịch mặc định";
   return `<section class="ops-route tools-workspace">
-    <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Trạng thái dùng chung từ Agent cho Web, Báo hàng và PickList. Web chỉ hiển thị authority hiện hành.</p></div></div>
+    <div class="business-page-head"><div><h2>Ca vận hành</h2></div></div>
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Ca bình thường</span><strong>06:00–22:00</strong><small>Cửa sổ kỹ thuật Replay · 05:45–22:15</small></article>
       <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
       <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>State chia sẻ đến</span><strong>${esc(sharedUntil)}</strong><small>${esc(decision)}</small></article>
     </section>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
-      <div class="ops-note">Ca bình thường 06:00–22:00. Cửa sổ kỹ thuật Replay hoạt động 05:45–22:15; nếu không có gia hạn thì chuyển SLEEP lúc 22:15. Sau 22:15, Agent có thể Gia hạn +1 giờ; cảnh báo T-15 áp dụng cho mốc tăng ca đang hoạt động; tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent.</div>
-    </article>
-    <div class="business-page-head"><div><h2>Giờ nghỉ ăn · tạm dừng tự động Skip</h2><p>Hai lựa chọn mỗi buổi, đồng bộ toàn bộ Reporter; xác nhận một lần, không tác động thao tác thủ công.</p></div></div>
+    <details class="ops-panel d167-technical"><summary>Thông tin kỹ thuật ca</summary><p>Replay: 05:45–22:15 · Gia hạn tại Agent · Bật sớm trước 05:45.</p></details>
+    <div class="business-page-head"><div><h2>Giờ nghỉ · tạm dừng tự động Skip</h2></div></div>
     <div class="ops-grid-two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">
       ${renderMealStatusCard("LUNCH")}
       ${renderMealStatusCard("DINNER")}
     </div>
+    ${renderD167ShiftHistory()}
   </section>`;
 }
 
@@ -4042,13 +4049,15 @@ async function loadShiftOperations(): Promise<void> {
   if (!roleOperate()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [alertResult, mealResult] = await Promise.all([
+  const [alertResult, mealResult, historyResult] = await Promise.all([
     roleManage() ? getAndroidAlertWindow().catch(() => null) : Promise.resolve(null),
     roleCanResolve() ? getD167MealState().catch(() => null) : Promise.resolve(null),
+    getD167ShiftHistory(shiftHistoryDays).catch(() => null),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   androidAlertWindow = alertResult;
   d167MealState = mealResult;
+  d167ShiftHistory = historyResult;
   markWebUpdateReceived();
   patchOverlays();
 }
