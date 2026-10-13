@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-sku-copy-invent-actor-pending-20261013",
-  "pr": 583,
+  "working_branch": "d168-agent-list-sku-startup-pending-20261013",
+  "pr": 584,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E003",
+    "id": "D168-E007",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR583_D168_RECORD_TWO_PENDING_SKU_ANDROID_UI_REQUESTS_DOCS_ONLY_NO_RELEASE",
+    "current_pr_scope": "PR584_D168_DOCS_ONLY_RECORD_FOUR_AGENT_FUTURE_REQUESTS_NO_CODE_OR_DEPLOY",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -77,6 +77,70 @@
       ],
       "next_action": "When Owner requests analysis, inspect result event schema, actor display name/user ID, realtime/API responses, local time conversions and role access; recommend reuse existing payload, bounded cached joins and no new polling before Owner authorizes code.",
       "evidence": "Owner chat 2026-10-13 request #2 to record pending D168 feature; docs/D168_BACKLOG.md#d168-req-002"
+    },
+    {
+      "id": "D168-E004",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "owner_approval": false,
+      "topic": "Owner records future Agent active Picker list column showing Android Báo hàng app version after confirmation source and before action buttons",
+      "status": "RECORD_ONLY_PENDING_EXISTING_PRESENCE_PAYLOAD_UI_ANALYSIS__NO_CODE_OR_RELEASE",
+      "facts": [
+        "Owner explicitly requests Agent's active Picker table show each associated PDA's Báo hàng Android app version.",
+        "Exact proposed column placement: immediately after 'Nguồn xác nhận' (confirmation source), before action-button columns.",
+        "Need later inspect whether app version is already carried in login/session/presence or another existing stream; distinguish Agent version from PDA APK and unknown/stale version.",
+        "Owner did not authorize Agent code build/update or any source/provider mutation in this request."
+      ],
+      "next_action": "When requested, trace existing Agent Picker row schema and PDA version/online event mapping; prepare minimal UI and zero-extra-read candidate for Owner review.",
+      "evidence": "2026-10-13 Owner Agent backlog note #1; docs/D168_BACKLOG.md#d168-req-003"
+    },
+    {
+      "id": "D168-E005",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "owner_approval": false,
+      "topic": "Owner reports stale Agent active Picker list after kick-all or logout; requests freshest accurate low-Usage refresh strategy",
+      "status": "RECORD_ONLY_PENDING_KICK_LOGOUT_PRESENCE_SOURCE_AND_USAGE_ANALYSIS__NO_CODE_OR_RELEASE",
+      "facts": [
+        "Owner observes some kicked users remain shown in Agent Picker list and sometimes the list is incorrect even after a user logs out.",
+        "Owner requests most up-to-date and visually trustworthy active list while minimizing provider read/write requests.",
+        "Need compare kick/session revocation, logout/presence event, disconnect, late/out-of-order event and cached snapshot versus Agent UI before claiming root cause.",
+        "Prefer reuse already available push/messages and bounded resync only when missing, but no specific mechanism is approved yet."
+      ],
+      "next_action": "Investigate on Owner's future analysis command using sanitized kick/logout timestamps and current presence/listener/Agent sources; propose freshness SLA and Usage impact; no polling change now.",
+      "evidence": "2026-10-13 Owner Agent backlog note #2; docs/D168_BACKLOG.md#d168-req-004"
+    },
+    {
+      "id": "D168-E006",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "owner_approval": false,
+      "topic": "Owner wants Agent SKU tab list/search removed, useful operational info substituted, and tab information synced between Agents with minimal new Usage",
+      "status": "RECORD_ONLY_PENDING_SKU_TAB_UI_AND_EXISTING_TRANSPORT_REUSE_ANALYSIS__NO_CODE_OR_RELEASE",
+      "facts": [
+        "Owner says displaying and searching the SKU list inside Agent's 'Cập nhật SKU' tab is not necessary; replace with useful operational information after presenting proposal.",
+        "Owner wants SKU tab information automatically synchronized across all Agents, ideally reusing messages/data already traveling between them to avoid adding Usage.",
+        "Need separate globally authoritative SKU update/job provenance from per-Agent local UI status and ensure new/returning Agent reconstructs correct state.",
+        "Zero incremental provider Usage cannot be promised until current transports/replay/snapshot are verified; no WMS/confirm/Service/Android or SKU scheduling changes approved."
+      ],
+      "next_action": "For future analysis inspect Agent v130 SKU tab and existing inter-Agent HA/RTDB/Worker channels, propose useful replacement status design and costed sync strategy, await Owner approval.",
+      "evidence": "2026-10-13 Owner Agent backlog note #3; docs/D168_BACKLOG.md#d168-req-005"
+    },
+    {
+      "id": "D168-E007",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "owner_approval": false,
+      "topic": "Owner requests per-machine Windows Agent settings toggle for launch on computer startup",
+      "status": "RECORD_ONLY_PENDING_WINDOWS_AUTOSTART_SCOPE_AND_PRIVILEGE_ANALYSIS__NO_CODE_OR_RELEASE",
+      "facts": [
+        "Owner requests a switch in Agent Settings to enable or disable automatic Agent startup together with the computer.",
+        "Need later distinguish startup at Windows user login versus truly before sign-in; examine existing startup implementation, privileges, EXE update path and single instance.",
+        "Favor machine-local stored choice and no cloud provider Usage if feasible, but do not silently change any PC's startup setting or HA activation.",
+        "No Agent update, service, task scheduler or registry modification is authorized now."
+      ],
+      "next_action": "When authorized for analysis, check existing Agent packaging/startup/HA behavior and propose reliable per-PC toggle with rollback and bounded permissions.",
+      "evidence": "2026-10-13 Owner Agent backlog note #4; docs/D168_BACKLOG.md#d168-req-006"
     }
   ],
   "resume": {
@@ -90,7 +154,7 @@
       "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "PR583 docs-only journal/backlog checkpoint; authority and continuity CI verification pending; no runtime changes"
+      "PR584 docs-only checkpoint recording four Agent requests, PR source/authority CI pending; no code or deployment changes"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -98,13 +162,17 @@
       "Future log/error fixes, fleet/HA confirmation, full CI/CD invocation gate review require scoped evidence and Owner command",
       "Stable is OWNER-GATED",
       "D168-REQ-001: Android long-press visible SKU to local clipboard across Picker/Reporter and all listed states; pending source/UI analysis, no code approval",
-      "D168-REQ-002: Inventory response actor full name/time from existing events/payload when available; pending schema/realtime/permission/Usage analysis, no code approval"
+      "D168-REQ-002: Inventory response actor full name/time from existing events/payload when available; pending schema/realtime/permission/Usage analysis, no code approval",
+      "D168-REQ-003: Agent active Picker table display Báo hàng APK version after confirmation source and before buttons; pending data/UI analysis",
+      "D168-REQ-004: Agent active Picker list stale after kick/logout; investigate presence ordering and low-Usage refresh before any implementation",
+      "D168-REQ-005: Agent SKU tab replace SKU list/search with useful status; sync tab state across Agents using existing transports when feasible; pending UI/transport/Usage analysis",
+      "D168-REQ-006: Agent Settings toggle startup with Windows machine; pending local startup, permission and HA interaction analysis"
     ],
     "blocked": [],
     "next_actions": [
-      "After PR583 authority/continuity CI passes, merge docs-only and retain D168 as current OPEN change",
-      "Await Owner's future request to analyze D168-REQ-001 and D168-REQ-002 in source detail; do not implement or deploy without explicit approval"
+      "Verify PR584 authority/continuity/state checks; merge docs-only if PASS; retain active D168",
+      "Await Owner's explicit future analysis/code/deploy instructions for D168-REQ-001 through D168-REQ-006; do not implement automatically"
     ],
-    "release_boundary": "D168_OPEN_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_GRANTED__D167_RELEASE_UNCHANGED__STABLE_OWNER_GATED"
+    "release_boundary": "D168_SIX_RECORDED_REQUESTS_PENDING_ANALYSIS__NO_CODE_OR_DEPLOY__D167_RELEASE_UNCHANGED__STABLE_OWNER_GATED"
   }
 }
