@@ -134,6 +134,18 @@ function skuCatalogProvenance(state: DurableObjectState): Response {
     FROM d167_sku_jobs WHERE state='DONE' AND complete_at IS NOT NULL
     ORDER BY complete_at DESC LIMIT 8
   `).toArray();
+  // "Latest FULL" must remain exact even after many more DELTA/manual events.
+  // Small indexed/local Durable Object SQL reads, only on admin SKU page entry.
+  const lastFull = state.storage.sql.exec<SqlRow>(`
+    SELECT day_vn,slot,complete_at,receipt_json FROM d167_sku_jobs
+    WHERE state='DONE' AND slot='INITIAL_05' AND complete_at IS NOT NULL
+    ORDER BY complete_at DESC LIMIT 1
+  `).toArray()[0];
+  const lastDelta = state.storage.sql.exec<SqlRow>(`
+    SELECT day_vn,slot,complete_at,receipt_json FROM d167_sku_jobs
+    WHERE state='DONE' AND slot<>'INITIAL_05' AND complete_at IS NOT NULL
+    ORDER BY complete_at DESC LIMIT 1
+  `).toArray()[0];
   const web: CatalogEvent[] = webRows.map(x => {
     const detail = parse(x.metadata_json);
     const full = x.action === "SKU_WEB_FULL_REPLACE";
@@ -152,7 +164,7 @@ function skuCatalogProvenance(state: DurableObjectState): Response {
       note:full?"FULL Web đã xác nhận":"Một lô PATCH từ Excel (không phải FULL)"
     };
   });
-  const agent: CatalogEvent[] = agentRows.map(x => {
+  const agentEvent = (x: SqlRow): CatalogEvent => {
     const detail = parse(x.receipt_json);
     const slot = String(x.slot||"");
     const full = slot === "INITIAL_05";
@@ -168,12 +180,13 @@ function skuCatalogProvenance(state: DurableObjectState): Response {
       note:detail.source_unchanged===true?"Nguồn không đổi, không ghi lại SKU":
         (detail.manual===true?"Agent cập nhật thủ công":"Agent đồng bộ theo lịch")
     };
-  });
+  };
+  const agent: CatalogEvent[] = agentRows.map(agentEvent);
   const recent = [...web,...agent].sort((a,b)=>b.at.localeCompare(a.at)).slice(0,8);
   return response({
     latest_web:web[0]||null,
-    latest_agent_full:agent.find(x=>x.mode==="FULL")||null,
-    latest_agent_delta:agent.find(x=>x.mode==="DELTA")||null,
+    latest_agent_full:lastFull ? agentEvent(lastFull) : null,
+    latest_agent_delta:lastDelta ? agentEvent(lastDelta) : null,
     recent,
     source_verified:true
   });
