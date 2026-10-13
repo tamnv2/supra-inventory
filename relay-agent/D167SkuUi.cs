@@ -16,6 +16,7 @@ namespace SupraInventoryRelayAgent
             switch(value ?? "")
             {
                 case "READY": return "Chưa đến lượt";
+                case "RESERVED": return "Đã cấp quyền cho máy cập nhật";
                 case "CLAIMED": return "Đang chuẩn bị cập nhật";
                 case "STAGING": return "Đang gửi danh sách SKU";
                 case "DONE": return "Đã cập nhật";
@@ -48,9 +49,17 @@ namespace SupraInventoryRelayAgent
                     return "Máy chủ chưa chấp nhận quyền Agent chính. Danh sách chưa được lưu.";
                 case "D167_WORKER_CURRENT_PASSWORD_INVALID":
                     return "Mật khẩu hoặc mã xác nhận không đúng.";
-                case "D167_GATEWAY_TIMEOUT":
-                case "D167_GATEWAY_CONNECTFAILURE":
+                case "D167_WORKER_TIMEOUT":
+                case "D167_WORKER_CONNECTFAILURE":
+                case "D167_WORKER_NAMERESOLUTIONFAILURE":
+                case "D167_WORKER_HTTP_502":
+                case "D167_WORKER_HTTP_503":
+                case "D167_WORKER_HTTP_504":
                     return "Không kết nối được máy chủ cập nhật SKU. Vui lòng kiểm tra mạng.";
+                case "D167_WORKER_HTTP_403":
+                case "D167_WORKER_HTTP_409":
+                case "D167_WORKER_REJECTED":
+                    return "Máy chủ không chấp nhận quyền cập nhật hoặc đang có lượt xử lý khác. Vui lòng kiểm tra nhật ký.";
                 case "D167_SKU_JOB_ALREADY_RUNNING":
                     return "Đang có một lượt cập nhật SKU khác.";
                 case "D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY":
@@ -73,10 +82,10 @@ namespace SupraInventoryRelayAgent
         private readonly Label _d167SkuDetailNote=new Label();
         private readonly Button _d167SkuRefresh=new Button();
         private readonly Button _d167SkuRun=new Button();
-        private readonly TextBox _d167SkuSearch=new TextBox();
+        private readonly TextBox _d167SkuOpsStatus=new TextBox();
         private readonly DataGridView _d167SkuSlots=new DataGridView();
         private readonly DataGridView _d167SkuManualHistory=new DataGridView();
-        private readonly DataGridView _d167SkuDetail=new DataGridView();
+
         private bool _d167SkuManualActive;
         private D167SkuWorkbook _d167SkuLastWorkbook;
         private List<D167SkuSlotStatus> _d167SkuLastSlots=new List<D167SkuSlotStatus>();
@@ -185,19 +194,19 @@ namespace SupraInventoryRelayAgent
             _d167SkuMetrics.Dock=DockStyle.Fill;
             _d167SkuMetrics.Font=new Font("Segoe UI",9F);
             _d167SkuMetrics.Text="Thống kê LTA / Shelving / Chưa xác định sẽ xuất hiện sau khi tải thành công.";
-            var searchBar=new FlowLayoutPanel {Dock=DockStyle.Fill,WrapContents=false};
-            searchBar.Controls.Add(new Label {Text="Tìm SKU hoặc tên hàng (danh sách đã tải):",
-                AutoSize=true,Padding=new Padding(0,7,0,0)});
-            _d167SkuSearch.Width=290;
-            _d167SkuSearch.TextChanged+=(s,e)=>D167RefreshLocalSkuList();
-            searchBar.Controls.Add(_d167SkuSearch);
-            var detailGroup=new GroupBox {Dock=DockStyle.Fill,Text="Danh sách SKU và khu vực đã tải từ hệ thống kho"};
-            D167ApplyGridStyle(_d167SkuDetail);
-            foreach(var name in new[]{"SKU","Tên sản phẩm","Khu vực","Xác minh"})
-                _d167SkuDetail.Columns.Add(name,name);
-            detailGroup.Controls.Add(_d167SkuDetail);
+            var detailGroup=new GroupBox {Dock=DockStyle.Fill,
+                Text="Tình trạng vận hành · không tải danh sách SKU"};
+            _d167SkuOpsStatus.Multiline=true;
+            _d167SkuOpsStatus.ReadOnly=true;
+            _d167SkuOpsStatus.ScrollBars=ScrollBars.Vertical;
+            _d167SkuOpsStatus.Dock=DockStyle.Fill;
+            _d167SkuOpsStatus.BorderStyle=BorderStyle.None;
+            _d167SkuOpsStatus.BackColor=Color.White;
+            _d167SkuOpsStatus.Font=new Font("Segoe UI",9.5F);
+            _d167SkuOpsStatus.Text="Chưa nhận thông tin SKU từ InventoryCore.";
+            detailGroup.Controls.Add(_d167SkuOpsStatus);
             _d167SkuDetailNote.Dock=DockStyle.Fill;
-            _d167SkuDetailNote.Text="Danh sách chi tiết sẽ hiển thị sau khi máy tải thành công, không tải lại khi tìm kiếm.";
+            _d167SkuDetailNote.Text="Nguồn kết quả: biên nhận Worker / InventoryCore. Không phát sinh tìm kiếm SKU hoặc Firebase poll.";
             _d167SkuDetailNote.ForeColor=Color.DimGray;
             panel.Controls.Add(heading,0,0);
             panel.Controls.Add(scheduleGroup,0,1);
@@ -206,12 +215,7 @@ namespace SupraInventoryRelayAgent
             _d167SkuMetrics.Dock=DockStyle.Fill;
             stats.Controls.Add(_d167SkuMetrics);
             panel.Controls.Add(stats,0,3);
-            var detailLayout=new TableLayoutPanel {Dock=DockStyle.Fill,RowCount=2};
-            detailLayout.RowStyles.Add(new RowStyle(SizeType.Absolute,34F));
-            detailLayout.RowStyles.Add(new RowStyle(SizeType.Percent,100F));
-            detailLayout.Controls.Add(searchBar,0,0);
-            detailLayout.Controls.Add(detailGroup,0,1);
-            panel.Controls.Add(detailLayout,0,4);
+            panel.Controls.Add(detailGroup,0,4);
             panel.Controls.Add(_d167SkuDetailNote,0,5);
             _d167SkuPage.Controls.Add(panel);
             _d167SkuSlots.Rows.Add("Đầu ca · Danh sách đầy đủ","05:00 trở đi","Chưa kiểm tra","—","—","—");
@@ -237,7 +241,6 @@ namespace SupraInventoryRelayAgent
                 if(workbook!=null && !ReferenceEquals(_d167SkuLastWorkbook,workbook))
                 {
                     _d167SkuLastWorkbook=workbook;
-                    D167RefreshLocalSkuList();
                 }
                 _d167SkuSlots.Rows.Clear();
                 foreach(var key in new[]{"INITIAL_05","DELTA_12","DELTA_19"})
@@ -262,6 +265,15 @@ namespace SupraInventoryRelayAgent
                     " · "+(primary?"Máy Agent chính":"Máy Agent dự phòng")+" · Hệ thống kho "+(_supraBrowserReady?"sẵn sàng":"chưa sẵn sàng")+
                     (string.IsNullOrEmpty(message)?"":"\n"+message);
                 _d167SkuRun.Enabled=!_d167SkuManualActive && primary && _supraBrowserReady && HasAgentSession();
+                _d167SkuOpsStatus.Text="Ngày "+today+" · cập nhật FULL: "+
+                    (first==null?"Chưa xác minh":D167SkuVietnamese.State(first.State))+
+                    Environment.NewLine+"Đường gửi SKU: Agent → Cloudflare Worker → InventoryCore (không dùng Google Script)"+
+                    Environment.NewLine+"Máy thực hiện: "+(primary?"PRIMARY":"STANDBY / đang theo dõi")+
+                    Environment.NewLine+"WMS: "+(_supraBrowserReady?"Sẵn sàng":"Chưa sẵn sàng")+
+                    Environment.NewLine+"Biên nhận FULL: "+(first==null?"—":D167ReceiptLine(first))+
+                    Environment.NewLine+"Hoàn thành FULL: "+(first==null?"—":D167Time(first.CompleteAt))+
+                    Environment.NewLine+"Người cập nhật FULL: "+(first==null?"—":D167ReceiptNumber(first.ReceiptJson,"actor_display"))+
+                    Environment.NewLine+"Lưu ý: Trạng thái DONE chỉ xác nhận từ Worker, không dùng dữ liệu máy cục bộ.";
                 if(_d167SkuLastWorkbook!=null)
                 {
                     var items=_d167SkuLastWorkbook.Items;
@@ -272,24 +284,6 @@ namespace SupraInventoryRelayAgent
                         " · Danh sách tải gần nhất trên máy này (không phải số lượng tồn kho).";
                 }
             });
-        }
-
-        private void D167RefreshLocalSkuList()
-        {
-            if(_d167SkuDetail.IsDisposed) return;
-            var workbook=_d167SkuLastWorkbook;
-            var items=workbook==null?new List<D167SkuSnapshotItem>():workbook.Items;
-            var query=(_d167SkuSearch.Text??"").Trim();
-            var filtered=string.IsNullOrEmpty(query)?items:
-                items.Where(x=>x.Sku.IndexOf(query,StringComparison.OrdinalIgnoreCase)>=0 ||
-                    x.ProductName.IndexOf(query,StringComparison.OrdinalIgnoreCase)>=0).ToList();
-            _d167SkuDetail.Rows.Clear();
-            foreach(var item in filtered.Take(300))
-                _d167SkuDetail.Rows.Add(item.Sku,item.ProductName,item.Area,
-                    item.AreaVerified?"Đã kiểm tra":"Chưa xác định: "+item.AreaReason);
-            _d167SkuDetailNote.Text="Hiển thị "+Math.Min(300,filtered.Count)+" / "+filtered.Count+
-                " SKU đang hiển thị; "+(workbook==null?"máy này chưa tải được danh sách SKU":
-                "đây là bản tải gần nhất, có thể đã thay đổi sau khi cập nhật trên Web hoặc đổi máy chính.");
         }
 
         private void D167SkuRunManual()
