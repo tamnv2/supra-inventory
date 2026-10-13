@@ -232,17 +232,18 @@ namespace SupraInventoryRelayAgent
                 Text = "Tìm MNV / họ tên / nhà thầu",
                 ForeColor = Color.FromArgb(71, 85, 105)
             });
-            _pickerSearch.SetBounds(198, 36, 824, 30);
+            _pickerSearch.SetBounds(198, 36, 642, 30);
             _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
+            InitializeD168GroupPickerContact(pickerCard);
 
             _pickerOnlineGrid.SetBounds(16, 72, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _pickerOnlineGrid.AllowUserToAddRows = false;
             _pickerOnlineGrid.AllowUserToDeleteRows = false;
             _pickerOnlineGrid.AllowUserToResizeRows = false;
-            _pickerOnlineGrid.MultiSelect = false;
+            _pickerOnlineGrid.MultiSelect = true; // D168: selected group contact, no bulk kick from row selection.
             _pickerOnlineGrid.ReadOnly = true;
             _pickerOnlineGrid.RowHeadersVisible = false;
             _pickerOnlineGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
