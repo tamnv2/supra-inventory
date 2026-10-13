@@ -5,7 +5,7 @@
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-web-impact-analysis-20261013",
-  "pr": null,
+  "pr": 578,
   "status": "D167_E050_WEB_IMPACT_PROPOSAL_ONLY__OWNER_APPROVAL_PENDING",
   "last_checkpoint": {
     "id": "D167-E050",
@@ -19,7 +19,7 @@
     "stable_deploy_permission": false,
     "new_owner_approval_required": true,
     "approved_components": [],
-    "current_pr_scope": "D167_E050_DOCS_ONLY_ASSESSMENT__NO_WEB_SERVICE_AGENT_ANDROID_DEPLOY",
+    "current_pr_scope": "PR578_D167_E050_DOCS_ONLY_IMPACT_ASSESSMENT__NO_RUNTIME_DEPLOY",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
     "approved_source_sha": "1ae9b4a070364c148571e4d759cb79cf1894f7ed",
