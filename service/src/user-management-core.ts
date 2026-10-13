@@ -327,7 +327,7 @@ async function deleteManagedUsers(state: DurableObjectState, request: Request): 
     return response({ error: "MANAGED_USER_DELETE_FORBIDDEN" }, 403);
   }
   const targets = ids.map((id) => getUser(state, id)).filter((row): row is UserRow => Boolean(row));
-  if (targets.length !== ids.length || targets.some((row) => !["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(row.role))) {
+  if (targets.length !== ids.length || targets.some((row) => !["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(row.role) || ["admin", "tamnv2"].includes(normalizeLogin(row.employee_code || row.user_id.split(":").pop())))) {
     return response({ error: "MANAGED_USER_DELETE_TARGET_INVALID" }, 409);
   }
   const firebaseUids = targets.map((row) => row.firebase_uid).filter((uid): uid is string => Boolean(uid));
@@ -354,7 +354,7 @@ async function deleteManagedUsers(state: DurableObjectState, request: Request): 
 }
 
 async function pickerBulkAction(state: DurableObjectState, request: Request): Promise<Response> {
-  const body = (await request.json()) as { actor?: Actor; action?: PickerBulkAction; user_ids?: unknown; excluded_user_ids?: unknown; all?: boolean; request_id?: unknown };
+  const body = (await request.json()) as { actor?: Actor; action?: PickerBulkAction; user_ids?: unknown; excluded_user_ids?: unknown; all?: boolean; expected_target_count?: unknown; request_id?: unknown };
   const actor = body.actor;
   const action = String(body.action || "").toUpperCase() as PickerBulkAction;
   const reportingAction = action === "REPORTING_ENABLE" || action === "REPORTING_DISABLE";
@@ -379,6 +379,11 @@ async function pickerBulkAction(state: DurableObjectState, request: Request): Pr
     const ids = Array.isArray(body.user_ids) ? new Set(body.user_ids.map((value) => String(value || "").trim()).filter(Boolean)) : new Set<string>();
     if (!ids.size) return response({ error: "PICKER_SELECTION_REQUIRED" }, 400);
     targets = targets.filter((row) => ids.has(row.user_id));
+  }
+  if (body.expected_target_count != null) {
+    const expected = Number(body.expected_target_count);
+    if (!Number.isInteger(expected) || expected < 0 || expected !== targets.length)
+      return response({ error: "PICKER_SELECTION_CHANGED", expected, actual: targets.length }, 409);
   }
   const at = new Date().toISOString();
   let affected = 0;
