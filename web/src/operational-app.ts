@@ -1938,11 +1938,14 @@ function renderUserBulkToolbar(canLifecyclePickerBulk: boolean): string {
   const pickerCount = allPickerSelection ? Math.max(0, (usersGlobalTargetCount || 0) - excludedPickerIds.size) : selectedUserIds.size;
   const managedCount = selectedManagedUserIds.size;
   const pickerActions = pickerCount > 0 ? '<div class="user-bulk-context"><b>' + pickerCount + ' Picker</b>' +
-    '<button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button>' +
-    '<button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button>' +
-    (canLifecyclePickerBulk ? '<button class="secondary" data-picker-action="ENABLE">Mở lại</button>' +
-      '<button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button>' +
-      '<button class="danger" data-picker-action="DELETE">Xóa Picker</button>' : '') + '</div>' : '';
+    '<details class="user-bulk-dropdown"><summary>Quyền Báo hàng</summary><div class="user-bulk-dropdown-menu">' +
+      '<button type="button" class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button>' +
+      '<button type="button" class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button></div></details>' +
+    (canLifecyclePickerBulk ? '<details class="user-bulk-dropdown"><summary>Trạng thái</summary><div class="user-bulk-dropdown-menu">' +
+      '<button type="button" class="secondary" data-picker-action="ENABLE">Mở lại</button>' +
+      '<button type="button" class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button></div></details>' +
+      '<details class="user-bulk-dropdown"><summary>Thao tác khác</summary><div class="user-bulk-dropdown-menu">' +
+      '<button type="button" class="danger" data-picker-action="DELETE">Xóa Picker</button></div></details>' : '') + '</div>' : '';
   const managedActions = managedCount && profile?.role === "ROOT" && profile?.base_role === "ROOT"
     ? '<button class="danger" id="delete-selected-managed">Xóa ' + managedCount + ' tài khoản quản lý</button>' : '';
   return '<div class="user-bulk-bar user-bulk-contextual"><div class="user-bulk-select">' +
