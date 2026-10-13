@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E023",
+    "id": "D168-E024",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -25,9 +25,11 @@
       "EXISTING_FIRESTORE_BETA"
     ],
     "new_owner_approval_required": false,
-    "current_pr_scope": "D168_V131_CODE_FIELD_PROBE_READY_FOR_FINAL_CI__PHYSICAL_FIELD_PENDING__NO_RELEASE",
+    "current_pr_scope": "D168_V131_SOURCE_CI_20_OF_20_PASS__FIELD_ONLY_RELEASE_GATE__NO_DEPLOY",
     "technical_release_pass": false,
-    "field_pass": false
+    "field_pass": false,
+    "source_ci_pass": true,
+    "source_ci_head": "91e83e79b97aa576408617971f69317b1e47c254"
   },
   "entries": [
     {
@@ -575,6 +577,31 @@
       ],
       "next_action": "Wait final PR exact-head CI. If PASS, use one protected Windows Agent/PDA field test with saved approved WLAN; record actual results, then update release receipt/authority and merge/release Beta through main. Do not claim DONE or stable release early.",
       "evidence": "PR591 commits 47aedaeb83ffb76a3b8724ba8999f2901d31daa7 onward; relay-agent/D168SkuNetworkUi.cs; relay-agent/D168SkuSharedState.cs; docs/D168_RELEASE_READINESS_2026-10-14.md E023"
+    },
+    {
+      "id": "D168-E024",
+      "date_vn": "2026-10-14",
+      "kind": "TEST",
+      "topic": "D168 v131 exact PR source CI all 20 workflows PASS; Agent candidate artifact built; field release proof remains mandatory",
+      "status": "SOURCE_CI_20_OF_20_PASS__AGENT_V131_ARTIFACT_READY__PHYSICAL_FIELD_REQUIRED__BETA_NOT_DEPLOYED",
+      "owner_approval": true,
+      "facts": [
+        "At PR591 HEAD 91e83e79b97aa576408617971f69317b1e47c254, GitHub Actions showed 20/20 workflow conclusions success including Repo Authority, State Guard, SKU source contract, Agent build and Android verification.",
+        "Windows Agent artifact supra-inventory-relay-poc-agent (id 11857571641) built successfully from the same HEAD through workflow run 38482437387; it is a PR test artifact, not a signed/released OTA update.",
+        "GitHub workflow success and Beta environment Activity labels do not assert executable D168 Beta deployment; PR591 remains open Draft and main unaffected.",
+        "The run has no access to company Office WLAN/real WMS session/PDA. Owner or a company-device operator must perform the one-PC saved-Wi-Fi and WMS/PickList field validation before changing the D168 Beta authorization receipt from CODE_ONLY.",
+        "All components outside registered Beta resource scope and all Stable resources remain untouched."
+      ],
+      "alternatives": [
+        "Use GitHub Actions artifact on a single idle Windows Agent PC as a candidate field test before main deployment.",
+        "Avoid registering new runners/providers or bypassing release gate to substitute CI for physical proof."
+      ],
+      "open_questions": [
+        "Did switching/restoring Wi-Fi pass on the company Agent as a Windows standard user?",
+        "Did manual or 05h FULL result in durable Worker/Core DONE while at least one test PDA ACK still works?"
+      ],
+      "next_action": "Await one company-PC/PDA physical test and sanitized evidence. If field passes and source unchanged, update D168 release receipt/authority, merge PR591 and monitor scoped Beta release workflows; require separate Stable Owner authorization.",
+      "evidence": "GitHub PR591 HEAD 91e83e79b97aa576408617971f69317b1e47c254; Actions run 38482437387 and artifact 11857571641; exact-head 20/20 GitHub workflow list"
     }
   ],
   "resume": {
@@ -598,7 +625,8 @@
       "D168-E018 Owner authorized all D168 REQ-001..011 Beta scope after full checks; work continues on same PR",
       "D168-E020: Owner accidental Ready reverted to Draft; Windows auto-start false-success fix committed with source test, final CI pending.",
       "D168-E022: v131 network routing, shared terminal SKU DONE and exact Picker session selection updated; final CI in progress.",
-      "D168-E023: v131 one-click read-only Worker/WLAN field probe and concurrent SKU DONE CAS merged; final exact-head CI pending."
+      "D168-E023: v131 one-click read-only Worker/WLAN field probe and concurrent SKU DONE CAS merged; final exact-head CI pending.",
+      "D168-E024: exact source HEAD 91e83e79 PR CI 20/20 PASS and Agent test artifact ready; FIELD PASS pending."
     ],
     "pending_approval": [
       "Stable is OWNER-GATED",
@@ -613,6 +641,7 @@
       "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector."
     ],
     "next_actions": [
+      "Owner field step: On one idle primary Agent PC, download verified PR artifact and test approved saved Internet Wi-Fi Worker switch/restore, then WMS SKU DONE and one PDA PickList ACK.",
       "After exact-head CI, physical one-PC test is the only Owner/device-only boundary; no CLI or Github owner work required.",
       "Rerun final CI on exact PR head; do not modify scoped Beta until field PASS. Beta release receipt remains locked.",
       "Check exact-head CI on PR591 startup fix, maintain deliberate SKU WLAN contract release failure until real orchestration exists.",
