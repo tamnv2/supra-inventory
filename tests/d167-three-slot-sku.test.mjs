@@ -588,3 +588,12 @@ test("D168 never exports Office XLSX on unreachable Worker without preapproved f
   assert.match(network,/internal static bool HasApprovedFallback\(\)/);
   assert.match(network,/HasSavedProfile\(original\) && HasSavedProfile\(target\)/);
 });
+
+test("D168 concurrent Agent receipt projection merges immutable completed SKU slots", async () => {
+  const {readFileSync}=await import("node:fs");
+  const sync=readFileSync(new URL("../relay-agent/FirestoreAgentSync.cs",import.meta.url),"utf8");
+  assert.match(sync,/snapshot.SkuStatusJson=MergeTerminalSkuStatus\(snapshot.SkuStatusJson,json\)/);
+  assert.match(sync,/bySlot\.OrderBy\(x=>x.Key,StringComparer\.Ordinal\)/);
+  assert.match(sync,/return string\.CompareOrdinal\(oldDay,newDay\)>0 \? previous : incoming/);
+  assert.match(sync,/AGENT_SYNC_SKU_TERMINAL/);
+});
