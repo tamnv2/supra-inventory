@@ -2184,17 +2184,17 @@ namespace SupraInventoryRelayAgent
             // D168: preserve the exact multi-selection while realtime presence
             // refreshes rows. A single-ID restore silently drops intended
             // recipients from the group-contact operation.
-            var selectedUserIds = new HashSet<string>(StringComparer.Ordinal);
+            var selectedSessions = new HashSet<Tuple<string,long,string>>();
             try
             {
                 foreach (DataGridViewRow selected in _pickerOnlineGrid.SelectedRows)
                 {
                     var picker = selected.Tag as PickerPresenceView;
                     if (picker != null && !string.IsNullOrWhiteSpace(picker.UserId))
-                        selectedUserIds.Add(picker.UserId);
+                        selectedSessions.Add(Tuple.Create(picker.UserId,picker.SessionGeneration,picker.FirebaseUid ?? ""));
                 }
             }
-            catch { selectedUserIds.Clear(); }
+            catch { selectedSessions.Clear(); }
 
             _pickerOnlineGrid.SuspendLayout();
             try
@@ -2255,7 +2255,7 @@ namespace SupraInventoryRelayAgent
                     var picker = _pickerOnlineGrid.Rows[index].Tag as PickerPresenceView;
                     if (picker == null) continue;
                     if (firstIndex < 0 && picker.UserId == firstUserId) firstIndex = index;
-                    if (selectedUserIds.Contains(picker.UserId))
+                    if (selectedSessions.Contains(Tuple.Create(picker.UserId,picker.SessionGeneration,picker.FirebaseUid ?? "")))
                         _pickerOnlineGrid.Rows[index].Selected = true;
                 }
                 if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
