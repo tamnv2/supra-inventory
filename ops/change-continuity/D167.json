@@ -4,22 +4,22 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-agent-tabs-order-20261013",
-  "pr": 568,
+  "working_branch": "d167-p0-ha-sku-v129-vietnamese-20261013",
+  "pr": 572,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
     "id": "D167-E042",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 D167 P0 Agent v129 + Worker Beta Vietnamese SKU approval",
+    "owner_latest": "2026-10-13 P0_AGENT129_WORKER_BETA_APPROVED",
     "code_permission": true,
     "merge_permission": true,
     "beta_deploy_permission": true,
     "stable_deploy_permission": false,
     "new_owner_approval_required": false,
     "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
-    "approved_source_sha": "533f64531a4443470c7a6bdb56c4be4ebae4108f",
+    "approved_source_sha": "52950097ac8f5d878ea9774eaaea3434fc9d4825",
     "approved_components": [
       "agent",
       "worker"
