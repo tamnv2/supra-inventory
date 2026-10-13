@@ -287,7 +287,7 @@
     {
       "id": "D168-E014",
       "date_vn": "2026-10-13",
-      "kind": "OWNER_CONSTRAINT_AND_TECHNICAL_PROPOSAL",
+      "kind": "PROPOSAL",
       "topic": "Office can reach SUPRA WMS but cannot directly reach Cloudflare; choose Office-capable SKU uplink using existing Google transport",
       "status": "OWNER_OFFICE_CONSTRAINT_RECORDED__GOOGLE_GATEWAY_ALREADY_IN_SOURCE__FIELD_PASS_PENDING__NO_CODE_APPROVAL",
       "owner_approval": false,
