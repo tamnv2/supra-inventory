@@ -7443,7 +7443,7 @@
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
     "working_branch": "d167-web-v310-release-evidence-20261013",
-    "pr": 578,
+    "pr": 579,
     "latest_checkpoint_id": "D167-E054",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
