@@ -6,24 +6,22 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-log-review-20261012-20261013",
   "pr": 574,
-  "status": "D167_E045_NONSKU_AGENT_ONLY_PROPOSAL__NO_EXECUTABLE_APPROVAL",
+  "status": "D167_OWNER_COMMAND_POLICY_AND_PENDING_RECLASSIFICATION__NO_NEW_RELEASE",
   "last_checkpoint": {
-    "id": "D167-E045",
+    "id": "D167-E046",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 P0_AGENT129_WORKER_BETA_APPROVED",
-    "code_permission": true,
-    "merge_permission": true,
-    "beta_deploy_permission": true,
+    "owner_latest": "2026-10-13 PROCESS_POLICY_ONLY_NO_DEPLOY",
+    "code_permission": false,
+    "merge_permission": false,
+    "beta_deploy_permission": false,
     "stable_deploy_permission": false,
-    "new_owner_approval_required": false,
-    "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
-    "approved_source_sha": "5fdb66ca2653da2cc86ef696b7765ec64b0fdae0",
-    "approved_components": [
-      "worker",
-      "agent"
-    ]
+    "new_owner_approval_required": true,
+    "approved_components": [],
+    "current_pr_scope": "OWNER_APPROVED_AUTHORITY_ONLY__NO_EXECUTABLE_OR_RUNTIME_CHANGE",
+    "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
+    "stable": "OWNER_GATED"
   },
   "entries": [
     {
@@ -912,80 +910,67 @@
       ],
       "next_action": "Obtain explicit Owner approval for Agent-only no-API/no-service/no-Android scope; then edit only relay-agent source + tests in D167 branch/PR, CI safety/HA/Confirm/ACK/permissions, verify PR guards; release Agent Beta only if separately authorized and standby healthy; never touch Stable or live Web/Worker service.",
       "evidence": "12 Oct Inventory/Beta/Logs sanitized Agent snapshots, E044; main source relay-agent/FirestoreConfirmationTransport.cs, RtdbHaLiveness.cs, FirestoreAgentLeaderCoordinator.cs, AgentLogUploadBridge.cs, D161AdminControl.cs, D160ConfirmPipeline.cs, D119AgentFeatures.cs, FirestorePickerContact.cs; draft PR574."
+    },
+    {
+      "id": "D167-E046",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner cancels direct WMS MAIN-tab auth task; defers other Agent, usage and Launcher; finalizes simple code vs deployment commands",
+      "status": "OWNER_APPROVED_PROCESS_ONLY__NO_EXECUTABLE_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly cancels the unfinished requirement to acquire SKU authorization directly from live WMS Confirm MAIN tab; current existing same-profile isolated WebView2 child is the accepted read-only source, preserving safety limits and existing releases.",
+        "Agent faults from 12 Oct outside SKU remain pending in a DIFFERENT discussion/PR, with no scope/solution/release approved by this command.",
+        "Usage and cross-meter optimization remain pending additional logs and provider measurements; no speculative reads/writes/cadence edits approved.",
+        "Owner command 'chạy code' requires COMPLETE all approved code/build/tests/mandatory CI to CODE READY and STOP before live Service/Web/Android/Windows Agent changes, then report exact state and deploy scope. Owner 'duyệt triển khai' thereafter deploys all and only already-pass code to approved scoped Beta without re-coding.",
+        "Commands 'chạy code và triển khai' or 'triển khai luôn' combine complete approved code+CI and immediate in-scope Beta deployment without waiting for an intermediate report/Owner approval. If code is already ready, release it. Genuine CI, safety, permission, out-of-scope blockers still stop; Stable remains separately Owner gated.",
+        "Launcher PDA/Launcher Logs is deferred to the separate Launcher project where Owner will decide; no Launcher app/resource modification from Inventory D167.",
+        "This decision is documentation/governance only and DOES NOT authorize deploy/release changes to current Beta/Stable runtime or fix deferred issues."
+      ],
+      "supersedes": [
+        "D167-E032",
+        "D167-E033",
+        "D167-E036"
+      ],
+      "next_action": "Persist in D167 Owner decisions/operating protocol/SKU+AUTH specs/backlog/state, pass authority/continuity CI on docs-only PR575, merge only if non-runtime gates safe; other-thread PR574 must reconcile its journal without implementing unapproved diagnostics.",
+      "evidence": "Owner explicit 2026-10-13 five-point directive; main source relay-agent/D167SkuBrowserExport.cs (same-profile child); docs/OPERATING_PROTOCOL.md; GitHub PR #575."
     }
   ],
   "resume": {
     "approved": [
       "D167 requirements D01–D10 và ba slot FULL/DELTA, LTA/Shelving/UNKNOWN, no delete",
-      "Lệnh mới 2026-10-12: CODE PASS ONLY / giữ PR #559 Draft",
       "Lưu toàn bộ quyết định, đề xuất, phát hiện, dở dang vào GitHub working journal",
       "Owner 2026-10-12: same-VN-day FULL hard gate; Web FULL or Agent qualifies, PATCH does not; exact Picker/Reporter warning; WMS ephemeral signed API GET; cancel superseded backlog",
       "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged",
       "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved",
-      "D167-E025: Owner explicitly approves Agent SKU update tab + server-password-protected run-now with no new polling, existing Inventory Beta rollout after CI; Agent v127 candidate.",
-      "2026-10-13 Owner authorizes v128 Beta Agent-only release after CI: tab order + secure SKU export diagnostic; no Worker/Android/Stable.",
-      "2026-10-13 Owner explicitly permits use of authenticated PRIMARY Agent main managed WMS session as SKU read-only API source; no Confirm mutation or credential persistence.",
-      "Owner 2026-10-13 explicitly says Ok triển khai for main Agent WMS-source read-only SKU update and subsequent scoped Beta Agent release, conditional on guards PASS."
+      "D167-E046 Owner: cancel direct MAIN-tab WMS auth work; existing isolated same-profile child chosen; pending Agent other-thread/Usage logs/Launcher project deferred.",
+      "D167-E046 Owner: 'chạy code' = all approved code+CI to CODE READY then STOP/report; 'duyệt triển khai' releases only PASS code; 'chạy code và triển khai'/'triển khai luôn' = complete code+CI and immediately deploy approved scoped Beta without midpoint approval."
     ],
     "implemented": [
-      "D167 PR #555 Beta Worker/Web technical release từ trước; field/Owner PASS riêng",
-      "D167 PR #559 source: PRIMARY WMS managed-side-tab scheduler + 3 slot, FULL hide/DELTA safe, HA/CAS, LTA/Shelving temporal history, dashboard/detail/Excel filters, Web PATCH vs explicit Admin FULL REPLACE, regression fixtures",
-      "Web manual SKU Excel optional LTA/Shelving, PATCH/FULL confirmed as-of provenance and no catalog blast when unchanged/area-only",
-      "2026-10-12 fresh source audit: correct last_wms_observed SQL cursor, only same-VN-day Web conflicts, atomic stale-stage HA recovery, WMS child cleanup on errors, expanded code-only CI contract paths",
-      "D167 Source CODE READY (19/19 source-head CI PASS at 9f04a577); final Docs/State receipt HEAD CI is rechecked separately",
-      "Owner 2026-10-12 final source PR559 SHA 33bcb727 20/20 CI PASS; signed Android vc106 build artifact 11725801963, Agent v126 artifact 11726001330; no remaining approved feature code known",
-      "D167 isolated Web meal edit PR560 code complete and 17/17 CI PASS HEAD 26c53b; Web+Worker release gated after shift, no APK/Agent",
-      "D167 meal EARLY continuous edit correction PR561 exact HEAD 0e4757f2: 15/15 CI PASS, Draft/unmerged, no deploy",
-      "2026-10-12 D167 PR559 Beta technical release merged main 54ee8e51: Worker/Gateway/Android vc106/Agent v126 plus Fixed WebView2 bundle, 14/14 main workflows success",
-      "D167 Agent SKU tab and protected manual FULL/DELTA PR566 exact source 893ad216 passed 20/20 GitHub PR CI (Windows build, D167 SKU tests, authority, continuity).",
-      "D167 PR566 20/20 exact PR CI and 13/13 main workflows PASS: Beta Worker/Web/InventoryCore, Gateway and Windows Agent signed prerelease relay-agent-v127 with Fixed WebView2 bundle.",
-      "PR568 Agent v128 source: tab order, safe error-stage/HTTP code, unchanged signed direct WMS GET with isolated same-profile auth-context observation.",
-      "D167 PR568 guard fix exact source SHA 4cb92198: 16/16 GitHub PR workflows PASS, safe 2026-10-13 Agent-only Owner gate validated.",
-      "PR568 v128 fixed safe NETWORK_ diagnostics to uppercase with contract regression; exact source cd104822 16/16 PR CI PASS.",
-      "D167 PR568 Agent v128 Beta diagnostic release succeeded: merge a0106e69, main Agent run 38323957784 PASS, signed v128 EXE/channel SHA256 matched.",
-      "P0 Beta Worker v129 contract and Agent signed EXE release PASS; PR572 merge e9df50e6, both release workflows SUCCESS, release/channel SHA256 matched."
+      "Earlier D167 Web/Worker/Gateway/Android vc106 and Agent v126/v127/v128 technical releases already in main; not a remaining unimplemented item",
+      "D167 P0 Beta Worker and signed Agent v129 released via PR572/573; actual field results separate",
+      "D167-E046 decision/spec/operation documentation under PR575; no new live code or release"
     ],
     "in_progress": [
-      "Await real installed Agent v127 PRIMARY session WMS manual+three-slot FULL/DELTA and HA/Confirm/provider quota Owner field acceptance; technical release completed.",
-      "PR568 D167 UI tab reorder source-only + field SKU direct-GET header acquisition failure review; no deploy or confirmed root cause.",
-      "Main-Agent WMS source approved concept; implementation not verified, existing v128 UI/diagnostic source pending two continuity/authority guards.",
-      "PR568 Agent v128 MAIN managed-WMS auth-source integration remains pending security-reviewed supported implementation; current source is UI/diagnostic only.",
-      "Field WMS session export, XLSX and Service DONE test on installed v128 PRIMARY; diagnose by safe phase/error/elapsed log.",
-      "P0 v129 installed-device WMS SKU FULL/DELTA Service DONE + name/code user attribution + HA/usage field test; Owner PASS pending."
+      "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
+      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task."
     ],
     "pending_approval": [
-      "D167 Owner business FIELD PASS on actual fleet",
-      "Separate Stable deployment approval only if Owner explicitly requests",
-      "D167-E024 — Agent SKU tab with 3 daily slots, low-usage local status and password-confirmed instantaneous manual FULL/DELTA: proposal only, Owner review pending; no code/deploy authorized.",
-      "D167-E036 — Hidden same-profile WMS child is already implemented; evaluate only security-reviewed native/official export path, no new source/deploy approved in this discussion.",
-      "D167-E044 12/10 non-SKU log review: P0 DNS/confirm uncertainty, P1 HA/auth and measured usage candidates require Owner technical scope approval before source changes.",
-      "D167-E045 — Agent-only candidate P0/P1: local network/auth diagnostics, startup session guard and log incident grouping, RTDB passive flap observation, 403 revoke preview diagnostics; no code or Beta release approval yet."
+      "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
+      "Usage/cross-meter optimization pending further real log/provider measurements.",
+      "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
+      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending."
     ],
     "blocked": [
-      "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity",
-      "v127 manual SKU InvalidOperationException is not attributable to an exact stage: log sanitizes to exception class only; source-only diagnostic proposal needs Owner approval.",
-      "Additional current-main-tab CDP authorization-header capture mutation rejected by connected tool safety; no change or workaround; not FIELD PASS.",
-      "Cannot safely change current WMS main-session source or continuity guard through available connector; prior safety refusal stands; no bypass attempted.",
-      "Main WMS session-source change was previously refused by connected-tool safety checks; no alternate-primitives bypass. Until a permitted implementation and real field test, SKU DONE remains unverified.",
-      "D167 Agent v128: confirmed WMS XLSX export 2492 SKU but Worker Firebase PRIMARY gate 409 blocks claim/manual START; exact false reason unobservable without safe Worker-side classification.",
-      "D167-E041: Firestore lease 45s Worker check incompatible with Agent's RTDB-only liveness path; code contract mismatch confirmed, exact live 409 cause subject to reason-code verification."
+      "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
+      "Existing physical field acceptance remains unverified; do not reopen cancelled MAIN-tab direct WMS credential capture."
     ],
     "next_actions": [
-      "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance",
-      "After Owner review of D167-E024, implement only upon explicit code permission; retain Beta release/Stable separate gate and test REAL WMS/HA/Confirm/usage before field acceptance.",
-      "PR566 exact CI/source QA, scope/protected runtime release receipt; then Owner-approved Beta Agent v127 Worker/Gateway channel publication and readback; field installation still unverified.",
-      "Field install v127 and observe real authenticated manual SKU update at registered Beta, watch Confirm latency/HA and actual Cloudflare/Gateway usage before Owner D167 FIELD PASS.",
-      "PR568 source checks, then obtain Owner-scoped release approval before any Agent v128; do not change WMS API/credentials or stable while root cause unverified.",
-      "Run CI and Beta-only v128 release if all guards pass; verify checksum; field test current managed WMS PRIMARY and read failure stage before claiming runtime fix.",
-      "Owner/authorized maintainer must review guard integration and safe main-agent auth acquisition before merge/release; redo exact CI.",
-      "Resolve authorized safe main-browser WMS API integration and strict CI guard mismatch before any Beta Agent release.",
-      "Retain PR568 Draft; obtain supported reviewed implementation/guard adjustment, then exact-head 16/16 PASS and release signed Agent Beta; field SKU DONE readback separately.",
-      "Keep PR568 Draft; resolve WMS read-only main browser integration through approved security-reviewed source path, rerun exact PR CI, then consider authorized Agent-only Beta release; no fleet/field PASS yet.",
-      "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy.",
-      "Owner review of on-demand D167-only Firestore lease maintenance + safe Worker failure reasons; do not code or deploy before explicit permission.",
-      "D167-E044: Owner review non-SKU 12/10 findings; no fix, CI release or Beta/Stable mutation authorized by this diagnostics-only review.",
-      "Obtain explicit Owner approval of exact Agent-only repair subset; no APK, Web, Worker/Service change; Agent release only with verified healthy standby and no active PL."
+      "Pass PR575 docs+authority/continuity CI without triggering runtime publication; merge only after all mandatory checks.",
+      "In separate D167 PR574/window continue Agent fault discussion; do not modify Agent/Service/Web/Android from this decision.",
+      "Await real provider logs for optimization; Launcher separate project; apply clarified commands to later approved tasks.",
+      "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission."
     ],
-    "release_boundary": "D167_P0_BETA_WORKER_AND_AGENT129_RELEASE_PASS__FIELD_SKU_AND_OWNER_PASS_PENDING__OTHER_ERRORS_DEFERRED__STABLE_GATED"
+    "release_boundary": "PR575_D167_OWNER_DOCUMENTATION_ONLY__NO_BETA_STABLE_SERVICE_WEB_ANDROID_AGENT_LAUNCHER_RUNTIME_DEPLOY__D167_OWNER_PASS_PENDING"
   }
 }
