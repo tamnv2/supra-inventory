@@ -786,7 +786,10 @@ namespace SupraInventoryRelayAgent
                         message => Log(message));
                 },
                 ConfirmD167SkuWebConflict, message => Log(message));
-            _d167SkuCoordinator.StatusChanged += RenderD167SkuStatus;
+            _d167SkuCoordinator.StatusChanged += (slots,recent,workbook,message) => {
+                RenderD167SkuStatus(slots,recent,workbook,message);
+                PublishD168TerminalSkuStatus(slots);
+            };
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
