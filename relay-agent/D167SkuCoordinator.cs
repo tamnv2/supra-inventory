@@ -33,7 +33,7 @@ namespace SupraInventoryRelayAgent
             Func<AgentSession> currentSession,Action ensureFreshToken,
             Func<bool> primaryReady,Func<bool> confirmationBusy,
             Func<string> primaryGeneration,string currentInstanceId,
-            Func<string,bool> approveConflicts,Action<string> logger)
+            Action<string> ensureSkuLease,Func<string,bool> approveConflicts,Action<string> logger)
         {
             browser=managedBrowser;
             isPrimaryReady=primaryReady;
@@ -42,7 +42,7 @@ namespace SupraInventoryRelayAgent
             instanceId=currentInstanceId ?? "";
             confirmConflicts=approveConflicts;
             log=logger ?? delegate {};
-            service=new D167SkuServiceClient(currentSession,ensureFreshToken,primaryReady);
+            service=new D167SkuServiceClient(currentSession,ensureFreshToken,primaryReady,ensureSkuLease);
             timer=new Timer(_=>Queue(),null,Timeout.Infinite,Timeout.Infinite);
         }
 
@@ -116,13 +116,13 @@ namespace SupraInventoryRelayAgent
                 if(!service.UploadAndPublish(day,slot,instanceId,generation(),workbook,confirmConflicts))
                     throw new InvalidOperationException("D167_MANUAL_RECEIPT_UNVERIFIED");
                 lastVerifiedWorkbook=workbook;
-                NotifyStatus(service.Schedule(day),"Cập nhật thủ công DONE, đã xác minh Service.");
+                NotifyStatus(service.Schedule(day),"Đã cập nhật SKU thành công; hệ thống đã xác nhận lưu dữ liệu.");
                 log("D167_SKU manual=DONE area_snapshot_count="+workbook.Items.Count+
                     " elapsed_ms="+manualTrace.ElapsedMilliseconds);
             }
             catch(Exception e)
             {
-                NotifyStatus(null,"Cập nhật thủ công chưa thành công: "+e.GetType().Name);
+                NotifyStatus(null,"Chưa cập nhật được SKU: "+D167SkuVietnamese.Error(SafeErrorCode(e)));
                 log("D167_SKU manual=FAILED error_type="+e.GetType().Name+
                     " error_code="+SafeErrorCode(e)+" phase="+manualPhase+
                     " elapsed_ms="+manualTrace.ElapsedMilliseconds);
@@ -227,7 +227,7 @@ namespace SupraInventoryRelayAgent
             lastVerifiedWorkbook=workbook;
             log("D167_SKU slot="+eligible.Slot+" stage=DONE count="+workbook.Items.Count+
                 " elapsed_ms="+slotTrace.ElapsedMilliseconds);
-            NotifyStatus(slots,"Đã ghi nhận xong, đang đồng bộ biên nhận...");
+            NotifyStatus(service.Schedule(day),"Đã cập nhật SKU và xác minh dữ liệu lưu trên hệ thống.");
             // Schedule remaining slots once, not on every WMS/HA event.
             Arm(TimeSpan.FromSeconds(2));
         }
