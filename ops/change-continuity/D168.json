@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-office-sku-network-investigation-20261013",
-  "pr": 588,
+  "working_branch": "d168-office-sku-uplink-architecture-20261013",
+  "pr": 589,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E013",
+    "id": "D168-E014",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR588_D168_OFFICE_SKU_NETWORK_DIAGNOSIS_DOCS_ONLY_NO_RUNTIME_CHANGE",
+    "current_pr_scope": "PR589_D168_OFFICE_SKU_UPLINK_ARCHITECTURE_DOCS_ONLY",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -283,6 +283,33 @@
       ],
       "next_action": "Preserve D168-REQ-010 as pending Office/PDA field validation; no runtime change authorized. Present source-compatible conclusion and limitations to Owner.",
       "evidence": "docs/D168_BACKLOG.md#D168-REQ-010; relay-agent/D167SkuServiceClient.cs#L211-L270; relay-agent/D167SkuDirectExport.cs#L118-L158; ops/apps-script/agent-log-gateway/Code.gs#L740-L775; owner-provided local Agent logs (sanitized aggregate observations); D168 PR588"
+    },
+    {
+      "id": "D168-E014",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_CONSTRAINT_AND_TECHNICAL_PROPOSAL",
+      "topic": "Office can reach SUPRA WMS but cannot directly reach Cloudflare; choose Office-capable SKU uplink using existing Google transport",
+      "status": "OWNER_OFFICE_CONSTRAINT_RECORDED__GOOGLE_GATEWAY_ALREADY_IN_SOURCE__FIELD_PASS_PENDING__NO_CODE_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "Owner confirms company Office network cannot connect Cloudflare directly and WMS SUPRA report data is reachable via Office with the previously tested Bin Inventory XLSX access protocol. User asks for a viable Office-to-Service upload architecture.",
+        "Existing D167 already implements this split: WMS read-only XLSX GET over Office using the current managed Agent browser and Windows system proxy; SKU normalized/fingerprinted locally; Agent HTTPS post to script.google.com Apps Script Gateway; Apps Script calls inventory-beta Worker via UrlFetchApp, and InventoryCore owns transactional SKU persistence/atomic DONE.",
+        "Agent-to-Service SKU uplink is not direct Office-to-Cloudflare and must not transmit WMS authorization/session material or unparsed XLSX to the gateway. Existing Gateway does token verification and Worker forwarding, each consuming UrlFetch; the Agent sends 500-SKU stages, up to 10 for 5000 SKU.",
+        "Google officially confirms Apps Script ContentService JSON output redirects to script.googleusercontent.com; Office may permit script.google.com yet block the redirect. Source Agent AllowAutoRedirect=true but actual Office firewall/proxy permission is not field-proven.",
+        "Two Agent logs show recurring failed requests and quota-related Usage errors, while one-second readiness retry triggers can bypass SKU scheduler 15min cooldown. Thus apparent Office failure cannot be attributed uniquely to direct Cloudflare blocking; Apps Script quota and redirected response need independent inspection.",
+        "Existing D090 authority excludes Office direct Cloudflare and Firebase RTDB as Office carrier; Firestore was field-proven as an Office candidate for confirmation. This does not automatically establish an SKU Firestore-to-Worker bridge or authorize a new integration."
+      ],
+      "alternatives": [
+        "Preferred minimal candidate: reuse registered Google Apps Script Agent Operations Gateway, fix bounded retry, classify gateway/redirect/quota failures, dedupe by fingerprint, keep Worker/InventoryCore DONE authoritative, do one Office-only authenticated schedule/status and controlled SKU end-to-end proof after approval.",
+        "Contingent alternative only if existing Google Web App cannot operate reliably through Office: evaluate existing registered Firestore storage+registered Google Function/Worker relay; requires explicit resource and security/quota review and Owner implementation approval; do not assume current functions accept SKU."
+      ],
+      "open_questions": [
+        "Can a device on Office-only Wi-Fi finish script.google.com HTTPS POST and redirect response from script.googleusercontent.com under corporate proxy without additional policy bypass?",
+        "Does registered Apps Script have available UrlFetch quota at the 05,12,19h slots, and what are per-action execution durations?",
+        "What is Service durable FULL/DELTA receipt for same VN day and signed fingerprint after authorized Office-only test?"
+      ],
+      "next_action": "Present source-verified existing Google relay solution and practical network/redirect/quota conditions; do not implement or deploy until Owner approves scope.",
+      "evidence": "D168-REQ-011 in docs/D168_BACKLOG.md; source D167SkuServiceClient.cs, D167SkuDirectExport.cs, D167SkuBrowserExport.cs, D167SkuWorkbook.cs, ops/apps-script/agent-log-gateway/Code.gs, service/src/d167-sku-sync-core.ts; docs/PROJECT_CONTEXT.md D090; official Google ContentService redirects documentation."
     }
   ],
   "resume": {
@@ -296,7 +323,7 @@
       "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "D168 PR588 docs-only Office-vs-PDA SKU network evidence checkpoint; no executable code or deploy"
+      "D168 PR589: Office cannot reach Cloudflare; existing Google Apps Script uplink and fallback design recorded; documentation only."
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -314,7 +341,8 @@
       "D168 Agent log-upload fix pending Owner decision: verify root causes, then Agent-only timeout/single-flight/backoff/manual semantics; Gateway change only if evidence warrants",
       "D168-REQ-008: two Agent Drive log-upload failures; Agent-only reliability fix awaiting Owner code/release approval",
       "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics",
-      "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval"
+      "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval",
+      "D168-REQ-011: Office-only WMS Excel GET + Google Apps Script to Worker SKU uplink; field proof on script.googleusercontent.com and UrlFetch quota; no code/deploy permission."
     ],
     "blocked": [],
     "next_actions": [
