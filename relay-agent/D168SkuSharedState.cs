@@ -9,7 +9,6 @@ namespace SupraInventoryRelayAgent
 {
     internal sealed partial class AgentForm
     {
-        private readonly JavaScriptSerializer _d168SkuJson = new JavaScriptSerializer();
         private int _d168SkuPublishRunning;
         private string _d168SkuLastPublished = "";
 
@@ -30,9 +29,9 @@ namespace SupraInventoryRelayAgent
                 {"slot",x.Slot},{"state","DONE"},
                 {"scheduled_at_ms",x.ScheduledAtMs},
                 {"complete_at",(x.CompleteAt ?? "").Substring(0,Math.Min((x.CompleteAt ?? "").Length,64))},
-                {"receipt_json",(x.ReceiptJson ?? "").Substring(0,Math.Min((x.ReceiptJson ?? "").Length,750))}
+                {"receipt_json",(x.ReceiptJson ?? "").Length>750 ? "{}" : (x.ReceiptJson ?? "")}
             }).ToArray();
-            var body=_d168SkuJson.Serialize(new Dictionary<string,object> {
+            var body=new JavaScriptSerializer().Serialize(new Dictionary<string,object> {
                 {"day_vn",day},{"slots",records}
             });
             if(body.Length>3500 || string.Equals(_d168SkuLastPublished,body,StringComparison.Ordinal))return;
@@ -60,7 +59,7 @@ namespace SupraInventoryRelayAgent
                 _leaderCoordinator!=null && _leaderCoordinator.IsLeader)return;
             try
             {
-                var obj=_d168SkuJson.DeserializeObject(raw) as Dictionary<string,object>;
+                var obj=new JavaScriptSerializer().DeserializeObject(raw) as Dictionary<string,object>;
                 if(obj==null)return;
                 object value;
                 if(!obj.TryGetValue("day_vn",out value) ||
