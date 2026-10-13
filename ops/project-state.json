@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_AGENT_ONLY_V130_OWNER_APPROVED_CODE_COMMITTED_PR574_CI_PENDING__BETA_RELEASE_PENDING__SKU_FIELD_AND_OWNER_PASS_PENDING",
+    "current_change_status": "D167_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__FIELD_AND_OWNER_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D167_CURRENT_BETA_WORKER_AND_AGENT_V129_STILL_ACTIVE__V130_PR574_NOT_RELEASED__NO_WEB_SERVICE_ANDROID_OR_STABLE_CHANGE",
+    "runtime_impact": "D167_AGENT_V130_GITHUB_BETA_RELEASE_AND_INVENTORY_CHANNEL_PASS__WINDOWS_AGENT_MANUAL_INSTALL_PENDING__WEB_SERVICE_ANDROID_STABLE_UNTOUCHED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -7440,13 +7440,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
-    "working_branch": "d167-log-review-20261012-20261013",
-    "pr": 574,
-    "latest_checkpoint_id": "D167-E047",
+    "working_branch": "d167-agent-v130-release-evidence-20261013",
+    "pr": 576,
+    "latest_checkpoint_id": "D167-E048",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA__NO_WEB_SERVICE_ANDROID_STABLE",
+    "owner_release_gate": "D167_V130_AGENT_ONLY_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING__NO_WEB_SERVICE_ANDROID_STABLE",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7515,7 +7515,7 @@
     "owner_checkpoint": "D167-E047",
     "working_pr": 574,
     "source_commit": "c982f60d38943460d146ef19e08dbfe088b5835f",
-    "status": "OWNER_APPROVED_CODE_COMMITTED_CI_AND_BETA_RELEASE_PENDING",
+    "status": "PR574_MERGED_AGENT_V130_BETA_RELEASE_TECHNICAL_PASS__FIELD_PENDING",
     "version": 130,
     "components": [
       "relay-agent"
@@ -7541,9 +7541,15 @@
     "auto_fleet_update": false,
     "standby_first_manual_update_required": true,
     "web_sku_problem": "Web last_sync_at from latest SKU_IMPORT_CHUNK without source filter incorrectly labeled Agent; max_updated_at conflated with Agent event; separate source-attested event timeline is PROPOSAL, NO_WEB_OR_SERVICE_CODE",
-    "ci_pass": false,
-    "release_pass": false,
+    "ci_pass": true,
+    "release_pass": true,
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "release_main_sha": "decd132ffa1806465824a7fa3673e32a9c2defec",
+    "release_run_id": 38335654198,
+    "agent_exe_sha256": "cca8b3cd25f7e806d52741e037e20683780a025af4e6d70290d2efdf831cbafd",
+    "agent_exe_size_bytes": 7386624,
+    "release_tag": "relay-agent-v130",
+    "manual_install_pending": true
   }
 }
