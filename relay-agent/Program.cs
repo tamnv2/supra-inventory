@@ -1476,10 +1476,25 @@ namespace SupraInventoryRelayAgent
             _probeAll.SetBounds(686, 122, 140, 32); networkCard.Controls.Add(_probeAll);
             networkCard.Controls.Add(new Label
             {
-                Left = 18, Top = 184, Width = 980, Height = 80,
+                Left = 18, Top = 184, Width = 980, Height = 25,
                 Text = "Kiểm tra trạng thái kết nối của Agent. Wi-Fi lấy trực tiếp từ Windows WLAN.",
                 ForeColor = Color.DimGray
             });
+            var autoStartOption=new CheckBox {
+                Left=18,Top=217,Width=930,Height=35,
+                Text="Tự mở Agent khi đăng nhập Windows (chỉ áp dụng tài khoản máy này)",
+                Checked=UserStartupRegistration.IsEnabled(),
+                Font=new Font("Segoe UI",9.5F)
+            };
+            autoStartOption.CheckedChanged+=(sender,args)=>{
+                if(!UserStartupRegistration.SetEnabled(autoStartOption.Checked))
+                {
+                    MessageBox.Show("Không lưu được cài đặt tự khởi động. Hãy kiểm tra quyền Windows.",
+                        "Cài đặt Agent",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                    autoStartOption.Checked=UserStartupRegistration.IsEnabled();
+                }
+            };
+            networkCard.Controls.Add(autoStartOption);
             _connectionPage.Controls.Add(networkCard);
 
 
