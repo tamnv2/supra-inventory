@@ -4,28 +4,26 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-web-ux-notpass-comprehensive-20261013",
-  "pr": 580,
+  "working_branch": "d167-web-v311-release-evidence-20261013",
+  "pr": 581,
   "status": "D167_E055_OWNER_NOT_PASS_WEB310__WEB311_CODE_PR580_CI_PENDING",
   "last_checkpoint": {
-    "id": "D167-E055",
+    "id": "D167-E057",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 WEB311_REPAIR_UNDER_E053_BETA_SCOPE",
-    "code_permission": true,
+    "owner_latest": "2026-10-13 D167_OWNER_LIMITED_PASS_CLOSEOUT",
+    "code_permission": false,
     "merge_permission": true,
-    "beta_deploy_permission": true,
+    "beta_deploy_permission": false,
     "stable_deploy_permission": false,
-    "new_owner_approval_required": false,
-    "approved_components": [
-      "worker"
-    ],
-    "current_pr_scope": "PR580_D167_WEB311_WEB_UI_ONLY_BETA_WORKER__NO_NEW_DATA_SERVICE_AGENT_ANDROID_STABLE",
+    "new_owner_approval_required": true,
+    "approved_components": [],
+    "current_pr_scope": "PR581_D167_DOCS_ONLY_OWNER_CLOSEOUT_NO_NEW_DEPLOY",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "10bb9cc678b0d1b68a98209a7a71d89263fc258b",
-    "technical_release_pass": false,
+    "approved_source_sha": null,
+    "technical_release_pass": true,
     "field_pass": false
   },
   "entries": [
@@ -1156,6 +1154,40 @@
       ],
       "next_action": "Complete content and functional tests; obtain exact branch CI, update E055 source SHA and receipt and release guard, merge PR580 branch→PR only after authority+continuity/product PASS, observe Beta Worker health, retain Stable untouched.",
       "evidence": "Owner 2026-10-13 explicit NOT PASS in active chat; PR578 5cedab0 released Beta with technical PASS, source web/src/operational-app.ts and hr-web-panel.ts; PR580 same D167 repair branch; docs/OWNER_DECISIONS.md Web 3.1.1 correction."
+    },
+    {
+      "id": "D167-E056",
+      "date_vn": "2026-10-13",
+      "topic": "Beta Web 3.1.1 corrected release receipts after D167 E055 NOT PASS",
+      "kind": "TEST",
+      "status": "PR580_MERGED_WEB_311_BETA_WORKER_DEPLOY_SUCCESS__FIELD_PROOF_SEPARATE",
+      "owner_approval": null,
+      "facts": [
+        "PR #580 merged to main e621c868979188935d12d71db0dce7165e591e91; PR exact-head D167/Web/authority/state checks completed success.",
+        "Existing Beta Worker deploy run 38351950688 attempt 1 SUCCESS including service health/auth and Web asset build; no Android, Agent, Stable or new resources released.",
+        "PR #581 documentation-only technical receipt, not new code or Beta deployment; previous Web 3.1.0 NOT PASS retained in historical entries."
+      ],
+      "next_action": "Record any Owner decision on as-deployed acceptance separately; do not equate CI/technical release with physical regression acceptance.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/580 ; https://github.com/tamnv2/supra-inventory/actions/runs/38351950688 ; docs-only PR581"
+    },
+    {
+      "id": "D167-E057",
+      "date_vn": "2026-10-13",
+      "topic": "Owner closes D167 with limited PASS for deployed Beta; requests D168 for subsequent issues and logs",
+      "kind": "OWNER_COMMAND",
+      "status": "D167_OWNER_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__CLOSED__D168_AUTHORIZED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly states 'Ghi nhận D167 triển khai ok, hiện tại chưa thấy lỗi lầm gì' and instructs creation of D168 to record further work, logs, analysis and implementation upon future Owner commands.",
+        "Owner PASS scope is existing Beta as deployed through Web 3.1.1/Agent v130/Android vc106 and previously released Worker/Gateway; no fresh crash or malfunction reported at signoff. This is not proof of exhaustive per-device field test, WMS end-to-end HA/ACK, every Web UX scenario, or billed Usage saving.",
+        "Move unconfirmed measurements, cost/usage optimization, optional CI/CD governance validation and future log-driven investigations into D168 as unresolved evidence backlog; no auto-code or deploy.",
+        "Revokes stale D167 owner-release receipt; D168 starts with analysis-only permission. Stable stays OWNER_GATED, no new resource identity, no direct main push outside PR."
+      ],
+      "supersedes": [
+        "D167-E055"
+      ],
+      "next_action": "After this D167 closure PR passes authority/continuity, merge docs-only then create D168 branch/PR with independent journal and bootstrap pointer; do not modify live service/app/agent.",
+      "evidence": "Owner explicit D167 as-deployed OK/no errors and D168 command 2026-10-13; Web3.1.1 PR580; Agent v130 PR574; ops/project-state.json; ops/owner-actions.json"
     }
   ],
   "resume": {
@@ -1170,47 +1202,36 @@
       "D167-E047 Owner approves five Agent-only non-SKU fixes + code and scoped Beta release after CI PASS; no Android/Web/Service, Stable gated.",
       "D167-E049 Owner approves verified-source Web SKU management redesign and scoped existing Beta Worker/Web deploy after PR577 exact-head CI PASS.",
       "D167-E051: Owner approves direction to implement and deploy five Web UI/meal-history/HR proposals after account-list design review; no immediate unconditional release permission.",
-      "E053 Owner explicit code + Beta deployment of previous 5 Web proposals AND contextual account menu/bulk safety, no Stable/Agent/Android."
+      "E053 Owner explicit code + Beta deployment of previous 5 Web proposals AND contextual account menu/bulk safety, no Stable/Agent/Android.",
+      "D167 Owner 2026-10-13 limited PASS: as-deployed Beta OK, no errors currently reported; open D168 only after closeout PR merge"
     ],
     "implemented": [
       "Earlier D167 Web/Worker/Gateway/Android vc106 and Agent v126/v127/v128 technical releases already in main; not a remaining unimplemented item",
       "D167 P0 Beta Worker and signed Agent v129 released via PR572/573; actual field results separate",
       "D167-E046 decision/spec/operation documentation under PR575; no new live code or release",
       "Agent v130 source committed, local diagnostics/log coalescing, RTDB observer flap metrics, stale auxiliary WMS health check guard, Picker revoke preview HTTP403 diagnosis; release not verified.",
-      "Agent v130 Beta signed release and inventory-channel same SHA256 verified at GitHub, PR574/Main CI complete PASS. Physical Agent installation not verified."
+      "Agent v130 Beta signed release and inventory-channel same SHA256 verified at GitHub, PR574/Main CI complete PASS. Physical Agent installation not verified.",
+      "Web 3.1.1 PR580 merged Beta Worker deploy success; Agent v130 Beta signed channel release success; Android vc106 previous Beta release"
     ],
-    "in_progress": [
-      "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
-      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task.",
-      "Docs-only PR576 postrelease evidence: authority/continuity CI and merge; Agent v130 already published, do NOT release again.",
-      "PR577 Web SKU provenance/layout source, auth, regression and predeploy CI; Beta Worker/Web release pending.",
-      "D167-E050 docs-only impact checkpoint; source and runtime unchanged.",
-      "D167 PR578 Web/Worker v3.1.0 source candidate, UI regression/build/authority/continuity CI pending.",
-      "E055 Owner NOT PASS Web 3.1.0; corrective Web 3.1.1 code in PR580, exact-head CI required."
-    ],
+    "in_progress": [],
     "pending_approval": [
-      "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
-      "Usage/cross-meter optimization pending further real log/provider measurements.",
-      "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
-      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending.",
-      "D167 Web 3.1.1 Owner field/business PASS pending after corrected Beta release."
+      "No Owner action pending to close D167 technical deployment; Owner accepted deployed Beta scope only",
+      "Actual provider-billed Usage/Firestore/Cloudflare optimization and workload redistribution move to D168 upon future evidence/commands",
+      "CI/CD complete no-unintended-deploy coverage and detailed real-device/HA/WMS/Web business validation remain unproven; move to D168 as evidence topics, not as already approved code",
+      "Stable remains OWNER-GATED; Launcher APK outside Inventory scope"
     ],
-    "blocked": [
-      "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
-      "Existing physical field acceptance remains unverified; do not reopen cancelled MAIN-tab direct WMS credential capture."
-    ],
+    "blocked": [],
     "next_actions": [
-      "Pass PR575 docs+authority/continuity CI without triggering runtime publication; merge only after all mandatory checks.",
-      "In separate D167 PR574/window continue Agent fault discussion; do not modify Agent/Service/Web/Android from this decision.",
-      "Await real provider logs for optimization; Launcher separate project; apply clarified commands to later approved tasks.",
-      "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission.",
-      "Verify PR574 exact latest CI and signed Beta Agent v130 release; manual standby-first field update; do not force fleet/Stable.",
-      "Owner/authorized Agent operator manually updates standby via Agent Check Update, verifies live Confirm/HA, then PRIMARY when idle and healthy; no forced fleet update.",
-      "After docs-only PR576 CI PASS, merge without any runtime deployment and check main D167-E048 field pending.",
-      "PR577 exact-head CI -> scoped Beta Worker deploy (Web asset built) -> runtime smoke and E050 evidence; no Android/Agent/Stable release.",
-      "After explicit Owner approval for E050 only: branch/PR code+CI, no Worker/Web publication from this docs-only checkpoint.",
-      "Present E052 proposal; hold combined Web/Service release until Owner accepts account-list design and all CI/continuity gates pass."
+      "Merge docs-only PR581 after authority/continuity CI; start D168 by explicit Owner command already provided",
+      "D168 accepts new issue/log entries, performs repo-first evaluation, implements only when Owner issues an explicit code/deploy command"
     ],
-    "release_boundary": "D167_E055_WEB311_SAME_SCOPE_E053_BETA_ONLY_CODE_AND_CI_PENDING__STABLE_OWNER_GATED__FIELD_FAIL"
+    "release_boundary": "D167_OWNER_LIMITED_PASS_CLOSED__NO_NEW_DEPLOY__D168_ANALYSIS_ONLY_AFTER_MERGE__STABLE_OWNER_GATED"
+  },
+  "owner_closeout": {
+    "status": "OWNER_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED",
+    "date_vn": "2026-10-13",
+    "full_field_evidence": false,
+    "no_new_release": true,
+    "open_next": "D168"
   }
 }

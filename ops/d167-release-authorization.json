@@ -1,12 +1,10 @@
 {
   "schema_version": 1,
   "change_id": "D167",
-  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "10bb9cc678b0d1b68a98209a7a71d89263fc258b",
-  "approved_components": [
-    "worker"
-  ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_311_NOTPASS_REPAIR_BETA",
+  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
+  "approved_source_sha": null,
+  "approved_components": [],
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_CLOSEOUT_NO_NEW_DEPLOY_20261013",
   "approved_at_vn": "2026-10-13",
-  "note": "Original Owner E053 explicitly requested Web/Worker Beta code and deployment of all six Web UI scopes. Owner E055 field NOT PASS Web3.1.0, same D167 same authorized Web scope corrective patch 3.1.1 only: thorough UI text review, exclusive account/Picker forms, dense SLA, role filters and source CI guard. Source 605b6f684b47b9d16b276b1fb3e5c9e7e1d0ee90. No Stable, Android, Agent, API business changes or new resources."
+  "note": "D167 Owner accepts existing Beta deployment with no reported errors at time of signoff; closed release scope. No new deploy authorized by D167 closeout or D168 opening. Historical Web3.1.1 release receipt remains in project-state and D167 journal. Stable Owner gated."
 }
