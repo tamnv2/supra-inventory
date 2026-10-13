@@ -127,8 +127,12 @@ def main() -> None:
     require(users_core, "COUNT(*) AS total", "user total query")
     require(users_core, "LIMIT ? OFFSET ?", "user SQL pagination")
     forbid(users_core, "LIMIT 1000", "fixed 1000-row user load")
-    require(app, 'id="toggle-all-pickers"', "select all Picker UI")
-    require(app, "updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds])", "D116 all-Picker action plus exclusions propagation")
+    require(app, 'id="select-page-pickers"', "explicit current-page Picker selection")
+    require(app, 'id="select-all-global-pickers"', "explicit system-wide Picker selection")
+    require(app, 'usersGlobalTargetCount', "authoritative global Picker count")
+    require(app, "updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds],", "D116 exclusion plus expected-count propagation")
+    require(api, "expected_target_count", "D167 count fence API")
+    require(users_core, "PICKER_SELECTION_CHANGED", "D167 server count-fence enforcement")
 
     # F15: approved dashboard/reporting controls.
     require(app, "renderDatePresets(", "shared date presets")
