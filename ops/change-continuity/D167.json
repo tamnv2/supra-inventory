@@ -6,23 +6,25 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-web-impact-analysis-20261013",
   "pr": 578,
-  "status": "D167_E051_WEB_WORKSTREAM_OWNER_DEPLOY_DIRECTIVE__E052_USERS_RBAC_LAYOUT_PROPOSAL_PENDING_APPROVAL",
+  "status": "D167_E053_OWNER_APPROVED_WEB_310_ACCOUNT_MEAL_BETA__CODE_IN_PR578_CI_PENDING",
   "last_checkpoint": {
-    "id": "D167-E052",
+    "id": "D167-E053",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 OWNER_DIRECTS_IMPLEMENT_AND_DEPLOY_PRIOR_FIVE_WEB_PROPOSALS__USER_LIST_DESIGN_REVIEW_FIRST",
-    "code_permission": false,
-    "merge_permission": false,
-    "beta_deploy_permission": false,
+    "owner_latest": "2026-10-13 WEB_UI_ACCOUNT_MEAL_BETA_APPROVED",
+    "code_permission": true,
+    "merge_permission": true,
+    "beta_deploy_permission": true,
     "stable_deploy_permission": false,
-    "new_owner_approval_required": true,
-    "approved_components": [],
-    "current_pr_scope": "PR578_DISCUSSION_ONLY__FIVE_WEB_PROPOSALS_OWNER_APPROVED_IN_PRINCIPLE__USER_LIST_DESIGN_NOT_YET_APPROVED__NO_RELEASE",
+    "new_owner_approval_required": false,
+    "approved_components": [
+      "worker"
+    ],
+    "current_pr_scope": "PR578_WEB_310_ACCOUNT_MEAL_HISTORY_WORKER_BETA_ONLY__NO_AGENT_ANDROID_STABLE",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "1ae9b4a070364c148571e4d759cb79cf1894f7ed",
+    "approved_source_sha": "7d38e334fb5e17e634dab5990c6466905f8270a0",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -1101,6 +1103,32 @@
       ],
       "next_action": "Await Owner signoff on this account-list proposal. Then add Owner decision/spec/state, guarded implementation/tests and one D167 Beta release workflow per existing explicit conditional deployment order. No Stable, Agent, Android or new provider resource.",
       "evidence": "Screenshot 1-100/108; web/src/operational-app.ts renderUsers/bind; service/src/user-management-core.ts functions canCreateRole/canManageTarget/deleteManagedUsers/pickerBulkAction; service/src/user-management-api.ts; docs/specs/AUTH_RBAC.md D143/D146/D155; ops/project-scope.json."
+    },
+    {
+      "id": "D167-E053",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves complete D167 Web 3.1.0 compact layout, early Web meal, history and role-gated People account actions and directs immediate code + Beta deployment",
+      "owner_approval": true,
+      "status": "OWNER_APPROVED_BETA_WEB_WORKER_310_COMBINED__SOURCE_CI_PENDING__STABLE_UNTOUCHED",
+      "facts": [
+        "Owner explicitly: 'Anh duyệt đề xuất, chạy code và triển khai luôn các mục đã chốt ở trên và các mục về Danh sách tài khoản em vừa đề xuất nhé.' This confirms E051 prior five Web proposals and E052 contextual user list, including explicit protected managed accounts and system-wide Picker confirmation.",
+        "New Beta Worker/Web code updates authenticated Web-only early meal choice without broadening Android/Agent, and records first/default/edit plus accepted Agent schedule decisions in existing InventoryCore audit_log. 7/30/60 day read-on-demand history reports only real records, no invented past.",
+        "Web v3.1.0 reduces owner-like explanatory copy, consolidates manual/Excel Picker data entry into the People screen, contextual per-row menus and selection-based role-compatible Picker/global actions with an authoritative expected count, protecting special login admin and tamnv2 from managed deletion.",
+        "Current Web/Worker public endpoints, existing data, Role/RBAC, picker reporting, manual Picklist confirmation, Windows Agent, Android, WMS, Firebase/RTDB rules, Stable and currently running service remain unchanged until the exact PR head passes product, authority/continuity and source release guard checks.",
+        "Stable OWNER-GATED and never implicitly deployed. After PR tests PASS, merge PR578 and deploy through scoped existing Beta Worker Web workflow only, then confirm Cloudflare version/source hash and field health before claiming technical release."
+      ],
+      "alternatives": [
+        "Do not launch if typecheck/CI/authority guard/product regression fails; fix the same D167 PR and recalculate release SHA.",
+        "Do not add Agent/Android deployment merely for Web/Worker history and menus; if actual schedule decisions do not reach mirror, show incomplete history rather than invent or modify Agent without separate scope."
+      ],
+      "open_questions": [
+        "Owner field acceptance after Beta Web 3.1.0 technical release remains pending; validate no impacted Android/Agent rollout and current service still operational.",
+        "Historical days without recorded Agent schedule snapshots remain unavailable by design.",
+        "Confirm realtime FCM/ACK and conflict checks in actual Beta flow before Owner business PASS."
+      ],
+      "next_action": "Finish exact source CI including Web production build, Worker typecheck, D167/UI/role/regression tests, Repo Authority Guard, Project State Guard and continuity guard; repair CI failures, ensure Owner receipt source ancestor; mark PR ready, merge via approved guard, verify Beta deploy/health and report factual status.",
+      "evidence": "Current Owner explicit 2026-10-13 final instruction; GitHub PR578; docs/OWNER_DECISIONS.md D167 Web 3.1.0; web/src/operational-app.ts api.ts web-version.ts; service/src/meal-break-core.ts alert-window-core.ts d167-shift-history.ts user-management-core.ts; tests/d167-web-layout.test.mjs"
     }
   ],
   "resume": {
@@ -1114,7 +1142,8 @@
       "D167-E046 Owner: 'chạy code' = all approved code+CI to CODE READY then STOP/report; 'duyệt triển khai' releases only PASS code; 'chạy code và triển khai'/'triển khai luôn' = complete code+CI and immediately deploy approved scoped Beta without midpoint approval.",
       "D167-E047 Owner approves five Agent-only non-SKU fixes + code and scoped Beta release after CI PASS; no Android/Web/Service, Stable gated.",
       "D167-E049 Owner approves verified-source Web SKU management redesign and scoped existing Beta Worker/Web deploy after PR577 exact-head CI PASS.",
-      "D167-E051: Owner approves direction to implement and deploy five Web UI/meal-history/HR proposals after account-list design review; no immediate unconditional release permission."
+      "D167-E051: Owner approves direction to implement and deploy five Web UI/meal-history/HR proposals after account-list design review; no immediate unconditional release permission.",
+      "E053 Owner explicit code + Beta deployment of previous 5 Web proposals AND contextual account menu/bulk safety, no Stable/Agent/Android."
     ],
     "implemented": [
       "Earlier D167 Web/Worker/Gateway/Android vc106 and Agent v126/v127/v128 technical releases already in main; not a remaining unimplemented item",
@@ -1128,15 +1157,14 @@
       "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task.",
       "Docs-only PR576 postrelease evidence: authority/continuity CI and merge; Agent v130 already published, do NOT release again.",
       "PR577 Web SKU provenance/layout source, auth, regression and predeploy CI; Beta Worker/Web release pending.",
-      "D167-E050 docs-only impact checkpoint; source and runtime unchanged."
+      "D167-E050 docs-only impact checkpoint; source and runtime unchanged.",
+      "D167 PR578 Web/Worker v3.1.0 source candidate, UI regression/build/authority/continuity CI pending."
     ],
     "pending_approval": [
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
       "Usage/cross-meter optimization pending further real log/provider measurements.",
       "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
-      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending.",
-      "D167-E050 five Web design/meal/history/People proposals impact reviewed; awaiting Owner approval before implementation or deployment.",
-      "D167-E052: account-list RBAC-aware contextual action menu, safe current-page vs system-wide Picker selection, privileged-target protections pending Owner design review."
+      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending."
     ],
     "blocked": [
       "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
@@ -1154,6 +1182,6 @@
       "After explicit Owner approval for E050 only: branch/PR code+CI, no Worker/Web publication from this docs-only checkpoint.",
       "Present E052 proposal; hold combined Web/Service release until Owner accepts account-list design and all CI/continuity gates pass."
     ],
-    "release_boundary": "D167_E051_E052_OWNER_CONDITIONAL_BETA_DIRECTION__ACCOUNT_LIST_APPROVAL_AND_GUARD_CI_PENDING__NO_EXECUTABLE_DEPLOY_FROM_PR578"
+    "release_boundary": "D167_E053_APPROVED_BETA_WORKER_WEB_ONLY_AFTER_EXACT_SHA_CI__STABLE_OWNER_GATED_NO_AGENT_ANDROID"
   }
 }
