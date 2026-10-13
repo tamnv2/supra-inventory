@@ -2005,7 +2005,7 @@ function renderUsers(): string {
     <article class="ops-panel ops-users-panel">
       <div class="ops-panel-title"><div><h3>Danh sách nhân sự</h3></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
       ${renderUserBulkToolbar(canLifecyclePickerBulk)}
-      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Nhân viên</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
@@ -2039,8 +2039,8 @@ function renderUsers(): string {
           const reporting = isPicker
             ? `<span class="badge ${user.shortage_reporting_enabled !== false ? "good" : "closed"}">${user.shortage_reporting_enabled !== false ? "Đang bật" : "Đang tắt"}</span>`
             : "—";
-          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(contractor)}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${user.last_login_at ? `${esc(fmt(user.last_login_at))}<div class="tiny muted">${esc(user.last_login_channel || "")}</div>` : "Chưa ghi nhận"}</td><td>${actions}</td></tr>`;
-        }).join("") : `<tr><td colspan="9" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b><div class="tiny">${esc(user.display_name)}</div>${isPicker && contractor !== "—" ? `<small class="muted">${esc(contractor)}</small>` : ""}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${user.last_login_at ? `${esc(fmt(user.last_login_at))}<div class="tiny muted">${esc(user.last_login_channel || "")}</div>` : "Chưa ghi nhận"}</td><td>${actions}</td></tr>`;
+        }).join("") : `<tr><td colspan="7" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Trang hiển thị ${pageStart}–${pageEnd}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
