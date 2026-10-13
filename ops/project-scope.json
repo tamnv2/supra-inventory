@@ -665,7 +665,7 @@
     "VHDCHY resources",
     "live location/bin/pickface inventory management; D167 Owner-approved exception allows read-only coarse LTA/Shelving report-area temporal metadata on registered Inventory Beta resources only, not quantity or bin/pickface operations",
     "stock quantity management",
-    "Office-network fallback/provider research except the Owner-approved D146 Google-first Agent support-log transport (Agent -> Firestore -> Beta Google Function -> Drive; Worker only brokers the short-lived Drive upload session)",
+    "Office-network fallback/provider research outside the explicit Owner-approved D146 Agent logs and D168 E018 existing Beta Agent local WLAN routing. No new firewall bypass, bridging/proxy service, unknown WLAN profile or unregistered resource mutation.",
     "all offline business modes, offline report/mutation outboxes, direct-to-Sheet fallback, or alternate offline transaction paths",
     "all persistent, external, logged, cross-process, replayed or general-purpose use of Supra/WMS cookies, passwords, headers, tokens, signatures or authentication; ONLY D167 Owner 2026-10-12 allows transient allowlisted WMS API request headers in RAM of current authorized PRIMARY Agent solely for same-session direct signed read-only Bin Inventory export GET, without altering Confirm tab, no other WMS API",
     "all direct WMS/API PickList lookup or confirmation and all project-driven WMS mutation outside D126 semantic browser-UI automation of the registered Confirm PickList page",
@@ -689,5 +689,25 @@
     "daily_readiness": "VN_DAY_VERIFIED_AGENT_INITIAL_FULL_OR_AUTHORIZED_WEB_FULL_ONLY__PATCH_NOT_SUFFICIENT__NEW_PICKER_REPORT_BLOCKED_UNTIL_READY",
     "new_runtime_authority": "NONE_CODE_ONLY__NEW_OWNER_DEPLOY_REQUIRED",
     "cancellation": "SHEET_PARTIAL_FIX__HISTORICAL_LIVE_PENDING_OVERDUE__ONCE_PER_DAY__UNIVERSAL_RENAME_CONFIRM__UNMEASURED_CROSS_METER_ROLLOUT"
+  },
+  "d168_owner_approved_scope_2026_10_14": {
+    "authorization": "OWNER_EXPLICIT_D168_FULL_CODE_AND_CONDITIONAL_BETA_DEPLOY",
+    "registered_targets_only": [
+      "agent_windows_local_process_existing_device",
+      "worker-beta",
+      "inventory-core",
+      "gcp-beta",
+      "firebase-android-beta",
+      "firebase-web-beta",
+      "android-package-beta",
+      "host-beta"
+    ],
+    "sku_transport": "AGENT_DIRECT_AUTHENTICATED_WORKER_BETA__NO_APPS_SCRIPT_SKU",
+    "daily_initial_full": "REQUIRED_AFTER_05_VN_EVEN_SOLO_PRIMARY__NEVER_INTERRUPT_ACTIVE_PICKLIST",
+    "wms_network": "OWNER_CONFIRMS_WMS_ACCESSIBLE_ON_ORDINARY_INTERNET__REQUIRES_ACTUAL_PER_MACHINE_PROBE",
+    "windows_wlan": "LOCAL_SAVED_PROFILES_EXPLICITLY_APPROVED_ON_DEVICE_ONLY__NO_UNKNOWN_PROFILE_CONNECT__NO_FIREWALL_OR_PROXY_BYPASS__IDLE_ONLY_60S_NETWORK_CONSENT",
+    "firebase": "RETAIN_CRITICAL_AUTH_PICKLIST_ACK_HA_PICKER_PRESENCE",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "release_status": "CODE_IN_PROGRESS_NOT_PASS_OR_DEPLOYED"
   }
 }
