@@ -47,3 +47,11 @@
 - D168 SKU manual: sửa trường hợp việc cập nhật vượt qua 00:00 VN và gặp lỗi. `Abort` phải hủy lease của **ngày bắt đầu** thay vì hôm sau; thêm static regression để ngăn lỗi.
 - Các source fix này chưa chứng minh P0 OFFICE→Worker, 05h FULL, physical WLAN/Confirm/ACK hay tiết kiệm Usage. Release guard không được bỏ cho tới khi luồng chuyển mạng thật được tích hợp và E2E kiểm chứng.
 - Một chỉnh sửa thêm để siết phiên được chọn trong gửi liên hệ nhóm bị công cụ từ chối và không được đưa vào PR. Không được giả là đã xử lý.
+
+## D168-E023 — Agent v131 field-probe candidate / release boundary
+
+**Supersedes earlier source-only diagnosis that the WLAN helper was not wired.** The current D168 PR now connects `D168NetworkRoute.OpenWorkerSession` to manual/automatic SKU and contains a dedicated one-click **“Thử kết nối Worker”** button in Agent Settings. It makes a read-only authenticated Worker capability request; if needed it prompts for previously saved/selected Wi-Fi, checks the Worker, and verifies restoration of the original Wi-Fi. Logs distinguish `DIRECT` versus `SWITCHED_AND_RESTORED`; a direct connection must **not** be called a passed switching test.
+
+Further changes: v131 version markers; manual and 05h AUTO SKU Office XLSX export-before-switch; no WMS export when no approved fallback; exact Picker session selection; terminal-only SKU DONE snapshots merged into existing Firebase `agent_sync` on CAS; D168 release receipt defaults to code-only denial and requires exact-head authority/continuity, CI and physical FIELD_PASS, never inherited from D167. No new external provider resource was registered.
+
+**Still not FIELD PASS:** Windows standard-user Wi-Fi switching, Office WMS XLSX and standalone PRIMARY FULL, intact live Picklist/ACK and HA, actual Core DONE/fingerprint, signed APK rollout, observed provider metering and successful return to original network. The button does not mutate WMS and cannot replace an end-to-end SKU transaction test. Installation or execution on the company's PC is not available through GitHub connector; one local field check is an actual Owner/device-only boundary. Until evidence is returned, retain Draft/no merge/no Beta install for this D168 candidate. Stable remains excluded.
