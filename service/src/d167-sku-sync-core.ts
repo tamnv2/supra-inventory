@@ -112,7 +112,8 @@ function ensureSchedule(state: DurableObjectState, day: string): Row[] {
       state.storage.sql.exec(`UPDATE d167_sku_jobs
         SET state='SKIPPED', receipt_json=?, lease_until_ms=0, updated_at=?
         WHERE day_vn=? AND slot='DELTA_12'
-          AND state NOT IN ('DONE','SKIPPED')`, receipt,now,day);
+          AND state NOT IN ('DONE','SKIPPED')
+          AND (state='READY' OR lease_until_ms<=?)`, receipt,now,day,Date.now());
     }
     return state.storage.sql.exec<Row>(
       "SELECT day_vn,slot,state,scheduled_at_ms,complete_at,receipt_json FROM d167_sku_jobs WHERE day_vn=? ORDER BY scheduled_at_ms",
@@ -253,13 +254,21 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     const digest = await grantHash(grant);
     const duration = 15 * 60_000;
     const at = new Date().toISOString();
-    state.storage.transactionSync(() => {
+    const reserved=state.storage.transactionSync(() => {
+      // Repeat the global lease check inside the SQL transaction after
+      // asynchronous SHA, preventing two reserve callers from overwriting grants.
+      const busy=row(state,`SELECT slot FROM d167_sku_jobs
+        WHERE day_vn=? AND lease_until_ms>? AND state IN ('RESERVED','CLAIMED','STAGING') LIMIT 1`,day,Date.now());
+      const current=row(state,"SELECT state FROM d167_sku_jobs WHERE day_vn=? AND slot=?",day,slot);
+      if (busy || !current || current.state==="DONE" || current.state==="SKIPPED") return false;
       state.storage.sql.exec("DELETE FROM d167_sku_stage WHERE day_vn=? AND slot=?",day,slot);
       state.storage.sql.exec(`UPDATE d167_sku_jobs SET state='RESERVED',owner_id=?,generation=?,
         operator_id=?,grant_hash=?,lease_until_ms=?,fingerprint=NULL,total_rows=0,
         expected_revision=0,receipt_json=NULL,updated_at=? WHERE day_vn=? AND slot=?`,
         instance,generation,String(body.actor_user_id),digest,Date.now()+duration,at,day,slot);
+      return true;
     });
+    if (!reserved) return response({error:"JOB_LEASED_OR_ALREADY_COMPLETED"},409);
     return response({status:"RESERVED",day_vn:day,slot,job_grant:grant,lease_expires_in_ms:duration});
   }
   if (!await guard(body,job)) return response({error:"SKU_JOB_GRANT_INVALID_OR_EXPIRED"},409);
