@@ -158,6 +158,34 @@ def main() -> None:
                     fail("D167 Agent v128 Owner decision journal missing")
             if "## D167 2026-10-13 — Owner xác nhận triển khai Agent Beta" not in (ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
                 fail("D167 Agent v128 Owner decision spec missing")
+        elif owner_latest == "2026-10-13 P0_AGENT129_WORKER_BETA_APPROVED":
+            authorization = load("ops/d167-release-authorization.json")
+            expected_ref = "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA"
+            if journal.get("pr") != 572 or journal.get("working_branch") != "d167-p0-ha-sku-v129-vietnamese-20261013":
+                fail("D167 P0 Agent/Worker PR scope mismatch")
+            if (gate.get("code_permission") is not True or gate.get("merge_permission") is not True
+                    or gate.get("beta_deploy_permission") is not True or gate.get("stable_deploy_permission") is not False
+                    or gate.get("new_owner_approval_required") is not False):
+                fail("D167 P0 Agent/Worker Owner Beta approval mismatch")
+            if gate.get("approved_components") != ["worker", "agent"]:
+                fail("D167 P0 Agent/Worker component scope mismatch")
+            if (authorization.get("schema_version") != 1 or authorization.get("change_id") != "D167"
+                    or authorization.get("status") != "OWNER_EXPLICIT_DEPLOY_APPROVED"
+                    or authorization.get("approved_at_vn") != "2026-10-13"
+                    or authorization.get("owner_approval_reference") != expected_ref
+                    or authorization.get("approved_components") != ["worker", "agent"]
+                    or not isinstance(authorization.get("approved_source_sha"), str)
+                    or not re.fullmatch(r"[0-9a-f]{40}", authorization["approved_source_sha"])
+                    or authorization["approved_source_sha"] != gate.get("approved_source_sha")):
+                fail("D167 P0 exact Owner authorization mismatch")
+            if state.get("change_control", {}).get("pr572_release_gate") != expected_ref + "__STABLE_OWNER_GATED":
+                fail("D167 P0 state release gate mismatch")
+            approved = {e.get("id"): e for e in entries if e.get("owner_approval") is True}
+            if approved.get("D167-E042", {}).get("kind") != "OWNER_COMMAND":
+                fail("D167 P0 Owner approval missing from continuity")
+            if "## D167 — P0 Agent SKU authority and Vietnamese feedback (Owner 2026-10-13)" not in (
+                    ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
+                fail("D167 P0 Owner decision missing")
         else:
             fail("D167 latest Owner instruction missing")
         if "#559" not in (ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):

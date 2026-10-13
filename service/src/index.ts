@@ -1541,7 +1541,7 @@ export default {
           if (!verified.valid) return json({error:"CURRENT_PASSWORD_INVALID"},403);
           const leader=await verifyD167AgentPrimary(env,
             String(input.instance_id||""),String(input.generation||""));
-          if (!leader) return json({error:"NOT_CURRENT_FIREBASE_PRIMARY"},409);
+          if (!leader.valid) return json({error:"NOT_CURRENT_FIREBASE_PRIMARY_"+leader.reason},409);
           // Never forward the credential or trust client-submitted actor/proof mode.
           return coreStub(env).fetch("https://inventory-core.internal/d167/skus/manual-start",{
             method:"POST",headers:{"content-type":"application/json"},
@@ -1561,10 +1561,13 @@ export default {
         const leader = await verifyD167AgentPrimary(
           env, String(input.instance_id || ""), String(input.generation || ""),
         );
-        if (!leader) return json({ error: "NOT_CURRENT_FIREBASE_PRIMARY" }, 409);
+        if (!leader.valid) return json({ error: "NOT_CURRENT_FIREBASE_PRIMARY_"+leader.reason }, 409);
         const operation = await coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action, {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ ...input, actor_user_id: operator.user_id }),
+          body: JSON.stringify({ ...input, actor_user_id: operator.user_id,
+            actor_display: [String(operator.display_name || "").trim(),
+              String(operator.employee_code || "").trim()].filter(Boolean).join(" · ").slice(0,120)
+              || "Tài khoản Agent đã xác thực" }),
         });
         if (action !== "publish" || !operation.ok) return operation;
         const published = await operation.clone().json() as {

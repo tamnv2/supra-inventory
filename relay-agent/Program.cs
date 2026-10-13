@@ -765,7 +765,13 @@ namespace SupraInventoryRelayAgent
                 () => Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)!=0 ||
                       Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning,0,0)!=0,
                 () => _leaderCoordinator == null ? "" : _leaderCoordinator.Generation,
-                _agentInstanceId, ConfirmD167SkuWebConflict, message => Log(message));
+                _agentInstanceId,
+                expected => {
+                    if (_leaderCoordinator == null)
+                        throw new InvalidOperationException("D167_SKU_PRIMARY_CHANGED");
+                    _leaderCoordinator.EnsureD167SkuPrimaryLease(expected);
+                },
+                ConfirmD167SkuWebConflict, message => Log(message));
             _d167SkuCoordinator.StatusChanged += RenderD167SkuStatus;
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(

@@ -4,23 +4,24 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-agent-tabs-order-20261013",
-  "pr": 568,
+  "working_branch": "d167-p0-ha-sku-v129-vietnamese-20261013",
+  "pr": 572,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
-    "id": "D167-E041",
+    "id": "D167-E042",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 AGENT_V128_BETA_ONLY_APPROVED",
+    "owner_latest": "2026-10-13 P0_AGENT129_WORKER_BETA_APPROVED",
     "code_permission": true,
     "merge_permission": true,
     "beta_deploy_permission": true,
     "stable_deploy_permission": false,
     "new_owner_approval_required": false,
     "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
-    "approved_source_sha": "c4b9ba520990d1100b1bfb872b4c4fa02ca11424",
+    "approved_source_sha": "5fdb66ca2653da2cc86ef696b7765ec64b0fdae0",
     "approved_components": [
+      "worker",
       "agent"
     ]
   },
@@ -818,6 +819,24 @@
       ],
       "next_action": "Present this exact evidence and recommend only scoped Beta Agent+Worker lease-liveness contract repair after explicit Owner approval. No executable changes or deployment from this analysis.",
       "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs around lines 50, 1030-1070, 1130-1230, 1894-1940; service/src/d167-sku-ha.ts lines 3-37; service/src/index.ts around lines 1514-1565; Beta Drive v128 sanitized SKU stage events 06:54:41-06:55:27"
+    },
+    {
+      "id": "D167-E042",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves D167 P0 Beta Agent+Worker lease consistency and requests complete Vietnamese update status and authenticated operator identity without extra usage",
+      "status": "OWNER_APPROVED_P0_AGENT_V129_WORKER_BETA__CODE_CHANGE_COMMITTED__CI_AND_DEPLOY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly approves P0. Other Agent/Confirm/Windows session errors are deferred until Owner supplies complete logs; no P1/P2 source change is authorized in this workstream.",
+        "Source root cause: PRIMARY coordinator RTDB successful heartbeat skips normal Firestore lease refresh, but Worker requires <=45s Firestore lease. Approved repair: refresh existing generation-fenced lease from existing SKU mutation path only, max once per 20 seconds, no steady-state Firestore writes or new reads.",
+        "Agent code now wires D167SkuServiceClient write operations to existing FirestoreAgentLeaderCoordinator.EnsureD167SkuPrimaryLease, checks local role/generation before/after existing lease PATCH, fails closed on loss; Worker retains independent roles+lease checks and exposes sanitized finite reason codes using same read pair. Existing Gateway forwards exact fixed Worker error string; no Gateway modification.",
+        "Service Core DONE receipt now includes actor_id and actor_display for auto/manual SKU updates, supplied by Worker authenticated operator name + employee code in existing business mutation. Manual operator mismatch rejected; no extra user lookup/DB schema or per-SKU mutation. Agent UI translates progress/state/errors into Vietnamese, presents verified updater for each finished scheduled/manual run; no extra listener/provider timer/status polling.",
+        "Agent v129 build number, VERSION, assembly version and guarded source tests updated; WMS XLSX read-only export and WMS Confirm automation unchanged; Beta-only Worker, Agent, same existing quota/resource scope. No Stable, Android, Web UI, Gateway deploy, Launcher, force-OTA or new resources.",
+        "Approval from this turn includes code, scoped Beta release after branch PR authority/continuity/CI PASS; Worker/Agent field test and Owner business PASS are separate and not yet proven."
+      ],
+      "next_action": "Finish source CI, correct any failures within approved P0, record exact tested source in release receipt, PR merge and verify GitHub Beta Worker/Agent release, then report physical test still pending and exact next action.",
+      "evidence": "Branch d167-p0-ha-sku-v129-vietnamese-20261013; source Service/Agent/Worker/CI test files; docs decisions/specs same change set"
     }
   ],
   "resume": {
@@ -855,7 +874,8 @@
       "PR568 D167 UI tab reorder source-only + field SKU direct-GET header acquisition failure review; no deploy or confirmed root cause.",
       "Main-Agent WMS source approved concept; implementation not verified, existing v128 UI/diagnostic source pending two continuity/authority guards.",
       "PR568 Agent v128 MAIN managed-WMS auth-source integration remains pending security-reviewed supported implementation; current source is UI/diagnostic only.",
-      "Field WMS session export, XLSX and Service DONE test on installed v128 PRIMARY; diagnose by safe phase/error/elapsed log."
+      "Field WMS session export, XLSX and Service DONE test on installed v128 PRIMARY; diagnose by safe phase/error/elapsed log.",
+      "D167-E042 authorized P0 Agent v129 + Worker Beta: source on branch; CI and release pending, FIELD SKU Service DONE not proved."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -886,6 +906,6 @@
       "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy.",
       "Owner review of on-demand D167-only Firestore lease maintenance + safe Worker failure reasons; do not code or deploy before explicit permission."
     ],
-    "release_boundary": "D167_AGENT_V128_BETA_SIGNED_RELEASE_PASS__SKU_FUNCTIONAL_FIELD_UNVERIFIED__ANDROID_VC106_UNCHANGED__STABLE_GATED"
+    "release_boundary": "OWNER_APPROVED_SCOPED_D167_P0_BETA_AGENT129_WORKER_AFTER_CODE_CI__STABLE_GATED__OTHER_ERRORS_DEFERRED"
   }
 }
