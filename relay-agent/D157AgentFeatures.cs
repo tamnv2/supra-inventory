@@ -131,6 +131,18 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
+                    // A session/browser/role can disappear after the UI queued this background health check.
+                    // Never run an auxiliary WMS reload during logout or a manual Picklist operation.
+                    if (!HasAgentSession() || _supraBrowser == null ||
+                        !object.ReferenceEquals(_leaderCoordinator, coordinator) ||
+                        Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 0, 0) != 0 ||
+                        Interlocked.CompareExchange(ref _readinessRefreshRunning, 0L, 0L) != 0L ||
+                        Interlocked.CompareExchange(ref _browserStorageMigrationRunning, 0, 0) != 0 ||
+                        _d150PrimaryTakeoverRunning)
+                    {
+                        Log("D157 SESSION_CHECK schedule=SKIP reason=SESSION_OR_OPERATION_TRANSITION");
+                        return;
+                    }
                     var reason = primary ? "primary_60m_without_wms_proof" : "secondary_2h_idle_check";
                     var passed = _supraBrowser.ReloadConfirmForHealthCheck(TimeSpan.FromSeconds(12), reason);
                     if (passed)
