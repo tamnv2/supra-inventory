@@ -556,3 +556,20 @@ test("D168 manual SKU on Office exports before WLAN change; Worker validates pro
   assert.match(manual,/if\(service\.WorkerRouteStatus\(\)=="NETWORK_UNREACHABLE"\)/);
   assert.match(manual,/var workbook=officeWorkbook \?\? D167SkuBrowserExport\.Export/);
 });
+
+test("D168 shared SKU terminal status piggybacks existing exact Agent Firestore listener", async () => {
+  const {readFileSync}=await import("node:fs");
+  const sync=readFileSync(new URL("../relay-agent/FirestoreAgentSync.cs",import.meta.url),"utf8");
+  const relay=readFileSync(new URL("../relay-agent/D168SkuSharedState.cs",import.meta.url),"utf8");
+  const host=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const view=readFileSync(new URL("../relay-agent/D119AgentFeatures.cs",import.meta.url),"utf8");
+  assert.match(sync,/internal string SkuStatusJson = ""/);
+  assert.match(sync,/internal AgentSyncSnapshot SetSkuStatus\(AgentSession session,string json\)/);
+  assert.match(sync,/AGENT_SYNC_SKU_TERMINAL/);
+  assert.match(sync,/\{ "sku_status_json", StringField\(snapshot.SkuStatusJson \?\? ""\) \}/);
+  assert.match(view,/ApplyD168SharedSkuStatus\(snapshot.SkuStatusJson\)/);
+  assert.match(host,/PublishD168TerminalSkuStatus\(slots\)/);
+  assert.match(relay,/x.State=="DONE"/);
+  assert.match(relay,/if\(complete.Count==0\)return/);
+  assert.doesNotMatch(relay,/FirestoreAgentSyncListener|new (?:Timer|System.Windows.Forms.Timer)/);
+});
