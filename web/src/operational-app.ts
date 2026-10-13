@@ -1949,15 +1949,15 @@ function renderUsers(): string {
   const pickerCount = managedUsers.filter((user) => user.role === "PICKER").length;
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
   return `<section class="ops-route users-workspace">
-    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Tạo, tìm kiếm và quản lý tài khoản theo đúng vai trò nghiệp vụ.</p></div></div>
-    ${renderPeopleTabs("users")}
+    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2></div></div>
+    <div class="user-management-actions"><button type="button" class="secondary" id="toggle-create-user" ${canCreateManaged ? "" : "hidden"}>Thêm tài khoản</button><button type="button" class="secondary" id="toggle-hr-import" ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? "" : "hidden"}>Nhập nhân sự / Excel</button></div>
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Tài khoản phù hợp</span><strong>${userTotal.toLocaleString("vi-VN")}</strong><small>Theo bộ lọc hiện tại</small></article>
-      <article class="business-summary-card good"><span>Đang hoạt động trên trang</span><strong>${activeCount}</strong><small>Trong ${managedUsers.length} tài khoản đang hiển thị</small></article>
-      <article class="business-summary-card"><span>Picker / Người xử lý</span><strong>${pickerCount} / ${reporterCount}</strong><small>Trên trang hiện tại</small></article>
+      <article class="business-summary-card good"><span>Hoạt động trên trang</span><strong>${activeCount}</strong><small>Trong ${managedUsers.length} tài khoản trên trang</small></article>
+      <article class="business-summary-card"><span>Picker / Người xử lý</span><strong>${pickerCount} / ${reporterCount}</strong><small>Chỉ trang hiện tại</small></article>
     </section>
     <div class="users-top-grid">
-      <article class="ops-panel users-create-panel">
+      <article class="ops-panel users-create-panel" ${usersCreateOpen && canCreateManaged ? "" : "hidden"}>
         <div class="ops-panel-title"><div><h3>${canCreateManaged ? "Tạo tài khoản nghiệp vụ" : "Quản lý Picker"}</h3><p>${canCreateManaged ? "Tạo Người xử lý báo hàng hoặc vai trò quản trị được phép. Picker được đồng bộ từ nguồn nhân sự." : "Quản trị Pick Pack chỉ quản lý Picker; không tạo Reporter hay Quản trị Invent."}</p></div></div>
         ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
@@ -1979,15 +1979,16 @@ function renderUsers(): string {
         </form>
       </article>
     </div>
+    ${usersHrOpen && (profile?.role === "ADMIN" || profile?.role === "ROOT") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
     <article class="ops-panel ops-users-panel">
-      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>ROOT được ẩn khỏi danh sách. Picker dùng thao tác hàng loạt riêng; ROOT có thể chọn Admin / Quản trị Pick Pack / Reporter để xóa.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
-      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button><button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button>${canLifecyclePickerBulk ? `<button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button>` : ""}<span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
+      <div class="ops-panel-title"><div><h3>Danh sách nhân sự</h3></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
+      ${renderUserBulkToolbar(canLifecyclePickerBulk)}
       <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
           const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role);
-          const selectable = isPicker
+          const selectable = !usersBulkMode ? `<span class="bulk-not-applicable">—</span>` : isPicker
             ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
             : rootCanDeleteManaged
               ? `<label class="bulk-picker-check" title="Chọn tài khoản để xóa"><input type="checkbox" data-managed-user-select="${esc(user.user_id)}" ${selectedManagedUserIds.has(user.user_id) ? "checked" : ""}/><span aria-hidden="true"></span></label>`
