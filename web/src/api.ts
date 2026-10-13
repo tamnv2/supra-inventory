@@ -40,6 +40,30 @@ export interface SkuCatalogInfo {
   last_sync_unchanged?: number;
 }
 
+export interface SkuCatalogProvenanceEvent {
+  source: "WEB" | "AGENT";
+  mode: "FULL" | "PATCH" | "DELTA";
+  at: string;
+  actor: string;
+  slot: string | null;
+  day_vn: string | null;
+  total: number;
+  created: number;
+  updated: number;
+  activated: number;
+  hidden: number;
+  unchanged: number;
+  note: string;
+}
+
+export interface SkuCatalogProvenance {
+  latest_web: SkuCatalogProvenanceEvent | null;
+  latest_agent_full: SkuCatalogProvenanceEvent | null;
+  latest_agent_delta: SkuCatalogProvenanceEvent | null;
+  recent: SkuCatalogProvenanceEvent[];
+  source_verified: boolean;
+}
+
 export interface SkuCatalogPage {
   items: SkuItem[];
   count: number;
@@ -1044,6 +1068,10 @@ export async function searchSkus(query = "", limit = 100, offset = 0): Promise<S
 
 export async function getSkuCatalogInfo(): Promise<SkuCatalogInfo> {
   return readJson(await authorizedFetch("/api/skus/catalog-info"));
+}
+
+export async function getSkuCatalogProvenance(): Promise<SkuCatalogProvenance> {
+  return readJson(await authorizedFetch("/api/admin/skus/catalog-provenance"));
 }
 
 export async function getSkuCatalogPage(after = "", limit = 2000): Promise<SkuCatalogPage> {
