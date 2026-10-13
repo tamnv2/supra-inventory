@@ -7555,7 +7555,7 @@
   },
   "d167_web_sku_provenance_20261013": {
     "owner_checkpoint": "D167-E049",
-    "source_authorization_commit": "aa884fa87334f56ecb9bf5718cb799177a93dffa",
+    "source_authorization_commit": "1c2a25c17e49b50f1341f911a90bcdb72ab869c6",
     "pr": 577,
     "status": "OWNER_APPROVED_CODE_COMMITTED_CI_AND_BETA_WORKER_RELEASE_PENDING",
     "components": [
