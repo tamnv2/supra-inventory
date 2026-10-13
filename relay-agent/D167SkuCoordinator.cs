@@ -22,6 +22,7 @@ namespace SupraInventoryRelayAgent
         private readonly object gate=new object();
         private readonly Timer timer;
         private DateTime lastAttemptAtUtc = DateTime.MinValue;
+        private DateTime nextWakeAtUtc = DateTime.MinValue;
         private string lastAttemptKey="";
         private string activeKey="";
         private int running;
@@ -87,6 +88,7 @@ namespace SupraInventoryRelayAgent
                 throw new InvalidOperationException("D167_SKU_JOB_ALREADY_RUNNING");
             var manualTrace=System.Diagnostics.Stopwatch.StartNew();
             var manualPhase="PRIMARY_CHECK";
+            string activeSlot=null,activeGrant=null,activeGeneration=null;
             try
             {
                 if(!isPrimaryReady() || confirmBusy())
@@ -96,11 +98,14 @@ namespace SupraInventoryRelayAgent
                 manualPhase="AUTHORIZE_BEGIN";
                 log("D167_SKU manual=STAGE step=AUTHORIZE_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 var slot=service.ManualStart(day,instanceId,generation(),runId,credential);
+                activeSlot=slot;
+                activeGeneration=generation();
+                activeGrant=service.Reserve(day,slot,instanceId,activeGeneration);
                 manualPhase="AUTHORIZE_DONE";
                 log("D167_SKU manual=STAGE step=AUTHORIZE_DONE elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 NotifyStatus(null,"Đã xác minh tài khoản. Đang tải danh sách SKU từ hệ thống kho...");
                 log("D167_SKU manual=STAGE step=WMS_EXPORT_BEGIN");
-                var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
+                var workbook=D167SkuBrowserExport.Export(browser,()=>!confirmBusy(),
                     stage=>{
                         manualPhase="EXPORT_"+stage;
                         log("D167_SKU manual=TRACE export_stage="+stage+
@@ -109,12 +114,12 @@ namespace SupraInventoryRelayAgent
                 manualPhase="WMS_EXPORT_DONE";
                 log("D167_SKU manual=STAGE step=WMS_EXPORT_DONE sku_count="+workbook.Items.Count+
                     " elapsed_ms="+manualTrace.ElapsedMilliseconds);
-                if(!isPrimaryReady()||confirmBusy())
+                if(confirmBusy())
                     throw new InvalidOperationException("D167_MANUAL_CONFIRM_PRIORITY");
                 manualPhase="SERVICE_UPLOAD_BEGIN";
                 log("D167_SKU manual=STAGE step=SERVICE_UPLOAD_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
                 NotifyStatus(null,"Đã tải "+workbook.Items.Count+" SKU. Đang lưu lên hệ thống...");
-                if(!service.UploadAndPublish(day,slot,instanceId,generation(),workbook,confirmConflicts))
+                if(!service.UploadAndPublish(day,slot,instanceId,activeGeneration,activeGrant,workbook,confirmConflicts))
                     throw new InvalidOperationException("D167_MANUAL_RECEIPT_UNVERIFIED");
                 lastVerifiedWorkbook=workbook;
                 NotifyStatus(service.Schedule(day),"Đã cập nhật SKU thành công; hệ thống đã xác nhận lưu dữ liệu.");
@@ -123,6 +128,9 @@ namespace SupraInventoryRelayAgent
             }
             catch(Exception e)
             {
+                if(activeGrant!=null)
+                    service.Abort(D167SkuSchedule.VNNow().ToString("yyyy-MM-dd"),activeSlot,
+                        instanceId,activeGeneration,activeGrant);
                 NotifyStatus(null,"Chưa cập nhật được SKU: "+D167SkuVietnamese.Error(SafeErrorCode(e)));
                 log("D167_SKU manual=FAILED error_type="+e.GetType().Name+
                     " error_code="+SafeErrorCode(e)+" phase="+manualPhase+
@@ -140,6 +148,8 @@ namespace SupraInventoryRelayAgent
         internal void OnPrimaryOrWmsReady()
         {
             if (!isPrimaryReady()) return;
+            lock(gate)
+                if(disposed || DateTime.UtcNow<nextWakeAtUtc) return;
             Queue();
         }
 
@@ -200,7 +210,8 @@ namespace SupraInventoryRelayAgent
                 }
                 return;
             }
-            var key=day+"/"+eligible.Slot+"/"+generation();
+            // HA generation changes do not reset the anti-storm cooldown.
+            var key=day+"/"+eligible.Slot;
             lock(gate)
             {
                 if(disposed)return;
@@ -213,12 +224,16 @@ namespace SupraInventoryRelayAgent
             }
             if(!isPrimaryReady()||confirmBusy()){Arm(TimeSpan.FromMinutes(5));return;}
             var slotTrace=System.Diagnostics.Stopwatch.StartNew();
+            var activeGeneration=generation();
+            var grant=service.Reserve(day,eligible.Slot,instanceId,activeGeneration);
+            try
+            {
             log("D167_SKU slot="+eligible.Slot+" stage=EXPORT_BEGIN");
             NotifyStatus(slots,"Đang tự tải danh sách SKU từ hệ thống kho...");
-            var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
+            var workbook=D167SkuBrowserExport.Export(browser,()=>!confirmBusy(),
                     stage=>log("D167_SKU slot="+eligible.Slot+" export_stage="+stage+
                         " elapsed_ms="+slotTrace.ElapsedMilliseconds));
-            if(!isPrimaryReady())throw new InvalidOperationException("D167_PRIMARY_LOST_AFTER_EXPORT");
+            // A reserved job continues even when HA elects a new PRIMARY.
             log("D167_SKU slot="+eligible.Slot+" stage=WMS_EXPORT_DONE sku_count="+workbook.Items.Count+
                 " elapsed_ms="+slotTrace.ElapsedMilliseconds);
             // Conditional Service CAS/HA authority checks happen again on each
@@ -226,7 +241,7 @@ namespace SupraInventoryRelayAgent
             log("D167_SKU slot="+eligible.Slot+" stage=SERVICE_UPLOAD_BEGIN elapsed_ms="+
                 slotTrace.ElapsedMilliseconds);
             NotifyStatus(slots,"Đã tải "+workbook.Items.Count+" SKU. Đang lưu lên hệ thống...");
-            var success=service.UploadAndPublish(day,eligible.Slot,instanceId,generation(),
+            var success=service.UploadAndPublish(day,eligible.Slot,instanceId,activeGeneration,grant,
                 workbook,confirmConflicts);
             if(!success)throw new InvalidOperationException("D167_DONE_NOT_VERIFIED");
             lastVerifiedWorkbook=workbook;
@@ -235,18 +250,32 @@ namespace SupraInventoryRelayAgent
             NotifyStatus(service.Schedule(day),"Đã cập nhật SKU và xác minh dữ liệu lưu trên hệ thống.");
             // Schedule remaining slots once, not on every WMS/HA event.
             Arm(TimeSpan.FromSeconds(2));
+            }
+            catch
+            {
+                service.Abort(day,eligible.Slot,instanceId,activeGeneration,grant);
+                throw;
+            }
         }
 
         private void Arm(TimeSpan delay)
         {
             var ms=Math.Min((double)int.MaxValue-1,
                 Math.Max(1000,delay.TotalMilliseconds));
-            lock(gate) if(!disposed) timer.Change((int)ms,Timeout.Infinite);
+            lock(gate) if(!disposed)
+            {
+                nextWakeAtUtc=DateTime.UtcNow.AddMilliseconds(ms);
+                timer.Change((int)ms,Timeout.Infinite);
+            }
         }
 
         internal void OnLostPrimary()
         {
-            lock(gate) if(!disposed)timer.Change(Timeout.Infinite,Timeout.Infinite);
+            lock(gate) if(!disposed)
+            {
+                nextWakeAtUtc=DateTime.MinValue;
+                timer.Change(Timeout.Infinite,Timeout.Infinite);
+            }
         }
 
         public void Dispose()
