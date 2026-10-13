@@ -7451,7 +7451,7 @@
     "journal": "ops/change-continuity/D168.json",
     "working_branch": "d168-agent-network-split-proposal-20261013",
     "pr": 591,
-    "latest_checkpoint_id": "D168-E024",
+    "latest_checkpoint_id": "D168-E025",
     "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
