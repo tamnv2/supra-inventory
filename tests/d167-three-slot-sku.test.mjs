@@ -597,3 +597,16 @@ test("D168 concurrent Agent receipt projection merges immutable completed SKU sl
   assert.match(sync,/return string\.CompareOrdinal\(oldDay,newDay\)>0 \? previous : incoming/);
   assert.match(sync,/AGENT_SYNC_SKU_TERMINAL/);
 });
+
+test("D168 one-click Agent field probe is read-only and distinguishes direct from switched", async () => {
+  const {readFileSync}=await import("node:fs");
+  const ui=readFileSync(new URL("../relay-agent/D168SkuNetworkUi.cs",import.meta.url),"utf8");
+  const route=readFileSync(new URL("../relay-agent/D168NetworkRoute.cs",import.meta.url),"utf8");
+  assert.match(ui,/Thử kết nối Worker/);
+  assert.match(ui,/D168NetworkRoute\.OpenWorkerSession\(actor\.IdToken/);
+  assert.match(ui,/switched=networkSession\.DidSwitch/);
+  assert.match(ui,/SWITCHED_AND_RESTORED/);
+  assert.match(ui,/route=.*DIRECT/);
+  assert.match(route,/internal bool DidSwitch/);
+  assert.doesNotMatch(ui,/WmsSkuBrowserExport|ManualStart\(|UploadAndPublish\(/);
+});
