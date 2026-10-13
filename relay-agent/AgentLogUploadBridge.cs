@@ -7,6 +7,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
@@ -33,6 +34,7 @@ namespace SupraInventoryRelayAgent
         private readonly DateTime _processStartedLocal = DateTime.Now;
         private long _lastSealWrittenBytes;
         private DateTime _nextUploadAttemptUtc = DateTime.MinValue;
+        private int _uploadInFlight;
         private int _uploadFailureStreak;
         private DateTime _lastUploadSuccessLocal = DateTime.MinValue;
         private DateTime _last2145BoundaryLocal = DateTime.MinValue;
@@ -476,6 +478,9 @@ namespace SupraInventoryRelayAgent
         private void TryFlushPending(AgentSession session)
         {
             if (!UsableSession(session)) return;
+            if (Interlocked.CompareExchange(ref _uploadInFlight,1,0)!=0) return;
+            try
+            {
             if (_nextUploadAttemptUtc != DateTime.MinValue && DateTime.UtcNow < _nextUploadAttemptUtc) return;
             string[] files;
             try
@@ -574,6 +579,8 @@ namespace SupraInventoryRelayAgent
                     break;
                 }
             }
+            }
+            finally { Interlocked.Exchange(ref _uploadInFlight,0); }
         }
 
         private void RegisterUploadFailure()
@@ -583,7 +590,9 @@ namespace SupraInventoryRelayAgent
                           (_uploadFailureStreak == 2 ? 2 :
                           (_uploadFailureStreak == 3 ? 5 :
                           (_uploadFailureStreak == 4 ? 15 : 30)));
-            _nextUploadAttemptUtc = DateTime.UtcNow.AddMinutes(minutes);
+            // Local jitter prevents synchronized Office/Google retries across agents.
+            var jitterMs = (int)(Math.Abs(DateTime.UtcNow.Ticks % 15001));
+            _nextUploadAttemptUtc = DateTime.UtcNow.AddMinutes(minutes).AddMilliseconds(jitterMs);
         }
 
         private bool UploadGateway(AgentSession session, Dictionary<string, object> bundle)
@@ -614,8 +623,9 @@ namespace SupraInventoryRelayAgent
             request.Method = "POST";
             request.ContentType = "application/json; charset=utf-8";
             request.UserAgent = "Agent-Auto-Confirm-Pick-Pack/D161";
-            request.Timeout = 10000;
-            request.ReadWriteTimeout = 10000;
+            // Apps Script may wait up to 15s for its Drive lock before writing.
+            request.Timeout = 35000;
+            request.ReadWriteTimeout = 35000;
             request.AllowAutoRedirect = true;
             request.ContentLength = bytes.Length;
             using (var stream = request.GetRequestStream())
