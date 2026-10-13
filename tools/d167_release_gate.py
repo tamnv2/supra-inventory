@@ -77,8 +77,22 @@ def main():
         if data.get("stable_deploy_permission") is not False:
             fail("D168 Stable must remain Owner-gated")
         if not all(data.get(key) is True for key in
-                   ("authority_continuity_pass", "product_ci_pass", "field_pass")):
-            fail("D168 source, CI, continuity or physical field evidence missing")
+                   ("authority_continuity_pass", "product_ci_pass")):
+            fail("D168 source, CI or continuity evidence missing")
+        # Owner's explicit D168 Beta field-test release waiver is NOT a claim
+        # that WLAN, WMS, real-PDA ACK or provider metering were physically tested.
+        # A rollout for Owner field acceptance is allowed ONLY with the exact
+        # recorded Owner waiver, on the existing scoped Beta (never Stable).
+        field_verified = data.get("field_pass") is True
+        owner_field_trial = (
+            data.get("field_pass") is False
+            and data.get("physical_field_verified") is False
+            and data.get("field_release_mode") == "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION"
+            and data.get("owner_field_acceptance_reference")
+                == "OWNER_EXPLICIT_D168_20261014_BETA_FIELD_TEST_AT_RELEASE"
+        )
+        if not (field_verified or owner_field_trial):
+            fail("D168 neither verified field proof nor explicit Owner field-trial release acceptance")
     sha = str(data.get("approved_source_sha") or "")
     ref = str(data.get("owner_approval_reference") or "")
     if not re.fullmatch("[0-9a-f]{40}", sha) or not ref.startswith("OWNER_EXPLICIT_" + data["change_id"] + "_DEPLOY_"):
