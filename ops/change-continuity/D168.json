@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E024",
+    "id": "D168-E025",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -602,6 +602,32 @@
       ],
       "next_action": "Await one company-PC/PDA physical test and sanitized evidence. If field passes and source unchanged, update D168 release receipt/authority, merge PR591 and monitor scoped Beta release workflows; require separate Stable Owner authorization.",
       "evidence": "GitHub PR591 HEAD 91e83e79b97aa576408617971f69317b1e47c254; Actions run 38482437387 and artifact 11857571641; exact-head 20/20 GitHub workflow list"
+    },
+    {
+      "id": "D168-E025",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Read-only inventory of every UrlFetchApp call path in existing D167 Beta Agent Operations Gateway",
+      "status": "SOURCE_AUDITED__QUOTA_CONSUMPTION_BY_ACTION_ESTIMATED_NOT_PROVIDER_MEASURED__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Existing Beta ops/apps-script/agent-log-gateway/Code.gs uses UrlFetchApp in eight callsites/functions: token validation against Firebase Identity Toolkit; authenticated D167 SKU forwarding to Worker; privileged Agent login/OTP/re-auth relay; support-log global request relay; canonical Drive day-folder lookup via Worker; D160 Monitoring fetchAll; D166 explicit ZIP Monitoring/Drive quota/Worker usage; logging archive itself uses DriveApp not UrlFetchApp.",
+        "Per successful handler path before quota exhaustion: privileged code/login pre-auth 1 Worker fetch each; D167 SKU action 1 Firebase lookup + 1 Worker fetch; privileged re-auth 1+1; support-log request handler 1+1 (but current D161 Agent UI uses direct Worker); upload_agent_log 1 Firebase lookup plus 0 or 1 Worker folder lookup depending on six-hour cache; get_firestore_usage 1 Firebase lookup + zero Monitoring fetches on 15-minute cache hit or 13 individual Monitoring requests via fetchAll on miss; explicit get_usage_export 1 Firebase lookup + 26 Monitoring fetches + 1 Drive about + 1 Worker Cloudflare read = 29; doGet identity 0 fetches.",
+        "Current Agent D167SkuServiceClient directly addresses the Google Script; new PR591 candidate replaces SKU transport with direct Worker but is Draft and unmerged, not a Beta field release. Existing cloud-backed Web/Android reporting, PDA confirmations, and Web/Android runtime log archive do not use this Agent Gateway as their normal transaction route.",
+        "D168 earlier Owner-provided logs show 948 D167 SKU DEFER events from 16:49 to 19:52 and a roughly 11-second readiness retry bypass of 15-minute cooldown, plus 27 D160 Usage errors containing URL Fetch exhaustion; not every local DEFER event proves the same number of completed Google Script calls.",
+        "Google published UrlFetch daily quota is per executing user across scripts, 20k consumer or 100k Workspace; other scripts under the same owner may also consume quota. Script source audit cannot attribute exact day totals, remaining quota or resets without provider Apps Script execution evidence."
+      ],
+      "alternatives": [
+        "Keep all business transports unchanged pending D168 authorized gated rollout; eliminate retry storm and direct SKU Gateway dependency via already Owner-approved PR591 candidate after physical/release gates.",
+        "In future audit provider execution durations/counts and action mix without new periodic script polling; ensure only explicitly requested Usage exports issue large Monitoring batches."
+      ],
+      "open_questions": [
+        "Per-action Apps Script executions and daily UrlFetch consumption for 2026-10-13/14, including other scripts sharing executing user.",
+        "Whether any previous log upload timed out after Drive file commit and before Agent receipt.",
+        "Whether PR591 direct Worker SKU flow has passed actual Office WLAN/Worker Core durable DONE and PDA confirmation/ACK field checks."
+      ],
+      "next_action": "Report the source-backed inventory to Owner; preserve PR591 Draft/field gate and existing Beta unchanged; only provider execution evidence can confirm actual consumption attribution.",
+      "evidence": "GitHub main ops/apps-script/agent-log-gateway/Code.gs lines 63-233, 235-295, 482-493, 740-837, 892-932, 1024, 1140-1157; relay-agent/D160Usage.cs, D166UsageExport.cs, AgentLogUploadBridge.cs, D167SkuServiceClient.cs, D161SupportLogControl.cs; PR591 working branch source; D168-E012; official Google Apps Script quotas."
     }
   ],
   "resume": {
