@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "1c2a25c17e49b50f1341f911a90bcdb72ab869c6",
+  "approved_source_sha": "978de47f252080cc3a5ad6fd428741bdd1be8ab3",
   "approved_components": [
     "worker"
   ],
