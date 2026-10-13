@@ -2,11 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "ea0ff5124b6a759056cb05eb2fafe8183379039c",
+  "approved_source_sha": "6280e6691f10b5b610a9a8c866c08f7c2e784191",
   "approved_components": [
     "worker"
   ],
   "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA",
   "approved_at_vn": "2026-10-13",
-  "note": "Owner E053 approved D167 Web 3.1.0 compact account UI/role menu, Web early meal, on-demand shift history, protected admin/tamnv2, and low-use role-preserving Beta Worker/Web release. Source SHA ea0ff5124b6a759056cb05eb2fafe8183379039c anchors all modified service/web/tests/tools code. Deployment only after exact-head CI with Worker Beta, no Android Agent Stable WMS Firebase/RTDB/Sheet new resource."
+  "note": "Owner E053 Web 3.1.0, compact UI+accounts, authenticated early meal and bounded history. Exact scoped code/test ancestor 6280e6691f10b5b610a9a8c866c08f7c2e784191; CI/authority PASS required before Beta Worker/Web deploy, no Android/Agent/Firebase/Stable."
 }
