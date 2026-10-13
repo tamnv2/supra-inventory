@@ -16,6 +16,7 @@ namespace SupraInventoryRelayAgent
         internal string DisplayName;
         internal string ContractorName;
         internal string DeviceId;
+        internal string AppVersion;
         internal string Status;
         internal string LoginAt;
         internal string DeviceSeenAt;
@@ -91,6 +92,7 @@ namespace SupraInventoryRelayAgent
                         DisplayName = displayName,
                         ContractorName = contractorName,
                         DeviceId = ReadString(itemFields, "device_id"),
+                        AppVersion = ReadString(itemFields, "app_version"),
                         Status = status,
                         LoginAt = ReadString(itemFields, "login_at"),
                         DeviceSeenAt = ReadString(itemFields, "device_seen_at")
@@ -147,6 +149,7 @@ namespace SupraInventoryRelayAgent
                     DisplayName = GrpcString(fields, "display_name"),
                     ContractorName = GrpcString(fields, "contractor_name"),
                     DeviceId = GrpcString(fields, "device_id"),
+                    AppVersion = GrpcString(fields, "app_version"),
                     Status = "PDA_READY",
                     LoginAt = GrpcString(fields, "login_at"),
                     DeviceSeenAt = GrpcString(fields, "device_seen_at")
