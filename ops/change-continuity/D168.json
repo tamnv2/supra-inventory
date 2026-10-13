@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E019",
+    "id": "D168-E020",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -25,7 +25,7 @@
       "EXISTING_FIRESTORE_BETA"
     ],
     "new_owner_approval_required": false,
-    "current_pr_scope": "PR591_D168_PARTIAL_IMPLEMENTATION__WLAN_P0_RELEASE_GUARD_PENDING__NO_BETA_RELEASE",
+    "current_pr_scope": "PR591_DRAFT_AGAIN__APPROVED_D168_CODE_IN_PROGRESS__NO_RELEASE",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -462,6 +462,34 @@
       ],
       "next_action": "Complete safe WLAN/Worker routing, group-contact and session correctness, prepare D168 field and quota regressions, repair test failures, run all exact-head CI, then deploy only scoped Beta after every gate; no Stable release.",
       "evidence": "PR #591; commits bf71973b390af41c5b5e08823428f3d8f6fe1e4c, 56bcf7c10e2cd44e50198294ea72f6ee60ed3b36 and dcbcf97e84296ad3794aa8cc9d9205012d08f6ea; docs/D168_RELEASE_READINESS_2026-10-14.md; workflow runs 38455795904/38455795929/38455795985/38455795959/38455796105/38455796012 on previous HEAD"
+    },
+    {
+      "id": "D168-E020",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner accidentally marked PR591 Ready for review and requests restoration plus continuation of unfinished D168 code",
+      "status": "PR591_RESTORED_DRAFT__STARTUP_RELIABILITY_PATCH_AND_TEST_COMMITTED__WLAN_RELEASE_GATE_PENDING__NO_MERGE_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner uploaded GitHub timeline and explicitly states Ready for review was accidental; asks to verify and keep executing approved incomplete D168 code.",
+        "Verified PR #591 was OPEN with draft=false, merged=false, HEAD 35a7f577221e73859ffe714df3ee1722bde27659. Restored draft=true through GitHub and verified follow-up.",
+        "GitHub timeline displays beta environment deployments labeled Active. Exact-head PR CI Firestore read-only probes used MUTATE=false, RTDB used DEPLOY_RULES=false; Agent/Android jobs built artifacts but official prerelease publication steps were skipped. These timeline entries are not evidence that D168 executable Beta deployment happened.",
+        "At prior HEAD, PR CI 19 workflows success, one SKU pure-contract FAIL. The fail is the intentionally added guard that D168NetworkRoute ConnectSavedProfile/ProbeWorker are not called from any actual Agent workload. FULL 05h Office Worker path remains unavailable.",
+        "Code on current PR updated relay-agent/UserStartupRegistration.cs to verify HKCU Run actual registration when the user changes the auto-start preference, revert previous choice on failure, avoid false success. Added D168 static contract test to tests/d167-three-slot-sku.test.mjs. Commits 2af72f733bf1b845594575d96d6c4743a3116bec and 9f19e293a857b17c64f5fd6e7481774c15523a79.",
+        "PR title/body changed to disclose integrated D168 Big Update in progress and release gate; existing Beta D167 runtime unchanged. Source mutations to the Picker group recipient session-fence were rejected by the available editing tool, therefore not committed and not claimed fixed.",
+        "Current exact PR source/build/authority CI for the new startup patch requires final completed run inspection; CI PASS does not imply Beta release or physical FIELD_PASS."
+      ],
+      "alternatives": [
+        "Keep PR draft and continue approved source-only corrections on this same D168 branch; preserve Cloudflare direct SKU, critical Firebase lanes, independently fenced SKU job and Stable owner gate.",
+        "Do not infer application deployment from the GitHub beta environment badges; verify actual dispatch/release receipts separately."
+      ],
+      "open_questions": [
+        "How to safely obtain Service slot and reserve on Office before a connection switch while preserving Owner source-export-before-switch and mandatory solo-primary 05h FULL rules?",
+        "Can Win32 standard users safely switch to approved saved Wi-Fi and restore without interrupting existing confirmation/ACK or HA?",
+        "Will device-level group contact, logout-relogin selection, SKU durable DONE and quota tests pass after final code?"
+      ],
+      "next_action": "Keep Draft PR591; repair P0 WLAN/SKU daily FULL and D168 group-contact session selection on approved tools, await complete exact-head CI, never merge or deploy until safety tests PASS and real field evidence is possible.",
+      "evidence": "PR #591; GitHub convert_pull_request_to_draft readback; PR-head 35a7f577->9f19e293; workflow run 38475195398 failed specific D168 no-WLAN wiring test; code commits 2af72f733bf1b845594575d96d6c4743a3116bec and 9f19e293a857b17c64f5fd6e7481774c15523a79; docs/D168_RELEASE_READINESS_2026-10-14.md"
     }
   ],
   "resume": {
@@ -482,7 +510,8 @@
     "in_progress": [
       "D168 PR591: partial approved implementation in Agent, Android, Worker/Core; current source fix preserves multi-Picker online selection",
       "D168 release guard now checks runtime WLAN orchestration; expected red until helper is genuinely wired",
-      "D168-E018 Owner authorized all D168 REQ-001..011 Beta scope after full checks; work continues on same PR"
+      "D168-E018 Owner authorized all D168 REQ-001..011 Beta scope after full checks; work continues on same PR",
+      "D168-E020: Owner accidental Ready reverted to Draft; Windows auto-start false-success fix committed with source test, final CI pending."
     ],
     "pending_approval": [
       "Stable is OWNER-GATED",
@@ -494,9 +523,11 @@
     "blocked": [
       "P0: Agent direct SKU-to-Worker path cannot operate on Office network until saved WLAN switch is safely wired; helper currently disconnected.",
       "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
-      "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD."
+      "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD.",
+      "D168 multi-Picker group session-fence follow-up source update was denied by the available tool and remains uncommitted."
     ],
     "next_actions": [
+      "Check exact-head CI on PR591 startup fix, maintain deliberate SKU WLAN contract release failure until real orchestration exists.",
       "Wire authorized safe WLAN route and Worker probe into actual Agent SKU flow without compromising WMS Confirm/Firestore/HA; run 60s/15m/no-standby tests.",
       "Complete targeted REQ-001..011 feature regressions and instrument before/after per-provider usage.",
       "Fix expected failing D168 release guard, run exact-head CI/Authority/Continuity and only then gated Beta release/readback.",
