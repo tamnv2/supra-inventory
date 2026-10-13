@@ -487,3 +487,13 @@ test("D168 release guard: Office-blocked direct Worker must have a wired, approv
   assert.match(code,/D168NetworkRoute\.ProbeWorker\(/,
     "D168 cannot be released: no post-switch authenticated Worker readiness check is wired");
 });
+
+test("D168 Windows auto-start setting verifies the HKCU Run registration before reporting success", async () => {
+  const {readFileSync}=await import("node:fs");
+  const code=readFileSync(new URL("../relay-agent/UserStartupRegistration.cs",import.meta.url),"utf8");
+  assert.match(code,/Registry\.CurrentUser\.OpenSubKey\(RunKey,false\)/);
+  assert.match(code,/if\(registered!=enabled\)/);
+  assert.match(code,/AUTOSTART_RUN_REGISTRATION_MISMATCH/);
+  assert.match(code,/SetValue\(EnabledValue,previous\?1:0/);
+  assert.match(code,/return false;/);
+});
