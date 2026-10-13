@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-agent-log-upload-diagnosis-20261013",
-  "pr": 587,
+  "working_branch": "d168-office-sku-network-investigation-20261013",
+  "pr": 588,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E012",
+    "id": "D168-E013",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR587_D168_AGENT_LOG_INCIDENT_ANALYSIS_DOCS_ONLY_NO_RUNTIME_CHANGE",
+    "current_pr_scope": "PR588_D168_OFFICE_SKU_NETWORK_DIAGNOSIS_DOCS_ONLY_NO_RUNTIME_CHANGE",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -255,6 +255,34 @@
       ],
       "next_action": "Keep D168-REQ-008/009 as pending code approval, present concrete evidence, request Owner next instruction for scoped fix; do not deploy.",
       "evidence": "Local Owner-supplied agent-complete(5).log and agent-complete(6).log; relay-agent/D167SkuCoordinator.cs#L140-L168; relay-agent/Program.cs#L921-L928,#L1834-L1838,#L3428-L3437; relay-agent/D167SkuServiceClient.cs#L211-L270; service/src/d167-sku-sync-core.ts and -logic.ts; ops/apps-script/agent-log-gateway/Code.gs#L806-L823; docs/D168_BACKLOG.md"
+    },
+    {
+      "id": "D168-E013",
+      "date_vn": "2026-10-13",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner asks Office-versus-PDA network check for SKU automatic update and backlog record",
+      "status": "OFFICE_COMPATIBLE_BY_DESIGN__OFFICE_SKU_DONE_UNVERIFIED__DOCS_ONLY_NO_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner requests backlog checkpoint and specific assessment whether automatic SKU update uses corporate Office Wi-Fi or requires ordinary/PDA Internet; no code or deployment instruction was provided.",
+        "Current Windows Agent code does not bind D167 requests to a Wi-Fi SSID or select a forced network adapter. Agent reads WMS XLSX via allowlisted HTTPS GET with Windows system proxy, and sends schedule/stage/publish through a registered script.google.com Agent Operations Gateway. Apps Script uses UrlFetchApp to reach Beta Worker, so it can operate with an Office allowlisted Google endpoint without direct Office-to-Cloudflare connection.",
+        "Google Apps Script HTTPS endpoint is an external Google service, not a private LAN peer; the WMS/source and upload/Worker legs have distinct network access requirements. Actual Office path is subject to company firewall/proxy and Google quota.",
+        "Privacy-sanitized local diagnostic: Agent A saw Office Wi-Fi at 17:45 and 18:54 with D167_SKU sync=DEFER events nearby, and Firebase token refresh PASS from Office at 18:54; at 19:51 it saw PDA Wi-Fi. Agent B had earlier Office sightings, but at 15:18 (preceding repeated SKU errors) it was using PDA Wi-Fi. Therefore Office is not the sole failing network, and Office Firebase success is not proof of Office SKU upload success.",
+        "Neither attached local log contains DELTA_19 stage=DONE or Service receipt. Logs do not attach the effective interface, corporate proxy response or URLFetch response to each SKU attempt. 19:00 interface and complete Office-based update remain unverified; repeated failures and UrlFetch quota are already captured in D168-REQ-009.",
+        "Local logs contain Wi-Fi names in some diagnostic entries, a privacy/observability gap against the existing logging spec prohibition on SSID/BSSID. Do not commit or expose raw values; prefer bounded network-class labels if instrumentation is later approved."
+      ],
+      "alternatives": [
+        "No source change: obtain read-only Gateway status and Service receipt on known Office-only connection, compare to PDA and inspect existing Apps Script execution logs safely.",
+        "Preferred conditional future Agent fix: preserve existing Office-compatible Apps Script route, fix D168-REQ-009 retry-storm/diagnostic gaps without extra provider polling, then one controlled field test with durable receipt.",
+        "If corporate filtering blocks the registered Google Gateway, fail closed and request an approved corporate endpoint solution; do not silently bypass filtering or create an unauthorized transport."
+      ],
+      "open_questions": [
+        "Was the Office network actually selected as the outgoing interface at the 19:00 SKU requests?",
+        "Does a permission-safe Office test reach the registered Google Web App action and return a valid schedule response without WMS export?",
+        "What did Server durable 13 October DELTA_19 state/receipt and existing Apps Script execution logs record?"
+      ],
+      "next_action": "Preserve D168-REQ-010 as pending Office/PDA field validation; no runtime change authorized. Present source-compatible conclusion and limitations to Owner.",
+      "evidence": "docs/D168_BACKLOG.md#D168-REQ-010; relay-agent/D167SkuServiceClient.cs#L211-L270; relay-agent/D167SkuDirectExport.cs#L118-L158; ops/apps-script/agent-log-gateway/Code.gs#L740-L775; owner-provided local Agent logs (sanitized aggregate observations); D168 PR588"
     }
   ],
   "resume": {
@@ -268,7 +296,7 @@
       "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "D168 PR587 docs-only: backlog REQ-008 Agent log upload, REQ-009 19:00 SKU DELTA; source confirmed retry-storm, Gateway quota cause still unverified; no runtime change"
+      "D168 PR588 docs-only Office-vs-PDA SKU network evidence checkpoint; no executable code or deploy"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -285,14 +313,16 @@
       "Agent log-upload repair proposal needs Owner approval; no code or deploy authorized",
       "D168 Agent log-upload fix pending Owner decision: verify root causes, then Agent-only timeout/single-flight/backoff/manual semantics; Gateway change only if evidence warrants",
       "D168-REQ-008: two Agent Drive log-upload failures; Agent-only reliability fix awaiting Owner code/release approval",
-      "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics"
+      "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics",
+      "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval"
     ],
     "blocked": [],
     "next_actions": [
       "Review D168 Agent support-log diagnostic and obtain explicit Owner authorization before code changes or release",
       "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007",
       "Verify Agent/Service 2026-10-13 DELTA_19 receipt and Apps Script UrlFetch exhaustion via existing on-demand/privileged data; if unavailable, report unverified, do not infer DONE",
-      "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command"
+      "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command",
+      "Verify SKU schedule action and durable 19:00 receipt using existing authorized status route on Office-only network, then compare PDA without changing business state"
     ],
     "release_boundary": "D168_SEVEN_PENDING_REQUESTS_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
   }
