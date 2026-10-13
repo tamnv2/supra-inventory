@@ -4145,3 +4145,11 @@ Các tác vụ **không bắt buộc realtime và có thể chờ** (SKU upload 
 **Phát hiện cần tránh:** Worker `GET /health` hiện gọi Core, kiểm tra folder và migration xác thực, không phải endpoint probe không tác dụng phụ; không dùng để kiểm tra Wi-Fi tự động. Tái sử dụng GET nghiệp vụ đọc-only phù hợp hoặc thiết kế endpoint cực nhẹ khi có lệnh chạy code.
 
 Phạm vi đây là **quyết định nguyên tắc và phân tích đề xuất, chưa cho phép chạy code/triển khai**; giữ PR #591 ở Draft, Stable OWNER-GATED. Nguồn chi tiết: `docs/D168_FIRESTORE_CLOUDFLARE_USAGE_ACK_2026-10-14.md` và `ops/change-continuity/D168.json#D168-E017`.
+
+## D168-E022 — Owner yêu cầu tiếp tục đến hoàn tất code và triển khai Beta khi đạt cổng an toàn (14/10/2026)
+
+Owner nhắc lại yêu cầu tự động xử lý toàn bộ lỗi/chưa xong, không dừng giữa chừng chỉ để báo cáo; không cần Owner chạy code, GitHub PR hoặc cấu hình dịch vụ nếu công cụ đã làm được. Quyền sửa code, chạy CI và phát hành **Beta** đã chốt ở D168-E018; Stable không được phép. Phương án thực hiện: tiếp tục trên PR #591, cập nhật đồng thời specs/state/continuity, khắc phục P0 và tự chạy lại CI; release gate mặc định khóa, chỉ mở khi đúng phiên bản đã qua kiểm thử mạng/HA/WMS/Picker ACK có bằng chứng.
+
+Nguồn Agent Beta dự kiến v131, không ghi đè v130. Đồng bộ trạng thái terminal SKU giữa Agent đi trong Firestore `agent_sync` sẵn có, chỉ truyền kết quả DONE, hợp nhất các slot và không tạo listener/write theo chunk. Trình tự Office->Internet phải đọc-only WMS trước khi chuyển, các action đặc quyền vẫn xác minh server trước khi stage/publish. Giữ Firebase trên nghiệp vụ live-critical và đường Cloudflare direct cho SKU, không dùng Google Script SKU. Cổng phát hành của D168 không được kế thừa giấy phép D167.
+
+**Giới hạn công cụ/Owner thực tế:** GitHub Actions không thể xác minh Wi-Fi công ty, phiên WMS đang đăng nhập và PDA thực. Vẫn cần một lần kiểm thử trên thiết bị có mạng Office và Internet đã lưu, đo cả duy trì Confirm/ACK và khôi phục mạng; đây không phải Owner phải chỉnh code hay chạy CLI. Chưa xác minh thì vẫn SOURCE_READY/CI_READY, không ghi FIELD_PASS hoặc triển khai chính thức D168. Chi tiết `docs/specs/SKU_MASTER.md#d168-e022`, `ops/change-continuity/D168.json`.
