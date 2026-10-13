@@ -130,6 +130,19 @@ namespace SupraInventoryRelayAgent
             catch { return "NETWORK_UNCERTAIN"; }
         }
 
+        private static bool RestoreOriginalProfile(string name)
+        {
+            if(string.IsNullOrWhiteSpace(name))return true;
+            if(!string.Equals(CurrentProfile(),name,StringComparison.Ordinal) &&
+                !ConnectSavedProfile(name))return false;
+            for(var attempt=0;attempt<8;attempt++)
+            {
+                if(string.Equals(CurrentProfile(),name,StringComparison.Ordinal))return true;
+                Thread.Sleep(750);
+            }
+            return false;
+        }
+
         // The caller must preserve confirmation and HA safety while holding this
         // route. Never persist or log the previously connected SSID/profile.
         private static readonly object NetworkSessionLock = new object();
@@ -150,10 +163,11 @@ namespace SupraInventoryRelayAgent
                 disposed=true;
                 try
                 {
-                    if(!string.IsNullOrEmpty(restoreProfile) &&
-                        (!ConnectSavedProfile(restoreProfile) ||
-                         !string.Equals(CurrentProfile(),restoreProfile,StringComparison.Ordinal)))
+                    if(!RestoreOriginalProfile(restoreProfile))
+                    {
                         log("D168_NETWORK restore=FAILED");
+                        throw new InvalidOperationException("D167_NETWORK_RESTORE_FAILED");
+                    }
                 }
                 finally { Monitor.Exit(NetworkSessionLock); }
             }
@@ -231,10 +245,7 @@ namespace SupraInventoryRelayAgent
             }
             catch
             {
-                if(!string.IsNullOrEmpty(original) &&
-                   !string.Equals(CurrentProfile(),original,StringComparison.Ordinal) &&
-                   (!ConnectSavedProfile(original) ||
-                    !string.Equals(CurrentProfile(),original,StringComparison.Ordinal)))
+                if(!RestoreOriginalProfile(original))
                     (log ?? delegate {}).Invoke("D168_NETWORK restore=FAILED");
                 Monitor.Exit(NetworkSessionLock);
                 throw;
