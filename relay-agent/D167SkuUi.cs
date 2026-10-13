@@ -48,8 +48,8 @@ namespace SupraInventoryRelayAgent
                     return "Máy chủ chưa chấp nhận quyền Agent chính. Danh sách chưa được lưu.";
                 case "D167_WORKER_CURRENT_PASSWORD_INVALID":
                     return "Mật khẩu hoặc mã xác nhận không đúng.";
-                case "D167_GATEWAY_Timeout":
-                case "D167_GATEWAY_ConnectFailure":
+                case "D167_GATEWAY_TIMEOUT":
+                case "D167_GATEWAY_CONNECTFAILURE":
                     return "Không kết nối được máy chủ cập nhật SKU. Vui lòng kiểm tra mạng.";
                 case "D167_SKU_JOB_ALREADY_RUNNING":
                     return "Đang có một lượt cập nhật SKU khác.";
@@ -186,18 +186,18 @@ namespace SupraInventoryRelayAgent
             _d167SkuMetrics.Font=new Font("Segoe UI",9F);
             _d167SkuMetrics.Text="Thống kê LTA / Shelving / Chưa xác định sẽ xuất hiện sau khi tải thành công.";
             var searchBar=new FlowLayoutPanel {Dock=DockStyle.Fill,WrapContents=false};
-            searchBar.Controls.Add(new Label {Text="Tra cứu SKU / tên sản phẩm (dữ liệu Agent đã xác minh):",
+            searchBar.Controls.Add(new Label {Text="Tìm SKU hoặc tên hàng (danh sách đã tải):",
                 AutoSize=true,Padding=new Padding(0,7,0,0)});
             _d167SkuSearch.Width=290;
             _d167SkuSearch.TextChanged+=(s,e)=>D167RefreshLocalSkuList();
             searchBar.Controls.Add(_d167SkuSearch);
-            var detailGroup=new GroupBox {Dock=DockStyle.Fill,Text="SKU và khu vực · đọc từ file WMS trong bộ nhớ Agent"};
+            var detailGroup=new GroupBox {Dock=DockStyle.Fill,Text="Danh sách SKU và khu vực đã tải từ hệ thống kho"};
             D167ApplyGridStyle(_d167SkuDetail);
             foreach(var name in new[]{"SKU","Tên sản phẩm","Khu vực","Xác minh"})
                 _d167SkuDetail.Columns.Add(name,name);
             detailGroup.Controls.Add(_d167SkuDetail);
             _d167SkuDetailNote.Dock=DockStyle.Fill;
-            _d167SkuDetailNote.Text="Dữ liệu chi tiết chỉ có sau lần Agent này tải file thành công; không tự truy vấn lại 5.000 SKU.";
+            _d167SkuDetailNote.Text="Danh sách chi tiết sẽ hiển thị sau khi máy tải thành công, không tải lại khi tìm kiếm.";
             _d167SkuDetailNote.ForeColor=Color.DimGray;
             panel.Controls.Add(heading,0,0);
             panel.Controls.Add(scheduleGroup,0,1);
@@ -265,7 +265,7 @@ namespace SupraInventoryRelayAgent
                 if(_d167SkuLastWorkbook!=null)
                 {
                     var items=_d167SkuLastWorkbook.Items;
-                    _d167SkuMetrics.Text="WMS nguồn: "+_d167SkuLastWorkbook.SourceRows+
+                    _d167SkuMetrics.Text="Từ hệ thống kho: "+_d167SkuLastWorkbook.SourceRows+
                         " dòng · "+items.Count+" SKU · LTA "+items.Count(x=>x.Area=="LTA")+
                         " · Shelving "+items.Count(x=>x.Area=="SHELVING")+
                         " · Chưa xác định "+items.Count(x=>x.Area=="UNKNOWN")+
@@ -297,7 +297,7 @@ namespace SupraInventoryRelayAgent
             if(_d167SkuCoordinator==null || _leaderCoordinator==null ||
                !_leaderCoordinator.IsLeader || !_supraBrowserReady)
             {
-                MessageBox.Show("Chỉ Agent PRIMARY có phiên WMS sẵn sàng được cập nhật SKU.","Cập nhật SKU");
+                MessageBox.Show("Chỉ máy Agent chính đã đăng nhập hệ thống kho mới được cập nhật SKU.","Cập nhật SKU");
                 return;
             }
             AgentSession actor=null;
@@ -305,7 +305,7 @@ namespace SupraInventoryRelayAgent
             if(actor==null) return;
             using(var dialog=new AgentPasswordVerificationDialog(DisplayAgentUsername(actor),
                 "Xác nhận cập nhật SKU",
-                "Nhập mật khẩu Agent hiện tại; tài khoản đặc quyền dùng mã một lần hoặc mật khẩu khẩn cấp. Service sẽ xác minh lại trước khi chạy.",
+                "Nhập mật khẩu Agent hiện tại. Tài khoản quản trị đặc quyền có thể dùng mã một lần hoặc mã khẩn cấp. Hệ thống sẽ xác minh trước khi cập nhật.",
                 "Xác nhận cập nhật"))
             {
                 if(ShowProtectedInputDialog(dialog)!=DialogResult.OK) return;
