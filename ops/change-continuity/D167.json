@@ -4,11 +4,11 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-web-impact-analysis-20261013",
-  "pr": 578,
-  "status": "D167_E053_OWNER_APPROVED_WEB_310_ACCOUNT_MEAL_BETA__CODE_IN_PR578_CI_PENDING",
+  "working_branch": "d167-web-v310-release-evidence-20261013",
+  "pr": 579,
+  "status": "D167_E054_WEB310_BETA_TECHNICAL_RELEASE_PASS__FIELD_AND_OWNER_PASS_PENDING",
   "last_checkpoint": {
-    "id": "D167-E053",
+    "id": "D167-E054",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -21,11 +21,11 @@
     "approved_components": [
       "worker"
     ],
-    "current_pr_scope": "PR578_WEB_310_ACCOUNT_MEAL_HISTORY_WORKER_BETA_ONLY__NO_AGENT_ANDROID_STABLE",
+    "current_pr_scope": "PR579_E054_DOCS_ONLY_WEB310_BETA_RELEASE_EVIDENCE__NO_NEW_DEPLOY",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
     "approved_source_sha": "6280e6691f10b5b610a9a8c866c08f7c2e784191",
-    "technical_release_pass": false,
+    "technical_release_pass": true,
     "field_pass": false
   },
   "entries": [
@@ -1130,6 +1130,33 @@
       ],
       "next_action": "Finish exact source CI including Web production build, Worker typecheck, D167/UI/role/regression tests, Repo Authority Guard, Project State Guard and continuity guard; repair CI failures, ensure Owner receipt source ancestor; mark PR ready, merge via approved guard, verify Beta deploy/health and report factual status.",
       "evidence": "Current Owner explicit 2026-10-13 final instruction; GitHub PR578; docs/OWNER_DECISIONS.md D167 Web 3.1.0; web/src/operational-app.ts api.ts web-version.ts; service/src/meal-break-core.ts alert-window-core.ts d167-shift-history.ts user-management-core.ts; tests/d167-web-layout.test.mjs"
+    },
+    {
+      "id": "D167-E054",
+      "date_vn": "2026-10-13",
+      "kind": "TEST",
+      "topic": "PR578 Web 3.1.0 Beta release merged and deployed with bounded retry after Cloudflare secret propagation race",
+      "status": "PR578_MAIN_MERGED__BETA_WORKER_WEB_DEPLOY_HEALTH_AUTH_PASS__OWNER_FIELD_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner E053 explicitly authorized Beta Web/Worker deployment. PR578 exact head 79b61e8040f9233e83f3dd4476ef548eea048460 had 18 of 18 GitHub workflows successfully completed, including Web/service build, Android regression build (no APK release), Repo Authority, Project State, UI Design and D167 predeploy product verify.",
+        "PR578 merged into main commit 5cedab038c08251877e80964459003b6e765b9e3 without direct-main push, published Web 3.1.0 Beta Worker at registered inventory-beta.supra.cc.cd, no Agent or Android release, Stable remains untouched.",
+        "GitHub Deploy Beta Worker run 38347438754 attempt 1 successfully deployed and returned /health HTTP200 status ok, correct source commit, zero missing runtime bindings, Root secret true, schema17/17, operational schema7/7, Agent Firebase auth migration 0/0. It failed an immediate post-Wrangler-secret source-commit readback due transient propagation to old SHA; no policy or runtime bypass was authorized.",
+        "Exact same main/source GitHub Actions rerun failed job attempt 2 completed SUCCESS. Worker deployment, post-secret source/environment verification, D166 unauthenticated fail-closed 401, Beta auth, business APIs, PDA Registry, Web shell, OAuth disclosures, D146 Agent broker and Google OAuth start all PASS.",
+        "Cloudflare Worker version rollout was source-bound to 5cedab0 and confirmed healthy, but actual Web usability, corrected accounts UX, early meal races, expected Picker count/permissions, and 7/30/60 history are not Owner field/business PASS until real use and evidence. No account data erased or migrated by deployment.",
+        "Source files and release authorization are unchanged in this evidence-only PR579; no executable code or provider resources touched."
+      ],
+      "alternatives": [
+        "If Owner finds Beta field issue, repair D167 on new scoped source branch/PR after impact review; do not presume business PASS or promote Stable.",
+        "Historical schedule events before audit recording have no complete source and remain intentionally unavailable."
+      ],
+      "open_questions": [
+        "Owner field validation for protected identities and real global Picker subset selection across pagination remains pending.",
+        "Owner field validation for early meal choice and recalculation of auto-Skip near cutoff still pending; preserve existing APP/Agent while testing.",
+        "Does Cloudflare post-secret immediate commit-version propagation require future bounded retry in deployment workflow? Deployment attempt 2 confirmed PASS, no CI workflow change authorized by this evidence record."
+      ],
+      "next_action": "Retain deployed Beta Web 3.1.0 while Owner validates; on NOT PASS fix same D167 with guard+CI; Stable remains OWNER-GATED. Close evidence PR579 after metadata CI PASS and record no new runtime deployment.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/578 ; https://github.com/tamnv2/supra-inventory/actions/runs/38347438754 ; source 5cedab038c08251877e80964459003b6e765b9e3 ; GHA Attempt 2 success; ops/project-scope.json"
     }
   ],
   "resume": {
@@ -1151,7 +1178,8 @@
       "D167 P0 Beta Worker and signed Agent v129 released via PR572/573; actual field results separate",
       "D167-E046 decision/spec/operation documentation under PR575; no new live code or release",
       "Agent v130 source committed, local diagnostics/log coalescing, RTDB observer flap metrics, stale auxiliary WMS health check guard, Picker revoke preview HTTP403 diagnosis; release not verified.",
-      "Agent v130 Beta signed release and inventory-channel same SHA256 verified at GitHub, PR574/Main CI complete PASS. Physical Agent installation not verified."
+      "Agent v130 Beta signed release and inventory-channel same SHA256 verified at GitHub, PR574/Main CI complete PASS. Physical Agent installation not verified.",
+      "E054 Web 3.1.0 Worker Beta technical publish PASS: PR578 main 5cedab0, Deploy Beta Worker 38347438754 attempt 2 PASS; no Agent/Android/Stable."
     ],
     "in_progress": [
       "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
@@ -1165,7 +1193,8 @@
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
       "Usage/cross-meter optimization pending further real log/provider measurements.",
       "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
-      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending."
+      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending.",
+      "E054: Owner Web 3.1.0 field/business validation still required; do not mark D167 Owner PASS."
     ],
     "blocked": [
       "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
@@ -1183,6 +1212,6 @@
       "After explicit Owner approval for E050 only: branch/PR code+CI, no Worker/Web publication from this docs-only checkpoint.",
       "Present E052 proposal; hold combined Web/Service release until Owner accepts account-list design and all CI/continuity gates pass."
     ],
-    "release_boundary": "D167_E053_APPROVED_BETA_WORKER_WEB_ONLY_AFTER_EXACT_SHA_CI__STABLE_OWNER_GATED_NO_AGENT_ANDROID"
+    "release_boundary": "E054_DOCS_ONLY_RELEASE_EVIDENCE__BETA_WORKER_DEPLOYED__STABLE_OWNER_GATED__NO_EXECUTABLE_CHANGES_IN_PR579"
   }
 }
