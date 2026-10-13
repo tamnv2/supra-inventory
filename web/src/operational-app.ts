@@ -47,6 +47,7 @@ import {
   getHrEventSyncState,
   getMyProfile,
   getSkuCatalogInfo,
+  getSkuCatalogProvenance,
   getReporterBatchTickets,
   getReporterCounters,
   getReporterQueue,
@@ -101,6 +102,8 @@ import {
   type ReporterOverdueBatch,
   type ReporterRecentBatch,
   type SkuCatalogInfo,
+  type SkuCatalogProvenance,
+  type SkuCatalogProvenanceEvent,
   type SkuItem,
   type SlaResponse,
   type SlaState,
@@ -305,6 +308,10 @@ function clearRoleScopedViewState(): void {
   allPickerSelection = false;
   hrPreview = null;
   skuCatalogInfo = null;
+  skuCatalogProvenance = null;
+  skuProvenanceUnavailable = false;
+  skuProvenanceLoadedAt = 0;
+  skuExcelExpanded = false;
   skuAdminQuery = "";
   skuAdminItems = [];
   skuAdminOffset = 0;
@@ -433,6 +440,10 @@ let hrWebRequestSeq = 0;
 let pendingWorkbook: ParsedSkuWorkbook | null = null;
 let skuImportFullReplace = false;
 let skuCatalogInfo: SkuCatalogInfo | null = null;
+let skuCatalogProvenance: SkuCatalogProvenance | null = null;
+let skuProvenanceUnavailable = false;
+let skuProvenanceLoadedAt = 0;
+let skuExcelExpanded = false;
 
 // Server-confirmed FULL membership is required; PATCH changes never unlock a new day.
 function skuDayReady(): boolean {
@@ -3885,9 +3896,14 @@ async function loadReports(): Promise<void> {
 async function loadSkuWorkspace(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [catalog, result] = await Promise.all([
+  // The provenance call is management-only and made on entry / after import,
+  // not on every page/search nor from realtime/PDA background polling.
+  const refreshProvenance = skuProvenanceLoadedAt === 0 ||
+    Date.now() - skuProvenanceLoadedAt > 5 * 60_000;
+  const [catalog, result, provenance] = await Promise.all([
     getSkuCatalogInfo(),
     searchSkus(skuAdminQuery, SKU_PAGE_SIZE, skuAdminOffset),
+    refreshProvenance ? getSkuCatalogProvenance().catch(() => null) : Promise.resolve(skuCatalogProvenance),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   if (result.total > 0 && skuAdminOffset >= result.total) {
@@ -3895,6 +3911,11 @@ async function loadSkuWorkspace(): Promise<void> {
     return loadSkuWorkspace();
   }
   skuCatalogInfo = catalog;
+  if (refreshProvenance) {
+    skuCatalogProvenance = provenance;
+    skuProvenanceUnavailable = provenance === null;
+    skuProvenanceLoadedAt = Date.now();
+  }
   skuAdminItems = result.items;
   skuAdminTotal = result.total;
   markWebUpdateReceived();
@@ -4829,6 +4850,7 @@ function bindSection(): void {
   document.querySelector<HTMLButtonElement>("#apply-sku-import")?.addEventListener("click", () => void run(async () => {
     try {
       await importSkuWorkbook();
+      skuProvenanceLoadedAt = 0;
       await loadSkuWorkspace();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không cập nhật được danh mục SKU.";
