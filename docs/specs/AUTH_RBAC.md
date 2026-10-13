@@ -494,3 +494,8 @@ Bổ sung vào ngoại lệ ngày 12/10: Owner cho phép chọn phiên WMS đang
 ## D167 2026-10-13 — WMS read-only source choice settled
 
 Owner withdraws the separate request to obtain WMS authentication **directly from the active MAIN Confirm tab**. Continue using the existing isolated same-profile Agent WebView2 child for the registered read-only SKU export; enforce the same PRIMARY/generation/fail-closed, in-memory-only, least-privilege and no-secret-in-logs conditions. Nothing authorizes extracting new secrets, changing WMS Confirm, modifying the Agent authentication model, or using credentials outside the existing permitted operation. Historical MAIN-tab proposal remains documented solely as SUPERSEDED.
+
+
+## D167 2026-10-13 — Account list UI scope and protected deletion
+
+Only an effective/real ROOT may delete managed ADMIN/PICKPACK_ADMIN/REPORTER users; never display ROOT in account listing, and never let role-review impersonation elevate deletion. Exact protected logins `admin` and `tamnv2` are not removable through managed account deletion, even by ROOT (protect operative privileged credentials). Existing Admin/ROOT bulk Picker lifecycle and Admin/ROOT/PICKPACK_ADMIN Picker Báo hàng capability powers are unchanged. User list selection must make **visible page** distinct from **system-wide Picker**, requiring an authoritative count preview and server-side optional count fence for new UI calls. Every mutation still rechecks role/target in Worker and Durable Object. Privileged users retain OTP/emergency; UI must never offer fixed password reset for them. New early Web meal confirm may set an internal allowance only upon verified WEB token; ANDROID and AGENT cannot assert it.
