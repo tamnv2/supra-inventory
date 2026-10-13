@@ -8,6 +8,61 @@ using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
 {
+    // Local-only translations. Keep technical D167 reason codes solely in support logs.
+    internal static class D167SkuVietnamese
+    {
+        internal static string State(string value)
+        {
+            switch(value ?? "")
+            {
+                case "READY": return "Chưa đến lượt";
+                case "CLAIMED": return "Đang chuẩn bị cập nhật";
+                case "STAGING": return "Đang gửi danh sách SKU";
+                case "DONE": return "Đã cập nhật";
+                case "SKIPPED": return "Đã gộp vào lượt tối";
+                case "FAILED": return "Cập nhật chưa thành công";
+                default: return "Đang kiểm tra";
+            }
+        }
+
+        internal static string Error(string code)
+        {
+            switch(code ?? "")
+            {
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_FIRESTORE_LEASE_STALE":
+                    return "Phiên xác nhận của Agent chính với máy chủ đã hết hạn. Dữ liệu chưa được lưu.";
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_FIRESTORE_ROLES_MISMATCH":
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_FIRESTORE_LEASE_MISMATCH":
+                case "D167_SKU_PRIMARY_CHANGED":
+                case "D167_NOT_PRIMARY":
+                case "D167_LOST_PRIMARY":
+                    return "Máy này không còn giữ quyền Agent chính. Vui lòng kiểm tra máy đang xử lý.";
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_FIRESTORE_ROLES_READ_FAILED":
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_FIRESTORE_LEASE_READ_FAILED":
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_FIRESTORE_VERIFIER_UNAVAILABLE":
+                    return "Máy chủ chưa xác minh được quyền Agent chính. Danh sách chưa được lưu.";
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_VERIFIER_CONFIG_MISSING":
+                    return "Máy chủ chưa được cấu hình đầy đủ để xác minh Agent chính.";
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY_INVALID_IDENTITY":
+                case "D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY":
+                    return "Máy chủ chưa chấp nhận quyền Agent chính. Danh sách chưa được lưu.";
+                case "D167_WORKER_CURRENT_PASSWORD_INVALID":
+                    return "Mật khẩu hoặc mã xác nhận không đúng.";
+                case "D167_GATEWAY_Timeout":
+                case "D167_GATEWAY_ConnectFailure":
+                    return "Không kết nối được máy chủ cập nhật SKU. Vui lòng kiểm tra mạng.";
+                case "D167_SKU_JOB_ALREADY_RUNNING":
+                    return "Đang có một lượt cập nhật SKU khác.";
+                case "D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY":
+                    return "Máy Agent chính hoặc trang xác nhận đơn chưa sẵn sàng.";
+                case "D167_SKU_CONFLICT_AWAITING_APPROVAL":
+                    return "Chưa xác nhận cách xử lý dữ liệu SKU bị trùng hoặc mâu thuẫn.";
+                default:
+                    return "Cập nhật chưa hoàn tất. Hãy gửi nhật ký Agent để xác định nguyên nhân.";
+            }
+        }
+    }
+
     // Local-first operation tab: no Firebase listener, provider polling or
     // per-SKU server reads. Data arrives through the existing SKU coordinator.
     internal sealed partial class AgentForm
@@ -116,14 +171,14 @@ namespace SupraInventoryRelayAgent
 
             var scheduleGroup=new GroupBox {Dock=DockStyle.Fill,Text="Ba lượt cập nhật tự động · giờ Việt Nam"};
             _d167SkuSlots.Dock=DockStyle.Fill;
-            foreach(var name in new[]{"Lượt","Giờ chạy","Trạng thái","Hoàn thành","Kết quả"})
+            foreach(var name in new[]{"Lượt","Giờ dự kiến","Trạng thái","Hoàn thành","Người cập nhật","Kết quả"})
                 _d167SkuSlots.Columns.Add(name,name);
             D167ApplyGridStyle(_d167SkuSlots);
             scheduleGroup.Controls.Add(_d167SkuSlots);
 
             var historyGroup=new GroupBox {Dock=DockStyle.Fill,Text="Lượt thủ công gần nhất (tối đa 5)"};
             D167ApplyGridStyle(_d167SkuManualHistory);
-            foreach(var name in new[]{"Chạy lúc","Trạng thái","Hoàn thành","Kết quả"})
+            foreach(var name in new[]{"Bắt đầu lúc","Trạng thái","Hoàn thành","Người cập nhật","Kết quả"})
                 _d167SkuManualHistory.Columns.Add(name,name);
             historyGroup.Controls.Add(_d167SkuManualHistory);
 
@@ -159,9 +214,9 @@ namespace SupraInventoryRelayAgent
             panel.Controls.Add(detailLayout,0,4);
             panel.Controls.Add(_d167SkuDetailNote,0,5);
             _d167SkuPage.Controls.Add(panel);
-            _d167SkuSlots.Rows.Add("Đầu ca · FULL","05:00 trở đi","Chưa lấy trạng thái","—","—");
-            _d167SkuSlots.Rows.Add("Giữa ca · DELTA","12:00–12:15","Chưa lấy trạng thái","—","—");
-            _d167SkuSlots.Rows.Add("Cuối ca · DELTA","19:00–19:15","Chưa lấy trạng thái","—","—");
+            _d167SkuSlots.Rows.Add("Đầu ca · Danh sách đầy đủ","05:00 trở đi","Chưa kiểm tra","—","—","—");
+            _d167SkuSlots.Rows.Add("Giữa ca · Kiểm tra thay đổi","12:00–12:15","Chưa kiểm tra","—","—","—");
+            _d167SkuSlots.Rows.Add("Cuối ca · Kiểm tra thay đổi","19:00–19:15","Chưa kiểm tra","—","—","—");
         }
 
         private static void D167ApplyGridStyle(DataGridView grid)
@@ -188,20 +243,23 @@ namespace SupraInventoryRelayAgent
                 foreach(var key in new[]{"INITIAL_05","DELTA_12","DELTA_19"})
                 {
                     var state=_d167SkuLastSlots.FirstOrDefault(x=>x.Slot==key);
-                    var caption=key=="INITIAL_05"?"Đầu ca · FULL":key=="DELTA_12"?"Giữa ca · DELTA":"Cuối ca · DELTA";
+                    var caption=key=="INITIAL_05"?"Đầu ca · Danh sách đầy đủ":key=="DELTA_12"?"Giữa ca · Kiểm tra thay đổi":"Cuối ca · Kiểm tra thay đổi";
                     _d167SkuSlots.Rows.Add(caption,state==null?"—":D167Scheduled(state.ScheduledAtMs),
-                        state==null?"Chưa xác minh":state.State,
-                        state==null?"—":D167Time(state.CompleteAt),state==null?"—":D167ReceiptLine(state));
+                        state==null?"Chưa kiểm tra":D167SkuVietnamese.State(state.State),
+                        state==null?"—":D167Time(state.CompleteAt),
+                        state==null?"—":D167ReceiptNumber(state.ReceiptJson,"actor_display"),
+                        state==null?"—":D167ReceiptLine(state));
                 }
                 _d167SkuManualHistory.Rows.Clear();
                 foreach(var item in _d167SkuLastManual.Take(5))
                     _d167SkuManualHistory.Rows.Add(D167Scheduled(item.ScheduledAtMs),
-                        item.State,D167Time(item.CompleteAt),D167ReceiptLine(item));
+                        D167SkuVietnamese.State(item.State),D167Time(item.CompleteAt),
+                        D167ReceiptNumber(item.ReceiptJson,"actor_display"),D167ReceiptLine(item));
                 var today=D167SkuSchedule.VNNow().ToString("yyyy-MM-dd");
                 var first=_d167SkuLastSlots.FirstOrDefault(x=>x.Slot=="INITIAL_05");
                 var primary=_leaderCoordinator!=null && _leaderCoordinator.IsLeader;
-                _d167SkuHeadline.Text=today+" · "+(first!=null&&first.State=="DONE"?"FULL đã xác minh":"FULL chưa xác minh")+
-                    " · "+(primary?"PRIMARY":"STANDBY")+" · WMS "+(_supraBrowserReady?"sẵn sàng":"chưa sẵn sàng")+
+                _d167SkuHeadline.Text=today+" · "+(first!=null&&first.State=="DONE"?"Danh sách SKU hôm nay đã cập nhật":"Danh sách SKU hôm nay chưa được xác nhận") +
+                    " · "+(primary?"Máy Agent chính":"Máy Agent dự phòng")+" · Hệ thống kho "+(_supraBrowserReady?"sẵn sàng":"chưa sẵn sàng")+
                     (string.IsNullOrEmpty(message)?"":"\n"+message);
                 _d167SkuRun.Enabled=!_d167SkuManualActive && primary && _supraBrowserReady && HasAgentSession();
                 if(_d167SkuLastWorkbook!=null)
@@ -211,7 +269,7 @@ namespace SupraInventoryRelayAgent
                         " dòng · "+items.Count+" SKU · LTA "+items.Count(x=>x.Area=="LTA")+
                         " · Shelving "+items.Count(x=>x.Area=="SHELVING")+
                         " · Chưa xác định "+items.Count(x=>x.Area=="UNKNOWN")+
-                        " · Nguồn đã tải trên Agent hiện tại (không đại diện số tồn kho).";
+                        " · Danh sách tải gần nhất trên máy này (không phải số lượng tồn kho).";
                 }
             });
         }
@@ -230,8 +288,8 @@ namespace SupraInventoryRelayAgent
                 _d167SkuDetail.Rows.Add(item.Sku,item.ProductName,item.Area,
                     item.AreaVerified?"Đã kiểm tra":"Chưa xác định: "+item.AreaReason);
             _d167SkuDetailNote.Text="Hiển thị "+Math.Min(300,filtered.Count)+" / "+filtered.Count+
-                " SKU lọc cục bộ; "+(workbook==null?"chưa có snapshot WMS ở Agent hiện tại":
-                "snapshot chỉ được xác minh cho lần tải gần nhất, có thể đã cũ sau thay đổi Web/HA.");
+                " SKU đang hiển thị; "+(workbook==null?"máy này chưa tải được danh sách SKU":
+                "đây là bản tải gần nhất, có thể đã thay đổi sau khi cập nhật trên Web hoặc đổi máy chính.");
         }
 
         private void D167SkuRunManual()
@@ -260,9 +318,9 @@ namespace SupraInventoryRelayAgent
                     try { _d167SkuCoordinator.RunManual(proof); }
                     catch(Exception e)
                     {
-                        Ui(()=>MessageBox.Show("Chưa cập nhật SKU: "+e.GetType().Name+
-                            " ("+D167SkuCoordinator.SafeErrorCode(e)+")."+
-                            " Xem nhật ký Agent để biết bước thất bại.",
+                        Ui(()=>MessageBox.Show("Chưa cập nhật được SKU: "+D167SkuVietnamese.Error(
+                            D167SkuCoordinator.SafeErrorCode(e))+
+                            " Nếu lỗi tiếp tục, hãy gửi nhật ký Agent.",
                             "Cập nhật SKU",MessageBoxButtons.OK,MessageBoxIcon.Warning));
                     }
                     finally
