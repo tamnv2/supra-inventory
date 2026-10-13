@@ -1824,43 +1824,81 @@ function renderSku(): string {
   const catalogCount = skuCatalogInfo?.count ?? 0;
   const pageFrom = skuAdminTotal ? skuAdminOffset + 1 : 0;
   const pageTo = Math.min(skuAdminTotal, skuAdminOffset + skuAdminItems.length);
+  // max_updated_at is the last catalog mutation, NOT an Agent sync receipt.
   const updatedAt = skuCatalogInfo?.max_updated_at ? fmt(skuCatalogInfo.max_updated_at) : "Chưa có dữ liệu";
-  const lastSyncAt = skuCatalogInfo?.last_sync_at ? fmt(skuCatalogInfo.last_sync_at) : "Chưa ghi nhận";
-  const lastSyncSummary = skuCatalogInfo?.last_sync_at
-    ? `Lô gần nhất: +${Number(skuCatalogInfo.last_sync_inserted || 0).toLocaleString("vi-VN")} mới · ${Number(skuCatalogInfo.last_sync_updated || 0).toLocaleString("vi-VN")} đổi tên · ${Number(skuCatalogInfo.last_sync_unchanged || 0).toLocaleString("vi-VN")} giữ nguyên`
-    : "Chưa có lịch sử đồng bộ từ Agent";
   const version = skuCatalogInfo?.version || "—";
+  const todayReady = skuDayReady();
+  const provenance = skuCatalogProvenance;
+  const eventTitle = (event: SkuCatalogProvenanceEvent): string => {
+    if (event.source === "WEB") return event.mode === "FULL" ? "Web · Thay toàn bộ" : "Web · Nhập Excel (PATCH)";
+    return event.mode === "FULL" ? "Agent · Đồng bộ FULL" : "Agent · Đồng bộ DELTA";
+  };
+  const eventResult = (event: SkuCatalogProvenanceEvent): string =>
+    `+${event.created.toLocaleString("vi-VN")} mới · ${event.updated.toLocaleString("vi-VN")} thay đổi · ${event.hidden.toLocaleString("vi-VN")} ẩn · ${event.unchanged.toLocaleString("vi-VN")} giữ nguyên`;
+  const latestEvent = (label: string, event: SkuCatalogProvenanceEvent | null | undefined): string =>
+    `<div class="sku-provenance-item">
+      <span>${esc(label)}</span>
+      <strong>${event ? esc(fmt(event.at)) : "Chưa có biên nhận"}</strong>
+      <small>${event ? esc(event.actor + " · " + eventResult(event)) : "Không suy đoán thời gian hoặc người thao tác"}</small>
+    </div>`;
+  const eventRows = provenance?.recent || [];
+  const history = skuProvenanceUnavailable
+    ? '<p class="notice warning">Chưa đọc được lịch sử có xác thực nguồn. Dữ liệu danh mục vẫn sử dụng bình thường; thử tải lại trang.</p>'
+    : eventRows.length
+      ? `<div class="table-wrap sku-events-scroll"><table><thead><tr>
+          <th>Thời gian</th><th>Nguồn / loại</th><th>Người thực hiện</th><th>Kết quả ghi nhận</th>
+        </tr></thead><tbody>${eventRows.map(event => `<tr>
+          <td>${esc(fmt(event.at))}</td>
+          <td><strong>${esc(eventTitle(event))}</strong><small>${esc(event.note)}</small></td>
+          <td>${esc(event.actor)}</td>
+          <td>${esc(eventResult(event))}</td>
+        </tr>`).join("")}</tbody></table></div>`
+      : '<p class="ops-note">Chưa có biên nhận Web hoặc Agent thành công trong dữ liệu hiện có.</p>';
   return `<section class="ops-route sku-workspace">
-    <div class="business-page-head"><div><h2>Danh mục SKU</h2><p>Tra cứu danh mục đang dùng và cập nhật dữ liệu từ Excel trong cùng một màn hình.</p></div></div>
-    <section class="business-summary-grid">
-      <article class="business-summary-card primary"><span>Tổng SKU hiện hành</span><strong>${catalogCount.toLocaleString("vi-VN")}</strong><small>Danh mục đang phục vụ Web/App</small></article>
-      <article class="business-summary-card good"><span>Đồng bộ Agent gần nhất</span><strong class="sku-summary-time">${esc(lastSyncAt)}</strong><small>${esc(lastSyncSummary)}</small></article>
-      <article class="business-summary-card"><span>Dữ liệu thay đổi gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong><small>Thời điểm SKU thực sự được thêm mới hoặc đổi tên</small></article>
-      <article class="business-summary-card"><span>Phiên bản danh mục</span><strong class="sku-summary-version">${esc(version)}</strong><small>Dùng để kiểm soát đồng bộ</small></article>
+    <div class="business-page-head"><div><h2>Danh mục SKU</h2><p>Tổng quan danh mục đang phục vụ, lịch sử cập nhật có xác thực nguồn và tra cứu SKU.</p></div></div>
+    <section class="business-summary-grid sku-kpi-grid">
+      <article class="business-summary-card primary"><span>SKU đang hiệu lực</span><strong>${catalogCount.toLocaleString("vi-VN")}</strong><small>Danh sách hiện hành trên Web/App</small></article>
+      <article class="business-summary-card ${todayReady ? "good" : "warning"}"><span>Danh mục hôm nay</span><strong class="sku-summary-time">${esc(skuCatalogInfo?.sku_day_vn || "—")}</strong><small>${todayReady ? "Đã có FULL xác nhận cho ngày này" : "Chưa có FULL hợp lệ cho hôm nay"}</small></article>
+      <article class="business-summary-card"><span>Thay đổi danh mục gần nhất</span><strong class="sku-summary-time">${esc(updatedAt)}</strong><small>Mốc thay đổi dữ liệu, không phải thời gian Agent đồng bộ</small></article>
     </section>
-    <div class="users-top-grid sku-top-grid">
-      <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Tra cứu danh mục hiện tại</h3><p>Tìm theo mã SKU hoặc tên sản phẩm; không cần tải file để kiểm tra dữ liệu đang có.</p></div></div>
-        <form id="sku-admin-search-form" class="sku-admin-search">
-          <input name="query" value="${esc(skuAdminQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" autocomplete="off" />
-          <button class="secondary">Tìm kiếm</button>
-          <button class="secondary" type="button" id="sku-admin-clear" ${skuAdminQuery ? "" : "disabled"}>Xóa lọc</button>
-        </form>
-        <div class="table-wrap sku-catalog-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Cập nhật</th></tr></thead><tbody>
-          ${skuAdminItems.length ? skuAdminItems.map((item) => `<tr><td><strong>${esc(item.sku)}</strong></td><td>${esc(item.product_name)}</td><td>${item.updated_at ? esc(fmt(item.updated_at)) : "—"}</td></tr>`).join("") : `<tr><td colspan="3" class="ops-empty-cell">Không có SKU phù hợp.</td></tr>`}
-        </tbody></table></div>
-        <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
-      </article>
-      <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Cập nhật danh mục từ Excel</h3><p>File được kiểm tra trước khi ghi. SKU trùng mã nhưng khác tên phải được xác nhận rõ ràng. Có thể thêm cột Khu vực (LTA/Shelving); để trống là giữ nguyên khu vực hiện tại.</p></div></div>
-        <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx" /></label></div>
-        <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""} ${profile?.role !== "ROOT" && profile?.role !== "ADMIN" ? "disabled" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xoá SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
-        ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : `<div class="ops-note">Hệ thống giữ nguyên danh mục hiện tại cho tới khi file hợp lệ và bạn xác nhận cập nhật.</div>`}
-        ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU sẵn sàng</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
+    ${!todayReady ? `<p class="notice warning">${esc(skuCatalogInfo?.sku_day_warning || "Chưa xác nhận danh mục SKU hôm nay.")}</p>` : ""}
+    <article class="ops-panel sku-provenance-panel">
+      <div class="ops-panel-title"><div><h3>Nhật ký cập nhật theo nguồn</h3><p>Web lấy từ nhật ký nhập Excel; Agent lấy từ biên nhận DONE thực tế. Không nhận diện nguồn bằng thời điểm sửa dữ liệu.</p></div></div>
+      <div class="sku-provenance-grid">
+        ${latestEvent("Web nhập Excel gần nhất", provenance?.latest_web)}
+        ${latestEvent("Agent FULL gần nhất", provenance?.latest_agent_full)}
+        ${latestEvent("Agent DELTA gần nhất", provenance?.latest_agent_delta)}
+      </div>
+      ${history}
+      <details class="sku-tech-details"><summary>Chi tiết kỹ thuật danh mục</summary>
+        <div>Phiên bản: <code>${esc(version)}</code></div>
+        <div>Ngày FULL có hiệu lực: ${esc(skuCatalogInfo?.sku_day_last_full || "Chưa ghi nhận")}</div>
+      </details>
+    </article>
+    <article class="ops-panel sku-search-panel">
+      <div class="ops-panel-title"><div><h3>Tra cứu danh mục hiện tại</h3><p>Tra cứu theo SKU hoặc tên sản phẩm; danh sách này chỉ gồm SKU đang hiệu lực.</p></div></div>
+      <form id="sku-admin-search-form" class="sku-admin-search">
+        <input name="query" value="${esc(skuAdminQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" autocomplete="off"/>
+        <button class="secondary">Tìm kiếm</button>
+        <button class="secondary" type="button" id="sku-admin-clear" ${skuAdminQuery ? "" : "disabled"}>Xóa lọc</button>
+      </form>
+      <div class="table-wrap sku-catalog-table"><table><thead><tr><th>SKU</th><th>Tên sản phẩm</th><th>Khu vực</th><th>Cập nhật dữ liệu</th></tr></thead><tbody>
+        ${skuAdminItems.length ? skuAdminItems.map(item => `<tr><td><strong>${esc(item.sku)}</strong></td><td>${esc(item.product_name)}</td><td>${esc(item.area || "Chưa xác định")}</td><td>${item.updated_at ? esc(fmt(item.updated_at)) : "—"}</td></tr>`).join("") : '<tr><td colspan="4" class="ops-empty-cell">Không có SKU phù hợp.</td></tr>'}
+      </tbody></table></div>
+      <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
+    </article>
+    <details id="sku-import-details" class="ops-panel sku-import-details" ${skuExcelExpanded || wb ? "open" : ""}>
+      <summary><strong>Cập nhật danh mục từ Excel</strong><small>Chỉ mở khi cần tải file hoặc thay đổi danh mục; mặc định không ảnh hưởng màn hình tra cứu.</small></summary>
+      <div class="sku-import-inner">
+        <p class="ops-note">File được kiểm tra trước khi ghi. SKU trùng mã khác tên cần được xác nhận. Có thể thêm cột Khu vực (LTA/Shelving); để trống giữ nguyên vị trí.</p>
+        <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx"/></label></div>
+        <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""} ${profile?.role !== "ROOT" && profile?.role !== "ADMIN" ? "disabled" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xóa SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
+        ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : '<div class="ops-note">Danh mục chỉ thay đổi khi file hợp lệ và thao tác được xác nhận.</div>'}
+        ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU hợp lệ</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
         ${wb && !wb.conflicts.length ? `<div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div>` : ""}
-      </article>
-    </div>
-    ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3><p>Chọn đúng tên sản phẩm trước khi cập nhật.</p></div></div><div class="ops-form-grid">${wb.conflicts.map((conflict) => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map((candidate) => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : ""}
+      </div>
+    </details>
+    ${wb?.conflicts.length ? `<article class="ops-panel"><div class="ops-panel-title"><div><h3>Xử lý SKU trùng mã khác tên</h3><p>Chọn tên sản phẩm đúng trước khi cập nhật.</p></div></div><div class="ops-form-grid">${wb.conflicts.map(conflict => `<label class="span">${esc(conflict.sku)}<select data-sku-conflict="${esc(conflict.sku)}"><option value="">Chọn tên sản phẩm</option>${conflict.candidates.map(candidate => `<option value="${esc(candidate.product_name)}" ${skuConflictChoices.get(conflict.sku) === candidate.product_name ? "selected" : ""}>${esc(candidate.product_name)} · dòng ${candidate.rows.join(", ")}</option>`).join("")}</select></label>`).join("")}</div><div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div></article>` : ""}
   </section>`;
 }
 
