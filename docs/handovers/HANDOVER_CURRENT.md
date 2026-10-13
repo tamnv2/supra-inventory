@@ -1,17 +1,17 @@
 # HANDOVER_CURRENT — SUPRA Inventory
 
-## Trạng thái D167 mới nhất — 2026-10-12 (derived from GitHub canonical authority)
+## D167 — Owner PASS phạm vi đã triển khai (2026-10-13; derived from canonical GitHub)
 
 - SQLite schema: 17
 - Latest signed Beta APK: beta-vc106__SIGNED_CHANNEL_PUBLISHED__FLEET_INSTALLED_UNVERIFIED
-- Beta Web: D167_PR566_BETA_WORKER_WEB_DEPLOY_HEALTH_PASS__FIELD_PENDING
+- Beta Web: D167_WEB_311_BETA_DEPLOY_PASS__OWNER_LIMITED_PASS
 - Android: D167_SIGNED_BETA_VC106_RELEASE_PASS__FLEET_INSTALLS_UNVERIFIED
-- Beta: D167_PR566_BETA_WORKER_WEB_GATEWAY_SIGNED_ANDROID_VC106_AGENT_V127_TECHNICAL_PASS__FIELD_PENDING
-- Agent: D167_RELAY_AGENT_V127_SKU_MANUAL_TAB_FIXED_WEBVIEW2_CHANNEL_RELEASE_PASS__FLEET_HA_UNVERIFIED
-- Source merge: D167 PR #566, main `d14a481a890150b7f9438dcc04b2cae07e3cf3a2`.
-- Verified technical release: PR 20/20; main workflows 13/13 PASS. Worker/Web/InventoryCore run 38282063883; existing Agent Operations Gateway run 38282063892; Windows Agent v127 release and Fixed WebView2 bundle run 38282063816. Android beta-vc106 unchanged.
-- **Đã phát hành kỹ thuật Beta Agent v127, Worker và Gateway; chưa có bằng chứng đã cài v127 trên máy thực, kiểm thử WMS SKU FULL/DELTA, thao tác password, Confirm/HA, usage thực tế hoặc Owner D167 PASS. Stable không thay đổi.**
-- Các ghi chú phiên bản cũ phía dưới chỉ là lịch sử; luôn dùng `ops/project-state.json` cho trạng thái hiện tại.
+- Beta: D167_OWNER_ACCEPTED_PASS_AS_DEPLOYED_NO_REPORTED_ERRORS__WEB311_ANDROID_VC106_AGENT_V130_RELEASED__FIELD_COUNTS_UNKNOWN
+- Agent: D167_AGENT_V130_BETA_RELEASE_PASS__OWNER_LIMITED_PASS__FLEET_INSTALL_UNVERIFIED
+- D167: Owner xác nhận bản Beta đã triển khai ổn, hiện chưa ghi nhận lỗi. Đây là PASS có giới hạn theo trạng thái vận hành được báo, không suy ra đã đo đủ WMS/HA/ACK, mọi thiết bị, toàn bộ nghiệp vụ hoặc giảm Usage.
+- Web 3.1.1: PR #580, main e621c868979188935d12d71db0dce7165e591e91; Beta Worker run 38351950688 PASS. Agent v130: PR #574, main decd132ffa1806465824a7fa3673e32a9c2defec, release run 38335654198 PASS. Android vc106 giữ nguyên.
+- PR #581 là hồ sơ đóng D167 không phát hành phần mềm; quyền deploy cũ được thu hồi. D168 chỉ được mở sau khi hoàn tất ghi nhận D167; Stable OWNER-GATED.
+- Nguồn chính xác và mới nhất là `ops/project-state.json`, `ops/owner-actions.json` và journal Dxxx; các đoạn cũ bên dưới chỉ là lịch sử.
 
 ---
 
