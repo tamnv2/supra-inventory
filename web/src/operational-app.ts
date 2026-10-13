@@ -10,6 +10,7 @@ import "./legacy-transplant/web-fast-ui.css";
 import "./legacy-transplant/web-unified-ui.css";
 import "./legacy-transplant/web-professional-v2.css";
 import "./legacy-transplant/d167-web-layout-density.css";
+import "./legacy-transplant/d167-sku-provenance.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -4868,6 +4869,9 @@ function bindSection(): void {
     void run(loadSkuWorkspace);
   });
 
+  document.querySelector<HTMLDetailsElement>("#sku-import-details")?.addEventListener("toggle", event => {
+    skuExcelExpanded = (event.currentTarget as HTMLDetailsElement).open;
+  });
   document.querySelector<HTMLInputElement>("#sku-full-replace")?.addEventListener("change", (event) => {
     skuImportFullReplace = (event.currentTarget as HTMLInputElement).checked &&
       (profile?.role === "ROOT" || profile?.role === "ADMIN");
