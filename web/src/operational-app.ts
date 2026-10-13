@@ -1323,7 +1323,7 @@ function renderLogin(): void {
         <button class="primary wide" ${busy ? "disabled" : ""}>${busy ? "Đang đăng nhập..." : "ĐĂNG NHẬP"}</button>
       </form>
       <form id="reset-password-form" class="login-reset-form" hidden>
-        <p class="muted">Nhập thông tin tài khoản và email đã đăng ký.</p>
+        <p class="muted">Nhập tài khoản và email đăng ký.</p>
         <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Mã nhân viên / tài khoản" /></label>
         <label>Email đăng ký<input name="email" type="email" required autocomplete="email" placeholder="name@company.com" /></label>
         <button class="secondary wide">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
@@ -1823,7 +1823,7 @@ function renderPicker(): string {
       <button id="picker-report" class="btn report-button" ${!pickerSelected || !skuDayReady() || !onlineForMutation() || busy ? "disabled" : ""}>BÁO HẾT HÀNG</button>
       ${!onlineForMutation() ? `<div class="notice warning">Cần kết nối mạng để báo hàng. Hệ thống không có chế độ offline.</div>` : ""}
     </div>
-    <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY & CHƯA XỬ LÝ</h1><p class="tiny muted">Hiển thị báo hôm nay và các báo cũ chưa hoàn tất.</p></div></div>
+    <div class="page-head"><div><h1 style="font-size:18px">BÁO HÔM NAY & CHƯA XỬ LÝ</h1><p class="tiny muted">Hôm nay và báo cũ chưa hoàn tất</p></div></div>
     <div class="history-list">${reports.length ? reports.map((row) => { const effectiveStatus = row.resolution === "SKIP_ALLOWED" ? "SKIP_ALLOWED" : row.batch_status || row.status; const state = effectiveStatus === "HAS_STOCK" ? "ok" : effectiveStatus === "SKIP_ALLOWED" ? "skip" : row.status === "WITHDRAWN" || effectiveStatus === "CLOSED" ? "closed" : "pending"; const canWithdraw = row.status === "OPEN" && !row.auto_skip_allowed_at && Date.now() <= Date.parse(row.withdraw_deadline_at); return `<article class="history-card ${state}"><div><strong>${esc(row.sku)}</strong><div class="product-name">${esc(row.product_name)}</div><div class="tiny muted">${esc(fmt(row.reported_at))} · ${esc(statusLabel(effectiveStatus))}${["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || "")) ? " · Hệ thống tự động do quá hạn" : ""}${row.result_event_id && !row.acknowledged_at ? " · Chưa xác nhận kết quả" : ""}</div>${row.auto_skip_deadline_at && !row.auto_skip_allowed_at ? `<div class="tiny muted">Mốc tự động: ${esc(fmt(row.auto_skip_deadline_at))}</div>` : ""}</div>${canWithdraw ? `<button class="btn secondary small" data-withdraw="${esc(row.ticket_id)}">Thu hồi</button>` : ""}</article>`; }).join("") : `<div class="card empty">Không có báo hàng phù hợp.</div>`}</div>
     <div class="user-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${pickerReportTotal.toLocaleString("vi-VN")}</span><div><button class="secondary" id="picker-history-prev" ${pickerReportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="picker-history-next" ${pickerReportOffset + PICKER_REPORT_PAGE_SIZE >= pickerReportTotal ? "disabled" : ""}>Trang sau</button></div></div>
   </section>`;
@@ -1863,7 +1863,7 @@ function renderSku(): string {
           <td>${esc(event.actor)}</td>
           <td>${esc(eventResult(event))}</td>
         </tr>`).join("")}</tbody></table></div>`
-      : '<p class="ops-note">Chưa có biên nhận Web hoặc Agent thành công trong dữ liệu hiện có.</p>';
+      : '<p class="ops-note">Chưa ghi nhận cập nhật thành công.</p>';
   return `<section class="ops-route sku-workspace">
     <div class="business-page-head"><div><h2>Danh mục SKU</h2></div></div>
     <section class="business-summary-grid sku-kpi-grid">
@@ -1900,10 +1900,10 @@ function renderSku(): string {
     <details id="sku-import-details" class="ops-panel sku-import-details" ${skuExcelExpanded || wb ? "open" : ""}>
       <summary><strong>Cập nhật danh mục từ Excel</strong></summary>
       <div class="sku-import-inner">
-        <p class="ops-note">File được kiểm tra trước khi ghi. SKU trùng mã khác tên cần được xác nhận. Có thể thêm cột Khu vực (LTA/Shelving); để trống giữ nguyên vị trí.</p>
+        <p class="ops-note">SKU trùng tên cần xác nhận; Khu vực để trống sẽ giữ vị trí cũ.</p>
         <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx"/></label></div>
         <label class="ops-note"><input type="checkbox" id="sku-full-replace" ${skuImportFullReplace ? "checked" : ""} ${profile?.role !== "ROOT" && profile?.role !== "ADMIN" ? "disabled" : ""}/> Thay toàn bộ danh mục SKU hiệu lực: SKU không có trong file sẽ bị ẩn, không xóa SKU hoặc lịch sử. Mặc định không bật (PATCH).</label>
-        ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : '<div class="ops-note">Danh mục chỉ thay đổi khi file hợp lệ và thao tác được xác nhận.</div>'}
+        ${skuImportProgress ? `<div class="message">${esc(skuImportProgress)}</div>` : '<div class="ops-note">Chưa xác nhận thì không ghi dữ liệu.</div>'}
         ${wb ? `<section class="ops-status-strip"><span><b>${wb.total_data_rows.toLocaleString("vi-VN")}</b> dòng dữ liệu</span><span><b>${wb.items.length.toLocaleString("vi-VN")}</b> SKU hợp lệ</span><span><b>${wb.conflicts.length}</b> xung đột</span></section>` : ""}
         ${wb && !wb.conflicts.length ? `<div class="ops-form-actions"><button class="primary" id="apply-sku-import" ${busy ? "disabled" : ""}>Kiểm tra & cập nhật danh mục SKU</button></div>` : ""}
       </div>
@@ -2827,11 +2827,11 @@ function renderLogs(): string {
       <label>Từ ngày<input type="date" name="from" value="${esc(logFrom)}" max="${esc(dateDaysAgo(0))}" required /></label>
       <label>Đến ngày<input type="date" name="to" value="${esc(logTo)}" max="${esc(dateDaysAgo(0))}" required /></label>
       <button class="secondary" type="submit">Áp dụng</button>
-      <span class="muted">Nhật ký hiện lưu tối đa 90 ngày; chỉ tải trang được yêu cầu.</span>
+      <span class="muted">Nhật ký lưu tối đa 90 ngày</span>
     </form>
     ${!auditActive && logView === "ANDROID" && profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Kiểm tra log Launcher trên Service</h3><p>Dành cho quản trị hệ thống. Chỉ truy vấn khi bấm nút, không tải log từ PDA và không tạo thêm lượt kiểm tra nền.</p></div>
+        <div class="ops-panel-title"><div><h3>Kiểm tra log Launcher trên Service</h3></div>
           <button type="button" class="secondary" id="check-launcher-logs">Kiểm tra service</button>
         </div>
         ${launcherLogDiagnostics ? `
@@ -2855,7 +2855,7 @@ function renderLogs(): string {
       </article>` : ""}
     ${auditActive ? `
       <article class="ops-panel audit-history-panel">
-        <div class="ops-panel-title"><div><h3>Lịch sử thao tác Admin / Reporter / Root</h3><p>Không ghi thao tác Picker vào danh sách này. Dữ liệu được lưu tại hệ thống nghiệp vụ và phân trang giới hạn.</p></div><span>${auditPageFrom}–${auditPageTo} / ${auditTotal.toLocaleString("vi-VN")}</span></div>
+        <div class="ops-panel-title"><div><h3>Lịch sử thao tác Admin / Reporter / Root</h3></div><span>${auditPageFrom}–${auditPageTo} / ${auditTotal.toLocaleString("vi-VN")}</span></div>
         <div class="user-pagination audit-pagination-top"><span>Hiển thị ${auditPageFrom}–${auditPageTo}</span><div><button class="secondary" id="audit-prev" ${auditOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="audit-next" ${auditOffset + AUDIT_PAGE_SIZE >= auditTotal ? "disabled" : ""}>Trang sau</button></div></div>
         <form id="audit-filter" class="report-filter-row audit-filter-row">
           <label>Quyền<select name="role"><option value="">Tất cả</option>${["REPORTER","ADMIN","ROOT"].map((role) => `<option value="${role}" ${auditRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
@@ -2913,7 +2913,7 @@ function renderSystemReset(): string {
   ];
   const allSelected = items.every((item) => systemResetSelected.has(item.scope));
   return `<section class="ops-route reset-workspace">
-    <div class="business-page-head"><div><h2>Đặt lại hệ thống</h2><p>Chỉ đưa dữ liệu runtime đã chọn về 0. Không thay source code, logic nghiệp vụ, giao diện, schema, Google Sheet/Drive hoặc Stable.</p></div></div>
+    <div class="business-page-head"><div><h2>Đặt lại hệ thống</h2><p>Chỉ xóa dữ liệu runtime đã chọn; giữ nguyên hệ thống và dữ liệu Google Sheets/Drive.</p></div></div>
     <div class="notice warning"><strong>ROOT được bảo toàn tuyệt đối:</strong> tài khoản ROOT, cơ chế mật khẩu một lần/khẩn cấp, Firebase identity và email khôi phục không nằm trong phạm vi reset.</div>
     <div class="reset-toolbar">
       <label class="reset-all"><input id="reset-select-all" type="checkbox" ${allSelected ? "checked" : ""}/> <strong>Chọn toàn bộ dữ liệu runtime</strong></label>
