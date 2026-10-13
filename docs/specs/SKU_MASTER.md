@@ -159,3 +159,9 @@ The protected manual button submits a fresh normal-Agent password or privileged 
 ## D167 2026-10-13 — Owner đồng ý dùng phiên Agent chính
 
 Với luồng tải SKU tự động hoặc thủ công của PRIMARY, lấy ngữ cảnh WMS xác thực từ trình duyệt hiện đang chạy bên trong Agent chính; không bắt buộc mở một trang ẩn mới nếu có phương pháp được hỗ trợ và kiểm thử an toàn. API phải giữ nguyên phạm vi read-only XLSX và giới hạn HY1 đã đăng ký; tuyệt đối không sửa trang Confirm PickList, không tạo thay đổi dữ liệu WMS. Không ghi nhật ký hay lưu thông tin phiên, không dùng lại phiên khi đã mất PRIMARY. Nghiệm thu thực tế đòi hỏi chứng minh xuất XLSX thành công, dữ liệu hợp lệ và biên nhận DONE từ Service. Phạm vi này được Owner duyệt nhưng phần lấy ngữ cảnh trực tiếp từ tab chính chưa triển khai/không được coi là PASS.
+
+## D167 2026-10-13 — P0 xác minh máy chính và ghi người cập nhật (Owner approved)
+
+Chỉ trong thao tác đồng bộ SKU được phép, Agent PRIMARY kiểm tra generation và làm mới Firestore lease hiện có theo khoảng cách tối thiểu 20 giây; không tạo heartbeat ghi Firestore thường trực, listener mới hoặc đọc dữ liệu WMS phụ. Worker vẫn yêu cầu chứng cứ chính xác roles+lease của Firebase hiện hành, TTL 45 giây; sai PRIMARY/generation/lease hoặc thiếu cấu hình phải dừng. Dữ liệu FULL đầu ngày và 2 lượt DELTA, các xung đột Web, quyền admin và biên nhận DONE không thay đổi.
+
+Mỗi biên nhận cập nhật thành công lưu `actor_id` và `actor_display` từ tài khoản Agent đã được Worker xác minh (`display_name` + `employee_code`, không nhận danh tính do client tự khai). UI lịch ba lượt và lịch thủ công đọc từ đúng response schedule/receipt đang có, thêm cột **Người cập nhật**; trong lúc thao tác thủ công hiển thị tên tài khoản phiên hiện tại. Không thêm truy vấn tìm user và không ghi user tại từng SKU. Chỉ ghi DONE khi Core đã xác nhận hoàn tất, không nhận DONE từ riêng Excel xuất ra.
