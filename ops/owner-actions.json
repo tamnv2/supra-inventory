@@ -5429,7 +5429,7 @@
     },
     {
       "id": "OA103",
-      "status": "D167_PR559_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING",
+      "status": "CLOSED_OWNER_D167_LIMITED_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED_2026_10_13",
       "title": "D167 Beta release technical PASS; Owner field acceptance pending",
       "resource_key": "repo-authority",
       "provider": "SUPRA Inventory Beta / Existing Web Android Windows Agent Service providers",
@@ -5447,7 +5447,7 @@
       "constraints": "NO_SECRET_OR_PERSONAL_IDENTIFIERS_IN_PUBLIC_GITHUB__STABLE_OWNER_GATED__NO_NEW_DEPLOY",
       "code_or_deploy_approval": true,
       "owner_field_pass": false,
-      "closed": false,
+      "closed": true,
       "owner_code_only_approval": true,
       "owner_deploy_approval": true,
       "accepted_runtime": "D167_PR559_BETA_VC106_AGENT_V126_WORKER_WEB_GATEWAY_CHANNEL_TECHNICAL_PASS__FLEET_UNVERIFIED",
@@ -5543,7 +5543,11 @@
         "fleet_installed": "UNVERIFIED",
         "field_owner_pass": false,
         "stable": "OWNER_GATED_UNTOUCHED"
-      }
+      },
+      "owner_result": "D167_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
+      "owner_acceptance_at_vn": "2026-10-13",
+      "remaining_owner_action": "NONE_FOR_D167_CLOSEOUT__UNPROVEN_FIELD_AND_USAGE_EVIDENCE_TRACKED_IN_D168_WHEN_REQUESTED",
+      "note_closure": "Owner explicitly approves deployed D167 Beta status; physical fleet/version, HA/ACK, complete UX and billed Usage gains not asserted. Stable untouched."
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
