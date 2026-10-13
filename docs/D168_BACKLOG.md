@@ -80,3 +80,24 @@ Hai yêu cầu trên chỉ được **ghi nhận** theo chỉ đạo Owner, **kh
 - Trạng thái: **GHI NHẬN, CHƯA PHÂN TÍCH/CODE/DEPLOY**.
 
 **Quyền thực hiện:** Bốn yêu cầu chỉ được ghi vào backlog D168 để chờ phân tích; không được coi là lệnh sửa mã nguồn hoặc triển khai Windows Agent, Android App hay Service. Usage ước lượng và phương án đồng bộ phải kiểm tra từ code/log thực tế trước khi trình duyệt.
+
+
+## D168-REQ-007 — Liên hệ nhóm Picker đang hoạt động (13/10/2026) — CHỜ PHÂN TÍCH
+
+**Yêu cầu Owner:** Trong Agent, cho phép **chọn nhiều Picker hoặc chọn tất cả Picker đang hoạt động** và thực hiện một trong hai thao tác chung:
+1. **Nhắn một nội dung giống nhau** tới tất cả Picker đã chọn, thay vì phải nhắn riêng từng người.
+2. **Gọi về bàn chuyên viên** tới tất cả Picker đã chọn cùng lúc bằng chức năng gọi hiện có.
+
+**Trạng thái:** `OWNER_REQUESTED_BACKLOG_ONLY__PENDING_ANALYSIS__NO_CODE_OR_DEPLOY`. Không tự triển khai hay thay đổi APK, Agent, Service, backend.
+
+**Điểm cần phân tích khi Owner yêu cầu:**
+- UI danh sách Picker online: chọn nhiều, chọn tất cả Picker **đang hoạt động thực sự**, bỏ chọn, số Picker được chọn, bộ lọc/tìm kiếm có tác động tới chọn tất cả không; hiển thị rõ danh sách/số lượng để xác nhận trước khi gửi.
+- **Đúng người nhận:** xác minh hiện diện và phiên hiện tại tại thời điểm phát lệnh; không gửi nhầm Picker logout, bị kick, offline, phiên cũ hoặc trùng tài khoản/thiết bị. Kết nối với D168-REQ-004 (độ chính xác danh sách Picker).
+- **Nhắn chung:** một nội dung do chuyên viên nhập, cùng nội dung cho nhóm; tận dụng đường gửi thông báo/tin nhắn hiện có. Quyền Agent/Invent, giới hạn nội dung, chống gửi trùng, phản hồi thành công/thất bại theo từng Picker và ghi log tối thiểu có kiểm soát.
+- **Gọi về bàn:** tái sử dụng giao diện cuộc gọi về bàn trên PDA và đường điều khiển đã có; làm rõ khi gọi hàng loạt thì từng Picker nhận/hiển thị/kết thúc thế nào, không cho cuộc gọi mới làm gián đoạn trái phép hoạt động xác nhận Picklist/ACK hoặc các cảnh báo ưu tiên.
+- **Tính đúng và vận hành:** so sánh kết quả từng người (đã gửi / đã nhận / chưa nhận / lỗi / không còn online), hạn chế thao tác phát lệnh hai lần, xem xét batch và giới hạn số thiết bị ở thời điểm burst; không tuyên bố tất cả đã nhận chỉ dựa vào kết quả server gửi.
+- **Usage:** 1 hành động gửi cho N Picker có thể cần tối thiểu N lần fanout/nhận ở thiết bị; không thể khẳng định **0 Usage** cho gửi thông điệp. Phương án ưu tiên dùng lại luồng thông điệp, relay/FCM hoặc event hiện có, không mở polling/listener/timer mới, không tăng số request kiểm tra trạng thái per-user; đo chi phí Cloudflare/Firebase và khả năng burst trước khi thiết kế cuối.
+- **An toàn/RBAC:** chỉ quyền được phép liên hệ Picker; tránh lộ thông tin của Picker khác, tránh thông điệp sai người, lặp lại hàng loạt và mất khả năng hủy/kết thúc gọi. Ghi log không chứa bí mật hay nội dung nhạy cảm vào public repo.
+- **Cần trình Owner sau phân tích:** wireframe bố trí chọn nhiều/chọn tất cả, luồng gửi thông báo/gọi và kết quả riêng từng Picker, phương án tối ưu Usage, ảnh hưởng Agent/Android/Service và test khi một số Picker offline giữa lúc gửi.
+
+**Giới hạn chỉ đạo hiện tại:** ghi vào backlog/continuity và chờ lệnh **phân tích**. Không được coi là lệnh `chạy code`, `triển khai` hoặc nâng phiên bản.
