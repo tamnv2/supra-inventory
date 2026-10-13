@@ -129,6 +129,44 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        // D167 P0: maintain the *existing* Firestore generation lease only while
+        // an authorized SKU mutation is in progress. Ordinary HA remains RTDB-first.
+        // This method adds no reads, new listeners or background heartbeat.
+        private readonly object _d167SkuLeaseGate = new object();
+        private long _d167SkuLeaseProofAtMs;
+        private string _d167SkuLeaseProofGeneration = "";
+
+        internal void EnsureD167SkuPrimaryLease(string expectedGeneration)
+        {
+            lock (_d167SkuLeaseGate)
+            {
+                if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY ||
+                    string.IsNullOrWhiteSpace(expectedGeneration) ||
+                    !string.Equals(_generation, expectedGeneration, StringComparison.Ordinal) ||
+                    !string.Equals(_primaryId, _instanceId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("D167_SKU_PRIMARY_CHANGED");
+                var now = NowMs();
+                if (_d167SkuLeaseProofGeneration == expectedGeneration &&
+                    _d167SkuLeaseProofAtMs > 0 && now >= _d167SkuLeaseProofAtMs &&
+                    now - _d167SkuLeaseProofAtMs < 20000)
+                    return;
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
+                    throw new InvalidOperationException("D167_SKU_AGENT_SESSION_REQUIRED");
+                // Existing PATCH only; independent Worker roles+lease check remains
+                // mandatory for each manual-start/claim/stage/preview/publish.
+                WritePrimaryLease(session);
+                if (_role != FirestoreAgentRole.PRIMARY ||
+                    !string.Equals(_generation, expectedGeneration, StringComparison.Ordinal) ||
+                    !string.Equals(_primaryId, _instanceId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("D167_SKU_PRIMARY_CHANGED");
+                _d167SkuLeaseProofGeneration = expectedGeneration;
+                _d167SkuLeaseProofAtMs = NowMs();
+                _log("D167_SKU primary_lease=REFRESH_PASS scope=ACTIVE_SKU_ONLY");
+            }
+        }
+
         internal bool IsLeader { get { return _role == FirestoreAgentRole.PRIMARY; } }
         internal bool CanAcknowledgePresenceControl
         {
