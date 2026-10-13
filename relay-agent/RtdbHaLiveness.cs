@@ -37,6 +37,8 @@ namespace SupraInventoryRelayAgent
         private long _heartbeatAtMs;
         private bool _lastWriteHealthy = true;
         private bool _lastStreamHealthy = true;
+        private long _streamUnavailableSinceMs;
+        private int _streamFailureCount;
 
         internal RtdbHaLiveness(string instanceId, Action<string> log, Action updated)
         {
@@ -238,7 +240,14 @@ namespace SupraInventoryRelayAgent
                     {
                         if (reader == null) throw new IOException("RTDB stream unavailable.");
                         if (!_lastStreamHealthy)
-                            _log("RTDB HA realtime observer recovered.");
+                        {
+                            _log("RTDB HA realtime observer recovered. duration_ms=" +
+                                 Math.Max(0L, NowMs() - _streamUnavailableSinceMs) +
+                                 " retries=" + _streamFailureCount);
+                            AgentConnectionDiagnostics.Recovered("RTDB_HA_STREAM", _log);
+                        }
+                        _streamUnavailableSinceMs = 0;
+                        _streamFailureCount = 0;
                         _lastStreamHealthy = true;
                         FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_SSE", "CONNECTED");
                         // Firebase EventSource frames are "event:" + "data:" + a blank line.
@@ -276,6 +285,9 @@ namespace SupraInventoryRelayAgent
                 {
                     if (token.IsCancellationRequested) return;
                     FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_SSE_FAILURE", SafeFailureCode(ex));
+                    if (_streamUnavailableSinceMs <= 0) _streamUnavailableSinceMs = NowMs();
+                    _streamFailureCount++;
+                    AgentConnectionDiagnostics.ShouldLogFailure("RTDB_HA_STREAM", ex, _log);
                     if (_lastStreamHealthy)
                     {
                         _log("RTDB HA realtime observer unavailable; Firestore lease fallback armed type=" + ex.GetType().Name +
