@@ -158,6 +158,34 @@ def main() -> None:
                     fail("D167 Agent v128 Owner decision journal missing")
             if "## D167 2026-10-13 — Owner xác nhận triển khai Agent Beta" not in (ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
                 fail("D167 Agent v128 Owner decision spec missing")
+        elif owner_latest == "2026-10-13 SKU_WEB_PROVENANCE_BETA_APPROVED":
+            authorization = load("ops/d167-release-authorization.json")
+            expected_ref = "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_SKU_PROVENANCE_BETA"
+            if journal.get("pr") != 577 or journal.get("working_branch") != "d167-web-sku-provenance-layout-20261013":
+                fail("D167 SKU catalog provenance PR/branch mismatch")
+            if (gate.get("code_permission") is not True or gate.get("merge_permission") is not True
+                    or gate.get("beta_deploy_permission") is not True or gate.get("stable_deploy_permission") is not False
+                    or gate.get("approved_components") != ["worker"]
+                    or gate.get("new_owner_approval_required") is not False):
+                fail("D167 SKU catalog Owner-approved Beta scope mismatch")
+            sha = authorization.get("approved_source_sha")
+            if (authorization.get("status") != "OWNER_EXPLICIT_DEPLOY_APPROVED"
+                    or authorization.get("change_id") != "D167"
+                    or authorization.get("approved_at_vn") != "2026-10-13"
+                    or authorization.get("owner_approval_reference") != expected_ref
+                    or authorization.get("approved_components") != ["worker"]
+                    or not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha)
+                    or sha != gate.get("approved_source_sha")):
+                fail("D167 SKU Web/Worker receipt source/role mismatch")
+            owner = {e.get("id"): e for e in entries}.get("D167-E049", {})
+            if (owner.get("kind") != "OWNER_COMMAND" or owner.get("owner_approval") is not True
+                    or owner.get("date_vn") != "2026-10-13"):
+                fail("D167 SKU Web approval checkpoint missing")
+            if state.get("change_control", {}).get("pr577_release_gate") != expected_ref + "__STABLE_UNTOUCHED":
+                fail("D167 Web/Worker state gate mismatch")
+            if "## D167 — Web Danh mục SKU nguồn xác thực (Owner 2026-10-13)" not in (
+                    ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
+                fail("D167 SKU Web approved decision not recorded")
         elif owner_latest == "2026-10-13 AGENT_V130_BETA_ONLY_APPROVED":
             # Subsequent explicit Owner command: Agent-only fixes from 12 October logs,
             # with combined code+Beta deployment. This is NOT an authorization for Web,
