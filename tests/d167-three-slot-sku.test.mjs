@@ -541,3 +541,18 @@ test("D168 Office network automatic SKU export precedes any WLAN transition", as
   assert.match(workerRoute,/var workbook=officeWorkbook \?\? D167SkuBrowserExport\.Export/);
   assert.match(client,/D168NetworkRoute\.ProbeWorker\(actor\.IdToken\)/);
 });
+
+test("D168 manual SKU on Office exports before WLAN change; Worker validates proof before publish", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const manual=coordinator.slice(coordinator.indexOf("internal void RunManual("),
+    coordinator.indexOf("internal void OnPrimaryOrWmsReady("));
+  const wms=manual.indexOf("officeWorkbook=D167SkuBrowserExport.Export");
+  const network=manual.indexOf("workerNetworkScope=openWorkerNetwork()");
+  const proof=manual.indexOf("service.ManualStart(");
+  const reserve=manual.indexOf("service.Reserve(");
+  const publish=manual.indexOf("service.UploadAndPublish(");
+  assert.ok(wms>=0 && network>wms && proof>network && reserve>proof && publish>reserve);
+  assert.match(manual,/if\(service\.WorkerRouteStatus\(\)=="NETWORK_UNREACHABLE"\)/);
+  assert.match(manual,/var workbook=officeWorkbook \?\? D167SkuBrowserExport\.Export/);
+});
