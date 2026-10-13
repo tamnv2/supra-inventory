@@ -7,18 +7,18 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E016",
-    "date_vn": "2026-10-13"
+    "id": "D168-E017",
+    "date_vn": "2026-10-14"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 D168_OWNER_FUNC_REQUIREMENTS_SKU_JOB_WIFI_USAGE_RETIREMENT__CODE_NOT_YET_APPROVED",
+    "owner_latest": "2026-10-14 D168_FIRESTORE_CRITICAL_CLOUD_FIRST_OPTIONAL__CODE_AND_DEPLOY_NOT_APPROVED",
     "code_permission": false,
     "merge_permission": true,
     "beta_deploy_permission": false,
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR591_D168_OWNER_JOB_WIFI_ROUTING_DESIGN_ONLY",
+    "current_pr_scope": "PR591_D168_ROUTING_AND_USAGE_ACK_ANALYSIS_ONLY",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -375,6 +375,41 @@
       "supersedes": [
         "D168-E015"
       ]
+    },
+    {
+      "id": "D168-E017",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner confirms Firebase-critical dual-network operations, Cloudflare-on-demand optional actions and coalesced shared usage; requests success-only Picklist ACK economic evaluation",
+      "status": "OWNER_ROUTING_PRINCIPLES_ACCEPTED__SUCCESS_ACK_RETAIN_RECOMMENDED__CODE_DEPLOY_UNAPPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Owner approves retaining Firebase Auth/Firestore for Agent login, Picklist confirmation and result ACK, online Picker list, Agent fleet/HA presence and cross-Agent SKU job status; critical responsiveness must work across Office and Internet where field-proven.",
+        "Other deferrable Agent actions may route directly to registered Inventory Beta Worker with managed on-demand WLAN switch when actual Worker connectivity fails; preserve Firebase/FCM downstream notifications and RBAC where required.",
+        "Owner requests one shared carrier for compatible A->B operations to reduce provider usage without lowering latency, correctness or availability; only coalesce work with same timing, recipients and authority.",
+        "On manual click needing Cloudflare, one bounded Worker reachability check can classify blockage even from Office; 60s nonresponse permits safe network switch only, not privileged action consent or interrupting PRIMARY/Confirm.",
+        "Owner asks to evaluate whether the PDA needs a success reply at all, while keeping error/failure plus causes; this is a QUESTION TO ANALYZE, not approval to remove ACK.",
+        "Source confirms current Android RelayPocClient.kt waits for status ACK via Firestore listener and falls back to a bounded server GET after about 20s; PickerController.kt clears input and reports CONFIRMED only after ACK; Agent FirestoreConfirmationTransport.cs uses ONE terminal job-document commit for both success and failure, not separate success-only second write.",
+        "Dropping success ACK would create ambiguous pending/timeout/duplicate Picklist risk. Hiding success UI would save ZERO Firestore doc operations. Source does not identify a redundant FCM success push on current confirmation path.",
+        "Source service/src/index.ts GET /health is nontrivial, calls Core and agent credential migration; MUST NOT be used as automatic read-only Wi-Fi capability probe. Prefer existing authenticated GET action or future tiny side-effect-free beta route.",
+        "Current FirestoreAgentSync.cs already piggybacks Picker/fleet/call/kick counters in existing agent_sync CAS snapshot, with no-change suppression. Putting hot events there would amplify read fanout to every Agent listener, not necessarily save cost.",
+        "Firefox/Firestore listener charged per doc updated to each listener; official https://firebase.google.com/docs/firestore/pricing. No actual before-after usage or field network permission measured."
+      ],
+      "alternatives": [
+        "Preferred: Keep one terminal durable ACK per Picklist, preserve immediate PDA unblock, make success UI compact but still visible and log/audit; no silent success.",
+        "Bundle only equal-cadence low-frequency Agent sync/presence/SKU job transitions using existing CAS and subscription; do not add per-chunk/per-second writes.",
+        "For Worker reachability run a nonmutating business GET only on command; avoid service /health side effects and new periodic probes.",
+        "Optional single/bulk User kick already authoritatively executes via Worker but Firestore session signal remains to make PDA logout prompt; preserve business double confirmation independent of 60s WLAN consent."
+      ],
+      "open_questions": [
+        "Does Owner approve keeping single minimal successful ACK after reading its verified costs and correctness role?",
+        "What exact existing in-scope lightweight Worker endpoint can be reused for each operation without unwanted side effects or DB reads?",
+        "What are measured per-day job ACK doc writes, listener reads/reconnect and agent_sync fanout before changing projection shape?",
+        "Can Office dual-network operation and 60s network switch preserve PRIMARY standby/WMS SLA in physical laptops?",
+        "Is separate pre-admission for SKU feasible without exhausting Google Gateway quota or using an out-of-scope Firestore collection?"
+      ],
+      "next_action": "Owner review recommended retained durable success ACK and provider lanes; await explicit 'chạy code' or 'triển khai' instruction. No runtime changes authorized.",
+      "evidence": "docs/D168_FIRESTORE_CLOUDFLARE_USAGE_ACK_2026-10-14.md; docs/D168_AGENT_SKU_JOB_WIFI_ROUTING_OWNER_2026-10-13.md; source android/.../RelayPocClient.kt, PickerController.kt, relay-agent/FirestoreConfirmationTransport.cs, FirestoreAgentSync.cs, service/src/index.ts; official firebase Firestore pricing."
     }
   ],
   "resume": {
@@ -383,7 +418,8 @@
       "D168 explicitly opened for capturing new issues/logs and analyzing before implementation under Owner commands",
       "GitHub manifest/full bootstrap and branch/PR discussion checkpoints remain mandatory",
       "D168-E016 Owner fixed SKU job continuation across HA loss, bounded 60s idle-only Wi-Fi transition, and direct Cloudflare optional actions; code/deploy still separate",
-      "D168-E016 Owner retires Agent Usage D160 auto refresh and D166 Usage ZIP, preserving operational log archive"
+      "D168-E016 Owner retires Agent Usage D160 auto refresh and D166 Usage ZIP, preserving operational log archive",
+      "D168-E017: Owner accepts Firebase Auth/Firestore dual-network critical lanes and on-demand Cloudflare direct optional actions, preserving required Android notification and network safety"
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -392,7 +428,8 @@
     ],
     "in_progress": [
       "D168 PR590: Agent v130 Office/Internet matrix, docs-only checkpoint; CI/merge pending",
-      "D168 PR591 source-backed SKU job/Windows Wi-Fi switching design; source and field test pending"
+      "D168 PR591 source-backed SKU job/Windows Wi-Fi switching design; source and field test pending",
+      "D168-E017 Picklist success-only ACK proposal source-audited; recommend KEEP durable success ACK; pending Owner view, no source authorization"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -412,7 +449,8 @@
       "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics",
       "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval",
       "D168-REQ-011: Office-only WMS Excel GET + Google Apps Script to Worker SKU uplink; field proof on script.googleusercontent.com and UrlFetch quota; no code/deploy permission.",
-      "D168-E016 selected lease preadmission trust mechanism and approved scoped saved Windows Wi-Fi profiles need verification before implementation"
+      "D168-E016 selected lease preadmission trust mechanism and approved scoped saved Windows Wi-Fi profiles need verification before implementation",
+      "D168-E017 no silent success: wait explicit Owner direction on minimal durable ACK; current Android requires ACK for <20s reliable terminal outcome"
     ],
     "blocked": [],
     "next_actions": [
@@ -422,8 +460,9 @@
       "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command",
       "Verify SKU schedule action and durable 19:00 receipt using existing authorized status route on Office-only network, then compare PDA without changing business state",
       "Review Agent v130 per-feature Office/Internet matrix and verify field-only routes; await Owner instruction for any code or deploy",
-      "Await explicit code instruction for D168 Agent D160/D166 Usage retirement, independent Worker SKU lease, safe WLAN handoff and direct Worker upload"
+      "Await explicit code instruction for D168 Agent D160/D166 Usage retirement, independent Worker SKU lease, safe WLAN handoff and direct Worker upload",
+      "D168-E017 design single-flight real Worker reachability probe not GET /health and measure current Firestore CAS + listener read costs; no implementation until Owner 'chạy code'"
     ],
-    "release_boundary": "D168_OWNER_FUNC_DESIGN_CAPTURED__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
+    "release_boundary": "D168_E016_E017_OWNER_ROUTING_DESIGN_ACCEPTED__NO_CODE_OR_DEPLOY_AUTHORIZATION__STABLE_OWNER_GATED"
   }
 }
