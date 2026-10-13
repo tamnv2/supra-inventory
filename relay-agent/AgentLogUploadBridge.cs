@@ -281,19 +281,22 @@ namespace SupraInventoryRelayAgent
                 if (string.Equals(fingerprint, "GOOGLE_CONNECTIVITY", StringComparison.Ordinal) && state.IncidentOpen)
                 {
                     state.Suppressed++;
-                    _log("AGENT LOG error_upload=SUPPRESSED reason=ACTIVE_INCIDENT kind=GOOGLE_CONNECTIVITY count=" + state.Suppressed);
+                    if (state.Suppressed == 1 || state.Suppressed % 20 == 0)
+                        _log("AGENT LOG error_upload=SUPPRESSED reason=ACTIVE_INCIDENT kind=GOOGLE_CONNECTIVITY count=" + state.Suppressed);
                     return;
                 }
                 if (state.LastSentUtc != DateTime.MinValue && now - state.LastSentUtc < ErrorFingerprintWindow)
                 {
                     state.Suppressed++;
-                    _log("AGENT LOG error_upload=SUPPRESSED reason=SAME_FINGERPRINT window=10m count=" + state.Suppressed);
+                    if (state.Suppressed == 1 || state.Suppressed % 20 == 0)
+                        _log("AGENT LOG error_upload=SUPPRESSED reason=SAME_FINGERPRINT window=10m count=" + state.Suppressed);
                     return;
                 }
                 if (_errorWindowSent >= MaxImmediateErrorsPerWindow)
                 {
                     state.Suppressed++;
-                    _log("AGENT LOG error_upload=SUPPRESSED reason=GLOBAL_FUSE max=6 window=10m");
+                    if (state.Suppressed == 1 || state.Suppressed % 20 == 0)
+                        _log("AGENT LOG error_upload=SUPPRESSED reason=GLOBAL_FUSE max=6 window=10m count=" + state.Suppressed);
                     return;
                 }
 

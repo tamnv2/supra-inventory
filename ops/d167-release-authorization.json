@@ -2,12 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "5fdb66ca2653da2cc86ef696b7765ec64b0fdae0",
+  "approved_source_sha": "c982f60d38943460d146ef19e08dbfe088b5835f",
   "approved_components": [
-    "worker",
     "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA",
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA",
   "approved_at_vn": "2026-10-13",
-  "note": "Owner explicitly approves D167 P0 Beta release for existing Worker and Windows Agent v129, fixing existing RTDB/Firestore PRIMARY lease mismatch only during active SKU jobs, with Vietnamese status and Worker-authenticated operator receipt. No new resource or steady polling; security HA fail-closed, current Confirm/PDA and WMS export untouched, Beta Worker/Web static assets build is incidental to existing deploy workflow, Stable gated. Other Agent errors postponed pending full logs. Exact source candidate 52950097ac8f5d878ea9774eaaea3434fc9d4825; field SKU DONE and Owner PASS not yet proven."
+  "note": "Owner explicitly approved code and scoped Beta deployment for five Agent-only non-SKU fixes based on 12 Oct logs. Agent v130 source at c982f60d: incident classification/recovery and log coalescing, stale auxiliary WMS session health guard, RTDB flap metrics, Picker bulk-revoke 403 sanitized denial, local upload log noise reduction. No Web/Service/Android/RTDB rules/Firestore data changes, no Stable, no forced Agent update. PR574 exact CI/authority/continuity PASS required before merge. Manual standby-first rollout after live readiness; field/Owner PASS not yet claimed. Web SKU layout/provenance analysis is proposal only."
 }

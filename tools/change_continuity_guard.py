@@ -158,6 +158,37 @@ def main() -> None:
                     fail("D167 Agent v128 Owner decision journal missing")
             if "## D167 2026-10-13 — Owner xác nhận triển khai Agent Beta" not in (ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
                 fail("D167 Agent v128 Owner decision spec missing")
+        elif owner_latest == "2026-10-13 AGENT_V130_BETA_ONLY_APPROVED":
+            # Subsequent explicit Owner command: Agent-only fixes from 12 October logs,
+            # with combined code+Beta deployment. This is NOT an authorization for Web,
+            # Service, Android, Firebase/RTDB rule changes or Stable.
+            authorization = load("ops/d167-release-authorization.json")
+            expected_ref = "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA"
+            if journal.get("pr") != 574 or journal.get("working_branch") != "d167-log-review-20261012-20261013":
+                fail("D167 Agent v130 exact PR scope mismatch")
+            if (gate.get("code_permission") is not True or gate.get("merge_permission") is not True
+                    or gate.get("beta_deploy_permission") is not True or gate.get("stable_deploy_permission") is not False
+                    or gate.get("new_owner_approval_required") is not False
+                    or gate.get("approved_components") != ["agent"]):
+                fail("D167 Agent v130 component/Owner gate mismatch")
+            sha = authorization.get("approved_source_sha")
+            if (authorization.get("schema_version") != 1 or authorization.get("change_id") != "D167"
+                    or authorization.get("status") != "OWNER_EXPLICIT_DEPLOY_APPROVED"
+                    or authorization.get("approved_at_vn") != "2026-10-13"
+                    or authorization.get("owner_approval_reference") != expected_ref
+                    or authorization.get("approved_components") != ["agent"]
+                    or not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha)
+                    or sha != gate.get("approved_source_sha")):
+                fail("D167 Agent v130 exact approved source/receipt mismatch")
+            if state.get("change_control", {}).get("pr574_release_gate") != expected_ref + "__STABLE_UNTOUCHED":
+                fail("D167 Agent v130 change state release gate mismatch")
+            approved = {e.get("id"): e for e in entries if e.get("owner_approval") is True}
+            entry = approved.get("D167-E047", {})
+            if entry.get("kind") != "OWNER_COMMAND" or entry.get("date_vn") != "2026-10-13":
+                fail("D167 Agent v130 Owner command checkpoint missing")
+            if "## D167 — Agent-only non-SKU v130 (Owner 2026-10-13)" not in (
+                    ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
+                fail("D167 Agent v130 Owner decision ledger missing")
         elif owner_latest == "2026-10-13 PROCESS_POLICY_ONLY_NO_DEPLOY":
             # A later D167 Owner process/scope decision updates the active
             # journal but does NOT authorize any new executable deployment.

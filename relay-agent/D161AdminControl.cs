@@ -188,7 +188,38 @@ namespace SupraInventoryRelayAgent
                     out body);
             }
             if (status != 200)
-                throw new InvalidOperationException("Không lấy được số Picker hiện tại. HTTP " + status.ToString(CultureInfo.InvariantCulture));
+            {
+                // A 403 is a server-side authorization decision, not a token-expiry retry.
+                // Preserve fail-closed behavior and expose only a bounded code, never the response body.
+                var serverReason = "UNSPECIFIED";
+                try
+                {
+                    var detail = new JavaScriptSerializer().DeserializeObject(body) as Dictionary<string, object>;
+                    var candidate = D161MapString(detail, "error") ?? "";
+                    if (candidate.Length > 0 && candidate.Length <= 64)
+                    {
+                        var safe = true;
+                        foreach (var ch in candidate)
+                        {
+                            if (!((ch >= 'A' && ch <= 'Z') ||
+                                  (ch >= 'a' && ch <= 'z') ||
+                                  (ch >= '0' && ch <= '9') || ch == '_' || ch == '-'))
+                            {
+                                safe = false;
+                                break;
+                            }
+                        }
+                        if (safe) serverReason = candidate;
+                    }
+                }
+                catch { }
+                Log("D161 BULK_REVOKE phase=PREVIEW status=BLOCKED http=" +
+                    status.ToString(CultureInfo.InvariantCulture) +
+                    " server_reason=" + serverReason + " local_privilege=PASS refresh_policy=401_ONLY");
+                throw new InvalidOperationException(status == 403
+                    ? "Máy chủ từ chối quyền xem số Picker (HTTP 403). Không thu hồi phiên nào. Cần kiểm tra quyền tài khoản Agent trên máy chủ."
+                    : "Không lấy được số Picker hiện tại. HTTP " + status.ToString(CultureInfo.InvariantCulture));
+            }
 
             var root = new JavaScriptSerializer().DeserializeObject(body) as Dictionary<string, object>;
             return Math.Max(0, D161MapInt(root, "authenticated_picker_android_sessions"));
