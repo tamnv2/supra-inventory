@@ -571,6 +571,7 @@ namespace SupraInventoryRelayAgent
                 DisplayName = item.DisplayName ?? "",
                 ContractorName = item.ContractorName ?? "",
                 DeviceId = item.DeviceId ?? "",
+                AppVersion = item.AppVersion ?? "",
                 LoginAt = item.LoginAt ?? "",
                 DeviceSeenAt = item.DeviceSeenAt ?? "",
                 Status = "PDA_READY",
@@ -608,7 +609,8 @@ namespace SupraInventoryRelayAgent
                     { "user_id", item.UserId ?? "" }, { "firebase_uid", item.FirebaseUid ?? "" },
                     { "employee_code", item.EmployeeCode ?? "" }, { "display_name", item.DisplayName ?? "" },
                     { "contractor_name", item.ContractorName ?? "" },
-                    { "device_id", item.DeviceId ?? "" }, { "login_at", item.LoginAt ?? "" },
+                    { "device_id", item.DeviceId ?? "" }, { "app_version", item.AppVersion ?? "" },
+                    { "login_at", item.LoginAt ?? "" },
                     { "source", item.Source ?? "LOGIN" }, { "session_generation", item.SessionGeneration }
                 });
             return _json.Serialize(list);
@@ -666,7 +668,8 @@ namespace SupraInventoryRelayAgent
                     UserId = S(map, "user_id"), FirebaseUid = S(map, "firebase_uid"),
                     EmployeeCode = S(map, "employee_code"), DisplayName = S(map, "display_name"),
                     ContractorName = S(map, "contractor_name"),
-                    DeviceId = S(map, "device_id"), LoginAt = S(map, "login_at"),
+                    DeviceId = S(map, "device_id"), AppVersion = S(map, "app_version"),
+                    LoginAt = S(map, "login_at"),
                     Status = "PDA_READY", Source = S(map, "source") == "PICKLIST" ? "PICKLIST" : "LOGIN",
                     SessionGeneration = L(map, "session_generation")
                 });
