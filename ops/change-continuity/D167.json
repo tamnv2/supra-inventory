@@ -24,7 +24,7 @@
     "current_pr_scope": "PR578_WEB_310_ACCOUNT_MEAL_HISTORY_WORKER_BETA_ONLY__NO_AGENT_ANDROID_STABLE",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "ea0ff5124b6a759056cb05eb2fafe8183379039c",
+    "approved_source_sha": "6280e6691f10b5b610a9a8c866c08f7c2e784191",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -1117,7 +1117,7 @@
         "Web v3.1.0 reduces owner-like explanatory copy, consolidates manual/Excel Picker data entry into the People screen, contextual per-row menus and selection-based role-compatible Picker/global actions with an authoritative expected count, protecting special login admin and tamnv2 from managed deletion.",
         "Current Web/Worker public endpoints, existing data, Role/RBAC, picker reporting, manual Picklist confirmation, Windows Agent, Android, WMS, Firebase/RTDB rules, Stable and currently running service remain unchanged until the exact PR head passes product, authority/continuity and source release guard checks.",
         "Stable OWNER-GATED and never implicitly deployed. After PR tests PASS, merge PR578 and deploy through scoped existing Beta Worker Web workflow only, then confirm Cloudflare version/source hash and field health before claiming technical release.",
-        "After final source/test/guard updates, source ancestor pinned at ea0ff5124b6a759056cb05eb2fafe8183379039c; all later authorization/state files are metadata and do not extend executable scope."
+        "Source code/test/guard and Web package SemVer anchored at 6280e6691f10b5b610a9a8c866c08f7c2e784191; later release receipt and project-state changes only contain metadata."
       ],
       "alternatives": [
         "Do not launch if typecheck/CI/authority guard/product regression fails; fix the same D167 PR and recalculate release SHA.",
