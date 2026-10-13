@@ -46,6 +46,7 @@ namespace SupraInventoryRelayAgent
         internal long ConfirmedTotal;
         internal long ErrorTotal;
         internal string PickerHistoryJson = "";
+        internal string SkuStatusJson = "";
     }
 
     internal sealed class FirestoreAgentSyncClient
@@ -158,6 +159,16 @@ namespace SupraInventoryRelayAgent
                 }
             }
             throw last ?? new InvalidOperationException("Không cập nhật được Agent sync.");
+        }
+
+        // One compact terminal Worker receipt summary per SKU slot, piggybacked
+        // on the existing authenticated agent_sync CAS document and listener.
+        // No new Firestore collection, listener or status polling.
+        internal AgentSyncSnapshot SetSkuStatus(AgentSession session,string json)
+        {
+            if(string.IsNullOrWhiteSpace(json) || json.Length>3500)
+                throw new InvalidOperationException("D167_SKU_SHARED_STATUS_INVALID");
+            return Mutate(session,snapshot=>snapshot.SkuStatusJson=json,"AGENT_SYNC_SKU_TERMINAL");
         }
 
         internal AgentSyncSnapshot Reconcile(
@@ -422,6 +433,7 @@ namespace SupraInventoryRelayAgent
             snapshot.Kicks = ParseKicks(FieldString(fields, "kicks_json"));
             snapshot.Fleet = ParseFleet(FieldString(fields, "fleet_json"));
             snapshot.PickerHistoryJson = FieldString(fields, "picker_history_json");
+            snapshot.SkuStatusJson = FieldString(fields, "sku_status_json");
             Normalize(snapshot);
             return snapshot;
         }
@@ -444,7 +456,8 @@ namespace SupraInventoryRelayAgent
                 { "received_total", Math.Max(0L, snapshot.ReceivedTotal) },
                 { "confirmed_total", Math.Max(0L, snapshot.ConfirmedTotal) },
                 { "error_total", Math.Max(0L, snapshot.ErrorTotal) },
-                { "picker_history_json", snapshot.PickerHistoryJson ?? "" }
+                { "picker_history_json", snapshot.PickerHistoryJson ?? "" },
+                { "sku_status_json", snapshot.SkuStatusJson ?? "" }
             });
         }
 
@@ -463,7 +476,8 @@ namespace SupraInventoryRelayAgent
                 { "received_total", IntField(snapshot.ReceivedTotal) },
                 { "confirmed_total", IntField(snapshot.ConfirmedTotal) },
                 { "error_total", IntField(snapshot.ErrorTotal) },
-                { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") }
+                { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") },
+                { "sku_status_json", StringField(snapshot.SkuStatusJson ?? "") }
             };
         }
 
@@ -518,7 +532,8 @@ namespace SupraInventoryRelayAgent
                 ReceivedTotal = Math.Max(0L, source.ReceivedTotal),
                 ConfirmedTotal = Math.Max(0L, source.ConfirmedTotal),
                 ErrorTotal = Math.Max(0L, source.ErrorTotal),
-                PickerHistoryJson = source.PickerHistoryJson ?? ""
+                PickerHistoryJson = source.PickerHistoryJson ?? "",
+                SkuStatusJson = source.SkuStatusJson ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
             {
