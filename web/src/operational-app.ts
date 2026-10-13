@@ -1977,7 +1977,7 @@ function renderUsers(): string {
     <div class="workspace-tabs users-mode-tabs" role="tablist" aria-label="Quản lý nhân sự">
       <button type="button" role="tab" class="workspace-tab ${usersView === "list" ? "active" : ""}" data-users-mode="list" aria-selected="${usersView === "list"}">Danh sách tài khoản</button>
       ${canCreateManaged ? `<button type="button" role="tab" class="workspace-tab ${usersView === "create" ? "active" : ""}" data-users-mode="create" aria-selected="${usersView === "create"}">Thêm tài khoản</button>` : ""}
-      ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? `<button type="button" role="tab" class="workspace-tab ${usersView === "import" ? "active" : ""}" data-users-mode="import" aria-selected="${usersView === "import"}">Nhập nhân sự / Excel</button>` : ""}
+      ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? `<button type="button" role="tab" class="workspace-tab ${usersView === "import" ? "active" : ""}" data-users-mode="import" aria-selected="${usersView === "import"}">Thêm Picker / Excel</button>` : ""}
     </div>
     <section class="business-summary-grid" ${usersView === "list" ? "" : "hidden"}>
       <article class="business-summary-card primary"><span>Tài khoản phù hợp</span><strong>${userTotal.toLocaleString("vi-VN")}</strong><small>Theo bộ lọc hiện tại</small></article>
@@ -2015,7 +2015,7 @@ function renderUsers(): string {
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
-          const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role);
+          const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role) && !privilegedOneTimeManagedUser(user);
           const selectable = !usersBulkMode ? `<span class="bulk-not-applicable">—</span>` : isPicker
             ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
             : rootCanDeleteManaged
@@ -5052,9 +5052,10 @@ function bindSection(): void {
     if (seq === hrWebRequestSeq) {
       hrWebRows = []; hrWebPreview = null; hrWebFilename = "";
     }
+    usersView = "list"; userOffset = 0; userQuery = ""; userRole = ""; userStatus = ""; userShortageReporting = "";
     await loadUsers();
-    patchActiveSection(true);
-    setNotice("success", `Đã ghi nhận ${applied} nhân sự. Tài khoản không có trong file vẫn được giữ nguyên.`);
+    patchActiveSection(false);
+    setNotice("success", `Đã ghi nhận ${applied} Picker. Dữ liệu không có trong file được giữ nguyên.`);
   }));
   document.querySelector<HTMLFormElement>("#hr-source-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -5112,6 +5113,8 @@ function bindSection(): void {
         String(data.get("password") || ""),
         String(data.get("authEmail") || "").trim(),
       );
+      usersView = "list";
+      userOffset = 0; userQuery = ""; userRole = ""; userStatus = ""; userShortageReporting = "";
       await loadUsers();
       setNotice("success", "Đã tạo tài khoản.");
     });
