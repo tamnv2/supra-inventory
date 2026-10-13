@@ -6,6 +6,8 @@ type DeviceBody = {
   device_id?: string;
   token?: string;
   platform?: string;
+  version_name?: string;
+  version_code?: number;
 };
 
 function response(payload: unknown, status = 200): Response {
@@ -43,7 +45,7 @@ async function d153PickerPresenceSemanticSignature(items: Array<Record<string, u
     user_id: String(item.user_id || ""), firebase_uid: String(item.firebase_uid || ""),
     session_generation: Number(item.session_generation || 0), source: String(item.source || "LOGIN"),
     employee_code: String(item.employee_code || ""), display_name: String(item.display_name || ""),
-    device_id: String(item.device_id || ""), login_at: item.login_at == null ? null : String(item.login_at),
+    device_id: String(item.device_id || ""), app_version: String(item.app_version || ""), login_at: item.login_at == null ? null : String(item.login_at),
     status: String(item.status || "PDA_READY"),
   }));
   return d153Sha256(JSON.stringify(semantic));
@@ -60,17 +62,23 @@ async function upsertDevice(state: DurableObjectState, request: Request): Promis
     return response({ error: "INVALID_NOTIFICATION_DEVICE" }, 400);
   }
   const at = new Date().toISOString();
+  // Version is captured during the EXISTING FCM registration, never via a new presence heartbeat.
+  const code = Number(body.version_code || 0);
+  const name = String(body.version_name || "").trim();
+  const appVersion = platform === "ANDROID" && Number.isSafeInteger(code) && code >= 1 && code < 1_000_000
+      && /^[A-Za-z0-9._-]{1,64}$/.test(name) ? `vc${code} · ${name}` : "";
   state.storage.sql.exec(
-    `INSERT INTO fcm_devices (device_id, user_id, platform, token, enabled, last_seen_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 1, ?, ?, ?)
+    `INSERT INTO fcm_devices (device_id, user_id, platform, token, enabled, last_seen_at, created_at, updated_at, app_version)
+     VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)
      ON CONFLICT(device_id) DO UPDATE SET
        user_id = excluded.user_id,
        platform = excluded.platform,
        token = excluded.token,
        enabled = 1,
        last_seen_at = excluded.last_seen_at,
-       updated_at = excluded.updated_at`,
-    deviceId, userId, platform, token, at, at, at,
+       updated_at = excluded.updated_at,
+       app_version = excluded.app_version`,
+    deviceId, userId, platform, token, at, at, at, appVersion,
   );
   const mirrorSignature = await d153NotificationMirrorSignature({ user_id: userId, device_id: deviceId, platform, token, enabled: true });
   const mirrored = await state.storage.get<string>(d153NotificationMirrorKey(userId));
@@ -132,7 +140,8 @@ export function onlinePickerProjectionData(
             u.android_session_generation,
             u.android_session_started_at AS login_at,
             f.device_id,
-            MAX(f.last_seen_at) AS device_seen_at
+            MAX(f.last_seen_at) AS device_seen_at,
+            MAX(f.app_version) AS app_version
        FROM users u
        JOIN fcm_devices f
          ON f.user_id = u.user_id
@@ -156,6 +165,7 @@ export function onlinePickerProjectionData(
     device_id: String(row.device_id || ""),
     login_at: row.login_at == null ? null : String(row.login_at),
     device_seen_at: row.device_seen_at == null ? null : String(row.device_seen_at),
+    app_version: String(row.app_version || ""),
     session_generation: Number(row.android_session_generation || 0),
     source: "LOGIN",
     status: "PDA_READY",
