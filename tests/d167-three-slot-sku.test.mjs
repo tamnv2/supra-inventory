@@ -458,3 +458,32 @@ test("D167 P0 Vietnamese updater provenance uses existing Worker->Core receipt, 
   assert.match(ui,/Cập nhật chưa thành công/);
   assert.doesNotMatch(ui,/setInterval|System\.Threading\.Timer|FirestoreClient/);
 });
+
+test("D168 group contact preserves multiple selected Picker IDs after online snapshot refresh", async () => {
+  const {readFileSync}=await import("node:fs");
+  const agent=readFileSync(new URL("../relay-agent/D119AgentFeatures.cs",import.meta.url),"utf8");
+  assert.match(agent,/var selectedUserIds = new HashSet<string>\(StringComparer\.Ordinal\)/);
+  assert.match(agent,/foreach \(DataGridViewRow selected in _pickerOnlineGrid\.SelectedRows\)/);
+  assert.match(agent,/_pickerOnlineGrid\.ClearSelection\(\)/);
+  assert.match(agent,/if \(selectedUserIds\.Contains\(picker\.UserId\)\)/);
+  assert.match(agent,/InitializeD168GroupPickerContact\(pickerCard\)/);
+});
+
+test("D168 release guard: Office-blocked direct Worker must have a wired, approved WLAN route", async () => {
+  const {readFileSync,readdirSync}=await import("node:fs");
+  const agentDir=new URL("../relay-agent/",import.meta.url);
+  const code=readdirSync(agentDir).filter(name=>name.endsWith(".cs") && name!=="D168NetworkRoute.cs")
+    .map(name=>readFileSync(new URL(name,agentDir),"utf8")).join("\n");
+  const network=readFileSync(new URL("D168NetworkRoute.cs",agentDir),"utf8");
+  const sku=readFileSync(new URL("D167SkuServiceClient.cs",agentDir),"utf8");
+  assert.match(network,/ApprovedProfile\(/);
+  assert.match(network,/ConnectSavedProfile\(/);
+  assert.match(network,/ProbeWorker\(/);
+  assert.doesNotMatch(sku,/script\.google\.com|d167_sku_sync/);
+  // A standalone helper is NOT a functional route. The Agent must call it from
+  // a real SKU/optional-Worker user operation and verify reachability after switch.
+  assert.match(code,/D168NetworkRoute\.ConnectSavedProfile\(/,
+    "D168 cannot be released: the saved-WLAN transition is not wired to any Agent operation");
+  assert.match(code,/D168NetworkRoute\.ProbeWorker\(/,
+    "D168 cannot be released: no post-switch authenticated Worker readiness check is wired");
+});
