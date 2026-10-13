@@ -462,10 +462,10 @@ test("D167 P0 Vietnamese updater provenance uses existing Worker->Core receipt, 
 test("D168 group contact preserves multiple selected Picker IDs after online snapshot refresh", async () => {
   const {readFileSync}=await import("node:fs");
   const agent=readFileSync(new URL("../relay-agent/D119AgentFeatures.cs",import.meta.url),"utf8");
-  assert.match(agent,/var selectedUserIds = new HashSet<string>\(StringComparer\.Ordinal\)/);
+  assert.match(agent,/var selectedSessions = new HashSet<Tuple<string,long,string>>\(\)/);
   assert.match(agent,/foreach \(DataGridViewRow selected in _pickerOnlineGrid\.SelectedRows\)/);
   assert.match(agent,/_pickerOnlineGrid\.ClearSelection\(\)/);
-  assert.match(agent,/if \(selectedUserIds\.Contains\(picker\.UserId\)\)/);
+  assert.match(agent,/if \(selectedSessions\.Contains\(Tuple\.Create\(picker\.UserId,picker\.SessionGeneration,picker\.FirebaseUid \?\? ""\)\)\)/);
   assert.match(agent,/InitializeD168GroupPickerContact\(pickerCard\)/);
 });
 
