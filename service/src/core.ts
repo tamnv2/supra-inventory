@@ -226,7 +226,8 @@ export class InventoryCore {
         enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0,1)),
         last_seen_at TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        app_version TEXT NOT NULL DEFAULT ''
       );
       CREATE INDEX IF NOT EXISTS idx_fcm_devices_user_enabled ON fcm_devices(user_id, enabled);
 
@@ -395,6 +396,8 @@ export class InventoryCore {
 
     initializeBusinessSchema(this.state);
     initializeD167SkuSyncSchema(this.state);
+    if (!this.hasColumn("fcm_devices", "app_version"))
+      sql.exec("ALTER TABLE fcm_devices ADD COLUMN app_version TEXT NOT NULL DEFAULT ''");
     if (!this.hasColumn("report_batches", "business_day_vn")) sql.exec("ALTER TABLE report_batches ADD COLUMN business_day_vn TEXT");
     if (!this.hasColumn("report_tickets", "business_day_vn")) sql.exec("ALTER TABLE report_tickets ADD COLUMN business_day_vn TEXT");
     sql.exec("UPDATE report_batches SET business_day_vn = date(first_report_at, '+7 hours') WHERE business_day_vn IS NULL");
