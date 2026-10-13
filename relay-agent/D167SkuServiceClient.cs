@@ -105,6 +105,17 @@ namespace SupraInventoryRelayAgent
             return Str(r,"state");
         }
 
+        internal string WorkerRouteStatus()
+        {
+            // One read-only network classification before a scheduled WMS
+            // export. Never send a SKU, WMS header or credential in this probe.
+            ensureFreshToken();
+            var actor=session();
+            if(actor==null || string.IsNullOrWhiteSpace(actor.IdToken))
+                throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
+            return D168NetworkRoute.ProbeWorker(actor.IdToken);
+        }
+
         internal string Reserve(string day,string slot,string instanceId,string generation)
         {
             var r=Send("reserve",new Dictionary<string,object>{
