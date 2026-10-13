@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E021",
+    "id": "D168-E022",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -25,7 +25,7 @@
       "EXISTING_FIRESTORE_BETA"
     ],
     "new_owner_approval_required": false,
-    "current_pr_scope": "D168_PR591_SOURCE_CONTINUES__EXACT_HEAD_CI_AND_FIELD_GATES_PENDING",
+    "current_pr_scope": "D168_V131_DRAFT_SOURCE_AND_RELEASE_PREP__FIELD_AND_FINAL_CI_PENDING",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -517,6 +517,36 @@
       ],
       "next_action": "Complete remaining D168 source and end-to-end tests, resolve the manual SKU ordering decision, then release existing Beta resources only after gates pass.",
       "evidence": "PR591 source and CI; owner current command; docs/D168_RELEASE_READINESS_2026-10-14.md"
+    },
+    {
+      "id": "D168-E022",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs uninterrupted D168 code/test completion and conditional Beta release; ask only for indispensable on-site test",
+      "status": "D168_AGENT_V131_SOURCE_IN_PROGRESS__SHARED_SKU_DONE_WIRED__D168_RELEASE_GATE_PREPARED__EXACT_HEAD_CI_AND_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly instructs continuing unfinished D168 source through code/CI and actual Beta deployment; no midway stop for generic progress. Stable remains OWNER-GATED.",
+        "D168 PR591 remains Draft and unmerged. Latest code now includes direct Beta Worker WLAN scope with 60s network-only consent and source WMS export-before-switch for manual/automatic SKU, preflight of approved saved Wi-Fi before costly export, original-profile readback.",
+        "Agent v131 version markers aligned; existing v130 must not be overwritten. Android version for eventual Beta channel remains CI-monotonic.",
+        "SKU manual continues to require Worker-verified password/OTP, grant and DONE; day rollover abort uses original job day. 05h solo-primary, WMS confirm and actual network restore still need physical E2E.",
+        "Terminal SKU DONE summaries now piggyback existing Firestore agent_sync with CAS immutable slot union; no new provider resource/listener or stage polling. Standby can display existing snapshots even when its Office network cannot reach Worker.",
+        "Group selection rendering preserves exact user ID, Firebase UID and session generation across realtime updates, rather than reselecting a relogged Picker.",
+        "A new D168 release authorization receipt is intentionally CODE_ONLY_NOT_APPROVED_FOR_DEPLOY. Existing D167 main-only gate now recognizes D168 and additionally demands exact-head authority+continuity, CI and field PASS; current Beta runtime unchanged.",
+        "Source/regression tests added for new manual export ordering, WLAN preflight, shared terminal slot projection and selected-session integrity. Latest exact HEAD CI remains to be verified; no field PASS or Beta release claimed.",
+        "Owner action may be unavoidable only for one physical Windows Wi-Fi/WMS/PDA test: GitHub connector does not access company Windows interface, saved WLAN rights or WMS session."
+      ],
+      "alternatives": [
+        "Prefer existing scoped Beta direct Worker and Firebase carrier with no new provider resources. Fail closed until real field verification.",
+        "Do not fake physical Wi-Fi/Confirm proof from passing GitHub Actions; do not approve Stable via D168."
+      ],
+      "open_questions": [
+        "Can a standard-user Agent PC restore saved Office WLAN after one FULL at 05h with no standby?",
+        "Are live Picklist terminal ACK, HA generation fencing and confirmed Worker DONE stable across the bounded network transition?",
+        "Can the Owner perform the short on-device test once a verified v131 artifact is prepared?"
+      ],
+      "next_action": "Continue PR591 exact-head CI repair and Beta-compatible source gates. After CI PASS, provide one short Windows on-site test with saved approved Wi-Fi and WMS/PDA; only set D168 field_pass and merge/deploy Beta after actual receipts. Stable untouched.",
+      "evidence": "PR591 v131 source changes and CI; docs/specs/SKU_MASTER.md D168-E022; docs/OWNER_DECISIONS.md D168-E022; tools/d167_release_gate.py; ops/d168-release-authorization.json"
     }
   ],
   "resume": {
@@ -538,7 +568,8 @@
       "D168 PR591: partial approved implementation in Agent, Android, Worker/Core; current source fix preserves multi-Picker online selection",
       "D168 release guard now checks runtime WLAN orchestration; expected red until helper is genuinely wired",
       "D168-E018 Owner authorized all D168 REQ-001..011 Beta scope after full checks; work continues on same PR",
-      "D168-E020: Owner accidental Ready reverted to Draft; Windows auto-start false-success fix committed with source test, final CI pending."
+      "D168-E020: Owner accidental Ready reverted to Draft; Windows auto-start false-success fix committed with source test, final CI pending.",
+      "D168-E022: v131 network routing, shared terminal SKU DONE and exact Picker session selection updated; final CI in progress."
     ],
     "pending_approval": [
       "Stable is OWNER-GATED",
@@ -548,12 +579,12 @@
       "No new Owner code/deploy approval required for existing D168-E018 Beta scope, but physical FIELD_PASS and exact-head CI remain required."
     ],
     "blocked": [
-      "P0: Agent direct SKU-to-Worker path cannot operate on Office network until saved WLAN switch is safely wired; helper currently disconnected.",
       "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
       "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD.",
-      "D168 multi-Picker group session-fence follow-up source update was denied by the available tool and remains uncommitted."
+      "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector."
     ],
     "next_actions": [
+      "Rerun final CI on exact PR head; do not modify scoped Beta until field PASS. Beta release receipt remains locked.",
       "Check exact-head CI on PR591 startup fix, maintain deliberate SKU WLAN contract release failure until real orchestration exists.",
       "Wire authorized safe WLAN route and Worker probe into actual Agent SKU flow without compromising WMS Confirm/Firestore/HA; run 60s/15m/no-standby tests.",
       "Complete targeted REQ-001..011 feature regressions and instrument before/after per-provider usage.",
