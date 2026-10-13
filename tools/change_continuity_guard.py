@@ -189,8 +189,18 @@ def main() -> None:
         elif owner_latest == "2026-10-13 WEB_UI_ACCOUNT_MEAL_BETA_APPROVED":
             authorization = load("ops/d167-release-authorization.json")
             expected_ref = "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA"
-            if journal.get("pr") != 578 or journal.get("working_branch") != "d167-web-impact-analysis-20261013":
+            active_scope = (journal.get("pr"), journal.get("working_branch"))
+            if active_scope not in (
+                    (578, "d167-web-impact-analysis-20261013"),
+                    (579, "d167-web-v310-release-evidence-20261013")):
                 fail("D167 Web 3.1.0 exact PR scope mismatch")
+            if active_scope[0] == 579:
+                release = {e.get("id"): e for e in entries}.get("D167-E054", {})
+                if (release.get("kind") != "TEST" or release.get("date_vn") != "2026-10-13"
+                        or release.get("owner_approval") is not True
+                        or journal.get("last_checkpoint", {}).get("id") != "D167-E054"
+                        or gate.get("technical_release_pass") is not True or gate.get("field_pass") is not False):
+                    fail("D167 Web 3.1.0 postrelease evidence/field gate mismatch")
             if (gate.get("code_permission") is not True or gate.get("merge_permission") is not True
                     or gate.get("beta_deploy_permission") is not True or gate.get("stable_deploy_permission") is not False
                     or gate.get("approved_components") != ["worker"] or gate.get("new_owner_approval_required") is not False):
