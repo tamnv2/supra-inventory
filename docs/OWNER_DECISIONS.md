@@ -1,5 +1,16 @@
 # Owner Decision Ledger — SUPRA Inventory
 
+## D168-E018 · Owner phê duyệt Big Update Agent, Android, Web, Worker Beta (14/10/2026)
+
+- **Phê duyệt CHẠY CODE VÀ TRIỂN KHAI TOÀN BỘ D168 REQ-001..011 trên tài nguyên Beta đã đăng ký**, với điều kiện bắt buộc hoàn thành CI, authority/continuity và kiểm thử tích hợp thực tế trước merge/phát hành; **Stable OWNER-GATED, không phê duyệt Stable**. Một vài commit code mới không có nghĩa đã PASS hay triển khai.
+- **FULL 05:00**: bắt buộc mỗi ngày dù Agent đang là PRIMARY duy nhất, không yêu cầu standby. Khi Agent chạy sau giờ FULL chưa DONE, phải thực hiện tại cửa sổ vận hành an toàn sớm nhất; không cắt ngang WMS confirm đang thực hiện. Web/Android báo hàng vẫn chặn cho đến khi có receipt FULL của đúng ngày Việt Nam.
+- **SUPRA WMS chạy cả mạng thường** theo xác nhận Owner. Chọn đường mạng từ năng lực endpoint WMS/Firestore/Worker thực tế, không dựa vào nhãn SSID. Có thể thực hiện WMS export và Worker upload trên cùng mạng Internet hợp lệ. Không đi vòng chính sách mạng công ty; chuyển mạng phải kiểm tra trạng thái/đảm bảo an toàn và khả năng quay về.
+- **SKU không dùng Google Apps Script Gateway** cho tự động/thủ công hay schedule/status; Agent gọi trực tiếp Beta Cloudflare Worker, Worker xác thực Firebase và kiểm tra PRIMARY lúc reserve; InventoryCore quản lý độc lập SKU job grant, CAS, idempotency, receipt DONE. Agent đã reserve hợp lệ được tiếp tục khi HA đổi PRIMARY.
+- **Firebase Auth/Firestore tiếp tục là tuyến nghiệp vụ quan trọng** cho login, Picklist + terminal ACK cả thành công và lỗi, Agent HA, Picker presence và compact SKU job state; không ghép hot document làm tăng fanout. Các mục không realtime có thể dùng Worker nếu kiểm chứng đường đi và guard.
+- **Triển khai đồng bộ phiên bản Agent toàn đội**, Android và Web với hợp đồng thống nhất; mọi bước đều phải giữ audit/correct actor/time, chống session resurrection, quyền nhóm Picker, gửi log có receipt, và giảm usage qua dùng chung đường dữ liệu tương thích.
+- **Trạng thái tại checkpoint E018**: Đã có các commit D168 trên PR #591, CI/field PASS và deployment **CHƯA đạt**. Không thay đổi Stable và không gọi PR pass trước nghiệm thu.
+
+
 Purpose: preserve Owner-approved requirements across chats without relying on manual end-of-session handovers. This file records durable Owner decisions and unresolved items. It contains no secrets.
 
 ## Authority and maintenance
