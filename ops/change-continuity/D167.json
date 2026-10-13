@@ -8,7 +8,7 @@
   "pr": 568,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
-    "id": "D167-E039",
+    "id": "D167-E040",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -763,6 +763,36 @@
       ],
       "next_action": "On Agent PRIMARY, test manual SKU update in Beta v128 with current WMS login and supplied Agent account proof; read sanitized D167_SKU export_stage, phase/error_code/elapsed_ms. Diagnose actual failure after real log. Do not claim SKU DONE without server receipt; keep D167 open.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/568 ; https://github.com/tamnv2/supra-inventory/actions/runs/38323957784 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v128 ; main SHA a0106e697de3b81f7f8fd2c5e732b842c6cab182"
+    },
+    {
+      "id": "D167-E040",
+      "date_vn": "2026-10-13",
+      "topic": "D167 v128 field logs: authenticated read-only WMS XLSX succeeds; Worker Firebase PRIMARY gate rejects both scheduled and manual SKU writes",
+      "kind": "TECHNICAL_FINDING",
+      "status": "FIELD_SKU_NOT_PASS__WMS_EXPORT_PASS_2492_ROWS__WORKER_PRIMARY_409__FIX_REVIEW_REQUIRED",
+      "owner_approval": null,
+      "facts": [
+        "Read the existing authorized Inventory Beta daily support-log files for one primary office Agent. Uploaded coverage on 2026-10-13 VN is 05:36:25–06:56:15, not the full requested 05:00–07:00 window; no evidence of events outside the captured range.",
+        "Installed Agent v128 startup was observed at 06:53:58 VN after v127→v128 update. Real 06:54:43–06:55:04 D167 INITIAL_05 path executed the existing hidden same-profile WebView2 target discovery, CDP connect, isolated reload, auth observe, direct GET and XLSX parse. Workbook accepted 2492 rows in 21103ms. No sensitive WMS header/token/file payload retained in public journal.",
+        "06:55:27 scheduled claim failed with D167_WORKER_NOT_CURRENT_FIREBASE_PRIMARY, 06:55:45 and 06:56:10 manual start failed with the same fixed code at AUTHORIZE_BEGIN (1812ms and 3061ms). No verified Service FULL/DONE receipt. These failures are not WMS-export failures.",
+        "Agent local role changed to PRIMARY after targeted handoff at 06:54:41–42, but Worker verification rejects the associated submitted identity/generation. Worker service/src/index.ts calls verifyD167AgentPrimary before claim/stage and after manual password proof; service/src/d167-sku-ha.ts collapses missing service account config, Firestore role/lease HTTP failure, id/generation mismatch and stale 45s lease heartbeat into the same false/409. This evidence does not identify which underlying condition actually failed.",
+        "Deduplicated available logs 05:36–06:56 contain 21 terminal Picklist responses: 18 CONFIRMED, 2 NOT_FOUND, 1 WMS_DATA_UNAVAILABLE, with 21 corresponding Firestore ACK PASS and 0 ACK FAIL. Results are coverage-limited; the 18 confirmations occurred in v127 observations before v128 startup, so v128 Confirm field PASS is not proven.",
+        "One transient managed-browser WebSocket readiness failure recovered via DevTools reconnect; one HA coordination IOException reports Windows session-file access contention. Role transitions around the v128 upgrade and targeted handoff are not, by themselves, evidence of uncontrolled HA flapping.",
+        "Repeated unsuccessful pre-v128 scheduled SKU attempts generated bounded defer errors; no measured provider-billed cost savings or root causes for their earlier IOException/InvalidOperationException were established. Local query and upload rates are not provider billable metrics."
+      ],
+      "alternatives": [
+        "P0: preserve the currently working read-only WMS export. Instrument the existing Worker PRIMARY validator with safe fixed reason codes and bounded per-call elapsed timings (missing config, invalid id/generation, token acquisition failure, role/lease GET error, mismatched identity/generation, stale lease heartbeat), without response body or credential data and without extra queries; correlate to Agent role handoff and current Firestore roles/lease read-only.",
+        "P0: repair only proven verifier/Agent generation consistency after obtaining explicit Owner approval for Worker/Gateway scope. Preserve fail-closed HA, fresh proof on manual-start, CAS, 3-slot FULL/DELTA and existing Service DONE readback. Do not bypass PRIMARY check or spoof status.",
+        "P1: retain one-time error upload and deduplicate repeated identical SKU failures; inspect source session-file contention before introducing atomic file updates or bounded retry.",
+        "P2: evaluate the one 05:44 WMS_DATA_UNAVAILABLE empty-table event and 2 legitimate/unverified NOT_FOUND responses separately from SKU export, preserving end-to-end PDA ACK; compare real provider usage before changing Firestore watchdog cadence."
+      ],
+      "open_questions": [
+        "What exact Worker-side reason caused the 409 at 06:55:27 and manual starts—service-account config/IAM/network, Firebase roles/lease schema, generation handoff mismatch or heartbeat staleness? Existing Worker boolean validator has insufficient reason-level evidence.",
+        "Was any authorized Web FULL completed independently today? The captured Agent logs only prove no Agent Service DONE in this window.",
+        "Were there any logs before 05:36 or after 06:56 that had not yet been uploaded to Drive at inspection time?"
+      ],
+      "next_action": "Present source-and-log evidenced impact/recommendation matrix to Owner; await explicit approval before code changes to Worker verifier/Gateway/Agent. No new Agent release or runtime mutation as part of this evidence-only checkpoint.",
+      "evidence": "Drive Beta Logs daily folder (existing in scope; exact private log link omitted from public journal); service/src/d167-sku-ha.ts; service/src/index.ts; relay-agent/D167SkuServiceClient.cs; published Agent v128 source in main PR568"
     }
   ],
   "resume": {
@@ -813,7 +843,8 @@
       "v127 manual SKU InvalidOperationException is not attributable to an exact stage: log sanitizes to exception class only; source-only diagnostic proposal needs Owner approval.",
       "Additional current-main-tab CDP authorization-header capture mutation rejected by connected tool safety; no change or workaround; not FIELD PASS.",
       "Cannot safely change current WMS main-session source or continuity guard through available connector; prior safety refusal stands; no bypass attempted.",
-      "Main WMS session-source change was previously refused by connected-tool safety checks; no alternate-primitives bypass. Until a permitted implementation and real field test, SKU DONE remains unverified."
+      "Main WMS session-source change was previously refused by connected-tool safety checks; no alternate-primitives bypass. Until a permitted implementation and real field test, SKU DONE remains unverified.",
+      "D167 Agent v128: confirmed WMS XLSX export 2492 SKU but Worker Firebase PRIMARY gate 409 blocks claim/manual START; exact false reason unobservable without safe Worker-side classification."
     ],
     "next_actions": [
       "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance",
@@ -825,7 +856,8 @@
       "Owner/authorized maintainer must review guard integration and safe main-agent auth acquisition before merge/release; redo exact CI.",
       "Resolve authorized safe main-browser WMS API integration and strict CI guard mismatch before any Beta Agent release.",
       "Retain PR568 Draft; obtain supported reviewed implementation/guard adjustment, then exact-head 16/16 PASS and release signed Agent Beta; field SKU DONE readback separately.",
-      "Keep PR568 Draft; resolve WMS read-only main browser integration through approved security-reviewed source path, rerun exact PR CI, then consider authorized Agent-only Beta release; no fleet/field PASS yet."
+      "Keep PR568 Draft; resolve WMS read-only main browser integration through approved security-reviewed source path, rerun exact PR CI, then consider authorized Agent-only Beta release; no fleet/field PASS yet.",
+      "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy."
     ],
     "release_boundary": "D167_AGENT_V128_BETA_SIGNED_RELEASE_PASS__SKU_FUNCTIONAL_FIELD_UNVERIFIED__ANDROID_VC106_UNCHANGED__STABLE_GATED"
   }
