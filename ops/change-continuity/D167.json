@@ -6,22 +6,25 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-log-review-20261012-20261013",
   "pr": 574,
-  "status": "D167_OWNER_COMMAND_POLICY_AND_PENDING_RECLASSIFICATION__NO_NEW_RELEASE",
+  "status": "D167_E047_AGENT_ONLY_V130_OWNER_APPROVED_CODE_COMMITTED__CI_PENDING__WEB_SKU_PROPOSAL",
   "last_checkpoint": {
-    "id": "D167-E046",
+    "id": "D167-E047",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 PROCESS_POLICY_ONLY_NO_DEPLOY",
-    "code_permission": false,
-    "merge_permission": false,
-    "beta_deploy_permission": false,
+    "owner_latest": "2026-10-13 AGENT_V130_BETA_ONLY_APPROVED",
+    "code_permission": true,
+    "merge_permission": true,
+    "beta_deploy_permission": true,
     "stable_deploy_permission": false,
-    "new_owner_approval_required": true,
-    "approved_components": [],
-    "current_pr_scope": "OWNER_APPROVED_AUTHORITY_ONLY__NO_EXECUTABLE_OR_RUNTIME_CHANGE",
+    "new_owner_approval_required": false,
+    "approved_components": [
+      "agent"
+    ],
+    "current_pr_scope": "PR574_AGENT_ONLY_NONSKU_V130_BETA__WEB_SERVICE_ANDROID_STABLE_EXCLUDED__WEB_SKU_PROPOSAL_ONLY",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "approved_source_sha": "c982f60d38943460d146ef19e08dbfe088b5835f"
   },
   "entries": [
     {
@@ -934,6 +937,39 @@
       ],
       "next_action": "Persist in D167 Owner decisions/operating protocol/SKU+AUTH specs/backlog/state, pass authority/continuity CI on docs-only PR575, merge only if non-runtime gates safe; other-thread PR574 must reconcile its journal without implementing unapproved diagnostics.",
       "evidence": "Owner explicit 2026-10-13 five-point directive; main source relay-agent/D167SkuBrowserExport.cs (same-profile child); docs/OPERATING_PROTOCOL.md; GitHub PR #575."
+    },
+    {
+      "id": "D167-E047",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves all five Agent-only non-SKU log resilience fixes, commands full code+scoped Beta deployment, and separately requests Web SKU catalog provenance/layout analysis and proposal",
+      "status": "OWNER_APPROVED_AGENT_ONLY_V130_CODE_COMMITTED__PR574_CI_AND_RELEASE_PENDING__WEB_SKU_PROPOSAL_ONLY",
+      "owner_approval": true,
+      "supersedes": [
+        "D167-E045"
+      ],
+      "facts": [
+        "User explicitly says 'Anh duyệt nhé. Chạy code và triển khai' in response to the five Agent-only proposal. User additionally supplies a 13 Oct Web Danh mục SKU screenshot and asks for analysis/proposed provenance, timestamp and layout corrections, not approval to modify live Web or Service.",
+        "Source v130 at candidate c982f60d38943460d146ef19e08dbfe088b5835f: new local AgentConnectionDiagnostics class classifies DNS/timeouts/HTTP401/403 with 10m bounded duplicate error emission and success recovery; FirestoreConfirm + HA coordinator integrated without authority/failover/cadence changes.",
+        "D157 auxiliary WMS session health re-checks login/logout, current coordinator, manual Picker confirmation and browser migration before a queued reload. Local Agent log-upload redundant SUPPRESSED diagnostic rows only on first and each 20th repeat; existing pending bundles/Drive acknowledgement/real error upload limits unchanged.",
+        "RTDB observer reports downtime_ms and consecutive reconnect counts on existing recovery path; existing 1s connection retry, 15s takeover liveness and lease proof unchanged. Picker bulk-revoke preview HTTP403 is logged with sanitized bounded server error code and Vietnamese no-revocation permission message, with original HTTP401-only token refresh and Worker permissions untouched.",
+        "Agent build VERSION, AgentConfig and net48 AssemblyVersion moved 129->130. Agent update check is confirmed manual-only in relay-agent/Program.cs; no forced fleet rollout, App/PDA updates, Web/Service/Worker, Firestore/RTDB schema/rules or provider resources touched.",
+        "Old PR574 CI error 'CHANGE_CONTINUITY_GUARD_FAIL: PR pointer mismatch' was from stale feature manifest pointer #572 inherited from old main; reconciled latest main authority E046 via two-parent commit c588103a. Source-only guard tool expanded for strict explicit v130 scoped Owner receipt; not a bypass, still enforces exact PR574, one Agent component, exact SHA, Owner decision and Stable denied.",
+        "Verified read source service/src/read-model-core.ts skuCatalogInfo: 'last_sync_at' selects newest audit SKU_IMPORT_CHUNK without source filter; 'max_updated_at' is sku_catalog_meta update; version is count:max_updated_at. Web/src/operational-app.ts wrongly labels last_sync as Agent. Screenshot 05:38:46 (manual Web per Owner) and 07:54:25 (Agent FULL per Owner) prove UI conflates unrelated timestamps; source-attested event requires extra read-model provenance, not available from current SkuCatalogInfo.",
+        "No Web modifications authorized; recommended two-phase Web rework: (1) no-new-request Web-only honest labels/current-day FULL badge/compact 3-strong-card layout, and (2) separately approved service-backed latest Web manual and Agent FULL/DELTA provenance/operator/receipts timeline. No Service writes or deploy under this v130 authorization."
+      ],
+      "alternatives": [
+        "Agent-only release only if exact PR HEAD builds and all current authority/continuity/HA/Confirm CI are PASS, followed by Agent Beta release workflow and checksum/manifest verification. Defer/stop on missing CI or disabled GitHub Actions.",
+        "If Worker 403 is policy/server identity issue, Agent can now report a clearer cause, but fixing permission rules/service endpoint is outside approved change.",
+        "If user wants Web-only misleading label fixed, obtain separate approval to change web; full source attribution requires approved backend reader contract, with no loss of historical Web manual and Agent event separation."
+      ],
+      "open_questions": [
+        "Current Agent v130 CI result exact latest PR HEAD and signed Beta release availability must be checked; no field or Owner D167 PASS inferred.",
+        "Which date/slot/operator identity read model is available to accurately expose Web manual vs Agent FULL/DELTA without additional Firebase listeners? Separate scoped Web/Service proposal awaits approval.",
+        "Health of standby and in-flight requests on actual deployed machines before updating PRIMARY are not currently verified; manual rolling update only."
+      ],
+      "next_action": "Run exact HEAD PR574 CI and resolve all failed scope/authority/HA/Confirm jobs; merge via approved Agent-only guard only on PASS; verify GitHub prerelease relay-agent-v130, inventory-channel checksum and no Web/Service deployments. Owner manually updates a standby Agent first and tests before touching PRIMARY. Present separate compact Web SKU redesign with honest provenance and request distinct Web/Service approval.",
+      "evidence": "Owner current user directive and supplied Web screenshot; GitHub PR574 source candidate c982f60d38943460d146ef19e08dbfe088b5835f; service/src/read-model-core.ts, web/src/operational-app.ts; ops/d167-release-authorization.json."
     }
   ],
   "resume": {
@@ -944,22 +980,26 @@
       "Owner clarifies EARLY lunch/dinner correction is continuous any moment until 12:00/19:00 VN, example times not fixed; LATE original cutoff unchanged",
       "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved",
       "D167-E046 Owner: cancel direct MAIN-tab WMS auth work; existing isolated same-profile child chosen; pending Agent other-thread/Usage logs/Launcher project deferred.",
-      "D167-E046 Owner: 'chạy code' = all approved code+CI to CODE READY then STOP/report; 'duyệt triển khai' releases only PASS code; 'chạy code và triển khai'/'triển khai luôn' = complete code+CI and immediately deploy approved scoped Beta without midpoint approval."
+      "D167-E046 Owner: 'chạy code' = all approved code+CI to CODE READY then STOP/report; 'duyệt triển khai' releases only PASS code; 'chạy code và triển khai'/'triển khai luôn' = complete code+CI and immediately deploy approved scoped Beta without midpoint approval.",
+      "D167-E047 Owner approves five Agent-only non-SKU fixes + code and scoped Beta release after CI PASS; no Android/Web/Service, Stable gated."
     ],
     "implemented": [
       "Earlier D167 Web/Worker/Gateway/Android vc106 and Agent v126/v127/v128 technical releases already in main; not a remaining unimplemented item",
       "D167 P0 Beta Worker and signed Agent v129 released via PR572/573; actual field results separate",
-      "D167-E046 decision/spec/operation documentation under PR575; no new live code or release"
+      "D167-E046 decision/spec/operation documentation under PR575; no new live code or release",
+      "Agent v130 source committed, local diagnostics/log coalescing, RTDB observer flap metrics, stale auxiliary WMS health check guard, Picker revoke preview HTTP403 diagnosis; release not verified."
     ],
     "in_progress": [
       "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
-      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task."
+      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task.",
+      "PR574 exact-head authority/continuity and Windows Agent v130 CI; Beta release only after strict PASS."
     ],
     "pending_approval": [
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
       "Usage/cross-meter optimization pending further real log/provider measurements.",
       "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
-      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending."
+      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending.",
+      "Separate Web SKU provenance/layout redesign proposal, including source-attested Web-manual vs Agent-FULL/DELTA timeline; no Web/Service code authorized."
     ],
     "blocked": [
       "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
@@ -969,8 +1009,9 @@
       "Pass PR575 docs+authority/continuity CI without triggering runtime publication; merge only after all mandatory checks.",
       "In separate D167 PR574/window continue Agent fault discussion; do not modify Agent/Service/Web/Android from this decision.",
       "Await real provider logs for optimization; Launcher separate project; apply clarified commands to later approved tasks.",
-      "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission."
+      "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission.",
+      "Verify PR574 exact latest CI and signed Beta Agent v130 release; manual standby-first field update; do not force fleet/Stable."
     ],
-    "release_boundary": "PR575_D167_OWNER_DOCUMENTATION_ONLY__NO_BETA_STABLE_SERVICE_WEB_ANDROID_AGENT_LAUNCHER_RUNTIME_DEPLOY__D167_OWNER_PASS_PENDING"
+    "release_boundary": "D167_E047_AGENT_V130_CODE_COMMITTED__BETA_AGENT_RELEASE_OWNER_APPROVED_AFTER_EXACT_CI_PASS__WEB_SERVICE_ANDROID_WMS_STABLE_UNTOUCHED__FIELD_OWNER_PASS_PENDING"
   }
 }
