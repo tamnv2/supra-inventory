@@ -287,6 +287,34 @@ def main() -> None:
             if "## D167 — Agent-only non-SKU v130 (Owner 2026-10-13)" not in (
                     ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
                 fail("D167 Agent v130 Owner decision ledger missing")
+        elif owner_latest == "2026-10-13 D167_OWNER_LIMITED_PASS_CLOSEOUT":
+            # Owner accepts deployed D167 with no observed errors; docs-only transition.
+            auth = load("ops/d167-release-authorization.json")
+            if journal.get("pr") != 581 or journal.get("working_branch") != "d167-web-v311-release-evidence-20261013":
+                fail("D167 closeout PR continuity mismatch")
+            if (gate.get("code_permission") is not False or gate.get("beta_deploy_permission") is not False
+                    or gate.get("stable_deploy_permission") is not False or gate.get("approved_components") != []):
+                fail("D167 closeout cannot authorize any new deployment")
+            if (auth.get("status") != "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY"
+                    or auth.get("approved_components") != [] or auth.get("approved_source_sha") is not None):
+                fail("D167 closeout old release permission was not revoked")
+            cp = {entry.get("id"): entry for entry in entries}
+            if (cp.get("D167-E057", {}).get("kind") != "OWNER_COMMAND"
+                    or cp["D167-E057"].get("owner_approval") is not True
+                    or journal.get("last_checkpoint", {}).get("id") != "D167-E057"):
+                fail("D167 Owner explicit limited PASS missing")
+            control = state.get("change_control", {})
+            if (control.get("accepted_base_change_id") != "D167"
+                    or control.get("current_change_id") != "D167"
+                    or control.get("next_change_allowed") is not True):
+                fail("D167 next-change gate opened without accepted base")
+            action = next((a for a in load("ops/owner-actions.json").get("actions", [])
+                           if a.get("id") == "OA103"), {})
+            if action.get("closed") is not True or action.get("owner_field_pass") is not False:
+                fail("D167 limited PASS must close Owner action without inventing full field proof")
+            if "## D167 — Owner PASS phạm vi Beta đã triển khai, mở D168 (2026-10-13)" not in (
+                    ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
+                fail("D167 owner signoff decision missing")
         elif owner_latest == "2026-10-13 PROCESS_POLICY_ONLY_NO_DEPLOY":
             # A later D167 Owner process/scope decision updates the active
             # journal but does NOT authorize any new executable deployment.
