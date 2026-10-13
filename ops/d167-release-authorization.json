@@ -2,11 +2,12 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "c4b9ba520990d1100b1bfb872b4c4fa02ca11424",
+  "approved_source_sha": "6332d79b30ff4aeea12a870fc1f984610a647bae",
   "approved_components": [
+    "worker",
     "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V128_UI_SAFE_DIAGNOSTIC_BETA",
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA",
   "approved_at_vn": "2026-10-13",
-  "note": "Owner 2026-10-13 explicitly requests release of Agent v128 to test existing hidden same-profile WMS WebView2 export, with additional bounded local stage/phase/elapsed diagnostics. Release scope is existing Beta Agent only, based on exact vetted source c4b9ba520990d1100b1bfb872b4c4fa02ca11424; no WMS auth/header handling change, no forced OTA, no Worker/Gateway/Android/Stable, and field SKU export remains unverified. A signed diagnostic release does not prove WMS export or Service DONE."
+  "note": "Owner explicitly approves D167 P0 Beta release for existing Worker and Windows Agent v129, fixing existing RTDB/Firestore PRIMARY lease mismatch only during active SKU jobs, with Vietnamese status and Worker-authenticated operator receipt. No new resource or steady polling; security HA fail-closed, current Confirm/PDA and WMS export untouched, Beta Worker/Web static assets build is incidental to existing deploy workflow, Stable gated. Other Agent errors postponed pending full logs. Exact source candidate 6332d79b30ff4aeea12a870fc1f984610a647bae; field SKU DONE and Owner PASS not yet proven."
 }
