@@ -377,7 +377,9 @@ class InventoryApi(
 
     fun registerNotificationDevice(deviceId: String, token: String): JSONObject = request(
         "POST", "/api/notifications/device",
-        JSONObject().put("device_id", deviceId).put("token", token).put("platform", "ANDROID"),
+        JSONObject().put("device_id", deviceId).put("token", token).put("platform", "ANDROID")
+            .put("version_code", BuildConfig.VERSION_CODE)
+            .put("version_name", BuildConfig.VERSION_NAME),
     )
 
     fun unregisterNotificationDevice(deviceId: String): JSONObject = request(
