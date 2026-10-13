@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-office-sku-uplink-architecture-20261013",
-  "pr": 589,
+  "working_branch": "d168-agent-v130-network-route-audit-20261013",
+  "pr": 590,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E014",
+    "id": "D168-E015",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR589_D168_OFFICE_SKU_UPLINK_ARCHITECTURE_DOCS_ONLY",
+    "current_pr_scope": "PR590_D168_AGENT_V130_NETWORK_ROUTE_AUDIT_DOCS_ONLY",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -310,6 +310,36 @@
       ],
       "next_action": "Present source-verified existing Google relay solution and practical network/redirect/quota conditions; do not implement or deploy until Owner approves scope.",
       "evidence": "D168-REQ-011 in docs/D168_BACKLOG.md; source D167SkuServiceClient.cs, D167SkuDirectExport.cs, D167SkuBrowserExport.cs, D167SkuWorkbook.cs, ops/apps-script/agent-log-gateway/Code.gs, service/src/d167-sku-sync-core.ts; docs/PROJECT_CONTEXT.md D090; official Google ContentService redirects documentation."
+    },
+    {
+      "id": "D168-E015",
+      "date_vn": "2026-10-13",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner requests detailed classification of Agent v130 Office intranet versus ordinary Internet usage",
+      "status": "SOURCE_NETWORK_MATRIX_DOCUMENTED__OFFICE_CLOUDFLARE_AND_RTDB_BLOCKED__FIELD_SKU_DONE_PENDING__NO_CODE_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Current accepted Beta release Agent v130 is source-audited; v130 fleet install/field acceptance is unverified. Latest D168 PR589 docs merged into main.",
+        "SUPRA WMS UI/Confirm and bounded read-only Bin Inventory XLSX export use company Office-reachable WMS; ordinary Internet WMS access is not established. Browser DevTools connection on loopback and local workbook normalization do not require external network.",
+        "Office Google Auth refresh and authenticated Firestore relay have field proof, whereas RTDB HA SSE/heartbeat is blocked by company proxy HTTP403; Firestore lease remains authoritative/fallback with degraded unproven Office HA parity.",
+        "Agent self-update checks its manifest through inventory-beta Cloudflare even though later downloads redirect to GitHub CDN; therefore update cannot be assumed to work on Office-only. Direct Inventory Worker/Cloudflare is Office-blocked; Internet path is supported.",
+        "D167 automatic SKU uses registered Google Apps Script gateway script.google.com and ContentService script.googleusercontent.com redirect to Worker. Source design is Office-compatible, but Office-only full end-to-end durable SKU DONE proof and quota availability are missing.",
+        "Two affected Agent support-log upload failures occurred across Office/PDA observations. D168-REQ-009 retry-storm and UrlFetch excessive-use evidence prevent attributing end-of-shift SKU failure solely to Office firewall.",
+        "Runtime selects Windows default/system proxies; no network-interface lock based on SSID or per-operation auto-switch. Provider probe success must not be confused with business end-to-end ACK/DONE."
+      ],
+      "alternatives": [
+        "No change: keep existing endpoint routes and perform bounded Office-only versus Internet field check of WMS, Firebase/Firestore, existing Google Gateway redirect and Worker durable SKU receipt, preserving no-mutation probes.",
+        "Recommended after explicit Owner approval: fix the existing D168 SKU retry storm and log-upload timeout/ack independently, improve capability/phase diagnostics reusing existing events with no new periodic provider polling; preserve Firestore HA fencing.",
+        "Only if Google gateway is demonstrably unsuitable: separately Owner-review existing registered Firestore/Google Function capability, quota, IAM and WMS data boundary; no unauthorized gateway or direct Office Cloudflare bypass."
+      ],
+      "open_questions": [
+        "Can Office-only finish actual Google Gateway authenticated POST and redirected response without proxy denial?",
+        "Does the Worker have durable 2026-10-13 FULL/DELTA_19 receipt and what is the exact UrlFetch consumption?",
+        "Can physical Office HA with RTDB blocked meet current failover and ACK latency targets?",
+        "What route/proxy/interface is effective for each operation on a PC with multiple adapters active?"
+      ],
+      "next_action": "Use docs/D168_AGENT_NETWORK_MATRIX_2026-10-13.md for Owner review. No executable implementation or Beta/Stable deploy until explicit Owner authorization.",
+      "evidence": "docs/D168_AGENT_NETWORK_MATRIX_2026-10-13.md; relay-agent/AgentConfig.cs, Program.cs, SupraConfirmBrowser.cs, D167SkuBrowserExport.cs, D167SkuDirectExport.cs, D167SkuServiceClient.cs, FirestoreConfirmationTransport.cs, FirestoreAgentLeaderCoordinator.cs, RtdbHaLiveness.cs, AgentLogUploadBridge.cs, AgentUpdater.cs; D168 PR590; existing D090/D091 field and D168 E009–E014 logs/analysis"
     }
   ],
   "resume": {
@@ -320,10 +350,11 @@
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
-      "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
+      "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release",
+      "D168 PR589 Office SKU design docs merged to main; no executable source altered"
     ],
     "in_progress": [
-      "D168 PR589: Office cannot reach Cloudflare; existing Google Apps Script uplink and fallback design recorded; documentation only."
+      "D168 PR590: Agent v130 Office/Internet matrix, docs-only checkpoint; CI/merge pending"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -350,7 +381,8 @@
       "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007",
       "Verify Agent/Service 2026-10-13 DELTA_19 receipt and Apps Script UrlFetch exhaustion via existing on-demand/privileged data; if unavailable, report unverified, do not infer DONE",
       "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command",
-      "Verify SKU schedule action and durable 19:00 receipt using existing authorized status route on Office-only network, then compare PDA without changing business state"
+      "Verify SKU schedule action and durable 19:00 receipt using existing authorized status route on Office-only network, then compare PDA without changing business state",
+      "Review Agent v130 per-feature Office/Internet matrix and verify field-only routes; await Owner instruction for any code or deploy"
     ],
     "release_boundary": "D168_SEVEN_PENDING_REQUESTS_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
   }
