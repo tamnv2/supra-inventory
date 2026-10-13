@@ -7451,11 +7451,11 @@
     "journal": "ops/change-continuity/D168.json",
     "working_branch": "d168-agent-network-split-proposal-20261013",
     "pr": 591,
-    "latest_checkpoint_id": "D168-E016",
-    "checkpoint_date_vn": "2026-10-13",
+    "latest_checkpoint_id": "D168-E017",
+    "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D168_OWNER_FUNCTIONAL_SCOPE_CAPTURED__CODE_NOT_APPROVED__DEPLOY_NOT_APPROVED__STABLE_OWNER_GATED",
+    "owner_release_gate": "D168_E017_FIRESTORE_CRITICAL_LANES_ACCEPTED__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7665,7 +7665,7 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "D168_OPEN__OWNER_SKU_NETWORK_USAGE_DESIGN_CAPTURED__NO_CODE_OR_DEPLOY",
+    "status": "D168_OPEN__OWNER_CRITICAL_FIRESTORE_ROUTES_ACCEPTED__ACK_COST_REVIEWED__NO_CODE_OR_DEPLOY",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
@@ -7748,7 +7748,7 @@
         ]
       }
     ],
-    "latest_checkpoint_id": "D168-E016",
+    "latest_checkpoint_id": "D168-E017",
     "log_upload_diagnosis": "D168_REQ008__TWO_AFFECTED_AGENTS_MATCHING_GATEWAY_TIMEOUT_KEEPALIVE__CODE_PENDING_OWNER_APPROVAL",
     "sku_evening_diagnosis": "D168_REQ009__DELTA_19_NO_AGENT_DONE_EVIDENCE__948_PRIMARY_DEFER__BROWSER_TIMER_BYPASSES_15MIN_RETRY__SERVICE_RECEIPT_NOT_VERIFIED__NO_RUNTIME_MUTATION",
     "office_sku_route": "D168_REQ010__OFFICE_COMPATIBLE_BY_SOURCE_APPS_SCRIPT_GATEWAY__OFFICE_SKU_DONE_NOT_FIELD_VERIFIED__NO_CODE_OR_DEPLOY",
@@ -7775,6 +7775,16 @@
       "beta_deploy_approved": false,
       "stable_deploy_approved": false,
       "field_pass": false
+    },
+    "owner_ack_and_route_20261014": {
+      "journal": "D168-E017",
+      "analysis": "docs/D168_FIRESTORE_CLOUDFLARE_USAGE_ACK_2026-10-14.md",
+      "owner_decision": "KEEP_FIREBASE_AUTH_PICKLIST_ACK_PICKER_ONLINE_AGENT_FLEET_SKU_STATUS_DUAL_NETWORK__OPTIONAL_CLOUDFLARE_DIRECT_WITH_SAFE_WLAN",
+      "ack_analysis": "OWNER_ASKED_FAIL_ONLY__SOURCE_RECOMMENDS_RETAIN_ONE_TERMINAL_ACK_SUCCESS_OR_FAILURE__NOT_APPROVED_TO_REMOVE",
+      "probe": "DO_NOT_USE_EXISTING_GET_HEALTH__SIDE_EFFECTS",
+      "usage": "GROUP_COMPATIBLE_EVENT_UPDATES_NOT_ALL_HIGH_RATE_IN_ONE_DOCUMENT",
+      "code_approved": false,
+      "deploy_approved": false
     }
   }
 }
