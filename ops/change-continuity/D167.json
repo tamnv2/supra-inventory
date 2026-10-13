@@ -4,24 +4,22 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-web-sku-provenance-layout-20261013",
-  "pr": 577,
-  "status": "D167_E049_WEB_SKU_PROVENANCE_OWNER_APPROVED_CODE_READY_CI_PENDING",
+  "working_branch": "d167-web-impact-analysis-20261013",
+  "pr": null,
+  "status": "D167_E050_WEB_IMPACT_PROPOSAL_ONLY__OWNER_APPROVAL_PENDING",
   "last_checkpoint": {
-    "id": "D167-E049",
+    "id": "D167-E050",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 SKU_WEB_PROVENANCE_BETA_APPROVED",
-    "code_permission": true,
-    "merge_permission": true,
-    "beta_deploy_permission": true,
+    "owner_latest": "2026-10-13 WEB_UI_MEAL_HISTORY_IMPACT_ASSESSMENT_ONLY",
+    "code_permission": false,
+    "merge_permission": false,
+    "beta_deploy_permission": false,
     "stable_deploy_permission": false,
-    "new_owner_approval_required": false,
-    "approved_components": [
-      "worker"
-    ],
-    "current_pr_scope": "PR577_WEB_SKU_PROVENANCE_BETA_WORKER_WEB_ONLY__NO_ANDROID_AGENT_STABLE",
+    "new_owner_approval_required": true,
+    "approved_components": [],
+    "current_pr_scope": "D167_E050_DOCS_ONLY_ASSESSMENT__NO_WEB_SERVICE_AGENT_ANDROID_DEPLOY",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
     "approved_source_sha": "1ae9b4a070364c148571e4d759cb79cf1894f7ed",
@@ -1028,6 +1026,36 @@
       ],
       "next_action": "Wait for PR577 full exact-head CI; fix source regressions in same PR and recompute source SHA/Owner receipt if any protected files change. On PASS merge PR577, auto deploy existing Beta Worker/Web only, verify deploy logs and health/no Service interruption, then record technical release evidence in D167 while keeping field/Owner PASS pending.",
       "evidence": "Owner current message 2026-10-13; GitHub PR577; source service/src/read-model-core.ts, read-api.ts, web/src/operational-app.ts, api.ts, CSS; tests/d167-sku-provenance.test.mjs; docs/OWNER_DECISIONS.md."
+    },
+    {
+      "id": "D167-E050",
+      "date_vn": "2026-10-13",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner asks if five proposed Web changes require client/Service updates and whether live operation is affected",
+      "status": "ASSESSMENT_COMPLETE__PROPOSAL_AWAIT_OWNER_APPROVAL__NO_CODE_OR_DEPLOY",
+      "owner_approval": null,
+      "facts": [
+        "Scope five proposals from current Owner's nine Web screenshots: remove nonoperational explanatory copy across all Web, compact layouts, Web SemVer MAJOR.MINOR.PATCH, allow authorized Web Reporter/Admin/Root to confirm each meal before current reminder 10:55/17:55 without password on first writer and credential-gated later correction, history of meal + day schedule/overtime, unify People/Accounts and retire legacy Web HR Sheet-oriented tabs without decommissioning source prematurely.",
+        "Web UI/copy/density/semver and People layout require Web assets only and must retain original RBAC, data semantics, Excel validation/conflict, picker bulk actions, all active API/listener contracts. Current web/src/web-version.ts WEB_VERSION='3'.",
+        "Current Web first meal selection is button-gated by lunch_prompt_due / dinner_prompt_due and server service/src/meal-break-core.ts confirmMealChoice rejects before 10:55 / 17:55. Enabling early Web confirmation requires Worker/InventoryCore business code, transaction/first-writer idempotency, role validation, corresponding deadline recalculation and existing realtime event; existing Android prompt remains at reminder time and requires no APK source change when contracts preserved.",
+        "Meal edit already uses same-day selection row plus CAS expected_confirmed_at, current credential verification, existing audit_log MEAL_BREAK_EDIT and exact allowed editor policy. New history read should be permission-scoped, bounded/page-on-open and not log raw credentials or trigger background reads.",
+        "Current service/src/alert-window-core.ts stores the latest Agent mirrored operating decision in app_config key d149_operating_schedule and ignores older version; not a full historical journal. Future Agent overtime/early-start decisions may be appended idempotently inside the existing Worker mirror-write path without Agent update if verified all required events traverse it. Do not manufacture historical shifts from latest mirror state; earlier days may remain unavailable.",
+        "Web/Worker Beta publication is required; Worker deploy includes Web assets even for UI-only changes. Stable unchanged OWNER-GATED, Android APK and Windows Agent unchanged only if no interface/schema update needed. No Firebase/RTDB/Firestore, Drive/Sheets or WMS resource/config update proposed.",
+        "Worker update is normally rolling and no planned outage or mandatory PDA relogin is necessary, but cannot guarantee zero in-flight request disruption or zero business risk before CI/field tests. Meal auto-Skip timing is inherently affected by earlier validated choices. Validate day boundary, prior-day overtime, actor role, concurrent first writer, edit cutoff, deadlines/ACK, old Android and Web versions, no provider polling, rollback.",
+        "GitHub D167 PR577 already merged at main bf7da890dcb1801c44cda19a75ec4e389cff3d60, main Deploy Beta Worker Actions 38338941788 reported success; main project-state PR577 fields and working PR pointer have stale pending values, not evidence of uncompleted PR577. This checkpoint has no new runtime release authority."
+      ],
+      "alternatives": [
+        "A: Web-only UI/SemVer/density/People reorganization first; zero Service contract changes; Web assets republished through existing scoped Beta Worker workflow, lower business risk.",
+        "B: After code and regression proof, add bounded Service-first additive Web meal early-select and shift/meal-history endpoint using existing authority/events; release Beta Worker/Web compatibly and verify in-field; no mandatory Agent/PDA upgrade if existing mirror is complete.",
+        "C: Avoid schedule-history feature if required past decision data are absent; or separately propose Agent/event-contract changes only upon later Owner approval and evidence. Do not promise reconstruction or automatic no-downtime."
+      ],
+      "open_questions": [
+        "Owner has not yet issued explicit implementation/deployment approval for the five new Web change groups; this question requests deployment impact analysis only.",
+        "Verify Worker mirrored schedule callback covers every meaningful overtime/change/cancel/early-start decision across failover, and whether existing audit/retention can serve bounded history without provider-side extra writes beyond real events.",
+        "Confirm the intended earliest allowed same-day meal selection time and whether switching currently inactive Reporter session has role authority; recommend use current authorized roles and same VN date."
+      ],
+      "next_action": "Present component impact, additive/rollback and no-downtime caveats; await Owner explicit authorization. If approved, implement code and guard tests in same D167 change with separate service-first and Web-only releases as appropriate; do not touch Stable, Agent or Android without separately approved evidenced need.",
+      "evidence": "main GitHub commit bf7da890dcb1801c44cda19a75ec4e389cff3d60; PR577 merged; Deploy Beta Worker run 38338941788 success; web/src/web-version.ts; web/src/operational-app.ts renderMealStatusCard/renderShiftOperations/renderPeopleTabs; web/src/api.ts; service/src/meal-break-core.ts; service/src/alert-window-core.ts; docs/specs/UI_DESIGN_SYSTEM.md; docs/specs/ROLE_WORKFLOWS.md; ops/project-scope.json"
     }
   ],
   "resume": {
@@ -1053,13 +1081,15 @@
       "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
       "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task.",
       "Docs-only PR576 postrelease evidence: authority/continuity CI and merge; Agent v130 already published, do NOT release again.",
-      "PR577 Web SKU provenance/layout source, auth, regression and predeploy CI; Beta Worker/Web release pending."
+      "PR577 Web SKU provenance/layout source, auth, regression and predeploy CI; Beta Worker/Web release pending.",
+      "D167-E050 docs-only impact checkpoint; source and runtime unchanged."
     ],
     "pending_approval": [
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
       "Usage/cross-meter optimization pending further real log/provider measurements.",
       "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
-      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending."
+      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending.",
+      "D167-E050 five Web design/meal/history/People proposals impact reviewed; awaiting Owner approval before implementation or deployment."
     ],
     "blocked": [
       "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
@@ -1073,8 +1103,9 @@
       "Verify PR574 exact latest CI and signed Beta Agent v130 release; manual standby-first field update; do not force fleet/Stable.",
       "Owner/authorized Agent operator manually updates standby via Agent Check Update, verifies live Confirm/HA, then PRIMARY when idle and healthy; no forced fleet update.",
       "After docs-only PR576 CI PASS, merge without any runtime deployment and check main D167-E048 field pending.",
-      "PR577 exact-head CI -> scoped Beta Worker deploy (Web asset built) -> runtime smoke and E050 evidence; no Android/Agent/Stable release."
+      "PR577 exact-head CI -> scoped Beta Worker deploy (Web asset built) -> runtime smoke and E050 evidence; no Android/Agent/Stable release.",
+      "After explicit Owner approval for E050 only: branch/PR code+CI, no Worker/Web publication from this docs-only checkpoint."
     ],
-    "release_boundary": "D167_E049_WEB_SKU_PROVENANCE_BETA_WORKER_ONLY_OWNER_APPROVED_PR577_CI_PENDING__ANDROID_AGENT_STABLE_UNTOUCHED__FIELD_OWNER_PASS_PENDING"
+    "release_boundary": "D167_E050_DOCS_ONLY_IMPACT_REVIEW__NO_WEB_WORKER_AGENT_ANDROID_STABLE_DEPLOY__OWNER_APPROVAL_PENDING"
   }
 }
