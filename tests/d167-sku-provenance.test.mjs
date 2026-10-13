@@ -7,6 +7,7 @@ const api = read("service/src/read-api.ts");
 const app = read("web/src/operational-app.ts");
 const css = read("web/src/legacy-transplant/d167-sku-provenance.css");
 const client = read("web/src/api.ts");
+const catalogSearch = read("service/src/business-core.ts");
 
 test("SKU source identity is not inferred from max_updated_at or SKU_IMPORT_CHUNK", () => {
   assert.match(core, /skuCatalogProvenance\(state: DurableObjectState\)/);
@@ -47,6 +48,8 @@ test("SKU has compact cards, separated provenance and safe Excel actions", () =>
   for(const marker of ["sku-kpi-grid","sku-provenance-grid","sku-events-scroll","sku-catalog-table","sku-tech-details","Web · Thay toàn bộ","Agent · Đồng bộ FULL","Agent · Đồng bộ DELTA"]) assert.ok(render.includes(marker),marker);
   assert.match(render, /skuExcelExpanded \|\| wb \? "open"/);
   assert.match(app, /getSkuCatalogProvenance/);
+  assert.match(catalogSearch, /AS area/);
+  assert.match(catalogSearch, /a\\.sku=sku_master\\.sku AND a\\.active=1/);
   assert.match(css, /\.sku-workspace \.sku-provenance-grid/);
   assert.match(css, /@media\(max-width:680px\)/);
 });
