@@ -58,3 +58,8 @@ Latest Owner explicitly authorized only the registered Beta rollout of PR #559's
 ## Current Owner clarification 2026-10-13 (overrides stale #559-only resume example)
 
 D167-E046: MAIN-tab direct WMS credential-source work cancelled; existing same-profile hidden WebView2 child accepted. Other Agent problems remain under separate Draft PR #574/other discussion; Usage waits for logs; Launcher is separately managed. The repository contains the latest approved command semantics: `chạy code` runs full approved code/CI only, stops at CODE READY and reports; `duyệt triển khai` releases only the prepared approved scope; `chạy code và triển khai` / `triển khai luôn` completes code and immediately releases approved Beta after mandatory checks without a second midway approval. The old #559 CODE PASS-only example and earlier main-WMS-tab exploration are historical, not currently active requirements. D167 Owner PASS and Stable release remain separate.
+
+
+## D168 activation after D167 limited Owner PASS (2026-10-13)
+
+Historical D167 resume examples and the PR #559 CODE-READY-only hold above were superseded by later Owner-approved Beta releases and D167 PR #581 limited-as-deployed signoff. The **active** Dxxx is now `D168`, and the working journal is `ops/change-continuity/D168.json`. For `tiếp tục D168`, bootstrap the latest main manifest, full order, current PR HEAD and D168 journal; distinguish approved decisions, pending analysis, source/CI, release evidence and Owner field proof. Each newly introduced log result/request/proposal/decision requires sanitized repo checkpoint; log intake alone authorizes no Beta or Stable rollout. The accepted base is D167 Owner limited PASS, never retroactively upgraded to full physical/quota verification.
