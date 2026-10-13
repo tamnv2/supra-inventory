@@ -200,3 +200,15 @@ The required path is WMS XLSX read-only export/normalization first on the WMS-ca
 - Không dùng Apps Script Gateway cho bất kỳ request SKU nào (scheduled/manual/status); phải chứng minh qua source test. Giữ FULL atomic membership/hide/protected Web edits/large-hide preview/receipts và DELTA 12h/19h skip-idempotency như D167.
 - Tiết kiệm quota bằng không stage khi semantic fingerprint giống dữ liệu nguồn đã kiểm, không poll liên tục, một job một chủ, không phát hot progress qua Firestore đến mọi Agent.
 - **Release gate:** chính sách đã được Owner chốt, D168 code đang viết ở PR591; chưa PASS toàn bộ hoặc triển khai. Stable owner-gated không đổi.
+
+## D168-E022 — Agent v131: đường Worker Beta trực tiếp và biên nhận DONE dùng kênh đồng bộ Agent hiện hữu
+
+Trên nhánh D168 đang xét, code Beta đã gắn `D168NetworkRoute` vào luồng cập nhật SKU tự động và thủ công. Nếu đường Worker trên mạng hiện thời không kết nối được (chỉ lỗi DNS/kết nối/timeout; không tự quy 401/403/429 là mất mạng), Agent kiểm tra mạng Wi-Fi đã lưu/được chọn, xuất Excel WMS HY1 ở chế độ chỉ đọc **trước khi đổi Wi-Fi**, sau đó mới kiểm tra Worker qua GET có xác thực và xin phép chuyển mạng. Hộp thoại không khóa luồng Confirm, cho 60 giây; không phản hồi chỉ có hiệu lực đối với quyền **thử đổi mạng** khi đang rảnh và HA vẫn hợp lệ. Khi hoàn tất/lỗi cần quay về mạng cũ, xác minh tên profile và phát hiện thất bại. Không giữ credential/WMS token/SSID trong nhật ký công khai.
+
+Với thao tác thủ công, tải WMS trước khi đổi mạng nếu Worker bị chặn không phải xác nhận đã cập nhật. Mật khẩu/mã đặc quyền vẫn được **Worker xác minh tại manual-start và reserve trước khi stage/publish**, dữ liệu đọc thử phải bỏ nếu xác thực thất bại. Khi không có fallback Wi-Fi đã lưu, không xuất WMS lặp lại mỗi lần retry. Lượt cập nhật qua 00:00 phải abort đúng ngày đã cấp lease.
+
+Một biên nhận `DONE` đã được Worker/InventoryCore xác minh mới được phản ánh đến Agent khác: chỉ gửi tóm tắt terminal ngày/slot, không truyền row/bin/product hoặc từng stage. Dùng chính tài liệu `agent_sync` và listener Firebase hiện có; khi cạnh tranh ghi, hợp nhất các slot DONE thay vì làm mất kết quả trước. Thông tin từ kênh Agent là bản tóm tắt hiển thị; Worker/Core tiếp tục là source-of-truth; không dùng Firebase làm dữ liệu SKU chính. Giữ ít lượt ghi và cấm polling riêng.
+
+Agent Beta ứng viên **v131**, quyền phát hành D168 sử dụng receipt mới mặc định khóa (code-only), không thể lấy nhầm ủy quyền D167. **Chưa xác minh FIELD PASS** trên PC Office/PDA, FULL 05h một máy, WMS Confirm/HA và readback Worker DONE. Không được chuyển trạng thái release-pass chỉ bằng source CI, không được đụng Stable.
+
+Chứng cứ: PR #591, `relay-agent/D167SkuCoordinator.cs`, `D168NetworkRoute.cs`, `D168SkuSharedState.cs`, `FirestoreAgentSync.cs`, `tools/d167_release_gate.py`, `ops/d168-release-authorization.json`; D168-E022.
