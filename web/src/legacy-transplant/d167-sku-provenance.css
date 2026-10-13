@@ -1,0 +1,84 @@
+/* D167 SKU catalog UI: management Web only. Reuses existing cards/table styling. */
+.sku-workspace .business-summary-grid.sku-kpi-grid {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px; margin:0 0 12px;
+}
+.sku-workspace .sku-kpi-grid .business-summary-card { min-height:88px; padding:14px 16px; }
+.sku-workspace .sku-kpi-grid .business-summary-card strong { margin:6px 0; }
+.sku-workspace .sku-kpi-grid .sku-summary-time {
+  font-size:clamp(16px,1.45vw,22px); line-height:1.2; white-space:normal;
+  overflow-wrap:anywhere;
+}
+.sku-workspace .sku-kpi-grid .business-summary-card small {
+  white-space:normal; overflow:visible; line-height:1.4;
+}
+.sku-workspace .sku-provenance-panel,.sku-workspace .sku-search-panel {
+  min-width:0; padding:15px 17px; margin:0 0 12px !important;
+}
+.sku-workspace .sku-provenance-panel .ops-panel-title,
+.sku-workspace .sku-search-panel .ops-panel-title { margin:0 0 12px; }
+.sku-workspace .sku-provenance-grid {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px; margin:0 0 14px;
+}
+.sku-workspace .sku-provenance-item {
+  display:flex; flex-direction:column; gap:4px;
+  padding:12px 13px; min-width:0; border:1px solid #e3eaf1; border-radius:10px;
+  background:#f8fafc;
+}
+.sku-workspace .sku-provenance-item span { color:#53677f; font-size:11px; font-weight:700; }
+.sku-workspace .sku-provenance-item strong { color:#172b47; font-size:16px; line-height:1.25; overflow-wrap:anywhere; }
+.sku-workspace .sku-provenance-item small { color:#526278; font-size:11px; line-height:1.55; overflow-wrap:anywhere; }
+.sku-workspace .sku-events-scroll { max-height:260px; overflow:auto; }
+.sku-workspace .sku-events-scroll table { width:100%; table-layout:fixed; }
+.sku-workspace .sku-events-scroll th:nth-child(1) { width:165px; }
+.sku-workspace .sku-events-scroll th:nth-child(2) { width:220px; }
+.sku-workspace .sku-events-scroll th:nth-child(3) { width:185px; }
+.sku-workspace .sku-events-scroll td { vertical-align:top; overflow-wrap:anywhere; }
+.sku-workspace .sku-events-scroll td small { display:block; font-size:10px; margin-top:3px; color:#627187; }
+.sku-workspace .sku-tech-details { border-top:1px solid #e8edf3; margin:12px 0 0; padding-top:10px; font-size:11px; }
+.sku-workspace .sku-tech-details summary { cursor:pointer; color:#355e8b; font-weight:650; }
+.sku-workspace .sku-tech-details > div { margin:7px 0; overflow-wrap:anywhere; }
+.sku-workspace .sku-tech-details code { white-space:normal; overflow-wrap:anywhere; }
+.sku-workspace .sku-admin-search {
+  display:grid; grid-template-columns:minmax(0,1fr) auto auto;
+  gap:8px; margin:0 0 12px; align-items:center;
+}
+.sku-workspace .sku-admin-search input { min-width:0; }
+.sku-workspace .sku-catalog-table { max-height:450px; overflow:auto; }
+.sku-workspace .sku-catalog-table table { width:100%; table-layout:fixed; }
+.sku-workspace .sku-catalog-table th:first-child { width:135px; }
+.sku-workspace .sku-catalog-table th:nth-child(3) { width:120px; }
+.sku-workspace .sku-catalog-table th:nth-child(4) { width:190px; }
+.sku-workspace .sku-catalog-table td { overflow-wrap:anywhere; }
+.sku-workspace .sku-import-details { padding:0 !important; margin:0 0 12px !important; overflow:visible; }
+.sku-workspace .sku-import-details > summary {
+  display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; cursor:pointer;
+  padding:14px 16px; min-height:50px;
+}
+.sku-workspace .sku-import-details > summary::marker { color:#3d5f87; }
+.sku-workspace .sku-import-details > summary strong { font-size:13px; }
+.sku-workspace .sku-import-details > summary small { color:#68788c; font-size:11px; }
+.sku-workspace .sku-import-details .sku-import-inner { border-top:1px solid #e3eaf1; padding:14px 16px; }
+.sku-workspace .sku-import-details .sku-import-inner > * { margin-bottom:10px; }
+body[data-theme="dark"] .sku-workspace .sku-provenance-item {
+  background:#172335; border-color:#344359;
+}
+body[data-theme="dark"] .sku-workspace .sku-provenance-item :is(strong,span,small) { color:#d8e4f1; }
+body[data-theme="dark"] .sku-workspace .sku-tech-details,
+body[data-theme="dark"] .sku-workspace .sku-import-details .sku-import-inner { border-color:#344359; }
+body[data-theme="dark"] .sku-workspace .sku-tech-details summary { color:#a9c7ef; }
+@media(max-width:1050px) {
+  .sku-workspace .sku-kpi-grid,.sku-workspace .sku-provenance-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:680px) {
+  .sku-workspace .sku-kpi-grid,.sku-workspace .sku-provenance-grid {
+    grid-template-columns:1fr;
+  }
+  .sku-workspace .sku-admin-search { grid-template-columns:1fr 1fr; }
+  .sku-workspace .sku-admin-search input { grid-column:1/-1; }
+  .sku-workspace .sku-catalog-table table { min-width:690px; }
+  .sku-workspace .sku-events-scroll table { min-width:760px; }
+}

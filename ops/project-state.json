@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__FIELD_AND_OWNER_PASS_PENDING",
+    "current_change_status": "D167_WEB_SKU_PROVENANCE_PR577_OWNER_APPROVED_CODE_COMMITTED__CI_AND_BETA_RELEASE_PENDING__OWNER_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D167_AGENT_V130_GITHUB_BETA_RELEASE_AND_INVENTORY_CHANNEL_PASS__WINDOWS_AGENT_MANUAL_INSTALL_PENDING__WEB_SERVICE_ANDROID_STABLE_UNTOUCHED",
+    "runtime_impact": "D167_AGENT_V130_BETA_TECHNICAL_PASS_FIELD_PENDING__WEB_SKU_PR577_NOT_YET_RELEASED__CURRENT_BETA_WORKER_UNCHANGED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -2497,7 +2497,8 @@
     "pr566_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA",
     "pr568_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V128_UI_SAFE_DIAGNOSTIC_BETA__STABLE_UNTOUCHED",
     "pr572_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA__STABLE_OWNER_GATED",
-    "pr574_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA__STABLE_UNTOUCHED"
+    "pr574_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA__STABLE_UNTOUCHED",
+    "pr577_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_SKU_PROVENANCE_BETA__STABLE_UNTOUCHED"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7440,13 +7441,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
-    "working_branch": "d167-agent-v130-release-evidence-20261013",
-    "pr": 576,
-    "latest_checkpoint_id": "D167-E048",
+    "working_branch": "d167-web-sku-provenance-layout-20261013",
+    "pr": 577,
+    "latest_checkpoint_id": "D167-E049",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D167_V130_AGENT_ONLY_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING__NO_WEB_SERVICE_ANDROID_STABLE",
+    "owner_release_gate": "D167_OWNER_EXPLICIT_WEB_SKU_PROVENANCE_BETA_WORKER_ONLY__PR577_CI_PENDING__NO_ANDROID_AGENT_STABLE",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7551,5 +7552,44 @@
     "agent_exe_size_bytes": 7386624,
     "release_tag": "relay-agent-v130",
     "manual_install_pending": true
+  },
+  "d167_web_sku_provenance_20261013": {
+    "owner_checkpoint": "D167-E049",
+    "source_authorization_commit": "1ae9b4a070364c148571e4d759cb79cf1894f7ed",
+    "pr": 577,
+    "status": "OWNER_APPROVED_CODE_COMMITTED_CI_AND_BETA_WORKER_RELEASE_PENDING",
+    "components": [
+      "web",
+      "service"
+    ],
+    "authorized_release_components": [
+      "worker"
+    ],
+    "excluded": [
+      "android",
+      "relay-agent",
+      "firebase",
+      "functions",
+      "ops/apps-script",
+      "stable",
+      "wms-provider"
+    ],
+    "backwards_compatible_sku_catalog_info": true,
+    "admin_web_only": true,
+    "active_user_roles": [
+      "ADMIN",
+      "ROOT",
+      "PICKPACK_ADMIN"
+    ],
+    "use_existing_audit_log": true,
+    "agent_done_receipts": true,
+    "one_bounded_sql_read_on_web_sku_page": true,
+    "provenance_cache_minutes": 5,
+    "new_cloud_resources": false,
+    "background_polling_added": false,
+    "ci_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false
   }
 }

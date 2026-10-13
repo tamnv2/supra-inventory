@@ -2,11 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "c982f60d38943460d146ef19e08dbfe088b5835f",
+  "approved_source_sha": "1ae9b4a070364c148571e4d759cb79cf1894f7ed",
   "approved_components": [
-    "agent"
+    "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA",
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_SKU_PROVENANCE_BETA",
   "approved_at_vn": "2026-10-13",
-  "note": "Owner explicitly approved code and scoped Beta deployment for five Agent-only non-SKU fixes based on 12 Oct logs. Agent v130 source at c982f60d: incident classification/recovery and log coalescing, stale auxiliary WMS session health guard, RTDB flap metrics, Picker bulk-revoke 403 sanitized denial, local upload log noise reduction. No Web/Service/Android/RTDB rules/Firestore data changes, no Stable, no forced Agent update. PR574 exact CI/authority/continuity PASS required before merge. Manual standby-first rollout after live readiness; field/Owner PASS not yet claimed. Web SKU layout/provenance analysis is proposal only."
+  "note": "Latest Owner explicitly approves source-attested Web Danh mục SKU redesign and directs run code + deploy scoped existing Beta Worker/Web on CI PASS. Approved source 06d32e3 includes service/src/read-model-core.ts and read-api.ts read-only RBAC route, web/src/api.ts operational-app.ts CSS, provenance regression test and CI guard. Web/Service Worker existing Beta only, no Android, Windows Agent, Firebase/RTDB rules, Apps Script, WMS backend, Stable or new provider reads beyond one bounded DO SQL manager-page GET; no SKU mutations. Historical v130 Agent release unchanged. Exact PR577 CI and source release guard mandatory, field and D167 Owner PASS pending."
 }

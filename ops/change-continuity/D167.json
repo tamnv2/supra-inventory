@@ -4,28 +4,28 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-agent-v130-release-evidence-20261013",
-  "pr": 576,
-  "status": "D167_E048_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING__WEB_SKU_PROPOSAL",
+  "working_branch": "d167-web-sku-provenance-layout-20261013",
+  "pr": 577,
+  "status": "D167_E049_WEB_SKU_PROVENANCE_OWNER_APPROVED_CODE_READY_CI_PENDING",
   "last_checkpoint": {
-    "id": "D167-E048",
+    "id": "D167-E049",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 AGENT_V130_BETA_ONLY_APPROVED",
+    "owner_latest": "2026-10-13 SKU_WEB_PROVENANCE_BETA_APPROVED",
     "code_permission": true,
     "merge_permission": true,
     "beta_deploy_permission": true,
     "stable_deploy_permission": false,
     "new_owner_approval_required": false,
     "approved_components": [
-      "agent"
+      "worker"
     ],
-    "current_pr_scope": "PR574_AGENT_ONLY_NONSKU_V130_BETA__WEB_SERVICE_ANDROID_STABLE_EXCLUDED__WEB_SKU_PROPOSAL_ONLY",
+    "current_pr_scope": "PR577_WEB_SKU_PROVENANCE_BETA_WORKER_WEB_ONLY__NO_ANDROID_AGENT_STABLE",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "c982f60d38943460d146ef19e08dbfe088b5835f",
-    "technical_release_pass": true,
+    "approved_source_sha": "1ae9b4a070364c148571e4d759cb79cf1894f7ed",
+    "technical_release_pass": false,
     "field_pass": false
   },
   "entries": [
@@ -999,6 +999,35 @@
       ],
       "next_action": "Reconcile source-authoritative v130 Beta technical release evidence in D167 main state without reissuing runtime release; when field available manually update standby first, check HA/Confirm/logs then PRIMARY only when safe. Propose and separately approve Web SKU UI/provenance correction.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/574 ; https://github.com/tamnv2/supra-inventory/actions/runs/38335654198 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v130 ; GitHub inventory-channel assets SHA256."
+    },
+    {
+      "id": "D167-E049",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves implementation and scoped Beta deployment of compact Web Danh mục SKU with verified Web manual vs Agent FULL/DELTA history and original import behavior",
+      "owner_approval": true,
+      "status": "OWNER_APPROVED_WEB_SKU_PROVENANCE_WORKER_BETA__CODE_IN_PR577__CI_AND_RELEASE_PENDING",
+      "facts": [
+        "Owner explicitly writes 'ok duyệt, triển khai xử lí web danh mục sku như đề xuất' after previous detailed Agent v130 release and Web SKU redesign recommendation; latest directive supersedes E048 proposal-only boundary for this Web/Worker feature, not Agent/Android/Stable business PASS.",
+        "Concrete root cause: service/src/read-model-core.ts skuCatalogInfo.last_sync_at selected latest audit action SKU_IMPORT_CHUNK regardless of Agent source; web/src/operational-app.ts wrongly labeled it 'Đồng bộ Agent gần nhất'. Catalog max_updated_at is mutation time and cannot prove Agent FULL. Owner identified 05:38 manual Web and 07:54 Agent FULL; frontend now never guesses either source from timestamps.",
+        "PR577 introduces manager Web-only GET /api/admin/skus/catalog-provenance authorized for ROOT/ADMIN/PICKPACK_ADMIN, rejects Android channel; internal read SQL selects bounded latest Web audit SKU_IMPORT_CHUNK/PATCH and SKU_WEB_FULL_REPLACE/FULL with users display name and Agent d167_sku_jobs state DONE receipts FULL/DELTA/manual with Worker-verified actor display, actual completion time, row deltas and no-op notes. No schema/data mutations.",
+        "Frontend three compact cards SKU count, today verified FULL readiness, catalog data change timestamp; 3 source-attested Web/Agent FULL/Agent DELTA receipt cards; recent events with source/actor/counts; technical version collapsed; active SKU search full width with area/time; Excel importer collapsed while retaining existing validation/PATCH/FULL/conflict/roles/page workflow. 5-minute caching and invalidation on successful import; one additional admin page-only DO SQL read, no realtime polling or Firebase reads.",
+        "Existing public catalog-info, Android SKU schema and online day-ready reporting remain unchanged; new provenance response is management-Web-only and no field attempt to infer Agent FULL from max_updated_at; empty/unavailable history explicitly shown.",
+        "No Android APK, Windows Agent v130 release, Firebase/RTDB Rules, Apps Script, WMS backend, Stable, new resources or changed SKU write policies; only existing Beta Worker/Web build/deploy is approved after exact PR head CI. No routine interruptions expected from existing Cloudflare Worker version deployment, but field evidence required.",
+        "Added tests/d167-sku-provenance.test.mjs to predeploy product verify workflow, source tests for mode, privacy, Web drawer and low usage. Technical implementation source commit candidate 1ae9b4a070364c148571e4d759cb79cf1894f7ed is Owner receipt ancestor and must remain identical under protected source until merge/release."
+      ],
+      "alternatives": [
+        "A (approved): source-attested DO SQL management read and compact Web layout within existing Beta Worker; no extra background writes/polling or Firebase queries. Exact source receipt and CI PASS before merge/automatic release.",
+        "B (rejected): relabeling the two old catalog-info timestamps as exact Agent/Web update times without verified biên nhận; would repeat data provenance bug.",
+        "C (not authorized): rewrite SKU sync mutations/PL confirmations or update Android/Agent/Stable to supply a new telemetry backend; unnecessary for management read-only problem."
+      ],
+      "open_questions": [
+        "Full Beta CI including service TypeScript typecheck, Web build, new provenance test and authority/change guards must PASS exact PR577 source before merge.",
+        "Live Web Owner field check needed to confirm same-day 05:38 Web manual/07:54 Agent FULL in existing receipts; if source events absent, show unavailable instead of fabricating.",
+        "Existing Beta Worker CI deploy and external health checks must verify no Web runtime interruption; stable and Owner business PASS remain separately gated."
+      ],
+      "next_action": "Wait for PR577 full exact-head CI; fix source regressions in same PR and recompute source SHA/Owner receipt if any protected files change. On PASS merge PR577, auto deploy existing Beta Worker/Web only, verify deploy logs and health/no Service interruption, then record technical release evidence in D167 while keeping field/Owner PASS pending.",
+      "evidence": "Owner current message 2026-10-13; GitHub PR577; source service/src/read-model-core.ts, read-api.ts, web/src/operational-app.ts, api.ts, CSS; tests/d167-sku-provenance.test.mjs; docs/OWNER_DECISIONS.md."
     }
   ],
   "resume": {
@@ -1010,7 +1039,8 @@
       "2026-10-12 Owner authorizes deploying all PR559 CODE READY items to existing scoped Beta; Stable is not approved",
       "D167-E046 Owner: cancel direct MAIN-tab WMS auth work; existing isolated same-profile child chosen; pending Agent other-thread/Usage logs/Launcher project deferred.",
       "D167-E046 Owner: 'chạy code' = all approved code+CI to CODE READY then STOP/report; 'duyệt triển khai' releases only PASS code; 'chạy code và triển khai'/'triển khai luôn' = complete code+CI and immediately deploy approved scoped Beta without midpoint approval.",
-      "D167-E047 Owner approves five Agent-only non-SKU fixes + code and scoped Beta release after CI PASS; no Android/Web/Service, Stable gated."
+      "D167-E047 Owner approves five Agent-only non-SKU fixes + code and scoped Beta release after CI PASS; no Android/Web/Service, Stable gated.",
+      "D167-E049 Owner approves verified-source Web SKU management redesign and scoped existing Beta Worker/Web deploy after PR577 exact-head CI PASS."
     ],
     "implemented": [
       "Earlier D167 Web/Worker/Gateway/Android vc106 and Agent v126/v127/v128 technical releases already in main; not a remaining unimplemented item",
@@ -1022,14 +1052,14 @@
     "in_progress": [
       "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
       "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task.",
-      "Docs-only PR576 postrelease evidence: authority/continuity CI and merge; Agent v130 already published, do NOT release again."
+      "Docs-only PR576 postrelease evidence: authority/continuity CI and merge; Agent v130 already published, do NOT release again.",
+      "PR577 Web SKU provenance/layout source, auth, regression and predeploy CI; Beta Worker/Web release pending."
     ],
     "pending_approval": [
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
       "Usage/cross-meter optimization pending further real log/provider measurements.",
       "Launcher PDA Logs pending Owner decision in separate Launcher project (outside this repo's APK scope).",
-      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending.",
-      "Separate Web SKU provenance/layout redesign proposal, including source-attested Web-manual vs Agent-FULL/DELTA timeline; no Web/Service code authorized."
+      "Any future Stable deployment needs explicit scoped Owner permission; D167 Owner business PASS remains pending."
     ],
     "blocked": [
       "No new source/release is authorized in policy-only PR575; pending Agent proposal and Usage solutions require separate approval and evidence.",
@@ -1042,8 +1072,9 @@
       "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission.",
       "Verify PR574 exact latest CI and signed Beta Agent v130 release; manual standby-first field update; do not force fleet/Stable.",
       "Owner/authorized Agent operator manually updates standby via Agent Check Update, verifies live Confirm/HA, then PRIMARY when idle and healthy; no forced fleet update.",
-      "After docs-only PR576 CI PASS, merge without any runtime deployment and check main D167-E048 field pending."
+      "After docs-only PR576 CI PASS, merge without any runtime deployment and check main D167-E048 field pending.",
+      "PR577 exact-head CI -> scoped Beta Worker deploy (Web asset built) -> runtime smoke and E050 evidence; no Android/Agent/Stable release."
     ],
-    "release_boundary": "D167_E048_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__NO_WEB_SERVICE_ANDROID_STABLE_DEPLOY__FIELD_OWNER_PASS_PENDING"
+    "release_boundary": "D167_E049_WEB_SKU_PROVENANCE_BETA_WORKER_ONLY_OWNER_APPROVED_PR577_CI_PENDING__ANDROID_AGENT_STABLE_UNTOUCHED__FIELD_OWNER_PASS_PENDING"
   }
 }

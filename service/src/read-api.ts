@@ -123,6 +123,13 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
     return core(env).fetch("https://inventory-core.internal/read/skus/catalog-info");
   }
 
+  if (url.pathname === "/api/admin/skus/catalog-provenance") {
+    const manager = await requireUser(request, env, ["ADMIN", "ROOT", "PICKPACK_ADMIN"]);
+    if (manager.session_channel === "ANDROID")
+      return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
+    return core(env).fetch("https://inventory-core.internal/read/skus/catalog-provenance");
+  }
+
   if (url.pathname === "/api/skus/catalog") {
     await requireUser(request, env);
     const params = new URLSearchParams();

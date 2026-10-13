@@ -101,6 +101,97 @@ function skuCatalogInfo(state: DurableObjectState): Response {
   });
 }
 
+// D167: Admin-only source-attested history, queried only on the Web SKU workspace.
+// Agent rows are durable DONE receipts; Web rows are authoritative audit writes.
+// Neither catalog max_updated_at nor SKU_IMPORT_CHUNK alone proves an Agent FULL.
+function skuCatalogProvenance(state: DurableObjectState): Response {
+  type CatalogEvent = {
+    source: "WEB" | "AGENT"; mode: "FULL" | "PATCH" | "DELTA";
+    at: string; actor: string; slot: string | null; day_vn: string | null;
+    total: number; created: number; updated: number; activated: number;
+    hidden: number; unchanged: number; note: string;
+  };
+  const nonnegative = (value: unknown): number => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0;
+  };
+  const parse = (raw: unknown): Record<string, unknown> => {
+    try {
+      const obj: unknown = JSON.parse(String(raw || "{}"));
+      return obj !== null && typeof obj === "object" && !Array.isArray(obj)
+        ? obj as Record<string, unknown> : {};
+    } catch { return {}; }
+  };
+  const webRows = state.storage.sql.exec<SqlRow>(`
+    SELECT a.action,a.created_at,a.actor_employee_code,a.metadata_json,
+           u.display_name AS verified_actor_name
+    FROM audit_log a LEFT JOIN users u ON u.user_id=a.actor_user_id
+    WHERE a.action IN ('SKU_IMPORT_CHUNK','SKU_WEB_FULL_REPLACE')
+    ORDER BY a.created_at DESC, a.audit_id DESC LIMIT 6
+  `).toArray();
+  const agentRows = state.storage.sql.exec<SqlRow>(`
+    SELECT day_vn,slot,complete_at,receipt_json
+    FROM d167_sku_jobs WHERE state='DONE' AND complete_at IS NOT NULL
+    ORDER BY complete_at DESC LIMIT 8
+  `).toArray();
+  // "Latest FULL" must remain exact even after many more DELTA/manual events.
+  // Small indexed/local Durable Object SQL reads, only on admin SKU page entry.
+  const lastFull = state.storage.sql.exec<SqlRow>(`
+    SELECT day_vn,slot,complete_at,receipt_json FROM d167_sku_jobs
+    WHERE state='DONE' AND slot='INITIAL_05' AND complete_at IS NOT NULL
+    ORDER BY complete_at DESC LIMIT 1
+  `).toArray()[0];
+  const lastDelta = state.storage.sql.exec<SqlRow>(`
+    SELECT day_vn,slot,complete_at,receipt_json FROM d167_sku_jobs
+    WHERE state='DONE' AND slot<>'INITIAL_05' AND complete_at IS NOT NULL
+    ORDER BY complete_at DESC LIMIT 1
+  `).toArray()[0];
+  const web: CatalogEvent[] = webRows.map(x => {
+    const detail = parse(x.metadata_json);
+    const full = x.action === "SKU_WEB_FULL_REPLACE";
+    const name = String(x.verified_actor_name || "").trim().slice(0,100);
+    const code = String(x.actor_employee_code || "").trim().slice(0,32);
+    return {
+      source:"WEB",mode:full?"FULL":"PATCH",at:String(x.created_at||""),
+      actor:name ? (code ? name+" · "+code : name) : (code || "Tài khoản Web"),
+      slot:null,day_vn:null,
+      total:nonnegative(full?detail.source_rows:detail.total),
+      created:nonnegative(full?detail.created:detail.inserted),
+      updated:nonnegative(full?detail.renamed:detail.updated),
+      activated:nonnegative(full?detail.reactivated:detail.reactivated),
+      hidden:full?nonnegative(detail.hidden):0,
+      unchanged:full?0:nonnegative(detail.unchanged),
+      note:full?"FULL Web đã xác nhận":"Một lô PATCH từ Excel (không phải FULL)"
+    };
+  });
+  const agentEvent = (x: SqlRow): CatalogEvent => {
+    const detail = parse(x.receipt_json);
+    const slot = String(x.slot||"");
+    const full = slot === "INITIAL_05";
+    const actor = String(detail.actor_display||"").trim().replace(/[\r\n\t]/g," ").slice(0,120);
+    return {
+      source:"AGENT",mode:full?"FULL":"DELTA",at:String(x.complete_at||""),
+      actor:actor||"Agent đã xác thực",
+      slot,day_vn:String(x.day_vn||""),
+      total:nonnegative(detail.source_rows),
+      created:nonnegative(detail.created),updated:nonnegative(detail.updated),
+      activated:nonnegative(detail.activated),hidden:nonnegative(detail.hidden),
+      unchanged:nonnegative(detail.unchanged),
+      note:detail.source_unchanged===true?"Nguồn không đổi, không ghi lại SKU":
+        (detail.manual===true?"Agent cập nhật thủ công":"Agent đồng bộ theo lịch")
+    };
+  };
+  const agent: CatalogEvent[] = agentRows.map(agentEvent);
+  const recent = [...web,...agent].sort((a,b)=>b.at.localeCompare(a.at)).slice(0,8);
+  return response({
+    latest_web:web[0]||null,
+    latest_agent_full:lastFull ? agentEvent(lastFull) : null,
+    latest_agent_delta:lastDelta ? agentEvent(lastDelta) : null,
+    recent,
+    source_verified:true
+  });
+}
+
 function skuCatalog(state: DurableObjectState, url: URL): Response {
   const limit = limitOf(url.searchParams.get("limit"), 1000, 2000);
   const after = String(url.searchParams.get("after") || "");
@@ -586,6 +677,7 @@ export async function handleReadModelCoreRequest(
   }
 
   if (request.method === "GET" && url.pathname === "/read/skus/catalog-info") return skuCatalogInfo(state);
+  if (request.method === "GET" && url.pathname === "/read/skus/catalog-provenance") return skuCatalogProvenance(state);
   if (request.method === "GET" && url.pathname === "/read/skus/catalog") return skuCatalog(state, url);
   if (request.method === "GET" && url.pathname === "/read/skus/catalog-delta") return skuCatalogDelta(state, url);
   if (request.method === "GET" && url.pathname === "/read/reporter/recent") return reporterRecent(state, url);

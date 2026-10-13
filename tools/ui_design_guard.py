@@ -242,10 +242,14 @@ checks = {
        and 'id="extend-android-alert-window"' not in WEB_APP,
     "web_d122_sku_sync_checkpoint": all(token in WEB_APP + WEB_API + SERVICE_READ_MODEL for token in [
         "last_sync_at",
-        "Đồng bộ Agent gần nhất",
         "SKU_IMPORT_CHUNK",
         "last_sync_unchanged",
-    ]),
+        "skuCatalogProvenance",
+        "Web nhập Excel gần nhất",
+        "Agent FULL gần nhất",
+        "Agent DELTA gần nhất",
+    ]) and "Đồng bộ Agent gần nhất" not in WEB_APP
+       and "FROM d167_sku_jobs WHERE state='DONE'" in SERVICE_READ_MODEL,
 
     "web_entrypoint_active": 'import "./operational-app"' in WEB_MAIN,
     "web_transplanted_styles_loaded": all(token in WEB_APP for token in [
