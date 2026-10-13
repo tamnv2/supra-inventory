@@ -402,3 +402,45 @@ test("D167 v128 diagnoses existing direct API export safely without changing WMS
   assert.doesNotMatch(exporter,/Network\.setExtraHTTPHeaders|Page\.navigate|ClickOneExact/);
   assert.match(direct,/req\.Method="GET"/);
 });
+
+
+test("D167 P0 SKU lease is scoped to actual mutations; Worker retains independent fail-closed proof", async () => {
+  const {readFileSync}=await import("node:fs");
+  const leader=readFileSync(new URL("../relay-agent/FirestoreAgentLeaderCoordinator.cs",import.meta.url),"utf8");
+  const client=readFileSync(new URL("../relay-agent/D167SkuServiceClient.cs",import.meta.url),"utf8");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const agent=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const ha=readFileSync(new URL("../service/src/d167-sku-ha.ts",import.meta.url),"utf8");
+  const route=readFileSync(new URL("../service/src/index.ts",import.meta.url),"utf8");
+  assert.match(leader,/internal void EnsureD167SkuPrimaryLease\(string expectedGeneration\)/);
+  assert.match(leader,/now - _d167SkuLeaseProofAtMs < 20000/);
+  assert.match(leader,/WritePrimaryLease\(session\)/);
+  assert.match(leader,/_role != FirestoreAgentRole\.PRIMARY/);
+  assert.match(leader,/!string\.Equals\(_generation, expectedGeneration/);
+  assert.match(client,/if \(operation!="schedule" && operation!="status"\)/);
+  assert.match(client,/refreshSkuPrimaryLease\(Convert\.ToString\(proofGeneration\)\)/);
+  assert.match(coordinator,/new D167SkuServiceClient\(currentSession,ensureFreshToken,primaryReady,ensureSkuLease\)/);
+  assert.match(agent,/_leaderCoordinator\.EnsureD167SkuPrimaryLease\(expected\)/);
+  assert.match(ha,/rolesResponse, leaseResponse/);
+  assert.match(ha,/FIRESTORE_LEASE_STALE/);
+  assert.match(ha,/FIRESTORE_ROLES_MISMATCH/);
+  assert.match(ha,/Math\.abs\(Date\.now\(\) - heartbeat\) <= 45_000/);
+  assert.doesNotMatch(ha,/return \{valid:true[^}]*\}\s*catch/);
+  assert.match(route,/if \(!leader\.valid\) return json\(\{ ?error: ?"NOT_CURRENT_FIREBASE_PRIMARY_"\+leader\.reason/);
+});
+
+test("D167 P0 Vietnamese updater provenance uses existing Worker->Core receipt, no new UI polling", async () => {
+  const {readFileSync}=await import("node:fs");
+  const ui=readFileSync(new URL("../relay-agent/D167SkuUi.cs",import.meta.url),"utf8");
+  const core=readFileSync(new URL("../service/src/d167-sku-sync-core.ts",import.meta.url),"utf8");
+  const router=readFileSync(new URL("../service/src/index.ts",import.meta.url),"utf8");
+  assert.match(router,/actor_display: \[String\(operator\.display_name/);
+  assert.match(core,/manual \&\& String\(body\.actor_user_id \|\| ""\) !== String\(manual\.actor_id\)/);
+  assert.equal(core.split("actor_id:actorId,actor_display:actorDisplay").length-1,2);
+  assert.match(ui,/Người cập nhật/);
+  assert.match(ui,/D167ReceiptNumber\(state\.ReceiptJson,"actor_display"\)/);
+  assert.match(ui,/D167ReceiptNumber\(item\.ReceiptJson,"actor_display"\)/);
+  assert.match(ui,/Đã cập nhật/);
+  assert.match(ui,/Cập nhật chưa thành công/);
+  assert.doesNotMatch(ui,/setInterval|System\.Threading\.Timer|FirestoreClient/);
+});
