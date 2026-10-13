@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E018",
+    "id": "D168-E019",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -25,7 +25,7 @@
       "EXISTING_FIRESTORE_BETA"
     ],
     "new_owner_approval_required": false,
-    "current_pr_scope": "PR591_D168_INTEGRATED_BIG_UPDATE_AGENT_ANDROID_WEB_WORKER_EXISTING_REGISTERED_BETA_ONLY",
+    "current_pr_scope": "PR591_D168_PARTIAL_IMPLEMENTATION__WLAN_P0_RELEASE_GUARD_PENDING__NO_BETA_RELEASE",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -435,6 +435,33 @@
       ],
       "next_action": "Finish D168 on current PR, synchronize Owner decisions/spec/state, run all CI+field coverage; only merge and deploy Beta when authority, continuity and product gates pass. Do not claim DONE in advance.",
       "evidence": "Owner approval 2026-10-14 current conversation; PR591 D168 partial code and GitHub CI logs; docs/D168_OWNER_APPROVAL_2026-10-14.md"
+    },
+    {
+      "id": "D168-E019",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner asks current D168 status and continuation; review PR591 exact HEAD, preserve multi-Picker selection and add fail-closed release gate for disconnected Office Worker SKU uplink",
+      "status": "PR591_SOURCE_PROGRESS__MULTI_PICKER_SELECTION_FIXED__WLAN_RUNTIME_NOT_WIRED__RELEASE_GUARD_EXPECTED_FAIL__NO_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Current Owner command is to verify status and continue the already-approved D168-E018 all-code-and-Beta implementation, not a new Dxxx ID or Stable approval.",
+        "PR590 is merged. Active D168 Draft PR591 was open with head e22dcf96f87b721eaf31bc2e0294e17b3ff2adfb before this checkpoint; at that head Repo Authority, Continuity, SKU source-contract, Android and Agent build workflows succeeded, but Agent/Android release steps were skipped; no release/field PASS.",
+        "D168NetworkRoute.cs contains saved WLAN profile lookup, ConnectSavedProfile and authenticated Worker ProbeWorker yet there are no runtime Agent calls to this helper. SKU ServiceClient directly requests Worker schedule/reserve, so Office with blocked Cloudflare cannot guarantee mandatory FULL even when solo PRIMARY.",
+        "The existing Agent Picker table renderer restored only one previously selected Picker on realtime updates, conflicting with approved D168 group-contact multi-selection. Fixed to preserve all selected IDs and clear accidental default selection.",
+        "Added a regression asserting multi-Picker selection retention and a fail-closed SKU direct-Worker/WLAN release test. With current unwired WLAN helper, the latter is expected to FAIL until orchestration is implemented. CI must be rerun on final exact HEAD; do not claim final CODE READY.",
+        "Added docs/D168_RELEASE_READINESS_2026-10-14.md with REQ-001..011 progress, impact/contract/test matrix and field/usage/rollout boundaries. No provider or Stable resource touched."
+      ],
+      "alternatives": [
+        "Preferred: implement a real bounded and reversible Office-to-approved saved Internet WLAN transition, Worker connectivity readback and idle/HA/WMS-Confirm safety; preserve existing Firestore critical lanes, 05h mandatory FULL and zero SKU Apps Script.",
+        "Fail-closed until exact-head tests pass, rather than merging technically building yet behavior-incomplete direct Worker SKU on Office."
+      ],
+      "open_questions": [
+        "Can physical Windows Agent standard user connect to approved saved WLAN and restore prior profile without breaking HA/Confirm?",
+        "Can mandatory first daily FULL finish and persist real InventoryCore DONE on Office/ordinary Internet solo-primary and fleet handoff?",
+        "What is measured quota, latency and ACK across Agent/Android/Worker/Firestore during real tests?"
+      ],
+      "next_action": "Complete safe WLAN/Worker routing, group-contact and session correctness, prepare D168 field and quota regressions, repair test failures, run all exact-head CI, then deploy only scoped Beta after every gate; no Stable release.",
+      "evidence": "PR #591; commits bf71973b390af41c5b5e08823428f3d8f6fe1e4c, 56bcf7c10e2cd44e50198294ea72f6ee60ed3b36 and dcbcf97e84296ad3794aa8cc9d9205012d08f6ea; docs/D168_RELEASE_READINESS_2026-10-14.md; workflow runs 38455795904/38455795929/38455795985/38455795959/38455796105/38455796012 on previous HEAD"
     }
   ],
   "resume": {
@@ -453,43 +480,29 @@
       "D168 PR589 Office SKU design docs merged to main; no executable source altered"
     ],
     "in_progress": [
-      "D168 PR590: Agent v130 Office/Internet matrix, docs-only checkpoint; CI/merge pending",
-      "D168 PR591 source-backed SKU job/Windows Wi-Fi switching design; source and field test pending",
-      "D168-E017 Picklist success-only ACK proposal source-audited; recommend KEEP durable success ACK; pending Owner view, no source authorization"
+      "D168 PR591: partial approved implementation in Agent, Android, Worker/Core; current source fix preserves multi-Picker online selection",
+      "D168 release guard now checks runtime WLAN orchestration; expected red until helper is genuinely wired",
+      "D168-E018 Owner authorized all D168 REQ-001..011 Beta scope after full checks; work continues on same PR"
     ],
     "pending_approval": [
-      "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
-      "Usage/cross-provider optimization pending real comparable provider cost/quality evidence",
-      "Future log/error fixes, fleet/HA confirmation, full CI/CD invocation gate review require scoped evidence and Owner command",
       "Stable is OWNER-GATED",
-      "D168-REQ-001: Android long-press visible SKU to local clipboard across Picker/Reporter and all listed states; pending source/UI analysis, no code approval",
-      "D168-REQ-002: Inventory response actor full name/time from existing events/payload when available; pending schema/realtime/permission/Usage analysis, no code approval",
-      "D168-REQ-003: Agent online Picker App-version column after confirmation source",
-      "D168-REQ-004: Picker online presence accuracy after logout/kick with minimal Usage",
-      "D168-REQ-005: Agent SKU tab UI redesign and cross-Agent state synchronization reusing existing channels",
-      "D168-REQ-006: Agent Settings option for Windows auto-start",
-      "D168-REQ-007: Agent group message or call-home to multiple/all active Pickers; pending presence, RBAC, message/ACK fanout and Usage analysis; no code approval",
-      "Agent log-upload repair proposal needs Owner approval; no code or deploy authorized",
-      "D168 Agent log-upload fix pending Owner decision: verify root causes, then Agent-only timeout/single-flight/backoff/manual semantics; Gateway change only if evidence warrants",
-      "D168-REQ-008: two Agent Drive log-upload failures; Agent-only reliability fix awaiting Owner code/release approval",
       "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics",
       "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval",
       "D168-REQ-011: Office-only WMS Excel GET + Google Apps Script to Worker SKU uplink; field proof on script.googleusercontent.com and UrlFetch quota; no code/deploy permission.",
-      "D168-E016 selected lease preadmission trust mechanism and approved scoped saved Windows Wi-Fi profiles need verification before implementation",
-      "D168-E017 no silent success: wait explicit Owner direction on minimal durable ACK; current Android requires ACK for <20s reliable terminal outcome"
+      "No new Owner code/deploy approval required for existing D168-E018 Beta scope, but physical FIELD_PASS and exact-head CI remain required."
     ],
-    "blocked": [],
+    "blocked": [
+      "P0: Agent direct SKU-to-Worker path cannot operate on Office network until saved WLAN switch is safely wired; helper currently disconnected.",
+      "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
+      "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD."
+    ],
     "next_actions": [
-      "Review D168 Agent support-log diagnostic and obtain explicit Owner authorization before code changes or release",
-      "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007",
-      "Verify Agent/Service 2026-10-13 DELTA_19 receipt and Apps Script UrlFetch exhaustion via existing on-demand/privileged data; if unavailable, report unverified, do not infer DONE",
-      "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command",
-      "Verify SKU schedule action and durable 19:00 receipt using existing authorized status route on Office-only network, then compare PDA without changing business state",
-      "Review Agent v130 per-feature Office/Internet matrix and verify field-only routes; await Owner instruction for any code or deploy",
-      "Await explicit code instruction for D168 Agent D160/D166 Usage retirement, independent Worker SKU lease, safe WLAN handoff and direct Worker upload",
-      "D168-E017 design single-flight real Worker reachability probe not GET /health and measure current Firestore CAS + listener read costs; no implementation until Owner 'chạy code'"
+      "Wire authorized safe WLAN route and Worker probe into actual Agent SKU flow without compromising WMS Confirm/Firestore/HA; run 60s/15m/no-standby tests.",
+      "Complete targeted REQ-001..011 feature regressions and instrument before/after per-provider usage.",
+      "Fix expected failing D168 release guard, run exact-head CI/Authority/Continuity and only then gated Beta release/readback.",
+      "Keep Stable untouched; request Owner field acceptance only after real device proof."
     ],
-    "release_boundary": "D168_E016_E017_OWNER_ROUTING_DESIGN_ACCEPTED__NO_CODE_OR_DEPLOY_AUTHORIZATION__STABLE_OWNER_GATED",
+    "release_boundary": "D168_E018_CODE_AND_SCOPED_BETA_APPROVED_ONLY_AFTER_EXACT_HEAD_PRODUCT_CI_AND_FIELD_GATE__NOT_RELEASED__STABLE_OWNER_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
