@@ -3010,6 +3010,49 @@ function renderD167MealOverlay(): string {
     </div></div>`;
 }
 
+function renderD167ShiftHistory(): string {
+  const history = d167ShiftHistory;
+  const options = [7, 30, 60].map(days => '<button type="button" class="secondary' +
+    (shiftHistoryDays === days ? ' active' : '') + '" data-shift-history-days="' + days + '">' + days + ' ngày</button>').join("");
+  if (!history) return '<article class="ops-panel shift-history-panel"><h3>Lịch sử ca vận hành</h3><p class="muted">Chưa tải được lịch sử.</p></article>';
+  const days = new Set<string>();
+  for (const row of history.meals) days.add(row.day_vn);
+  for (const event of history.events) days.add(event.day_vn);
+  const dates = [...days].sort().reverse();
+  const slotLabel = (choice: string, period: string): string =>
+    period === "LUNCH" ? (choice === "EARLY" ? "11:00–11:30" : "11:30–12:00")
+      : (choice === "EARLY" ? "18:00–18:30" : "18:30–19:00");
+  const rows = dates.map(day => {
+    const meals = history.meals.filter(row => row.day_vn === day);
+    const events = history.events.filter(row => row.day_vn === day);
+    const meal = (period: "LUNCH" | "DINNER"): string => {
+      const found = meals.find(row => row.period === period);
+      return found ? slotLabel(found.choice, period) + ' · ' + esc(found.confirmed_name || "Hệ thống") : "Chưa có dữ liệu";
+    };
+    const schedule = events.filter(event => event.action === "OPERATING_SCHEDULE_CHANGE");
+    const scheduleLabel = schedule.length
+      ? schedule.map(event => ({
+          CONTINUE: "Gia hạn", STOP: "Kết thúc", MANUAL_ADJUST: "Điều chỉnh",
+          EARLY_START: "Bật sớm", CANCEL_OVERTIME: "Hủy tăng ca",
+        }[event.details.decision] || "Thay đổi ca")).join(", ")
+      : "Không ghi nhận thay đổi";
+    const detail = events.map(event => '<li>' + esc(fmt(event.at)) + ' · ' +
+      esc(event.action === "MEAL_BREAK_EDIT" ? "Sửa giờ nghỉ" :
+          event.action === "MEAL_BREAK_CONFIRM" ? "Xác nhận giờ nghỉ" :
+          event.action === "MEAL_BREAK_DEFAULT" ? "Giờ nghỉ mặc định" : "Thay đổi ca") +
+      ' · ' + esc(event.actor) + '</li>').join("");
+    return '<tr><td><details><summary>' + esc(day.split("-").reverse().join("/")) +
+      '</summary><ul class="shift-audit-list">' + (detail || '<li>Không có sự kiện chi tiết.</li>') +
+      '</ul></details></td><td>' + esc(scheduleLabel) + '</td><td>' +
+      meal("LUNCH") + '</td><td>' + meal("DINNER") + '</td></tr>';
+  }).join("");
+  return '<article class="ops-panel shift-history-panel"><div class="ops-panel-title">' +
+    '<h3>Lịch sử ca vận hành</h3><div class="shift-history-filters">' + options + '</div></div>' +
+    '<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Ca / tăng ca</th><th>Nghỉ trưa</th><th>Nghỉ tối</th></tr></thead><tbody>' +
+    (rows || '<tr><td colspan="4">Chưa có sự kiện được ghi nhận trong khoảng này.</td></tr>') +
+    '</tbody></table></div></article>';
+}
+
 function renderShiftOperations(): string {
   const state = androidAlertWindow;
   const status = state == null
@@ -4361,6 +4404,12 @@ async function submitD167MealEdit(form: HTMLFormElement): Promise<void> {
 }
 
 function bindOverlay(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-shift-history-days]").forEach(button => button.addEventListener("click", () => {
+    const days = Number(button.dataset.shiftHistoryDays);
+    if (![7, 30, 60].includes(days) || days === shiftHistoryDays) return;
+    shiftHistoryDays = days;
+    void loadShiftOperations().then(() => { if (activeSection === "shift") patchActiveSection(true); });
+  }));
   document.querySelector<HTMLFormElement>("#d167-meal-overlay-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const form = event.currentTarget as HTMLFormElement;
