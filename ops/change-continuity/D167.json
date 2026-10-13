@@ -6,9 +6,9 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-log-review-20261012-20261013",
   "pr": 574,
-  "status": "D167_E047_AGENT_ONLY_V130_OWNER_APPROVED_CODE_COMMITTED__CI_PENDING__WEB_SKU_PROPOSAL",
+  "status": "D167_E048_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING__WEB_SKU_PROPOSAL",
   "last_checkpoint": {
-    "id": "D167-E047",
+    "id": "D167-E048",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -24,7 +24,9 @@
     "current_pr_scope": "PR574_AGENT_ONLY_NONSKU_V130_BETA__WEB_SERVICE_ANDROID_STABLE_EXCLUDED__WEB_SKU_PROPOSAL_ONLY",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "c982f60d38943460d146ef19e08dbfe088b5835f"
+    "approved_source_sha": "c982f60d38943460d146ef19e08dbfe088b5835f",
+    "technical_release_pass": true,
+    "field_pass": false
   },
   "entries": [
     {
@@ -970,6 +972,33 @@
       ],
       "next_action": "Run exact HEAD PR574 CI and resolve all failed scope/authority/HA/Confirm jobs; merge via approved Agent-only guard only on PASS; verify GitHub prerelease relay-agent-v130, inventory-channel checksum and no Web/Service deployments. Owner manually updates a standby Agent first and tests before touching PRIMARY. Present separate compact Web SKU redesign with honest provenance and request distinct Web/Service approval.",
       "evidence": "Owner current user directive and supplied Web screenshot; GitHub PR574 source candidate c982f60d38943460d146ef19e08dbfe088b5835f; service/src/read-model-core.ts, web/src/operational-app.ts; ops/d167-release-authorization.json."
+    },
+    {
+      "id": "D167-E048",
+      "date_vn": "2026-10-13",
+      "kind": "TEST",
+      "topic": "Windows Agent v130 Beta technical release PASS and source/channel checksum verification; Web SKU proposal remains unimplemented",
+      "status": "AGENT_V130_BETA_PR574_MERGE_CI_RELEASE_PASS__FIELD_INSTALL_AND_OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner-approved D167 E047 Agent v130 code PR574 exact head 5118c901649b04f7ad5c07bcc8ddeee629bd515d had 15 of 15 PR workflow runs completed SUCCESS, including Windows Agent, repo authority, project-state and UI Design guards; zero failed workflows.",
+        "PR574 merged after checks into main commit decd132ffa1806465824a7fa3673e32a9c2defec. Main push had 9 of 9 workflows completed SUCCESS; Agent release workflow run 38335654198 completed SUCCESS including D167 Owner release authorization, net48 build, RTDB fixture, dedicated prerelease and Agent-owned browser bundle.",
+        "GitHub prerelease relay-agent-v130 is published. Agent.Auto.Confirm.Pick.Pack.exe size 7,386,624 bytes and SHA-256 cca8b3cd25f7e806d52741e037e20683780a025af4e6d70290d2efdf831cbafd; inventory-channel current EXE has the exact same byte size and SHA-256 digest. Agent v130 archive is Beta prerelease, no Android APK and no forced Agent update.",
+        "GitHub push workflow triggers Deploy Beta Worker only for service/web/android source paths; this change touched none of those, and no Worker/Web Service deployment was performed from the approved release. RTDB Rules and Firestore rules source were unchanged and no provider schema or extra polling added.",
+        "Existing Agent Program.cs update path is manual only. Channel publication makes v130 available for manual updates; it does not demonstrate installation at real Agent PCs, standby HA health, live Picklist confirmation latency or business Owner PASS.",
+        "Web SKU screenshot issue remains proposal-only; service SkuCatalogInfo last_sync_at aggregates latest SKU_IMPORT_CHUNK across sources; max_updated_at is catalog data change, not authenticated Agent FULL proof. No web/service code changed by v130 release."
+      ],
+      "alternatives": [
+        "Continue existing fleet on current installed versions until Owner can safely update a standby first and verify real field logs; do not claim automatic installation.",
+        "Publish source-specific Web SKU provenance and compact layout only upon separate scope/Owner approval, preferably reuse the existing SkuCatalogInfo response without new periodic listener/request."
+      ],
+      "open_questions": [
+        "Installed Agent version on ADMIN-PC and standby machines is not independently verified; Owner may manually check from Agent UI.",
+        "Real HA failover, WMS confirmation ACK and provider billed usage after actual v130 field install are not yet measured.",
+        "Web SKU redesign schema/labels still need separate Owner approval; avoid inferring Agent FULL solely from max_updated_at."
+      ],
+      "next_action": "Reconcile source-authoritative v130 Beta technical release evidence in D167 main state without reissuing runtime release; when field available manually update standby first, check HA/Confirm/logs then PRIMARY only when safe. Propose and separately approve Web SKU UI/provenance correction.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/574 ; https://github.com/tamnv2/supra-inventory/actions/runs/38335654198 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v130 ; GitHub inventory-channel assets SHA256."
     }
   ],
   "resume": {
@@ -987,12 +1016,12 @@
       "Earlier D167 Web/Worker/Gateway/Android vc106 and Agent v126/v127/v128 technical releases already in main; not a remaining unimplemented item",
       "D167 P0 Beta Worker and signed Agent v129 released via PR572/573; actual field results separate",
       "D167-E046 decision/spec/operation documentation under PR575; no new live code or release",
-      "Agent v130 source committed, local diagnostics/log coalescing, RTDB observer flap metrics, stale auxiliary WMS health check guard, Picker revoke preview HTTP403 diagnosis; release not verified."
+      "Agent v130 source committed, local diagnostics/log coalescing, RTDB observer flap metrics, stale auxiliary WMS health check guard, Picker revoke preview HTTP403 diagnosis; release not verified.",
+      "Agent v130 Beta signed release and inventory-channel same SHA256 verified at GitHub, PR574/Main CI complete PASS. Physical Agent installation not verified."
     ],
     "in_progress": [
       "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
-      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task.",
-      "PR574 exact-head authority/continuity and Windows Agent v130 CI; Beta release only after strict PASS."
+      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task."
     ],
     "pending_approval": [
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
@@ -1010,8 +1039,9 @@
       "In separate D167 PR574/window continue Agent fault discussion; do not modify Agent/Service/Web/Android from this decision.",
       "Await real provider logs for optimization; Launcher separate project; apply clarified commands to later approved tasks.",
       "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission.",
-      "Verify PR574 exact latest CI and signed Beta Agent v130 release; manual standby-first field update; do not force fleet/Stable."
+      "Verify PR574 exact latest CI and signed Beta Agent v130 release; manual standby-first field update; do not force fleet/Stable.",
+      "Owner/authorized Agent operator manually updates standby via Agent Check Update, verifies live Confirm/HA, then PRIMARY when idle and healthy; no forced fleet update."
     ],
-    "release_boundary": "D167_E047_AGENT_V130_CODE_COMMITTED__BETA_AGENT_RELEASE_OWNER_APPROVED_AFTER_EXACT_CI_PASS__WEB_SERVICE_ANDROID_WMS_STABLE_UNTOUCHED__FIELD_OWNER_PASS_PENDING"
+    "release_boundary": "D167_E048_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__NO_WEB_SERVICE_ANDROID_STABLE_DEPLOY__FIELD_OWNER_PASS_PENDING"
   }
 }
