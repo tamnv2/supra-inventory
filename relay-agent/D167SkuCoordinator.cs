@@ -98,7 +98,7 @@ namespace SupraInventoryRelayAgent
                 var slot=service.ManualStart(day,instanceId,generation(),runId,credential);
                 manualPhase="AUTHORIZE_DONE";
                 log("D167_SKU manual=STAGE step=AUTHORIZE_DONE elapsed_ms="+manualTrace.ElapsedMilliseconds);
-                NotifyStatus(null,"Đang xuất SKU WMS theo yêu cầu...");
+                NotifyStatus(null,"Đã xác minh tài khoản. Đang tải danh sách SKU từ hệ thống kho...");
                 log("D167_SKU manual=STAGE step=WMS_EXPORT_BEGIN");
                 var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
                     stage=>{
@@ -113,6 +113,7 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("D167_MANUAL_CONFIRM_PRIORITY");
                 manualPhase="SERVICE_UPLOAD_BEGIN";
                 log("D167_SKU manual=STAGE step=SERVICE_UPLOAD_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
+                NotifyStatus(null,"Đã tải "+workbook.Items.Count+" SKU. Đang lưu lên hệ thống...");
                 if(!service.UploadAndPublish(day,slot,instanceId,generation(),workbook,confirmConflicts))
                     throw new InvalidOperationException("D167_MANUAL_RECEIPT_UNVERIFIED");
                 lastVerifiedWorkbook=workbook;
@@ -154,6 +155,8 @@ namespace SupraInventoryRelayAgent
                     // locations are logged. Retry only via a bounded local timer.
                     log("D167_SKU sync=DEFER error_type="+e.GetType().Name+
                         " error_code="+SafeErrorCode(e));
+                    NotifyStatus(null,"Cập nhật SKU tự động chưa thành công: "+
+                        D167SkuVietnamese.Error(SafeErrorCode(e)));
                     Arm(TimeSpan.FromMinutes(15));
                 }
                 finally { Interlocked.Exchange(ref running,0); }
@@ -211,6 +214,7 @@ namespace SupraInventoryRelayAgent
             if(!isPrimaryReady()||confirmBusy()){Arm(TimeSpan.FromMinutes(5));return;}
             var slotTrace=System.Diagnostics.Stopwatch.StartNew();
             log("D167_SKU slot="+eligible.Slot+" stage=EXPORT_BEGIN");
+            NotifyStatus(slots,"Đang tự tải danh sách SKU từ hệ thống kho...");
             var workbook=D167SkuBrowserExport.Export(browser,()=>isPrimaryReady()&&!confirmBusy(),
                     stage=>log("D167_SKU slot="+eligible.Slot+" export_stage="+stage+
                         " elapsed_ms="+slotTrace.ElapsedMilliseconds));
@@ -221,6 +225,7 @@ namespace SupraInventoryRelayAgent
             // upload stage and publish, independently from this UI process.
             log("D167_SKU slot="+eligible.Slot+" stage=SERVICE_UPLOAD_BEGIN elapsed_ms="+
                 slotTrace.ElapsedMilliseconds);
+            NotifyStatus(slots,"Đã tải "+workbook.Items.Count+" SKU. Đang lưu lên hệ thống...");
             var success=service.UploadAndPublish(day,eligible.Slot,instanceId,generation(),
                 workbook,confirmConflicts);
             if(!success)throw new InvalidOperationException("D167_DONE_NOT_VERIFIED");
