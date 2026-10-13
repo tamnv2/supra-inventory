@@ -58,7 +58,8 @@ namespace SupraInventoryRelayAgent
             _connectionPage.Text = "Cài đặt";
             InitializeD160LogSettings();
             InitializeD160HistoryUi();
-            InitializeD160UsageUi();
+            // D168: Owner retired the Agent Usage tab, its auto-refresh and ZIP export.
+            // Keep the independent operational history and support-log UI.
             UpdateD160RestrictedTabs(HasAgentSession());
             RetryD128OverlayAfterD160UiInitialized();
         }
@@ -186,29 +187,12 @@ namespace SupraInventoryRelayAgent
                     _mainTabs.TabPages.Remove(_d160HistoryPage);
             }
 
-            var allowedUsage = authenticated && D160UsageAllowedForCurrentSession();
-            if (allowedUsage)
-            {
-                if (!_mainTabs.TabPages.Contains(_d160UsagePage))
-                    _mainTabs.TabPages.Add(_d160UsagePage);
-                StartD160Usage();
-            }
-            else
-            {
-                StopD160Usage();
-                if (_mainTabs.TabPages.Contains(_d160UsagePage))
-                    _mainTabs.TabPages.Remove(_d160UsagePage);
-            }
+            // Hide retired Usage even after session role changes. No provider fetch is scheduled.
+            StopD160Usage();
+            if (_mainTabs.TabPages.Contains(_d160UsagePage))
+                _mainTabs.TabPages.Remove(_d160UsagePage);
         }
 
-        private bool D160UsageAllowedForCurrentSession()
-        {
-            AgentSession session;
-            try { session = SnapshotSession(); } catch { return false; }
-            var login = ((session == null ? "" : session.LoginName) ?? "").Trim();
-            return string.Equals(login, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(login, "admin", StringComparison.OrdinalIgnoreCase);
-        }
 
         private void RecordD160PickerHistoryRequest(FirestoreConfirmationWorkItem work)
         {
