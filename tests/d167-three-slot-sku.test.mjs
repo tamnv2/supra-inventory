@@ -573,3 +573,18 @@ test("D168 shared SKU terminal status piggybacks existing exact Agent Firestore 
   assert.match(relay,/if\(complete.Count==0\)return/);
   assert.doesNotMatch(relay,/FirestoreAgentSyncListener|new (?:Timer|System.Windows.Forms.Timer)/);
 });
+
+test("D168 never exports Office XLSX on unreachable Worker without preapproved fallback", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const network=readFileSync(new URL("../relay-agent/D168NetworkRoute.cs",import.meta.url),"utf8");
+  const instances=[coordinator.slice(coordinator.indexOf("internal void RunManual("),coordinator.indexOf("internal void OnPrimaryOrWmsReady(")),
+    coordinator.slice(coordinator.indexOf("private void EvaluateOnce()"))];
+  for (const fragment of instances) {
+    const guard=fragment.indexOf("D168NetworkRoute.HasApprovedFallback()");
+    const exportAt=fragment.indexOf("officeWorkbook=D167SkuBrowserExport.Export");
+    assert.ok(guard>=0 && exportAt>guard);
+  }
+  assert.match(network,/internal static bool HasApprovedFallback\(\)/);
+  assert.match(network,/HasSavedProfile\(original\) && HasSavedProfile\(target\)/);
+});
