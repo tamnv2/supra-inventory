@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_WEB_SKU_PROVENANCE_PR577_OWNER_APPROVED_CODE_COMMITTED__CI_AND_BETA_RELEASE_PENDING__OWNER_PASS_PENDING",
+    "current_change_status": "D167_E053_WEB_310_ACCOUNT_MEAL_OWNER_APPROVED_BETA_CODE_IN_PR578__CI_PENDING__OWNER_FIELD_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D167_AGENT_V130_BETA_TECHNICAL_PASS_FIELD_PENDING__WEB_SKU_PR577_NOT_YET_RELEASED__CURRENT_BETA_WORKER_UNCHANGED",
+    "runtime_impact": "WEB_AND_WORKER_BETA_CANDIDATE_ONLY__CURRENT_INSTALLED_ANDROID_AGENT_UNCHANGED__STABLE_OWNER_GATED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -2498,7 +2498,8 @@
     "pr568_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V128_UI_SAFE_DIAGNOSTIC_BETA__STABLE_UNTOUCHED",
     "pr572_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA__STABLE_OWNER_GATED",
     "pr574_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA__STABLE_UNTOUCHED",
-    "pr577_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_SKU_PROVENANCE_BETA__STABLE_UNTOUCHED"
+    "pr577_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_SKU_PROVENANCE_BETA__STABLE_UNTOUCHED",
+    "pr578_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA__STABLE_UNTOUCHED"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7441,13 +7442,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
-    "working_branch": "d167-web-sku-provenance-layout-20261013",
-    "pr": 577,
-    "latest_checkpoint_id": "D167-E049",
+    "working_branch": "d167-web-impact-analysis-20261013",
+    "pr": 578,
+    "latest_checkpoint_id": "D167-E053",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D167_OWNER_EXPLICIT_WEB_SKU_PROVENANCE_BETA_WORKER_ONLY__PR577_CI_PENDING__NO_ANDROID_AGENT_STABLE",
+    "owner_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA__BETA_ONLY_CI_REQUIRED__STABLE_UNTOUCHED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7591,5 +7592,28 @@
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false
+  },
+  "d167_web_310_account_meal_20261013": {
+    "owner_approved": true,
+    "release_scope": [
+      "worker-beta",
+      "host-beta",
+      "inventory-core"
+    ],
+    "source_only_until_ci": true,
+    "web_version": "3.1.0",
+    "web_ui": "COMPACT_COPY_ROLE_AWARE_USERS_CONTEXTUAL_ACTIONS",
+    "meal": "WEB_EARLY_FIRST_CONFIRMED__ANDROID_PROMPTS_UNCHANGED__EDIT_REAUTH_CAS",
+    "history": "BOUNDED_DO_AUDIT_ON_DEMAND_7_30_60_DAYS",
+    "security": "PROTECT_PRIVILEGED_ACCOUNTS_AND_GLOBAL_PICKER_COUNT_CAS",
+    "excluded": [
+      "agent",
+      "android",
+      "stable",
+      "firestore_rules",
+      "rtdb_rules",
+      "google_sheets_mutation"
+    ],
+    "current_status": "CODE_IN_PR578_CI_PENDING__NO_FIELD_PASS"
   }
 }
