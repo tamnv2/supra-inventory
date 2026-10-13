@@ -51,3 +51,41 @@
 
 ### Biên giới cấp quyền
 Hai yêu cầu trên chỉ được **ghi nhận** theo chỉ đạo Owner, **không** đồng nghĩa phê duyệt thiết kế cuối, source change, schema, OTA, Beta deployment hoặc Stable deployment. Đến khi Owner yêu cầu phân tích, cần so sánh phương án với code thật, nguồn dữ liệu, ảnh hưởng Android UI/API/Service/Agent/usage, sau đó trình phương án; chỉ triển khai khi nhận được lệnh của Owner theo protocol.
+
+
+## D168 — Bốn yêu cầu Agent mới (Owner 2026-10-13; CHỜ PHÂN TÍCH)
+
+**Lệnh Owner:** Ghi nhận vào backlog để phân tích sau; chưa chốt giải pháp kỹ thuật, chưa cho chạy code, chưa cho triển khai Agent/Web/Android/Worker/Firebase hay thay đổi dữ liệu. Các mục bên dưới giữ nguyên phạm vi ý định ban đầu; mọi nhận xét về Usage chỉ là yêu cầu tối ưu, chưa chứng minh bằng source/log.
+
+### D168-REQ-003 — Danh sách Picker đang hoạt động: hiển thị phiên bản app Báo hàng
+
+- **Mong muốn:** Bổ sung cột hiển thị **phiên bản ứng dụng Báo hàng Android mà từng Picker/PDA đang sử dụng**, đặt **ngay sau cột “Nguồn xác nhận” và trước các cột nút thao tác (buttons)** trong danh sách Picker đang hoạt động trên Windows Agent.
+- **Chờ phân tích:** Phiên bản đã có sẵn trong thông tin phiên/PDA, heartbeat, presence, login/session hoặc payload đang nhận của Agent hay chưa; phân biệt chưa ghi nhận và quá cũ, số phiên/thiết bị, logout/relogin, trường hợp người dùng Web không có APK; xác định nguồn đúng, độ mới, field/layout và quyền xem mà không làm tăng lượt đọc provider không cần thiết.
+- **Tiêu chí định hướng:** Không báo nhầm phiên bản Agent là phiên bản APK; không suy ra phiên bản khi thiếu dữ liệu; không thêm poll per Picker. Chỉ cập nhật code sau phê duyệt.
+- **Trạng thái:** `PENDING_SOURCE_DATA_UI_ANALYSIS__NO_CODE_OR_DEPLOY`.
+
+### D168-REQ-004 — Làm mới danh sách Picker đang hoạt động đúng thực tế, ít Usage
+
+- **Hiện tượng Owner phản ánh:** Sau khi **Kick hết user**, danh sách Agent đôi khi vẫn còn Picker; có trường hợp Picker đã **logout** nhưng còn hiển thị hoặc danh sách phản ánh sai tình trạng thực tế.
+- **Mong muốn:** Cơ chế làm mới danh sách hoạt động **trực quan, đúng dữ liệu và gần thời gian thực nhất có thể**, ưu tiên tiết kiệm tối đa Usage; hiển thị chính xác khi login/logout/kick, sau reconnect/failover, khi Agent mở lại và khi nhận snapshot cũ.
+- **Chờ phân tích:** Nguồn authority của online/presence, login/logout/kick/revoke/sync session; kiểm tra đường push/events có sẵn, replay/ordering/dedupe, TTL/stale marking, page cache, hành vi rớt kết nối và cách reconcile ít request; đối chiếu log thời điểm logout/kick thực tế. Không được coi là đã tìm ra bug chỉ dựa vào báo cáo hiện tượng.
+- **Định hướng:** Ưu tiên event-driven từ thông điệp đang tồn tại, local invalidate khi có sự kiện, snapshot đối chiếu có giới hạn chỉ khi thực sự cần; không tự thiết lập polling dày hoặc đổi logic kick/online authority trước khi có bằng chứng. Theo dõi lượng read/write, CPU, độ trễ, trường hợp mạng chập chờn và quota.
+- **Trạng thái:** `PENDING_LOG_ROOT_CAUSE_AND_USAGE_ANALYSIS__NO_CODE_OR_DEPLOY`.
+
+### D168-REQ-005 — Tab “Cập nhật SKU” Agent: thay list/search, đồng bộ thông tin liên Agent
+
+- **Mong muốn về UI:** **Bỏ phần hiển thị danh sách SKU và chức năng tìm kiếm SKU** trong tab “Cập nhật SKU” vì không phục vụ nhu cầu hiện tại; thay bằng **thông tin có ích cho vận hành**. Phần thông tin thay thế cụ thể **chưa chốt**, cần đề xuất Owner duyệt trước.
+- **Gợi ý chỉ để phân tích, không chốt triển khai:** Lần FULL và DELTA gần nhất và kết quả; người bấm cập nhật, Agent thực hiện, số SKU thêm/sửa/ẩn; độ mới danh sách trong ngày, tình trạng khu vực, các lần tự động tiếp theo, lỗi xác thực/đồng bộ có phân loại, nguồn xác thực của biên nhận cập nhật; không trộn nhật ký riêng Agent với trạng thái được Service xác nhận.
+- **Mong muốn về đồng bộ:** **Tự đồng bộ thông tin trạng thái tab SKU giữa các Agent**, tận dụng tối đa kênh truyền thông/heartbeat/role/HA/đường dữ liệu đã hoạt động để tiết kiệm Usage. Không khẳng định “0 Usage” khi chưa đối chiếu đường dữ liệu, payload hiện có và server/Agent băng thông.
+- **Chờ phân tích:** Source Agent v130 và logic SKU v126–129; trạng thái global vs local của từng Agent, owner của lần FULL/DELTA, timestamp/actor/provenance, khả năng replay/snapshot cho Agent vừa khởi động hoặc mất mạng, permissions/HA và giới hạn freshness/size; đánh giá lợi ích thay thế list/search trước khi xin duyệt UI.
+- **Ràng buộc:** Không thay đổi luồng tải SKU từ WMS, giờ cập nhật, confirm picklist, danh sách SKU chủ hoặc cập nhật Service/Android chỉ vì mục ghi nhận. Chỉ đề xuất giao thức/surface dùng chung khi đã có bằng chứng thực tế.
+- **Trạng thái:** `PENDING_UI_REDESIGN_AND_EXISTING_TRANSPORT_ANALYSIS__NO_CODE_OR_DEPLOY`.
+
+### D168-REQ-006 — Agent Windows: bật/tắt tự khởi động cùng máy
+
+- **Mong muốn:** Thêm tùy chọn **Bật/Tắt tự khởi động Agent khi máy tính khởi động/đăng nhập Windows**, hiển thị trong **Cài đặt Agent** và lưu lựa chọn theo máy/đúng phạm vi Windows account.
+- **Chờ phân tích:** Cơ chế startup sẵn có (nếu có); Startup folder/HKCU Run/Task Scheduler và quyền hiện hành; user-scoped vs machine-wide, UAC, startup khi chưa login, đường dẫn EXE sau auto-update, single-instance và tránh khởi động trùng Agent Primary/Standby; kiểm soát quyền/tắt mở, logging an toàn và khả năng gỡ cấu hình.
+- **Ràng buộc:** Ưu tiên cài đặt local trên Windows (không thêm Cloudflare/Firebase/Gateway usage); không tự động bật cho tất cả máy hoặc thay đổi startup khi chưa được Owner duyệt rõ. Giữ nguyên policy HA, failover và hoạt động Agent đang chạy.
+- **Trạng thái:** `PENDING_WINDOWS_STARTUP_DESIGN_ANALYSIS__NO_CODE_OR_DEPLOY`.
+
+**Tổng D168 trong backlog hiện có:** D168-REQ-001, 002 (Android/Invent) và D168-REQ-003, 004, 005, 006 (Agent). **Tất cả đang chờ phân tích, chưa PASS code, chưa triển khai**, chỉ ghi nhận repo bằng PR tài liệu.
