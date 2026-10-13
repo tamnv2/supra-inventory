@@ -2180,16 +2180,20 @@ namespace SupraInventoryRelayAgent
             }
             catch { }
 
-            var selectedUserId = "";
+            // D168: preserve the exact multi-selection while realtime presence
+            // refreshes rows. A single-ID restore silently drops intended
+            // recipients from the group-contact operation.
+            var selectedUserIds = new HashSet<string>(StringComparer.Ordinal);
             try
             {
-                if (_pickerOnlineGrid.SelectedRows.Count > 0)
+                foreach (DataGridViewRow selected in _pickerOnlineGrid.SelectedRows)
                 {
-                    var selected = _pickerOnlineGrid.SelectedRows[0].Tag as PickerPresenceView;
-                    selectedUserId = selected == null ? "" : selected.UserId;
+                    var picker = selected.Tag as PickerPresenceView;
+                    if (picker != null && !string.IsNullOrWhiteSpace(picker.UserId))
+                        selectedUserIds.Add(picker.UserId);
                 }
             }
-            catch { }
+            catch { selectedUserIds.Clear(); }
 
             _pickerOnlineGrid.SuspendLayout();
             try
@@ -2244,16 +2248,16 @@ namespace SupraInventoryRelayAgent
                 }
 
                 var firstIndex = -1;
-                var selectedIndex = -1;
+                _pickerOnlineGrid.ClearSelection();
                 for (var index = 0; index < _pickerOnlineGrid.Rows.Count; index++)
                 {
                     var picker = _pickerOnlineGrid.Rows[index].Tag as PickerPresenceView;
                     if (picker == null) continue;
                     if (firstIndex < 0 && picker.UserId == firstUserId) firstIndex = index;
-                    if (selectedIndex < 0 && picker.UserId == selectedUserId) selectedIndex = index;
+                    if (selectedUserIds.Contains(picker.UserId))
+                        _pickerOnlineGrid.Rows[index].Selected = true;
                 }
                 if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
-                if (selectedIndex >= 0) _pickerOnlineGrid.Rows[selectedIndex].Selected = true;
                 ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
                 _pickerOnlineRenderSignature = renderSignature;
             }
