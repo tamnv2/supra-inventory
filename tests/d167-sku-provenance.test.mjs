@@ -13,9 +13,11 @@ test("SKU source identity is not inferred from max_updated_at or SKU_IMPORT_CHUN
   assert.match(core, /FROM d167_sku_jobs WHERE state='DONE' AND complete_at IS NOT NULL/);
   assert.match(core, /a.action IN \('SKU_IMPORT_CHUNK','SKU_WEB_FULL_REPLACE'\)/);
   assert.match(core, /String\(detail.actor_display\|\|""\)/);
-  assert.match(core, /latest_agent_full:agent.find\(x=>x.mode==="FULL"\)/);
+  assert.match(core, /latest_agent_full:lastFull \? agentEvent\(lastFull\) : null/);
   assert.match(core, /latest_web:web\[0\]/);
-  assert.match(core, /latest_agent_delta:agent.find\(x=>x.mode==="DELTA"\)/);
+  assert.match(core, /WHERE state=\x27DONE\x27 AND slot=\x27INITIAL_05\x27/);
+  assert.match(core, /WHERE state=\x27DONE\x27 AND slot<>\x27INITIAL_05\x27/);
+  assert.match(core, /latest_agent_delta:lastDelta \? agentEvent\(lastDelta\) : null/);
   assert.match(core, /last_sync_at: lastSync\?\.created_at/); // Backward-compatible old consumers.
   assert.ok(!app.includes("Đồng bộ Agent gần nhất"));
   assert.ok(app.includes("Mốc thay đổi dữ liệu, không phải thời gian Agent đồng bộ"));
