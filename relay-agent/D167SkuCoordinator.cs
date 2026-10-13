@@ -187,6 +187,18 @@ namespace SupraInventoryRelayAgent
             var local=D167SkuSchedule.VNNow();
             if(local.Hour < 5) {Arm(TimeSpan.FromHours(Math.Max(0.1,5-local.TimeOfDay.TotalHours)));return;}
             var day=local.ToString("yyyy-MM-dd");
+            D167SkuWorkbook officeWorkbook=null;
+            // D168 E016: when Office cannot reach Worker, export the existing
+            // authenticated read-only WMS workbook BEFORE a WLAN transition.
+            // The Worker still owns the schedule and verifies the current
+            // PRIMARY at reserve; a speculative export never implies DONE.
+            if(service.WorkerRouteStatus()=="NETWORK_UNREACHABLE")
+            {
+                if(!isPrimaryReady() || confirmBusy()) {Arm(TimeSpan.FromMinutes(5));return;}
+                officeWorkbook=D167SkuBrowserExport.Export(browser,
+                    ()=>isPrimaryReady()&&!confirmBusy(),
+                    stage=>log("D168_SKU office_export="+stage));
+            }
             using(var workerNetworkScope=openWorkerNetwork())
             {
             var slots=service.Schedule(day);
@@ -240,7 +252,7 @@ namespace SupraInventoryRelayAgent
             {
             log("D167_SKU slot="+eligible.Slot+" stage=EXPORT_BEGIN");
             NotifyStatus(slots,"Đang tự tải danh sách SKU từ hệ thống kho...");
-            var workbook=D167SkuBrowserExport.Export(browser,()=>!confirmBusy(),
+            var workbook=officeWorkbook ?? D167SkuBrowserExport.Export(browser,()=>!confirmBusy(),
                     stage=>log("D167_SKU slot="+eligible.Slot+" export_stage="+stage+
                         " elapsed_ms="+slotTrace.ElapsedMilliseconds));
             // A reserved job continues even when HA elects a new PRIMARY.
