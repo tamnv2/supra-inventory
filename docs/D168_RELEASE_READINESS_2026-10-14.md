@@ -55,3 +55,14 @@
 Further changes: v131 version markers; manual and 05h AUTO SKU Office XLSX export-before-switch; no WMS export when no approved fallback; exact Picker session selection; terminal-only SKU DONE snapshots merged into existing Firebase `agent_sync` on CAS; D168 release receipt defaults to code-only denial and requires exact-head authority/continuity, CI and physical FIELD_PASS, never inherited from D167. No new external provider resource was registered.
 
 **Still not FIELD PASS:** Windows standard-user Wi-Fi switching, Office WMS XLSX and standalone PRIMARY FULL, intact live Picklist/ACK and HA, actual Core DONE/fingerprint, signed APK rollout, observed provider metering and successful return to original network. The button does not mutate WMS and cannot replace an end-to-end SKU transaction test. Installation or execution on the company's PC is not available through GitHub connector; one local field check is an actual Owner/device-only boundary. Until evidence is returned, retain Draft/no merge/no Beta install for this D168 candidate. Stable remains excluded.
+
+
+## D168-E029 — Owner cho phép phát hành đồng bộ Beta để nghiệm thu tại hiện trường (14/10)
+
+**Mốc Owner:** Anh xác nhận coi như đạt điều kiện kiểm thử chuyển Wi-Fi, hoàn nguyên mạng và PickList trước phát hành, yêu cầu triển khai toàn bộ mô hình Beta để tự nghiệm thu. Đây là chấp nhận rủi ro khi phát hành thử (OWNER_PREDEPLOY_FIELD_WAIVER), **không phải chứng cứ thiết bị FIELD_PASS**. Giữ D168 Owner PASS=false, physical_field_verified=false, Stable owner-gated.
+
+**Khắc phục lệch phiên bản Agent/Worker (D168-E028):** Agent v131 gọi API /api/agent/d168/network-capability mà D167 Worker trên main chưa có. PR591 chứa cả API lẫn Agent v131; khi triển khai cả bộ phải cho Worker+InventoryCore+Web Beta PASS đúng SOURCE_COMMIT trước, rồi mới xuất bản Agent/Android; nếu Worker fail, kênh Client không được cập nhật. Các workflow Agent/Android hiện có bước chờ GitHub Worker deploy exact SHA; workflow Agent mới chặn cập nhật trước Worker, Android kéo dài thời gian chờ.
+
+**Phát hành theo điều kiện thật:** code/package CI và Authority+Continuity của chính HEAD phải PASS; receipt chỉ cấp Worker, Android, Agent trên tài nguyên Beta đã đăng ký, mã nguồn đã chốt; dùng chế độ Owner chấp nhận field trial đặc thù, không giả field pass. Sau merge, kiểm chứng runtime Worker source, Agent v131 release/channel, signed Android Beta/channel. Nếu lỗi cần đánh dấu RELEASE_FAIL/PARTIAL chứ không suy đoán hoàn thành.
+
+**Nghiệm thu trực tiếp sau phát hành:** Agent trên một PC thực và PDA thử: Wi-Fi Office/saved Internet + khôi phục, DAILY FULL trước ca kể cả solo PRIMARY, một Picklist Confirm/ACK, trạng thái Picker online/kick, liên hệ nhóm, nhật ký/Usage, bảo đảm không gián đoạn nghiệp vụ; các lỗi được giữ trong D168 cho tới Owner PASS.
