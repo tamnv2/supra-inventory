@@ -19,10 +19,10 @@
     "stable_deploy_permission": false,
     "new_owner_approval_required": false,
     "prior_combined_approval": "SUPERSEDED_BY_OWNER_20261012_ALL_PASS_CODE_BETA",
-    "approved_source_sha": "52950097ac8f5d878ea9774eaaea3434fc9d4825",
+    "approved_source_sha": "5fdb66ca2653da2cc86ef696b7765ec64b0fdae0",
     "approved_components": [
-      "agent",
-      "worker"
+      "worker",
+      "agent"
     ]
   },
   "entries": [
