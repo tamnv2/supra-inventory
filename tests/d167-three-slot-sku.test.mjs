@@ -497,3 +497,12 @@ test("D168 Windows auto-start setting verifies the HKCU Run registration before 
   assert.match(code,/SetValue\(EnabledValue,previous\?1:0/);
   assert.match(code,/return false;/);
 });
+
+test("D168 manual SKU abort retains original VN-day lease if operation crosses midnight", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  assert.match(coordinator,/activeGeneration=null,activeDay=null/);
+  assert.match(coordinator,/activeDay=day;/);
+  assert.match(coordinator,/service\.Abort\(activeDay,activeSlot,/);
+  assert.doesNotMatch(coordinator,/service\.Abort\(D167SkuSchedule\.VNNow\(/);
+});
