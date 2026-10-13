@@ -1938,6 +1938,28 @@ function userSelectionLabel(): string {
     : "Đã chọn tất cả Picker";
 }
 
+function renderUserBulkToolbar(canLifecyclePickerBulk: boolean): string {
+  if (!usersBulkMode) return '<div class="user-selection-toolbar"><button type="button" class="secondary" id="users-enable-selection">Chọn tài khoản</button></div>';
+  const pickerCount = allPickerSelection ? Math.max(0, (usersGlobalTargetCount || 0) - excludedPickerIds.size) : selectedUserIds.size;
+  const managedCount = selectedManagedUserIds.size;
+  const pickerActions = pickerCount > 0 ? '<div class="user-bulk-context"><b>' + pickerCount + ' Picker</b>' +
+    '<button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button>' +
+    '<button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button>' +
+    (canLifecyclePickerBulk ? '<button class="secondary" data-picker-action="ENABLE">Mở lại</button>' +
+      '<button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button>' +
+      '<button class="danger" data-picker-action="DELETE">Xóa Picker</button>' : '') + '</div>' : '';
+  const managedActions = managedCount && profile?.role === "ROOT" && profile?.base_role === "ROOT"
+    ? '<button class="danger" id="delete-selected-managed">Xóa ' + managedCount + ' tài khoản quản lý</button>' : '';
+  return '<div class="user-bulk-bar user-bulk-contextual"><div class="user-bulk-select">' +
+    '<button type="button" class="secondary" id="select-page-pickers">Chọn Picker trang này</button>' +
+    '<button type="button" class="secondary" id="select-all-global-pickers">Chọn toàn bộ Picker hệ thống</button>' +
+    '<button type="button" class="secondary" id="users-exit-selection">Thoát chọn</button></div>' +
+    pickerActions + managedActions + '<span id="user-selection-status">' + esc(
+      managedCount ? managedCount + ' tài khoản quản lý đã chọn' :
+      allPickerSelection ? pickerCount + ' Picker toàn hệ thống đã chọn' : pickerCount + ' Picker đã chọn trên trang'
+    ) + '</span></div>';
+}
+
 function renderUsers(): string {
   const canCreateAdmin = profile?.role === "ROOT";
   const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
@@ -1993,9 +2015,26 @@ function renderUsers(): string {
             : rootCanDeleteManaged
               ? `<label class="bulk-picker-check" title="Chọn tài khoản để xóa"><input type="checkbox" data-managed-user-select="${esc(user.user_id)}" ${selectedManagedUserIds.has(user.user_id) ? "checked" : ""}/><span aria-hidden="true"></span></label>`
               : `<span class="bulk-not-applicable">—</span>`;
+          const restrictedIdentity = privilegedOneTimeManagedUser(user);
+          const canDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" &&
+            ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role) && !restrictedIdentity;
+          const actionItems = '<button type="button" class="user-menu-item" data-edit-user="' + esc(user.user_id) + '">Chỉnh sửa</button>' +
+            (restrictedIdentity ? '' : '<button type="button" class="user-menu-item" data-password-user="' + esc(user.user_id) + '">Đặt lại mật khẩu</button>') +
+            (isPicker ? '<button type="button" class="user-menu-item" data-picker-single-action="' +
+              (user.shortage_reporting_enabled === false ? 'REPORTING_ENABLE' : 'REPORTING_DISABLE') +
+              '" data-user-id="' + esc(user.user_id) + '">' +
+              (user.shortage_reporting_enabled === false ? 'Bật Báo hàng' : 'Tắt Báo hàng') + '</button>' : '') +
+            (isPicker && canLifecyclePickerBulk ? '<button type="button" class="user-menu-item" data-picker-single-action="' +
+              (user.status === "ACTIVE" ? 'DISABLE' : 'ENABLE') + '" data-user-id="' + esc(user.user_id) + '">' +
+              (user.status === "ACTIVE" ? 'Dừng hoạt động' : 'Mở lại') + '</button>' +
+              '<button type="button" class="user-menu-item user-menu-danger" data-picker-single-action="DELETE" data-user-id="' +
+              esc(user.user_id) + '">Xóa Picker</button>' : '') +
+            (canDeleteManaged ? '<button type="button" class="user-menu-item user-menu-danger" data-managed-single-delete="' +
+              esc(user.user_id) + '">Xóa tài khoản</button>' : '');
           const actions = canManageListedUser(user)
-            ? `<div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button>${privilegedOneTimeManagedUser(user) ? `<span class="ops-readonly">Không đổi tại đây</span>` : `<button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button>`}</div>`
-            : `<span class="ops-readonly">${user.role === "ROOT" ? "Tài khoản gốc được bảo vệ" : "Không thuộc quyền quản lý hiện tại"}</span>`;
+            ? '<details class="user-row-menu"><summary aria-label="Thao tác tài khoản" title="Thao tác">⋯</summary><div class="user-menu-popover">' +
+              actionItems + '</div></details>'
+            : '<span class="ops-readonly">—</span>';
           const contractor = isPicker ? (user.contractor_name || "—") : "—";
           const reporting = isPicker
             ? `<span class="badge ${user.shortage_reporting_enabled !== false ? "good" : "closed"}">${user.shortage_reporting_enabled !== false ? "Đang bật" : "Đang tắt"}</span>`
