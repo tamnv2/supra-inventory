@@ -49,7 +49,7 @@ test("SKU has compact cards, separated provenance and safe Excel actions", () =>
   assert.match(render, /skuExcelExpanded \|\| wb \? "open"/);
   assert.match(app, /getSkuCatalogProvenance/);
   assert.match(catalogSearch, /AS area/);
-  assert.match(catalogSearch, /a\\.sku=sku_master\\.sku AND a\\.active=1/);
+  assert.match(catalogSearch, /a\.sku=sku_master\.sku AND a\.active=1/);
   assert.match(css, /\.sku-workspace \.sku-provenance-grid/);
   assert.match(css, /@media\(max-width:680px\)/);
 });
