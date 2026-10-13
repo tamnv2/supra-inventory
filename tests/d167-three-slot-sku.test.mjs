@@ -488,8 +488,8 @@ test("D168 release guard: Office-blocked direct Worker must have a wired, approv
     "D168 must actually connect the approved saved profile");
   assert.match(network,/ProbeWorker\(idToken\)=="READY"/,
     "D168 must confirm real authenticated Worker reachability after switching");
-  assert.match(network,/ConnectSavedProfile\(restoreProfile\)/,
-    "D168 must restore the original WLAN after each completed job");
+  assert.match(network,/RestoreOriginalProfile\(restoreProfile\)/,
+    "D168 must restore and verify the original WLAN after each completed job");
   assert.match(code,/RequestD168NetworkSwitchPermission/,
     "D168 cannot silently switch networks without an operator-facing decision");
 });
