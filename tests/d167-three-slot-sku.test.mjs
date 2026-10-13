@@ -406,7 +406,7 @@ test("D167 v128 diagnoses existing direct API export safely without changing WMS
 });
 
 
-test("D167 P0 SKU lease is scoped to actual mutations; Worker retains independent fail-closed proof", async () => {
+test("D168 SKU reserve attests PRIMARY once; Worker uses durable job grant after handoff", async () => {
   const {readFileSync}=await import("node:fs");
   const leader=readFileSync(new URL("../relay-agent/FirestoreAgentLeaderCoordinator.cs",import.meta.url),"utf8");
   const client=readFileSync(new URL("../relay-agent/D167SkuServiceClient.cs",import.meta.url),"utf8");
@@ -419,7 +419,18 @@ test("D167 P0 SKU lease is scoped to actual mutations; Worker retains independen
   assert.match(leader,/WritePrimaryLease\(session\)/);
   assert.match(leader,/_role != FirestoreAgentRole\.PRIMARY/);
   assert.match(leader,/!string\.Equals\(_generation, expectedGeneration/);
-  assert.match(client,/if \(operation!="schedule" && operation!="status"\)/);
+  // D168: the PRIMARY proof is limited to reserving a new job or starting a privileged manual job.
+  assert.match(client,/var primaryGate=operation=="reserve" \|\| operation=="manual-start"/);
+  assert.match(client,/request.Headers\[HttpRequestHeader.Authorization\]/);
+  assert.match(client,/job_grant/);
+  assert.doesNotMatch(client,/script\.google\.com/);
+  assert.match(route,/if \(action === "reserve"\)/);
+  assert.match(route,/SKU_JOB_GRANT_REQUIRED/);
+  const core=readFileSync(new URL("../service/src/d167-sku-sync-core.ts",import.meta.url),"utf8");
+  assert.match(core,/async function guard\(/);
+  assert.match(core,/job\.grant_hash/);
+  assert.match(core,/JOB_NOT_RESERVED/);
+  assert.match(core,/primary_verified !== true/);
   assert.match(client,/refreshSkuPrimaryLease\(Convert\.ToString\(proofGeneration\)\)/);
   assert.match(coordinator,/new D167SkuServiceClient\(currentSession,ensureFreshToken,primaryReady,ensureSkuLease\)/);
   assert.match(agent,/_leaderCoordinator\.EnsureD167SkuPrimaryLease\(expected\)/);
