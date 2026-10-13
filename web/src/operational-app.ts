@@ -2056,7 +2056,7 @@ function renderSla(): string {
   if (!slaResponse) {
     return `<section class="ops-route sla-workspace">
       <div class="business-page-head"><div><h2>Thời gian xử lý</h2></div><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
-      <article class="ops-panel sla-loading-panel"><strong>Đang đồng bộ cấu hình hiện hành</strong><span>Web không hiển thị giá trị mặc định thay thế trong lúc chờ máy chủ để tránh nhầm cấu hình.</span></article>
+      <article class="ops-panel sla-loading-panel"><strong>Đang tải cấu hình…</strong></article>
     </section>`;
   }
 
@@ -2077,7 +2077,7 @@ function renderSla(): string {
   return `<section class="ops-route sla-workspace sla-professional">
     <div class="business-page-head sla-page-head">
       <div><h2>Thời gian xử lý</h2></div>
-      <div class="sla-authority-badges"><span class="global-setting-badge">Cấu hình máy chủ</span><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
+      <div class="sla-authority-badges"><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
     </div>
 
 
@@ -2096,49 +2096,47 @@ function renderSla(): string {
     ${modeInvalid ? `<div class="sla-config-error" role="alert">Cấu hình máy chủ đang thiếu chính sách Deadline hợp lệ. Không lưu đè; hãy tải lại trang hoặc kiểm tra dịch vụ.</div>` : ""}
 
     <form id="sla-form" class="ops-panel sla-config-panel sla-config-professional" autocomplete="off">
-      <div class="ops-panel-title sla-section-heading"><div><h3>01 · Mốc phản hồi</h3><p>Các mốc phải theo thứ tự Cảnh báo &lt; Quá hạn &lt; Tự động cho phép bỏ qua.</p></div></div>
+      <div class="ops-panel-title sla-section-heading"><div><h3>Mốc phản hồi</h3><small>Cảnh báo &lt; Quá hạn &lt; Tự động Skip</small></div></div>
       <div class="sla-threshold-flow">
         <article class="sla-threshold-card warning">
           <div class="sla-card-head"><div><span class="ops-step">01</span><strong>Cảnh báo</strong></div><label class="sla-switch"><input name="warningEnabled" type="checkbox" ${warningEnabled ? "checked" : ""}/><span>${warningEnabled ? "Đang bật" : "Đang tắt"}</span></label></div>
-          <p>Nhắc Invent khi SKU bắt đầu cần được ưu tiên.</p>
+          
           <label class="sla-minute-field"><span>Sau</span><input name="warning" type="number" min="1" max="1440" value="${configured ? esc(sla!.warning_minutes) : ""}" required /><b>phút</b></label>
         </article>
         <span class="sla-flow-arrow" aria-hidden="true">→</span>
         <article class="sla-threshold-card danger">
           <div class="sla-card-head"><div><span class="ops-step">02</span><strong>Quá hạn</strong></div><label class="sla-switch"><input name="escalationEnabled" type="checkbox" ${escalationEnabled ? "checked" : ""}/><span>${escalationEnabled ? "Đang bật" : "Đang tắt"}</span></label></div>
-          <p>Đánh dấu mức ưu tiên cao khi chưa có phản hồi.</p>
+          
           <label class="sla-minute-field"><span>Sau</span><input name="escalation" type="number" min="2" max="2880" value="${configured ? esc(sla!.escalation_minutes) : ""}" required /><b>phút</b></label>
         </article>
         <span class="sla-flow-arrow" aria-hidden="true">→</span>
         <article class="sla-threshold-card automatic">
           <div class="sla-card-head"><div><span class="ops-step">03</span><strong>Tự động bỏ qua</strong></div><label class="sla-switch"><input name="autoSkipEnabled" type="checkbox" ${autoEnabled ? "checked" : ""}/><span>${autoEnabled ? "Đang bật" : "Đang tắt"}</span></label></div>
-          <p>Hệ thống tự cấp quyền bỏ qua nếu Invent chưa xử lý.</p>
+          
           <label class="sla-minute-field"><span>Sau</span><input name="autoSkip" type="number" min="3" max="10080" value="${configured ? esc(sla!.auto_skip_minutes) : ""}" required /><b>phút</b></label>
         </article>
       </div>
 
-      <div class="ops-panel-title sla-section-heading"><div><h3>02 · Chính sách tính thời gian</h3><p>Chọn cách tính deadline và cửa sổ sửa kết quả.</p></div></div>
+      <div class="ops-panel-title sla-section-heading"><div><h3>Chính sách xử lý</h3></div></div>
       <div class="sla-policy-professional">
         <article class="sla-policy-card">
-          <span class="sla-policy-kicker">Deadline tự động</span>
-          <h4>Cách tính mốc tự động bỏ qua</h4>
+          <h4>Mốc tự động Skip</h4>
           <div class="sla-choice-list" role="radiogroup" aria-label="Cách tính mốc tự động bỏ qua">
-            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" autocomplete="off" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong><small>Cả đợt dùng chung một mốc thời gian.</small></span></label>
-            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" autocomplete="off" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong><small>Mỗi Picker có deadline tính từ lúc chính người đó báo.</small></span></label>
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="FIRST_REPORT" autocomplete="off" ${mode === "FIRST_REPORT" ? "checked" : ""} required/><span><strong>Theo báo đầu tiên của SKU</strong></span></label>
+            <label class="sla-radio-row"><input type="radio" name="autoSkipMode" value="PER_PICKER" autocomplete="off" ${mode === "PER_PICKER" ? "checked" : ""} required/><span><strong>Theo từng Picker</strong></span></label>
           </div>
           <div class="sla-server-value">Đang áp dụng: <strong id="sla-server-mode-value">${autoSkipModeLabel(serverMode)}</strong></div>
-          <div id="sla-draft-value" class="sla-draft-value" data-pending="${draftModePending ? "true" : "false"}">${draftModePending ? `Thay đổi chưa lưu: ${autoSkipModeLabel(mode)}` : "Biểu mẫu đang khớp cấu hình máy chủ."}</div>
+          <div id="sla-draft-value" class="sla-draft-value" data-pending="${draftModePending ? "true" : "false"}">${draftModePending ? `Chưa lưu: ${autoSkipModeLabel(mode)}` : ""}</div>
         </article>
         <article class="sla-policy-card">
-          <span class="sla-policy-kicker">Sửa kết quả</span>
-          <h4>Đã có hàng / Cho phép Skip</h4>
-          <label class="sla-radio-row"><input name="skipToStockEnabled" type="checkbox" ${correctionEnabled ? "checked" : ""}/><span><strong>Cho phép sửa kết quả</strong><small>Cùng một thời hạn cho cả hai trạng thái, tính từ lúc công bố kết quả; độc lập với mốc quá hạn.</small></span></label>
+          <h4>Sửa kết quả Đã có hàng / Skip</h4>
+          <label class="sla-radio-row"><input name="skipToStockEnabled" type="checkbox" ${correctionEnabled ? "checked" : ""}/><span><strong>Cho phép sửa kết quả</strong><small>Tính từ lúc công bố kết quả</small></span></label>
           <label class="sla-minute-field compact"><span>Cho phép trong</span><input name="skipToStockMinutes" type="number" min="1" max="10080" value="${configured ? esc(sla!.skip_to_stock_minutes) : ""}" required /><b>phút</b></label>
         </article>
       </div>
 
       <div class="sla-config-footer">
-        <div><strong>Lưu ý</strong><span>Hệ thống kiểm tra phiên bản cấu hình trước khi lưu. Nếu một máy khác vừa cập nhật, bản cũ sẽ không được phép ghi đè.</span></div>
+        <div class="sla-save-scope"><strong>Áp dụng toàn hệ thống</strong></div>
         <label class="field"><span>Mật khẩu / mã xác nhận</span><input name="currentPassword" type="password" autocomplete="current-password" required maxlength="128" placeholder="Mật khẩu hiện tại, mã một lần hoặc khẩn cấp" /></label>
         <button id="sla-save-button" class="primary" ${slaSaveBusy ? "disabled" : ""}>${slaSaveBusy ? "Đang lưu…" : "Lưu cấu hình toàn hệ thống"}</button>
       </div>
