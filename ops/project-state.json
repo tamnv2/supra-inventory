@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-13",
+  "last_updated": "2026-10-14",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_OPEN__OFFICE_CANNOT_REACH_CLOUDFLARE_DIRECTLY__GOOGLE_SKU_RELAY_DESIGN_DOCUMENTED__NO_CODE_OR_DEPLOY",
+    "current_change_status": "D168_IN_PROGRESS__PR591_PARTIAL_CODE__NOT_CI_OR_FIELD_PASS__NOT_DEPLOYED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "NONE_D168_DOCS_ONLY__D167_BETA_REMAINS_RELEASED__STABLE_OWNER_GATED",
+    "runtime_impact": "NONE_FROM_D168_UNTIL_PASS_MERGE_DEPLOY__D167_BETA_REMAINS",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
@@ -7451,11 +7451,11 @@
     "journal": "ops/change-continuity/D168.json",
     "working_branch": "d168-agent-network-split-proposal-20261013",
     "pr": 591,
-    "latest_checkpoint_id": "D168-E017",
+    "latest_checkpoint_id": "D168-E018",
     "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D168_E017_FIRESTORE_CRITICAL_LANES_ACCEPTED__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED",
+    "owner_release_gate": "D168_E018_OWNER_FULL_CODE_AND_BETA_APPROVED_CONDITIONAL_ALL_PASS__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7665,15 +7665,15 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "D168_OPEN__OWNER_CRITICAL_FIRESTORE_ROUTES_ACCEPTED__ACK_COST_REVIEWED__NO_CODE_OR_DEPLOY",
+    "status": "D168_E018_APPROVED_CODE_AND_BETA__PR591_PARTIAL_IN_PROGRESS__NOT_PASS_OR_DEPLOYED",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
     "backlog": "docs/D168_BACKLOG.md",
     "working_pr": 591,
     "working_branch": "d168-agent-network-split-proposal-20261013",
-    "owner_code_approval": false,
-    "owner_deploy_approval": false,
+    "owner_code_approval": true,
+    "owner_deploy_approval": true,
     "code_ready": false,
     "release_pass": false,
     "owner_pass": false,
@@ -7685,63 +7685,63 @@
       "DRIVE_LOG_COMPLETENESS_AND_PRIVACY_LOG_REVIEW",
       "CI_CD_ALL_ENTRYPOINT_GATING_FURTHER_VERIFICATION"
     ],
-    "next": "OWNER_FUNCTIONAL_REQUIREMENTS_CAPTURED__AWAIT_EXPLICIT_CODE_COMMAND_AND_ROUTING_SECURITY_VERIFICATION",
+    "next": "IMPLEMENT_REMAINING_D168_FEATURES__CI_REPAIRS__INTEGRATION_FIELD_PASS__AUTHORITY_CONTINUITY_PASS__MERGE_DEPLOY_BETA_CONDITIONALLY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "pending_items": [
       {
         "id": "D168-REQ-001",
         "title": "Android Picker/Reporter long-press to copy SKU in all listed status views",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "PRELIMINARY_ZERO_IF_LOCAL_CLIPBOARD_ONLY__SOURCE_REVIEW_PENDING"
       },
       {
         "id": "D168-REQ-002",
         "title": "Invent full-name and time of SKU response from correct actor/result event",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "UNKNOWN_UNTIL_EXISTING_ACTOR_PAYLOAD_IS_VERIFIED"
       },
       {
         "id": "D168-REQ-003",
         "title": "Agent Picker online list shows Android App version after confirmation source column",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_VERIFY_EXISTING_SESSION_OR_PRESENCE_PAYLOAD"
       },
       {
         "id": "D168-REQ-004",
         "title": "Agent Picker online list accurately refreshes after logout and kick with minimal usage",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_MEASURE_EVENT_DELTA_AND_RESYNC_COST"
       },
       {
         "id": "D168-REQ-005",
         "title": "Agent SKU tab removes SKU list/search and shares useful job state across Agents",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_CHECK_EXISTING_AGENT_SHARED_MESSAGES"
       },
       {
         "id": "D168-REQ-006",
         "title": "Agent Settings enable or disable starting with Windows",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_CHECK_STARTUP_BACKGROUND_ACTIVITY"
       },
       {
         "id": "D168-REQ-007",
         "title": "Agent multi-select or all active Pickers to send common message or call-home",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "PER_RECIPIENT_FANOUT_POTENTIAL__EXISTING_TRANSPORT_TO_VERIFY",
         "related": [
           "D168-REQ-004"
@@ -7785,6 +7785,8 @@
       "usage": "GROUP_COMPATIBLE_EVENT_UPDATES_NOT_ALL_HIGH_RATE_IN_ONE_DOCUMENT",
       "code_approved": false,
       "deploy_approved": false
-    }
+    },
+    "owner_latest_decision": "D168_E018_MANDATORY_05_FULL_SOLO_PRIMARY__WMS_NORMAL_INTERNET__ZERO_GOOGLE_SCRIPT_SKU__DIRECT_WORKER__FIRESTORE_CRITICAL__FULL_BETA_APPROVED",
+    "implementation_status": "PARTIAL_CODE_COMMITTED_PR591__NO_RUNTIME_DEPLOY__NO_FIELD_PASS"
   }
 }
