@@ -7,10 +7,10 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E029",
+    "id": "D168-E030",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": "D168_E029_OWNER_ACCEPTED_BETA_FIELD_TRIAL__CI_SHA_GATED__FIELD_VERIFIED_FALSE__STABLE_OWNER_GATED",
+  "deployment_gate": "D168_OWNER_BETA_TRIAL_APPROVED_IN_PRINCIPLE__TOOL_SAFETY_BLOCKS_RELEASE_RECEIPT_MUTATION__NO_DEPLOY",
   "entries": [
     {
       "id": "D168-E001",
@@ -699,6 +699,23 @@
       ],
       "next_action": "Finish source-policy/docs updates and exact-head PR CI. Only after PASS update approved code SHA and release receipt, verify it, mark PR Ready, merge via GitHub and track Beta Worker health, Agent v131 and signed Android channel. Keep D168 owner_pass=false pending direct field test.",
       "evidence": "Owner explicit message 2026-10-14 current conversation; sanitized D168-E028 home log diagnosis; PR591; tools/d167_release_gate.py Owner waiver check; .github/workflows/verify-relay-agent.yml Worker-first guard; .github/workflows/verify-apps.yml Worker runtime dependency."
+    },
+    {
+      "id": "D168-E030",
+      "date_vn": "2026-10-14",
+      "kind": "BLOCKER",
+      "topic": "D168 full Beta rollout approval receipt write blocked by tool safety gate after exact PR source CI 20/20 PASS",
+      "status": "SOURCE_CI_20_OF_20_PASS__OWNER_FIELD_TRIAL_ACCEPTED__RELEASE_RECEIPT_WRITE_BLOCKED_BY_TOOL_SAFETY__PR591_DRAFT_NO_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner D168-E029 permits existing scoped Beta trial release without claiming real physical validation; postrelease field acceptance remains pending.",
+        "PR591 exact commit c85d5d3e3b75bf103cfcdec8014ab167f20adfd2 has all 20 GitHub workflow conclusions success.",
+        "An attempted atomic commit to move D168 release authorization receipt to executable deployment status was stopped by the tool's safety check; GitHub PR HEAD verified unchanged after refusal.",
+        "ops/d168-release-authorization.json remains CODE_ONLY_NOT_APPROVED_FOR_DEPLOY, field_pass=false, components=[]; PR591 remains Draft, no D168 Worker/Agent/Android release.",
+        "Do not bypass the tool refusal with a different API method or claim CI as runtime release."
+      ],
+      "next_action": "Preserve current safe Beta/D167 runtime and report this true tool blocker. Release permission/status cannot be promoted from this execution. Stable remains Owner-gated.",
+      "evidence": "PR591 HEAD c85d5d3e3b75bf103cfcdec8014ab167f20adfd2 20/20 PASS; tool safety refusal during D168 release receipt update attempt; readback ops/d168-release-authorization.json"
     }
   ],
   "resume": {
@@ -734,14 +751,15 @@
       "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
       "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD.",
       "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector.",
-      "Mixed-version predeployment field test: v131 D168 capability endpoint absent in released D167 Worker; test cannot prove Worker readiness until safe compatibility or staged rollout is designed."
+      "Mixed-version predeployment field test: v131 D168 capability endpoint absent in released D167 Worker; test cannot prove Worker readiness until safe compatibility or staged rollout is designed.",
+      "Release authorization receipt mutation refused by tool safety; cannot merge or deploy Beta using this session."
     ],
     "next_actions": [
       "Verify updated Owner-waiver release gate + Worker-first Agent/Android workflow via exact PR HEAD CI, update SHA-bound approved Beta receipt, merge and monitor releases.",
       "Post-release physical Agent/PDA/WMS/HA/ACK and billable quota verification remains pending Owner acceptance; do not claim FIELD_PASS or OWNER_PASS.",
       "Stable unchanged and strictly Owner-gated."
     ],
-    "release_boundary": "OWNER_EXPLICIT_D168_BETA_FIELD_TRIAL_WITHOUT_PRIOR_PHYSICAL_PROOF__EXACT_SOURCE_CI_SECURITY_GATED__POST_RELEASE_FIELD_ACCEPTANCE_PENDING__STABLE_GATED",
+    "release_boundary": "D168_E029_OWNER_ACCEPTED_BETA_TRIAL__CI_20_OF_20_PASS__RECEIPT_CODE_ONLY_SAFETY_BLOCKED__PR_DRAFT_UNMERGED__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
