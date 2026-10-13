@@ -7,7 +7,7 @@
   "pr": 587,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E010",
+    "id": "D168-E012",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -212,6 +212,49 @@
       ],
       "next_action": "Inform Owner that both affected Agents share the same upload failure signature; seek scoped fix approval only after impact/risk review. No Agent code, app, Web, Worker, Apps Script or Stable deployment authorized by this record.",
       "evidence": "Owner-provided agent-complete(5).log and agent-complete(6).log analyzed 2026-10-13; repo source relay-agent/AgentLogUploadBridge.cs#L476-L641 and ops/apps-script/agent-log-gateway/Code.gs#L130-L225; D168 PR587"
+    },
+    {
+      "id": "D168-E011",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Record dual-Agent log failures and examine missing 19:00 SKU update under D168",
+      "status": "OWNER_APPROVED_BACKLOG_AND_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly asks to add previously analyzed two-Agent Google Apps Script/Drive upload failures to D168 backlog and investigate whether automatic end-of-shift SKU DELTA ran at approximately 19:00.",
+        "This authorization covers read-only analysis and docs-only D168 checklist/journal/state update; does not authorize executable fixes, Agent release, Worker/Gateway change or Stable deployment.",
+        "Treat Agent log upload and D167 SKU schedule as two separately triaged incidents, with potential shared Google Apps Script transport/quota coupling."
+      ],
+      "next_action": "Record D168-REQ-008 and D168-REQ-009 with source and log evidence, then present proposals/remaining verification to Owner without changing software.",
+      "evidence": "Owner request in this conversation 2026-10-13; docs/D168_BACKLOG.md#d168-req-008 / #d168-req-009"
+    },
+    {
+      "id": "D168-E012",
+      "date_vn": "2026-10-13",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Scheduled D167 19h SKU DELTA failed to reach confirmed upload; 11-second retry-storm bypasses 15-minute cooldown",
+      "status": "SOURCE_RETRY_STORM_CONFIRMED__FIELD_DELTA_19_DONE_UNVERIFIED__PROPOSAL_PENDING_OWNER_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "One affected PRIMARY Agent local trace contains 948 D167_SKU sync=DEFER events from 16:49 to 19:52 on 2026-10-13, predominantly InvalidOperationException with error_code UNKNOWN; second Agent has 161 similar errors earlier, 15:20–15:51. No DELTA_19 EXPORT_BEGIN/UPLOAD/DONE receipt observed in either provided log.",
+        "The slot's persisted due target is randomly selected between 19:00 and 19:15 Vietnam time by Service; checking exactly 19:00 is insufficient. PRIMARY local errors cross the complete 19:00–19:15 window. Service's durable state/receipt was not independently queried.",
+        "Code proof: D167SkuCoordinator catch arms 15-min retry, but 1-second Program._afterHoursTimer invokes CheckAfterHoursSchedule -> QueueD128BrowserStateRefresh -> RefreshSupraBrowserStatus, which unconditionally calls OnPrimaryOrWmsReady while browser ready -> Queue, bypassing active retry deadline. Observed failures approximately every 11 seconds, indicating a repeated service.Schedule/Gateway hot path. The previous automatic schedule dependency INITIAL_05 FULL DONE is not independently established.",
+        "Shared Apps Script action d167_sku_sync validates an ID token by UrlFetchApp.fetch on each call; 27 D160 USAGE errors on PRIMARY trace contain normalized daily 'urlfetch' excessive invocations starting at 14:00, supporting a probable shared Gateway quota/latency contributor but NOT proving each SKU exception's backend error.",
+        "SafeErrorCode allowlist masks nonconforming error messages as UNKNOWN; actual backend error cannot be confirmed from supplied Agent log.",
+        "Confirm Poll/PRIMARY evidence remains active during the failed evening schedule; successful Picklist confirm unrelated to SKU cannot prove a correct catalog refresh."
+      ],
+      "alternatives": [
+        "Read-only inspect existing Service durable schedule/receipt and Apps Script execution metrics and compare current vs last FULL day, no new timer or provider poll.",
+        "Preferred future scoped fix subject to Owner approval: single active one-shot schedule, preserve cooldown across readiness/HA event sources; bounded quota-aware retry and phase/outcome logging; no changes to WMS Confirm path or new provider listeners.",
+        "Gateway changes only after measured transport/quota bottleneck; retain authentication, Service authoritative CAS, HA fencing and idempotency."
+      ],
+      "open_questions": [
+        "Was INITIAL_05 FULL published for 2026-10-13 (or a manually authorized FULL), and what is the exact 19:00–19:15 Service scheduled_at_ms and job receipt?",
+        "Did Gateway return daily UrlFetch quota errors for D167 actions, or another invalid-op error masked as UNKNOWN?",
+        "How many quota-consuming Apps Script operations did the repeated retry-storm create, and what independent upload-log retries also contributed?"
+      ],
+      "next_action": "Keep D168-REQ-008/009 as pending code approval, present concrete evidence, request Owner next instruction for scoped fix; do not deploy.",
+      "evidence": "Local Owner-supplied agent-complete(5).log and agent-complete(6).log; relay-agent/D167SkuCoordinator.cs#L140-L168; relay-agent/Program.cs#L921-L928,#L1834-L1838,#L3428-L3437; relay-agent/D167SkuServiceClient.cs#L211-L270; service/src/d167-sku-sync-core.ts and -logic.ts; ops/apps-script/agent-log-gateway/Code.gs#L806-L823; docs/D168_BACKLOG.md"
     }
   ],
   "resume": {
@@ -225,7 +268,7 @@
       "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "D168 PR587 documents matching upload failures on both affected Agents (22 and 20 deferred) with one confirmed Drive success each; no code authorization."
+      "D168 PR587 docs-only: backlog REQ-008 Agent log upload, REQ-009 19:00 SKU DELTA; source confirmed retry-storm, Gateway quota cause still unverified; no runtime change"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -240,12 +283,16 @@
       "D168-REQ-006: Agent Settings option for Windows auto-start",
       "D168-REQ-007: Agent group message or call-home to multiple/all active Pickers; pending presence, RBAC, message/ACK fanout and Usage analysis; no code approval",
       "Agent log-upload repair proposal needs Owner approval; no code or deploy authorized",
-      "D168 Agent log-upload fix pending Owner decision: verify root causes, then Agent-only timeout/single-flight/backoff/manual semantics; Gateway change only if evidence warrants"
+      "D168 Agent log-upload fix pending Owner decision: verify root causes, then Agent-only timeout/single-flight/backoff/manual semantics; Gateway change only if evidence warrants",
+      "D168-REQ-008: two Agent Drive log-upload failures; Agent-only reliability fix awaiting Owner code/release approval",
+      "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics"
     ],
     "blocked": [],
     "next_actions": [
       "Review D168 Agent support-log diagnostic and obtain explicit Owner authorization before code changes or release",
-      "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007"
+      "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007",
+      "Verify Agent/Service 2026-10-13 DELTA_19 receipt and Apps Script UrlFetch exhaustion via existing on-demand/privileged data; if unavailable, report unverified, do not infer DONE",
+      "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command"
     ],
     "release_boundary": "D168_SEVEN_PENDING_REQUESTS_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
   }
