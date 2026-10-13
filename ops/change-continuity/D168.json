@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-agent-ops-four-pending-20261013",
-  "pr": 585,
+  "working_branch": "d168-picker-group-contact-backlog-20261013",
+  "pr": 586,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E007",
+    "id": "D168-E008",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR585_D168_FOUR_AGENT_REQUESTS_DOCS_ONLY_NO_RUNTIME_CHANGE",
+    "current_pr_scope": "PR586_D168_GROUP_PICKER_CONTACT_BACKLOG_DOCS_ONLY_NO_RUNTIME_CHANGE",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -141,6 +141,24 @@
       "next_action": "Review current Agent source and evidence when Owner requests analysis; propose a low-Usage solution for approval before code or deployment.",
       "evidence": "Owner direct D168 backlog request 2026-10-13; docs/D168_BACKLOG.md",
       "supersedes": []
+    },
+    {
+      "id": "D168-E008",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "topic": "Agent group-contact selected or all active Pickers: shared message and call-home",
+      "status": "OWNER_REQUESTED_RECORD_ONLY__PENDING_ANALYSIS__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Owner requests recording a new D168 feature allowing Agent operator to select multiple or all active Pickers.",
+        "One common message can be sent to selected Pickers; a single group action can also call selected Pickers to the specialist desk.",
+        "Must retain existing authorization, verify current active recipients, prevent duplicate/wrong-user delivery and preserve per-recipient result, with precise online source to be investigated alongside D168-REQ-004.",
+        "Targeted fanout cannot be assumed to cost zero usage; review reuse of existing message/call channel, burst/load and avoid new polling before any code decision.",
+        "No code, APK, Agent, service, provider or Stable deployment was authorized by the Owner in this request."
+      ],
+      "next_action": "When instructed to analyze D168-REQ-007, review Agent online Picker selection, current message/call-home pipelines, per-target delivery/ack, live presence accuracy, quota impact and UI; present scoped proposal before any code.",
+      "evidence": "Owner request 2026-10-13 to add group-contact feature to D168 backlog; docs/D168_BACKLOG.md#d168-req-007",
+      "supersedes": []
     }
   ],
   "resume": {
@@ -154,7 +172,7 @@
       "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "PR585 docs-only checkpoint of four Agent requests pending CI and merge"
+      "D168 PR586 docs-only E008/backlog/state recording pending CI and merge; no runtime changes"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -166,13 +184,14 @@
       "D168-REQ-003: Agent online Picker App-version column after confirmation source",
       "D168-REQ-004: Picker online presence accuracy after logout/kick with minimal Usage",
       "D168-REQ-005: Agent SKU tab UI redesign and cross-Agent state synchronization reusing existing channels",
-      "D168-REQ-006: Agent Settings option for Windows auto-start"
+      "D168-REQ-006: Agent Settings option for Windows auto-start",
+      "D168-REQ-007: Agent group message or call-home to multiple/all active Pickers; pending presence, RBAC, message/ACK fanout and Usage analysis; no code approval"
     ],
     "blocked": [],
     "next_actions": [
-      "Verify and merge docs-only PR585 with continuity and authority checks; no deployment",
-      "Await Owner request for detailed source/log analysis of D168-REQ-003..006"
+      "Verify and merge docs-only D168 PR586 after authority and continuity PASS; no runtime changes",
+      "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007"
     ],
-    "release_boundary": "D168_FOUR_AGENT_PENDING_ANALYSIS__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
+    "release_boundary": "D168_SEVEN_PENDING_REQUESTS_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
   }
 }
