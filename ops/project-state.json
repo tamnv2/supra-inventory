@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D168",
     "journal": "ops/change-continuity/D168.json",
-    "working_branch": "d168-agent-v130-network-route-audit-20261013",
-    "pr": 590,
-    "latest_checkpoint_id": "D168-E015",
+    "working_branch": "d168-agent-network-split-proposal-20261013",
+    "pr": 591,
+    "latest_checkpoint_id": "D168-E016",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D168_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED",
+    "owner_release_gate": "D168_OWNER_FUNCTIONAL_SCOPE_CAPTURED__CODE_NOT_APPROVED__DEPLOY_NOT_APPROVED__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7665,13 +7665,13 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "D168_OPEN__SEVEN_PENDING_REQUESTS__NO_CODE_OR_DEPLOY",
+    "status": "D168_OPEN__OWNER_SKU_NETWORK_USAGE_DESIGN_CAPTURED__NO_CODE_OR_DEPLOY",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
     "backlog": "docs/D168_BACKLOG.md",
-    "working_pr": 590,
-    "working_branch": "d168-agent-v130-network-route-audit-20261013",
+    "working_pr": 591,
+    "working_branch": "d168-agent-network-split-proposal-20261013",
     "owner_code_approval": false,
     "owner_deploy_approval": false,
     "code_ready": false,
@@ -7685,7 +7685,7 @@
       "DRIVE_LOG_COMPLETENESS_AND_PRIVACY_LOG_REVIEW",
       "CI_CD_ALL_ENTRYPOINT_GATING_FURTHER_VERIFICATION"
     ],
-    "next": "WAIT_FOR_OWNER_ANALYSIS_COMMAND__D168_REQ_001_THRU_007_NOT_AUTHORIZED_FOR_IMPLEMENTATION",
+    "next": "OWNER_FUNCTIONAL_REQUIREMENTS_CAPTURED__AWAIT_EXPLICIT_CODE_COMMAND_AND_ROUTING_SECURITY_VERIFICATION",
     "stable": "OWNER_GATED_UNTOUCHED",
     "pending_items": [
       {
@@ -7748,10 +7748,33 @@
         ]
       }
     ],
-    "latest_checkpoint_id": "D168-E014",
+    "latest_checkpoint_id": "D168-E016",
     "log_upload_diagnosis": "D168_REQ008__TWO_AFFECTED_AGENTS_MATCHING_GATEWAY_TIMEOUT_KEEPALIVE__CODE_PENDING_OWNER_APPROVAL",
     "sku_evening_diagnosis": "D168_REQ009__DELTA_19_NO_AGENT_DONE_EVIDENCE__948_PRIMARY_DEFER__BROWSER_TIMER_BYPASSES_15MIN_RETRY__SERVICE_RECEIPT_NOT_VERIFIED__NO_RUNTIME_MUTATION",
     "office_sku_route": "D168_REQ010__OFFICE_COMPATIBLE_BY_SOURCE_APPS_SCRIPT_GATEWAY__OFFICE_SKU_DONE_NOT_FIELD_VERIFIED__NO_CODE_OR_DEPLOY",
-    "office_sku_relay_architecture": "D168_REQ011__OWNER_OFFICE_NO_CLOUDFLARE__EXISTING_GOOGLE_GATEWAY_OFFICE_ELIGIBLE_BUT_NOT_FIELD_PROVEN__NO_CODE_DEPLOY"
+    "office_sku_relay_architecture": "D168_REQ011__OWNER_OFFICE_NO_CLOUDFLARE__EXISTING_GOOGLE_GATEWAY_OFFICE_ELIGIBLE_BUT_NOT_FIELD_PROVEN__NO_CODE_DEPLOY",
+    "owner_sku_wifi_directives_20261013": {
+      "status": "OWNER_FUNCTIONAL_REQUIREMENTS_ACCEPTED__IMPLEMENTATION_UNAPPROVED",
+      "source": "docs/D168_AGENT_SKU_JOB_WIFI_ROUTING_OWNER_2026-10-13.md",
+      "journal": "D168-E016",
+      "requirements": [
+        "Independent SKU job lease; keep job ownership after PRIMARY transfer and avoid duplicate DONE",
+        "Complete WMS read-only export BEFORE optional WLAN switch; direct authenticated Worker sync; recover original profile",
+        "Modeless prompt skip=15m, consent=immediate when safe, no click 60s=permit when safe",
+        "Only switch while business/HA/confirmation idle, fail closed if current solo PRIMARY cannot safely delegate",
+        "Retire Agent Usage UI/autorefresh/Usage ZIP, Owner screenshots replace source for provider analysis",
+        "Cloudflare-first nonessential admin actions including single/bulk Picker revoke already Worker direct; preserve PDA revocation signaling"
+      ],
+      "open_design": [
+        "Office-only pre-admission proof to Worker without unlimited Google Gateway",
+        "Separate job lease identity/expiry/fence, reliable Worker DONE receipt and low-usage fleet projection",
+        "Approved saved WLAN profiles/Windows standard-user permissions and safe PRIMARY handoff",
+        "Call/chat worker migration contingent on Android delivery and cost measurement"
+      ],
+      "code_approved": false,
+      "beta_deploy_approved": false,
+      "stable_deploy_approved": false,
+      "field_pass": false
+    }
   }
 }
