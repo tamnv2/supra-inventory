@@ -186,6 +186,7 @@ namespace SupraInventoryRelayAgent
                         }
 
                         var processed = ProcessOnce(session);
+                        AgentConnectionDiagnostics.Recovered("FIRESTORE_CONFIRM", _log);
                         QueueD157SummaryCheckpointIfDue();
                         if (processed > 0 && _lastBusinessPendingCount >= 2)
                             _hotUntilMs = NowMs() + 15000L;
@@ -217,7 +218,13 @@ namespace SupraInventoryRelayAgent
                     waitMs = _coordinator == null ? 2000 : Math.Min(4000, Math.Max(1000, _coordinator.BusinessPollIntervalMs));
                     try { _relayHealth(false); } catch { }
                     try { _state("Relay: FIRESTORE tạm gián đoạn · giữ vai trò / đang kết nối lại"); } catch { }
-                    try { _log("FIRESTORE confirm transport fail role_preserved=true retry_ms=" + waitMs + " " + Describe(ex)); } catch { }
+                    try
+                    {
+                        if (AgentConnectionDiagnostics.ShouldLogFailure("FIRESTORE_CONFIRM", ex, _log))
+                            _log("FIRESTORE confirm transport fail role_preserved=true retry_ms=" + waitMs +
+                                 " reason=" + AgentConnectionDiagnostics.Reason(ex) + " " + Describe(ex));
+                    }
+                    catch { }
                 }
                 catch (Exception ex)
                 {
