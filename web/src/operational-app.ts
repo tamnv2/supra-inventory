@@ -2003,7 +2003,7 @@ function renderUsers(): string {
         <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3></div></div>
         <form id="user-filter-form" class="users-form-grid users-filter-form">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / nhà thầu / tài khoản" /></label>
-          <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${visibleRoles.map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
+          <label>Quyền<select name="role">${profile?.role === "PICKPACK_ADMIN" ? "" : '<option value="">Tất cả quyền</option>'}${visibleRoles.map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
           <label>Trạng thái<select name="status"><option value="">Tất cả trạng thái</option><option value="ACTIVE" ${userStatus === "ACTIVE" ? "selected" : ""}>Đang hoạt động</option><option value="DISABLED" ${userStatus === "DISABLED" ? "selected" : ""}>Đã dừng</option></select></label>
           <label>Báo hàng<select name="shortageReporting"><option value="">Tất cả</option><option value="ENABLED" ${userShortageReporting === "ENABLED" ? "selected" : ""}>Đang bật</option><option value="DISABLED" ${userShortageReporting === "DISABLED" ? "selected" : ""}>Đang tắt</option></select></label>
           <div class="ops-form-actions"><button class="secondary">Áp dụng bộ lọc</button></div>
@@ -4062,7 +4062,11 @@ async function loadUsers(): Promise<void> {
   const allowedRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
     profile?.role === "ADMIN" ? ["PICKER", "REPORTER"] :
     ["PICKER", "REPORTER", "PICKPACK_ADMIN", "ADMIN"];
-  if (userRole && !allowedRoles.includes(userRole)) { userRole = ""; userOffset = 0; }
+  if (profile?.role === "PICKPACK_ADMIN" && userRole !== "PICKER") {
+    userRole = "PICKER"; userOffset = 0;
+  } else if (userRole && !allowedRoles.includes(userRole)) {
+    userRole = ""; userOffset = 0;
+  }
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const result = await listManagedUsers({
