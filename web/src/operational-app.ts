@@ -12,6 +12,7 @@ import "./legacy-transplant/web-professional-v2.css";
 import "./legacy-transplant/d167-web-layout-density.css";
 import "./legacy-transplant/d167-sku-provenance.css";
 import "./legacy-transplant/d167-web-compact-accounts.css";
+import "./legacy-transplant/d167-web-ux-recovery.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
