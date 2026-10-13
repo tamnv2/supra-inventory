@@ -163,6 +163,7 @@ namespace SupraInventoryRelayAgent
             private readonly string restoreProfile;
             private readonly Action<string> log;
             private bool disposed;
+            internal bool DidSwitch { get { return !string.IsNullOrEmpty(restoreProfile); } }
             internal WorkerSession(string original,Action<string> logger)
             {
                 restoreProfile=original;
