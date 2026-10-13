@@ -313,7 +313,7 @@ namespace SupraInventoryRelayAgent
                 if(string.IsNullOrWhiteSpace(proof)) return;
                 _d167SkuManualActive=true;
                 _d167SkuRun.Enabled=false;
-                _d167SkuHeadline.Text="Đang xác minh quyền và thực hiện cập nhật SKU theo yêu cầu...";
+                _d167SkuHeadline.Text="Đang xác minh yêu cầu cập nhật SKU của "+DisplayAgentUsername(actor)+"...";
                 Task.Run(()=>{
                     try { _d167SkuCoordinator.RunManual(proof); }
                     catch(Exception e)
