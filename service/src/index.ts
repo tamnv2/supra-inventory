@@ -1510,6 +1510,15 @@ export default {
         return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
       }
 
+      // D168 single-shot, authenticated network capability probe. No Worker/Core
+      // SKU schedule lookup, Durable Object write, Drive/Google request or migration.
+      // It is used only on explicit SKU start or authorized WLAN transition.
+      if (request.method === "GET" && url.pathname === "/api/agent/d168/network-capability") {
+        if (env.APP_ENV !== "beta") return json({ error: "D168_BETA_ONLY" }, 404);
+        const actor = await requireAgentUser(request, env, ["ADMIN","PICKPACK_ADMIN"]);
+        if (actor.base_role !== actor.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        return json({ status: "reachable", service: "inventory-beta", capability: "D168_WORKER_AUTH" });
+      }
       // D167 scoped, source-only SKU sync. Agent auth AND authoritative current
       // Firestore PRIMARY generation are required before every state mutation.
       // GETs are Agent-authenticated but do not query HA or start a WMS export.
