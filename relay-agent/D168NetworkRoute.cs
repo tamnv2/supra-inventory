@@ -130,6 +130,17 @@ namespace SupraInventoryRelayAgent
             catch { return "NETWORK_UNCERTAIN"; }
         }
 
+        // Cheap local preflight before touching the read-only WMS export.
+        // It never changes networks or sends any provider request.
+        internal static bool HasApprovedFallback()
+        {
+            var target=ApprovedProfile();
+            var original=CurrentProfile();
+            return ValidProfile(target) && ValidProfile(original) &&
+                !string.Equals(target,original,StringComparison.Ordinal) &&
+                HasSavedProfile(original) && HasSavedProfile(target);
+        }
+
         private static bool RestoreOriginalProfile(string name)
         {
             if(string.IsNullOrWhiteSpace(name))return true;
