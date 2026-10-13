@@ -482,10 +482,16 @@ test("D168 release guard: Office-blocked direct Worker must have a wired, approv
   assert.doesNotMatch(sku,/script\.google\.com|d167_sku_sync/);
   // A standalone helper is NOT a functional route. The Agent must call it from
   // a real SKU/optional-Worker user operation and verify reachability after switch.
-  assert.match(code,/D168NetworkRoute\.ConnectSavedProfile\(/,
-    "D168 cannot be released: the saved-WLAN transition is not wired to any Agent operation");
-  assert.match(code,/D168NetworkRoute\.ProbeWorker\(/,
-    "D168 cannot be released: no post-switch authenticated Worker readiness check is wired");
+  assert.match(code,/D168NetworkRoute\.OpenWorkerSession\(/,
+    "D168 cannot be released: no SKU operation owns a safe Worker WLAN session");
+  assert.match(network,/ConnectSavedProfile\(target\)/,
+    "D168 must actually connect the approved saved profile");
+  assert.match(network,/ProbeWorker\(idToken\)=="READY"/,
+    "D168 must confirm real authenticated Worker reachability after switching");
+  assert.match(network,/ConnectSavedProfile\(restoreProfile\)/,
+    "D168 must restore the original WLAN after each completed job");
+  assert.match(code,/RequestD168NetworkSwitchPermission/,
+    "D168 cannot silently switch networks without an operator-facing decision");
 });
 
 test("D168 Windows auto-start setting verifies the HKCU Run registration before reporting success", async () => {
@@ -505,4 +511,19 @@ test("D168 manual SKU abort retains original VN-day lease if operation crosses m
   assert.match(coordinator,/activeDay=day;/);
   assert.match(coordinator,/service\.Abort\(activeDay,activeSlot,/);
   assert.doesNotMatch(coordinator,/service\.Abort\(D167SkuSchedule\.VNNow\(/);
+});
+
+test("D168 Office SKU network scope is bound to both manual and automatic jobs", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const agent=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const ui=readFileSync(new URL("../relay-agent/D168SkuNetworkUi.cs",import.meta.url),"utf8");
+  assert.match(coordinator,/workerNetworkScope=openWorkerNetwork\(\)/);
+  assert.match(coordinator,/using\(var workerNetworkScope=openWorkerNetwork\(\)\)/);
+  assert.match(coordinator,/workerNetworkScope\.Dispose\(\)/);
+  assert.match(agent,/RequestD168NetworkSwitchPermission/);
+  assert.match(agent,/InitializeD168WorkerWifiControls\(networkCard\)/);
+  assert.match(ui,/TopMost=true/);
+  assert.match(ui,/Interval=60000/);
+  assert.match(ui,/ManualResetEventSlim/);
 });
