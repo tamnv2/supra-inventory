@@ -24,7 +24,7 @@
     "current_pr_scope": "PR580_D167_WEB311_WEB_UI_ONLY_BETA_WORKER__NO_NEW_DATA_SERVICE_AGENT_ANDROID_STABLE",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "605b6f684b47b9d16b276b1fb3e5c9e7e1d0ee90",
+    "approved_source_sha": "10bb9cc678b0d1b68a98209a7a71d89263fc258b",
     "technical_release_pass": false,
     "field_pass": false
   },
