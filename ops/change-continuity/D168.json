@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E025",
+    "id": "D168-E026",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -628,6 +628,23 @@
       ],
       "next_action": "Report the source-backed inventory to Owner; preserve PR591 Draft/field gate and existing Beta unchanged; only provider execution evidence can confirm actual consumption attribution.",
       "evidence": "GitHub main ops/apps-script/agent-log-gateway/Code.gs lines 63-233, 235-295, 482-493, 740-837, 892-932, 1024, 1140-1157; relay-agent/D160Usage.cs, D166UsageExport.cs, AgentLogUploadBridge.cs, D167SkuServiceClient.cs, D161SupportLogControl.cs; PR591 working branch source; D168-E012; official Google Apps Script quotas."
+    },
+    {
+      "id": "D168-E026",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner yêu cầu tiếp tục hoàn tất mọi việc D168; xác minh CI exact PR591 HEAD và giới hạn kiểm thử thực địa",
+      "status": "EXACT_PR_HEAD_e5744f8_20_OF_20_PR_CI_PASS__AGENT_ARTIFACT_PRESENT__FIELD_PASS_MISSING__DRAFT_NOT_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner nhắc lại lệnh D168-E018/E022: tiếp tục tự động xử lý các phần đã duyệt đến khi đủ điều kiện phát hành Beta; đây không phải Owner FIELD_PASS hay quyền bỏ gate.",
+        "PR591 ở trạng thái Draft, HEAD e5744f8b0cf0f629ff012aed12efe79d8291f445; cả 20 workflow PR-associated ở HEAD này có kết luận success ngày VN 2026-10-14, gồm Verify Beta Android, Verify Beta Relay Agent, Authority, State guard, SKU pure contract và continuity workflows.",
+        "Workflow Agent run 38483669723 tạo artifact supra-inventory-relay-poc-agent id 11857588415, digest SHA256 đã do GitHub ghi nhận. Artifact là bản thử nghiệm, không phải phát hành v131 hay cài đặt lên PC.",
+        "Beta vẫn là bản D167 (Agent v130/Web 3.1.1/Android vc106); receipt ops/d168-release-authorization.json giữ CODE_ONLY_NOT_APPROVED_FOR_DEPLOY, field_pass=false. Không merge PR, không deploy Beta hoặc Stable.",
+        "GitHub CI không truy cập Wi-Fi Office/Internet của DC, managed WMS session, PDA hay InventoryCore runtime receipt thực; không được tự ghi field_pass, giả DONE hoặc đưa release receipt thành approved."
+      ],
+      "next_action": "Giữ Draft PR591 và receipt khóa; thực hiện bài thử bắt buộc trên một Windows Agent idle với hai Wi-Fi saved/approved và một PDA, xác nhận Worker SWITCHED_AND_RESTORED, SKU FULL/manual durable DONE và không gián đoạn Picklist/ACK/HA; sau khi có bằng chứng thực mới mở exact-SHA Beta release gate, merge và giám sát phát hành. Stable vẫn Owner-gated.",
+      "evidence": "GitHub PR #591 exact HEAD e5744f8b0cf0f629ff012aed12efe79d8291f445; 20 PR workflow runs all success, Agent run 38483669723 artifact 11857588415; ops/d168-release-authorization.json; docs/D168_RELEASE_READINESS_2026-10-14.md"
     }
   ],
   "resume": {
@@ -652,7 +669,7 @@
       "D168-E020: Owner accidental Ready reverted to Draft; Windows auto-start false-success fix committed with source test, final CI pending.",
       "D168-E022: v131 network routing, shared terminal SKU DONE and exact Picker session selection updated; final CI in progress.",
       "D168-E023: v131 one-click read-only Worker/WLAN field probe and concurrent SKU DONE CAS merged; final exact-head CI pending.",
-      "D168-E024: exact source HEAD 91e83e79 PR CI 20/20 PASS and Agent test artifact ready; FIELD PASS pending."
+      "D168-E026: PR591 current exact HEAD e5744f8b 20/20 CI PASS; Agent v131 test artifact exists, physical FIELD_PASS and Beta release remain blocked."
     ],
     "pending_approval": [
       "Stable is OWNER-GATED",
@@ -667,16 +684,16 @@
       "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector."
     ],
     "next_actions": [
+      "Owner/device-only: from PR591 run 38483669723 download Agent v131 test artifact; test on one safe idle Windows Agent PC with approved saved Wi-Fi and one PDA, then provide sanitized Worker route/SKU DONE/Picklist ACK/HA evidence.",
       "Owner field step: On one idle primary Agent PC, download verified PR artifact and test approved saved Internet Wi-Fi Worker switch/restore, then WMS SKU DONE and one PDA PickList ACK.",
       "After exact-head CI, physical one-PC test is the only Owner/device-only boundary; no CLI or Github owner work required.",
-      "Rerun final CI on exact PR head; do not modify scoped Beta until field PASS. Beta release receipt remains locked.",
       "Check exact-head CI on PR591 startup fix, maintain deliberate SKU WLAN contract release failure until real orchestration exists.",
       "Wire authorized safe WLAN route and Worker probe into actual Agent SKU flow without compromising WMS Confirm/Firestore/HA; run 60s/15m/no-standby tests.",
       "Complete targeted REQ-001..011 feature regressions and instrument before/after per-provider usage.",
       "Fix expected failing D168 release guard, run exact-head CI/Authority/Continuity and only then gated Beta release/readback.",
       "Keep Stable untouched; request Owner field acceptance only after real device proof."
     ],
-    "release_boundary": "D168_E018_CODE_AND_SCOPED_BETA_APPROVED_ONLY_AFTER_EXACT_HEAD_PRODUCT_CI_AND_FIELD_GATE__NOT_RELEASED__STABLE_OWNER_GATED",
+    "release_boundary": "D168_E018_BETA_OWNER_APPROVED_CONDITIONALLY__CURRENT_EXACT_HEAD_CI_20_OF_20_PASS__FIELD_NOT_PROVEN__PR591_DRAFT_NO_MERGE_OR_DEPLOY__STABLE_OWNER_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
