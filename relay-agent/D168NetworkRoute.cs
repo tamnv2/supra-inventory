@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
@@ -126,6 +128,117 @@ namespace SupraInventoryRelayAgent
                 }
             }
             catch { return "NETWORK_UNCERTAIN"; }
+        }
+
+        // The caller must preserve confirmation and HA safety while holding this
+        // route. Never persist or log the previously connected SSID/profile.
+        private static readonly object NetworkSessionLock = new object();
+
+        internal sealed class WorkerSession : IDisposable
+        {
+            private readonly string restoreProfile;
+            private readonly Action<string> log;
+            private bool disposed;
+            internal WorkerSession(string original,Action<string> logger)
+            {
+                restoreProfile=original;
+                log=logger ?? delegate {};
+            }
+            public void Dispose()
+            {
+                if(disposed)return;
+                disposed=true;
+                try
+                {
+                    if(!string.IsNullOrEmpty(restoreProfile) &&
+                        (!ConnectSavedProfile(restoreProfile) ||
+                         !string.Equals(CurrentProfile(),restoreProfile,StringComparison.Ordinal)))
+                        log("D168_NETWORK restore=FAILED");
+                }
+                finally { Monitor.Exit(NetworkSessionLock); }
+            }
+        }
+
+        private static string CurrentProfile()
+        {
+            try
+            {
+                var process=new Process {
+                    StartInfo=new ProcessStartInfo {
+                        FileName="netsh.exe",Arguments="wlan show interfaces",
+                        UseShellExecute=false,CreateNoWindow=true,
+                        RedirectStandardOutput=true
+                    }
+                };
+                using(process)
+                {
+                    if(!process.Start())return "";
+                    Task<string> output=process.StandardOutput.ReadToEndAsync();
+                    if(!process.WaitForExit(5000))
+                    {
+                        try { process.Kill(); } catch { }
+                        return "";
+                    }
+                    if(process.ExitCode!=0 || !output.Wait(3000))return "";
+                    var profiles=Regex.Matches(output.Result,
+                        @"(?im)^\s*(?:Profile|Hồ sơ)\s*:\s*([^\r\n]+)");
+                    if(profiles.Count!=1)return ""; // multiple adapters: fail closed
+                    var name=profiles[0].Groups[1].Value.Trim();
+                    return ValidProfile(name) ? name : "";
+                }
+            }
+            catch { return ""; }
+        }
+
+        internal static WorkerSession OpenWorkerSession(string idToken,
+            Func<bool> canSwitch,Func<bool> requestNetworkPermission,
+            Action<string> log)
+        {
+            if(!Monitor.TryEnter(NetworkSessionLock))
+                throw new InvalidOperationException("D167_NETWORK_SWITCH_ALREADY_RUNNING");
+            var original="";
+            try
+            {
+                // One user-action/job scoped request, not a background poll.
+                var readiness=ProbeWorker(idToken);
+                if(readiness=="READY")return new WorkerSession("",log);
+                if(readiness!="NETWORK_UNREACHABLE")
+                    throw new InvalidOperationException("D167_WORKER_UNAVAILABLE_NO_SAFE_SWITCH");
+                var target=ApprovedProfile();
+                original=CurrentProfile();
+                if(!ValidProfile(target) || !ValidProfile(original) ||
+                    string.Equals(target,original,StringComparison.Ordinal) ||
+                    !HasSavedProfile(original) || !HasSavedProfile(target))
+                    throw new InvalidOperationException("D167_NETWORK_PROFILES_NOT_APPROVED");
+                if(canSwitch==null || !canSwitch())
+                    throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
+                if(requestNetworkPermission==null || !requestNetworkPermission())
+                    throw new InvalidOperationException("D167_NETWORK_SWITCH_DEFERRED");
+                if(!canSwitch())
+                    throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
+                if(!ConnectSavedProfile(target))
+                    throw new InvalidOperationException("D167_NETWORK_SWITCH_FAILED");
+                for(var attempt=0;attempt<3;attempt++)
+                {
+                    if(!canSwitch())
+                        throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
+                    if(string.Equals(CurrentProfile(),target,StringComparison.Ordinal) &&
+                        ProbeWorker(idToken)=="READY")
+                        return new WorkerSession(original,log);
+                    Thread.Sleep(1500);
+                }
+                throw new InvalidOperationException("D167_NETWORK_WORKER_NOT_READY");
+            }
+            catch
+            {
+                if(!string.IsNullOrEmpty(original) &&
+                   !string.Equals(CurrentProfile(),original,StringComparison.Ordinal) &&
+                   (!ConnectSavedProfile(original) ||
+                    !string.Equals(CurrentProfile(),original,StringComparison.Ordinal)))
+                    (log ?? delegate {}).Invoke("D168_NETWORK restore=FAILED");
+                Monitor.Exit(NetworkSessionLock);
+                throw;
+            }
         }
     }
 }
