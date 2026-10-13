@@ -101,3 +101,36 @@ Hai yêu cầu trên chỉ được **ghi nhận** theo chỉ đạo Owner, **kh
 - **Cần trình Owner sau phân tích:** wireframe bố trí chọn nhiều/chọn tất cả, luồng gửi thông báo/gọi và kết quả riêng từng Picker, phương án tối ưu Usage, ảnh hưởng Agent/Android/Service và test khi một số Picker offline giữa lúc gửi.
 
 **Giới hạn chỉ đạo hiện tại:** ghi vào backlog/continuity và chờ lệnh **phân tích**. Không được coi là lệnh `chạy code`, `triển khai` hoặc nâng phiên bản.
+
+
+## D168-REQ-008 — Hai Agent gửi nhật ký Drive không ổn định (13/10/2026) — P0, CHỜ DUYỆT SỬA
+
+**Yêu cầu Owner:** Ghi vào backlog D168 lỗi hai Agent không thường xuyên chuyển được nhật ký lên Drive; phân tích từ hai file local Owner cung cấp, giữ nguyên Agent Admin hiện gửi bình thường làm mốc đối chiếu. Không coi kiểm tra log là lệnh triển khai.
+
+**Bằng chứng từ file cục bộ:** Agent A 7.663 dòng, 22 lần \`AGENT LOG upload=DEFER\` (14 timeout, 5 keep-alive closed, 3 receive failures) và 1 \`upload=PASS\`; Agent B 1.983 dòng, 20 lần \`upload=DEFER\` (16 timeout, 4 keep-alive closed) và 1 \`upload=PASS\`. Cả hai có lần được Drive xác nhận nên chưa chứng minh mất quyền Drive hoàn toàn. Không commit raw log, nhân sự, token hoặc định danh máy thực vào repo public.
+
+**Đối chiếu source:** \`relay-agent/AgentLogUploadBridge.cs\` đặt HTTP \`Timeout/ReadWriteTimeout=10000ms\`, retry 1/2/5/15/30 phút, pending-file giữ lại đến \`drive_synced=true\`. \`ops/apps-script/agent-log-gateway/Code.gs\` có \`LockService.waitLock(15000)\` trước kiểm tra ngày lưu, Worker và Drive; cấu hình timeout trước thời gian backend có thể chờ là không tương thích. Lệnh thủ công \`manual=SEALED upload=TRY\` vẫn chịu cooldown; không là biên nhận Drive. Rủi ro upload trùng/chồng cần kiểm chứng lock single-flight. Sự khác biệt mạng/proxy và Gateway runtime chưa đo trực tiếp.
+
+**Đề xuất để Owner duyệt sau:** Ưu tiên Agent-only: deadline đủ thời gian cho Gateway có kiểm soát, kết nối/retry hợp lý, khóa một uploader duy nhất, xử lý thủ công hiển thị ACK thật, trạng thái số bundle pending/lần Drive xác nhận, không xóa local khi thiếu ACK. Chỉ sửa Apps Script khi trace execution xác nhận nghẽn phía backend. Rà soát ngưỡng size/idempotency/day-boundary và thử nghiệm 3 Agent. Không ảnh hưởng WMS Confirm/HA, service/UI/Android; không thêm polling hoặc per-event provider writes.
+
+**Trạng thái:** \`EVIDENCE_CONFIRMED_TWO_AGENTS__ROOT_CAUSE_PARTIAL__PENDING_OWNER_CODE_APPROVAL__NO_DEPLOY\`.
+
+## D168-REQ-009 — SKU DELTA cuối ca 19:00–19:15 không có biên nhận DONE, lỗi lặp gây tăng Usage (13/10/2026) — P0, CHỜ DUYỆT SỬA
+
+**Yêu cầu Owner:** Kiểm tra lý do không có cập nhật SKU tự động theo lịch cuối ca khoảng 19:00 ngày 13/10/2026; rà chuỗi FULL đầu ca → DELTA giữa ca → DELTA cuối ca, máy PRIMARY/HA, quota Gateway, lịch VN và biên nhận Service.
+
+**Bằng chứng file local:** Agent A (PRIMARY tại mốc 19:00) có **948** \`D167_SKU sync=DEFER\` từ 16:49:19–19:52:01, trong đó 937 \`InvalidOperationException / UNKNOWN\`, 8 \`IOException\` đã phân loại Gateway và 3 \`WebException / UNKNOWN\`. Các lỗi cách nhau thường ~11 giây; mốc 18:59:55, 19:00:06, 19:00:31 và liên tục hết cửa sổ 19:15. Agent B có **161** lỗi tương tự từ 15:20:39–15:51:12; không có SKU DONE trong file. Hai file không có \`D167_SKU slot=DELTA_19 stage=EXPORT_BEGIN\`, \`SERVICE_UPLOAD_BEGIN\` hoặc \`stage=DONE\`. Không dùng thiếu log để khẳng định Service chắc chắn chưa nhận job: cần read-only biên nhận chính thống để xác minh.
+
+**Lịch chính xác từ source:** \`service/src/d167-sku-sync-logic.ts\` và \`relay-agent/D167SkuSchedule.cs\` chọn một thời điểm ngẫu nhiên máy chủ, persist, trong 19:00 đến trước 19:15 giờ VN; không nhất thiết chính xác 19:00. Lượt DELTA phải có FULL hợp lệ trong ngày; \`service/src/d167-sku-sync-core.ts\` là authority trạng thái/receipt.
+
+**Cơ chế lỗi đã chứng minh bằng mã nguồn:** \`D167SkuCoordinator.Queue()\` khi \`EvaluateOnce()\` lỗi gọi \`Arm(15 phút)\`, nhưng \`Program.cs\` chạy \`_afterHoursTimer\` mỗi giây → \`CheckAfterHoursSchedule\` → \`QueueD128BrowserStateRefresh\` → \`RefreshSupraBrowserStatus\`; nếu browser READY, lại gọi \`OnPrimaryOrWmsReady()\` → \`Queue()\` không tôn trọng retry deadline đã đặt. Điều này phù hợp ~11 giây/lần trong log và gây retry-storm, thay vì tối đa 1 lần/15 phút. Trước bước xuất WMS đã có lỗi \`service.Schedule(day)\`; chưa đủ chứng cứ xác định backend receipt hoặc nguồn WMS lỗi.
+
+**Nghi vấn hạn mức phụ thuộc:** Agent A có 27 dòng \`D160 USAGE refresh=DEFER\` với lỗi được làm sạch chứa \`urlfetch\` và câu tiếng Việt "dịch vụ ... quá nhiều lần trong một ngày" (bắt đầu thấy 14:00). Cùng Google Apps Script Gateway dùng \`UrlFetchApp.fetch\` để verify token và proxy Worker; khi quota hỏng, cả Usage/SKU/log có thể bị ảnh hưởng. Cần đọc Apps Script Executions/quota hoặc phản hồi mã lỗi an toàn trước khi khẳng định tất cả SKU failure do quota. \`D167SkuCoordinator.SafeErrorCode\` rơi về \`UNKNOWN\` với message ngoài định dạng mã allowlist, làm che nguyên nhân.
+
+**Đề xuất để Owner duyệt sau:** (1) chặn trigger \`OnPrimaryOrWmsReady\` lặp khi readiness không đổi hoặc giữ deadline retry xuyên mọi nguồn Queue, để đúng lịch one-shot không polling; (2) phân biệt lỗi schedule/auth/Gateway/quota, log pha và mã lỗi allowlist không tiết lộ secret; (3) thêm retry bounded có cảnh báo SLA 19:00–19:15 và kiểm soát failover, tránh tăng provider traffic; (4) xác minh FULL trong ngày, actual Service \`scheduled_at_ms\`, \`state\`, receipt \`DELTA_19\` và last SKU version bằng **đường read-only hiện có/on-demand**, không thêm timer; (5) test 3 Agent, quota-exhausted, standby takeover, lỗi mạng, 19:00/19:15, 00:00 VN, an toàn Confirm/ACK và chi phí trước/sau. Bảo đảm không nhầm việc cập nhật catalog thủ công với DONE của lượt tự động.
+
+**Rủi ro:** Sai lịch khiến picker báo SKU cũ, ảnh hưởng kiểm soát đầu ca/ngày; retry-storm tăng Apps Script calls/CPU và nguy cơ hạn mức quota, có thể ảnh hưởng cả đường upload log/Usage cùng Gateway. Không đổi app/service/HA tại thời điểm ghi backlog.
+
+**Trạng thái:** \`FIELD_LOG_FAILURE_CONFIRMED__SOURCE_RETRY_STORM_CONFIRMED__SERVER_RECEIPT_PENDING_VERIFICATION__PENDING_OWNER_CODE_APPROVAL__NO_DEPLOY\`.
+
+**Giới hạn chung REQ-008/009:** Chỉ ghi nhận và phân tích vào D168. Chưa có quyền chỉnh mã nguồn/release Agent, Web, Android, Worker, Apps Script hoặc Stable.
