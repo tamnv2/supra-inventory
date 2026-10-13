@@ -194,6 +194,10 @@ namespace SupraInventoryRelayAgent
         }
 
 
+        // Retain this compatibility gate for compiled D160/D166 helpers:
+        // D168 Owner decommissioned all Agent Usage requests and ZIP export.
+        private bool D160UsageAllowedForCurrentSession() { return false; }
+
         private void RecordD160PickerHistoryRequest(FirestoreConfirmationWorkItem work)
         {
             if (work == null || string.IsNullOrWhiteSpace(work.RequestId)) return;
