@@ -3,22 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-agent-v130-network-route-audit-20261013",
-  "pr": 590,
+  "working_branch": "d168-agent-network-split-proposal-20261013",
+  "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E015",
+    "id": "D168-E016",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-13 D168_INTAKE_ANALYSIS_ONLY",
+    "owner_latest": "2026-10-13 D168_OWNER_FUNC_REQUIREMENTS_SKU_JOB_WIFI_USAGE_RETIREMENT__CODE_NOT_YET_APPROVED",
     "code_permission": false,
     "merge_permission": true,
     "beta_deploy_permission": false,
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR590_D168_AGENT_V130_NETWORK_ROUTE_AUDIT_DOCS_ONLY",
+    "current_pr_scope": "PR591_D168_OWNER_JOB_WIFI_ROUTING_DESIGN_ONLY",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -340,13 +340,50 @@
       ],
       "next_action": "Use docs/D168_AGENT_NETWORK_MATRIX_2026-10-13.md for Owner review. No executable implementation or Beta/Stable deploy until explicit Owner authorization.",
       "evidence": "docs/D168_AGENT_NETWORK_MATRIX_2026-10-13.md; relay-agent/AgentConfig.cs, Program.cs, SupraConfirmBrowser.cs, D167SkuBrowserExport.cs, D167SkuDirectExport.cs, D167SkuServiceClient.cs, FirestoreConfirmationTransport.cs, FirestoreAgentLeaderCoordinator.cs, RtdbHaLiveness.cs, AgentLogUploadBridge.cs, AgentUpdater.cs; D168 PR590; existing D090/D091 field and D168 E009–E014 logs/analysis"
+    },
+    {
+      "id": "D168-E016",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner fixes SKU job continuation across PRIMARY loss, conditional Wi-Fi switch with 60s auto-consent, and Cloudflare-first optional operations; retires Agent Usage and Usage ZIP",
+      "status": "OWNER_FUNCTIONAL_SCOPE_FIXED__TECHNICAL_SOLUTION_PROPOSED__NO_CODE_OR_DEPLOY_AUTHORITY",
+      "owner_approval": true,
+      "facts": [
+        "PRIMARY is only a gate for starting auto SKU; once an authenticated Agent begins valid job, it must continue to DONE/terminal failure even after PRIMARY shifts; new PRIMARY must not duplicate active job, and retries only once old attempt definitively ends or safely expires.",
+        "WMS Excel export happens BEFORE any Wi-Fi switch; upload should use direct Cloudflare/InventoryCore when reachable. If Office blocks direct Worker, prefer approved saved PDA Wi-Fi then other approved saved Internet profile; restore original Office/profile after DONE or failure.",
+        "Topmost non-modal prompt: Skip means retry after 15 minutes; Agree means switch when safe; no response after 60s permits attempt only when idle/HA-safeguarded. Never interrupt active WMS confirm, Picker ACK or HA handoff.",
+        "Owner accepts optional non-critical Agent operations such as manual Picker kicks on Internet/Cloudflare with network switch; minimize Google Apps Script Gateway and Firebase only where operationally safe.",
+        "Remove Agent D160 Usage tab/quarter-hour refresh/manual refresh and D166 Usage ZIP export; Owner supplies provider dashboard screenshots. Preserve all operational logs and Drive receipt/archive.",
+        "Actual code: SKU Worker and Agent currently require current HA PRIMARY on EVERY mutation; independent durable SKU job grant needed. Existing single and bulk Picker kick already call Worker directly; existing Firestore signals PDA logout.",
+        "Company Windows saved Wi-Fi profiles need verified per-user WLAN execute rights and approval; existing repo scope does not authorize automatically connecting to unspecified networks; source evidence shows only SSID reading."
+      ],
+      "alternatives": [
+        "Preferred minimal impact: bounded Office Google Gateway pre-admission to obtain Worker job lease, then all SKU stage/publish/status traffic direct Cloudflare; quota availability remains risk.",
+        "Gateway-free candidate: immutable start intent stored with authority CAS in an already-scoped Firestore resource before Office disconnection; Worker verifies before granting independent job lease; resource/security integration unverified.",
+        "If no safe standby and primary's network must be switched, postpone until safe rather than breaking live Picklist; 60s prompt timer never overrides operation safety.",
+        "Keep critical Picklist/HA/Picker live presence over existing Office-compatible Firebase; preserve notification FCM/Firestore for kick while moving optional authority/commands to direct Worker when suitable."
+      ],
+      "open_questions": [
+        "Which existing in-scope trust path can prove job was validly initiated while still PRIMARY but Cloudflare cannot be reached from Office?",
+        "Can Worker accept a bounded SKU job lease independent of a subsequent HA generation while preserving SQL CAS, expiry, idempotency and separate 12h/19h scheduling?",
+        "Are approved PDA/Office WLAN saved profiles accessible to Windows standard users, and can PRIMARY safely hand off to standby before switching?",
+        "Does network-profile switching preserve actual WMS session/FCM delivery and is original profile reliably restorable?",
+        "Do Cloudflare-backed call/chat need Android and Firestore/FCM delivery modifications, and what measured cross-meter usage savings would justify migration?"
+      ],
+      "next_action": "Persist design-only decision, assess scoped implementation matrix, await explicit Owner 'chạy code' or 'triển khai' command; DO NOT mutate Agent/Worker/Wi-Fi or deploy now.",
+      "evidence": "docs/D168_AGENT_SKU_JOB_WIFI_ROUTING_OWNER_2026-10-13.md; Agent D167SkuCoordinator.cs/D167SkuServiceClient.cs; service/src/d167-sku-sync-core.ts + service/src/index.ts; relay-agent/D119AgentFeatures.cs + D161AdminControl.cs; PR591. No runtime mutation authorized.",
+      "supersedes": [
+        "D168-E015"
+      ]
     }
   ],
   "resume": {
     "approved": [
       "D167 Owner limited PASS as deployed, no newly reported errors, transferred as accepted base",
       "D168 explicitly opened for capturing new issues/logs and analyzing before implementation under Owner commands",
-      "GitHub manifest/full bootstrap and branch/PR discussion checkpoints remain mandatory"
+      "GitHub manifest/full bootstrap and branch/PR discussion checkpoints remain mandatory",
+      "D168-E016 Owner fixed SKU job continuation across HA loss, bounded 60s idle-only Wi-Fi transition, and direct Cloudflare optional actions; code/deploy still separate",
+      "D168-E016 Owner retires Agent Usage D160 auto refresh and D166 Usage ZIP, preserving operational log archive"
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -354,7 +391,8 @@
       "D168 PR589 Office SKU design docs merged to main; no executable source altered"
     ],
     "in_progress": [
-      "D168 PR590: Agent v130 Office/Internet matrix, docs-only checkpoint; CI/merge pending"
+      "D168 PR590: Agent v130 Office/Internet matrix, docs-only checkpoint; CI/merge pending",
+      "D168 PR591 source-backed SKU job/Windows Wi-Fi switching design; source and field test pending"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -373,7 +411,8 @@
       "D168-REQ-008: two Agent Drive log-upload failures; Agent-only reliability fix awaiting Owner code/release approval",
       "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics",
       "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval",
-      "D168-REQ-011: Office-only WMS Excel GET + Google Apps Script to Worker SKU uplink; field proof on script.googleusercontent.com and UrlFetch quota; no code/deploy permission."
+      "D168-REQ-011: Office-only WMS Excel GET + Google Apps Script to Worker SKU uplink; field proof on script.googleusercontent.com and UrlFetch quota; no code/deploy permission.",
+      "D168-E016 selected lease preadmission trust mechanism and approved scoped saved Windows Wi-Fi profiles need verification before implementation"
     ],
     "blocked": [],
     "next_actions": [
@@ -382,8 +421,9 @@
       "Verify Agent/Service 2026-10-13 DELTA_19 receipt and Apps Script UrlFetch exhaustion via existing on-demand/privileged data; if unavailable, report unverified, do not infer DONE",
       "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command",
       "Verify SKU schedule action and durable 19:00 receipt using existing authorized status route on Office-only network, then compare PDA without changing business state",
-      "Review Agent v130 per-feature Office/Internet matrix and verify field-only routes; await Owner instruction for any code or deploy"
+      "Review Agent v130 per-feature Office/Internet matrix and verify field-only routes; await Owner instruction for any code or deploy",
+      "Await explicit code instruction for D168 Agent D160/D166 Usage retirement, independent Worker SKU lease, safe WLAN handoff and direct Worker upload"
     ],
-    "release_boundary": "D168_SEVEN_PENDING_REQUESTS_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
+    "release_boundary": "D168_OWNER_FUNC_DESIGN_CAPTURED__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
   }
 }
