@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
@@ -33,9 +34,57 @@ namespace SupraInventoryRelayAgent
                 else MessageBox.Show(this,"Đã lưu mạng Internet được phép sử dụng khi cần.",
                     "Thiết lập kết nối",MessageBoxButtons.OK,MessageBoxIcon.Information);
             };
+            var check=new Button {Left=700,Top=255,Width=170,Height=29,
+                Text="Thử kết nối Worker"};
+            check.Click+=(sender,args)=>{
+                if(!HasAgentSession())
+                {
+                    MessageBox.Show(this,"Hãy đăng nhập Agent trước khi kiểm tra.",
+                        "Kiểm tra Worker");return;
+                }
+                check.Enabled=false;
+                Task.Run(()=>{
+                    try
+                    {
+                        EnsureFreshToken();
+                        var actor=SnapshotSession();
+                        if(actor==null || string.IsNullOrWhiteSpace(actor.IdToken))
+                            throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
+                        // Read-only capability check; if necessary use only an
+                        // already-approved saved Wi-Fi with the ordinary safety gate.
+                        using(D168NetworkRoute.OpenWorkerSession(actor.IdToken,
+                            ()=>HasAgentSession() && _leaderCoordinator!=null &&
+                                _leaderCoordinator.IsLeader && _supraBrowserReady &&
+                                Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)==0 &&
+                                Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning,0,0)==0,
+                            RequestD168NetworkSwitchPermission,
+                            msg=>Log(msg)))
+                        {
+                            if(D168NetworkRoute.ProbeWorker(actor.IdToken)!="READY")
+                                throw new InvalidOperationException("D167_NETWORK_WORKER_NOT_READY");
+                        }
+                        Log("D168_NETWORK test=PASS worker_authenticated=true restore_verified=true");
+                        Ui(()=>MessageBox.Show(this,
+                            "Đã kết nối Worker thành công và đã kiểm tra hoàn nguyên Wi-Fi. "+
+                            "Chưa thay thế kiểm thử WMS và PickList thực tế.",
+                            "Kiểm tra Worker",MessageBoxButtons.OK,MessageBoxIcon.Information));
+                    }
+                    catch(Exception e)
+                    {
+                        Log("D168_NETWORK test=FAIL type="+e.GetType().Name+
+                            " code="+D167SkuCoordinator.SafeErrorCode(e));
+                        Ui(()=>MessageBox.Show(this,
+                            "Kiểm tra kết nối chưa thành công: "+
+                            D167SkuVietnamese.Error(D167SkuCoordinator.SafeErrorCode(e)),
+                            "Kiểm tra Worker",MessageBoxButtons.OK,MessageBoxIcon.Warning));
+                    }
+                    finally {Ui(()=>{if(!IsDisposed)check.Enabled=true;});}
+                });
+            };
             container.Controls.Add(label);
             container.Controls.Add(profile);
             container.Controls.Add(save);
+            container.Controls.Add(check);
         }
 
         // Called from the SKU worker thread. The window is modeless: WMS
