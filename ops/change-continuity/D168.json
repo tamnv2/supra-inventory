@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-intake-log-analysis-20261013",
-  "pr": 582,
+  "working_branch": "d168-sku-copy-invent-actor-pending-20261013",
+  "pr": 583,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E001",
+    "id": "D168-E003",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR582_D168_AUTHORITY_DOCS_ONLY_NO_RUNTIME_OR_PROVIDER_CHANGE",
+    "current_pr_scope": "PR583_D168_RECORD_TWO_PENDING_SKU_ANDROID_UI_REQUESTS_DOCS_ONLY_NO_RELEASE",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -45,6 +45,38 @@
       ],
       "next_action": "After authority/continuity guards PASS, merge this docs-only PR, then await Owner's first D168 work/log command; never auto-rollout on workstream creation.",
       "evidence": "Owner D167 closeout/new D168 explicit request 2026-10-13; https://github.com/tamnv2/supra-inventory/pull/581 ; docs/D168_BACKLOG.md"
+    },
+    {
+      "id": "D168-E002",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "topic": "Pending Android Picker/Reporter long-press SKU clipboard across all visible result states",
+      "status": "OWNER_REQUESTED_TRACKING_ONLY__PENDING_SOURCE_AND_UI_USAGE_ANALYSIS__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner asks to record a pending convenience feature: long-press visible SKU on Android to copy the SKU for use in another app.",
+        "Scope includes Picker and Reporter records in reporting/processing, confirmed stock available, allowed Skip, retracted and overdue statuses; any other same-record views to be enumerated during analysis.",
+        "Technical preliminary: Android local clipboard of SKU already in the rendered model requires no additional Service/D1/Firebase/WMS/Agent requests or writes; implementation might still require updating Android APK upon explicit future approval.",
+        "No code, APK, API schema, deployment or runtime behavior changes approved now."
+      ],
+      "next_action": "During a later authorized D168 analysis, inspect Android code/layout, SKU model and gestures for every listed state; present zero-request local-only design and UI regression/permission review before seeking Owner code approval.",
+      "evidence": "Owner chat 2026-10-13 request #1 to record pending D168 feature; docs/D168_BACKLOG.md#d168-req-001"
+    },
+    {
+      "id": "D168-E003",
+      "date_vn": "2026-10-13",
+      "kind": "DISCUSSION",
+      "topic": "Pending Inventory responder full name and response time attribution on SKU results",
+      "status": "OWNER_REQUESTED_TRACKING_ONLY__PENDING_ACTOR_TIMESTAMP_PAYLOAD_REVIEW__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner asks to show who in Inventory replied/confirmed SKU with display name and response timestamp; example is an Inventory reply at 15:50, with the person name deliberately redacted in this public repository.",
+        "Distinct actors must be preserved across result status, later correction, reporter/Picker retraction and catalog SKU sync; no false attribution to Picker, SKU catalog uploader, Agent or unrelated operators.",
+        "If existing current screen data includes actor name/time, local render creates no extra Service/Firebase/API read; if absent, data source, display-name lookup/cache and marginal Usage must be verified rather than claiming zero Usage.",
+        "No public employee personal name, new database column, API request or deployment is authorized by this record-only command."
+      ],
+      "next_action": "When Owner requests analysis, inspect result event schema, actor display name/user ID, realtime/API responses, local time conversions and role access; recommend reuse existing payload, bounded cached joins and no new polling before Owner authorizes code.",
+      "evidence": "Owner chat 2026-10-13 request #2 to record pending D168 feature; docs/D168_BACKLOG.md#d168-req-002"
     }
   ],
   "resume": {
@@ -55,21 +87,23 @@
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
-      "D168 docs-only backlog and authority transition PR #582 in progress, no executable code or release"
+      "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "D168 authority/continuity/bootstrap migration on draft PR #582; CI and merge pending"
+      "PR583 docs-only journal/backlog checkpoint; authority and continuity CI verification pending; no runtime changes"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
       "Usage/cross-provider optimization pending real comparable provider cost/quality evidence",
       "Future log/error fixes, fleet/HA confirmation, full CI/CD invocation gate review require scoped evidence and Owner command",
-      "Stable is OWNER-GATED"
+      "Stable is OWNER-GATED",
+      "D168-REQ-001: Android long-press visible SKU to local clipboard across Picker/Reporter and all listed states; pending source/UI analysis, no code approval",
+      "D168-REQ-002: Inventory response actor full name/time from existing events/payload when available; pending schema/realtime/permission/Usage analysis, no code approval"
     ],
     "blocked": [],
     "next_actions": [
-      "Complete PR #582 authority/continuity checks and docs-only merge; no runtime changes",
-      "Receive new Owner requests/logs; read canonical state, analyze, propose best safe option, run code/deploy only as authorized"
+      "After PR583 authority/continuity CI passes, merge docs-only and retain D168 as current OPEN change",
+      "Await Owner's future request to analyze D168-REQ-001 and D168-REQ-002 in source detail; do not implement or deploy without explicit approval"
     ],
     "release_boundary": "D168_OPEN_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_GRANTED__D167_RELEASE_UNCHANGED__STABLE_OWNER_GATED"
   }
