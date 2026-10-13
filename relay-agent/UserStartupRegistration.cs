@@ -37,9 +37,16 @@ namespace SupraInventoryRelayAgent
                 EnsureRegistered();
                 using(var run=Registry.CurrentUser.OpenSubKey(RunKey,false))
                 {
-                    var registered=run!=null && !string.IsNullOrWhiteSpace(
-                        Convert.ToString(run.GetValue(ValueName,"")));
-                    if(registered!=enabled)
+                    var actual=run==null ? "" : (Convert.ToString(run.GetValue(ValueName,"")) ?? "");
+                    var exe=Assembly.GetExecutingAssembly().Location;
+                    if(string.IsNullOrWhiteSpace(exe))
+                        exe=Process.GetCurrentProcess().MainModule == null ? ""
+                            : Process.GetCurrentProcess().MainModule.FileName;
+                    var expected="\"" + (exe ?? "").Replace("\"","") + "\" --autostart";
+                    if(enabled
+                        ? string.IsNullOrWhiteSpace(exe) ||
+                          !string.Equals(actual,expected,StringComparison.Ordinal)
+                        : !string.IsNullOrWhiteSpace(actual))
                         throw new InvalidOperationException("AUTOSTART_RUN_REGISTRATION_MISMATCH");
                 }
                 return true;
