@@ -527,3 +527,17 @@ test("D168 Office SKU network scope is bound to both manual and automatic jobs",
   assert.match(ui,/Interval=60000/);
   assert.match(ui,/ManualResetEventSlim/);
 });
+
+test("D168 Office network automatic SKU export precedes any WLAN transition", async () => {
+  const {readFileSync}=await import("node:fs");
+  const client=readFileSync(new URL("../relay-agent/D167SkuServiceClient.cs",import.meta.url),"utf8");
+  const scheduler=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const workerRoute=scheduler.slice(scheduler.indexOf("private void EvaluateOnce()"));
+  const preflight=workerRoute.indexOf('service.WorkerRouteStatus()=="NETWORK_UNREACHABLE"');
+  const exportFirst=workerRoute.indexOf("officeWorkbook=D167SkuBrowserExport.Export");
+  const switchAfter=workerRoute.indexOf("using(var workerNetworkScope=openWorkerNetwork())");
+  const reserveAfter=workerRoute.indexOf("var grant=service.Reserve(");
+  assert.ok(preflight>=0 && exportFirst>preflight && switchAfter>exportFirst && reserveAfter>switchAfter);
+  assert.match(workerRoute,/var workbook=officeWorkbook \?\? D167SkuBrowserExport\.Export/);
+  assert.match(client,/D168NetworkRoute\.ProbeWorker\(actor\.IdToken\)/);
+});
