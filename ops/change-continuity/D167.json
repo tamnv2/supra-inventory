@@ -4,8 +4,8 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-log-review-20261012-20261013",
-  "pr": 574,
+  "working_branch": "d167-agent-v130-release-evidence-20261013",
+  "pr": 576,
   "status": "D167_E048_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_PENDING__WEB_SKU_PROPOSAL",
   "last_checkpoint": {
     "id": "D167-E048",
@@ -1021,7 +1021,8 @@
     ],
     "in_progress": [
       "Agent non-SKU 12/10 analysis and safe Agent-only proposal D167-E044/E045 remain in separate PR574; no fix approval from this checkpoint.",
-      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task."
+      "D167 functional field acceptance remains distinct and is not an unimplemented CODE READY task.",
+      "Docs-only PR576 postrelease evidence: authority/continuity CI and merge; Agent v130 already published, do NOT release again."
     ],
     "pending_approval": [
       "D167-E044/E045 Agent other-error proposal under separate window; no code/deploy approval here.",
@@ -1040,7 +1041,8 @@
       "Await real provider logs for optimization; Launcher separate project; apply clarified commands to later approved tasks.",
       "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission.",
       "Verify PR574 exact latest CI and signed Beta Agent v130 release; manual standby-first field update; do not force fleet/Stable.",
-      "Owner/authorized Agent operator manually updates standby via Agent Check Update, verifies live Confirm/HA, then PRIMARY when idle and healthy; no forced fleet update."
+      "Owner/authorized Agent operator manually updates standby via Agent Check Update, verifies live Confirm/HA, then PRIMARY when idle and healthy; no forced fleet update.",
+      "After docs-only PR576 CI PASS, merge without any runtime deployment and check main D167-E048 field pending."
     ],
     "release_boundary": "D167_E048_AGENT_V130_BETA_TECHNICAL_RELEASE_PASS__NO_WEB_SERVICE_ANDROID_STABLE_DEPLOY__FIELD_OWNER_PASS_PENDING"
   }
