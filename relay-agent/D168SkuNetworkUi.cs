@@ -52,7 +52,8 @@ namespace SupraInventoryRelayAgent
                             throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
                         // Read-only capability check; if necessary use only an
                         // already-approved saved Wi-Fi with the ordinary safety gate.
-                        using(D168NetworkRoute.OpenWorkerSession(actor.IdToken,
+                        var switched=false;
+                        using(var networkSession=D168NetworkRoute.OpenWorkerSession(actor.IdToken,
                             ()=>HasAgentSession() && _leaderCoordinator!=null &&
                                 _leaderCoordinator.IsLeader && _supraBrowserReady &&
                                 Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)==0 &&
@@ -60,13 +61,17 @@ namespace SupraInventoryRelayAgent
                             RequestD168NetworkSwitchPermission,
                             msg=>Log(msg)))
                         {
+                            switched=networkSession.DidSwitch;
                             if(D168NetworkRoute.ProbeWorker(actor.IdToken)!="READY")
                                 throw new InvalidOperationException("D167_NETWORK_WORKER_NOT_READY");
                         }
-                        Log("D168_NETWORK test=PASS worker_authenticated=true restore_verified=true");
+                        Log("D168_NETWORK test=PASS route="+
+                            (switched?"SWITCHED_AND_RESTORED":"DIRECT")+
+                            " worker_authenticated=true");
                         Ui(()=>MessageBox.Show(this,
-                            "Đã kết nối Worker thành công và đã kiểm tra hoàn nguyên Wi-Fi. "+
-                            "Chưa thay thế kiểm thử WMS và PickList thực tế.",
+                            switched
+                                ? "Kết nối Worker đã đạt và đã xác minh trở về Wi-Fi ban đầu. Vẫn cần kiểm tra WMS/PickList."
+                                : "Worker truy cập trực tiếp được; không cần đổi Wi-Fi ở lần thử này. Vẫn cần kiểm tra WMS/PickList.",
                             "Kiểm tra Worker",MessageBoxButtons.OK,MessageBoxIcon.Information));
                     }
                     catch(Exception e)
