@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_OPEN__TWO_SKU_ANDROID_UI_FEATURES_RECORDED_PENDING_ANALYSIS__NO_CODE_OR_DEPLOY",
+    "current_change_status": "D168_OPEN_SIX_PENDING_REQUESTS__NO_CODE_OR_DEPLOY",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,9 +7449,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D168",
     "journal": "ops/change-continuity/D168.json",
-    "working_branch": "d168-sku-copy-invent-actor-pending-20261013",
-    "pr": 583,
-    "latest_checkpoint_id": "D168-E003",
+    "working_branch": "d168-agent-list-sku-startup-pending-20261013",
+    "pr": 584,
+    "latest_checkpoint_id": "D168-E007",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7665,13 +7665,13 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "OPEN__PENDING_ANALYSIS_TWO_SKU_ANDROID_UI_REQUESTS__NO_CODE_OR_DEPLOY",
+    "status": "SIX_ITEMS_RECORDED_PENDING_ANALYSIS",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
     "backlog": "docs/D168_BACKLOG.md",
-    "working_pr": 583,
-    "working_branch": "d168-sku-copy-invent-actor-pending-20261013",
+    "working_pr": 584,
+    "working_branch": "d168-agent-list-sku-startup-pending-20261013",
     "owner_code_approval": false,
     "owner_deploy_approval": false,
     "code_ready": false,
@@ -7703,6 +7703,30 @@
         "code_approved": false,
         "deploy_approved": false,
         "provider_request_delta": "UNKNOWN_UNTIL_EXISTING_ACTOR_PAYLOAD_IS_VERIFIED"
+      },
+      {
+        "id": "D168-REQ-003",
+        "status": "RECORD_ONLY_PENDING_ANALYSIS",
+        "code_approved": false,
+        "deploy_approved": false
+      },
+      {
+        "id": "D168-REQ-004",
+        "status": "RECORD_ONLY_PENDING_ANALYSIS",
+        "code_approved": false,
+        "deploy_approved": false
+      },
+      {
+        "id": "D168-REQ-005",
+        "status": "RECORD_ONLY_PENDING_ANALYSIS",
+        "code_approved": false,
+        "deploy_approved": false
+      },
+      {
+        "id": "D168-REQ-006",
+        "status": "RECORD_ONLY_PENDING_ANALYSIS",
+        "code_approved": false,
+        "deploy_approved": false
       }
     ]
   }
