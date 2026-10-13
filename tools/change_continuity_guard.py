@@ -158,6 +158,28 @@ def main() -> None:
                     fail("D167 Agent v128 Owner decision journal missing")
             if "## D167 2026-10-13 — Owner xác nhận triển khai Agent Beta" not in (ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
                 fail("D167 Agent v128 Owner decision spec missing")
+        elif owner_latest == "2026-10-13 PROCESS_POLICY_ONLY_NO_DEPLOY":
+            # A later D167 Owner process/scope decision updates the active
+            # journal but does NOT authorize any new executable deployment.
+            # Historical v129 authorization is a completed prior release.
+            if gate.get("code_permission") is not False or gate.get("merge_permission") is not False:
+                fail("D167 process-only gate cannot authorize executable code/merge")
+            if gate.get("beta_deploy_permission") is not False or gate.get("stable_deploy_permission") is not False:
+                fail("D167 process-only gate cannot authorize Beta or Stable")
+            if gate.get("approved_components") != [] or gate.get("new_owner_approval_required") is not True:
+                fail("D167 process-only gate resource/approval mismatch")
+            approved = {e.get("id"): e for e in entries if e.get("owner_approval") is True}
+            owner_item = approved.get("D167-E046", {})
+            if owner_item.get("kind") != "OWNER_COMMAND" or owner_item.get("date_vn") != "2026-10-13":
+                fail("D167 latest Owner five-point command decision missing")
+            scope = state.get("d167_owner_scope_commands_20261013", {})
+            if scope.get("status") != "OWNER_APPROVED_PROCESS_AND_SCOPE__NO_RUNTIME_CHANGE":
+                fail("D167 policy-only state marker missing")
+            if scope.get("code_released_by_this_decision") is not False:
+                fail("D167 policy-only decision falsely marked release")
+            decisions = (ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8")
+            if "## D167 — Owner chốt lại danh sách pending và cách hiểu lệnh code/triển khai (2026-10-13)" not in decisions:
+                fail("D167 Owner command semantics missing from decision ledger")
         elif owner_latest == "2026-10-13 P0_AGENT129_WORKER_BETA_APPROVED":
             authorization = load("ops/d167-release-authorization.json")
             expected_ref = "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA"
