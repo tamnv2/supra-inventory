@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E027",
+    "id": "D168-E028",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -669,6 +669,34 @@
       ],
       "next_action": "Provide Owner a conditional recovery time window, clearly label uncertainty and recommend using existing non-intrusive refresh evidence rather than false precision.",
       "evidence": "Existing scoped Drive Beta sanitized support bundles 2026-10-13 12:45:37,13:00:40,13:15:38; Google Apps Script quota documentation https://developers.google.com/apps-script/guides/services/quotas; GitHub D168-E012/E025"
+    },
+    {
+      "id": "D168-E028",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner at-home Wifi-Mesh Agent v131 Worker probe fails because D168 network-capability API exists only in unmerged PR591",
+      "status": "SOURCE_VERSION_MISMATCH_CONFIRMED__LIVE_HTTP_CODE_NOT_LOGGED__HOME_NETWORK_200_AUTH_SUCCESS__NO_BETA_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Private local Agent test trace (only sanitized findings committed) confirms 2026-10-14 06:31:37 v131 running with direct Wi-Fi Internet; Firebase token refresh HTTP200 and Firestore Agent session claim PASS; at 06:32:14 and 06:34:38 D168_NETWORK test=FAIL D167_WORKER_UNAVAILABLE_NO_SAFE_SWITCH.",
+        "Agent v131 relay-agent/D168NetworkRoute.cs ProbeWorker invokes authenticated GET /api/agent/d168/network-capability. This route is present in D168 working PR591 service/src/index.ts but absent in accepted main D167 service source; PR591 is Draft/unmerged and D168 release receipt remains CODE_ONLY. Thus Worker main release likely responds 404, despite working Internet. A live HTTP status was not logged and therefore 404 is inferred, not witnessed.",
+        "ProbeWorker groups HTTP404 or other unclassified response into NETWORK_UNCERTAIN and OpenWorkerSession emits the generic WORKER_UNAVAILABLE_NO_SAFE_SWITCH, hiding the true phase/status. No actual WLAN switch was attempted based on that result.",
+        "Agent at 06:31:54 is NEXT_A standby, not PRIMARY. That is a separate obstacle to testing SKU and a real transition with canSwitch restricted to leader; it is not the direct reason for the generic failure.",
+        "Previous unrelated RTDB HA stream short timeouts recovered via Firestore lease, and older v130-style SKU DEFER retry storms occurred before the v131 restart; neither proves Cloudflare is inaccessible on this at-home Wi-Fi.",
+        "Critical rollout sequencing defect: requiring predeploy v131 Worker capability and FULL durable DONE while keeping D168 Worker entirely undeployed is circular. Need a controlled compatible read-only network preflight and an explicitly field-gated Beta Worker step, or a comparable safely isolated pathway; do not mark D168 field PASS from old Worker reachability alone."
+      ],
+      "alternatives": [
+        "Preferred next within already approved D168 code scope: distinguish HTTP404 unsupported deployed API, HTTP401/403 auth/role, HTTP429 quota, DNS/connect timeout; show NETWORK_OK_BUT_D168_API_NOT_RELEASED for old Worker without claiming business readiness or scheduling SKU; add code regression for mixed versions and no provider-write test.",
+        "For full end-to-end SKU verification, design and review a staged, reversible Beta Worker compatibility deployment with exact scope and no impact to existing D167 service; any exception to current field-before-deploy gate needs separate explicit Owner authorization, otherwise fail closed.",
+        "One-click diagnostic on non-PRIMARY may check network only; SKU job and WLAN interruption remain subject to HA/Confirm guards. Do not force-switch a standby or bypass corporate network policy."
+      ],
+      "open_questions": [
+        "Exact live status for the 06:32 / 06:34 Worker capability GET (not present in provided trace).",
+        "How to prove real D168 Worker DONE before allowed release without safe Beta staging, given current hard release gate.",
+        "Status of approved WLAN profile and safety/real Wi-Fi switch on one PRIMARY device; home standby test is not substitute."
+      ],
+      "next_action": "Report API version mismatch to Owner; keep Beta D167 and PR591 Draft. Fix diagnostic mixed-version classification as scoped source improvement, run CI and prepare controlled field validation plan without lifting gate.",
+      "evidence": "Owner-provided agent-complete(7).log sanitized 2026-10-14 06:31–06:35; relay-agent/D168NetworkRoute.cs#ProbeWorker/OpenWorkerSession; main vs PR591 service/src/index.ts network-capability route; ops/d168-release-authorization.json"
     }
   ],
   "resume": {
@@ -693,7 +721,8 @@
       "D168-E020: Owner accidental Ready reverted to Draft; Windows auto-start false-success fix committed with source test, final CI pending.",
       "D168-E022: v131 network routing, shared terminal SKU DONE and exact Picker session selection updated; final CI in progress.",
       "D168-E023: v131 one-click read-only Worker/WLAN field probe and concurrent SKU DONE CAS merged; final exact-head CI pending.",
-      "D168-E026: PR591 current exact HEAD e5744f8b 20/20 CI PASS; Agent v131 test artifact exists, physical FIELD_PASS and Beta release remain blocked."
+      "D168-E026: PR591 current exact HEAD e5744f8b 20/20 CI PASS; Agent v131 test artifact exists, physical FIELD_PASS and Beta release remain blocked.",
+      "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains."
     ],
     "pending_approval": [
       "Stable is OWNER-GATED",
@@ -705,7 +734,8 @@
     "blocked": [
       "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
       "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD.",
-      "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector."
+      "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector.",
+      "Mixed-version predeployment field test: v131 D168 capability endpoint absent in released D167 Worker; test cannot prove Worker readiness until safe compatibility or staged rollout is designed."
     ],
     "next_actions": [
       "Owner/device-only: from PR591 run 38483669723 download Agent v131 test artifact; test on one safe idle Windows Agent PC with approved saved Wi-Fi and one PDA, then provide sanitized Worker route/SKU DONE/Picklist ACK/HA evidence.",
