@@ -5209,6 +5209,32 @@ function bindSection(): void {
       setNotice("success", action === "REPORTING_ENABLE" ? "Đã bật Báo hàng cho Picker." : action === "REPORTING_DISABLE" ? "Đã tắt Báo hàng cho Picker." : "Đã cập nhật Picker.");
     });
   }));
+  document.querySelectorAll<HTMLButtonElement>("[data-picker-single-action]").forEach(button => button.addEventListener("click", () => {
+    const id = String(button.dataset.userId || "");
+    const action = button.dataset.pickerSingleAction as "ENABLE" | "DISABLE" | "DELETE" | "REPORTING_ENABLE" | "REPORTING_DISABLE";
+    if (!id || !["ENABLE", "DISABLE", "DELETE", "REPORTING_ENABLE", "REPORTING_DISABLE"].includes(action)) return;
+    const label = action === "DELETE" ? "Xóa tài khoản Picker" :
+      action === "DISABLE" ? "Dừng tài khoản Picker" :
+      action === "REPORTING_DISABLE" ? "Tắt Báo hàng của Picker" :
+      action === "REPORTING_ENABLE" ? "Bật Báo hàng của Picker" : "Mở lại tài khoản Picker";
+    if (!window.confirm(label + "? Thao tác áp dụng cho 1 tài khoản đã chọn.")) return;
+    void run(async () => {
+      await updatePickerAccounts(action, [id], false, [], 1);
+      await loadUsers();
+      setNotice("success", "Đã cập nhật tài khoản.");
+    });
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-managed-single-delete]").forEach(button => button.addEventListener("click", () => {
+    const id = String(button.dataset.managedSingleDelete || "");
+    const target = managedUsers.find(user => user.user_id === id);
+    if (!target || privilegedOneTimeManagedUser(target) || profile?.role !== "ROOT" || profile.base_role !== "ROOT") return;
+    if (!window.confirm("Xóa tài khoản " + (target.employee_code || target.user_id) + "? Tài khoản này sẽ mất quyền đăng nhập.")) return;
+    void run(async () => {
+      await deleteManagedUsers([id]);
+      await loadUsers();
+      setNotice("success", "Đã xóa tài khoản.");
+    });
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-edit-user]").forEach((button) => button.addEventListener("click", () => {
     editUserId = button.dataset.editUser || null;
     passwordUserId = null;
