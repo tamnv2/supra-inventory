@@ -537,8 +537,7 @@ let userTotal = 0;
 let allPickerSelection = false;
 const USER_PAGE_SIZE = 50;
 let usersBulkMode = false;
-let usersCreateOpen = false;
-let usersHrOpen = false;
+let usersView: "list" | "create" | "import" = "list";
 let usersGlobalTargetCount: number | null = null;
 let editUserId: string | null = null;
 let passwordUserId: string | null = null;
@@ -1920,7 +1919,9 @@ function renderPeopleTabs(current: "users" | "hr"): string {
 }
 
 function renderHr(): string {
-  return renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, renderPeopleTabs("hr"), profile?.role === "ADMIN" || profile?.role === "ROOT");
+  // Legacy deep link reuses the same People workflow; never renders a second tab system.
+  usersView = profile?.role === "ADMIN" || profile?.role === "ROOT" ? "import" : "list";
+  return renderUsers();
 }
 
 function canManageListedUser(user: ManagedUser): boolean {
@@ -1972,14 +1973,18 @@ function renderUsers(): string {
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
   return `<section class="ops-route users-workspace">
     <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2></div></div>
-    <div class="user-management-actions"><button type="button" class="secondary" id="toggle-create-user" ${canCreateManaged ? "" : "hidden"}>Thêm tài khoản</button><button type="button" class="secondary" id="toggle-hr-import" ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? "" : "hidden"}>Nhập nhân sự / Excel</button></div>
-    <section class="business-summary-grid">
+    <div class="workspace-tabs users-mode-tabs" role="tablist" aria-label="Quản lý nhân sự">
+      <button type="button" role="tab" class="workspace-tab ${usersView === "list" ? "active" : ""}" data-users-mode="list" aria-selected="${usersView === "list"}">Danh sách tài khoản</button>
+      ${canCreateManaged ? `<button type="button" role="tab" class="workspace-tab ${usersView === "create" ? "active" : ""}" data-users-mode="create" aria-selected="${usersView === "create"}">Thêm tài khoản</button>` : ""}
+      ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? `<button type="button" role="tab" class="workspace-tab ${usersView === "import" ? "active" : ""}" data-users-mode="import" aria-selected="${usersView === "import"}">Nhập nhân sự / Excel</button>` : ""}
+    </div>
+    <section class="business-summary-grid" ${usersView === "list" ? "" : "hidden"}>
       <article class="business-summary-card primary"><span>Tài khoản phù hợp</span><strong>${userTotal.toLocaleString("vi-VN")}</strong><small>Theo bộ lọc hiện tại</small></article>
       <article class="business-summary-card good"><span>Hoạt động trên trang</span><strong>${activeCount}</strong><small>Trong ${managedUsers.length} tài khoản trên trang</small></article>
       <article class="business-summary-card"><span>Picker / Người xử lý</span><strong>${pickerCount} / ${reporterCount}</strong><small>Chỉ trang hiện tại</small></article>
     </section>
     <div class="users-top-grid">
-      <article class="ops-panel users-create-panel" ${usersCreateOpen && canCreateManaged ? "" : "hidden"}>
+      <article class="ops-panel users-create-panel" ${usersView === "create" && canCreateManaged ? "" : "hidden"}>
         <div class="ops-panel-title"><h3>Tạo tài khoản</h3></div>
         ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
@@ -1990,7 +1995,7 @@ function renderUsers(): string {
           <div class="ops-form-actions"><button class="primary">Tạo tài khoản</button></div>
         </form>` : `<div class="ops-readonly">Thêm Picker mới qua Nguồn nhân sự và đồng bộ Picker.</div>`}
       </article>
-      <article class="ops-panel users-filter-panel">
+      <article class="ops-panel users-filter-panel" ${usersView === "list" ? "" : "hidden"}>
         <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3></div></div>
         <form id="user-filter-form" class="users-form-grid users-filter-form">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / nhà thầu / tài khoản" /></label>
@@ -2001,9 +2006,9 @@ function renderUsers(): string {
         </form>
       </article>
     </div>
-    ${usersHrOpen && (profile?.role === "ADMIN" || profile?.role === "ROOT") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
-    <article class="ops-panel ops-users-panel">
-      <div class="ops-panel-title"><div><h3>Danh sách nhân sự</h3></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
+    ${usersView === "import" && (profile?.role === "ADMIN" || profile?.role === "ROOT") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
+    <article class="ops-panel ops-users-panel" ${usersView === "list" ? "" : "hidden"}>
+      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
       ${renderUserBulkToolbar(canLifecyclePickerBulk)}
       <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Nhân viên</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
@@ -5126,12 +5131,15 @@ function bindSection(): void {
     allPickerSelection = false;
     void run(loadUsers);
   });
-  document.querySelector<HTMLButtonElement>("#toggle-create-user")?.addEventListener("click", () => {
-    usersCreateOpen = !usersCreateOpen; patchActiveSection();
-  });
-  document.querySelector<HTMLButtonElement>("#toggle-hr-import")?.addEventListener("click", () => {
-    usersHrOpen = !usersHrOpen; patchActiveSection();
-  });
+  document.querySelectorAll<HTMLButtonElement>("[data-users-mode]").forEach(button => button.addEventListener("click", () => {
+    const next = button.dataset.usersMode;
+    if (!["list", "create", "import"].includes(next || "")) return;
+    if (next === "create" && !["ADMIN", "ROOT"].includes(profile?.role || "")) return;
+    if (next === "import" && !["ADMIN", "ROOT"].includes(profile?.role || "")) return;
+    if (next === usersView) return;
+    usersView = next as typeof usersView;
+    patchActiveSection(false);
+  }));
   document.querySelector<HTMLButtonElement>("#users-enable-selection")?.addEventListener("click", () => {
     usersBulkMode = true; patchActiveSection();
   });
