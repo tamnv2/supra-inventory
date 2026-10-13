@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
   "working_branch": "d168-agent-log-upload-diagnosis-20261013",
-  "pr": 586,
+  "pr": 587,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D168-E009",
@@ -18,7 +18,7 @@
     "stable_deploy_permission": false,
     "approved_components": [],
     "new_owner_approval_required": true,
-    "current_pr_scope": "PR586_D168_GROUP_PICKER_CONTACT_BACKLOG_DOCS_ONLY_NO_RUNTIME_CHANGE",
+    "current_pr_scope": "PR587_D168_AGENT_LOG_INCIDENT_ANALYSIS_DOCS_ONLY_NO_RUNTIME_CHANGE",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -194,7 +194,7 @@
       "D168 PR582 docs-only bootstrap and intake merged to main; no executable code or release"
     ],
     "in_progress": [
-      "D168 PR586 docs-only E008/backlog/state recording pending CI and merge; no runtime changes"
+      "D168 PR587 docs-only checkpoint for Agent log-upload incident and alternatives; no code or runtime changes"
     ],
     "pending_approval": [
       "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
@@ -207,11 +207,12 @@
       "D168-REQ-004: Picker online presence accuracy after logout/kick with minimal Usage",
       "D168-REQ-005: Agent SKU tab UI redesign and cross-Agent state synchronization reusing existing channels",
       "D168-REQ-006: Agent Settings option for Windows auto-start",
-      "D168-REQ-007: Agent group message or call-home to multiple/all active Pickers; pending presence, RBAC, message/ACK fanout and Usage analysis; no code approval"
+      "D168-REQ-007: Agent group message or call-home to multiple/all active Pickers; pending presence, RBAC, message/ACK fanout and Usage analysis; no code approval",
+      "Agent log-upload repair proposal needs Owner approval; no code or deploy authorized"
     ],
     "blocked": [],
     "next_actions": [
-      "Verify and merge docs-only D168 PR586 after authority and continuity PASS; no runtime changes",
+      "Review D168 Agent support-log diagnostic and obtain explicit Owner authorization before code changes or release",
       "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007"
     ],
     "release_boundary": "D168_SEVEN_PENDING_REQUESTS_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
