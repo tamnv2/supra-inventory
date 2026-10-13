@@ -5126,11 +5126,34 @@ function bindSection(): void {
     allPickerSelection = false;
     void run(loadUsers);
   });
-  document.querySelector<HTMLButtonElement>("#toggle-all-pickers")?.addEventListener("click", () => {
-    allPickerSelection = !allPickerSelection;
-    selectedUserIds.clear();
-    excludedPickerIds.clear();
+  document.querySelector<HTMLButtonElement>("#toggle-create-user")?.addEventListener("click", () => {
+    usersCreateOpen = !usersCreateOpen; patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#toggle-hr-import")?.addEventListener("click", () => {
+    usersHrOpen = !usersHrOpen; patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#users-enable-selection")?.addEventListener("click", () => {
+    usersBulkMode = true; patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#users-exit-selection")?.addEventListener("click", () => {
+    usersBulkMode = false; selectedUserIds.clear(); selectedManagedUserIds.clear();
+    allPickerSelection = false; excludedPickerIds.clear(); usersGlobalTargetCount = null;
     patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#select-page-pickers")?.addEventListener("click", () => {
+    selectedManagedUserIds.clear();
+    allPickerSelection = false; usersGlobalTargetCount = null; excludedPickerIds.clear();
+    selectedUserIds.clear();
+    for (const user of managedUsers) if (user.role === "PICKER") selectedUserIds.add(user.user_id);
+    patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#select-all-global-pickers")?.addEventListener("click", () => {
+    void run(async () => {
+      const actual = await listManagedUsers({ role: "PICKER", limit: 1, offset: 0 });
+      if (!actual.total || !window.confirm("Chọn " + actual.total + " Picker trên TOÀN HỆ THỐNG, kể cả ngoài trang và bộ lọc?")) return;
+      selectedManagedUserIds.clear(); selectedUserIds.clear(); excludedPickerIds.clear();
+      allPickerSelection = true; usersGlobalTargetCount = actual.total; usersBulkMode = true;
+    });
   });
   document.querySelectorAll<HTMLInputElement>("[data-user-select]").forEach((box) => box.addEventListener("change", () => {
     const id = box.dataset.userSelect || "";
@@ -5140,14 +5163,15 @@ function bindSection(): void {
       else excludedPickerIds.add(id);
     } else if (box.checked) selectedUserIds.add(id);
     else selectedUserIds.delete(id);
-    const label = document.querySelector<HTMLElement>("#user-selection-status");
-    if (label) label.textContent = userSelectionLabel();
+    selectedManagedUserIds.clear();
+    patchActiveSection();
   }));
   document.querySelectorAll<HTMLInputElement>("[data-managed-user-select]").forEach((box) => box.addEventListener("change", () => {
     const id = box.dataset.managedUserSelect || "";
     if (!id) return;
     if (box.checked) selectedManagedUserIds.add(id);
     else selectedManagedUserIds.delete(id);
+    selectedUserIds.clear(); allPickerSelection = false; usersGlobalTargetCount = null; excludedPickerIds.clear();
     patchActiveSection();
   }));
   document.querySelector<HTMLButtonElement>("#delete-selected-managed")?.addEventListener("click", () => {
@@ -5175,11 +5199,12 @@ function bindSection(): void {
     if (action === "DELETE" && !window.confirm(`Xóa ${targetLabel}? Lịch sử nghiệp vụ vẫn được giữ.`)) return;
     if (action === "REPORTING_DISABLE" && !window.confirm(`Tắt Báo hàng cho ${targetLabel}? Xác nhận đơn và đăng nhập vẫn hoạt động bình thường.`)) return;
     void run(async () => {
-      await updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds]);
+      await updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds],
+        allPickerSelection ? Math.max(0, (usersGlobalTargetCount || 0) - excludedPickerIds.size) : ids.length);
       selectedUserIds.clear();
       selectedManagedUserIds.clear();
       excludedPickerIds.clear();
-      allPickerSelection = false;
+      allPickerSelection = false; usersGlobalTargetCount = null; usersBulkMode = false;
       await loadUsers();
       setNotice("success", action === "REPORTING_ENABLE" ? "Đã bật Báo hàng cho Picker." : action === "REPORTING_DISABLE" ? "Đã tắt Báo hàng cho Picker." : "Đã cập nhật Picker.");
     });
