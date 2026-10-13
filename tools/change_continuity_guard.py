@@ -164,8 +164,22 @@ def main() -> None:
             # Service, Android, Firebase/RTDB rule changes or Stable.
             authorization = load("ops/d167-release-authorization.json")
             expected_ref = "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA"
-            if journal.get("pr") != 574 or journal.get("working_branch") != "d167-log-review-20261012-20261013":
+            active_scope = (journal.get("pr"), journal.get("working_branch"))
+            if active_scope not in (
+                    (574, "d167-log-review-20261012-20261013"),
+                    (576, "d167-agent-v130-release-evidence-20261013")):
                 fail("D167 Agent v130 exact PR scope mismatch")
+            if active_scope[0] == 576:
+                # Post-release evidence is docs-only; technical release PASS never
+                # implies physical Agent installation or D167 Owner/business PASS.
+                released = {e.get("id"): e for e in entries}.get("D167-E048", {})
+                if (released.get("kind") != "TEST"
+                        or released.get("date_vn") != "2026-10-13"
+                        or released.get("owner_approval") is not True
+                        or journal.get("last_checkpoint", {}).get("id") != "D167-E048"
+                        or gate.get("technical_release_pass") is not True
+                        or gate.get("field_pass") is not False):
+                    fail("D167 postrelease E048 evidence/field boundary mismatch")
             if (gate.get("code_permission") is not True or gate.get("merge_permission") is not True
                     or gate.get("beta_deploy_permission") is not True or gate.get("stable_deploy_permission") is not False
                     or gate.get("new_owner_approval_required") is not False
