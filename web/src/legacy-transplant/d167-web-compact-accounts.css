@@ -1,0 +1,46 @@
+/* D167 Web Beta compact business UI: display only; no changes to authority. */
+.users-workspace [hidden] { display: none !important; }
+.users-workspace .users-top-grid { grid-template-columns: minmax(0,1fr) !important; gap: 10px; }
+.users-workspace .users-filter-panel { padding: 11px 14px !important; }
+.users-workspace .user-management-actions { display:flex; gap:8px; flex-wrap:wrap; margin: 0 0 10px; }
+.users-workspace .user-selection-toolbar { margin: 0 0 8px; }
+.users-workspace .user-bulk-contextual { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:9px 11px; margin-bottom:8px; }
+.users-workspace .user-bulk-select,.users-workspace .user-bulk-context { display:flex; align-items:center; flex-wrap:wrap; gap:7px; }
+.users-workspace .user-bulk-context { padding: 0 7px; border-left:1px solid var(--pro-border,#dde3ec); }
+.users-workspace .user-bulk-contextual button { min-height:34px; padding:5px 10px; }
+.users-workspace .ops-users-panel { padding: 12px 14px !important; }
+.users-workspace .ops-users-table { width:100%; border-collapse:collapse; }
+.users-workspace .ops-users-table th { white-space:nowrap; font-size:12px; padding:8px 10px; }
+.users-workspace .ops-users-table td { padding: 6px 10px; height:42px; font-size:12px; }
+.users-workspace .ops-users-table td:nth-last-child(2) { white-space:nowrap; }
+.users-workspace .user-row-menu { position:relative; width:38px; }
+.users-workspace .user-row-menu summary { cursor:pointer; list-style:none; display:grid; place-items:center; width:34px; height:32px; border:1px solid var(--pro-border,#dce2ee); border-radius:7px; font-weight:700; font-size:20px; }
+.users-workspace .user-row-menu summary::-webkit-details-marker { display:none; }
+.users-workspace .user-row-menu[open] { z-index:7; }
+.users-workspace .user-menu-popover { position:absolute; right:0; top:36px; z-index:8; width:186px; display:flex; flex-direction:column; padding:6px; background:var(--pro-surface,#fff); border:1px solid var(--pro-border,#dbe3ed); box-shadow:0 6px 20px #11233b24; border-radius:9px; }
+.users-workspace .user-menu-item { display:block; width:100%; background:none; border:0; border-radius:6px; padding:9px 10px; text-align:left; font-size:12px; min-height:34px; color:inherit; cursor:pointer; }
+.users-workspace .user-menu-item:hover,.users-workspace .user-menu-item:focus-visible { background:var(--pro-accent-soft,#eaf2fc); }
+.users-workspace .user-menu-danger { color:#af2f22; border-top:1px solid var(--pro-border,#dce2ee); }
+.users-workspace .people-workspace { margin:9px 0; }
+.shift-history-panel { margin-top:12px; padding:14px 16px !important; }
+.shift-history-filters { display:flex; gap:6px; flex-wrap:wrap; }
+.shift-history-filters button { padding:5px 9px; min-height:32px; }
+.shift-history-panel table { width:100%; }
+.shift-history-panel th,.shift-history-panel td { padding:8px 10px; font-size:12px; }
+.shift-history-panel details summary { cursor:pointer; }
+.shift-audit-list { margin:7px 0 0; padding-left:14px; font-size:11px; line-height:1.5; }
+.d167-technical { padding:9px 13px !important; font-size:12px; }
+.d167-technical summary { cursor:pointer; font-weight:600; }
+.ops-route > .business-page-head { margin-bottom:10px !important; }
+.ops-route > .business-summary-grid { gap:9px !important; margin-bottom:11px !important; }
+.ops-route .business-summary-card { min-height:0 !important; padding:10px 13px !important; }
+.ops-route .business-summary-card small { display:block; line-height:1.35; }
+.ops-route .ops-panel-title { margin-bottom:9px; }
+.ops-route .ops-panel-title p { line-height:1.35; }
+.ops-route .table-wrap { max-width:100%; }
+@media(max-width:850px) {
+ .users-workspace .users-top-grid,.users-workspace .users-filter-form { grid-template-columns:1fr !important; }
+ .shift-history-panel .table-wrap { overflow:auto; }
+ .shift-history-panel table { min-width:720px; }
+ .users-workspace .ops-users-table { min-width:890px; }
+}

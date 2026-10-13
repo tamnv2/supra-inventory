@@ -11,6 +11,7 @@ import "./legacy-transplant/web-unified-ui.css";
 import "./legacy-transplant/web-professional-v2.css";
 import "./legacy-transplant/d167-web-layout-density.css";
 import "./legacy-transplant/d167-sku-provenance.css";
+import "./legacy-transplant/d167-web-compact-accounts.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -32,6 +33,7 @@ import {
   getAgentAppRelease,
   getAndroidAlertWindow,
   getD167MealState,
+  getD167ShiftHistory,
   confirmD167Meal,
   editD167Meal,
   getAdminSla,
@@ -84,6 +86,7 @@ import {
   type AgentAppRelease,
   type AndroidAlertWindowState,
   type D167MealState,
+  type D167ShiftHistory,
   type AutoSkipMode,
   type BatchPickerTicket,
   type HrSourceResponse,
@@ -510,6 +513,8 @@ let pdaAppRelease: PdaAppRelease | null = null;
 let agentAppRelease: AgentAppRelease | null = null;
 let androidAlertWindow: AndroidAlertWindowState | null = null;
 let d167MealState: D167MealState | null = null;
+let d167ShiftHistory: D167ShiftHistory | null = null;
+let shiftHistoryDays = 7;
 let pdaQrDataUrl = "";
 const reportNoticeBySku = new Map<string, number>();
 let pickerQuery = "";
@@ -530,7 +535,11 @@ let userShortageReporting = "";
 let userOffset = 0;
 let userTotal = 0;
 let allPickerSelection = false;
-const USER_PAGE_SIZE = 100;
+const USER_PAGE_SIZE = 50;
+let usersBulkMode = false;
+let usersCreateOpen = false;
+let usersHrOpen = false;
+let usersGlobalTargetCount: number | null = null;
 let editUserId: string | null = null;
 let passwordUserId: string | null = null;
 let selectedBatchId: string | null = null;
@@ -1625,7 +1634,7 @@ function renderOperations(): string {
   const affected = queueRows.reduce((sum, row) => sum + Number(row.affected_picker_count || 0), 0);
   return `<section id="fastEvents" class="fast-events ops-business-workspace">
     ${skuDayBanner()}
-    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Theo dõi và xử lý các SKU Picker đang báo hết hàng.</p></div></div>
+    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
       <button type="button" class="business-summary-card summary-filter-card primary ${queueFilter === "ALL" ? "active" : ""}" data-queue-filter="ALL"><span>SKU đang chờ xử lý</span><strong>${queueRows.length.toLocaleString("vi-VN")}</strong><small>${affected.toLocaleString("vi-VN")} Picker đang bị ảnh hưởng</small></button>
@@ -1864,7 +1873,7 @@ function renderSku(): string {
     </section>
     ${!todayReady ? `<p class="notice warning">${esc(skuCatalogInfo?.sku_day_warning || "Chưa xác nhận danh mục SKU hôm nay.")}</p>` : ""}
     <article class="ops-panel sku-provenance-panel">
-      <div class="ops-panel-title"><div><h3>Nhật ký cập nhật theo nguồn</h3><p>Web lấy từ nhật ký nhập Excel; Agent lấy từ biên nhận DONE thực tế. Không nhận diện nguồn bằng thời điểm sửa dữ liệu.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Nhật ký cập nhật theo nguồn</h3></div></div>
       <div class="sku-provenance-grid">
         ${latestEvent("Web nhập Excel gần nhất", provenance?.latest_web)}
         ${latestEvent("Agent FULL gần nhất", provenance?.latest_agent_full)}
@@ -1877,7 +1886,7 @@ function renderSku(): string {
       </details>
     </article>
     <article class="ops-panel sku-search-panel">
-      <div class="ops-panel-title"><div><h3>Tra cứu danh mục hiện tại</h3><p>Tra cứu theo SKU hoặc tên sản phẩm; danh sách này chỉ gồm SKU đang hiệu lực.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Tra cứu danh mục hiện tại</h3></div></div>
       <form id="sku-admin-search-form" class="sku-admin-search">
         <input name="query" value="${esc(skuAdminQuery)}" placeholder="Nhập SKU hoặc tên sản phẩm" autocomplete="off"/>
         <button class="secondary">Tìm kiếm</button>
@@ -1889,7 +1898,7 @@ function renderSku(): string {
       <div class="user-pagination sku-pagination"><span>Hiển thị ${pageFrom.toLocaleString("vi-VN")}–${pageTo.toLocaleString("vi-VN")} / ${skuAdminTotal.toLocaleString("vi-VN")} SKU${skuAdminQuery ? " phù hợp" : ""}</span><div><button class="secondary" id="sku-prev" ${skuAdminOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="sku-next" ${skuAdminOffset + SKU_PAGE_SIZE >= skuAdminTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
     <details id="sku-import-details" class="ops-panel sku-import-details" ${skuExcelExpanded || wb ? "open" : ""}>
-      <summary><strong>Cập nhật danh mục từ Excel</strong><small>Chỉ mở khi cần tải file hoặc thay đổi danh mục; mặc định không ảnh hưởng màn hình tra cứu.</small></summary>
+      <summary><strong>Cập nhật danh mục từ Excel</strong></summary>
       <div class="sku-import-inner">
         <p class="ops-note">File được kiểm tra trước khi ghi. SKU trùng mã khác tên cần được xác nhận. Có thể thêm cột Khu vực (LTA/Shelving); để trống giữ nguyên vị trí.</p>
         <div class="ops-form-grid"><label class="span">Chọn file Excel .xlsx<input id="sku-file" type="file" accept=".xlsx"/></label></div>
@@ -1929,6 +1938,28 @@ function userSelectionLabel(): string {
     : "Đã chọn tất cả Picker";
 }
 
+function renderUserBulkToolbar(canLifecyclePickerBulk: boolean): string {
+  if (!usersBulkMode) return '<div class="user-selection-toolbar"><button type="button" class="secondary" id="users-enable-selection">Chọn tài khoản</button></div>';
+  const pickerCount = allPickerSelection ? Math.max(0, (usersGlobalTargetCount || 0) - excludedPickerIds.size) : selectedUserIds.size;
+  const managedCount = selectedManagedUserIds.size;
+  const pickerActions = pickerCount > 0 ? '<div class="user-bulk-context"><b>' + pickerCount + ' Picker</b>' +
+    '<button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button>' +
+    '<button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button>' +
+    (canLifecyclePickerBulk ? '<button class="secondary" data-picker-action="ENABLE">Mở lại</button>' +
+      '<button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button>' +
+      '<button class="danger" data-picker-action="DELETE">Xóa Picker</button>' : '') + '</div>' : '';
+  const managedActions = managedCount && profile?.role === "ROOT" && profile?.base_role === "ROOT"
+    ? '<button class="danger" id="delete-selected-managed">Xóa ' + managedCount + ' tài khoản quản lý</button>' : '';
+  return '<div class="user-bulk-bar user-bulk-contextual"><div class="user-bulk-select">' +
+    '<button type="button" class="secondary" id="select-page-pickers">Chọn Picker trang này</button>' +
+    '<button type="button" class="secondary" id="select-all-global-pickers">Chọn toàn bộ Picker hệ thống</button>' +
+    '<button type="button" class="secondary" id="users-exit-selection">Thoát chọn</button></div>' +
+    pickerActions + managedActions + '<span id="user-selection-status">' + esc(
+      managedCount ? managedCount + ' tài khoản quản lý đã chọn' :
+      allPickerSelection ? pickerCount + ' Picker toàn hệ thống đã chọn' : pickerCount + ' Picker đã chọn trên trang'
+    ) + '</span></div>';
+}
+
 function renderUsers(): string {
   const canCreateAdmin = profile?.role === "ROOT";
   const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
@@ -1940,16 +1971,16 @@ function renderUsers(): string {
   const pickerCount = managedUsers.filter((user) => user.role === "PICKER").length;
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
   return `<section class="ops-route users-workspace">
-    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Tạo, tìm kiếm và quản lý tài khoản theo đúng vai trò nghiệp vụ.</p></div></div>
-    ${renderPeopleTabs("users")}
+    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2></div></div>
+    <div class="user-management-actions"><button type="button" class="secondary" id="toggle-create-user" ${canCreateManaged ? "" : "hidden"}>Thêm tài khoản</button><button type="button" class="secondary" id="toggle-hr-import" ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? "" : "hidden"}>Nhập nhân sự / Excel</button></div>
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Tài khoản phù hợp</span><strong>${userTotal.toLocaleString("vi-VN")}</strong><small>Theo bộ lọc hiện tại</small></article>
-      <article class="business-summary-card good"><span>Đang hoạt động trên trang</span><strong>${activeCount}</strong><small>Trong ${managedUsers.length} tài khoản đang hiển thị</small></article>
-      <article class="business-summary-card"><span>Picker / Người xử lý</span><strong>${pickerCount} / ${reporterCount}</strong><small>Trên trang hiện tại</small></article>
+      <article class="business-summary-card good"><span>Hoạt động trên trang</span><strong>${activeCount}</strong><small>Trong ${managedUsers.length} tài khoản trên trang</small></article>
+      <article class="business-summary-card"><span>Picker / Người xử lý</span><strong>${pickerCount} / ${reporterCount}</strong><small>Chỉ trang hiện tại</small></article>
     </section>
     <div class="users-top-grid">
-      <article class="ops-panel users-create-panel">
-        <div class="ops-panel-title"><div><h3>${canCreateManaged ? "Tạo tài khoản nghiệp vụ" : "Quản lý Picker"}</h3><p>${canCreateManaged ? "Tạo Người xử lý báo hàng hoặc vai trò quản trị được phép. Picker được đồng bộ từ nguồn nhân sự." : "Quản trị Pick Pack chỉ quản lý Picker; không tạo Reporter hay Quản trị Invent."}</p></div></div>
+      <article class="ops-panel users-create-panel" ${usersCreateOpen && canCreateManaged ? "" : "hidden"}>
+        <div class="ops-panel-title"><h3>Tạo tài khoản</h3></div>
         ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
@@ -1960,7 +1991,7 @@ function renderUsers(): string {
         </form>` : `<div class="ops-readonly">Thêm Picker mới qua Nguồn nhân sự và đồng bộ Picker.</div>`}
       </article>
       <article class="ops-panel users-filter-panel">
-        <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3><p>Lọc nhanh theo mã nhân viên, họ tên, nhà thầu, quyền hoặc trạng thái.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Tìm và lọc tài khoản</h3></div></div>
         <form id="user-filter-form" class="users-form-grid users-filter-form">
           <label class="span">Tìm kiếm<input name="query" value="${esc(userQuery)}" placeholder="Mã nhân viên / họ tên / nhà thầu / tài khoản" /></label>
           <label>Quyền<select name="role"><option value="">Tất cả quyền</option>${["PICKER","REPORTER","PICKPACK_ADMIN","ADMIN"].map((role) => `<option value="${role}" ${userRole === role ? "selected" : ""}>${esc(businessRoleLabel(role))}</option>`).join("")}</select></label>
@@ -1970,28 +2001,46 @@ function renderUsers(): string {
         </form>
       </article>
     </div>
+    ${usersHrOpen && (profile?.role === "ADMIN" || profile?.role === "ROOT") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
     <article class="ops-panel ops-users-panel">
-      <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3><p>ROOT được ẩn khỏi danh sách. Picker dùng thao tác hàng loạt riêng; ROOT có thể chọn Admin / Quản trị Pick Pack / Reporter để xóa.</p></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
-      <div class="user-bulk-bar"><button class="secondary" id="toggle-all-pickers">${allPickerSelection ? "Bỏ chọn tất cả Picker" : "Chọn tất cả Picker"}</button><button class="secondary" data-picker-action="REPORTING_ENABLE">Bật Báo hàng</button><button class="secondary" data-picker-action="REPORTING_DISABLE">Tắt Báo hàng</button>${canLifecyclePickerBulk ? `<button class="secondary" data-picker-action="ENABLE">Mở lại</button><button class="secondary" data-picker-action="DISABLE">Dừng hoạt động</button><button class="danger" data-picker-action="DELETE">Xóa Picker</button>` : ""}<span id="user-selection-status">${esc(userSelectionLabel())}</span>${profile?.role === "ROOT" && profile?.base_role === "ROOT" ? `<button class="danger" id="delete-selected-managed" ${selectedManagedUserIds.size ? "" : "disabled"}>Xóa tài khoản đã chọn (${selectedManagedUserIds.size})</button>` : ""}</div>
-      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Mã nhân viên</th><th>Họ và tên</th><th>Nhà thầu</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
+      <div class="ops-panel-title"><div><h3>Danh sách nhân sự</h3></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
+      ${renderUserBulkToolbar(canLifecyclePickerBulk)}
+      <div class="table-wrap"><table class="ops-users-table"><thead><tr><th class="user-select-col">Chọn</th><th>Nhân viên</th><th>Báo hàng</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập lần cuối</th><th>Thao tác</th></tr></thead><tbody>
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
           const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role);
-          const selectable = isPicker
+          const selectable = !usersBulkMode ? `<span class="bulk-not-applicable">—</span>` : isPicker
             ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
             : rootCanDeleteManaged
               ? `<label class="bulk-picker-check" title="Chọn tài khoản để xóa"><input type="checkbox" data-managed-user-select="${esc(user.user_id)}" ${selectedManagedUserIds.has(user.user_id) ? "checked" : ""}/><span aria-hidden="true"></span></label>`
               : `<span class="bulk-not-applicable">—</span>`;
+          const restrictedIdentity = privilegedOneTimeManagedUser(user);
+          const canDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" &&
+            ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role) && !restrictedIdentity;
+          const actionItems = '<button type="button" class="user-menu-item" data-edit-user="' + esc(user.user_id) + '">Chỉnh sửa</button>' +
+            (restrictedIdentity ? '' : '<button type="button" class="user-menu-item" data-password-user="' + esc(user.user_id) + '">Đặt lại mật khẩu</button>') +
+            (isPicker ? '<button type="button" class="user-menu-item" data-picker-single-action="' +
+              (user.shortage_reporting_enabled === false ? 'REPORTING_ENABLE' : 'REPORTING_DISABLE') +
+              '" data-user-id="' + esc(user.user_id) + '">' +
+              (user.shortage_reporting_enabled === false ? 'Bật Báo hàng' : 'Tắt Báo hàng') + '</button>' : '') +
+            (isPicker && canLifecyclePickerBulk ? '<button type="button" class="user-menu-item" data-picker-single-action="' +
+              (user.status === "ACTIVE" ? 'DISABLE' : 'ENABLE') + '" data-user-id="' + esc(user.user_id) + '">' +
+              (user.status === "ACTIVE" ? 'Dừng hoạt động' : 'Mở lại') + '</button>' +
+              '<button type="button" class="user-menu-item user-menu-danger" data-picker-single-action="DELETE" data-user-id="' +
+              esc(user.user_id) + '">Xóa Picker</button>' : '') +
+            (canDeleteManaged ? '<button type="button" class="user-menu-item user-menu-danger" data-managed-single-delete="' +
+              esc(user.user_id) + '">Xóa tài khoản</button>' : '');
           const actions = canManageListedUser(user)
-            ? `<div class="user-row-actions"><button class="secondary" data-edit-user="${esc(user.user_id)}">Sửa</button>${privilegedOneTimeManagedUser(user) ? `<span class="ops-readonly">Không đổi tại đây</span>` : `<button class="secondary" data-password-user="${esc(user.user_id)}">Đổi mật khẩu</button>`}</div>`
-            : `<span class="ops-readonly">${user.role === "ROOT" ? "Tài khoản gốc được bảo vệ" : "Không thuộc quyền quản lý hiện tại"}</span>`;
+            ? '<details class="user-row-menu"><summary aria-label="Thao tác tài khoản" title="Thao tác">⋯</summary><div class="user-menu-popover">' +
+              actionItems + '</div></details>'
+            : '<span class="ops-readonly">—</span>';
           const contractor = isPicker ? (user.contractor_name || "—") : "—";
           const reporting = isPicker
             ? `<span class="badge ${user.shortage_reporting_enabled !== false ? "good" : "closed"}">${user.shortage_reporting_enabled !== false ? "Đang bật" : "Đang tắt"}</span>`
             : "—";
-          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b></td><td>${esc(user.display_name)}</td><td>${esc(contractor)}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${user.last_login_at ? `${esc(fmt(user.last_login_at))}<div class="tiny muted">${esc(user.last_login_channel || "")}</div>` : "Chưa ghi nhận"}</td><td>${actions}</td></tr>`;
-        }).join("") : `<tr><td colspan="9" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
+          return `<tr><td class="user-select-col">${selectable}</td><td><b>${esc(user.employee_code || user.user_id)}</b><div class="tiny">${esc(user.display_name)}</div>${isPicker && contractor !== "—" ? `<small class="muted">${esc(contractor)}</small>` : ""}</td><td>${reporting}</td><td>${esc(businessRoleLabel(user.role))}</td><td><span class="badge ${user.status === "ACTIVE" ? "good" : "closed"}">${user.status === "ACTIVE" ? "Đang hoạt động" : "Đã dừng"}</span></td><td>${user.last_login_at ? `${esc(fmt(user.last_login_at))}<div class="tiny muted">${esc(user.last_login_channel || "")}</div>` : "Chưa ghi nhận"}</td><td>${actions}</td></tr>`;
+        }).join("") : `<tr><td colspan="7" class="ops-empty">Không có tài khoản phù hợp.</td></tr>`}
       </tbody></table></div>
       <div class="user-pagination"><span>Trang hiển thị ${pageStart}–${pageEnd}</span><div><button class="secondary" id="user-prev" ${userOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="user-next" ${userOffset + USER_PAGE_SIZE >= userTotal ? "disabled" : ""}>Trang sau</button></div></div>
     </article>
@@ -2001,7 +2050,7 @@ function renderUsers(): string {
 function renderSla(): string {
   if (!slaResponse) {
     return `<section class="ops-route sla-workspace">
-      <div class="business-page-head"><div><h2>Thời gian xử lý</h2><p>Cấu hình chung toàn hệ thống.</p></div><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
+      <div class="business-page-head"><div><h2>Thời gian xử lý</h2></div><span class="global-setting-badge">Đang tải cấu hình máy chủ…</span></div>
       <article class="ops-panel sla-loading-panel"><strong>Đang đồng bộ cấu hình hiện hành</strong><span>Web không hiển thị giá trị mặc định thay thế trong lúc chờ máy chủ để tránh nhầm cấu hình.</span></article>
     </section>`;
   }
@@ -2022,7 +2071,7 @@ function renderSla(): string {
   const updatedAt = sla?.updated_at ? fmt(sla.updated_at) : "Chưa có";
   return `<section class="ops-route sla-workspace sla-professional">
     <div class="business-page-head sla-page-head">
-      <div><h2>Thời gian xử lý</h2><p>Thiết lập một lần, áp dụng đồng nhất cho toàn bộ Reporter/Admin/Root và mọi thiết bị.</p></div>
+      <div><h2>Thời gian xử lý</h2></div>
       <div class="sla-authority-badges"><span class="global-setting-badge">Cấu hình máy chủ</span><span class="sla-revision-badge">${configured ? `Phiên bản ${revision}` : "Chưa cấu hình"}</span></div>
     </div>
 
@@ -2144,7 +2193,7 @@ function renderDashboard(): string {
   const affectedInPeriod = Number(k?.affected_picker_count || 0);
   const recurrenceSkuCount = recurrence.length;
   return `<section class="v5-root report-workspace">
-    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2><p>Toàn cảnh vận hành báo hàng theo thời gian được chọn.</p></div></div>
+    <div class="business-page-head"><div><h2>Tổng quan & báo cáo</h2></div></div>
     ${renderReportTabs("dashboard")}
     <article class="ops-panel report-filter-panel">
       <form id="dashboard-filter" class="report-filter-row report-filter-compact">
@@ -2165,7 +2214,7 @@ function renderDashboard(): string {
 
     <div class="report-layout-two">
       <article class="ops-panel presence-panel">
-        <div class="ops-panel-title"><div><h3>Người đang online theo quyền</h3><p>Chỉ Web + PDA; Agent không được tính. Một tài khoản được tính một lần dù mở nhiều phiên cùng quyền.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Người đang online theo quyền</h3></div></div>
         <div class="presence-grid">
           <div><span>Người lấy hàng</span><strong>${Number(roleOnline.PICKER || 0)}</strong></div>
           <div><span>Người xử lý báo hàng</span><strong>${Number(roleOnline.REPORTER || 0)}</strong></div>
@@ -2174,7 +2223,7 @@ function renderDashboard(): string {
         </div>
       </article>
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Khối lượng trong kỳ</h3><p>Các chỉ số chính theo khoảng thời gian đã chọn.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Khối lượng trong kỳ</h3></div></div>
         <div class="presence-grid pro-period-grid">
           <div><span>Lượt báo hết hàng</span><strong>${Number(k?.reports_count || 0).toLocaleString("vi-VN")}</strong></div>
           <div><span>SKU phát sinh</span><strong>${Number(k?.unique_sku_count || 0).toLocaleString("vi-VN")}</strong></div>
@@ -2188,7 +2237,7 @@ function renderDashboard(): string {
 
     <div class="report-layout-two">
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Kết quả xử lý</h3><p>Tỷ trọng các kết quả đã khép lại trong kỳ.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Kết quả xử lý</h3></div></div>
         <div class="v5-outcome-bars">
           <div class="v5-outcome-line"><div><span>Đã có hàng</span><b>${hasStock}</b></div><div class="v5-track"><i class="green" style="width:${outcomePct(hasStock)}%"></i></div><small>${outcomePct(hasStock)}%</small></div>
           <div class="v5-outcome-line"><div><span>Bỏ qua bởi nhân sự</span><b>${humanSkipped}</b></div><div class="v5-track"><i class="red" style="width:${outcomePct(humanSkipped)}%"></i></div><small>${outcomePct(humanSkipped)}%</small></div>
@@ -2197,13 +2246,13 @@ function renderDashboard(): string {
         </div>
       </article>
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>SKU phát sinh lại</h3><p>Ưu tiên xem các SKU đã xử lý nhưng tiếp tục được báo lại.</p></div></div>
+        <div class="ops-panel-title"><div><h3>SKU phát sinh lại</h3></div></div>
         ${recurrence.length ? `<div class="v5-rank-list">${recurrence.slice(0,8).map((row,index) => `<div class="v5-rank-row"><b>${index+1}</b><div><strong>${esc(row.sku)}</strong><span>${esc(row.product_name)}</span></div><em>${Number(row.recurrence_count)} lần</em></div>`).join("")}</div>` : `<div class="v5-empty">Không có SKU phát sinh lại trong kỳ.</div>`}
       </article>
     </div>
 
     <article class="ops-panel pro-resolution-activity">
-      <div class="ops-panel-title"><div><h3>Kết quả xử lý gần đây</h3><p>Hiển thị rõ người đã xác nhận Có hàng / Cho phép bỏ qua; trường hợp quá hạn tự động hiển thị Hệ thống.</p></div></div>
+      <div class="ops-panel-title"><div><h3>Kết quả xử lý gần đây</h3></div></div>
       ${recentResolutions.length ? `<div class="resolution-activity-list">${recentResolutions.map((row) => {
         const actor = resolutionActorLabel(row);
         const automatic = ["SYSTEM_TIMEOUT","SYSTEM_DAY_END"].includes(String(row.resolution_source || ""));
@@ -2764,7 +2813,7 @@ function renderLogs(): string {
   const auditPageTo = Math.min(auditTotal, auditOffset + auditRows.length);
   const auditActive = logView === "AUDIT";
   return `<section class="ops-route logs-workspace">
-    <div class="business-page-head"><div><h2>Nhật ký</h2><p>Log kỹ thuật và lịch sử thao tác nghiệp vụ được tách riêng để dễ tra cứu.</p></div>${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
+    <div class="business-page-head"><div><h2>Nhật ký</h2></div>${!auditActive ? `<div class="user-row-actions"><button class="secondary" id="send-web-log">Gửi log Web ngay</button><button class="secondary" id="download-support-log">Tải log Web xuống</button></div>` : ""}</div>
     <div class="workspace-tabs" role="tablist" aria-label="Nguồn nhật ký">
       <button type="button" class="workspace-tab ${logView === "WEB" ? "active" : ""}" data-log-view="WEB">Log Web</button>
       <button type="button" class="workspace-tab ${logView === "ANDROID" ? "active" : ""}" data-log-view="ANDROID">Log Android</button>
@@ -2976,7 +3025,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
       <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
         <option value="EARLY">${early}</option><option value="LATE">${late}</option>
       </select></label>
-      <button class="primary" ${record || !roleCanResolve() || !(period === "LUNCH" ? d167MealState?.lunch_prompt_due : d167MealState?.dinner_prompt_due) ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
+      <button class="primary" ${record || !roleCanResolve() || !d167MealState || Date.now() >= Date.parse(d167MealState.day_vn + "T00:00:00Z") + (period === "LUNCH" ? 4 : 11) * 3600000 ? "disabled" : ""}>Xác nhận giờ nghỉ</button>
     </form>
   </article>`;
 }
@@ -3001,6 +3050,49 @@ function renderD167MealOverlay(): string {
     </div></div>`;
 }
 
+function renderD167ShiftHistory(): string {
+  const history = d167ShiftHistory;
+  const options = [7, 30, 60].map(days => '<button type="button" class="secondary' +
+    (shiftHistoryDays === days ? ' active' : '') + '" data-shift-history-days="' + days + '">' + days + ' ngày</button>').join("");
+  if (!history) return '<article class="ops-panel shift-history-panel"><h3>Lịch sử ca vận hành</h3><p class="muted">Chưa tải được lịch sử.</p></article>';
+  const days = new Set<string>();
+  for (const row of history.meals) days.add(row.day_vn);
+  for (const event of history.events) days.add(event.day_vn);
+  const dates = [...days].sort().reverse();
+  const slotLabel = (choice: string, period: string): string =>
+    period === "LUNCH" ? (choice === "EARLY" ? "11:00–11:30" : "11:30–12:00")
+      : (choice === "EARLY" ? "18:00–18:30" : "18:30–19:00");
+  const rows = dates.map(day => {
+    const meals = history.meals.filter(row => row.day_vn === day);
+    const events = history.events.filter(row => row.day_vn === day);
+    const meal = (period: "LUNCH" | "DINNER"): string => {
+      const found = meals.find(row => row.period === period);
+      return found ? slotLabel(found.choice, period) + ' · ' + esc(found.confirmed_name || "Hệ thống") : "Chưa có dữ liệu";
+    };
+    const schedule = events.filter(event => event.action === "OPERATING_SCHEDULE_CHANGE");
+    const scheduleLabel = schedule.length
+      ? schedule.map(event => ({
+          CONTINUE: "Gia hạn", STOP: "Kết thúc", MANUAL_ADJUST: "Điều chỉnh",
+          EARLY_START: "Bật sớm", CANCEL_OVERTIME: "Hủy tăng ca",
+        }[event.details.decision] || "Thay đổi ca")).join(", ")
+      : "Không ghi nhận thay đổi";
+    const detail = events.map(event => '<li>' + esc(fmt(event.at)) + ' · ' +
+      esc(event.action === "MEAL_BREAK_EDIT" ? "Sửa giờ nghỉ" :
+          event.action === "MEAL_BREAK_CONFIRM" ? "Xác nhận giờ nghỉ" :
+          event.action === "MEAL_BREAK_DEFAULT" ? "Giờ nghỉ mặc định" : "Thay đổi ca") +
+      ' · ' + esc(event.actor) + '</li>').join("");
+    return '<tr><td><details><summary>' + esc(day.split("-").reverse().join("/")) +
+      '</summary><ul class="shift-audit-list">' + (detail || '<li>Không có sự kiện chi tiết.</li>') +
+      '</ul></details></td><td>' + esc(scheduleLabel) + '</td><td>' +
+      meal("LUNCH") + '</td><td>' + meal("DINNER") + '</td></tr>';
+  }).join("");
+  return '<article class="ops-panel shift-history-panel"><div class="ops-panel-title">' +
+    '<h3>Lịch sử ca vận hành</h3><div class="shift-history-filters">' + options + '</div></div>' +
+    '<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Ca / tăng ca</th><th>Nghỉ trưa</th><th>Nghỉ tối</th></tr></thead><tbody>' +
+    (rows || '<tr><td colspan="4">Chưa có sự kiện được ghi nhận trong khoảng này.</td></tr>') +
+    '</tbody></table></div></article>';
+}
+
 function renderShiftOperations(): string {
   const state = androidAlertWindow;
   const status = state == null
@@ -3023,21 +3115,19 @@ function renderShiftOperations(): string {
             ? "Đã huỷ tăng ca"
             : "Theo lịch mặc định";
   return `<section class="ops-route tools-workspace">
-    <div class="business-page-head"><div><h2>Ca vận hành</h2><p>Trạng thái dùng chung từ Agent cho Web, Báo hàng và PickList. Web chỉ hiển thị authority hiện hành.</p></div></div>
+    <div class="business-page-head"><div><h2>Ca vận hành</h2></div></div>
     <section class="business-summary-grid">
       <article class="business-summary-card primary"><span>Ca bình thường</span><strong>06:00–22:00</strong><small>Cửa sổ kỹ thuật Replay · 05:45–22:15</small></article>
       <article class="business-summary-card ${state?.is_open ? "good" : ""}"><span>Trạng thái hiện tại</span><strong>${esc(status)}</strong><small>Cùng trạng thái với App/PDA</small></article>
       <article class="business-summary-card ${state?.overtime_open || state?.early_start_open ? "warning" : ""}"><span>State chia sẻ đến</span><strong>${esc(sharedUntil)}</strong><small>${esc(decision)}</small></article>
     </section>
-    <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>Authority ca</h3><p>Agent là nơi quyết định. Agent nào chốt hợp lệ trước tại cùng boundary thì lệnh đó thắng và cả fleet dùng chung.</p></div></div>
-      <div class="ops-note">Ca bình thường 06:00–22:00. Cửa sổ kỹ thuật Replay hoạt động 05:45–22:15; nếu không có gia hạn thì chuyển SLEEP lúc 22:15. Sau 22:15, Agent có thể Gia hạn +1 giờ; cảnh báo T-15 áp dụng cho mốc tăng ca đang hoạt động; tối đa đến 05:00. Từ 05:00–05:45 có thể Bật sớm tại Agent.</div>
-    </article>
-    <div class="business-page-head"><div><h2>Giờ nghỉ ăn · tạm dừng tự động Skip</h2><p>Hai lựa chọn mỗi buổi, đồng bộ toàn bộ Reporter; xác nhận một lần, không tác động thao tác thủ công.</p></div></div>
+    <details class="ops-panel d167-technical"><summary>Thông tin kỹ thuật ca</summary><p>Replay: 05:45–22:15 · Gia hạn tại Agent · Bật sớm trước 05:45.</p></details>
+    <div class="business-page-head"><div><h2>Giờ nghỉ · tạm dừng tự động Skip</h2></div></div>
     <div class="ops-grid-two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">
       ${renderMealStatusCard("LUNCH")}
       ${renderMealStatusCard("DINNER")}
     </div>
+    ${renderD167ShiftHistory()}
   </section>`;
 }
 
@@ -4042,13 +4132,15 @@ async function loadShiftOperations(): Promise<void> {
   if (!roleOperate()) return;
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [alertResult, mealResult] = await Promise.all([
+  const [alertResult, mealResult, historyResult] = await Promise.all([
     roleManage() ? getAndroidAlertWindow().catch(() => null) : Promise.resolve(null),
     roleCanResolve() ? getD167MealState().catch(() => null) : Promise.resolve(null),
+    getD167ShiftHistory(shiftHistoryDays).catch(() => null),
   ]);
   if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
   androidAlertWindow = alertResult;
   d167MealState = mealResult;
+  d167ShiftHistory = historyResult;
   markWebUpdateReceived();
   patchOverlays();
 }
@@ -4352,6 +4444,12 @@ async function submitD167MealEdit(form: HTMLFormElement): Promise<void> {
 }
 
 function bindOverlay(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-shift-history-days]").forEach(button => button.addEventListener("click", () => {
+    const days = Number(button.dataset.shiftHistoryDays);
+    if (![7, 30, 60].includes(days) || days === shiftHistoryDays) return;
+    shiftHistoryDays = days;
+    void loadShiftOperations().then(() => { if (activeSection === "shift") patchActiveSection(true); });
+  }));
   document.querySelector<HTMLFormElement>("#d167-meal-overlay-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const form = event.currentTarget as HTMLFormElement;
@@ -5028,11 +5126,34 @@ function bindSection(): void {
     allPickerSelection = false;
     void run(loadUsers);
   });
-  document.querySelector<HTMLButtonElement>("#toggle-all-pickers")?.addEventListener("click", () => {
-    allPickerSelection = !allPickerSelection;
-    selectedUserIds.clear();
-    excludedPickerIds.clear();
+  document.querySelector<HTMLButtonElement>("#toggle-create-user")?.addEventListener("click", () => {
+    usersCreateOpen = !usersCreateOpen; patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#toggle-hr-import")?.addEventListener("click", () => {
+    usersHrOpen = !usersHrOpen; patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#users-enable-selection")?.addEventListener("click", () => {
+    usersBulkMode = true; patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#users-exit-selection")?.addEventListener("click", () => {
+    usersBulkMode = false; selectedUserIds.clear(); selectedManagedUserIds.clear();
+    allPickerSelection = false; excludedPickerIds.clear(); usersGlobalTargetCount = null;
     patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#select-page-pickers")?.addEventListener("click", () => {
+    selectedManagedUserIds.clear();
+    allPickerSelection = false; usersGlobalTargetCount = null; excludedPickerIds.clear();
+    selectedUserIds.clear();
+    for (const user of managedUsers) if (user.role === "PICKER") selectedUserIds.add(user.user_id);
+    patchActiveSection();
+  });
+  document.querySelector<HTMLButtonElement>("#select-all-global-pickers")?.addEventListener("click", () => {
+    void run(async () => {
+      const actual = await listManagedUsers({ role: "PICKER", limit: 1, offset: 0 });
+      if (!actual.total || !window.confirm("Chọn " + actual.total + " Picker trên TOÀN HỆ THỐNG, kể cả ngoài trang và bộ lọc?")) return;
+      selectedManagedUserIds.clear(); selectedUserIds.clear(); excludedPickerIds.clear();
+      allPickerSelection = true; usersGlobalTargetCount = actual.total; usersBulkMode = true;
+    });
   });
   document.querySelectorAll<HTMLInputElement>("[data-user-select]").forEach((box) => box.addEventListener("change", () => {
     const id = box.dataset.userSelect || "";
@@ -5042,14 +5163,15 @@ function bindSection(): void {
       else excludedPickerIds.add(id);
     } else if (box.checked) selectedUserIds.add(id);
     else selectedUserIds.delete(id);
-    const label = document.querySelector<HTMLElement>("#user-selection-status");
-    if (label) label.textContent = userSelectionLabel();
+    selectedManagedUserIds.clear();
+    patchActiveSection();
   }));
   document.querySelectorAll<HTMLInputElement>("[data-managed-user-select]").forEach((box) => box.addEventListener("change", () => {
     const id = box.dataset.managedUserSelect || "";
     if (!id) return;
     if (box.checked) selectedManagedUserIds.add(id);
     else selectedManagedUserIds.delete(id);
+    selectedUserIds.clear(); allPickerSelection = false; usersGlobalTargetCount = null; excludedPickerIds.clear();
     patchActiveSection();
   }));
   document.querySelector<HTMLButtonElement>("#delete-selected-managed")?.addEventListener("click", () => {
@@ -5077,13 +5199,40 @@ function bindSection(): void {
     if (action === "DELETE" && !window.confirm(`Xóa ${targetLabel}? Lịch sử nghiệp vụ vẫn được giữ.`)) return;
     if (action === "REPORTING_DISABLE" && !window.confirm(`Tắt Báo hàng cho ${targetLabel}? Xác nhận đơn và đăng nhập vẫn hoạt động bình thường.`)) return;
     void run(async () => {
-      await updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds]);
+      await updatePickerAccounts(action, ids, allPickerSelection, [...excludedPickerIds],
+        allPickerSelection ? Math.max(0, (usersGlobalTargetCount || 0) - excludedPickerIds.size) : ids.length);
       selectedUserIds.clear();
       selectedManagedUserIds.clear();
       excludedPickerIds.clear();
-      allPickerSelection = false;
+      allPickerSelection = false; usersGlobalTargetCount = null; usersBulkMode = false;
       await loadUsers();
       setNotice("success", action === "REPORTING_ENABLE" ? "Đã bật Báo hàng cho Picker." : action === "REPORTING_DISABLE" ? "Đã tắt Báo hàng cho Picker." : "Đã cập nhật Picker.");
+    });
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-picker-single-action]").forEach(button => button.addEventListener("click", () => {
+    const id = String(button.dataset.userId || "");
+    const action = button.dataset.pickerSingleAction as "ENABLE" | "DISABLE" | "DELETE" | "REPORTING_ENABLE" | "REPORTING_DISABLE";
+    if (!id || !["ENABLE", "DISABLE", "DELETE", "REPORTING_ENABLE", "REPORTING_DISABLE"].includes(action)) return;
+    const label = action === "DELETE" ? "Xóa tài khoản Picker" :
+      action === "DISABLE" ? "Dừng tài khoản Picker" :
+      action === "REPORTING_DISABLE" ? "Tắt Báo hàng của Picker" :
+      action === "REPORTING_ENABLE" ? "Bật Báo hàng của Picker" : "Mở lại tài khoản Picker";
+    if (!window.confirm(label + "? Thao tác áp dụng cho 1 tài khoản đã chọn.")) return;
+    void run(async () => {
+      await updatePickerAccounts(action, [id], false, [], 1);
+      await loadUsers();
+      setNotice("success", "Đã cập nhật tài khoản.");
+    });
+  }));
+  document.querySelectorAll<HTMLButtonElement>("[data-managed-single-delete]").forEach(button => button.addEventListener("click", () => {
+    const id = String(button.dataset.managedSingleDelete || "");
+    const target = managedUsers.find(user => user.user_id === id);
+    if (!target || privilegedOneTimeManagedUser(target) || profile?.role !== "ROOT" || profile.base_role !== "ROOT") return;
+    if (!window.confirm("Xóa tài khoản " + (target.employee_code || target.user_id) + "? Tài khoản này sẽ mất quyền đăng nhập.")) return;
+    void run(async () => {
+      await deleteManagedUsers([id]);
+      await loadUsers();
+      setNotice("success", "Đã xóa tài khoản.");
     });
   }));
   document.querySelectorAll<HTMLButtonElement>("[data-edit-user]").forEach((button) => button.addEventListener("click", () => {

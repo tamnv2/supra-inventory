@@ -19,7 +19,12 @@ test("D167 personnel forms keep identity and input names", () => {
   assert.match(html, /id="user-filter-form" class="users-form-grid users-filter-form"/);
   for(const value of ['username','displayName','role','authEmail','password','query','status','shortageReporting']) assert.ok(html.includes('name="'+value+'"'));
   assert.ok(html.includes('class="ops-users-table"'));
-  assert.ok(html.includes('data-picker-action="REPORTING_ENABLE"'));
+  assert.ok(ui.includes('data-picker-action="REPORTING_ENABLE"'));
+  assert.ok(ui.includes('function renderUserBulkToolbar('));
+  assert.ok(html.includes('user-row-menu'));
+  assert.ok(html.includes('data-picker-single-action'));
+  assert.ok(ui.includes('select-all-global-pickers') && ui.includes('usersGlobalTargetCount'));
+  assert.ok(ui.includes('getD167ShiftHistory(shiftHistoryDays)'));
 });
 test("D167 logs and system reset preserve existing operations", () => {
   const logs=route('function renderLogs(): string {','function renderLegacyLogs(): string {');

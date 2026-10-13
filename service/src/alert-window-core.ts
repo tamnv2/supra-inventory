@@ -225,6 +225,13 @@ export function mirrorAndroidOperatingSchedule(
     }),
     updatedBy || "GOOGLE_RUNTIME_D149",
   );
+  // One bounded row per accepted Agent schedule version; no extra provider call.
+  state.storage.sql.exec(
+    "INSERT INTO audit_log (audit_id,actor_user_id,actor_employee_code,action,target_type,target_id,metadata_json,created_at) VALUES (?,?,?,?,?,?,?,?)",
+    crypto.randomUUID(), "SYSTEM_AGENT_SCHEDULE", null, "OPERATING_SCHEDULE_CHANGE", "OPERATING_SCHEDULE", scheduleKey,
+    JSON.stringify({ schedule_key: scheduleKey, version, decision, decision_boundary_ms: decisionBoundaryMs, open_until_ms: openUntilMs, updated_by_agent_instance_id: updatedBy }),
+    new Date(nowMs).toISOString(),
+  );
   return readAndroidAlertWindow(state, nowMs);
 }
 

@@ -236,7 +236,8 @@ checks = {
         "Ca bình thường",
         "06:00–22:00",
         "Cửa sổ kỹ thuật Replay · 05:45–22:15",
-        "Agent là nơi quyết định",
+        "renderD167ShiftHistory()",
+        "Replay: 05:45–22:15",
     ]) and "05:45–22:30" not in WEB_APP
        and 'updateAndroidAlertWindow("EXTEND_ONE_HOUR")' not in WEB_APP
        and 'id="extend-android-alert-window"' not in WEB_APP,
@@ -396,7 +397,7 @@ checks = {
         "Thời gian xử lý bình quân",
         "Picker đã nhận kết quả",
     ]) and all(token not in WEB_APP for token in ["P95", "Xử lý trung vị", "Picker ACK trễ"]),
-    "web_d063_people_layout": all(token in WEB_APP for token in ["users-top-grid", "Tạo tài khoản nghiệp vụ", "Tìm và lọc tài khoản", "user-bulk-bar"]) and all(token in WEB_FAST for token in ["users-top-grid", "users-form-grid", "user-bulk-bar"]),
+    "web_d063_people_layout": all(token in WEB_APP for token in ["users-top-grid", "renderUserBulkToolbar", "Tìm và lọc tài khoản", "user-row-menu", "user-management-actions", "user-bulk-bar"]) and all(token in WEB_FAST for token in ["users-top-grid", "users-form-grid", "user-bulk-bar"]),
     "web_d063_runtime_logs": all(token in WEB_LOGGER for token in ["scheduled_", "window_error", "unhandled_promise_rejection", "maybeSendScheduledWebLog"]) and all(token in WEB_APP for token in ["Log Web", "Log Android", "send-web-log"]) and "Beta / Logs" not in WEB_APP and all(token in SERVICE_RUNTIME_LOGS for token in ["REDACTED", "LOGS_FOLDER_ID", "uploadRuntimeLog", "listRuntimeLogs"]),
     "service_d063_presence_by_role": "online_users_by_role" in SERVICE_READ_MODEL and "online_users_by_client" in SERVICE_READ_MODEL,
     "android_d063_runtime_logs": all(token in ANDROID_MAIN for token in ["session_end_logout", "flushPendingSessionEndRuntimeLog", "pending_crash", "android_crash", "Gửi log"]) and "maybeUploadScheduledRuntimeLog" not in ANDROID_MAIN and "uploadRuntimeLog" in ANDROID_API,

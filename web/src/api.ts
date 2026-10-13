@@ -1339,6 +1339,15 @@ export interface D167MealState {
   unconfirmed_fallback: string;
 }
 
+export interface D167ShiftHistory {
+  from_vn: string; to_vn: string; days: number;
+  meals: Array<{ day_vn: string; period: "LUNCH" | "DINNER"; choice: "EARLY" | "LATE"; confirmed_at: string; confirmed_by: string; confirmed_name: string }>;
+  events: Array<{ action: string; at: string; actor: string; target: string; day_vn: string; details: { period: string; before_choice: string; choice: string; decision: string; open_until_ms: number; version: number } }>;
+}
+export async function getD167ShiftHistory(days = 7): Promise<D167ShiftHistory> {
+  return readJson(await authorizedFetch("/api/reporter/shift-history?days=" + Math.min(60, Math.max(1, days)), { cache: "no-store" }));
+}
+
 export async function getD167MealState(): Promise<D167MealState> {
   return readJson(await authorizedFetch("/api/reporter/meal-break"));
 }
@@ -1516,6 +1525,7 @@ export async function updatePickerAccounts(
   userIds: string[] = [],
   all = false,
   excludedUserIds: string[] = [],
+  expectedTargetCount?: number,
 ): Promise<{ status: string; action: string; affected: number; affected_user_ids?: string[] }> {
   return readJson(await authorizedFetch("/api/admin/pickers/bulk", {
     method: "POST",
@@ -1525,6 +1535,7 @@ export async function updatePickerAccounts(
       all,
       user_ids: all ? [] : userIds,
       excluded_user_ids: all ? excludedUserIds : [],
+      ...(expectedTargetCount == null ? {} : { expected_target_count: expectedTargetCount }),
     }),
   }));
 }

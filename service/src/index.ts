@@ -2391,6 +2391,17 @@ export default {
         return json(payload, result.status);
       }
 
+      // Historical schedule and meal choices are read only on the visible Web page.
+      if (url.pathname === "/api/reporter/shift-history" && request.method === "GET") {
+        if (env.APP_ENV !== "beta") return json({ error: "BETA_ONLY" }, 404);
+        const identityToken = readBearerToken(request);
+        const session = identityToken ? await verifyFirebaseIdToken(identityToken, env.FIREBASE_PROJECT_ID) : null;
+        await requireUser(request, env, ["REPORTER", "ADMIN", "ROOT", "PICKPACK_ADMIN"]);
+        if (session?.sessionChannel !== "WEB") return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
+        const days = Math.min(60, Math.max(1, Math.trunc(Number(url.searchParams.get("days") || 7) || 7)));
+        return coreStub(env).fetch("https://inventory-core.internal/d167/shift/history?days=" + days);
+      }
+
       // D167: Reporter-owned meal confirmation, available to both Web and Android.
       // The durable object accepts the first valid confirmation only.
       if (url.pathname === "/api/reporter/meal-break") {
@@ -2400,12 +2411,16 @@ export default {
           return coreStub(env).fetch("https://inventory-core.internal/d167/meal/state");
         }
         const input = await request.json() as { period?: string; choice?: string };
+        // Only the verified Web auth channel can bypass the Android reminder gate.
+        const token = readBearerToken(request);
+        const identity = token ? await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID) : null;
+        const allowEarlyWeb = identity?.sessionChannel === "WEB";
         const result = await coreStub(env).fetch("https://inventory-core.internal/d167/meal/confirm", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             period: input.period, choice: input.choice, actor_id: actor.user_id,
-            actor_name: actor.display_name || actor.employee_code || "",
+            actor_name: actor.display_name || actor.employee_code || "", allow_early_web: allowEarlyWeb,
           }),
         });
         const payload = await result.json() as Record<string, unknown>;

@@ -24,6 +24,7 @@ import {
 } from "./sla-automation";
 import { sendFcmNotifications } from "./fcm";
 import { mirrorAndroidOperatingSchedule, readAndroidAlertWindow } from "./alert-window-core";
+import { readD167ShiftHistory } from "./d167-shift-history";
 import { initializeMealSchema, getMealChoiceState, confirmMealChoice, editMealChoice, recalculateMealAdjustedDeadlines } from "./meal-break-core";
 import { initializeD167OverdueSchema } from "./d167-overdue-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
@@ -829,6 +830,9 @@ export class InventoryCore {
       });
     }
 
+    if (request.method === "GET" && url.pathname === "/d167/shift/history") {
+      return response(readD167ShiftHistory(this.state, Number(url.searchParams.get("days") || 7)));
+    }
     if (request.method === "GET" && url.pathname === "/d167/meal/state") {
       return response(getMealChoiceState(this.state));
     }

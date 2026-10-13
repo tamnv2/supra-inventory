@@ -10,11 +10,11 @@ export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | nu
   const conflictCount = preview?.collisions?.length || 0;
   const changeCount = Number(preview?.rename || 0) + Number(preview?.contractor_update || 0);
   return `<section class="ops-route people-workspace">
-    <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2><p>Nhập trực tiếp hoặc tải Excel mẫu; dữ liệu chỉ được ghi sau khi xem trước và xác nhận.</p></div></div>
+    <div class="business-page-head"><h3>Nhập và cập nhật nhân sự Picker</h3></div>
     ${tabs}
     <div class="ops-layout">
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Nhập một Picker</h3><p>Điền đủ mã nhân viên, họ tên và Nhà thầu.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Nhập một Picker</h3></div></div>
         <form id="hr-manual-form" class="ops-form-grid">
           <label>Mã nhân viên<input name="employeeCode" required maxlength="64" autocomplete="off" /></label>
           <label>Họ và tên<input name="displayName" required maxlength="200" autocomplete="off" /></label>
@@ -23,7 +23,7 @@ export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | nu
         </form>
       </article>
       <article class="ops-panel">
-        <div class="ops-panel-title"><div><h3>Nhập danh sách bằng Excel</h3><p>Tải mẫu .xlsx, nhập thông tin và kiểm tra trước khi áp dụng.</p></div></div>
+        <div class="ops-panel-title"><div><h3>Nhập bằng Excel</h3></div></div>
         <div class="ops-form-actions"><button class="secondary" id="download-hr-example" type="button">Tải file Excel mẫu</button></div>
         <div class="ops-form-grid"><label class="span">Chọn file .xlsx<input id="hr-excel-file" type="file" accept=".xlsx" /></label></div>
         <div class="ops-note">Các mã nhân viên không xuất hiện trong file sẽ được giữ nguyên; không tự xóa, khóa hay bật lại tài khoản cũ.</div>
