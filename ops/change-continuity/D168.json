@@ -7,18 +7,25 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E017",
+    "id": "D168-E018",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-14 D168_FIRESTORE_CRITICAL_CLOUD_FIRST_OPTIONAL__CODE_AND_DEPLOY_NOT_APPROVED",
-    "code_permission": false,
+    "owner_latest": "2026-10-14 OWNER_EXPLICIT_D168_ALL_CODE_AND_BETA_DEPLOY_APPROVED_AFTER_ALL_CI_AND_FIELD_GATES",
+    "code_permission": true,
     "merge_permission": true,
-    "beta_deploy_permission": false,
+    "beta_deploy_permission": true,
     "stable_deploy_permission": false,
-    "approved_components": [],
-    "new_owner_approval_required": true,
-    "current_pr_scope": "PR591_D168_ROUTING_AND_USAGE_ACK_ANALYSIS_ONLY",
+    "approved_components": [
+      "AGENT_BETA",
+      "ANDROID_BETA",
+      "WEB_BETA",
+      "INVENTORY_WORKER_BETA",
+      "INVENTORY_CORE_BETA",
+      "EXISTING_FIRESTORE_BETA"
+    ],
+    "new_owner_approval_required": false,
+    "current_pr_scope": "PR591_D168_INTEGRATED_BIG_UPDATE_AGENT_ANDROID_WEB_WORKER_EXISTING_REGISTERED_BETA_ONLY",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -410,6 +417,24 @@
       ],
       "next_action": "Owner review recommended retained durable success ACK and provider lanes; await explicit 'chạy code' or 'triển khai' instruction. No runtime changes authorized.",
       "evidence": "docs/D168_FIRESTORE_CLOUDFLARE_USAGE_ACK_2026-10-14.md; docs/D168_AGENT_SKU_JOB_WIFI_ROUTING_OWNER_2026-10-13.md; source android/.../RelayPocClient.kt, PickerController.kt, relay-agent/FirestoreConfirmationTransport.cs, FirestoreAgentSync.cs, service/src/index.ts; official firebase Firestore pricing."
+    },
+    {
+      "id": "D168-E018",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner authorizes whole D168 Big Update coding, verified Beta release and integrated tests across Agent Android Web Worker; mandatory daily FULL with solo PRIMARY and Google Apps Script-free SKU",
+      "status": "OWNER_CODE_AND_BETA_APPROVED__PARTIAL_IMPLEMENTATION_PR591__NOT_CI_PASS__NOT_DEPLOYED__STABLE_GATED",
+      "owner_approval": true,
+      "facts": [
+        "FULL INITIAL_05 is mandatory even if solo PRIMARY and no standby; never interrupt an in-flight WMS confirmation, user confirms SUPRA WMS works on normal Internet as well as Office; route requires actual field verification.",
+        "SKU auto/manual direct authenticated registered Beta Worker and InventoryCore only, zero Google Apps Script SKU calls; independent SKU job lease granted by verified HA PRIMARY must continue after HA handoff with idempotency and durable DONE verification.",
+        "Entire Agent fleet will upgrade to new version, preserve transition guard and critical Firebase Auth/Firestore Picklist ACK, picker session authority, HA and compact shared state.",
+        "Owner explicitly authorizes completion of D168 REQ-001..011 with Agent Android Web service code, CI and Beta deployment only after gates pass. Stable remains explicitly OWNER-GATED.",
+        "Current work on PR591 includes direct SKU Worker grant route, Agent coordinator, selected Android/Agent UI, FCM version projection, Agent log singleflight; this is PARTIAL and not proven FULL E2E.",
+        "Outstanding before deploy: safe Windows managed Wi-Fi switching solo primary, grouped Picker contact, cross-Agent job status, stale presence, complete regressions, security/field networking, version bump and release pipeline; do not release incomplete code."
+      ],
+      "next_action": "Finish D168 on current PR, synchronize Owner decisions/spec/state, run all CI+field coverage; only merge and deploy Beta when authority, continuity and product gates pass. Do not claim DONE in advance.",
+      "evidence": "Owner approval 2026-10-14 current conversation; PR591 D168 partial code and GitHub CI logs; docs/D168_OWNER_APPROVAL_2026-10-14.md"
     }
   ],
   "resume": {
@@ -419,7 +444,8 @@
       "GitHub manifest/full bootstrap and branch/PR discussion checkpoints remain mandatory",
       "D168-E016 Owner fixed SKU job continuation across HA loss, bounded 60s idle-only Wi-Fi transition, and direct Cloudflare optional actions; code/deploy still separate",
       "D168-E016 Owner retires Agent Usage D160 auto refresh and D166 Usage ZIP, preserving operational log archive",
-      "D168-E017: Owner accepts Firebase Auth/Firestore dual-network critical lanes and on-demand Cloudflare direct optional actions, preserving required Android notification and network safety"
+      "D168-E017: Owner accepts Firebase Auth/Firestore dual-network critical lanes and on-demand Cloudflare direct optional actions, preserving required Android notification and network safety",
+      "D168-E018 Owner explicit whole Big Update CODE + Beta deploy permission; FULL mandatory solo primary, WMS ordinary Internet, direct Worker SKU; Stable unchanged."
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -463,6 +489,9 @@
       "Await explicit code instruction for D168 Agent D160/D166 Usage retirement, independent Worker SKU lease, safe WLAN handoff and direct Worker upload",
       "D168-E017 design single-flight real Worker reachability probe not GET /health and measure current Firestore CAS + listener read costs; no implementation until Owner 'chạy code'"
     ],
-    "release_boundary": "D168_E016_E017_OWNER_ROUTING_DESIGN_ACCEPTED__NO_CODE_OR_DEPLOY_AUTHORIZATION__STABLE_OWNER_GATED"
+    "release_boundary": "D168_E016_E017_OWNER_ROUTING_DESIGN_ACCEPTED__NO_CODE_OR_DEPLOY_AUTHORIZATION__STABLE_OWNER_GATED",
+    "pending": [
+      "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
+    ]
   }
 }
