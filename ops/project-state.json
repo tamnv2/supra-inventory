@@ -7439,13 +7439,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
-    "working_branch": "d167-p0-ha-sku-v129-vietnamese-20261013",
-    "pr": 572,
-    "latest_checkpoint_id": "D167-E043",
+    "working_branch": "d167-owner-command-gates-scope-20261013",
+    "pr": 575,
+    "latest_checkpoint_id": "D167-E046",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA__NO_OWNER_FIELD_PASS",
+    "owner_release_gate": "D167_PROCESS_POLICY_ONLY__NO_RUNTIME_RELEASE_FROM_PR575__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7491,5 +7491,22 @@
     "owner_main_agent_source_authorized": true,
     "main_agent_source_implemented": false,
     "owner_beta_deploy_confirmed_20261013": true
+  },
+  "d167_owner_scope_commands_20261013": {
+    "change_id": "D167",
+    "status": "OWNER_APPROVED_PROCESS_AND_SCOPE__NO_RUNTIME_CHANGE",
+    "source_authority": "docs/OWNER_DECISIONS.md#D167 — Owner chốt lại danh sách pending và cách hiểu lệnh code/triển khai (2026-10-13)",
+    "wms_direct_main_tab": "OWNER_CANCELLED_SUPERSEDED__KEEP_EXISTING_SAME_PROFILE_SIDE_WEBVIEW2",
+    "agent_other_errors": "PENDING_OTHER_D167_DISCUSSION__NO_CODE_OR_DEPLOY_APPROVAL",
+    "usage_optimization": "PENDING_FURTHER_LOGS_AND_PROVIDER_MEASUREMENT",
+    "launcher_logs": "OWNER_DEFERRED_TO_SEPARATE_LAUNCHER_PROJECT__NO_INVENTORY_MUTATION",
+    "run_code": "FULL_APPROVED_CODE_AND_CI_TO_CODE_READY__STOP_BEFORE_ANY_RUNTIME_OR_RELEASE__REPORT",
+    "deploy_approved": "RELEASE_ONLY_APPROVED_CODE_READY_EXACT_SCOPE_AFTER_FRESH_GATES",
+    "combined_code_deploy": "FULL_APPROVED_CODE_AND_CI_THEN_AUTOMATIC_SCOPED_BETA_DEPLOY_WITHOUT_PAUSE",
+    "stable": "OWNER_GATED",
+    "code_released_by_this_decision": false,
+    "owner_field_pass": false,
+    "source_pr": 575,
+    "working_branch": "d167-owner-command-gates-scope-20261013"
   }
 }
