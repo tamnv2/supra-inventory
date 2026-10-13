@@ -88,12 +88,13 @@ namespace SupraInventoryRelayAgent
                 throw new InvalidOperationException("D167_SKU_JOB_ALREADY_RUNNING");
             var manualTrace=System.Diagnostics.Stopwatch.StartNew();
             var manualPhase="PRIMARY_CHECK";
-            string activeSlot=null,activeGrant=null,activeGeneration=null;
+            string activeSlot=null,activeGrant=null,activeGeneration=null,activeDay=null;
             try
             {
                 if(!isPrimaryReady() || confirmBusy())
                     throw new InvalidOperationException("D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY");
                 var day=D167SkuSchedule.VNNow().ToString("yyyy-MM-dd");
+                activeDay=day; // Keep the original reservation day across midnight.
                 var runId=Guid.NewGuid().ToString("N");
                 manualPhase="AUTHORIZE_BEGIN";
                 log("D167_SKU manual=STAGE step=AUTHORIZE_BEGIN elapsed_ms="+manualTrace.ElapsedMilliseconds);
@@ -129,7 +130,7 @@ namespace SupraInventoryRelayAgent
             catch(Exception e)
             {
                 if(activeGrant!=null)
-                    service.Abort(D167SkuSchedule.VNNow().ToString("yyyy-MM-dd"),activeSlot,
+                    service.Abort(activeDay,activeSlot,
                         instanceId,activeGeneration,activeGrant);
                 NotifyStatus(null,"Chưa cập nhật được SKU: "+D167SkuVietnamese.Error(SafeErrorCode(e)));
                 log("D167_SKU manual=FAILED error_type="+e.GetType().Name+
