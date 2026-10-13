@@ -4,11 +4,11 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-p0-ha-sku-v129-vietnamese-20261013",
+  "working_branch": "d167-log-review-20261012-20261013",
   "pr": 572,
-  "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
+  "status": "D167_E044_20261012_NON_SKU_LOG_DIAGNOSIS_PROPOSAL__FIXES_AWAIT_OWNER_APPROVAL",
   "last_checkpoint": {
-    "id": "D167-E043",
+    "id": "D167-E044",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -855,6 +855,36 @@
       ],
       "next_action": "Owner tests v129 Agent PRIMARY -> SKU update today, verifies user name and exactly durable Service DONE; read existing Beta Agent/Worker sanitized reason logs if error. Analyze other issues only after Owner supplies full logs; keep D167 Owner PASS separate.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/572 ; https://github.com/tamnv2/supra-inventory/actions/runs/38329058493 ; https://github.com/tamnv2/supra-inventory/actions/runs/38329058498 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v129"
+    },
+    {
+      "id": "D167-E044",
+      "date_vn": "2026-10-13",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "12 October Beta Agent support-log review excluding SKU: WMS uncertain confirmation, DNS interruption, RTDB HA flaps, authorization failures and read/write hotspots",
+      "status": "EVIDENCE_REVIEW_COMPLETED__NO_FIX_OR_DEPLOY_AUTHORIZED",
+      "owner_approval": false,
+      "facts": [
+        "Read 76 Agent session/error/checkpoint/manual files in existing scoped Inventory/Beta/Logs/2026-10-12 daily archive. Read log event timestamps in VN time rather than upload time and exclude all SKU-related events. No Web/Android logs appeared in that exact daily folder; fleet/provider log coverage is not proven complete. Multiple overlapping snapshots preclude summing raw file/event counts as distinct incidents.",
+        "WMS UI confirm sometimes emits CONFIRM_IN_PROGRESS_OR_UNCERTAIN after final click and 5200ms terminal window without fresh terminal success evidence; other requests show ROW_NOT_FOUND and CONFIRM_CONFLICT. Firestore ACK PASS confirms transport of the non-success outcome, not WMS confirmation. Safe fail-closed result exists; direct blind retry would risk double-confirming.",
+        "Intermittent failed name resolution affected firestore.googleapis.com and script.google.com on different operational periods (morning, afternoon, evening). Firestore pending-query fails closed; HA coordinator logs role_preserved on DNS failure; Apps Script log uploads DEFER then sometimes PASS. No evidence isolates local DNS/router, ISP or provider as root cause.",
+        "RTDB observer emits repeated NETWORK_Timeout unavailable/recovered cycles, plus HTTP_401/403, keep-alive failure; some standby takeover attempts defer with UNVERIFIED_PRIMARY_LIVENESS at roughly 5-second cadence. Source relay-agent/FirestoreAgentLeaderCoordinator.cs explicitly retains role on coordinator exception and defers unproven PRIMARY death, a correct split-brain safety gate.",
+        "Admin Picker bulk revocation logged HTTP 403 while trying to obtain current Picker counts; 403 authentication/permission root cause and transport endpoint require field correlation. HA coordination InvalidOperationException not logged in and scheduled WebSocketException also appear around lifecycle transitions.",
+        "One cumulative process-local 2026-10-12 Agent audit reports AGENT_ESTIMATE_NOT_BILLING reads 5874, writes 1742, deletes 6, including CONFIRM_QUERY 2401, extra picker-contact-open-query docs 1445 and PRIMARY_LEASE_WRITE 1149. These are local estimates (restart resets) and not provider billing measurements. Another standby sample has PRIMARY_LEASE_READ 492; no cross-device aggregate can be proven from these snapshots.",
+        "Daily operational checkpoint at 21:49 reported received 477, confirmed 410, error 67. Error bucket is a mix of business non-confirmations and technical uncertainty, not 67 proven infrastructure failures. No Web/Android runtime cross-check, actual billed provider usage or installed fleet pass established."
+      ],
+      "alternatives": [
+        "A: no code changes; compare per-process audit to provider-billed usage, classify distinct request outcomes and collect network timing before selecting optimizations.",
+        "B: investigate DNS/permission correlation and preserve fail-closed, authoritative safe WMS reconciliation for uncertain confirm results, idempotent ACK, and no automatic second click.",
+        "C: if comparable usage measurements support it, selectively reduce redundant fresh-query, picker-contact lookup and primary-lease operations with event-driven/cache/TTL boundaries; retain <15s HA freshness, ACK timing, active primary fencing and degraded-network protection. Other-provider redistribution requires scoped provider quota evidence; unmeasured savings cannot be claimed."
+      ],
+      "open_questions": [
+        "Whether all Web/Android runtime files and provider usage were archived for the same 2026-10-12 business day.",
+        "What authoritative WMS terminal status can safely disambiguate clicked-but-uncertain confirmation without duplicate mutation.",
+        "Whether HTTP403 originated from stale auth/rules/role or transport configuration and how long DNS interruptions lasted across all Agent hosts.",
+        "Whether observed extra Firestore document reads are actually billable per provider and represent avoidable duplicate traffic."
+      ],
+      "next_action": "Provide Owner a prioritized non-SKU diagnosis with evidence limits and exact candidate impact/quota/rollback matrix. No Agent/Web/Worker/Android source change, PR merge or deployment for these new findings without explicit Owner review and approval. Keep Stable gated.",
+      "evidence": "Existing scoped private Beta Logs folder 2026-10-12; event-stage logs; D166_USAGE_AUDIT AGENT_ESTIMATE_NOT_BILLING; relay-agent/FirestoreAgentLeaderCoordinator.cs main; docs/specs/OBSERVABILITY_LOGGING.md; docs/specs/REALTIME_NOTIFICATIONS.md; main PR572 field gate."
     }
   ],
   "resume": {
@@ -900,7 +930,8 @@
       "D167 Owner business FIELD PASS on actual fleet",
       "Separate Stable deployment approval only if Owner explicitly requests",
       "D167-E024 — Agent SKU tab with 3 daily slots, low-usage local status and password-confirmed instantaneous manual FULL/DELTA: proposal only, Owner review pending; no code/deploy authorized.",
-      "D167-E036 — Hidden same-profile WMS child is already implemented; evaluate only security-reviewed native/official export path, no new source/deploy approved in this discussion."
+      "D167-E036 — Hidden same-profile WMS child is already implemented; evaluate only security-reviewed native/official export path, no new source/deploy approved in this discussion.",
+      "D167-E044 12/10 non-SKU log review: P0 DNS/confirm uncertainty, P1 HA/auth and measured usage candidates require Owner technical scope approval before source changes."
     ],
     "blocked": [
       "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity",
@@ -923,7 +954,8 @@
       "Retain PR568 Draft; obtain supported reviewed implementation/guard adjustment, then exact-head 16/16 PASS and release signed Agent Beta; field SKU DONE readback separately.",
       "Keep PR568 Draft; resolve WMS read-only main browser integration through approved security-reviewed source path, rerun exact PR CI, then consider authorized Agent-only Beta release; no fleet/field PASS yet.",
       "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy.",
-      "Owner review of on-demand D167-only Firestore lease maintenance + safe Worker failure reasons; do not code or deploy before explicit permission."
+      "Owner review of on-demand D167-only Firestore lease maintenance + safe Worker failure reasons; do not code or deploy before explicit permission.",
+      "D167-E044: Owner review non-SKU 12/10 findings; no fix, CI release or Beta/Stable mutation authorized by this diagnostics-only review."
     ],
     "release_boundary": "D167_P0_BETA_WORKER_AND_AGENT129_RELEASE_PASS__FIELD_SKU_AND_OWNER_PASS_PENDING__OTHER_ERRORS_DEFERRED__STABLE_GATED"
   }
