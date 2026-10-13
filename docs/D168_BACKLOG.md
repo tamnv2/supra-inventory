@@ -51,3 +51,32 @@
 
 ### Biên giới cấp quyền
 Hai yêu cầu trên chỉ được **ghi nhận** theo chỉ đạo Owner, **không** đồng nghĩa phê duyệt thiết kế cuối, source change, schema, OTA, Beta deployment hoặc Stable deployment. Đến khi Owner yêu cầu phân tích, cần so sánh phương án với code thật, nguồn dữ liệu, ảnh hưởng Android UI/API/Service/Agent/usage, sau đó trình phương án; chỉ triển khai khi nhận được lệnh của Owner theo protocol.
+
+
+## Bốn yêu cầu Agent ngày 13/10/2026 — CHỜ PHÂN TÍCH
+
+**D168-REQ-003 — Phiên bản App Báo hàng trong danh sách Picker online**
+- Owner yêu cầu hiển thị phiên bản Android App mà từng Picker đang dùng; đặt cột **ngay sau "Nguồn xác nhận" và trước nhóm nút thao tác**.
+- Chờ phân tích các trường dữ liệu đang có trong phiên hoạt động, nguồn version, thời điểm cập nhật khi app nâng phiên bản và cách hiển thị khi chưa biết. Ưu tiên tận dụng thông điệp hiện có; không phát sinh truy vấn riêng theo Picker.
+- Trạng thái: **GHI NHẬN, CHƯA PHÂN TÍCH/CODE/DEPLOY**.
+
+**D168-REQ-004 — Làm mới chính xác danh sách Picker online với Usage tối thiểu**
+- Owner phản ánh danh sách Agent đôi khi vẫn còn Picker sau khi kick hàng loạt hoặc sau logout. Cần rà cơ chế hiện diện, cập nhật event và refresh để hiển thị gần thời gian thực nhất, tránh dữ liệu cũ.
+- Chờ phân tích logout, kick, rớt mạng, reconnect, bộ nhớ đệm, snapshot khởi tạo, event sequence, timeout hợp lý, race condition và log thời gian sự kiện/Agent nhận. Đối chiếu nhiều máy Agent.
+- Ưu tiên event/delta sẵn có và cập nhật cục bộ khi sự kiện xác nhận, chỉ đối soát bổ sung khi cần; tránh tăng poll hàng loạt/heartbeat. Không giả định ngay nguyên nhân hoặc cam kết luôn tức thời khi thiết bị mất mạng.
+- Trạng thái: **GHI NHẬN, CHƯA PHÂN TÍCH/CODE/DEPLOY**.
+
+**D168-REQ-005 — Thiết kế lại Tab SKU và đồng bộ trạng thái giữa các Agent**
+- Bỏ khu vực danh sách SKU và tìm kiếm SKU trong Tab "Cập nhật SKU" của Agent. Thay bằng thông tin thiết thực hơn; **phương án giao diện phải trình Owner duyệt sau khi phân tích**.
+- Gợi ý ban đầu để đánh giá: lần FULL/DELTA và kết quả, số liệu thay đổi, lịch cập nhật, nguồn máy/người thực hiện, biên nhận đồng bộ của từng Agent, ngày dữ liệu hiện tại, cảnh báo và nguyên nhân lỗi. Không thêm thông tin không có nguồn thực.
+- Yêu cầu tự đồng bộ trạng thái Tab SKU giữa các Agent, ưu tiên luồng truyền dữ liệu đang tồn tại, gần như không phát sinh Usage mới. Kiểm tra sự khác biệt giữa trạng thái xử lý và trạng thái đã nhận ở máy khác, thứ tự phiên bản và thời điểm reconnect.
+- Không đổi lịch SKU hoặc nghiệp vụ confirm chỉ vì thay giao diện.
+- Trạng thái: **GHI NHẬN, CHƯA PHÂN TÍCH/CODE/DEPLOY**.
+
+**D168-REQ-006 — Bật/tắt tự khởi động Agent cùng Windows**
+- Trong Cài đặt Agent, bổ sung lựa chọn "Tự khởi động Agent cùng Windows" theo máy.
+- Chờ phân tích cơ chế startup phù hợp (sau Windows login hoặc khi bật máy), quyền user, lưu setting, nâng phiên bản, chống mở trùng tiến trình, thông báo lỗi và ảnh hưởng đến hoạt động nền/Usage.
+- Không tự chuyển vai trò máy chính hoặc khởi động tác vụ xác nhận khi chỉ mở Agent.
+- Trạng thái: **GHI NHẬN, CHƯA PHÂN TÍCH/CODE/DEPLOY**.
+
+**Quyền thực hiện:** Bốn yêu cầu chỉ được ghi vào backlog D168 để chờ phân tích; không được coi là lệnh sửa mã nguồn hoặc triển khai Windows Agent, Android App hay Service. Usage ước lượng và phương án đồng bộ phải kiểm tra từ code/log thực tế trước khi trình duyệt.
