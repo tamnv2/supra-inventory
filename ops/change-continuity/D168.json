@@ -7,30 +7,10 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E028",
+    "id": "D168-E029",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": {
-    "owner_latest": "2026-10-14 OWNER_EXPLICIT_D168_ALL_CODE_AND_BETA_DEPLOY_APPROVED_AFTER_ALL_CI_AND_FIELD_GATES",
-    "code_permission": true,
-    "merge_permission": true,
-    "beta_deploy_permission": true,
-    "stable_deploy_permission": false,
-    "approved_components": [
-      "AGENT_BETA",
-      "ANDROID_BETA",
-      "WEB_BETA",
-      "INVENTORY_WORKER_BETA",
-      "INVENTORY_CORE_BETA",
-      "EXISTING_FIRESTORE_BETA"
-    ],
-    "new_owner_approval_required": false,
-    "current_pr_scope": "D168_V131_SOURCE_CI_20_OF_20_PASS__FIELD_ONLY_RELEASE_GATE__NO_DEPLOY",
-    "technical_release_pass": false,
-    "field_pass": false,
-    "source_ci_pass": true,
-    "source_ci_head": "91e83e79b97aa576408617971f69317b1e47c254"
-  },
+  "deployment_gate": "D168_E029_OWNER_ACCEPTED_BETA_FIELD_TRIAL__CI_SHA_GATED__FIELD_VERIFIED_FALSE__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D168-E001",
@@ -697,6 +677,28 @@
       ],
       "next_action": "Report API version mismatch to Owner; keep Beta D167 and PR591 Draft. Fix diagnostic mixed-version classification as scoped source improvement, run CI and prepare controlled field validation plan without lifting gate.",
       "evidence": "Owner-provided agent-complete(7).log sanitized 2026-10-14 06:31–06:35; relay-agent/D168NetworkRoute.cs#ProbeWorker/OpenWorkerSession; main vs PR591 service/src/index.ts network-capability route; ops/d168-release-authorization.json"
+    },
+    {
+      "id": "D168-E029",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner accepts unverified network/field safety as sufficient to release scoped D168 Beta for direct field acceptance; deploy full model",
+      "status": "OWNER_EXPLICIT_BETA_FIELD_TRIAL_RELEASE_ACCEPTANCE__REAL_DEVICE_PASS_UNVERIFIED__PR_CI_RECHECK_AND_GATED_MERGE_REQUIRED",
+      "owner_approval": true,
+      "facts": [
+        "Owner states: 'Anh xác nhận coi như mục này pass. Em tiến hành triển khai toàn bộ đi. Để đồng bộ version toàn bộ mô hình cho anh test nghiệm thu trực tiếp.' This supersedes the requirement to finish a physical Wi-Fi/PickList test BEFORE Beta trial deployment, for the existing approved D168 components only.",
+        "Treating the pre-release physical-check condition as accepted is an Owner risk decision, NOT evidence that the test occurred. Preserve physical_field_verified=false and field_pass=false. Still require real post-release device testing for full Owner D168 business PASS.",
+        "Candidate Agent v131 had failed at home on the already-released D167 Worker because /api/agent/d168/network-capability is PR-only. D168 Worker must pass health/source before Agent v131 channel or signed Android channel can publish.",
+        "Owner approval covers existing scoped Beta Worker+InventoryCore, Web Beta assets, Agent v131 and signed Android Beta, after current branch authority/continuity/product CI; does not authorize Stable, new resources, CI guard disable, WMS mutation beyond read-only SKU export, or bypassing Wi-Fi/proxy policy.",
+        "An explicit fail-closed release receipt will bind the source SHA and exactly ['worker','android','agent']; field waiver mode must be exact Owner acceptance marker; source CI remains mandatory; publish order Worker first, then Agent/Android."
+      ],
+      "alternatives": [
+        "Chosen: document explicit Owner Beta field-trial risk acceptance with a distinct gate branch; Worker-first release/health gate and post-deploy field acceptance.",
+        "Rejected: set field_pass=true without actual physical proof or skip product/CI/security checks.",
+        "Rejected: publish Agent before D168 Worker endpoint is available, reproducing home probe version mismatch."
+      ],
+      "next_action": "Finish source-policy/docs updates and exact-head PR CI. Only after PASS update approved code SHA and release receipt, verify it, mark PR Ready, merge via GitHub and track Beta Worker health, Agent v131 and signed Android channel. Keep D168 owner_pass=false pending direct field test.",
+      "evidence": "Owner explicit message 2026-10-14 current conversation; sanitized D168-E028 home log diagnosis; PR591; tools/d167_release_gate.py Owner waiver check; .github/workflows/verify-relay-agent.yml Worker-first guard; .github/workflows/verify-apps.yml Worker runtime dependency."
     }
   ],
   "resume": {
@@ -707,7 +709,8 @@
       "D168-E016 Owner fixed SKU job continuation across HA loss, bounded 60s idle-only Wi-Fi transition, and direct Cloudflare optional actions; code/deploy still separate",
       "D168-E016 Owner retires Agent Usage D160 auto refresh and D166 Usage ZIP, preserving operational log archive",
       "D168-E017: Owner accepts Firebase Auth/Firestore dual-network critical lanes and on-demand Cloudflare direct optional actions, preserving required Android notification and network safety",
-      "D168-E018 Owner explicit whole Big Update CODE + Beta deploy permission; FULL mandatory solo primary, WMS ordinary Internet, direct Worker SKU; Stable unchanged."
+      "D168-E018 Owner explicit whole Big Update CODE + Beta deploy permission; FULL mandatory solo primary, WMS ordinary Internet, direct Worker SKU; Stable unchanged.",
+      "D168-E029: Owner explicitly accepts unverified predeploy device/network tests for a scoped Beta trial rollout and later direct field acceptance; not physical FIELD PASS."
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -725,11 +728,7 @@
       "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains."
     ],
     "pending_approval": [
-      "Stable is OWNER-GATED",
-      "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics",
-      "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval",
-      "D168-REQ-011: Office-only WMS Excel GET + Google Apps Script to Worker SKU uplink; field proof on script.googleusercontent.com and UrlFetch quota; no code/deploy permission.",
-      "No new Owner code/deploy approval required for existing D168-E018 Beta scope, but physical FIELD_PASS and exact-head CI remain required."
+      "Stable is OWNER-GATED"
     ],
     "blocked": [
       "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
@@ -738,16 +737,11 @@
       "Mixed-version predeployment field test: v131 D168 capability endpoint absent in released D167 Worker; test cannot prove Worker readiness until safe compatibility or staged rollout is designed."
     ],
     "next_actions": [
-      "Owner/device-only: from PR591 run 38483669723 download Agent v131 test artifact; test on one safe idle Windows Agent PC with approved saved Wi-Fi and one PDA, then provide sanitized Worker route/SKU DONE/Picklist ACK/HA evidence.",
-      "Owner field step: On one idle primary Agent PC, download verified PR artifact and test approved saved Internet Wi-Fi Worker switch/restore, then WMS SKU DONE and one PDA PickList ACK.",
-      "After exact-head CI, physical one-PC test is the only Owner/device-only boundary; no CLI or Github owner work required.",
-      "Check exact-head CI on PR591 startup fix, maintain deliberate SKU WLAN contract release failure until real orchestration exists.",
-      "Wire authorized safe WLAN route and Worker probe into actual Agent SKU flow without compromising WMS Confirm/Firestore/HA; run 60s/15m/no-standby tests.",
-      "Complete targeted REQ-001..011 feature regressions and instrument before/after per-provider usage.",
-      "Fix expected failing D168 release guard, run exact-head CI/Authority/Continuity and only then gated Beta release/readback.",
-      "Keep Stable untouched; request Owner field acceptance only after real device proof."
+      "Verify updated Owner-waiver release gate + Worker-first Agent/Android workflow via exact PR HEAD CI, update SHA-bound approved Beta receipt, merge and monitor releases.",
+      "Post-release physical Agent/PDA/WMS/HA/ACK and billable quota verification remains pending Owner acceptance; do not claim FIELD_PASS or OWNER_PASS.",
+      "Stable unchanged and strictly Owner-gated."
     ],
-    "release_boundary": "D168_E018_BETA_OWNER_APPROVED_CONDITIONALLY__CURRENT_EXACT_HEAD_CI_20_OF_20_PASS__FIELD_NOT_PROVEN__PR591_DRAFT_NO_MERGE_OR_DEPLOY__STABLE_OWNER_GATED",
+    "release_boundary": "OWNER_EXPLICIT_D168_BETA_FIELD_TRIAL_WITHOUT_PRIOR_PHYSICAL_PROOF__EXACT_SOURCE_CI_SECURITY_GATED__POST_RELEASE_FIELD_ACCEPTANCE_PENDING__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
