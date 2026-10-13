@@ -1150,15 +1150,18 @@ namespace SupraInventoryRelayAgent
                     }
 
                     _coordinationHealthy = true;
+                    AgentConnectionDiagnostics.Recovered("FIRESTORE_HA_COORDINATOR", _log);
                     if (startupConvergence) _startupConvergenceRemaining--;
                 }
                 catch (Exception ex)
                 {
                     _coordinationHealthy = false;
                     _refreshBeforeBusiness = true;
-                    _log("FIRESTORE HA coordination error role_preserved=true type=" + ex.GetType().Name +
-                         " message=" + AgentDiagnostics.Sanitize(ex.Message));
-                    waitMs = 3000;
+                    if (AgentConnectionDiagnostics.ShouldLogFailure("FIRESTORE_HA_COORDINATOR", ex, _log))
+                        _log("FIRESTORE HA coordination error role_preserved=true type=" + ex.GetType().Name +
+                             " reason=" + AgentConnectionDiagnostics.Reason(ex) +
+                             " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    waitMs = AgentConnectionDiagnostics.Reason(ex) == "SESSION_REQUIRED" ? 5000 : 3000;
                 }
 
                 var signaled = WaitHandle.WaitAny(new WaitHandle[] { token.WaitHandle, _wake }, Math.Max(1000, waitMs));
