@@ -4,8 +4,8 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D167",
   "accepted_base": "D166_LIMITED_OWNER_PASS",
-  "working_branch": "d167-owner-command-gates-scope-20261013",
-  "pr": 575,
+  "working_branch": "d167-log-review-20261012-20261013",
+  "pr": 574,
   "status": "D167_OWNER_COMMAND_POLICY_AND_PENDING_RECLASSIFICATION__NO_NEW_RELEASE",
   "last_checkpoint": {
     "id": "D167-E046",
@@ -968,7 +968,8 @@
     "next_actions": [
       "Pass PR575 docs+authority/continuity CI without triggering runtime publication; merge only after all mandatory checks.",
       "In separate D167 PR574/window continue Agent fault discussion; do not modify Agent/Service/Web/Android from this decision.",
-      "Await real provider logs for optimization; Launcher separate project; apply clarified commands to later approved tasks."
+      "Await real provider logs for optimization; Launcher separate project; apply clarified commands to later approved tasks.",
+      "Working Draft PR574 is separately owned by current Agent diagnosis discussion; rebase it on main Owner E046 before attempting any future merge, no automatic application of this policy PR's release permission."
     ],
     "release_boundary": "PR575_D167_OWNER_DOCUMENTATION_ONLY__NO_BETA_STABLE_SERVICE_WEB_ANDROID_AGENT_LAUNCHER_RUNTIME_DEPLOY__D167_OWNER_PASS_PENDING"
   }
