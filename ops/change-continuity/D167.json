@@ -6,9 +6,9 @@
   "accepted_base": "D166_LIMITED_OWNER_PASS",
   "working_branch": "d167-log-review-20261012-20261013",
   "pr": 574,
-  "status": "D167_E044_20261012_NON_SKU_LOG_DIAGNOSIS_PROPOSAL__FIXES_AWAIT_OWNER_APPROVAL",
+  "status": "D167_E045_NONSKU_AGENT_ONLY_PROPOSAL__NO_EXECUTABLE_APPROVAL",
   "last_checkpoint": {
-    "id": "D167-E044",
+    "id": "D167-E045",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -885,6 +885,33 @@
       ],
       "next_action": "Provide Owner a prioritized non-SKU diagnosis with evidence limits and exact candidate impact/quota/rollback matrix. No Agent/Web/Worker/Android source change, PR merge or deployment for these new findings without explicit Owner review and approval. Keep Stable gated.",
       "evidence": "Existing scoped private Beta Logs folder 2026-10-12; event-stage logs; D166_USAGE_AUDIT AGENT_ESTIMATE_NOT_BILLING; relay-agent/FirestoreAgentLeaderCoordinator.cs main; docs/specs/OBSERVABILITY_LOGGING.md; docs/specs/REALTIME_NOTIFICATIONS.md; main PR572 field gate."
+    },
+    {
+      "id": "D167-E045",
+      "date_vn": "2026-10-13",
+      "kind": "PROPOSAL",
+      "topic": "Owner requests safe repairs only in Windows Agent, no Android app update and no interruption or change to existing Web/Service runtime",
+      "status": "PROPOSED__OWNER_APPROVAL_PENDING__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner constraints: no Android/PDA application upgrade; Web/Service remain operating unchanged; work concentrated on Windows Agent. Agent source changes still require a new Agent EXE release and controlled per-machine update if approved. Zero confirm downtime is conditional on observed healthy standby, no in-flight confirmation and authorized handoff; do not promise guaranteed uninterrupted WMS if HA is unhealthy.",
+        "12 October logs: DNS resolution errors for Firestore/Apps Script, RTDB SSE repeated timeout/recovery, startup/logout coordination while session absent, bulk Picker revoke preview HTTP403, WMS uncertainty after final click; local usage estimate and existing log duplicate protection.",
+        "Source: relay-agent/FirestoreConfirmationTransport.cs already has healthy-listener REST watchdog 10s with active PDA/30s without and degraded 1/2/3/15s fallback. relay-agent/RtdbHaLiveness.cs already does SSE failure transition logging and 1s retry, fail-closed on unverified primary death. relay-agent/AgentLogUploadBridge.cs already groups fingerprints within 10m and 6 global/10m. relay-agent/D161AdminControl.cs already refreshes and retries exactly once on HTTP401; HTTP403 cannot be safely bypassed. relay-agent/D160ConfirmPipeline.cs already fences PRIMARY and treats post-click uncertain as non-retryable; do not blindly change that guarantee.",
+        "Source: relay-agent/D119AgentFeatures.cs currently reconciles PRIMARY Agent presence, open Picker contacts, fleet/counters every 5m; relay-agent/FirestorePickerContact.cs queries at most 100 legacy alerts and up to 500 active calls. Cost optimization must preserve contact freshness, active call behavior and runtime guards.",
+        "Proposed code changes limited to Agent-local lifecycle gate for unauthenticated nonbusiness HA work (without modifying accepted PRIMARY handoff or role proof), safe network/auth diagnostic classification and temporal incident summary, improved log upload suppression/observability reusing existing event and local log, D161 revoke preview 403 cause diagnostics with role/status safe fields and no extra Worker requests, RTDB flap interval counters and passive observer reconnect diagnostics without modifying liveness timeout/failover algorithms."
+      ],
+      "alternatives": [
+        "A: no Agent EXE update; use existing log and existing provider/Windows diagnostics only. Source defects cannot be fixed without releasing changed Agent executable.",
+        "B (recommended): Agent-only local diagnostics/session startup guard/incident coalescing, no new API calls, no Service/Web/Android/Rules/Provider changes, rolling per-machine release after Agent CI PASS and Owner approval.",
+        "C (defer): reduce CONFIRM_QUERY, picker-contact-open-query and PRIMARY_LEASE_WRITE/read cadence, change SSE transport/HA thresholds, WMS uncertain result classification or Worker 403 authorization. These touch realtime/correctness/HA contracts, require correlated usage, field evidence and separate Owner approval; cannot be assumed safe."
+      ],
+      "open_questions": [
+        "Whether Owner means no Android APK update (Agent EXE update permitted) or forbids any Agent EXE update. Recommend Agent-only executable update; no APK.",
+        "Is the Agent-only P0/P1 diagnostic and lifecycle-gating subset approved for implementation and staged Beta release, separate from D167 Owner PASS?",
+        "Whether 403 is caused by backend permission policy rather than Agent session. Do not promise definitive functional repair without endpoint/auth evidence."
+      ],
+      "next_action": "Obtain explicit Owner approval for Agent-only no-API/no-service/no-Android scope; then edit only relay-agent source + tests in D167 branch/PR, CI safety/HA/Confirm/ACK/permissions, verify PR guards; release Agent Beta only if separately authorized and standby healthy; never touch Stable or live Web/Worker service.",
+      "evidence": "12 Oct Inventory/Beta/Logs sanitized Agent snapshots, E044; main source relay-agent/FirestoreConfirmationTransport.cs, RtdbHaLiveness.cs, FirestoreAgentLeaderCoordinator.cs, AgentLogUploadBridge.cs, D161AdminControl.cs, D160ConfirmPipeline.cs, D119AgentFeatures.cs, FirestorePickerContact.cs; draft PR574."
     }
   ],
   "resume": {
@@ -931,7 +958,8 @@
       "Separate Stable deployment approval only if Owner explicitly requests",
       "D167-E024 — Agent SKU tab with 3 daily slots, low-usage local status and password-confirmed instantaneous manual FULL/DELTA: proposal only, Owner review pending; no code/deploy authorized.",
       "D167-E036 — Hidden same-profile WMS child is already implemented; evaluate only security-reviewed native/official export path, no new source/deploy approved in this discussion.",
-      "D167-E044 12/10 non-SKU log review: P0 DNS/confirm uncertainty, P1 HA/auth and measured usage candidates require Owner technical scope approval before source changes."
+      "D167-E044 12/10 non-SKU log review: P0 DNS/confirm uncertainty, P1 HA/auth and measured usage candidates require Owner technical scope approval before source changes.",
+      "D167-E045 — Agent-only candidate P0/P1: local network/auth diagnostics, startup session guard and log incident grouping, RTDB passive flap observation, 403 revoke preview diagnostics; no code or Beta release approval yet."
     ],
     "blocked": [
       "Physical WMS/PRIMARY, PDA fleet, HA, ACK and billed usage remain unverified until Beta runtime and field activity",
@@ -955,7 +983,8 @@
       "Keep PR568 Draft; resolve WMS read-only main browser integration through approved security-reviewed source path, rerun exact PR CI, then consider authorized Agent-only Beta release; no fleet/field PASS yet.",
       "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy.",
       "Owner review of on-demand D167-only Firestore lease maintenance + safe Worker failure reasons; do not code or deploy before explicit permission.",
-      "D167-E044: Owner review non-SKU 12/10 findings; no fix, CI release or Beta/Stable mutation authorized by this diagnostics-only review."
+      "D167-E044: Owner review non-SKU 12/10 findings; no fix, CI release or Beta/Stable mutation authorized by this diagnostics-only review.",
+      "Obtain explicit Owner approval of exact Agent-only repair subset; no APK, Web, Worker/Service change; Agent release only with verified healthy standby and no active PL."
     ],
     "release_boundary": "D167_P0_BETA_WORKER_AND_AGENT129_RELEASE_PASS__FIELD_SKU_AND_OWNER_PASS_PENDING__OTHER_ERRORS_DEFERRED__STABLE_GATED"
   }
