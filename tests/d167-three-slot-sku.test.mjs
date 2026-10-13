@@ -492,7 +492,7 @@ test("D168 Windows auto-start setting verifies the HKCU Run registration before 
   const {readFileSync}=await import("node:fs");
   const code=readFileSync(new URL("../relay-agent/UserStartupRegistration.cs",import.meta.url),"utf8");
   assert.match(code,/Registry\.CurrentUser\.OpenSubKey\(RunKey,false\)/);
-  assert.match(code,/if\(registered!=enabled\)/);
+  assert.match(code,/string\.Equals\(actual,expected,StringComparison\.Ordinal\)/);
   assert.match(code,/AUTOSTART_RUN_REGISTRATION_MISMATCH/);
   assert.match(code,/SetValue\(EnabledValue,previous\?1:0/);
   assert.match(code,/return false;/);
