@@ -1010,12 +1010,15 @@ class PickerController(
             "SKIP_ALLOWED" -> "Skip"
             else -> "Đã có hàng"
         }
+        val responseTime = result.resolvedAt?.takeIf { it.isNotBlank() }?.let { timeOnly(it) }
+        val replyLabel = "$actor · $roleLabel" +
+            if (responseTime.isNullOrBlank()) "" else " · $responseTime"
         surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
             if (source == "REPORTER_CORRECTION" && previousStatus.isNotBlank()) {
-                "Báo hàng ${result.sku} chuyển trạng thái SKU từ $previousStatus sang $newStatus.\nLý do: $actor ($roleLabel) đã sửa kết quả."
-            } else if (isSkip) "Cho phép skip · $actor · $roleLabel"
-            else if (isPendingCorrection) "Đang xử lý lại · $actor · $roleLabel"
-            else "Đã có hàng · $actor · $roleLabel"
+                "Báo hàng ${result.sku} chuyển trạng thái SKU từ $previousStatus sang $newStatus.\nNgười sửa: $replyLabel"
+            } else if (isSkip) "Cho phép skip · $replyLabel"
+            else if (isPendingCorrection) "Đang xử lý lại · $replyLabel"
+            else "Đã có hàng · $replyLabel"
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = "Cảnh báo nghiệp vụ • cần xác nhận để tiếp tục"
         val acknowledge = surface.findViewById<Button>(R.id.btnOverlayAck).apply {
             text = "XÁC NHẬN ĐÃ NHẬN"
