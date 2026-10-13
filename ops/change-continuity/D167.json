@@ -24,7 +24,7 @@
     "current_pr_scope": "PR577_WEB_SKU_PROVENANCE_BETA_WORKER_WEB_ONLY__NO_ANDROID_AGENT_STABLE",
     "historical_beta_release": "D167_P0_AGENT_V129_WORKER_ALREADY_RELEASED_IN_PR572",
     "stable": "OWNER_GATED",
-    "approved_source_sha": "1c2a25c17e49b50f1341f911a90bcdb72ab869c6",
+    "approved_source_sha": "978de47f252080cc3a5ad6fd428741bdd1be8ab3",
     "technical_release_pass": false,
     "field_pass": false
   },
@@ -1014,7 +1014,7 @@
         "Frontend three compact cards SKU count, today verified FULL readiness, catalog data change timestamp; 3 source-attested Web/Agent FULL/Agent DELTA receipt cards; recent events with source/actor/counts; technical version collapsed; active SKU search full width with area/time; Excel importer collapsed while retaining existing validation/PATCH/FULL/conflict/roles/page workflow. 5-minute caching and invalidation on successful import; one additional admin page-only DO SQL read, no realtime polling or Firebase reads.",
         "Existing public catalog-info, Android SKU schema and online day-ready reporting remain unchanged; new provenance response is management-Web-only and no field attempt to infer Agent FULL from max_updated_at; empty/unavailable history explicitly shown.",
         "No Android APK, Windows Agent v130 release, Firebase/RTDB Rules, Apps Script, WMS backend, Stable, new resources or changed SKU write policies; only existing Beta Worker/Web build/deploy is approved after exact PR head CI. No routine interruptions expected from existing Cloudflare Worker version deployment, but field evidence required.",
-        "Added tests/d167-sku-provenance.test.mjs to predeploy product verify workflow, source tests for mode, privacy, Web drawer and low usage. Technical implementation source commit candidate 1c2a25c17e49b50f1341f911a90bcdb72ab869c6 is Owner receipt ancestor and must remain identical under protected source until merge/release."
+        "Added tests/d167-sku-provenance.test.mjs to predeploy product verify workflow, source tests for mode, privacy, Web drawer and low usage. Technical implementation source commit candidate 978de47f252080cc3a5ad6fd428741bdd1be8ab3 is Owner receipt ancestor and must remain identical under protected source until merge/release."
       ],
       "alternatives": [
         "A (approved): source-attested DO SQL management read and compact Web layout within existing Beta Worker; no extra background writes/polling or Firebase queries. Exact source receipt and CI PASS before merge/automatic release.",
