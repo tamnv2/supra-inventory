@@ -24,6 +24,9 @@ namespace SupraInventoryRelayAgent
 
         internal static bool SetEnabled(bool enabled)
         {
+            // The checkbox must reflect the real Windows Run registration,
+            // not just a successfully written preference.
+            var previous = IsEnabled();
             try
             {
                 using(var key=Registry.CurrentUser.CreateSubKey(PreferencesKey,true))
@@ -32,10 +35,26 @@ namespace SupraInventoryRelayAgent
                     key.SetValue(EnabledValue,enabled?1:0,RegistryValueKind.DWord);
                 }
                 EnsureRegistered();
+                using(var run=Registry.CurrentUser.OpenSubKey(RunKey,false))
+                {
+                    var registered=run!=null && !string.IsNullOrWhiteSpace(
+                        Convert.ToString(run.GetValue(ValueName,"")));
+                    if(registered!=enabled)
+                        throw new InvalidOperationException("AUTOSTART_RUN_REGISTRATION_MISMATCH");
+                }
                 return true;
             }
             catch(Exception ex)
             {
+                // Recover the previous preference if Windows denies the
+                // registration. Do not claim the toggle worked on a failed write.
+                try
+                {
+                    using(var key=Registry.CurrentUser.CreateSubKey(PreferencesKey,true))
+                        if(key!=null) key.SetValue(EnabledValue,previous?1:0,RegistryValueKind.DWord);
+                    EnsureRegistered();
+                }
+                catch { }
                 AgentDiagnostics.Write("AUTOSTART preference=FAIL type="+ex.GetType().Name);
                 return false;
             }
