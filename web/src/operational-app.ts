@@ -1314,7 +1314,7 @@ function renderLogin(): void {
   app.innerHTML = `<main class="login-shell"><div class="login-stage">
     <div class="login-brand-lockup login-brand-reference"><img class="login-app-icon" src="/app-icon.png" alt="" /><div class="login-brand-copy"><p class="login-company">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p><h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1></div></div>
     <section class="login-card">
-      <div class="login-card-heading"><span></span><div><h2>Đăng nhập tài khoản</h2><p>Nhập thông tin để truy cập hệ thống</p></div></div>
+      <div class="login-card-heading"><span></span><div><h2>Đăng nhập tài khoản</h2></div></div>
       ${!firebaseReady ? `<div class="message" data-type="error">Hệ thống đăng nhập chưa sẵn sàng. Vui lòng thử lại sau.</div>` : ""}
       <form id="login-form">
         <label>Tài khoản<input name="username" required autocomplete="username" placeholder="Nhập tài khoản" value="${esc(rememberedUsername)}" /></label>
@@ -1638,8 +1638,8 @@ function renderOperations(): string {
     ${renderOperationalTabs("operations")}
     <section class="business-summary-grid queue-summary-grid">
       <button type="button" class="business-summary-card summary-filter-card primary ${queueFilter === "ALL" ? "active" : ""}" data-queue-filter="ALL"><span>SKU đang chờ xử lý</span><strong>${queueRows.length.toLocaleString("vi-VN")}</strong><small>${affected.toLocaleString("vi-VN")} Picker đang bị ảnh hưởng</small></button>
-      <button type="button" class="business-summary-card summary-filter-card warning ${queueFilter === "WARNING" ? "active" : ""}" data-queue-filter="WARNING"><span>Sắp quá thời gian</span><strong>${warningCount.toLocaleString("vi-VN")}</strong><small>Nhấn để xem danh sách</small></button>
-      <button type="button" class="business-summary-card summary-filter-card danger ${queueFilter === "ESCALATED" ? "active" : ""}" data-queue-filter="ESCALATED"><span>Đã quá thời gian</span><strong>${overdueCount.toLocaleString("vi-VN")}</strong><small>Nhấn để xem danh sách</small></button>
+      <button type="button" class="business-summary-card summary-filter-card warning ${queueFilter === "WARNING" ? "active" : ""}" data-queue-filter="WARNING"><span>Sắp quá thời gian</span><strong>${warningCount.toLocaleString("vi-VN")}</strong></button>
+      <button type="button" class="business-summary-card summary-filter-card danger ${queueFilter === "ESCALATED" ? "active" : ""}" data-queue-filter="ESCALATED"><span>Đã quá thời gian</span><strong>${overdueCount.toLocaleString("vi-VN")}</strong></button>
     </section>
     <div class="fast-workspace">
       <div class="fast-list" id="fastList" aria-live="polite">
@@ -1734,10 +1734,10 @@ function updateQueueClockDom(): void {
 function renderOverdue(): string {
   return `<section class="ops-route ops-business-workspace">
     ${skuDayBanner()}
-    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>SKU có Picker đã tới mốc tự động cho phép bỏ qua nhưng vẫn chờ Invent chốt kết quả cuối.</p></div></div>
+    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
     ${renderOperationalTabs("overdue")}
     <article class="ops-panel">
-      <div class="ops-panel-title"><div><h3>SKU quá hạn</h3><p>Mỗi SKU chỉ xuất hiện một lần; số Picker quá hạn và Picker còn chờ được tách riêng.</p></div></div>
+      <div class="ops-panel-title"><div><h3>SKU quá hạn</h3></div></div>
       ${!perPickerOverdueEnabled ? `<p class="muted">Tự động cho phép Skip theo từng Picker chưa được bật. Chưa có SKU quá hạn cần xử lý.</p>` : ""}
       <div class="table-wrap"><table><thead><tr><th>SKU / Sản phẩm</th><th>Picker quá hạn</th><th>Picker còn chờ</th><th>Quá hạn đầu tiên</th><th>Thao tác</th></tr></thead><tbody>
         ${overdueRows.map((row) => `<tr>
@@ -1774,14 +1774,14 @@ function renderResults(): string {
   const pageTo = Math.min(recentTotal, recentOffset + recentRows.length);
   return `<section class="ops-route ops-business-workspace">
     ${skuDayBanner()}
-    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2><p>Kiểm tra kết quả đã xử lý và tình trạng Picker nhận kết quả.</p></div></div>
+    <div class="business-page-head"><div><h2>Vận hành báo hàng</h2></div></div>
     ${renderOperationalTabs("results")}
     <section class="business-summary-grid business-summary-grid-5">
-      <article class="business-summary-card good"><span>Đã có hàng</span><strong>${hasStock}</strong><small>Nhân sự xác nhận có hàng</small></article>
-      <article class="business-summary-card danger"><span>Bỏ qua bởi nhân sự</span><strong>${humanSkipped}</strong><small>Reporter/Admin xác nhận cho phép bỏ qua</small></article>
-      <article class="business-summary-card warning"><span>Tự động bỏ qua</span><strong>${automaticSkipped}</strong><small>Quá hạn phản hồi nên hệ thống tự cho phép</small></article>
-      <article class="business-summary-card"><span>Picker đã thu hồi</span><strong>${withdrawn}</strong><small>Báo được Picker tự thu hồi</small></article>
-      <article class="business-summary-card primary"><span>Picker đã nhận kết quả</span><strong>${acknowledged}/${targets}</strong><small>Tổng lượt xác nhận nhận kết quả</small></article>
+      <article class="business-summary-card good"><span>Đã có hàng</span><strong>${hasStock}</strong></article>
+      <article class="business-summary-card danger"><span>Bỏ qua bởi nhân sự</span><strong>${humanSkipped}</strong></article>
+      <article class="business-summary-card warning"><span>Tự động bỏ qua</span><strong>${automaticSkipped}</strong></article>
+      <article class="business-summary-card"><span>Picker đã thu hồi</span><strong>${withdrawn}</strong></article>
+      <article class="business-summary-card primary"><span>Picker đã nhận kết quả</span><strong>${acknowledged}/${targets}</strong></article>
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Khoảng kết quả</h3><p>Theo thời điểm xử lý; tối đa 60 ngày. Tổng quan và bảng bên dưới dùng cùng khoảng này.</p></div><button class="secondary" id="recent-open-report">Mở báo cáo chi tiết</button></div>
