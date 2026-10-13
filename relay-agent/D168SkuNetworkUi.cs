@@ -45,7 +45,9 @@ namespace SupraInventoryRelayAgent
         private bool RequestD168NetworkSwitchPermission()
         {
             if(!InvokeRequired || IsDisposed || !IsHandleCreated)return false;
-            using(var completed=new ManualResetEventSlim(false))
+            // A delayed UI callback may still finish after the worker timeout.
+            // Do not dispose the signal before FormClosed has completed Set().
+            var completed=new ManualResetEventSlim(false);
             {
                 var allowed=false;
                 try
