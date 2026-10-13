@@ -352,7 +352,9 @@ function searchSkus(state: DurableObjectState, url: URL): BusinessResult {
   ).toArray()) || {};
   const rows = state.storage.sql
     .exec<SkuRow>(
-      `SELECT sku, product_name, source_hash, created_at, updated_at
+      `SELECT sku, product_name, source_hash, created_at, updated_at,
+              (SELECT a.area FROM d167_sku_active a
+                WHERE a.sku=sku_master.sku AND a.active=1 LIMIT 1) AS area
          FROM sku_master
          ${where}
         ORDER BY sku ASC
