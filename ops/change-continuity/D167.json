@@ -8,7 +8,7 @@
   "pr": 572,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
-    "id": "D167-E042",
+    "id": "D167-E043",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -837,6 +837,24 @@
       ],
       "next_action": "Finish source CI, correct any failures within approved P0, record exact tested source in release receipt, PR merge and verify GitHub Beta Worker/Agent release, then report physical test still pending and exact next action.",
       "evidence": "Branch d167-p0-ha-sku-v129-vietnamese-20261013; source Service/Agent/Worker/CI test files; docs decisions/specs same change set"
+    },
+    {
+      "id": "D167-E043",
+      "date_vn": "2026-10-13",
+      "kind": "STATUS",
+      "topic": "D167 P0 scoped Beta Worker and Agent v129 release completed; Vietnamese SKU operator identity UI awaiting field Service DONE",
+      "status": "PR572_CI_PASS_20_OF_20__BETA_WORKER_DEPLOY_PASS__BETA_AGENT_V129_SIGNED_RELEASE_PASS__FIELD_SKU_UNVERIFIED",
+      "owner_approval": true,
+      "facts": [
+        "Owner-approved PR #572 from branch d167-p0-ha-sku-v129-vietnamese-20261013 merged into main at e9df50e6edd5e25a4d9485c18800a78c34b12591 after exact PR HEAD CI 20 success, 9 skipped, 0 failures. Main merge CI 12 success, 8 skipped, 0 failures.",
+        "Existing Beta Worker deployment run 38329058493 completed SUCCESS, including Beta postdeploy health checks. Agent v129 Windows release run 38329058498 completed SUCCESS.",
+        "GitHub prerelease relay-agent-v129 published 2026-10-13 00:50:12Z, signed distribution EXE SHA256 9d1dbad96f33be3198084374f514f47a3955e7f8d8509e4d2eadc53a0de8482c and size 7382528 bytes. Inventory-channel EXE asset digest matches release EXE; current agent-latest.json updated 2026-10-13 00:50:14Z.",
+        "SKU mutations refresh existing Firestore generation lease only during active job, Worker still independently validates roles and lease with classified non-sensitive 409 reason, no extra provider reads or background writes when idle. Core stores verified operator name+code in existing DONE receipt, Agent displays Vietnamese local statuses and operator in existing schedule/history response.",
+        "No Web source, Android/PDA, WMS Confirm, Apps Script gateway, new Firebase/Cloudflare resources, Stable, Launcher or mandatory fleet update changed by P0. Unrelated 05:00–07:00 session/Confirm errors remain awaiting Owner complete logs.",
+        "RELEASE_PASS and CI PASS only. Physical ADMIN-PC installation of v129, successful WMS 2492/actual rows into Service FULL/DELTA, displayed operator identity, HA concurrent failover, provider billed usage and Owner business PASS remain FIELD_PENDING."
+      ],
+      "next_action": "Owner tests v129 Agent PRIMARY -> SKU update today, verifies user name and exactly durable Service DONE; read existing Beta Agent/Worker sanitized reason logs if error. Analyze other issues only after Owner supplies full logs; keep D167 Owner PASS separate.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/572 ; https://github.com/tamnv2/supra-inventory/actions/runs/38329058493 ; https://github.com/tamnv2/supra-inventory/actions/runs/38329058498 ; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v129"
     }
   ],
   "resume": {
@@ -867,7 +885,8 @@
       "PR568 Agent v128 source: tab order, safe error-stage/HTTP code, unchanged signed direct WMS GET with isolated same-profile auth-context observation.",
       "D167 PR568 guard fix exact source SHA 4cb92198: 16/16 GitHub PR workflows PASS, safe 2026-10-13 Agent-only Owner gate validated.",
       "PR568 v128 fixed safe NETWORK_ diagnostics to uppercase with contract regression; exact source cd104822 16/16 PR CI PASS.",
-      "D167 PR568 Agent v128 Beta diagnostic release succeeded: merge a0106e69, main Agent run 38323957784 PASS, signed v128 EXE/channel SHA256 matched."
+      "D167 PR568 Agent v128 Beta diagnostic release succeeded: merge a0106e69, main Agent run 38323957784 PASS, signed v128 EXE/channel SHA256 matched.",
+      "P0 Beta Worker v129 contract and Agent signed EXE release PASS; PR572 merge e9df50e6, both release workflows SUCCESS, release/channel SHA256 matched."
     ],
     "in_progress": [
       "Await real installed Agent v127 PRIMARY session WMS manual+three-slot FULL/DELTA and HA/Confirm/provider quota Owner field acceptance; technical release completed.",
@@ -875,7 +894,7 @@
       "Main-Agent WMS source approved concept; implementation not verified, existing v128 UI/diagnostic source pending two continuity/authority guards.",
       "PR568 Agent v128 MAIN managed-WMS auth-source integration remains pending security-reviewed supported implementation; current source is UI/diagnostic only.",
       "Field WMS session export, XLSX and Service DONE test on installed v128 PRIMARY; diagnose by safe phase/error/elapsed log.",
-      "D167-E042 authorized P0 Agent v129 + Worker Beta: source on branch; CI and release pending, FIELD SKU Service DONE not proved."
+      "P0 v129 installed-device WMS SKU FULL/DELTA Service DONE + name/code user attribution + HA/usage field test; Owner PASS pending."
     ],
     "pending_approval": [
       "D167 Owner business FIELD PASS on actual fleet",
@@ -906,6 +925,6 @@
       "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy.",
       "Owner review of on-demand D167-only Firestore lease maintenance + safe Worker failure reasons; do not code or deploy before explicit permission."
     ],
-    "release_boundary": "OWNER_APPROVED_SCOPED_D167_P0_BETA_AGENT129_WORKER_AFTER_CODE_CI__STABLE_GATED__OTHER_ERRORS_DEFERRED"
+    "release_boundary": "D167_P0_BETA_WORKER_AND_AGENT129_RELEASE_PASS__FIELD_SKU_AND_OWNER_PASS_PENDING__OTHER_ERRORS_DEFERRED__STABLE_GATED"
   }
 }
