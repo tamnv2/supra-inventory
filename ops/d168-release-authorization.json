@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "change_id": "D168",
+  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
+  "approved_source_sha": null,
+  "approved_components": [],
+  "owner_approval_reference": "OWNER_EXPLICIT_D168_CODE_AND_CONDITIONAL_BETA_DEPLOY_20261014",
+  "authority_continuity_pass": false,
+  "product_ci_pass": false,
+  "field_pass": false,
+  "stable_deploy_permission": false,
+  "approved_at_vn": null,
+  "note": "D168 Owner permits completing scoped Beta code and deployment only AFTER exact-head CI, real Agent/PDA/Wi-Fi/WMS field acceptance, and continuity PASS. This deliberately denies main-only release until a separately verified candidate SHA and component list are committed. Stable remains owner-gated. Never infer field proof from GitHub PR CI."
+}
