@@ -1962,6 +1962,10 @@ function renderUsers(): string {
   const canCreateAdmin = profile?.role === "ROOT";
   const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
   const canCreateManaged = canCreateAdmin || canCreateReporter;
+  if ((usersView === "create" && !canCreateManaged) ||
+      (usersView === "import" && profile?.role !== "ADMIN" && profile?.role !== "ROOT")) {
+    usersView = "list";
+  }
   const canLifecyclePickerBulk = profile?.role === "ADMIN" || profile?.role === "ROOT";
   const pageStart = userTotal ? userOffset + 1 : 0;
   const pageEnd = Math.min(userOffset + managedUsers.length, userTotal);
@@ -4055,6 +4059,10 @@ async function loadSkuWorkspace(): Promise<void> {
 }
 
 async function loadUsers(): Promise<void> {
+  const allowedRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
+    profile?.role === "ADMIN" ? ["PICKER", "REPORTER"] :
+    ["PICKER", "REPORTER", "PICKPACK_ADMIN", "ADMIN"];
+  if (userRole && !allowedRoles.includes(userRole)) { userRole = ""; userOffset = 0; }
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const result = await listManagedUsers({
