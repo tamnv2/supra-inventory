@@ -8,7 +8,7 @@
   "pr": 568,
   "status": "D167_E033_OWNER_APPROVED_AGENT_BETA_GO_AHEAD__PR568_BLOCKED_BY_GUARD_AND_SESSION_SOURCE",
   "last_checkpoint": {
-    "id": "D167-E040",
+    "id": "D167-E041",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -793,6 +793,31 @@
       ],
       "next_action": "Present source-and-log evidenced impact/recommendation matrix to Owner; await explicit approval before code changes to Worker verifier/Gateway/Agent. No new Agent release or runtime mutation as part of this evidence-only checkpoint.",
       "evidence": "Drive Beta Logs daily folder (existing in scope; exact private log link omitted from public journal); service/src/d167-sku-ha.ts; service/src/index.ts; relay-agent/D167SkuServiceClient.cs; published Agent v128 source in main PR568"
+    },
+    {
+      "id": "D167-E041",
+      "date_vn": "2026-10-13",
+      "topic": "Reconciled D167 PRIMARY liveness contract: successful RTDB heartbeat suppresses Firestore lease refresh while Worker insists on 45-second Firestore heartbeat",
+      "kind": "TECHNICAL_FINDING",
+      "status": "SOURCE_CONTRACT_MISMATCH_CONFIRMED__EXACT_LIVE_409_CAUSE_NEEDS_REASON_CODE__PROPOSAL_ONLY",
+      "owner_approval": null,
+      "facts": [
+        "Canonical live source relay-agent/FirestoreAgentLeaderCoordinator.cs PrimaryLeaseHeartbeatMs=10000 and PrimaryRoleRefreshMs=60000. In the PRIMARY loop, a successful _rtdbLiveness.WriteHeartbeat(session,_generation) updates _lastLeaseWriteMs in RAM and skips WritePrimaryLease(session). Firestore lease is therefore not periodically refreshed during successful RTDB-only liveness; RefreshRole PRIMARY branch does not unconditionally write it either.",
+        "Canonical live source service/src/d167-sku-ha.ts verifyD167AgentPrimary independently checks Firestore roles and the Firestore lease_<generation> document, requiring matching instance+generation and abs(now-heartbeat_at_ms)<=45000ms. It does NOT use RTDB freshness. This is a proven mixed-source/TTL contract mismatch, not proof that all runtime 409 are necessarily this cause.",
+        "Field Agent became PRIMARY following a targeted handoff at 06:54:41–42 and Worker emitted 409 NOT_CURRENT_FIREBASE_PRIMARY at 06:55:27 (about 46s later), while WMS export succeeded at 06:55:04. Strong temporal corroboration that the lease expired. Other branches of the Worker boolean check (missing runtime service account, token failure, HTTP failure, identity/generation mismatch) still emit the same error and cannot be excluded without reason-level evidence.",
+        "Do not bypass Worker HA check, trust local role alone, copy WMS credentials or blindly switch to accepting stale Firestore leases. WMS API/export and Confirm code are not implicated in this server-authority mismatch."
+      ],
+      "alternatives": [
+        "Recommended low-metered design: during an authorized D167 SKU job only, perform a generation-fenced, server-authoritative Firestore lease refresh just before claim/manual-start and keep it fresh at a bounded <=30s cadence while processing chunks/publish. Keep independent Worker Firestore roles+lease checks and fail closed on lost PRIMARY. Test failover at every stage, expired-stale and service timeout/idempotent recoveries. No 24h idle heartbeat writes introduced.",
+        "Alternative higher-impact design: Worker verify current Firestore roles plus scoped RTDB liveness with correct read permissions/REST API; validate cross-provider semantics, cost and security before selecting. Do not simply drop the Firestore lease check.",
+        "High-usage fallback not preferred: permanently mirror every 10s RTDB heartbeat into Firestore even when no SKU job; imposes continuous Firestore writes, potentially >=6/min during all PRIMARY time."
+      ],
+      "open_questions": [
+        "A reason-coded Worker validator should distinguish FIRESTORE_LEASE_STALE vs AUTH_CONFIG/ROLE_GET/LEASE_GET/IDENTITY_MISMATCH/GENERATION_MISMATCH for direct on-device proof before final root attribution.",
+        "What Service and Agent metrics show the actual 409 reason and export/stage time under the same-vn-day FULL, including HA handoff concurrent with import?"
+      ],
+      "next_action": "Present this exact evidence and recommend only scoped Beta Agent+Worker lease-liveness contract repair after explicit Owner approval. No executable changes or deployment from this analysis.",
+      "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs around lines 50, 1030-1070, 1130-1230, 1894-1940; service/src/d167-sku-ha.ts lines 3-37; service/src/index.ts around lines 1514-1565; Beta Drive v128 sanitized SKU stage events 06:54:41-06:55:27"
     }
   ],
   "resume": {
@@ -844,7 +869,8 @@
       "Additional current-main-tab CDP authorization-header capture mutation rejected by connected tool safety; no change or workaround; not FIELD PASS.",
       "Cannot safely change current WMS main-session source or continuity guard through available connector; prior safety refusal stands; no bypass attempted.",
       "Main WMS session-source change was previously refused by connected-tool safety checks; no alternate-primitives bypass. Until a permitted implementation and real field test, SKU DONE remains unverified.",
-      "D167 Agent v128: confirmed WMS XLSX export 2492 SKU but Worker Firebase PRIMARY gate 409 blocks claim/manual START; exact false reason unobservable without safe Worker-side classification."
+      "D167 Agent v128: confirmed WMS XLSX export 2492 SKU but Worker Firebase PRIMARY gate 409 blocks claim/manual START; exact false reason unobservable without safe Worker-side classification.",
+      "D167-E041: Firestore lease 45s Worker check incompatible with Agent's RTDB-only liveness path; code contract mismatch confirmed, exact live 409 cause subject to reason-code verification."
     ],
     "next_actions": [
       "Collect field evidence from real installed vc106/v126 for same-day FULL/DELTA and WMS safe export, manual report, hourly metrics and pending owner D167 field acceptance",
@@ -857,7 +883,8 @@
       "Resolve authorized safe main-browser WMS API integration and strict CI guard mismatch before any Beta Agent release.",
       "Retain PR568 Draft; obtain supported reviewed implementation/guard adjustment, then exact-head 16/16 PASS and release signed Agent Beta; field SKU DONE readback separately.",
       "Keep PR568 Draft; resolve WMS read-only main browser integration through approved security-reviewed source path, rerun exact PR CI, then consider authorized Agent-only Beta release; no fleet/field PASS yet.",
-      "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy."
+      "Owner review of D167-E040 and approval for security-preserving Worker PRIMARY verifier diagnostics/repair; no bypass or unauthorized deploy.",
+      "Owner review of on-demand D167-only Firestore lease maintenance + safe Worker failure reasons; do not code or deploy before explicit permission."
     ],
     "release_boundary": "D167_AGENT_V128_BETA_SIGNED_RELEASE_PASS__SKU_FUNCTIONAL_FIELD_UNVERIFIED__ANDROID_VC106_UNCHANGED__STABLE_GATED"
   }
