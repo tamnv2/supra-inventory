@@ -33,6 +33,8 @@ jobs:
         run: npm run build
       - name: D167 Web visual layout contract (UI only)
         run: node --test tests/d167-web-layout.test.mjs
+      - name: D167 Web Owner-NOT-PASS cross-screen UX consistency
+        run: node --test tests/d167-web-ux-consistency.test.mjs
       - name: D167 SKU provenance source, access and low-cost UI guard
         run: node --test tests/d167-sku-provenance.test.mjs
       - name: Install Worker packages

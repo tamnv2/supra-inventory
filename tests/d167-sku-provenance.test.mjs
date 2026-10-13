@@ -21,7 +21,7 @@ test("SKU source identity is not inferred from max_updated_at or SKU_IMPORT_CHUN
   assert.match(core, /latest_agent_delta:lastDelta \? agentEvent\(lastDelta\) : null/);
   assert.match(core, /last_sync_at: lastSync\?\.created_at/); // Backward-compatible old consumers.
   assert.ok(!app.includes("Đồng bộ Agent gần nhất"));
-  assert.ok(app.includes("Mốc thay đổi dữ liệu, không phải thời gian Agent đồng bộ"));
+  assert.ok(app.includes("Thay đổi danh mục gần nhất")); // Source remains proven by the separate Web/Agent receipt cards.
 });
 test("provenance is management-only, no picker access and Web-only", () => {
   const route = api.slice(api.indexOf('"/api/admin/skus/catalog-provenance"'));
@@ -41,7 +41,7 @@ test("single SKU workspace request is cached and session-scoped", () => {
   assert.match(app, /skuExcelExpanded = false;/);
 });
 test("SKU has compact cards, separated provenance and safe Excel actions", () => {
-  const render = app.slice(app.indexOf("function renderSku(): string {"),app.indexOf("function renderPeopleTabs("));
+  const render = app.slice(app.indexOf("function renderSku(): string {"),app.indexOf("function renderHr(): string {"));
   for(const id of ["sku-admin-search-form","sku-admin-clear","sku-prev","sku-next","sku-file","sku-full-replace","apply-sku-import","sku-import-details"]) {
     assert.ok(render.includes(id),id);
   }

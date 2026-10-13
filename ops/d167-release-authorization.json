@@ -2,11 +2,11 @@
   "schema_version": 1,
   "change_id": "D167",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "6280e6691f10b5b610a9a8c866c08f7c2e784191",
+  "approved_source_sha": "10bb9cc678b0d1b68a98209a7a71d89263fc258b",
   "approved_components": [
     "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA",
+  "owner_approval_reference": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_311_NOTPASS_REPAIR_BETA",
   "approved_at_vn": "2026-10-13",
-  "note": "Owner E053 Web 3.1.0, compact UI+accounts, authenticated early meal and bounded history. Exact scoped code/test ancestor 6280e6691f10b5b610a9a8c866c08f7c2e784191; CI/authority PASS required before Beta Worker/Web deploy, no Android/Agent/Firebase/Stable."
+  "note": "Original Owner E053 explicitly requested Web/Worker Beta code and deployment of all six Web UI scopes. Owner E055 field NOT PASS Web3.1.0, same D167 same authorized Web scope corrective patch 3.1.1 only: thorough UI text review, exclusive account/Picker forms, dense SLA, role filters and source CI guard. Source 605b6f684b47b9d16b276b1fb3e5c9e7e1d0ee90. No Stable, Android, Agent, API business changes or new resources."
 }

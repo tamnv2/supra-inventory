@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D166",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_10_D166_PASS_RELEASE_UPDATE_NO_NEWLY_REPORTED_ERRORS_ONLY__TECHNICAL_RELEASE_PUBLISHED_VC104_AGENT_V124__UNFINISHED_FIELD_FEATURE_USAGE_EVIDENCE_TRANSFERRED_D167",
     "current_change_id": "D167",
-    "current_change_status": "D167_E053_WEB_310_ACCOUNT_MEAL_OWNER_APPROVED_BETA_CODE_IN_PR578__CI_PENDING__OWNER_FIELD_PASS_PENDING",
+    "current_change_status": "D167_OWNER_NOT_PASS_WEB_310__WEB_311_SAME_SCOPE_REPAIR_PR580_CI_PENDING__OWNER_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "WEB_AND_WORKER_BETA_CANDIDATE_ONLY__CURRENT_INSTALLED_ANDROID_AGENT_UNCHANGED__STABLE_OWNER_GATED",
+    "runtime_impact": "WEB_310_ALREADY_BETA_DEPLOYED_NOT_ACCEPTED__WEB_311_PENDING__AGENT_ANDROID_STABLE_UNCHANGED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D167__BACKLOG_EVIDENCE_ONLY",
@@ -2499,7 +2499,8 @@
     "pr572_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_P0_AGENT_V129_WORKER_BETA__STABLE_OWNER_GATED",
     "pr574_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA__STABLE_UNTOUCHED",
     "pr577_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_SKU_PROVENANCE_BETA__STABLE_UNTOUCHED",
-    "pr578_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA__STABLE_UNTOUCHED"
+    "pr578_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA__STABLE_UNTOUCHED",
+    "pr580_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_311_NOTPASS_REPAIR_BETA__BETA_WORKER_ONLY_STABLE_UNTOUCHED"
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7442,13 +7443,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D167",
     "journal": "ops/change-continuity/D167.json",
-    "working_branch": "d167-web-impact-analysis-20261013",
-    "pr": 578,
-    "latest_checkpoint_id": "D167-E053",
+    "working_branch": "d167-web-ux-notpass-comprehensive-20261013",
+    "pr": 580,
+    "latest_checkpoint_id": "D167-E055",
     "checkpoint_date_vn": "2026-10-13",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA__BETA_ONLY_CI_REQUIRED__STABLE_UNTOUCHED",
+    "owner_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_311_NOTPASS_REPAIR_BETA__REPAIR_E053_SCOPE__CI_BEFORE_MERGE__FIELD_AND_OWNER_PASS_PENDING",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7615,5 +7616,36 @@
       "google_sheets_mutation"
     ],
     "current_status": "CODE_IN_PR578_CI_PENDING__NO_FIELD_PASS"
+  },
+  "d167_web_311_owner_not_pass_20261013": {
+    "status": "OWNER_NOT_PASS_310__WEB311_REPAIR_CODE_PR580_TEST_IN_PROGRESS",
+    "cause": "PARTIAL_COPY_REPLACEMENT_DUAL_INDEPENDENT_PEOPLE_TOGGLES_SLA_CSS_ONLY_DENSITY",
+    "actor_authority": "OWNER_E053_APPROVED_BETA_WEB_WORKER_WITHIN_IDENTICAL_SCOPE",
+    "changes": [
+      "ACROSS_ALL_WEB_ROUTES_COPY_AUDIT",
+      "EXCLUSIVE_PEOPLE_LIST_CREATE_IMPORT",
+      "RBAC_FILTER_AND_PRIVILEGED_DELETE_PROTECTION",
+      "THREE_STEP_TWO_COLUMN_SLA_COMPACT_RESPONSIVE",
+      "WEB_SEMVER_PATCH_3.1.1"
+    ],
+    "deployment_components": [
+      "worker-beta",
+      "host-beta"
+    ],
+    "excluded": [
+      "inventory-core-schema",
+      "android",
+      "relay-agent",
+      "stable",
+      "firebase-rules",
+      "google-sheets",
+      "wms"
+    ],
+    "code_ready": false,
+    "ci_pass": false,
+    "beta_release_pass": false,
+    "owner_field_pass": false,
+    "owner_pass": false,
+    "pr": 580
   }
 }
