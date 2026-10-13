@@ -766,3 +766,7 @@ Reuse the existing Web SLA controls `skipToStockEnabled` and `skipToStockMinutes
 ## D167 2026-10-11 — HR nhập trực tiếp và Excel
 
 Owner thay nguồn tạo tài khoản Picker từ Google Sheets sang nhập trực tiếp trên Web hoặc tải mẫu Excel rồi upload. Ba cột bắt buộc: Mã nhân viên, Họ và tên, Nhà thầu. Cần có bước xem trước, kiểm tra thiếu thông tin, trùng mã, khác tên hoặc nhà thầu, xác nhận xung đột, chặn trùng quyền và ghi nhật ký. Tài khoản cũ không có trong file không bị xóa hay khóa. Thực hiện trên nhánh code sau khi Owner ra lệnh chạy code; chưa triển khai.
+
+## D167 3.1.1 — Form Nhân sự và SLA theo một luồng duy nhất
+
+Thanh chế độ Nhân sự & tài khoản (đúng quyền): `list` (bộ lọc/danh sách/thao tác theo quyền); `create` (tài khoản Reporter / vai trò quản trị được phép, không tạo Picker); `import` (Picker nhập tay hoặc Excel, phải xem trước và xác nhận xung đột). Không đồng thời hiển thị hai form/nút chế độ và bảng danh sách. Khi tạo hoặc nhập thành công, trở về Danh sách, xóa bộ lọc cũ rồi đọc lại đúng một trang (không polling). Chi tiết cá nhân nhạy cảm không ghi log. Thời gian xử lý SLA giữ nguyên toàn bộ cấu hình mốc Cảnh báo / Quá hạn / Tự động bỏ qua, chế độ FIRST_REPORT / PER_PICKER, sửa kết quả và chứng thực người lưu, chỉ nén hiển thị. Cấm bỏ xác nhận hậu quả các lệnh xóa/đặt lại.
