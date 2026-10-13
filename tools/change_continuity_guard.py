@@ -213,6 +213,35 @@ def main() -> None:
             if "## D167 — Web 3.1.0, lịch sử ca và Danh sách tài khoản thống nhất (Owner 2026-10-13)" not in (
                     ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
                 fail("D167 Web 3.1.0 decision/spec not durable")
+        elif owner_latest == "2026-10-13 WEB311_REPAIR_UNDER_E053_BETA_SCOPE":
+            authorization = load("ops/d167-release-authorization.json")
+            expected_ref = "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_311_NOTPASS_REPAIR_BETA"
+            if journal.get("pr") != 580 or journal.get("working_branch") != "d167-web-ux-notpass-comprehensive-20261013":
+                fail("D167 Web 3.1.1 exact repair PR/branch mismatch")
+            if (gate.get("code_permission") is not True or gate.get("merge_permission") is not True
+                    or gate.get("beta_deploy_permission") is not True or gate.get("stable_deploy_permission") is not False
+                    or gate.get("approved_components") != ["worker"] or gate.get("new_owner_approval_required") is not False):
+                fail("D167 Web 3.1.1 not within Owner E053 Beta worker scope")
+            sha = authorization.get("approved_source_sha")
+            if (authorization.get("status") != "OWNER_EXPLICIT_DEPLOY_APPROVED" or authorization.get("change_id") != "D167"
+                    or authorization.get("owner_approval_reference") != expected_ref
+                    or authorization.get("approved_components") != ["worker"]
+                    or authorization.get("approved_at_vn") != "2026-10-13"
+                    or not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha)
+                    or sha != gate.get("approved_source_sha")):
+                fail("D167 Web 3.1.1 source/beta receipt mismatch")
+            checkpoints = {e.get("id"): e for e in entries}
+            prior = checkpoints.get("D167-E053", {})
+            not_pass = checkpoints.get("D167-E055", {})
+            if (prior.get("kind") != "OWNER_COMMAND" or prior.get("owner_approval") is not True
+                    or not_pass.get("kind") != "OWNER_COMMAND" or not_pass.get("owner_approval") is not False
+                    or not_pass.get("date_vn") != "2026-10-13"):
+                fail("D167 Web 3.1.1 original approval or latest NOT PASS missing")
+            if state.get("change_control", {}).get("pr580_release_gate") != expected_ref + "__BETA_WORKER_ONLY_STABLE_UNTOUCHED":
+                fail("D167 Web 3.1.1 state release scope mismatch")
+            if "## D167 — Owner NOT PASS Web 3.1.0: khôi phục đồng nhất Web 3.1.1 (2026-10-13)" not in (
+                    ROOT / "docs/OWNER_DECISIONS.md").read_text(encoding="utf-8"):
+                fail("D167 Web 3.1.1 Owner NOT PASS decision/spec missing")
         elif owner_latest == "2026-10-13 AGENT_V130_BETA_ONLY_APPROVED":
             # Subsequent explicit Owner command: Agent-only fixes from 12 October logs,
             # with combined code+Beta deployment. This is NOT an authorization for Web,
