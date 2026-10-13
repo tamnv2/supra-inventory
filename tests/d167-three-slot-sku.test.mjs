@@ -606,7 +606,7 @@ test("D168 one-click Agent field probe is read-only and distinguishes direct fro
   assert.match(ui,/D168NetworkRoute\.OpenWorkerSession\(actor\.IdToken/);
   assert.match(ui,/switched=networkSession\.DidSwitch/);
   assert.match(ui,/SWITCHED_AND_RESTORED/);
-  assert.match(ui,/route=.*DIRECT/);
+  assert.match(ui,/SWITCHED_AND_RESTORED":"DIRECT"/);
   assert.match(route,/internal bool DidSwitch/);
   assert.doesNotMatch(ui,/WmsSkuBrowserExport|ManualStart\(|UploadAndPublish\(/);
 });
