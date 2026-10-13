@@ -1849,7 +1849,7 @@ function renderSku(): string {
     `<div class="sku-provenance-item">
       <span>${esc(label)}</span>
       <strong>${event ? esc(fmt(event.at)) : "Chưa có biên nhận"}</strong>
-      <small>${event ? esc(event.actor + " · " + eventResult(event)) : "Không suy đoán thời gian hoặc người thao tác"}</small>
+      <small>${event ? esc(event.actor + " · " + eventResult(event)) : "Chưa xác định nguồn"}</small>
     </div>`;
   const eventRows = provenance?.recent || [];
   const history = skuProvenanceUnavailable
@@ -2392,7 +2392,7 @@ function renderReports(): string {
       <article class="ops-panel"><div class="ops-panel-title"><div><h3>Điểm cần theo dõi</h3></div></div><div class="pro-watch-grid"><div class="warning"><span>Sắp quá thời gian</span><strong>${reportWarningCount}</strong></div><div class="danger"><span>Đã quá thời gian</span><strong>${reportOverdueCount}</strong></div><div class="automatic"><span>Tự động bỏ qua quá hạn</span><strong>${automaticSkipped}</strong></div><div><span>SKU nổi bật phát sinh lại</span><strong>${recurrenceCount}</strong></div><div><span>Thời gian xử lý bình quân</span><strong>${k?.avg_resolution_minutes == null ? "—" : `${k.avg_resolution_minutes} phút`}</strong></div></div></article>
     </div>
     <article class="ops-panel">
-      <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3><p></p></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
+      <div class="ops-panel-title pro-report-table-head"><div><h3>Chi tiết đợt báo hàng</h3></div><div class="user-row-actions"><button class="secondary" id="report-prev" ${reportOffset <= 0 ? "disabled" : ""}>Trang trước</button><button class="secondary" id="report-next" ${reportOffset + REPORT_PAGE_SIZE >= reportTotal ? "disabled" : ""}>Trang sau</button></div></div>
       <div class="table-wrap pro-report-table"><table><thead><tr><th>SKU</th><th>Khu vực lúc báo</th><th>Tên sản phẩm</th><th>Kết quả</th><th>Nguồn xử lý</th><th>Người xử lý</th><th>Báo lần đầu</th><th>Xử lý xong</th><th>Thời gian xử lý</th><th>Đang mở</th><th>Tổng lượt báo</th><th>Chi tiết Picker</th></tr></thead><tbody>${reportRows.map((row) => { const source = row.status === "CLOSED" ? "Picker tự thu hồi" : row.status === "PENDING" ? "—" : resolutionSourceLabel(row.resolution_source); const actor = row.status === "CLOSED" ? "Picker" : row.status === "PENDING" ? "—" : resolutionActorLabel(row); const expanded = expandedReportBatches.has(row.batch_id); return `<tr><td><strong>${esc(row.sku)}</strong></td><td>${esc(d167AreaLabel(row.area_at_first_report))}</td><td>${esc(row.product_name)}</td><td><span class="badge ${row.status === "HAS_STOCK" ? "ok" : row.status === "SKIP_ALLOWED" ? "skip" : row.status === "CLOSED" ? "closed" : "warning"}">${esc(statusLabel(row.status))}</span></td><td><span class="resolution-source ${row.resolution_source === "SYSTEM_DAY_END" ? "day-end" : row.resolution_source === "SYSTEM_TIMEOUT" ? "automatic" : "human"}">${esc(source)}</span></td><td><strong class="resolution-actor">${esc(actor)}</strong></td><td>${esc(fmt(row.first_report_at))}</td><td>${esc(fmt(row.resolved_at))}</td><td>${row.duration_minutes == null ? "—" : `${row.duration_minutes} phút`}</td><td>${Number(row.open_ticket_count || 0).toLocaleString("vi-VN")}</td><td>${Number(row.total_ticket_count || 0).toLocaleString("vi-VN")}</td><td><button type="button" class="secondary small report-picker-toggle" data-report-picker-detail="${esc(row.batch_id)}" aria-expanded="${expanded ? "true" : "false"}">${expanded ? "Ẩn Picker" : "Xem Picker"}</button></td></tr>${expanded ? `<tr class="report-picker-detail-row"><td colspan="12">${reportPickerDetailMarkup(row.batch_id)}</td></tr>` : ""}`; }).join("") || `<tr><td colspan="12" class="ops-empty">Chưa có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>
     </article>
   </section>`;
@@ -2521,7 +2521,7 @@ function renderSystem(): string {
 
   return `<section class="ops-route system-workspace">
     <div class="business-page-head">
-      <div><h2>Trạng thái hệ thống</h2><p></p></div>
+      <div><h2>Trạng thái hệ thống</h2></div>
       <button class="secondary" id="refresh-system">Cập nhật số liệu</button>
     </div>
 
@@ -2532,7 +2532,7 @@ function renderSystem(): string {
     </div>
 
     <section class="business-summary-grid business-summary-grid-4">
-      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong><small></small></article>
+      <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong></article>
       <article class="business-summary-card primary"><span>Dữ liệu đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% giới hạn vùng dữ liệu` : "Đang đo dung lượng"}</small></article>
       <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên Web/PDA · không tính Agent</small></article>
       <article class="business-summary-card"><span>Google Drive</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Chưa đọc được giới hạn"}</small></article>
@@ -2986,9 +2986,10 @@ function renderTools(): string {
         </div>
       </article>
     </div>
-    <article class="ops-panel tool-guide tool-guide-d112">
-      <div class="ops-panel-title"><div><h3>Hướng dẫn cài đặt</h3><p>App: quét QR hoặc tải APK, xác nhận cài đặt khi Android yêu cầu. Agent: tải EXE và chạy bằng tài khoản Windows hiện tại; sau khi đăng nhập ADMIN, Agent tự duy trì và tự kiểm tra cập nhật.</p></div></div>
-    </article>
+    <details class="ops-panel tool-guide tool-guide-d112">
+      <summary>Hướng dẫn cài đặt</summary>
+      <p>App: quét QR hoặc tải APK. Agent: tải EXE, đăng nhập và sử dụng.</p>
+    </details>
   </section>`;
 }
 
@@ -3012,7 +3013,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
     <div class="ops-panel-title"><div><h3>${title}</h3><p>${period === "LUNCH" ? "Nhắc Reporter lúc 10:55" : "Nhắc Reporter lúc 17:55"} (giờ Việt Nam)</p></div>
       <span class="badge ${record ? "good" : "warning"}">${record ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
     ${record ? `<div class="ops-note"><strong>${esc(selected)}</strong> · Người xác nhận ban đầu: ${esc(record.confirmed_name || "Reporter")} · Cập nhật gần nhất: ${esc(fmt(record.confirmed_at))}</div>` :
-      `<div class="ops-note">Nếu chưa ai xác nhận, Service tạm dừng tự động Skip trong toàn bộ ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"} để phòng ngừa Skip sai. Reporter vẫn xử lý thủ công bình thường.</div>`}
+      `<div class="ops-note">Chưa xác nhận: tự động Skip tạm dừng trong ${period === "LUNCH" ? "11:00–12:00" : "18:00–19:00"}; xử lý thủ công vẫn hoạt động.</div>`}
     ${mayEdit ? `<form class="d167-meal-edit" data-d167-meal-edit="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
       <label><span>Đổi giờ nghỉ</span><select name="choice" required>
         <option value="EARLY" ${record?.choice === "EARLY" ? "selected" : ""}>${early}</option>
@@ -3020,7 +3021,7 @@ function renderMealStatusCard(period: "LUNCH" | "DINNER"): string {
       </select></label>
       <label><span>Mật khẩu xác nhận</span><input type="password" name="currentPassword" autocomplete="off" required maxlength="128" /></label>
       <button class="secondary" type="submit">Xác nhận đổi giờ</button>
-    </form><p class="tiny muted">Cho phép đổi liên tục trước ${period === "LUNCH" ? (record?.choice === "EARLY" ? "12:00" : "11:00") : (record?.choice === "EARLY" ? "19:00" : "18:00")} (giờ Việt Nam). Hệ thống tự đồng bộ các Reporter.</p>` : ""}
+    </form><p class="tiny muted">Cho phép đổi liên tục trước ${period === "LUNCH" ? (record?.choice === "EARLY" ? "12:00" : "11:00") : (record?.choice === "EARLY" ? "19:00" : "18:00")} (giờ Việt Nam).</p>` : ""}
     <form class="d167-meal-form" data-d167-meal-form="${period}" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px">
       <label><span>Giờ nghỉ</span><select name="choice" ${record ? "disabled" : ""}>
         <option value="EARLY">${early}</option><option value="LATE">${late}</option>
@@ -3046,7 +3047,7 @@ function renderD167MealOverlay(): string {
         <label class="sla-radio-row"><input type="radio" name="choice" value="LATE" required/><span><strong>${second}</strong></span></label>
         <div class="modal-actions"><button type="submit" class="primary">Xác nhận giờ nghỉ</button></div>
       </form>
-      <p class="muted">Chỉ xác nhận đầu tiên hợp lệ được ghi nhận. Các Reporter khác sẽ tự đóng thông báo.</p>
+      <p class="muted"></p>
     </div></div>`;
 }
 
