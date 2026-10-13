@@ -267,7 +267,7 @@ namespace SupraInventoryRelayAgent
             {
                 // Do not copy provider bodies or exception messages into
                 // logs; timeout after commit is resolved by exact status read.
-                throw new IOException("D167_GATEWAY_"+e.Status.ToString());
+                throw new IOException("D167_GATEWAY_"+e.Status.ToString().ToUpperInvariant());
             }
         }
 
