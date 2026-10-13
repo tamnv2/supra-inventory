@@ -435,7 +435,8 @@ test("D167 P0 Vietnamese updater provenance uses existing Worker->Core receipt, 
   const core=readFileSync(new URL("../service/src/d167-sku-sync-core.ts",import.meta.url),"utf8");
   const router=readFileSync(new URL("../service/src/index.ts",import.meta.url),"utf8");
   assert.match(router,/actor_display: \[String\(operator\.display_name/);
-  assert.match(core,/manual \&\& String\(body\.actor_user_id \|\| ""\) !== String\(manual\.actor_id\)/);
+  assert.match(core,/manual \&\& \(manualAuthorized \|\| isManualDelta\(slot\)\)/);
+  assert.match(core,/MANUAL_OPERATOR_CHANGED/);
   assert.equal(core.split("actor_id:actorId,actor_display:actorDisplay").length-1,2);
   assert.match(ui,/Người cập nhật/);
   assert.match(ui,/D167ReceiptNumber\(state\.ReceiptJson,"actor_display"\)/);
