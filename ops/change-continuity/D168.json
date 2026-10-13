@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-picker-group-contact-backlog-20261013",
+  "working_branch": "d168-agent-log-upload-diagnosis-20261013",
   "pr": 586,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E008",
+    "id": "D168-E009",
     "date_vn": "2026-10-13"
   },
   "deployment_gate": {
@@ -159,6 +159,28 @@
       "next_action": "When instructed to analyze D168-REQ-007, review Agent online Picker selection, current message/call-home pipelines, per-target delivery/ack, live presence accuracy, quota impact and UI; present scoped proposal before any code.",
       "evidence": "Owner request 2026-10-13 to add group-contact feature to D168 backlog; docs/D168_BACKLOG.md#d168-req-007",
       "supersedes": []
+    },
+    {
+      "id": "D168-E009",
+      "date_vn": "2026-10-13",
+      "topic": "Investigation of intermittent Agent support-log uploads",
+      "kind": "TECHNICAL_FINDING",
+      "status": "EVIDENCE_ANALYZED_PROPOSAL_PENDING_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "One provided local log from an affected Agent records 22 deferred uploads and one acknowledged success during 13 October 2026, approximately 13:30 to 19:52.",
+        "Failures consist of 14 timeouts, five keep-alive closures and three unexpected receive closures.",
+        "Agent source enforces 10-second request/read-write timeout; the shared gateway source permits a lock wait up to 15 seconds before archive operations.",
+        "Agent upload backoff escalates from one minute to 30 minutes; a manual sealed entry does not prove completed upload.",
+        "The Agent was upgraded during the trace and upload failures continued. Available evidence does not prove the same root cause on the second affected Agent."
+      ],
+      "alternatives": [
+        "Preserve local pending logs and inspect one other affected Agent for comparison.",
+        "Prepare Agent-only change proposal: aligned bounded timeout, serialized upload attempts, safer connection recovery, visible upload status and reliable manual retry.",
+        "Investigate gateway contention separately before considering changes to its runtime."
+      ],
+      "next_action": "Await Owner authorization before source changes or deployment; preserve current production operations.",
+      "evidence": "Owner supplied local support log, 2026-10-13; source files relay-agent/AgentLogUploadBridge.cs and ops/apps-script/agent-log-gateway/Code.gs."
     }
   ],
   "resume": {
