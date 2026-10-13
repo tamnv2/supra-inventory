@@ -7,7 +7,7 @@
   "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E026",
+    "id": "D168-E027",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": {
@@ -645,6 +645,30 @@
       ],
       "next_action": "Giữ Draft PR591 và receipt khóa; thực hiện bài thử bắt buộc trên một Windows Agent idle với hai Wi-Fi saved/approved và một PDA, xác nhận Worker SWITCHED_AND_RESTORED, SKU FULL/manual durable DONE và không gián đoạn Picklist/ACK/HA; sau khi có bằng chứng thực mới mở exact-SHA Beta release gate, merge và giám sát phát hành. Stable vẫn Owner-gated.",
       "evidence": "GitHub PR #591 exact HEAD e5744f8b0cf0f629ff012aed12efe79d8291f445; 20 PR workflow runs all success, Agent run 38483669723 artifact 11857588415; ops/d168-release-authorization.json; docs/D168_RELEASE_READINESS_2026-10-14.md"
+    },
+    {
+      "id": "D168-E027",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Quota reset estimate from 2026-10-13 earliest verified URLFetch failure (read-only)",
+      "status": "DRIVE_LOG_EARLIEST_CONFIRMED_ERROR_12_45_37_VN__RESET_ANCHOR_UNKNOWN__NO_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Sanitized existing registered Inventory Beta Drive support-log trace contains D160 USAGE URLFetch daily-quota failure at 2026-10-13 12:45:37.227 Asia/Ho_Chi_Minh; follow-up independent bundles confirm recurring failure 13:00:40.642 and 13:15:38.116. Prior D168 journal only cited 14:00 local-agent trace. Earliest currently verified is 12:45:37, not necessarily the actual first quota-exhaustion event.",
+        "Official Google Apps Script quota documentation states per-executing-user quotas reset 24 hours after first request, not 24 hours after quota-exhaustion error or at Vietnam midnight.",
+        "Reset cannot be predicted to the minute without the executing account's first request/period start and whether 2026-10-14 post-reset traffic immediately exhausted shared-user UrlFetch again. A conditional morning/no-reexhaust scenario would reset no later than 2026-10-14 12:45:37 if its active quota period began 2026-10-13 before that failure; this does not constitute an unconditional latest reset bound.",
+        "Google Drive existing log read and GitHub source inspection are read-only; no new Apps Script fetch jobs were run to confirm live quota recovery. Stable, PR591 Draft and the conditional release field gate remain unchanged."
+      ],
+      "alternatives": [
+        "Observe the next existing Agent 15-minute Usage auto refresh without adding independent UrlFetch polling; a successful authenticated Gateway call plus valid Cloud Monitoring response is better evidence of usable quota.",
+        "Inspect Apps Script Executions and all other scripts for the same executing user to establish quota-period beginning; do not infer it from first error."
+      ],
+      "open_questions": [
+        "What timestamp did the owner's executing-user first UrlFetch call in the relevant quota cycle occur?",
+        "Does a 2026-10-14 post-reset attempt pass or immediately hit the same shared-user quota?"
+      ],
+      "next_action": "Provide Owner a conditional recovery time window, clearly label uncertainty and recommend using existing non-intrusive refresh evidence rather than false precision.",
+      "evidence": "Existing scoped Drive Beta sanitized support bundles 2026-10-13 12:45:37,13:00:40,13:15:38; Google Apps Script quota documentation https://developers.google.com/apps-script/guides/services/quotas; GitHub D168-E012/E025"
     }
   ],
   "resume": {
