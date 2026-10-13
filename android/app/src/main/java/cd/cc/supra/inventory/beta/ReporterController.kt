@@ -2,6 +2,9 @@ package cd.cc.supra.inventory.beta
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
@@ -654,7 +657,15 @@ class ReporterController(
     }
 
     private fun bindCommon(view: View, sku: String, product: String, elapsed: String) {
-        view.findViewById<TextView>(R.id.tvReporterSku).text = sku
+        view.findViewById<TextView>(R.id.tvReporterSku).apply {
+            text = sku
+            setOnLongClickListener {
+                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("SKU", sku))
+                setStatus("Đã sao chép SKU $sku")
+                true
+            }
+        }
         view.findViewById<TextView>(R.id.tvReporterElapsed).text = elapsed
         view.findViewById<TextView>(R.id.tvReporterProduct).text = product
         view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.VISIBLE
