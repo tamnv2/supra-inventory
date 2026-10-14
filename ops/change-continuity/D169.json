@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-intake-open-20261014",
+  "working_branch": "docs/d169-usage-log-coverage-20261014",
   "pr": 602,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E001",
+    "id": "D169-E002",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -27,6 +27,26 @@
       ],
       "next_action": "Collect new Owner issues and sanitized logs in D169; later analyze them in one end-to-end, usage-aware batch and propose a unified plan for explicit Owner approval.",
       "evidence": "Owner direct instruction 2026-10-14; D168-E049 signed vc110 release evidence and D168-E050 source-backed unresolved observations; docs/D169_BACKLOG.md"
+    },
+    {
+      "id": "D169-E002",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Are new-version diagnostic logs sufficient to identify provider usage drivers?",
+      "status": "CLIENT_HOT_PATH_DIAGNOSIS_FEASIBLE__EXACT_BILLED_ATTRIBUTION_INCOMPLETE",
+      "owner_approval": false,
+      "facts": [
+        "Owner asks whether current new-version logs are sufficient for usage-root-cause analysis; this is a review request, not a code/release approval.",
+        "Agent FirestoreQuotaGuard aggregates local method/component/hour outcomes and attaches D166_USAGE_AUDIT during existing log seals; these are process-local estimated operations, not actual account or database billable reads.",
+        "Android D166UsageAudit records bounded HTTP route family/status/elapsed and error counts only at support bundle boundary; Web runtime-logger has bounded event RAM and resource samples (420-event cap). Neither alone captures complete Firebase provider billing.",
+        "Worker/InventoryCore have DO-route and selected SQL-cursor in-isolate bounded diagnostics; restart resets and other Cloudflare Worker/CPU/account operations require provider metrics.",
+        "D168 local-first archive schedules Agent and authenticated Web once after 21:45 VN, Android on logout/kick, plus authorized support requests; Drive receipt/archive gaps matter.",
+        "D168 historical Apps Script UrlFetch forensic report demonstrated a shared account meter cannot be attributed exactly from Agent logs; after SKU path changed direct Worker, historical request weights cannot be applied blindly.",
+        "Need provider-console/project-scope verified readings for Firestore, Cloudflare Worker/DO SQL, Apps Script executions/UrlFetch, and normalized business volumes before claiming exact cost, quota savings or single root cause.",
+        "No new instrument, timed polling, code changes or release authorized by this discussion."
+      ],
+      "next_action": "Collect real Agent/Android/Web complete archived logs and provider usage screenshots/exports for comparable shifts, then correlate per-hour costs per online device/agent and per 1,000 business operations in the consolidated D169 analysis; propose only Owner-gated adjustments.",
+      "evidence": "relay-agent/FirestoreQuotaGuard.cs; relay-agent/AgentLogUploadBridge.cs; android/.../D166UsageAudit.kt; web/src/runtime-logger.ts; service/src/d166-sql-usage.ts; service/src/d167-route-usage.ts; docs/specs/OBSERVABILITY_LOGGING.md; docs/D168_GATEWAY_EARLY_QUOTA_FORENSICS_2026-10-13.md; docs/D169_BACKLOG.md#D169-REQ-004"
     }
   ],
   "resume": {
@@ -39,7 +59,8 @@
       "D169 journal and backlog created; no executable product changes"
     ],
     "in_progress": [
-      "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence"
+      "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
+      "D169-E002 review: usage logs sufficient for client hot-path triage, not authoritative provider billing; provider side comparison pending."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -50,7 +71,8 @@
     ],
     "next_actions": [
       "Add D169-REQ-n observations to the backlog with sanitized evidence",
-      "After sufficient intake or Owner command, read full canonical GitHub + log and prepare consolidated diagnosis/proposal, including regression/usage/security/rollback"
+      "After sufficient intake or Owner command, read full canonical GitHub + log and prepare consolidated diagnosis/proposal, including regression/usage/security/rollback",
+      "For Usage diagnosis, compare Drive-confirmed 21:45/logout bundles to provider daily billing/Usage screenshot/exports, actual fleet hours and business events; classify missing coverage."
     ],
     "release_boundary": "RECORD_ONLY__NO_EXECUTABLE_CHANGE__NO_BETA_STABLE_DOMAIN_DEPLOY__STABLE_OWNER_GATED"
   }
