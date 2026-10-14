@@ -79,6 +79,29 @@
       ],
       "next_action": "Collect sanitized evidence; perform combined end-to-end analysis, test and usage impact matrix; submit design options for explicit Owner approval. Keep Draft PR #604 and prevent runtime release.",
       "evidence": "Owner direct instruction 2026-10-14; docs/D169_BACKLOG.md#D169-REQ-008; PR #604"
+    },
+    {
+      "id": "D169-E005",
+      "date_vn": "2026-10-14",
+      "kind": "SOURCE_AND_FIELD_EVIDENCE_ANALYSIS",
+      "topic": "Consolidated D169 analysis of 14 Oct Android/Agent/Web archived logs, v110/v132 and canonical source; proposals only",
+      "status": "SOURCE_CONFIRMED_PARTIAL__ROOT_CAUSE_MIXED__OWNER_DESIGN_APPROVAL_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Drive scoped Beta 2026-10-14 archive contains Android logout-boundary bundles, Agent checkpoint/error/session logs and a Web bundle; some files archive earlier event dates. Repeated/archive-cumulative counters must not be summed as billed usage.",
+        "Android version distribution is mixed (vc106-vc110) although signed vc110 release exists; latest file for an individual device does not establish current install after the archive boundary.",
+        "Android result receipt endpoint reports clustered RESULT_ACK_NOT_FOUND HTTP 404. InventoryCore result-stage SQL checks BOTH event id and actor user id; absent row produces 404. Root cause (missing row, mismatched account, stages RECEIVED/DISPLAYED/ACK, or stale event) is not yet proven.",
+        "PickerController and CriticalOverlayService dismiss their visible result UI before async ACK and persist owner-scoped pending acknowledgements; an HTTP 404 cannot alone prove touchscreen/overlay hang. Keep distinct from long, unscrollable contact message.",
+        "Agent error bundles include RTDB auth/timeout fallbacks, DNS/transport failures, WMS WebView2/DevTools failures, deferred SKU sync, Agent presence reconcile failures, and Apps Script UrlFetch daily-quota errors. A source-backed D160 Usage panel continues automatic 15-minute gateway requests, subject to role gate; shared account quota cannot be attributed exactly from logs.",
+        "Agent current source VERSION is v132 and one active Agent log proves startup v132; Web source is 3.1.1. Archived Web bundle reports a 06:00 scheduled reason while current main runtime-logger schedules after 21:45, indicating a deployed/cached build divergence or archival provenance requiring verification.",
+        "Presence source supports Picklist fallback and tombstones but issues can arise from stale generations, event ordering, fallback retention or UI refresh. Presence version read from app_version may be absent; no isolated root cause proven.",
+        "Firestore picker-contact-open-query returns up to 100 legacy documents; significant read estimates occur in the Agent's process-local ledger. Only provider meters determine billed charges.",
+        "Current D168 network helper already supports approved saved Wi-Fi profiles, single-shot Worker probes, user permission and restoration; 401/403/429 and service failures are not eligible for blind network switching.",
+        "Canonical RBAC already grants PICKPACK_ADMIN certain Picker lifecycle and SKU capabilities but retains Inventory ADMIN-only conflict override and ROOT-only privileged lifecycle; need verify each Web/API operation before proposing any role expansion.",
+        "All evidence analyzed in memory via connected Drive and GitHub; no raw logs, person identifiers, SKU, credentials or support-bundle contents committed to this public repo. No executable, runtime, Stable, domain or release change."
+      ],
+      "next_action": "Owner review unified proposal in D169; prioritize result receipt 404 provenance plus frozen overlay, presence and network, channel/version consistency, then least-privilege RBAC and provider-normalized usage. Source edits and Beta release only after separate Owner approval; Stable remains OWNER_GATED.",
+      "evidence": "GitHub main source (operational-v2-core.ts, PickerController.kt, CriticalOverlayService.kt, NotificationSignalStore.kt, D160Usage.cs, D168NetworkRoute.cs, FirestoreAgentSync.cs, runtime-logger.ts), signed beta-vc110 release, Agent VERSION 132; scoped Google Drive Beta/Logs/2026-10-14 diagnostics, sanitized summaries only"
     }
   ],
   "resume": {
@@ -93,17 +116,20 @@
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
       "D169-E002 review: usage logs sufficient for client hot-path triage, not authoritative provider billing; provider side comparison pending.",
-      "Owner field intake REQ-005–010 plus long CV message addendum to REQ-002 documented; logs/causes/role and Wi-Fi design unverified."
+      "Owner field intake REQ-005–010 plus long CV message addendum to REQ-002 documented; logs/causes/role and Wi-Fi design unverified.",
+      "D169-E005 unified source/log findings and integrated mitigation proposal prepared; no root-cause claim for frozen overlay or exact provider billing."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
       "D168-E050 mandatory-version update and long Agent overlay design remain unresolved and require analysis",
-      "Admin Pick Pack SKU/account permission changes and Agent Wi-Fi switch design require full impact review then explicit Owner approval."
+      "Admin Pick Pack SKU/account permission changes and Agent Wi-Fi switch design require full impact review then explicit Owner approval.",
+      "Unified D169 design review including 404 provenance, overlay lifecycle, migration floor, presence/role/network policy and measured usage; no code/deploy permission implied."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
     ],
     "next_actions": [
+      "Owner review the consolidated D169 analysis; approve or revise design before executable changes.",
       "Add D169-REQ-n observations to the backlog with sanitized evidence",
       "After sufficient intake or Owner command, read full canonical GitHub + log and prepare consolidated diagnosis/proposal, including regression/usage/security/rollback",
       "For Usage diagnosis, compare Drive-confirmed 21:45/logout bundles to provider daily billing/Usage screenshot/exports, actual fleet hours and business events; classify missing coverage.",
