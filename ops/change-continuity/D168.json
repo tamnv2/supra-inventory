@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
   "working_branch": "docs/d168-vc110-release-evidence-20261014",
-  "pr": 599,
+  "pr": 600,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D168-E049",
@@ -1111,10 +1111,11 @@
         "Main push Android run 38517665083 completed SUCCESS including vc110 signed release publishing and pre-publication exact-source Worker gate.",
         "Immutable GitHub release beta-vc110 published at 2026-10-14T05:39:50Z, target main 3294ad45, signed APK asset 19,200,724 bytes SHA-256 0b0f34a63876d6faf4d735fc2a5884e55a7ef582c97f475d3e57e7962abf6ee2.",
         "Inventory-channel supra-inventory-beta.apk asset has identical SHA-256 and byte length; pda-latest.json published as refreshed channel asset. Entire 10/10 main push workflows SUCCESS for release commit.",
-        "No new Android devices installation, physical overlay count/ACK scenario or Owner business PASS inferred. Stable remained OWNER-GATED; Agent source unchanged and no new Agent release required."
+        "No new Android devices installation, physical overlay count/ACK scenario or Owner business PASS inferred. Stable remained OWNER-GATED; Agent source unchanged and no new Agent release required.",
+        "Release-evidence docs-only PR #600 opened to persist this checkpoint without direct main writes or any executable change."
       ],
       "next_action": "Publish this docs-only immutable release evidence via governed PR; Owner validate on physical PDA vc110 with one overlay per event and correct ACK under foreground/background/reconnect scenarios; keep D168 open until Owner explicitly PASS.",
-      "evidence": "PR599 merged commit 3294ad45370f4615bedf25551bab5febbf3bc6d3; GitHub Worker 38517665151 SUCCESS; Android 38517665083 SUCCESS; GitHub release beta-vc110; inventory-channel asset SHA match"
+      "evidence": "PR599 merged commit 3294ad45370f4615bedf25551bab5febbf3bc6d3; GitHub Worker 38517665151 SUCCESS; Android 38517665083 SUCCESS; GitHub release beta-vc110; inventory-channel asset SHA match; PR600 docs-only"
     }
   ],
   "resume": {
