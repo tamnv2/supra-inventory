@@ -1485,15 +1485,15 @@ jobs:
             'DirtyCheckpointMs',
             'SizeCheckpointBytes',
             'TotalBytesWritten',
-            'SIZE_2MB_NEW_DATA',
-            'seal=SKIP_EMPTY',
+            'SCHEDULE_BOUNDARY=21:45',
+            'daily_2145=',
             'FloorToLogMillisecond',
             'untilLocalExclusive',
             'at < untilLocalExclusive',
             'SealLogoutAndFlush',
             'agent-log-pending',
-            'SAME_FINGERPRINT',
-            'GLOBAL_FUSE'
+            'DRIVE_CONFIRMATION_MISSING',
+            'Failure remains on disk until the next 21:45/manual/support request.'
           )) {
             if (-not ($program.Contains($marker) -or $bridge.Contains($marker) -or $rules.Contains($marker))) {
               throw "D146/D158 Agent log/input guard missing: $marker"
