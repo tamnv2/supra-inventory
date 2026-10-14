@@ -5595,6 +5595,15 @@
     "field_pass": false,
     "owner_business_pass": false,
     "stable": "OWNER_GATED",
-    "note": "Owner explicitly waived pre-release device field validation to test whole Beta model after synchronized rollout; never infer that tests occurred."
+    "note": "Owner explicitly waived pre-release device field validation to test whole Beta model after synchronized rollout; never infer that tests occurred.",
+    "release_recovery_pr": 592,
+    "requires_owner_github_ui_after_ci": true,
+    "owner_actions": [
+      "After PR592 CI/code freeze, update ops/d168-release-authorization.json approved_source_sha to exact tested PR592 source SHA on PR branch (no permission or field_pass change).",
+      "After authority/continuity and CI PASS, release PR592 through ordinary branch→PR→merge.",
+      "On main GitHub Actions, dispatch Deploy Beta Worker first, verify success; then dispatch Verify Beta Relay Agent and Verify Beta Android."
+    ],
+    "connector_capability": "GitHub connector cannot dispatch Actions workflows; only read/PR/merge; no local scripts required",
+    "no_manual_device_step_until_release": true
   }
 }
