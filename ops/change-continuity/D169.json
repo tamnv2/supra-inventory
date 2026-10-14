@@ -7,7 +7,7 @@
   "pr": 604,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E004",
+    "id": "D169-E005",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -83,7 +83,7 @@
     {
       "id": "D169-E005",
       "date_vn": "2026-10-14",
-      "kind": "SOURCE_AND_FIELD_EVIDENCE_ANALYSIS",
+      "kind": "TECHNICAL_FINDING",
       "topic": "Consolidated D169 analysis of 14 Oct Android/Agent/Web archived logs, v110/v132 and canonical source; proposals only",
       "status": "SOURCE_CONFIRMED_PARTIAL__ROOT_CAUSE_MIXED__OWNER_DESIGN_APPROVAL_PENDING",
       "owner_approval": false,
