@@ -3060,3 +3060,10 @@ PR592 đã merge nhưng Worker push run 38503630043 dừng tại `D146 source co
 - Worker Beta workflow `38507343224` PASS; Agent v132 đã được phát hành từ trước, nhưng Agent main workflow `38507343145` tại merge vc108 FAIL riêng vì không kết nối được Agent operations gateway trong ba lượt GET. Lỗi này **không phải** chứng cứ vc108 Android không được phát hành, không có Agent binary mới từ run FAIL.
 - **FIELD PASS chưa có:** cần PDA thực tế cài đúng vc108 và thử ấn giữ SKU trên 4 tab Reporter cùng Picker Lịch sử/popup, kiểm tra clipboard SKU đúng từng dòng, thao tác ngắn/nút nghiệp vụ không đổi; tài nguyên/usage cần đo thật. Không đánh đồng GitHub signed release với hoàn tất cập nhật tất cả thiết bị.
 - Stable và đề xuất gộp domain chưa được duyệt, không triển khai trong thay đổi này.
+
+## D168-E043 — Android vc109 meal choices + automatic versioned release notes
+
+- Both Reporter meal popup periods must show both options simultaneously, initial selection empty, confirmation disabled until radio selection, correct EARLY/LATE API request, retry after failure, successful/other-client first-writer reconciliation. Preserve 10:55/17:55 delivery, default LATE if never selected, Web-only correction and old Android interoperability.
+- `node --test tests/d168-android-vc109.test.mjs` checks code/UI/manifest contracts. GitHub Android Gradle build and signed/CI checks required; real PDA Android 11 two choices and clipboard/regression remain FIELD_PENDING.
+- Pipeline must require 1–5 nonblank user-facing notes for source updates, verify notes changed since last signed Android source, block stale notes, publish identical notes into immutable `beta-vcN` Release description and mutable `inventory-channel/pda-latest.json`; APK/checksum unchanged by notes only.
+- Verify positive and negative scenarios: empty/unchanged notes, notes-only source change (no new APK), release metadata carries exact `beta-vc109`, end-to-end Update dialog on vc108 shows correct vc109 notes; field evidence separate from CI. No changes to Worker/DO/Firebase/Agent business events, quota, credentials, or Stable.
