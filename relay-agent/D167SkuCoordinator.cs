@@ -185,6 +185,10 @@ namespace SupraInventoryRelayAgent
                 {
                     // Error categories only: no credentials, source rows or WMS
                     // locations are logged. Retry only via a bounded local timer.
+                    // Existing local diagnostic only: no new provider request or log upload.
+                    log("D168_SKU_SUMMARY result=DEFER day_vn="+D167SkuSchedule.VNNow().ToString("yyyy-MM-dd")+
+                        " active_key="+activeKey+" error_type="+e.GetType().Name+
+                        " error_code="+SafeErrorCode(e)+" next_event=BOUNDED_15M");
                     log("D167_SKU sync=DEFER error_type="+e.GetType().Name+
                         " error_code="+SafeErrorCode(e));
                     NotifyStatus(null,"Cập nhật SKU tự động chưa thành công: "+
@@ -285,6 +289,9 @@ namespace SupraInventoryRelayAgent
             lastVerifiedWorkbook=workbook;
             log("D167_SKU slot="+eligible.Slot+" stage=DONE count="+workbook.Items.Count+
                 " elapsed_ms="+slotTrace.ElapsedMilliseconds);
+            log("D168_SKU_SUMMARY result=DONE day_vn="+day+" slot="+eligible.Slot+
+                " sku_count="+workbook.Items.Count+" receipt_verified=true elapsed_ms="+
+                slotTrace.ElapsedMilliseconds+" provider_poll_added=false");
             NotifyStatus(service.Schedule(day),"Đã cập nhật SKU và xác minh dữ liệu lưu trên hệ thống.");
             // Schedule remaining slots once, not on every WMS/HA event.
             Arm(TimeSpan.FromSeconds(2));
