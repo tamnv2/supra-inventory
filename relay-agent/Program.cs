@@ -800,10 +800,8 @@ namespace SupraInventoryRelayAgent
                 AgentLogUploadCheckpointFile,
                 message => Log(message));
             AgentDiagnostics.CrashUploadCallback = crashType => _agentLogBridge.TryQueueCrashSnapshot(crashType);
-            AgentDiagnostics.ErrorUploadCallback = errorType =>
-            {
-                Task.Run(() => _agentLogBridge.TryQueueErrorSnapshot(errorType));
-            };
+            // D168: all error evidence stays local until a scheduled or explicit log boundary.
+            AgentDiagnostics.ErrorUploadCallback = null;
             AgentDiagnostics.DiagnosticObservationCallback = message =>
                 _agentLogBridge.ObserveDiagnostic(message);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
@@ -3822,7 +3820,7 @@ namespace SupraInventoryRelayAgent
             if (string.IsNullOrWhiteSpace(password))
                 throw new InvalidOperationException("Nhập mật khẩu Agent.");
 
-            Log("Firebase Agent login START host=identitytoolkit.googleapis.com ssid=" + GetSsid());
+            Log("Firebase Agent login START host=identitytoolkit.googleapis.com network_class=LOCAL");
             var preferredRole = LoadAgentRoleHint(identifier);
             var roles = string.Equals(preferredRole, "PICKPACK_ADMIN", StringComparison.Ordinal)
                 ? new[] { "PICKPACK_ADMIN", "ADMIN" }
@@ -4172,7 +4170,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 LogNetworkSnapshot("probe-all");
-                Log("PROBE ALL START ssid=" + GetSsid());
+                Log("PROBE ALL START network_class=LOCAL");
 
                 try
                 {
@@ -4225,7 +4223,7 @@ namespace SupraInventoryRelayAgent
                 results.Add(ProbeHttp("DRIVE", AgentConfig.DriveProbeUrl, null));
 
                 foreach (var result in results) LogProbeResult(result);
-                Log("PROBE SUMMARY ssid=" + GetSsid() + " " + string.Join(" | ", results.ConvertAll(x => x.Summary()).ToArray()));
+                Log("PROBE SUMMARY network_class=LOCAL " + string.Join(" | ", results.ConvertAll(x => x.Summary()).ToArray()));
                 Ui(() => _relay.Text = "Probe xong · xem log");
             }
             catch (Exception ex)
@@ -4472,7 +4470,7 @@ namespace SupraInventoryRelayAgent
                 if (result.Result == "PASS")
                 {
                     Ui(() => _relay.Text = "Relay: FIRESTORE PASS / Office");
-                    Log("OFFICE PASS ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " firestore_ms=" + result.ElapsedMs + ".");
+                    Log("OFFICE PASS network_class=OFFICE instance=" + Short(_agentInstanceId) + " firestore_ms=" + result.ElapsedMs + ".");
                 }
                 else if (result.Result == "PROXY_BLOCK")
                 {
@@ -4737,7 +4735,7 @@ namespace SupraInventoryRelayAgent
             var current = SnapshotSession();
             var form = "grant_type=refresh_token&refresh_token=" + Uri.EscapeDataString(current.RefreshToken);
             var url = "https://securetoken.googleapis.com/v1/token?key=" + Uri.EscapeDataString(AgentConfig.FirebaseApiKey);
-            Log("Firebase refresh START host=securetoken.googleapis.com ssid=" + GetSsid());
+            Log("Firebase refresh START host=securetoken.googleapis.com network_class=LOCAL");
             var root = Map(_json.DeserializeObject(RequestJson("POST", url, form, "application/x-www-form-urlencoded")));
             var idToken = Convert.ToString(root["id_token"]);
             var refreshToken = Convert.ToString(root["refresh_token"]);
@@ -5136,7 +5134,7 @@ namespace SupraInventoryRelayAgent
                 proxy = "UNKNOWN:" + ex.GetType().Name;
             }
 
-            Log("NET stage=" + stage + " ssid=" + ssid + " available=" + internet + " proxy=" + proxy);
+            Log("NET stage=" + stage + " network_class=LOCAL available=" + internet + " proxy=" + proxy);
             try
             {
                 foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
