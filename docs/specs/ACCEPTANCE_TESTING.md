@@ -3037,3 +3037,7 @@ Kiểm thử nguồn bắt buộc: danh sách chỉ từ saved Windows profiles,
 Trạng thái terminal SKU: nhiều Agent ghi cùng ngày khác slot hợp nhất dưới Firestore updateTime CAS, trùng slot giữ bản DONE đầu tiên, quá hạn payload không làm mất slot cũ. Giữ Worker/Core authoritative DONE và không sinh nền polling. Sau phát hành Beta đúng nguồn cần nghiệm thu Agent Windows tiêu chuẩn, mốc FULL 05h solo PRIMARY, xác nhận PickList ACK/HA, đồng bộ Picker, phiên bản Android/Agent và Usage đo thực tế. CI PASS khác FIELD/OWNER PASS.
 
 Mốc source: 4a7282b0ba89c26c5b35ab0166dc17f76543e43e; PR592 chưa merge lúc ghi quyết định này. Stable OWNER-GATED.
+
+### D168-E039 — Worker phát hành bị chặn bởi test cũ D146
+
+PR592 đã merge nhưng Worker push run 38503630043 dừng tại `D146 source contract guard` do workflow còn đòi literal lịch Web 21h đã bị Owner thay bằng mốc 21:45 VN. PR593 sửa guard tương thích yêu cầu mới, vẫn kiểm tra ngày/giờ theo Việt Nam, chống lặp theo slot và log ERROR lưu cục bộ, không bỏ điều kiện bảo vệ hoặc đổi runtime. Nguồn bảo vệ SHA d32f5190af6d6218e101b0ca11d75bc20e3004e1. Cần CI exact head PASS và Worker health trùng commit mới được coi phát hành Beta; Agent v132/Android vẫn phải chờ Worker. Không coi merge là RELEASE PASS.

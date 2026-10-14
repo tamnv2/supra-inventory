@@ -77,7 +77,13 @@ jobs:
           grep -q 'sku_catalog_updated' service/src/business-api.ts
           grep -q 'profile?.base_role === "ROOT"' web/src/operational-app.ts
           grep -q 'actor.base_role !== "ROOT"' service/src/user-management-core.ts
-          grep -q 'hour >= 21 ? 21' web/src/runtime-logger.ts
+          # D168: Web daily log boundary is 21:45 VN, not D146's old 21h slot.
+          # Keep strict proof of the explicit date-scoped slot and duplicate guard.
+          grep -Fq 'const minute = Number(parts.minute || 0);' web/src/runtime-logger.ts
+          grep -Fq 'if (hour < 21 || (hour === 21 && minute < 45)) return null;' web/src/runtime-logger.ts
+          grep -Fq 'return `${parts.year}${parts.month}${parts.day}-2145`;' web/src/runtime-logger.ts
+          grep -Fq 'if (localStorage.getItem(SLOT_KEY) === slotIdentity) return;' web/src/runtime-logger.ts
+          grep -Fq 'runtimeLogEvent(reason, "ERROR", detail);' web/src/runtime-logger.ts
           echo "D146 source contract PASS"
       - name: Cloudflare token preflight
         env:
