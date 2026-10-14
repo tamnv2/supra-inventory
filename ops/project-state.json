@@ -7449,9 +7449,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D169",
     "journal": "ops/change-continuity/D169.json",
-    "working_branch": "docs/d169-intake-open-20261014",
-    "pr": 602,
-    "latest_checkpoint_id": "D169-E001",
+    "working_branch": "docs/d169-usage-log-coverage-20261014",
+    "pr": 603,
+    "latest_checkpoint_id": "D169-E002",
     "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7981,8 +7981,8 @@
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
     "backlog": "docs/D169_BACKLOG.md",
-    "working_branch": "docs/d169-intake-open-20261014",
-    "working_pr": 602,
+    "working_branch": "docs/d169-usage-log-coverage-20261014",
+    "working_pr": 603,
     "owner_code_approval": false,
     "owner_deploy_approval": false,
     "code_ready": false,
@@ -7995,6 +7995,8 @@
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
     "next": "RECORD_NEW_ISSUES_THEN_BATCH_UNIFIED_ANALYSIS__NO_MUTATION",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "latest_checkpoint_id": "D169-E002",
+    "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE"
   }
 }
