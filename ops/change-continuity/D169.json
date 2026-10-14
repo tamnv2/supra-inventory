@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
   "working_branch": "docs/d169-usage-log-coverage-20261014",
-  "pr": 602,
+  "pr": 603,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D169-E002",
