@@ -7,10 +7,10 @@
   "pr": 598,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E044",
+    "id": "D168-E045",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": "D168_E044_ANDROID_VC109_BETA_SIGNED_RELEASE_AND_CHANNEL_PASS__FIELD_OWNER_PASS_PENDING__STABLE_GATED",
+  "deployment_gate": "D168_E045_VC109_LAST_SIGNED__VC110_SOURCE_ONLY__PR_CI_BUILD_PENDING__STABLE_GATED",
   "entries": [
     {
       "id": "D168-E001",
@@ -1028,6 +1028,28 @@
       ],
       "next_action": "Owner verify installed vc109 on physical Reporter PDA: at due lunch/dinner prompts both buttons/radio options visible and unselected, select one, confirm once, other session closes; check future app updater displays correct vc109 notes from vc108. On NOT PASS continue same D168. Keep Stable owner-gated.",
       "evidence": "PR597 16/16 CI PASS, merge a344c283; Worker run 38510963878; Android run 38510963868; Agent run 38510963851; 11/11 main push workflows PASS; release beta-vc109 id 412335126; channel manifest asset updated 04:22:53Z."
+    },
+    {
+      "id": "D168-E045",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner urgent vc109 double result overlay report and Android Beta vc110 race repair candidate",
+      "status": "ANDROID_VC110_CODE_APPLIED_ON_OWNER_CODESPACE_BRANCH__STATIC_TESTS_PENDING__PR_NOT_CREATED__NOT_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner reported double Picker result overlay on vc109 and explicitly requested an urgent fix; proceed in still-open D168, Beta only.",
+        "11:25 Picker/Reporter logs show separate authoritative outcomes for two tested SKU values but do not record the number of overlays; no backend duplicate write is proved.",
+        "Android main had FCM CriticalOverlayService and PickerController foreground result-dialog entry paths without an atomic shared claim before display; this can present duplicate result_event_id.",
+        "Owner applied 5-file local vc110 hotfix using guarded script on branch fix/d168-android-vc110-result-overlay-once. git diff --check PASS; Gradle build, CI, PR and signed APK release not yet verified.",
+        "Fix obtains a synchronized per-event temporary presentation claim before FCM service startup or in-app dialog; releases unsuccessful claims, retains user-scoped local-first ACK; no new provider requests or Stable changes.",
+        "Historical vc109 contract test previously pinned mutable current release notes, thus must be made version-independent; vc110 adds focused static source guard, not a substitute for actual Android build/device tests."
+      ],
+      "alternatives": [
+        "Leaving two uncoordinated presentation paths preserves double-dialog race; rejected.",
+        "No business-server/Worker dedupe modification: logs do not support duplicated authoritative processing."
+      ],
+      "next_action": "Create Draft PR from owner Codespaces branch; bind real PR number to manifest/state/journal before authority/continuity and Android CI evaluation; fix all CI failures; merge only after required PASS and explicit Beta release authorization; verify signed vc110 and device behavior.",
+      "evidence": "Owner vc109 overlay report and uploaded 2026-10-14 11:25 Android support logs; android/.../NotificationSignalStore.kt, StockMessagingService.kt, PickerController.kt, CriticalOverlayService.kt; android/release-notes.json; tests/d168-android-vc110-overlay.test.mjs; GitHub Codespaces local branch output"
     }
   ],
   "resume": {
@@ -1067,7 +1089,8 @@
       "D168-E040 PR594 exact protected workflow-trigger code 2e399f03fe9019c47bd14cd755e45b8d566526f5 pending CI; Worker/Agent/Android release still not technically proven.",
       "D168-E041: Android vc108 Reporter all four tabs + Picker copy fix at protected source 3e6f23773b6e830916e36a176397c3598e9fabd8, PR595 exact CI and release pending.",
       "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending.",
-      "D168-E044 vc109 app installed/tested field proof pending; future releases auto publish reviewed notes from source file."
+      "D168-E044 vc109 app installed/tested field proof pending; future releases auto publish reviewed notes from source file.",
+      "D168-E045: owner-reported vc109 double overlay: vc110 Android local hotfix on Codespaces feature branch; code diff clean, tests/PR/CI/build/release/field acceptance pending."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
@@ -1083,9 +1106,10 @@
       "Verify actual PDA vc108 installation by in-app version, long-press SKU in Reporter PENDING/OVERDUE/HAS_STOCK/SKIP_ALLOWED and Picker History/popup, plus normal buttons, and user feedback.",
       "Investigate Agent D160 gateway connectivity with sanitized logs/provider usage separately; no guessed root cause or bypass.",
       "Record Owner field PASS only after direct testing; never automatically merge unrelated Stable/domain proposal.",
-      "Owner/field test Android vc109 meal modal and update notes; reject/repair same D168 if device NOT PASS."
+      "Owner/field test Android vc109 meal modal and update notes; reject/repair same D168 if device NOT PASS.",
+      "Open vc110 Draft PR, bind real PR number, run Android+authority+continuity CI; signed Beta release only after gate PASS; physical PDA double-overlay field confirmation separate."
     ],
-    "release_boundary": "ANDROID_VC109_SIGNED_RELEASE_CHANNEL_PASS__WORKER_BETA_A344_HEALTH_PASS__AGENT_V132_NO_CHANGE__FIELD_OWNER_PASS_PENDING__STABLE_GATED",
+    "release_boundary": "VC109_LAST_SIGNED_CHANNEL_PASS__VC110_SOURCE_ONLY_NOT_RELEASED__OWNER_FIELD_PASS_PENDING__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]

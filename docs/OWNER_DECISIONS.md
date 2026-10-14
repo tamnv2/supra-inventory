@@ -1,3 +1,9 @@
+## D168-E045 · Owner yêu cầu sửa khẩn overlay kết quả báo hàng vc109 (14/10/2026)
+
+- Owner phản ánh Android vc109 có thể xuất hiện **hai overlay cho cùng một kết quả báo hàng** và yêu cầu sửa gấp/phát hành bản tiếp theo trong phạm vi Beta.
+- Phạm vi hotfix: đồng bộ quyền hiển thị `result_event_id` giữa FCM và Picker realtime, giữ ACK local-first, không thay đổi Worker/Firebase/Agent/API và không đụng Stable. Đây là bản sửa mới cho D168, **không phải** Owner FIELD PASS hay quyền bỏ qua CI.
+- Bản mã Android vc110 được chuẩn bị trên nhánh riêng; các mốc `CODE READY`, PR CI, phát hành APK ký số và kiểm thử PDA phải xác minh riêng. `docs/specs/REALTIME_NOTIFICATIONS.md` định nghĩa ràng buộc hồi quy.
+
 # Owner Decision Ledger — SUPRA Inventory
 
 ## D168-E018 · Owner phê duyệt Big Update Agent, Android, Web, Worker Beta (14/10/2026)

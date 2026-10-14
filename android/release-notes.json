@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "Reporter có hai lựa chọn giờ nghỉ trưa: 11:00–11:30 hoặc 11:30–12:00; giờ nghỉ tối: 18:00–18:30 hoặc 18:30–19:00.",
-    "Phải chọn một khung giờ trước khi xác nhận; không còn tự chọn sẵn khung đầu tiên.",
-    "Nội dung cập nhật của từng phiên bản được đồng bộ tự động từ ghi chú phát hành đã kiểm tra."
+    "Sửa lỗi kết quả báo hàng có thể hiện hai cửa sổ trên PDA.",
+    "Chống trùng giữa kết quả nhận qua FCM và kết quả nhận trong ứng dụng; giữ xác nhận đã nhận."
   ]
 }

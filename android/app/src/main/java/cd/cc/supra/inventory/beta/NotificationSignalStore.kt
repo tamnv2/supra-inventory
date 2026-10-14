@@ -12,6 +12,7 @@ object NotificationSignalStore {
     private const val KEY_SEQ = "last_seq"
     private const val KEY_BATCH_VERSION = "last_batch_version"
     private const val KEY_OVERLAY_PRESENTED_RESULTS = "overlay_presented_results"
+    private const val KEY_OVERLAY_COMPLETED_RESULTS = "overlay_completed_results"
     private const val KEY_OVERLAY_ACK_PENDING = "overlay_ack_pending"
     private const val KEY_PICKER_CHAT_DISMISSED = "picker_chat_dismissed"
     private const val KEY_SKU_CATALOG_REFRESH = "sku_catalog_refresh_pending"
@@ -85,23 +86,53 @@ object NotificationSignalStore {
     }
 
 
+    // Presentation claims are temporary process/UI ownership, never business ACKs.
+    // Clean stale claims once at process startup so an interrupted service cannot
+    // permanently prevent a result from being displayed after an app restart.
+    private var presentationStoreInitialized = false
+
+    private fun ensurePresentationStore(context: Context) {
+        if (presentationStoreInitialized) return
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().remove(KEY_OVERLAY_PRESENTED_RESULTS).commit()
+        presentationStoreInitialized = true
+    }
+
+    // Synchronized acquire before launching either the FCM overlay service or
+    // the foreground Picker dialog. One result_event_id gets only one UI owner.
+    @Synchronized
+    fun tryMarkResultOverlayPresented(context: Context, eventId: String): Boolean {
+        if (!eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return false
+        ensurePresentationStore(context)
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val values = prefs.getStringSet(KEY_OVERLAY_PRESENTED_RESULTS, emptySet()).orEmpty().toMutableSet()
+        if (!values.add(eventId)) return false
+        prefs.edit().putStringSet(KEY_OVERLAY_PRESENTED_RESULTS, values).commit()
+        return true
+    }
+
     @Synchronized
     fun markResultOverlayPresented(context: Context, eventId: String) {
         if (!eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
+        ensurePresentationStore(context)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val values = prefs.getStringSet(KEY_OVERLAY_PRESENTED_RESULTS, emptySet()).orEmpty().toMutableSet()
         values += eventId
         prefs.edit().putStringSet(KEY_OVERLAY_PRESENTED_RESULTS, values).apply()
     }
 
-    fun isResultOverlayPresented(context: Context, eventId: String): Boolean =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    @Synchronized
+    fun isResultOverlayPresented(context: Context, eventId: String): Boolean {
+        ensurePresentationStore(context)
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getStringSet(KEY_OVERLAY_PRESENTED_RESULTS, emptySet())
             .orEmpty()
             .contains(eventId)
+    }
 
     @Synchronized
     fun clearResultOverlayPresented(context: Context, eventId: String) {
+        ensurePresentationStore(context)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val values = prefs.getStringSet(KEY_OVERLAY_PRESENTED_RESULTS, emptySet()).orEmpty().toMutableSet()
         if (values.remove(eventId)) prefs.edit().putStringSet(KEY_OVERLAY_PRESENTED_RESULTS, values).apply()
@@ -184,6 +215,13 @@ object NotificationSignalStore {
     fun isOverlayAckPending(context: Context, eventId: String, userId: String): Boolean =
         pendingOverlayAcks(context, userId).contains(eventId)
 
+    // A delayed duplicate FCM must not reopen an event after confirmed ACK.
+    // This receipt is account-scoped, bounded and local; Worker remains authority.
+    fun isResultCompleted(context: Context, eventId: String, userId: String): Boolean =
+        userId.isNotBlank() && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(scopedAckKey(userId, KEY_OVERLAY_COMPLETED_RESULTS), emptySet())
+            .orEmpty().contains(eventId)
+
     @Synchronized
     fun quarantineOverlayAck(context: Context, eventId: String, userId: String, reason: String) {
         if (userId.isBlank() || !eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
@@ -206,7 +244,14 @@ object NotificationSignalStore {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val key = scopedAckKey(userId, "pending")
         val values = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
-        if (values.remove(eventId)) prefs.edit().putStringSet(key, values).apply()
+        if (values.remove(eventId)) {
+            val completedKey = scopedAckKey(userId, KEY_OVERLAY_COMPLETED_RESULTS)
+            val completed = prefs.getStringSet(completedKey, emptySet()).orEmpty().toMutableSet()
+            completed.remove(eventId)
+            completed.add(eventId)
+            while (completed.size > 128) completed.remove(completed.first())
+            prefs.edit().putStringSet(key, values).putStringSet(completedKey, completed).apply()
+        }
         clearResultOverlayPresented(context, eventId)
     }
 
