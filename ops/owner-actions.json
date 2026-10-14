@@ -5621,5 +5621,25 @@
     "manual_field_after": "REAL_WINDOWS_OFFICE_WIFI_WMS_PDA_TEST_ONLY",
     "owner_field_pass": false,
     "stable": "OWNER_GATED"
+  },
+  "d168_android_vc108_2026_10_14": {
+    "status": "OWNER_APPROVED_CODE_AND_BETA_RELEASE_PENDING_CI",
+    "pr": 595,
+    "protected_source_sha": "3e6f23773b6e830916e36a176397c3598e9fabd8",
+    "reporter": [
+      "PENDING",
+      "OVERDUE",
+      "HAS_STOCK",
+      "SKIP_ALLOWED"
+    ],
+    "picker": [
+      "HISTORY",
+      "RESULT_OVERLAY"
+    ],
+    "expected_version_code": 108,
+    "manual_github_action": "NONE_IF_CI_AND_MERGE_WORK",
+    "manual_field_action_after_release": "TEST_PDA_LONG_PRESS_AND_APP_UPDATE",
+    "stable": "OWNER_GATED",
+    "field_pass": false
   }
 }
