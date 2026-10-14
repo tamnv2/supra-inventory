@@ -3022,3 +3022,10 @@ Cổng release có 2 đường hợp lệ: field_pass=true có chứng cứ th�
 ## D168-E031 — kiểm tra kích hoạt Workflow Dispatch của Owner, sau khi merge không có push Actions
 
 PR592 chỉ khôi phục đường phát hành Beta vốn được Owner duyệt. Gate phải fail với pull_request, workflow_dispatch ngoài main, actor khác tamnv2, repo khác tamnv2/supra-inventory, Stable, component ngoài allowlist, SHA nguồn không tương thích hoặc thiếu PR source+authority+continuity PASS. Trên main workflow_dispatch của Owner sau khi cập nhật biên nhận SHA: deploy-beta.yml công bố Worker/InventoryCore/Web Beta và xác minh /health SOURCE_COMMIT; verify-relay-agent.yml và verify-apps.yml chỉ chạy publish sau khi Worker exact SOURCE_COMMIT PASS. Không chạy Agent trước Worker, không dùng dispatch để bỏ qua cổng bảo mật. Ấn Run workflow nếu GitHub không tạo push run; Owner post-release acceptance vẫn cần thiết.
+
+
+## D168-E032 — Release evidence and remaining physical acceptance
+
+As shipped, 2026-10-14 VN: main SHA cbb52225f2d7e55bfc48e7474610b1c6bec038b3, 13/13 push-triggered Actions successful. Worker Beta deploy, /health source and auth/business readback PASS (38490028759); Agent v131 and WebView2 bundle release/channel PASS (38490028705); signed Android Beta vc107 and pda-latest channel PASS (38490028723). Delayed push trigger self-recovered; speculative Owner-only workflow_dispatch change from PR592 was reverted and is not part of release. No further Owner GitHub steps needed.
+
+Real-device validation remains open: installed Agent/PDA actual version, approved Wi-Fi switch/restoration without interrupting Picklist, 05h solo PRIMARY FULL Worker durable DONE, Confirm terminal ACK/HA, Picker logout/kick/group contact, usage and log receipts. Owner FIELD_PASS and D168 business PASS must remain false until evidence. Stable untouched.
