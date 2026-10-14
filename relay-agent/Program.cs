@@ -951,7 +951,7 @@ namespace SupraInventoryRelayAgent
             // The existing local UI timer does no provider work outside 21:45.
             _logUploadTimer.Tick += (s, e) =>
             {
-                var now = DateTime.Now;
+                var now = D167SkuSchedule.VNNow();
                 if(now.TimeOfDay < new TimeSpan(21,45,0) ||
                     _lastD168Log2145AttemptDate == now.Date)return;
                 _lastD168Log2145AttemptDate=now.Date;
