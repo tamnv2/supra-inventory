@@ -113,7 +113,6 @@ class MainActivity : Activity() {
     @Volatile private var operatingWindowCheckRunning = false
     @Volatile private var overlayAckDrainRunning = false
     @Volatile private var activeCallAuthRefreshRunning = false
-    @Volatile private var lastImmediateRuntimeLogAt = 0L
     private var permissionGateActive = false
     private var permissionManualReview = false
     private var restoringSessionScreen = false
@@ -626,8 +625,7 @@ class MainActivity : Activity() {
         drainNotificationReceipts()
         drainOverlayAcknowledgements()
         recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
-        flushPendingCrashRuntimeLog()
-        flushPendingSessionEndRuntimeLog(session)
+        // Deferred logs are sent only on logout/kick, explicit manual send or global support request.
         uiHandler.removeCallbacks(runtimeLogTick)
         uiHandler.post(runtimeLogTick)
     }
@@ -962,7 +960,7 @@ class MainActivity : Activity() {
         next = next.replace(Regex("eyJ[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{10,}"), "[REDACTED_JWT]")
         return next
     }
-    private fun recordLog(message: String) {
+    private fun recordLog(message: String, level: String = "INFO") {
         if (localLog.size >= 80) localLog.removeFirst()
         localLog.addLast("${logTime.format(Instant.now())} · $message")
         try {
@@ -977,7 +975,7 @@ class MainActivity : Activity() {
                 persisted.put(JSONObject()
                     .put("at", Instant.now().toString())
                     .put("sequence", sequence)
-                    .put("level", "INFO")
+                    .put("level", if (level == "ERROR") "ERROR" else "INFO")
                     .put("category", "APP")
                     .put("name", sanitizeDiagnosticText(message)))
                 var dropped = if (owner == userId) prefs.getLong("journal_dropped", 0L) else 0L
@@ -1136,50 +1134,51 @@ class MainActivity : Activity() {
     }
 
     private fun savePendingSessionEndRuntimeLog(session: AppSession, payload: JSONObject) {
-        // D165: persist the final sanitized bundle synchronously before any
-        // session cleanup. The embedded bundle identity survives retries so the
-        // server/Drive archive can dedupe the same logout boundary.
-        runtimeLogPrefs().edit()
-            .putString("pending_session_end_user", session.userId)
-            .putString("pending_session_end_payload", payload.toString().take(30_000))
+        // Persist all unsent logout boundaries, not only the most recent one.
+        // Each bundle identity remains stable across the next session's delivery.
+        val prefs = runtimeLogPrefs()
+        val queue = try { JSONArray(prefs.getString("pending_logout_queue_v3", "[]")) }
+            catch (_: Exception) { JSONArray() }
+        val legacy = prefs.getString("pending_session_end_payload", null)
+        val legacyUser = prefs.getString("pending_session_end_user", "").orEmpty()
+        if (legacy != null && legacyUser.isNotBlank()) {
+            queue.put(JSONObject().put("owner", legacyUser).put("payload", legacy))
+        }
+        queue.put(JSONObject()
+            .put("owner", session.userId)
+            .put("payload", payload.toString().take(100_000)))
+        prefs.edit()
+            .putString("pending_logout_queue_v3", queue.toString())
+            .remove("pending_session_end_payload")
+            .remove("pending_session_end_user")
             .commit()
     }
 
     private fun flushPendingSessionEndRuntimeLog(session: AppSession) {
+        // Called from the logout worker only, never at login/resume or by a timer.
         val prefs = runtimeLogPrefs()
-        val pendingUser = prefs.getString("pending_session_end_user", "").orEmpty()
-        val raw = prefs.getString("pending_session_end_payload", null) ?: return
-        if (pendingUser != session.userId) {
-            // Never upload a previous user's session-end diagnostic under another
-            // authenticated account. A later login of the same user may retry.
-            return
+        val queue = try { JSONArray(prefs.getString("pending_logout_queue_v3", "[]")) }
+            catch (_: Exception) { JSONArray() }
+        val remaining = JSONArray()
+        var networkFailed = false
+        for (index in 0 until queue.length()) {
+            val item = queue.optJSONObject(index) ?: continue
+            val owner = item.optString("owner", "")
+            if (owner != session.userId || networkFailed) {
+                remaining.put(item)
+                continue
+            }
+            val payload = try { JSONObject(item.optString("payload", "{}")) }
+                catch (_: Exception) { JSONObject() }
+            val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", payload)
+            if (sent.archiveStatus == "DRIVE_SYNCED") {
+                if (payload.has("deferred_crash_snapshot")) prefs.edit().remove("pending_crash").apply()
+            } else {
+                remaining.put(item)
+                networkFailed = true // no timed or background retry
+            }
         }
-        Thread {
-            val payload = try {
-                JSONObject(raw)
-            } catch (_: Exception) {
-                JSONObject().put("raw", sanitizeDiagnosticText(raw))
-            }
-            val result = uploadAndroidRuntimeLog("INFO", "session_end_logout", payload)
-            if (result.archiveStatus == "DRIVE_SYNCED") {
-                prefs.edit()
-                    .remove("pending_session_end_user")
-                    .remove("pending_session_end_payload")
-                    .apply()
-            }
-        }.start()
-    }
-
-    private fun flushPendingCrashRuntimeLog() {
-        val prefs = runtimeLogPrefs()
-        val raw = prefs.getString("pending_crash", null) ?: return
-        Thread {
-            val payload = try { JSONObject(raw) } catch (_: Exception) { JSONObject().put("raw", sanitizeDiagnosticText(raw)) }
-            val result = uploadAndroidRuntimeLog("ERROR", "deferred_android_crash", payload)
-            if (result.archiveStatus == "DRIVE_SYNCED") {
-                prefs.edit().remove("pending_crash").apply()
-            }
-        }.start()
+        prefs.edit().putString("pending_logout_queue_v3", remaining.toString()).commit()
     }
 
     private fun installCrashRuntimeLogHandler() {
@@ -1193,11 +1192,7 @@ class MainActivity : Activity() {
                 .put("support", try { JSONObject(buildSupportDiagnostics()) } catch (_: Exception) { JSONObject() })
             ensureAndroidRuntimeLogIdentity(payload, "android_crash")
             runtimeLogPrefs().edit().putString("pending_crash", payload.toString().take(30_000)).commit()
-            if (::api.isInitialized && api.session != null && hasValidatedInternet()) {
-                val sender = Thread { uploadAndroidRuntimeLog("ERROR", "android_crash", payload) }
-                sender.start()
-                try { sender.join(1_500L) } catch (_: InterruptedException) { }
-            }
+            // Crash handling must not block to contact the network.
             previousUncaughtHandler?.uncaughtException(thread, throwable)
         }
     }
@@ -1610,6 +1605,10 @@ class MainActivity : Activity() {
         } else null
 
         if (endingSession != null && sessionEndPayload != null) {
+            runtimeLogPrefs().getString("pending_crash", null)?.let { crash ->
+                try { sessionEndPayload.put("deferred_crash_snapshot", JSONObject(crash)) }
+                catch (_: Exception) { /* keep crash in local pending storage */ }
+            }
             ensureAndroidRuntimeLogIdentity(sessionEndPayload, "session_end_logout")
             savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
         }
@@ -1617,16 +1616,7 @@ class MainActivity : Activity() {
         stopOperationalClients()
         Thread {
             if (endingSession != null && sessionEndPayload != null) {
-                val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", sessionEndPayload)
-                if (sent.archiveStatus == "DRIVE_SYNCED") {
-                    runtimeLogPrefs().edit()
-                        .remove("pending_session_end_user")
-                        .remove("pending_session_end_payload")
-                        .apply()
-                }
-                // Otherwise the synchronously persisted final bundle remains
-                // pending and is retried only by the existing bounded same-user
-                // login/resume delivery path.
+                flushPendingSessionEndRuntimeLog(endingSession)
             }
             try { api.unregisterNotificationDevice(notificationDeviceId) } catch (_: Exception) { }
             try { api.logoutInteractive("android:$notificationDeviceId") } catch (_: Exception) { api.clearSession() }
@@ -1837,18 +1827,9 @@ class MainActivity : Activity() {
         if (!::status.isInitialized) return
         val normalized = message.lowercase()
         val isError = listOf("lỗi", "không thể", "không hợp lệ", "thất bại", "hết hạn", "chưa xác minh").any { normalized.contains(it) }
-        recordLog(message)
-        if (isError && api.session != null) {
-            val now = System.currentTimeMillis()
-            if (now - lastImmediateRuntimeLogAt >= 20_000L) {
-                lastImmediateRuntimeLogAt = now
-                sendAndroidRuntimeLog(
-                    "ERROR",
-                    "android_runtime_error",
-                    JSONObject(buildSupportDiagnostics()).put("message", sanitizeDiagnosticText(message)),
-                )
-            }
-        }
+        recordLog(message, if (isError) "ERROR" else "INFO")
+        // Runtime failures are journaled locally and uploaded only at the next
+        // logout/kick/manual/global-support boundary.
         if (status.parent == null && api.session != null) {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             return
