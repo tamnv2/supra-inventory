@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-beta-release-dispatch-recovery-20261014",
-  "pr": 592,
+  "working_branch": "d168-pr592-release-guard-2145-20261014",
+  "pr": 593,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E038",
+    "id": "D168-E039",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
@@ -907,6 +907,24 @@
       ],
       "next_action": "Complete exact PR HEAD CI and authority/continuity checks; only PASS then mark Ready, merge, verify Beta Worker exact SOURCE_COMMIT, Agent v132 and next signed Android. Await physical test afterward.",
       "evidence": "PR592 source c2fabf512128817f4477d496995da4094bed0bde; release receipt current branch; .github/workflows/verify-relay-agent.yml; continuity E036/E037."
+    },
+    {
+      "id": "D168-E039",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "PR592 merged but Beta Worker CI rejected obsolete D146 Web 21h log marker; P0 same D168 repair PR593",
+      "status": "PR592_MAIN_MERGED__WORKER_DEPLOY_FAILED_BEFORE_RUNTIME__PR593_SOURCE_GUARD_FIX__NO_NEW_RUNTIME_RECEIPT",
+      "owner_approval": true,
+      "facts": [
+        "PR592 merged main 304fdf6234dde8cc11672e910b693afa484401c7 after 17/17 exact PR CI PASS. Main push deploy-beta run 38503630043 failed in D146 source contract guard before Cloudflare deploy; Beta runtime at this point is not proven updated by PR592.",
+        "The legacy guard checked literal 'hour >= 21 ? 21' in web/src/runtime-logger.ts, but Owner-approved D168 local-first logic now checks 21:45 VN, same-day slot '-2145' and once-per-session-boundary marker; the old grep is invalid.",
+        "PR593 changes only existing Beta deploy source guard to require the new date/time cutoff, duplicate guard and local ERROR persistence. It does not disable the D146 checks or change Web runtime source.",
+        "Agent v132/Android main pushes are Worker-first dependent and must not be reported released before exact Worker success and channel asset readback.",
+        "Owner already explicitly authorized completing and deploying D168 Beta fixes without further midway permission; Stable/hostname change proposal D168-E037 remains unapproved and excluded.",
+        "Release receipt for same D168 Beta trial must be rebound to this exact protected code SHA d32f5190af6d6218e101b0ca11d75bc20e3004e1. Physical WMS/WLAN/PDA/HA/usage FIELD PASS remains unverified."
+      ],
+      "next_action": "Validate PR593 exact authority/product/continuity CI, merge only if PASS; monitor new main Worker release gate+Cloudflare health at same SHA, then Agent v132 and Android next signed release/channel. No Stable or domain mutation.",
+      "evidence": "PR592 merge 304fdf6234dde8cc11672e910b693afa484401c7; GitHub Worker Actions run 38503630043 failed at D146 source contract step; PR593 protected code SHA d32f5190af6d6218e101b0ca11d75bc20e3004e1."
     }
   ],
   "resume": {
@@ -939,22 +957,23 @@
       "D168-E033: Owner requests prioritized saved Windows WLAN selection; source still uses one typed profile; proposed design pending Owner approval.",
       "D168-E034: Picker shortage History responder identity incomplete end-to-end in released Beta; proposed Core+Android repair pending Owner approval.",
       "D168-E036 PR592 protected code candidate 4a7282b0ba89c26c5b35ab0166dc17f76543e43e: saved WLAN priority and immutable concurrent SKU DONE fixes committed; exact-head CI verification and Beta release gate pending.",
-      "D168-E038: official Agent v132 source and approved Beta receipt pinned c2fabf512128817f4477d496995da4094bed0bde; exact-head CI and release still pending."
+      "D168-E038: official Agent v132 source and approved Beta receipt pinned c2fabf512128817f4477d496995da4094bed0bde; exact-head CI and release still pending.",
+      "D168-E039 PR593 P0 beta release guard for approved 21:45 Web log; executable guard source d32f5190af6d6218e101b0ca11d75bc20e3004e1 awaiting fresh CI."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
       "D168-D168-E037: future proposal to unify existing Beta into one official runtime at inventory.supra.cc.cd, pending Owner choice, D168 Owner PASS and Stable hostname-specific authorization; zero live modification."
     ],
     "blocked": [
-      "PR592 latest exact-head full CI and Android build must PASS before release.",
-      "Physical Office/Internet saved WLAN, PRIMARY solo FULL 05h durable DONE, confirmation ACK/HA and quota/energy FIELD_PASS unverified; Owner permits Beta predeploy trial only.",
-      "Existing Beta release PR591 does not contain PR592 pending fixes; never claim full D168 Owner PASS."
+      "PR592 main Worker deploy failed in obsolete D146 source guard before Cloudflare mutation; Agent/Android release not proven.",
+      "PR593 exact-head CI and Worker-first Release PASS required before claiming new runtime.",
+      "Owner physical Windows Office Wi-Fi, WMS FULL/DONE, Picklist ACK/HA, log/usage field proof pending; Stable gated."
     ],
     "next_actions": [
-      "PR592 exact HEAD CI PASS then gated PR merge and real Beta Worker/Agent v132/Android version verification.",
-      "E037 domain consolidation remains proposed/unapproved and excluded; Stable not touched."
+      "PR593 CI PASS, gated merge and new Beta Worker first, then Agent v132 and next Android signed/channel.",
+      "After runtime release, physical field tests and Owner D168 PASS remain separate."
     ],
-    "release_boundary": "D168_PR591_BETA_BASE_RELEASED__PR592_CODE_CANDIDATE_CI_PENDING__NO_PR592_BETA_DEPLOY__STABLE_GATED",
+    "release_boundary": "PR592_MERGED_NO_VERIFIED_RUNTIME__PR593_DRAFT_SOURCE_CI_PENDING__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
