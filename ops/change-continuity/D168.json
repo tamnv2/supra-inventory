@@ -6,10 +6,7 @@
   "working_branch": "d168-beta-release-dispatch-recovery-20261014",
   "pr": 592,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
-  "last_checkpoint": {
-    "id": "D168-E032",
-    "date_vn": "2026-10-14"
-  },
+  "last_checkpoint": "D168-E034",
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
   "entries": [
     {
@@ -756,6 +753,62 @@
       ],
       "next_action": "Record Beta release outcome to canonical project-state/owner-actions and reconcile experimental PR592 to documentation-only or close it. Owner should update real Agent to v131 and PDA app to Beta vc107 through normal update channels and report sanitized field results; repair same D168 on NOT PASS. Do not touch Stable.",
       "evidence": "PR591 merged cbb52225; Actions 38490028759, 38490028705, 38490028723; 13/13 push CI success; release tags relay-agent-v131 and beta-vc107; inventory-channel readback 2026-10-14"
+    },
+    {
+      "id": "D168-E033",
+      "date_vn": "2026-10-14",
+      "kind": "PROPOSAL",
+      "topic": "Owner reports v131 manual Wi-Fi profile entry; requests ordered Windows available/saved Wi-Fi selection and deterministic fallback",
+      "status": "SOURCE_GAP_CONFIRMED__NETWORK_PRIORITY_DESIGN_PROPOSED__PENDING_OWNER_APPROVAL__NO_CODE_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner reports Agent v131 Settings requires manually typed WLAN name; asks to list available laptop Wi-Fi, let operator choose explicit priority (A=1,B=2,D=3) and only auto-switch among selected entries in order.",
+        "Verified D168SkuNetworkUi.cs renders TextBox and SaveApprovedProfile(string), not a scanned/saved Wi-Fi selector. D168NetworkRoute.cs persists only one ApprovedWorkerWifiProfile under HKCU, and OpenWorkerSession attempts only that saved profile, with no priority list/failover.",
+        "Current SafeProfile regex ^[\\p{L}\\p{N} ._+-]{1,64}$ rejects common profile punctuation such as @, even in already-saved profiles, and the original profile is checked by the same rule. An actual network-switch field failure from this bug is plausible but not proven for the Owner's PC.",
+        "Current route already has direct Worker capability probe, fallback only for network-unreachable (not auth/quota), canSwitch HA/Confirm safety, user network-only consent, and original profile restore. Preserve these guarantees.",
+        "PR591 merged main cbb52225; E032 verifies Worker Beta + Agent v131 + Android vc107 release succeeded, but device FIELD_PASS and D168 Owner PASS are pending. Current PR592 is a docs-only E032 continuity PR."
+      ],
+      "alternatives": [
+        "No change/manual single saved-profile textbox: lowest code risk but cannot meet Owner's deterministic multi-network recovery requirement.",
+        "Single-choice dropdown from saved Wi-Fi profiles: removes typing errors but offers no fallback sequence.",
+        "Recommended proposal: local per-PC ordered allowlist of explicitly selected Windows-saved, currently relevant Wi-Fi profiles. Use a native/local Windows WLAN interface enumeration, display SSID and saved/available status; saved profiles may be shown even when not currently broadcasting, never collect Wi-Fi passwords. Support up/down order and removal; do not auto-join arbitrary scanned networks.",
+        "On Worker network-unreachable at eligible idle PRIMARY step, test ordered profiles A→B→D sequentially with bounded timeout and task-specific authenticated read-only Worker capability probe; skip unavailable/failed entries; no reordering by signal strength; restore original WLAN after job or failure and stop with actionable error if restore fails.",
+        "Preserve company proxy/security policy, original interface fencing, role/HA/Confirm and 60-second network-only consent; treat HTTP auth/permission/quota/service failures as service issues rather than permission to switch. No background polling, new Firebase listeners, Worker writes or Google Script calls."
+      ],
+      "open_questions": [
+        "Owner approval of proposed saved-network priority UI and failover limits before executable mutation (not implied by asking why current design is manual).",
+        "On actual Windows PC, confirm network adapter, saved/visible profiles, Windows WLAN permission and reliable original-network restoration; do not store or log SSID values in public repository.",
+        "Bounded failure sequence/timeout and test matrix for no-Wi-Fi, captive portal, weak signal, forced OS auto-connect and concurrent Picklist Confirm."
+      ],
+      "next_action": "Present coupled impact/usage/security/test proposal to Owner; await explicit code approval; keep current Beta releases unchanged until guarded source+CI and separate Beta deploy authorization.",
+      "evidence": "GitHub main cbb52225 and D168-E032; relay-agent/D168SkuNetworkUi.cs#L11-L33; relay-agent/D168NetworkRoute.cs#L16-L60,#L135-L156,#L219-L263; current Owner message 2026-10-14"
+    },
+    {
+      "id": "D168-E034",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "D168-REQ-002 omission: Android Picker Báo hàng history does not display Inventory result actor despite result popup and Reporter history including identity",
+      "status": "END_TO_END_PICKER_HISTORY_IDENTITY_GAP_CONFIRMED__PENDING_OWNER_APPROVAL_FOR_REPAIR__NO_CODE_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner observes no worker/person identity in the Picker app's shortage-report History following official D168 Beta release and refers to D168 backlog.",
+        "D168-REQ-002 explicitly asks to display the Inventory responder name and response timestamp; it does not mean the Picker shortage reporter, product uploader or Agent. Display intent is 'Invent phản hồi lúc <HH:mm> bởi <Họ tên Invent>'.",
+        "At released source main cbb52225, Android PickerController.buildHistoryCard emits 'Invent phản hồi lúc: <time>' without an actor. InventoryApi.kt PickerReport model/parser omit resolved_by_display_name and employee_code.",
+        "At the same source, service/src/operational-v2-core.ts pickerReports SELECT does not project resolver identity, while pendingResults and reporterRecent already join users/report_events for resolved_by_display_name and resolved_by_employee_code. Android Picker result popup and Reporter recent rows already display actor identity. Therefore Picker History needs a backend response field plus Android model/parser/render, not just a text change.",
+        "Result actor must be event-accurate under correction and SYSTEM_TIMEOUT; Picker history data retrieval is an authenticated, already-existing GET and no new polling or per-row Firebase lookup is necessary.",
+        "PR591's E032 deploy is SOURCE/RELEASE PASS only; this observed functional gap means D168 Owner business acceptance is not complete."
+      ],
+      "alternatives": [
+        "Leave current History unchanged and rely on one-time popup: does not satisfy accepted requirement and loses durable name display.",
+        "Recommended bounded repair: enrich existing authenticated Picker report page SQL with identity from the authoritative result event/batch resolver as applicable; return optional resolved_by_display_name, resolved_by_employee_code and role/source without exposing unrelated Picker identities; map to PickerReport and render exact actor/time for manual results and explicit system label for auto skip; update history signature to repaint on actor change.",
+        "Use same GET and realtime invalidation flow with no new network call; measure SQL row reads/CPU impact of the join and test multiple corrections, no result, removed/renamed user, missing identity and app version skew."
+      ],
+      "open_questions": [
+        "Confirm with Owner whether 'người báo hàng' here is the Inventory staff who responded (D168-REQ-002), not the Picker who first submitted the shortage; current source-specific finding covers Inventory responder.",
+        "Define preferred fallback label when actor name missing without ever inventing a person; verify event-correct attribution for per-Picker timeout and correction."
+      ],
+      "next_action": "Present source-verified defect and limited Worker/Core+Android Beta patch/test plan for explicit Owner approval; do not alter runtime just for a question. Preserve Stable OWNER-GATED.",
+      "evidence": "docs/D168_BACKLOG.md#D168-REQ-002; android/.../InventoryApi.kt#L53-L74,#L499-L521,#L524-L543; android/.../PickerController.kt#L1108-L1158; android/.../ReporterController.kt#L636-L660; service/src/operational-v2-core.ts#L1162-L1243,#L1245-L1277; PR591 merged cbb52225; PR592 docs-only E032"
     }
   ],
   "resume": {
@@ -784,10 +837,13 @@
       "D168-E022: v131 network routing, shared terminal SKU DONE and exact Picker session selection updated; final CI in progress.",
       "D168-E023: v131 one-click read-only Worker/WLAN field probe and concurrent SKU DONE CAS merged; final exact-head CI pending.",
       "D168-E026: PR591 current exact HEAD e5744f8b 20/20 CI PASS; Agent v131 test artifact exists, physical FIELD_PASS and Beta release remain blocked.",
-      "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains."
+      "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains.",
+      "D168-E033: Owner requests prioritized saved Windows WLAN selection; source still uses one typed profile; proposed design pending Owner approval.",
+      "D168-E034: Picker shortage History responder identity incomplete end-to-end in released Beta; proposed Core+Android repair pending Owner approval."
     ],
     "pending_approval": [
-      "Stable is OWNER-GATED"
+      "Stable is OWNER-GATED",
+      "Owner approval of D168-E033 ordered WLAN selection and D168-E034 Picker History actor repair; no executable fix or deploy yet."
     ],
     "blocked": [
       "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
@@ -798,7 +854,8 @@
     ],
     "next_actions": [
       "Owner direct field acceptance on installed Agent v131 + Android Beta vc107: Wi-Fi switch/restore, initial FULL 05h and durable DONE, Picklist ACK/HA, Picker presence/group contact and quota.",
-      "If any field acceptance FAIL, fix same D168 and preserve Stable. No extra Owner Github workflow action currently needed."
+      "If any field acceptance FAIL, fix same D168 and preserve Stable. No extra Owner Github workflow action currently needed.",
+      "Review E033/E034 impact and consent; after explicit approval, scoped Beta branch source+CI and guarded release, with physical device verification."
     ],
     "release_boundary": "D168_E032_BETA_RUNTIME_RELEASED__13_OF_13_PUSH_CI_PASS__FIELD_AND_OWNER_BUSINESS_PASS_PENDING__STABLE_GATED",
     "pending": [
