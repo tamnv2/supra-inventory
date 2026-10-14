@@ -194,3 +194,11 @@ Hai yêu cầu trên chỉ được **ghi nhận** theo chỉ đạo Owner, **kh
 **Trạng thái:** \`OWNER_CONSTRAINT_OFFICE_NO_DIRECT_CLOUDFLARE__EXISTING_GOOGLE_GATEWAY_ARCHITECTURE_CONFIRMED__OFFICE_END_TO_END_PASS_PENDING__CODE_DEPLOY_NOT_APPROVED\`.
 
 **Nguồn:** \`relay-agent/D167SkuDirectExport.cs\`, \`D167SkuBrowserExport.cs\`, \`D167SkuWorkbook.cs\`, \`D167SkuServiceClient.cs\`, \`service/src/d167-sku-sync-core.ts\`, \`ops/apps-script/agent-log-gateway/Code.gs\`, \`docs/PROJECT_CONTEXT.md#D090\`, Google Apps Script ContentService redirects docs \`https://developers.google.com/apps-script/guides/content\`. Không đưa raw log/bí mật vào repo công khai.
+
+## D168 14/10/2026 — Owner approvals and log delivery changes
+
+Owner approves D168 fixes in Beta, not Stable: Picker history Inventory response identity (REQ-002); accurate Picker online even with same Agent version (REQ-004); terminal SKU shared-state convergence without extra polling (REQ-005); confirmation dialog for Windows AutoStart (REQ-006); group Picker contact remains send-only with no read receipt (REQ-007); diagnostic evidence for FULL/DELTA (REQ-009); owner-ordered saved Wi-Fi fallback (REQ-010); retain direct Worker SKU architecture and field-test Office/HA later (REQ-011).
+
+New log contract: PDA sends at picker/reporter logout or Agent kick, Agent and active authenticated Web send once daily at 21:45 VN, error/crash only local. Global Agent request fans out with randomized staggering, one attempt per device, no read/seen receipts. Local journal and unsent envelopes are cleared only on positive Drive archive confirmation; a failed upload is retried at the next authorized send event and never by a timed 5/10/15m task. Preserve low CPU/battery and provider usage, security redaction and registered resources.
+
+Important field limitations: closed Web browser cannot upload at 21:45; kicked PDA token may be invalid before network completion and the local bundle must survive. D168 cannot be declared FIELD PASS from CI only. Work is in PR592; current main Beta release is cbb52225; source changes under PR are not yet deployed. Approved UI priority Wi-Fi and overlapping terminal SKU coalescing changes were rejected by tool safety checks, not implemented. Existing PR592 continuity checkpoint type remains malformed and blocks authority/state CI; do not merge or deploy until gates PASS.
