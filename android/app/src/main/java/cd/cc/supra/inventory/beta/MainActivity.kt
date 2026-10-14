@@ -1148,7 +1148,7 @@ class MainActivity : Activity() {
         }
         queue.put(JSONObject()
             .put("owner", session.userId)
-            .put("payload", payload.toString().take(100_000)))
+            .put("payload", payload.toString()))
         prefs.edit()
             .putString("pending_logout_queue_v3", queue.toString())
             .remove("pending_session_end_payload")
@@ -1193,7 +1193,7 @@ class MainActivity : Activity() {
                 .put("stack", sanitizeDiagnosticText(throwable.stackTraceToString()).take(12_000))
                 .put("support", try { JSONObject(buildSupportDiagnostics()) } catch (_: Exception) { JSONObject() })
             ensureAndroidRuntimeLogIdentity(payload, "android_crash")
-            runtimeLogPrefs().edit().putString("pending_crash", payload.toString().take(30_000)).commit()
+            runtimeLogPrefs().edit().putString("pending_crash", payload.toString()).commit()
             // Crash handling must not block to contact the network.
             previousUncaughtHandler?.uncaughtException(thread, throwable)
         }
