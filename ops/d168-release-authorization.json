@@ -2,13 +2,13 @@
   "schema_version": 1,
   "change_id": "D168",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "42fd14d80cb16912002419f85a8829fedb42a16d",
+  "approved_source_sha": "3e83ad30aa92072c0102b7fd312fd6d5027f361b",
   "approved_components": [
     "worker",
     "android",
     "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D168_DEPLOY_20261014_ANDROID_VC109_MEAL_RELEASE_NOTES",
+  "owner_approval_reference": "OWNER_EXPLICIT_D168_DEPLOY_20261014_ANDROID_VC110_RESULT_OVERLAY_HOTFIX",
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "field_pass": false,
@@ -17,5 +17,5 @@
   "owner_field_acceptance_reference": "OWNER_EXPLICIT_D168_20261014_BETA_FIELD_TEST_AT_RELEASE",
   "stable_deploy_permission": false,
   "approved_at_vn": "2026-10-14",
-  "note": "D168-E043 Owner explicitly approves Beta Android vc109 after source/authority/continuity and Worker-first exact-source checks, with meal choice two visible Reporter periods, no silent default, and per-version release_notes in same GitHub Release/pda channel. Authorized protected source 42fd14d80cb16912002419f85a8829fedb42a16d. Previous Agent/Worker permissions retained only for existing automation dependencies; no Agent functional change, no Stable/domain, field acceptance pending."
+  "note": "D168 Owner explicitly orders immediate Beta vc110 Android result-overlay duplicate fix deployment on 2026-10-14. PR #599 source candidate 3e83ad30aa92072c0102b7fd312fd6d5027f361b, after 16/16 PR CI success at prior functional commit and release-gate audit. Existing Worker-first and Agent release pipeline dependencies retained, with NO Worker/Agent executable changes and no new resources. D168 Owner-approved Beta field-validation mode persists; physical vc110 result-overlay acceptance pending. Stable/domain retirement NOT approved. Current receipt supersedes vc109-specific release source authorization without changing the historical vc109 release."
 }
