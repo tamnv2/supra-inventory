@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D168",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "2e399f03fe9019c47bd14cd755e45b8d566526f5",
+  "approved_source_sha": "3e6f23773b6e830916e36a176397c3598e9fabd8",
   "approved_components": [
     "worker",
     "android",
@@ -17,5 +17,5 @@
   "owner_field_acceptance_reference": "OWNER_EXPLICIT_D168_20261014_BETA_FIELD_TEST_AT_RELEASE",
   "stable_deploy_permission": false,
   "approved_at_vn": "2026-10-14",
-  "note": "D168 Owner authorized PR594 P0 Beta push-trigger repair on protected source 2e399f03fe9019c47bd14cd755e45b8d566526f5 after PR592 D146 guard failure and PR593 workflow-only no-dispatch. Existing registered Worker, Android, Agent only; exact CI/continuity and Worker-first runtime health required. No Stable/domain change; physical field waiver remains not FIELD_PASS."
+  "note": "D168 E041 Owner-approved Beta release PR595: signed Android vc108 SKU clipboard long-press in all Reporter tabs and Picker history/overlay; protected executable source 3e6f23773b6e830916e36a176397c3598e9fabd8. Main-only guarded Worker-first and signed channel; exact CI required. No FIELD PASS claim, Stable/domain not authorized."
 }

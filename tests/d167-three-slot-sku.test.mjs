@@ -641,6 +641,30 @@ test("D168 approved WLAN priority is local, saved-only, bounded and safely resto
   assert.doesNotMatch(ui,/new TextBox \{\s*Left=244,Top=257/);
 });
 
+
+test("D168 Reporter long-press copies SKU in Pending, Overdue, Has Stock and Skip", async () => {
+  const {readFileSync}=await import("node:fs");
+  const reporter=readFileSync(new URL("../android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt",import.meta.url),"utf8");
+  const picker=readFileSync(new URL("../android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt",import.meta.url),"utf8");
+  const layout=readFileSync(new URL("../android/app/src/main/res/layout/row_reporter_issue.xml",import.meta.url),"utf8");
+  assert.match(reporter,/target\.setOnItemLongClickListener\s*\{/);
+  assert.match(reporter,/Filter\.PENDING -> queue\.getOrNull\(position\)\?\.sku/);
+  assert.match(reporter,/Filter\.OVERDUE -> overdueRows\.getOrNull\(position\)\?\.sku/);
+  assert.match(reporter,/Filter\.HAS_STOCK, Filter\.SKIP_ALLOWED -> recentRows\(\)\.getOrNull\(position\)\?\.sku/);
+  assert.match(reporter,/copySkuToClipboard\(sku\)/);
+  assert.match(reporter,/ClipData\.newPlainText\("SKU", value\)/);
+  assert.match(reporter,/findViewById<LinearLayout>\(R\.id\.reporterRowRoot\)\.apply\s*\{/);
+  assert.match(reporter,/findViewById<TextView>\(R\.id\.tvReporterSku\)\.apply\s*\{/);
+  assert.match(reporter,/setOnLongClickListener \{ copy\(it\) \}/);
+  assert.match(reporter,/setOnItemClickListener\s*\{[\s\S]*?showTickets/);
+  assert.match(reporter,/setOnClickListener \{ confirmResolution\(/);
+  assert.match(reporter,/setOnClickListener \{ confirmResolvedCorrection\(/);
+  assert.match(layout,/android:id="@\+id\/tvReporterSku"/);
+  assert.match(picker,/attachSkuCopy\(this, row\.sku\)/);
+  assert.match(picker,/attachSkuCopy\(this, result\.sku\)/);
+  assert.doesNotMatch(reporter,/api\.copySku|networkCopySku|postCopySku/);
+});
+
 test("D168 local-first log delivery honors Owner daily and logout boundaries", async () => {
   const {readFileSync}=await import("node:fs");
   const bridge=readFileSync(new URL("../relay-agent/AgentLogUploadBridge.cs",import.meta.url),"utf8");

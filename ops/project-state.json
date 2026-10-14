@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_E040_PR594_PUSH_PATH_FIX_CI_PENDING__BETA_RELEASE_STILL_NOT_PROVEN",
+    "current_change_status": "D168_E041_PR595_ANDROID_ALL_REPORTER_SKU_LONG_PRESS_AND_SIGNED_VC108_SOURCE_CI_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "PR591_EXISTING_BETA_RELEASED__PR592_WORKER_PUSH_FAILED__PR593_NO_DEPLOY_DISPATCH__PR594_CI_PENDING__STABLE_UNTOUCHED",
+    "runtime_impact": "BETA_WORKER_WEB_C984_DEPLOYED__AGENT_V132_RELEASED__ANDROID_LAST_SIGNED_VC107__PR595_NO_APK_YET__STABLE_UNTOUCHED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D168",
     "journal": "ops/change-continuity/D168.json",
-    "working_branch": "d168-release-push-path-repair-20261014",
-    "pr": 594,
-    "latest_checkpoint_id": "D168-E040",
+    "working_branch": "d168-android-catchup-release-20261014",
+    "pr": 595,
+    "latest_checkpoint_id": "D168-E041",
     "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "PR593_OWNER_APPROVED_D168_BETA_WORKER_AGENT132_ANDROID__EXACT_CI_AND_SHA",
+    "owner_release_gate": "D168_E041_OWNER_APPROVED_ANDROID_VC108_BETA_RELEASE_CI_AND_SHA_REQUIRED__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7665,13 +7665,13 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "D168_PR594_PUSH_TRIGGER_REPAIR__BETA_CURRENT_PR591_RUNTIME__FIELD_OWNER_PASS_PENDING",
+    "status": "D168_E041_WORKER_WEB_DEPLOYED_AGENT132_RELEASED__ANDROID_VC108_PENDING_PR595_CI",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
     "backlog": "docs/D168_BACKLOG.md",
-    "working_pr": 594,
-    "working_branch": "d168-release-push-path-repair-20261014",
+    "working_pr": 595,
+    "working_branch": "d168-android-catchup-release-20261014",
     "owner_code_approval": true,
     "owner_deploy_approval": true,
     "code_ready": true,
@@ -7685,16 +7685,16 @@
       "DRIVE_LOG_COMPLETENESS_AND_PRIVACY_LOG_REVIEW",
       "CI_CD_ALL_ENTRYPOINT_GATING_FURTHER_VERIFICATION"
     ],
-    "next": "PR594_EXACT_CI_THEN_MERGE_BETA_RELEASE_AND_VERIFY_AGENTS_ANDROID__FIELD_AFTER",
+    "next": "PR595_EXACT_SOURCE_CI_PASS_MERGE_THEN_BETA_ANDROID_VC108_RELEASE_AND_CHANNEL_READBACK__FIELD_OWNER_PASS_AFTER",
     "stable": "OWNER_GATED_UNTOUCHED",
     "pending_items": [
       {
         "id": "D168-REQ-001",
         "title": "Android Picker/Reporter long-press to copy SKU in all listed status views",
-        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "status": "APPROVED_ANDROID_SOURCE_PR595_CANDIDATE__REPORTER_FOUR_TABS_AND_PICKER_HISTORY_POPUP__SIGNING_PENDING",
         "code_approved": true,
         "deploy_approved": true,
-        "provider_request_delta": "PRELIMINARY_ZERO_IF_LOCAL_CLIPBOARD_ONLY__SOURCE_REVIEW_PENDING"
+        "provider_request_delta": "ZERO_NEW_REQUESTS_LOCAL_ANDROID_CLIPBOARD"
       },
       {
         "id": "D168-REQ-002",
@@ -7748,7 +7748,7 @@
         ]
       }
     ],
-    "latest_checkpoint_id": "D168-E040",
+    "latest_checkpoint_id": "D168-E041",
     "log_upload_diagnosis": "D168_REQ008__TWO_AFFECTED_AGENTS_MATCHING_GATEWAY_TIMEOUT_KEEPALIVE__CODE_PENDING_OWNER_APPROVAL",
     "sku_evening_diagnosis": "D168_REQ009__DELTA_19_NO_AGENT_DONE_EVIDENCE__948_PRIMARY_DEFER__BROWSER_TIMER_BYPASSES_15MIN_RETRY__SERVICE_RECEIPT_NOT_VERIFIED__NO_RUNTIME_MUTATION",
     "office_sku_route": "D168_REQ010__OFFICE_COMPATIBLE_BY_SOURCE_APPS_SCRIPT_GATEWAY__OFFICE_SKU_DONE_NOT_FIELD_VERIFIED__NO_CODE_OR_DEPLOY",
@@ -7864,6 +7864,27 @@
         "agent",
         "android"
       ],
+      "stable": "OWNER_GATED"
+    },
+    "pr595_android_vc108": {
+      "pr": 595,
+      "branch": "d168-android-catchup-release-20261014",
+      "protected_source_sha": "3e6f23773b6e830916e36a176397c3598e9fabd8",
+      "status": "CODE_CANDIDATE_CI_PENDING",
+      "reporter_tabs": [
+        "PENDING",
+        "OVERDUE",
+        "HAS_STOCK",
+        "SKIP_ALLOWED"
+      ],
+      "picker_views": [
+        "HISTORY",
+        "RESULT_OVERLAY"
+      ],
+      "runtime_release": false,
+      "android_current_signed_version_code": 107,
+      "android_target_signed_version_code": 108,
+      "field_pass": false,
       "stable": "OWNER_GATED"
     }
   }

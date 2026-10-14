@@ -3045,3 +3045,10 @@ PR592 đã merge nhưng Worker push run 38503630043 dừng tại `D146 source co
 ### D168-E040 — Điều kiện trigger workflow phát hành Beta
 
 `on.push.paths` của Worker, Agent và Android phải bao gồm chính workflow YAML tương ứng để PR sửa workflow bảo vệ sau khi merge có thể phát hành hợp lệ, không cần giả source edit. Cả ba vẫn chỉ phát hành sau exact SHA/Owner receipt/Authority+Continuity/product CI, Worker health trước client, tag mới đúng số phiên bản và checksum/chữ ký. Không mở đường `workflow_dispatch` bỏ qua cổng main-only. Source P0 PR594: 2e399f03fe9019c47bd14cd755e45b8d566526f5. Không gọi deploy trước khi CI đầy đủ PASS; Stable & đề xuất đổi domain D168-E037 không đổi.
+
+## D168-E041 — Nghiệm thu giữ SKU Android và phát hành vc108
+
+- Picker: giữ nhãn SKU trong Lịch sử của tất cả trạng thái có hiển thị (đang báo, có hàng, skip, thu hồi) và popup thông báo kết quả; clipboard chỉ chứa SKU gốc, không chứa tên hoặc tiền/hậu tố.
+- Reporter: kiểm tra bốn tab Đang xử lý / Quá hạn / Đã có hàng / Cho phép skip. Giữ mã hoặc nội dung hàng bằng ngón tay khi ListView có listener, kiểm tra mã clipboard chính xác trên từng dòng sau scroll/lazy load/refresh/recycled item và khi danh sách rỗng không crash. Chạm ngắn vào dòng vẫn xem Picker khi áp dụng; hai nút xử lý và hai nút Sửa không thay đổi.
+- Không phát sinh thêm request Worker/D1/Firebase/WMS/Apps Script; clipboard chỉ ở PDA. Chạy Android signed build/CI, kiểm tra tag ký thật beta-vc108 trên GitHub và inventory-channel APK/manifest cùng source. Không gọi CI PASS là đã cài thiết bị.
+- Work PR595 protected source 3e6f23773b6e830916e36a176397c3598e9fabd8; release sau merge và field nghiệm thu Owner tách biệt. Stable OWNER-GATED.
