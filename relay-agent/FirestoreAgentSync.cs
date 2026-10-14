@@ -203,8 +203,9 @@ namespace SupraInventoryRelayAgent
                             !record.ContainsKey("state") ||
                             Convert.ToString(record["state"])!="DONE")continue;
                         var slot=Convert.ToString(record["slot"]) ?? "";
-                        if(slot=="INITIAL_05" || slot=="DELTA_12" || slot=="DELTA_19")
-                            bySlot[slot]=record;
+                        if((slot=="INITIAL_05" || slot=="DELTA_12" || slot=="DELTA_19") &&
+                           !bySlot.ContainsKey(slot))
+                            bySlot.Add(slot,record); // keep first Worker-verified DONE immutable
                     }
                 }
                 var slots=bySlot.OrderBy(x=>x.Key,StringComparer.Ordinal)
@@ -212,7 +213,10 @@ namespace SupraInventoryRelayAgent
                 var combined=_json.Serialize(new Dictionary<string,object>{
                     {"day_vn",newDay},{"slots",slots}
                 });
-                return combined.Length>3500 ? incoming : combined;
+                // Never erase an earlier terminal slot due to payload size.
+                // The calling writer retains its local verified receipt and
+                // may try again on the next actual SKU event (no timer/poll).
+                return combined.Length>3500 ? previous : combined;
             }
             catch { return incoming; }
         }
