@@ -7,10 +7,10 @@
   "pr": 601,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E050",
+    "id": "D168-E051",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": "D168_E050_VC110_SIGNED_BETA_RELEASE_PASS__MANDATORY_UPDATE_AND_LONG_CHAT_OVERLAY_FIELD_DEFECT_REVIEW__NO_NEW_DEPLOY_PERMISSION__STABLE_GATED",
+  "deployment_gate": "D168_OWNER_LIMITED_CODE_PASS_CLOSEOUT__NO_NEW_DEPLOY_PERMISSION__KNOWN_D168_E050_CARRIED_TO_D169__STABLE_GATED",
   "entries": [
     {
       "id": "D168-E001",
@@ -1145,6 +1145,22 @@
       ],
       "next_action": "Present source-grounded findings and safe reboot advice; upon explicit Owner correction approval, implement D168 scoped Beta update gating and long-message scrolling with user-scoped ACK/mandatory update regressions, CI, exact-source release receipt and rollback. No silent Stable change.",
       "evidence": "Main source android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt lines 1909-2111; service/src/index.ts lines 1337-1351; CriticalOverlayService.kt buildCommandOverlay/finishActive; android/app/src/main/res/layout/overlay_alert.xml; docs/D166_APPROVED_BACKLOG.md mandatory updates; Owner vc110 field report on 2026-10-14; PR601 tracking-only"
+    },
+    {
+      "id": "D168-E051",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner limited D168 CODE PASS closeout and directive to open D169",
+      "status": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__NO_NEW_ISSUES_OBSERVED__D169_INTAKE_AUTHORIZED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly recognizes D168 PASS limited to code; has not reported further new problems at this time; requests D169 for grouped future analysis.",
+        "Signed Beta vc110 and Worker source/release evidence remain those in D168-E049. Owner statement is not independent physical device or provider usage PASS.",
+        "Previously recorded D168-E050 forced update and long Agent message UI defects remain open with no code fix; carry them into D169 intake for transparent later treatment.",
+        "No new code or Beta/Stable deployment permitted by this closeout command."
+      ],
+      "next_action": "Transition canonical working change to D169, preserving D168 evidence and known unresolved items; accept only new record-only intake.",
+      "evidence": "Owner 2026-10-14 direct instruction; D168-E049, D168-E050; docs/D169_BACKLOG.md"
     }
   ],
   "resume": {
@@ -1158,7 +1174,8 @@
       "D168-E018 Owner explicit whole Big Update CODE + Beta deploy permission; FULL mandatory solo primary, WMS ordinary Internet, direct Worker SKU; Stable unchanged.",
       "D168-E029: Owner explicitly accepts unverified predeploy device/network tests for a scoped Beta trial rollout and later direct field acceptance; not physical FIELD PASS.",
       "D168-E043: Owner authorizes immediate signed Beta Android vc109 after CI; Reporter dual explicit meal slots and future per-version synchronized release notes.",
-      "D168-E048: Owner expressly orders immediate Android Beta vc110 hotfix release; signed APK only after exact CI and protected source release gate. Stable unchanged."
+      "D168-E048: Owner expressly orders immediate Android Beta vc110 hotfix release; signed APK only after exact CI and protected source release gate. Stable unchanged.",
+      "D168-E051 Owner limited code/as-deployed PASS; opens D169 RECORD ONLY, field/usage proof not asserted."
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -1194,7 +1211,8 @@
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
       "D168-D168-E037: future proposal to unify existing Beta into one official runtime at inventory.supra.cc.cd, pending Owner choice, D168 Owner PASS and Stable hostname-specific authorization; zero live modification.",
-      "D168-E050: correction design and scoped Beta release authorization for truly mandatory every-version update and scrollable long alert/ACK UI; Stable unchanged."
+      "D168-E050: correction design and scoped Beta release authorization for truly mandatory every-version update and scrollable long alert/ACK UI; Stable unchanged.",
+      "D168-E050 update gate + Agent chat oversized overlay carried into D169 without claiming fixed."
     ],
     "blocked": [
       "Physical PDA vc108 installation and Picker/Reporter all-view long-press/usage acceptance not verified; Owner PASS pending.",
@@ -1210,9 +1228,10 @@
       "Open vc110 Draft PR, bind real PR number, run Android+authority+continuity CI; signed Beta release only after gate PASS; physical PDA double-overlay field confirmation separate.",
       "On Owner vc110 Beta release approval, bind tested PR599 commit in D168 release authorization receipt and rerun PR checks before merge; verify signed APK/channel. Stable remains gated.",
       "Owner PDA test: exactly one overlay per result_event_id under app foreground and FCM/background, ACK local-first and reconnection; FIELD/OWNER PASS remains pending.",
-      "Owner approve D168-E050 fix scope, then implement UI/Worker only as needed after impact assessment and verify physical PDA."
+      "Owner approve D168-E050 fix scope, then implement UI/Worker only as needed after impact assessment and verify physical PDA.",
+      "Continue related analysis in D169 intake after additional Owner observations; no new D168 code mutation."
     ],
-    "release_boundary": "ANDROID_VC110_SIGNED_BETA_RELEASE_CHANNEL_PASS__WORKER_BETA_SOURCE_PASS__PHYSICAL_FIELD_OWNER_PASS_PENDING__STABLE_GATED",
+    "release_boundary": "D168_OWNER_LIMITED_CODE_PASS__NO_NEW_RELEASE__E050_REMAINS_OPEN_IN_D169__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
