@@ -3052,3 +3052,11 @@ PR592 đã merge nhưng Worker push run 38503630043 dừng tại `D146 source co
 - Reporter: kiểm tra bốn tab Đang xử lý / Quá hạn / Đã có hàng / Cho phép skip. Giữ mã hoặc nội dung hàng bằng ngón tay khi ListView có listener, kiểm tra mã clipboard chính xác trên từng dòng sau scroll/lazy load/refresh/recycled item và khi danh sách rỗng không crash. Chạm ngắn vào dòng vẫn xem Picker khi áp dụng; hai nút xử lý và hai nút Sửa không thay đổi.
 - Không phát sinh thêm request Worker/D1/Firebase/WMS/Apps Script; clipboard chỉ ở PDA. Chạy Android signed build/CI, kiểm tra tag ký thật beta-vc108 trên GitHub và inventory-channel APK/manifest cùng source. Không gọi CI PASS là đã cài thiết bị.
 - Work PR595 protected source 3e6f23773b6e830916e36a176397c3598e9fabd8; release sau merge và field nghiệm thu Owner tách biệt. Stable OWNER-GATED.
+
+## D168-E042 — Chứng cứ phát hành Android vc108 (14/10/2026)
+
+- PR595 merge main `9a61ead381e72c46d4fd3e566f323e2507d3ae0d`; 18/18 source CI PASS; APK signed release `beta-vc108` có cùng source commit.
+- Android main workflow `38507343114` PASS đầy đủ: Owner gate, SDK build, Worker-first exact source, ký và upload release; `inventory-channel` đã cập nhật `pda-latest.json`, APK và SHA-256 ở 10:41 giờ VN.
+- Worker Beta workflow `38507343224` PASS; Agent v132 đã được phát hành từ trước, nhưng Agent main workflow `38507343145` tại merge vc108 FAIL riêng vì không kết nối được Agent operations gateway trong ba lượt GET. Lỗi này **không phải** chứng cứ vc108 Android không được phát hành, không có Agent binary mới từ run FAIL.
+- **FIELD PASS chưa có:** cần PDA thực tế cài đúng vc108 và thử ấn giữ SKU trên 4 tab Reporter cùng Picker Lịch sử/popup, kiểm tra clipboard SKU đúng từng dòng, thao tác ngắn/nút nghiệp vụ không đổi; tài nguyên/usage cần đo thật. Không đánh đồng GitHub signed release với hoàn tất cập nhật tất cả thiết bị.
+- Stable và đề xuất gộp domain chưa được duyệt, không triển khai trong thay đổi này.
