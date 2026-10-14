@@ -2,13 +2,13 @@
   "schema_version": 1,
   "change_id": "D168",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "3e6f23773b6e830916e36a176397c3598e9fabd8",
+  "approved_source_sha": "42fd14d80cb16912002419f85a8829fedb42a16d",
   "approved_components": [
     "worker",
     "android",
     "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D168_DEPLOY_20261014_BETA_FIELD_TRIAL",
+  "owner_approval_reference": "OWNER_EXPLICIT_D168_DEPLOY_20261014_ANDROID_VC109_MEAL_RELEASE_NOTES",
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "field_pass": false,
@@ -17,5 +17,5 @@
   "owner_field_acceptance_reference": "OWNER_EXPLICIT_D168_20261014_BETA_FIELD_TEST_AT_RELEASE",
   "stable_deploy_permission": false,
   "approved_at_vn": "2026-10-14",
-  "note": "D168 E041 Owner-approved Beta release PR595: signed Android vc108 SKU clipboard long-press in all Reporter tabs and Picker history/overlay; protected executable source 3e6f23773b6e830916e36a176397c3598e9fabd8. Main-only guarded Worker-first and signed channel; exact CI required. No FIELD PASS claim, Stable/domain not authorized."
+  "note": "D168-E043 Owner explicitly approves Beta Android vc109 after source/authority/continuity and Worker-first exact-source checks, with meal choice two visible Reporter periods, no silent default, and per-version release_notes in same GitHub Release/pda channel. Authorized protected source 42fd14d80cb16912002419f85a8829fedb42a16d. Previous Agent/Worker permissions retained only for existing automation dependencies; no Agent functional change, no Stable/domain, field acceptance pending."
 }

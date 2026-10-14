@@ -33,6 +33,8 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -1703,28 +1705,71 @@ class MainActivity : Activity() {
                     d167MealPromptKey = key
                     val options = if (period == "LUNCH") arrayOf("11:00 – 11:30", "11:30 – 12:00")
                     else arrayOf("18:00 – 18:30", "18:30 – 19:00")
-                    var chosen = 0
+                    // A message plus setSingleChoiceItems can hide the choice list
+                    // on Android 11 PDA AlertDialog implementations. Use one visible
+                    // custom content area with two explicit radio options instead.
+                    val content = LinearLayout(this@MainActivity).apply {
+                        orientation = LinearLayout.VERTICAL
+                        setPadding(kit.dp(20), kit.dp(8), kit.dp(20), kit.dp(12))
+                    }
+                    content.addView(TextView(this@MainActivity).apply {
+                        text = "Chọn một trong hai khung giờ nghỉ của đội Reporter. Đồng hồ tự động Skip tạm dừng trong khoảng đã chọn; xác nhận thủ công vẫn bình thường. Chỉ người xác nhận đầu tiên được ghi nhận."
+                        textSize = 14f
+                        setPadding(0, 0, 0, kit.dp(12))
+                    })
+                    val radioGroup = RadioGroup(this@MainActivity).apply {
+                        orientation = RadioGroup.VERTICAL
+                    }
+                    val optionIds = options.map { View.generateViewId() }
+                    options.forEachIndexed { index, label ->
+                        radioGroup.addView(RadioButton(this@MainActivity).apply {
+                            id = optionIds[index]
+                            text = label
+                            textSize = 16f
+                            setPadding(0, kit.dp(7), 0, kit.dp(7))
+                        }, RadioGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ))
+                    }
+                    content.addView(radioGroup)
+                    var chosen: Int? = null // Do not silently confirm the first slot.
                     val dialog = AlertDialog.Builder(this@MainActivity)
-                        .setTitle(if (period == "LUNCH") "Ca vận hành · Xác nhận giờ nghỉ trưa" else "Ca vận hành · Xác nhận giờ nghỉ tối")
-                        .setMessage("Chọn giờ nghỉ của đội Reporter. Đồng hồ tự động Skip tạm dừng trong khoảng nghỉ; xác nhận thủ công vẫn bình thường. Chỉ Reporter xác nhận đầu tiên được ghi nhận.")
-                        .setSingleChoiceItems(options, 0) { _, which -> chosen = which }
+                        .setTitle(if (period == "LUNCH") "Xác nhận giờ nghỉ trưa" else "Xác nhận giờ nghỉ tối")
+                        .setView(content)
                         .setPositiveButton("Xác nhận giờ nghỉ", null)
                         .create()
                     d167MealDialog = dialog
                     dialog.setCancelable(false)
                     dialog.setCanceledOnTouchOutside(false)
                     dialog.setOnShowListener {
-                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                        val confirm = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                        confirm.isEnabled = false
+                        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+                            chosen = optionIds.indexOf(checkedId).takeIf { it >= 0 }
+                            confirm.isEnabled = chosen != null
+                        }
+                        confirm.setOnClickListener {
+                            val selected = chosen ?: return@setOnClickListener
+                            confirm.isEnabled = false
                             Thread {
                                 val error = try {
-                                    api.confirmD167Meal(period, if (chosen == 0) "EARLY" else "LATE")
+                                    api.confirmD167Meal(period, if (selected == 0) "EARLY" else "LATE")
                                     null
                                 } catch (e: Exception) { e.message ?: e.javaClass.simpleName }
                                 runOnUiThread {
-                                    if (error != null && !isFinishing) {
+                                    if (isFinishing || api.session?.userId != current.userId) return@runOnUiThread
+                                    if (error == null) {
+                                        dialog.dismiss()
+                                        if (d167MealDialog === dialog) {
+                                            d167MealDialog = null
+                                            d167MealPromptKey = ""
+                                        }
+                                    } else if (dialog.isShowing) {
+                                        confirm.isEnabled = chosen != null
                                         Toast.makeText(this@MainActivity, "Xác nhận giờ nghỉ: $error", Toast.LENGTH_LONG).show()
                                     }
+                                    // Server remains authoritative if another Reporter won.
                                     reconcileD167MealPrompt()
                                 }
                             }.start()
