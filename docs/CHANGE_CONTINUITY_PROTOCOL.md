@@ -63,3 +63,8 @@ D167-E046: MAIN-tab direct WMS credential-source work cancelled; existing same-p
 ## D168 activation after D167 limited Owner PASS (2026-10-13)
 
 Historical D167 resume examples and the PR #559 CODE-READY-only hold above were superseded by later Owner-approved Beta releases and D167 PR #581 limited-as-deployed signoff. The **active** Dxxx is now `D168`, and the working journal is `ops/change-continuity/D168.json`. For `tiếp tục D168`, bootstrap the latest main manifest, full order, current PR HEAD and D168 journal; distinguish approved decisions, pending analysis, source/CI, release evidence and Owner field proof. Each newly introduced log result/request/proposal/decision requires sanitized repo checkpoint; log intake alone authorizes no Beta or Stable rollout. The accepted base is D167 Owner limited PASS, never retroactively upgraded to full physical/quota verification.
+
+
+## D169 transition from Owner's limited D168 code PASS (2026-10-14)
+
+The Owner explicitly limits D168 acceptance to code/as-deployed behavior with no further new reported issues at the time and opens D169 to collect new problems before a unified analysis. This supersedes the D168-active example above, **not** the serial-gate, repo-first, secret-redaction or no-deploy requirements. D168-E050 known defects stay uncorrected and cross-referenced. Current journal `ops/change-continuity/D169.json` is intake-only: new evidence and user discussions must be checkpointed on the current D169 branch; no automatic source fix or release follows from opening the change. Technical/pass/release/physical field and Owner scopes remain distinct; Stable is Owner-gated.
