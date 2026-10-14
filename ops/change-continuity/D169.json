@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D169",
+  "working_branch": "docs/d169-intake-open-20261014",
+  "pr": 602,
+  "accepted_base": "D168_LIMITED_OWNER_PASS",
+  "last_checkpoint": {
+    "id": "D169-E001",
+    "date_vn": "2026-10-14"
+  },
+  "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
+  "entries": [
+    {
+      "id": "D169-E001",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner accepts D168 code/as-deployed at limited scope and opens D169 as unified issue intake",
+      "status": "OWNER_LIMITED_D168_CODE_PASS__D169_RECORD_ONLY_OPEN",
+      "owner_approval": true,
+      "facts": [
+        "Owner statement 2026-10-14: D168 PASS from code perspective; no additional issues observed at this point. New D169 collects observations first for one coherent cross-system analysis.",
+        "Acceptance is limited to current code/as-deployed experience, not independent physical fleet, billed Usage, or all scenario verification.",
+        "D168-E050 records two pre-existing Android problems: optional 'Để sau' update path and long unscrollable Agent chat/overlay acknowledgement. They are carried forward transparently, without claiming a fix or a newly observed D169 failure.",
+        "D169 is record-only; no new code, provider mutation, release, Stable/domain migration or underlying APK/Agent/Web update is authorized."
+      ],
+      "next_action": "Collect new Owner issues and sanitized logs in D169; later analyze them in one end-to-end, usage-aware batch and propose a unified plan for explicit Owner approval.",
+      "evidence": "Owner direct instruction 2026-10-14; D168-E049 signed vc110 release evidence and D168-E050 source-backed unresolved observations; docs/D169_BACKLOG.md"
+    }
+  ],
+  "resume": {
+    "approved": [
+      "D168 accepted by Owner only as code/as-deployed limited PASS with no new reported issues at this moment",
+      "Open D169 for intake and later batch/unified cross-component analysis; no implementation/deployment authorization"
+    ],
+    "implemented": [
+      "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
+      "D169 journal and backlog created; no executable product changes"
+    ],
+    "in_progress": [
+      "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence"
+    ],
+    "pending_approval": [
+      "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
+      "D168-E050 mandatory-version update and long Agent overlay design remain unresolved and require analysis"
+    ],
+    "blocked": [
+      "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
+    ],
+    "next_actions": [
+      "Add D169-REQ-n observations to the backlog with sanitized evidence",
+      "After sufficient intake or Owner command, read full canonical GitHub + log and prepare consolidated diagnosis/proposal, including regression/usage/security/rollback"
+    ],
+    "release_boundary": "RECORD_ONLY__NO_EXECUTABLE_CHANGE__NO_BETA_STABLE_DOMAIN_DEPLOY__STABLE_OWNER_GATED"
+  }
+}
