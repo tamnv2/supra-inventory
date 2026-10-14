@@ -756,3 +756,13 @@ For proposed WLAN-switching SKU jobs, emit one sanitized state-transition breadc
 
 Agent Internet-task capability checks must use bounded read-only HTTPS when that task actually starts, never periodically. The existing Worker GET /health is NOT suitable as a cheap reachability probe: service/src/index.ts invokes Core checks and Agent auth migration in that route. A valid Worker-origin 401/403 is an authorization issue, whereas corporate proxy 403/timeout is a route failure; log only sanitized reason codes, no token/cookie, raw SSID or sensitive output. Reuse existing validated business GET or an Owner-approved tiny read-only Worker response. Cache by network epoch and single-flight identical probes.
 Preserve end-to-end PDA ACK/HA evidence and the Drive-confirmed log lifecycle even as Agent D160 Usage and D166 ZIP retire. No extra provider polls, no separate ACK-success audit write. Source evidence: docs/D168_FIRESTORE_CLOUDFLARE_USAGE_ACK_2026-10-14.md, D168-E017.
+
+## D168 — Owner-approved local-first logs (2026-10-14)
+
+All three surfaces (Agent, Web, Android Picker/Reporter) record bounded, sanitized error stage/code, HA and realtime status, ACK/correlation, SKU FULL/DELTA receipts and retry suppression, provider usage estimates, device CPU/performance samples where already available. Do not add periodic provider fetches, new Firestore listeners or high-rate instrumentation. Do not send raw Wi-Fi SSIDs, credentials, WMS auth material or sensitive report content; local estimates are not billed provider usage.
+
+Delivery events only: PDA logout or Agent kick, authenticated Agent once per Vietnam-local day at 21:45, authenticated active Web once per Vietnam-local day at 21:45. Crash/error logging remains local and cannot itself trigger upload; Agent manually Send Log and authorized global support request remain available. Global request uses a spread of up to 180 seconds within request TTL; no per-Picker delivery/read receipt. Avoid retry timers: failed bundles wait locally until a subsequent authorized delivery event, retaining stable idempotency identifiers.
+
+Deletion requires archive_status DRIVE_SYNCED or equivalent authenticated Drive receipt. Keep unsent envelopes on local storage when authorization/network is down. Web off/suspended cannot honor exact time; keep journal until reopened at a valid send event. Forced PDA kick may revoke API token before upload and must preserve pending data for a later authenticated same-user session. Never delete on a generic HTTP 200 or response DEFERRED. Batch upload with bounded payloads and rate limits; no operations that could block WMS PickList Confirm.
+
+PR592 source work is not runtime proof or full deployment; Owner Field PASS pending. Stable remains gated.
