@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-agent-network-split-proposal-20261013",
-  "pr": 591,
+  "working_branch": "d168-beta-release-dispatch-recovery-20261014",
+  "pr": 592,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E030",
+    "id": "D168-E031",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_OWNER_BETA_TRIAL_APPROVED_IN_PRINCIPLE__TOOL_SAFETY_BLOCKS_RELEASE_RECEIPT_MUTATION__NO_DEPLOY",
@@ -716,6 +716,25 @@
       ],
       "next_action": "Preserve current safe Beta/D167 runtime and report this true tool blocker. Release permission/status cannot be promoted from this execution. Stable remains Owner-gated.",
       "evidence": "PR591 HEAD c85d5d3e3b75bf103cfcdec8014ab167f20adfd2 20/20 PASS; tool safety refusal during D168 release receipt update attempt; readback ops/d168-release-authorization.json"
+    },
+    {
+      "id": "D168-E031",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "PR591 successfully merged, but GitHub Actions push runs absent for merge commit; implement Owner-only workflow_dispatch recovery PR592",
+      "status": "D168_PR591_MERGED__NO_MAIN_PUSH_WORKFLOWS_OBSERVED__NO_BETA_RELEASE_RECEIPT__PR592_DISPATCH_FIX_SOURCE_NOT_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner manually committed D168 Beta trial release receipt at PR591 HEAD 3370ca7d177a538b32c07034f19d28000f110f3a; exact 20/20 PR workflows succeeded.",
+        "PR591 merged on 2026-10-14 into main commit cbb52225f2d7e55bfc48e7474610b1c6bec038b3, Owner approval/receipt present on main; no push workflow runs returned for that SHA at audit time after merge.",
+        "Worker Beta remains unproven at new SHA and Agent v131/Android Beta release channels have not been shown updated; do not assert deployment from merge.",
+        "Existing release gate rejects workflow_dispatch despite GitHub workflows advertising a manual Run workflow button. This prevents Owner self-service recovery if merge pushes do not create runs.",
+        "PR592 continuation source adds Owner-only manual dispatch to release gate (requires GITHUB_ACTOR=tamnv2, repo main, unchanged D168 exact-source receipt checks and component allowlist), enables Agent/Android manual release steps, retains Worker-first dependency and Stable deny.",
+        "Because release code/workflow source itself changed, old approved_source_sha fda7d9fa... is intentionally insufficient for release; D168 receipt must be owner-pinned to PR592's verified source SHA only after CI, or the main gate must fail closed.",
+        "This is planned manual recovery using recorded Owner intent, not a claim that CI or release has passed PR592 yet. Tool lacks a GitHub Actions workflow_dispatch write action; if no push-triggered jobs arrive, Owner must initiate 3 main manual workflows after approved CI/merge (Worker then Agent/Android)."
+      ],
+      "next_action": "Validate PR592 full code/authority/continuity CI, Owner must update approved source SHA after source freeze on PR592, revalidate 20/20, merge PR592 then Owner Run workflow Worker first and Agent/Android after Worker success; monitor runtime, Stable unchanged.",
+      "evidence": "GitHub PR591 merged SHA cbb52225; current GitHub Actions head_sha query returned 0 postmerge; PR592; D168 release receipt and tools/d167_release_gate.py"
     }
   ],
   "resume": {
@@ -742,7 +761,8 @@
       "D168-E022: v131 network routing, shared terminal SKU DONE and exact Picker session selection updated; final CI in progress.",
       "D168-E023: v131 one-click read-only Worker/WLAN field probe and concurrent SKU DONE CAS merged; final exact-head CI pending.",
       "D168-E026: PR591 current exact HEAD e5744f8b 20/20 CI PASS; Agent v131 test artifact exists, physical FIELD_PASS and Beta release remain blocked.",
-      "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains."
+      "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains.",
+      "D168-E031: PR591 merged but no push workflow; PR592 adds Owner-only workflow_dispatch release recovery, awaiting CI and refreshed approved source SHA."
     ],
     "pending_approval": [
       "Stable is OWNER-GATED"
@@ -752,14 +772,14 @@
       "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD.",
       "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector.",
       "Mixed-version predeployment field test: v131 D168 capability endpoint absent in released D167 Worker; test cannot prove Worker readiness until safe compatibility or staged rollout is designed.",
-      "Release authorization receipt mutation refused by tool safety; cannot merge or deploy Beta using this session."
+      "Release authorization receipt mutation refused by tool safety; cannot merge or deploy Beta using this session.",
+      "No release push workflow for main merge cbb52225; manual dispatch is not authorized by existing gate until PR592 passes and is merged."
     ],
     "next_actions": [
-      "Verify updated Owner-waiver release gate + Worker-first Agent/Android workflow via exact PR HEAD CI, update SHA-bound approved Beta receipt, merge and monitor releases.",
-      "Post-release physical Agent/PDA/WMS/HA/ACK and billable quota verification remains pending Owner acceptance; do not claim FIELD_PASS or OWNER_PASS.",
-      "Stable unchanged and strictly Owner-gated."
+      "Run PR592 CI, update release approval SHA after source freeze, merge PR592 under D168 and initiate Worker/Agent/Android manual workflow through GitHub Owner Actions UI if no push workflows.",
+      "Never assume main merge by GitHub API equals deployed Beta; independently verify live Worker source and distribution channels."
     ],
-    "release_boundary": "D168_E029_OWNER_ACCEPTED_BETA_TRIAL__CI_20_OF_20_PASS__RECEIPT_CODE_ONLY_SAFETY_BLOCKED__PR_DRAFT_UNMERGED__STABLE_GATED",
+    "release_boundary": "D168_E031_PR591_MERGED__NO_BETA_RUNTIME_RECEIPTS__PR592_WORKFLOW_DISPATCH_FIX_PENDING_OWNER_SOURCE_PIN__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
