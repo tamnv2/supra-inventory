@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-release-push-path-repair-20261014",
-  "pr": 594,
+  "working_branch": "d168-android-catchup-release-20261014",
+  "pr": 595,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D168-E041",
