@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "fix/d168-android-vc110-result-overlay-once",
-  "pr": 599,
+  "working_branch": "docs/d168-vc110-release-evidence-20261014",
+  "pr": 600,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E048",
+    "id": "D168-E049",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": "D168_E048_OWNER_EXPLICIT_VC110_BETA_APPROVED__PR_FINAL_CI_PENDING__SIGNED_APK_NOT_YET_RELEASED__STABLE_GATED",
+  "deployment_gate": "D168_E049_VC110_SIGNED_BETA_RELEASE_AND_CHANNEL_PASS__FIELD_OWNER_PASS_PENDING__STABLE_GATED",
   "entries": [
     {
       "id": "D168-E001",
@@ -1097,6 +1097,25 @@
       ],
       "next_action": "Wait final PR599 head 16/16 CI PASS, then merge expected-head via guarded PR process; inspect Worker-first and Android signed beta-vc110 release/channel and no unintended Agent/Stable changes; record PASS evidence and field-only pending.",
       "evidence": "Owner direct instruction 2026-10-14 'Hỏi thừa vl, triển khai đi'; PR599; ops/d168-release-authorization.json; docs/OWNER_DECISIONS.md#D168-E048"
+    },
+    {
+      "id": "D168-E049",
+      "date_vn": "2026-10-14",
+      "kind": "STATUS",
+      "topic": "Android Beta vc110 duplicate-overlay hotfix signed release and channel confirmed",
+      "status": "VC110_SIGNED_ANDROID_BETA_RELEASE_PASS__WORKER_RUNTIME_PASS__GITHUB_CHANNEL_DIGEST_MATCH__FIELD_OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR #599 merged to main commit 3294ad45370f4615bedf25551bab5febbf3bc6d3 after authority/continuity and Android CI PASS at final approved head ebe1619e.",
+        "Main push Beta Worker run 38517665151 completed SUCCESS including release receipt, Worker deploy and health/source verification.",
+        "Main push Android run 38517665083 completed SUCCESS including vc110 signed release publishing and pre-publication exact-source Worker gate.",
+        "Immutable GitHub release beta-vc110 published at 2026-10-14T05:39:50Z, target main 3294ad45, signed APK asset 19,200,724 bytes SHA-256 0b0f34a63876d6faf4d735fc2a5884e55a7ef582c97f475d3e57e7962abf6ee2.",
+        "Inventory-channel supra-inventory-beta.apk asset has identical SHA-256 and byte length; pda-latest.json published as refreshed channel asset. Entire 10/10 main push workflows SUCCESS for release commit.",
+        "No new Android devices installation, physical overlay count/ACK scenario or Owner business PASS inferred. Stable remained OWNER-GATED; Agent source unchanged and no new Agent release required.",
+        "Release-evidence docs-only PR #600 opened to persist this checkpoint without direct main writes or any executable change."
+      ],
+      "next_action": "Publish this docs-only immutable release evidence via governed PR; Owner validate on physical PDA vc110 with one overlay per event and correct ACK under foreground/background/reconnect scenarios; keep D168 open until Owner explicitly PASS.",
+      "evidence": "PR599 merged commit 3294ad45370f4615bedf25551bab5febbf3bc6d3; GitHub Worker 38517665151 SUCCESS; Android 38517665083 SUCCESS; GitHub release beta-vc110; inventory-channel asset SHA match; PR600 docs-only"
     }
   ],
   "resume": {
@@ -1118,7 +1137,8 @@
       "D168 PR589 Office SKU design docs merged to main; no executable source altered",
       "D168-E032: PR591 merged as main cbb52225, 13/13 push workflows PASS and Worker/Agent v131/Android vc107 released to Beta.",
       "D168-E032: PR592 experimental manual-dispatch source changes reverted to main source after delayed push event became available.",
-      "D168-E044: PR597 16/16 CI and merge a344c283; Worker/Android and 11/11 main CI PASS; signed beta-vc109 release plus channel APK/notes SHA match."
+      "D168-E044: PR597 16/16 CI and merge a344c283; Worker/Android and 11/11 main CI PASS; signed beta-vc109 release plus channel APK/notes SHA match.",
+      "D168-E049: PR599 merge 3294ad45; Beta Worker 38517665151 and signed Android beta-vc110 38517665083 PASS; channel APK hash matches; 10/10 main push CI PASS."
     ],
     "in_progress": [
       "D168 PR591: partial approved implementation in Agent, Android, Worker/Core; current source fix preserves multi-Picker online selection",
@@ -1139,8 +1159,7 @@
       "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending.",
       "D168-E044 vc109 app installed/tested field proof pending; future releases auto publish reviewed notes from source file.",
       "D168-E045: owner-reported vc109 double overlay: vc110 Android local hotfix on Codespaces feature branch; code diff clean, tests/PR/CI/build/release/field acceptance pending.",
-      "D168-E046: vc110 Draft PR #599 created. CI and physical device validation pending.",
-      "D168-E048: vc110 Beta receipt pins protected source 3e83ad30; final PR599 checks and guarded merge/publish pending."
+      "D168-E046: vc110 Draft PR #599 created. CI and physical device validation pending."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
@@ -1158,9 +1177,10 @@
       "Record Owner field PASS only after direct testing; never automatically merge unrelated Stable/domain proposal.",
       "Owner/field test Android vc109 meal modal and update notes; reject/repair same D168 if device NOT PASS.",
       "Open vc110 Draft PR, bind real PR number, run Android+authority+continuity CI; signed Beta release only after gate PASS; physical PDA double-overlay field confirmation separate.",
-      "On Owner vc110 Beta release approval, bind tested PR599 commit in D168 release authorization receipt and rerun PR checks before merge; verify signed APK/channel. Stable remains gated."
+      "On Owner vc110 Beta release approval, bind tested PR599 commit in D168 release authorization receipt and rerun PR checks before merge; verify signed APK/channel. Stable remains gated.",
+      "Owner PDA test: exactly one overlay per result_event_id under app foreground and FCM/background, ACK local-first and reconnection; FIELD/OWNER PASS remains pending."
     ],
-    "release_boundary": "ANDROID_VC110_BETA_RELEASE_AUTHORIZED__WAITING_FINAL_PR599_CI_AND_SIGNED_RELEASE__STABLE_GATED",
+    "release_boundary": "ANDROID_VC110_SIGNED_BETA_RELEASE_CHANNEL_PASS__WORKER_BETA_SOURCE_PASS__PHYSICAL_FIELD_OWNER_PASS_PENDING__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
