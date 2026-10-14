@@ -535,11 +535,12 @@ async function send(
         extra: sanitize(extra),
       },
     });
-    if (result.archive_status !== "DRIVE_SYNCED") return false;
-    markJournalDriveSynced(archivedThrough);
-    // Error details are already retained in the versioned local journal.
-    try { localStorage.removeItem(PENDING_ERROR_KEY); } catch { /* local-only */ }
-    return true;
+    if (result.archive_status === "DRIVE_SYNCED") {
+      markJournalDriveSynced(archivedThrough);
+      try { localStorage.removeItem(PENDING_ERROR_KEY); } catch { /* local-only */ }
+      return true;
+    }
+    return false;
   } catch (error) {
     pushEvent({
       at: new Date().toISOString(),
