@@ -816,7 +816,7 @@
     {
       "id": "D168-E035",
       "date_vn": "2026-10-14",
-      "kind": "OWNER_APPROVED_CONTINUATION",
+      "kind": "OWNER_COMMAND",
       "topic": "D168 Owner-approved tri-surface local-first logs and Beta repair continuation after manual checkpoint fix",
       "status": "OWNER_APPROVED__CHECKPOINT_REPAIRED__CI_BASELINE_17_OF_17_PASS__SOURCE_REPAIRS_IN_PROGRESS__PR592_NO_DEPLOY__FIELD_PASS_PENDING",
       "owner_approval": true,
