@@ -28,7 +28,6 @@ const longTasks: Array<{ at: string; start_ms: number; duration_ms: number; name
 const startedAt = Date.now();
 let snapshotProvider: SnapshotProvider = () => ({});
 let initialized = false;
-let lastImmediateErrorAt = 0;
 let scheduledSendInFlight = false;
 let journalPersistTimer: number | null = null;
 let journalKey = "";
@@ -279,9 +278,11 @@ function vietnamParts(date = new Date()): Record<string, string> {
 function currentSlotKey(): string | null {
   const parts = vietnamParts();
   const hour = Number(parts.hour || 0);
-  if (hour < 6) return null;
-  const slot = hour >= 21 ? 21 : hour >= 18 ? 18 : hour >= 12 ? 12 : 6;
-  return `${parts.year}${parts.month}${parts.day}-${String(slot).padStart(2, "0")}`;
+  // One business-day upload boundary, never four automatic deliveries per day.
+  // Browser is not a daemon: a closed browser cannot upload at 21:45.
+  const minute = Number(parts.minute || 0);
+  if (hour < 21 || (hour === 21 && minute < 45)) return null;
+  return `${parts.year}${parts.month}${parts.day}-2145`;
 }
 
 function safeUrlSummary(raw: string): { origin: string; path: string; query_keys: string[] } {
@@ -534,7 +535,10 @@ async function send(
         extra: sanitize(extra),
       },
     });
-    if (result.archive_status === "DRIVE_SYNCED") markJournalDriveSynced(archivedThrough);
+    if (result.archive_status !== "DRIVE_SYNCED") return false;
+    markJournalDriveSynced(archivedThrough);
+    // Error details are already retained in the versioned local journal.
+    try { localStorage.removeItem(PENDING_ERROR_KEY); } catch { /* local-only */ }
     return true;
   } catch (error) {
     pushEvent({
@@ -564,7 +568,8 @@ function deterministicSupportJitterMs(requestId: string): number {
     hash ^= seed.charCodeAt(index);
     hash = Math.imul(hash, 16777619);
   }
-  return Math.abs(hash >>> 0) % 5001;
+  // Spread up to three minutes across online sessions for a global request.
+  return (hash >>> 0) % 180001;
 }
 
 export function queueWebSupportLogRequest(metadata: Record<string, unknown> | undefined): void {
@@ -611,14 +616,6 @@ export function queueWebSupportLogRequest(metadata: Record<string, unknown> | un
   }, jitterMs);
 }
 
-async function flushPendingError(): Promise<void> {
-  const raw = localStorage.getItem(PENDING_ERROR_KEY);
-  if (!raw || !hasSession()) return;
-  let pending: unknown = raw;
-  try { pending = JSON.parse(raw); } catch { /* keep raw */ }
-  if (await send("ERROR", "deferred_web_error", pending)) localStorage.removeItem(PENDING_ERROR_KEY);
-}
-
 function rememberError(reason: string, detail: unknown): void {
   try {
     localStorage.setItem(PENDING_ERROR_KEY, JSON.stringify({
@@ -629,27 +626,24 @@ function rememberError(reason: string, detail: unknown): void {
   } catch { /* storage unavailable */ }
 }
 
-async function immediateError(reason: string, detail: unknown): Promise<void> {
+function recordRuntimeError(reason: string, detail: unknown): void {
+  // Error is preserved locally, never uploaded on the error event.
   runtimeLogEvent(reason, "ERROR", detail);
   rememberError(reason, detail);
-  const now = Date.now();
-  if (now - lastImmediateErrorAt < 20_000) return;
-  lastImmediateErrorAt = now;
-  if (await send("ERROR", reason, detail)) localStorage.removeItem(PENDING_ERROR_KEY);
 }
 
 export async function maybeSendScheduledWebLog(): Promise<void> {
   if (!hasSession() || scheduledSendInFlight) return;
   scheduledSendInFlight = true;
   try {
-    await flushPendingError();
     const slot = currentSlotKey();
     if (!slot) return;
     const slotIdentity = `${journalSessionKey()}:${slot}`;
     if (localStorage.getItem(SLOT_KEY) === slotIdentity) return;
-    if (await send("INFO", `scheduled_${slot}`, undefined, { boundaryId: `web:scheduled:${slot}` })) {
-      localStorage.setItem(SLOT_KEY, slotIdentity);
-    }
+    // Record the attempt before I/O: a failed send is retained until the next
+    // daily boundary or an explicitly requested support/manual delivery.
+    localStorage.setItem(SLOT_KEY, slotIdentity);
+    await send("INFO", `scheduled_${slot}`, undefined, { boundaryId: `web:scheduled:${slot}` });
   } finally {
     scheduledSendInFlight = false;
   }
@@ -687,7 +681,7 @@ export function initWebRuntimeLogging(provider: SnapshotProvider): void {
   installPerformanceObservers();
 
   window.addEventListener("error", (event) => {
-    void immediateError("window_error", {
+    recordRuntimeError("window_error", {
       message: event.message,
       filename: safeUrlSummary(event.filename || "").path,
       line: event.lineno,
@@ -700,7 +694,7 @@ export function initWebRuntimeLogging(provider: SnapshotProvider): void {
     const reason = event.reason instanceof Error
       ? { message: event.reason.message, stack: event.reason.stack }
       : event.reason;
-    void immediateError("unhandled_promise_rejection", reason);
+    recordRuntimeError("unhandled_promise_rejection", reason);
   });
 
   window.addEventListener("supra:api-telemetry", (event) => {
