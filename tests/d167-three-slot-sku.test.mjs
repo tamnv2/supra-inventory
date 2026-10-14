@@ -610,3 +610,23 @@ test("D168 one-click Agent field probe is read-only and distinguishes direct fro
   assert.match(route,/internal bool DidSwitch/);
   assert.doesNotMatch(ui,/WmsSkuBrowserExport|ManualStart\(|UploadAndPublish\(/);
 });
+
+test("D168 Owner-only manual Beta release recovery gate", async () => {
+  const {readFileSync}=await import("node:fs");
+  const releaseGate=readFileSync(new URL("../tools/d167_release_gate.py",import.meta.url),"utf8");
+  const agent=readFileSync(new URL("../.github/workflows/verify-relay-agent.yml",import.meta.url),"utf8");
+  const android=readFileSync(new URL("../.github/workflows/verify-apps.yml",import.meta.url),"utf8");
+  const worker=readFileSync(new URL("../.github/workflows/deploy-beta.yml",import.meta.url),"utf8");
+  assert.match(releaseGate,/event == "workflow_dispatch"/);
+  assert.match(releaseGate,/os\.getenv\("GITHUB_ACTOR"\) != "tamnv2"/);
+  assert.match(releaseGate,/os\.getenv\("GITHUB_REPOSITORY"\) != "tamnv2\/supra-inventory"/);
+  assert.match(releaseGate,/os\.getenv\("GITHUB_REF"\) != "refs\/heads\/main"/);
+  assert.match(releaseGate,/git\("diff", "--name-only", sha, "HEAD", "--", \*PROTECTED\)/);
+  assert.match(releaseGate,/owner_field_trial/);
+  assert.match(worker,/workflow_dispatch:/);
+  assert.match(agent,/workflow_dispatch/);
+  assert.match(agent,/D168 require matching Beta Worker before publishing Agent/);
+  assert.match(android,/workflow_dispatch/);
+  assert.match(android,/Require successful Beta runtime gate for this source/);
+  assert.match(android,/ANDROID_RELEASE_REQUIRED=\$required/);
+});
