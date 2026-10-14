@@ -7,7 +7,7 @@
   "pr": 592,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E036",
+    "id": "D168-E037",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
@@ -855,6 +855,37 @@
       ],
       "next_action": "Verify 17/17 exact protected-source plus final authority/continuity CI; if all PASS and no protected code drift, merge approved PR592 and inspect Beta Worker/Agent/Android distribution readbacks; keep D168 Owner PASS pending physical testing.",
       "evidence": "PR592 protected source SHA 4a7282b0ba89c26c5b35ab0166dc17f76543e43e; relay-agent/D168NetworkRoute.cs, D168SkuNetworkUi.cs, FirestoreAgentSync.cs; tests/d167-three-slot-sku.test.mjs"
+    },
+    {
+      "id": "D168-E037",
+      "date_vn": "2026-10-14",
+      "kind": "PROPOSAL",
+      "topic": "Proposal: retire Beta/Stable split, promote existing Beta environment as single operational runtime and change primary hostname",
+      "status": "ANALYSIS_ONLY__OWNER_NOT_APPROVED__NO_SOURCE_OR_RESOURCE_MUTATION__HOLD_UNTIL_D168_OWNER_PASS",
+      "owner_approval": false,
+      "facts": [
+        "Owner asks for analysis, not yet code/deploy: discontinue separate Stable, treat current Beta as the one frequently updated operational runtime, use inventory.supra.cc.cd instead of inventory-beta.supra.cc.cd, and assess client version updates.",
+        "Current main D168 PR591 deployed existing Beta Worker/Web on main cbb52225, signed Android beta-vc107 and Agent relay-agent-v131; PR592 is Draft/open source repairs and is NOT deployed. D168 Owner field/business PASS remains pending and serial change gate forbids an unrelated change workstream or Stable mutation.",
+        "Scoped existing resources are distinct: worker-beta supra-inventory-beta, worker-stable supra-inventory-stable; host-beta and host-stable separate custom domains; Firebase/GCP, Google OAuth redirect URIs, and Android stable/beta application IDs also differ.",
+        "service/wrangler.beta.toml binds custom domain inventory-beta.supra.cc.cd to existing Beta Worker/InventoryCore SQLite; wrangler.stable.toml declares inventory.supra.cc.cd for separately OWNER-GATED Stable. Actual Cloudflare live domain ownership/route attachment to Stable is not proven by source alone.",
+        "Current Android build.gradle.kts hardcodes both API_BASE_URL and UPDATE_RELEASE_API to inventory-beta.supra.cc.cd with applicationId cd.cc.supra.inventory.beta; AgentConfig.cs hardcodes ApiBaseUrl with manifest/download derived from it; .github/workflows/deploy-beta.yml builds VITE_API_BASE_URL to old hostname and uses BETA_HOSTNAME readbacks.",
+        "Cloudflare supports multiple Custom Domains on a single Worker with separate hostname entries; inventory-beta alias should remain serving the same Worker during a phased migration, not blanket redirect API calls whose Authorization/HTTP method could be lost.",
+        "Reusing Beta Firebase project, RTDB, Worker/Durable Object SQLite, Google Drive/Sheets and Android package/signature avoids destructive re-provision/migration, reinstallation and duplicate data. Internal beta labels may remain implementation identifiers without Beta/Stable business modes."
+      ],
+      "alternatives": [
+        "Option A: retain Beta/Stable split unchanged: lowest migration risk but ongoing environmental complexity, Owner-gated Stable and duplicated configuration.",
+        "Option B (recommended): one operational runtime = current Beta services/data; add inventory.supra.cc.cd as second custom domain to same Worker, keep old host compatibility; update Web/OAuth/Firebase domain allowlist, Agent, APK, CI/update manifest and docs over staged rollouts; freeze old Stable resources rather than delete immediately.",
+        "Option C: fully re-provision production Worker/Firebase/GCP and change Android applicationId/keys: disruptive migration, reinstall and credential risks with little operational benefit."
+      ],
+      "open_questions": [
+        "Confirm Owner preference for Option B and its precise release scope; user asks analysis only, not approval for source/provider mutation.",
+        "Inspect live Cloudflare route/custom domain ownership for inventory.supra.cc.cd and release/policy binding before any remapping; requires separate explicit Owner authorization because this touches registered Stable hostname.",
+        "When D168 receives Owner PASS, record supersession of D015/D019 and change-control only by explicit approval; update project-scope/resource-registry, canonical decision/specs/state and relevant CI in one PR, with no direct main push.",
+        "Determine final rollout/version sequence with the then-latest PR592 Agent/Android release versions, ensuring strictly increasing Android versionCode and Agent build, same Android package ID and signer. Existing installed clients must continue to update from old domain.",
+        "Test OAuth exact Google redirect URI, Firebase Auth authorized domains, browser host-scoped session/cookies, FCM/WebPush origin changes, origin/CORS/WebSocket, update manifests/QR links, Google Drive watch callbacks and CI health/rollback before retiring old hostname."
+      ],
+      "next_action": "Present recommendation and system-wide impact; record proposal only on current D168 journal. Do not execute until explicit Owner approval and resolution of serial D168 Owner PASS and Stable hostname gating. Preserve PR592 source/release process and current live data.",
+      "evidence": "GitHub main ops/project-scope.json, service/wrangler.beta.toml, service/wrangler.stable.toml; PR591 merged cbb52225 and PR592 Draft working 4a7282b; android/app/build.gradle.kts, relay-agent/AgentConfig.cs, web/.env.example, .github/workflows/deploy-beta.yml; Cloudflare official Custom Domain documentation."
     }
   ],
   "resume": {
@@ -889,7 +920,8 @@
       "D168-E036 PR592 protected code candidate 4a7282b0ba89c26c5b35ab0166dc17f76543e43e: saved WLAN priority and immutable concurrent SKU DONE fixes committed; exact-head CI verification and Beta release gate pending."
     ],
     "pending_approval": [
-      "Stable OWNER-GATED; D168 physical Owner business acceptance pending."
+      "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
+      "D168-D168-E037: future proposal to unify existing Beta into one official runtime at inventory.supra.cc.cd, pending Owner choice, D168 Owner PASS and Stable hostname-specific authorization; zero live modification."
     ],
     "blocked": [
       "PR592 latest exact-head full CI and Android build must PASS before release.",
