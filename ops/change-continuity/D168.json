@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "docs/d168-vc110-release-evidence-20261014",
-  "pr": 600,
+  "working_branch": "docs/d168-update-chat-overlay-findings-20261014",
+  "pr": 601,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E049",
+    "id": "D168-E050",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": "D168_E049_VC110_SIGNED_BETA_RELEASE_AND_CHANNEL_PASS__FIELD_OWNER_PASS_PENDING__STABLE_GATED",
+  "deployment_gate": "D168_E050_VC110_SIGNED_BETA_RELEASE_PASS__MANDATORY_UPDATE_AND_LONG_CHAT_OVERLAY_FIELD_DEFECT_REVIEW__NO_NEW_DEPLOY_PERMISSION__STABLE_GATED",
   "entries": [
     {
       "id": "D168-E001",
@@ -1116,6 +1116,35 @@
       ],
       "next_action": "Publish this docs-only immutable release evidence via governed PR; Owner validate on physical PDA vc110 with one overlay per event and correct ACK under foreground/background/reconnect scenarios; keep D168 open until Owner explicitly PASS.",
       "evidence": "PR599 merged commit 3294ad45370f4615bedf25551bab5febbf3bc6d3; GitHub Worker 38517665151 SUCCESS; Android 38517665083 SUCCESS; GitHub release beta-vc110; inventory-channel asset SHA match; PR600 docs-only"
+    },
+    {
+      "id": "D168-E050",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "vc110 mandatory update bypass and Android long Agent chat/overlay message hides confirmation on small PDA",
+      "status": "OWNER_REPORTED_FIELD_DEFECT__SOURCE_CAUSES_VERIFIED__REPAIR_PROPOSAL_PENDING_OWNER_APPROVAL__NO_CODE_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner reports vc110 still shows 'Để sau' on update information dialog, although D166 approved forced updates for every legitimate signed Beta APK; also a long notification/message pushes XÁC NHẬN below small PDA screen with no scroll.",
+        "Source MainActivity.kt showUpdateAvailable gates mandatory only when manifest.minimum_version_code > BuildConfig.VERSION_CODE and otherwise shows Để sau, including an optional continuation for already authenticated sessions. Foreground update check can be deferred; login is blocked only for MANDATORY or FAILED.",
+        "Service /downloads/pda/manifest defaults PDA_MIN_VERSION_CODE_BETA to 104 after vc104, unless overridden; later signed vc109->vc110 alone does not make it mandatory. Live Beta override value was not independently readable.",
+        "docs/D166_APPROVED_BACKLOG.md explicitly requires every approved signed APK be mandatory, even without a critical/optional label, and bans Để sau, Back bypass, or subsequent business mutations on obsolete versions at a safe checkpoint. Current implementation deviates from that accepted rule.",
+        "CriticalOverlayService.kt buildCommandOverlay (MODE_PICKER_CHAT) creates TextView item.body with no scroll container; button XÁC NHẬN follows in a LinearLayout centered inside a full-screen overlay, so long text can push the button out of reachable bounds. Generic result overlay XML likewise lacks a dedicated ScrollView around body. Android update AlertDialog uses setMessage with release notes; hardware field layout not yet reproduced by tooling.",
+        "For MODE_PICKER_CHAT, pressing XÁC NHẬN only records local dismissed alert ID; restarting ends the in-memory overlay without an authoritative business ACK, and the alert may recur on redelivery. MODE_RESULT business result uses durable account-scoped ACK and restart is not an acknowledgement. Update installer/restart does not satisfy mandatory update.",
+        "A fix cannot be safely limited to changing release text: update floor/server enforcement, session safety/ACK and responsive dialog geometry are coupled. No Agent, WMS, quota, Stable, secret, provider or configuration mutations performed in this discussion."
+      ],
+      "alternatives": [
+        "No-change/restart temporary workaround: chat overlay disappears on restart but does not prove read/ACK and underlying layout defect persists; rejected as permanent solution.",
+        "Raise mandatory floor alone to latest: may block old clients before a usable recovery UI, while existing authenticated session behavior remains lenient; do not deploy without safe staged code+channel integration.",
+        "Recommended scoped D168 Beta repair after Owner approval: fixed accessible/fixed-position confirm and scrollable bounded message for chat/results; explicit forced update dialog, no Để sau; release latest signed version first then advance verified mandatory floor, preserve result ACK and in-flight sessions, include tests and existing channel metadata. Evaluate minimum allowed server mutation after verifying API client version provenance rather than assuming server can identify older clients."
+      ],
+      "open_questions": [
+        "Which exact screenshot/device, user role and alert mode produced the non-scrollable confirmation? Source verifies chat path risk, but a field screenshot can identify all affected modes.",
+        "Current runtime PDA_MIN_VERSION_CODE_BETA override and actual /downloads/pda/manifest minimum_version_code not verified directly; only source default 104 is confirmed.",
+        "Owner implementation/deployment approval for a correction PR in D168 not yet explicitly granted by this report."
+      ],
+      "next_action": "Present source-grounded findings and safe reboot advice; upon explicit Owner correction approval, implement D168 scoped Beta update gating and long-message scrolling with user-scoped ACK/mandatory update regressions, CI, exact-source release receipt and rollback. No silent Stable change.",
+      "evidence": "Main source android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt lines 1909-2111; service/src/index.ts lines 1337-1351; CriticalOverlayService.kt buildCommandOverlay/finishActive; android/app/src/main/res/layout/overlay_alert.xml; docs/D166_APPROVED_BACKLOG.md mandatory updates; Owner vc110 field report on 2026-10-14; PR601 tracking-only"
     }
   ],
   "resume": {
@@ -1159,11 +1188,13 @@
       "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending.",
       "D168-E044 vc109 app installed/tested field proof pending; future releases auto publish reviewed notes from source file.",
       "D168-E045: owner-reported vc109 double overlay: vc110 Android local hotfix on Codespaces feature branch; code diff clean, tests/PR/CI/build/release/field acceptance pending.",
-      "D168-E046: vc110 Draft PR #599 created. CI and physical device validation pending."
+      "D168-E046: vc110 Draft PR #599 created. CI and physical device validation pending.",
+      "D168-E050: Source-proven forced-update floor default vc104 and unscrollable Agent chat overlay; Owner field defects recorded for review; no code change or release authorized."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
-      "D168-D168-E037: future proposal to unify existing Beta into one official runtime at inventory.supra.cc.cd, pending Owner choice, D168 Owner PASS and Stable hostname-specific authorization; zero live modification."
+      "D168-D168-E037: future proposal to unify existing Beta into one official runtime at inventory.supra.cc.cd, pending Owner choice, D168 Owner PASS and Stable hostname-specific authorization; zero live modification.",
+      "D168-E050: correction design and scoped Beta release authorization for truly mandatory every-version update and scrollable long alert/ACK UI; Stable unchanged."
     ],
     "blocked": [
       "Physical PDA vc108 installation and Picker/Reporter all-view long-press/usage acceptance not verified; Owner PASS pending.",
@@ -1178,7 +1209,8 @@
       "Owner/field test Android vc109 meal modal and update notes; reject/repair same D168 if device NOT PASS.",
       "Open vc110 Draft PR, bind real PR number, run Android+authority+continuity CI; signed Beta release only after gate PASS; physical PDA double-overlay field confirmation separate.",
       "On Owner vc110 Beta release approval, bind tested PR599 commit in D168 release authorization receipt and rerun PR checks before merge; verify signed APK/channel. Stable remains gated.",
-      "Owner PDA test: exactly one overlay per result_event_id under app foreground and FCM/background, ACK local-first and reconnection; FIELD/OWNER PASS remains pending."
+      "Owner PDA test: exactly one overlay per result_event_id under app foreground and FCM/background, ACK local-first and reconnection; FIELD/OWNER PASS remains pending.",
+      "Owner approve D168-E050 fix scope, then implement UI/Worker only as needed after impact assessment and verify physical PDA."
     ],
     "release_boundary": "ANDROID_VC110_SIGNED_BETA_RELEASE_CHANNEL_PASS__WORKER_BETA_SOURCE_PASS__PHYSICAL_FIELD_OWNER_PASS_PENDING__STABLE_GATED",
     "pending": [
