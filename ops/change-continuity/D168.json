@@ -7,7 +7,7 @@
   "pr": 592,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E035",
+    "id": "D168-E036",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
@@ -830,6 +830,31 @@
       ],
       "next_action": "Complete authorized source gaps without bypassing safety refusals; run code/CI/authority/continuity exact HEAD and compare bound resources; if blockers remain, keep PR Draft and do not deploy. Owner Field PASS only after actual device verification.",
       "evidence": "GitHub PR592 exact commit 288249c 17/17 Actions PASS after Owner manual checkpoint fix; subsequent PR592 source commits through f94f52c; D168 Owner request in current conversation"
+    },
+    {
+      "id": "D168-E036",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs completion, GitHub-source fix and gated Beta rollout of PR592; saved Windows WLAN priority and concurrent SKU DONE collision corrected",
+      "status": "SOURCE_PATCH_COMMITTED__RELEASE_CANDIDATE_PR592__EXACT_SOURCE_CI_IN_PROGRESS__NO_PR592_RUNTIME_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly directs completion of all previously approved D168 code and Beta deployment; personal ownership does not remove technical/security/authority checks or permit Stable.",
+        "PR592 remains Draft/open. Main cbb52225 is the prior D168 #591 release, not the #592 changes.",
+        "PR592 Agent source implements local Windows saved-Wi-Fi picker, operator ordering max six profiles, verified Win32 local registry preference, task-scoped sequential network reachability attempts, refusal to switch on auth/quota/service errors and mandatory original profile restoration before retry/return; no new networks, passwords, background scans or proxy bypass.",
+        "PR592 Firestore Agent sync terminal SKU receipt merge uses existing per-document update-time CAS and preserves first verified DONE for a matching day/slot; on serialization cap it preserves prior slots. Existing listener and Worker/InventoryCore source of truth unchanged.",
+        "Previously approved PR592 Picker History resolver mapping, 21:45 Agent/Web and PDA logout/kick local-first logs, log request stagger, Drive-ACK-only prune, Windows AutoStart confirmation, event coalesced Picker online and SKU diagnostics remain on this source candidate.",
+        "Protected executable/test source was frozen at commit 4a7282b0ba89c26c5b35ab0166dc17f76543e43e for release-gate comparison; workflow outcomes must be inspected on final docs receipt commit before merging. No FIELD PASS, measured quotas or existing-machine installation is fabricated."
+      ],
+      "alternatives": [
+        "Use same current registered Beta resource, keep Worker/Web first and publish Agent/Android only after Worker health/commit proof, preserving rollback and Stable gate.",
+        "Do not bypass failing source CI, security checks, actual Windows policy, or claim complete field acceptance from automated tests."
+      ],
+      "open_questions": [
+        "Device-level Windows standard-user Wi-Fi profile switching/restoration under Office and Internet, 05h solo PRIMARY FULL durable DONE, Picklist ACK/HA, Android/Agent upgrade confirmation and usage metering require real tests."
+      ],
+      "next_action": "Verify 17/17 exact protected-source plus final authority/continuity CI; if all PASS and no protected code drift, merge approved PR592 and inspect Beta Worker/Agent/Android distribution readbacks; keep D168 Owner PASS pending physical testing.",
+      "evidence": "PR592 protected source SHA 4a7282b0ba89c26c5b35ab0166dc17f76543e43e; relay-agent/D168NetworkRoute.cs, D168SkuNetworkUi.cs, FirestoreAgentSync.cs; tests/d167-three-slot-sku.test.mjs"
     }
   ],
   "resume": {
@@ -860,25 +885,22 @@
       "D168-E026: PR591 current exact HEAD e5744f8b 20/20 CI PASS; Agent v131 test artifact exists, physical FIELD_PASS and Beta release remain blocked.",
       "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains.",
       "D168-E033: Owner requests prioritized saved Windows WLAN selection; source still uses one typed profile; proposed design pending Owner approval.",
-      "D168-E034: Picker shortage History responder identity incomplete end-to-end in released Beta; proposed Core+Android repair pending Owner approval."
+      "D168-E034: Picker shortage History responder identity incomplete end-to-end in released Beta; proposed Core+Android repair pending Owner approval.",
+      "D168-E036 PR592 protected code candidate 4a7282b0ba89c26c5b35ab0166dc17f76543e43e: saved WLAN priority and immutable concurrent SKU DONE fixes committed; exact-head CI verification and Beta release gate pending."
     ],
     "pending_approval": [
-      "Stable is OWNER-GATED",
-      "Owner approval of D168-E033 ordered WLAN selection and D168-E034 Picker History actor repair; no executable fix or deploy yet."
+      "Stable OWNER-GATED; D168 physical Owner business acceptance pending."
     ],
     "blocked": [
-      "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
-      "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD.",
-      "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector.",
-      "Mixed-version predeployment field test: v131 D168 capability endpoint absent in released D167 Worker; test cannot prove Worker readiness until safe compatibility or staged rollout is designed.",
-      "Release authorization receipt mutation refused by tool safety; cannot merge or deploy Beta using this session."
+      "PR592 latest exact-head full CI and Android build must PASS before release.",
+      "Physical Office/Internet saved WLAN, PRIMARY solo FULL 05h durable DONE, confirmation ACK/HA and quota/energy FIELD_PASS unverified; Owner permits Beta predeploy trial only.",
+      "Existing Beta release PR591 does not contain PR592 pending fixes; never claim full D168 Owner PASS."
     ],
     "next_actions": [
-      "Owner direct field acceptance on installed Agent v131 + Android Beta vc107: Wi-Fi switch/restore, initial FULL 05h and durable DONE, Picklist ACK/HA, Picker presence/group contact and quota.",
-      "If any field acceptance FAIL, fix same D168 and preserve Stable. No extra Owner Github workflow action currently needed.",
-      "Review E033/E034 impact and consent; after explicit approval, scoped Beta branch source+CI and guarded release, with physical device verification."
+      "Finish exact HEAD CI and only then guarded PR592 merge/Beta releases for authorized registered Worker/Web/Agent/Android.",
+      "Verify signed Android, Agent/WebView2 channel and Worker SOURCE_COMMIT; request only the physical device tests unavailable via GitHub."
     ],
-    "release_boundary": "D168_E032_BETA_RUNTIME_RELEASED__13_OF_13_PUSH_CI_PASS__FIELD_AND_OWNER_BUSINESS_PASS_PENDING__STABLE_GATED",
+    "release_boundary": "D168_PR591_BETA_BASE_RELEASED__PR592_CODE_CANDIDATE_CI_PENDING__NO_PR592_BETA_DEPLOY__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]

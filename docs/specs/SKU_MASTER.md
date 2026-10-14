@@ -212,3 +212,10 @@ Một biên nhận `DONE` đã được Worker/InventoryCore xác minh mới đ�
 Agent Beta ứng viên **v131**, quyền phát hành D168 sử dụng receipt mới mặc định khóa (code-only), không thể lấy nhầm ủy quyền D167. **Chưa xác minh FIELD PASS** trên PC Office/PDA, FULL 05h một máy, WMS Confirm/HA và readback Worker DONE. Không được chuyển trạng thái release-pass chỉ bằng source CI, không được đụng Stable.
 
 Chứng cứ: PR #591, `relay-agent/D167SkuCoordinator.cs`, `D168NetworkRoute.cs`, `D168SkuSharedState.cs`, `FirestoreAgentSync.cs`, `tools/d167_release_gate.py`, `ops/d168-release-authorization.json`; D168-E022.
+
+## D168-E036 — Mạng Wi-Fi đã lưu theo ưu tiên và bất biến DONE giữa Agent (Beta candidate)
+
+- Agent liệt kê hồ sơ Wi-Fi đã lưu trong Windows theo thao tác người dùng, cho chọn tối đa 6 mạng theo thứ tự cố định; lưu riêng HKCU không lưu mật khẩu. Không tự tạo Wi-Fi và không vượt chính sách mạng công ty.
+- Khi Worker bị lỗi mạng thực (không phải 401/403/429/5xx), mới kiểm tra điều kiện HA/Confirm và hỏi phép chuyển mạng theo chính sách 60 giây đã chốt. Thử từng mạng đã duyệt theo ưu tiên, chỉ khi khôi phục và xác minh mạng gốc thành công mới thử lựa chọn kế tiếp. Nếu không khôi phục được thì fail-closed; không giả DONE.
+- Kênh Agent Firestore hiện hữu sử dụng optimistic CAS theo updateTime cho SKU DONE; cùng ngày/slot giữ biên nhận đã xác minh đầu tiên, merge các slot độc lập và không được làm mất biên nhận cũ khi payload vượt giới hạn. Worker/Core là nguồn sự thật; không thêm Firestore poll/listener hoặc Google Apps Script SKU.
+- Nguồn ứng viên PR592 SHA 4a7282b0ba89c26c5b35ab0166dc17f76543e43e; chưa có FIELD PASS Windows WMS/Office/single-primary/HA/ACK hoặc bản phát hành PR592 tại thời điểm checkpoint. Stable không được phép.

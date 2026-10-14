@@ -5607,5 +5607,19 @@
     "release_recovery_status": "NOT_REQUIRED__MAIN_PUSH_ACTIONS_EVENT_ARRIVED_DELAYED__13_OF_13_PASS",
     "release_delivered": true,
     "release_proof_sha": "cbb52225f2d7e55bfc48e7474610b1c6bec038b3"
+  },
+  "d168_pr592_owner_2026_10_14": {
+    "status": "OWNER_CODE_AND_BETA_DEPLOY_APPROVED__CI_GATED",
+    "pr": 592,
+    "protected_source_sha": "4a7282b0ba89c26c5b35ab0166dc17f76543e43e",
+    "scope": [
+      "worker",
+      "agent",
+      "android"
+    ],
+    "manual_git_action_now": "NONE_IF_AUTOMATED_PR_CI_MERGE_SUCCEEDS",
+    "manual_field_after": "REAL_WINDOWS_OFFICE_WIFI_WMS_PDA_TEST_ONLY",
+    "owner_field_pass": false,
+    "stable": "OWNER_GATED"
   }
 }
