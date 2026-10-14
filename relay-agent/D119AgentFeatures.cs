@@ -1902,6 +1902,64 @@ namespace SupraInventoryRelayAgent
             return result;
         }
 
+        private readonly object _d168PresencePublishGate = new object();
+        private List<PickerPresenceView> _d168PresencePublishPending;
+        private string _d168PresenceLastPublished = "";
+        private bool _d168PresencePublishActive;
+
+        // Publish only on existing authoritative presence events. Coalesce
+        // rapid login/logout/kick changes and retry a failed write on the next
+        // event, without a timer, provider read or additional listener.
+        private void QueueD168PresencePublish(List<PickerPresenceView> snapshot, bool changed)
+        {
+            if (_leaderCoordinator == null || !_leaderCoordinator.IsLeader || _agentSyncClient == null) return;
+            lock (_d168PresencePublishGate)
+            {
+                if (changed) _d168PresencePublishPending = snapshot.ToList();
+                if (_d168PresencePublishActive || _d168PresencePublishPending == null) return;
+                _d168PresencePublishActive = true;
+            }
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    List<PickerPresenceView> pending;
+                    lock (_d168PresencePublishGate)
+                    {
+                        pending = _d168PresencePublishPending;
+                        _d168PresencePublishPending = null;
+                        if (pending == null) { _d168PresencePublishActive = false; return; }
+                    }
+                    var signature = PickerSharedStateSignature(pending);
+                    if (string.Equals(_d168PresenceLastPublished, signature, StringComparison.Ordinal))
+                        continue;
+                    try
+                    {
+                        if (!HasAgentSession() || _leaderCoordinator == null || !_leaderCoordinator.IsLeader)
+                            throw new InvalidOperationException("AGENT_PRESENCE_NOT_PRIMARY");
+                        EnsureFreshToken();
+                        var result = _agentSyncClient.PublishPresence(SnapshotSession(), pending);
+                        _d168PresenceLastPublished = signature;
+                        bool newerPending;
+                        lock (_d168PresencePublishGate) newerPending = _d168PresencePublishPending != null;
+                        if (!newerPending) Ui(() => ApplyD134AgentSyncSnapshot(result));
+                        Log("AGENT_SYNC presence=PASS source=EVENT_DRIVEN count=" + pending.Count);
+                    }
+                    catch (Exception ex)
+                    {
+                        lock (_d168PresencePublishGate)
+                        {
+                            if (_d168PresencePublishPending == null) _d168PresencePublishPending = pending;
+                            _d168PresencePublishActive = false;
+                        }
+                        Log("AGENT_SYNC presence=DEFER " + D160ProviderErrorSummary(ex) +
+                            " retry=NEXT_PRESENCE_EVENT count=" + pending.Count);
+                        return;
+                    }
+                }
+            });
+        }
+
         private void ApplyD161DirectPickerPresence(List<PickerPresenceView> items)
         {
             if (InvokeRequired)
@@ -2010,28 +2068,16 @@ namespace SupraInventoryRelayAgent
             var after = PickerSharedStateSignature(merged);
             if (string.Equals(before, after, StringComparison.Ordinal))
             {
+                // If an earlier write failed, reuse this existing listener event
+                // to retry the unchanged pending snapshot (no polling).
+                QueueD168PresencePublish(merged, false);
                 Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
                     " shared=SKIP_NO_CHANGE count=" + merged.Count);
                 return;
             }
 
             UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-            if (_leaderCoordinator != null && _leaderCoordinator.IsLeader && _agentSyncClient != null)
-            {
-                var snapshot = merged.ToList();
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        EnsureFreshToken();
-                        ApplyD134AgentSyncSnapshot(_agentSyncClient.PublishPresence(SnapshotSession(), snapshot));
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("AGENT_SYNC presence=DEFER " + D160ProviderErrorSummary(ex) + " retry=NONE_EVENT_DRIVEN");
-                    }
-                });
-            }
+            QueueD168PresencePublish(merged, true);
 
             Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
                 " shared=CHANGED count=" + merged.Count);
