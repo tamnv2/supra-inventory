@@ -722,6 +722,7 @@ namespace SupraInventoryRelayAgent
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
+        private DateTime _lastD168Log2145AttemptDate = DateTime.MinValue;
         private readonly AgentLogUploadBridge _agentLogBridge;
         private int _interactiveInputGuardDepth;
         private readonly AgentBusinessSchedule _businessSchedule;
@@ -947,13 +948,20 @@ namespace SupraInventoryRelayAgent
             _updateTimer.Stop();
 
             _logUploadTimer.Interval = 60 * 1000;
-            _logUploadTimer.Tick += (s, e) => Task.Run(() =>
+            // The existing local UI timer does no provider work outside 21:45.
+            _logUploadTimer.Tick += (s, e) =>
             {
-                try { EnsureFreshToken(); } catch { }
-                _agentLogBridge.TryFlushPendingCrash();
-                _agentLogBridge.TryQueueScheduledSnapshot();
-                Ui(() => _d160LogStatus.Text = _agentLogBridge.StatusSummary());
-            });
+                var now = DateTime.Now;
+                if(now.TimeOfDay < new TimeSpan(21,45,0) ||
+                    _lastD168Log2145AttemptDate == now.Date)return;
+                _lastD168Log2145AttemptDate=now.Date;
+                Task.Run(() =>
+                {
+                    try { EnsureFreshToken(); } catch { }
+                    _agentLogBridge.TryQueueScheduledSnapshot();
+                    Ui(() => _d160LogStatus.Text = _agentLogBridge.StatusSummary());
+                });
+            };
 
             Shown += (s, e) =>
             {
