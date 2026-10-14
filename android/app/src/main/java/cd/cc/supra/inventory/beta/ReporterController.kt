@@ -434,6 +434,20 @@ class ReporterController(
     private fun renderSelected() {
         val target = list ?: return
         target.setOnItemClickListener(null)
+        // ListView may consume a long press before a child TextView receives it.
+        // Rebind the active list for all four Reporter status views, including
+        // recycled rows. This does not affect normal taps or action buttons.
+        target.setOnItemLongClickListener { _, _, position, _ ->
+            val sku = when (filter) {
+                Filter.PENDING -> queue.getOrNull(position)?.sku
+                Filter.OVERDUE -> overdueRows.getOrNull(position)?.sku
+                Filter.HAS_STOCK, Filter.SKIP_ALLOWED -> recentRows().getOrNull(position)?.sku
+            }
+            if (sku.isNullOrBlank()) false else {
+                copySkuToClipboard(sku)
+                true
+            }
+        }
         if (filter == Filter.PENDING) {
             target.adapter = pendingAdapter(queue)
             if (queue.isNotEmpty()) {
@@ -656,18 +670,39 @@ class ReporterController(
         }
     }
 
+    private fun copySkuToClipboard(sku: String) {
+        val value = sku.trim()
+        if (value.isEmpty()) return
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("SKU", value))
+        setStatus("Đã sao chép SKU $value")
+    }
+
     private fun bindCommon(view: View, sku: String, product: String, elapsed: String) {
+        val copy: (View) -> Boolean = {
+            copySkuToClipboard(sku)
+            true
+        }
+        // Recycler/ListView row taps keep their existing ticket/action behavior;
+        // long-press any non-button row text or its background copies only SKU.
+        view.findViewById<LinearLayout>(R.id.reporterRowRoot).apply {
+            contentDescription = "SKU $sku. Ấn giữ để sao chép SKU."
+            setOnLongClickListener(copy)
+        }
         view.findViewById<TextView>(R.id.tvReporterSku).apply {
             text = sku
-            setOnLongClickListener {
-                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("SKU", sku))
-                setStatus("Đã sao chép SKU $sku")
-                true
-            }
+            contentDescription = "SKU $sku. Ấn giữ để sao chép."
+            setOnLongClickListener(copy)
         }
-        view.findViewById<TextView>(R.id.tvReporterElapsed).text = elapsed
-        view.findViewById<TextView>(R.id.tvReporterProduct).text = product
+        view.findViewById<TextView>(R.id.tvReporterElapsed).apply {
+            text = elapsed
+            setOnLongClickListener(copy)
+        }
+        view.findViewById<TextView>(R.id.tvReporterProduct).apply {
+            text = product
+            setOnLongClickListener(copy)
+        }
+        view.findViewById<TextView>(R.id.tvReporterMeta).setOnLongClickListener(copy)
         view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.VISIBLE
     }
 
