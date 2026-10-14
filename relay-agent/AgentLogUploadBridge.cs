@@ -128,9 +128,9 @@ namespace SupraInventoryRelayAgent
                     // This is one deferred authorized send, not a retry loop.
                     var seed=(safeRequest+"|"+_instanceId).GetHashCode() & int.MaxValue;
                     var delayMs=seed % 180001;
-                    Task.Run(()=>{
-                        Thread.Sleep(delayMs);
-                        TryFlushPending(session);
+                    Task.Delay(delayMs).ContinueWith(_=>{
+                        var current=SafeSession();
+                        if(UsableSession(current))TryFlushPending(current);
                     });
                 }
                 _log(string.IsNullOrWhiteSpace(path)
