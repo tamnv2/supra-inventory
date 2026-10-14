@@ -687,22 +687,22 @@ class ReporterController(
         // long-press any non-button row text or its background copies only SKU.
         view.findViewById<LinearLayout>(R.id.reporterRowRoot).apply {
             contentDescription = "SKU $sku. Ấn giữ để sao chép SKU."
-            setOnLongClickListener(copy)
+            setOnLongClickListener { copy(it) }
         }
         view.findViewById<TextView>(R.id.tvReporterSku).apply {
             text = sku
             contentDescription = "SKU $sku. Ấn giữ để sao chép."
-            setOnLongClickListener(copy)
+            setOnLongClickListener { copy(it) }
         }
         view.findViewById<TextView>(R.id.tvReporterElapsed).apply {
             text = elapsed
-            setOnLongClickListener(copy)
+            setOnLongClickListener { copy(it) }
         }
         view.findViewById<TextView>(R.id.tvReporterProduct).apply {
             text = product
-            setOnLongClickListener(copy)
+            setOnLongClickListener { copy(it) }
         }
-        view.findViewById<TextView>(R.id.tvReporterMeta).setOnLongClickListener(copy)
+        view.findViewById<TextView>(R.id.tvReporterMeta).setOnLongClickListener { copy(it) }
         view.findViewById<LinearLayout>(R.id.reporterActions).visibility = View.VISIBLE
     }
 
