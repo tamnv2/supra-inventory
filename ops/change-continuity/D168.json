@@ -739,7 +739,7 @@
     {
       "id": "D168-E032",
       "date_vn": "2026-10-14",
-      "kind": "RELEASE",
+      "kind": "STATUS",
       "topic": "D168 Beta Worker/Web/InventoryCore, Agent v131 and Android Beta vc107 actually deployed after delayed main push Actions; supersedes unnecessary manual dispatch recovery",
       "status": "D168_BETA_WORKER_HEALTH_PASS__AGENT_V131_RELEASED_CHANNEL__ANDROID_BETA_VC107_RELEASED_CHANNEL__PUSH_CI_13_OF_13_PASS__OWNER_FIELD_ACCEPTANCE_PENDING__STABLE_UNTOUCHED",
       "owner_approval": true,
