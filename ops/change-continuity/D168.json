@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-android-catchup-release-20261014",
-  "pr": 595,
+  "working_branch": "d168-vc108-release-evidence-20261014",
+  "pr": 596,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E041",
+    "id": "D168-E042",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
@@ -962,6 +962,25 @@
       ],
       "next_action": "Run exact PR595 protected-source tests plus authority/project-state/continuity and Android build, re-check receipt and merge via PR on PASS. Then verify main Worker-first Beta, signed beta-vc108 release and inventory-channel pda-latest manifest/assets. Keep Owner field PASS pending.",
       "evidence": "D168 PR595 branch source 3e6f23773b6e830916e36a176397c3598e9fabd8; Project State Guard failure run 38505193114; verified old Android release beta-vc107; Worker run 38504748429 and Agent tag relay-agent-v132; Owner 2026-10-14 request."
+    },
+    {
+      "id": "D168-E042",
+      "date_vn": "2026-10-14",
+      "kind": "STATUS",
+      "topic": "Owner-requested vc108 signed Beta release completed; Android Reporter all tabs SKU long-press included; existing Agent v132 remains released despite separate D160 gateway probe fail",
+      "status": "SIGNED_ANDROID_VC108_RELEASED_CHANNEL_PASS__WORKER_WEB_BETA_HEALTH_PASS__AGENT_V132_PREVIOUS_RELEASE__D160_GATEWAY_PRERELEASE_PROBE_FAIL__FIELD_OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR595 source/authority/continuity/Android CI PASS 18/18 on final head ff3d4c3bb5a5dc4c40d02e2afe08219f10b942c1 and merged main 9a61ead381e72c46d4fd3e566f323e2507d3ae0d.",
+        "Push Worker/Web Beta workflow 38507343224 succeeded for exact main 9a61ead3 including deployment, health/source commit and API/auth readbacks.",
+        "Push Android workflow 38507343114 succeeded, including actual signed beta-vc108 release published 2026-10-14T03:41:02Z from exact main 9a61ead3, and inventory-channel pda-latest.json, APK and checksum updated 2026-10-14T03:41:04-05Z.",
+        "PR595 Android ReporterController adds on-item and row/text SKU long-press for four tabs PENDING, OVERDUE, HAS_STOCK, SKIP_ALLOWED; Picker History and result overlay existing local clipboard preserved; no new provider calls.",
+        "Previously published relay-agent-v132 dated 2026-10-14T03:12:35Z remains available in inventory-channel; current PR595 main push Agent workflow 38507343145 failed on read-only D160 Agent operations gateway GET probe after three bounded attempts. Do not claim current Agent run PASS or speculate that Apps Script quota specifically caused it.",
+        "Official GitHub release and channel do not demonstrate actual PDA installed version nor field gesture reliability. Owner FIELD PASS and real resources/usage measurement remain pending.",
+        "D168-E037 hostname consolidation/Stable retirement proposal is unapproved and excluded; Stable remains OWNER-GATED."
+      ],
+      "next_action": "Owner test update on real PDA to vc108 then exercise Reporter four tabs and Picker history/popups, capture sanitized issues; investigate D160 gateway probe independently under same D168 if it affects Agent operations; do not trigger unrelated Stable/domain migration.",
+      "evidence": "PR595; Worker run 38507343224 PASS; Android run 38507343114 PASS; release beta-vc108 source 9a61ead381e72c46d4fd3e566f323e2507d3ae0d; channel pda-latest.json; Agent run 38507343145 fail; v132 prior official release."
     }
   ],
   "resume": {
@@ -997,22 +1016,24 @@
       "D168-E038: official Agent v132 source and approved Beta receipt pinned c2fabf512128817f4477d496995da4094bed0bde; exact-head CI and release still pending.",
       "D168-E039 PR593 P0 beta release guard for approved 21:45 Web log; executable guard source d32f5190af6d6218e101b0ca11d75bc20e3004e1 awaiting fresh CI.",
       "D168-E040 PR594 exact protected workflow-trigger code 2e399f03fe9019c47bd14cd755e45b8d566526f5 pending CI; Worker/Agent/Android release still not technically proven.",
-      "D168-E041: Android vc108 Reporter all four tabs + Picker copy fix at protected source 3e6f23773b6e830916e36a176397c3598e9fabd8, PR595 exact CI and release pending."
+      "D168-E041: Android vc108 Reporter all four tabs + Picker copy fix at protected source 3e6f23773b6e830916e36a176397c3598e9fabd8, PR595 exact CI and release pending.",
+      "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
       "D168-D168-E037: future proposal to unify existing Beta into one official runtime at inventory.supra.cc.cd, pending Owner choice, D168 Owner PASS and Stable hostname-specific authorization; zero live modification."
     ],
     "blocked": [
-      "PR595 exact-head authority/continuity and Android product CI must PASS; previous Project State Guard failed before same-change-set state coupling.",
-      "Android signed vc108 release/channel and physical PDA installation unverified. Existing signed vc107 is last confirmed until actual tag+assets.",
-      "Reporter real device long-press Pending/Overdue/Has Stock/Skip/Picker ACK and combined network usage field tests pending; Stable/domain proposal excluded."
+      "Physical PDA vc108 installation and Picker/Reporter all-view long-press/usage acceptance not verified; Owner PASS pending.",
+      "Agent main verify run 38507343145 failed D160 Agent operations gateway GET 3x; root cause/quota and machine impact not yet established; prior v132 release unchanged.",
+      "D168-E037 single-runtime domain proposal unapproved; Stable gated."
     ],
     "next_actions": [
-      "Verify PR595 exact-head required CI including Project State Guard, signed Beta release gate and repo authority then merge via PR.",
-      "Verify Worker Beta exact source health, signed beta-vc108 tag + pda-latest.json channel and screen-copy on actual PDA; separate Owner FIELD PASS."
+      "Verify actual PDA vc108 installation by in-app version, long-press SKU in Reporter PENDING/OVERDUE/HAS_STOCK/SKIP_ALLOWED and Picker History/popup, plus normal buttons, and user feedback.",
+      "Investigate Agent D160 gateway connectivity with sanitized logs/provider usage separately; no guessed root cause or bypass.",
+      "Record Owner field PASS only after direct testing; never automatically merge unrelated Stable/domain proposal."
     ],
-    "release_boundary": "WORKER_WEB_BETA_C984_PASS__AGENT_V132_RELEASED__ANDROID_VC107_CURRENT__PR595_VC108_CODE_CANDIDATE__STABLE_GATED",
+    "release_boundary": "WORKER_WEB_BETA_9A61_PASS__ANDROID_SIGNED_VC108_CHANNEL_PASS__AGENT_V132_RELEASED_PREVIOUSLY__AGENT_LATER_GATEWAY_PROBE_FAIL__FIELD_PENDING__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]

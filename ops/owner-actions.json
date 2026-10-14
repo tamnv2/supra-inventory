@@ -5623,7 +5623,7 @@
     "stable": "OWNER_GATED"
   },
   "d168_android_vc108_2026_10_14": {
-    "status": "OWNER_APPROVED_CODE_AND_BETA_RELEASE_PENDING_CI",
+    "status": "BETA_SIGNED_VC108_RELEASE_AND_CHANNEL_PASS__FIELD_ACCEPTANCE_PENDING",
     "pr": 595,
     "protected_source_sha": "3e6f23773b6e830916e36a176397c3598e9fabd8",
     "reporter": [
@@ -5637,9 +5637,13 @@
       "RESULT_OVERLAY"
     ],
     "expected_version_code": 108,
-    "manual_github_action": "NONE_IF_CI_AND_MERGE_WORK",
+    "manual_github_action": "NONE",
     "manual_field_action_after_release": "TEST_PDA_LONG_PRESS_AND_APP_UPDATE",
     "stable": "OWNER_GATED",
-    "field_pass": false
+    "field_pass": false,
+    "runtime_source": "9a61ead381e72c46d4fd3e566f323e2507d3ae0d",
+    "release_tag": "beta-vc108",
+    "owner_field_test": "Open PDA Báo hàng version vc108, test Reporter 4 tabs and Picker history/result popup long-press SKU copies exact SKU, confirm buttons/taps unchanged; send sanitized result",
+    "agent_followup": "D160_GATEWAY_GET_PROBE_FAILED_IN_LATER_AGENT_RUN__NO_NEW_AGENT_RELEASE"
   }
 }
