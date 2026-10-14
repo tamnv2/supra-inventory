@@ -7,7 +7,7 @@
   "pr": 592,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E037",
+    "id": "D168-E038",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
@@ -886,6 +886,27 @@
       ],
       "next_action": "Present recommendation and system-wide impact; record proposal only on current D168 journal. Do not execute until explicit Owner approval and resolution of serial D168 Owner PASS and Stable hostname gating. Preserve PR592 source/release process and current live data.",
       "evidence": "GitHub main ops/project-scope.json, service/wrangler.beta.toml, service/wrangler.stable.toml; PR591 merged cbb52225 and PR592 Draft working 4a7282b; android/app/build.gradle.kts, relay-agent/AgentConfig.cs, web/.env.example, .github/workflows/deploy-beta.yml; Cloudflare official Custom Domain documentation."
+    },
+    {
+      "id": "D168-E038",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "D168 PR592 Agent version v132 release collision repair and protected Beta source receipt",
+      "status": "AGENT_V132_CODE_COMMITTED__RECEIPT_PINNED__PR_CI_PENDING__NO_PR592_BETA_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "The released PR591 tag relay-agent-v131 cannot be overwritten when relay-agent source changes; GitHub main release guard fails if a reused tag has a different Agent tree.",
+        "PR592 bumps relay-agent/VERSION, AgentConfig.AgentBuild, and net48 AssemblyVersion/FileVersion together to 132; protected source commit c2fabf512128817f4477d496995da4094bed0bde.",
+        "Existing PR592 saved-WiFi priority, correct terminal SKU DONE merge, Picker history resolver, local-first tri-surface logs and related diagnostics remain under D168-E035/E036.",
+        "D168 Owner-authorized release receipt now pins the new protected source commit c2fabf512128817f4477d496995da4094bed0bde; PR592 is still Draft and unmerged. Exact-head CI must PASS before launch. Android Beta gets a distinct versionCode from main release workflow.",
+        "Separate D168-E037 one-domain/Stable retirement proposal is explicitly NOT approved; this release keeps inventory-beta.supra.cc.cd and existing Beta/Stable resource boundaries. No physical FIELD PASS is inferred."
+      ],
+      "alternatives": [
+        "Freeze source and release existing registered Beta Worker/Web + Agent v132 + next signed Android after exact CI; do not reuse release v131.",
+        "Do not merge E037 resource/domain proposal into this release."
+      ],
+      "next_action": "Complete exact PR HEAD CI and authority/continuity checks; only PASS then mark Ready, merge, verify Beta Worker exact SOURCE_COMMIT, Agent v132 and next signed Android. Await physical test afterward.",
+      "evidence": "PR592 source c2fabf512128817f4477d496995da4094bed0bde; release receipt current branch; .github/workflows/verify-relay-agent.yml; continuity E036/E037."
     }
   ],
   "resume": {
@@ -917,7 +938,8 @@
       "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains.",
       "D168-E033: Owner requests prioritized saved Windows WLAN selection; source still uses one typed profile; proposed design pending Owner approval.",
       "D168-E034: Picker shortage History responder identity incomplete end-to-end in released Beta; proposed Core+Android repair pending Owner approval.",
-      "D168-E036 PR592 protected code candidate 4a7282b0ba89c26c5b35ab0166dc17f76543e43e: saved WLAN priority and immutable concurrent SKU DONE fixes committed; exact-head CI verification and Beta release gate pending."
+      "D168-E036 PR592 protected code candidate 4a7282b0ba89c26c5b35ab0166dc17f76543e43e: saved WLAN priority and immutable concurrent SKU DONE fixes committed; exact-head CI verification and Beta release gate pending.",
+      "D168-E038: official Agent v132 source and approved Beta receipt pinned c2fabf512128817f4477d496995da4094bed0bde; exact-head CI and release still pending."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
@@ -929,8 +951,8 @@
       "Existing Beta release PR591 does not contain PR592 pending fixes; never claim full D168 Owner PASS."
     ],
     "next_actions": [
-      "Finish exact HEAD CI and only then guarded PR592 merge/Beta releases for authorized registered Worker/Web/Agent/Android.",
-      "Verify signed Android, Agent/WebView2 channel and Worker SOURCE_COMMIT; request only the physical device tests unavailable via GitHub."
+      "PR592 exact HEAD CI PASS then gated PR merge and real Beta Worker/Agent v132/Android version verification.",
+      "E037 domain consolidation remains proposed/unapproved and excluded; Stable not touched."
     ],
     "release_boundary": "D168_PR591_BETA_BASE_RELEASED__PR592_CODE_CANDIDATE_CI_PENDING__NO_PR592_BETA_DEPLOY__STABLE_GATED",
     "pending": [
