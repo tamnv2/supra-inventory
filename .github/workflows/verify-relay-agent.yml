@@ -1569,7 +1569,7 @@ jobs:
       # D168 Worker-first migration: v131 SKU probe is not supported by D167 Worker.
       # Do not publish an Agent update until the exact same source is healthy on Beta.
       - name: D168 require matching Beta Worker before publishing Agent
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -1596,14 +1596,14 @@ jobs:
           }
 
       - name: Resolve official Fixed WebView2 package
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         shell: pwsh
         run: |
           npm install --no-save playwright-core@1.55.0
           node tools/d127_resolve_webview2_fixed.js latest
 
       - name: Publish dedicated Agent prerelease
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -1717,7 +1717,7 @@ jobs:
           Write-Host "Updated stable Agent runtime channel $channel -> $tag"
 
       - name: Publish Agent-owned Fixed WebView2 browser bundle
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
