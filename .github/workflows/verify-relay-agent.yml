@@ -1136,14 +1136,16 @@ jobs:
           )) {
             if (-not $ops.Contains($marker)) { throw "D150 takeover/deep-sync UI marker missing: $marker" }
           }
+          # D168 replaces the legacy timed incident uploader: an error/crash
+          # can only add durable local evidence, never retry a Drive upload.
           foreach ($marker in @(
-            'ErrorFingerprintWindow = TimeSpan.FromMinutes(10)',
-            'MaxImmediateErrorsPerWindow = 6',
-            'DIRECT_PART',
-            'SAME_FINGERPRINT',
-            'GLOBAL_FUSE'
+            'TryQueueErrorSnapshot',
+            'TryQueueCrashSnapshot',
+            'BOUNDARY_2145',
+            'DRIVE_CONFIRMATION_MISSING',
+            'BLOCKED_INVALID_PENDING_METADATA'
           )) {
-            if (-not $agentLogBridge.Contains($marker)) { throw "D150 Agent log-storm guard missing: $marker" }
+            if (-not $agentLogBridge.Contains($marker)) { throw "D168 local-first log regression: $marker" }
           }
           if (-not $rules.Contains("'DIRECT_PART'")) { throw "D150 Firestore rules must allow DIRECT_PART Agent log chunks." }
           if (-not $functionsIndex.Contains('index === expected - 1 ? "DIRECT_PENDING" : "DIRECT_PART"')) {
