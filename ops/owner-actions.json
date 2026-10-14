@@ -5645,5 +5645,17 @@
     "release_tag": "beta-vc108",
     "owner_field_test": "Open PDA Báo hàng version vc108, test Reporter 4 tabs and Picker history/result popup long-press SKU copies exact SKU, confirm buttons/taps unchanged; send sanitized result",
     "agent_followup": "D160_GATEWAY_GET_PROBE_FAILED_IN_LATER_AGENT_RUN__NO_NEW_AGENT_RELEASE"
+  },
+  "d168_android_vc109_2026_10_14": {
+    "status": "SIGNED_RELEASE_AND_CHANNEL_PASS__PHYSICAL_FIELD_ACCEPTANCE_PENDING",
+    "pr": 597,
+    "expected_version_code": 109,
+    "release_tag": "beta-vc109",
+    "release_source": "a344c283376754ae9bf302cf05d59e27e5ab7c37",
+    "github_release_id": 412335126,
+    "owner_setup_action": "NONE__AUTOMATIC_SIGNED_RELEASE_COMPLETED",
+    "owner_field_test": "On Android Reporter vc109, check lunch prompt exposes 11:00–11:30 and 11:30–12:00, dinner exposes 18:00–18:30 and 18:30–19:00, none selected initially; select and confirm exactly one; compare another Reporter/Web state. On vc108 when updating to vc109, verify update notes match verified release. No credential or log sharing.",
+    "field_pass": false,
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
