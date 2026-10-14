@@ -1102,3 +1102,7 @@ For each VN calendar day before 11:00/18:00, authenticated Web Reporter/Admin/Ro
 ## D168-E041 — Android sao chép SKU cho Picker và Reporter (Owner approved)
 
 Tất cả màn hình đang hiển thị mã SKU hợp lệ cho Picker (lịch sử, popup kết quả) và Reporter (Đang xử lý, Quá hạn, Đã có hàng, Cho phép skip) hỗ trợ **ấn giữ SKU / dòng hiển thị** để sao chép nguyên SKU vào Clipboard của thiết bị. Không sao chép tên hàng/trạng thái hay dữ liệu user khác; việc bấm thường chọn dòng/xem Picker và bấm các nút xác nhận giữ hành vi hiện hữu. Danh sách tái sử dụng View phải gán listener lại theo chính bản ghi, tránh copy nhầm SKU; không thêm service call hoặc background listener. Phiên bản Android ký mới phát hành theo vc108 sau CI. Nguồn ứng viên 3e6f23773b6e830916e36a176397c3598e9fabd8.
+
+## D168-E043 — Android Reporter xác nhận giờ nghỉ (vc109)
+
+Popup Reporter/Admin phải có lời nhắc và **hai lựa chọn hiển thị đồng thời** (RadioGroup) cho đúng period Worker `LUNCH` hoặc `DINNER`. LUNCH: `11:00–11:30` = EARLY, `11:30–12:00` = LATE. DINNER: `18:00–18:30` = EARLY, `18:30–19:00` = LATE. Ban đầu không lựa chọn (không tự chọn EARLY); chỉ cho submit sau khi chọn; báo lỗi và bật lại nút khi thất bại. Không dùng AlertDialog message cùng single-choice list do một số PDA Android 11 ẩn danh sách. Dữ liệu, role, thời điểm 10:55/17:55, server CAS first-writer, Web edit và fallback LATE không thay đổi. Không thêm quota/service calls.
