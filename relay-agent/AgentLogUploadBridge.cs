@@ -81,7 +81,7 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var now=DateTime.Now;
+                var now=D167SkuSchedule.VNNow();
                 if(now.Hour<21 || (now.Hour==21 && now.Minute<45) ||
                     _last2145BoundaryLocal==now.Date)return;
                 _last2145BoundaryLocal=now.Date; // one attempt, even on failure
