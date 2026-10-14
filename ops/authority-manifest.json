@@ -8,7 +8,7 @@
     "docs/PROJECT_CONTEXT.md",
     "ops/project-scope.json",
     "ops/project-state.json",
-    "ops/change-continuity/D168.json",
+    "ops/change-continuity/D169.json",
     "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/README.md",
@@ -56,7 +56,7 @@
     ],
     "ci": ".github/workflows/",
     "discussion_continuity_protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
-    "active_change_discussion": "ops/change-continuity/D168.json"
+    "active_change_discussion": "ops/change-continuity/D169.json"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -79,7 +79,7 @@
     ],
     "derived_view_freshness": "CI_FAIL_IF_CURRENT_STATE_MARKERS_MISMATCH",
     "substantive_discussion_checkpoint": [
-      "ops/change-continuity/D168.json",
+      "ops/change-continuity/D169.json",
       "relevant docs/OWNER_DECISIONS.md or docs/specs/* ONLY when Owner approved",
       "ops/project-state.json WHEN meaningful work state changes"
     ]
@@ -106,8 +106,8 @@
       "ops/project-state.json#change_continuity.working_branch",
       "GitHub open PR head"
     ],
-    "active_working_change_id": "D168",
-    "active_working_pr": 601,
+    "active_working_change_id": "D169",
+    "active_working_pr": null,
     "ref_rule": "FETCH_BRANCH_MANIFEST_FULL_BOOTSTRAP_AND_OPS_CHANGE_CONTINUITY_AFTER_MAIN",
     "freshness": "RESOLVE_LATEST_BRANCH_HEAD_AND_CI_EVERY_SUBSTANTIVE_DXXX_TURN",
     "conflict_rule": "LATEST_OWNER_COMMAND_OVERRIDES_BRANCH_RELEASE_PERMISSION__MAIN_ACCEPTED_BASE_UNCHANGED"
