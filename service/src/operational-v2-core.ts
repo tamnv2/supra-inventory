@@ -1172,7 +1172,7 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
     ? " AND (t.reported_at >= ? OR (t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING'))"
     : "";
   if (!userId || !employeeCode) return json({ error: "INVALID_INPUT" }, 400);
-  const args: SqlStorageValue[] = [userId, userId, userId, userId, userId, employeeCode];
+  const args: SqlStorageValue[] = [userId, userId, userId, userId, userId, userId, employeeCode];
   if (appTodayOpen) args.push(todayStart);
   const totalRow = first(
     d166MeasuredSqlRows<SqlRow>(state, "PICKER_REPORTS_COUNT", 
@@ -1191,6 +1191,10 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
             b.status AS batch_status,
             COALESCE(t.resolution, b.resolution) AS resolution,
             COALESCE(t.resolution_source, b.resolution_source) AS resolution_source,
+            CASE WHEN COALESCE(t.resolution_source, b.resolution_source) = 'SYSTEM_TIMEOUT'
+              THEN '' ELSE COALESCE(resolver.display_name, '') END AS resolved_by_display_name,
+            CASE WHEN COALESCE(t.resolution_source, b.resolution_source) = 'SYSTEM_TIMEOUT'
+              THEN '' ELSE COALESCE(NULLIF(resolver.employee_code, ''), e.actor_employee_code, '') END AS resolved_by_employee_code,
             b.correction_deadline_at,
             b.version AS batch_version, b.previous_batch_id,
             (
@@ -1223,6 +1227,11 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
             ) AS acknowledged_at
        FROM report_tickets t
        JOIN report_batches b ON b.batch_id = t.batch_id
+       LEFT JOIN report_events e ON e.event_id = (
+         SELECT a.result_event_id FROM result_acknowledgements a
+         WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
+         ORDER BY a.created_at DESC LIMIT 1)
+       LEFT JOIN users resolver ON resolver.user_id = COALESCE(e.actor_user_id, b.resolved_by_user_id)
       WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}
       ORDER BY CASE
         WHEN t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING' THEN 0
