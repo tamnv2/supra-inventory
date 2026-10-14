@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
   "working_branch": "docs/d168-update-chat-overlay-findings-20261014",
-  "pr": 600,
+  "pr": 601,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D168-E050",
@@ -1144,7 +1144,7 @@
         "Owner implementation/deployment approval for a correction PR in D168 not yet explicitly granted by this report."
       ],
       "next_action": "Present source-grounded findings and safe reboot advice; upon explicit Owner correction approval, implement D168 scoped Beta update gating and long-message scrolling with user-scoped ACK/mandatory update regressions, CI, exact-source release receipt and rollback. No silent Stable change.",
-      "evidence": "Main source android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt lines 1909-2111; service/src/index.ts lines 1337-1351; CriticalOverlayService.kt buildCommandOverlay/finishActive; android/app/src/main/res/layout/overlay_alert.xml; docs/D166_APPROVED_BACKLOG.md mandatory updates; Owner vc110 field report on 2026-10-14"
+      "evidence": "Main source android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt lines 1909-2111; service/src/index.ts lines 1337-1351; CriticalOverlayService.kt buildCommandOverlay/finishActive; android/app/src/main/res/layout/overlay_alert.xml; docs/D166_APPROVED_BACKLOG.md mandatory updates; Owner vc110 field report on 2026-10-14; PR601 tracking-only"
     }
   ],
   "resume": {
