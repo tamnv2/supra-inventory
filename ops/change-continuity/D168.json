@@ -7,10 +7,10 @@
   "pr": 599,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E047",
+    "id": "D168-E048",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": "D168_E047_VC110_16_OF_16_PR_CI_PASS__NEW_RELEASE_RECEIPT_PENDING__NOT_RELEASED__STABLE_GATED",
+  "deployment_gate": "D168_E048_OWNER_EXPLICIT_VC110_BETA_APPROVED__PR_FINAL_CI_PENDING__SIGNED_APK_NOT_YET_RELEASED__STABLE_GATED",
   "entries": [
     {
       "id": "D168-E001",
@@ -1081,6 +1081,22 @@
       ],
       "next_action": "Seek explicit Owner authorization for Beta vc110 release on PR599, then prepare exact-source D168 release receipt on the same branch, re-run authority/continuity and Android CI to PASS, merge only after expected-head and release gates pass; verify signed beta-vc110 APK, channel and Worker-first runtime, then field-test.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/599 ; GitHub PR workflow 38516353547 PASS; tools/d167_release_gate.py; ops/d168-release-authorization.json at PR599 head"
+    },
+    {
+      "id": "D168-E048",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly orders immediate Android Beta vc110 hotfix release, no additional approval prompt",
+      "status": "OWNER_APPROVED_VC110_BETA_RELEASE__EXACT_SOURCE_RECEIPT_SET__CI_PENDING__NOT_YET_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner unequivocally instructs immediate release of vc110 to Beta, following prior PR599 16/16 GitHub CI success and repeated request not to reconfirm authorization.",
+        "ops/d168-release-authorization.json now pins source 3e83ad30aa92072c0102b7fd312fd6d5027f361b with explicit VC110 RESULT OVERLAY HOTFIX reference; changed docs/receipt only since that source, no additional protected executable source changes.",
+        "Scope Android vc110 result_event_id duplicate-overlay guard, existing worker-first/Agent automation dependencies only, Stable remains OWNER-GATED, physical field test remains pending.",
+        "PR599 Ready for review; latest PR CI must pass following release receipt and continuity updates before merge; signed vc110 must be verified by GitHub Release tag/channel SHA, Worker runtime and run outcomes."
+      ],
+      "next_action": "Wait final PR599 head 16/16 CI PASS, then merge expected-head via guarded PR process; inspect Worker-first and Android signed beta-vc110 release/channel and no unintended Agent/Stable changes; record PASS evidence and field-only pending.",
+      "evidence": "Owner direct instruction 2026-10-14 'Hỏi thừa vl, triển khai đi'; PR599; ops/d168-release-authorization.json; docs/OWNER_DECISIONS.md#D168-E048"
     }
   ],
   "resume": {
@@ -1093,7 +1109,8 @@
       "D168-E017: Owner accepts Firebase Auth/Firestore dual-network critical lanes and on-demand Cloudflare direct optional actions, preserving required Android notification and network safety",
       "D168-E018 Owner explicit whole Big Update CODE + Beta deploy permission; FULL mandatory solo primary, WMS ordinary Internet, direct Worker SKU; Stable unchanged.",
       "D168-E029: Owner explicitly accepts unverified predeploy device/network tests for a scoped Beta trial rollout and later direct field acceptance; not physical FIELD PASS.",
-      "D168-E043: Owner authorizes immediate signed Beta Android vc109 after CI; Reporter dual explicit meal slots and future per-version synchronized release notes."
+      "D168-E043: Owner authorizes immediate signed Beta Android vc109 after CI; Reporter dual explicit meal slots and future per-version synchronized release notes.",
+      "D168-E048: Owner expressly orders immediate Android Beta vc110 hotfix release; signed APK only after exact CI and protected source release gate. Stable unchanged."
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -1122,7 +1139,8 @@
       "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending.",
       "D168-E044 vc109 app installed/tested field proof pending; future releases auto publish reviewed notes from source file.",
       "D168-E045: owner-reported vc109 double overlay: vc110 Android local hotfix on Codespaces feature branch; code diff clean, tests/PR/CI/build/release/field acceptance pending.",
-      "D168-E046: vc110 Draft PR #599 created. CI and physical device validation pending."
+      "D168-E046: vc110 Draft PR #599 created. CI and physical device validation pending.",
+      "D168-E048: vc110 Beta receipt pins protected source 3e83ad30; final PR599 checks and guarded merge/publish pending."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
@@ -1132,8 +1150,7 @@
       "Physical PDA vc108 installation and Picker/Reporter all-view long-press/usage acceptance not verified; Owner PASS pending.",
       "Agent main verify run 38507343145 failed D160 Agent operations gateway GET 3x; root cause/quota and machine impact not yet established; prior v132 release unchanged.",
       "D168-E037 single-runtime domain proposal unapproved; Stable gated.",
-      "Physical Reporter PDA meal selection and in-app update dialog FIELD PASS have not been directly observed.",
-      "PR599 vc110 release receipt awaits explicit Owner Beta authorization and exact approved source SHA; existing D168 receipt is specific to vc109."
+      "Physical Reporter PDA meal selection and in-app update dialog FIELD PASS have not been directly observed."
     ],
     "next_actions": [
       "Verify actual PDA vc108 installation by in-app version, long-press SKU in Reporter PENDING/OVERDUE/HAS_STOCK/SKIP_ALLOWED and Picker History/popup, plus normal buttons, and user feedback.",
@@ -1143,7 +1160,7 @@
       "Open vc110 Draft PR, bind real PR number, run Android+authority+continuity CI; signed Beta release only after gate PASS; physical PDA double-overlay field confirmation separate.",
       "On Owner vc110 Beta release approval, bind tested PR599 commit in D168 release authorization receipt and rerun PR checks before merge; verify signed APK/channel. Stable remains gated."
     ],
-    "release_boundary": "VC110_PR_599_CODE_CI_PASS_ONLY__VC109_LAST_SIGNED_BETA__RELEASE_GATE_PENDING__STABLE_OWNER_GATED",
+    "release_boundary": "ANDROID_VC110_BETA_RELEASE_AUTHORIZED__WAITING_FINAL_PR599_CI_AND_SIGNED_RELEASE__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
