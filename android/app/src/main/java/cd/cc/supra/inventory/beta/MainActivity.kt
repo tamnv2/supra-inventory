@@ -960,7 +960,9 @@ class MainActivity : Activity() {
         next = next.replace(Regex("eyJ[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{10,}"), "[REDACTED_JWT]")
         return next
     }
-    private fun recordLog(message: String, level: String = "INFO") {
+    private fun recordLog(message: String) = recordLog(message, "INFO")
+
+    private fun recordLog(message: String, level: String) {
         if (localLog.size >= 80) localLog.removeFirst()
         localLog.addLast("${logTime.format(Instant.now())} · $message")
         try {
