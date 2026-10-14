@@ -1,5 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,8 +18,9 @@ namespace SupraInventoryRelayAgent
     {
         private const string LocalKey=@"Software\SupraInventory\RelayAgent";
         private const string WorkerProfileValue="ApprovedWorkerWifiProfile";
+        private const string WorkerProfilesValue="ApprovedWorkerWifiProfilesV2";
         private static readonly Regex SafeProfile=new Regex(
-            @"^[\p{L}\p{N} ._+-]{1,64}$",RegexOptions.Compiled);
+            @"^[\p{L}\p{N} ._+@!#$%&()={\[\]},-]{1,64}$",RegexOptions.Compiled);
 
         internal static string ApprovedProfile()
         {
@@ -26,6 +30,65 @@ namespace SupraInventoryRelayAgent
                     return Convert.ToString(key==null ? "" : key.GetValue(WorkerProfileValue,"")) ?? "";
             }
             catch { return ""; }
+        }
+
+        internal static List<string> ApprovedProfiles()
+        {
+            try
+            {
+                using(var key=Registry.CurrentUser.OpenSubKey(LocalKey,false))
+                {
+                    var values=key==null ? null : key.GetValue(WorkerProfilesValue) as string[];
+                    if(values!=null && values.Length>0)
+                        return values.Where(ValidProfile).Distinct(StringComparer.Ordinal).Take(8).ToList();
+                }
+            }
+            catch { }
+            var legacy=ApprovedProfile();
+            return ValidProfile(legacy) ? new List<string>{legacy} : new List<string>();
+        }
+
+        // Local enumeration only, invoked when operator opens the setup dialog.
+        internal static List<string> WindowsSavedProfiles()
+        {
+            try
+            {
+                var proc=new Process{StartInfo=new ProcessStartInfo{
+                    FileName="netsh.exe",Arguments="wlan show profiles",
+                    UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,
+                    StandardOutputEncoding=Encoding.Default}};
+                using(proc)
+                {
+                    if(!proc.Start())return new List<string>();
+                    var output=proc.StandardOutput.ReadToEndAsync();
+                    if(!proc.WaitForExit(5000)) {try{proc.Kill();}catch{}return new List<string>();}
+                    if(proc.ExitCode!=0 || !output.Wait(3000))return new List<string>();
+                    return output.Result.Split('\n').Select(s=>Regex.Match(s,
+                        @"(?i)^\s*[^:\r\n]*(?:profile|hồ sơ)[^:\r\n]*:\s*([^\r\n]+)"))
+                        .Where(m=>m.Success).Select(m=>m.Groups[1].Value.Trim())
+                        .Where(ValidProfile).Distinct(StringComparer.Ordinal)
+                        .OrderBy(s=>s,StringComparer.CurrentCultureIgnoreCase).ToList();
+                }
+            }
+            catch{return new List<string>();}
+        }
+
+        internal static bool SaveApprovedProfiles(IEnumerable<string> names)
+        {
+            var chosen=(names??new string[0]).Select(x=>(x??"").Trim())
+                .Distinct(StringComparer.Ordinal).Take(8).ToArray();
+            if(chosen.Length==0 || chosen.Any(x=>!ValidProfile(x) || !HasSavedProfile(x)))return false;
+            try
+            {
+                using(var key=Registry.CurrentUser.CreateSubKey(LocalKey,true))
+                {
+                    if(key==null)return false;
+                    key.SetValue(WorkerProfilesValue,chosen,RegistryValueKind.MultiString);
+                    key.SetValue(WorkerProfileValue,chosen[0],RegistryValueKind.String);
+                }
+                return true;
+            }
+            catch{return false;}
         }
 
         internal static bool SaveApprovedProfile(string name)
@@ -134,11 +197,9 @@ namespace SupraInventoryRelayAgent
         // It never changes networks or sends any provider request.
         internal static bool HasApprovedFallback()
         {
-            var target=ApprovedProfile();
             var original=CurrentProfile();
-            return ValidProfile(target) && ValidProfile(original) &&
-                !string.Equals(target,original,StringComparison.Ordinal) &&
-                HasSavedProfile(original) && HasSavedProfile(target);
+            return ValidProfile(original) && HasSavedProfile(original) &&
+                ApprovedProfiles().Any(target=>!string.Equals(target,original,StringComparison.Ordinal) && HasSavedProfile(target));
         }
 
         private static bool RestoreOriginalProfile(string name)
@@ -230,28 +291,32 @@ namespace SupraInventoryRelayAgent
                 if(readiness=="READY")return new WorkerSession("",log);
                 if(readiness!="NETWORK_UNREACHABLE")
                     throw new InvalidOperationException("D167_WORKER_UNAVAILABLE_NO_SAFE_SWITCH");
-                var target=ApprovedProfile();
                 original=CurrentProfile();
-                if(!ValidProfile(target) || !ValidProfile(original) ||
-                    string.Equals(target,original,StringComparison.Ordinal) ||
-                    !HasSavedProfile(original) || !HasSavedProfile(target))
+                var targets=ApprovedProfiles()
+                    .Where(x=>ValidProfile(x) && !string.Equals(x,original,StringComparison.Ordinal))
+                    .ToList();
+                if(!ValidProfile(original) || !HasSavedProfile(original) || targets.Count==0)
                     throw new InvalidOperationException("D167_NETWORK_PROFILES_NOT_APPROVED");
                 if(canSwitch==null || !canSwitch())
                     throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
                 if(requestNetworkPermission==null || !requestNetworkPermission())
                     throw new InvalidOperationException("D167_NETWORK_SWITCH_DEFERRED");
-                if(!canSwitch())
-                    throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
-                if(!ConnectSavedProfile(target))
-                    throw new InvalidOperationException("D167_NETWORK_SWITCH_FAILED");
-                for(var attempt=0;attempt<3;attempt++)
+                foreach(var target in targets)
                 {
-                    if(!canSwitch())
-                        throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
-                    if(string.Equals(CurrentProfile(),target,StringComparison.Ordinal) &&
-                        ProbeWorker(idToken)=="READY")
-                        return new WorkerSession(original,log);
-                    Thread.Sleep(1500);
+                    if(!canSwitch())throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
+                    if(!HasSavedProfile(target) || !ConnectSavedProfile(target))continue;
+                    for(var attempt=0;attempt<3;attempt++)
+                    {
+                        if(!canSwitch())throw new InvalidOperationException("D167_NETWORK_SWITCH_BUSY");
+                        if(string.Equals(CurrentProfile(),target,StringComparison.Ordinal))
+                        {
+                            var status=ProbeWorker(idToken);
+                            if(status=="READY")return new WorkerSession(original,log);
+                            if(status!="NETWORK_UNREACHABLE")
+                                throw new InvalidOperationException("D167_WORKER_UNAVAILABLE_NO_SAFE_SWITCH");
+                        }
+                        Thread.Sleep(1500);
+                    }
                 }
                 throw new InvalidOperationException("D167_NETWORK_WORKER_NOT_READY");
             }
