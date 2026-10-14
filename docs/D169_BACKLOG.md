@@ -43,3 +43,16 @@ Không tự đổi số vấn đề trên thành lỗi mới phát sinh trong D1
 **Kết luận phân tầng:** đủ tốt để tìm **ứng viên hot path/lặp/retry/lỗi** từ event thực; **chưa đủ** để gắn số lượng và tiền billable chính xác theo từng nghiệp vụ hay khẳng định tối ưu Usage đã giảm. Chỉ số bắt buộc đối chiếu: Firestore provider daily doc reads/writes/listener reconnection, Cloudflare Worker requests/CPU/DO rowsRead/rowsWritten theo đúng scope, Apps Script account executing-identity executions/UrlFetch quota, Drive archived bundle completeness; so cùng ngày/ca, số PDA/Agent giờ online và lượt báo hàng/Picklist/ACK. Tách `ZERO` với `N/A`, account shared với Inventory-only, process-reset với toàn ngày. Có log thì có thể phân tích nguồn tiêu tốn đáng nghi trước; chưa có meter thì phải ghi **attribution confidence limited**.
 
 **Không được tự sửa nguồn / thay đổi lịch log / triển khai Beta hoặc Stable vì câu hỏi này.**
+
+
+## D169 — Ghi nhận Owner bổ sung 14/10/2026
+
+- **D169-REQ-005 — Version Android/Agent:** App lúc hiển thị đúng version, lúc chuyển thành “Chưa ghi nhận”. Trạng thái: REPORTED; chưa có log để xác định nguyên nhân.
+- **D169-REQ-006 — Presence từ Picklist:** Tận dụng chính sự kiện PDA gửi Picklist để xác nhận Picker/thiết bị vẫn online, không chỉ login, ưu tiên không tạo request riêng. Trạng thái: PROPOSAL / chờ phân tích.
+- **D169-REQ-007 — Danh sách online:** Agent cần hiển thị gần realtime và chính xác, loại user đã logout/bị kick; xét mất mạng và sự kiện đến trễ. Trạng thái: REPORTED / chưa xác minh.
+- **D169-REQ-008 — Overlay treo:** Một số PDA nhận kết quả báo hàng rồi overlay không bấm hoặc đóng được. Owner nghi do logout/mất mạng; đây chỉ là giả thuyết. Chờ log Android/session/network/ACK, giữ đúng nghiệp vụ. Trạng thái: REPORTED / WAIT_LOG.
+- **D169-REQ-009 — RBAC:** Rà soát quyền Admin Inventory và Admin Pick Pack, đặc biệt quyền cập nhật SKU và tạo tài khoản Picker cho Admin Pick Pack. Cần đánh giá UI/backend/audit và chống leo thang quyền; chưa phê duyệt thay đổi. Trạng thái: DESIGN_PENDING.
+- **D169-REQ-010 — Agent chuyển Wi-Fi:** Khi nghiệp vụ cần mạng Internet bình thường mà service không truy cập được, đề xuất hộp cảnh báo và lựa chọn tự động chuyển Wi-Fi theo danh sách ưu tiên đã cài. Cần bảo vệ xác nhận Picklist, HA, WMS, SKU; phân biệt lỗi mạng với lỗi auth/quota. Trạng thái: DESIGN_PENDING.
+- **Bổ sung D169-REQ-002:** Thông báo CV dài che nút xác nhận; đánh giá cuộn nội dung hoặc ghim nút phía trên. Không trùng với REQ-008 là tình huống overlay bị treo.
+
+**Ranh giới:** Owner yêu cầu tiếp nhận để phân tích tổng thể về sau, không duyệt code, cấp quyền mới, đổi mạng hoặc phát hành. Không ghi dữ liệu nhạy cảm/log thô vào repo public.
