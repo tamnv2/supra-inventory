@@ -1503,12 +1503,23 @@ namespace SupraInventoryRelayAgent
                 Checked=UserStartupRegistration.IsEnabled(),
                 Font=new Font("Segoe UI",9.5F)
             };
+            var restoringAutoStartChoice=false;
             autoStartOption.CheckedChanged+=(sender,args)=>{
-                if(!UserStartupRegistration.SetEnabled(autoStartOption.Checked))
+                if(restoringAutoStartChoice)return;
+                var enabled=autoStartOption.Checked;
+                var confirm=MessageBox.Show(this,
+                    enabled ? "Bật tự động khởi động Agent khi đăng nhập Windows?"
+                        : "Tắt tự động khởi động Agent khi đăng nhập Windows?",
+                    "Xác nhận tự động khởi động",MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,MessageBoxDefaultButton.Button2);
+                if(confirm!=DialogResult.Yes || !UserStartupRegistration.SetEnabled(enabled))
                 {
-                    MessageBox.Show("Không lưu được cài đặt tự khởi động. Hãy kiểm tra quyền Windows.",
-                        "Cài đặt Agent",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                    if(confirm==DialogResult.Yes)
+                        MessageBox.Show(this,"Không lưu được cài đặt tự khởi động. Hãy kiểm tra quyền Windows.",
+                            "Cài đặt Agent",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                    restoringAutoStartChoice=true;
                     autoStartOption.Checked=UserStartupRegistration.IsEnabled();
+                    restoringAutoStartChoice=false;
                 }
             };
             networkCard.Controls.Add(autoStartOption);
