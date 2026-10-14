@@ -70,6 +70,9 @@ class CriticalOverlayService : Service() {
         }
         if (intent?.action != ACTION_SHOW) return START_NOT_STICKY
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            if (intent.getStringExtra(EXTRA_MODE) == MODE_RESULT) {
+                NotificationSignalStore.clearResultOverlayPresented(applicationContext, intent.getStringExtra(EXTRA_ALERT_ID).orEmpty())
+            }
             stopSelf()
             return START_NOT_STICKY
         }
@@ -92,7 +95,12 @@ class CriticalOverlayService : Service() {
         } else {
             requestedExpiresAt
         }
-        if (expiresAt <= nowMs) return START_NOT_STICKY
+        if (expiresAt <= nowMs) {
+            if (mode == MODE_RESULT) {
+                NotificationSignalStore.clearResultOverlayPresented(applicationContext, alertId)
+            }
+            return START_NOT_STICKY
+        }
 
         enqueue(
             OverlayAlert(

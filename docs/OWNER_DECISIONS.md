@@ -1,3 +1,16 @@
+## D168-E048 · Owner duyệt phát hành Android Beta vc110 sửa trùng overlay (14/10/2026)
+
+- Owner yêu cầu **triển khai ngay Beta vc110** sửa lỗi một kết quả báo hàng mở hai overlay trên Android Picker; không yêu cầu xác nhận lại. Hoàn thành toàn bộ PR/CI/authority/continuity, Worker-first, ký APK và kênh cập nhật theo quy trình đã được phép; **Stable không được đụng tới**.
+- Phạm vi bản vá là Android result-event presentation claim theo `result_event_id`, đồng bộ giữa FCM overlay và Picker dialog, bảo toàn ACK local-first theo user, logic sự kiện/sửa kết quả, tính năng vc109 và không thêm provider polling/usage. Worker/Agent chỉ chạy lại pipeline phụ thuộc với source thực thi không đổi.
+- Source được phê duyệt cho receipt là commit `3e83ad30aa92072c0102b7fd312fd6d5027f361b` của PR #599; chỉ các commit hồ sơ/receipt không thuộc protected executable scope được bổ sung sau source này. Cổng build và hậu kiểm vẫn bắt buộc; test PDA thực tế vẫn chưa chứng minh FIELD PASS.
+- Release authorization: `ops/d168-release-authorization.json`, Owner reference `OWNER_EXPLICIT_D168_DEPLOY_20261014_ANDROID_VC110_RESULT_OVERLAY_HOTFIX`.
+
+## D168-E045 · Owner yêu cầu sửa khẩn overlay kết quả báo hàng vc109 (14/10/2026)
+
+- Owner phản ánh Android vc109 có thể xuất hiện **hai overlay cho cùng một kết quả báo hàng** và yêu cầu sửa gấp/phát hành bản tiếp theo trong phạm vi Beta.
+- Phạm vi hotfix: đồng bộ quyền hiển thị `result_event_id` giữa FCM và Picker realtime, giữ ACK local-first, không thay đổi Worker/Firebase/Agent/API và không đụng Stable. Đây là bản sửa mới cho D168, **không phải** Owner FIELD PASS hay quyền bỏ qua CI.
+- Bản mã Android vc110 được chuẩn bị trên nhánh riêng; các mốc `CODE READY`, PR CI, phát hành APK ký số và kiểm thử PDA phải xác minh riêng. `docs/specs/REALTIME_NOTIFICATIONS.md` định nghĩa ràng buộc hồi quy.
+
 # Owner Decision Ledger — SUPRA Inventory
 
 ## D168-E018 · Owner phê duyệt Big Update Agent, Android, Web, Worker Beta (14/10/2026)

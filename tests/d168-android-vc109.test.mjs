@@ -47,8 +47,4 @@ test("D168 signed-release workflow uses fresh, reviewed version-specific notes",
   assert.match(workflow, /':!android\/release-notes\.json'/);
 });
 
-test("D168 release notes describe only the two approved vc109 changes", () => {
-  assert.ok(notes.release_notes.some((s) => s.includes("11:00") && s.includes("18:00")));
-  assert.ok(notes.release_notes.some((s) => s.includes("không còn tự chọn")));
-  assert.ok(notes.release_notes.some((s) => s.includes("Nội dung cập nhật")));
-});
+// vc109 UI contracts above remain permanent; release notes intentionally change per version.

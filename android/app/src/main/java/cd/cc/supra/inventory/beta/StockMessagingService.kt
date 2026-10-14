@@ -83,6 +83,19 @@ class StockMessagingService : FirebaseMessagingService() {
                 isReportCreated ||
                 (event in resultEvents && resultEventId.isNotBlank())
         val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
+        val isPickerResult = event in resultEvents && resultEventId.isNotBlank()
+        val ownerUserId = if (isPickerResult) InteractiveSessionStore.load(applicationContext)?.userId.orEmpty() else ""
+        if (isPickerResult && ownerUserId.isNotBlank() &&
+            (NotificationSignalStore.isOverlayAckPending(applicationContext, resultEventId, ownerUserId) ||
+                NotificationSignalStore.isResultCompleted(applicationContext, resultEventId, ownerUserId))) {
+            return
+        }
+        // Claim before starting the service; otherwise WebSocket can open the
+        // Picker dialog during the service startup window.
+        val claimedResult = if (isPickerResult && overlayGranted) {
+            NotificationSignalStore.tryMarkResultOverlayPresented(applicationContext, resultEventId)
+        } else false
+        if (isPickerResult && overlayGranted && !claimedResult) return
         if (overlayEligible && overlayGranted) {
             val expiresAt = message.data["expires_at_ms"]?.toLongOrNull()
                 ?: (System.currentTimeMillis() + when {
@@ -100,15 +113,17 @@ class StockMessagingService : FirebaseMessagingService() {
                     else if (isPickerCommand) CriticalOverlayService.MODE_PICKER_COMMAND
                     else if (isReportCreated) CriticalOverlayService.MODE_REPORT_CREATED
                     else CriticalOverlayService.MODE_RESULT,
-                    message.data["alert_id"].orEmpty().ifBlank { resultEventId },
+                    if (isPickerResult) resultEventId else message.data["alert_id"].orEmpty().ifBlank { resultEventId },
                     expiresAt,
                     message.data["resolution"].orEmpty(),
                     message.data["sku"].orEmpty(),
                     message.data["product_name"].orEmpty(),
                 )
-                CriticalWakeCoordinator.wakeForCriticalOverlayIfNeeded(this, title, body)
+                try { CriticalWakeCoordinator.wakeForCriticalOverlayIfNeeded(this, title, body) }
+                catch (_: Exception) { /* Service was already submitted; do not fall back twice. */ }
                 return
             } catch (_: Exception) {
+                if (claimedResult) NotificationSignalStore.clearResultOverlayPresented(applicationContext, resultEventId)
                 // Fall through to the accepted high-importance notification path.
             }
         }

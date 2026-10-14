@@ -955,13 +955,17 @@ class PickerController(
     }
 
     private fun stageAndShowNextResult() {
+        if (resultDialogShowing || activity.isFinishing) return
         val result = pendingResults.firstOrNull { it.acknowledgedAt == null } ?: return
+        val ownerUserId = api.session?.userId.orEmpty()
         if (
+            NotificationSignalStore.isResultCompleted(activity.applicationContext, result.resultEventId, ownerUserId) ||
             NotificationSignalStore.isResultOverlayPresented(activity.applicationContext, result.resultEventId) ||
-            NotificationSignalStore.isOverlayAckPending(activity.applicationContext, result.resultEventId, api.session?.userId.orEmpty())
+            NotificationSignalStore.isOverlayAckPending(activity.applicationContext, result.resultEventId, ownerUserId)
         ) {
             return
         }
+        if (!NotificationSignalStore.tryMarkResultOverlayPresented(activity.applicationContext, result.resultEventId)) return
         if (result.receivedAt == null && receivedResults.add(result.resultEventId)) {
             Thread {
                 try {
@@ -971,7 +975,14 @@ class PickerController(
                 }
             }.start()
         }
-        showResultDialog(result)
+        try {
+            showResultDialog(result)
+        } catch (_: Exception) {
+            NotificationSignalStore.clearResultOverlayPresented(activity.applicationContext, result.resultEventId)
+            resultDialogShowing = false
+            activeResultDialog = null
+            recordLog("Không thể hiển thị hộp thoại kết quả; chờ khôi phục hiển thị.")
+        }
     }
 
     private fun showResultDialog(result: PickerResult) {
@@ -1079,6 +1090,10 @@ class PickerController(
         dialog.setOnDismissListener {
             if (activeResultDialog === dialog) activeResultDialog = null
             resultDialogShowing = false
+            if (!NotificationSignalStore.isOverlayAckPending(
+                    activity.applicationContext, result.resultEventId, api.session?.userId.orEmpty())) {
+                NotificationSignalStore.clearResultOverlayPresented(activity.applicationContext, result.resultEventId)
+            }
         }
         dialog.show()
     }
