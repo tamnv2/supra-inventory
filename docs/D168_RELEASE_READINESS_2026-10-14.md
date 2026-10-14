@@ -66,3 +66,10 @@ Further changes: v131 version markers; manual and 05h AUTO SKU Office XLSX expor
 **Phát hành theo điều kiện thật:** code/package CI và Authority+Continuity của chính HEAD phải PASS; receipt chỉ cấp Worker, Android, Agent trên tài nguyên Beta đã đăng ký, mã nguồn đã chốt; dùng chế độ Owner chấp nhận field trial đặc thù, không giả field pass. Sau merge, kiểm chứng runtime Worker source, Agent v131 release/channel, signed Android Beta/channel. Nếu lỗi cần đánh dấu RELEASE_FAIL/PARTIAL chứ không suy đoán hoàn thành.
 
 **Nghiệm thu trực tiếp sau phát hành:** Agent trên một PC thực và PDA thử: Wi-Fi Office/saved Internet + khôi phục, DAILY FULL trước ca kể cả solo PRIMARY, một Picklist Confirm/ACK, trạng thái Picker online/kick, liên hệ nhóm, nhật ký/Usage, bảo đảm không gián đoạn nghiệp vụ; các lỗi được giữ trong D168 cho tới Owner PASS.
+
+
+## D168-E032 — Actual scoped Beta deployment PASS (2026-10-14)
+
+Earlier sections describe PRE-DEPLOY risk and should not be interpreted as current runtime state. PR #591 merged main cbb52225f2d7e55bfc48e7474610b1c6bec038b3. All 13/13 main push Actions succeeded (push events arrived with delay, disproving initial suspicion that merge did not trigger them). Worker Beta run 38490028759 deployed Worker/InventoryCore/Web and passed exact SOURCE_COMMIT health; Agent run 38490028705 published Agent v131 + WebView2 and updated inventory-channel agent-latest; Android run 38490028723 published signed vc107 and updated inventory-channel pda-latest. Both GitHub official release tags and distribution assets read back correct. No Stable release.
+
+PR #592 manual workflow_dispatch source changes were reverted because they were unnecessary; PR #592 is documentation-only continuity after E032. Owner does not need manual Actions trigger or new release receipt. Pending direct field acceptance only; keep D168 open for physical confirmation and telemetry/regression remediation.
