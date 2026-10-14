@@ -1137,7 +1137,7 @@ class PickerController(
             (state == "Đã có hàng" || state == "Được phép bỏ qua") && !row.resolvedAt.isNullOrBlank() -> {
                 val responder = row.resolvedByDisplayName?.trim()?.takeIf { it.isNotBlank() }
                     ?: row.resolvedByEmployeeCode?.trim()?.takeIf { it.isNotBlank() }
-                "Invent phản hồi lúc ${timeOnly(row.resolvedAt)}" +
+                "Invent phản hồi lúc: ${timeOnly(row.resolvedAt)}" +
                     (if (responder != null) " bởi $responder" else " · Chưa có tên người xử lý")
             }
             else -> null
