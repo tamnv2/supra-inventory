@@ -1,3 +1,21 @@
+
+## D168-E018 — Owner đã duyệt trọn gói code và Beta; đang thực hiện (14/10/2026)
+
+**Quyền:** Owner xác nhận “Duyệt. Tiến hành xử lí, chạy code và triển khai toàn bộ”. Cho phép code và triển khai Beta **chỉ sau tất cả CI/continuity/security/field PASS**; Stable OWNER-GATED. Các trạng thái RECORD_ONLY/PENDING_APPROVAL của D168 cũ được thay thế bởi phê duyệt mới; **không suy diễn là code DONE hoặc deployed**.
+
+**Nghiệp vụ điều chỉnh:** FULL 05:00 bắt buộc dù chỉ có PRIMARY; WMS chạy trên mạng thường theo Owner; direct authenticated Worker/InventoryCore thay Google Apps Script cho SKU; job grant riêng tiếp tục sau PRIMARY handoff; Firebase giữ login/Picklist/ACK/HA/presence.
+
+**Các thay đổi đã ghi lên nhánh PR #591:** một phần service Worker/Core SKU reserve/claim/stage/publish job grant; Agent direct Worker retry suppression/SKU UI/autostart/log; Android sao chép SKU và thời gian phản hồi; FCM app_version → presence → Agent picker grid; retire Agent Usage tab. Không có kết quả field E2E hay Beta deployment mới từ các commit này.
+
+**Các điểm CHƯA HOÀN TẤT, tuyệt đối không phát hành Beta khi còn tồn:**
+- Network controller: xác minh WMS/Worker/Firestore trên mạng thực, quản lý profile Wi-Fi đã được cho phép, 60s/15m idle-only safe switch, xử lý solo PRIMARY, dữ liệu và nguồn mã an toàn; resource/profile chưa xác định fail closed.
+- Durable SKU job: kiểm thử 15 phút TTL/retry, mất phản hồi publish, concurrent reserve, WMS xuất thiếu, FULL ngày mới, no-op DELTA, đổi PRIMARY và mạng đang xác nhận; bổ sung lease recovery nếu cần.
+- REQ-004: session-generation-kick/logout/tombstone realtime reconciliation và nhãn kết nối thực tế.
+- REQ-007: nhắn/gọi chung nhiều/toàn bộ Picker: fanout bounded, per-session validation, group status/idempotency và FCM/Firestore guard.
+- Giao diện Web, Agent cross-fleet shared SKU job status and provider measurement, đầy đủ release version bump đồng bộ Agent/Android/Web.
+- Chạy toàn bộ CI và nghiệm thu field thực, authority+continuity PASS, PR merge và phát hành Beta. Không đưa code lên Stable.
+
+
 # D168 — Tiếp nhận yêu cầu, log và phân tích sau D167
 
 **Mở ngày:** 2026-10-13 (Asia/Ho_Chi_Minh).  

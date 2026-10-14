@@ -3,25 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-agent-v130-network-route-audit-20261013",
-  "pr": 590,
+  "working_branch": "d168-agent-network-split-proposal-20261013",
+  "pr": 591,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E015",
-    "date_vn": "2026-10-13"
+    "id": "D168-E030",
+    "date_vn": "2026-10-14"
   },
-  "deployment_gate": {
-    "owner_latest": "2026-10-13 D168_INTAKE_ANALYSIS_ONLY",
-    "code_permission": false,
-    "merge_permission": true,
-    "beta_deploy_permission": false,
-    "stable_deploy_permission": false,
-    "approved_components": [],
-    "new_owner_approval_required": true,
-    "current_pr_scope": "PR590_D168_AGENT_V130_NETWORK_ROUTE_AUDIT_DOCS_ONLY",
-    "technical_release_pass": false,
-    "field_pass": false
-  },
+  "deployment_gate": "D168_OWNER_BETA_TRIAL_APPROVED_IN_PRINCIPLE__TOOL_SAFETY_BLOCKS_RELEASE_RECEIPT_MUTATION__NO_DEPLOY",
   "entries": [
     {
       "id": "D168-E001",
@@ -340,13 +329,405 @@
       ],
       "next_action": "Use docs/D168_AGENT_NETWORK_MATRIX_2026-10-13.md for Owner review. No executable implementation or Beta/Stable deploy until explicit Owner authorization.",
       "evidence": "docs/D168_AGENT_NETWORK_MATRIX_2026-10-13.md; relay-agent/AgentConfig.cs, Program.cs, SupraConfirmBrowser.cs, D167SkuBrowserExport.cs, D167SkuDirectExport.cs, D167SkuServiceClient.cs, FirestoreConfirmationTransport.cs, FirestoreAgentLeaderCoordinator.cs, RtdbHaLiveness.cs, AgentLogUploadBridge.cs, AgentUpdater.cs; D168 PR590; existing D090/D091 field and D168 E009–E014 logs/analysis"
+    },
+    {
+      "id": "D168-E016",
+      "date_vn": "2026-10-13",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner fixes SKU job continuation across PRIMARY loss, conditional Wi-Fi switch with 60s auto-consent, and Cloudflare-first optional operations; retires Agent Usage and Usage ZIP",
+      "status": "OWNER_FUNCTIONAL_SCOPE_FIXED__TECHNICAL_SOLUTION_PROPOSED__NO_CODE_OR_DEPLOY_AUTHORITY",
+      "owner_approval": true,
+      "facts": [
+        "PRIMARY is only a gate for starting auto SKU; once an authenticated Agent begins valid job, it must continue to DONE/terminal failure even after PRIMARY shifts; new PRIMARY must not duplicate active job, and retries only once old attempt definitively ends or safely expires.",
+        "WMS Excel export happens BEFORE any Wi-Fi switch; upload should use direct Cloudflare/InventoryCore when reachable. If Office blocks direct Worker, prefer approved saved PDA Wi-Fi then other approved saved Internet profile; restore original Office/profile after DONE or failure.",
+        "Topmost non-modal prompt: Skip means retry after 15 minutes; Agree means switch when safe; no response after 60s permits attempt only when idle/HA-safeguarded. Never interrupt active WMS confirm, Picker ACK or HA handoff.",
+        "Owner accepts optional non-critical Agent operations such as manual Picker kicks on Internet/Cloudflare with network switch; minimize Google Apps Script Gateway and Firebase only where operationally safe.",
+        "Remove Agent D160 Usage tab/quarter-hour refresh/manual refresh and D166 Usage ZIP export; Owner supplies provider dashboard screenshots. Preserve all operational logs and Drive receipt/archive.",
+        "Actual code: SKU Worker and Agent currently require current HA PRIMARY on EVERY mutation; independent durable SKU job grant needed. Existing single and bulk Picker kick already call Worker directly; existing Firestore signals PDA logout.",
+        "Company Windows saved Wi-Fi profiles need verified per-user WLAN execute rights and approval; existing repo scope does not authorize automatically connecting to unspecified networks; source evidence shows only SSID reading."
+      ],
+      "alternatives": [
+        "Preferred minimal impact: bounded Office Google Gateway pre-admission to obtain Worker job lease, then all SKU stage/publish/status traffic direct Cloudflare; quota availability remains risk.",
+        "Gateway-free candidate: immutable start intent stored with authority CAS in an already-scoped Firestore resource before Office disconnection; Worker verifies before granting independent job lease; resource/security integration unverified.",
+        "If no safe standby and primary's network must be switched, postpone until safe rather than breaking live Picklist; 60s prompt timer never overrides operation safety.",
+        "Keep critical Picklist/HA/Picker live presence over existing Office-compatible Firebase; preserve notification FCM/Firestore for kick while moving optional authority/commands to direct Worker when suitable."
+      ],
+      "open_questions": [
+        "Which existing in-scope trust path can prove job was validly initiated while still PRIMARY but Cloudflare cannot be reached from Office?",
+        "Can Worker accept a bounded SKU job lease independent of a subsequent HA generation while preserving SQL CAS, expiry, idempotency and separate 12h/19h scheduling?",
+        "Are approved PDA/Office WLAN saved profiles accessible to Windows standard users, and can PRIMARY safely hand off to standby before switching?",
+        "Does network-profile switching preserve actual WMS session/FCM delivery and is original profile reliably restorable?",
+        "Do Cloudflare-backed call/chat need Android and Firestore/FCM delivery modifications, and what measured cross-meter usage savings would justify migration?"
+      ],
+      "next_action": "Persist design-only decision, assess scoped implementation matrix, await explicit Owner 'chạy code' or 'triển khai' command; DO NOT mutate Agent/Worker/Wi-Fi or deploy now.",
+      "evidence": "docs/D168_AGENT_SKU_JOB_WIFI_ROUTING_OWNER_2026-10-13.md; Agent D167SkuCoordinator.cs/D167SkuServiceClient.cs; service/src/d167-sku-sync-core.ts + service/src/index.ts; relay-agent/D119AgentFeatures.cs + D161AdminControl.cs; PR591. No runtime mutation authorized.",
+      "supersedes": [
+        "D168-E015"
+      ]
+    },
+    {
+      "id": "D168-E017",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner confirms Firebase-critical dual-network operations, Cloudflare-on-demand optional actions and coalesced shared usage; requests success-only Picklist ACK economic evaluation",
+      "status": "OWNER_ROUTING_PRINCIPLES_ACCEPTED__SUCCESS_ACK_RETAIN_RECOMMENDED__CODE_DEPLOY_UNAPPROVED",
+      "owner_approval": true,
+      "facts": [
+        "Owner approves retaining Firebase Auth/Firestore for Agent login, Picklist confirmation and result ACK, online Picker list, Agent fleet/HA presence and cross-Agent SKU job status; critical responsiveness must work across Office and Internet where field-proven.",
+        "Other deferrable Agent actions may route directly to registered Inventory Beta Worker with managed on-demand WLAN switch when actual Worker connectivity fails; preserve Firebase/FCM downstream notifications and RBAC where required.",
+        "Owner requests one shared carrier for compatible A->B operations to reduce provider usage without lowering latency, correctness or availability; only coalesce work with same timing, recipients and authority.",
+        "On manual click needing Cloudflare, one bounded Worker reachability check can classify blockage even from Office; 60s nonresponse permits safe network switch only, not privileged action consent or interrupting PRIMARY/Confirm.",
+        "Owner asks to evaluate whether the PDA needs a success reply at all, while keeping error/failure plus causes; this is a QUESTION TO ANALYZE, not approval to remove ACK.",
+        "Source confirms current Android RelayPocClient.kt waits for status ACK via Firestore listener and falls back to a bounded server GET after about 20s; PickerController.kt clears input and reports CONFIRMED only after ACK; Agent FirestoreConfirmationTransport.cs uses ONE terminal job-document commit for both success and failure, not separate success-only second write.",
+        "Dropping success ACK would create ambiguous pending/timeout/duplicate Picklist risk. Hiding success UI would save ZERO Firestore doc operations. Source does not identify a redundant FCM success push on current confirmation path.",
+        "Source service/src/index.ts GET /health is nontrivial, calls Core and agent credential migration; MUST NOT be used as automatic read-only Wi-Fi capability probe. Prefer existing authenticated GET action or future tiny side-effect-free beta route.",
+        "Current FirestoreAgentSync.cs already piggybacks Picker/fleet/call/kick counters in existing agent_sync CAS snapshot, with no-change suppression. Putting hot events there would amplify read fanout to every Agent listener, not necessarily save cost.",
+        "Firefox/Firestore listener charged per doc updated to each listener; official https://firebase.google.com/docs/firestore/pricing. No actual before-after usage or field network permission measured."
+      ],
+      "alternatives": [
+        "Preferred: Keep one terminal durable ACK per Picklist, preserve immediate PDA unblock, make success UI compact but still visible and log/audit; no silent success.",
+        "Bundle only equal-cadence low-frequency Agent sync/presence/SKU job transitions using existing CAS and subscription; do not add per-chunk/per-second writes.",
+        "For Worker reachability run a nonmutating business GET only on command; avoid service /health side effects and new periodic probes.",
+        "Optional single/bulk User kick already authoritatively executes via Worker but Firestore session signal remains to make PDA logout prompt; preserve business double confirmation independent of 60s WLAN consent."
+      ],
+      "open_questions": [
+        "Does Owner approve keeping single minimal successful ACK after reading its verified costs and correctness role?",
+        "What exact existing in-scope lightweight Worker endpoint can be reused for each operation without unwanted side effects or DB reads?",
+        "What are measured per-day job ACK doc writes, listener reads/reconnect and agent_sync fanout before changing projection shape?",
+        "Can Office dual-network operation and 60s network switch preserve PRIMARY standby/WMS SLA in physical laptops?",
+        "Is separate pre-admission for SKU feasible without exhausting Google Gateway quota or using an out-of-scope Firestore collection?"
+      ],
+      "next_action": "Owner review recommended retained durable success ACK and provider lanes; await explicit 'chạy code' or 'triển khai' instruction. No runtime changes authorized.",
+      "evidence": "docs/D168_FIRESTORE_CLOUDFLARE_USAGE_ACK_2026-10-14.md; docs/D168_AGENT_SKU_JOB_WIFI_ROUTING_OWNER_2026-10-13.md; source android/.../RelayPocClient.kt, PickerController.kt, relay-agent/FirestoreConfirmationTransport.cs, FirestoreAgentSync.cs, service/src/index.ts; official firebase Firestore pricing."
+    },
+    {
+      "id": "D168-E018",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner authorizes whole D168 Big Update coding, verified Beta release and integrated tests across Agent Android Web Worker; mandatory daily FULL with solo PRIMARY and Google Apps Script-free SKU",
+      "status": "OWNER_CODE_AND_BETA_APPROVED__PARTIAL_IMPLEMENTATION_PR591__NOT_CI_PASS__NOT_DEPLOYED__STABLE_GATED",
+      "owner_approval": true,
+      "facts": [
+        "FULL INITIAL_05 is mandatory even if solo PRIMARY and no standby; never interrupt an in-flight WMS confirmation, user confirms SUPRA WMS works on normal Internet as well as Office; route requires actual field verification.",
+        "SKU auto/manual direct authenticated registered Beta Worker and InventoryCore only, zero Google Apps Script SKU calls; independent SKU job lease granted by verified HA PRIMARY must continue after HA handoff with idempotency and durable DONE verification.",
+        "Entire Agent fleet will upgrade to new version, preserve transition guard and critical Firebase Auth/Firestore Picklist ACK, picker session authority, HA and compact shared state.",
+        "Owner explicitly authorizes completion of D168 REQ-001..011 with Agent Android Web service code, CI and Beta deployment only after gates pass. Stable remains explicitly OWNER-GATED.",
+        "Current work on PR591 includes direct SKU Worker grant route, Agent coordinator, selected Android/Agent UI, FCM version projection, Agent log singleflight; this is PARTIAL and not proven FULL E2E.",
+        "Outstanding before deploy: safe Windows managed Wi-Fi switching solo primary, grouped Picker contact, cross-Agent job status, stale presence, complete regressions, security/field networking, version bump and release pipeline; do not release incomplete code."
+      ],
+      "next_action": "Finish D168 on current PR, synchronize Owner decisions/spec/state, run all CI+field coverage; only merge and deploy Beta when authority, continuity and product gates pass. Do not claim DONE in advance.",
+      "evidence": "Owner approval 2026-10-14 current conversation; PR591 D168 partial code and GitHub CI logs; docs/D168_OWNER_APPROVAL_2026-10-14.md"
+    },
+    {
+      "id": "D168-E019",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner asks current D168 status and continuation; review PR591 exact HEAD, preserve multi-Picker selection and add fail-closed release gate for disconnected Office Worker SKU uplink",
+      "status": "PR591_SOURCE_PROGRESS__MULTI_PICKER_SELECTION_FIXED__WLAN_RUNTIME_NOT_WIRED__RELEASE_GUARD_EXPECTED_FAIL__NO_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Current Owner command is to verify status and continue the already-approved D168-E018 all-code-and-Beta implementation, not a new Dxxx ID or Stable approval.",
+        "PR590 is merged. Active D168 Draft PR591 was open with head e22dcf96f87b721eaf31bc2e0294e17b3ff2adfb before this checkpoint; at that head Repo Authority, Continuity, SKU source-contract, Android and Agent build workflows succeeded, but Agent/Android release steps were skipped; no release/field PASS.",
+        "D168NetworkRoute.cs contains saved WLAN profile lookup, ConnectSavedProfile and authenticated Worker ProbeWorker yet there are no runtime Agent calls to this helper. SKU ServiceClient directly requests Worker schedule/reserve, so Office with blocked Cloudflare cannot guarantee mandatory FULL even when solo PRIMARY.",
+        "The existing Agent Picker table renderer restored only one previously selected Picker on realtime updates, conflicting with approved D168 group-contact multi-selection. Fixed to preserve all selected IDs and clear accidental default selection.",
+        "Added a regression asserting multi-Picker selection retention and a fail-closed SKU direct-Worker/WLAN release test. With current unwired WLAN helper, the latter is expected to FAIL until orchestration is implemented. CI must be rerun on final exact HEAD; do not claim final CODE READY.",
+        "Added docs/D168_RELEASE_READINESS_2026-10-14.md with REQ-001..011 progress, impact/contract/test matrix and field/usage/rollout boundaries. No provider or Stable resource touched."
+      ],
+      "alternatives": [
+        "Preferred: implement a real bounded and reversible Office-to-approved saved Internet WLAN transition, Worker connectivity readback and idle/HA/WMS-Confirm safety; preserve existing Firestore critical lanes, 05h mandatory FULL and zero SKU Apps Script.",
+        "Fail-closed until exact-head tests pass, rather than merging technically building yet behavior-incomplete direct Worker SKU on Office."
+      ],
+      "open_questions": [
+        "Can physical Windows Agent standard user connect to approved saved WLAN and restore prior profile without breaking HA/Confirm?",
+        "Can mandatory first daily FULL finish and persist real InventoryCore DONE on Office/ordinary Internet solo-primary and fleet handoff?",
+        "What is measured quota, latency and ACK across Agent/Android/Worker/Firestore during real tests?"
+      ],
+      "next_action": "Complete safe WLAN/Worker routing, group-contact and session correctness, prepare D168 field and quota regressions, repair test failures, run all exact-head CI, then deploy only scoped Beta after every gate; no Stable release.",
+      "evidence": "PR #591; commits bf71973b390af41c5b5e08823428f3d8f6fe1e4c, 56bcf7c10e2cd44e50198294ea72f6ee60ed3b36 and dcbcf97e84296ad3794aa8cc9d9205012d08f6ea; docs/D168_RELEASE_READINESS_2026-10-14.md; workflow runs 38455795904/38455795929/38455795985/38455795959/38455796105/38455796012 on previous HEAD"
+    },
+    {
+      "id": "D168-E020",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner accidentally marked PR591 Ready for review and requests restoration plus continuation of unfinished D168 code",
+      "status": "PR591_RESTORED_DRAFT__STARTUP_RELIABILITY_PATCH_AND_TEST_COMMITTED__WLAN_RELEASE_GATE_PENDING__NO_MERGE_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner uploaded GitHub timeline and explicitly states Ready for review was accidental; asks to verify and keep executing approved incomplete D168 code.",
+        "Verified PR #591 was OPEN with draft=false, merged=false, HEAD 35a7f577221e73859ffe714df3ee1722bde27659. Restored draft=true through GitHub and verified follow-up.",
+        "GitHub timeline displays beta environment deployments labeled Active. Exact-head PR CI Firestore read-only probes used MUTATE=false, RTDB used DEPLOY_RULES=false; Agent/Android jobs built artifacts but official prerelease publication steps were skipped. These timeline entries are not evidence that D168 executable Beta deployment happened.",
+        "At prior HEAD, PR CI 19 workflows success, one SKU pure-contract FAIL. The fail is the intentionally added guard that D168NetworkRoute ConnectSavedProfile/ProbeWorker are not called from any actual Agent workload. FULL 05h Office Worker path remains unavailable.",
+        "Code on current PR updated relay-agent/UserStartupRegistration.cs to verify HKCU Run actual registration when the user changes the auto-start preference, revert previous choice on failure, avoid false success. Added D168 static contract test to tests/d167-three-slot-sku.test.mjs. Commits 2af72f733bf1b845594575d96d6c4743a3116bec and 9f19e293a857b17c64f5fd6e7481774c15523a79.",
+        "PR title/body changed to disclose integrated D168 Big Update in progress and release gate; existing Beta D167 runtime unchanged. Source mutations to the Picker group recipient session-fence were rejected by the available editing tool, therefore not committed and not claimed fixed.",
+        "Current exact PR source/build/authority CI for the new startup patch requires final completed run inspection; CI PASS does not imply Beta release or physical FIELD_PASS."
+      ],
+      "alternatives": [
+        "Keep PR draft and continue approved source-only corrections on this same D168 branch; preserve Cloudflare direct SKU, critical Firebase lanes, independently fenced SKU job and Stable owner gate.",
+        "Do not infer application deployment from the GitHub beta environment badges; verify actual dispatch/release receipts separately."
+      ],
+      "open_questions": [
+        "How to safely obtain Service slot and reserve on Office before a connection switch while preserving Owner source-export-before-switch and mandatory solo-primary 05h FULL rules?",
+        "Can Win32 standard users safely switch to approved saved Wi-Fi and restore without interrupting existing confirmation/ACK or HA?",
+        "Will device-level group contact, logout-relogin selection, SKU durable DONE and quota tests pass after final code?"
+      ],
+      "next_action": "Keep Draft PR591; repair P0 WLAN/SKU daily FULL and D168 group-contact session selection on approved tools, await complete exact-head CI, never merge or deploy until safety tests PASS and real field evidence is possible.",
+      "evidence": "PR #591; GitHub convert_pull_request_to_draft readback; PR-head 35a7f577->9f19e293; workflow run 38475195398 failed specific D168 no-WLAN wiring test; code commits 2af72f733bf1b845594575d96d6c4743a3116bec and 9f19e293a857b17c64f5fd6e7481774c15523a79; docs/D168_RELEASE_READINESS_2026-10-14.md"
+    },
+    {
+      "id": "D168-E021",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs completion of all previously approved D168 code and gated Beta rollout",
+      "status": "SOURCE_WORK_CONTINUES__EXACT_HEAD_CI_PENDING__RUNTIME_NOT_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner authorizes finishing all remaining D168 source, tests and Beta deployment when release checks pass. This does not grant Stable deployment.",
+        "PR591 was reverified open Draft, without merge. Source commits for Agent Windows startup validation and SKU date rollover were retained.",
+        "Latest Agent source now invokes the existing approved saved-network helper for SKU work. The helper requires confirmed Worker access and a verified original-network restore.",
+        "For automatic SKU updates, the source attempts a read-only WMS export before switching network when the current path cannot reach Worker.",
+        "The Windows/Android build and SKU contract checks must be evaluated again on the exact final PR head. Physical service DONE, HA and Picker ACK remain unverified.",
+        "A prior attempt to update the complete SKU spec was rejected by the editing tool. Do not claim that spec update was saved."
+      ],
+      "alternatives": [
+        "Keep the current Beta runtime unchanged until all required safety tests pass.",
+        "Continue on the same D168 PR; no unrelated resource or Stable change."
+      ],
+      "open_questions": [
+        "Does the final candidate meet the morning FULL and changeover behavior on an actual Agent PC?",
+        "Can the whole fleet be updated safely without interrupting confirmation work?",
+        "Does the manual SKU authorization order satisfy the approved workflow when network switching is needed?"
+      ],
+      "next_action": "Complete remaining D168 source and end-to-end tests, resolve the manual SKU ordering decision, then release existing Beta resources only after gates pass.",
+      "evidence": "PR591 source and CI; owner current command; docs/D168_RELEASE_READINESS_2026-10-14.md"
+    },
+    {
+      "id": "D168-E022",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs uninterrupted D168 code/test completion and conditional Beta release; ask only for indispensable on-site test",
+      "status": "D168_AGENT_V131_SOURCE_IN_PROGRESS__SHARED_SKU_DONE_WIRED__D168_RELEASE_GATE_PREPARED__EXACT_HEAD_CI_AND_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly instructs continuing unfinished D168 source through code/CI and actual Beta deployment; no midway stop for generic progress. Stable remains OWNER-GATED.",
+        "D168 PR591 remains Draft and unmerged. Latest code now includes direct Beta Worker WLAN scope with 60s network-only consent and source WMS export-before-switch for manual/automatic SKU, preflight of approved saved Wi-Fi before costly export, original-profile readback.",
+        "Agent v131 version markers aligned; existing v130 must not be overwritten. Android version for eventual Beta channel remains CI-monotonic.",
+        "SKU manual continues to require Worker-verified password/OTP, grant and DONE; day rollover abort uses original job day. 05h solo-primary, WMS confirm and actual network restore still need physical E2E.",
+        "Terminal SKU DONE summaries now piggyback existing Firestore agent_sync with CAS immutable slot union; no new provider resource/listener or stage polling. Standby can display existing snapshots even when its Office network cannot reach Worker.",
+        "Group selection rendering preserves exact user ID, Firebase UID and session generation across realtime updates, rather than reselecting a relogged Picker.",
+        "A new D168 release authorization receipt is intentionally CODE_ONLY_NOT_APPROVED_FOR_DEPLOY. Existing D167 main-only gate now recognizes D168 and additionally demands exact-head authority+continuity, CI and field PASS; current Beta runtime unchanged.",
+        "Source/regression tests added for new manual export ordering, WLAN preflight, shared terminal slot projection and selected-session integrity. Latest exact HEAD CI remains to be verified; no field PASS or Beta release claimed.",
+        "Owner action may be unavoidable only for one physical Windows Wi-Fi/WMS/PDA test: GitHub connector does not access company Windows interface, saved WLAN rights or WMS session."
+      ],
+      "alternatives": [
+        "Prefer existing scoped Beta direct Worker and Firebase carrier with no new provider resources. Fail closed until real field verification.",
+        "Do not fake physical Wi-Fi/Confirm proof from passing GitHub Actions; do not approve Stable via D168."
+      ],
+      "open_questions": [
+        "Can a standard-user Agent PC restore saved Office WLAN after one FULL at 05h with no standby?",
+        "Are live Picklist terminal ACK, HA generation fencing and confirmed Worker DONE stable across the bounded network transition?",
+        "Can the Owner perform the short on-device test once a verified v131 artifact is prepared?"
+      ],
+      "next_action": "Continue PR591 exact-head CI repair and Beta-compatible source gates. After CI PASS, provide one short Windows on-site test with saved approved Wi-Fi and WMS/PDA; only set D168 field_pass and merge/deploy Beta after actual receipts. Stable untouched.",
+      "evidence": "PR591 v131 source changes and CI; docs/specs/SKU_MASTER.md D168-E022; docs/OWNER_DECISIONS.md D168-E022; tools/d167_release_gate.py; ops/d168-release-authorization.json"
+    },
+    {
+      "id": "D168-E023",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Continue full D168 coding; v131 one-click Worker/WLAN probe and remaining physical FIELD gate",
+      "status": "AGENT_V131_SOURCE_AND_ONE_CLICK_PROBE_COMMITTED__SOURCE_CI_RECHECK_PENDING__BETA_RELEASE_NOT_AUTHORIZED_BY_RECEIPT",
+      "owner_approval": true,
+      "facts": [
+        "Owner requested no further analysis-only stop and authorized work through D168 Beta once all gates pass. No additional owner approval required for scoped Beta code.",
+        "Direct authenticated Worker routing code, Office WMS export-before-switch, and original saved-WiFi profile restore now wired into Auto/Manual SKU. No WMS payload/session material logged or staged via Google Script.",
+        "New Agent Settings one-click Worker test uses read-only capability endpoint, differentiates DIRECT from SWITCHED_AND_RESTORED and records only sanitized diagnostic status; field test does not mutate WMS or replace SKU DONE validation.",
+        "Selected multi-Picker rows now restore only same UID/session-generation combination; group sender still rechecks original UID/generation at send time.",
+        "Existing Firestore agent_sync now shares terminal Worker-verified SKU DONE only; document CAS merges completed slot summaries to avoid losing other Agent results. No new listener/resource.",
+        "Agent VERSION/metadata incremented to v131, and D168 release receipt is still CODE_ONLY_NOT_APPROVED_FOR_DEPLOY, stable false. No new Beta binary or service runtime has been released.",
+        "GitHub hosted runners cannot prove physical Windows WLAN permissions, WMS session, Picklist ACK, and solo-primary operation. One office PC and PDA field check is indispensable before field_pass and merge.",
+        "Previous commit 47aedaeb83ffb76a3b8724ba8999f2901d31daa7 verified 20/20 PR workflows PASS including Agent/Android/source guard; latest exact HEAD after field-probe changes requires independent CI confirmation."
+      ],
+      "alternatives": [
+        "Use PR artifact for a one-PC physical test before any main-only live Beta release, then attach verified receipts to D168 authority.",
+        "Do not lower release gate or treat GitHub environment Active UI badge as physical test proof."
+      ],
+      "open_questions": [
+        "Has Agent v131 read-only capability probe physically switched to approved Internet and restored Office on a standard Windows user PC?",
+        "Can a solo PRIMARY finish mandatory FULL and read back Service DONE/fingerprint while PDA confirmations remain correct?"
+      ],
+      "next_action": "Wait final PR exact-head CI. If PASS, use one protected Windows Agent/PDA field test with saved approved WLAN; record actual results, then update release receipt/authority and merge/release Beta through main. Do not claim DONE or stable release early.",
+      "evidence": "PR591 commits 47aedaeb83ffb76a3b8724ba8999f2901d31daa7 onward; relay-agent/D168SkuNetworkUi.cs; relay-agent/D168SkuSharedState.cs; docs/D168_RELEASE_READINESS_2026-10-14.md E023"
+    },
+    {
+      "id": "D168-E024",
+      "date_vn": "2026-10-14",
+      "kind": "TEST",
+      "topic": "D168 v131 exact PR source CI all 20 workflows PASS; Agent candidate artifact built; field release proof remains mandatory",
+      "status": "SOURCE_CI_20_OF_20_PASS__AGENT_V131_ARTIFACT_READY__PHYSICAL_FIELD_REQUIRED__BETA_NOT_DEPLOYED",
+      "owner_approval": true,
+      "facts": [
+        "At PR591 HEAD 91e83e79b97aa576408617971f69317b1e47c254, GitHub Actions showed 20/20 workflow conclusions success including Repo Authority, State Guard, SKU source contract, Agent build and Android verification.",
+        "Windows Agent artifact supra-inventory-relay-poc-agent (id 11857571641) built successfully from the same HEAD through workflow run 38482437387; it is a PR test artifact, not a signed/released OTA update.",
+        "GitHub workflow success and Beta environment Activity labels do not assert executable D168 Beta deployment; PR591 remains open Draft and main unaffected.",
+        "The run has no access to company Office WLAN/real WMS session/PDA. Owner or a company-device operator must perform the one-PC saved-Wi-Fi and WMS/PickList field validation before changing the D168 Beta authorization receipt from CODE_ONLY.",
+        "All components outside registered Beta resource scope and all Stable resources remain untouched."
+      ],
+      "alternatives": [
+        "Use GitHub Actions artifact on a single idle Windows Agent PC as a candidate field test before main deployment.",
+        "Avoid registering new runners/providers or bypassing release gate to substitute CI for physical proof."
+      ],
+      "open_questions": [
+        "Did switching/restoring Wi-Fi pass on the company Agent as a Windows standard user?",
+        "Did manual or 05h FULL result in durable Worker/Core DONE while at least one test PDA ACK still works?"
+      ],
+      "next_action": "Await one company-PC/PDA physical test and sanitized evidence. If field passes and source unchanged, update D168 release receipt/authority, merge PR591 and monitor scoped Beta release workflows; require separate Stable Owner authorization.",
+      "evidence": "GitHub PR591 HEAD 91e83e79b97aa576408617971f69317b1e47c254; Actions run 38482437387 and artifact 11857571641; exact-head 20/20 GitHub workflow list"
+    },
+    {
+      "id": "D168-E025",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Read-only inventory of every UrlFetchApp call path in existing D167 Beta Agent Operations Gateway",
+      "status": "SOURCE_AUDITED__QUOTA_CONSUMPTION_BY_ACTION_ESTIMATED_NOT_PROVIDER_MEASURED__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Existing Beta ops/apps-script/agent-log-gateway/Code.gs uses UrlFetchApp in eight callsites/functions: token validation against Firebase Identity Toolkit; authenticated D167 SKU forwarding to Worker; privileged Agent login/OTP/re-auth relay; support-log global request relay; canonical Drive day-folder lookup via Worker; D160 Monitoring fetchAll; D166 explicit ZIP Monitoring/Drive quota/Worker usage; logging archive itself uses DriveApp not UrlFetchApp.",
+        "Per successful handler path before quota exhaustion: privileged code/login pre-auth 1 Worker fetch each; D167 SKU action 1 Firebase lookup + 1 Worker fetch; privileged re-auth 1+1; support-log request handler 1+1 (but current D161 Agent UI uses direct Worker); upload_agent_log 1 Firebase lookup plus 0 or 1 Worker folder lookup depending on six-hour cache; get_firestore_usage 1 Firebase lookup + zero Monitoring fetches on 15-minute cache hit or 13 individual Monitoring requests via fetchAll on miss; explicit get_usage_export 1 Firebase lookup + 26 Monitoring fetches + 1 Drive about + 1 Worker Cloudflare read = 29; doGet identity 0 fetches.",
+        "Current Agent D167SkuServiceClient directly addresses the Google Script; new PR591 candidate replaces SKU transport with direct Worker but is Draft and unmerged, not a Beta field release. Existing cloud-backed Web/Android reporting, PDA confirmations, and Web/Android runtime log archive do not use this Agent Gateway as their normal transaction route.",
+        "D168 earlier Owner-provided logs show 948 D167 SKU DEFER events from 16:49 to 19:52 and a roughly 11-second readiness retry bypass of 15-minute cooldown, plus 27 D160 Usage errors containing URL Fetch exhaustion; not every local DEFER event proves the same number of completed Google Script calls.",
+        "Google published UrlFetch daily quota is per executing user across scripts, 20k consumer or 100k Workspace; other scripts under the same owner may also consume quota. Script source audit cannot attribute exact day totals, remaining quota or resets without provider Apps Script execution evidence."
+      ],
+      "alternatives": [
+        "Keep all business transports unchanged pending D168 authorized gated rollout; eliminate retry storm and direct SKU Gateway dependency via already Owner-approved PR591 candidate after physical/release gates.",
+        "In future audit provider execution durations/counts and action mix without new periodic script polling; ensure only explicitly requested Usage exports issue large Monitoring batches."
+      ],
+      "open_questions": [
+        "Per-action Apps Script executions and daily UrlFetch consumption for 2026-10-13/14, including other scripts sharing executing user.",
+        "Whether any previous log upload timed out after Drive file commit and before Agent receipt.",
+        "Whether PR591 direct Worker SKU flow has passed actual Office WLAN/Worker Core durable DONE and PDA confirmation/ACK field checks."
+      ],
+      "next_action": "Report the source-backed inventory to Owner; preserve PR591 Draft/field gate and existing Beta unchanged; only provider execution evidence can confirm actual consumption attribution.",
+      "evidence": "GitHub main ops/apps-script/agent-log-gateway/Code.gs lines 63-233, 235-295, 482-493, 740-837, 892-932, 1024, 1140-1157; relay-agent/D160Usage.cs, D166UsageExport.cs, AgentLogUploadBridge.cs, D167SkuServiceClient.cs, D161SupportLogControl.cs; PR591 working branch source; D168-E012; official Google Apps Script quotas."
+    },
+    {
+      "id": "D168-E026",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner yêu cầu tiếp tục hoàn tất mọi việc D168; xác minh CI exact PR591 HEAD và giới hạn kiểm thử thực địa",
+      "status": "EXACT_PR_HEAD_e5744f8_20_OF_20_PR_CI_PASS__AGENT_ARTIFACT_PRESENT__FIELD_PASS_MISSING__DRAFT_NOT_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner nhắc lại lệnh D168-E018/E022: tiếp tục tự động xử lý các phần đã duyệt đến khi đủ điều kiện phát hành Beta; đây không phải Owner FIELD_PASS hay quyền bỏ gate.",
+        "PR591 ở trạng thái Draft, HEAD e5744f8b0cf0f629ff012aed12efe79d8291f445; cả 20 workflow PR-associated ở HEAD này có kết luận success ngày VN 2026-10-14, gồm Verify Beta Android, Verify Beta Relay Agent, Authority, State guard, SKU pure contract và continuity workflows.",
+        "Workflow Agent run 38483669723 tạo artifact supra-inventory-relay-poc-agent id 11857588415, digest SHA256 đã do GitHub ghi nhận. Artifact là bản thử nghiệm, không phải phát hành v131 hay cài đặt lên PC.",
+        "Beta vẫn là bản D167 (Agent v130/Web 3.1.1/Android vc106); receipt ops/d168-release-authorization.json giữ CODE_ONLY_NOT_APPROVED_FOR_DEPLOY, field_pass=false. Không merge PR, không deploy Beta hoặc Stable.",
+        "GitHub CI không truy cập Wi-Fi Office/Internet của DC, managed WMS session, PDA hay InventoryCore runtime receipt thực; không được tự ghi field_pass, giả DONE hoặc đưa release receipt thành approved."
+      ],
+      "next_action": "Giữ Draft PR591 và receipt khóa; thực hiện bài thử bắt buộc trên một Windows Agent idle với hai Wi-Fi saved/approved và một PDA, xác nhận Worker SWITCHED_AND_RESTORED, SKU FULL/manual durable DONE và không gián đoạn Picklist/ACK/HA; sau khi có bằng chứng thực mới mở exact-SHA Beta release gate, merge và giám sát phát hành. Stable vẫn Owner-gated.",
+      "evidence": "GitHub PR #591 exact HEAD e5744f8b0cf0f629ff012aed12efe79d8291f445; 20 PR workflow runs all success, Agent run 38483669723 artifact 11857588415; ops/d168-release-authorization.json; docs/D168_RELEASE_READINESS_2026-10-14.md"
+    },
+    {
+      "id": "D168-E027",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Quota reset estimate from 2026-10-13 earliest verified URLFetch failure (read-only)",
+      "status": "DRIVE_LOG_EARLIEST_CONFIRMED_ERROR_12_45_37_VN__RESET_ANCHOR_UNKNOWN__NO_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Sanitized existing registered Inventory Beta Drive support-log trace contains D160 USAGE URLFetch daily-quota failure at 2026-10-13 12:45:37.227 Asia/Ho_Chi_Minh; follow-up independent bundles confirm recurring failure 13:00:40.642 and 13:15:38.116. Prior D168 journal only cited 14:00 local-agent trace. Earliest currently verified is 12:45:37, not necessarily the actual first quota-exhaustion event.",
+        "Official Google Apps Script quota documentation states per-executing-user quotas reset 24 hours after first request, not 24 hours after quota-exhaustion error or at Vietnam midnight.",
+        "Reset cannot be predicted to the minute without the executing account's first request/period start and whether 2026-10-14 post-reset traffic immediately exhausted shared-user UrlFetch again. A conditional morning/no-reexhaust scenario would reset no later than 2026-10-14 12:45:37 if its active quota period began 2026-10-13 before that failure; this does not constitute an unconditional latest reset bound.",
+        "Google Drive existing log read and GitHub source inspection are read-only; no new Apps Script fetch jobs were run to confirm live quota recovery. Stable, PR591 Draft and the conditional release field gate remain unchanged."
+      ],
+      "alternatives": [
+        "Observe the next existing Agent 15-minute Usage auto refresh without adding independent UrlFetch polling; a successful authenticated Gateway call plus valid Cloud Monitoring response is better evidence of usable quota.",
+        "Inspect Apps Script Executions and all other scripts for the same executing user to establish quota-period beginning; do not infer it from first error."
+      ],
+      "open_questions": [
+        "What timestamp did the owner's executing-user first UrlFetch call in the relevant quota cycle occur?",
+        "Does a 2026-10-14 post-reset attempt pass or immediately hit the same shared-user quota?"
+      ],
+      "next_action": "Provide Owner a conditional recovery time window, clearly label uncertainty and recommend using existing non-intrusive refresh evidence rather than false precision.",
+      "evidence": "Existing scoped Drive Beta sanitized support bundles 2026-10-13 12:45:37,13:00:40,13:15:38; Google Apps Script quota documentation https://developers.google.com/apps-script/guides/services/quotas; GitHub D168-E012/E025"
+    },
+    {
+      "id": "D168-E028",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner at-home Wifi-Mesh Agent v131 Worker probe fails because D168 network-capability API exists only in unmerged PR591",
+      "status": "SOURCE_VERSION_MISMATCH_CONFIRMED__LIVE_HTTP_CODE_NOT_LOGGED__HOME_NETWORK_200_AUTH_SUCCESS__NO_BETA_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Private local Agent test trace (only sanitized findings committed) confirms 2026-10-14 06:31:37 v131 running with direct Wi-Fi Internet; Firebase token refresh HTTP200 and Firestore Agent session claim PASS; at 06:32:14 and 06:34:38 D168_NETWORK test=FAIL D167_WORKER_UNAVAILABLE_NO_SAFE_SWITCH.",
+        "Agent v131 relay-agent/D168NetworkRoute.cs ProbeWorker invokes authenticated GET /api/agent/d168/network-capability. This route is present in D168 working PR591 service/src/index.ts but absent in accepted main D167 service source; PR591 is Draft/unmerged and D168 release receipt remains CODE_ONLY. Thus Worker main release likely responds 404, despite working Internet. A live HTTP status was not logged and therefore 404 is inferred, not witnessed.",
+        "ProbeWorker groups HTTP404 or other unclassified response into NETWORK_UNCERTAIN and OpenWorkerSession emits the generic WORKER_UNAVAILABLE_NO_SAFE_SWITCH, hiding the true phase/status. No actual WLAN switch was attempted based on that result.",
+        "Agent at 06:31:54 is NEXT_A standby, not PRIMARY. That is a separate obstacle to testing SKU and a real transition with canSwitch restricted to leader; it is not the direct reason for the generic failure.",
+        "Previous unrelated RTDB HA stream short timeouts recovered via Firestore lease, and older v130-style SKU DEFER retry storms occurred before the v131 restart; neither proves Cloudflare is inaccessible on this at-home Wi-Fi.",
+        "Critical rollout sequencing defect: requiring predeploy v131 Worker capability and FULL durable DONE while keeping D168 Worker entirely undeployed is circular. Need a controlled compatible read-only network preflight and an explicitly field-gated Beta Worker step, or a comparable safely isolated pathway; do not mark D168 field PASS from old Worker reachability alone."
+      ],
+      "alternatives": [
+        "Preferred next within already approved D168 code scope: distinguish HTTP404 unsupported deployed API, HTTP401/403 auth/role, HTTP429 quota, DNS/connect timeout; show NETWORK_OK_BUT_D168_API_NOT_RELEASED for old Worker without claiming business readiness or scheduling SKU; add code regression for mixed versions and no provider-write test.",
+        "For full end-to-end SKU verification, design and review a staged, reversible Beta Worker compatibility deployment with exact scope and no impact to existing D167 service; any exception to current field-before-deploy gate needs separate explicit Owner authorization, otherwise fail closed.",
+        "One-click diagnostic on non-PRIMARY may check network only; SKU job and WLAN interruption remain subject to HA/Confirm guards. Do not force-switch a standby or bypass corporate network policy."
+      ],
+      "open_questions": [
+        "Exact live status for the 06:32 / 06:34 Worker capability GET (not present in provided trace).",
+        "How to prove real D168 Worker DONE before allowed release without safe Beta staging, given current hard release gate.",
+        "Status of approved WLAN profile and safety/real Wi-Fi switch on one PRIMARY device; home standby test is not substitute."
+      ],
+      "next_action": "Report API version mismatch to Owner; keep Beta D167 and PR591 Draft. Fix diagnostic mixed-version classification as scoped source improvement, run CI and prepare controlled field validation plan without lifting gate.",
+      "evidence": "Owner-provided agent-complete(7).log sanitized 2026-10-14 06:31–06:35; relay-agent/D168NetworkRoute.cs#ProbeWorker/OpenWorkerSession; main vs PR591 service/src/index.ts network-capability route; ops/d168-release-authorization.json"
+    },
+    {
+      "id": "D168-E029",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner accepts unverified network/field safety as sufficient to release scoped D168 Beta for direct field acceptance; deploy full model",
+      "status": "OWNER_EXPLICIT_BETA_FIELD_TRIAL_RELEASE_ACCEPTANCE__REAL_DEVICE_PASS_UNVERIFIED__PR_CI_RECHECK_AND_GATED_MERGE_REQUIRED",
+      "owner_approval": true,
+      "facts": [
+        "Owner states: 'Anh xác nhận coi như mục này pass. Em tiến hành triển khai toàn bộ đi. Để đồng bộ version toàn bộ mô hình cho anh test nghiệm thu trực tiếp.' This supersedes the requirement to finish a physical Wi-Fi/PickList test BEFORE Beta trial deployment, for the existing approved D168 components only.",
+        "Treating the pre-release physical-check condition as accepted is an Owner risk decision, NOT evidence that the test occurred. Preserve physical_field_verified=false and field_pass=false. Still require real post-release device testing for full Owner D168 business PASS.",
+        "Candidate Agent v131 had failed at home on the already-released D167 Worker because /api/agent/d168/network-capability is PR-only. D168 Worker must pass health/source before Agent v131 channel or signed Android channel can publish.",
+        "Owner approval covers existing scoped Beta Worker+InventoryCore, Web Beta assets, Agent v131 and signed Android Beta, after current branch authority/continuity/product CI; does not authorize Stable, new resources, CI guard disable, WMS mutation beyond read-only SKU export, or bypassing Wi-Fi/proxy policy.",
+        "An explicit fail-closed release receipt will bind the source SHA and exactly ['worker','android','agent']; field waiver mode must be exact Owner acceptance marker; source CI remains mandatory; publish order Worker first, then Agent/Android."
+      ],
+      "alternatives": [
+        "Chosen: document explicit Owner Beta field-trial risk acceptance with a distinct gate branch; Worker-first release/health gate and post-deploy field acceptance.",
+        "Rejected: set field_pass=true without actual physical proof or skip product/CI/security checks.",
+        "Rejected: publish Agent before D168 Worker endpoint is available, reproducing home probe version mismatch."
+      ],
+      "next_action": "Finish source-policy/docs updates and exact-head PR CI. Only after PASS update approved code SHA and release receipt, verify it, mark PR Ready, merge via GitHub and track Beta Worker health, Agent v131 and signed Android channel. Keep D168 owner_pass=false pending direct field test.",
+      "evidence": "Owner explicit message 2026-10-14 current conversation; sanitized D168-E028 home log diagnosis; PR591; tools/d167_release_gate.py Owner waiver check; .github/workflows/verify-relay-agent.yml Worker-first guard; .github/workflows/verify-apps.yml Worker runtime dependency."
+    },
+    {
+      "id": "D168-E030",
+      "date_vn": "2026-10-14",
+      "kind": "BLOCKER",
+      "topic": "D168 full Beta rollout approval receipt write blocked by tool safety gate after exact PR source CI 20/20 PASS",
+      "status": "SOURCE_CI_20_OF_20_PASS__OWNER_FIELD_TRIAL_ACCEPTED__RELEASE_RECEIPT_WRITE_BLOCKED_BY_TOOL_SAFETY__PR591_DRAFT_NO_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner D168-E029 permits existing scoped Beta trial release without claiming real physical validation; postrelease field acceptance remains pending.",
+        "PR591 exact commit c85d5d3e3b75bf103cfcdec8014ab167f20adfd2 has all 20 GitHub workflow conclusions success.",
+        "An attempted atomic commit to move D168 release authorization receipt to executable deployment status was stopped by the tool's safety check; GitHub PR HEAD verified unchanged after refusal.",
+        "ops/d168-release-authorization.json remains CODE_ONLY_NOT_APPROVED_FOR_DEPLOY, field_pass=false, components=[]; PR591 remains Draft, no D168 Worker/Agent/Android release.",
+        "Do not bypass the tool refusal with a different API method or claim CI as runtime release."
+      ],
+      "next_action": "Preserve current safe Beta/D167 runtime and report this true tool blocker. Release permission/status cannot be promoted from this execution. Stable remains Owner-gated.",
+      "evidence": "PR591 HEAD c85d5d3e3b75bf103cfcdec8014ab167f20adfd2 20/20 PASS; tool safety refusal during D168 release receipt update attempt; readback ops/d168-release-authorization.json"
     }
   ],
   "resume": {
     "approved": [
       "D167 Owner limited PASS as deployed, no newly reported errors, transferred as accepted base",
       "D168 explicitly opened for capturing new issues/logs and analyzing before implementation under Owner commands",
-      "GitHub manifest/full bootstrap and branch/PR discussion checkpoints remain mandatory"
+      "GitHub manifest/full bootstrap and branch/PR discussion checkpoints remain mandatory",
+      "D168-E016 Owner fixed SKU job continuation across HA loss, bounded 60s idle-only Wi-Fi transition, and direct Cloudflare optional actions; code/deploy still separate",
+      "D168-E016 Owner retires Agent Usage D160 auto refresh and D166 Usage ZIP, preserving operational log archive",
+      "D168-E017: Owner accepts Firebase Auth/Firestore dual-network critical lanes and on-demand Cloudflare direct optional actions, preserving required Android notification and network safety",
+      "D168-E018 Owner explicit whole Big Update CODE + Beta deploy permission; FULL mandatory solo primary, WMS ordinary Internet, direct Worker SKU; Stable unchanged.",
+      "D168-E029: Owner explicitly accepts unverified predeploy device/network tests for a scoped Beta trial rollout and later direct field acceptance; not physical FIELD PASS."
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -354,36 +735,33 @@
       "D168 PR589 Office SKU design docs merged to main; no executable source altered"
     ],
     "in_progress": [
-      "D168 PR590: Agent v130 Office/Internet matrix, docs-only checkpoint; CI/merge pending"
+      "D168 PR591: partial approved implementation in Agent, Android, Worker/Core; current source fix preserves multi-Picker online selection",
+      "D168 release guard now checks runtime WLAN orchestration; expected red until helper is genuinely wired",
+      "D168-E018 Owner authorized all D168 REQ-001..011 Beta scope after full checks; work continues on same PR",
+      "D168-E020: Owner accidental Ready reverted to Draft; Windows auto-start false-success fix committed with source test, final CI pending.",
+      "D168-E022: v131 network routing, shared terminal SKU DONE and exact Picker session selection updated; final CI in progress.",
+      "D168-E023: v131 one-click read-only Worker/WLAN field probe and concurrent SKU DONE CAS merged; final exact-head CI pending.",
+      "D168-E026: PR591 current exact HEAD e5744f8b 20/20 CI PASS; Agent v131 test artifact exists, physical FIELD_PASS and Beta release remain blocked.",
+      "D168-E028: home v131 probe error diagnosed as current Beta Worker missing PR-only D168 capability route; live status missing, mixed-version release gate remains."
     ],
     "pending_approval": [
-      "Any D168 code or Beta deploy requires explicit Owner order after documented impact/risk analysis",
-      "Usage/cross-provider optimization pending real comparable provider cost/quality evidence",
-      "Future log/error fixes, fleet/HA confirmation, full CI/CD invocation gate review require scoped evidence and Owner command",
-      "Stable is OWNER-GATED",
-      "D168-REQ-001: Android long-press visible SKU to local clipboard across Picker/Reporter and all listed states; pending source/UI analysis, no code approval",
-      "D168-REQ-002: Inventory response actor full name/time from existing events/payload when available; pending schema/realtime/permission/Usage analysis, no code approval",
-      "D168-REQ-003: Agent online Picker App-version column after confirmation source",
-      "D168-REQ-004: Picker online presence accuracy after logout/kick with minimal Usage",
-      "D168-REQ-005: Agent SKU tab UI redesign and cross-Agent state synchronization reusing existing channels",
-      "D168-REQ-006: Agent Settings option for Windows auto-start",
-      "D168-REQ-007: Agent group message or call-home to multiple/all active Pickers; pending presence, RBAC, message/ACK fanout and Usage analysis; no code approval",
-      "Agent log-upload repair proposal needs Owner approval; no code or deploy authorized",
-      "D168 Agent log-upload fix pending Owner decision: verify root causes, then Agent-only timeout/single-flight/backoff/manual semantics; Gateway change only if evidence warrants",
-      "D168-REQ-008: two Agent Drive log-upload failures; Agent-only reliability fix awaiting Owner code/release approval",
-      "D168-REQ-009: 19h SKU DELTA missing DONE evidence and one-second browser-readiness-driven repeated Gateway attempts; fix awaiting Owner approval and server receipt/quota diagnostics",
-      "D168-REQ-010: Office-compatible SKU architecture confirmed in source; actual Office DELTA_19 durable DONE and egress path need constrained field verification; safe network diagnostics require future approval",
-      "D168-REQ-011: Office-only WMS Excel GET + Google Apps Script to Worker SKU uplink; field proof on script.googleusercontent.com and UrlFetch quota; no code/deploy permission."
+      "Stable is OWNER-GATED"
     ],
-    "blocked": [],
+    "blocked": [
+      "P0: mandatory 05h FULL solo-primary and durable DONE, HA/ACK/concurrent field matrix not yet proven.",
+      "P0: released Android/Agent Beta assets and live Worker receipt do not exist for current PR591 HEAD.",
+      "Actual Windows saved Wi-Fi WMS/PDA/HA field evidence and durable DONE still unavailable through GitHub connector.",
+      "Mixed-version predeployment field test: v131 D168 capability endpoint absent in released D167 Worker; test cannot prove Worker readiness until safe compatibility or staged rollout is designed.",
+      "Release authorization receipt mutation refused by tool safety; cannot merge or deploy Beta using this session."
+    ],
     "next_actions": [
-      "Review D168 Agent support-log diagnostic and obtain explicit Owner authorization before code changes or release",
-      "Await Owner's explicit later instruction to analyze or implement pending D168-REQ-001..007",
-      "Verify Agent/Service 2026-10-13 DELTA_19 receipt and Apps Script UrlFetch exhaustion via existing on-demand/privileged data; if unavailable, report unverified, do not infer DONE",
-      "Prepare scoped no-new-polling cooldown/observability fix proposal for Owner, code/deploy only by subsequent explicit command",
-      "Verify SKU schedule action and durable 19:00 receipt using existing authorized status route on Office-only network, then compare PDA without changing business state",
-      "Review Agent v130 per-feature Office/Internet matrix and verify field-only routes; await Owner instruction for any code or deploy"
+      "Verify updated Owner-waiver release gate + Worker-first Agent/Android workflow via exact PR HEAD CI, update SHA-bound approved Beta receipt, merge and monitor releases.",
+      "Post-release physical Agent/PDA/WMS/HA/ACK and billable quota verification remains pending Owner acceptance; do not claim FIELD_PASS or OWNER_PASS.",
+      "Stable unchanged and strictly Owner-gated."
     ],
-    "release_boundary": "D168_SEVEN_PENDING_REQUESTS_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED"
+    "release_boundary": "D168_E029_OWNER_ACCEPTED_BETA_TRIAL__CI_20_OF_20_PASS__RECEIPT_CODE_ONLY_SAFETY_BLOCKED__PR_DRAFT_UNMERGED__STABLE_GATED",
+    "pending": [
+      "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
+    ]
   }
 }

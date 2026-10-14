@@ -305,6 +305,7 @@ type PickerProjectionPayload = {
     display_name?: unknown;
     contractor_name?: unknown;
     device_id?: unknown;
+    app_version?: unknown;
     login_at?: unknown;
     device_seen_at?: unknown;
     status?: unknown;
@@ -340,6 +341,7 @@ async function writePickerPresenceProjection(
     display_name: String(item.display_name || ""),
     contractor_name: String(item.contractor_name || ""),
     device_id: String(item.device_id || ""),
+    app_version: String(item.app_version || "").slice(0,100),
     login_at: item.login_at || null,
     device_seen_at: item.device_seen_at || null,
     status: "PDA_READY",

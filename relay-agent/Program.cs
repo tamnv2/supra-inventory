@@ -771,8 +771,25 @@ namespace SupraInventoryRelayAgent
                         throw new InvalidOperationException("D167_SKU_PRIMARY_CHANGED");
                     _leaderCoordinator.EnsureD167SkuPrimaryLease(expected);
                 },
+                () => {
+                    EnsureFreshToken();
+                    var actor=SnapshotSession();
+                    if(actor==null || string.IsNullOrWhiteSpace(actor.IdToken))
+                        throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
+                    return D168NetworkRoute.OpenWorkerSession(
+                        actor.IdToken,
+                        () => HasAgentSession() && _supraBrowserReady &&
+                            _leaderCoordinator!=null && _leaderCoordinator.IsLeader &&
+                            Interlocked.CompareExchange(ref _manualPicklistOperationRunning,0,0)==0 &&
+                            Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning,0,0)==0,
+                        RequestD168NetworkSwitchPermission,
+                        message => Log(message));
+                },
                 ConfirmD167SkuWebConflict, message => Log(message));
-            _d167SkuCoordinator.StatusChanged += RenderD167SkuStatus;
+            _d167SkuCoordinator.StatusChanged += (slots,recent,workbook,message) => {
+                RenderD167SkuStatus(slots,recent,workbook,message);
+                PublishD168TerminalSkuStatus(slots);
+            };
             _agentSessionGate = new FirestoreAgentSessionGate(message => Log(message));
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
@@ -1476,10 +1493,26 @@ namespace SupraInventoryRelayAgent
             _probeAll.SetBounds(686, 122, 140, 32); networkCard.Controls.Add(_probeAll);
             networkCard.Controls.Add(new Label
             {
-                Left = 18, Top = 184, Width = 980, Height = 80,
+                Left = 18, Top = 184, Width = 980, Height = 25,
                 Text = "Kiểm tra trạng thái kết nối của Agent. Wi-Fi lấy trực tiếp từ Windows WLAN.",
                 ForeColor = Color.DimGray
             });
+            var autoStartOption=new CheckBox {
+                Left=18,Top=217,Width=930,Height=35,
+                Text="Tự mở Agent khi đăng nhập Windows (chỉ áp dụng tài khoản máy này)",
+                Checked=UserStartupRegistration.IsEnabled(),
+                Font=new Font("Segoe UI",9.5F)
+            };
+            autoStartOption.CheckedChanged+=(sender,args)=>{
+                if(!UserStartupRegistration.SetEnabled(autoStartOption.Checked))
+                {
+                    MessageBox.Show("Không lưu được cài đặt tự khởi động. Hãy kiểm tra quyền Windows.",
+                        "Cài đặt Agent",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                    autoStartOption.Checked=UserStartupRegistration.IsEnabled();
+                }
+            };
+            networkCard.Controls.Add(autoStartOption);
+            InitializeD168WorkerWifiControls(networkCard);
             _connectionPage.Controls.Add(networkCard);
 
 

@@ -406,7 +406,7 @@ test("D167 v128 diagnoses existing direct API export safely without changing WMS
 });
 
 
-test("D167 P0 SKU lease is scoped to actual mutations; Worker retains independent fail-closed proof", async () => {
+test("D168 SKU reserve attests PRIMARY once; Worker uses durable job grant after handoff", async () => {
   const {readFileSync}=await import("node:fs");
   const leader=readFileSync(new URL("../relay-agent/FirestoreAgentLeaderCoordinator.cs",import.meta.url),"utf8");
   const client=readFileSync(new URL("../relay-agent/D167SkuServiceClient.cs",import.meta.url),"utf8");
@@ -419,7 +419,18 @@ test("D167 P0 SKU lease is scoped to actual mutations; Worker retains independen
   assert.match(leader,/WritePrimaryLease\(session\)/);
   assert.match(leader,/_role != FirestoreAgentRole\.PRIMARY/);
   assert.match(leader,/!string\.Equals\(_generation, expectedGeneration/);
-  assert.match(client,/if \(operation!="schedule" && operation!="status"\)/);
+  // D168: the PRIMARY proof is limited to reserving a new job or starting a privileged manual job.
+  assert.match(client,/var primaryGate=operation=="reserve" \|\| operation=="manual-start"/);
+  assert.match(client,/request.Headers\[HttpRequestHeader.Authorization\]/);
+  assert.match(client,/job_grant/);
+  assert.doesNotMatch(client,/script\.google\.com/);
+  assert.match(route,/if \(action === "reserve"\)/);
+  assert.match(route,/SKU_JOB_GRANT_REQUIRED/);
+  const core=readFileSync(new URL("../service/src/d167-sku-sync-core.ts",import.meta.url),"utf8");
+  assert.match(core,/async function guard\(/);
+  assert.match(core,/job\.grant_hash/);
+  assert.match(core,/JOB_NOT_RESERVED/);
+  assert.match(core,/primary_verified !== true/);
   assert.match(client,/refreshSkuPrimaryLease\(Convert\.ToString\(proofGeneration\)\)/);
   assert.match(coordinator,/new D167SkuServiceClient\(currentSession,ensureFreshToken,primaryReady,ensureSkuLease\)/);
   assert.match(agent,/_leaderCoordinator\.EnsureD167SkuPrimaryLease\(expected\)/);
@@ -446,4 +457,156 @@ test("D167 P0 Vietnamese updater provenance uses existing Worker->Core receipt, 
   assert.match(ui,/Đã cập nhật/);
   assert.match(ui,/Cập nhật chưa thành công/);
   assert.doesNotMatch(ui,/setInterval|System\.Threading\.Timer|FirestoreClient/);
+});
+
+test("D168 group contact preserves multiple selected Picker IDs after online snapshot refresh", async () => {
+  const {readFileSync}=await import("node:fs");
+  const agent=readFileSync(new URL("../relay-agent/D119AgentFeatures.cs",import.meta.url),"utf8");
+  assert.match(agent,/var selectedSessions = new HashSet<Tuple<string,long,string>>\(\)/);
+  assert.match(agent,/foreach \(DataGridViewRow selected in _pickerOnlineGrid\.SelectedRows\)/);
+  assert.match(agent,/_pickerOnlineGrid\.ClearSelection\(\)/);
+  assert.match(agent,/if \(selectedSessions\.Contains\(Tuple\.Create\(picker\.UserId,picker\.SessionGeneration,picker\.FirebaseUid \?\? ""\)\)\)/);
+  assert.match(agent,/InitializeD168GroupPickerContact\(pickerCard\)/);
+});
+
+test("D168 release guard: Office-blocked direct Worker must have a wired, approved WLAN route", async () => {
+  const {readFileSync,readdirSync}=await import("node:fs");
+  const agentDir=new URL("../relay-agent/",import.meta.url);
+  const code=readdirSync(agentDir).filter(name=>name.endsWith(".cs") && name!=="D168NetworkRoute.cs")
+    .map(name=>readFileSync(new URL(name,agentDir),"utf8")).join("\n");
+  const network=readFileSync(new URL("D168NetworkRoute.cs",agentDir),"utf8");
+  const sku=readFileSync(new URL("D167SkuServiceClient.cs",agentDir),"utf8");
+  assert.match(network,/ApprovedProfile\(/);
+  assert.match(network,/ConnectSavedProfile\(/);
+  assert.match(network,/ProbeWorker\(/);
+  assert.doesNotMatch(sku,/script\.google\.com|d167_sku_sync/);
+  // A standalone helper is NOT a functional route. The Agent must call it from
+  // a real SKU/optional-Worker user operation and verify reachability after switch.
+  assert.match(code,/D168NetworkRoute\.OpenWorkerSession\(/,
+    "D168 cannot be released: no SKU operation owns a safe Worker WLAN session");
+  assert.match(network,/ConnectSavedProfile\(target\)/,
+    "D168 must actually connect the approved saved profile");
+  assert.match(network,/ProbeWorker\(idToken\)=="READY"/,
+    "D168 must confirm real authenticated Worker reachability after switching");
+  assert.match(network,/RestoreOriginalProfile\(restoreProfile\)/,
+    "D168 must restore and verify the original WLAN after each completed job");
+  assert.match(code,/RequestD168NetworkSwitchPermission/,
+    "D168 cannot silently switch networks without an operator-facing decision");
+});
+
+test("D168 Windows auto-start setting verifies the HKCU Run registration before reporting success", async () => {
+  const {readFileSync}=await import("node:fs");
+  const code=readFileSync(new URL("../relay-agent/UserStartupRegistration.cs",import.meta.url),"utf8");
+  assert.match(code,/Registry\.CurrentUser\.OpenSubKey\(RunKey,false\)/);
+  assert.match(code,/string\.Equals\(actual,expected,StringComparison\.Ordinal\)/);
+  assert.match(code,/AUTOSTART_RUN_REGISTRATION_MISMATCH/);
+  assert.match(code,/SetValue\(EnabledValue,previous\?1:0/);
+  assert.match(code,/return false;/);
+});
+
+test("D168 manual SKU abort retains original VN-day lease if operation crosses midnight", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  assert.match(coordinator,/activeGeneration=null,activeDay=null/);
+  assert.match(coordinator,/activeDay=day;/);
+  assert.match(coordinator,/service\.Abort\(activeDay,activeSlot,/);
+  assert.doesNotMatch(coordinator,/service\.Abort\(D167SkuSchedule\.VNNow\(/);
+});
+
+test("D168 Office SKU network scope is bound to both manual and automatic jobs", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const agent=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const ui=readFileSync(new URL("../relay-agent/D168SkuNetworkUi.cs",import.meta.url),"utf8");
+  assert.match(coordinator,/workerNetworkScope=openWorkerNetwork\(\)/);
+  assert.match(coordinator,/using\(var workerNetworkScope=openWorkerNetwork\(\)\)/);
+  assert.match(coordinator,/workerNetworkScope\.Dispose\(\)/);
+  assert.match(agent,/RequestD168NetworkSwitchPermission/);
+  assert.match(agent,/InitializeD168WorkerWifiControls\(networkCard\)/);
+  assert.match(ui,/TopMost=true/);
+  assert.match(ui,/Interval=60000/);
+  assert.match(ui,/ManualResetEventSlim/);
+});
+
+test("D168 Office network automatic SKU export precedes any WLAN transition", async () => {
+  const {readFileSync}=await import("node:fs");
+  const client=readFileSync(new URL("../relay-agent/D167SkuServiceClient.cs",import.meta.url),"utf8");
+  const scheduler=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const workerRoute=scheduler.slice(scheduler.indexOf("private void EvaluateOnce()"));
+  const preflight=workerRoute.indexOf('service.WorkerRouteStatus()=="NETWORK_UNREACHABLE"');
+  const exportFirst=workerRoute.indexOf("officeWorkbook=D167SkuBrowserExport.Export");
+  const switchAfter=workerRoute.indexOf("using(var workerNetworkScope=openWorkerNetwork())");
+  const reserveAfter=workerRoute.indexOf("var grant=service.Reserve(");
+  assert.ok(preflight>=0 && exportFirst>preflight && switchAfter>exportFirst && reserveAfter>switchAfter);
+  assert.match(workerRoute,/var workbook=officeWorkbook \?\? D167SkuBrowserExport\.Export/);
+  assert.match(client,/D168NetworkRoute\.ProbeWorker\(actor\.IdToken\)/);
+});
+
+test("D168 manual SKU on Office exports before WLAN change; Worker validates proof before publish", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const manual=coordinator.slice(coordinator.indexOf("internal void RunManual("),
+    coordinator.indexOf("internal void OnPrimaryOrWmsReady("));
+  const wms=manual.indexOf("officeWorkbook=D167SkuBrowserExport.Export");
+  const network=manual.indexOf("workerNetworkScope=openWorkerNetwork()");
+  const proof=manual.indexOf("service.ManualStart(");
+  const reserve=manual.indexOf("service.Reserve(");
+  const publish=manual.indexOf("service.UploadAndPublish(");
+  assert.ok(wms>=0 && network>wms && proof>network && reserve>proof && publish>reserve);
+  assert.match(manual,/if\(service\.WorkerRouteStatus\(\)=="NETWORK_UNREACHABLE"\)/);
+  assert.match(manual,/var workbook=officeWorkbook \?\? D167SkuBrowserExport\.Export/);
+});
+
+test("D168 shared SKU terminal status piggybacks existing exact Agent Firestore listener", async () => {
+  const {readFileSync}=await import("node:fs");
+  const sync=readFileSync(new URL("../relay-agent/FirestoreAgentSync.cs",import.meta.url),"utf8");
+  const relay=readFileSync(new URL("../relay-agent/D168SkuSharedState.cs",import.meta.url),"utf8");
+  const host=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const view=readFileSync(new URL("../relay-agent/D119AgentFeatures.cs",import.meta.url),"utf8");
+  assert.match(sync,/internal string SkuStatusJson = ""/);
+  assert.match(sync,/internal AgentSyncSnapshot SetSkuStatus\(AgentSession session,string json\)/);
+  assert.match(sync,/AGENT_SYNC_SKU_TERMINAL/);
+  assert.match(sync,/\{ "sku_status_json", StringField\(snapshot.SkuStatusJson \?\? ""\) \}/);
+  assert.match(view,/ApplyD168SharedSkuStatus\(snapshot.SkuStatusJson\)/);
+  assert.match(host,/PublishD168TerminalSkuStatus\(slots\)/);
+  assert.match(relay,/x.State=="DONE"/);
+  assert.match(relay,/if\(complete.Count==0\)return/);
+  assert.doesNotMatch(relay,/FirestoreAgentSyncListener|new (?:Timer|System.Windows.Forms.Timer)/);
+});
+
+test("D168 never exports Office XLSX on unreachable Worker without preapproved fallback", async () => {
+  const {readFileSync}=await import("node:fs");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  const network=readFileSync(new URL("../relay-agent/D168NetworkRoute.cs",import.meta.url),"utf8");
+  const instances=[coordinator.slice(coordinator.indexOf("internal void RunManual("),coordinator.indexOf("internal void OnPrimaryOrWmsReady(")),
+    coordinator.slice(coordinator.indexOf("private void EvaluateOnce()"))];
+  for (const fragment of instances) {
+    const guard=fragment.indexOf("D168NetworkRoute.HasApprovedFallback()");
+    const exportAt=fragment.indexOf("officeWorkbook=D167SkuBrowserExport.Export");
+    assert.ok(guard>=0 && exportAt>guard);
+  }
+  assert.match(network,/internal static bool HasApprovedFallback\(\)/);
+  assert.match(network,/HasSavedProfile\(original\) && HasSavedProfile\(target\)/);
+});
+
+test("D168 concurrent Agent receipt projection merges immutable completed SKU slots", async () => {
+  const {readFileSync}=await import("node:fs");
+  const sync=readFileSync(new URL("../relay-agent/FirestoreAgentSync.cs",import.meta.url),"utf8");
+  assert.match(sync,/snapshot.SkuStatusJson=MergeTerminalSkuStatus\(snapshot.SkuStatusJson,json\)/);
+  assert.match(sync,/bySlot\.OrderBy\(x=>x.Key,StringComparer\.Ordinal\)/);
+  assert.match(sync,/return string\.CompareOrdinal\(oldDay,newDay\)>0 \? previous : incoming/);
+  assert.match(sync,/AGENT_SYNC_SKU_TERMINAL/);
+});
+
+test("D168 one-click Agent field probe is read-only and distinguishes direct from switched", async () => {
+  const {readFileSync}=await import("node:fs");
+  const ui=readFileSync(new URL("../relay-agent/D168SkuNetworkUi.cs",import.meta.url),"utf8");
+  const route=readFileSync(new URL("../relay-agent/D168NetworkRoute.cs",import.meta.url),"utf8");
+  assert.match(ui,/Thử kết nối Worker/);
+  assert.match(ui,/D168NetworkRoute\.OpenWorkerSession\(actor\.IdToken/);
+  assert.match(ui,/switched=networkSession\.DidSwitch/);
+  assert.match(ui,/SWITCHED_AND_RESTORED/);
+  assert.match(ui,/SWITCHED_AND_RESTORED":"DIRECT"/);
+  assert.match(route,/internal bool DidSwitch/);
+  assert.doesNotMatch(ui,/WmsSkuBrowserExport|ManualStart\(|UploadAndPublish\(/);
 });

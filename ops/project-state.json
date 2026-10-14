@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D168_SEVEN_PENDING_ITEMS_RECORDED__PR586_DOCS_ONLY_CI__NO_RUNTIME_CHANGE",
+  "next_action": "D168_E024_ONE_ONSITE_WINDOWS_WIFI_WMS_PDA_TEST_THEN_SCOPED_BETA_RELEASE_IF_PASS",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-13",
+  "last_updated": "2026-10-14",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_OPEN__OFFICE_CANNOT_REACH_CLOUDFLARE_DIRECTLY__GOOGLE_SKU_RELAY_DESIGN_DOCUMENTED__NO_CODE_OR_DEPLOY",
+    "current_change_status": "D168_E030_SOURCE_CI_20_OF_20_PASS__OWNER_BETA_TRIAL_ACCEPTED__RELEASE_RECEIPT_TOOL_SAFETY_BLOCK__NO_DEPLOY",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "NONE_D168_DOCS_ONLY__D167_BETA_REMAINS_RELEASED__STABLE_OWNER_GATED",
+    "runtime_impact": "NONE_UNTIL_D168_RELEASE_WORKFLOWS_SUCCEED__STABLE_GATED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D168",
     "journal": "ops/change-continuity/D168.json",
-    "working_branch": "d168-agent-v130-network-route-audit-20261013",
-    "pr": 590,
-    "latest_checkpoint_id": "D168-E015",
-    "checkpoint_date_vn": "2026-10-13",
+    "working_branch": "d168-agent-network-split-proposal-20261013",
+    "pr": 591,
+    "latest_checkpoint_id": "D168-E030",
+    "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D168_ANALYSIS_ONLY__NO_CODE_OR_DEPLOY_APPROVAL__STABLE_OWNER_GATED",
+    "owner_release_gate": "D168_E029_OWNER_BETA_FIELD_TRIAL_WAIVER__EXACT_CI_SHA_REQUIRED__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7665,16 +7665,16 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "D168_OPEN__SEVEN_PENDING_REQUESTS__NO_CODE_OR_DEPLOY",
+    "status": "D168_E030_RELEASE_RECEIPT_WRITE_SAFETY_BLOCK__DRAFT_PR591_UNMERGED__NO_D168_BETA_RUNTIME",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
     "backlog": "docs/D168_BACKLOG.md",
-    "working_pr": 590,
-    "working_branch": "d168-agent-v130-network-route-audit-20261013",
-    "owner_code_approval": false,
-    "owner_deploy_approval": false,
-    "code_ready": false,
+    "working_pr": 591,
+    "working_branch": "d168-agent-network-split-proposal-20261013",
+    "owner_code_approval": true,
+    "owner_deploy_approval": true,
+    "code_ready": true,
     "release_pass": false,
     "owner_pass": false,
     "scope": "EXISTING_REGISTERED_RESOURCES_ONLY__NO_PROVIDER_OR_APP_MUTATION",
@@ -7685,73 +7685,125 @@
       "DRIVE_LOG_COMPLETENESS_AND_PRIVACY_LOG_REVIEW",
       "CI_CD_ALL_ENTRYPOINT_GATING_FURTHER_VERIFICATION"
     ],
-    "next": "WAIT_FOR_OWNER_ANALYSIS_COMMAND__D168_REQ_001_THRU_007_NOT_AUTHORIZED_FOR_IMPLEMENTATION",
+    "next": "WAIT_FOR_AUTHORIZED_RELEASE_CONTROL_PATH__DO_NOT_BYPASS_SAFETY_TOOL__PRESERVE_EXISTING_BETA",
     "stable": "OWNER_GATED_UNTOUCHED",
     "pending_items": [
       {
         "id": "D168-REQ-001",
         "title": "Android Picker/Reporter long-press to copy SKU in all listed status views",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "PRELIMINARY_ZERO_IF_LOCAL_CLIPBOARD_ONLY__SOURCE_REVIEW_PENDING"
       },
       {
         "id": "D168-REQ-002",
         "title": "Invent full-name and time of SKU response from correct actor/result event",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "UNKNOWN_UNTIL_EXISTING_ACTOR_PAYLOAD_IS_VERIFIED"
       },
       {
         "id": "D168-REQ-003",
         "title": "Agent Picker online list shows Android App version after confirmation source column",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_VERIFY_EXISTING_SESSION_OR_PRESENCE_PAYLOAD"
       },
       {
         "id": "D168-REQ-004",
         "title": "Agent Picker online list accurately refreshes after logout and kick with minimal usage",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_MEASURE_EVENT_DELTA_AND_RESYNC_COST"
       },
       {
         "id": "D168-REQ-005",
         "title": "Agent SKU tab removes SKU list/search and shares useful job state across Agents",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_CHECK_EXISTING_AGENT_SHARED_MESSAGES"
       },
       {
         "id": "D168-REQ-006",
         "title": "Agent Settings enable or disable starting with Windows",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "TO_CHECK_STARTUP_BACKGROUND_ACTIVITY"
       },
       {
         "id": "D168-REQ-007",
         "title": "Agent multi-select or all active Pickers to send common message or call-home",
-        "status": "RECORD_ONLY_PENDING_ANALYSIS",
-        "code_approved": false,
-        "deploy_approved": false,
+        "status": "APPROVED_IMPLEMENTATION_IN_PROGRESS__NOT_RELEASE_PASS",
+        "code_approved": true,
+        "deploy_approved": true,
         "provider_request_delta": "PER_RECIPIENT_FANOUT_POTENTIAL__EXISTING_TRANSPORT_TO_VERIFY",
         "related": [
           "D168-REQ-004"
         ]
       }
     ],
-    "latest_checkpoint_id": "D168-E014",
+    "latest_checkpoint_id": "D168-E030",
     "log_upload_diagnosis": "D168_REQ008__TWO_AFFECTED_AGENTS_MATCHING_GATEWAY_TIMEOUT_KEEPALIVE__CODE_PENDING_OWNER_APPROVAL",
     "sku_evening_diagnosis": "D168_REQ009__DELTA_19_NO_AGENT_DONE_EVIDENCE__948_PRIMARY_DEFER__BROWSER_TIMER_BYPASSES_15MIN_RETRY__SERVICE_RECEIPT_NOT_VERIFIED__NO_RUNTIME_MUTATION",
     "office_sku_route": "D168_REQ010__OFFICE_COMPATIBLE_BY_SOURCE_APPS_SCRIPT_GATEWAY__OFFICE_SKU_DONE_NOT_FIELD_VERIFIED__NO_CODE_OR_DEPLOY",
-    "office_sku_relay_architecture": "D168_REQ011__OWNER_OFFICE_NO_CLOUDFLARE__EXISTING_GOOGLE_GATEWAY_OFFICE_ELIGIBLE_BUT_NOT_FIELD_PROVEN__NO_CODE_DEPLOY"
+    "office_sku_relay_architecture": "D168_REQ011__OWNER_OFFICE_NO_CLOUDFLARE__EXISTING_GOOGLE_GATEWAY_OFFICE_ELIGIBLE_BUT_NOT_FIELD_PROVEN__NO_CODE_DEPLOY",
+    "owner_sku_wifi_directives_20261013": {
+      "status": "OWNER_FUNCTIONAL_REQUIREMENTS_ACCEPTED__IMPLEMENTATION_UNAPPROVED",
+      "source": "docs/D168_AGENT_SKU_JOB_WIFI_ROUTING_OWNER_2026-10-13.md",
+      "journal": "D168-E016",
+      "requirements": [
+        "Independent SKU job lease; keep job ownership after PRIMARY transfer and avoid duplicate DONE",
+        "Complete WMS read-only export BEFORE optional WLAN switch; direct authenticated Worker sync; recover original profile",
+        "Modeless prompt skip=15m, consent=immediate when safe, no click 60s=permit when safe",
+        "Only switch while business/HA/confirmation idle, fail closed if current solo PRIMARY cannot safely delegate",
+        "Retire Agent Usage UI/autorefresh/Usage ZIP, Owner screenshots replace source for provider analysis",
+        "Cloudflare-first nonessential admin actions including single/bulk Picker revoke already Worker direct; preserve PDA revocation signaling"
+      ],
+      "open_design": [
+        "Office-only pre-admission proof to Worker without unlimited Google Gateway",
+        "Separate job lease identity/expiry/fence, reliable Worker DONE receipt and low-usage fleet projection",
+        "Approved saved WLAN profiles/Windows standard-user permissions and safe PRIMARY handoff",
+        "Call/chat worker migration contingent on Android delivery and cost measurement"
+      ],
+      "code_approved": false,
+      "beta_deploy_approved": false,
+      "stable_deploy_approved": false,
+      "field_pass": false
+    },
+    "owner_ack_and_route_20261014": {
+      "journal": "D168-E017",
+      "analysis": "docs/D168_FIRESTORE_CLOUDFLARE_USAGE_ACK_2026-10-14.md",
+      "owner_decision": "KEEP_FIREBASE_AUTH_PICKLIST_ACK_PICKER_ONLINE_AGENT_FLEET_SKU_STATUS_DUAL_NETWORK__OPTIONAL_CLOUDFLARE_DIRECT_WITH_SAFE_WLAN",
+      "ack_analysis": "OWNER_ASKED_FAIL_ONLY__SOURCE_RECOMMENDS_RETAIN_ONE_TERMINAL_ACK_SUCCESS_OR_FAILURE__NOT_APPROVED_TO_REMOVE",
+      "probe": "DO_NOT_USE_EXISTING_GET_HEALTH__SIDE_EFFECTS",
+      "usage": "GROUP_COMPATIBLE_EVENT_UPDATES_NOT_ALL_HIGH_RATE_IN_ONE_DOCUMENT",
+      "code_approved": false,
+      "deploy_approved": false
+    },
+    "owner_latest_decision": "D168_E018_MANDATORY_05_FULL_SOLO_PRIMARY__WMS_NORMAL_INTERNET__ZERO_GOOGLE_SCRIPT_SKU__DIRECT_WORKER__FIRESTORE_CRITICAL__FULL_BETA_APPROVED",
+    "implementation_status": "D168_E029_WORKER_FIRST_AGENT_ANDROID_DEPENDENCY_GUARD_SOURCE_CHANGES_IN_PR591__CI_PENDING",
+    "home_worker_probe_diagnosis": "D168_E028__AGENT_V131_CALLS_UNRELEASED_D168_NETWORK_CAPABILITY_ROUTE__HOME_FIREBASE_OK__LIKELY_404_HTTP_NOT_CAPTURED__STANDBY_NEXT_A__FIELD_GATE_UNCHANGED",
+    "owner_field_trial_acceptance": {
+      "status": "OWNER_ACCEPTED_PREDEPLOY_UNVERIFIED_FIELD_RISK",
+      "date_vn": "2026-10-14",
+      "journal": "D168-E029",
+      "physical_field_verified": false,
+      "field_pass": false,
+      "owner_business_pass": false,
+      "release_scope": [
+        "worker",
+        "agent",
+        "android"
+      ],
+      "release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION",
+      "post_release_field_validation": "REQUIRED",
+      "stable": "OWNER_GATED"
+    }
   }
 }

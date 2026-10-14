@@ -1510,6 +1510,15 @@ export default {
         return json({ error: "SYSTEM_STATUS_DISABLED_QUOTA_GUARD" }, 410);
       }
 
+      // D168 single-shot, authenticated network capability probe. No Worker/Core
+      // SKU schedule lookup, Durable Object write, Drive/Google request or migration.
+      // It is used only on explicit SKU start or authorized WLAN transition.
+      if (request.method === "GET" && url.pathname === "/api/agent/d168/network-capability") {
+        if (env.APP_ENV !== "beta") return json({ error: "D168_BETA_ONLY" }, 404);
+        const actor = await requireAgentUser(request, env, ["ADMIN","PICKPACK_ADMIN"]);
+        if (actor.base_role !== actor.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+        return json({ status: "reachable", service: "inventory-beta", capability: "D168_WORKER_AUTH" });
+      }
       // D167 scoped, source-only SKU sync. Agent auth AND authoritative current
       // Firestore PRIMARY generation are required before every state mutation.
       // GETs are Agent-authenticated but do not query HA or start a WMS export.
@@ -1518,13 +1527,13 @@ export default {
         const operator = await requireAgentUser(request, env, ["ADMIN","PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const action = url.pathname.slice("/api/agent/d167/skus/".length);
-        if (!["schedule","status","claim","stage","preview","publish","manual-start"].includes(action))
+        if (!["schedule","status","reserve","abort","claim","stage","preview","publish","manual-start"].includes(action))
           return json({ error: "NOT_FOUND" }, 404);
         if (request.method === "GET") {
           if (action !== "schedule" && action !== "status") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
           return coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action + url.search);
         }
-        if (request.method !== "POST" || !["claim","stage","preview","publish","manual-start"].includes(action))
+        if (request.method !== "POST" || !["reserve","abort","claim","stage","preview","publish","manual-start"].includes(action))
           return json({ error: "METHOD_NOT_ALLOWED" }, 405);
         let input: Record<string, unknown>;
         try {
@@ -1558,10 +1567,17 @@ export default {
         if (action === "publish" && input.approve_conflicts === true &&
             operator.role !== "ADMIN")
           return json({ error: "D167_ADMIN_CONFLICT_APPROVAL_REQUIRED" }, 403);
-        const leader = await verifyD167AgentPrimary(
-          env, String(input.instance_id || ""), String(input.generation || ""),
-        );
-        if (!leader.valid) return json({ error: "NOT_CURRENT_FIREBASE_PRIMARY_"+leader.reason }, 409);
+        // D168: only reserve may create job ownership. Follow-up writes are
+        // fenced by the durable InventoryCore grant, even after HA handoff.
+        if (action === "reserve") {
+          const leader = await verifyD167AgentPrimary(
+            env, String(input.instance_id || ""), String(input.generation || ""),
+          );
+          if (!leader.valid) return json({ error: "NOT_CURRENT_FIREBASE_PRIMARY_"+leader.reason }, 409);
+          input.primary_verified = true;
+        } else if (!/^[a-f0-9]{64}$/.test(String(input.job_grant || ""))) {
+          return json({ error:"SKU_JOB_GRANT_REQUIRED" },403);
+        }
         const operation = await coreStub(env).fetch("https://inventory-core.internal/d167/skus/" + action, {
           method: "POST", headers: { "content-type": "application/json" },
           body: JSON.stringify({ ...input, actor_user_id: operator.user_id,

@@ -1,5 +1,6 @@
-/** D167 InventoryCore-only three-slot SKU ledger and atomic sparse publish.
- * No public route may forward here without a verified Agent PRIMARY/generation.
+/** D168: InventoryCore owns independent SKU-job fencing, distinct from HA PRIMARY.
+ * Worker must authorize reserve against the CURRENT Firestore PRIMARY.
+ * All subsequent mutations require an authenticated operator and an opaque grant.
  */
 import { planSkuChanges, randomSlotTarget, slotMode,
   vnDayAt, type D167Slot, type D167Sku, type D167CatalogRow, type D167Area } from "./d167-sku-sync-logic";
@@ -19,10 +20,18 @@ function safeSlot(v: unknown): string | null {
   const slot = String(v || "");
   return SLOTS.includes(slot as D167Slot) || isManualDelta(slot) ? slot : null;
 }
-function guard(input: Record<string, unknown>, job: Row): boolean {
-  return String(input.instance_id || "") === String(job.owner_id || "")
-    && String(input.generation || "") === String(job.generation || "")
-    && Number(job.lease_until_ms || 0) > Date.now();
+async function grantHash(value: string): Promise<string> {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, "0")).join("");
+}
+async function guard(input: Record<string, unknown>, job: Row): Promise<boolean> {
+  const grant = String(input.job_grant || "");
+  if (!/^[a-f0-9]{64}$/.test(grant) || !job.grant_hash ||
+      String(input.instance_id || "") !== String(job.owner_id || "") ||
+      String(input.generation || "") !== String(job.generation || "") ||
+      String(input.actor_user_id || "") !== String(job.operator_id || "") ||
+      Number(job.lease_until_ms || 0) <= Date.now()) return false;
+  return (await grantHash(grant)) === String(job.grant_hash);
 }
 
 export function initializeD167SkuSyncSchema(state: DurableObjectState): void {
@@ -31,6 +40,7 @@ export function initializeD167SkuSyncSchema(state: DurableObjectState): void {
       day_vn TEXT NOT NULL, slot TEXT NOT NULL, job_key TEXT NOT NULL DEFAULT 'HY1_SKU_MASTER',
       state TEXT NOT NULL DEFAULT 'READY', scheduled_at_ms INTEGER NOT NULL,
       owner_id TEXT, generation TEXT, lease_until_ms INTEGER NOT NULL DEFAULT 0,
+       operator_id TEXT, grant_hash TEXT,
       fingerprint TEXT, total_rows INTEGER NOT NULL DEFAULT 0, expected_revision INTEGER NOT NULL DEFAULT 0,
       complete_at TEXT, receipt_json TEXT, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (day_vn,slot)
@@ -72,6 +82,11 @@ export function initializeD167SkuSyncSchema(state: DurableObjectState): void {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_d167_area_one_open
       ON d167_sku_area_history(sku) WHERE effective_to IS NULL;
   `);
+  // Non-destructive migration of existing Beta D167 jobs.
+  const columns = state.storage.sql.exec<{ name: string }>("PRAGMA table_info(d167_sku_jobs)").toArray()
+    .map(x => x.name);
+  if (!columns.includes("operator_id")) state.storage.sql.exec("ALTER TABLE d167_sku_jobs ADD COLUMN operator_id TEXT");
+  if (!columns.includes("grant_hash")) state.storage.sql.exec("ALTER TABLE d167_sku_jobs ADD COLUMN grant_hash TEXT");
 }
 
 function ensureSchedule(state: DurableObjectState, day: string): Row[] {
@@ -97,7 +112,8 @@ function ensureSchedule(state: DurableObjectState, day: string): Row[] {
       state.storage.sql.exec(`UPDATE d167_sku_jobs
         SET state='SKIPPED', receipt_json=?, lease_until_ms=0, updated_at=?
         WHERE day_vn=? AND slot='DELTA_12'
-          AND state NOT IN ('DONE','SKIPPED')`, receipt,now,day);
+          AND state NOT IN ('DONE','SKIPPED')
+          AND (state='READY' OR lease_until_ms<=?)`, receipt,now,day,Date.now());
     }
     return state.storage.sql.exec<Row>(
       "SELECT day_vn,slot,state,scheduled_at_ms,complete_at,receipt_json FROM d167_sku_jobs WHERE day_vn=? ORDER BY scheduled_at_ms",
@@ -142,7 +158,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/d167/skus/")) return null;
   const action = url.pathname.slice("/d167/skus/".length);
-  if (!["schedule", "claim", "stage", "preview", "publish", "status", "manual-start"].includes(action))
+  if (!["schedule", "reserve", "abort", "claim", "stage", "preview", "publish", "status", "manual-start"].includes(action))
     return response({ error: "NOT_FOUND" }, 404);
   let body: Record<string, unknown> = {};
   if (request.method === "POST") {
@@ -174,7 +190,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     if (existing) return response({status:"AUTHORIZED",slot:existing.slot,
       mode:existing.slot==="INITIAL_05"?"FULL":"DELTA",idempotent:true});
     const active=row(state,`SELECT slot FROM d167_sku_jobs WHERE day_vn=?
-      AND lease_until_ms>? AND state IN ('CLAIMED','STAGING') LIMIT 1`,day,Date.now());
+      AND lease_until_ms>? AND state IN ('RESERVED','CLAIMED','STAGING') LIMIT 1`,day,Date.now());
     if (active) return response({error:"SKU_JOB_IN_PROGRESS"},409);
     const meta=row(state,"SELECT last_full_day FROM d167_sku_meta WHERE id=1");
     const full = String(meta?.last_full_day || "")===day;
@@ -227,6 +243,42 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   if (!/^[A-Za-z0-9:_-]{6,150}$/.test(instance) || !/^[A-Za-z0-9-]{16,150}$/.test(generation))
     return response({ error: "INVALID_PRIMARY_PROOF" }, 403);
 
+  if (action === "reserve") {
+    // Only the Worker may attest a fresh Firebase PRIMARY decision.
+    if (body.primary_verified !== true) return response({ error:"PRIMARY_REQUIRED" },403);
+    const other = row(state, `SELECT slot FROM d167_sku_jobs
+      WHERE day_vn=? AND lease_until_ms>? AND state IN ('RESERVED','CLAIMED','STAGING') LIMIT 1`,day,Date.now());
+    if (other) return response({ error:"JOB_LEASED" },409);
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    const grant = Array.from(bytes, b => b.toString(16).padStart(2,"0")).join("");
+    const digest = await grantHash(grant);
+    const duration = 15 * 60_000;
+    const at = new Date().toISOString();
+    const reserved=state.storage.transactionSync(() => {
+      // Repeat the global lease check inside the SQL transaction after
+      // asynchronous SHA, preventing two reserve callers from overwriting grants.
+      const busy=row(state,`SELECT slot FROM d167_sku_jobs
+        WHERE day_vn=? AND lease_until_ms>? AND state IN ('RESERVED','CLAIMED','STAGING') LIMIT 1`,day,Date.now());
+      const current=row(state,"SELECT state FROM d167_sku_jobs WHERE day_vn=? AND slot=?",day,slot);
+      if (busy || !current || current.state==="DONE" || current.state==="SKIPPED") return false;
+      state.storage.sql.exec("DELETE FROM d167_sku_stage WHERE day_vn=? AND slot=?",day,slot);
+      state.storage.sql.exec(`UPDATE d167_sku_jobs SET state='RESERVED',owner_id=?,generation=?,
+        operator_id=?,grant_hash=?,lease_until_ms=?,fingerprint=NULL,total_rows=0,
+        expected_revision=0,receipt_json=NULL,updated_at=? WHERE day_vn=? AND slot=?`,
+        instance,generation,String(body.actor_user_id),digest,Date.now()+duration,at,day,slot);
+      return true;
+    });
+    if (!reserved) return response({error:"JOB_LEASED_OR_ALREADY_COMPLETED"},409);
+    return response({status:"RESERVED",day_vn:day,slot,job_grant:grant,lease_expires_in_ms:duration});
+  }
+  if (!await guard(body,job)) return response({error:"SKU_JOB_GRANT_INVALID_OR_EXPIRED"},409);
+  if (action === "abort") {
+    if (String(job.state)==="RESERVED" || String(job.state)==="CLAIMED" || String(job.state)==="STAGING") {
+      state.storage.sql.exec(`UPDATE d167_sku_jobs SET state='READY',grant_hash=NULL,lease_until_ms=0,updated_at=?
+        WHERE day_vn=? AND slot=?`,new Date().toISOString(),day,slot);
+    }
+    return response({status:"ABORTED"});
+  }
   if (action === "claim") {
     const previousFull = row(state,
       "SELECT complete_at FROM d167_sku_jobs WHERE day_vn=? AND slot='INITIAL_05' AND state='DONE'", day);
@@ -235,9 +287,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
       if (String(meta?.last_full_day || "")!==day)
         return response({ error: "INITIAL_FULL_REQUIRED" }, 409);
     }
-    if (Number(job.lease_until_ms || 0) > Date.now()
-      && String(job.generation || "") === generation && String(job.owner_id || "") !== instance)
-      return response({ error: "JOB_LEASED" }, 409);
+    if (job.state !== "RESERVED") return response({error:"JOB_NOT_RESERVED"},409);
     // Fingerprint fast path: midday/evening complete WMS export is byte-for-byte
     // semantically unchanged vs the last verified source. No 2500-SKU staging,
     // no catalog UPDATE and no area-history event; one tiny slot receipt only.
@@ -298,9 +348,9 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
         Number(rev?.revision||0),new Date().toISOString(),
         resetStage?1:0,resetStage?1:0,day,slot);
     });
-    return response({ status: "CLAIMED", slot, day_vn: day, mode: slotMode(slot==="INITIAL_05"?"INITIAL_05":"DELTA_12"), lease_expires_in_ms: 15*60_000 });
+    return response({ status: "CLAIMED", slot, day_vn: day, mode: slotMode(slot==="INITIAL_05"?"INITIAL_05":"DELTA_12"), lease_expires_in_ms: Math.max(0,Number(job.lease_until_ms)-Date.now()) });
   }
-  if (!guard(body, job)) return response({ error: "HA_FENCED_OR_EXPIRED" }, 409);
+  // All write operations have already been verified against the independent job grant.
   if (action === "stage") {
     const items = body.items;
     if (!Array.isArray(items) || !items.length || items.length > 1000) return response({ error: "INVALID_CHUNK_SIZE" }, 400);

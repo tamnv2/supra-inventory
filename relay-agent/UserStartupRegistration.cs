@@ -9,11 +9,75 @@ namespace SupraInventoryRelayAgent
     {
         private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
         private const string ValueName = "SUPRA Inventory Relay Agent";
+        private const string PreferencesKey = @"Software\SupraInventory\RelayAgent";
+        private const string EnabledValue = "AutoStartEnabled";
+
+        internal static bool IsEnabled()
+        {
+            try
+            {
+                using(var key=Registry.CurrentUser.OpenSubKey(PreferencesKey,false))
+                    return key==null || Convert.ToInt32(key.GetValue(EnabledValue,1))!=0;
+            }
+            catch { return true; } // Legacy behavior until an explicit per-user choice.
+        }
+
+        internal static bool SetEnabled(bool enabled)
+        {
+            // The checkbox must reflect the real Windows Run registration,
+            // not just a successfully written preference.
+            var previous = IsEnabled();
+            try
+            {
+                using(var key=Registry.CurrentUser.CreateSubKey(PreferencesKey,true))
+                {
+                    if(key==null) return false;
+                    key.SetValue(EnabledValue,enabled?1:0,RegistryValueKind.DWord);
+                }
+                EnsureRegistered();
+                using(var run=Registry.CurrentUser.OpenSubKey(RunKey,false))
+                {
+                    var actual=run==null ? "" : (Convert.ToString(run.GetValue(ValueName,"")) ?? "");
+                    var exe=Assembly.GetExecutingAssembly().Location;
+                    if(string.IsNullOrWhiteSpace(exe))
+                        exe=Process.GetCurrentProcess().MainModule == null ? ""
+                            : Process.GetCurrentProcess().MainModule.FileName;
+                    var expected="\"" + (exe ?? "").Replace("\"","") + "\" --autostart";
+                    if(enabled
+                        ? string.IsNullOrWhiteSpace(exe) ||
+                          !string.Equals(actual,expected,StringComparison.Ordinal)
+                        : !string.IsNullOrWhiteSpace(actual))
+                        throw new InvalidOperationException("AUTOSTART_RUN_REGISTRATION_MISMATCH");
+                }
+                return true;
+            }
+            catch(Exception ex)
+            {
+                // Recover the previous preference if Windows denies the
+                // registration. Do not claim the toggle worked on a failed write.
+                try
+                {
+                    using(var key=Registry.CurrentUser.CreateSubKey(PreferencesKey,true))
+                        if(key!=null) key.SetValue(EnabledValue,previous?1:0,RegistryValueKind.DWord);
+                    EnsureRegistered();
+                }
+                catch { }
+                AgentDiagnostics.Write("AUTOSTART preference=FAIL type="+ex.GetType().Name);
+                return false;
+            }
+        }
 
         internal static void EnsureRegistered()
         {
             try
             {
+                if(!IsEnabled())
+                {
+                    using(var existing=Registry.CurrentUser.OpenSubKey(RunKey,true))
+                        if(existing!=null) existing.DeleteValue(ValueName,false);
+                    AgentDiagnostics.Write("AUTOSTART registration=DISABLED scope=HKCU");
+                    return;
+                }
                 var exe = Assembly.GetExecutingAssembly().Location;
                 if (string.IsNullOrWhiteSpace(exe))
                     exe = Process.GetCurrentProcess().MainModule == null ? "" : Process.GetCurrentProcess().MainModule.FileName;

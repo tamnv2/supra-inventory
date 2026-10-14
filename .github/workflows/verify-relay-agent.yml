@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   relay-agent:
@@ -1564,6 +1565,35 @@ jobs:
           path: relay-agent/dist/*
           if-no-files-found: error
           retention-days: 14
+
+      # D168 Worker-first migration: v131 SKU probe is not supported by D167 Worker.
+      # Do not publish an Agent update until the exact same source is healthy on Beta.
+      - name: D168 require matching Beta Worker before publishing Agent
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta.yml --commit $env:GITHUB_SHA --limit 20 --json databaseId,status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw "Cannot check D168 Worker runtime release dependency." }
+            $runs = @($raw | ConvertFrom-Json)
+            $match = @($runs | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+            if ($match.Count -gt 0 -and $match[0].status -eq "completed") {
+              if ($match[0].conclusion -ne "success") { throw "D168 Worker runtime deployment failed; Agent channel remains unchanged." }
+              try {
+                $health = Invoke-RestMethod -Uri "https://$env:BETA_HOSTNAME/health" -TimeoutSec 15
+                if ($health.environment -eq "beta" -and $health.status -eq "ok" -and $health.source_commit -eq $env:GITHUB_SHA) {
+                  Write-Host "D168_WORKER_FIRST_AGENT_RELEASE_GATE_PASS"
+                  break
+                }
+              } catch { Write-Host "Worker propagation not verified yet." }
+            }
+            if ($attempt -eq 120) { throw "D168 Worker exact-source health not verified: Agent publication blocked." }
+            Start-Sleep -Seconds 10
+          }
 
       - name: Resolve official Fixed WebView2 package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -232,17 +232,18 @@ namespace SupraInventoryRelayAgent
                 Text = "Tìm MNV / họ tên / nhà thầu",
                 ForeColor = Color.FromArgb(71, 85, 105)
             });
-            _pickerSearch.SetBounds(198, 36, 824, 30);
+            _pickerSearch.SetBounds(198, 36, 642, 30);
             _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
+            InitializeD168GroupPickerContact(pickerCard);
 
             _pickerOnlineGrid.SetBounds(16, 72, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _pickerOnlineGrid.AllowUserToAddRows = false;
             _pickerOnlineGrid.AllowUserToDeleteRows = false;
             _pickerOnlineGrid.AllowUserToResizeRows = false;
-            _pickerOnlineGrid.MultiSelect = false;
+            _pickerOnlineGrid.MultiSelect = true; // D168: selected group contact, no bulk kick from row selection.
             _pickerOnlineGrid.ReadOnly = true;
             _pickerOnlineGrid.RowHeadersVisible = false;
             _pickerOnlineGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -280,6 +281,13 @@ namespace SupraInventoryRelayAgent
                 Name = "Source",
                 HeaderText = "Nguồn xác nhận",
                 Width = 116
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "AppVersion",
+                HeaderText = "Phiên bản App",
+                Width = 118,
+                MinimumWidth = 90
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewButtonColumn
             {
@@ -1096,6 +1104,7 @@ namespace SupraInventoryRelayAgent
             _agentSyncSnapshot = snapshot;
             if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
             ApplyD160HistorySyncSnapshot(snapshot.CounterDayKey, snapshot.PickerHistoryJson);
+            ApplyD168SharedSkuStatus(snapshot.SkuStatusJson);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
             {
@@ -1554,6 +1563,7 @@ namespace SupraInventoryRelayAgent
                 DisplayName = work.PickerDisplayName ?? "",
                 ContractorName = existing == null ? "" : (existing.ContractorName ?? ""),
                 DeviceId = "",
+                AppVersion = "",
                 LoginAt = "",
                 DeviceSeenAt = DateTime.UtcNow.ToString("o"),
                 Status = "PDA_READY"
@@ -1854,6 +1864,7 @@ namespace SupraInventoryRelayAgent
                     item.DisplayName ?? "",
                     item.ContractorName ?? "",
                     item.DeviceId ?? "",
+                    item.AppVersion ?? "",
                     item.LoginAt ?? "",
                     item.Source ?? "LOGIN",
                     item.SessionGeneration.ToString()
@@ -2170,16 +2181,20 @@ namespace SupraInventoryRelayAgent
             }
             catch { }
 
-            var selectedUserId = "";
+            // D168: preserve the exact multi-selection while realtime presence
+            // refreshes rows. A single-ID restore silently drops intended
+            // recipients from the group-contact operation.
+            var selectedSessions = new HashSet<Tuple<string,long,string>>();
             try
             {
-                if (_pickerOnlineGrid.SelectedRows.Count > 0)
+                foreach (DataGridViewRow selected in _pickerOnlineGrid.SelectedRows)
                 {
-                    var selected = _pickerOnlineGrid.SelectedRows[0].Tag as PickerPresenceView;
-                    selectedUserId = selected == null ? "" : selected.UserId;
+                    var picker = selected.Tag as PickerPresenceView;
+                    if (picker != null && !string.IsNullOrWhiteSpace(picker.UserId))
+                        selectedSessions.Add(Tuple.Create(picker.UserId,picker.SessionGeneration,picker.FirebaseUid ?? ""));
                 }
             }
-            catch { }
+            catch { selectedSessions.Clear(); }
 
             _pickerOnlineGrid.SuspendLayout();
             try
@@ -2208,6 +2223,7 @@ namespace SupraInventoryRelayAgent
                         name,
                         contractor,
                         source,
+                        string.IsNullOrWhiteSpace(picker.AppVersion) ? "Chưa ghi nhận" : picker.AppVersion,
                         "Kích User",
                         "Liên hệ picker",
                         resolveText)];
@@ -2233,16 +2249,16 @@ namespace SupraInventoryRelayAgent
                 }
 
                 var firstIndex = -1;
-                var selectedIndex = -1;
+                _pickerOnlineGrid.ClearSelection();
                 for (var index = 0; index < _pickerOnlineGrid.Rows.Count; index++)
                 {
                     var picker = _pickerOnlineGrid.Rows[index].Tag as PickerPresenceView;
                     if (picker == null) continue;
                     if (firstIndex < 0 && picker.UserId == firstUserId) firstIndex = index;
-                    if (selectedIndex < 0 && picker.UserId == selectedUserId) selectedIndex = index;
+                    if (selectedSessions.Contains(Tuple.Create(picker.UserId,picker.SessionGeneration,picker.FirebaseUid ?? "")))
+                        _pickerOnlineGrid.Rows[index].Selected = true;
                 }
                 if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
-                if (selectedIndex >= 0) _pickerOnlineGrid.Rows[selectedIndex].Selected = true;
                 ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
                 _pickerOnlineRenderSignature = renderSignature;
             }

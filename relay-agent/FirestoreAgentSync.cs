@@ -46,6 +46,7 @@ namespace SupraInventoryRelayAgent
         internal long ConfirmedTotal;
         internal long ErrorTotal;
         internal string PickerHistoryJson = "";
+        internal string SkuStatusJson = "";
     }
 
     internal sealed class FirestoreAgentSyncClient
@@ -158,6 +159,62 @@ namespace SupraInventoryRelayAgent
                 }
             }
             throw last ?? new InvalidOperationException("Không cập nhật được Agent sync.");
+        }
+
+        // One compact terminal Worker receipt summary per SKU slot, piggybacked
+        // on the existing authenticated agent_sync CAS document and listener.
+        // No new Firestore collection, listener or status polling.
+        internal AgentSyncSnapshot SetSkuStatus(AgentSession session,string json)
+        {
+            if(string.IsNullOrWhiteSpace(json) || json.Length>3500)
+                throw new InvalidOperationException("D167_SKU_SHARED_STATUS_INVALID");
+            return Mutate(session,snapshot=>
+                snapshot.SkuStatusJson=MergeTerminalSkuStatus(snapshot.SkuStatusJson,json),
+                "AGENT_SYNC_SKU_TERMINAL");
+        }
+
+        // DONE is immutable per business date/slot. Merge concurrent verified
+        // receipts so an older Agent snapshot cannot erase a newer completed
+        // slot when CAS retries after another Agent has published.
+        private string MergeTerminalSkuStatus(string previous,string incoming)
+        {
+            if(string.IsNullOrWhiteSpace(previous))return incoming;
+            try
+            {
+                var oldDoc=_json.DeserializeObject(previous) as Dictionary<string,object>;
+                var newDoc=_json.DeserializeObject(incoming) as Dictionary<string,object>;
+                if(oldDoc==null || newDoc==null)return incoming;
+                var oldDay=Convert.ToString(oldDoc["day_vn"]) ?? "";
+                var newDay=Convert.ToString(newDoc["day_vn"]) ?? "";
+                if(!System.Text.RegularExpressions.Regex.IsMatch(oldDay,@"^\d{4}-\d{2}-\d{2}$") ||
+                   !System.Text.RegularExpressions.Regex.IsMatch(newDay,@"^\d{4}-\d{2}-\d{2}$"))
+                    return incoming;
+                if(!string.Equals(oldDay,newDay,StringComparison.Ordinal))
+                    return string.CompareOrdinal(oldDay,newDay)>0 ? previous : incoming;
+                var bySlot=new Dictionary<string,object>(StringComparer.Ordinal);
+                foreach(var doc in new[]{oldDoc,newDoc})
+                {
+                    object raw;
+                    if(!doc.TryGetValue("slots",out raw))continue;
+                    foreach(var element in raw as object[] ?? new object[0])
+                    {
+                        var record=element as Dictionary<string,object>;
+                        if(record==null || !record.ContainsKey("slot") ||
+                            !record.ContainsKey("state") ||
+                            Convert.ToString(record["state"])!="DONE")continue;
+                        var slot=Convert.ToString(record["slot"]) ?? "";
+                        if(slot=="INITIAL_05" || slot=="DELTA_12" || slot=="DELTA_19")
+                            bySlot[slot]=record;
+                    }
+                }
+                var slots=bySlot.OrderBy(x=>x.Key,StringComparer.Ordinal)
+                    .Select(x=>x.Value).ToArray();
+                var combined=_json.Serialize(new Dictionary<string,object>{
+                    {"day_vn",newDay},{"slots",slots}
+                });
+                return combined.Length>3500 ? incoming : combined;
+            }
+            catch { return incoming; }
         }
 
         internal AgentSyncSnapshot Reconcile(
@@ -422,6 +479,7 @@ namespace SupraInventoryRelayAgent
             snapshot.Kicks = ParseKicks(FieldString(fields, "kicks_json"));
             snapshot.Fleet = ParseFleet(FieldString(fields, "fleet_json"));
             snapshot.PickerHistoryJson = FieldString(fields, "picker_history_json");
+            snapshot.SkuStatusJson = FieldString(fields, "sku_status_json");
             Normalize(snapshot);
             return snapshot;
         }
@@ -444,7 +502,8 @@ namespace SupraInventoryRelayAgent
                 { "received_total", Math.Max(0L, snapshot.ReceivedTotal) },
                 { "confirmed_total", Math.Max(0L, snapshot.ConfirmedTotal) },
                 { "error_total", Math.Max(0L, snapshot.ErrorTotal) },
-                { "picker_history_json", snapshot.PickerHistoryJson ?? "" }
+                { "picker_history_json", snapshot.PickerHistoryJson ?? "" },
+                { "sku_status_json", snapshot.SkuStatusJson ?? "" }
             });
         }
 
@@ -463,7 +522,8 @@ namespace SupraInventoryRelayAgent
                 { "received_total", IntField(snapshot.ReceivedTotal) },
                 { "confirmed_total", IntField(snapshot.ConfirmedTotal) },
                 { "error_total", IntField(snapshot.ErrorTotal) },
-                { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") }
+                { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") },
+                { "sku_status_json", StringField(snapshot.SkuStatusJson ?? "") }
             };
         }
 
@@ -518,7 +578,8 @@ namespace SupraInventoryRelayAgent
                 ReceivedTotal = Math.Max(0L, source.ReceivedTotal),
                 ConfirmedTotal = Math.Max(0L, source.ConfirmedTotal),
                 ErrorTotal = Math.Max(0L, source.ErrorTotal),
-                PickerHistoryJson = source.PickerHistoryJson ?? ""
+                PickerHistoryJson = source.PickerHistoryJson ?? "",
+                SkuStatusJson = source.SkuStatusJson ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
             {
@@ -571,6 +632,7 @@ namespace SupraInventoryRelayAgent
                 DisplayName = item.DisplayName ?? "",
                 ContractorName = item.ContractorName ?? "",
                 DeviceId = item.DeviceId ?? "",
+                AppVersion = item.AppVersion ?? "",
                 LoginAt = item.LoginAt ?? "",
                 DeviceSeenAt = item.DeviceSeenAt ?? "",
                 Status = "PDA_READY",
@@ -608,7 +670,8 @@ namespace SupraInventoryRelayAgent
                     { "user_id", item.UserId ?? "" }, { "firebase_uid", item.FirebaseUid ?? "" },
                     { "employee_code", item.EmployeeCode ?? "" }, { "display_name", item.DisplayName ?? "" },
                     { "contractor_name", item.ContractorName ?? "" },
-                    { "device_id", item.DeviceId ?? "" }, { "login_at", item.LoginAt ?? "" },
+                    { "device_id", item.DeviceId ?? "" }, { "app_version", item.AppVersion ?? "" },
+                    { "login_at", item.LoginAt ?? "" },
                     { "source", item.Source ?? "LOGIN" }, { "session_generation", item.SessionGeneration }
                 });
             return _json.Serialize(list);
@@ -666,7 +729,8 @@ namespace SupraInventoryRelayAgent
                     UserId = S(map, "user_id"), FirebaseUid = S(map, "firebase_uid"),
                     EmployeeCode = S(map, "employee_code"), DisplayName = S(map, "display_name"),
                     ContractorName = S(map, "contractor_name"),
-                    DeviceId = S(map, "device_id"), LoginAt = S(map, "login_at"),
+                    DeviceId = S(map, "device_id"), AppVersion = S(map, "app_version"),
+                    LoginAt = S(map, "login_at"),
                     Status = "PDA_READY", Source = S(map, "source") == "PICKLIST" ? "PICKLIST" : "LOGIN",
                     SessionGeneration = L(map, "session_generation")
                 });

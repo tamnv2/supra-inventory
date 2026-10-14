@@ -18,10 +18,9 @@ namespace SupraInventoryRelayAgent
     internal string ReceiptJson = "";
     }
 
-    // D167 authenticates with the existing Agent Firebase ID token. The
-    // registered Google Agent Operations Gateway is a transport ONLY, to
-    // reach Inventory Beta Worker when corporate Office blocks Cloudflare.
-    // The Worker independently enforces PRIMARY generation and SQL CAS.
+    // D168: SKU bypasses Apps Script entirely. The registered Beta Worker
+    // validates an authenticated PRIMARY at reserve; InventoryCore issues
+    // an opaque in-memory job grant for the remaining idempotent stages.
     // No WMS token, browser header, cookie or secret ever enters this class.
     internal sealed class D167SkuServiceClient
     {
@@ -106,14 +105,45 @@ namespace SupraInventoryRelayAgent
             return Str(r,"state");
         }
 
+        internal string WorkerRouteStatus()
+        {
+            // One read-only network classification before a scheduled WMS
+            // export. Never send a SKU, WMS header or credential in this probe.
+            ensureFreshToken();
+            var actor=session();
+            if(actor==null || string.IsNullOrWhiteSpace(actor.IdToken))
+                throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
+            return D168NetworkRoute.ProbeWorker(actor.IdToken);
+        }
+
+        internal string Reserve(string day,string slot,string instanceId,string generation)
+        {
+            var r=Send("reserve",new Dictionary<string,object>{
+                {"day_vn",day},{"slot",slot},{"instance_id",instanceId},{"generation",generation}
+            });
+            if (Str(r,"status")!="RESERVED" || !System.Text.RegularExpressions.Regex.IsMatch(
+                Str(r,"job_grant"),"^[a-f0-9]{64}$"))
+                throw new InvalidOperationException("D167_RESERVE_NOT_CONFIRMED");
+            return Str(r,"job_grant");
+        }
+
+        internal void Abort(string day,string slot,string instanceId,string generation,string grant)
+        {
+            try { Send("abort",new Dictionary<string,object>{
+                {"day_vn",day},{"slot",slot},{"instance_id",instanceId},
+                {"generation",generation},{"job_grant",grant}
+            }); } catch { /* original failure is preserved; expiry also fences the job */ }
+        }
+
         internal bool UploadAndPublish(string day,string slot,string instanceId,
-            string generation,D167SkuWorkbook workbook,Func<string,bool> confirmConflicts)
+            string generation,string grant,D167SkuWorkbook workbook,Func<string,bool> confirmConflicts)
         {
             if (workbook == null || workbook.Items.Count == 0 || workbook.Items.Count > 5000)
                 throw new InvalidDataException("D167_SKU_INVALID_WORKBOOK");
-            if (!stillPrimary()) throw new InvalidOperationException("D167_NOT_PRIMARY");
+            if (!System.Text.RegularExpressions.Regex.IsMatch(grant ?? "","^[a-f0-9]{64}$"))
+                throw new InvalidOperationException("D167_JOB_GRANT_REQUIRED");
             var proof = new Dictionary<string, object> {
-                {"day_vn",day},{"slot",slot},
+                {"day_vn",day},{"slot",slot},{"job_grant",grant},
                 {"instance_id",instanceId},{"generation",generation}
             };
             var claim = Copy(proof);
@@ -129,7 +159,6 @@ namespace SupraInventoryRelayAgent
             var all = workbook.Items;
             for (int offset=0;offset<all.Count;offset+=chunkSize)
             {
-                if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
                 var body = Copy(proof);
                 body["fingerprint"] = workbook.Fingerprint;
                 body["expected_count"] = all.Count;
@@ -179,7 +208,6 @@ namespace SupraInventoryRelayAgent
                 approvalLines.Add("Nếu từ chối, trạng thái SKU hiện tại được giữ nguyên.");
                 if (confirmConflicts == null || !confirmConflicts(string.Join("\n",approvalLines)))
                     throw new InvalidOperationException("D167_SKU_CONFLICT_AWAITING_APPROVAL");
-                if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
                 approved = true;
             }
             var publish = Copy(proof);
@@ -210,64 +238,71 @@ namespace SupraInventoryRelayAgent
 
         private Dictionary<string, object> Send(string operation,Dictionary<string,object> data)
         {
-            if (!stillPrimary() && operation!="schedule" && operation!="status")
+            var primaryGate=operation=="reserve" || operation=="manual-start";
+            if (primaryGate && !stillPrimary())
                 throw new InvalidOperationException("D167_NOT_PRIMARY");
             ensureFreshToken();
-            if (operation!="schedule" && operation!="status")
+            if (primaryGate)
             {
                 object proofGeneration;
                 if (!data.TryGetValue("generation",out proofGeneration))
                     throw new InvalidOperationException("D167_SKU_PRIMARY_PROOF_REQUIRED");
                 refreshSkuPrimaryLease(Convert.ToString(proofGeneration));
             }
-            var auth = session();
-            if (auth == null || string.IsNullOrWhiteSpace(auth.IdToken))
+            var auth=session();
+            if (auth==null || string.IsNullOrWhiteSpace(auth.IdToken))
                 throw new InvalidOperationException("D167_AGENT_AUTH_UNAVAILABLE");
-            var gateway = (AgentConfig.AgentLogGatewayUrl ?? "").Trim();
-            Uri target;
-            if (gateway.Contains("__") || !Uri.TryCreate(gateway,UriKind.Absolute,out target) ||
-                target.Scheme != Uri.UriSchemeHttps ||
-                !string.Equals(target.Host,"script.google.com",StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("D167_OFFICE_GATEWAY_NOT_CONFIGURED");
-            var body = new Dictionary<string,object> {
-                {"action","d167_sku_sync"},{"operation",operation},
-                {"id_token",auth.IdToken},{"data",data}
-            };
-            var bytes=Encoding.UTF8.GetBytes(Json.Serialize(body));
-            if (bytes.Length>500000) throw new InvalidDataException("D167_SKU_CHUNK_OVERSIZE");
-            var request=(HttpWebRequest)WebRequest.Create(target);
-            request.Method="POST";
+            var isGet=operation=="schedule" || operation=="status";
+            var root=AgentConfig.ApiBaseUrl.TrimEnd('/');
+            Uri allowed;
+            if (!Uri.TryCreate(root,UriKind.Absolute,out allowed) ||
+                allowed.Scheme!=Uri.UriSchemeHttps ||
+                !string.Equals(allowed.Host,"inventory-beta.supra.cc.cd",StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("D167_WORKER_TARGET_NOT_ALLOWED");
+            var path=root+"/api/agent/d167/skus/"+operation;
+            if(isGet)
+            {
+                path+="?day_vn="+Uri.EscapeDataString(Str(data,"day_vn"));
+                if(operation=="status") path+="&slot="+Uri.EscapeDataString(Str(data,"slot"));
+            }
+            var request=(HttpWebRequest)WebRequest.Create(path);
+            request.Method=isGet ? "GET" : "POST";
             request.ContentType="application/json; charset=utf-8";
-            request.UserAgent="Agent-Auto-Confirm-Pick-Pack/D167";
+            request.Accept="application/json";
+            request.UserAgent="Agent-Auto-Confirm-Pick-Pack/D168";
             request.Timeout=30000;
             request.ReadWriteTimeout=30000;
-            request.AllowAutoRedirect=true;
-            request.ContentLength=bytes.Length;
-            using(var stream=request.GetRequestStream()) stream.Write(bytes,0,bytes.Length);
+            request.AllowAutoRedirect=false;
+            request.Headers[HttpRequestHeader.Authorization]="Bearer "+auth.IdToken;
+            if(!isGet)
+            {
+                var bytes=Encoding.UTF8.GetBytes(Json.Serialize(data));
+                if(bytes.Length>500000) throw new InvalidDataException("D167_SKU_CHUNK_OVERSIZE");
+                request.ContentLength=bytes.Length;
+                using(var stream=request.GetRequestStream()) stream.Write(bytes,0,bytes.Length);
+            }
             try
             {
                 using(var response=(HttpWebResponse)request.GetResponse())
                 using(var stream=new StreamReader(response.GetResponseStream()))
                 {
                     var raw=stream.ReadToEnd();
-                    if (raw.Length>2*1024*1024) throw new InvalidDataException("D167_REPLY_OVERSIZE");
+                    if(raw.Length>2*1024*1024)throw new InvalidDataException("D167_REPLY_OVERSIZE");
                     var value=Json.DeserializeObject(raw) as Dictionary<string,object>;
-                    if (value==null) throw new InvalidDataException("D167_BAD_GATEWAY_RESPONSE");
-                    object ok;
-                    if (!value.TryGetValue("ok",out ok) || !Convert.ToBoolean(ok))
-                    {
-                        var err=Str(value,"error");
-                        if (err.Length>100) err=err.Substring(0,100);
-                        throw new InvalidOperationException("D167_WORKER_" + err);
-                    }
+                    if(value==null)throw new InvalidDataException("D167_BAD_WORKER_RESPONSE");
+                    var err=Str(value,"error");
+                    if(!string.IsNullOrEmpty(err))
+                        throw new InvalidOperationException("D167_WORKER_REJECTED");
                     return value;
                 }
             }
             catch(WebException e)
             {
-                // Do not copy provider bodies or exception messages into
-                // logs; timeout after commit is resolved by exact status read.
-                throw new IOException("D167_GATEWAY_"+e.Status.ToString().ToUpperInvariant());
+                var response=e.Response as HttpWebResponse;
+                var http=response==null ? 0 : (int)response.StatusCode;
+                throw new IOException(http>0
+                    ? "D167_WORKER_HTTP_"+http.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    : "D167_WORKER_"+e.Status.ToString().ToUpperInvariant());
             }
         }
 
