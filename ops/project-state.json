@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_E032_BETA_RELEASE_PASS__E033_E034_FIELD_GAPS_PROPOSED__OWNER_FIELD_PASS_PENDING",
+    "current_change_status": "D168_E034_OWNER_APPROVED_SOURCE_REPAIRS_IN_PROGRESS__LOG_BOUNDARY_REWORK_PR592_CI_NOT_PASS__BETA_RUNTIME_CBB52225_UNCHANGED__OWNER_FIELD_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
