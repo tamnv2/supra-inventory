@@ -592,13 +592,23 @@ jobs:
           )) {
             if (-not $program.Contains($marker)) { throw "D158 auth regression guard missing: $marker" }
           }
-          foreach ($marker in @(
-            'GOOGLE_CONNECTIVITY',
-            'IncidentOpen',
-            'ObserveDiagnostic',
-            'reason=ACTIVE_INCIDENT'
-          )) {
-            if (-not $agentLogBridge.Contains($marker)) { throw "D158 hotfix incident-log guard missing: $marker" }
+          # D168 Owner supersedes D158 immediate incident uploads: retain
+          # source diagnostics locally, never issue a network request on error/crash.
+          if (-not $agentLogBridge.Contains('ObserveDiagnostic') -or
+              -not $agentLogBridge.Contains('BOUNDARY_2145')) {
+            throw "D168 local-first log lifecycle markers missing."
+          }
+          $errorStart = $agentLogBridge.IndexOf('internal void TryQueueErrorSnapshot(')
+          $errorEnd = $agentLogBridge.IndexOf('// Kept under the existing method name', $errorStart)
+          if ($errorStart -lt 0 -or $errorEnd -le $errorStart -or
+              $agentLogBridge.Substring($errorStart, $errorEnd - $errorStart).Contains('TryFlushPending(')) {
+            throw "D168 error callback must not upload immediately."
+          }
+          $crashStart = $agentLogBridge.IndexOf('internal void TryQueueCrashSnapshot(')
+          $crashEnd = $agentLogBridge.IndexOf('internal void TryQueueErrorSnapshot(', $crashStart)
+          if ($crashStart -lt 0 -or $crashEnd -le $crashStart -or
+              $agentLogBridge.Substring($crashStart, $crashEnd - $crashStart).Contains('TryFlushPending(')) {
+            throw "D168 crash snapshot must remain local only."
           }
 
           foreach ($marker in @(
@@ -1126,14 +1136,16 @@ jobs:
           )) {
             if (-not $ops.Contains($marker)) { throw "D150 takeover/deep-sync UI marker missing: $marker" }
           }
+          # D168 replaces the legacy timed incident uploader: an error/crash
+          # can only add durable local evidence, never retry a Drive upload.
           foreach ($marker in @(
-            'ErrorFingerprintWindow = TimeSpan.FromMinutes(10)',
-            'MaxImmediateErrorsPerWindow = 6',
-            'DIRECT_PART',
-            'SAME_FINGERPRINT',
-            'GLOBAL_FUSE'
+            'TryQueueErrorSnapshot',
+            'TryQueueCrashSnapshot',
+            'BOUNDARY_2145',
+            'DRIVE_CONFIRMATION_MISSING',
+            'BLOCKED_INVALID_PENDING_METADATA'
           )) {
-            if (-not $agentLogBridge.Contains($marker)) { throw "D150 Agent log-storm guard missing: $marker" }
+            if (-not $agentLogBridge.Contains($marker)) { throw "D168 local-first log regression: $marker" }
           }
           if (-not $rules.Contains("'DIRECT_PART'")) { throw "D150 Firestore rules must allow DIRECT_PART Agent log chunks." }
           if (-not $functionsIndex.Contains('index === expected - 1 ? "DIRECT_PENDING" : "DIRECT_PART"')) {
@@ -1473,15 +1485,15 @@ jobs:
             'DirtyCheckpointMs',
             'SizeCheckpointBytes',
             'TotalBytesWritten',
-            'SIZE_2MB_NEW_DATA',
-            'seal=SKIP_EMPTY',
+            'SCHEDULE_BOUNDARY=21:45',
+            'daily_2145=',
             'FloorToLogMillisecond',
             'untilLocalExclusive',
             'at < untilLocalExclusive',
             'SealLogoutAndFlush',
             'agent-log-pending',
-            'SAME_FINGERPRINT',
-            'GLOBAL_FUSE'
+            'DRIVE_CONFIRMATION_MISSING',
+            'Failure remains on disk until the next 21:45/manual/support request.'
           )) {
             if (-not ($program.Contains($marker) -or $bridge.Contains($marker) -or $rules.Contains($marker))) {
               throw "D146/D158 Agent log/input guard missing: $marker"

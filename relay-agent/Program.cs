@@ -722,6 +722,7 @@ namespace SupraInventoryRelayAgent
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
+        private DateTime _lastD168Log2145AttemptDate = DateTime.MinValue;
         private readonly AgentLogUploadBridge _agentLogBridge;
         private int _interactiveInputGuardDepth;
         private readonly AgentBusinessSchedule _businessSchedule;
@@ -800,10 +801,8 @@ namespace SupraInventoryRelayAgent
                 AgentLogUploadCheckpointFile,
                 message => Log(message));
             AgentDiagnostics.CrashUploadCallback = crashType => _agentLogBridge.TryQueueCrashSnapshot(crashType);
-            AgentDiagnostics.ErrorUploadCallback = errorType =>
-            {
-                Task.Run(() => _agentLogBridge.TryQueueErrorSnapshot(errorType));
-            };
+            // D168: all error evidence stays local until a scheduled or explicit log boundary.
+            AgentDiagnostics.ErrorUploadCallback = null;
             AgentDiagnostics.DiagnosticObservationCallback = message =>
                 _agentLogBridge.ObserveDiagnostic(message);
             Text = "SUPRA Inventory - Relay Test v" + AgentConfig.AgentBuild;
@@ -949,13 +948,20 @@ namespace SupraInventoryRelayAgent
             _updateTimer.Stop();
 
             _logUploadTimer.Interval = 60 * 1000;
-            _logUploadTimer.Tick += (s, e) => Task.Run(() =>
+            // The existing local UI timer does no provider work outside 21:45.
+            _logUploadTimer.Tick += (s, e) =>
             {
-                try { EnsureFreshToken(); } catch { }
-                _agentLogBridge.TryFlushPendingCrash();
-                _agentLogBridge.TryQueueScheduledSnapshot();
-                Ui(() => _d160LogStatus.Text = _agentLogBridge.StatusSummary());
-            });
+                var now = D167SkuSchedule.VNNow();
+                if(now.TimeOfDay < new TimeSpan(21,45,0) ||
+                    _lastD168Log2145AttemptDate == now.Date)return;
+                _lastD168Log2145AttemptDate=now.Date;
+                Task.Run(() =>
+                {
+                    try { EnsureFreshToken(); } catch { }
+                    _agentLogBridge.TryQueueScheduledSnapshot();
+                    Ui(() => _d160LogStatus.Text = _agentLogBridge.StatusSummary());
+                });
+            };
 
             Shown += (s, e) =>
             {
@@ -1503,12 +1509,23 @@ namespace SupraInventoryRelayAgent
                 Checked=UserStartupRegistration.IsEnabled(),
                 Font=new Font("Segoe UI",9.5F)
             };
+            var restoringAutoStartChoice=false;
             autoStartOption.CheckedChanged+=(sender,args)=>{
-                if(!UserStartupRegistration.SetEnabled(autoStartOption.Checked))
+                if(restoringAutoStartChoice)return;
+                var enabled=autoStartOption.Checked;
+                var confirm=MessageBox.Show(this,
+                    enabled ? "Bật tự động khởi động Agent khi đăng nhập Windows?"
+                        : "Tắt tự động khởi động Agent khi đăng nhập Windows?",
+                    "Xác nhận tự động khởi động",MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,MessageBoxDefaultButton.Button2);
+                if(confirm!=DialogResult.Yes || !UserStartupRegistration.SetEnabled(enabled))
                 {
-                    MessageBox.Show("Không lưu được cài đặt tự khởi động. Hãy kiểm tra quyền Windows.",
-                        "Cài đặt Agent",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                    if(confirm==DialogResult.Yes)
+                        MessageBox.Show(this,"Không lưu được cài đặt tự khởi động. Hãy kiểm tra quyền Windows.",
+                            "Cài đặt Agent",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                    restoringAutoStartChoice=true;
                     autoStartOption.Checked=UserStartupRegistration.IsEnabled();
+                    restoringAutoStartChoice=false;
                 }
             };
             networkCard.Controls.Add(autoStartOption);
@@ -3811,7 +3828,7 @@ namespace SupraInventoryRelayAgent
             if (string.IsNullOrWhiteSpace(password))
                 throw new InvalidOperationException("Nhập mật khẩu Agent.");
 
-            Log("Firebase Agent login START host=identitytoolkit.googleapis.com ssid=" + GetSsid());
+            Log("Firebase Agent login START host=identitytoolkit.googleapis.com network_class=LOCAL");
             var preferredRole = LoadAgentRoleHint(identifier);
             var roles = string.Equals(preferredRole, "PICKPACK_ADMIN", StringComparison.Ordinal)
                 ? new[] { "PICKPACK_ADMIN", "ADMIN" }
@@ -4161,7 +4178,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 LogNetworkSnapshot("probe-all");
-                Log("PROBE ALL START ssid=" + GetSsid());
+                Log("PROBE ALL START network_class=LOCAL");
 
                 try
                 {
@@ -4214,7 +4231,7 @@ namespace SupraInventoryRelayAgent
                 results.Add(ProbeHttp("DRIVE", AgentConfig.DriveProbeUrl, null));
 
                 foreach (var result in results) LogProbeResult(result);
-                Log("PROBE SUMMARY ssid=" + GetSsid() + " " + string.Join(" | ", results.ConvertAll(x => x.Summary()).ToArray()));
+                Log("PROBE SUMMARY network_class=LOCAL " + string.Join(" | ", results.ConvertAll(x => x.Summary()).ToArray()));
                 Ui(() => _relay.Text = "Probe xong · xem log");
             }
             catch (Exception ex)
@@ -4461,7 +4478,7 @@ namespace SupraInventoryRelayAgent
                 if (result.Result == "PASS")
                 {
                     Ui(() => _relay.Text = "Relay: FIRESTORE PASS / Office");
-                    Log("OFFICE PASS ssid=" + GetSsid() + " admin=" + session.AppUserId + " instance=" + Short(_agentInstanceId) + " firestore_ms=" + result.ElapsedMs + ".");
+                    Log("OFFICE PASS network_class=OFFICE instance=" + Short(_agentInstanceId) + " firestore_ms=" + result.ElapsedMs + ".");
                 }
                 else if (result.Result == "PROXY_BLOCK")
                 {
@@ -4726,7 +4743,7 @@ namespace SupraInventoryRelayAgent
             var current = SnapshotSession();
             var form = "grant_type=refresh_token&refresh_token=" + Uri.EscapeDataString(current.RefreshToken);
             var url = "https://securetoken.googleapis.com/v1/token?key=" + Uri.EscapeDataString(AgentConfig.FirebaseApiKey);
-            Log("Firebase refresh START host=securetoken.googleapis.com ssid=" + GetSsid());
+            Log("Firebase refresh START host=securetoken.googleapis.com network_class=LOCAL");
             var root = Map(_json.DeserializeObject(RequestJson("POST", url, form, "application/x-www-form-urlencoded")));
             var idToken = Convert.ToString(root["id_token"]);
             var refreshToken = Convert.ToString(root["refresh_token"]);
@@ -5125,7 +5142,7 @@ namespace SupraInventoryRelayAgent
                 proxy = "UNKNOWN:" + ex.GetType().Name;
             }
 
-            Log("NET stage=" + stage + " ssid=" + ssid + " available=" + internet + " proxy=" + proxy);
+            Log("NET stage=" + stage + " network_class=LOCAL available=" + internet + " proxy=" + proxy);
             try
             {
                 foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())

@@ -94,6 +94,7 @@ namespace SupraInventoryRelayAgent
             string activeSlot=null,activeGrant=null,activeGeneration=null,activeDay=null;
             IDisposable workerNetworkScope=null;
             D167SkuWorkbook officeWorkbook=null;
+            var verifiedSkuUploadDone=false;
             try
             {
                 if(!isPrimaryReady() || confirmBusy())
@@ -142,6 +143,7 @@ namespace SupraInventoryRelayAgent
                 if(!service.UploadAndPublish(day,slot,instanceId,activeGeneration,activeGrant,workbook,confirmConflicts))
                     throw new InvalidOperationException("D167_MANUAL_RECEIPT_UNVERIFIED");
                 lastVerifiedWorkbook=workbook;
+                verifiedSkuUploadDone=true;
                 NotifyStatus(service.Schedule(day),"Đã cập nhật SKU thành công; hệ thống đã xác nhận lưu dữ liệu.");
                 log("D167_SKU manual=DONE area_snapshot_count="+workbook.Items.Count+
                     " elapsed_ms="+manualTrace.ElapsedMilliseconds);
@@ -160,7 +162,14 @@ namespace SupraInventoryRelayAgent
             finally
             {
                 try { if(workerNetworkScope!=null)workerNetworkScope.Dispose(); }
-                catch(Exception e) {log("D168_NETWORK restore=FAILED type="+e.GetType().Name);}
+                catch(Exception e)
+                {
+                    log("D168_NETWORK restore=FAILED type="+e.GetType().Name+
+                        " sku_upload_verified="+(verifiedSkuUploadDone?"true":"false"));
+                    NotifyStatus(null,verifiedSkuUploadDone
+                        ? "SKU đã cập nhật thành công nhưng CHƯA khôi phục được mạng ban đầu. Vui lòng kiểm tra Wi-Fi để tiếp tục xác nhận PickList."
+                        : "Không khôi phục được mạng ban đầu sau khi thử cập nhật SKU. Vui lòng kiểm tra Wi-Fi trước khi tiếp tục nghiệp vụ.");
+                }
                 Interlocked.Exchange(ref running,0);
                 // Re-evaluate the unchanged three-slot schedule once after manual.
                 Queue();
@@ -185,6 +194,10 @@ namespace SupraInventoryRelayAgent
                 {
                     // Error categories only: no credentials, source rows or WMS
                     // locations are logged. Retry only via a bounded local timer.
+                    // Existing local diagnostic only: no new provider request or log upload.
+                    log("D168_SKU_SUMMARY result=DEFER day_vn="+D167SkuSchedule.VNNow().ToString("yyyy-MM-dd")+
+                        " active_key="+activeKey+" error_type="+e.GetType().Name+
+                        " error_code="+SafeErrorCode(e)+" next_event=BOUNDED_15M");
                     log("D167_SKU sync=DEFER error_type="+e.GetType().Name+
                         " error_code="+SafeErrorCode(e));
                     NotifyStatus(null,"Cập nhật SKU tự động chưa thành công: "+
@@ -285,6 +298,9 @@ namespace SupraInventoryRelayAgent
             lastVerifiedWorkbook=workbook;
             log("D167_SKU slot="+eligible.Slot+" stage=DONE count="+workbook.Items.Count+
                 " elapsed_ms="+slotTrace.ElapsedMilliseconds);
+            log("D168_SKU_SUMMARY result=DONE day_vn="+day+" slot="+eligible.Slot+
+                " sku_count="+workbook.Items.Count+" receipt_verified=true elapsed_ms="+
+                slotTrace.ElapsedMilliseconds+" provider_poll_added=false");
             NotifyStatus(service.Schedule(day),"Đã cập nhật SKU và xác minh dữ liệu lưu trên hệ thống.");
             // Schedule remaining slots once, not on every WMS/HA event.
             Arm(TimeSpan.FromSeconds(2));

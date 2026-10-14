@@ -3017,3 +3017,23 @@ Phân biệt SOURCE_CI_PASS (kiểm thử tự động); OWNER_PREDEPLOY_FIELD_W
 Cổng release có 2 đường hợp lệ: field_pass=true có chứng cứ thực; hoặc field_pass=false + physical_field_verified=false + field_release_mode=OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION + owner_field_acceptance_reference=OWNER_EXPLICIT_D168_20261014_BETA_FIELD_TEST_AT_RELEASE, được ghi nhận ở journal E029. Cả hai đường vẫn yêu cầu exact source SHA, Owner Beta release ref, authority/continuity và product CI PASS, component allowlist, main-only release; Stable luôn bị chặn.
 
 Đồng bộ triển khai: Worker + InventoryCore + Web assets đạt health cùng Git SHA trước khi Agent v131 và Android Beta được phát hành. Mã lỗi thiếu API do Worker vD167 chưa nâng không được báo là lỗi Wi-Fi. Sau triển khai, Owner tự nghiệm thu trực tiếp: (1) Worker D168 endpoint 200 có xác thực và App/Agent thực chạy tương thích; (2) FULL 05h một PRIMARY, giữ Confirm; (3) Office→Internet→Office hồi phục; (4) PICKLIST ACK và HA; (5) Tracker/Drive Log/Usage không tăng bất thường. Nếu phát hiện sai phải ghi NOT PASS và sửa cùng D168, không chuyển sang D169.
+
+
+## D168-E031 — kiểm tra kích hoạt Workflow Dispatch của Owner, sau khi merge không có push Actions
+
+PR592 chỉ khôi phục đường phát hành Beta vốn được Owner duyệt. Gate phải fail với pull_request, workflow_dispatch ngoài main, actor khác tamnv2, repo khác tamnv2/supra-inventory, Stable, component ngoài allowlist, SHA nguồn không tương thích hoặc thiếu PR source+authority+continuity PASS. Trên main workflow_dispatch của Owner sau khi cập nhật biên nhận SHA: deploy-beta.yml công bố Worker/InventoryCore/Web Beta và xác minh /health SOURCE_COMMIT; verify-relay-agent.yml và verify-apps.yml chỉ chạy publish sau khi Worker exact SOURCE_COMMIT PASS. Không chạy Agent trước Worker, không dùng dispatch để bỏ qua cổng bảo mật. Ấn Run workflow nếu GitHub không tạo push run; Owner post-release acceptance vẫn cần thiết.
+
+
+## D168-E032 — Release evidence and remaining physical acceptance
+
+As shipped, 2026-10-14 VN: main SHA cbb52225f2d7e55bfc48e7474610b1c6bec038b3, 13/13 push-triggered Actions successful. Worker Beta deploy, /health source and auth/business readback PASS (38490028759); Agent v131 and WebView2 bundle release/channel PASS (38490028705); signed Android Beta vc107 and pda-latest channel PASS (38490028723). Delayed push trigger self-recovered; speculative Owner-only workflow_dispatch change from PR592 was reverted and is not part of release. No further Owner GitHub steps needed.
+
+Real-device validation remains open: installed Agent/PDA actual version, approved Wi-Fi switch/restoration without interrupting Picklist, 05h solo PRIMARY FULL Worker durable DONE, Confirm terminal ACK/HA, Picker logout/kick/group contact, usage and log receipts. Owner FIELD_PASS and D168 business PASS must remain false until evidence. Stable untouched.
+
+## D168-E036 — Hàng rào CI cho PR592 và nghiệm thu Beta
+
+Kiểm thử nguồn bắt buộc: danh sách chỉ từ saved Windows profiles, max 6 lựa chọn, ưu tiên xác định, không ghi tên mạng/credential lên server log; chỉ chuyển khi lỗi mạng và đã thỏa an toàn HA/Confirm, dừng khi thiếu quyền Windows, khôi phục profile ban đầu trước từng thử tiếp/thoát. Test phải bắt lỗi 401/403/429/5xx không bị phân loại thành lý do đổi mạng; test offline/no radio và nhiều network interface fail-closed.
+
+Trạng thái terminal SKU: nhiều Agent ghi cùng ngày khác slot hợp nhất dưới Firestore updateTime CAS, trùng slot giữ bản DONE đầu tiên, quá hạn payload không làm mất slot cũ. Giữ Worker/Core authoritative DONE và không sinh nền polling. Sau phát hành Beta đúng nguồn cần nghiệm thu Agent Windows tiêu chuẩn, mốc FULL 05h solo PRIMARY, xác nhận PickList ACK/HA, đồng bộ Picker, phiên bản Android/Agent và Usage đo thực tế. CI PASS khác FIELD/OWNER PASS.
+
+Mốc source: 4a7282b0ba89c26c5b35ab0166dc17f76543e43e; PR592 chưa merge lúc ghi quyết định này. Stable OWNER-GATED.

@@ -33,7 +33,11 @@ object AndroidSupportLogResponder {
             .getSharedPreferences(NOTIFICATION_DEVICE_PREFS, Context.MODE_PRIVATE)
             .getString("device_id", "")
             .orEmpty()
-        val jitterMs = ((requestId + "|" + deviceId).hashCode().toLong().absoluteValue % 5001L)
+        // Deterministically stagger devices for up to three minutes. Bound by
+        // the signed five-minute request TTL; no follow-up retry loop.
+        val remainingMs = (expiresAtMs - now - 15_000L).coerceAtLeast(0L)
+        val jitterMs = ((requestId + "|" + deviceId).hashCode().toLong().absoluteValue % 180_001L)
+            .coerceAtMost(remainingMs)
 
         Thread {
             if (jitterMs > 0L) {
@@ -42,18 +46,8 @@ object AndroidSupportLogResponder {
             if (System.currentTimeMillis() >= expiresAtMs) return@Thread
             if (sendOnce(appContext, session, requestId, traceId, deviceId)) {
                 markHandled(prefs, requestId)
-                return@Thread
             }
-
-            // One bounded retry belongs to this explicit support request. This is
-            // not a background polling cadence and stops at the request TTL.
-            val retryDelayMs = 10_000L
-            if (System.currentTimeMillis() + retryDelayMs >= expiresAtMs) return@Thread
-            try { Thread.sleep(retryDelayMs) } catch (_: InterruptedException) { return@Thread }
-            val retrySession = InteractiveSessionStore.load(appContext) ?: return@Thread
-            if (sendOnce(appContext, retrySession, requestId, traceId, deviceId)) {
-                markHandled(prefs, requestId)
-            }
+            // The next authorized request is the only next delivery opportunity.
         }.apply {
             name = "d161-support-log"
             isDaemon = true
@@ -120,7 +114,7 @@ object AndroidSupportLogResponder {
             if (response.optString("archive_status") == "DRIVE_SYNCED" && through > 0L) {
                 pruneJournalThrough(prefs, session.userId, through)
             }
-            true
+            response.optString("archive_status") == "DRIVE_SYNCED"
         } catch (_: Exception) {
             false
         }

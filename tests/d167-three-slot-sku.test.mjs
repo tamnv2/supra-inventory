@@ -486,8 +486,9 @@ test("D168 release guard: Office-blocked direct Worker must have a wired, approv
     "D168 cannot be released: no SKU operation owns a safe Worker WLAN session");
   assert.match(network,/ConnectSavedProfile\(target\)/,
     "D168 must actually connect the approved saved profile");
-  assert.match(network,/ProbeWorker\(idToken\)=="READY"/,
+  assert.match(network,/var result=ProbeWorker\(idToken\)/,
     "D168 must confirm real authenticated Worker reachability after switching");
+  assert.match(network,/if\(result=="READY"\)/);
   assert.match(network,/RestoreOriginalProfile\(restoreProfile\)/,
     "D168 must restore and verify the original WLAN after each completed job");
   assert.match(code,/RequestD168NetworkSwitchPermission/,
@@ -586,7 +587,8 @@ test("D168 never exports Office XLSX on unreachable Worker without preapproved f
     assert.ok(guard>=0 && exportAt>guard);
   }
   assert.match(network,/internal static bool HasApprovedFallback\(\)/);
-  assert.match(network,/HasSavedProfile\(original\) && HasSavedProfile\(target\)/);
+  assert.match(network,/ValidProfile\(original\) && HasSavedProfile\(original\)/);
+  assert.match(network,/ApprovedProfiles\(\)\.Any\(target=>/);
 });
 
 test("D168 concurrent Agent receipt projection merges immutable completed SKU slots", async () => {
@@ -594,6 +596,9 @@ test("D168 concurrent Agent receipt projection merges immutable completed SKU sl
   const sync=readFileSync(new URL("../relay-agent/FirestoreAgentSync.cs",import.meta.url),"utf8");
   assert.match(sync,/snapshot.SkuStatusJson=MergeTerminalSkuStatus\(snapshot.SkuStatusJson,json\)/);
   assert.match(sync,/bySlot\.OrderBy\(x=>x.Key,StringComparer\.Ordinal\)/);
+  assert.match(sync,/!bySlot\.ContainsKey\(slot\)/, "Duplicate DONE cannot overwrite the first verified receipt");
+  assert.match(sync,/combined\.Length>3500 \? previous : combined/,
+    "Oversize concurrent merge cannot erase existing DONE slots");
   assert.match(sync,/return string\.CompareOrdinal\(oldDay,newDay\)>0 \? previous : incoming/);
   assert.match(sync,/AGENT_SYNC_SKU_TERMINAL/);
 });
@@ -609,4 +614,68 @@ test("D168 one-click Agent field probe is read-only and distinguishes direct fro
   assert.match(ui,/SWITCHED_AND_RESTORED":"DIRECT"/);
   assert.match(route,/internal bool DidSwitch/);
   assert.doesNotMatch(ui,/WmsSkuBrowserExport|ManualStart\(|UploadAndPublish\(/);
+});
+
+
+
+test("D168 approved WLAN priority is local, saved-only, bounded and safely restored", async () => {
+  const {readFileSync}=await import("node:fs");
+  const network=readFileSync(new URL("../relay-agent/D168NetworkRoute.cs",import.meta.url),"utf8");
+  const ui=readFileSync(new URL("../relay-agent/D168SkuNetworkUi.cs",import.meta.url),"utf8");
+  assert.match(network,/internal static string\[\] SavedProfiles\(\)/);
+  assert.match(network,/Arguments="wlan show profiles"/);
+  assert.match(network,/internal static bool SaveApprovedProfiles\(/);
+  assert.match(network,/WorkerProfilesValue="ApprovedWorkerWifiProfiles"/);
+  assert.match(network,/RegistryValueKind.MultiString/);
+  assert.match(network,/values.Length>6/);
+  assert.match(network,/values.Any\(x=>!HasSavedProfile\(x\)\)/);
+  assert.match(network,/foreach\(var target in targets\)/);
+  assert.match(network,/if\(!RestoreOriginalProfile\(original\)\)/);
+  assert.match(network,/result=="AUTH_REJECTED"/);
+  assert.match(network,/result=="QUOTA"/);
+  assert.match(ui,/ConfigureD168WorkerWifiProfiles\(\)/);
+  assert.match(ui,/D168NetworkRoute.SavedProfiles\(\)/);
+  assert.match(ui,/D168NetworkRoute.SaveApprovedProfiles\(ordered\)/);
+  assert.match(ui,/Thêm →/);
+  assert.match(ui,/Ưu tiên/);
+  assert.doesNotMatch(ui,/new TextBox \{\s*Left=244,Top=257/);
+});
+
+test("D168 local-first log delivery honors Owner daily and logout boundaries", async () => {
+  const {readFileSync}=await import("node:fs");
+  const bridge=readFileSync(new URL("../relay-agent/AgentLogUploadBridge.cs",import.meta.url),"utf8");
+  const program=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const web=readFileSync(new URL("../web/src/runtime-logger.ts",import.meta.url),"utf8");
+  const android=readFileSync(new URL("../android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt",import.meta.url),"utf8");
+  const global=readFileSync(new URL("../android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",import.meta.url),"utf8");
+  const scheduled=bridge.split("internal void TryQueueScheduledSnapshot()")[1].split("internal void TryQueueManualSnapshot()")[0];
+  const error=bridge.split("internal void TryQueueErrorSnapshot(")[1].split("// Kept under the existing method name")[0];
+  const crash=bridge.split("internal void TryQueueCrashSnapshot(")[1].split("internal void TryQueueErrorSnapshot(")[0];
+  assert.match(scheduled,/SCHEDULE_BOUNDARY=21:45/);
+  assert.doesNotMatch(scheduled,/dueByTime|dueBySize|DirtyCheckpointMs/);
+  assert.doesNotMatch(error,/TryFlushPending\(/);
+  assert.doesNotMatch(crash,/TryFlushPending\(/);
+  assert.match(program,/AgentDiagnostics\.ErrorUploadCallback = null/);
+  assert.match(program,/D167SkuSchedule\.VNNow\(\)/);
+  assert.match(web,/2145/);
+  assert.doesNotMatch(web,/immediateError\(/);
+  assert.match(web,/result\.archive_status === "DRIVE_SYNCED"/);
+  assert.match(android,/pending_logout_queue_v3/);
+  assert.doesNotMatch(android,/lastImmediateRuntimeLogAt/);
+  assert.match(global,/180_001L/);
+  assert.doesNotMatch(global,/retryDelayMs/);
+});
+
+test("D168 Picker presence convergence coalesces on existing event without polling", async () => {
+  const { readFileSync } = await import("node:fs");
+  const text = readFileSync(new URL("../relay-agent/D119AgentFeatures.cs", import.meta.url), "utf8");
+  const handler = text.split("private void QueueD168PresencePublish(")[1]
+    ?.split("private void ApplyD161DirectPickerPresence(")[0] || "";
+  assert.match(handler, /_d168PresencePublishPending/);
+  assert.match(handler, /_d168PresencePublishActive/);
+  assert.match(handler, /PublishPresence\(SnapshotSession\(\), pending\)/);
+  assert.match(handler, /retry=NEXT_PRESENCE_EVENT/);
+  assert.doesNotMatch(handler, /Thread\.Sleep|Task\.Delay|Timer|new HttpWebRequest/);
+  assert.match(text, /QueueD168PresencePublish\(merged, false\)/);
+  assert.match(text, /QueueD168PresencePublish\(merged, true\)/);
 });

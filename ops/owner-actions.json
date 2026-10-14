@@ -5595,6 +5595,31 @@
     "field_pass": false,
     "owner_business_pass": false,
     "stable": "OWNER_GATED",
-    "note": "Owner explicitly waived pre-release device field validation to test whole Beta model after synchronized rollout; never infer that tests occurred."
+    "note": "Owner explicitly waived pre-release device field validation to test whole Beta model after synchronized rollout; never infer that tests occurred.",
+    "release_recovery_pr": 592,
+    "requires_owner_github_ui_after_ci": false,
+    "owner_actions": [
+      "Direct field test on normal beta Agent v131/Android vc107 update channels; send PASS/FAIL and sanitized logs of Wi-Fi Worker switching, SKU FULL/DONE, Picklist confirmation ACK/HA.",
+      "If failure, same D168 repair; no additional GitHub Actions or receipt edits needed."
+    ],
+    "connector_capability": "Unneeded: main push event eventually triggered GitHub automatic release, all workflows succeeded.",
+    "no_manual_device_step_until_release": false,
+    "release_recovery_status": "NOT_REQUIRED__MAIN_PUSH_ACTIONS_EVENT_ARRIVED_DELAYED__13_OF_13_PASS",
+    "release_delivered": true,
+    "release_proof_sha": "cbb52225f2d7e55bfc48e7474610b1c6bec038b3"
+  },
+  "d168_pr592_owner_2026_10_14": {
+    "status": "OWNER_CODE_AND_BETA_DEPLOY_APPROVED__CI_GATED",
+    "pr": 592,
+    "protected_source_sha": "4a7282b0ba89c26c5b35ab0166dc17f76543e43e",
+    "scope": [
+      "worker",
+      "agent",
+      "android"
+    ],
+    "manual_git_action_now": "NONE_IF_AUTOMATED_PR_CI_MERGE_SUCCEEDS",
+    "manual_field_after": "REAL_WINDOWS_OFFICE_WIFI_WMS_PDA_TEST_ONLY",
+    "owner_field_pass": false,
+    "stable": "OWNER_GATED"
   }
 }

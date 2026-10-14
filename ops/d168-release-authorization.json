@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D168",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "fda7d9fa304c01d3b9237f5bb028e55c1df36769",
+  "approved_source_sha": "c2fabf512128817f4477d496995da4094bed0bde",
   "approved_components": [
     "worker",
     "android",
@@ -17,5 +17,5 @@
   "owner_field_acceptance_reference": "OWNER_EXPLICIT_D168_20261014_BETA_FIELD_TEST_AT_RELEASE",
   "stable_deploy_permission": false,
   "approved_at_vn": "2026-10-14",
-  "note": "Owner approves scoped Beta rollout for direct field acceptance. Physical field tests are pending. Stable remains Owner-gated."
+  "note": "Owner-approved PR592 D168 scoped Beta follow-up including Agent v132. Frozen tested protected source c2fabf512128817f4477d496995da4094bed0bde; exact PR source/authority/continuity CI and Worker-first runtime health mandatory; predeploy field waiver is not FIELD/OWNER PASS. No Stable or domain migration."
 }

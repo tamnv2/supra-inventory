@@ -12,27 +12,21 @@ namespace SupraInventoryRelayAgent
         {
             var label=new Label {
                 Left=18,Top=258,Width=218,Height=24,
-                Text="Wi-Fi Internet đã lưu trên máy:",
+                Text="Wi-Fi ưu tiên đã lưu trong Windows:",
                 ForeColor=Color.FromArgb(55,65,81)
             };
-            var profile=new TextBox {
-                Left=244,Top=257,Width=310,Height=25,
-                Text=D168NetworkRoute.ApprovedProfile()
+            var summary=new Label {
+                Left=244,Top=258,Width=294,Height=24,
+                Text=D168NetworkRoute.ApprovedProfiles().Length+" mạng đã chọn",
+                ForeColor=Color.FromArgb(55,65,81)
             };
-            var save=new Button {
-                Left=564,Top=255,Width=125,Height=29,
-                Text="Lưu mạng"
+            var edit=new Button {
+                Left=538,Top=255,Width=152,Height=29,
+                Text="Chọn mạng / Ưu tiên"
             };
-            save.Click+=(sender,args)=>{
-                if(!D168NetworkRoute.SaveApprovedProfile(profile.Text))
-                {
-                    MessageBox.Show(this,
-                        "Chỉ có thể chọn Wi-Fi đã lưu hợp lệ trong Windows. Không lưu mật khẩu mạng.",
-                        "Thiết lập kết nối",MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                    profile.Text=D168NetworkRoute.ApprovedProfile();
-                }
-                else MessageBox.Show(this,"Đã lưu mạng Internet được phép sử dụng khi cần.",
-                    "Thiết lập kết nối",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            edit.Click+=(sender,args)=>{
+                if(ConfigureD168WorkerWifiProfiles())
+                    summary.Text=D168NetworkRoute.ApprovedProfiles().Length+" mạng đã chọn";
             };
             var check=new Button {Left=700,Top=255,Width=170,Height=29,
                 Text="Thử kết nối Worker"};
@@ -87,9 +81,113 @@ namespace SupraInventoryRelayAgent
                 });
             };
             container.Controls.Add(label);
-            container.Controls.Add(profile);
-            container.Controls.Add(save);
+            container.Controls.Add(summary);
+            container.Controls.Add(edit);
             container.Controls.Add(check);
+        }
+
+        // All device names stay on this local dialog, never in remote logs.
+        // Profiles are already saved in Windows; this form cannot create/join
+        // an arbitrary network or request credentials.
+        private bool ConfigureD168WorkerWifiProfiles()
+        {
+            var saved=D168NetworkRoute.SavedProfiles();
+            if(saved.Length==0)
+            {
+                MessageBox.Show(this,
+                    "Windows không trả về Wi-Fi đã lưu. Kết nối và lưu mạng bằng thiết lập Windows trước.",
+                    "Mạng Internet ưu tiên",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                return false;
+            }
+            var ordered=new System.Collections.Generic.List<string>(
+                D168NetworkRoute.ApprovedProfiles());
+            using(var dialog=new Form {
+                Text="Chọn Wi-Fi đã lưu · thứ tự ưu tiên",
+                Width=730,Height=430,MinimumSize=new Size(730,430),
+                StartPosition=FormStartPosition.CenterParent,
+                FormBorderStyle=FormBorderStyle.FixedDialog,
+                MinimizeBox=false,MaximizeBox=false,ShowInTaskbar=false
+            })
+            {
+                var info=new Label {
+                    Left=16,Top=12,Width=682,Height=38,
+                    Text="Chỉ chọn Wi-Fi đã lưu trên máy. Thứ tự từ trên xuống là ưu tiên thử kết nối Worker. Không lưu mật khẩu."
+                };
+                var available=new ListBox {Left=16,Top=60,Width=260,Height=230};
+                available.Items.AddRange(saved);
+                var chosen=new ListBox {Left=398,Top=60,Width=292,Height=230};
+                var add=new Button {Left=286,Top=86,Width=102,Height=32,Text="Thêm →"};
+                var remove=new Button {Left=286,Top=128,Width=102,Height=32,Text="← Xóa"};
+                var up=new Button {Left=286,Top=180,Width=102,Height=32,Text="↑ Ưu tiên"};
+                var down=new Button {Left=286,Top=222,Width=102,Height=32,Text="↓ Ưu tiên"};
+                Action<int> redraw=select=>{
+                    chosen.Items.Clear();
+                    for(var i=0;i<ordered.Count;i++)
+                        chosen.Items.Add((i+1)+". "+ordered[i]);
+                    if(select>=0 && select<chosen.Items.Count)
+                        chosen.SelectedIndex=select;
+                };
+                redraw(-1);
+                add.Click+=(sender,args)=>{
+                    var entry=available.SelectedItem as string;
+                    if(string.IsNullOrWhiteSpace(entry) ||
+                       ordered.Exists(x=>string.Equals(x,entry,StringComparison.OrdinalIgnoreCase)))
+                        return;
+                    if(ordered.Count>=6)
+                    {
+                        MessageBox.Show(dialog,"Chọn tối đa 6 mạng đã lưu.","Ưu tiên Wi-Fi");
+                        return;
+                    }
+                    ordered.Add(entry);
+                    redraw(ordered.Count-1);
+                };
+                remove.Click+=(sender,args)=>{
+                    var index=chosen.SelectedIndex;
+                    if(index<0)return;
+                    ordered.RemoveAt(index);
+                    redraw(Math.Min(index,ordered.Count-1));
+                };
+                up.Click+=(sender,args)=>{
+                    var index=chosen.SelectedIndex;
+                    if(index<=0)return;
+                    var name=ordered[index];
+                    ordered.RemoveAt(index);
+                    ordered.Insert(index-1,name);
+                    redraw(index-1);
+                };
+                down.Click+=(sender,args)=>{
+                    var index=chosen.SelectedIndex;
+                    if(index<0 || index>=ordered.Count-1)return;
+                    var name=ordered[index];
+                    ordered.RemoveAt(index);
+                    ordered.Insert(index+1,name);
+                    redraw(index+1);
+                };
+                var save=new Button {
+                    Left=472,Top=315,Width=104,Height=32,
+                    Text="Lưu",DialogResult=DialogResult.None
+                };
+                var cancel=new Button {
+                    Left=586,Top=315,Width=104,Height=32,
+                    Text="Hủy",DialogResult=DialogResult.Cancel
+                };
+                save.Click+=(sender,args)=>{
+                    if(!D168NetworkRoute.SaveApprovedProfiles(ordered))
+                    {
+                        MessageBox.Show(dialog,
+                            "Không lưu được danh sách: hãy kiểm tra mạng có còn được Windows lưu không.",
+                            "Ưu tiên Wi-Fi",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                        return;
+                    }
+                    dialog.DialogResult=DialogResult.OK;
+                    dialog.Close();
+                };
+                dialog.Controls.AddRange(new Control[]{
+                    info,available,chosen,add,remove,up,down,save,cancel
+                });
+                dialog.CancelButton=cancel;
+                return dialog.ShowDialog(this)==DialogResult.OK;
+            }
         }
 
         // Called from the SKU worker thread. The window is modeless: WMS

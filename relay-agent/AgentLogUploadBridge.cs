@@ -74,56 +74,24 @@ namespace SupraInventoryRelayAgent
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
+        // D168: local diagnostics are retained between explicit delivery boundaries.
+        // The one daily automatic upload is 21:45 local VN time. There is no
+        // size/6-hour/incident flush and no retry timer after a failed send.
         internal void TryQueueScheduledSnapshot()
         {
             try
             {
-                var session = SafeSession();
-                if (UsableSession(session)) TryFlushPending(session);
-
-                var now = DateTime.Now;
-                var checkpoint = ReadCheckpoint();
-                if (checkpoint == DateTime.MinValue)
-                {
-                    WriteCheckpoint(FloorToLogMillisecond(now));
-                    return;
-                }
-
-                var dueByTime = now - checkpoint >= TimeSpan.FromMilliseconds(DirtyCheckpointMs);
-                var writtenSinceSeal = Math.Max(0L, AgentDiagnostics.TotalBytesWritten - _lastSealWrittenBytes);
-                var dueBySize = writtenSinceSeal >= SizeCheckpointBytes;
-
-                var operationalDate = now.TimeOfDay < TimeSpan.FromHours(5)
-                    ? now.Date.AddDays(-1)
-                    : now.Date;
-                var boundary2145 = operationalDate.AddHours(21).AddMinutes(45);
-                var due2145 = now >= boundary2145 &&
-                    now < operationalDate.AddDays(1).AddHours(5) &&
-                    _last2145BoundaryLocal != operationalDate;
-
-                if (!dueByTime && !dueBySize && !due2145) return;
-
-                var reason = due2145 ? "BOUNDARY_2145" :
-                    (dueBySize ? "SIZE_2MB_NEW_DATA" : "DIRTY_6H");
-                var path = SealFromCheckpoint("checkpoint", due2145 ? "SCHEDULE_BOUNDARY=21:45" : "");
-                if (due2145) _last2145BoundaryLocal = operationalDate;
-                _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
-                if (!string.IsNullOrWhiteSpace(path))
-                {
-                    if (UsableSession(session)) TryFlushPending(session);
-                    _log("AGENT LOG seal=PASS type=checkpoint reason=" + reason +
-                         " upload=" + (UsableSession(session) ? "TRY" : "LOCAL_PENDING"));
-                }
-                else
-                {
-                    _log("AGENT LOG seal=SKIP_EMPTY type=checkpoint reason=" + reason);
-                }
+                var now=D167SkuSchedule.VNNow();
+                if(now.Hour<21 || (now.Hour==21 && now.Minute<45) ||
+                    _last2145BoundaryLocal==now.Date)return;
+                _last2145BoundaryLocal=now.Date; // one attempt, even on failure
+                var path=SealFromCheckpoint("checkpoint","SCHEDULE_BOUNDARY=21:45 BOUNDARY_2145");
+                var session=SafeSession();
+                if(UsableSession(session))TryFlushPending(session);
+                _log("AGENT LOG daily_2145="+(string.IsNullOrWhiteSpace(path)?"EMPTY":"SEALED")+
+                    " upload="+(UsableSession(session)?"ATTEMPT_ONCE":"LOCAL_PENDING"));
             }
-            catch (Exception ex)
-            {
-                _log("AGENT LOG checkpoint=DEFER type=" + ex.GetType().Name +
-                     " detail=" + AgentDiagnostics.Sanitize(ex.Message));
-            }
+            catch(Exception ex){_log("AGENT LOG daily_2145=LOCAL_PENDING type="+ex.GetType().Name);}
         }
 
         internal void TryQueueManualSnapshot()
@@ -154,7 +122,17 @@ namespace SupraInventoryRelayAgent
                     "TRACE_ID=" + safeTrace;
                 var path = SealFromCheckpoint("manual", marker);
                 var session = SafeSession();
-                if (UsableSession(session)) TryFlushPending(session);
+                if (UsableSession(session))
+                {
+                    // Spread explicit fleet support deliveries over three minutes.
+                    // This is one deferred authorized send, not a retry loop.
+                    var seed=(safeRequest+"|"+_instanceId).GetHashCode() & int.MaxValue;
+                    var delayMs=seed % 180001;
+                    Task.Delay(delayMs).ContinueWith(_=>{
+                        var current=SafeSession();
+                        if(UsableSession(current))TryFlushPending(current);
+                    });
+                }
                 _log(string.IsNullOrWhiteSpace(path)
                     ? "AGENT LOG global_support=SKIP_EMPTY request=" + safeRequest
                     : "AGENT LOG global_support=SEALED request=" + safeRequest +
@@ -173,7 +151,6 @@ namespace SupraInventoryRelayAgent
                 var marker = "BOUNDARY_EVENT=" + AgentDiagnostics.Sanitize(reason ?? "UNKNOWN");
                 var path = SealFromCheckpoint("checkpoint", marker);
                 var session = SafeSession();
-                if (UsableSession(session)) TryFlushPending(session);
                 _log(string.IsNullOrWhiteSpace(path)
                     ? "AGENT LOG boundary=SKIP_EMPTY reason=" + AgentDiagnostics.Sanitize(reason ?? "UNKNOWN")
                     : "AGENT LOG boundary=SEALED reason=" + AgentDiagnostics.Sanitize(reason ?? "UNKNOWN"));
@@ -252,8 +229,8 @@ namespace SupraInventoryRelayAgent
                 var marker = "CRASH_MARKER=" + AgentDiagnostics.Sanitize(crashType ?? "UNKNOWN");
                 var path = SealFromCheckpoint("crash", marker);
                 var session = SafeSession();
-                if (UsableSession(session)) TryFlushPending(session);
-                if (!string.IsNullOrWhiteSpace(path)) _log("AGENT LOG seal=PASS type=crash");
+                // Crash is persisted locally; next 21:45/manual/global delivery owns network I/O.
+                if (!string.IsNullOrWhiteSpace(path)) _log("AGENT LOG seal=PASS type=crash local_only=true");
             }
             catch (Exception ex)
             {
@@ -263,69 +240,8 @@ namespace SupraInventoryRelayAgent
 
         internal void TryQueueErrorSnapshot(string errorType)
         {
-            var fingerprint = ErrorFingerprint(errorType);
-            var suppressed = 0;
-            lock (_errorGate)
-            {
-                var now = DateTime.UtcNow;
-                if (_errorWindowStartedUtc == DateTime.MinValue || now - _errorWindowStartedUtc >= ErrorGlobalWindow)
-                {
-                    _errorWindowStartedUtc = now;
-                    _errorWindowSent = 0;
-                }
-
-                ErrorBurstState state;
-                if (!_errorBursts.TryGetValue(fingerprint, out state))
-                {
-                    state = new ErrorBurstState();
-                    _errorBursts[fingerprint] = state;
-                }
-                if (string.Equals(fingerprint, "GOOGLE_CONNECTIVITY", StringComparison.Ordinal) && state.IncidentOpen)
-                {
-                    state.Suppressed++;
-                    if (state.Suppressed == 1 || state.Suppressed % 20 == 0)
-                        _log("AGENT LOG error_upload=SUPPRESSED reason=ACTIVE_INCIDENT kind=GOOGLE_CONNECTIVITY count=" + state.Suppressed);
-                    return;
-                }
-                if (state.LastSentUtc != DateTime.MinValue && now - state.LastSentUtc < ErrorFingerprintWindow)
-                {
-                    state.Suppressed++;
-                    if (state.Suppressed == 1 || state.Suppressed % 20 == 0)
-                        _log("AGENT LOG error_upload=SUPPRESSED reason=SAME_FINGERPRINT window=10m count=" + state.Suppressed);
-                    return;
-                }
-                if (_errorWindowSent >= MaxImmediateErrorsPerWindow)
-                {
-                    state.Suppressed++;
-                    if (state.Suppressed == 1 || state.Suppressed % 20 == 0)
-                        _log("AGENT LOG error_upload=SUPPRESSED reason=GLOBAL_FUSE max=6 window=10m count=" + state.Suppressed);
-                    return;
-                }
-
-                suppressed = state.Suppressed;
-                state.Suppressed = 0;
-                state.LastSentUtc = now;
-                if (string.Equals(fingerprint, "GOOGLE_CONNECTIVITY", StringComparison.Ordinal))
-                    state.IncidentOpen = true;
-                _errorWindowSent++;
-            }
-
-            try
-            {
-                var marker =
-                    "ERROR_MARKER=" + AgentDiagnostics.Sanitize(errorType ?? "UNKNOWN") + Environment.NewLine +
-                    "ERROR_FINGERPRINT=" + fingerprint + Environment.NewLine +
-                    "REPEAT_SUPPRESSED_SINCE_LAST_SEND=" + suppressed.ToString(CultureInfo.InvariantCulture);
-                var path = SealFromCheckpoint("error", marker);
-                var session = SafeSession();
-                if (UsableSession(session)) TryFlushPending(session);
-                if (!string.IsNullOrWhiteSpace(path))
-                    _log("AGENT LOG seal=PASS type=error suppressed=" + suppressed);
-            }
-            catch (Exception ex)
-            {
-                _log("AGENT LOG error=LOCAL_PENDING type=" + ex.GetType().Name);
-            }
+            // Original diagnostic event already exists in agent-complete.log.
+            // Do not create an upload bundle or trigger provider I/O on an error.
         }
 
         // Kept under the existing method name so login/DPAPI restore call sites stay
@@ -350,7 +266,7 @@ namespace SupraInventoryRelayAgent
                         _log("AGENT LOG recovery=SEALED previous_session_unclean=true");
                 }
 
-                TryFlushPending(session);
+                // Recovery is local-only until the next explicit send boundary.
             }
             catch (Exception ex)
             {
@@ -363,8 +279,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 SealFromCheckpoint("session", "AGENT_SESSION_FINAL=true");
-                if (UsableSession(session))
-                    Task.Run(() => TryFlushPending(session));
+                // Agent logout does not upload; the daily/manual/global request does.
             }
             catch (Exception ex)
             {
@@ -481,7 +396,7 @@ namespace SupraInventoryRelayAgent
             if (Interlocked.CompareExchange(ref _uploadInFlight,1,0)!=0) return;
             try
             {
-            if (_nextUploadAttemptUtc != DateTime.MinValue && DateTime.UtcNow < _nextUploadAttemptUtc) return;
+            // No timed retry: callers invoke this only at a permitted delivery event.
             string[] files;
             try
             {
@@ -585,14 +500,9 @@ namespace SupraInventoryRelayAgent
 
         private void RegisterUploadFailure()
         {
-            _uploadFailureStreak = Math.Min(8, _uploadFailureStreak + 1);
-            var minutes = _uploadFailureStreak <= 1 ? 1 :
-                          (_uploadFailureStreak == 2 ? 2 :
-                          (_uploadFailureStreak == 3 ? 5 :
-                          (_uploadFailureStreak == 4 ? 15 : 30)));
-            // Local jitter prevents synchronized Office/Google retries across agents.
-            var jitterMs = (int)(Math.Abs(DateTime.UtcNow.Ticks % 15001));
-            _nextUploadAttemptUtc = DateTime.UtcNow.AddMinutes(minutes).AddMilliseconds(jitterMs);
+            // Failure remains on disk until the next 21:45/manual/support request.
+            _uploadFailureStreak=Math.Min(8,_uploadFailureStreak+1);
+            _nextUploadAttemptUtc=DateTime.MinValue;
         }
 
         private bool UploadGateway(AgentSession session, Dictionary<string, object> bundle)

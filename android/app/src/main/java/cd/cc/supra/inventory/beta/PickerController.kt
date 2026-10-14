@@ -1116,6 +1116,8 @@ class PickerController(
         row.autoSkipDeadlineAt.orEmpty(),
         row.autoSkipAllowedAt.orEmpty(),
         row.resolutionSource.orEmpty(),
+        row.resolvedByDisplayName.orEmpty(),
+        row.resolvedByEmployeeCode.orEmpty(),
         row.resultEventId.orEmpty(),
         row.acknowledgedAt.orEmpty(),
     ).joinToString("|")
@@ -1132,8 +1134,12 @@ class PickerController(
             state == "Picker thu hồi" && !row.withdrawnAt.isNullOrBlank() -> "Picker thu hồi lúc: ${timeOnly(row.withdrawnAt)}"
             (state == "Đã có hàng" || state == "Được phép bỏ qua") && !row.resolvedAt.isNullOrBlank() && row.resolutionSource == "SYSTEM_TIMEOUT" ->
                 "Hệ thống tự động lúc: ${timeOnly(row.resolvedAt)}"
-            (state == "Đã có hàng" || state == "Được phép bỏ qua") && !row.resolvedAt.isNullOrBlank() ->
-                "Invent phản hồi lúc: ${timeOnly(row.resolvedAt)}"
+            (state == "Đã có hàng" || state == "Được phép bỏ qua") && !row.resolvedAt.isNullOrBlank() -> {
+                val responder = row.resolvedByDisplayName?.trim()?.takeIf { it.isNotBlank() }
+                    ?: row.resolvedByEmployeeCode?.trim()?.takeIf { it.isNotBlank() }
+                "Invent phản hồi lúc: ${timeOnly(row.resolvedAt)}" +
+                    (if (responder != null) " bởi $responder" else " · Chưa có tên người xử lý")
+            }
             else -> null
         }
         return kit.card(colors.first, colors.second, 9).apply {
