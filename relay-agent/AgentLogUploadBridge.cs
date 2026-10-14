@@ -122,7 +122,17 @@ namespace SupraInventoryRelayAgent
                     "TRACE_ID=" + safeTrace;
                 var path = SealFromCheckpoint("manual", marker);
                 var session = SafeSession();
-                if (UsableSession(session)) TryFlushPending(session);
+                if (UsableSession(session))
+                {
+                    // Spread explicit fleet support deliveries over three minutes.
+                    // This is one deferred authorized send, not a retry loop.
+                    var seed=(safeRequest+"|"+_instanceId).GetHashCode() & int.MaxValue;
+                    var delayMs=seed % 180001;
+                    Task.Run(()=>{
+                        Thread.Sleep(delayMs);
+                        TryFlushPending(session);
+                    });
+                }
                 _log(string.IsNullOrWhiteSpace(path)
                     ? "AGENT LOG global_support=SKIP_EMPTY request=" + safeRequest
                     : "AGENT LOG global_support=SEALED request=" + safeRequest +
