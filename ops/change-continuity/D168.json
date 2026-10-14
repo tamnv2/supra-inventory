@@ -6,7 +6,10 @@
   "working_branch": "d168-beta-release-dispatch-recovery-20261014",
   "pr": 592,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D168-E034",
+  "last_checkpoint": {
+  "id": "D168-E034",
+  "date_vn": "2026-10-14"
+  },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
   "entries": [
     {
