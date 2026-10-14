@@ -85,7 +85,7 @@ namespace SupraInventoryRelayAgent
                 if(now.Hour<21 || (now.Hour==21 && now.Minute<45) ||
                     _last2145BoundaryLocal==now.Date)return;
                 _last2145BoundaryLocal=now.Date; // one attempt, even on failure
-                var path=SealFromCheckpoint("checkpoint","SCHEDULE_BOUNDARY=21:45");
+                var path=SealFromCheckpoint("checkpoint","SCHEDULE_BOUNDARY=21:45 BOUNDARY_2145");
                 var session=SafeSession();
                 if(UsableSession(session))TryFlushPending(session);
                 _log("AGENT LOG daily_2145="+(string.IsNullOrWhiteSpace(path)?"EMPTY":"SEALED")+
