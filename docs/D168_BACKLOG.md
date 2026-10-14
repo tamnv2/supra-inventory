@@ -206,3 +206,8 @@ Important field limitations: closed Web browser cannot upload at 21:45; kicked P
 ### D168-E041 · Owner chốt khắc phục Android vc108
 
 REQ-001 **Owner đã duyệt triển khai**: giữ SKU trực tiếp hoặc giữ dòng Reporter ở bốn tab PENDING/OVERDUE/HAS_STOCK/SKIP_ALLOWED và Picker Lịch sử/popup; sao chép SKU gốc bằng Clipboard trên máy, không có network request. PR595 cập nhật source và test, khắc phục bước phát hành signed APK từng bị SKIP khi push workflow-only. Cần exact CI + tag beta-vc108 + channel xác nhận trước khi coi là released. Protected source 3e6f23773b6e830916e36a176397c3598e9fabd8. Mọi ghi chú “chờ phê duyệt” trước đó về REQ-001 được thay bằng lệnh này; chưa FIELD_PASS.
+
+
+## D168-E051 — Owner PASS giới hạn code; chuyển tiếp D169 (14/10/2026)
+
+Owner ghi nhận D168 PASS trên phương diện code/phiên bản hiện hành, không báo thêm vấn đề mới tại thời điểm chốt; đây không phải nghiệm thu đầy đủ thiết bị, usage, hay thông báo rằng các lỗi cũ đã được sửa. D168-E050 (bắt buộc cập nhật và nút XÁC NHẬN ngoài vùng nhìn khi tin nhắn dài) giữ nguyên trạng thái chưa code fix, được tham chiếu tại `docs/D169_BACKLOG.md` để phân tích cùng các phát hiện sau này. D169 chỉ nhận backlog, chưa sửa/triển khai. Stable OWNER-GATED.
