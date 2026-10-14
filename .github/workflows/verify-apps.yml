@@ -369,8 +369,8 @@ jobs:
           tag="beta-vc${APP_VERSION_CODE}"
           title="1291 Báo hàng Beta ${APP_VERSION_NAME}"
           jq -r --arg name "$title" --arg sha "$GITHUB_SHA" '
-            $name + "\\nSource: " + $sha + "\\n\\nNội dung cập nhật:\\n" +
-            (.release_notes | map("- " + .) | join("\\n"))
+            $name + "\nSource: " + $sha + "\n\nNội dung cập nhật:\n" +
+            (.release_notes | map("- " + .) | join("\n"))
           ' android/release-notes.json > android/dist/release-notes.txt
           if gh release view "$tag" >/dev/null 2>&1; then
             echo "Refusing to overwrite existing release $tag" >&2
