@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D168",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "d32f5190af6d6218e101b0ca11d75bc20e3004e1",
+  "approved_source_sha": "2e399f03fe9019c47bd14cd755e45b8d566526f5",
   "approved_components": [
     "worker",
     "android",
@@ -17,5 +17,5 @@
   "owner_field_acceptance_reference": "OWNER_EXPLICIT_D168_20261014_BETA_FIELD_TEST_AT_RELEASE",
   "stable_deploy_permission": false,
   "approved_at_vn": "2026-10-14",
-  "note": "D168 PR593 Owner-authorized Beta release repair after PR592 main deploy source guard failure: SHA d32f5190af6d6218e101b0ca11d75bc20e3004e1. Source-only 21:45 Web log guard corrects stale D146 assertion while preserving all guards. Exact CI and Worker-first health required; owner physical field waiver remains NOT FIELD_PASS. Stable/domain untouched."
+  "note": "D168 Owner authorized PR594 P0 Beta push-trigger repair on protected source 2e399f03fe9019c47bd14cd755e45b8d566526f5 after PR592 D146 guard failure and PR593 workflow-only no-dispatch. Existing registered Worker, Android, Agent only; exact CI/continuity and Worker-first runtime health required. No Stable/domain change; physical field waiver remains not FIELD_PASS."
 }

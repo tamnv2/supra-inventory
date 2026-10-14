@@ -3041,3 +3041,7 @@ Mốc source: 4a7282b0ba89c26c5b35ab0166dc17f76543e43e; PR592 chưa merge lúc g
 ### D168-E039 — Worker phát hành bị chặn bởi test cũ D146
 
 PR592 đã merge nhưng Worker push run 38503630043 dừng tại `D146 source contract guard` do workflow còn đòi literal lịch Web 21h đã bị Owner thay bằng mốc 21:45 VN. PR593 sửa guard tương thích yêu cầu mới, vẫn kiểm tra ngày/giờ theo Việt Nam, chống lặp theo slot và log ERROR lưu cục bộ, không bỏ điều kiện bảo vệ hoặc đổi runtime. Nguồn bảo vệ SHA d32f5190af6d6218e101b0ca11d75bc20e3004e1. Cần CI exact head PASS và Worker health trùng commit mới được coi phát hành Beta; Agent v132/Android vẫn phải chờ Worker. Không coi merge là RELEASE PASS.
+
+### D168-E040 — Điều kiện trigger workflow phát hành Beta
+
+`on.push.paths` của Worker, Agent và Android phải bao gồm chính workflow YAML tương ứng để PR sửa workflow bảo vệ sau khi merge có thể phát hành hợp lệ, không cần giả source edit. Cả ba vẫn chỉ phát hành sau exact SHA/Owner receipt/Authority+Continuity/product CI, Worker health trước client, tag mới đúng số phiên bản và checksum/chữ ký. Không mở đường `workflow_dispatch` bỏ qua cổng main-only. Source P0 PR594: 2e399f03fe9019c47bd14cd755e45b8d566526f5. Không gọi deploy trước khi CI đầy đủ PASS; Stable & đề xuất đổi domain D168-E037 không đổi.

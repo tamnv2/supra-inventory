@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-pr592-release-guard-2145-20261014",
-  "pr": 593,
+  "working_branch": "d168-release-push-path-repair-20261014",
+  "pr": 594,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E039",
+    "id": "D168-E040",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
@@ -925,6 +925,24 @@
       ],
       "next_action": "Validate PR593 exact authority/product/continuity CI, merge only if PASS; monitor new main Worker release gate+Cloudflare health at same SHA, then Agent v132 and Android next signed release/channel. No Stable or domain mutation.",
       "evidence": "PR592 merge 304fdf6234dde8cc11672e910b693afa484401c7; GitHub Worker Actions run 38503630043 failed at D146 source contract step; PR593 protected code SHA d32f5190af6d6218e101b0ca11d75bc20e3004e1."
+    },
+    {
+      "id": "D168-E040",
+      "date_vn": "2026-10-14",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "PR593 source guard PASS/merged but release push path filters omit the workflow itself; fix existing Beta Worker/Agent/Android triggers in PR594",
+      "status": "PR594_WORKFLOW_TRIGGER_PATCH__EXACT_SOURCE_AND_AUTH_CI_PENDING__PR592_RUNTIME_RELEASE_STILL_NOT_VERIFIED",
+      "owner_approval": true,
+      "facts": [
+        "PR593 14/14 CI PASS and merged main 0402cdcdef48388067dc4259db09b61e7a3130bd; D146 guard now correctly validates Owner-approved 21:45 Web log source.",
+        "PR593 main push contained only GitHub workflow+authority changes. Existing deploy-beta.yml push.paths watched service/web/android but not deploy-beta.yml, so the Worker deploy did not start. The Agent and Android push rules similarly did not watch their own workflow files.",
+        "Manual workflow_dispatch exists but current SHA-bound release gate intentionally denies it (main push only). Tool connector also lacks a workflow_dispatch write action. No manual workaround is necessary if the authorized workflow self-change is made on branch and merged.",
+        "PR594 modifies only three existing release workflows to add their own workflow file paths in main push filters, allowing the same merge to fire all three safeguarded pipelines. Existing Owner receipt, code/CI, Worker-first, Android signing and Stable prohibitions remain.",
+        "PR592 Agent v132 and Android next Beta were not released due failed Worker-first on PR592 main push; Beta prior v131/beta-vc107 remains the last verified release.",
+        "The protected source commit for this workflow trigger correction is 2e399f03fe9019c47bd14cd755e45b8d566526f5; no new resources, domain changes, providers, secrets, WMS mutations or field assertions."
+      ],
+      "next_action": "Rebind D168 receipt to protected source 2e399f03fe9019c47bd14cd755e45b8d566526f5, run PR594 exact CI/authority/continuity and source-trigger static check, merge only if PASS. Observe actual Worker health SOURCE_COMMIT, Agent v132 and signed Android next beta-vcN/channel; physical FIELD PASS separate.",
+      "evidence": "PR593 merged 0402cdcd; PR594 code SHA 2e399f03fe9019c47bd14cd755e45b8d566526f5; .github/workflows/deploy-beta.yml, verify-relay-agent.yml, verify-apps.yml push.paths. Earlier Worker failure 38503630043."
     }
   ],
   "resume": {
@@ -958,22 +976,23 @@
       "D168-E034: Picker shortage History responder identity incomplete end-to-end in released Beta; proposed Core+Android repair pending Owner approval.",
       "D168-E036 PR592 protected code candidate 4a7282b0ba89c26c5b35ab0166dc17f76543e43e: saved WLAN priority and immutable concurrent SKU DONE fixes committed; exact-head CI verification and Beta release gate pending.",
       "D168-E038: official Agent v132 source and approved Beta receipt pinned c2fabf512128817f4477d496995da4094bed0bde; exact-head CI and release still pending.",
-      "D168-E039 PR593 P0 beta release guard for approved 21:45 Web log; executable guard source d32f5190af6d6218e101b0ca11d75bc20e3004e1 awaiting fresh CI."
+      "D168-E039 PR593 P0 beta release guard for approved 21:45 Web log; executable guard source d32f5190af6d6218e101b0ca11d75bc20e3004e1 awaiting fresh CI.",
+      "D168-E040 PR594 exact protected workflow-trigger code 2e399f03fe9019c47bd14cd755e45b8d566526f5 pending CI; Worker/Agent/Android release still not technically proven."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
       "D168-D168-E037: future proposal to unify existing Beta into one official runtime at inventory.supra.cc.cd, pending Owner choice, D168 Owner PASS and Stable hostname-specific authorization; zero live modification."
     ],
     "blocked": [
-      "PR592 main Worker deploy failed in obsolete D146 source guard before Cloudflare mutation; Agent/Android release not proven.",
-      "PR593 exact-head CI and Worker-first Release PASS required before claiming new runtime.",
-      "Owner physical Windows Office Wi-Fi, WMS FULL/DONE, Picklist ACK/HA, log/usage field proof pending; Stable gated."
+      "Release was not triggered by main workflow-only push because push.path self-workflow missing; PR594 addresses this.",
+      "Exact PR594 CI and subsequent actual Beta Worker/Agent/Android release/health pending.",
+      "Real Office Wi-Fi, WMS FULL/DONE, Picker ACK/HA, quota/energy device field/Owner PASS still unavailable from GitHub tools."
     ],
     "next_actions": [
-      "PR593 CI PASS, gated merge and new Beta Worker first, then Agent v132 and next Android signed/channel.",
-      "After runtime release, physical field tests and Owner D168 PASS remain separate."
+      "PR594 exact-head CI/source trigger verification PASS then merge, verify new main push Workflow Worker-first and published Agent v132/Android.",
+      "Physical testing and explicit D168 Owner acceptance later; unrelated D168-E037 hostname proposal unapproved and excluded."
     ],
-    "release_boundary": "PR592_MERGED_NO_VERIFIED_RUNTIME__PR593_DRAFT_SOURCE_CI_PENDING__STABLE_GATED",
+    "release_boundary": "PR592_SOURCE_MERGED_BETA_NOT_RELEASED__PR593_GUARD_MERGED_NO_DISPATCH__PR594_CI_PENDING__STABLE_GATED",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
