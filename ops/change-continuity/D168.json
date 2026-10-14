@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "d168-vc108-release-evidence-20261014",
-  "pr": 596,
+  "working_branch": "fix/d168-android-vc109-meal-release-notes",
+  "pr": 597,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E042",
+    "id": "D168-E043",
     "date_vn": "2026-10-14"
   },
-  "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
+  "deployment_gate": "D168_OWNER_APPROVED_BETA_ANDROID_VC109_PENDING_EXACT_CI_AND_WORKER_FIRST__FIELD_PASS_PENDING__STABLE_GATED",
   "entries": [
     {
       "id": "D168-E001",
@@ -981,6 +981,33 @@
       ],
       "next_action": "Owner test update on real PDA to vc108 then exercise Reporter four tabs and Picker history/popups, capture sanitized issues; investigate D160 gateway probe independently under same D168 if it affects Agent operations; do not trigger unrelated Stable/domain migration.",
       "evidence": "PR595; Worker run 38507343224 PASS; Android run 38507343114 PASS; release beta-vc108 source 9a61ead381e72c46d4fd3e566f323e2507d3ae0d; channel pda-latest.json; Agent run 38507343145 fail; v132 prior official release."
+    },
+    {
+      "id": "D168-E043",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves and orders Android vc109 Reporter meal two choices and automatically synchronized per-version update notes in same D168",
+      "status": "SOURCE_PATCH_PR597__CI_PENDING__BETA_VC109_NOT_RELEASED__STABLE_GATED",
+      "owner_approval": true,
+      "facts": [
+        "Owner expressly requests both features completed and immediate gated Beta vc109 release, while the current D168 remains open without Owner business PASS.",
+        "Existing MainActivity D167 meal AlertDialog combined message and setSingleChoiceItems and started chosen=0; on Android PDA selection list was not visible, causing automatic EARLY slot selection.",
+        "PR597 Android MainActivity renders two explicit radio options for both LUNCH and DINNER with chosen=null, a disabled Confirm until explicit selection; uses existing confirmD167Meal Server first-writer and reconciliation. No Worker/Service/Firebase/Agent business logic changed.",
+        "Existing .github/workflows/verify-apps.yml hardcoded three generic release_notes across all versions. PR597 introduces Android version-specific android/release-notes.json; GitHub Release notes and inventory-channel/pda-latest.json share reviewed text. Release-time guard fails if source has changed but notes were not updated since previous signed release.",
+        "Code candidate commits 841bdbad (Android UI), b4b393dc (release notes), 42fd14d8 (workflow), 934a3304 (contract tests). Latest exact-head CI and signed release are pending; do not assert a tag/channel exists.",
+        "Only existing Beta resources are in scope; user has not approved Stable/domain migration. Physical PDA UX and quota evidence remain pending."
+      ],
+      "alternatives": [
+        "Keep old AlertDialog with hidden radio list and preset EARLY: rejected because it silently chooses without user action.",
+        "Generate notes from arbitrary git commits: rejected due inaccurate/technical text and risk of announcing unimplemented behavior.",
+        "Recommended: source-controlled human-reviewed user-facing notes in each executable PR and automatic identical metadata publishing with freshness checks."
+      ],
+      "open_questions": [
+        "CI/Gradle true build, strict release gate, Worker-first exact source deployment and signed vc109 channel readback.",
+        "Real Android 11 PDA display and user selection, Web first-writer sync and no automatic change to default-LATE behavior."
+      ],
+      "next_action": "Finish specs/state/continuity and source checks, pin approved executable SHA, wait exact CI PASS, merge PR597 per Owner Beta authorization; inspect Worker-first and beta-vc109 APK release + channel with matching notes, stable gated. If FAIL repair same D168.",
+      "evidence": "GitHub PR597 on fix/d168-android-vc109-meal-release-notes; android/.../MainActivity.kt, android/release-notes.json, .github/workflows/verify-apps.yml, tests/d168-android-vc109.test.mjs; Owner instruction 2026-10-14"
     }
   ],
   "resume": {
@@ -992,7 +1019,8 @@
       "D168-E016 Owner retires Agent Usage D160 auto refresh and D166 Usage ZIP, preserving operational log archive",
       "D168-E017: Owner accepts Firebase Auth/Firestore dual-network critical lanes and on-demand Cloudflare direct optional actions, preserving required Android notification and network safety",
       "D168-E018 Owner explicit whole Big Update CODE + Beta deploy permission; FULL mandatory solo primary, WMS ordinary Internet, direct Worker SKU; Stable unchanged.",
-      "D168-E029: Owner explicitly accepts unverified predeploy device/network tests for a scoped Beta trial rollout and later direct field acceptance; not physical FIELD PASS."
+      "D168-E029: Owner explicitly accepts unverified predeploy device/network tests for a scoped Beta trial rollout and later direct field acceptance; not physical FIELD PASS.",
+      "D168-E043: Owner authorizes immediate signed Beta Android vc109 after CI; Reporter dual explicit meal slots and future per-version synchronized release notes."
     ],
     "implemented": [
       "D167 PR581 authority closeout merged, CI PASS, prior Beta Web3.1.1/Agent v130/Android vc106 release unchanged",
@@ -1017,7 +1045,8 @@
       "D168-E039 PR593 P0 beta release guard for approved 21:45 Web log; executable guard source d32f5190af6d6218e101b0ca11d75bc20e3004e1 awaiting fresh CI.",
       "D168-E040 PR594 exact protected workflow-trigger code 2e399f03fe9019c47bd14cd755e45b8d566526f5 pending CI; Worker/Agent/Android release still not technically proven.",
       "D168-E041: Android vc108 Reporter all four tabs + Picker copy fix at protected source 3e6f23773b6e830916e36a176397c3598e9fabd8, PR595 exact CI and release pending.",
-      "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending."
+      "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending.",
+      "D168-E043 PR597: meal popup/source JSON/workflow/test candidate; CI, exact receipt and vc109 release pending."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
@@ -1026,14 +1055,16 @@
     "blocked": [
       "Physical PDA vc108 installation and Picker/Reporter all-view long-press/usage acceptance not verified; Owner PASS pending.",
       "Agent main verify run 38507343145 failed D160 Agent operations gateway GET 3x; root cause/quota and machine impact not yet established; prior v132 release unchanged.",
-      "D168-E037 single-runtime domain proposal unapproved; Stable gated."
+      "D168-E037 single-runtime domain proposal unapproved; Stable gated.",
+      "vc109 not yet signed/released; no physical meal dialog proof or FIELD PASS."
     ],
     "next_actions": [
+      "Complete PR597 code/CI + owner release SHA receipt, merge gated Beta and verify exact signed beta-vc109/channel and notes; test meal radio selection on real PDA.",
       "Verify actual PDA vc108 installation by in-app version, long-press SKU in Reporter PENDING/OVERDUE/HAS_STOCK/SKIP_ALLOWED and Picker History/popup, plus normal buttons, and user feedback.",
       "Investigate Agent D160 gateway connectivity with sanitized logs/provider usage separately; no guessed root cause or bypass.",
       "Record Owner field PASS only after direct testing; never automatically merge unrelated Stable/domain proposal."
     ],
-    "release_boundary": "WORKER_WEB_BETA_9A61_PASS__ANDROID_SIGNED_VC108_CHANNEL_PASS__AGENT_V132_RELEASED_PREVIOUSLY__AGENT_LATER_GATEWAY_PROBE_FAIL__FIELD_PENDING__STABLE_GATED",
+    "release_boundary": "WORKER_WEB_AGENT132_ANDROID_VC108_CURRENT_RELEASED__PR597_ANDROID_VC109_CODE_CANDIDATE__STABLE_OWNER_GATED__FIELD_PENDING",
     "pending": [
       "D168 E018 implementation started on PR591; ALL code/test/field PASS and deployment pending, no runtime updates."
     ]
