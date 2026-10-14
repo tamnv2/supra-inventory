@@ -27,3 +27,19 @@ Không tự đổi số vấn đề trên thành lỗi mới phát sinh trong D1
 1. Mỗi vấn đề anh báo sẽ được **ghi nguyên ý nghĩa, kèm mốc giờ và phạm vi** vào D169, không tự code.
 2. Khi anh yêu cầu `phân tích D169`: đọc toàn bộ backlog/journal, kết hợp source, CI và log; gom lỗi trùng nguồn, phân tích nguyên nhân đã chứng minh và nghi ngờ, đề xuất **một kế hoạch đồng nhất** có độ ưu tiên, tác động/chỉ tiêu usage, kiểm thử hồi quy và rollback.
 3. Chỉ khi anh **duyệt phương án** rồi lệnh `chạy code` / `triển khai` mới chuyển sang triển khai theo cổng repo hiện hành. `chạy code` dừng tại CODE READY; `chạy code và triển khai` bao gồm triển khai Beta trong phạm vi cho phép sau khi CI PASS. Không tự phát hành Stable.
+
+## D169-REQ-004 — Đánh giá khả năng quy nguyên nhân Usage từ log bản mới (14/10/2026)
+
+**Loại:** Owner hỏi đánh giá độ bao phủ log để phân tích nguyên nhân tiêu tốn Usage. **Trạng thái:** SOURCE_REVIEWED / BILLED_ATTRIBUTION_NOT_VERIFIED; không yêu cầu thay đổi code.
+
+**Nhận định từ source hiện tại:**
+- Agent `FirestoreQuotaGuard` có số lượt REST theo thành phần, giờ Việt Nam, trạng thái/độ trễ và mẫu HA; đính kèm `D166_USAGE_AUDIT` khi seal log. Các bộ đếm nằm trong RAM/process, restart hoặc quá giới hạn mẫu không bảo đảm liên tục. Ước lượng request/read documents không phải toàn bộ Firestore billable reads.
+- Android `D166UsageAudit` gom HTTP method/route family/outcome/latency và lỗi nghiệp vụ ở lúc tạo support bundle; tối đa 256 khóa request/64 lỗi, có dropped counters. Không phản ánh độc lập billable document listeners hoặc traffic app không đi qua lớp ghi nhận.
+- Web `runtime-logger` có API/REALTIME/PERF/network, resource timing/heap khi cho phép và audit event-boundary; RAM 420 events và tối đa 75 nhóm, trình duyệt đóng không thể gửi 21:45, nên không được giả tổng số hoạt động cả ca.
+- Worker/InventoryCore `d167-route-usage` phân nhóm request tại DO và `d166-sql-usage` đo các câu SQL đã instrument; hai tập số đo là **isolate-local** (restart mất mẫu), không phải Worker account requests, CPU duration hay toàn bộ billable SQL rows.
+- Google Apps Script: Agent log phân loại timeout/quota/retry nhưng không có ledger số lượt UrlFetch thực tế toàn bộ account; `D168_GATEWAY_EARLY_QUOTA_FORENSICS` chứng minh log client không thể xác định nguồn chính khi quota shared. Sau thay đổi trực tiếp Worker, không được áp công thức chi phí SKU Gateway cũ cho bản mới.
+- Upload log **21:45 VN** Agent/Web đang chạy, Android logout/kick, support request theo đợt; phải đối chiếu `DRIVE_SYNCED`, khoảng trống log, duplicate bundle, logout token expiry. Không tạo request log mới hay poll nhà cung cấp để chứng minh chính logging.
+
+**Kết luận phân tầng:** đủ tốt để tìm **ứng viên hot path/lặp/retry/lỗi** từ event thực; **chưa đủ** để gắn số lượng và tiền billable chính xác theo từng nghiệp vụ hay khẳng định tối ưu Usage đã giảm. Chỉ số bắt buộc đối chiếu: Firestore provider daily doc reads/writes/listener reconnection, Cloudflare Worker requests/CPU/DO rowsRead/rowsWritten theo đúng scope, Apps Script account executing-identity executions/UrlFetch quota, Drive archived bundle completeness; so cùng ngày/ca, số PDA/Agent giờ online và lượt báo hàng/Picklist/ACK. Tách `ZERO` với `N/A`, account shared với Inventory-only, process-reset với toàn ngày. Có log thì có thể phân tích nguồn tiêu tốn đáng nghi trước; chưa có meter thì phải ghi **attribution confidence limited**.
+
+**Không được tự sửa nguồn / thay đổi lịch log / triển khai Beta hoặc Stable vì câu hỏi này.**
