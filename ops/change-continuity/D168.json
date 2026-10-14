@@ -7,8 +7,8 @@
   "pr": 592,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-  "id": "D168-E034",
-  "date_vn": "2026-10-14"
+    "id": "D168-E035",
+    "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E032_OWNER_BETA_TRIAL_RELEASED__CBB52225_13_OF_13_PUSH_ACTIONS_PASS__REAL_FIELD_NOT_VERIFIED__STABLE_GATED",
   "entries": [
@@ -812,6 +812,24 @@
       ],
       "next_action": "Present source-verified defect and limited Worker/Core+Android Beta patch/test plan for explicit Owner approval; do not alter runtime just for a question. Preserve Stable OWNER-GATED.",
       "evidence": "docs/D168_BACKLOG.md#D168-REQ-002; android/.../InventoryApi.kt#L53-L74,#L499-L521,#L524-L543; android/.../PickerController.kt#L1108-L1158; android/.../ReporterController.kt#L636-L660; service/src/operational-v2-core.ts#L1162-L1243,#L1245-L1277; PR591 merged cbb52225; PR592 docs-only E032"
+    },
+    {
+      "id": "D168-E035",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_APPROVED_CONTINUATION",
+      "topic": "D168 Owner-approved tri-surface local-first logs and Beta repair continuation after manual checkpoint fix",
+      "status": "OWNER_APPROVED__CHECKPOINT_REPAIRED__CI_BASELINE_17_OF_17_PASS__SOURCE_REPAIRS_IN_PROGRESS__PR592_NO_DEPLOY__FIELD_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly approved the D168 repairs and local-first Agent/Web/PDA log policy: PDA logout/kick, Agent/Web 21:45 VN, no immediate error/crash upload, support request stagger, Drive-ACK-only prune, no timed retry, quota/battery CPU protections.",
+        "Owner manually fixed PR592 ops/change-continuity/D168.json last_checkpoint to object {id:D168-E034,date_vn:2026-10-14}; GitHub Actions exact commit 288249cc6092313cec6a2346a1c0d6d069f70f96 passed 17/17 including authority and project state.",
+        "Subsequent source changes on PR592 include Android Picker history responder, Agent auto-start confirmation and event-only Picker presence convergence, local-first tri-surface log delivery, schedule diagnostics, and separate SKU DONE from network restoration warnings.",
+        "D168 SKU concurrent-state write and Windows saved-profile priority UI source edits were blocked by tool safety; previous incomplete Wi-Fi route change was reverted. Both remain NOT DONE and must not be reported as fixed.",
+        "PR592 remains Draft, main accepted Beta is commit cbb52225 Agent v131/Android vc107, Stable OWNER-GATED; latest source CI needs exact-sha rerun after these changes.",
+        "No local CPU/usage sampling or field operational validation has yet certified the new log behavior and optimized SLA."
+      ],
+      "next_action": "Complete authorized source gaps without bypassing safety refusals; run code/CI/authority/continuity exact HEAD and compare bound resources; if blockers remain, keep PR Draft and do not deploy. Owner Field PASS only after actual device verification.",
+      "evidence": "GitHub PR592 exact commit 288249c 17/17 Actions PASS after Owner manual checkpoint fix; subsequent PR592 source commits through f94f52c; D168 Owner request in current conversation"
     }
   ],
   "resume": {
