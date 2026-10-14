@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_E043_ANDROID_VC109_PR597_CODE_CANDIDATE__VC108_RELEASED__VC109_SIGNED_PENDING__FIELD_OWNER_PASS_PENDING",
+    "current_change_status": "D168_E044_ANDROID_VC109_SIGNED_RELEASE_AND_CHANNEL_PASS__WORKER_BETA_PASS__OWNER_FIELD_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "EXISTING_BETA_ANDROID_VC108_CURRENT__VC109_PR597_SOURCE_ONLY__NO_STABLE",
+    "runtime_impact": "WORKER_BETA_A344_HEALTH_PASS__ANDROID_BETA_VC109_SIGNED_CHANNEL__AGENT_VERIFY_PASS_NO_SOURCE_CHANGE__STABLE_UNTOUCHED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D168",
     "journal": "ops/change-continuity/D168.json",
-    "working_branch": "fix/d168-android-vc109-meal-release-notes",
-    "pr": 597,
-    "latest_checkpoint_id": "D168-E043",
+    "working_branch": "docs/d168-vc109-release-evidence",
+    "pr": 598,
+    "latest_checkpoint_id": "D168-E044",
     "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D168_E043_OWNER_AUTHORIZES_ANDROID_VC109_BETA_AFTER_EXACT_CI_AND_WORKER_FIRST__NO_STABLE",
+    "owner_release_gate": "D168_E044_SIGNED_ANDROID_VC109_BETA_PASS__FIELD_OWNER_BUSINESS_PASS_PENDING__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7665,13 +7665,13 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "D168_E043_VC109_APPROVED_CODE_IN_PR597__PREVIOUS_VC108_RELEASED__CI_AND_VC109_CHANNEL_PENDING",
+    "status": "D168_E044_ANDROID_VC109_SIGNED_RELEASE_CHANNEL_PASS__OWNER_FIELD_PASS_PENDING",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
     "backlog": "docs/D168_BACKLOG.md",
-    "working_pr": 597,
-    "working_branch": "fix/d168-android-vc109-meal-release-notes",
+    "working_pr": 598,
+    "working_branch": "docs/d168-vc109-release-evidence",
     "owner_code_approval": true,
     "owner_deploy_approval": true,
     "code_ready": true,
@@ -7685,7 +7685,7 @@
       "DRIVE_LOG_COMPLETENESS_AND_PRIVACY_LOG_REVIEW",
       "CI_CD_ALL_ENTRYPOINT_GATING_FURTHER_VERIFICATION"
     ],
-    "next": "PR597_FINAL_CI__PIN_RECEIPT_SHA__BETA_ANDROID_VC109_RELEASE_READBACK__PHYSICAL_MEAL_UI_FIELD_TEST__STABLE_UNTOUCHED",
+    "next": "OWNER_FIELD_TEST_VC109_REPORTER_MEAL_PROMPT_AND_UPDATE_DIALOG__NO_STABLE_OR_DOMAIN_MIGRATION",
     "stable": "OWNER_GATED_UNTOUCHED",
     "pending_items": [
       {
@@ -7748,7 +7748,7 @@
         ]
       }
     ],
-    "latest_checkpoint_id": "D168-E043",
+    "latest_checkpoint_id": "D168-E044",
     "log_upload_diagnosis": "D168_REQ008__TWO_AFFECTED_AGENTS_MATCHING_GATEWAY_TIMEOUT_KEEPALIVE__CODE_PENDING_OWNER_APPROVAL",
     "sku_evening_diagnosis": "D168_REQ009__DELTA_19_NO_AGENT_DONE_EVIDENCE__948_PRIMARY_DEFER__BROWSER_TIMER_BYPASSES_15MIN_RETRY__SERVICE_RECEIPT_NOT_VERIFIED__NO_RUNTIME_MUTATION",
     "office_sku_route": "D168_REQ010__OFFICE_COMPATIBLE_BY_SOURCE_APPS_SCRIPT_GATEWAY__OFFICE_SKU_DONE_NOT_FIELD_VERIFIED__NO_CODE_OR_DEPLOY",
@@ -7897,8 +7897,8 @@
       "pr": 597,
       "branch": "fix/d168-android-vc109-meal-release-notes",
       "approval": "OWNER_EXPLICIT_CODE_AND_BETA_ANDROID_RELEASE_2026_10_14",
-      "code_status": "SOURCE_COMMITTED__CI_PENDING",
-      "release_status": "VC109_NOT_RELEASED",
+      "code_status": "PR597_SOURCE_CI_16_OF_16_PASS__MAIN_MERGED_A344C283",
+      "release_status": "SIGNED_BETA_VC109_RELEASE_AND_CHANNEL_PASS__FIELD_PASS_PENDING",
       "previous_release": "beta-vc108",
       "target_release": "beta-vc109",
       "scope": [
@@ -7917,7 +7917,19 @@
       "agent_change": "NONE",
       "field_pass": false,
       "owner_pass": false,
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "source_main_sha": "a344c283376754ae9bf302cf05d59e27e5ab7c37",
+      "release_id": 412335126,
+      "release_tag": "beta-vc109",
+      "release_published_utc": "2026-10-14T04:22:51Z",
+      "release_workflow": 38510963868,
+      "worker_workflow": 38510963878,
+      "agent_workflow": 38510963851,
+      "main_push_workflows": "11_OF_11_PASS",
+      "apk_sha256": "3af478db9c72bf04de1ac054fce461779f27c2c61c609d12daf0f965ff47ca71",
+      "channel_apk_sha256": "3af478db9c72bf04de1ac054fce461779f27c2c61c609d12daf0f965ff47ca71",
+      "pda_latest_manifest_asset_sha256": "5046193205641e90ff6954cfdce78709e3f532633201a2a7091af8ce451666ae",
+      "channel_manifest_updated_utc": "2026-10-14T04:22:53Z"
     }
   }
 }
