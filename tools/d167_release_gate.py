@@ -67,19 +67,8 @@ def main():
         return
     if not args.component:
         fail("missing release component")
-    event = os.getenv("GITHUB_EVENT_NAME")
-    if os.getenv("GITHUB_REF") != "refs/heads/main":
-        fail("Beta release requires main branch")
-    if event == "workflow_dispatch":
-        # GitHub connector merges may not trigger Actions push runs.
-        # Manual dispatch is allowed only as an Owner-triggered recovery path
-        # after D168's SHA-bound, CI-verified, scoped Beta receipt is committed.
-        if (data.get("change_id") != "D168"
-                or os.getenv("GITHUB_ACTOR") != "tamnv2"
-                or os.getenv("GITHUB_REPOSITORY") != "tamnv2/supra-inventory"):
-            fail("manual release requires exact D168 repository Owner on main")
-    elif event != "push":
-        fail("release requires main push or explicit Owner dispatch")
+    if os.getenv("GITHUB_EVENT_NAME") != "push" or os.getenv("GITHUB_REF") != "refs/heads/main":
+        fail("manual dispatch/PR is not Owner deployment approval")
     if data.get("status") != "OWNER_EXPLICIT_DEPLOY_APPROVED":
         fail("CODE READY is not approved for deployment")
     if args.component not in data.get("approved_components", []):
