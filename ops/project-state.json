@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D167",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_13_D167_PASS_AS_DEPLOYED_NO_ERRORS_REPORTED__WEB311_AGENT130_ANDROID_VC106_EXISTING_BETA__FIELD_USAGE_UNPROVEN",
     "current_change_id": "D168",
-    "current_change_status": "D168_E030_SOURCE_CI_20_OF_20_PASS__OWNER_BETA_TRIAL_ACCEPTED__RELEASE_RECEIPT_TOOL_SAFETY_BLOCK__NO_DEPLOY",
+    "current_change_status": "D168_E031_PR591_MERGED__NO_GITHUB_PUSH_RELEASE_RUNS__PR592_DISPATCH_FIX_PENDING_CI__NO_BETA_DEPLOY",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "NONE_UNTIL_D168_RELEASE_WORKFLOWS_SUCCEED__STABLE_GATED",
+    "runtime_impact": "PR591_MAIN_MERGED_ONLY__D168_BETA_WORKER_AGENT_ANDROID_RELEASE_NOT_YET_OBSERVED__STABLE_UNTOUCHED",
     "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
@@ -7449,9 +7449,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D168",
     "journal": "ops/change-continuity/D168.json",
-    "working_branch": "d168-agent-network-split-proposal-20261013",
-    "pr": 591,
-    "latest_checkpoint_id": "D168-E030",
+    "working_branch": "d168-beta-release-dispatch-recovery-20261014",
+    "pr": 592,
+    "latest_checkpoint_id": "D168-E031",
     "checkpoint_date_vn": "2026-10-14",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7665,13 +7665,13 @@
   },
   "d168": {
     "opened_on_vn": "2026-10-13",
-    "status": "D168_E030_RELEASE_RECEIPT_WRITE_SAFETY_BLOCK__DRAFT_PR591_UNMERGED__NO_D168_BETA_RUNTIME",
+    "status": "D168_E031_PR592_OWNER_MANUAL_DISPATCH_RECOVERY_CODE_IN_PROGRESS__NO_LIVE_RELEASE",
     "accepted_base": "D167_OWNER_PASS_AS_DEPLOYED_NO_NEWLY_REPORTED_ERRORS_ONLY",
     "opened_by": "OWNER_EXPLICIT_D167_PASS_AND_CREATE_D168_20261013",
     "journal": "ops/change-continuity/D168.json",
     "backlog": "docs/D168_BACKLOG.md",
-    "working_pr": 591,
-    "working_branch": "d168-agent-network-split-proposal-20261013",
+    "working_pr": 592,
+    "working_branch": "d168-beta-release-dispatch-recovery-20261014",
     "owner_code_approval": true,
     "owner_deploy_approval": true,
     "code_ready": true,
@@ -7685,7 +7685,7 @@
       "DRIVE_LOG_COMPLETENESS_AND_PRIVACY_LOG_REVIEW",
       "CI_CD_ALL_ENTRYPOINT_GATING_FURTHER_VERIFICATION"
     ],
-    "next": "WAIT_FOR_AUTHORIZED_RELEASE_CONTROL_PATH__DO_NOT_BYPASS_SAFETY_TOOL__PRESERVE_EXISTING_BETA",
+    "next": "PR592_EXACT_CI__OWNER_APPROVED_SOURCE_SHA_REFRESH__MERGE__RUN_AUTHORIZED_BETA_WORKER_AND_CLIENT_RELEASE__FIELD_TEST",
     "stable": "OWNER_GATED_UNTOUCHED",
     "pending_items": [
       {
@@ -7748,7 +7748,7 @@
         ]
       }
     ],
-    "latest_checkpoint_id": "D168-E030",
+    "latest_checkpoint_id": "D168-E031",
     "log_upload_diagnosis": "D168_REQ008__TWO_AFFECTED_AGENTS_MATCHING_GATEWAY_TIMEOUT_KEEPALIVE__CODE_PENDING_OWNER_APPROVAL",
     "sku_evening_diagnosis": "D168_REQ009__DELTA_19_NO_AGENT_DONE_EVIDENCE__948_PRIMARY_DEFER__BROWSER_TIMER_BYPASSES_15MIN_RETRY__SERVICE_RECEIPT_NOT_VERIFIED__NO_RUNTIME_MUTATION",
     "office_sku_route": "D168_REQ010__OFFICE_COMPATIBLE_BY_SOURCE_APPS_SCRIPT_GATEWAY__OFFICE_SKU_DONE_NOT_FIELD_VERIFIED__NO_CODE_OR_DEPLOY",
