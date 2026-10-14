@@ -636,3 +636,17 @@ test("D168 local-first log delivery honors Owner daily and logout boundaries", a
   assert.match(global,/180_001L/);
   assert.doesNotMatch(global,/retryDelayMs/);
 });
+
+test("D168 Picker presence convergence coalesces on existing event without polling", async () => {
+  const { readFileSync } = await import("node:fs");
+  const text = readFileSync(new URL("../relay-agent/D119AgentFeatures.cs", import.meta.url), "utf8");
+  const handler = text.split("private void QueueD168PresencePublish(")[1]
+    ?.split("private void ApplyD161DirectPickerPresence(")[0] || "";
+  assert.match(handler, /_d168PresencePublishPending/);
+  assert.match(handler, /_d168PresencePublishActive/);
+  assert.match(handler, /PublishPresence\(SnapshotSession\(\), pending\)/);
+  assert.match(handler, /retry=NEXT_PRESENCE_EVENT/);
+  assert.doesNotMatch(handler, /Thread\.Sleep|Task\.Delay|Timer|new HttpWebRequest/);
+  assert.match(text, /QueueD168PresencePublish\(merged, false\)/);
+  assert.match(text, /QueueD168PresencePublish\(merged, true\)/);
+});
