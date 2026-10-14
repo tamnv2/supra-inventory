@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D168",
-  "working_branch": "docs/d168-vc109-release-evidence",
-  "pr": 598,
+  "working_branch": "fix/d168-android-vc110-result-overlay-once",
+  "pr": 599,
   "accepted_base": "D167_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D168-E045",
+    "id": "D168-E046",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D168_E045_VC109_LAST_SIGNED__VC110_SOURCE_ONLY__PR_CI_BUILD_PENDING__STABLE_GATED",
@@ -1050,6 +1050,20 @@
       ],
       "next_action": "Create Draft PR from owner Codespaces branch; bind real PR number to manifest/state/journal before authority/continuity and Android CI evaluation; fix all CI failures; merge only after required PASS and explicit Beta release authorization; verify signed vc110 and device behavior.",
       "evidence": "Owner vc109 overlay report and uploaded 2026-10-14 11:25 Android support logs; android/.../NotificationSignalStore.kt, StockMessagingService.kt, PickerController.kt, CriticalOverlayService.kt; android/release-notes.json; tests/d168-android-vc110-overlay.test.mjs; GitHub Codespaces local branch output"
+    },
+    {
+      "id": "D168-E046",
+      "date_vn": "2026-10-14",
+      "kind": "STATUS",
+      "topic": "Android Beta vc110 double overlay code submitted via Owner Codespaces Draft PR",
+      "status": "VC110_DRAFT_PR_OPEN__AUTHORITY_AND_ANDROID_CI_PENDING__NOT_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner Codespaces opened Draft PR #599 on branch fix/d168-android-vc110-result-overlay-once; exact tests, source and documentation are committed on same D168 branch.",
+        "Full Android build, PR check outcome and signed APK release must be read back separately; Stable remains untouched."
+      ],
+      "next_action": "Run PR checks; repair any FAIL; Owner-authorized Beta merge/release only after PASS and verification. Never assert physical PDA PASS from CI.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/599; local branch fix/d168-android-vc110-result-overlay-once"
     }
   ],
   "resume": {
@@ -1090,7 +1104,8 @@
       "D168-E041: Android vc108 Reporter all four tabs + Picker copy fix at protected source 3e6f23773b6e830916e36a176397c3598e9fabd8, PR595 exact CI and release pending.",
       "D168-E042: signed beta-vc108 + channel and Worker Beta exact source verified; Agent v132 prior release; D160 gateway GET probe fails in later main workflow; physical FIELD PASS pending.",
       "D168-E044 vc109 app installed/tested field proof pending; future releases auto publish reviewed notes from source file.",
-      "D168-E045: owner-reported vc109 double overlay: vc110 Android local hotfix on Codespaces feature branch; code diff clean, tests/PR/CI/build/release/field acceptance pending."
+      "D168-E045: owner-reported vc109 double overlay: vc110 Android local hotfix on Codespaces feature branch; code diff clean, tests/PR/CI/build/release/field acceptance pending.",
+      "D168-E046: vc110 Draft PR #599 created. CI and physical device validation pending."
     ],
     "pending_approval": [
       "Stable OWNER-GATED; D168 physical Owner business acceptance pending.",
