@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-usage-log-coverage-20261014",
-  "pr": 603,
+  "working_branch": "docs/d169-additional-intake-20261014",
+  "pr": 604,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E002",
+    "id": "D169-E004",
     "date_vn": "2026-10-14"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -47,6 +47,38 @@
       ],
       "next_action": "Collect real Agent/Android/Web complete archived logs and provider usage screenshots/exports for comparable shifts, then correlate per-hour costs per online device/agent and per 1,000 business operations in the consolidated D169 analysis; propose only Owner-gated adjustments.",
       "evidence": "relay-agent/FirestoreQuotaGuard.cs; relay-agent/AgentLogUploadBridge.cs; android/.../D166UsageAudit.kt; web/src/runtime-logger.ts; service/src/d166-sql-usage.ts; service/src/d167-route-usage.ts; docs/specs/OBSERVABILITY_LOGGING.md; docs/D168_GATEWAY_EARLY_QUOTA_FORENSICS_2026-10-13.md; docs/D169_BACKLOG.md#D169-REQ-004"
+    },
+    {
+      "id": "D169-E003",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner first field observation batch: version visibility, Picker presence from Picklist, online list, long Agent chat",
+      "status": "RECORDED_INTAKE_ONLY__NO_CODE_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "D169-REQ-005: Installed App version label intermittently falls back to 'Chưa ghi nhận'; source and field logs not yet correlated.",
+        "D169-REQ-006: Owner requests reusing existing Picklist transmission to refresh valid Picker/device online presence without separate provider traffic where feasible; not a login replacement.",
+        "D169-REQ-007: Agent list must reflect logout/kick promptly and avoid stale online users, while retaining reconnection safety.",
+        "Owner reconfirms D169-REQ-002: long CV message can hide acknowledgement action; consider scrollable body or pinned action. This is distinct from a frozen overlay."
+      ],
+      "next_action": "Collect version/channel/session/presence event evidence for one unified diagnosis with D169-REQ-002 and future related issues; record-only until Owner approves design.",
+      "evidence": "Owner direct messages 2026-10-14; docs/D169_BACKLOG.md#D169-REQ-005"
+    },
+    {
+      "id": "D169-E004",
+      "date_vn": "2026-10-14",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner adds frozen result overlay, scoped Admin Inventory/Pick Pack rights, and Agent network-route recovery",
+      "status": "RECORDED_INTAKE_ONLY__ROOT_CAUSE_UNVERIFIED__NO_EXECUTABLE_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "D169-REQ-008: Owner observes Android result overlay sometimes remains frozen and cannot be tapped/dismissed. Suspects possible logout or network loss, explicitly requests more logs before root-cause conclusion.",
+        "D169-REQ-009: Review Admin Inventory vs Admin Pick Pack privileges; Owner specifically raises allowing Admin Pick Pack SKU updates and Picker account creation, subject to cross-surface RBAC/security proposal.",
+        "D169-REQ-010: For Agent functions requiring normal Internet, Owner wants a prompt with an option to switch automatically to a configured priority Wi-Fi if required service unreachable, with safe network/HA/Confirm/WMS policy review.",
+        "D169 remains intake-only; none of these report findings as source-confirmed, role changes as approved, or network switch as deployed."
+      ],
+      "next_action": "Collect sanitized evidence; perform combined end-to-end analysis, test and usage impact matrix; submit design options for explicit Owner approval. Keep Draft PR #604 and prevent runtime release.",
+      "evidence": "Owner direct instruction 2026-10-14; docs/D169_BACKLOG.md#D169-REQ-008; PR #604"
     }
   ],
   "resume": {
@@ -60,11 +92,13 @@
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
-      "D169-E002 review: usage logs sufficient for client hot-path triage, not authoritative provider billing; provider side comparison pending."
+      "D169-E002 review: usage logs sufficient for client hot-path triage, not authoritative provider billing; provider side comparison pending.",
+      "Owner field intake REQ-005–010 plus long CV message addendum to REQ-002 documented; logs/causes/role and Wi-Fi design unverified."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
-      "D168-E050 mandatory-version update and long Agent overlay design remain unresolved and require analysis"
+      "D168-E050 mandatory-version update and long Agent overlay design remain unresolved and require analysis",
+      "Admin Pick Pack SKU/account permission changes and Agent Wi-Fi switch design require full impact review then explicit Owner approval."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -72,7 +106,8 @@
     "next_actions": [
       "Add D169-REQ-n observations to the backlog with sanitized evidence",
       "After sufficient intake or Owner command, read full canonical GitHub + log and prepare consolidated diagnosis/proposal, including regression/usage/security/rollback",
-      "For Usage diagnosis, compare Drive-confirmed 21:45/logout bundles to provider daily billing/Usage screenshot/exports, actual fleet hours and business events; classify missing coverage."
+      "For Usage diagnosis, compare Drive-confirmed 21:45/logout bundles to provider daily billing/Usage screenshot/exports, actual fleet hours and business events; classify missing coverage.",
+      "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis."
     ],
     "release_boundary": "RECORD_ONLY__NO_EXECUTABLE_CHANGE__NO_BETA_STABLE_DOMAIN_DEPLOY__STABLE_OWNER_GATED"
   }
