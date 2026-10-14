@@ -610,3 +610,29 @@ test("D168 one-click Agent field probe is read-only and distinguishes direct fro
   assert.match(route,/internal bool DidSwitch/);
   assert.doesNotMatch(ui,/WmsSkuBrowserExport|ManualStart\(|UploadAndPublish\(/);
 });
+
+
+test("D168 local-first log delivery honors Owner daily and logout boundaries", async () => {
+  const {readFileSync}=await import("node:fs");
+  const bridge=readFileSync(new URL("../relay-agent/AgentLogUploadBridge.cs",import.meta.url),"utf8");
+  const program=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const web=readFileSync(new URL("../web/src/runtime-logger.ts",import.meta.url),"utf8");
+  const android=readFileSync(new URL("../android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt",import.meta.url),"utf8");
+  const global=readFileSync(new URL("../android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",import.meta.url),"utf8");
+  const scheduled=bridge.split("internal void TryQueueScheduledSnapshot()")[1].split("internal void TryQueueManualSnapshot()")[0];
+  const error=bridge.split("internal void TryQueueErrorSnapshot(")[1].split("// Kept under the existing method name")[0];
+  const crash=bridge.split("internal void TryQueueCrashSnapshot(")[1].split("internal void TryQueueErrorSnapshot(")[0];
+  assert.match(scheduled,/SCHEDULE_BOUNDARY=21:45/);
+  assert.doesNotMatch(scheduled,/dueByTime|dueBySize|DirtyCheckpointMs/);
+  assert.doesNotMatch(error,/TryFlushPending\(/);
+  assert.doesNotMatch(crash,/TryFlushPending\(/);
+  assert.match(program,/AgentDiagnostics\.ErrorUploadCallback = null/);
+  assert.match(program,/D167SkuSchedule\.VNNow\(\)/);
+  assert.match(web,/2145/);
+  assert.doesNotMatch(web,/immediateError\(/);
+  assert.match(web,/result\.archive_status === "DRIVE_SYNCED"/);
+  assert.match(android,/pending_logout_queue_v3/);
+  assert.doesNotMatch(android,/lastImmediateRuntimeLogAt/);
+  assert.match(global,/180_001L/);
+  assert.doesNotMatch(global,/retryDelayMs/);
+});
