@@ -1,14 +1,18 @@
 {
   "schema_version": 1,
   "change_id": "D169",
-  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
-  "approved_source_sha": null,
-  "approved_components": [],
-  "owner_approval_reference": null,
-  "authority_continuity_pass": false,
-  "product_ci_pass": false,
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
+  "approved_components": [
+    "worker"
+  ],
+  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261015_WEB_PICKER_RBAC_BETA_ONLY",
+  "authority_continuity_pass": true,
+  "product_ci_pass": true,
   "stable_deploy_permission": false,
   "code_scope": "WEB_PICKER_HR_ADMIN_PICK_PACK_ONLY",
   "request": "OWNER_EXPLICIT_20261015_WEB_WORKER_BETA_DEPLOY_ONLY__AGENT_ANDROID_CODE_ONLY",
-  "note": "Code candidate pending exact SHA PR CI before release approval. Retain critical Firebase and all Stable permissions."
+  "note": "Code candidate pending exact SHA PR CI before release approval. Retain critical Firebase and all Stable permissions.",
+  "approved_at_vn": "2026-10-15",
+  "notes": "Exact tested source SHA. Existing Beta Worker and bundled Web assets ONLY; no Android, Agent, Firebase transport, Stable or domain changes."
 }
