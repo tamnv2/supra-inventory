@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-additional-intake-20261014",
-  "pr": 604,
+  "working_branch": "fix/d169-android-agent-code-only-20261015",
+  "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E008",
+    "id": "D169-E009",
     "date_vn": "2026-10-15"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -161,6 +161,22 @@
       ],
       "evidence": "PR #605 exact-head GitHub Actions checks; ops/d169-release-authorization.json; docs/OWNER_DECISIONS.md",
       "next_action": "Re-run exact-head Authority/Continuity/Web tests on receipt commit; merge via ancestry-preserving merge only after PASS; verify Beta Worker/SQL/Web health/source SHA. No other release."
+    },
+    {
+      "id": "D169-E009",
+      "date_vn": "2026-10-15",
+      "kind": "TEST",
+      "topic": "Web Beta verified rollout and Android/Agent code-only PR #606 test evidence",
+      "status": "WEB_WORKER_BETA_DEPLOY_PASS__ANDROID_AGENT_CODE_ONLY_CI_PASS__CONTINUITY_REVIEW",
+      "owner_approval": true,
+      "facts": [
+        "PR #605 was merged using ancestry-preserving merge 6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a after all 18 exact-head checks PASS; GitHub Actions Beta Worker run 38674840706 completed SUCCESS including source/health/schema/Web shell checks.",
+        "D169 PR #606 code-only contains scrollable Android command body with action outside ScrollView, session-orphan overlay unblock without ACK, latest signed Beta update floor and bounded local Agent SKU retry guard.",
+        "Initial PR #606 checks Android build, Relay Agent build, source assertions and existing operational regression PASS; Continuity failure is expected until this journal+state checkpoint is committed on its branch.",
+        "No Android or Agent executable release, Firebase HA/Confirm route migration, Stable or domain cutover has taken place; UI role field test and provider billing evidence remain pending."
+      ],
+      "evidence": "PR #605, GitHub Actions deploy-beta run 38674840706, PR #606 Android/Agent and D169 static source checks, docs/D169_BACKLOG.md",
+      "next_action": "Re-run PR #606 checks after canonical continuity update; keep PR #606 DRAFT and UNMERGED. Request field logs for ACK/presence/HA/Usage before further business changes."
     }
   ],
   "resume": {
@@ -172,7 +188,8 @@
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
-      "D169 journal and backlog created; no executable product changes"
+      "D169 journal and backlog created; no executable product changes",
+      "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -181,7 +198,8 @@
       "D169-E005 unified source/log findings and integrated mitigation proposal prepared; no root-cause claim for frozen overlay or exact provider billing.",
       "D169-E006 report appended in backlog; limited forensic review; no executable or deploy work authorized by this checkpoint.",
       "D169 Web Picker RBAC PR source/CI pending, scoped Worker-only deploy gate.",
-      "PR #605 receipt attached, final CI pending, no runtime release yet."
+      "PR #605 receipt attached, final CI pending, no runtime release yet.",
+      "PR #606 Agent/Android code-only sources compile and source tests PASS; no merge or release."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -200,6 +218,6 @@
       "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis.",
       "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge."
     ],
-    "release_boundary": "OWNER_APPROVED_CONDITIONAL_WEB_WORKER_BETA_ONLY__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED"
+    "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
 }
