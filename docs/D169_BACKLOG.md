@@ -144,3 +144,15 @@ PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks
 **Đã loại khỏi danh sách sửa mới:** D169 PR606 (Android body scroll/nút cố định, session-orphan overlay, update floor, Agent nextWake SKU retry) đã CODE PASS nhưng chưa phát hành; PR605 Picker HR Beta đã triển khai. D169 REQ 004/006/007/008/010 vẫn là đầu việc đang mở, không nhân bản chỉ vì có thêm số đo. Kiểm thử Android/Web, xác nhận WMS, billing và fleet remain FIELD_PENDING.
 
 **Giới hạn:** chỉ checkpoint điều tra, không sửa executable, không merge PR606, không phát hành Client, không thay Firebase critical Office route hoặc Stable. Mọi đề xuất ảnh hưởng nguồn bắt buộc Owner duyệt thiết kế/rủi ro trước.
+
+## D169-E011 — Cơ chế HA khi Agent dùng mạng PDA và Office (16/10/2026)
+
+**Rà soát code, không cấp phép triển khai:** bầu PRIMARY qua Firestore roles/generation CAS; primary gửi RTDB heartbeat ~10s, hỏng RTDB thì fallback Firestore lease; NEXT_A phát hiện nghi ngờ sau 15s nhưng chỉ chuyển quyền khi kiểm chứng liveness, WMS/browser ready và CAS thành công. Không tồn tại luật ưu tiên PRIMARY theo nhãn Wi-Fi PDA/Office. NEXT_B đứng sau NEXT_A.
+
+**Cần đặc biệt lưu ý với mô hình hai mạng:** nếu Office chỉ truy cập Firestore nhưng RTDB probe của NEXT_A bị chặn/timeout, code `VerifyPrimaryDownBeforeTakeover` coi liveness là UNAVAILABLE và hoãn chuyển quyền ngay cả khi Firestore lease đã cũ. Đây là rào an toàn chống split-brain, nhưng có nguy cơ failover tự động không đạt được khi PRIMARY chết. Mạng PDA cũng chỉ là ứng viên PRIMARY bình thường nếu cả Firebase điều phối và phiên WMS trên chính Agent truy cập được; Agent chỉ có Worker/Internet nhưng WMS không sẵn sàng không thể Confirm.
+
+**Phân biệt trạng thái degraded:** PRIMARY thiếu WMS có thể giữ vai trò để trả ACK `WMS_SESSION_REQUIRED` khi không có standby sẵn sàng; khi có standby, hai lần kiểm tra thiếu WMS cách nhau >=15s sẽ cố bàn giao. Khởi tạo trống roles cũng cho phép degraded receiver trước khi WMS sẵn sàng. Không khẳng định nhận yêu cầu là xác nhận Picklist thành công.
+
+**Điểm code nên đánh giá khi thiết kế:** `RtdbHaLiveness.WriteHeartbeat` đang điền `wms_ready=true` cố định; kiểm tra WMS trước mutation vẫn nằm ở luồng local + Firestore. Đây là sự không nhất quán về chỉ báo chẩn đoán, chưa chứng minh gây sai kết quả. Không đổi HA theo suy đoán.
+
+**Phạm vi chờ quyết định:** đo thực địa Office Firestore PASS/RTDB 401-403, Internet/PDA WMS READY/NOT_READY, tắt PRIMARY, mất WMS, mất RTDB, mất Firestore, trùng generation và độ trễ Confirm/ACK. Giữ Firebase Office critical path, fail-closed khi không có bằng chứng PRIMARY đã chết, không chuyển sang Cloudflare để giảm quota. Không tạo code/PR khác, không merge PR #606, không phát hành Agent/Android, Stable vẫn OWNER-GATED.
