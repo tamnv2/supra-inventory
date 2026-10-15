@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E009",
+    "id": "D169-E010",
     "date_vn": "2026-10-15"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -177,6 +177,26 @@
       ],
       "evidence": "PR #605, GitHub Actions deploy-beta run 38674840706, PR #606 Android/Agent and D169 static source checks, docs/D169_BACKLOG.md",
       "next_action": "Re-run PR #606 checks after canonical continuity update; keep PR #606 DRAFT and UNMERGED. Request field logs for ACK/presence/HA/Usage before further business changes."
+    },
+    {
+      "id": "D169-E010",
+      "date_vn": "2026-10-15",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Full-day 15 October archived Agent log audit: Picklist terminal status, RTDB SSE fallback load, SKU receipt gap and log identity exposure",
+      "status": "SOURCE_LOG_CONFIRMED_PARTIAL__NEW_DIAGNOSTIC_ONLY__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Scoped Beta/Logs/2026-10-15 contains 18 accessible Agent text bundles from 3 Agent machines, spanning some 04:33–23:10 Vietnam-local events plus carried October 14 history; no Android/Web bundles in this date folder. Cumulative checkpoints overlap and provider-billed usage is unavailable.",
+        "At 21:42 D157 absolute daily ACK aggregation reports 491 ACKed terminal jobs, 444 CONFIRMED/ALREADY_CONFIRMED, and 47 other terminal result categories. Source defines error=total-confirmed; 47 is NOT proof of lost requests, runtime exceptions or server ACK failures. Detailed two Agent sessions contain 337 responses: 297 CONFIRMED, 24 NOT_FOUND, 9 CONFIRM_CONFLICT, 3 CONFIRM_IN_PROGRESS_OR_UNCERTAIN, 2 WMS_SESSION_REQUIRED, 1 CONFIRM_ERROR, 1 AMBIGUOUS_PICKLIST. Only 337/491 are locally decomposed; no unsafe resend permitted.",
+        "One v132 NEXT_A session ending 21:45 estimates 3,258 PRIMARY_LEASE_READ, 3,255 RTDB_NOT_FRESH_FIRESTORE_FALLBACK, 531 RTDB SSE NETWORK_Timeout, 52 SSE HTTP_403 and 541 SSE CONNECTED; at 19h 868 Firestore lease reads. Source uses required RTDB-to-Firestore safety fallback and 1-second SSE reconnection. Provider usage and actual root cause are unverified; do not weaken 15-second failover, Primary fencing or Office Firebase route to reduce reads.",
+        "15 October SKU: 06:12 INITIAL_05 DONE receipt verified 2,516; 12:31 DELTA_12 DONE receipt verified 2,518 after prior deferred profile state; at 21:43 DELTA_19 exported 2,536 locally but Worker stage DEFER D167_WORKER_KEEPALIVEFAILURE, no DONE receipt observed by 21:45 archive boundary. This is not proof of eventual failure. Separate Agent logs show four D168_SKU_SHARED write WebException deferrals during role transition.",
+        "Uploaded Agent bundles still visibly include unsalted operational employee/Picker identifier patterns, Admin login identifiers and machine identifiers in some AUDIT/SESSION lines, despite bounded redaction spec; no such values are reproduced in this public checkpoint. Review raw-export sanitizer end-to-end before any further diagnostic upload rollout.",
+        "Two direct Agent sessions log 337 WMS outcomes; confirmed terminal timing is ~1.7–1.8s median, ~2.3–3.1s sampled P95. No measured fleet-wide latency degradation or lost WMS mutation is established.",
+        "Excluded as duplicate new tasks: PR606 Android scrolling/orphan overlay/version-floor and bounded Agent SKU retry already code-ready but NOT released; PR605 Web Picker role allowance deployed Beta. Existing D169 REQ presence, contact query 100-document scan, FCM fallback, network route and full billing reconciliation are retained without re-opening.",
+        "No Android result-stage 404 or overlay root-cause proof can be freshly derived from October 15 Agent-only files; historical D169-E005 remains separate. No code, main merge, Android/Agent release, Stable or critical Firebase routing modification is authorized by this diagnostic checkpoint."
+      ],
+      "next_action": "Prioritize a privacy-safe review of 47 ACKed nonconfirmed terminal outcomes against authoritative WMS state, classify sustained SSE reconnect/fallback and scrub log identifiers; verify 19:00 SKU durable receipt post-archive. Fold findings under D169 with source/CI/field/provider distinction, Owner approval needed before any implementation.",
+      "evidence": "Scoped Inventory/Beta/Logs/2026-10-15 Agent bundle analysis; relay-agent/FirestoreConfirmationTransport.cs#RefreshD157DailySummaryAbsolute; relay-agent/RtdbHaLiveness.cs#ObserveLoop; relay-agent/FirestoreAgentLeaderCoordinator.cs#CheckPrimaryLease; relay-agent/AgentLogUploadBridge.cs#SealFromCheckpoint; docs/D169_BACKLOG.md; PR #606."
     }
   ],
   "resume": {
@@ -199,7 +219,8 @@
       "D169-E006 report appended in backlog; limited forensic review; no executable or deploy work authorized by this checkpoint.",
       "D169 Web Picker RBAC PR source/CI pending, scoped Worker-only deploy gate.",
       "PR #605 receipt attached, final CI pending, no runtime release yet.",
-      "PR #606 Agent/Android code-only sources compile and source tests PASS; no merge or release."
+      "PR #606 Agent/Android code-only sources compile and source tests PASS; no merge or release.",
+      "D169-E010 latest full-day Oct 15 sanitized Agent evidence: terminal WMS outcome classification, repeated SSE/Firestore fallback, SKU DELTA_19 missing receipt at archive boundary, and support-log identifier exposure; no Android/Web raw coverage."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -216,7 +237,8 @@
       "After sufficient intake or Owner command, read full canonical GitHub + log and prepare consolidated diagnosis/proposal, including regression/usage/security/rollback",
       "For Usage diagnosis, compare Drive-confirmed 21:45/logout bundles to provider daily billing/Usage screenshot/exports, actual fleet hours and business events; classify missing coverage.",
       "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis.",
-      "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge."
+      "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge.",
+      "Before any fix approval, reconcile 47 nonconfirmed ACKed outcomes against WMS/idempotency, RTDB SSE timeout/lease GET amplification against provider meters, SKU DELTA_19 Worker receipt and post-21:45 retry, and scoped log redaction at upload."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
