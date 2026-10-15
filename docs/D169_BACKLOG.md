@@ -96,6 +96,3 @@ Không tự đổi số vấn đề trên thành lỗi mới phát sinh trong D1
 - **P2 / LOG COVERAGE:** hiện Drive không cung cấp được toàn bộ Android/Web cho ngày đã hỏi; record E005 có phát hiện lịch sử, nhưng đếm lại end-to-end cần bộ bundle đúng phiên/logout, Web active 21:45, log Worker/DO và ảnh meter của Firebase/Cloudflare/Apps Script. Không đồng nhất không có bundle với không có lỗi.
 
 **Phương án khuyến nghị (chưa được Owner duyệt code):** A giữ nguyên sẽ duy trì lỗi và tải đang thấy. B ưu tiên sửa dựa trên bằng chứng: overlay/ACK, presence tombstone/session, Browser/RTDB phân loại, truy vấn alert và tránh nhân đôi call; giữ nguyên HA lease và Confirm guard cho đến khi field-proven. C chuyển tải Firestore→Worker chỉ ở nghiệp vụ không bắt buộc Firestore/Office, có đường truy cập và tính đúng realtime, WMS, ACK, idempotency, latency, security, chi phí; không chuyển quota bằng phép cộng đơn vị khác nhau. Đề xuất **B kết hợp khảo sát có điều kiện C**, với canary phiên bản thực, CI/authority/continuity PASS và rollback; Stable vẫn OWNER-GATED. Cần so provider meter theo Agent/PDA giờ online và đơn nghiệp vụ, không áp trực tiếp ước tính nội bộ thành billable.
-
-
-D169 WRITE DIAGNOSTIC 2026-10-15: non-executable GitHub connector write verification on existing Draft PR branch. No deploy authorized.
