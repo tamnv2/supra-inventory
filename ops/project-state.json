@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_WEB_BETA_OWNER_APPROVED_SHA__CLIENT_CODE_ONLY_HOLD",
+    "current_change_status": "D169_WEB_BETA_DEPLOY_PASS__CLIENT_CODE_ONLY_DRAFT__NO_OWNER_FINAL_PASS",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D169",
     "journal": "ops/change-continuity/D169.json",
-    "working_branch": "docs/d169-additional-intake-20261014",
-    "pr": 604,
-    "latest_checkpoint_id": "D169-E004",
-    "checkpoint_date_vn": "2026-10-14",
+    "working_branch": "fix/d169-android-agent-code-only-20261015",
+    "pr": 606,
+    "latest_checkpoint_id": "D169-E009",
+    "checkpoint_date_vn": "2026-10-15",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D169_RECORD_ONLY__NO_CODE_OR_DEPLOY_PERMISSION__STABLE_OWNER_GATED",
+    "owner_release_gate": "D169_WEB_WORKER_BETA_DEPLOYED__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7976,17 +7976,17 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "WEB_WORKER_BETA_APPROVED_SHA__PR_CI_PENDING__CLIENT_CODE_ONLY",
+    "status": "WEB_WORKER_BETA_DEPLOY_PASS__CLIENT_CODE_ONLY_PR_DRAFT",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
     "backlog": "docs/D169_BACKLOG.md",
-    "working_branch": "fix/d169-web-picker-rbac-20261015",
-    "working_pr": 605,
+    "working_branch": "fix/d169-android-agent-code-only-20261015",
+    "working_pr": 606,
     "owner_code_approval": true,
     "owner_deploy_approval": true,
     "code_ready": true,
-    "release_pass": false,
+    "release_pass": true,
     "field_pass": false,
     "owner_pass": false,
     "carried_forward": [
@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "VERIFY_PR605_CI_BEFORE_MERGE_AND_BETA_SOURCE_PROOF",
+    "next": "KEEP_PR606_DRAFT_UNMERGED__PASS_CLIENT_CONTINUITY_AND_WAIT_FIELD_LOGS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E008",
+    "latest_checkpoint_id": "D169-E009",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8013,6 +8013,8 @@
     ],
     "agent_android_release_permission": false,
     "firebase_critical_network_rule": "RETAIN_OFFICE_FIREBASE_AUTH_PICKLIST_ACK_HA_AGENT_SYNC_PRESENCE",
-    "web_beta_approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6"
+    "web_beta_approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
+    "web_beta_merge_sha": "6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a",
+    "web_beta_deploy_run": 38674840706
   }
 }

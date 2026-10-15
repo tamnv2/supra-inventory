@@ -119,3 +119,12 @@ Không tự đổi số vấn đề trên thành lỗi mới phát sinh trong D1
 ## D169-E008 — Web Picker enrollment candidate kiểm thử và phát hành có điều kiện
 
 PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks của candidate `d9f350f73e32cd46a04d93de7f7f9ef26dab15b6` PASS gồm Authority/Continuity/Web types. Kèm receipt Beta Worker-only, giữ Full Replace ADMIN/ROOT, giữ no-auto-disable Picker, chống non-Picker collision. **Tại điểm này chưa deploy**; cần checks receipt SHA mới PASS, merge giữ ancestry và xác nhận health/source SHA từ runtime. Client code-only và backlog WAIT-EVIDENCE vẫn giữ nguyên.
+
+
+## D169-E009 — Kết quả triển khai Web Beta và các sửa code-only (15/10/2026)
+
+**WEB BETA VERIFIED:** PR #605 merge bằng merge commit `6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a`; Actions `Deploy Beta Worker` run 38674840706 SUCCESS (Owner gate, build Web, typecheck Core, Cloudflare Worker/Web assets deployment, Beta health, schema, auth routes, Web shell). Đây là CI/source health, chưa phải kiểm thử giao diện với tài khoản Admin Pick Pack thật.
+
+**ANDROID/AGENT CODE ONLY — PR #606 DRAFT, KHÔNG MERGE:** Android `CriticalOverlayService.kt` đã ghim nút xác nhận ngoài vùng nội dung cuộn, nhả overlay khi session mất mà không giả xác nhận server; `MainActivity.kt` nâng latest signed verified Beta làm floor bắt buộc ở ngưỡng phiên an toàn; Agent `D167SkuCoordinator.cs` tôn trọng bounded nextWake cho mọi Queue path. Android build và Relay Agent build ở PR đã PASS; có test source riêng. KHÔNG thay version file/Gradle, không release APK/EXE; giữ nguyên Firebase critical network.
+
+**Chờ nghiệm thu/thu thập:** ảnh thao tác Pick Pack Admin thêm một Picker manual, thử Excel preview/apply vào Beta với dữ liệu thử đã được Owner cho phép; test tài khoản Reporter không được quyền Picker HR, Admin Invent vẫn dùng bình thường, Full Replace vẫn khóa. Ghi lại thời điểm và ảnh (ẩn danh tính/nhạy cảm). Các điều kiện nguồn log gốc, HA, Overlay, Usage, phiên bản cũ và WMS đã được chi tiết trong D169-E007, không suy đoán root cause hoặc billed saving khi chưa đủ chứng cứ.
