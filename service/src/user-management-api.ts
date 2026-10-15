@@ -424,7 +424,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
     return json(payload);
   }
   if (key === "POST /api/admin/hr-web/preview" || key === "POST /api/admin/hr-web/apply") {
-    if (!["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(user.role)) return json({error:"FORBIDDEN"},403);
+    if (user.role !== "ADMIN" && user.role !== "ROOT") return json({error:"FORBIDDEN"},403);
     const body = await bodyObject(request);
     if (!Array.isArray(body.employees) || body.employees.length < 1 || body.employees.length > 5000)
       return json({error:"INVALID_HR_WEB_ROWS"},400);
