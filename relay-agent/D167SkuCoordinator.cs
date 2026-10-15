@@ -186,7 +186,11 @@ namespace SupraInventoryRelayAgent
 
         private void Queue()
         {
-            lock(gate) if(disposed)return;
+            // Guard *all* entry paths (timer/manual/HA callbacks) against
+            // running again before the bounded retry wake; no extra service poll.
+            // Timer callbacks can arrive a few milliseconds before their due time.
+            lock(gate)
+                if (disposed || nextWakeAtUtc > DateTime.UtcNow.AddMilliseconds(250)) return;
             if (Interlocked.CompareExchange(ref running,1,0)!=0)return;
             Task.Run(()=>{
                 try { EvaluateOnce(); }
