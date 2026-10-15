@@ -7,8 +7,8 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E010",
-    "date_vn": "2026-10-15"
+    "id": "D169-E011",
+    "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
   "entries": [
@@ -197,6 +197,25 @@
       ],
       "next_action": "Prioritize a privacy-safe review of 47 ACKed nonconfirmed terminal outcomes against authoritative WMS state, classify sustained SSE reconnect/fallback and scrub log identifiers; verify 19:00 SKU durable receipt post-archive. Fold findings under D169 with source/CI/field/provider distinction, Owner approval needed before any implementation.",
       "evidence": "Scoped Inventory/Beta/Logs/2026-10-15 Agent bundle analysis; relay-agent/FirestoreConfirmationTransport.cs#RefreshD157DailySummaryAbsolute; relay-agent/RtdbHaLiveness.cs#ObserveLoop; relay-agent/FirestoreAgentLeaderCoordinator.cs#CheckPrimaryLease; relay-agent/AgentLogUploadBridge.cs#SealFromCheckpoint; docs/D169_BACKLOG.md; PR #606."
+    },
+    {
+      "id": "D169-E011",
+      "date_vn": "2026-10-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Explanation and mixed PDA/Office network HA safety audit for Agent PRIMARY/NEXT_A/NEXT_B",
+      "status": "SOURCE_CONFIRMED_DESIGN_READ_ONLY__MIXED_NETWORK_FIELD_UNVERIFIED__NO_IMPLEMENTATION",
+      "owner_approval": false,
+      "facts": [
+        "HA leadership in active main and PR606 is Firestore relay_poc_coordination/roles with generation and update-time CAS, not network-name/Wi-Fi preference. PRIMARY writes RTDB heartbeat approximately 10s; if failed writes existing Firestore lease. NEXT_A consumes RTDB SSE and when freshness unknown checks Firestore lease; 15s is a suspicion threshold, not guaranteed takeover completion.",
+        "Automatic NEXT_A takeover requires relay schedule enabled, local WMS ready, a fresh WMS browser readiness probe and a successful Firestore generation-fenced CAS. NEXT_B is second standby and is not documented as an immediate independent self-promoter without role promotion.",
+        "When PRIMARY WMS is unready, it retains PRIMARY for at least two samples separated by >=15s; with a ready standby it may write handoff roles and relinquish. Without a standby it can remain DEGRADED_RECEIVER and ACK WMS_SESSION_REQUIRED without WMS mutation. Startup with vacant roles may elect WMS-unready degraded PRIMARY; business mutation always demands local WMS-ready and fresh Firebase PRIMARY generation.",
+        "Critical mixed-network limitation: an Office NEXT_A with Firestore reachable but RTDB probe blocked (403/network) returns UNAVAILABLE on ProbePrimary, and VerifyPrimaryDownBeforeTakeover explicitly defers even after stale Firestore lease. This prevents unsafe split-brain but means automatic failover can remain unavailable when PRIMARY disappears. Network class itself neither guarantees nor forbids PRIMARY: both Firebase control reachability and WMS authenticated readiness are required.",
+        "RTDB heartbeat payload currently writes wms_ready=true unconditionally even during potential degraded PRIMARY readiness; local role WMS readiness is checked separately. This is a diagnostic representation mismatch, not evidence that this flag is used to approve WMS mutations. Review only with Owner-approved cross-component change.",
+        "D168WorkerSession Wi-Fi handoff is task-scoped, user/approved-profile gated, restores original Wi-Fi and is distinct from HA leadership or a fleet-wide automatic PRIMARY migration. Existing Firebase Office critical path must remain.",
+        "No field simulation of a cross-network failover and no new release is asserted. No code, provider routing, Stable, Beta/Agent/APK release or PR merge is approved by this informational answer."
+      ],
+      "next_action": "If Owner elects a D169 HA improvement, present a source/contract/security/usage/failover test matrix for Office RTDB-blocked+Firestore-available against Internet WMS-ready/ not-ready peers, prove non-split-brain and confirm latency before explicit implementation approval.",
+      "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs (FailoverAfterMs, RefreshRole, VerifyPrimaryDownBeforeTakeover, PromoteStandbyForTakeover, VerifyPrimaryBeforeMutation); relay-agent/RtdbHaLiveness.cs (WriteHeartbeat, ProbePrimary, ObserveLoop); relay-agent/Program.cs (StartLeaderCoordination, HasReadyConfirmBrowser); relay-agent/D168NetworkRoute.cs (OpenWorkerSession); ops/project-scope.json; PR #606 HEAD before checkpoint e31e2a35"
     }
   ],
   "resume": {
@@ -220,7 +239,8 @@
       "D169 Web Picker RBAC PR source/CI pending, scoped Worker-only deploy gate.",
       "PR #605 receipt attached, final CI pending, no runtime release yet.",
       "PR #606 Agent/Android code-only sources compile and source tests PASS; no merge or release.",
-      "D169-E010 latest full-day Oct 15 sanitized Agent evidence: terminal WMS outcome classification, repeated SSE/Firestore fallback, SKU DELTA_19 missing receipt at archive boundary, and support-log identifier exposure; no Android/Web raw coverage."
+      "D169-E010 latest full-day Oct 15 sanitized Agent evidence: terminal WMS outcome classification, repeated SSE/Firestore fallback, SKU DELTA_19 missing receipt at archive boundary, and support-log identifier exposure; no Android/Web raw coverage.",
+      "D169-E011: mixed Office/PDA network HA code review found RTDB-probe-unavailable automatic takeover safety hold and unconditional RTDB heartbeat wms_ready=true representation, both field-unverified; no code requested."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -238,7 +258,8 @@
       "For Usage diagnosis, compare Drive-confirmed 21:45/logout bundles to provider daily billing/Usage screenshot/exports, actual fleet hours and business events; classify missing coverage.",
       "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis.",
       "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge.",
-      "Before any fix approval, reconcile 47 nonconfirmed ACKed outcomes against WMS/idempotency, RTDB SSE timeout/lease GET amplification against provider meters, SKU DELTA_19 Worker receipt and post-21:45 retry, and scoped log redaction at upload."
+      "Before any fix approval, reconcile 47 nonconfirmed ACKed outcomes against WMS/idempotency, RTDB SSE timeout/lease GET amplification against provider meters, SKU DELTA_19 Worker receipt and post-21:45 retry, and scoped log redaction at upload.",
+      "If HA/network changes are requested, seek Owner design approval and field-proof a two-network failover matrix; do not weaken Firebase fencing/RTDB uncertainty rule solely to meet 15s or reduce quota."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
