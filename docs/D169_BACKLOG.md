@@ -156,3 +156,16 @@ PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks
 **Điểm code nên đánh giá khi thiết kế:** `RtdbHaLiveness.WriteHeartbeat` đang điền `wms_ready=true` cố định; kiểm tra WMS trước mutation vẫn nằm ở luồng local + Firestore. Đây là sự không nhất quán về chỉ báo chẩn đoán, chưa chứng minh gây sai kết quả. Không đổi HA theo suy đoán.
 
 **Phạm vi chờ quyết định:** đo thực địa Office Firestore PASS/RTDB 401-403, Internet/PDA WMS READY/NOT_READY, tắt PRIMARY, mất WMS, mất RTDB, mất Firestore, trùng generation và độ trễ Confirm/ACK. Giữ Firebase Office critical path, fail-closed khi không có bằng chứng PRIMARY đã chết, không chuyển sang Cloudflare để giảm quota. Không tạo code/PR khác, không merge PR #606, không phát hành Agent/Android, Stable vẫn OWNER-GATED.
+
+## D169-E012 — Tối ưu HA/Firestore khi Office không truy cập RTDB (16/10/2026)
+
+**Nguồn hiện hành:** PRIMARY heartbeat ~10s vào RTDB; lỗi ghi RTDB thì fallback Firestore lease. NEXT_A nhận SSE khi hoạt động và đọc Firestore lease khi RTDB không mới. Retry SSE thất bại sau 1s; fallback `CheckPrimaryLease` có thể GET Firestore tới ~1s/lần. Khi Office không thể RTDB, một PRIMARY mạng PDA vẫn RTDB khỏe có thể không ghi lease Firestore liên tục; Office NEXT_A không thể probe RTDB sau khi lease stale, vì vậy hiện fail-closed, không tự takeover được.
+
+**Bằng chứng:** D169-E010 Agent v132 NEXT_A trong cửa sổ ~16:57–21:45 ghi 3.258 `PRIMARY_LEASE_READ` attempts, 3.255 RTDB-fallback, 531 SSE timeout, 52 HTTP 403; counters là local/proxy diagnostics, không thay thế Firestore provider Billing.
+
+**Ứng viên tối ưu** (chưa được duyệt triển khai):
+1. RTDB retry bounded exponential backoff/jitter/circuit-breaker theo trạng thái thực; re-probe khi đổi network/auth. Giảm retry vô ích trên Office nhưng tự nó không giảm GET lease bắt buộc.
+2. Nếu NEXT_A không RTDB: PRIMARY publish thêm Firestore heartbeat có điều kiện, kể cả khi chính PRIMARY RTDB vẫn khỏe; NEXT_A đọc Firestore theo hạn heartbeat + bộ đệm và giới hạn số lần, hoặc thử listener Firestore chỉ khi Office thông được transport và đã đo billing. Giữ nguyên roles/generation CAS, WMS readiness và business mutation fence. Không đổi ngưỡng 15s hay quyền takeover đơn phương khi thiếu evidence.
+3. Ưu tiên nhóm PRIMARY+NEXT_A cùng mạng có RTDB chỉ là cách giảm usage vận hành, không thay thế bảo đảm failover xuyên mạng khi Office trở thành phương án dự phòng duy nhất.
+
+**Ràng buộc:** Firestore listener vẫn có billed reads cho tài liệu thay đổi; không giả định listener giảm chi phí nếu cùng nhịp heartbeat. So sánh GET/read + PATCH/write trên toàn fleet và thực tế Firestore provider Billing. Test PDA-PDA, PDA-Office, Office-Office, PRIMARY mất RTDB, mất Firestore, mất WMS, split-brain, old/new Agent tương tác; bảo toàn xác nhận Picklist và ACK. Không có sửa code, merge hoặc release từ checkpoint nghiên cứu này.
