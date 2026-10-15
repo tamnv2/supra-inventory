@@ -1963,7 +1963,7 @@ function renderUsers(): string {
   const canCreateReporter = profile?.role === "ROOT" || profile?.role === "ADMIN";
   const canCreateManaged = canCreateAdmin || canCreateReporter;
   if ((usersView === "create" && !canCreateManaged) ||
-      (usersView === "import" && profile?.role !== "ADMIN" && profile?.role !== "ROOT")) {
+      (usersView === "import" && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || ""))) {
     usersView = "list";
   }
   const canLifecyclePickerBulk = profile?.role === "ADMIN" || profile?.role === "ROOT";
@@ -1980,7 +1980,7 @@ function renderUsers(): string {
     <div class="workspace-tabs users-mode-tabs" role="tablist" aria-label="Quản lý nhân sự">
       <button type="button" role="tab" class="workspace-tab ${usersView === "list" ? "active" : ""}" data-users-mode="list" aria-selected="${usersView === "list"}">Danh sách tài khoản</button>
       ${canCreateManaged ? `<button type="button" role="tab" class="workspace-tab ${usersView === "create" ? "active" : ""}" data-users-mode="create" aria-selected="${usersView === "create"}">Thêm tài khoản</button>` : ""}
-      ${profile?.role === "ADMIN" || profile?.role === "ROOT" ? `<button type="button" role="tab" class="workspace-tab ${usersView === "import" ? "active" : ""}" data-users-mode="import" aria-selected="${usersView === "import"}">Thêm Picker / Excel</button>` : ""}
+      ${["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? `<button type="button" role="tab" class="workspace-tab ${usersView === "import" ? "active" : ""}" data-users-mode="import" aria-selected="${usersView === "import"}">Thêm Picker / Excel</button>` : ""}
     </div>
     <section class="business-summary-grid" ${usersView === "list" ? "" : "hidden"}>
       <article class="business-summary-card primary"><span>Tài khoản phù hợp</span><strong>${userTotal.toLocaleString("vi-VN")}</strong><small>Theo bộ lọc hiện tại</small></article>
@@ -2010,7 +2010,7 @@ function renderUsers(): string {
         </form>
       </article>
     </div>
-    ${usersView === "import" && (profile?.role === "ADMIN" || profile?.role === "ROOT") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
+    ${usersView === "import" && ["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "") ? renderHrWeb(hrWebRows, hrWebPreview, hrWebFilename, "", true) : ""}
     <article class="ops-panel ops-users-panel" ${usersView === "list" ? "" : "hidden"}>
       <div class="ops-panel-title"><div><h3>Danh sách tài khoản</h3></div><span>${pageStart}–${pageEnd} / ${userTotal.toLocaleString("vi-VN")}</span></div>
       ${renderUserBulkToolbar(canLifecyclePickerBulk)}
@@ -5149,7 +5149,7 @@ function bindSection(): void {
     const next = button.dataset.usersMode;
     if (!["list", "create", "import"].includes(next || "")) return;
     if (next === "create" && !["ADMIN", "ROOT"].includes(profile?.role || "")) return;
-    if (next === "import" && !["ADMIN", "ROOT"].includes(profile?.role || "")) return;
+    if (next === "import" && !["ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(profile?.role || "")) return;
     if (next === usersView) return;
     usersView = next as typeof usersView;
     patchActiveSection(false);
