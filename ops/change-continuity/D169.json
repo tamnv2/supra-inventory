@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E012",
+    "id": "D169-E013",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -236,6 +236,24 @@
       ],
       "next_action": "Design D169 HA decision matrix for SAME_PDA, OFFICE_OFFICE and CROSS_PDA_OFFICE; measure actual heartbeat/lease read/write and observed failover p50/p95, WMS terminal ACK, split-brain tests, Firebase backend billing. Present impact and regression/quota estimates before Owner code approval.",
       "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs #Loop/#CheckPrimaryLease/#VerifyPrimaryDownBeforeTakeover/#WritePrimaryLease; relay-agent/RtdbHaLiveness.cs #ObserveLoop/#WriteHeartbeat/#ProbePrimary; D169-E010/E011; Firebase Firestore pricing and realtime listener docs."
+    },
+    {
+      "id": "D169-E013",
+      "date_vn": "2026-10-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner proposal to classify Agent network profiles by exact SSID, avoid RTDB capability probing on known Office SSIDs",
+      "status": "SSID_CLASSIFICATION_DESIGN_CANDIDATE__OWNER_QUERY_NOT_CODE_APPROVAL__NO_RUNTIME_MUTATION",
+      "owner_approval": false,
+      "facts": [
+        "Owner states company Wi-Fi names are stable, proposes a locally configurable allowlist of internal Office SSIDs and automatic network-class policy selection based on actual Windows-connected SSID, without repeated synthetic connectivity probes; Agent must distinguish known internal Office from PDA/Internet and unknown safely.",
+        "Existing main/PR606 Program.cs GetSsid runs netsh wlan show interfaces but SSID currently used primarily for UI/status; D168NetworkRoute.cs stores up to 6 locally approved Wi-Fi profiles for controlled Worker task handoff, not general SSID-to-HA transport routing. Existing 2026-10-13 Owner decision used actual endpoint capability rather than SSID as a generic network policy; new Owner clarification proposes SSID as a routing policy hint, not security authority.",
+        "Proposed exact SSID mapping with local Windows WLAN-change signals/on-login, no fast netsh polling, no per-cycle RTDB probe for configured Office profiles. Known PDA/Internet uses RTDB HA; known Office uses Firestore HA; unknown/multiple adapters/Ethernet/VPN unresolved fail closed and allow explicit classification. No SSID/password/profile values or user identifiers in public repo, raw logs, or telemetry.",
+        "Cross-network HA must consider BOTH local NEXT_A classification AND PRIMARY network mode: if PRIMARY on PDA RTDB but NEXT_A on Office Firestore-only, PRIMARY must conditionally publish Firestore liveness (or another preexisting trusted shared signal) or Office cannot safely verify and promote. If PRIMARY on Office Firestore, Internet NEXT_A must consume Firestore evidence, not assume RTDB. Role/generation CAS, WMS browser readiness and before-mutation Firestore fencing remain mandatory and not inferred from SSID.",
+        "Static SSID labels replace capability-probe loops only for normal transport routing; they do not prove network service availability, WMS authorization, a live PRIMARY or permission to execute business. Actual business errors handled through existing calls without synthetic ping; policy must degrade safely if misclassified, Wi-Fi association changes, proxy/VPN, wired network or SSID spoofing.",
+        "Cost reality: disabled RTDB retries save futile network attempts/CPU/log but do not by themselves reduce Firestore reads. Cross-network 15s HA requires bounded shared liveness updates; adaptively bounded reads, listener transport feasibility and provider-billing comparison needed before estimating savings. No unregistered new channel or unauthorized direct main/Stable release."
+      ],
+      "next_action": "Propose a source-level D169 design and impact/risk/testing matrix for Office SSID configuration UI, event-driven mode changes, cross-network Primary/NEXT_A liveness and safe 15s failover; seek Owner explicit implementation permission before Agent code changes.",
+      "evidence": "relay-agent/Program.cs#GetSsid, #QueueNetworkStatusRefresh; relay-agent/D168NetworkRoute.cs#ApprovedProfiles/#OpenWorkerSession; relay-agent/FirestoreAgentLeaderCoordinator.cs#Loop/#CheckPrimaryLease/#VerifyPrimaryDownBeforeTakeover; docs/OWNER_DECISIONS.md D168 network policy; D169-E010-E012."
     }
   ],
   "resume": {
@@ -261,7 +279,8 @@
       "PR #606 Agent/Android code-only sources compile and source tests PASS; no merge or release.",
       "D169-E010 latest full-day Oct 15 sanitized Agent evidence: terminal WMS outcome classification, repeated SSE/Firestore fallback, SKU DELTA_19 missing receipt at archive boundary, and support-log identifier exposure; no Android/Web raw coverage.",
       "D169-E011: mixed Office/PDA network HA code review found RTDB-probe-unavailable automatic takeover safety hold and unconditional RTDB heartbeat wms_ready=true representation, both field-unverified; no code requested.",
-      "D169-E012: Office RTDB-blocked HA quota optimization analyzed: useless RTDB retry throttle plus conditionally published Firestore liveness and adaptive reads; no implementation approved."
+      "D169-E012: Office RTDB-blocked HA quota optimization analyzed: useless RTDB retry throttle plus conditionally published Firestore liveness and adaptive reads; no implementation approved.",
+      "D169-E013 Owner SSID-policy proposal: exact Office/PDA allowlists for local event-driven HA transport selection, no per-cycle synthetic RTDB ping on Office; cross-network shared Firestore liveness and fencing needed; design-only."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -281,7 +300,8 @@
       "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge.",
       "Before any fix approval, reconcile 47 nonconfirmed ACKed outcomes against WMS/idempotency, RTDB SSE timeout/lease GET amplification against provider meters, SKU DELTA_19 Worker receipt and post-21:45 retry, and scoped log redaction at upload.",
       "If HA/network changes are requested, seek Owner design approval and field-proof a two-network failover matrix; do not weaken Firebase fencing/RTDB uncertainty rule solely to meet 15s or reduce quota.",
-      "D169 E012 pending: cross-network safe dual-heartbeat and deadline-driven lease read design with provider billing, 15s suspect threshold and split-brain tests, Owner decision before source edits."
+      "D169 E012 pending: cross-network safe dual-heartbeat and deadline-driven lease read design with provider billing, 15s suspect threshold and split-brain tests, Owner decision before source edits.",
+      "For D169 SSID HA policy, obtain explicit Owner code authorization before changing Windows Agent transport; test false-positive SSID/unknown, profile change, multi-NIC and mixed-network failover with provider billing evidence."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
