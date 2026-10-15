@@ -96,3 +96,26 @@ Không tự đổi số vấn đề trên thành lỗi mới phát sinh trong D1
 - **P2 / LOG COVERAGE:** hiện Drive không cung cấp được toàn bộ Android/Web cho ngày đã hỏi; record E005 có phát hiện lịch sử, nhưng đếm lại end-to-end cần bộ bundle đúng phiên/logout, Web active 21:45, log Worker/DO và ảnh meter của Firebase/Cloudflare/Apps Script. Không đồng nhất không có bundle với không có lỗi.
 
 **Phương án khuyến nghị (chưa được Owner duyệt code):** A giữ nguyên sẽ duy trì lỗi và tải đang thấy. B ưu tiên sửa dựa trên bằng chứng: overlay/ACK, presence tombstone/session, Browser/RTDB phân loại, truy vấn alert và tránh nhân đôi call; giữ nguyên HA lease và Confirm guard cho đến khi field-proven. C chuyển tải Firestore→Worker chỉ ở nghiệp vụ không bắt buộc Firestore/Office, có đường truy cập và tính đúng realtime, WMS, ACK, idempotency, latency, security, chi phí; không chuyển quota bằng phép cộng đơn vị khác nhau. Đề xuất **B kết hợp khảo sát có điều kiện C**, với canary phiên bản thực, CI/authority/continuity PASS và rollback; Stable vẫn OWNER-GATED. Cần so provider meter theo Agent/PDA giờ online và đơn nghiệp vụ, không áp trực tiếp ước tính nội bộ thành billable.
+
+
+## D169-E007 — Phân tuyến thi hành theo Owner (15/10/2026)
+
+**A — WEB/WORKER BETA ALLOWED AFTER CI:** quyền PICKPACK_ADMIN nhập Picker trực tiếp/Excel, preview, apply trên Web, Worker và InventoryCore, giữ kiểm tra trùng mã với non-Picker, bảo vệ disabled/không tự xóa Picker ngoài file, giữ confirm_changed/audit. SKU import thường vốn đã cho phép PICKPACK_ADMIN; FULL REPLACE vẫn ADMIN/ROOT. Source candidate trong PR D169 riêng, chỉ deploy qua SHA-approved D169 Worker-only gate; Stable, Agent, Android, Firebase network routes không deploy.
+
+**B — CODE-ONLY HOLD:** Android overlay dài có cuộn + xác nhận luôn dùng được, result ACK orphan/logout recovery, version/mandatory update đúng session; Agent chống stale presence, giảm legacy query waste, bảo vệ SKU retry cooldown, mạng profile consent. Chỉ merge khi Owner cho phép bản phát hành tương ứng; code branch không có nghĩa runtime version đã tăng.
+
+**C — WAIT-EVIDENCE với điều kiện kết luận rõ ràng:**
+1. **ACK 404/frozen overlay:** 2–3 bundle Android picker/reporter cùng event_id hash, session generation, foreground/background, login/logout/kick timestamp, overlay displayed/ACK HTTP/status, kết quả InventoryCore cùng lúc. Nếu xác định ownerUserId trống hoặc ACK mismatch, phân biệt UI deadlock với server 404, không chuyển 404 thành success.
+2. **HA/RTDB AUTH:** Agent log đầy đủ 10 phút trước/sau RTDB 401/403, token expiry/renewal status đã khử danh tính, PRIMARY lease generation, role, listener retry, WMS/Office vs Internet. Đối chiếu rules và Fallback; chỉ đổi nếu chứng minh mất HA/duplicate primary và có test primary failover.
+3. **Presence Picker:** chuỗi session login, gửi Picklist, logout hoặc bị kick, thời điểm Agent nhận tombstone và màn hình list online trên cùng/khác Agent; so generation, delta snapshot và clock drift, tránh TTL suy đoán.
+4. **Usage billed:** ảnh/export Firestore doc read/write, Cloudflare Worker/DO usage, Apps Script UrlFetch/executions cùng ngày; ghi số Agent/PDA online theo giờ, số đơn báo hàng/Picklist/ACK, client version và bộ đếm process có reset. Không quy meter từ riêng client estimate.
+5. **Phiên bản fleet:** danh sách thiết bị theo version thực cài v130/v132, vc106–vc110 và cập nhật gần nhất; xác minh cached Web build vs source, khả năng old client nhận FCM/ACK trước khi bỏ fallback.
+6. **WebView2 & mạng:** log tiến trình browser bundle/DevTools 403/readiness và endpoint thử qua Office/Internet (chỉ code HTTP, latency, loại lỗi, không log URL nhạy cảm hay Wi-Fi SSID), kiểm tra lỗi quyền/401/403 riêng với DNS/timeouts. Không đổi Wi-Fi với lỗi auth/quota/ACL.
+7. **SKU scheduled:** Timeline FULL đầu ngày, DELTA 12/19, job claim/grant/lease, Worker reachability trước/sau switch, nextWake, event Queue, stage/publish receipt và bản Agent thực tế. Cần một Office-only thực địa với tiếp tục Confirm Picklist và restore mạng.
+
+**Ranh giới bất biến:** Firebase critical Office-capable remains; no cross-service migration; no WMS mutation or direct unsupported endpoints; no Stable; do not put raw logs, credentials or employee data in public repo.
+
+
+## D169-E008 — Web Picker enrollment candidate kiểm thử và phát hành có điều kiện
+
+PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks của candidate `d9f350f73e32cd46a04d93de7f7f9ef26dab15b6` PASS gồm Authority/Continuity/Web types. Kèm receipt Beta Worker-only, giữ Full Replace ADMIN/ROOT, giữ no-auto-disable Picker, chống non-Picker collision. **Tại điểm này chưa deploy**; cần checks receipt SHA mới PASS, merge giữ ancestry và xác nhận health/source SHA từ runtime. Client code-only và backlog WAIT-EVIDENCE vẫn giữ nguyên.

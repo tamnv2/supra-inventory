@@ -6,7 +6,7 @@ function esc(value: unknown): string {
 }
 
 export function renderHrWeb(rows: HrEmployeeInput[], preview: HrSyncPreview | null, filename: string, tabs: string, canManage: boolean): string {
-  if (!canManage) return `<section class="ops-route people-workspace"><div class="business-page-head"><h2>Nhân sự & tài khoản</h2></div>${tabs}<div class="ops-readonly">Chỉ Admin/Root được phép nhập nhân sự Picker.</div></section>`;
+  if (!canManage) return `<section class="ops-route people-workspace"><div class="business-page-head"><h2>Nhân sự & tài khoản</h2></div>${tabs}<div class="ops-readonly">Chỉ Quản trị Invent, Quản trị Pick Pack hoặc Root được phép nhập nhân sự Picker.</div></section>`;
   const conflictCount = preview?.collisions?.length || 0;
   const changeCount = Number(preview?.rename || 0) + Number(preview?.contractor_update || 0);
   return `<section class="ops-route people-workspace">

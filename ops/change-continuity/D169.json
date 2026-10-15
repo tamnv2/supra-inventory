@@ -7,7 +7,7 @@
   "pr": 604,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E006",
+    "id": "D169-E008",
     "date_vn": "2026-10-15"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -117,12 +117,58 @@
       ],
       "next_action": "Owner has requested split handling: Web/Worker changes subject to secure gates; Agent/Android code only. Verify permissions, release safeguards and evidence before merge.",
       "evidence": "docs/D169_BACKLOG.md section D169-E006; canonical GitHub source and scoped Drive log review"
+    },
+    {
+      "id": "D169-E007",
+      "date_vn": "2026-10-15",
+      "kind": "OWNER_COMMAND",
+      "topic": "Web Picker creation Beta approved; Android/Agent code-only; preserve Firebase Office critical route",
+      "status": "WEB_SOURCE_IN_PROGRESS__CODE_ONLY_PENDING__RELEASE_NOT_YET_APPROVED_SHA",
+      "owner_approval": true,
+      "approved_scope": [
+        "Beta Web+Worker/Core scoped PICKPACK_ADMIN Picker HR preview/apply with CI+SHA release guard",
+        "Android/Agent code changes and tests only, no merge/main release",
+        "Evidence backlog and no automatic Firebase/Cloudflare route migration"
+      ],
+      "excluded": [
+        "Stable",
+        "domain cutover",
+        "Agent/APK release",
+        "Firebase HA/Confirm route migration",
+        "actual HR/Picker dataset modification without authorized user operation"
+      ],
+      "evidence": "Owner explicit D169 split-scope command on 2026-10-15; docs/OWNER_DECISIONS.md and docs/D169_BACKLOG.md",
+      "next_action": "Run PR checks for separate Web Beta candidate, approve worker-only SHA and deploy only after PASS; keep Android/Agent code-only PR unmerged.",
+      "facts": [
+        "Owner authorizes independent Beta Web/Worker fixes including Pick Pack admin Picker-only HR preview/apply, conditioned on exact-head source+Authority+Continuity PASS and scoped release receipt.",
+        "Owner explicitly forbids Android APK/Agent EXE release in this tranche; those source changes stay on a separate unmerged code-only PR.",
+        "Critical Firebase paths for Office-side login, PickList/ACK, Agent HA/presence/sync remain unchanged. Do not shift to Cloudflare to reduce usage without field and safety evidence.",
+        "No Stable, domain migration or provider network changes authorized."
+      ]
+    },
+    {
+      "id": "D169-E008",
+      "date_vn": "2026-10-15",
+      "kind": "DECISION",
+      "topic": "Owner-approved Web/Worker Beta Picker enrollment, exact-SHA D169 release gate after source CI PASS",
+      "status": "WEB_WORKER_BETA_SHA_APPROVED__MERGE_AND_DEPLOY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "All 18 executed PR #605 checks at tested source SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6 PASSED, including D169 Web Picker RBAC, Authority and Continuity.",
+        "D169 gate accepts a new D169 receipt without replaying D168 authorization and rejects release of components other than existing scoped worker-beta, which bundles Web assets.",
+        "Service Web/UI source grants PICKPACK_ADMIN only Picker manual/Excel HR preview and apply; SKU Full Replace and managed admin users remain restricted.",
+        "Android and Agent source is isolated on a separate code-only branch; there is no permission to release their binaries, change Firebase critical routes, Stable or domains."
+      ],
+      "evidence": "PR #605 exact-head GitHub Actions checks; ops/d169-release-authorization.json; docs/OWNER_DECISIONS.md",
+      "next_action": "Re-run exact-head Authority/Continuity/Web tests on receipt commit; merge via ancestry-preserving merge only after PASS; verify Beta Worker/SQL/Web health/source SHA. No other release."
     }
   ],
   "resume": {
     "approved": [
       "D168 accepted by Owner only as code/as-deployed limited PASS with no new reported issues at this moment",
-      "Open D169 for intake and later batch/unified cross-component analysis; no implementation/deployment authorization"
+      "Open D169 for intake and later batch/unified cross-component analysis; no implementation/deployment authorization",
+      "D169 Owner authorized Web/Worker Beta Picker enrollment, Android/Agent code-only hold and evidence backlog.",
+      "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6"
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -133,7 +179,9 @@
       "D169-E002 review: usage logs sufficient for client hot-path triage, not authoritative provider billing; provider side comparison pending.",
       "Owner field intake REQ-005–010 plus long CV message addendum to REQ-002 documented; logs/causes/role and Wi-Fi design unverified.",
       "D169-E005 unified source/log findings and integrated mitigation proposal prepared; no root-cause claim for frozen overlay or exact provider billing.",
-      "D169-E006 report appended in backlog; limited forensic review; no executable or deploy work authorized by this checkpoint."
+      "D169-E006 report appended in backlog; limited forensic review; no executable or deploy work authorized by this checkpoint.",
+      "D169 Web Picker RBAC PR source/CI pending, scoped Worker-only deploy gate.",
+      "PR #605 receipt attached, final CI pending, no runtime release yet."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -149,8 +197,9 @@
       "Add D169-REQ-n observations to the backlog with sanitized evidence",
       "After sufficient intake or Owner command, read full canonical GitHub + log and prepare consolidated diagnosis/proposal, including regression/usage/security/rollback",
       "For Usage diagnosis, compare Drive-confirmed 21:45/logout bundles to provider daily billing/Usage screenshot/exports, actual fleet hours and business events; classify missing coverage.",
-      "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis."
+      "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis.",
+      "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge."
     ],
-    "release_boundary": "RECORD_ONLY__NO_EXECUTABLE_CHANGE__NO_BETA_STABLE_DOMAIN_DEPLOY__STABLE_OWNER_GATED"
+    "release_boundary": "OWNER_APPROVED_CONDITIONAL_WEB_WORKER_BETA_ONLY__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED"
   }
 }

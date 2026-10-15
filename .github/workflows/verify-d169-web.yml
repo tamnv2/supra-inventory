@@ -1,0 +1,44 @@
+name: D169 Web Picker RBAC Guard
+
+on:
+  pull_request:
+    paths:
+      - "service/**"
+      - "web/**"
+      - "tests/d169-pickpack-hr-rights.test.mjs"
+      - "tools/d167_release_gate.py"
+      - "ops/d169-release-authorization.json"
+      - ".github/workflows/verify-d169-web.yml"
+  push:
+    branches: [main]
+    paths:
+      - "service/**"
+      - "web/**"
+      - "tests/d169-pickpack-hr-rights.test.mjs"
+      - "tools/d167_release_gate.py"
+      - "ops/d169-release-authorization.json"
+      - ".github/workflows/verify-d169-web.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  scope-and-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Enforce Picker-only permission invariants
+        run: node --test tests/d169-pickpack-hr-rights.test.mjs
+      - name: Assert D169 code-only receipt cannot deploy yet
+        run: python3 tools/d167_release_gate.py --self-test
+      - name: Install and build Web
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run build
+      - name: Install and typecheck Worker and Core
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run typecheck

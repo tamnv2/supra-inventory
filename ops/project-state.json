@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_OPEN_RECORD_ONLY_BATCH_ANALYSIS_PENDING",
+    "current_change_status": "D169_WEB_BETA_OWNER_APPROVED_SHA__CLIENT_CODE_ONLY_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7976,16 +7976,16 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "OPEN_RECORD_ONLY_INTAKE",
+    "status": "WEB_WORKER_BETA_APPROVED_SHA__PR_CI_PENDING__CLIENT_CODE_ONLY",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
     "backlog": "docs/D169_BACKLOG.md",
-    "working_branch": "docs/d169-additional-intake-20261014",
-    "working_pr": 604,
-    "owner_code_approval": false,
-    "owner_deploy_approval": false,
-    "code_ready": false,
+    "working_branch": "fix/d169-web-picker-rbac-20261015",
+    "working_pr": 605,
+    "owner_code_approval": true,
+    "owner_deploy_approval": true,
+    "code_ready": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "OWNER_SPLIT_SCOPE_RECORDED__AWAIT_SAFE_WEB_ONLY_RELEASE_PRECHECK__AGENT_ANDROID_CODE_ONLY",
+    "next": "VERIFY_PR605_CI_BEFORE_MERGE_AND_BETA_SOURCE_PROOF",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E006",
+    "latest_checkpoint_id": "D169-E008",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8006,6 +8006,13 @@
       "D169-REQ-009_ADMIN_RBAC_ROLE_RIGHTS_REVIEW",
       "D169-REQ-010_AGENT_NETWORK_SWITCH_PROMPT_PROPOSAL",
       "D169-REQ-002_LONG_TEXT_CONFIRM_BUTTON_RECONFIRMED"
-    ]
+    ],
+    "web_only_beta_release_scope": [
+      "worker-beta",
+      "host-beta"
+    ],
+    "agent_android_release_permission": false,
+    "firebase_critical_network_rule": "RETAIN_OFFICE_FIREBASE_AUTH_PICKLIST_ACK_HA_AGENT_SYNC_PRESENCE",
+    "web_beta_approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6"
   }
 }

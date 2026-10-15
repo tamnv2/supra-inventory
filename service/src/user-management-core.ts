@@ -487,7 +487,7 @@ function hrPlan(state: DurableObjectState, employees: Array<{ employee_code: str
 
 async function hrPreview(state: DurableObjectState, request: Request): Promise<Response> {
   const body = (await request.json()) as { actor?: Actor; employees?: HrEmployee[] };
-  if (!body.actor?.user_id || !["ADMIN","ROOT"].includes(body.actor.role) || !Array.isArray(body.employees)) return response({ error: "INVALID_HR_SYNC" }, 400);
+  if (!body.actor?.user_id || !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(body.actor.role) || !Array.isArray(body.employees)) return response({ error: "INVALID_HR_SYNC" }, 400);
   const normalized = normalizeHrEmployees(body.employees);
   if (normalized.invalid.length || normalized.duplicates.length) return response({ error: "INVALID_HR_ROWS", invalid_rows: normalized.invalid.slice(0,100), duplicate_conflicts: normalized.duplicates.slice(0,100) }, 400);
   return response({ status: "preview", ...hrPlan(state, normalized.employees) });
@@ -508,7 +508,7 @@ async function hrApply(state: DurableObjectState, request: Request): Promise<Res
     expected_plan?: { create: number; rename: number; contractor_update: number };
   };
   const actor = body.actor;
-  if (!actor?.user_id || !["ADMIN","ROOT"].includes(actor.role) || !Array.isArray(body.employees) || body.confirm !== true || !validRequestId(body.request_id) || !validPasswordPart(body.picker_password_salt) || !validPasswordPart(body.picker_password_hash)) return response({ error: "INVALID_HR_SYNC" }, 400);
+  if (!actor?.user_id || !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(actor.role) || !Array.isArray(body.employees) || body.confirm !== true || !validRequestId(body.request_id) || !validPasswordPart(body.picker_password_salt) || !validPasswordPart(body.picker_password_hash)) return response({ error: "INVALID_HR_SYNC" }, 400);
   const normalized = normalizeHrEmployees(body.employees);
   if (normalized.invalid.length || normalized.duplicates.length) return response({ error: "INVALID_HR_ROWS", invalid_rows: normalized.invalid.slice(0,100), duplicate_conflicts: normalized.duplicates.slice(0,100) }, 400);
   const plan = hrPlan(state, normalized.employees) as { collisions?: unknown[] };
