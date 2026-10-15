@@ -28,14 +28,16 @@ def git(*args):
 def receipt():
     # A pending D168 receipt explicitly prevents reuse of D167 release rights.
     # Historical D167 audit remains supported when no D168 receipt exists.
-    path = ROOT / "ops/d168-release-authorization.json"
+    path = ROOT / "ops/d169-release-authorization.json"
+    if not path.is_file():
+        path = ROOT / "ops/d168-release-authorization.json"
     if not path.is_file():
         path = ROOT / "ops/d167-release-authorization.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         fail("missing or corrupt authorization receipt")
-    if data.get("change_id") not in ("D167", "D168"):
+    if data.get("change_id") not in ("D167", "D168", "D169"):
         fail("wrong change id")
     return data
 
@@ -73,6 +75,13 @@ def main():
         fail("CODE READY is not approved for deployment")
     if args.component not in data.get("approved_components", []):
         fail("component outside the explicitly approved release scope")
+    if data["change_id"] == "D169":
+        if data.get("stable_deploy_permission") is not False:
+            fail("D169 Stable is owner-gated")
+        if data.get("approved_components") != ["worker"]:
+            fail("D169 release limited to existing Beta Worker and bundled Web assets")
+        if not all(data.get(key) is True for key in ("authority_continuity_pass", "product_ci_pass")):
+            fail("D169 source and authority/continuity CI not approved")
     if data["change_id"] == "D168":
         if data.get("stable_deploy_permission") is not False:
             fail("D168 Stable must remain Owner-gated")
