@@ -4217,3 +4217,8 @@ Owner yêu cầu thực hiện thay vì chỉ báo cáo: (1) Web/Worker Beta có
 ## D169-E008 · Biên nhận cho Web Beta Picker HR (15/10/2026)
 
 Owner đã duyệt nguyên tắc phát hành các sửa đổi Web độc lập, giới hạn tài khoản Quản trị Pick Pack nhập Picker/Excel. Candidate PR #605 tại SHA `d9f350f73e32cd46a04d93de7f7f9ef26dab15b6` có toàn bộ 18 job chạy được báo PASS; ghi biên nhận chính thức `ops/d169-release-authorization.json` với `approved_components=[worker]` vì Worker Beta đóng gói Web assets. Chỉ merge kiểu giữ ancestry sau khi CI của biên nhận PASS; sau deploy xác nhận Worker/InventoryCore/Web Beta phản ánh đúng source SHA. Android, Agent, Firebase critical network routes, Stable, tên miền nằm ngoài quyết định này.
+
+
+## D169-E009 · Ranh giới triển khai đã xác minh (15/10/2026)
+
+Biên nhận Web-only D169 triển khai thành công vào Beta theo run 38674840706 tại merge SHA `6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a`, health/Worker/Web shell PASS. Owner chỉ cho phép Android và Agent sửa code không phát hành: PR #606 giữ Draft, không merge main, không tạo APK/Agent version mới. Web role field test với tài khoản thực và các nguyên nhân ACK/presence/Usage/HA vẫn cần chứng cứ. Stable vẫn OWNER-GATED; Firebase Office-critical route bất biến.
