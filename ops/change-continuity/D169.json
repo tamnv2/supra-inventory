@@ -121,7 +121,7 @@
     {
       "id": "D169-E007",
       "date_vn": "2026-10-15",
-      "kind": "OWNER_APPROVED_EXECUTION_SPLIT",
+      "kind": "OWNER_COMMAND",
       "topic": "Web Picker creation Beta approved; Android/Agent code-only; preserve Firebase Office critical route",
       "status": "WEB_SOURCE_IN_PROGRESS__CODE_ONLY_PENDING__RELEASE_NOT_YET_APPROVED_SHA",
       "owner_approval": true,
@@ -138,7 +138,13 @@
         "actual HR/Picker dataset modification without authorized user operation"
       ],
       "evidence": "Owner explicit D169 split-scope command on 2026-10-15; docs/OWNER_DECISIONS.md and docs/D169_BACKLOG.md",
-      "next_action": "Run PR checks for separate Web Beta candidate, approve worker-only SHA and deploy only after PASS; keep Android/Agent code-only PR unmerged."
+      "next_action": "Run PR checks for separate Web Beta candidate, approve worker-only SHA and deploy only after PASS; keep Android/Agent code-only PR unmerged.",
+      "facts": [
+        "Owner authorizes independent Beta Web/Worker fixes including Pick Pack admin Picker-only HR preview/apply, conditioned on exact-head source+Authority+Continuity PASS and scoped release receipt.",
+        "Owner explicitly forbids Android APK/Agent EXE release in this tranche; those source changes stay on a separate unmerged code-only PR.",
+        "Critical Firebase paths for Office-side login, PickList/ACK, Agent HA/presence/sync remain unchanged. Do not shift to Cloudflare to reduce usage without field and safety evidence.",
+        "No Stable, domain migration or provider network changes authorized."
+      ]
     }
   ],
   "resume": {
@@ -176,6 +182,6 @@
       "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis.",
       "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge."
     ],
-    "release_boundary": "RECORD_ONLY__NO_EXECUTABLE_CHANGE__NO_BETA_STABLE_DOMAIN_DEPLOY__STABLE_OWNER_GATED"
+    "release_boundary": "OWNER_APPROVED_CONDITIONAL_WEB_WORKER_BETA_ONLY__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED"
   }
 }
