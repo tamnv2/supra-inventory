@@ -7,7 +7,7 @@
   "pr": 604,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E007",
+    "id": "D169-E008",
     "date_vn": "2026-10-15"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -145,13 +145,30 @@
         "Critical Firebase paths for Office-side login, PickList/ACK, Agent HA/presence/sync remain unchanged. Do not shift to Cloudflare to reduce usage without field and safety evidence.",
         "No Stable, domain migration or provider network changes authorized."
       ]
+    },
+    {
+      "id": "D169-E008",
+      "date_vn": "2026-10-15",
+      "kind": "DECISION",
+      "topic": "Owner-approved Web/Worker Beta Picker enrollment, exact-SHA D169 release gate after source CI PASS",
+      "status": "WEB_WORKER_BETA_SHA_APPROVED__MERGE_AND_DEPLOY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "All 18 executed PR #605 checks at tested source SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6 PASSED, including D169 Web Picker RBAC, Authority and Continuity.",
+        "D169 gate accepts a new D169 receipt without replaying D168 authorization and rejects release of components other than existing scoped worker-beta, which bundles Web assets.",
+        "Service Web/UI source grants PICKPACK_ADMIN only Picker manual/Excel HR preview and apply; SKU Full Replace and managed admin users remain restricted.",
+        "Android and Agent source is isolated on a separate code-only branch; there is no permission to release their binaries, change Firebase critical routes, Stable or domains."
+      ],
+      "evidence": "PR #605 exact-head GitHub Actions checks; ops/d169-release-authorization.json; docs/OWNER_DECISIONS.md",
+      "next_action": "Re-run exact-head Authority/Continuity/Web tests on receipt commit; merge via ancestry-preserving merge only after PASS; verify Beta Worker/SQL/Web health/source SHA. No other release."
     }
   ],
   "resume": {
     "approved": [
       "D168 accepted by Owner only as code/as-deployed limited PASS with no new reported issues at this moment",
       "Open D169 for intake and later batch/unified cross-component analysis; no implementation/deployment authorization",
-      "D169 Owner authorized Web/Worker Beta Picker enrollment, Android/Agent code-only hold and evidence backlog."
+      "D169 Owner authorized Web/Worker Beta Picker enrollment, Android/Agent code-only hold and evidence backlog.",
+      "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6"
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -163,7 +180,8 @@
       "Owner field intake REQ-005–010 plus long CV message addendum to REQ-002 documented; logs/causes/role and Wi-Fi design unverified.",
       "D169-E005 unified source/log findings and integrated mitigation proposal prepared; no root-cause claim for frozen overlay or exact provider billing.",
       "D169-E006 report appended in backlog; limited forensic review; no executable or deploy work authorized by this checkpoint.",
-      "D169 Web Picker RBAC PR source/CI pending, scoped Worker-only deploy gate."
+      "D169 Web Picker RBAC PR source/CI pending, scoped Worker-only deploy gate.",
+      "PR #605 receipt attached, final CI pending, no runtime release yet."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
