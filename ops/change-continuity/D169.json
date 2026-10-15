@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E011",
+    "id": "D169-E012",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -216,6 +216,26 @@
       ],
       "next_action": "If Owner elects a D169 HA improvement, present a source/contract/security/usage/failover test matrix for Office RTDB-blocked+Firestore-available against Internet WMS-ready/ not-ready peers, prove non-split-brain and confirm latency before explicit implementation approval.",
       "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs (FailoverAfterMs, RefreshRole, VerifyPrimaryDownBeforeTakeover, PromoteStandbyForTakeover, VerifyPrimaryBeforeMutation); relay-agent/RtdbHaLiveness.cs (WriteHeartbeat, ProbePrimary, ObserveLoop); relay-agent/Program.cs (StartLeaderCoordination, HasReadyConfirmBrowser); relay-agent/D168NetworkRoute.cs (OpenWorkerSession); ops/project-scope.json; PR #606 HEAD before checkpoint e31e2a35"
+    },
+    {
+      "id": "D169-E012",
+      "date_vn": "2026-10-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Reduce Firestore HA lease usage in cross-network PDA/Office RTDB-unreachable deployment",
+      "status": "ANALYSIS_ONLY_CANDIDATE_MIXED_NETWORK_ADAPTIVE_DUAL_LIVENESS__NO_CODE_OR_RUNTIME_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "Current source writes PRIMARY heartbeat to RTDB at ~10s and writes Firestore lease only on RTDB write failure or ancillary actions; NEXT_A uses SSE when fresh and falls back to Firestore lease GET when RTDB stale. RTDB observer retries at 1s after failures. Firestore CheckPrimaryLease schedules as low as ~1s and, with absent/stale Firestore lease, attempts RTDB probe each 5s; if Office RTDB probe is UNAVAILABLE takeover is deferred for safety even though PRIMARY might have died.",
+        "The D169-E010 Oct 15 archived v132 NEXT_A 4h48 sample counted 3258 PRIMARY_LEASE_READ attempts, 3255 stale-RTDB fallback, 531 SSE timeouts and 52 HTTP_403, not provider authoritative billing; treat as strong repeated-read hotspot, not billable cost total.",
+        "Proposed first optimization: RTDB capability classification by actual connection outcome, response class and authentication, bounded jittered exponential backoff or circuit-breaker on persistently unreachable Office RTDB, immediate re-probe on connectivity or session/network changes. This reduces futile SSE connects and local/log churn, but ALONE does not lower required Firestore lease GET and must not suppress liveness safety.",
+        "Proposed main solution: conditional mixed-network dual liveness when any eligible NEXT_A cannot access RTDB: PRIMARY publishes a bounded Firestore heartbeat even if own RTDB is healthy, then use adaptive deadline-based Firestore lease observation by NEXT_A, possible existing authenticated Firestore listener only when proven reachable and billable operations compared. Continue generation-fenced roles CAS and WMS readiness/mutation fences. Firestore is still authoritative cross-network and does not require an unregistered service or Office Cloudflare connectivity. No fixed new cadence authorized without failure-bound latency analysis.",
+        "Eliminate dangerous RTDB dependency in mixed-network takeover only after proving Firestore-dual-heartbeat and authoritative role/generation fencing, transaction idempotency and partition invariants for PRIMARY Firestore-loss, stale Office lease, simultaneous standby candidates, restart, old Agent coexistence. Firestore lease expiry cannot authorize takeover by itself when published path/actual PRIMARY state is uncertain.",
+        "Alternative network-aware primary/standby affinity can prefer PDA RTDB-capable peers and keep Office NEXT_B for lower overhead but fails to guarantee cross-network takeover; do not rely on as sole HA. Firestore document listener requires an Office-network gRPC/transport proof and is not no-cost: every updated observed document can count a read under Standard edition.",
+        "Firestore Standard free-tier reference from Firebase documentation currently 50k reads/day and 20k writes/day, but fleet/provider actual billing and database plan not established. Do not claim a specific percentage of provider savings from local counters or shift reads into writes without estimating full daily fleet traffic.",
+        "No source, network routes, consumer behavior, new timer/service or Beta/Stable runtime edited; preserve Office Firebase critical path and release OWNER-GATED. Owner explicit approval required for actual HA changes."
+      ],
+      "next_action": "Design D169 HA decision matrix for SAME_PDA, OFFICE_OFFICE and CROSS_PDA_OFFICE; measure actual heartbeat/lease read/write and observed failover p50/p95, WMS terminal ACK, split-brain tests, Firebase backend billing. Present impact and regression/quota estimates before Owner code approval.",
+      "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs #Loop/#CheckPrimaryLease/#VerifyPrimaryDownBeforeTakeover/#WritePrimaryLease; relay-agent/RtdbHaLiveness.cs #ObserveLoop/#WriteHeartbeat/#ProbePrimary; D169-E010/E011; Firebase Firestore pricing and realtime listener docs."
     }
   ],
   "resume": {
@@ -240,7 +260,8 @@
       "PR #605 receipt attached, final CI pending, no runtime release yet.",
       "PR #606 Agent/Android code-only sources compile and source tests PASS; no merge or release.",
       "D169-E010 latest full-day Oct 15 sanitized Agent evidence: terminal WMS outcome classification, repeated SSE/Firestore fallback, SKU DELTA_19 missing receipt at archive boundary, and support-log identifier exposure; no Android/Web raw coverage.",
-      "D169-E011: mixed Office/PDA network HA code review found RTDB-probe-unavailable automatic takeover safety hold and unconditional RTDB heartbeat wms_ready=true representation, both field-unverified; no code requested."
+      "D169-E011: mixed Office/PDA network HA code review found RTDB-probe-unavailable automatic takeover safety hold and unconditional RTDB heartbeat wms_ready=true representation, both field-unverified; no code requested.",
+      "D169-E012: Office RTDB-blocked HA quota optimization analyzed: useless RTDB retry throttle plus conditionally published Firestore liveness and adaptive reads; no implementation approved."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -259,7 +280,8 @@
       "Cross-correlate version/presence/overlay/lifecycle/ACK and WAN/Wi-Fi logs; propose integrated fixes only after Owner requests D169 analysis.",
       "Do not merge Android/Agent code-only PR; restore release gate/continuity PASS before any Web Beta merge.",
       "Before any fix approval, reconcile 47 nonconfirmed ACKed outcomes against WMS/idempotency, RTDB SSE timeout/lease GET amplification against provider meters, SKU DELTA_19 Worker receipt and post-21:45 retry, and scoped log redaction at upload.",
-      "If HA/network changes are requested, seek Owner design approval and field-proof a two-network failover matrix; do not weaken Firebase fencing/RTDB uncertainty rule solely to meet 15s or reduce quota."
+      "If HA/network changes are requested, seek Owner design approval and field-proof a two-network failover matrix; do not weaken Firebase fencing/RTDB uncertainty rule solely to meet 15s or reduce quota.",
+      "D169 E012 pending: cross-network safe dual-heartbeat and deadline-driven lease read design with provider billing, 15s suspect threshold and split-brain tests, Owner decision before source edits."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
