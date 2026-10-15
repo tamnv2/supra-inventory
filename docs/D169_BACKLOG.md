@@ -114,3 +114,8 @@ Không tự đổi số vấn đề trên thành lỗi mới phát sinh trong D1
 7. **SKU scheduled:** Timeline FULL đầu ngày, DELTA 12/19, job claim/grant/lease, Worker reachability trước/sau switch, nextWake, event Queue, stage/publish receipt và bản Agent thực tế. Cần một Office-only thực địa với tiếp tục Confirm Picklist và restore mạng.
 
 **Ranh giới bất biến:** Firebase critical Office-capable remains; no cross-service migration; no WMS mutation or direct unsupported endpoints; no Stable; do not put raw logs, credentials or employee data in public repo.
+
+
+## D169-E008 — Web Picker enrollment candidate kiểm thử và phát hành có điều kiện
+
+PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks của candidate `d9f350f73e32cd46a04d93de7f7f9ef26dab15b6` PASS gồm Authority/Continuity/Web types. Kèm receipt Beta Worker-only, giữ Full Replace ADMIN/ROOT, giữ no-auto-disable Picker, chống non-Picker collision. **Tại điểm này chưa deploy**; cần checks receipt SHA mới PASS, merge giữ ancestry và xác nhận health/source SHA từ runtime. Client code-only và backlog WAIT-EVIDENCE vẫn giữ nguyên.
