@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E013",
+    "id": "D169-E014",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -254,6 +254,25 @@
       ],
       "next_action": "Propose a source-level D169 design and impact/risk/testing matrix for Office SSID configuration UI, event-driven mode changes, cross-network Primary/NEXT_A liveness and safe 15s failover; seek Owner explicit implementation permission before Agent code changes.",
       "evidence": "relay-agent/Program.cs#GetSsid, #QueueNetworkStatusRefresh; relay-agent/D168NetworkRoute.cs#ApprovedProfiles/#OpenWorkerSession; relay-agent/FirestoreAgentLeaderCoordinator.cs#Loop/#CheckPrimaryLease/#VerifyPrimaryDownBeforeTakeover; docs/OWNER_DECISIONS.md D168 network policy; D169-E010-E012."
+    },
+    {
+      "id": "D169-E014",
+      "date_vn": "2026-10-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Free-quota alternatives to Firestore HA liveness for Office blocked RTDB",
+      "status": "COMPARATIVE_RESEARCH_READ_ONLY__NO_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Confirmed Oct 15 NEXT_A local HA fallback sample: 3258 lease GET attempts over ~4h48; one-second SSE reconnects and Firestore fallback are waste hotspots but not authoritative billable usage.",
+        "Office reachability currently evidenced for Firestore, not RTDB/Cloudflare/PubSub/Ably/Supabase; all alternative services are hypothetical until authorized Office-network read-only access test. SSID-based known Office mode avoids futile RTDB probing but cannot by itself replace authenticated liveness or Firestore roles/generation fencing.",
+        "Official Firebase Firestore Standard no-cost daily quota: 50000 document reads and 20000 writes; official RTDB no-cost 1GB stored and 10GB/month downloaded, not per operation. A single cross-network 10s Firestore heartbeat incurs ~8640 writes/day and each NEXT_A 10s observation ~8640 reads/day if 24h; 15s suspicion latency cannot be promised by slower polling.",
+        "Official Google Cloud Pub/Sub Basic offers first 10GiB monthly delivery/ingest throughput at no cost (with per-request minimum and any storage/transfer ancillary pricing), but Office access, gRPC/HTTP2, IAM and duplicate/out-of-order semantics require verification; message delivery cannot substitute for Firestore generation-fenced authority.",
+        "Official Ably Free 6M messages/month and 200 concurrent connections; Supabase Free 2M realtime messages/month and 200 concurrent connections but can pause low-activity projects; Cloudflare Durable Objects Free 100k requests/day and SQLite rows usage, existing Worker route not confirmed Office-reachable. None shown to operate from Office; neither service may be deployed without registered resource scope/Owner approval.",
+        "Lowest-change optimization: prefer RTDB-capable PDA pair PRIMARY/NEXT_A where available; known Office networks skip RTDB reconnect loop; explore one existing Firestore listener/mode or piggyback existing authorized periodic writes, but Firestore listener is billed a read for each updated document; cross-network needs live common evidence, no magical cost removal. Stronger alternative Google Pub/Sub only if Office supports it; keep Firestore CAS as business safety authority.",
+        "No changes to Agent, Firebase, Worker, public endpoints, Stable, PR606 merge or release are authorized or undertaken."
+      ],
+      "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs#Loop/#CheckPrimaryLease; relay-agent/RtdbHaLiveness.cs#ObserveLoop; D169-E010-E013; official firebase.google.com/pricing, firebase.google.com/docs/database/usage/billing, cloud.google.com/pubsub/pricing, ably.com/docs/platform/pricing/free, supabase.com/docs/guides/realtime/pricing, developers.cloudflare.com/workers/platform/pricing/",
+      "next_action": "Owner review cross-network HA design and approve only a scoped candidate after one physical Office reachability trial and comparative provider billing; preserve 15s suspect threshold, fire authority and WMS fencing."
     }
   ],
   "resume": {
@@ -280,7 +299,8 @@
       "D169-E010 latest full-day Oct 15 sanitized Agent evidence: terminal WMS outcome classification, repeated SSE/Firestore fallback, SKU DELTA_19 missing receipt at archive boundary, and support-log identifier exposure; no Android/Web raw coverage.",
       "D169-E011: mixed Office/PDA network HA code review found RTDB-probe-unavailable automatic takeover safety hold and unconditional RTDB heartbeat wms_ready=true representation, both field-unverified; no code requested.",
       "D169-E012: Office RTDB-blocked HA quota optimization analyzed: useless RTDB retry throttle plus conditionally published Firestore liveness and adaptive reads; no implementation approved.",
-      "D169-E013 Owner SSID-policy proposal: exact Office/PDA allowlists for local event-driven HA transport selection, no per-cycle synthetic RTDB ping on Office; cross-network shared Firestore liveness and fencing needed; design-only."
+      "D169-E013 Owner SSID-policy proposal: exact Office/PDA allowlists for local event-driven HA transport selection, no per-cycle synthetic RTDB ping on Office; cross-network shared Firestore liveness and fencing needed; design-only.",
+      "D169-E014 researched Office-RTDB alternative channels and published provider quotas; all alternative reachability unverified and read-only candidate, no changes approved."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
