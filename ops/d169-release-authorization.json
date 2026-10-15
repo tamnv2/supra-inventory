@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "change_id": "D169",
+  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
+  "approved_source_sha": null,
+  "approved_components": [],
+  "owner_approval_reference": null,
+  "authority_continuity_pass": false,
+  "product_ci_pass": false,
+  "stable_deploy_permission": false,
+  "code_scope": "WEB_PICKER_HR_ADMIN_PICK_PACK_ONLY",
+  "request": "OWNER_EXPLICIT_20261015_WEB_WORKER_BETA_DEPLOY_ONLY__AGENT_ANDROID_CODE_ONLY",
+  "note": "Code candidate pending exact SHA PR CI before release approval. Retain critical Firebase and all Stable permissions."
+}
