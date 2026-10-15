@@ -169,3 +169,7 @@ PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks
 3. Ưu tiên nhóm PRIMARY+NEXT_A cùng mạng có RTDB chỉ là cách giảm usage vận hành, không thay thế bảo đảm failover xuyên mạng khi Office trở thành phương án dự phòng duy nhất.
 
 **Ràng buộc:** Firestore listener vẫn có billed reads cho tài liệu thay đổi; không giả định listener giảm chi phí nếu cùng nhịp heartbeat. So sánh GET/read + PATCH/write trên toàn fleet và thực tế Firestore provider Billing. Test PDA-PDA, PDA-Office, Office-Office, PRIMARY mất RTDB, mất Firestore, mất WMS, split-brain, old/new Agent tương tác; bảo toàn xác nhận Picklist và ACK. Không có sửa code, merge hoặc release từ checkpoint nghiên cứu này.
+
+## D169-E013 — SSID-classified Agent network policies (2026-10-16)
+
+Owner proposal, no code approval: configure known Office and PDA/Internet SSIDs locally in Agent and select HA transport policy without repeated RTDB checks on known Office networks. Program.cs already reads real Windows SSID; D168NetworkRoute.cs saves permitted Wi-Fi profiles for SKU, not yet HA classification. Unknown SSID / VPN / wired or ambiguous adapter is UNKNOWN, fail-closed. Mixed PDA PRIMARY and Office NEXT_A requires conditional Firestore heartbeat, because Office cannot observe RTDB; reverse pairing similarly needs Firestore evidence. Preserve Firestore roles generation CAS, WMS readiness, ACK and 15s suspicion safety. Consider Windows Wi-Fi change events rather than frequent netsh/provider polling. Compare actual Firebase billing and split-brain tests before implementation.
