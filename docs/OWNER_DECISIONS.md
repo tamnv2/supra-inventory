@@ -4212,3 +4212,8 @@ Owner xác nhận **D168 PASS trong phạm vi code/phiên bản đang hoạt đ�
 ## D169-E007 · Owner tách phạm vi code và phát hành (15/10/2026)
 
 Owner yêu cầu thực hiện thay vì chỉ báo cáo: (1) Web/Worker Beta có thể triển khai những sửa đổi độc lập không phá hoạt động đang chạy, cụ thể cho Quản trị Pick Pack thêm Picker qua Web/Excel; (2) thay đổi Agent/Android chỉ sửa code, kiểm thử và giữ PR riêng, **không merge vào main, không phát hành EXE/APK**; (3) giữ Firebase Auth/Firestore/RTDB cho login Agent, xác nhận Picklist/ACK, HA/PRIMARY, Agent sync và Picker presence cần xuyên suốt Wi-Fi Office; Cloudflare cho nghiệp vụ có tuyến Internet khi kiểm tra thực tế an toàn. Không tự chuyển tuyến và không giảm cadence critical HA/Confirm chưa field-PASS. Web Beta cần biên nhận D169 khóa SHA/Worker-only, CI authority + continuity PASS; Stable và domain vẫn OWNER-GATED. Các giả thuyết chưa chứng minh được ghi tại backlog D169 chờ log/field/provider billing.
+
+
+## D169-E008 · Biên nhận cho Web Beta Picker HR (15/10/2026)
+
+Owner đã duyệt nguyên tắc phát hành các sửa đổi Web độc lập, giới hạn tài khoản Quản trị Pick Pack nhập Picker/Excel. Candidate PR #605 tại SHA `d9f350f73e32cd46a04d93de7f7f9ef26dab15b6` có toàn bộ 18 job chạy được báo PASS; ghi biên nhận chính thức `ops/d169-release-authorization.json` với `approved_components=[worker]` vì Worker Beta đóng gói Web assets. Chỉ merge kiểu giữ ancestry sau khi CI của biên nhận PASS; sau deploy xác nhận Worker/InventoryCore/Web Beta phản ánh đúng source SHA. Android, Agent, Firebase critical network routes, Stable, tên miền nằm ngoài quyết định này.
