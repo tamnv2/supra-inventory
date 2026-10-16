@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E014",
+    "id": "D169-E015",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -273,6 +273,42 @@
       ],
       "evidence": "relay-agent/FirestoreAgentLeaderCoordinator.cs#Loop/#CheckPrimaryLease; relay-agent/RtdbHaLiveness.cs#ObserveLoop; D169-E010-E013; official firebase.google.com/pricing, firebase.google.com/docs/database/usage/billing, cloud.google.com/pubsub/pricing, ably.com/docs/platform/pricing/free, supabase.com/docs/guides/realtime/pricing, developers.cloudflare.com/workers/platform/pricing/",
       "next_action": "Owner review cross-network HA design and approve only a scoped candidate after one physical Office reachability trial and comparative provider billing; preserve 15s suspect threshold, fire authority and WMS fencing."
+    },
+    {
+      "id": "D169-E015",
+      "date_vn": "2026-10-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Correlate Owner Firebase screenshots with Oct 15–16 archived logs; recommend unused-query removal and coordinated HA transport",
+      "status": "ANALYSIS_READY__PROPOSAL_ONLY__NO_NEW_CODE_OR_RELEASE_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "Owner requests careful usage attribution, quality-preserving savings and equivalent Agent operation across Office/PDA/mixed networks. This authorizes analysis and its canonical checkpoint, not new executable code or deployment.",
+        "Main 7ec91a75 and PR606 working HEAD 66b6435a bootstrap/source and current successful checks reviewed. Four private screenshots plus 159 Drive-listed log entries read; one same-name/same-size Android bundle deduplicated, yielding 135 Android bundles across 40 devices, 21 Agent files and 2 Web bundles. All captured Android bundles vc110; Agent v130/v132 coexist. Archive day and log-event day differ; counter snapshots overlap and reset.",
+        "Firestore Operations one-day screenshot: 30860 reads, 5834 writes; picker_alerts 16800 reads (54.44%), relay_poc_coordination 7208 (23.36%), relay_poc_jobs 934. Visible read rows leave 5514 unattributed. Firebase quota-period view ~24k reads/4.2k writes/564 deletes and RTDB/billing-period views have different scopes; never add them. Billing Overview shows approximately VND679 gross, VND678 savings and VND1 net for Oct1–16, not final invoice or 24h Firestore cost.",
+        "SOURCE_CONFIRMED stronger finding than E010/E006: only discovered LoadOpen caller is ReconcileD134AgentSync; LoadLegacyAlerts reads status PENDING/SENT LIMIT100, skips chat/expiry after read and returns IsActiveCall=false; sole Reconcile consumer skips !IsActiveCall. Thus this legacy-read branch currently contributes no active-call output. Two distinct PRIMARY samples show 32 queries+3168 extra docs=3200 estimated reads and 53+5247=5300; this supports removing the unused reconcile read while retaining real active-call/chat/FCM paths, subject to approval/regression. It does not authorize deletion of alerts or FCM retirement.",
+        "Morning Oct16 NEXT_A local audit: 1745 lease-read attempts, 8589 RTDB SSE HTTP403, 1743 takeover-probe UNAVAILABLE; concurrent Firestore sync/presence events prove existing listener activity. Prior Oct15 NEXT_A sample had 3258 lease attempts, 531 SSE timeouts, 541 connects, 52 HTTP403. PRIMARY afternoon Oct15 sample had 1624 lease writes and RTDB heartbeat 212 HTTP401+1408 HTTP403. Local attempts are not billable totals.",
+        "RTDB screenshot ~37k rule denies prove some requests reach Firebase and fail security evaluation; HTTP403 alone cannot distinguish proxy vs rules, so attributing every refusal to Office firewall is invalid. Need sanitized path/error/claim diagnostics, no broadening rules. 1.63KB stored/1% load does not suggest capacity saturation; RTDB download 25.31MB includes overhead and is not established as exactly one-day usage.",
+        "Across bounded Android HTTP summaries, MAX per device/hour/route/error gives lower bound 2447 RESULT_ACK_NOT_FOUND (1454 Oct15 + 993 early Oct16) affecting 29 devices. Endpoint covers RECEIVED/DISPLAYED/ACKNOWLEDGED. Overlay ACK quarantine already exists; MainActivity drainNotificationReceipts keeps unscoped pendingResultEvents on every exception and lacks comparable single-flight. This is a strong source candidate for repeated stale receipt calls, not proof of root cause for all requests or frozen overlays; affects Worker/DO/PDA energy, not direct Firestore reads.",
+        "Recommended staged design: first remove proven unused read and futile RTDB error/reconnect amplification; then select ONE steady-state liveness transport for responsible PRIMARY/NEXT_A (and required warm standby) set. RTDB only when responsible peers support it, shared Firestore lease listener if any require Office Firestore-only. Keep Firestore roles/generation CAS and confirmation carrier, WMS readiness/fences, pending watchdog, ACK/idempotency, FCM and no-offline business. Bounded make-before-break during agreed mode/generation transition only; do not permanently dual-publish or let each endpoint select incompatible heartbeat paths.",
+        "SSID allowlists remain local policy hints via network events, not security/reachability/liveness proof. Unknown/Ethernet/VPN/multi-NIC safely handled; 401/403 classification and auth recovery separate from Office policy. Firestore listener already field-observed, but new lease target/resume/fallback must be tested. Exact hot lease belongs only to relevant standby, never 10s heartbeat inside agent_sync fan-out to all Agents.",
+        "Heartbeat10s illustrative one PRIMARY/one NEXT_A steady Firestore mode: 360 writes and 360 observed-document reads/hour, 5760 each/16h or 8640 each/24h before overhead. Office PRIMARY already writing lease may save observer reads; PDA PRIMARY+Office standby needs added shared writes for correctness. Baseline samples suggest ~44–47% reduction in lease-read attempts alone under ideal listener health, not total provider savings. Largest collection saving upper-bound is 54.44%, not a committed or measured total saving.",
+        "Official Firebase pricing/monitoring/billing checked: document reads vs writes, empty-query/index/rule costs, RTDB bytes and shared quota periods are distinct. Screenshots do not establish Cloudflare CPU/DO SQL, Functions/Auth/Apps Script account usage. No provider migration, new resource, WMS automation, source implementation, APK/EXE version bump, PR606 merge or Stable release performed.",
+        "Detailed sanitized evidence, proposed contract/test matrix, baseline/direct/cross-meter comparisons, estimate limits and rollback requirements are in docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md."
+      ],
+      "alternatives": [
+        "BASELINE_MEASURE_ONLY: no migration, retains current repeated reads and mixed-network HA uncertainty.",
+        "DIRECT_HOT_PATH: remove unused legacy reconcile query, distinguish permanent auth/network errors and stop futile RTDB reconnects while preserving business/HA safety.",
+        "ADAPTIVE_EXISTING_TRANSPORT: choose responsible HA peers common RTDB or Firestore exact-lease listener; one steady channel with agreed generation/mode and bounded handover; do not relocate confirmed business carrier.",
+        "NEW_PROVIDER: not selected; Office reachability and resource permission remain unverified."
+      ],
+      "open_questions": [
+        "Provider billing-by-SKU/empty-query/rules/index reconciliation and exact common screenshot window; full Cloudflare/Apps Script/Functions meters absent.",
+        "RTDB403 proxy vs Firebase rules/token cause and SSE timeout/keepalive/stream-freshness behavior; new exact lease listener and mode transition field proof.",
+        "Full installed fleet/capability, in-flight WMS mutation fencing/uncertain final-click and cross-network failover latency under partitions before any rollout.",
+        "Result-stage event/user/stage provenance behind repeated404 and unscoped received receipts; no false ACK or wrong-account retry."
+      ],
+      "next_action": "Present diagnosis/recommended staged design to Owner for review. Only after explicit design/code approval implement under existing D169 branch/PR controls; retain all current code-only/release boundaries and Stable owner gate.",
+      "evidence": "Private Owner screenshots and scoped Beta Logs daily folders Oct15–16; relevant source at main7ec91a75/PR60666b6435a; docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; official firebase.google.com/docs/firestore/pricing, /docs/firestore/monitor-usage, /docs/database/usage/billing."
     }
   ],
   "resume": {
@@ -300,13 +336,15 @@
       "D169-E011: mixed Office/PDA network HA code review found RTDB-probe-unavailable automatic takeover safety hold and unconditional RTDB heartbeat wms_ready=true representation, both field-unverified; no code requested.",
       "D169-E012: Office RTDB-blocked HA quota optimization analyzed: useless RTDB retry throttle plus conditionally published Firestore liveness and adaptive reads; no implementation approved.",
       "D169-E013 Owner SSID-policy proposal: exact Office/PDA allowlists for local event-driven HA transport selection, no per-cycle synthetic RTDB ping on Office; cross-network shared Firestore liveness and fencing needed; design-only.",
-      "D169-E014 researched Office-RTDB alternative channels and published provider quotas; all alternative reachability unverified and read-only candidate, no changes approved."
+      "D169-E014 researched Office-RTDB alternative channels and published provider quotas; all alternative reachability unverified and read-only candidate, no changes approved.",
+      "D169-E015 analysis ready: new provider screenshots and Oct15–16 raw archive corroborate unused legacy query/HA fallback waste; common-transport liveness and Android receipt fixes are proposals only, not released."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
       "D168-E050 mandatory-version update and long Agent overlay design remain unresolved and require analysis",
       "Admin Pick Pack SKU/account permission changes and Agent Wi-Fi switch design require full impact review then explicit Owner approval.",
-      "Unified D169 design review including 404 provenance, overlay lifecycle, migration floor, presence/role/network policy and measured usage; no code/deploy permission implied."
+      "Unified D169 design review including 404 provenance, overlay lifecycle, migration floor, presence/role/network policy and measured usage; no code/deploy permission implied.",
+      "Owner review of D169-E015 staged unused-query + coordinated RTDB/Firestore HA design and separately scoped Android RECEIVED receipt retry fix; no new code or release authorization yet."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -321,7 +359,8 @@
       "Before any fix approval, reconcile 47 nonconfirmed ACKed outcomes against WMS/idempotency, RTDB SSE timeout/lease GET amplification against provider meters, SKU DELTA_19 Worker receipt and post-21:45 retry, and scoped log redaction at upload.",
       "If HA/network changes are requested, seek Owner design approval and field-proof a two-network failover matrix; do not weaken Firebase fencing/RTDB uncertainty rule solely to meet 15s or reduce quota.",
       "D169 E012 pending: cross-network safe dual-heartbeat and deadline-driven lease read design with provider billing, 15s suspect threshold and split-brain tests, Owner decision before source edits.",
-      "For D169 SSID HA policy, obtain explicit Owner code authorization before changing Windows Agent transport; test false-positive SSID/unknown, profile change, multi-NIC and mixed-network failover with provider billing evidence."
+      "For D169 SSID HA policy, obtain explicit Owner code authorization before changing Windows Agent transport; test false-positive SSID/unknown, profile change, multi-NIC and mixed-network failover with provider billing evidence.",
+      "Review docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; approve exact implementation scope before code. Validate provider savings and cross-network safety/latency independently of CI."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }

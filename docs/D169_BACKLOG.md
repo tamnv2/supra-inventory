@@ -181,3 +181,14 @@ Research only, no release approval. Current v132 NEXT_A 15/10 archived sample: 3
 Verified official Free limits: Firestore Standard 50k reads/day and 20k writes/day; RTDB 1GB stored and 10GB downloaded per month, not metered as individual reads/writes; Google Cloud Pub/Sub first 10 GiB throughput/month free; Ably Free 6M messages/month, 200 connections; Supabase Free 2M Realtime messages/month and 200 connections (idle project pause risk); Cloudflare Durable Objects Free 100k requests/day plus SQLite quotas. Alternative network services are NOT verified Office-accessible and are NOT registered D169 resources. A proposed Pub/Sub streaming heartbeat on Google API would require an authorized physical Office reachability trial, IAM and delivery/ordering review; Firestore remains primary authority for generation-fenced claim and business mutation.
 
 Cost-aware order: prioritize two RTDB-capable Agents for PRIMARY/NEXT_A when present; on known Office SSIDs avoid futile RTDB retries; optimize Firestore-only mixed-network heartbeat and observation only after provider read/write measurements and failover/split-brain tests. Do not assume Firestore realtime listener is free per update or that extra Firestore writes reduce total quota. No new service, source edit, merge or release.
+
+
+## D169-E015 — Đối chiếu ảnh Usage và log 15–16/10/2026
+
+Phân tích chi tiết, số liệu, giới hạn chứng cứ và ma trận phương án/kiểm thử: [D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md](D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md).
+
+Điểm mới đã kiểm tra: nhánh LoadLegacyAlerts của reconciliation tải tối đa 100 document/query nhưng trả IsActiveCall=false, còn consumer bỏ qua loại này; đây là ứng viên giảm read ưu tiên nhất. Hai mẫu PRIMARY có 8.500 estimated document reads của nhánh này, không cộng với provider picker_alerts 16.800. Log sáng 16 có 8.589 RTDB SSE403 và 1.745 lease-read attempts; 37k Rules deny không thể quy toàn bộ cho firewall. Existing Firestore listener có hoạt động thật; đề nghị dùng kênh liveness chung RTDB hoặc Firestore cho cặp HA và warm standby cần bảo đảm, không publish hai kênh thường trực.
+
+Android có cận dưới 2.447 result-stage404 trên 29 PDA ở phần giờ 15–sáng16; RECEIVED queue unscoped và retry-all-errors là ứng viên cần phân tích tiếp, không nhầm với overlay ACK quarantine đã tồn tại. Các ảnh dùng cửa sổ quota/rolling/billing khác nhau; chưa xác minh billed saving, Cloudflare/Functions/Apps Script totals hoặc physical HA PASS.
+
+**Đề xuất chờ Owner duyệt; không có code/deploy mới.** Giữ PR606 Draft unmerged, Agent/Android code-only và Stable OWNER-GATED.
