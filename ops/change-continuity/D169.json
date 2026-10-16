@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E024",
+    "id": "D169-E025",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -575,6 +575,22 @@
       ],
       "next_action": "Finalize v134 source/CI and exact SHA authorization, then merge PR608 only with success of source/authority/continuity checks. Read Beta Worker same-SHA health and agent-v134 channel manifest checksums. No Android/Stable release.",
       "evidence": "Owner order 2026-10-16; PR608 v133 baseline; relay-agent/Program.cs v134 TabControl + persistent toggle, AgentUpdater.cs, AgentConfig.cs and VERSION, tools/d167_release_gate.py, .github/workflows/verify-relay-agent.yml, docs/OWNER_DECISIONS.md E024; GitHub CI to be verified."
+    },
+    {
+      "id": "D169-E025",
+      "date_vn": "2026-10-16",
+      "kind": "TEST",
+      "topic": "Agent v134 18/18 CI PASS and exact-SHA Owner Beta release receipt prepared",
+      "status": "SOURCE_18_OF_18_CI_PASS__SIGNED_RELEASE_RECEIPT_READY__PR_MERGE_DEPLOY_NOT_YET_DONE",
+      "owner_approval": true,
+      "facts": [
+        "PR608 candidate SHA 0e51a15e7cbf0dbd87551077c766a52c74bbf773: 18/18 workflows SUCCESS, including Repo Authority/Project State/UI/Android/Agent/Agent Web Tab Canary/Worker code-only guards. Verify Beta Relay Agent run38934527754 originally failed due three unavailable D160 Apps Script gateway GET attempts; authorized re-run attempt2 succeeded without weakening this probe, then Windows Agent build/startup/native tests PASS.",
+        "Exact tested code candidate now recorded in ops/d169-release-authorization.json with D169 Owner explicit Beta deployment scope [worker,agent], v134 code scope, Owner-accepted field-trial risk with FIELD_PASS=false, Stable=false, and no Web/Service executable mutation. Source SHA is an ancestor of branch receipt commit and protected source is unchanged afterward.",
+        "Publishing from main, not PR artifact, remains required. Main push paths in .github/workflows/verify-relay-agent.yml schedule Agent release and match-source Worker Beta deployment; Agent release gate requires Worker Beta health exact main SHA before v134 tag and inventory-channel publication. One-day log/field test not equivalent to CI.",
+        "Agent v132->v134 binary upgrade contract uses existing AgentUpdater exact version/manifest/SHA256; v133 is not a required upgrade hop. Primary v132 remains only if its auto-updater genuinely disabled."
+      ],
+      "next_action": "Complete receipt CI PASS at PR608 exact head, mark ready, merge with ancestry preservation, then verify Beta Worker same-source health, tag relay-agent-v134, inventory-channel/agent-latest.json v134 and browser-bundle channel. If any required gate fails, report and do not claim release.",
+      "evidence": "GitHub PR608 candidate 0e51a15e7cbf0dbd87551077c766a52c74bbf773, 18 GitHub runs incl Windows 38934527754 success attempt2, ops/d169-release-authorization.json, tools/d167_release_gate.py and .github/workflows/verify-relay-agent.yml."
     }
   ],
   "resume": {
@@ -590,7 +606,8 @@
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
       "D169 journal and backlog created; no executable product changes",
       "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS.",
-      "Agent v133 secondary-only canary CI source/build PASS at d4a4ad74; GitHub Actions artifact 12048096905 available, without main merge, GitHub release tag or global channel mutation."
+      "Agent v133 secondary-only canary CI source/build PASS at d4a4ad74; GitHub Actions artifact 12048096905 available, without main merge, GitHub release tag or global channel mutation.",
+      "D169-E025 v134 source PR608 candidate 0e51a15e 18/18 CI PASS, protected release receipt locks tested code and Beta worker+agent same source; waiting receipt CI/merge and runtime evidence."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -614,7 +631,8 @@
       "D169-E021 Owner asks Agent-only release compatibility for PDA vc110 and an embedded resizable WMS Confirm tab; source confirms the Agent code-only delta is local SKU retry and embedded Web is a separate UI/host redesign proposal, not built.",
       "D169-E022 PR608 embedded WinForms TabPage+owned WebView2 child viewport and v133 canary source under full Windows CI; physical WMS/failover proof pending.",
       "Owner physical secondary v133 WMS Confirm tab/login/resize/HA/SKU field acceptance pending; main v132 and PR606 Android code-only unaffected.",
-      "Agent v134 code/CI + approval receipt candidate SHA and Worker/Agent release channel evidence pending."
+      "Agent v134 code/CI + approval receipt candidate SHA and Worker/Agent release channel evidence pending.",
+      "v134 global channel deployment staged; Owner field/usage remains unverified and PR606 Android is held."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -652,7 +670,8 @@
       "For D169-E021 test single managed WMS WebView2 viewport tab with popup/opener/focus/DPI/minimize/persistent profile/hidden SKU export plus confirm/ACK/HA regression and reversible Agent fallback before any field release.",
       "Review PR608 Windows build and artifact; manually install only secondary Agent, then record Owner result from login/WMS child popup/Confirm/SKU/tab resize/tray/HA and canary rollback.",
       "Owner retrieve https://github.com/tamnv2/supra-inventory/actions/runs/38905531099 and install artifact only on secondary; test and supply sanitized evidence.",
-      "Complete v134 PR CI and Owner receipt, merge scoped PR608 only after authority+continuity; check same source Worker Beta health and published relay-agent-v134/inventory-channel SHA."
+      "Complete v134 PR CI and Owner receipt, merge scoped PR608 only after authority+continuity; check same source Worker Beta health and published relay-agent-v134/inventory-channel SHA.",
+      "Verify signed receipt exact-head CI then merge PR608 and watch Worker Beta same-SHA/Agent v134 OTA channel, never claim success before release readback."
     ],
     "release_boundary": "D169_OWNER_APPROVED_AGENT_V134_BETA_RELEASE_FROM_V132__PR608_CI_RELEASE_PENDING__WORKER_IDENTICAL_SOURCE_SUPPORT_ONLY__ANDROID_PR606_DRAFT__STABLE_OWNER_GATED"
   }
