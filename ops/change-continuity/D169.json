@@ -7,8 +7,8 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E026",
-    "date_vn": "2026-10-16"
+    "id": "D169-E027",
+    "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
   "entries": [
@@ -609,6 +609,24 @@
       ],
       "next_action": "Owner uses existing Agent v132 Update on secondary to v134, verifies tab button labels and Web Confirm WMS login/Confirm/SKU and provides sanitized Agent logs if fail; record field PASS or repair under D169. Do not change Stable or Android PR606.",
       "evidence": "PR608 merged SHA c8a9bd1c; GitHub Actions Beta Worker run38936067894/Agent release run38936067907; release https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v134; asset manifest of inventory-channel; ops/d169-release-authorization.json Owner SHA receipt."
+    },
+    {
+      "id": "D169-E027",
+      "date_vn": "2026-10-17",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner reports v134 NOT PASS: normal Agent tab headers hidden by browser toggle toolbar",
+      "status": "V134_UI_NOT_PASS__V135_TWO_ROW_REPAIR_CANDIDATE__CI_AND_FIELD_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Owner observed Agent v133 Web Confirm embedded tab worked with normal tabs visible, but after v134 the ordinary Agent tabs disappeared. This is explicit NOT PASS for the current D169 Beta release, not permission to promote Owner PASS.",
+        "Source diff verifies Program.cs v134 inserted DockStyle.Top tabActions into tabShell Panel alongside _mainTabs DockStyle.Fill then tabActions.BringToFront(). TabPages Tổng quan/Cài đặt/SKU/Web Confirm remained registered, but toolbar can overlap the TabControl header; issue is visual/WinForms docking rather than erased business tabs.",
+        "D169 corrective source PR610 v135 replaces ambiguous mixed docking with exclusive TableLayoutPanel row0 fixed toolbar height 38 and row1 TabControl remaining 100%. The previously working v133 tab structure remains, and only the Web Confirm tab is removed/reinserted by v134 toggle button. No WMS/Picker/PDA/Firebase changes.",
+        "Agent v134 has already been shipped and its signed assets must not be overwritten. Next build must be v135. Existing D169 Beta UI change approval and NOT PASS repair policy apply to this narrow correction; no broader Owner consent is inferred for unrelated functions or Stable.",
+        "Critical additional evidence: prior PR-only source CI missed WinForms rendered geometry; v135 extends existing Windows GUI startup smoke to inspect all tab header rectangles and fail on toolbar overlap, plus source assertions for two-row TableLayoutPanel.",
+        "Physical Owner field validation on secondary Agent remains required even if v135 PR CI passes. Primary and any separately auto-update-enabled Agents must be considered before fleet channel changes."
+      ],
+      "next_action": "Run PR610 source CI, investigate and fix any Windows smoke/authority/continuity failures. If release authorization remains valid for this D169 NOT PASS repair, use an exact source receipt, merge after PASS and verify v135 release; otherwise retain PR only and request explicit approval before broader OTA. Owner tests all tabs and Web Confirm on secondary.",
+      "evidence": "Owner user report in this turn; GitHub source main Program.cs BuildProfessionalLayout v134 versus v133 source d4a4ad7425c93de797a8de6ab2d464ef2c7e8b61; PR610 source WinForms two-row layout and D169TabHeaderLayoutSelfTest; v134 release tag."
     }
   ],
   "resume": {
@@ -652,7 +670,8 @@
       "Owner physical secondary v133 WMS Confirm tab/login/resize/HA/SKU field acceptance pending; main v132 and PR606 Android code-only unaffected.",
       "Agent v134 code/CI + approval receipt candidate SHA and Worker/Agent release channel evidence pending.",
       "v134 global channel deployment staged; Owner field/usage remains unverified and PR606 Android is held.",
-      "Owner physical Agent v132->v134 on secondary, WMS tab display/hidden/login, Confirm, SKU, v132/v134 HA and PDA vc110 field proof remains pending."
+      "Owner physical Agent v132->v134 on secondary, WMS tab display/hidden/login, Confirm, SKU, v132/v134 HA and PDA vc110 field proof remains pending.",
+      "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -665,7 +684,8 @@
       "D169-E019: Owner RTDB-on-normal / Firestore-on-Office mode preference requires approval of either HA-only common-peer selection or a full Android/Agent/Service critical carrier migration; no network-provider source change yet.",
       "D169-E021: require Owner approval of embedded WebView2 host/UI design and explicit Agent-only Beta release command; no accidental APK/Agent co-release or WMS session/profile changes.",
       "Any v133 general release, relay-agent-v133 GitHub prerelease, inventory-channel update, PR608 main merge or Android PR606 release remains separate Owner-gated.",
-      "D169 v134 physical WMS/PDA/HA field PASS still Owner pending; does not authorize Android PR606."
+      "D169 v134 physical WMS/PDA/HA field PASS still Owner pending; does not authorize Android PR606.",
+      "D169-E027 Owner physical field PASS required after v135 layout repair; do not infer accepted v134 from release/CI."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -692,8 +712,9 @@
       "Owner retrieve https://github.com/tamnv2/supra-inventory/actions/runs/38905531099 and install artifact only on secondary; test and supply sanitized evidence.",
       "Complete v134 PR CI and Owner receipt, merge scoped PR608 only after authority+continuity; check same source Worker Beta health and published relay-agent-v134/inventory-channel SHA.",
       "Verify signed receipt exact-head CI then merge PR608 and watch Worker Beta same-SHA/Agent v134 OTA channel, never claim success before release readback.",
-      "Record Owner second Agent v132 update, verify actual WebView2 tab visibility and Confirm/SKU/failover; if NOT PASS repair D169 and publish approved hotfix, not Stable."
+      "Record Owner second Agent v132 update, verify actual WebView2 tab visibility and Confirm/SKU/failover; if NOT PASS repair D169 and publish approved hotfix, not Stable.",
+      "Verify PR610 full Windows GUI tab-geometry smoke and Authority PASS, then bounded hotfix release path only if existing D169 approval/receipt allows corrective v135; test on secondary."
     ],
-    "release_boundary": "D169_AGENT_V134_BETA_OTA_PUBLISHED__WORKER_SOURCE_MATCH_PASS__ANDROID_PR606_DRAFT_UNRELEASED__FIELD_OWNER_PENDING__STABLE_OWNER_GATED"
+    "release_boundary": "D169_V134_RELEASED_BUT_OWNER_UI_NOT_PASS__V135_NARROW_TABS_HOTFIX_PR610_CI_PENDING__ANDROID_PR606_DRAFT__STABLE_OWNER_GATED"
   }
 }
