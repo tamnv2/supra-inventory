@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E017",
+    "id": "D169-E018",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -384,6 +384,37 @@
       ],
       "next_action": "Owner runs the isolated tester on Internet and Office networks and provides both sanitized report folders. Analyze shortlist and submit specific scope/resource/security/quota/regression proposal before any authenticated POC or runtime change. Leave PR #606 unmerged; Stable owner-gated.",
       "evidence": "Current repo main and PR #606 source/CI; official provider pricing pages as of 2026-10-16; generated standalone binary and ZIP in current ChatGPT artifact session, Go test/vet and Windows cross-build checksum"
+    },
+    {
+      "id": "D169-E018",
+      "date_vn": "2026-10-16",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Analyze Owner's 16 Oct paired external Internet/Office network probe ZIP against Agent actual Windows proxy behavior",
+      "status": "FIELD_DIAGNOSTIC_COMPARISON_DONE__PROXY_CAPABILITY_UNVERIFIED__NO_PROVIDER_APPROVED",
+      "owner_approval": false,
+      "facts": [
+        "Owner provided paired ZIP from standalone SUPRA Network Tester v1.0 on Windows x64, labeled ordinary Internet (15:48:41-15:48:51) and corporate Office (15:49:10-15:50:13), 42 public endpoints x2 rounds each; original sensitive/raw probe details are not committed.",
+        "Ordinary network 84/84 DNS and raw TCP OK; 76 HTTP unauthenticated class, 4 auth-required class and 4 TLS-only MQTT-port class. Ably and Pusher WSS endpoint handshakes returned HTTP 101 on both rounds.",
+        "Corporate network 84/84 DNS OK, 10/84 direct TCP/HTTPS responses (5 Google-hosted APIs x2), other 74 raw TCP failed (54 timeout, 20 network errors). Firestore, RTDB, Worker Beta, FCM, PubSub, Apps Script, Ably, Pusher, Supabase and further providers failed raw TCP on both rounds. HTTP 404/401/400 on five Google endpoints is not authenticated permission or realtime evidence.",
+        "Critical measurement caveat: tester v1 does not honor Windows automatic proxy PAC/WinINET for raw TCP/TLS, whereas current relay-agent/FirestoreHttpTransport.cs uses DefaultWebProxy and system proxy recovery; real Office Firestore transport can behave differently. Prior Agent field observations and direct tester mismatch are not proof of new Firestore outage. Failure is evidence against direct Office transport, not any valid corporate-proxy route.",
+        "No candidate was proven operational over both networks, no tenant-specific authenticated duplex message, pubsub ack, retention, role/generation enforcement, FCM background wake, HA takeover, billing, network proxy tunnel or session-revoke behavior was tested. Costs cannot be guaranteed zero.",
+        "Most defensible direction remains existing provider hot-path waste removal plus proxy-aware limited diagnostic and coordinated RTDB/Firestore exact-peer HA; new-provider migration deferred until approval and measurable field compatibility. External provider quotas and 16h/24h heartbeat illustrative fan-out estimates in the sanitized report.",
+        "Cross-reference: docs/D169_NETWORK_PROBE_FIELD_2026-10-16.md; official provider price docs read 16 Oct; ZIP SHA256 6d437d7b7d8e284d7aaf7b2cecf95dbe4406668d5760a504380632002f3a4f68. No raw ZIP or sensitive user/device/network/proxy identifiers in public repo.",
+        "No Agent Android Web Worker Functions changes, no external resource provisioning, no billing activation, no live release, PR merge or Stable touch."
+      ],
+      "alternatives": [
+        "DIRECT_PROVIDER_MIGRATION: not supported by current Office direct network evidence; attempting migration now risks confirmation/HA/kick availability.",
+        "PROXY_AWARE_STAGE2: use Windows-native default/system proxy selector and explicit read-only HTTPS/WSS tests; do not bypass company controls or log proxy details.",
+        "PRESERVE_AND_OPTIMIZE: keep Firestore critical lane with measured removal of useless reads/retries and coordinated HA, still requires Owner design approval before runtime code."
+      ],
+      "open_questions": [
+        "Does approved native Windows proxy route permit Firestore exact-document authenticated listen in Office (existing Agent logs suggest yes), RTDB REST/SSE, Pub/Sub and third-party WSS/REST?",
+        "Does Office corporate policy authorize the specific candidate host/service through allowed proxy rather than raw direct route?",
+        "What is effective number of Agent/PDA clients and per-flow publish+delivery in 16h or 24h, including actual free-meter provider billing?",
+        "What are p50/p95/p99 first-result, terminal Picklist ACK, failover and kick server-revoke receipt latency through the proposed route?"
+      ],
+      "next_action": "Provide Owner the exact reached/failed provider table, first-stage conclusions and recommendation. If Owner approves, prepare a proxy-aware read-only v2 tool and collect Office+Internet diagnostic rerun before proposing a scoped authenticated Stage 3 pilot. Preserve D169 PR606 Draft/unmerged and Stable owner gate.",
+      "evidence": "docs/D169_NETWORK_PROBE_FIELD_2026-10-16.md; input ZIP from the current conversation; D169 canonical source; provider pricing documentation"
     }
   ],
   "resume": {
@@ -414,7 +445,8 @@
       "D169-E014 researched Office-RTDB alternative channels and published provider quotas; all alternative reachability unverified and read-only candidate, no changes approved.",
       "D169-E015 analysis ready: new provider screenshots and Oct15–16 raw archive corroborate unused legacy query/HA fallback waste; common-transport liveness and Android receipt fixes are proposals only, not released.",
       "D169-E016 whole Agent–PDA source audit/design ready: current Firestore business carrier, kick Office route gap, session-versus-connectivity presence, request12s/HA15s/ACK20s constraint and per-operation adaptive upgrade proposed; no new implementation.",
-      "D169-E017: standalone Windows cross-compiled network tester built outside repo and not released as Agent; 42 public endpoints x2, field reachability comparison pending."
+      "D169-E017: standalone Windows cross-compiled network tester built outside repo and not released as Agent; 42 public endpoints x2, field reachability comparison pending.",
+      "D169-E018: 16 Oct dual-network v1 field probe evaluated. Office direct TCP only five Google API hosts; proxy-aware Agent equivalence not covered; no candidate proven free/realtime/HA safe."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -441,7 +473,8 @@
       "For D169 SSID HA policy, obtain explicit Owner code authorization before changing Windows Agent transport; test false-positive SSID/unknown, profile change, multi-NIC and mixed-network failover with provider billing evidence.",
       "Review docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; approve exact implementation scope before code. Validate provider savings and cross-network safety/latency independently of CI.",
       "Review docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; preserve current critical Firestore ACK/guards, authorize exact adaptive Agent and connected Service/Android scope before source changes.",
-      "D169-E017: compare Owner's two local network-probe exports before selecting provider and requesting scoped authenticated pilot."
+      "D169-E017: compare Owner's two local network-probe exports before selecting provider and requesting scoped authenticated pilot.",
+      "D169-E018: Owner review proxy-aware read-only v2 test proposal; no resource creation or Agent/PDA runtime change. Report original field results remain private."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
