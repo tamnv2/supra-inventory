@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_V134_OWNER_NOT_PASS_UI_TABS__V135_REPAIR_IN_SAME_CHANGE__STABLE_UNTOUCHED",
+    "current_change_status": "D169_V135_BETA_UI_HOTFIX_RELEASE_PASS__OWNER_FIELD_PASS_PENDING__STABLE_UNTOUCHED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7976,7 +7976,7 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "BETA_AGENT_V134_RELEASED_BUT_OWNER_UI_NOT_PASS__V135_TABS_REPAIR_PR610_CI_PENDING",
+    "status": "BETA_AGENT_V134_OWNER_NOT_PASS__V135_TAB_REPAIR_OTA_RELEASE_PASS__ANDROID_PR606_DRAFT__FIELD_PENDING",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "PASS_PR610_RECEIPT_CI__MERGE_IF_EXACT_AUTHORITY_AND_CONTINUITY_PASS__VERIFY_BETA_WORKER_SOURCE_AND_V135_CHANNEL__OWNER_FIELD_TEST",
+    "next": "OWNER_TEST_V135_ON_SECONDARY__NORMAL_TABS_VISIBLE__HIDE_SHOW_WEB_TAB__WMS_CONFIRM_SKU_HA__FIELD_RESULT",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E028",
+    "latest_checkpoint_id": "D169-E029",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8096,7 +8096,7 @@
       "owner_observed_regression": "D169-E027_NORMAL_TABS_VISUALLY_HIDDEN_BY_DOCK_OVERLAP"
     },
     "agent_v135_tab_layout_hotfix_2026_10_17": {
-      "status": "PR610_SOURCE_CI_18_OF_18_PASS__SCOPED_D169_REPAIR_RELEASE_RECEIPT__DEPLOY_PENDING",
+      "status": "V135_BETA_RELEASE_PASS__WORKER_SOURCE_HEALTH_MATCH__OWNER_FIELD_PENDING",
       "pr": 610,
       "version": 135,
       "baseline_v133_web_tab": true,
@@ -8116,7 +8116,17 @@
       "authorized_scope": "V135_NARROW_CORRECTION_OF_OWNER_APPROVED_V134_D169_BETA_FEATURE",
       "new_explicit_v135_owner_command": false,
       "field_pass": false,
-      "release_complete": false
+      "release_complete": true,
+      "release_tag": "relay-agent-v135",
+      "release_source_commit": "0900a1720471f295da73f087907c57544ba83333",
+      "source_pr": 610,
+      "agent_release_run": 38939271241,
+      "worker_deploy_run": 38939271226,
+      "worker_deploy_health": "200_BETA_OK_SOURCE_0900a17_SCHEMA17_17_OPERATIONAL7_7",
+      "channel": "inventory-channel",
+      "channel_tag": "relay-agent-v135",
+      "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135",
+      "exe_asset_size": 7425536
     }
   }
 }
