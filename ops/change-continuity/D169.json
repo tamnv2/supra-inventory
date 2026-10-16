@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E022",
+    "id": "D169-E023",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -533,6 +533,22 @@
       ],
       "next_action": "Finalize PR #608 source/CI without main merge, inspect Verify Beta Relay Agent uploaded v133 canary EXE checksum, provide Owner GitHub Actions artifact download for manual secondary installation only. Preserve PR #606 hold; no automatic global channel release.",
       "evidence": "Owner current D169 instruction 2026-10-16; GitHub PR #608; relay-agent/Program.cs, SupraConfirmBrowser.cs, relay-agent/VERSION=133; .github/workflows/verify-relay-agent.yml pull_request artifact only/main push global release; tests/d169-agent-web-tab-canary.test.mjs; docs/OWNER_DECISIONS.md D169-E022."
+    },
+    {
+      "id": "D169-E023",
+      "date_vn": "2026-10-16",
+      "kind": "TEST",
+      "topic": "Agent v133 Web Confirm manual secondary canary Windows CI and artifact ready",
+      "status": "WINDOWS_SOURCE_CI_PASS__ARTIFACT_READY__FIELD_PENDING__NO_GLOBAL_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "PR #608 Windows candidate source commit d4a4ad7425c93de797a8de6ab2d464ef2c7e8b61 produced 17/17 terminal SUCCESS GitHub workflow checks, including Verify Beta Relay Agent Windows build, D169 Web Tab Canary Guard, Project State and Repo Authority guards, D166/D167/HA/regression and code-only verification.",
+        "Verify Beta Relay Agent workflow run 38905531099 completed SUCCESS; Windows build and startup/gRPC/source regressions PASS and upload-artifact produced ZIP artifact 12048096905 named supra-inventory-relay-poc-agent (13,679,371 bytes; workflow retention 14 days).",
+        "The artifact is a v133 portable EXE canary for manual Owner installation on only the secondary Windows Agent, NOT a GitHub release tag, updated inventory-channel or software installed on any machine. Workflow PR event cannot execute the main-push publishing steps. Existing relay-agent-v132 release remains baseline.",
+        "Physical WMS login/popup/Confirm exact final click, same-profile hidden SKU export, resizing/DPI/tray, mixed v132/v133 HA/Android vc110 and usage/CPU remain unverified. Retain fail-closed behavior and manual rollback to v132 on secondary."
+      ],
+      "next_action": "Owner downloads workflow run 38905531099 artifact supra-inventory-relay-poc-agent, backs up only secondary v132 portable EXE and manually tests v133; capture sanitized Agent logs if a failure occurs. No PR608 merge, global channel publish, Stable or Android update without another explicit Owner direction.",
+      "evidence": "GitHub PR608, source SHA d4a4ad7425c93de797a8de6ab2d464ef2c7e8b61, workflow runs 38905531099 and 17 checks, artifact 12048096905; no real WMS field proof."
     }
   ],
   "resume": {
@@ -546,7 +562,8 @@
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
       "D169 journal and backlog created; no executable product changes",
-      "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS."
+      "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS.",
+      "Agent v133 secondary-only canary CI source/build PASS at d4a4ad74; GitHub Actions artifact 12048096905 available, without main merge, GitHub release tag or global channel mutation."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -568,7 +585,8 @@
       "D169-E018: 16 Oct dual-network v1 field probe evaluated. Office direct TCP only five Google API hosts; proxy-aware Agent equivalence not covered; no candidate proven free/realtime/HA safe.",
       "D169-E020: standalone Firebase Office Windows x64 EXE v2 built/tested; proxy-aware field evidence still pending. No provider or runtime change.",
       "D169-E021 Owner asks Agent-only release compatibility for PDA vc110 and an embedded resizable WMS Confirm tab; source confirms the Agent code-only delta is local SKU retry and embedded Web is a separate UI/host redesign proposal, not built.",
-      "D169-E022 PR608 embedded WinForms TabPage+owned WebView2 child viewport and v133 canary source under full Windows CI; physical WMS/failover proof pending."
+      "D169-E022 PR608 embedded WinForms TabPage+owned WebView2 child viewport and v133 canary source under full Windows CI; physical WMS/failover proof pending.",
+      "Owner physical secondary v133 WMS Confirm tab/login/resize/HA/SKU field acceptance pending; main v132 and PR606 Android code-only unaffected."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -603,7 +621,8 @@
       "D169-E019: propose capability-based HA transport shared by responsible peers; reject SSID-only PRIMARY routing for mixed network; measure RTDB bandwidth and field ACK/failover before code permission.",
       "Owner run v2 Office and optionally Internet comparison; evaluate direct/default/system Windows proxy results and authenticated-safe follow-up only under separate approvals.",
       "For D169-E021 test single managed WMS WebView2 viewport tab with popup/opener/focus/DPI/minimize/persistent profile/hidden SKU export plus confirm/ACK/HA regression and reversible Agent fallback before any field release.",
-      "Review PR608 Windows build and artifact; manually install only secondary Agent, then record Owner result from login/WMS child popup/Confirm/SKU/tab resize/tray/HA and canary rollback."
+      "Review PR608 Windows build and artifact; manually install only secondary Agent, then record Owner result from login/WMS child popup/Confirm/SKU/tab resize/tray/HA and canary rollback.",
+      "Owner retrieve https://github.com/tamnv2/supra-inventory/actions/runs/38905531099 and install artifact only on secondary; test and supply sanitized evidence."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED__AGENT_V133_MANUAL_PR_ARTIFACT_CANARY_APPROVED_ONLY__PR608_DRAFT_UNMERGED__PR606_ANDROID_CODE_ONLY__GLOBAL_AGENT_CHANNEL_V132__STABLE_OWNER_GATED"
   }
