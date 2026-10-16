@@ -93,6 +93,9 @@ namespace SupraInventoryRelayAgent
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private Process _process;
+        // D169: The owned x64 WebView2 host stays a separate process, but its
+        // top-level viewport may be parented into the Agent Web Confirm tab.
+        private IntPtr _embeddedHostWindow = IntPtr.Zero;
         private ClientWebSocket _socket;
         private int _port;
         private int _nextCommandId;
@@ -413,6 +416,68 @@ namespace SupraInventoryRelayAgent
         {
             try { return RefreshState().Ready; }
             catch { return false; }
+        }
+
+        // Only the Agent-owned WebView2 host is eligible. Never parent an external
+        // Edge/Chrome desktop window or change its authenticated WMS session.
+        internal bool TryEmbedAgentWindow(IntPtr tabHandle, int width, int height)
+        {
+            lock (_gate)
+            {
+                if (_launchMode != BrowserLaunchMode.Agent || _process == null ||
+                    _process.HasExited || tabHandle == IntPtr.Zero || width < 1 || height < 1)
+                    return false;
+
+                var host = _embeddedHostWindow;
+                if (host == IntPtr.Zero || !IsWindow(host) || !OwnedByAgentHostNoLock(host))
+                {
+                    host = IntPtr.Zero;
+                    var pid = (uint)_process.Id;
+                    EnumWindows((candidate, _) =>
+                    {
+                        GetWindowThreadProcessId(candidate, out var candidatePid);
+                        if (candidatePid != pid) return true;
+                        if (GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero) return true;
+                        host = candidate;
+                        return false;
+                    }, IntPtr.Zero);
+                    if (host == IntPtr.Zero) return false;
+                }
+
+                if (GetParent(host) != tabHandle)
+                {
+                    // WS_CHILD replaces popup/caption/border: embedding only the
+                    // viewport, never driving a second WMS/Confirm browser.
+                    var style = GetWindowLong(host, -16 /* GWL_STYLE */);
+                    var embeddedStyle = (style | unchecked((int)0x40000000)) &
+                        ~unchecked((int)0x80000000) & ~0x00C00000 & ~0x00040000;
+                    SetWindowLong(host, -16, embeddedStyle);
+                    SetParent(host, tabHandle);
+                    if (GetParent(host) != tabHandle)
+                    {
+                        SetWindowLong(host, -16, style);
+                        _log("SUPRA_BROWSER embedded_tab=DENIED reason=WINDOW_PARENT");
+                        return false;
+                    }
+                    SetWindowPos(host, IntPtr.Zero, 0, 0, width, height,
+                        0x0020 /* SWP_FRAMECHANGED */ | 0x0010 /* SWP_NOACTIVATE */);
+                    _embeddedHostWindow = host;
+                    _log("SUPRA_BROWSER embedded_tab=ATTACHED host_owned=true");
+                }
+                else
+                {
+                    _embeddedHostWindow = host;
+                }
+                MoveWindow(host, 0, 0, width, height, true);
+                return true;
+            }
+        }
+
+        private bool OwnedByAgentHostNoLock(IntPtr window)
+        {
+            if (_process == null || _process.HasExited) return false;
+            GetWindowThreadProcessId(window, out var pid);
+            return pid == (uint)_process.Id;
         }
 
         internal void Hide()
@@ -1239,6 +1304,7 @@ namespace SupraInventoryRelayAgent
             }
             catch { }
             _process = null;
+            _embeddedHostWindow = IntPtr.Zero;
             _resourceRootPid = 0;
             _resourceCpuTotal = TimeSpan.Zero;
             _resourceSampleAtUtc = DateTime.MinValue;
@@ -1667,6 +1733,16 @@ namespace SupraInventoryRelayAgent
         private void SetBrowserWindowsVisibleNoLock(bool visible)
         {
             if (_process == null || _process.HasExited) return;
+            if (_launchMode == BrowserLaunchMode.Agent &&
+                _embeddedHostWindow != IntPtr.Zero &&
+                IsWindow(_embeddedHostWindow) &&
+                OwnedByAgentHostNoLock(_embeddedHostWindow))
+            {
+                // EnumWindows does not enumerate child windows after SetParent.
+                // Do not restore/foreground a cross-process child as a popup.
+                ShowWindow(_embeddedHostWindow, visible ? SW_SHOW : SW_HIDE);
+                return;
+            }
             var pid = _process.Id;
             EnumWindows((hWnd, _) =>
             {
@@ -2643,6 +2719,31 @@ namespace SupraInventoryRelayAgent
 
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetParent(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool MoveWindow(IntPtr hWnd, int x, int y, int width, int height, bool repaint);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr insertAfter, int x, int y,
+            int width, int height, uint flags);
 
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
