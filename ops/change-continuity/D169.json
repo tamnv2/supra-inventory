@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E027",
+    "id": "D169-E028",
     "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -627,6 +627,23 @@
       ],
       "next_action": "Run PR610 source CI, investigate and fix any Windows smoke/authority/continuity failures. If release authorization remains valid for this D169 NOT PASS repair, use an exact source receipt, merge after PASS and verify v135 release; otherwise retain PR only and request explicit approval before broader OTA. Owner tests all tabs and Web Confirm on secondary.",
       "evidence": "Owner user report in this turn; GitHub source main Program.cs BuildProfessionalLayout v134 versus v133 source d4a4ad7425c93de797a8de6ab2d464ef2c7e8b61; PR610 source WinForms two-row layout and D169TabHeaderLayoutSelfTest; v134 release tag."
+    },
+    {
+      "id": "D169-E028",
+      "date_vn": "2026-10-17",
+      "kind": "TEST",
+      "topic": "Agent v135 two-row WinForms tab-header repair source CI and D169 scoped release receipt",
+      "status": "PR610_SOURCE_18_OF_18_CI_PASS__HOTFIX_BETA_RECEIPT_READY__DEPLOY_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "PR #610 code candidate 7d6c2d5de22ddf8f836ae719116e35306ac9212d passed 18/18 exact-head PR checks including Windows Verify Beta Relay Agent actual --startup-smoke, D169 Web Tab Guard, Repo Authority, Project State, WMS/HA/gRPC/SKU contracts.",
+        "Source fixes v134 visual tab loss with TableLayoutPanel exclusive toolbar row0 38px and TabControl row1 percent100, preserves existing ordinary TabPages and v133 embedded Web Confirm; no WMS mutation/service logic or Android changes.",
+        "Runtime Windows startup smoke now tests all tab header rectangles against toolbar rectangle and fails with nonzero exit if overlapped, solving a class of regressions missed by v134 source marker tests.",
+        "Agent v135 bump is corrective NOT PASS for Owner-approved v134 Beta functionality; original D169 Owner scope/reference preserved in ops/d169-release-authorization.json, with exact candidate SHA and bounded v135 NOT PASS repair marker. This entry does not assert a new explicit Owner instruction to deploy v135, only continuation of repair in same D169.",
+        "Release is pending actual exact-head receipt CI, safe merge, matching-source Beta Worker and GitHub Agent v135 channel published and readback. Owner physical WMS/PDA/tab usability FIELD PASS still pending."
+      ],
+      "next_action": "Run final PR610 CI for receipt and continuity; if PASS and Owner-approved D169 Beta repair scope is valid, merge after review then verify v135 Worker+Agent channel. If not, stop with PR and report gate; no Stable.",
+      "evidence": "PR610 source 7d6c2d5de22ddf8f836ae719116e35306ac9212d, 18 CI runs SUCCESS, relay-agent/Program.cs D169TabHeaderLayoutSelfTest, tests/d169-agent-web-tab-canary.test.mjs, ops/d169-release-authorization.json."
     }
   ],
   "resume": {
@@ -644,7 +661,8 @@
       "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS.",
       "Agent v133 secondary-only canary CI source/build PASS at d4a4ad74; GitHub Actions artifact 12048096905 available, without main merge, GitHub release tag or global channel mutation.",
       "D169-E025 v134 source PR608 candidate 0e51a15e 18/18 CI PASS, protected release receipt locks tested code and Beta worker+agent same source; waiting receipt CI/merge and runtime evidence.",
-      "D169-E026 Agent v134 GitHub prerelease and inventory-channel Beta OTA published; Worker Beta same-source health PASS; source and authority gates PASS; v132 direct update path available."
+      "D169-E026 Agent v134 GitHub prerelease and inventory-channel Beta OTA published; Worker Beta same-source health PASS; source and authority gates PASS; v132 direct update path available.",
+      "D169-E028 v135 WinForms 2-row toolbar/tab panel hotfix, actual Windows geometry smoke and 18/18 PR source CI PASS; scoped NOT PASS repair Beta receipt locked to candidate 7d6c2d5."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -671,7 +689,8 @@
       "Agent v134 code/CI + approval receipt candidate SHA and Worker/Agent release channel evidence pending.",
       "v134 global channel deployment staged; Owner field/usage remains unverified and PR606 Android is held.",
       "Owner physical Agent v132->v134 on secondary, WMS tab display/hidden/login, Confirm, SKU, v132/v134 HA and PDA vc110 field proof remains pending.",
-      "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending."
+      "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending.",
+      "Final PR610 receipt/authority+continuity checks and release verification still pending; v134 remains published but Owner NOT PASS."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -713,7 +732,8 @@
       "Complete v134 PR CI and Owner receipt, merge scoped PR608 only after authority+continuity; check same source Worker Beta health and published relay-agent-v134/inventory-channel SHA.",
       "Verify signed receipt exact-head CI then merge PR608 and watch Worker Beta same-SHA/Agent v134 OTA channel, never claim success before release readback.",
       "Record Owner second Agent v132 update, verify actual WebView2 tab visibility and Confirm/SKU/failover; if NOT PASS repair D169 and publish approved hotfix, not Stable.",
-      "Verify PR610 full Windows GUI tab-geometry smoke and Authority PASS, then bounded hotfix release path only if existing D169 approval/receipt allows corrective v135; test on secondary."
+      "Verify PR610 full Windows GUI tab-geometry smoke and Authority PASS, then bounded hotfix release path only if existing D169 approval/receipt allows corrective v135; test on secondary.",
+      "Verify v135 source SHA receipt CI, merge only after PASS, read Worker Beta same-SHA health and Agent v135 prerelease plus channel manifest, field-validate on secondary."
     ],
     "release_boundary": "D169_V134_RELEASED_BUT_OWNER_UI_NOT_PASS__V135_NARROW_TABS_HOTFIX_PR610_CI_PENDING__ANDROID_PR606_DRAFT__STABLE_OWNER_GATED"
   }
