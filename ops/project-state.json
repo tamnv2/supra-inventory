@@ -7451,8 +7451,8 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-android-agent-code-only-20261015",
     "pr": 606,
-    "latest_checkpoint_id": "D169-E009",
-    "checkpoint_date_vn": "2026-10-15",
+    "latest_checkpoint_id": "D169-E017",
+    "checkpoint_date_vn": "2026-10-16",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D169_WEB_WORKER_BETA_DEPLOYED__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED",
@@ -7996,7 +7996,7 @@
     ],
     "next": "KEEP_PR606_DRAFT_UNMERGED__PASS_CLIENT_CONTINUITY_AND_WAIT_FIELD_LOGS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E009",
+    "latest_checkpoint_id": "D169-E016",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8015,6 +8015,31 @@
     "firebase_critical_network_rule": "RETAIN_OFFICE_FIREBASE_AUTH_PICKLIST_ACK_HA_AGENT_SYNC_PRESENCE",
     "web_beta_approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
     "web_beta_merge_sha": "6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a",
-    "web_beta_deploy_run": 38674840706
+    "web_beta_deploy_run": 38674840706,
+    "usage_analysis_2026_10_16": {
+      "status": "ANALYSIS_READY_OWNER_REVIEW__NO_NEW_IMPLEMENTATION_OR_RELEASE",
+      "report": "docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md",
+      "strongest_evidence": "UNUSED_LEGACY_ALERT_QUERY__RTDB_RETRY_AND_FIRESTORE_HA_FALLBACK__STALE_RECEIVED_RECEIPTS_CANDIDATE",
+      "provider_savings_measured": false,
+      "ha_design": "PROPOSED_COMMON_TRANSPORT_PER_RESPONSIBLE_HA_SET__RTDB_OR_EXACT_FIRESTORE_LEASE_LISTENER",
+      "source_or_runtime_changed": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "agent_pda_adaptive_design_2026_10_16": {
+      "status": "WHOLE_MODEL_DESIGN_PROPOSED__OWNER_REVIEW_NO_NEW_CODE_OR_RELEASE",
+      "report": "docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md",
+      "recommendation": "ADAPTIVE_CURRENT_CARRIERS_PER_OPERATION_AND_COMMON_HA_TRANSPORT__SERVER_REVOKE_BEFORE_PDA_SIGNAL",
+      "source_findings": [
+        "PICKLIST_ALWAYS_FIRESTORE_NOT_RTDB",
+        "KICK_DIRECT_WORKER_WITHOUT_OFFICE_FALLBACK",
+        "ONLINE_LIST_IS_SESSION_AUTHORITY_NOT_PROVEN_CONNECTIVITY",
+        "MUTATION12S_HA_SUSPECT15S_ACK_WAIT20S_ARE_DIFFERENT_BOUNDS"
+      ],
+      "new_office_bridge_resource_approval": false,
+      "carrier_migration_selected": false,
+      "implementation_authorized": false,
+      "runtime_or_provider_changed": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
+    }
   }
 }

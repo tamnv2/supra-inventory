@@ -128,3 +128,76 @@ PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks
 **ANDROID/AGENT CODE ONLY — PR #606 DRAFT, KHÔNG MERGE:** Android `CriticalOverlayService.kt` đã ghim nút xác nhận ngoài vùng nội dung cuộn, nhả overlay khi session mất mà không giả xác nhận server; `MainActivity.kt` nâng latest signed verified Beta làm floor bắt buộc ở ngưỡng phiên an toàn; Agent `D167SkuCoordinator.cs` tôn trọng bounded nextWake cho mọi Queue path. Android build và Relay Agent build ở PR đã PASS; có test source riêng. KHÔNG thay version file/Gradle, không release APK/EXE; giữ nguyên Firebase critical network.
 
 **Chờ nghiệm thu/thu thập:** ảnh thao tác Pick Pack Admin thêm một Picker manual, thử Excel preview/apply vào Beta với dữ liệu thử đã được Owner cho phép; test tài khoản Reporter không được quyền Picker HR, Admin Invent vẫn dùng bình thường, Full Replace vẫn khóa. Ghi lại thời điểm và ảnh (ẩn danh tính/nhạy cảm). Các điều kiện nguồn log gốc, HA, Overlay, Usage, phiên bản cũ và WMS đã được chi tiết trong D169-E007, không suy đoán root cause hoặc billed saving khi chưa đủ chứng cứ.
+
+## D169-E010 — Rà soát log Agent cả ngày 15/10 (phân tích mới, chưa duyệt thay đổi)
+
+**Phạm vi:** 18 tệp Agent trong Beta/Logs/2026-10-15 (3 máy, một phần lịch sử từ 14/10), log nghiệp vụ 15/10 đến 23:10; chưa có raw Android/Web trong đúng thư mục. Không cộng các checkpoint trùng, không quy số nội bộ thành billed provider.
+
+**Các điểm mới cần đối soát, không trùng các sửa code D169 đã có:**
+
+1. **Kết quả Picklist (P0/P1, FIELD_LOG_CONFIRMED):** D157 ở 21:42 có 491 job terminal đã ACK, 444 CONFIRMED/ALREADY_CONFIRMED, 47 trạng thái khác. 337 phản hồi Agent chi tiết: 297 CONFIRMED, 24 NOT_FOUND, 9 CONFIRM_CONFLICT, 3 CONFIRM_IN_PROGRESS_OR_UNCERTAIN, 2 WMS_SESSION_REQUIRED, 1 CONFIRM_ERROR, 1 AMBIGUOUS_PICKLIST. Không đồng nghĩa 47 lỗi kỹ thuật hay mất đơn. Yêu cầu đối chiếu WMS trạng thái cuối với idempotency và ACK theo correlation đã ẩn danh; không tự động gửi lại lệnh Confirm khi chưa chắc chắn.
+2. **RTDB SSE → Firestore fallback (P1, SOURCE/LOG_CONFIRMED):** một phiên NEXT_A 16:57–21:45 đo 3.258 PRIMARY_LEASE_READ process-local, 3.255 RTDB_NOT_FRESH_FIRESTORE_FALLBACK, 531 SSE NETWORK_Timeout, 52 SSE HTTP_403 và 541 CONNECTED. 19:00–19:59 có 868 đọc lease. Phải phân loại nguyên nhân timeout/stream/proxy/permission, coalesce log lặp và đối chiếu billing; KHÔNG giảm lease/HA failover/fencing vì quota hay chuyển Office Firebase sang Cloudflare.
+3. **SKU và shared projection (P1, LOG_CONFIRMED_WITH_RECEIPT_GAP):** INITIAL_05 DONE 2.516 và DELTA_12 DONE 2.518 có receipt; DELTA_19 xuất 2.536 SKU nhưng Worker upload DEFER D167_WORKER_KEEPALIVEFAILURE lúc 21:43, chưa thấy DONE trước checkpoint 21:45. Đây là khoảng trống chứng cứ, không phải kết luận thất bại cả ngày. Bốn lần D168_SKU_SHARED WebException cần xác định ảnh hưởng đến việc chia sẻ tình trạng Agent.
+4. **Redaction của bundle Agent (P1, SECURITY_CONCERN_SOURCE+RAW_VERIFIED):** một số AUDIT/SESSION trong bundle Drive còn mã Picker/nhân sự, tên đăng nhập Admin, định danh máy đọc được dù luồng upload áp SanitizeBundle. Không đưa giá trị thô vào GitHub. Kiểm tra bộ lọc hỗ trợ/log bao gồm filename, chọn mã tương quan không định danh và test negative-PII; không xóa lịch sử/các log chưa Drive-confirmed.
+5. **Tải ghi log cục bộ (P2):** phiên Agent 16:57–21:45 có 1.066 dòng RTDB realtime và 534 dòng sự kiện recovered, chiếm phần lớn 2.039 dòng thời gian thực; khuyến nghị giữ first/last/count/recovery nhưng gộp những lần lặp, không tăng ghi provider hoặc giảm tín hiệu chẩn đoán.
+
+**Đã loại khỏi danh sách sửa mới:** D169 PR606 (Android body scroll/nút cố định, session-orphan overlay, update floor, Agent nextWake SKU retry) đã CODE PASS nhưng chưa phát hành; PR605 Picker HR Beta đã triển khai. D169 REQ 004/006/007/008/010 vẫn là đầu việc đang mở, không nhân bản chỉ vì có thêm số đo. Kiểm thử Android/Web, xác nhận WMS, billing và fleet remain FIELD_PENDING.
+
+**Giới hạn:** chỉ checkpoint điều tra, không sửa executable, không merge PR606, không phát hành Client, không thay Firebase critical Office route hoặc Stable. Mọi đề xuất ảnh hưởng nguồn bắt buộc Owner duyệt thiết kế/rủi ro trước.
+
+## D169-E011 — Cơ chế HA khi Agent dùng mạng PDA và Office (16/10/2026)
+
+**Rà soát code, không cấp phép triển khai:** bầu PRIMARY qua Firestore roles/generation CAS; primary gửi RTDB heartbeat ~10s, hỏng RTDB thì fallback Firestore lease; NEXT_A phát hiện nghi ngờ sau 15s nhưng chỉ chuyển quyền khi kiểm chứng liveness, WMS/browser ready và CAS thành công. Không tồn tại luật ưu tiên PRIMARY theo nhãn Wi-Fi PDA/Office. NEXT_B đứng sau NEXT_A.
+
+**Cần đặc biệt lưu ý với mô hình hai mạng:** nếu Office chỉ truy cập Firestore nhưng RTDB probe của NEXT_A bị chặn/timeout, code `VerifyPrimaryDownBeforeTakeover` coi liveness là UNAVAILABLE và hoãn chuyển quyền ngay cả khi Firestore lease đã cũ. Đây là rào an toàn chống split-brain, nhưng có nguy cơ failover tự động không đạt được khi PRIMARY chết. Mạng PDA cũng chỉ là ứng viên PRIMARY bình thường nếu cả Firebase điều phối và phiên WMS trên chính Agent truy cập được; Agent chỉ có Worker/Internet nhưng WMS không sẵn sàng không thể Confirm.
+
+**Phân biệt trạng thái degraded:** PRIMARY thiếu WMS có thể giữ vai trò để trả ACK `WMS_SESSION_REQUIRED` khi không có standby sẵn sàng; khi có standby, hai lần kiểm tra thiếu WMS cách nhau >=15s sẽ cố bàn giao. Khởi tạo trống roles cũng cho phép degraded receiver trước khi WMS sẵn sàng. Không khẳng định nhận yêu cầu là xác nhận Picklist thành công.
+
+**Điểm code nên đánh giá khi thiết kế:** `RtdbHaLiveness.WriteHeartbeat` đang điền `wms_ready=true` cố định; kiểm tra WMS trước mutation vẫn nằm ở luồng local + Firestore. Đây là sự không nhất quán về chỉ báo chẩn đoán, chưa chứng minh gây sai kết quả. Không đổi HA theo suy đoán.
+
+**Phạm vi chờ quyết định:** đo thực địa Office Firestore PASS/RTDB 401-403, Internet/PDA WMS READY/NOT_READY, tắt PRIMARY, mất WMS, mất RTDB, mất Firestore, trùng generation và độ trễ Confirm/ACK. Giữ Firebase Office critical path, fail-closed khi không có bằng chứng PRIMARY đã chết, không chuyển sang Cloudflare để giảm quota. Không tạo code/PR khác, không merge PR #606, không phát hành Agent/Android, Stable vẫn OWNER-GATED.
+
+## D169-E012 — Tối ưu HA/Firestore khi Office không truy cập RTDB (16/10/2026)
+
+**Nguồn hiện hành:** PRIMARY heartbeat ~10s vào RTDB; lỗi ghi RTDB thì fallback Firestore lease. NEXT_A nhận SSE khi hoạt động và đọc Firestore lease khi RTDB không mới. Retry SSE thất bại sau 1s; fallback `CheckPrimaryLease` có thể GET Firestore tới ~1s/lần. Khi Office không thể RTDB, một PRIMARY mạng PDA vẫn RTDB khỏe có thể không ghi lease Firestore liên tục; Office NEXT_A không thể probe RTDB sau khi lease stale, vì vậy hiện fail-closed, không tự takeover được.
+
+**Bằng chứng:** D169-E010 Agent v132 NEXT_A trong cửa sổ ~16:57–21:45 ghi 3.258 `PRIMARY_LEASE_READ` attempts, 3.255 RTDB-fallback, 531 SSE timeout, 52 HTTP 403; counters là local/proxy diagnostics, không thay thế Firestore provider Billing.
+
+**Ứng viên tối ưu** (chưa được duyệt triển khai):
+1. RTDB retry bounded exponential backoff/jitter/circuit-breaker theo trạng thái thực; re-probe khi đổi network/auth. Giảm retry vô ích trên Office nhưng tự nó không giảm GET lease bắt buộc.
+2. Nếu NEXT_A không RTDB: PRIMARY publish thêm Firestore heartbeat có điều kiện, kể cả khi chính PRIMARY RTDB vẫn khỏe; NEXT_A đọc Firestore theo hạn heartbeat + bộ đệm và giới hạn số lần, hoặc thử listener Firestore chỉ khi Office thông được transport và đã đo billing. Giữ nguyên roles/generation CAS, WMS readiness và business mutation fence. Không đổi ngưỡng 15s hay quyền takeover đơn phương khi thiếu evidence.
+3. Ưu tiên nhóm PRIMARY+NEXT_A cùng mạng có RTDB chỉ là cách giảm usage vận hành, không thay thế bảo đảm failover xuyên mạng khi Office trở thành phương án dự phòng duy nhất.
+
+**Ràng buộc:** Firestore listener vẫn có billed reads cho tài liệu thay đổi; không giả định listener giảm chi phí nếu cùng nhịp heartbeat. So sánh GET/read + PATCH/write trên toàn fleet và thực tế Firestore provider Billing. Test PDA-PDA, PDA-Office, Office-Office, PRIMARY mất RTDB, mất Firestore, mất WMS, split-brain, old/new Agent tương tác; bảo toàn xác nhận Picklist và ACK. Không có sửa code, merge hoặc release từ checkpoint nghiên cứu này.
+
+## D169-E013 — SSID-classified Agent network policies (2026-10-16)
+
+Owner proposal, no code approval: configure known Office and PDA/Internet SSIDs locally in Agent and select HA transport policy without repeated RTDB checks on known Office networks. Program.cs already reads real Windows SSID; D168NetworkRoute.cs saves permitted Wi-Fi profiles for SKU, not yet HA classification. Unknown SSID / VPN / wired or ambiguous adapter is UNKNOWN, fail-closed. Mixed PDA PRIMARY and Office NEXT_A requires conditional Firestore heartbeat, because Office cannot observe RTDB; reverse pairing similarly needs Firestore evidence. Preserve Firestore roles generation CAS, WMS readiness, ACK and 15s suspicion safety. Consider Windows Wi-Fi change events rather than frequent netsh/provider polling. Compare actual Firebase billing and split-brain tests before implementation.
+
+## D169-E014 — Office RTDB unavailable: compare HA liveness alternatives (16/10/2026)
+
+Research only, no release approval. Current v132 NEXT_A 15/10 archived sample: 3,258 Firestore PRIMARY_LEASE_READ attempts in ~4h48; 1-second RTDB SSE failures repeatedly; local attempts are not provider billing. SSID classification may skip these failed Office RTDB connections but cannot eliminate required shared HA state or generation/CAS/strict WMS fencing.
+
+Verified official Free limits: Firestore Standard 50k reads/day and 20k writes/day; RTDB 1GB stored and 10GB downloaded per month, not metered as individual reads/writes; Google Cloud Pub/Sub first 10 GiB throughput/month free; Ably Free 6M messages/month, 200 connections; Supabase Free 2M Realtime messages/month and 200 connections (idle project pause risk); Cloudflare Durable Objects Free 100k requests/day plus SQLite quotas. Alternative network services are NOT verified Office-accessible and are NOT registered D169 resources. A proposed Pub/Sub streaming heartbeat on Google API would require an authorized physical Office reachability trial, IAM and delivery/ordering review; Firestore remains primary authority for generation-fenced claim and business mutation.
+
+Cost-aware order: prioritize two RTDB-capable Agents for PRIMARY/NEXT_A when present; on known Office SSIDs avoid futile RTDB retries; optimize Firestore-only mixed-network heartbeat and observation only after provider read/write measurements and failover/split-brain tests. Do not assume Firestore realtime listener is free per update or that extra Firestore writes reduce total quota. No new service, source edit, merge or release.
+
+
+## D169-E015 — Đối chiếu ảnh Usage và log 15–16/10/2026
+
+Phân tích chi tiết, số liệu, giới hạn chứng cứ và ma trận phương án/kiểm thử: [D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md](D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md).
+
+Điểm mới đã kiểm tra: nhánh LoadLegacyAlerts của reconciliation tải tối đa 100 document/query nhưng trả IsActiveCall=false, còn consumer bỏ qua loại này; đây là ứng viên giảm read ưu tiên nhất. Hai mẫu PRIMARY có 8.500 estimated document reads của nhánh này, không cộng với provider picker_alerts 16.800. Log sáng 16 có 8.589 RTDB SSE403 và 1.745 lease-read attempts; 37k Rules deny không thể quy toàn bộ cho firewall. Existing Firestore listener có hoạt động thật; đề nghị dùng kênh liveness chung RTDB hoặc Firestore cho cặp HA và warm standby cần bảo đảm, không publish hai kênh thường trực.
+
+Android có cận dưới 2.447 result-stage404 trên 29 PDA ở phần giờ 15–sáng16; RECEIVED queue unscoped và retry-all-errors là ứng viên cần phân tích tiếp, không nhầm với overlay ACK quarantine đã tồn tại. Các ảnh dùng cửa sổ quota/rolling/billing khác nhau; chưa xác minh billed saving, Cloudflare/Functions/Apps Script totals hoặc physical HA PASS.
+
+**Đề xuất chờ Owner duyệt; không có code/deploy mới.** Giữ PR606 Draft unmerged, Agent/Android code-only và Stable OWNER-GATED.
+
+
+## D169-E016 — Toàn bộ Agent–PDA và nâng cấp tự chọn cơ chế theo mạng
+
+Hồ sơ chi tiết: [D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md](D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md). Owner yêu cầu phân tích Picklist/ACK hai chiều, gọi/chat/kick/online và đích Agent tự đổi cơ chế khi PRIMARY chuyển mạng. **Đây là yêu cầu phân tích thiết kế, chưa cấp quyền code/deploy phương án chưa được duyệt.**
+
+Phát hiện mới: RTDB hiện chỉ phục vụ HA, Picklist vẫn Firestore trên mạng thường; Kích User callsite chỉ gọi Worker và chưa có fallback Office, không được dùng logout signal thay server revoke; online-list là phiên hợp lệ+FCM registration, chưa là bằng chứng kết nối. Có nhiều projection presence trùng chức năng, nhưng D153 semantic hash/one-shot Picklist/tombstone đã tồn tại. Request mutation<12s, HA suspect15s và ACK wait20s sau create là các giới hạn khác nhau, không hứa tự takeover cứu được mọi request ngay lượt đầu.
+
+Đề nghị Adaptive Agent theo network_epoch+capability+role+operation; giữ critical Firestore business, dùng common RTDB/Firestore liveness cho nhóm HA; thêm đường Google tin cậy cho Office server-only command sau duyệt resource; một nguồn chat+FCM/presence có kiểm thử tương thích; sửa receipt Android theo đúng user/stage. Đổi toàn bộ carrier RTDB/Worker WS cần cả App/Service, chưa chọn cho nâng cấp đầu. Xem các góiA–D, lựa chọnE và ma trận impact/test/usage/rollback trong hồ sơ. PR606 vẫn Draft/unmerged, không resource/rules/APK/EXE/runtime mới, Stable OWNER-GATED.
