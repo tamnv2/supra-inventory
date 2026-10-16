@@ -1689,7 +1689,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "Beta Agent v134: Web Confirm is embedded in Agent; a persistent button hides/shows the browser tab while keeping WMS session and PickList Confirm background processing. Direct upgrade from v132 is supported through the existing authenticated SHA256-verified Agent updater. Preserve Firestore PRIMARY/ACK/WMS fencing and existing SKU export. Owner field-test deployment, not physical WMS PASS." `
+              --notes "Beta Agent v135 D169 repair: restores the original Tổng quan/Cài đặt/SKU tab headers that v134's toolbar overlapped. Keeps Web Confirm as separate embedded resizable tab plus persistent Ẩn/Hiển thị button, WMS session and background PickList. Windows real-form startup smoke checks every tab-header rectangle. Direct SHA256-verified upgrade from v132/v134. No Firebase/Android/Stable changes; Owner WMS field test pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -1720,9 +1720,9 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v134: Web Confirm hiển thị trong tab Agent; có nút Ẩn/Hiển thị tab trình duyệt."
-              "Ẩn tab không đóng phiên WMS hoặc dừng xử lý PickList; giữ nguyên bảo vệ xác nhận và HA."
-              "Có thể cập nhật trực tiếp từ Agent v132 qua kênh cập nhật Beta đã kiểm SHA-256; ưu tiên thử máy phụ trước."
+              "v135: sửa lỗi v134 che thanh tab Tổng quan/Cài đặt/SKU do toolbar Ẩn/Hiển thị chồng bố cục."
+              "Web Confirm vẫn là tab riêng; nút Ẩn/Hiển thị không tắt WMS hay dừng xác nhận PickList."
+              "Hỗ trợ nâng cấp trực tiếp từ v132 hoặc v134, kiểm SHA-256; Owner ưu tiên thử trên Agent phụ."
             )
           } | ConvertTo-Json -Compress
           $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
