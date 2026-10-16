@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_WEB_BETA_DEPLOY_PASS__AGENT_V133_MANUAL_SECONDARY_CANARY_APPROVED__NO_OWNER_FINAL_PASS",
+    "current_change_status": "D169_WEB_BETA_DEPLOY_PASS__AGENT_V134_BETA_DEPLOY_OWNER_APPROVED_NOT_RELEASED__NO_OWNER_FINAL_PASS",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7976,7 +7976,7 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "WEB_WORKER_BETA_DEPLOY_PASS__AGENT_V133_ISOLATED_CANARY_SOURCE__PR606_ANDROID_CODE_ONLY",
+    "status": "WEB_WORKER_BETA_DEPLOY_PASS__AGENT_V134_OWNER_APPROVED_BETA_RELEASE_CI_PENDING__ANDROID_PR606_CODE_ONLY",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "MANUALLY_TEST_AGENT_V133_ON_SECONDARY_FROM_PR608_ARTIFACT__KEEP_V132_GLOBAL_CHANNEL_AND_PR606_DRAFT__NO_FIELD_PASS_YET",
+    "next": "PR608_AGENT_V134_EXACT_CI_PASS__RECEIPT_SHA__MERGE__BETA_WORKER_SAME_SOURCE__PUBLISH_AGENT_CHANNEL__VERIFY",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E023",
+    "latest_checkpoint_id": "D169-E024",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8050,6 +8050,32 @@
       "artifact_size_bytes": 13679371,
       "global_channel_release": false,
       "main_merge": false
+    },
+    "agent_v134_release_2026_10_16": {
+      "status": "CODE_AND_RELEASE_WORKFLOW_SOURCE_READY__OWNER_BETA_APPROVED__CI_PENDING",
+      "source_base": "D169_PR608_AGENT_V133",
+      "version": 134,
+      "upgrade_from": [
+        132,
+        133
+      ],
+      "owner_code_approval": true,
+      "owner_beta_deploy_approval": true,
+      "field_pass": false,
+      "approved_components": [
+        "worker",
+        "agent"
+      ],
+      "worker_source_mutation": false,
+      "worker_redeploy_reason": "MATCH_BETA_SOURCE_SHA_FOR_EXISTING_AGENT_RELEASE_GATE",
+      "global_agent_channel_update_authorized": true,
+      "android_release_authorized": false,
+      "stable": "OWNER_GATED",
+      "release_tag": "relay-agent-v134",
+      "release_manifest": "inventory-channel/agent-latest.json",
+      "source_pr": 608,
+      "source_branch": "feat/d169-agent-web-tab-canary-20261016",
+      "preflight_pending": true
     }
   }
 }
