@@ -979,14 +979,15 @@ namespace SupraInventoryRelayAgent
 
                 if (_startupSmoke)
                 {
-                    if (!D160StartupSmokeLifecycleReady())
+                    var d169TabsPass = D169TabHeaderLayoutSelfTest();
+                    if (!D160StartupSmokeLifecycleReady() || !d169TabsPass)
                     {
-                        AgentDiagnostics.Write("STARTUP_SMOKE FAIL shell=ready d160_history_overlay=false");
+                        AgentDiagnostics.Write("STARTUP_SMOKE FAIL d160_history_overlay_or_d169_tab_layout=false");
                         Environment.ExitCode = 3;
                     }
                     else
                     {
-                        AgentDiagnostics.Write("STARTUP_SMOKE PASS shell=ready d160_history_overlay=true");
+                        AgentDiagnostics.Write("STARTUP_SMOKE PASS shell=ready d160_history_overlay=true d169_tabs=PASS");
                         Environment.ExitCode = 0;
                     }
                     _allowExit = true;
@@ -1015,6 +1016,41 @@ namespace SupraInventoryRelayAgent
                     Task.Run(() => ListenForSecondLaunch());
                 Task.Run(() => StartupSequence());
             };
+        }
+
+        // Runs on the real Windows Forms UI thread under --startup-smoke.
+        // The old source-only tests could not detect the v134 dock overlap.
+        private bool D169TabHeaderLayoutSelfTest()
+        {
+            try
+            {
+                var expected = new[] { _overviewPage, _connectionPage, _d167SkuPage, _wmsWebTab };
+                if (expected.Any(page => !_mainTabs.TabPages.Contains(page)) ||
+                    _mainTabs.TabCount < expected.Length ||
+                    _mainTabs.ItemSize.Height <= 0 ||
+                    _toggleWmsTab.Parent == null)
+                    return false;
+                var actionStrip = _toggleWmsTab.Parent;
+                var actionBounds = actionStrip.RectangleToScreen(actionStrip.ClientRectangle);
+                for (int i = 0; i < _mainTabs.TabCount; i++)
+                {
+                    var tabBounds = _mainTabs.RectangleToScreen(_mainTabs.GetTabRect(i));
+                    if (tabBounds.Width <= 0 || tabBounds.Height <= 0 ||
+                        tabBounds.IntersectsWith(actionBounds))
+                    {
+                        AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE FAIL overlap_tab_index=" + i);
+                        return false;
+                    }
+                }
+                AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE PASS visible_normal_tabs=" +
+                    _mainTabs.TabCount + " toolbar_outside_header=true");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE FAIL type=" + ex.GetType().Name);
+                return false;
+            }
         }
 
         private void BuildProfessionalLayout()
@@ -1131,13 +1167,24 @@ namespace SupraInventoryRelayAgent
             };
             footer.Controls.Add(footerCredit);
 
-            // D169 v134: persistent switch stays visible even after the Web
-            // Confirm tab has been removed. No second browser is created.
-            var tabShell = new Panel { Dock = DockStyle.Fill };
+            // D169 v135: two exclusive layout rows. v134 used Dock=Fill and
+            // BringToFront in the same Panel, which overlaid the normal tab
+            // headers (Tổng quan/Cài đặt/SKU). Never overlap the TabControl.
+            var tabShell = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            tabShell.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+            tabShell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tabShell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             var tabActions = new Panel
             {
-                Dock = DockStyle.Top,
-                Height = 38,
+                Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
                 BackColor = Color.FromArgb(243, 246, 248),
                 Padding = new Padding(8, 3, 12, 3)
             };
@@ -1147,9 +1194,9 @@ namespace SupraInventoryRelayAgent
             _toggleWmsTab.FlatStyle = FlatStyle.System;
             _toggleWmsTab.Click += (s, e) => ToggleWmsWebTab();
             tabActions.Controls.Add(_toggleWmsTab);
-            tabShell.Controls.Add(_mainTabs);
-            tabShell.Controls.Add(tabActions);
-            tabActions.BringToFront();
+            _mainTabs.Margin = Padding.Empty;
+            tabShell.Controls.Add(tabActions, 0, 0);
+            tabShell.Controls.Add(_mainTabs, 0, 1);
 
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(tabShell, 0, 1);
