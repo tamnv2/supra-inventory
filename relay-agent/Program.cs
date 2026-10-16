@@ -687,6 +687,13 @@ namespace SupraInventoryRelayAgent
         private readonly TabControl _mainTabs = new TabControl();
         private readonly TabPage _overviewPage = new TabPage("Tổng quan");
         private readonly TabPage _connectionPage = new TabPage("Cài đặt");
+        private readonly TabPage _wmsWebTab = new TabPage("Web Confirm");
+        private readonly Panel _wmsWebViewport = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
+        private readonly Label _wmsWebEmpty = new Label {
+            Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter,
+            Text = "Web Confirm chưa sẵn sàng. Mở Web Agent để sử dụng.",
+            ForeColor = Color.DimGray, Font = new Font("Segoe UI", 11F)
+        };
         private readonly TabPage _auditPage = new TabPage("Nhật ký vận hành");
         private readonly TabPage _technicalPage = new TabPage("Chẩn đoán kỹ thuật");
         private readonly bool _startupSmoke;
@@ -1080,6 +1087,12 @@ namespace SupraInventoryRelayAgent
             _mainTabs.TabPages.Add(_overviewPage);
             _mainTabs.TabPages.Add(_connectionPage);
             _mainTabs.TabPages.Add(_d167SkuPage);
+            _wmsWebTab.BackColor = Color.White;
+            _wmsWebTab.Padding = Padding.Empty;
+            _wmsWebViewport.Controls.Add(_wmsWebEmpty);
+            _wmsWebTab.Controls.Add(_wmsWebViewport);
+            _wmsWebViewport.Resize += (s, e) => SizeEmbeddedWmsViewport();
+            _mainTabs.TabPages.Add(_wmsWebTab);
             InitD167SkuTab();
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
@@ -1087,6 +1100,15 @@ namespace SupraInventoryRelayAgent
                     _leaderCoordinator.RequestFleetRefresh();
                 if (_mainTabs.SelectedTab == _d167SkuPage && _d167SkuCoordinator != null)
                     _d167SkuCoordinator.RequestStatus();
+                if (_mainTabs.SelectedTab == _wmsWebTab)
+                    ActivateEmbeddedWmsTab();
+                else if (_supraBrowser != null && _supraBrowser.IsAgentOwnedMode() &&
+                         !_supraBrowserHidden)
+                {
+                    _supraBrowser.Hide();
+                    _supraBrowserHidden = true;
+                    UpdateD129SupraUi();
+                }
             };
 
             var footer = new Panel
@@ -3467,7 +3489,13 @@ namespace SupraInventoryRelayAgent
                 _supraBrowserReady = state.Ready;
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
-                Ui(() => UpdateD129SupraUi(state));
+                Ui(() =>
+                {
+                    UpdateD129SupraUi(state);
+                    if (state.LoginMarkerDetected && _supraBrowser.IsAgentOwnedMode() &&
+                        HasAgentSession() && _mainTabs.SelectedTab != _wmsWebTab)
+                        _mainTabs.SelectedTab = _wmsWebTab;
+                });
             }
             catch (Exception ex)
             {
@@ -3546,6 +3574,12 @@ namespace SupraInventoryRelayAgent
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
                 RefreshSupraBrowserStatus();
+                if (!desktop)
+                    Ui(() =>
+                    {
+                        _mainTabs.SelectedTab = _wmsWebTab;
+                        ActivateEmbeddedWmsTab();
+                    });
                 Log("SUPRA_BROWSER open mode=" + (desktop ? "DESKTOP" : "AGENT") +
                     " state=" + _supraBrowserState +
                     " ready=" + (_supraBrowserReady ? "1" : "0") +
@@ -3569,6 +3603,66 @@ namespace SupraInventoryRelayAgent
             finally { SetProbeButtonsEnabled(true); }
         }
 
+        // WebView2 keeps its own process, signed runtime, dedicated profile and
+        // WMS popup context; only its top-level viewport is hosted by this tab.
+        private void SizeEmbeddedWmsViewport()
+        {
+            if (_mainTabs.SelectedTab != _wmsWebTab || _supraBrowser == null ||
+                !_supraBrowser.IsAgentOwnedMode()) return;
+            if (_wmsWebViewport.ClientSize.Width < 1 || _wmsWebViewport.ClientSize.Height < 1) return;
+            try
+            {
+                _supraBrowser.TryEmbedAgentWindow(_wmsWebViewport.Handle,
+                    _wmsWebViewport.ClientSize.Width, _wmsWebViewport.ClientSize.Height);
+            }
+            catch (Exception ex)
+            {
+                AgentDiagnostics.Write("D169_WEB_TAB resize=FAIL type=" + ex.GetType().Name);
+            }
+        }
+
+        private void ActivateEmbeddedWmsTab()
+        {
+            if (_mainTabs.SelectedTab != _wmsWebTab || _supraBrowser == null) return;
+            if (!_supraBrowser.HasActiveBrowser())
+            {
+                _wmsWebEmpty.Text = "Đang mở Web Confirm trong Agent...";
+                _wmsWebEmpty.Visible = true;
+                if (HasAgentSession())
+                    Task.Run(() => OpenSupraConfirmBrowser(false));
+                return;
+            }
+            if (!_supraBrowser.IsAgentOwnedMode())
+            {
+                _wmsWebEmpty.Text = "Đang dùng Web Desktop bên ngoài. Chọn Mở Web Agent trên tab Tổng quan để chuyển.";
+                _wmsWebEmpty.Visible = true;
+                return;
+            }
+            try
+            {
+                bool attached = _supraBrowser.TryEmbedAgentWindow(_wmsWebViewport.Handle,
+                    Math.Max(1, _wmsWebViewport.ClientSize.Width),
+                    Math.Max(1, _wmsWebViewport.ClientSize.Height));
+                if (!attached)
+                {
+                    _wmsWebEmpty.Text = "Không gắn được WebView2. Quay về Tổng quan và kiểm tra Web Agent.";
+                    _wmsWebEmpty.Visible = true;
+                    AgentDiagnostics.Write("D169_WEB_TAB attach=UNAVAILABLE");
+                    return;
+                }
+                _wmsWebEmpty.Visible = false;
+                _supraBrowser.Show();
+                _supraBrowserHidden = false;
+                UpdateD129SupraUi();
+            }
+            catch (Exception ex)
+            {
+                _wmsWebEmpty.Text = "Không hiển thị được Web Confirm. Xem Nhật ký kỹ thuật.";
+                _wmsWebEmpty.Visible = true;
+                AgentDiagnostics.Write("D169_WEB_TAB attach=FAIL type=" + ex.GetType().Name);
+            }
+        }
+
         private void ToggleSupraBrowserVisibility()
         {
             try
@@ -3582,10 +3676,20 @@ namespace SupraInventoryRelayAgent
                         "Nhập mật khẩu Agent hiện tại để hiện Web Confirm.",
                         action))
                         return;
-                    _supraBrowser.Show();
+                    if (_supraBrowser.IsAgentOwnedMode())
+                    {
+                        Ui(() =>
+                        {
+                            _mainTabs.SelectedTab = _wmsWebTab;
+                            ActivateEmbeddedWmsTab();
+                        });
+                    }
+                    else _supraBrowser.Show();
                 }
                 else
                 {
+                    if (_supraBrowser.IsAgentOwnedMode())
+                        Ui(() => _mainTabs.SelectedTab = _overviewPage);
                     // D136: hiding a ready browser is a presentation-only action.
                     // Password remains required for showing, stopping, logout and mode-switch actions.
                     _supraBrowser.Hide();
