@@ -688,6 +688,8 @@ namespace SupraInventoryRelayAgent
         private readonly TabPage _overviewPage = new TabPage("Tổng quan");
         private readonly TabPage _connectionPage = new TabPage("Cài đặt");
         private readonly TabPage _wmsWebTab = new TabPage("Web Confirm");
+        private readonly Button _toggleWmsTab = new Button();
+        private bool _wmsTabUserHidden;
         private readonly Panel _wmsWebViewport = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
         private readonly Label _wmsWebEmpty = new Label {
             Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter,
@@ -1129,8 +1131,28 @@ namespace SupraInventoryRelayAgent
             };
             footer.Controls.Add(footerCredit);
 
+            // D169 v134: persistent switch stays visible even after the Web
+            // Confirm tab has been removed. No second browser is created.
+            var tabShell = new Panel { Dock = DockStyle.Fill };
+            var tabActions = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 38,
+                BackColor = Color.FromArgb(243, 246, 248),
+                Padding = new Padding(8, 3, 12, 3)
+            };
+            _toggleWmsTab.Dock = DockStyle.Right;
+            _toggleWmsTab.Width = 190;
+            _toggleWmsTab.Text = "Ẩn tab trình duyệt";
+            _toggleWmsTab.FlatStyle = FlatStyle.System;
+            _toggleWmsTab.Click += (s, e) => ToggleWmsWebTab();
+            tabActions.Controls.Add(_toggleWmsTab);
+            tabShell.Controls.Add(_mainTabs);
+            tabShell.Controls.Add(tabActions);
+            tabActions.BringToFront();
+
             shell.Controls.Add(chrome, 0, 0);
-            shell.Controls.Add(_mainTabs, 0, 1);
+            shell.Controls.Add(tabShell, 0, 1);
             shell.Controls.Add(footer, 0, 2);
             Controls.Add(shell);
 
@@ -3493,7 +3515,8 @@ namespace SupraInventoryRelayAgent
                 {
                     UpdateD129SupraUi(state);
                     if (state.LoginMarkerDetected && _supraBrowser.IsAgentOwnedMode() &&
-                        HasAgentSession() && _mainTabs.SelectedTab != _wmsWebTab)
+                        HasAgentSession() && !_wmsTabUserHidden &&
+                        _mainTabs.SelectedTab != _wmsWebTab)
                         _mainTabs.SelectedTab = _wmsWebTab;
                 });
             }
@@ -3577,6 +3600,7 @@ namespace SupraInventoryRelayAgent
                 if (!desktop)
                     Ui(() =>
                     {
+                        if (_wmsTabUserHidden) return;
                         _mainTabs.SelectedTab = _wmsWebTab;
                         ActivateEmbeddedWmsTab();
                     });
@@ -3601,6 +3625,44 @@ namespace SupraInventoryRelayAgent
                     " type=" + ex.GetType().Name + " detail=" + SafeMessage(ex) + " auto_fallback=false");
             }
             finally { SetProbeButtonsEnabled(true); }
+        }
+
+        // Visibility of a tab is presentation state, not WMS runtime state.
+        // Showing an already-running hidden browser retains the existing
+        // authenticated Agent-password gate before exposing WMS content.
+        private void ToggleWmsWebTab()
+        {
+            if (_wmsTabUserHidden)
+            {
+                if (_supraBrowser != null && _supraBrowser.HasActiveBrowser() &&
+                    _supraBrowser.IsAgentOwnedMode() && _supraBrowserHidden &&
+                    !VerifyCurrentAgentPasswordForBrowserAction(
+                        "Hiện Web Confirm", "Nhập mật khẩu Agent hiện tại để hiện Web Confirm.",
+                        "Hiện Web"))
+                    return;
+                _wmsTabUserHidden = false;
+                if (!_mainTabs.TabPages.Contains(_wmsWebTab))
+                    _mainTabs.TabPages.Add(_wmsWebTab);
+                _toggleWmsTab.Text = "Ẩn tab trình duyệt";
+                _mainTabs.SelectedTab = _wmsWebTab;
+                ActivateEmbeddedWmsTab();
+            }
+            else
+            {
+                _wmsTabUserHidden = true;
+                if (_mainTabs.SelectedTab == _wmsWebTab)
+                    _mainTabs.SelectedTab = _overviewPage;
+                if (_mainTabs.TabPages.Contains(_wmsWebTab))
+                    _mainTabs.TabPages.Remove(_wmsWebTab);
+                // The browser remains alive for authenticated WMS/Confirm and
+                // the existing PRIMARY fencing; only UI visibility changes.
+                if (_supraBrowser != null && _supraBrowser.IsAgentOwnedMode() &&
+                    !_supraBrowserHidden)
+                    _supraBrowser.Hide();
+                _supraBrowserHidden = true;
+                _toggleWmsTab.Text = "Hiển thị tab trình duyệt";
+                UpdateD129SupraUi();
+            }
         }
 
         // WebView2 keeps its own process, signed runtime, dedicated profile and
@@ -3680,8 +3742,13 @@ namespace SupraInventoryRelayAgent
                     {
                         Ui(() =>
                         {
-                            _mainTabs.SelectedTab = _wmsWebTab;
-                            ActivateEmbeddedWmsTab();
+                            if (_wmsTabUserHidden)
+                                ToggleWmsWebTab();
+                            else
+                            {
+                                _mainTabs.SelectedTab = _wmsWebTab;
+                                ActivateEmbeddedWmsTab();
+                            }
                         });
                     }
                     else _supraBrowser.Show();
