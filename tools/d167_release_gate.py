@@ -78,8 +78,20 @@ def main():
     if data["change_id"] == "D169":
         if data.get("stable_deploy_permission") is not False:
             fail("D169 Stable is owner-gated")
-        if data.get("approved_components") != ["worker"]:
-            fail("D169 release limited to existing Beta Worker and bundled Web assets")
+        d169_components = data.get("approved_components")
+        if d169_components not in (["worker"], ["worker", "agent"]):
+            fail("D169 component set must be an exact Owner-approved Beta release scope")
+        if d169_components == ["worker", "agent"]:
+            # v134 reuses the existing Beta Worker with NO service/web source
+            # changes; the matching-source health proof is still required.
+            if data.get("code_scope") != "D169_AGENT_V134_WEB_TAB_TOGGLE_WITH_UNCHANGED_BETA_WORKER":
+                fail("D169 v134 release code scope is not exact")
+            if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
+                fail("D169 unverified physical field tests must not be marked PASS")
+            if (data.get("field_release_mode") != "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION"
+                    or data.get("owner_field_acceptance_reference")
+                        != "OWNER_EXPLICIT_D169_20261016_AGENT_V134_BETA_DIRECT_V132_UPGRADE"):
+                fail("D169 v134 field-trial release needs exact Owner acceptance")
         if not all(data.get(key) is True for key in ("authority_continuity_pass", "product_ci_pass")):
             fail("D169 source and authority/continuity CI not approved")
     if data["change_id"] == "D168":
