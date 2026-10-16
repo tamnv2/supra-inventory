@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E023",
+    "id": "D169-E024",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -549,6 +549,32 @@
       ],
       "next_action": "Owner downloads workflow run 38905531099 artifact supra-inventory-relay-poc-agent, backs up only secondary v132 portable EXE and manually tests v133; capture sanitized Agent logs if a failure occurs. No PR608 merge, global channel publish, Stable or Android update without another explicit Owner direction.",
       "evidence": "GitHub PR608, source SHA d4a4ad7425c93de797a8de6ab2d464ef2c7e8b61, workflow runs 38905531099 and 17 checks, artifact 12048096905; no real WMS field proof."
+    },
+    {
+      "id": "D169-E024",
+      "date_vn": "2026-10-16",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner authorizes Agent v134 direct v132 upgrade and Web Confirm show/hide tab button, full scoped Beta rollout",
+      "status": "SOURCE_IMPLEMENTED__RELEASE_CI_AND_CHANNEL_PROOF_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner orders v133 Agent embedded Web Confirm as baseline and new Agent v134, with persistent browser-tab toggle button. Button label is Ẩn tab trình duyệt when tab is visible and Hiển thị tab trình duyệt when tab is hidden. Hiding the tab does not close host, drop WMS login or interrupt Confirm/ACK/HA; restoring an active WMS browser retains Agent password challenge.",
+        "Owner explicitly approves code+Beta deployment and direct integrated update from v132 to v134, without requiring installation of v133. Agent updater uses version comparison, Beta version manifest and SHA256; once inventory-channel is updated, ALL Agents with auto update enabled could receive v134. Primary v132 stays unchanged only on a machine where automatic updates are actually disabled.",
+        "Agent v134 code changes only WinForms tab UI presentation, existing owned-host browser tab wiring inherited from v133, version code, tests, release notes and scoped safety-gated workflow/receipt. Android vc110, Firebase rules, Firestore Picklist/ACK/HA, WMS DOM safety, Stable and any new network resource are not changed. Physical field test remains pending and cannot be declared PASS.",
+        "Current pipeline requires an exact-source healthy Beta Worker before main Agent release. User accepts Beta Agent rollout; to maintain the required gate, release includes same-source Beta Worker redeploy with unchanged business Service/Web source under a scope-locked receipt. This is an implementation/deployment dependency, not a license to alter Worker business behavior.",
+        "PR #608 remains D169 code branch from accepted main and holds v133-to-v134 evolution; PR #606 Android code-only must remain Draft/unmerged. No release/merge can be claimed until candidate exact-head authority+continuity and functional CI PASS, PR merge, Beta Worker source health and Agent v134 channel source/hash readback."
+      ],
+      "alternatives": [
+        "Direct v133 artifact installation: not sufficient because user needs native in-app v132→v134 updater path.",
+        "Publish untested Agent globally without Owner release gate: rejected. Use same exact-source signed Beta channel and SHA256 verification."
+      ],
+      "open_questions": [
+        "Does v134 PR Windows source/CI/authority/continuity PASS at exact candidate head?",
+        "Will required same-SHA Beta Worker deployment and Agent v134 prerelease + inventory-channel assets all complete and verify?",
+        "Physical machine WMS/popup/SKU/failover and retained session acceptance remains Owner field pending."
+      ],
+      "next_action": "Finalize v134 source/CI and exact SHA authorization, then merge PR608 only with success of source/authority/continuity checks. Read Beta Worker same-SHA health and agent-v134 channel manifest checksums. No Android/Stable release.",
+      "evidence": "Owner order 2026-10-16; PR608 v133 baseline; relay-agent/Program.cs v134 TabControl + persistent toggle, AgentUpdater.cs, AgentConfig.cs and VERSION, tools/d167_release_gate.py, .github/workflows/verify-relay-agent.yml, docs/OWNER_DECISIONS.md E024; GitHub CI to be verified."
     }
   ],
   "resume": {
@@ -557,7 +583,8 @@
       "Open D169 for intake and later batch/unified cross-component analysis; no implementation/deployment authorization",
       "D169 Owner authorized Web/Worker Beta Picker enrollment, Android/Agent code-only hold and evidence backlog.",
       "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
-      "D169-E022 Owner approves Agent-only embedded WMS tab and immediate MANUAL secondary-machine v133 artifact distribution; no merge/main/global channel, no other fleet install."
+      "D169-E022 Owner approves Agent-only embedded WMS tab and immediate MANUAL secondary-machine v133 artifact distribution; no merge/main/global channel, no other fleet install.",
+      "D169-E024 Owner expressly approves v134 Agent code+Beta OTA channel release from existing v132; profile/browser tab show/hide UI only and same-source Worker redeploy to fulfill existing release gate, no Android or Stable."
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -586,7 +613,8 @@
       "D169-E020: standalone Firebase Office Windows x64 EXE v2 built/tested; proxy-aware field evidence still pending. No provider or runtime change.",
       "D169-E021 Owner asks Agent-only release compatibility for PDA vc110 and an embedded resizable WMS Confirm tab; source confirms the Agent code-only delta is local SKU retry and embedded Web is a separate UI/host redesign proposal, not built.",
       "D169-E022 PR608 embedded WinForms TabPage+owned WebView2 child viewport and v133 canary source under full Windows CI; physical WMS/failover proof pending.",
-      "Owner physical secondary v133 WMS Confirm tab/login/resize/HA/SKU field acceptance pending; main v132 and PR606 Android code-only unaffected."
+      "Owner physical secondary v133 WMS Confirm tab/login/resize/HA/SKU field acceptance pending; main v132 and PR606 Android code-only unaffected.",
+      "Agent v134 code/CI + approval receipt candidate SHA and Worker/Agent release channel evidence pending."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -598,7 +626,8 @@
       "Any external provider account/tenant provisioning, authenticated production POC, quota activation or actual Agent↔PDA transport migration needs explicit Owner scope/security/field approval.",
       "D169-E019: Owner RTDB-on-normal / Firestore-on-Office mode preference requires approval of either HA-only common-peer selection or a full Android/Agent/Service critical carrier migration; no network-provider source change yet.",
       "D169-E021: require Owner approval of embedded WebView2 host/UI design and explicit Agent-only Beta release command; no accidental APK/Agent co-release or WMS session/profile changes.",
-      "Any v133 general release, relay-agent-v133 GitHub prerelease, inventory-channel update, PR608 main merge or Android PR606 release remains separate Owner-gated."
+      "Any v133 general release, relay-agent-v133 GitHub prerelease, inventory-channel update, PR608 main merge or Android PR606 release remains separate Owner-gated.",
+      "D169 v134 physical WMS/PDA/HA field PASS still Owner pending; does not authorize Android PR606."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -622,8 +651,9 @@
       "Owner run v2 Office and optionally Internet comparison; evaluate direct/default/system Windows proxy results and authenticated-safe follow-up only under separate approvals.",
       "For D169-E021 test single managed WMS WebView2 viewport tab with popup/opener/focus/DPI/minimize/persistent profile/hidden SKU export plus confirm/ACK/HA regression and reversible Agent fallback before any field release.",
       "Review PR608 Windows build and artifact; manually install only secondary Agent, then record Owner result from login/WMS child popup/Confirm/SKU/tab resize/tray/HA and canary rollback.",
-      "Owner retrieve https://github.com/tamnv2/supra-inventory/actions/runs/38905531099 and install artifact only on secondary; test and supply sanitized evidence."
+      "Owner retrieve https://github.com/tamnv2/supra-inventory/actions/runs/38905531099 and install artifact only on secondary; test and supply sanitized evidence.",
+      "Complete v134 PR CI and Owner receipt, merge scoped PR608 only after authority+continuity; check same source Worker Beta health and published relay-agent-v134/inventory-channel SHA."
     ],
-    "release_boundary": "WEB_WORKER_BETA_DEPLOYED__AGENT_V133_MANUAL_PR_ARTIFACT_CANARY_APPROVED_ONLY__PR608_DRAFT_UNMERGED__PR606_ANDROID_CODE_ONLY__GLOBAL_AGENT_CHANNEL_V132__STABLE_OWNER_GATED"
+    "release_boundary": "D169_OWNER_APPROVED_AGENT_V134_BETA_RELEASE_FROM_V132__PR608_CI_RELEASE_PENDING__WORKER_IDENTICAL_SOURCE_SUPPORT_ONLY__ANDROID_PR606_DRAFT__STABLE_OWNER_GATED"
   }
 }
