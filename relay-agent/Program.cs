@@ -3601,8 +3601,8 @@ namespace SupraInventoryRelayAgent
                     Ui(() =>
                     {
                         if (_wmsTabUserHidden) return;
+                        // SelectedIndexChanged attaches the viewport once.
                         _mainTabs.SelectedTab = _wmsWebTab;
-                        ActivateEmbeddedWmsTab();
                     });
                 Log("SUPRA_BROWSER open mode=" + (desktop ? "DESKTOP" : "AGENT") +
                     " state=" + _supraBrowserState +
@@ -3734,10 +3734,13 @@ namespace SupraInventoryRelayAgent
                 if (_supraBrowserHidden)
                 {
                     const string action = "Hiện Web Confirm";
-                    if (!VerifyCurrentAgentPasswordForBrowserAction(
-                        action,
-                        "Nhập mật khẩu Agent hiện tại để hiện Web Confirm.",
-                        action))
+                    // Tab-level button enforces the same password on reopen.
+                    // Avoid prompting a second time through the Overview button.
+                    if (!_wmsTabUserHidden &&
+                        !VerifyCurrentAgentPasswordForBrowserAction(
+                            action,
+                            "Nhập mật khẩu Agent hiện tại để hiện Web Confirm.",
+                            action))
                         return;
                     if (_supraBrowser.IsAgentOwnedMode())
                     {
