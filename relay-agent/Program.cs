@@ -3644,8 +3644,9 @@ namespace SupraInventoryRelayAgent
                 if (!_mainTabs.TabPages.Contains(_wmsWebTab))
                     _mainTabs.TabPages.Add(_wmsWebTab);
                 _toggleWmsTab.Text = "Ẩn tab trình duyệt";
+                // SelectionChanged attaches exactly once; do not launch a second
+                // WMS browser when a tab is revealed while the host is starting.
                 _mainTabs.SelectedTab = _wmsWebTab;
-                ActivateEmbeddedWmsTab();
             }
             else
             {
