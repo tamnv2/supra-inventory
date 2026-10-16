@@ -1170,3 +1170,8 @@ The Agent WinForms tab strip exposes `Web Confirm` beside its existing operation
 ## D169-E024 — Agent v134, luôn có nút Ẩn/Hiển thị tab Web Confirm
 
 Agent WinForms đặt nút ở vùng toolbar cố định bên ngoài TabControl để thao tác được cả khi tab Web Confirm bị xóa khỏi danh sách tab. Khi tab hiện nút ghi `Ẩn tab trình duyệt`, khi tab ẩn nút ghi `Hiển thị tab trình duyệt`. Ẩn tab chuyển qua Tổng quan, ẩn viewport có chủ đích, remove TabPage và giữ nguyên Agent-owned x64 WebView2 host/profile/DevTools/Confirm. Hiện tab add lại TabPage duy nhất, chọn Web Confirm và reattach cửa sổ sẵn có theo kích thước; xác thực mật khẩu Agent trước khi hiện lại phiên đã hoạt động theo security contract hiện tại. Không tạo WMS browser song song, không đổi WMS session/CDP/Fire/RTDB hoặc poll. Khi Agent chưa login, UI vẫn hiển thị được placeholder nhưng không được tự mở web thiếu phiên hợp lệ. Agent v134 có thể nâng trực tiếp từ v132 qua updater SHA256; các máy tự cập nhật đang bật có thể nhận release v134.
+
+
+## D169-E027 — Không được che tab cũ khi hiển thị nút Web Confirm
+
+Sửa lỗi layout v134: cấm đặt `DockStyle.Top` toolbar cùng một `Panel` đang có `TabControl DockStyle.Fill` rồi gọi `BringToFront`, vì thanh nút có thể che toàn bộ các tiêu đề tab. Dùng `TableLayoutPanel` độc lập Row 0 (38px) cho nút Ẩn/Hiển thị, Row 1 (100%) cho nguyên `TabControl` chứa đầy đủ Tổng quan, Cài đặt, SKU, Web Confirm và các tab nghiệp vụ khác. Nút đổi nhãn như đã chốt, chỉ có Web Confirm được remove/add; không hủy, reset hay mở lại WebView2/WMS, không thay đổi auth/ACK/HA. Phải kiểm tra WinForms runtime geometry, không dựa vào string marker duy nhất.
