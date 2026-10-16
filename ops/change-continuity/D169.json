@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E018",
+    "id": "D169-E019",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -415,6 +415,38 @@
       ],
       "next_action": "Provide Owner the exact reached/failed provider table, first-stage conclusions and recommendation. If Owner approves, prepare a proxy-aware read-only v2 tool and collect Office+Internet diagnostic rerun before proposing a scoped authenticated Stage 3 pilot. Preserve D169 PR606 Draft/unmerged and Stable owner gate.",
       "evidence": "docs/D169_NETWORK_PROBE_FIELD_2026-10-16.md; input ZIP from the current conversation; D169 canonical source; provider pricing documentation"
+    },
+    {
+      "id": "D169-E019",
+      "date_vn": "2026-10-16",
+      "kind": "DISCUSSION",
+      "topic": "Owner proposes automatic RTDB usage when PRIMARY on ordinary Wi-Fi and Firestore mode when PRIMARY on Office Wi-Fi",
+      "status": "NETWORK_ADAPTIVE_DESIGN_REVIEWED__PER_HA_PEER_NOT_PRIMARY_ONLY__NO_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Owner requests RTDB no-cost usage limits and prefers automatic mode: PRIMARY ordinary Internet Wi-Fi uses RTDB/realtime listeners where eligible, PRIMARY Office Wi-Fi switches to Firestore reads/writes. No explicit new code or release authorization was issued; this is a proposed design direction under D169.",
+        "Official Firebase pricing 2026-10-16: RTDB Spark free 1 GB stored, 10 GB downloaded/month and 100 simultaneous connections; Blaze 1 GB stored free, up to 360 MB downloaded/day no cost (roughly 10 GB/month), then $1/GB download and $5/GB-month storage, max 200k simultaneous connections/database. RTDB has no per-document read/write line item, but billed bytes include handshake/SSL/protocol, read/write traffic, denied rules requests. See firebase.google.com/pricing and firebase.google.com/docs/database/usage/billing.",
+        "Firestore Standard listener changes are charged document reads, and document writes are separately metered; RTDB listener downloaded bytes and reconnection overhead are metered, so shifting suitable heartbeat/control signals can reduce Firestore operations without assuming zero billing.",
+        "Current Windows RtdbHaLiveness.cs documents RTDB for ephemeral liveness ONLY; FirestoreAgentLeaderCoordinator.cs retains generation/role/CAS authority and 10s heartbeat; Android RelayPocClient and FirestoreConfirmationTransport remain Firestore job/PickList one-document terminal ACK. Changing PRIMARY SSID alone cannot redirect vc110 Android hardcoded Firestore jobs to RTDB.",
+        "Office corporate direct probe did not reach RTDB; earlier Agent logs show 401/403 security/auth or proxy uncertainty. Do not treat SSID as proof and do not classify current Office RTDB denial as guaranteed firewall; keep existing authenticated Firestore route and fixed critical ACK until field proof.",
+        "Most important cross-network nuance: HA transport must be common to all responsible PRIMARY/NEXT_A peers; if PRIMARY is Internet but standby is Office, Firestore liveness remains required for correct failover. If both capable of RTDB, RTDB liveness may replace steady Firestore lease polling as per existing D169 adaptive proposal. Changing PRIMARY Wi-Fi is neither a reliable security predicate nor sufficient to choose the entire fleet mode; role, peer capability, network epoch and handover handshake are needed.",
+        "Any Admin Agent on Office can still call/chat/kick independent of who is PRIMARY, so its communication needs cannot be eliminated based on PRIMARY network. Server session revoke remains Worker/Core-authoritative and current Office Worker direct route is unproven.",
+        "A full dual-carrier PickList/ACK switch would require Android + Agent + server transaction registry and compatible migration, preserving same request ID, one terminal durable receipt, CAS/generation/WMS guards, failover and background FCM; D168 explicitly retains critical Firestore route pending later approved change.",
+        "Existing screenshot RTDB downloads 25.31MB in user-selected billing period (not a daily total), stored 1.63KB and 37k rule denies, so download capacity is not proven saturated and repeated rejected requests must be diagnosed. No field-backed cost savings estimate is yet available."
+      ],
+      "alternatives": [
+        "PRIMARY_SSID_ONLY: reject as insufficient for mixed Agent HA and side-channel operations; risks split-brain and missed Office standby.",
+        "RESPONSIBLE_PEER_COMMON_MODE: select RTDB HA when all responsible peers have proven endpoint auth and healthy latency, else Firestore exact-lease listener; network-change events and bounded mode handshake, still fixed Firestore job/ACK until separate approved migration.",
+        "FULL_CARRIER_ADAPTATION: conditional RTDB PickList/notifications for Internet and Firestore for Office requires Android+Worker/Core+Agent unified registry and idempotency; do not activate from an Agent-only update."
+      ],
+      "open_questions": [
+        "Does Owner want to optimize HA-only first (recommended), or pursue full PickList/ACK + contact channel carrier migration (higher risk/requires phased Android update)?",
+        "How should mixed normal-Office HA peers be grouped given current installed Agent versions/capabilities?",
+        "What is authenticated RTDB and exact Firestore listener stability via native Windows proxy on Office, by network transition, based on field traces?",
+        "Measure actual per-16h RTDB downloads (including denied/overhead) versus Firestore read/write over the same fleet and traffic profile."
+      ],
+      "next_action": "Present RTDB published free limits and correct Agent/HA topology, then seek explicit scope choice before any change to Android, Agent, Firebase rules or runtime. Keep D169 PR606 draft/unmerged; stable owner-gated.",
+      "evidence": "Firebase published pricing + RTDB billing and Firestore listener docs checked 2026-10-16; current repo relay-agent/RtdbHaLiveness.cs, FirestoreAgentLeaderCoordinator.cs, FirestoreConfirmationTransport.cs; docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; docs/D169_NETWORK_PROBE_FIELD_2026-10-16.md"
     }
   ],
   "resume": {
@@ -455,7 +487,8 @@
       "Unified D169 design review including 404 provenance, overlay lifecycle, migration floor, presence/role/network policy and measured usage; no code/deploy permission implied.",
       "Owner review of D169-E015 staged unused-query + coordinated RTDB/Firestore HA design and separately scoped Android RECEIVED receipt retry fix; no new code or release authorization yet.",
       "Owner choose D169-E016 packagesA-D and Office trusted command bridge/resource design before code; full carrier migrationE is a separate deferred proposal requiring App/Service changes.",
-      "Any external provider account/tenant provisioning, authenticated production POC, quota activation or actual Agent↔PDA transport migration needs explicit Owner scope/security/field approval."
+      "Any external provider account/tenant provisioning, authenticated production POC, quota activation or actual Agent↔PDA transport migration needs explicit Owner scope/security/field approval.",
+      "D169-E019: Owner RTDB-on-normal / Firestore-on-Office mode preference requires approval of either HA-only common-peer selection or a full Android/Agent/Service critical carrier migration; no network-provider source change yet."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -474,7 +507,8 @@
       "Review docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; approve exact implementation scope before code. Validate provider savings and cross-network safety/latency independently of CI.",
       "Review docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; preserve current critical Firestore ACK/guards, authorize exact adaptive Agent and connected Service/Android scope before source changes.",
       "D169-E017: compare Owner's two local network-probe exports before selecting provider and requesting scoped authenticated pilot.",
-      "D169-E018: Owner review proxy-aware read-only v2 test proposal; no resource creation or Agent/PDA runtime change. Report original field results remain private."
+      "D169-E018: Owner review proxy-aware read-only v2 test proposal; no resource creation or Agent/PDA runtime change. Report original field results remain private.",
+      "D169-E019: propose capability-based HA transport shared by responsible peers; reject SSID-only PRIMARY routing for mixed network; measure RTDB bandwidth and field ACK/failover before code permission."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
