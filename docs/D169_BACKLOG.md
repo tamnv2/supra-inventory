@@ -192,3 +192,12 @@ Phân tích chi tiết, số liệu, giới hạn chứng cứ và ma trận ph�
 Android có cận dưới 2.447 result-stage404 trên 29 PDA ở phần giờ 15–sáng16; RECEIVED queue unscoped và retry-all-errors là ứng viên cần phân tích tiếp, không nhầm với overlay ACK quarantine đã tồn tại. Các ảnh dùng cửa sổ quota/rolling/billing khác nhau; chưa xác minh billed saving, Cloudflare/Functions/Apps Script totals hoặc physical HA PASS.
 
 **Đề xuất chờ Owner duyệt; không có code/deploy mới.** Giữ PR606 Draft unmerged, Agent/Android code-only và Stable OWNER-GATED.
+
+
+## D169-E016 — Toàn bộ Agent–PDA và nâng cấp tự chọn cơ chế theo mạng
+
+Hồ sơ chi tiết: [D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md](D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md). Owner yêu cầu phân tích Picklist/ACK hai chiều, gọi/chat/kick/online và đích Agent tự đổi cơ chế khi PRIMARY chuyển mạng. **Đây là yêu cầu phân tích thiết kế, chưa cấp quyền code/deploy phương án chưa được duyệt.**
+
+Phát hiện mới: RTDB hiện chỉ phục vụ HA, Picklist vẫn Firestore trên mạng thường; Kích User callsite chỉ gọi Worker và chưa có fallback Office, không được dùng logout signal thay server revoke; online-list là phiên hợp lệ+FCM registration, chưa là bằng chứng kết nối. Có nhiều projection presence trùng chức năng, nhưng D153 semantic hash/one-shot Picklist/tombstone đã tồn tại. Request mutation<12s, HA suspect15s và ACK wait20s sau create là các giới hạn khác nhau, không hứa tự takeover cứu được mọi request ngay lượt đầu.
+
+Đề nghị Adaptive Agent theo network_epoch+capability+role+operation; giữ critical Firestore business, dùng common RTDB/Firestore liveness cho nhóm HA; thêm đường Google tin cậy cho Office server-only command sau duyệt resource; một nguồn chat+FCM/presence có kiểm thử tương thích; sửa receipt Android theo đúng user/stage. Đổi toàn bộ carrier RTDB/Worker WS cần cả App/Service, chưa chọn cho nâng cấp đầu. Xem các góiA–D, lựa chọnE và ma trận impact/test/usage/rollback trong hồ sơ. PR606 vẫn Draft/unmerged, không resource/rules/APK/EXE/runtime mới, Stable OWNER-GATED.

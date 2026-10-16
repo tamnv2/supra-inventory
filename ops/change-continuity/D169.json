@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E015",
+    "id": "D169-E016",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -309,6 +309,46 @@
       ],
       "next_action": "Present diagnosis/recommended staged design to Owner for review. Only after explicit design/code approval implement under existing D169 branch/PR controls; retain all current code-only/release boundaries and Stable owner gate.",
       "evidence": "Private Owner screenshots and scoped Beta Logs daily folders Oct15–16; relevant source at main7ec91a75/PR60666b6435a; docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; official firebase.google.com/docs/firestore/pricing, /docs/firestore/monitor-usage, /docs/database/usage/billing."
+    },
+    {
+      "id": "D169-E016",
+      "date_vn": "2026-10-16",
+      "kind": "PROPOSAL",
+      "topic": "Whole Agent–PDA flow audit and network-adaptive Agent upgrade design requested by Owner",
+      "status": "DETAILED_DESIGN_PROPOSED__NO_NEW_CODE_RELEASE_OR_RESOURCE_APPROVAL",
+      "owner_approval": false,
+      "facts": [
+        "Owner asks to analyze both directions of PDA-Agent communication, Picklist confirm, call specialist, chat, kick and Picker online, with an Agent upgrade that automatically selects efficient model behavior when PRIMARY changes network. Current instruction is analysis/design, not approval of an unseen implementation or deployment.",
+        "Fresh main7ec91a75 and PR60609073318 manifest/full-bootstrap, current source and CI rechecked. All28 working-head checks completed with no failures, including authority/continuity; technical checks do not prove device/network/billed usage. No new provider screenshots or log-window collection claimed; E015 evidence remains controlling usage sample.",
+        "Current Android RelayPocClient always creates a Firestore relay_poc_jobs PENDING document, retries same UUID after bounded server verification, listens exact document for one terminal ACK and performs one final server read when necessary. PRIMARY uses gRPC payload + REST watchdog, ingress and pre-WMS role/generation checks, browser semantic UI, shared Picklist guard and one durable terminal job commit. RTDB is HA liveness only, not the current ordinary-network Picklist business carrier.",
+        "Important timing constraint: ACK await loop is20s after create, with separate auth/create recovery budgets; mutation admission fence is request age<12s, pending cutoff~20s, HA suspect threshold15s. Therefore standby takeover after suspicion cannot guarantee every already-waiting request completes within its first attempt; PRIMARY network-mode transition should be faster than waiting for death. Solo physical disconnection/WMS-unready cannot guarantee uninterrupted realtime. No deadline or offline-transaction expansion authorized.",
+        "Calls/chat/kick may originate from any properly authorized ADMIN/PICKPACK_ADMIN Agent, not PRIMARY-only. Call uses exact target active-call conditional write/60s shared lock/originating Agent resolve, exact PDA listener plus same-ID FCM. Chat uses per-UID session-control write plus legacy picker_alerts FCM path,200chars/30min; PDA confirmation is local dismiss with no server read receipt. Group sends per target with UID/generation validation; batching does not make N document writes cost1.",
+        "New source-backed Office gap: KickPickerUser requires server Core revoke first, but D160Resilience.TryD160WorkerRevokeOnce only POSTs Worker directly; existing Apps Script doPost has no revoke action and this callsite does not use D168NetworkRoute. If Office blocks Worker, equivalent kick is not established. Firestore-only UI logout must not replace server revocation; cron5m reconciliation is recovery, not the realtime kick path.",
+        "Proposed Office server-command choices: minimal allowlisted action on existing Apps Script gateway has shared UrlFetch quota dependence; preferred longer-term rare-command Google event bridge can call authoritative Worker and return same-ID receipt without polling, but needs Owner-approved handler/trigger, resource reconciliation, actor binding/auth-context/rules, server RBAC and target-session verification. No resource was created, endpoint probed or role expanded. Never persist bearer/session tokens in Firestore command documents.",
+        "Picker-online source is ACTIVE Android session + matching enabled FCM registration; transient socket disconnect intentionally does not remove session. Multiple representations currently coexist: direct presence projection, single-slot presence job+PRIMARY ACK, Pickers inside agent_sync and periodic reconcile. D153 already hashes semantic fields and ignores last_seen; Picklist fallback already upserts once and tombstones protect logout. Do not add repeated presence writes per Picklist/ping or pretend these prior optimizations are new.",
+        "Recommend retaining Core session authority and one versioned Office-readable presence projection, then removing duplicated projection/control-job/UI writes only after all Agent capabilities and removal/retry recovery are proven. Add separate session-valid, server-observed-connected and last-activity indications without automatic logout on socket loss. Existing Android WebSocket ping20s can be reused; Core ticket types currently WEB/ANDROID and socket attachments lack session generation, so reliable per-session connectivity contract needs Service changes.",
+        "Recommended Adaptive Agent design decides by own network epoch, authenticated capability, role and operation, not PRIMARY SSID alone. Office/PDA SSID classification is local event-driven policy, not security/liveness authority. Choose RTDB or exact Firestore lease listener as a common transport for responsible HA peers; keep Firestore roles/CAS, jobs/ACK and per-Picker command lane. Use separate transport epoch for same PRIMARY network changes and retain leader generation unless authority changes. Bounded make-before-break/peer-ready handshake only, no permanent dual heartbeat.",
+        "Current Agent network event refreshes proxy; SSID UI timer is60s and Visible-gated, so autonomous tray-mode transport switching is not implemented merely because GetSsid exists. Proposed coordinator must run independently of UI, debounce events, cache capability per epoch, distinguish auth401/backend403/proxy403 and circuit failures; no synthetic periodic endpoint polling or automatic WLAN switch permission inferred from this request.",
+        "Deep optimization candidates include unused legacy query removal(E015), healthy-listener redundant GET suppression, semantic/no-op/duplicate presence fanout reduction, one-source chat-to-FCM publication using approved Functions change and same-ID background compatibility, plus scoped Android RECEIVED receipt404 repair. Preserve final ACK, WMS guard, FCM wake, kick server authority and result/logout contracts. Savings unmeasured; jobs934reads is only one collection, not total Picklist cost including empty watchdog/rules/coordination/guards.",
+        "Alternative full RTDB-business/Firestore-Office or Worker/DO job-hub+Office relay could redistribute operations but requires App+Agent+Service/rules/durable request registry/archive/version migration, common idempotency and new AGENT WS contract. Agent-only cannot make vc110 hardcoded Firestore send RTDB, and dual-write-everywhere may increase total cost. Not selected for first upgrade absent total-meter baseline and separate Owner approval to reopen critical carrier decision.",
+        "Design, flow/source map, normal/Office/mixed matrix, upgrade packagesA-D versus deferred carrier migrationE, requirement-component-contract-test-evidence matrix and rollback/field gaps are retained in docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md. No implementation, APK/EXE bump, WMS automation, Firebase/rules/resource mutation, PR merge or runtime deployment was undertaken."
+      ],
+      "alternatives": [
+        "BASELINE_NO_CHANGE: measure with present carriers, retains known repeated reads and inconsistent cross-network HA.",
+        "RECOMMENDED_ADAPTIVE_CURRENT_CARRIERS: Agent waste/capability/lifecycle and coordinated HA; selectively upgrade server command bridge, chat fanout and presence/receipt with exact approvals.",
+        "OFFICE_COMMAND_GATEWAY_MINIMAL: add low-frequency explicit revoke action to existing registered Apps Script transport; bounded usage but shared quota remains.",
+        "OFFICE_COMMAND_GOOGLE_EVENT_BRIDGE: preferred quota-independent-from-Script direction for rare server-authoritative commands; handler/resource/IAM/rules and timing proof required before deployment.",
+        "FULL_BUSINESS_CARRIER_MIGRATION: RTDB or Worker WebSocket fast path with Office Firestore bridge, one canonical job/terminal registry; deferred pending approval, full meter comparison and cross-version/partition proofs."
+      ],
+      "open_questions": [
+        "Owner selection of packagesA-D and Office command bridge strategy; no code/deploy authority inferred.",
+        "Physical network transition latency and PRIMARY/standby SLO; first-attempt Picklist behavior across12s admission and15s HA suspicion thresholds.",
+        "Exact Firestore and total Functions/Worker/DO/RTDB/Apps Script meter changes per1000jobs/commands and Agent-hour.",
+        "New trusted Google bridge resource/actor-proof contract and Office-to-Google connectivity; no unsupported broad generic proxy.",
+        "Fleet capabilities for removal of legacy presence job/snapshot/chat publication; background/Doze/Force Stop/old APK compatibility."
+      ],
+      "next_action": "Present whole-model findings and recommended current-carrier adaptive design. Owner reviews specific Agent/Android/Service/Google/resource changes before executable implementation; keep existing PR606 code-only and release restrictions.",
+      "evidence": "docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; current relevant Agent Android Service Google Functions/rules/Gateway source at09073318; D169-E015 private evidence descriptors; official Firebase pricing/billing/FCM and Cloudflare WebSocket docs checked2026-10-16."
     }
   ],
   "resume": {
@@ -337,14 +377,16 @@
       "D169-E012: Office RTDB-blocked HA quota optimization analyzed: useless RTDB retry throttle plus conditionally published Firestore liveness and adaptive reads; no implementation approved.",
       "D169-E013 Owner SSID-policy proposal: exact Office/PDA allowlists for local event-driven HA transport selection, no per-cycle synthetic RTDB ping on Office; cross-network shared Firestore liveness and fencing needed; design-only.",
       "D169-E014 researched Office-RTDB alternative channels and published provider quotas; all alternative reachability unverified and read-only candidate, no changes approved.",
-      "D169-E015 analysis ready: new provider screenshots and Oct15–16 raw archive corroborate unused legacy query/HA fallback waste; common-transport liveness and Android receipt fixes are proposals only, not released."
+      "D169-E015 analysis ready: new provider screenshots and Oct15–16 raw archive corroborate unused legacy query/HA fallback waste; common-transport liveness and Android receipt fixes are proposals only, not released.",
+      "D169-E016 whole Agent–PDA source audit/design ready: current Firestore business carrier, kick Office route gap, session-versus-connectivity presence, request12s/HA15s/ACK20s constraint and per-operation adaptive upgrade proposed; no new implementation."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
       "D168-E050 mandatory-version update and long Agent overlay design remain unresolved and require analysis",
       "Admin Pick Pack SKU/account permission changes and Agent Wi-Fi switch design require full impact review then explicit Owner approval.",
       "Unified D169 design review including 404 provenance, overlay lifecycle, migration floor, presence/role/network policy and measured usage; no code/deploy permission implied.",
-      "Owner review of D169-E015 staged unused-query + coordinated RTDB/Firestore HA design and separately scoped Android RECEIVED receipt retry fix; no new code or release authorization yet."
+      "Owner review of D169-E015 staged unused-query + coordinated RTDB/Firestore HA design and separately scoped Android RECEIVED receipt retry fix; no new code or release authorization yet.",
+      "Owner choose D169-E016 packagesA-D and Office trusted command bridge/resource design before code; full carrier migrationE is a separate deferred proposal requiring App/Service changes."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -360,7 +402,8 @@
       "If HA/network changes are requested, seek Owner design approval and field-proof a two-network failover matrix; do not weaken Firebase fencing/RTDB uncertainty rule solely to meet 15s or reduce quota.",
       "D169 E012 pending: cross-network safe dual-heartbeat and deadline-driven lease read design with provider billing, 15s suspect threshold and split-brain tests, Owner decision before source edits.",
       "For D169 SSID HA policy, obtain explicit Owner code authorization before changing Windows Agent transport; test false-positive SSID/unknown, profile change, multi-NIC and mixed-network failover with provider billing evidence.",
-      "Review docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; approve exact implementation scope before code. Validate provider savings and cross-network safety/latency independently of CI."
+      "Review docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; approve exact implementation scope before code. Validate provider savings and cross-network safety/latency independently of CI.",
+      "Review docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; preserve current critical Firestore ACK/guards, authorize exact adaptive Agent and connected Service/Android scope before source changes."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }

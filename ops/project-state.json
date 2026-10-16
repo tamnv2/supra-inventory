@@ -7451,7 +7451,7 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-android-agent-code-only-20261015",
     "pr": 606,
-    "latest_checkpoint_id": "D169-E015",
+    "latest_checkpoint_id": "D169-E016",
     "checkpoint_date_vn": "2026-10-16",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7996,7 +7996,7 @@
     ],
     "next": "KEEP_PR606_DRAFT_UNMERGED__PASS_CLIENT_CONTINUITY_AND_WAIT_FIELD_LOGS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E015",
+    "latest_checkpoint_id": "D169-E016",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8023,6 +8023,22 @@
       "provider_savings_measured": false,
       "ha_design": "PROPOSED_COMMON_TRANSPORT_PER_RESPONSIBLE_HA_SET__RTDB_OR_EXACT_FIRESTORE_LEASE_LISTENER",
       "source_or_runtime_changed": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "agent_pda_adaptive_design_2026_10_16": {
+      "status": "WHOLE_MODEL_DESIGN_PROPOSED__OWNER_REVIEW_NO_NEW_CODE_OR_RELEASE",
+      "report": "docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md",
+      "recommendation": "ADAPTIVE_CURRENT_CARRIERS_PER_OPERATION_AND_COMMON_HA_TRANSPORT__SERVER_REVOKE_BEFORE_PDA_SIGNAL",
+      "source_findings": [
+        "PICKLIST_ALWAYS_FIRESTORE_NOT_RTDB",
+        "KICK_DIRECT_WORKER_WITHOUT_OFFICE_FALLBACK",
+        "ONLINE_LIST_IS_SESSION_AUTHORITY_NOT_PROVEN_CONNECTIVITY",
+        "MUTATION12S_HA_SUSPECT15S_ACK_WAIT20S_ARE_DIFFERENT_BOUNDS"
+      ],
+      "new_office_bridge_resource_approval": false,
+      "carrier_migration_selected": false,
+      "implementation_authorized": false,
+      "runtime_or_provider_changed": false,
       "stable": "OWNER_GATED_UNTOUCHED"
     }
   }
