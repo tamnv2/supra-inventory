@@ -2,17 +2,30 @@
   "schema_version": 1,
   "change_id": "D169",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
+  "approved_source_sha": "0e51a15e7cbf0dbd87551077c766a52c74bbf773",
   "approved_components": [
-    "worker"
+    "worker",
+    "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261015_WEB_PICKER_RBAC_BETA_ONLY",
+  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261016_AGENT_V134_BETA_DIRECT_V132_UPGRADE",
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "stable_deploy_permission": false,
-  "code_scope": "WEB_PICKER_HR_ADMIN_PICK_PACK_ONLY",
-  "request": "OWNER_EXPLICIT_20261015_WEB_WORKER_BETA_DEPLOY_ONLY__AGENT_ANDROID_CODE_ONLY",
-  "note": "Code candidate pending exact SHA PR CI before release approval. Retain critical Firebase and all Stable permissions.",
-  "approved_at_vn": "2026-10-15",
-  "notes": "Exact tested source SHA. Existing Beta Worker and bundled Web assets ONLY; no Android, Agent, Firebase transport, Stable or domain changes."
+  "field_pass": false,
+  "physical_field_verified": false,
+  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION",
+  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261016_AGENT_V134_BETA_DIRECT_V132_UPGRADE",
+  "code_scope": "D169_AGENT_V134_WEB_TAB_TOGGLE_WITH_UNCHANGED_BETA_WORKER",
+  "request": "OWNER_EXPLICIT_D169_20261016_BUILD_AND_DEPLOY_AGENT_V134_FROM_V133_WITH_TAB_HIDE_SHOW__DIRECT_V132_UPDATE",
+  "approved_at_vn": "2026-10-16",
+  "worker_source_unchanged": true,
+  "beta_worker_dependency": "EXISTING_VERIFY_AGENT_WORKFLOW_REQUIRES_DEPLOYED_WORKER_SOURCE_SHA_EQUALS_AGENT_RELEASE_SOURCE_SHA__NO_SERVICE_WEB_BUSINESS_SOURCE_CHANGE",
+  "source_ci": "PR608_0e51a15e_18_OF_18_PASS__WINDOWS_AGENT_RERUN2_PASS",
+  "notes": "Beta Agent v134 and existing same-source Beta Worker only. v132 updates directly over authenticated SHA256 manifest, all auto-update-enabled Agents may upgrade; physical WMS/HA field proof pending. PR606 Android, Firebase critical routes and Stable excluded.",
+  "prior_web_beta_deployment": {
+    "approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
+    "component": "worker",
+    "already_deployed_source_sha": "6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a",
+    "deploy_run": 38674840706
+  }
 }
