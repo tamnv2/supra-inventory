@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "PR610_WINDOWS_LAYOUT_SMOKE_AND_18CI_PASS__PRESERVE_V134_AS_OLD_RELEASE__OWNER_FIELD_TEST_PENDING",
+    "next": "PASS_PR610_RECEIPT_CI__MERGE_IF_EXACT_AUTHORITY_AND_CONTINUITY_PASS__VERIFY_BETA_WORKER_SOURCE_AND_V135_CHANNEL__OWNER_FIELD_TEST",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E027",
+    "latest_checkpoint_id": "D169-E028",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8096,7 +8096,7 @@
       "owner_observed_regression": "D169-E027_NORMAL_TABS_VISUALLY_HIDDEN_BY_DOCK_OVERLAP"
     },
     "agent_v135_tab_layout_hotfix_2026_10_17": {
-      "status": "SOURCE_READY_PR610__CI_PENDING__NO_V135_RELEASE",
+      "status": "PR610_SOURCE_CI_18_OF_18_PASS__SCOPED_D169_REPAIR_RELEASE_RECEIPT__DEPLOY_PENDING",
       "pr": 610,
       "version": 135,
       "baseline_v133_web_tab": true,
@@ -8109,7 +8109,14 @@
       "worker_source_change": false,
       "firebase_change": false,
       "stable": "OWNER_GATED",
-      "next": "EXACT_HEAD_CI_AND_GATE__CONSERVATIVE_FIELD_TEST_SECONDARY"
+      "next": "EXACT_HEAD_CI_AND_GATE__CONSERVATIVE_FIELD_TEST_SECONDARY",
+      "candidate_source_sha": "7d6c2d5de22ddf8f836ae719116e35306ac9212d",
+      "source_ci": "18/18 PASS INCLUDING_WINDOWS_FORMS_RUNTIME_TAB_HEADER_GEOMETRY",
+      "receipt_path": "ops/d169-release-authorization.json",
+      "authorized_scope": "V135_NARROW_CORRECTION_OF_OWNER_APPROVED_V134_D169_BETA_FEATURE",
+      "new_explicit_v135_owner_command": false,
+      "field_pass": false,
+      "release_complete": false
     }
   }
 }
