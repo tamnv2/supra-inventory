@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E016",
+    "id": "D169-E017",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -349,6 +349,41 @@
       ],
       "next_action": "Present whole-model findings and recommended current-carrier adaptive design. Owner reviews specific Agent/Android/Service/Google/resource changes before executable implementation; keep existing PR606 code-only and release restrictions.",
       "evidence": "docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; current relevant Agent Android Service Google Functions/rules/Gateway source at09073318; D169-E015 private evidence descriptors; official Firebase pricing/billing/FCM and Cloudflare WebSocket docs checked2026-10-16."
+    },
+    {
+      "id": "D169-E017",
+      "date_vn": "2026-10-16",
+      "kind": "OWNER_COMMAND",
+      "topic": "Independent Windows network reachability tester for alternative free-quota Agent–PDA transports",
+      "status": "EXTERNAL_LOCAL_EXE_BUILD_AND_UNIT_TEST_PASS__WINDOWS_FIELD_TEST_PENDING__NO_RUNTIME_DEPLOY",
+      "owner_approval": true,
+      "approved_scope": [
+        "Read-only external service research and a standalone local Windows connectivity diagnostic, independent from current Agent and PDA runtime",
+        "Two labeled field reports on Internet-capable and corporate Office networks, to shortlist feasible provider transport options"
+      ],
+      "facts": [
+        "Owner states PDA fleet uses ordinary Internet networks, while Agents may use Internet, Office internal, or mixed fleets; seeks free-usage alternatives without compromising realtime HA, PickList ACK, contacts, session revocation, presence and costs.",
+        "Fresh main accepted and PR #606 active D169 working authority/source examined; PR #606 remains code-only/draft/unmerged and existing critical Firestore transport unchanged.",
+        "Cross-compiled a standalone unsigned Windows amd64 graphical EXE in the conversation artifact environment using Go standard library with 42 public endpoint/port probes across two rounds (84 independent checks), including Firebase/Google/Cloudflare/Ably/Pusher/Supabase/Appwrite/PubNub/AWS/Azure/Upstash/Neon/Convex/Turso/MQTT and others.",
+        "Diagnostics capture DNS, direct TCP port, TLS/SNI/ALPN, HTTP GET status/latency and selected unauthenticated WSS Upgrade; reports JSON+CSV+TXT under local Documents with explicit network labels. No credentials, publish, subscribe, writes, WMS actions, provisioning or provider mutations.",
+        "Native Office Windows PAC/proxy handling, instance-specific endpoint access, authenticated publish/subscribe, P0 ACK, failover and exact zero-bill quota remain unproven; 401/403/404 are HTTP reachability, NOT authorization or user-transaction proof.",
+        "Linux Go tests/vet and Windows x64 cross-compilation PASS, EXE SHA256 89d5eb989b94e7e4de3857572eca3c60bb77127002c0b2a3fb66e95042867156; no physical Windows GUI/runtime validation yet. Artifact distributed only as chat sandbox, not Agent production build/release or repository source.",
+        "Official provider pricing checked as of 2026-10-16: Pub/Sub first 10 GiB Basic throughput/month; Ably Free 6M messages/200 concurrent; Pusher Sandbox 200K msgs/day/100 conn; Supabase 2M messages/month/200 peak; Appwrite Realtime Free 2M messages/month/250 conn; PubNub Free 200 MAU or 1M transactions/month; see official provider docs. Current Firebase remains baseline, not approved for replacement.",
+        "HiveMQ Cloud Serverless Free no longer available to create as of Sep 30 2026 and ends Dec 31 2026; not a viable free hosted migration target. No new service/resource scope approvals were requested or inferred.",
+        "This diagnostic is not sufficient to claim a service replaces Firestore/RTDB, nor guarantee no paid usage. Provider free tiers have plan limits and availability/security/durability tradeoffs."
+      ],
+      "alternatives": [
+        "MEASURE_EXISTING: remove redundant legacy Firestore reads and HA retries, preserve primary business carrier.",
+        "EXTERNAL_SAAS_REACHABILITY: shortlist Ably/Pusher/PubSub/Supabase/Appwrite/PubNub only if corporate network path passes and legal/security/cost gates permit pilot.",
+        "SELF_HOSTED_MQTT_NATS: viable only with existing approved reliable infrastructure; free software is not free hosting/operation."
+      ],
+      "open_questions": [
+        "Obtain both Owner physical Windows diagnostic reports; check Office proxy/PAC effects and 403 root causes.",
+        "Actual per-service tenant runtime hostname, authenticated bidirectional message/ACK/retention, rate limit, reconnection & network transition, generation fencing, provider quotas and account scope need future Owner-authorized Stage 2.",
+        "Compare 16h/24h traffic and multi-recipient fanout costs across read, write, messages, bytes, connections, persistence, compute and notification delivery with existing billing screenshot baseline."
+      ],
+      "next_action": "Owner runs the isolated tester on Internet and Office networks and provides both sanitized report folders. Analyze shortlist and submit specific scope/resource/security/quota/regression proposal before any authenticated POC or runtime change. Leave PR #606 unmerged; Stable owner-gated.",
+      "evidence": "Current repo main and PR #606 source/CI; official provider pricing pages as of 2026-10-16; generated standalone binary and ZIP in current ChatGPT artifact session, Go test/vet and Windows cross-build checksum"
     }
   ],
   "resume": {
@@ -378,7 +413,8 @@
       "D169-E013 Owner SSID-policy proposal: exact Office/PDA allowlists for local event-driven HA transport selection, no per-cycle synthetic RTDB ping on Office; cross-network shared Firestore liveness and fencing needed; design-only.",
       "D169-E014 researched Office-RTDB alternative channels and published provider quotas; all alternative reachability unverified and read-only candidate, no changes approved.",
       "D169-E015 analysis ready: new provider screenshots and Oct15–16 raw archive corroborate unused legacy query/HA fallback waste; common-transport liveness and Android receipt fixes are proposals only, not released.",
-      "D169-E016 whole Agent–PDA source audit/design ready: current Firestore business carrier, kick Office route gap, session-versus-connectivity presence, request12s/HA15s/ACK20s constraint and per-operation adaptive upgrade proposed; no new implementation."
+      "D169-E016 whole Agent–PDA source audit/design ready: current Firestore business carrier, kick Office route gap, session-versus-connectivity presence, request12s/HA15s/ACK20s constraint and per-operation adaptive upgrade proposed; no new implementation.",
+      "D169-E017: standalone Windows cross-compiled network tester built outside repo and not released as Agent; 42 public endpoints x2, field reachability comparison pending."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -386,7 +422,8 @@
       "Admin Pick Pack SKU/account permission changes and Agent Wi-Fi switch design require full impact review then explicit Owner approval.",
       "Unified D169 design review including 404 provenance, overlay lifecycle, migration floor, presence/role/network policy and measured usage; no code/deploy permission implied.",
       "Owner review of D169-E015 staged unused-query + coordinated RTDB/Firestore HA design and separately scoped Android RECEIVED receipt retry fix; no new code or release authorization yet.",
-      "Owner choose D169-E016 packagesA-D and Office trusted command bridge/resource design before code; full carrier migrationE is a separate deferred proposal requiring App/Service changes."
+      "Owner choose D169-E016 packagesA-D and Office trusted command bridge/resource design before code; full carrier migrationE is a separate deferred proposal requiring App/Service changes.",
+      "Any external provider account/tenant provisioning, authenticated production POC, quota activation or actual Agent↔PDA transport migration needs explicit Owner scope/security/field approval."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -403,7 +440,8 @@
       "D169 E012 pending: cross-network safe dual-heartbeat and deadline-driven lease read design with provider billing, 15s suspect threshold and split-brain tests, Owner decision before source edits.",
       "For D169 SSID HA policy, obtain explicit Owner code authorization before changing Windows Agent transport; test false-positive SSID/unknown, profile change, multi-NIC and mixed-network failover with provider billing evidence.",
       "Review docs/D169_USAGE_NETWORK_ANALYSIS_2026-10-16.md; approve exact implementation scope before code. Validate provider savings and cross-network safety/latency independently of CI.",
-      "Review docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; preserve current critical Firestore ACK/guards, authorize exact adaptive Agent and connected Service/Android scope before source changes."
+      "Review docs/D169_AGENT_PDA_ADAPTIVE_MODEL_2026-10-16.md; preserve current critical Firestore ACK/guards, authorize exact adaptive Agent and connected Service/Android scope before source changes.",
+      "D169-E017: compare Owner's two local network-probe exports before selecting provider and requesting scoped authenticated pilot."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
