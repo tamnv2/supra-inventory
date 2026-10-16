@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "PR608_COMPLETE_WINDOWS_CI_AND_DISTRIBUTE_MANUAL_SECONDARY_ARTIFACT__NEVER_UPDATE_GLOBAL_AGENT_CHANNEL__KEEP_PR606_ANDROID_DRAFT",
+    "next": "MANUALLY_TEST_AGENT_V133_ON_SECONDARY_FROM_PR608_ARTIFACT__KEEP_V132_GLOBAL_CHANNEL_AND_PR606_DRAFT__NO_FIELD_PASS_YET",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E022",
+    "latest_checkpoint_id": "D169-E023",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8017,7 +8017,7 @@
     "web_beta_merge_sha": "6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a",
     "web_beta_deploy_run": 38674840706,
     "agent_web_tab_canary_2026_10_16": {
-      "status": "PR608_SOURCE_CANDIDATE__GITHUB_WINDOWS_CI_PENDING__MANUAL_SECONDARY_ARTIFACT_ONLY",
+      "status": "WINDOWS_PR_CI_17_OF_17_PASS__MANUAL_SECONDARY_ARTIFACT_READY__FIELD_PENDING",
       "pr": 608,
       "source_branch": "feat/d169-agent-web-tab-canary-20261016",
       "version": 133,
@@ -8040,7 +8040,16 @@
         "NO_DUPLICATE_WMS_CONFIRM",
         "NO_GLOBAL_CHANNEL_CHANGE"
       ],
-      "rollback": "INSTALL_PRIOR_RELEASED_V132_ON_SECONDARY_ONLY"
+      "rollback": "INSTALL_PRIOR_RELEASED_V132_ON_SECONDARY_ONLY",
+      "ci_validated_source_sha": "d4a4ad7425c93de797a8de6ab2d464ef2c7e8b61",
+      "agent_ci_run": 38905531099,
+      "agent_ci_status": "SUCCESS",
+      "artifact_id": 12048096905,
+      "artifact_name": "supra-inventory-relay-poc-agent",
+      "artifact_retention_days": 14,
+      "artifact_size_bytes": 13679371,
+      "global_channel_release": false,
+      "main_merge": false
     }
   }
 }
