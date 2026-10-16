@@ -7,10 +7,10 @@ const browser = read("relay-agent/SupraConfirmBrowser.cs");
 const ownedHost = read("relay-agent-webview2-host/Program.cs");
 const channel = read("relay-agent/VERSION").trim();
 
-test("v134 remains newer than released v132 and v133 canary", () => {
-  assert.equal(channel, "134");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild\s*=\s*134\s*;/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.134\.0\.0/);
+test("v135 corrective build remains newer than v132, v133 canary and released v134", () => {
+  assert.equal(channel, "135");
+  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild\s*=\s*135\s*;/);
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.135\.0\.0/);
 });
 
 test("WMS tab is a real resizable Agent tab, not a second WMS login", () => {
@@ -41,7 +41,7 @@ test("preserve the existing child-page WMS Confirm and hidden read-only SKU expo
   assert.match(browser, /Runtime\.enable/);
 });
 
-test("v134 offers tab show and hide on the same persistent button without closing WMS", () => {
+test("v135 preserves Web tab show and hide button without closing WMS", () => {
   assert.match(program, /_toggleWmsTab\.Click \+= \(s, e\) => ToggleWmsWebTab\(\)/);
   assert.match(program, /_toggleWmsTab\.Text = "Ẩn tab trình duyệt"/);
   assert.match(program, /_toggleWmsTab\.Text = "Hiển thị tab trình duyệt"/);
@@ -52,7 +52,7 @@ test("v134 offers tab show and hide on the same persistent button without closin
   assert.doesNotMatch(program.slice(program.indexOf("private void ToggleWmsWebTab()"), program.indexOf("private void SizeEmbeddedWmsViewport()")), /StopManagedBrowser|ConfirmExact|Page\.reload/);
 });
 
-test("v132 updater can jump directly to v134 using existing signed checksum channel", () => {
+test("v132 updater can jump directly to v135 using existing signed checksum channel", () => {
   const updater = read("relay-agent/AgentUpdater.cs");
   const config = read("relay-agent/AgentConfig.cs");
   assert.match(updater, /latest\.Build <= AgentConfig\.AgentBuild/);
@@ -60,4 +60,21 @@ test("v132 updater can jump directly to v134 using existing signed checksum chan
   assert.match(updater, /DownloadFile\(latest\.ExeUrl/);
   assert.match(config, /AgentUpdateManifestUrl = ApiBaseUrl/);
   assert.match(config, /AgentUpdateExeUrl = ApiBaseUrl/);
+});
+
+test("v135 toolbar lives in an exclusive layout row so ordinary tab headers remain visible", () => {
+  const layout = program.slice(program.indexOf("// D169 v135: two exclusive layout rows."), program.indexOf("shell.Controls.Add(footer, 0, 2)"));
+  assert.match(layout, /new TableLayoutPanel/);
+  assert.match(layout, /RowCount = 2/);
+  assert.match(layout, /tabShell\.RowStyles\.Add\(new RowStyle\(SizeType\.Absolute, 38F\)\)/);
+  assert.match(layout, /tabShell\.RowStyles\.Add\(new RowStyle\(SizeType\.Percent, 100F\)\)/);
+  assert.match(layout, /tabShell\.Controls\.Add\(tabActions, 0, 0\)/);
+  assert.match(layout, /tabShell\.Controls\.Add\(_mainTabs, 0, 1\)/);
+  assert.doesNotMatch(layout, /BringToFront\(\)/);
+  for (const original of ['_overviewPage','_connectionPage','_d167SkuPage','_wmsWebTab']) {
+    assert.match(program, new RegExp('_mainTabs\\.TabPages\\.Add\\(' + original + '\\)'));
+  }
+  assert.match(program, /D169TabHeaderLayoutSelfTest\(\)/);
+  assert.match(program, /tabBounds\.IntersectsWith\(actionBounds\)/);
+  assert.match(program, /D169_TAB_LAYOUT_SMOKE PASS/);
 });
