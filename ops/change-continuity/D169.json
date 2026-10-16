@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E025",
+    "id": "D169-E026",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -591,6 +591,24 @@
       ],
       "next_action": "Complete receipt CI PASS at PR608 exact head, mark ready, merge with ancestry preservation, then verify Beta Worker same-source health, tag relay-agent-v134, inventory-channel/agent-latest.json v134 and browser-bundle channel. If any required gate fails, report and do not claim release.",
       "evidence": "GitHub PR608 candidate 0e51a15e7cbf0dbd87551077c766a52c74bbf773, 18 GitHub runs incl Windows 38934527754 success attempt2, ops/d169-release-authorization.json, tools/d167_release_gate.py and .github/workflows/verify-relay-agent.yml."
+    },
+    {
+      "id": "D169-E026",
+      "date_vn": "2026-10-16",
+      "kind": "STATUS",
+      "topic": "Agent v134 Beta channel published, direct v132 upgrade and matching Beta Worker release verified",
+      "status": "BETA_AGENT_V134_RELEASE_PASS__WORKER_SOURCE_HEALTH_MATCH__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR608 merged into main with ancestry-preserving merge commit c8a9bd1c6bda0b9fab4e4e47b398ba1fd1981834 after exact PR head d0b83e728252c8653e7863c29b9df7be5d4e8dfe 18/18 workflow checks SUCCESS; original tested source 0e51a15e remains ancestor of merge and passed exact Owner release gate.",
+        "Beta Worker deployment GitHub Actions run38936067894 SUCCESS: log verified HTTP 200 status ok beta source_commit EXACT c8a9bd1c6bda0b9fab4e4e47b398ba1fd1981834, missing=0, schema17/17, operational7/7. Worker business Web/Service source unchanged from preceding deployed release.",
+        "Beta Agent Windows build and release GitHub Actions run38936067907 SUCCESS with D169_OWNER_RELEASE_GATE_PASS agent 0e51a15e, D168_WORKER_FIRST_AGENT_RELEASE_GATE_PASS, release relay-agent-v134 created, SHA256 companion asset published, inventory-channel updated -> relay-agent-v134; bundled WebView2 channel step also completed SUCCESS.",
+        "GitHub release relay-agent-v134 public asset Agent.Auto.Confirm.Pick.Pack.exe size 7,424,512 bytes, sha256 sidecar; inventory-channel agent-latest.json and same-size executable assets updated 2026-10-16T17:00Z. The current Agent v132 updater compares integer build and uses authenticated manifest+SHA256; direct v132→v134 is supported by code and channel. Physical in-app upgrade on user machine not field-verified.",
+        "Current release is scoped Beta; it can reach ANY Agent with automatic update enabled. Owner's PRIMARY v132 only remains v132 if its local updater is actually disabled; no remote switch or forced install of user machines by ChatGPT. Android PR606 remains Draft/unmerged and Stable owner-gated.",
+        "No on-device field proof for real WMS login, popup, Web Confirm tab focus/reparent/resizing, actual Picklist single confirmation, SKU side export, v132/v134 HA mixed peers or actual user upgrade success is yet established."
+      ],
+      "next_action": "Owner uses existing Agent v132 Update on secondary to v134, verifies tab button labels and Web Confirm WMS login/Confirm/SKU and provides sanitized Agent logs if fail; record field PASS or repair under D169. Do not change Stable or Android PR606.",
+      "evidence": "PR608 merged SHA c8a9bd1c; GitHub Actions Beta Worker run38936067894/Agent release run38936067907; release https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v134; asset manifest of inventory-channel; ops/d169-release-authorization.json Owner SHA receipt."
     }
   ],
   "resume": {
@@ -607,7 +625,8 @@
       "D169 journal and backlog created; no executable product changes",
       "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS.",
       "Agent v133 secondary-only canary CI source/build PASS at d4a4ad74; GitHub Actions artifact 12048096905 available, without main merge, GitHub release tag or global channel mutation.",
-      "D169-E025 v134 source PR608 candidate 0e51a15e 18/18 CI PASS, protected release receipt locks tested code and Beta worker+agent same source; waiting receipt CI/merge and runtime evidence."
+      "D169-E025 v134 source PR608 candidate 0e51a15e 18/18 CI PASS, protected release receipt locks tested code and Beta worker+agent same source; waiting receipt CI/merge and runtime evidence.",
+      "D169-E026 Agent v134 GitHub prerelease and inventory-channel Beta OTA published; Worker Beta same-source health PASS; source and authority gates PASS; v132 direct update path available."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -632,7 +651,8 @@
       "D169-E022 PR608 embedded WinForms TabPage+owned WebView2 child viewport and v133 canary source under full Windows CI; physical WMS/failover proof pending.",
       "Owner physical secondary v133 WMS Confirm tab/login/resize/HA/SKU field acceptance pending; main v132 and PR606 Android code-only unaffected.",
       "Agent v134 code/CI + approval receipt candidate SHA and Worker/Agent release channel evidence pending.",
-      "v134 global channel deployment staged; Owner field/usage remains unverified and PR606 Android is held."
+      "v134 global channel deployment staged; Owner field/usage remains unverified and PR606 Android is held.",
+      "Owner physical Agent v132->v134 on secondary, WMS tab display/hidden/login, Confirm, SKU, v132/v134 HA and PDA vc110 field proof remains pending."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -671,8 +691,9 @@
       "Review PR608 Windows build and artifact; manually install only secondary Agent, then record Owner result from login/WMS child popup/Confirm/SKU/tab resize/tray/HA and canary rollback.",
       "Owner retrieve https://github.com/tamnv2/supra-inventory/actions/runs/38905531099 and install artifact only on secondary; test and supply sanitized evidence.",
       "Complete v134 PR CI and Owner receipt, merge scoped PR608 only after authority+continuity; check same source Worker Beta health and published relay-agent-v134/inventory-channel SHA.",
-      "Verify signed receipt exact-head CI then merge PR608 and watch Worker Beta same-SHA/Agent v134 OTA channel, never claim success before release readback."
+      "Verify signed receipt exact-head CI then merge PR608 and watch Worker Beta same-SHA/Agent v134 OTA channel, never claim success before release readback.",
+      "Record Owner second Agent v132 update, verify actual WebView2 tab visibility and Confirm/SKU/failover; if NOT PASS repair D169 and publish approved hotfix, not Stable."
     ],
-    "release_boundary": "D169_OWNER_APPROVED_AGENT_V134_BETA_RELEASE_FROM_V132__PR608_CI_RELEASE_PENDING__WORKER_IDENTICAL_SOURCE_SUPPORT_ONLY__ANDROID_PR606_DRAFT__STABLE_OWNER_GATED"
+    "release_boundary": "D169_AGENT_V134_BETA_OTA_PUBLISHED__WORKER_SOURCE_MATCH_PASS__ANDROID_PR606_DRAFT_UNRELEASED__FIELD_OWNER_PENDING__STABLE_OWNER_GATED"
   }
 }
