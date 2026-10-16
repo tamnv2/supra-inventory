@@ -1,0 +1,23 @@
+name: D169 Agent Web Tab Canary Guard
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
+      - "tests/d169-agent-web-tab-canary.test.mjs"
+      - ".github/workflows/verify-d169-agent-web-tab.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  tab-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: No second WMS session or channel release
+        run: node --test tests/d169-agent-web-tab-canary.test.mjs
