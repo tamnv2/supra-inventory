@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_AGENT_V134_BETA_CHANNEL_RELEASE_PASS__OWNER_PHYSICAL_FIELD_AND_FINAL_PASS_PENDING",
+    "current_change_status": "D169_V134_OWNER_NOT_PASS_UI_TABS__V135_REPAIR_IN_SAME_CHANGE__STABLE_UNTOUCHED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7976,7 +7976,7 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "WEB_WORKER_BETA_PASS__AGENT_V134_RELEASED_OTA_DIRECT_V132__PR606_ANDROID_CODE_ONLY__D169_FIELD_PENDING",
+    "status": "BETA_AGENT_V134_RELEASED_BUT_OWNER_UI_NOT_PASS__V135_TABS_REPAIR_PR610_CI_PENDING",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "OWNER_TEST_V132_TO_V134_ON_SECONDARY__WEB_TAB_HIDE_SHOW_LOGIN_CONFIRM_SKU_HA__KEEP_STABLE_AND_ANDROID_PR606_HOLD",
+    "next": "PR610_WINDOWS_LAYOUT_SMOKE_AND_18CI_PASS__PRESERVE_V134_AS_OLD_RELEASE__OWNER_FIELD_TEST_PENDING",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E026",
+    "latest_checkpoint_id": "D169-E027",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8052,7 +8052,7 @@
       "main_merge": false
     },
     "agent_v134_release_2026_10_16": {
-      "status": "BETA_WORKER_AND_AGENT_V134_RELEASE_PASS__OTA_CHANNEL_V134_PUBLISHED__OWNER_FIELD_PENDING",
+      "status": "BETA_OTA_RELEASED_BUT_OWNER_UI_NOT_PASS__V134_TABS_OBSCURED",
       "source_base": "D169_PR608_AGENT_V133",
       "version": 134,
       "upgrade_from": [
@@ -8092,7 +8092,24 @@
       "agent_channel_tag": "relay-agent-v134",
       "agent_channel_verified": "GITHUB_RELEASE_ASSETS_AND_AGENT_WORKFLOW_LOG_CONFIRM_TAG_MANIFEST_CHANNEL_UPDATED",
       "agent_exe_asset_size": 7424512,
-      "owner_pass": false
+      "owner_pass": false,
+      "owner_observed_regression": "D169-E027_NORMAL_TABS_VISUALLY_HIDDEN_BY_DOCK_OVERLAP"
+    },
+    "agent_v135_tab_layout_hotfix_2026_10_17": {
+      "status": "SOURCE_READY_PR610__CI_PENDING__NO_V135_RELEASE",
+      "pr": 610,
+      "version": 135,
+      "baseline_v133_web_tab": true,
+      "corrects_release_version": 134,
+      "source_change": "WINFORMS_TWO_ROW_LAYOUT_TOOLBAR_AND_TABCONTROL_NO_OVERLAP",
+      "owner_reported_not_pass": true,
+      "owner_field_pass": false,
+      "runtime_windows_tab_geometry_smoke": true,
+      "android_change": false,
+      "worker_source_change": false,
+      "firebase_change": false,
+      "stable": "OWNER_GATED",
+      "next": "EXACT_HEAD_CI_AND_GATE__CONSERVATIVE_FIELD_TEST_SECONDARY"
     }
   }
 }
