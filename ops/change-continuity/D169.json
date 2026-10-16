@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E020",
+    "id": "D169-E021",
     "date_vn": "2026-10-16"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -478,6 +478,36 @@
       ],
       "next_action": "Owner runs isolated EXE v2 on Office Windows Agent laptop, optionally repeat normal Wi-Fi, and supplies the local report ZIP. Classify provider paths then propose limited authenticated validation for in-scope services before any migration. Keep PR #606 Draft/unmerged; Stable Owner-gated.",
       "evidence": "docs/D169_FIREBASE_OFFICE_TESTER_V2_2026-10-16.md, standalone generated EXE/source ZIP Go build + tests, current GitHub relay-agent/FirestoreHttpTransport.cs and Firebase official pricing/service docs"
+    },
+    {
+      "id": "D169-E021",
+      "date_vn": "2026-10-16",
+      "kind": "DISCUSSION",
+      "topic": "Agent-only D169 code compatibility with installed PDA vc110 and Owner proposal to embed WMS Confirm into a resizable Agent tab",
+      "status": "SOURCE_CONFIRMED_AGENT_ONLY_COMPATIBILITY__EMBEDDED_WEB_TAB_DESIGN_PENDING_OWNER_APPROVAL__NO_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner asks whether Agent code already completed under D169 can be updated without a simultaneous PDA release, and requests the current Hiện Web WMS Confirm view to render as a tab integrated into Agent that resizes/minimizes with its main window rather than a separately positioned browser window.",
+        "PR606 current D169 Agent executable diff only alters D167SkuCoordinator.Queue local 15-minute retry entry guard. There are no PR606 Agent/PDA Firestore Picklist, ACK, HA, role, WMS or Service contract changes; current signed Beta PDA vc110 remains wire-compatible by source. Code/CI is not physical compatibility proof.",
+        "The other PR606 fixes are Android only: long command/confirmation overlay scroll with fixed button, orphan result overlay local unblock without false ACK, signed latest Beta mandatory update floor. Installed vc110 will not obtain these Android improvements until a new signed APK.",
+        "Agent Program.cs existing Windows Forms TabControl contains Tổng quan/Cài đặt/SKU; Hiện Web calls SupraConfirmBrowser.Show and currently opens a separate Agent WebView2 Fixed host process or selected desktop browser.",
+        "SupraConfirmBrowser.cs launches the external relay-agent-webview2-host WinForms BrowserForm using fixed x64 WebView2 runtime and a dedicated persistent profile; Agent connects through loopback CDP Page/Runtime without direct WMS API/session extraction. Host preserves genuine WMS child-popup/opener semantics and a separate hidden same-profile read-only SKU export WebView2.",
+        "Proposal for Owner review: implement a true resizable embedded WMS viewport inside a new Web Confirm Agent tab while preserving one managed WMS login/profile and existing child-opener, Confirm/ACK readiness, background/minimize-to-tray and isolated hidden SKU export. Tab changes and main window resize must never trigger login reload, WMS action or extra network polling. Retain existing password gate on explicit show/mode switch unless Owner separately changes that security rule.",
+        "Do not naively SetParent an Edge/Chrome desktop process, open a second WMS browser in parallel or iframe/copy WMS pages; changing WebView2-host ownership/viewport needs WMS field testing for popup, focus/DPI resize, no lost session, browser crash, active Confirm, SKU export, multi-Agent HA and safe rollback. Desktop browser may remain explicit fallback rather than claim it is embeddable.",
+        "Owner question is not explicit new executable or deployment approval; PR606 stays Draft/unmerged, existing critical Firebase/PDA protocol unchanged, no Agent/APK/Web/Worker/Stable release or resource mutation occurred."
+      ],
+      "alternatives": [
+        "RELEASE_AGENT_ONLY_AFTER_OWNER_APPROVAL: smallest source change is local SKU retry, current PDA vc110 remains supported and Android-only improvements wait for APK release.",
+        "EMBED_EXISTING_MANAGED_WMS_VIEWPORT_WITH_CONTRACT_PRESERVATION: preferred UX after a prototype/field matrix verifies WebView2 host child windows, profile, CDP control and full WMS confirm equivalence.",
+        "KEEP_SEPARATE_WMS_WINDOW: baseline rollback if embedded view fails focus, popup, authentication or browser readiness; avoids breaking current operational behavior."
+      ],
+      "open_questions": [
+        "Owner explicit approval of Agent-only release and whether to bundle the new embedded-tab UI with it or treat it as a separate reviewed D169 code/release scope.",
+        "Which host-integration implementation (native embedded host viewport vs direct WebView2 WinForms host) passes real WMS popup/opener/login, SKU export, minimize, resizing/DPI and Confirm/HA tests without coupling browser crashes to Agent business execution.",
+        "Whether Web Desktop remains as a labeled optional fallback and whether existing password requirement for Hiện Web should remain unchanged."
+      ],
+      "next_action": "Present Agent-only vc110 compatibility and embedded Web Confirm tab options/risks. Await explicit Owner design approval before changing browser source; await a separate unambiguous Agent Beta release authorization before merge/publish. Validate physical WMS and PDA interoperability before FIELD PASS.",
+      "evidence": "GitHub D169 PR #606 head 370ac31817d7074ca55fa2152389f0a8da8a73fb, Agent D167SkuCoordinator.cs, Program.cs BuildProfessionalLayout/ToggleSupraBrowserVisibility, SupraConfirmBrowser.cs StartOwnedWebView2NoLock, relay-agent-webview2-host/Program.cs BrowserForm/HandleNewWindowRequested, source CI at head; no physical device proof."
     }
   ],
   "resume": {
@@ -510,7 +540,8 @@
       "D169-E016 whole Agent–PDA source audit/design ready: current Firestore business carrier, kick Office route gap, session-versus-connectivity presence, request12s/HA15s/ACK20s constraint and per-operation adaptive upgrade proposed; no new implementation.",
       "D169-E017: standalone Windows cross-compiled network tester built outside repo and not released as Agent; 42 public endpoints x2, field reachability comparison pending.",
       "D169-E018: 16 Oct dual-network v1 field probe evaluated. Office direct TCP only five Google API hosts; proxy-aware Agent equivalence not covered; no candidate proven free/realtime/HA safe.",
-      "D169-E020: standalone Firebase Office Windows x64 EXE v2 built/tested; proxy-aware field evidence still pending. No provider or runtime change."
+      "D169-E020: standalone Firebase Office Windows x64 EXE v2 built/tested; proxy-aware field evidence still pending. No provider or runtime change.",
+      "D169-E021 Owner asks Agent-only release compatibility for PDA vc110 and an embedded resizable WMS Confirm tab; source confirms the Agent code-only delta is local SKU retry and embedded Web is a separate UI/host redesign proposal, not built."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -520,7 +551,8 @@
       "Owner review of D169-E015 staged unused-query + coordinated RTDB/Firestore HA design and separately scoped Android RECEIVED receipt retry fix; no new code or release authorization yet.",
       "Owner choose D169-E016 packagesA-D and Office trusted command bridge/resource design before code; full carrier migrationE is a separate deferred proposal requiring App/Service changes.",
       "Any external provider account/tenant provisioning, authenticated production POC, quota activation or actual Agent↔PDA transport migration needs explicit Owner scope/security/field approval.",
-      "D169-E019: Owner RTDB-on-normal / Firestore-on-Office mode preference requires approval of either HA-only common-peer selection or a full Android/Agent/Service critical carrier migration; no network-provider source change yet."
+      "D169-E019: Owner RTDB-on-normal / Firestore-on-Office mode preference requires approval of either HA-only common-peer selection or a full Android/Agent/Service critical carrier migration; no network-provider source change yet.",
+      "D169-E021: require Owner approval of embedded WebView2 host/UI design and explicit Agent-only Beta release command; no accidental APK/Agent co-release or WMS session/profile changes."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -541,7 +573,8 @@
       "D169-E017: compare Owner's two local network-probe exports before selecting provider and requesting scoped authenticated pilot.",
       "D169-E018: Owner review proxy-aware read-only v2 test proposal; no resource creation or Agent/PDA runtime change. Report original field results remain private.",
       "D169-E019: propose capability-based HA transport shared by responsible peers; reject SSID-only PRIMARY routing for mixed network; measure RTDB bandwidth and field ACK/failover before code permission.",
-      "Owner run v2 Office and optionally Internet comparison; evaluate direct/default/system Windows proxy results and authenticated-safe follow-up only under separate approvals."
+      "Owner run v2 Office and optionally Internet comparison; evaluate direct/default/system Windows proxy results and authenticated-safe follow-up only under separate approvals.",
+      "For D169-E021 test single managed WMS WebView2 viewport tab with popup/opener/focus/DPI/minimize/persistent profile/hidden SKU export plus confirm/ACK/HA regression and reversible Agent fallback before any field release."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
