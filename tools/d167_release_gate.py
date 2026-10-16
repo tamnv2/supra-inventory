@@ -84,8 +84,15 @@ def main():
         if d169_components == ["worker", "agent"]:
             # v134 reuses the existing Beta Worker with NO service/web source
             # changes; the matching-source health proof is still required.
-            if data.get("code_scope") != "D169_AGENT_V134_WEB_TAB_TOGGLE_WITH_UNCHANGED_BETA_WORKER":
-                fail("D169 v134 release code scope is not exact")
+            scopes = {
+                "D169_AGENT_V134_WEB_TAB_TOGGLE_WITH_UNCHANGED_BETA_WORKER",
+                "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
+            }
+            if data.get("code_scope") not in scopes:
+                fail("D169 Agent release code scope is not exact")
+            if data.get("code_scope") == "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER":
+                if data.get("not_pass_repair") != "D169-E027_V134_TAB_HEADER_OVERLAPPED":
+                    fail("D169 v135 must be a bounded NOT PASS correction of v134")
             if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
                 fail("D169 unverified physical field tests must not be marked PASS")
             if (data.get("field_release_mode") != "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION"

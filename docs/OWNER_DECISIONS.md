@@ -4239,3 +4239,10 @@ Owner chốt **chạy code và phát hành Beta Agent v134 luôn**, cho đườn
 
 Ràng buộc pipeline: `Verify Beta Relay Agent` hiện yêu cầu Beta Worker health có đúng source SHA trước lúc publish Agent. Do source Worker/Web không thay đổi nhưng deployment gate source-level phải đối chiếu commit, cho phép redeploy **cùng Worker đã có** nhằm bảo đảm same-SHA trước OTA; không cấp quyền thay đổi business Web/Worker. Receipt Beta riêng khóa source SHA đã được PR test, `approved_components=[worker,agent]` cho hoạt động phụ trợ cần thiết, cấm các component khác. Owner chấp nhận phát hành Beta để kiểm thử thực địa nhưng **không tự nhận WMS/PDA/HA field PASS**; khi lỗi khôi phục binary cũ trên máy cần rollback, không bao giờ chủ động thay đổi Stable.
 
+
+
+## D169-E027 — Owner báo NOT PASS Agent v134: mất hàng tab thông thường (17/10/2026)
+
+Owner phản ánh Agent v133 hiển thị đúng Web Confirm như tab riêng, nhưng sau khi lên v134 các tab thông thường biến mất. Đây là **NOT PASS trong D169**, không phải Owner chấp thuận kết quả v134. Source xác định v134 thêm `tabActions` `Dock=Top` lên `tabShell Panel`, trong khi `_mainTabs` `Dock=Fill` và `tabActions.BringToFront()`. Toolbar cao 38px có thể đè lên vùng header `TabControl`; các TabPages Tổng quan/Cài đặt/SKU/Web Confirm vẫn được đăng ký trong code. Không được kết luận các tab nghiệp vụ bị xóa. V133 không có toolbar này.
+
+Yêu cầu sửa hồi quy D169 trong phạm vi chức năng Owner đã duyệt: dùng `TableLayoutPanel` hai hàng riêng biệt (toolbar 38px và `TabControl` chiếm 100% phần còn lại) để tab header không bị đè, giữ nguyên toàn bộ tab có trước và chỉ ẩn/hiện riêng Web Confirm. Bản sửa phải tăng build mới v135 vì v134 đã phát hành không được ghi đè checksum/tag, và có runtime Windows Forms startup smoke kiểm tra tất cả tab và rectangle của header không giao toolbar; CI static đơn thuần đã bỏ sót lỗi v134. Tất cả WMS/ACK/HA/Firestore/Android/Stable giữ nguyên. `v135` là **hotfix sửa NOT PASS của yêu cầu v134 đã được Owner duyệt phát hành Beta**, không phải yêu cầu tính năng mới hay quyền triển khai Stable. Field test phải tiếp tục được Owner xác nhận.
