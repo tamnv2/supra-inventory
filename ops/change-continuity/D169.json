@@ -595,7 +595,7 @@
     {
       "id": "D169-E026",
       "date_vn": "2026-10-16",
-      "kind": "RELEASE",
+      "kind": "STATUS",
       "topic": "Agent v134 Beta channel published, direct v132 upgrade and matching Beta Worker release verified",
       "status": "BETA_AGENT_V134_RELEASE_PASS__WORKER_SOURCE_HEALTH_MATCH__FIELD_OWNER_PENDING",
       "owner_approval": true,
