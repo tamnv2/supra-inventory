@@ -51,3 +51,13 @@ test("v134 offers tab show and hide on the same persistent button without closin
   assert.match(program, /VerifyCurrentAgentPasswordForBrowserAction/);
   assert.doesNotMatch(program.slice(program.indexOf("private void ToggleWmsWebTab()"), program.indexOf("private void SizeEmbeddedWmsViewport()")), /StopManagedBrowser|ConfirmExact|Page\.reload/);
 });
+
+test("v132 updater can jump directly to v134 using existing signed checksum channel", () => {
+  const updater = read("relay-agent/AgentUpdater.cs");
+  const config = read("relay-agent/AgentConfig.cs");
+  assert.match(updater, /latest\.Build <= AgentConfig\.AgentBuild/);
+  assert.match(updater, /ParseChecksum\(checksumText\)/);
+  assert.match(updater, /DownloadFile\(latest\.ExeUrl/);
+  assert.match(config, /AgentUpdateManifestUrl = ApiBaseUrl/);
+  assert.match(config, /AgentUpdateExeUrl = ApiBaseUrl/);
+});
