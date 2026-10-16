@@ -1293,7 +1293,19 @@ namespace SupraInventoryRelayAgent
             {
                 if (!_process.HasExited)
                 {
-                    try { _process.CloseMainWindow(); } catch { }
+                    // CloseMainWindow cannot locate a reparented WS_CHILD window.
+                    // Request a normal WinForms close before bounded kill fallback.
+                    if (_embeddedHostWindow != IntPtr.Zero &&
+                        IsWindow(_embeddedHostWindow) &&
+                        OwnedByAgentHostNoLock(_embeddedHostWindow))
+                    {
+                        try { PostMessage(_embeddedHostWindow, 0x0010 /* WM_CLOSE */, IntPtr.Zero, IntPtr.Zero); }
+                        catch { }
+                    }
+                    else
+                    {
+                        try { _process.CloseMainWindow(); } catch { }
+                    }
                     try { _process.WaitForExit(1200); } catch { }
                     if (!_process.HasExited)
                     {
@@ -2722,6 +2734,9 @@ namespace SupraInventoryRelayAgent
 
         [DllImport("user32.dll")]
         private static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetParent(IntPtr hWnd);
