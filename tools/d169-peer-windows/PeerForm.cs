@@ -117,7 +117,7 @@ internal sealed class PeerForm : Form
     {
         var message=_phase<Phases.Length?Phases[_phase]:"ĐÃ HOÀN TẤT CÁC KỊCH BẢN";
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
-        _confirmSwitch.Enabled=_phase<Phases.Length;
+        _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
         MessageBox.Show("Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nChuyển mạng theo hướng dẫn, xác nhận trên mỗi máy rồi chạy Test.\nKhông cần nhập mã phiên.","SUPRA D169 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
     }
@@ -126,6 +126,7 @@ internal sealed class PeerForm : Form
         _testAll.Enabled=false;
         await EnsureAutomaticSession();
         StartPoll();
+        await WaitForPicker();
         await TestPhase();
         _phase=1;
         ShowNetworkPhase();
@@ -148,6 +149,23 @@ internal sealed class PeerForm : Form
         }
         await JoinSession();
         Log("PAIRING","JOINED",new{node=_nodeId[..8],phase=_phase+1});
+    }
+    private async Task WaitForPicker()
+    {
+        // Agent may press TEST before the Picker has authenticated; never record false failures.
+        for(var t=0;t<30;t++){
+            using var peers=await Http("GET",Url("/members")+"?pageSize=30",null,true);
+            if(peers!=null&&peers.RootElement.TryGetProperty("documents",out var docs)
+               &&docs.EnumerateArray().Any(d=>d.TryGetProperty("fields",out var f)
+                &&f.TryGetProperty("role",out var role)
+                &&role.TryGetProperty("stringValue",out var v)
+                &&v.GetString()=="PICKER")){
+                Log("AUTO_PAIR","PICKER_ONLINE",new{node=_nodeId[..8]});
+                return;
+            }
+            await Task.Delay(2000);
+        }
+        Log("AUTO_PAIR","PICKER_NOT_SEEN",new{wait_seconds=60});
     }
     private async Task TestPhase()
     {
