@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -24,6 +26,13 @@ internal sealed class PeerForm : Form
     private const string CommitUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents:commit";
     private readonly AgentTokens _token;
     private readonly string _uid;
+    private readonly string _nodeId=Guid.NewGuid().ToString("N");
+    private readonly ConcurrentDictionary<string,long> _sentTicks=new();
+    private readonly ConcurrentDictionary<string,int> _receiptCounts=new();
+    private int _phase=0;
+    private readonly Button _testAll=new(){Text="BẮT ĐẦU TEST TỰ ĐỘNG"};
+    private readonly Button _confirmSwitch=new(){Text="ĐÃ CHUYỂN MẠNG · TEST TIẾP"};
+    private static readonly string[] Phases={"PDA NORMAL / AGENT NORMAL", "PDA OFFICE / AGENT OFFICE", "PDA NORMAL / AGENT OFFICE", "PDA OFFICE / AGENT NORMAL", "AGENT A NORMAL / B NORMAL", "AGENT A OFFICE / B OFFICE", "AGENT A NORMAL / B OFFICE", "AGENT A OFFICE / B NORMAL"};
     private readonly string _logPath;
     private readonly TextBox _session = new() { Width = 320 };
     private readonly TextBox _payload = new() { Width = 300, Text = "1234" };
@@ -74,7 +83,19 @@ internal sealed class PeerForm : Form
         var info=new Label{Text="Agent này có Firebase role hợp lệ; chỉ EXE Test mới cập nhật lease mô phỏng.\nCùng một SID 32 hex dùng trên PDA và mọi PC.",Left=405,Top=181,Width=515,Height=52};
         Controls.Add(info);
         _output.SetBounds(16,246,909,345);_output.Anchor=AnchorStyles.Top|AnchorStyles.Bottom|AnchorStyles.Left|AnchorStyles.Right;Controls.Add(_output);
-        _session.Text=Guid.NewGuid().ToString("N");
+        _session.Text=AutomaticSessionId();
+        _session.ReadOnly=true;_session.Visible=false;_create.Visible=false;_join.Visible=false;
+        _kind.Visible=false;_send.Visible=false;_takeover.Visible=false;_payload.Visible=false;
+        _start.Visible=false;_stop.Visible=false;
+        _testAll.SetBounds(16,130,305,42);_confirmSwitch.SetBounds(335,130,335,42);
+        Controls.AddRange(new Control[]{_testAll,_confirmSwitch});
+        _confirmSwitch.Enabled=false;
+        _testAll.Click += async (_,_)=>await Run(StartAutomaticTests);
+        _confirmSwitch.Click += async (_,_)=>await Run(AdvancePhase);
+        info.Text="Tự ghép cặp sau đăng nhập. Giữ cả hai app mở. Chỉ đổi Wi-Fi theo hướng dẫn trên màn hình.";
+        info.SetBounds(16,181,900,50);
+        ShowNetworkPhase();
+
         _create.Click += async (_,_) => await Run( async()=>{await CreateSession(); await JoinSession(); StartPoll();});
         _join.Click += async (_,_) => await Run( async()=>{await JoinSession(); StartPoll();});
         _send.Click += async (_,_) => await Run(Send);
@@ -85,6 +106,79 @@ internal sealed class PeerForm : Form
         NetworkChange.NetworkAddressChanged += OnNetworkChanged;
         FormClosed += (_,_) => {NetworkChange.NetworkAddressChanged -= OnNetworkChanged;StopPoll();_closed.Cancel();_http.Dispose();_closed.Dispose();};
         Log("EXE_TEST_START","READY",new{uid=Fingerprint(_uid),file=Path.GetFileName(_logPath)});
+    }
+    private static string AutomaticSessionId()
+    {
+        var date=DateTimeOffset.UtcNow.AddHours(7).ToString("yyyyMMdd");
+        var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D169-AUTO-PAIR-V7|"+date));
+        return Convert.ToHexString(bytes)[..32].ToLowerInvariant();
+    }
+    private void ShowNetworkPhase()
+    {
+        var message=_phase<Phases.Length?Phases[_phase]:"ĐÃ HOÀN TẤT CÁC KỊCH BẢN";
+        Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
+        _confirmSwitch.Enabled=_phase<Phases.Length;
+        _testAll.Enabled=_phase==0;
+        MessageBox.Show("Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nChuyển mạng theo hướng dẫn, xác nhận trên mỗi máy rồi chạy Test.\nKhông cần nhập mã phiên.","SUPRA D169 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
+    }
+    private async Task StartAutomaticTests()
+    {
+        _testAll.Enabled=false;
+        await EnsureAutomaticSession();
+        StartPoll();
+        await TestPhase();
+        _phase=1;
+        ShowNetworkPhase();
+    }
+    private async Task AdvancePhase()
+    {
+        if(_phase>=Phases.Length)return;
+        var phase=Phases[_phase];
+        Log("NETWORK_SWITCH","OPERATOR_CONFIRMED",new{phase,epoch=Interlocked.Increment(ref _epoch)});
+        _mode.SelectedItem=phase.Contains("AGENT OFFICE")||phase.Contains("AGENT A OFFICE")?"OFFICE":"NORMAL";
+        await TestPhase();
+        _phase++;
+        ShowNetworkPhase();
+    }
+    private async Task EnsureAutomaticSession()
+    {
+        using var existing=await Http("GET",Url(),null,true);
+        if(existing==null){
+            try{await CreateSession();}catch(HttpRequestException e) when(e.Message=="HTTP_409"||e.Message=="HTTP_400"){}
+        }
+        await JoinSession();
+        Log("PAIRING","JOINED",new{node=_nodeId[..8],phase=_phase+1});
+    }
+    private async Task TestPhase()
+    {
+        var phase=Phases[_phase];
+        Log("PHASE","BEGIN",new{phase,expected_operator_network=phase,node=_nodeId[..8]});
+        var sent=new List<string>();
+        foreach(var type in new[]{"PING","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
+          sent.Add(await SendTest(type));
+        }
+        for(var t=0;t<30;t++){
+          if(sent.All(id=>_receiptCounts.TryGetValue(id,out var n)&&n>=1))break;
+          await Task.Delay(1000);
+        }
+        foreach(var id in sent){
+          _receiptCounts.TryGetValue(id,out var n);
+          Log("TEST_TERMINAL",n>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,peers=n,phase});
+        }
+        Log("PHASE","DONE",new{phase,passed=sent.Count(id=>_receiptCounts.TryGetValue(id,out var n)&&n>0),total=sent.Count});
+    }
+    private async Task<string> SendTest(string type)
+    {
+        var id=Guid.NewGuid().ToString("N");
+        var fields=new Dictionary<string,object>{
+          ["request_id"]=S(id),["sender_uid"]=S(_uid),["sender_node"]=S(_nodeId),["sender_role"]=S(_token.Role),
+          ["target_uid"]=S("ALL"),["kind"]=S(type),["payload"]=S("D169-SIM"),
+          ["expires_at"]=T(DateTimeOffset.UtcNow.AddMinutes(4))
+        };
+        _sentTicks[id]=Environment.TickCount64;
+        await CreateDoc("d169_diag_sessions/"+Sid()+"/messages/"+id,fields,"created_at");
+        Log("SIM_TEST","SERVER_ACCEPTED_NOT_ACK",new{request_id=id,type,phase=_phase+1});
+        return id;
     }
     private void OnNetworkChanged(object? sender,EventArgs e)
     {
@@ -167,7 +261,7 @@ internal sealed class PeerForm : Form
         var id=Sid();
         var fields=new Dictionary<string,object>{
           ["schema"]=S("D169_DIAG_V1"),["owner_uid"]=S(_uid),
-          ["expires_at"]=T(DateTimeOffset.UtcNow.AddHours(8)),
+          ["expires_at"]=T(DateTimeOffset.UtcNow.AddHours(24)),
           ["leader_uid"]=S(_uid),["leader_epoch"]=I(1),
           ["lease_until"]=T(DateTimeOffset.UtcNow.AddSeconds(40))
         };
@@ -190,7 +284,7 @@ internal sealed class PeerForm : Form
         var id=Guid.NewGuid().ToString("N");
         var type=_kind.Text;
         var fields=new Dictionary<string,object>{
-          ["request_id"]=S(id),["sender_uid"]=S(_uid),["sender_role"]=S(_token.Role),
+          ["request_id"]=S(id),["sender_uid"]=S(_uid),["sender_node"]=S(_nodeId),["sender_role"]=S(_token.Role),
           ["target_uid"]=S("ALL"),["kind"]=S(type),["payload"]=S(_payload.Text[..Math.Min(80,_payload.Text.Length)]),
           ["expires_at"]=T(DateTimeOffset.UtcNow.AddMinutes(4))
         };
@@ -252,13 +346,13 @@ internal sealed class PeerForm : Form
           var root=doc.RootElement;
           var from=GetString(root,"sender_uid");
           var to=GetString(root,"target_uid");
-          if(from==_uid || (to!="ALL" && to!=_uid))return;
+          if(GetString(root,"sender_node")==_nodeId || (to!="ALL" && to!=_uid))return;
           if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return;
           var kind=GetString(root,"kind");
           Log("RX_TEST_MESSAGE","RECEIVED",new{request_id=id,kind,epoch=_epoch});
-          var receiptId=id+"_"+_uid;
+          var receiptId=id+"_"+_uid+"_"+_nodeId;
           var fields=new Dictionary<string,object>{
-            ["request_id"]=S(id),["receiver_uid"]=S(_uid),["result"]=S("ACK"),
+            ["request_id"]=S(id),["receiver_uid"]=S(_uid),["receiver_node"]=S(_nodeId),["result"]=S("ACK"),
             ["elapsed_ms"]=I(0),["network_epoch"]=S("agent-"+_epoch)
           };
           try{await CreateDoc("d169_diag_sessions/"+Sid()+"/receipts/"+receiptId,fields,"created_at");
@@ -268,13 +362,16 @@ internal sealed class PeerForm : Form
           }
         });
         await PollCollection("receipts",id=>{
+          if(id.Length>=32){var requestId=id[..32];_receiptCounts.AddOrUpdate(requestId,1,(_,old)=>old+1);if(_sentTicks.TryGetValue(requestId,out var start))Log("RX_TEST_RECEIPT","ACK_CORRELATED",new{request_id=requestId,rtt_ms=Environment.TickCount64-start,epoch=_epoch});}
           Log("RX_TEST_RECEIPT","SEEN",new{receipt_id=id,epoch=_epoch});
           return Task.CompletedTask;
         });
     }
     private async Task PollCollection(string name,Func<string,Task> receive)
     {
-        using var doc=await Http("GET",Url("/"+name)+"?pageSize=100",null,true);
+        string? next=null;
+        do {
+        using var doc=await Http("GET",Url("/"+name)+"?pageSize=100"+(next==null?"":"&pageToken="+Uri.EscapeDataString(next)),null,true);
         if(doc==null)return;
         var root=doc.RootElement;
         if(!root.TryGetProperty("documents",out var list))return;
@@ -285,5 +382,7 @@ internal sealed class PeerForm : Form
           lock(_gate)if(!_seen.Add(name+":"+id))continue;
           await receive(id);
         }
+        next=root.TryGetProperty("nextPageToken",out var page)?page.GetString():null;
+        }while(!string.IsNullOrEmpty(next));
     }
 }
