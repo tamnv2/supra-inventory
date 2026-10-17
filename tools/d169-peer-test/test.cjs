@@ -11,6 +11,7 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
   const admin=env.authenticatedContext(adminId,{app_role:"ADMIN",app_base_role:"ADMIN",app_user_id:"admin_x",app_session_channel:"AGENT"}).firestore();
   const picker=env.authenticatedContext(pickerId,{app_role:"PICKER",app_user_id:"picker_x",app_session_generation:1,app_session_channel:"ANDROID"}).firestore();
   const stranger=env.authenticatedContext(strangerId,{app_role:"PICKER",app_user_id:"stranger_x",app_session_generation:1}).firestore();
+  const secondPicker=env.authenticatedContext("second_picker",{app_role:"PICKER",app_user_id:"picker_y",app_session_generation:1}).firestore();
   const unauth=env.unauthenticatedContext().firestore();
   const root=`d169_diag_sessions/${sid}`;
   const future=Timestamp.fromDate(new Date(Date.now()+60*60*1000));
@@ -19,6 +20,7 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
     await assertSucceeds(setDoc(doc(admin,root),{schema:"D169_DIAG_V1",owner_uid:adminId,created_at:serverTimestamp(),expires_at:future,leader_uid:adminId,leader_node:"a3".repeat(16),leader_epoch:1,lease_until:shortFuture}));
     await assertSucceeds(setDoc(doc(admin,`${root}/members/${adminId}`),{uid:adminId,role:"ADMIN",joined_at:serverTimestamp()}));
     await assertSucceeds(setDoc(doc(picker,`${root}/members/${pickerId}`),{uid:pickerId,role:"PICKER",joined_at:serverTimestamp()}));
+    await assertSucceeds(setDoc(doc(secondPicker,`${root}/members/second_picker`),{uid:"second_picker",role:"PICKER",joined_at:serverTimestamp()}));
     await assertFails(getDocs(collection(unauth,`${root}/messages`)));
     await assertFails(setDoc(doc(stranger,`${root}/members/${pickerId}`),{uid:pickerId,role:"PICKER",joined_at:serverTimestamp()}));
     await assertFails(setDoc(doc(picker,"relay_poc_coordination/primary_handoff"),{test:true}));
@@ -35,9 +37,9 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
       {...msg,request_id:"ee".repeat(16),sender_uid:adminId,expires_at:Timestamp.fromDate(new Date(Date.now()+60*1000))}));
     const ackId=msgid+"_"+adminId;
     await assertSucceeds(setDoc(doc(admin,`${root}/receipts/${ackId}`),
-      {request_id:msgid,receiver_uid:adminId,result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
+      {request_id:msgid,receiver_uid:adminId,receiver_role:"ADMIN",result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
     await assertFails(setDoc(doc(picker,`${root}/receipts/${msgid+"_"+pickerId}`),
-      {request_id:msgid,receiver_uid:pickerId,result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
+      {request_id:msgid,receiver_uid:pickerId,receiver_role:"PICKER",result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
     await assertSucceeds(updateDoc(doc(admin,root),{lease_until:Timestamp.fromDate(new Date(Date.now()+55*1000))}));
     await assertFails(updateDoc(doc(admin,root),{leader_node:"b4".repeat(16),leader_epoch:2,
       lease_until:Timestamp.fromDate(new Date(Date.now()+50*1000))}));
@@ -55,12 +57,24 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
       expires_at:Timestamp.fromDate(new Date(Date.now()+3*60*1000))
     }));
     await assertSucceeds(setDoc(doc(admin,`${root}/receipts/${sameUidMsg+"_"+adminId+"_"+nodeB}`),{
-      request_id:sameUidMsg,receiver_uid:adminId,receiver_node:nodeB,
+      request_id:sameUidMsg,receiver_uid:adminId,receiver_role:"ADMIN",receiver_node:nodeB,
       result:"ACK",created_at:serverTimestamp(),elapsed_ms:12,network_epoch:"agent-1"
     }));
     await assertFails(setDoc(doc(admin,`${root}/receipts/${sameUidMsg+"_"+adminId+"_"+nodeA}`),{
-      request_id:sameUidMsg,receiver_uid:adminId,receiver_node:nodeA,
+      request_id:sameUidMsg,receiver_uid:adminId,receiver_role:"ADMIN",receiver_node:nodeA,
       result:"ACK",created_at:serverTimestamp(),elapsed_ms:12,network_epoch:"agent-1"
+    }));
+    // An authenticated second Picker may not impersonate the Agent as the ACK receiver.
+    await assertFails(setDoc(doc(secondPicker,`${root}/receipts/${msgid}_second_picker`),{
+      request_id:msgid,receiver_uid:"second_picker",receiver_role:"PICKER",
+      result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"picker-2"
+    }));
+    // When Picker login generation is revoked, test traffic must also stop.
+    await env.withSecurityRulesDisabled(async context=> {
+      await setDoc(doc(context.firestore(),`picker_session_controls/${pickerId}`),{revoked_generation:1});
+    });
+    await assertFails(setDoc(doc(picker,`${root}/messages/${"bc".repeat(16)}`),{
+      ...msg,request_id:"bc".repeat(16),expires_at:Timestamp.fromDate(new Date(Date.now()+60*1000))
     }));
     await assertFails(setDoc(doc(unauth,`${root}/messages/${"dd".repeat(16)}`),{...msg}));
     console.log("D169_CANARY_RULES_EMULATOR_PASS: scoped authenticated peers + immutable messages + anti-spoof receipts + production isolation");
