@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E031",
+    "id": "D169-E032",
     "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -703,6 +703,25 @@
       ],
       "next_action": "Complete build fieldkit source CI, verify package and SHA, obtain explicit Owner field logs on dedicated Picker account and multiple Agent PCs; reconcile authorities and only then propose adaptive model.",
       "evidence": "Owner direct command, canonical android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt, RelayPocClient.kt, MainActivity.kt and relay-agent/Program.cs, draft PR #613 and independent Windows diagnostic PR #612."
+    },
+    {
+      "id": "D169-E032",
+      "date_vn": "2026-10-17",
+      "kind": "TEST",
+      "topic": "D169 independent real-protocol diagnostic V5 built: authenticated Windows Agent observer and Picker APK",
+      "owner_approval": false,
+      "status": "V5_WINDOWS_AND_ANDROID_BUILD_CI_PASS__REAL_FIELD_TEST_PENDING__DRAFT_PR612_PR613__STABLE_UNTOUCHED",
+      "facts": [
+        "Standalone Windows Admin/PICKPACK_ADMIN diagnostic EXE built via GitHub Actions run 39029035889 success, includes local live Agent log mirror, no HA lease claim or WMS mutation.",
+        "Independent Android diagnostic applicationId cd.cc.supra.inventory.d169diagnostic compiles the canonical Android Beta client source; Picker login /api/auth/login, actual RelayPocClient.sendProbe, Agent terminal ACK and runtime local journal/Drive-backed log chunks via /api/logs/upload. GitHub Actions 39028653662 success.",
+        "APK file SHA256 9d9ac7dd83079ea9f269260e5f0bd02b1b4170e32b9001f07a7a0d1d8ae5a277; Windows EXE sha256 730653d69f00a637868eafd53865295c60e0b6e7b0b33586ceca328b8689e84f.",
+        "All artifact builds are code/CI verification only; real PDA Android, Office/NORMAL network, actual WMS test Picklist and mixed primary/standby field run are not yet evidenced.",
+        "To exercise business chat/call/kick, use actual running Agent and Picker UI while EXE copies fresh Agent log; diagnostic EXE never impersonates the Agent PRIMARY or sends a server revoke.",
+        "Distinct Android debug applicationId means FCM background behavior is not proved until real device registration and delivery testing; avoid asserting notification FIELD PASS.",
+        "No new Firebase Rules, Worker, WMS, existing stable/production Agent or Android software changed; public GitHub contains source/spec/evidence only, never tokens or raw user data."
+      ],
+      "next_action": "Owner performs one complete field-matrix run with at least 2 actual Agent PCs and dedicated Picker PDA/account and WMS-authorized test Picklists; collect Windows/Desktop JSON+Agent logs and PDA Drive receipts/local JSON for terminal evidence. Keep PRs Draft until Owner acceptance and continuity gate.",
+      "evidence": "D169_REAL_FIELDKIT_V5_2026-10-17.md; draft PR #612 #613; Actions 39029035889 and 39028653662 technical PASS; artifact hashes verified in conversation."
     }
   ],
   "resume": {
