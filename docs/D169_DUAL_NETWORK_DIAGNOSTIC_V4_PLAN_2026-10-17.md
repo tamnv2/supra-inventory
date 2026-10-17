@@ -32,3 +32,13 @@ Owner asks for a **separate** Windows EXE and separate PDA APK, not an Agent or 
 
 ## Status
 **PARTIAL_TOOLING_ONLY — no signed APK / no production end-to-end proof.** D169 remains open; Stable untouched.
+
+
+## Build receipt: standalone PDA APK V4.1 (2026-10-17)
+- Separate Android source lives under `tools/d169-network-diag-android/` in D169 Draft PR #613. Package `cd.cc.supra.diagnostic`, minSdk 26, target/compile SDK 35, Android debug signing only.
+- GitHub Actions D169 Standalone PDA Diagnostic APK run **39011653423** completed **SUCCESS**, including Gradle `:app:assembleDebug`, APK file existence verification, and uploaded artifact `SUPRA-PDA-Network-Diagnostic-V4` (artifact ID **12092769356**).
+- Extracted `app-debug.apk` size **16,965 bytes**; SHA256 `7e0b01bc35c96938500bbbc3dd5afe4380aa86f0948d681d96a7b1249b9ca3b2`. Distributed as a conversation artifact `SUPRA_PDA_Network_Diagnostic_V4_1.apk`.
+- Baseline app supports unauthenticated DNS/HTTPS checks and optional Firebase email-password authentication (private user-supplied API key, credentials remain transient in app RAM) for authenticated Firestore REST, RTDB REST and RTDB SSE first-frame checks. It writes a sanitized correlated JSON report through Android system document picker.
+- **NOT IMPLEMENTED:** bidirectional canary peer request/ACK, real Firestore gRPC listener, actual FCM delivery, mixed Agent/PRIMARY HA takeover, user-device FIELD PASS. Must not label this a complete Agent–PDA/full-network validation kit.
+- No changes to production inventory/Picklist/Agent Android apps, WMS, Firebase Rules, Beta deployment channels or Stable. Agent EXE V4.1 and Android APK are standalone tools only.
+- At this head, standalone APK build CI PASS does not override authority/continuity CI failure `PR pointer mismatch` because the auxiliary diagnostic branch journal conflicts with active D169 PR #606; **PR #613 remains Draft/unmerged, without authority PASS**. Reconcile this explicitly before any PR merge, not by weakening CI or falsely stating PASS.
