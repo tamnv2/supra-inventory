@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const assert = require("node:assert/strict");
 const {initializeTestEnvironment,assertSucceeds,assertFails}=require("@firebase/rules-unit-testing");
-const {doc,setDoc,getDoc,collection,getDocs,serverTimestamp,Timestamp}=require("firebase/firestore");
+const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}=require("firebase/firestore");
 
 (async()=>{
   const rules=fs.readFileSync("firebase/firestore.rules","utf8");
@@ -16,7 +16,7 @@ const {doc,setDoc,getDoc,collection,getDocs,serverTimestamp,Timestamp}=require("
   const future=Timestamp.fromDate(new Date(Date.now()+60*60*1000));
   const shortFuture=Timestamp.fromDate(new Date(Date.now()+30*1000));
   try{
-    await assertSucceeds(setDoc(doc(admin,root),{schema:"D169_DIAG_V1",owner_uid:adminId,created_at:serverTimestamp(),expires_at:future,leader_uid:adminId,leader_epoch:1,lease_until:shortFuture}));
+    await assertSucceeds(setDoc(doc(admin,root),{schema:"D169_DIAG_V1",owner_uid:adminId,created_at:serverTimestamp(),expires_at:future,leader_uid:adminId,leader_node:"a3".repeat(16),leader_epoch:1,lease_until:shortFuture}));
     await assertSucceeds(setDoc(doc(admin,`${root}/members/${adminId}`),{uid:adminId,role:"ADMIN",joined_at:serverTimestamp()}));
     await assertSucceeds(setDoc(doc(picker,`${root}/members/${pickerId}`),{uid:pickerId,role:"PICKER",joined_at:serverTimestamp()}));
     await assertFails(getDocs(collection(unauth,`${root}/messages`)));
@@ -38,6 +38,14 @@ const {doc,setDoc,getDoc,collection,getDocs,serverTimestamp,Timestamp}=require("
       {request_id:msgid,receiver_uid:adminId,result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
     await assertFails(setDoc(doc(picker,`${root}/receipts/${msgid+"_"+pickerId}`),
       {request_id:msgid,receiver_uid:pickerId,result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
+    await assertSucceeds(updateDoc(doc(admin,root),{lease_until:Timestamp.fromDate(new Date(Date.now()+55*1000))}));
+    await assertFails(updateDoc(doc(admin,root),{leader_node:"b4".repeat(16),leader_epoch:2,
+      lease_until:Timestamp.fromDate(new Date(Date.now()+50*1000))}));
+    await env.withSecurityRulesDisabled(async context=> {
+      await updateDoc(doc(context.firestore(),root),{lease_until:Timestamp.fromDate(new Date(Date.now()-1000))});
+    });
+    await assertSucceeds(updateDoc(doc(admin,root),{leader_node:"b4".repeat(16),leader_epoch:2,
+      lease_until:Timestamp.fromDate(new Date(Date.now()+35*1000))}));
     // Two Test Agent instances signed in under the same Admin account must still
     // exchange simulated messages via unique node identities, not a production HA lease.
     const nodeA="a3".repeat(16),nodeB="b4".repeat(16),sameUidMsg="a5".repeat(16);
