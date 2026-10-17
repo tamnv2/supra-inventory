@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E035",
+    "id": "D169-E036",
     "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -775,6 +775,22 @@
       ],
       "next_action": "Wait for end-to-end emulator security PASS and all PR required checks; repair CI failures before Beta Rules deployment. Provide verified V6 artifacts only as test candidates, capture Owner logs then perform separately approved cleanup.",
       "evidence": "Test-only files tools/d169-fieldkit-android, tools/d169-peer-windows, firebase/firestore.rules, tools/d169-peer-test; workflow jobs and downloaded artifacts SHA from conversation."
+    },
+    {
+      "id": "D169-E036",
+      "date_vn": "2026-10-17",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Live PR613 exact-head V6 Agent/PDA test build and Firestore Rules emulator check verified",
+      "status": "V6_18_OF_18_PR_WORKFLOWS_PASS__WIN_EXE_AND_ANDROID_APK_ARTIFACTS_READY__MAIN_RULES_ABSENT__BETA_FIELD_PENDING",
+      "facts": [
+        "At PR613 exact head 6e793a606d30b08a75cd0d66829eb62e98980dbf on 2026-10-17 around 19:36 VN, GitHub reported 18/18 pull-request workflow conclusions SUCCESS, including Repo Authority Guard, Project State Guard, Direct Test Agent Windows EXE, Android Fieldkit APK and D169 Firestore Rules emulator security test.",
+        "Windows direct-peer TEST EXE artifact 12100792474 from run 39033100181 and Android direct-peer fieldkit APK artifact 12101485166 from run 39033100144 were produced successfully, both expiring 2026-10-31. Build and emulator PASS are not physical two-device peer/Office field PASS.",
+        "PR613 remains OPEN DRAFT and unmerged. Readback of main firebase/firestore.rules and ops/project-scope.json confirms neither D169 temporary test namespace rule nor registry entry has been promoted to main. No Beta Firestore Rules deployment or real session/data creation is evidenced.",
+        "Manual scoped Beta Rules workflow exists but is restricted to refs/heads/main and explicit Owner confirmation. Do not treat PR emulator PASS as Beta Rules installation. Stable/production Picklist/WMS/real HA remain untouched by PR613."
+      ],
+      "next_action": "Keep PR613 Draft until authorized controlled merge/deploy path is reconciled and security/authority rechecked. Then deploy Owner-approved scoped Beta Rules with readback, test APK Picker ↔ EXE Agent A/B in NORMAL/OFFICE/mixed environments, inspect correlated request and receipt IDs plus local/Drive log acknowledgements, and only after logs are archived delete test sessions and remove temporary Rules via reviewed cleanup. No claim of field PASS or cleanup yet.",
+      "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/613 head 6e793a6; GitHub Actions runs 39033100181 (artifact 12100792474), 39033100144 (12101485166), 39033100070 (emulator), 18 PR runs exact SHA; main/branch firebase/firestore.rules and ops/project-scope.json readback."
     }
   ],
   "resume": {
@@ -794,7 +810,8 @@
       "D169-E025 v134 source PR608 candidate 0e51a15e 18/18 CI PASS, protected release receipt locks tested code and Beta worker+agent same source; waiting receipt CI/merge and runtime evidence.",
       "D169-E026 Agent v134 GitHub prerelease and inventory-channel Beta OTA published; Worker Beta same-source health PASS; source and authority gates PASS; v132 direct update path available.",
       "D169-E028 v135 WinForms 2-row toolbar/tab panel hotfix, actual Windows geometry smoke and 18/18 PR source CI PASS; scoped NOT PASS repair Beta receipt locked to candidate 7d6c2d5.",
-      "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release."
+      "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release.",
+      "D169-E036 PR613 V6 exact-head 18/18 source CI PASS, Windows EXE and Android APK artifact produced; emulator Rules PASS. No deployed test Rules or physical end-to-end PASS."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -823,7 +840,8 @@
       "Owner physical Agent v132->v134 on secondary, WMS tab display/hidden/login, Confirm, SKU, v132/v134 HA and PDA vc110 field proof remains pending.",
       "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending.",
       "Final PR610 receipt/authority+continuity checks and release verification still pending; v134 remains published but Owner NOT PASS.",
-      "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending."
+      "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending.",
+      "D169 direct-peer V6 field gate: PR613 remains Draft; scoped temporary Firestore Beta Rules absent from main/deploy; authenticated field device and mixed-network evidence pending."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -867,7 +885,8 @@
       "Record Owner second Agent v132 update, verify actual WebView2 tab visibility and Confirm/SKU/failover; if NOT PASS repair D169 and publish approved hotfix, not Stable.",
       "Verify PR610 full Windows GUI tab-geometry smoke and Authority PASS, then bounded hotfix release path only if existing D169 approval/receipt allows corrective v135; test on secondary.",
       "Verify v135 source SHA receipt CI, merge only after PASS, read Worker Beta same-SHA health and Agent v135 prerelease plus channel manifest, field-validate on secondary.",
-      "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS."
+      "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS.",
+      "D169-E036: verify controlled Beta Rules publication gate and manual main-only workflow capability; collect real PDA↔Test Agent A↔Test Agent B ACK/HA/logs before declaring FIELD PASS; approved temporary data must be deleted only after evidence archived."
     ],
     "release_boundary": "D169_AGENT_V135_BETA_NOT_PASS_REPAIR_PUBLISHED__FIELD_OWNER_PENDING__ANDROID_PR606_DRAFT_UNRELEASED__STABLE_OWNER_GATED"
   }
