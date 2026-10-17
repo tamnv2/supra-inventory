@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E032",
+    "id": "D169-E033",
     "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -722,6 +722,23 @@
       ],
       "next_action": "Owner performs one complete field-matrix run with at least 2 actual Agent PCs and dedicated Picker PDA/account and WMS-authorized test Picklists; collect Windows/Desktop JSON+Agent logs and PDA Drive receipts/local JSON for terminal evidence. Keep PRs Draft until Owner acceptance and continuity gate.",
       "evidence": "D169_REAL_FIELDKIT_V5_2026-10-17.md; draft PR #612 #613; Actions 39029035889 and 39028653662 technical PASS; artifact hashes verified in conversation."
+    },
+    {
+      "id": "D169-E033",
+      "date_vn": "2026-10-17",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner correction: diagnostics must directly exchange Picker↔Test Agent A/B messages, not PDA↔production Agent and EXE↔network/log",
+      "owner_approval": true,
+      "status": "DIRECT_DIAGNOSTIC_PAIR_DESIGN_SAVED__ISOLATED_FIRESTORE_CANARY_RULES_NOT_AUTHORIZED_OR_DEPLOYED__NO_NEW_FUNCTIONAL_PAIR_RELEASE__OWNER_FIELD_PENDING",
+      "facts": [
+        "Owner flags V5 design error: APK currently uses the production RelayPocClient and targets actual Agent/WMS, while EXE only tests endpoints and mirrors Agent logs. The pair therefore cannot prove their own Agent/PDA data-plane or mixed HA mechanics.",
+        "Existing Firestore Rules permit Picker create only actual business relay_poc_jobs and forbid Picker access to Agent coordination documents; Office RTDB authenticated REST/SSE was HTTP 403. A new isolated authenticated diagnostic namespace/rules is necessary before safe direct bidirectional exchanges across NORMAL and Office.",
+        "Correct topology: diagnostic Android Picker ⇄ diagnostic Windows Agent A ⇄ diagnostic Windows Agent B, all via shared capability-proven carrier (Firestore Beta for mixed, optional RTDB only for all-NORMAL); independent immutable request/receipt IDs, retry/deadlines/network epoch, simulated primary fencing/lease, and correlated logs.",
+        "Must not let test apps modify production Picklist/WMS/PRIMARY/session/call/chat/kick resources, and must not widen Firebase rules before scoped Owner impact authorization. Code design, not usable direct-test binary or field-pass confirmation.",
+        "New D169 direct-peer design: docs/D169_DIRECT_PEER_NETWORK_TEST_DESIGN_2026-10-17.md. Prior V5 compiled artifacts remain limited to their actual roles and are NOT the requested independent pair."
+      ],
+      "next_action": "Present impact review for adding a safe allowlisted D169 canary namespace to existing Beta Firestore with registrations and security/CI gates. After Owner approves Beta Rules deployment, implement both direct peer clients, run field matrix, then qualify ack/HA/failover by real logs. Stable unchanged.",
+      "evidence": "Owner message in chat on 2026-10-17; GitHub canonical firebase/firestore.rules and ops/project-scope.json; docs/D169_DIRECT_PEER_NETWORK_TEST_DESIGN_2026-10-17.md."
     }
   ],
   "resume": {
