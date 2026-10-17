@@ -161,8 +161,8 @@ service cloud.firestore {
       }
       allow create: if isAgentOperator()
         && sid.matches('^[a-f0-9]{32}$')
-        && request.resource.data.keys().hasOnly(['schema','owner_uid','created_at','expires_at','leader_uid','leader_epoch','lease_until'])
-        && request.resource.data.keys().hasAll(['schema','owner_uid','created_at','expires_at','leader_uid','leader_epoch','lease_until'])
+        && request.resource.data.keys().hasOnly(['schema','owner_uid','created_at','expires_at','leader_uid','leader_node','leader_epoch','lease_until'])
+        && request.resource.data.keys().hasAll(['schema','owner_uid','created_at','expires_at','leader_uid','leader_node','leader_epoch','lease_until'])
         && request.resource.data.schema == 'D169_DIAG_V1'
         && request.resource.data.owner_uid == request.auth.uid
         && request.resource.data.created_at == request.time
@@ -170,6 +170,8 @@ service cloud.firestore {
         && request.resource.data.expires_at > request.time
         && request.resource.data.expires_at <= request.time + duration.value(48, 'h')
         && request.resource.data.leader_uid == request.auth.uid
+        && request.resource.data.leader_node is string
+        && request.resource.data.leader_node.matches('^[a-f0-9]{32}$')
         && request.resource.data.leader_epoch == 1
         && request.resource.data.lease_until is timestamp
         && request.resource.data.lease_until > request.time
@@ -179,13 +181,23 @@ service cloud.firestore {
       allow list, delete: if false;
       allow update: if isAgentOperator() && d169Member()
         && resource.data.expires_at > request.time
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leader_uid','leader_epoch','lease_until'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leader_uid','leader_node','leader_epoch','lease_until'])
         && request.resource.data.leader_uid == request.auth.uid
-        && request.resource.data.leader_epoch == resource.data.leader_epoch + 1
-        && (resource.data.lease_until <= request.time || resource.data.leader_uid == request.auth.uid)
+        && request.resource.data.leader_node is string
+        && request.resource.data.leader_node.matches('^[a-f0-9]{32}$')
         && request.resource.data.lease_until is timestamp
         && request.resource.data.lease_until > request.time
-        && request.resource.data.lease_until <= request.time + duration.value(60, 's');
+        && request.resource.data.lease_until <= request.time + duration.value(60, 's')
+        && (
+          (resource.data.leader_node == request.resource.data.leader_node
+            && resource.data.leader_uid == request.auth.uid
+            && request.resource.data.leader_epoch == resource.data.leader_epoch
+            && request.resource.data.lease_until > resource.data.lease_until)
+          ||
+          (resource.data.lease_until <= request.time
+            && resource.data.leader_node != request.resource.data.leader_node
+            && request.resource.data.leader_epoch == resource.data.leader_epoch + 1)
+        );
 
       match /members/{memberUid} {
         allow create: if d169SessionExists()
