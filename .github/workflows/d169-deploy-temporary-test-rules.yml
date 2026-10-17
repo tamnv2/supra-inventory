@@ -1,8 +1,8 @@
 name: D169 Owner-Authorized Temporary Beta Firestore Rules
 on:
-  push:
+  pull_request:
     branches:
-      - test/d169-dual-network-diagnostic-v4-20261017
+      - main
     paths:
       - 'firebase/firestore.rules'
       - 'tools/d169-peer-test/**'
@@ -51,12 +51,12 @@ jobs:
           firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
   scoped-d169-rules:
     needs: rules-security-gate
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/test/d169-dual-network-diagnostic-v4-20261017') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    if: (github.event_name == 'pull_request' && github.head_ref == 'test/d169-dual-network-diagnostic-v4-20261017' && github.event.pull_request.head.repo.full_name == 'tamnv2/supra-inventory') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 20
     env:
-      OWNER_CONFIRMATION: ${{ github.event_name == 'push' && 'OWNER_EXPLICIT_D169_20261017_TEMP_BETA_FIRESTORE' || inputs.confirmation }}
+      OWNER_CONFIRMATION: ${{ github.event_name == 'pull_request' && github.head_ref == 'test/d169-dual-network-diagnostic-v4-20261017' && 'OWNER_EXPLICIT_D169_20261017_TEMP_BETA_FIRESTORE' || inputs.confirmation }}
       FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
     steps:
       - uses: actions/checkout@v4
