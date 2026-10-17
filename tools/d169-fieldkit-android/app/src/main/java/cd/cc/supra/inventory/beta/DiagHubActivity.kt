@@ -1,118 +1,217 @@
 package cd.cc.supra.inventory.beta
+
 import android.app.Activity
-import android.app.AlertDialog
 import android.os.Bundle
-import android.content.Intent
+import android.os.SystemClock
 import android.widget.*
+import android.text.InputType
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.SystemClock
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.*
 import org.json.JSONObject
 import java.time.Instant
+import java.util.Date
 import java.util.UUID
-class DiagHubActivity : Activity() {
- private lateinit var trace:DiagTimeline
- private lateinit var sid:EditText
- private lateinit var net:EditText
- private lateinit var pick:EditText
- private lateinit var out:TextView
- private var busy=false
- private fun field(root:LinearLayout,label:String,value:String):EditText {
-   TextView(this).also{it.text=label;root.addView(it)}
-   return EditText(this).also{it.setSingleLine(true);it.setText(value);root.addView(it)}
- }
- private fun btn(root:LinearLayout,s:String,action:()->Unit){Button(this).also{it.text=s;it.setOnClickListener{action()};root.addView(it)}}
- private fun note(s:String){runOnUiThread {out.text=(s+"\n"+out.text.toString()).take(4000)}}
- private fun netMode():String {val cm=getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-  val n=cm.getNetworkCapabilities(cm.activeNetwork)?:return "NO_NETWORK"
-  return if(n.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))"WIFI" else if(n.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))"CELLULAR" else "OTHER"
- }
- override fun onCreate(saved:Bundle?){super.onCreate(saved);trace=DiagTimeline(this)
-  val scroll=ScrollView(this);val panel=LinearLayout(this);panel.orientation=1;panel.setPadding(24,20,24,20);scroll.addView(panel)
-  TextView(this).also{it.text="SUPRA D169 — TEST PICKER ⇄ AGENT";it.textSize=20f;panel.addView(it)}
-  TextView(this).also{it.text="Dùng đúng nghiệp vụ thật. Chỉ gửi mã Picklist thử nghiệm được phép; Agent chính có thể thực hiện WMS thực.";panel.addView(it)}
-  sid=field(panel,"Mã đợt (trùng với EXE) ",trace.id());net=field(panel,"Nhãn mạng (NORMAL / OFFICE) ",trace.label())
-  btn(panel,"Bắt đầu / chuyển mạng") {
-   val a=sid.text.toString().trim();val b=net.text.toString().trim()
-   if(!a.matches(Regex("[A-Za-z0-9_-]{3,48}")) || !b.matches(Regex("[A-Za-z0-9_-]{3,48}"))){note("Nhãn không hợp lệ")}else{
-    trace.configure(a,b);trace.event("NETWORK_EPOCH","START",netMode());note("Đã đặt mã "+a+" trên mạng "+b)
-   }
-  }
-  btn(panel,"Đăng nhập Picker / xem gọi về, chat, kick") {trace.event("PICKER_APP","OPEN");startActivity(Intent(this,MainActivity::class.java))}
-  pick=field(panel,"Nhập 3–20 chữ số cuối Picklist thật","")
-  btn(panel,"Gửi Picklist thật và chờ kết quả Agent") {
-   val code=pick.text.toString().trim()
-   if(!code.matches(Regex("[0-9]{3,20}"))){note("Mã Picklist chỉ gồm 3–20 chữ số");return@btn}
-   AlertDialog.Builder(this).setTitle("Kiểm tra nghiệp vụ THẬT").setMessage("Yêu cầu này được gửi đến Agent PRIMARY thật, có thể kích hoạt WMS. Chỉ thử mã được phép.")
-    .setNegativeButton("Huỷ",null).setPositiveButton("Gửi") {_,_->sendPicklist(code)}.show()
-  }
-  btn(panel,"Xuất log trực tiếp lên Google Drive") {upload()}
-  btn(panel,"Chia sẻ JSON dự phòng") {val intent=Intent(Intent.ACTION_SEND).setType("application/json")
-      .putExtra(Intent.EXTRA_TEXT,trace.report().toString(2));startActivity(Intent.createChooser(intent,"Chia sẻ log D169"))}
-  out=TextView(this);out.text="Hãy đăng nhập Picker trong cửa sổ App thực, sau đó quay lại giao diện này.";out.setTextIsSelectable(true)
-  panel.addView(out);setContentView(scroll)
- }
- private fun api():InventoryApi {
-  val session=InteractiveSessionStore.load(this)?:throw IllegalStateException("PICKER_LOGIN_REQUIRED")
-  val a=InventoryApi(BuildConfig.API_BASE_URL,"SUPRA-D169-DIAG/"+BuildConfig.VERSION_NAME,
-    onSessionChanged={ next->InteractiveSessionStore.save(this,next) })
-  a.restoreSession(session);return a
- }
- private fun ensureFirebase(){
-  if(FirebaseApp.getApps(this).isNotEmpty())return
-  if(BuildConfig.FIREBASE_API_KEY.isEmpty())throw IllegalStateException("MISSING_FIREBASE_CONFIG")
-  val options=FirebaseOptions.Builder().setApiKey(BuildConfig.FIREBASE_API_KEY)
-    .setProjectId(BuildConfig.FIREBASE_PROJECT_ID).setApplicationId(BuildConfig.FIREBASE_APP_ID)
-    .setGcmSenderId(BuildConfig.FIREBASE_MESSAGING_SENDER_ID).build()
-  FirebaseApp.initializeApp(this,options)
- }
- private fun sendPicklist(code:String){
-  if(busy){note("Đang kiểm tra request trước");return}
-  busy=true
-  val operation=UUID.randomUUID().toString()
-  trace.event("PICKLIST_SEND","START","test_id="+operation+" length="+code.length)
-  Thread {
-    val t=SystemClock.elapsedRealtime()
-    try{
-      val a=api();ensureFirebase()
-      val relay=RelayPocClient(this,a,log={trace.event("RELAY_LOG","EVENT",it)},onProgress={trace.event("PICKLIST_PROGRESS","EVENT",it);note(it)})
-      try{
-        val result=relay.sendProbe(code)
-        val ms=SystemClock.elapsedRealtime()-t
-        trace.event("PICKLIST_ACK","TERMINAL","request="+result.requestId+" agent="+result.agentId.take(36)+" network="+result.agentNetwork.take(32)+" status="+result.lookupStatus+" elapsed_ms="+ms+" lookup_ms="+result.lookupMs)
-        note("Kết quả: "+result.lookupStatus+" | Agent: "+result.agentId+" | "+ms+"ms")
-      }finally{relay.close()}
-    }catch(e:Exception){trace.event("PICKLIST_ACK","ERROR",e.javaClass.simpleName+" elapsed_ms="+(SystemClock.elapsedRealtime()-t));note("Lỗi chờ ACK: "+e.javaClass.simpleName)}
-    finally{runOnUiThread{busy=false}}
-  }.start()
- }
- private fun upload(){
-  if(busy){note("Đợi kết thúc nghiệp vụ trước khi xuất log");return}
-  busy=true;trace.event("LOG_UPLOAD","START",netMode())
-  Thread {
-   try{
-    val a=api()
-    val chunks=trace.uploadParts(20)
-    var driveSynced=0
-    var deferred=0
-    for(index in chunks.indices){
-      val part=chunks[index]
-      val key="D169_"+trace.id()+"_"+part.optString("group","LOG")+"_"+part.optInt("chunk",index+1)
-      val response=a.uploadRuntimeLog("INFO","manual_android_log",Instant.now().toString(),
-        JSONObject().put("platform","ANDROID").put("package",BuildConfig.APPLICATION_ID),
-        part,bundleId=key,boundaryId="D169_DIAGNOSTIC",traceId=trace.id())
-      val status=response.optString("archive_status","UNKNOWN")
-      if(status=="DRIVE_SYNCED")driveSynced++ else deferred++
-      note("Lô "+(index+1)+"/"+chunks.size+": "+status)
-    }
-    trace.event("LOG_UPLOAD","COMPLETE","drive_synced="+driveSynced+" deferred="+deferred+" total="+chunks.size)
-    note(if(deferred==0)"ĐÃ LƯU ĐỦ "+driveSynced+" LÔ TRÊN GOOGLE DRIVE" else "Đã gửi "+chunks.size+" lô; "+deferred+" lô CHƯA XÁC NHẬN Drive. Không xoá log cục bộ.")
-   }catch(e:Exception){trace.event("LOG_UPLOAD","ERROR",e.javaClass.simpleName)
-     note("Gửi log chưa hoàn tất: "+e.javaClass.simpleName+"; dùng Chia sẻ JSON hoặc gửi lại")}
-   finally{runOnUiThread{busy=false}}
-  }.start()
- }
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
+// D169 isolated test client. NEVER creates relay_poc_jobs or production calls.
+class DiagHubActivity : Activity() {
+  private lateinit var journal:DiagTimeline
+  private lateinit var sidField:EditText
+  private lateinit var userField:EditText
+  private lateinit var passwordField:EditText
+  private lateinit var networkField:EditText
+  private lateinit var payloadField:EditText
+  private lateinit var output:TextView
+  private lateinit var api:InventoryApi
+  private val worker=Executors.newSingleThreadExecutor()
+  private var auth:FirebaseAuth?=null
+  private var db:FirebaseFirestore?=null
+  private var sessionRef:DocumentReference?=null
+  private var messages:ListenerRegistration?=null
+  private var receipts:ListenerRegistration?=null
+  private val seen=HashSet<String>()
+  private var epoch=1
+  private val kinds=arrayOf("PING","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM")
+  private lateinit var kind:Spinner
+
+  override fun onCreate(saved:Bundle?) {
+    super.onCreate(saved)
+    journal=DiagTimeline(this)
+    val scroll=ScrollView(this)
+    val root=LinearLayout(this).also{it.orientation=1;it.setPadding(24,20,24,25);scroll.addView(it)}
+    TextView(this).also{it.text="SUPRA D169 · PDA TEST ⇄ AGENT TEST";it.textSize=20f;root.addView(it)}
+    TextView(this).also{it.text="Kênh mô phỏng riêng, KHÔNG gửi Picklist/WMS thật. Mỗi request cần ACK từ EXE Test.";root.addView(it)}
+    userField=field(root,"Tài khoản PICKER thử nghiệm","")
+    passwordField=field(root,"Mật khẩu Picker (không lưu)","")
+    passwordField.inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+    btn(root,"1 · Đăng nhập Picker") {doLogin()}
+    sidField=field(root,"Mã phiên 32 ký tự do EXE Test A tạo","")
+    networkField=field(root,"Nhãn mạng","NORMAL")
+    btn(root,"2 · Tham gia phiên Test") {join()}
+    kind=Spinner(this);kind.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,kinds);root.addView(kind)
+    payloadField=field(root,"Cụm mã thử nghiệm (KHÔNG phải số Picklist thật)","1234")
+    btn(root,"3 · Gửi thông điệp tới EXE Test") {send()}
+    btn(root,"Chuyển epoch mạng") {epoch++;journal.event("PDA_NETWORK_EPOCH","CHANGE","epoch="+epoch+" transport="+transport());notice("Epoch "+epoch)}
+    btn(root,"4 · Gửi log lên Drive") {upload()}
+    btn(root,"Chia sẻ log JSON nếu Drive lỗi") {
+      val intent=android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+        type="text/plain"
+        putExtra(android.content.Intent.EXTRA_TEXT,journal.report().toString(2))
+      }
+      startActivity(android.content.Intent.createChooser(intent,"Xuất log D169"))
+    }
+    output=TextView(this);output.text="Chưa đăng nhập Picker.";output.setTextIsSelectable(true);root.addView(output)
+    setContentView(scroll)
+  }
+  private fun field(root:LinearLayout,title:String,value:String):EditText {
+    TextView(this).also{it.text=title;root.addView(it)}
+    return EditText(this).also{it.setSingleLine(true);it.setText(value);root.addView(it)}
+  }
+  private fun btn(root:LinearLayout,label:String,cb:()->Unit){Button(this).also{it.text=label;it.setOnClickListener{cb()};root.addView(it)}}
+  private fun notice(s:String){runOnUiThread{output.text=(s+"\n"+output.text.toString()).take(3500)}}
+  private fun net():String=networkField.text.toString().trim().ifBlank{"NORMAL"}.take(30)
+  private fun transport():String {
+    val cm=getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+    val cap=cm.getNetworkCapabilities(cm.activeNetwork)
+    return if(cap?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)==true) "WIFI"
+      else if(cap?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)==true) "CELLULAR" else "UNKNOWN"
+  }
+  private fun configureFirebase() {
+    if(FirebaseApp.getApps(this).isEmpty()) {
+      val o=FirebaseOptions.Builder().setApiKey(BuildConfig.FIREBASE_API_KEY)
+        .setProjectId(BuildConfig.FIREBASE_PROJECT_ID).setApplicationId(BuildConfig.FIREBASE_APP_ID)
+        .setGcmSenderId(BuildConfig.FIREBASE_MESSAGING_SENDER_ID).build()
+      FirebaseApp.initializeApp(this,o)
+    }
+    if(db==null) {
+      val instance=FirebaseFirestore.getInstance()
+      instance.firestoreSettings=FirebaseFirestoreSettings.Builder().setPersistenceEnabled(false).build()
+      db=instance
+    }
+    auth=FirebaseAuth.getInstance()
+  }
+  private fun device():String {
+    val prefs=getSharedPreferences("d169_device",MODE_PRIVATE)
+    return prefs.getString("id",null) ?: UUID.randomUUID().toString().also{prefs.edit().putString("id",it).apply()}
+  }
+  private fun doLogin(){
+    val username=userField.text.toString().trim()
+    val password=passwordField.text.toString();passwordField.text.clear()
+    if(username.isEmpty()||password.isEmpty()){notice("Cần tài khoản và mật khẩu Picker.");return}
+    worker.execute {
+      try {
+        configureFirebase()
+        val next=InventoryApi(BuildConfig.API_BASE_URL.trimEnd('/'),"D169-PDA-TEST/1",{})
+        val s=next.login(username,password,"android:"+device())
+        if(s.role!="PICKER")throw IllegalStateException("NOT_PICKER")
+        val custom=s.relayCustomToken ?: throw IllegalStateException("NO_FIREBASE_CUSTOM_TOKEN")
+        Tasks.await(auth!!.signInWithCustomToken(custom),15,TimeUnit.SECONDS)
+        api=next
+        journal.event("PICKER_AUTH","PASS","role=PICKER firebase_uid_present")
+        notice("Picker đăng nhập thành công. Nhập mã phiên từ EXE A.")
+      }catch(e:Exception){journal.event("PICKER_AUTH","ERROR",e.javaClass.simpleName);notice("Đăng nhập lỗi: "+e.javaClass.simpleName)}
+    }
+  }
+  private fun join(){
+    val sid=sidField.text.toString().trim().lowercase()
+    if(!sid.matches(Regex("[a-f0-9]{32}"))){notice("Mã phiên phải đúng 32 ký tự.");return}
+    worker.execute {
+      try {
+        if(!::api.isInitialized)throw IllegalStateException("LOGIN_REQUIRED")
+        val uid=auth?.currentUser?.uid ?: throw IllegalStateException("FIREBASE_AUTH_MISSING")
+        val root=db!!.collection("d169_diag_sessions").document(sid)
+        val data=Tasks.await(root.get(Source.SERVER),12,TimeUnit.SECONDS)
+        if(!data.exists())throw IllegalStateException("SESSION_NOT_CREATED")
+        if((data.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())
+          throw IllegalStateException("SESSION_EXPIRED")
+        val member=mapOf("uid" to uid,"role" to "PICKER","joined_at" to FieldValue.serverTimestamp())
+        val self=root.collection("members").document(uid)
+        if(!Tasks.await(self.get(Source.SERVER),12,TimeUnit.SECONDS).exists())
+          Tasks.await(self.set(member),12,TimeUnit.SECONDS)
+        sessionRef=root
+        journal.configure(sid,net());journal.event("DIAG_JOIN","PASS","uid_present epoch="+epoch)
+        startListeners(root,uid)
+        notice("Đã kết nối EXE Test qua Firestore Beta. Mã phiên: "+sid)
+      }catch(e:Exception){journal.event("DIAG_JOIN","ERROR",e.javaClass.simpleName);notice("Không tham gia được: "+e.javaClass.simpleName)}
+    }
+  }
+  private fun startListeners(root:DocumentReference,uid:String) {
+    messages?.remove();receipts?.remove();seen.clear()
+    messages=root.collection("messages").addSnapshotListener(MetadataChanges.INCLUDE){snap,error->
+      if(error!=null){journal.event("RX_LISTEN","ERROR",error.javaClass.simpleName);return@addSnapshotListener}
+      for(ch in snap?.documentChanges.orEmpty()){
+        val d=ch.document
+        if(d.getString("sender_uid")==uid || d.getString("target_uid") !in listOf("ALL",uid))continue
+        if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
+        if(!seen.add("msg:"+d.id))continue
+        val type=d.getString("kind").orEmpty()
+        journal.event("RX_FROM_AGENT","RECEIVED","request="+d.id+" kind="+type+" epoch="+epoch)
+        worker.execute{ack(root,d.id,uid)}
+      }
+    }
+    receipts=root.collection("receipts").addSnapshotListener{snap,error->
+      if(error!=null){journal.event("ACK_LISTEN","ERROR",error.javaClass.simpleName);return@addSnapshotListener}
+      for(ch in snap?.documentChanges.orEmpty()){
+        val d=ch.document
+        if(!seen.add("ack:"+d.id))continue
+        val request=d.getString("request_id").orEmpty()
+        journal.event("ACK_FROM_AGENT",d.getString("result").orEmpty(),"request="+request+" receiver="+d.getString("receiver_uid").orEmpty()+" epoch="+epoch)
+        notice("EXE đã phản hồi: "+request.take(8)+" · "+d.getString("result"))
+      }
+    }
+  }
+  private fun ack(root:DocumentReference,request:String,uid:String) {
+    try {
+      val data=mapOf("request_id" to request,"receiver_uid" to uid,"result" to "ACK",
+        "created_at" to FieldValue.serverTimestamp(),"elapsed_ms" to 0,"network_epoch" to ("pda-"+epoch))
+      Tasks.await(root.collection("receipts").document(request+"_"+uid).set(data),12,TimeUnit.SECONDS)
+      journal.event("ACK_TO_AGENT","PASS","request="+request)
+    }catch(e:Exception){journal.event("ACK_TO_AGENT","ERROR",e.javaClass.simpleName)}
+  }
+  private fun send() {
+    val kindValue=kind.selectedItem?.toString().orEmpty()
+    val payload=payloadField.text.toString().take(80)
+    val root=sessionRef
+    if(root==null){notice("Hãy tham gia phiên test trước.");return}
+    worker.execute {
+      try {
+        val uid=auth!!.currentUser!!.uid
+        val req=UUID.randomUUID().toString().replace("-","")
+        val map=mapOf("request_id" to req,"sender_uid" to uid,"sender_role" to "PICKER",
+          "target_uid" to "ALL","kind" to kindValue,"payload" to payload,
+          "created_at" to FieldValue.serverTimestamp(),"expires_at" to com.google.firebase.Timestamp(Date(System.currentTimeMillis()+240000)))
+        val start=SystemClock.elapsedRealtime()
+        Tasks.await(root.collection("messages").document(req).set(map),12,TimeUnit.SECONDS)
+        journal.event("PDA_SEND","SERVER_ACCEPTED","id="+req+" kind="+kindValue+" create_ms="+(SystemClock.elapsedRealtime()-start)+" epoch="+epoch)
+        notice("Gửi "+kindValue+": "+req.take(10)+" (đợi EXE ACK, HTTP success chưa phải ACK)")
+      }catch(e:Exception){journal.event("PDA_SEND","ERROR",e.javaClass.simpleName);notice("Gửi lỗi: "+e.javaClass.simpleName)}
+    }
+  }
+  private fun upload(){
+    worker.execute {
+      try {
+        if(!::api.isInitialized)throw IllegalStateException("LOGIN_REQUIRED")
+        journal.event("LOG_UPLOAD","START")
+        val chunks=journal.uploadParts(18)
+        var synced=0
+        for(i in chunks.indices) {
+          val chunk=chunks[i]
+          val response=api.uploadRuntimeLog("INFO","manual_android_log",Instant.now().toString(),
+            JSONObject().put("platform","ANDROID").put("package",BuildConfig.APPLICATION_ID),
+            chunk,bundleId="D169-"+journal.id()+"-"+chunk.optString("group")+"-"+chunk.optInt("chunk"),
+            boundaryId="D169_DIAG",traceId=journal.id())
+          if(response.optString("archive_status")=="DRIVE_SYNCED")synced++
+        }
+        journal.event("LOG_UPLOAD","DONE","synced="+synced+"/"+chunks.size)
+        notice("Drive xác nhận "+synced+"/"+chunks.size+" phần; log chưa xác nhận vẫn nằm trên PDA.")
+      }catch(e:Exception){journal.event("LOG_UPLOAD","ERROR",e.javaClass.simpleName);notice("Drive chưa xác nhận: "+e.javaClass.simpleName+"; chia sẻ JSON dự phòng")}
+    }
+  }
+  override fun onDestroy(){messages?.remove();receipts?.remove();worker.shutdownNow();super.onDestroy()}
 }
