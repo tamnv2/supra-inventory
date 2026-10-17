@@ -190,7 +190,7 @@ internal sealed class PeerForm : Form
         var id=Guid.NewGuid().ToString("N");
         var fields=new Dictionary<string,object>{
           ["request_id"]=S(id),["sender_uid"]=S(_uid),["sender_node"]=S(_nodeId),["sender_role"]=S(_token.Role),
-          ["target_uid"]=S("ALL"),["kind"]=S(type),["payload"]=S("D169-SIM"),
+          ["target_uid"]=S("ALL"),["kind"]=S(type),["payload"]=S("D169-SIM-P"+_phase),
           ["expires_at"]=T(DateTimeOffset.UtcNow.AddMinutes(4))
         };
         _sentTicks[id]=Environment.TickCount64;
@@ -366,6 +366,7 @@ internal sealed class PeerForm : Form
           var to=GetString(root,"target_uid");
           if(GetString(root,"sender_node")==_nodeId || (to!="ALL" && to!=_uid))return;
           if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return;
+          if(GetString(root,"payload")!="D169-SIM-P"+_phase){Log("RX_TEST_MESSAGE","PHASE_MISMATCH",new{request_id=id,local_phase=_phase});return;}
           var kind=GetString(root,"kind");
           Log("RX_TEST_MESSAGE","RECEIVED",new{request_id=id,kind,epoch=_epoch});
           var receiptId=id+"_"+_uid+"_"+_nodeId;
