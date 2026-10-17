@@ -28,6 +28,8 @@ internal sealed class PeerForm : Form
     private readonly string _uid;
     private readonly string _nodeId=Guid.NewGuid().ToString("N");
     private readonly ConcurrentDictionary<string,long> _sentTicks=new();
+    private readonly ConcurrentDictionary<string,string> _sentExpected=new();
+    private int _picklistSequence;
     private readonly ConcurrentDictionary<string,int> _receiptCounts=new();
     private int _phase=0;
     private string _agentLabel="?";
@@ -185,7 +187,7 @@ internal sealed class PeerForm : Form
         var phase=Phases[_phase];
         Log("PHASE","BEGIN",new{phase,expected_operator_network=phase,node=_nodeId[..8]});
         var sent=new List<string>();
-        foreach(var type in new[]{"PING","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
+        foreach(var type in new[]{"PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
           sent.Add(await SendTest(type));
         }
         for(var t=0;t<30;t++){
@@ -230,14 +232,17 @@ internal sealed class PeerForm : Form
     private async Task<string> SendTest(string type)
     {
         var id=Guid.NewGuid().ToString("N");
+        var simulatedPayload="D169-SIM-P"+_phase+
+            (type=="PICKLIST_SIM" ? ((Interlocked.Increment(ref _picklistSequence)%2)==0?"|1234":"|123"):"");
+        _sentExpected[id]=simulatedPayload;
         var fields=new Dictionary<string,object>{
           ["request_id"]=S(id),["sender_uid"]=S(_uid),["sender_node"]=S(_nodeId),["sender_role"]=S(_token.Role),
-          ["target_uid"]=S("ALL"),["kind"]=S(type),["payload"]=S("D169-SIM-P"+_phase),
+          ["target_uid"]=S("ALL"),["kind"]=S(type),["payload"]=S(simulatedPayload),
           ["expires_at"]=T(DateTimeOffset.UtcNow.AddMinutes(4))
         };
         _sentTicks[id]=Environment.TickCount64;
         await CreateDoc("d169_diag_sessions/"+Sid()+"/messages/"+id,fields,"created_at");
-        Log("SIM_TEST","SERVER_ACCEPTED_NOT_ACK",new{request_id=id,type,phase=_phase+1});
+        Log("SIM_TEST","SERVER_ACCEPTED_NOT_ACK",new{request_id=id,type,phase=_phase+1,synthetic_payload=simulatedPayload});
         return id;
     }
     private void OnNetworkChanged(object? sender,EventArgs e)
@@ -447,12 +452,20 @@ internal sealed class PeerForm : Form
           var to=GetString(root,"target_uid");
           if(GetString(root,"sender_node")==_nodeId || (to!="ALL" && to!=_uid))return true;
           if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return true;
-          if(GetString(root,"payload")!="D169-SIM-P"+_phase){Log("RX_TEST_MESSAGE","PHASE_MISMATCH_RETRY_LATER",new{request_id=id,local_phase=_phase});return false;}
           var kind=GetString(root,"kind");
+          var incomingPayload=GetString(root,"payload");
+          var expectedPrefix="D169-SIM-P"+_phase;
+          var validPayload=kind=="PICKLIST_SIM"
+            ? Regex.IsMatch(incomingPayload,"^"+Regex.Escape(expectedPrefix)+@"\|[0-9]{3,4}$")
+            : incomingPayload==expectedPrefix;
+          if(!validPayload) {
+            Log("RX_TEST_MESSAGE","PHASE_MISMATCH_RETRY_LATER",new{request_id=id,local_phase=_phase});
+            return false;
+          }
           Log("RX_TEST_MESSAGE","RECEIVED",new{request_id=id,kind,epoch=_epoch});
           var receiptId=id+"_"+_uid+"_"+_nodeId;
           var fields=new Dictionary<string,object>{
-            ["request_id"]=S(id),["receiver_uid"]=S(_uid),["receiver_role"]=S(_token.Role),["receiver_node"]=S(_nodeId),["result"]=S("ACK"),
+            ["request_id"]=S(id),["receiver_uid"]=S(_uid),["receiver_role"]=S(_token.Role),["receiver_node"]=S(_nodeId),["payload_echo"]=S(incomingPayload),["result"]=S("ACK"),
             ["elapsed_ms"]=I(0),["network_epoch"]=S("agent-"+_epoch)
           };
           try{await CreateDoc("d169_diag_sessions/"+Sid()+"/receipts/"+receiptId,fields,"created_at");
@@ -469,6 +482,11 @@ internal sealed class PeerForm : Form
           var receiverUid=GetString(receipt.RootElement,"receiver_uid");
           var receiverNode=GetString(receipt.RootElement,"receiver_node");
           if(requestId.Length!=32||receiverNode==_nodeId)return true;
+          if(!_sentExpected.TryGetValue(requestId,out var expected))return true;
+          if(GetString(receipt.RootElement,"payload_echo")!=expected){
+            Log("RX_TEST_RECEIPT","PAYLOAD_ECHO_MISMATCH",new{request_id=requestId});
+            return true;
+          }
           var role=await MemberRole(receiverUid);
           if(role=="PICKER")_pdaAcks.AddOrUpdate(requestId,1,(_,old)=>old+1);
           else if(role=="ADMIN"||role=="PICKPACK_ADMIN")_agentAcks.AddOrUpdate(requestId,1,(_,old)=>old+1);
