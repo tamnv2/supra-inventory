@@ -7,8 +7,8 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E021",
-    "date_vn": "2026-10-16"
+    "id": "D169-E022",
+    "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
   "entries": [
@@ -508,6 +508,35 @@
       ],
       "next_action": "Present Agent-only vc110 compatibility and embedded Web Confirm tab options/risks. Await explicit Owner design approval before changing browser source; await a separate unambiguous Agent Beta release authorization before merge/publish. Validate physical WMS and PDA interoperability before FIELD PASS.",
       "evidence": "GitHub D169 PR #606 head 370ac31817d7074ca55fa2152389f0a8da8a73fb, Agent D167SkuCoordinator.cs, Program.cs BuildProfessionalLayout/ToggleSupraBrowserVisibility, SupraConfirmBrowser.cs StartOwnedWebView2NoLock, relay-agent-webview2-host/Program.cs BrowserForm/HandleNewWindowRequested, source CI at head; no physical device proof."
+    },
+    {
+      "id": "D169-E022",
+      "date_vn": "2026-10-17",
+      "kind": "OWNER_APPROVED_STANDALONE_DIAGNOSTIC_BUILD",
+      "topic": "Owner 17 Oct field Office/NORMAL logs reveal unauthenticated Firebase probes; build independent Windows diagnostic v3 with one Agent login for sequential dual-network measurements",
+      "status": "LOCAL_EXE_CROSS_COMPILED__GO_UNIT_AND_LOCAL_HTTP_SMOKE_PASS__WINDOWS_FIELD_AUTH_OFFICE_PASS_PENDING__NO_AGENT_PDA_RUNTIME_MUTATION",
+      "owner_approval": true,
+      "facts": [
+        "Owner supplied 17 Oct 2026 NORMAL and OFFICE v1 JSON logs. Both have AgentAuthenticated=false and login result UNAVAILABLE_BUILD_API_KEY; Internet shows RTDB/Firestore/Worker direct HTTP reachability, Office Firestore REST reachable via system proxy but RTDB direct failed and Office RTDB proxy HTTP 403 unclassified; neither document proves authenticated reads, listener delivery or peer write/ACK.",
+        "Owner explicitly orders another executable build: launch opens Agent login, login success gates test, credentials entered only once, NORMAL then OFFICE switching in same running process without re-login, full captured read-only service/network evidence for optimizing cross-network Agent/PDA design.",
+        "Implemented independent local Go 1.23 Windows x64 GUI subsystem EXE v3.0.0 with localhost browser UI, gated ADMIN/PICKPACK_ADMIN Firebase claims for normal password login and admin/tamnv2 Worker privileged login, memory-only refresh token, attempted refresh when Firebase Web API key is configured, scoped read-only DNS/TCP/TLS/direct HTTPS/Windows system-proxy/Firestore authenticated REST/RTDB authenticated REST + initial SSE framing, service reachability and safe response classifier.",
+        "Windows proxy resolution uses Windows/.NET GetSystemWebProxy invoked via local PowerShell with explicit NOT_RESOLVED_DIRECT_FALLBACK instead of falsely claiming proxy. Export each NORMAL/OFFICE run as separate Desktop JSON; never export credentials, tokens, API key, proxy address, Wi-Fi name, MAC or IP. Wi-Fi SSID is represented solely by per-process salted non-reversible fingerprint to compare the two runs.",
+        "Build artifact SUPRA_Network_Diagnostic_v3.exe (Windows PE32+ x86-64, approximately 6.2 MiB) created in conversation working container; full source and package ZIP are conversation artifacts, NOT checked into public repo nor GitHub release. Build tested via Go test PASS (four tests); local HTTP UI smoke PASS and HTTP 401 prior to login PASS.",
+        "Firebase Beta Web API Key is injected only if supplied at build through -X main.firebaseAPIKey or provided at login in advanced UI; current local EXE has no pre-injected Firebase API key. Privileged admin/tamnv2 uses Worker route on internet NORMAL without key; normal ADMIN/PICKPACK_ADMIN password login and automatic token refresh require configured Beta Web API Key. Never claim universal zero-configuration login.",
+        "Read-only scope: the EXE does not claim Agent Firestore session, acquire HA/Primary, perform WMS operations, create Firestore/RTDB documents, or send FCM. Firestore gRPC Listen, live PDA FCM, isolated write/ACK and actual billable provider usage remain explicitly NOT_TESTED."
+      ],
+      "alternatives": [
+        "PREFERRED_SAFE: standalone read-only field diagnostic on NORMAL then OFFICE while same login session remains in memory; compare per-service transport and auth outcomes before touching live model.",
+        "FOLLOW_UP_IF_NEEDED: isolated canary with separately reviewed Rules/test PDA to measure gRPC listeners, peer ACK, write latency and provider billing under both networks.",
+        "DO_NOT: alter existing relay Agent, PDA, Firestore rules, HA leadership or Beta/Stable deployment merely from HTTP status readings."
+      ],
+      "open_questions": [
+        "Owner field-test executable on Windows and supply both v3 JSON files; establish actual Office proxy parsing, login success and actual Firebase policy outcomes.",
+        "For accounts other than admin/tamnv2, provide Beta Web API Key via approved CI injection or private one-time UI input to avoid previous UNAVAILABLE_BUILD_API_KEY.",
+        "Separate authorization and isolated test resources needed for production-equivalent write/event-to-event ACK and Firestore gRPC listen proof."
+      ],
+      "next_action": "Collect two v3 field reports. Diagnose differences including system-proxy path. Do not represent local cross-compilation as Windows field PASS. No Agent/PDA/Web/Worker release or scope changes from this checkpoint.",
+      "evidence": "Current main and working PR606 repo bootstrap; relay-agent/Program.cs FirebasePasswordLoginDirect and D165PrivilegedAuth.cs; firebase/database.rules.json and firebase/firestore.rules; two Owner-uploaded v1 reports; Go 1.23 go test PASS and Windows x64 PE compiled locally; local HTTP GET and unauthenticated POST blocked with 401."
     }
   ],
   "resume": {
@@ -541,7 +570,8 @@
       "D169-E017: standalone Windows cross-compiled network tester built outside repo and not released as Agent; 42 public endpoints x2, field reachability comparison pending.",
       "D169-E018: 16 Oct dual-network v1 field probe evaluated. Office direct TCP only five Google API hosts; proxy-aware Agent equivalence not covered; no candidate proven free/realtime/HA safe.",
       "D169-E020: standalone Firebase Office Windows x64 EXE v2 built/tested; proxy-aware field evidence still pending. No provider or runtime change.",
-      "D169-E021 Owner asks Agent-only release compatibility for PDA vc110 and an embedded resizable WMS Confirm tab; source confirms the Agent code-only delta is local SKU retry and embedded Web is a separate UI/host redesign proposal, not built."
+      "D169-E021 Owner asks Agent-only release compatibility for PDA vc110 and an embedded resizable WMS Confirm tab; source confirms the Agent code-only delta is local SKU retry and embedded Web is a separate UI/host redesign proposal, not built.",
+      "D169-E022 diagnostic Windows x64 EXE v3.0.0 compiled in conversation artifacts only; authenticated Windows Office/NORMAL field evidence pending; no Agent/PDA/runtime changes."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -574,7 +604,8 @@
       "D169-E018: Owner review proxy-aware read-only v2 test proposal; no resource creation or Agent/PDA runtime change. Report original field results remain private.",
       "D169-E019: propose capability-based HA transport shared by responsible peers; reject SSID-only PRIMARY routing for mixed network; measure RTDB bandwidth and field ACK/failover before code permission.",
       "Owner run v2 Office and optionally Internet comparison; evaluate direct/default/system Windows proxy results and authenticated-safe follow-up only under separate approvals.",
-      "For D169-E021 test single managed WMS WebView2 viewport tab with popup/opener/focus/DPI/minimize/persistent profile/hidden SKU export plus confirm/ACK/HA regression and reversible Agent fallback before any field release."
+      "For D169-E021 test single managed WMS WebView2 viewport tab with popup/opener/focus/DPI/minimize/persistent profile/hidden SKU export plus confirm/ACK/HA regression and reversible Agent fallback before any field release.",
+      "D169-E022: compare Owner's authenticated read-only v3 NORMAL/OFFICE JSON exports, distinguish Windows proxy from Firebase Rules; do not infer Firestore gRPC Listen/write/FCM from REST GET."
     ],
     "release_boundary": "WEB_WORKER_BETA_DEPLOYED_AND_CI_VERIFIED__ANDROID_AGENT_CODE_ONLY_PR606_DRAFT_UNMERGED__STABLE_OWNER_GATED"
   }
