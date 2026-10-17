@@ -177,6 +177,7 @@ internal sealed class PeerForm : Form
             await Task.Delay(2000);
         }
         Log("AUTO_PAIR","PICKER_NOT_SEEN",new{wait_seconds=60});
+        throw new InvalidOperationException("Chưa phát hiện PDA Test đăng nhập cùng phiên; không thể xác nhận kết nối.");
     }
     private async Task TestPhase()
     {
@@ -225,7 +226,8 @@ internal sealed class PeerForm : Form
     private async Task Run(Func<Task> action)
     {
         if(_busy)return;_busy=true;
-        try{await action();}catch(Exception e){Log("ACTION","ERROR",new{type=e.GetType().Name});}
+        try{await action();}catch(Exception e){Log("ACTION","ERROR",new{type=e.GetType().Name,description=e.Message});
+          if(!IsDisposed){MessageBox.Show("Kiểm thử dừng: "+e.Message,"SUPRA D169",MessageBoxButtons.OK,MessageBoxIcon.Warning);_testAll.Enabled=_phase==0;}}
         finally{_busy=false;}
     }
     private string Sid()
@@ -408,13 +410,13 @@ internal sealed class PeerForm : Form
         await MaintainSimulatedLeader();
         await PollCollection("messages",async id=>{
           using var doc=await Http("GET",Url("/messages/"+id));
-          if(doc==null)return;
+          if(doc==null)return true;
           var root=doc.RootElement;
           var from=GetString(root,"sender_uid");
           var to=GetString(root,"target_uid");
-          if(GetString(root,"sender_node")==_nodeId || (to!="ALL" && to!=_uid))return;
-          if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return;
-          if(GetString(root,"payload")!="D169-SIM-P"+_phase){Log("RX_TEST_MESSAGE","PHASE_MISMATCH",new{request_id=id,local_phase=_phase});return;}
+          if(GetString(root,"sender_node")==_nodeId || (to!="ALL" && to!=_uid))return true;
+          if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return true;
+          if(GetString(root,"payload")!="D169-SIM-P"+_phase){Log("RX_TEST_MESSAGE","PHASE_MISMATCH_RETRY_LATER",new{request_id=id,local_phase=_phase});return false;}
           var kind=GetString(root,"kind");
           Log("RX_TEST_MESSAGE","RECEIVED",new{request_id=id,kind,epoch=_epoch});
           var receiptId=id+"_"+_uid+"_"+_nodeId;
@@ -427,19 +429,21 @@ internal sealed class PeerForm : Form
           }catch(HttpRequestException e)when(e.Message=="HTTP_409"||e.Message=="HTTP_400"){
             Log("TX_TEST_ACK","DUPLICATE_OR_RULES_REJECT",new{request_id=id,code=e.Message});
           }
+          return true;
         });
         await PollCollection("receipts",async id=>{
           using var receipt=await Http("GET",Url("/receipts/"+id));
-          if(receipt==null)return;
+          if(receipt==null)return true;
           var requestId=GetString(receipt.RootElement,"request_id");
           var receiverUid=GetString(receipt.RootElement,"receiver_uid");
           var receiverNode=GetString(receipt.RootElement,"receiver_node");
-          if(requestId.Length!=32||receiverNode==_nodeId)return;
+          if(requestId.Length!=32||receiverNode==_nodeId)return true;
           var role=await MemberRole(receiverUid);
           if(role=="PICKER")_pdaAcks.AddOrUpdate(requestId,1,(_,old)=>old+1);
           else if(role=="ADMIN"||role=="PICKPACK_ADMIN")_agentAcks.AddOrUpdate(requestId,1,(_,old)=>old+1);
           if(_sentTicks.TryGetValue(requestId,out var start))
             Log("RX_TEST_RECEIPT","ACK_CORRELATED",new{request_id=requestId,rtt_ms=Environment.TickCount64-start,role,epoch=_epoch});
+          return true;
         });
     }
     private async Task<string> MemberRole(string uid)
@@ -451,7 +455,7 @@ internal sealed class PeerForm : Form
         if(role=="PICKER"||role=="ADMIN"||role=="PICKPACK_ADMIN")_roles[uid]=role;
         return role;
     }
-    private async Task PollCollection(string name,Func<string,Task> receive)
+    private async Task PollCollection(string name,Func<string,Task<bool>> receive)
     {
         string? next=null;
         do {
@@ -464,8 +468,9 @@ internal sealed class PeerForm : Form
           var id=nm.GetString()?.Split('/').LastOrDefault()??"";
           if(id.Length==0)continue;
           lock(_gate)if(_seen.Contains(name+":"+id))continue;
-          await receive(id);
-          lock(_gate)_seen.Add(name+":"+id);
+          if(await receive(id)) {
+            lock(_gate)_seen.Add(name+":"+id);
+          }
         }
         next=root.TryGetProperty("nextPageToken",out var page)?page.GetString():null;
         }while(!string.IsNullOrEmpty(next));
