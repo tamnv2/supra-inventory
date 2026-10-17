@@ -20,9 +20,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
-      - uses: android-actions/setup-android@v3
-      - name: Install SDK 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Use hosted Android SDK 35
+        run: |
+          test -n "$ANDROID_HOME"
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
       - name: Build separate diagnostic APK
         run: gradle -p tools/d169-network-diag-android --no-daemon :app:assembleDebug
       - name: Verify output
