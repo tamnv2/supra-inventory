@@ -25,7 +25,13 @@ internal static class Entry
     private static void Main()
     {
         ApplicationConfiguration.Initialize();
-        Application.Run(new DiagnosticForm());
+        // D169 independent TEST process: login once, then the peer test window.
+        using var login = new LoginDialog();
+        if (login.ShowDialog() != DialogResult.OK) return;
+        var report = new DiagnosticReport();
+        var session = DiagnosticForm.TryLoginAsync(login.Login, login.Password, report).GetAwaiter().GetResult();
+        if (session == null) { MessageBox.Show("Không đăng nhập được Agent Admin/Pick Pack Admin.", "D169 Test"); return; }
+        Application.Run(new PeerForm(session));
     }
 }
 
