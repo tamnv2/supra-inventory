@@ -78,7 +78,7 @@ class DiagHubActivity : Activity() {
       }
       startActivity(android.content.Intent.createChooser(intent,"Xuất log D169"))
     }
-    output=TextView(this);output.text="Đăng nhập Picker rồi bấm BẮT ĐẦU TEST trên cả PDA và EXE.";;output.setTextIsSelectable(true);root.addView(output)
+    output=TextView(this);output.text="Đăng nhập Picker rồi bấm BẮT ĐẦU TEST trên cả PDA và EXE.";output.setTextIsSelectable(true);root.addView(output)
     setContentView(scroll)
   }
   private fun field(root:LinearLayout,title:String,value:String):EditText {
@@ -105,9 +105,9 @@ class DiagHubActivity : Activity() {
           networkField.post{networkField.setText(if(phases[phase].contains("PDA OFFICE")) "OFFICE" else "NORMAL")}
         }else{
           if(started){notice("Đang có phiên Test. Chọn ĐÃ CHUYỂN MẠNG để tiếp tục.");return@execute}
-          started=true
         }
         val root=ensureAutoJoined()
+        started=true
         val sent=ArrayList<String>()
         journal.event("AUTO_PHASE","START","scenario="+phases[phase]+" epoch="+epoch+" transport="+transport())
         for(type in kinds){
