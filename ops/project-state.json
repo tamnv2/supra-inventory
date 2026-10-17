@@ -8152,5 +8152,27 @@
     },
     "field_gate": "REQUIRES_ACTUAL_PDA_PICKER_AND_TWO_AGENT_MIXED_NORMAL_OFFICE_WMS_TEST_PICKLIST_ACK_SESSION_FCM_AND_FAILOVER_EVIDENCE",
     "release_gate": "NO_PRODUCTION_AGENT_ANDROID_WORKER_RULES_STABLE_CHANGE"
+  },
+  "d169_temporary_direct_peer": {
+    "status": "OWNER_APPROVED_TEMP_BETA_COLLECTION__V6_ANDROID_WINDOWS_BUILD_SUCCESS__FIRESTORE_RULES_EMULATOR_SECURITY_PENDING__NOT_DEPLOYED__FIELD_OWNER_PENDING",
+    "change_id": "D169",
+    "owner_permission": "2026-10-17",
+    "resource_scope_key": "d169-diagnostic-firestore-beta",
+    "firestore_namespace": "d169_diag_sessions",
+    "android_test_package": "cd.cc.supra.inventory.d169diagnostic",
+    "windows_exe": "SUPRA.D169.PeerDiagnostic.exe",
+    "carrier": "FIRESTORE_BETA_REST_WINDOWS__FIRESTORE_SDK_ANDROID__NO_PRODUCTION_JOB",
+    "primary": "SIMULATED_SESSION_LEADER_CAS_ONLY",
+    "ci": {
+      "windows": 39032045935,
+      "android": 39032045963,
+      "rules_emulator": "PENDING",
+      "repo_authority": "LAST_SUCCESS_HEAD_f993d5ab",
+      "project_state": "LAST_SUCCESS_HEAD_f993d5ab"
+    },
+    "field_pass": false,
+    "owner_pass": false,
+    "cleanup_gate": "Only after Owner confirms logs archived: manual per-session wipe, verify parent 404, remove Rules via reviewed follow-up PR, then status RETIRED",
+    "stable": "UNTOUCHED"
   }
 }
