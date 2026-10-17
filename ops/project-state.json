@@ -8128,5 +8128,29 @@
       "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135",
       "exe_asset_size": 7425536
     }
+  },
+  "d169_fieldkit": {
+    "status": "D169_REAL_PROTOCOL_DIAGNOSTIC_V5_CODE_AND_BUILD_PASS__FIELD_OWNER_PENDING__DRAFT_UNMERGED",
+    "owner_decision": "D169-E031",
+    "evidence_checkpoint": "D169-E032",
+    "artifact_android": {
+      "pr": 613,
+      "workflow_run": 39028653662,
+      "package_id": "cd.cc.supra.inventory.d169diagnostic",
+      "sha256": "9d9ac7dd83079ea9f269260e5f0bd02b1b4170e32b9001f07a7a0d1d8ae5a277",
+      "app_backend_login": "PICKER_REAL_WORKER_LOGIN",
+      "picklist_client": "EXISTING_RELAY_POC_REAL_JOB_ACK",
+      "log_export": "EXISTING_LOG_UPLOAD_ARCHIVE_STATUS_DRIVE_SYNCED_ONLY"
+    },
+    "artifact_windows": {
+      "pr": 612,
+      "workflow_run": 39029035889,
+      "sha256": "730653d69f00a637868eafd53865295c60e0b6e7b0b33586ceca328b8689e84f",
+      "account_login": "EXISTING_AGENT_ADMIN_OR_PICKPACK_ADMIN",
+      "export": "DESKTOP_JSON_TXT_AND_LIVE_EXISTING_AGENT_LOG_MIRROR",
+      "ha_mutation": false
+    },
+    "field_gate": "REQUIRES_ACTUAL_PDA_PICKER_AND_TWO_AGENT_MIXED_NORMAL_OFFICE_WMS_TEST_PICKLIST_ACK_SESSION_FCM_AND_FAILOVER_EVIDENCE",
+    "release_gate": "NO_PRODUCTION_AGENT_ANDROID_WORKER_RULES_STABLE_CHANGE"
   }
 }
