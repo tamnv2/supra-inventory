@@ -57,6 +57,7 @@ internal sealed class PeerForm : Form
     private int _epoch = 1;
     private int _writeCount;
     private int _readCount;
+    private DateTimeOffset _suspendLeaderUntil=DateTimeOffset.MinValue;
     private bool _busy;
 
     internal PeerForm(AgentTokens token)
@@ -196,6 +197,35 @@ internal sealed class PeerForm : Form
           Log("TEST_TERMINAL",n>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,matching_role_receipts=n,required_role=_phase<4?"PICKER":"AGENT",phase});
         }
         Log("PHASE","DONE",new{phase,passed=sent.Count(id=>(_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n)&&n>0),total=sent.Count});
+        if(_phase>=4)await VerifyAutomaticLeaderFailover();
+    }
+    private async Task VerifyAutomaticLeaderFailover()
+    {
+        // The current simulated PRIMARY suppresses only its test lease renewal.
+        // The second EXE must stay running and take over within 20 seconds.
+        using var before=await Http("GET",Url());
+        if(before==null)throw new InvalidOperationException("MISSING_TEST_SESSION");
+        var oldNode=GetString(before.RootElement,"leader_node");
+        var oldEpoch=long.TryParse(GetString(before.RootElement,"leader_epoch"),out var e)?e:0;
+        if(oldNode!=_nodeId){
+            Log("FAILOVER_SUITE","STANDBY_MONITOR",new{phase=_phase,leader=oldNode[..Math.Min(8,oldNode.Length)],generation=oldEpoch});
+            return;
+        }
+        _suspendLeaderUntil=DateTimeOffset.UtcNow.AddSeconds(22);
+        Log("FAILOVER_SUITE","PRIMARY_HEARTBEAT_PAUSED",new{phase=_phase,generation=oldEpoch,limit_ms=20000});
+        var started=Environment.TickCount64;
+        while(Environment.TickCount64-started<20000){
+            await Task.Delay(1000);
+            using var current=await Http("GET",Url());
+            if(current==null)continue;
+            var newNode=GetString(current.RootElement,"leader_node");
+            var newEpoch=long.TryParse(GetString(current.RootElement,"leader_epoch"),out var n)?n:0;
+            if(newNode!=_nodeId && newEpoch==oldEpoch+1) {
+                Log("FAILOVER_SUITE","PASS",new{phase=_phase,new_epoch=newEpoch,elapsed_ms=Environment.TickCount64-started});
+                return;
+            }
+        }
+        Log("FAILOVER_SUITE","TIMEOUT_NO_OTHER_AGENT_TAKEOVER",new{phase=_phase,generation=oldEpoch});
     }
     private async Task<string> SendTest(string type)
     {
@@ -294,7 +324,7 @@ internal sealed class PeerForm : Form
           ["schema"]=S("D169_DIAG_V1"),["owner_uid"]=S(_uid),["paired_picker_uid"]=S(""),
           ["expires_at"]=T(DateTimeOffset.UtcNow.AddHours(24)),
           ["leader_uid"]=S(_uid),["leader_node"]=S(_nodeId),["leader_epoch"]=I(1),
-          ["lease_until"]=T(DateTimeOffset.UtcNow.AddSeconds(40))
+          ["lease_until"]=T(DateTimeOffset.UtcNow.AddSeconds(16))
         };
         await CreateDoc("d169_diag_sessions/"+id,fields,"created_at");
         Log("TEST_SESSION","CREATED",new{sid=id,lease=1});
@@ -353,15 +383,16 @@ internal sealed class PeerForm : Form
         var generation=long.TryParse(GetString(root,"leader_epoch"),out var old)?old:0;
         var leaseTime=DateTimeOffset.TryParse(expires,out var until)?until:DateTimeOffset.MinValue;
         var now=DateTimeOffset.UtcNow;
+        if(leaderNode==_nodeId && now<_suspendLeaderUntil)return;
         if(leaderNode!=_nodeId && leaseTime>now){
             Log("SIM_LEADER","STANDBY",new{generation,owner_node=leaderNode[..Math.Min(8,leaderNode.Length)],lease_remaining_ms=(long)(leaseTime-now).TotalMilliseconds});
             return;
         }
         var takeOver=leaderNode!=_nodeId;
-        if(!takeOver && leaseTime>now.AddSeconds(12))return;
+        if(!takeOver && leaseTime>now.AddSeconds(8))return;
         var time=root.GetProperty("updateTime").GetString()??"";
         var fields=new Dictionary<string,object>{
-          ["lease_until"]=T(now.AddSeconds(30))
+          ["lease_until"]=T(now.AddSeconds(16))
         };
         if(takeOver){
             fields["leader_uid"]=S(_uid);
