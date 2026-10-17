@@ -17,10 +17,12 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
   const future=Timestamp.fromDate(new Date(Date.now()+60*60*1000));
   const shortFuture=Timestamp.fromDate(new Date(Date.now()+30*1000));
   try{
-    await assertSucceeds(setDoc(doc(admin,root),{schema:"D169_DIAG_V1",owner_uid:adminId,created_at:serverTimestamp(),expires_at:future,leader_uid:adminId,leader_node:"a3".repeat(16),leader_epoch:1,lease_until:shortFuture}));
+    await assertSucceeds(setDoc(doc(admin,root),{schema:"D169_DIAG_V1",owner_uid:adminId,paired_picker_uid:"",created_at:serverTimestamp(),expires_at:future,leader_uid:adminId,leader_node:"a3".repeat(16),leader_epoch:1,lease_until:shortFuture}));
     await assertSucceeds(setDoc(doc(admin,`${root}/members/${adminId}`),{uid:adminId,role:"ADMIN",joined_at:serverTimestamp()}));
+    await assertSucceeds(updateDoc(doc(picker,root),{paired_picker_uid:pickerId}));
     await assertSucceeds(setDoc(doc(picker,`${root}/members/${pickerId}`),{uid:pickerId,role:"PICKER",joined_at:serverTimestamp()}));
-    await assertSucceeds(setDoc(doc(secondPicker,`${root}/members/second_picker`),{uid:"second_picker",role:"PICKER",joined_at:serverTimestamp()}));
+    await assertFails(getDoc(doc(secondPicker,root)));
+    await assertFails(setDoc(doc(secondPicker,`${root}/members/second_picker`),{uid:"second_picker",role:"PICKER",joined_at:serverTimestamp()}));
     await assertFails(getDocs(collection(unauth,`${root}/messages`)));
     await assertFails(setDoc(doc(stranger,`${root}/members/${pickerId}`),{uid:pickerId,role:"PICKER",joined_at:serverTimestamp()}));
     await assertFails(setDoc(doc(picker,"relay_poc_coordination/primary_handoff"),{test:true}));
@@ -64,7 +66,7 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
       request_id:sameUidMsg,receiver_uid:adminId,receiver_role:"ADMIN",receiver_node:nodeA,
       result:"ACK",created_at:serverTimestamp(),elapsed_ms:12,network_epoch:"agent-1"
     }));
-    // An authenticated second Picker may not impersonate the Agent as the ACK receiver.
+    // A second, non-paired Picker cannot impersonate the Agent as the ACK receiver.
     await assertFails(setDoc(doc(secondPicker,`${root}/receipts/${msgid}_second_picker`),{
       request_id:msgid,receiver_uid:"second_picker",receiver_role:"PICKER",
       result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"picker-2"
