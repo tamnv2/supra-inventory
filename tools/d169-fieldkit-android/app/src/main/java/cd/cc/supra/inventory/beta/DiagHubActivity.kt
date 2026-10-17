@@ -42,6 +42,7 @@ class DiagHubActivity : Activity() {
   private val acked=Collections.synchronizedSet(HashSet<String>())
   private val sentOwn=Collections.synchronizedSet(HashSet<String>())
   private val sentPayload=java.util.concurrent.ConcurrentHashMap<String,String>()
+  private val sentStartMs=java.util.concurrent.ConcurrentHashMap<String,Long>()
   private val phases=arrayOf("PDA NORMAL / AGENT NORMAL","PDA OFFICE / AGENT OFFICE","PDA NORMAL / AGENT OFFICE","PDA OFFICE / AGENT NORMAL","AGENT A NORMAL / B NORMAL","AGENT A OFFICE / B OFFICE","AGENT A NORMAL / B OFFICE","AGENT A OFFICE / B NORMAL")
   private var auth:FirebaseAuth?=null
   private var db:FirebaseFirestore?=null
@@ -127,8 +128,9 @@ class DiagHubActivity : Activity() {
           val start=SystemClock.elapsedRealtime()
           sentOwn.add(request)
           sentPayload[request]=simulatedPayload
+          sentStartMs[request]=start
           try { Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS) }
-          catch(e:Exception) {sentOwn.remove(request);sentPayload.remove(request);throw e}
+          catch(e:Exception) {sentOwn.remove(request);sentPayload.remove(request);sentStartMs.remove(request);throw e}
           sent.add(request)
           journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" simulated_payload="+simulatedPayload+" ms="+(SystemClock.elapsedRealtime()-start))
         }
@@ -296,7 +298,8 @@ class DiagHubActivity : Activity() {
           continue
         }
         acked.add(request)
-        journal.event("ACK_FROM_AGENT",d.getString("result").orEmpty(),"request="+request+" receiver_node="+d.getString("receiver_node").orEmpty().take(8)+" epoch="+epoch)
+        val rttMs=SystemClock.elapsedRealtime()-(sentStartMs[request]?:SystemClock.elapsedRealtime())
+        journal.event("ACK_FROM_AGENT",d.getString("result").orEmpty(),"request="+request+" receiver_node="+d.getString("receiver_node").orEmpty().take(8)+" rtt_ms="+rttMs+" epoch="+epoch)
         notice("EXE đã phản hồi: "+request.take(8)+" · "+d.getString("result"))
       }
     }
