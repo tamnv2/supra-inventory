@@ -1,0 +1,48 @@
+name: Build D169 Firebase Network Diagnostic EXE
+on:
+  pull_request:
+    paths:
+      - "diagnostics/firebase-network-windows/**"
+      - ".github/workflows/build-d169-firebase-network-diagnostic.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-probe:
+    runs-on: windows-latest
+    environment: beta
+    env:
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Verify read-only diagnostic boundaries
+        shell: pwsh
+        run: |
+          $source = Get-Content diagnostics/firebase-network-windows/Program.cs -Raw
+          if ($source.Contains('WriteHeartbeat(') -or $source.Contains('PromoteStandbyForTakeover')) { throw "Unsafe business control" }
+          if (-not $source.Contains('NOT_TESTED_NO_APPROVED_ISOLATED_CANARY')) { throw "Missing write restriction" }
+      - name: Set up public Firebase Web API configuration
+        shell: pwsh
+        run: |
+          $literal = [System.Text.Json.JsonSerializer]::Serialize([string]$env:FIREBASE_API_KEY_BETA)
+          [System.IO.File]::WriteAllText((Join-Path $PWD "diagnostics/firebase-network-windows/BuildConfig.cs"), ("internal static class BuildConfig { internal const string FirebaseApiKey = " + $literal + "; }"))
+      - name: Publish Windows executable
+        shell: pwsh
+        run: |
+          dotnet publish diagnostics/firebase-network-windows/SUPRA.Firebase.Network.Diagnostics.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -p:DebugSymbols=false -o diagnostics/firebase-network-windows/dist
+          if ($LASTEXITCODE -ne 0) { throw "Publish failed" }
+          $exe = "diagnostics/firebase-network-windows/dist/SUPRA.Firebase.Network.Diagnostics.exe"
+          if (-not (Test-Path $exe)) { throw "Missing EXE" }
+          Get-FileHash -Algorithm SHA256 $exe | ForEach-Object { $_.Hash + "  SUPRA.Firebase.Network.Diagnostics.exe" } | Out-File -FilePath "diagnostics/firebase-network-windows/dist/SUPRA.Firebase.Network.Diagnostics.exe.sha256" -Encoding ascii
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: SUPRA-Firebase-Network-Diagnostic-Windows-x64
+          path: |
+            diagnostics/firebase-network-windows/dist/SUPRA.Firebase.Network.Diagnostics.exe
+            diagnostics/firebase-network-windows/dist/SUPRA.Firebase.Network.Diagnostics.exe.sha256
+          if-no-files-found: error
+          retention-days: 30
