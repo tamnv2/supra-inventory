@@ -291,7 +291,7 @@ internal sealed class PeerForm : Form
     {
         var id=Sid();
         var fields=new Dictionary<string,object>{
-          ["schema"]=S("D169_DIAG_V1"),["owner_uid"]=S(_uid),
+          ["schema"]=S("D169_DIAG_V1"),["owner_uid"]=S(_uid),["paired_picker_uid"]=S(""),
           ["expires_at"]=T(DateTimeOffset.UtcNow.AddHours(24)),
           ["leader_uid"]=S(_uid),["leader_node"]=S(_nodeId),["leader_epoch"]=I(1),
           ["lease_until"]=T(DateTimeOffset.UtcNow.AddSeconds(40))
