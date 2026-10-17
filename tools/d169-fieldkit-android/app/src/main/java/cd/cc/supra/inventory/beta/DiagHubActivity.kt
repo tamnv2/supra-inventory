@@ -89,18 +89,30 @@ class DiagHubActivity : Activity() {
   }.start()
  }
  private fun upload(){
-  if(busy){note("Đợi kết thúc Picklist để ghi đủ log");return}
-  trace.event("LOG_UPLOAD","START",netMode())
+  if(busy){note("Đợi kết thúc nghiệp vụ trước khi xuất log");return}
+  busy=true;trace.event("LOG_UPLOAD","START",netMode())
   Thread {
    try{
     val a=api()
-    val response=a.uploadRuntimeLog("INFO","manual_android_log",Instant.now().toString(),
-      JSONObject().put("platform","ANDROID").put("package",BuildConfig.APPLICATION_ID),
-      trace.report(),bundleId="D169-"+UUID.randomUUID().toString(),boundaryId="D169_DIAGNOSTIC",traceId=trace.id())
-    val status=response.optString("archive_status","UNKNOWN")
-    trace.event("LOG_UPLOAD",status)
-    note(if(status=="DRIVE_SYNCED") "Google Drive: đã lưu thành công" else "Đã gửi backend, Drive chưa xác nhận: "+status)
-   }catch(e:Exception){trace.event("LOG_UPLOAD","ERROR",e.javaClass.simpleName);note("Gửi log lỗi: "+e.javaClass.simpleName+"; hãy chia sẻ JSON")}
+    val chunks=trace.uploadParts(20)
+    var driveSynced=0
+    var deferred=0
+    for(index in chunks.indices){
+      val part=chunks[index]
+      val key="D169_"+trace.id()+"_"+part.optString("group","LOG")+"_"+part.optInt("chunk",index+1)
+      val response=a.uploadRuntimeLog("INFO","manual_android_log",Instant.now().toString(),
+        JSONObject().put("platform","ANDROID").put("package",BuildConfig.APPLICATION_ID),
+        part,bundleId=key,boundaryId="D169_DIAGNOSTIC",traceId=trace.id())
+      val status=response.optString("archive_status","UNKNOWN")
+      if(status=="DRIVE_SYNCED")driveSynced++ else deferred++
+      note("Lô "+(index+1)+"/"+chunks.size+": "+status)
+    }
+    trace.event("LOG_UPLOAD","COMPLETE","drive_synced="+driveSynced+" deferred="+deferred+" total="+chunks.size)
+    note(if(deferred==0)"ĐÃ LƯU ĐỦ "+driveSynced+" LÔ TRÊN GOOGLE DRIVE" else "Đã gửi "+chunks.size+" lô; "+deferred+" lô CHƯA XÁC NHẬN Drive. Không xoá log cục bộ.")
+   }catch(e:Exception){trace.event("LOG_UPLOAD","ERROR",e.javaClass.simpleName)
+     note("Gửi log chưa hoàn tất: "+e.javaClass.simpleName+"; dùng Chia sẻ JSON hoặc gửi lại")}
+   finally{runOnUiThread{busy=false}}
   }.start()
  }
+
 }
