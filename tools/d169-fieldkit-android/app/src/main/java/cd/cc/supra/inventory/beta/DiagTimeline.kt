@@ -6,25 +6,37 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
 import java.security.MessageDigest
+import java.io.File
 internal class DiagTimeline(private val context: Context) {
  private val prefs=context.getSharedPreferences("d169_diag_evidence_v5",Context.MODE_PRIVATE)
  private val lock=Any()
+ private val journalFile=File(context.filesDir,"d169_diag_events.jsonl")
  fun id():String=prefs.getString("test_session_id","D169_DIAG_01").orEmpty()
  fun label():String=prefs.getString("network_label","NORMAL").orEmpty()
  fun configure(id:String,label:String) {prefs.edit().putString("test_session_id",id).putString("network_label",label).apply();event("CONFIG","SET","new_epoch")}
  fun event(stage:String,result:String,detail:String="") {
   synchronized(lock) {
-   val old=runCatching{JSONArray(prefs.getString("events","[]"))}.getOrDefault(JSONArray())
-   old.put(JSONObject().put("at_utc",Instant.now().toString()).put("mono_ms",SystemClock.elapsedRealtime())
-     .put("session_id",id()).put("network_label",label()).put("event",stage.take(100))
-     .put("result",result.take(80)).put("detail",safe(detail).take(300)))
-   val limited=JSONArray();for(i in (old.length()-350).coerceAtLeast(0) until old.length())limited.put(old.get(i))
-   prefs.edit().putString("events",limited.toString()).commit()
+   val row=JSONObject().put("at_utc",Instant.now().toString())
+     .put("mono_ms",SystemClock.elapsedRealtime())
+     .put("session_id",id()).put("network_label",label())
+     .put("event",stage.take(100)).put("result",result.take(80))
+     .put("detail",safe(detail).take(300))
+   runCatching {journalFile.appendText(row.toString()+"\\n",Charsets.UTF_8)}
   }
  }
  fun report():JSONObject {
   val runtime=context.getSharedPreferences("runtime_logs",Context.MODE_PRIVATE)
-  val rawEvents=runCatching {JSONArray(prefs.getString("events","[]"))}.getOrDefault(JSONArray())
+  val rawEvents=JSONArray()
+  synchronized(lock) {
+    if(journalFile.exists()) {
+      runCatching {journalFile.forEachLine(Charsets.UTF_8){line->
+        if(line.isNotBlank())runCatching {rawEvents.put(JSONObject(line))}
+      }}
+    } else {
+      val legacy=runCatching {JSONArray(prefs.getString("events","[]"))}.getOrDefault(JSONArray())
+      for(i in 0 until legacy.length())rawEvents.put(legacy.get(i))
+    }
+  }
   val original=runCatching {JSONArray(runtime.getString("journal_events","[]"))}.getOrDefault(JSONArray())
   val active=InteractiveSessionStore.load(context)?.userId.orEmpty()
   val owner=runtime.getString("journal_owner","").orEmpty()
@@ -62,6 +74,6 @@ internal class DiagTimeline(private val context: Context) {
   return output
  }
 
- fun clear(){prefs.edit().remove("events").apply()}
+ fun clear(){synchronized(lock){journalFile.delete();prefs.edit().remove("events").apply()}}
  private fun safe(s:String):String = s.replace(Regex("(?i)(bearer|authorization|password|secret|token|apikey|api_key)\\s*[:=]\\s*[^\\s,;]+"),"$1=[REDACTED]")
 }
