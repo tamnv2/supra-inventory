@@ -157,7 +157,8 @@ service cloud.firestore {
       }
       function d169Member() {
         return request.auth != null && d169SessionExists()
-          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/members/$(request.auth.uid));
+          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/members/$(request.auth.uid))
+          && (isAgentOperator() || (isPicker() && pickerSessionNotRevoked()));
       }
       allow create: if isAgentOperator()
         && sid.matches('^[a-f0-9]{32}$')
@@ -201,7 +202,7 @@ service cloud.firestore {
 
       match /members/{memberUid} {
         allow create: if d169SessionExists()
-          && (isPicker() || isAgentOperator())
+          && (isAgentOperator() || (isPicker() && pickerSessionNotRevoked()))
           && request.auth.uid == memberUid
           && request.resource.data.keys().hasOnly(['uid','role','joined_at'])
           && request.resource.data.keys().hasAll(['uid','role','joined_at'])
@@ -239,9 +240,12 @@ service cloud.firestore {
       }
       match /receipts/{receiptId} {
         allow create: if d169Member()
-          && request.resource.data.keys().hasOnly(['request_id','receiver_uid','receiver_node','result','created_at','elapsed_ms','network_epoch'])
-          && request.resource.data.keys().hasAll(['request_id','receiver_uid','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.keys().hasOnly(['request_id','receiver_uid','receiver_role','receiver_node','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.keys().hasAll(['request_id','receiver_uid','receiver_role','result','created_at','elapsed_ms','network_epoch'])
           && request.resource.data.receiver_uid == request.auth.uid
+          && request.resource.data.receiver_role == request.auth.token.app_role
+          && (request.resource.data.receiver_role in ['ADMIN','PICKPACK_ADMIN']
+              || (request.resource.data.receiver_role == 'PICKER' && pickerSessionNotRevoked()))
           && request.resource.data.request_id is string
           && request.resource.data.request_id.matches('^[a-f0-9]{32}$')
           && ((!request.resource.data.keys().hasAny(['receiver_node'])
@@ -255,6 +259,8 @@ service cloud.firestore {
               || (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.keys().hasAny(['sender_node'])
                   && request.resource.data.keys().hasAny(['receiver_node'])
                   && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_node != request.resource.data.receiver_node))
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_role != 'PICKER'
+              || request.resource.data.receiver_role in ['ADMIN','PICKPACK_ADMIN'])
           && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.expires_at > request.time
           && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == 'ALL'
               || get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == request.auth.uid)
