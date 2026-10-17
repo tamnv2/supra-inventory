@@ -100,6 +100,7 @@ internal sealed class DiagnosticForm : Form
     private readonly Button _normal = new() { Text = "MẠNG THƯỜNG" };
     private readonly Button _office = new() { Text = "MẠNG NỘI BỘ" };
     private readonly Button _test = new() { Text = "TEST KẾT NỐI", BackColor = Color.FromArgb(40, 94, 165), ForeColor = Color.White };
+    private readonly Button _peer = new() { Text = "TEST EXE ⇄ PDA ⇄ EXE", BackColor = Color.FromArgb(50, 132, 110), ForeColor = Color.White };
     private readonly Label _status = new() { AutoSize = false };
     private readonly TextBox _output = new() { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical };
     private readonly Label _hint = new() { AutoSize = false };
@@ -127,7 +128,14 @@ internal sealed class DiagnosticForm : Form
         _office.Click += (_, _) => SelectMode("OFFICE");
         _test.Click += async (_, _) => await RunTest();
         _hint.Text = "Đăng nhập Agent trong lần TEST đầu · dùng cùng phiên khi đổi Wi-Fi · chỉ đo, không sửa dữ liệu.";
-        _hint.SetBounds(22, 127, 711, 36);
+        _hint.SetBounds(22, 127, 445, 36);
+        _peer.SetBounds(485, 125, 247, 36);
+        Controls.Add(_peer);
+        _peer.Click += (_, _) => {
+            if (_session == null) { MessageBox.Show("Nhấn TEST KẾT NỐI để đăng nhập Admin/Pick Pack Admin một lần, sau đó mở TEST EXE ⇄ PDA ⇄ EXE.", "Cần đăng nhập"); return; }
+            using var form = new PeerForm(_session);
+            form.ShowDialog(this);
+        };
         Controls.Add(_hint);
         _status.Text = "Chưa chạy";
         _status.SetBounds(22, 164, 710, 30);
