@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E037",
+    "id": "D169-E039",
     "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -807,6 +807,38 @@
       ],
       "next_action": "Repair isolated workflow PATCH payload to official nested release/updateMask contract on the same PR; revalidate CI and approved resource scope; promote PR via authority+continuity guarded merge; manually dispatch exact Beta Rules workflow through official GitHub Actions UI only if connected workflow dispatch remains unavailable. Verify remote release readback PASS before physical PDA↔EXE A↔EXE B tests. Remove test data and Rules only after evidence archived.",
       "evidence": "PR613 head d18d0324 and 18/18 workflow checks; artifacts 12101946136/12100863728; main versus branch Firestore Rules and scope; firebase.google.com/docs/reference/rules/rest/v1/projects.releases/patch"
+    },
+    {
+      "id": "D169-E038",
+      "date_vn": "2026-10-17",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_APPROVED_V7_AUTO_PAIR_ONE_TEST_PER_DEVICE__NO_PRODUCTION_MUTATION",
+      "owner_approval": true,
+      "topic": "Owner NOT PASS V6 manual pairing and commands V7 automatic Agent/PDA and dual-network test",
+      "facts": [
+        "Owner rejects V6 because manual SID copying and per-message controls are unacceptable. Test Agent must use normal authorized existing ADMIN login and PDA must use an existing designated PICKER account. Exact account identifiers are chat/runtime data and not recorded in the public repository.",
+        "After both sign in and press one Test button, EXE A/B and APK must auto-match in isolated Beta test namespace, exchange authenticated test messages and acknowledgements, measure network, reconnection, worker semantics and diagnostic Agent handover.",
+        "Owner only changes device Wi-Fi as guided by the test apps, then confirms the change. Required scenarios: PDA/Agent normal-normal, Office-Office, normal-Office, Office-normal, Agent A/B normal-normal, Office-Office, normal-Office and Office-normal.",
+        "Preserve actual production Agent/WMS/Picker business and Stable from experimental writes. Reusing a live PICKER account may invalidate its current active mobile session; test on designated account only."
+      ],
+      "next_action": "Implement single-button auto-pair and scripted network phases with node-specific correlated receipts, source/emulator CI, then read back actual Beta test Rules deployment before requesting Owner physical field logs.",
+      "evidence": "Owner current D169 request 2026-10-17; docs/OWNER_DECISIONS.md; docs/specs/ACCEPTANCE_TESTING.md"
+    },
+    {
+      "id": "D169-E039",
+      "date_vn": "2026-10-17",
+      "kind": "STATUS",
+      "status": "V7_SOURCE_IMPLEMENTED_CI_IN_PROGRESS__RULES_BETA_NOT_DEPLOYED__NO_FIELD_PASS",
+      "owner_approval": false,
+      "topic": "V7 implementation and explicit Beta deployment/field gates",
+      "facts": [
+        "D169 PR613 branch now contains one-time Agent Admin login entrypoint, EXE and Android deterministic VN-day session pairing, one-button scripted 8-scenario test, operator-guided network confirmations and client role-specific peer receipt accounting.",
+        "Independent Agent process node IDs allow two EXEs using one Admin UID. Firestore Rules were extended only inside d169_diag_sessions to validate node-scoped immutable simulated messages/ACK and add a separate leader_node plus time-bounded heartbeat/takeover; Firestore emulator has new early-takeover-denied tests.",
+        "The first V7 CI attempt identified Kotlin syntax, wrong C# helper method reference and a malformed Firestore Rules string; these were repaired before continuation. Source/build/security tests are distinct from actual field and provider proof.",
+        "D169 Rules deployment workflow on branch remains main-only, with an unverified Firebase release PATCH request that needs correction; connected GitHub modification for workflow was blocked by safety checks. No Beta Rules deployment or test data has occurred, no PR merge, no Agent/Android channel release, no real business mutation."
+      ],
+      "next_action": "Read exact latest-head CI. Repair test-source failures without altering production. Keep PR613 Draft until gated deploy path is correct and Rules emulator/build/authority/continuity PASS. Then publish only temporary scoped Beta Rules through authorized path, verify readback and invite real PDA/Agent A/B physical network tests; archive then delete temporary data.",
+      "evidence": "PR613 branch files tools/d169-fieldkit-android, tools/d169-peer-windows, firebase/firestore.rules, tools/d169-peer-test/test.cjs and docs/D169_DIRECT_PEER_NETWORK_TEST_DESIGN_2026-10-17.md; prior compiler failures corrected; no runtime field evidence."
     }
   ],
   "resume": {
@@ -816,7 +848,8 @@
       "D169 Owner authorized Web/Worker Beta Picker enrollment, Android/Agent code-only hold and evidence backlog.",
       "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
       "D169-E022 Owner approves Agent-only embedded WMS tab and immediate MANUAL secondary-machine v133 artifact distribution; no merge/main/global channel, no other fleet install.",
-      "D169-E024 Owner expressly approves v134 Agent code+Beta OTA channel release from existing v132; profile/browser tab show/hide UI only and same-source Worker redeploy to fulfill existing release gate, no Android or Stable."
+      "D169-E024 Owner expressly approves v134 Agent code+Beta OTA channel release from existing v132; profile/browser tab show/hide UI only and same-source Worker redeploy to fulfill existing release gate, no Android or Stable.",
+      "D169-E038 Owner orders V7 auto-paired single-Test UI with guided network switching and genuine ADMIN/PICKER auth; synthetic Beta-only messages, no WMS or live PRIMARY."
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -827,7 +860,8 @@
       "D169-E026 Agent v134 GitHub prerelease and inventory-channel Beta OTA published; Worker Beta same-source health PASS; source and authority gates PASS; v132 direct update path available.",
       "D169-E028 v135 WinForms 2-row toolbar/tab panel hotfix, actual Windows geometry smoke and 18/18 PR source CI PASS; scoped NOT PASS repair Beta receipt locked to candidate 7d6c2d5.",
       "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release.",
-      "D169-E036 PR613 V6 exact-head 18/18 source CI PASS, Windows EXE and Android APK artifact produced; emulator Rules PASS. No deployed test Rules or physical end-to-end PASS."
+      "D169-E036 PR613 V6 exact-head 18/18 source CI PASS, Windows EXE and Android APK artifact produced; emulator Rules PASS. No deployed test Rules or physical end-to-end PASS.",
+      "PR613 V7 diagnostic source: auto-pair single click, node-scoped receipts and simulated lease/leader, 8 matrix scenarios; final CI/source proof pending."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -875,7 +909,8 @@
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs",
-      "D169-E037: V6 Beta test Rules not installed; GitHub has no workflow dispatch tool; isolated deploy workflow PATCH payload requires corrected nested release/updateMask. Auto workflow source modification was blocked by safety tool."
+      "D169-E037: V6 Beta test Rules not installed; GitHub has no workflow dispatch tool; isolated deploy workflow PATCH payload requires corrected nested release/updateMask. Auto workflow source modification was blocked by safety tool.",
+      "D169 E039: Firestore Beta test Rules absent on main/runtime; isolated main-only deployment workflow has unverified PATCH shape; connected workflow write was safety-blocked. Field test cannot claim PASS."
     ],
     "next_actions": [
       "Owner review the consolidated D169 analysis; approve or revise design before executable changes.",
@@ -904,7 +939,8 @@
       "Verify v135 source SHA receipt CI, merge only after PASS, read Worker Beta same-SHA health and Agent v135 prerelease plus channel manifest, field-validate on secondary.",
       "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS.",
       "D169-E036: verify controlled Beta Rules publication gate and manual main-only workflow capability; collect real PDA↔Test Agent A↔Test Agent B ACK/HA/logs before declaring FIELD PASS; approved temporary data must be deleted only after evidence archived.",
-      "Repair D169 Rules workflow and wait for its authenticated Beta release readback before any physical V6 result claims; Owner performs official GitHub UI dispatch only if tool unavailable."
+      "Repair D169 Rules workflow and wait for its authenticated Beta release readback before any physical V6 result claims; Owner performs official GitHub UI dispatch only if tool unavailable.",
+      "D169-E039: inspect latest PR613 exact-head CI failures and repair test sources; release only through approved Beta test Rules readback; collect actual PAD/Agent A/B mixed-network logs then cleanup after Owner authorizes."
     ],
     "release_boundary": "D169_AGENT_V135_BETA_NOT_PASS_REPAIR_PUBLISHED__FIELD_OWNER_PENDING__ANDROID_PR606_DRAFT_UNRELEASED__STABLE_OWNER_GATED"
   }
