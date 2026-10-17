@@ -105,6 +105,7 @@ internal sealed class DiagnosticForm : Form
     private readonly Label _hint = new() { AutoSize = false };
     private string _mode = "NORMAL";
     private AgentTokens? _session;
+    private readonly AgentLogMirror _mirror = new();
     private bool _running;
 
     internal DiagnosticForm()
@@ -136,6 +137,9 @@ internal sealed class DiagnosticForm : Form
         _output.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         Controls.Add(_output);
         SelectMode("NORMAL");
+        _mirror.Start();
+        FormClosed += (_, _) => _mirror.Dispose();
+        _hint.Text = "Đăng nhập Admin; đo mạng và tự sao chép log Agent thực ra Desktop.";
     }
 
     private void SelectMode(string mode)
@@ -215,6 +219,7 @@ internal sealed class DiagnosticForm : Form
                 foreach (var limitation in report.Limitations) sb.AppendLine("- " + limitation);
                 File.WriteAllText(prefix + ".txt", sb.ToString(), new UTF8Encoding(false));
                 _output.AppendText(Environment.NewLine + "ĐÃ XUẤT LOG: " + prefix + ".json / .txt" + Environment.NewLine);
+                _output.AppendText("LOG AGENT THỰC: " + _mirror.Target + Environment.NewLine);
                 _status.Text = "HOÀN TẤT — log đã xuất trên Desktop.";
             }
             catch (Exception ex)
