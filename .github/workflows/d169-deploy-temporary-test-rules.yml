@@ -1,5 +1,12 @@
 name: D169 Owner-Authorized Temporary Beta Firestore Rules
 on:
+  push:
+    branches:
+      - test/d169-dual-network-diagnostic-v4-20261017
+    paths:
+      - 'firebase/firestore.rules'
+      - 'tools/d169-peer-test/**'
+      - '.github/workflows/d169-deploy-temporary-test-rules.yml'
   workflow_dispatch:
     inputs:
       confirmation:
@@ -7,14 +14,49 @@ on:
         required: true
 permissions:
   contents: read
+concurrency:
+  group: d169-temporary-rules-beta
+  cancel-in-progress: false
 jobs:
+  rules-security-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Confirm the shared production rule baseline is identical to main
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess
+          source=pathlib.Path('firebase/firestore.rules').read_text()
+          start=source.index('    // D169: TEMPORARY isolated diagnostics;')
+          stop=source.index('    match /relay_poc_jobs/',start)
+          restored=source[:start]+source[stop:]
+          base=subprocess.check_output(['git','show','origin/main:firebase/firestore.rules'],text=True)
+          assert restored == base, 'Other shared Firestore permissions differ from main: refusing deployment'
+          print('D169_SHARED_BASELINE_UNCHANGED_PASS')
+          PY
+      - name: Run isolated Firestore Rules emulator, deny-claims and ACK matrix
+        run: |
+          npm install --no-audit --no-fund --prefix tools/d169-peer-test
+          npm install --no-audit --no-fund --global firebase-tools@14.16.0
+          firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
   scoped-d169-rules:
-    if: github.ref == 'refs/heads/main'
+    needs: rules-security-gate
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/test/d169-dual-network-diagnostic-v4-20261017') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 20
     env:
-      OWNER_CONFIRMATION: ${{ inputs.confirmation }}
+      OWNER_CONFIRMATION: ${{ github.event_name == 'push' && 'OWNER_EXPLICIT_D169_20261017_TEMP_BETA_FIRESTORE' || inputs.confirmation }}
       FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
     steps:
       - uses: actions/checkout@v4
