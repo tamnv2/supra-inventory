@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-14",
+  "last_updated": "2026-10-17",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -7451,8 +7451,8 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-android-agent-code-only-20261015",
     "pr": 606,
-    "latest_checkpoint_id": "D169-E009",
-    "checkpoint_date_vn": "2026-10-15",
+    "latest_checkpoint_id": "D169-E036",
+    "checkpoint_date_vn": "2026-10-17",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D169_WEB_WORKER_BETA_DEPLOYED__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED",
@@ -7996,7 +7996,7 @@
     ],
     "next": "OWNER_TEST_V135_ON_SECONDARY__NORMAL_TABS_VISIBLE__HIDE_SHOW_WEB_TAB__WMS_CONFIRM_SKU_HA__FIELD_RESULT",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E029",
+    "latest_checkpoint_id": "D169-E036",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8127,6 +8127,26 @@
       "channel_tag": "relay-agent-v135",
       "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135",
       "exe_asset_size": 7425536
+    },
+    "test_v6_2026_10_17": {
+      "status": "PR613_EXACT_HEAD_18_OF_18_CI_PASS__BUILD_ARTIFACTS_AVAILABLE__TEST_RULES_NOT_DEPLOYED__FIELD_PENDING",
+      "pr": 613,
+      "branch": "test/d169-dual-network-diagnostic-v4-20261017",
+      "source_sha": "6e793a606d30b08a75cd0d66829eb62e98980dbf",
+      "windows_run": 39033100181,
+      "windows_artifact_id": 12100792474,
+      "android_run": 39033100144,
+      "android_artifact_id": 12101485166,
+      "rules_emulator_run": 39033100070,
+      "emulator_pass": true,
+      "build_pass": true,
+      "main_rules_deployed": false,
+      "main_scope_contains_temp_resource": false,
+      "temporary_beta_resource_approved": true,
+      "physical_device_field_pass": false,
+      "owner_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "next": "CONTROLLED_RULES_PUBLISH_AFTER_GATES__PDA_AGENT_A_AGENT_B_MIXED_NETWORK_FIELD_LOGS__ARCHIVE_THEN_DELETE_TEMP_DATA_AND_RULES"
     }
   },
   "d169_fieldkit": {
