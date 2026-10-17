@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "fix/d169-android-agent-code-only-20261015",
-  "pr": 606,
+  "working_branch": "test/d169-dual-network-diagnostic-v4-20261017",
+  "pr": null,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E029",
+    "id": "D169-E030",
     "date_vn": "2026-10-17"
   },
-  "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
+  "deployment_gate": "D169_ISOLATED_DIAGNOSTIC_DRAFT_ONLY_NO_PRODUCTION_RELEASE",
   "entries": [
     {
       "id": "D169-E001",
@@ -661,6 +661,30 @@
       ],
       "next_action": "Owner tests v135 on secondary: all ordinary tabs visible, browser toggle hides only Web Confirm, button label updates, WMS session persists through tabs/resize, real Confirm/SKU and mixed-Agent failover; record PASS/NOT PASS in D169. Do not change Stable or Android PR606.",
       "evidence": "PR610 https://github.com/tamnv2/supra-inventory/pull/610 merged 0900a172; workflow runs 38939271226 Worker and 38939271241 Agent (success); release https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135; channel inventory-channel manifest assets."
+    },
+    {
+      "id": "D169-E030",
+      "date_vn": "2026-10-17",
+      "kind": "OWNER_COMMAND_AND_DIAGNOSTIC_WORK_IN_PROGRESS",
+      "topic": "Owner requests separate Windows diagnostic EXE and Android PDA APK for comprehensive dual-network and heterogeneous Agent/HA test",
+      "status": "PARTIAL_READONLY_WINDOWS_V4_CROSS_BUILT__ANDROID_SOURCE_LOCAL_ONLY__GH_UPLOAD_BLOCKED__PEER_CANARY_NOT_AUTHORIZED__NO_RUNTIME_CHANGE",
+      "owner_approval": true,
+      "facts": [
+        "Owner has an actual spare PDA and explicitly requests independent PC EXE and standalone Android APK, not updates to any installed Agent / Inventory Android app.",
+        "Full requested coverage: NORMAL+NORMAL, NORMAL+OFFICE, multiple Agents all NORMAL/all OFFICE/mixed; PRIMARY candidate handoff in both directions; network switching without restart; peer messages/ACK, delivery timing, auth refresh, listener/FCM and disconnect/duplicate/quota scenarios.",
+        "Owner-uploaded two authenticated V3 JSON logs proved Office Firestore REST success only through Windows system proxy, Office RTDB authenticated REST and SSE HTTP 403, NORMAL Firestore and RTDB REST/SSE success. Neither confirms actual cross-device ACK or gRPC Listen.",
+        "Standalone Windows Go x64 EXE V4 was cross-compiled in chat sandbox; its email/password Firebase login does not replicate protected Agent OTP/Worker privileged login. No Windows field PASS, no signed APK, no peer test PASS.",
+        "Local Java/Gradle standalone Android source and 16-scenario test matrix are prepared as chat artifacts. Connected GitHub upload blocked on MainActivity; current D169 diagnostic branch contains partial Gradle scaffolding only, not a built APK.",
+        "Current Firestore Rules have no isolated PDA-Agent diagnostic canary path. Writing fake production relay_poc_jobs or HA documents is forbidden. No Rules deployment, backend resource, WMS mutation or real HA takeover authorized.",
+        "No credentials, API tokens, Wi-Fi identifiers, personal data or raw request bodies included in GitHub public files."
+      ],
+      "alternatives": [
+        "Preferred: approve test-only minimal Firestore namespace with strict sender/recipient identity, session TTL, payload/operation caps, read/write/ACK readback and isolated log evidence; implement controlled two-way tests and real gRPC/PDA FCM after review.",
+        "Read-only baseline V4 is safe but insufficient to certify end-to-end Agent-PDA or HA correctness.",
+        "Do not push diagnostic APK as production app, reuse live business collections, or merge/deploy a test Rules change without impact review."
+      ],
+      "next_action": "Finish standalone Android APK and safe CI/field installation, then require authorized canary rules before peer writes. Collect one correlated session covering all S01-S16; compare latency, ACK, proxy/HA transitions and billed quota. Keep D169 open and Stable untouched.",
+      "evidence": "Owner direct instruction; authenticated V3 JSON 2026-10-17; docs/D169_DUAL_NETWORK_DIAGNOSTIC_V4_PLAN_2026-10-17.md on diagnostic branch; standalone sandbox EXE/SOURCE cross-build; current firebase/firestore.rules."
     }
   ],
   "resume": {
