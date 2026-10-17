@@ -15,6 +15,11 @@ import com.google.firebase.firestore.*
 import org.json.JSONObject
 import java.time.Instant
 import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+import java.text.SimpleDateFormat
+import java.security.MessageDigest
+import java.util.Collections
 import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -30,12 +35,18 @@ class DiagHubActivity : Activity() {
   private lateinit var output:TextView
   private lateinit var api:InventoryApi
   private val worker=Executors.newSingleThreadExecutor()
+  private val receiver=Executors.newSingleThreadExecutor()
+  private val nodeId=UUID.randomUUID().toString().replace("-","")
+  private var phase=0
+  private var started=false
+  private val acked=Collections.synchronizedSet(HashSet<String>())
+  private val phases=arrayOf("PDA NORMAL / AGENT NORMAL","PDA OFFICE / AGENT OFFICE","PDA NORMAL / AGENT OFFICE","PDA OFFICE / AGENT NORMAL","AGENT A NORMAL / B NORMAL","AGENT A OFFICE / B OFFICE","AGENT A NORMAL / B OFFICE","AGENT A OFFICE / B NORMAL")
   private var auth:FirebaseAuth?=null
   private var db:FirebaseFirestore?=null
   private var sessionRef:DocumentReference?=null
   private var messages:ListenerRegistration?=null
   private var receipts:ListenerRegistration?=null
-  private val seen=HashSet<String>()
+  private val seen=Collections.synchronizedSet(HashSet<String>())
   private var epoch=1
   private val kinds=arrayOf("PING","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM")
   private lateinit var kind:Spinner
@@ -51,14 +62,15 @@ class DiagHubActivity : Activity() {
     passwordField=field(root,"Mật khẩu Picker (không lưu)","")
     passwordField.inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
     btn(root,"1 · Đăng nhập Picker") {doLogin()}
-    sidField=field(root,"Mã phiên 32 ký tự do EXE Test A tạo","")
-    networkField=field(root,"Nhãn mạng","NORMAL")
-    btn(root,"2 · Tham gia phiên Test") {join()}
-    kind=Spinner(this);kind.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,kinds);root.addView(kind)
-    payloadField=field(root,"Cụm mã thử nghiệm (KHÔNG phải số Picklist thật)","1234")
-    btn(root,"3 · Gửi thông điệp tới EXE Test") {send()}
-    btn(root,"Chuyển epoch mạng") {epoch++;journal.event("PDA_NETWORK_EPOCH","CHANGE","epoch="+epoch+" transport="+transport());notice("Epoch "+epoch)}
-    btn(root,"4 · Gửi log lên Drive") {upload()}
+    sidField=field(root,"Mã phiên tự động",autoSid());sidField.isEnabled=false
+    networkField=field(root,"Mạng (xác nhận theo hướng dẫn)","NORMAL")
+    btn(root,"BẮT ĐẦU TEST TỰ ĐỘNG") {runAutomated(false)}
+    btn(root,"ĐÃ CHUYỂN MẠNG · TEST TIẾP") {runAutomated(true)}
+    kind=Spinner(this);kind.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,kinds);kind.visibility=android.view.View.GONE;root.addView(kind)
+    payloadField=field(root,"Dữ liệu mô phỏng (không dùng mã Picklist thật)","D169-SIM");payloadField.visibility=android.view.View.GONE
+    // Manual request controls retired: test matrix sends all permitted synthetic kinds automatically.
+    // Epoch is advanced by operator-confirmed network transition.
+    btn(root,"Gửi log lên Google Drive") {upload()}
     btn(root,"Chia sẻ log JSON nếu Drive lỗi") {
       val intent=android.content.Intent(android.content.Intent.ACTION_SEND).apply {
         type="text/plain"
@@ -66,7 +78,7 @@ class DiagHubActivity : Activity() {
       }
       startActivity(android.content.Intent.createChooser(intent,"Xuất log D169"))
     }
-    output=TextView(this);output.text="Chưa đăng nhập Picker.";output.setTextIsSelectable(true);root.addView(output)
+    output=TextView(this);output.text="Đăng nhập Picker rồi bấm BẮT ĐẦU TEST trên cả PDA và EXE.";;output.setTextIsSelectable(true);root.addView(output)
     setContentView(scroll)
   }
   private fun field(root:LinearLayout,title:String,value:String):EditText {
@@ -76,6 +88,83 @@ class DiagHubActivity : Activity() {
   private fun btn(root:LinearLayout,label:String,cb:()->Unit){Button(this).also{it.text=label;it.setOnClickListener{cb()};root.addView(it)}}
   private fun notice(s:String){runOnUiThread{output.text=(s+"\n"+output.text.toString()).take(3500)}}
   private fun net():String=networkField.text.toString().trim().ifBlank{"NORMAL"}.take(30)
+  private fun autoSid():String{
+    val date=SimpleDateFormat("yyyyMMdd",Locale.US).apply{timeZone=TimeZone.getTimeZone("Asia/Ho_Chi_Minh")}.format(Date())
+    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D169-AUTO-PAIR-V7|"+date).toByteArray(Charsets.UTF_8))
+    return bytes.take(16).joinToString(""){String.format(Locale.US,"%02x",it.toInt() and 0xff)}
+  }
+  private fun runAutomated(next:Boolean){
+    worker.execute{
+      try{
+        if(!::api.isInitialized)throw IllegalStateException("LOGIN_REQUIRED")
+        if(next&&!started)throw IllegalStateException("BAM_BAT_DAU_TEST_TRUOC")
+        if(next){
+          if(phase>=phases.size){notice("Đã kiểm tra đủ các nhóm mạng.");return@execute}
+          epoch++
+          journal.event("NETWORK_SWITCH","OPERATOR_CONFIRMED","phase="+phase+" epoch="+epoch+" transport="+transport())
+          networkField.post{networkField.setText(if(phases[phase].contains("PDA OFFICE")) "OFFICE" else "NORMAL")}
+        }else{
+          if(started){notice("Đang có phiên Test. Chọn ĐÃ CHUYỂN MẠNG để tiếp tục.");return@execute}
+          started=true
+        }
+        val root=ensureAutoJoined()
+        val sent=ArrayList<String>()
+        journal.event("AUTO_PHASE","START","scenario="+phases[phase]+" epoch="+epoch+" transport="+transport())
+        for(type in kinds){
+          val request=UUID.randomUUID().toString().replace("-","")
+          val uid=auth!!.currentUser!!.uid
+          val map=mapOf("request_id" to request,"sender_uid" to uid,"sender_node" to nodeId,
+            "sender_role" to "PICKER","target_uid" to "ALL","kind" to type,
+            "payload" to "D169-SIM","created_at" to FieldValue.serverTimestamp(),
+            "expires_at" to com.google.firebase.Timestamp(Date(System.currentTimeMillis()+240000)))
+          val start=SystemClock.elapsedRealtime()
+          Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS)
+          sent.add(request)
+          journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" ms="+(SystemClock.elapsedRealtime()-start))
+        }
+        for(i in 0 until 30){
+          if(sent.all{acked.contains(it)})break
+          Thread.sleep(1000)
+        }
+        val pass=sent.count{acked.contains(it)}
+        for(id in sent)journal.event("TEST_TERMINAL",if(acked.contains(id))"ACK_PASS" else "ACK_TIMEOUT","request="+id+" phase="+phase)
+        journal.event("AUTO_PHASE","COMPLETE","scenario="+phases[phase]+" pass="+pass+"/"+sent.size)
+        phase++
+        if(phase<phases.size){
+          notice("Kết quả "+pass+"/"+sent.size+". Tiếp theo: "+phases[phase]+". Chuyển mạng theo kịch bản rồi bấm ĐÃ CHUYỂN MẠNG trên các máy.")
+        }else{
+          notice("Đã chạy hết 8 nhóm thử nghiệm. Gửi log lên Drive và lấy log EXE từ Desktop.")
+          upload()
+        }
+      }catch(e:Exception){journal.event("AUTO_TEST","ERROR",e.javaClass.simpleName);notice("Test lỗi: "+e.javaClass.simpleName+". Kiểm tra mạng/Rules; không có ACK giả.")}
+    }
+  }
+  private fun ensureAutoJoined():DocumentReference{
+    val active=sessionRef
+    if(active!=null)return active
+    val uid=auth?.currentUser?.uid?:throw IllegalStateException("AUTH_REQUIRED")
+    val root=db!!.collection("d169_diag_sessions").document(autoSid())
+    var ready=false
+    for(i in 0 until 12){
+      try{
+        val d=Tasks.await(root.get(Source.SERVER),8,TimeUnit.SECONDS)
+        if(d.exists() && (d.getTimestamp("expires_at")?.toDate()?.time?:0)>System.currentTimeMillis()){ready=true;break}
+      }catch(e:Exception){journal.event("PAIR_DISCOVERY","RETRY",e.javaClass.simpleName)}
+      Thread.sleep(3000)
+    }
+    if(!ready)throw IllegalStateException("CHUA_CO_AGENT_TEST__OR_RULES_CHUA_DEPLOY")
+    val self=root.collection("members").document(uid)
+    if(!Tasks.await(self.get(Source.SERVER),12,TimeUnit.SECONDS).exists()){
+      val member=mapOf("uid" to uid,"role" to "PICKER","joined_at" to FieldValue.serverTimestamp())
+      Tasks.await(self.set(member),12,TimeUnit.SECONDS)
+    }
+    sessionRef=root
+    journal.configure(autoSid(),net())
+    journal.event("AUTO_PAIR","PASS","node="+nodeId.take(8)+" epoch="+epoch)
+    startListeners(root,uid)
+    notice("Đã tự động ghép PDA Test với Agent Test.")
+    return root
+  }
   private fun transport():String {
     val cm=getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
     val cap=cm.getNetworkCapabilities(cm.activeNetwork)
@@ -114,7 +203,7 @@ class DiagHubActivity : Activity() {
         Tasks.await(auth!!.signInWithCustomToken(custom),15,TimeUnit.SECONDS)
         api=next
         journal.event("PICKER_AUTH","PASS","role=PICKER firebase_uid_present")
-        notice("Picker đăng nhập thành công. Nhập mã phiên từ EXE A.")
+        notice("Đã đăng nhập Picker. Bấm BẮT ĐẦU TEST trên PDA và EXE, hai máy tự ghép cặp.")
       }catch(e:Exception){journal.event("PICKER_AUTH","ERROR",e.javaClass.simpleName);notice("Đăng nhập lỗi: "+e.javaClass.simpleName)}
     }
   }
@@ -147,12 +236,12 @@ class DiagHubActivity : Activity() {
       if(error!=null){journal.event("RX_LISTEN","ERROR",error.javaClass.simpleName);return@addSnapshotListener}
       for(ch in snap?.documentChanges.orEmpty()){
         val d=ch.document
-        if(d.getString("sender_uid")==uid || d.getString("target_uid") !in listOf("ALL",uid))continue
+        if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
         if(!seen.add("msg:"+d.id))continue
         val type=d.getString("kind").orEmpty()
         journal.event("RX_FROM_AGENT","RECEIVED","request="+d.id+" kind="+type+" epoch="+epoch)
-        worker.execute{ack(root,d.id,uid)}
+        receiver.execute{ack(root,d.id,uid)}
       }
     }
     receipts=root.collection("receipts").addSnapshotListener{snap,error->
@@ -161,16 +250,17 @@ class DiagHubActivity : Activity() {
         val d=ch.document
         if(!seen.add("ack:"+d.id))continue
         val request=d.getString("request_id").orEmpty()
-        journal.event("ACK_FROM_AGENT",d.getString("result").orEmpty(),"request="+request+" receiver="+d.getString("receiver_uid").orEmpty()+" epoch="+epoch)
+        acked.add(request)
+        journal.event("ACK_FROM_AGENT",d.getString("result").orEmpty(),"request="+request+" receiver_node="+d.getString("receiver_node").orEmpty().take(8)+" epoch="+epoch)
         notice("EXE đã phản hồi: "+request.take(8)+" · "+d.getString("result"))
       }
     }
   }
   private fun ack(root:DocumentReference,request:String,uid:String) {
     try {
-      val data=mapOf("request_id" to request,"receiver_uid" to uid,"result" to "ACK",
+      val data=mapOf("request_id" to request,"receiver_uid" to uid,"receiver_node" to nodeId,"result" to "ACK",
         "created_at" to FieldValue.serverTimestamp(),"elapsed_ms" to 0,"network_epoch" to ("pda-"+epoch))
-      Tasks.await(root.collection("receipts").document(request+"_"+uid).set(data),12,TimeUnit.SECONDS)
+      Tasks.await(root.collection("receipts").document(request+"_"+uid+"_"+nodeId).set(data),12,TimeUnit.SECONDS)
       journal.event("ACK_TO_AGENT","PASS","request="+request)
     }catch(e:Exception){journal.event("ACK_TO_AGENT","ERROR",e.javaClass.simpleName)}
   }
@@ -183,7 +273,7 @@ class DiagHubActivity : Activity() {
       try {
         val uid=auth!!.currentUser!!.uid
         val req=UUID.randomUUID().toString().replace("-","")
-        val map=mapOf("request_id" to req,"sender_uid" to uid,"sender_role" to "PICKER",
+        val map=mapOf("request_id" to req,"sender_uid" to uid,"sender_node" to nodeId,"sender_role" to "PICKER",
           "target_uid" to "ALL","kind" to kindValue,"payload" to payload,
           "created_at" to FieldValue.serverTimestamp(),"expires_at" to com.google.firebase.Timestamp(Date(System.currentTimeMillis()+240000)))
         val start=SystemClock.elapsedRealtime()
@@ -213,5 +303,5 @@ class DiagHubActivity : Activity() {
       }catch(e:Exception){journal.event("LOG_UPLOAD","ERROR",e.javaClass.simpleName);notice("Drive chưa xác nhận: "+e.javaClass.simpleName+"; chia sẻ JSON dự phòng")}
     }
   }
-  override fun onDestroy(){messages?.remove();receipts?.remove();worker.shutdownNow();super.onDestroy()}
+  override fun onDestroy(){messages?.remove();receipts?.remove();worker.shutdownNow();receiver.shutdownNow();super.onDestroy()}
 }
