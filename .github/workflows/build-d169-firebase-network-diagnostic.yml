@@ -18,18 +18,19 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
-      - name: Verify read-only diagnostic boundaries
+      - name: Verify read-only diagnostic
         shell: pwsh
         run: |
           $source = Get-Content diagnostics/firebase-network-windows/Program.cs -Raw
           if ($source.Contains('WriteHeartbeat(') -or $source.Contains('PromoteStandbyForTakeover')) { throw "Unsafe business control" }
           if (-not $source.Contains('NOT_TESTED_NO_APPROVED_ISOLATED_CANARY')) { throw "Missing write restriction" }
-      - name: Set up public Firebase Web API configuration
+      - name: Configure Firebase Web API key for executable
         shell: pwsh
         run: |
-          $literal = [System.Text.Json.JsonSerializer]::Serialize([string]$env:FIREBASE_API_KEY_BETA)
-          [System.IO.File]::WriteAllText((Join-Path $PWD "diagnostics/firebase-network-windows/BuildConfig.cs"), ("internal static class BuildConfig { internal const string FirebaseApiKey = " + $literal + "; }"))
-      - name: Publish Windows executable
+          $literal = ConvertTo-Json -InputObject ([string]$env:FIREBASE_API_KEY_BETA) -Compress
+          $target = Join-Path $PWD "diagnostics/firebase-network-windows/BuildConfig.cs"
+          [System.IO.File]::WriteAllText($target, ("internal static class BuildConfig { internal const string FirebaseApiKey = " + $literal + "; }"))
+      - name: Build self-contained Windows EXE
         shell: pwsh
         run: |
           dotnet publish diagnostics/firebase-network-windows/SUPRA.Firebase.Network.Diagnostics.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -p:DebugSymbols=false -o diagnostics/firebase-network-windows/dist
@@ -37,7 +38,7 @@ jobs:
           $exe = "diagnostics/firebase-network-windows/dist/SUPRA.Firebase.Network.Diagnostics.exe"
           if (-not (Test-Path $exe)) { throw "Missing EXE" }
           Get-FileHash -Algorithm SHA256 $exe | ForEach-Object { $_.Hash + "  SUPRA.Firebase.Network.Diagnostics.exe" } | Out-File -FilePath "diagnostics/firebase-network-windows/dist/SUPRA.Firebase.Network.Diagnostics.exe.sha256" -Encoding ascii
-      - name: Upload EXE
+      - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
           name: SUPRA-Firebase-Network-Diagnostic-Windows-x64
