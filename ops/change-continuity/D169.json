@@ -7,8 +7,8 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E022",
-    "date_vn": "2026-10-17"
+    "id": "D169-E030",
+    "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
   "entries": [
@@ -537,6 +537,37 @@
       ],
       "next_action": "Collect two v3 field reports. Diagnose differences including system-proxy path. Do not represent local cross-compilation as Windows field PASS. No Agent/PDA/Web/Worker release or scope changes from this checkpoint.",
       "evidence": "Current main and working PR606 repo bootstrap; relay-agent/Program.cs FirebasePasswordLoginDirect and D165PrivilegedAuth.cs; firebase/database.rules.json and firebase/firestore.rules; two Owner-uploaded v1 reports; Go 1.23 go test PASS and Windows x64 PE compiled locally; local HTTP GET and unauthenticated POST blocked with 401."
+    },
+    {
+      "id": "D169-E030",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_REQUIREMENT_INTAKE_AND_ANALYSIS",
+      "topic": "Preferred cloud Windows Agent with resilient Office/Internet failover, no-cost VPS tuning and privileged login proposal",
+      "status": "PROPOSAL_ONLY__OWNER_DESIGN_CONFIRMATION_PENDING__NO_CODE_OR_RESOURCE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner reports a new Windows VPS has been prepared with a dedicated operator account (alias CLOUD_AGENT). Owner requests a dedicated application Agent user, OTP login comparable to named privileged operators, and an emergency fallback currently described as HHmm. Distinguish Windows account from Firebase application user; no credentials or infrastructure IDs recorded.",
+        "Owner cannot increase VPS specification: approximately 2 vCPU, 4 GB RAM, 30 GB SSD. Wants reliable GUI Agent/WMS operation 24/7 and minimized OS overhead, local log/resource guardrails, proper Windows user-session recovery after restart, without exposing Windows credentials.",
+        "Owner wants CLOUD_AGENT preferred PRIMARY when fully authenticated and WMS-confirm ready, with mixed-network Office/Internet factory Agent NEXT_A/NEXT_B fallback, preserving mobile PDA Internet path and lowest verified Firestore/RTDB usage.",
+        "On unexpected cloud-primary failure, a local ready Agent must take over automatically with generation-fenced exclusive WMS mutation/ACK and safely reconcile in-flight requests. On cloud restoration, automatic return is desired ONLY when preceding failover was automatic; a documented owner admin/tamnv2 manual choice must inhibit automatic cloud reclaim while that choice remains valid.",
+        "Verified main source relay-agent/FirestoreAgentLeaderCoordinator.cs: Firestore generation CAS, 10s primary heartbeat, 15s failover freshness and RTDB-first liveness exist; manual takeover is limited to admin/tamnv2, but durable manual-origin override vs automatic failover origin and preferred-cloud automatic reclaim are not established.",
+        "Verified relay-agent/D165PrivilegedAuth.cs: one-time privileged Agent login is hard-coded to admin/tamnv2; an additional application account needs scope/role/Worker/Gateway security review, separate from VPS Windows user. Clock-only HHmm is predictable and must not be accepted as standalone authentication; prefer a one-time recovery secret or independent server-verified factor.",
+        "Mixed-network risk: NEXT_A requiring RTDB primary-liveness confirmation currently defers takeover on UNAVAILABLE. Office path has not been field-proven with authenticated RTDB; a Firestore-reachable safe fallback requires an explicit design and physical verification. No fabricated failover latency or savings.",
+        "Provider economics: moving the existing Firestore-based confirmation process from an onsite PRIMARY to a VPS does not intrinsically reduce billable reads/writes. Optimize event-driven critical wake, reused listeners, low-frequency fleet state, zero redundant polling, and only verified equivalent transport substitutions.",
+        "Windows WinForms Agent requires an interactive user session; built-in child watchdog alone does not prove unattended restart after VPS OS reboot. Test Windows RDP disconnect, profile/DPAPI persistence, WMS login readiness, clean planned maintenance and unexpected power loss."
+      ],
+      "alternatives": [
+        "PREFERRED: active cloud PRIMARY on normal internet; 2 local warm ready standby tiers; guarded event-driven failover and fenced preferred-primary return after stable WMS readiness and no manual pin; auth-specific secure OTP and restricted operator role.",
+        "METRIC_FIRST: preserve current critical lane, use real Office/normal authenticated field observations, compare event-driven standby wake to extra persistent Firestore heartbeat writes before altering HA timing.",
+        "REJECT: unguarded fixed VPS priority that preempts manual PRIMARY, clock-only HHmm credential, blind failover under unknown liveness, using Cloudflare on Office-only path, or deploying an unregistered VPS resource."
+      ],
+      "open_questions": [
+        "Determine whether the dedicated CLOUD_AGENT label denotes Windows account only or an already provisioned Firebase app account, and verify its actual effective privileges without exposing credentials.",
+        "Validate VPS WMS true readiness and RDP-disconnected operation; Office standby Firebase RTDB and Firestore authenticated tests, restart recovery and crash ACK tests before selecting an exact safety-latency target.",
+        "Resolve account and VPS resource scope and Owner decision before any Agent/API/CI implementation or live failover test. Stable stays Owner-gated."
+      ],
+      "next_action": "Present scoped impact/security/usage/failover proposal for Owner decision only; no source/provider/role/rules/VM or release mutations. Maintain D169 serial gate, no new Dxxx, and reconcile divergent main E022-vs-working journal before any merge.",
+      "evidence": "Owner current 2026-10-18 request; main ops/authority-manifest.json and canonical spec/state; relay-agent/D165PrivilegedAuth.cs; relay-agent/FirestoreAgentLeaderCoordinator.cs; relay-agent/FirestoreConfirmationTransport.cs; relay-agent/RtdbHaLiveness.cs. Main journal E029, working branch E022 diverge (no merge authorized)."
     }
   ],
   "resume": {
