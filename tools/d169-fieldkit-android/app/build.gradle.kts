@@ -22,12 +22,6 @@ android {
     buildConfigField("String", "DEFAULT_PICKER_PASSWORD", quoted(""))
   }
   buildFeatures { buildConfig = true }
-  sourceSets {
-    getByName("main") {
-      java.srcDirs("../../../android/app/src/main/java")
-      res.srcDirs("../../../android/app/src/main/res")
-    }
-  }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
