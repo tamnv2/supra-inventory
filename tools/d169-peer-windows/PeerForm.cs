@@ -421,7 +421,7 @@ internal sealed class PeerForm : Form
           Log("RX_TEST_MESSAGE","RECEIVED",new{request_id=id,kind,epoch=_epoch});
           var receiptId=id+"_"+_uid+"_"+_nodeId;
           var fields=new Dictionary<string,object>{
-            ["request_id"]=S(id),["receiver_uid"]=S(_uid),["receiver_node"]=S(_nodeId),["result"]=S("ACK"),
+            ["request_id"]=S(id),["receiver_uid"]=S(_uid),["receiver_role"]=S(_token.Role),["receiver_node"]=S(_nodeId),["result"]=S("ACK"),
             ["elapsed_ms"]=I(0),["network_epoch"]=S("agent-"+_epoch)
           };
           try{await CreateDoc("d169_diag_sessions/"+Sid()+"/receipts/"+receiptId,fields,"created_at");
