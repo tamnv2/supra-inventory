@@ -147,6 +147,147 @@ service cloud.firestore {
         );
     }
 
+    // D169: TEMPORARY isolated diagnostics; Owner-approved 17 Oct 2026.
+    // Never authorizes production WMS, real Picklist or live PRIMARY writes.
+    match /d169_diag_sessions/{sid} {
+      function d169SessionExists() {
+        return sid.matches('^[a-f0-9]{32}$')
+          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid))
+          && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)).data.expires_at > request.time;
+      }
+      function d169Member() {
+        return request.auth != null && d169SessionExists()
+          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/members/$(request.auth.uid))
+          && (isAgentOperator() || (isPicker() && pickerSessionNotRevoked()));
+      }
+      allow create: if isAgentOperator()
+        && sid.matches('^[a-f0-9]{32}$')
+        && request.resource.data.keys().hasOnly(['schema','owner_uid','created_at','expires_at','paired_picker_uid','leader_uid','leader_node','leader_epoch','lease_until'])
+        && request.resource.data.keys().hasAll(['schema','owner_uid','created_at','expires_at','paired_picker_uid','leader_uid','leader_node','leader_epoch','lease_until'])
+        && request.resource.data.schema == 'D169_DIAG_V1'
+        && request.resource.data.owner_uid == request.auth.uid
+        && request.resource.data.paired_picker_uid == ''
+        && request.resource.data.created_at == request.time
+        && request.resource.data.expires_at is timestamp
+        && request.resource.data.expires_at > request.time
+        && request.resource.data.expires_at <= request.time + duration.value(48, 'h')
+        && request.resource.data.leader_uid == request.auth.uid
+        && request.resource.data.leader_node is string
+        && request.resource.data.leader_node.matches('^[a-f0-9]{32}$')
+        && request.resource.data.leader_epoch == 1
+        && request.resource.data.lease_until is timestamp
+        && request.resource.data.lease_until > request.time
+        && request.resource.data.lease_until <= request.time + duration.value(60, 's');
+      allow get: if isAgentOperator()
+        || (isPicker() && pickerSessionNotRevoked()
+            && resource.data.expires_at > request.time
+            && (resource.data.paired_picker_uid == '' || resource.data.paired_picker_uid == request.auth.uid));
+      allow list, delete: if false;
+      // First authenticated Picker locks this temporary test session to one Firebase UID.
+      // A different Picker cannot join or listen to test-only messages after lock.
+      allow update: if isPicker() && pickerSessionNotRevoked()
+        && resource.data.expires_at > request.time
+        && resource.data.paired_picker_uid == ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paired_picker_uid'])
+        && request.resource.data.paired_picker_uid == request.auth.uid;
+      allow update: if isAgentOperator() && d169Member()
+        && resource.data.expires_at > request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leader_uid','leader_node','leader_epoch','lease_until'])
+        && request.resource.data.leader_uid == request.auth.uid
+        && request.resource.data.leader_node is string
+        && request.resource.data.leader_node.matches('^[a-f0-9]{32}$')
+        && request.resource.data.lease_until is timestamp
+        && request.resource.data.lease_until > request.time
+        && request.resource.data.lease_until <= request.time + duration.value(60, 's')
+        && (
+          (resource.data.leader_node == request.resource.data.leader_node
+            && resource.data.leader_uid == request.auth.uid
+            && request.resource.data.leader_epoch == resource.data.leader_epoch
+            && request.resource.data.lease_until > resource.data.lease_until)
+          ||
+          (resource.data.lease_until <= request.time
+            && resource.data.leader_node != request.resource.data.leader_node
+            && request.resource.data.leader_epoch == resource.data.leader_epoch + 1)
+        );
+
+      match /members/{memberUid} {
+        allow create: if d169SessionExists()
+          && (isAgentOperator() || (isPicker() && pickerSessionNotRevoked()))
+          && request.auth.uid == memberUid
+          && request.resource.data.keys().hasOnly(['uid','role','joined_at'])
+          && request.resource.data.keys().hasAll(['uid','role','joined_at'])
+          && request.resource.data.uid == request.auth.uid
+          && (isAgentOperator() || get(/databases/$(database)/documents/d169_diag_sessions/$(sid)).data.paired_picker_uid == request.auth.uid)
+          && request.resource.data.role == request.auth.token.app_role
+          && request.resource.data.joined_at == request.time;
+        allow get: if d169Member()
+          || (request.auth != null && request.auth.uid == memberUid && d169SessionExists());
+        allow list: if d169Member();
+        allow update, delete: if false;
+      }
+      match /messages/{messageId} {
+        allow create: if d169Member()
+          && messageId.matches('^[a-f0-9]{32}$')
+          && request.resource.data.keys().hasOnly(['request_id','sender_uid','sender_role','sender_node','target_uid','kind','payload','created_at','expires_at'])
+          && request.resource.data.keys().hasAll(['request_id','sender_uid','sender_role','target_uid','kind','payload','created_at','expires_at'])
+          && request.resource.data.request_id == messageId
+          && request.resource.data.sender_uid == request.auth.uid
+          && (!request.resource.data.keys().hasAny(['sender_node'])
+              || (request.resource.data.sender_node is string
+                && request.resource.data.sender_node.matches('^[a-f0-9]{32}$')))
+          && request.resource.data.sender_role == request.auth.token.app_role
+          && request.resource.data.kind in ['PING','PICKLIST_SIM','CALL_SIM','CHAT_SIM','KICK_SIM','LEADER_PROBE','RETRY_SIM','FAILOVER_SIM']
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() <= 80
+          && request.resource.data.target_uid is string
+          && (request.resource.data.target_uid == 'ALL'
+            || exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/members/$(request.resource.data.target_uid)))
+          && request.resource.data.created_at == request.time
+          && request.resource.data.expires_at is timestamp
+          && request.resource.data.expires_at > request.time
+          && request.resource.data.expires_at <= request.time + duration.value(5, 'm');
+        allow get, list: if d169Member();
+        allow update, delete: if false;
+      }
+      match /receipts/{receiptId} {
+        allow create: if d169Member()
+          && request.resource.data.keys().hasOnly(['request_id','receiver_uid','receiver_role','receiver_node','payload_echo','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.keys().hasAll(['request_id','receiver_uid','receiver_role','payload_echo','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.receiver_uid == request.auth.uid
+          && request.resource.data.receiver_role == request.auth.token.app_role
+          && (request.resource.data.receiver_role in ['ADMIN','PICKPACK_ADMIN']
+              || (request.resource.data.receiver_role == 'PICKER' && pickerSessionNotRevoked()))
+          && request.resource.data.request_id is string
+          && request.resource.data.request_id.matches('^[a-f0-9]{32}$')
+          && ((!request.resource.data.keys().hasAny(['receiver_node'])
+                 && receiptId == request.resource.data.request_id + '_' + request.auth.uid)
+              || (request.resource.data.keys().hasAny(['receiver_node'])
+                 && request.resource.data.receiver_node is string
+                 && request.resource.data.receiver_node.matches('^[a-f0-9]{32}$')
+                 && receiptId == request.resource.data.request_id + '_' + request.auth.uid + '_' + request.resource.data.receiver_node))
+          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id))
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_uid != request.auth.uid
+              || (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.keys().hasAny(['sender_node'])
+                  && request.resource.data.keys().hasAny(['receiver_node'])
+                  && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_node != request.resource.data.receiver_node))
+          && request.resource.data.payload_echo == get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.payload
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_role != 'PICKER'
+              || request.resource.data.receiver_role in ['ADMIN','PICKPACK_ADMIN'])
+          && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.expires_at > request.time
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == 'ALL'
+              || get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == request.auth.uid)
+          && request.resource.data.result in ['ACK','ERROR','REJECTED']
+          && request.resource.data.elapsed_ms is int
+          && request.resource.data.elapsed_ms >= 0
+          && request.resource.data.elapsed_ms <= 120000
+          && request.resource.data.network_epoch is string
+          && request.resource.data.network_epoch.size() <= 40
+          && request.resource.data.created_at == request.time;
+        allow get, list: if d169Member();
+        allow update, delete: if false;
+      }
+    }
+
     match /relay_poc_jobs/{jobId} {
       allow create: if isPicker()
         && request.resource.data.keys().hasOnly([

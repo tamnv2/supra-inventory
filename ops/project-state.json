@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-14",
+  "last_updated": "2026-10-17",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -7451,8 +7451,8 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-android-agent-code-only-20261015",
     "pr": 606,
-    "latest_checkpoint_id": "D169-E009",
-    "checkpoint_date_vn": "2026-10-15",
+    "latest_checkpoint_id": "D169-E039",
+    "checkpoint_date_vn": "2026-10-17",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D169_WEB_WORKER_BETA_DEPLOYED__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED",
@@ -7996,7 +7996,7 @@
     ],
     "next": "OWNER_TEST_V135_ON_SECONDARY__NORMAL_TABS_VISIBLE__HIDE_SHOW_WEB_TAB__WMS_CONFIRM_SKU_HA__FIELD_RESULT",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E029",
+    "latest_checkpoint_id": "D169-E039",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8127,6 +8127,95 @@
       "channel_tag": "relay-agent-v135",
       "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135",
       "exe_asset_size": 7425536
+    },
+    "test_v6_2026_10_17": {
+      "status": "PR613_EXACT_HEAD_18_OF_18_CI_PASS__BUILD_ARTIFACTS_AVAILABLE__TEST_RULES_NOT_DEPLOYED__FIELD_PENDING",
+      "pr": 613,
+      "branch": "test/d169-dual-network-diagnostic-v4-20261017",
+      "source_sha": "6e793a606d30b08a75cd0d66829eb62e98980dbf",
+      "windows_run": 39033100181,
+      "windows_artifact_id": 12100792474,
+      "android_run": 39033100144,
+      "android_artifact_id": 12101485166,
+      "rules_emulator_run": 39033100070,
+      "emulator_pass": true,
+      "build_pass": true,
+      "main_rules_deployed": false,
+      "main_scope_contains_temp_resource": false,
+      "temporary_beta_resource_approved": true,
+      "physical_device_field_pass": false,
+      "owner_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "next": "CONTROLLED_RULES_PUBLISH_AFTER_GATES__PDA_AGENT_A_AGENT_B_MIXED_NETWORK_FIELD_LOGS__ARCHIVE_THEN_DELETE_TEMP_DATA_AND_RULES"
+    },
+    "test_v7_2026_10_17": {
+      "status": "V7_AUTO_PAIR_IMPLEMENTED_IN_D169_PR613__CI_RECHECK_PENDING__BETA_RULES_UNDEPLOYED__FIELD_PENDING",
+      "change_id": "D169",
+      "pr": 613,
+      "working_branch": "test/d169-dual-network-diagnostic-v4-20261017",
+      "owner_auto_pair_approved": true,
+      "uses_existing_admin_picker_login": true,
+      "exact_runtime_usernames_in_repo": false,
+      "synthetic_temp_firestore": "d169_diag_sessions",
+      "auto_session_vn_day": true,
+      "separate_agent_nodes": true,
+      "network_cases": 8,
+      "role_correlated_receipt_required": true,
+      "simulated_leader_lease_generation": true,
+      "app_pda_log_drive_sync_proof_pending": true,
+      "exe_desktop_log_only": true,
+      "office_access_unverified": true,
+      "physical_device_e2e_pass": false,
+      "main_rules_deployed": false,
+      "rules_deployment_workflow_patch_review_required": true,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "next": "EXACT_HEAD_CI_PASS_THEN_AUTHORIZED_BETA_RULES_READBACK_THEN_OWNER_PHYSICAL_8_CASES_AND_SCRUBBED_LOG_EXPORT"
     }
+  },
+  "d169_fieldkit": {
+    "status": "D169_REAL_PROTOCOL_DIAGNOSTIC_V5_CODE_AND_BUILD_PASS__FIELD_OWNER_PENDING__DRAFT_UNMERGED",
+    "owner_decision": "D169-E031",
+    "evidence_checkpoint": "D169-E032",
+    "artifact_android": {
+      "pr": 613,
+      "workflow_run": 39028653662,
+      "package_id": "cd.cc.supra.inventory.d169diagnostic",
+      "sha256": "9d9ac7dd83079ea9f269260e5f0bd02b1b4170e32b9001f07a7a0d1d8ae5a277",
+      "app_backend_login": "PICKER_REAL_WORKER_LOGIN",
+      "picklist_client": "EXISTING_RELAY_POC_REAL_JOB_ACK",
+      "log_export": "EXISTING_LOG_UPLOAD_ARCHIVE_STATUS_DRIVE_SYNCED_ONLY"
+    },
+    "artifact_windows": {
+      "pr": 612,
+      "workflow_run": 39029035889,
+      "sha256": "730653d69f00a637868eafd53865295c60e0b6e7b0b33586ceca328b8689e84f",
+      "account_login": "EXISTING_AGENT_ADMIN_OR_PICKPACK_ADMIN",
+      "export": "DESKTOP_JSON_TXT_AND_LIVE_EXISTING_AGENT_LOG_MIRROR",
+      "ha_mutation": false
+    },
+    "field_gate": "REQUIRES_ACTUAL_PDA_PICKER_AND_TWO_AGENT_MIXED_NORMAL_OFFICE_WMS_TEST_PICKLIST_ACK_SESSION_FCM_AND_FAILOVER_EVIDENCE",
+    "release_gate": "NO_PRODUCTION_AGENT_ANDROID_WORKER_RULES_STABLE_CHANGE"
+  },
+  "d169_temporary_direct_peer": {
+    "status": "OWNER_APPROVED_TEMP_BETA_COLLECTION__V6_ANDROID_WINDOWS_BUILD_SUCCESS__FIRESTORE_RULES_EMULATOR_SECURITY_PENDING__NOT_DEPLOYED__FIELD_OWNER_PENDING",
+    "change_id": "D169",
+    "owner_permission": "2026-10-17",
+    "resource_scope_key": "d169-diagnostic-firestore-beta",
+    "firestore_namespace": "d169_diag_sessions",
+    "android_test_package": "cd.cc.supra.inventory.d169diagnostic",
+    "windows_exe": "SUPRA.D169.PeerDiagnostic.exe",
+    "carrier": "FIRESTORE_BETA_REST_WINDOWS__FIRESTORE_SDK_ANDROID__NO_PRODUCTION_JOB",
+    "primary": "SIMULATED_SESSION_LEADER_CAS_ONLY",
+    "ci": {
+      "windows": 39032045935,
+      "android": 39032045963,
+      "rules_emulator": "PENDING",
+      "repo_authority": "LAST_SUCCESS_HEAD_f993d5ab",
+      "project_state": "LAST_SUCCESS_HEAD_f993d5ab"
+    },
+    "field_pass": false,
+    "owner_pass": false,
+    "cleanup_gate": "Only after Owner confirms logs archived: manual per-session wipe, verify parent 404, remove Rules via reviewed follow-up PR, then status RETIRED",
+    "stable": "UNTOUCHED"
   }
 }
