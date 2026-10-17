@@ -251,8 +251,8 @@ service cloud.firestore {
       }
       match /receipts/{receiptId} {
         allow create: if d169Member()
-          && request.resource.data.keys().hasOnly(['request_id','receiver_uid','receiver_role','receiver_node','result','created_at','elapsed_ms','network_epoch'])
-          && request.resource.data.keys().hasAll(['request_id','receiver_uid','receiver_role','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.keys().hasOnly(['request_id','receiver_uid','receiver_role','receiver_node','payload_echo','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.keys().hasAll(['request_id','receiver_uid','receiver_role','payload_echo','result','created_at','elapsed_ms','network_epoch'])
           && request.resource.data.receiver_uid == request.auth.uid
           && request.resource.data.receiver_role == request.auth.token.app_role
           && (request.resource.data.receiver_role in ['ADMIN','PICKPACK_ADMIN']
@@ -270,6 +270,7 @@ service cloud.firestore {
               || (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.keys().hasAny(['sender_node'])
                   && request.resource.data.keys().hasAny(['receiver_node'])
                   && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_node != request.resource.data.receiver_node))
+          && request.resource.data.payload_echo == get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.payload
           && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_role != 'PICKER'
               || request.resource.data.receiver_role in ['ADMIN','PICKPACK_ADMIN'])
           && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.expires_at > request.time
