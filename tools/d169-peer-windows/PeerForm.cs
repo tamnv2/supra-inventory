@@ -56,7 +56,7 @@ internal sealed class PeerForm : Form
         _logPath=Path.Combine(desktop,"SUPRA_D169_AGENT_PEER_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
-        Text="SUPRA D169 — EXE Test Agent ⇄ PDA ⇄ Agent"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
+        Text="SUPRA D169 — Tự động ghép Agent ⇄ PDA Test"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
         Font=new Font("Segoe UI",10);
         var title=new Label{Text="D169 — KÊNH RIÊNG: EXE Test A/B ⇄ PDA Test",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
         Controls.Add(title);
