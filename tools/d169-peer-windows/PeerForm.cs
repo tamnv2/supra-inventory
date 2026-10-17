@@ -26,6 +26,8 @@ internal sealed class PeerForm : Form
     private const string CommitUrl = "https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents:commit";
     private readonly AgentTokens _token;
     private readonly string _uid;
+    private readonly string _sessionId=AutomaticSessionId();
+    private string _networkMode="NORMAL";
     private readonly string _nodeId=Guid.NewGuid().ToString("N");
     private readonly ConcurrentDictionary<string,long> _sentTicks=new();
     private readonly ConcurrentDictionary<string,string> _sentExpected=new();
@@ -90,7 +92,7 @@ internal sealed class PeerForm : Form
         var info=new Label{Text="Agent này có Firebase role hợp lệ; chỉ EXE Test mới cập nhật lease mô phỏng.\nCùng một SID 32 hex dùng trên PDA và mọi PC.",Left=405,Top=181,Width=515,Height=52};
         Controls.Add(info);
         _output.SetBounds(16,246,909,345);_output.Anchor=AnchorStyles.Top|AnchorStyles.Bottom|AnchorStyles.Left|AnchorStyles.Right;Controls.Add(_output);
-        _session.Text=AutomaticSessionId();
+        _session.Text=_sessionId;
         _session.ReadOnly=true;_session.Visible=false;_create.Visible=false;_join.Visible=false;
         _kind.Visible=false;_send.Visible=false;_takeover.Visible=false;_payload.Visible=false;
         _start.Visible=false;_stop.Visible=false;
@@ -109,7 +111,7 @@ internal sealed class PeerForm : Form
         _takeover.Click += async (_,_) => await Run(Takeover);
         _start.Click += (_,_) => StartPoll();
         _stop.Click += (_,_) => StopPoll();
-        _mode.SelectedIndexChanged += (_,_) => {Interlocked.Increment(ref _epoch);Log("NETWORK_MODE","CHANGED",new{mode=_mode.Text,epoch=_epoch});};
+        _mode.SelectedIndexChanged += (_,_) => {_networkMode=_mode.Text;Interlocked.Increment(ref _epoch);Log("NETWORK_MODE","CHANGED",new{mode=_networkMode,epoch=_epoch});};
         NetworkChange.NetworkAddressChanged += OnNetworkChanged;
         FormClosed += (_,_) => {NetworkChange.NetworkAddressChanged -= OnNetworkChanged;StopPoll();_closed.Cancel();_http.Dispose();_closed.Dispose();};
         Log("EXE_TEST_START","READY",new{uid=Fingerprint(_uid),file=Path.GetFileName(_logPath)});
@@ -248,13 +250,13 @@ internal sealed class PeerForm : Form
     private void OnNetworkChanged(object? sender,EventArgs e)
     {
         Interlocked.Increment(ref _epoch);
-        Log("NETWORK_EPOCH","SYSTEM_CHANGED",new{epoch=_epoch,network=_mode.Text});
+        Log("NETWORK_EPOCH","SYSTEM_CHANGED",new{epoch=_epoch,network=_networkMode});
     }
     private static string Fingerprint(string value) => value.Length<8?"UID":"uid:"+value[..4]+"…";
     private void Log(string stage,string result,object? detail=null)
     {
         var s=JsonSerializer.Serialize(new { at_utc=DateTimeOffset.UtcNow.ToString("O"),mono_ticks=Environment.TickCount64,
-            session_id=_session.Text.Trim(),network_epoch=_epoch,network_mode=_mode.Text,stage,result,detail,reads=_readCount,writes=_writeCount });
+            session_id=_sessionId,network_epoch=_epoch,network_mode=_networkMode,stage,result,detail,reads=_readCount,writes=_writeCount });
         lock(_gate)File.AppendAllText(_logPath,s+Environment.NewLine,Encoding.UTF8);
         if(!IsDisposed)try{BeginInvoke(new Action(()=>{_output.AppendText(DateTime.Now.ToString("HH:mm:ss")+" "+stage+" "+result+Environment.NewLine); }));}catch{}
     }
@@ -267,7 +269,7 @@ internal sealed class PeerForm : Form
     }
     private string Sid()
     {
-        var id=_session.Text.Trim().ToLowerInvariant();
+        var id=_sessionId;
         if(!Regex.IsMatch(id,"^[a-f0-9]{32}$"))throw new InvalidOperationException("SID must be 32 hex");
         return id;
     }
