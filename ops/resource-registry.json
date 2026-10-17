@@ -2926,5 +2926,19 @@
     "no_new_provider_resource": true,
     "unused_components": "ANDROID_PDA_WMS_CONFIRM_APPS_SCRIPT_GATEWAY_STABLE_LAUNCHER",
     "field": "ADMIN_PC_INSTALLED_V129__SERVICE_FULL_DELTA_DONE__OPERATOR_DISPLAY__HA_FAILOVER__USAGE__OWNER_BUSINESS_PASS_ALL_PENDING"
+  },
+  "d169_temporary_direct_peer_test": {
+    "status": "OWNER_APPROVED_TEMPORARY_RESOURCE__IMPLEMENTATION_AND_RULES_REVIEW_PENDING",
+    "project": "supra-inventory-beta",
+    "database": "(default)",
+    "collection": "d169_diag_sessions",
+    "parent_resource_key": "firestore-relay-beta-d091",
+    "scope_resource_key": "d169-diagnostic-firestore-beta",
+    "owner_approved_at_vn": "2026-10-17",
+    "purpose": "Isolated authenticated simulated PDA-to-Test-Agent A/B messages, read receipts, mixed-network and simulated primary fencing; never production WMS, Picklist, calls, chat or kicks",
+    "security": "Only role-authenticated PICKER/ADMIN/PICKPACK_ADMIN, self-signed membership in a random 128-bit session ID, role-validated doc writes and max 48h lifetime; no tokens/passwords in public repo",
+    "client_packages": "Standalone Android test package and standalone Windows EXE test; do not auto-update normal releases",
+    "cleanup_after": "Once Owner confirms results/evidence archived, explicitly wipe children and parents and verify zero, remove Rules allow and record project-state cleanup gate",
+    "stable": "UNTOUCHED_OWNER_GATED"
   }
 }
