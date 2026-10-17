@@ -131,7 +131,16 @@ class DiagHubActivity : Activity() {
         journal.event("AUTO_PHASE","COMPLETE","scenario="+phases[phase]+" pass="+pass+"/"+sent.size)
         phase++
         if(phase<phases.size){
-          notice("Kết quả "+pass+"/"+sent.size+". Tiếp theo: "+phases[phase]+". Chuyển mạng theo kịch bản rồi bấm ĐÃ CHUYỂN MẠNG trên các máy.")
+          val upcoming=phases[phase]
+          notice("Kết quả "+pass+"/"+sent.size+". Tiếp theo: "+upcoming+".")
+          runOnUiThread{
+            android.app.AlertDialog.Builder(this)
+              .setTitle("D169 · Chuyển mạng bước "+(phase+1)+"/"+phases.size)
+              .setMessage("Mạng cần thử: "+upcoming+"\\nChỉ bấm Đã chuyển mạng sau khi các thiết bị đã kết nối mạng yêu cầu.")
+              .setPositiveButton("Đã chuyển mạng"){_,_->runAutomated(true)}
+              .setNegativeButton("Chưa đổi",null)
+              .show()
+          }
         }else{
           notice("Đã chạy hết 8 nhóm thử nghiệm. Gửi log lên Drive và lấy log EXE từ Desktop.")
           upload()
