@@ -167,6 +167,7 @@ class DiagHubActivity : Activity() {
       Thread.sleep(3000)
     }
     if(!ready)throw IllegalStateException("CHUA_CO_AGENT_TEST__OR_RULES_CHUA_DEPLOY")
+    claimPickerSession(root,uid)
     val self=root.collection("members").document(uid)
     if(!Tasks.await(self.get(Source.SERVER),12,TimeUnit.SECONDS).exists()){
       val member=mapOf("uid" to uid,"role" to "PICKER","joined_at" to FieldValue.serverTimestamp())
@@ -178,6 +179,16 @@ class DiagHubActivity : Activity() {
     startListeners(root,uid)
     notice("Đã tự động ghép PDA Test với Agent Test.")
     return root
+  }
+  private fun claimPickerSession(root:DocumentReference,uid:String) {
+    val d=Tasks.await(root.get(Source.SERVER),12,TimeUnit.SECONDS)
+    val paired=d.getString("paired_picker_uid").orEmpty()
+    if(paired.isBlank()) {
+      Tasks.await(root.update("paired_picker_uid",uid),12,TimeUnit.SECONDS)
+      journal.event("PAIR_CLAIM","PASS","Only this authenticated Picker may join")
+    } else if(paired != uid) {
+      throw IllegalStateException("PHIEN_TEST_DA_GHEP_PICKER_KHAC")
+    }
   }
   private fun transport():String {
     val cm=getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -233,6 +244,7 @@ class DiagHubActivity : Activity() {
         if(!data.exists())throw IllegalStateException("SESSION_NOT_CREATED")
         if((data.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())
           throw IllegalStateException("SESSION_EXPIRED")
+        claimPickerSession(root,uid)
         val member=mapOf("uid" to uid,"role" to "PICKER","joined_at" to FieldValue.serverTimestamp())
         val self=root.collection("members").document(uid)
         if(!Tasks.await(self.get(Source.SERVER),12,TimeUnit.SECONDS).exists())
