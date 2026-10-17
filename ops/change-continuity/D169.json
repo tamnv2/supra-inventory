@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E030",
+    "id": "D169-E031",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -568,6 +568,26 @@
       ],
       "next_action": "Present scoped impact/security/usage/failover proposal for Owner decision only; no source/provider/role/rules/VM or release mutations. Maintain D169 serial gate, no new Dxxx, and reconcile divergent main E022-vs-working journal before any merge.",
       "evidence": "Owner current 2026-10-18 request; main ops/authority-manifest.json and canonical spec/state; relay-agent/D165PrivilegedAuth.cs; relay-agent/FirestoreAgentLeaderCoordinator.cs; relay-agent/FirestoreConfirmationTransport.cs; relay-agent/RtdbHaLiveness.cs. Main journal E029, working branch E022 diverge (no merge authorized)."
+    },
+    {
+      "id": "D169-E031",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_CLARIFICATION_AND_SECURITY_ANALYSIS",
+      "topic": "CLOUD_AGENT is a provisioned SUPRA Web application account; WMS image slider CAPTCHA unattended-login question",
+      "status": "ACCOUNT_TYPE_CONFIRMED__WMS_CAPTCHA_MANUAL_OR_AUTHORIZED_SSO_PROPOSED__NO_CODE_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner confirms the dedicated VPS application account (alias CLOUD_AGENT) was already provisioned through SUPRA Web for logging in to Windows Agent; it is NOT merely a Windows-local account. Account role and effective claims have not yet been independently verified. Do not create another account or assume it is privileged.",
+        "Owner observes Supra WMS web authentication sometimes requires a drag-to-position image-slider challenge (CAPTCHA) and asks whether Agent can automatically drag and pass it, aiming for unattended VPS operation.",
+        "Current main relay-agent/SupraConfirmBrowser.cs has an Agent-owned x64 WebView2 browser with persistent profile and explicit WMS login-marker detection; RefreshState shows browser to operator upon exact login marker, but source review finds no approved slider-CAPTCHA solver or automatic challenge pass.",
+        "WMS CAPTCHA is separate from SUPRA Inventory Agent OTP and Agent role; the proposed application OTP does not grant permission to bypass the WMS challenge.",
+        "Recommend do NOT implement CAPTCHA image matching, simulated drag, external solving service, challenge token reuse, or broad browser auth material replay. Preserve server-side protection, WMS policy and credential/session isolation.",
+        "Low-risk flow: keep stable authenticated WMS profile when permitted, monitor browser WMS readiness, explicitly alert authorized operator when user interaction is required, hold/failover PRIMARY while WMS not ready, recheck readiness after authorized human completes challenge, and apply fenced automatic cloud return only if no manual primary lock.",
+        "If fully unattended WMS login is essential, request an officially authorized SSO, trusted-device, or service integration from the WMS administrator rather than trying to automate CAPTCHA. No assumption such an integration exists.",
+        "D169 source/release boundary unchanged: v135 field PASS pending, no Android/Worker/Firebase/Stable mutation and no provision of unregistered VPS infra."
+      ],
+      "next_action": "Confirm actual authorized SUPRA application role for CLOUD_AGENT and test WMS session behavior after disconnect/restart; ask WMS admin for policy-supported unattended authentication if needed. Propose secure Agent OTP separately for Owner approval. Do not mutate WMS challenge or write CAPTCHA automation.",
+      "evidence": "Owner 2026-10-18 clarification; main relay-agent/SupraConfirmBrowser.cs LoginMarkerText and RefreshState login-marker presentation; relay-agent/D165PrivilegedAuth.cs exact admin/tamnv2 OTP gate; project-scope and current D169 branch E030."
     }
   ],
   "resume": {
