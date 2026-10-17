@@ -7451,7 +7451,7 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-android-agent-code-only-20261015",
     "pr": 606,
-    "latest_checkpoint_id": "D169-E036",
+    "latest_checkpoint_id": "D169-E039",
     "checkpoint_date_vn": "2026-10-17",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7996,7 +7996,7 @@
     ],
     "next": "OWNER_TEST_V135_ON_SECONDARY__NORMAL_TABS_VISIBLE__HIDE_SHOW_WEB_TAB__WMS_CONFIRM_SKU_HA__FIELD_RESULT",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E036",
+    "latest_checkpoint_id": "D169-E039",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8147,6 +8147,29 @@
       "owner_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED",
       "next": "CONTROLLED_RULES_PUBLISH_AFTER_GATES__PDA_AGENT_A_AGENT_B_MIXED_NETWORK_FIELD_LOGS__ARCHIVE_THEN_DELETE_TEMP_DATA_AND_RULES"
+    },
+    "test_v7_2026_10_17": {
+      "status": "V7_AUTO_PAIR_IMPLEMENTED_IN_D169_PR613__CI_RECHECK_PENDING__BETA_RULES_UNDEPLOYED__FIELD_PENDING",
+      "change_id": "D169",
+      "pr": 613,
+      "working_branch": "test/d169-dual-network-diagnostic-v4-20261017",
+      "owner_auto_pair_approved": true,
+      "uses_existing_admin_picker_login": true,
+      "exact_runtime_usernames_in_repo": false,
+      "synthetic_temp_firestore": "d169_diag_sessions",
+      "auto_session_vn_day": true,
+      "separate_agent_nodes": true,
+      "network_cases": 8,
+      "role_correlated_receipt_required": true,
+      "simulated_leader_lease_generation": true,
+      "app_pda_log_drive_sync_proof_pending": true,
+      "exe_desktop_log_only": true,
+      "office_access_unverified": true,
+      "physical_device_e2e_pass": false,
+      "main_rules_deployed": false,
+      "rules_deployment_workflow_patch_review_required": true,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "next": "EXACT_HEAD_CI_PASS_THEN_AUTHORIZED_BETA_RULES_READBACK_THEN_OWNER_PHYSICAL_8_CASES_AND_SCRUBBED_LOG_EXPORT"
     }
   },
   "d169_fieldkit": {
