@@ -463,8 +463,9 @@ internal sealed class PeerForm : Form
           if(!item.TryGetProperty("name",out var nm))continue;
           var id=nm.GetString()?.Split('/').LastOrDefault()??"";
           if(id.Length==0)continue;
-          lock(_gate)if(!_seen.Add(name+":"+id))continue;
+          lock(_gate)if(_seen.Contains(name+":"+id))continue;
           await receive(id);
+          lock(_gate)_seen.Add(name+":"+id);
         }
         next=root.TryGetProperty("nextPageToken",out var page)?page.GetString():null;
         }while(!string.IsNullOrEmpty(next));
