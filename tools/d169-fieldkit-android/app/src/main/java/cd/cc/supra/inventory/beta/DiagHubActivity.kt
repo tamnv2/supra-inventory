@@ -115,7 +115,7 @@ class DiagHubActivity : Activity() {
           val uid=auth!!.currentUser!!.uid
           val map=mapOf("request_id" to request,"sender_uid" to uid,"sender_node" to nodeId,
             "sender_role" to "PICKER","target_uid" to "ALL","kind" to type,
-            "payload" to "D169-SIM","created_at" to FieldValue.serverTimestamp(),
+            "payload" to ("D169-SIM-P"+phase),"created_at" to FieldValue.serverTimestamp(),
             "expires_at" to com.google.firebase.Timestamp(Date(System.currentTimeMillis()+240000)))
           val start=SystemClock.elapsedRealtime()
           Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS)
@@ -239,6 +239,7 @@ class DiagHubActivity : Activity() {
         if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
         if(!seen.add("msg:"+d.id))continue
+        if(d.getString("payload")!="D169-SIM-P"+phase){journal.event("RX_PHASE","MISMATCH","request="+d.id+" phase="+phase);continue}
         val type=d.getString("kind").orEmpty()
         journal.event("RX_FROM_AGENT","RECEIVED","request="+d.id+" kind="+type+" epoch="+epoch)
         receiver.execute{ack(root,d.id,uid)}
