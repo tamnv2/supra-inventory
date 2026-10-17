@@ -162,10 +162,11 @@ service cloud.firestore {
       }
       allow create: if isAgentOperator()
         && sid.matches('^[a-f0-9]{32}$')
-        && request.resource.data.keys().hasOnly(['schema','owner_uid','created_at','expires_at','leader_uid','leader_node','leader_epoch','lease_until'])
-        && request.resource.data.keys().hasAll(['schema','owner_uid','created_at','expires_at','leader_uid','leader_node','leader_epoch','lease_until'])
+        && request.resource.data.keys().hasOnly(['schema','owner_uid','created_at','expires_at','paired_picker_uid','leader_uid','leader_node','leader_epoch','lease_until'])
+        && request.resource.data.keys().hasAll(['schema','owner_uid','created_at','expires_at','paired_picker_uid','leader_uid','leader_node','leader_epoch','lease_until'])
         && request.resource.data.schema == 'D169_DIAG_V1'
         && request.resource.data.owner_uid == request.auth.uid
+        && request.resource.data.paired_picker_uid == ''
         && request.resource.data.created_at == request.time
         && request.resource.data.expires_at is timestamp
         && request.resource.data.expires_at > request.time
@@ -178,8 +179,17 @@ service cloud.firestore {
         && request.resource.data.lease_until > request.time
         && request.resource.data.lease_until <= request.time + duration.value(60, 's');
       allow get: if isAgentOperator()
-        || (isPicker() && resource.data.expires_at > request.time);
+        || (isPicker() && pickerSessionNotRevoked()
+            && resource.data.expires_at > request.time
+            && (resource.data.paired_picker_uid == '' || resource.data.paired_picker_uid == request.auth.uid));
       allow list, delete: if false;
+      // First authenticated Picker locks this temporary test session to one Firebase UID.
+      // A different Picker cannot join or listen to test-only messages after lock.
+      allow update: if isPicker() && pickerSessionNotRevoked()
+        && resource.data.expires_at > request.time
+        && resource.data.paired_picker_uid == ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paired_picker_uid'])
+        && request.resource.data.paired_picker_uid == request.auth.uid;
       allow update: if isAgentOperator() && d169Member()
         && resource.data.expires_at > request.time
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leader_uid','leader_node','leader_epoch','lease_until'])
@@ -207,6 +217,7 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['uid','role','joined_at'])
           && request.resource.data.keys().hasAll(['uid','role','joined_at'])
           && request.resource.data.uid == request.auth.uid
+          && (isAgentOperator() || get(/databases/$(database)/documents/d169_diag_sessions/$(sid)).data.paired_picker_uid == request.auth.uid)
           && request.resource.data.role == request.auth.token.app_role
           && request.resource.data.joined_at == request.time;
         allow get: if d169Member()
