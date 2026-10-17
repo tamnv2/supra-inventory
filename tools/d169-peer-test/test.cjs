@@ -38,6 +38,22 @@ const {doc,setDoc,getDoc,collection,getDocs,serverTimestamp,Timestamp}=require("
       {request_id:msgid,receiver_uid:adminId,result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
     await assertFails(setDoc(doc(picker,`${root}/receipts/${msgid+"_"+pickerId}`),
       {request_id:msgid,receiver_uid:pickerId,result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
+    // Two Test Agent instances signed in under the same Admin account must still
+    // exchange simulated messages via unique node identities, not a production HA lease.
+    const nodeA="a3".repeat(16),nodeB="b4".repeat(16),sameUidMsg="a5".repeat(16);
+    await assertSucceeds(setDoc(doc(admin,`${root}/messages/${sameUidMsg}`),{
+      ...msg,request_id:sameUidMsg,sender_uid:adminId,sender_role:"ADMIN",
+      sender_node:nodeA,target_uid:adminId,
+      expires_at:Timestamp.fromDate(new Date(Date.now()+3*60*1000))
+    }));
+    await assertSucceeds(setDoc(doc(admin,`${root}/receipts/${sameUidMsg+"_"+adminId+"_"+nodeB}`),{
+      request_id:sameUidMsg,receiver_uid:adminId,receiver_node:nodeB,
+      result:"ACK",created_at:serverTimestamp(),elapsed_ms:12,network_epoch:"agent-1"
+    }));
+    await assertFails(setDoc(doc(admin,`${root}/receipts/${sameUidMsg+"_"+adminId+"_"+nodeA}`),{
+      request_id:sameUidMsg,receiver_uid:adminId,receiver_node:nodeA,
+      result:"ACK",created_at:serverTimestamp(),elapsed_ms:12,network_epoch:"agent-1"
+    }));
     await assertFails(setDoc(doc(unauth,`${root}/messages/${"dd".repeat(16)}`),{...msg}));
     console.log("D169_CANARY_RULES_EMULATOR_PASS: scoped authenticated peers + immutable messages + anti-spoof receipts + production isolation");
   }finally{await env.cleanup();}
