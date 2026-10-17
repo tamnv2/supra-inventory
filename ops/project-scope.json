@@ -587,7 +587,9 @@
       "status": "OWNER_APPROVED_2026_10_17_TEMPORARY_TEST_ONLY__CODE_AND_SECURITY_GATE_PENDING",
       "owner_authorization": "2026-10-17 explicit permission for isolated test area, delete after evidence collected",
       "guard": "D169_BETA_ONLY__SEPARATE_NAMESPACE__NO_PRODUCTION_PICKLIST_WMS_PRIMARY__PICKER_AGENT_FIREBASE_AUTH_REQUIRED__MEMBER_ONLY__MAX_48H_SESSION__MAX_5MIN_MESSAGE__OWNER_GATED_CLEANUP_AFTER_FIELD_EVIDENCE__STABLE_UNTOUCHED",
-      "cleanup": "After Owner confirms logs/results collected: disable test clients, export sanitized evidence, delete d169_diag_sessions documents and subcollections with verified count zero, remove this Rules match via separate reviewed PR, mark resource RETIRED. Do not auto-delete before evidence closure."
+      "cleanup": "After Owner confirms logs/results collected: disable test clients, export sanitized evidence, delete d169_diag_sessions documents and subcollections with verified count zero, remove this Rules match via separate reviewed PR, mark resource RETIRED. Do not auto-delete before evidence closure.",
+      "name": "d169_diag_sessions",
+      "id": "d169_diag_sessions"
     }
   ],
   "secret_references": [
