@@ -21,7 +21,7 @@ internal class DiagTimeline(private val context: Context) {
      .put("session_id",id()).put("network_label",label())
      .put("event",stage.take(100)).put("result",result.take(80))
      .put("detail",safe(detail).take(300))
-   runCatching {journalFile.appendText(row.toString()+"\\n",Charsets.UTF_8)}
+   runCatching {journalFile.appendText(row.toString()+"\n",Charsets.UTF_8)}
   }
  }
  fun report():JSONObject {
