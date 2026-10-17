@@ -42,6 +42,7 @@ internal sealed class PeerForm : Form
     private readonly Button _confirmSwitch=new(){Text="ĐÃ CHUYỂN MẠNG · TEST TIẾP"};
     private static readonly string[] Phases={"PDA NORMAL / AGENT NORMAL", "PDA OFFICE / AGENT OFFICE", "PDA NORMAL / AGENT OFFICE", "PDA OFFICE / AGENT NORMAL", "AGENT A NORMAL / B NORMAL", "AGENT A OFFICE / B OFFICE", "AGENT A NORMAL / B OFFICE", "AGENT A OFFICE / B NORMAL"};
     private readonly string _logPath;
+    private readonly string _probeLogPath;
     private readonly TextBox _session = new() { Width = 320 };
     private readonly TextBox _payload = new() { Width = 300, Text = "1234" };
     private readonly TextBox _output = new() { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical };
@@ -72,6 +73,7 @@ internal sealed class PeerForm : Form
         var desktop=Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         if(string.IsNullOrWhiteSpace(desktop)||!Directory.Exists(desktop))desktop=Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         _logPath=Path.Combine(desktop,"SUPRA_D169_AGENT_PEER_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
+        _probeLogPath=Path.Combine(desktop,"SUPRA_D169_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
         Text="SUPRA D169 — Tự động ghép Agent ⇄ PDA Test"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
@@ -188,6 +190,7 @@ internal sealed class PeerForm : Form
     {
         var phase=Phases[_phase];
         Log("PHASE","BEGIN",new{phase,expected_operator_network=phase,node=_nodeId[..8]});
+        await RunReadOnlyNetworkProbes(phase);
         var sent=new List<string>();
         foreach(var type in new[]{"PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
           sent.Add(await SendTest(type));
@@ -202,6 +205,25 @@ internal sealed class PeerForm : Form
         }
         Log("PHASE","DONE",new{phase,passed=sent.Count(id=>(_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n)&&n>0),total=sent.Count});
         if(_phase>=4)await VerifyAutomaticLeaderFailover();
+    }
+    private async Task RunReadOnlyNetworkProbes(string phase)
+    {
+        // Compare the existing Firebase routes separately from the direct authenticated peer ACKs.
+        // Do not assume endpoint HTTP success means a business ACK or working listener.
+        var report=new DiagnosticReport {
+            NetworkLabel=_networkMode,
+            StartedAtUtc=DateTimeOffset.UtcNow.ToString("O")
+        };
+        try {
+            await FirebaseDiagnostic.RunAsync(report,_token,new Progress<string>(
+              s=>Log("NETWORK_PROBE_PROGRESS","RUNNING",new{phase,step=s})));
+            report.FinishedAtUtc=DateTimeOffset.UtcNow.ToString("O");
+            var line=JsonSerializer.Serialize(new{test_session=_sessionId,agent_node=_nodeId[..8],phase,report});
+            lock(_gate)File.AppendAllText(_probeLogPath,line+Environment.NewLine,Encoding.UTF8);
+            Log("NETWORK_PROBE","EXPORTED",new{phase,count=report.Probes.Count,file=Path.GetFileName(_probeLogPath)});
+        }catch(Exception ex){
+            Log("NETWORK_PROBE","ERROR",new{phase,reason=ex.GetType().Name});
+        }
     }
     private async Task VerifyAutomaticLeaderFailover()
     {
