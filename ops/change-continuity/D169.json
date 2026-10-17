@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "test/d169-dual-network-diagnostic-v4-20261017",
-  "pr": null,
+  "working_branch": "fix/d169-android-agent-code-only-20261015",
+  "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E030",
+    "id": "D169-E031",
     "date_vn": "2026-10-17"
   },
-  "deployment_gate": "D169_ISOLATED_DIAGNOSTIC_DRAFT_ONLY_NO_PRODUCTION_RELEASE",
+  "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
   "entries": [
     {
       "id": "D169-E001",
@@ -665,7 +665,7 @@
     {
       "id": "D169-E030",
       "date_vn": "2026-10-17",
-      "kind": "OWNER_COMMAND_AND_DIAGNOSTIC_WORK_IN_PROGRESS",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner requests separate Windows diagnostic EXE and Android PDA APK for comprehensive dual-network and heterogeneous Agent/HA test",
       "status": "PARTIAL_READONLY_WINDOWS_V4_CROSS_BUILT__ANDROID_SOURCE_LOCAL_ONLY__GH_UPLOAD_BLOCKED__PEER_CANARY_NOT_AUTHORIZED__NO_RUNTIME_CHANGE",
       "owner_approval": true,
@@ -685,6 +685,24 @@
       ],
       "next_action": "Finish standalone Android APK and safe CI/field installation, then require authorized canary rules before peer writes. Collect one correlated session covering all S01-S16; compare latency, ACK, proxy/HA transitions and billed quota. Keep D169 open and Stable untouched.",
       "evidence": "Owner direct instruction; authenticated V3 JSON 2026-10-17; docs/D169_DUAL_NETWORK_DIAGNOSTIC_V4_PLAN_2026-10-17.md on diagnostic branch; standalone sandbox EXE/SOURCE cross-build; current firebase/firestore.rules."
+    },
+    {
+      "id": "D169-E031",
+      "date_vn": "2026-10-17",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner rejects network-only probe and requests isolated real Agent/PDA business-protocol field kit",
+      "owner_approval": true,
+      "status": "ANDROID_FIELDKIT_REAL_PICKER_AND_FIRESTORE_PICKLIST_SOURCE_DRAFT__WINDOWS_ADMIN_DIAGNOSTIC_BUILT__OWNER_FIELD_PENDING__NO_STABLE",
+      "facts": [
+        "Owner explicitly requests no manual Firebase API key; Windows tool must sign in with existing Admin/Pick Pack Admin role and PDA tool with Picker account via existing Worker /api/auth/login.",
+        "PDA must send actual Picklist suffix through unmodified RelayPocClient and await Firestore ACK from running PRIMARY, measure request-id/timestamps/agent/lookup result and gather business call/chat/kick runtime journal evidence.",
+        "PDA must send bounded private logs through existing /api/logs/upload path and report Google Drive success only on DRIVE_SYNCED; standalone Windows EXE writes to laptop.",
+        "Cover peer Agent mixed NORMAL/OFFICE, running real agents, current PRIMARY and handoff; never claim a read-only probe proves real two-way agent messages, WMS confirmation or HA.",
+        "New fieldkit Android module source lives only under tools/d169-fieldkit-android/ and stages the existing Android operational source during CI; distinct applicationId, no modification to installed main app, Worker, Firestore rules, WMS or Stable.",
+        "On production test, use only authorized test Picklist data: actual live Agent may confirm via WMS. Do not run automated synthetic business writes or unapproved HA takeover; the diagnostic EXE does not claim live Agent lease."
+      ],
+      "next_action": "Complete build fieldkit source CI, verify package and SHA, obtain explicit Owner field logs on dedicated Picker account and multiple Agent PCs; reconcile authorities and only then propose adaptive model.",
+      "evidence": "Owner direct command, canonical android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt, RelayPocClient.kt, MainActivity.kt and relay-agent/Program.cs, draft PR #613 and independent Windows diagnostic PR #612."
     }
   ],
   "resume": {
