@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E031",
+    "id": "D169-E032",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -588,6 +588,24 @@
       ],
       "next_action": "Confirm actual authorized SUPRA application role for CLOUD_AGENT and test WMS session behavior after disconnect/restart; ask WMS admin for policy-supported unattended authentication if needed. Propose secure Agent OTP separately for Owner approval. Do not mutate WMS challenge or write CAPTCHA automation.",
       "evidence": "Owner 2026-10-18 clarification; main relay-agent/SupraConfirmBrowser.cs LoginMarkerText and RefreshState login-marker presentation; relay-agent/D165PrivilegedAuth.cs exact admin/tamnv2 OTP gate; project-scope and current D169 branch E030."
+    },
+    {
+      "id": "D169-E032",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_REQUEST_AND_SECURITY_SCOPE_BOUNDARY",
+      "topic": "Owner reports shared concurrent WMS sign-in and requests unattended image-slider CAPTCHA completion on cloud primary",
+      "status": "OWNER_REQUEST_RECORDED__CAPTCHA_BYPASS_NOT_IMPLEMENTED__VENDOR_AUTH_PATH_NEEDED__NO_CODE_OR_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner confirms the corporate WMS login is shared across Agent locations and can be concurrently signed in through several browser sessions; this does not establish that browser sessions/cookies are portable or exempt from session expiry.",
+        "Owner expressly wishes the cloud Agent to autonomously re-login when a multi-day WMS session expires, including solving a randomized missing-image-piece drag slider CAPTCHA, to avoid hands-on RDP interaction.",
+        "Current main relay-agent/SupraConfirmBrowser.cs uses Agent-owned WebView2 fixed runtime and a persistent dedicated browser profile; when exact WMS login marker appears it surfaces the browser and pauses route recovery awaiting user; after authorized login succeeds it resumes Confirm recovery. No slider-solver exists or is approved.",
+        "Current ops/project-scope.json specifically binds supra-auth-ui-d127-probe to manual WMS login, bounded approved DOM navigation, no sensitive capture or stealth; persistent WMS credentials/cookies/tokens or general-purpose replay are outside registered scope. An Owner request alone does not establish the WMS provider's permission for unattended CAPTCHA bypass.",
+        "Do not implement image-slider matching, automated CAPTCHA drag, external CAPTCHA solving, or hidden credential/session replay. Instead retain already-authorized browser profile, recover on crash, detect WMS login/readiness, alert an authorized operator for provider-required interactive verification, preserve single-PICKLIST fencing/HA failover, and re-evaluate cloud return once WMS becomes ready.",
+        "A fully unattended solution needs documented approval and an official provider-supported authentication path, such as SSO/trusted-device policy, not an invented CAPTCHA exemption. No WMS backend, Agent/PDA, Beta/Stable deployment or new resource was modified."
+      ],
+      "next_action": "Owner/WMS administrator checks whether supported unattended WMS authentication is available. Otherwise propose an event-driven login-required alert and human verification handoff under a separate Owner-approved bounded Agent change after D169 scope/continuity reconciliation.",
+      "evidence": "Owner direct 2026-10-18 clarification; main ops/project-scope.json supra-auth-ui-d127-probe and explicit_out_of_scope; main relay-agent/SupraConfirmBrowser.cs lines ~394-410, ~1458-1501, ~2204-2224; docs/specs/ROLE_WORKFLOWS.md D127 manual login; current D169 PR #606 remains open."
     }
   ],
   "resume": {
