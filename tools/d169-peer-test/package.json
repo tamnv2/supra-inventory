@@ -1,1 +1,12 @@
-{"name":"d169-temp-peer-rules-check","version":"1.0.0","private":true,"scripts":{"test":"node test.cjs"},"dependencies":{"@firebase/rules-unit-testing":"4.0.1","firebase":"12.4.0"}}
+{
+  "name": "d169-temp-peer-rules-check",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node test.cjs"
+  },
+  "dependencies": {
+    "@firebase/rules-unit-testing": "4.0.1",
+    "firebase": "11.10.0"
+  }
+}
