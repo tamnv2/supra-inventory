@@ -96,9 +96,18 @@ jobs:
           test "$code" = "200" || { echo "Firebase Rules creation failed HTTP $code"; exit 1; }
           set_name="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('name',''))" "$RUNNER_TEMP/create.json")"
           test "${set_name#projects/$PROJECT/rulesets/}" != "$set_name"
-          printf '{"name":"projects/%s/releases/cloud.firestore","rulesetName":"%s"}' "$PROJECT" "$set_name" > "$RUNNER_TEMP/release.json"
+          printf '{"release":{"name":"projects/%s/releases/cloud.firestore","rulesetName":"%s"}}' "$PROJECT" "$set_name" > "$RUNNER_TEMP/release.json"
           code="$(curl --silent --show-error --output "$RUNNER_TEMP/release-result.json" --write-out '%{http_code}'              -X PATCH -H "Authorization: Bearer $token" -H 'Content-Type: application/json'              --data-binary @"$RUNNER_TEMP/release.json"              "https://firebaserules.googleapis.com/v1/projects/$PROJECT/releases/cloud.firestore")"
-          test "$code" = "200" || { echo "Firebase release update failed HTTP $code"; exit 1; }
+          if [ "$code" != "200" ]; then
+            echo "Firebase release update failed HTTP $code"
+            python3 - "$RUNNER_TEMP/release-result.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])).get('error',{})
+          print("Firebase Rules API status:",str(x.get('status','UNKNOWN'))[:80])
+          print("Firebase Rules API message:",str(x.get('message',''))[:350])
+          PY
+            exit 1
+          fi
           curl --silent --show-error --fail -H "Authorization: Bearer $token"             "https://firebaserules.googleapis.com/v1/projects/$PROJECT/releases/cloud.firestore" > "$RUNNER_TEMP/readback.json"
           python3 - "$RUNNER_TEMP/readback.json" "$set_name" <<'PY'
           import json,sys
