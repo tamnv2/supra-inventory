@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E033",
+    "id": "D169-E035",
     "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -739,6 +739,42 @@
       ],
       "next_action": "Present impact review for adding a safe allowlisted D169 canary namespace to existing Beta Firestore with registrations and security/CI gates. After Owner approves Beta Rules deployment, implement both direct peer clients, run field matrix, then qualify ack/HA/failover by real logs. Stable unchanged.",
       "evidence": "Owner message in chat on 2026-10-17; GitHub canonical firebase/firestore.rules and ops/project-scope.json; docs/D169_DIRECT_PEER_NETWORK_TEST_DESIGN_2026-10-17.md."
+    },
+    {
+      "id": "D169-E034",
+      "date_vn": "2026-10-17",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves temporary, registered Firestore Beta namespace for direct APK↔EXE↔EXE field test, delete after results",
+      "status": "D169_BETA_TEMP_CANARY_APPROVED__DATA_AND_RULES_CLEANUP_AFTER_EVIDENCE__NO_STABLE",
+      "facts": [
+        "Owner explicitly authorized a separate test data area within existing Beta Firebase, limited to D169 direct peer testing, to be removed once testing evidence is collected for production model improvement.",
+        "Limit to registered Firestore Beta default DB collection d169_diag_sessions and members/messages/receipts child collections; no legacy relay_poc_jobs, WMS, production HA, user chat/call/kick, Cloudflare or Stable mutations.",
+        "Active diagnostic sessions are random 128-bit IDs, expires_at <=48h, messages <=5min; expired sessions deny new client access but stored docs are retained until Owner confirms logs are collected.",
+        "Data cleanup requires Owner evidence-close: per-session wipe and 404 readback, then review a separate Rules removal PR and mark registry RETIRED; do not prematurely erase logs.",
+        "Approved to implement secure Firebase Rules and independently built APK/EXE test tools via branch→PR→authority+continuity+Rules validation PASS→merge. No direct main push."
+      ],
+      "next_action": "Validate Firebase emulator rules, signed debug APK and WinForms EXE, check branch PR governance; deploy only after gates PASS. Run Owner field matrix NORMAL/OFFICE and mixed test Agents; clean afterward.",
+      "evidence": "Owner direct instruction 2026-10-17; docs/OWNER_DECISIONS.md D169-E034; ops/project-scope.json resource d169-diagnostic-firestore-beta."
+    },
+    {
+      "id": "D169-E035",
+      "date_vn": "2026-10-17",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Isolated D169 Peer V6 source complete, Android/Windows CI build PASS, Rules emulator/security validation ongoing",
+      "status": "V6_ANDROID_AND_WINDOWS_BUILD_PASS__FIRESTORE_RULES_SECURITY_CI_PENDING__NO_BETA_DEPLOY_YET__NO_DEVICE_FIELD_PASS",
+      "facts": [
+        "Android D169 test app was updated from V5 actual Picklist business path to Firestore SDK messages and receipts in d169_diag_sessions, no real WMS/relay_poc_jobs writes; uses Picker login and Firebase custom token with in-memory session.",
+        "Windows Test Agent was assembled from existing standalone Admin auth probe plus PeerForm with create/join, Firestore REST messages and ACK, network epoch and CAS simulated primary/leader, local JSONL logs.",
+        "GitHub Actions 39032045935 Windows SUCCESS and 39032045963 Android SUCCESS on source before final approved resource/test documentation changes, artifacts 12100379388 and 12101035470.",
+        "Firestore Rules allow self-join for Picker/Agent and immutable messages/ACK with authenticated membership, bounded TTL and lease CAS only under new registered Beta collection.",
+        "Security gate: Firestore emulator test workflow initial npm peer SDK mismatch, pinned firebase 11.10.0 to match @firebase/rules-unit-testing 4.0.1; awaiting terminal Rules emulator verdict and branch governance PASS.",
+        "GitHub Actions manual cleanup script restricts DELETE to a single 32-hex D169 session ID after explicit evidence archived confirmation. No data has been created or deleted by assistant in Beta yet.",
+        "APK/EXE device field behavior, Office route, token persistence/reconnect, mixed Agent A/B coordination, actual cross-device ACK and cleanup are not FIELD PASS."
+      ],
+      "next_action": "Wait for end-to-end emulator security PASS and all PR required checks; repair CI failures before Beta Rules deployment. Provide verified V6 artifacts only as test candidates, capture Owner logs then perform separately approved cleanup.",
+      "evidence": "Test-only files tools/d169-fieldkit-android, tools/d169-peer-windows, firebase/firestore.rules, tools/d169-peer-test; workflow jobs and downloaded artifacts SHA from conversation."
     }
   ],
   "resume": {
