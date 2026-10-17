@@ -29,7 +29,7 @@ internal static class Entry
         using var login = new LoginDialog();
         if (login.ShowDialog() != DialogResult.OK) return;
         var report = new DiagnosticReport();
-        var session = DiagnosticForm.TryLoginAsync(login.Login, login.Password, report).GetAwaiter().GetResult();
+        var session = FirebaseDiagnostic.TryLoginAsync(login.Login, login.Password, report).GetAwaiter().GetResult();
         if (session == null) { MessageBox.Show("Không đăng nhập được Agent Admin/Pick Pack Admin.", "D169 Test"); return; }
         Application.Run(new PeerForm(session));
     }
