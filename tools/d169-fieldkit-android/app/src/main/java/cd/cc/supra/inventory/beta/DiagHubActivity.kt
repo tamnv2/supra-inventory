@@ -41,6 +41,7 @@ class DiagHubActivity : Activity() {
   private var started=false
   private val acked=Collections.synchronizedSet(HashSet<String>())
   private val sentOwn=Collections.synchronizedSet(HashSet<String>())
+  private val sentPayload=java.util.concurrent.ConcurrentHashMap<String,String>()
   private val phases=arrayOf("PDA NORMAL / AGENT NORMAL","PDA OFFICE / AGENT OFFICE","PDA NORMAL / AGENT OFFICE","PDA OFFICE / AGENT NORMAL","AGENT A NORMAL / B NORMAL","AGENT A OFFICE / B OFFICE","AGENT A NORMAL / B OFFICE","AGENT A OFFICE / B NORMAL")
   private var auth:FirebaseAuth?=null
   private var db:FirebaseFirestore?=null
@@ -49,7 +50,7 @@ class DiagHubActivity : Activity() {
   private var receipts:ListenerRegistration?=null
   private val seen=Collections.synchronizedSet(HashSet<String>())
   private var epoch=1
-  private val kinds=arrayOf("PING","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM")
+  private val kinds=arrayOf("PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM")
   private lateinit var kind:Spinner
 
   override fun onCreate(saved:Bundle?) {
@@ -111,19 +112,25 @@ class DiagHubActivity : Activity() {
         started=true
         val sent=ArrayList<String>()
         journal.event("AUTO_PHASE","START","scenario="+phases[phase]+" epoch="+epoch+" transport="+transport())
+        var picklistIndex=0
         for(type in kinds){
           val request=UUID.randomUUID().toString().replace("-","")
+          val simulatedPayload="D169-SIM-P"+phase+(if(type=="PICKLIST_SIM") {
+            picklistIndex++
+            if(picklistIndex==1) "|123" else "|1234"
+          }else "")
           val uid=auth!!.currentUser!!.uid
           val map=mapOf("request_id" to request,"sender_uid" to uid,"sender_node" to nodeId,
             "sender_role" to "PICKER","target_uid" to "ALL","kind" to type,
-            "payload" to ("D169-SIM-P"+phase),"created_at" to FieldValue.serverTimestamp(),
+            "payload" to simulatedPayload,"created_at" to FieldValue.serverTimestamp(),
             "expires_at" to com.google.firebase.Timestamp(Date(System.currentTimeMillis()+240000)))
           val start=SystemClock.elapsedRealtime()
           sentOwn.add(request)
+          sentPayload[request]=simulatedPayload
           try { Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS) }
-          catch(e:Exception) {sentOwn.remove(request);throw e}
+          catch(e:Exception) {sentOwn.remove(request);sentPayload.remove(request);throw e}
           sent.add(request)
-          journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" ms="+(SystemClock.elapsedRealtime()-start))
+          journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" simulated_payload="+simulatedPayload+" ms="+(SystemClock.elapsedRealtime()-start))
         }
         for(i in 0 until 30){
           if(sent.all{acked.contains(it)})break
@@ -264,11 +271,16 @@ class DiagHubActivity : Activity() {
         val d=ch.document
         if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
-        if(d.getString("payload")!="D169-SIM-P"+phase){journal.event("RX_PHASE","MISMATCH_RETRY_LATER","request="+d.id+" phase="+phase);continue}
+        val incomingPayload=d.getString("payload").orEmpty()
+        val expectedPrefix="D169-SIM-P"+phase
+        val incomingValid=if(d.getString("kind")=="PICKLIST_SIM")
+          incomingPayload.matches(Regex("^"+Regex.escape(expectedPrefix)+"\\|[0-9]{3,4}$"))
+          else incomingPayload==expectedPrefix
+        if(!incomingValid){journal.event("RX_PHASE","MISMATCH_RETRY_LATER","request="+d.id+" phase="+phase);continue}
         if(!seen.add("msg:"+d.id))continue
         val type=d.getString("kind").orEmpty()
         journal.event("RX_FROM_AGENT","RECEIVED","request="+d.id+" kind="+type+" epoch="+epoch)
-        receiver.execute{ack(root,d.id,uid)}
+        receiver.execute{ack(root,d.id,uid,incomingPayload)}
       }
     }
     receipts=root.collection("receipts").addSnapshotListener{snap,error->
@@ -279,15 +291,19 @@ class DiagHubActivity : Activity() {
         val request=d.getString("request_id").orEmpty()
         if(!sentOwn.contains(request))continue
         if(d.getString("receiver_uid")==uid)continue
+        if(d.getString("payload_echo")!=sentPayload[request]){
+          journal.event("ACK_PAYLOAD","MISMATCH","request="+request)
+          continue
+        }
         acked.add(request)
         journal.event("ACK_FROM_AGENT",d.getString("result").orEmpty(),"request="+request+" receiver_node="+d.getString("receiver_node").orEmpty().take(8)+" epoch="+epoch)
         notice("EXE đã phản hồi: "+request.take(8)+" · "+d.getString("result"))
       }
     }
   }
-  private fun ack(root:DocumentReference,request:String,uid:String) {
+  private fun ack(root:DocumentReference,request:String,uid:String,payloadEcho:String) {
     try {
-      val data=mapOf("request_id" to request,"receiver_uid" to uid,"receiver_role" to "PICKER","receiver_node" to nodeId,"result" to "ACK",
+      val data=mapOf("request_id" to request,"receiver_uid" to uid,"receiver_role" to "PICKER","receiver_node" to nodeId,"payload_echo" to payloadEcho,"result" to "ACK",
         "created_at" to FieldValue.serverTimestamp(),"elapsed_ms" to 0,"network_epoch" to ("pda-"+epoch))
       Tasks.await(root.collection("receipts").document(request+"_"+uid+"_"+nodeId).set(data),12,TimeUnit.SECONDS)
       journal.event("ACK_TO_AGENT","PASS","request="+request)
