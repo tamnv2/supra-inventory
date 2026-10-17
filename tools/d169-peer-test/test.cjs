@@ -39,9 +39,9 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
       {...msg,request_id:"ee".repeat(16),sender_uid:adminId,expires_at:Timestamp.fromDate(new Date(Date.now()+60*1000))}));
     const ackId=msgid+"_"+adminId;
     await assertSucceeds(setDoc(doc(admin,`${root}/receipts/${ackId}`),
-      {request_id:msgid,receiver_uid:adminId,receiver_role:"ADMIN",result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
+      {request_id:msgid,receiver_uid:adminId,receiver_role:"ADMIN",payload_echo:"1234",result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
     await assertFails(setDoc(doc(picker,`${root}/receipts/${msgid+"_"+pickerId}`),
-      {request_id:msgid,receiver_uid:pickerId,receiver_role:"PICKER",result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
+      {request_id:msgid,receiver_uid:pickerId,receiver_role:"PICKER",payload_echo:"1234",result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"test-1"}));
     await assertSucceeds(updateDoc(doc(admin,root),{lease_until:Timestamp.fromDate(new Date(Date.now()+55*1000))}));
     await assertFails(updateDoc(doc(admin,root),{leader_node:"b4".repeat(16),leader_epoch:2,
       lease_until:Timestamp.fromDate(new Date(Date.now()+50*1000))}));
@@ -59,16 +59,16 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
       expires_at:Timestamp.fromDate(new Date(Date.now()+3*60*1000))
     }));
     await assertSucceeds(setDoc(doc(admin,`${root}/receipts/${sameUidMsg+"_"+adminId+"_"+nodeB}`),{
-      request_id:sameUidMsg,receiver_uid:adminId,receiver_role:"ADMIN",receiver_node:nodeB,
+      request_id:sameUidMsg,receiver_uid:adminId,receiver_role:"ADMIN",receiver_node:nodeB,payload_echo:"1234",
       result:"ACK",created_at:serverTimestamp(),elapsed_ms:12,network_epoch:"agent-1"
     }));
     await assertFails(setDoc(doc(admin,`${root}/receipts/${sameUidMsg+"_"+adminId+"_"+nodeA}`),{
-      request_id:sameUidMsg,receiver_uid:adminId,receiver_role:"ADMIN",receiver_node:nodeA,
+      request_id:sameUidMsg,receiver_uid:adminId,receiver_role:"ADMIN",receiver_node:nodeA,payload_echo:"1234",
       result:"ACK",created_at:serverTimestamp(),elapsed_ms:12,network_epoch:"agent-1"
     }));
     // A second, non-paired Picker cannot impersonate the Agent as the ACK receiver.
     await assertFails(setDoc(doc(secondPicker,`${root}/receipts/${msgid}_second_picker`),{
-      request_id:msgid,receiver_uid:"second_picker",receiver_role:"PICKER",
+      request_id:msgid,receiver_uid:"second_picker",receiver_role:"PICKER",payload_echo:"1234",
       result:"ACK",created_at:serverTimestamp(),elapsed_ms:10,network_epoch:"picker-2"
     }));
     // When Picker login generation is revoked, test traffic must also stop.
