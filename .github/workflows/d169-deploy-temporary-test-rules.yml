@@ -1,0 +1,68 @@
+name: D169 Owner-Authorized Temporary Beta Firestore Rules
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type OWNER_EXPLICIT_D169_20261017_TEMP_BETA_FIRESTORE"
+        required: true
+permissions:
+  contents: read
+jobs:
+  scoped-d169-rules:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 20
+    env:
+      OWNER_CONFIRMATION: ${{ inputs.confirmation }}
+      FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact Owner-authorized Beta-only test scope
+        run: |
+          test "$OWNER_CONFIRMATION" = "OWNER_EXPLICIT_D169_20261017_TEMP_BETA_FIRESTORE"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          scope=json.loads(Path('ops/project-scope.json').read_text())
+          resources=[r for r in scope['resources'] if r['key']=='d169-diagnostic-firestore-beta']
+          assert len(resources)==1 and resources[0]['project_id']=='supra-inventory-beta'
+          assert resources[0]['collection']=='d169_diag_sessions'
+          rules=Path('firebase/firestore.rules').read_text()
+          assert rules.count('match /d169_diag_sessions/{sid}')==1
+          assert "request.resource.data.kind in ['PING','PICKLIST_SIM'" in rules
+          assert "allow get, list: if d169Member();" in rules
+          assert 'relay_poc_jobs' in rules
+          print('D169_OWNER_TEMP_BETA_SCOPE_GUARD_PASS')
+          PY
+          test -n "$FIREBASE_RULES_SA_JSON_BETA"
+      - uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Publish only Firestore Rules for existing Beta project, then read back
+        env:
+          PROJECT: supra-inventory-beta
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          rules="$(python3 -c "import json; print(json.dumps(open('firebase/firestore.rules',encoding='utf-8').read()))")"
+          cat > "$RUNNER_TEMP/ruleset.json" <<EOF
+          {"source":{"files":[{"name":"firestore.rules","content":$rules}]}}
+          EOF
+          code="$(curl --silent --show-error --output "$RUNNER_TEMP/create.json" --write-out '%{http_code}'              -X POST -H "Authorization: Bearer $token" -H 'Content-Type: application/json'              --data-binary @"$RUNNER_TEMP/ruleset.json"              "https://firebaserules.googleapis.com/v1/projects/$PROJECT/rulesets")"
+          test "$code" = "200" || { echo "Firebase Rules creation failed HTTP $code"; exit 1; }
+          set_name="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('name',''))" "$RUNNER_TEMP/create.json")"
+          test "${set_name#projects/$PROJECT/rulesets/}" != "$set_name"
+          printf '{"name":"projects/%s/releases/cloud.firestore","rulesetName":"%s"}' "$PROJECT" "$set_name" > "$RUNNER_TEMP/release.json"
+          code="$(curl --silent --show-error --output "$RUNNER_TEMP/release-result.json" --write-out '%{http_code}'              -X PATCH -H "Authorization: Bearer $token" -H 'Content-Type: application/json'              --data-binary @"$RUNNER_TEMP/release.json"              "https://firebaserules.googleapis.com/v1/projects/$PROJECT/releases/cloud.firestore")"
+          test "$code" = "200" || { echo "Firebase release update failed HTTP $code"; exit 1; }
+          curl --silent --show-error --fail -H "Authorization: Bearer $token"             "https://firebaserules.googleapis.com/v1/projects/$PROJECT/releases/cloud.firestore" > "$RUNNER_TEMP/readback.json"
+          python3 - "$RUNNER_TEMP/readback.json" "$set_name" <<'PY'
+          import json,sys
+          a=json.load(open(sys.argv[1]))
+          assert a.get('rulesetName')==sys.argv[2], 'D169 Rules readback mismatch'
+          print('D169_TEMP_FIRESTORE_RULES_BETA_DEPLOY_READBACK_PASS')
+          PY
