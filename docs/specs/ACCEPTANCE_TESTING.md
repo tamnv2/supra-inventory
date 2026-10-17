@@ -3104,3 +3104,13 @@ Tách ba tiêu chí độc lập: (1) endpoint thông mạng; (2) cặp **APK te
 
 ## D169-E034 — Nghiệm thu vùng canary trước/sau thử
 Mốc kỹ thuật: kiểm tra Rules emulator chống giả mạo UID, quyền ngoài phiên, Picker cập nhật coordination thật, receipt do chính người gửi tự ACK; CI build EXE x64/APK Android 11; authority+continuity PASS. Mốc sử dụng: Owner chạy PDA và ít nhất hai EXE Test; kiểm tra cả NORMAL/NORMAL, NORMAL/OFFICE, OFFICE/NORMAL, OFFICE/OFFICE, Agent primary demo chuyển mạng, standby tiếp quản demo, ACK/error/timeout/retry, đối chiếu cùng SID/request_id từ ba log. TEST_SIM không thay thế bài thử nghiệp vụ WMS/FCM thật. Chỉ tiến hành cleanup sau báo cáo và Owner xác nhận đã lưu evidence, xóa tài liệu con theo từng SID, verify root 404, rồi PR riêng gỡ Rules và cập nhật registry RETIRED. Không dùng TTL để che dấu dữ liệu tồn tại.
+
+## D169 V7 isolated peer-test acceptance (2026-10-17)
+
+Mandatory UI: real authenticated ADMIN/PICKPACK_ADMIN EXE and designated PICKER APK logins; a single BẮT ĐẦU TEST action on each; no SID, API key or one-by-one message input. Display the requested network per phase, wait for operator physical Wi-Fi change and explicit confirmation, and retain authenticated login across switches.
+
+Mandatory network cases: (1) PDA NORMAL / Agent NORMAL, (2) PDA OFFICE / Agent OFFICE, (3) PDA NORMAL / Agent OFFICE, (4) PDA OFFICE / Agent NORMAL, (5) Agent A NORMAL / Agent B NORMAL, (6) Agent A OFFICE / Agent B OFFICE, (7) Agent A NORMAL / Agent B OFFICE, (8) Agent A OFFICE / Agent B NORMAL. Every case must retain the actual test-session/message identity, sender/receiver role and independent node, server-write accepted versus actual RECEIVER ACK, timeout, duplicate or late response and error class. Operator-declared network labels are not automatic SSID proof. Scripts never route to real business Picklist or production PRIMARY.
+
+Simulated takeover acceptance: lease heartbeat while one test Agent is active, no takeover while fresh, takeover after confirmed lease expiry, monotonic generation and conditional-writer fencing, no production WMS. The test only approximates production HA and does not establish field business correctness until separate authorized device/WMS evidence exists.
+
+Source/build, exact-head PR authority/continuity checks, Firestore Rules emulator and scoped Beta rules readback are required before FIELD PASS. PDA logs are Drive-confirmed only for archive_status DRIVE_SYNCED; Windows logs stay on Desktop. Protect Stable and actual production app/database resources. Temporary data and Rules may be deleted only after the Owner confirms evidence archived.
