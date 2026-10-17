@@ -291,7 +291,7 @@ internal sealed class PeerForm : Form
         var fields=new Dictionary<string,object>{
           ["schema"]=S("D169_DIAG_V1"),["owner_uid"]=S(_uid),
           ["expires_at"]=T(DateTimeOffset.UtcNow.AddHours(24)),
-          ["leader_uid"]=S(_uid),["leader_epoch"]=I(1),
+          ["leader_uid"]=S(_uid),["leader_node"]=S(_nodeId),["leader_epoch"]=I(1),
           ["lease_until"]=T(DateTimeOffset.UtcNow.AddSeconds(40))
         };
         await CreateDoc("d169_diag_sessions/"+id,fields,"created_at");
@@ -340,6 +340,42 @@ internal sealed class PeerForm : Form
         using var result=await Http("PATCH",Url()+qs,body);
         Log("TEST_TAKEOVER","CAS_COMMITTED",new{new_epoch=oldEpoch+1,old_leader=Fingerprint(leader)});
     }
+    private async Task MaintainSimulatedLeader()
+    {
+        using var doc=await Http("GET",Url());
+        if(doc==null)return;
+        var root=doc.RootElement;
+        var leaderNode=GetString(root,"leader_node");
+        var currentLeader=GetString(root,"leader_uid");
+        var expires=GetString(root,"lease_until");
+        var generation=long.TryParse(GetString(root,"leader_epoch"),out var old)?old:0;
+        var leaseTime=DateTimeOffset.TryParse(expires,out var until)?until:DateTimeOffset.MinValue;
+        var now=DateTimeOffset.UtcNow;
+        if(leaderNode!=_nodeId && leaseTime>now){
+            Log("SIM_LEADER","STANDBY",new{generation,owner_node=leaderNode[..Math.Min(8,leaderNode.Length)],lease_remaining_ms=(long)(leaseTime-now).TotalMilliseconds});
+            return;
+        }
+        var takeOver=leaderNode!=_nodeId;
+        if(!takeOver && leaseTime>now.AddSeconds(12))return;
+        var time=root.GetProperty("updateTime").GetString()??"";
+        var fields=new Dictionary<string,object>{
+          ["lease_until"]=T(now.AddSeconds(30))
+        };
+        if(takeOver){
+            fields["leader_uid"]=S(_uid);
+            fields["leader_node"]=S(_nodeId);
+            fields["leader_epoch"]=I(generation+1);
+        }
+        var qs="?currentDocument.updateTime="+Uri.EscapeDataString(time)
+            +"&updateMask.fieldPaths=lease_until";
+        if(takeOver)qs+="&updateMask.fieldPaths=leader_uid&updateMask.fieldPaths=leader_node&updateMask.fieldPaths=leader_epoch";
+        try {
+            using var result=await Http("PATCH",Url()+qs,new{fields});
+            Log("SIM_LEADER",takeOver?"CAS_TAKEOVER_PASS":"HEARTBEAT_PASS",new{node=_nodeId[..8],generation=takeOver?generation+1:generation});
+        }catch(HttpRequestException e)when(e.Message=="HTTP_409"||e.Message=="HTTP_400"||e.Message=="HTTP_403"){
+            Log("SIM_LEADER","FENCING_DENIED",new{generation,code=e.Message});
+        }
+    }
     private static string GetString(JsonElement document,string field)
     {
         if(!document.TryGetProperty("fields",out var fields) || !fields.TryGetProperty(field,out var item))return "";
@@ -369,6 +405,7 @@ internal sealed class PeerForm : Form
     }
     private async Task Poll()
     {
+        await MaintainSimulatedLeader();
         await PollCollection("messages",async id=>{
           using var doc=await Http("GET",Url("/messages/"+id));
           if(doc==null)return;
