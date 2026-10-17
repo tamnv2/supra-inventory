@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E036",
+    "id": "D169-E037",
     "date_vn": "2026-10-17"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -791,6 +791,22 @@
       ],
       "next_action": "Keep PR613 Draft until authorized controlled merge/deploy path is reconciled and security/authority rechecked. Then deploy Owner-approved scoped Beta Rules with readback, test APK Picker ↔ EXE Agent A/B in NORMAL/OFFICE/mixed environments, inspect correlated request and receipt IDs plus local/Drive log acknowledgements, and only after logs are archived delete test sessions and remove temporary Rules via reviewed cleanup. No claim of field PASS or cleanup yet.",
       "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/613 head 6e793a6; GitHub Actions runs 39033100181 (artifact 12100792474), 39033100144 (12101485166), 39033100070 (emulator), 18 PR runs exact SHA; main/branch firebase/firestore.rules and ops/project-scope.json readback."
+    },
+    {
+      "id": "D169-E037",
+      "date_vn": "2026-10-17",
+      "kind": "BLOCKER",
+      "owner_approval": true,
+      "topic": "V6 test kits downloaded; temporary Firestore Rules production deploy still gated and API update request malformed",
+      "status": "V6_ARTIFACTS_DELIVERED__NO_FIRESTORE_TEST_RULES_DEPLOY__OWNER_ONLY_RELEASE_CONTROL_PENDING",
+      "facts": [
+        "Latest exact-head PR613 checks passed 18/18 at d18d03241af12b53437ccde50919876c5267d154; independent EXE/Android artifacts were downloaded and verified as nonempty ZIP files with expected EXE/APK payloads. No physical Agent A↔Agent B↔PDA communication or Beta test collection created.",
+        "PR613 is Draft; main lacks the temporary D169 Firestore test Rules and resource scope, and release workflow requires main plus explicit Owner confirmation. Current GitHub integration has no workflow-dispatch operation. A requested automatic workflow code update was blocked by tool safety checks; no code/runtime deploy was committed.",
+        "Read-only review of .github/workflows/d169-deploy-temporary-test-rules.yml found the existing PATCH request sends a plain Release JSON; official Firebase Rules v1 projects.releases.patch requires an UpdateReleaseRequest body containing release and updateMask. Its Beta Rules readback therefore cannot be presumed PASS without repair and a real action run.",
+        "No production Agent/PDA/WMS/real Picklist/HA mutation, Stable change or secret exposure. V6 is code/build verified only, not deploy/field done."
+      ],
+      "next_action": "Repair isolated workflow PATCH payload to official nested release/updateMask contract on the same PR; revalidate CI and approved resource scope; promote PR via authority+continuity guarded merge; manually dispatch exact Beta Rules workflow through official GitHub Actions UI only if connected workflow dispatch remains unavailable. Verify remote release readback PASS before physical PDA↔EXE A↔EXE B tests. Remove test data and Rules only after evidence archived.",
+      "evidence": "PR613 head d18d0324 and 18/18 workflow checks; artifacts 12101946136/12100863728; main versus branch Firestore Rules and scope; firebase.google.com/docs/reference/rules/rest/v1/projects.releases/patch"
     }
   ],
   "resume": {
@@ -858,7 +874,8 @@
       "D169-E027 Owner physical field PASS required after v135 layout repair; do not infer accepted v134 from release/CI."
     ],
     "blocked": [
-      "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
+      "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs",
+      "D169-E037: V6 Beta test Rules not installed; GitHub has no workflow dispatch tool; isolated deploy workflow PATCH payload requires corrected nested release/updateMask. Auto workflow source modification was blocked by safety tool."
     ],
     "next_actions": [
       "Owner review the consolidated D169 analysis; approve or revise design before executable changes.",
@@ -886,7 +903,8 @@
       "Verify PR610 full Windows GUI tab-geometry smoke and Authority PASS, then bounded hotfix release path only if existing D169 approval/receipt allows corrective v135; test on secondary.",
       "Verify v135 source SHA receipt CI, merge only after PASS, read Worker Beta same-SHA health and Agent v135 prerelease plus channel manifest, field-validate on secondary.",
       "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS.",
-      "D169-E036: verify controlled Beta Rules publication gate and manual main-only workflow capability; collect real PDA↔Test Agent A↔Test Agent B ACK/HA/logs before declaring FIELD PASS; approved temporary data must be deleted only after evidence archived."
+      "D169-E036: verify controlled Beta Rules publication gate and manual main-only workflow capability; collect real PDA↔Test Agent A↔Test Agent B ACK/HA/logs before declaring FIELD PASS; approved temporary data must be deleted only after evidence archived.",
+      "Repair D169 Rules workflow and wait for its authenticated Beta release readback before any physical V6 result claims; Owner performs official GitHub UI dispatch only if tool unavailable."
     ],
     "release_boundary": "D169_AGENT_V135_BETA_NOT_PASS_REPAIR_PUBLISHED__FIELD_OWNER_PENDING__ANDROID_PR606_DRAFT_UNRELEASED__STABLE_OWNER_GATED"
   }
