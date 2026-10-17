@@ -204,10 +204,118 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow create: if d169Member()
           && messageId.matches('^[a-f0-9]{32}$')
-          && request.resource.data.keys().hasOnly(['request_id','sender_uid','sender_role','target_uid','kind','payload','created_at','expires_at'])
+          && request.resource.data.keys().hasOnly(['request_id','sender_uid','sender_role','sender_node','target_uid','kind','payload','created_at','expires_at'])
           && request.resource.data.keys().hasAll(['request_id','sender_uid','sender_role','target_uid','kind','payload','created_at','expires_at'])
           && request.resource.data.request_id == messageId
           && request.resource.data.sender_uid == request.auth.uid
+          && (!request.resource.data.keys().hasAny(['sender_node'])
+              || (request.resource.data.sender_node is string
+                && request.resource.data.sender_node.matches('^[a-f0-9]{32} == request.auth.token.app_role
+          && request.resource.data.kind in ['PING','PICKLIST_SIM','CALL_SIM','CHAT_SIM','KICK_SIM','LEADER_PROBE','RETRY_SIM','FAILOVER_SIM']
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() <= 80
+          && request.resource.data.target_uid is string
+          && (request.resource.data.target_uid == 'ALL'
+            || exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/members/$(request.resource.data.target_uid)))
+          && request.resource.data.created_at == request.time
+          && request.resource.data.expires_at is timestamp
+          && request.resource.data.expires_at > request.time
+          && request.resource.data.expires_at <= request.time + duration.value(5, 'm');
+        allow get, list: if d169Member();
+        allow update, delete: if false;
+      }
+      match /receipts/{receiptId} {
+        allow create: if d169Member()
+          && request.resource.data.keys().hasOnly(['request_id','receiver_uid','receiver_node','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.keys().hasAll(['request_id','receiver_uid','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.receiver_uid == request.auth.uid
+          && request.resource.data.request_id is string
+          && request.resource.data.request_id.matches('^[a-f0-9]{32}$')
+          && ((!request.resource.data.keys().hasAny(['receiver_node'])
+                 && receiptId == request.resource.data.request_id + '_' + request.auth.uid)
+            || (request.resource.data.keys().hasAny(['receiver_node'])
+                 && request.resource.data.receiver_node is string
+                 && request.resource.data.receiver_node.matches('^[a-f0-9]{32}
+          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id))
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_uid != request.auth.uid
+            || (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.keys().hasAny(['sender_node'])
+               && request.resource.data.keys().hasAny(['receiver_node'])
+               && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_node != request.resource.data.receiver_node))
+          && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.expires_at > request.time
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == 'ALL'
+              || get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == request.auth.uid)
+          && request.resource.data.result in ['ACK','ERROR','REJECTED']
+          && request.resource.data.elapsed_ms is int
+          && request.resource.data.elapsed_ms >= 0
+          && request.resource.data.elapsed_ms <= 120000
+          && request.resource.data.network_epoch is string
+          && request.resource.data.network_epoch.size() <= 40
+          && request.resource.data.created_at == request.time;
+        allow get, list: if d169Member();
+        allow update, delete: if false;
+      }
+    }
+
+)))
+          && request.resource.data.sender_role == request.auth.token.app_role
+          && request.resource.data.kind in ['PING','PICKLIST_SIM','CALL_SIM','CHAT_SIM','KICK_SIM','LEADER_PROBE','RETRY_SIM','FAILOVER_SIM']
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() <= 80
+          && request.resource.data.target_uid is string
+          && (request.resource.data.target_uid == 'ALL'
+            || exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/members/$(request.resource.data.target_uid)))
+          && request.resource.data.created_at == request.time
+          && request.resource.data.expires_at is timestamp
+          && request.resource.data.expires_at > request.time
+          && request.resource.data.expires_at <= request.time + duration.value(5, 'm');
+        allow get, list: if d169Member();
+        allow update, delete: if false;
+      }
+      match /receipts/{receiptId} {
+        allow create: if d169Member()
+          && request.resource.data.keys().hasOnly(['request_id','receiver_uid','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.keys().hasAll(['request_id','receiver_uid','result','created_at','elapsed_ms','network_epoch'])
+          && request.resource.data.receiver_uid == request.auth.uid
+          && request.resource.data.request_id is string
+          && request.resource.data.request_id.matches('^[a-f0-9]{32}$')
+          && receiptId == request.resource.data.request_id + '_' + request.auth.uid
+          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id))
+          && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_uid != request.auth.uid
+          && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.expires_at > request.time
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == 'ALL'
+              || get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == request.auth.uid)
+          && request.resource.data.result in ['ACK','ERROR','REJECTED']
+          && request.resource.data.elapsed_ms is int
+          && request.resource.data.elapsed_ms >= 0
+          && request.resource.data.elapsed_ms <= 120000
+          && request.resource.data.network_epoch is string
+          && request.resource.data.network_epoch.size() <= 40
+          && request.resource.data.created_at == request.time;
+        allow get, list: if d169Member();
+        allow update, delete: if false;
+      }
+    }
+
+)
+                 && receiptId == request.resource.data.request_id + '_' + request.auth.uid + '_' + request.resource.data.receiver_node))
+          && exists(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id))
+          && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.sender_uid != request.auth.uid
+          && get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.expires_at > request.time
+          && (get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == 'ALL'
+              || get(/databases/$(database)/documents/d169_diag_sessions/$(sid)/messages/$(request.resource.data.request_id)).data.target_uid == request.auth.uid)
+          && request.resource.data.result in ['ACK','ERROR','REJECTED']
+          && request.resource.data.elapsed_ms is int
+          && request.resource.data.elapsed_ms >= 0
+          && request.resource.data.elapsed_ms <= 120000
+          && request.resource.data.network_epoch is string
+          && request.resource.data.network_epoch.size() <= 40
+          && request.resource.data.created_at == request.time;
+        allow get, list: if d169Member();
+        allow update, delete: if false;
+      }
+    }
+
+)))
           && request.resource.data.sender_role == request.auth.token.app_role
           && request.resource.data.kind in ['PING','PICKLIST_SIM','CALL_SIM','CHAT_SIM','KICK_SIM','LEADER_PROBE','RETRY_SIM','FAILOVER_SIM']
           && request.resource.data.payload is string
