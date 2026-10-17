@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E032",
+    "id": "D169-E033",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -606,6 +606,24 @@
       ],
       "next_action": "Owner/WMS administrator checks whether supported unattended WMS authentication is available. Otherwise propose an event-driven login-required alert and human verification handoff under a separate Owner-approved bounded Agent change after D169 scope/continuity reconciliation.",
       "evidence": "Owner direct 2026-10-18 clarification; main ops/project-scope.json supra-auth-ui-d127-probe and explicit_out_of_scope; main relay-agent/SupraConfirmBrowser.cs lines ~394-410, ~1458-1501, ~2204-2224; docs/specs/ROLE_WORKFLOWS.md D127 manual login; current D169 PR #606 remains open."
+    },
+    {
+      "id": "D169-E033",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_AUTHORIZATION_CLARIFICATION",
+      "topic": "Owner attests SUPRA WMS allows automation of login image slider CAPTCHA",
+      "status": "OWNER_ATTESTATION_RECORDED__TECHNICAL_DESIGN_AND_SCOPE_REVIEW_PENDING__NO_CODE_OR_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly states that the operator of SUPRA WMS allows automated dragging of the image-piece CAPTCHA used at WMS login. This is an Owner-provided assertion; an independent WMS policy/integration capability check has not occurred.",
+        "Owner's intended behavior remains unattended renewal of an expired shared-account WMS session within the VPS Agent's existing managed WebView2 browser, restoring the picklist Confirm UI and readiness checks while allowing company Agents to take over whenever the VPS is not ready.",
+        "Current registered resource supra-auth-ui-d127-probe in ops/project-scope.json permits only manual WMS login when required, bounded navigation without sensitive capture. Current main relay-agent/SupraConfirmBrowser.cs foregrounds the login marker for human action and resumes Confirm recovery after login clears. The new requested unattended login behavior is not present in source or proven in field.",
+        "Implementing automated challenge completion would be a new authentication interaction and cannot be treated as already permitted by the repository resource scope; scope/security/role/WMS provider policy approval, controlled field trial, failure handling and regression/HA safeguards must be reviewed before any executable change.",
+        "Do not assert a functioning image matcher, general WMS authentication bypass, automation success rate, provider endorsement, release or runtime changes based only on the conversational permission statement. Never persist or log WMS credentials/cookies/headers/tokens/challenge secret material in a public repo.",
+        "Safer underlying requirements: minimize loss of authenticated session via existing profile, distinguish WMS expired login from browser crash/slow DOM, never declare PRIMARY WMS-ready during login challenge, fail over to a ready registered secondary, and only return VPS leadership after verified Confirm readiness and no manual PRIMARY override."
+      ],
+      "next_action": "Seek an approved technical WMS authentication pathway or bounded supervised trial evidence, then present architecture, scope and security impact for Owner review; only implement after repo resource scope/decision/spec change set and branch/PR CI gates, Stable Owner-gated.",
+      "evidence": "Owner current 2026-10-18 authorization statement; main/branch ops/project-scope.json, relay-agent/SupraConfirmBrowser.cs, docs/specs/ROLE_WORKFLOWS.md; E031-E032 prior proposal context."
     }
   ],
   "resume": {
