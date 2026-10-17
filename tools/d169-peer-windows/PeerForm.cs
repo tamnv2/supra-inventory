@@ -30,6 +30,10 @@ internal sealed class PeerForm : Form
     private readonly ConcurrentDictionary<string,long> _sentTicks=new();
     private readonly ConcurrentDictionary<string,int> _receiptCounts=new();
     private int _phase=0;
+    private string _agentLabel="?";
+    private readonly ConcurrentDictionary<string,int> _pdaAcks=new();
+    private readonly ConcurrentDictionary<string,int> _agentAcks=new();
+    private readonly ConcurrentDictionary<string,string> _roles=new();
     private readonly Button _testAll=new(){Text="BẮT ĐẦU TEST TỰ ĐỘNG"};
     private readonly Button _confirmSwitch=new(){Text="ĐÃ CHUYỂN MẠNG · TEST TIẾP"};
     private static readonly string[] Phases={"PDA NORMAL / AGENT NORMAL", "PDA OFFICE / AGENT OFFICE", "PDA NORMAL / AGENT OFFICE", "PDA OFFICE / AGENT NORMAL", "AGENT A NORMAL / B NORMAL", "AGENT A OFFICE / B OFFICE", "AGENT A NORMAL / B OFFICE", "AGENT A OFFICE / B NORMAL"};
@@ -116,10 +120,16 @@ internal sealed class PeerForm : Form
     private void ShowNetworkPhase()
     {
         var message=_phase<Phases.Length?Phases[_phase]:"ĐÃ HOÀN TẤT CÁC KỊCH BẢN";
+        var recommended=_phase switch {
+          1=> "OFFICE", 2=>"OFFICE", 3=>"NORMAL", 4=>"NORMAL", 5=>"OFFICE",
+          6=>_agentLabel=="A"?"NORMAL":"OFFICE",
+          7=>_agentLabel=="A"?"OFFICE":"NORMAL",
+          _=>"NORMAL"};
+        _mode.SelectedItem=recommended;
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
-        MessageBox.Show("Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nChuyển mạng theo hướng dẫn, xác nhận trên mỗi máy rồi chạy Test.\nKhông cần nhập mã phiên.","SUPRA D169 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
+        MessageBox.Show("Test Agent "+_agentLabel+": Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nWi-Fi Agent máy này cần: "+recommended+".\nĐổi mạng rồi bấm ĐÃ CHUYỂN MẠNG (trừ lượt đầu, bấm BẮT ĐẦU TEST).","SUPRA D169 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
     }
     private async Task StartAutomaticTests()
     {
@@ -145,8 +155,9 @@ internal sealed class PeerForm : Form
     {
         using var existing=await Http("GET",Url(),null,true);
         if(existing==null){
-            try{await CreateSession();}catch(HttpRequestException e) when(e.Message=="HTTP_409"||e.Message=="HTTP_400"){}
-        }
+            try{await CreateSession();_agentLabel="A";}
+            catch(HttpRequestException e) when(e.Message=="HTTP_409"||e.Message=="HTTP_400"){_agentLabel="B";}
+        }else{_agentLabel="B";}
         await JoinSession();
         Log("PAIRING","JOINED",new{node=_nodeId[..8],phase=_phase+1});
     }
@@ -176,14 +187,14 @@ internal sealed class PeerForm : Form
           sent.Add(await SendTest(type));
         }
         for(var t=0;t<30;t++){
-          if(sent.All(id=>_receiptCounts.TryGetValue(id,out var n)&&n>=1))break;
+          if(sent.All(id=>(_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n)&&n>=1))break;
           await Task.Delay(1000);
         }
         foreach(var id in sent){
-          _receiptCounts.TryGetValue(id,out var n);
-          Log("TEST_TERMINAL",n>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,peers=n,phase});
+          (_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n);
+          Log("TEST_TERMINAL",n>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,matching_role_receipts=n,required_role=_phase<4?"PICKER":"AGENT",phase});
         }
-        Log("PHASE","DONE",new{phase,passed=sent.Count(id=>_receiptCounts.TryGetValue(id,out var n)&&n>0),total=sent.Count});
+        Log("PHASE","DONE",new{phase,passed=sent.Count(id=>(_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n)&&n>0),total=sent.Count});
     }
     private async Task<string> SendTest(string type)
     {
@@ -380,11 +391,28 @@ internal sealed class PeerForm : Form
             Log("TX_TEST_ACK","DUPLICATE_OR_RULES_REJECT",new{request_id=id,code=e.Message});
           }
         });
-        await PollCollection("receipts",id=>{
-          if(id.Length>=32){var requestId=id[..32];_receiptCounts.AddOrUpdate(requestId,1,(_,old)=>old+1);if(_sentTicks.TryGetValue(requestId,out var start))Log("RX_TEST_RECEIPT","ACK_CORRELATED",new{request_id=requestId,rtt_ms=Environment.TickCount64-start,epoch=_epoch});}
-          Log("RX_TEST_RECEIPT","SEEN",new{receipt_id=id,epoch=_epoch});
-          return Task.CompletedTask;
+        await PollCollection("receipts",async id=>{
+          using var receipt=await Http("GET",Url("/receipts/"+id));
+          if(receipt==null)return;
+          var requestId=GetString(receipt.RootElement,"request_id");
+          var receiverUid=GetString(receipt.RootElement,"receiver_uid");
+          var receiverNode=GetString(receipt.RootElement,"receiver_node");
+          if(requestId.Length!=32||receiverNode==_nodeId)return;
+          var role=await MemberRole(receiverUid);
+          if(role=="PICKER")_pdaAcks.AddOrUpdate(requestId,1,(_,old)=>old+1);
+          else if(role=="ADMIN"||role=="PICKPACK_ADMIN")_agentAcks.AddOrUpdate(requestId,1,(_,old)=>old+1);
+          if(_sentTicks.TryGetValue(requestId,out var start))
+            Log("RX_TEST_RECEIPT","ACK_CORRELATED",new{request_id=requestId,rtt_ms=Environment.TickCount64-start,role,epoch=_epoch});
         });
+    }
+    private async Task<string> MemberRole(string uid)
+    {
+        if(_roles.TryGetValue(uid,out var cached))return cached;
+        if(uid==_uid){_roles[uid]=_token.Role;return _token.Role;}
+        using var member=await Http("GET",Url("/members/"+Uri.EscapeDataString(uid)),null,true);
+        var role=member==null?"":GetString(member.RootElement,"role");
+        if(role=="PICKER"||role=="ADMIN"||role=="PICKPACK_ADMIN")_roles[uid]=role;
+        return role;
     }
     private async Task PollCollection(string name,Func<string,Task> receive)
     {
