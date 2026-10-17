@@ -36,3 +36,11 @@ Propose a distinct namespace in the existing registered Beta Firestore database 
 
 ## Status
 `D169_OWNER_CORRECTION_DIRECT_PAIR_SPEC_DONE__TEST_CANARY_RESOURCE_PENDING__NO_NEW_PAIR_BINARIES__NO_FIELD_PASS__STABLE_UNTOUCHED`.
+
+## V7 — Owner rejects V6 manual matching; approves scripted isolated peer suite
+
+After existing Agent Admin and PDA Picker authentication, both clients derive the same VN-date ephemeral test-session key, auto-join the test-only namespace, and run a scripted typed synthetic-message matrix with a single Test button. An authenticated Agent first creates the session; the Picker waits for it. No 32-character SID entry, API key entry or real WMS/production Agent writes. Multiple Agent instances under the same ADMIN UID use unique per-process node IDs, and receipts are uniquely attributed to the receiver node.
+
+The operator changes NORMAL/OFFICE Wi-Fi only when prompted and confirms in the app. The scripts contain four PDA-Agent and four Agent-Agent network phases. Test-phase-mismatch messages are not ACKed as a different scenario. Simulated leader election uses node-ID heartbeat/lease expiry, generation and Firestore conditional writes; it never claims production HA or WMS mutations. Label manual network selection as operator-confirmed, not measured SSID. Failure to reach Office or Firebase remains a measured failure, not an assumed pass.
+
+Owner-provided account selection is private runtime context; the public repository contains no specific employee login IDs, passwords, tokens or raw user data. Re-authenticating the designated Picker may replace that account's existing active mobile session; use the intended test account on non-production hardware. All test data remains in the already approved Beta temporary namespace; no new cloud service is authorized. Field proof requires actual pair logs, receipt latency, network switches and authenticated Beta Rules deployment readback. Delete data and remove Rules only after the Owner confirms the test evidence is safely archived.
