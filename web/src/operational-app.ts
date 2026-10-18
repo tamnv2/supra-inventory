@@ -2961,11 +2961,11 @@ function renderTools(): string {
           <div class="pda-qr-shell">${pdaQrDataUrl ? `<img src="${pdaQrDataUrl}" alt="QR tải App PDA mới nhất" />` : `<div class="pda-qr-loading">Đang tạo QR…</div>`}<small>Quét để tải bản mới nhất</small></div>
           <div class="pda-release-info">
             <div class="tool-facts">
-              <div><span>Phiên bản</span><strong>${esc(pdaAppRelease?.tag || "Đang tải…")}</strong></div>
+              <div><span>Phiên bản</span><strong>${esc(String(pdaAppRelease?.tag || "Đang tải…").replace(/^beta[-_]?/i, ""))}</strong></div>
               <div><span>Nền tảng</span><strong>Android 11+</strong></div>
               <div><span>Dung lượng</span><strong>${pdaAppRelease ? fmtBytes(pdaAppRelease.size_bytes) : "—"}</strong></div>
               <div><span>Phát hành</span><strong>${pdaAppRelease?.published_at ? esc(fmt(pdaAppRelease.published_at)) : "—"}</strong></div>
-              <div><span>Kênh cập nhật</span><strong class="tool-channel-ok">Beta · hoạt động</strong></div>
+              <div><span>Kênh cập nhật</span><strong class="tool-channel-ok">Chính thức · hoạt động</strong></div>
             </div>
             <div class="tool-actions">
               <a class="primary tool-download" href="${esc(pdaStableUrl)}">Tải App PDA</a>
@@ -2985,7 +2985,7 @@ function renderTools(): string {
           <div><span>Nền tảng</span><strong>Windows · quyền User</strong></div>
           <div><span>Dung lượng</span><strong>${agentAppRelease ? fmtBytes(agentAppRelease.size_bytes) : "—"}</strong></div>
           <div><span>Phát hành</span><strong>${agentAppRelease?.published_at ? esc(fmt(agentAppRelease.published_at)) : "—"}</strong></div>
-          <div><span>Kênh cập nhật</span><strong class="tool-channel-ok">Beta · hoạt động</strong></div>
+          <div><span>Kênh cập nhật</span><strong class="tool-channel-ok">Chính thức · hoạt động</strong></div>
         </div>
         <div class="tool-actions">
           <a class="primary tool-download" href="${esc(agentStableUrl)}">Tải Agent</a>

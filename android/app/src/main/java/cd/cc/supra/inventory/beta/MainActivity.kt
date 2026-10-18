@@ -199,7 +199,7 @@ class MainActivity : Activity() {
             return
         }
         if (BuildConfig.FIREBASE_API_KEY.isBlank()) {
-            renderFatal("Thiếu cấu hình Firebase Beta.")
+            renderFatal("Thiếu cấu hình dịch vụ xác thực.")
             return
         }
         val options = FirebaseOptions.Builder()
@@ -288,7 +288,7 @@ class MainActivity : Activity() {
             if (!hasRequiredNotificationPermissions()) {
                 if (!permissionGateActive) {
                     stopOperationalClients()
-                    renderRequiredPermissionsGate("Cần cấp đủ quyền để tiếp tục sử dụng 1291 Báo hàng Beta.")
+                    renderRequiredPermissionsGate("Cần cấp đủ quyền để tiếp tục sử dụng 1291 Báo hàng.")
                 }
                 return
             }
@@ -433,7 +433,7 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.rgb(244, 247, 250))
         }
         root.addView(TextView(this).apply {
-            text = "1291 Báo hàng Beta"
+            text = "1291 Báo hàng"
             textSize = 24f
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.rgb(24, 43, 55))
@@ -482,7 +482,7 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_login)
         applySystemBarInsets()
         findViewById<TextView>(R.id.tvLoginVersion).text =
-            "Beta vc${BuildConfig.VERSION_CODE} · ${BuildConfig.VERSION_NAME.substringBefore("-")}"
+            "vc${BuildConfig.VERSION_CODE} · ${BuildConfig.VERSION_NAME.substringBefore("-")}"
 
         val username = findViewById<EditText>(R.id.etEmployeeCode)
         val password = findViewById<EditText>(R.id.etPassword)
@@ -594,14 +594,14 @@ class MainActivity : Activity() {
         applySystemBarInsets()
         contentContainer = findViewById(R.id.contentContainer)
         status = TextView(this)
-        findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng Beta"
+        findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng"
         findViewById<TextView>(R.id.tvHeaderUser).text = sessionHeaderLabel(session)
         findViewById<TextView>(R.id.tvAppVersion).apply {
-            text = "Beta vc${BuildConfig.VERSION_CODE}"
+            text = "vc${BuildConfig.VERSION_CODE}"
             setOnClickListener {
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle("Tìm kiếm bản cập nhật?")
-                    .setMessage("Hệ thống sẽ kiểm tra kênh Beta một lần.")
+                    .setMessage("Hệ thống sẽ kiểm tra cập nhật một lần.")
                     .setNegativeButton("Huỷ", null)
                     .setPositiveButton("Tìm kiếm") { _, _ -> checkForUpdate(silent = false) }
                     .create().also { safelyShowDialog(it) }
@@ -897,7 +897,7 @@ class MainActivity : Activity() {
             .setPositiveButton("Chia sẻ") { _, _ ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, "1291 Báo hàng Beta support log")
+                    putExtra(Intent.EXTRA_SUBJECT, "1291 Báo hàng support log")
                     putExtra(Intent.EXTRA_TEXT, payload)
                 }
                 startActivity(Intent.createChooser(intent, "Chia sẻ log hỗ trợ"))
@@ -1413,7 +1413,7 @@ class MainActivity : Activity() {
             "Thông báo ứng dụng",
             readiness.notificationsReady,
             "Để PDA nhận cảnh báo nghiệp vụ khi ứng dụng đang chạy nền.",
-            "Bật “Cho phép thông báo” cho 1291 Báo hàng Beta.",
+            "Bật “Cho phép thông báo” cho 1291 Báo hàng.",
         ) { requestNotificationPermissionFromGate() }
 
         permissionCard(
@@ -1931,9 +1931,9 @@ class MainActivity : Activity() {
 
     private fun updateGateMessage(): String = when (updateGate) {
         UpdateGate.CHECKING -> "Đang kiểm tra bản cập nhật nền. Vẫn có thể đăng nhập."
-        UpdateGate.CURRENT -> "Đang dùng bản Beta mới nhất."
-        UpdateGate.REQUIRED -> "Có bản cập nhật Beta mới."
-        UpdateGate.MANDATORY -> "Bắt buộc cập nhật Beta trước khi đăng nhập mới."
+        UpdateGate.CURRENT -> "Đang dùng bản mới nhất."
+        UpdateGate.REQUIRED -> "Có bản cập nhật mới."
+        UpdateGate.MANDATORY -> "Bắt buộc cập nhật ứng dụng trước khi đăng nhập mới."
         UpdateGate.DEFERRED -> "Chưa kiểm tra được kênh cập nhật. Có thể tiếp tục đăng nhập."
         UpdateGate.FAILED -> "Không xác minh được chữ ký ứng dụng đang cài. Đăng nhập đã bị chặn."
     }
@@ -1964,7 +1964,7 @@ class MainActivity : Activity() {
         lastUpdateCheckElapsedMs = android.os.SystemClock.elapsedRealtime()
         updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.CHECKING
         pendingUpdateInfo = null
-        applyUpdateGateUi(if (!silent) "Đang kiểm tra bản cập nhật Beta..." else null)
+        applyUpdateGateUi(if (!silent) "Đang kiểm tra bản cập nhật..." else null)
         Thread {
             try {
                 try {
@@ -2022,7 +2022,7 @@ class MainActivity : Activity() {
                             }
                         } else {
                             // Warm resume: never reconstruct Picker/Reporter controllers.
-                            applyUpdateGateUi(if (!silent && updateGate == UpdateGate.CURRENT) "Đang dùng bản Beta mới nhất." else null)
+                            applyUpdateGateUi(if (!silent && updateGate == UpdateGate.CURRENT) "Đang dùng bản mới nhất." else null)
                         }
                     }
                     return@Thread
@@ -2032,7 +2032,7 @@ class MainActivity : Activity() {
                 updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.REQUIRED
                 runOnUiThread {
                     updateCheckRunning = false
-                    applyUpdateGateUi("Có bản cập nhật ${info.tag}.")
+                    applyUpdateGateUi("Có bản cập nhật ${info.tag.removePrefix("beta-")}.")
                     showUpdateAvailable(info)
                 }
             } catch (error: Exception) {
@@ -2057,7 +2057,7 @@ class MainActivity : Activity() {
         val mandatory = info.versionCode > BuildConfig.VERSION_CODE ||
             info.minimumVersionCode > BuildConfig.VERSION_CODE
         val builder = AlertDialog.Builder(this)
-            .setTitle(if (mandatory) "Bắt buộc cập nhật ${info.tag}" else "Có bản cập nhật ${info.tag}")
+            .setTitle(if (mandatory) "Bắt buộc cập nhật ${info.tag.removePrefix("beta-")}" else "Có bản cập nhật ${info.tag.removePrefix("beta-")}")
             .setMessage(
                 buildString {
                     append(if (mandatory)
@@ -2089,14 +2089,14 @@ class MainActivity : Activity() {
     private fun downloadAndInstallUpdate(info: UpdateInfo) {
         if (updateCheckRunning) return
         updateCheckRunning = true
-        applyUpdateGateUi("Đang tải và kiểm tra ${info.tag}...")
+        applyUpdateGateUi("Đang tải và kiểm tra ${info.tag.removePrefix("beta-")}...")
         Thread {
             try {
                 val apk = downloadAndVerify(info)
                 runOnUiThread {
                     updateCheckRunning = false
                     pendingUpdateInfo = null
-                    applyUpdateGateUi("Đã xác minh ${info.tag}. Đang mở trình cài đặt.")
+                    applyUpdateGateUi("Đã xác minh ${info.tag.removePrefix("beta-")}. Đang mở trình cài đặt.")
                     requestInstall(apk)
                 }
             } catch (error: Exception) {
@@ -2125,7 +2125,7 @@ class MainActivity : Activity() {
         val versionCode = manifest.optInt("version_code", -1)
         val minimumVersionCode = manifest.optInt("minimum_version_code", 0).coerceAtLeast(0)
         if (!tag.matches(Regex("^beta-vc\\d+$")) || versionCode <= 0 || tag != "beta-vc$versionCode") {
-            throw IllegalStateException("Kênh cập nhật Beta không hợp lệ.")
+            throw IllegalStateException("Kênh cập nhật không hợp lệ.")
         }
         val apkPath = manifest.optString("apk_path")
         val checksumPath = manifest.optString("checksum_path")
@@ -2171,7 +2171,7 @@ class MainActivity : Activity() {
     private fun requestInstall(apk: File) {
         if (!packageManager.canRequestPackageInstalls()) {
             pendingInstallFile = apk
-            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho 1291 Báo hàng Beta.")
+            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho 1291 Báo hàng.")
             startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
             return
         }
@@ -2234,7 +2234,7 @@ class MainActivity : Activity() {
 
         if (url.host == "github.com") {
             val prefix = "/tamnv2/supra-inventory/releases/download/inventory-channel/"
-            if (!url.path.startsWith(prefix)) throw IllegalStateException("Release asset không thuộc kênh Beta tin cậy.")
+            if (!url.path.startsWith(prefix)) throw IllegalStateException("Tệp cập nhật không thuộc kênh tin cậy.")
             return
         }
         val trustedCdn = url.host == "release-assets.githubusercontent.com" ||
@@ -2244,14 +2244,14 @@ class MainActivity : Activity() {
     }
 
     private fun downloadText(url: String, tag: String): String {
-        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Beta tag không hợp lệ.")
+        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Tag phiên bản không hợp lệ.")
         val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("Checksum HTTP ${connection.responseCode}")
         return connection.inputStream.bufferedReader().use { it.readText() }
     }
 
     private fun downloadFile(url: String, file: File, tag: String) {
-        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Beta tag không hợp lệ.")
+        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Tag phiên bản không hợp lệ.")
         val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("APK HTTP ${connection.responseCode}")
         connection.inputStream.use { input ->
@@ -2306,7 +2306,7 @@ class MainActivity : Activity() {
         }
         val expectedName = "0.2.0-beta.${info.versionCode}"
         if (archive.versionName != expectedName || info.tag != "beta-vc${info.versionCode}") {
-            throw IllegalStateException("APK cập nhật sai kênh/phiên bản Beta.")
+            throw IllegalStateException("APK cập nhật sai kênh/phiên bản.")
         }
 
         val expectedSigner = BuildConfig.TRUSTED_SIGNER_SHA256.trim().lowercase()
@@ -2341,7 +2341,7 @@ class MainActivity : Activity() {
 
     private fun renderFatal(message: String) {
         val root = kit.page()
-        addBrandHeader(root, subtitle = "Báo hàng · Beta")
+        addBrandHeader(root, subtitle = "Báo hàng · Chính thức")
         val card = kit.card(kit.redSoft, Color.parseColor("#E9A2AA"))
         card.addView(TextView(this).apply {
             text = "Không thể khởi động ứng dụng"

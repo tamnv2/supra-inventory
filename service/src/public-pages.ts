@@ -63,7 +63,7 @@ function aboutPage(origin: string, appName: string): string {
     '<p class="notice">Dữ liệu Google không được dùng cho quảng cáo, không được bán và không được dùng để xây dựng hồ sơ quảng cáo. Chi tiết được công bố tại Chính sách quyền riêng tư.</p>';
   return pageShell({
     title: "Giới thiệu · " + appName,
-    description: "Thông tin chính thức về SUPRA Inventory Beta, chức năng ứng dụng và cách ứng dụng sử dụng quyền Google.",
+    description: "Thông tin chính thức về SUPRA Inventory, chức năng ứng dụng và cách ứng dụng sử dụng quyền Google.",
     canonical: origin + "/about",
     appName,
     body,
@@ -86,7 +86,7 @@ function privacyPage(origin: string, appName: string): string {
     "<h2>7. Thay đổi chính sách</h2><p>Khi cách ứng dụng sử dụng dữ liệu Google thay đổi, chính sách này sẽ được cập nhật trước hoặc cùng thời điểm thay đổi có hiệu lực.</p>";
   return pageShell({
     title: "Chính sách quyền riêng tư · " + appName,
-    description: "Chính sách quyền riêng tư của SUPRA Inventory Beta, bao gồm cách truy cập, sử dụng, lưu trữ và chia sẻ dữ liệu Google.",
+    description: "Chính sách quyền riêng tư của SUPRA Inventory, bao gồm cách truy cập, sử dụng, lưu trữ và chia sẻ dữ liệu Google.",
     canonical: origin + "/privacy",
     appName,
     body,
@@ -102,12 +102,12 @@ function termsPage(origin: string, appName: string): string {
     "<h2>2. Tài khoản và bảo mật</h2><p>Người dùng chịu trách nhiệm bảo vệ thông tin đăng nhập, không chia sẻ tài khoản trái phép và phải thông báo khi nghi ngờ tài khoản hoặc quyền truy cập bị lộ.</p>" +
     "<h2>3. Dữ liệu và tích hợp Google</h2><p>Khi cấp quyền Google, người dùng đồng ý cho ứng dụng sử dụng đúng các phạm vi quyền được hiển thị trên màn hình OAuth. Chi tiết về dữ liệu Google được truy cập, mục đích, lưu trữ và chia sẻ được nêu trong Chính sách quyền riêng tư.</p>" +
     "<h2>4. Sử dụng phù hợp</h2><p>Không được cố ý gửi dữ liệu sai, vượt quyền, phá hoại hệ thống, khai thác trái phép hoặc sử dụng ứng dụng cho mục đích không liên quan đến nghiệp vụ được cho phép.</p>" +
-    "<h2>5. Phiên bản Beta và thay đổi dịch vụ</h2><p>Phiên bản Beta có thể được cập nhật để sửa lỗi, cải thiện bảo mật hoặc thay đổi quy trình nghiệp vụ. Các thay đổi quan trọng về quyền Google hoặc cách xử lý dữ liệu sẽ được phản ánh trong thông tin ứng dụng và Chính sách quyền riêng tư.</p>" +
+    "<h2>5. Cập nhật ứng dụng và thay đổi dịch vụ</h2><p>Ứng dụng có thể được cập nhật để sửa lỗi, cải thiện bảo mật hoặc thay đổi quy trình nghiệp vụ. Các thay đổi quan trọng về quyền Google hoặc cách xử lý dữ liệu sẽ được phản ánh trong thông tin ứng dụng và Chính sách quyền riêng tư.</p>" +
     "<h2>6. Dịch vụ của bên thứ ba</h2><p>Ứng dụng sử dụng một số dịch vụ hạ tầng và Google APIs để cung cấp chức năng. SUPRA Inventory không phải là sản phẩm của Google và không tuyên bố được Google bảo trợ.</p>" +
     "<h2>7. Chấm dứt quyền sử dụng</h2><p>Quyền truy cập có thể bị vô hiệu hóa khi tài khoản không còn đủ điều kiện sử dụng, có rủi ro bảo mật hoặc vi phạm quy định nghiệp vụ.</p>";
   return pageShell({
     title: "Điều khoản sử dụng · " + appName,
-    description: "Điều khoản sử dụng SUPRA Inventory Beta cho người dùng nghiệp vụ được cấp quyền.",
+    description: "Điều khoản sử dụng SUPRA Inventory cho người dùng nghiệp vụ được cấp quyền.",
     canonical: origin + "/terms",
     appName,
     body,
@@ -115,14 +115,14 @@ function termsPage(origin: string, appName: string): string {
   });
 }
 
-export function handlePublicInfoPage(request: Request, appEnv: string): Response | null {
+export function handlePublicInfoPage(request: Request, _appEnv: string): Response | null {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const url = new URL(request.url);
   const path = url.pathname.length > 1 && url.pathname.endsWith("/") ? url.pathname.slice(0, -1) : url.pathname;
   if (!PUBLIC_INFO_PATHS.has(path)) return null;
 
   const origin = url.origin;
-  const appName = String(appEnv || "").toLowerCase() === "beta" ? "SUPRA Inventory Beta" : "SUPRA Inventory";
+  const appName = "SUPRA Inventory";
   const body = path === "/about"
     ? aboutPage(origin, appName)
     : path === "/privacy"
