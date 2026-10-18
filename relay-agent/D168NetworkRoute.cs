@@ -217,7 +217,7 @@ namespace SupraInventoryRelayAgent
                 var target=new Uri(AgentConfig.ApiBaseUrl.TrimEnd('/')+
                     "/api/agent/d168/network-capability");
                 if(target.Scheme!=Uri.UriSchemeHttps ||
-                    !string.Equals(target.Host,"inventory-beta.supra.cc.cd",
+                    !string.Equals(target.Host,"inventory.supra.cc.cd",
                         StringComparison.OrdinalIgnoreCase))return "TARGET_REJECTED";
                 var request=(HttpWebRequest)WebRequest.Create(target);
                 request.Method="GET";
