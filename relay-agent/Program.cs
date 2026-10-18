@@ -3515,25 +3515,11 @@ namespace SupraInventoryRelayAgent
                 },
                 preferred =>
                 {
-                    Ui(() =>
-                    {
-                        if (IsDisposed || !HasAgentSession()) return;
-                        AgentSession actor;
-                        try { actor = SnapshotSession(); } catch { return; }
-                        if (!IsD150ManualTakeoverLogin(actor.LoginName)) return;
-                        var choice = MessageBox.Show(this,
-                            "VPS ưu tiên đã sẵn sàng trở lại. Agent tại kho đang giữ PRIMARY theo lựa chọn thủ công.\r\n\r\n" +
-                            "Có chuyển quyền về VPS khi không còn Picklist đang xử lý? Chọn Không để hệ thống hỏi lại sau 15 phút.",
-                            "VPS ưu tiên · Xác nhận trả PRIMARY",
-                            MessageBoxButtons.YesNo, MessageBoxIcon.Question,
-                            MessageBoxDefaultButton.Button2);
-                        if (choice == DialogResult.Yes)
-                        {
-                            var coordinator = _leaderCoordinator;
-                            if (coordinator != null) coordinator.AllowOwnerPreferredReturn();
-                        }
-                    });
-                });
+                    // D169-E057: authenticated VPS alert is broadcast to both
+                    // currently connected admin/tamnv2 Agent listeners. Never
+                    // prompt only on the local PRIMARY-holder workstation.
+                },
+                request => HandleD169VpsConsentEvent(request));
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
         }

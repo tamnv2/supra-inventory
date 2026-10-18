@@ -13,7 +13,7 @@ namespace SupraInventoryRelayAgent
         private FirestoreD157HandoffListener _d157HandoffListener;
         private FirestoreD157PendingWakeListener _d157PendingWakeListener;
         private readonly object _d157HandoffGate = new object();
-        private bool _d169PinTargetAsVps;
+        private string _d169HandledVpsConsentId = "";
         private string _d157PendingHandoffRequestId = "";
         private string _d157HandledTargetHandoffRequestId = "";
         private string _d161HandledSupportLogRequestId = "";
@@ -42,6 +42,7 @@ namespace SupraInventoryRelayAgent
                     EnsureFreshToken,
                     ForceRefreshAgentTokenD160,
                     HandleD157HandoffEvent,
+                    HandleD169VpsConsentEvent,
                     message => Log(message));
                 _d157HandoffListener.Start();
             }
@@ -79,6 +80,7 @@ namespace SupraInventoryRelayAgent
                 _d157PendingHandoffRequestId = "";
                 _d157HandledTargetHandoffRequestId = "";
                 _d161HandledSupportLogRequestId = "";
+                _d169HandledVpsConsentId = "";
                 _d161SupportListenerStartedAtMs = 0L;
             }
         }
@@ -257,9 +259,6 @@ namespace SupraInventoryRelayAgent
                     }));
                     if (confirmed != DialogResult.Yes) return;
 
-                    if (_d169PinTargetAsVps &&
-                        !coordinator.SetOwnerPreferredVps(target.AgentInstanceId))
-                        throw new InvalidOperationException("Không lưu được Agent VPS ưu tiên; chưa chuyển quyền.");
                     EnsureFreshToken();
                     session = SnapshotSession();
                     var client = _d157HandoffClient ?? new FirestoreD157HandoffClient(message => Log(message));
@@ -305,7 +304,6 @@ namespace SupraInventoryRelayAgent
 
             using (var dialog = new Form())
             using (var selector = new ListBox())
-            using (var pinVps = new CheckBox())
             using (var ok = new Button())
             using (var cancel = new Button())
             {
@@ -321,13 +319,6 @@ namespace SupraInventoryRelayAgent
                 selector.Top = 16;
                 selector.Width = 570;
                 selector.Height = 280;
-                _d169PinTargetAsVps = false;
-                pinVps.Text = "Ghim Agent này làm VPS ưu tiên khi hệ thống tự chuyển quyền";
-                pinVps.Left = 16;
-                pinVps.Top = 305;
-                pinVps.Width = 570;
-                pinVps.Height = 26;
-                pinVps.Checked = false;
                 foreach (var agent in list)
                     selector.Items.Add(new D157AgentChoice(agent));
                 if (selector.Items.Count > 0) selector.SelectedIndex = 0;
@@ -345,7 +336,6 @@ namespace SupraInventoryRelayAgent
                 cancel.DialogResult = DialogResult.Cancel;
 
                 dialog.Controls.Add(selector);
-                dialog.Controls.Add(pinVps);
                 dialog.Controls.Add(ok);
                 dialog.Controls.Add(cancel);
                 dialog.AcceptButton = ok;
@@ -353,7 +343,6 @@ namespace SupraInventoryRelayAgent
 
                 if (dialog.ShowDialog(this) != DialogResult.OK) return null;
                 var choice = selector.SelectedItem as D157AgentChoice;
-                _d169PinTargetAsVps = choice != null && pinVps.Checked;
                 return choice == null ? null : choice.Agent;
             }
         }
@@ -388,6 +377,92 @@ namespace SupraInventoryRelayAgent
                 Log("D161 SUPPORT_LOG request=PROCESSED id=" +
                     (requestId.Length <= 18 ? requestId : requestId.Substring(0, 18)) +
                     " jitter_ms=" + jitter);
+            });
+        }
+
+        // Every online real admin/tamnv2 Agent receives the one shared event
+        // through its existing authenticated Firestore listener. No separate
+        // polling and no claim of delivery to offline sessions.
+        private void HandleD169VpsConsentEvent(VpsReclaimRecord request)
+        {
+            if (request == null || request.Status != "PENDING" ||
+                request.ExpiresAtMs <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() ||
+                request.CreatedAtMs > DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 5000 ||
+                string.IsNullOrWhiteSpace(request.RequestId)) return;
+            AgentSession actor;
+            try { actor = SnapshotSession(); } catch { return; }
+            if (!FirestoreVpsReclaim.IsOwner(actor)) return;
+            lock (_d157HandoffGate)
+            {
+                if (_d169HandledVpsConsentId == request.RequestId) return;
+                _d169HandledVpsConsentId = request.RequestId;
+            }
+
+            Ui(() =>
+            {
+                if (IsDisposed || Disposing || !HasAgentSession()) return;
+                AgentSession current;
+                try { current = SnapshotSession(); } catch { return; }
+                if (!FirestoreVpsReclaim.IsOwner(current)) return;
+
+                // A modeless, independent window cannot stall live WMS Confirm.
+                var popup = new Form
+                {
+                    Text = "VPS yêu cầu nhận lại Agent chính",
+                    Width = 540,
+                    Height = 220,
+                    StartPosition = FormStartPosition.CenterScreen,
+                    FormBorderStyle = FormBorderStyle.FixedDialog,
+                    MinimizeBox = false,
+                    MaximizeBox = false,
+                    TopMost = true
+                };
+                var label = new Label
+                {
+                    Left = 18, Top = 18, Width = 485, Height = 95,
+                    Text = "Agent VPS đã sẵn sàng và yêu cầu nhận lại PRIMARY.\r\n" +
+                           "PRIMARY hiện tại do quản trị viên chỉ định thủ công.\r\n" +
+                           "Đồng ý chỉ cấp phép chuyển khi Picklist đang xử lý đã an toàn."
+                };
+                var yes = new Button
+                {
+                    Text = "Đồng ý", Left = 276, Top = 125,
+                    Width = 105, Height = 34
+                };
+                var no = new Button
+                {
+                    Text = "Không", Left = 390, Top = 125,
+                    Width = 105, Height = 34
+                };
+                yes.Click += (sender, args) =>
+                {
+                    popup.Close();
+                    Task.Run(() =>
+                    {
+                        try
+                        {
+                            EnsureFreshToken();
+                            var session = SnapshotSession();
+                            if (!FirestoreVpsReclaim.IsOwner(session)) return;
+                            var client = new FirestoreVpsReclaim(message => Log(message));
+                            if (!client.Approve(session, request.RequestId))
+                                Log("D169 VPS reclaim owner_response=STALE_OR_ALREADY_DECIDED");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log("D169 VPS reclaim owner_response=ERROR type=" + ex.GetType().Name);
+                        }
+                    });
+                };
+                no.Click += (sender, args) =>
+                {
+                    Log("D169 VPS reclaim owner_response=NO_LOCAL next_window_min=15");
+                    popup.Close();
+                };
+                popup.Controls.Add(label);
+                popup.Controls.Add(yes);
+                popup.Controls.Add(no);
+                popup.Show();
             });
         }
 

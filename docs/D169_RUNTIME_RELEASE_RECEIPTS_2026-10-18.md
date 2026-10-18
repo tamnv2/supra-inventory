@@ -20,3 +20,18 @@
 Evidence: GitHub release assets list and channel `inventory-channel` checked on 2026-10-18. Agent EXE SHA-256 `768daa782ba2381d6aca2c2c34a695b06edbea8364a4807873d3325b19aea843`. Android vc111 APK SHA-256 `084fb6dee825fa067e30f75b99bc6cca9379396c77d8de445e80b738616868df`. Fixed WebView2 browser runtime zip and channel manifest also published.
 
 **Boundaries:** Source/CI/release proof does NOT establish installed versions on actual VPS/local Agent/PDA, real WMS mutation, actual two-network failover ≤15s, on-device ACK, Firebase provider billed savings or Owner physical acceptance. Do not claim these passed or open D170 until Owner says D169 PASS. Previously published v135 and vc110 remain available for client rollback. No Stable mutation, new provider, new secrets or external resources.
+
+
+## D169-E055 — VPS OTP-only Beta delivery receipts (2026-10-18)
+
+**Outcome: scoped BETA RUNTIME / INITIAL ISSUE PASS. This is not an Owner field login PASS.** PR #617 merged to main commit `9fafc562eb03595279ff9d356ac3af360f8bbfdc` after exact protected source `9ae124c7c1ac76352197a5fe975df7525deb0732` 23/23 source checks PASS and full final PR head 23/23 PASS. Main actions 14/14 SUCCESS; Stable and Android remain unchanged.
+
+| Component / event | Verified Actions or GitHub evidence | Status |
+|---|---|---|
+| Beta Worker | [Deploy Beta Worker run 39109138996](https://github.com/tamnv2/supra-inventory/actions/runs/39109138996) | SUCCESS; health exact merged source and auth guards PASS |
+| Existing Beta Agent Operations Gateway | [Deploy Beta Agent Operations Gateway run 39109139019](https://github.com/tamnv2/supra-inventory/actions/runs/39109139019) | SUCCESS; existing Apps Script deployment updated and readback PASS |
+| Windows Agent v137 | [Verify Beta Relay Agent run 39109138955](https://github.com/tamnv2/supra-inventory/actions/runs/39109138955) · [relay-agent-v137 prerelease](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v137) | SUCCESS; EXE/SHA-256 release + inventory-channel distribution updated, WebView2 bundle PASS |
+| First VPS OTP issue | Worker run 39109138996, E054 named workflow step, 2026-10-18 07:50:49 UTC (14:50:49 VN) | `D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY` — HTTP 202, not the 409 already-pending path |
+| Firestore Rules | Explicit baseline equality check in Agent run 39109138955 | PASS; previous E046 deployed Rules unchanged; no redeploy |
+
+**Scope and semantics:** OTP issue ran through existing scoped Worker email transport to symbolic `PROJECT_ADMIN_EMAIL` without displaying any OTP code or secrets in CI. HTTP 202 confirms the application accepted issuing the code for an existing ACTIVE, eligible VPS operator account; it **does not prove final Gmail inbox delivery**. This separate code is one-use and remains pending until consumed. Exact VPS login via newly installed Agent v137, next-code email, replay denial, Office transport and WMS session remain **OWNER FIELD PENDING**. If the email is not visible, Owner checks project mailbox/Spam; never post the OTP/code or unredacted mailbox evidence to GitHub/chat. The E054 merge trigger is one-off, and another routine docs merge must not repeat provisioning. D170 remains queued behind explicit D169 Owner PASS.

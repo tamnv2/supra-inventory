@@ -256,8 +256,92 @@ service cloud.firestore {
       allow list: if false;
     }
 
+    function isVpsAccount() {
+      return isAgentOperator()
+        && request.auth.token.email in ['admin.vps@auth.supra.invalid', 'pickpack_admin.vps@auth.supra.invalid'];
+    }
+    function isPrimaryApprover() {
+      return isAgentOperator()
+        && request.auth.token.email in [
+          'admin.admin@auth.supra.invalid', 'admin.tamnv2@auth.supra.invalid',
+          'pickpack_admin.admin@auth.supra.invalid', 'pickpack_admin.tamnv2@auth.supra.invalid'
+        ];
+    }
+    match /relay_poc_coordination/vps_ready {
+      allow get: if isAgentOperator();
+      allow create, update: if isVpsAccount()
+        && request.resource.data.keys().hasOnly([
+          'agent_instance_id', 'agent_user_id', 'firebase_uid', 'ready_at_ms', 'wms_ready', 'agent_build'
+        ])
+        && request.resource.data.keys().hasAll([
+          'agent_instance_id', 'agent_user_id', 'firebase_uid', 'ready_at_ms', 'wms_ready', 'agent_build'
+        ])
+        && request.resource.data.agent_user_id == request.auth.token.app_user_id
+        && request.resource.data.firebase_uid == request.auth.uid
+        && request.resource.data.agent_build is int
+        && request.resource.data.agent_build >= 138
+        && request.resource.data.wms_ready is bool
+        && request.resource.data.ready_at_ms is int
+        && request.resource.data.ready_at_ms <= request.time.toMillis() + 10000
+        && request.resource.data.ready_at_ms >= request.time.toMillis() - 60000
+        && request.resource.data.agent_instance_id is string
+        && exists(/databases/$(database)/documents/relay_poc_agent_sessions/$(request.auth.uid))
+        && get(/databases/$(database)/documents/relay_poc_agent_sessions/$(request.auth.uid)).data.agent_instance_id == request.resource.data.agent_instance_id;
+      allow delete, list: if false;
+    }
+    function validVpsReclaim() {
+      return isVpsAccount()
+        && request.resource.data.keys().hasOnly([
+          'request_id', 'status', 'vps_agent_instance_id', 'primary_agent_instance_id',
+          'generation', 'created_at_ms', 'expires_at_ms', 'approved_by_user_id', 'approved_at_ms'
+        ])
+        && request.resource.data.keys().hasAll([
+          'request_id', 'status', 'vps_agent_instance_id', 'primary_agent_instance_id',
+          'generation', 'created_at_ms', 'expires_at_ms', 'approved_by_user_id', 'approved_at_ms'
+        ])
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.approved_by_user_id == ''
+        && request.resource.data.approved_at_ms == 0
+        && request.resource.data.request_id is string
+        && request.resource.data.request_id.size() == 32
+        && request.resource.data.created_at_ms is int
+        && request.resource.data.created_at_ms <= request.time.toMillis() + 10000
+        && request.resource.data.created_at_ms >= request.time.toMillis() - 60000
+        && request.resource.data.expires_at_ms == request.resource.data.created_at_ms + 120000
+        && exists(/databases/$(database)/documents/relay_poc_coordination/vps_ready)
+        && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.firebase_uid == request.auth.uid
+        && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.wms_ready == true
+        && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.ready_at_ms >= request.time.toMillis() - 30000
+        && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.agent_instance_id == request.resource.data.vps_agent_instance_id
+        && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.generation == request.resource.data.generation
+        && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.primary_agent_instance_id == request.resource.data.primary_agent_instance_id
+        && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.manual_holder_agent_instance_id == request.resource.data.primary_agent_instance_id;
+    }
+    match /relay_poc_coordination/vps_reclaim {
+      allow get: if isAgentOperator();
+      allow create: if validVpsReclaim();
+      allow update: if (
+          validVpsReclaim()
+          && resource.data.created_at_ms + 900000 <= request.time.toMillis()
+        ) || (
+          isPrimaryApprover()
+          && resource.data.status == 'PENDING'
+          && resource.data.expires_at_ms > request.time.toMillis()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'approved_by_user_id', 'approved_at_ms'
+          ])
+          && request.resource.data.status == 'APPROVED'
+          && request.resource.data.approved_by_user_id == request.auth.token.app_user_id
+          && request.resource.data.approved_at_ms <= request.time.toMillis() + 10000
+          && request.resource.data.approved_at_ms >= request.time.toMillis() - 60000
+          && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.generation == resource.data.generation
+          && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.primary_agent_instance_id == resource.data.primary_agent_instance_id
+        );
+      allow delete, list: if false;
+    }
     match /relay_poc_coordination/{docId} {
-      allow get, create, update, delete: if isAgentOperator();
+      allow get, create, update, delete: if isAgentOperator()
+        && docId != 'vps_ready' && docId != 'vps_reclaim';
       allow list: if false;
     }
 

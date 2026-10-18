@@ -5551,15 +5551,15 @@
     },
     {
       "id": "OA104",
-      "status": "WAIT_BETA_RELEASE_AND_OWNER_FIELD_OTP_TEST",
+      "status": "OPEN_OWNER_GMAIL_AND_AGENT_V137_FIELD_TEST__BETA_RELEASE_AND_FIRST_OTP_ACCEPTED",
       "title": "VPS OTP-only Agent v137 Beta field validation",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Existing SUPRA Inventory Beta Worker / Windows Agent",
       "reason_owner_only": "Owner controls the VPS Windows application login and project Gmail inbox; tool/CI cannot attest actual inbox delivery or a personal WMS session.",
       "prerequisites": [
-        "D169 E054 Beta Worker source health PASS and Gateway version readback PASS",
-        "Official relay-agent-v137 EXE published and verified",
-        "Initial VPS OTP first-issue Worker response 202 or existing pending documented; account must already exist and have valid operator role"
+        "Beta Worker run 39109138996 PASS and first VPS OTP Worker HTTP202 accepted for delivery",
+        "Existing Beta Agent Gateway run 39109139019 PASS",
+        "Agent v137 prerelease and inventory-channel manifest published by run 39109138955 PASS"
       ],
       "shortest_action": [
         "Check the existing project admin mailbox for an email with account VPS and a four-digit OTP; check Spam if absent.",
@@ -5573,7 +5573,7 @@
         "Consumed code rejected and next code received",
         "Admin and tamnv2 mechanisms remain unchanged; office fallback if tested"
       ],
-      "remaining_owner_action": "Only live Gmail + Agent Windows field test; no manual local build, secrets or new provider setup.",
+      "remaining_owner_action": "Check project mailbox for VPS four-digit code; install/use Agent v137 on the VPS, sign in, verify next-code email and old-code rejection. Do not share OTP or credentials.",
       "owner_field_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED"
     }

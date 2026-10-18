@@ -2,7 +2,7 @@ namespace SupraInventoryRelayAgent
 {
     internal static class AgentConfig
     {
-        internal const int AgentBuild = 137;
+        internal const int AgentBuild = 138;
         internal const string ApiBaseUrl = "https://inventory-beta.supra.cc.cd";
         internal const string FirebaseProjectId = "supra-inventory-beta";
         internal const string FirebaseApiKey = "__FIREBASE_API_KEY_BETA__";
@@ -17,6 +17,7 @@ namespace SupraInventoryRelayAgent
         internal const string FirestoreAgentSyncUrl = FirestoreCoordinationBaseUrl + "/agent_sync";
         internal const string FirestoreAgentSyncDocumentName = "projects/" + FirebaseProjectId + "/databases/(default)/documents/relay_poc_coordination/agent_sync";
         internal const string FirestorePrimaryHandoffUrl = FirestoreCoordinationBaseUrl + "/primary_handoff";
+        internal const string FirestoreVpsReclaimDocumentName = "projects/" + FirebaseProjectId + "/databases/(default)/documents/relay_poc_coordination/vps_reclaim";
         internal const string FirestorePrimaryHandoffDocumentName = "projects/" + FirebaseProjectId + "/databases/(default)/documents/relay_poc_coordination/primary_handoff";
         internal const string FirestoreDatabaseName = "projects/" + FirebaseProjectId + "/databases/(default)";
         internal const string FirestorePickerSessionControlBaseUrl = FirestoreDocumentsBaseUrl + "/picker_session_controls";

@@ -2,33 +2,32 @@
   "schema_version": 1,
   "change_id": "D169",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "9ae124c7c1ac76352197a5fe975df7525deb0732",
+  "approved_source_sha": "4f03222afe0a36e4c3247fcdf587390f4365e1e4",
   "approved_components": [
     "worker",
-    "gateway",
+    "firestore",
     "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261018_E054_VPS_OTP_ONLY_BETA",
+  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261018_E057_VPS_ACCOUNT_FIRST",
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "cross_component_compatibility_ci": true,
   "stable_deploy_permission": false,
   "field_pass": false,
   "physical_field_verified": false,
-  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_VPS_OTP_FIELD_VALIDATION",
-  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261018_E054_VPS_OTP_BETA_FIELD_TEST",
-  "resource_change": "NONE_EXISTING_BETA_ONLY",
-  "code_scope": "D169_E054_VPS_OTP_ONLY_BETA_WORKER_GATEWAY_AGENT137",
+  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_E057_FIELD_VALIDATION",
+  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261018_E057_BETA_ROLLOUT_WITH_FIELD_PENDING",
+  "resource_change": "EXISTING_BETA_FIRESTORE_RULES_ONLY",
+  "code_scope": "D169_E057_VPS_ACCOUNT_FIRST_DUAL_OWNER_AGENT138",
   "approved_at_vn": "2026-10-18",
-  "source_ci": "PR617_9AE124C_23_OF_23_CI_PASS_AFTER_FIRESTORE_GUARD_REPAIR",
+  "source_ci": "PR618_4F03222_20_OF_20_CI_PASS__AGENT138_WINDOWS_BUILD__FIRESTORE_RULES_SOURCE__NO_FIELD_PASS",
   "release_sequence": [
-    "BETA_WORKER_EXACT_SOURCE_HEALTH_AND_AUTH_CHECK",
-    "BETA_GATEWAY_SCOPED_DEPLOY_AND_READBACK",
-    "AGENT_V137_OFFICIAL_PRERELEASE_OTA",
-    "FIRST_VPS_OTP_SERVER_ISSUANCE_AFTER_WORKER_PASS"
+    "BETA_WORKER_EXACT_SOURCE_HEALTH_NO_WORKER_BUSINESS_CHANGE",
+    "BETA_FIRESTORE_RULES_DEPLOY_READBACK",
+    "AGENT_V138_OFFICIAL_PRERELEASE_AND_BETA_CHANNEL"
   ],
-  "rollback": "Preserve existing Agent v136 and Android vc111 assets; stop Agent 137 release if Worker or Gateway fails; Stable untouched.",
-  "notes": "Owner explicitly instructed Beta deploy plus first VPS OTP email delivery on 2026-10-18 after approving OTP-only/no time-code fallback. Exact tested source SHA protected. First issuance is guarded to one new main merge message and existing Active VPS Agent operator; no account auto-create, no OTP content in public logs. User-side device/login/receipt tests remain pending. E054 Agent release verifies unchanged prior deployed Firebase Rules baseline rather than waiting for a Rules workflow not triggered by this scoped change.",
+  "rollback": "If Worker/Rules/Agent deployment gate fails, retain or return Agent Beta channel to published v137; Android vc111 and Stable unchanged. Never claim VPS/Admin field proof.",
+  "notes": "E057 Owner explicitly approved VPS account-first and 15-minute dual-admin consent scoped Beta rollout after code+Rules CI review. v138 source tested 20/20 workflow PASS at exact source SHA; only existing Beta Worker same-source provenance, existing Firestore Rules and Agent are authorized. Field inbox/login, Office/Internet notifications, physical handoff and provider billed usage are pending. No new resources, no Stable or Android change.",
   "prior_agent_v135_authorization": {
     "approved_source_sha": "7d6c2d5de22ddf8f836ae719116e35306ac9212d",
     "code_scope": "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
@@ -46,5 +45,16 @@
     ],
     "notes": "Existing v136/vc111 Beta release preserved; source/runtime receipts in docs/D169_RUNTIME_RELEASE_RECEIPTS_2026-10-18.md"
   },
-  "first_otp_issuance": "OWNER_APPROVED__SINGLE_MAIN_PUSH_GUARD__SERVER_SIDE_PROJECT_EMAIL__NO_PUBLIC_CODE"
+  "first_otp_issuance": "OWNER_APPROVED__SINGLE_MAIN_PUSH_GUARD__SERVER_SIDE_PROJECT_EMAIL__NO_PUBLIC_CODE",
+  "prior_agent_v137_authorization": {
+    "approved_source_sha": "9ae124c7c1ac76352197a5fe975df7525deb0732",
+    "code_scope": "D169_E054_VPS_OTP_ONLY_BETA_WORKER_GATEWAY_AGENT137",
+    "approval_ref": "OWNER_EXPLICIT_D169_DEPLOY_20261018_E054_VPS_OTP_ONLY_BETA",
+    "approved_components": [
+      "worker",
+      "gateway",
+      "agent"
+    ],
+    "notes": "D169 E054 OTP-only release completed. Agent v137 OTP field sign-in remains independently unverified, no duplicate issuance under E057."
+  }
 }
