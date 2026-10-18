@@ -1,3 +1,7 @@
+## D170 — Single Production cutover gates (PLANNED, not deployed)
+
+Before enabling official domain: verify hostname is not already attached to a conflicting Worker, preserve exact `InventoryCore` Durable Object binding/object identity and current SQLite schema/data, validate backup recovery/read-only record counts, Auth/OAuth redirect, Firebase identity, legacy old-host manifest compatibility, Agent v138 and Android vc112 trusted signing/package ID. New signed Android version must upgrade in place and present `1291 Báo hàng` without Beta; legacy clients must retain the route to safely update. Require same-source CI, immutable release receipt, actual old/new hostname health, no double-writer, no split-brain/duplicate WMS Confirm/ACK; compare snapshots without wiping post-cutover transactions. No field test or Owner acceptance may be inferred from code/CI. D171 cross-network diagnostic suite remains queued, not merged or deployed. See `docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md`.
+
 # ACCEPTANCE_TESTING — Canonical verification and Owner acceptance rules
 
 Status: **CANONICAL PRODUCT SPEC**.
