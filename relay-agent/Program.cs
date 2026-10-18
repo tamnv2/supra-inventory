@@ -3512,6 +3512,27 @@ namespace SupraInventoryRelayAgent
                         Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 0, 0) == 0 &&
                         Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning, 0, 0) == 0 &&
                         !_d150PrimaryTakeoverRunning;
+                },
+                preferred =>
+                {
+                    Ui(() =>
+                    {
+                        if (IsDisposed || !HasAgentSession()) return;
+                        AgentSession actor;
+                        try { actor = SnapshotSession(); } catch { return; }
+                        if (!IsD150ManualTakeoverLogin(actor.LoginName)) return;
+                        var choice = MessageBox.Show(this,
+                            "VPS ưu tiên đã sẵn sàng trở lại. Agent tại kho đang giữ PRIMARY theo lựa chọn thủ công.\r\n\r\n" +
+                            "Có chuyển quyền về VPS khi không còn Picklist đang xử lý? Chọn Không để hệ thống hỏi lại sau 15 phút.",
+                            "VPS ưu tiên · Xác nhận trả PRIMARY",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                            MessageBoxDefaultButton.Button2);
+                        if (choice == DialogResult.Yes)
+                        {
+                            var coordinator = _leaderCoordinator;
+                            if (coordinator != null) coordinator.AllowOwnerPreferredReturn();
+                        }
+                    });
                 });
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
