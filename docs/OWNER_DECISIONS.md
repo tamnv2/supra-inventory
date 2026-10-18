@@ -1,3 +1,10 @@
+## D170-E009 · Gỡ xung đột domain HTTP 409, chỉ được chuyển binding cũ (19/10/2026)
+
+- Owner yêu cầu tiếp tục hoàn tất chuyển mô hình chính thức duy nhất; GitHub run #39144077974 cho thấy Cloudflare PUT trực tiếp `inventory.supra.cc.cd` → Worker dữ liệu `supra-inventory-beta` thất bại HTTP 409, không ảnh hưởng SQLite/Firestore/APK.
+- Để hoàn thành yêu cầu bỏ Stable mà vẫn bảo toàn dữ liệu, **phương án D170 đã điều chỉnh**: chỉ khi Cloudflare GET chứng minh chính xác hostname công khai `inventory.supra.cc.cd` đang thuộc `supra-inventory-stable`, cùng zone và đúng ID đăng ký, cho phép tháo *duy nhất liên kết Custom Domain cũ* rồi gắn ngay hostname vào Worker live `supra-inventory-beta`, có retry/rollback và CI nguồn bảo vệ. Không xóa Worker Stable, DNS zone/record khác, Worker/DO SQLite, Firebase, domain cũ, hoặc đổi package/signing APK. Tạm gián đoạn hostname chính thức trong lúc gắn lại là rủi ro được dự liệu; hostname cũ vẫn hoạt động.
+- Đây là ngoại lệ kỹ thuật **chỉ với domain binding** thay cho giả định E008 chỉ PUT, không phải Owner ra lệnh xóa dữ liệu. Nếu quyền Cloudflare không đủ hoặc mapping khác bất ngờ, fail-closed và xin Owner Web UI đúng một thao tác.
+- Kết quả chỉ được công nhận khi action main của PR sửa đạt, hai hostname có cùng Worker/SQLite health, rồi tiếp tục cleanup nhãn Beta và mô hình pipeline. Journal D170-E009, `docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md`.
+
 ## D170-E001 · Chốt mục tiêu Production duy nhất, bỏ mô hình Beta→Stable (18/10/2026)
 
 - Sau khi Owner chốt D169 code/release có giới hạn, **D170** được xác lập là phiên duy nhất tiếp theo: chuyển chính tài nguyên đang chạy thành Production, không có công đoạn phát hành Beta rồi nâng Stable. Tên miền hướng tới người dùng: **`inventory.supra.cc.cd`**; app PDA: **`1291 Báo hàng`**. UI, thông báo, QR/link tải, màn hình cập nhật, Agent/Web không còn hiển thị Beta với người dùng bình thường.
