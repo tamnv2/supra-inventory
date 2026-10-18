@@ -13,6 +13,7 @@ namespace SupraInventoryRelayAgent
         private FirestoreD157HandoffListener _d157HandoffListener;
         private FirestoreD157PendingWakeListener _d157PendingWakeListener;
         private readonly object _d157HandoffGate = new object();
+        private bool _d169PinTargetAsVps;
         private string _d157PendingHandoffRequestId = "";
         private string _d157HandledTargetHandoffRequestId = "";
         private string _d161HandledSupportLogRequestId = "";
@@ -256,6 +257,9 @@ namespace SupraInventoryRelayAgent
                     }));
                     if (confirmed != DialogResult.Yes) return;
 
+                    if (_d169PinTargetAsVps &&
+                        !coordinator.SetOwnerPreferredVps(target.AgentInstanceId))
+                        throw new InvalidOperationException("Không lưu được Agent VPS ưu tiên; chưa chuyển quyền.");
                     EnsureFreshToken();
                     session = SnapshotSession();
                     var client = _d157HandoffClient ?? new FirestoreD157HandoffClient(message => Log(message));
@@ -301,12 +305,13 @@ namespace SupraInventoryRelayAgent
 
             using (var dialog = new Form())
             using (var selector = new ListBox())
+            using (var pinVps = new CheckBox())
             using (var ok = new Button())
             using (var cancel = new Button())
             {
                 dialog.Text = "Chọn Agent làm máy chính";
                 dialog.Width = 620;
-                dialog.Height = 390;
+                dialog.Height = 440;
                 dialog.StartPosition = FormStartPosition.CenterParent;
                 dialog.MinimizeBox = false;
                 dialog.MaximizeBox = false;
@@ -316,23 +321,31 @@ namespace SupraInventoryRelayAgent
                 selector.Top = 16;
                 selector.Width = 570;
                 selector.Height = 280;
+                _d169PinTargetAsVps = false;
+                pinVps.Text = "Ghim Agent này làm VPS ưu tiên khi hệ thống tự chuyển quyền";
+                pinVps.Left = 16;
+                pinVps.Top = 305;
+                pinVps.Width = 570;
+                pinVps.Height = 26;
+                pinVps.Checked = false;
                 foreach (var agent in list)
                     selector.Items.Add(new D157AgentChoice(agent));
                 if (selector.Items.Count > 0) selector.SelectedIndex = 0;
 
                 ok.Text = "Chuyển Agent chính";
                 ok.Left = 330;
-                ok.Top = 310;
+                ok.Top = 344;
                 ok.Width = 150;
                 ok.DialogResult = DialogResult.OK;
 
                 cancel.Text = "Huỷ";
                 cancel.Left = 490;
-                cancel.Top = 310;
+                cancel.Top = 344;
                 cancel.Width = 96;
                 cancel.DialogResult = DialogResult.Cancel;
 
                 dialog.Controls.Add(selector);
+                dialog.Controls.Add(pinVps);
                 dialog.Controls.Add(ok);
                 dialog.Controls.Add(cancel);
                 dialog.AcceptButton = ok;
@@ -340,6 +353,7 @@ namespace SupraInventoryRelayAgent
 
                 if (dialog.ShowDialog(this) != DialogResult.OK) return null;
                 var choice = selector.SelectedItem as D157AgentChoice;
+                _d169PinTargetAsVps = choice != null && pinVps.Checked;
                 return choice == null ? null : choice.Agent;
             }
         }
