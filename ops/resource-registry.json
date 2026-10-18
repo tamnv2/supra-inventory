@@ -2939,7 +2939,7 @@
     "field": "ADMIN_PC_INSTALLED_V129__SERVICE_FULL_DELTA_DONE__OPERATOR_DISPLAY__HA_FAILOVER__USAGE__OWNER_BUSINESS_PASS_ALL_PENDING"
   },
   "planned_d170_single_production": {
-    "status": "DESIGN_ONLY_NO_RUNTIME_CHANGE",
+    "status": "PHASE1_SIGNED_VC113_AND_PHASE2_OFFICIAL_DOMAIN_RUNTIME_PASS__PHASE3_SINGLE_CHANNEL_CLEANUP_AND_FIELD_PENDING",
     "future_official_hostname": "inventory.supra.cc.cd",
     "display_name": "1291 Báo hàng",
     "source_worker_name": "supra-inventory-beta",
@@ -2959,6 +2959,23 @@
     ],
     "data_migration": false,
     "old_compat_hostname_retained": true,
-    "provider_release_status": "PR629_CODE_ONLY_PENDING_CI"
+    "provider_release_status": "GITHUB_WORKER_RUN_39154128973_SUCCESS__MAIN_D6833675__BOTH_HOSTS_SAME_WORKER_SOURCE_AND_SQLITE_HEALTH",
+    "official_hostname_operational": true,
+    "official_hostname_worker": "supra-inventory-beta",
+    "legacy_hostname_worker": "supra-inventory-beta",
+    "legacy_stable_domain_binding_detached": true,
+    "legacy_stable_worker_deployed": false,
+    "production_data_authority": "EXISTING_INVENTORY_CORE_SQLITE_UNCHANGED",
+    "provider_cutover_evidence": {
+      "worker_run": 39154128973,
+      "source_main_sha": "d6833675ad933acc7da4653a50c984005dbb5256",
+      "control_plane": "D170_DUAL_HOST_SAME_EXISTING_WORKER_CONTROL_PLANE_PASS",
+      "http_health": "D170_OFFICIAL_AND_LEGACY_SAME_WORKER_SOURCE_PASS",
+      "sqlite": "HEALTH_OK_BOTH_HOSTS",
+      "date_vn": "2026-10-19"
+    },
+    "phase3_status": "NOT_YET_ACCEPTED__PUBLIC_CLIENT_LINKS_AND_SINGLE_RELEASE_POLICY_REVIEW_PENDING",
+    "field_pass": false,
+    "owner_pass": false
   }
 }
