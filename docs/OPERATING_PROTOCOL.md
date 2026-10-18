@@ -1,3 +1,7 @@
+## D170 verified operational routing — 2026-10-19
+
+The sole official hostname now routes to the **existing** data-bearing `supra-inventory-beta` Worker with the legacy hostname also retained. GitHub main Worker run `39154128973`, main `d6833675`, passed both Cloudflare Custom Domain control-plane and two-host `/health`/SQLite checks. Preserve technical Beta identifiers, signing identity and old API/update host for compatibility. Old separate Stable Worker remains Owner-gated. Full Production CI/channel consolidation, externally visible link/OAuth checks and field/Owner PASS remain outstanding Phase3; future source/release must use D170-scoped approval and branch→PR→CI.
+
 # OPERATING_PROTOCOL — Automation-first project operation
 
 ## D170 single official Production transition — current planning boundary
