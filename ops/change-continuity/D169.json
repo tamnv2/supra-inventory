@@ -7,7 +7,7 @@
   "pr": 618,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E057",
+    "id": "D169-E058",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1213,6 +1213,25 @@
       ],
       "next_action": "Implement under D169 on existing active PR/branch; validate Firestore auth identity, Agent account runtime, dual-admin event delivery, CAS, cross-network failover and quota test. Publish Beta only after source+policy gates all PASS with approved exact SHA. Field proof separate.",
       "evidence": "Owner chat response to D169-E056 proposal dated 2026-10-18."
+    },
+    {
+      "id": "D169-E058",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "Owner-approved VPS-FIRST Agent v138 code and scoped Beta release lock after complete GitHub CI",
+      "status": "SOURCE_20_OF_20_CI_PASS__OWNER_SCOPED_BETA_DEPLOY_AUTH_RECORDED__RUNTIME_RELEASE_PENDING__FIELD_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "E057 implementation completed on existing D169 Draft PR618, built Agent v138 with authenticated exact VPS account readiness, safe automatic return and manual-holder dual-admin approval via shared idempotent Firestore state.",
+        "An Internet Firestore gRPC listener reuses current stream; Office/UNKNOWN exact-doc REST fallback checks every 60 seconds for online admin/tamnv2 Agent clients. No claim of Web-only subscribers receiving the Agent event.",
+        "VPS non-primary publishes 15-second read-only readiness; while VPS PRIMARY existing 10-second primary lease replaces additional VPS-ready writes. Graceful logout revokes proof, crash expiry bounded to 30 seconds.",
+        "New Firestore Rules restrict VPS ready/request writes to Firebase-issued exact synthetic account email and consent updates to exact admin/tamnv2 Firebase identities; CAS/generation and time/TTL preserve single handoff and prevent replay.",
+        "20/20 PR GitHub Actions workflows PASS on source commit 4f03222afe0a36e4c3247fcdf587390f4365e1e4, including Windows Agent build, Android regression, Firestore source, auth/security, GitHub authority and continuity. These are source/CI only, NOT physical WMS, Office alert, live Firebase identity claims or provider billing PASS.",
+        "Owner E057 approved scoped Beta release; exact tested commit recorded in ops/d169-release-authorization.json for existing Worker (same source health), Firestore Rules and Agent v138 in this sequence. Stable/Android unapproved, current Agent v137 remains rollback.",
+        "The previous v137 VPS OTP runtime and Owner inbox/sign-in validation remain separate and unverified; E057 does not resend OTP or grant any emergency password."
+      ],
+      "next_action": "Finish PR618 authority+continuity and exact-source release gate, merge only if PASS; inspect matching Beta Worker health, deployed Firestore Rules readback and official Agent v138 prerelease/channel checksum. Owner then tests VPS login/real WMS readiness, automatic return and admin/tamnv2 one/both approval under Office and Internet; no Owner PASS inferred.",
+      "evidence": "PR618 source 4f03222 20/20 GitHub Actions PASS, relay-agent/FirestoreVpsReclaim.cs, FirestoreAgentLeaderCoordinator.cs, D157AgentFeatures.cs, FirestoreD157Realtime.cs, firebase/firestore.rules, tests/d169-client-code-only.test.mjs, E057 Owner command."
     }
   ],
   "resume": {
