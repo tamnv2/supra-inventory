@@ -1,3 +1,11 @@
+## D169-E065 · Owner chốt D169 theo phạm vi phát hành, hoãn nghiệm thu thực địa (18/10/2026)
+
+- Owner **đồng ý đóng D169 ngay**, chấp nhận code và các biên nhận phát hành hiện có (Agent v138, Android vc112, Worker và Firebase Rules đã phát hành), **không đồng nghĩa FIELD PASS**. Kiểm thử PDA/Agent/WMS/VPS/HA/Office, số liệu provider Usage và các vấn đề chưa chứng minh kết quả phải giữ trạng thái chưa xác minh; không xóa chứng cứ tồn đọng. OA104 được hoãn, không đánh dấu thử nghiệm đạt.
+- Owner quyết định **D170 là việc chuyển hệ thống đang chạy thành một Production chính thức duy nhất**: bỏ quy trình Beta→Stable ở lớp vận hành, domain công khai `inventory.supra.cc.cd`, tên ứng dụng PDA `1291 Báo hàng`, không để lộ nhãn Beta với người dùng. Định danh kỹ thuật sẵn có có thể giữ nguyên khi cần cho dữ liệu và tương thích cập nhật; **không tạo Worker/Firebase/SQLite mới hoặc đổi Android package/signing chỉ để đổi tên**. Không thực hiện cắt chuyển runtime trong PR tài liệu này.
+- Owner yêu cầu **tách bộ kiểm tra mạng Office/Internet PDA↔Agent↔Agent sang D171, đang xếp hàng, không mở song song với D170**. PR #612 và #613 giữ nguyên Draft, không merge hay phát hành chỉ do thay đổi Dxxx. D170 là phiên duy nhất tiếp theo được phép mở sau D169 limited Owner PASS; D171 chỉ là kế hoạch chưa triển khai.
+- Các quyết định cũ về tài nguyên Beta/Stable là **SUPERSEDED cho thiết kế triển khai tương lai, nhưng chưa thay đổi cấu hình đang chạy**; cơ chế Owner approval, scope, branch→PR→CI→merge, sao lưu và kiểm tra tương thích dữ liệu vẫn bắt buộc. D170 phải kiểm tra tồn tại hostname `inventory.supra.cc.cd`, ứng dụng đang cài, update manifest và source data authority rồi mới đề xuất thay đổi runtime.
+- Biên nhận chi tiết: `docs/D169_OWNER_CLOSEOUT_2026-10-18.md`, `ops/change-continuity/D169.json` E065, `ops/project-state.json`.
+
 ## D169-E063 · Owner duyệt đóng hồ sơ GitHub cũ (18/10/2026)
 
 - Owner duyệt rà soát và **đóng không merge 11 PR** lịch sử #496, #529, #531, #532, #533, #535, #536, #538, #539, #540, #606; 8 PR ứng viên D166 đã tích hợp qua PR #541, riêng #606 được kế thừa bởi PR #615. Không khôi phục code cũ trên Agent/Android/Web/Worker D169.
