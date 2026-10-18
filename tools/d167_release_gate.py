@@ -28,7 +28,9 @@ def git(*args):
 def receipt():
     # A pending D168 receipt explicitly prevents reuse of D167 release rights.
     # Historical D167 audit remains supported when no D168 receipt exists.
-    path = ROOT / "ops/d169-release-authorization.json"
+    path = ROOT / "ops/d170-release-authorization.json"
+    if not path.is_file():
+        path = ROOT / "ops/d169-release-authorization.json"
     if not path.is_file():
         path = ROOT / "ops/d168-release-authorization.json"
     if not path.is_file():
@@ -37,7 +39,7 @@ def receipt():
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         fail("missing or corrupt authorization receipt")
-    if data.get("change_id") not in ("D167", "D168", "D169"):
+    if data.get("change_id") not in ("D167", "D168", "D169", "D170"):
         fail("wrong change id")
     return data
 
@@ -75,6 +77,24 @@ def main():
         fail("CODE READY is not approved for deployment")
     if args.component not in data.get("approved_components", []):
         fail("component outside the explicitly approved release scope")
+    if data["change_id"] == "D170":
+        if data.get("code_scope") != "D170_OFFICIAL_BRANDING_LEGACY_OTA_PHASE1":
+            fail("D170 release is not an explicitly reviewed phase")
+        if data.get("approved_components") != ["worker", "android"]:
+            fail("D170 release cannot affect Agent, Firebase or another provider")
+        if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261018_SAFE_PRODUCTION_IDENTITY_PHASE1":
+            fail("D170 requires exact Owner-approved phase-1 release scope")
+        if data.get("resource_change") != "NONE_EXISTING_WORKER_AND_SIGNED_ANDROID":
+            fail("D170 phase-1 cannot change DNS, Stable, Firebase or storage identity")
+        if data.get("stable_deploy_permission") is not False:
+            fail("D170 phase-1 cannot activate the old Stable Worker")
+        for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
+                    "existing_worker_and_durable_object_preserved",
+                    "authority_continuity_pass", "product_ci_pass"):
+            if data.get(key) is not True:
+                fail("D170 phase-1 requires safety and CI proof: " + key)
+        if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
+            fail("D170 phase-1 must not invent device field acceptance")
     if data["change_id"] == "D169":
         if data.get("stable_deploy_permission") is not False:
             fail("D169 Stable is owner-gated")
