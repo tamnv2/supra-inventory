@@ -1,9 +1,11 @@
 {
   "schema_version": 1,
   "change_id": "D170",
-  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
-  "approved_source_sha": null,
-  "approved_components": [],
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "approved_source_sha": "ce3233dc5342e07693cfbf8c43e51baa4c7c4871",
+  "approved_components": [
+    "worker"
+  ],
   "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261018_OFFICIAL_SAME_WORKER_DOMAIN_PHASE2",
   "code_scope": "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2",
   "resource_change": "EXACT_OLD_STABLE_CUSTOM_DOMAIN_BINDING_ONLY__REATTACH_SAME_LIVE_WORKER__NO_DB_OR_WORKER_DELETE",
@@ -13,12 +15,12 @@
   "stable_deploy_permission": false,
   "field_pass": false,
   "physical_field_verified": false,
-  "authority_continuity_pass": false,
-  "product_ci_pass": false,
-  "staged_target": "D170_PHASE2_GUARDED_409_DOMAIN_BINDING_TRANSFER_WITH_ROLLBACK__NO_DATA_MUTATION",
-  "notes": "Initial Cloudflare same-worker PUT failed HTTP409 due to official hostname already belonging to old Stable Worker. Owner authorizes completing single-production conversion and retiring obsolete Stable binding. This CODE-ONLY receipt proposes detach of EXACT registered inventory.supra.cc.cd Custom Domain association from supra-inventory-stable after live GET confirms service, same zone and binding ID, and attach to existing supra-inventory-beta Worker with bounded retries and best-effort rollback. No DELETE of Worker, DNS zone/record, SQLite, Firebase, business rows, or old hostname. Execution only after PR source CI, exact-sha release receipt and main protected merge.",
-  "source_ci": "NOT_YET_VERIFIED_PR629",
-  "approved_at_vn": "2026-10-18",
+  "authority_continuity_pass": true,
+  "product_ci_pass": true,
+  "staged_target": "EXISTING_LIVE_WORKER_ONLY_AFTER_OLD_CUSTOM_DOMAIN_BINDING_DETACH_IF_HTTP409",
+  "notes": "Owner directed safe full conversion and elimination of legacy Stable runtime. Exact existing official Custom Domain binding inventory.supra.cc.cd -> supra-inventory-stable may be detached via Cloudflare API DELETE only after a validated HTTP409 collision and verified exact host, zone, binding ID and old service, then immediately attached to existing live Worker supra-inventory-beta. Includes bounded retries/rollback. Does not delete Worker, DNS zone, any independent DNS record, SQLite, Firebase, APK or legacy compatibility hostname. Exact SHA and CI/continuity require PASS. No FIELD PASS inferred.",
+  "source_ci": "PR629_CI_16_OF_16_SUCCESS_SOURCE_CE3233DC__CLOUDFLARE_409_EXACT_REGISTERED_BINDING_RECOVERY__OLD_HOST_RETAINED",
+  "approved_at_vn": "2026-10-19",
   "stable_worker_deploy_permission": false,
   "domain_reassignment_permission": true,
   "single_official_domain_detach_permission": true
