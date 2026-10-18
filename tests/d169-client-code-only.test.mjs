@@ -46,3 +46,12 @@ test("Active-call reconciliation does not scan unused historical alerts", () => 
  assert.match(body, /LoadActiveCalls\(session\)/);
  assert.doesNotMatch(body, /LoadLegacyAlerts\(session, result\)/);
 });
+
+const haLiveness = source("relay-agent/RtdbHaLiveness.cs");
+const haCoordinator = source("relay-agent/FirestoreAgentLeaderCoordinator.cs");
+test("HA heartbeat reports real WMS readiness and does not claim ready unconditionally", () => {
+ assert.match(haLiveness, /WriteHeartbeat\(AgentSession session, string generation, bool wmsReady\)/);
+ assert.match(haLiveness, /\{ "wms_ready", wmsReady \}/);
+ assert.doesNotMatch(haLiveness, /\{ "wms_ready", true \}/);
+ assert.match(haCoordinator, /_rtdbLiveness\.WriteHeartbeat\(session, _generation, _wmsReady\(\)\)/);
+});
