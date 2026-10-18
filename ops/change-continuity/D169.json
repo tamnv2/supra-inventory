@@ -7,7 +7,7 @@
   "pr": 615,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E046",
+    "id": "D169-E047",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_OWNER_APPROVED_FINISH_AND_STAGED_BETA__PHYSICAL_DUAL_NETWORK_FIELD_TEST_DEFERRED_TO_FUTURE_D170__CI_COMPATIBILITY_SAFETY_AND_STABLE_GUARDS_REMAIN",
@@ -1016,6 +1016,23 @@
       ],
       "next_action": "Complete D169 approved source in PR615, run full relevant PR/CI and simulated HA/ACK/recovery tests; attempt controlled Beta release only if release receipt and safe compatibility gates are satisfied. Queue physical dual-network Agent–Agent–PDA matrix for D170 after explicit D169 Owner PASS.",
       "evidence": "Owner current message 2026-10-18; PR615 live source/CI and D169-E044/E045 review."
+    },
+    {
+      "id": "D169-E047",
+      "date_vn": "2026-10-18",
+      "kind": "IMPLEMENTATION_CHECKPOINT",
+      "topic": "D169 partial code: truthful RTDB WMS-ready signal with source regression test, staged release still blocked",
+      "status": "PR615_PARTIAL_HA_BUG_FIX_PUSHED__CI_IN_PROGRESS__NO_NEW_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "PR615 received D169-E046 Owner instruction and coupled Owner decision/Realtime spec/backlog/project state changes; D170 remains planned only behind D169 Owner PASS.",
+        "RtdbHaLiveness.WriteHeartbeat now takes the actual bool wmsReady instead of hardcoding true; the coordinator supplies _wmsReady() and the D169 code-only test guards both ends.",
+        "Live PR615 source head 7aa96ae6df9d869e0c93a8a27ad7280066eb6c2f; 19 GitHub Actions PR jobs scheduled. At this checkpoint 15 completed PASS, 4 remain in progress; no test FAIL observed yet.",
+        "VPS preferred-PRIMARY and manual override, cross-network Office Firestore failover proofs, same-request PDA extended recovery, SSID routing, end-to-end reason-code are still unimplemented; owner-approved deployment instruction does not turn absent code into a release.",
+        "No PR merge and no new APK/EXE/Worker/Stable version or production runtime activation. Previously published Agent v135 and Android vc110 remain the only verified published client artifacts."
+      ],
+      "next_action": "Keep D169 PR615 Draft until all approved architecture/source + simulated regression/CI and safe Beta release authorization can be demonstrated. Do not mislabel this partial repair as full D169 completion. D170 only after Owner D169 PASS.",
+      "evidence": "PR615 head 7aa96ae; GitHub Actions run group 390938123xx; RtdbHaLiveness.cs, FirestoreAgentLeaderCoordinator.cs, tests/d169-client-code-only.test.mjs."
     }
   ],
   "resume": {
