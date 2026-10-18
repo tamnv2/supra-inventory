@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_E055_BETA_WORKER_GATEWAY_AGENT137_RUNTIME_PASS__FIRST_VPS_OTP_HTTP202__GMAIL_OWNER_FIELD_PASS_PENDING",
+    "current_change_status": "D169_E055_BETA_OTP_RUNTIME_PASS_FIELD_PENDING__E056_OWNER_VPS_ACCOUNT_PRIORITY_REQUIREMENT_REVIEW_ONLY_NO_SOURCE_OR_RELEASE_AUTHORIZATION",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7451,7 +7451,7 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "docs/d169-e055-vps-otp-runtime-receipts-20261018",
     "pr": 618,
-    "latest_checkpoint_id": "D169-E055",
+    "latest_checkpoint_id": "D169-E056",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8212,6 +8212,22 @@
       "agent_release_run": 39109138955,
       "agent_release_tag": "relay-agent-v137",
       "main_ci": "14_OF_14_SUCCESS"
+    },
+    "vps_account_first_2026_10_18": {
+      "change_id": "D169",
+      "checkpoint": "D169-E056",
+      "requirement": "EXACT_AUTHENTICATED_VPS_ACCOUNT_ALWAYS_PREFERRED_PRIMARY_NO_MANUAL_INSTANCE_PIN",
+      "current_source": "V137_INSTANCE_PIN_REQUIRED_LOCAL_MANUAL_HOLDER_PROMPT_ONLY__NOT_IMPLEMENTED",
+      "manual_holder": "MANUAL_ADMIN_TAMNV2_HOLDER_BLOCKS_AUTO_RECLAIM_WHILE_HEALTHY",
+      "notification": "VPS_REQUEST_EVERY_15M_TO_EACH_PROVEN_ONLINE_ADMIN_TAMNV2__EITHER_YES_SINGLE_CAS_WINNER__NO_OR_TIMEOUT_DEFER",
+      "resources": "EXISTING_FIRESTORE_AGENT_HA_AND_AUTH_CHANNEL_ONLY_UNLESS_EXPLICITLY_SCOPED",
+      "impact": "AGENT_HA_SESSION_NOTIFICATION__AUTH_AND_FIRESTORE_RULES__WEB_DELIVERY_IF_PROVEN__SHARED_PICKLIST_ACK_FENCING_REGRESSION",
+      "safety": "NO_SPLIT_BRAIN_NO_UNVERIFIED_NETWORK_TAKEOVER_NO_WMS_DOUBLE_MUTATION_SERVER_AUTH_DUAL_RESPONSE_REPLAY_PROTECTED",
+      "evidence": "D169_E056_JOURNAL_AND_OWNER_DECISIONS_REALTIME_SPEC_SOURCE_REVIEW",
+      "code_status": "NOT_AUTHORIZED_NOT_STARTED",
+      "release_status": "NO_NEW_RELEASE_PERMISSION",
+      "field_status": "NOT_TESTED",
+      "owner_pass": "PENDING"
     }
   }
 }
