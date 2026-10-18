@@ -1263,6 +1263,8 @@ namespace SupraInventoryRelayAgent
                 if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 {
                     _generation = snapshot.Generation ?? "";
+                    if (_wmsReady() && TryReturnOwnerPreferredPrimary(session, read))
+                        return;
                     if (!_wmsReady())
                     {
                         // D166: a single temporary WMS/browser readiness failure
@@ -1500,10 +1502,79 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // The last administrator-selected PRIMARY becomes the preferred VPS
+        // candidate while a local standby is serving after an automatic failover.
+        // A later manual selection of the local holder replaces that preference,
+        // so it cannot be stolen back. No preemption during active WMS mutation.
+        private bool TryReturnOwnerPreferredPrimary(AgentSession session, RoleRead roles)
+        {
+            var snapshot = roles == null ? null : roles.Snapshot;
+            if (snapshot == null || !_canSafelyHandoff() || !_relayEnabled()) return false;
+            var preferred = snapshot.ManualHolderAgentInstanceId ?? "";
+            if (string.IsNullOrWhiteSpace(preferred) ||
+                string.Equals(preferred, _instanceId, StringComparison.Ordinal) ||
+                string.Equals(preferred, snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal))
+            {
+                _preferredReadySinceMs = 0;
+                return false;
+            }
+            try
+            {
+                var raw = SendJson("GET", DocumentsBase + "/relay_poc_agents/" +
+                    Uri.EscapeDataString(preferred), session.IdToken, null, "", 5000,
+                    true, "D169_PREFERRED_PRIMARY_READY");
+                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                object fieldsObj;
+                var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
+                    ? fieldsObj as Dictionary<string, object> : null;
+                var heartbeat = fields == null ? 0L : FieldLong(fields, "heartbeat_at_ms");
+                var age = NowMs() - heartbeat;
+                // A v135 peer does not publish the common lease protocol and
+                // must never be auto-promoted on a stale ten-minute projection.
+                if (fields == null || !FieldBool(fields, "wms_ready") ||
+                    FieldLong(fields, "agent_build") < 136 ||
+                    heartbeat <= 0 || age < -5000 || age > 30000)
+                {
+                    _preferredReadySinceMs = 0;
+                    return false;
+                }
+                if (_preferredReadySinceMs == 0)
+                {
+                    _preferredReadySinceMs = NowMs();
+                    return false;
+                }
+                if (NowMs() - _preferredReadySinceMs < 30000) return false;
+                if (!_canSafelyHandoff() || !_wmsReady()) return false;
+
+                var next = new FirestoreRoleSnapshot
+                {
+                    PrimaryAgentInstanceId = preferred,
+                    StandbyAgentInstanceId = _instanceId,
+                    NextBAgentInstanceId = snapshot.StandbyAgentInstanceId == preferred
+                        ? (snapshot.NextBAgentInstanceId ?? "") : (snapshot.StandbyAgentInstanceId ?? ""),
+                    Generation = Guid.NewGuid().ToString("N"),
+                    UpdatedAtMs = NowMs()
+                };
+                if (!TryWriteRoles(session, next, roles)) return false;
+                _generation = next.Generation;
+                _preferredReadySinceMs = 0;
+                SetRole(FirestoreAgentRole.NEXT_A, preferred, _instanceId, "D169_OWNER_PREFERRED_SAFE_RETURN");
+                _log("FIRESTORE HA return=PASS mode=OWNER_PREFERRED receiver_ready=true idle=true");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _preferredReadySinceMs = 0;
+                _log("FIRESTORE HA return=DEFER type=" + ex.GetType().Name);
+                return false;
+            }
+        }
+
         private void MaintainPresence(AgentSession session)
         {
             var now = NowMs();
-            var cadence = string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal)
+            var cadence = _role != FirestoreAgentRole.PRIMARY &&
+                string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal)
                 ? 15000 : PresenceHeartbeatIntervalMs;
             if (_lastPresenceWriteMs != 0 && now - _lastPresenceWriteMs < cadence) return;
             var fields = new Dictionary<string, object>
