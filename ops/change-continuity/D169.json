@@ -826,6 +826,83 @@
       "evidence": "Owner 2026-10-18 follow-up questions; prior private manual-drag.v1 input and D169-E035 checkpoint; main scope guard supra-auth-ui-d127-probe; branch D169-E036 additional engineering guidelines."
     },
     {
+      "id": "D169-E038",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner requests repo-wide main application of CLAUDE.md coding rules, not D169-only",
+      "status": "MAIN_GOVERNANCE_DOCS_PR614_OPEN__AUTHORITY_CONTINUITY_CI_PASS__OTHER_CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests the CLAUDE.md five-part programming discipline already added on PR606 be applied to canonical main for all future SUPRA Inventory workstreams.",
+        "D169-scoped docs-only PR614 branches from main and edits only AGENTS.md plus docs/OWNER_DECISIONS.md; no new Dxxx ID, client source code, login/CAPTCHA behavior, WMS/Agent/PDA/Web/Firebase/runtime/Stable/provider settings.",
+        "Repo-wide rule remains subordinate to canonical authority-manifest, owner decision/state/spec, resource scope, security, continuity and deployment/Owner-PASS gates.",
+        "PR614 exact-head checks Repo Authority Guard and Project State Guard continuity have passed. Other CI pending at time of checkpoint; do not claim merged until verified.",
+        "Separate D169 PR606 remains Draft and unmerged; Owner has not declared D169 Owner PASS and this documentation change does not promote client runtime."
+      ],
+      "next_action": "Wait until all mandatory PR614 CI checks complete successfully, merge only PR614 using normal merge commit if passes, verify main AGENTS decision readback and harmonize the old AGENTS section in PR606. Do not merge PR606 or trigger product release.",
+      "evidence": "User 2026-10-18 clarification; PR https://github.com/tamnv2/supra-inventory/pull/614; AGENTS.md; docs/OWNER_DECISIONS.md; PR614 current CI authority and continuity PASS."
+    },
+    {
+      "id": "D169-E039",
+      "date_vn": "2026-10-18",
+      "kind": "STATUS",
+      "topic": "Repo-wide CLAUDE coding quality policy merged into main via docs-only PR614",
+      "status": "MAIN_AGENTS_GLOBAL_POLICY_MERGED__POSTMERGE_AUTHORITY_CONTINUITY_PASS__NO_PRODUCT_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly directed main-wide application of five CLAUDE.md engineering quality rules rather than D169-only working-branch applicability.",
+        "PR #614 modified exactly AGENTS.md and docs/OWNER_DECISIONS.md with no executable code, auth/Agent/PDA/Web/Worker/Firebase, resource, CI workflow or Stable change.",
+        "PR614 tested head edde125274558d8935290d95569d466766593c9b passed 8 executable checks including authority and continuity, with 5 irrelevant jobs skipped. Normal merge into main succeeded at 1a2bbae779f5405c36503f40656c114861cc6797.",
+        "Main readback verified AGENTS.md has exactly one repo-wide supplement and docs/OWNER_DECISIONS.md records D169-E037 Owner direction; main merge commit post-merge authority and continuity checks also passed.",
+        "Draft PR606 AGENTS.md blob was aligned to the approved main AGENTS.md (identical SHA 152a1baabc94fcd98468bde8f282f1251477f468), avoiding later policy drift. PR606 remains Draft/unmerged; D169 Owner field/Owner PASS has not occurred.",
+        "Because PR614 changed only documentation, no Agent/APK build, channel, Worker deploy, WMS login behavior, secrets, Firebase routing or Stable resources were changed."
+      ],
+      "next_action": "Retain global engineering quality rules in main. Continue D169 client/field work under existing gates; do not promote PR606 without independent approval and CI.",
+      "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/614; merge main 1a2bbae779f5405c36503f40656c114861cc6797; PR614 8/8 runnable checks success; main AGENTS blob 152a1baabc94fcd98468bde8f282f1251477f468; PR606 policy alignment commit e1994ace81475bad7a4b7da1a04a8695af434799"
+    },
+    {
+      "id": "D169-E040",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_CANCELS_PROPOSAL",
+      "topic": "Owner cancels WMS slider CAPTCHA recognition and automatic drag concept",
+      "status": "AUTO_CAPTCHA_CONCEPT_CANCELLED__MANUAL_LOGIN_BASELINE__NO_RUNTIME_CHANGE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly says to drop the idea of automatic CAPTCHA image recognition. Do not continue automation research, a CAPTCHA-solving EXE, slider dragging, or integrating this behavior in Agent.",
+        "The D169-E031–E037 WMS CAPTCHA research and manual-drag logs remain historical evidence only; their proposed future automatic login/slider path is superseded by this cancellation.",
+        "Manual Supra/WMS login when session expires remains the source-approved Agent behavior. Agent WMS readiness, current HA failover and Firestore generation fencing remain unchanged.",
+        "Owner did not cancel the separately discussed VPS preferred PRIMARY, Agent⇄PDA mixed-network failover, usage optimization, or dedicated SUPRA Web account/OTP design; these remain separate pending requirements without new deploy permission.",
+        "Existing `ops/project-scope.json` supra-auth-ui-d127-probe remains scoped to MANUAL_LOGIN_WHEN_REQUIRED. No resource was added/removed/changed. No Agent, PDA, Web, Worker, Firebase, Stable, WMS or external provider executable changes have been made."
+      ],
+      "next_action": "Do not work further on auto-CAPTCHA unless Owner reopens the topic. Preserve manual WMS sign-in and continue other VPS/Agent work only when independently approved, within existing D169 serial/CI/release guards.",
+      "evidence": "Owner 2026-10-18 immediate request to drop the idea; relay-agent/SupraConfirmBrowser.cs and canonical auth UI scope; D169 E031–E037."
+    },
+    {
+      "id": "D169-E041",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "VPS preferred PRIMARY, mixed Office/Internet HA, manual override with 15-minute notifications",
+      "status": "OWNER_REQUIREMENTS_CAPTURED__ARCHITECTURE_PROPOSED__NO_CODE_OR_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "VPS Windows Agent on ordinary Internet must be preferred PRIMARY when healthy; other company Agents on Office or ordinary Internet are automatic standbys, with temporary fallback when VPS or its WMS Confirm readiness fails and safe VPS reclaim when stable.",
+        "A PRIMARY manually designated by authenticated admin or tamnv2 is exempt from automatic VPS reclaim. Every 15 minutes while VPS is verified stable and manual designation remains, eligible signed-in admin/tamnv2 Agent receives a request to accept cloud takeover or snooze for another 15 minutes; no silent auto-accept.",
+        "Authenticated 2026-10-17 V3 NORMAL probe: Firestore REST read PASS, RTDB REST read PASS and RTDB SSE first frame PASS. OFFICE: Firestore REST read via Windows system proxy PASS, RTDB through proxy HTTP403 and direct inaccessible, Cloudflare Worker inaccessible. Office authenticated Firestore gRPC Listen, Firestore writes, true peer ACK and PDA delivery untested.",
+        "Existing source coordinator uses 10-second Firestore lease and attempts RTDB SSE before fallback. Office NEXT_A can repeatedly poll Firestore and cannot safely take over when RTDB confirmation is unavailable. Older Oct18 Agent logs show RTDB 401 and repeated fallback reads; unused picker_alerts legacy query adds avoidable Firestore reads.",
+        "Proposal: one Firestore generation-fenced election authority accessible from both networks, no Office RTDB retry, exactly one active NEXT_A liveness watcher and sleeping other standbys; gated VPS priority with WMS/browser readiness, stable-window and in-flight Picklist drain; persisted manual hold and explicit 15m request/snooze with CAS single-winner and authenticated permission checks.",
+        "Preserving ~15-second failover when Office cannot use RTDB requires a sufficiently fresh cross-network lease/event source; a 10-second Firestore heartbeat can cost 6,120 writes in 17 operating hours and a single watcher may incur a similar number of listener reads. Savings from eliminating 100-document unused legacy queries are better supported than an unsupported promise of zero HA write usage.",
+        "Alternatives: keep current transport with monitor-only analysis; direct Firestore shared HA plus bounded failover (preferred to validate); or a new Google relay service, contingent on explicit scope and measured Office proof.",
+        "No executable Agent/Android/Web/Worker source, Firebase Rules, Stable or VPS service changed by this discussion; user requested analysis/proposal, not immediate rollout."
+      ],
+      "open_questions": [
+        "Actual Office authenticated Firestore gRPC Listen persistence and event delivery?",
+        "Owner acceptance threshold for failover/reclaim latency and manual holder unexpectedly disappearing?",
+        "Which Agent build and HA field symptoms occur with mixed VPS and Office peers?"
+      ],
+      "next_action": "Present source/network proof, risk and recommended change contract to Owner; request explicit implementation approval, then test mixed-network HA/ACK with V3 limitations addressed on Beta, branch/PR CI and staged release. Keep PR606 Draft and D169 OPEN.",
+      "evidence": "User-uploaded SUPRA_FIREBASE_NETWORK_DIAGNOSTIC_V3 NORMAL/OFFICE 2026-10-17; main relay-agent/FirestoreAgentLeaderCoordinator.cs, RtdbHaLiveness.cs, FirestoreConfirmationTransport.cs, FirestorePickerContact.cs; D169 prior usage analysis."
+    },
+    {
       "id": "D169-E044",
       "date_vn": "2026-10-18",
       "kind": "OWNER_APPROVAL",
