@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_E048_PR615_SOURCE_INCOMPLETE__OWNER_BETA_APPROVAL_RECORDED__D170_PHYSICAL_TEST_FUTURE",
+    "current_change_status": "D169_E049_PR615_SOURCE_20_OF_20_CI_PASS__OWNER_E046_BETA_RELEASE_AUTH_LOCKED__MERGE_AND_RUNTIME_RECEIPTS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,8 +2485,8 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D168_SIGNED_ANDROID_BETA_VC110_EXISTING_RELEASE__NO_NEW_RUNTIME_MUTATION_FROM_D169_OPEN",
-    "resource_change": "NONE__REGISTERED_RESOURCE_IDENTITIES_UNCHANGED__D167_READ_ONLY_SYNC_FREQUENCY_AUTHORITY_UPDATED_3_PER_DAY",
+    "runtime_impact": "D169_RELEASE_IN_PROGRESS__AS_OF_E049_V135_AND_VC110_STILL_PUBLISHED__NO_BETA_RUNTIME_CLAIM",
+    "resource_change": "EXISTING_SCOPED_BETA_FIRESTORE_RULES_COMPATIBILITY_UPDATE_ONLY__NO_NEW_PROVIDER__STABLE_UNTOUCHED",
     "stable": "OWNER_GATED_UNTOUCHED",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
     "parallel_inventory_change_status": "D168_OPEN_OWNER_ORDERED_ANALYSIS__FUTURE_FIXES_AWAIT_APPROVAL",
@@ -7451,11 +7451,11 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-integrated-vps-pda-client-20261018",
     "pr": 615,
-    "latest_checkpoint_id": "D169-E048",
+    "latest_checkpoint_id": "D169-E049",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D169_OWNER_COMMAND_FINISH_AND_STAGE_BETA__REQUIRE_EXACT_HEAD_CI_COMPATIBLE_API_SAFETY_RELEASE_RECEIPTS__D170_AFTER_OWNER_PASS__STABLE_GATED",
+    "owner_release_gate": "D169_E046_EXPLICIT_STAGED_BETA__SOURCE_6618007_CI_20_PASS__RELEASE_WORKER_RULES_AGENT_ANDROID_ORDER__D170_PHYSICAL_FIELD_AFTER_OWNER_PASS",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7976,7 +7976,7 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "D169_E048_REMAINING_HA_ACK_SSID_INTEGRATION_REQUIRED__PR615_DRAFT_NO_RELEASE",
+    "status": "E049_INTEGRATED_V136_VC111_SOURCE_20_OF_20_PASS__RELEASE_APPROVAL_LOCKED__NOT_DEPLOYED",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
@@ -7996,7 +7996,7 @@
     ],
     "next": "FINISH_PR615_SOURCE_CI_SAFE_BETA_RELEASE__D170_FIELD_TEST_QUEUED_ONLY_AFTER_D169_OWNER_PASS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E048",
+    "latest_checkpoint_id": "D169-E049",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8130,7 +8130,7 @@
     },
     "integrated_vps_pda_2026_10_18": {
       "owner_integrated_scope_approved": true,
-      "release_mode": "OWNER_STAGED_BETA_APPROVED__REQUIRES_CI_SECURITY_AND_COMPATIBILITY_GATES__PHYSICAL_DUAL_NETWORK_FIELD_TEST_DEFERRED_TO_D170",
+      "release_mode": "E046_OWNER_APPROVED_BETA_STAGED__E049_SOURCE_CI20_PASS__RUNTIME_RELEASE_PENDING",
       "source_pr": 606,
       "integration_pr": 615,
       "base_agent": 135,
@@ -8144,26 +8144,27 @@
         "AGENT_UNUSED_LEGACY_ALERT_READ_REMOVAL"
       ],
       "unimplemented": [
-        "VPS_PREFERRED_PRIMARY_15S_FENCE",
-        "MANUAL_OVERRIDE_15MIN_CONSENT",
-        "OFFICE_INTERNET_SSID_ROUTING",
-        "PDA_FAILOVER_SAME_REQUEST_RECOVERY_BUDGET",
-        "END_TO_END_REASON_ACK_PROTOCOL"
+        "D170_PHYSICAL_AGENT_AGENT_PDA_DUAL_NETWORK_TEST_DEFERRED_BY_OWNER",
+        "BETA_RUNTIME_RELEASE_RECEIPTS_PENDING",
+        "WMS_AND_PROVIDER_USAGE_FIELD_PROOF_PENDING"
       ],
       "rbac": "SCOPED_EXISTING_BETA_CAPABILITY__NO_PRIVILEGE_EXPANSION",
       "version_label": "UNVERIFIED_NO_FIX",
       "worker_service": "NO_NEW_PROVIDER",
-      "agent_android_release_permission": "OWNER_DEPLOY_COMMAND_RECORDED__FINAL_CI_RELEASE_RECEIPT_PENDING__NO_RELEASE_YET",
-      "source_ci_pass": false,
+      "agent_android_release_permission": "D169_E049_EXACT_SHA_BETA_GATE_AUTHORIZED__RUNTIME_RELEASE_PENDING",
+      "source_ci_pass": true,
       "device_field_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED",
-      "source_ci_tested_sha": "ddc34814c07378589bb2eff3fb95b3222ba7fd0c",
-      "source_ci_workflows_success": 19,
-      "code_ready_scope": "PARTIAL_PR615__FULL_HA_ACK_SSID_PENDING__CI_AFTER_CHECKPOINT_PENDING",
-      "future_change": "D170_PLANNED_ONLY_AFTER_EXPLICIT_D169_OWNER_PASS__PHYSICAL_AGENT_AGENT_PDA_TWO_NETWORK_TEST",
+      "source_ci_tested_sha": "66180079056f931d643b77cc07aab6c2f61fc592",
+      "source_ci_workflows_success": 20,
+      "code_ready_scope": "D169_INTEGRATED_AGENT_V136_ANDROID_VC111_FIRESTORE_RULES_READY_FOR_STAGED_BETA__FIELD_UNVERIFIED",
+      "future_change": "D170_QUEUED_ONLY_AFTER_D169_OWNER_PASS__DUAL_NETWORK_AGENT_AGENT_PDA_FIELD_TEST",
       "partially_implemented": [
-        "REAL_WMS_READY_RTDH_HEARTBEAT__COMMIT_2F49EF5",
-        "SOURCE_REGRESSION_TEST__COMMIT_7AA96AE"
+        "PR615_AGENT_V136_COMMON_LEASE_CAS_VPS_PREFERENCE_MANUAL_15M",
+        "PR615_ANDROID_VC111_SERVER_PROOF_CONDITIONAL_35S_RECOVERY",
+        "PR615_WMS_SESSION_LOSS_HANDOFF_BOUND_CAS",
+        "PR615_OFFICE_INTERNET_LOCAL_SSID_ROUTE",
+        "PR615_RBAC_AND_OVERLAY_SKU_REGRESSION"
       ]
     }
   }

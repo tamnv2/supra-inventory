@@ -7,10 +7,10 @@
   "pr": 615,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E048",
+    "id": "D169-E049",
     "date_vn": "2026-10-18"
   },
-  "deployment_gate": "D169_OWNER_APPROVED_FINISH_AND_STAGED_BETA__PHYSICAL_DUAL_NETWORK_FIELD_TEST_DEFERRED_TO_FUTURE_D170__CI_COMPATIBILITY_SAFETY_AND_STABLE_GUARDS_REMAIN",
+  "deployment_gate": "D169_E049_SOURCE_CI20_PASS_E046_OWNER_STAGED_BETA_APPROVED__EXACT_SHA_RELEASE_AUTHORIZATION__STABLE_FALSE__FIELD_AND_OWNER_PASS_FALSE",
   "entries": [
     {
       "id": "D169-E001",
@@ -1053,6 +1053,25 @@
       ],
       "next_action": "Complete D169 source in scoped PR615: common-network authoritative liveness/fencing and VPS preference/manual hold; recover same Picklist request/ACK with aligned deadlines, then Office/Internet route guard and mixed-version safety; verify automatic regressions, exact-head authority/continuity, staged Beta release receipts. Defer only physical two-network matrix to future D170 after D169 Owner PASS.",
       "evidence": "PR615 live source: FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, FirestoreConfirmationTransport.cs, D168NetworkRoute.cs, RelayPocClient.kt. GitHub Actions runs 39093957709 and 39093957754 (schema-fail E047), corrected commit 1a1489a; D169-E046 Owner approval."
+    },
+    {
+      "id": "D169-E049",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "D169 PR615 v136/vc111 integrated HA+ACK+SSID source 20/20 CI PASS; exact-SHA staged Beta authorization",
+      "status": "SOURCE_20_OF_20_CI_PASS__EXACT_PROTECTED_SHA_6618007_AUTHORIZED__MERGE_DEPLOY_RECEIPTS_PENDING__D170_PHYSICAL_FIELD_FUTURE",
+      "owner_approval": false,
+      "facts": [
+        "Owner E046 explicitly approved finishing and deploying complete D169 Beta, preserving Stable; dual-network physical Agent–Agent–PDA tests are planned only for D170 after separate D169 Owner PASS.",
+        "PR615 commit 66180079056f931d643b77cc07aab6c2f61fc592 passed 20/20 GitHub Actions, including Windows Agent, Android, Firestore Rules, source/role/authority and continuity guards; source CI is NOT real device field proof.",
+        "Agent v136 includes Firestore authoritative common heartbeat/SSID routing, CAS generation/mutation fencing, locally selected VPS preference, manual override and 15m response prompt, and bounded takeover recovery for both offline PRIMARY and WMS-session-loss CAS handoff.",
+        "Android pending request recovery v1 uses the same request ID; server-granted marker and last-chance verified Firestore read conditionally allow 35s while normal path remains 20s. Legacy v135/older Android clients retain compatibility and fail closed on uncertain transitions.",
+        "Existing scoped Beta Firestore Rules change admits only one PENDING recovery marker for authenticated fenced Agent and optional versioned client recovery_protocol; it does not expand user rights, create provider resources or touch Stable.",
+        "Release must be worker exact-source health → Firestore Rules deploy/readback → Agent v136 prerelease → signed Android vc111; independent workflow gates enforce staging. PR merge and real provider/runtime receipts remain pending.",
+        "Physical WMS/Office/Internet/fleet, Windows v135 UI and usage billing remain unverified; do NOT label Field/Owner PASS or unconditional 15-second failover across network partition."
+      ],
+      "next_action": "Merge PR615 only after E049 same-head authority/continuity/CI PASS, follow exact-source ordered Beta deployment gates, then record actual release tags, SHA, Rules and Worker receipts. D170 stays queued until D169 Owner PASS.",
+      "evidence": "Owner E046; source commit 6618007 20/20 GitHub Actions; PR615 source changes; tools/d167_release_gate.py exact new Beta scope."
     }
   ],
   "resume": {
@@ -1072,7 +1091,8 @@
       "D169-E025 v134 source PR608 candidate 0e51a15e 18/18 CI PASS, protected release receipt locks tested code and Beta worker+agent same source; waiting receipt CI/merge and runtime evidence.",
       "D169-E026 Agent v134 GitHub prerelease and inventory-channel Beta OTA published; Worker Beta same-source health PASS; source and authority gates PASS; v132 direct update path available.",
       "D169-E028 v135 WinForms 2-row toolbar/tab panel hotfix, actual Windows geometry smoke and 18/18 PR source CI PASS; scoped NOT PASS repair Beta receipt locked to candidate 7d6c2d5.",
-      "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release."
+      "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release.",
+      "D169-E049 PR615 v136/vc111 mixed-client compatibility, Firestore Rules marker, WMS/HA/CAS/SSID source CI 20/20 PASS at 6618007; runtime NOT YET deployed."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -1101,7 +1121,8 @@
       "Owner physical Agent v132->v134 on secondary, WMS tab display/hidden/login, Confirm, SKU, v132/v134 HA and PDA vc110 field proof remains pending.",
       "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending.",
       "Final PR610 receipt/authority+continuity checks and release verification still pending; v134 remains published but Owner NOT PASS.",
-      "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending."
+      "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending.",
+      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -1145,8 +1166,9 @@
       "Record Owner second Agent v132 update, verify actual WebView2 tab visibility and Confirm/SKU/failover; if NOT PASS repair D169 and publish approved hotfix, not Stable.",
       "Verify PR610 full Windows GUI tab-geometry smoke and Authority PASS, then bounded hotfix release path only if existing D169 approval/receipt allows corrective v135; test on secondary.",
       "Verify v135 source SHA receipt CI, merge only after PASS, read Worker Beta same-SHA health and Agent v135 prerelease plus channel manifest, field-validate on secondary.",
-      "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS."
+      "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS.",
+      "Complete PR615 merge/receipt and staged Worker→Firestore Rules→Agent v136→Android vc111 auto-update; record runtime evidence, never invent hardware field results."
     ],
-    "release_boundary": "D169_AGENT_V135_BETA_NOT_PASS_REPAIR_PUBLISHED__FIELD_OWNER_PENDING__ANDROID_PR606_DRAFT_UNRELEASED__STABLE_OWNER_GATED"
+    "release_boundary": "D169 OWNER_E046_STAGED_BETA_SOURCE_6618007_CI20_PASS__RUNTIME_RECEIPTS_PENDING__STABLE_FALSE__D170_FIELD_AFTER_OWNER_PASS"
   }
 }

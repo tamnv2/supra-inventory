@@ -2,33 +2,37 @@
   "schema_version": 1,
   "change_id": "D169",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "7d6c2d5de22ddf8f836ae719116e35306ac9212d",
+  "approved_source_sha": "66180079056f931d643b77cc07aab6c2f61fc592",
   "approved_components": [
     "worker",
-    "agent"
+    "firestore",
+    "agent",
+    "android"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261016_AGENT_V134_BETA_DIRECT_V132_UPGRADE",
+  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261018_E046_STAGED_BETA_AGENT_ANDROID_FIRESTORE",
   "authority_continuity_pass": true,
   "product_ci_pass": true,
+  "cross_component_compatibility_ci": true,
   "stable_deploy_permission": false,
   "field_pass": false,
   "physical_field_verified": false,
-  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION",
-  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261016_AGENT_V134_BETA_DIRECT_V132_UPGRADE",
-  "code_scope": "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
-  "request": "D169_OWNER_V134_NOT_PASS_CORRECT_OLD_TABS_COVERED_BY_TOGGLE_TOOLBAR__NO_NEW_FEATURE",
-  "approved_at_vn": "2026-10-16",
-  "worker_source_unchanged": true,
-  "beta_worker_dependency": "EXISTING_VERIFY_AGENT_WORKFLOW_REQUIRES_DEPLOYED_WORKER_SOURCE_SHA_EQUALS_AGENT_RELEASE_SOURCE_SHA__NO_SERVICE_WEB_BUSINESS_SOURCE_CHANGE",
-  "source_ci": "PR610_7d6c2d5_18_OF_18_PASS_WINFORMS_STARTUP_SMOKE__NO_FIELD_PASS",
-  "notes": "v135 repair within Owner-approved v134 Beta interface scope: v134 toolbar covered normal tab headers, fix exclusive row layout; Windows actual WinForms startup-smoke 18/18 CI. Same Worker source/code, existing Beta only; previous Owner deployment approval and NOT PASS repair protocol are authority. No independently claimed Owner request for v135 and no Stable.",
-  "prior_web_beta_deployment": {
-    "approved_source_sha": "d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
-    "component": "worker",
-    "already_deployed_source_sha": "6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a",
-    "deploy_run": 38674840706
-  },
-  "not_pass_repair": "D169-E027_V134_TAB_HEADER_OVERLAPPED",
-  "owner_approval_basis": "D169_E024_APPROVED_BETA_AGENT_TAB_UI_CHANGE__E027_OWNER_REPORTS_NOT_PASS__SAME_D169_CORRECTIVE_HOTFIX_ONLY",
-  "previous_approved_source_sha": "0e51a15e7cbf0dbd87551077c766a52c74bbf773"
+  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_STAGED_D170_FIELD_TEST",
+  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261018_E046_BETA_ROLLOUT_D170_TEST_DEFERRED",
+  "resource_change": "EXISTING_BETA_FIRESTORE_RULES_ONLY",
+  "code_scope": "D169_E046_V136_VC111_CROSS_NETWORK_BETA_STAGED",
+  "approved_at_vn": "2026-10-18",
+  "source_ci": "PR615_6618007_20_OF_20_CI_PASS_WINDOWS_AGENT_ANDROID_FIRESTORE_AUTHORITY__NO_FIELD_TEST",
+  "release_sequence": [
+    "BETA_WORKER_MATCH_SOURCE_HEALTH",
+    "BETA_FIRESTORE_RULES_DEPLOY_READBACK",
+    "AGENT_V136_PRE_RELEASE_OTA",
+    "SIGNED_ANDROID_BETA_VC111"
+  ],
+  "rollback": "Keep v135 Agent/vc110 Android published; no Stable changes; stop advancing stage on any failed release check.",
+  "notes": "Owner approved full D169 code+Beta staging in E046 and deferred only dual-network physical matrix to future D170, not technical CI/safe upgrade. Source sha is the tested protected-tree commit; documentation/receipt changes after it are not protected executable changes. No VPS 15s guarantee under authority partition; no CAPTCHA automation.",
+  "prior_agent_v135_authorization": {
+    "approved_source_sha": "7d6c2d5de22ddf8f836ae719116e35306ac9212d",
+    "code_scope": "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
+    "notes": "v135 repair within Owner-approved v134 Beta interface scope: v134 toolbar covered normal tab headers, fix exclusive row layout; Windows actual WinForms startup-smoke 18/18 CI. Same Worker source/code, existing Beta only; previous Owner deployment approval and NOT PASS repair protocol are authority. No independently claimed Owner request for v135 and no Stable."
+  }
 }

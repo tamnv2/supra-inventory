@@ -159,3 +159,10 @@ Owner đồng ý phương án nâng cấp Agent↔Agent↔PDA theo từng giai �
 - **D170 kế tiếp (chưa mở):** kiểm thử thực địa Agent↔Agent↔PDA trên Office/Internet và môi trường hỗn hợp. D169 Owner PASS là điều kiện trước khi lập change D170.
 - Ở D169 vẫn bắt buộc tự động hóa kiểm thử fencing/split brain, request-id idempotency, failover recovery, version, auth, quyền, Android overlay, rollback và safety canary. Không tuyên bố field PASS.
 - Quyền triển khai Beta hiện tại không thay đổi Stable hoặc tài nguyên ngoài danh mục. Không được phát hành binary khi giao thức Agent/PDA chưa tương thích hoặc release gate chưa đạt.
+
+
+## D169-E049 — Integrated Beta source and staged release checkpoint (18/10/2026)
+
+- **CODE+CI:** PR615 tested `66180079056f931d643b77cc07aab6c2f61fc592`, 20/20 GitHub Actions PASS; Agent v136 common Firestore HA + CAS/manual VPS preference/WMS handoff, SSID-local Office routing, conditional exact-request Android vc111 recovery, overlay/version/SKU fixes. Provider hardware and production field tests unverified.
+- **Release:** Owner E046 approved scoped Beta. E049 creates exact tested SHA release authorization for existing Beta Worker/Firestore Rules/Agent/Android, staged by dependency. Do not claim deployment until real workflow run, GitHub release tag/assets, Worker /health source and Firestore Rules readback are verified.
+- **D170 planned only:** full physical dual-network Agent↔Agent↔PDA matrix after D169 Owner PASS. Stable owner-gated, no new resource/provider.
