@@ -7,7 +7,7 @@
   "pr": 615,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E044",
+    "id": "D169-E045",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
@@ -982,6 +982,23 @@
       "next_action": "Review PR615 CI and field safety before any release; continue HA/ACK/SSID integration under D169 and preserve no Stable changes.",
       "evidence": "Owner Oct18 explicit approval, PR615 source + previous PR606 evidence.",
       "kind_legacy": "OWNER_APPROVAL"
+    },
+    {
+      "id": "D169-E045",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "PR615 scoped client source CI PASS, rollout HA field pending",
+      "status": "SOURCE_19_OF_19_CI_PASS_TESTED_SHA__NO_NEW_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "PR615 from Agent v135 main integrates Android overlay/version and Agent SKU cooldown from PR606; adds PDA ALREADY_CONFIRMED and WMS error descriptions and skips unused legacy alerts read.",
+        "All 19 GitHub workflow runs for source SHA ddc34814c07378589bb2eff3fb95b3222ba7fd0c completed SUCCESS, including Android and Windows Agent build verification and authority/continuity checks.",
+        "PR615 remains Draft; new VPS-first 15s HA, manual return, PDA failover recovery and universal Office/Internet Wi-Fi switch remain pending code and field verification.",
+        "RBAC currently scoped in deployed Beta; no privilege expansion. Report ACK 404 root/version missing/presence stale/new services still require evidence.",
+        "No new APK/EXE/Worker/Stable release was authorized by a test passing."
+      ],
+      "next_action": "Finish D169 HA/SSID/PDA integration tests and two-network field safety checks; do not release full fleet before technical + field gates.",
+      "evidence": "GitHub PR615 CI SHA ddc34814c07378589bb2eff3fb95b3222ba7fd0c; docs/D169_BACKLOG.md E045."
     }
   ],
   "resume": {
