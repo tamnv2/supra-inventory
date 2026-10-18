@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E042",
+    "id": "D169-E043",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -797,6 +797,39 @@
       ],
       "next_action": "Owner impact-review approval before executable code changes; validate transport and failover via staged existing Beta resources; source scope Agent+Android+network; avoid any Stable/provider/network authorization expansion. Full design at docs/D169_AGENT_HA_PDA_WIFI_DESIGN_2026-10-18.md.",
       "evidence": "User Oct18 instructions and two V3 JSON diagnostics; main relay-agent/FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, D168NetworkRoute.cs, D168SkuNetworkUi.cs, D167SkuCoordinator.cs, D160Resilience.cs; Android RelayPocClient.kt and PickerController.kt."
+    },
+    {
+      "id": "D169-E043",
+      "date_vn": "2026-10-18",
+      "kind": "WEEKLY_EVIDENCE_AND_CONFLICT_REVIEW",
+      "topic": "Seven-day Agent logs cross-check; D169 released/code-only conflict assessment for joint VPS-HA/PDA/Wi-Fi release",
+      "status": "EVIDENCE_REVIEW_DONE_PARTIAL_ARCHIVE_COVERAGE__SOURCE_CONFLICTS_CONFIRMED__OWNER_INTEGRATED_DESIGN_APPROVAL_PENDING__NO_EXECUTABLE_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Main accepted D168; D169 Agent v135 Beta released but physical Field PASS pending, Worker/Web Beta deployed previously, Android+SKU code-only PR606 Draft and currently GitHub mergeable=false. PR606 53 commits ahead and 61 behind current main, so cannot use stale candidate for all-fleet rollout.",
+        "Owner requests one coherent Agent↔Agent + PDA↔Agent model, separate from operational reporting PDA↔Web/Service. Analysis document docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md recorded with 12–18 October scoped Beta Agent log evidence and coverage limitations.",
+        "October 18 VPS process estimate 4,531 reads/1,070 writes: 3,168 extra picker_alerts docs, 999 lease writes, 974 confirm queries but only 7 terminal ACK commits; Office standby 1,438 lease reads, 309 RTDB SSE timeouts, 314 connected. Local counters are NOT Firestore billable totals.",
+        "Earlier checkpoint examples: October 14 8,279 unnecessary legacy docs, 2,153 lease writes; October 16 7,524 legacy docs, 2,203 lease writes, 3,112 takeover=DEFER_UNVERIFIED_PRIMARY_LIVENESS local log lines. October 15 standby 3,258 lease reads. Evidence for recurring heavy HA fallback is concrete across days; never add cumulative snapshots as distinct total.",
+        "October 16 SKU repeatedly DEFER with Worker no-safe-switch/network profiles, October 17 noon WMS export timeout then DONE 15 minutes later; October 18 VPS morning FULL DONE. Preserve working SKU core, repair network/HA branches only.",
+        "Source conflict: 15s HA threshold, 12s WMS mutation fence, 20s job max age and Android ACK timeout; standby may become ready after original job already ineligible. Android mapping omits ALREADY_CONFIRMED success and exact WMS error descriptions; no proof via WMS action button label or disabled checkbox.",
+        "PR606 holds Android overlay/mandatory-update and Agent SKU retry code, none of the new VPS priority, manual override, mixed-network HA, PDA recovery reason-code or universal network classifier code. v135 WinForms Beta tab repair must remain intact.",
+        "Cross-network V3 Office authenticated Firestore REST read PASS and RTDB HTTP403; gRPC listener/real writer+ACK not proved. Cannot assert global hard 15-second failover for partitions while preserving split-brain safety. Testing requires actual clients on normal and office networks.",
+        "Some D169 Android RESULT_ACK_NOT_FOUND 404 pertains to operational reporting and not Picklist; same APK packaging still requires regression to avoid loss.",
+        "Journal checked multiple 12–18 daily folders and read priority Agent checkpoint/manual logs; not all hundreds of files nor all raw Android/Web. Exact billed attribution and full archive coverage remain open. No fabricated Field PASS or source deploy."
+      ],
+      "alternatives": [
+        "Direct merge/release all of PR606 despite GitHub mergeable=false and v135 field pending: REJECT unsafe.",
+        "Preferred after Owner design PASS: start current-main v135 D169 integration base, reconcile code-only PR606, stage HA coordinator+fencing, then PDA ACK/timeout compatibility and local SSID route by business operation, validate quota/security and release Beta in ordered compatible stages.",
+        "Keep unverified cross-network gRPC listener and unrelated PDA↔Worker/Service reporting changes for later evidence, while retaining validated Firestore REST/CAS safeguards and existing business flows."
+      ],
+      "open_questions": [
+        "Owner acceptance of ≤15s target only when authority-network observable vs impossible every partition hard guarantee.",
+        "Recovery-only PDA wait time candidate 35s versus present 20s and exact Agent guard policy.",
+        "Emergency VPS takeover policy if manually designated PRIMARY goes dead.",
+        "Actual in-field WMS/checkbox positive confirmed-proof and Office authenticated Firestore gRPC/peer-WRITE ACK."
+      ],
+      "next_action": "Obtain Owner explicit integrated architecture/release policy approval before source changes, resolve PR606 diverged history, stage and test with V3-based normal+Office test protocol, keep Stable owner-gated. Do not claim full 7-day raw-log coverage.",
+      "evidence": "Canonical GitHub main+Draft PR606; Agent checkpoint/manual logs under registered scoped Beta Drive logs 12–18 Oct; existing D169 weekly analysis E010–E015, D169_AGENT_PDA_ADAPTIVE_MODEL; live relay-agent and Android source; review doc docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md."
     }
   ],
   "resume": {
