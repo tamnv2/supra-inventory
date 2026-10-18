@@ -1,3 +1,12 @@
+## D170-E001 · Chốt mục tiêu Production duy nhất, bỏ mô hình Beta→Stable (18/10/2026)
+
+- Sau khi Owner chốt D169 code/release có giới hạn, **D170** được xác lập là phiên duy nhất tiếp theo: chuyển chính tài nguyên đang chạy thành Production, không có công đoạn phát hành Beta rồi nâng Stable. Tên miền hướng tới người dùng: **`inventory.supra.cc.cd`**; app PDA: **`1291 Báo hàng`**. UI, thông báo, QR/link tải, màn hình cập nhật, Agent/Web không còn hiển thị Beta với người dùng bình thường.
+- **Giữ nguyên dữ liệu và khả năng cập nhật app** là điều kiện quan trọng hơn làm sạch ID kỹ thuật. Worker/InventoryCore SQLite, Firebase Project/RTDB/Auth, package ID và chữ ký APK, release tag/manifest tương thích được phép giữ định danh kỹ thuật có chữ `beta` nếu đổi tên không được xác minh là an toàn. Không xóa/chuyển dữ liệu hoặc tạo bản sao ghi song song.
+- Domain chính thức hiện được đăng ký dưới legacy Stable; **chưa được phép coi hostname đã chuyển hoặc kích hoạt Worker Stable**. Kiểm tra provider, bảo toàn Durable Object namespace, OAuth callback, signed APK vc112 và Agent v138 trước khi thay đổi. Hệ thống hiện tại tiếp tục phục vụ đến khi một staged cutover được kiểm chứng.
+- D170-E001 là **đánh giá tác động và thiết kế, không phải lệnh merge/deploy mã thực thi**. Mọi source/CI/host/secret/role change phải qua review phạm vi, kiểm thử và receipt độc lập trước khi tác động người dùng.
+- Bộ thử nghiệm mạng Office/Internet PDA↔Agent↔Agent và hai PR Draft #612/#613 được chuyển sang **D171 queued**, không mở đồng thời D170; không tự triển khai Rules/test suite. Các Owner field/Usage đã hoãn ở D169 vẫn phải truy vết.
+- Thiết kế và checklist: `docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md` cùng `ops/change-continuity/D170.json`; quyết định hiện hành supersede ý định giữ hai luồng phát hành trong tương lai, không viết lại lịch sử release.
+
 ## D169-E065 · Owner chốt D169 theo phạm vi phát hành, hoãn nghiệm thu thực địa (18/10/2026)
 
 - Owner **đồng ý đóng D169 ngay**, chấp nhận code và các biên nhận phát hành hiện có (Agent v138, Android vc112, Worker và Firebase Rules đã phát hành), **không đồng nghĩa FIELD PASS**. Kiểm thử PDA/Agent/WMS/VPS/HA/Office, số liệu provider Usage và các vấn đề chưa chứng minh kết quả phải giữ trạng thái chưa xác minh; không xóa chứng cứ tồn đọng. OA104 được hoãn, không đánh dấu thử nghiệm đạt.
