@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E036",
+    "id": "D169-E037",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -682,6 +682,24 @@
       ],
       "next_action": "Verify branch AGENTS/state/journal diff and authority/continuity checks; PR606 remains Draft/unmerged, no product release. Follow existing D169 Owner gates.",
       "evidence": "Owner attached CLAUDE.md (2026-10-18); D169 PR606; AGENTS.md branch commit 53fc6141a43c263b9ef62019399d9ad6aad7b242; authority bootstrap and scope."
+    },
+    {
+      "id": "D169-E037",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_TECHNICAL_CLARIFICATION",
+      "topic": "Manual CAPTCHA cursor coordinates cannot transfer across resolutions; exact-gap match expected; Owner requests honest feasibility assessment",
+      "status": "IMAGE_RELATIVE_FEASIBILITY_ONLY__ONE_GESTURE_LOG_NO_CAPTCHA_IMAGE__FIELD_PROOF_PENDING__NO_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner explicitly challenges use of absolute (x,y) and recorded +194px displacement: CAPTCHA screen location varies by monitor, zoom, layout and random challenge. Agree absolute coordinates are inapplicable as a generalized target.",
+        "Owner confirms that dragging the image puzzle piece exactly into the intended slot produces a CAPTCHA PASS when done manually. This is the observed functional criterion; no browser-generated pass/response trace was supplied.",
+        "Previous private gesture-only JSON measured start (782,754), end (976,755), duration 3037ms, but contains no screenshot or challenge-gap coordinates, so it cannot establish detection accuracy or the correctness of automated challenge completion.",
+        "A bounded, offline image-relative research prototype for different screen sizes could be evaluated technically from user-provided cropped CAPTCHA examples, but current evidence does not prove provider-specific success, and a production WMS auto-login/slider workflow is not implemented.",
+        "Current registered supra-auth-ui-d127-probe resource guard is MANUAL_LOGIN_WHEN_REQUIRED; no code or live authentication change is authorized by this informational exchange. Keep WMS readiness/Firestore HA generation fences and privileged manual override intact.",
+        "Communicate clear distinction between achievable exploratory image analysis and unproven, potentially provider-restricted unattended login success. Do not claim implemented results, universal 100% pass, or a released build."
+      ],
+      "next_action": "Request privacy-cropped CAPTCHA image from before manual drag and Owner's answer whether that particular drag passed. If a source implementation is later selected, reconcile explicit scope/security/Owner change-control before build and Windows field acceptance; Stable untouched.",
+      "evidence": "Owner 2026-10-18 follow-up questions; prior private manual-drag.v1 input and D169-E035 checkpoint; main scope guard supra-auth-ui-d127-probe; branch D169-E036 additional engineering guidelines."
     }
   ],
   "resume": {
