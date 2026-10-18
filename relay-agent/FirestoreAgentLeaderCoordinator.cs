@@ -735,6 +735,13 @@ namespace SupraInventoryRelayAgent
             {
                 _ensureFreshToken();
                 var session = _sessionProvider();
+                // Graceful logout must revoke the VPS readiness projection before
+                // releasing roles. Hard crashes still expire via the short TTL.
+                if (FirestoreVpsReclaim.IsVps(session))
+                {
+                    try { _vpsReclaim.PublishReady(session, _instanceId, false); }
+                    catch (Exception ex) { _log("D169 VPS ready shutdown=DEFER type=" + ex.GetType().Name); }
+                }
                 ReleaseRole(session);
                 ReleasePresence(session);
             }
