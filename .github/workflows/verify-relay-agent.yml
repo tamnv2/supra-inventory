@@ -251,7 +251,8 @@ jobs:
               -not $d119Features.Contains('transition=0_TO_ACTIVE provider_op=false')) {
             throw "D162 listener-first / bounded REST-watchdog usage guard regression."
           }
-          if (-not $leader.Contains('if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;') -or
+          if (-not $leader.Contains('!_wmsReady() || _role != FirestoreAgentRole.PRIMARY ||') -or
+              -not $leader.Contains('!HasFreshCommonPrimaryLease()) return false;') -or
               -not $d160Pipeline.Contains('_leaderCoordinator.VerifyPrimaryBeforeMutation(session)')) {
             throw "D161 actual WMS mutation safety fence regression."
           }
