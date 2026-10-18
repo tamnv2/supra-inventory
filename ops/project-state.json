@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_E046_OWNER_FINISH_AND_BETA_APPROVED__PR615_INTEGRATION_IN_PROGRESS__FIELD_TEST_DEFERRED_TO_FUTURE_D170",
+    "current_change_status": "D169_E047_PR615_PARTIAL_HA_READY_SIGNAL_FIX__FULL_VPS_ACK_WIFI_MODEL_NOT_READY__NO_NEW_RELEASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7451,7 +7451,7 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-integrated-vps-pda-client-20261018",
     "pr": 615,
-    "latest_checkpoint_id": "D169-E046",
+    "latest_checkpoint_id": "D169-E047",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7976,7 +7976,7 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "E046_OWNER_COMPLETION_AND_BETA_DEPLOY_INSTRUCTION__PR615_NEEDS_FULL_HA_ACK_SSID_CODE__D170_PHYSICAL_TEST_DEFERRED",
+    "status": "E047_PARTIAL_HA_READY_SIGNAL_FIX_PUSHED__CI_PENDING__FULL_HA_ACK_WIFI_CODE_UNFINISHED__NO_DEPLOY",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
@@ -7996,7 +7996,7 @@
     ],
     "next": "FINISH_PR615_SOURCE_CI_SAFE_BETA_RELEASE__D170_FIELD_TEST_QUEUED_ONLY_AFTER_D169_OWNER_PASS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E046",
+    "latest_checkpoint_id": "D169-E047",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8153,14 +8153,18 @@
       "rbac": "SCOPED_EXISTING_BETA_CAPABILITY__NO_PRIVILEGE_EXPANSION",
       "version_label": "UNVERIFIED_NO_FIX",
       "worker_service": "NO_NEW_PROVIDER",
-      "agent_android_release_permission": "OWNER_APPROVED_CONDITIONALLY_AFTER_CI_SAFE_PROTOCOL_VERSION_AND_RECEIPT",
+      "agent_android_release_permission": "OWNER_DEPLOY_COMMAND_RECORDED__FINAL_CI_RELEASE_RECEIPT_PENDING__NO_RELEASE_YET",
       "source_ci_pass": false,
       "device_field_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED",
       "source_ci_tested_sha": "ddc34814c07378589bb2eff3fb95b3222ba7fd0c",
       "source_ci_workflows_success": 19,
-      "code_ready_scope": "PR615_WORK_IN_PROGRESS__PREVIOUS_PARTIAL_19_PASS_ONLY",
-      "future_change": "D170_PLANNED_ONLY_AFTER_EXPLICIT_D169_OWNER_PASS__PHYSICAL_AGENT_AGENT_PDA_TWO_NETWORK_TEST"
+      "code_ready_scope": "PR615_PARTIAL_FIX__RTDB_WMS_READY_SIGNAL__FULL_MODEL_NOT_READY",
+      "future_change": "D170_PLANNED_ONLY_AFTER_EXPLICIT_D169_OWNER_PASS__PHYSICAL_AGENT_AGENT_PDA_TWO_NETWORK_TEST",
+      "partially_implemented": [
+        "REAL_WMS_READY_RTDH_HEARTBEAT__COMMIT_2F49EF5",
+        "SOURCE_REGRESSION_TEST__COMMIT_7AA96AE"
+      ]
     }
   }
 }
