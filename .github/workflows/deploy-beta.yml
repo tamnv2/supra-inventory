@@ -7,6 +7,9 @@ on:
       - "service/**"
       - "web/**"
       - "android/**"
+      # D169-E059: Worker same-SHA provenance for scoped Agent/Rules release.
+      - "relay-agent/**"
+      - "firebase/firestore.rules"
       - ".github/workflows/deploy-beta.yml"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
