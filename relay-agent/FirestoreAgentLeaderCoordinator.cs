@@ -337,9 +337,18 @@ namespace SupraInventoryRelayAgent
                  " elapsed_ms=" + Math.Max(0L, NowMs() - started));
         }
 
+        // If a PRIMARY cannot renew the shared authoritative lease, it must
+        // stop accepting/confirming jobs before another Agent can take over.
+        private bool HasFreshCommonPrimaryLease()
+        {
+            var age = NowMs() - _lastLeaseWriteMs;
+            return _lastLeaseWriteMs > 0 && age >= 0 && age < FailoverAfterMs;
+        }
+
         internal bool VerifyPrimaryForBusinessIngress(AgentSession session)
         {
-            if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY) return false;
+            if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY ||
+                !HasFreshCommonPrimaryLease()) return false;
             var read = ReadRoles(session);
             ApplySharedSchedule(read.Snapshot);
             var snapshot = read.Snapshot;
@@ -359,7 +368,8 @@ namespace SupraInventoryRelayAgent
 
         internal bool VerifyPrimaryBeforeMutation(AgentSession session)
         {
-            if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;
+            if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY ||
+                !HasFreshCommonPrimaryLease()) return false;
             var read = ReadRoles(session);
             ApplySharedSchedule(read.Snapshot);
             var snapshot = read.Snapshot;
@@ -1097,10 +1107,13 @@ namespace SupraInventoryRelayAgent
                         _rtdbLiveness.StopObserver();
                         if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
                         {
-                            if (_rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady()))
-                                _lastLeaseWriteMs = NowMs();
-                            else
-                                WritePrimaryLease(session);
+                            // D169: Firestore is the common liveness authority on both Office
+                            // and Internet. Old agents only publish RTDB; their
+                            // leases must NOT be interpreted as this new protocol.
+                            // Commit the lease before optional RTDB fast notification.
+                            WritePrimaryLease(session);
+                            if (D168NetworkRoute.CurrentNetworkMode() == "INTERNET")
+                                _rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady());
                         }
                         waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)Math.Min(PrimaryLeaseHeartbeatMs, Math.Max(0L, NowMs() - _lastLeaseWriteMs)));
                     }
@@ -1956,6 +1969,8 @@ namespace SupraInventoryRelayAgent
                 { "generation", StringField(_generation) },
                 { "primary_agent_instance_id", StringField(_instanceId) },
                 { "heartbeat_at_ms", IntField(NowMs()) },
+                { "cross_network_liveness_v1", BoolField(true) },
+                { "wms_ready", BoolField(_wmsReady()) },
                 { "schedule_key", StringField(scheduleKey) },
                 { "schedule_decision", StringField(scheduleDecision) },
                 { "decision_boundary_ms", IntField(Math.Max(0L, boundaryMs)) },
@@ -1999,6 +2014,7 @@ namespace SupraInventoryRelayAgent
             }
 
             long leaseUpdatedMs = 0;
+            var commonProtocolProof = false;
             try
             {
                 FirestoreQuotaGuard.RecordHaDiagnostic("PRIMARY_LEASE", "GET_ATTEMPT");
@@ -2016,6 +2032,13 @@ namespace SupraInventoryRelayAgent
                         : null;
                     if (fields != null)
                     {
+                        // A lease from v135 must continue using the RTDB
+                        // corroboration path. Only matching-generation v136+
+                        // heartbeat documents can serve as common-channel proof.
+                        commonProtocolProof =
+                            FieldBool(fields, "cross_network_liveness_v1") &&
+                            string.Equals(FieldString(fields, "generation"), generation, StringComparison.Ordinal) &&
+                            string.Equals(FieldString(fields, "primary_agent_instance_id"), _primaryId, StringComparison.Ordinal);
                         SetSharedSchedule(
                             FieldString(fields, "schedule_key"),
                             FieldString(fields, "schedule_decision"),
@@ -2045,7 +2068,7 @@ namespace SupraInventoryRelayAgent
                 var missingAge = now - _leaseMissingSinceMs;
                 if (missingAge >= FailoverAfterMs)
                 {
-                    return VerifyPrimaryDownBeforeTakeover(session);
+                    return VerifyPrimaryDownBeforeTakeover(session, false);
                 }
                 return Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, Math.Max(0L, missingAge)));
             }
@@ -2054,7 +2077,7 @@ namespace SupraInventoryRelayAgent
             var ageMs = Math.Max(0L, now - leaseUpdatedMs);
             if (ageMs >= FailoverAfterMs)
             {
-                return VerifyPrimaryDownBeforeTakeover(session);
+                return VerifyPrimaryDownBeforeTakeover(session, commonProtocolProof);
             }
 
             if (ageMs < PrimaryLeaseHeartbeatMs)
@@ -2064,8 +2087,19 @@ namespace SupraInventoryRelayAgent
 
         // A stale Firestore lease is not proof of death when the PRIMARY
         // refreshed RTDB instead of Firestore. Probe only after SUSPECT.
-        private int VerifyPrimaryDownBeforeTakeover(AgentSession session)
+        private int VerifyPrimaryDownBeforeTakeover(AgentSession session, bool commonProtocolProof)
         {
+            // A fresh, correctly attributed Firestore lease was established
+            // earlier for this exact role generation; after it expires, the
+            // single designated NEXT_A may compete with CAS. Current PRIMARY
+            // stops WMS mutation when its renewal becomes stale. No inference
+            // from RTDB failures, UI labels or the device clock is necessary.
+            if (commonProtocolProof)
+            {
+                _log("FIRESTORE HA takeover=CHECK evidence=COMMON_LEASE_EXPIRED");
+                PromoteStandbyForTakeover();
+                return 1000;
+            }
             var now = NowMs();
             if (_lastTakeoverLivenessCheckMs != 0 &&
                 now - _lastTakeoverLivenessCheckMs < 5000) return 5000;
