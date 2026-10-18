@@ -26,6 +26,7 @@ namespace SupraInventoryRelayAgent
         internal long ClientSentAtMs;
         internal long CreatedAtMs;
         internal bool RecoveryAuthorized;
+        internal long RecoveryProtocol;
     }
 
     internal sealed class FirestoreConfirmationOutcome
@@ -414,7 +415,8 @@ namespace SupraInventoryRelayAgent
                 var ageMs = NowMs() - doc.Work.CreatedAtMs;
                 if (doc.Work.CreatedAtMs <= 0 || ageMs > MaxPendingAgeMs ||
                     (ageMs > NormalPendingAgeMs &&
-                     (_coordinator == null || !_coordinator.CanRecoverPendingRequest(doc.Work.CreatedAtMs))))
+                     (_coordinator == null || doc.Work.RecoveryProtocol != 1 ||
+                      !_coordinator.CanRecoverPendingRequest(doc.Work.CreatedAtMs))))
                 {
                     _log("FIRESTORE CONFIRM stale-skip request=" + Short(doc.Work.RequestId) +
                          " age_ms=" + Math.Max(0L, ageMs));
@@ -475,7 +477,8 @@ namespace SupraInventoryRelayAgent
                 // Android may extend its wait only with server-side evidence.
                 var createdAge = work.CreatedAtMs > 0 ? NowMs() - work.CreatedAtMs : long.MaxValue;
                 if (createdAge >= 12000 &&
-                    _coordinator != null && _coordinator.CanRecoverPendingRequest(work.CreatedAtMs))
+                    _coordinator != null && work.RecoveryProtocol == 1 &&
+                    _coordinator.CanRecoverPendingRequest(work.CreatedAtMs))
                 {
                     if (!TryGrantSameRequestRecovery(session, doc)) continue;
                     work.RecoveryAuthorized = true;
@@ -595,7 +598,8 @@ namespace SupraInventoryRelayAgent
 
         private bool TryGrantSameRequestRecovery(AgentSession session, PendingDocument doc)
         {
-            if (doc == null || doc.Work == null || string.IsNullOrWhiteSpace(doc.UpdateTime) ||
+            if (doc == null || doc.Work == null || doc.Work.RecoveryProtocol != 1 ||
+                string.IsNullOrWhiteSpace(doc.UpdateTime) ||
                 _coordinator == null || !_coordinator.CanRecoverPendingRequest(doc.Work.CreatedAtMs))
                 return false;
             if (!_coordinator.VerifyPrimaryForBusinessIngress(session)) return false;
@@ -845,6 +849,7 @@ namespace SupraInventoryRelayAgent
                     PickerDisplayName = GrpcString(fields, "picker_display_name"),
                     PickerSessionGeneration = GrpcLong(fields, "picker_session_generation"),
                     ClientSentAtMs = GrpcLong(fields, "client_sent_at_ms"),
+                RecoveryProtocol = GrpcLong(fields, "recovery_protocol"),
                     CreatedAtMs = createdAtMs
                 }
             };
@@ -970,6 +975,7 @@ namespace SupraInventoryRelayAgent
                     PickerDisplayName = FieldString(fields, "picker_display_name"),
                     PickerSessionGeneration = FieldLong(fields, "picker_session_generation"),
                     ClientSentAtMs = FieldLong(fields, "client_sent_at_ms"),
+                RecoveryProtocol = FieldLong(fields, "recovery_protocol"),
                     CreatedAtMs = createdAtMs
                 }
             };
