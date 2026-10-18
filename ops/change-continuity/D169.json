@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-e050-beta-release-receipts-20261018",
-  "pr": 616,
+  "working_branch": "docs/d169-e051-vps-otp-intake-20261018",
+  "pr": null,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E050",
+    "id": "D169-E051",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E050_BETA_RUNTIME_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__D170_AFTER_EXPLICIT_D169_PASS__STABLE_OWNER_GATED",
@@ -1090,6 +1090,23 @@
       ],
       "next_action": "Record E050 continuity via PR616 authority and continuity PASS then merge; ask Owner for hardware acceptance of D169 release when available. Only then open separate D170 physical two-network test change; never claim D169 Owner PASS automatically.",
       "evidence": "PR615 merged c90e521; main Actions Worker 39102893789, Rules 39102893849, Agent 39102893810, Android 39102893786 all SUCCESS; Agent release v136, Android vc111, inventory-channel manifest assets and SHA256 digests."
+    },
+    {
+      "id": "D169-E051",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_REQUEST",
+      "topic": "Owner asks to give Agent login VPS the same protected one-time password experience and existing centralized administrative recipient as admin/tamnv2",
+      "status": "OWNER_GOAL_RECORDED__SECURITY_IMPACT_REVIEW_AND_ACCOUNT_EXISTENCE_UNVERIFIED__NO_SOURCE_OR_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner requests account login VPS to receive the same protected-password behavior as admin/tamnv2, with code messages to the already configured centralized project recipient referenced by PROJECT_ADMIN_EMAIL. Do not duplicate or expose mailbox address.",
+        "Live source service/src/privileged-auth.ts currently allowlists only root/admin/tamnv2 and already sends all protected codes to PROJECT_ADMIN_EMAIL; service/src/core.ts retirement guard, Agent-side IsD165OneTimeAgentLogin and optional Agent Gateway also require parity. Adding only an email mapping is insufficient.",
+        "Protected account behavior includes one-use four-digit OTP issued after successful consumption, with no expiry until consumed, plus a predictable Vietnam-clock-only emergency credential. Copying the latter to VPS is a material account-takeover risk; safer recommendation is OTP-only for VPS until explicit informed risk acceptance.",
+        "Existing VPS account registration, current role/base_role, provisioning and installed Agent version cannot be inferred from repo code; require authenticated runtime verification and avoid auto-created or elevated identities.",
+        "D169 Beta Agent v136/Android vc111 released but D169 Owner field PASS is still false; do not open a new D-number or mutate Beta/Stable without preimplementation impact review and explicit approved scope. No provider resource needed and no secrets in GitHub."
+      ],
+      "next_action": "Get explicit Owner approval for exact VPS authentication policy (OTP-only recommended versus existing insecure emergency path), confirm existing VPS role in authorized runtime UI, then implement scoped Worker+Core+Agent+Gateway compatibility through branch/PR/CI before any Beta release; maintain D169 serial gate and Stable Owner-gated.",
+      "evidence": "Main 025a9e3; service/src/privileged-auth.ts SPECIAL_LOGINS; service/src/core.ts protected retirement allowlist; relay-agent/D165PrivilegedAuth.cs; docs/specs/AUTH_RBAC.md D165, D169-E050 state."
     }
   ],
   "resume": {
@@ -1155,7 +1172,8 @@
       "D169-E021: require Owner approval of embedded WebView2 host/UI design and explicit Agent-only Beta release command; no accidental APK/Agent co-release or WMS session/profile changes.",
       "Any v133 general release, relay-agent-v133 GitHub prerelease, inventory-channel update, PR608 main merge or Android PR606 release remains separate Owner-gated.",
       "D169 v134 physical WMS/PDA/HA field PASS still Owner pending; does not authorize Android PR606.",
-      "D169-E027 Owner physical field PASS required after v135 layout repair; do not infer accepted v134 from release/CI."
+      "D169-E027 Owner physical field PASS required after v135 layout repair; do not infer accepted v134 from release/CI.",
+      "D169-E051 Owner VPS login OTP request: approval of exact security policy and identity/role verified before new protected-account mutation or release."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -1187,7 +1205,8 @@
       "Verify v135 source SHA receipt CI, merge only after PASS, read Worker Beta same-SHA health and Agent v135 prerelease plus channel manifest, field-validate on secondary.",
       "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS.",
       "Complete PR615 merge/receipt and staged Worker→Firestore Rules→Agent v136→Android vc111 auto-update; record runtime evidence, never invent hardware field results.",
-      "Owner validate hardware acceptance of D169 Beta release in normal operations; future D170 physical Agent–Agent–PDA two-network tests remain queued until explicit D169 Owner PASS."
+      "Owner validate hardware acceptance of D169 Beta release in normal operations; future D170 physical Agent–Agent–PDA two-network tests remain queued until explicit D169 Owner PASS.",
+      "Review D169-E051 VPS protected login impact (Worker/Core/Agent/Gateway and account existence); do not expand clock-only emergency bypass or permissions without explicit approval."
     ],
     "release_boundary": "D169_E050_BETA_RELEASE_SUCCEEDED__AGENT136_ANDROID111_WORKER_FIRESTORE_RULES__FIELD_AND_OWNER_PASS_FALSE__STABLE_UNTOUCHED"
   }
