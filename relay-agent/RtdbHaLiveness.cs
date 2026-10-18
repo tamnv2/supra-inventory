@@ -47,7 +47,7 @@ namespace SupraInventoryRelayAgent
             _updated = updated ?? delegate { };
         }
 
-        internal bool WriteHeartbeat(AgentSession session, string generation)
+        internal bool WriteHeartbeat(AgentSession session, string generation, bool wmsReady)
         {
             if (session == null || string.IsNullOrWhiteSpace(session.IdToken) ||
                 string.IsNullOrWhiteSpace(generation) || string.IsNullOrWhiteSpace(_instanceId))
@@ -60,7 +60,7 @@ namespace SupraInventoryRelayAgent
                 { "agent_admin_user_id", session.AppUserId ?? session.UserId ?? "" },
                 { "generation", generation ?? "" },
                 { "heartbeat_at_ms", now },
-                { "wms_ready", true }
+                { "wms_ready", wmsReady }
             });
 
             try
