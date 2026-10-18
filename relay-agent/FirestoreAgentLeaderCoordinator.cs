@@ -1097,7 +1097,7 @@ namespace SupraInventoryRelayAgent
                         _rtdbLiveness.StopObserver();
                         if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
                         {
-                            if (_rtdbLiveness.WriteHeartbeat(session, _generation))
+                            if (_rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady()))
                                 _lastLeaseWriteMs = NowMs();
                             else
                                 WritePrimaryLease(session);
