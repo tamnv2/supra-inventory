@@ -1029,3 +1029,8 @@ Coalesce low-rate, same-audience agent_sync fleet/Picker/SKU status events using
 ## D169-E044 — Integrated rollout approved, staged Beta
 
 Owner 18/10/2026 approved the integrated D169 Agent/PDA plan: VPS-preferred PRIMARY, safely generation-fenced failover with 15-second detection target when authority network is observable, manual admin/tamnv2 hold and 15-minute VPS recovery consent, same-request Picklist recovery, truthful terminal status, and network-aware Wi-Fi switching without WMS/ACK interruptions. Preserve current PDA→Worker/Service Báo hàng behavior; Android overlay and mandatory update source fixes undergo same-APK regression. Reject status inference from WMS button labels or disabled checkboxes. Existing 12s mutation gate / 15s failover / 20s Android wait must be harmonized before HA fleet release. PR615 is a source candidate from v135 main, not runtime PASS. See D169-E044 and docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md.
+
+
+## D169-E046 — Tách field test hai mạng sang D170, giữ safety gates D169
+
+D169 hoàn thiện và có lệnh phát hành Beta các thành phần đã chốt ở D169-E044. Automated HA/ACK/API/Android version-mismatch/offline network-recovery/fencing regression và release SHA/rollback **không được hoãn**. Chỉ bộ test thực địa Agent↔Agent↔PDA với mạng Office và Internet được chuyển sang **D170 tương lai**. Mọi đường mạng không chứng minh được quyền CAS hoặc endpoint cần fail-closed; không đánh dấu WMS confirmed theo dấu hiệu UI thiếu chắc chắn. Không mở D170 khi D169 chưa Owner PASS, không sửa Stable.
