@@ -19,6 +19,14 @@ test("new Android and Windows releases use the same official API and updater hos
   assert.doesNotMatch(updater, /"inventory-beta\.supra\.cc\.cd"/);
 });
 
+test("Agent browser bundle, SKU synchronization and network probe reject old/unknown Worker hosts", () => {
+  for (const file of ["relay-agent/AgentBrowserBundle.cs", "relay-agent/D167SkuServiceClient.cs", "relay-agent/D168NetworkRoute.cs"]) {
+    const source = read(file);
+    assert.match(source, /"inventory\.supra\.cc\.cd"/);
+    assert.doesNotMatch(source, /"inventory-beta\.supra\.cc\.cd"/);
+  }
+});
+
 test("migration is in-place, existing releases stay able to update from old host", () => {
   assert.match(android, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
   assert.match(android, /TRUSTED_SIGNER_SHA256/);
