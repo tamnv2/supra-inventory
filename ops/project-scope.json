@@ -709,5 +709,27 @@
     "firebase": "RETAIN_CRITICAL_AUTH_PICKLIST_ACK_HA_PICKER_PRESENCE",
     "stable": "OWNER_GATED_UNTOUCHED",
     "release_status": "CODE_IN_PROGRESS_NOT_PASS_OR_DEPLOYED"
+  },
+  "planned_d170_single_production": {
+    "status": "DESIGN_REVIEW_ONLY__NO_PROVIDER_MUTATION",
+    "owner_direction_date_vn": "2026-10-18",
+    "public_hostname_target": "inventory.supra.cc.cd",
+    "android_display_name_target": "1291 Báo hàng",
+    "single_runtime_source_keys": [
+      "worker-beta",
+      "inventory-core",
+      "gcp-beta",
+      "firebase-android-beta",
+      "firebase-web-beta",
+      "firebase-rtdb-relay-beta",
+      "android-package-beta"
+    ],
+    "legacy_compat_hostname_key": "host-beta",
+    "legacy_stable_resource_policy": "OWNER_GATED_QUARANTINE_UNCHANGED_UNTIL_ACTUAL_PROVIDER_OWNERSHIP_AND_RUNTIME_VERIFICATION",
+    "technical_identifiers": "MAY_RETAIN_BETA_TO_PRESERVE_DATA_SIGNING_AND_OTA",
+    "runtime_mutation_authorized": false,
+    "provider_database_migration_authorized": false,
+    "separate_network_diagnostics": "D171_QUEUED_PR612_PR613_DRAFT",
+    "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md"
   }
 }

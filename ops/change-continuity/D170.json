@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D170",
+  "working_branch": "main",
+  "pr": null,
+  "accepted_base": "D169_LIMITED_OWNER_PASS",
+  "last_checkpoint": {
+    "id": "D170-E002",
+    "date_vn": "2026-10-18"
+  },
+  "deployment_gate": {
+    "owner_latest": "D170_OWNER_SINGLE_PRODUCTION_DESIGN_REQUEST_20261018",
+    "code_permission": false,
+    "merge_permission": false,
+    "deploy_permission": false,
+    "production_runtime_permission": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "reason": "PREIMPLEMENTATION_IMPACT_REVIEW_FIRST__NO_LIVE_MUTATION"
+  },
+  "entries": [
+    {
+      "id": "D170-E001",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Convert existing Beta-tagged live system into sole official SUPRA Inventory Production without destructive database/provider renames",
+      "status": "OWNER_PRODUCT_DIRECTION_APPROVED__IMPACT_REVIEW_PREPARED__CODE_AND_DEPLOY_NOT_YET_AUTHORIZED",
+      "owner_approval": true,
+      "facts": [
+        "D169 was explicitly accepted as limited code/release closeout; physical WMS/Office, VPS OTP, PDA installed client, ACK and billed usage tests remain unverified.",
+        "Owner requests sole Production without operational Beta→Stable promotion; public hostname inventory.supra.cc.cd and visible PDA app name 1291 Báo hàng, with no user-facing Beta trace.",
+        "Preserve real Worker and Durable Object SQLite identity, Firebase/Firestore/RTDB/Auth/FCM, Android package ID and signing material when renaming could break data/OTA. Technical beta identifiers may remain visible only to Owner/engineering, not ordinary users.",
+        "Historical Stable Worker/domain mapping is still OWNER-GATED/untouched until hostname ownership and resource-scope checks; existing Beta runtime remains live source of truth during preparation.",
+        "App v112 strict signed OTA beta-vcN tag and versionName validation means renaming release tag or APK package without compatibility window could strand old devices; Agent v138 also points to old API host.",
+        "Prepare CODE-only compatibility bridge and protected deployment plan with same-DO readback, OAuth allowed domain/callback, old host support, authentication, HA/ACK and data counts before runtime cutover. Never bulk-replace beta labels inside technical IDs or test gates.",
+        "Owner moves isolated Office/Internet PDA-Agent-Agent network suite to separately queued D171; historical PRs #612/#613 are Draft and not merged or deployed.",
+        "Owner has not instructed immediate runtime deployment as part of this planning document; exact cutover scope must pass preimplementation and release guard before authorized merge/deploy."
+      ],
+      "next_action": "Complete D170 exact source-impact inventory and preimplementation review; obtain approval of code/deploy scope before mutating live runtime, then guarded PR/CI and phased cutover. D171 diagnostics remains queued.",
+      "evidence": "Owner conversation 2026-10-18; D169-E065 Owner closeout; docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md; service/wrangler.beta.toml and wrangler.stable.toml, Android build/manifest/MainActivity, AgentConfig, workflows/deploy-beta.yml and verify-apps.yml."
+    },
+    {
+      "id": "D170-E002",
+      "date_vn": "2026-10-18",
+      "kind": "STATUS",
+      "topic": "D170 single Production plan/authority/readiness docs committed for main; no executable code or cutover",
+      "status": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_RESOURCE_MAPPING_RECORDED__CODE_ONLY_PENDING_SCOPE__NO_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "D170 accepted business target documented in Owner decisions, project context, UI and acceptance specs, AGENTS and operating protocol, scope and resource registry as planned target only.",
+        "Current exact resource identities and existing Beta/Stable runtime config remain unchanged: no DNS/provider/SQLite/Firebase/Android/Agent/CI source mutation.",
+        "D170 one-service target, signed Android OTA legacy compatibility, Worker/DO binding, OAuth/hostname conflict and security/rollback gates are recorded in docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md.",
+        "After documentation merge the current active D170 journal is canonical on main; next substantive D170 implementation work requires a fresh short-lived PR and explicit scoped code/deploy authorization.",
+        "D171 diagnostic suite remains only queued, PR #612 and #613 Draft; D169 field evidence stays deferred."
+      ],
+      "next_action": "Main readback of D170 plan after CI merge, then perform separate code-only source impact preparation with explicitly reviewed runtime/domain/OTA scope; no cutover under docs receipt.",
+      "evidence": "PR #625 D170 design files, Owner D169-E065 closeout, current source build.gradle.kts, service/wrangler.beta.toml/wrangler.stable.toml and GitHub Actions release workflows."
+    }
+  ],
+  "resume": {
+    "approved": [
+      "Owner approved single public Production destination, no user-facing Beta, backwards compatibility and lossless continuity required.",
+      "Existing live Beta-tagged Worker/DO SQLite/Firebase and signed client identities remain source of truth throughout migration planning.",
+      "D171 network diagnostics queued as separate change, PR612/613 retained Draft."
+    ],
+    "implemented": [
+      "D170-E001 impact and phased migration plan documented only on guarded branch.",
+      "D170-E002: fully coupled docs-only design recorded; intended postmerge active D170 journal main, no source or runtime mutation."
+    ],
+    "in_progress": [
+      "Inventory actual Cloudflare official-domain binding and provider/API/OAuth/update manifest/CI migration dependencies using read-only evidence."
+    ],
+    "pending_approval": [
+      "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
+    ],
+    "blocked": [
+      "Production domain may still be attached to old Stable Worker: actual Cloudflare provider binding not yet checked.",
+      "No verified backup restore/data readback or client fleet compatibility guarantee yet; no live routing or database changes."
+    ],
+    "next_actions": [
+      "Review docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md against canonical resource scope and code; obtain scoped authorization for safe CODE and deployment stages.",
+      "Maintain compatibility for existing Android vc112/Agent v138, never create a second writable Worker/DO.",
+      "Queue D171 test PR612/613 without opening D171 until D170 explicitly Owner PASS.",
+      "After PR625 docs-only merge, D170 next branch/PR must implement source compatibility only after reviewed authorization; D171 queued, no diagnostic PR merge."
+    ],
+    "release_boundary": "D170_DESIGN_AND_AUTHORITY_ONLY__NO_RUNTIME_CHANGE__D169_ACCEPTED_LIMITED__D171_QUEUED"
+  }
+}

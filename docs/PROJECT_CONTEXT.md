@@ -1,3 +1,7 @@
+## D170 — Official single Production direction (Owner 2026-10-18; design only)
+
+Owner has closed D169 under limited code/release acceptance (field/Usage remain unverified). D170 is the sole active next project change. Intended public service is `https://inventory.supra.cc.cd`, public Android name `1291 Báo hàng`, and a single production release process without Beta→Stable promotion. The **already-running** Worker/InventoryCore SQLite/Firebase/signing/package resources remain data and session authority unless a later reviewed migration proves safe. Old hostname and release tags must remain technically compatible until prior clients update. **No runtime/domain/db/client deployment has occurred from this design record.** Separate PDA-Agent-Agent Office/Internet network diagnostics are queued as D171 (Draft PR #612/#613). Canonical detailed plan: `docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md`.
+
 # PROJECT_CONTEXT — SUPRA Inventory
 
 Status: **CANONICAL PROJECT CONTEXT**. Read this before any project work.

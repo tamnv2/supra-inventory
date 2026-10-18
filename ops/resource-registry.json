@@ -2937,5 +2937,20 @@
     "no_new_provider_resource": true,
     "unused_components": "ANDROID_PDA_WMS_CONFIRM_APPS_SCRIPT_GATEWAY_STABLE_LAUNCHER",
     "field": "ADMIN_PC_INSTALLED_V129__SERVICE_FULL_DELTA_DONE__OPERATOR_DISPLAY__HA_FAILOVER__USAGE__OWNER_BUSINESS_PASS_ALL_PENDING"
+  },
+  "planned_d170_single_production": {
+    "status": "DESIGN_ONLY_NO_RUNTIME_CHANGE",
+    "future_official_hostname": "inventory.supra.cc.cd",
+    "display_name": "1291 Báo hàng",
+    "source_worker_name": "supra-inventory-beta",
+    "source_core": "InventoryCore",
+    "source_firebase_project": "supra-inventory-beta",
+    "no_database_migration": true,
+    "technical_id_stability_required": true,
+    "android_package_and_signer_unchanged": true,
+    "old_host_for_legacy_clients": true,
+    "legacy_stable_untouched": true,
+    "network_diagnostics_change": "D171_QUEUED",
+    "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md"
   }
 }
