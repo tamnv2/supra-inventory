@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E034",
+    "id": "D169-E035",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -643,6 +643,23 @@
       ],
       "next_action": "Owner runs the local GUI observer alongside Agent v135 on VPS and uploads one or more sanitized manual-drag JSON files plus separately cropped CAPTCHA screenshots before interaction. Review field validity and security/scope before any new source/PR for Agent login-related changes; Stable remains OWNER-GATED.",
       "evidence": "Owner 2026-10-18 build request; main authority/scope/auth UI; current main relay-agent/SupraConfirmBrowser.cs and AgentBrowserBundle.cs; local cross-compilation and ZIP validation evidence. No Windows field pass."
+    },
+    {
+      "id": "D169-E035",
+      "date_vn": "2026-10-18",
+      "kind": "USER_FIELD_EVIDENCE_ANALYSIS",
+      "topic": "First VPS manual WMS slider mouse-drag log received; motion measured, CAPTCHA image and success not established",
+      "status": "ONE_MANUAL_GESTURE_CAPTURE_VALID__TARGET_IMAGE_UNKNOWN__WMS_ACCEPTANCE_UNKNOWN__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner uploaded SUPRA_WMS_MANUAL_DRAG_20261018_075115.json, schema supra.manual-drag.v1; private per-session manual gesture only. File was analyzed locally; do not commit the original per-point trace or screenshot to public GitHub.",
+        "Field evidence: screen 1920x1200 pixels; 293 samples target 10ms, measured median 10ms; gesture first (782,754), last (976,755), net +194 x/+1 y pixels, total hold 3037ms, fully captured/completed.",
+        "Mouse began moving around 230ms, last movement around 1999ms, then stayed at end for about 1038ms; Y stays within 754..755. This is one predominantly horizontal manual drag.",
+        "No CAPTCHA screenshot, challenge target-slot coordinate, WMS DOM or explicit CAPTCHA PASS/FAIL was recorded. The displacement cannot be treated as image-gap offset or validated challenge solve. External screenshot / explicit post-release success evidence would be needed for even a supervised field analysis.",
+        "This evidence does not authorize automated CAPTCHA circumvention or browser login flow modification; existing supra-auth-ui-d127-probe resource remains manual-login scoped and D169 v135 Beta field PASS remains pending."
+      ],
+      "next_action": "Report one manual drag measured and ask Owner for an image cropped to the CAPTCHA region before drag, plus whether that exact drag resulted in successful WMS login. If continuing diagnostic collection, keep sensitive page/account info out of attachments. No Agent, PDA, provider or public resource mutation.",
+      "evidence": "Local uploaded private JSON manual-drag.v1 on 2026-10-18; main/working authority and relay-agent/SupraConfirmBrowser.cs; no extra browser instrumentation."
     }
   ],
   "resume": {
