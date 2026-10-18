@@ -4317,3 +4317,8 @@ Owner explicitly instructed "ok triển khai đi em" after D169-E056 impact revi
 - The request/approval must be protected by provider-issued Firebase identity, not client-presented username alone. Compatible v138 Agent-to-Agent delivery via existing Firestore only; a signed-in Web-only account is not an Agent realtime subscriber and Web-specific delivery is **not** represented as implemented under this scope.
 - Preconditions: new rules deployed/read back before new Agent clients; no old-version false positive, UI must not block WMS, one Picklist request ID/fenced outcome unaffected. Verify source/Rules syntax, concurrent approvals, permission denial, Office/Internet paths, standby and request 15m cadence and quota. Source CI or prerelease artifact is NOT FIELD/Owner PASS.
 - Release permission is **conditional upon** branch→PR, exact source-SHA protected receipt, authority+continuity PASS and required Beta Rules/Agent release checks. Any unverified client authorization, uncertain WMS transfer, Rules failure or mixed-version hazard must stop rollout; Stable remains OWNER-GATED.
+
+
+## D169-E061 — Android Beta foreground resume, 18/10/2026
+
+Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng khi Activity còn sống không được dựng lại màn hình, tab, vị trí cuộn và nội dung đang nhập chỉ vì kiểm tra phiên bản hoặc cập nhật hồ sơ. Kiểm tra phiên bản đã ký, quyền truy cập, kích user và PickList/ACK phải giữ nguyên hiệu lực. Khi Android thật sự hủy process, khôi phục phiên vẫn phải xác thực. Không tăng polling, upload log hoặc tạo tài nguyên dịch vụ mới. Phát hành qua branch → PR → CI + authority/continuity PASS → merge → APK Beta đã ký; chỉ Beta được phép, Stable OWNER-GATED, kiểm thử thiết bị thật chưa PASS.
