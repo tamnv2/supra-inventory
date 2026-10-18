@@ -4227,3 +4227,14 @@ Biên nhận Web-only D169 triển khai thành công vào Beta theo run 38674840
 ## D169-E040 · Owner hủy ý tưởng tự nhận diện/kéo CAPTCHA WMS (18/10/2026)
 
 Owner yêu cầu **bỏ qua ý tưởng tự nhận diện hình ảnh, tự kéo mảnh ghép CAPTCHA và tự vượt bước xác minh đăng nhập Supra/WMS**. Quyết định mới nhất **hủy toàn bộ phần nghiên cứu/triển khai tiếp theo của đề xuất này**, thay thế hướng nghiên cứu D169-E031–E037; không xây dựng CAPTCHA solver, công cụ tự kéo hay chức năng đăng nhập WMS không người giám sát qua CAPTCHA. Giữ nguyên cơ chế WMS WebView2 profile và đăng nhập/xác minh CAPTCHA thủ công khi WMS hết phiên. Khi WMS chưa sẵn sàng, bảo vệ PRIMARY/generation và sử dụng HA dự phòng đã đăng ký; khi WMS sẵn sàng lại, xét vai trò theo authority và khóa chuyển quyền thủ công hiện hành (không coi tính năng VPS-preferred mới đã triển khai). Hướng tối ưu VPS, xác thực tài khoản Agent VPS, tối ưu usage và Agent⇄PDA vẫn là chủ đề độc lập, không bị hủy. Không đổi code/EXE/APK, đăng nhập WMS, Firebase/Worker/provider, resource scope hay Stable trong checkpoint này.
+
+
+## D169-E041 — VPS preferred PRIMARY with manual override (Owner requirement 18/10/2026)
+
+**Owner yêu cầu nghiệp vụ, chưa phê duyệt mã nguồn/cấu hình mới:** VPS Windows Agent chạy mạng thường được ưu tiên làm PRIMARY mặc định; Agent khác chạy Office hoặc Internet chỉ dự phòng, có thể tiếp quản khi VPS/WMS không sẵn sàng rồi chuyển lại VPS sau khi VPS phục hồi ổn định. PRIMARY do tài khoản Agent `admin` hoặc `tamnv2` chỉ định **thủ công** không bị VPS tự động giành lại.
+
+Khi VPS sẵn sàng và PRIMARY vẫn đang ở chế độ chỉ định thủ công, VPS đề nghị nhận lại quyền tối đa mỗi 15 phút đến Agent có tài khoản `admin`/`tamnv2` đang đăng nhập. Người nhận chọn đồng ý chuyển hoặc tạm bỏ qua đến lần kiểm tra sau. Không tự động xác nhận, không gửi popup lặp khi chưa đủ điều kiện hoặc không có người nhận đủ quyền.
+
+**Mở để thẩm định, không coi là quyết định đã duyệt:** thời gian ổn định VPS trước trả quyền, ngưỡng mất PRIMARY/failover, xử lý Agent thủ công bị mất kết nối, cách xác minh Office Firestore gRPC listener, lựa chọn Firestore heartbeat/RTDB và tần suất an toàn. Mọi chuyển quyền phải có CAS/generation/WMS readiness/fencing, không mất ACK/Picklist; Firestore là đường đọc xác thực đã đo được ở Office/Internet, RTDB Office bị proxy HTTP 403 trong log V3. Chi phí đọc/ghi của phương án mới cần đo cùng khung giờ; không hứa tự giảm usage nếu chưa có billed proof.
+
+Chỉ **phân tích + ghi nhận yêu cầu trong D169**, không thêm Dxxx, không mở rộng resource chưa đăng ký, không cập nhật runtime, GitHub release/APK/Agent/Rules, không đổi Stable. Thiết kế kỹ thuật chi tiết và triển khai phải qua Owner impact review và phê duyệt riêng. Chứng cứ: D169-E041, log V3 17/10, `relay-agent/FirestoreAgentLeaderCoordinator.cs`, `RtdbHaLiveness.cs`, `FirestoreConfirmationTransport.cs`.
