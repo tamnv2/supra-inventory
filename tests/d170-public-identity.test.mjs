@@ -55,3 +55,15 @@ test("same authoritative Worker and durable storage remain untouched", () => {
   assert.match(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
   assert.doesNotMatch(androidCi, /title="1291 Báo hàng Beta/);
 });
+
+test("main release checks protect official identity and skip stale D169 Android gating", () => {
+  const workerWorkflow = read(".github/workflows/deploy-beta.yml");
+  const appWorkflow = read(".github/workflows/verify-apps.yml");
+  const agentWorkflow = read(".github/workflows/verify-relay-agent.yml");
+  const firestoreWorkflow = read(".github/workflows/deploy-beta-firestore.yml");
+  assert.match(workerWorkflow, /grep -Fq 'SUPRA Inventory' "\$tmp"/);
+  assert.match(workerWorkflow, /leaks legacy Beta branding/);
+  assert.match(appWorkflow, /D170_ANDROID_LEGACY_RUNTIME_COMPAT != 'true'/);
+  assert.match(agentWorkflow, /D170_PHASE1_EXISTING_WORKER_ANDROID:/);
+  assert.match(firestoreWorkflow, /D170_PHASE1_EXISTING_WORKER_ANDROID:/);
+});
