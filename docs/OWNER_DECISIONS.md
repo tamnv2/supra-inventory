@@ -1,3 +1,10 @@
+## D169-E063 · Owner duyệt đóng hồ sơ GitHub cũ (18/10/2026)
+
+- Owner duyệt rà soát và **đóng không merge 11 PR** lịch sử #496, #529, #531, #532, #533, #535, #536, #538, #539, #540, #606; 8 PR ứng viên D166 đã tích hợp qua PR #541, riêng #606 được kế thừa bởi PR #615. Không khôi phục code cũ trên Agent/Android/Web/Worker D169.
+- Đóng Issue #464 với lý do D164 độc lập đã bị hủy (`not planned`); đóng #530 ở phạm vi hồ sơ kiểm toán/tích hợp D166 (`completed`), **không coi các phép đo Usage, FIELD hay tồn đọng chuyển D167/D169 là đã PASS**.
+- **Giữ nguyên PR #612 và #613 ở Draft**; chưa cho merge, chưa chạy thử nghiệm Beta Rules khi chưa đối chiếu phiên bản v138 và kiểm tra bảo mật/quyền. D170 vẫn chờ D169 Owner PASS.
+- Chỉ dọn metadata và cập nhật authority/continuity trên branch→PR→CI→merge; không phát hành APK/EXE, không thay đổi nghiệp vụ, dữ liệu, quota, Firebase Rules, Worker hoặc Stable. Sau khi PR hồ sơ merge, `main` giữ D169 journal làm authority cho đến khi mở PR nội dung D169 tiếp theo. Danh sách chi tiết tại `docs/D169_GITHUB_ARCHIVAL_2026-10-18.md`.
+
 ## D169-E037 · Áp dụng nguyên tắc CLAUDE.md toàn repository trên main (18/10/2026)
 
 - Owner yêu cầu bộ quy tắc kỹ thuật đã bổ sung tại D169 không chỉ nằm ở nhánh D169 mà phải đi vào `main` để mọi thay đổi hiện tại và sau này trong `tamnv2/supra-inventory` đều áp dụng.
