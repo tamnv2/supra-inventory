@@ -1,3 +1,9 @@
+## D170-E018 — Phát hành hoàn tất Agent v139 (19/10/2026)
+
+Owner chốt lệnh mới: **chỉ tập trung phát hành DONE Agent v139**, giữ nguyên App Android vc114 và trạng thái hai domain. Main Worker D170 Phase3A và signed APK vc114 đã release thành công; GitHub Agent workflow #39157893680 compile v139 PASS nhưng failed ở bước so sánh Rules với baseline D169 `c90e521` đã cũ. Ba blob `firebase/firestore.rules`, `firebase/firestore.indexes.json`, `firebase.json` được kiểm chứng giống hệt pre-Phase3A main `3829933312d7805bdb636e1d7581e3a81bb58ff9`. Sửa cổng CI phải giữ kiểm tra diff fail-closed và ancestry; không thay đổi Rules.
+
+Giới hạn phát hành D170-E018 chỉ `worker` hiện hữu (để chứng minh exact-main health) và `agent` v139; **không phát hành lại Android, không đổi domain/Google OAuth, Stable hay dữ liệu**. Chỉ báo Agent v139 phát hành DONE sau khi CI, merge, Agent release `relay-agent-v139`, SHA256 và kênh updater `inventory-channel/agent-latest.json` xác nhận chính xác. Trạng thái field/Owner PASS D170 toàn bộ vẫn chưa đủ.
+
 ## D170-E015 — Chuyển toàn bộ client sang domain chính thức, bỏ domain Beta có điều kiện (19/10/2026)
 
 - Owner yêu cầu **loại bỏ `inventory-beta.supra.cc.cd`**, sử dụng duy nhất `inventory.supra.cc.cd`, đồng ý cập nhật Web, Android PDA và Windows Agent, yêu cầu kiểm tra khả thi và tự triển khai an toàn.
