@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "fix/d170-agent139-exact-approved-source-receipt-20261019",
-  "pr": 635,
+  "working_branch": "fix/d170-agent139-release-trigger-20261019",
+  "pr": 636,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E019",
+    "id": "D170-E020",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "production_runtime_permission": true,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E019_PR635_APPROVED_EXACT_TESTED_D7B52984_WORKER_AGENT_ONLY__CI_PENDING__NO_OTHER_RESOURCE_MUTATION"
+    "reason": "D170_E020_PR636_AGENT139_EXACT_SOURCE_2FB2027__CI_THEN_WORKER_AGENT_RELEASE_ONLY"
   },
   "entries": [
     {
@@ -359,6 +359,22 @@
       ],
       "next_action": "PR635 authority/continuity/product CI PASS; merge with D170_PHASE3_OFFICIAL_CLIENTS prefix; inspect Worker and Agent main actions, v139 release EXE/checksum and OTA manifest channel v139. Keep legacy host available.",
       "evidence": "PR634 source d7b52984 16/16 CI; main Worker run 39172041414 protected gate failure; PR635 receipt only."
+    },
+    {
+      "id": "D170-E020",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Agent v139 not triggered by receipt-only correction despite successful Worker release; repair narrow path trigger",
+      "status": "PR636_PROTECTED_AGENT_WORKFLOW_TRIGGER_SOURCE_CANDIDATE__CI_AND_RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR635 exact source receipt correction passed 13/13 CI and merge main 4ecf0f9733cb9e0972d9b19104535d94e069a77a. Main Worker run 39172416436 completed SUCCESS with original Worker/SQLite and existing dual hosts.",
+        "No Agent run was dispatched on PR635 main SHA because .github/workflows/verify-relay-agent.yml did not include ops/d170-release-authorization.json in on.push.paths. No v139 release EXE or channel update yet.",
+        "PR636 adds the protected D170 receipt file to Agent workflow push/PR paths with current release guards unchanged; regression assures trigger. Exact protected candidate 2fb2027046431734c4b5f18e8f81e554b5f8f5f5 is recorded in receipt, with full PR CI required before merge.",
+        "Permission remains only Worker + Agent v139. Do not touch Android vc114, actual Agent logic, Firebase Rules, domain, OAuth, SQLite, or old Stable resources."
+      ],
+      "next_action": "PR636 complete authority+continuity/product CI, merge under D170_PHASE3_OFFICIAL_CLIENTS prefix, verify new Worker same-SHA runtime and Agent v139 release EXE/channel/checksum.",
+      "evidence": "PR635 13/13, main Worker 39172416436 SUCCESS, no Agent workflow run for commit 4ecf0f; PR636 exact source 2fb2027."
     }
   ],
   "resume": {
@@ -385,7 +401,7 @@
       "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed."
     ],
     "in_progress": [
-      "D170-E019 PR635 exact-source receipt correction; Agent v139 release still blocked until successful main Worker+Agent runs."
+      "D170-E020 PR636 source candidate fixes Agent v139 receipt-trigger gap; product CI and main release pending."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs."
@@ -395,8 +411,8 @@
       "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release."
     ],
     "next_actions": [
-      "After PR635 CI PASS, merge and verify Worker main exact SHA, Agent v139 EXE+SHA256, inventory-channel latest metadata; do not touch Android/domain."
+      "Check PR636 authority/product PASS; merge; verify Agent v139 tagged EXE and inventory-channel manifest + checksum; preserve domain and Android."
     ],
-    "release_boundary": "D170_E019_PR635_RELEASE_RECEIPT_TESTED_D7B52984__RUNTIME_PENDING__FIELD_OWNER_PASS_PENDING"
+    "release_boundary": "D170_E020_AGENT_V139_ONLY_TRIGGER_REPAIR__EXACT_SOURCE_2FB2027__CI_AND_RUNTIME_PENDING"
   }
 }
