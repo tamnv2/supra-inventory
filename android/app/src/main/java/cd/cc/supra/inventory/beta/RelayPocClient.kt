@@ -239,6 +239,7 @@ class RelayPocClient(
             "suffix" to suffix,
             "status" to "PENDING",
             "source" to "ANDROID_CONFIRM_V1",
+            "recovery_protocol" to 1,
             "picker_uid" to identity.uid,
             "picker_user_id" to session.userId,
             "picker_employee_code" to (session.employeeCode ?: ""),
