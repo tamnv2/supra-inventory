@@ -5,12 +5,11 @@
   "approved_source_sha": "b11fd2f4e898b3095ee18149cee7625f66fe821c",
   "approved_components": [
     "worker",
-    "agent",
-    "android"
+    "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261019_OFFICIAL_CLIENT_HOST_PHASE3",
+  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261019_AGENT139_ONLY",
   "code_scope": "D170_OFFICIAL_CLIENT_HOST_PHASE3",
-  "resource_change": "NONE_EXISTING_WORKER_ANDROID_AGENT_ONLY",
+  "resource_change": "NONE_EXISTING_WORKER_AGENT_ONLY",
   "legacy_android_package_preserved": true,
   "legacy_android_tag_manifest_preserved": true,
   "existing_worker_and_durable_object_preserved": true,
@@ -19,9 +18,9 @@
   "physical_field_verified": false,
   "authority_continuity_pass": true,
   "product_ci_pass": true,
-  "staged_target": "EXISTING_WORKER_OFFICIAL_OAUTH_ORIGIN_BRIDGE__SIGNED_ANDROID_VC114__AGENT_V139__KEEP_LEGACY_DOMAIN",
-  "notes": "D170 Owner explicitly ordered safe full official-domain migration, permitted Agent/Web/Android implementation/deployment. PR633 protected source b11fd2 passed 25/25 including Android signed-source, Agent .NET, OAuth CSRF, HA/ACK and authority CI. Exactly Worker+Android+Agent only, existing Worker/InventoryCore/Firebase unchanged, signed Android package/signer/tag retained, Agent v139 uses same publisher and update manifest. Legacy hostname must remain until all supported installed clients and Google OAuth callback on new host are verified; Cloudflare domain deletion forbidden by this release. OA105 Google Cloud UI action deferred before sunset. No field PASS inferred.",
-  "source_ci": "D170_PR633_PHASE3A_25_OF_25_SOURCE_SUCCESS__B11FD2F4__NO_CODE_CHANGE_AFTER_EXCEPT_AUTHORITY_TRACKERS",
+  "staged_target": "EXISTING_SAME_WORKER_RUNTIME_READBACK__AGENT_V139_OFFICIAL_HOST_RELEASE_ONLY",
+  "notes": "D170-E018 latest Owner instruction: focus solely on finishing Agent v139. Existing Android vc114 and main Worker a700cebd are already released; no new Android, Firebase Rules, OAuth, domain detach or Stable deploy. Worker workflow may redeploy same Worker source only to satisfy exact-main-source Agent prerequisite. Agent v139 EXE must pass source and release CI, unchanged current Rules against pre-Phase3A main 3829933, existing HA/WMS transport, v138 legacy updater channel compatibility. Protect signer/update checksum; preserve original D170 b11fd2 accepted source ancestry. No Owner/field PASS inferred.",
+  "source_ci": "PR_PENDING_D170_E018_AGENT139_RELEASE_GATE_REPAIR__BASELINE_382993_RULES_BLOBS_IDENTICAL",
   "approved_at_vn": "2026-10-19",
   "stable_worker_deploy_permission": false,
   "domain_reassignment_permission": false,
