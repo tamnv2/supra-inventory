@@ -14,7 +14,7 @@ namespace SupraInventoryRelayAgent
         private static bool IsD165OneTimeAgentLogin(string value)
         {
             var login = CleanAgentUsername(value).Trim().ToLowerInvariant();
-            return login == "admin" || login == "tamnv2";
+            return login == "admin" || login == "tamnv2" || login == "vps";
         }
 
         private bool D165GatewayConfigured()
@@ -154,7 +154,7 @@ namespace SupraInventoryRelayAgent
             if (!IsD165OneTimeAgentLogin(username))
             {
                 Ui(() => MessageBox.Show(
-                    "Gửi mã một lần chỉ áp dụng cho user admin hoặc tamnv2.",
+                    "Gửi mã một lần chỉ áp dụng cho admin, tamnv2 hoặc VPS.",
                     "Mật khẩu một lần",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information));

@@ -838,7 +838,7 @@ namespace SupraInventoryRelayAgent
             {
                 if (!VerifyCurrentAgentPasswordForAction(
                     "Đăng xuất Agent",
-                    "Nhập mật khẩu xác nhận. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp.",
+                    "Nhập mật khẩu xác nhận. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp; VPS chỉ dùng mã một lần.",
                     "Đăng xuất",
                     "Mật khẩu xác nhận không đúng. Phiên Agent vẫn được giữ nguyên."))
                     return;
@@ -2468,7 +2468,7 @@ namespace SupraInventoryRelayAgent
 
             if (!VerifyCurrentAgentPasswordForAction(
                     "Tắt SUPRA Inventory Agent",
-                    "Nhập mật khẩu xác nhận để tắt Agent. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp.",
+                    "Nhập mật khẩu xác nhận để tắt Agent. admin/tamnv2 dùng mã một lần hoặc mật khẩu khẩn cấp; VPS chỉ dùng mã một lần.",
                     "Tắt Agent",
                     "Mật khẩu xác nhận không đúng. Agent vẫn tiếp tục chạy."))
                 return;

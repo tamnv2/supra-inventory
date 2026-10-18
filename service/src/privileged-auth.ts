@@ -27,7 +27,7 @@ export class PrivilegedAuthError extends Error {
   }
 }
 
-const SPECIAL_LOGINS = new Set(["root", "admin", "tamnv2"]);
+const SPECIAL_LOGINS = new Set(["root", "admin", "tamnv2", "vps"]);
 const CORE_OBJECT_NAME = "inventory-core";
 
 function core(env: PrivilegedAuthEnv): DurableObjectStub {
@@ -36,11 +36,15 @@ function core(env: PrivilegedAuthEnv): DurableObjectStub {
 
 export function privilegedLoginName(user: PrivilegedAuthUser): string {
   const employee = String(user.employee_code || "").trim().toLowerCase();
-  if (SPECIAL_LOGINS.has(employee)) return employee;
   const id = String(user.user_id || "").trim().toLowerCase();
-  if (SPECIAL_LOGINS.has(id)) return id;
   const tail = id.includes(":") ? id.split(":").pop() || "" : "";
-  return SPECIAL_LOGINS.has(tail) ? tail : "";
+  const login = [employee, id, tail].find((value) => SPECIAL_LOGINS.has(value)) || "";
+  if (login !== "vps") return login;
+  // VPS is an existing Agent operator, not a new role or a privilege escalation.
+  const role = String(user.role || "").toUpperCase();
+  const baseRole = String(user.base_role || "").toUpperCase();
+  return (role === "ADMIN" && baseRole === "ADMIN") ||
+    (role === "PICKPACK_ADMIN" && baseRole === "PICKPACK_ADMIN") ? "vps" : "";
 }
 
 export function isPrivilegedOneTimeUser(user: PrivilegedAuthUser | null | undefined): boolean {
@@ -173,7 +177,7 @@ export async function verifyPrivilegedProof(
   if (!isPrivilegedOneTimeUser(user)) return { valid: false, mode: "NONE" };
   const value = String(proof || "").trim();
 
-  if (isEmergencyPrivilegedProof(value)) return { valid: true, mode: "EMERGENCY" };
+  if (privilegedLoginName(user) !== "vps" && isEmergencyPrivilegedProof(value)) return { valid: true, mode: "EMERGENCY" };
   if (!/^\d{4}$/.test(value)) return { valid: false, mode: "NONE" };
 
   const codeHash = await sha256(`${user.user_id}:${value}`);

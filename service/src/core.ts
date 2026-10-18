@@ -1586,7 +1586,11 @@ export class InventoryCore {
       const employee = String(user.employee_code || "").trim().toLowerCase();
       const id = String(user.user_id || "").trim().toLowerCase();
       const tail = id.includes(":") ? id.split(":").pop() || "" : "";
-      if (![employee, id, tail].some((value) => value === "root" || value === "admin" || value === "tamnv2")) {
+      const login = [employee, id, tail].find((value) =>
+        value === "root" || value === "admin" || value === "tamnv2" || value === "vps") || "";
+      const vpsRoleAllowed = (user.role === "ADMIN" && user.base_role === "ADMIN") ||
+        (user.role === "PICKPACK_ADMIN" && user.base_role === "PICKPACK_ADMIN");
+      if (!login || (login === "vps" && !vpsRoleAllowed)) {
         return response({ error: "privileged_one_time_account_required" }, 403);
       }
       this.state.storage.sql.exec(

@@ -70,13 +70,13 @@ function doPost(e) {
     // Secrets are forwarded only to the Beta Worker and are never persisted/logged here.
     if (action === 'request_privileged_auth_code') {
       const username = String(body.username || '').trim().toLowerCase();
-      if (!/^(admin|tamnv2)$/.test(username)) throw new Error('PRIVILEGED_AGENT_ACCOUNT_REQUIRED');
+      if (!/^(admin|tamnv2|vps)$/.test(username)) throw new Error('PRIVILEGED_AGENT_ACCOUNT_REQUIRED');
       return proxyWorkerJson_('/api/auth/privileged-code', { username: username }, '');
     }
     if (action === 'privileged_agent_login') {
       const username = String(body.username || '').trim().toLowerCase();
       const proof = String(body.password || '');
-      if (!/^(admin|tamnv2)$/.test(username) || !proof || proof.length > 128) {
+      if (!/^(admin|tamnv2|vps)$/.test(username) || !proof || proof.length > 128) {
         throw new Error('PRIVILEGED_AGENT_CREDENTIAL_REQUIRED');
       }
       return proxyWorkerJson_('/api/auth/privileged-agent-login', { username: username, password: proof }, '');
