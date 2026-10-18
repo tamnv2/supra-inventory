@@ -171,7 +171,7 @@ jobs:
         run: |
           set -euo pipefail
           scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
-          [ "$scope" = "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2" ] || exit 0
+          [[ "$scope" = "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2" || "$scope" = "D170_OFFICIAL_CLIENT_HOST_PHASE3" ]] || exit 0
           for host in inventory-beta.supra.cc.cd inventory.supra.cc.cd; do
             verified=false
             for attempt in $(seq 1 24); do

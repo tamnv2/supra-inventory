@@ -54,6 +54,6 @@ test("D169 OTP-only release is gated by Owner approval, versioned Agent and one-
   assert.match(worker, /D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY/);
   assert.match(worker, /D169_VPS_OTP_ALREADY_PENDING_UNCONSUMED/);
   assert.match(agentWorkflow, /D169_VPS_GATEWAY_FIRST_AGENT_RELEASE_PASS/);
-  assert.equal(read("relay-agent/VERSION").trim(), "138");
+  assert.ok(Number(read("relay-agent/VERSION").trim()) >= 138);
   assert.match(gate, /D169_E057_VPS_ACCOUNT_FIRST_DUAL_OWNER_AGENT138/);
 });

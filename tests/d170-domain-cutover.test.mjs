@@ -45,9 +45,10 @@ test("official domain waits for same-Worker control plane and SQLite health", ()
   assert.match(firestore, /D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:/);
 });
 
-test("Drive OAuth Google state cookie remains same-site with registered legacy callback", () => {
-  assert.match(service, /url\.hostname === "inventory\.supra\.cc\.cd"/);
-  assert.match(service, /https:\/\/inventory-beta\.supra\.cc\.cd\/api\/oauth\/google\/start/);
+test("Google OAuth start uses the exact registered same-site callback and no arbitrary redirect", () => {
+  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd", "inventory-beta\.supra\.cc\.cd"\]/);
+  assert.match(service, /url\.hostname !== callbackHost/);
+  assert.match(service, /oauth_callback_host_not_allowed/);
   assert.match(service, /return startGoogleOAuth\(env\)/);
   assert.match(service, /state !== expectedState/);
 });

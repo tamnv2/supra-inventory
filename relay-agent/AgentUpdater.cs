@@ -229,7 +229,7 @@ namespace SupraInventoryRelayAgent
             if (api)
             {
                 if (redirected ||
-                    !string.Equals(uri.Host, "inventory-beta.supra.cc.cd", StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(uri.Host, new Uri(AgentConfig.ApiBaseUrl).Host, StringComparison.OrdinalIgnoreCase) ||
                     !string.Equals(uri.AbsolutePath, "/downloads/agent/manifest", StringComparison.Ordinal))
                     throw new InvalidOperationException("Manifest cập nhật Agent không thuộc dịch vụ tin cậy.");
                 return;
@@ -241,7 +241,7 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Agent release tag không hợp lệ.");
                 var safePath = string.Equals(uri.AbsolutePath, "/downloads/agent/latest", StringComparison.Ordinal) ||
                     string.Equals(uri.AbsolutePath, "/downloads/agent/latest.sha256", StringComparison.Ordinal);
-                if (!string.Equals(uri.Host, "inventory-beta.supra.cc.cd", StringComparison.OrdinalIgnoreCase) || !safePath)
+                if (!string.Equals(uri.Host, new Uri(AgentConfig.ApiBaseUrl).Host, StringComparison.OrdinalIgnoreCase) || !safePath)
                     throw new InvalidOperationException("Agent asset không thuộc dịch vụ tin cậy.");
                 return;
             }

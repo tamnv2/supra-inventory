@@ -2357,15 +2357,29 @@ export default {
       const businessResponse = await handleBusinessApi(request, env, ctx);
       if (businessResponse) return businessResponse;
 
-      // D170: Google Drive Owner setup retains the existing Google-registered
-      // callback on the legacy hostname. Redirect START before setting the
-      // state cookie, so CSRF validation and the callback stay same-origin.
-      // Never proxy/copy Google tokens or silently weaken state validation.
+      // D170: the OAuth state cookie MUST be minted on the SAME hostname as
+      // the Google-registered callback. The existing callback stays valid until
+      // the Owner updates the registered URI and the protected Worker variable.
+      // Redirect only between the two registered project hosts; never forward
+      // a token/state cookie across origins or accept a caller-supplied host.
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") {
-        if (url.hostname === "inventory.supra.cc.cd") {
+        if (!oauthBindingsReady(env)) return json({ error: "oauth_not_configured" }, 503);
+        let callbackHost = "";
+        try {
+          const configuredCallback = new URL(env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI!);
+          if (configuredCallback.protocol === "https:" &&
+              configuredCallback.pathname === "/api/oauth/google/callback") {
+            callbackHost = configuredCallback.hostname;
+          }
+        } catch { /* invalid callback configuration: fail closed */ }
+        const trustedHosts = ["inventory.supra.cc.cd", "inventory-beta.supra.cc.cd"];
+        if (!trustedHosts.includes(callbackHost) || !trustedHosts.includes(url.hostname)) {
+          return json({ error: "oauth_callback_host_not_allowed" }, 503);
+        }
+        if (url.hostname !== callbackHost) {
           return new Response(null, {
             status: 302,
-            headers: { location: "https://inventory-beta.supra.cc.cd/api/oauth/google/start", "cache-control": "no-store" },
+            headers: { location: `https://${callbackHost}/api/oauth/google/start`, "cache-control": "no-store" },
           });
         }
         return startGoogleOAuth(env);

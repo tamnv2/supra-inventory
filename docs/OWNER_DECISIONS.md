@@ -1,3 +1,12 @@
+## D170-E015 — Chuyển toàn bộ client sang domain chính thức, bỏ domain Beta có điều kiện (19/10/2026)
+
+- Owner yêu cầu **loại bỏ `inventory-beta.supra.cc.cd`**, sử dụng duy nhất `inventory.supra.cc.cd`, đồng ý cập nhật Web, Android PDA và Windows Agent, yêu cầu kiểm tra khả thi và tự triển khai an toàn.
+- **Đã xác minh khả thi về kỹ thuật:** domain chính đang trỏ cùng Worker/InventoryCore SQLite, không cần đổi dữ liệu/tài khoản/signature. Android vc113 và Agent v138 đã cài vẫn hardcode URL Beta (bao gồm kênh tải bản mới), nên **không được gỡ host Beta ngay** vì phiên cũ sẽ mất kết nối/cập nhật.
+- D170 Phase3A được Owner cho phép lập trình, kiểm tra và phát hành có cổng CI + exact-source các bản Android/Agent chính thức dùng domain mới, giữ nguyên package/chữ ký/Firebase/Firestore/WMS và endpoint cũ trong giai đoạn di chuyển. Không đổi Worker/DO/SQLite, không phát hành Stable Worker hay phá kênh OTA hiện tại.
+- OAuth Google phải sử dụng callback trên chính origin đã đăng ký để duy trì state cookie/CSRF; khi chưa đăng ký redirect URI mới và cập nhật biến Worker được bảo vệ, giữ callback cũ. Nếu connector thiếu quyền Google Cloud, chỉ yêu cầu Owner làm bước Web UI bắt buộc.
+- **Gỡ hẳn hostname Beta là giai đoạn sau:** yêu cầu bằng chứng các phiên bản PDA/Agent còn được hỗ trợ đã nâng cấp và callback OAuth mới hoạt động, hoặc quyết định Owner chấp nhận chủ động ngắt các bản cũ. Không được ngầm giả định mọi thiết bị đã cập nhật. Tài liệu ràng buộc: `docs/D170_PHASE3_CLIENT_MIGRATION_AND_SUNSET_2026-10-19.md` và journal D170.
+- Hoạt động D171 PDA↔Agent↔Agent hai mạng tiếp tục QUEUED; không mở change ID mới cho yêu cầu này.
+
 ## D170-E009 · Gỡ xung đột domain HTTP 409, chỉ được chuyển binding cũ (19/10/2026)
 
 - Owner yêu cầu tiếp tục hoàn tất chuyển mô hình chính thức duy nhất; GitHub run #39144077974 cho thấy Cloudflare PUT trực tiếp `inventory.supra.cc.cd` → Worker dữ liệu `supra-inventory-beta` thất bại HTTP 409, không ảnh hưởng SQLite/Firestore/APK.

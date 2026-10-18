@@ -1,3 +1,7 @@
+## D170-E015 — Quy trình chuyển hostname từ hai URL sang một (19/10/2026)
+
+Phát hành bản mới Android và Agent dùng `inventory.supra.cc.cd` bằng nhánh→PR→CI→exact-SHA→main guarded, nhưng **chưa xóa hostname cũ** khi các bản cũ vẫn khóa API/manifest vào `inventory-beta.supra.cc.cd`. Google OAuth phải chuyển redirect URI trên Google Cloud và Worker variable bảo vệ trước khi tắt old host, giữ state cookie same-site, không lưu credential trong public GitHub. Khi có chứng cứ field migration và bản sao lưu/readback SQLite, mới thực hiện quy trình tháo chính xác binding host cũ với quyền scoped, không xóa Worker/DO/DNS zone. Tham chiếu decision D170-E015 và kế hoạch Phase3.
+
 ## D170 verified operational routing — 2026-10-19
 
 The sole official hostname now routes to the **existing** data-bearing `supra-inventory-beta` Worker with the legacy hostname also retained. GitHub main Worker run `39154128973`, main `d6833675`, passed both Cloudflare Custom Domain control-plane and two-host `/health`/SQLite checks. Preserve technical Beta identifiers, signing identity and old API/update host for compatibility. Old separate Stable Worker remains Owner-gated. Full Production CI/channel consolidation, externally visible link/OAuth checks and field/Owner PASS remain outstanding Phase3; future source/release must use D170-scoped approval and branch→PR→CI.

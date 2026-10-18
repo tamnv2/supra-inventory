@@ -354,6 +354,14 @@ jobs:
         run: |
           set -euo pipefail
           scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
+          if [ "$scope" = "D170_OFFICIAL_CLIENT_HOST_PHASE3" ]; then
+            test "$(jq -r '.approved_components | join(",")' ops/d170-release-authorization.json)" = "worker,agent,android"
+            test "$(jq -r '.resource_change' ops/d170-release-authorization.json)" = "NONE_EXISTING_WORKER_ANDROID_AGENT_ONLY"
+            gh release view relay-agent-v138 >/dev/null
+            echo "D170_ANDROID_LEGACY_RUNTIME_COMPAT=true" >> "$GITHUB_ENV"
+            echo "D170: preserve original Agent v138, Firestore protocol and signed Android identity during official host migration"
+            exit 0
+          fi
           [ "$scope" = "D170_OFFICIAL_BRANDING_LEGACY_OTA_PHASE1" ] || exit 0
           test "$(jq -r '.approved_components | join(",")' ops/d170-release-authorization.json)" = "worker,android"
           gh release view relay-agent-v138 >/dev/null

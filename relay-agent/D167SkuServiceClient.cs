@@ -257,7 +257,7 @@ namespace SupraInventoryRelayAgent
             Uri allowed;
             if (!Uri.TryCreate(root,UriKind.Absolute,out allowed) ||
                 allowed.Scheme!=Uri.UriSchemeHttps ||
-                !string.Equals(allowed.Host,"inventory-beta.supra.cc.cd",StringComparison.OrdinalIgnoreCase))
+                !string.Equals(allowed.Host,"inventory.supra.cc.cd",StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("D167_WORKER_TARGET_NOT_ALLOWED");
             var path=root+"/api/agent/d167/skus/"+operation;
             if(isGet)

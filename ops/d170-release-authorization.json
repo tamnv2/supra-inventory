@@ -2,13 +2,15 @@
   "schema_version": 1,
   "change_id": "D170",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "63687461b4b5d724513c0b6f1072b830633ade06",
+  "approved_source_sha": "b11fd2f4e898b3095ee18149cee7625f66fe821c",
   "approved_components": [
-    "worker"
+    "worker",
+    "agent",
+    "android"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261018_OFFICIAL_SAME_WORKER_DOMAIN_PHASE2",
-  "code_scope": "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2",
-  "resource_change": "EXACT_OLD_STABLE_CUSTOM_DOMAIN_BINDING_ONLY__REATTACH_SAME_LIVE_WORKER__NO_DB_OR_WORKER_DELETE",
+  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261019_OFFICIAL_CLIENT_HOST_PHASE3",
+  "code_scope": "D170_OFFICIAL_CLIENT_HOST_PHASE3",
+  "resource_change": "NONE_EXISTING_WORKER_ANDROID_AGENT_ONLY",
   "legacy_android_package_preserved": true,
   "legacy_android_tag_manifest_preserved": true,
   "existing_worker_and_durable_object_preserved": true,
@@ -17,11 +19,11 @@
   "physical_field_verified": false,
   "authority_continuity_pass": true,
   "product_ci_pass": true,
-  "staged_target": "E011_APPROVED_UNASSIGNED_DOMAIN_PUT_ONLY_TO_EXISTING_LIVE_WORKER",
-  "notes": "D170 E013 surgical protected release receipt repair: PR630 source test SHA 8d18582c passed 15/15 CI, and exact Worker cutover script, deploy workflow, domain test, preflight workflow blobs at merged main 63687461 match those tested blobs. Main 39153633318 failed before provider mutation because Git checkout cannot resolve PR source commit 8d18582c after squash-merge. Anchor approved release source to existing, reachable main 63687461 instead. Same original Worker, PUT only on verified-unassigned official hostname, legacy host retained; no new Worker/DO/SQLite/Firebase/Android mutation. Main release and dual-host health still pending.",
-  "source_ci": "D170_PR630_15_OF_15_PASS__MERGED_MAIN_63687461_CODE_BLOBS_EXACT_MATCH_8D18582C__RECOVERY_FOR_SQUASH_SHA",
+  "staged_target": "EXISTING_WORKER_OFFICIAL_OAUTH_ORIGIN_BRIDGE__SIGNED_ANDROID_VC114__AGENT_V139__KEEP_LEGACY_DOMAIN",
+  "notes": "D170 Owner explicitly ordered safe full official-domain migration, permitted Agent/Web/Android implementation/deployment. PR633 protected source b11fd2 passed 25/25 including Android signed-source, Agent .NET, OAuth CSRF, HA/ACK and authority CI. Exactly Worker+Android+Agent only, existing Worker/InventoryCore/Firebase unchanged, signed Android package/signer/tag retained, Agent v139 uses same publisher and update manifest. Legacy hostname must remain until all supported installed clients and Google OAuth callback on new host are verified; Cloudflare domain deletion forbidden by this release. OA105 Google Cloud UI action deferred before sunset. No field PASS inferred.",
+  "source_ci": "D170_PR633_PHASE3A_25_OF_25_SOURCE_SUCCESS__B11FD2F4__NO_CODE_CHANGE_AFTER_EXCEPT_AUTHORITY_TRACKERS",
   "approved_at_vn": "2026-10-19",
   "stable_worker_deploy_permission": false,
-  "domain_reassignment_permission": true,
-  "single_official_domain_detach_permission": true
+  "domain_reassignment_permission": false,
+  "single_official_domain_detach_permission": false
 }
