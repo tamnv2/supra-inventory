@@ -1,0 +1,85 @@
+name: D170 Read-only Production Domain Preflight
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d170-domain-preflight.yml"
+      - "service/wrangler.beta.toml"
+      - "service/wrangler.stable.toml"
+      - "web/**"
+      - "android/**"
+      - "relay-agent/AgentConfig.cs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  domain-preflight:
+    name: Check actual Cloudflare domain ownership without mutation
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify existing Worker and custom-domain assignment (read only)
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${CF_API_TOKEN:-}" || ! "${CF_ACCOUNT_ID:-}" =~ ^[[:xdigit:]]{32}$ ]]; then
+            echo "::error::Scoped Cloudflare read-only preflight cannot access existing CI token/account ID"
+            exit 1
+          fi
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          status="$(curl --silent --show-error --max-time 20 -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/domains?per_page=100")"
+          if [[ "$status" != "200" ]] || ! jq -e '.success == true and (.result | type) == "array"' "$tmp" >/dev/null; then
+            echo "::error::Cloudflare Workers Domains read-back not permitted (HTTP $status). No mutation attempted."
+            exit 1
+          fi
+          old_services="$(jq -r '[.result[] | select(.hostname=="inventory-beta.supra.cc.cd") | .service] | unique | join(",")' "$tmp")"
+          official_services="$(jq -r '[.result[] | select(.hostname=="inventory.supra.cc.cd") | .service] | unique | join(",")' "$tmp")"
+          echo "Legacy hostname service: ${old_services:-<unmapped>}"
+          echo "Official hostname service: ${official_services:-<unmapped>}"
+          if [[ "$old_services" != "supra-inventory-beta" ]]; then
+            echo "::error::The expected live Worker is not the owner of the legacy hostname; fail closed."
+            exit 1
+          fi
+          case "$official_services" in
+            "" )
+              status_label="UNASSIGNED__CONTROL_PLANE_CUTOVER_REVIEW_REQUIRED";;
+            "supra-inventory-beta" )
+              status_label="SAME_WORKER__READY_FOR_READ_ONLY_DATA_COMPARISON";;
+            "supra-inventory-stable" )
+              status_label="LEGACY_STABLE_WORKER_CONFLICT__NO_AUTOMATIC_DETACH";;
+            * )
+              status_label="UNKNOWN_WORKER_CONFLICT__FAIL_CLOSED";;
+          esac
+          echo "D170 actual-domain classification: $status_label"
+          {
+            echo "### D170 provider read-only preflight"
+            echo "Live Worker: `$old_services`"
+            echo "Official hostname current owner: `${official_services:-unassigned}`"
+            echo "Cutover classification: `$status_label`"
+            echo "No Worker/domain/DNS/database change was attempted."
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$status_label" == UNKNOWN_* ]]; then
+            exit 1
+          fi
+      - name: Verify legacy production business runtime health without writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          status="$(curl --silent --show-error --max-time 20 -o "$tmp" -w '%{http_code}' \
+            "https://inventory-beta.supra.cc.cd/health")"
+          if [[ "$status" != "200" ]] || ! jq -e '.status == "ok" and .environment == "beta"' "$tmp" >/dev/null; then
+            echo "::error::Live Worker health is not verified. No cutover approved."
+            exit 1
+          fi
+          echo "D170 live-source Worker /health read-only PASS"
