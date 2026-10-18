@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "fix/d170-cloudflare-domain-binding-readback-20261019",
-  "pr": 630,
+  "working_branch": "fix/d170-release-guard-squash-sha-20261019",
+  "pr": 631,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E012",
+    "id": "D170-E013",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "production_runtime_permission": true,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E012_EXACT_CI_SOURCE_8D18582C_OFFICIAL_UNASSIGNED_PUT_ONLY__DUAL_HOST_READBACK_PENDING"
+    "reason": "D170_E013_PR631_RELOCK_MAIN_63687461_IDENTICAL_SOURCE__MAIN_RETRY_AFTER_CI"
   },
   "entries": [
     {
@@ -235,6 +235,22 @@
       ],
       "next_action": "Complete continuity/authority CI at PR630 receipt HEAD, merge under D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN: prefix, inspect GitHub main Deploy Worker job and Cloudflare dual-domain/SQLite /health before Phase3; stop on any mismatch.",
       "evidence": "GitHub PR630, source HEAD 8d18582c, run 39151322433 provider GET and PR630 15/15 successful checks."
+    },
+    {
+      "id": "D170-E013",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "PR630 Worker push release denied only because tested pre-squash SHA no longer resolves; anchor exact same source to merged main",
+      "status": "PR631_RELEASE_SHA_GUARD_REPAIR_CANDIDATE__NO_NEW_PROVIDER_MUTATION",
+      "owner_approval": true,
+      "facts": [
+        "PR630 15/15 CI PASS, merged main 63687461b4b5d724513c0b6f1072b830633ade06. GitHub Worker run 39153633318 failed at its first Owner gate before any Cloudflare API mutation: D167_OWNER_DEPLOY_GATE_DENIED approved code SHA missing.",
+        "Original PR source approved SHA 8d18582c5a9dcb654167c1270a34c7bed1e38e3c is unreachable by checkout after squash merge; direct GitHub per-file blob comparisons confirmed identical current main and tested source for tools/d170_domain_cutover.sh, .github/workflows/deploy-beta.yml, tests/d170-domain-cutover.test.mjs and .github/workflows/d170-domain-preflight.yml.",
+        "PR631 code protection receipt points to current reachable main source 63687461, preserving exact same Worker-only domain attachment and rollback scope. Unassigned official Cloudflare hostname was provider-verified in preflight run 39151322433; legacy host stayed healthy.",
+        "No code/Worker/DO/Firebase/client modification or domain attach has occurred due to this failed run; no CLI/manual Owner action needed until provider API rejects a CI-cleared deployment."
+      ],
+      "next_action": "PR631 authority, continuity and release self-check CI PASS, protected merge under D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN prefix, verify main Worker deployment and dual hostname SQL-backed /health; do not assert DONE yet.",
+      "evidence": "PR630 #630 main 63687461; run 39153633318 failed protected gate; GitHub file blob SHA parity; PR631 branch."
     }
   ],
   "resume": {
@@ -265,7 +281,8 @@
       "D170-E008: guarded main merge/provider operation pending; do not claim official hostname live until runtime readback.",
       "D170-E009 PR629 repairs Cloudflare 409 official Custom Domain binding, exact old hostname only, with rollback; runtime not yet changed.",
       "D170-E011 Cloudflare official domain is UNASSIGNED after ambiguous detach response; PR630 no-delete attach to existing live Worker guarded.",
-      "E012: guarded PR630 merge/main release for previously unassigned official hostname, same Worker/SQLite and dual-host proof."
+      "E012: guarded PR630 merge/main release for previously unassigned official hostname, same Worker/SQLite and dual-host proof.",
+      "D170-E013: PR631 source authorization anchor corrected for squash-merge SHA; no provider operation before checks/merge."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -287,8 +304,9 @@
       "Require fresh PR629 CI and reviewed exact-source phase2 receipt before provider change; health/data readback and phase3 branding remain pending.",
       "Main PR629 Worker cutover receipt, both host health/SHA/SQLite; then Phase3 public label and single-channel policy checks.",
       "Merge PR630 only after source/authority CI+exact source receipt, verify old/new same Worker and SQLite; continue Phase3 cleanup.",
-      "After receipt authority CI, merge PR630 with exact D170 Phase2 prefix and inspect success of Worker deploy plus same-Worker/SQLite health on both hostnames."
+      "After receipt authority CI, merge PR630 with exact D170 Phase2 prefix and inspect success of Worker deploy plus same-Worker/SQLite health on both hostnames.",
+      "After PR631 authority/CI PASS, guarded Worker-only merge and runtime same Worker dual-host proof."
     ],
-    "release_boundary": "D170_E012_PR630_OWNER_EXACT_SOURCE_WORKER_ONLY_APPROVED__NO_MAIN_RELEASE_YET__FIELD_AND_OWNER_PASS_PENDING"
+    "release_boundary": "D170_E013_PR631_SOURCE_RECEIPT_RELOCKED__CI_AND_RUNTIME_PENDING__NO_FIELD_OR_OWNER_PASS"
   }
 }
