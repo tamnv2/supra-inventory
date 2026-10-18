@@ -1659,11 +1659,26 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "VPS OTP release includes an unapproved Firestore Rules change." }
           Write-Host "D169_E054_FIRESTORE_E046_DEPLOYED_BASELINE_UNCHANGED_PASS"
 
+      - name: D170 Phase3 prove unchanged Firestore and WMS contracts before Agent v139 release
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:')
+        shell: pwsh
+        run: |
+          git diff --quiet c90e521d1c77b681455b32ffc33a69e7ecaa187e $env:GITHUB_SHA -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json
+          if ($LASTEXITCODE -ne 0) { throw "D170 changes to Firestore cannot bypass protected Rules deploy." }
+          $config = Get-Content relay-agent/AgentConfig.cs -Raw
+          if (-not $config.Contains('ApiBaseUrl = "https://inventory.supra.cc.cd"')) { throw "D170 Agent official API host is not configured." }
+          if (-not $config.Contains('RelayTransport = "FIRESTORE_CONFIRM_V1"')) { throw "D170 Agent transport changed unexpectedly." }
+          Write-Host "D170_PHASE3_EXISTING_FIRESTORE_WMS_CONTRACT_PASS"
+
       - name: D169 require matching Beta Firestore Rules before publishing Agent
         if: >-
           github.event_name == 'push' &&
           github.ref == 'refs/heads/main' &&
-          !contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
+          !contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE') &&
+          !startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
