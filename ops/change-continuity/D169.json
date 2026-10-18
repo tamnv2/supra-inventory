@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-e064-code-release-field-audit-20261018",
-  "pr": 624,
+  "working_branch": "main",
+  "pr": null,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E064",
+    "id": "D169-E065",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1339,6 +1339,23 @@
       ],
       "next_action": "Collect Owner physical v138 VPS OTP/login/WMS PRIMARY/manual handoff/alerts tests and vc112 MT90/DT50 warm-resume/ACK tests, plus scoped Web picker role and presence evidence. Reconcile unresolved REQ-005/006/007/008/Usage against logs before proposing further code. Keep diagnostic Draft PR #612/#613 on hold; require explicit D169 Owner PASS before D170 or production identity/migration execution.",
       "evidence": "main ops/project-state.json#change_control; ops/change-continuity/D169.json E044-E063; docs/D169_BACKLOG.md E045-E049; docs/D169_RUNTIME_RELEASE_RECEIPTS_2026-10-18.md; ops/owner-actions.json OA104; current source android/CriticalOverlayService.kt, android/MainActivity.kt, relay-agent/FirestoreAgentSync.cs, D168NetworkRoute.cs, FirestoreVpsReclaim.cs; GitHub merged PR615/618/619/621/623; open Draft PR612/613."
+    },
+    {
+      "id": "D169-E065",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner closes D169 with deferred field acceptance; moves diagnostics to separate Dxxx; requests sole official service transition",
+      "status": "OWNER_LIMITED_PASS_RELEASE_AS_DEPLOYED__FIELD_DEFERRED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly closed D169 for already released code; field evidence remains pending and cannot be reported as passed.",
+        "Existing signed Android vc112, Windows Agent v138 and current service releases remain unchanged.",
+        "Owner selects D170 for planning one official Production service and D171 for separately queued two-network diagnostic PRs #612 and #613.",
+        "Future official web hostname inventory.supra.cc.cd and displayed Android name 1291 Báo hàng; preserve database, provider identities, signed APK upgrades and existing real data.",
+        "No executable change or runtime cutover is authorized by this journal commit."
+      ],
+      "next_action": "Close D169 documentation through PR and CI; then open D170 for reviewed Production cutover, with D171 diagnostics queued.",
+      "evidence": "Owner command 2026-10-18; docs/D169_OWNER_CLOSEOUT_2026-10-18.md; D169-E050/E060/E062/E064."
     }
   ],
   "resume": {
@@ -1352,7 +1369,8 @@
       "D169-E052 Owner approved existing VPS Agent OTP-only authentication with existing project mail recipient; HHmm emergency explicitly denied; CODE/CI work authorized, Beta deploy remains separately gated.",
       "E054: Owner authorized staged existing Beta Worker, existing Agent Operations Gateway and Windows Agent v137 plus first VPS email OTP issuance; no Android/Firestore/Stable change.",
       "E061: Owner approves Android Beta-only warm-resume UI repair with signed-version/session/ACK guards; explicit deployment after PR/CI. Stable unapproved.",
-      "D169-E063 Owner approved documentation-only archival: close stale PRs/issues without merge; preserve #612/#613, no release"
+      "D169-E063 Owner approved documentation-only archival: close stale PRs/issues without merge; preserve #612/#613, no release",
+      "D169-E065: Owner accepted D169 code/release closeout, with physical field and provider usage unverified."
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -1461,8 +1479,9 @@
       "E061 complete PR #621 source/authority/continuity CI, Android signing and Beta release; no duplicate Worker/Firestore/Agent release.",
       "E062 Owner PDA field verification on MT90/DT50: foreground switches, true process recreate, kick, version, Picker ACK; D169 remains open until explicit Owner PASS.",
       "When next D169 work begins, branch from current main and set working_ref_discovery active PR pointer; after E063 cleanup no active unmerged discussion PR. Do not treat #612/#613 test drafts as current journal authority.",
-      "D169-E064: before any closeout collect OA104 VPS v138 OTP/WMS/dual-admin consent, Android vc112 MT90/DT50 switch/relaunch/ACK and role/presence field results; reconcile remaining backlog with fresh evidence and Owner explicit decision."
+      "D169-E064: before any closeout collect OA104 VPS v138 OTP/WMS/dual-admin consent, Android vc112 MT90/DT50 switch/relaunch/ACK and role/presence field results; reconcile remaining backlog with fresh evidence and Owner explicit decision.",
+      "D170 Production transition next; D171 separate network diagnostic queued. No runtime change under D169 closeout."
     ],
-    "release_boundary": "D169_E064_AUDIT_ONLY__E060_AGENT138_E062_ANDROID112_RELEASED__FIELD_OWNER_PASS_PENDING__STABLE_UNTOUCHED"
+    "release_boundary": "D169_OWNER_LIMITED_PASS__FIELD_DEFERRED__NO_RUNTIME_CHANGE"
   }
 }
