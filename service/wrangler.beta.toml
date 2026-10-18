@@ -9,6 +9,11 @@ keep_vars = true
 pattern = "inventory-beta.supra.cc.cd"
 custom_domain = true
 
+# D170: second official hostname on the SAME Worker, NOT legacy Stable.
+[[routes]]
+pattern = "inventory.supra.cc.cd"
+custom_domain = true
+
 [[durable_objects.bindings]]
 name = "INVENTORY_CORE"
 class_name = "InventoryCore"
