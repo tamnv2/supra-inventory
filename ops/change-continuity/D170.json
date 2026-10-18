@@ -3,22 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "fix/d170-phase1-release-guards-20261018",
-  "pr": 627,
+  "working_branch": "feat/d170-official-host-same-worker-20261018",
+  "pr": 628,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E005",
+    "id": "D170-E007",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": {
-    "owner_latest": "OWNER_EXPLICIT_D170_SAFE_CONVERSION_IMPLEMENTATION_REQUEST_20261018",
+    "owner_latest": "OWNER_EXPLICIT_D170_FULL_SAFE_CONVERSION_CONTINUE_20261018",
     "code_permission": true,
     "merge_permission": false,
     "deploy_permission": false,
     "production_runtime_permission": false,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "WAIT_CLOUDFLARE_DOMAIN_PREFLIGHT_SIGNED_ANDROID_COMPATIBILITY_AND_PROTECTED_RELEASE_RECEIPTS"
+    "reason": "WAIT_PR628_SOURCE_GUARDS_AND_EXACT_PHASE2_APPROVED_SHA"
   },
   "entries": [
     {
@@ -114,6 +114,41 @@
       ],
       "next_action": "Test PR627 protected source and authority/continuity CI; update exact D170 release receipt SHA to protected tested source; guarded merge with main commit prefix D170_PHASE1_EXISTING_WORKER_ANDROID:, and verify main Worker+Android signed release receipts before phase2.",
       "evidence": "GitHub Actions push runs 39141097486/39141097565/39141097537/39141097499; PR626 7fdae5; PR627 repair diff; ops/d170-release-authorization.json"
+    },
+    {
+      "id": "D170-E006",
+      "date_vn": "2026-10-18",
+      "kind": "STATUS",
+      "topic": "Actual D170 Worker/Web and signed Android vc113 official-identity release confirmed on main",
+      "status": "D170_PHASE1_WORKER_AND_SIGNED_VC113_RELEASE_PASS__FIELD_PENDING__DOMAIN_NOT_YET_CUT_OVER",
+      "owner_approval": true,
+      "facts": [
+        "PR627 merged source to main cf6d52364175b30046559e8b9e09f18a64442098 after 16/16 source CI PASS, revalidated Worker post-deploy legal page with no Beta branding.",
+        "GitHub Actions Worker 39142688905 and signed Android 39142688909 SUCCESS, Agent 39142688925 and Firestore 39142688914 SKIPPED as outside scoped Phase1 release.",
+        "GitHub Release beta-vc113 exact source cf6d523 published titled 1291 Báo hàng vc113; inventory-channel APK/manifest/checksum updated and original APK package ID and signature kept; fleet field installation not yet checked.",
+        "Existing Worker service and InventoryCore SQLite intact, currently on inventory-beta.supra.cc.cd; official hostname inventory.supra.cc.cd still belongs to legacy Stable Worker, separate Phase2 required."
+      ],
+      "next_action": "Execute staged verified same-Worker domain attachment Phase2 only after protected code/CI and exact source release authorization, then verify both hostnames share Worker and storage. No database migration.",
+      "evidence": "docs/D170_PHASE1_RELEASE_RECEIPTS_2026-10-18.md; PR627; GitHub run 39142688905 and 39142688909; release beta-vc113 and inventory-channel."
+    },
+    {
+      "id": "D170-E007",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Automated Phase2 same-Worker official hostname reassignment with OAuth same-site compatibility, no data migration",
+      "status": "PR628_CODE_ONLY_PROTECTED_CUSTOM_DOMAIN_MAPPING__OWNER_DESIGN_APPROVED__CI_AND_RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests continuation until finished with manual intervention only if existing tool cannot perform an authorized provider operation.",
+        "PR628 config adds inventory.supra.cc.cd as second Custom Domain on same supra-inventory-beta Worker and unchanged InventoryCore SQLite binding, without activating or deleting old Stable Worker.",
+        "Guarded Cloudflare control-plane preflight enforces exactly two registered existing hostnames, same zone ID, legacy service source, and target originally on legacy Stable or same live Worker; PUT only, no DELETE, and safe re-read.",
+        "Official and legacy domain health must both show same release source commit, environment and healthy SQLite after Wrangler deploy; no cross-provider migration, no new DO/DB, no Firebase changes.",
+        "Existing Google Drive OAuth callback is registered on legacy hostname and its security state cookie is origin-scoped; new-host OAuth start redirects to old-host start before setting cookie to retain CSRF checks, no token copied.",
+        "Phase2 receipt is CODE_ONLY default-deny until PR628 CI and authority+continuity PASS and release source SHA locked; no premature Cloudflare mutation. Original Android vc113/Agent v138 remain old-host based until safe new-host client phase.",
+        "D171 Office/Internet diagnostic suite PR612/613 remains separate and unmerged."
+      ],
+      "next_action": "Complete PR628 CI, lock phase2 exact-source protected receipt; guarded merge triggers Cloudflare PUT to same Worker then Wrangler deployment and double-host health check. If provider permission/API fails, stop without delete and request only the matching minimal Owner UI action.",
+      "evidence": "PR628 source wrangler.beta.toml, tools/d170_domain_cutover.sh, service/src/index.ts OAuth, tests/d170-domain-cutover.test.mjs; Cloudflare Workers Domain API documented PUT/GET; current repo scope worker-beta host-beta host-stable."
     }
   ],
   "resume": {
@@ -128,13 +163,15 @@
       "D170-E001 impact and phased migration plan documented only on guarded branch.",
       "D170-E002: fully coupled docs-only design recorded; intended postmerge active D170 journal main, no source or runtime mutation.",
       "D170-E003 branch PR626 official user-visible labeling, Android/Web guard and Cloudflare read-only provider preflight; not released.",
-      "D170-E004 PR626 21/21 source CI success and code-protected phase-1 Owner receipt; deployment pending main release."
+      "D170-E004 PR626 21/21 source CI success and code-protected phase-1 Owner receipt; deployment pending main release.",
+      "E006: Phase1 Worker and signed Android vc113 published and verified. Field/Owner PASS still pending."
     ],
     "in_progress": [
       "Inventory actual Cloudflare official-domain binding and provider/API/OAuth/update manifest/CI migration dependencies using read-only evidence.",
       "Check PR626 read-only domain-mapping result, OAuth redirect and security before any same-worker Custom Domain attachment.",
       "Actual Cloudflare domain owner inventory.supra.cc.cd confirmed legacy Stable Worker, no domain transfer yet.",
-      "E005: repair main push gate failures in PR627; old public Beta identity check and D169-only updater gate stopped full phase1 release."
+      "E005: repair main push gate failures in PR627; old public Beta identity check and D169-only updater gate stopped full phase1 release.",
+      "E007: PR628 guarded Cloudflare same-Worker official hostname transfer and existing OAuth callback compatibility, CODE ONLY."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -150,8 +187,9 @@
       "After PR625 docs-only merge, D170 next branch/PR must implement source compatibility only after reviewed authorization; D171 queued, no diagnostic PR merge.",
       "Apply staged D170 release after CI/domain/backup/OTA readiness, without changing original DO/Firebase data; request Owner UI action only if authorized provider operation impossible.",
       "Read main Worker and signed vc113 release receipts after guarded PR626 merge; prepare phase2 conflict-safe Custom Domain reassignment.",
-      "PR627 protected CI, then exact SHA receipt; check Worker, vc113 signed channel before domain change."
+      "PR627 protected CI, then exact SHA receipt; check Worker, vc113 signed channel before domain change.",
+      "CI PR628 then protected release receipt, main merge, both hostname real health readback, no database migration."
     ],
-    "release_boundary": "D170_E005_PR627_RELEASE_REPAIR_ONLY__PHASE1_NO_DOMAIN_TRANSFER__SIGNED_ANDROID_PENDING"
+    "release_boundary": "D170_E007_PHASE1_RELEASE_PASS__PHASE2_CODE_ONLY_PR628__NO_DOMAIN_MUTATION_YET"
   }
 }
