@@ -52,6 +52,12 @@ test("Drive OAuth Google state cookie remains same-site with registered legacy c
   assert.match(service, /state !== expectedState/);
 });
 
+test("phase2 cutover script changes trigger protected main Worker workflow", () => {
+  assert.match(deploy, /"tools\/d170_domain_cutover\.sh"/);
+  assert.match(deploy, /"ops\/d170-release-authorization\.json"/);
+  assert.match(deploy, /python3 tools\/d167_release_gate\.py --component worker/);
+});
+
 test("Cloudflare E011 verified unassigned official host attaches with no additional DELETE", () => {
   assert.match(cutover, /\(\[\.result\[\] \| select\(\.hostname == "inventory\.supra\.cc\.cd"\)\] \| length\) <= 1/);
   assert.match(cutover, /case "\$official" in/);
