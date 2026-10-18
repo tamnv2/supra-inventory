@@ -68,6 +68,7 @@ test("D169 cross-network HA renews common lease before optional RTDB and fences 
  assert.match(leader, /cross_network_liveness_v1/);
  assert.match(leader, /HasFreshCommonPrimaryLease\(\)/);
  assert.match(leader, /if \(commonProtocolProof\)/);
+ assert.match(leader, /return Math\.Max\(1000, FailoverAfterMs - \(int\)Math\.Min\(FailoverAfterMs, ageMs\)\)/);
  assert.match(leader, /RtdbPrimaryProbeStatus\.UNAVAILABLE/);
  assert.match(network, /return "UNKNOWN"/);
  assert.match(network, /OfficeProfiles\(\)/);
