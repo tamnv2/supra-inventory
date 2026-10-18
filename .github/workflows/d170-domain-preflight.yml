@@ -22,7 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: D170 same-Worker/domain/OAuth source safety invariants
-        run: node --test tests/d170-domain-cutover.test.mjs
+        run: |
+          bash -n tools/d170_domain_cutover.sh
+          node --test tests/d170-domain-cutover.test.mjs
       - name: Verify existing Worker and custom-domain assignment (read only)
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
