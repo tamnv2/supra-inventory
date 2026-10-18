@@ -5551,7 +5551,7 @@
     },
     {
       "id": "OA104",
-      "status": "OPEN_OWNER_FIELD_OTP_AND_AGENT_V138_HA_MANUAL_CONSENT__TECHNICAL_BETA_RELEASE_PASS",
+      "status": "FIELD_EVIDENCE_DEFERRED_AFTER_D169_OWNER_LIMITED_RELEASE_PASS",
       "title": "Agent v138 VPS one-time login and PRIMARY return field validation",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
       "provider": "Existing SUPRA Inventory Beta Worker / Firestore / Windows Agent",
@@ -5576,9 +5576,10 @@
         "NO/timeout does not transfer; YES once transfers only after in-flight work idle; no duplicate Picklist ACK",
         "Office/Internet path and provider Usage measured or explicitly recorded pending before field PASS"
       ],
-      "remaining_owner_action": "On VPS install/update official v138, log in with one-time VPS code, confirm live WMS readiness and test manual/automatic PRIMARY return and admin/tamnv2 Agent alerts. Do not share OTP. D170 full network test remains queued.",
+      "remaining_owner_action": "Field validation of VPS Agent v138 login/PRIMARY/consent and WMS/Office safety is deferred by Owner after D169 release-only closeout. Preserve evidence task; no FIELD PASS assumed.",
       "owner_field_pass": false,
-      "stable": "OWNER_GATED_UNTOUCHED"
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "d169_owner_closeout": "OWNER_RELEASE_ONLY_PASS_2026_10_18__FIELD_DEFERRED"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
