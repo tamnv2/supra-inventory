@@ -711,6 +711,7 @@ namespace SupraInventoryRelayAgent
         private string _relayTransportState = "đang khởi tạo";
         private bool _autoAgentBrowserSuppressedByUser;
         private readonly FirestorePickerRateLimiter _firestoreRateLimiter = new FirestorePickerRateLimiter();
+        private volatile FirestoreConfirmationTransport _d169LiveConfirmTransport;
         private readonly FirestoreConfirmationGuard _confirmationGuard = new FirestoreConfirmationGuard();
         private readonly FirestoreAgentSessionGate _agentSessionGate;
         private FirestoreAgentLeaderCoordinator _leaderCoordinator;
@@ -3503,6 +3504,14 @@ namespace SupraInventoryRelayAgent
                         UpdateD150PrimaryTakeoverButton();
                         if (role == FirestoreAgentRole.PRIMARY) RefreshD119OperationalViews(true);
                     });
+                },
+                () =>
+                {
+                    var transport = _d169LiveConfirmTransport;
+                    return (transport == null || !transport.HasActiveBatch) &&
+                        Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 0, 0) == 0 &&
+                        Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning, 0, 0) == 0 &&
+                        !_d150PrimaryTakeoverRunning;
                 });
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
@@ -4860,7 +4869,9 @@ namespace SupraInventoryRelayAgent
                                     });
                                 }
                             });
-                        transport.Run(token);
+                        _d169LiveConfirmTransport = transport;
+                        try { transport.Run(token); }
+                        finally { _d169LiveConfirmTransport = null; }
                         if (token.IsCancellationRequested) break;
                         throw new InvalidOperationException("Firestore confirmation transport exited unexpectedly.");
                     }
