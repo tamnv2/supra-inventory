@@ -381,7 +381,7 @@
       "d169_vps_otp_beta_2026_10_18": {
         "owner_release_scope": "EXISTING_BETA_WORKER_AGENT_GATEWAY_ONLY",
         "existing_gateway_resource_key": "apps-script-agent-log-gateway-beta-d158",
-        "source_commit": "ac0e9b70e8cb3d5ba98ec4af5648a35e8527fabe",
+        "protected_source": "EXACT_SHA_IS_IN_ops/d169-release-authorization.json",
         "agent_target_version": 137,
         "vps_authentication": "EXACT_ACTIVE_AGENT_OPERATOR__FOUR_DIGIT_SINGLE_USE_OTP_ONLY__NO_EMERGENCY_CLOCK_OR_FIXED_PASSWORD",
         "recipient": "PROJECT_ADMIN_EMAIL_EXISTING_ALIAS",
