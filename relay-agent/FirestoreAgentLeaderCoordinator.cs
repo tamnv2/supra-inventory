@@ -27,6 +27,7 @@ namespace SupraInventoryRelayAgent
         internal string Generation = "";
         internal string ManualHolderAgentInstanceId = "";
         internal string PreferredVpsAgentInstanceId = "";
+        internal string WmsHandoffGeneration = "";
         internal long UpdatedAtMs;
         internal string ScheduleKey = "";
         internal string ScheduleDecision = "";
@@ -767,9 +768,11 @@ namespace SupraInventoryRelayAgent
                     if (read.Snapshot != null &&
                         string.Equals(read.Snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                     {
+                        var recovered = IsVerifiedWmsHandoff(read.Snapshot, read);
                         _generation = read.Snapshot.Generation ?? "";
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, read.Snapshot.StandbyAgentInstanceId, "TAKEOVER_ALREADY_PRIMARY");
                         WritePrimaryLease(session);
+                        if (recovered) _verifiedAutomaticTakeoverAtMs = NowMs();
                         return true;
                     }
 
@@ -1337,7 +1340,15 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 {
+                    var recovered = IsVerifiedWmsHandoff(snapshot, read);
                     _generation = snapshot.Generation ?? "";
+                    if (recovered && _wmsReady() && _relayEnabled())
+                    {
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, snapshot.StandbyAgentInstanceId, "WMS_HANDOFF_RECEIVED");
+                        WritePrimaryLease(session);
+                        _verifiedAutomaticTakeoverAtMs = NowMs();
+                        return;
+                    }
                     if (_wmsReady() && TryReturnOwnerPreferredPrimary(session, read))
                         return;
                     if (!_wmsReady())
@@ -1370,7 +1381,7 @@ namespace SupraInventoryRelayAgent
                             Generation = Guid.NewGuid().ToString("N"),
                             UpdatedAtMs = NowMs()
                         };
-                        if (TryWriteRoles(session, relinquish, read))
+                        if (TryWriteRoles(session, relinquish, read, false, true))
                         {
                             SetRole(FirestoreAgentRole.DEEP_HIBERNATE, relinquish.PrimaryAgentInstanceId, relinquish.StandbyAgentInstanceId, "PRIMARY_WMS_NOT_READY");
                             return;
@@ -1581,6 +1592,26 @@ namespace SupraInventoryRelayAgent
         // candidate while a local standby is serving after an automatic failover.
         // A later manual selection of the local holder replaces that preference,
         // so it cannot be stolen back. No preemption during active WMS mutation.
+        // Safe recovery after a previous PRIMARY explicitly relinquished
+        // WMS due to browser/session loss (different from manual/owner transfer).
+        // CAS marker is bound to this exact role generation; Firestore's server
+        // updateTime, not the untrusted local handoff clock, bounds freshness.
+        private bool IsVerifiedWmsHandoff(FirestoreRoleSnapshot snapshot, RoleRead read)
+        {
+            if (snapshot == null || read == null ||
+                _role != FirestoreAgentRole.NEXT_A ||
+                !string.Equals(_standbyId, _instanceId, StringComparison.Ordinal) ||
+                string.IsNullOrWhiteSpace(snapshot.Generation) ||
+                !string.Equals(snapshot.WmsHandoffGeneration, snapshot.Generation,
+                    StringComparison.Ordinal)) return false;
+            DateTimeOffset when;
+            if (!DateTimeOffset.TryParse(read.UpdateTime, out when)) return false;
+            var age = NowMs() - when.ToUnixTimeMilliseconds();
+            return age >= 0 && age <= 30000 &&
+                string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId,
+                    StringComparison.Ordinal);
+        }
+
         private bool TryReturnOwnerPreferredPrimary(AgentSession session, RoleRead roles)
         {
             var snapshot = roles == null ? null : roles.Snapshot;
@@ -1841,6 +1872,7 @@ namespace SupraInventoryRelayAgent
                         Generation = FieldString(fields, "generation"),
                         ManualHolderAgentInstanceId = FieldString(fields, "manual_holder_agent_instance_id"),
                         PreferredVpsAgentInstanceId = FieldString(fields, "preferred_vps_agent_instance_id"),
+                        WmsHandoffGeneration = FieldString(fields, "wms_handoff_generation"),
                         UpdatedAtMs = FieldLong(fields, "updated_at_ms"),
                         ScheduleKey = FieldString(fields, "schedule_key"),
                         ScheduleDecision = FieldString(fields, "schedule_decision"),
@@ -1862,7 +1894,7 @@ namespace SupraInventoryRelayAgent
         }
 
         private bool TryWriteRoles(AgentSession session, FirestoreRoleSnapshot snapshot, RoleRead previous,
-            bool manualOwnerHandoff = false)
+            bool manualOwnerHandoff = false, bool wmsAutoHandoff = false)
         {
             var fields = new Dictionary<string, object>
             {
@@ -1877,6 +1909,8 @@ namespace SupraInventoryRelayAgent
             // failover and presence updates must never impersonate manual intent.
             if (manualOwnerHandoff)
                 fields["manual_holder_agent_instance_id"] = StringField(snapshot.PrimaryAgentInstanceId);
+            if (wmsAutoHandoff)
+                fields["wms_handoff_generation"] = StringField(snapshot.Generation);
             var suffix = BuildMask(fields.Keys);
             suffix += previous != null && previous.Exists && !string.IsNullOrWhiteSpace(previous.UpdateTime)
                 ? "&currentDocument.updateTime=" + Uri.EscapeDataString(previous.UpdateTime)
