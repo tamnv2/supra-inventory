@@ -396,8 +396,8 @@ def main() -> None:
     if picker_ack < 0 or picker_dismiss < 0 or picker_network_ack < 0 or not (picker_ack < picker_dismiss < picker_network_ack):
         fail("D135 in-app result ACK must persist locally and dismiss before network acknowledgement")
     forbid(critical_overlay, "Cảnh báo tự đóng sau tối đa 60 giây", "D135 visible specialist-call TTL detail")
-    require(manifest, 'android:label="1291 Báo hàng Beta"', "D135 Android app label")
-    require(main_activity, "1291 Báo hàng Beta", "D135 Android visible product name")
+    require(manifest, 'android:label="1291 Báo hàng"', "D135 Android app label")
+    require(main_activity, "1291 Báo hàng", "D135 Android visible product name")
     require(d119_agent, "IsPickerCallPending", "D135 initiating Agent call lock")
     require(d119_agent, "Xác nhận gọi Picker", "D143 direct Picker-call confirmation")
     require(d119_agent, "Xác nhận kết thúc Liên hệ picker", "D135 resolve confirmation")
@@ -634,7 +634,7 @@ def main() -> None:
     require(firestore_transport, "_businessEnabled()", "D126 scheduled relay business gate")
 
     # D088: unified naming/icon, persistent Android session, tray-only Agent and editable overlay.
-    require(main_activity, '"1291 Báo hàng Beta"', "D135 Android product name")
+    require(main_activity, '"1291 Báo hàng"', "D135 Android product name")
     require(inventory_api, '.put("client_type", "ANDROID")', "D088 Android session channel")
     require(main_activity, "restoreInteractiveSession", "D088 Android persistent session restore")
     require(main_activity, "persistInteractiveSession", "D088 Android persistent session save")
