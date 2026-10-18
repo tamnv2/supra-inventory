@@ -112,12 +112,21 @@ def main():
             if data.get("legacy_android_package_preserved") is not True:
                 fail("D170 phase2 must leave installed signed Android package intact")
         elif scope == "D170_OFFICIAL_CLIENT_HOST_PHASE3":
-            if data.get("approved_components") != ["worker", "agent", "android"]:
-                fail("D170 Phase3 permits only existing Worker, Agent and signed Android")
-            if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261019_OFFICIAL_CLIENT_HOST_PHASE3":
-                fail("D170 Phase3 requires Owner scoped client migration approval")
-            if data.get("resource_change") != "NONE_EXISTING_WORKER_ANDROID_AGENT_ONLY":
-                fail("D170 Phase3 must not change databases, resource identities or custom domains")
+            components = data.get("approved_components")
+            if components == ["worker", "agent"]:
+                # D170-E018: latest Owner command authorizes only finishing Agent v139.
+                # The existing unchanged Worker must be verified before the EXE release.
+                if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261019_AGENT139_ONLY":
+                    fail("D170 v139 repair requires exact Owner Agent-only approval")
+                if data.get("resource_change") != "NONE_EXISTING_WORKER_AGENT_ONLY":
+                    fail("D170 v139 repair may not change Android, Firestore or provider resources")
+            elif components == ["worker", "agent", "android"]:
+                if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261019_OFFICIAL_CLIENT_HOST_PHASE3":
+                    fail("D170 Phase3 requires Owner scoped client migration approval")
+                if data.get("resource_change") != "NONE_EXISTING_WORKER_ANDROID_AGENT_ONLY":
+                    fail("D170 Phase3 may not change databases, resource identities or custom domains")
+            else:
+                fail("D170 Phase3 approved components must remain exact")
             for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
                         "existing_worker_and_durable_object_preserved"):
                 if data.get(key) is not True:
