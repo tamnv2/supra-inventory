@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "fix/d169-android-agent-code-only-20261015",
-  "pr": 606,
+  "working_branch": "fix/d169-integrated-vps-pda-client-20261018",
+  "pr": 615,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D169-E044",
@@ -665,7 +665,7 @@
     {
       "id": "D169-E030",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_REQUIREMENT_INTAKE_AND_ANALYSIS",
+      "kind": "TECHNICAL_FINDING",
       "topic": "Preferred cloud Windows Agent with resilient Office/Internet failover, no-cost VPS tuning and privileged login proposal",
       "status": "PROPOSAL_ONLY__OWNER_DESIGN_CONFIRMATION_PENDING__NO_CODE_OR_RESOURCE_OR_RELEASE",
       "owner_approval": false,
@@ -691,12 +691,13 @@
         "Resolve account and VPS resource scope and Owner decision before any Agent/API/CI implementation or live failover test. Stable stays Owner-gated."
       ],
       "next_action": "Present scoped impact/security/usage/failover proposal for Owner decision only; no source/provider/role/rules/VM or release mutations. Maintain D169 serial gate, no new Dxxx, and reconcile divergent main E022-vs-working journal before any merge.",
-      "evidence": "Owner current 2026-10-18 request; main ops/authority-manifest.json and canonical spec/state; relay-agent/D165PrivilegedAuth.cs; relay-agent/FirestoreAgentLeaderCoordinator.cs; relay-agent/FirestoreConfirmationTransport.cs; relay-agent/RtdbHaLiveness.cs. Main journal E029, working branch E022 diverge (no merge authorized)."
+      "evidence": "Owner current 2026-10-18 request; main ops/authority-manifest.json and canonical spec/state; relay-agent/D165PrivilegedAuth.cs; relay-agent/FirestoreAgentLeaderCoordinator.cs; relay-agent/FirestoreConfirmationTransport.cs; relay-agent/RtdbHaLiveness.cs. Main journal E029, working branch E022 diverge (no merge authorized).",
+      "kind_legacy": "OWNER_REQUIREMENT_INTAKE_AND_ANALYSIS"
     },
     {
       "id": "D169-E031",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_CLARIFICATION_AND_SECURITY_ANALYSIS",
+      "kind": "TECHNICAL_FINDING",
       "topic": "CLOUD_AGENT is a provisioned SUPRA Web application account; WMS image slider CAPTCHA unattended-login question",
       "status": "ACCOUNT_TYPE_CONFIRMED__WMS_CAPTCHA_MANUAL_OR_AUTHORIZED_SSO_PROPOSED__NO_CODE_RELEASE",
       "owner_approval": false,
@@ -711,12 +712,13 @@
         "D169 source/release boundary unchanged: v135 field PASS pending, no Android/Worker/Firebase/Stable mutation and no provision of unregistered VPS infra."
       ],
       "next_action": "Confirm actual authorized SUPRA application role for CLOUD_AGENT and test WMS session behavior after disconnect/restart; ask WMS admin for policy-supported unattended authentication if needed. Propose secure Agent OTP separately for Owner approval. Do not mutate WMS challenge or write CAPTCHA automation.",
-      "evidence": "Owner 2026-10-18 clarification; main relay-agent/SupraConfirmBrowser.cs LoginMarkerText and RefreshState login-marker presentation; relay-agent/D165PrivilegedAuth.cs exact admin/tamnv2 OTP gate; project-scope and current D169 branch E030."
+      "evidence": "Owner 2026-10-18 clarification; main relay-agent/SupraConfirmBrowser.cs LoginMarkerText and RefreshState login-marker presentation; relay-agent/D165PrivilegedAuth.cs exact admin/tamnv2 OTP gate; project-scope and current D169 branch E030.",
+      "kind_legacy": "OWNER_CLARIFICATION_AND_SECURITY_ANALYSIS"
     },
     {
       "id": "D169-E032",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_REQUEST_AND_SECURITY_SCOPE_BOUNDARY",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner reports shared concurrent WMS sign-in and requests unattended image-slider CAPTCHA completion on cloud primary",
       "status": "OWNER_REQUEST_RECORDED__CAPTCHA_BYPASS_NOT_IMPLEMENTED__VENDOR_AUTH_PATH_NEEDED__NO_CODE_OR_RELEASE",
       "owner_approval": true,
@@ -729,12 +731,13 @@
         "A fully unattended solution needs documented approval and an official provider-supported authentication path, such as SSO/trusted-device policy, not an invented CAPTCHA exemption. No WMS backend, Agent/PDA, Beta/Stable deployment or new resource was modified."
       ],
       "next_action": "Owner/WMS administrator checks whether supported unattended WMS authentication is available. Otherwise propose an event-driven login-required alert and human verification handoff under a separate Owner-approved bounded Agent change after D169 scope/continuity reconciliation.",
-      "evidence": "Owner direct 2026-10-18 clarification; main ops/project-scope.json supra-auth-ui-d127-probe and explicit_out_of_scope; main relay-agent/SupraConfirmBrowser.cs lines ~394-410, ~1458-1501, ~2204-2224; docs/specs/ROLE_WORKFLOWS.md D127 manual login; current D169 PR #606 remains open."
+      "evidence": "Owner direct 2026-10-18 clarification; main ops/project-scope.json supra-auth-ui-d127-probe and explicit_out_of_scope; main relay-agent/SupraConfirmBrowser.cs lines ~394-410, ~1458-1501, ~2204-2224; docs/specs/ROLE_WORKFLOWS.md D127 manual login; current D169 PR #606 remains open.",
+      "kind_legacy": "OWNER_REQUEST_AND_SECURITY_SCOPE_BOUNDARY"
     },
     {
       "id": "D169-E033",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_AUTHORIZATION_CLARIFICATION",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner attests SUPRA WMS allows automation of login image slider CAPTCHA",
       "status": "OWNER_ATTESTATION_RECORDED__TECHNICAL_DESIGN_AND_SCOPE_REVIEW_PENDING__NO_CODE_OR_DEPLOY",
       "owner_approval": true,
@@ -747,12 +750,13 @@
         "Safer underlying requirements: minimize loss of authenticated session via existing profile, distinguish WMS expired login from browser crash/slow DOM, never declare PRIMARY WMS-ready during login challenge, fail over to a ready registered secondary, and only return VPS leadership after verified Confirm readiness and no manual PRIMARY override."
       ],
       "next_action": "Seek an approved technical WMS authentication pathway or bounded supervised trial evidence, then present architecture, scope and security impact for Owner review; only implement after repo resource scope/decision/spec change set and branch/PR CI gates, Stable Owner-gated.",
-      "evidence": "Owner current 2026-10-18 authorization statement; main/branch ops/project-scope.json, relay-agent/SupraConfirmBrowser.cs, docs/specs/ROLE_WORKFLOWS.md; E031-E032 prior proposal context."
+      "evidence": "Owner current 2026-10-18 authorization statement; main/branch ops/project-scope.json, relay-agent/SupraConfirmBrowser.cs, docs/specs/ROLE_WORKFLOWS.md; E031-E032 prior proposal context.",
+      "kind_legacy": "OWNER_AUTHORIZATION_CLARIFICATION"
     },
     {
       "id": "D169-E034",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_APPROVED_LOCAL_DIAGNOSTIC_BUILD",
+      "kind": "OWNER_COMMAND",
       "topic": "Standalone Windows x64 manual WMS CAPTCHA gesture observation tool alongside existing Agent, no login bypass",
       "status": "LOCAL_WIN_X64_EXE_CROSS_BUILD_PASS__ZIP_VERIFIED__WINDOWS_VPS_FIELD_TEST_PENDING__NO_AGENT_WMS_RUNTIME_MUTATION",
       "owner_approval": true,
@@ -766,12 +770,13 @@
         "Chat-only diagnostic ZIP SUPRA_WMS_MANUAL_DRAG_TEST_WIN64.zip created at local /mnt/data; no binary or source committed to public GitHub, no prerelease/channel/PR merge, no policy/scope/rules or live WMS changes. The canonical repo's auth UI resource currently stipulates manual login and cannot be silently broadened."
       ],
       "next_action": "Owner runs the local GUI observer alongside Agent v135 on VPS and uploads one or more sanitized manual-drag JSON files plus separately cropped CAPTCHA screenshots before interaction. Review field validity and security/scope before any new source/PR for Agent login-related changes; Stable remains OWNER-GATED.",
-      "evidence": "Owner 2026-10-18 build request; main authority/scope/auth UI; current main relay-agent/SupraConfirmBrowser.cs and AgentBrowserBundle.cs; local cross-compilation and ZIP validation evidence. No Windows field pass."
+      "evidence": "Owner 2026-10-18 build request; main authority/scope/auth UI; current main relay-agent/SupraConfirmBrowser.cs and AgentBrowserBundle.cs; local cross-compilation and ZIP validation evidence. No Windows field pass.",
+      "kind_legacy": "OWNER_APPROVED_LOCAL_DIAGNOSTIC_BUILD"
     },
     {
       "id": "D169-E035",
       "date_vn": "2026-10-18",
-      "kind": "USER_FIELD_EVIDENCE_ANALYSIS",
+      "kind": "TECHNICAL_FINDING",
       "topic": "First VPS manual WMS slider mouse-drag log received; motion measured, CAPTCHA image and success not established",
       "status": "ONE_MANUAL_GESTURE_CAPTURE_VALID__TARGET_IMAGE_UNKNOWN__WMS_ACCEPTANCE_UNKNOWN__NO_CODE_OR_RELEASE",
       "owner_approval": false,
@@ -783,7 +788,8 @@
         "This evidence does not authorize automated CAPTCHA circumvention or browser login flow modification; existing supra-auth-ui-d127-probe resource remains manual-login scoped and D169 v135 Beta field PASS remains pending."
       ],
       "next_action": "Report one manual drag measured and ask Owner for an image cropped to the CAPTCHA region before drag, plus whether that exact drag resulted in successful WMS login. If continuing diagnostic collection, keep sensitive page/account info out of attachments. No Agent, PDA, provider or public resource mutation.",
-      "evidence": "Local uploaded private JSON manual-drag.v1 on 2026-10-18; main/working authority and relay-agent/SupraConfirmBrowser.cs; no extra browser instrumentation."
+      "evidence": "Local uploaded private JSON manual-drag.v1 on 2026-10-18; main/working authority and relay-agent/SupraConfirmBrowser.cs; no extra browser instrumentation.",
+      "kind_legacy": "USER_FIELD_EVIDENCE_ANALYSIS"
     },
     {
       "id": "D169-E036",
@@ -810,7 +816,7 @@
     {
       "id": "D169-E037",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_TECHNICAL_CLARIFICATION",
+      "kind": "DISCUSSION",
       "topic": "Manual CAPTCHA cursor coordinates cannot transfer across resolutions; exact-gap match expected; Owner requests honest feasibility assessment",
       "status": "IMAGE_RELATIVE_FEASIBILITY_ONLY__ONE_GESTURE_LOG_NO_CAPTCHA_IMAGE__FIELD_PROOF_PENDING__NO_RUNTIME_CHANGE",
       "owner_approval": false,
@@ -823,7 +829,8 @@
         "Communicate clear distinction between achievable exploratory image analysis and unproven, potentially provider-restricted unattended login success. Do not claim implemented results, universal 100% pass, or a released build."
       ],
       "next_action": "Request privacy-cropped CAPTCHA image from before manual drag and Owner's answer whether that particular drag passed. If a source implementation is later selected, reconcile explicit scope/security/Owner change-control before build and Windows field acceptance; Stable untouched.",
-      "evidence": "Owner 2026-10-18 follow-up questions; prior private manual-drag.v1 input and D169-E035 checkpoint; main scope guard supra-auth-ui-d127-probe; branch D169-E036 additional engineering guidelines."
+      "evidence": "Owner 2026-10-18 follow-up questions; prior private manual-drag.v1 input and D169-E035 checkpoint; main scope guard supra-auth-ui-d127-probe; branch D169-E036 additional engineering guidelines.",
+      "kind_legacy": "OWNER_TECHNICAL_CLARIFICATION"
     },
     {
       "id": "D169-E038",
@@ -863,7 +870,7 @@
     {
       "id": "D169-E040",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_CANCELS_PROPOSAL",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner cancels WMS slider CAPTCHA recognition and automatic drag concept",
       "status": "AUTO_CAPTCHA_CONCEPT_CANCELLED__MANUAL_LOGIN_BASELINE__NO_RUNTIME_CHANGE",
       "owner_approval": true,
@@ -875,7 +882,8 @@
         "Existing `ops/project-scope.json` supra-auth-ui-d127-probe remains scoped to MANUAL_LOGIN_WHEN_REQUIRED. No resource was added/removed/changed. No Agent, PDA, Web, Worker, Firebase, Stable, WMS or external provider executable changes have been made."
       ],
       "next_action": "Do not work further on auto-CAPTCHA unless Owner reopens the topic. Preserve manual WMS sign-in and continue other VPS/Agent work only when independently approved, within existing D169 serial/CI/release guards.",
-      "evidence": "Owner 2026-10-18 immediate request to drop the idea; relay-agent/SupraConfirmBrowser.cs and canonical auth UI scope; D169 E031–E037."
+      "evidence": "Owner 2026-10-18 immediate request to drop the idea; relay-agent/SupraConfirmBrowser.cs and canonical auth UI scope; D169 E031–E037.",
+      "kind_legacy": "OWNER_CANCELS_PROPOSAL"
     },
     {
       "id": "D169-E041",
@@ -905,7 +913,7 @@
     {
       "id": "D169-E042",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_REQUEST_AND_IMPACT_REVIEW",
+      "kind": "OWNER_COMMAND",
       "topic": "Repair VPS 15-second HA detection, PDA Picklist status/ACK clarity and Agent Wi-Fi routing",
       "status": "DESIGN_REPORT_COMMITTED__SOURCE_FINDINGS_VERIFIED__EXECUTABLE_REVIEW_PENDING",
       "owner_approval": true,
@@ -920,12 +928,13 @@
         "V3 Office Firestore REST read PASS via system proxy, RTDB fails and Worker unavailable. Actual Office Firestore gRPC listener and authenticated cross-device writes/ACK were NOT tested. Source-only design cannot guarantee all network partitions detected in 15s."
       ],
       "next_action": "Owner impact-review approval before executable code changes; validate transport and failover via staged existing Beta resources; source scope Agent+Android+network; avoid any Stable/provider/network authorization expansion. Full design at docs/D169_AGENT_HA_PDA_WIFI_DESIGN_2026-10-18.md.",
-      "evidence": "User Oct18 instructions and two V3 JSON diagnostics; main relay-agent/FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, D168NetworkRoute.cs, D168SkuNetworkUi.cs, D167SkuCoordinator.cs, D160Resilience.cs; Android RelayPocClient.kt and PickerController.kt."
+      "evidence": "User Oct18 instructions and two V3 JSON diagnostics; main relay-agent/FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, D168NetworkRoute.cs, D168SkuNetworkUi.cs, D167SkuCoordinator.cs, D160Resilience.cs; Android RelayPocClient.kt and PickerController.kt.",
+      "kind_legacy": "OWNER_REQUEST_AND_IMPACT_REVIEW"
     },
     {
       "id": "D169-E043",
       "date_vn": "2026-10-18",
-      "kind": "WEEKLY_EVIDENCE_AND_CONFLICT_REVIEW",
+      "kind": "TECHNICAL_FINDING",
       "topic": "Seven-day Agent logs cross-check; D169 released/code-only conflict assessment for joint VPS-HA/PDA/Wi-Fi release",
       "status": "EVIDENCE_REVIEW_DONE_PARTIAL_ARCHIVE_COVERAGE__SOURCE_CONFLICTS_CONFIRMED__OWNER_INTEGRATED_DESIGN_APPROVAL_PENDING__NO_EXECUTABLE_DEPLOY",
       "owner_approval": false,
@@ -953,12 +962,13 @@
         "Actual in-field WMS/checkbox positive confirmed-proof and Office authenticated Firestore gRPC/peer-WRITE ACK."
       ],
       "next_action": "Obtain Owner explicit integrated architecture/release policy approval before source changes, resolve PR606 diverged history, stage and test with V3-based normal+Office test protocol, keep Stable owner-gated. Do not claim full 7-day raw-log coverage.",
-      "evidence": "Canonical GitHub main+Draft PR606; Agent checkpoint/manual logs under registered scoped Beta Drive logs 12–18 Oct; existing D169 weekly analysis E010–E015, D169_AGENT_PDA_ADAPTIVE_MODEL; live relay-agent and Android source; review doc docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md."
+      "evidence": "Canonical GitHub main+Draft PR606; Agent checkpoint/manual logs under registered scoped Beta Drive logs 12–18 Oct; existing D169 weekly analysis E010–E015, D169_AGENT_PDA_ADAPTIVE_MODEL; live relay-agent and Android source; review doc docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md.",
+      "kind_legacy": "WEEKLY_EVIDENCE_AND_CONFLICT_REVIEW"
     },
     {
       "id": "D169-E044",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_APPROVAL",
+      "kind": "OWNER_COMMAND",
       "topic": "Approved staged D169 integration and evidence-gated Báo hàng/RBAC/version scope",
       "status": "PR615_SOURCE_CANDIDATE__NO_RELEASE__CI_FIELD_PENDING",
       "owner_approval": true,
@@ -970,7 +980,8 @@
         "Review documentation docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md; separate PR606 E030-E043 history remains authoritative for pending network study until journal history safely reconciled."
       ],
       "next_action": "Review PR615 CI and field safety before any release; continue HA/ACK/SSID integration under D169 and preserve no Stable changes.",
-      "evidence": "Owner Oct18 explicit approval, PR615 source + previous PR606 evidence."
+      "evidence": "Owner Oct18 explicit approval, PR615 source + previous PR606 evidence.",
+      "kind_legacy": "OWNER_APPROVAL"
     }
   ],
   "resume": {
