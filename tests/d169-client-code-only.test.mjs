@@ -96,3 +96,19 @@ test("D169 same-ID recovery needs authenticated versioned Agent marker and prese
  assert.match(rules, /primary_agent_instance_id/);
  assert.match(rules, /recovery_granted_at_ms/);
 });
+
+test("D169 recovery never extends wait based on an unverified local Firestore cache", () => {
+ assert.match(relay, /snapshot\.metadata\.isFromCache/);
+ assert.match(relay, /isVerifiedRecoveryGrant\(latest, requestId\)/);
+ assert.match(relay, /doc\.get\(Source\.SERVER\), 4, TimeUnit\.SECONDS/);
+ assert.match(relay, /recoveryServerReadAttempted = true/);
+ assert.match(relay, /snapshot\.getString\("request_id"\) != requestId/);
+ assert.doesNotMatch(relay, /hệ thống sẽ tự chuyển Agent dự phòng nếu cần/);
+});
+test("D169 existing Beta Firestore recovery update can never edit terminal ACK or unrelated fields", () => {
+ assert.match(rules, /request\.resource\.data\.status == 'PENDING'/);
+ assert.match(rules, /!resource\.data\.keys\(\)\.hasAny\(\['recovery_generation'\]\)/);
+ assert.match(rules, /get\(\/databases\/\$\(database\)\/documents\/relay_poc_coordination\/roles\)/);
+ assert.match(transport, /doc\.Work\.RecoveryProtocol != 1/);
+ assert.match(transport, /VerifyPrimaryForBusinessIngress\(session\)/);
+});
