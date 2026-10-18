@@ -1175,3 +1175,8 @@ Agent WinForms đặt nút ở vùng toolbar cố định bên ngoài TabControl
 ## D169-E027 — Không được che tab cũ khi hiển thị nút Web Confirm
 
 Sửa lỗi layout v134: cấm đặt `DockStyle.Top` toolbar cùng một `Panel` đang có `TabControl DockStyle.Fill` rồi gọi `BringToFront`, vì thanh nút có thể che toàn bộ các tiêu đề tab. Dùng `TableLayoutPanel` độc lập Row 0 (38px) cho nút Ẩn/Hiển thị, Row 1 (100%) cho nguyên `TabControl` chứa đầy đủ Tổng quan, Cài đặt, SKU, Web Confirm và các tab nghiệp vụ khác. Nút đổi nhãn như đã chốt, chỉ có Web Confirm được remove/add; không hủy, reset hay mở lại WebView2/WMS, không thay đổi auth/ACK/HA. Phải kiểm tra WinForms runtime geometry, không dựa vào string marker duy nhất.
+
+
+## D169-E061 Android Beta foreground resume
+
+Warm return to an existing Activity must retain tab, form draft, and controller instances. Silent signed-version checks must not redraw the home view. Cold process recreation still requires session verification and the signed update floor. Keep role/kick checks and in-flight PickList ACK intact. No new polling or backend resources. Stable release is Owner-gated. Field acceptance needs real MT90 and DT50 checks.
