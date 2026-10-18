@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D170",
-    "current_change_status": "D170_E016_PR633_25_OF_25_PROTECTED_CLIENT_CODE_PASS__EXACT_RELEASE_GATE_PENDING",
+    "current_change_status": "D170_E017_PR633_PHASE3A_WORKER_AGENT_ANDROID_EXACT_B11FD2_RELEASE_APPROVED__CI_AND_MAIN_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7451,11 +7451,11 @@
     "journal": "ops/change-continuity/D170.json",
     "working_branch": "feat/d170-official-client-api-migration-20261019",
     "pr": 633,
-    "latest_checkpoint_id": "D170-E016",
+    "latest_checkpoint_id": "D170-E017",
     "checkpoint_date_vn": "2026-10-19",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D170_E016_PR633_25_OF_25_SOURCE_PASS__APPROVED_EXACT_SHA_B11FD2_PENDING_RECEIPT",
+    "owner_release_gate": "D170_E017_EXACT_B11FD2_25_OF_25_SOURCE_PASS_WORKER_AGENT_ANDROID__DO_NOT_DELETE_OLD_HOST",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8296,7 +8296,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E016_PHASE3A_CLIENT_SOURCE_CI_PASS_25_OF_25__DEPLOY_PENDING",
+    "status": "D170_E017_PHASE3A_CLIENT_RELEASE_AUTHORIZED__MAIN_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8304,7 +8304,7 @@
     "working_pr": 633,
     "owner_goal_approved": true,
     "source_code_approved": true,
-    "release_approved": false,
+    "release_approved": true,
     "code_ready": true,
     "release_pass": false,
     "field_pass": false,
@@ -8314,9 +8314,11 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "PR633_EXACT_SHA_B11FD2_PHASE3A_RELEASE_RECEIPT__MERGE_WORKER_AGENT_ANDROID__VERIFY_NO_OLD_HOST_DELETE",
+    "next": "PR633_FINAL_CI_AND_GUARDED_MERGE_D170_PHASE3_OFFICIAL_CLIENTS__VERIFY_WORKER_AGENT_V139_ANDROID_VC114",
     "release_approved_scope": [
-      "worker"
+      "worker",
+      "agent",
+      "android"
     ],
     "phase1_release_protected_sha": "836cd01902444562a719554f910b71c047073418",
     "phase1_release_pass": true,
@@ -8330,7 +8332,7 @@
     "phase2_dual_host_same_worker": true,
     "phase2_dual_host_storage_health_pass": true,
     "official_domain_operational": true,
-    "phase3_status": "PHASE3A_CODE_CI_PASS__SIGNED_VC114_AND_AGENT_V139_RELEASE_PENDING__OA105_GOOGLE_OAUTH_BEFORE_FINAL_HOST_RETIREMENT",
+    "phase3_status": "PR633_PROTECTED_SOURCE_B11FD2_RELEASE_AUTHORIZED__LEGACY_HOST_RETAINED_PENDING_OA105_FLEET",
     "phase3_legacy_host_retirement_gate": "NOT_ALLOWED_UNTIL_PDA_AGENT_OLD_OTA_AND_GOOGLE_OAUTH_NO_LONGER_DEPEND_ON_LEGACY_HOST"
   },
   "d171_queued": {
