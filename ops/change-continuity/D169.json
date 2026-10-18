@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E037",
+    "id": "D169-E038",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -700,6 +700,23 @@
       ],
       "next_action": "Request privacy-cropped CAPTCHA image from before manual drag and Owner's answer whether that particular drag passed. If a source implementation is later selected, reconcile explicit scope/security/Owner change-control before build and Windows field acceptance; Stable untouched.",
       "evidence": "Owner 2026-10-18 follow-up questions; prior private manual-drag.v1 input and D169-E035 checkpoint; main scope guard supra-auth-ui-d127-probe; branch D169-E036 additional engineering guidelines."
+    },
+    {
+      "id": "D169-E038",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner requests repo-wide main application of CLAUDE.md coding rules, not D169-only",
+      "status": "MAIN_GOVERNANCE_DOCS_PR614_OPEN__AUTHORITY_CONTINUITY_CI_PASS__OTHER_CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests the CLAUDE.md five-part programming discipline already added on PR606 be applied to canonical main for all future SUPRA Inventory workstreams.",
+        "D169-scoped docs-only PR614 branches from main and edits only AGENTS.md plus docs/OWNER_DECISIONS.md; no new Dxxx ID, client source code, login/CAPTCHA behavior, WMS/Agent/PDA/Web/Firebase/runtime/Stable/provider settings.",
+        "Repo-wide rule remains subordinate to canonical authority-manifest, owner decision/state/spec, resource scope, security, continuity and deployment/Owner-PASS gates.",
+        "PR614 exact-head checks Repo Authority Guard and Project State Guard continuity have passed. Other CI pending at time of checkpoint; do not claim merged until verified.",
+        "Separate D169 PR606 remains Draft and unmerged; Owner has not declared D169 Owner PASS and this documentation change does not promote client runtime."
+      ],
+      "next_action": "Wait until all mandatory PR614 CI checks complete successfully, merge only PR614 using normal merge commit if passes, verify main AGENTS decision readback and harmonize the old AGENTS section in PR606. Do not merge PR606 or trigger product release.",
+      "evidence": "User 2026-10-18 clarification; PR https://github.com/tamnv2/supra-inventory/pull/614; AGENTS.md; docs/OWNER_DECISIONS.md; PR614 current CI authority and continuity PASS."
     }
   ],
   "resume": {
@@ -708,7 +725,8 @@
       "Open D169 for intake and later batch/unified cross-component analysis; no implementation/deployment authorization",
       "D169 Owner authorized Web/Worker Beta Picker enrollment, Android/Agent code-only hold and evidence backlog.",
       "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
-      "D169-E036: Owner supplied five subordinate coding-quality guidelines for current D169 engineering process; no business or release authorization."
+      "D169-E036: Owner supplied five subordinate coding-quality guidelines for current D169 engineering process; no business or release authorization.",
+      "D169-E038: Owner clarified global main application of CLAUDE.md engineering rules, not just D169 branch."
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -736,7 +754,8 @@
       "D169-E018: 16 Oct dual-network v1 field probe evaluated. Office direct TCP only five Google API hosts; proxy-aware Agent equivalence not covered; no candidate proven free/realtime/HA safe.",
       "D169-E020: standalone Firebase Office Windows x64 EXE v2 built/tested; proxy-aware field evidence still pending. No provider or runtime change.",
       "D169-E021 Owner asks Agent-only release compatibility for PDA vc110 and an embedded resizable WMS Confirm tab; source confirms the Agent code-only delta is local SKU retry and embedded Web is a separate UI/host redesign proposal, not built.",
-      "D169-E022 diagnostic Windows x64 EXE v3.0.0 compiled in conversation artifacts only; authenticated Windows Office/NORMAL field evidence pending; no Agent/PDA/runtime changes."
+      "D169-E022 diagnostic Windows x64 EXE v3.0.0 compiled in conversation artifacts only; authenticated Windows Office/NORMAL field evidence pending; no Agent/PDA/runtime changes.",
+      "D169-E038: scoped PR614 docs-only main rule; CI and merge verification outstanding."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
