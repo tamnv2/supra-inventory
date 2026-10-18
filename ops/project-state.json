@@ -7451,7 +7451,7 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-android-agent-code-only-20261015",
     "pr": 606,
-    "latest_checkpoint_id": "D169-E039",
+    "latest_checkpoint_id": "D169-E040",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7996,7 +7996,7 @@
     ],
     "next": "KEEP_PR606_DRAFT_UNMERGED__PASS_CLIENT_CONTINUITY_AND_WAIT_FIELD_LOGS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E039",
+    "latest_checkpoint_id": "D169-E040",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8040,6 +8040,16 @@
       "implementation_authorized": false,
       "runtime_or_provider_changed": false,
       "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    "wms_slider_captcha_auto_idea": {
+      "status": "CANCELLED_BY_OWNER_2026_10_18__DO_NOT_IMPLEMENT",
+      "scope": "AUTO_IMAGE_GAP_RECOGNITION_AND_AUTO_DRAG_ONLY",
+      "manual_wms_login": "KEEP_EXISTING",
+      "vps_ha_and_agent_pda_workstream": "NOT_CANCELLED",
+      "runtime_mutated": false,
+      "resource_scope_mutated": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "evidence": "ops/change-continuity/D169.json#D169-E040"
     }
   }
 }
