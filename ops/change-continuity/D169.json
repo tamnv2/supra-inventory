@@ -750,6 +750,82 @@
       "evidence": "Owner current 2026-10-18 authorization statement; main/branch ops/project-scope.json, relay-agent/SupraConfirmBrowser.cs, docs/specs/ROLE_WORKFLOWS.md; E031-E032 prior proposal context."
     },
     {
+      "id": "D169-E034",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_APPROVED_LOCAL_DIAGNOSTIC_BUILD",
+      "topic": "Standalone Windows x64 manual WMS CAPTCHA gesture observation tool alongside existing Agent, no login bypass",
+      "status": "LOCAL_WIN_X64_EXE_CROSS_BUILD_PASS__ZIP_VERIFIED__WINDOWS_VPS_FIELD_TEST_PENDING__NO_AGENT_WMS_RUNTIME_MUTATION",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests a separate Web Agent test to observe the Owner's manual image-slider CAPTCHA drag during legitimate WMS sign-in, as preliminary evidence for evaluating unattended recovery.",
+        "Created a local, independent, single-window Windows x64 GUI gesture recorder (Go 1.23 standard library, no third-party dependencies) that runs alongside current Agent v135 WebView2, without opening/copying Agent's dedicated browser profile or attaching to its process.",
+        "User presses Start, waits three seconds, then physically performs ONE mouse drag; recorder samples only screen-space mouse X/Y/timing at ~10ms while left mouse button is held, immediately stops after mouse-up and saves sanitized JSON on Desktop. 60-second maximum idle, manual stop, no background operation outside active window.",
+        "No key events, DOM, screenshot, username, password, cookies, access tokens, challenge contents, WMS network calls, Agent/Firestore/RTDB access, primary-election operations or CAPTCHA solving/drag automation. Optional WMS button merely launches the default browser, separate from Agent profile.",
+        "Includes offline HTML viewer plotting the recorded cursor trajectory and source code/README/SHA-256. User can manually crop only the CAPTCHA image using Windows Win+Shift+S and upload that image separately, since cursor movement alone cannot infer the gap location.",
+        "Code cross-compiled successfully as Windows PE32+ x64 GUI executable with GOOS=windows/GOARCH=amd64/CGO_ENABLED=0, go vet cross-check PASS, packaged ZIP integrity verified by Python zipfile.testzip(). No Windows runtime or physical WMS CAPTCHA test was possible in the build environment.",
+        "Chat-only diagnostic ZIP SUPRA_WMS_MANUAL_DRAG_TEST_WIN64.zip created at local /mnt/data; no binary or source committed to public GitHub, no prerelease/channel/PR merge, no policy/scope/rules or live WMS changes. The canonical repo's auth UI resource currently stipulates manual login and cannot be silently broadened."
+      ],
+      "next_action": "Owner runs the local GUI observer alongside Agent v135 on VPS and uploads one or more sanitized manual-drag JSON files plus separately cropped CAPTCHA screenshots before interaction. Review field validity and security/scope before any new source/PR for Agent login-related changes; Stable remains OWNER-GATED.",
+      "evidence": "Owner 2026-10-18 build request; main authority/scope/auth UI; current main relay-agent/SupraConfirmBrowser.cs and AgentBrowserBundle.cs; local cross-compilation and ZIP validation evidence. No Windows field pass."
+    },
+    {
+      "id": "D169-E035",
+      "date_vn": "2026-10-18",
+      "kind": "USER_FIELD_EVIDENCE_ANALYSIS",
+      "topic": "First VPS manual WMS slider mouse-drag log received; motion measured, CAPTCHA image and success not established",
+      "status": "ONE_MANUAL_GESTURE_CAPTURE_VALID__TARGET_IMAGE_UNKNOWN__WMS_ACCEPTANCE_UNKNOWN__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner uploaded SUPRA_WMS_MANUAL_DRAG_20261018_075115.json, schema supra.manual-drag.v1; private per-session manual gesture only. File was analyzed locally; do not commit the original per-point trace or screenshot to public GitHub.",
+        "Field evidence: screen 1920x1200 pixels; 293 samples target 10ms, measured median 10ms; gesture first (782,754), last (976,755), net +194 x/+1 y pixels, total hold 3037ms, fully captured/completed.",
+        "Mouse began moving around 230ms, last movement around 1999ms, then stayed at end for about 1038ms; Y stays within 754..755. This is one predominantly horizontal manual drag.",
+        "No CAPTCHA screenshot, challenge target-slot coordinate, WMS DOM or explicit CAPTCHA PASS/FAIL was recorded. The displacement cannot be treated as image-gap offset or validated challenge solve. External screenshot / explicit post-release success evidence would be needed for even a supervised field analysis.",
+        "This evidence does not authorize automated CAPTCHA circumvention or browser login flow modification; existing supra-auth-ui-d127-probe resource remains manual-login scoped and D169 v135 Beta field PASS remains pending."
+      ],
+      "next_action": "Report one manual drag measured and ask Owner for an image cropped to the CAPTCHA region before drag, plus whether that exact drag resulted in successful WMS login. If continuing diagnostic collection, keep sensitive page/account info out of attachments. No Agent, PDA, provider or public resource mutation.",
+      "evidence": "Local uploaded private JSON manual-drag.v1 on 2026-10-18; main/working authority and relay-agent/SupraConfirmBrowser.cs; no extra browser instrumentation."
+    },
+    {
+      "id": "D169-E036",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner-supplied CLAUDE.md coding discipline integrated with existing AGENTS governance",
+      "status": "D169_DRAFT_AGENTS_GUIDELINES_COMMITTED__NO_EXECUTABLE_OR_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner provided CLAUDE.md with five coding quality disciplines: think before coding, simplicity, surgical changes, goal-driven execution, and a concise verification plan.",
+        "This attachment is engineering-process guidance and does not authorize changing existing login/authentication, WMS/CAPTCHA, Agent, PDA or Web business behavior.",
+        "Current AGENTS.md mandates stronger repository bootstrap/authority, change-scope controls, serial D169 Owner PASS, quota/realtime/HA tests, confidentiality and release restrictions. These remain controlling; supplementary rules cannot override them.",
+        "Implemented by appending a subordinate five-part engineering discipline section to existing AGENTS.md on Draft PR606 working branch only, with no separate CLAUDE.md authority file and no new bootstrap resources.",
+        "The new guidance explicitly discourages speculative code, redundant configuration/abstraction, unrelated refactor, unverified passing claims, while retaining handling of realistic auth/network/HA/ACK failures and automated bounded execution.",
+        "No business code, WMS profile/session, deployed Worker, Firebase, Android, Agent binary, Stable or main accepted base was changed. D169 Owner PASS, field acceptance and PR606 merge remain outstanding."
+      ],
+      "alternatives": [
+        "Selected: extend existing AGENTS.md to avoid conflicting policy engines and mandatory manifest/bootstrap changes.",
+        "Not selected: treat uploaded CLAUDE.md as an independent higher-priority rulebook or broaden authentication logic."
+      ],
+      "next_action": "Verify branch AGENTS/state/journal diff and authority/continuity checks; PR606 remains Draft/unmerged, no product release. Follow existing D169 Owner gates.",
+      "evidence": "Owner attached CLAUDE.md (2026-10-18); D169 PR606; AGENTS.md branch commit 53fc6141a43c263b9ef62019399d9ad6aad7b242; authority bootstrap and scope."
+    },
+    {
+      "id": "D169-E037",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_TECHNICAL_CLARIFICATION",
+      "topic": "Manual CAPTCHA cursor coordinates cannot transfer across resolutions; exact-gap match expected; Owner requests honest feasibility assessment",
+      "status": "IMAGE_RELATIVE_FEASIBILITY_ONLY__ONE_GESTURE_LOG_NO_CAPTCHA_IMAGE__FIELD_PROOF_PENDING__NO_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner explicitly challenges use of absolute (x,y) and recorded +194px displacement: CAPTCHA screen location varies by monitor, zoom, layout and random challenge. Agree absolute coordinates are inapplicable as a generalized target.",
+        "Owner confirms that dragging the image puzzle piece exactly into the intended slot produces a CAPTCHA PASS when done manually. This is the observed functional criterion; no browser-generated pass/response trace was supplied.",
+        "Previous private gesture-only JSON measured start (782,754), end (976,755), duration 3037ms, but contains no screenshot or challenge-gap coordinates, so it cannot establish detection accuracy or the correctness of automated challenge completion.",
+        "A bounded, offline image-relative research prototype for different screen sizes could be evaluated technically from user-provided cropped CAPTCHA examples, but current evidence does not prove provider-specific success, and a production WMS auto-login/slider workflow is not implemented.",
+        "Current registered supra-auth-ui-d127-probe resource guard is MANUAL_LOGIN_WHEN_REQUIRED; no code or live authentication change is authorized by this informational exchange. Keep WMS readiness/Firestore HA generation fences and privileged manual override intact.",
+        "Communicate clear distinction between achievable exploratory image analysis and unproven, potentially provider-restricted unattended login success. Do not claim implemented results, universal 100% pass, or a released build."
+      ],
+      "next_action": "Request privacy-cropped CAPTCHA image from before manual drag and Owner's answer whether that particular drag passed. If a source implementation is later selected, reconcile explicit scope/security/Owner change-control before build and Windows field acceptance; Stable untouched.",
+      "evidence": "Owner 2026-10-18 follow-up questions; prior private manual-drag.v1 input and D169-E035 checkpoint; main scope guard supra-auth-ui-d127-probe; branch D169-E036 additional engineering guidelines."
+    },
+    {
       "id": "D169-E044",
       "date_vn": "2026-10-18",
       "kind": "OWNER_APPROVAL",
