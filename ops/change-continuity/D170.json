@@ -3,22 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "docs/d170-phase2-verified-runtime-state-20261019",
-  "pr": 632,
+  "working_branch": "feat/d170-official-client-api-migration-20261019",
+  "pr": 633,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E014",
+    "id": "D170-E015",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
     "owner_latest": "OWNER_EXPLICIT_D170_FULL_SAFE_CONVERSION_CONTINUE_20261018",
     "code_permission": true,
-    "merge_permission": true,
-    "deploy_permission": true,
-    "production_runtime_permission": true,
+    "merge_permission": false,
+    "deploy_permission": false,
+    "production_runtime_permission": false,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E013_PR631_RELOCK_MAIN_63687461_IDENTICAL_SOURCE__MAIN_RETRY_AFTER_CI"
+    "reason": "D170_E015_CLIENT_OFFICIAL_DOMAIN_CODE_ONLY__SOURCE_CI_AND_PROTECTED_RELEASE_PENDING"
   },
   "entries": [
     {
@@ -267,6 +267,28 @@
       ],
       "next_action": "Sync authoritative D170 state; audit Phase3 client links, OAuth, updates and release policy. Preserve backward compatibility.",
       "evidence": "GitHub Actions https://github.com/tamnv2/supra-inventory/actions/runs/39154128973"
+    },
+    {
+      "id": "D170-E015",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner requests full legacy hostname retirement and authorizes Android, Agent, Web migrations with guarded rollout",
+      "status": "OWNER_APPROVED_GOAL__PR633_PHASE3A_CODE_ONLY__OLD_HOST_SUNSET_GATED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests to stop using inventory-beta.supra.cc.cd and exclusively use inventory.supra.cc.cd, with authorization to update Web, Agent and Android where feasible.",
+        "D170 Phase2 live official + old hostname same existing Worker/InventoryCore SQLite: main d6833675 run 39154128973 PASS.",
+        "Current signed PDA vc113 compiles API and trusted manifest against old hostname and Agent v138 hardcodes legacy API and rejects non-legacy updater. Removing host before installed fleet updates would strand business and OTA; redirect-only is unsafe due strict trust validation.",
+        "Phase3A guarded source changes are Android BuildConfig API and update manifest on official host; Agent v139 API and updater host validation; Worker OAuth start safely selects only configured Google callback origin. Technical Firebase project, Android signing/package, internal release tag and Worker/SQLite untouched.",
+        "Owner has not authorized database or Worker deletion, and no field proof says older clients are gone. Keep old hostname and old Google OAuth callback until provider config and field checks permit safe retirement.",
+        "Phase3A code-only PR633 includes CI for signed client compatibility; existing D170 Phase2 release receipt reset to deny runtime until exact source CI/release. Phase3B OAuth provider setup and Phase3C domain removal require current field/provider evidence. D171 stays queued."
+      ],
+      "alternatives": [
+        "Immediate old-host DELETE or 301 redirect was rejected due fixed signed client update hosts and OAuth callback dependency.",
+        "Phased in-place OTA plus Google OAuth registration and verified migration is the lowest-risk solution."
+      ],
+      "next_action": "Complete PR633 source authority/continuity/client+Worker CI; authorize guarded exact worker+android+agent release, preserve old host. Obtain Google OAuth and installed fleet proof before exact scoped old-host detach.",
+      "evidence": "docs/D170_PHASE3_CLIENT_MIGRATION_AND_SUNSET_2026-10-19.md; Android build.gradle.kts/MainActivity.kt, relay-agent/AgentConfig.cs/AgentUpdater.cs; Worker OAuth service/src/index.ts; PR633."
     }
   ],
   "resume": {
@@ -277,7 +299,8 @@
       "D170-E003 Owner explicitly authorizes proceeding safely with code and automation-first rollout, subject to current owner-scope, provider and OTA gates.",
       "D170-E004 Owner D170 phase-1 branding/Worker existing runtime+signed Android deployment approved with exact source and no domain transfer.",
       "D170-E008: Phase2 official domain reassignment exact SHA f4f9af19 21/21 code/CI PASS, Owner scope existing data-bearing Worker only.",
-      "D170-E010 protected recovery: exactly one registered old Stable Custom Domain binding may detach upon verified 409 and reattach to existing data-bearing Worker, no resource/database deletion."
+      "D170-E010 protected recovery: exactly one registered old Stable Custom Domain binding may detach upon verified 409 and reattach to existing data-bearing Worker, no resource/database deletion.",
+      "D170-E015 Owner approves moving Web, signed PDA and Windows Agent to official inventory.supra.cc.cd, with final deletion of old hostname only after client/OAuth field proof."
     ],
     "implemented": [
       "D170-E001 impact and phased migration plan documented only on guarded branch.",
@@ -290,14 +313,16 @@
       "D170-E014 domain cutover runtime PASS: main d6833675, Worker run 39154128973, dual domain control plane and SQLite."
     ],
     "in_progress": [
-      "D170 Phase3 public links and single-release-policy review pending."
+      "D170 Phase3 public links and single-release-policy review pending.",
+      "PR633 Phase3A official client API/OTA and Google OAuth registered-origin bridge, source CI before release."
     ],
     "pending_approval": [
-      "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
+      "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs."
     ],
     "blocked": [
       "Production domain may still be attached to old Stable Worker: actual Cloudflare provider binding not yet checked.",
-      "No verified backup restore/data readback or client fleet compatibility guarantee yet; no live routing or database changes."
+      "No verified backup restore/data readback or client fleet compatibility guarantee yet; no live routing or database changes.",
+      "Legacy PDA vc113/Agent v138 pinned to old host for business and signed update checks; old host cannot be removed until installed fleet migrates or explicitly accepted outage."
     ],
     "next_actions": [
       "Review docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md against canonical resource scope and code; obtain scoped authorization for safe CODE and deployment stages.",
@@ -314,8 +339,9 @@
       "Merge PR630 only after source/authority CI+exact source receipt, verify old/new same Worker and SQLite; continue Phase3 cleanup.",
       "After receipt authority CI, merge PR630 with exact D170 Phase2 prefix and inspect success of Worker deploy plus same-Worker/SQLite health on both hostnames.",
       "After PR631 authority/CI PASS, guarded Worker-only merge and runtime same Worker dual-host proof.",
-      "Review Client URLs, Google OAuth and release CI; Phase3 remains under D170."
+      "Review Client URLs, Google OAuth and release CI; Phase3 remains under D170.",
+      "CI PR633, exact source lock, guarded release; OAuth callback setting/new URI validation, fleet migration, then separate scoped Cloudflare old Custom Domain detach."
     ],
-    "release_boundary": "PHASE2_RUNTIME_PASS__PHASE3_FIELD_OWNER_PENDING"
+    "release_boundary": "D170_PHASE2_DOMAIN_PASS__PHASE3A_PR633_CODE_ONLY_PENDING_CI__NO_OLD_HOST_DELETE"
   }
 }
