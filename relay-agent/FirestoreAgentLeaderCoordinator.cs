@@ -97,6 +97,7 @@ namespace SupraInventoryRelayAgent
         private long _leaseMissingSinceMs;
         private long _lastTakeoverProbeMs;
         private long _lastTakeoverLivenessCheckMs;
+        private long _verifiedAutomaticTakeoverAtMs;
         private long _primaryWmsUnreadySinceMs;
         private int _primaryWmsUnreadySamples;
         private string _sharedScheduleKey = "";
@@ -268,6 +269,18 @@ namespace SupraInventoryRelayAgent
         internal bool CanProcessJob(long createdAtMs)
         {
             return _relayEnabled() && _role == FirestoreAgentRole.PRIMARY;
+        }
+
+        internal bool CanRecoverPendingRequest(long serverCreatedAtMs)
+        {
+            var now = NowMs();
+            return serverCreatedAtMs > 0 && _verifiedAutomaticTakeoverAtMs > 0 &&
+                serverCreatedAtMs <= _verifiedAutomaticTakeoverAtMs &&
+                now - serverCreatedAtMs >= 0 && now - serverCreatedAtMs < 33000 &&
+                now - _verifiedAutomaticTakeoverAtMs >= 0 &&
+                now - _verifiedAutomaticTakeoverAtMs <= 20000 &&
+                _relayEnabled() && _wmsReady() &&
+                _role == FirestoreAgentRole.PRIMARY && HasFreshCommonPrimaryLease();
         }
 
         internal bool SharedRelayOverrideAllows(string scheduleKey, long nowMs)
@@ -768,6 +781,9 @@ namespace SupraInventoryRelayAgent
                     if (TryWriteRoles(session, next, read))
                     {
                         _generation = next.Generation;
+                        // Grant a bounded same-request recovery window only after
+                        // generation-CAS promotion and our WMS readiness proof.
+                        _verifiedAutomaticTakeoverAtMs = NowMs();
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, next.StandbyAgentInstanceId, "ACTIVE_FAILOVER_LEASE");
                         WritePrimaryLease(session);
                         _log("FIRESTORE HA takeover=PASS trigger=primary_lease_timeout threshold_ms=" + FailoverAfterMs +
