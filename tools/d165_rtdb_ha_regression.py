@@ -38,7 +38,9 @@ assert "// D161: Agent update is manual-only" in program
 assert "_updateTimer.Stop();" in program
 assert "Close();" in program  # updater still restarts on explicit install
 transport = (root / "relay-agent/FirestoreConfirmationTransport.cs").read_text(encoding="utf-8")
-assert "internal const long MaxPendingAgeMs = 20000L;" in transport
+assert "internal const long MaxPendingAgeMs = 35000L;" in transport
+assert "internal const long NormalPendingAgeMs = 20000L;" in transport
+assert "CanRecoverPendingRequest(doc.Work.CreatedAtMs)" in transport
 assert "VerifyPrimaryForBusinessIngress" in transport
 assert "VerifyPrimaryBeforeMutation" in (root / "relay-agent/FirestoreAgentLeaderCoordinator.cs").read_text(encoding="utf-8")
 
