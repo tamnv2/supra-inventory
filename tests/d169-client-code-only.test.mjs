@@ -92,6 +92,11 @@ test("D169 VPS account-first return is CAS fenced and exact owner-approved", () 
  assert.match(features, /HandleD169VpsConsentEvent/);
  assert.match(features, /new FirestoreVpsReclaim/);
  assert.match(features, /popup\.Show\(\)/);
+ assert.match(leader, /D169 VPS owner REST fallback=DEFER/);
+ assert.match(leader, /_adminConsentObserved\(pending\)/);
+ assert.match(leader, /PublishReady\(session, _instanceId, false\)/);
+ assert.match(vps, /age <= 30000/);
+ assert.match(rules, /ready_at_ms >= request\.time\.toMillis\(\) - 30000/);
  assert.doesNotMatch(features, /_d169PinTargetAsVps/);
  assert.match(realtime, /FirestoreVpsReclaimDocumentName/);
  assert.match(rules, /function isExactPrimaryApprover|function isPrimaryApprover/);
