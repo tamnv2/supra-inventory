@@ -3,22 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "fix/d170-phase2-domain-conflict-guarded-transfer-20261019",
-  "pr": 629,
+  "working_branch": "fix/d170-cloudflare-domain-binding-readback-20261019",
+  "pr": 630,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E010",
+    "id": "D170-E011",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
     "owner_latest": "OWNER_EXPLICIT_D170_FULL_SAFE_CONVERSION_CONTINUE_20261018",
     "code_permission": true,
-    "merge_permission": true,
-    "deploy_permission": true,
-    "production_runtime_permission": true,
+    "merge_permission": false,
+    "deploy_permission": false,
+    "production_runtime_permission": false,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E010_EXACT_REGISTERED_CUSTOM_DOMAIN_BINDING_ONLY__SAFE_ROLLBACK__NO_DB"
+    "reason": "E011_VERIFIED_UNASSIGNED_OFFICIAL_HOST__NO_DELETE_ATTACHMENT_CODE_ONLY_CI_PENDING"
   },
   "entries": [
     {
@@ -202,6 +202,22 @@
       ],
       "next_action": "Merge protected PR629 only after receipt/authority CI, then inspect main Worker release and both Cloudflare hostname/health readbacks. Continue D170 branding/CI phase3 after safe domain transfer.",
       "evidence": "PR629 protected CI SHA ce3233dc 16/16 success; Cloudflare 409 GitHub Actions 39144077974; D170 plan and release receipt."
+    },
+    {
+      "id": "D170-E011",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Read-only Cloudflare recheck proves official hostname unassigned after HTTP200 detach; recover by no-delete same-Worker attach",
+      "status": "D170_OFFICIAL_DOMAIN_UNASSIGNED_CONFIRMED__PR630_SAME_LIVE_WORKER_ATTACH_CODE_ONLY__NO_MORE_DELETE",
+      "owner_approval": true,
+      "facts": [
+        "GitHub main Phase2 run 39151007039 failed at D170 domain cutover: Cloudflare prior stable-binding DELETE returned HTTP 200 but no success=true in JSON; script stopped before PUT and Worker deployment.",
+        "Read-only preflight run 39151322433 directly queried Cloudflare Workers Custom Domains and confirmed inventory.supra.cc.cd is UNASSIGNED while inventory-beta.supra.cc.cd still points to healthy live supra-inventory-beta Worker; this is provider-confirmed, not inferred.",
+        "PR630 preserves same-zone Worker/InventoryCore, handles precisely missing official host by PUT only, explicitly no further DELETE or new provider/data resource. Existing old stable service is not deployed or deleted.",
+        "Priority is promptly restore official hostname, verify both hosts map same Worker and shared SQLite source. D170 Phase3 user-facing and release process cleanup remains subsequent and not yet completed."
+      ],
+      "next_action": "PR630 protected CI, update exact source release receipt; guarded merge triggers no-delete PUT and verifies dual-host exact main SHA+storage. Fail closed if domain becomes unexpectedly assigned.",
+      "evidence": "GitHub Actions main Worker 39151007039; read-only Cloudflare preflight 39151322433; PR630 source, tests, state."
     }
   ],
   "resume": {
@@ -229,7 +245,8 @@
       "E005: repair main push gate failures in PR627; old public Beta identity check and D169-only updater gate stopped full phase1 release.",
       "E007: PR628 guarded Cloudflare same-Worker official hostname transfer and existing OAuth callback compatibility, CODE ONLY.",
       "D170-E008: guarded main merge/provider operation pending; do not claim official hostname live until runtime readback.",
-      "D170-E009 PR629 repairs Cloudflare 409 official Custom Domain binding, exact old hostname only, with rollback; runtime not yet changed."
+      "D170-E009 PR629 repairs Cloudflare 409 official Custom Domain binding, exact old hostname only, with rollback; runtime not yet changed.",
+      "D170-E011 Cloudflare official domain is UNASSIGNED after ambiguous detach response; PR630 no-delete attach to existing live Worker guarded."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -249,7 +266,8 @@
       "CI PR628 then protected release receipt, main merge, both hostname real health readback, no database migration.",
       "Post PR628 merge actual Cloudflare domain mapping and old/new /health readback before subsequent client host changes.",
       "Require fresh PR629 CI and reviewed exact-source phase2 receipt before provider change; health/data readback and phase3 branding remain pending.",
-      "Main PR629 Worker cutover receipt, both host health/SHA/SQLite; then Phase3 public label and single-channel policy checks."
+      "Main PR629 Worker cutover receipt, both host health/SHA/SQLite; then Phase3 public label and single-channel policy checks.",
+      "Merge PR630 only after source/authority CI+exact source receipt, verify old/new same Worker and SQLite; continue Phase3 cleanup."
     ],
     "release_boundary": "D170_E007_PHASE1_RELEASE_PASS__PHASE2_CODE_ONLY_PR628__NO_DOMAIN_MUTATION_YET"
   }
