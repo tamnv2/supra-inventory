@@ -199,7 +199,7 @@ class MainActivity : Activity() {
             return
         }
         if (BuildConfig.FIREBASE_API_KEY.isBlank()) {
-            renderFatal("Thiếu cấu hình Firebase Beta.")
+            renderFatal("Thiếu cấu hình dịch vụ xác thực.")
             return
         }
         val options = FirebaseOptions.Builder()
@@ -597,11 +597,11 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng"
         findViewById<TextView>(R.id.tvHeaderUser).text = sessionHeaderLabel(session)
         findViewById<TextView>(R.id.tvAppVersion).apply {
-            text = "Beta vc${BuildConfig.VERSION_CODE}"
+            text = "vc${BuildConfig.VERSION_CODE}"
             setOnClickListener {
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle("Tìm kiếm bản cập nhật?")
-                    .setMessage("Hệ thống sẽ kiểm tra kênh Beta một lần.")
+                    .setMessage("Hệ thống sẽ kiểm tra cập nhật một lần.")
                     .setNegativeButton("Huỷ", null)
                     .setPositiveButton("Tìm kiếm") { _, _ -> checkForUpdate(silent = false) }
                     .create().also { safelyShowDialog(it) }
@@ -1931,9 +1931,9 @@ class MainActivity : Activity() {
 
     private fun updateGateMessage(): String = when (updateGate) {
         UpdateGate.CHECKING -> "Đang kiểm tra bản cập nhật nền. Vẫn có thể đăng nhập."
-        UpdateGate.CURRENT -> "Đang dùng bản Beta mới nhất."
-        UpdateGate.REQUIRED -> "Có bản cập nhật Beta mới."
-        UpdateGate.MANDATORY -> "Bắt buộc cập nhật Beta trước khi đăng nhập mới."
+        UpdateGate.CURRENT -> "Đang dùng bản mới nhất."
+        UpdateGate.REQUIRED -> "Có bản cập nhật mới."
+        UpdateGate.MANDATORY -> "Bắt buộc cập nhật ứng dụng trước khi đăng nhập mới."
         UpdateGate.DEFERRED -> "Chưa kiểm tra được kênh cập nhật. Có thể tiếp tục đăng nhập."
         UpdateGate.FAILED -> "Không xác minh được chữ ký ứng dụng đang cài. Đăng nhập đã bị chặn."
     }
@@ -1964,7 +1964,7 @@ class MainActivity : Activity() {
         lastUpdateCheckElapsedMs = android.os.SystemClock.elapsedRealtime()
         updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.CHECKING
         pendingUpdateInfo = null
-        applyUpdateGateUi(if (!silent) "Đang kiểm tra bản cập nhật Beta..." else null)
+        applyUpdateGateUi(if (!silent) "Đang kiểm tra bản cập nhật..." else null)
         Thread {
             try {
                 try {
@@ -2022,7 +2022,7 @@ class MainActivity : Activity() {
                             }
                         } else {
                             // Warm resume: never reconstruct Picker/Reporter controllers.
-                            applyUpdateGateUi(if (!silent && updateGate == UpdateGate.CURRENT) "Đang dùng bản Beta mới nhất." else null)
+                            applyUpdateGateUi(if (!silent && updateGate == UpdateGate.CURRENT) "Đang dùng bản mới nhất." else null)
                         }
                     }
                     return@Thread
@@ -2032,7 +2032,7 @@ class MainActivity : Activity() {
                 updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.REQUIRED
                 runOnUiThread {
                     updateCheckRunning = false
-                    applyUpdateGateUi("Có bản cập nhật ${info.tag}.")
+                    applyUpdateGateUi("Có bản cập nhật ${info.tag.removePrefix("beta-")}.")
                     showUpdateAvailable(info)
                 }
             } catch (error: Exception) {
@@ -2057,7 +2057,7 @@ class MainActivity : Activity() {
         val mandatory = info.versionCode > BuildConfig.VERSION_CODE ||
             info.minimumVersionCode > BuildConfig.VERSION_CODE
         val builder = AlertDialog.Builder(this)
-            .setTitle(if (mandatory) "Bắt buộc cập nhật ${info.tag}" else "Có bản cập nhật ${info.tag}")
+            .setTitle(if (mandatory) "Bắt buộc cập nhật ${info.tag.removePrefix("beta-")}" else "Có bản cập nhật ${info.tag.removePrefix("beta-")}")
             .setMessage(
                 buildString {
                     append(if (mandatory)
@@ -2089,14 +2089,14 @@ class MainActivity : Activity() {
     private fun downloadAndInstallUpdate(info: UpdateInfo) {
         if (updateCheckRunning) return
         updateCheckRunning = true
-        applyUpdateGateUi("Đang tải và kiểm tra ${info.tag}...")
+        applyUpdateGateUi("Đang tải và kiểm tra ${info.tag.removePrefix("beta-")}...")
         Thread {
             try {
                 val apk = downloadAndVerify(info)
                 runOnUiThread {
                     updateCheckRunning = false
                     pendingUpdateInfo = null
-                    applyUpdateGateUi("Đã xác minh ${info.tag}. Đang mở trình cài đặt.")
+                    applyUpdateGateUi("Đã xác minh ${info.tag.removePrefix("beta-")}. Đang mở trình cài đặt.")
                     requestInstall(apk)
                 }
             } catch (error: Exception) {
@@ -2341,7 +2341,7 @@ class MainActivity : Activity() {
 
     private fun renderFatal(message: String) {
         val root = kit.page()
-        addBrandHeader(root, subtitle = "Báo hàng · Beta")
+        addBrandHeader(root, subtitle = "Báo hàng · Chính thức")
         val card = kit.card(kit.redSoft, Color.parseColor("#E9A2AA"))
         card.addView(TextView(this).apply {
             text = "Không thể khởi động ứng dụng"
