@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "fix/d170-release-guard-squash-sha-20261019",
-  "pr": 631,
+  "working_branch": "docs/d170-phase2-verified-runtime-state-20261019",
+  "pr": 632,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E013",
+    "id": "D170-E014",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -251,6 +251,22 @@
       ],
       "next_action": "PR631 authority, continuity and release self-check CI PASS, protected merge under D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN prefix, verify main Worker deployment and dual hostname SQL-backed /health; do not assert DONE yet.",
       "evidence": "PR630 #630 main 63687461; run 39153633318 failed protected gate; GitHub file blob SHA parity; PR631 branch."
+    },
+    {
+      "id": "D170-E014",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "topic": "Official and legacy domain share one existing Worker and inventory database",
+      "status": "DOMAIN_RUNTIME_PASS__PHASE3_AND_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR631 merged main d6833675; GitHub Actions run 39154128973 success.",
+        "Cloudflare control-plane confirmed both inventory.supra.cc.cd and inventory-beta.supra.cc.cd on supra-inventory-beta.",
+        "Both hosts returned matching Worker SHA and healthy InventoryCore SQLite; existing backend and old compatibility domain retained.",
+        "Public app and release pipeline Phase3 review remains; no field or Owner acceptance inferred."
+      ],
+      "next_action": "Sync authoritative D170 state; audit Phase3 client links, OAuth, updates and release policy. Preserve backward compatibility.",
+      "evidence": "GitHub Actions https://github.com/tamnv2/supra-inventory/actions/runs/39154128973"
     }
   ],
   "resume": {
@@ -270,19 +286,11 @@
       "D170-E004 PR626 21/21 source CI success and code-protected phase-1 Owner receipt; deployment pending main release.",
       "E006: Phase1 Worker and signed Android vc113 published and verified. Field/Owner PASS still pending.",
       "D170-E010 16/16 source CI and Worker-only protected SHA locked; runtime cutover pending main push readback.",
-      "D170-E012 PR630 exact-source 8d18582c 15/15 source CI and Worker-only no-delete official-host attachment release receipt approved; not yet merged or deployed."
+      "D170-E012 PR630 exact-source 8d18582c 15/15 source CI and Worker-only no-delete official-host attachment release receipt approved; not yet merged or deployed.",
+      "D170-E014 domain cutover runtime PASS: main d6833675, Worker run 39154128973, dual domain control plane and SQLite."
     ],
     "in_progress": [
-      "Inventory actual Cloudflare official-domain binding and provider/API/OAuth/update manifest/CI migration dependencies using read-only evidence.",
-      "Check PR626 read-only domain-mapping result, OAuth redirect and security before any same-worker Custom Domain attachment.",
-      "Actual Cloudflare domain owner inventory.supra.cc.cd confirmed legacy Stable Worker, no domain transfer yet.",
-      "E005: repair main push gate failures in PR627; old public Beta identity check and D169-only updater gate stopped full phase1 release.",
-      "E007: PR628 guarded Cloudflare same-Worker official hostname transfer and existing OAuth callback compatibility, CODE ONLY.",
-      "D170-E008: guarded main merge/provider operation pending; do not claim official hostname live until runtime readback.",
-      "D170-E009 PR629 repairs Cloudflare 409 official Custom Domain binding, exact old hostname only, with rollback; runtime not yet changed.",
-      "D170-E011 Cloudflare official domain is UNASSIGNED after ambiguous detach response; PR630 no-delete attach to existing live Worker guarded.",
-      "E012: guarded PR630 merge/main release for previously unassigned official hostname, same Worker/SQLite and dual-host proof.",
-      "D170-E013: PR631 source authorization anchor corrected for squash-merge SHA; no provider operation before checks/merge."
+      "D170 Phase3 public links and single-release-policy review pending."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -305,8 +313,9 @@
       "Main PR629 Worker cutover receipt, both host health/SHA/SQLite; then Phase3 public label and single-channel policy checks.",
       "Merge PR630 only after source/authority CI+exact source receipt, verify old/new same Worker and SQLite; continue Phase3 cleanup.",
       "After receipt authority CI, merge PR630 with exact D170 Phase2 prefix and inspect success of Worker deploy plus same-Worker/SQLite health on both hostnames.",
-      "After PR631 authority/CI PASS, guarded Worker-only merge and runtime same Worker dual-host proof."
+      "After PR631 authority/CI PASS, guarded Worker-only merge and runtime same Worker dual-host proof.",
+      "Review Client URLs, Google OAuth and release CI; Phase3 remains under D170."
     ],
-    "release_boundary": "D170_E013_PR631_SOURCE_RECEIPT_RELOCKED__CI_AND_RUNTIME_PENDING__NO_FIELD_OR_OWNER_PASS"
+    "release_boundary": "PHASE2_RUNTIME_PASS__PHASE3_FIELD_OWNER_PENDING"
   }
 }
