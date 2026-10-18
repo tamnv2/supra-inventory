@@ -170,9 +170,17 @@ jobs:
           scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
           [ "$scope" = "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2" ] || exit 0
           for host in inventory-beta.supra.cc.cd inventory.supra.cc.cd; do
-            result="$(curl --fail --silent --show-error --max-time 25 "https://$host/health")"
-            jq -e --arg sha "$GITHUB_SHA" \
-              '.status == "ok" and .environment == "beta" and .source_commit == $sha and .storage.ok == true and (.missing_bindings | length) == 0' <<<"$result" >/dev/null || {
+            verified=false
+            for attempt in $(seq 1 24); do
+              result="$(curl --silent --show-error --max-time 20 "https://$host/health" 2>/dev/null || true)"
+              if jq -e --arg sha "$GITHUB_SHA" \
+                '.status == "ok" and .environment == "beta" and .source_commit == $sha and .storage.ok == true and (.missing_bindings | length) == 0' <<<"$result" >/dev/null 2>&1; then
+                verified=true
+                break
+              fi
+              sleep 5
+            done
+            [ "$verified" = true ] || {
               echo "::error::D170 dual-host Worker health/source/SQLite guard failed for $host"; exit 1;
             }
             echo "D170 verified exact Worker SHA and existing storage on $host"
