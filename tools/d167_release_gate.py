@@ -97,7 +97,11 @@ def main():
                 fail("D170 official-host cutover permits only the current Worker")
             if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261018_OFFICIAL_SAME_WORKER_DOMAIN_PHASE2":
                 fail("D170 official-host cutover requires exact Owner direction")
-            if data.get("resource_change") != "REASSIGN_EXISTING_STABLE_HOST_ONLY__SAME_WORKER_NO_DATABASE":
+            change_scope = data.get("resource_change")
+            if change_scope == "EXACT_OLD_STABLE_CUSTOM_DOMAIN_BINDING_ONLY__REATTACH_SAME_LIVE_WORKER__NO_DB_OR_WORKER_DELETE":
+                if data.get("single_official_domain_detach_permission") is not True:
+                    fail("D170 409 repair needs exact Owner approved registered Custom Domain binding detach")
+            elif change_scope != "REASSIGN_EXISTING_STABLE_HOST_ONLY__SAME_WORKER_NO_DATABASE":
                 fail("D170 phase2 cannot migrate any provider or data resource")
             if data.get("domain_reassignment_permission") is not True:
                 fail("D170 official-host reassignment not approved")
