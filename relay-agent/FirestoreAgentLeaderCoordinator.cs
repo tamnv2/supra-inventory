@@ -26,6 +26,7 @@ namespace SupraInventoryRelayAgent
         internal string NextBAgentInstanceId = "";
         internal string Generation = "";
         internal string ManualHolderAgentInstanceId = "";
+        internal string PreferredVpsAgentInstanceId = "";
         internal long UpdatedAtMs;
         internal string ScheduleKey = "";
         internal string ScheduleDecision = "";
@@ -66,6 +67,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
         private readonly Func<bool> _canSafelyHandoff;
+        private readonly Action<string> _manualReturnConsentRequested;
         private readonly string _instanceId;
         private readonly Action<string> _log;
         private readonly Action<FirestoreAgentRole, string> _stateChanged;
@@ -100,7 +102,10 @@ namespace SupraInventoryRelayAgent
         private long _lastTakeoverLivenessCheckMs;
         private long _verifiedAutomaticTakeoverAtMs;
         private string _manualHolderAgentInstanceId = "";
+        private string _preferredVpsAgentInstanceId = "";
         private long _preferredReadySinceMs;
+        private long _lastManualReturnPromptAtMs;
+        private long _ownerReturnConsentUntilMs;
         private long _primaryWmsUnreadySinceMs;
         private int _primaryWmsUnreadySamples;
         private string _sharedScheduleKey = "";
@@ -118,7 +123,8 @@ namespace SupraInventoryRelayAgent
             string instanceId,
             Action<string> log,
             Action<FirestoreAgentRole, string> stateChanged,
-            Func<bool> canSafelyHandoff = null)
+            Func<bool> canSafelyHandoff = null,
+            Action<string> manualReturnConsentRequested = null)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
@@ -127,6 +133,7 @@ namespace SupraInventoryRelayAgent
             _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
             _canSafelyHandoff = canSafelyHandoff ?? (() => false);
+            _manualReturnConsentRequested = manualReturnConsentRequested ?? delegate { };
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
             _stateChanged = stateChanged ?? delegate { };
@@ -1107,7 +1114,8 @@ namespace SupraInventoryRelayAgent
                     var now = NowMs();
                     var startupConvergence = _startupConvergenceRemaining > 0;
                     var roleInterval = _role == FirestoreAgentRole.DEEP_HIBERNATE
-                        ? (string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal)
+                        ? ((string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                             string.Equals(_preferredVpsAgentInstanceId, _instanceId, StringComparison.Ordinal))
                             ? 30000 : DeepHibernateRoleRefreshMs)
                         : (_role == FirestoreAgentRole.NEXT_A
                             ? NextARoleRefreshMs
@@ -1510,7 +1518,7 @@ namespace SupraInventoryRelayAgent
         {
             var snapshot = roles == null ? null : roles.Snapshot;
             if (snapshot == null || !_canSafelyHandoff() || !_relayEnabled()) return false;
-            var preferred = snapshot.ManualHolderAgentInstanceId ?? "";
+            var preferred = snapshot.PreferredVpsAgentInstanceId ?? "";
             if (string.IsNullOrWhiteSpace(preferred) ||
                 string.Equals(preferred, _instanceId, StringComparison.Ordinal) ||
                 string.Equals(preferred, snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal))
@@ -1544,6 +1552,19 @@ namespace SupraInventoryRelayAgent
                     return false;
                 }
                 if (NowMs() - _preferredReadySinceMs < 30000) return false;
+                // Manual owner authority wins over automatic VPS preference.
+                var manualHold = string.Equals(snapshot.ManualHolderAgentInstanceId,
+                    snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal);
+                if (manualHold && _ownerReturnConsentUntilMs < NowMs())
+                {
+                    if (_lastManualReturnPromptAtMs == 0 ||
+                        NowMs() - _lastManualReturnPromptAtMs >= 15L * 60L * 1000L)
+                    {
+                        _lastManualReturnPromptAtMs = NowMs();
+                        _manualReturnConsentRequested(preferred);
+                    }
+                    return false;
+                }
                 if (!_canSafelyHandoff() || !_wmsReady()) return false;
 
                 var next = new FirestoreRoleSnapshot
@@ -1574,7 +1595,8 @@ namespace SupraInventoryRelayAgent
         {
             var now = NowMs();
             var cadence = _role != FirestoreAgentRole.PRIMARY &&
-                string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal)
+                (string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                 string.Equals(_preferredVpsAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 ? 15000 : PresenceHeartbeatIntervalMs;
             if (_lastPresenceWriteMs != 0 && now - _lastPresenceWriteMs < cadence) return;
             var fields = new Dictionary<string, object>
@@ -1750,6 +1772,7 @@ namespace SupraInventoryRelayAgent
                         NextBAgentInstanceId = FieldString(fields, "next_b_agent_instance_id"),
                         Generation = FieldString(fields, "generation"),
                         ManualHolderAgentInstanceId = FieldString(fields, "manual_holder_agent_instance_id"),
+                        PreferredVpsAgentInstanceId = FieldString(fields, "preferred_vps_agent_instance_id"),
                         UpdatedAtMs = FieldLong(fields, "updated_at_ms"),
                         ScheduleKey = FieldString(fields, "schedule_key"),
                         ScheduleDecision = FieldString(fields, "schedule_decision"),
@@ -1928,6 +1951,7 @@ namespace SupraInventoryRelayAgent
         {
             if (snapshot == null) return;
             _manualHolderAgentInstanceId = snapshot.ManualHolderAgentInstanceId ?? "";
+            _preferredVpsAgentInstanceId = snapshot.PreferredVpsAgentInstanceId ?? "";
             SetSharedSchedule(
                 snapshot.ScheduleKey ?? "",
                 snapshot.ScheduleDecision ?? "",
