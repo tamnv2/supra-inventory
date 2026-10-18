@@ -397,9 +397,9 @@
     {
       "id": "D170-E022",
       "date_vn": "2026-10-19",
-      "kind": "OWNER_REQUIREMENT_INTAKE_QUEUED_ONLY",
+      "kind": "DISCUSSION",
       "topic": "Prepare D171 three-device automated network diagnostics with PDA fixed on normal network",
-      "status": "D171_REQUIREMENT_RECORDED__NO_D171_IMPLEMENTATION_OR_DEPLOYMENT_AUTHORIZED__D170_OWNER_PASS_GATE_ACTIVE",
+      "status": "QUEUED_REQUIREMENTS_CAPTURED__NO_IMPLEMENTATION__CURRENT_D170_OWNER_PASS_PENDING",
       "owner_approval": false,
       "facts": [
         "Owner requests isolated connectivity test using two authenticated Windows Agent diagnostic clients, each under a distinct authorized Agent account, and one authenticated Android PDA Picker diagnostic client under a dedicated test Picker account; actual login identifiers and passwords are not stored in public GitHub.",
