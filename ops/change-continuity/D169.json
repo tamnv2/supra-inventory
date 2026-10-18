@@ -10,7 +10,7 @@
     "id": "D169-E054",
     "date_vn": "2026-10-18"
   },
-  "deployment_gate": "D169_E054_OWNER_EXPLICIT_BETA_DEPLOY_AND_FIRST_VPS_OTP_AUTHORIZED__EXACT_SOURCE_7719D8C__FIELD_OWNER_PASS_FALSE__STABLE_OWNER_GATED",
+  "deployment_gate": "D169_E054_OWNER_EXPLICIT_BETA_DEPLOY_AND_FIRST_VPS_OTP__EXACT_SOURCE_9AE124C_23_OF_23_CI_PASS__OWNER_FIELD_PASS_FALSE",
   "entries": [
     {
       "id": "D169-E001",
@@ -1151,8 +1151,9 @@
         "Owner explicitly authorizes immediate D169 scoped Beta deployment of the VPS OTP-only change and sending the first four-digit OTP through the existing project mail transport for real testing.",
         "Release covers only Worker, existing Apps Script Agent Gateway, and Windows Agent v137; Android vc111, Firestore Rules, WMS, all new provider resources and Stable remain unchanged.",
         "The server issues to existing exact VPS user only if ACTIVE with matching Agent role/base-role and returns fail closed otherwise. Issuance is single-use, not reusable and no code or recipient contents enter public GitHub logs.",
-        "Source lock: commit 7719d8c7c68e2332c6dc3267618a317ee4ce9aa6; 23/23 source workflows PASS. Technical CI is not actual email delivery or physical Agent field PASS.",
-        "Do not promise OTP received or login PASS until matched source deployment receipts and initial-issuance HTTP outcome, user-supplied physical result."
+        "Source lock: commit 9ae124c7c1ac76352197a5fe975df7525deb0732; 23/23 source workflows PASS. Technical CI is not actual email delivery or physical Agent field PASS.",
+        "Do not promise OTP received or login PASS until matched source deployment receipts and initial-issuance HTTP outcome, user-supplied physical result.",
+        "Final E054 source 9ae124c7c1ac76352197a5fe975df7525deb0732 passed 23/23 GitHub Actions after fixing an unconditional old Firestore receipt wait; Agent v137 now checks exact previous E046 deployed Firebase Rules baseline is unchanged for this Rules-free release."
       ],
       "next_action": "Merge PR617 after authority/continuity and source CI PASS using exact merge title D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE. Verify live Beta Worker and Gateway Actions readback, Agent v137 release/checksum/channel, and first VPS OTP code issue receipt. Then guide Owner in installing v137 and checking existing mailbox; avoid OTP disclosure.",
       "evidence": "Owner chat explicit 'ô triển khai đi, gửi OTP về mail lần đầu đi để anh test' dated 2026-10-18; prior E052 OTP-only decision; PR617 7719d8c 23/23 Actions PASS; release auth ops/d169-release-authorization.json new exact scope."
@@ -1181,7 +1182,8 @@
       "D169-E049 PR615 v136/vc111 mixed-client compatibility, Firestore Rules marker, WMS/HA/CAS/SSID source CI 20/20 PASS at 6618007; runtime NOT YET deployed.",
       "D169-E050 PR615 main merge c90e521: Worker and Firestore Rules Beta live, Agent v136 EXE/browser bundle and signed Android vc111 APK published; 13/13 main actions PASS, SHA/channel verified.",
       "D169-E052 PR617 code candidate 227d44f: Worker/Core/Agent/Office Gateway protected identity, VPS-specific emergency deny and tests; CI FIELD verification pending.",
-      "E053: PR617 exact source 7719d8c passed 23/23 GitHub Actions including Windows Agent and scoped Gateway; release after merge is pending."
+      "E053: PR617 exact source 7719d8c passed 23/23 GitHub Actions including Windows Agent and scoped Gateway; release after merge is pending.",
+      "E054 final locked source 9ae124c passed 23/23 CI; no Rules source changed from previous E046 proven deployment; Beta release gated to Worker/Gateway/Agent."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",

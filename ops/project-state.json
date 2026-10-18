@@ -8193,16 +8193,16 @@
         "ADMIN/ADMIN",
         "PICKPACK_ADMIN/PICKPACK_ADMIN"
       ],
-      "source_commit": "7719d8c7c68e2332c6dc3267618a317ee4ce9aa6",
+      "source_commit": "9ae124c7c1ac76352197a5fe975df7525deb0732",
       "source_pr": 617,
-      "source_state": "SOURCE_23_OF_23_CI_PASS__EXACT_SOURCE_OWNER_BETA_DEPLOY_APPROVED__RUNTIME_PENDING",
+      "source_state": "SOURCE_23_OF_23_CI_PASS_SHA_9AE124C__EXACT_OWNER_BETA_RELEASE_APPROVED__RUNTIME_PENDING",
       "beta_deploy_authorized": true,
       "field_pass": false,
       "owner_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED",
       "runtime_account_exists": "NOT_VERIFIED",
       "next": "PR617_MERGE_GATE__BETA_WORKER_GATEWAY_AGENT137__FIRST_OTP_WORKER_202_RECEIPT__FIELD_TEST",
-      "source_ci_sha": "7719d8c7c68e2332c6dc3267618a317ee4ce9aa6",
+      "source_ci_sha": "9ae124c7c1ac76352197a5fe975df7525deb0732",
       "first_otp_issue_authorized": true
     }
   }

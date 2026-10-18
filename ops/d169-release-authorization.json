@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D169",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "7719d8c7c68e2332c6dc3267618a317ee4ce9aa6",
+  "approved_source_sha": "9ae124c7c1ac76352197a5fe975df7525deb0732",
   "approved_components": [
     "worker",
     "gateway",
@@ -15,12 +15,12 @@
   "stable_deploy_permission": false,
   "field_pass": false,
   "physical_field_verified": false,
-  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_STAGED_D170_FIELD_TEST",
-  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261018_E046_BETA_ROLLOUT_D170_TEST_DEFERRED",
+  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_VPS_OTP_FIELD_VALIDATION",
+  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261018_E054_VPS_OTP_BETA_FIELD_TEST",
   "resource_change": "NONE_EXISTING_BETA_ONLY",
   "code_scope": "D169_E054_VPS_OTP_ONLY_BETA_WORKER_GATEWAY_AGENT137",
   "approved_at_vn": "2026-10-18",
-  "source_ci": "PR617_7719D8C_23_OF_23_CI_PASS_WORKER_AGENT_GATEWAY_OTP_RBAC_AUTHORITY",
+  "source_ci": "PR617_9AE124C_23_OF_23_CI_PASS_AFTER_FIRESTORE_GUARD_REPAIR",
   "release_sequence": [
     "BETA_WORKER_EXACT_SOURCE_HEALTH_AND_AUTH_CHECK",
     "BETA_GATEWAY_SCOPED_DEPLOY_AND_READBACK",
@@ -28,7 +28,7 @@
     "FIRST_VPS_OTP_SERVER_ISSUANCE_AFTER_WORKER_PASS"
   ],
   "rollback": "Preserve existing Agent v136 and Android vc111 assets; stop Agent 137 release if Worker or Gateway fails; Stable untouched.",
-  "notes": "Owner explicitly instructed Beta deploy plus first VPS OTP email delivery on 2026-10-18 after approving OTP-only/no time-code fallback. Exact tested source SHA protected. First issuance is guarded to one new main merge message and existing Active VPS Agent operator; no account auto-create, no OTP content in public logs. User-side device/login/receipt tests remain pending.",
+  "notes": "Owner explicitly instructed Beta deploy plus first VPS OTP email delivery on 2026-10-18 after approving OTP-only/no time-code fallback. Exact tested source SHA protected. First issuance is guarded to one new main merge message and existing Active VPS Agent operator; no account auto-create, no OTP content in public logs. User-side device/login/receipt tests remain pending. E054 Agent release verifies unchanged prior deployed Firebase Rules baseline rather than waiting for a Rules workflow not triggered by this scoped change.",
   "prior_agent_v135_authorization": {
     "approved_source_sha": "7d6c2d5de22ddf8f836ae719116e35306ac9212d",
     "code_scope": "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",

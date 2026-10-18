@@ -3112,8 +3112,10 @@ Windows Agent `--startup-smoke` phải kiểm tra tất cả tab gốc tồn t�
 
 ### D169-E054 — staged Beta release and first VPS OTP acceptance
 
-- Source SHA `7719d8c7c68e2332c6dc3267618a317ee4ce9aa6`: 23/23 GitHub Actions source checks PASS; CI does not establish provider release or OTP delivery.
+- Source SHA `9ae124c7c1ac76352197a5fe975df7525deb0732`: 23/23 GitHub Actions source checks PASS; CI does not establish provider release or OTP delivery.
 - Worker: main push exact-source health/readback required. Initial VPS code-issue step runs only for uniquely titled Owner E054 merge; accepts HTTP 202 (accepted for sending), or existing protected code pending 409 without replacing it, otherwise FAIL and report HTTP class only.
 - Gateway: exact existing deployment updated/readback by authorized GitHub workflow; Agent v137 release must wait matching successful Gateway run and Beta Worker/Firestore release gates. No new Script deployment/resource.
 - Agent: new v137 prerelease executable and sha256 assets must be published and inventory-channel manifest updated; old v136 must not be silently assumed compatible with VPS.
 - Field: Owner checks Gmail without sharing code, confirms original VPS role, signs into v137 with four-digit code, confirms next-code issuance and replay rejection, verifies Office path only if used. No WMS/HA/ACK owner PASS inferred.
+
+- D169-E054 final source guard: because this OTP change does not alter `firebase/firestore.rules`, `firebase/firestore.indexes.json` or `firebase.json`, Agent v137 verifies equality against previously deployed D169-E046 Rules commit `c90e521d1c77b681455b32ffc33a69e7ecaa187e`; it does not wait for an untriggered new Rules deployment. Any Rules delta fails the release.
