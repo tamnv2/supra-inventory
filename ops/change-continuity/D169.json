@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E033",
+    "id": "D169-E034",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -624,6 +624,25 @@
       ],
       "next_action": "Seek an approved technical WMS authentication pathway or bounded supervised trial evidence, then present architecture, scope and security impact for Owner review; only implement after repo resource scope/decision/spec change set and branch/PR CI gates, Stable Owner-gated.",
       "evidence": "Owner current 2026-10-18 authorization statement; main/branch ops/project-scope.json, relay-agent/SupraConfirmBrowser.cs, docs/specs/ROLE_WORKFLOWS.md; E031-E032 prior proposal context."
+    },
+    {
+      "id": "D169-E034",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_APPROVED_LOCAL_DIAGNOSTIC_BUILD",
+      "topic": "Standalone Windows x64 manual WMS CAPTCHA gesture observation tool alongside existing Agent, no login bypass",
+      "status": "LOCAL_WIN_X64_EXE_CROSS_BUILD_PASS__ZIP_VERIFIED__WINDOWS_VPS_FIELD_TEST_PENDING__NO_AGENT_WMS_RUNTIME_MUTATION",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests a separate Web Agent test to observe the Owner's manual image-slider CAPTCHA drag during legitimate WMS sign-in, as preliminary evidence for evaluating unattended recovery.",
+        "Created a local, independent, single-window Windows x64 GUI gesture recorder (Go 1.23 standard library, no third-party dependencies) that runs alongside current Agent v135 WebView2, without opening/copying Agent's dedicated browser profile or attaching to its process.",
+        "User presses Start, waits three seconds, then physically performs ONE mouse drag; recorder samples only screen-space mouse X/Y/timing at ~10ms while left mouse button is held, immediately stops after mouse-up and saves sanitized JSON on Desktop. 60-second maximum idle, manual stop, no background operation outside active window.",
+        "No key events, DOM, screenshot, username, password, cookies, access tokens, challenge contents, WMS network calls, Agent/Firestore/RTDB access, primary-election operations or CAPTCHA solving/drag automation. Optional WMS button merely launches the default browser, separate from Agent profile.",
+        "Includes offline HTML viewer plotting the recorded cursor trajectory and source code/README/SHA-256. User can manually crop only the CAPTCHA image using Windows Win+Shift+S and upload that image separately, since cursor movement alone cannot infer the gap location.",
+        "Code cross-compiled successfully as Windows PE32+ x64 GUI executable with GOOS=windows/GOARCH=amd64/CGO_ENABLED=0, go vet cross-check PASS, packaged ZIP integrity verified by Python zipfile.testzip(). No Windows runtime or physical WMS CAPTCHA test was possible in the build environment.",
+        "Chat-only diagnostic ZIP SUPRA_WMS_MANUAL_DRAG_TEST_WIN64.zip created at local /mnt/data; no binary or source committed to public GitHub, no prerelease/channel/PR merge, no policy/scope/rules or live WMS changes. The canonical repo's auth UI resource currently stipulates manual login and cannot be silently broadened."
+      ],
+      "next_action": "Owner runs the local GUI observer alongside Agent v135 on VPS and uploads one or more sanitized manual-drag JSON files plus separately cropped CAPTCHA screenshots before interaction. Review field validity and security/scope before any new source/PR for Agent login-related changes; Stable remains OWNER-GATED.",
+      "evidence": "Owner 2026-10-18 build request; main authority/scope/auth UI; current main relay-agent/SupraConfirmBrowser.cs and AgentBrowserBundle.cs; local cross-compilation and ZIP validation evidence. No Windows field pass."
     }
   ],
   "resume": {
