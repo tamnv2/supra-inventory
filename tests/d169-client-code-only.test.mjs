@@ -55,3 +55,44 @@ test("HA heartbeat reports real WMS readiness and does not claim ready unconditi
  assert.doesNotMatch(haLiveness, /\{ "wms_ready", true \}/);
  assert.match(haCoordinator, /_rtdbLiveness\.WriteHeartbeat\(session, _generation, _wmsReady\(\)\)/);
 });
+
+const leader = source("relay-agent/FirestoreAgentLeaderCoordinator.cs");
+const network = source("relay-agent/D168NetworkRoute.cs");
+const rules = source("firebase/firestore.rules");
+const relay = source("android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt");
+const transport = source("relay-agent/FirestoreConfirmationTransport.cs");
+const pipeline = source("relay-agent/D160ConfirmPipeline.cs");
+
+test("D169 cross-network HA renews common lease before optional RTDB and fences WMS on lease freshness", () => {
+ assert.match(leader, /WritePrimaryLease\(session\);\s*if \(D168NetworkRoute\.CurrentNetworkMode\(\) == "INTERNET"\)/);
+ assert.match(leader, /cross_network_liveness_v1/);
+ assert.match(leader, /HasFreshCommonPrimaryLease\(\)/);
+ assert.match(leader, /if \(commonProtocolProof\)/);
+ assert.match(leader, /RtdbPrimaryProbeStatus\.UNAVAILABLE/);
+ assert.match(network, /return "UNKNOWN"/);
+ assert.match(network, /OfficeProfiles\(\)/);
+});
+test("D169 owner-preferred VPS return is CAS-fenced, consent-gated and idle-only", () => {
+ assert.match(leader, /SetOwnerPreferredVps\(/);
+ assert.match(leader, /manual_holder_agent_instance_id/);
+ assert.match(leader, /preferred_vps_agent_instance_id/);
+ assert.match(leader, /manualOwnerHandoff/);
+ assert.match(leader, /_canSafelyHandoff\(\)/);
+ assert.match(leader, /NowMs\(\) - _preferredReadySinceMs < 30000/);
+ assert.match(leader, /15L \* 60L \* 1000L/);
+ assert.match(leader, /TryWriteRoles\(session, next, roles, true\)/);
+});
+test("D169 same-ID recovery needs authenticated versioned Agent marker and preserves 20s normal wait", () => {
+ assert.match(relay, /"recovery_protocol" to 1/);
+ assert.match(relay, /TOTAL_WAIT_MS = 20_000L/);
+ assert.match(relay, /VERIFIED_FAILOVER_WAIT_MS = 35_000L/);
+ assert.match(relay, /recoveryProofSeen\.get\(\)/);
+ assert.match(transport, /RecoveryProtocol == 1/);
+ assert.match(transport, /TryGrantSameRequestRecovery/);
+ assert.match(transport, /currentDocument\.updateTime/);
+ assert.match(transport, /NormalPendingAgeMs = 20000L/);
+ assert.match(pipeline, /work\.RecoveryAuthorized \? 29000L : 12000L/);
+ assert.match(rules, /resource\.data\.recovery_protocol == 1/);
+ assert.match(rules, /primary_agent_instance_id/);
+ assert.match(rules, /recovery_granted_at_ms/);
+});
