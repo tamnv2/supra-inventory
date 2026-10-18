@@ -499,3 +499,8 @@ Owner withdraws the separate request to obtain WMS authentication **directly fro
 ## D167 2026-10-13 — Account list UI scope and protected deletion
 
 Only an effective/real ROOT may delete managed ADMIN/PICKPACK_ADMIN/REPORTER users; never display ROOT in account listing, and never let role-review impersonation elevate deletion. Exact protected logins `admin` and `tamnv2` are not removable through managed account deletion, even by ROOT (protect operative privileged credentials). Existing Admin/ROOT bulk Picker lifecycle and Admin/ROOT/PICKPACK_ADMIN Picker Báo hàng capability powers are unchanged. User list selection must make **visible page** distinct from **system-wide Picker**, requiring an authoritative count preview and server-side optional count fence for new UI calls. Every mutation still rechecks role/target in Worker and Durable Object. Privileged users retain OTP/emergency; UI must never offer fixed password reset for them. New early Web meal confirm may set an internal allowance only upon verified WEB token; ANDROID and AGENT cannot assert it.
+
+
+## D169-E044 — Scoped RBAC verification, no blanket role expansion
+
+Owner permitted bundling RBAC fixes only where evidence supports them. D169 source audit already found scoped PICKPACK_ADMIN Picker management and SKU import permissions; D169 PR605 Web/Worker Beta was deployed. No new elevation to Inventory ADMIN/ROOT or automatic permission widening is authorized. The exact UI/endpoint path remains subject to Beta test using PICKPACK_ADMIN versus Inventory ADMIN/Reporter, denied target cases and audit log; only a demonstrated mismatch may be patched in D169 with separate security regression. This is a verification gate, not a new privilege grant.
