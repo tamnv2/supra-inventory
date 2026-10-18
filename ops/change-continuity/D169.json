@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E041",
+    "id": "D169-E042",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -777,6 +777,26 @@
       ],
       "next_action": "Present source/network proof, risk and recommended change contract to Owner; request explicit implementation approval, then test mixed-network HA/ACK with V3 limitations addressed on Beta, branch/PR CI and staged release. Keep PR606 Draft and D169 OPEN.",
       "evidence": "User-uploaded SUPRA_FIREBASE_NETWORK_DIAGNOSTIC_V3 NORMAL/OFFICE 2026-10-17; main relay-agent/FirestoreAgentLeaderCoordinator.cs, RtdbHaLiveness.cs, FirestoreConfirmationTransport.cs, FirestorePickerContact.cs; D169 prior usage analysis."
+    },
+    {
+      "id": "D169-E042",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_REQUEST_AND_IMPACT_REVIEW",
+      "topic": "Repair VPS 15-second HA detection, PDA Picklist status/ACK clarity and Agent Wi-Fi routing",
+      "status": "DESIGN_REPORT_COMMITTED__SOURCE_FINDINGS_VERIFIED__EXECUTABLE_REVIEW_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "User explicitly names the two October 17 V3 NORMAL/OFFICE diagnostics as primary network evidence; do not block design requesting newer transport data.",
+        "VPS preferred PRIMARY: identify unusable Agent/WMS in target 15 seconds and safely switch standby, preserving Firestore CAS/generation/fencing. Manual admin/tamnv2 override and 15-minute cloud-return prompt from E041 remain.",
+        "Android RelayPocClient source waits 20s for ACK and prints speculative standby progress after 10s; D160 primary WMS mutation rejects a job ≥12s old, yet HA threshold is 15s. Full failover cannot finish original request reliably under those independent current limits.",
+        "Agent D160ConfirmPipeline returns WMS_SESSION_REQUIRED terminal when Web Confirm unavailable. Checkbox recovery can surface generic CONFIRM_CONFLICT. ACK fields omit a dedicated machine-readable reason code, and Android displays lookup_status only.",
+        "WMS button text Xác nhận lấy lại hàng is an action label in SupraConfirmBrowser, not proof of WMS committed success. Checkbox disabled alone cannot classify ALREADY_CONFIRMED; use positive WMS or guard evidence and preserve UNCERTAIN after a final click without proof.",
+        "D168NetworkRoute and D168SkuNetworkUi already support allowed saved Wi-Fi, a 60-second Yes/Skip prompt and Worker failure fallback, but do not classify Office-vs-Normal SSIDs across all business operations. Conditions include auth+session, Worker NETWORK_UNREACHABLE, approved fallback, primary WMS-ready and no Confirm busy; false/unknown blocks auto switch.",
+        "Agent KICK and bulk revoke need Worker authority, which is inaccessible from Office in V3. Must show network-change UI before action; no pretend success. Firestore Agent login/job/ACK/call/chat/presence should remain Office-capable.",
+        "V3 Office Firestore REST read PASS via system proxy, RTDB fails and Worker unavailable. Actual Office Firestore gRPC listener and authenticated cross-device writes/ACK were NOT tested. Source-only design cannot guarantee all network partitions detected in 15s."
+      ],
+      "next_action": "Owner impact-review approval before executable code changes; validate transport and failover via staged existing Beta resources; source scope Agent+Android+network; avoid any Stable/provider/network authorization expansion. Full design at docs/D169_AGENT_HA_PDA_WIFI_DESIGN_2026-10-18.md.",
+      "evidence": "User Oct18 instructions and two V3 JSON diagnostics; main relay-agent/FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, D168NetworkRoute.cs, D168SkuNetworkUi.cs, D167SkuCoordinator.cs, D160Resilience.cs; Android RelayPocClient.kt and PickerController.kt."
     }
   ],
   "resume": {
