@@ -311,7 +311,7 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/relay_poc_coordination/vps_ready)
         && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.firebase_uid == request.auth.uid
         && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.wms_ready == true
-        && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.ready_at_ms >= request.time.toMillis() - 45000
+        && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.ready_at_ms >= request.time.toMillis() - 30000
         && get(/databases/$(database)/documents/relay_poc_coordination/vps_ready).data.agent_instance_id == request.resource.data.vps_agent_instance_id
         && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.generation == request.resource.data.generation
         && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.primary_agent_instance_id == request.resource.data.primary_agent_instance_id
