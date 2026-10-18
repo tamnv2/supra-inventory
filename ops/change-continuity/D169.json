@@ -7,7 +7,7 @@
   "pr": 618,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E056",
+    "id": "D169-E057",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1196,6 +1196,23 @@
       ],
       "next_action": "Owner review the account-based VPS-first and dual-admin request/approval contract. If Owner explicitly approves implementation, change code under D169 with isolated branch/PR, authority/continuity CI, Agent and Firebase Rules permission tests; staged Beta release requires further exact-source approval. D170 network field tests remain queued.",
       "evidence": "Owner current conversation explicitly clarifies account VPS always preferred; code relay-agent/FirestoreAgentLeaderCoordinator.cs TryReturnOwnerPreferredPrimary/SetOwnerPreferredVps and Program.cs local MessageBox; firebase/firestore.rules relay coordination operator ACL; v137 Beta source main 9fafc56 and D169 E055 branch PR618."
+    },
+    {
+      "id": "D169-E057",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves implementing account-based VPS FIRST and 15-minute dual-admin alert, asks to deploy",
+      "status": "OWNER_CODE_AND_SCOPED_EXISTING_BETA_DEPLOY_APPROVED_PENDING_CI_AND_SAFE_SOURCE_RECEIPT",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly says 'ok triển khai đi em' after D169-E056 whole-model impact review, thereby approving code and scoped Beta deployment after source/CI/release safety checks.",
+        "Exact `VPS` login is auto-preferred primary, no manual checkbox; healthy manually assigned PRIMARY can only be handed back after YES from verified online `admin` or `tamnv2`, both eligible to receive the same 15-minute request.",
+        "Any recipient offline must not be represented as having seen request; no response/NO never authorize takeover. A single affirmative decision must be server-authenticated, CAS/idempotent, generation/time bound and safe for live WMS mutation.",
+        "Use existing scoped Beta Firestore/Agent facilities. No new provider, no Stable, no Android/PDA API change, no password bypass, no owner-pass inference.",
+        "Code and release after verified guarded branch PR, compatibility+HA/security CI, exact source receipt. If any auth/role route cannot be safely enforced, fail closed and do not publish unsafe candidate."
+      ],
+      "next_action": "Implement under D169 on existing active PR/branch; validate Firestore auth identity, Agent account runtime, dual-admin event delivery, CAS, cross-network failover and quota test. Publish Beta only after source+policy gates all PASS with approved exact SHA. Field proof separate.",
+      "evidence": "Owner chat response to D169-E056 proposal dated 2026-10-18."
     }
   ],
   "resume": {
