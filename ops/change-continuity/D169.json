@@ -7,8 +7,8 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E029",
-    "date_vn": "2026-10-17"
+    "id": "D169-E044",
+    "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
   "entries": [
@@ -661,6 +661,23 @@
       ],
       "next_action": "Owner tests v135 on secondary: all ordinary tabs visible, browser toggle hides only Web Confirm, button label updates, WMS session persists through tabs/resize, real Confirm/SKU and mixed-Agent failover; record PASS/NOT PASS in D169. Do not change Stable or Android PR606.",
       "evidence": "PR610 https://github.com/tamnv2/supra-inventory/pull/610 merged 0900a172; workflow runs 38939271226 Worker and 38939271241 Agent (success); release https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135; channel inventory-channel manifest assets."
+    },
+    {
+      "id": "D169-E044",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_APPROVAL",
+      "topic": "Approved staged D169 integration and evidence-gated Báo hàng/RBAC/version scope",
+      "status": "PR615_SOURCE_CANDIDATE__NO_RELEASE__CI_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner approves staged VPS preferred PRIMARY, 15-second observable failover target, conditional PDA recovery wait and manual-holder emergency takeover, with network-aware Office/Internet routing.",
+        "Additional scope is conditional on hard evidence. Existing Android overlay/mandatory-update and Agent SKU cooldown code from PR606 ported to main-v135 based PR615. Android already-confirmed mapping and Agent unused legacy query also patched with source and weekly logs.",
+        "Web/Worker Beta PICKPACK_ADMIN permissions already deployed; no blanket RBAC extension. Intermittent version label, result-stage 404 root, new provider/service remain unverified and not deployed.",
+        "PR606 is divergent and not mergeable; PR615 is an integration candidate, main v135 remains production Beta, Stable untouched.",
+        "Review documentation docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md; separate PR606 E030-E043 history remains authoritative for pending network study until journal history safely reconciled."
+      ],
+      "next_action": "Review PR615 CI and field safety before any release; continue HA/ACK/SSID integration under D169 and preserve no Stable changes.",
+      "evidence": "Owner Oct18 explicit approval, PR615 source + previous PR606 evidence."
     }
   ],
   "resume": {
