@@ -1581,6 +1581,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # D169-E059: main Agent v138 release is retriggered only after the same-SHA
+      # Worker provenance and Firestore Rules workflows are both automatically queued.
       # D168 Worker-first migration: v131 SKU probe is not supported by D167 Worker.
       # Do not publish an Agent update until the exact same source is healthy on Beta.
       - name: D168 require matching Beta Worker before publishing Agent

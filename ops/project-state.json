@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_E058_AGENT138_VPS_FIRST_20_OF_20_SOURCE_CI_PASS__EXACT_SCOPED_BETA_OWNER_RELEASE_LOCKED__RUNTIME_PENDING__FIELD_OWNER_PASS_FALSE",
+    "current_change_status": "D169_E059_PR619_WORKFLOW_REPAIR_16_OF_16_SOURCE_CI_PASS__BETA_RELEASE_LOCKED_80E14C3__MERGE_AND_RUNTIME_RECEIPTS_PENDING__OWNER_FIELD_PASS_FALSE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,9 +7449,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D169",
     "journal": "ops/change-continuity/D169.json",
-    "working_branch": "docs/d169-e055-vps-otp-runtime-receipts-20261018",
-    "pr": 618,
-    "latest_checkpoint_id": "D169-E058",
+    "working_branch": "fix/d169-e059-agent138-release-workflow-provenance-20261018",
+    "pr": 619,
+    "latest_checkpoint_id": "D169-E059",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8225,11 +8225,21 @@
       "safety": "NO_SPLIT_BRAIN_NO_UNVERIFIED_NETWORK_TAKEOVER_NO_WMS_DOUBLE_MUTATION_SERVER_AUTH_DUAL_RESPONSE_REPLAY_PROTECTED",
       "evidence": "D169_E056_JOURNAL_AND_OWNER_DECISIONS_REALTIME_SPEC_SOURCE_REVIEW",
       "code_status": "AGENT138_AND_FIRESTORE_RULES_PR618_SOURCE_4F03222_20_OF_20_ACTIONS_PASS",
-      "release_status": "OWNER_EXPLICIT_E057_SCOPED_BETA_RELEASE_LOCKED_TO_SOURCE_4F03222__MERGE_AND_RUNTIME_DEPLOY_PENDING",
+      "release_status": "E059_SOURCE_80E14C3_16_OF_16_CI_PASS__SCOPED_BETA_WORKER_FIRESTORE_AGENT138_MAIN_MERGE_PENDING",
       "field_status": "NOT_TESTED",
       "owner_pass": "PENDING",
       "release_auth": "D169_E057_OWNER_DIRECTIVE_SCOPED_EXISTING_BETA_ONLY__NO_STABLE",
-      "test_status": "SOURCE_20_OF_20_PASS__OFFICE_NORMAL_HARDWARE_AND_REAL_OTP_AGENT_FIELD_UNVERIFIED"
+      "test_status": "PR618_20_OF_20_PASS__PR619_16_OF_16_PASS__PHYSICAL_OFFICE_INTERNET_AND_OTP_FIELD_UNVERIFIED",
+      "release_repair": {
+        "checkpoint": "D169-E059",
+        "pr": 619,
+        "source": "WORKER_RULES_SAME_SHA_AUTOMATION__ANDROID_UNCHANGED_RELEASE_SKIP",
+        "scope": "WORKFLOWS_ONLY_NO_APP_BUSINESS_CHANGE",
+        "owner_approval": "E057_SAME_CHANGE_SCOPED_BETA_REPAIR",
+        "ci": "PENDING",
+        "runtime": "NOT_COMPLETE",
+        "stable": "OWNER_GATED"
+      }
     }
   }
 }

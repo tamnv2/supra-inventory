@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D169",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "4f03222afe0a36e4c3247fcdf587390f4365e1e4",
+  "approved_source_sha": "80e14c39a3f25d8660e63574b33caac73d920e22",
   "approved_components": [
     "worker",
     "firestore",
@@ -20,14 +20,15 @@
   "resource_change": "EXISTING_BETA_FIRESTORE_RULES_ONLY",
   "code_scope": "D169_E057_VPS_ACCOUNT_FIRST_DUAL_OWNER_AGENT138",
   "approved_at_vn": "2026-10-18",
-  "source_ci": "PR618_4F03222_20_OF_20_CI_PASS__AGENT138_WINDOWS_BUILD__FIRESTORE_RULES_SOURCE__NO_FIELD_PASS",
+  "source_ci": "PR618_AGENT138_4F03222_20_OF_20_PASS__PR619_RELEASE_WORKFLOW_80E14C3_16_OF_16_PASS__SCOPE_UNCHANGED",
   "release_sequence": [
-    "BETA_WORKER_EXACT_SOURCE_HEALTH_NO_WORKER_BUSINESS_CHANGE",
-    "BETA_FIRESTORE_RULES_DEPLOY_READBACK",
-    "AGENT_V138_OFFICIAL_PRERELEASE_AND_BETA_CHANNEL"
+    "BETA_WORKER_SAME_MAIN_SHA_HEALTH_PASS",
+    "BETA_FIRESTORE_RULES_SAME_MAIN_SHA_DEPLOY_READBACK_PASS",
+    "AGENT_V138_OFFICIAL_PRERELEASE_AND_BETA_CHANNEL_SHA_PASS",
+    "ANDROID_UNCHANGED_SOURCE_ONLY_NO_APK_RELEASE"
   ],
   "rollback": "If Worker/Rules/Agent deployment gate fails, retain or return Agent Beta channel to published v137; Android vc111 and Stable unchanged. Never claim VPS/Admin field proof.",
-  "notes": "E057 Owner explicitly approved VPS account-first and 15-minute dual-admin consent scoped Beta rollout after code+Rules CI review. v138 source tested 20/20 workflow PASS at exact source SHA; only existing Beta Worker same-source provenance, existing Firestore Rules and Agent are authorized. Field inbox/login, Office/Internet notifications, physical handoff and provider billed usage are pending. No new resources, no Stable or Android change.",
+  "notes": "E057 Owner explicitly approved VPS account-first and 15-minute dual-admin consent scoped Beta rollout after code+Rules CI review. v138 source tested 20/20 workflow PASS at exact source SHA; only existing Beta Worker same-source provenance, existing Firestore Rules and Agent are authorized. Field inbox/login, Office/Internet notifications, physical handoff and provider billed usage are pending. No new resources, no Stable or Android change. D169 E059 same-change repair: approved source advances to PR619 CI-verified 80e14c3 to include exact source release workflow dependencies and unchanged-Android detection; 16/16 CI PASS. No expansion of component/Stable approval; physical pass still pending.",
   "prior_agent_v135_authorization": {
     "approved_source_sha": "7d6c2d5de22ddf8f836ae719116e35306ac9212d",
     "code_scope": "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
