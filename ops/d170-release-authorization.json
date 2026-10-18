@@ -1,10 +1,13 @@
 {
   "schema_version": 1,
   "change_id": "D170",
-  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
-  "approved_source_sha": null,
-  "approved_components": [],
-  "owner_approval_reference": "OWNER_EXPLICIT_D170_SAFE_CONVERSION_20261018",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "approved_source_sha": "836cd01902444562a719554f910b71c047073418",
+  "approved_components": [
+    "worker",
+    "android"
+  ],
+  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261018_SAFE_PRODUCTION_IDENTITY_PHASE1",
   "code_scope": "D170_OFFICIAL_BRANDING_LEGACY_OTA_PHASE1",
   "resource_change": "NONE_EXISTING_WORKER_AND_SIGNED_ANDROID",
   "legacy_android_package_preserved": true,
@@ -13,8 +16,10 @@
   "stable_deploy_permission": false,
   "field_pass": false,
   "physical_field_verified": false,
-  "authority_continuity_pass": false,
-  "product_ci_pass": false,
-  "staged_target": "EXISTING_BETA_TAGGED_WORKER__PUBLIC_SINGLE_PRODUCTION_NOT_CUT_OVER",
-  "notes": "Owner approved safe conversion; do not merge or publish signed APK/Worker until exact protected source and GitHub CI/owner gate are verified. No Cloudflare routing move, SQLite/Firebase mutation, Agent update or Stable deploy under Phase 1."
+  "authority_continuity_pass": true,
+  "product_ci_pass": true,
+  "staged_target": "EXISTING_WORKER_AND_SIGNED_ANDROID_PHASE1__HOSTNAME_STILL_OLD_UNTIL_PHASE2",
+  "notes": "Owner explicitly orders safe implementation. Phase1 publishes public branding via unchanged existing Worker/InventoryCore and signed package, retains old hostname and tag for installed vc112. No Cloudflare official-domain rebind, Stable Worker deploy, Firebase Rules, DB migration or Agent change. Full official hostname migration requires separate guarded D170 phase-2 code/release receipt.",
+  "source_ci": "PR626_PROTECTED_SOURCE_836CD019__21_GITHUB_ACTIONS_SUCCESS__NO_FAILED__ANDROID_GRADLE_BUILD__DOMAIN_READONLY_CONFLICT_VERIFIED",
+  "approved_at_vn": "2026-10-18"
 }
