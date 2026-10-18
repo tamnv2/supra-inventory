@@ -7,10 +7,10 @@
   "pr": 615,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E045",
+    "id": "D169-E046",
     "date_vn": "2026-10-18"
   },
-  "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
+  "deployment_gate": "D169_OWNER_APPROVED_FINISH_AND_STAGED_BETA__PHYSICAL_DUAL_NETWORK_FIELD_TEST_DEFERRED_TO_FUTURE_D170__CI_COMPATIBILITY_SAFETY_AND_STABLE_GUARDS_REMAIN",
   "entries": [
     {
       "id": "D169-E001",
@@ -999,6 +999,23 @@
       ],
       "next_action": "Finish D169 HA/SSID/PDA integration tests and two-network field safety checks; do not release full fleet before technical + field gates.",
       "evidence": "GitHub PR615 CI SHA ddc34814c07378589bb2eff3fb95b3222ba7fd0c; docs/D169_BACKLOG.md E045."
+    },
+    {
+      "id": "D169-E046",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Finish Owner-approved D169 code and deploy Beta; move physical two-network Agent↔Agent↔PDA test plan to future D170",
+      "status": "OWNER_CODE_AND_STAGED_BETA_RELEASE_INSTRUCTION__IMPLEMENTATION_PENDING__FIELD_TEST_DEFERRED__D170_NOT_OPEN",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly instructs completing the remaining already-approved D169 implementation and deploying all approved Beta components, without reopening authorization for the same scope.",
+        "The dedicated mixed Office/Internet Agent↔Agent↔PDA physical field-test workstream is deferred to D170 by Owner instruction. This is NOT a claim of test PASS or proof of safe 15s failover under network partition; retain D169 automated/contract CI gates, staged compatibility checks, release receipts, rollback and real-device acceptance as unresolved.",
+        "Serial change-control remains authoritative: D169 has no Owner PASS; D170 must NOT be opened or modified before D169 explicitly passes. Record D170 as future queued scope only.",
+        "Continue D169 on PR615 based on released Agent v135 with source-to-release SHA evidence; no direct main pushes, no Stable, no new provider/service, no public secrets, and no invented Office gRPC/RTDB/WMS field verification.",
+        "The existing D169-E044 conditional inclusion rule remains: only evidence-backed Báo hàng/role/version fixes; do not silently widen RBAC, change WMS action result inference, force takeover under uncertainty, or add a new critical transport."
+      ],
+      "next_action": "Complete D169 approved source in PR615, run full relevant PR/CI and simulated HA/ACK/recovery tests; attempt controlled Beta release only if release receipt and safe compatibility gates are satisfied. Queue physical dual-network Agent–Agent–PDA matrix for D170 after explicit D169 Owner PASS.",
+      "evidence": "Owner current message 2026-10-18; PR615 live source/CI and D169-E044/E045 review."
     }
   ],
   "resume": {
