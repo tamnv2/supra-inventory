@@ -1180,9 +1180,9 @@
     {
       "id": "D169-E056",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_REQUIREMENT_INTAKE",
+      "kind": "DISCUSSION",
       "topic": "Replace pin-once Agent instance VPS preference with permanent authenticated VPS-account FIRST priority and dual-admin 15-minute consent request",
-      "status": "OWNER_DESIRED_BEHAVIOR_CONFIRMED__IMPACT_REVIEW_RECORDED__NO_CODE_OR_RELEASE_AUTHORIZATION",
+      "status": "OWNER_REQUESTED_BEHAVIOR_RECORDED__PRE_IMPLEMENTATION_IMPACT_REVIEW__NO_CODE_RELEASE_AUTHORIZATION",
       "owner_approval": false,
       "facts": [
         "Owner rejects v137 manual pin prerequisite. Exact authenticated account VPS is automatically preferred for PRIMARY whenever active Agent session, Firebase/Firestore coordination, WMS Confirm readiness, and HA fencing are valid.",
