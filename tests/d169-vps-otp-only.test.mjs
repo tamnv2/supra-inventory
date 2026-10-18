@@ -43,3 +43,16 @@ test("Agent and Office fallback gateway allow VPS, without changing admin-exclus
   assert.match(management, /isPrivilegedOneTimeUser\(before\)/);
   assert.match(management, /không được gán mật khẩu cố định/);
 });
+
+test("D169 OTP-only release is gated by Owner approval, versioned Agent and one-time bootstrap", () => {
+  const gate = read("tools/d167_release_gate.py");
+  const worker = read(".github/workflows/deploy-beta.yml");
+  const agentWorkflow = read(".github/workflows/verify-relay-agent.yml");
+  assert.match(gate, /D169_E054_VPS_OTP_ONLY_BETA_WORKER_GATEWAY_AGENT137/);
+  assert.match(gate, /OWNER_EXPLICIT_D169_DEPLOY_20261018_E054_VPS_OTP_ONLY_BETA/);
+  assert.match(worker, /D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE/);
+  assert.match(worker, /D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY/);
+  assert.match(worker, /D169_VPS_OTP_ALREADY_PENDING_UNCONSUMED/);
+  assert.match(agentWorkflow, /D169_VPS_GATEWAY_FIRST_AGENT_RELEASE_PASS/);
+  assert.equal(read("relay-agent/VERSION").trim(), "137");
+});
