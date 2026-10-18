@@ -5551,29 +5551,32 @@
     },
     {
       "id": "OA104",
-      "status": "OPEN_OWNER_GMAIL_AND_AGENT_V137_FIELD_TEST__BETA_RELEASE_AND_FIRST_OTP_ACCEPTED",
-      "title": "VPS OTP-only Agent v137 Beta field validation",
+      "status": "OPEN_OWNER_FIELD_OTP_AND_AGENT_V138_HA_MANUAL_CONSENT__TECHNICAL_BETA_RELEASE_PASS",
+      "title": "Agent v138 VPS one-time login and PRIMARY return field validation",
       "resource_key": "apps-script-agent-log-gateway-beta-d158",
-      "provider": "Existing SUPRA Inventory Beta Worker / Windows Agent",
+      "provider": "Existing SUPRA Inventory Beta Worker / Firestore / Windows Agent",
       "reason_owner_only": "Owner controls the VPS Windows application login and project Gmail inbox; tool/CI cannot attest actual inbox delivery or a personal WMS session.",
       "prerequisites": [
-        "Beta Worker run 39109138996 PASS and first VPS OTP Worker HTTP202 accepted for delivery",
-        "Existing Beta Agent Gateway run 39109139019 PASS",
-        "Agent v137 prerelease and inventory-channel manifest published by run 39109138955 PASS"
+        "Existing D169-E054 VPS initial OTP HTTP202 accepted for sending, Gmail inbox and code consumption not verified",
+        "D169-E060 Beta Worker run 39119373089 and Firestore Rules run 39119373107 PASS",
+        "Official Agent v138 EXE + SHA256, inventory-channel v138 and browser bundle published by run 39119373112 PASS",
+        "Android unchanged run 39119373113 PASS; Stable remains gated"
       ],
       "shortest_action": [
-        "Check the existing project admin mailbox for an email with account VPS and a four-digit OTP; check Spam if absent.",
-        "On VPS Windows install/update official Agent v137 from GitHub Beta release, enter VPS and the received four-digit OTP in the ordinary password field; never paste the code into chat/GitHub.",
-        "After successful sign-in, check that a separate next OTP email arrived; test protected exit/reauth with next code and verify old code rejected.",
-        "Report PASS or sanitized error/status only. No OTP/password/email subject screenshot containing code."
+        "Check the existing project admin mailbox for VPS four-digit OTP (or request a fresh one through the ordinary Agent UI if previous expired); never share any code.",
+        "Update the VPS Windows machine to official Agent v138 and sign in as VPS; ensure WMS Confirm is really logged in and ready.",
+        "With an automatically selected non-VPS PRIMARY, verify VPS safely becomes PRIMARY without using the old pin checkbox.",
+        "With a healthy manually designated PRIMARY, sign in on the admin and/or tamnv2 Agent sessions, verify 15-minute VPS alerts; YES safely returns PRIMARY, NO/silence keeps it; record sanitized screenshots/logs only.",
+        "When practical compare Office vs Internet notification/HA and check no duplicate or interrupted Picklist. Report PASS or FAIL with log times only; D170 remains a separately queued full network matrix."
       ],
       "pass_criteria": [
-        "VPS OTP first delivery confirmed by Owner",
-        "Agent v137 login with existing VPS role succeeds without emergency password",
-        "Consumed code rejected and next code received",
-        "Admin and tamnv2 mechanisms remain unchanged; office fallback if tested"
+        "Existing VPS OTP mail delivered and one-use login v138 verified by Owner without emergency code",
+        "VPS WMS ready first and automatic return only from auto-assigned PRIMARY",
+        "Protected manual PRIMARY obeys consent from authenticated admin/tamnv2 online Agents; both receive one shared request when both Agent sessions online",
+        "NO/timeout does not transfer; YES once transfers only after in-flight work idle; no duplicate Picklist ACK",
+        "Office/Internet path and provider Usage measured or explicitly recorded pending before field PASS"
       ],
-      "remaining_owner_action": "Check project mailbox for VPS four-digit code; install/use Agent v137 on the VPS, sign in, verify next-code email and old-code rejection. Do not share OTP or credentials.",
+      "remaining_owner_action": "On VPS install/update official v138, log in with one-time VPS code, confirm live WMS readiness and test manual/automatic PRIMARY return and admin/tamnv2 Agent alerts. Do not share OTP. D170 full network test remains queued.",
       "owner_field_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED"
     }
