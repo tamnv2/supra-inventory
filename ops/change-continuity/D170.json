@@ -3,22 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "fix/d170-agent139-release-trigger-20261019",
-  "pr": 636,
+  "working_branch": "state/d170-agent139-release-success-receipt-20261019",
+  "pr": 637,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E020",
+    "id": "D170-E021",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
     "owner_latest": "OWNER_EXPLICIT_D170_20261019_FOCUS_RELEASE_AGENT139",
     "code_permission": true,
     "merge_permission": true,
-    "deploy_permission": true,
-    "production_runtime_permission": true,
+    "deploy_permission": false,
+    "production_runtime_permission": false,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E020_PR636_AGENT139_EXACT_SOURCE_2FB2027__CI_THEN_WORKER_AGENT_RELEASE_ONLY"
+    "reason": "D170_E021_AGENT_V139_TECHNICAL_RELEASE_SUCCESS__NO_NEW_DEPLOY_PERMISSION__FIELD_OWNER_PENDING"
   },
   "entries": [
     {
@@ -375,6 +375,24 @@
       ],
       "next_action": "PR636 complete authority+continuity/product CI, merge under D170_PHASE3_OFFICIAL_CLIENTS prefix, verify new Worker same-SHA runtime and Agent v139 release EXE/channel/checksum.",
       "evidence": "PR635 13/13, main Worker 39172416436 SUCCESS, no Agent workflow run for commit 4ecf0f; PR636 exact source 2fb2027."
+    },
+    {
+      "id": "D170-E021",
+      "date_vn": "2026-10-19",
+      "kind": "RELEASE",
+      "topic": "Signed Agent v139 and production update channel published after protected Owner-gated CI and same-source Worker runtime",
+      "status": "AGENT_V139_RELEASE_AND_CHANNEL_SUCCESS__D170_FIELD_OWNER_NOT_PASS",
+      "owner_approval": true,
+      "facts": [
+        "PR636 protected source 2fb2027 passed 15/15 CI and merge main 1896867bda12cbc570148fcf24ecd0050f224d08.",
+        "Worker release run 39173024218 completed SUCCESS including same Worker source/InventoryCore SQLite validation.",
+        "Windows Agent run 39173024161 completed SUCCESS with v139 build, protected Owner gate, original Firestore/WMS parity, exact main Worker prerequisite, v139 publisher and browser bundle.",
+        "GitHub relay-agent-v139 release exists with Agent.Auto.Confirm.Pick.Pack.exe and .sha256; release inventory-channel agent-latest.json, EXE and checksum updated 2026-10-19 VN. Log confirmed inventory-channel -> relay-agent-v139.",
+        "Agent v139 now uses official inventory.supra.cc.cd for API/updater; installed v138 stays compatible through old hostname; Android vc114 unchanged.",
+        "No live hardware fleet/install/PRIMARY WMS ACK or end-to-end field proof. Google OAuth old callback OA105 and eventual old domain retirement still pending; no D170 Owner PASS."
+      ],
+      "next_action": "No more v139 code or release work; Owner may validate installed Windows Agent v139 and business field operations. Continue D170 OAuth/fleet sunset only under new Owner approval; field_pass and owner_pass remain false.",
+      "evidence": "GitHub Actions Worker #39173024218, Agent #39173024161, GitHub Release relay-agent-v139, inventory-channel publication log, PR636."
     }
   ],
   "resume": {
@@ -398,10 +416,12 @@
       "D170-E012 PR630 exact-source 8d18582c 15/15 source CI and Worker-only no-delete official-host attachment release receipt approved; not yet merged or deployed.",
       "D170-E014 domain cutover runtime PASS: main d6833675, Worker run 39154128973, dual domain control plane and SQLite.",
       "E016 PR633 Android + Agent + Worker OAuth Phase3A code passed 25/25 PR CI on b11fd2; source not released.",
-      "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed."
+      "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed.",
+      "D170-E021 Agent v139 signed release and channel DONE: main 1896867b, Worker run 39173024218 SUCCESS, Agent run 39173024161 SUCCESS, relay-agent-v139 EXE/SHA, inventory-channel -> v139."
     ],
     "in_progress": [
-      "D170-E020 PR636 source candidate fixes Agent v139 receipt-trigger gap; product CI and main release pending."
+      "Full D170 Phase3 Google OAuth official callback and legacy host fleet migration/retirement pending separate Owner direction.",
+      "Physical Agent v139/PDA WMS ACK and PRIMARY failover field acceptance unverified; release technical PASS only."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs."
@@ -411,8 +431,9 @@
       "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release."
     ],
     "next_actions": [
-      "Check PR636 authority/product PASS; merge; verify Agent v139 tagged EXE and inventory-channel manifest + checksum; preserve domain and Android."
+      "Owner field-check Windows Agent v139 on representative PC and existing v138 in-place OTA when appropriate; no forced test or domain removal inferred.",
+      "Do not re-trigger Agent v139 release now that latest channel and EXE are published."
     ],
-    "release_boundary": "D170_E020_AGENT_V139_ONLY_TRIGGER_REPAIR__EXACT_SOURCE_2FB2027__CI_AND_RUNTIME_PENDING"
+    "release_boundary": "D170_E021_AGENT_V139_TECHNICAL_RELEASE_AND_CHANNEL_PASS__FIELD_OWNER_PASS_FALSE__OLD_HOST_RETAINED"
   }
 }
