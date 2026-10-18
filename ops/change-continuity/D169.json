@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-e060-vps138-runtime-receipts-20261018",
-  "pr": 620,
+  "working_branch": "fix/d169-android-resume-20261018",
+  "pr": 621,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E060",
+    "id": "D169-E061",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1268,6 +1268,22 @@
       ],
       "next_action": "Owner field check on one VPS v138 login and healthy Web Confirm, automatic reclaim, then admin/tamnv2 Agent alerts and YES/NO with existing Firestore over Internet and Office; send sanitized PASS/FAIL/log evidence. Do not expose OTP, and do not update Stable. D170 only after explicit D169 Owner PASS.",
       "evidence": "Main 4077f865 13/13 Actions SUCCESS; Worker 39119373089; Firestore 39119373107; Agent 39119373112; Android 39119373113; relay-agent-v138 GitHub release and inventory-channel release timestamp/EXE/SHA assets; docs/D169_RUNTIME_RELEASE_RECEIPTS_2026-10-18.md."
+    },
+    {
+      "id": "D169-E061",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves D169 Android Beta warm-foreground resume fix and scoped release",
+      "status": "OWNER_BETA_ANDROID_APPROVED__CODE_BRANCH_AND_PR_CREATED__CI_AND_SIGNED_APK_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly approved Android Beta fix and deployment for warm foreground resume without interruptive version/session takeover; requested fully automated GitHub PR/CI release with no manual Owner action.",
+        "Existing warm 6-hour signed-version check unconditionally rerendered Picker/Reporter MainActivity, resetting tabs and realtime; patch renders home only on genuine cold restore or role change and patches identity label in place.",
+        "PR #621 branch fix/d169-android-resume-20261018 includes Android MainActivity fix and source-contract regression test, not a source CI/field PASS.",
+        "Preserve signed mandatory version floor, server-side kick/role authority, Picker PickList ACK, permission gate and cold-start security checks. Stable OWNER-GATED, no new service/provider, no higher polling or log upload."
+      ],
+      "next_action": "Run PR source/authority/continuity/Android CI; lock explicitly approved D169 Android-only Beta SHA; merge only on PASS and publish signed Beta APK; validate channel and APK SHA, await Owner device field PASS separately.",
+      "evidence": "Owner instruction on 2026-10-18 this chat: 'Anh đồng ý. Xử lí và triển khai', 'Rà soát lại và tự triển khai cho anh'; GitHub PR https://github.com/tamnv2/supra-inventory/pull/621; previous runtime logs 16-18 Oct."
     }
   ],
   "resume": {
@@ -1279,7 +1295,8 @@
       "D169-E022 Owner approves Agent-only embedded WMS tab and immediate MANUAL secondary-machine v133 artifact distribution; no merge/main/global channel, no other fleet install.",
       "D169-E024 Owner expressly approves v134 Agent code+Beta OTA channel release from existing v132; profile/browser tab show/hide UI only and same-source Worker redeploy to fulfill existing release gate, no Android or Stable.",
       "D169-E052 Owner approved existing VPS Agent OTP-only authentication with existing project mail recipient; HHmm emergency explicitly denied; CODE/CI work authorized, Beta deploy remains separately gated.",
-      "E054: Owner authorized staged existing Beta Worker, existing Agent Operations Gateway and Windows Agent v137 plus first VPS email OTP issuance; no Android/Firestore/Stable change."
+      "E054: Owner authorized staged existing Beta Worker, existing Agent Operations Gateway and Windows Agent v137 plus first VPS email OTP issuance; no Android/Firestore/Stable change.",
+      "E061: Owner approves Android Beta-only warm-resume UI repair with signed-version/session/ACK guards; explicit deployment after PR/CI. Stable unapproved."
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -1325,7 +1342,8 @@
       "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending.",
       "Final PR610 receipt/authority+continuity checks and release verification still pending; v134 remains published but Owner NOT PASS.",
       "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending.",
-      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170."
+      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170.",
+      "E061 PR #621 Android Beta code and CI, signed APK release pending."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -1379,8 +1397,9 @@
       "D169-E055 owner check Gmail and test official Agent v137 login using received four-digit code; never post code. D170 stays queued until Owner explicitly accepts D169.",
       "D169-E056: account-based VPS PRIMARY preference and targeted 15-minute alert to authenticated online admin/tamnv2 is a new Owner-requested design change; code and rollout not yet authorized. Perform safety/resource review and request explicit implementation approval before modifying executable sources.",
       "E059: repair Worker/Firestore/Agent main SHA workflow triggers and skip unchanged Android release gate; re-lock tested protected SHA before retrying E057 scoped Beta release, no Stable.",
-      "E060: Agent138 Beta Worker/Rules/exe release technical PASS. Owner verifies OTP login/WMS readiness, protected manual handoff, one/both admin alerts and internet/Office real test; do not claim D169 Owner PASS or start D170 yet."
+      "E060: Agent138 Beta Worker/Rules/exe release technical PASS. Owner verifies OTP login/WMS readiness, protected manual handoff, one/both admin alerts and internet/Office real test; do not claim D169 Owner PASS or start D170 yet.",
+      "E061 complete PR #621 source/authority/continuity CI, Android signing and Beta release; no duplicate Worker/Firestore/Agent release."
     ],
-    "release_boundary": "D169_E060_BETA_RUNTIME_AGENT138_PASS__OWNER_FIELD_VPS_WMS_HA_NOT_PASS__STABLE_GATED"
+    "release_boundary": "D169_E061_ANDROID_BETA_WARM_RESUME_OWNER_DEPLOY_APPROVED__PR621_CI_AND_SIGNED_APK_PENDING__STABLE_GATED__D170_DEFERRED"
   }
 }

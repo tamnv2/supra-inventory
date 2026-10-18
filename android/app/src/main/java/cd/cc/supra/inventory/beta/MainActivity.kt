@@ -109,6 +109,8 @@ class MainActivity : Activity() {
     private fun mandatoryUpdateKnown(): Boolean = verifiedMinimumVersionCode > BuildConfig.VERSION_CODE
     @Volatile private var updateCheckRunning = false
     private var lastUpdateCheckElapsedMs = 0L
+    private var lastBackgroundAtElapsedMs = 0L
+    private var backgroundReturnCount = 0
     private val UPDATE_FOREGROUND_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L
     @Volatile private var logoutRunning = false
     @Volatile private var roleSyncRunning = false
@@ -218,6 +220,8 @@ class MainActivity : Activity() {
         restoredSession?.let(api::restoreSession)
         skuCache = SkuCatalogCache(this)
         installCrashRuntimeLogHandler()
+        // Activity recreation evidence is local; no new provider request or log upload.
+        if (restoredSession != null) recordLog("D169 activity_created saved_state=${savedInstanceState != null} restored_session=true")
         if (hasRequiredNotificationPermissions()) {
             continueStartupAfterPermissionGate()
         } else {
@@ -240,6 +244,7 @@ class MainActivity : Activity() {
     }
 
     override fun onStop() {
+        lastBackgroundAtElapsedMs = android.os.SystemClock.elapsedRealtime()
         if (operatingScheduleReceiverRegistered) {
             try { unregisterReceiver(operatingScheduleReceiver) } catch (_: Exception) { }
             operatingScheduleReceiverRegistered = false
@@ -264,6 +269,13 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        if (::api.isInitialized && lastBackgroundAtElapsedMs > 0L) {
+            backgroundReturnCount++
+            if (backgroundReturnCount == 1 || backgroundReturnCount % 10 == 0) {
+                recordLog("D169 warm_foreground_return count=$backgroundReturnCount")
+            }
+            lastBackgroundAtElapsedMs = 0L
+        }
         val pending = pendingInstallFile
         if (pending != null) {
             if (packageManager.canRequestPackageInstalls()) {
@@ -297,9 +309,10 @@ class MainActivity : Activity() {
             // Foreground-only, max once per 6h, no new timer or background poll.
             checkForUpdate(silent = true)
         }
-        if (::api.isInitialized && api.session != null &&
-            (updateGate == UpdateGate.CURRENT || updateGate == UpdateGate.MANDATORY)) {
-            // Do not block result receipts/ACK for an already-running session.
+        if (::api.isInitialized && api.session != null && !restoringSessionScreen &&
+            updateGate != UpdateGate.FAILED) {
+            // Keep ACK/role reconciliation alive during a non-blocking version check.
+            // Do not start operational clients on the cold restore/security gate.
             reconcileNotificationSignal()
             reconcileSkuCatalogRefresh()
             drainOverlayAcknowledgements()
@@ -319,16 +332,21 @@ class MainActivity : Activity() {
                 val next = api.refreshProfile()
                 runOnUiThread {
                     roleSyncRunning = false
+                    // A late server reply must not modify a different signed-in account.
+                    if (api.session?.userId != next.userId) return@runOnUiThread
                     val roleChanged = before?.role != next.role
                     val identityChanged =
                         before?.displayName != next.displayName ||
                         before?.employeeCode != next.employeeCode ||
                         before?.contractorName != next.contractorName
                     val reportingChanged = before?.shortageReportingEnabled != next.shortageReportingEnabled
-                    if (roleChanged || identityChanged || activeSession == null) {
-                        renderHome(next)
+                    if (roleChanged || activeSession == null) {
+                        renderHome(next, reason = "role_change")
                     } else {
                         activeSession = next
+                        if (identityChanged) {
+                            findViewById<TextView>(R.id.tvHeaderUser)?.text = sessionHeaderLabel(next)
+                        }
                         if (reportingChanged && next.role == "PICKER") {
                             pickerController?.applyShortageReportingCapability(next.shortageReportingEnabled)
                         }
@@ -524,7 +542,7 @@ class MainActivity : Activity() {
                         runOnUiThread {
                             progress.visibility = View.GONE
                             password.setText("")
-                            renderHome(session)
+                            renderHome(session, reason = "login")
                         }
                     } catch (e: Exception) {
                         if (e is ApiException && e.code == "SESSION_ACTIVE_OTHER_DEVICE" && !force) {
@@ -552,7 +570,17 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun renderHome(session: AppSession) {
+    private fun sessionHeaderLabel(session: AppSession): String = buildString {
+        append(session.employeeCode ?: session.userId)
+        append(" · ")
+        append(session.displayName)
+        if (session.role == "PICKER" && !session.contractorName.isNullOrBlank()) {
+            append(" · ")
+            append(session.contractorName)
+        }
+    }
+
+    private fun renderHome(session: AppSession, reason: String = "session_restore") {
         restoringSessionScreen = false
         loginButton = null
         pickerController?.destroy()
@@ -567,16 +595,7 @@ class MainActivity : Activity() {
         contentContainer = findViewById(R.id.contentContainer)
         status = TextView(this)
         findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng Beta"
-        findViewById<TextView>(R.id.tvHeaderUser).text =
-            buildString {
-                append(session.employeeCode ?: session.userId)
-                append(" · ")
-                append(session.displayName)
-                if (session.role == "PICKER" && !session.contractorName.isNullOrBlank()) {
-                    append(" · ")
-                    append(session.contractorName)
-                }
-            }
+        findViewById<TextView>(R.id.tvHeaderUser).text = sessionHeaderLabel(session)
         findViewById<TextView>(R.id.tvAppVersion).apply {
             text = "Beta vc${BuildConfig.VERSION_CODE}"
             setOnClickListener {
@@ -626,7 +645,11 @@ class MainActivity : Activity() {
         registerBackgroundNotifications()
         drainNotificationReceipts()
         drainOverlayAcknowledgements()
-        recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
+        if (reason == "login") {
+            recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
+        } else {
+            recordLog("D169 home_rebuilt reason=$reason")
+        }
         // Deferred logs are sent only on logout/kick, explicit manual send or global support request.
         uiHandler.removeCallbacks(runtimeLogTick)
         uiHandler.post(runtimeLogTick)
@@ -1981,16 +2004,25 @@ class MainActivity : Activity() {
                 if (info.versionCode <= BuildConfig.VERSION_CODE) {
                     cleanupUpdateArtifacts()
                     updateGate = if (info.versionCode == BuildConfig.VERSION_CODE) UpdateGate.CURRENT else UpdateGate.DEFERRED
-                    val restored = if (api.session != null) {
+                    // Only an Activity recreated by Android needs a home render.
+                    // A foreground-only version check must preserve the current UI.
+                    val restoringOwner = if (restoringSessionScreen) api.session?.userId else null
+                    val restored = if (restoringOwner != null && api.session?.userId == restoringOwner) {
                         try { api.refreshProfile() } catch (_: Exception) { null }
                     } else null
                     runOnUiThread {
                         updateCheckRunning = false
-                        when {
-                            restored != null -> renderHome(restored)
-                            api.session != null -> renderHome(api.session!!)
-                            restoringSessionScreen -> renderLogin("Phiên đăng nhập cần xác thực lại.")
-                            else -> applyUpdateGateUi(if (!silent && updateGate == UpdateGate.CURRENT) "Đang dùng bản Beta mới nhất." else null)
+                        if (restoringSessionScreen) {
+                            val current = api.session
+                            when {
+                                current == null -> renderLogin("Phiên đăng nhập cần xác thực lại.")
+                                current.userId != restoringOwner -> renderLogin("Phiên đăng nhập đã thay đổi.")
+                                restored != null -> renderHome(restored, reason = "session_restore")
+                                else -> renderHome(current, reason = "session_restore")
+                            }
+                        } else {
+                            // Warm resume: never reconstruct Picker/Reporter controllers.
+                            applyUpdateGateUi(if (!silent && updateGate == UpdateGate.CURRENT) "Đang dùng bản Beta mới nhất." else null)
                         }
                     }
                     return@Thread

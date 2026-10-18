@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_E060_SCOPED_BETA_AGENT138_RUNTIME_WORKER_FIRESTORE_CHANNEL_PASS__MAIN_13_OF_13__OWNER_VPS_WMS_NETWORK_FIELD_PASS_PENDING",
+    "current_change_status": "D169_E061_ANDROID_BETA_RESUME_CODE_PR621_PENDING_CI_AND_RELEASE__D169_E060_VPS_FIELD_PASS_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,9 +7449,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D169",
     "journal": "ops/change-continuity/D169.json",
-    "working_branch": "docs/d169-e060-vps138-runtime-receipts-20261018",
-    "pr": 620,
-    "latest_checkpoint_id": "D169-E060",
+    "working_branch": "fix/d169-android-resume-20261018",
+    "pr": 621,
+    "latest_checkpoint_id": "D169-E061",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8240,6 +8240,17 @@
         "runtime": "NOT_COMPLETE",
         "stable": "OWNER_GATED"
       }
+    },
+    "android_resume_e061": {
+      "date_vn": "2026-10-18",
+      "owner_approval": "EXPLICIT_ANDROID_BETA_ONLY_RELEASE_APPROVED",
+      "branch": "fix/d169-android-resume-20261018",
+      "pr": 621,
+      "scope": "MAINACTIVITY_LIFECYCLE_SILENT_VERSION_CHECK__NO_NEW_PROVIDER__NO_AGENT_WORKER_FIRESTORE_RUNTIME_CHANGE",
+      "implementation": "COMMITTED_PR_CI_PENDING",
+      "signed_apk": "NOT_RELEASED",
+      "field_pass": false,
+      "stable": "OWNER_GATED"
     }
   }
 }

@@ -96,6 +96,24 @@ def main():
                 fail("D169 release must not reach Stable or new resource")
             if data.get("cross_component_compatibility_ci") is not True:
                 fail("D169 mixed-version and conditional recovery compatibility CI must PASS")
+        elif data.get("code_scope") == "D169_E061_ANDROID_RESUME_BETA_ONLY":
+            if d169_components != ["android"]:
+                fail("D169 E061 permits only the existing scoped Android Beta package")
+            if data.get("owner_approval_reference") != (
+                    "OWNER_EXPLICIT_D169_DEPLOY_20261018_E061_ANDROID_RESUME_BETA"):
+                fail("D169 E061 requires explicit Owner Android Beta authorization")
+            if data.get("stable_deploy_permission") is not False:
+                fail("D169 E061 Stable remains Owner-gated")
+            if data.get("resource_change") != "NONE_ANDROID_BETA_ONLY_EXISTING_RUNTIME":
+                fail("D169 E061 may not provision or redeploy other providers")
+            if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
+                fail("D169 E061 cannot claim real-device field PASS from CI")
+            if (data.get("field_release_mode") != "OWNER_ACCEPTED_RISK_FOR_ANDROID_BETA_FIELD_TEST"
+                    or data.get("owner_field_acceptance_reference") !=
+                    "OWNER_EXPLICIT_D169_20261018_E061_ANDROID_BETA_FIELD_TRIAL"):
+                fail("D169 E061 Beta-only field-trial boundary missing")
+            if data.get("cross_component_compatibility_ci") is not True:
+                fail("D169 E061 must preserve deployed Agent v138 and Firestore ACK compatibility")
         elif data.get("code_scope") == "D169_E057_VPS_ACCOUNT_FIRST_DUAL_OWNER_AGENT138":
             if d169_components != ["worker", "firestore", "agent"]:
                 fail("D169 VPS account-first Beta release permits only existing Worker/Firestore/Agent")
