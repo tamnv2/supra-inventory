@@ -1,5 +1,10 @@
 # OPERATING_PROTOCOL — Automation-first project operation
 
+## D170 single official Production transition — current planning boundary
+
+Owner removed the **future** Beta→Stable release-promotion requirement and selects the existing live environment for one official Production identity. The intended domain is `inventory.supra.cc.cd` and public PDA name is `1291 Báo hàng`. This is design only until exact D170 staged release, provider ownership and data/OTA compatibility gates PASS. The existing Beta-named runtime stays the live accepted source; old Stable remains Owner-gated. **Do not apply older blanket Beta deployment command semantics to D170 and do not merge executable changes that would trigger a live cutover under a docs-only authorization.** Preserve branch→PR→CI, accepted base, resource scoping, secrets, Owner release approval, compatibility and non-destructive rollback. Once the D170 rollout is technically verified, replace obsolete promotion gates by one guarded Production channel as a separately authorized code/config change. D171 Office/Internet PDA–Agent–Agent test suite remains queued separately.
+
+
 Status: **CANONICAL OPERATING POLICY**.
 
 ## Default execution ladder
