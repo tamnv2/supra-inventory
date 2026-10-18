@@ -1106,3 +1106,8 @@ Tất cả màn hình đang hiển thị mã SKU hợp lệ cho Picker (lịch s
 ## D168-E043 — Android Reporter xác nhận giờ nghỉ (vc109)
 
 Popup Reporter/Admin phải có lời nhắc và **hai lựa chọn hiển thị đồng thời** (RadioGroup) cho đúng period Worker `LUNCH` hoặc `DINNER`. LUNCH: `11:00–11:30` = EARLY, `11:30–12:00` = LATE. DINNER: `18:00–18:30` = EARLY, `18:30–19:00` = LATE. Ban đầu không lựa chọn (không tự chọn EARLY); chỉ cho submit sau khi chọn; báo lỗi và bật lại nút khi thất bại. Không dùng AlertDialog message cùng single-choice list do một số PDA Android 11 ẩn danh sách. Dữ liệu, role, thời điểm 10:55/17:55, server CAS first-writer, Web edit và fallback LATE không thay đổi. Không thêm quota/service calls.
+
+
+## D169-E040 — Bỏ đề xuất tự giải CAPTCHA WMS (Owner 2026-10-18)
+
+**CANCELLED / NOT TO IMPLEMENT:** không tiếp tục thiết kế hoặc phát hành tự nhận diện khe ghép, tự kéo CAPTCHA hoặc tự vượt xác minh đăng nhập WMS. Phiên WMS hết hạn vẫn hiển thị trình duyệt do Agent quản lý để người dùng đăng nhập và hoàn tất CAPTCHA thủ công. Agent không đánh dấu Confirm/WMS READY trước khi trang xác nhận và phiên thực sự sẵn sàng; giữ hàng rào PRIMARY/generation và cơ chế HA hiện hữu. Log/manual-drag thử nghiệm D169-E034/E035 chỉ là chứng cứ lịch sử, không phải mã nguồn hoạt động hoặc kế hoạch phát hành. D169 VPS-preferred PRIMARY, failover, usage và Agent auth tiếp tục được xem xét tách biệt; không tự coi các đề xuất đó đã code/PASS. Phạm vi `ops/project-scope.json` cho auth UI hiện giữ `MANUAL_LOGIN_WHEN_REQUIRED`, không thay đổi.
