@@ -663,6 +663,93 @@
       "evidence": "PR610 https://github.com/tamnv2/supra-inventory/pull/610 merged 0900a172; workflow runs 38939271226 Worker and 38939271241 Agent (success); release https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135; channel inventory-channel manifest assets."
     },
     {
+      "id": "D169-E030",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_REQUIREMENT_INTAKE_AND_ANALYSIS",
+      "topic": "Preferred cloud Windows Agent with resilient Office/Internet failover, no-cost VPS tuning and privileged login proposal",
+      "status": "PROPOSAL_ONLY__OWNER_DESIGN_CONFIRMATION_PENDING__NO_CODE_OR_RESOURCE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner reports a new Windows VPS has been prepared with a dedicated operator account (alias CLOUD_AGENT). Owner requests a dedicated application Agent user, OTP login comparable to named privileged operators, and an emergency fallback currently described as HHmm. Distinguish Windows account from Firebase application user; no credentials or infrastructure IDs recorded.",
+        "Owner cannot increase VPS specification: approximately 2 vCPU, 4 GB RAM, 30 GB SSD. Wants reliable GUI Agent/WMS operation 24/7 and minimized OS overhead, local log/resource guardrails, proper Windows user-session recovery after restart, without exposing Windows credentials.",
+        "Owner wants CLOUD_AGENT preferred PRIMARY when fully authenticated and WMS-confirm ready, with mixed-network Office/Internet factory Agent NEXT_A/NEXT_B fallback, preserving mobile PDA Internet path and lowest verified Firestore/RTDB usage.",
+        "On unexpected cloud-primary failure, a local ready Agent must take over automatically with generation-fenced exclusive WMS mutation/ACK and safely reconcile in-flight requests. On cloud restoration, automatic return is desired ONLY when preceding failover was automatic; a documented owner admin/tamnv2 manual choice must inhibit automatic cloud reclaim while that choice remains valid.",
+        "Verified main source relay-agent/FirestoreAgentLeaderCoordinator.cs: Firestore generation CAS, 10s primary heartbeat, 15s failover freshness and RTDB-first liveness exist; manual takeover is limited to admin/tamnv2, but durable manual-origin override vs automatic failover origin and preferred-cloud automatic reclaim are not established.",
+        "Verified relay-agent/D165PrivilegedAuth.cs: one-time privileged Agent login is hard-coded to admin/tamnv2; an additional application account needs scope/role/Worker/Gateway security review, separate from VPS Windows user. Clock-only HHmm is predictable and must not be accepted as standalone authentication; prefer a one-time recovery secret or independent server-verified factor.",
+        "Mixed-network risk: NEXT_A requiring RTDB primary-liveness confirmation currently defers takeover on UNAVAILABLE. Office path has not been field-proven with authenticated RTDB; a Firestore-reachable safe fallback requires an explicit design and physical verification. No fabricated failover latency or savings.",
+        "Provider economics: moving the existing Firestore-based confirmation process from an onsite PRIMARY to a VPS does not intrinsically reduce billable reads/writes. Optimize event-driven critical wake, reused listeners, low-frequency fleet state, zero redundant polling, and only verified equivalent transport substitutions.",
+        "Windows WinForms Agent requires an interactive user session; built-in child watchdog alone does not prove unattended restart after VPS OS reboot. Test Windows RDP disconnect, profile/DPAPI persistence, WMS login readiness, clean planned maintenance and unexpected power loss."
+      ],
+      "alternatives": [
+        "PREFERRED: active cloud PRIMARY on normal internet; 2 local warm ready standby tiers; guarded event-driven failover and fenced preferred-primary return after stable WMS readiness and no manual pin; auth-specific secure OTP and restricted operator role.",
+        "METRIC_FIRST: preserve current critical lane, use real Office/normal authenticated field observations, compare event-driven standby wake to extra persistent Firestore heartbeat writes before altering HA timing.",
+        "REJECT: unguarded fixed VPS priority that preempts manual PRIMARY, clock-only HHmm credential, blind failover under unknown liveness, using Cloudflare on Office-only path, or deploying an unregistered VPS resource."
+      ],
+      "open_questions": [
+        "Determine whether the dedicated CLOUD_AGENT label denotes Windows account only or an already provisioned Firebase app account, and verify its actual effective privileges without exposing credentials.",
+        "Validate VPS WMS true readiness and RDP-disconnected operation; Office standby Firebase RTDB and Firestore authenticated tests, restart recovery and crash ACK tests before selecting an exact safety-latency target.",
+        "Resolve account and VPS resource scope and Owner decision before any Agent/API/CI implementation or live failover test. Stable stays Owner-gated."
+      ],
+      "next_action": "Present scoped impact/security/usage/failover proposal for Owner decision only; no source/provider/role/rules/VM or release mutations. Maintain D169 serial gate, no new Dxxx, and reconcile divergent main E022-vs-working journal before any merge.",
+      "evidence": "Owner current 2026-10-18 request; main ops/authority-manifest.json and canonical spec/state; relay-agent/D165PrivilegedAuth.cs; relay-agent/FirestoreAgentLeaderCoordinator.cs; relay-agent/FirestoreConfirmationTransport.cs; relay-agent/RtdbHaLiveness.cs. Main journal E029, working branch E022 diverge (no merge authorized)."
+    },
+    {
+      "id": "D169-E031",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_CLARIFICATION_AND_SECURITY_ANALYSIS",
+      "topic": "CLOUD_AGENT is a provisioned SUPRA Web application account; WMS image slider CAPTCHA unattended-login question",
+      "status": "ACCOUNT_TYPE_CONFIRMED__WMS_CAPTCHA_MANUAL_OR_AUTHORIZED_SSO_PROPOSED__NO_CODE_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner confirms the dedicated VPS application account (alias CLOUD_AGENT) was already provisioned through SUPRA Web for logging in to Windows Agent; it is NOT merely a Windows-local account. Account role and effective claims have not yet been independently verified. Do not create another account or assume it is privileged.",
+        "Owner observes Supra WMS web authentication sometimes requires a drag-to-position image-slider challenge (CAPTCHA) and asks whether Agent can automatically drag and pass it, aiming for unattended VPS operation.",
+        "Current main relay-agent/SupraConfirmBrowser.cs has an Agent-owned x64 WebView2 browser with persistent profile and explicit WMS login-marker detection; RefreshState shows browser to operator upon exact login marker, but source review finds no approved slider-CAPTCHA solver or automatic challenge pass.",
+        "WMS CAPTCHA is separate from SUPRA Inventory Agent OTP and Agent role; the proposed application OTP does not grant permission to bypass the WMS challenge.",
+        "Recommend do NOT implement CAPTCHA image matching, simulated drag, external solving service, challenge token reuse, or broad browser auth material replay. Preserve server-side protection, WMS policy and credential/session isolation.",
+        "Low-risk flow: keep stable authenticated WMS profile when permitted, monitor browser WMS readiness, explicitly alert authorized operator when user interaction is required, hold/failover PRIMARY while WMS not ready, recheck readiness after authorized human completes challenge, and apply fenced automatic cloud return only if no manual primary lock.",
+        "If fully unattended WMS login is essential, request an officially authorized SSO, trusted-device, or service integration from the WMS administrator rather than trying to automate CAPTCHA. No assumption such an integration exists.",
+        "D169 source/release boundary unchanged: v135 field PASS pending, no Android/Worker/Firebase/Stable mutation and no provision of unregistered VPS infra."
+      ],
+      "next_action": "Confirm actual authorized SUPRA application role for CLOUD_AGENT and test WMS session behavior after disconnect/restart; ask WMS admin for policy-supported unattended authentication if needed. Propose secure Agent OTP separately for Owner approval. Do not mutate WMS challenge or write CAPTCHA automation.",
+      "evidence": "Owner 2026-10-18 clarification; main relay-agent/SupraConfirmBrowser.cs LoginMarkerText and RefreshState login-marker presentation; relay-agent/D165PrivilegedAuth.cs exact admin/tamnv2 OTP gate; project-scope and current D169 branch E030."
+    },
+    {
+      "id": "D169-E032",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_REQUEST_AND_SECURITY_SCOPE_BOUNDARY",
+      "topic": "Owner reports shared concurrent WMS sign-in and requests unattended image-slider CAPTCHA completion on cloud primary",
+      "status": "OWNER_REQUEST_RECORDED__CAPTCHA_BYPASS_NOT_IMPLEMENTED__VENDOR_AUTH_PATH_NEEDED__NO_CODE_OR_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner confirms the corporate WMS login is shared across Agent locations and can be concurrently signed in through several browser sessions; this does not establish that browser sessions/cookies are portable or exempt from session expiry.",
+        "Owner expressly wishes the cloud Agent to autonomously re-login when a multi-day WMS session expires, including solving a randomized missing-image-piece drag slider CAPTCHA, to avoid hands-on RDP interaction.",
+        "Current main relay-agent/SupraConfirmBrowser.cs uses Agent-owned WebView2 fixed runtime and a persistent dedicated browser profile; when exact WMS login marker appears it surfaces the browser and pauses route recovery awaiting user; after authorized login succeeds it resumes Confirm recovery. No slider-solver exists or is approved.",
+        "Current ops/project-scope.json specifically binds supra-auth-ui-d127-probe to manual WMS login, bounded approved DOM navigation, no sensitive capture or stealth; persistent WMS credentials/cookies/tokens or general-purpose replay are outside registered scope. An Owner request alone does not establish the WMS provider's permission for unattended CAPTCHA bypass.",
+        "Do not implement image-slider matching, automated CAPTCHA drag, external CAPTCHA solving, or hidden credential/session replay. Instead retain already-authorized browser profile, recover on crash, detect WMS login/readiness, alert an authorized operator for provider-required interactive verification, preserve single-PICKLIST fencing/HA failover, and re-evaluate cloud return once WMS becomes ready.",
+        "A fully unattended solution needs documented approval and an official provider-supported authentication path, such as SSO/trusted-device policy, not an invented CAPTCHA exemption. No WMS backend, Agent/PDA, Beta/Stable deployment or new resource was modified."
+      ],
+      "next_action": "Owner/WMS administrator checks whether supported unattended WMS authentication is available. Otherwise propose an event-driven login-required alert and human verification handoff under a separate Owner-approved bounded Agent change after D169 scope/continuity reconciliation.",
+      "evidence": "Owner direct 2026-10-18 clarification; main ops/project-scope.json supra-auth-ui-d127-probe and explicit_out_of_scope; main relay-agent/SupraConfirmBrowser.cs lines ~394-410, ~1458-1501, ~2204-2224; docs/specs/ROLE_WORKFLOWS.md D127 manual login; current D169 PR #606 remains open."
+    },
+    {
+      "id": "D169-E033",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_AUTHORIZATION_CLARIFICATION",
+      "topic": "Owner attests SUPRA WMS allows automation of login image slider CAPTCHA",
+      "status": "OWNER_ATTESTATION_RECORDED__TECHNICAL_DESIGN_AND_SCOPE_REVIEW_PENDING__NO_CODE_OR_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly states that the operator of SUPRA WMS allows automated dragging of the image-piece CAPTCHA used at WMS login. This is an Owner-provided assertion; an independent WMS policy/integration capability check has not occurred.",
+        "Owner's intended behavior remains unattended renewal of an expired shared-account WMS session within the VPS Agent's existing managed WebView2 browser, restoring the picklist Confirm UI and readiness checks while allowing company Agents to take over whenever the VPS is not ready.",
+        "Current registered resource supra-auth-ui-d127-probe in ops/project-scope.json permits only manual WMS login when required, bounded navigation without sensitive capture. Current main relay-agent/SupraConfirmBrowser.cs foregrounds the login marker for human action and resumes Confirm recovery after login clears. The new requested unattended login behavior is not present in source or proven in field.",
+        "Implementing automated challenge completion would be a new authentication interaction and cannot be treated as already permitted by the repository resource scope; scope/security/role/WMS provider policy approval, controlled field trial, failure handling and regression/HA safeguards must be reviewed before any executable change.",
+        "Do not assert a functioning image matcher, general WMS authentication bypass, automation success rate, provider endorsement, release or runtime changes based only on the conversational permission statement. Never persist or log WMS credentials/cookies/headers/tokens/challenge secret material in a public repo.",
+        "Safer underlying requirements: minimize loss of authenticated session via existing profile, distinguish WMS expired login from browser crash/slow DOM, never declare PRIMARY WMS-ready during login challenge, fail over to a ready registered secondary, and only return VPS leadership after verified Confirm readiness and no manual PRIMARY override."
+      ],
+      "next_action": "Seek an approved technical WMS authentication pathway or bounded supervised trial evidence, then present architecture, scope and security impact for Owner review; only implement after repo resource scope/decision/spec change set and branch/PR CI gates, Stable Owner-gated.",
+      "evidence": "Owner current 2026-10-18 authorization statement; main/branch ops/project-scope.json, relay-agent/SupraConfirmBrowser.cs, docs/specs/ROLE_WORKFLOWS.md; E031-E032 prior proposal context."
+    },
+    {
       "id": "D169-E044",
       "date_vn": "2026-10-18",
       "kind": "OWNER_APPROVAL",
