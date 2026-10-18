@@ -288,7 +288,7 @@ class MainActivity : Activity() {
             if (!hasRequiredNotificationPermissions()) {
                 if (!permissionGateActive) {
                     stopOperationalClients()
-                    renderRequiredPermissionsGate("Cần cấp đủ quyền để tiếp tục sử dụng 1291 Báo hàng Beta.")
+                    renderRequiredPermissionsGate("Cần cấp đủ quyền để tiếp tục sử dụng 1291 Báo hàng.")
                 }
                 return
             }
@@ -433,7 +433,7 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.rgb(244, 247, 250))
         }
         root.addView(TextView(this).apply {
-            text = "1291 Báo hàng Beta"
+            text = "1291 Báo hàng"
             textSize = 24f
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.rgb(24, 43, 55))
@@ -482,7 +482,7 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_login)
         applySystemBarInsets()
         findViewById<TextView>(R.id.tvLoginVersion).text =
-            "Beta vc${BuildConfig.VERSION_CODE} · ${BuildConfig.VERSION_NAME.substringBefore("-")}"
+            "vc${BuildConfig.VERSION_CODE} · ${BuildConfig.VERSION_NAME.substringBefore("-")}"
 
         val username = findViewById<EditText>(R.id.etEmployeeCode)
         val password = findViewById<EditText>(R.id.etPassword)
@@ -594,7 +594,7 @@ class MainActivity : Activity() {
         applySystemBarInsets()
         contentContainer = findViewById(R.id.contentContainer)
         status = TextView(this)
-        findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng Beta"
+        findViewById<TextView>(R.id.tvHeaderTitle).text = "1291 Báo hàng"
         findViewById<TextView>(R.id.tvHeaderUser).text = sessionHeaderLabel(session)
         findViewById<TextView>(R.id.tvAppVersion).apply {
             text = "Beta vc${BuildConfig.VERSION_CODE}"
@@ -897,7 +897,7 @@ class MainActivity : Activity() {
             .setPositiveButton("Chia sẻ") { _, _ ->
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, "1291 Báo hàng Beta support log")
+                    putExtra(Intent.EXTRA_SUBJECT, "1291 Báo hàng support log")
                     putExtra(Intent.EXTRA_TEXT, payload)
                 }
                 startActivity(Intent.createChooser(intent, "Chia sẻ log hỗ trợ"))
@@ -1413,7 +1413,7 @@ class MainActivity : Activity() {
             "Thông báo ứng dụng",
             readiness.notificationsReady,
             "Để PDA nhận cảnh báo nghiệp vụ khi ứng dụng đang chạy nền.",
-            "Bật “Cho phép thông báo” cho 1291 Báo hàng Beta.",
+            "Bật “Cho phép thông báo” cho 1291 Báo hàng.",
         ) { requestNotificationPermissionFromGate() }
 
         permissionCard(
@@ -2125,7 +2125,7 @@ class MainActivity : Activity() {
         val versionCode = manifest.optInt("version_code", -1)
         val minimumVersionCode = manifest.optInt("minimum_version_code", 0).coerceAtLeast(0)
         if (!tag.matches(Regex("^beta-vc\\d+$")) || versionCode <= 0 || tag != "beta-vc$versionCode") {
-            throw IllegalStateException("Kênh cập nhật Beta không hợp lệ.")
+            throw IllegalStateException("Kênh cập nhật không hợp lệ.")
         }
         val apkPath = manifest.optString("apk_path")
         val checksumPath = manifest.optString("checksum_path")
@@ -2171,7 +2171,7 @@ class MainActivity : Activity() {
     private fun requestInstall(apk: File) {
         if (!packageManager.canRequestPackageInstalls()) {
             pendingInstallFile = apk
-            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho 1291 Báo hàng Beta.")
+            setStatus("Cần cấp quyền cài ứng dụng không rõ nguồn gốc một lần cho 1291 Báo hàng.")
             startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
             return
         }
@@ -2234,7 +2234,7 @@ class MainActivity : Activity() {
 
         if (url.host == "github.com") {
             val prefix = "/tamnv2/supra-inventory/releases/download/inventory-channel/"
-            if (!url.path.startsWith(prefix)) throw IllegalStateException("Release asset không thuộc kênh Beta tin cậy.")
+            if (!url.path.startsWith(prefix)) throw IllegalStateException("Tệp cập nhật không thuộc kênh tin cậy.")
             return
         }
         val trustedCdn = url.host == "release-assets.githubusercontent.com" ||
@@ -2244,14 +2244,14 @@ class MainActivity : Activity() {
     }
 
     private fun downloadText(url: String, tag: String): String {
-        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Beta tag không hợp lệ.")
+        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Tag phiên bản không hợp lệ.")
         val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("Checksum HTTP ${connection.responseCode}")
         return connection.inputStream.bufferedReader().use { it.readText() }
     }
 
     private fun downloadFile(url: String, file: File, tag: String) {
-        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Beta tag không hợp lệ.")
+        if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Tag phiên bản không hợp lệ.")
         val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("APK HTTP ${connection.responseCode}")
         connection.inputStream.use { input ->
@@ -2306,7 +2306,7 @@ class MainActivity : Activity() {
         }
         val expectedName = "0.2.0-beta.${info.versionCode}"
         if (archive.versionName != expectedName || info.tag != "beta-vc${info.versionCode}") {
-            throw IllegalStateException("APK cập nhật sai kênh/phiên bản Beta.")
+            throw IllegalStateException("APK cập nhật sai kênh/phiên bản.")
         }
 
         val expectedSigner = BuildConfig.TRUSTED_SIGNER_SHA256.trim().lowercase()
