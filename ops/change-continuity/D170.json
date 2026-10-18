@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
   "working_branch": "docs/d170-production-design-20261018",
-  "pr": null,
+  "pr": 625,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D170-E001",
