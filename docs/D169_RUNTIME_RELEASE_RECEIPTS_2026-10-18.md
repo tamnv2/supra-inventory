@@ -35,3 +35,20 @@ Evidence: GitHub release assets list and channel `inventory-channel` checked on 
 | Firestore Rules | Explicit baseline equality check in Agent run 39109138955 | PASS; previous E046 deployed Rules unchanged; no redeploy |
 
 **Scope and semantics:** OTP issue ran through existing scoped Worker email transport to symbolic `PROJECT_ADMIN_EMAIL` without displaying any OTP code or secrets in CI. HTTP 202 confirms the application accepted issuing the code for an existing ACTIVE, eligible VPS operator account; it **does not prove final Gmail inbox delivery**. This separate code is one-use and remains pending until consumed. Exact VPS login via newly installed Agent v137, next-code email, replay denial, Office transport and WMS session remain **OWNER FIELD PENDING**. If the email is not visible, Owner checks project mailbox/Spam; never post the OTP/code or unredacted mailbox evidence to GitHub/chat. The E054 merge trigger is one-off, and another routine docs merge must not repeat provisioning. D170 remains queued behind explicit D169 Owner PASS.
+
+
+## D169-E060 — VPS account-first Agent v138 Beta runtime release (18/10/2026)
+
+**Technical release PASS, Owner field PASS PENDING.** Owner E057 approved scoped existing Beta Worker / Firestore Rules / Windows Agent v138. PR #618 merged main `7b5993b136dfe9a6a1b1c2449bedbc8144567657` after v138 business source `4f03222afe0a36e4c3247fcdf587390f4365e1e4` had 20/20 source workflows PASS. Release dependency repair PR #619 merged main `4077f86560ca6d3c189d9d5c102c17bf93812b81` after workflow source `80e14c39a3f25d8660e63574b33caac73d920e22` had 16/16 and final PR head had 17/17 CI PASS. Final main commit: 13/13 Actions SUCCESS, including scope/authority checks.
+
+| Component | Auditable release receipt | Result |
+|---|---|---|
+| Existing Beta Worker same-commit provenance | [Run 39119373089](https://github.com/tamnv2/supra-inventory/actions/runs/39119373089) | SUCCESS; Agent check `D168_WORKER_FIRST_AGENT_RELEASE_GATE_PASS` |
+| Beta Firestore Rules, scoped v138 authorization | [Run 39119373107](https://github.com/tamnv2/supra-inventory/actions/runs/39119373107) | SUCCESS; Agent check `D169_FIRESTORE_RULES_FIRST_AGENT_RELEASE_GATE_PASS` |
+| Windows Agent v138 | [Run 39119373112](https://github.com/tamnv2/supra-inventory/actions/runs/39119373112) · [v138 signed-style EXE + SHA-256 prerelease](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v138) | SUCCESS; executable and checksum assets present; WebView2 browser bundle PASS; `inventory-channel` updated to `relay-agent-v138` |
+| Android unchanged | [Run 39119373113](https://github.com/tamnv2/supra-inventory/actions/runs/39119373113) | SUCCESS; no new Android version authorized or released under E057 |
+| Authority, continuity and remaining main CI | [Main E059 commit 4077f865](https://github.com/tamnv2/supra-inventory/commit/4077f86560ca6d3c189d9d5c102c17bf93812b81) | 13/13 SUCCESS; Stable untouched |
+
+GitHub release metadata shows v138 prerelease published 2026-10-18 10:30 UTC (17:30 VN), canonical EXE and `.sha256` assets. Inventory channel `agent-latest.json` / `Agent.Auto.Confirm.Pick.Pack.exe` were updated at 10:30 UTC, with corresponding Agent job evidence `Updated stable Agent runtime channel inventory-channel -> relay-agent-v138`. **Channel wording does not confer Stable deployment permission**: this is the existing Beta Agent distributor; Stable remains OWNER-GATED.
+
+**Remaining Owner field validation:** actual installation/login using one-time code of existing `VPS` account, WMS page/session readiness, automatic return from auto-selected PRIMARY, protected manual choice and 15-minute request delivered to exact online `admin` and/or `tamnv2` Agent sessions (including Office fallback), one YES safe handoff, NO/timeout no handoff, dual-YES CAS, no interrupted Picklist/duplicate ACK or unacceptable Firestore Usage. v137 remains rollback; no OTP reissue occurred from E059 merge. A Web-only admin session is **not** claimed to receive Agent desktop notifications. D170 physical two-network testing remains separately queued; no Owner PASS asserted.
