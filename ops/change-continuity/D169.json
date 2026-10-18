@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "fix/d169-e059-agent138-release-workflow-provenance-20261018",
-  "pr": 619,
+  "working_branch": "docs/d169-e060-vps138-runtime-receipts-20261018",
+  "pr": null,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E059",
+    "id": "D169-E060",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1250,6 +1250,24 @@
       ],
       "next_action": "Merge PR619 only after current authority+continuity and CI PASS, then verify same-main-commit Worker, Firestore Rules readback, Agent v138 signed official prerelease + channel and Android unchanged pass. Field and Owner PASS remain pending.",
       "evidence": "Main 7b5993 actions 39118107125 Android release gate denied for out-of-scope component; deploy-beta.yml push paths excluded relay-agent and firebase/firestore.rules; verify-relay-agent.yml exact matching Worker/Firestore action dependencies."
+    },
+    {
+      "id": "D169-E060",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "Scoped Beta VPS account-FIRST Agent v138 + Firestore Rules + same-source Worker deploy actual runtime release PASS",
+      "status": "BETA_TECHNICAL_RUNTIME_PASS__AGENT138_CHANNEL_PUBLISHED__OWNER_VPS_WMS_NETWORK_FIELD_PASS_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Owner-approved D169-E057 source Agent v138 PR618 merged main at 7b5993b after 20/20 CI PASS; pipeline E059 fix PR619 merged main 4077f86560ca6d3c189d9d5c102c17bf93812b81 after 16/16 exact-source and 17/17 full PR CI PASS.",
+        "Main 4077f865 completed 13/13 workflow runs SUCCESS, including Repo Authority, Project State, Windows Agent, Android unchanged, Beta Worker, Beta Firestore Rules.",
+        "Existing Beta Worker deploy run 39119373089 SUCCESS; Firestore Rules run 39119373107 SUCCESS; Agent run 39119373112 SUCCESS with D169_OWNER_RELEASE_GATE_PASS 80e14c3, D168_WORKER_FIRST_AGENT_RELEASE_GATE_PASS and D169_FIRESTORE_RULES_FIRST_AGENT_RELEASE_GATE_PASS.",
+        "Agent v138 GitHub prerelease exists with canonical EXE and SHA256 asset. Agent verification published official release and updated existing inventory-channel agent-latest.json, executable + SHA256, and WebView2 browser bundle; Release 2026-10-18 10:30:00 UTC.",
+        "Android run 39119373113 SUCCESS without release of an unapproved APK; Stable unchanged and OWNER-GATED, no new resource and no repeat OTP issue.",
+        "No evidence of installed VPS v138, OTP inbox or consumed code, login WMS state, Office/Internet handoff, actual 15-minute notifications or Firebase charged Usage. Thus not Owner PASS and D170 remains queued."
+      ],
+      "next_action": "Owner field check on one VPS v138 login and healthy Web Confirm, automatic reclaim, then admin/tamnv2 Agent alerts and YES/NO with existing Firestore over Internet and Office; send sanitized PASS/FAIL/log evidence. Do not expose OTP, and do not update Stable. D170 only after explicit D169 Owner PASS.",
+      "evidence": "Main 4077f865 13/13 Actions SUCCESS; Worker 39119373089; Firestore 39119373107; Agent 39119373112; Android 39119373113; relay-agent-v138 GitHub release and inventory-channel release timestamp/EXE/SHA assets; docs/D169_RUNTIME_RELEASE_RECEIPTS_2026-10-18.md."
     }
   ],
   "resume": {
@@ -1360,8 +1378,9 @@
       "E054: merge PR617 only after authority/continuity PASS; inspect Beta Worker health, Gateway same-SHA existing deployment, v137 EXE release, and worker first-code 202/pending; if VPS account not found do not provision.",
       "D169-E055 owner check Gmail and test official Agent v137 login using received four-digit code; never post code. D170 stays queued until Owner explicitly accepts D169.",
       "D169-E056: account-based VPS PRIMARY preference and targeted 15-minute alert to authenticated online admin/tamnv2 is a new Owner-requested design change; code and rollout not yet authorized. Perform safety/resource review and request explicit implementation approval before modifying executable sources.",
-      "E059: repair Worker/Firestore/Agent main SHA workflow triggers and skip unchanged Android release gate; re-lock tested protected SHA before retrying E057 scoped Beta release, no Stable."
+      "E059: repair Worker/Firestore/Agent main SHA workflow triggers and skip unchanged Android release gate; re-lock tested protected SHA before retrying E057 scoped Beta release, no Stable.",
+      "E060: Agent138 Beta Worker/Rules/exe release technical PASS. Owner verifies OTP login/WMS readiness, protected manual handoff, one/both admin alerts and internet/Office real test; do not claim D169 Owner PASS or start D170 yet."
     ],
-    "release_boundary": "D169_E055_RUNTIME_VPS_OTP_BETA_PASS__OWNER_FIELD_GMAIL_AGENT_NOT_PASS__D170_AFTER_D169_PASS__STABLE_GATED"
+    "release_boundary": "D169_E060_BETA_RUNTIME_AGENT138_PASS__OWNER_FIELD_VPS_WMS_HA_NOT_PASS__STABLE_GATED"
   }
 }
