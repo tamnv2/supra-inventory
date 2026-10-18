@@ -76,6 +76,7 @@ namespace SupraInventoryRelayAgent
         private readonly object _stateGate = new object();
         private readonly AutoResetEvent _wake = new AutoResetEvent(false);
         private readonly RtdbHaLiveness _rtdbLiveness;
+        private readonly FirestoreVpsReclaim _vpsReclaim;
 
         private CancellationTokenSource _cts;
         private volatile FirestoreAgentRole _role = FirestoreAgentRole.DEEP_HIBERNATE;
@@ -107,6 +108,8 @@ namespace SupraInventoryRelayAgent
         private long _preferredReadySinceMs;
         private long _lastManualReturnPromptAtMs;
         private long _ownerReturnConsentUntilMs;
+        private long _lastVpsReadyWriteMs;
+        private long _lastVpsReclaimCheckMs;
         private long _primaryWmsUnreadySinceMs;
         private int _primaryWmsUnreadySamples;
         private string _sharedScheduleKey = "";
@@ -138,6 +141,7 @@ namespace SupraInventoryRelayAgent
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
             _stateChanged = stateChanged ?? delegate { };
+            _vpsReclaim = new FirestoreVpsReclaim(_log);
             _rtdbLiveness = new RtdbHaLiveness(_instanceId, _log, () =>
             {
                 try { _wake.Set(); } catch { }
@@ -1183,6 +1187,23 @@ namespace SupraInventoryRelayAgent
                     var session = _sessionProvider();
                     var now = NowMs();
                     var startupConvergence = _startupConvergenceRemaining > 0;
+                    var accountVps = FirestoreVpsReclaim.IsVps(session);
+                    // The authenticated VPS account, not a manually pinned Agent ID,
+                    // publishes one bounded, Rules-attested readiness proof.
+                    if (accountVps && _relayEnabled() &&
+                        (_lastVpsReadyWriteMs == 0 ||
+                         now - _lastVpsReadyWriteMs >= 15000))
+                    {
+                        try
+                        {
+                            _vpsReclaim.PublishReady(session, _instanceId, _wmsReady());
+                            _lastVpsReadyWriteMs = NowMs();
+                        }
+                        catch (Exception ex)
+                        {
+                            _log("D169 VPS ready=DEFER type=" + ex.GetType().Name);
+                        }
+                    }
                     var roleInterval = _role == FirestoreAgentRole.DEEP_HIBERNATE
                         ? ((string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
                              string.Equals(_preferredVpsAgentInstanceId, _instanceId, StringComparison.Ordinal))
@@ -1192,6 +1213,8 @@ namespace SupraInventoryRelayAgent
                             : (_role == FirestoreAgentRole.NEXT_B
                                 ? NextBRoleRefreshMs
                                 : (!_wmsReady() ? FirestoreConfirmationTransport.PrimaryInactivePollIntervalMs : PrimaryRoleRefreshMs)));
+                    if (accountVps && _role != FirestoreAgentRole.PRIMARY)
+                        roleInterval = Math.Min(roleInterval, 30000);
                     var roleRefreshDue = startupConvergence ||
                                          _refreshBeforeBusiness ||
                                          _lastRoleRefreshMs == 0 ||
@@ -1253,6 +1276,8 @@ namespace SupraInventoryRelayAgent
                     }
 
                     MaintainPresence(session);
+                    if (accountVps && _relayEnabled())
+                        waitMs = Math.Min(waitMs, 15000);
                     // D150: only PRIMARY scans the fresh Agent-presence projection. NEXT_A/NEXT_B
                     // receive the compact agent_sync document through the D140 listener; DEEP
                     // performs a coarse exact agent_sync read in the UI layer. This removes the
@@ -1294,6 +1319,26 @@ namespace SupraInventoryRelayAgent
                 var read = ReadRoles(session);
                 var snapshot = read.Snapshot;
                 ApplySharedSchedule(snapshot);
+                if (FirestoreVpsReclaim.IsVps(session) && snapshot != null &&
+                    _relayEnabled() && _wmsReady() &&
+                    !string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal) &&
+                    string.Equals(snapshot.ManualHolderAgentInstanceId,
+                        snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal) &&
+                    !string.IsNullOrWhiteSpace(snapshot.PrimaryAgentInstanceId) &&
+                    !string.IsNullOrWhiteSpace(snapshot.Generation) &&
+                    (_lastVpsReclaimCheckMs == 0 || NowMs() - _lastVpsReclaimCheckMs >= 30000))
+                {
+                    _lastVpsReclaimCheckMs = NowMs();
+                    try
+                    {
+                        _vpsReclaim.TryRequest(session, _instanceId,
+                            snapshot.PrimaryAgentInstanceId, snapshot.Generation);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log("D169 VPS reclaim request=DEFER type=" + ex.GetType().Name);
+                    }
+                }
                 lock (_stateGate) _nextBId = snapshot == null ? "" : (snapshot.NextBAgentInstanceId ?? "");
 
                 if (snapshot == null)
@@ -1612,34 +1657,18 @@ namespace SupraInventoryRelayAgent
                     StringComparison.Ordinal);
         }
 
+        // E057: the currently authenticated VPS account publishes the one
+        // Rules-attested ready instance. A manual holder never auto-yields.
         private bool TryReturnOwnerPreferredPrimary(AgentSession session, RoleRead roles)
         {
             var snapshot = roles == null ? null : roles.Snapshot;
             if (snapshot == null || !_canSafelyHandoff() || !_relayEnabled()) return false;
-            var preferred = snapshot.PreferredVpsAgentInstanceId ?? "";
-            if (string.IsNullOrWhiteSpace(preferred) ||
-                string.Equals(preferred, _instanceId, StringComparison.Ordinal) ||
-                string.Equals(preferred, snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal))
-            {
-                _preferredReadySinceMs = 0;
-                return false;
-            }
             try
             {
-                var raw = SendJson("GET", DocumentsBase + "/relay_poc_agents/" +
-                    Uri.EscapeDataString(preferred), session.IdToken, null, "", 5000,
-                    true, "D169_PREFERRED_PRIMARY_READY");
-                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
-                object fieldsObj;
-                var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
-                    ? fieldsObj as Dictionary<string, object> : null;
-                var heartbeat = fields == null ? 0L : FieldLong(fields, "heartbeat_at_ms");
-                var age = NowMs() - heartbeat;
-                // A v135 peer does not publish the common lease protocol and
-                // must never be auto-promoted on a stale ten-minute projection.
-                if (fields == null || !FieldBool(fields, "wms_ready") ||
-                    FieldLong(fields, "agent_build") < 136 ||
-                    heartbeat <= 0 || age < -5000 || age > 30000)
+                var ready = _vpsReclaim.GetReady(session);
+                var preferred = ready.AgentInstanceId ?? "";
+                if (!ready.Fresh || string.Equals(preferred, _instanceId, StringComparison.Ordinal) ||
+                    string.Equals(preferred, snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal))
                 {
                     _preferredReadySinceMs = 0;
                     return false;
@@ -1650,21 +1679,28 @@ namespace SupraInventoryRelayAgent
                     return false;
                 }
                 if (NowMs() - _preferredReadySinceMs < 30000) return false;
-                // Manual owner authority wins over automatic VPS preference.
+
                 var manualHold = string.Equals(snapshot.ManualHolderAgentInstanceId,
                     snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal);
-                if (manualHold && _ownerReturnConsentUntilMs < NowMs())
+                if (manualHold)
                 {
-                    if (_lastManualReturnPromptAtMs == 0 ||
-                        NowMs() - _lastManualReturnPromptAtMs >= 15L * 60L * 1000L)
-                    {
-                        _lastManualReturnPromptAtMs = NowMs();
-                        _manualReturnConsentRequested(preferred);
-                    }
-                    return false;
+                    // YES is committed by one Firebase-authenticated admin/tamnv2
+                    // through stricter Firestore Rules; this Agent cannot forge it.
+                    var consent = _vpsReclaim.GetRequest(session);
+                    if (consent.Status != "APPROVED" ||
+                        string.IsNullOrWhiteSpace(consent.ApprovedByUserId) ||
+                        consent.ApprovedAtMs <= 0 ||
+                        consent.ExpiresAtMs <= NowMs() ||
+                        consent.ApprovedAtMs > NowMs() + 5000 ||
+                        consent.Generation != snapshot.Generation ||
+                        consent.PrimaryAgentId != _instanceId ||
+                        consent.VpsAgentId != preferred)
+                        return false;
                 }
-                if (!_canSafelyHandoff() || !_wmsReady()) return false;
 
+                // Final live role-generation compare-and-swap; never interrupt
+                // in-flight confirm, manual WMS work or active SKU mutation.
+                if (!_canSafelyHandoff() || !_wmsReady()) return false;
                 var next = new FirestoreRoleSnapshot
                 {
                     PrimaryAgentInstanceId = preferred,
@@ -1674,12 +1710,15 @@ namespace SupraInventoryRelayAgent
                     Generation = Guid.NewGuid().ToString("N"),
                     UpdatedAtMs = NowMs()
                 };
-                if (!TryWriteRoles(session, next, roles, true)) return false;
+                if (!TryWriteRoles(session, next, roles, manualHold)) return false;
                 _generation = next.Generation;
                 _preferredReadySinceMs = 0;
                 _ownerReturnConsentUntilMs = 0;
-                SetRole(FirestoreAgentRole.NEXT_A, preferred, _instanceId, "D169_OWNER_PREFERRED_SAFE_RETURN");
-                _log("FIRESTORE HA return=PASS mode=OWNER_PREFERRED receiver_ready=true idle=true");
+                SetRole(FirestoreAgentRole.NEXT_A, preferred, _instanceId,
+                    manualHold ? "D169_VPS_OWNER_APPROVED_SAFE_RETURN" : "D169_VPS_AUTOMATIC_SAFE_RETURN");
+                _log("FIRESTORE HA return=PASS mode=VPS_ACCOUNT_FIRST" +
+                     " owner_consented=" + (manualHold ? "true" : "false") +
+                     " receiver_ready=true idle=true");
                 return true;
             }
             catch (Exception ex)
