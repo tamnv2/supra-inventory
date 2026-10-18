@@ -59,9 +59,19 @@ namespace SupraInventoryRelayAgent
 
             if (!HasReadyConfirmBrowser())
             {
+                // When a standby exists, preserve this request as PENDING so
+                // a genuine generation-fenced takeover can recover it. Never
+                // ACK an irreversible "not ready" result while failover is
+                // still possible, and never claim a WMS business success.
+                var standbyMayRecover = _leaderCoordinator != null &&
+                    !string.IsNullOrWhiteSpace(_leaderCoordinator.CurrentStandbyId);
                 foreach (var work in works.Where(work => !outcomes.ContainsKey(work.RequestId)))
-                    outcomes[work.RequestId] = D160Outcome(
+                {
+                    var outcome = D160Outcome(
                         work, "WMS_SESSION_REQUIRED", "WEB_CONFIRM_NOT_READY", "BROWSER_DOM", "", 0L, 0);
+                    outcome.ShouldAck = !standbyMayRecover;
+                    outcomes[work.RequestId] = outcome;
+                }
                 FinalizeD160Outcomes(works, outcomes, 0, null);
                 EmitD160TerminalOutcomes(outcomes, terminalCallback, null);
                 return outcomes;
@@ -407,9 +417,12 @@ namespace SupraInventoryRelayAgent
                     .Select(D160RequestAgeMs)
                     .DefaultIfEmpty(0L)
                     .Max();
+                var verifiedRecovery = targets.Any(target =>
+                    target.Works.Any(work => work.RecoveryAuthorized));
+                var ackBudgetLimitMs = verifiedRecovery ? 34000L : 17500L;
                 var terminalWaitMs = (int)Math.Max(
                     800L,
-                    Math.Min(5200L, 17500L - maxRequestAgeMs - 4500L));
+                    Math.Min(5200L, ackBudgetLimitMs - maxRequestAgeMs - 4500L));
                 var allowPreFinalRecovery = maxRequestAgeMs < 6000L;
                 Log("D160_DIAG MUTATION_BUDGET wave=" + wave +
                     " max_request_age_ms=" + maxRequestAgeMs +
@@ -510,7 +523,7 @@ namespace SupraInventoryRelayAgent
 
         private static bool D160CanStartMutation(FirestoreConfirmationWorkItem work)
         {
-            return D160RequestAgeMs(work) < 12000L;
+            return D160RequestAgeMs(work) < (work != null && work.RecoveryAuthorized ? 29000L : 12000L);
         }
 
         private static bool D160HasRecoveryBudget(IEnumerable<FirestoreConfirmationWorkItem> works)
