@@ -1,3 +1,7 @@
+## D170-E015 — Domain chính thức & gỡ domain cũ có cổng an toàn (19/10/2026)
+
+Source CI phải xác nhận (1) Android URL API/manifest sang host chính và giữ nguyên package/signature/tag/monotonic vc, (2) Agent v139 cùng API và validator chính xác host, (3) Worker chỉ một InventoryCore SQLite, Web same-origin, (4) OAuth Google state cookie theo callback origin đã đăng ký, (5) live old host vẫn phục vụ updater v138/vc113 trong giai đoạn chuyển. Release CI kiểm tra Worker dual-host /health exact SHA/SQLite, Agent manifest+EXE SHA, signed APK manifest/tag/signer. Không được xóa domain cũ chỉ vì CI nguồn hoặc release PASS; cần bằng chứng phiên bản thực tế/PDA Agent và Google OAuth mới, hoặc chấp thuận Owner về ảnh hưởng bản cũ. D170 Phase3: `docs/D170_PHASE3_CLIENT_MIGRATION_AND_SUNSET_2026-10-19.md`.
+
 ## D170 official hostname runtime acceptance split (2026-10-19)
 
 Technical Phase2 `RELEASE_PASS` was verified by main SHA `d6833675` GitHub Worker run `39154128973`: official and legacy custom domain control-plane mapping, identical Worker source SHA and healthy existing InventoryCore SQLite on both `/health` endpoints. Phase1 signed Android vc113 public display source release PASS. This is not real PDA/Windows/Web operator FIELD_PASS or Owner final D170 PASS. Phase3 link, update-channel, OAuth and one-Production CI/branding review remains open. Prior planning-only text below is superseded as a runtime statement.
