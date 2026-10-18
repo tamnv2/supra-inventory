@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D170",
-    "current_change_status": "D170_E019_PR635_EXACT_CI_SOURCE_RECEIPT_ANCHOR__V139_RUNTIME_PENDING",
+    "current_change_status": "D170_E020_PR636_AGENT139_RELEASE_TRIGGER_GATE__CI_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D170",
     "journal": "ops/change-continuity/D170.json",
-    "working_branch": "fix/d170-agent139-exact-approved-source-receipt-20261019",
-    "pr": 635,
-    "latest_checkpoint_id": "D170-E019",
+    "working_branch": "fix/d170-agent139-release-trigger-20261019",
+    "pr": 636,
+    "latest_checkpoint_id": "D170-E020",
     "checkpoint_date_vn": "2026-10-19",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D170_E019_SOURCE_D7B52984_PR634_16_OF_16_PASS__WORKER_AGENT_ONLY__MAIN_RETRY_PENDING",
+    "owner_release_gate": "D170_E020_AGENT139_TRIGGER_SOURCE_2FB2027_WORKER_AGENT_ONLY__CI_PENDING",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8296,12 +8296,12 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E019_AGENT139_RELEASE_RECEIPT_REPAIR_PR635_CI_PENDING",
+    "status": "D170_E020_AGENT139_RELEASE_TRIGGER_PR636_CI_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
-    "working_branch": "fix/d170-agent139-exact-approved-source-receipt-20261019",
-    "working_pr": 635,
+    "working_branch": "fix/d170-agent139-release-trigger-20261019",
+    "working_pr": 636,
     "owner_goal_approved": true,
     "source_code_approved": true,
     "release_approved": true,
@@ -8314,7 +8314,7 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "PR635_CI_PASS__GUARDED_MERGE__AGENT139_EXE_SHA256_AND_CHANNEL_VERIFICATION",
+    "next": "PR636_CI_PASS_MERGE__VERIFY_AGENT139_SIGNED_EXE_SHA256_AND_CHANNEL",
     "release_approved_scope": [
       "worker",
       "agent"
@@ -8338,7 +8338,8 @@
     "phase3_worker_release_main": "a700cebd363df98d943af5eff7b05d851cc458ac",
     "phase3_worker_release_run": 39157893859,
     "phase3_android_release_pass": true,
-    "phase3_agent_release_pass": false
+    "phase3_agent_release_pass": false,
+    "phase3_worker_receipt_recovery_run": 39172416436
   },
   "d171_queued": {
     "status": "QUEUED_ONLY_NOT_ACTIVE_NOT_IMPLEMENTATION_AUTHORIZED",

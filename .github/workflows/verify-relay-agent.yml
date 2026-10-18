@@ -9,6 +9,8 @@ on:
       - "firebase/firestore.rules"
       - "firebase/firestore.indexes.json"
       - ".github/workflows/verify-relay-agent.yml"
+      # D170-E020: receipt-only source authorization must also re-trigger Agent release.
+      - "ops/d170-release-authorization.json"
   push:
     branches: [main]
     paths:
@@ -18,6 +20,8 @@ on:
       - "firebase/firestore.rules"
       - "firebase/firestore.indexes.json"
       - ".github/workflows/verify-relay-agent.yml"
+      # D170-E020: receipt-only source authorization must also re-trigger Agent release.
+      - "ops/d170-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
   workflow_dispatch:
 
