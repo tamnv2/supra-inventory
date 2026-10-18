@@ -1201,7 +1201,12 @@ namespace SupraInventoryRelayAgent
                     var accountVps = FirestoreVpsReclaim.IsVps(session);
                     // The authenticated VPS account, not a manually pinned Agent ID,
                     // publishes one bounded, Rules-attested readiness proof.
+                    // A VPS already holding PRIMARY needs no second readiness
+                    // heartbeat: its existing 10s roles lease is authoritative.
+                    // Publish 15s VPS-ready proofs only while standby, reducing
+                    // Firestore writes in the normal long-lived VPS-primary case.
                     if (accountVps && _relayEnabled() &&
+                        _role != FirestoreAgentRole.PRIMARY &&
                         (_lastVpsReadyWriteMs == 0 ||
                          now - _lastVpsReadyWriteMs >= 15000))
                     {
