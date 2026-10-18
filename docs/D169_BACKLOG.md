@@ -151,3 +151,11 @@ Owner đồng ý phương án nâng cấp Agent↔Agent↔PDA theo từng giai �
 **CI:** PR615 source HEAD ứng viên `ddc34814c07378589bb2eff3fb95b3222ba7fd0c` hoàn tất 19 workflow runs SUCCESS, gồm Android + Windows Agent + Repo Authority/State/Code-only Guard. GitHub check là technical PASS tại SHA này, không phải runtime/PDA field PASS; sau bổ sung ghi chú cần kiểm lại HEAD cuối.
 
 **Triển khai:** giữ PR615 Draft, **không** phát hành APK/Agent channel vì cần hoàn tất VPS priority/cross-network HA, tuổi job PDA và network switch, sau đó test trước/sau và fallback với bản đã phát hành v135. Báo hàng PDA→Worker/Service chỉ regression trong APK chung. Stable OWNER-GATED. Nếu Owner yêu cầu triển khai riêng một hạng mục đã code trước thì cần thêm ma trận tương thích và staged release receipt cho phạm vi đó.
+
+
+## D169-E046 — Owner tiếp tục toàn bộ code/phát hành, giữ test hai mạng cho D170
+
+- D169 tiếp tục sửa code và chuẩn bị triển khai Beta các mục đã duyệt D169-E044 trên PR615; trạng thái CI hiện tại chỉ chứng minh bản sửa một phần, chưa chứng minh HA/ACK/SSID đã hoàn tất.
+- **D170 kế tiếp (chưa mở):** kiểm thử thực địa Agent↔Agent↔PDA trên Office/Internet và môi trường hỗn hợp. D169 Owner PASS là điều kiện trước khi lập change D170.
+- Ở D169 vẫn bắt buộc tự động hóa kiểm thử fencing/split brain, request-id idempotency, failover recovery, version, auth, quyền, Android overlay, rollback và safety canary. Không tuyên bố field PASS.
+- Quyền triển khai Beta hiện tại không thay đổi Stable hoặc tài nguyên ngoài danh mục. Không được phát hành binary khi giao thức Agent/PDA chưa tương thích hoặc release gate chưa đạt.
