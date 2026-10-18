@@ -115,7 +115,7 @@ function termsPage(origin: string, appName: string): string {
   });
 }
 
-export function handlePublicInfoPage(request: Request, appEnv: string): Response | null {
+export function handlePublicInfoPage(request: Request, _appEnv: string): Response | null {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const url = new URL(request.url);
   const path = url.pathname.length > 1 && url.pathname.endsWith("/") ? url.pathname.slice(0, -1) : url.pathname;
