@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "feat/d170-production-identity-compat-20261018",
-  "pr": 626,
+  "working_branch": "fix/d170-phase1-release-guards-20261018",
+  "pr": 627,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E004",
+    "id": "D170-E005",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": {
@@ -96,6 +96,24 @@
       ],
       "next_action": "Complete authority/continuity CI for PR626 receipt and merge guarded phase1. Verify Worker SHA/health then signed Android release/tag/channel without changing API host. Start separate guarded D170 official Custom Domain reassignment only after baseline, OAuth/new-host and rollback review.",
       "evidence": "PR626 SHA 836cd019; GitHub Actions D170 Domain preflight run 39139673256 and 21/21 source CI; ops/d170-release-authorization.json; Android/Web/Worker source."
+    },
+    {
+      "id": "D170-E005",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "D170 PR626 main deployment failed stale release guards after source PASS; PR627 repair",
+      "status": "PHASE1_PARTIAL_WORKER_DEPLOY__ANDROID_NOT_PUBLISHED__RELEASE_GUARD_REPAIR_PR627_CODE_ONLY",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly asks continuation to completion, without silently claiming done. PR626 merged at 7fdae5e8a3478306b836d0b5ba8fc1f56e31b91f after 21/21 source CI PASS.",
+        "Main push Worker run 39141097486 passed deploy and initial health/auth checks, then failed obsolete /about SUPRA Inventory Beta assertion despite intentional official SUPRA Inventory page. Actual Worker code appears deployed, full postdeploy gate failed; never claim full release PASS.",
+        "Main push Android run 39141097565 failed legacy D169-E061 unchanged-worker test, because D170 legitimately changed Web/Worker, so signed vc113 NOT proven published.",
+        "Main push Agent run 39141097537 and Firestore run 39141097499 failed release gates because D170 permits only Worker+Android, both components unchanged; source repair skips only appropriately scoped main commit to avoid unauthorized deployment.",
+        "PR627 scoped repairs public page, skips D169 Android-only path upon verified D170 Agent/Rules runtime, preserves exact SHA Worker and signed app package/legacy tag guards; no Worker/DO migration, no Cloudflare custom domain changes or Firebase Rules/Agent code changes.",
+        "Cloudflare preflight previously proved `inventory.supra.cc.cd` attached to `supra-inventory-stable` legacy Worker. Reassignment is separate phase2; Phase1 remains old hostname to preserve vc112 update path."
+      ],
+      "next_action": "Test PR627 protected source and authority/continuity CI; update exact D170 release receipt SHA to protected tested source; guarded merge with main commit prefix D170_PHASE1_EXISTING_WORKER_ANDROID:, and verify main Worker+Android signed release receipts before phase2.",
+      "evidence": "GitHub Actions push runs 39141097486/39141097565/39141097537/39141097499; PR626 7fdae5; PR627 repair diff; ops/d170-release-authorization.json"
     }
   ],
   "resume": {
@@ -115,7 +133,8 @@
     "in_progress": [
       "Inventory actual Cloudflare official-domain binding and provider/API/OAuth/update manifest/CI migration dependencies using read-only evidence.",
       "Check PR626 read-only domain-mapping result, OAuth redirect and security before any same-worker Custom Domain attachment.",
-      "Actual Cloudflare domain owner inventory.supra.cc.cd confirmed legacy Stable Worker, no domain transfer yet."
+      "Actual Cloudflare domain owner inventory.supra.cc.cd confirmed legacy Stable Worker, no domain transfer yet.",
+      "E005: repair main push gate failures in PR627; old public Beta identity check and D169-only updater gate stopped full phase1 release."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -130,8 +149,9 @@
       "Queue D171 test PR612/613 without opening D171 until D170 explicitly Owner PASS.",
       "After PR625 docs-only merge, D170 next branch/PR must implement source compatibility only after reviewed authorization; D171 queued, no diagnostic PR merge.",
       "Apply staged D170 release after CI/domain/backup/OTA readiness, without changing original DO/Firebase data; request Owner UI action only if authorized provider operation impossible.",
-      "Read main Worker and signed vc113 release receipts after guarded PR626 merge; prepare phase2 conflict-safe Custom Domain reassignment."
+      "Read main Worker and signed vc113 release receipts after guarded PR626 merge; prepare phase2 conflict-safe Custom Domain reassignment.",
+      "PR627 protected CI, then exact SHA receipt; check Worker, vc113 signed channel before domain change."
     ],
-    "release_boundary": "D170_DESIGN_AND_AUTHORITY_ONLY__NO_RUNTIME_CHANGE__D169_ACCEPTED_LIMITED__D171_QUEUED"
+    "release_boundary": "D170_E005_PR627_RELEASE_REPAIR_ONLY__PHASE1_NO_DOMAIN_TRANSFER__SIGNED_ANDROID_PENDING"
   }
 }
