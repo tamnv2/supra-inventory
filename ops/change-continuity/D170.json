@@ -171,7 +171,7 @@
     {
       "id": "D170-E009",
       "date_vn": "2026-10-19",
-      "kind": "OWNER_CONTINUATION_AND_PROVIDER_BLOCKER",
+      "kind": "TECHNICAL_FINDING",
       "topic": "Owner requests end-to-end completion; original protected main Phase2 PUT blocked by Cloudflare 409, guarded exact Custom Domain binding transfer",
       "status": "PHASE2_DOMAIN_HTTP409_CONFIRMED__PR629_BINDING_ONLY_RECOVERY_CODE_CANDIDATE__NO_PROVIDER_CUTOVER_YET",
       "owner_approval": true,
