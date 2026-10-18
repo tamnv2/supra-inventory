@@ -409,6 +409,7 @@ namespace SupraInventoryRelayAgent
         private readonly Action _ensureFreshToken;
         private readonly Action _forceRefreshToken;
         private readonly Action<D157PrimaryHandoffRequest> _onRequest;
+        private readonly Action<VpsReclaimRecord> _onVpsRequest;
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
         private Task _task;
@@ -418,12 +419,14 @@ namespace SupraInventoryRelayAgent
             Action ensureFreshToken,
             Action forceRefreshToken,
             Action<D157PrimaryHandoffRequest> onRequest,
+            Action<VpsReclaimRecord> onVpsRequest,
             Action<string> log)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
             _forceRefreshToken = forceRefreshToken ?? ensureFreshToken ?? delegate { };
             _onRequest = onRequest ?? delegate { };
+            _onVpsRequest = onVpsRequest ?? delegate { };
             _log = log ?? delegate { };
         }
 
@@ -466,6 +469,8 @@ namespace SupraInventoryRelayAgent
                     {
                         var docs = new Target.Types.DocumentsTarget();
                         docs.Documents.Add(AgentConfig.FirestorePrimaryHandoffDocumentName);
+                        // Same listener; no extra per-Agent polling or grpc stream.
+                        docs.Documents.Add(AgentConfig.FirestoreVpsReclaimDocumentName);
                         await call.RequestStream.WriteAsync(new ListenRequest
                         {
                             Database = AgentConfig.FirestoreDatabaseName,
@@ -483,10 +488,18 @@ namespace SupraInventoryRelayAgent
                             backoff = FirestoreD157Grpc.InitialRetryMs;
                             var doc = response == null || response.DocumentChange == null
                                 ? null : response.DocumentChange.Document;
-                            if (doc == null || !string.Equals(doc.Name, AgentConfig.FirestorePrimaryHandoffDocumentName, StringComparison.Ordinal))
-                                continue;
-                            FirestoreQuotaGuard.Record("GET", AgentConfig.FirestorePrimaryHandoffUrl, "D157_HANDOFF_LISTEN_EVENT", _log);
-                            _onRequest(Parse(doc));
+                            if (doc == null) continue;
+                            if (string.Equals(doc.Name, AgentConfig.FirestoreVpsReclaimDocumentName, StringComparison.Ordinal))
+                            {
+                                FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreCoordinationBaseUrl + "/vps_reclaim",
+                                    "D169_VPS_RECLAIM_LISTEN_EVENT", _log);
+                                _onVpsRequest(ParseVpsReclaim(doc));
+                            }
+                            else if (string.Equals(doc.Name, AgentConfig.FirestorePrimaryHandoffDocumentName, StringComparison.Ordinal))
+                            {
+                                FirestoreQuotaGuard.Record("GET", AgentConfig.FirestorePrimaryHandoffUrl, "D157_HANDOFF_LISTEN_EVENT", _log);
+                                _onRequest(Parse(doc));
+                            }
                         }
                     }
                 }
@@ -538,6 +551,23 @@ namespace SupraInventoryRelayAgent
                     ? FirestoreD157Grpc.InitialRetryMs
                     : Math.Min(FirestoreD157Grpc.MaxRetryMs, Math.Max(FirestoreD157Grpc.InitialRetryMs, backoff) * 2);
             }
+        }
+
+        private static VpsReclaimRecord ParseVpsReclaim(Google.Cloud.Firestore.V1.Document doc)
+        {
+            return new VpsReclaimRecord
+            {
+                Exists = true,
+                RequestId = String(doc, "request_id"),
+                Status = String(doc, "status"),
+                PrimaryAgentId = String(doc, "primary_agent_instance_id"),
+                VpsAgentId = String(doc, "vps_agent_instance_id"),
+                Generation = String(doc, "generation"),
+                CreatedAtMs = Long(doc, "created_at_ms"),
+                ExpiresAtMs = Long(doc, "expires_at_ms"),
+                ApprovedByUserId = String(doc, "approved_by_user_id"),
+                ApprovedAtMs = Long(doc, "approved_at_ms")
+            };
         }
 
         private static D157PrimaryHandoffRequest Parse(Google.Cloud.Firestore.V1.Document doc)
