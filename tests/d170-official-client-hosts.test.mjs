@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 
 const read = (path) => readFileSync(path, "utf8");
 const android = read("android/app/build.gradle.kts");
@@ -42,6 +43,21 @@ test("new Agent build increments monotonically without touching Firebase or WMS"
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /<FileVersion>0\.139\.0\.0<\/FileVersion>/);
   assert.match(agent, /FirebaseProjectId = "supra-inventory-beta"/);
   assert.match(agent, /RelayTransport = "FIRESTORE_CONFIRM_V1"/);
+});
+
+
+test("v139 release compares Firestore Rules to the actual pre-Phase3A source, never to stale D169", () => {
+  const baseline = "3829933312d7805bdb636e1d7581e3a81bb58ff9";
+  const workflow = read(".github/workflows/verify-relay-agent.yml");
+  assert.match(workflow, /git merge-base --is-ancestor \$baseline \$env:GITHUB_SHA/);
+  assert.match(workflow, /git diff --quiet \$baseline \$env:GITHUB_SHA -- firebase\/firestore\.rules firebase\/firestore\.indexes\.json firebase\.json/);
+  for (const file of ["firebase/firestore.rules", "firebase/firestore.indexes.json", "firebase.json"]) {
+    const accepted = execFileSync("git", ["show", baseline + ":" + file], { encoding: "utf8" });
+    assert.equal(read(file), accepted, file + " must match the accepted Rules baseline");
+  }
+  assert.deepEqual(receipt.approved_components, ["worker", "agent"]);
+  assert.equal(receipt.resource_change, "NONE_EXISTING_WORKER_AGENT_ONLY");
+  assert.equal(receipt.domain_reassignment_permission, false);
 });
 
 test("phase3 cannot detach legacy domain or change the transaction authority", () => {
