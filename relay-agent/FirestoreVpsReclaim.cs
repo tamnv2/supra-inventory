@@ -34,7 +34,7 @@ namespace SupraInventoryRelayAgent
             get
             {
                 var age = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - ReadyAtMs;
-                return WmsReady && AgentBuild >= 138 && age >= -5000 && age <= 45000 &&
+                return WmsReady && AgentBuild >= 138 && age >= -5000 && age <= 30000 &&
                     !string.IsNullOrWhiteSpace(AgentInstanceId);
             }
         }
