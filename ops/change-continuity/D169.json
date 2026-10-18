@@ -1020,7 +1020,7 @@
     {
       "id": "D169-E047",
       "date_vn": "2026-10-18",
-      "kind": "IMPLEMENTATION_CHECKPOINT",
+      "kind": "STATUS",
       "topic": "D169 partial code: truthful RTDB WMS-ready signal with source regression test, staged release still blocked",
       "status": "PR615_PARTIAL_HA_BUG_FIX_PUSHED__CI_IN_PROGRESS__NO_NEW_RELEASE",
       "owner_approval": false,
