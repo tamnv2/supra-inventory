@@ -7,7 +7,7 @@
   "pr": 618,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E055",
+    "id": "D169-E056",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1176,6 +1176,26 @@
       ],
       "next_action": "Owner checks project mailbox and Spam, installs/updates official relay-agent-v137 EXE on VPS and signs in with the four-digit code without sharing it; confirm next OTP email and consumed-code rejection, then report field result. D169 Owner PASS and D170 remain separate.",
       "evidence": "PR617 merged 9fafc56; Worker Actions 39109138996, Gateway Actions 39109139019, Agent Actions 39109138955 each success; Worker job 117621289294 D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY log; relay-agent-v137 GitHub release assets; 14/14 main workflows SUCCESS."
+    },
+    {
+      "id": "D169-E056",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_REQUIREMENT_INTAKE",
+      "topic": "Replace pin-once Agent instance VPS preference with permanent authenticated VPS-account FIRST priority and dual-admin 15-minute consent request",
+      "status": "OWNER_DESIRED_BEHAVIOR_CONFIRMED__IMPACT_REVIEW_RECORDED__NO_CODE_OR_RELEASE_AUTHORIZATION",
+      "owner_approval": false,
+      "facts": [
+        "Owner rejects v137 manual pin prerequisite. Exact authenticated account VPS is automatically preferred for PRIMARY whenever active Agent session, Firebase/Firestore coordination, WMS Confirm readiness, and HA fencing are valid.",
+        "When current healthy PRIMARY is automatic, return to active VPS on safe idle/CAS handoff without manual confirmation. If VPS is not ready or an active healthy PRIMARY is manually designated by exact admin/tamnv2, never force takeover.",
+        "On manual hold while VPS is ready, VPS initiates a 15-minute deduplicated consent request; target both admin and tamnv2 authenticated online sessions, whichever is online (both if both). Positive approval from either authorized receiver wins once via server-validated single-use CAS; No/silence keeps holder and later eligible cycle can re-request.",
+        "If neither admin nor tamnv2 has a provably active session, do not fabricate delivery or auto-override a live manual holder; retry notification on next eligible 15-minute boundary. Manual holder failure still uses existing fenced failover safety.",
+        "Current v137 tracks preferred_vps_agent_instance_id selected with an optional checkbox, and prompts only locally on the currently holding Agent. Firestore relay_poc_agents presence freshness can be up to 25 minutes; that projection is NOT adequate proof of admin/tamnv2 online.",
+        "Implementation impact includes Windows Agent HA coordinator and session identity, targeted dual-user request delivery and UI, Firestore coordination security rules and optional Web/Worker notification transport if web-online sessions must be addressed. Preserve server-validated actor role/login and no privileged primary transfer capability for VPS.",
+        "First acceptance or race-safe CAS wins; all other replies become no-op. Keep WMS inflight draining, generation/lease verification, same request_id ACK, no split-brain, no credentials in public repo, bounded event-driven data for low usage.",
+        "No release/Rules/source mutation approved by this question; explicit scoped design/code approval required after impact review, existing D169 Owner PASS gate and Stable OWNER-GATED unchanged."
+      ],
+      "next_action": "Owner review the account-based VPS-first and dual-admin request/approval contract. If Owner explicitly approves implementation, change code under D169 with isolated branch/PR, authority/continuity CI, Agent and Firebase Rules permission tests; staged Beta release requires further exact-source approval. D170 network field tests remain queued.",
+      "evidence": "Owner current conversation explicitly clarifies account VPS always preferred; code relay-agent/FirestoreAgentLeaderCoordinator.cs TryReturnOwnerPreferredPrimary/SetOwnerPreferredVps and Program.cs local MessageBox; firebase/firestore.rules relay coordination operator ACL; v137 Beta source main 9fafc56 and D169 E055 branch PR618."
     }
   ],
   "resume": {
@@ -1284,7 +1304,8 @@
       "Review D169-E051 VPS protected login impact (Worker/Core/Agent/Gateway and account existence); do not expand clock-only emergency bypass or permissions without explicit approval.",
       "Finish PR617 CI/authority; after separate authorization deploy Worker→Agent Gateway→Agent Beta as a staged change, then verify VPS OTP email, one-use rotation, Office login and recovery while old admin/tamnv2 continue.",
       "E054: merge PR617 only after authority/continuity PASS; inspect Beta Worker health, Gateway same-SHA existing deployment, v137 EXE release, and worker first-code 202/pending; if VPS account not found do not provision.",
-      "D169-E055 owner check Gmail and test official Agent v137 login using received four-digit code; never post code. D170 stays queued until Owner explicitly accepts D169."
+      "D169-E055 owner check Gmail and test official Agent v137 login using received four-digit code; never post code. D170 stays queued until Owner explicitly accepts D169.",
+      "D169-E056: account-based VPS PRIMARY preference and targeted 15-minute alert to authenticated online admin/tamnv2 is a new Owner-requested design change; code and rollout not yet authorized. Perform safety/resource review and request explicit implementation approval before modifying executable sources."
     ],
     "release_boundary": "D169_E055_RUNTIME_VPS_OTP_BETA_PASS__OWNER_FIELD_GMAIL_AGENT_NOT_PASS__D170_AFTER_D169_PASS__STABLE_GATED"
   }
