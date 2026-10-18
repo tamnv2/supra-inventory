@@ -1,3 +1,11 @@
+## D170-E009 — Verified Cloudflare 409 binding conflict and narrow recovery (2026-10-19)
+
+GitHub main release `00f2c7041e76b44c8871fa4916fc6b3b1f644b68` reached the Cloudflare custom-domain API but the direct non-destructive `PUT` returned **HTTP 409**. It did not change the existing Worker, Android app, Firebase, or database. Preflight showed the official hostname assigned exclusively to the superseded `supra-inventory-stable` Worker while the existing business datastore lives on `supra-inventory-beta`.
+
+To complete the Owner-selected one-service model, the **only now-allowed detach** is the exact Cloudflare *Workers Custom Domain binding* for `inventory.supra.cc.cd` on the old Stable Worker. Before detach, verify account, current owner `supra-inventory-stable`, hostname, exact binding ID, registered zone and unchanged legacy hostname to `supra-inventory-beta`. On the confirmed 409 only, detach that binding by its returned ID; immediately attach the **same hostname** to the existing data-bearing Worker, with bounded retry, concurrent-owner fail-closed checks and best-effort reattachment of the original mapping if attach fails. **No Worker deletion, DNS-zone deletion, raw DNS-record deletion, Durable Object/SQLite/Firebase migration, Android package/signing change, or old-host retirement** is authorized. Brief official-host interruption is possible during binding transfer; original business hostname remains operational.
+
+This is a superseding **route-binding-only exception** to D170-E008's `PUT only; no delete` assumption. Its exact-source Worker-only release still requires CI + authority/continuity PASS, protected authorization receipt, GitHub main merge and both hostnames' Worker-source/SQLite health readback. Provider HTTP 403 or unexpected 409 stays fail closed and would require Owner Cloudflare UI intervention, not a secret or token in a public repo. Do not mark the project DONE without official-host readback and subsequent visible-client/pipeline cleanup.
+
 # D170 — Single Production cutover design (Owner direction 2026-10-18)
 
 **STATUS: OWNER-SELECTED PRODUCT DIRECTION / IMPACT REVIEW; NOT CODE_READY, NOT DEPLOYED, NOT DATABASE MIGRATED.**
