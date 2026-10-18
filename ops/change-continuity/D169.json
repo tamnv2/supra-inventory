@@ -1094,7 +1094,7 @@
     {
       "id": "D169-E051",
       "date_vn": "2026-10-18",
-      "kind": "OWNER_REQUEST",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner asks to give Agent login VPS the same protected one-time password experience and existing centralized administrative recipient as admin/tamnv2",
       "status": "OWNER_GOAL_RECORDED__SECURITY_IMPACT_REVIEW_AND_ACCOUNT_EXISTENCE_UNVERIFIED__NO_SOURCE_OR_RUNTIME_CHANGE",
       "owner_approval": false,
