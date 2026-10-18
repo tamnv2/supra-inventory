@@ -3,22 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "feat/d170-official-client-api-migration-20261019",
-  "pr": 633,
+  "working_branch": "fix/d170-agent-v139-firestore-gate-20261019",
+  "pr": 634,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E017",
+    "id": "D170-E018",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
-    "owner_latest": "OWNER_EXPLICIT_D170_FULL_SAFE_CONVERSION_CONTINUE_20261018",
+    "owner_latest": "OWNER_EXPLICIT_D170_20261019_FOCUS_RELEASE_AGENT139",
     "code_permission": true,
     "merge_permission": true,
     "deploy_permission": true,
     "production_runtime_permission": true,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E017_EXACT_B11FD2_PROTECTED_WORKER_AGENT_ANDROID_ONLY__KEEP_LEGACY_DOMAIN__NOT_OWNER_PASS"
+    "reason": "D170_E018_OWNER_APPROVED_WORKER_AGENT_ONLY__PR634_AUTHORITY_AND_PRODUCT_CI_REQUIRED_BEFORE_MERGE__NO_ANDROID_OR_DOMAIN"
   },
   "entries": [
     {
@@ -325,6 +325,24 @@
       ],
       "next_action": "Verify final PR633 all CI and protected SHA, mark Ready, merge with D170_PHASE3_OFFICIAL_CLIENTS commit title; inspect Worker+Agent+Android release receipts. Do not delete compatibility host.",
       "evidence": "PR633 25/25 CI source b11fd2, ops/d170-release-authorization.json, OA105, D170-E015/E016."
+    },
+    {
+      "id": "D170-E018",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "topic": "Fix and finish official-host Agent v139 without advancing other D170 or Android/domain changes",
+      "status": "OWNER_SCOPED_RELEASE_APPROVED__CI_PENDING__NO_RUNTIME_OR_FIELD_PASS",
+      "owner_approval": true,
+      "facts": [
+        "Owner command: focus solely on completing Agent v139 release; no domain, OAuth or Android implementation in this turn.",
+        "Worker main D170 Phase3A run 39157893859 and signed Android beta-vc114 39157893779 succeeded. Windows Agent main run 39157893680 built v139 and passed Worker-source dependency but stopped before EXE release on a stale Firestore Rules comparison to c90e521.",
+        "Three protected blob SHAs for firebase/firestore.rules, firebase/firestore.indexes.json and firebase.json are identical between pre-Phase3A main 3829933312d7805bdb636e1d7581e3a81bb58ff9 and latest accepted main a700cebd363df98d943af5eff7b05d851cc458ac.",
+        "Phase3A repair changes only GitHub Agent release gate to fail-closed compare to verified pre-Phase3A baseline, D170 receipt restricted to existing Worker+Agent, and source regression. No Firestore/WMS/HA logic or client binary source changes.",
+        "Current signed Android vc114 and technical Worker/SQLite identity preserved; old domain kept to let Agent v138 update.",
+        "Scoped Worker+Agent v139 gate permission is owner-authorized for this PR, but workflow execution is contingent on the complete current PR HEAD source/authority/continuity CI passing before guarded main merge; no execution authorization for Android, Stable, domain detach or Firestore Rules."
+      ],
+      "next_action": "Verify PR634 source and authority/continuity CI; guarded merge using prefix D170_PHASE3_OFFICIAL_CLIENTS; verify Worker main release, v139 tagged EXE & SHA256, and current Agent channel manifest & asset. No new Android release, no domain deletion.",
+      "evidence": "GitHub Actions 39157893680 failed at D170 Phase3 Firestore baseline gate, release relay-agent-v138 remains latest, branch PR634."
     }
   ],
   "resume": {
@@ -351,40 +369,19 @@
       "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed."
     ],
     "in_progress": [
-      "D170 Phase3 public links and single-release-policy review pending.",
-      "PR633 Phase3A official client API/OTA and Google OAuth registered-origin bridge, source CI before release.",
-      "Phase3A exact-source release gate and main Worker/Android/Agent update publication; old hostname still active.",
-      "Guarded Phase3A main merge with Worker/Agent/Android production publication and dual-domain readback."
+      "D170-E018 PR634 repair Agent v139 release guard and exact-source CI; no other feature scope."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs."
     ],
     "blocked": [
-      "Production domain may still be attached to old Stable Worker: actual Cloudflare provider binding not yet checked.",
-      "No verified backup restore/data readback or client fleet compatibility guarantee yet; no live routing or database changes.",
-      "Legacy PDA vc113/Agent v138 pinned to old host for business and signed update checks; old host cannot be removed until installed fleet migrates or explicitly accepted outage.",
-      "OA105: Owner must add official redirect URI to existing Google OAuth client before old host can retire; new Worker redirect variable update and field proof separately."
+      "Agent v139 still unpublished pending PR634 source/CI and main run; v138 remains canonical user update until v139 EXE/channel receipt PASS.",
+      "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release."
     ],
     "next_actions": [
-      "Review docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md against canonical resource scope and code; obtain scoped authorization for safe CODE and deployment stages.",
-      "Maintain compatibility for existing Android vc112/Agent v138, never create a second writable Worker/DO.",
-      "Queue D171 test PR612/613 without opening D171 until D170 explicitly Owner PASS.",
-      "After PR625 docs-only merge, D170 next branch/PR must implement source compatibility only after reviewed authorization; D171 queued, no diagnostic PR merge.",
-      "Apply staged D170 release after CI/domain/backup/OTA readiness, without changing original DO/Firebase data; request Owner UI action only if authorized provider operation impossible.",
-      "Read main Worker and signed vc113 release receipts after guarded PR626 merge; prepare phase2 conflict-safe Custom Domain reassignment.",
-      "PR627 protected CI, then exact SHA receipt; check Worker, vc113 signed channel before domain change.",
-      "CI PR628 then protected release receipt, main merge, both hostname real health readback, no database migration.",
-      "Post PR628 merge actual Cloudflare domain mapping and old/new /health readback before subsequent client host changes.",
-      "Require fresh PR629 CI and reviewed exact-source phase2 receipt before provider change; health/data readback and phase3 branding remain pending.",
-      "Main PR629 Worker cutover receipt, both host health/SHA/SQLite; then Phase3 public label and single-channel policy checks.",
-      "Merge PR630 only after source/authority CI+exact source receipt, verify old/new same Worker and SQLite; continue Phase3 cleanup.",
-      "After receipt authority CI, merge PR630 with exact D170 Phase2 prefix and inspect success of Worker deploy plus same-Worker/SQLite health on both hostnames.",
-      "After PR631 authority/CI PASS, guarded Worker-only merge and runtime same Worker dual-host proof.",
-      "Review Client URLs, Google OAuth and release CI; Phase3 remains under D170.",
-      "CI PR633, exact source lock, guarded release; OAuth callback setting/new URI validation, fleet migration, then separate scoped Cloudflare old Custom Domain detach.",
-      "Authorize exact b11fd2 Phase3A protected release, CI/merge with merge method retaining tested source ancestry, verify manifests and dual-host storage.",
-      "Complete final PR633 authority CI and guarded merge method merge to retain approved source ancestry; verify releases by GitHub run and OTA manifests."
+      "Complete PR634 CI/authority+continuity, protected merge; verify Worker source health, Agent release v139 EXE SHA256/channel after main Actions.",
+      "Do not mark full D170 FIELD/OWNER PASS based on Agent release."
     ],
-    "release_boundary": "D170_E017_PHASE3A_EXACT_SOURCE_DEPLOY_APPROVED__NO_CLOUDFLARE_OLD_HOST_DELETE__FIELD_PASS_PENDING"
+    "release_boundary": "D170_E018_PR634_AGENT139_RELEASE_GATE_REPAIR__NO_ANDROID_DOMAIN_MUTATION__RUNTIME_PENDING"
   }
 }

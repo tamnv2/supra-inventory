@@ -1666,7 +1666,13 @@ jobs:
           startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:')
         shell: pwsh
         run: |
-          git diff --quiet c90e521d1c77b681455b32ffc33a69e7ecaa187e $env:GITHUB_SHA -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json
+          # D170-E018: baseline is the exact existing pre-Phase3A main, NOT the
+          # superseded D169-E046 Rules commit. The three deployed source blobs
+          # match this baseline exactly; never skip this diff on mismatch.
+          $baseline = "3829933312d7805bdb636e1d7581e3a81bb58ff9"
+          git merge-base --is-ancestor $baseline $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw "D170 protected Rules baseline not in current release ancestry." }
+          git diff --quiet $baseline $env:GITHUB_SHA -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json
           if ($LASTEXITCODE -ne 0) { throw "D170 changes to Firestore cannot bypass protected Rules deploy." }
           $config = Get-Content relay-agent/AgentConfig.cs -Raw
           if (-not $config.Contains('ApiBaseUrl = "https://inventory.supra.cc.cd"')) { throw "D170 Agent official API host is not configured." }
