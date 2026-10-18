@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D170",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "8d18582c5a9dcb654167c1270a34c7bed1e38e3c",
+  "approved_source_sha": "63687461b4b5d724513c0b6f1072b830633ade06",
   "approved_components": [
     "worker"
   ],
@@ -18,8 +18,8 @@
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "staged_target": "E011_APPROVED_UNASSIGNED_DOMAIN_PUT_ONLY_TO_EXISTING_LIVE_WORKER",
-  "notes": "D170-E011: Cloudflare read-only run 39151322433 proved inventory.supra.cc.cd UNASSIGNED and legacy host healthy on supra-inventory-beta after prior old-domain binding detached. Owner's D170 safe full conversion directive remains current. PR630 exact tested source 8d18582c passes 15/15 CI. Authorized single existing Worker, same zone, PUT only for unassigned official domain; no DELETE, no Worker/DO/SQLite/Firebase change, keep old hostname and OAuth/OTA compatibility. Await main Worker and dual-host health verification; field and Owner PASS remain false.",
-  "source_ci": "PR630_CI_15_OF_15_SUCCESS_SOURCE_8D18582C__READONLY_UNASSIGNED_PROVEN_RUN_39151322433",
+  "notes": "D170 E013 surgical protected release receipt repair: PR630 source test SHA 8d18582c passed 15/15 CI, and exact Worker cutover script, deploy workflow, domain test, preflight workflow blobs at merged main 63687461 match those tested blobs. Main 39153633318 failed before provider mutation because Git checkout cannot resolve PR source commit 8d18582c after squash-merge. Anchor approved release source to existing, reachable main 63687461 instead. Same original Worker, PUT only on verified-unassigned official hostname, legacy host retained; no new Worker/DO/SQLite/Firebase/Android mutation. Main release and dual-host health still pending.",
+  "source_ci": "D170_PR630_15_OF_15_PASS__MERGED_MAIN_63687461_CODE_BLOBS_EXACT_MATCH_8D18582C__RECOVERY_FOR_SQUASH_SHA",
   "approved_at_vn": "2026-10-19",
   "stable_worker_deploy_permission": false,
   "domain_reassignment_permission": true,
