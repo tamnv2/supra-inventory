@@ -1,3 +1,7 @@
+## D170 Phase1–2 release verification (2026-10-19)
+
+Signed PDA vc113 uses public title `1291 Báo hàng` and existing Web/Worker source was released in Phase1. The official hostname `inventory.supra.cc.cd` and retained legacy hostname now map to one existing Worker/SQLite (GitHub Worker run `39154128973` PASS). Older DESIGN ONLY labels below are historical. Review all remaining download, update, OAuth and Agent-visible Beta strings in Phase3; no all-device installation or Owner field acceptance is proven.
+
 ## D170 — User-visible official identity (PLANNED, not deployed)
 
 Owner selects sole Production branding: website `inventory.supra.cc.cd`, PDA app display title `1291 Báo hàng`; ordinary users must not see environment selector, Beta build labels, download labels, notification titles, permission prompts, QR labels or two-channel Beta/Stable release status. Technical Firebase/Android/Cloudflare identifiers or historical GitHub release tags can contain `beta` when required by compatibility and are not part of user-visible naming. Existing installed APK and Agent release/version checks must be preserved until safe in-place upgrades. This approved target is not yet shipped; see `docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md`.
