@@ -194,7 +194,9 @@ def main() -> None:
     require(inventory_api, '"/api/auth/me"', "effective-role profile endpoint")
     require(main_activity, "private fun syncEffectiveRole()", "effective-role resume sync")
     require(main_activity, "api.refreshProfile()", "effective-role server refresh")
-    require(main_activity, "if (roleChanged || identityChanged || activeSession == null)", "role-change rerender")
+    require(main_activity, "if (roleChanged || activeSession == null)", "true role-change rerender")
+    require(main_activity, "if (identityChanged)", "identity-only update required")
+    require(main_activity, "sessionHeaderLabel(next)", "identity label update in place")
 
     # D097: authenticated Firestore listener + quota-safe PRIMARY/STANDBY/FROZEN carrier.
     require(gradle, 'implementation("com.google.firebase:firebase-auth")', "D097 Firebase Auth SDK")
