@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E039",
+    "id": "D169-E040",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -735,6 +735,23 @@
       ],
       "next_action": "Retain global engineering quality rules in main. Continue D169 client/field work under existing gates; do not promote PR606 without independent approval and CI.",
       "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/614; merge main 1a2bbae779f5405c36503f40656c114861cc6797; PR614 8/8 runnable checks success; main AGENTS blob 152a1baabc94fcd98468bde8f282f1251477f468; PR606 policy alignment commit e1994ace81475bad7a4b7da1a04a8695af434799"
+    },
+    {
+      "id": "D169-E040",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_CANCELS_PROPOSAL",
+      "topic": "Owner cancels WMS slider CAPTCHA recognition and automatic drag concept",
+      "status": "AUTO_CAPTCHA_CONCEPT_CANCELLED__MANUAL_LOGIN_BASELINE__NO_RUNTIME_CHANGE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly says to drop the idea of automatic CAPTCHA image recognition. Do not continue automation research, a CAPTCHA-solving EXE, slider dragging, or integrating this behavior in Agent.",
+        "The D169-E031–E037 WMS CAPTCHA research and manual-drag logs remain historical evidence only; their proposed future automatic login/slider path is superseded by this cancellation.",
+        "Manual Supra/WMS login when session expires remains the source-approved Agent behavior. Agent WMS readiness, current HA failover and Firestore generation fencing remain unchanged.",
+        "Owner did not cancel the separately discussed VPS preferred PRIMARY, Agent⇄PDA mixed-network failover, usage optimization, or dedicated SUPRA Web account/OTP design; these remain separate pending requirements without new deploy permission.",
+        "Existing `ops/project-scope.json` supra-auth-ui-d127-probe remains scoped to MANUAL_LOGIN_WHEN_REQUIRED. No resource was added/removed/changed. No Agent, PDA, Web, Worker, Firebase, Stable, WMS or external provider executable changes have been made."
+      ],
+      "next_action": "Do not work further on auto-CAPTCHA unless Owner reopens the topic. Preserve manual WMS sign-in and continue other VPS/Agent work only when independently approved, within existing D169 serial/CI/release guards.",
+      "evidence": "Owner 2026-10-18 immediate request to drop the idea; relay-agent/SupraConfirmBrowser.cs and canonical auth UI scope; D169 E031–E037."
     }
   ],
   "resume": {
