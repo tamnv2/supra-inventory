@@ -28,7 +28,7 @@ test("official public download UI does not advertise a Beta track", () => {
 test("existing signed app and updater remain in-place compatible", () => {
   assert.match(gradle, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
   assert.match(gradle, /BETA_SIGNER_SHA256/);
-  assert.match(gradle, /https:\/\/inventory-beta\.supra\.cc\.cd\/downloads\/pda\/manifest/);
+  assert.match(gradle, /https:\/\/inventory\.supra\.cc\.cd\/downloads\/pda\/manifest/);
   assert.match(main, /\^beta-vc/);
   assert.match(main, /0\.2\.0-beta\.\$\{info\.versionCode\}/);
   assert.match(androidCi, /tag="beta-vc\$\{APP_VERSION_CODE\}"/);
