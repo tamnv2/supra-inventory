@@ -813,6 +813,73 @@ namespace SupraInventoryRelayAgent
             return false;
         }
 
+        // Owner-only: pin one existing Agent as the preferred VPS without
+        // switching the active PRIMARY. Existing roles doc/CAS and resource.
+        internal bool SetOwnerPreferredVps(string targetAgentInstanceId)
+        {
+            if (string.IsNullOrWhiteSpace(targetAgentInstanceId) ||
+                targetAgentInstanceId.Length > 160) return false;
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                if (!IsManualTakeoverUser(session)) return false;
+                var known = QueryFreshPresence(session, "D169_PREFERRED_OWNER_SELECT",
+                    NowMs(), FirestoreAgentSyncClient.MaxAgents);
+                if (!known.Any(item => item != null && item.WmsReady &&
+                    string.Equals(item.AgentInstanceId, targetAgentInstanceId,
+                        StringComparison.Ordinal))) return false;
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var roles = ReadRoles(session);
+                    if (roles.Snapshot == null || !roles.Exists ||
+                        string.IsNullOrWhiteSpace(roles.UpdateTime)) return false;
+                    var fields = new Dictionary<string, object>
+                    {
+                        { "preferred_vps_agent_instance_id", StringField(targetAgentInstanceId) }
+                    };
+                    try
+                    {
+                        SendJson("PATCH", RolesUrl(), session.IdToken,
+                            _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                            BuildMask(fields.Keys) + "&currentDocument.updateTime=" +
+                                Uri.EscapeDataString(roles.UpdateTime),
+                            7000, false, "D169_OWNER_PREFERRED_VPS_WRITE");
+                        _preferredVpsAgentInstanceId = targetAgentInstanceId;
+                        _log("FIRESTORE HA preferred_vps=OWNER_SET scope=EXISTING_ROLES");
+                        _wake.Set();
+                        return true;
+                    }
+                    catch (WebException ex)
+                    {
+                        var response = ex.Response as HttpWebResponse;
+                        var code = response == null ? 0 : (int)response.StatusCode;
+                        try { if (response != null) response.Dispose(); } catch { }
+                        if (code != 409 && code != 412) throw;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE HA preferred_vps=DEFER type=" + ex.GetType().Name);
+            }
+            return false;
+        }
+
+        internal bool AllowOwnerPreferredReturn()
+        {
+            try
+            {
+                var session = _sessionProvider();
+                if (!IsManualTakeoverUser(session) ||
+                    _role != FirestoreAgentRole.PRIMARY) return false;
+                _ownerReturnConsentUntilMs = NowMs() + 120000;
+                _wake.Set();
+                return true;
+            }
+            catch { return false; }
+        }
+
         internal bool PromoteManualPrimary()
         {
             if (_role == FirestoreAgentRole.PRIMARY) return true;
@@ -1576,9 +1643,10 @@ namespace SupraInventoryRelayAgent
                     Generation = Guid.NewGuid().ToString("N"),
                     UpdatedAtMs = NowMs()
                 };
-                if (!TryWriteRoles(session, next, roles)) return false;
+                if (!TryWriteRoles(session, next, roles, true)) return false;
                 _generation = next.Generation;
                 _preferredReadySinceMs = 0;
+                _ownerReturnConsentUntilMs = 0;
                 SetRole(FirestoreAgentRole.NEXT_A, preferred, _instanceId, "D169_OWNER_PREFERRED_SAFE_RETURN");
                 _log("FIRESTORE HA return=PASS mode=OWNER_PREFERRED receiver_ready=true idle=true");
                 return true;
