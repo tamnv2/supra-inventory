@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D170",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "836cd01902444562a719554f910b71c047073418",
+  "approved_source_sha": "00e6e496da919bbb1612fde3c3359a45ffc5c19b",
   "approved_components": [
     "worker",
     "android"
@@ -19,7 +19,7 @@
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "staged_target": "EXISTING_WORKER_AND_SIGNED_ANDROID_PHASE1__HOSTNAME_STILL_OLD_UNTIL_PHASE2",
-  "notes": "Owner explicitly orders safe implementation. Phase1 publishes public branding via unchanged existing Worker/InventoryCore and signed package, retains old hostname and tag for installed vc112. No Cloudflare official-domain rebind, Stable Worker deploy, Firebase Rules, DB migration or Agent change. Full official hostname migration requires separate guarded D170 phase-2 code/release receipt.",
-  "source_ci": "PR626_PROTECTED_SOURCE_836CD019__21_GITHUB_ACTIONS_SUCCESS__NO_FAILED__ANDROID_GRADLE_BUILD__DOMAIN_READONLY_CONFLICT_VERIFIED",
+  "notes": "D170 Owner directed safe completion after PR626 partial release. PR627 fixes legacy public-page assertion, skips only historical D169 Android-only gate for D170 verified existing v138+Rules, and skips unchanged Agent/Firestore main-phase release jobs. Keeps original Worker/DO, Android package/signature and beta-vcN OTA. Official domain transfer is NOT in this phase.",
+  "source_ci": "PR627_16_OF_16_PASS_SOURCE_00E6E496__EXACT_RECOVERY_OF_PR626_MAIN_DEPLOY_GATE_FAILURES",
   "approved_at_vn": "2026-10-18"
 }
