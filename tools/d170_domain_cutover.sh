@@ -39,21 +39,53 @@ get_domains() {
   }
 }
 get_domains "$before"
-# One exact record per hostname, same zone, old service never changed.
+# Old business hostname must map exactly once to the existing Worker.
+# The official binding may be absent after Cloudflare returned HTTP 200 for a
+# narrowly authorized prior detach, despite an empty/ambiguous response body.
 jq -e '([.result[] | select(.hostname == "inventory-beta.supra.cc.cd")] | length) == 1 and
-       ([.result[] | select(.hostname == "inventory.supra.cc.cd")] | length) == 1' "$before" >/dev/null || {
-  echo "::error::Expected registered custom domains are missing or ambiguous"; exit 1;
+       ([.result[] | select(.hostname == "inventory.supra.cc.cd")] | length) <= 1' "$before" >/dev/null || {
+  echo "::error::Existing business domain missing or official host ambiguous"; exit 1;
 }
 legacy="$(jq -r '.result[] | select(.hostname=="inventory-beta.supra.cc.cd") | .service' "$before")"
 official="$(jq -r '.result[] | select(.hostname=="inventory.supra.cc.cd") | .service' "$before")"
 oldzone="$(jq -r '.result[] | select(.hostname=="inventory-beta.supra.cc.cd") | .zone_id' "$before")"
 newzone="$(jq -r '.result[] | select(.hostname=="inventory.supra.cc.cd") | .zone_id' "$before")"
-[[ "$legacy" == "supra-inventory-beta" && "$oldzone" == "$newzone" && -n "$oldzone" && "$oldzone" != null ]] || {
+[[ "$legacy" == "supra-inventory-beta" && -n "$oldzone" && "$oldzone" != null ]] || {
   echo "::error::Existing authoritative Worker/zone mapping changed"; exit 1;
 }
+if [[ -n "$official" && "$oldzone" != "$newzone" ]]; then
+  echo "::error::Official domain zone differs from the original live service"; exit 1;
+fi
 case "$official" in
   supra-inventory-beta)
     echo "D170 official hostname already mapped to data-bearing Worker";;
+  "")
+    # E011 provider read-back explicitly proved unassigned official hostname
+    # while live business hostname remains healthy. No DELETE or Stable deploy:
+    # claim just that scoped hostname on the existing data-bearing Worker.
+    jq -e '.change_id == "D170" and .domain_reassignment_permission == true and
+      .single_official_domain_detach_permission == true and
+      .existing_worker_and_durable_object_preserved == true and
+      .stable_worker_deploy_permission == false' ops/d170-release-authorization.json >/dev/null || {
+      echo "::error::Missing scoped D170 unassigned-host recovery authority"; exit 1;
+    }
+    body="$(jq -n --arg hostname inventory.supra.cc.cd \
+      --arg service supra-inventory-beta --arg zone_id "$oldzone" \
+      '{hostname:$hostname,service:$service,zone_id:$zone_id,enabled:true}')"
+    status="$(curl --silent --show-error --max-time 35 -o "$output" -w '%{http_code}' \
+      -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+      -H 'Content-Type: application/json' --data "$body" "$account")"
+    [[ "$status" == 200 || "$status" == 201 ]] &&
+      jq -e '.success == true and .result.hostname == "inventory.supra.cc.cd" and .result.service == "supra-inventory-beta"' "$output" >/dev/null || {
+      # Cloudflare can emit a success 200 with ambiguous/empty response body.
+      # Only current control-plane GET, never the request response alone,
+      # authorizes claiming attachment after that case.
+      get_domains "$after"
+      jq -e '([.result[] | select(.hostname == "inventory.supra.cc.cd" and .service == "supra-inventory-beta")] | length) == 1' "$after" >/dev/null || {
+        echo "::error::Cloudflare official-domain attach not confirmed HTTP $status; no deletion attempted"; exit 1;
+      }
+    }
+    echo "D170 unassigned official hostname attached to SAME existing Worker without deletion";;
   supra-inventory-stable)
     # Cloudflare PUT returns HTTP 409 when this exact hostname is already
     # attached to another Worker. Transfer ONLY the registered Custom Domain
