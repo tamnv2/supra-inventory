@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-e055-vps-otp-runtime-receipts-20261018",
-  "pr": 618,
+  "working_branch": "fix/d169-e059-agent138-release-workflow-provenance-20261018",
+  "pr": 619,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E058",
+    "id": "D169-E059",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1232,6 +1232,23 @@
       ],
       "next_action": "Finish PR618 authority+continuity and exact-source release gate, merge only if PASS; inspect matching Beta Worker health, deployed Firestore Rules readback and official Agent v138 prerelease/channel checksum. Owner then tests VPS login/real WMS readiness, automatic return and admin/tamnv2 one/both approval under Office and Internet; no Owner PASS inferred.",
       "evidence": "PR618 source 4f03222 20/20 GitHub Actions PASS, relay-agent/FirestoreVpsReclaim.cs, FirestoreAgentLeaderCoordinator.cs, D157AgentFeatures.cs, FirestoreD157Realtime.cs, firebase/firestore.rules, tests/d169-client-code-only.test.mjs, E057 Owner command."
+    },
+    {
+      "id": "D169-E059",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Post-merge Beta v138 release pipeline dependency blocked on missing Worker same-SHA trigger and Android unchanged release authorization check",
+      "status": "OWNER_E057_SAME_CHANGE_RELEASE_REPAIR_SOURCE_PR619_CI_PENDING__NO_SCOPE_EXPANSION",
+      "owner_approval": false,
+      "facts": [
+        "D169 PR618 merged at 7b5993b136dfe9a6a1b1c2449bedbc8144567657 after exact protected source 4f03222 CI 20/20 PASS, with scoped release receipt Worker/Firestore/Agent v138. Stable unchanged.",
+        "Main PR618 SHA deploy-beta.yml was not triggered, because path filters did not include Agent and Firestore changes; existing Agent publication blocks until matching Worker health run (same main commit), so v138 cannot be claimed released.",
+        "On 7b5993, Android verification workflow was triggered by Rules changes but its Owner Android release authorization check ran before checking APK code change. Android job failed with component outside allowed scope; this is correct denial of Android publishing, not a v138 business source failure.",
+        "Scoped D169 E057 release repair changes only CI workflow triggers: Worker now runs for Agent/Rules changes, Firestore Rules deploy runs for Agent/related release-workflow changes, existing verify Agent workflow change causes a fresh matching main Agent push run. Unchanged Android verifies source and skips release authorization while changed Android remains strictly gated.",
+        "No Firebase Rules/business Web/WMS/Android source modifications, no new provider/Stable and no reissue of initial E054 OTP. Exact source SHA and CI receipt must be re-locked because .github/workflows is protected in release gate. Rollback remains v137/Android vc111."
+      ],
+      "next_action": "Run PR619 full source+authority/continuity checks, lock exact new tested SHA, update D169 release authorization receipt, merge same D169 only after green. Verify matching main Worker+Firestore+Agent v138 outputs and Android unchanged verification; then record technical receipt. Physical Office/PDA field and Owner PASS remain pending.",
+      "evidence": "Main 7b5993 actions 39118107125 Android release gate denied for out-of-scope component; deploy-beta.yml push paths excluded relay-agent and firebase/firestore.rules; verify-relay-agent.yml exact matching Worker/Firestore action dependencies."
     }
   ],
   "resume": {
@@ -1341,7 +1358,8 @@
       "Finish PR617 CI/authority; after separate authorization deploy Worker→Agent Gateway→Agent Beta as a staged change, then verify VPS OTP email, one-use rotation, Office login and recovery while old admin/tamnv2 continue.",
       "E054: merge PR617 only after authority/continuity PASS; inspect Beta Worker health, Gateway same-SHA existing deployment, v137 EXE release, and worker first-code 202/pending; if VPS account not found do not provision.",
       "D169-E055 owner check Gmail and test official Agent v137 login using received four-digit code; never post code. D170 stays queued until Owner explicitly accepts D169.",
-      "D169-E056: account-based VPS PRIMARY preference and targeted 15-minute alert to authenticated online admin/tamnv2 is a new Owner-requested design change; code and rollout not yet authorized. Perform safety/resource review and request explicit implementation approval before modifying executable sources."
+      "D169-E056: account-based VPS PRIMARY preference and targeted 15-minute alert to authenticated online admin/tamnv2 is a new Owner-requested design change; code and rollout not yet authorized. Perform safety/resource review and request explicit implementation approval before modifying executable sources.",
+      "E059: repair Worker/Firestore/Agent main SHA workflow triggers and skip unchanged Android release gate; re-lock tested protected SHA before retrying E057 scoped Beta release, no Stable."
     ],
     "release_boundary": "D169_E055_RUNTIME_VPS_OTP_BETA_PASS__OWNER_FIELD_GMAIL_AGENT_NOT_PASS__D170_AFTER_D169_PASS__STABLE_GATED"
   }
