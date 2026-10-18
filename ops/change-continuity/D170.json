@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D170",
-  "working_branch": "fix/d170-agent-v139-firestore-gate-20261019",
-  "pr": 634,
+  "working_branch": "fix/d170-agent139-exact-approved-source-receipt-20261019",
+  "pr": 635,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E018",
+    "id": "D170-E019",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "production_runtime_permission": true,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E018_OWNER_APPROVED_WORKER_AGENT_ONLY__PR634_AUTHORITY_AND_PRODUCT_CI_REQUIRED_BEFORE_MERGE__NO_ANDROID_OR_DOMAIN"
+    "reason": "D170_E019_PR635_APPROVED_EXACT_TESTED_D7B52984_WORKER_AGENT_ONLY__CI_PENDING__NO_OTHER_RESOURCE_MUTATION"
   },
   "entries": [
     {
@@ -343,6 +343,22 @@
       ],
       "next_action": "Verify PR634 source and authority/continuity CI; guarded merge using prefix D170_PHASE3_OFFICIAL_CLIENTS; verify Worker main release, v139 tagged EXE & SHA256, and current Agent channel manifest & asset. No new Android release, no domain deletion.",
       "evidence": "GitHub Actions 39157893680 failed at D170 Phase3 Firestore baseline gate, release relay-agent-v138 remains latest, branch PR634."
+    },
+    {
+      "id": "D170-E019",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "topic": "Main Worker/Agent protected gate blocked stale source SHA; reanchor to actual PR634 16/16 CI-passed candidate",
+      "status": "PR635_EXACT_RECEIPT_ONLY__MAIN_WORKER_AGENT_RELEASE_RETRY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR634 CI passed 16/16 tests on protected source HEAD d7b52984ec978f60d56869581dd4f5304690d62c, merged main 30cfdb9e4f08b879025b272e222a4cfb0c77cef5.",
+        "Main Worker run 39172041414 failed at protected D167 Owner release gate before any Cloudflare Worker deploy, because approved_source_sha still referenced old Phase3A b11fd2 and executable CI source had changed in PR634.",
+        "The protected code (Agent Config/updater, Worker, test, gate, workflow) under tested PR634 HEAD remains the tested source. PR635 updates only ops/d170-release-authorization.json approved_source_sha to exact tested d7b52984 SHA, with Owner approved worker+agent scope preserved.",
+        "No app vc114 rebuild, Firestore Rules, old domain or OAuth config changes. v139 publication still pending release-job success; no Field or Owner D170 PASS."
+      ],
+      "next_action": "PR635 authority/continuity/product CI PASS; merge with D170_PHASE3_OFFICIAL_CLIENTS prefix; inspect Worker and Agent main actions, v139 release EXE/checksum and OTA manifest channel v139. Keep legacy host available.",
+      "evidence": "PR634 source d7b52984 16/16 CI; main Worker run 39172041414 protected gate failure; PR635 receipt only."
     }
   ],
   "resume": {
@@ -369,7 +385,7 @@
       "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed."
     ],
     "in_progress": [
-      "D170-E018 PR634 repair Agent v139 release guard and exact-source CI; no other feature scope."
+      "D170-E019 PR635 exact-source receipt correction; Agent v139 release still blocked until successful main Worker+Agent runs."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs."
@@ -379,9 +395,8 @@
       "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release."
     ],
     "next_actions": [
-      "Complete PR634 CI/authority+continuity, protected merge; verify Worker source health, Agent release v139 EXE SHA256/channel after main Actions.",
-      "Do not mark full D170 FIELD/OWNER PASS based on Agent release."
+      "After PR635 CI PASS, merge and verify Worker main exact SHA, Agent v139 EXE+SHA256, inventory-channel latest metadata; do not touch Android/domain."
     ],
-    "release_boundary": "D170_E018_PR634_AGENT139_RELEASE_GATE_REPAIR__NO_ANDROID_DOMAIN_MUTATION__RUNTIME_PENDING"
+    "release_boundary": "D170_E019_PR635_RELEASE_RECEIPT_TESTED_D7B52984__RUNTIME_PENDING__FIELD_OWNER_PASS_PENDING"
   }
 }
