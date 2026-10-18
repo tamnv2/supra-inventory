@@ -379,7 +379,7 @@
     {
       "id": "D170-E021",
       "date_vn": "2026-10-19",
-      "kind": "RELEASE",
+      "kind": "STATUS",
       "topic": "Signed Agent v139 and production update channel published after protected Owner-gated CI and same-source Worker runtime",
       "status": "AGENT_V139_RELEASE_AND_CHANNEL_SUCCESS__D170_FIELD_OWNER_NOT_PASS",
       "owner_approval": true,
