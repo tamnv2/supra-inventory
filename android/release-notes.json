@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "Tên ứng dụng hiển thị chính thức là 1291 Báo hàng, cập nhật ngay trên ứng dụng đã cài.",
-    "Màn hình đăng nhập và hướng dẫn sử dụng bỏ nhãn Beta; giữ nguyên tài khoản và dữ liệu.",
-    "Duy trì giao thức cập nhật an toàn cho thiết bị đang sử dụng phiên bản cũ."
+    "Chuyển kết nối báo hàng sang địa chỉ chính thức inventory.supra.cc.cd.",
+    "Giữ nguyên tài khoản, dữ liệu và khả năng cập nhật từ phiên bản đã cài.",
+    "Cập nhật ứng dụng trực tiếp, không cần gỡ và cài mới."
   ]
 }
