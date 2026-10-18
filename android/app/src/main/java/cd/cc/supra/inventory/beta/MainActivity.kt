@@ -1973,7 +1973,9 @@ class MainActivity : Activity() {
                     return@Thread
                 }
 
-                verifiedMinimumVersionCode = info.minimumVersionCode
+                // Every verified signed Beta release is mandatory at the next
+                // safe session boundary; preserve an active Picker ACK/PickList.
+                verifiedMinimumVersionCode = maxOf(verifiedMinimumVersionCode, info.minimumVersionCode, info.versionCode)
                 getSharedPreferences("d166_update_floor", MODE_PRIVATE).edit()
                     .putInt("verified_minimum_version_code", verifiedMinimumVersionCode).apply()
                 if (info.versionCode <= BuildConfig.VERSION_CODE) {
@@ -2020,7 +2022,8 @@ class MainActivity : Activity() {
 
     private fun showUpdateAvailable(info: UpdateInfo) {
         pendingUpdateInfo = info
-        val mandatory = info.minimumVersionCode > BuildConfig.VERSION_CODE
+        val mandatory = info.versionCode > BuildConfig.VERSION_CODE ||
+            info.minimumVersionCode > BuildConfig.VERSION_CODE
         val builder = AlertDialog.Builder(this)
             .setTitle(if (mandatory) "Bắt buộc cập nhật ${info.tag}" else "Có bản cập nhật ${info.tag}")
             .setMessage(
