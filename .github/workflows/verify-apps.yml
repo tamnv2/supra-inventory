@@ -224,8 +224,8 @@ jobs:
             echo "D135 must not expose the specialist-call TTL implementation detail to Picker." >&2
             exit 1
           fi
-          grep -q 'android:label="1291 Báo hàng Beta"' "$manifest"
-          grep -q '1291 Báo hàng Beta' "$main"
+          grep -q 'android:label="1291 Báo hàng"' "$manifest"
+          grep -q '1291 Báo hàng' "$main"
           grep -q 'chưa xác minh chuyển quyền dự phòng' "$client"
           grep -q 'isVerifiedRecoveryGrant(latest, requestId)' "$client"
           grep -q 'snapshot.metadata.isFromCache' "$client"
@@ -434,7 +434,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="beta-vc${APP_VERSION_CODE}"
-          title="1291 Báo hàng Beta ${APP_VERSION_NAME}"
+          title="1291 Báo hàng vc${APP_VERSION_CODE}"
           jq -r --arg name "$title" --arg sha "$GITHUB_SHA" '
             $name + "\nSource: " + $sha + "\n\nNội dung cập nhật:\n" +
             (.release_notes | map("- " + .) | join("\n"))
