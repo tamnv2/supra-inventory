@@ -968,7 +968,7 @@ jobs:
             throw "D160 bounded Firestore cadence/batch regression."
           }
           if ($transport -match 'PROCESSING|TryClaim' -or -not $transport.Contains('CONFIRM_ACK_VERIFY')) { throw "Firestore direct-ACK guard regression." }
-          foreach ($marker in @('MaxPendingAgeMs = 20000L','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
+          foreach ($marker in @('NormalPendingAgeMs = 20000L','MaxPendingAgeMs = 35000L','CanRecoverPendingRequest(doc.Work.CreatedAtMs)','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
             if (-not $transport.Contains($marker)) { throw "D131 queue/audit guard missing: $marker" }
           }
           if ($transport.Contains('?pageSize=' + 'MaxDocumentsPerPoll')) { throw "D127 unsafe stale list fallback returned." }
