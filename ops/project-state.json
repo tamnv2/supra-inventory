@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D169_OWNER_FIELD_AGENT138_VPS_OTP_HA_AND_ANDROID112_DEVICE_ACK__OPEN_EVIDENCE_RQ005_006_007_008_AND_USAGE__NO_NEW_CODE_OR_DEPLOY",
+  "next_action": "OPEN_D170_PRODUCTION_SINGLE_CHANNEL_IMPACT_REVIEW__QUEUE_D171_ISOLATED_NETWORK_DIAGNOSTICS__NO_RUNTIME_DEPLOY",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2466,12 +2466,12 @@
   },
   "change_control": {
     "mode": "SERIAL_OWNER_PASS_GATED",
-    "accepted_base_change_id": "D168",
-    "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
+    "accepted_base_change_id": "D169",
+    "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_E064_AUDIT_ONLY__AGENT138_ANDROID112_RELEASED__FIELD_OWNER_PASS_PENDING",
+    "current_change_status": "D169_CLOSED_OWNER_LIMITED_CODE_RELEASE_PASS__FIELD_EVIDENCE_DEFERRED",
     "owner_pass_required_to_unlock_next_change": true,
-    "next_change_allowed": false,
+    "next_change_allowed": true,
     "technical_pass_unlocks_next_change": false,
     "on_not_pass": "REPAIR_AND_RETEST_SAME_CHANGE_ID",
     "preimplementation_review": {
@@ -2485,13 +2485,13 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D169_E062_ANDROID_BETA_VC112_SIGNED_CHANNEL_PUBLISHED__PR621_MAIN14BD2A0__WORKER_RULES_AGENT_V138_UNCHANGED__FIELD_UNVERIFIED",
+    "runtime_impact": "D169_RELEASED_AGENT138_ANDROID_VC112_EXISTING_SERVICE__OWNER_LIMITED_CLOSEOUT_NO_NEW_DEPLOY",
     "resource_change": "EXISTING_SCOPED_BETA_FIRESTORE_RULES_COMPATIBILITY_UPDATE_ONLY__NO_NEW_PROVIDER__STABLE_UNTOUCHED",
-    "stable": "OWNER_GATED_UNTOUCHED",
+    "stable": "OLD_STABLE_OWNER_GATED_UNTOUCHED__SOLE_PRODUCTION_REDESIGN_D170_PLANNED_NOT_DEPLOYED",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
     "parallel_inventory_change_status": "D168_OPEN_OWNER_ORDERED_ANALYSIS__FUTURE_FIXES_AWAIT_APPROVAL",
     "parallel_boundary": "D166_RELEASE_UPDATE_STABILITY_ACCEPTED_ONLY__D167_UNVERIFIED_TESTS_AND_POSTPONED_WORK_TRACKED_SEPARATELY",
-    "accepted_runtime_base_change_id": "D168",
+    "accepted_runtime_base_change_id": "D169",
     "pr559_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR559_FULL_BETA_PASS_CODE__STABLE_OWNER_GATED",
     "d167_agent_sku_manual_2026_10_12": "OWNER_APPROVED_CODE_AND_EXISTING_SCOPED_BETA__SOURCE_CI_PENDING__OWNER_FIELD_PASS_PENDING",
     "pr566_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261012_PR566_AGENT_SKU_TAB_EXISTING_BETA",
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D169",
     "journal": "ops/change-continuity/D169.json",
-    "working_branch": "docs/d169-e064-code-release-field-audit-20261018",
-    "pr": 624,
-    "latest_checkpoint_id": "D169-E064",
+    "working_branch": "main",
+    "pr": null,
+    "latest_checkpoint_id": "D169-E065",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D169_E050_MAIN_C90E521_ALL_13_RUNTIME_WORKFLOWS_SUCCESS__BETA_CHANNEL_MANIFESTS_PUBLISHED__OWNER_FIELD_PASS_PENDING__D170_NOT_OPEN",
+    "owner_release_gate": "D169_OWNER_LIMITED_RELEASE_PASS__V138_VC112__FIELD_NOT_VERIFIED__NEXT_D170_DOCUMENTED_ONLY",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7976,27 +7976,27 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "D169_E050_BETA_WORKER_RULES_AGENT136_ANDROID111_RELEASED__FIELD_AND_OWNER_PASS_PENDING",
+    "status": "D169_CLOSED_OWNER_LIMITED_RELEASE_PASS__FIELD_UNVERIFIED",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
     "backlog": "docs/D169_BACKLOG.md",
-    "working_branch": "docs/d169-e064-code-release-field-audit-20261018",
-    "working_pr": 624,
+    "working_branch": "main",
+    "working_pr": null,
     "owner_code_approval": true,
     "owner_deploy_approval": true,
     "code_ready": true,
     "release_pass": true,
     "field_pass": false,
-    "owner_pass": false,
+    "owner_pass": true,
     "carried_forward": [
       "D168-E050_ANDROID_MANDATORY_UPDATE_DEFER",
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "FIELD_TEST_AGENT138_ANDROID112_AND_ROLE_PRESENCE_ISSUES__D170_ONLY_AFTER_D169_OWNER_PASS",
+    "next": "D170_SOLE_PRODUCTION_TRANSITION_PLAN__D171_NETWORK_DIAGNOSTICS_QUEUED__NO_RUNTIME_MUTATION",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E064",
+    "latest_checkpoint_id": "D169-E065",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8287,6 +8287,10 @@
       "owner_pass": false,
       "field_pass": false,
       "working_journal": "MAIN_UNTIL_NEW_D169_WORKING_PR_IS_OPENED"
-    }
+    },
+    "owner_pass_scope": "CODE_AND_RECORDED_RELEASE_ONLY__NOT_FIELD_PASS",
+    "owner_field_pass": false,
+    "closed": true,
+    "closed_date_vn": "2026-10-18"
   }
 }
