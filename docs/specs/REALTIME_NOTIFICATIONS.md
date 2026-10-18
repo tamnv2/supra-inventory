@@ -1024,3 +1024,14 @@ Coalesce low-rate, same-audience agent_sync fleet/Picker/SKU status events using
 - Giữ luồng ACK local-first, khoanh vùng theo tài khoản Picker, retry cho network/5xx, quarantine 404 và tránh mở lại event đã ACK thành công; phiên đăng nhập mới không được dùng trạng thái ACK của người khác. Sửa trạng thái tạo result-event mới không bị chặn theo SKU cũ.
 - Chỉ thay đổi Android Beta và ghi chú cập nhật theo phiên bản; không thêm Worker/Firebase/Agent request, timer hay polling. Bắt buộc CI Android, authority/continuity PASS, phát hành APK ký số sau khi PR hợp lệ được merge; kiểm thử thực tế trên PDA là bằng chứng riêng. Stable vẫn OWNER-GATED.
 - Log 11:25 ngày 14/10 có một lần ghi nhận kết quả cho mỗi SKU thử nghiệm, **không có bộ đếm số lần hiển thị overlay**, nên log không tự chứng minh chính xác có hai cửa sổ; nguy cơ được xác nhận bằng hai đường xử lý mã nguồn chưa cùng atomic claim.
+
+
+## D169-E041 — VPS ưu tiên PRIMARY, Office/Internet và đề nghị trả quyền thủ công
+
+**Yêu cầu Owner 18/10, thiết kế chưa phê duyệt triển khai:** VPS Windows Agent mạng Internet thường là PRIMARY ưu tiên mặc định. Agent công ty chạy Office/Internet là dự phòng; khi VPS/WMS không còn đủ điều kiện, một Agent đủ quyền và WMS-ready tạm tiếp quản theo server-authoritative generation/CAS. Khi VPS phục hồi ổn định, ưu tiên tự chuyển lại nhưng không được cướp quyền đang được `admin` hoặc `tamnv2` chỉ định thủ công.
+
+Khi có PRIMARY thủ công và VPS sẵn sàng, một yêu cầu chuyển về VPS được gửi tối đa mỗi 15 phút cho Agent đang xác thực bằng tài khoản `admin`/`tamnv2`. Chấp nhận và bỏ qua đều là lựa chọn chủ động, chống trùng popup, yêu cầu hết hạn hoặc stale generation; không cấp quyền PRIMARY từ UI đơn thuần. Điều kiện chi tiết cho phép đổi và sự cố của holder thủ công phải được Owner duyệt sau review.
+
+**Chứng cứ mạng:** V3 authenticated NORMAL Firestore REST và RTDB REST đọc OK, SSE trả first frame; OFFICE Firestore REST chỉ PASS qua System Proxy, RTDB direct không kết nối và proxy trả 403; cả hai chưa thử nghiệm Firestore gRPC Listen thực, write/ACK liên máy hay FCM vật lý. Do vậy hướng Firestore event-listener trên Office chỉ là giả thuyết cần field pilot; không được thay thế kênh hiện hữu chỉ từ first-frame probe.
+
+**Ràng buộc giữ nguyên:** Android Picklist Firestore PENDING → Agent PRIMARY xác minh WMS → terminal ACK Firestore; xác nhận Picklist theo generation/fencing/dedup, WMS readiness thực, không tăng latency không được duyệt. Agent Office không gửi RTDB retry vô hạn. Một standby NEXT_A chịu trách nhiệm phát hiện, standby còn lại hoạt động tiết kiệm theo vai trò. Không giảm heartbeat theo cảm tính để vượt sai failover SLA; so sánh usage Firestore Reads/Writes/billing, RTDB network, đồng bộ và thời gian phản hồi trước/sau. Chưa phê duyệt nguồn dữ liệu, provider hoặc resource mới; Stable tiếp tục OWNER-GATED. Xem D169-E041 và docs/OWNER_DECISIONS.md.
