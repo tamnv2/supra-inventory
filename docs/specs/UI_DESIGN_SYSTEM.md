@@ -1,3 +1,7 @@
+## D170-E015 — Một hostname công khai và client mới (19/10/2026)
+
+Owner chấp thuận thay thế URL nghiệp vụ và URL cập nhật ở Android/Agent sang `inventory.supra.cc.cd`, không để người dùng thấy Beta; giữ nguyên Android package/signature và release protocol nội bộ để nâng cấp tại chỗ. Web dùng same-origin API. Không gỡ `inventory-beta.supra.cc.cd` trước khi tất cả client còn hỗ trợ đã nâng cấp và Google OAuth callback có thể chuyển an toàn. Các ID kỹ thuật Beta và tag APK được phép giữ nguyên. Source + OTA + OAuth/field PASS là các cổng riêng biệt.
+
 ## D170 Phase1–2 release verification (2026-10-19)
 
 Signed PDA vc113 uses public title `1291 Báo hàng` and existing Web/Worker source was released in Phase1. The official hostname `inventory.supra.cc.cd` and retained legacy hostname now map to one existing Worker/SQLite (GitHub Worker run `39154128973` PASS). Older DESIGN ONLY labels below are historical. Review all remaining download, update, OAuth and Agent-visible Beta strings in Phase3; no all-device installation or Owner field acceptance is proven.
