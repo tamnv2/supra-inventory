@@ -7,7 +7,7 @@
   "pr": 615,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E047",
+    "id": "D169-E048",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_OWNER_APPROVED_FINISH_AND_STAGED_BETA__PHYSICAL_DUAL_NETWORK_FIELD_TEST_DEFERRED_TO_FUTURE_D170__CI_COMPATIBILITY_SAFETY_AND_STABLE_GUARDS_REMAIN",
@@ -1033,6 +1033,26 @@
       ],
       "next_action": "Keep D169 PR615 Draft until all approved architecture/source + simulated regression/CI and safe Beta release authorization can be demonstrated. Do not mislabel this partial repair as full D169 completion. D170 only after Owner D169 PASS.",
       "evidence": "PR615 head 7aa96ae; GitHub Actions run group 390938123xx; RtdbHaLiveness.cs, FirestoreAgentLeaderCoordinator.cs, tests/d169-client-code-only.test.mjs."
+    },
+    {
+      "id": "D169-E048",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Reconcile actual D169 blockers: unfinished integration rather than owner permission or VPS resource",
+      "status": "DIAGNOSIS_SOURCE_CONFIRMED__PR615_DRAFT__CODE_NOT_READY__RELEASE_NOT_STARTED",
+      "owner_approval": false,
+      "facts": [
+        "Latest PR615 1a1489a remains Draft and unmerged; main unchanged by this branch. D169-E046 Owner explicitly authorized finish and staged Beta; Owner approval is not the implementation blocker.",
+        "Critical source mismatch: FirestoreAgentLeaderCoordinator FailoverAfterMs=15000, office RTDB ProbePrimary returns UNAVAILABLE and VerifyPrimaryDownBeforeTakeover defers indefinitely to preserve split-brain safety; reliable Office REST/CAS liveness policy not implemented.",
+        "The Agent original mutation eligibility D160CanStartMutation at 12000ms predates the 15000ms HA suspect threshold, while transport MaxPendingAgeMs and Android TOTAL_WAIT_MS are 20000ms. Failover-same-request recovery budget, server-only proof and idempotent terminal decision have not been implemented.",
+        "VPS-preferred PRIMARY with durable manual selection, 15-minute consent, and no disruptive WMS takeover has not been implemented; existing manual authorization/targeted handoff and generation CAS are only building blocks.",
+        "D168NetworkRoute only performs approved Worker WiFi switch for SKU; it is not an Office/Internet business route classifier. Unknown/VPS Ethernet/Office SSID and mid-Picklist safety require new guarded code.",
+        "Android long-overlay/mandatory update, Agent SKU cooldown, ALREADY_CONFIRMED UI, legacy alert read removal, and truthful RTDB wms_ready are partial PR615 source changes. Full mixed-version, ACK, WMS and failover release compatibility tests are pending; two-network physical field test explicitly deferred to future D170 and must not be claimed PASS.",
+        "Earlier latest-head CI failures Project State Guard and Repo Authority Guard were caused by this assistant's E047 journal kind not matching the KINDS whitelist (IMPLEMENTATION_CHECKPOINT invalid), not by a provider or Windows build failure. Corrected E047.kind to STATUS in commit 1a1489a; a new check suite is still executing at time of finding.",
+        "The limitation was execution incomplete in the interrupted assistant session, not a verified technical impossibility. The remaining work is implementable under existing Owner scope, while unconditional 15s failover during a total authority-network partition is unprovable and must fail closed."
+      ],
+      "next_action": "Complete D169 source in scoped PR615: common-network authoritative liveness/fencing and VPS preference/manual hold; recover same Picklist request/ACK with aligned deadlines, then Office/Internet route guard and mixed-version safety; verify automatic regressions, exact-head authority/continuity, staged Beta release receipts. Defer only physical two-network matrix to future D170 after D169 Owner PASS.",
+      "evidence": "PR615 live source: FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, FirestoreConfirmationTransport.cs, D168NetworkRoute.cs, RelayPocClient.kt. GitHub Actions runs 39093957709 and 39093957754 (schema-fail E047), corrected commit 1a1489a; D169-E046 Owner approval."
     }
   ],
   "resume": {
