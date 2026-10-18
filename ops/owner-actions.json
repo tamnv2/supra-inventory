@@ -5580,6 +5580,34 @@
       "owner_field_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED",
       "d169_owner_closeout": "OWNER_RELEASE_ONLY_PASS_2026_10_18__FIELD_DEFERRED"
+    },
+    {
+      "id": "OA105",
+      "status": "OWNER_GOOGLE_CLOUD_UI_ACTION_REQUIRED_BEFORE_D170_OLD_HOST_SUNSET",
+      "title": "Register official hostname on existing Google OAuth client",
+      "resource_key": "oauth-beta",
+      "provider": "Google Auth Platform / Google Cloud",
+      "reason_owner_only": "Available connected tools cannot edit Google Cloud OAuth client authorized redirect URIs. Existing registered callback uses legacy inventory-beta hostname and the user wants to retire that hostname; changing Worker callback before Google registration would cause redirect_uri_mismatch.",
+      "prerequisites": [
+        "D170 official same Worker domain PASS run 39154128973",
+        "D170 Phase3A official-host client source/release can proceed without changing callback",
+        "Use existing registered Beta Google OAuth client; do not activate separate legacy Stable client or share secrets"
+      ],
+      "shortest_action": [
+        "Google Cloud Console → project supra-inventory-beta → Google Auth Platform → Clients → existing OAuth client inventory-beta-drive → Authorized redirect URIs.",
+        "Add https://inventory.supra.cc.cd/api/oauth/google/callback and Save. Keep the original old-host URI until end-to-end new-host OAuth has been verified.",
+        "Report only that the redirect URI was saved; do not share any OAuth client secret, code or refresh token."
+      ],
+      "after_owner_action": "Use guarded D170 branch/PR and the existing Worker to set GOOGLE_DRIVE_OAUTH_REDIRECT_URI (URI only) to the official callback; then test OAuth start/callback, CSRF, Drive and Gmail behavior on new host. Remove old callback and Cloudflare Custom Domain only after all installed supported Android/Agent clients have migrated or Owner explicitly accepts the remaining outage.",
+      "pass_criteria": [
+        "New authorized callback registered on same existing OAuth client and same Google Cloud project",
+        "Real Google OAuth flow on inventory.supra.cc.cd succeeds with state cookie origin preserved",
+        "Legacy clients have a verified safe migration path and no supported installed version needs old hostname",
+        "No new Worker/SQLite/Firebase/OAuth secret or separate Stable client activation"
+      ],
+      "manual_action_now": "NOT_BLOCKING_PHASE3A_CLIENT_RELEASE__REQUIRED_BEFORE_PHASE3C_OLD_HOST_DELETE",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
