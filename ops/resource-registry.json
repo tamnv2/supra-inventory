@@ -2951,6 +2951,14 @@
     "old_host_for_legacy_clients": true,
     "legacy_stable_untouched": true,
     "network_diagnostics_change": "D171_QUEUED",
-    "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md"
+    "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
+    "phase2_binding_recovery": "EXACT_409_DETACH_OLD_REGISTERED_HOST_STABLE_BINDING_THEN_ATTACH_WORKER_BETA_WITH_BOUNDED_RETRY_ROLLBACK",
+    "phase2_changed_resource_keys": [
+      "host-stable",
+      "worker-beta"
+    ],
+    "data_migration": false,
+    "old_compat_hostname_retained": true,
+    "provider_release_status": "PR629_CODE_ONLY_PENDING_CI"
   }
 }
