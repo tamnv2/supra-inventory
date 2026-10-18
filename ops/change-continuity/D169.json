@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-e051-vps-otp-intake-20261018",
-  "pr": 617,
+  "working_branch": "docs/d169-e055-vps-otp-runtime-receipts-20261018",
+  "pr": 618,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E054",
+    "id": "D169-E055",
     "date_vn": "2026-10-18"
   },
-  "deployment_gate": "D169_E054_OWNER_EXPLICIT_BETA_DEPLOY_AND_FIRST_VPS_OTP__EXACT_SOURCE_9AE124C_23_OF_23_CI_PASS__OWNER_FIELD_PASS_FALSE",
+  "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
   "entries": [
     {
       "id": "D169-E001",
@@ -1157,6 +1157,25 @@
       ],
       "next_action": "Merge PR617 after authority/continuity and source CI PASS using exact merge title D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE. Verify live Beta Worker and Gateway Actions readback, Agent v137 release/checksum/channel, and first VPS OTP code issue receipt. Then guide Owner in installing v137 and checking existing mailbox; avoid OTP disclosure.",
       "evidence": "Owner chat explicit 'ô triển khai đi, gửi OTP về mail lần đầu đi để anh test' dated 2026-10-18; prior E052 OTP-only decision; PR617 7719d8c 23/23 Actions PASS; release auth ops/d169-release-authorization.json new exact scope."
+    },
+    {
+      "id": "D169-E055",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "Live D169 VPS OTP Beta Worker + Gateway + Agent137 releases and one-time initial OTP accepted for delivery",
+      "status": "BETA_RUNTIME_RELEASE_PASS__INITIAL_VPS_OTP_SERVER_HTTP202__FIELD_GMAIL_AGENT_PASS_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Owner E054 authorized scoped Beta Worker, existing Agent Operations Gateway and Agent v137 + first one-time VPS code issue; PR617 merged main 9fafc562eb03595279ff9d356ac3af360f8bbfdc.",
+        "Worker run 39109138996 completed SUCCESS including exact-source health and OTP issuance step D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY at 2026-10-18 07:50:49 UTC; this is HTTP 202 accepted for sending and NOT inbox delivery proof.",
+        "Existing Beta Gateway run 39109139019 SUCCESS including deployment/readback of same scoped Apps Script resource, no new provider.",
+        "Windows Agent v137 official prerelease published and channel checksum/WebView2 bundle verified by run 39109138955 SUCCESS; old v136 remains available, Android vc111 unchanged.",
+        "All 14/14 merged-main workflows SUCCESS; Firestore Rules unchanged and reuse previous E046 PASS (verified source equality in Agent run), no Stable change.",
+        "The successful VPS code request proves Beta backend recognized an existing ACTIVE VPS Agent operator role; specific role pair, actual email inbox delivery, Windows VPS v137 installation/sign-in, one-use replay denial and next-email after first use remain unverified.",
+        "First issuance never printed OTP, and automatic sending is only on uniquely titled E054 main merge; no duplicate first-code send from this docs-only receipt PR."
+      ],
+      "next_action": "Owner checks project mailbox and Spam, installs/updates official relay-agent-v137 EXE on VPS and signs in with the four-digit code without sharing it; confirm next OTP email and consumed-code rejection, then report field result. D169 Owner PASS and D170 remain separate.",
+      "evidence": "PR617 merged 9fafc56; Worker Actions 39109138996, Gateway Actions 39109139019, Agent Actions 39109138955 each success; Worker job 117621289294 D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY log; relay-agent-v137 GitHub release assets; 14/14 main workflows SUCCESS."
     }
   ],
   "resume": {
@@ -1183,7 +1202,8 @@
       "D169-E050 PR615 main merge c90e521: Worker and Firestore Rules Beta live, Agent v136 EXE/browser bundle and signed Android vc111 APK published; 13/13 main actions PASS, SHA/channel verified.",
       "D169-E052 PR617 code candidate 227d44f: Worker/Core/Agent/Office Gateway protected identity, VPS-specific emergency deny and tests; CI FIELD verification pending.",
       "E053: PR617 exact source 7719d8c passed 23/23 GitHub Actions including Windows Agent and scoped Gateway; release after merge is pending.",
-      "E054 final locked source 9ae124c passed 23/23 CI; no Rules source changed from previous E046 proven deployment; Beta release gated to Worker/Gateway/Agent."
+      "E054 final locked source 9ae124c passed 23/23 CI; no Rules source changed from previous E046 proven deployment; Beta release gated to Worker/Gateway/Agent.",
+      "D169-E055 main release runtime PASS: Worker 39109138996, Gateway 39109139019, Agent v137 39109138955; first VPS OTP HTTP202; 14/14 main CI success."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -1230,7 +1250,8 @@
       "D169-E027 Owner physical field PASS required after v135 layout repair; do not infer accepted v134 from release/CI."
     ],
     "blocked": [
-      "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
+      "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs",
+      "Gmail inbox delivery/real VPS Windows Agent v137 login and next-code replay remain Owner-only field proof, not verified by CI."
     ],
     "next_actions": [
       "Owner review the consolidated D169 analysis; approve or revise design before executable changes.",
@@ -1262,8 +1283,9 @@
       "Owner validate hardware acceptance of D169 Beta release in normal operations; future D170 physical Agent–Agent–PDA two-network tests remain queued until explicit D169 Owner PASS.",
       "Review D169-E051 VPS protected login impact (Worker/Core/Agent/Gateway and account existence); do not expand clock-only emergency bypass or permissions without explicit approval.",
       "Finish PR617 CI/authority; after separate authorization deploy Worker→Agent Gateway→Agent Beta as a staged change, then verify VPS OTP email, one-use rotation, Office login and recovery while old admin/tamnv2 continue.",
-      "E054: merge PR617 only after authority/continuity PASS; inspect Beta Worker health, Gateway same-SHA existing deployment, v137 EXE release, and worker first-code 202/pending; if VPS account not found do not provision."
+      "E054: merge PR617 only after authority/continuity PASS; inspect Beta Worker health, Gateway same-SHA existing deployment, v137 EXE release, and worker first-code 202/pending; if VPS account not found do not provision.",
+      "D169-E055 owner check Gmail and test official Agent v137 login using received four-digit code; never post code. D170 stays queued until Owner explicitly accepts D169."
     ],
-    "release_boundary": "D169_E050_BETA_RELEASE_SUCCEEDED__AGENT136_ANDROID111_WORKER_FIRESTORE_RULES__FIELD_AND_OWNER_PASS_FALSE__STABLE_UNTOUCHED"
+    "release_boundary": "D169_E055_RUNTIME_VPS_OTP_BETA_PASS__OWNER_FIELD_GMAIL_AGENT_NOT_PASS__D170_AFTER_D169_PASS__STABLE_GATED"
   }
 }
