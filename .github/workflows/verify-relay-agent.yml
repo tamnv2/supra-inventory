@@ -1641,8 +1641,24 @@ jobs:
             Start-Sleep -Seconds 10
           }
 
+      # E054 only updates OTP/Agent/Gateway; Firestore Rules are proven from E046.
+      # The exact previous deployed baseline must be unchanged before skipping redeploy.
+      - name: D169-E054 verify unchanged previously deployed Beta Firestore Rules
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
+        shell: pwsh
+        run: |
+          git diff --quiet c90e521d1c77b681455b32ffc33a69e7ecaa187e $env:GITHUB_SHA -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json
+          if ($LASTEXITCODE -ne 0) { throw "VPS OTP release includes an unapproved Firestore Rules change." }
+          Write-Host "D169_E054_FIRESTORE_E046_DEPLOYED_BASELINE_UNCHANGED_PASS"
+
       - name: D169 require matching Beta Firestore Rules before publishing Agent
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          !contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
