@@ -20,6 +20,11 @@ on:
       - "firebase/firestore.rules"
       - "firebase/firestore.indexes.json"
       - "firebase.json"
+      # D169-E059: exact commit readback even for Agent-only releases.
+      - "relay-agent/**"
+      - ".github/workflows/deploy-beta-firestore.yml"
+      - ".github/workflows/deploy-beta.yml"
+      - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:
 
 permissions:
