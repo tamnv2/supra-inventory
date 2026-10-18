@@ -1,4 +1,5 @@
 name: D170 Read-only Production Domain Preflight
+# D170-E011: recheck mapping after Cloudflare HTTP200 DELETE response was not acknowledged by API body.
 
 on:
   pull_request:
