@@ -1,3 +1,10 @@
+## D169-E037 · Áp dụng nguyên tắc CLAUDE.md toàn repository trên main (18/10/2026)
+
+- Owner yêu cầu bộ quy tắc kỹ thuật đã bổ sung tại D169 không chỉ nằm ở nhánh D169 mà phải đi vào `main` để mọi thay đổi hiện tại và sau này trong `tamnv2/supra-inventory` đều áp dụng.
+- Bổ sung **năm nguyên tắc** từ tệp Owner cung cấp vào `AGENTS.md`: phân tích và công khai giả định trước khi viết code; giải pháp tối giản; chỉnh sửa đúng phạm vi; mục tiêu/kiểm thử có bằng chứng; kế hoạch thực thi ngắn gọn và tự kiểm chứng.
+- Đây là **quy tắc toàn repo, không phải thay đổi chức năng**: quy trình `authority-manifest`, project-scope, bảo mật, Owner PASS, kiểm thử hồi quy, branch→PR→CI→merge vẫn ưu tiên và bắt buộc. Không tạo thêm hệ thống policy song song, không sửa login/WMS/CAPTCHA, Agent/PDA/Web/Firebase, không cấp quyền release/Stable.
+- Chỉ merge PR tài liệu tách biệt từ `main` sau authority + continuity CI PASS; không kéo theo code-only PR #606, không tự tuyên bố D169 Owner PASS. Nhật ký D169 trên nhánh làm việc phải được cập nhật tương ứng.
+
 ## D168-E048 · Owner duyệt phát hành Android Beta vc110 sửa trùng overlay (14/10/2026)
 
 - Owner yêu cầu **triển khai ngay Beta vc110** sửa lỗi một kết quả báo hàng mở hai overlay trên Android Picker; không yêu cầu xác nhận lại. Hoàn thành toàn bộ PR/CI/authority/continuity, Worker-first, ký APK và kênh cập nhật theo quy trình đã được phép; **Stable không được đụng tới**.
