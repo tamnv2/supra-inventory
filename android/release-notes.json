@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "Giữ nguyên giao diện, tab và dữ liệu đang nhập khi chuyển sang ứng dụng khác rồi quay lại.",
-    "Kiểm tra cập nhật nền không tải lại màn hình khi phiên đăng nhập còn hợp lệ.",
-    "Tiếp tục xác minh quyền và bản cập nhật bắt buộc, bảo vệ kết quả PickList."
+    "Tên ứng dụng hiển thị chính thức là 1291 Báo hàng, cập nhật ngay trên ứng dụng đã cài.",
+    "Màn hình đăng nhập và hướng dẫn sử dụng bỏ nhãn Beta; giữ nguyên tài khoản và dữ liệu.",
+    "Duy trì giao thức cập nhật an toàn cho thiết bị đang sử dụng phiên bản cũ."
   ]
 }
