@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "fix/d169-android-resume-20261018",
-  "pr": 621,
+  "working_branch": "docs/d169-e062-vc112-beta-receipt-20261018",
+  "pr": 622,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E061",
+    "id": "D169-E062",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1284,6 +1284,23 @@
       ],
       "next_action": "Run PR source/authority/continuity/Android CI; lock explicitly approved D169 Android-only Beta SHA; merge only on PASS and publish signed Beta APK; validate channel and APK SHA, await Owner device field PASS separately.",
       "evidence": "Owner instruction on 2026-10-18 this chat: 'Anh đồng ý. Xử lí và triển khai', 'Rà soát lại và tự triển khai cho anh'; GitHub PR https://github.com/tamnv2/supra-inventory/pull/621; previous runtime logs 16-18 Oct."
+    },
+    {
+      "id": "D169-E062",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "Android Beta vc112 signed release and unchanged-runtime scoped channel technical PASS",
+      "status": "ANDROID_BETA_VC112_SIGNED_CHANNEL_PUBLISHED__PR621_MAIN_CI_PASS__OWNER_FIELD_PASS_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Owner-approved E061 Android foreground-only UI fix PR #621 merged to main commit 14bd2a0698835794214b5da15f2110185ea7378e after 21 PR checks succeeded, 9 skipped, 0 failed.",
+        "Main Verify Beta Android Actions 39128953639 completed SUCCESS: Android signed release build, owner gate, reviewed notes and previously deployed E060 runtime health compatibility.",
+        "Official beta-vc112 release targets exact main commit and has signed APK plus SHA256 assets. Existing inventory-channel pda-latest.json, APK and checksum assets refreshed.",
+        "Deploy Beta Worker, Deploy Beta Firestore Relay and Verify Beta Relay Agent main jobs deliberately skipped and did not redeploy the unchanged existing services. Stable untouched.",
+        "20 device switching scenarios, true OS process recreation, revoked sessions, live PickList ACK, MT90 and DT50 installed version remain Owner field testing pending; D169 NOT Owner PASS."
+      ],
+      "next_action": "Record Owner MT90/DT50 installed vc112 and 20 switch/kick/role/version/realtime/ACK physical test results; if FAIL repair same D169, if PASS Owner may explicitly close D169 and unlock D170; Stable unchanged.",
+      "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/621; main 14bd2a0698835794214b5da15f2110185ea7378e; Android Actions https://github.com/tamnv2/supra-inventory/actions/runs/39128953639; release https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc112; docs/D169_RUNTIME_RELEASE_RECEIPTS_2026-10-18.md"
     }
   ],
   "resume": {
@@ -1312,7 +1329,8 @@
       "D169-E052 PR617 code candidate 227d44f: Worker/Core/Agent/Office Gateway protected identity, VPS-specific emergency deny and tests; CI FIELD verification pending.",
       "E053: PR617 exact source 7719d8c passed 23/23 GitHub Actions including Windows Agent and scoped Gateway; release after merge is pending.",
       "E054 final locked source 9ae124c passed 23/23 CI; no Rules source changed from previous E046 proven deployment; Beta release gated to Worker/Gateway/Agent.",
-      "D169-E055 main release runtime PASS: Worker 39109138996, Gateway 39109139019, Agent v137 39109138955; first VPS OTP HTTP202; 14/14 main CI success."
+      "D169-E055 main release runtime PASS: Worker 39109138996, Gateway 39109139019, Agent v137 39109138955; first VPS OTP HTTP202; 14/14 main CI success.",
+      "E062: scoped Android Beta vc112 signed APK/release + inventory-channel artifacts published after PR621/CI; Worker/Rules/Agent v138 and Stable unchanged."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -1342,8 +1360,7 @@
       "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending.",
       "Final PR610 receipt/authority+continuity checks and release verification still pending; v134 remains published but Owner NOT PASS.",
       "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending.",
-      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170.",
-      "E061 PR #621 Android Beta code and CI, signed APK release pending."
+      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -1398,8 +1415,9 @@
       "D169-E056: account-based VPS PRIMARY preference and targeted 15-minute alert to authenticated online admin/tamnv2 is a new Owner-requested design change; code and rollout not yet authorized. Perform safety/resource review and request explicit implementation approval before modifying executable sources.",
       "E059: repair Worker/Firestore/Agent main SHA workflow triggers and skip unchanged Android release gate; re-lock tested protected SHA before retrying E057 scoped Beta release, no Stable.",
       "E060: Agent138 Beta Worker/Rules/exe release technical PASS. Owner verifies OTP login/WMS readiness, protected manual handoff, one/both admin alerts and internet/Office real test; do not claim D169 Owner PASS or start D170 yet.",
-      "E061 complete PR #621 source/authority/continuity CI, Android signing and Beta release; no duplicate Worker/Firestore/Agent release."
+      "E061 complete PR #621 source/authority/continuity CI, Android signing and Beta release; no duplicate Worker/Firestore/Agent release.",
+      "E062 Owner PDA field verification on MT90/DT50: foreground switches, true process recreate, kick, version, Picker ACK; D169 remains open until explicit Owner PASS."
     ],
-    "release_boundary": "D169_E061_ANDROID_BETA_WARM_RESUME_OWNER_DEPLOY_APPROVED__PR621_CI_AND_SIGNED_APK_PENDING__STABLE_GATED__D170_DEFERRED"
+    "release_boundary": "D169_E062_ANDROID_BETA_VC112_SIGNED_PUBLISHED__OWNER_FIELD_PASS_PENDING__AGENT138_UNCHANGED__STABLE_GATED__D170_DEFERRED"
   }
 }
