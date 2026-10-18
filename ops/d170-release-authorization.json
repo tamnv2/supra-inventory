@@ -1,10 +1,12 @@
 {
   "schema_version": 1,
   "change_id": "D170",
-  "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
-  "approved_source_sha": null,
-  "approved_components": [],
-  "owner_approval_reference": "OWNER_EXPLICIT_D170_SAFE_CONVERSION_IMPLEMENTATION_20261018",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "approved_source_sha": "f4f9af19ae79f617f1010d294aac4e04e61c40a7",
+  "approved_components": [
+    "worker"
+  ],
+  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261018_OFFICIAL_SAME_WORKER_DOMAIN_PHASE2",
   "code_scope": "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2",
   "resource_change": "REASSIGN_EXISTING_STABLE_HOST_ONLY__SAME_WORKER_NO_DATABASE",
   "legacy_android_package_preserved": true,
@@ -13,12 +15,12 @@
   "stable_deploy_permission": false,
   "field_pass": false,
   "physical_field_verified": false,
-  "authority_continuity_pass": false,
-  "product_ci_pass": false,
+  "authority_continuity_pass": true,
+  "product_ci_pass": true,
   "staged_target": "SAME_EXACT_WORKER_AND_DO_WITH_TWO_HOSTNAMES__NO_RESOURCE_DELETE",
-  "notes": "Phase2 worker/data cutover candidate only; Owner target approved but no release grant until source, authority+continuity and Cloudflare control-plane preflight PASS. No provider DNS deletion, no stable Worker deploy, no SQLite copy.",
-  "source_ci": "PENDING_EXACT_SOURCE_CI",
+  "notes": "D170 Owner explicitly instructs safe completion. Phase2 changes only official Cloudflare Workers Custom Domain mapping from old Stable service to existing supra-inventory-beta Worker/InventoryCore with same zone. No deletion, new Worker, Firebase resource/DO/storage migration, installed Android/Agent update, or old-host retirement. API PUT must fail closed on unexpected owner, permissions, zone mismatch. OAuth start uses old registered Google redirect domain to retain state cookie.",
+  "source_ci": "PR628_EXACT_PROTECTED_SHA_F4F9AF19__21_OF_21_CI_SUCCESS__DOMAIN_PREFLIGHT_AND_SAME_WORKER_SOURCE_TEST",
   "approved_at_vn": "2026-10-18",
   "stable_worker_deploy_permission": false,
-  "domain_reassignment_permission": false
+  "domain_reassignment_permission": true
 }
