@@ -100,6 +100,8 @@ jobs:
         run: node --test tests/d168-android-vc109.test.mjs
       - name: Verify D169 Android warm-resume UI preservation
         run: node --test tests/d169-android-resume-lifecycle.test.mjs
+      - name: D170 official user-visible identity and legacy OTA compatibility
+        run: node --test tests/d170-public-identity.test.mjs
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
