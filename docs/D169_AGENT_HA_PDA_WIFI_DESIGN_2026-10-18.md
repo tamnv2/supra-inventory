@@ -33,3 +33,15 @@
 - Risks: split-brain/generation conflict, duplicate WMS confirm, mơ hồ terminal ACK, Office gRPC streaming chưa chứng minh, 15s HA detection vs 12s mutation fence, 20s PDA wait, Wi-Fi failover làm mất Firestore, revoked user giả thành công, ghi quá nhiều heartbeat/notification.
 - Test acceptance: real NORMAL↔OFFICE network, cold start/offline/expired WMS, VPS power loss, WMS login-needed, manual override 15m snooze, standby transition, double PRIMARY race, queued/inflight Picklist ACK exactly-once, checkbox disabled vs confirmed row, same-ID uncertain replay, idle vs active SKU network switching/restore, kick Office warning / confirmed NORMAL revoke, quota by collection and p95 latency.
 - Release gate: code-only branch + scoped PR and authority/continuity/CI PASS; automated tests before field; no release/Stable without explicit owner stage approval. Provider/billed usage needs matched-hour measurement after test.
+
+
+## 5. Source-level Android outcome mapping gap
+- `relay-agent/FirestoreConfirmationTransport.cs` accepts both `CONFIRMED` and `ALREADY_CONFIRMED` as terminal success. `android/.../PickerController.kt relayOutcomeText` and `submitRelayProbe` currently recognize **only `CONFIRMED`** as UI success/input reset; `ALREADY_CONFIRMED` incorrectly falls to generic error if emitted by Agent.
+- Agent can output `WMS_DATA_UNAVAILABLE` for empty/hydrating WMS table and `LOOKUP_ERROR` for DOM search exception. Android generic fallback currently hides both reasons.
+- D160 checkbox recovery can end as `CONFIRM_CONFLICT` rather than exact `CHECKBOX_NOT_READY`; preserve source-specific sanitized reason alongside stable `lookup_status`, not freeform provider text.
+- UI-only Android mapping may be a safe small candidate but requires versioned Android Beta testing, independent Owner release authorization, compatible Agent ACK field shapes and guards before shipping.
+- Performance option for Owner impact approval: retain present 20s normal wait, extend bounded failover-only wait to ~35s when confirmed real server-side ownership transition, with source request TTL, WMS mutation-age fence and ACK commit aligned. **35s is a candidate, not agreed SLA or code.**
+
+## 6. Quota and durability constraints
+- For illustration, one active PRIMARY Firestore lease every 10 seconds over 17 business hours is 6,120 document writes if every lease is billed. A NEXT_A read every 5 seconds adds ~12,240 document reads over 17h, **before** actual PDA, Agent and other services. RTDB+Firestore double heartbeat is not a free saving if Office cannot see RTDB.
+- Do not claim 15s detection as worst-case guarantee during Office-Firestore partition. Need real-time listener/cross-network field tests or demonstrate safe bounded REST read cadence and CAS contention handling. Do not sacrifice WMS exactly-once for lower usage.
