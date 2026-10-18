@@ -1610,6 +1610,29 @@ jobs:
             Start-Sleep -Seconds 10
           }
 
+      # D169: the new PDA recovery protocol requires the existing Beta Firestore
+      # Rules to allow a narrowly scoped PENDING marker before a v136 Agent is
+      # eligible for auto-update. Never release a binary against old Rules.
+      - name: D169 require matching Beta Firestore Rules before publishing Agent
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-firestore.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw "Cannot check D169 Firestore Beta Rules dependency." }
+            $matched = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+            if ($matched.Count -gt 0 -and $matched[0].status -eq "completed") {
+              if ($matched[0].conclusion -ne "success") { throw "D169 Firestore Rules deploy failed; Agent release blocked." }
+              Write-Host "D169_FIRESTORE_RULES_FIRST_AGENT_RELEASE_GATE_PASS"
+              break
+            }
+            if ($attempt -eq 120) { throw "D169 Firestore Rules not verified; Agent release blocked." }
+            Start-Sleep -Seconds 10
+          }
+
       - name: Resolve official Fixed WebView2 package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
