@@ -73,15 +73,31 @@ test("D169 cross-network HA renews common lease before optional RTDB and fences 
  assert.match(network, /return "UNKNOWN"/);
  assert.match(network, /OfficeProfiles\(\)/);
 });
-test("D169 owner-preferred VPS return is CAS-fenced, consent-gated and idle-only", () => {
- assert.match(leader, /SetOwnerPreferredVps\(/);
- assert.match(leader, /manual_holder_agent_instance_id/);
- assert.match(leader, /preferred_vps_agent_instance_id/);
- assert.match(leader, /manualOwnerHandoff/);
- assert.match(leader, /_canSafelyHandoff\(\)/);
+test("D169 VPS account-first return is CAS fenced and exact owner-approved", () => {
+ const vps = source("relay-agent/FirestoreVpsReclaim.cs");
+ const features = source("relay-agent/D157AgentFeatures.cs");
+ const realtime = source("relay-agent/FirestoreD157Realtime.cs");
+ assert.match(vps, /string\.Equals\(\(session\.LoginName/);
+ assert.match(vps, /"vps", StringComparison\.OrdinalIgnoreCase/);
+ assert.match(vps, /RequestCadenceMs = 15L \* 60L \* 1000L/);
+ assert.match(vps, /currentDocument\.updateTime/);
+ assert.match(vps, /session\.AppUserId/);
+ assert.match(leader, /_vpsReclaim\.PublishReady\(session, _instanceId, _wmsReady\(\)\)/);
+ assert.match(leader, /_vpsReclaim\.TryRequest\(session, _instanceId/);
+ assert.match(leader, /_vpsReclaim\.GetReady\(session\)/);
+ assert.match(leader, /_vpsReclaim\.GetRequest\(session\)/);
  assert.match(leader, /NowMs\(\) - _preferredReadySinceMs < 30000/);
- assert.match(leader, /15L \* 60L \* 1000L/);
- assert.match(leader, /TryWriteRoles\(session, next, roles, true\)/);
+ assert.match(leader, /TryWriteRoles\(session, next, roles, manualHold\)/);
+ assert.match(leader, /_canSafelyHandoff\(\)/);
+ assert.match(features, /HandleD169VpsConsentEvent/);
+ assert.match(features, /new FirestoreVpsReclaim/);
+ assert.match(features, /popup\.Show\(\)/);
+ assert.doesNotMatch(features, /_d169PinTargetAsVps/);
+ assert.match(realtime, /FirestoreVpsReclaimDocumentName/);
+ assert.match(rules, /function isExactPrimaryApprover|function isPrimaryApprover/);
+ assert.match(rules, /request\.auth\.token\.email in/);
+ assert.match(rules, /resource\.data\.created_at_ms \+ 900000/);
+ assert.match(rules, /docId != 'vps_reclaim'/);
 });
 test("D169 same-ID recovery needs authenticated versioned Agent marker and preserves 20s normal wait", () => {
  assert.match(relay, /"recovery_protocol" to 1/);
