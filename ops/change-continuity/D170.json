@@ -7,7 +7,7 @@
   "pr": 626,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E003",
+    "id": "D170-E004",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": {
@@ -77,6 +77,25 @@
       ],
       "next_action": "Run PR #626 full CI and Cloudflare domain preflight; reconcile failure/old Stable domain binding; then authorize exact source and stage old/new same Worker route, OAuth and client releases with zero data migration. If provider write capability is insufficient, give Owner the shortest Cloudflare Web UI action.",
       "evidence": "Owner explicit instruction 2026-10-18; GitHub PR626 branch source and d170-domain-preflight workflow; D170-E001/E002 plan, main Worker/Android/Agent update protocol and release gates."
+    },
+    {
+      "id": "D170-E004",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "D170 official visible-identity source 21/21 CI PASS and exact-source phase-1 release authorization; legacy domain conflict confirmed",
+      "status": "PR626_SOURCE_21_OF_21_PASS__PHASE1_WORKER_ANDROID_RELEASE_RECEIPT_LOCKED__RUNTIME_NOT_YET_DEPLOYED",
+      "owner_approval": true,
+      "facts": [
+        "GitHub Actions 21/21 PR626 protected source SHA 836cd01902444562a719554f910b71c047073418 all SUCCESS including Android verify, UI guard, authority/state guard, Web/source CI, D170 Cloudflare read-only domain ownership preflight.",
+        "Cloudflare account custom-domain API readback confirms inventory-beta.supra.cc.cd routes to supra-inventory-beta and inventory.supra.cc.cd routes to supra-inventory-stable. Legacy live /health status ok, APP_ENV beta; NO control-plane mutation was performed.",
+        "Official app name `1291 Báo hàng` now exists in Android manifest/strings/MainActivity and user-visible update prompts; Web/Agent download tool channel labels show `Chính thức`, public legal pages no Beta; API/WebSocket are same-origin across hostnames.",
+        "Existing Android package ID cd.cc.supra.inventory.beta, signing key, beta-vc tag and versionName validation, technical Firebase identities, live Worker/InventoryCore SQLite, legacy API base and old custom domain remain unchanged to allow vc112 installed clients to update.",
+        "Exact-D170 source protected SHA is locked in ops/d170-release-authorization.json for COMPONENTS worker and android only. Phase1 may merge and deploy after authority/continuity checks; this is not permission to rebind inventory.supra.cc.cd or touch separate old Stable Worker.",
+        "Main rollout must verify same-source Beta Worker /health and corresponding signed vc113 Android official-display release after merge; if any protected gate fails no claim of release. Owner field and true production-domain cutover still pending.",
+        "D171 isolated cross-network diagnostic PR612/613 remain Draft and no provider new resources are created."
+      ],
+      "next_action": "Complete authority/continuity CI for PR626 receipt and merge guarded phase1. Verify Worker SHA/health then signed Android release/tag/channel without changing API host. Start separate guarded D170 official Custom Domain reassignment only after baseline, OAuth/new-host and rollback review.",
+      "evidence": "PR626 SHA 836cd019; GitHub Actions D170 Domain preflight run 39139673256 and 21/21 source CI; ops/d170-release-authorization.json; Android/Web/Worker source."
     }
   ],
   "resume": {
@@ -84,16 +103,19 @@
       "Owner approved single public Production destination, no user-facing Beta, backwards compatibility and lossless continuity required.",
       "Existing live Beta-tagged Worker/DO SQLite/Firebase and signed client identities remain source of truth throughout migration planning.",
       "D171 network diagnostics queued as separate change, PR612/613 retained Draft.",
-      "D170-E003 Owner explicitly authorizes proceeding safely with code and automation-first rollout, subject to current owner-scope, provider and OTA gates."
+      "D170-E003 Owner explicitly authorizes proceeding safely with code and automation-first rollout, subject to current owner-scope, provider and OTA gates.",
+      "D170-E004 Owner D170 phase-1 branding/Worker existing runtime+signed Android deployment approved with exact source and no domain transfer."
     ],
     "implemented": [
       "D170-E001 impact and phased migration plan documented only on guarded branch.",
       "D170-E002: fully coupled docs-only design recorded; intended postmerge active D170 journal main, no source or runtime mutation.",
-      "D170-E003 branch PR626 official user-visible labeling, Android/Web guard and Cloudflare read-only provider preflight; not released."
+      "D170-E003 branch PR626 official user-visible labeling, Android/Web guard and Cloudflare read-only provider preflight; not released.",
+      "D170-E004 PR626 21/21 source CI success and code-protected phase-1 Owner receipt; deployment pending main release."
     ],
     "in_progress": [
       "Inventory actual Cloudflare official-domain binding and provider/API/OAuth/update manifest/CI migration dependencies using read-only evidence.",
-      "Check PR626 read-only domain-mapping result, OAuth redirect and security before any same-worker Custom Domain attachment."
+      "Check PR626 read-only domain-mapping result, OAuth redirect and security before any same-worker Custom Domain attachment.",
+      "Actual Cloudflare domain owner inventory.supra.cc.cd confirmed legacy Stable Worker, no domain transfer yet."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -107,7 +129,8 @@
       "Maintain compatibility for existing Android vc112/Agent v138, never create a second writable Worker/DO.",
       "Queue D171 test PR612/613 without opening D171 until D170 explicitly Owner PASS.",
       "After PR625 docs-only merge, D170 next branch/PR must implement source compatibility only after reviewed authorization; D171 queued, no diagnostic PR merge.",
-      "Apply staged D170 release after CI/domain/backup/OTA readiness, without changing original DO/Firebase data; request Owner UI action only if authorized provider operation impossible."
+      "Apply staged D170 release after CI/domain/backup/OTA readiness, without changing original DO/Firebase data; request Owner UI action only if authorized provider operation impossible.",
+      "Read main Worker and signed vc113 release receipts after guarded PR626 merge; prepare phase2 conflict-safe Custom Domain reassignment."
     ],
     "release_boundary": "D170_DESIGN_AND_AUTHORITY_ONLY__NO_RUNTIME_CHANGE__D169_ACCEPTED_LIMITED__D171_QUEUED"
   }
