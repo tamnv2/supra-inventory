@@ -25,6 +25,7 @@ namespace SupraInventoryRelayAgent
         internal string StandbyAgentInstanceId = ""; // D131 NEXT_A compatibility field in code
         internal string NextBAgentInstanceId = "";
         internal string Generation = "";
+        internal string ManualHolderAgentInstanceId = "";
         internal long UpdatedAtMs;
         internal string ScheduleKey = "";
         internal string ScheduleDecision = "";
@@ -851,7 +852,7 @@ namespace SupraInventoryRelayAgent
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
-                    if (!TryWriteRoles(session, next, read)) continue;
+                    if (!TryWriteRoles(session, next, read, true)) continue;
 
                     _generation = next.Generation;
                     lock (_stateGate) _nextBId = next.NextBAgentInstanceId ?? "";
@@ -997,7 +998,7 @@ namespace SupraInventoryRelayAgent
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
-                    if (!TryWriteRoles(session, next, read)) continue;
+                    if (!TryWriteRoles(session, next, read, true)) continue;
 
                     _generation = next.Generation;
                     generation = next.Generation;
@@ -1653,6 +1654,7 @@ namespace SupraInventoryRelayAgent
                         StandbyAgentInstanceId = FieldString(fields, "standby_agent_instance_id"),
                         NextBAgentInstanceId = FieldString(fields, "next_b_agent_instance_id"),
                         Generation = FieldString(fields, "generation"),
+                        ManualHolderAgentInstanceId = FieldString(fields, "manual_holder_agent_instance_id"),
                         UpdatedAtMs = FieldLong(fields, "updated_at_ms"),
                         ScheduleKey = FieldString(fields, "schedule_key"),
                         ScheduleDecision = FieldString(fields, "schedule_decision"),
@@ -1673,7 +1675,8 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private bool TryWriteRoles(AgentSession session, FirestoreRoleSnapshot snapshot, RoleRead previous)
+        private bool TryWriteRoles(AgentSession session, FirestoreRoleSnapshot snapshot, RoleRead previous,
+            bool manualOwnerHandoff = false)
         {
             var fields = new Dictionary<string, object>
             {
@@ -1683,6 +1686,11 @@ namespace SupraInventoryRelayAgent
                 { "generation", StringField(snapshot.Generation ?? "") },
                 { "updated_at_ms", IntField(snapshot.UpdatedAtMs) }
             };
+            // Persist manual ownership atomically with the same generation CAS,
+            // only when an authorized admin explicitly moves PRIMARY. Routine
+            // failover and presence updates must never impersonate manual intent.
+            if (manualOwnerHandoff)
+                fields["manual_holder_agent_instance_id"] = StringField(snapshot.PrimaryAgentInstanceId);
             var suffix = BuildMask(fields.Keys);
             suffix += previous != null && previous.Exists && !string.IsNullOrWhiteSpace(previous.UpdateTime)
                 ? "&currentDocument.updateTime=" + Uri.EscapeDataString(previous.UpdateTime)
