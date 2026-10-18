@@ -206,6 +206,34 @@ service cloud.firestore {
           'business_day', 'terminal_at_ms', 'terminal_duration_ms'
         ]);
 
+      // D169: only an authenticated Agent that is still the fenced PRIMARY
+      // may signal SAME-REQUEST recovery. Picker can neither create nor edit
+      // these fields; this transition remains PENDING and is never a fake ACK.
+      allow update: if isAgentOperator()
+        && resource.data.status == 'PENDING'
+        && resource.data.source == 'ANDROID_CONFIRM_V1'
+        && request.resource.data.status == 'PENDING'
+        && !resource.data.keys().hasAny(['recovery_generation'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'recovery_generation', 'recovery_agent_instance_id',
+          'recovery_admin_user_id', 'recovery_granted_at_ms'
+        ])
+        && request.resource.data.diff(resource.data).affectedKeys().hasAll([
+          'recovery_generation', 'recovery_agent_instance_id',
+          'recovery_admin_user_id', 'recovery_granted_at_ms'
+        ])
+        && request.resource.data.recovery_admin_user_id == request.auth.token.app_user_id
+        && request.resource.data.recovery_generation is string
+        && request.resource.data.recovery_generation.size() == 32
+        && request.resource.data.recovery_agent_instance_id is string
+        && request.resource.data.recovery_agent_instance_id.size() >= 8
+        && request.resource.data.recovery_agent_instance_id.size() <= 160
+        && request.resource.data.recovery_granted_at_ms is int
+        && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.generation ==
+            request.resource.data.recovery_generation
+        && get(/databases/$(database)/documents/relay_poc_coordination/roles).data.primary_agent_instance_id ==
+            request.resource.data.recovery_agent_instance_id;
+
       // D131 durable audit: Android never deletes confirmation jobs. Bounded
       // server cleanup runs only after export/retention policy permits it.
       allow delete: if false;
