@@ -111,6 +111,21 @@ def main():
                 fail("D170 phase2 must preserve existing Worker/DO SQLite identity")
             if data.get("legacy_android_package_preserved") is not True:
                 fail("D170 phase2 must leave installed signed Android package intact")
+        elif scope == "D170_OFFICIAL_CLIENT_HOST_PHASE3":
+            if data.get("approved_components") != ["worker", "agent", "android"]:
+                fail("D170 Phase3 permits only existing Worker, Agent and signed Android")
+            if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261019_OFFICIAL_CLIENT_HOST_PHASE3":
+                fail("D170 Phase3 requires Owner scoped client migration approval")
+            if data.get("resource_change") != "NONE_EXISTING_WORKER_ANDROID_AGENT_ONLY":
+                fail("D170 Phase3 must not change databases, resource identities or custom domains")
+            for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
+                        "existing_worker_and_durable_object_preserved"):
+                if data.get(key) is not True:
+                    fail("D170 Phase3 must preserve signed OTA identity and InventoryCore " + key)
+            for key in ("domain_reassignment_permission", "single_official_domain_detach_permission",
+                        "stable_worker_deploy_permission"):
+                if data.get(key) is not False:
+                    fail("D170 Phase3 cannot detach either host or activate Stable: " + key)
         else:
             fail("D170 release is not an explicitly reviewed phase")
         if not all(data.get(k) is True for k in ("authority_continuity_pass", "product_ci_pass")):
