@@ -345,8 +345,38 @@ jobs:
             android/dist/supra-inventory-beta.apk.sha256
           if-no-files-found: error
           retention-days: 7
-      - name: Require successful Beta runtime gate for this source
+      # E061 scoped Android-only release: the exact previously deployed Worker,
+      # Firestore Rules and Agent v138 are compatible and unchanged in source.
+      - name: D169-E061 verified prior Beta runtime compatibility for Android-only release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          scope="$(jq -r '.code_scope // ""' ops/d169-release-authorization.json)"
+          if [ "$scope" != "D169_E061_ANDROID_RESUME_BETA_ONLY" ]; then exit 0; fi
+          test "$(jq -r '.approved_components | join(",")' ops/d169-release-authorization.json)" = "android"
+          # Main before the E061 branch, not an arbitrary user-supplied ref.
+          base="3467e4512bfdf2c0a5ec5e72cde4409f9671a021"
+          git cat-file -e "$base^{commit}"
+          if ! git diff --quiet "$base" "$GITHUB_SHA" -- \
+            service/ web/ relay-agent/ relay-agent-webview2-host/ \
+            firebase/ functions/ wrangler.beta.toml ops/apps-script/; then
+            echo "E061 runtime source differs from deployed E060 baseline; release refused" >&2
+            exit 1
+          fi
+          for id in 39119373089 39119373107 39119373112; do
+            conclusion="$(gh run view "$id" --json conclusion --jq .conclusion)"
+            [ "$conclusion" = "success" ] || { echo "Previous Beta runtime proof $id not successful" >&2; exit 1; }
+          done
+          gh release view relay-agent-v138 >/dev/null
+          gh release view beta-vc111 >/dev/null
+          health="$(curl -fsS --connect-timeout 5 --max-time 15 https://inventory-beta.supra.cc.cd/health)"
+          echo "$health" | jq -e '.status == "ok" and .environment == "beta" and .storage.ok == true and (.missing_bindings | length) == 0 and .source_commit == "4077f86560ca6d3c189d9d5c102c17bf93812b81"' >/dev/null
+          echo "D169_E061_ANDROID_RUNTIME_REUSED=true" >> "$GITHUB_ENV"
+          echo "D169-E061: signed Android-only release uses unchanged healthy E060 Beta Worker/Rules/Agent v138"
+      - name: Require successful Beta runtime gate for this source
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && env.D169_E061_ANDROID_RUNTIME_REUSED != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -371,7 +401,7 @@ jobs:
       # v136 Agent are available, so a PDA never submits a new recovery field
       # against obsolete Rules or relies on an absent Agent version.
       - name: D169 require Firestore Rules and Agent v136 before Android release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && env.D169_E061_ANDROID_RUNTIME_REUSED != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
