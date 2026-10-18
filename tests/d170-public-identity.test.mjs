@@ -34,6 +34,21 @@ test("existing signed app and updater remain in-place compatible", () => {
   assert.match(androidCi, /tag="beta-vc\$\{APP_VERSION_CODE\}"/);
 });
 
+test("two public hostnames use same-origin HTTP and WebSocket without CORS changes", () => {
+  const workflow = read(".github/workflows/deploy-beta.yml");
+  const api = read("web/src/api.ts");
+  const realtime = read("web/src/realtime-client.ts");
+  assert.match(workflow, /VITE_API_BASE_URL: ""/);
+  assert.match(api, /import\.meta\.env\.VITE_API_BASE_URL \|\| ""/);
+  assert.match(realtime, /import\.meta\.env\.VITE_API_BASE_URL \|\| window\.location\.origin/);
+});
+
+test("public legal pages no longer expose a Beta product identity", () => {
+  const pages = read("service/src/public-pages.ts");
+  assert.doesNotMatch(pages, /SUPRA Inventory Beta|Phiên bản Beta/);
+  assert.match(pages, /const appName = "SUPRA Inventory"/);
+});
+
 test("same authoritative Worker and durable storage remain untouched", () => {
   assert.match(worker, /name = "supra-inventory-beta"/);
   assert.match(worker, /class_name = "InventoryCore"/);
