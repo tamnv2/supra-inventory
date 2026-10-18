@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "docs/d169-e062-vc112-beta-receipt-20261018",
-  "pr": 622,
+  "working_branch": "main",
+  "pr": null,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E062",
+    "id": "D169-E063",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_E055_VPS_OTP_BETA_RUNTIME_3_OF_3_PASS__FIRST_OTP_HTTP202_ACCEPTED__OWNER_GMAIL_AGENT_FIELD_PASS_FALSE__STABLE_UNTOUCHED",
@@ -1301,6 +1301,24 @@
       ],
       "next_action": "Record Owner MT90/DT50 installed vc112 and 20 switch/kick/role/version/realtime/ACK physical test results; if FAIL repair same D169, if PASS Owner may explicitly close D169 and unlock D170; Stable unchanged.",
       "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/621; main 14bd2a0698835794214b5da15f2110185ea7378e; Android Actions https://github.com/tamnv2/supra-inventory/actions/runs/39128953639; release https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc112; docs/D169_RUNTIME_RELEASE_RECEIPTS_2026-10-18.md"
+    },
+    {
+      "id": "D169-E063",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves and completes administrative closeout of stale GitHub issues and PRs in current D169",
+      "status": "OWNER_APPROVED__11_OLD_PRS_AND_2_HISTORICAL_ISSUES_CLOSED_UNMERGED__2_D169_DRAFT_TEST_PRS_RETAINED__NO_RUNTIME_CHANGE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly approved prior classification and execution: close 11 obsolete PRs (#496,#529,#531,#532,#533,#535,#536,#538,#539,#540,#606) without merging, preserve #612 and #613 as Draft.",
+        "The eight D166 source candidate PRs were incorporated via merged PR #541; #606 superseded by merged D169 PR #615; #529 is historical preflight experiment; #496 is historical D165 release receipt.",
+        "Issue #464 was closed as not planned after Owner cancellation of standalone D164; Issue #530 was closed as completed for the historical D166 audit/tracking only. Unproven field/Usage evidence remains in existing D167/D169 backlog and Owner actions.",
+        "No physical test, provider quota improvement, Firebase Rules mutation, new release, Stable authorization or D169 Owner PASS was asserted or performed.",
+        "Historical changes and precise dispositions preserved in docs/D169_GITHUB_ARCHIVAL_2026-10-18.md; open drafts #612/#613 must be reconciled with current main v138 Beta Rules before any deployment.",
+        "After this documentation PR merges, there is no dedicated unmerged journal PR; main hosts the canonical D169 journal. The next D169 mutation must open a new branch/PR and update pointers as usual."
+      ],
+      "next_action": "Keep #612 and #613 as review-only Draft; no merge/deploy until scoped compatibility, Owner hardware tests and explicit D169 acceptance. D170 still queued, Stable gated.",
+      "evidence": "Owner direct approval 2026-10-18; GitHub closed PR/Issue status readback; merged source PR #541 and #615; docs/D169_GITHUB_ARCHIVAL_2026-10-18.md; docs-only archival PR #623."
     }
   ],
   "resume": {
@@ -1313,7 +1331,8 @@
       "D169-E024 Owner expressly approves v134 Agent code+Beta OTA channel release from existing v132; profile/browser tab show/hide UI only and same-source Worker redeploy to fulfill existing release gate, no Android or Stable.",
       "D169-E052 Owner approved existing VPS Agent OTP-only authentication with existing project mail recipient; HHmm emergency explicitly denied; CODE/CI work authorized, Beta deploy remains separately gated.",
       "E054: Owner authorized staged existing Beta Worker, existing Agent Operations Gateway and Windows Agent v137 plus first VPS email OTP issuance; no Android/Firestore/Stable change.",
-      "E061: Owner approves Android Beta-only warm-resume UI repair with signed-version/session/ACK guards; explicit deployment after PR/CI. Stable unapproved."
+      "E061: Owner approves Android Beta-only warm-resume UI repair with signed-version/session/ACK guards; explicit deployment after PR/CI. Stable unapproved.",
+      "D169-E063 Owner approved documentation-only archival: close stale PRs/issues without merge; preserve #612/#613, no release"
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -1330,7 +1349,8 @@
       "E053: PR617 exact source 7719d8c passed 23/23 GitHub Actions including Windows Agent and scoped Gateway; release after merge is pending.",
       "E054 final locked source 9ae124c passed 23/23 CI; no Rules source changed from previous E046 proven deployment; Beta release gated to Worker/Gateway/Agent.",
       "D169-E055 main release runtime PASS: Worker 39109138996, Gateway 39109139019, Agent v137 39109138955; first VPS OTP HTTP202; 14/14 main CI success.",
-      "E062: scoped Android Beta vc112 signed APK/release + inventory-channel artifacts published after PR621/CI; Worker/Rules/Agent v138 and Stable unchanged."
+      "E062: scoped Android Beta vc112 signed APK/release + inventory-channel artifacts published after PR621/CI; Worker/Rules/Agent v138 and Stable unchanged.",
+      "D169-E063 GitHub metadata: 11 stale PRs closed unmerged and 2 historical issues closed; full map docs/D169_GITHUB_ARCHIVAL_2026-10-18.md"
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -1360,7 +1380,8 @@
       "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending.",
       "Final PR610 receipt/authority+continuity checks and release verification still pending; v134 remains published but Owner NOT PASS.",
       "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending.",
-      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170."
+      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170.",
+      "D169 live open test Draft PR #612/#613 retained; any use requires fresh main Rules/auth compatibility gate"
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -1416,7 +1437,8 @@
       "E059: repair Worker/Firestore/Agent main SHA workflow triggers and skip unchanged Android release gate; re-lock tested protected SHA before retrying E057 scoped Beta release, no Stable.",
       "E060: Agent138 Beta Worker/Rules/exe release technical PASS. Owner verifies OTP login/WMS readiness, protected manual handoff, one/both admin alerts and internet/Office real test; do not claim D169 Owner PASS or start D170 yet.",
       "E061 complete PR #621 source/authority/continuity CI, Android signing and Beta release; no duplicate Worker/Firestore/Agent release.",
-      "E062 Owner PDA field verification on MT90/DT50: foreground switches, true process recreate, kick, version, Picker ACK; D169 remains open until explicit Owner PASS."
+      "E062 Owner PDA field verification on MT90/DT50: foreground switches, true process recreate, kick, version, Picker ACK; D169 remains open until explicit Owner PASS.",
+      "When next D169 work begins, branch from current main and set working_ref_discovery active PR pointer; after E063 cleanup no active unmerged discussion PR. Do not treat #612/#613 test drafts as current journal authority."
     ],
     "release_boundary": "D169_E062_ANDROID_BETA_VC112_SIGNED_PUBLISHED__OWNER_FIELD_PASS_PENDING__AGENT138_UNCHANGED__STABLE_GATED__D170_DEFERRED"
   }
