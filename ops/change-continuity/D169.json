@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E035",
+    "id": "D169-E036",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -660,6 +660,28 @@
       ],
       "next_action": "Report one manual drag measured and ask Owner for an image cropped to the CAPTCHA region before drag, plus whether that exact drag resulted in successful WMS login. If continuing diagnostic collection, keep sensitive page/account info out of attachments. No Agent, PDA, provider or public resource mutation.",
       "evidence": "Local uploaded private JSON manual-drag.v1 on 2026-10-18; main/working authority and relay-agent/SupraConfirmBrowser.cs; no extra browser instrumentation."
+    },
+    {
+      "id": "D169-E036",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner-supplied CLAUDE.md coding discipline integrated with existing AGENTS governance",
+      "status": "D169_DRAFT_AGENTS_GUIDELINES_COMMITTED__NO_EXECUTABLE_OR_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner provided CLAUDE.md with five coding quality disciplines: think before coding, simplicity, surgical changes, goal-driven execution, and a concise verification plan.",
+        "This attachment is engineering-process guidance and does not authorize changing existing login/authentication, WMS/CAPTCHA, Agent, PDA or Web business behavior.",
+        "Current AGENTS.md mandates stronger repository bootstrap/authority, change-scope controls, serial D169 Owner PASS, quota/realtime/HA tests, confidentiality and release restrictions. These remain controlling; supplementary rules cannot override them.",
+        "Implemented by appending a subordinate five-part engineering discipline section to existing AGENTS.md on Draft PR606 working branch only, with no separate CLAUDE.md authority file and no new bootstrap resources.",
+        "The new guidance explicitly discourages speculative code, redundant configuration/abstraction, unrelated refactor, unverified passing claims, while retaining handling of realistic auth/network/HA/ACK failures and automated bounded execution.",
+        "No business code, WMS profile/session, deployed Worker, Firebase, Android, Agent binary, Stable or main accepted base was changed. D169 Owner PASS, field acceptance and PR606 merge remain outstanding."
+      ],
+      "alternatives": [
+        "Selected: extend existing AGENTS.md to avoid conflicting policy engines and mandatory manifest/bootstrap changes.",
+        "Not selected: treat uploaded CLAUDE.md as an independent higher-priority rulebook or broaden authentication logic."
+      ],
+      "next_action": "Verify branch AGENTS/state/journal diff and authority/continuity checks; PR606 remains Draft/unmerged, no product release. Follow existing D169 Owner gates.",
+      "evidence": "Owner attached CLAUDE.md (2026-10-18); D169 PR606; AGENTS.md branch commit 53fc6141a43c263b9ef62019399d9ad6aad7b242; authority bootstrap and scope."
     }
   ],
   "resume": {
@@ -667,12 +689,14 @@
       "D168 accepted by Owner only as code/as-deployed limited PASS with no new reported issues at this moment",
       "Open D169 for intake and later batch/unified cross-component analysis; no implementation/deployment authorization",
       "D169 Owner authorized Web/Worker Beta Picker enrollment, Android/Agent code-only hold and evidence backlog.",
-      "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6"
+      "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
+      "D169-E036: Owner supplied five subordinate coding-quality guidelines for current D169 engineering process; no business or release authorization."
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
       "D169 journal and backlog created; no executable product changes",
-      "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS."
+      "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS.",
+      "D169-E036: AGENTS.md on Draft PR606 now includes these five quality disciplines; only documentation/source-control metadata changed."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
