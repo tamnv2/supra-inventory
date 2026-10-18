@@ -2357,7 +2357,19 @@ export default {
       const businessResponse = await handleBusinessApi(request, env, ctx);
       if (businessResponse) return businessResponse;
 
-      if (request.method === "GET" && url.pathname === "/api/oauth/google/start") return startGoogleOAuth(env);
+      // D170: Google Drive Owner setup retains the existing Google-registered
+      // callback on the legacy hostname. Redirect START before setting the
+      // state cookie, so CSRF validation and the callback stay same-origin.
+      // Never proxy/copy Google tokens or silently weaken state validation.
+      if (request.method === "GET" && url.pathname === "/api/oauth/google/start") {
+        if (url.hostname === "inventory.supra.cc.cd") {
+          return new Response(null, {
+            status: 302,
+            headers: { location: "https://inventory-beta.supra.cc.cd/api/oauth/google/start", "cache-control": "no-store" },
+          });
+        }
+        return startGoogleOAuth(env);
+      }
       if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
 
       // D167 Web-only privileged meal amendment. Never relay the password/proof

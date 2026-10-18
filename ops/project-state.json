@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D170",
-    "current_change_status": "D170_E005_PHASE1_MAIN_PARTIAL_WORKER_DEPLOY__ANDROID_RELEASE_BLOCKED__PR627_REPAIR",
+    "current_change_status": "D170_E008_OFFICIAL_HOST_PHASE2_CODE_CI_PASS__PROVIDER_DEPLOY_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D170",
     "journal": "ops/change-continuity/D170.json",
-    "working_branch": "fix/d170-phase1-release-guards-20261018",
-    "pr": 627,
-    "latest_checkpoint_id": "D170-E005",
+    "working_branch": "feat/d170-official-host-same-worker-20261018",
+    "pr": 628,
+    "latest_checkpoint_id": "D170-E008",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D170_E004_PROTECTED_SOURCE_836CD019_CI21_PASS__PHASE1_EXISTING_WORKER_AND_ANDROID_ONLY__NO_DOMAIN_CUTOVER",
+    "owner_release_gate": "D170_E008_PHASE2_EXACT_SOURCE_F4F9AF19_CI21_PASS__SAME_WORKER_HOST_TRANSFER_ONLY",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8296,12 +8296,12 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E005_PR627_REPAIR_RELEASE_GATES__NO_PRODUCTION_DOMAIN_CUTOVER",
+    "status": "D170_E008_SAME_WORKER_HOST_PHASE2_APPROVED__RUNTIME_READBACK_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
-    "working_branch": "fix/d170-phase1-release-guards-20261018",
-    "working_pr": 627,
+    "working_branch": "feat/d170-official-host-same-worker-20261018",
+    "working_pr": 628,
     "owner_goal_approved": true,
     "source_code_approved": true,
     "release_approved": true,
@@ -8314,12 +8314,15 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "CI_PR627__LOCK_TESTED_SHA__MERGE__VERIFY_WORKER_AND_ANDROID_RELEASE__THEN_DOMAIN_CUTOVER",
+    "next": "PR628_MERGE__LIVE_CLOUDFLARE_DOMAIN_PUT__BOTH_HOSTS_SAME_WORKER_AND_SQLITE_READBACK",
     "release_approved_scope": [
-      "worker",
-      "android"
+      "worker"
     ],
-    "phase1_release_protected_sha": "836cd01902444562a719554f910b71c047073418"
+    "phase1_release_protected_sha": "836cd01902444562a719554f910b71c047073418",
+    "phase1_release_pass": true,
+    "phase1_android_version_code": 113,
+    "phase1_worker_source_sha": "cf6d52364175b30046559e8b9e09f18a64442098",
+    "phase2_source_sha": "f4f9af19ae79f617f1010d294aac4e04e61c40a7"
   },
   "d171_queued": {
     "status": "QUEUED_ONLY_NOT_ACTIVE_NOT_IMPLEMENTATION_AUTHORIZED",
