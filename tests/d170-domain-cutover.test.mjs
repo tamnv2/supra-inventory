@@ -51,3 +51,12 @@ test("Drive OAuth Google state cookie remains same-site with registered legacy c
   assert.match(service, /return startGoogleOAuth\(env\)/);
   assert.match(service, /state !== expectedState/);
 });
+
+test("Cloudflare E011 verified unassigned official host attaches with no additional DELETE", () => {
+  assert.match(cutover, /\(\[\.result\[\] \| select\(\.hostname == "inventory\.supra\.cc\.cd"\)\] \| length\) <= 1/);
+  assert.match(cutover, /case "\$official" in/);
+  assert.match(cutover, /D170 unassigned official hostname attached to SAME existing Worker without deletion/);
+  assert.match(cutover, /get_domains "\$after"/);
+  assert.match(cutover, /supra-inventory-beta/);
+  assert.match(cutover, /single_official_domain_detach_permission == true/);
+});
