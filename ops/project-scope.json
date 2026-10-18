@@ -730,6 +730,11 @@
     "runtime_mutation_authorized": false,
     "provider_database_migration_authorized": false,
     "separate_network_diagnostics": "D171_QUEUED_PR612_PR613_DRAFT",
-    "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md"
+    "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
+    "phase2_conflict_status": "CLOUDFLARE_HTTP409_FROM_EXISTING_STABLE_CUSTOM_DOMAIN",
+    "phase2_binding_only_override": "AUTHORIZED_SCOPE_REQUIRES_EXACT_HOST_STABLE_BINDING_ID_MATCH_AND_REASSIGN_TO_WORKER_BETA",
+    "safe_rollback": "RECREATE_ORIGINAL_STABLE_DOMAIN_BINDING_ONLY_IF_NEW_ATTACH_FAILS__NO_DB_WORKER_OR_DNS_DELETE",
+    "allowed_single_binding": "inventory.supra.cc.cd",
+    "forbidden": "DELETE_WORKER_DATABASE_DNS_ZONE_OTHER_HOSTNAMES"
   }
 }
