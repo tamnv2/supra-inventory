@@ -2317,9 +2317,13 @@ namespace SupraInventoryRelayAgent
                 return VerifyPrimaryDownBeforeTakeover(session, commonProtocolProof);
             }
 
+            // Once the 10s heartbeat period has elapsed, schedule the next
+            // authoritative check for the 15s suspect boundary instead of
+            // polling Firestore every second. Safety remains bounded by the
+            // same failover threshold; no extra reads on healthy Office links.
             if (ageMs < PrimaryLeaseHeartbeatMs)
                 return Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)ageMs);
-            return 1000;
+            return Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, ageMs));
         }
 
         // A stale Firestore lease is not proof of death when the PRIMARY
