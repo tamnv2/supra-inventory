@@ -69,6 +69,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _relayEnabled;
         private readonly Func<bool> _canSafelyHandoff;
         private readonly Action<string> _manualReturnConsentRequested;
+        private readonly Action<VpsReclaimRecord> _adminConsentObserved;
         private readonly string _instanceId;
         private readonly Action<string> _log;
         private readonly Action<FirestoreAgentRole, string> _stateChanged;
@@ -110,6 +111,7 @@ namespace SupraInventoryRelayAgent
         private long _ownerReturnConsentUntilMs;
         private long _lastVpsReadyWriteMs;
         private long _lastVpsReclaimCheckMs;
+        private long _lastOwnerConsentPollAtMs;
         private long _primaryWmsUnreadySinceMs;
         private int _primaryWmsUnreadySamples;
         private string _sharedScheduleKey = "";
@@ -128,7 +130,8 @@ namespace SupraInventoryRelayAgent
             Action<string> log,
             Action<FirestoreAgentRole, string> stateChanged,
             Func<bool> canSafelyHandoff = null,
-            Action<string> manualReturnConsentRequested = null)
+            Action<string> manualReturnConsentRequested = null,
+            Action<VpsReclaimRecord> adminConsentObserved = null)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
@@ -138,6 +141,7 @@ namespace SupraInventoryRelayAgent
             _relayEnabled = relayEnabled ?? (() => true);
             _canSafelyHandoff = canSafelyHandoff ?? (() => false);
             _manualReturnConsentRequested = manualReturnConsentRequested ?? delegate { };
+            _adminConsentObserved = adminConsentObserved ?? delegate { };
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
             _stateChanged = stateChanged ?? delegate { };
@@ -1204,6 +1208,7 @@ namespace SupraInventoryRelayAgent
                             _log("D169 VPS ready=DEFER type=" + ex.GetType().Name);
                         }
                     }
+                    var accountOwner = FirestoreVpsReclaim.IsOwner(session);
                     var roleInterval = _role == FirestoreAgentRole.DEEP_HIBERNATE
                         ? ((string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
                              string.Equals(_preferredVpsAgentInstanceId, _instanceId, StringComparison.Ordinal))
@@ -1215,6 +1220,8 @@ namespace SupraInventoryRelayAgent
                                 : (!_wmsReady() ? FirestoreConfirmationTransport.PrimaryInactivePollIntervalMs : PrimaryRoleRefreshMs)));
                     if (accountVps && _role != FirestoreAgentRole.PRIMARY)
                         roleInterval = Math.Min(roleInterval, 30000);
+                    if (accountOwner && D168NetworkRoute.CurrentNetworkMode() != "INTERNET")
+                        roleInterval = Math.Min(roleInterval, 60000);
                     var roleRefreshDue = startupConvergence ||
                                          _refreshBeforeBusiness ||
                                          _lastRoleRefreshMs == 0 ||
@@ -1276,6 +1283,29 @@ namespace SupraInventoryRelayAgent
                     }
 
                     MaintainPresence(session);
+                    // Office may block gRPC Listen even when authenticated Firestore
+                    // REST succeeds. One-minute exact-doc fallback is owner-only;
+                    // Internet uses the existing event stream with zero extra reads.
+                    if (accountOwner && D168NetworkRoute.CurrentNetworkMode() != "INTERNET" &&
+                        (_lastOwnerConsentPollAtMs == 0 ||
+                         NowMs() - _lastOwnerConsentPollAtMs >= 60000))
+                    {
+                        _lastOwnerConsentPollAtMs = NowMs();
+                        try
+                        {
+                            var pending = _vpsReclaim.GetRequest(session);
+                            if (pending.Status == "PENDING" &&
+                                pending.ExpiresAtMs > NowMs() &&
+                                pending.CreatedAtMs <= NowMs() + 5000)
+                                _adminConsentObserved(pending);
+                        }
+                        catch (Exception ex)
+                        {
+                            _log("D169 VPS owner REST fallback=DEFER type=" + ex.GetType().Name);
+                        }
+                    }
+                    if (accountOwner && D168NetworkRoute.CurrentNetworkMode() != "INTERNET")
+                        waitMs = Math.Min(waitMs, 60000);
                     if (accountVps && _relayEnabled())
                         waitMs = Math.Min(waitMs, 15000);
                     // D150: only PRIMARY scans the fresh Agent-presence projection. NEXT_A/NEXT_B
