@@ -7,7 +7,7 @@
   "pr": 637,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E021",
+    "id": "D170-E022",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -393,6 +393,26 @@
       ],
       "next_action": "No more v139 code or release work; Owner may validate installed Windows Agent v139 and business field operations. Continue D170 OAuth/fleet sunset only under new Owner approval; field_pass and owner_pass remain false.",
       "evidence": "GitHub Actions Worker #39173024218, Agent #39173024161, GitHub Release relay-agent-v139, inventory-channel publication log, PR636."
+    },
+    {
+      "id": "D170-E022",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_REQUIREMENT_INTAKE_QUEUED_ONLY",
+      "topic": "Prepare D171 three-device automated network diagnostics with PDA fixed on normal network",
+      "status": "D171_REQUIREMENT_RECORDED__NO_D171_IMPLEMENTATION_OR_DEPLOYMENT_AUTHORIZED__D170_OWNER_PASS_GATE_ACTIVE",
+      "owner_approval": false,
+      "facts": [
+        "Owner requests isolated connectivity test using two authenticated Windows Agent diagnostic clients, each under a distinct authorized Agent account, and one authenticated Android PDA Picker diagnostic client under a dedicated test Picker account; actual login identifiers and passwords are not stored in public GitHub.",
+        "All three test clients log in, each presses one Start Test action; the suite must wait for all three authenticated participants to be READY, assign and clearly display Agent A, Agent B, PDA and role, then coordinate scenarios from one shared session.",
+        "PDA remains on ordinary Internet network throughout. Only Agent A/B change between NORMAL and OFFICE; each EXE must show the exact participant, required next network and a gated 'network changed' confirmation, preferably verifying observable network interface/proxy path instead of trusting a label.",
+        "Proposed scenario stages: A/B NORMAL/NORMAL baseline, OFFICE/NORMAL, NORMAL/OFFICE, OFFICE/OFFICE and restore NORMAL/NORMAL; include PDA-Agent roundtrip ACK, Agent-Agent receipt, simulated leader failover, reconnect/retry/idempotency, timeout and permission classification without production WMS/Picklist/PRIMARY/call/chat/kick mutations.",
+        "Current Draft PR613 test suite uses existing Beta Firestore default database d169_diag_sessions (not a separate Firebase project); 2026-10-17 temporary Rules deployment readback was reported PASS, but main firebase/firestore.rules does not currently contain that test match, so live permission status must be re-read before any use.",
+        "Current PR613 V7 source includes PDA OFFICE scenarios and independently advanced phase state across EXE/APK, not a verified three-node global barrier. Existing PR612 is reachability-only and cannot replace the direct receipt suite. No valid field PASS from these draft artifacts.",
+        "As D170 has no Owner PASS and D171 is only queued, do not modify PR612/PR613 code, deploy/test Firestore Rules, create/clear test data, distribute binaries or mutate live resources in this discussion. Stable remains OWNER-GATED."
+      ],
+      "recommendation": "After D170 explicit Owner PASS: fresh-bootstrap main, rebase the D171 draft suite, read back current Firebase Rules, add 3-node authenticated READY/barrier and network validation, remove PDA OFFICE phases, run Rules emulator/auth/compilation/usage/regression checks in guarded branch→PR, then explicitly approve scoped diagnostic activation. Keep identities runtime-only and preserve cleanup-after-evidence gate.",
+      "next_action": "D170-E021 receipt stays independent; hold D171 queued until D170 Owner PASS. Ask no manual network or account actions before a verified diagnostic release.",
+      "evidence": "PR612/613 draft descriptions and PR613 head tools/d169-peer-windows/PeerForm.cs, tools/d169-fieldkit-android/.../DiagHubActivity.kt, docs/D169_DIRECT_PEER_NETWORK_TEST_DESIGN_2026-10-17.md; main firebase/firestore.rules; project-state d171_queued."
     }
   ],
   "resume": {
@@ -428,7 +448,8 @@
     ],
     "blocked": [
       "Agent v139 still unpublished pending PR634 source/CI and main run; v138 remains canonical user update until v139 EXE/channel receipt PASS.",
-      "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release."
+      "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release.",
+      "D171 three-device automated diagnostic design queued; D170 Owner PASS gate prevents D171 code/Rules/device activity."
     ],
     "next_actions": [
       "Owner field-check Windows Agent v139 on representative PC and existing v138 in-place OTA when appropriate; no forced test or domain removal inferred.",
