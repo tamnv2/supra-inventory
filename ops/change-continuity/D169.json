@@ -1238,16 +1238,17 @@
       "date_vn": "2026-10-18",
       "kind": "TECHNICAL_FINDING",
       "topic": "Post-merge Beta v138 release pipeline dependency blocked on missing Worker same-SHA trigger and Android unchanged release authorization check",
-      "status": "OWNER_E057_SAME_CHANGE_RELEASE_REPAIR_SOURCE_PR619_CI_PENDING__NO_SCOPE_EXPANSION",
+      "status": "RELEASE_WORKFLOW_REPAIR_16_OF_16_CI_PASS__OWNER_E057_EXISTING_BETA_SCOPE__MAIN_RUNTIME_PENDING",
       "owner_approval": false,
       "facts": [
         "D169 PR618 merged at 7b5993b136dfe9a6a1b1c2449bedbc8144567657 after exact protected source 4f03222 CI 20/20 PASS, with scoped release receipt Worker/Firestore/Agent v138. Stable unchanged.",
         "Main PR618 SHA deploy-beta.yml was not triggered, because path filters did not include Agent and Firestore changes; existing Agent publication blocks until matching Worker health run (same main commit), so v138 cannot be claimed released.",
         "On 7b5993, Android verification workflow was triggered by Rules changes but its Owner Android release authorization check ran before checking APK code change. Android job failed with component outside allowed scope; this is correct denial of Android publishing, not a v138 business source failure.",
         "Scoped D169 E057 release repair changes only CI workflow triggers: Worker now runs for Agent/Rules changes, Firestore Rules deploy runs for Agent/related release-workflow changes, existing verify Agent workflow change causes a fresh matching main Agent push run. Unchanged Android verifies source and skips release authorization while changed Android remains strictly gated.",
-        "No Firebase Rules/business Web/WMS/Android source modifications, no new provider/Stable and no reissue of initial E054 OTP. Exact source SHA and CI receipt must be re-locked because .github/workflows is protected in release gate. Rollback remains v137/Android vc111."
+        "No Firebase Rules/business Web/WMS/Android source modifications, no new provider/Stable and no reissue of initial E054 OTP. Exact source SHA and CI receipt must be re-locked because .github/workflows is protected in release gate. Rollback remains v137/Android vc111.",
+        "PR619 exact workflow-repair source 80e14c39a3f25d8660e63574b33caac73d920e22 passed all 16/16 GitHub Actions (Repo Authority+Continuity, Agent Windows build, Android, Beta Firestore source). Source is locked as new approved_source_sha in ops/d169-release-authorization.json; no change to protected executable/CI source after this tested SHA."
       ],
-      "next_action": "Run PR619 full source+authority/continuity checks, lock exact new tested SHA, update D169 release authorization receipt, merge same D169 only after green. Verify matching main Worker+Firestore+Agent v138 outputs and Android unchanged verification; then record technical receipt. Physical Office/PDA field and Owner PASS remain pending.",
+      "next_action": "Merge PR619 only after current authority+continuity and CI PASS, then verify same-main-commit Worker, Firestore Rules readback, Agent v138 signed official prerelease + channel and Android unchanged pass. Field and Owner PASS remain pending.",
       "evidence": "Main 7b5993 actions 39118107125 Android release gate denied for out-of-scope component; deploy-beta.yml push paths excluded relay-agent and firebase/firestore.rules; verify-relay-agent.yml exact matching Worker/Firestore action dependencies."
     }
   ],
