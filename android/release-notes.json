@@ -1,9 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "Tự nhận kết quả PickList từ Agent chính hoặc Agent dự phòng khi chuyển quyền có xác thực.",
-    "Giữ mã yêu cầu cũ và chỉ kéo dài thời gian chờ khi hệ thống xác nhận đang phục hồi.",
-    "Sửa hiển thị thông báo dài, xử lý phiên bị thu hồi và thông báo rõ lý do xác nhận.",
-    "Bắt buộc cập nhật APK Beta đã ký khi an toàn, không ngắt nghiệp vụ đang xử lý."
+    "Giữ nguyên giao diện, tab và dữ liệu đang nhập khi chuyển sang ứng dụng khác rồi quay lại.",
+    "Kiểm tra cập nhật nền không tải lại màn hình khi phiên đăng nhập còn hợp lệ.",
+    "Tiếp tục xác minh quyền và bản cập nhật bắt buộc, bảo vệ kết quả PickList."
   ]
 }
