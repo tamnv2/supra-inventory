@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_V135_BETA_UI_HOTFIX_RELEASE_PASS__OWNER_FIELD_PASS_PENDING__STABLE_UNTOUCHED",
+    "current_change_status": "D169_OWNER_APPROVED_STAGED_INTEGRATION__PR615_CODE_CANDIDATE__HA_FIELD_PENDING__NO_NEW_CLIENT_RELEASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7449,13 +7449,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D169",
     "journal": "ops/change-continuity/D169.json",
-    "working_branch": "fix/d169-android-agent-code-only-20261015",
-    "pr": 606,
-    "latest_checkpoint_id": "D169-E009",
-    "checkpoint_date_vn": "2026-10-15",
+    "working_branch": "fix/d169-integrated-vps-pda-client-20261018",
+    "pr": 615,
+    "latest_checkpoint_id": "D169-E044",
+    "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D169_WEB_WORKER_BETA_DEPLOYED__ANDROID_AGENT_CODE_ONLY_NO_RELEASE__STABLE_OWNER_GATED",
+    "owner_release_gate": "D169_STAGED_SCOPE_OWNER_APPROVED__PR615_CI_AND_FIELD_GATED__NO_NEW_AGENT_ANDROID_CHANNEL_YET__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7976,13 +7976,13 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "BETA_AGENT_V134_OWNER_NOT_PASS__V135_TAB_REPAIR_OTA_RELEASE_PASS__ANDROID_PR606_DRAFT__FIELD_PENDING",
+    "status": "V135_BETA_RELEASED__PR615_OWNER_APPROVED_PARTIAL_CODE__VPS_HA_NETWORK_PDA_MODEL_PENDING_TEST_RELEASE",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
     "backlog": "docs/D169_BACKLOG.md",
-    "working_branch": "fix/d169-android-agent-code-only-20261015",
-    "working_pr": 606,
+    "working_branch": "fix/d169-integrated-vps-pda-client-20261018",
+    "working_pr": 615,
     "owner_code_approval": true,
     "owner_deploy_approval": true,
     "code_ready": true,
@@ -7996,7 +7996,7 @@
     ],
     "next": "OWNER_TEST_V135_ON_SECONDARY__NORMAL_TABS_VISIBLE__HIDE_SHOW_WEB_TAB__WMS_CONFIRM_SKU_HA__FIELD_RESULT",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E029",
+    "latest_checkpoint_id": "D169-E044",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8127,6 +8127,36 @@
       "channel_tag": "relay-agent-v135",
       "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135",
       "exe_asset_size": 7425536
+    },
+    "integrated_vps_pda_2026_10_18": {
+      "owner_integrated_scope_approved": true,
+      "release_mode": "STAGED_BETA_ONLY_AFTER_CI_AND_FIELD_CHECKS",
+      "source_pr": 606,
+      "integration_pr": 615,
+      "base_agent": 135,
+      "code_carried": [
+        "ANDROID_OVERLAY_SCROLL",
+        "ANDROID_ORPHAN_ACK_SAFE",
+        "ANDROID_SIGNED_BETA_UPDATE_FLOOR",
+        "AGENT_SKU_NEXTWAKE_GUARD",
+        "ANDROID_ALREADY_CONFIRMED_MAPPING",
+        "ANDROID_WMS_REASON_MAPPING",
+        "AGENT_UNUSED_LEGACY_ALERT_READ_REMOVAL"
+      ],
+      "unimplemented": [
+        "VPS_PREFERRED_PRIMARY_15S_FENCE",
+        "MANUAL_OVERRIDE_15MIN_CONSENT",
+        "OFFICE_INTERNET_SSID_ROUTING",
+        "PDA_FAILOVER_SAME_REQUEST_RECOVERY_BUDGET",
+        "END_TO_END_REASON_ACK_PROTOCOL"
+      ],
+      "rbac": "SCOPED_EXISTING_BETA_CAPABILITY__NO_PRIVILEGE_EXPANSION",
+      "version_label": "UNVERIFIED_NO_FIX",
+      "worker_service": "NO_NEW_PROVIDER",
+      "agent_android_release_permission": false,
+      "source_ci_pass": false,
+      "device_field_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
     }
   }
 }
