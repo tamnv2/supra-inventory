@@ -7451,7 +7451,7 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "docs/d169-e051-vps-otp-intake-20261018",
     "pr": 617,
-    "latest_checkpoint_id": "D169-E051",
+    "latest_checkpoint_id": "D169-E052",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -7996,7 +7996,7 @@
     ],
     "next": "FINISH_PR615_SOURCE_CI_SAFE_BETA_RELEASE__D170_FIELD_TEST_QUEUED_ONLY_AFTER_D169_OWNER_PASS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E051",
+    "latest_checkpoint_id": "D169-E052",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8183,6 +8183,25 @@
         "field_pass": false,
         "stable_untouched": true
       }
+    },
+    "vps_otp_only_2026_10_18": {
+      "owner_approved": true,
+      "account": "EXACT_EXISTING_AGENT_LOGIN_VPS_ONLY",
+      "auth_mode": "ONE_USE_FOUR_DIGIT_OTP_ONLY__NO_CLOCK_EMERGENCY__NO_STATIC_PASSWORD",
+      "mail_recipient": "REUSE_PROJECT_ADMIN_EMAIL_ALIAS__NO_NEW_RESOURCE",
+      "allowed_real_roles": [
+        "ADMIN/ADMIN",
+        "PICKPACK_ADMIN/PICKPACK_ADMIN"
+      ],
+      "source_commit": "227d44f902fc3027b25c6f01defd9dc647b75ba3",
+      "source_pr": 617,
+      "source_state": "CODE_CANDIDATE__CI_PENDING",
+      "beta_deploy_authorized": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "runtime_account_exists": "NOT_VERIFIED",
+      "next": "CI_PASS__REQUIRE_NEW_EXACT_SHA_BETA_RELEASE_APPROVAL_BEFORE_MERGE_DEPLOY"
     }
   }
 }
