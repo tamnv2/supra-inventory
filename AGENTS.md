@@ -1,5 +1,10 @@
 # AGENTS.md — SUPRA Inventory
 
+## D170 Owner decision — single official Production (DESIGN ONLY)
+
+Owner on 2026-10-18 accepted D169 code/release at limited scope and opened D170 as the sole active design change. Intended one official system at `inventory.supra.cc.cd`, user-visible Android `1291 Báo hàng`, with no operational Beta→Stable release promotion. **Current infrastructure is NOT yet cut over:** preserve existing Beta-tagged Worker/InventoryCore SQLite/Firebase resources, Android package/signature and legacy update channel; do not deploy the old Stable Worker or rename/migrate data just to remove technical Beta IDs. Current Beta/Stable guards below remain effective until a source-reviewed, Owner-authorized D170 cutover actually succeeds. Isolated PDA-Agent-Agent network diagnostics are D171 QUEUED only (#612/#613 Draft). Use `docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md`, the active D170 journal and current resource scope. No CODE/DEPLOY/OWNER PASS is inferred from the design record.
+
+
 This repository belongs only to `SUPRA Inventory — Báo hàng` (`supra-inventory`). Never import assumptions, credentials, resources, business rules or architecture from another project. The prior Báo hàng 1291 product may be consulted only as the Owner-approved business/UX reference described by canonical decisions; its legacy resources/backend are never project authority.
 
 ## Mandatory bootstrap gate before mutation
