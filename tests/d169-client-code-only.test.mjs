@@ -32,3 +32,17 @@ test("all queued SKU retries honor one bounded local wake without network pollin
  assert.match(body, /Interlocked\.CompareExchange\(ref running,1,0\)/);
  assert.match(body, /Arm\(TimeSpan\.FromMinutes\(15\)\)/);
 });
+
+const picker = source("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt");
+const contacts = source("relay-agent/FirestorePickerContact.cs");
+test("PDA displays already-confirmed as positive outcome and distinguishes WMS errors", () => {
+ assert.match(picker, /"ALREADY_CONFIRMED" ->/);
+ assert.match(picker, /"WMS_DATA_UNAVAILABLE" ->/);
+ assert.match(picker, /"LOOKUP_ERROR" ->/);
+ assert.match(picker, /result.lookupStatus == "ALREADY_CONFIRMED"/);
+});
+test("Active-call reconciliation does not scan unused historical alerts", () => {
+ const body = contacts.slice(contacts.indexOf("internal Dictionary<string, PickerContactCommand> LoadOpen("), contacts.indexOf("private Dictionary<string, PickerContactCommand> LoadActiveCalls("));
+ assert.match(body, /LoadActiveCalls\(session\)/);
+ assert.doesNotMatch(body, /LoadLegacyAlerts\(session, result\)/);
+});
