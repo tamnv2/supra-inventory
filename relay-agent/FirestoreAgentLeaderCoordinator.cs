@@ -1119,9 +1119,14 @@ namespace SupraInventoryRelayAgent
                     }
                     else if (_role == FirestoreAgentRole.NEXT_A)
                     {
-                        _rtdbLiveness.EnsureObserver(session, _generation, _primaryId);
+                        // Office and unknown networks never retry an inaccessible
+                        // RTDB stream. One common Firestore authority path works
+                        // across networks and is also the takeover CAS carrier.
+                        var internet = D168NetworkRoute.CurrentNetworkMode() == "INTERNET";
+                        if (!internet) _rtdbLiveness.StopObserver();
+                        else _rtdbLiveness.EnsureObserver(session, _generation, _primaryId);
                         long livenessAgeMs;
-                        if (_rtdbLiveness.TryGetFresh(_generation, _primaryId, out livenessAgeMs))
+                        if (internet && _rtdbLiveness.TryGetFresh(_generation, _primaryId, out livenessAgeMs))
                         {
                             FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "RTDB_FRESH");
                             _leaseMissingSinceMs = 0;
@@ -1129,10 +1134,9 @@ namespace SupraInventoryRelayAgent
                         }
                         else
                         {
-                            // RTDB is liveness only. Any stale/missing/uncertain signal
-                            // re-enters the accepted Firestore lease path, which verifies
-                            // generation/PRIMARY authority before takeover.
-                            FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "RTDB_NOT_FRESH_FIRESTORE_FALLBACK");
+                            // On mixed v135/v136 fleet the older PRIMARY lease
+                            // has no common-protocol marker; stale legacy leases
+                            // still require independent RTDB proof, fail closed.
                             waitMs = CheckPrimaryLease(session);
                         }
                     }
