@@ -9,7 +9,7 @@ const channel = read("relay-agent/VERSION").trim();
 
 test("v138 retains v135 corrective build layout and remains newer than v132-v134", () => {
   assert.equal(channel, "138");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild\s*=\s*137\s*;/);
+  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild\s*=\s*138\s*;/);
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.138\.0\.0/);
 });
 
