@@ -78,23 +78,41 @@ def main():
     if args.component not in data.get("approved_components", []):
         fail("component outside the explicitly approved release scope")
     if data["change_id"] == "D170":
-        if data.get("code_scope") != "D170_OFFICIAL_BRANDING_LEGACY_OTA_PHASE1":
+        scope = data.get("code_scope")
+        if scope == "D170_OFFICIAL_BRANDING_LEGACY_OTA_PHASE1":
+            if data.get("approved_components") != ["worker", "android"]:
+                fail("D170 phase1 permits only existing Worker and signed Android")
+            if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261018_SAFE_PRODUCTION_IDENTITY_PHASE1":
+                fail("D170 requires exact Owner-approved phase-1 release scope")
+            if data.get("resource_change") != "NONE_EXISTING_WORKER_AND_SIGNED_ANDROID":
+                fail("D170 phase1 cannot change provider resources")
+            if data.get("stable_deploy_permission") is not False:
+                fail("D170 phase1 cannot activate the old Stable Worker")
+            for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
+                        "existing_worker_and_durable_object_preserved"):
+                if data.get(key) is not True:
+                    fail("D170 phase1 must preserve existing signed identity/data: " + key)
+        elif scope == "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2":
+            if data.get("approved_components") != ["worker"]:
+                fail("D170 official-host cutover permits only the current Worker")
+            if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261018_OFFICIAL_SAME_WORKER_DOMAIN_PHASE2":
+                fail("D170 official-host cutover requires exact Owner direction")
+            if data.get("resource_change") != "REASSIGN_EXISTING_STABLE_HOST_ONLY__SAME_WORKER_NO_DATABASE":
+                fail("D170 phase2 cannot migrate any provider or data resource")
+            if data.get("domain_reassignment_permission") is not True:
+                fail("D170 official-host reassignment not approved")
+            if data.get("stable_worker_deploy_permission") is not False:
+                fail("D170 phase2 cannot deploy old Stable Worker")
+            if data.get("existing_worker_and_durable_object_preserved") is not True:
+                fail("D170 phase2 must preserve existing Worker/DO SQLite identity")
+            if data.get("legacy_android_package_preserved") is not True:
+                fail("D170 phase2 must leave installed signed Android package intact")
+        else:
             fail("D170 release is not an explicitly reviewed phase")
-        if data.get("approved_components") != ["worker", "android"]:
-            fail("D170 release cannot affect Agent, Firebase or another provider")
-        if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261018_SAFE_PRODUCTION_IDENTITY_PHASE1":
-            fail("D170 requires exact Owner-approved phase-1 release scope")
-        if data.get("resource_change") != "NONE_EXISTING_WORKER_AND_SIGNED_ANDROID":
-            fail("D170 phase-1 cannot change DNS, Stable, Firebase or storage identity")
-        if data.get("stable_deploy_permission") is not False:
-            fail("D170 phase-1 cannot activate the old Stable Worker")
-        for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
-                    "existing_worker_and_durable_object_preserved",
-                    "authority_continuity_pass", "product_ci_pass"):
-            if data.get(key) is not True:
-                fail("D170 phase-1 requires safety and CI proof: " + key)
+        if not all(data.get(k) is True for k in ("authority_continuity_pass", "product_ci_pass")):
+            fail("D170 phase requires source, authority and continuity PASS")
         if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
-            fail("D170 phase-1 must not invent device field acceptance")
+            fail("D170 release cannot manufacture hardware field PASS")
     if data["change_id"] == "D169":
         if data.get("stable_deploy_permission") is not False:
             fail("D169 Stable is owner-gated")
