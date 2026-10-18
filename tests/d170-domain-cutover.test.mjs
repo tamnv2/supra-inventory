@@ -20,7 +20,7 @@ test("both registered public hostnames point to one existing Worker and Inventor
   assert.match(oldStable, /name = "supra-inventory-stable"/);
 });
 
-test("provider cutover is authenticated, scoped, checked and non-destructive", () => {
+test("provider cutover is authenticated, scoped, and restricted to binding movement", () => {
   assert.match(cutover, /CLOUDFLARE_API_TOKEN/);
   assert.match(cutover, /OWNER_EXPLICIT_DEPLOY_APPROVED/);
   assert.match(cutover, /domain_reassignment_permission == true/);
@@ -28,7 +28,12 @@ test("provider cutover is authenticated, scoped, checked and non-destructive", (
   assert.match(cutover, /supra-inventory-beta/);
   assert.match(cutover, /inventory\.supra\.cc\.cd/);
   assert.match(cutover, /-X PUT/);
-  assert.doesNotMatch(cutover, /-X DELETE|DROP TABLE|DELETE FROM|wrangler delete/);
+  assert.match(cutover, /single_official_domain_detach_permission == true/);
+  assert.match(cutover, /existing_id=.*inventory\.supra\.cc\.cd/);
+  assert.match(cutover, /\[\[ "\$status" == 409 \]\]/);
+  assert.match(cutover, /-X DELETE/);
+  assert.match(cutover, /rollback_code/);
+  assert.doesNotMatch(cutover, /DROP TABLE|DELETE FROM|wrangler delete|dns\/records/);
   assert.match(cutover, /D170_DUAL_HOST_SAME_EXISTING_WORKER_CONTROL_PLANE_PASS/);
 });
 
