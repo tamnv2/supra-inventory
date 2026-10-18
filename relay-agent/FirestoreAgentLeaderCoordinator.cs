@@ -788,8 +788,8 @@ namespace SupraInventoryRelayAgent
                         _generation = next.Generation;
                         // Grant a bounded same-request recovery window only after
                         // generation-CAS promotion and our WMS readiness proof.
-                        _verifiedAutomaticTakeoverAtMs = NowMs();
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, next.StandbyAgentInstanceId, "ACTIVE_FAILOVER_LEASE");
+                        _verifiedAutomaticTakeoverAtMs = NowMs();
                         WritePrimaryLease(session);
                         _log("FIRESTORE HA takeover=PASS trigger=primary_lease_timeout threshold_ms=" + FailoverAfterMs +
                              " self=" + Short(_instanceId));
@@ -1897,6 +1897,9 @@ namespace SupraInventoryRelayAgent
                 _standbyId = standbyId ?? "";
                 if (changed)
                 {
+                    // Only a completed automatic CAS promotion grants recovery.
+                    // A later manual/role transition must never reuse that proof.
+                    _verifiedAutomaticTakeoverAtMs = 0;
                     _relayPollHealthy = false;
                     _lastPresenceWriteMs = 0;
                     _fleetRefreshRequested = true;
