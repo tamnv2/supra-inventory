@@ -393,7 +393,7 @@ namespace SupraInventoryRelayAgent
             if (!redirected)
             {
                 var expected = manifest ? "/downloads/agent/browser/manifest" : "/downloads/agent/browser/latest";
-                if (!string.Equals(uri.Host, "inventory-beta.supra.cc.cd", StringComparison.OrdinalIgnoreCase) ||
+                if (!string.Equals(uri.Host, "inventory.supra.cc.cd", StringComparison.OrdinalIgnoreCase) ||
                     !string.Equals(uri.AbsolutePath, expected, StringComparison.Ordinal))
                     throw new InvalidOperationException("Browser bundle không thuộc dịch vụ tin cậy.");
                 return;
