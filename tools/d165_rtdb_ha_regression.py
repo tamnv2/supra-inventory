@@ -73,6 +73,10 @@ for marker in (
     "nowUnready - _primaryWmsUnreadySinceMs < 15000",
 ):
     assert marker in coordinator, ("D166 HA safety proof missing", marker)
-assert "return VerifyPrimaryDownBeforeTakeover(session);" in coordinator
-assert coordinator.count("return VerifyPrimaryDownBeforeTakeover(session);") == 2
+assert "return VerifyPrimaryDownBeforeTakeover(session, false);" in coordinator
+assert "return VerifyPrimaryDownBeforeTakeover(session, commonProtocolProof);" in coordinator
+assert "if (commonProtocolProof)" in coordinator
+assert 'FieldBool(fields, "cross_network_liveness_v1")' in coordinator
+assert "HasFreshCommonPrimaryLease()" in coordinator
+assert "WritePrimaryLease(session);" in coordinator
 print("D166 RTDB nested SSE and bounded active failover safety guard PASS")
