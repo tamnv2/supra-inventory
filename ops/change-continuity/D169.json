@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E040",
+    "id": "D169-E041",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -752,6 +752,31 @@
       ],
       "next_action": "Do not work further on auto-CAPTCHA unless Owner reopens the topic. Preserve manual WMS sign-in and continue other VPS/Agent work only when independently approved, within existing D169 serial/CI/release guards.",
       "evidence": "Owner 2026-10-18 immediate request to drop the idea; relay-agent/SupraConfirmBrowser.cs and canonical auth UI scope; D169 E031–E037."
+    },
+    {
+      "id": "D169-E041",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "VPS preferred PRIMARY, mixed Office/Internet HA, manual override with 15-minute notifications",
+      "status": "OWNER_REQUIREMENTS_CAPTURED__ARCHITECTURE_PROPOSED__NO_CODE_OR_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "VPS Windows Agent on ordinary Internet must be preferred PRIMARY when healthy; other company Agents on Office or ordinary Internet are automatic standbys, with temporary fallback when VPS or its WMS Confirm readiness fails and safe VPS reclaim when stable.",
+        "A PRIMARY manually designated by authenticated admin or tamnv2 is exempt from automatic VPS reclaim. Every 15 minutes while VPS is verified stable and manual designation remains, eligible signed-in admin/tamnv2 Agent receives a request to accept cloud takeover or snooze for another 15 minutes; no silent auto-accept.",
+        "Authenticated 2026-10-17 V3 NORMAL probe: Firestore REST read PASS, RTDB REST read PASS and RTDB SSE first frame PASS. OFFICE: Firestore REST read via Windows system proxy PASS, RTDB through proxy HTTP403 and direct inaccessible, Cloudflare Worker inaccessible. Office authenticated Firestore gRPC Listen, Firestore writes, true peer ACK and PDA delivery untested.",
+        "Existing source coordinator uses 10-second Firestore lease and attempts RTDB SSE before fallback. Office NEXT_A can repeatedly poll Firestore and cannot safely take over when RTDB confirmation is unavailable. Older Oct18 Agent logs show RTDB 401 and repeated fallback reads; unused picker_alerts legacy query adds avoidable Firestore reads.",
+        "Proposal: one Firestore generation-fenced election authority accessible from both networks, no Office RTDB retry, exactly one active NEXT_A liveness watcher and sleeping other standbys; gated VPS priority with WMS/browser readiness, stable-window and in-flight Picklist drain; persisted manual hold and explicit 15m request/snooze with CAS single-winner and authenticated permission checks.",
+        "Preserving ~15-second failover when Office cannot use RTDB requires a sufficiently fresh cross-network lease/event source; a 10-second Firestore heartbeat can cost 6,120 writes in 17 operating hours and a single watcher may incur a similar number of listener reads. Savings from eliminating 100-document unused legacy queries are better supported than an unsupported promise of zero HA write usage.",
+        "Alternatives: keep current transport with monitor-only analysis; direct Firestore shared HA plus bounded failover (preferred to validate); or a new Google relay service, contingent on explicit scope and measured Office proof.",
+        "No executable Agent/Android/Web/Worker source, Firebase Rules, Stable or VPS service changed by this discussion; user requested analysis/proposal, not immediate rollout."
+      ],
+      "open_questions": [
+        "Actual Office authenticated Firestore gRPC Listen persistence and event delivery?",
+        "Owner acceptance threshold for failover/reclaim latency and manual holder unexpectedly disappearing?",
+        "Which Agent build and HA field symptoms occur with mixed VPS and Office peers?"
+      ],
+      "next_action": "Present source/network proof, risk and recommended change contract to Owner; request explicit implementation approval, then test mixed-network HA/ACK with V3 limitations addressed on Beta, branch/PR CI and staged release. Keep PR606 Draft and D169 OPEN.",
+      "evidence": "User-uploaded SUPRA_FIREBASE_NETWORK_DIAGNOSTIC_V3 NORMAL/OFFICE 2026-10-17; main relay-agent/FirestoreAgentLeaderCoordinator.cs, RtdbHaLiveness.cs, FirestoreConfirmationTransport.cs, FirestorePickerContact.cs; D169 prior usage analysis."
     }
   ],
   "resume": {
