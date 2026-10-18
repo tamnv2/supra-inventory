@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
   "working_branch": "docs/d169-e064-code-release-field-audit-20261018",
-  "pr": null,
+  "pr": 624,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D169-E064",
