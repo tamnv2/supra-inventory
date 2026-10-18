@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D170",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "ce3233dc5342e07693cfbf8c43e51baa4c7c4871",
+  "approved_source_sha": "8d18582c5a9dcb654167c1270a34c7bed1e38e3c",
   "approved_components": [
     "worker"
   ],
@@ -17,9 +17,9 @@
   "physical_field_verified": false,
   "authority_continuity_pass": true,
   "product_ci_pass": true,
-  "staged_target": "EXISTING_LIVE_WORKER_ONLY_AFTER_OLD_CUSTOM_DOMAIN_BINDING_DETACH_IF_HTTP409",
-  "notes": "Owner directed safe full conversion and elimination of legacy Stable runtime. Exact existing official Custom Domain binding inventory.supra.cc.cd -> supra-inventory-stable may be detached via Cloudflare API DELETE only after a validated HTTP409 collision and verified exact host, zone, binding ID and old service, then immediately attached to existing live Worker supra-inventory-beta. Includes bounded retries/rollback. Does not delete Worker, DNS zone, any independent DNS record, SQLite, Firebase, APK or legacy compatibility hostname. Exact SHA and CI/continuity require PASS. No FIELD PASS inferred.",
-  "source_ci": "PR629_CI_16_OF_16_SUCCESS_SOURCE_CE3233DC__CLOUDFLARE_409_EXACT_REGISTERED_BINDING_RECOVERY__OLD_HOST_RETAINED",
+  "staged_target": "E011_APPROVED_UNASSIGNED_DOMAIN_PUT_ONLY_TO_EXISTING_LIVE_WORKER",
+  "notes": "D170-E011: Cloudflare read-only run 39151322433 proved inventory.supra.cc.cd UNASSIGNED and legacy host healthy on supra-inventory-beta after prior old-domain binding detached. Owner's D170 safe full conversion directive remains current. PR630 exact tested source 8d18582c passes 15/15 CI. Authorized single existing Worker, same zone, PUT only for unassigned official domain; no DELETE, no Worker/DO/SQLite/Firebase change, keep old hostname and OAuth/OTA compatibility. Await main Worker and dual-host health verification; field and Owner PASS remain false.",
+  "source_ci": "PR630_CI_15_OF_15_SUCCESS_SOURCE_8D18582C__READONLY_UNASSIGNED_PROVEN_RUN_39151322433",
   "approved_at_vn": "2026-10-19",
   "stable_worker_deploy_permission": false,
   "domain_reassignment_permission": true,
