@@ -7,18 +7,18 @@
   "pr": 630,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E011",
+    "id": "D170-E012",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
     "owner_latest": "OWNER_EXPLICIT_D170_FULL_SAFE_CONVERSION_CONTINUE_20261018",
     "code_permission": true,
-    "merge_permission": false,
-    "deploy_permission": false,
-    "production_runtime_permission": false,
+    "merge_permission": true,
+    "deploy_permission": true,
+    "production_runtime_permission": true,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "E011_VERIFIED_UNASSIGNED_OFFICIAL_HOST__NO_DELETE_ATTACHMENT_CODE_ONLY_CI_PENDING"
+    "reason": "D170_E012_EXACT_CI_SOURCE_8D18582C_OFFICIAL_UNASSIGNED_PUT_ONLY__DUAL_HOST_READBACK_PENDING"
   },
   "entries": [
     {
@@ -218,6 +218,23 @@
       ],
       "next_action": "PR630 protected CI, update exact source release receipt; guarded merge triggers no-delete PUT and verifies dual-host exact main SHA+storage. Fail closed if domain becomes unexpectedly assigned.",
       "evidence": "GitHub Actions main Worker 39151007039; read-only Cloudflare preflight 39151322433; PR630 source, tests, state."
+    },
+    {
+      "id": "D170-E012",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "topic": "D170 PR630 Cloudflare previously detached domain verified unassigned; exact-source no-delete attachment CI release approved",
+      "status": "PR630_15_OF_15_SOURCE_CI_PASS__EXACT_SHA_8D18582C_RELEASE_APPROVED__RUNTIME_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Provider Cloudflare Workers Custom Domain preflight run 39151322433 confirmed inventory.supra.cc.cd UNASSIGNED and old inventory-beta.supra.cc.cd on healthy existing supra-inventory-beta Worker, after previous HTTP200 DELETE returned an unacknowledged JSON response.",
+        "PR630 HEAD 8d18582c5a9dcb654167c1270a34c7bed1e38e3c passed all 15/15 PR CI, including repository authority/state, source verify, domain preflight and other relevant guards.",
+        "Scoped D170 Owner command for safe complete conversion permits attaching ONLY the registered unassigned official hostname to the same existing live data-bearing Worker, via PUT only, no additional DELETE, Stable Worker deploy, resource creation or DO/SQLite/Firebase migration.",
+        "ops/d170-release-authorization.json now records this exact CI-passed protected source for Worker-only phase2. Merge/deploy not yet performed; true dual-domain control-plane and /health source+SQLite verification is still required.",
+        "No Owner field PASS, new Android/Agent API endpoint switch or single-channel pipeline cleanup is inferred."
+      ],
+      "next_action": "Complete continuity/authority CI at PR630 receipt HEAD, merge under D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN: prefix, inspect GitHub main Deploy Worker job and Cloudflare dual-domain/SQLite /health before Phase3; stop on any mismatch.",
+      "evidence": "GitHub PR630, source HEAD 8d18582c, run 39151322433 provider GET and PR630 15/15 successful checks."
     }
   ],
   "resume": {
@@ -236,7 +253,8 @@
       "D170-E003 branch PR626 official user-visible labeling, Android/Web guard and Cloudflare read-only provider preflight; not released.",
       "D170-E004 PR626 21/21 source CI success and code-protected phase-1 Owner receipt; deployment pending main release.",
       "E006: Phase1 Worker and signed Android vc113 published and verified. Field/Owner PASS still pending.",
-      "D170-E010 16/16 source CI and Worker-only protected SHA locked; runtime cutover pending main push readback."
+      "D170-E010 16/16 source CI and Worker-only protected SHA locked; runtime cutover pending main push readback.",
+      "D170-E012 PR630 exact-source 8d18582c 15/15 source CI and Worker-only no-delete official-host attachment release receipt approved; not yet merged or deployed."
     ],
     "in_progress": [
       "Inventory actual Cloudflare official-domain binding and provider/API/OAuth/update manifest/CI migration dependencies using read-only evidence.",
@@ -246,7 +264,8 @@
       "E007: PR628 guarded Cloudflare same-Worker official hostname transfer and existing OAuth callback compatibility, CODE ONLY.",
       "D170-E008: guarded main merge/provider operation pending; do not claim official hostname live until runtime readback.",
       "D170-E009 PR629 repairs Cloudflare 409 official Custom Domain binding, exact old hostname only, with rollback; runtime not yet changed.",
-      "D170-E011 Cloudflare official domain is UNASSIGNED after ambiguous detach response; PR630 no-delete attach to existing live Worker guarded."
+      "D170-E011 Cloudflare official domain is UNASSIGNED after ambiguous detach response; PR630 no-delete attach to existing live Worker guarded.",
+      "E012: guarded PR630 merge/main release for previously unassigned official hostname, same Worker/SQLite and dual-host proof."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -267,8 +286,9 @@
       "Post PR628 merge actual Cloudflare domain mapping and old/new /health readback before subsequent client host changes.",
       "Require fresh PR629 CI and reviewed exact-source phase2 receipt before provider change; health/data readback and phase3 branding remain pending.",
       "Main PR629 Worker cutover receipt, both host health/SHA/SQLite; then Phase3 public label and single-channel policy checks.",
-      "Merge PR630 only after source/authority CI+exact source receipt, verify old/new same Worker and SQLite; continue Phase3 cleanup."
+      "Merge PR630 only after source/authority CI+exact source receipt, verify old/new same Worker and SQLite; continue Phase3 cleanup.",
+      "After receipt authority CI, merge PR630 with exact D170 Phase2 prefix and inspect success of Worker deploy plus same-Worker/SQLite health on both hostnames."
     ],
-    "release_boundary": "D170_E007_PHASE1_RELEASE_PASS__PHASE2_CODE_ONLY_PR628__NO_DOMAIN_MUTATION_YET"
+    "release_boundary": "D170_E012_PR630_OWNER_EXACT_SOURCE_WORKER_ONLY_APPROVED__NO_MAIN_RELEASE_YET__FIELD_AND_OWNER_PASS_PENDING"
   }
 }
