@@ -1,3 +1,7 @@
+## D170 — User-visible official identity (PLANNED, not deployed)
+
+Owner selects sole Production branding: website `inventory.supra.cc.cd`, PDA app display title `1291 Báo hàng`; ordinary users must not see environment selector, Beta build labels, download labels, notification titles, permission prompts, QR labels or two-channel Beta/Stable release status. Technical Firebase/Android/Cloudflare identifiers or historical GitHub release tags can contain `beta` when required by compatibility and are not part of user-visible naming. Existing installed APK and Agent release/version checks must be preserved until safe in-place upgrades. This approved target is not yet shipped; see `docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md`.
+
 # UI_DESIGN_SYSTEM — Legacy Operational UI V2
 
 Status: **CANONICAL OWNER-SELECTED DESIGN DIRECTION**.
