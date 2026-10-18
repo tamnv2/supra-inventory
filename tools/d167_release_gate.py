@@ -79,26 +79,42 @@ def main():
         if data.get("stable_deploy_permission") is not False:
             fail("D169 Stable is owner-gated")
         d169_components = data.get("approved_components")
-        if d169_components not in (["worker"], ["worker", "agent"]):
-            fail("D169 component set must be an exact Owner-approved Beta release scope")
-        if d169_components == ["worker", "agent"]:
-            # v134 reuses the existing Beta Worker with NO service/web source
-            # changes; the matching-source health proof is still required.
-            scopes = {
-                "D169_AGENT_V134_WEB_TAB_TOGGLE_WITH_UNCHANGED_BETA_WORKER",
-                "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
-            }
-            if data.get("code_scope") not in scopes:
-                fail("D169 Agent release code scope is not exact")
-            if data.get("code_scope") == "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER":
-                if data.get("not_pass_repair") != "D169-E027_V134_TAB_HEADER_OVERLAPPED":
-                    fail("D169 v135 must be a bounded NOT PASS correction of v134")
+        new_scope = "D169_E046_V136_VC111_CROSS_NETWORK_BETA_STAGED"
+        if data.get("code_scope") == new_scope:
+            if d169_components != ["worker", "firestore", "agent", "android"]:
+                fail("D169 integrated release components must be exact existing Beta resources")
+            if data.get("owner_approval_reference") != (
+                    "OWNER_EXPLICIT_D169_DEPLOY_20261018_E046_STAGED_BETA_AGENT_ANDROID_FIRESTORE"):
+                fail("D169 integrated Beta deployment requires explicit Owner E046 authority")
             if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
-                fail("D169 unverified physical field tests must not be marked PASS")
-            if (data.get("field_release_mode") != "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION"
-                    or data.get("owner_field_acceptance_reference")
-                        != "OWNER_EXPLICIT_D169_20261016_AGENT_V134_BETA_DIRECT_V132_UPGRADE"):
-                fail("D169 v134 field-trial release needs exact Owner acceptance")
+                fail("D169 D170 dual-network physical test cannot be claimed PASS")
+            if (data.get("field_release_mode") != "OWNER_ACCEPTED_RISK_FOR_BETA_STAGED_D170_FIELD_TEST"
+                    or data.get("owner_field_acceptance_reference") !=
+                    "OWNER_EXPLICIT_D169_20261018_E046_BETA_ROLLOUT_D170_TEST_DEFERRED"):
+                fail("D169 staged Beta-only physical test deferral not documented")
+            if data.get("stable_deploy_permission") is not False or data.get("resource_change") != "EXISTING_BETA_FIRESTORE_RULES_ONLY":
+                fail("D169 release must not reach Stable or new resource")
+            if data.get("cross_component_compatibility_ci") is not True:
+                fail("D169 mixed-version and conditional recovery compatibility CI must PASS")
+        else:
+            if d169_components not in (["worker"], ["worker", "agent"]):
+                fail("D169 legacy component set must be an exact Owner-approved Beta release scope")
+            if d169_components == ["worker", "agent"]:
+                scopes = {
+                    "D169_AGENT_V134_WEB_TAB_TOGGLE_WITH_UNCHANGED_BETA_WORKER",
+                    "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
+                }
+                if data.get("code_scope") not in scopes:
+                    fail("D169 Agent legacy release scope is not exact")
+                if data.get("code_scope") == "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER":
+                    if data.get("not_pass_repair") != "D169-E027_V134_TAB_HEADER_OVERLAPPED":
+                        fail("D169 v135 must be a bounded NOT PASS correction of v134")
+                if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
+                    fail("D169 unverified physical tests must not be marked PASS")
+                if (data.get("field_release_mode") != "OWNER_ACCEPTED_RISK_FOR_BETA_FIELD_VALIDATION"
+                        or data.get("owner_field_acceptance_reference")
+                            != "OWNER_EXPLICIT_D169_20261016_AGENT_V134_BETA_DIRECT_V132_UPGRADE"):
+                    fail("D169 v134 field-trial release needs exact Owner acceptance")
         if not all(data.get(key) is True for key in ("authority_continuity_pass", "product_ci_pass")):
             fail("D169 source and authority/continuity CI not approved")
     if data["change_id"] == "D168":

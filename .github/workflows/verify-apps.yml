@@ -188,7 +188,9 @@ jobs:
           grep -q 'CREATE_VERIFY_WAIT_SECONDS = 3L' "$client"
           grep -q 'CREATE_RETRY_WAIT_SECONDS = 4L' "$client"
           grep -q 'CREATE RECOVERED' "$client"
-          grep -q 'trong 20 giây' "$client"
+          grep -q 'VERIFIED_FAILOVER_WAIT_MS = 35_000L' "$client"
+          grep -q 'recoveryProofSeen.get()' "$client"
+          grep -q 'TOTAL_WAIT_MS = 20_000L' "$client"
           grep -q 'pendingSocket' "$realtime"
           grep -q 'connectionAttempt' "$realtime"
           grep -q '12_000L' "$realtime"
@@ -221,7 +223,9 @@ jobs:
           fi
           grep -q 'android:label="1291 Báo hàng Beta"' "$manifest"
           grep -q '1291 Báo hàng Beta' "$main"
-          grep -q 'hệ thống sẽ tự chuyển Agent dự phòng nếu cần' "$client"
+          grep -q 'chưa xác minh chuyển quyền dự phòng' "$client"
+          grep -q 'isVerifiedRecoveryGrant(latest, requestId)' "$client"
+          grep -q 'snapshot.metadata.isFromCache' "$client"
           if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
             echo "D115 cleanup must stay off the Picker confirmation critical path" >&2
             exit 1
@@ -359,6 +363,36 @@ jobs:
           done
           echo "Beta runtime gate did not reach terminal success for source $GITHUB_SHA" >&2
           exit 1
+
+      # D169: publish vc111 only after the exact SHA's Firestore rules and
+      # v136 Agent are available, so a PDA never submits a new recovery field
+      # against obsolete Rules or relies on an absent Agent version.
+      - name: D169 require Firestore Rules and Agent v136 before Android release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            runs="$(gh run list --workflow deploy-beta-firestore.yml --commit "$GITHUB_SHA" --limit 20 --json status,conclusion,headSha)"
+            status="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].status // empty' <<<"$runs")"
+            outcome="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].conclusion // empty' <<<"$runs")"
+            if [ "$status" = "completed" ]; then
+              [ "$outcome" = "success" ] || { echo "Beta Firestore Rules not deployed; Android release blocked."; exit 1; }
+              break
+            fi
+            [ "$attempt" -lt 120 ] || { echo "Beta Firestore Rules deployment not verified"; exit 1; }
+            sleep 10
+          done
+          for attempt in $(seq 1 120); do
+            tag_sha="$(gh api "repos/${{ github.repository }}/git/ref/tags/relay-agent-v136" --jq .object.sha 2>/dev/null || true)"
+            if [ "$tag_sha" = "$GITHUB_SHA" ]; then
+              echo "D169 Agent v136 exact-source release PASS; Android may publish"
+              break
+            fi
+            [ "$attempt" -lt 120 ] || { echo "Agent v136 release missing for exact source SHA; Android blocked"; exit 1; }
+            sleep 10
+          done
 
       - name: Publish signed Beta auto-update release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true'

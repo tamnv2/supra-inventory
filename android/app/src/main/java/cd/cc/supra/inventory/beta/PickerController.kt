@@ -528,7 +528,7 @@ class PickerController(
                     if (result.lookupStatus == "AMBIGUOUS_PICKLIST" && result.candidatePicklists.size >= 2) {
                         renderRelayCandidates(result.candidatePicklists)
                     }
-                    if (result.lookupStatus == "CONFIRMED") {
+                    if (result.lookupStatus == "CONFIRMED" || result.lookupStatus == "ALREADY_CONFIRMED") {
                         suppressRelayInputHint = true
                         try {
                             relayPicklistInput?.setText("")
@@ -540,7 +540,7 @@ class PickerController(
                         setRelayButtonReady(false)
                     }
                     // D116: render terminal result after the programmatic input reset.
-                    showRelayResult(headline, result.lookupStatus == "CONFIRMED")
+                    showRelayResult(headline, result.lookupStatus == "CONFIRMED" || result.lookupStatus == "ALREADY_CONFIRMED")
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
@@ -627,10 +627,13 @@ class PickerController(
 
     private fun relayOutcomeText(status: String): String = when (status) {
         "CONFIRMED" -> "Đã xác nhận PickList thành công. Quay lại SFT / SFT 3 để tiếp tục."
+        "ALREADY_CONFIRMED" -> "PickList đã được xác nhận trước đó trên SFT / SFT 3. Không cần xác nhận lại."
         "NOT_FOUND" -> "Không tìm thấy PickList khớp các số cuối đã nhập. Vui lòng kiểm tra lại mã PickList trước khi thử tiếp."
         "AMBIGUOUS_PICKLIST" -> "Tìm thấy nhiều PickList cùng khớp các số cuối. Hãy chọn đúng một PickList của bạn bên dưới."
         "PICKER_LOCKED" -> "Chức năng Xác nhận PickList đang bị khóa tạm thời do nhập sai nhiều lần. Vui lòng chờ hệ thống tự mở lại hoặc xử lý tại bàn chuyên viên."
-        "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "Phiên SFT / SFT 3 trên Agent chưa sẵn sàng. Vui lòng xử lý tại bàn chuyên viên."
+        "WMS_SESSION_REQUIRED", "SESSION_EXPIRED" -> "Phiên SFT / SFT 3 trên Agent chưa sẵn sàng. PickList chưa có kết quả xác nhận mới. Vui lòng liên hệ bàn chuyên viên."
+        "WMS_DATA_UNAVAILABLE" -> "SFT / SFT 3 chưa tải được dữ liệu PickList. Hệ thống chưa xác nhận đơn; vui lòng chờ dữ liệu ổn định hoặc liên hệ bàn chuyên viên."
+        "LOOKUP_ERROR" -> "Agent gặp lỗi khi tra cứu PickList trên SFT / SFT 3. Chưa xác minh được kết quả; vui lòng liên hệ bàn chuyên viên."
         "SCHEMA_UNSUPPORTED" -> "Không đọc được dữ liệu PickList an toàn. Vui lòng xử lý tại bàn chuyên viên."
         "FORBIDDEN" -> "Hệ thống Supra từ chối quyền xác nhận PickList."
         "PROXY_BLOCK", "PROXY_AUTH_REQUIRED", "TRANSPORT_FAIL" -> "Kết nối tới hệ thống Supra đang gián đoạn. Vui lòng thử lại hoặc xử lý tại bàn chuyên viên."

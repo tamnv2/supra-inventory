@@ -34,7 +34,7 @@ namespace SupraInventoryRelayAgent
         {
             EnsureSession(session);
             var result = LoadActiveCalls(session);
-            LoadLegacyAlerts(session, result);
+            // Legacy alerts are not consumed as active-call locks.
             return result;
         }
 

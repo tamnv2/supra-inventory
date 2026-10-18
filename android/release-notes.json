@@ -1,7 +1,9 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "Sửa lỗi kết quả báo hàng có thể hiện hai cửa sổ trên PDA.",
-    "Chống trùng giữa kết quả nhận qua FCM và kết quả nhận trong ứng dụng; giữ xác nhận đã nhận."
+    "Tự nhận kết quả PickList từ Agent chính hoặc Agent dự phòng khi chuyển quyền có xác thực.",
+    "Giữ mã yêu cầu cũ và chỉ kéo dài thời gian chờ khi hệ thống xác nhận đang phục hồi.",
+    "Sửa hiển thị thông báo dài, xử lý phiên bị thu hồi và thông báo rõ lý do xác nhận.",
+    "Bắt buộc cập nhật APK Beta đã ký khi an toàn, không ngắt nghiệp vụ đang xử lý."
   ]
 }

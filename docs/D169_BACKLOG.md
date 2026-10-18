@@ -128,3 +128,41 @@ PR #605 sửa quyền Picker-only Admin Pick Pack qua Web/Worker/Core; 18 checks
 **ANDROID/AGENT CODE ONLY — PR #606 DRAFT, KHÔNG MERGE:** Android `CriticalOverlayService.kt` đã ghim nút xác nhận ngoài vùng nội dung cuộn, nhả overlay khi session mất mà không giả xác nhận server; `MainActivity.kt` nâng latest signed verified Beta làm floor bắt buộc ở ngưỡng phiên an toàn; Agent `D167SkuCoordinator.cs` tôn trọng bounded nextWake cho mọi Queue path. Android build và Relay Agent build ở PR đã PASS; có test source riêng. KHÔNG thay version file/Gradle, không release APK/EXE; giữ nguyên Firebase critical network.
 
 **Chờ nghiệm thu/thu thập:** ảnh thao tác Pick Pack Admin thêm một Picker manual, thử Excel preview/apply vào Beta với dữ liệu thử đã được Owner cho phép; test tài khoản Reporter không được quyền Picker HR, Admin Invent vẫn dùng bình thường, Full Replace vẫn khóa. Ghi lại thời điểm và ảnh (ẩn danh tính/nhạy cảm). Các điều kiện nguồn log gốc, HA, Overlay, Usage, phiên bản cũ và WMS đã được chi tiết trong D169-E007, không suy đoán root cause hoặc billed saving khi chưa đủ chứng cứ.
+
+
+## D169-E045 — Phân loại backlog bổ sung và kết quả code-only tích hợp (18/10/2026)
+
+Owner đồng ý phương án nâng cấp Agent↔Agent↔PDA theo từng giai đoạn Beta, đồng thời cho gộp các lỗi Báo hàng, RBAC, version hay dịch vụ khác **chỉ khi có bằng chứng cụ thể**. PR615 mới dựa trên main Agent v135, thay PR606 không mergeable; không đồng nghĩa toàn bộ mô hình HA mới đã code done.
+
+| Mục | Căn cứ | Kết quả |
+|---|---|---|
+| REQ-001 cập nhật APK Beta ký mới | MainActivity.kt floor + PR606 code đã review | **CODE CANDIDATE PR615**; CI PASS cần phân biệt field, chưa release |
+| REQ-002 popup dài/ACK luôn hiển thị | CriticalOverlayService.kt + PR606 test | **CODE CANDIDATE PR615**; chưa field |
+| REQ-008 orphan overlay mất session | Hướng thoát local không ACK giả trong PR606 | **CODE CANDIDATE PR615**; 404 result-stage root chưa chứng minh, không tuyên bố sửa hết treo |
+| REQ-004 Firestore Reads nền | 7 ngày log và Reconcile chỉ dùng IsActiveCall true | **CODE CANDIDATE PR615** bỏ LoadLegacyAlerts query không dùng, giữ active calls/FCM |
+| Picklist PDA outcome | Agent terminal ALREADY_CONFIRMED vs Android chỉ CONFIRMED, generic WMS errors | **CODE CANDIDATE PR615** mapping ALREADY_CONFIRMED / WMS_DATA_UNAVAILABLE / LOOKUP_ERROR; không nhận rằng đã sửa WMS checkbox logic |
+| SKU retry | D167 nextWake bypass ở callback | **CODE CANDIDATE PR615** cooldown source đã có PR606 |
+| REQ-009 quyền PICKPACK_ADMIN | Web/Worker Beta PR605 đã triển khai quyền scoped | **NO NEW PRIVILEGE**; cần Beta field/UI-permission tests, không mở rộng admin/root |
+| REQ-005 phiên bản đôi khi Chưa ghi nhận | Dữ liệu Agent projection có app_version optional, chưa có exact lost-event trace | **WAIT_EVIDENCE**; khác REQ-001 bắt buộc cập nhật APK |
+| REQ-006/007 Picker presence online | Source đã có login/picklist fallback, logout/kick generation, chưa đo cửa sổ stale đủ | **WAIT_FIELD_CORRELATION**; không thêm heartbeat Firebase tuỳ tiện |
+| Result-stage 404 | 2.447 HTTP404/29 PDA sample, stage/account nguyên nhân chưa đối chứng | **WAIT_EXACT_SESSION_EVENT_TRACE**, không xóa pending giả hoặc đổi Worker bừa |
+| Provider/service mới | Không có provider Office+Internet cùng Auth/WMS/ACK proof | **NOT SELECTED**, không cấp resource mới |
+
+**CI:** PR615 source HEAD ứng viên `ddc34814c07378589bb2eff3fb95b3222ba7fd0c` hoàn tất 19 workflow runs SUCCESS, gồm Android + Windows Agent + Repo Authority/State/Code-only Guard. GitHub check là technical PASS tại SHA này, không phải runtime/PDA field PASS; sau bổ sung ghi chú cần kiểm lại HEAD cuối.
+
+**Triển khai:** giữ PR615 Draft, **không** phát hành APK/Agent channel vì cần hoàn tất VPS priority/cross-network HA, tuổi job PDA và network switch, sau đó test trước/sau và fallback với bản đã phát hành v135. Báo hàng PDA→Worker/Service chỉ regression trong APK chung. Stable OWNER-GATED. Nếu Owner yêu cầu triển khai riêng một hạng mục đã code trước thì cần thêm ma trận tương thích và staged release receipt cho phạm vi đó.
+
+
+## D169-E046 — Owner tiếp tục toàn bộ code/phát hành, giữ test hai mạng cho D170
+
+- D169 tiếp tục sửa code và chuẩn bị triển khai Beta các mục đã duyệt D169-E044 trên PR615; trạng thái CI hiện tại chỉ chứng minh bản sửa một phần, chưa chứng minh HA/ACK/SSID đã hoàn tất.
+- **D170 kế tiếp (chưa mở):** kiểm thử thực địa Agent↔Agent↔PDA trên Office/Internet và môi trường hỗn hợp. D169 Owner PASS là điều kiện trước khi lập change D170.
+- Ở D169 vẫn bắt buộc tự động hóa kiểm thử fencing/split brain, request-id idempotency, failover recovery, version, auth, quyền, Android overlay, rollback và safety canary. Không tuyên bố field PASS.
+- Quyền triển khai Beta hiện tại không thay đổi Stable hoặc tài nguyên ngoài danh mục. Không được phát hành binary khi giao thức Agent/PDA chưa tương thích hoặc release gate chưa đạt.
+
+
+## D169-E049 — Integrated Beta source and staged release checkpoint (18/10/2026)
+
+- **CODE+CI:** PR615 tested `66180079056f931d643b77cc07aab6c2f61fc592`, 20/20 GitHub Actions PASS; Agent v136 common Firestore HA + CAS/manual VPS preference/WMS handoff, SSID-local Office routing, conditional exact-request Android vc111 recovery, overlay/version/SKU fixes. Provider hardware and production field tests unverified.
+- **Release:** Owner E046 approved scoped Beta. E049 creates exact tested SHA release authorization for existing Beta Worker/Firestore Rules/Agent/Android, staged by dependency. Do not claim deployment until real workflow run, GitHub release tag/assets, Worker /health source and Firestore Rules readback are verified.
+- **D170 planned only:** full physical dual-network Agent↔Agent↔PDA matrix after D169 Owner PASS. Stable owner-gated, no new resource/provider.

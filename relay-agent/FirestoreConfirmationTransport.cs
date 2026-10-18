@@ -25,6 +25,8 @@ namespace SupraInventoryRelayAgent
         internal long PickerSessionGeneration;
         internal long ClientSentAtMs;
         internal long CreatedAtMs;
+        internal bool RecoveryAuthorized;
+        internal long RecoveryProtocol;
     }
 
     internal sealed class FirestoreConfirmationOutcome
@@ -55,7 +57,8 @@ namespace SupraInventoryRelayAgent
         internal const int StandbyPollIntervalMs = 0;
         internal const int MaxDocumentsPerPoll = 100;
         internal const int MaxConcurrentJobs = 15;
-        internal const long MaxPendingAgeMs = 20000L;
+        internal const long MaxPendingAgeMs = 35000L;
+        internal const long NormalPendingAgeMs = 20000L;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -410,7 +413,10 @@ namespace SupraInventoryRelayAgent
                 if (doc.Work == null) continue;
                 try { _pickerActivityHandler(doc.Work); } catch { }
                 var ageMs = NowMs() - doc.Work.CreatedAtMs;
-                if (doc.Work.CreatedAtMs <= 0 || ageMs > MaxPendingAgeMs)
+                if (doc.Work.CreatedAtMs <= 0 || ageMs > MaxPendingAgeMs ||
+                    (ageMs > NormalPendingAgeMs &&
+                     (_coordinator == null || doc.Work.RecoveryProtocol != 1 ||
+                      !_coordinator.CanRecoverPendingRequest(doc.Work.CreatedAtMs))))
                 {
                     _log("FIRESTORE CONFIRM stale-skip request=" + Short(doc.Work.RequestId) +
                          " age_ms=" + Math.Max(0L, ageMs));
@@ -465,6 +471,18 @@ namespace SupraInventoryRelayAgent
                     continue;
                 }
 
+                // A verified automatic CAS takeover may extend this SAME job,
+                // never create a new request or infer WMS success. Publish a
+                // one-time recovery marker to the original Picker-owned job so
+                // Android may extend its wait only with server-side evidence.
+                var createdAge = work.CreatedAtMs > 0 ? NowMs() - work.CreatedAtMs : long.MaxValue;
+                if (createdAge >= 12000 &&
+                    _coordinator != null && work.RecoveryProtocol == 1 &&
+                    _coordinator.CanRecoverPendingRequest(work.CreatedAtMs))
+                {
+                    if (!TryGrantSameRequestRecovery(session, doc)) continue;
+                    work.RecoveryAuthorized = true;
+                }
                 _log("FIRESTORE CONFIRM pending-found request=" + Short(work.RequestId) +
                      " picker=" + Safe(work.PickerUserId) +
                      " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName) +
@@ -576,6 +594,41 @@ namespace SupraInventoryRelayAgent
                  " acked=" + processed +
                  " role=" + (_coordinator == null ? "UNKNOWN" : _coordinator.RoleName));
             return processed;
+        }
+
+        private bool TryGrantSameRequestRecovery(AgentSession session, PendingDocument doc)
+        {
+            if (doc == null || doc.Work == null || doc.Work.RecoveryProtocol != 1 ||
+                string.IsNullOrWhiteSpace(doc.UpdateTime) ||
+                _coordinator == null || !_coordinator.CanRecoverPendingRequest(doc.Work.CreatedAtMs))
+                return false;
+            if (!_coordinator.VerifyPrimaryForBusinessIngress(session)) return false;
+            var fields = new Dictionary<string, object>
+            {
+                { "recovery_generation", StringField(_coordinator.Generation) },
+                { "recovery_agent_instance_id", StringField(_instanceId) },
+                { "recovery_admin_user_id", StringField(session.AppUserId ?? "") },
+                { "recovery_granted_at_ms", IntField(NowMs()) }
+            };
+            var url = DocumentUrl(doc.Name) + BuildMask(fields.Keys) +
+                "&currentDocument.updateTime=" + Uri.EscapeDataString(doc.UpdateTime);
+            try
+            {
+                var raw = Send("PATCH", url, session.IdToken,
+                    Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                    false, "CONFIRM_FAILOVER_RECOVERY_PROOF");
+                var body = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                var updated = body == null ? "" : Get(body, "updateTime");
+                if (string.IsNullOrWhiteSpace(updated)) return false;
+                doc.UpdateTime = updated;
+                _log("FIRESTORE CONFIRM failover_proof=PASS request=" + Short(doc.Work.RequestId));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE CONFIRM failover_proof=DEFER type=" + ex.GetType().Name);
+                return false;
+            }
         }
 
         private bool TryCompleteBusinessAck(
@@ -796,6 +849,7 @@ namespace SupraInventoryRelayAgent
                     PickerDisplayName = GrpcString(fields, "picker_display_name"),
                     PickerSessionGeneration = GrpcLong(fields, "picker_session_generation"),
                     ClientSentAtMs = GrpcLong(fields, "client_sent_at_ms"),
+                RecoveryProtocol = GrpcLong(fields, "recovery_protocol"),
                     CreatedAtMs = createdAtMs
                 }
             };
@@ -921,6 +975,7 @@ namespace SupraInventoryRelayAgent
                     PickerDisplayName = FieldString(fields, "picker_display_name"),
                     PickerSessionGeneration = FieldLong(fields, "picker_session_generation"),
                     ClientSentAtMs = FieldLong(fields, "client_sent_at_ms"),
+                RecoveryProtocol = FieldLong(fields, "recovery_protocol"),
                     CreatedAtMs = createdAtMs
                 }
             };

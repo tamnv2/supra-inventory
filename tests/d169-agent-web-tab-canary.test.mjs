@@ -7,10 +7,10 @@ const browser = read("relay-agent/SupraConfirmBrowser.cs");
 const ownedHost = read("relay-agent-webview2-host/Program.cs");
 const channel = read("relay-agent/VERSION").trim();
 
-test("v135 corrective build remains newer than v132, v133 canary and released v134", () => {
-  assert.equal(channel, "135");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild\s*=\s*135\s*;/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.135\.0\.0/);
+test("v136 retains v135 corrective build layout and remains newer than v132-v134", () => {
+  assert.equal(channel, "136");
+  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild\s*=\s*136\s*;/);
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.136\.0\.0/);
 });
 
 test("WMS tab is a real resizable Agent tab, not a second WMS login", () => {

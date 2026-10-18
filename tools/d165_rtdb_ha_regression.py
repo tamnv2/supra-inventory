@@ -38,7 +38,9 @@ assert "// D161: Agent update is manual-only" in program
 assert "_updateTimer.Stop();" in program
 assert "Close();" in program  # updater still restarts on explicit install
 transport = (root / "relay-agent/FirestoreConfirmationTransport.cs").read_text(encoding="utf-8")
-assert "internal const long MaxPendingAgeMs = 20000L;" in transport
+assert "internal const long MaxPendingAgeMs = 35000L;" in transport
+assert "internal const long NormalPendingAgeMs = 20000L;" in transport
+assert "CanRecoverPendingRequest(doc.Work.CreatedAtMs)" in transport
 assert "VerifyPrimaryForBusinessIngress" in transport
 assert "VerifyPrimaryBeforeMutation" in (root / "relay-agent/FirestoreAgentLeaderCoordinator.cs").read_text(encoding="utf-8")
 
@@ -73,6 +75,10 @@ for marker in (
     "nowUnready - _primaryWmsUnreadySinceMs < 15000",
 ):
     assert marker in coordinator, ("D166 HA safety proof missing", marker)
-assert "return VerifyPrimaryDownBeforeTakeover(session);" in coordinator
-assert coordinator.count("return VerifyPrimaryDownBeforeTakeover(session);") == 2
+assert "return VerifyPrimaryDownBeforeTakeover(session, false);" in coordinator
+assert "return VerifyPrimaryDownBeforeTakeover(session, commonProtocolProof);" in coordinator
+assert "if (commonProtocolProof)" in coordinator
+assert 'FieldBool(fields, "cross_network_liveness_v1")' in coordinator
+assert "HasFreshCommonPrimaryLease()" in coordinator
+assert "WritePrimaryLease(session);" in coordinator
 print("D166 RTDB nested SSE and bounded active failover safety guard PASS")

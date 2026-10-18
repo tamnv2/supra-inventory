@@ -35,7 +35,8 @@ rtdb = read("relay-agent/RtdbHaLiveness.cs")
 leader = read("relay-agent/FirestoreAgentLeaderCoordinator.cs")
 assert "d167_ha_events=" in quota and "D167HaEvents" in quota
 assert "RTDB_SSE_FAILURE" in rtdb and 'RecordHaDiagnostic("RTDB_HEARTBEAT"' in rtdb
-assert 'RTDB_NOT_FRESH_FIRESTORE_FALLBACK' in leader
+assert 'COMMON_LEASE_EXPIRED' in leader and 'cross_network_liveness_v1' in leader
+assert 'RtdbPrimaryProbeStatus.UNAVAILABLE' in leader # mixed-version unknown remains fail-closed
 assert 'PRIMARY_TAKEOVER_PROBE' in leader
 assert "GetResponse()" in rtdb  # existing transport, unchanged role authority
 print("D167_AGENT_RTDB_HA_LOCAL_AGGREGATE=PASS")

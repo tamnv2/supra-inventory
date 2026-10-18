@@ -25,6 +25,9 @@ namespace SupraInventoryRelayAgent
         internal string StandbyAgentInstanceId = ""; // D131 NEXT_A compatibility field in code
         internal string NextBAgentInstanceId = "";
         internal string Generation = "";
+        internal string ManualHolderAgentInstanceId = "";
+        internal string PreferredVpsAgentInstanceId = "";
+        internal string WmsHandoffGeneration = "";
         internal long UpdatedAtMs;
         internal string ScheduleKey = "";
         internal string ScheduleDecision = "";
@@ -64,6 +67,8 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _takeoverWmsProbe;
         private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
+        private readonly Func<bool> _canSafelyHandoff;
+        private readonly Action<string> _manualReturnConsentRequested;
         private readonly string _instanceId;
         private readonly Action<string> _log;
         private readonly Action<FirestoreAgentRole, string> _stateChanged;
@@ -96,6 +101,12 @@ namespace SupraInventoryRelayAgent
         private long _leaseMissingSinceMs;
         private long _lastTakeoverProbeMs;
         private long _lastTakeoverLivenessCheckMs;
+        private long _verifiedAutomaticTakeoverAtMs;
+        private string _manualHolderAgentInstanceId = "";
+        private string _preferredVpsAgentInstanceId = "";
+        private long _preferredReadySinceMs;
+        private long _lastManualReturnPromptAtMs;
+        private long _ownerReturnConsentUntilMs;
         private long _primaryWmsUnreadySinceMs;
         private int _primaryWmsUnreadySamples;
         private string _sharedScheduleKey = "";
@@ -112,7 +123,9 @@ namespace SupraInventoryRelayAgent
             Func<bool> relayEnabled,
             string instanceId,
             Action<string> log,
-            Action<FirestoreAgentRole, string> stateChanged)
+            Action<FirestoreAgentRole, string> stateChanged,
+            Func<bool> canSafelyHandoff = null,
+            Action<string> manualReturnConsentRequested = null)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
@@ -120,6 +133,8 @@ namespace SupraInventoryRelayAgent
             _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
             _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
+            _canSafelyHandoff = canSafelyHandoff ?? (() => false);
+            _manualReturnConsentRequested = manualReturnConsentRequested ?? delegate { };
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
             _stateChanged = stateChanged ?? delegate { };
@@ -269,6 +284,18 @@ namespace SupraInventoryRelayAgent
             return _relayEnabled() && _role == FirestoreAgentRole.PRIMARY;
         }
 
+        internal bool CanRecoverPendingRequest(long serverCreatedAtMs)
+        {
+            var now = NowMs();
+            return serverCreatedAtMs > 0 && _verifiedAutomaticTakeoverAtMs > 0 &&
+                serverCreatedAtMs <= _verifiedAutomaticTakeoverAtMs &&
+                now - serverCreatedAtMs >= 0 && now - serverCreatedAtMs < 33000 &&
+                now - _verifiedAutomaticTakeoverAtMs >= 0 &&
+                now - _verifiedAutomaticTakeoverAtMs <= 20000 &&
+                _relayEnabled() && _wmsReady() &&
+                _role == FirestoreAgentRole.PRIMARY && HasFreshCommonPrimaryLease();
+        }
+
         internal bool SharedRelayOverrideAllows(string scheduleKey, long nowMs)
         {
             lock (_stateGate)
@@ -337,9 +364,18 @@ namespace SupraInventoryRelayAgent
                  " elapsed_ms=" + Math.Max(0L, NowMs() - started));
         }
 
+        // If a PRIMARY cannot renew the shared authoritative lease, it must
+        // stop accepting/confirming jobs before another Agent can take over.
+        private bool HasFreshCommonPrimaryLease()
+        {
+            var age = NowMs() - _lastLeaseWriteMs;
+            return _lastLeaseWriteMs > 0 && age >= 0 && age < FailoverAfterMs;
+        }
+
         internal bool VerifyPrimaryForBusinessIngress(AgentSession session)
         {
-            if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY) return false;
+            if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY ||
+                !HasFreshCommonPrimaryLease()) return false;
             var read = ReadRoles(session);
             ApplySharedSchedule(read.Snapshot);
             var snapshot = read.Snapshot;
@@ -359,7 +395,8 @@ namespace SupraInventoryRelayAgent
 
         internal bool VerifyPrimaryBeforeMutation(AgentSession session)
         {
-            if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;
+            if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY ||
+                !HasFreshCommonPrimaryLease()) return false;
             var read = ReadRoles(session);
             ApplySharedSchedule(read.Snapshot);
             var snapshot = read.Snapshot;
@@ -731,9 +768,11 @@ namespace SupraInventoryRelayAgent
                     if (read.Snapshot != null &&
                         string.Equals(read.Snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                     {
+                        var recovered = IsVerifiedWmsHandoff(read.Snapshot, read);
                         _generation = read.Snapshot.Generation ?? "";
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, read.Snapshot.StandbyAgentInstanceId, "TAKEOVER_ALREADY_PRIMARY");
                         WritePrimaryLease(session);
+                        if (recovered) _verifiedAutomaticTakeoverAtMs = NowMs();
                         return true;
                     }
 
@@ -757,7 +796,10 @@ namespace SupraInventoryRelayAgent
                     if (TryWriteRoles(session, next, read))
                     {
                         _generation = next.Generation;
+                        // Grant a bounded same-request recovery window only after
+                        // generation-CAS promotion and our WMS readiness proof.
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, next.StandbyAgentInstanceId, "ACTIVE_FAILOVER_LEASE");
+                        _verifiedAutomaticTakeoverAtMs = NowMs();
                         WritePrimaryLease(session);
                         _log("FIRESTORE HA takeover=PASS trigger=primary_lease_timeout threshold_ms=" + FailoverAfterMs +
                              " self=" + Short(_instanceId));
@@ -772,6 +814,73 @@ namespace SupraInventoryRelayAgent
                      " message=" + AgentDiagnostics.Sanitize(ex.Message));
             }
             return false;
+        }
+
+        // Owner-only: pin one existing Agent as the preferred VPS without
+        // switching the active PRIMARY. Existing roles doc/CAS and resource.
+        internal bool SetOwnerPreferredVps(string targetAgentInstanceId)
+        {
+            if (string.IsNullOrWhiteSpace(targetAgentInstanceId) ||
+                targetAgentInstanceId.Length > 160) return false;
+            try
+            {
+                _ensureFreshToken();
+                var session = _sessionProvider();
+                if (!IsManualTakeoverUser(session)) return false;
+                var known = QueryFreshPresence(session, "D169_PREFERRED_OWNER_SELECT",
+                    NowMs(), FirestoreAgentSyncClient.MaxAgents);
+                if (!known.Any(item => item != null && item.WmsReady &&
+                    string.Equals(item.AgentInstanceId, targetAgentInstanceId,
+                        StringComparison.Ordinal))) return false;
+                for (var attempt = 0; attempt < 4; attempt++)
+                {
+                    var roles = ReadRoles(session);
+                    if (roles.Snapshot == null || !roles.Exists ||
+                        string.IsNullOrWhiteSpace(roles.UpdateTime)) return false;
+                    var fields = new Dictionary<string, object>
+                    {
+                        { "preferred_vps_agent_instance_id", StringField(targetAgentInstanceId) }
+                    };
+                    try
+                    {
+                        SendJson("PATCH", RolesUrl(), session.IdToken,
+                            _json.Serialize(new Dictionary<string, object> { { "fields", fields } }),
+                            BuildMask(fields.Keys) + "&currentDocument.updateTime=" +
+                                Uri.EscapeDataString(roles.UpdateTime),
+                            7000, false, "D169_OWNER_PREFERRED_VPS_WRITE");
+                        _preferredVpsAgentInstanceId = targetAgentInstanceId;
+                        _log("FIRESTORE HA preferred_vps=OWNER_SET scope=EXISTING_ROLES");
+                        _wake.Set();
+                        return true;
+                    }
+                    catch (WebException ex)
+                    {
+                        var response = ex.Response as HttpWebResponse;
+                        var code = response == null ? 0 : (int)response.StatusCode;
+                        try { if (response != null) response.Dispose(); } catch { }
+                        if (code != 409 && code != 412) throw;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _log("FIRESTORE HA preferred_vps=DEFER type=" + ex.GetType().Name);
+            }
+            return false;
+        }
+
+        internal bool AllowOwnerPreferredReturn()
+        {
+            try
+            {
+                var session = _sessionProvider();
+                if (!IsManualTakeoverUser(session) ||
+                    _role != FirestoreAgentRole.PRIMARY) return false;
+                _ownerReturnConsentUntilMs = NowMs() + 120000;
+                _wake.Set();
+                return true;
+            }
+            catch { return false; }
         }
 
         internal bool PromoteManualPrimary()
@@ -841,7 +950,7 @@ namespace SupraInventoryRelayAgent
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
-                    if (!TryWriteRoles(session, next, read)) continue;
+                    if (!TryWriteRoles(session, next, read, true)) continue;
 
                     _generation = next.Generation;
                     lock (_stateGate) _nextBId = next.NextBAgentInstanceId ?? "";
@@ -987,7 +1096,7 @@ namespace SupraInventoryRelayAgent
                         Generation = Guid.NewGuid().ToString("N"),
                         UpdatedAtMs = NowMs()
                     };
-                    if (!TryWriteRoles(session, next, read)) continue;
+                    if (!TryWriteRoles(session, next, read, true)) continue;
 
                     _generation = next.Generation;
                     generation = next.Generation;
@@ -1075,7 +1184,9 @@ namespace SupraInventoryRelayAgent
                     var now = NowMs();
                     var startupConvergence = _startupConvergenceRemaining > 0;
                     var roleInterval = _role == FirestoreAgentRole.DEEP_HIBERNATE
-                        ? DeepHibernateRoleRefreshMs
+                        ? ((string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                             string.Equals(_preferredVpsAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                            ? 30000 : DeepHibernateRoleRefreshMs)
                         : (_role == FirestoreAgentRole.NEXT_A
                             ? NextARoleRefreshMs
                             : (_role == FirestoreAgentRole.NEXT_B
@@ -1097,18 +1208,26 @@ namespace SupraInventoryRelayAgent
                         _rtdbLiveness.StopObserver();
                         if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
                         {
-                            if (_rtdbLiveness.WriteHeartbeat(session, _generation))
-                                _lastLeaseWriteMs = NowMs();
-                            else
-                                WritePrimaryLease(session);
+                            // D169: Firestore is the common liveness authority on both Office
+                            // and Internet. Old agents only publish RTDB; their
+                            // leases must NOT be interpreted as this new protocol.
+                            // Commit the lease before optional RTDB fast notification.
+                            WritePrimaryLease(session);
+                            if (D168NetworkRoute.CurrentNetworkMode() == "INTERNET")
+                                _rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady());
                         }
                         waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)Math.Min(PrimaryLeaseHeartbeatMs, Math.Max(0L, NowMs() - _lastLeaseWriteMs)));
                     }
                     else if (_role == FirestoreAgentRole.NEXT_A)
                     {
-                        _rtdbLiveness.EnsureObserver(session, _generation, _primaryId);
+                        // Office and unknown networks never retry an inaccessible
+                        // RTDB stream. One common Firestore authority path works
+                        // across networks and is also the takeover CAS carrier.
+                        var internet = D168NetworkRoute.CurrentNetworkMode() == "INTERNET";
+                        if (!internet) _rtdbLiveness.StopObserver();
+                        else _rtdbLiveness.EnsureObserver(session, _generation, _primaryId);
                         long livenessAgeMs;
-                        if (_rtdbLiveness.TryGetFresh(_generation, _primaryId, out livenessAgeMs))
+                        if (internet && _rtdbLiveness.TryGetFresh(_generation, _primaryId, out livenessAgeMs))
                         {
                             FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "RTDB_FRESH");
                             _leaseMissingSinceMs = 0;
@@ -1116,10 +1235,9 @@ namespace SupraInventoryRelayAgent
                         }
                         else
                         {
-                            // RTDB is liveness only. Any stale/missing/uncertain signal
-                            // re-enters the accepted Firestore lease path, which verifies
-                            // generation/PRIMARY authority before takeover.
-                            FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "RTDB_NOT_FRESH_FIRESTORE_FALLBACK");
+                            // On mixed v135/v136 fleet the older PRIMARY lease
+                            // has no common-protocol marker; stale legacy leases
+                            // still require independent RTDB proof, fail closed.
                             waitMs = CheckPrimaryLease(session);
                         }
                     }
@@ -1222,7 +1340,17 @@ namespace SupraInventoryRelayAgent
 
                 if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                 {
+                    var recovered = IsVerifiedWmsHandoff(snapshot, read);
                     _generation = snapshot.Generation ?? "";
+                    if (recovered && _wmsReady() && _relayEnabled())
+                    {
+                        SetRole(FirestoreAgentRole.PRIMARY, _instanceId, snapshot.StandbyAgentInstanceId, "WMS_HANDOFF_RECEIVED");
+                        WritePrimaryLease(session);
+                        _verifiedAutomaticTakeoverAtMs = NowMs();
+                        return;
+                    }
+                    if (_wmsReady() && TryReturnOwnerPreferredPrimary(session, read))
+                        return;
                     if (!_wmsReady())
                     {
                         // D166: a single temporary WMS/browser readiness failure
@@ -1253,7 +1381,7 @@ namespace SupraInventoryRelayAgent
                             Generation = Guid.NewGuid().ToString("N"),
                             UpdatedAtMs = NowMs()
                         };
-                        if (TryWriteRoles(session, relinquish, read))
+                        if (TryWriteRoles(session, relinquish, read, false, true))
                         {
                             SetRole(FirestoreAgentRole.DEEP_HIBERNATE, relinquish.PrimaryAgentInstanceId, relinquish.StandbyAgentInstanceId, "PRIMARY_WMS_NOT_READY");
                             return;
@@ -1460,10 +1588,116 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // The last administrator-selected PRIMARY becomes the preferred VPS
+        // candidate while a local standby is serving after an automatic failover.
+        // A later manual selection of the local holder replaces that preference,
+        // so it cannot be stolen back. No preemption during active WMS mutation.
+        // Safe recovery after a previous PRIMARY explicitly relinquished
+        // WMS due to browser/session loss (different from manual/owner transfer).
+        // CAS marker is bound to this exact role generation; Firestore's server
+        // updateTime, not the untrusted local handoff clock, bounds freshness.
+        private bool IsVerifiedWmsHandoff(FirestoreRoleSnapshot snapshot, RoleRead read)
+        {
+            if (snapshot == null || read == null ||
+                _role != FirestoreAgentRole.NEXT_A ||
+                !string.Equals(_standbyId, _instanceId, StringComparison.Ordinal) ||
+                string.IsNullOrWhiteSpace(snapshot.Generation) ||
+                !string.Equals(snapshot.WmsHandoffGeneration, snapshot.Generation,
+                    StringComparison.Ordinal)) return false;
+            DateTimeOffset when;
+            if (!DateTimeOffset.TryParse(read.UpdateTime, out when)) return false;
+            var age = NowMs() - when.ToUnixTimeMilliseconds();
+            return age >= 0 && age <= 30000 &&
+                string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId,
+                    StringComparison.Ordinal);
+        }
+
+        private bool TryReturnOwnerPreferredPrimary(AgentSession session, RoleRead roles)
+        {
+            var snapshot = roles == null ? null : roles.Snapshot;
+            if (snapshot == null || !_canSafelyHandoff() || !_relayEnabled()) return false;
+            var preferred = snapshot.PreferredVpsAgentInstanceId ?? "";
+            if (string.IsNullOrWhiteSpace(preferred) ||
+                string.Equals(preferred, _instanceId, StringComparison.Ordinal) ||
+                string.Equals(preferred, snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal))
+            {
+                _preferredReadySinceMs = 0;
+                return false;
+            }
+            try
+            {
+                var raw = SendJson("GET", DocumentsBase + "/relay_poc_agents/" +
+                    Uri.EscapeDataString(preferred), session.IdToken, null, "", 5000,
+                    true, "D169_PREFERRED_PRIMARY_READY");
+                var doc = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                object fieldsObj;
+                var fields = doc != null && doc.TryGetValue("fields", out fieldsObj)
+                    ? fieldsObj as Dictionary<string, object> : null;
+                var heartbeat = fields == null ? 0L : FieldLong(fields, "heartbeat_at_ms");
+                var age = NowMs() - heartbeat;
+                // A v135 peer does not publish the common lease protocol and
+                // must never be auto-promoted on a stale ten-minute projection.
+                if (fields == null || !FieldBool(fields, "wms_ready") ||
+                    FieldLong(fields, "agent_build") < 136 ||
+                    heartbeat <= 0 || age < -5000 || age > 30000)
+                {
+                    _preferredReadySinceMs = 0;
+                    return false;
+                }
+                if (_preferredReadySinceMs == 0)
+                {
+                    _preferredReadySinceMs = NowMs();
+                    return false;
+                }
+                if (NowMs() - _preferredReadySinceMs < 30000) return false;
+                // Manual owner authority wins over automatic VPS preference.
+                var manualHold = string.Equals(snapshot.ManualHolderAgentInstanceId,
+                    snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal);
+                if (manualHold && _ownerReturnConsentUntilMs < NowMs())
+                {
+                    if (_lastManualReturnPromptAtMs == 0 ||
+                        NowMs() - _lastManualReturnPromptAtMs >= 15L * 60L * 1000L)
+                    {
+                        _lastManualReturnPromptAtMs = NowMs();
+                        _manualReturnConsentRequested(preferred);
+                    }
+                    return false;
+                }
+                if (!_canSafelyHandoff() || !_wmsReady()) return false;
+
+                var next = new FirestoreRoleSnapshot
+                {
+                    PrimaryAgentInstanceId = preferred,
+                    StandbyAgentInstanceId = _instanceId,
+                    NextBAgentInstanceId = snapshot.StandbyAgentInstanceId == preferred
+                        ? (snapshot.NextBAgentInstanceId ?? "") : (snapshot.StandbyAgentInstanceId ?? ""),
+                    Generation = Guid.NewGuid().ToString("N"),
+                    UpdatedAtMs = NowMs()
+                };
+                if (!TryWriteRoles(session, next, roles, true)) return false;
+                _generation = next.Generation;
+                _preferredReadySinceMs = 0;
+                _ownerReturnConsentUntilMs = 0;
+                SetRole(FirestoreAgentRole.NEXT_A, preferred, _instanceId, "D169_OWNER_PREFERRED_SAFE_RETURN");
+                _log("FIRESTORE HA return=PASS mode=OWNER_PREFERRED receiver_ready=true idle=true");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _preferredReadySinceMs = 0;
+                _log("FIRESTORE HA return=DEFER type=" + ex.GetType().Name);
+                return false;
+            }
+        }
+
         private void MaintainPresence(AgentSession session)
         {
             var now = NowMs();
-            if (_lastPresenceWriteMs != 0 && now - _lastPresenceWriteMs < PresenceHeartbeatIntervalMs) return;
+            var cadence = _role != FirestoreAgentRole.PRIMARY &&
+                (string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
+                 string.Equals(_preferredVpsAgentInstanceId, _instanceId, StringComparison.Ordinal))
+                ? 15000 : PresenceHeartbeatIntervalMs;
+            if (_lastPresenceWriteMs != 0 && now - _lastPresenceWriteMs < cadence) return;
             var fields = new Dictionary<string, object>
             {
                 { "agent_instance_id", StringField(_instanceId) },
@@ -1636,6 +1870,9 @@ namespace SupraInventoryRelayAgent
                         StandbyAgentInstanceId = FieldString(fields, "standby_agent_instance_id"),
                         NextBAgentInstanceId = FieldString(fields, "next_b_agent_instance_id"),
                         Generation = FieldString(fields, "generation"),
+                        ManualHolderAgentInstanceId = FieldString(fields, "manual_holder_agent_instance_id"),
+                        PreferredVpsAgentInstanceId = FieldString(fields, "preferred_vps_agent_instance_id"),
+                        WmsHandoffGeneration = FieldString(fields, "wms_handoff_generation"),
                         UpdatedAtMs = FieldLong(fields, "updated_at_ms"),
                         ScheduleKey = FieldString(fields, "schedule_key"),
                         ScheduleDecision = FieldString(fields, "schedule_decision"),
@@ -1656,7 +1893,8 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        private bool TryWriteRoles(AgentSession session, FirestoreRoleSnapshot snapshot, RoleRead previous)
+        private bool TryWriteRoles(AgentSession session, FirestoreRoleSnapshot snapshot, RoleRead previous,
+            bool manualOwnerHandoff = false, bool wmsAutoHandoff = false)
         {
             var fields = new Dictionary<string, object>
             {
@@ -1666,6 +1904,13 @@ namespace SupraInventoryRelayAgent
                 { "generation", StringField(snapshot.Generation ?? "") },
                 { "updated_at_ms", IntField(snapshot.UpdatedAtMs) }
             };
+            // Persist manual ownership atomically with the same generation CAS,
+            // only when an authorized admin explicitly moves PRIMARY. Routine
+            // failover and presence updates must never impersonate manual intent.
+            if (manualOwnerHandoff)
+                fields["manual_holder_agent_instance_id"] = StringField(snapshot.PrimaryAgentInstanceId);
+            if (wmsAutoHandoff)
+                fields["wms_handoff_generation"] = StringField(snapshot.Generation);
             var suffix = BuildMask(fields.Keys);
             suffix += previous != null && previous.Exists && !string.IsNullOrWhiteSpace(previous.UpdateTime)
                 ? "&currentDocument.updateTime=" + Uri.EscapeDataString(previous.UpdateTime)
@@ -1777,6 +2022,9 @@ namespace SupraInventoryRelayAgent
                 _standbyId = standbyId ?? "";
                 if (changed)
                 {
+                    // Only a completed automatic CAS promotion grants recovery.
+                    // A later manual/role transition must never reuse that proof.
+                    _verifiedAutomaticTakeoverAtMs = 0;
                     _relayPollHealthy = false;
                     _lastPresenceWriteMs = 0;
                     _fleetRefreshRequested = true;
@@ -1804,6 +2052,8 @@ namespace SupraInventoryRelayAgent
         private void ApplySharedSchedule(FirestoreRoleSnapshot snapshot)
         {
             if (snapshot == null) return;
+            _manualHolderAgentInstanceId = snapshot.ManualHolderAgentInstanceId ?? "";
+            _preferredVpsAgentInstanceId = snapshot.PreferredVpsAgentInstanceId ?? "";
             SetSharedSchedule(
                 snapshot.ScheduleKey ?? "",
                 snapshot.ScheduleDecision ?? "",
@@ -1956,6 +2206,8 @@ namespace SupraInventoryRelayAgent
                 { "generation", StringField(_generation) },
                 { "primary_agent_instance_id", StringField(_instanceId) },
                 { "heartbeat_at_ms", IntField(NowMs()) },
+                { "cross_network_liveness_v1", BoolField(true) },
+                { "wms_ready", BoolField(_wmsReady()) },
                 { "schedule_key", StringField(scheduleKey) },
                 { "schedule_decision", StringField(scheduleDecision) },
                 { "decision_boundary_ms", IntField(Math.Max(0L, boundaryMs)) },
@@ -1999,6 +2251,7 @@ namespace SupraInventoryRelayAgent
             }
 
             long leaseUpdatedMs = 0;
+            var commonProtocolProof = false;
             try
             {
                 FirestoreQuotaGuard.RecordHaDiagnostic("PRIMARY_LEASE", "GET_ATTEMPT");
@@ -2016,6 +2269,13 @@ namespace SupraInventoryRelayAgent
                         : null;
                     if (fields != null)
                     {
+                        // A lease from v135 must continue using the RTDB
+                        // corroboration path. Only matching-generation v136+
+                        // heartbeat documents can serve as common-channel proof.
+                        commonProtocolProof =
+                            FieldBool(fields, "cross_network_liveness_v1") &&
+                            string.Equals(FieldString(fields, "generation"), generation, StringComparison.Ordinal) &&
+                            string.Equals(FieldString(fields, "primary_agent_instance_id"), _primaryId, StringComparison.Ordinal);
                         SetSharedSchedule(
                             FieldString(fields, "schedule_key"),
                             FieldString(fields, "schedule_decision"),
@@ -2045,7 +2305,7 @@ namespace SupraInventoryRelayAgent
                 var missingAge = now - _leaseMissingSinceMs;
                 if (missingAge >= FailoverAfterMs)
                 {
-                    return VerifyPrimaryDownBeforeTakeover(session);
+                    return VerifyPrimaryDownBeforeTakeover(session, false);
                 }
                 return Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, Math.Max(0L, missingAge)));
             }
@@ -2054,18 +2314,33 @@ namespace SupraInventoryRelayAgent
             var ageMs = Math.Max(0L, now - leaseUpdatedMs);
             if (ageMs >= FailoverAfterMs)
             {
-                return VerifyPrimaryDownBeforeTakeover(session);
+                return VerifyPrimaryDownBeforeTakeover(session, commonProtocolProof);
             }
 
+            // Once the 10s heartbeat period has elapsed, schedule the next
+            // authoritative check for the 15s suspect boundary instead of
+            // polling Firestore every second. Safety remains bounded by the
+            // same failover threshold; no extra reads on healthy Office links.
             if (ageMs < PrimaryLeaseHeartbeatMs)
                 return Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)ageMs);
-            return 1000;
+            return Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, ageMs));
         }
 
         // A stale Firestore lease is not proof of death when the PRIMARY
         // refreshed RTDB instead of Firestore. Probe only after SUSPECT.
-        private int VerifyPrimaryDownBeforeTakeover(AgentSession session)
+        private int VerifyPrimaryDownBeforeTakeover(AgentSession session, bool commonProtocolProof)
         {
+            // A fresh, correctly attributed Firestore lease was established
+            // earlier for this exact role generation; after it expires, the
+            // single designated NEXT_A may compete with CAS. Current PRIMARY
+            // stops WMS mutation when its renewal becomes stale. No inference
+            // from RTDB failures, UI labels or the device clock is necessary.
+            if (commonProtocolProof)
+            {
+                _log("FIRESTORE HA takeover=CHECK evidence=COMMON_LEASE_EXPIRED");
+                PromoteStandbyForTakeover();
+                return 1000;
+            }
             var now = NowMs();
             if (_lastTakeoverLivenessCheckMs != 0 &&
                 now - _lastTakeoverLivenessCheckMs < 5000) return 5000;

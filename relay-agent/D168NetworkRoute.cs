@@ -17,6 +17,7 @@ namespace SupraInventoryRelayAgent
         private const string LocalKey=@"Software\SupraInventory\RelayAgent";
         private const string WorkerProfileValue="ApprovedWorkerWifiProfile";
         private const string WorkerProfilesValue="ApprovedWorkerWifiProfiles";
+        private const string OfficeProfilesValue="KnownOfficeWifiProfiles";
         private static readonly Regex SafeProfile=new Regex(
             @"^[\p{L}\p{N} ._+@()#-]{1,64}$",RegexOptions.Compiled);
 
@@ -82,6 +83,55 @@ namespace SupraInventoryRelayAgent
             catch { return new string[0]; }
         }
 
+        // User-approved local classification; never log SSID or credentials.
+        internal static string[] OfficeProfiles()
+        {
+            try
+            {
+                using(var key=Registry.CurrentUser.OpenSubKey(LocalKey,false))
+                {
+                    var profiles=key==null ? null : key.GetValue(OfficeProfilesValue) as string[];
+                    return (profiles??new string[0]).Where(ValidProfile)
+                        .Distinct(StringComparer.OrdinalIgnoreCase).Take(6).ToArray();
+                }
+            }
+            catch { return new string[0]; }
+        }
+
+        internal static bool SaveOfficeProfiles(
+            System.Collections.Generic.IEnumerable<string> selected)
+        {
+            var values=(selected??new string[0]).Select(x=>(x??"").Trim()).ToArray();
+            if(values.Length>6 || values.Any(x=>!ValidProfile(x)) ||
+                values.Distinct(StringComparer.OrdinalIgnoreCase).Count()!=values.Length ||
+                values.Any(x=>!HasSavedProfile(x)) ||
+                values.Any(x=>ApprovedProfiles().Contains(x,StringComparer.OrdinalIgnoreCase)))
+                return false;
+            try
+            {
+                using(var key=Registry.CurrentUser.CreateSubKey(LocalKey,true))
+                {
+                    if(key==null)return false;
+                    key.SetValue(OfficeProfilesValue,values,RegistryValueKind.MultiString);
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        // Unknown includes VPS Ethernet/multi-NIC/unclassified SSID.
+        // Never assume RTDB is reachable when there is no explicit evidence.
+        internal static string CurrentNetworkMode()
+        {
+            var profile=CurrentProfile();
+            if(!ValidProfile(profile))return "UNKNOWN";
+            if(OfficeProfiles().Contains(profile,StringComparer.OrdinalIgnoreCase))
+                return "OFFICE";
+            if(ApprovedProfiles().Contains(profile,StringComparer.OrdinalIgnoreCase))
+                return "INTERNET";
+            return "UNKNOWN";
+        }
+
         internal static string ApprovedProfile()
         {
             return ApprovedProfiles().FirstOrDefault()??"";
@@ -97,7 +147,8 @@ namespace SupraInventoryRelayAgent
                 return false;
             // A saved profile may be absent from the current radio scan: only
             // Windows-local saved-profile validation is required.
-            if(values.Any(x=>!HasSavedProfile(x)))return false;
+            if(values.Any(x=>!HasSavedProfile(x)) ||
+               values.Any(x=>OfficeProfiles().Contains(x,StringComparer.OrdinalIgnoreCase)))return false;
             try
             {
                 using(var key=Registry.CurrentUser.CreateSubKey(LocalKey,true))

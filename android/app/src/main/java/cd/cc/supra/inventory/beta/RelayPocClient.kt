@@ -17,6 +17,7 @@ import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 data class RelayProbeResult(
@@ -69,6 +70,7 @@ class RelayPocClient(
     private companion object {
         const val FAILOVER_NOTICE_MS = 10_000L
         const val TOTAL_WAIT_MS = 20_000L
+        const val VERIFIED_FAILOVER_WAIT_MS = 35_000L
         const val CREATE_FIRST_WAIT_SECONDS = 5L
         const val CREATE_VERIFY_WAIT_SECONDS = 3L
         const val CREATE_RETRY_WAIT_SECONDS = 4L
@@ -237,6 +239,7 @@ class RelayPocClient(
             "suffix" to suffix,
             "status" to "PENDING",
             "source" to "ANDROID_CONFIRM_V1",
+            "recovery_protocol" to 1,
             "picker_uid" to identity.uid,
             "picker_user_id" to session.userId,
             "picker_employee_code" to (session.employeeCode ?: ""),
@@ -260,6 +263,7 @@ class RelayPocClient(
 
         val ackRef = AtomicReference<RelayAck?>(null)
         val errorRef = AtomicReference<Exception?>(null)
+        val recoveryProofSeen = AtomicBoolean(false)
         val done = CountDownLatch(1)
 
         val registration = doc.addSnapshotListener { snapshot, error ->
@@ -268,6 +272,13 @@ class RelayPocClient(
                 return@addSnapshotListener
             }
             if (snapshot == null || !snapshot.exists()) return@addSnapshotListener
+            // Only the immutable server-side same-request recovery grant extends
+            // the wait; a 10-second spinner or offline snapshot never does.
+            if (isVerifiedRecoveryGrant(snapshot, requestId) &&
+                recoveryProofSeen.compareAndSet(false, true)) {
+                log("D169 same-request failover grant request=" + shortId(requestId))
+                onProgress("Agent dự phòng đã tiếp nhận · đang chờ kết quả xác nhận...")
+            }
             val ack = parseAck(snapshot) ?: return@addSnapshotListener
             ackRef.set(ack)
             done.countDown()
@@ -278,16 +289,46 @@ class RelayPocClient(
         }
 
         var failoverNoticeShown = false
+        var recoveryServerReadAttempted = false
         try {
-            val deadline = SystemClock.elapsedRealtime() + TOTAL_WAIT_MS
-            while (SystemClock.elapsedRealtime() < deadline) {
+            while (true) {
+                val deadline = started + if (recoveryProofSeen.get()) VERIFIED_FAILOVER_WAIT_MS else TOTAL_WAIT_MS
+                if (SystemClock.elapsedRealtime() >= deadline) {
+                    // Listener may be unavailable across network transitions.
+                    // A single authoritative read at the normal 20-second
+                    // boundary may recover the real grant without creating
+                    // another Picklist or repeatedly polling Firestore.
+                    if (!recoveryProofSeen.get() && !recoveryServerReadAttempted) {
+                        recoveryServerReadAttempted = true
+                        val latest = try {
+                            Tasks.await(doc.get(Source.SERVER), 4, TimeUnit.SECONDS)
+                        } catch (error: Exception) {
+                            log("D169 failover read unavailable request=" + shortId(requestId) +
+                                " reason=" + safeText(error.message))
+                            null
+                        }
+                        if (latest != null) {
+                            val terminal = parseAck(latest)
+                            if (terminal != null) {
+                                ackRef.set(terminal)
+                                break
+                            }
+                            if (isVerifiedRecoveryGrant(latest, requestId)) {
+                                recoveryProofSeen.set(true)
+                                onProgress("Agent dự phòng đã tiếp nhận · đang chờ kết quả xác nhận...")
+                                continue
+                            }
+                        }
+                    }
+                    break
+                }
                 val remaining = (deadline - SystemClock.elapsedRealtime()).coerceAtLeast(1L)
                 if (done.await(minOf(1_000L, remaining), TimeUnit.MILLISECONDS)) break
 
                 val elapsed = SystemClock.elapsedRealtime() - started
                 if (!failoverNoticeShown && elapsed >= FAILOVER_NOTICE_MS) {
                     failoverNoticeShown = true
-                    onProgress("Đang chờ phản hồi · hệ thống sẽ tự chuyển Agent dự phòng nếu cần... #" + shortId(requestId))
+                    onProgress("Đang chờ phản hồi từ Agent; chưa xác minh chuyển quyền dự phòng... #" + shortId(requestId))
                 }
             }
 
@@ -298,12 +339,13 @@ class RelayPocClient(
             if (ack == null) {
                 val listenerError = errorRef.get()
                 if (listenerError != null) {
-                    log("D097 Firestore listener chưa hồi phục trong 30s request=" + shortId(requestId) +
+                    log("D097 Firestore listener chưa hồi phục request=" + shortId(requestId) +
                         " detail=" + safeText(listenerError.message))
                 }
                 throw IOException(
                     "Không xử lý được request #" + shortId(requestId) +
-                        " trong 20 giây. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
+                        " trong " + (if (recoveryProofSeen.get()) "35" else "20") +
+                        " giây. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
                 )
             }
 
@@ -401,6 +443,17 @@ class RelayPocClient(
         } catch (_: Exception) {
             false
         }
+    }
+
+    private fun isVerifiedRecoveryGrant(snapshot: DocumentSnapshot, requestId: String): Boolean {
+        if (!snapshot.exists() || snapshot.metadata.isFromCache ||
+            snapshot.getString("request_id") != requestId ||
+            snapshot.getString("status") != "PENDING") return false
+        val generation = snapshot.getString("recovery_generation").orEmpty()
+        val agent = snapshot.getString("recovery_agent_instance_id").orEmpty()
+        val grantAt = snapshot.getLong("recovery_granted_at_ms") ?: 0L
+        return generation.matches(Regex("^[0-9a-f]{32}$")) &&
+            agent.length in 8..160 && grantAt > 0L
     }
 
     private fun parseAck(snapshot: DocumentSnapshot): RelayAck? {

@@ -163,6 +163,16 @@ namespace SupraInventoryRelayAgent
                     ordered.Insert(index+1,name);
                     redraw(index+1);
                 };
+                var office=new Button {
+                    Left=16,Top=315,Width=188,Height=32,
+                    Text="Phân loại Wi-Fi Office"
+                };
+                office.Click+=(sender,args)=>{
+                    if(ConfigureD169OfficeWifiProfiles())
+                        MessageBox.Show(dialog,
+                            "Đã lưu mạng Office trên máy này. Agent chỉ dùng Firestore cho HA tại mạng Office.",
+                            "Phân loại mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                };
                 var save=new Button {
                     Left=472,Top=315,Width=104,Height=32,
                     Text="Lưu",DialogResult=DialogResult.None
@@ -183,8 +193,62 @@ namespace SupraInventoryRelayAgent
                     dialog.Close();
                 };
                 dialog.Controls.AddRange(new Control[]{
-                    info,available,chosen,add,remove,up,down,save,cancel
+                    info,available,chosen,add,remove,up,down,office,save,cancel
                 });
+                dialog.CancelButton=cancel;
+                return dialog.ShowDialog(this)==DialogResult.OK;
+            }
+        }
+
+        // Network labels are local-only; no corporate SSID leaves this dialog.
+        private bool ConfigureD169OfficeWifiProfiles()
+        {
+            var saved=D168NetworkRoute.SavedProfiles();
+            var internet=D168NetworkRoute.ApprovedProfiles();
+            var office=D168NetworkRoute.OfficeProfiles();
+            using(var dialog=new Form {
+                Text="Chọn Wi-Fi mạng nội bộ Office",
+                Width=500,Height=440,MinimumSize=new Size(500,440),
+                StartPosition=FormStartPosition.CenterParent,
+                FormBorderStyle=FormBorderStyle.FixedDialog,
+                MaximizeBox=false,MinimizeBox=false,ShowInTaskbar=false
+            })
+            {
+                var info=new Label {
+                    Left=16,Top=12,Width=454,Height=45,
+                    Text="Chọn các mạng Office đã lưu trong Windows. Không chọn mạng đã được đánh dấu Internet. Không tạo Wi-Fi hoặc lưu mật khẩu."
+                };
+                var list=new CheckedListBox {
+                    Left=16,Top=62,Width=454,Height=244,
+                    CheckOnClick=true
+                };
+                foreach(var name in saved)
+                {
+                    var selected=Array.Exists(office,x=>string.Equals(x,name,
+                        StringComparison.OrdinalIgnoreCase));
+                    list.Items.Add(name,selected);
+                }
+                var save=new Button {Left=246,Top=320,Width=106,Height=32,Text="Lưu"};
+                var cancel=new Button {Left=364,Top=320,Width=106,Height=32,
+                    Text="Hủy",DialogResult=DialogResult.Cancel};
+                save.Click+=(sender,args)=>{
+                    var selected=new System.Collections.Generic.List<string>();
+                    foreach(var item in list.CheckedItems)
+                        selected.Add(Convert.ToString(item));
+                    if(selected.Count>6 ||
+                        selected.Exists(x=>Array.Exists(internet,y=>
+                            string.Equals(x,y,StringComparison.OrdinalIgnoreCase))) ||
+                        !D168NetworkRoute.SaveOfficeProfiles(selected))
+                    {
+                        MessageBox.Show(dialog,
+                            "Chọn tối đa 6 mạng Office đã lưu và không trùng danh sách Internet.",
+                            "Phân loại mạng",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                        return;
+                    }
+                    dialog.DialogResult=DialogResult.OK;
+                    dialog.Close();
+                };
+                dialog.Controls.AddRange(new Control[]{info,list,save,cancel});
                 dialog.CancelButton=cancel;
                 return dialog.ShowDialog(this)==DialogResult.OK;
             }

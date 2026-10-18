@@ -251,7 +251,8 @@ jobs:
               -not $d119Features.Contains('transition=0_TO_ACTIVE provider_op=false')) {
             throw "D162 listener-first / bounded REST-watchdog usage guard regression."
           }
-          if (-not $leader.Contains('if (!_relayEnabled() || !_wmsReady() || _role != FirestoreAgentRole.PRIMARY) return false;') -or
+          if (-not $leader.Contains('!_wmsReady() || _role != FirestoreAgentRole.PRIMARY ||') -or
+              -not $leader.Contains('!HasFreshCommonPrimaryLease()) return false;') -or
               -not $d160Pipeline.Contains('_leaderCoordinator.VerifyPrimaryBeforeMutation(session)')) {
             throw "D161 actual WMS mutation safety fence regression."
           }
@@ -967,7 +968,7 @@ jobs:
             throw "D160 bounded Firestore cadence/batch regression."
           }
           if ($transport -match 'PROCESSING|TryClaim' -or -not $transport.Contains('CONFIRM_ACK_VERIFY')) { throw "Firestore direct-ACK guard regression." }
-          foreach ($marker in @('MaxPendingAgeMs = 20000L','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
+          foreach ($marker in @('NormalPendingAgeMs = 20000L','MaxPendingAgeMs = 35000L','CanRecoverPendingRequest(doc.Work.CreatedAtMs)','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
             if (-not $transport.Contains($marker)) { throw "D131 queue/audit guard missing: $marker" }
           }
           if ($transport.Contains('?pageSize=' + 'MaxDocumentsPerPoll')) { throw "D127 unsafe stale list fallback returned." }
@@ -1606,6 +1607,29 @@ jobs:
               } catch { Write-Host "Worker propagation not verified yet." }
             }
             if ($attempt -eq 120) { throw "D168 Worker exact-source health not verified: Agent publication blocked." }
+            Start-Sleep -Seconds 10
+          }
+
+      # D169: the new PDA recovery protocol requires the existing Beta Firestore
+      # Rules to allow a narrowly scoped PENDING marker before a v136 Agent is
+      # eligible for auto-update. Never release a binary against old Rules.
+      - name: D169 require matching Beta Firestore Rules before publishing Agent
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-firestore.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw "Cannot check D169 Firestore Beta Rules dependency." }
+            $matched = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+            if ($matched.Count -gt 0 -and $matched[0].status -eq "completed") {
+              if ($matched[0].conclusion -ne "success") { throw "D169 Firestore Rules deploy failed; Agent release blocked." }
+              Write-Host "D169_FIRESTORE_RULES_FIRST_AGENT_RELEASE_GATE_PASS"
+              break
+            }
+            if ($attempt -eq 120) { throw "D169 Firestore Rules not verified; Agent release blocked." }
             Start-Sleep -Seconds 10
           }
 

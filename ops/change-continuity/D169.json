@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D169",
-  "working_branch": "fix/d169-android-agent-code-only-20261015",
-  "pr": 606,
+  "working_branch": "fix/d169-integrated-vps-pda-client-20261018",
+  "pr": 615,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E029",
-    "date_vn": "2026-10-17"
+    "id": "D169-E049",
+    "date_vn": "2026-10-18"
   },
-  "deployment_gate": "D169_OWNER_APPROVED_AGENT_V133_MANUAL_SECONDARY_PR_ARTIFACT_ONLY__NO_MAIN_OR_GLOBAL_CHANNEL__ANDROID_STABLE_UNTOUCHED",
+  "deployment_gate": "D169_E049_SOURCE_CI20_PASS_E046_OWNER_STAGED_BETA_APPROVED__EXACT_SHA_RELEASE_AUTHORIZATION__STABLE_FALSE__FIELD_AND_OWNER_PASS_FALSE",
   "entries": [
     {
       "id": "D169-E001",
@@ -661,6 +661,417 @@
       ],
       "next_action": "Owner tests v135 on secondary: all ordinary tabs visible, browser toggle hides only Web Confirm, button label updates, WMS session persists through tabs/resize, real Confirm/SKU and mixed-Agent failover; record PASS/NOT PASS in D169. Do not change Stable or Android PR606.",
       "evidence": "PR610 https://github.com/tamnv2/supra-inventory/pull/610 merged 0900a172; workflow runs 38939271226 Worker and 38939271241 Agent (success); release https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v135; channel inventory-channel manifest assets."
+    },
+    {
+      "id": "D169-E030",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Preferred cloud Windows Agent with resilient Office/Internet failover, no-cost VPS tuning and privileged login proposal",
+      "status": "PROPOSAL_ONLY__OWNER_DESIGN_CONFIRMATION_PENDING__NO_CODE_OR_RESOURCE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner reports a new Windows VPS has been prepared with a dedicated operator account (alias CLOUD_AGENT). Owner requests a dedicated application Agent user, OTP login comparable to named privileged operators, and an emergency fallback currently described as HHmm. Distinguish Windows account from Firebase application user; no credentials or infrastructure IDs recorded.",
+        "Owner cannot increase VPS specification: approximately 2 vCPU, 4 GB RAM, 30 GB SSD. Wants reliable GUI Agent/WMS operation 24/7 and minimized OS overhead, local log/resource guardrails, proper Windows user-session recovery after restart, without exposing Windows credentials.",
+        "Owner wants CLOUD_AGENT preferred PRIMARY when fully authenticated and WMS-confirm ready, with mixed-network Office/Internet factory Agent NEXT_A/NEXT_B fallback, preserving mobile PDA Internet path and lowest verified Firestore/RTDB usage.",
+        "On unexpected cloud-primary failure, a local ready Agent must take over automatically with generation-fenced exclusive WMS mutation/ACK and safely reconcile in-flight requests. On cloud restoration, automatic return is desired ONLY when preceding failover was automatic; a documented owner admin/tamnv2 manual choice must inhibit automatic cloud reclaim while that choice remains valid.",
+        "Verified main source relay-agent/FirestoreAgentLeaderCoordinator.cs: Firestore generation CAS, 10s primary heartbeat, 15s failover freshness and RTDB-first liveness exist; manual takeover is limited to admin/tamnv2, but durable manual-origin override vs automatic failover origin and preferred-cloud automatic reclaim are not established.",
+        "Verified relay-agent/D165PrivilegedAuth.cs: one-time privileged Agent login is hard-coded to admin/tamnv2; an additional application account needs scope/role/Worker/Gateway security review, separate from VPS Windows user. Clock-only HHmm is predictable and must not be accepted as standalone authentication; prefer a one-time recovery secret or independent server-verified factor.",
+        "Mixed-network risk: NEXT_A requiring RTDB primary-liveness confirmation currently defers takeover on UNAVAILABLE. Office path has not been field-proven with authenticated RTDB; a Firestore-reachable safe fallback requires an explicit design and physical verification. No fabricated failover latency or savings.",
+        "Provider economics: moving the existing Firestore-based confirmation process from an onsite PRIMARY to a VPS does not intrinsically reduce billable reads/writes. Optimize event-driven critical wake, reused listeners, low-frequency fleet state, zero redundant polling, and only verified equivalent transport substitutions.",
+        "Windows WinForms Agent requires an interactive user session; built-in child watchdog alone does not prove unattended restart after VPS OS reboot. Test Windows RDP disconnect, profile/DPAPI persistence, WMS login readiness, clean planned maintenance and unexpected power loss."
+      ],
+      "alternatives": [
+        "PREFERRED: active cloud PRIMARY on normal internet; 2 local warm ready standby tiers; guarded event-driven failover and fenced preferred-primary return after stable WMS readiness and no manual pin; auth-specific secure OTP and restricted operator role.",
+        "METRIC_FIRST: preserve current critical lane, use real Office/normal authenticated field observations, compare event-driven standby wake to extra persistent Firestore heartbeat writes before altering HA timing.",
+        "REJECT: unguarded fixed VPS priority that preempts manual PRIMARY, clock-only HHmm credential, blind failover under unknown liveness, using Cloudflare on Office-only path, or deploying an unregistered VPS resource."
+      ],
+      "open_questions": [
+        "Determine whether the dedicated CLOUD_AGENT label denotes Windows account only or an already provisioned Firebase app account, and verify its actual effective privileges without exposing credentials.",
+        "Validate VPS WMS true readiness and RDP-disconnected operation; Office standby Firebase RTDB and Firestore authenticated tests, restart recovery and crash ACK tests before selecting an exact safety-latency target.",
+        "Resolve account and VPS resource scope and Owner decision before any Agent/API/CI implementation or live failover test. Stable stays Owner-gated."
+      ],
+      "next_action": "Present scoped impact/security/usage/failover proposal for Owner decision only; no source/provider/role/rules/VM or release mutations. Maintain D169 serial gate, no new Dxxx, and reconcile divergent main E022-vs-working journal before any merge.",
+      "evidence": "Owner current 2026-10-18 request; main ops/authority-manifest.json and canonical spec/state; relay-agent/D165PrivilegedAuth.cs; relay-agent/FirestoreAgentLeaderCoordinator.cs; relay-agent/FirestoreConfirmationTransport.cs; relay-agent/RtdbHaLiveness.cs. Main journal E029, working branch E022 diverge (no merge authorized).",
+      "kind_legacy": "OWNER_REQUIREMENT_INTAKE_AND_ANALYSIS"
+    },
+    {
+      "id": "D169-E031",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "CLOUD_AGENT is a provisioned SUPRA Web application account; WMS image slider CAPTCHA unattended-login question",
+      "status": "ACCOUNT_TYPE_CONFIRMED__WMS_CAPTCHA_MANUAL_OR_AUTHORIZED_SSO_PROPOSED__NO_CODE_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner confirms the dedicated VPS application account (alias CLOUD_AGENT) was already provisioned through SUPRA Web for logging in to Windows Agent; it is NOT merely a Windows-local account. Account role and effective claims have not yet been independently verified. Do not create another account or assume it is privileged.",
+        "Owner observes Supra WMS web authentication sometimes requires a drag-to-position image-slider challenge (CAPTCHA) and asks whether Agent can automatically drag and pass it, aiming for unattended VPS operation.",
+        "Current main relay-agent/SupraConfirmBrowser.cs has an Agent-owned x64 WebView2 browser with persistent profile and explicit WMS login-marker detection; RefreshState shows browser to operator upon exact login marker, but source review finds no approved slider-CAPTCHA solver or automatic challenge pass.",
+        "WMS CAPTCHA is separate from SUPRA Inventory Agent OTP and Agent role; the proposed application OTP does not grant permission to bypass the WMS challenge.",
+        "Recommend do NOT implement CAPTCHA image matching, simulated drag, external solving service, challenge token reuse, or broad browser auth material replay. Preserve server-side protection, WMS policy and credential/session isolation.",
+        "Low-risk flow: keep stable authenticated WMS profile when permitted, monitor browser WMS readiness, explicitly alert authorized operator when user interaction is required, hold/failover PRIMARY while WMS not ready, recheck readiness after authorized human completes challenge, and apply fenced automatic cloud return only if no manual primary lock.",
+        "If fully unattended WMS login is essential, request an officially authorized SSO, trusted-device, or service integration from the WMS administrator rather than trying to automate CAPTCHA. No assumption such an integration exists.",
+        "D169 source/release boundary unchanged: v135 field PASS pending, no Android/Worker/Firebase/Stable mutation and no provision of unregistered VPS infra."
+      ],
+      "next_action": "Confirm actual authorized SUPRA application role for CLOUD_AGENT and test WMS session behavior after disconnect/restart; ask WMS admin for policy-supported unattended authentication if needed. Propose secure Agent OTP separately for Owner approval. Do not mutate WMS challenge or write CAPTCHA automation.",
+      "evidence": "Owner 2026-10-18 clarification; main relay-agent/SupraConfirmBrowser.cs LoginMarkerText and RefreshState login-marker presentation; relay-agent/D165PrivilegedAuth.cs exact admin/tamnv2 OTP gate; project-scope and current D169 branch E030.",
+      "kind_legacy": "OWNER_CLARIFICATION_AND_SECURITY_ANALYSIS"
+    },
+    {
+      "id": "D169-E032",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner reports shared concurrent WMS sign-in and requests unattended image-slider CAPTCHA completion on cloud primary",
+      "status": "OWNER_REQUEST_RECORDED__CAPTCHA_BYPASS_NOT_IMPLEMENTED__VENDOR_AUTH_PATH_NEEDED__NO_CODE_OR_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner confirms the corporate WMS login is shared across Agent locations and can be concurrently signed in through several browser sessions; this does not establish that browser sessions/cookies are portable or exempt from session expiry.",
+        "Owner expressly wishes the cloud Agent to autonomously re-login when a multi-day WMS session expires, including solving a randomized missing-image-piece drag slider CAPTCHA, to avoid hands-on RDP interaction.",
+        "Current main relay-agent/SupraConfirmBrowser.cs uses Agent-owned WebView2 fixed runtime and a persistent dedicated browser profile; when exact WMS login marker appears it surfaces the browser and pauses route recovery awaiting user; after authorized login succeeds it resumes Confirm recovery. No slider-solver exists or is approved.",
+        "Current ops/project-scope.json specifically binds supra-auth-ui-d127-probe to manual WMS login, bounded approved DOM navigation, no sensitive capture or stealth; persistent WMS credentials/cookies/tokens or general-purpose replay are outside registered scope. An Owner request alone does not establish the WMS provider's permission for unattended CAPTCHA bypass.",
+        "Do not implement image-slider matching, automated CAPTCHA drag, external CAPTCHA solving, or hidden credential/session replay. Instead retain already-authorized browser profile, recover on crash, detect WMS login/readiness, alert an authorized operator for provider-required interactive verification, preserve single-PICKLIST fencing/HA failover, and re-evaluate cloud return once WMS becomes ready.",
+        "A fully unattended solution needs documented approval and an official provider-supported authentication path, such as SSO/trusted-device policy, not an invented CAPTCHA exemption. No WMS backend, Agent/PDA, Beta/Stable deployment or new resource was modified."
+      ],
+      "next_action": "Owner/WMS administrator checks whether supported unattended WMS authentication is available. Otherwise propose an event-driven login-required alert and human verification handoff under a separate Owner-approved bounded Agent change after D169 scope/continuity reconciliation.",
+      "evidence": "Owner direct 2026-10-18 clarification; main ops/project-scope.json supra-auth-ui-d127-probe and explicit_out_of_scope; main relay-agent/SupraConfirmBrowser.cs lines ~394-410, ~1458-1501, ~2204-2224; docs/specs/ROLE_WORKFLOWS.md D127 manual login; current D169 PR #606 remains open.",
+      "kind_legacy": "OWNER_REQUEST_AND_SECURITY_SCOPE_BOUNDARY"
+    },
+    {
+      "id": "D169-E033",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner attests SUPRA WMS allows automation of login image slider CAPTCHA",
+      "status": "OWNER_ATTESTATION_RECORDED__TECHNICAL_DESIGN_AND_SCOPE_REVIEW_PENDING__NO_CODE_OR_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly states that the operator of SUPRA WMS allows automated dragging of the image-piece CAPTCHA used at WMS login. This is an Owner-provided assertion; an independent WMS policy/integration capability check has not occurred.",
+        "Owner's intended behavior remains unattended renewal of an expired shared-account WMS session within the VPS Agent's existing managed WebView2 browser, restoring the picklist Confirm UI and readiness checks while allowing company Agents to take over whenever the VPS is not ready.",
+        "Current registered resource supra-auth-ui-d127-probe in ops/project-scope.json permits only manual WMS login when required, bounded navigation without sensitive capture. Current main relay-agent/SupraConfirmBrowser.cs foregrounds the login marker for human action and resumes Confirm recovery after login clears. The new requested unattended login behavior is not present in source or proven in field.",
+        "Implementing automated challenge completion would be a new authentication interaction and cannot be treated as already permitted by the repository resource scope; scope/security/role/WMS provider policy approval, controlled field trial, failure handling and regression/HA safeguards must be reviewed before any executable change.",
+        "Do not assert a functioning image matcher, general WMS authentication bypass, automation success rate, provider endorsement, release or runtime changes based only on the conversational permission statement. Never persist or log WMS credentials/cookies/headers/tokens/challenge secret material in a public repo.",
+        "Safer underlying requirements: minimize loss of authenticated session via existing profile, distinguish WMS expired login from browser crash/slow DOM, never declare PRIMARY WMS-ready during login challenge, fail over to a ready registered secondary, and only return VPS leadership after verified Confirm readiness and no manual PRIMARY override."
+      ],
+      "next_action": "Seek an approved technical WMS authentication pathway or bounded supervised trial evidence, then present architecture, scope and security impact for Owner review; only implement after repo resource scope/decision/spec change set and branch/PR CI gates, Stable Owner-gated.",
+      "evidence": "Owner current 2026-10-18 authorization statement; main/branch ops/project-scope.json, relay-agent/SupraConfirmBrowser.cs, docs/specs/ROLE_WORKFLOWS.md; E031-E032 prior proposal context.",
+      "kind_legacy": "OWNER_AUTHORIZATION_CLARIFICATION"
+    },
+    {
+      "id": "D169-E034",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Standalone Windows x64 manual WMS CAPTCHA gesture observation tool alongside existing Agent, no login bypass",
+      "status": "LOCAL_WIN_X64_EXE_CROSS_BUILD_PASS__ZIP_VERIFIED__WINDOWS_VPS_FIELD_TEST_PENDING__NO_AGENT_WMS_RUNTIME_MUTATION",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests a separate Web Agent test to observe the Owner's manual image-slider CAPTCHA drag during legitimate WMS sign-in, as preliminary evidence for evaluating unattended recovery.",
+        "Created a local, independent, single-window Windows x64 GUI gesture recorder (Go 1.23 standard library, no third-party dependencies) that runs alongside current Agent v135 WebView2, without opening/copying Agent's dedicated browser profile or attaching to its process.",
+        "User presses Start, waits three seconds, then physically performs ONE mouse drag; recorder samples only screen-space mouse X/Y/timing at ~10ms while left mouse button is held, immediately stops after mouse-up and saves sanitized JSON on Desktop. 60-second maximum idle, manual stop, no background operation outside active window.",
+        "No key events, DOM, screenshot, username, password, cookies, access tokens, challenge contents, WMS network calls, Agent/Firestore/RTDB access, primary-election operations or CAPTCHA solving/drag automation. Optional WMS button merely launches the default browser, separate from Agent profile.",
+        "Includes offline HTML viewer plotting the recorded cursor trajectory and source code/README/SHA-256. User can manually crop only the CAPTCHA image using Windows Win+Shift+S and upload that image separately, since cursor movement alone cannot infer the gap location.",
+        "Code cross-compiled successfully as Windows PE32+ x64 GUI executable with GOOS=windows/GOARCH=amd64/CGO_ENABLED=0, go vet cross-check PASS, packaged ZIP integrity verified by Python zipfile.testzip(). No Windows runtime or physical WMS CAPTCHA test was possible in the build environment.",
+        "Chat-only diagnostic ZIP SUPRA_WMS_MANUAL_DRAG_TEST_WIN64.zip created at local /mnt/data; no binary or source committed to public GitHub, no prerelease/channel/PR merge, no policy/scope/rules or live WMS changes. The canonical repo's auth UI resource currently stipulates manual login and cannot be silently broadened."
+      ],
+      "next_action": "Owner runs the local GUI observer alongside Agent v135 on VPS and uploads one or more sanitized manual-drag JSON files plus separately cropped CAPTCHA screenshots before interaction. Review field validity and security/scope before any new source/PR for Agent login-related changes; Stable remains OWNER-GATED.",
+      "evidence": "Owner 2026-10-18 build request; main authority/scope/auth UI; current main relay-agent/SupraConfirmBrowser.cs and AgentBrowserBundle.cs; local cross-compilation and ZIP validation evidence. No Windows field pass.",
+      "kind_legacy": "OWNER_APPROVED_LOCAL_DIAGNOSTIC_BUILD"
+    },
+    {
+      "id": "D169-E035",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "First VPS manual WMS slider mouse-drag log received; motion measured, CAPTCHA image and success not established",
+      "status": "ONE_MANUAL_GESTURE_CAPTURE_VALID__TARGET_IMAGE_UNKNOWN__WMS_ACCEPTANCE_UNKNOWN__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner uploaded SUPRA_WMS_MANUAL_DRAG_20261018_075115.json, schema supra.manual-drag.v1; private per-session manual gesture only. File was analyzed locally; do not commit the original per-point trace or screenshot to public GitHub.",
+        "Field evidence: screen 1920x1200 pixels; 293 samples target 10ms, measured median 10ms; gesture first (782,754), last (976,755), net +194 x/+1 y pixels, total hold 3037ms, fully captured/completed.",
+        "Mouse began moving around 230ms, last movement around 1999ms, then stayed at end for about 1038ms; Y stays within 754..755. This is one predominantly horizontal manual drag.",
+        "No CAPTCHA screenshot, challenge target-slot coordinate, WMS DOM or explicit CAPTCHA PASS/FAIL was recorded. The displacement cannot be treated as image-gap offset or validated challenge solve. External screenshot / explicit post-release success evidence would be needed for even a supervised field analysis.",
+        "This evidence does not authorize automated CAPTCHA circumvention or browser login flow modification; existing supra-auth-ui-d127-probe resource remains manual-login scoped and D169 v135 Beta field PASS remains pending."
+      ],
+      "next_action": "Report one manual drag measured and ask Owner for an image cropped to the CAPTCHA region before drag, plus whether that exact drag resulted in successful WMS login. If continuing diagnostic collection, keep sensitive page/account info out of attachments. No Agent, PDA, provider or public resource mutation.",
+      "evidence": "Local uploaded private JSON manual-drag.v1 on 2026-10-18; main/working authority and relay-agent/SupraConfirmBrowser.cs; no extra browser instrumentation.",
+      "kind_legacy": "USER_FIELD_EVIDENCE_ANALYSIS"
+    },
+    {
+      "id": "D169-E036",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner-supplied CLAUDE.md coding discipline integrated with existing AGENTS governance",
+      "status": "D169_DRAFT_AGENTS_GUIDELINES_COMMITTED__NO_EXECUTABLE_OR_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner provided CLAUDE.md with five coding quality disciplines: think before coding, simplicity, surgical changes, goal-driven execution, and a concise verification plan.",
+        "This attachment is engineering-process guidance and does not authorize changing existing login/authentication, WMS/CAPTCHA, Agent, PDA or Web business behavior.",
+        "Current AGENTS.md mandates stronger repository bootstrap/authority, change-scope controls, serial D169 Owner PASS, quota/realtime/HA tests, confidentiality and release restrictions. These remain controlling; supplementary rules cannot override them.",
+        "Implemented by appending a subordinate five-part engineering discipline section to existing AGENTS.md on Draft PR606 working branch only, with no separate CLAUDE.md authority file and no new bootstrap resources.",
+        "The new guidance explicitly discourages speculative code, redundant configuration/abstraction, unrelated refactor, unverified passing claims, while retaining handling of realistic auth/network/HA/ACK failures and automated bounded execution.",
+        "No business code, WMS profile/session, deployed Worker, Firebase, Android, Agent binary, Stable or main accepted base was changed. D169 Owner PASS, field acceptance and PR606 merge remain outstanding."
+      ],
+      "alternatives": [
+        "Selected: extend existing AGENTS.md to avoid conflicting policy engines and mandatory manifest/bootstrap changes.",
+        "Not selected: treat uploaded CLAUDE.md as an independent higher-priority rulebook or broaden authentication logic."
+      ],
+      "next_action": "Verify branch AGENTS/state/journal diff and authority/continuity checks; PR606 remains Draft/unmerged, no product release. Follow existing D169 Owner gates.",
+      "evidence": "Owner attached CLAUDE.md (2026-10-18); D169 PR606; AGENTS.md branch commit 53fc6141a43c263b9ef62019399d9ad6aad7b242; authority bootstrap and scope."
+    },
+    {
+      "id": "D169-E037",
+      "date_vn": "2026-10-18",
+      "kind": "DISCUSSION",
+      "topic": "Manual CAPTCHA cursor coordinates cannot transfer across resolutions; exact-gap match expected; Owner requests honest feasibility assessment",
+      "status": "IMAGE_RELATIVE_FEASIBILITY_ONLY__ONE_GESTURE_LOG_NO_CAPTCHA_IMAGE__FIELD_PROOF_PENDING__NO_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "Owner explicitly challenges use of absolute (x,y) and recorded +194px displacement: CAPTCHA screen location varies by monitor, zoom, layout and random challenge. Agree absolute coordinates are inapplicable as a generalized target.",
+        "Owner confirms that dragging the image puzzle piece exactly into the intended slot produces a CAPTCHA PASS when done manually. This is the observed functional criterion; no browser-generated pass/response trace was supplied.",
+        "Previous private gesture-only JSON measured start (782,754), end (976,755), duration 3037ms, but contains no screenshot or challenge-gap coordinates, so it cannot establish detection accuracy or the correctness of automated challenge completion.",
+        "A bounded, offline image-relative research prototype for different screen sizes could be evaluated technically from user-provided cropped CAPTCHA examples, but current evidence does not prove provider-specific success, and a production WMS auto-login/slider workflow is not implemented.",
+        "Current registered supra-auth-ui-d127-probe resource guard is MANUAL_LOGIN_WHEN_REQUIRED; no code or live authentication change is authorized by this informational exchange. Keep WMS readiness/Firestore HA generation fences and privileged manual override intact.",
+        "Communicate clear distinction between achievable exploratory image analysis and unproven, potentially provider-restricted unattended login success. Do not claim implemented results, universal 100% pass, or a released build."
+      ],
+      "next_action": "Request privacy-cropped CAPTCHA image from before manual drag and Owner's answer whether that particular drag passed. If a source implementation is later selected, reconcile explicit scope/security/Owner change-control before build and Windows field acceptance; Stable untouched.",
+      "evidence": "Owner 2026-10-18 follow-up questions; prior private manual-drag.v1 input and D169-E035 checkpoint; main scope guard supra-auth-ui-d127-probe; branch D169-E036 additional engineering guidelines.",
+      "kind_legacy": "OWNER_TECHNICAL_CLARIFICATION"
+    },
+    {
+      "id": "D169-E038",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner requests repo-wide main application of CLAUDE.md coding rules, not D169-only",
+      "status": "MAIN_GOVERNANCE_DOCS_PR614_OPEN__AUTHORITY_CONTINUITY_CI_PASS__OTHER_CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests the CLAUDE.md five-part programming discipline already added on PR606 be applied to canonical main for all future SUPRA Inventory workstreams.",
+        "D169-scoped docs-only PR614 branches from main and edits only AGENTS.md plus docs/OWNER_DECISIONS.md; no new Dxxx ID, client source code, login/CAPTCHA behavior, WMS/Agent/PDA/Web/Firebase/runtime/Stable/provider settings.",
+        "Repo-wide rule remains subordinate to canonical authority-manifest, owner decision/state/spec, resource scope, security, continuity and deployment/Owner-PASS gates.",
+        "PR614 exact-head checks Repo Authority Guard and Project State Guard continuity have passed. Other CI pending at time of checkpoint; do not claim merged until verified.",
+        "Separate D169 PR606 remains Draft and unmerged; Owner has not declared D169 Owner PASS and this documentation change does not promote client runtime."
+      ],
+      "next_action": "Wait until all mandatory PR614 CI checks complete successfully, merge only PR614 using normal merge commit if passes, verify main AGENTS decision readback and harmonize the old AGENTS section in PR606. Do not merge PR606 or trigger product release.",
+      "evidence": "User 2026-10-18 clarification; PR https://github.com/tamnv2/supra-inventory/pull/614; AGENTS.md; docs/OWNER_DECISIONS.md; PR614 current CI authority and continuity PASS."
+    },
+    {
+      "id": "D169-E039",
+      "date_vn": "2026-10-18",
+      "kind": "STATUS",
+      "topic": "Repo-wide CLAUDE coding quality policy merged into main via docs-only PR614",
+      "status": "MAIN_AGENTS_GLOBAL_POLICY_MERGED__POSTMERGE_AUTHORITY_CONTINUITY_PASS__NO_PRODUCT_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly directed main-wide application of five CLAUDE.md engineering quality rules rather than D169-only working-branch applicability.",
+        "PR #614 modified exactly AGENTS.md and docs/OWNER_DECISIONS.md with no executable code, auth/Agent/PDA/Web/Worker/Firebase, resource, CI workflow or Stable change.",
+        "PR614 tested head edde125274558d8935290d95569d466766593c9b passed 8 executable checks including authority and continuity, with 5 irrelevant jobs skipped. Normal merge into main succeeded at 1a2bbae779f5405c36503f40656c114861cc6797.",
+        "Main readback verified AGENTS.md has exactly one repo-wide supplement and docs/OWNER_DECISIONS.md records D169-E037 Owner direction; main merge commit post-merge authority and continuity checks also passed.",
+        "Draft PR606 AGENTS.md blob was aligned to the approved main AGENTS.md (identical SHA 152a1baabc94fcd98468bde8f282f1251477f468), avoiding later policy drift. PR606 remains Draft/unmerged; D169 Owner field/Owner PASS has not occurred.",
+        "Because PR614 changed only documentation, no Agent/APK build, channel, Worker deploy, WMS login behavior, secrets, Firebase routing or Stable resources were changed."
+      ],
+      "next_action": "Retain global engineering quality rules in main. Continue D169 client/field work under existing gates; do not promote PR606 without independent approval and CI.",
+      "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/614; merge main 1a2bbae779f5405c36503f40656c114861cc6797; PR614 8/8 runnable checks success; main AGENTS blob 152a1baabc94fcd98468bde8f282f1251477f468; PR606 policy alignment commit e1994ace81475bad7a4b7da1a04a8695af434799"
+    },
+    {
+      "id": "D169-E040",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner cancels WMS slider CAPTCHA recognition and automatic drag concept",
+      "status": "AUTO_CAPTCHA_CONCEPT_CANCELLED__MANUAL_LOGIN_BASELINE__NO_RUNTIME_CHANGE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly says to drop the idea of automatic CAPTCHA image recognition. Do not continue automation research, a CAPTCHA-solving EXE, slider dragging, or integrating this behavior in Agent.",
+        "The D169-E031–E037 WMS CAPTCHA research and manual-drag logs remain historical evidence only; their proposed future automatic login/slider path is superseded by this cancellation.",
+        "Manual Supra/WMS login when session expires remains the source-approved Agent behavior. Agent WMS readiness, current HA failover and Firestore generation fencing remain unchanged.",
+        "Owner did not cancel the separately discussed VPS preferred PRIMARY, Agent⇄PDA mixed-network failover, usage optimization, or dedicated SUPRA Web account/OTP design; these remain separate pending requirements without new deploy permission.",
+        "Existing `ops/project-scope.json` supra-auth-ui-d127-probe remains scoped to MANUAL_LOGIN_WHEN_REQUIRED. No resource was added/removed/changed. No Agent, PDA, Web, Worker, Firebase, Stable, WMS or external provider executable changes have been made."
+      ],
+      "next_action": "Do not work further on auto-CAPTCHA unless Owner reopens the topic. Preserve manual WMS sign-in and continue other VPS/Agent work only when independently approved, within existing D169 serial/CI/release guards.",
+      "evidence": "Owner 2026-10-18 immediate request to drop the idea; relay-agent/SupraConfirmBrowser.cs and canonical auth UI scope; D169 E031–E037.",
+      "kind_legacy": "OWNER_CANCELS_PROPOSAL"
+    },
+    {
+      "id": "D169-E041",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "VPS preferred PRIMARY, mixed Office/Internet HA, manual override with 15-minute notifications",
+      "status": "OWNER_REQUIREMENTS_CAPTURED__ARCHITECTURE_PROPOSED__NO_CODE_OR_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "VPS Windows Agent on ordinary Internet must be preferred PRIMARY when healthy; other company Agents on Office or ordinary Internet are automatic standbys, with temporary fallback when VPS or its WMS Confirm readiness fails and safe VPS reclaim when stable.",
+        "A PRIMARY manually designated by authenticated admin or tamnv2 is exempt from automatic VPS reclaim. Every 15 minutes while VPS is verified stable and manual designation remains, eligible signed-in admin/tamnv2 Agent receives a request to accept cloud takeover or snooze for another 15 minutes; no silent auto-accept.",
+        "Authenticated 2026-10-17 V3 NORMAL probe: Firestore REST read PASS, RTDB REST read PASS and RTDB SSE first frame PASS. OFFICE: Firestore REST read via Windows system proxy PASS, RTDB through proxy HTTP403 and direct inaccessible, Cloudflare Worker inaccessible. Office authenticated Firestore gRPC Listen, Firestore writes, true peer ACK and PDA delivery untested.",
+        "Existing source coordinator uses 10-second Firestore lease and attempts RTDB SSE before fallback. Office NEXT_A can repeatedly poll Firestore and cannot safely take over when RTDB confirmation is unavailable. Older Oct18 Agent logs show RTDB 401 and repeated fallback reads; unused picker_alerts legacy query adds avoidable Firestore reads.",
+        "Proposal: one Firestore generation-fenced election authority accessible from both networks, no Office RTDB retry, exactly one active NEXT_A liveness watcher and sleeping other standbys; gated VPS priority with WMS/browser readiness, stable-window and in-flight Picklist drain; persisted manual hold and explicit 15m request/snooze with CAS single-winner and authenticated permission checks.",
+        "Preserving ~15-second failover when Office cannot use RTDB requires a sufficiently fresh cross-network lease/event source; a 10-second Firestore heartbeat can cost 6,120 writes in 17 operating hours and a single watcher may incur a similar number of listener reads. Savings from eliminating 100-document unused legacy queries are better supported than an unsupported promise of zero HA write usage.",
+        "Alternatives: keep current transport with monitor-only analysis; direct Firestore shared HA plus bounded failover (preferred to validate); or a new Google relay service, contingent on explicit scope and measured Office proof.",
+        "No executable Agent/Android/Web/Worker source, Firebase Rules, Stable or VPS service changed by this discussion; user requested analysis/proposal, not immediate rollout."
+      ],
+      "open_questions": [
+        "Actual Office authenticated Firestore gRPC Listen persistence and event delivery?",
+        "Owner acceptance threshold for failover/reclaim latency and manual holder unexpectedly disappearing?",
+        "Which Agent build and HA field symptoms occur with mixed VPS and Office peers?"
+      ],
+      "next_action": "Present source/network proof, risk and recommended change contract to Owner; request explicit implementation approval, then test mixed-network HA/ACK with V3 limitations addressed on Beta, branch/PR CI and staged release. Keep PR606 Draft and D169 OPEN.",
+      "evidence": "User-uploaded SUPRA_FIREBASE_NETWORK_DIAGNOSTIC_V3 NORMAL/OFFICE 2026-10-17; main relay-agent/FirestoreAgentLeaderCoordinator.cs, RtdbHaLiveness.cs, FirestoreConfirmationTransport.cs, FirestorePickerContact.cs; D169 prior usage analysis."
+    },
+    {
+      "id": "D169-E042",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Repair VPS 15-second HA detection, PDA Picklist status/ACK clarity and Agent Wi-Fi routing",
+      "status": "DESIGN_REPORT_COMMITTED__SOURCE_FINDINGS_VERIFIED__EXECUTABLE_REVIEW_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "User explicitly names the two October 17 V3 NORMAL/OFFICE diagnostics as primary network evidence; do not block design requesting newer transport data.",
+        "VPS preferred PRIMARY: identify unusable Agent/WMS in target 15 seconds and safely switch standby, preserving Firestore CAS/generation/fencing. Manual admin/tamnv2 override and 15-minute cloud-return prompt from E041 remain.",
+        "Android RelayPocClient source waits 20s for ACK and prints speculative standby progress after 10s; D160 primary WMS mutation rejects a job ≥12s old, yet HA threshold is 15s. Full failover cannot finish original request reliably under those independent current limits.",
+        "Agent D160ConfirmPipeline returns WMS_SESSION_REQUIRED terminal when Web Confirm unavailable. Checkbox recovery can surface generic CONFIRM_CONFLICT. ACK fields omit a dedicated machine-readable reason code, and Android displays lookup_status only.",
+        "WMS button text Xác nhận lấy lại hàng is an action label in SupraConfirmBrowser, not proof of WMS committed success. Checkbox disabled alone cannot classify ALREADY_CONFIRMED; use positive WMS or guard evidence and preserve UNCERTAIN after a final click without proof.",
+        "D168NetworkRoute and D168SkuNetworkUi already support allowed saved Wi-Fi, a 60-second Yes/Skip prompt and Worker failure fallback, but do not classify Office-vs-Normal SSIDs across all business operations. Conditions include auth+session, Worker NETWORK_UNREACHABLE, approved fallback, primary WMS-ready and no Confirm busy; false/unknown blocks auto switch.",
+        "Agent KICK and bulk revoke need Worker authority, which is inaccessible from Office in V3. Must show network-change UI before action; no pretend success. Firestore Agent login/job/ACK/call/chat/presence should remain Office-capable.",
+        "V3 Office Firestore REST read PASS via system proxy, RTDB fails and Worker unavailable. Actual Office Firestore gRPC listener and authenticated cross-device writes/ACK were NOT tested. Source-only design cannot guarantee all network partitions detected in 15s."
+      ],
+      "next_action": "Owner impact-review approval before executable code changes; validate transport and failover via staged existing Beta resources; source scope Agent+Android+network; avoid any Stable/provider/network authorization expansion. Full design at docs/D169_AGENT_HA_PDA_WIFI_DESIGN_2026-10-18.md.",
+      "evidence": "User Oct18 instructions and two V3 JSON diagnostics; main relay-agent/FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, D168NetworkRoute.cs, D168SkuNetworkUi.cs, D167SkuCoordinator.cs, D160Resilience.cs; Android RelayPocClient.kt and PickerController.kt.",
+      "kind_legacy": "OWNER_REQUEST_AND_IMPACT_REVIEW"
+    },
+    {
+      "id": "D169-E043",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Seven-day Agent logs cross-check; D169 released/code-only conflict assessment for joint VPS-HA/PDA/Wi-Fi release",
+      "status": "EVIDENCE_REVIEW_DONE_PARTIAL_ARCHIVE_COVERAGE__SOURCE_CONFLICTS_CONFIRMED__OWNER_INTEGRATED_DESIGN_APPROVAL_PENDING__NO_EXECUTABLE_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Main accepted D168; D169 Agent v135 Beta released but physical Field PASS pending, Worker/Web Beta deployed previously, Android+SKU code-only PR606 Draft and currently GitHub mergeable=false. PR606 53 commits ahead and 61 behind current main, so cannot use stale candidate for all-fleet rollout.",
+        "Owner requests one coherent Agent↔Agent + PDA↔Agent model, separate from operational reporting PDA↔Web/Service. Analysis document docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md recorded with 12–18 October scoped Beta Agent log evidence and coverage limitations.",
+        "October 18 VPS process estimate 4,531 reads/1,070 writes: 3,168 extra picker_alerts docs, 999 lease writes, 974 confirm queries but only 7 terminal ACK commits; Office standby 1,438 lease reads, 309 RTDB SSE timeouts, 314 connected. Local counters are NOT Firestore billable totals.",
+        "Earlier checkpoint examples: October 14 8,279 unnecessary legacy docs, 2,153 lease writes; October 16 7,524 legacy docs, 2,203 lease writes, 3,112 takeover=DEFER_UNVERIFIED_PRIMARY_LIVENESS local log lines. October 15 standby 3,258 lease reads. Evidence for recurring heavy HA fallback is concrete across days; never add cumulative snapshots as distinct total.",
+        "October 16 SKU repeatedly DEFER with Worker no-safe-switch/network profiles, October 17 noon WMS export timeout then DONE 15 minutes later; October 18 VPS morning FULL DONE. Preserve working SKU core, repair network/HA branches only.",
+        "Source conflict: 15s HA threshold, 12s WMS mutation fence, 20s job max age and Android ACK timeout; standby may become ready after original job already ineligible. Android mapping omits ALREADY_CONFIRMED success and exact WMS error descriptions; no proof via WMS action button label or disabled checkbox.",
+        "PR606 holds Android overlay/mandatory-update and Agent SKU retry code, none of the new VPS priority, manual override, mixed-network HA, PDA recovery reason-code or universal network classifier code. v135 WinForms Beta tab repair must remain intact.",
+        "Cross-network V3 Office authenticated Firestore REST read PASS and RTDB HTTP403; gRPC listener/real writer+ACK not proved. Cannot assert global hard 15-second failover for partitions while preserving split-brain safety. Testing requires actual clients on normal and office networks.",
+        "Some D169 Android RESULT_ACK_NOT_FOUND 404 pertains to operational reporting and not Picklist; same APK packaging still requires regression to avoid loss.",
+        "Journal checked multiple 12–18 daily folders and read priority Agent checkpoint/manual logs; not all hundreds of files nor all raw Android/Web. Exact billed attribution and full archive coverage remain open. No fabricated Field PASS or source deploy."
+      ],
+      "alternatives": [
+        "Direct merge/release all of PR606 despite GitHub mergeable=false and v135 field pending: REJECT unsafe.",
+        "Preferred after Owner design PASS: start current-main v135 D169 integration base, reconcile code-only PR606, stage HA coordinator+fencing, then PDA ACK/timeout compatibility and local SSID route by business operation, validate quota/security and release Beta in ordered compatible stages.",
+        "Keep unverified cross-network gRPC listener and unrelated PDA↔Worker/Service reporting changes for later evidence, while retaining validated Firestore REST/CAS safeguards and existing business flows."
+      ],
+      "open_questions": [
+        "Owner acceptance of ≤15s target only when authority-network observable vs impossible every partition hard guarantee.",
+        "Recovery-only PDA wait time candidate 35s versus present 20s and exact Agent guard policy.",
+        "Emergency VPS takeover policy if manually designated PRIMARY goes dead.",
+        "Actual in-field WMS/checkbox positive confirmed-proof and Office authenticated Firestore gRPC/peer-WRITE ACK."
+      ],
+      "next_action": "Obtain Owner explicit integrated architecture/release policy approval before source changes, resolve PR606 diverged history, stage and test with V3-based normal+Office test protocol, keep Stable owner-gated. Do not claim full 7-day raw-log coverage.",
+      "evidence": "Canonical GitHub main+Draft PR606; Agent checkpoint/manual logs under registered scoped Beta Drive logs 12–18 Oct; existing D169 weekly analysis E010–E015, D169_AGENT_PDA_ADAPTIVE_MODEL; live relay-agent and Android source; review doc docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md.",
+      "kind_legacy": "WEEKLY_EVIDENCE_AND_CONFLICT_REVIEW"
+    },
+    {
+      "id": "D169-E044",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Approved staged D169 integration and evidence-gated Báo hàng/RBAC/version scope",
+      "status": "PR615_SOURCE_CANDIDATE__NO_RELEASE__CI_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner approves staged VPS preferred PRIMARY, 15-second observable failover target, conditional PDA recovery wait and manual-holder emergency takeover, with network-aware Office/Internet routing.",
+        "Additional scope is conditional on hard evidence. Existing Android overlay/mandatory-update and Agent SKU cooldown code from PR606 ported to main-v135 based PR615. Android already-confirmed mapping and Agent unused legacy query also patched with source and weekly logs.",
+        "Web/Worker Beta PICKPACK_ADMIN permissions already deployed; no blanket RBAC extension. Intermittent version label, result-stage 404 root, new provider/service remain unverified and not deployed.",
+        "PR606 is divergent and not mergeable; PR615 is an integration candidate, main v135 remains production Beta, Stable untouched.",
+        "Review documentation docs/D169_WEEKLY_EVIDENCE_CONFLICT_RELEASE_PLAN_2026-10-18.md; separate PR606 E030-E043 history remains authoritative for pending network study until journal history safely reconciled."
+      ],
+      "next_action": "Review PR615 CI and field safety before any release; continue HA/ACK/SSID integration under D169 and preserve no Stable changes.",
+      "evidence": "Owner Oct18 explicit approval, PR615 source + previous PR606 evidence.",
+      "kind_legacy": "OWNER_APPROVAL"
+    },
+    {
+      "id": "D169-E045",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "PR615 scoped client source CI PASS, rollout HA field pending",
+      "status": "SOURCE_19_OF_19_CI_PASS_TESTED_SHA__NO_NEW_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "PR615 from Agent v135 main integrates Android overlay/version and Agent SKU cooldown from PR606; adds PDA ALREADY_CONFIRMED and WMS error descriptions and skips unused legacy alerts read.",
+        "All 19 GitHub workflow runs for source SHA ddc34814c07378589bb2eff3fb95b3222ba7fd0c completed SUCCESS, including Android and Windows Agent build verification and authority/continuity checks.",
+        "PR615 remains Draft; new VPS-first 15s HA, manual return, PDA failover recovery and universal Office/Internet Wi-Fi switch remain pending code and field verification.",
+        "RBAC currently scoped in deployed Beta; no privilege expansion. Report ACK 404 root/version missing/presence stale/new services still require evidence.",
+        "No new APK/EXE/Worker/Stable release was authorized by a test passing."
+      ],
+      "next_action": "Finish D169 HA/SSID/PDA integration tests and two-network field safety checks; do not release full fleet before technical + field gates.",
+      "evidence": "GitHub PR615 CI SHA ddc34814c07378589bb2eff3fb95b3222ba7fd0c; docs/D169_BACKLOG.md E045."
+    },
+    {
+      "id": "D169-E046",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Finish Owner-approved D169 code and deploy Beta; move physical two-network Agent↔Agent↔PDA test plan to future D170",
+      "status": "OWNER_CODE_AND_STAGED_BETA_RELEASE_INSTRUCTION__IMPLEMENTATION_PENDING__FIELD_TEST_DEFERRED__D170_NOT_OPEN",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly instructs completing the remaining already-approved D169 implementation and deploying all approved Beta components, without reopening authorization for the same scope.",
+        "The dedicated mixed Office/Internet Agent↔Agent↔PDA physical field-test workstream is deferred to D170 by Owner instruction. This is NOT a claim of test PASS or proof of safe 15s failover under network partition; retain D169 automated/contract CI gates, staged compatibility checks, release receipts, rollback and real-device acceptance as unresolved.",
+        "Serial change-control remains authoritative: D169 has no Owner PASS; D170 must NOT be opened or modified before D169 explicitly passes. Record D170 as future queued scope only.",
+        "Continue D169 on PR615 based on released Agent v135 with source-to-release SHA evidence; no direct main pushes, no Stable, no new provider/service, no public secrets, and no invented Office gRPC/RTDB/WMS field verification.",
+        "The existing D169-E044 conditional inclusion rule remains: only evidence-backed Báo hàng/role/version fixes; do not silently widen RBAC, change WMS action result inference, force takeover under uncertainty, or add a new critical transport."
+      ],
+      "next_action": "Complete D169 approved source in PR615, run full relevant PR/CI and simulated HA/ACK/recovery tests; attempt controlled Beta release only if release receipt and safe compatibility gates are satisfied. Queue physical dual-network Agent–Agent–PDA matrix for D170 after explicit D169 Owner PASS.",
+      "evidence": "Owner current message 2026-10-18; PR615 live source/CI and D169-E044/E045 review."
+    },
+    {
+      "id": "D169-E047",
+      "date_vn": "2026-10-18",
+      "kind": "STATUS",
+      "topic": "D169 partial code: truthful RTDB WMS-ready signal with source regression test, staged release still blocked",
+      "status": "PR615_PARTIAL_HA_BUG_FIX_PUSHED__CI_IN_PROGRESS__NO_NEW_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "PR615 received D169-E046 Owner instruction and coupled Owner decision/Realtime spec/backlog/project state changes; D170 remains planned only behind D169 Owner PASS.",
+        "RtdbHaLiveness.WriteHeartbeat now takes the actual bool wmsReady instead of hardcoding true; the coordinator supplies _wmsReady() and the D169 code-only test guards both ends.",
+        "Live PR615 source head 7aa96ae6df9d869e0c93a8a27ad7280066eb6c2f; 19 GitHub Actions PR jobs scheduled. At this checkpoint 15 completed PASS, 4 remain in progress; no test FAIL observed yet.",
+        "VPS preferred-PRIMARY and manual override, cross-network Office Firestore failover proofs, same-request PDA extended recovery, SSID routing, end-to-end reason-code are still unimplemented; owner-approved deployment instruction does not turn absent code into a release.",
+        "No PR merge and no new APK/EXE/Worker/Stable version or production runtime activation. Previously published Agent v135 and Android vc110 remain the only verified published client artifacts."
+      ],
+      "next_action": "Keep D169 PR615 Draft until all approved architecture/source + simulated regression/CI and safe Beta release authorization can be demonstrated. Do not mislabel this partial repair as full D169 completion. D170 only after Owner D169 PASS.",
+      "evidence": "PR615 head 7aa96ae; GitHub Actions run group 390938123xx; RtdbHaLiveness.cs, FirestoreAgentLeaderCoordinator.cs, tests/d169-client-code-only.test.mjs."
+    },
+    {
+      "id": "D169-E048",
+      "date_vn": "2026-10-18",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Reconcile actual D169 blockers: unfinished integration rather than owner permission or VPS resource",
+      "status": "DIAGNOSIS_SOURCE_CONFIRMED__PR615_DRAFT__CODE_NOT_READY__RELEASE_NOT_STARTED",
+      "owner_approval": false,
+      "facts": [
+        "Latest PR615 1a1489a remains Draft and unmerged; main unchanged by this branch. D169-E046 Owner explicitly authorized finish and staged Beta; Owner approval is not the implementation blocker.",
+        "Critical source mismatch: FirestoreAgentLeaderCoordinator FailoverAfterMs=15000, office RTDB ProbePrimary returns UNAVAILABLE and VerifyPrimaryDownBeforeTakeover defers indefinitely to preserve split-brain safety; reliable Office REST/CAS liveness policy not implemented.",
+        "The Agent original mutation eligibility D160CanStartMutation at 12000ms predates the 15000ms HA suspect threshold, while transport MaxPendingAgeMs and Android TOTAL_WAIT_MS are 20000ms. Failover-same-request recovery budget, server-only proof and idempotent terminal decision have not been implemented.",
+        "VPS-preferred PRIMARY with durable manual selection, 15-minute consent, and no disruptive WMS takeover has not been implemented; existing manual authorization/targeted handoff and generation CAS are only building blocks.",
+        "D168NetworkRoute only performs approved Worker WiFi switch for SKU; it is not an Office/Internet business route classifier. Unknown/VPS Ethernet/Office SSID and mid-Picklist safety require new guarded code.",
+        "Android long-overlay/mandatory update, Agent SKU cooldown, ALREADY_CONFIRMED UI, legacy alert read removal, and truthful RTDB wms_ready are partial PR615 source changes. Full mixed-version, ACK, WMS and failover release compatibility tests are pending; two-network physical field test explicitly deferred to future D170 and must not be claimed PASS.",
+        "Earlier latest-head CI failures Project State Guard and Repo Authority Guard were caused by this assistant's E047 journal kind not matching the KINDS whitelist (IMPLEMENTATION_CHECKPOINT invalid), not by a provider or Windows build failure. Corrected E047.kind to STATUS in commit 1a1489a; a new check suite is still executing at time of finding.",
+        "The limitation was execution incomplete in the interrupted assistant session, not a verified technical impossibility. The remaining work is implementable under existing Owner scope, while unconditional 15s failover during a total authority-network partition is unprovable and must fail closed."
+      ],
+      "next_action": "Complete D169 source in scoped PR615: common-network authoritative liveness/fencing and VPS preference/manual hold; recover same Picklist request/ACK with aligned deadlines, then Office/Internet route guard and mixed-version safety; verify automatic regressions, exact-head authority/continuity, staged Beta release receipts. Defer only physical two-network matrix to future D170 after D169 Owner PASS.",
+      "evidence": "PR615 live source: FirestoreAgentLeaderCoordinator.cs, D160ConfirmPipeline.cs, FirestoreConfirmationTransport.cs, D168NetworkRoute.cs, RelayPocClient.kt. GitHub Actions runs 39093957709 and 39093957754 (schema-fail E047), corrected commit 1a1489a; D169-E046 Owner approval."
+    },
+    {
+      "id": "D169-E049",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "D169 PR615 v136/vc111 integrated HA+ACK+SSID source 20/20 CI PASS; exact-SHA staged Beta authorization",
+      "status": "SOURCE_20_OF_20_CI_PASS__EXACT_PROTECTED_SHA_6618007_AUTHORIZED__MERGE_DEPLOY_RECEIPTS_PENDING__D170_PHYSICAL_FIELD_FUTURE",
+      "owner_approval": false,
+      "facts": [
+        "Owner E046 explicitly approved finishing and deploying complete D169 Beta, preserving Stable; dual-network physical Agent–Agent–PDA tests are planned only for D170 after separate D169 Owner PASS.",
+        "PR615 commit 66180079056f931d643b77cc07aab6c2f61fc592 passed 20/20 GitHub Actions, including Windows Agent, Android, Firestore Rules, source/role/authority and continuity guards; source CI is NOT real device field proof.",
+        "Agent v136 includes Firestore authoritative common heartbeat/SSID routing, CAS generation/mutation fencing, locally selected VPS preference, manual override and 15m response prompt, and bounded takeover recovery for both offline PRIMARY and WMS-session-loss CAS handoff.",
+        "Android pending request recovery v1 uses the same request ID; server-granted marker and last-chance verified Firestore read conditionally allow 35s while normal path remains 20s. Legacy v135/older Android clients retain compatibility and fail closed on uncertain transitions.",
+        "Existing scoped Beta Firestore Rules change admits only one PENDING recovery marker for authenticated fenced Agent and optional versioned client recovery_protocol; it does not expand user rights, create provider resources or touch Stable.",
+        "Release must be worker exact-source health → Firestore Rules deploy/readback → Agent v136 prerelease → signed Android vc111; independent workflow gates enforce staging. PR merge and real provider/runtime receipts remain pending.",
+        "Physical WMS/Office/Internet/fleet, Windows v135 UI and usage billing remain unverified; do NOT label Field/Owner PASS or unconditional 15-second failover across network partition."
+      ],
+      "next_action": "Merge PR615 only after E049 same-head authority/continuity/CI PASS, follow exact-source ordered Beta deployment gates, then record actual release tags, SHA, Rules and Worker receipts. D170 stays queued until D169 Owner PASS.",
+      "evidence": "Owner E046; source commit 6618007 20/20 GitHub Actions; PR615 source changes; tools/d167_release_gate.py exact new Beta scope."
     }
   ],
   "resume": {
@@ -680,7 +1091,8 @@
       "D169-E025 v134 source PR608 candidate 0e51a15e 18/18 CI PASS, protected release receipt locks tested code and Beta worker+agent same source; waiting receipt CI/merge and runtime evidence.",
       "D169-E026 Agent v134 GitHub prerelease and inventory-channel Beta OTA published; Worker Beta same-source health PASS; source and authority gates PASS; v132 direct update path available.",
       "D169-E028 v135 WinForms 2-row toolbar/tab panel hotfix, actual Windows geometry smoke and 18/18 PR source CI PASS; scoped NOT PASS repair Beta receipt locked to candidate 7d6c2d5.",
-      "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release."
+      "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release.",
+      "D169-E049 PR615 v136/vc111 mixed-client compatibility, Firestore Rules marker, WMS/HA/CAS/SSID source CI 20/20 PASS at 6618007; runtime NOT YET deployed."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -709,7 +1121,8 @@
       "Owner physical Agent v132->v134 on secondary, WMS tab display/hidden/login, Confirm, SKU, v132/v134 HA and PDA vc110 field proof remains pending.",
       "D169-E027 Owner v134 UI NOT PASS: toolbar overlay hides normal Agent tabs; PR610 v135 narrow repair in two fixed layout rows, Windows geometry self-test and version 135 source CI pending.",
       "Final PR610 receipt/authority+continuity checks and release verification still pending; v134 remains published but Owner NOT PASS.",
-      "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending."
+      "D169 Owner physical v135 validation of normal tab headers and Web Confirm toggle/Login/SKU/ACK/HA remains pending.",
+      "D169-E049 ordered Beta release PR merge and runtime readback; defer dual-network field matrix only to future D170."
     ],
     "pending_approval": [
       "Any D169 technical design, source edit, or Beta release requires an explicit later Owner instruction",
@@ -753,8 +1166,9 @@
       "Record Owner second Agent v132 update, verify actual WebView2 tab visibility and Confirm/SKU/failover; if NOT PASS repair D169 and publish approved hotfix, not Stable.",
       "Verify PR610 full Windows GUI tab-geometry smoke and Authority PASS, then bounded hotfix release path only if existing D169 approval/receipt allows corrective v135; test on secondary.",
       "Verify v135 source SHA receipt CI, merge only after PASS, read Worker Beta same-SHA health and Agent v135 prerelease plus channel manifest, field-validate on secondary.",
-      "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS."
+      "Owner update secondary Agent to v135 and test formerly missing tabs alongside Web Confirm; log failures for D169 same-change repair, do not infer final PASS.",
+      "Complete PR615 merge/receipt and staged Worker→Firestore Rules→Agent v136→Android vc111 auto-update; record runtime evidence, never invent hardware field results."
     ],
-    "release_boundary": "D169_AGENT_V135_BETA_NOT_PASS_REPAIR_PUBLISHED__FIELD_OWNER_PENDING__ANDROID_PR606_DRAFT_UNRELEASED__STABLE_OWNER_GATED"
+    "release_boundary": "D169 OWNER_E046_STAGED_BETA_SOURCE_6618007_CI20_PASS__RUNTIME_RECEIPTS_PENDING__STABLE_FALSE__D170_FIELD_AFTER_OWNER_PASS"
   }
 }

@@ -1,0 +1,24 @@
+name: D169 Android Agent Code Only Guard
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - "relay-agent/**"
+      - "tests/d169-client-code-only.test.mjs"
+      - ".github/workflows/verify-d169-client.yml"
+permissions:
+  contents: read
+jobs:
+  assert-code-only-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Assert UI/ACK/session/Agent scheduling invariants
+        run: node --test tests/d169-client-code-only.test.mjs
+      - name: Explicitly refuse local client release without Owner gate
+        run: |
+          test "${{ github.event_name }}" = pull_request
+          echo "D169_ANDROID_AGENT_CODE_ONLY_NO_SIGNED_RELEASE"
