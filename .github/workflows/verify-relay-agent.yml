@@ -1384,7 +1384,7 @@ jobs:
           foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
             if (-not $ownedHost.Contains($marker)) { throw "D127 owned WebView2 host marker missing: $marker" }
           }
-          foreach ($marker in @('AgentBrowserBundleManifestUrl','AgentBrowserBundleUrl','TryGetReady','sha256','inventory-beta.supra.cc.cd')) {
+          foreach ($marker in @('AgentBrowserBundleManifestUrl','AgentBrowserBundleUrl','TryGetReady','sha256','inventory.supra.cc.cd')) {
             if (-not $browserBundle.Contains($marker) -and -not $config.Contains($marker)) { throw "D127 browser bundle channel marker missing: $marker" }
           }
           foreach ($marker in @('SnapshotStatus','Downloading','Percent','Trình duyệt Agent khả dụng','Tải trình duyệt thất bại')) {
