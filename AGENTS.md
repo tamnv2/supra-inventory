@@ -1,3 +1,7 @@
+# D170 live cutover status (2026-10-19)
+
+Phase1 Worker and signed Android vc113 are released. Phase2 official `inventory.supra.cc.cd` and legacy `inventory-beta.supra.cc.cd` now map to the **same existing** `supra-inventory-beta` Worker and InventoryCore SQLite: main `d6833675`, Worker CI run `39154128973` PASS, both hostnames `/health` source/storage PASS. Technical Beta resource names and old host are retained for client compatibility. Do not treat earlier D170 DESIGN ONLY / hostname-not-cut-over sections below as current runtime status. D170 Phase3 public-client links, OAuth, release-pipeline consolidation, physical FIELD_PASS and OWNER_PASS remain pending. D171 queued; old Stable Worker remains separately gated.
+
 # AGENTS.md — SUPRA Inventory
 
 ## D170 Owner decision — single official Production (DESIGN ONLY)
