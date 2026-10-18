@@ -329,7 +329,8 @@ jobs:
           for path in about privacy terms; do
             code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/${path}")"
             [ "$code" = "200" ] || { echo "/${path} expected HTTP 200, got $code"; head -c 800 "$tmp"; exit 1; }
-            grep -Fq 'SUPRA Inventory Beta' "$tmp" || { echo "/${path} missing app identity"; exit 1; }
+            grep -Fq 'SUPRA Inventory' "$tmp" || { echo "/${path} missing official app identity"; exit 1; }
+            if grep -Fq 'SUPRA Inventory Beta' "$tmp"; then echo "/${path} leaks legacy Beta branding"; exit 1; fi
             grep -Fq 'Chính sách quyền riêng tư' "$tmp" || { echo "/${path} missing privacy navigation"; exit 1; }
           done
           curl -sS --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/about" -o "$tmp"
