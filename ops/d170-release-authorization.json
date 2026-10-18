@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D170",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "d7b52984ec978f60d56869581dd4f5304690d62c",
+  "approved_source_sha": "2fb2027046431734c4b5f18e8f81e554b5f8f5f5",
   "approved_components": [
     "worker",
     "agent"
@@ -19,8 +19,8 @@
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "staged_target": "EXISTING_SAME_WORKER_RUNTIME_READBACK__AGENT_V139_OFFICIAL_HOST_RELEASE_ONLY",
-  "notes": "D170-E019 exact-source receipt repair: main Agent v139 Worker/Agent runs after PR634 merge failed protected Owner gate because receipt still pointed to Phase3A pre-repair SHA b11fd2, while PR634 necessarily changed protected CI/gate source. PR634 exact tested head d7b52984ec978f60d56869581dd4f5304690d62c passed 16/16 CI and is ancestor of merged main 30cfdb9. Update only approved_source_sha to d7b; keep worker+agent-only permission. Subsequent commits are authority/receipt only and MUST not alter protected executable scope. No Android, Firestore Rules, OAuth, Cloudflare domains, Stable or data changes, no FIELD/OWNER PASS implied.",
-  "source_ci": "D170_PR634_16_OF_16_SOURCE_CI_PASS__EXACT_EXECUTABLE_SOURCE_D7B52984__RECEIPT_REANCHOR",
+  "notes": "D170-E020 Owner command restricts release to Agent v139. PR636 adds the narrow protected receipt trigger to existing Agent workflow; no Agent executable source or Android/Firestore/Domain/OAuth changes. Source SHA 2fb2027046431734c4b5f18e8f81e554b5f8f5f5 must pass all PR CI before merge. Approved components remain existing Worker + Agent only. Main Worker #39172416436 already PASS after PR635, but Agent did not dispatch on receipt-only merge. Merge PR636 with exact protected source ancestry; verify same-main Worker, Agent v139 publisher and channel with checksum. Field/Owner D170 acceptance not yet verified.",
+  "source_ci": "D170_PR636_EXACT_WORKFLOW_TRIGGER_SOURCE_2FB2027__FULL_CI_REQUIRED_BEFORE_MERGE",
   "approved_at_vn": "2026-10-19",
   "stable_worker_deploy_permission": false,
   "domain_reassignment_permission": false,
