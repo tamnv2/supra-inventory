@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D168",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_14_D168_LIMITED_CODE_AS_DEPLOYED_PASS_NO_NEW_ISSUES_REPORTED__SIGNED_VC110_RELEASE_E049__E050_DEFECTS_CARRIED__FULL_FIELD_USAGE_UNVERIFIED",
     "current_change_id": "D169",
-    "current_change_status": "D169_PR615_PARTIAL_CLIENT_SOURCE_19_CI_PASS__NEW_HA_MODEL_NOT_CODED__BETA_NO_RELEASE",
+    "current_change_status": "D169_E046_OWNER_FINISH_AND_BETA_APPROVED__PR615_INTEGRATION_IN_PROGRESS__FIELD_TEST_DEFERRED_TO_FUTURE_D170",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7451,11 +7451,11 @@
     "journal": "ops/change-continuity/D169.json",
     "working_branch": "fix/d169-integrated-vps-pda-client-20261018",
     "pr": 615,
-    "latest_checkpoint_id": "D169-E045",
+    "latest_checkpoint_id": "D169-E046",
     "checkpoint_date_vn": "2026-10-18",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP_THEN_WORKING_PR_HEAD_BOOTSTRAP_AND_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D169_STAGED_SCOPE_OWNER_APPROVED__PR615_CI_AND_FIELD_GATED__NO_NEW_AGENT_ANDROID_CHANNEL_YET__STABLE_OWNER_GATED",
+    "owner_release_gate": "D169_OWNER_COMMAND_FINISH_AND_STAGE_BETA__REQUIRE_EXACT_HEAD_CI_COMPATIBLE_API_SAFETY_RELEASE_RECEIPTS__D170_AFTER_OWNER_PASS__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -7976,7 +7976,7 @@
   },
   "d169": {
     "opened_on_vn": "2026-10-14",
-    "status": "V135_BETA_RELEASED__PR615_OWNER_APPROVED_PARTIAL_CODE__VPS_HA_NETWORK_PDA_MODEL_PENDING_TEST_RELEASE",
+    "status": "E046_OWNER_COMPLETION_AND_BETA_DEPLOY_INSTRUCTION__PR615_NEEDS_FULL_HA_ACK_SSID_CODE__D170_PHYSICAL_TEST_DEFERRED",
     "accepted_base": "D168_OWNER_LIMITED_CODE_PASS",
     "opened_by": "OWNER_EXPLICIT_D168_LIMITED_CODE_PASS_AND_CREATE_D169_20261014",
     "journal": "ops/change-continuity/D169.json",
@@ -7994,9 +7994,9 @@
       "D168-E050_LONG_AGENT_OVERLAY_UNSCROLLABLE",
       "D168_FIELD_USAGE_AND_FLEET_MEASUREMENT_ONLY_ON_EVIDENCE"
     ],
-    "next": "OWNER_TEST_V135_ON_SECONDARY__NORMAL_TABS_VISIBLE__HIDE_SHOW_WEB_TAB__WMS_CONFIRM_SKU_HA__FIELD_RESULT",
+    "next": "FINISH_PR615_SOURCE_CI_SAFE_BETA_RELEASE__D170_FIELD_TEST_QUEUED_ONLY_AFTER_D169_OWNER_PASS",
     "stable": "OWNER_GATED",
-    "latest_checkpoint_id": "D169-E045",
+    "latest_checkpoint_id": "D169-E046",
     "usage_log_coverage": "CLIENT_SOURCE_ROOT_CAUSE_TRIAGE_FEASIBLE__PROVIDER_BILLED_ATTRIBUTION_NEEDS_ACTUAL_METER_AND_COVERAGE",
     "intake_added": [
       "D169-REQ-005_VERSION_INTERMITTENT",
@@ -8130,7 +8130,7 @@
     },
     "integrated_vps_pda_2026_10_18": {
       "owner_integrated_scope_approved": true,
-      "release_mode": "STAGED_BETA_ONLY_AFTER_CI_AND_FIELD_CHECKS",
+      "release_mode": "OWNER_STAGED_BETA_APPROVED__REQUIRES_CI_SECURITY_AND_COMPATIBILITY_GATES__PHYSICAL_DUAL_NETWORK_FIELD_TEST_DEFERRED_TO_D170",
       "source_pr": 606,
       "integration_pr": 615,
       "base_agent": 135,
@@ -8153,13 +8153,14 @@
       "rbac": "SCOPED_EXISTING_BETA_CAPABILITY__NO_PRIVILEGE_EXPANSION",
       "version_label": "UNVERIFIED_NO_FIX",
       "worker_service": "NO_NEW_PROVIDER",
-      "agent_android_release_permission": false,
-      "source_ci_pass": true,
+      "agent_android_release_permission": "OWNER_APPROVED_CONDITIONALLY_AFTER_CI_SAFE_PROTOCOL_VERSION_AND_RECEIPT",
+      "source_ci_pass": false,
       "device_field_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED",
       "source_ci_tested_sha": "ddc34814c07378589bb2eff3fb95b3222ba7fd0c",
       "source_ci_workflows_success": 19,
-      "code_ready_scope": "PARTIAL_SOURCE_ONLY__FULL_MODEL_NOT_READY"
+      "code_ready_scope": "PR615_WORK_IN_PROGRESS__PREVIOUS_PARTIAL_19_PASS_ONLY",
+      "future_change": "D170_PLANNED_ONLY_AFTER_EXPLICIT_D169_OWNER_PASS__PHYSICAL_AGENT_AGENT_PDA_TWO_NETWORK_TEST"
     }
   }
 }
