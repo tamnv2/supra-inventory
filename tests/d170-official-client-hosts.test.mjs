@@ -49,6 +49,7 @@ test("new Agent build increments monotonically without touching Firebase or WMS"
 test("v139 release compares Firestore Rules to the actual pre-Phase3A source, never to stale D169", () => {
   const baseline = "3829933312d7805bdb636e1d7581e3a81bb58ff9";
   const workflow = read(".github/workflows/verify-relay-agent.yml");
+  assert.match(workflow, /"ops\/d170-release-authorization\.json"/, "Agent release must react to protected receipt-only corrections");
   assert.match(workflow, /git merge-base --is-ancestor \$baseline \$env:GITHUB_SHA/);
   assert.match(workflow, /git diff --quiet \$baseline \$env:GITHUB_SHA -- firebase\/firestore\.rules firebase\/firestore\.indexes\.json firebase\.json/);
   for (const file of ["firebase/firestore.rules", "firebase/firestore.indexes.json", "firebase.json"]) {
