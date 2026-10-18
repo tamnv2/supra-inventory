@@ -7,7 +7,7 @@
   "pr": 606,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E038",
+    "id": "D169-E039",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": "D169_RECORD_ONLY__NO_CODE_MERGE_BETA_OR_STABLE_DEPLOY_PERMISSION__OWNER_APPROVAL_REQUIRED",
@@ -717,6 +717,24 @@
       ],
       "next_action": "Wait until all mandatory PR614 CI checks complete successfully, merge only PR614 using normal merge commit if passes, verify main AGENTS decision readback and harmonize the old AGENTS section in PR606. Do not merge PR606 or trigger product release.",
       "evidence": "User 2026-10-18 clarification; PR https://github.com/tamnv2/supra-inventory/pull/614; AGENTS.md; docs/OWNER_DECISIONS.md; PR614 current CI authority and continuity PASS."
+    },
+    {
+      "id": "D169-E039",
+      "date_vn": "2026-10-18",
+      "kind": "STATUS",
+      "topic": "Repo-wide CLAUDE coding quality policy merged into main via docs-only PR614",
+      "status": "MAIN_AGENTS_GLOBAL_POLICY_MERGED__POSTMERGE_AUTHORITY_CONTINUITY_PASS__NO_PRODUCT_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly directed main-wide application of five CLAUDE.md engineering quality rules rather than D169-only working-branch applicability.",
+        "PR #614 modified exactly AGENTS.md and docs/OWNER_DECISIONS.md with no executable code, auth/Agent/PDA/Web/Worker/Firebase, resource, CI workflow or Stable change.",
+        "PR614 tested head edde125274558d8935290d95569d466766593c9b passed 8 executable checks including authority and continuity, with 5 irrelevant jobs skipped. Normal merge into main succeeded at 1a2bbae779f5405c36503f40656c114861cc6797.",
+        "Main readback verified AGENTS.md has exactly one repo-wide supplement and docs/OWNER_DECISIONS.md records D169-E037 Owner direction; main merge commit post-merge authority and continuity checks also passed.",
+        "Draft PR606 AGENTS.md blob was aligned to the approved main AGENTS.md (identical SHA 152a1baabc94fcd98468bde8f282f1251477f468), avoiding later policy drift. PR606 remains Draft/unmerged; D169 Owner field/Owner PASS has not occurred.",
+        "Because PR614 changed only documentation, no Agent/APK build, channel, Worker deploy, WMS login behavior, secrets, Firebase routing or Stable resources were changed."
+      ],
+      "next_action": "Retain global engineering quality rules in main. Continue D169 client/field work under existing gates; do not promote PR606 without independent approval and CI.",
+      "evidence": "PR https://github.com/tamnv2/supra-inventory/pull/614; merge main 1a2bbae779f5405c36503f40656c114861cc6797; PR614 8/8 runnable checks success; main AGENTS blob 152a1baabc94fcd98468bde8f282f1251477f468; PR606 policy alignment commit e1994ace81475bad7a4b7da1a04a8695af434799"
     }
   ],
   "resume": {
@@ -732,7 +750,8 @@
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
       "D169 journal and backlog created; no executable product changes",
       "D169 Web/Worker Beta Picker HR route deployed and CI verified at merge SHA 6089bdfd, release run 38674840706 SUCCESS.",
-      "D169-E036: AGENTS.md on Draft PR606 now includes these five quality disciplines; only documentation/source-control metadata changed."
+      "D169-E036: AGENTS.md on Draft PR606 now includes these five quality disciplines; only documentation/source-control metadata changed.",
+      "D169-E039: repo-wide AGENTS coding guidelines merged to main by docs-only PR614 (merge 1a2bbae), main authority+continuity PASS; PR606 alignment docs-only, client code unreleased."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
