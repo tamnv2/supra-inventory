@@ -4222,3 +4222,8 @@ Owner đã duyệt nguyên tắc phát hành các sửa đổi Web độc lập,
 ## D169-E009 · Ranh giới triển khai đã xác minh (15/10/2026)
 
 Biên nhận Web-only D169 triển khai thành công vào Beta theo run 38674840706 tại merge SHA `6089bdfd64f49aad71a47d74ad5f4fc9cd9a003a`, health/Worker/Web shell PASS. Owner chỉ cho phép Android và Agent sửa code không phát hành: PR #606 giữ Draft, không merge main, không tạo APK/Agent version mới. Web role field test với tài khoản thực và các nguyên nhân ACK/presence/Usage/HA vẫn cần chứng cứ. Stable vẫn OWNER-GATED; Firebase Office-critical route bất biến.
+
+
+## D169-E040 · Owner hủy ý tưởng tự nhận diện/kéo CAPTCHA WMS (18/10/2026)
+
+Owner yêu cầu **bỏ qua ý tưởng tự nhận diện hình ảnh, tự kéo mảnh ghép CAPTCHA và tự vượt bước xác minh đăng nhập Supra/WMS**. Quyết định mới nhất **hủy toàn bộ phần nghiên cứu/triển khai tiếp theo của đề xuất này**, thay thế hướng nghiên cứu D169-E031–E037; không xây dựng CAPTCHA solver, công cụ tự kéo hay chức năng đăng nhập WMS không người giám sát qua CAPTCHA. Giữ nguyên cơ chế WMS WebView2 profile và đăng nhập/xác minh CAPTCHA thủ công khi WMS hết phiên. Khi WMS chưa sẵn sàng, bảo vệ PRIMARY/generation và sử dụng HA dự phòng đã đăng ký; khi WMS sẵn sàng lại, xét vai trò theo authority và khóa chuyển quyền thủ công hiện hành (không coi tính năng VPS-preferred mới đã triển khai). Hướng tối ưu VPS, xác thực tài khoản Agent VPS, tối ưu usage và Agent⇄PDA vẫn là chủ đề độc lập, không bị hủy. Không đổi code/EXE/APK, đăng nhập WMS, Firebase/Worker/provider, resource scope hay Stable trong checkpoint này.
