@@ -3518,7 +3518,8 @@ namespace SupraInventoryRelayAgent
                     // D169-E057: authenticated VPS alert is broadcast to both
                     // currently connected admin/tamnv2 Agent listeners. Never
                     // prompt only on the local PRIMARY-holder workstation.
-                });
+                },
+                request => HandleD169VpsConsentEvent(request));
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
         }
