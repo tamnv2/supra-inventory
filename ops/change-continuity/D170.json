@@ -7,7 +7,7 @@
   "pr": 633,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E015",
+    "id": "D170-E016",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "production_runtime_permission": false,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E015_CLIENT_OFFICIAL_DOMAIN_CODE_ONLY__SOURCE_CI_AND_PROTECTED_RELEASE_PENDING"
+    "reason": "D170_E016_PHASE3A_25_OF_25_PR633_SOURCE_CI_PASS__EXACT_CODE_SHA_B11FD2__RELEASE_RECEIPT_PENDING"
   },
   "entries": [
     {
@@ -289,6 +289,24 @@
       ],
       "next_action": "Complete PR633 source authority/continuity/client+Worker CI; authorize guarded exact worker+android+agent release, preserve old host. Obtain Google OAuth and installed fleet proof before exact scoped old-host detach.",
       "evidence": "docs/D170_PHASE3_CLIENT_MIGRATION_AND_SUNSET_2026-10-19.md; Android build.gradle.kts/MainActivity.kt, relay-agent/AgentConfig.cs/AgentUpdater.cs; Worker OAuth service/src/index.ts; PR633."
+    },
+    {
+      "id": "D170-E016",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "topic": "D170 Phase3A official Android/Agent API and signed-update migration source protected 25/25 CI PASS",
+      "status": "PR633_25_OF_25_SOURCE_SUCCESS__CODE_SHA_B11FD2__NO_LIVE_DEPLOY_YET",
+      "owner_approval": true,
+      "facts": [
+        "PR633 CI on source commit b11fd2f4e898b3095ee18149cee7625f66fe821c completed 25/25 SUCCESS, including Android build, Agent .NET compile, D170 host/OTA regression, OAuth state security, authority/continuity, Firestore/WMS/HA and existing UI smoke tests.",
+        "Android BuildConfig now pins business API and manifest to inventory.supra.cc.cd while preserving package cd.cc.supra.inventory.beta, trusted signer and internal beta-vcN tag. Expected signed next vc114, no new package ID.",
+        "Agent v139 changes API/update, browser bundle, SKU and network probe allowlisted hosts to official URL. Existing v138 and older can still auto-update using retained old hostname/channel; no Firestore/WMS/PRIMARY protocol change.",
+        "Worker OAuth start uses configured registered callback hostname and allowlisted old/new only; callback state equality remains mandatory. Existing Google OAuth runtime callback remains legacy until Owner registers official URI and D170 Phase3B update; no credential values saved.",
+        "No old Cloudflare Custom Domain removal in Phase3A. Unavoidable Google Cloud registration Owner Web UI action recorded OA105; not blocking this client release.",
+        "After CI, only ops/owner-actions.json changed versus tested source; no protected source diff. GitHub release receipt must lock exact tested ancestor b11fd2 and allow only Worker/Agent/Android for Phase3A."
+      ],
+      "next_action": "Set D170 Phase3A exact SHA worker+agent+android release receipt on PR633, rerun final authority/product CI, merge with merge method retaining tested commit ancestry and guarded D170_PHASE3_OFFICIAL_CLIENTS prefix; inspect Worker/Agent/Android releases. Keep old host until OAuth and fleet PASS.",
+      "evidence": "PR633 source commit b11fd2, GitHub PR checks 25/25 SUCCESS, compare b11fd2...89f97d9 only ops/owner-actions.json, new OA105."
     }
   ],
   "resume": {
@@ -310,11 +328,13 @@
       "E006: Phase1 Worker and signed Android vc113 published and verified. Field/Owner PASS still pending.",
       "D170-E010 16/16 source CI and Worker-only protected SHA locked; runtime cutover pending main push readback.",
       "D170-E012 PR630 exact-source 8d18582c 15/15 source CI and Worker-only no-delete official-host attachment release receipt approved; not yet merged or deployed.",
-      "D170-E014 domain cutover runtime PASS: main d6833675, Worker run 39154128973, dual domain control plane and SQLite."
+      "D170-E014 domain cutover runtime PASS: main d6833675, Worker run 39154128973, dual domain control plane and SQLite.",
+      "E016 PR633 Android + Agent + Worker OAuth Phase3A code passed 25/25 PR CI on b11fd2; source not released."
     ],
     "in_progress": [
       "D170 Phase3 public links and single-release-policy review pending.",
-      "PR633 Phase3A official client API/OTA and Google OAuth registered-origin bridge, source CI before release."
+      "PR633 Phase3A official client API/OTA and Google OAuth registered-origin bridge, source CI before release.",
+      "Phase3A exact-source release gate and main Worker/Android/Agent update publication; old hostname still active."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs."
@@ -322,7 +342,8 @@
     "blocked": [
       "Production domain may still be attached to old Stable Worker: actual Cloudflare provider binding not yet checked.",
       "No verified backup restore/data readback or client fleet compatibility guarantee yet; no live routing or database changes.",
-      "Legacy PDA vc113/Agent v138 pinned to old host for business and signed update checks; old host cannot be removed until installed fleet migrates or explicitly accepted outage."
+      "Legacy PDA vc113/Agent v138 pinned to old host for business and signed update checks; old host cannot be removed until installed fleet migrates or explicitly accepted outage.",
+      "OA105: Owner must add official redirect URI to existing Google OAuth client before old host can retire; new Worker redirect variable update and field proof separately."
     ],
     "next_actions": [
       "Review docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md against canonical resource scope and code; obtain scoped authorization for safe CODE and deployment stages.",
@@ -340,8 +361,9 @@
       "After receipt authority CI, merge PR630 with exact D170 Phase2 prefix and inspect success of Worker deploy plus same-Worker/SQLite health on both hostnames.",
       "After PR631 authority/CI PASS, guarded Worker-only merge and runtime same Worker dual-host proof.",
       "Review Client URLs, Google OAuth and release CI; Phase3 remains under D170.",
-      "CI PR633, exact source lock, guarded release; OAuth callback setting/new URI validation, fleet migration, then separate scoped Cloudflare old Custom Domain detach."
+      "CI PR633, exact source lock, guarded release; OAuth callback setting/new URI validation, fleet migration, then separate scoped Cloudflare old Custom Domain detach.",
+      "Authorize exact b11fd2 Phase3A protected release, CI/merge with merge method retaining tested source ancestry, verify manifests and dual-host storage."
     ],
-    "release_boundary": "D170_PHASE2_DOMAIN_PASS__PHASE3A_PR633_CODE_ONLY_PENDING_CI__NO_OLD_HOST_DELETE"
+    "release_boundary": "D170_PHASE3A_PR633_25_OF_25_CODE_PASS__EXACT_RELEASE_RECEIPT_PENDING__OLD_HOST_COMPAT_GATED"
   }
 }
