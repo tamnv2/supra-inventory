@@ -65,6 +65,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _takeoverWmsProbe;
         private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
+        private readonly Func<bool> _canSafelyHandoff;
         private readonly string _instanceId;
         private readonly Action<string> _log;
         private readonly Action<FirestoreAgentRole, string> _stateChanged;
@@ -98,6 +99,8 @@ namespace SupraInventoryRelayAgent
         private long _lastTakeoverProbeMs;
         private long _lastTakeoverLivenessCheckMs;
         private long _verifiedAutomaticTakeoverAtMs;
+        private string _manualHolderAgentInstanceId = "";
+        private long _preferredReadySinceMs;
         private long _primaryWmsUnreadySinceMs;
         private int _primaryWmsUnreadySamples;
         private string _sharedScheduleKey = "";
@@ -114,7 +117,8 @@ namespace SupraInventoryRelayAgent
             Func<bool> relayEnabled,
             string instanceId,
             Action<string> log,
-            Action<FirestoreAgentRole, string> stateChanged)
+            Action<FirestoreAgentRole, string> stateChanged,
+            Func<bool> canSafelyHandoff = null)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
@@ -122,6 +126,7 @@ namespace SupraInventoryRelayAgent
             _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
             _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
+            _canSafelyHandoff = canSafelyHandoff ?? (() => false);
             _instanceId = instanceId ?? "";
             _log = log ?? delegate { };
             _stateChanged = stateChanged ?? delegate { };
@@ -1102,7 +1107,8 @@ namespace SupraInventoryRelayAgent
                     var now = NowMs();
                     var startupConvergence = _startupConvergenceRemaining > 0;
                     var roleInterval = _role == FirestoreAgentRole.DEEP_HIBERNATE
-                        ? DeepHibernateRoleRefreshMs
+                        ? (string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal)
+                            ? 30000 : DeepHibernateRoleRefreshMs)
                         : (_role == FirestoreAgentRole.NEXT_A
                             ? NextARoleRefreshMs
                             : (_role == FirestoreAgentRole.NEXT_B
@@ -1497,7 +1503,9 @@ namespace SupraInventoryRelayAgent
         private void MaintainPresence(AgentSession session)
         {
             var now = NowMs();
-            if (_lastPresenceWriteMs != 0 && now - _lastPresenceWriteMs < PresenceHeartbeatIntervalMs) return;
+            var cadence = string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal)
+                ? 15000 : PresenceHeartbeatIntervalMs;
+            if (_lastPresenceWriteMs != 0 && now - _lastPresenceWriteMs < cadence) return;
             var fields = new Dictionary<string, object>
             {
                 { "agent_instance_id", StringField(_instanceId) },
@@ -1845,6 +1853,7 @@ namespace SupraInventoryRelayAgent
         private void ApplySharedSchedule(FirestoreRoleSnapshot snapshot)
         {
             if (snapshot == null) return;
+            _manualHolderAgentInstanceId = snapshot.ManualHolderAgentInstanceId ?? "";
             SetSharedSchedule(
                 snapshot.ScheduleKey ?? "",
                 snapshot.ScheduleDecision ?? "",
