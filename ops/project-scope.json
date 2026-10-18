@@ -133,7 +133,13 @@
         "owner_approval": "2026-10-09",
         "stable": "OWNER_GATED_UNCHANGED",
         "do_namespace": "NOT_CANONICALLY_REGISTERED__FAIL_CLOSED"
-      }
+      },
+      "operational_role": "D170_SINGLE_PRODUCTION_DATA_AUTHORITY",
+      "current_public_hosts": [
+        "inventory.supra.cc.cd",
+        "inventory-beta.supra.cc.cd"
+      ],
+      "technical_name_preserved": true
     },
     {
       "key": "worker-stable",
@@ -150,7 +156,10 @@
       "kind": "hostname",
       "environment": "beta",
       "name": "inventory-beta.supra.cc.cd",
-      "exposure": "public_identifier"
+      "exposure": "public_identifier",
+      "operational_role": "LEGACY_COMPATIBILITY_HOST",
+      "current_binding_key": "worker-beta",
+      "retained_for_ota_and_agent_compatibility": true
     },
     {
       "key": "host-stable",
@@ -159,7 +168,15 @@
       "environment": "stable",
       "name": "inventory.supra.cc.cd",
       "exposure": "public_identifier",
-      "guard": "OWNER_GATED"
+      "guard": "OWNER_GATED",
+      "operational_role": "D170_OFFICIAL_PRODUCTION_HOST",
+      "current_binding_key": "worker-beta",
+      "d170_custom_domain_release": {
+        "run_id": 39154128973,
+        "main_sha": "d6833675ad933acc7da4653a50c984005dbb5256",
+        "status": "CONTROL_PLANE_AND_DUAL_HOST_SQLITE_HEALTH_PASS",
+        "date_vn": "2026-10-19"
+      }
     },
     {
       "key": "inventory-core",
