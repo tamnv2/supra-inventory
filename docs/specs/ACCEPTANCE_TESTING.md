@@ -3108,3 +3108,12 @@ Windows Agent `--startup-smoke` phải kiểm tra tất cả tab gốc tồn t�
 | Deployment/resource/security | GitHub PR #617, Worker Beta, existing Gateway, Agent canary | Source/type/build/static tests + authority/continuity PASS before approval; explicit release SHA receipt before Beta deploy; Stable untouched; real email delivery and VPS login require separate field evidence |
 
 **Evidence status at Owner approval:** source update is in PR #617, checks and provider/account FIELD PASS separately tracked. No real four-digit OTP or SMTP proof is recorded publicly. Do not merge just because the static tests pass. No changes to Cloudflare/Firebase metered hot-path cadence; OTP sends only on explicit request/successful one-time use, so usage must be measured rather than assumed zero.
+
+
+### D169-E054 — staged Beta release and first VPS OTP acceptance
+
+- Source SHA `7719d8c7c68e2332c6dc3267618a317ee4ce9aa6`: 23/23 GitHub Actions source checks PASS; CI does not establish provider release or OTP delivery.
+- Worker: main push exact-source health/readback required. Initial VPS code-issue step runs only for uniquely titled Owner E054 merge; accepts HTTP 202 (accepted for sending), or existing protected code pending 409 without replacing it, otherwise FAIL and report HTTP class only.
+- Gateway: exact existing deployment updated/readback by authorized GitHub workflow; Agent v137 release must wait matching successful Gateway run and Beta Worker/Firestore release gates. No new Script deployment/resource.
+- Agent: new v137 prerelease executable and sha256 assets must be published and inventory-channel manifest updated; old v136 must not be silently assumed compatible with VPS.
+- Field: Owner checks Gmail without sharing code, confirms original VPS role, signs into v137 with four-digit code, confirms next-code issuance and replay rejection, verifies Office path only if used. No WMS/HA/ACK owner PASS inferred.

@@ -7,10 +7,10 @@
   "pr": 617,
   "accepted_base": "D168_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D169-E052",
+    "id": "D169-E054",
     "date_vn": "2026-10-18"
   },
-  "deployment_gate": "D169_E050_BETA_RUNTIME_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__D170_AFTER_EXPLICIT_D169_PASS__STABLE_OWNER_GATED",
+  "deployment_gate": "D169_E054_OWNER_EXPLICIT_BETA_DEPLOY_AND_FIRST_VPS_OTP_AUTHORIZED__EXACT_SOURCE_7719D8C__FIELD_OWNER_PASS_FALSE__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D169-E001",
@@ -1123,6 +1123,39 @@
       ],
       "next_action": "Verify PR617 new source head CI (Worker TypeScript, Windows Agent build, Apps Script syntax, OTP-only test, authority/continuity); diagnose and repair checks. Hold merge/Beta Worker/Agent/Gateway deployment until exact Owner deploy approval, then verify real VPS account role, delivery, login and Office network.",
       "evidence": "Owner D169-E052 explicit OTP-only selection 18/10; PR617 source commit 227d44f902fc3027b25c6f01defd9dc647b75ba3; service/src/privileged-auth.ts, core.ts, index.ts, user-management-api.ts; relay-agent/D165PrivilegedAuth.cs, Program.cs; ops/apps-script/agent-log-gateway/Code.gs; tests/d169-vps-otp-only.test.mjs."
+    },
+    {
+      "id": "D169-E053",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "D169 VPS OTP-only code integration including Windows Agent 137 release and Beta resources",
+      "status": "FULL_SOURCE_23_OF_23_CI_PASS__NO_FIELD_OR_RUNTIME_PASS",
+      "owner_approval": false,
+      "facts": [
+        "D169 PR617 tested source SHA 7719d8c7c68e2332c6dc3267618a317ee4ce9aa6 passed 23/23 relevant GitHub Actions workflows with no failures, including Windows Agent build, Worker TypeScript, Apps Script syntax, source/role regression tests, repo authority and project state continuity.",
+        "Exact existing VPS login obtains one-use four-digit OTP sent to existing PROJECT_ADMIN_EMAIL. Server rejects VPS clock-derived emergency login/reauth. Source does not create or elevate VPS user or grant manual PRIMARY/Usage/global kick.",
+        "V137 release requires exact Worker health, Beta Gateway deployment readback and existing Firestore release gates; first-code issue runs solely under Owner-marked main merge after Worker deploy, outputs only non-sensitive status.",
+        "No real account, OTP email delivery, Office/Internet Agent login, WMS/HA or owner hardware validation is claimed."
+      ],
+      "next_action": "Record Owner rollout permission and release receipt for exact protected SHA, then merge only after authority+continuity and 23/23 CI. Stage existing Beta Worker/Gateway/Agent and check first-code 202 or pending, not just CI.",
+      "evidence": "PR617 exact-source 7719d8c 23/23 Actions SUCCESS; tests/d169-vps-otp-only.test.mjs; tools/d167_release_gate.py; workflows deploy-beta, deploy-beta-agent-gateway, verify-relay-agent."
+    },
+    {
+      "id": "D169-E054",
+      "date_vn": "2026-10-18",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly instructs D169 scoped Beta deployment and issue initial OTP for VPS to project mailbox for live testing",
+      "status": "OWNER_BETA_DEPLOY_AND_FIRST_OTP_ISSUE_APPROVED__SOURCE_23_OF_23_CI_PASS__RUNTIME_RECEIPTS_PENDING__STABLE_OWNER_GATED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly authorizes immediate D169 scoped Beta deployment of the VPS OTP-only change and sending the first four-digit OTP through the existing project mail transport for real testing.",
+        "Release covers only Worker, existing Apps Script Agent Gateway, and Windows Agent v137; Android vc111, Firestore Rules, WMS, all new provider resources and Stable remain unchanged.",
+        "The server issues to existing exact VPS user only if ACTIVE with matching Agent role/base-role and returns fail closed otherwise. Issuance is single-use, not reusable and no code or recipient contents enter public GitHub logs.",
+        "Source lock: commit 7719d8c7c68e2332c6dc3267618a317ee4ce9aa6; 23/23 source workflows PASS. Technical CI is not actual email delivery or physical Agent field PASS.",
+        "Do not promise OTP received or login PASS until matched source deployment receipts and initial-issuance HTTP outcome, user-supplied physical result."
+      ],
+      "next_action": "Merge PR617 after authority/continuity and source CI PASS using exact merge title D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE. Verify live Beta Worker and Gateway Actions readback, Agent v137 release/checksum/channel, and first VPS OTP code issue receipt. Then guide Owner in installing v137 and checking existing mailbox; avoid OTP disclosure.",
+      "evidence": "Owner chat explicit 'ô triển khai đi, gửi OTP về mail lần đầu đi để anh test' dated 2026-10-18; prior E052 OTP-only decision; PR617 7719d8c 23/23 Actions PASS; release auth ops/d169-release-authorization.json new exact scope."
     }
   ],
   "resume": {
@@ -1133,7 +1166,8 @@
       "D169 Web Beta conditional release receipt explicitly limited to Worker bundle, tested SHA d9f350f73e32cd46a04d93de7f7f9ef26dab15b6",
       "D169-E022 Owner approves Agent-only embedded WMS tab and immediate MANUAL secondary-machine v133 artifact distribution; no merge/main/global channel, no other fleet install.",
       "D169-E024 Owner expressly approves v134 Agent code+Beta OTA channel release from existing v132; profile/browser tab show/hide UI only and same-source Worker redeploy to fulfill existing release gate, no Android or Stable.",
-      "D169-E052 Owner approved existing VPS Agent OTP-only authentication with existing project mail recipient; HHmm emergency explicitly denied; CODE/CI work authorized, Beta deploy remains separately gated."
+      "D169-E052 Owner approved existing VPS Agent OTP-only authentication with existing project mail recipient; HHmm emergency explicitly denied; CODE/CI work authorized, Beta deploy remains separately gated.",
+      "E054: Owner authorized staged existing Beta Worker, existing Agent Operations Gateway and Windows Agent v137 plus first VPS email OTP issuance; no Android/Firestore/Stable change."
     ],
     "implemented": [
       "D168 Beta vc110 signed release reported in D168-E049; historical release evidence retained",
@@ -1146,7 +1180,8 @@
       "D169-E029 v135 UI repair release published on Beta Agent inventory-channel, same-source Beta Worker health verified at merge 0900a17; v134 kept as immutable NOT PASS historical release.",
       "D169-E049 PR615 v136/vc111 mixed-client compatibility, Firestore Rules marker, WMS/HA/CAS/SSID source CI 20/20 PASS at 6618007; runtime NOT YET deployed.",
       "D169-E050 PR615 main merge c90e521: Worker and Firestore Rules Beta live, Agent v136 EXE/browser bundle and signed Android vc111 APK published; 13/13 main actions PASS, SHA/channel verified.",
-      "D169-E052 PR617 code candidate 227d44f: Worker/Core/Agent/Office Gateway protected identity, VPS-specific emergency deny and tests; CI FIELD verification pending."
+      "D169-E052 PR617 code candidate 227d44f: Worker/Core/Agent/Office Gateway protected identity, VPS-specific emergency deny and tests; CI FIELD verification pending.",
+      "E053: PR617 exact source 7719d8c passed 23/23 GitHub Actions including Windows Agent and scoped Gateway; release after merge is pending."
     ],
     "in_progress": [
       "Collect Owner-provided defects/logs and cross-reference version/channel; classify by impact and evidence",
@@ -1190,8 +1225,7 @@
       "D169-E021: require Owner approval of embedded WebView2 host/UI design and explicit Agent-only Beta release command; no accidental APK/Agent co-release or WMS session/profile changes.",
       "Any v133 general release, relay-agent-v133 GitHub prerelease, inventory-channel update, PR608 main merge or Android PR606 release remains separate Owner-gated.",
       "D169 v134 physical WMS/PDA/HA field PASS still Owner pending; does not authorize Android PR606.",
-      "D169-E027 Owner physical field PASS required after v135 layout repair; do not infer accepted v134 from release/CI.",
-      "D169-E052 separate exact source Beta release authorization and existing VPS account/role runtime evidence pending; no automatic rollback of previous Beta v136."
+      "D169-E027 Owner physical field PASS required after v135 layout repair; do not infer accepted v134 from release/CI."
     ],
     "blocked": [
       "Physical Fleet/Office/ACK/Usage measurements not fully verified; code-only D168 acceptance does not supply those proofs"
@@ -1225,7 +1259,8 @@
       "Complete PR615 merge/receipt and staged Worker→Firestore Rules→Agent v136→Android vc111 auto-update; record runtime evidence, never invent hardware field results.",
       "Owner validate hardware acceptance of D169 Beta release in normal operations; future D170 physical Agent–Agent–PDA two-network tests remain queued until explicit D169 Owner PASS.",
       "Review D169-E051 VPS protected login impact (Worker/Core/Agent/Gateway and account existence); do not expand clock-only emergency bypass or permissions without explicit approval.",
-      "Finish PR617 CI/authority; after separate authorization deploy Worker→Agent Gateway→Agent Beta as a staged change, then verify VPS OTP email, one-use rotation, Office login and recovery while old admin/tamnv2 continue."
+      "Finish PR617 CI/authority; after separate authorization deploy Worker→Agent Gateway→Agent Beta as a staged change, then verify VPS OTP email, one-use rotation, Office login and recovery while old admin/tamnv2 continue.",
+      "E054: merge PR617 only after authority/continuity PASS; inspect Beta Worker health, Gateway same-SHA existing deployment, v137 EXE release, and worker first-code 202/pending; if VPS account not found do not provision."
     ],
     "release_boundary": "D169_E050_BETA_RELEASE_SUCCEEDED__AGENT136_ANDROID111_WORKER_FIRESTORE_RULES__FIELD_AND_OWNER_PASS_FALSE__STABLE_UNTOUCHED"
   }

@@ -5548,6 +5548,34 @@
       "owner_acceptance_at_vn": "2026-10-13",
       "remaining_owner_action": "NONE_FOR_D167_CLOSEOUT__UNPROVEN_FIELD_AND_USAGE_EVIDENCE_TRACKED_IN_D168_WHEN_REQUESTED",
       "note_closure": "Owner explicitly approves deployed D167 Beta status; physical fleet/version, HA/ACK, complete UX and billed Usage gains not asserted. Stable untouched."
+    },
+    {
+      "id": "OA104",
+      "status": "WAIT_BETA_RELEASE_AND_OWNER_FIELD_OTP_TEST",
+      "title": "VPS OTP-only Agent v137 Beta field validation",
+      "resource_key": "apps-script-agent-log-gateway-beta-d158",
+      "provider": "Existing SUPRA Inventory Beta Worker / Windows Agent",
+      "reason_owner_only": "Owner controls the VPS Windows application login and project Gmail inbox; tool/CI cannot attest actual inbox delivery or a personal WMS session.",
+      "prerequisites": [
+        "D169 E054 Beta Worker source health PASS and Gateway version readback PASS",
+        "Official relay-agent-v137 EXE published and verified",
+        "Initial VPS OTP first-issue Worker response 202 or existing pending documented; account must already exist and have valid operator role"
+      ],
+      "shortest_action": [
+        "Check the existing project admin mailbox for an email with account VPS and a four-digit OTP; check Spam if absent.",
+        "On VPS Windows install/update official Agent v137 from GitHub Beta release, enter VPS and the received four-digit OTP in the ordinary password field; never paste the code into chat/GitHub.",
+        "After successful sign-in, check that a separate next OTP email arrived; test protected exit/reauth with next code and verify old code rejected.",
+        "Report PASS or sanitized error/status only. No OTP/password/email subject screenshot containing code."
+      ],
+      "pass_criteria": [
+        "VPS OTP first delivery confirmed by Owner",
+        "Agent v137 login with existing VPS role succeeds without emergency password",
+        "Consumed code rejected and next code received",
+        "Admin and tamnv2 mechanisms remain unchanged; office fallback if tested"
+      ],
+      "remaining_owner_action": "Only live Gmail + Agent Windows field test; no manual local build, secrets or new provider setup.",
+      "owner_field_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
