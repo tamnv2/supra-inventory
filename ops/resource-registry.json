@@ -378,6 +378,17 @@
       "d162_android": "beta-vc97__UNCHANGED__ASSET_609733318",
       "pda_registry_sheet_id": "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI",
       "pda_registry_status": "TECHNICAL_RUNTIME_RELEASE_PASS__DEPLOY_RUN_37406392755__LAUNCHER_V0.3.16__REAL_PDA_FIELD_TEST_PENDING",
+      "d169_vps_otp_beta_2026_10_18": {
+        "owner_release_scope": "EXISTING_BETA_WORKER_AGENT_GATEWAY_ONLY",
+        "existing_gateway_resource_key": "apps-script-agent-log-gateway-beta-d158",
+        "protected_source": "EXACT_SHA_IS_IN_ops/d169-release-authorization.json",
+        "agent_target_version": 137,
+        "vps_authentication": "EXACT_ACTIVE_AGENT_OPERATOR__FOUR_DIGIT_SINGLE_USE_OTP_ONLY__NO_EMERGENCY_CLOCK_OR_FIXED_PASSWORD",
+        "recipient": "PROJECT_ADMIN_EMAIL_EXISTING_ALIAS",
+        "first_issue": "REQUESTED_BY_OWNER__LIVE_RECEIPT_PENDING",
+        "new_provider_resources": "NONE",
+        "stable": "OWNER_GATED_UNTOUCHED"
+      },
       "d165_agent_gateway_otp_release": {
         "resource_key": "apps-script-agent-log-gateway-beta-d158",
         "automation_workflow": ".github/workflows/deploy-beta-agent-gateway.yml",

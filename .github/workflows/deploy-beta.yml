@@ -388,6 +388,34 @@ jobs:
             echo "D165 persistent OTP provisioning for $username: $outcome (mailbox is the only code destination)."
           done
 
+      # E054 Owner-approved first issue for exact VPS; never show the OTP.
+      # The unique merge title prevents other Beta deployments re-issuing codes.
+      - name: D169-E054 send initial VPS OTP after verified Beta Worker deployment
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
+        shell: bash
+        env:
+          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          status="$(curl -sS --connect-timeout 5 --max-time 35 -o "$tmp" -w '%{http_code}' \
+            -H 'content-type: application/json' \
+            --data '{"username":"vps"}' \
+            "https://${BETA_HOSTNAME}/api/auth/privileged-code" || true)"
+          if [ "$status" = "202" ]; then
+            echo "D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY"
+          elif [ "$status" = "409" ] && jq -e '.error == "CODE_PENDING_UNTIL_CONSUMED"' "$tmp" >/dev/null 2>&1; then
+            echo "D169_VPS_OTP_ALREADY_PENDING_UNCONSUMED"
+          else
+            # Fail closed: no account bootstrap, no password fallback, no OTP in logs.
+            echo "::error::D169 VPS first OTP not issued; HTTP ${status:-000}. Verify existing account and role via authorized Admin UI."
+            exit 1
+          fi
+
       - name: Verify Beta Google OAuth start
         env:
           BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}

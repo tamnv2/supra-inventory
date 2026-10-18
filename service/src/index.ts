@@ -413,7 +413,7 @@ async function privilegedAgentReauth(request: Request, env: Env): Promise<Respon
   try { body = (await request.json()) as typeof body; } catch { return json({ error: "INVALID_JSON" }, 400); }
   try {
     const verified = await verifyPrivilegedProof(env, user, String(body.proof || ""), true);
-    if (!verified.valid) return json({ error: "CURRENT_PASSWORD_INVALID", message: "Mật khẩu một lần hoặc mật khẩu khẩn cấp không đúng." }, 403);
+    if (!verified.valid) return json({ error: "CURRENT_PASSWORD_INVALID", message: "Mã xác thực không hợp lệ." }, 403);
     return json({ status: "verified", mode: verified.mode });
   } catch (error) {
     return privilegedAuthErrorResponse(error);

@@ -2,37 +2,49 @@
   "schema_version": 1,
   "change_id": "D169",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "66180079056f931d643b77cc07aab6c2f61fc592",
+  "approved_source_sha": "9ae124c7c1ac76352197a5fe975df7525deb0732",
   "approved_components": [
     "worker",
-    "firestore",
-    "agent",
-    "android"
+    "gateway",
+    "agent"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261018_E046_STAGED_BETA_AGENT_ANDROID_FIRESTORE",
+  "owner_approval_reference": "OWNER_EXPLICIT_D169_DEPLOY_20261018_E054_VPS_OTP_ONLY_BETA",
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "cross_component_compatibility_ci": true,
   "stable_deploy_permission": false,
   "field_pass": false,
   "physical_field_verified": false,
-  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_STAGED_D170_FIELD_TEST",
-  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261018_E046_BETA_ROLLOUT_D170_TEST_DEFERRED",
-  "resource_change": "EXISTING_BETA_FIRESTORE_RULES_ONLY",
-  "code_scope": "D169_E046_V136_VC111_CROSS_NETWORK_BETA_STAGED",
+  "field_release_mode": "OWNER_ACCEPTED_RISK_FOR_BETA_VPS_OTP_FIELD_VALIDATION",
+  "owner_field_acceptance_reference": "OWNER_EXPLICIT_D169_20261018_E054_VPS_OTP_BETA_FIELD_TEST",
+  "resource_change": "NONE_EXISTING_BETA_ONLY",
+  "code_scope": "D169_E054_VPS_OTP_ONLY_BETA_WORKER_GATEWAY_AGENT137",
   "approved_at_vn": "2026-10-18",
-  "source_ci": "PR615_6618007_20_OF_20_CI_PASS_WINDOWS_AGENT_ANDROID_FIRESTORE_AUTHORITY__NO_FIELD_TEST",
+  "source_ci": "PR617_9AE124C_23_OF_23_CI_PASS_AFTER_FIRESTORE_GUARD_REPAIR",
   "release_sequence": [
-    "BETA_WORKER_MATCH_SOURCE_HEALTH",
-    "BETA_FIRESTORE_RULES_DEPLOY_READBACK",
-    "AGENT_V136_PRE_RELEASE_OTA",
-    "SIGNED_ANDROID_BETA_VC111"
+    "BETA_WORKER_EXACT_SOURCE_HEALTH_AND_AUTH_CHECK",
+    "BETA_GATEWAY_SCOPED_DEPLOY_AND_READBACK",
+    "AGENT_V137_OFFICIAL_PRERELEASE_OTA",
+    "FIRST_VPS_OTP_SERVER_ISSUANCE_AFTER_WORKER_PASS"
   ],
-  "rollback": "Keep v135 Agent/vc110 Android published; no Stable changes; stop advancing stage on any failed release check.",
-  "notes": "Owner approved full D169 code+Beta staging in E046 and deferred only dual-network physical matrix to future D170, not technical CI/safe upgrade. Source sha is the tested protected-tree commit; documentation/receipt changes after it are not protected executable changes. No VPS 15s guarantee under authority partition; no CAPTCHA automation.",
+  "rollback": "Preserve existing Agent v136 and Android vc111 assets; stop Agent 137 release if Worker or Gateway fails; Stable untouched.",
+  "notes": "Owner explicitly instructed Beta deploy plus first VPS OTP email delivery on 2026-10-18 after approving OTP-only/no time-code fallback. Exact tested source SHA protected. First issuance is guarded to one new main merge message and existing Active VPS Agent operator; no account auto-create, no OTP content in public logs. User-side device/login/receipt tests remain pending. E054 Agent release verifies unchanged prior deployed Firebase Rules baseline rather than waiting for a Rules workflow not triggered by this scoped change.",
   "prior_agent_v135_authorization": {
     "approved_source_sha": "7d6c2d5de22ddf8f836ae719116e35306ac9212d",
     "code_scope": "D169_AGENT_V135_NOT_PASS_TAB_LAYOUT_REPAIR_WITH_UNCHANGED_BETA_WORKER",
     "notes": "v135 repair within Owner-approved v134 Beta interface scope: v134 toolbar covered normal tab headers, fix exclusive row layout; Windows actual WinForms startup-smoke 18/18 CI. Same Worker source/code, existing Beta only; previous Owner deployment approval and NOT PASS repair protocol are authority. No independently claimed Owner request for v135 and no Stable."
-  }
+  },
+  "prior_integrated_d169_e046_release": {
+    "approved_source_sha": "66180079056f931d643b77cc07aab6c2f61fc592",
+    "code_scope": "D169_E046_V136_VC111_CROSS_NETWORK_BETA_STAGED",
+    "approval_ref": "OWNER_EXPLICIT_D169_DEPLOY_20261018_E046_STAGED_BETA_AGENT_ANDROID_FIRESTORE",
+    "components": [
+      "worker",
+      "firestore",
+      "agent",
+      "android"
+    ],
+    "notes": "Existing v136/vc111 Beta release preserved; source/runtime receipts in docs/D169_RUNTIME_RELEASE_RECEIPTS_2026-10-18.md"
+  },
+  "first_otp_issuance": "OWNER_APPROVED__SINGLE_MAIN_PUSH_GUARD__SERVER_SIDE_PROJECT_EMAIL__NO_PUBLIC_CODE"
 }

@@ -3092,3 +3092,30 @@ Từ nguồn v133 Web Confirm tab, xác minh WinForms toolbar có nút Ẩn/Hi�
 ## D169-E027 — Bắt buộc kiểm chứng tab header WinForms trên bản Agent sửa v134
 
 Windows Agent `--startup-smoke` phải kiểm tra tất cả tab gốc tồn tại, tab `Tổng quan/Cài đặt/SKU/Web Confirm` được đăng ký, `GetTabRect(i)` có diện tích và **không giao** rectangle của toolbar `Ẩn/Hiển thị tab trình duyệt`; nếu thất bại exit nonzero để PR CI FAIL. Source regression check phải yêu cầu TableLayoutPanel 2 hàng, không có `BringToFront` ở tab-shell. Owner kiểm thử tại máy phụ hai trạng thái nút, chuyển giữa tab bình thường và Web Confirm, WMS login/popup, phóng to/thu nhỏ, confirm, SKU và tray; sau đó mới ghi nhận FIELD PASS. V134 được đánh dấu NOT PASS về UX, hotfix kế tiếp tăng phiên bản; không ghi đè tài sản phát hành v134.
+
+
+## D169-E052 — VPS OTP-only requirement→contract→test→evidence matrix (18/10/2026)
+
+| Requirement / normal-failure case | Component / contract | Required test / evidence |
+|---|---|---|
+| Exact `VPS` is ACTIVE, `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN` | Worker+InventoryCore real identity, no implicit registration | Allow recognized VPS; reject disabled, nonexistent, PICKER/REPORTER/ROOT, overridden role, fabricated user_id and username collision |
+| Separate single-use OTP for VPS | Worker+Core per-user state, Gmail recipient constant | Four-digit OTP accepted once, consumed and next code queued; previous/incorrect/replayed OTP denied; admin/tamnv2 OTP unaffected; no account-code sharing |
+| VPS emergency strictly denied | Server `verifyPrivilegedProof` shared by fresh login, reauth and Web/Android auth | Eight-plus digit HHmm proof rejected for VPS in all channels/actions, while preserving historical admin/tamnv2 behavior |
+| No old fixed password | Core retirement + Firebase Auth + password-management API | Authenticated first issuance retires existing hash/Firebase password; ordinary password reset/set denied; existing sessions governed by server claims/generation |
+| Agent Office/Internet parity | Windows Agent privilege selector + Worker-first/Gateway fallback | Worker-success; Office transport failure→existing Gateway; HTTP 401/403 has no fallback; missing Gateway fails closed; no raw proof logging |
+| Unchanged Agent business rights | Same channel/session role parity and HA fencing | VPS has ordinary role-only Agent/PRIMARY eligibility, does not acquire manual PRIMARY, global-kick, system-log/Usage exclusive privileges |
+| Version compatibility | Agent old/new, Worker, Gateway | Prior old Agent may remain fixed-password path; retire only during authorized code request, upgrade compatible Agent before cutover; no WMS confirmation, PDA ACK or HA contract change |
+| Deployment/resource/security | GitHub PR #617, Worker Beta, existing Gateway, Agent canary | Source/type/build/static tests + authority/continuity PASS before approval; explicit release SHA receipt before Beta deploy; Stable untouched; real email delivery and VPS login require separate field evidence |
+
+**Evidence status at Owner approval:** source update is in PR #617, checks and provider/account FIELD PASS separately tracked. No real four-digit OTP or SMTP proof is recorded publicly. Do not merge just because the static tests pass. No changes to Cloudflare/Firebase metered hot-path cadence; OTP sends only on explicit request/successful one-time use, so usage must be measured rather than assumed zero.
+
+
+### D169-E054 — staged Beta release and first VPS OTP acceptance
+
+- Source SHA `9ae124c7c1ac76352197a5fe975df7525deb0732`: 23/23 GitHub Actions source checks PASS; CI does not establish provider release or OTP delivery.
+- Worker: main push exact-source health/readback required. Initial VPS code-issue step runs only for uniquely titled Owner E054 merge; accepts HTTP 202 (accepted for sending), or existing protected code pending 409 without replacing it, otherwise FAIL and report HTTP class only.
+- Gateway: exact existing deployment updated/readback by authorized GitHub workflow; Agent v137 release must wait matching successful Gateway run and Beta Worker/Firestore release gates. No new Script deployment/resource.
+- Agent: new v137 prerelease executable and sha256 assets must be published and inventory-channel manifest updated; old v136 must not be silently assumed compatible with VPS.
+- Field: Owner checks Gmail without sharing code, confirms original VPS role, signs into v137 with four-digit code, confirms next-code issuance and replay rejection, verifies Office path only if used. No WMS/HA/ACK owner PASS inferred.
+
+- D169-E054 final source guard: because this OTP change does not alter `firebase/firestore.rules`, `firebase/firestore.indexes.json` or `firebase.json`, Agent v137 verifies equality against previously deployed D169-E046 Rules commit `c90e521d1c77b681455b32ffc33a69e7ecaa187e`; it does not wait for an untriggered new Rules deployment. Any Rules delta fails the release.

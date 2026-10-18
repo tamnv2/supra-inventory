@@ -504,3 +504,17 @@ Only an effective/real ROOT may delete managed ADMIN/PICKPACK_ADMIN/REPORTER use
 ## D169-E044 — Scoped RBAC verification, no blanket role expansion
 
 Owner permitted bundling RBAC fixes only where evidence supports them. D169 source audit already found scoped PICKPACK_ADMIN Picker management and SKU import permissions; D169 PR605 Web/Worker Beta was deployed. No new elevation to Inventory ADMIN/ROOT or automatic permission widening is authorized. The exact UI/endpoint path remains subject to Beta test using PICKPACK_ADMIN versus Inventory ADMIN/Reporter, denied target cases and audit log; only a demonstrated mismatch may be patched in D169 with separate security regression. This is a verification gate, not a new privilege grant.
+
+
+## D169-E052 — Protected Agent VPS: OTP-only (Owner approved, code-only Beta candidate)
+
+Exact normalized `vps` identity is protected **only** when it is ACTIVE and both effective/base roles match either `ADMIN/ADMIN` or `PICKPACK_ADMIN/PICKPACK_ADMIN`. Existing `root`, `admin` and `tamnv2` protected login policies are unchanged; existing non-VPS accounts are unchanged. The server checks the real InventoryCore user and role, not UI claims, machine label or SSID. VPS receives its **own** per-user salted/hashed one-time four-digit challenge, with successful consume and automatic next-code issue to the established `PROJECT_ADMIN_EMAIL`. Use the existing rate-limited core state; no OTP contents in logs, source, local DPAPI verifier, or GitHub.
+
+For VPS, **no time-derived emergency credential is permitted** in `verifyPrivilegedProof` for login, Web/Android login if role permits, Agent reauth, Browser/Exit actions or SKU manual proof. Only exact four-digit OTP may authenticate; any >=8-digit HHmm emergency code and any old fixed password must fail. Once the first authenticated code-request/login initiation invokes the existing static-password retirement, its Firebase password is randomized and its Core legacy hash cleared. Do not apply this mode to a Picker/Reporter/ROOT or role-override VPS account. Do not activate migration for unknown user IDs. The deployed client must recognize VPS as protected and use Worker/Gateway with the same channel-scoped Firebase claims; old Agent binaries may not be compatible after retirement.
+
+No expansion of `admin`/`tamnv2`-only manual PRIMARY, global-kick, system-log request or Usage controls. Office Agent Gateway merely forwards existing `privileged_agent_login`, code-request and reauth to authoritative Beta Worker; HTTP auth rejects are terminal, only transport failures permit Gateway fallback. Existing email recipient and provider scope are reused; Stable unaffected.
+
+
+### D169-E054 — Beta deployment Owner release scope (2026-10-18)
+
+Owner explicitly permits **Beta Worker, existing Agent Operations Gateway and Agent v137 only** for this exact VPS OTP-only change. Source locked to `9ae124c7c1ac76352197a5fe975df7525deb0732` after 23/23 Actions PASS. All other roles, protected accounts, RBAC gates and mandatory authenticated operations remain identical; no new user/resource is provisioned. A one-time initial OTP issue for exact existing ACTIVE VPS may be triggered once via reviewed, commit-message guarded Worker deploy receipt. For unregistered/disabled/mismatched-role VPS, fail closed without creating any account. Never echo raw code in public CI, stored logs or chat; the existing mail recipient is the only code destination. No Stable promotion or D169 Owner FIELD PASS until on-device test.

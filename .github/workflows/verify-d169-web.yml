@@ -6,6 +6,7 @@ on:
       - "service/**"
       - "web/**"
       - "tests/d169-pickpack-hr-rights.test.mjs"
+      - "tests/d169-vps-otp-only.test.mjs"
       - "tools/d167_release_gate.py"
       - "ops/d169-release-authorization.json"
       - ".github/workflows/verify-d169-web.yml"
@@ -15,6 +16,7 @@ on:
       - "service/**"
       - "web/**"
       - "tests/d169-pickpack-hr-rights.test.mjs"
+      - "tests/d169-vps-otp-only.test.mjs"
       - "tools/d167_release_gate.py"
       - "ops/d169-release-authorization.json"
       - ".github/workflows/verify-d169-web.yml"
@@ -34,6 +36,8 @@ jobs:
           node-version: "22"
       - name: Enforce Picker-only permission invariants
         run: node --test tests/d169-pickpack-hr-rights.test.mjs
+      - name: Verify VPS OTP-only parity and deny emergency/fixed-password fallback
+        run: node --test tests/d169-vps-otp-only.test.mjs
       - name: Assert D169 code-only receipt cannot deploy yet
         run: python3 tools/d167_release_gate.py --self-test
       - name: Install and build Web

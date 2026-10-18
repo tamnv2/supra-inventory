@@ -96,6 +96,19 @@ def main():
                 fail("D169 release must not reach Stable or new resource")
             if data.get("cross_component_compatibility_ci") is not True:
                 fail("D169 mixed-version and conditional recovery compatibility CI must PASS")
+        elif data.get("code_scope") == "D169_E054_VPS_OTP_ONLY_BETA_WORKER_GATEWAY_AGENT137":
+            if d169_components != ["worker", "gateway", "agent"]:
+                fail("D169 VPS OTP release limited to existing Worker, Gateway and Agent")
+            if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D169_DEPLOY_20261018_E054_VPS_OTP_ONLY_BETA":
+                fail("D169 VPS OTP release requires exact E054 Owner authorization")
+            if data.get("field_pass") is not False or data.get("physical_field_verified") is not False:
+                fail("D169 VPS OTP field acceptance not proven")
+            if data.get("stable_deploy_permission") is not False:
+                fail("D169 VPS OTP Stable not authorized")
+            if data.get("resource_change") != "NONE_EXISTING_BETA_ONLY":
+                fail("D169 VPS OTP release must not provision new resources")
+            if data.get("cross_component_compatibility_ci") is not True:
+                fail("D169 VPS OTP Agent/Worker/Gateway regression gate missing")
         else:
             if d169_components not in (["worker"], ["worker", "agent"]):
                 fail("D169 legacy component set must be an exact Owner-approved Beta release scope")

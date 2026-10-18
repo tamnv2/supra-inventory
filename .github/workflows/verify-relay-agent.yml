@@ -1613,8 +1613,52 @@ jobs:
       # D169: the new PDA recovery protocol requires the existing Beta Firestore
       # Rules to allow a narrowly scoped PENDING marker before a v136 Agent is
       # eligible for auto-update. Never release a binary against old Rules.
+      - name: D169-E054 require exact Beta Gateway deployment before Agent v137 publication
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-agent-gateway.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw "Unable to inspect scoped Gateway release receipt." }
+            $matches = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA })
+            if ($matches.Count -gt 0) {
+              $g = $matches[0]
+              if ($g.status -eq "completed") {
+                if ($g.conclusion -eq "success") {
+                  Write-Host "D169_VPS_GATEWAY_FIRST_AGENT_RELEASE_PASS"
+                  break
+                }
+                throw "Existing Beta Gateway deployment failed; Agent v137 publication denied."
+              }
+            }
+            if ($attempt -eq 120) { throw "No successful matching Gateway run for protected release commit." }
+            Start-Sleep -Seconds 10
+          }
+
+      # E054 only updates OTP/Agent/Gateway; Firestore Rules are proven from E046.
+      # The exact previous deployed baseline must be unchanged before skipping redeploy.
+      - name: D169-E054 verify unchanged previously deployed Beta Firestore Rules
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
+        shell: pwsh
+        run: |
+          git diff --quiet c90e521d1c77b681455b32ffc33a69e7ecaa187e $env:GITHUB_SHA -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json
+          if ($LASTEXITCODE -ne 0) { throw "VPS OTP release includes an unapproved Firestore Rules change." }
+          Write-Host "D169_E054_FIRESTORE_E046_DEPLOYED_BASELINE_UNCHANGED_PASS"
+
       - name: D169 require matching Beta Firestore Rules before publishing Agent
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          !contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}

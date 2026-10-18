@@ -340,7 +340,7 @@ export async function handleUserManagementApi(request: Request, env: Env): Promi
       if (isPrivilegedOneTimeUser(before)) {
         return json({
           error: "ONE_TIME_AUTH_ACCOUNT",
-          message: "root/admin/tamnv2 sử dụng mật khẩu một lần hoặc mật khẩu khẩn cấp; không được gán mật khẩu cố định.",
+          message: "Tài khoản được bảo vệ bằng mã một lần không được gán mật khẩu cố định.",
         }, 409);
       }
       const derived = await derivePassword(plainPassword);
