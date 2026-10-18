@@ -7,18 +7,18 @@
   "pr": 628,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E007",
+    "id": "D170-E008",
     "date_vn": "2026-10-18"
   },
   "deployment_gate": {
     "owner_latest": "OWNER_EXPLICIT_D170_FULL_SAFE_CONVERSION_CONTINUE_20261018",
     "code_permission": true,
-    "merge_permission": false,
-    "deploy_permission": false,
-    "production_runtime_permission": false,
+    "merge_permission": true,
+    "deploy_permission": true,
+    "production_runtime_permission": true,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "WAIT_PR628_SOURCE_GUARDS_AND_EXACT_PHASE2_APPROVED_SHA"
+    "reason": "EXACT_SCOPE_ONLY__OFFICIAL_HOST_REASSIGN_EXISTING_WORKER__NO_DB_CLIENT_OR_STABLE_WORKER"
   },
   "entries": [
     {
@@ -149,6 +149,24 @@
       ],
       "next_action": "Complete PR628 CI, lock phase2 exact-source protected receipt; guarded merge triggers Cloudflare PUT to same Worker then Wrangler deployment and double-host health check. If provider permission/API fails, stop without delete and request only the matching minimal Owner UI action.",
       "evidence": "PR628 source wrangler.beta.toml, tools/d170_domain_cutover.sh, service/src/index.ts OAuth, tests/d170-domain-cutover.test.mjs; Cloudflare Workers Domain API documented PUT/GET; current repo scope worker-beta host-beta host-stable."
+    },
+    {
+      "id": "D170-E008",
+      "date_vn": "2026-10-18",
+      "kind": "TEST",
+      "topic": "D170 official Custom Domain phase2 source CI 21/21 PASS, guarded exact-source routing release authorized",
+      "status": "D170_PR628_PHASE2_21_OF_21_SOURCE_PASS__EXACT_WORKER_SOURCE_LOCKED__PROVIDER_DEPLOY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "GitHub PR628 source commit f4f9af19ae79f617f1010d294aac4e04e61c40a7 passed all 21 source CI workflows, including read-only Cloudflare domain preflight and same-worker/OAuth test.",
+        "Live Cloudflare mapping remains old inventory-beta.supra.cc.cd -> supra-inventory-beta and official inventory.supra.cc.cd -> supra-inventory-stable. No provider write has occurred yet.",
+        "D170 signed Phase1 Android vc113 and existing Worker have separate main-push SUCCESS receipts and are operating from old hostname; old client OTA unaffected by Phase2.",
+        "Owner-approved protected Phase2 receipt permits only existing worker source and PUT reassignment of one registered official Custom Domain in the same Cloudflare zone, then dual-host health verification. It does not permit old Stable Worker deploy, DELETE of domain, new DO/DB/Firebase or Client changes.",
+        "Existing Google OAuth callback old hostname remains; official hostname start redirects to old hostname before state cookie, preserving CSRF validation and Google authorization configuration.",
+        "Provider Cloudflare PUT operation via existing GitHub Actions token is capability dependent; if denied/conflicted, fail closed and report precise manual Web UI action, never delete or invent runtime PASS."
+      ],
+      "next_action": "Wait for PR628 authority/continuity CI on protected release receipt, merge with exact phase2 commit prefix to run Cloudflare PUT and same-Worker Wrangler deployment; verify official and legacy /health, source hash and healthy SQLite, then record runtime outcome.",
+      "evidence": "PR628 CI 21/21 success at f4f9af19; ops/d170-release-authorization.json phase2; D170 tests and preflight."
     }
   ],
   "resume": {
@@ -157,7 +175,8 @@
       "Existing live Beta-tagged Worker/DO SQLite/Firebase and signed client identities remain source of truth throughout migration planning.",
       "D171 network diagnostics queued as separate change, PR612/613 retained Draft.",
       "D170-E003 Owner explicitly authorizes proceeding safely with code and automation-first rollout, subject to current owner-scope, provider and OTA gates.",
-      "D170-E004 Owner D170 phase-1 branding/Worker existing runtime+signed Android deployment approved with exact source and no domain transfer."
+      "D170-E004 Owner D170 phase-1 branding/Worker existing runtime+signed Android deployment approved with exact source and no domain transfer.",
+      "D170-E008: Phase2 official domain reassignment exact SHA f4f9af19 21/21 code/CI PASS, Owner scope existing data-bearing Worker only."
     ],
     "implemented": [
       "D170-E001 impact and phased migration plan documented only on guarded branch.",
@@ -171,7 +190,8 @@
       "Check PR626 read-only domain-mapping result, OAuth redirect and security before any same-worker Custom Domain attachment.",
       "Actual Cloudflare domain owner inventory.supra.cc.cd confirmed legacy Stable Worker, no domain transfer yet.",
       "E005: repair main push gate failures in PR627; old public Beta identity check and D169-only updater gate stopped full phase1 release.",
-      "E007: PR628 guarded Cloudflare same-Worker official hostname transfer and existing OAuth callback compatibility, CODE ONLY."
+      "E007: PR628 guarded Cloudflare same-Worker official hostname transfer and existing OAuth callback compatibility, CODE ONLY.",
+      "D170-E008: guarded main merge/provider operation pending; do not claim official hostname live until runtime readback."
     ],
     "pending_approval": [
       "Explicit D170 implementation scope (CODE READY) and deployment/cutover authority after review of domain, DO, Auth/OTA and rollback risks."
@@ -188,7 +208,8 @@
       "Apply staged D170 release after CI/domain/backup/OTA readiness, without changing original DO/Firebase data; request Owner UI action only if authorized provider operation impossible.",
       "Read main Worker and signed vc113 release receipts after guarded PR626 merge; prepare phase2 conflict-safe Custom Domain reassignment.",
       "PR627 protected CI, then exact SHA receipt; check Worker, vc113 signed channel before domain change.",
-      "CI PR628 then protected release receipt, main merge, both hostname real health readback, no database migration."
+      "CI PR628 then protected release receipt, main merge, both hostname real health readback, no database migration.",
+      "Post PR628 merge actual Cloudflare domain mapping and old/new /health readback before subsequent client host changes."
     ],
     "release_boundary": "D170_E007_PHASE1_RELEASE_PASS__PHASE2_CODE_ONLY_PR628__NO_DOMAIN_MUTATION_YET"
   }
