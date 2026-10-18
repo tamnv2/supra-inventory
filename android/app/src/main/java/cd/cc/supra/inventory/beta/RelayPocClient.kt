@@ -17,6 +17,7 @@ import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 data class RelayProbeResult(
@@ -69,6 +70,7 @@ class RelayPocClient(
     private companion object {
         const val FAILOVER_NOTICE_MS = 10_000L
         const val TOTAL_WAIT_MS = 20_000L
+        const val VERIFIED_FAILOVER_WAIT_MS = 35_000L
         const val CREATE_FIRST_WAIT_SECONDS = 5L
         const val CREATE_VERIFY_WAIT_SECONDS = 3L
         const val CREATE_RETRY_WAIT_SECONDS = 4L
@@ -260,6 +262,7 @@ class RelayPocClient(
 
         val ackRef = AtomicReference<RelayAck?>(null)
         val errorRef = AtomicReference<Exception?>(null)
+        val recoveryProofSeen = AtomicBoolean(false)
         val done = CountDownLatch(1)
 
         val registration = doc.addSnapshotListener { snapshot, error ->
@@ -268,6 +271,17 @@ class RelayPocClient(
                 return@addSnapshotListener
             }
             if (snapshot == null || !snapshot.exists()) return@addSnapshotListener
+            // Only an Agent-authorized, generation-bound marker on this exact
+            // request extends the wait. Generic 10s timeout never does.
+            val recoveryGeneration = snapshot.getString("recovery_generation").orEmpty()
+            val recoveryAgent = snapshot.getString("recovery_agent_instance_id").orEmpty()
+            val recoveryAt = snapshot.getLong("recovery_granted_at_ms") ?: 0L
+            if (recoveryGeneration.matches(Regex("^[0-9a-f]{32}$")) &&
+                recoveryAgent.isNotBlank() && recoveryAt > 0L &&
+                recoveryProofSeen.compareAndSet(false, true)) {
+                log("D169 same-request failover grant request=" + shortId(requestId))
+                onProgress("Agent dự phòng đã tiếp nhận · đang chờ kết quả xác nhận...")
+            }
             val ack = parseAck(snapshot) ?: return@addSnapshotListener
             ackRef.set(ack)
             done.countDown()
@@ -279,8 +293,9 @@ class RelayPocClient(
 
         var failoverNoticeShown = false
         try {
-            val deadline = SystemClock.elapsedRealtime() + TOTAL_WAIT_MS
-            while (SystemClock.elapsedRealtime() < deadline) {
+            while (true) {
+                val deadline = started + if (recoveryProofSeen.get()) VERIFIED_FAILOVER_WAIT_MS else TOTAL_WAIT_MS
+                if (SystemClock.elapsedRealtime() >= deadline) break
                 val remaining = (deadline - SystemClock.elapsedRealtime()).coerceAtLeast(1L)
                 if (done.await(minOf(1_000L, remaining), TimeUnit.MILLISECONDS)) break
 
@@ -298,12 +313,13 @@ class RelayPocClient(
             if (ack == null) {
                 val listenerError = errorRef.get()
                 if (listenerError != null) {
-                    log("D097 Firestore listener chưa hồi phục trong 30s request=" + shortId(requestId) +
+                    log("D097 Firestore listener chưa hồi phục request=" + shortId(requestId) +
                         " detail=" + safeText(listenerError.message))
                 }
                 throw IOException(
                     "Không xử lý được request #" + shortId(requestId) +
-                        " trong 20 giây. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
+                        " trong " + (if (recoveryProofSeen.get()) "35" else "20") +
+                        " giây. Vui lòng về bàn Chuyên viên xử lý trực tiếp."
                 )
             }
 
