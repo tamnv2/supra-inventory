@@ -24,6 +24,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 
@@ -237,10 +238,14 @@ class CriticalOverlayService : Service() {
         val current = activeAlert ?: return
         val ownerUserId = if (current.mode == MODE_RESULT)
             InteractiveSessionStore.load(applicationContext)?.userId.orEmpty() else ""
-        // Never display an ACK success/dismiss a result before it is durably
-        // queued for an identified Picker. Keep the overlay for recovery.
+        // Session may have been revoked after the result overlay appeared.
+        // Never fabricate an ACK for an absent Picker; release the blocking UI
+        // as unacknowledged so a valid session can safely receive it again.
         if (userAcknowledged && current.mode == MODE_RESULT &&
-            (current.alertId.isBlank() || ownerUserId.isBlank())) return
+            (current.alertId.isBlank() || ownerUserId.isBlank())) {
+            finishActive(userAcknowledged = false)
+            return
+        }
 
         // Preserve the accepted D133/D135 local-first contract: durable local
         // acknowledgement state is written before the visible item is removed.
@@ -464,13 +469,22 @@ class CriticalOverlayService : Service() {
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
         }, matchWrap())
-        card.addView(TextView(this).apply {
+        // The body scrolls independently; the acknowledgement button stays
+        // outside this scroll view and remains reachable for long messages.
+        val message = TextView(this).apply {
             text = item.body
             textSize = 19f
             setTextColor(Color.rgb(30, 41, 59))
             gravity = Gravity.CENTER
             setPadding(0, dp(18), 0, dp(18))
-        }, matchWrap())
+        }
+        val scrollingMessage = ScrollView(this).apply {
+            isFillViewport = false
+            addView(message)
+        }
+        card.addView(scrollingMessage, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f,
+        ))
         if (localAcknowledge) {
             card.addView(Button(this).apply {
                 text = "XÁC NHẬN"
@@ -487,10 +501,10 @@ class CriticalOverlayService : Service() {
         }
         root.addView(card, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
+            (resources.displayMetrics.heightPixels * 0.78f).toInt(),
         ).apply {
-            marginStart = dp(20)
-            marginEnd = dp(20)
+            marginStart = dp(10)
+            marginEnd = dp(10)
         })
         return root
     }
