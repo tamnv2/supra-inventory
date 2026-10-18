@@ -112,3 +112,12 @@ test("D169 existing Beta Firestore recovery update can never edit terminal ACK o
  assert.match(transport, /doc\.Work\.RecoveryProtocol != 1/);
  assert.match(transport, /VerifyPrimaryForBusinessIngress\(session\)/);
 });
+
+test("D169 WMS-session-loss handoff carries same-job CAS generation evidence, never a manual handoff guess", () => {
+ assert.match(leader, /TryWriteRoles\(session, relinquish, read, false, true\)/);
+ assert.match(leader, /wms_handoff_generation/);
+ assert.match(leader, /IsVerifiedWmsHandoff\(snapshot, read\)/);
+ assert.match(leader, /DateTimeOffset\.TryParse\(read\.UpdateTime, out when\)/);
+ assert.match(leader, /_role != FirestoreAgentRole\.NEXT_A/);
+ assert.match(leader, /_verifiedAutomaticTakeoverAtMs = NowMs\(\)/);
+});
