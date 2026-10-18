@@ -1,0 +1,35 @@
+name: D170 Official Client Host Compatibility
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - "relay-agent/**"
+      - "service/**"
+      - ".github/workflows/verify-apps.yml"
+      - ".github/workflows/verify-relay-agent.yml"
+      - ".github/workflows/d170-official-client-guards.yml"
+      - "tests/d170-official-client-hosts.test.mjs"
+      - "ops/d170-release-authorization.json"
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "relay-agent/**"
+      - "tests/d170-official-client-hosts.test.mjs"
+      - ".github/workflows/d170-official-client-guards.yml"
+permissions:
+  contents: read
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate official API, trusted OTA and retained legacy bridge
+        run: node --test tests/d170-official-client-hosts.test.mjs tests/d170-public-identity.test.mjs
+      - name: Verify explicit D170 release authority is valid or denied
+        run: python3 tools/d167_release_gate.py --self-test
