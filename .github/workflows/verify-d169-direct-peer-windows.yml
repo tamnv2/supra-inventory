@@ -45,8 +45,10 @@ jobs:
       - name: Regression test Worker-bound Agent identity (offline, synthetic only)
         shell: pwsh
         run: |
-          & "dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe" --identity-selftest
-          if ($LASTEXITCODE -ne 0) { throw 'D171_AGENT_IDENTITY_BINDING_SELFTEST_FAILED' }
+          # Windows GUI executables must be explicitly waited; PowerShell invocation alone can return before exit.
+          $testExe = Join-Path (Get-Location) "dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe"
+          $testProcess = Start-Process -FilePath $testExe -ArgumentList "--identity-selftest" -Wait -PassThru
+          if ($testProcess.ExitCode -ne 0) { throw "D171_AGENT_IDENTITY_BINDING_SELFTEST_FAILED (exit=$($testProcess.ExitCode))" }
       - uses: actions/upload-artifact@v4
         with:
           name: SUPRA-D171-TEST-AGENT-WINDOWS
