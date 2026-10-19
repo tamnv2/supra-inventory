@@ -107,7 +107,7 @@ internal sealed class PeerForm : Form
         _confirmSwitch.Click += async (_,_)=>await Run(AdvancePhase);
         info.Text="Tự ghép cặp sau đăng nhập. Giữ cả hai app mở. Chỉ đổi Wi-Fi theo hướng dẫn trên màn hình.";
         info.SetBounds(16,181,900,50);
-        ShowNetworkPhase();
+        // The Agent role is assigned after authenticated session joining, not before.
 
         _create.Click += async (_,_) => await Run( async()=>{await CreateSession(); await JoinSession(); StartPoll();});
         _join.Click += async (_,_) => await Run( async()=>{await JoinSession(); StartPoll();});
@@ -141,6 +141,7 @@ internal sealed class PeerForm : Form
     {
         _testAll.Enabled=false;
         await EnsureAutomaticSession();
+        Text="SUPRA D171 Test — "+_operatorLogin+" (Agent "+_agentLabel+")";
         StartPoll();
         await PublishReady();
         await WaitForThreeReady();
@@ -166,7 +167,7 @@ internal sealed class PeerForm : Form
         if(existing==null){
             try{await CreateSession();_agentLabel="A";}
             catch(HttpRequestException e) when(e.Message=="HTTP_409"||e.Message=="HTTP_400"){_agentLabel="B";}
-        }else{_agentLabel="B";}
+        }else{_agentLabel=GetString(existing.RootElement,"owner_uid")==_uid?"A":"B";}
         await JoinSession();
         Log("PAIRING","JOINED",new{node=_nodeId[..8],phase=_phase+1});
     }
@@ -186,7 +187,11 @@ internal sealed class PeerForm : Form
                 var agentCount=0;var pickerCount=0;
                 foreach(var item in docs.EnumerateArray()){
                     var role=GetString(item,"role");
-                    if(role=="PICKER")pickerCount++;
+                    if(role=="PICKER"){
+                        var timeText=GetString(item,"ready_at");
+                        var window=_phase==0?TimeSpan.FromMinutes(3):TimeSpan.FromMinutes(30);
+                        if(GetString(item,"ready_network")=="NORMAL"&&DateTimeOffset.TryParse(timeText,out var pickerReadyAt)&&pickerReadyAt>DateTimeOffset.UtcNow-window)pickerCount++;
+                    }
                     if(role=="ADMIN"||role=="PICKPACK_ADMIN"){
                         var stamp=GetString(item,"ready_at");
                         if(GetString(item,"ready_phase")==_phase.ToString()&&DateTimeOffset.TryParse(stamp,out var when)&&when>DateTimeOffset.UtcNow.AddMinutes(-3))agentCount++;
