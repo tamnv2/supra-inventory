@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E010_BOTH_TEST_CLIENTS_CI_PASS__OWNER_FIELD_PENDING",
+    "current_change_status": "D171_E011_OWNER_FIELD_FAIL_3_OF_5__REPAIR_PROPOSAL_PENDING_OWNER_DIRECTION",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7458,9 +7458,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
-    "working_branch": "state/d171-e010-two-client-kit-release-receipt-20261019",
-    "pr": 646,
-    "latest_checkpoint_id": "D171-E010",
+    "working_branch": "docs/d171-e011-field-log-triage-20261019",
+    "pr": 647,
+    "latest_checkpoint_id": "D171-E011",
     "checkpoint_date_vn": "2026-10-19",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8365,14 +8365,14 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E010_BOTH_TEST_KITS_CI_ARTIFACT_PASS__FIELD_PENDING",
+    "status": "D171_E011_OWNER_FIELD_FAIL_3_OF_5__NO_FIX_CODE_AUTHORIZED",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
     "owner_field_pass": false,
     "owner_pass": false,
-    "branch": "state/d171-e010-two-client-kit-release-receipt-20261019",
-    "pr": 646,
+    "branch": "docs/d171-e011-field-log-triage-20261019",
+    "pr": 647,
     "scope": "TWO_AUTH_AGENT_ONE_PICKER_PDA__PDA_ALWAYS_NORMAL__AGENT_WIFI_SWITCH_MANUAL_VERIFIED",
     "d170_paused": true,
     "live_prod_mutation": false,
@@ -8382,7 +8382,7 @@
     "release_pass": true,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "OWNER_E009_EXE_APK_FIVE_PHASE_FIELD_TEST",
+    "next": "OWNER_DECIDE_DIAGNOSTIC_PHASE_BARRIER_AND_OFFICE_ROUTE_REPAIR__NO_CODE_RELEASE_YET",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8413,6 +8413,17 @@
       "windows_fix_branch": "fix/d171-identity-session-binding-20261019",
       "scope": "STANDALONE_DIAGNOSTIC_WINDOWS_ONLY",
       "firebase_rules_rollback": "NOT_AUTHORIZED_FROM_UNCLASSIFIED_ERROR"
+    },
+    "field_failure_20261019_round3": {
+      "observed": "PDA_ROUND3_DUAL_ACK_0_OF_9__B_ACK_9_A_ACK_0__A_STUCK_PREVIOUS_PHASE",
+      "evidence": "Owner supplied 20261019 10:33 Agent A/B Peer, network probe exports, PDA Bluetooth shared JSON logs",
+      "prior_round": "PDA_PHASE1_9_OF_9_EARLY_BEFORE_A_OFFICE__NOT_OFFICE_PROOF",
+      "root_cause_source": "ANDROID_SINGLE_AGENT_PHASE_DISPATCH_WITHOUT_THREE_PARTY_READY__WINDOWS_PER_NODE_LOCAL_PHASE_AND_NO_SHARED_ABORT",
+      "office_route": "AGENT_A_OFFICE_AUTH_FIRESTORE_READ_FAILED__SOME_DNS_TLS_AND_REST_OK__NOT_PROVEN_TOTAL_NETWORK_BLOCK",
+      "usage": "LOCAL_COUNTER_A_1470_GET_98_WRITE_B_840_GET_65_WRITE__NOT_BILLED_METRIC",
+      "checkpoint": "D171-E011",
+      "analysis": "docs/D171_FIELD_LOG_ANALYSIS_2026-10-19.md",
+      "fix_authorized": false
     }
   }
 }
