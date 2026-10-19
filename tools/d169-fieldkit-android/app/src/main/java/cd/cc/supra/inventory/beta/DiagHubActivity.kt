@@ -61,14 +61,15 @@ class DiagHubActivity : Activity() {
     journal=DiagTimeline(this)
     val scroll=ScrollView(this)
     val root=LinearLayout(this).also{it.orientation=1;it.setPadding(24,20,24,25);scroll.addView(it)}
-    TextView(this).also{it.text="SUPRA D169 · PDA TEST ⇄ AGENT TEST";it.textSize=20f;root.addView(it)}
+    TextView(this).also{it.text="D171 · PDA TEST ⇄ HAI AGENT TEST";it.textSize=20f;root.addView(it)}
     TextView(this).also{it.text="Kênh mô phỏng riêng, KHÔNG gửi Picklist/WMS thật. Mỗi request cần ACK từ EXE Test.";root.addView(it)}
     userField=field(root,"Tài khoản PICKER thử nghiệm","")
     passwordField=field(root,"Mật khẩu Picker (không lưu)","")
     passwordField.inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
     btn(root,"1 · Đăng nhập Picker") {doLogin()}
     sidField=field(root,"Mã phiên tự động",autoSid());sidField.isEnabled=false
-    networkField=field(root,"Mạng (xác nhận theo hướng dẫn)","NORMAL")
+    networkField=field(root,"PDA luôn dùng mạng thường (không chuyển Office)","NORMAL")
+    networkField.isEnabled=false
     btn(root,"BẮT ĐẦU TEST TỰ ĐỘNG") {runAutomated(false)}
     // PDA always stays on NORMAL: scenarios advance from authenticated Agent traffic.
     kind=Spinner(this);kind.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,kinds);kind.visibility=android.view.View.GONE;root.addView(kind)

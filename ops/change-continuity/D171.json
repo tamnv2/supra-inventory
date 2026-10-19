@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "feat/d171-three-node-network-test-20261019",
-  "pr": 638,
+  "working_branch": "fix/d171-fieldkit-operator-readiness-20261019",
+  "pr": 639,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E002",
+    "id": "D171-E003",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -56,6 +56,24 @@
       ],
       "next_action": "Verify exact final PR638 head all source/emulator/authority/continuity CI success, mark PR ready then guarded merge; inspect Rules live deployment readback and downloadable EXE/APK artifacts; field test by Owner only after provider and binary proof.",
       "evidence": "PR638 active branch; D171 Isolated Firestore Security Emulator; D171 Two-Agent Diagnostic Windows EXE; D171 Normal-Network Picker Diagnostic APK; D171 Scoped Test-Only Firestore Rules; current-main exact stripped-rule match."
+    },
+    {
+      "id": "D171-E003",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "D171 initial source merged; signed test binaries in Actions, deployment readback unavailable; harden field operator UI and fallback",
+      "status": "PR638_MERGED_SOURCE_CI_PASS__PR639_POSTMERGE_HARDENING__LIVE_FIRESTORE_RULES_READBACK_NOT_VERIFIED",
+      "owner_approval": true,
+      "facts": [
+        "PR638 merged main e77eb64fbac1ff92af69ee1429ec922ee69bf568 after all 18 tested source CI jobs completed successfully on head 676bd143623a623e79985ea6407eafbdfa607fa9.",
+        "Independent Windows EXE artifact is available from run 39184972730 artifact SUPRA-D171-TEST-AGENT-WINDOWS. Independent Android APK artifact is from run 39184972723 artifact SUPRA-D171-TEST-PICKER-APK. Field connection not yet tested.",
+        "Fixes in merged source bind fixed Agent A/B to runtime login and verified Firebase app_user_id, and require distinct Agent ACKs on the PDA side.",
+        "After merge, current available GitHub workflow-list lookup filters pull-request runs and cannot directly prove push-triggered scoped Beta Firebase Rules deployment or provider readback. Do not declare test READY merely from CI PASS, GitHub merge, or main source presence.",
+        "Follow-up branch adds PDA UI locked to NORMAL and manual GitHub Actions workflow_dispatch with exact Owner scope confirmation so live Beta Rules can be deployed/read back using GitHub web UI if no automatic push receipt is available. The canary parity gate now handles subsequent main revisions without unintentionally changing shared production rules.",
+        "D170 remains paused without Owner PASS; accepted base stays D169; no Stable, WMS, PRIMARY, actual Picklist or production PDA/Agent release changed."
+      ],
+      "next_action": "PR follow-up authority/continuity+Android+Rules CI PASS, merge, verify isolated Beta Rules live readback via existing automated push workflow or manual owner-confirmed Run workflow if connector cannot dispatch; then provide direct EXE/APK Actions artifact links and three-user field steps.",
+      "evidence": "Main merge e77eb64f; PR638 18/18 source CI; Windows run 39184972730 and Android run 39184972723; owner 2026-10-19 D171 priority exception."
     }
   ],
   "resume": {
@@ -65,10 +83,11 @@
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
-      "D171 source candidate: 5-round PDA NORMAL, Agent B/A ready barrier, auto PDA ACK, full current-main Rules parity and role-bound test match; CI binary artifacts subject to latest SHA."
+      "D171 source candidate: 5-round PDA NORMAL, Agent B/A ready barrier, auto PDA ACK, full current-main Rules parity and role-bound test match; CI binary artifacts subject to latest SHA.",
+      "PR638 merged main with source CI PASS and independent Windows/Android test artifacts; no live Firebase Rules provider readback obtained yet."
     ],
     "in_progress": [
-      "PR638 source/code/security/authority CI latest-head verification; Beta Firebase Rules deployment and post-merge isolated field kit release pending."
+      "Additional PDA NORMAL UI lock and manual Beta Rules readback option in owner-scoped follow-up PR."
     ],
     "pending_approval": [],
     "blocked": [
