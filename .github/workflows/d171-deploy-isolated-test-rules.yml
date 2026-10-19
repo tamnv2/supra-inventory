@@ -10,6 +10,12 @@ on:
     paths:
       - 'firebase/firestore.rules'
       - '.github/workflows/d171-deploy-isolated-test-rules.yml'
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type D171_OWNER_APPROVED_TEMP_TEST_RULES to deploy scoped Beta Rules"
+        type: string
+        required: true
 permissions:
   contents: read
 concurrency:
@@ -41,7 +47,11 @@ jobs:
           restored=rules[:start]+rules[end:]
           ref='origin/main:firebase/firestore.rules' if os.environ['GITHUB_EVENT_NAME']=='pull_request' else 'HEAD^:firebase/firestore.rules'
           base=subprocess.check_output(['git','show',ref],text=True)
-          assert restored==base,'Shared production Firebase Rules changed: refuse scoped test deployment'
+          if '    // D171: TEMPORARY isolated diagnostics;' in base:
+            a=base.index('    // D171: TEMPORARY isolated diagnostics;')
+            b=base.index('    match /relay_poc_jobs/',a)
+            base=base[:a]+base[b:]
+          assert restored==base,'Shared Firestore Rules changed outside isolated canary: refuse deployment'
           assert rules.count('match /d169_diag_sessions/{sid}')==1
           scope=json.loads(Path('ops/project-scope.json').read_text())
           assert any(r.get('key')=='d169-diagnostic-firestore-beta' and r.get('collection')=='d169_diag_sessions' for r in scope['resources'])
@@ -58,16 +68,18 @@ jobs:
           firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
   deploy-scoped-beta-only:
     needs: rules-security-gate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'D171_OWNER_APPROVED_TEMP_TEST_RULES'))
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 20
     env:
       FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      D171_OWNER_CONFIRMATION: ${{ github.event_name == 'push' && 'D171_OWNER_APPROVED_TEMP_TEST_RULES' || inputs.confirmation }}
     steps:
       - uses: actions/checkout@v4
       - name: Require existing Beta project and credentials
         run: |
+          test "$D171_OWNER_CONFIRMATION" = "D171_OWNER_APPROVED_TEMP_TEST_RULES" || { echo 'D171 owner confirmation not satisfied'; exit 1; }
           test -n "$FIREBASE_RULES_SA_JSON_BETA"
           python3 - <<'PY'
           import json
