@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e015-v139-network-optimization-analysis-20261019",
-  "pr": 649,
+  "working_branch": "docs/d171-e016-vps-primary-network-routing-design-20261019",
+  "pr": 650,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E015",
+    "id": "D171-E016",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -313,6 +313,38 @@
       ],
       "next_action": "Owner reviews tradeoffs; D171 isolated test gate remains current. No source change or production release until explicit authorization and separate base-impact review; continue fail-closed HA/lease/WMS and stable gates.",
       "evidence": "Local Owner-shared sanitized D171 5-round files 20261019 120426/120808; GitHub tag relay-agent-v139; relay-agent/{Program.cs,FirestoreHttpTransport.cs,FirestoreD157Realtime.cs,FirestoreAgentSync.cs,FirestoreConfirmationTransport.cs,FirestoreAgentLeaderCoordinator.cs,RtdbHaLiveness.cs,D168NetworkRoute.cs}; main D171-E014."
+    },
+    {
+      "id": "D171-E016",
+      "date_vn": "2026-10-19",
+      "kind": "PROPOSAL",
+      "owner_approval": false,
+      "topic": "Owner asks optimum VPS-as-PRIMARY PDA job route, standby liveness, non-VPS recovery route and safe VPS return",
+      "status": "ARCHITECTURE_DISCUSSION_ONLY__NO_CODE_NO_RELEASE_NO_OWNER_PASS",
+      "facts": [
+        "Verified release relay-agent-v139 is latest 2026-10-19 VN, Android beta-vc114 current; D171 diagnostic five-round evidence is separate from production app proof.",
+        "Android RelayPocClient.kt writes exact new relay_poc_jobs/requestId PENDING once, listens to that exact document, allows one authoritative read at 20s, extends same-request recovery to 35s only with trusted failover grant, and never requires PDA-to-VPS direct socket or a second RTDB business path.",
+        "v139 PRIMARY receives Firestore gRPC pending events with REST watchdog (10s active/30s inactive), REST 1/2/3/15s when degraded/hot depending demand, writes durable Firestore ACK after WMS confirm with current role/generation fences. Keep single WMS executor and immutable request-id semantics.",
+        "v139 PRIMARY renews Firestore generation-matching common lease every 10s, stale threshold 15s; conditional RTDB ephemeral heartbeat only for D168NetworkRoute.CurrentNetworkMode INTERNET; Ethernet/unrecognized VPS classifies UNKNOWN and writes no RTDB. Never claim RTDB liveness proves VPS health on a network that never emitted it.",
+        "v139 NEXT_A alone owns fast HA observations: Internet NEXT_A can observe generation/primary-matching RTDB SSE; if no fresh matching RTDB heartbeat it checks exact Firestore lease; Office/UNKNOWN stops RTDB observer and uses common Firestore lease through supported proxy. NEXT_B and DEEP stay coarse/no WMS polling. Failover must verify lease expiration (common protocol proof or guarded legacy RTDB proof), WMS takeover readiness, fresh roles CAS generation, and guard against split-brain. A failed RTDB or unavailable Firestore read is NOT a death vote.",
+        "Existing production VPS v139 incident D171-E014 showed WMS login readiness detection followed by PRIMARY handoff at 11:37 VN, while Firestore business had previously processed 280 same-session requests/ACKs. Separate process alive, Firestore transport available, WMS ready, and valid lease/authority; incident alone does not prove transport failure.",
+        "Existing VPS return: authenticated v138+ VPS publishes 15s vps_ready only when not primary (30s freshness); non-manually-held primary can safely CAS handoff after VPS readiness stable >=30s and no active WMS/SKU critical work; manually held owner primary requires authenticated admin/tamnv2 approval via at-most-one 15m shared request; no automatic takeover against manual holder.",
+        "Five-round D171 evidence Office authenticated exact Firestore REST via system proxy successful, RTDB denied in tested Office routes, network restoration final round produced peer stale READY fault in standalone diagnostics; not proof that production gRPC streaming Office is available."
+      ],
+      "alternatives": [
+        "No-change v139: retain one Firestore request/ACK/roles+lease carrier, conditional RTDB on locally-classified INTERNET, safe fallback and manual owner-gated VPS return; minimizes regression but still incurs unnecessary RTDB observer attempts for VPS UNKNOWN and gRPC delayed retry after network transitions.",
+        "Preferred conditional optimization (NOT authorized): Firestore remains mandatory cross-network data and HA authority. Select local gRPC vs REST based on authenticated per-service reachability and network epoch, not SSID or VPS identity; keep REST available independent of gRPC health. RTDB only optional liveness fast path when BOTH currently active PRIMARY emits authenticated generation-matched heartbeat and standby can receive it. Otherwise NEXT_A uses authoritative exact Firestore lease. Preserve fail-closed Office/UNKNOWN, no cross-Wi-Fi switching or business queue fanout.",
+        "Reject direct PDA-to-VPS peer socket dependency, RTDB as sole failover proof, unconditional RTDB on Office, one global transport mode forced for all Agent machines, and taking over solely on lost local heartbeat without authoritative Firestore CAS.",
+        "Performance follow-up: minimize netsh profile process spawning via bounded network epoch cache; listener reconnect on verified Windows network/proxy change, nonblocking single-flight REST watchdog only after WMS-order/ACK regression; measure billed Firestore reads/writes, RTDB connections, role failover latency and PDA ACK duration."
+      ],
+      "open_questions": [
+        "Before any production route change: can real v139 Firestore gRPC pending listener, Agent sync and handoff listener stream through Office proxy or only exact REST GET?",
+        "Is VPS real network path Ethernet/UNKNOWN at the evaluated runtime and does RTDB ever carry a valid same-generation VPS heartbeat? Identify via sanitized telemetry rather than assumption.",
+        "Can a simulated network partition/lost process/WMS not-ready and sudden VPS recovery satisfy authoritative CAS safety plus no duplicate WMS confirmation, 15s liveness objective when reachable, PDA 20/35s recovery budget and quota ceilings?",
+        "Should Owner explicitly authorize a future bounded production-Agent Beta change after D171 isolated gate, with full impact review? No current permission inferred."
+      ],
+      "next_action": "Present two-plane scenario matrix to Owner. For a future implementation request first perform coupled Agent/Android/Firestore/RTDB/WMS impact review and obtain explicit Owner consent under serial D171/D170 and stable gates. Continue independent D171 FIELD PASS false; no prod change.",
+      "evidence": "GitHub relay-agent-v139 tag; Android beta-vc114 / RelayPocClient.kt; relay-agent FirestoreAgentLeaderCoordinator.cs (10/15s common lease, optional RTDB, CAS, VPS return), RtdbHaLiveness.cs, FirestoreVpsReclaim.cs (30s ready, 15m consent), FirestoreConfirmationTransport.cs and D168NetworkRoute.cs; D171-E014/E015."
     }
   ],
   "resume": {
@@ -335,7 +367,8 @@
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
-      "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release."
+      "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release.",
+      "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
