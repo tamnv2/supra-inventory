@@ -49,6 +49,8 @@ jobs:
           $testExe = Join-Path (Get-Location) "dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe"
           $testProcess = Start-Process -FilePath $testExe -ArgumentList "--identity-selftest" -Wait -PassThru
           if ($testProcess.ExitCode -ne 0) { throw "D171_AGENT_IDENTITY_BINDING_SELFTEST_FAILED (exit=$($testProcess.ExitCode))" }
+          $pairingProcess = Start-Process -FilePath $testExe -ArgumentList "--pairing-selftest" -Wait -PassThru
+          if ($pairingProcess.ExitCode -ne 0) { throw "D171_PAIRING_STAGE_SELFTEST_FAILED (exit=$($pairingProcess.ExitCode))" }
       - uses: actions/upload-artifact@v4
         with:
           name: SUPRA-D171-TEST-AGENT-WINDOWS
