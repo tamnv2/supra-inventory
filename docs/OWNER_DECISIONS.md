@@ -4398,3 +4398,16 @@ Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng 
 - Retain generation CAS, 10s primary lease / 15s stale threshold, WMS safety, 20s/35s PDA request recovery, authenticated VPS readiness and manual-holder consent. Split-brain, duplicate WMS confirm, network partition and quota regressions are release blockers.
 
 **Approval boundary:** business architecture preference recorded; production Agent/PDA/Rules implementation, new RTDB route, quota changes, Stable and D170 work NOT authorized. D171 field/Owner PASS still false and D169 is accepted base.
+
+
+## D171-E022 — Owner chốt phương hướng hai chế độ và yêu cầu duyệt kịch bản thay đổi (19/10/2026)
+
+**Quyết định kiến trúc nghiệp vụ đã chốt; bản kịch bản chờ Owner duyệt; CHƯA cấp quyền sửa hoặc phát hành phần mềm production.**
+
+- VPS trên Internet bình thường là PRIMARY ưu tiên, PDA Internet gửi một yêu cầu PickList Firestore theo mã duy nhất; VPS có đường nhận nhanh Firestore realtime, ACK có nguồn duy nhất trên Firestore.
+- Khi VPS thật sự không thể làm PRIMARY, Agent đủ quyền (Internet hoặc Office) tiếp quản qua xác thực WMS-ready, lease/roles generation/CAS/fencing. PDA và Agent thay thế dùng chung Firestore job/ACK; không đổi database hoặc tạo request mới. Khi VPS hồi phục, chuyển giao an toàn và tôn trọng quyền admin/tamnv2 chỉ định thủ công.
+- Agent↔Agent thống nhất một hợp đồng dịch vụ Firestore HTTPS từ cả Internet và Office; Office ưu tiên Windows System Proxy do log D171 chứng minh. Chọn transport theo bằng chứng truy cập thực tế, không đòi nhân viên chọn protocol theo SSID; không khẳng định Office gRPC hoặc RTDB hoạt động.
+- Cloud Functions **được chọn đưa vào thiết kế có điều kiện** chỉ cho nghiệp vụ Agent Office phải kích hoạt Worker khi direct Worker không khả dụng; không phải đường chính cho PickList, PRIMARY hay ACK. Function mới hoặc mở scope Function hiện có bắt buộc có review IAM/Auth/Rules/resource/billing và phê duyệt riêng trước code/provision/deploy. Function không được tự công bố Kick DONE trước biên nhận Worker hoặc cho phép bypass 401/403.
+- Khối lượng tối đa: 40 PDA, 2.000 PickList, 200 Kick, 300 Gọi, 500 Chat mỗi ngày; Agent metadata đồng bộ 10 phút, trạng thái trung gian tối đa 5 phút nhưng không xóa durable ACK/audit; SKU giữ nguyên. Phấn đấu <=90% quota miễn phí từng dịch vụ tính **chung theo nhà cung cấp/account**; dự toán trong D171 là giả định chưa xác nhận từ hóa đơn.
+- Owner không còn điều kiện thử thực địa thêm: chỉ dùng log Office/Internet cũ, mô phỏng, CI/replay và quan trắc thụ động nếu sau này được phép canary. Không tuyên bố FIELD PASS khi chưa có chứng cứ. D170 vẫn PAUSED, Stable OWNER-GATED, accepted base D169.
+- Tài liệu kịch bản bắt buộc để Owner review: `docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md` với 28 tình huống, thất bại, cách xử lý, testing, thứ tự triển khai. Chưa có lệnh `chạy code` hoặc `triển khai` cho production trong thông điệp này.
