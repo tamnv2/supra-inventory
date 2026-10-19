@@ -7,7 +7,7 @@
   "pr": 654,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E020",
+    "id": "D171-E021",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -456,6 +456,33 @@
       ],
       "next_action": "Respond with short design+budget+Cloudflare exception review; no code, release, new resource or serial Owner gate change.",
       "evidence": "Owner request 2026-10-19, GitHub main 1b4f89ae (D171-E019), current Agent v139 / Android vc114 source, D171-E017/E018/E019 and Firebase official pricing docs."
+    },
+    {
+      "id": "D171-E021",
+      "date_vn": "2026-10-19",
+      "kind": "DISCUSSION",
+      "owner_approval": true,
+      "topic": "Owner clarifies unified Firestore Office/NORMAL operation and replaces 95% allowance with 90% free-quota maximum-load design target",
+      "status": "OWNER_DESIGN_REQUIREMENT__REVIEW_ONLY__NO_PRODUCTION_AUTHORIZATION",
+      "facts": [
+        "One universal Firestore job/ACK and Agent↔Agent authority; Office Windows uses proven authenticated HTTPS via system proxy; do not depend on unverified Office gRPC/RTDB. VPS-normal PRIMARY may separately use existing Firestore realtime listener for fast PDA jobs; failover Agent Office/NORMAL uses same data authority with HTTPS REST, CAS/generation fencing and safe VPS return.",
+        "Owner supersedes E020 95% with planning maximum 90% of EACH free Firebase/Google meter under highest modeled concurrent business load, including Picklist, calls, chat, kick, presence, logs and other same-project consumers. Firestore Standard eligible database targets 45,000 reads/day, 18,000 writes/day and <=9 GiB/month egress; other delete/RTDB/Functions/Google meters budgeted separately. Forecast/early-warning only; do not hard-stop critical business.",
+        "E019 6,000 jobs/day illustrates 17,760 basic writes BEFORE other workloads: 240 writes remain under 18,000 design target. It is not possible to guarantee 90% while preserving current latency by simply shortening polling from 10 to 7 seconds; that polling component rises 42.9%. Existing local FirestoreQuotaGuard 45,000 read/15,000 write thresholds are not billed provider totals.",
+        "Cloudflare remains needed for InventoryCore authoritative identity/business/Web/overtime/SKU operations. Firestore client writes do NOT automatically execute Cloudflare Worker commands; an approved Google-side event gateway/Functions relay could theoretically do so, requiring newly scoped resources, validated identity/RBAC, exactly-once-effect/idempotency, durable result/ACK, retries, billing and security review; existing Apps Script gateway only handles coded actions and has UrlFetch quotas. No bridge approved now.",
+        "Owner cannot perform further field testing. D171 Office HTTP200 proxy proof supports HTTPS route engineering, not production urgent-event latency, WMS/ACK or Office gRPC PASS. Use automated emulator, simulated Office proxy, network partition, failover, quotas, compatibility and rollback gates; actual physical FIELD PASS remains unverified."
+      ],
+      "alternatives": [
+        "Preserve current production while measuring; reduce duplicate writes/listeners and high-cardinality polling before spending headroom on selective priority loops.",
+        "Use existing Firestore HTTPS proxy carrier for all Agent networks and event-driven VPS listener as acceleration, never poll all six Agents every 3–5 seconds.",
+        "Reject arbitrary Cloudflare forwarding from Firestore before Owner-approved identity-and-resource-scoped gateway."
+      ],
+      "open_questions": [
+        "Confirm exact Worker-only per-operation routes and any already supported Office Apps Script/Gateway routes.",
+        "Provider-billed daily/meter evidence and real chat/call/kick load are unavailable, so 90% under 6,000 jobs and full-day fallback is not guaranteed.",
+        "Network Office HTTPS probe does not replace physical WMS end-to-end certification; owner has no further field test capability."
+      ],
+      "next_action": "Provide impact review for Owner decision; no production implementation/deployment under D171; D170 paused, accepted base D169, Stable owner-gated.",
+      "evidence": "Current GitHub Agent v139 ForestoreConfirmationTransport, FirestoreAgentLeaderCoordinator, FirestoreQuotaGuard, D171-E017...E020 Office five-round probe, Firebase 2026 pricing official."
     }
   ],
   "resume": {
