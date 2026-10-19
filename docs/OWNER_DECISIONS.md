@@ -1,3 +1,10 @@
+## D171-E012 — Owner yêu cầu sửa bộ test 3 thiết bị, giới hạn Read và đúng hướng dẫn đổi mạng (19/10/2026)
+
+- Chỉ chấp thuận **bộ test độc lập D171**: Windows Agent A đăng nhập `admin`, Agent B đăng nhập `tamnv2`; Android Picker `100` giữ NORMAL. Trong mỗi vòng, chỉ máy cần đổi mạng hiển thị yêu cầu OFFICE/NORMAL với tài khoản và vai trò; thiết bị khác chờ và không tự vượt vòng.
+- Bắt buộc xác thực đủ ba thiết bị/cùng vòng và chứng cứ kết nối Firestore sau đổi mạng; mỗi Agent hoàn thành bài test ACK trước khi có quyền sang vòng kế tiếp. Khi một đường OFFICE lỗi, toàn bộ phiên không được công bố PASS giả; phải hiển thị lý do và thiết bị bị chặn.
+- Cắt giảm truy vấn đọc trùng: truy vấn giới hạn theo thời điểm mới, tiết chế watchdog, có cổng dừng trên ngân sách HTTP nội bộ; không đồng nhất số HTTP với Firestore billed reads. Phải đo usage/quota thật mới được tuyên bố giảm số lượng Read.
+- Chưa có đủ bằng chứng đo mạng Office cho 5/5 vòng, Agent↔Agent/Agent↔PDA và WMS thật. D171 chỉ là test mô phỏng; cần field test xác nhận; bản EXE/APK mới chưa được phát hành cho Owner khi CI chưa PASS. Không sửa Rules/Worker/WMS/PRIMARY/Stable/Agent hay APK chính thức và D170 đang tạm hoãn.
+
 ## D171-E001 — Owner ưu tiên triển khai D171 trước khi nghiệm thu D170 (19/10/2026)
 
 - Owner yêu cầu **mở và chạy D171 ngay**, **tạm hoãn D170 chưa chốt**, không được ghi D170 OWNER PASS. Đây là **ngoại lệ điều phối riêng D170→D171**, không phải mở quyền làm nhiều change đồng thời. D169 vẫn là accepted base.
