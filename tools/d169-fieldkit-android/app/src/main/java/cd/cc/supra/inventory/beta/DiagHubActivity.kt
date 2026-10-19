@@ -39,11 +39,12 @@ class DiagHubActivity : Activity() {
   private val nodeId=UUID.randomUUID().toString().replace("-","")
   private var phase=0
   private var started=false
+  private val dispatchedPhases=Collections.synchronizedSet(HashSet<Int>())
   private val acked=Collections.synchronizedSet(HashSet<String>())
   private val sentOwn=Collections.synchronizedSet(HashSet<String>())
   private val sentPayload=java.util.concurrent.ConcurrentHashMap<String,String>()
   private val sentStartMs=java.util.concurrent.ConcurrentHashMap<String,Long>()
-  private val phases=arrayOf("PDA NORMAL / AGENT NORMAL","PDA OFFICE / AGENT OFFICE","PDA NORMAL / AGENT OFFICE","PDA OFFICE / AGENT NORMAL","AGENT A NORMAL / B NORMAL","AGENT A OFFICE / B OFFICE","AGENT A NORMAL / B OFFICE","AGENT A OFFICE / B NORMAL")
+  private val phases=arrayOf("PDA NORMAL / A NORMAL / B NORMAL","PDA NORMAL / A OFFICE / B NORMAL","PDA NORMAL / A NORMAL / B OFFICE","PDA NORMAL / A OFFICE / B OFFICE","PDA NORMAL / A NORMAL / B NORMAL (RESTORE)")
   private var auth:FirebaseAuth?=null
   private var db:FirebaseFirestore?=null
   private var sessionRef:DocumentReference?=null
@@ -68,7 +69,7 @@ class DiagHubActivity : Activity() {
     sidField=field(root,"Mã phiên tự động",autoSid());sidField.isEnabled=false
     networkField=field(root,"Mạng (xác nhận theo hướng dẫn)","NORMAL")
     btn(root,"BẮT ĐẦU TEST TỰ ĐỘNG") {runAutomated(false)}
-    btn(root,"ĐÃ CHUYỂN MẠNG · TEST TIẾP") {runAutomated(true)}
+    // PDA always stays on NORMAL: scenarios advance from authenticated Agent traffic.
     kind=Spinner(this);kind.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,kinds);kind.visibility=android.view.View.GONE;root.addView(kind)
     payloadField=field(root,"Dữ liệu mô phỏng (không dùng mã Picklist thật)","D169-SIM");payloadField.visibility=android.view.View.GONE
     // Manual request controls retired: test matrix sends all permitted synthetic kinds automatically.
@@ -97,69 +98,54 @@ class DiagHubActivity : Activity() {
     return bytes.take(16).joinToString(""){String.format(Locale.US,"%02x",it.toInt() and 0xff)}
   }
   private fun runAutomated(next:Boolean){
-    worker.execute{
-      try{
+    if(next){notice("PDA luôn giữ mạng thường; chỉ Agent được đổi mạng.");return}
+    worker.execute {
+      try {
         if(!::api.isInitialized)throw IllegalStateException("LOGIN_REQUIRED")
-        if(next&&!started)throw IllegalStateException("BAM_BAT_DAU_TEST_TRUOC")
-        if(next){
-          if(phase>=phases.size){notice("Đã kiểm tra đủ các nhóm mạng.");return@execute}
-          epoch++
-          journal.event("NETWORK_SWITCH","OPERATOR_CONFIRMED","phase="+phase+" epoch="+epoch+" transport="+transport())
-          networkField.post{networkField.setText(if(phases[phase].contains("PDA OFFICE")) "OFFICE" else "NORMAL")}
-        }else{
-          if(started){notice("Đang có phiên Test. Chọn ĐÃ CHUYỂN MẠNG để tiếp tục.");return@execute}
-        }
-        val root=ensureAutoJoined()
+        if(started){notice("PDA đang chờ điều phối từ 2 Agent.");return@execute}
+        ensureAutoJoined()
         started=true
+        journal.event("PDA_READY","PASS","normal_only=true")
+        notice("PDA đã sẵn sàng. Giữ nguyên mạng thường. Khi cả 2 Agent bắt đầu, các kịch bản tự chạy.")
+      }catch(e:Exception){journal.event("AUTO_READY","ERROR",e.javaClass.simpleName);notice("Không sẵn sàng: "+e.javaClass.simpleName)}
+    }
+  }
+  private fun dispatchPhase(root:DocumentReference,newPhase:Int){
+    if(!started||newPhase !in phases.indices||!dispatchedPhases.add(newPhase))return
+    phase=newPhase
+    networkField.post{networkField.setText("NORMAL")}
+    journal.event("PDA_PHASE","AUTO_START","phase="+newPhase+" always_network=NORMAL")
+    worker.execute {
+      try {
+        val uid=auth?.currentUser?.uid?:throw IllegalStateException("AUTH_REQUIRED")
+        root.collection("members").document(uid).update(mapOf(
+          "ready_phase" to newPhase,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp()))
         val sent=ArrayList<String>()
-        journal.event("AUTO_PHASE","START","scenario="+phases[phase]+" epoch="+epoch+" transport="+transport())
         var picklistIndex=0
         for(type in kinds){
           val request=UUID.randomUUID().toString().replace("-","")
-          val simulatedPayload="D169-SIM-P"+phase+(if(type=="PICKLIST_SIM") {
+          val payload="D169-SIM-P"+newPhase+(if(type=="PICKLIST_SIM") {
             picklistIndex++
             if(picklistIndex==1) "|123" else "|1234"
           }else "")
-          val uid=auth!!.currentUser!!.uid
           val map=mapOf("request_id" to request,"sender_uid" to uid,"sender_node" to nodeId,
             "sender_role" to "PICKER","target_uid" to "ALL","kind" to type,
-            "payload" to simulatedPayload,"created_at" to FieldValue.serverTimestamp(),
+            "payload" to payload,"created_at" to FieldValue.serverTimestamp(),
             "expires_at" to com.google.firebase.Timestamp(Date(System.currentTimeMillis()+240000)))
-          val start=SystemClock.elapsedRealtime()
           sentOwn.add(request)
-          sentPayload[request]=simulatedPayload
-          sentStartMs[request]=start
-          try { Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS) }
-          catch(e:Exception) {sentOwn.remove(request);sentPayload.remove(request);sentStartMs.remove(request);throw e}
+          sentPayload[request]=payload
+          sentStartMs[request]=SystemClock.elapsedRealtime()
+          try{Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS)}
+          catch(e:Exception){sentOwn.remove(request);sentPayload.remove(request);sentStartMs.remove(request);throw e}
           sent.add(request)
-          journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" simulated_payload="+simulatedPayload+" ms="+(SystemClock.elapsedRealtime()-start))
+          journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" phase="+newPhase)
         }
-        for(i in 0 until 30){
-          if(sent.all{acked.contains(it)})break
-          Thread.sleep(1000)
-        }
-        val pass=sent.count{acked.contains(it)}
-        for(id in sent)journal.event("TEST_TERMINAL",if(acked.contains(id))"ACK_PASS" else "ACK_TIMEOUT","request="+id+" phase="+phase)
-        journal.event("AUTO_PHASE","COMPLETE","scenario="+phases[phase]+" pass="+pass+"/"+sent.size)
-        phase++
-        if(phase<phases.size){
-          // Re-subscribe so pending messages from the next network phase can be retried.
-          startListeners(root,auth!!.currentUser!!.uid)
-          val upcoming=phases[phase]
-          notice("Kết quả "+pass+"/"+sent.size+". Tiếp theo: "+upcoming+".")
-          runOnUiThread{
-            android.app.AlertDialog.Builder(this)
-              .setTitle("D169 · Chuyển mạng bước "+(phase+1)+"/"+phases.size)
-              .setMessage("Mạng cần thử: "+upcoming+"\\nChỉ bấm Đã chuyển mạng sau khi các thiết bị đã kết nối mạng yêu cầu.")
-              .setPositiveButton("Đã chuyển mạng"){_,_->runAutomated(true)}
-              .setNegativeButton("Chưa đổi",null)
-              .show()
-          }
-        }else{
-          notice("Đã chạy hết 8 nhóm thử nghiệm. Gửi log lên Drive và lấy log EXE từ Desktop.")
-          upload()
-        }
-      }catch(e:Exception){journal.event("AUTO_TEST","ERROR",e.javaClass.simpleName);notice("Test lỗi: "+e.javaClass.simpleName+". Kiểm tra mạng/Rules; không có ACK giả.")}
+        for(i in 0 until 30){if(sent.all{acked.contains(it)})break;Thread.sleep(1000)}
+        val passed=sent.count{acked.contains(it)}
+        journal.event("PDA_PHASE","COMPLETE","phase="+newPhase+" ack="+passed+"/"+sent.size)
+        notice("Vòng "+(newPhase+1)+"/"+phases.size+" · EXE ACK "+passed+"/"+sent.size)
+        if(newPhase==phases.lastIndex)upload()
+      }catch(e:Exception){journal.event("PDA_PHASE","FAIL",e.javaClass.simpleName);notice("Vòng "+newPhase+" lỗi: "+e.javaClass.simpleName)}
     }
   }
   private fun ensureAutoJoined():DocumentReference{
@@ -182,8 +168,9 @@ class DiagHubActivity : Activity() {
       val member=mapOf("uid" to uid,"role" to "PICKER","joined_at" to FieldValue.serverTimestamp())
       Tasks.await(self.set(member),12,TimeUnit.SECONDS)
     }
+    Tasks.await(self.update(mapOf("ready_phase" to 0,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp())),12,TimeUnit.SECONDS)
     sessionRef=root
-    journal.configure(autoSid(),net())
+    journal.configure(autoSid(),"NORMAL")
     journal.event("AUTO_PAIR","PASS","node="+nodeId.take(8)+" epoch="+epoch)
     startListeners(root,uid)
     notice("Đã tự động ghép PDA Test với Agent Test.")
@@ -274,11 +261,18 @@ class DiagHubActivity : Activity() {
         if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
         val incomingPayload=d.getString("payload").orEmpty()
-        val expectedPrefix="D169-SIM-P"+phase
-        val incomingValid=if(d.getString("kind")=="PICKLIST_SIM")
-          incomingPayload.matches(Regex("^"+Regex.escape(expectedPrefix)+"\\|[0-9]{3,4}$"))
-          else incomingPayload==expectedPrefix
-        if(!incomingValid){journal.event("RX_PHASE","MISMATCH_RETRY_LATER","request="+d.id+" phase="+phase);continue}
+        val parsed=Regex("^D169-SIM-P([0-4])(?:\\\\|[0-9]{3,4})?$").matchEntire(incomingPayload)
+        val incomingPhase=parsed?.groupValues?.get(1)?.toIntOrNull()
+        if(incomingPhase==null||incomingPhase !in phases.indices){
+          journal.event("RX_PHASE","INVALID_IGNORED","request="+d.id);continue
+        }
+        val exactPrefix="D169-SIM-P"+incomingPhase
+        val validPayload=if(d.getString("kind")=="PICKLIST_SIM")
+          incomingPayload.matches(Regex("^"+Regex.escape(exactPrefix)+"\\\\|[0-9]{3,4}$"))
+          else incomingPayload==exactPrefix
+        if(!validPayload){journal.event("RX_PHASE","INVALID_PAYLOAD","request="+d.id);continue}
+        if(incomingPhase>phase||!dispatchedPhases.contains(incomingPhase))dispatchPhase(root,incomingPhase)
+        if(incomingPhase!=phase){journal.event("RX_PHASE","OUT_OF_ORDER","request="+d.id+" incoming="+incomingPhase+" current="+phase);continue}
         if(!seen.add("msg:"+d.id))continue
         val type=d.getString("kind").orEmpty()
         journal.event("RX_FROM_AGENT","RECEIVED","request="+d.id+" kind="+type+" epoch="+epoch)
