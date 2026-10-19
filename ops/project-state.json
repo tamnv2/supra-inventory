@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E013_EXE_APK_EMULATOR_AUTHORITY_SOURCE_CI_PASS__FIELD_OWNER_PENDING",
+    "current_change_status": "D171_E022_OWNER_TWO_MODE_ARCHITECTURE_SELECTED__SCENARIOS_FOR_REVIEW__NO_PROD_CODE_OR_DEPLOY__FIELD_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7458,9 +7458,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
-    "working_branch": "docs/d171-e019-firestore-usage-estimate-20261019",
-    "pr": 653,
-    "latest_checkpoint_id": "D171-E019",
+    "working_branch": "docs/d171-e020-agent-peer-architecture-review-20261019",
+    "pr": 655,
+    "latest_checkpoint_id": "D171-E022",
     "checkpoint_date_vn": "2026-10-19",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8438,6 +8438,22 @@
       "constraints": "NO_LIVE_RULES_OR_WMS_OR_PRIMARY_OR_OFFICIAL_OTA_OR_D170_CHANGE",
       "billing": "LOCAL_HTTP_QUERY_IS_NOT_BILLED_FIRESTORE_READ__REAL_MEASURE_PENDING",
       "status": "E013_WINDOWS_ANDROID_EMULATOR_CI_SOURCE_PASS__FIELD_UNVERIFIED"
+    },
+    "design_e022": {
+      "date_vn": "2026-10-19",
+      "owner_architecture_approval": true,
+      "scope": "FIRESTORE_VPS_FAST_AND_UNIVERSAL_AGENT_OFFICE_INTERNET__FIRESTORE_SAME_PDA_JOB_ACK__FUNCTION_SELECTIVE_DESIGN_ONLY",
+      "scenario_plan": "docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md",
+      "draft_pr": 655,
+      "production_code_approval": false,
+      "production_deploy_approval": false,
+      "new_function_resource_approval": false,
+      "rtdb_business_approval": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d170": "PAUSED",
+      "stable": "OWNER_GATED",
+      "next": "OWNER_REVIEW_28_SCENARIOS_AND_P0_P5_ROLLOUT_BEFORE_CODE"
     }
   }
 }
