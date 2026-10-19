@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e017-connectivity-glossary-20261019",
-  "pr": 651,
+  "working_branch": "docs/d171-e018-dual-mode-vps-owner-direction-20261019",
+  "pr": 652,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E017",
+    "id": "D171-E018",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -373,13 +373,41 @@
       ],
       "next_action": "Await Owner's selection or explicit request for code changes. No production Agent/Android/Rules/WMS change; D171 field+Owner PASS false and D170 paused.",
       "evidence": "Release Agent v139 source and current Android vc114 source, D171 five-round Owner-uploaded NETWORK_PROBES/AGENT_PEER/Android test logs, canonical D169/D171 repo specs and E016 routing proposal."
+    },
+    {
+      "id": "D171-E018",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner chooses long-lived VPS fast PDA mode and universal network-independent standby Agent mode",
+      "status": "DESIGN_DIRECTION_ONLY__NO_SOURCE_OR_RELEASE_APPROVAL",
+      "facts": [
+        "VPS expected long-lived PRIMARY; Owner requests a fast and low-usage dedicated PDA communication mode plus one ordinary/Office common Agent-to-Agent control route with no Wi-Fi-specific protocol choice.",
+        "On rare VPS failure, any eligible Office or ordinary Agent PRIMARY should use one common PDA-and-Agent route and allow Wi-Fi switching without operator protocol changes; VPS return restores VPS-preferred mode safely.",
+        "Currently Android exact Firestore request/ACK plus VPS Firestore gRPC pending listener is the existing fast data path; authenticated Firestore HTTPS REST via Office Windows proxy is evidenced. Universal Office gRPC is not yet proven.",
+        "Existing registered RTDB resource is limited to HA heartbeat, not PDA Picklist/doorbell; no new RTDB business routes or rules are authorized.",
+        "Strict REST-only Agent signaling risks additional reads or delayed urgent events; retain generation CAS, 10s lease, 15s timeout, WMS readiness, safe 20/35s PDA recovery and Owner/manual-holder VPS return constraints.",
+        "This message approves architecture goals only. No production Agent/PDA changes, resource scope expansion, Stable action or D171 field PASS. D170 remains paused and D169 accepted."
+      ],
+      "alternatives": [
+        "Use existing Firestore gRPC for VPS fast notifications, Firestore REST for common Agent coordination and fallback PRIMARY job/ACK; one durable Firestore job identifier.",
+        "Dedicated RTDB business signal requires separate resource and security approval; not a current permitted choice.",
+        "Fully REST-only cross-network control needs separate urgent-event latency and provider usage measurement."
+      ],
+      "open_questions": [
+        "Whether Owner requires physically separate RTDB service for VPS-PDA or accepts dedicated Firestore listener fast path.",
+        "Can REST-only common Agent control meet urgent event delivery and cost objectives on Office and normal links?"
+      ],
+      "next_action": "Technical assessment and preimplementation impact review; no source/provider mutation approved.",
+      "evidence": "Owner 2026-10-19 chat directive; released Agent v139/Android vc114; D171 five-round probes; project-scope RTDB guard; E018 decisions and spec discussion."
     }
   ],
   "resume": {
     "approved": [
       "D171 prioritized ahead of paused D170 by explicit Owner direction; D169 stays accepted base.",
       "Two Agent + one PDA diagnostic isolated from production and all data-plane operations; physical test after CI.",
-      "D171-E012 Owner explicitly ordered low-cost isolated field kit repair and precise 3-device network prompts."
+      "D171-E012 Owner explicitly ordered low-cost isolated field kit repair and precise 3-device network prompts.",
+      "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -397,7 +425,8 @@
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
       "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release.",
       "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization.",
-      "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test."
+      "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test.",
+      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",

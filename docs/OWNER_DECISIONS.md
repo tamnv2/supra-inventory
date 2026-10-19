@@ -4384,3 +4384,17 @@ Owner explicitly instructed "ok triển khai đi em" after D169-E056 impact revi
 ## D169-E061 — Android Beta foreground resume, 18/10/2026
 
 Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng khi Activity còn sống không được dựng lại màn hình, tab, vị trí cuộn và nội dung đang nhập chỉ vì kiểm tra phiên bản hoặc cập nhật hồ sơ. Kiểm tra phiên bản đã ký, quyền truy cập, kích user và PickList/ACK phải giữ nguyên hiệu lực. Khi Android thật sự hủy process, khôi phục phiên vẫn phải xác thực. Không tăng polling, upload log hoặc tạo tài nguyên dịch vụ mới. Phát hành qua branch → PR → CI + authority/continuity PASS → merge → APK Beta đã ký; chỉ Beta được phép, Stable OWNER-GATED, kiểm thử thiết bị thật chưa PASS.
+
+## D171-E018 — Owner chọn mục tiêu hai chế độ VPS/Agent kết nối thống nhất (2026-10-19)
+
+**Owner design direction; NOT production source/deploy authorization; D171 existing isolated test scope remains unchanged.**
+
+- VPS is the long-lived normal PRIMARY on ordinary network. Owner wants one fast, healthy, stable and low-usage PDA↔VPS signal path, separate from one universal Agent↔Agent coordination path that works from both ordinary Internet and corporate Office without per-SSID transport selection.
+- During rare VPS failure, any eligible replacement Agent (ordinary or Office) must use one shared service path for both PDA↔Agent business and Agent↔Agent coordination, tolerating frequent local Agent Wi-Fi transitions without user-selected protocol swaps.
+- When VPS returns and is genuinely WMS-ready, return to the VPS-preferred mode with accepted safe handoff and Owner/manual-holder consent unchanged; do not interrupt in-flight confirmation.
+- **Technical feasibility finding, not Owner rejection of the goal:** current registered Beta RTDB resource `firebase-rtdb-relay-beta` is explicitly HA-liveness-only. No PDA job/wake/ACK RTDB mutations are permitted under current scope. A new RTDB business signal would require separate scope/Rules/security/usage approval, and direct RTDB business transaction delivery would require idempotent failover data migration proof. No such approval was given in this turn.
+- Safest in-scope near-term interpretation: current Firestore PDA exact-job/ACK authority unchanged; VPS receives jobs via its existing Firestore gRPC fast listener, with REST independent watchdog; all Agents use authenticated Firestore REST common authority across both network types for roles, generation, lease and failover (Windows system proxy on Office). During non-VPS PRIMARY, the same Firestore business job is consumed via REST; PDA need not switch databases.
+- Universal Firestore REST for **every** Agent-to-Agent signal is not yet field-proven to preserve instant Call/Kick/notification latency or provider billed reads without costly polling; compare those cases before removing existing gRPC listeners. Office gRPC Listen is unverified even though Office REST exact-document HTTP 200 has field evidence.
+- Retain generation CAS, 10s primary lease / 15s stale threshold, WMS safety, 20s/35s PDA request recovery, authenticated VPS readiness and manual-holder consent. Split-brain, duplicate WMS confirm, network partition and quota regressions are release blockers.
+
+**Approval boundary:** business architecture preference recorded; production Agent/PDA/Rules implementation, new RTDB route, quota changes, Stable and D170 work NOT authorized. D171 field/Owner PASS still false and D169 is accepted base.
