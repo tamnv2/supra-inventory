@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-three-device-pairing-diagnostics-20261019",
-  "pr": 645,
+  "working_branch": "state/d171-e010-two-client-kit-release-receipt-20261019",
+  "pr": 646,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E009",
+    "id": "D171-E010",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -181,6 +181,25 @@
       ],
       "next_action": "Finish and verify PR645 EXE+APK CI/emulator/authority, then publish both matching test artifacts and await Owner hardware evidence.",
       "evidence": "Owner 2026-10-19 field screenshot (Windows HTTP_404, Android IllegalStateException); PR645 source branches."
+    },
+    {
+      "id": "D171-E010",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "topic": "D171 E009 Windows EXE and Android APK independent test suite build/release verified; field pending",
+      "status": "D171_WINDOWS_ANDROID_ARTIFACTS_16_OF_16_CI_PASS__OWNER_FIELD_NOT_PASS",
+      "owner_approval": true,
+      "facts": [
+        "PR645 exact final source head 76f6d79df16cc87f2a497aa9b2ab16248b97132c passed 16/16 source workflows including Windows pairing+identity selftests, Android source contract/Gradle debug APK, Firestore emulator no-session GET and Rules parity, Repo Authority and Project State/Continuity. Merge main c07e04ef8eaaaef9e6020d3333c0b87da04fd2e0.",
+        "New independent Windows artifact SUPRA-D171-TEST-AGENT-WINDOWS run 39193881849 artifact ID 12160943047 (GitHub Actions archive digest sha256:333df34007c297363ddeb2cff4fb67baa163e2f5f03f88a060223b19892db0be).",
+        "New independent Android artifact SUPRA-D171-TEST-PICKER-APK run 39193881733 artifact ID 12160629712 (archive sha256:9f25035dcc32b0bdd7f3f9bbaa8beefd2971d6a0d5ef1c02599377c663eee1a1). Both are downloadable as ZIP assets from separate Actions runs; built from identical source head.",
+        "Expected Firestore 404 absent session is handled as Agent B waiting for admin A; Android now waits bounded time and reports sanitized actionable stage/error; Agent announces phase, same-phase 3-member barrier and dual ACK are hard gates; unchanged network stage auto continues.",
+        "No changes to Firebase Rules, production Agent/Android, WMS, PRIMARY, real Picklist, Worker, Stable or D170. Existing D171 Beta diagnostic Rules provider-readback evidence remains prior verified receipt because source unchanged.",
+        "No on-device field retest of E009 available. CI/artifact existence is technical release PASS only, not verified 2-Agent/1-PDA network effectiveness, Provider usage, D171 FIELD PASS or Owner PASS.",
+        "The test APK is independent debug-signed from GitHub runners, and signing identity may differ between runs; if replacement installation is rejected by Android, uninstall only the old D171 diagnostic application then install E009. Never uninstall the operational 1291 Báo hàng app."
+      ],
+      "next_action": "Owner installs latest E009 EXE on both separate Windows Agent test PCs, replaces only independent D171 Android test APK, signs into admin/tamnv2/100, presses Start on all three, follows only named Agent network switch prompts, submits first sanitized stage/code and JSONL on failure; Owner confirms FIELD PASS after all five scenarios.",
+      "evidence": "PR645 merged c07e04e; 16/16 CI exact head 76f6d79; Windows Actions run 39193881849 ID 12160943047; Android run 39193881733 ID 12160629712; emulator run 39193881791."
     }
   ],
   "resume": {
@@ -193,10 +212,11 @@
       "D171 source candidate: 5-round PDA NORMAL, Agent B/A ready barrier, auto PDA ACK, full current-main Rules parity and role-bound test match; CI binary artifacts subject to latest SHA.",
       "PR638 merged main with source CI PASS and independent Windows/Android test artifacts; no live Firebase Rules provider readback obtained yet.",
       "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built.",
-      "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715."
+      "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715.",
+      "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79."
     ],
     "in_progress": [
-      "PR645 E009 isolated EXE/APK pairing repair awaiting current SHA CI and owner 3-device hardware test."
+      "E009 EXE/APK source and CI artifact release completed; Owner physical 2 Agent + 1 PDA field trial pending."
     ],
     "pending_approval": [
       "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS.",
@@ -207,7 +227,7 @@
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Confirm both client builds, emulator and GitHub guards, issue fresh download links and retest all 5 stages."
+      "Owner replaces both EXEs and the separate test APK with E009, signs into the designated accounts, tests all five network scenarios, records field PASS or first sanitized failure; no automatic cleanup."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
