@@ -432,7 +432,7 @@
     {
       "id": "D171-E020",
       "date_vn": "2026-10-19",
-      "kind": "OWNER_REVIEW_REQUEST",
+      "kind": "DISCUSSION",
       "owner_approval": false,
       "topic": "Review requested: Firebase-first all Agent↔Agent and Agent↔PDA, VPS fast primary vs common Office/NORMAL fallback, 95-percent quota planning",
       "status": "DESIGN_REVIEW_ONLY__NO_PRODUCTION_CHANGE__D171_FIELD_PENDING",
