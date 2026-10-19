@@ -30,7 +30,7 @@ internal static class Entry
         if (login.ShowDialog() != DialogResult.OK) return;
         var report = new DiagnosticReport();
         var session = FirebaseDiagnostic.TryLoginAsync(login.Login, login.Password, report).GetAwaiter().GetResult();
-        if (session == null) { MessageBox.Show("Không đăng nhập được Agent Admin/Pick Pack Admin.", "D169 Test"); return; }
+        if (session == null) { MessageBox.Show("Không đăng nhập được Agent Admin/Pick Pack Admin.", "D171 Test"); return; }
         Application.Run(new PeerForm(session, login.Login));
     }
 }
@@ -253,7 +253,7 @@ internal static class FirebaseDiagnostic
     private const string Project = "supra-inventory-beta";
     private const string RtdbHost = "supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app";
     private const string FirestoreUrl = "https://firestore.googleapis.com/v1/projects/" + Project + "/databases/(default)/documents";
-    private const string Worker = "https://inventory-beta.supra.cc.cd";
+    private const string Worker = "https://inventory.supra.cc.cd";
     private const int TimeoutMs = 5500;
     private static readonly (string Category, string Host)[] Hosts =
     {
@@ -269,7 +269,7 @@ internal static class FirebaseDiagnostic
         ("CLOUD_FUNCTIONS", "cloudfunctions.googleapis.com"),
         ("HOSTING", "firebasehosting.googleapis.com"),
         ("GCS", "storage.googleapis.com"),
-        ("BETA_WORKER", "inventory-beta.supra.cc.cd")
+        ("INVENTORY_WORKER", "inventory.supra.cc.cd")
     };
     private static HttpClient Client(bool useProxy, int timeout = TimeoutMs)
     {
