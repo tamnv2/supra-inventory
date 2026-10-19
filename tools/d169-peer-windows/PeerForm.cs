@@ -163,13 +163,40 @@ internal sealed class PeerForm : Form
     }
     private async Task EnsureAutomaticSession()
     {
-        using var existing=await Http("GET",Url(),null,true);
-        if(existing==null){
-            try{await CreateSession();_agentLabel="A";}
-            catch(HttpRequestException e) when(e.Message=="HTTP_409"||e.Message=="HTTP_400"){_agentLabel="B";}
-        }else{_agentLabel=GetString(existing.RootElement,"owner_uid")==_uid?"A":"B";}
+        // Operator identities are validated at runtime and never written to public logs.
+        // A is fixed to the privileged Admin; B is fixed to the second Owner operator.
+        var account=_operatorLogin.Trim().ToLowerInvariant();
+        _agentLabel=account=="admin"?"A":account=="tamnv2"?"B":
+            throw new InvalidOperationException("D171_AGENT_ACCOUNT_NOT_AUTHORIZED");
+        var tokenAccount=GetJwtClaim(_token.IdToken,"app_user_id");
+        if(!string.Equals(tokenAccount,account,StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("D171_AUTH_IDENTITY_MISMATCH");
+        if(_agentLabel=="A"){
+            using var existing=await Http("GET",Url(),null,true);
+            if(existing==null) {
+                try { await CreateSession(); }
+                catch(HttpRequestException e) when(e.Message=="HTTP_409"||e.Message=="HTTP_400") { }
+            }
+        }
+        JsonDocument? root=null;
+        for(var attempt=0;attempt<45;attempt++){
+            root=await Http("GET",Url(),null,true);
+            if(root!=null)break;
+            await Task.Delay(2000);
+        }
+        if(root==null)throw new InvalidOperationException("D171_WAIT_ADMIN_A_SESSION_TIMEOUT");
+        using(root){
+            var ownerUid=GetString(root.RootElement,"owner_uid");
+            var until=GetString(root.RootElement,"expires_at");
+            if(!DateTimeOffset.TryParse(until,out var expiry)||expiry<=DateTimeOffset.UtcNow)
+                throw new InvalidOperationException("D171_EXISTING_TEST_SESSION_EXPIRED_REQUIRE_APPROVED_CLEANUP");
+            if(_agentLabel=="A"&&ownerUid!=_uid)
+                throw new InvalidOperationException("D171_SESSION_OWNER_CONFLICT_REQUIRE_ARCHIVE_AND_CLEANUP");
+            if(_agentLabel=="B"&&ownerUid==_uid)
+                throw new InvalidOperationException("D171_DUPLICATE_AGENT_AUTH_UID");
+        }
         await JoinSession();
-        Log("PAIRING","JOINED",new{node=_nodeId[..8],phase=_phase+1});
+        Log("PAIRING","ROLE_BOUND_JOINED",new{role=_agentLabel,node=_nodeId[..8],phase=_phase+1});
     }
     private async Task PublishReady()
     {
