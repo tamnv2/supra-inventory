@@ -424,9 +424,26 @@ internal sealed class PeerForm : Form
         var start=Environment.TickCount64;
         using var res=await _http.SendAsync(req);
         if(method=="GET")Interlocked.Increment(ref _readCount);else Interlocked.Increment(ref _writeCount);
-        Log("FIRESTORE_HTTP",(int)res.StatusCode==200?"HTTP_200":"HTTP_"+(int)res.StatusCode,new{method,elapsed_ms=Environment.TickCount64-start});
+        var resultCode="HTTP_"+(int)res.StatusCode;
+        var route = url.Contains("/members",StringComparison.Ordinal)?"MEMBERS" :
+            url.Contains("/receipts",StringComparison.Ordinal)?"RECEIPTS" :
+            url.Contains("/messages",StringComparison.Ordinal)?"MESSAGES" :
+            url.Contains(":commit",StringComparison.Ordinal)?"DOCUMENT_WRITE" : "TEST_SESSION";
+        Log("FIRESTORE_HTTP",resultCode,new{method,route,elapsed_ms=Environment.TickCount64-start});
         if(notFoundOkay && res.StatusCode==HttpStatusCode.NotFound)return null;
-        if(!res.IsSuccessStatusCode)throw new HttpRequestException("HTTP_"+(int)res.StatusCode);
+        if(!res.IsSuccessStatusCode){
+            string reason="UNSPECIFIED";
+            try{
+                // Extract only a whitelisted provider error status; never expose raw response bodies.
+                var limited=await res.Content.ReadAsStringAsync();
+                using var parsed=JsonDocument.Parse(limited);
+                var err=parsed.RootElement.GetProperty("error");
+                var safe=err.TryGetProperty("status",out var field)?field.GetString():"";
+                if(safe!=null&&Regex.IsMatch(safe,@"^[A-Z_]{2,60}$"))reason=safe;
+            }catch{}
+            Log("FIRESTORE_FAILURE",resultCode,new{step=_activeStep,method,route,reason});
+            throw new HttpRequestException(resultCode);
+        }
         return JsonDocument.Parse(await res.Content.ReadAsStringAsync());
     }
     private async Task CreateDoc(string path,Dictionary<string,object> fields,string timestampField)
