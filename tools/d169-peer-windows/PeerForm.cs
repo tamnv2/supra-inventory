@@ -74,8 +74,8 @@ internal sealed class PeerForm : Form
         if(string.IsNullOrWhiteSpace(_uid)) throw new InvalidOperationException("Missing Firebase uid");
         var desktop=Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         if(string.IsNullOrWhiteSpace(desktop)||!Directory.Exists(desktop))desktop=Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        _logPath=Path.Combine(desktop,"SUPRA_D169_AGENT_PEER_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
-        _probeLogPath=Path.Combine(desktop,"SUPRA_D169_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
+        _logPath=Path.Combine(desktop,"SUPRA_D171_AGENT_PEER_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
+        _probeLogPath=Path.Combine(desktop,"SUPRA_D171_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
         Text="SUPRA D171 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
@@ -135,7 +135,7 @@ internal sealed class PeerForm : Form
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
-        MessageBox.Show("Tài khoản "+_operatorLogin+" · Test Agent "+_agentLabel+": Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nWi-Fi Agent máy này cần: "+recommended+".\nĐổi mạng rồi bấm ĐÃ CHUYỂN MẠNG (trừ lượt đầu, bấm BẮT ĐẦU TEST).","SUPRA D169 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
+        MessageBox.Show("Tài khoản "+_operatorLogin+" · Test Agent "+_agentLabel+": Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nWi-Fi Agent máy này cần: "+recommended+".\nĐổi mạng rồi bấm ĐÃ CHUYỂN MẠNG (trừ lượt đầu, bấm BẮT ĐẦU TEST).","SUPRA D171 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
     }
     private async Task StartAutomaticTests()
     {
@@ -321,7 +321,7 @@ internal sealed class PeerForm : Form
     {
         if(_busy)return;_busy=true;
         try{await action();}catch(Exception e){Log("ACTION","ERROR",new{type=e.GetType().Name,description=e.Message});
-          if(!IsDisposed){MessageBox.Show("Kiểm thử dừng: "+e.Message,"SUPRA D169",MessageBoxButtons.OK,MessageBoxIcon.Warning);_testAll.Enabled=_phase==0;}}
+          if(!IsDisposed){MessageBox.Show("Kiểm thử dừng: "+e.Message,"SUPRA D171",MessageBoxButtons.OK,MessageBoxIcon.Warning);_testAll.Enabled=_phase==0;}}
         finally{_busy=false;}
     }
     private string Sid()
