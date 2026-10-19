@@ -15,7 +15,7 @@
         android:allowBackup="false"
         android:icon="@drawable/app_icon_d089"
         android:roundIcon="@drawable/app_icon_d089"
-        android:label="SUPRA D169 Network Field Test"
+        android:label="SUPRA D171 Network Test"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme">
@@ -58,7 +58,7 @@
             android:windowSoftInputMode="adjustResize">
             
         </activity>
-        <activity android:name=".DiagHubActivity" android:exported="true" android:label="SUPRA D169 Test">
+        <activity android:name=".DiagHubActivity" android:exported="true" android:label="SUPRA D171 Test">
             <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
         </activity>
     </application>
