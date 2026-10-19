@@ -7,7 +7,7 @@
   "pr": 654,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E025",
+    "id": "D171-E026",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -528,7 +528,8 @@
         "Added PDA-hours primarily affect concurrent listeners, authentication refresh, connection/network traffic and idle-vs-active pending query cadence, which can raise Reads and outbound egress; request create/ACK stays 4000 estimated writes at the Owner cap 2000 requests/day. Read bands require field/provider validation, especially 21h Office fallback and peak overlap.",
         "Do not require Owner to retest physical Office network; report uncertainty and use simulation of shift-overlap cases, proxy, lost VPS and quota before new release."
       ],
-      "next_action": "Use corrected per-shift activity and corrected 5-minute history math in the review; no production deployment/Owner PASS."
+      "next_action": "Use corrected per-shift activity and corrected 5-minute history math in the review; no production deployment/Owner PASS.",
+      "evidence": "Owner 2026-10-19 40 PDA per shift correction; current v139 Agent source and D171-E022 capacity estimate; non-provider-billed scenario only."
     },
     {
       "id": "D171-E024",
@@ -577,6 +578,36 @@
       ],
       "next_action": "Present analysis and implementation phases with clear evidence gaps, no code or deployment; preserve D171 active/ D170 paused and D169 accepted.",
       "evidence": "repo D165PrivilegedAuth.cs, ops/apps-script/agent-log-gateway/Code.gs, D160Resilience.cs, D119AgentFeatures.cs, docs/specs/AUTH_RBAC.md, D171 five-round Office probes, Firebase Functions and Google Apps Script quota official docs."
+    },
+    {
+      "id": "D171-E026",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Read-only comparison with Pickface Damage 1291 Office network transport and Google Gateway",
+      "status": "REFERENCE_CODE_REVIEW_ONLY__NO_CROSS_PROJECT_RESOURCE_IMPORT__NO_SOURCE_CHANGE",
+      "facts": [
+        "Owner requested read-only comparison with separate public repository tamnv2/pickfacedamage1291. Project scope marks Pickface Damage resources OUT OF SCOPE for Inventory mutation/import; use solely technical pattern review, never reuse its project IDs, credentials, database, service or data.",
+        "Pickface main v1.4.33 source uses Windows system proxy detection, nonblocking gateway_info check, NetworkHttpClientFactory route recreation/network debounce, Apps Script GoogleGateway JSON action allowlist, Firebase Auth refresh through Google Gateway, and fallback RTDB authenticated REST relay on Office when direct RTDB blocked.",
+        "Pickface Google Gateway RTDB relay proxies restricted allowlisted GET/PUT/DELETE and respects caller Firebase ID token/Security Rules with ETag/CAS. Its SSE realtime stream is intentionally disabled in relay mode and falls back to slower polling (27s artificial wait); do NOT copy into latency-sensitive Inventory Agent↔PDA Picklist/ACK/HA.",
+        "Pickface uses per-action bounded retry, distinguishes HTML or redirected non-JSON gateway responses, caps concurrent gateway calls (two) and avoids startup blocking. Its .NET 8 implementation must be adapted conceptually, not copied, to Inventory Agent net48 HttpWebRequest Firestore transport.",
+        "Pickface canonical 25-day client telemetry 35,978 Gateway requests, 29,206 RTDB relays (~81.2%), estimated about 100k UrlFetch over period (NOT provider-billed facts). It is migrating to Cloud Run project-scoped services under draft PR22 but no deployed/Office-PASS Cloud Run. This evidence argues against routing high-frequency realtime through Apps Script, but ~200/day Inventory Worker-authoritative kicks + occasional privileged OTP may use current Inventory-scoped Apps Script Gateway with bounded quota and no new service if authorized.",
+        "Inventory Gateway already supports protected OTP request/login/reauth, logs and SKU subset; Worker-authoritative Pickface session revoke path is NOT currently an Inventory Gateway allowed action. Add an explicitly allowlisted revoke_picker_session action under Owner-reviewed separate scoped implementation, revalidate Firebase token and actual Worker RBAC, keep same request_id/idempotent retry and authoritative Worker receipt before local Firestore kick signal. This simpler Agent Office→existing Google Apps Script→existing Worker option should be evaluated BEFORE new Cloud Function/Firestore-command trigger, with measured Apps Script UrlFetch quota and latency.",
+        "Preserve strict MVP boundaries: Office-only agent route must never treat Worker 401/403 as transport error, no OTP/refresh proof logging or storage, VPS OTP-only, existing WMS/Firestore primary fencing unchanged, offline Picklist unavailable even if Pickface can queue offline reports.",
+        "Neither Pickface Main source/handovers nor PR22 prove that Inventory's own Apps Script /exec redirect endpoint currently works on each Office PC. Source inspection is not field PASS. User previously said cannot conduct further tests; safe non-mutating CI/mock/proxy tests are possible."
+      ],
+      "alternatives": [
+        "Preferred staged implementation: reuse approved Inventory Google Gateway for protected auth; implement one narrowly scoped Worker-only kick action with bounded retries, request_id and Worker-receipt ACK; keep Firestore for realtime Agent/Picker controls.",
+        "Reassess Google Cloud Function only if existing Gateway shows unacceptable Office connectivity, Apps Script UrlFetch quota, or heavy queue latency; Cloud Run in Pickface is still draft/unproven.",
+        "Reject copying Pickface RTDB proxy's 27s SSE-to-polling fallback into primary Picker confirm/HA."
+      ],
+      "open_questions": [
+        "Inventory Google Gateway endpoint /exec and googleusercontent redirect Office reachability not physically proven, unlike Pickface separate Gateway success history.",
+        "Exact Apps Script UrlFetch quota headroom shared by owner's Google account unknown; historical exhaustion requires quota monitoring before expanding actions.",
+        "Inventory P0 latency for Worker-only kick through Gateway requires automated provider/proxy test and postrelease telemetry; no field PASS granted."
+      ],
+      "next_action": "Deliver design recommendation; retain D171 isolated review only, no external project/resource mutation or new Inventory gateway action until Owner authorizes code/release. D170 paused, Stable Owner-gated.",
+      "evidence": "Read-only GitHub Pickface main v1.4.33: NetworkHttpClientFactory.cs, OfficeNetworkRouteV1413.cs, OfficeAuthGatewayV1412.cs, GoogleGatewayV140.cs, apps-script/GoogleGateway/Code.gs and OfficeNetworkV1412.gs, docs/PROJECT_CONTEXT.md and PR22 Cloud Run README; Inventory main v139 D165PrivilegedAuth.cs and D160Resilience.cs."
     }
   ],
   "resume": {
