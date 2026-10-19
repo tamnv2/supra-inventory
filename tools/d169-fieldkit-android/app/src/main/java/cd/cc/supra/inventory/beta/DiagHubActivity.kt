@@ -61,7 +61,7 @@ class DiagHubActivity : Activity() {
     journal=DiagTimeline(this)
     val scroll=ScrollView(this)
     val root=LinearLayout(this).also{it.orientation=1;it.setPadding(24,20,24,25);scroll.addView(it)}
-    TextView(this).also{it.text="D171 · PDA TEST ⇄ HAI AGENT TEST";it.textSize=20f;root.addView(it)}
+    TextView(this).also{it.text="D171 E009 · PDA TEST ⇄ HAI AGENT TEST";it.textSize=20f;root.addView(it)}
     TextView(this).also{it.text="Kênh mô phỏng riêng, KHÔNG gửi Picklist/WMS thật. Mỗi request cần ACK từ EXE Test.";root.addView(it)}
     userField=field(root,"Tài khoản PICKER thử nghiệm","")
     passwordField=field(root,"Mật khẩu Picker (không lưu)","")
@@ -92,7 +92,22 @@ class DiagHubActivity : Activity() {
     return EditText(this).also{it.setSingleLine(true);it.setText(value);root.addView(it)}
   }
   private fun btn(root:LinearLayout,label:String,cb:()->Unit){Button(this).also{it.text=label;it.setOnClickListener{cb()};root.addView(it)}}
-  private fun notice(s:String){runOnUiThread{output.text=(s+"\n"+output.text.toString()).take(3500)}}
+  private fun notice(s:String){runOnUiThread{if(!isFinishing && !isDestroyed)output.text=(s+"\n"+output.text.toString()).take(3500)}}
+  private fun safeFailure(e:Throwable):String {
+    val chain=generateSequence(e){it.cause}.take(6).toList()
+    val firebase=chain.filterIsInstance<FirebaseFirestoreException>().firstOrNull()
+    if(firebase!=null)return when(firebase.code) {
+      FirebaseFirestoreException.Code.PERMISSION_DENIED -> "D171_FIRESTORE_PERMISSION_DENIED"
+      FirebaseFirestoreException.Code.UNAVAILABLE -> "D171_FIRESTORE_NETWORK_UNAVAILABLE"
+      FirebaseFirestoreException.Code.DEADLINE_EXCEEDED -> "D171_FIRESTORE_TIMEOUT"
+      FirebaseFirestoreException.Code.UNAUTHENTICATED -> "D171_FIRESTORE_AUTH_REQUIRED"
+      else -> "D171_FIRESTORE_"+firebase.code.name
+    }
+    val known=chain.filterIsInstance<IllegalStateException>().firstOrNull()?.message.orEmpty()
+    if(known.matches(Regex("^[A-Z][A-Z0-9_]{2,95}$")))return known
+    if(chain.any{it is java.util.concurrent.TimeoutException})return "D171_NETWORK_TIMEOUT"
+    return "D171_UNEXPECTED_"+e.javaClass.simpleName.uppercase(Locale.ROOT).take(30)
+  }
   private fun net():String=networkField.text.toString().trim().ifBlank{"NORMAL"}.take(30)
   private fun autoSid():String{
     val date=SimpleDateFormat("yyyyMMdd",Locale.US).apply{timeZone=TimeZone.getTimeZone("Asia/Ho_Chi_Minh")}.format(Date())
@@ -109,7 +124,7 @@ class DiagHubActivity : Activity() {
         ensureAutoJoined()
         journal.event("PDA_READY","PASS","normal_only=true")
         notice("PDA đã sẵn sàng. Giữ nguyên mạng thường. Khi cả 2 Agent bắt đầu, các kịch bản tự chạy.")
-      }catch(e:Exception){started=false;journal.event("AUTO_READY","ERROR",e.javaClass.simpleName);notice("Không sẵn sàng: "+e.javaClass.simpleName)}
+      }catch(e:Exception){started=false;val code=safeFailure(e);journal.event("AUTO_READY","ERROR",code);notice("Chưa sẵn sàng: "+code+"\nKiểm tra Agent A (admin) đã bấm BẮT ĐẦU, sau đó Agent B (tamnv2); PDA giữ mạng thường.")}
     }
   }
   private fun dispatchPhase(root:DocumentReference,newPhase:Int){
@@ -151,7 +166,7 @@ class DiagHubActivity : Activity() {
           "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size)
         notice("Vòng "+(newPhase+1)+"/"+phases.size+" · đủ 2 Agent ACK: "+passed+"/"+sent.size)
         if(newPhase==phases.lastIndex)upload()
-      }catch(e:Exception){journal.event("PDA_PHASE","FAIL",e.javaClass.simpleName);notice("Vòng "+newPhase+" lỗi: "+e.javaClass.simpleName)}
+      }catch(e:Exception){val code=safeFailure(e);journal.event("PDA_PHASE","FAIL",code);notice("Vòng "+(newPhase+1)+" lỗi: "+code)}
     }
   }
   private fun ensureAutoJoined():DocumentReference{
@@ -160,14 +175,25 @@ class DiagHubActivity : Activity() {
     val uid=auth?.currentUser?.uid?:throw IllegalStateException("AUTH_REQUIRED")
     val root=db!!.collection("d169_diag_sessions").document(autoSid())
     var ready=false
-    for(i in 0 until 12){
+    // Any device may press Start first. Absent session is expected until Agent A creates it.
+    for(i in 0 until 80){
       try{
         val d=Tasks.await(root.get(Source.SERVER),8,TimeUnit.SECONDS)
-        if(d.exists() && (d.getTimestamp("expires_at")?.toDate()?.time?:0)>System.currentTimeMillis()){ready=true;break}
-      }catch(e:Exception){journal.event("PAIR_DISCOVERY","RETRY",e.javaClass.simpleName)}
+        if(d.exists()){
+          if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())
+            throw IllegalStateException("D171_SESSION_EXPIRED_NEEDS_ARCHIVE_AND_CLEANUP")
+          ready=true;break
+        }
+      }catch(e:Exception){
+        val code=safeFailure(e)
+        if(code=="D171_FIRESTORE_PERMISSION_DENIED" || code=="D171_FIRESTORE_AUTH_REQUIRED" ||
+          code=="D171_SESSION_EXPIRED_NEEDS_ARCHIVE_AND_CLEANUP")throw e
+        if(i%6==0)journal.event("PAIR_DISCOVERY","RETRY",code)
+      }
+      if(i%6==0)notice("Đang chờ Agent A (admin) tạo phiên test; PDA vẫn giữ mạng thường. Đã chờ "+(i*3)+" giây.")
       Thread.sleep(3000)
     }
-    if(!ready)throw IllegalStateException("CHUA_CO_AGENT_TEST__OR_RULES_CHUA_DEPLOY")
+    if(!ready)throw IllegalStateException("D171_WAIT_FOR_AGENT_A_START_TIMEOUT")
     claimPickerSession(root,uid)
     val self=root.collection("members").document(uid)
     if(!Tasks.await(self.get(Source.SERVER),12,TimeUnit.SECONDS).exists()){
@@ -231,7 +257,7 @@ class DiagHubActivity : Activity() {
         api=next
         journal.event("PICKER_AUTH","PASS","role=PICKER firebase_uid_present")
         notice("Đã đăng nhập Picker. Bấm BẮT ĐẦU TEST trên PDA và EXE, hai máy tự ghép cặp.")
-      }catch(e:Exception){journal.event("PICKER_AUTH","ERROR",e.javaClass.simpleName);notice("Đăng nhập lỗi: "+e.javaClass.simpleName)}
+      }catch(e:Exception){val code=safeFailure(e);journal.event("PICKER_AUTH","ERROR",code);notice("Đăng nhập lỗi: "+code)}
     }
   }
   private fun join(){
@@ -278,7 +304,8 @@ class DiagHubActivity : Activity() {
           else incomingPayload==exactPrefix
         if(!validPayload){journal.event("RX_PHASE","INVALID_PAYLOAD","request="+d.id);continue}
         if(incomingPhase>phase||!dispatchedPhases.contains(incomingPhase))dispatchPhase(root,incomingPhase)
-        if(incomingPhase!=phase){journal.event("RX_PHASE","OUT_OF_ORDER","request="+d.id+" incoming="+incomingPhase+" current="+phase);continue}
+        // Prior-phase receipts still count when another Agent advances quickly.
+        if(incomingPhase>phase){journal.event("RX_PHASE","WAIT_FOR_PHASE","request="+d.id+" incoming="+incomingPhase+" current="+phase);continue}
         if(!seen.add("msg:"+d.id))continue
         val type=d.getString("kind").orEmpty()
         journal.event("RX_FROM_AGENT","RECEIVED","request="+d.id+" kind="+type+" epoch="+epoch)
@@ -315,7 +342,7 @@ class DiagHubActivity : Activity() {
         "created_at" to FieldValue.serverTimestamp(),"elapsed_ms" to 0,"network_epoch" to ("pda-"+epoch))
       Tasks.await(root.collection("receipts").document(request+"_"+uid+"_"+nodeId).set(data),12,TimeUnit.SECONDS)
       journal.event("ACK_TO_AGENT","PASS","request="+request)
-    }catch(e:Exception){journal.event("ACK_TO_AGENT","ERROR",e.javaClass.simpleName)}
+    }catch(e:Exception){journal.event("ACK_TO_AGENT","ERROR",safeFailure(e))}
   }
   private fun send() {
     val kindValue=kind.selectedItem?.toString().orEmpty()
