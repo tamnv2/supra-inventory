@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e019-firestore-usage-estimate-20261019",
+  "working_branch": "docs/d171-e020-firebase-only-topology-review-20261019",
   "pr": 653,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E019",
+    "id": "D171-E020",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -428,6 +428,34 @@
       ],
       "next_action": "Owner reviews simulation; no code/release approval inferred, D171 field unverified.",
       "evidence": "GitHub v139 Agent and current PDA RelayPocClient source, canonical D171-E018, official Google/Firebase pricing docs 2026-10-19."
+    },
+    {
+      "id": "D171-E020",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_REVIEW_REQUEST",
+      "owner_approval": false,
+      "topic": "Review requested: Firebase-first all Agent↔Agent and Agent↔PDA, VPS fast primary vs common Office/NORMAL fallback, 95-percent quota planning",
+      "status": "DESIGN_REVIEW_ONLY__NO_PRODUCTION_CHANGE__D171_FIELD_PENDING",
+      "facts": [
+        "Owner proposes concentrating Agent↔Agent and Agent↔PDA business data, presence, contact/chat/kick/confirm/HA and logs in existing Firebase/Google paths, using Cloudflare only when an actual Inventory/Worker boundary requires it.",
+        "Dual mode: VPS WMS-ready PRIMARY uses dedicated low-latency PDA Firestore listener and all Agents share a cross-network coordination authority; rare VPS failure uses a shared Firestore HTTPS-compatible business+coordination route without Android database migration; VPS restoration requires fenced safe handoff and existing protected manual holder consent.",
+        "Owner allows a soft planning ceiling of up to 95% of applicable DAILY Firebase free allowances, including true daily Picklist, chat, call, kick and shared workload, and wants monthly-meter budgets checked. This is NOT permission to hard-stop production at 95%.",
+        "Existing v139 Agent + vc114 Android uses Firestore exact job/ACK, gRPC fast listener with REST watchdog, current RTDB HA liveness only; D171 Office probe passed Firestore HTTPS via system proxy, not gRPC LISTEN or business end-to-end.",
+        "At 16h shift, 6 Agents and 1,200 jobs/day, D171-E019 illustrative Firestore 8,160 basic writes/day and 17,088–18,288 reads/day, excluding other business workloads, Security Rules/index/listener/reconnect. At 6,000 jobs 17,760 basic writes and 36,288–42,288 reads before extras. These are estimates, not provider billed metrics.",
+        "2026 official Firestore Standard project/default database free tier: 50,000 reads/day, 20,000 writes/day, 20,000 deletes/day, 1 GiB storage, 10 GiB/month outbound; 95% planning ceilings 47,500 reads and 19,000 writes daily apply to ALL shared same-project workloads. RTDB billed by stored GB/download GB, not document read/write.",
+        "No fully verified daily counts for direct-picker chat/call/kick or real provider-billed usage were recoverable; example budgets must be labeled assumptions. No business RTDB signals can be added under current resource guard, and no Cloudflare/Worker core authority relocation is approved.",
+        "Current mandatory Worker/Cloudflare boundary includes authoritative InventoryCore/API auth and business workflow, SKU/day-state/overtime/admin Web sync; existing Google Gateway/Drive logs and Firebase Auth/FCM are compatible carriers where evidence allows. Any planned removal requires a separate approved cross-component migration. "
+      ],
+      "alternatives": [
+        "Recommended: one Firestore authoritative job+ACK/coordination namespace, VPS gRPC listener + REST recovery, Office-compatible REST standby only at failover, minimize unnecessary Firestore reads and writes, retain Google Drive/Apps Script log archive.",
+        "Rejected without field/quota proof: fleet-wide fast REST polling; treating HTTPS success as Office gRPC proof; RTDB business signal without resource approval; moving InventoryCore transactions to Firebase implicitly."
+      ],
+      "open_questions": [
+        "Owner must approve business architecture as separate authorized production change after D171 Owner field PASS and D170 paused sequencing is resolved; this discussion does not authorize code.",
+        "Acquire Firebase billed provider daily operations and actual chat/call/kick/presence volume on comparable shifts before final provider allocation/95% plan."
+      ],
+      "next_action": "Respond with short design+budget+Cloudflare exception review; no code, release, new resource or serial Owner gate change.",
+      "evidence": "Owner request 2026-10-19, GitHub main 1b4f89ae (D171-E019), current Agent v139 / Android vc114 source, D171-E017/E018/E019 and Firebase official pricing docs."
     }
   ],
   "resume": {
