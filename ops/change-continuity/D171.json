@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e019-firestore-usage-estimate-20261019",
-  "pr": 653,
+  "working_branch": "docs/d171-e020-agent-peer-architecture-review-20261019",
+  "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E019",
+    "id": "D171-E020",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -428,6 +428,26 @@
       ],
       "next_action": "Owner reviews simulation; no code/release approval inferred, D171 field unverified.",
       "evidence": "GitHub v139 Agent and current PDA RelayPocClient source, canonical D171-E018, official Google/Firebase pricing docs 2026-10-19."
+    },
+    {
+      "id": "D171-E020",
+      "date_vn": "2026-10-19",
+      "kind": "ANALYSIS_CHECKPOINT",
+      "owner_approval": false,
+      "topic": "Agent-to-Agent and Agent-to-PDA architecture feasibility review",
+      "status": "PROPOSAL_ONLY_NO_CODE_NO_RELEASE",
+      "facts": [
+        "D169 v139/vc114 released without cross-network Owner field pass.",
+        "D171 E018 Owner design direction favors fast VPS Firestore job listener and common Office/normal Firestore coordination; new RTDB business or Functions not authorized.",
+        "D171 five-phase field suite still lacks 5/5 pass; E019 quotas are estimates, not provider billing."
+      ],
+      "alternatives": [
+        "A: measure current v139 without modifying it.",
+        "B: recommend existing Firestore authority, network-aware listener lifecycle with REST fallback and strict CAS/idempotent ACK after tests.",
+        "C: new RTDB business path or Cloud Functions requires a separate resource/security/usage approval."
+      ],
+      "next_action": "Review full audit document and gather D171 Office/normal 5-phase evidence; any production code/deploy needs distinct Owner approval.",
+      "evidence": "docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md; source v139/vc114 and E018/E019."
     }
   ],
   "resume": {
@@ -454,7 +474,8 @@
       "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release.",
       "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization.",
       "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test.",
-      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required."
+      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required.",
+      "E020 production architecture change remains proposal; requires Owner approval after scope/latency/usage tests."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
