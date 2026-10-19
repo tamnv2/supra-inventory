@@ -22,8 +22,14 @@ namespace Supra.FirebaseNetworkDiagnostic;
 internal static class Entry
 {
     [STAThread]
-    private static void Main()
+    private static void Main(string[] args)
     {
+        // Pure local identity contract test; no login, network or provider operations.
+        if (args.Length == 1 && args[0] == "--identity-selftest")
+        {
+            Environment.ExitCode = AgentIdentityBinding.SelfTest() ? 0 : 1;
+            return;
+        }
         ApplicationConfiguration.Initialize();
         // D169 independent TEST process: login once, then the peer test window.
         using var login = new LoginDialog();
@@ -40,7 +46,91 @@ internal sealed class AgentTokens
     internal string IdToken = "";
     internal string RefreshToken = "";
     internal string Role = "";
+    internal string VerifiedLogin = "";
+    internal string VerifiedUserId = "";
+    internal string VerifiedFirebaseUid = "";
     internal DateTimeOffset Expires = DateTimeOffset.MinValue;
+}
+
+// D171 binds the login alias to the Worker-resolved business user and its Firebase identity.
+// app_user_id is an internal key, NOT necessarily the login or employee code.
+internal static class AgentIdentityBinding
+{
+    internal static string JwtClaim(string jwt, string claim)
+    {
+        try
+        {
+            var part=jwt.Split('.')[1].Replace('-', '+').Replace('_', '/');
+            part=part.PadRight(((part.Length+3)/4)*4, '=');
+            using var doc=JsonDocument.Parse(Convert.FromBase64String(part));
+            return doc.RootElement.TryGetProperty(claim, out var value) && value.ValueKind == JsonValueKind.String
+                ? value.GetString() ?? "" : "";
+        }
+        catch { return ""; }
+    }
+
+    internal static bool MatchesLogin(string login, string userId, string employeeCode,
+        string firebaseUid, string role, string baseRole, string claimUserId, string claimUid, string claimRole)
+    {
+        var requested=login.Trim().ToLowerInvariant();
+        return (requested == "admin" || requested == "tamnv2")
+            && !string.IsNullOrWhiteSpace(userId) && !string.IsNullOrWhiteSpace(claimUid)
+            && (string.Equals(requested, userId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(requested, employeeCode, StringComparison.OrdinalIgnoreCase))
+            && string.Equals(userId, claimUserId, StringComparison.Ordinal)
+            // On first privileged login the Worker may return a pre-provisioning user snapshot.
+            && (string.IsNullOrWhiteSpace(firebaseUid) || string.Equals(firebaseUid, claimUid, StringComparison.Ordinal))
+            && (role == "ADMIN" || role == "PICKPACK_ADMIN")
+            && role == baseRole && role == claimRole;
+    }
+
+    internal static bool MatchesRuntime(string login, AgentTokens token, string initialUid)
+    {
+        return !string.IsNullOrWhiteSpace(token.VerifiedUserId)
+            && !string.IsNullOrWhiteSpace(token.VerifiedFirebaseUid)
+            && string.Equals(login.Trim(), token.VerifiedLogin, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(initialUid, token.VerifiedFirebaseUid, StringComparison.Ordinal)
+            && string.Equals(JwtClaim(token.IdToken, "app_user_id"), token.VerifiedUserId, StringComparison.Ordinal)
+            && string.Equals(JwtClaim(token.IdToken, "sub"), token.VerifiedFirebaseUid, StringComparison.Ordinal)
+            && string.Equals(JwtClaim(token.IdToken, "app_role"), token.Role, StringComparison.Ordinal)
+            && string.Equals(JwtClaim(token.IdToken, "app_base_role"), token.Role, StringComparison.Ordinal)
+            && (token.Role == "ADMIN" || token.Role == "PICKPACK_ADMIN");
+    }
+
+    internal static bool SelfTest()
+    {
+        const string id="internal-opaque-107", uid="firebase-synthetic-107";
+        var good=MatchesLogin("admin",id,"admin",uid,"ADMIN","ADMIN",id,uid,"ADMIN")
+            && MatchesLogin("tamnv2","internal-opaque-208","tamnv2","firebase-synthetic-208",
+                "PICKPACK_ADMIN","PICKPACK_ADMIN","internal-opaque-208","firebase-synthetic-208","PICKPACK_ADMIN");
+        var bad=!MatchesLogin("admin",id,"tamnv2",uid,"ADMIN","ADMIN",id,uid,"ADMIN")
+            && !MatchesLogin("admin",id,"admin",uid,"ADMIN","ADMIN","admin",uid,"ADMIN")
+            && !MatchesLogin("admin",id,"admin",uid,"ADMIN","ADMIN",id,"wrong-uid","ADMIN")
+            && !MatchesLogin("admin",id,"admin",uid,"ADMIN","PICKPACK_ADMIN",id,uid,"ADMIN")
+            && !MatchesLogin("admin",id,"admin",uid,"ADMIN","ADMIN",id,uid,"PICKER")
+            && !MatchesLogin("admin","","admin",uid,"ADMIN","ADMIN","",uid,"ADMIN")
+            && MatchesLogin("admin",id,"admin","", "ADMIN","ADMIN",id,uid,"ADMIN");
+        // Refresh/Start must retain the Worker-bound UID and user_id, not rebind to a login string.
+        static string FakeJwt(string userId, string firebaseUid)
+        {
+            var payload=Convert.ToBase64String(Encoding.UTF8.GetBytes(
+                JsonSerializer.Serialize(new {app_user_id=userId,sub=firebaseUid,app_role="ADMIN",app_base_role="ADMIN"})))
+                .TrimEnd('=').Replace('+','-').Replace('/','_');
+            return "e30."+payload+".test-only";
+        }
+        var token=new AgentTokens {
+            Role="ADMIN", VerifiedLogin="admin", VerifiedUserId=id,
+            VerifiedFirebaseUid=uid, IdToken=FakeJwt(id,uid)
+        };
+        var runtime=MatchesRuntime("admin",token,uid)
+            && !MatchesRuntime("tamnv2",token,uid)
+            && !MatchesRuntime("admin",token,"different-firebase-uid");
+        token.IdToken=FakeJwt("admin",uid);
+        runtime=runtime && !MatchesRuntime("admin",token,uid);
+        token.IdToken=FakeJwt(id,"other-uid");
+        runtime=runtime && !MatchesRuntime("admin",token,uid);
+        return good && bad && runtime;
+    }
 }
 
 internal sealed record ProbeResult(string Category, string Name, string Route, string Result,
@@ -344,6 +434,18 @@ internal static class FirebaseDiagnostic
                     Expires = DateTimeOffset.UtcNow.AddMinutes(55)
                 };
                 if (!ValidateRole(result)) return null;
+                if (!obj.TryGetProperty("user", out var resolvedUser) || resolvedUser.ValueKind != JsonValueKind.Object)
+                    return null;
+                var userId=GetString(resolvedUser, "user_id");
+                var firebaseUid=GetString(resolvedUser, "firebase_uid");
+                if (!AgentIdentityBinding.MatchesLogin(login, userId,
+                    GetString(resolvedUser, "employee_code"), firebaseUid,
+                    GetString(resolvedUser, "role"), GetString(resolvedUser, "base_role"),
+                    AgentIdentityBinding.JwtClaim(result.IdToken, "app_user_id"),
+                    AgentIdentityBinding.JwtClaim(result.IdToken, "sub"), result.Role)) return null;
+                result.VerifiedLogin=login.Trim().ToLowerInvariant();
+                result.VerifiedUserId=userId;
+                result.VerifiedFirebaseUid=AgentIdentityBinding.JwtClaim(result.IdToken, "sub");
                 Record(report, "AUTH", "Agent privileged login", "SYSTEM_PROXY", "AUTH_SUCCESS", sw, (int)r.StatusCode);
                 return result;
             }

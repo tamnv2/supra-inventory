@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-field-action-errors-v2-20261019",
-  "pr": 642,
+  "working_branch": "fix/d171-identity-session-binding-20261019",
+  "pr": 643,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E006",
+    "id": "D171-E007",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -128,6 +128,23 @@
       ],
       "next_action": "Build Windows-only standalone EXE via CI, share NEW test artifact URL, ask Owner to try only this version and supply first error code/JSONL if still failing; use that evidence before any further Firebase Rules change.",
       "evidence": "Owner 2026-10-19 screenshot D171 Test 2 Agent+1 PDA showing 09:04:23/09:04:36/09:04:41/09:04:44 ACTION ERROR; PeerForm.cs existing Run() logs generic output."
+    },
+    {
+      "id": "D171-E007",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner authorizes D171 Agent identity mismatch repair and replacement standalone EXE release",
+      "status": "D171_PR643_WINDOWS_IDENTITY_FIX_CI_AND_RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests immediate repair and publication of the independent D171 Windows EXE following D171_AUTH_IDENTITY_MISMATCH during Start; this is within the already-approved D171 scope, not a new change.",
+        "Source root cause identified: Windows EXE compared opaque Firebase app_user_id directly to the typed privileged login alias. Worker uses user_id as an internal key and resolves login via user_id OR employee_code. These are not interchangeable.",
+        "Patch accepts only the two preauthorized privileged Agent login aliases and requires the Worker-returned user_id, employee_code, firebase_uid and role to match the Firebase token app_user_id/sub/role; runtime Start/refresh must keep the exact bound UID and user_id. Mismatch still fails closed.",
+        "Synthetic offline regression tests cover opaque user_id distinct from login, swapped login, forged user_id, forged UID, role mismatch, missing identity, and changed refreshed token. Windows CI must run selftest before uploading artifact.",
+        "No change to production Worker, Firebase Rules, test collection, PDA APK, operational Agent, real WMS/Picklist, Stable, D170 or provider quotas. D169 remains last Owner-accepted base; D170 paused; D171 physical FIELD PASS still false."
+      ],
+      "next_action": "Wait for PR643 Windows selftest/build, authority/continuity CI PASS at final head; publish new GitHub Actions Windows ZIP and provide installation/retest instructions. Record physical PASS only from the Owner.",
+      "evidence": "Owner 2026-10-19 repair/release command; source tools/d169-peer-windows/Program.cs and PeerForm.cs; PR643 branch fix/d171-identity-session-binding-20261019."
     }
   ],
   "resume": {
@@ -142,17 +159,18 @@
       "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built."
     ],
     "in_progress": [
-      "D171 Owner actual Windows test fails at start; safe stage+HTTP status diagnostic fix, root cause awaiting sanitized field log."
+      "D171 E007 identity binding fix is on PR643; Windows EXE build/selftest and repo checks pending."
     ],
     "pending_approval": [
       "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS.",
-      "D171 actual three-device field acceptance explicitly NOT PASS following Owner Windows ACTION ERROR evidence."
+      "D171 actual three-device field acceptance explicitly NOT PASS following Owner Windows ACTION ERROR evidence.",
+      "New D171 Windows E007 build technical PASS and Owner three-device field PASS remain separate."
     ],
     "blocked": [
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Wait for new CI Windows EXE; owner retries first agent and sends first exact code/JSONL if failure persists."
+      "Verify PR643 CI, then publish replacement standalone Windows EXE artifact only and re-test with the same two Agent accounts + existing PDA test APK."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }

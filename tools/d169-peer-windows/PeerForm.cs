@@ -79,9 +79,9 @@ internal sealed class PeerForm : Form
         _probeLogPath=Path.Combine(desktop,"SUPRA_D171_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
-        Text="SUPRA D171 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
+        Text="SUPRA D171 E007 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
         Font=new Font("Segoe UI",10);
-        var title=new Label{Text="D171 — TEST KẾT NỐI 2 AGENT ⇄ PDA",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
+        var title=new Label{Text="D171 E007 — TEST KẾT NỐI 2 AGENT ⇄ PDA",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
         Controls.Add(title);
         var sub=new Label{Text="Chỉ mô phỏng, KHÔNG gửi Picklist/WMS/call/kick thật. Truyền qua Firestore Beta.",Left=16,Top=45,Width=920,Height=22}; Controls.Add(sub);
         var lab=new Label{Text="Mã phiên:",Left=16,Top=85,Width=92};Controls.Add(lab);
@@ -177,8 +177,9 @@ internal sealed class PeerForm : Form
         var account=_operatorLogin.Trim().ToLowerInvariant();
         _agentLabel=account=="admin"?"A":account=="tamnv2"?"B":
             throw new InvalidOperationException("D171_AGENT_ACCOUNT_NOT_AUTHORIZED");
-        var tokenAccount=GetJwtClaim(_token.IdToken,"app_user_id");
-        if(!string.Equals(tokenAccount,account,StringComparison.OrdinalIgnoreCase))
+        // The verified Worker user_id is an opaque internal key; never compare it to login alias.
+        // Recheck that the Firebase token still belongs to the same Worker-authenticated identity.
+        if(!AgentIdentityBinding.MatchesRuntime(account,_token,_uid))
             throw new InvalidOperationException("D171_AUTH_IDENTITY_MISMATCH");
         _activeStep="01B_DOC_PHIEN_FIRESTORE";
         if(_agentLabel=="A"){

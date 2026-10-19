@@ -42,6 +42,13 @@ jobs:
           dotnet publish tools/d169-peer-windows/SUPRA.D169.PeerDiagnostic.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o dist/d169-test-agent
           if (-not (Test-Path dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe)) { throw 'Missing EXE' }
           Get-FileHash dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe -Algorithm SHA256 | Format-Table Hash
+      - name: Regression test Worker-bound Agent identity (offline, synthetic only)
+        shell: pwsh
+        run: |
+          # Windows GUI executables must be explicitly waited; PowerShell invocation alone can return before exit.
+          $testExe = Join-Path (Get-Location) "dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe"
+          $testProcess = Start-Process -FilePath $testExe -ArgumentList "--identity-selftest" -Wait -PassThru
+          if ($testProcess.ExitCode -ne 0) { throw "D171_AGENT_IDENTITY_BINDING_SELFTEST_FAILED (exit=$($testProcess.ExitCode))" }
       - uses: actions/upload-artifact@v4
         with:
           name: SUPRA-D171-TEST-AGENT-WINDOWS
