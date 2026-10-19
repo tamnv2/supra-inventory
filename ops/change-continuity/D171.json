@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "state/d171-provider-field-ready-receipt-20261019",
-  "pr": 641,
+  "working_branch": "fix/d171-field-action-errors-v2-20261019",
+  "pr": 642,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E005",
+    "id": "D171-E006",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -110,6 +110,24 @@
       ],
       "next_action": "Owner installs EXE on both PCs and separate test APK on PDA, authenticates intended two Agent accounts and one Picker, presses Start on all three, follows only Agent network prompts. Collect logs and classify real FIELD PASS/FAIL. Keep D171 open until Owner acknowledges.",
       "evidence": "PR640 run 39186430111 job 117849896609 live log 'D171_TEMP_BETA_FIRESTORE_RULES_READBACK_PASS'; PR640 merge 1717bc8; prior Windows build 39184972730, Android test build 39185809513."
+    },
+    {
+      "id": "D171-E006",
+      "date_vn": "2026-10-19",
+      "kind": "BLOCKER",
+      "topic": "Owner field screenshot: standalone Windows EXE Start repeatedly ACTION ERROR without visible code",
+      "status": "D171_FIELD_START_FAIL__ROOT_CAUSE_UNKNOWN__WINDOWS_DIAGNOSTIC_FIX_PR_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner reports Windows diagnostic client on a real device displays four ACTION ERROR events after clicking Start; screenshot shows D171 peer window, hence privileged login screen passed, but no raw error JSONL or exception code was supplied.",
+        "Prior D171-E005 provider Rules and Windows/Android build PASS are technical evidence and are NOT physical end-to-end PASS. D171 FIELD PASS remains false; never tell Owner test is successful while current field action fails.",
+        "Windows peer client only displayed ACTION ERROR instead of structured error stage/code; this made Firestore permission/auth-claim/session-creation/network-route triage impossible from the UI screenshot.",
+        "Fix code to identify detailed step including Agent account-to-claim validation, initial Firestore access, test session create/read and member join, plus numeric HTTP status and whitelisted provider error status, without logging tokens, passwords or raw API response data.",
+        "Require CI-compiled replacement standalone EXE artifact and Owner exact first visible code or sanitized JSONL to determine any further backend/security fix. Do not widen Firestore Rules based on assumption.",
+        "D170 remains paused with Owner PASS false; no production, Stable, real WMS/PRIMARY/Picklist or normal Inventory client mutation."
+      ],
+      "next_action": "Build Windows-only standalone EXE via CI, share NEW test artifact URL, ask Owner to try only this version and supply first error code/JSONL if still failing; use that evidence before any further Firebase Rules change.",
+      "evidence": "Owner 2026-10-19 screenshot D171 Test 2 Agent+1 PDA showing 09:04:23/09:04:36/09:04:41/09:04:44 ACTION ERROR; PeerForm.cs existing Run() logs generic output."
     }
   ],
   "resume": {
@@ -124,16 +142,17 @@
       "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built."
     ],
     "in_progress": [
-      "Physical Owner test pending: two Agent Windows machines + one Android PDA, real Office/normal switches and peer message/ACK verification."
+      "D171 Owner actual Windows test fails at start; safe stage+HTTP status diagnostic fix, root cause awaiting sanitized field log."
     ],
     "pending_approval": [
-      "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS."
+      "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS.",
+      "D171 actual three-device field acceptance explicitly NOT PASS following Owner Windows ACTION ERROR evidence."
     ],
     "blocked": [
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Send correct Windows EXE/PDA APK GitHub Actions artifact links and concise user accounts/network phase instructions; await Owner field evidence and classify issues without closing D171."
+      "Wait for new CI Windows EXE; owner retries first agent and sends first exact code/JSONL if failure persists."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
