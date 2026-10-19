@@ -7,7 +7,7 @@
   "pr": 654,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E021",
+    "id": "D171-E022",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -483,6 +483,36 @@
       ],
       "next_action": "Provide impact review for Owner decision; no production implementation/deployment under D171; D170 paused, accepted base D169, Stable owner-gated.",
       "evidence": "Current GitHub Agent v139 ForestoreConfirmationTransport, FirestoreAgentLeaderCoordinator, FirestoreQuotaGuard, D171-E017...E020 Office five-round probe, Firebase 2026 pricing official."
+    },
+    {
+      "id": "D171-E022",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner max workload 2000 Picklist, 40 PDA, 200 kick, 300 call, 500 chat; 17h/21h, 3–6 Agents, 5-minute history",
+      "status": "CAPACITY_INPUT_ACCEPTED_FOR_DESIGN__NO_SOURCE_DEPLOY_APPROVAL",
+      "facts": [
+        "Owner supersedes all previous 6000 Picklist/day estimates: 2000 total correct/incorrect Picklist submissions per day across both shifts; 40 concurrent PDA (20 active 8h, 20 active 12h: 400 cumulative PDA hours/day).",
+        "Business operational hours normally 05:30–22:30 VN (17 hours) and rarely 05:30–02:30 N+1 (21 hours); peak 200 kicks, 300 calls to specialist and 500 Picker chats per day; minimum VPS+2 standby Agents, maximum VPS+5 standby Agents.",
+        "Fleet overview 10-minute full refresh, with login/logout live event when connected and timely failure detection; crashed standby cannot be proven instantly offline using current 10-minute presence/25-minute freshness. Keep primary 10s lease/15s failure guard, separate deep Agent liveness cadence, and compatible Office HTTPS REST.",
+        "All 3–6 Agents must have Picklist history at least every 5 minutes; investigate all-Agent realtime delta without serializing the full D160 420KB history on each counter checkpoint. Existing history piggybacks on agent_sync and 5-min reconcile, but no guaranteed end-to-end freshness nor always-realtime on Office.",
+        "SKUs retain approved Agent existing logic, including scheduled source; changing 05:30–22:30 timetable needs Web/Worker/PDA/Agent/overtime day-boundary contract review.",
+        "Illustrative writes under assumptions: for 17h lease 6120 + jobs create+ACK 4000 + 2 writes per 1000 ancillary actions =2000 + tiered standby 1836 + 12h history 5min batch 144 + summary 204 =14304 (71.5% free); for 21h same components 7560+4000+2000+2268+144+252=16224 (81.1%). Assumes NEXT_A presence 1min, four deep Agents 5min; does not establish current code cadence/provider usage, omits retries, inventory shared, rules and other system writes.",
+        "90% Firestore budget still max 45000 reads/18000 writes daily shared project. At 21h proposed basics leave 1776 writes before other usage; lease 10s→7s adds 3240 writes/21h and would exceed that target. Full 2000 event fanout to 6 Agent listeners can add up to ~12000 reads, which may push rare Office failover over 90%; prefer delta5m full coverage plus optional foreground realtime.",
+        "Owner currently unable to do new physical network tests; preserve distinction automated/emulator/source PASS versus unverified Office end-to-end FIELD PASS."
+      ],
+      "alternatives": [
+        "Keep v139 as-is (safe but current 10min+25min presence and whole-history snapshots cannot satisfy all requested freshness).",
+        "Preferred: 10s primary lease, Firestore Office-compatible REST fallback, targeted NEXT_A, live login/logout events, 10min fleet reconciliation, 5min request_id history delta; upgrade foreground realtime when measured quota leaves headroom.",
+        "Unconditional six-Agent always-on history listeners or 7-second lease may consume more provider reads/writes/egress than 90%, especially rare 21h all-Office fallback."
+      ],
+      "open_questions": [
+        "Provider-billed quota and actual Web/Inventory/Rules/retries not yet measured; 90% cannot be guaranteed from code-only counts.",
+        "Standby sudden death cannot be instantaneous without more frequent liveness writes or a proven Office event path.",
+        "All-Agent history realtime must preserve >5-minute guarantee under degraded Office and require minimal read fanout."
+      ],
+      "next_action": "Owner reviews proposal; do not mutate production Agent/PDA/Rules/Worker, D171 still FIELD pending, D170 paused, D169 last Owner-accepted base.",
+      "evidence": "Owner 2026-10-19 updated work envelope; v139 FirestoreAgentLeaderCoordinator.cs, FirestoreConfirmationTransport.cs, FirestoreAgentSync.cs, D160UiHistory.cs, FirestorePickerContact.cs, D171-E021; Firebase official free tier."
     }
   ],
   "resume": {
