@@ -18,6 +18,9 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
   const future=Timestamp.fromDate(new Date(Date.now()+60*60*1000));
   const shortFuture=Timestamp.fromDate(new Date(Date.now()+30*1000));
   try{
+    // Firestore missing-session GET is an authorized nonexistence result, not a network failure.
+    const missing=await assertSucceeds(getDoc(doc(agentB,`d169_diag_sessions/${"ee".repeat(16)}`));
+    assert.equal(missing.exists(),false);
     await assertSucceeds(setDoc(doc(admin,root),{schema:"D169_DIAG_V1",owner_uid:adminId,paired_picker_uid:"",created_at:serverTimestamp(),expires_at:future,leader_uid:adminId,leader_node:"a3".repeat(16),leader_epoch:1,lease_until:shortFuture}));
     await assertSucceeds(setDoc(doc(admin,`${root}/members/${adminId}`),{uid:adminId,role:"ADMIN",joined_at:serverTimestamp()}));
     await assertSucceeds(updateDoc(doc(picker,root),{paired_picker_uid:pickerId}));
