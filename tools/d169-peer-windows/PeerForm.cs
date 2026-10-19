@@ -147,6 +147,11 @@ internal sealed class PeerForm : Form
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
+        if(_phase>=Phases.Length){
+            Log("AUTO_TEST","ALL_FIVE_PHASES_FINISHED");
+            MessageBox.Show("Đã hoàn tất 5/5 vòng kiểm thử. Kiểm tra log kết quả ACK và kết nối trước khi nghiệm thu.","SUPRA D171 · Hoàn tất",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            return;
+        }
         if(_phase>0 && _phase<Phases.Length && ExpectedLocalNetwork(_phase)==RequiredNetwork(_agentLabel,_phase-1))
         {
             _confirmSwitch.Enabled=false;
@@ -368,6 +373,7 @@ internal sealed class PeerForm : Form
             }
         }
         Log("FAILOVER_SUITE","TIMEOUT_NO_OTHER_AGENT_TAKEOVER",new{phase=_phase,generation=oldEpoch});
+        throw new InvalidOperationException("D171_SIMULATED_FAILOVER_NOT_CONFIRMED");
     }
     private async Task<string> SendTest(string type)
     {
