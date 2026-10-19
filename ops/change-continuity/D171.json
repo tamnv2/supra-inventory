@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e018-dual-mode-vps-owner-direction-20261019",
-  "pr": 652,
+  "working_branch": "docs/d171-e019-firestore-usage-estimate-20261019",
+  "pr": 653,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E018",
+    "id": "D171-E019",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -400,6 +400,34 @@
       ],
       "next_action": "Technical assessment and preimplementation impact review; no source/provider mutation approved.",
       "evidence": "Owner 2026-10-19 chat directive; released Agent v139/Android vc114; D171 five-round probes; project-scope RTDB guard; E018 decisions and spec discussion."
+    },
+    {
+      "id": "D171-E019",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "VPS primary vs occasional Office Agent fallback Firestore usage arithmetic",
+      "status": "ESTIMATE_NOT_BILLED__NO_CODE",
+      "facts": [
+        "Illustrative 16h shift (8h PDA active,8h idle), six total Agents incl VPS, 1200 jobs/day; v139 Firestore PRIMARY lease writes every 10s, 5760 writes/day, job create+ACK another 2400 writes/day; basic write subtotal 8160.",
+        "VPS healthy gRPC FAST pending listener, REST watchdog 10s active and 30s idle gives 3840 minimum reads; NEXT_A Firestore lease at illustrative average 10s another 5760; 1 PRIMARY+1 NEXT_A+1 NEXT_B+3 deep role exact-doc refresh 2688; static read subtotal 12288.",
+        "Including PDA initial+ACK approximately 2 per job, Agent inbound listen about 1 per job, and 1-2 generation guard reads/job gives illustrative 17088-18288 reads at 1200 jobs, excluding Rules/index/reconnect/presence/Inventory and other provider overhead; not billed actual.",
+        "6000/day design load implies 17760 basic writes (88.8% of shared eligible default Firestore free 20000/day) plus extras; illustrative 36288-42288 reads before extra costs. Actual provider billed read/write and shared budgets remain unverified.",
+        "Fallback Agent REST query every 3s active vs VPS healthy 10s adds circa 840 minimum Firestore reads for 1h active failover; 16h fallback 8h active/8h idle 11520 reads vs healthy 3840, delta +7680 before considering removed gRPC event reads.",
+        "Six Agent nodes polling coordination document at 5s yields 69120 minimum reads over 16h; 60s yields 5760 reads but potential 60s signal delay. Do not introduce fleet-wide fast REST polling.",
+        "Firestore standard free quota applies to eligible default database per project: 50000 reads/day,20000 writes/day,20000 deletes/day, reset Pacific midnight, not per Agent. RTDB primarily billed storage/download, not per-read/write; production RTDB business write remains outside D171 allowed scope.",
+        "Local HTTP D171 counters are NOT provider billed operations; Firestore live listener, Security Rules document reads, index entries, storage and bandwidth must be measured separately before any quota saving claim."
+      ],
+      "alternatives": [
+        "Keep existing VPS Firestore gRPC + REST watchdog, one NEXT_A fast lease check, NEXT_B/DEEP coarse; tolerate rare fallback REST read overhead.",
+        "Avoid six-node 5-second REST polling and unapproved RTDB Picklist signaling."
+      ],
+      "open_questions": [
+        "What does Firestore provider report on equivalent 06-22 VN workday with true job count and all Inventory workloads?",
+        "Can cross-network REST-only Agent urgent commands meet latency and quota simultaneously?"
+      ],
+      "next_action": "Owner reviews simulation; no code/release approval inferred, D171 field unverified.",
+      "evidence": "GitHub v139 Agent and current PDA RelayPocClient source, canonical D171-E018, official Google/Firebase pricing docs 2026-10-19."
     }
   ],
   "resume": {
