@@ -7,7 +7,7 @@
   "pr": 654,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E022",
+    "id": "D171-E023",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -513,6 +513,22 @@
       ],
       "next_action": "Owner reviews proposal; do not mutate production Agent/PDA/Rules/Worker, D171 still FIELD pending, D170 paused, D169 last Owner-accepted base.",
       "evidence": "Owner 2026-10-19 updated work envelope; v139 FirestoreAgentLeaderCoordinator.cs, FirestoreConfirmationTransport.cs, FirestoreAgentSync.cs, D160UiHistory.cs, FirestorePickerContact.cs, D171-E021; Firebase official free tier."
+    },
+    {
+      "id": "D171-E023",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Correct per-shift PDA activity interpretation and full-day 5-minute history batch math",
+      "status": "D171_E022_SCENARIO_CORRECTION__NOT_BILLED__NO_CODE",
+      "facts": [
+        "Owner stated 40 PDA PER SHIFT, not 40 devices across the entire day. 20x8h+20x12h = 400 PDA-hours PER SHIFT; two such peak shifts can total up to 800 PDA-hours/day. Peak system concurrency near shift handover could exceed 40 if shifts overlap; exact unique devices/simultaneous peak is unspecified and must be modeled conservatively.",
+        "The prior E022 phrase 400 cumulative PDA-hours/day and 12-hour overall job/history-active window was therefore too narrow. Keep 2000 total Picklist requests across BOTH shifts (not per shift) and 200+300+500 ancillary maximum per day.",
+        "If 5-minute changed-history batches may occur through all 17 normal hours or 21 extended hours instead of 12h, the example history writes rise from 144 to 204 or 252, and the illustrative total becomes about 14,364 Writes/17h (71.8% of free) and 16,332 Writes/21h (81.7% free), before billing overhead/shared Inventory and any enhanced history realtime. 90%-free target still 18k Writes/day and 45k Reads/day.",
+        "Added PDA-hours primarily affect concurrent listeners, authentication refresh, connection/network traffic and idle-vs-active pending query cadence, which can raise Reads and outbound egress; request create/ACK stays 4000 estimated writes at the Owner cap 2000 requests/day. Read bands require field/provider validation, especially 21h Office fallback and peak overlap.",
+        "Do not require Owner to retest physical Office network; report uncertainty and use simulation of shift-overlap cases, proxy, lost VPS and quota before new release."
+      ],
+      "next_action": "Use corrected per-shift activity and corrected 5-minute history math in the review; no production deployment/Owner PASS."
     }
   ],
   "resume": {
