@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "state/d171-e010-two-client-kit-release-receipt-20261019",
-  "pr": 646,
+  "working_branch": "docs/d171-e011-field-log-triage-20261019",
+  "pr": 647,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E010",
+    "id": "D171-E011",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -200,6 +200,25 @@
       ],
       "next_action": "Owner installs latest E009 EXE on both separate Windows Agent test PCs, replaces only independent D171 Android test APK, signs into admin/tamnv2/100, presses Start on all three, follows only named Agent network switch prompts, submits first sanitized stage/code and JSONL on failure; Owner confirms FIELD PASS after all five scenarios.",
       "evidence": "PR645 merged c07e04e; 16/16 CI exact head 76f6d79; Windows Actions run 39193881849 ID 12160943047; Android run 39193881733 ID 12160629712; emulator run 39193881791."
+    },
+    {
+      "id": "D171-E011",
+      "date_vn": "2026-10-19",
+      "kind": "FIELD_FAIL_ANALYSIS",
+      "topic": "Owner field logs: PDA 3/5 0/9 dual ACK and two Agents out of phase",
+      "status": "D171_FIELD_FAIL_CONFIRMED__PHASE_DISPATCH_EARLY__A_OFFICE_NETWORK_FAILURE__NO_FIX_OR_REDEPLOY_AUTHORIZED",
+      "owner_approval": false,
+      "facts": [
+        "Supplied 10:33 field exports prove Agent A and B phase 0 each 9/9. During phase 1 intended A OFFICE/B NORMAL, Agent A failed with NETWORK_HTTP_FAILURE at 10:35:03, while B completed its own 9/9; the shared phase failure was not propagated.",
+        "PDA phase 1 prematurely reported both_agent_ack 9/9 at 10:33:59, well BEFORE A switched to OFFICE at 10:34:24 and began intended network test at 10:34:50; PDA result is not evidence of Office route. Android dispatchPhase triggers on a single higher-phase message and does not gate on both ready.",
+        "At phase 2 (human round 3), B announced its new phase while A remained on phase 1/Office. PDA emitted 9 synthetic messages and collected one ACK per message from B, zero from A; both_agent_ack 0/9 is a dual-ACK count and not zero individual ACKs. B timed out waiting for three party readiness.",
+        "Agent A OFFICE authenticated Firestore exact read/RTDB/Worker/token refresh probe failures observed, mixed with successful DNS/TLS and some REST HTTP_200 events: failure attributed to particular runtime routes, not definitively all Office connectivity or specific firewall settings.",
+        "Agent A logged 714 PHASE_MISMATCH_RETRY_LATER and ended with local GET/WRITE counters 1470/98; B ended 840/65. These are HTTP call approximations, not billed Firestore document operations. Failed-phase backoff/recovery missing.",
+        "Earlier 09:04 D171_AUTH_IDENTITY_MISMATCH occurred in a prior attempt; latest field session joined correctly, so not the root cause. Android earlier auth APIEXCEPTION recovered. Final ObjectDisposedException/TaskCanceledException followed the principal phase divergence.",
+        "Implementation repair proposals are recorded for Owner impact review, not implemented or approved; existing D171 isolated beta namespace only. No change to production Agent/PDA, Rules, Worker, WMS, D170 or Stable."
+      ],
+      "next_action": "Await Owner approval of bounded isolated D171 repair; only then implement in separate PR with global phase/ACK/network proof gates, safe abort/retry and rate-limited polling, and rerun same five-phase physical matrix. Keep field logs/session archived; D171 Owner FIELD/Owner PASS false.",
+      "evidence": "docs/D171_FIELD_LOG_ANALYSIS_2026-10-19.md; sanitized local reconciliation of three Owner-supplied device logs; verified current main PeerForm.cs and DiagHubActivity.kt; D171 test receipt E010."
     }
   ],
   "resume": {
@@ -216,18 +235,18 @@
       "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79."
     ],
     "in_progress": [
-      "E009 EXE/APK source and CI artifact release completed; Owner physical 2 Agent + 1 PDA field trial pending."
+      "D171-E011 field FAIL triage recorded; no fix code or new test release authorized."
     ],
     "pending_approval": [
-      "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS.",
-      "D171 actual three-device field acceptance explicitly NOT PASS following Owner Windows ACTION ERROR evidence.",
-      "New D171 Windows E007 build technical PASS and Owner three-device field PASS remain separate."
+      "Owner impact/rework approval for D171 E011 diagnostic-only repair; D171 field PASS/Owner PASS absent, D170 paused."
     ],
     "blocked": [
-      "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
+      "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
+      "Phase2 B-only ACK 9/9, A 0/9; phase barrier/partial-failure propagation missing; D171 physical 5/5 not completed."
     ],
     "next_actions": [
-      "Owner replaces both EXEs and the separate test APK with E009, signs into the designated accounts, tests all five network scenarios, records field PASS or first sanitized failure; no automatic cleanup."
+      "Await Owner direction; implement targeted D171 test-client repair only if authorized, through separate code PR and guarded builds/field rerun.",
+      "Preserve original isolated Firestore test session and exported raw logs until Owner confirms archive; do not publish raw logs."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
