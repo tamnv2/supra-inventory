@@ -9,8 +9,8 @@ android {
     minSdk = 30
     targetSdk = 35
     versionCode = 999901
-    versionName = "D169-DIAG-7.0"
-    buildConfigField("String", "API_BASE_URL", quoted("https://inventory-beta.supra.cc.cd"))
+    versionName = "D171-DIAG-1.0"
+    buildConfigField("String", "API_BASE_URL", quoted("https://inventory.supra.cc.cd"))
     buildConfigField("String", "FIREBASE_API_KEY", quoted(fireKey))
     buildConfigField("String", "FIREBASE_PROJECT_ID", quoted("supra-inventory-beta"))
     buildConfigField("String", "FIREBASE_APP_ID", quoted("1:572322098890:android:3e483937876cbcc0400e33"))
