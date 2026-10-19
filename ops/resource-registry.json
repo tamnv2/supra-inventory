@@ -2939,7 +2939,7 @@
     "field": "ADMIN_PC_INSTALLED_V129__SERVICE_FULL_DELTA_DONE__OPERATOR_DISPLAY__HA_FAILOVER__USAGE__OWNER_BUSINESS_PASS_ALL_PENDING"
   },
   "planned_d170_single_production": {
-    "status": "PHASE1_SIGNED_VC113_AND_PHASE2_OFFICIAL_DOMAIN_RUNTIME_PASS__PHASE3_SINGLE_CHANNEL_CLEANUP_AND_FIELD_PENDING",
+    "status": "PHASE1_SIGNED_VC113_PHASE2_DOMAIN_RUNTIME_PASS__PHASE3_ANDROID_VC114_AGENT_V139_RELEASED__OAUTH_FIELD_SUNSET_PENDING",
     "future_official_hostname": "inventory.supra.cc.cd",
     "display_name": "1291 Báo hàng",
     "source_worker_name": "supra-inventory-beta",
@@ -2974,8 +2974,19 @@
       "sqlite": "HEALTH_OK_BOTH_HOSTS",
       "date_vn": "2026-10-19"
     },
-    "phase3_status": "NOT_YET_ACCEPTED__PUBLIC_CLIENT_LINKS_AND_SINGLE_RELEASE_POLICY_REVIEW_PENDING",
+    "phase3_status": "WORKER_MAIN_1896867B__ANDROID_VC114__AGENT_V139_RELEASE_CHANNEL_PASS__GOOGLE_OAUTH_FLEET_AND_OWNER_FIELD_PENDING",
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "phase3_android_release_tag": "beta-vc114",
+    "phase3_agent_release_tag": "relay-agent-v139",
+    "phase3_agent_release": {
+      "status": "GITHUB_RELEASE_AND_CHANNEL_SUCCESS",
+      "source_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08",
+      "worker_run": 39173024218,
+      "agent_run": 39173024161,
+      "channel": "inventory-channel",
+      "date_vn": "2026-10-19",
+      "field_pass": false
+    }
   }
 }
