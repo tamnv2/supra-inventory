@@ -39,6 +39,7 @@ class DiagHubActivity : Activity() {
   private val nodeId=UUID.randomUUID().toString().replace("-","")
   @Volatile private var phase=0
   @Volatile private var started=false
+  @Volatile private var testStartedWallMs=0L
   private val dispatchedPhases=Collections.synchronizedSet(HashSet<Int>())
   private val acked=Collections.synchronizedSet(HashSet<String>())
   private val agentAcknowledgers=java.util.concurrent.ConcurrentHashMap<String,MutableSet<String>>()
@@ -121,6 +122,7 @@ class DiagHubActivity : Activity() {
         if(!::api.isInitialized)throw IllegalStateException("LOGIN_REQUIRED")
         if(started){notice("PDA đang chờ điều phối từ 2 Agent.");return@execute}
         started=true
+        testStartedWallMs=System.currentTimeMillis()
         ensureAutoJoined()
         journal.event("PDA_READY","PASS","normal_only=true")
         notice("PDA đã sẵn sàng. Giữ nguyên mạng thường. Khi cả 2 Agent bắt đầu, các kịch bản tự chạy.")
