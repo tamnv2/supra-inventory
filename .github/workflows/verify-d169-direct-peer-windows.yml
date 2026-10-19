@@ -1,4 +1,4 @@
-name: D169 Direct Test Agent Windows EXE
+name: D171 Two-Agent Diagnostic Windows EXE
 on:
   pull_request:
     paths:
@@ -44,6 +44,6 @@ jobs:
           Get-FileHash dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe -Algorithm SHA256 | Format-Table Hash
       - uses: actions/upload-artifact@v4
         with:
-          name: SUPRA-D169-DIRECT-PEER-TEST-AGENT-WINDOWS
+          name: SUPRA-D171-TEST-AGENT-WINDOWS
           path: dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe
           retention-days: 14
