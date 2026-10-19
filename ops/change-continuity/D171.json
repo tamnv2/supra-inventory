@@ -7,7 +7,7 @@
   "pr": 654,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E023",
+    "id": "D171-E024",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -529,6 +529,24 @@
         "Do not require Owner to retest physical Office network; report uncertainty and use simulation of shift-overlap cases, proxy, lost VPS and quota before new release."
       ],
       "next_action": "Use corrected per-shift activity and corrected 5-minute history math in the review; no production deployment/Owner PASS."
+    },
+    {
+      "id": "D171-E024",
+      "date_vn": "2026-10-19",
+      "kind": "DISCUSSION",
+      "owner_approval": true,
+      "topic": "Owner agrees with 2000-job cross-network design; clarifies whether all Agent functions will work from Office",
+      "status": "DESIGN_ACCEPTED__OFFICE_FULL_CAPABILITY_CONDITIONAL__NO_SOURCE_RELEASE",
+      "facts": [
+        "Owner explicitly agrees to prior D171-E022/E023 design proposal but asks whether all Agent workflows are Office-capable after applying it. Treat agreement as design direction, not permission for production mutation within D171 isolated diagnostic scope.",
+        "With a complete implementation, Firestore HTTPS/system proxy may carry PDA job/terminal ACK, shared Agent coordination, HA standby takeover, presence/fleet, call/chat/kick, history delta and Google-backed logs from Office without Office gRPC/RTDB or Cloudflare on each Agent. Actual Office WMS browser readiness remains a separate prerequisite.",
+        "Ordinary account Firebase Auth login is distinct from privileged admin/tamnv2/VPS OTP/reauth: current v139 D165PrivilegedAuth tries Cloudflare Worker then existing Apps Script Agent Operations Gateway on transport errors. Gateway endpoint/ContentService redirects and Worker forwarding must be reachable and functioning. Bare Firestore command cannot solve unauthenticated privileged bootstrap; no universal first-login Office success has been proven.",
+        "Worker/InventoryCore authority persists for account/Web/OAuth/SKU/overtime control changes; Agent↔Agent schedule may use Firestore, but any web-originated or Worker-owned operation requires already-approved reachable Google Gateway or separately approved authenticated service bridge with idempotent result/ACK. An automatic Firestore→Cloudflare trigger is not active.",
+        "Other non-Firebase dependencies such as WMS browser login, GitHub version download, credential mail recipient, and Google Drive archive receipt are not proven universally accessible from Office; online business flow fails closed when its required upstream is unavailable. SKU remains explicit owner-accepted normal-network exception.",
+        "Target conclusion: most core Agent operations can be made Office-capable, but no claim 100% as-deployed. Owner cannot do extra field test; use source/CI/proxy simulations and explicit unverified-field caveat. Current D171 is not an approved Agent/PDA production deployment. D170 remains paused; Stable OWNER_GATED."
+      ],
+      "next_action": "Present concise capability matrix, spotlight privileged login and Worker bridge as remaining design requirements; retain prior proposal approval as DESIGN ONLY; no deployment or FIELD PASS.",
+      "evidence": "Current v139 relay-agent/D165PrivilegedAuth.cs, Program.cs PairLogin, FirestoreAgentLeaderCoordinator.cs, FirestorePickerContact.cs, AgentLogUploadBridge.cs and D171 network evidence."
     }
   ],
   "resume": {
