@@ -292,6 +292,7 @@ class DiagHubActivity : Activity() {
       if(error!=null){journal.event("RX_LISTEN","ERROR",error.javaClass.simpleName);return@addSnapshotListener}
       for(ch in snap?.documentChanges.orEmpty()){
         val d=ch.document
+        if((d.getTimestamp("created_at")?.toDate()?.time ?: 0L) < testStartedWallMs-30000L)continue
         if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
         val incomingPayload=d.getString("payload").orEmpty()
