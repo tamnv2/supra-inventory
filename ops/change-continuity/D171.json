@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
   "working_branch": "docs/d171-e019-firestore-usage-estimate-20261019",
-  "pr": null,
+  "pr": 653,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D171-E019",
