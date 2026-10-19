@@ -74,11 +74,12 @@ internal static class AgentIdentityBinding
     {
         var requested=login.Trim().ToLowerInvariant();
         return (requested == "admin" || requested == "tamnv2")
-            && !string.IsNullOrWhiteSpace(userId) && !string.IsNullOrWhiteSpace(firebaseUid)
+            && !string.IsNullOrWhiteSpace(userId) && !string.IsNullOrWhiteSpace(claimUid)
             && (string.Equals(requested, userId, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(requested, employeeCode, StringComparison.OrdinalIgnoreCase))
             && string.Equals(userId, claimUserId, StringComparison.Ordinal)
-            && string.Equals(firebaseUid, claimUid, StringComparison.Ordinal)
+            // On first privileged login the Worker may return a pre-provisioning user snapshot.
+            && (string.IsNullOrWhiteSpace(firebaseUid) || string.Equals(firebaseUid, claimUid, StringComparison.Ordinal))
             && (role == "ADMIN" || role == "PICKPACK_ADMIN")
             && role == baseRole && role == claimRole;
     }
@@ -107,7 +108,8 @@ internal static class AgentIdentityBinding
             && !MatchesLogin("admin",id,"admin",uid,"ADMIN","ADMIN",id,"wrong-uid","ADMIN")
             && !MatchesLogin("admin",id,"admin",uid,"ADMIN","PICKPACK_ADMIN",id,uid,"ADMIN")
             && !MatchesLogin("admin",id,"admin",uid,"ADMIN","ADMIN",id,uid,"PICKER")
-            && !MatchesLogin("admin","","admin",uid,"ADMIN","ADMIN","",uid,"ADMIN");
+            && !MatchesLogin("admin","","admin",uid,"ADMIN","ADMIN","",uid,"ADMIN")
+            && MatchesLogin("admin",id,"admin","", "ADMIN","ADMIN",id,uid,"ADMIN");
         // Refresh/Start must retain the Worker-bound UID and user_id, not rebind to a login string.
         static string FakeJwt(string userId, string firebaseUid)
         {
@@ -443,7 +445,7 @@ internal static class FirebaseDiagnostic
                     AgentIdentityBinding.JwtClaim(result.IdToken, "sub"), result.Role)) return null;
                 result.VerifiedLogin=login.Trim().ToLowerInvariant();
                 result.VerifiedUserId=userId;
-                result.VerifiedFirebaseUid=firebaseUid;
+                result.VerifiedFirebaseUid=AgentIdentityBinding.JwtClaim(result.IdToken, "sub");
                 Record(report, "AUTH", "Agent privileged login", "SYSTEM_PROXY", "AUTH_SUCCESS", sw, (int)r.StatusCode);
                 return result;
             }
