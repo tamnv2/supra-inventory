@@ -79,7 +79,7 @@ internal sealed class PeerForm : Form
         _probeLogPath=Path.Combine(desktop,"SUPRA_D171_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
-        Text="SUPRA D171 E007 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
+        Text="SUPRA D171 E009 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
         Font=new Font("Segoe UI",10);
         var title=new Label{Text="D171 E007 — TEST KẾT NỐI 2 AGENT ⇄ PDA",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
         Controls.Add(title);
@@ -142,6 +142,7 @@ internal sealed class PeerForm : Form
     {
         _testAll.Enabled=false;
         _activeStep="01_XAC_THUC_NHOM_AGENT_VA_TAO_PHIEN";
+        Log("AUTO_TEST","START_WAIT_THREE_DEVICES",new{required="Agent A + Agent B + PDA Normal"});
         await EnsureAutomaticSession();
         Text="SUPRA D171 Test — "+_operatorLogin+" (Agent "+_agentLabel+")";
         StartPoll();
@@ -183,6 +184,7 @@ internal sealed class PeerForm : Form
             throw new InvalidOperationException("D171_AUTH_IDENTITY_MISMATCH");
         _activeStep="01B_DOC_PHIEN_FIRESTORE";
         if(_agentLabel=="A"){
+            Log("PAIR_DISCOVERY","ADMIN_A_CREATING_OR_REUSING_SESSION");
             using var existing=await Http("GET",Url(),null,true);
             if(existing==null) {
                 _activeStep="01C_TAO_PHIEN_FIRESTORE";
@@ -192,12 +194,13 @@ internal sealed class PeerForm : Form
         }
         _activeStep="01D_CHINH_XAC_PHIEN_TEST";
         JsonDocument? root=null;
-        for(var attempt=0;attempt<45;attempt++){
+        for(var attempt=0;attempt<120;attempt++){
             root=await Http("GET",Url(),null,true);
             if(root!=null)break;
-            await Task.Delay(2000);
+            if(attempt%8==0)Log("PAIR_DISCOVERY","WAIT_FOR_ADMIN_A_TO_PRESS_START",new{wait_seconds=attempt*2,role=_agentLabel});
+            await Task.Delay(2000,_closed.Token);
         }
-        if(root==null)throw new InvalidOperationException("D171_WAIT_ADMIN_A_SESSION_TIMEOUT");
+        if(root==null)throw new InvalidOperationException("D171_WAIT_ADMIN_A_START_TIMEOUT");
         using(root){
             var ownerUid=GetString(root.RootElement,"owner_uid");
             var until=GetString(root.RootElement,"expires_at");
@@ -222,7 +225,7 @@ internal sealed class PeerForm : Form
     }
     private async Task WaitForThreeReady()
     {
-        for(var attempt=0;attempt<45;attempt++){
+        for(var attempt=0;attempt<90;attempt++){
             using var d=await Http("GET",Url("/members")+"?pageSize=40",null,true);
             if(d!=null&&d.RootElement.TryGetProperty("documents",out var docs)){
                 var agentCount=0;var pickerCount=0;
@@ -239,10 +242,12 @@ internal sealed class PeerForm : Form
                     }
                 }
                 if(agentCount==2&&pickerCount==1){Log("THREE_PARTY_READY","PASS",new{phase=_phase,agents=agentCount,pda=pickerCount});return;}
+                if(attempt%8==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MISSING_PARTICIPANTS",new{phase=_phase,agent_ready=agentCount,pda_ready=pickerCount,required_agents=2,required_pda=1});
             }
-            await Task.Delay(2000);
+            else if(attempt%8==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MEMBERS_COLLECTION",new{phase=_phase});
+            await Task.Delay(2000,_closed.Token);
         }
-        throw new InvalidOperationException("THREE_PARTY_READY_TIMEOUT: cần đủ 2 Agent và 1 PDA đang TEST cùng phiên, đồng bộ đúng vòng mạng.");
+        throw new InvalidOperationException("D171_THREE_PARTY_READY_TIMEOUT");
     }
     private async Task WaitForPicker()
     {
@@ -435,8 +440,10 @@ internal sealed class PeerForm : Form
             url.Contains("/receipts",StringComparison.Ordinal)?"RECEIPTS" :
             url.Contains("/messages",StringComparison.Ordinal)?"MESSAGES" :
             url.Contains(":commit",StringComparison.Ordinal)?"DOCUMENT_WRITE" : "TEST_SESSION";
-        Log("FIRESTORE_HTTP",resultCode,new{method,route,elapsed_ms=Environment.TickCount64-start});
+        // Missing session/list during pairing is a normal wait, not a transport failure.
+        // Do not flood the on-screen error stream with expected HTTP 404 every 2 seconds.
         if(notFoundOkay && res.StatusCode==HttpStatusCode.NotFound)return null;
+        Log("FIRESTORE_HTTP",resultCode,new{method,route,elapsed_ms=Environment.TickCount64-start});
         if(!res.IsSuccessStatusCode){
             string reason="UNSPECIFIED";
             try{
@@ -599,6 +606,9 @@ internal sealed class PeerForm : Form
             ? Regex.IsMatch(incomingPayload,"^"+Regex.Escape(expectedPrefix)+@"\|[0-9]{3,4}$")
             : incomingPayload==expectedPrefix;
           if(!validPayload) {
+            var parsed=Regex.Match(incomingPayload,@"^D169-SIM-P([0-4])");
+            var prior=parsed.Success&&int.TryParse(parsed.Groups[1].Value,out var incoming)&&incoming<_phase;
+            if(prior)return true; // previous phase is terminal; do not reread forever
             Log("RX_TEST_MESSAGE","PHASE_MISMATCH_RETRY_LATER",new{request_id=id,local_phase=_phase});
             return false;
           }
