@@ -37,8 +37,8 @@ class DiagHubActivity : Activity() {
   private val worker=Executors.newSingleThreadExecutor()
   private val receiver=Executors.newSingleThreadExecutor()
   private val nodeId=UUID.randomUUID().toString().replace("-","")
-  private var phase=0
-  private var started=false
+  @Volatile private var phase=0
+  @Volatile private var started=false
   private val dispatchedPhases=Collections.synchronizedSet(HashSet<Int>())
   private val acked=Collections.synchronizedSet(HashSet<String>())
   private val sentOwn=Collections.synchronizedSet(HashSet<String>())
@@ -103,11 +103,11 @@ class DiagHubActivity : Activity() {
       try {
         if(!::api.isInitialized)throw IllegalStateException("LOGIN_REQUIRED")
         if(started){notice("PDA đang chờ điều phối từ 2 Agent.");return@execute}
-        ensureAutoJoined()
         started=true
+        ensureAutoJoined()
         journal.event("PDA_READY","PASS","normal_only=true")
         notice("PDA đã sẵn sàng. Giữ nguyên mạng thường. Khi cả 2 Agent bắt đầu, các kịch bản tự chạy.")
-      }catch(e:Exception){journal.event("AUTO_READY","ERROR",e.javaClass.simpleName);notice("Không sẵn sàng: "+e.javaClass.simpleName)}
+      }catch(e:Exception){started=false;journal.event("AUTO_READY","ERROR",e.javaClass.simpleName);notice("Không sẵn sàng: "+e.javaClass.simpleName)}
     }
   }
   private fun dispatchPhase(root:DocumentReference,newPhase:Int){
