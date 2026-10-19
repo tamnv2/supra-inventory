@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-fieldkit-operator-readiness-20261019",
-  "pr": 639,
+  "working_branch": "deploy/d171-provider-readback-20261019",
+  "pr": 640,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E003",
+    "id": "D171-E004",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -74,6 +74,24 @@
       ],
       "next_action": "PR follow-up authority/continuity+Android+Rules CI PASS, merge, verify isolated Beta Rules live readback via existing automated push workflow or manual owner-confirmed Run workflow if connector cannot dispatch; then provide direct EXE/APK Actions artifact links and three-user field steps.",
       "evidence": "Main merge e77eb64f; PR638 18/18 source CI; Windows run 39184972730 and Android run 39184972723; owner 2026-10-19 D171 priority exception."
+    },
+    {
+      "id": "D171-E004",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "topic": "One-shot isolated Firebase Rules deployment readback for approved D171 field test",
+      "status": "D171_OWNER_AUTHORIZED_BETA_CANARY_RELEASE_ONE_SHOT_PR_CI_PROVIDER_READBACK_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "D171 PR638 and UI follow-up PR639 were merged after full authority/continuity/security/EXE/APK CI. Dedicated Windows EXE and Android debug-signed PDA test packages exist in GitHub Actions, while no actual on-device FIELD PASS or Firebase live Rules readback is established.",
+        "The GitHub connector can access PR CI and job logs but its commit-workflow run listing filters PR runs; main-push Rules deployment receipts cannot be reliably observed through available tools. Direct GitHub Actions workflow_dispatch is also unavailable.",
+        "Owner had explicitly approved D171 isolated test release before D170 acceptance. Therefore a narrow PR-based CI release job on exactly the same-repo branch deploy/d171-provider-readback-20261019 may publish the already-merged and source-identical D171 temporary test Firestore Rules into the registered existing Beta default database, then read back the live release. It must not run for forks, unrelated branches, business collections, WMS or Stable.",
+        "Owner-confirmed environment Beta and Firestore Rules secret remain in existing GitHub Actions; a failure must block READY and be recorded without guessing.",
+        "Rules emulator/authority/continuity guards must PASS before provider job. Only actual success log D171_TEMP_BETA_FIRESTORE_RULES_READBACK_PASS proves live test Rules active.",
+        "No production Worker, signed Agent v139/Android vc114 release, business data, PRIMARY, WMS, OAuth or D170 Owner PASS changes."
+      ],
+      "next_action": "Trigger restricted PR CI and verify exact provider Rules release/readback; otherwise halt and explain blocker. Only then instruct Owner to install latest separate EXE/APK and field test 2 Agent + 1 PDA.",
+      "evidence": "PR638 merge e77eb64f, PR639 merge 3ca69d3c, D171 owner approval and scoped resources; existing D169 authorized PR Beta test Rules pattern."
     }
   ],
   "resume": {
@@ -87,14 +105,14 @@
       "PR638 merged main with source CI PASS and independent Windows/Android test artifacts; no live Firebase Rules provider readback obtained yet."
     ],
     "in_progress": [
-      "Additional PDA NORMAL UI lock and manual Beta Rules readback option in owner-scoped follow-up PR."
+      "One-time Owner-authorized PR-only scoped Beta Rules actual release/readback with immutable base parity, CI/emulator/security and no Stable/Production changes."
     ],
     "pending_approval": [],
     "blocked": [
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Guarded PR638 full PASS → main merge → Beta scoped Rules readback; retrieve 2 independent Agent EXE copies + single PDA test APK; then Owner field test."
+      "Read PR640 provider job logs and Rules readback; only provider PASS permits physical field install steps."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
