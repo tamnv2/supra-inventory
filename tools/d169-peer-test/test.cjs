@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const assert = require("node:assert/strict");
 const {initializeTestEnvironment,assertSucceeds,assertFails}=require("@firebase/rules-unit-testing");
-const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}=require("firebase/firestore");
+const {doc,setDoc,getDoc,updateDoc,collection,getDocs,query,where,orderBy,serverTimestamp,Timestamp}=require("firebase/firestore");
 
 (async()=>{
   const rules=fs.readFileSync("firebase/firestore.rules","utf8");
@@ -55,6 +55,14 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
     await assertFails(setDoc(doc(picker,`${root}/messages/${msgid}`),msg));
     await assertSucceeds(setDoc(doc(picker,`${root}/messages/${msgid}`),{...msg,expires_at:Timestamp.fromDate(new Date(Date.now()+3*60*1000))}));
     await assertSucceeds(getDoc(doc(admin,`${root}/messages/${msgid}`)));
+    // The low-read polling path must be compatible with production-equivalent
+    // scoped Rules and a server-side created_at filter (no all-day rescan).
+    const recent=Timestamp.fromDate(new Date(Date.now()-60*1000));
+    const bounded=query(collection(admin,`${root}/messages`),
+      where("created_at",">=",recent),orderBy("created_at","asc"));
+    const boundedResult=await assertSucceeds(getDocs(bounded));
+    assert(boundedResult.docs.some(x=>x.id===msgid),"D171_WINDOWED_QUERY_LOST_CURRENT_MESSAGE");
+
     await assertFails(setDoc(doc(stranger,`${root}/messages/${"bb".repeat(16)}`),
       {...msg,request_id:"bb".repeat(16),sender_uid:strangerId,expires_at:Timestamp.fromDate(new Date(Date.now()+60*1000))}));
     await assertFails(setDoc(doc(picker,`${root}/messages/${"ee".repeat(16)}`),
