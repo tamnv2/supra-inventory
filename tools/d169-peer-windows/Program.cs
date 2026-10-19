@@ -30,6 +30,11 @@ internal static class Entry
             Environment.ExitCode = AgentIdentityBinding.SelfTest() ? 0 : 1;
             return;
         }
+        if (args.Length == 1 && args[0] == "--pairing-selftest")
+        {
+            Environment.ExitCode = PeerForm.PairingSelfTest() ? 0 : 1;
+            return;
+        }
         ApplicationConfiguration.Initialize();
         // D169 independent TEST process: login once, then the peer test window.
         using var login = new LoginDialog();

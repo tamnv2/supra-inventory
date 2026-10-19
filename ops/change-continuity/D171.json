@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "state/d171-e008-windows-hotfix-release-receipt-20261019",
-  "pr": 644,
+  "working_branch": "fix/d171-three-device-pairing-diagnostics-20261019",
+  "pr": 645,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E008",
+    "id": "D171-E009",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -163,6 +163,24 @@
       ],
       "next_action": "Owner downloads new Actions ZIP for run 39191139468, extracts and replaces EXE on both Windows Agent test PCs, uses the prior standalone PDA APK, signs into three distinct designated accounts and runs the five-stage test. If any error occurs, provide sanitized first step/code or JSONL. Only Owner's physical test can close D171.",
       "evidence": "PR643 merged 852779ee; commit a4f53068588d; CI run 39191139468 Windows PASS artifact 12160425715; 13/13 head workflows PASS."
+    },
+    {
+      "id": "D171-E009",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner E007 field FAIL Windows 404 + Android IllegalStateException; authorize D171 isolated repair",
+      "status": "D171_E009_BOTH_CLIENTS_FIELD_REPAIR_PR645_CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Current E007 Windows screenshot shows repeated 404 on a missing Firestore test session; this is expected when waiting for Agent A, not by itself an internet failure.",
+        "Android old source waits around 36 seconds for Agent A then collapses actionable failure to IllegalStateException; actual provider cause is unproven.",
+        "Owner explicitly requests full E009 isolated diagnostics EXE+APK repair and rebuild; no changes to live operational client, backend, Rules, WMS or Stable.",
+        "Same-session older test events must not masquerade as a fresh test; staged 2-Agent+PDA readiness must match exact phase and ACK must be required before PASS.",
+        "New tests for expected 404, pairing phases, immutable ACK, Android field source, Firestore security and both client builds are required.",
+        "Accepted base D169 unchanged; D170 remains paused not passed."
+      ],
+      "next_action": "Finish and verify PR645 EXE+APK CI/emulator/authority, then publish both matching test artifacts and await Owner hardware evidence.",
+      "evidence": "Owner 2026-10-19 field screenshot (Windows HTTP_404, Android IllegalStateException); PR645 source branches."
     }
   ],
   "resume": {
@@ -178,7 +196,7 @@
       "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715."
     ],
     "in_progress": [
-      "Windows D171 E007 patched source/CI artifact released, waiting Owner retest 2 Agent + 1 PDA; prior physical FAIL not superseded by CI."
+      "PR645 E009 isolated EXE/APK pairing repair awaiting current SHA CI and owner 3-device hardware test."
     ],
     "pending_approval": [
       "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS.",
@@ -189,7 +207,7 @@
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Owner installs replacement E007 Windows EXE on both test Agent PCs and re-tests alongside existing D171 PDA APK; evaluate first sanitized failure if any."
+      "Confirm both client builds, emulator and GitHub guards, issue fresh download links and retest all 5 stages."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }

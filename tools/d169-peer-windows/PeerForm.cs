@@ -79,7 +79,7 @@ internal sealed class PeerForm : Form
         _probeLogPath=Path.Combine(desktop,"SUPRA_D171_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
-        Text="SUPRA D171 E007 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
+        Text="SUPRA D171 E009 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
         Font=new Font("Segoe UI",10);
         var title=new Label{Text="D171 E007 — TEST KẾT NỐI 2 AGENT ⇄ PDA",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
         Controls.Add(title);
@@ -127,8 +127,19 @@ internal sealed class PeerForm : Form
         var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D169-AUTO-PAIR-V7|"+date));
         return Convert.ToHexString(bytes)[..32].ToLowerInvariant();
     }
-    private string ExpectedLocalNetwork(int phase) =>
-        ((_agentLabel=="A" && (phase==1||phase==3))||(_agentLabel=="B"&&(phase==2||phase==3)))?"OFFICE":"NORMAL";
+    private string ExpectedLocalNetwork(int phase)=>RequiredNetwork(_agentLabel,phase);
+    private static string RequiredNetwork(string role,int phase)=>
+        ((role=="A" && (phase==1||phase==3))||(role=="B"&&(phase==2||phase==3)))?"OFFICE":"NORMAL";
+    private static bool ExpectedDiscovery404(HttpStatusCode status,bool notFoundOkay)=>notFoundOkay&&status==HttpStatusCode.NotFound;
+    internal static bool PairingSelfTest()
+    {
+        var a=new[]{"NORMAL","OFFICE","NORMAL","OFFICE","NORMAL"};
+        var b=new[]{"NORMAL","NORMAL","OFFICE","OFFICE","NORMAL"};
+        return Enumerable.Range(0,5).All(i=>RequiredNetwork("A",i)==a[i] && RequiredNetwork("B",i)==b[i])
+            && ExpectedDiscovery404(HttpStatusCode.NotFound,true)
+            && !ExpectedDiscovery404(HttpStatusCode.NotFound,false)
+            && !ExpectedDiscovery404(HttpStatusCode.Forbidden,true);
+    }
     private void ShowNetworkPhase()
     {
         var message=_phase<Phases.Length?Phases[_phase]:"ĐÃ HOÀN TẤT CÁC KỊCH BẢN";
@@ -136,17 +147,36 @@ internal sealed class PeerForm : Form
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
+        if(_phase>=Phases.Length){
+            Log("AUTO_TEST","ALL_FIVE_PHASES_FINISHED");
+            MessageBox.Show("Đã hoàn tất 5/5 vòng kiểm thử. Kiểm tra log kết quả ACK và kết nối trước khi nghiệm thu.","SUPRA D171 · Hoàn tất",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            return;
+        }
+        if(_phase>0 && _phase<Phases.Length && ExpectedLocalNetwork(_phase)==RequiredNetwork(_agentLabel,_phase-1))
+        {
+            _confirmSwitch.Enabled=false;
+            Log("NETWORK_SWITCH","NO_CHANGE_AUTO_CONTINUE",new{role=_agentLabel,phase=_phase});
+            _=Task.Run(async()=>{
+                await Task.Delay(400);
+                if(!_closed.IsCancellationRequested && !IsDisposed)
+                    try{BeginInvoke(new Action(async()=>await Run(AdvancePhase)));}catch(InvalidOperationException){}
+            });
+            return;
+        }
         MessageBox.Show("Tài khoản "+_operatorLogin+" · Test Agent "+_agentLabel+": Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nWi-Fi Agent máy này cần: "+recommended+".\nĐổi mạng rồi bấm ĐÃ CHUYỂN MẠNG (trừ lượt đầu, bấm BẮT ĐẦU TEST).","SUPRA D171 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
     }
     private async Task StartAutomaticTests()
     {
         _testAll.Enabled=false;
         _activeStep="01_XAC_THUC_NHOM_AGENT_VA_TAO_PHIEN";
+        Log("AUTO_TEST","START_WAIT_THREE_DEVICES",new{required="Agent A + Agent B + PDA Normal"});
         await EnsureAutomaticSession();
         Text="SUPRA D171 Test — "+_operatorLogin+" (Agent "+_agentLabel+")";
         StartPoll();
         _activeStep="02_DANG_KY_AGENT_READY";
         await PublishReady();
+        _activeStep="02B_BAO_PDA_CHUYEN_PHA_TEST";
+        await AnnouncePhaseToPicker();
         _activeStep="03_DOI_2_AGENT_VA_PDA_DU_3";
         await WaitForThreeReady();
         _activeStep="04_GUI_TEST_VA_CHO_ACK";
@@ -162,6 +192,8 @@ internal sealed class PeerForm : Form
         _mode.SelectedItem=ExpectedLocalNetwork(_phase);
         _activeStep="05_CAP_NHAT_MANG_AGENT";
         await PublishReady();
+        _activeStep="05B_BAO_PDA_CHUYEN_PHA_TEST";
+        await AnnouncePhaseToPicker();
         _activeStep="06_DOI_3_THIET_BI_READY";
         await WaitForThreeReady();
         _activeStep="07_GUI_TEST_VA_CHO_ACK";
@@ -183,6 +215,7 @@ internal sealed class PeerForm : Form
             throw new InvalidOperationException("D171_AUTH_IDENTITY_MISMATCH");
         _activeStep="01B_DOC_PHIEN_FIRESTORE";
         if(_agentLabel=="A"){
+            Log("PAIR_DISCOVERY","ADMIN_A_CREATING_OR_REUSING_SESSION");
             using var existing=await Http("GET",Url(),null,true);
             if(existing==null) {
                 _activeStep="01C_TAO_PHIEN_FIRESTORE";
@@ -192,12 +225,13 @@ internal sealed class PeerForm : Form
         }
         _activeStep="01D_CHINH_XAC_PHIEN_TEST";
         JsonDocument? root=null;
-        for(var attempt=0;attempt<45;attempt++){
+        for(var attempt=0;attempt<120;attempt++){
             root=await Http("GET",Url(),null,true);
             if(root!=null)break;
-            await Task.Delay(2000);
+            if(attempt%8==0)Log("PAIR_DISCOVERY","WAIT_FOR_ADMIN_A_TO_PRESS_START",new{wait_seconds=attempt*2,role=_agentLabel});
+            await Task.Delay(2000,_closed.Token);
         }
-        if(root==null)throw new InvalidOperationException("D171_WAIT_ADMIN_A_SESSION_TIMEOUT");
+        if(root==null)throw new InvalidOperationException("D171_WAIT_ADMIN_A_START_TIMEOUT");
         using(root){
             var ownerUid=GetString(root.RootElement,"owner_uid");
             var until=GetString(root.RootElement,"expires_at");
@@ -220,9 +254,16 @@ internal sealed class PeerForm : Form
         using var result=await Http("POST",CommitUrl,req);
         Log("NETWORK_READY","OPERATOR_CONFIRMED_NOT_SSID_PROOF",new{phase=_phase,required=ExpectedLocalNetwork(_phase),agent=_agentLabel});
     }
+    private async Task AnnouncePhaseToPicker()
+    {
+        // The PDA remains NORMAL. A synthetic PING wakes its phase listener before
+        // the three-member READY barrier; otherwise later phases deadlock or pass stale PDA readiness.
+        await SendTest("PING");
+        Log("PHASE_ANNOUNCE","SENT_PDA_WAKE",new{phase=_phase,required_pda_network="NORMAL"});
+    }
     private async Task WaitForThreeReady()
     {
-        for(var attempt=0;attempt<45;attempt++){
+        for(var attempt=0;attempt<90;attempt++){
             using var d=await Http("GET",Url("/members")+"?pageSize=40",null,true);
             if(d!=null&&d.RootElement.TryGetProperty("documents",out var docs)){
                 var agentCount=0;var pickerCount=0;
@@ -231,7 +272,7 @@ internal sealed class PeerForm : Form
                     if(role=="PICKER"){
                         var timeText=GetString(item,"ready_at");
                         var window=_phase==0?TimeSpan.FromMinutes(3):TimeSpan.FromMinutes(30);
-                        if(GetString(item,"ready_network")=="NORMAL"&&DateTimeOffset.TryParse(timeText,out var pickerReadyAt)&&pickerReadyAt>DateTimeOffset.UtcNow-window)pickerCount++;
+                        if(GetString(item,"ready_phase")==_phase.ToString() && GetString(item,"ready_network")=="NORMAL"&&DateTimeOffset.TryParse(timeText,out var pickerReadyAt)&&pickerReadyAt>DateTimeOffset.UtcNow-window)pickerCount++;
                     }
                     if(role=="ADMIN"||role=="PICKPACK_ADMIN"){
                         var stamp=GetString(item,"ready_at");
@@ -239,10 +280,12 @@ internal sealed class PeerForm : Form
                     }
                 }
                 if(agentCount==2&&pickerCount==1){Log("THREE_PARTY_READY","PASS",new{phase=_phase,agents=agentCount,pda=pickerCount});return;}
+                if(attempt%8==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MISSING_PARTICIPANTS",new{phase=_phase,agent_ready=agentCount,pda_ready=pickerCount,required_agents=2,required_pda=1});
             }
-            await Task.Delay(2000);
+            else if(attempt%8==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MEMBERS_COLLECTION",new{phase=_phase});
+            await Task.Delay(2000,_closed.Token);
         }
-        throw new InvalidOperationException("THREE_PARTY_READY_TIMEOUT: cần đủ 2 Agent và 1 PDA đang TEST cùng phiên, đồng bộ đúng vòng mạng.");
+        throw new InvalidOperationException("D171_THREE_PARTY_READY_TIMEOUT");
     }
     private async Task WaitForPicker()
     {
@@ -279,7 +322,9 @@ internal sealed class PeerForm : Form
           _pdaAcks.TryGetValue(id,out var p);_agentAcks.TryGetValue(id,out var a);
           Log("TEST_TERMINAL",p>0&&a>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,pda_receipts=p,peer_agent_receipts=a,required_role="PICKER_AND_AGENT",phase});
         }
-        Log("PHASE","DONE",new{phase,passed=sent.Count(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0),total=sent.Count});
+        var passed=sent.Count(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0);
+        Log("PHASE",passed==sent.Count?"ACK_PASS":"ACK_INCOMPLETE",new{phase,passed,total=sent.Count});
+        if(passed!=sent.Count)throw new InvalidOperationException("D171_PHASE_ACK_INCOMPLETE");
         if(_phase>0&&_phase<Phases.Length-1)await VerifyAutomaticLeaderFailover();
     }
     private async Task RunReadOnlyNetworkProbes(string phase)
@@ -328,6 +373,7 @@ internal sealed class PeerForm : Form
             }
         }
         Log("FAILOVER_SUITE","TIMEOUT_NO_OTHER_AGENT_TAKEOVER",new{phase=_phase,generation=oldEpoch});
+        throw new InvalidOperationException("D171_SIMULATED_FAILOVER_NOT_CONFIRMED");
     }
     private async Task<string> SendTest(string type)
     {
@@ -435,8 +481,10 @@ internal sealed class PeerForm : Form
             url.Contains("/receipts",StringComparison.Ordinal)?"RECEIPTS" :
             url.Contains("/messages",StringComparison.Ordinal)?"MESSAGES" :
             url.Contains(":commit",StringComparison.Ordinal)?"DOCUMENT_WRITE" : "TEST_SESSION";
+        // Missing session/list during pairing is a normal wait, not a transport failure.
+        // Do not flood the on-screen error stream with expected HTTP 404 every 2 seconds.
+        if(ExpectedDiscovery404(res.StatusCode,notFoundOkay))return null;
         Log("FIRESTORE_HTTP",resultCode,new{method,route,elapsed_ms=Environment.TickCount64-start});
-        if(notFoundOkay && res.StatusCode==HttpStatusCode.NotFound)return null;
         if(!res.IsSuccessStatusCode){
             string reason="UNSPECIFIED";
             try{
@@ -599,6 +647,9 @@ internal sealed class PeerForm : Form
             ? Regex.IsMatch(incomingPayload,"^"+Regex.Escape(expectedPrefix)+@"\|[0-9]{3,4}$")
             : incomingPayload==expectedPrefix;
           if(!validPayload) {
+            var parsed=Regex.Match(incomingPayload,@"^D169-SIM-P([0-4])");
+            var prior=parsed.Success&&int.TryParse(parsed.Groups[1].Value,out var incoming)&&incoming<_phase;
+            if(prior)return true; // previous phase is terminal; do not reread forever
             Log("RX_TEST_MESSAGE","PHASE_MISMATCH_RETRY_LATER",new{request_id=id,local_phase=_phase});
             return false;
           }
