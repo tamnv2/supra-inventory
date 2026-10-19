@@ -1,0 +1,29 @@
+name: D169 Canary Firestore Rules Emulator
+on:
+  pull_request:
+    paths:
+      - "firebase/firestore.rules"
+      - "tools/d169-peer-test/**"
+      - ".github/workflows/verify-d169-peer-rules.yml"
+permissions:
+  contents: read
+jobs:
+  canary-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prepare Firebase emulator (test-only fake project)
+        run: |
+          npm install --no-audit --no-fund --prefix tools/d169-peer-test
+          npm install --no-audit --no-fund --global firebase-tools@14.16.0
+      - name: Validate Firestore rules against real emulator and claim matrices
+        run: |
+          firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
