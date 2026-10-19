@@ -173,19 +173,23 @@ internal sealed class PeerForm : Form
     {
         // Operator identities are validated at runtime and never written to public logs.
         // A is fixed to the privileged Admin; B is fixed to the second Owner operator.
+        _activeStep="01A_KIEM_TRA_TAI_KHOAN_AGENT";
         var account=_operatorLogin.Trim().ToLowerInvariant();
         _agentLabel=account=="admin"?"A":account=="tamnv2"?"B":
             throw new InvalidOperationException("D171_AGENT_ACCOUNT_NOT_AUTHORIZED");
         var tokenAccount=GetJwtClaim(_token.IdToken,"app_user_id");
         if(!string.Equals(tokenAccount,account,StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("D171_AUTH_IDENTITY_MISMATCH");
+        _activeStep="01B_DOC_PHIEN_FIRESTORE";
         if(_agentLabel=="A"){
             using var existing=await Http("GET",Url(),null,true);
             if(existing==null) {
+                _activeStep="01C_TAO_PHIEN_FIRESTORE";
                 try { await CreateSession(); }
                 catch(HttpRequestException e) when(e.Message=="HTTP_409"||e.Message=="HTTP_400") { }
             }
         }
+        _activeStep="01D_CHINH_XAC_PHIEN_TEST";
         JsonDocument? root=null;
         for(var attempt=0;attempt<45;attempt++){
             root=await Http("GET",Url(),null,true);
@@ -203,6 +207,7 @@ internal sealed class PeerForm : Form
             if(_agentLabel=="B"&&ownerUid==_uid)
                 throw new InvalidOperationException("D171_DUPLICATE_AGENT_AUTH_UID");
         }
+        _activeStep="01E_THAM_GIA_PHIEN_FIRESTORE";
         await JoinSession();
         Log("PAIRING","ROLE_BOUND_JOINED",new{role=_agentLabel,node=_nodeId[..8],phase=_phase+1});
     }
