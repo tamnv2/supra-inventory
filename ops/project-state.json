@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E006_OWNER_WINDOWS_FIELD_START_ACTION_ERROR__DIAGNOSTIC_REBUILD_PENDING",
+    "current_change_status": "D171_E007_IDENTITY_BINDING_PR643_CI_AND_EXE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7458,9 +7458,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
-    "working_branch": "fix/d171-field-action-errors-v2-20261019",
-    "pr": 642,
-    "latest_checkpoint_id": "D171-E006",
+    "working_branch": "fix/d171-identity-session-binding-20261019",
+    "pr": 643,
+    "latest_checkpoint_id": "D171-E007",
     "checkpoint_date_vn": "2026-10-19",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8365,7 +8365,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E006_OWNER_WINDOWS_ACTION_ERROR_FIELD_FAIL__ROOT_CAUSE_UNKNOWN",
+    "status": "D171_E007_IDENTITY_BINDING_FIX_PR643_WINDOWS_CI_PENDING__OWNER_FIELD_FAIL",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8378,11 +8378,11 @@
     "live_prod_mutation": false,
     "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
     "requires_readback": true,
-    "code_ready": true,
+    "code_ready": false,
     "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "REBUILD_WIN_EXE_WITH_SPECIFIC_FAILURE_STAGE_HTTP_CODE__GET_FIRST_SANITIZED_FIELD_ERROR__REPAIR",
+    "next": "PR643_WINDOWS_IDENTITY_SELFTEST_BUILD_AND_ARTIFACT_RELEASE__OWNER_RETEST",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8409,8 +8409,8 @@
     "field_failure_20261019": {
       "observed": "WINDOWS_PEER_START_ACTION_ERROR_REPEATED",
       "evidence": "Owner screenshot 09:04:23 09:04:36 09:04:41 09:04:44",
-      "root_cause": "UNDETERMINED_NO_JSONL",
-      "windows_fix_branch": "fix/d171-field-action-errors-v2-20261019",
+      "root_cause": "SOURCE_BUG_OPAQUE_APP_USER_ID_COMPARED_TO_LOGIN_ALIAS__OWNER_FIELD_RETEST_PENDING",
+      "windows_fix_branch": "fix/d171-identity-session-binding-20261019",
       "scope": "STANDALONE_DIAGNOSTIC_WINDOWS_ONLY",
       "firebase_rules_rollback": "NOT_AUTHORIZED_FROM_UNCLASSIFIED_ERROR"
     }
