@@ -1,3 +1,7 @@
+## D171 single Owner-authorized scheduling exception — 2026-10-19
+
+The current explicit Owner command pauses D170 without Owner PASS and prioritizes D171 diagnostic-only test artifacts. Keep D169 as the last Owner-accepted base; D170 production technical releases remain unaccepted but untouched. D171 is the sole actively edited change; D170 is paused and must be resumed for remaining OAuth/fleet/domain field gates afterwards. Only this exact exception supersedes the normal no-next-change-until-Owner-PASS scheduling rule; it grants no automatic exception to any later change. Use active D171 journal in the manifest/bootstrap. Preserve all branch→PR→CI, security, resource-scope and Stable safeguards.
+
 # Repo-first discussion and Dxxx continuation protocol
 
 **Authority class:** process policy for SUPRA Inventory only. **Owner instruction:** 2026-10-12, within still-open D167. This file does not grant implementation/release/Stable access. Public repo: no secrets, staff personal data, source Excel rows, device IDs or WMS session material.
