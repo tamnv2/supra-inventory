@@ -1,64 +1,71 @@
-# D171-E020 — Kiểm toán kiến trúc Agent↔Agent↔PDA (19/10/2026)
+# D171-E021 — Đính chính rà soát kiến trúc theo quyết định Owner ngày 19/10/2026
 
-> **PHÂN TÍCH/ĐỀ XUẤT, KHÔNG PHẢI OWNER CODE/DEPLOY PASS.** Accepted base: D169 limited; D170 paused without Owner PASS; D171 isolated testing active. This document does not authorize production Agent/Android, Firestore/RTDB Rules, WMS, Worker, new Google Functions, or Stable changes.
+> **BẢN RÀ SOÁT LẠI, KHÔNG PHẢI LỆNH CODE / DEPLOY.** Bản E020 trước đã lẫn kết quả code D169/v139 với hướng đích mới của D171 và tự chọn Firestore làm giải pháp cuối. E021 chỉnh cách phân loại. D169 chỉ là hiện trạng để đánh giá độ lệch; D170 đang PAUSED, D171 là phạm vi hiện hành. Mọi nội dung triển khai mới phải có Owner scope/impact approval riêng.
 
-## 1. Quyết định Owner và đối chiếu source
+## 1. Đã chốt trong D171 — kiến trúc mong muốn
 
-| Quyết định nghiệp vụ | Mã/biên nhận hiện có | Mức chứng minh |
+Quyết định trực tiếp được lưu trong `ops/change-continuity/D171.json#D171-E018`:
+
+1. VPS là PRIMARY ưu tiên và thường hoạt động lâu dài, sử dụng **đường truyền PDA ↔ VPS chuyên biệt**, mục đích là nhanh, ổn định, tiết kiệm usage; chưa chốt đường này bắt buộc thuộc Firebase RTDB hay Firestore gRPC hay tên giao thức cụ thể.
+2. Agent ↔ Agent dùng **một đường dịch vụ phối hợp chung**, tương thích Office và Internet; không yêu cầu người dùng chuyển giao thức thủ công mỗi khi Wi-Fi thay đổi.
+3. Khi VPS thật sự không sẵn sàng, một Agent đủ điều kiện ở Office **hoặc** Internet được nhận PRIMARY an toàn. Lúc này **PDA ↔ Agent đang thay** và **Agent ↔ Agent** dùng cùng đường dịch vụ đa mạng — không bắt PDA đổi cơ sở dữ liệu/tự phát lại lệnh.
+4. Khi VPS trở lại, phục hồi chế độ ưu tiên VPS bằng bàn giao an toàn, không cắt ngang WMS in-flight; PRIMARY được admin/tamnv2 chỉ định thủ công cần xin phép như quy định đang có.
+5. Mục tiêu 15s phát hiện/đánh giá failover khi đường điều phối còn sống, một quyền PRIMARY qua generation/CAS, request_id/ACK bảo toàn và ngăn xác nhận WMS trùng là **ràng buộc an toàn**, không phải lý do để quay về nguyên trạng D169.
+
+**Quyết định về hành vi KHÔNG đồng nghĩa đã duyệt Firestore REST/gRPC, RTDB hay Cloud Functions làm triển khai cuối cùng.** Firestore REST + gRPC đề xuất ở E018/E019 là một cách thực hiện trong phạm vi hiện có, **không phải công nghệ Owner khóa độc quyền**.
+
+## 2. Các quyết định D171 bổ sung trong trao đổi của Owner chưa được phản ánh đầy đủ tại main E018–E019
+
+Qua rà soát lại ngữ cảnh hội thoại 19/10, và Owner yêu cầu trong phiên hiện tại phải khôi phục **các quyết định D171 đã chốt**, đây là **đầu vào thiết kế cần đưa vào vòng rà soát/reconciliation trước khi sửa production**:
+
+| Chỉ tiêu / ràng buộc Owner | Giá trị |
+| --- | --- |
+| PDA | **40 thiết bị** |
+| PickList | **2.000/ngày** |
+| Kích user (Kick) | **200/ngày** |
+| Gọi chuyên viên | **300/ngày** |
+| Chat | **500/ngày** |
+| Đồng bộ thông tin Agent thông thường | **10 phút/lần**; không kéo dài lease/ACK realtime lên 10 phút |
+| Dữ liệu lịch sử trung gian | **Tối đa 5 phút** theo trao đổi; phân biệt với retention/ACK business authority trước code |
+| Usage | **Mục tiêu ≤90% định mức miễn phí thích hợp**; chấp nhận dùng thêm realtime khi đảm bảo mục tiêu và chất lượng |
+| SKU | **Giữ nguyên nghiệp vụ/cadence hiện hành**, không gộp nâng cấp SKU vào transport |
+
+Các thông số này **thay thế tải minh họa 1.200 PickList/ngày** trong phép tính E019 cho công tác thiết kế tiếp theo. E019 vẫn là bài tính tình huống cũ, không được biến thành sizing chuẩn cuối.
+
+Bổ sung hướng Owner xác nhận trong hội thoại: các tài khoản đặc biệt được phép xác thực từ Office theo cơ chế OTP/mật khẩu khẩn cấp tương ứng hiện có; sử dụng dịch vụ Google/Gateway **thực sự khả dụng trên Office** để kích hoạt xử lý Web/Cloud khi Agent không thể trực tiếp đến Cloudflare, thay vì bắt nhân viên chờ đổi mạng. **Không suy diễn cấp đường HHmm cho tài khoản VPS**, vì policy VPS OTP-only được Owner chốt riêng; không đưa token/secret vào repo.
+
+Đã thảo luận khả năng **Cloud Functions** như một thành phần backend/Gateway; chưa có phê duyệt định danh tài nguyên, source SHA, Rules, ngân sách hoặc quyền triển khai Function mới trong D171 E018/E019. Không bác bỏ trước phương án này chỉ vì mô hình D169 không dùng nó, nhưng cũng không được tuyên bố Function mới đã hoạt động trên Office nếu thiếu probe thật và scope approval.
+
+## 3. Đánh giá khả thi theo hai chế độ mục tiêu, không áp nguyên D169
+
+| Yêu cầu đích D171 | Khả thi kỹ thuật | Thiếu chứng cứ / ràng buộc |
 | --- | --- | --- |
-| VPS là tài khoản Agent được xác thực, PRIMARY ưu tiên theo *account*, không theo checkbox/tên máy | D169-E056/E057, `FirestoreVpsReclaim.cs`, `FirestoreAgentLeaderCoordinator.cs`, Agent v138/v139 release | SOURCE/RELEASE; chưa xác minh thực địa VPS đầy đủ |
-| VPS chỉ OTP email 4 số, không dùng mật khẩu cố định hay HHmm; admin/tamnv2 giữ cơ chế cũ, Office đi qua Gateway hiện hữu khi Worker không tới được | D169-E052/E054, `AUTH_RBAC.md`, Agent v137+ | SOURCE/RELEASE; không suy ra OTP/Gateway thực địa PASS |
-| Admin/tamnv2 được chỉ định PRIMARY thủ công; VPS không ghi đè PRIMARY khỏe; sau 15 phút gửi lại đề nghị, một YES được xác thực/CAS mới chuyển | D169-E056/E057, `FirestoreVpsReclaim.cs`, Firestore Rules | SOURCE/RELEASE; phiên đăng nhập trực tuyến/Rules/WMS thực địa cần kiểm chứng |
-| VPS fail → NEXT_A đủ điều kiện chiếm PRIMARY có generation/CAS + lease/fencing; không khẳng định phát hiện chết tuyệt đối trong phân vùng mạng | D169-E044/E046, `FirestoreAgentLeaderCoordinator.cs`, v136/v139 | SOURCE/RELEASE; mục tiêu 15s phụ thuộc đường điều phối thực sự còn hoạt động |
-| PDA giữ duy nhất request_id qua failover, cùng Firestore job/ACK; 20s bình thường, 35s chỉ khi server đã cấp recovery proof; không WMS confirm trùng | D169-E044/E046, `RelayPocClient.kt`, `FirestoreConfirmationTransport.cs`, `D160ConfirmPipeline.cs` | SOURCE/RELEASE; real WMS + mixed network FIELD PASS chưa có |
-| WMS chỉ xác nhận bằng trình duyệt có phiên thật; không click lại nếu sau final click outcome UNCERTAIN | D126/D169, `D160ConfirmPipeline.cs` | Thiết kế an toàn có mã; kiểm chứng positive outcome thực địa vẫn cần |
-| Office/Internet dùng Firestore làm coordination authority, RTDB resource hiện chỉ HA liveness; Wi-Fi chuyển có kiểm soát, không ngắt inflight/PRIMARY | D168/D169, `D168NetworkRoute.cs`, `RtdbHaLiveness.cs` | SOURCE; Office gRPC/listener, Call/Kick và đổi mạng thật chưa chứng minh xuyên suốt |
-| Owner muốn *hai chế độ*: VPS khỏe có đường PDA nhanh/tiết kiệm; VPS lỗi dùng một đường Agent↔Agent và PDA↔Agent chung, không đổi protocol thủ công theo SSID | D171-E018 | **OWNER DESIGN DIRECTION ONLY**; chưa cấp code/deploy, không đồng nghĩa đã duyệt RTDB business |
-| D171 2 Agent + 1 PDA năm pha NORMAL/NORMAL, OFFICE/NORMAL, NORMAL/OFFICE, OFFICE/OFFICE, NORMAL/NORMAL | D171-E012/E013, isolated artifacts | Test binaries/emulator CI PASS; Owner field 5/5 NOT PASS |
+| Đường PDA↔VPS nhanh riêng | **Có**, kênh sự kiện riêng có thể mang tín hiệu đánh thức, lưu công việc và ACK có authority duy nhất | Chưa chốt công nghệ; RTDB hiện được phép HA-liveness **không phải** business; cần scope/Rules & chống trùng nếu chọn RTDB business |
+| Agent↔Agent cùng dịch vụ từ Office/Internet | **Có điều kiện**, Firestore REST qua Windows System Proxy đã có field read HTTP200 | Production Office gRPC/Call/Kick/Chat, latency, Auth Function endpoint chưa được chứng minh bằng test |
+| VPS hỏng, Agent thay dùng chung PDA+Agent | **Có điều kiện**, nếu cùng durable job ID/ACK, generation/fencing, WMS ready và route Office | Cần kiểm tra burst/partition/Failover; không tuyên bố 15s tuyệt đối |
+| VPS trở lại chế độ riêng | **Có**, giới hạn bằng CAS, drain in-flight và consent holder thủ công | Cần test race, stale presence, timeout khi trả quyền |
+| 40 PDA/2k jobs/1k lệnh liên hệ/quota ≤90% | **Chưa thể kết luận chi phí**, cần đo mix traffic & provider bill | D171 E019 1.200 job/day chỉ minh họa, không thay phép tính tải mới; quota Firestore chia theo project/database |
+| Xác thực 3 tài khoản đặc biệt ở Office, Google→Cloud | **Có thể** tái sử dụng ủy quyền/Google Gateway trong mô hình server-side; không tự bypass HTTP401/403 | Cần test OTP/Gateway/Function trên Office và RBAC, không dùng raw secret hoặc Office firewall bypass |
 
-## 2. Kiến trúc được đề xuất (không tạo provider mới)
+### Quyết định công nghệ **CHƯA** được chốt
+- VPS fast path là dedicated **Firestore gRPC**, **RTDB signaling hợp lệ**, hay dịch vụ khác: chưa khóa.
+- Đường chung Agent↔Agent và fallback PDA↔Agent là **Firestore REST-only**, **Firestore + Functions relay**, hay giải pháp hỗn hợp an toàn: chưa khóa.
+- Chưa phê duyệt mở RTDB business message/ACK, Cloud Function mới, thay Firestore Rules, hay thay kênh APK/Agent chính thức.
 
-- **Nguồn nghiệp vụ duy nhất:** Firestore job document/ACK/PDA request_id; Firestore roles/generation CAS/lease. Agent↔Agent là đồng bộ qua backend, **không** socket trực tiếp hai Windows hay chia quyền WMS qua peer network.
-- **Normal VPS mode:** PDA ghi Firestore job, VPS PRIMARY đã xác thực + WMS-ready nhận qua gRPC Listen; REST exact/job query watchdog 10s lúc PDA active, 30s idle theo v139. RTDB chỉ HA liveness nếu chứng minh được và trong scope; **không** chuyển job/ACK sang RTDB.
-- **Standby mode:** NEXT_A đã chiếm PRIMARY hợp lệ trên mọi mạng Office/NORMAL bằng Firestore REST + thế hệ CAS; Agent PRIMARY thay thế dùng **cùng Firestore job** và REST query có giới hạn trong cửa sổ khôi phục, không đổi Firestore/RTDB database của PDA. PDA 20/35s theo durable proof.
-- **Agent universal coordination:** một API nghiệp vụ Firestore roles/lease/reclaim/audit dùng cả hai mạng. Listener gRPC được dùng tự động khi thực sự reachable; REST được dùng để điều phối ở chế độ suy giảm; không yêu cầu người dùng chọn giao thức. Không tắt kênh push urgent Call/Kick/Chat đến khi chứng minh REST phù hợp latency/usage hoặc có đường sự kiện đã được duyệt. Hành vi *tương đương* không có nghĩa mọi event phải thực hiện qua REST-poll 5s trên sáu máy.
-- **Chuyển mạng:** local network-epoch, hủy/rebind listener/HTTP client/proxy khi tuyến thay đổi; fence tất cả mutation và inflight WMS/ACK, cấm tự đổi Wi-Fi khi PRIMARY có việc; không đoán tính khả dụng chỉ từ SSID; kiểm tra authenticated endpoint riêng sau reconnect. Một số item mới (network epoch lifecycle) hiện chỉ là đề xuất E015, không phải code đã triển khai.
-- **Cloud Functions/Cloud Run:** chưa có tài nguyên kinh doanh/endpoint được chốt trong scope D171. Chỉ xem như phương án thay thế có đo lường nếu được duyệt đánh giá sau; thêm function **không xóa** chi phí Firestore và có thể tăng độ trễ/auth/operational complexity.
+## 4. Đề xuất thực hiện đúng thứ tự D171
 
-## 3. Tính khả thi và giới hạn
+**Bước A — Chốt hợp đồng nghiệp vụ và lựa chọn kiến trúc theo E018.** Dựng bảng so sánh 3 phương án đáp ứng cùng yêu cầu hai chế độ: (1) Firestore existing fast VPS + common REST; (2) Fast VPS signal riêng + common Firebase/Google relay; (3) server-side Google Function/Gateway cho những sự kiện Office phải kích Cloud/Worker. Phân biệt *signal* với durable job/ACK. Không tráo một phương án kỹ thuật thành quyết định Owner.
 
-1. **Cao:** Tối ưu trực tiếp Agent v139 để bảo đảm network-epoch reconnect, giữ Firestore Listener VPS + REST độc lập và CAS/fencing; sửa theo evidence field.
-2. **Cao có điều kiện:** Một Firestore authoritative model trên hai mạng nếu xác thực REST Office đầy đủ; nhưng Office gateway/proxy có thể lỗi riêng từng endpoint, không có cam kết tránh partition.
-3. **Trung bình, bắt buộc test:** Hoạt động realtime Call/Kick/Chat và giao nhận 20/35s từ Office; REST-only polling phải cân bằng latency và read quota. Office gRPC Listen thực địa chưa PASS.
-4. **Chưa đủ quyền/chứng cứ:** RTDB nghiệp vụ PickList, chuyển toàn bộ sang Cloud Function, hoặc yêu cầu mọi Agent dùng REST 5s. RTDB resource hiện bị ràng buộc HA-only; new resource/rules/security/usage cần Owner duyệt riêng.
-5. **Không khả thi dưới phân vùng mạng hoàn toàn:** vừa bảo đảm failover chính xác <=15s, vừa tuyệt đối không có split-brain. Khi không chứng minh PRIMARY chết, fail-closed vẫn đúng.
+**Bước B — Tính sizing theo tải Owner thực chốt.** 40 PDA, 2.000 job/ngày, 200 Kick, 300 gọi, 500 Chat, Agent metadata 10 phút, cửa sổ lịch sử 5 phút và quota mục tiêu ≤90%; đo throughput burst, p50/p95 ACK, billed Firestore Reads/Writes, RTDB downloads, Function invocations/CPU, Worker usage, OTP/Gateway. Không dùng local HTTP GET làm số billed read.
 
-## 4. Ước tính usage *không phải billing*
+**Bước C — D171 standalone test đúng 5 vòng** A/B = NORMAL/NORMAL, OFFICE/NORMAL, NORMAL/OFFICE, OFFICE/OFFICE, NORMAL/NORMAL, PDA NORMAL; đủ 3 READY, có bằng chứng xác thực route, ACK A/B/kép, đúng phase, không PASS giả. Thêm probe production-equivalent cho đúng endpoint gRPC, REST, Function/Gateway nếu được phép; không đưa production WMS hay PRIMARY vào test isolated hiện tại.
 
-Theo D171-E019: 16h/ngày, 1.200 job, 6 Agent, ước tính tối thiểu 8.160 Firestore writes và 17.088–18.288 document reads (chưa tính toàn bộ overhead/số liệu nghiệp vụ khác). Một giờ fallback 3s so với VPS watchdog 10s làm tăng khoảng 840 reads trong giờ active; 16h fallback giả định 8h active/8h idle tạo 11.520 vs 3.840 minimum reads watchdog VPS (chênh 7.680). Nếu 6 Agent cùng REST-poll coordination 5s suốt 16h là 69.120 minimum reads, riêng phần này có thể vượt free quota 50.000/ngày. Các số đều giả lập; local HTTP counter và provider-billed reads không tương đương. Firestore Standard free tier chỉ trên một eligible database/project, 50k reads và 20k writes/ngày; quota chia cho tất cả dịch vụ liên quan.
+**Bước D — Chốt công nghệ, scope, bảo mật và ngân sách theo số đo rồi trình Owner duyệt code.** Nếu chọn RTDB business/Function mới, bắt buộc sửa project-scope/resource-registry/Rules/decision/spec/state cùng PR và xin quyền resource trước. Giữ fail-closed khi Office route không được chứng minh.
 
-## 5. Ba phương án và lựa chọn
+**Bước E — Branch → PR → tests/CI → được Owner duyệt deploy → Beta canary → FIELD/OWNER PASS.** D170 paused; Stable owner-gated. Không tự sửa D169 nguồn sản xuất hoặc cam kết release chỉ vì bản phân tích hoàn thành.
 
-| Phương án | Ưu | Nhược | Kết luận |
-| --- | --- | --- | --- |
-| A. Giữ v139, chỉ đo số liệu | Không tác động production, có baseline | Không chữa mất listener sau đổi mạng, Office coverage chưa chắc | Bắt buộc làm baseline D171 |
-| **B. Giữ Firestore, sửa lifecycle/conditional fallback có đo** | Bảo toàn request_id, WMS safety, ít thành phần và không đổi DB | Cần test Office proxy + listener, failure matrix và quota | **ĐỀ XUẤT CHỌN, chưa có code approval** |
-| C. Tách RTDB business/Cloud Function trung gian | Có thể nhanh ở một số điều kiện | Ngoài scope hiện tại; thêm auth/rules, billing, đồng bộ giao dịch, failure modes | Không triển khai trước khi có chứng cứ phương án B thất bại |
-
-## 6. Triển khai theo cổng Owner
-
-**G0 — D171 test-only (đã có kit, FIELD FAIL/PENDING):** Hoàn thành đủ 5 pha, log sanitized từng Agent/PDA; phân biệt REST 200, gRPC stream, proxy, TLS, token refresh; thử ngắt primary thật/lỗi partition, hai ACK, false PASS và total provider billed read/write. Không sửa production từ kết quả chưa xác minh.
-
-**G1 — Review implementation impact/Owner approval riêng:** Xác định chính xác base D169, production v139/vc114, regression: Firestore coordinator + realtime + transport + Wi-Fi lifecycle; không tự thay Worker/DO/Rules/Android/WMS khi chưa cần; chuẩn hóa success, SLA p50/p95, tối đa +2s normal-path, 15s suspect target khi coordination sống, 20/35s ACK, zero duplicate confirmation.
-
-**G2 — Branch/PR, source tests, isolated tests:** Tạo matrix request→generation→WMS final-click→durable ACK; phiên gRPC/REST chuyển mạng, Office blocked/recovered, VPS return, manual holder consent, mixed version, night freeze, clock reset, token expiry, concurrency, quotas. CI authority + continuity PASS; source CODE READY không phải FIELD PASS.
-
-**G3 — Canary scoped Beta sau Owner deploy approval:** Bản Agent độc lập và thứ tự compatibility hợp lệ, đo cùng khối lượng công việc trước/sau bằng Firebase billed metrics; staged standby rồi VPS, PDA chỉ khi protocol cần và đã duyệt, có rollback về release trước; Stable owner-gated.
-
-**G4 — Nghiệm thu:** Owner xác nhận 2 Agent + PDA thật, WMS, kết quả ACK đúng và Google billing sau ca; D171 Owner PASS mới mở workstream tiếp theo theo chính sách serial; D170 vẫn paused khi chưa được Owner ra lệnh tiếp tục.
-
-## 7. Không bị tác động nếu theo hướng B
-
-Báo hàng PDA→Worker/InventoryCore, SQLite, Web/HR, SKU FULL/DELTA, Apps Script, Gmail OTP và Google Drive log không đổi business contract. Chúng vẫn cần regression tương thích/chia quota, không được suy ra là tách biệt hoàn toàn khỏi Android/Agent login hoặc session. Không triển khai Stable hoặc mở Firebase/RTDB business Rules.
-
-Sources: `docs/OWNER_DECISIONS.md` D169-E044/E046/E052/E056/E057 & D171-E018; `docs/specs/AUTH_RBAC.md`, `docs/specs/ACCEPTANCE_TESTING.md`, `docs/D171_FIELD_LOG_ANALYSIS_2026-10-19.md`, `ops/change-continuity/D171.json` E019; `relay-agent/FirestoreAgentLeaderCoordinator.cs`, `FirestoreConfirmationTransport.cs`, `FirestoreD157Realtime.cs`, `FirestoreVpsReclaim.cs`, `D168NetworkRoute.cs`, `RtdbHaLiveness.cs`, `D160ConfirmPipeline.cs`, Android `RelayPocClient.kt`. CI/field release status from `ops/project-state.json`. Pricing cross-check: https://firebase.google.com/docs/firestore/pricing .
+## 5. Bản ghi kiểm chứng
+- D171 E018 Owner decision: `docs/OWNER_DECISIONS.md`, `docs/specs/REALTIME_NOTIFICATIONS.md`, `ops/change-continuity/D171.json`.
+- E019: mô phỏng 1.200 jobs, 6 Agent, chưa đo billing thật.
+- E020: bản phân tích đã **vội chọn** Firestore implementation; **E021 sửa lại phân loại, không đánh dấu Owner duyệt code**.
+- Đầu vào workload/Office approval có trong trao đổi Owner 19/10, nhưng chưa có decision/spec chính thức trên `main`; chỉ hợp nhất canonical sau Owner/scope review. Không đưa thông tin từ repo khác hoặc secret vào nguồn public.
