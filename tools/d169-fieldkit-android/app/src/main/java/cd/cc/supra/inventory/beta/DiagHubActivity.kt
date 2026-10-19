@@ -41,6 +41,7 @@ class DiagHubActivity : Activity() {
   @Volatile private var started=false
   private val dispatchedPhases=Collections.synchronizedSet(HashSet<Int>())
   private val acked=Collections.synchronizedSet(HashSet<String>())
+  private val agentAcknowledgers=java.util.concurrent.ConcurrentHashMap<String,MutableSet<String>>()
   private val sentOwn=Collections.synchronizedSet(HashSet<String>())
   private val sentPayload=java.util.concurrent.ConcurrentHashMap<String,String>()
   private val sentStartMs=java.util.concurrent.ConcurrentHashMap<String,Long>()
@@ -140,10 +141,14 @@ class DiagHubActivity : Activity() {
           sent.add(request)
           journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" phase="+newPhase)
         }
-        for(i in 0 until 30){if(sent.all{acked.contains(it)})break;Thread.sleep(1000)}
-        val passed=sent.count{acked.contains(it)}
-        journal.event("PDA_PHASE","COMPLETE","phase="+newPhase+" ack="+passed+"/"+sent.size)
-        notice("Vòng "+(newPhase+1)+"/"+phases.size+" · EXE ACK "+passed+"/"+sent.size)
+        for(i in 0 until 45){
+          if(sent.all{(agentAcknowledgers[it]?.size?:0)==2})break
+          Thread.sleep(1000)
+        }
+        val passed=sent.count{(agentAcknowledgers[it]?.size?:0)==2}
+        journal.event("PDA_PHASE",if(passed==sent.size)"PASS" else "TIMEOUT",
+          "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size)
+        notice("Vòng "+(newPhase+1)+"/"+phases.size+" · đủ 2 Agent ACK: "+passed+"/"+sent.size)
         if(newPhase==phases.lastIndex)upload()
       }catch(e:Exception){journal.event("PDA_PHASE","FAIL",e.javaClass.simpleName);notice("Vòng "+newPhase+" lỗi: "+e.javaClass.simpleName)}
     }
@@ -291,7 +296,12 @@ class DiagHubActivity : Activity() {
           journal.event("ACK_PAYLOAD","MISMATCH","request="+request)
           continue
         }
-        acked.add(request)
+        // A server commit or one Agent ACK is insufficient: count two distinct authenticated Agent UIDs.
+        val role=d.getString("receiver_role").orEmpty()
+        val receiverUid=d.getString("receiver_uid").orEmpty()
+        if(role !in listOf("ADMIN","PICKPACK_ADMIN") || receiverUid.isBlank() || d.getString("result")!="ACK")continue
+        agentAcknowledgers.computeIfAbsent(request){java.util.concurrent.ConcurrentHashMap.newKeySet<String>()}.add(receiverUid)
+        if(agentAcknowledgers[request]?.size==2)acked.add(request)
         val rttMs=SystemClock.elapsedRealtime()-(sentStartMs[request]?:SystemClock.elapsedRealtime())
         journal.event("ACK_FROM_AGENT",d.getString("result").orEmpty(),"request="+request+" receiver_node="+d.getString("receiver_node").orEmpty().take(8)+" rtt_ms="+rttMs+" epoch="+epoch)
         notice("EXE đã phản hồi: "+request.take(8)+" · "+d.getString("result"))
