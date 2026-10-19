@@ -1,3 +1,7 @@
+## 2026-10-19 D171 priority override while D170 is paused
+
+Owner explicitly requests D171 isolated three-device network diagnostic implementation/testing first, keeping D170 unaccepted. D169 stays accepted base; D170 is not closed, and no production/Stable release or D170 OAuth/domain/fleet modification follows. D171 diagnostic binaries and temporary scoped Firestore Rules may be authorized only after matching main Rules, security emulator/CI, exact scoped identity, isolated runtime readback, and separate application builds. No live WMS/operational Picklist PRIMARY/call/chat/kick side effects. No future general waiver of serial Owner PASS.
+
 ## D170-E015 — Quy trình chuyển hostname từ hai URL sang một (19/10/2026)
 
 Phát hành bản mới Android và Agent dùng `inventory.supra.cc.cd` bằng nhánh→PR→CI→exact-SHA→main guarded, nhưng **chưa xóa hostname cũ** khi các bản cũ vẫn khóa API/manifest vào `inventory-beta.supra.cc.cd`. Google OAuth phải chuyển redirect URI trên Google Cloud và Worker variable bảo vệ trước khi tắt old host, giữ state cookie same-site, không lưu credential trong public GitHub. Khi có chứng cứ field migration và bản sao lưu/readback SQLite, mới thực hiện quy trình tháo chính xác binding host cũ với quyền scoped, không xóa Worker/DO/DNS zone. Tham chiếu decision D170-E015 và kế hoạch Phase3.
