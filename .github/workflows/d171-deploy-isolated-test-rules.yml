@@ -68,18 +68,24 @@ jobs:
           firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
   deploy-scoped-beta-only:
     needs: rules-security-gate
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'D171_OWNER_APPROVED_TEMP_TEST_RULES'))
+    if: (github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'D171_OWNER_APPROVED_TEMP_TEST_RULES'))) || (github.event_name == 'pull_request' && github.head_ref == 'deploy/d171-provider-readback-20261019' && github.event.pull_request.head.repo.full_name == 'tamnv2/supra-inventory')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 20
     env:
       FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
-      D171_OWNER_CONFIRMATION: ${{ github.event_name == 'push' && 'D171_OWNER_APPROVED_TEMP_TEST_RULES' || inputs.confirmation }}
+      D171_OWNER_CONFIRMATION: ${{ (github.event_name == 'push' || (github.event_name == 'pull_request' && github.head_ref == 'deploy/d171-provider-readback-20261019' && github.event.pull_request.head.repo.full_name == 'tamnv2/supra-inventory')) && 'D171_OWNER_APPROVED_TEMP_TEST_RULES' || inputs.confirmation }}
     steps:
       - uses: actions/checkout@v4
       - name: Require existing Beta project and credentials
         run: |
           test "$D171_OWNER_CONFIRMATION" = "D171_OWNER_APPROVED_TEMP_TEST_RULES" || { echo 'D171 owner confirmation not satisfied'; exit 1; }
+          # PR-only dispatch is an explicit one-time Owner release receipt path.
+          # Never enable a generic pull_request deploy, forks or arbitrary branches.
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            test "$GITHUB_HEAD_REF" = "deploy/d171-provider-readback-20261019"
+            test "$GITHUB_REPOSITORY" = "tamnv2/supra-inventory"
+          fi
           test -n "$FIREBASE_RULES_SA_JSON_BETA"
           python3 - <<'PY'
           import json
