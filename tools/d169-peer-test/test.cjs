@@ -9,6 +9,7 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
   const env=await initializeTestEnvironment({projectId:"demo-d169-isolated",firestore:{rules}});
   const sid="a1".repeat(16),adminId="test_admin",pickerId="test_picker",strangerId="test_stranger";
   const admin=env.authenticatedContext(adminId,{app_role:"ADMIN",app_base_role:"ADMIN",app_user_id:"admin_x",app_session_channel:"AGENT"}).firestore();
+  const agentB=env.authenticatedContext("test_agent_b",{app_role:"ADMIN",app_base_role:"ADMIN",app_user_id:"agent_b",app_session_channel:"AGENT"}).firestore();
   const picker=env.authenticatedContext(pickerId,{app_role:"PICKER",app_user_id:"picker_x",app_session_generation:1,app_session_channel:"ANDROID"}).firestore();
   const stranger=env.authenticatedContext(strangerId,{app_role:"PICKER",app_user_id:"stranger_x",app_session_generation:1}).firestore();
   const secondPicker=env.authenticatedContext("second_picker",{app_role:"PICKER",app_user_id:"picker_y",app_session_generation:1}).firestore();
@@ -21,6 +22,24 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
     await assertSucceeds(setDoc(doc(admin,`${root}/members/${adminId}`),{uid:adminId,role:"ADMIN",joined_at:serverTimestamp()}));
     await assertSucceeds(updateDoc(doc(picker,root),{paired_picker_uid:pickerId}));
     await assertSucceeds(setDoc(doc(picker,`${root}/members/${pickerId}`),{uid:pickerId,role:"PICKER",joined_at:serverTimestamp()}));
+    // Three-party phase readiness: each authenticated member may update only own ephemeral fields.
+    await assertSucceeds(setDoc(doc(agentB,`${root}/members/test_agent_b`),{uid:"test_agent_b",role:"ADMIN",joined_at:serverTimestamp()}));
+    await assertSucceeds(updateDoc(doc(admin,`${root}/members/${adminId}`),
+      {ready_phase:0,ready_network:"NORMAL",ready_at:serverTimestamp()}));
+    await assertSucceeds(updateDoc(doc(agentB,`${root}/members/test_agent_b`),
+      {ready_phase:0,ready_network:"NORMAL",ready_at:serverTimestamp()}));
+    await assertSucceeds(updateDoc(doc(picker,`${root}/members/${pickerId}`),
+      {ready_phase:0,ready_network:"NORMAL",ready_at:serverTimestamp()}));
+    await assertSucceeds(updateDoc(doc(admin,`${root}/members/${adminId}`),
+      {ready_phase:1,ready_network:"OFFICE",ready_at:serverTimestamp()}));
+    await assertFails(updateDoc(doc(picker,`${root}/members/${pickerId}`),
+      {ready_phase:1,ready_network:"OFFICE",ready_at:serverTimestamp()}));
+    await assertFails(updateDoc(doc(admin,`${root}/members/test_agent_b`),
+      {ready_phase:1,ready_network:"NORMAL",ready_at:serverTimestamp()}));
+    await assertFails(updateDoc(doc(admin,`${root}/members/${adminId}`),
+      {role:"PICKER",ready_phase:1,ready_at:serverTimestamp()}));
+    await assertFails(updateDoc(doc(admin,`${root}/members/${adminId}`),
+      {ready_phase:5,ready_network:"OFFICE",ready_at:serverTimestamp()}));
     await assertFails(getDoc(doc(secondPicker,root)));
     await assertFails(setDoc(doc(secondPicker,`${root}/members/second_picker`),{uid:"second_picker",role:"PICKER",joined_at:serverTimestamp()}));
     await assertFails(getDocs(collection(unauth,`${root}/messages`)));
@@ -79,6 +98,6 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,serverTimestamp,Timestamp}
       ...msg,request_id:"bc".repeat(16),expires_at:Timestamp.fromDate(new Date(Date.now()+60*1000))
     }));
     await assertFails(setDoc(doc(unauth,`${root}/messages/${"dd".repeat(16)}`),{...msg}));
-    console.log("D169_CANARY_RULES_EMULATOR_PASS: scoped authenticated peers + immutable messages + anti-spoof receipts + production isolation");
+    console.log("D171_THREE_PARTY_RULES_EMULATOR_PASS: scoped authenticated peers + immutable messages + anti-spoof receipts + production isolation");
   }finally{await env.cleanup();}
 })().catch(e=>{console.error("D169_RULES_TEST_FAILED",e);process.exit(1)});
