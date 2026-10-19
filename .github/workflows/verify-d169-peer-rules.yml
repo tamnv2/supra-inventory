@@ -1,4 +1,4 @@
-name: D169 Canary Firestore Rules Emulator
+name: D171 Isolated Firestore Security Emulator
 on:
   pull_request:
     paths:
