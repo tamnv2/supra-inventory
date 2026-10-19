@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "deploy/d171-provider-readback-20261019",
-  "pr": 640,
+  "working_branch": "state/d171-provider-field-ready-receipt-20261019",
+  "pr": 641,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E004",
+    "id": "D171-E005",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -92,6 +92,24 @@
       ],
       "next_action": "Trigger restricted PR CI and verify exact provider Rules release/readback; otherwise halt and explain blocker. Only then instruct Owner to install latest separate EXE/APK and field test 2 Agent + 1 PDA.",
       "evidence": "PR638 merge e77eb64f, PR639 merge 3ca69d3c, D171 owner approval and scoped resources; existing D169 authorized PR Beta test Rules pattern."
+    },
+    {
+      "id": "D171-E005",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "topic": "Live scoped Firebase Beta Rules release/readback PASS; independent Windows/Android kits ready for Owner physical three-device test",
+      "status": "D171_PROVIDER_RULES_LIVE_READBACK_AND_EXE_APK_CI_PASS__OWNER_3_DEVICE_FIELD_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "D171 isolated Firestore Beta Rules deployment was executed by same-repo Owner-authorized PR640 limited workflow. GitHub Actions run 39186430111, job 117849896609, succeeded and logged D171_TEMP_BETA_FIRESTORE_RULES_READBACK_PASS at 2026-10-19T01:41:35Z (08:41:35 VN); project supra-inventory-beta, default database, only existing d169_diag_sessions canary match added without shared Rules changes.",
+        "PR640 has 13/13 CI success and merged main at 1717bc88809def5d6ea742922a5fd05e0be50d4d, with no production WMS/PRIMARY, real Picklist, Agent/PDA OTA or Stable mutation.",
+        "Two independent test kits compiled and published as downloadable GitHub Actions artifacts: Windows EXE from PR638 latest approved source at run 39184972730 artifact SUPRA-D171-TEST-AGENT-WINDOWS ID 12157926381 (two copies, one per Agent PC); Android test APK post-D171 PDA NORMAL UI lock at run 39185809513 artifact SUPRA-D171-TEST-PICKER-APK ID 12158051291. User installer access via Actions artifact ZIP.",
+        "Role-aware Windows software binds authenticated Admin A and other Owner Agent B to their specified distinct runtime account identities; PDA logs in as the designated Picker test account and is locked NORMAL. Global agent phase readiness requires two Agents and one PDA and dual-role ACK matching; PDA origin requests require ACK from two independent authenticated Agents.",
+        "Actual cross-Office/normal network transport, device installation/login, human Wi-Fi changes, results/RTT, and any error due to specific Office network restrictions are not proven by CI. This is READY_FOR_OWNER_FIELD_TEST only, NOT Owner FIELD PASS or D171 closure.",
+        "D170 remains paused without Owner PASS; D169 remains last accepted base. Test data retained until Owner confirms archived logs; no automatic cleanup now."
+      ],
+      "next_action": "Owner installs EXE on both PCs and separate test APK on PDA, authenticates intended two Agent accounts and one Picker, presses Start on all three, follows only Agent network prompts. Collect logs and classify real FIELD PASS/FAIL. Keep D171 open until Owner acknowledges.",
+      "evidence": "PR640 run 39186430111 job 117849896609 live log 'D171_TEMP_BETA_FIRESTORE_RULES_READBACK_PASS'; PR640 merge 1717bc8; prior Windows build 39184972730, Android test build 39185809513."
     }
   ],
   "resume": {
@@ -102,17 +120,20 @@
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
       "D171 source candidate: 5-round PDA NORMAL, Agent B/A ready barrier, auto PDA ACK, full current-main Rules parity and role-bound test match; CI binary artifacts subject to latest SHA.",
-      "PR638 merged main with source CI PASS and independent Windows/Android test artifacts; no live Firebase Rules provider readback obtained yet."
+      "PR638 merged main with source CI PASS and independent Windows/Android test artifacts; no live Firebase Rules provider readback obtained yet.",
+      "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built."
     ],
     "in_progress": [
-      "One-time Owner-authorized PR-only scoped Beta Rules actual release/readback with immutable base parity, CI/emulator/security and no Stable/Production changes."
+      "Physical Owner test pending: two Agent Windows machines + one Android PDA, real Office/normal switches and peer message/ACK verification."
     ],
-    "pending_approval": [],
+    "pending_approval": [
+      "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS."
+    ],
     "blocked": [
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Read PR640 provider job logs and Rules readback; only provider PASS permits physical field install steps."
+      "Send correct Windows EXE/PDA APK GitHub Actions artifact links and concise user accounts/network phase instructions; await Owner field evidence and classify issues without closing D171."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
