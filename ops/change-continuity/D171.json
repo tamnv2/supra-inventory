@@ -7,7 +7,7 @@
   "pr": 654,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E024",
+    "id": "D171-E025",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -547,6 +547,36 @@
       ],
       "next_action": "Present concise capability matrix, spotlight privileged login and Worker bridge as remaining design requirements; retain prior proposal approval as DESIGN ONLY; no deployment or FIELD PASS.",
       "evidence": "Current v139 relay-agent/D165PrivilegedAuth.cs, Program.cs PairLogin, FirestoreAgentLeaderCoordinator.cs, FirestorePickerContact.cs, AgentLogUploadBridge.cs and D171 network evidence."
+    },
+    {
+      "id": "D171-E025",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner confirms Office WMS availability and agrees Google Office→Worker forwarding; requests feasibility of existing privileged OTP + emergency behavior and Worker command bridge",
+      "status": "OWNER_DESIGN_APPROVAL__TECHNICAL_REVIEW_ONLY__NO_PRODUCTION_CODE_DEPLOY",
+      "facts": [
+        "Owner confirms WMS/Supra operational on Office and authorizes concept of using Google services reachable from Office to activate specific Cloudflare/Worker operations rather than requiring Agent Wi-Fi switch; SKU network exception unchanged.",
+        "Current v139 already uses Worker-first + Apps Script Agent Operations Gateway on transport failures for admin/tamnv2/VPS protected OTP issue, OTP login and reauth. Gateway Code.gs allowlists the three operations, sends to Worker, and returns Worker-authenticated result; Worker still owns user identity/OTP/RBAC. Adjust route selection to Office-Gateway-first only after accepted design/source and test, preserving HTTP authentication denial as terminal and never caching OTP.",
+        "Owner request to retain old emergency behavior must NOT grant VPS emergency: D169 accepted VPS only per-user one-time four-digit Gmail OTP; admin/tamnv2 maintain current eight-plus-digit Vietnam time-derived emergency proof if Owner explicitly retains it. Existing time-based proof is predictable and creates account takeover exposure; safer future alternative is single-use recovery proof.",
+        "Office Firestore HTTPS via SYSTEM_PROXY was verified in five D171 probe rounds, but Apps Script /exec plus ContentService script.googleusercontent.com physical Office reachability, OTP email receipt and full login/reauth are not field-proven. Existing provider Gateway deployment & source handler PASS do not close Office end-to-end proof. Owner cannot run additional field tests; mock/provider non-secret probes are allowed within strict scope.",
+        "Current Worker-only Picker kick calls /api/agent/picker-session/revoke directly after Firebase session, using InventoryCore authoritative revoke and request_id; call/chat already write Firestore direct; Agent overtime updates current Firestore schedule, not necessarily Worker. Existing Gateway Code.gs does not have a Picker kick action: writing to Firestore alone cannot revoke session or authorize Worker mutation.",
+        "Recommended fallback for rare Worker-only commands: scoped authenticated Firestore command with uid/role proof verified server-side, Google Cloud Function on create → Worker using trusted service-to-service attestation and Worker revalidated actor/RBAC, idempotent request_id, durable DONE/ERROR result → Agent Firestore; never store Firebase user ID token/OTP/secret in shared Firestore document, and never show kick success until authoritative Worker outcome. Cloud Functions event delivery at-least-once, ordering not guaranteed; no new resource or Worker trust path approved.",
+        "Google Apps Script daily URLFetchApp personal quota currently published 20,000/day (Workspace 100,000/day); shared UrlFetch quota was exhausted in project on 13 Oct, so do not route all 2,000 Picklist or 1,000 contact commands via Apps Script. Cloud Function calls at 200 kicks/day approximately 6,000/month before retries, compared to Cloud Functions overall billing-account 2M free invocations/month, but storage/build, egress and Firestore/Worker usage remain separately billable.",
+        "No new live resource or scope update authorized. Existing D171 diagnostic-only boundary, D170 paused and Stable owner-gated; do not claim Office end-to-end FIELD PASS without evidence."
+      ],
+      "alternatives": [
+        "Reuse existing approved Apps Script Gateway for privileged authentication (pre-token requests cannot require an authenticated Firestore command); Office-specific direct selection removes unnecessary Worker timeout.",
+        "Use minimal Google Apps Script Gateway extension for rare Worker-only commands if quota/reliability measured, but previous shared UrlFetch exhaustion argues for Cloud Function bridge when new scoped resource is separately approved.",
+        "Do not put Worker-only kick, account mutation or secret challenge directly behind client-writable Firestore without independent backend validation and Worker authority."
+      ],
+      "open_questions": [
+        "Full physical Office access to Apps Script /exec and script.googleusercontent.com not yet evidenced; fail closed if blocked.",
+        "Cloud Function new resource / trusted Worker broker endpoint requires explicit Owner code/resource/deploy approval and account-level quota budget.",
+        "Whether Owner wishes to continue insecure admin/tamnv2 time-derived emergency recovery or replace later with one-use rescue remains a security decision; current code unchanged."
+      ],
+      "next_action": "Present analysis and implementation phases with clear evidence gaps, no code or deployment; preserve D171 active/ D170 paused and D169 accepted.",
+      "evidence": "repo D165PrivilegedAuth.cs, ops/apps-script/agent-log-gateway/Code.gs, D160Resilience.cs, D119AgentFeatures.cs, docs/specs/AUTH_RBAC.md, D171 five-round Office probes, Firebase Functions and Google Apps Script quota official docs."
     }
   ],
   "resume": {
