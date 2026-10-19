@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-identity-session-binding-20261019",
-  "pr": 643,
+  "working_branch": "state/d171-e008-windows-hotfix-release-receipt-20261019",
+  "pr": 644,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E007",
+    "id": "D171-E008",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -145,6 +145,24 @@
       ],
       "next_action": "Wait for PR643 Windows selftest/build, authority/continuity CI PASS at final head; publish new GitHub Actions Windows ZIP and provide installation/retest instructions. Record physical PASS only from the Owner.",
       "evidence": "Owner 2026-10-19 repair/release command; source tools/d169-peer-windows/Program.cs and PeerForm.cs; PR643 branch fix/d171-identity-session-binding-20261019."
+    },
+    {
+      "id": "D171-E008",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "topic": "Standalone D171 Windows Agent identity hotfix source/build/release receipt, Owner physical validation pending",
+      "status": "D171_E008_WINDOWS_EXE_IDENTITY_CI_AND_DOWNLOAD_ARTIFACT_PASS__OWNER_FIELD_FAIL_NOT_YET_RETESTED",
+      "owner_approval": true,
+      "facts": [
+        "PR643 identity hotfix merged into main at 852779ee4b0d83273a12ee0925317effdd38fc0b from exact approved source head a4f53068588d103899f766c1bddee397b6b17f57.",
+        "Exact source head completed 13/13 PR workflows successfully, including Project State Guard, Repo Authority Guard, Windows self-contained EXE build, and standalone offline synthetic identity selftest.",
+        "New download artifact SUPRA-D171-TEST-AGENT-WINDOWS from GitHub Actions run 39191139468 ID 12160425715 was uploaded successfully at 2026-10-19T02:43:04Z, 14-day retention; this is the replacement EXE for two separate Windows Agent test PCs. Existing standalone PDA APK remains unchanged.",
+        "Patch binds approved Agent login aliases to the Worker-resolved user_id (may be opaque), employee_code and Firebase session UID/claims. It rejects mismatched UID/role, token refresh mismatch, forgery and stale identity; the standalone test kit does not change production auth, operational clients, WMS, Picklist, Firebase Rules, Stable or D170.",
+        "Previous physical screenshot failure belongs to old EXE; latest replacement has not yet been physically tried. Do not declare D171 FIELD PASS/Owner PASS; session evidence and cleanup remain Owner-gated.",
+        "GitHub Actions archive ZIP digest sha256:7ef713f6e4f2808fae80bba475c4159032998fd91acbe6be834afc94e2bd14ce; source SHA is not the archive SHA."
+      ],
+      "next_action": "Owner downloads new Actions ZIP for run 39191139468, extracts and replaces EXE on both Windows Agent test PCs, uses the prior standalone PDA APK, signs into three distinct designated accounts and runs the five-stage test. If any error occurs, provide sanitized first step/code or JSONL. Only Owner's physical test can close D171.",
+      "evidence": "PR643 merged 852779ee; commit a4f53068588d; CI run 39191139468 Windows PASS artifact 12160425715; 13/13 head workflows PASS."
     }
   ],
   "resume": {
@@ -156,10 +174,11 @@
       "D171 plan and journal initialized on PR638 branch.",
       "D171 source candidate: 5-round PDA NORMAL, Agent B/A ready barrier, auto PDA ACK, full current-main Rules parity and role-bound test match; CI binary artifacts subject to latest SHA.",
       "PR638 merged main with source CI PASS and independent Windows/Android test artifacts; no live Firebase Rules provider readback obtained yet.",
-      "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built."
+      "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built.",
+      "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715."
     ],
     "in_progress": [
-      "D171 E007 identity binding fix is on PR643; Windows EXE build/selftest and repo checks pending."
+      "Windows D171 E007 patched source/CI artifact released, waiting Owner retest 2 Agent + 1 PDA; prior physical FAIL not superseded by CI."
     ],
     "pending_approval": [
       "D171 Owner FIELD PASS and session archive/cleanup after physical tests; D170 remains paused no Owner PASS.",
@@ -170,7 +189,7 @@
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Verify PR643 CI, then publish replacement standalone Windows EXE artifact only and re-test with the same two Agent accounts + existing PDA test APK."
+      "Owner installs replacement E007 Windows EXE on both test Agent PCs and re-tests alongside existing D171 PDA APK; evaluate first sanitized failure if any."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
