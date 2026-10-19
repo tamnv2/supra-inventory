@@ -35,12 +35,13 @@ internal sealed class PeerForm : Form
     private readonly ConcurrentDictionary<string,int> _receiptCounts=new();
     private int _phase=0;
     private string _agentLabel="?";
+    private readonly string _operatorLogin;
     private readonly ConcurrentDictionary<string,int> _pdaAcks=new();
     private readonly ConcurrentDictionary<string,int> _agentAcks=new();
     private readonly ConcurrentDictionary<string,string> _roles=new();
     private readonly Button _testAll=new(){Text="BẮT ĐẦU TEST TỰ ĐỘNG"};
     private readonly Button _confirmSwitch=new(){Text="ĐÃ CHUYỂN MẠNG · TEST TIẾP"};
-    private static readonly string[] Phases={"PDA NORMAL / AGENT NORMAL", "PDA OFFICE / AGENT OFFICE", "PDA NORMAL / AGENT OFFICE", "PDA OFFICE / AGENT NORMAL", "AGENT A NORMAL / B NORMAL", "AGENT A OFFICE / B OFFICE", "AGENT A NORMAL / B OFFICE", "AGENT A OFFICE / B NORMAL"};
+    private static readonly string[] Phases={"PDA NORMAL / A NORMAL / B NORMAL","PDA NORMAL / A OFFICE / B NORMAL","PDA NORMAL / A NORMAL / B OFFICE","PDA NORMAL / A OFFICE / B OFFICE","PDA NORMAL / A NORMAL / B NORMAL (RESTORE)"};
     private readonly string _logPath;
     private readonly string _probeLogPath;
     private readonly TextBox _session = new() { Width = 320 };
@@ -65,8 +66,9 @@ internal sealed class PeerForm : Form
     private DateTimeOffset _suspendLeaderUntil=DateTimeOffset.MinValue;
     private bool _busy;
 
-    internal PeerForm(AgentTokens token)
+    internal PeerForm(AgentTokens token, string operatorLogin)
     {
+        _operatorLogin=operatorLogin;
         _token=token;
         _uid=GetJwtClaim(token.IdToken,"sub");
         if(string.IsNullOrWhiteSpace(_uid)) throw new InvalidOperationException("Missing Firebase uid");
@@ -76,9 +78,9 @@ internal sealed class PeerForm : Form
         _probeLogPath=Path.Combine(desktop,"SUPRA_D169_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
-        Text="SUPRA D169 — Tự động ghép Agent ⇄ PDA Test"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
+        Text="SUPRA D171 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
         Font=new Font("Segoe UI",10);
-        var title=new Label{Text="D169 — KÊNH RIÊNG: EXE Test A/B ⇄ PDA Test",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
+        var title=new Label{Text="D171 — TEST KẾT NỐI 2 AGENT ⇄ PDA",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
         Controls.Add(title);
         var sub=new Label{Text="Chỉ mô phỏng, KHÔNG gửi Picklist/WMS/call/kick thật. Truyền qua Firestore Beta.",Left=16,Top=45,Width=920,Height=22}; Controls.Add(sub);
         var lab=new Label{Text="Mã phiên:",Left=16,Top=85,Width=92};Controls.Add(lab);
@@ -124,26 +126,24 @@ internal sealed class PeerForm : Form
         var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D169-AUTO-PAIR-V7|"+date));
         return Convert.ToHexString(bytes)[..32].ToLowerInvariant();
     }
+    private string ExpectedLocalNetwork(int phase) =>
+        ((_agentLabel=="A" && (phase==1||phase==3))||(_agentLabel=="B"&&(phase==2||phase==3)))?"OFFICE":"NORMAL";
     private void ShowNetworkPhase()
     {
         var message=_phase<Phases.Length?Phases[_phase]:"ĐÃ HOÀN TẤT CÁC KỊCH BẢN";
-        var recommended=_phase switch {
-          1=> "OFFICE", 2=>"OFFICE", 3=>"NORMAL", 4=>"NORMAL", 5=>"OFFICE",
-          6=>_agentLabel=="A"?"NORMAL":"OFFICE",
-          7=>_agentLabel=="A"?"OFFICE":"NORMAL",
-          _=>"NORMAL"};
-        _mode.SelectedItem=recommended;
+        var recommended=ExpectedLocalNetwork(_phase);
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
-        MessageBox.Show("Test Agent "+_agentLabel+": Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nWi-Fi Agent máy này cần: "+recommended+".\nĐổi mạng rồi bấm ĐÃ CHUYỂN MẠNG (trừ lượt đầu, bấm BẮT ĐẦU TEST).","SUPRA D169 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
+        MessageBox.Show("Tài khoản "+_operatorLogin+" · Test Agent "+_agentLabel+": Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nWi-Fi Agent máy này cần: "+recommended+".\nĐổi mạng rồi bấm ĐÃ CHUYỂN MẠNG (trừ lượt đầu, bấm BẮT ĐẦU TEST).","SUPRA D169 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
     }
     private async Task StartAutomaticTests()
     {
         _testAll.Enabled=false;
         await EnsureAutomaticSession();
         StartPoll();
-        await WaitForPicker();
+        await PublishReady();
+        await WaitForThreeReady();
         await TestPhase();
         _phase=1;
         ShowNetworkPhase();
@@ -153,7 +153,9 @@ internal sealed class PeerForm : Form
         if(_phase>=Phases.Length)return;
         var phase=Phases[_phase];
         Log("NETWORK_SWITCH","OPERATOR_CONFIRMED",new{phase,epoch=Interlocked.Increment(ref _epoch)});
-        _mode.SelectedItem=phase.Contains("AGENT OFFICE")||phase.Contains("AGENT A OFFICE")?"OFFICE":"NORMAL";
+        _mode.SelectedItem=ExpectedLocalNetwork(_phase);
+        await PublishReady();
+        await WaitForThreeReady();
         await TestPhase();
         _phase++;
         ShowNetworkPhase();
@@ -167,6 +169,34 @@ internal sealed class PeerForm : Form
         }else{_agentLabel="B";}
         await JoinSession();
         Log("PAIRING","JOINED",new{node=_nodeId[..8],phase=_phase+1});
+    }
+    private async Task PublishReady()
+    {
+        var name="projects/supra-inventory-beta/databases/(default)/documents/d169_diag_sessions/"+Sid()+"/members/"+_uid;
+        var fields=new Dictionary<string,object>{{"ready_phase",I(_phase)},{"ready_network",S(ExpectedLocalNetwork(_phase))}};
+        var req=new{writes=new[]{new{update=new{name,fields},updateMask=new{fieldPaths=new[]{"ready_phase","ready_network"}},updateTransforms=new[]{Transform("ready_at")}}}};
+        using var result=await Http("POST",CommitUrl,req);
+        Log("NETWORK_READY","OPERATOR_CONFIRMED_NOT_SSID_PROOF",new{phase=_phase,required=ExpectedLocalNetwork(_phase),agent=_agentLabel});
+    }
+    private async Task WaitForThreeReady()
+    {
+        for(var attempt=0;attempt<45;attempt++){
+            using var d=await Http("GET",Url("/members")+"?pageSize=40",null,true);
+            if(d!=null&&d.RootElement.TryGetProperty("documents",out var docs)){
+                var agentCount=0;var pickerCount=0;
+                foreach(var item in docs.EnumerateArray()){
+                    var role=GetString(item,"role");
+                    if(role=="PICKER")pickerCount++;
+                    if(role=="ADMIN"||role=="PICKPACK_ADMIN"){
+                        var stamp=GetString(item,"ready_at");
+                        if(GetString(item,"ready_phase")==_phase.ToString()&&DateTimeOffset.TryParse(stamp,out var when)&&when>DateTimeOffset.UtcNow.AddMinutes(-3))agentCount++;
+                    }
+                }
+                if(agentCount==2&&pickerCount==1){Log("THREE_PARTY_READY","PASS",new{phase=_phase,agents=agentCount,pda=pickerCount});return;}
+            }
+            await Task.Delay(2000);
+        }
+        throw new InvalidOperationException("THREE_PARTY_READY_TIMEOUT: cần đủ 2 Agent và 1 PDA đang TEST cùng phiên, đồng bộ đúng vòng mạng.");
     }
     private async Task WaitForPicker()
     {
@@ -196,15 +226,15 @@ internal sealed class PeerForm : Form
           sent.Add(await SendTest(type));
         }
         for(var t=0;t<30;t++){
-          if(sent.All(id=>(_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n)&&n>=1))break;
+          if(sent.All(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0))break;
           await Task.Delay(1000);
         }
         foreach(var id in sent){
-          (_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n);
-          Log("TEST_TERMINAL",n>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,matching_role_receipts=n,required_role=_phase<4?"PICKER":"AGENT",phase});
+          _pdaAcks.TryGetValue(id,out var p);_agentAcks.TryGetValue(id,out var a);
+          Log("TEST_TERMINAL",p>0&&a>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,pda_receipts=p,peer_agent_receipts=a,required_role="PICKER_AND_AGENT",phase});
         }
-        Log("PHASE","DONE",new{phase,passed=sent.Count(id=>(_phase<4?_pdaAcks:_agentAcks).TryGetValue(id,out var n)&&n>0),total=sent.Count});
-        if(_phase>=4)await VerifyAutomaticLeaderFailover();
+        Log("PHASE","DONE",new{phase,passed=sent.Count(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0),total=sent.Count});
+        if(_phase>0&&_phase<Phases.Length-1)await VerifyAutomaticLeaderFailover();
     }
     private async Task RunReadOnlyNetworkProbes(string phase)
     {
