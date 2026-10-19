@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e011-field-log-triage-20261019",
+  "working_branch": "docs/d171-e014-vps-incident-readonly-20261019",
   "pr": 647,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E013",
+    "id": "D171-E014",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -255,6 +255,32 @@
       ],
       "next_action": "Finalize authority/continuity state, merge only after final gated CI, Owner downloads matching independent EXE/APK, signs in on three devices and runs 5 network rounds with exact prompts. Collect per-route/ACK and billed usage evidence before D171 FIELD/Owner PASS.",
       "evidence": "PR647 source head 0991c543; CI runs Windows 39199348444 Android 39199348371 emulator 39199348352 authority 39199348339 continuity 39199348395; artifacts 12163367035 and 12163406826."
+    },
+    {
+      "id": "D171-E014",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Read-only production VPS Agent v139 incident: WMS login marker then PRIMARY handoff, not total PDA transport failure",
+      "status": "READONLY_VPS_FIELD_TRIAGE__NO_PRODUCTION_CHANGE_OR_RELEASE_AUTHORIZED",
+      "facts": [
+        "Owner reports VPS stopped receiving PDA confirmations while an older Agent installation worked; exact older build and simultaneous peer-machine log are not yet verified.",
+        "Existing registered Beta Drive Logs 2026-10-19 VPS v139 05:49–11:39 field export has 280 PDA_REQUEST, 280 AGENT_RESPONSE and 280 FIRESTORE ACK PASS prior to 11:37:37; 242 responses are CONFIRMED. This is within one exported session, not fleet/billing-wide proof.",
+        "At 11:37:18 WMS embedded browser logged login_marker=DETECTED (not proof credentials expired), cleared at 11:37:34; v139 relinquished PRIMARY after repeated readiness failure at 11:37:37 with PRIMARY_WMS_NOT_READY while another registered Agent was selected. WMS confirm route recovered at 11:37:57 but VPS was NEXT_A, not PRIMARY; 11:38–11:40 repeated RTDB_PRIMARY_CHANGED deferral, so no subsequent PDA_REQUEST/ACK while standby.",
+        "Agent v139 05:49 startup recovered authenticated Firebase session; same device processed requests successfully for hours. 11:39–11:40 re-login succeeded, with FIRESTORE HA still NEXT_A and no confirmed return to PRIMARY.",
+        "Source relay-agent/FirestoreAgentLeaderCoordinator.cs uses two WMS-unready samples >=15 sec before relinquish (if standby exists), PRIMARY-only business poll, and generation/RTDB liveness proof before failover. Source diff between release tags v138..v139 does not alter FirestoreAgentLeaderCoordinator.cs or SupraConfirmBrowser.cs; changed Agent API/OTA host and version do not by themselves prove a v139-specific HA/WMS defect.",
+        "Isolated D171 field test, not operational VPS, remains sole active change; D170 paused and D169 accepted base. No production Worker/Rules/WMS/PDA/Agent release, PRIMARY write or Stable changes are authorized by this read-only investigation."
+      ],
+      "alternatives": [
+        "No-change operational triage: compare current authoritative Firestore roles/generation, RTDB liveness and companion PRIMARY Agent timestamp, verify WMS login redirect provenance and then test approved handoff/restore with physical equipment.",
+        "Propose a bounded regression fix only after two-Agent/PDA correlated logs reproduce unjustified PRIMARY loss or missed reclaim, and Owner explicitly approves affected-base impact review; do not weaken fencing, CAS, identity checks or force takeover."
+      ],
+      "open_questions": [
+        "Which Agent version/build was installed to restore operations, and at what exact timestamp?",
+        "What does the companion active PRIMARY log show at 11:37–11:40 regarding WMS readiness, Firestore generation and RTDB heartbeat?"
+      ],
+      "next_action": "Present evidence-backed finding to Owner; keep production untouched. Correlate sanitized standby+PRIMARY logs and runtime HA generation if Owner requests further diagnosis. Any code fix needs explicit impact review and separate authorization after serial D171 gate.",
+      "evidence": "Registered existing Beta Drive Logs 2026-10-19 / session_agent_VPS_20261019_113941*.log, manual_agent_VPS_20261019_114337*.log (private, file IDs not published); repo relay-agent/FirestoreAgentLeaderCoordinator.cs and SupraConfirmBrowser.cs; GitHub release-tag compare v138...v139."
     }
   ],
   "resume": {
