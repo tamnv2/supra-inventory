@@ -112,6 +112,7 @@ internal sealed class DiagnosticForm : Form
     private readonly Label _hint = new() { AutoSize = false };
     private string _mode = "NORMAL";
     private AgentTokens? _session;
+    private string _operatorLogin="";
     private readonly AgentLogMirror _mirror = new();
     private bool _running;
 
@@ -139,7 +140,7 @@ internal sealed class DiagnosticForm : Form
         Controls.Add(_peer);
         _peer.Click += (_, _) => {
             if (_session == null) { MessageBox.Show("Nhấn TEST KẾT NỐI để đăng nhập Admin/Pick Pack Admin một lần, sau đó mở TEST EXE ⇄ PDA ⇄ EXE.", "Cần đăng nhập"); return; }
-            using var form = new PeerForm(_session);
+            using var form = new PeerForm(_session,_operatorLogin);
             form.ShowDialog(this);
         };
         Controls.Add(_hint);
@@ -194,6 +195,7 @@ internal sealed class DiagnosticForm : Form
                 if (dialog.ShowDialog(this) == DialogResult.OK)
                 {
                     var identifier = dialog.Login;
+                    _operatorLogin=identifier;
                     var password = dialog.Password;
                     try
                     {
