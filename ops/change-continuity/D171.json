@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e014-vps-incident-readonly-20261019",
-  "pr": 648,
+  "working_branch": "docs/d171-e015-v139-network-optimization-analysis-20261019",
+  "pr": 649,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E014",
+    "id": "D171-E015",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -281,6 +281,38 @@
       ],
       "next_action": "Present evidence-backed finding to Owner; keep production untouched. Correlate sanitized standby+PRIMARY logs and runtime HA generation if Owner requests further diagnosis. Any code fix needs explicit impact review and separate authorization after serial D171 gate.",
       "evidence": "Registered existing Beta Drive Logs 2026-10-19 / session_agent_VPS_20261019_113941*.log, manual_agent_VPS_20261019_114337*.log (private, file IDs not published); repo relay-agent/FirestoreAgentLeaderCoordinator.cs and SupraConfirmBrowser.cs; GitHub release-tag compare v138...v139."
+    },
+    {
+      "id": "D171-E015",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Read-only comparison: released Agent v139 transport/HA source and D171 physical five-round network probes",
+      "status": "ANALYSIS_ONLY__OPTIMIZATION_PROPOSAL_PENDING_OWNER__NO_LIVE_CHANGE",
+      "facts": [
+        "GitHub release relay-agent-v139 (published 2026-10-19 VN) matches main source blobs for Firestore HTTP transport, gRPC pending listener, Agent sync, RTDB HA, leader coordination and D168 network route.",
+        "D171 five-round field probes show Office exact authenticated Firestore REST direct route 0/8 and system proxy route 8/8 HTTP 200 for roles and agent_sync, observed route timings median 2117ms failing direct vs 241ms successful system proxy; lab results do not prove real Agent HTTP default proxy or Firestore gRPC listener on Office.",
+        "D171 test rounds 0-3 completed with 9/9 two-Agent ACK; restore round 4 confirmed Firestore routes but Agent B exited on transient HTTP exception, Agent A used stale peer READY and received PDA 9/9 but peer 0/9, PDA dual-ACK 0/9. Diagnostic-only barrier defect is not v139 production proof.",
+        "v139 already uses Firestore generation CAS, 10-second common lease/15-second expiry, RTDB SSE only for classified INTERNET and disables it on OFFICE/UNKNOWN, gRPC listener plus 10-second active-PDA REST watchdog and 1-3-second degraded fallback, standby not processing business queue. Do not duplicate these components or relax their safety thresholds.",
+        "v139 Program NetworkAddressChanged notifies only Firestore REST transition/proxy refresh (0/750/3000/8000/15000 ms); gRPC listener loops independently retry with 2s backoff doubling up to 60s and have no explicit network-epoch invalidation. Proposed measured optimization is one bounded gRPC reconnect per verified adapter/proxy transition with immediate existing REST fallback, safe listener disposal, and diagnostic route state; not a proven deployed failure root cause.",
+        "Possible additional optimization: cache verified per-service proxy reachability for the current network epoch, avoid repeated known-failed RTDB direct path, preserve exact-doc reads/ACK fencing; any actual billed read/write savings must use Firebase provider usage, not the D171 HTTP counters.",
+        "Independent production VPS v139 incident E014 is WMS readiness demotion and HA role handoff at 11:37 VN, not proven caused by D171 Wi-Fi test; 280 same-session PDA_REQUEST and ACK events prior to demotion. Investigate/verify WMS role recovery separately without auto-takeover or loosening generation CAS.",
+        "Additional v139 source observation: D168NetworkRoute.CurrentNetworkMode() starts netsh.exe wlan show interfaces (WaitForExit up to 5000ms and output Wait up to 3000ms) to classify a profile. Leader coordinator calls it for PRIMARY RTDB fast notification and NEXT_A liveness decisions on recurring cycles; propose network-epoch-bounded RAM caching/invalidations and safe UNKNOWN default instead of repeated process spawning. Real Windows netsh runtime overhead remains unmeasured.",
+        "Further concrete v139 code hotspot: FirestoreConfirmationTransport.ProcessOnce starts the REST watchdog read as Task.Run but always blocks on restTask.GetAwaiter().GetResult() after processing already-drained listener documents; any NEW gRPC payload arriving during a slow REST read waits until completion, with SendSafeRead using up to two 4s attempts. Candidate is one in-flight asynchronously delivered REST watchdog result with wake to the existing single business processing loop (not a second WMS mutation worker); requires request-id fencing, end-to-end ACK latency and provider-read before/after verification."
+      ],
+      "alternatives": [
+        "No source change: retain v139 HA and REST watchdog; collect real Office listener/route and provider usage metrics.",
+        "Preferred scoped proposal for subsequent Owner impact review: network-epoch-aware gRPC lifecycle and Firestore route validation, paired REST fallback, aggregated local telemetry, preserve HA/WMS/ACK safety.",
+        "Reject wholesale protocol rewrite, unconditional 8s Firestore polling on all Agent nodes, unconditional Office RTDB attempts, or increasing 15-second HA lease threshold without evidence.",
+        "Investigate bounded nonblocking REST watchdog handoff into the existing serialized WMS business loop, preserving single-flight fetches and durable request-id dedupe; only if injected slow-REST / healthy-listener replay proves benefit."
+      ],
+      "open_questions": [
+        "Does real v139 Firestore gRPC Listen succeed, fail or remain stale after physical Office transitions, separately for business pending, agent sync, and handoff listeners?",
+        "What are real provider-billed Firestore reads/writes and RTDB operations by role/network before versus after optimization, and end-to-end PDA ACK latency?",
+        "Do companion Agent log and current WMS session state explain the v139 11:37 role handoff and recovery timing?"
+      ],
+      "next_action": "Owner reviews tradeoffs; D171 isolated test gate remains current. No source change or production release until explicit authorization and separate base-impact review; continue fail-closed HA/lease/WMS and stable gates.",
+      "evidence": "Local Owner-shared sanitized D171 5-round files 20261019 120426/120808; GitHub tag relay-agent-v139; relay-agent/{Program.cs,FirestoreHttpTransport.cs,FirestoreD157Realtime.cs,FirestoreAgentSync.cs,FirestoreConfirmationTransport.cs,FirestoreAgentLeaderCoordinator.cs,RtdbHaLiveness.cs,D168NetworkRoute.cs}; main D171-E014."
     }
   ],
   "resume": {
@@ -302,14 +334,16 @@
       "E013 final continuity/technical release documentation; field test on 2 Windows Agent + 1 PDA pending."
     ],
     "pending_approval": [
-      "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused."
+      "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
+      "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
       "Phase2 B-only ACK 9/9, A 0/9; phase barrier/partial-failure propagation missing; D171 physical 5/5 not completed."
     ],
     "next_actions": [
-      "After final PR/CI pass and merge, Owner installs run 39199348444 EXE on both Windows PCs and run 39199348371 APK on PDA; only follow correct Agent network prompts."
+      "After final PR/CI pass and merge, Owner installs run 39199348444 EXE on both Windows PCs and run 39199348371 APK on PDA; only follow correct Agent network prompts.",
+      "Verify field Office Firestore gRPC Listen separately from REST 200 and compare real Firebase billed usage and PDA ACK latency; keep D171 isolated 5/5 fail until retest."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
