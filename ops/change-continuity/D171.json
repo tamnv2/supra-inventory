@@ -7,7 +7,7 @@
   "pr": 638,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E001",
+    "id": "D171-E002",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -37,6 +37,25 @@
       ],
       "next_action": "Implement diagnostic-only code/Rules and dedicated build CI through PR638, verify test namespace authorization/readback, then release sanitized Windows EXE/Android APK test artifacts for real field test.",
       "evidence": "Owner explicit 2026-10-19 D171 before D170 pending request; D170-E022/E023; PR612/613 source references."
+    },
+    {
+      "id": "D171-E002",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Three-device D171 source candidate, current-main Rules parity and isolated EXE/APK CI",
+      "status": "D171_PR638_SOURCE_CANDIDATE__CI_AND_BETA_RULES_LIVE_READBACK_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR638 branch from main merges D170-E023 acknowledgement but DOES NOT accept D170; canonical state/manifest and Owner decision record the exact D171 priority exception, with D169 accepted base and D170 paused.",
+        "Independent Windows diagnostics and Android test APK source were ported from Draft PR613 and corrected: five stages PDA always NORMAL; two Agent operator-confirmed Office/Normal switches; runtime login identity in EXE prompts; shared phase readiness stored on each authenticated Agent member; PDA automatically follows incoming stage messages and issues synthetic peer test messages/ACK.",
+        "Firestore Rules adds only isolated d169_diag_sessions match to exact current-main production Rules; matches source baseline byte for byte after removing canary block. Secure member update permits only own phase/network timestamp, Picker cannot claim OFFICE and cross-member mutation denied.",
+        "Three-node readiness, dual peer-role ACK echo, operator-confirmed versus measured network classification, timeout/retry/failover simulation are distinct test evidence. Date-scoped deterministic auto-pair is not a secret and prior test activity requires fresh readiness; no real WMS/PRIMARY/call/chat/kick mutations are allowed.",
+        "GitHub D171 security emulator, Windows self-contained EXE, Android debug-signed APK and Repo Authority/Project State source workflows have run successfully on intermediate source; latest candidate changes require a new complete latest-HEAD CI readback before any PR promotion.",
+        "D171 scoped Firebase Rules workflow is PR emulator-only; on guarded main push it can publish existing Beta default Firestore test match and verify Firebase Rules release readback. No new database/Worker/Stable resources.",
+        "No real Windows Office/PDA multi-device FIELD PASS or Firebase provider live readback exists yet. Do not claim operational network passed from source CI."
+      ],
+      "next_action": "Verify exact final PR638 head all source/emulator/authority/continuity CI success, mark PR ready then guarded merge; inspect Rules live deployment readback and downloadable EXE/APK artifacts; field test by Owner only after provider and binary proof.",
+      "evidence": "PR638 active branch; D171 Isolated Firestore Security Emulator; D171 Two-Agent Diagnostic Windows EXE; D171 Normal-Network Picker Diagnostic APK; D171 Scoped Test-Only Firestore Rules; current-main exact stripped-rule match."
     }
   ],
   "resume": {
@@ -45,17 +64,18 @@
       "Two Agent + one PDA diagnostic isolated from production and all data-plane operations; physical test after CI."
     ],
     "implemented": [
-      "D171 plan and journal initialized on PR638 branch."
+      "D171 plan and journal initialized on PR638 branch.",
+      "D171 source candidate: 5-round PDA NORMAL, Agent B/A ready barrier, auto PDA ACK, full current-main Rules parity and role-bound test match; CI binary artifacts subject to latest SHA."
     ],
     "in_progress": [
-      "Reconcile latest source, RBAC, Firestore Rules baseline and build independent test artifacts."
+      "PR638 source/code/security/authority CI latest-head verification; Beta Firebase Rules deployment and post-merge isolated field kit release pending."
     ],
     "pending_approval": [],
     "blocked": [
       "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
     ],
     "next_actions": [
-      "Port and correct Agent/PDA test clients; ensure three-party barrier and PDA-normal-only scripts; run CI and release separate test files."
+      "Guarded PR638 full PASS → main merge → Beta scoped Rules readback; retrieve 2 independent Agent EXE copies + single PDA test APK; then Owner field test."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
