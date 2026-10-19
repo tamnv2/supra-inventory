@@ -7,7 +7,7 @@
   "pr": 654,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E026",
+    "id": "D171-E027",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -608,6 +608,23 @@
       ],
       "next_action": "Deliver design recommendation; retain D171 isolated review only, no external project/resource mutation or new Inventory gateway action until Owner authorizes code/release. D170 paused, Stable Owner-gated.",
       "evidence": "Read-only GitHub Pickface main v1.4.33: NetworkHttpClientFactory.cs, OfficeNetworkRouteV1413.cs, OfficeAuthGatewayV1412.cs, GoogleGatewayV140.cs, apps-script/GoogleGateway/Code.gs and OfficeNetworkV1412.gs, docs/PROJECT_CONTEXT.md and PR22 Cloud Run README; Inventory main v139 D165PrivilegedAuth.cs and D160Resilience.cs."
+    },
+    {
+      "id": "D171-E027",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner prefers Cloud Functions for low-frequency Office-to-Worker commands and requests self-provisioning and free-tier usage review",
+      "status": "DESIGN_PREFERENCE_ACCEPTED__NO_NEW_RESOURCE_AUTHORIZED__NO_RUNTIME_CHANGE",
+      "facts": [
+        "Existing Inventory Beta GCP project and Gen2 Cloud Functions/Actions deploy account are verified in scoped repo. The operatingScheduleChanged Function already forwards Firestore events to Cloudflare Worker using Google workload identity. New bridge event trigger and business endpoint are not yet registered resources.",
+        "Plan: use one new onDocumentCreated function for at most 200 daily Picker session revocations. Keep 2000 Picklist, 300 call, 500 chat direct Firestore. Keep existing Office Apps Script for pre-auth admin/tamnv2/VPS protected sign-in; VPS remains OTP-only.",
+        "At 200/day the new Function invokes ~6000/month, 0.3% of 2m request free reference; at 1 vCPU for 1s and 256MiB, ~6000 vCPU seconds and 1500 GiB-seconds monthly. Cloud Run Gen2 free tier and CPU/RAM pricing apply by billing account, not by signed-in Google user. Same executing Apps Script identity, unlike Cloud Run, shares per-user UrlFetch limits.",
+        "New Firestore request and response receipts add an estimated 400 writes/day on top of existing illustrative 21-hour 16332 basic writes, yielding ~16732 (83.7% free), leaving ~1268 before target 90% and before real cross-project/provider overhead. Source-derived model, not actual billing.",
+        "To create Function: explicitly approve new inventory beta resource and trigger collection scope, secure Worker identity/actor RBAC/immutable request ID, exact CI+rollback and release. Existing GitHub Firebase Functions deployment workflow has fixed allowlist and must be updated in reviewed PR; present tools have GitHub Actions path but not direct Google Cloud resource management. No cross-project Pickface resources, no Stable changes."
+      ],
+      "next_action": "Review proposal; do not create new Function without Owner authorization and scope update. D171 pending field; D170 paused.",
+      "evidence": "Inventory GitHub main project scope/registry, functions/src/index.ts, service/src/internal-d119.ts, deploy-beta-functions.yml, official Google Cloud Run Gen2 pricing and Apps Script quotas."
     }
   ],
   "resume": {
