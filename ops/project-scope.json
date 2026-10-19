@@ -592,6 +592,21 @@
       "exposure": "public_identifier_during_bounded_canary_only",
       "status": "D161_PHASE0A_DISPOSABLE_PERMISSION_CANARY_AUTHORIZED",
       "guard": "BETA_ONLY__HTTP_CALLBACK_AND_FCM_VALIDATE_ONLY__NO_BUSINESS_DATA__NO_STABLE__DELETE_SAME_RUN__FIRESTORE_CANARY_DOC_DELETE_SAME_RUN"
+    },
+    {
+      "key": "d169-diagnostic-firestore-beta",
+      "provider": "Firebase / Google Cloud",
+      "kind": "temporary_firestore_collection",
+      "environment": "beta",
+      "project_id": "supra-inventory-beta",
+      "database": "(default)",
+      "collection": "d169_diag_sessions",
+      "status": "D171_OWNER_AUTHORIZED_TEMPORARY_TEST__SOURCE_CI_AND_RULES_READBACK_PENDING",
+      "owner_authorization": "2026-10-17 temporary Beta test collection and 2026-10-19 D171 priority override for 2-Agent/1-PDA field kit",
+      "guard": "D171_ISOLATED_TEMP_DIAGNOSTIC_BETA__EXISTING_DEFAULT_FIRESTORE__ROLE_AND_PARTICIPANT_READINESS__NO_PROD_BUSINESS_WRITES__MAX48H__CLEANUP_OWNER_ARCHIVED_PROOF__STABLE_OWNER_GATED",
+      "cleanup": "After Owner confirms logs/results collected: disable test clients, export sanitized evidence, delete d169_diag_sessions documents and subcollections with verified count zero, remove this Rules match via separate reviewed PR, mark resource RETIRED. Do not auto-delete before evidence closure.",
+      "name": "d169_diag_sessions",
+      "id": "d169_diag_sessions"
     }
   ],
   "secret_references": [
@@ -753,5 +768,12 @@
     "safe_rollback": "RECREATE_ORIGINAL_STABLE_DOMAIN_BINDING_ONLY_IF_NEW_ATTACH_FAILS__NO_DB_WORKER_OR_DNS_DELETE",
     "allowed_single_binding": "inventory.supra.cc.cd",
     "forbidden": "DELETE_WORKER_DATABASE_DNS_ZONE_OTHER_HOSTNAMES"
+  },
+  "d171_diagnostic_exception": {
+    "resource_key": "d169-diagnostic-firestore-beta",
+    "owner_approval": "2026-10-19",
+    "not_a_new_provider_project": true,
+    "d170_owner_pass": false,
+    "accepted_base": "D169"
   }
 }
