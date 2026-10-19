@@ -7,7 +7,7 @@
   "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E021",
+    "id": "D171-E022",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -470,6 +470,34 @@
       ],
       "next_action": "Use corrected D171-E021 audit; compare implementation alternatives under 40 PDA/2000 PickList/1k operator events and <=90% budget, secure source/field proof and an explicit Owner code/resource approval before any production change.",
       "evidence": "Owner correction in current conversation; canonical D171 E018/E019 and retrieved 2026-10-19 Owner discussion; docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md revision on PR #655. No new production source change."
+    },
+    {
+      "id": "D171-E022",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_ARCHITECTURE_SELECTION_AND_SCENARIO_REVIEW",
+      "owner_approval": true,
+      "topic": "Owner selects Firestore two-mode transport with selective Google Function candidate and requests scenario review before code",
+      "status": "BUSINESS_ARCHITECTURE_APPROVED__SCENARIO_REVIEW__NO_PRODUCTION_SOURCE_DEPLOY_AUTH",
+      "facts": [
+        "Owner explicitly says 'Chốt' to D171 two-mode architecture: VPS MAIN on normal network uses Firestore fast pending listener and exact PDA Firestore request/ACK, while Office/normal Agent coordination shares authenticated Firestore HTTPS via system proxy when necessary.",
+        "On verified VPS failure any WMS-ready Office/Internet Agent may become PRIMARY only through valid generation CAS/fencing and continue reading the SAME PDA Firestore job/ACK without database or request-id switch; verified VPS return remains no-inflight safe and respects manual-holder consent.",
+        "Optional Cloud Functions bridge for an Office Agent command requiring Worker is selected for design, not yet authorized for production provisioning/deploy; existing Function resources may not be repurposed outside their registered scope, function must authenticate actor/role and get Worker final result; Cloud Functions not a PickList/HA path.",
+        "Use Owner-approved D171 maximum envelope 40 PDA/2000 PickList/day/200 Kick/300 contact/500 Chat/day, six Agents model, metadata 10m, intermediate state <=5m without loss of durable ACK/audit, existing SKU unchanged, <=90% free usage goal by metered resource.",
+        "Owner says no additional Office hardware diagnostic opportunity. Use existing 19 Oct route logs (Office Firestore proxy REST success; direct Office failed; RTDB Office 403; Office production gRPC unverified), source tests/log replay and CI, and passive canary only when deploy separately approved.",
+        "Reference design numbers ~33060 reads/15180 writes VPS and ~41460 reads when 4-second all-shift fallback are unbilled scenarios only; actual shared-project reads/writes, listener documents, index/rules, storage, bandwidth and Functions shared usage can exceed these."
+      ],
+      "decisions": [
+        "Architecture A VPS fast Firestore listener+single durable Firestore job/ACK, mode B universal authenticated Firestore data/control contract across Office/Internet with Agent fallback; retain 10s lease, 15s stale suspect, 20/35s bounded PDA result recovery, no duplicate WMS mutation.",
+        "Office→Worker commands may use a scoped server-side Google bridge (Cloud Functions as candidate) after separate security/resource and code approval; do not auto-select new Firebase resource, RTDB business or per-SSID user mode switching.",
+        "Scenario catalogue S01–S28 and scoped change phases P0–P5 prepared for Owner review; no production code/Rules/Worker/Cloud Function/deploy or D170/Stable change authorized by the requested review."
+      ],
+      "open_questions": [
+        "Whether Owner accepts the 4s Office fallback worst-case added latency for full-shift degraded scenario; tune only after measurable CI replay and billed budget.",
+        "Which precise Office→Worker commands actually require Function and whether an existing allowlisted Function is technically and legally reusable; resource/Rules approval is separate.",
+        "How to observe provider billed usage across ALL shared projects and provider-Pacific quota windows when Owner hardware retesting is unavailable."
+      ],
+      "next_action": "Present scenario plan to Owner for review/changes. Remain D171-only Draft PR; no production implementation or new resource without separate explicit Owner instruction after impact and security matrix.",
+      "evidence": "docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md; D171 E015-E021 journal; released Agent v139/Android vc114 source; Firebase official pricing. No runtime or field evidence implied."
     }
   ],
   "resume": {
@@ -477,7 +505,8 @@
       "D171 prioritized ahead of paused D170 by explicit Owner direction; D169 stays accepted base.",
       "Two Agent + one PDA diagnostic isolated from production and all data-plane operations; physical test after CI.",
       "D171-E012 Owner explicitly ordered low-cost isolated field kit repair and precise 3-device network prompts.",
-      "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier."
+      "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier.",
+      "E022 Owner selected Firestore VPS fast + universal Firestore Office/Internet fallback and selective secure Google Function only as scope-gated bridge; scenario review requested, not production code approval."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -498,13 +527,15 @@
       "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test.",
       "E018 production implementation and any RTDB business signal not authorized; preimplementation review required.",
       "E020 production architecture change remains proposal; requires Owner approval after scope/latency/usage tests.",
-      "E021 updated two-mode architecture scope and 40-PDA/2000-job workload: implementation technology/resource and runtime approval remain pending; previous E020 Firestore option is NOT Owner-selected."
+      "E021 updated two-mode architecture scope and 40-PDA/2000-job workload: implementation technology/resource and runtime approval remain pending; previous E020 Firestore option is NOT Owner-selected.",
+      "E022 scenario catalogue review: runtime implementation, security/Functions resource changes and deployment not approved; no new Office hardware test required for document review; field pass remains false."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
       "Phase2 B-only ACK 9/9, A 0/9; phase barrier/partial-failure propagation missing; D171 physical 5/5 not completed."
     ],
     "next_actions": [
+      "Owner reviews S01-S28 scenario plan and proposed phases in docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md; then explicitly authorizes exact scoped CODE/DEPLOY if desired.",
       "After final PR/CI pass and merge, Owner installs run 39199348444 EXE on both Windows PCs and run 39199348371 APK on PDA; only follow correct Agent network prompts.",
       "Verify field Office Firestore gRPC Listen separately from REST 200 and compare real Firebase billed usage and PDA ACK latency; keep D171 isolated 5/5 fail until retest."
     ],
