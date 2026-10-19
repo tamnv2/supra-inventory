@@ -151,6 +151,7 @@ internal sealed class PeerForm : Form
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
         if(_phase>=Phases.Length){
+            StopPoll();
             Log("AUTO_TEST","ALL_FIVE_PHASES_FINISHED");
             MessageBox.Show("Đã hoàn tất 5/5 vòng kiểm thử. Kiểm tra log kết quả ACK và kết nối trước khi nghiệm thu.","SUPRA D171 · Hoàn tất",MessageBoxButtons.OK,MessageBoxIcon.Information);
             return;
@@ -457,7 +458,7 @@ internal sealed class PeerForm : Form
                     "Log chi tiet: "+_logPath+Environment.NewLine+
                     "Gui file JSONL (khong gui mat khau hay token) de kiem tra.",
                     "SUPRA D171 - Loi can xu ly",MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                _testAll.Enabled=_phase==0;
+                _testAll.Enabled=false; // Faulted run must not replay stale data.
             }
         }
         finally{_busy=false;}
