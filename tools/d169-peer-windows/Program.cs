@@ -91,6 +91,8 @@ internal static class AgentIdentityBinding
             && string.Equals(initialUid, token.VerifiedFirebaseUid, StringComparison.Ordinal)
             && string.Equals(JwtClaim(token.IdToken, "app_user_id"), token.VerifiedUserId, StringComparison.Ordinal)
             && string.Equals(JwtClaim(token.IdToken, "sub"), token.VerifiedFirebaseUid, StringComparison.Ordinal)
+            && string.Equals(JwtClaim(token.IdToken, "app_role"), token.Role, StringComparison.Ordinal)
+            && string.Equals(JwtClaim(token.IdToken, "app_base_role"), token.Role, StringComparison.Ordinal)
             && (token.Role == "ADMIN" || token.Role == "PICKPACK_ADMIN");
     }
 
@@ -110,7 +112,7 @@ internal static class AgentIdentityBinding
         static string FakeJwt(string userId, string firebaseUid)
         {
             var payload=Convert.ToBase64String(Encoding.UTF8.GetBytes(
-                JsonSerializer.Serialize(new {app_user_id=userId,sub=firebaseUid})))
+                JsonSerializer.Serialize(new {app_user_id=userId,sub=firebaseUid,app_role="ADMIN",app_base_role="ADMIN"})))
                 .TrimEnd('=').Replace('+','-').Replace('/','_');
             return "e30."+payload+".test-only";
         }
