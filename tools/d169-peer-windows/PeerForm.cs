@@ -65,6 +65,7 @@ internal sealed class PeerForm : Form
     private int _readCount;
     private DateTimeOffset _suspendLeaderUntil=DateTimeOffset.MinValue;
     private bool _busy;
+    private string _activeStep="CHUA_BAT_DAU";
 
     internal PeerForm(AgentTokens token, string operatorLogin)
     {
@@ -140,11 +141,15 @@ internal sealed class PeerForm : Form
     private async Task StartAutomaticTests()
     {
         _testAll.Enabled=false;
+        _activeStep="01_XAC_THUC_NHOM_AGENT_VA_TAO_PHIEN";
         await EnsureAutomaticSession();
         Text="SUPRA D171 Test — "+_operatorLogin+" (Agent "+_agentLabel+")";
         StartPoll();
+        _activeStep="02_DANG_KY_AGENT_READY";
         await PublishReady();
+        _activeStep="03_DOI_2_AGENT_VA_PDA_DU_3";
         await WaitForThreeReady();
+        _activeStep="04_GUI_TEST_VA_CHO_ACK";
         await TestPhase();
         _phase=1;
         ShowNetworkPhase();
@@ -155,8 +160,11 @@ internal sealed class PeerForm : Form
         var phase=Phases[_phase];
         Log("NETWORK_SWITCH","OPERATOR_CONFIRMED",new{phase,epoch=Interlocked.Increment(ref _epoch)});
         _mode.SelectedItem=ExpectedLocalNetwork(_phase);
+        _activeStep="05_CAP_NHAT_MANG_AGENT";
         await PublishReady();
+        _activeStep="06_DOI_3_THIET_BI_READY";
         await WaitForThreeReady();
+        _activeStep="07_GUI_TEST_VA_CHO_ACK";
         await TestPhase();
         _phase++;
         ShowNetworkPhase();
@@ -347,9 +355,32 @@ internal sealed class PeerForm : Form
     private async Task Run(Func<Task> action)
     {
         if(_busy)return;_busy=true;
-        try{await action();}catch(Exception e){Log("ACTION","ERROR",new{type=e.GetType().Name,description=e.Message});
-          if(!IsDisposed){MessageBox.Show("Kiểm thử dừng: "+e.Message,"SUPRA D171",MessageBoxButtons.OK,MessageBoxIcon.Warning);_testAll.Enabled=_phase==0;}}
+        try{await action();}
+        catch(Exception e){
+            // Print actionable diagnostics without logging passwords, tokens or raw HTTP bodies.
+            var code=PublicFailureCode(e);
+            Log("ACTION","FAILED",new{stage=_activeStep,code,type=e.GetType().Name});
+            if(!IsDisposed){
+                _output.AppendText(DateTime.Now.ToString("HH:mm:ss")+" LOI ["+_activeStep+"] "+code+Environment.NewLine);
+                MessageBox.Show("D171 khong the tiep tuc tai buoc: "+_activeStep+Environment.NewLine+
+                    "Ma loi: "+code+Environment.NewLine+
+                    "Log chi tiet: "+_logPath+Environment.NewLine+
+                    "Gui file JSONL (khong gui mat khau hay token) de kiem tra.",
+                    "SUPRA D171 - Loi can xu ly",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                _testAll.Enabled=_phase==0;
+            }
+        }
         finally{_busy=false;}
+    }
+    private static string PublicFailureCode(Exception e){
+        if(e is HttpRequestException){
+            var message=e.Message;
+            return Regex.IsMatch(message,@"^HTTP_[0-9]{3}$")?message:"NETWORK_HTTP_FAILURE";
+        }
+        if(e is OperationCanceledException)return "NETWORK_TIMEOUT";
+        if(e is InvalidOperationException && Regex.IsMatch(e.Message,@"^[A-Z0-9_]{5,100}$"))return e.Message;
+        if(e is System.Net.Sockets.SocketException)return "NETWORK_SOCKET_UNAVAILABLE";
+        return e.GetType().Name.ToUpperInvariant();
     }
     private string Sid()
     {
