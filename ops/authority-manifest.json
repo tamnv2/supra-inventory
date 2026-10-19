@@ -8,7 +8,7 @@
     "docs/PROJECT_CONTEXT.md",
     "ops/project-scope.json",
     "ops/project-state.json",
-    "ops/change-continuity/D170.json",
+    "ops/change-continuity/D171.json",
     "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/README.md",
@@ -56,7 +56,7 @@
     ],
     "ci": ".github/workflows/",
     "discussion_continuity_protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
-    "active_change_discussion": "ops/change-continuity/D170.json"
+    "active_change_discussion": "ops/change-continuity/D171.json"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -79,7 +79,7 @@
     ],
     "derived_view_freshness": "CI_FAIL_IF_CURRENT_STATE_MARKERS_MISMATCH",
     "substantive_discussion_checkpoint": [
-      "ops/change-continuity/D170.json",
+      "ops/change-continuity/D171.json",
       "relevant docs/OWNER_DECISIONS.md or docs/specs/* ONLY when Owner approved",
       "ops/project-state.json WHEN meaningful work state changes"
     ]
@@ -95,10 +95,17 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "state_authority": "ops/project-state.json#change_control",
     "accepted_base_rule": "Only an explicit Owner PASS promotes the current change to the accepted project base.",
-    "next_change_rule": "Do not create or process a new change ID or unrelated project mutation while the current change lacks explicit Owner PASS.",
+    "next_change_rule": "Ordinarily require explicit Owner PASS before next change. Narrow 2026-10-19 Owner exception permits D171 alone while D170 is paused, not accepted; D169 is still accepted base. No other parallel work or automatic PASS.",
     "not_pass_rule": "If Owner reports NOT PASS/FAIL, repair the same change ID until Owner explicitly records PASS.",
     "impact_review_rule": "Before implementing any change that may affect the accepted base, present impact, affected components, regression/resource/security/quota risks and a recommended approach; implementation requires explicit Owner approval.",
-    "technical_pass_not_owner_pass": true
+    "technical_pass_not_owner_pass": true,
+    "one_time_owner_priority_exception": {
+      "approved": "2026-10-19_OWNER_EXPLICIT_D171_BEFORE_PENDING_D170",
+      "exception": "D170_PAUSED_UNACCEPTED__D171_ONLY",
+      "accepted_base": "D169_UNCHANGED",
+      "no_general_parallel_permission": true,
+      "automatic_future_exceptions": false
+    }
   },
   "working_ref_discovery": {
     "main_accepted_authority": "READ_MAIN_BOOTSTRAP_FIRST",
@@ -107,9 +114,9 @@
       "GitHub open PR head when a current Dxxx journal PR exists",
       "otherwise main canonical journal"
     ],
-    "active_working_change_id": "D170",
-    "active_working_pr": 637,
-    "ref_rule": "READ_MAIN_FULL_BOOTSTRAP__IF_CURRENT_UNMERGED_DXXX_JOURNAL_PR_THEN_FETCH_HEAD_FULL_BOOTSTRAP__ELSE_MAIN_JOURNAL_AND_RETAINED_TEST_DRAFTS_SEPARATELY",
+    "active_working_change_id": "D171",
+    "active_working_pr": 638,
+    "ref_rule": "READ_MAIN_FULL_BOOTSTRAP__OWNER_D171_ONE_TIME_PRIORITY_EXCEPTION__IF_UNMERGED_D171_PR_THEN_FETCH_HEAD_FULL_BOOTSTRAP__D170_PAUSED_UNACCEPTED",
     "freshness": "RESOLVE_LATEST_BRANCH_HEAD_AND_CI_EVERY_SUBSTANTIVE_DXXX_TURN",
     "conflict_rule": "LATEST_OWNER_COMMAND_OVERRIDES_BRANCH_RELEASE_PERMISSION__MAIN_ACCEPTED_BASE_UNCHANGED"
   }
