@@ -2988,5 +2988,21 @@
       "date_vn": "2026-10-19",
       "field_pass": false
     }
+  },
+  "d171_temporary_direct_peer_test": {
+    "status": "OWNER_APPROVED_SECURITY_REVIEW_PENDING",
+    "resource_key": "d169-diagnostic-firestore-beta",
+    "parent_resource_key": "firestore-relay-beta-d091",
+    "project": "supra-inventory-beta",
+    "database": "(default)",
+    "collection": "d169_diag_sessions",
+    "owner_approval": "2026-10-19",
+    "current_change": "D171",
+    "d170": "PAUSED_NO_OWNER_PASS",
+    "pda_network": "NORMAL_ONLY",
+    "agent_networks": "NORMAL_OR_OFFICE_MANUAL_VERIFIED",
+    "guard": "AUTHENTICATED_TEST_CLIENTS_ONLY_NO_PRODUCTION_TRANSACTION_OR_PRIMARY",
+    "cleanup": "EXACT_OWNER_EVIDENCE_ARCHIVED_AUTHORIZATION_REQUIRED",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
