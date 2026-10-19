@@ -178,6 +178,7 @@ internal sealed class PeerForm : Form
         Text="SUPRA D171 Test — "+_operatorLogin+" (Agent "+_agentLabel+")";
         StartPoll();
         _activeStep="02_DANG_KY_AGENT_READY";
+        await RunReadOnlyNetworkProbes(Phases[_phase]);
         await VerifyDiagnosticRoute();
         await PublishReady();
         _activeStep="02B_BAO_PDA_CHUYEN_PHA_TEST";
@@ -197,6 +198,7 @@ internal sealed class PeerForm : Form
         Log("NETWORK_SWITCH","OPERATOR_CONFIRMED",new{phase,epoch=Interlocked.Increment(ref _epoch)});
         _mode.SelectedItem=ExpectedLocalNetwork(_phase);
         _activeStep="05_CAP_NHAT_MANG_AGENT";
+        await RunReadOnlyNetworkProbes(phase);
         await VerifyDiagnosticRoute();
         await PublishReady();
         _activeStep="05B_BAO_PDA_CHUYEN_PHA_TEST";
@@ -346,7 +348,6 @@ internal sealed class PeerForm : Form
     {
         var phase=Phases[_phase];
         Log("PHASE","BEGIN",new{phase,expected_operator_network=phase,node=_nodeId[..8]});
-        await RunReadOnlyNetworkProbes(phase);
         var sent=new List<string>();
         foreach(var type in new[]{"PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
           sent.Add(await SendTest(type));
