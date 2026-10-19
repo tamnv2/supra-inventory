@@ -1,0 +1,43 @@
+name: D171 Delete One Archived Test Session
+on:
+  workflow_dispatch:
+    inputs:
+      session_id:
+        description: 'Exact 32-hex D169 diagnostic session ID (ONE session only)'
+        required: true
+      confirmation:
+        description: 'Type D171_LOGS_ARCHIVED_AND_OWNER_APPROVED_DELETE only after evidence reviewed'
+        required: true
+permissions:
+  contents: read
+jobs:
+  owner-approved-delete:
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 20
+    env:
+      D171_SESSION: ${{ inputs.session_id }}
+      D171_CLEANUP_CONFIRM: ${{ inputs.confirmation }}
+      FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify evidence-close approval and exact canary session
+        run: |
+          case "$D171_SESSION" in
+            *[!0-9a-f]*|"") echo 'Invalid session ID'; exit 1 ;;
+          esac
+          test ${#D171_SESSION} -eq 32
+          test "$D171_CLEANUP_CONFIRM" = "D171_LOGS_ARCHIVED_AND_OWNER_APPROVED_DELETE"
+          test -n "$FIREBASE_RULES_SA_JSON_BETA"
+      - name: Prepare ephemeral credentials
+        run: |
+          umask 077
+          printf '%s' "$FIREBASE_RULES_SA_JSON_BETA" > "$RUNNER_TEMP/d169-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/d169-sa.json" >> "$GITHUB_ENV"
+      - name: Install scoped Google Auth client
+        run: python3 -m pip install --quiet google-auth requests
+      - name: Delete only the archived D169 test session, verify 404
+        run: python3 tools/d169-peer-test/cleanup_session.py --session "$D171_SESSION"
+      - name: Destroy credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/d169-sa.json"
