@@ -7,7 +7,7 @@
   "pr": 647,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E012",
+    "id": "D171-E013",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -237,6 +237,24 @@
       ],
       "next_action": "Complete targeted source CI, Rules emulator and authority/continuity, repair failures, then release ONLY matching standalone diagnostics via Owner-approved gated test workflow; physical Office field PASS remains Owner-only.",
       "evidence": "Owner 2026-10-19 current command after uploaded three-device test logs; docs/D171_FIELD_LOG_ANALYSIS_2026-10-19.md; PR647 head build runs."
+    },
+    {
+      "id": "D171-E013",
+      "date_vn": "2026-10-19",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "D171 E012 new standalone Windows/Android diagnostic build and scoped Rules/continuity tests succeeded at source head",
+      "status": "D171_E012_WINDOWS_APK_FIRESTORE_EMULATOR_AND_AUTHORITY_CI_SUCCESS__FIELD_5_ROUNDS_PENDING",
+      "facts": [
+        "D171 isolated Windows EXE workflow run 39199348444 passed at source head 0991c54393000fa654177a26c6435323d12aea31; independent Windows archive artifact 12163367035, sha256 digest c47114050a27b8626f8cf5ff6b82503835e643d4fe6b7a9eaa57a75c54e44527.",
+        "Android normal-network test APK workflow run 39199348371 passed at same source head 0991c54393000fa654177a26c6435323d12aea31; independent Android archive artifact 12163406826, sha256 digest e3398cc23fc557b02b078d9f2da23ca06102b5af83e6fcc9f4aa36a63798b667.",
+        "Same source head passed D171 Rules emulator run 39199348352, D171 scoped Rules guard 39199348427, Repo Authority 39199348339, Project State/Continuity run 39199348395, along with other shared source guards. No new Firestore Rules or provider release was required.",
+        "Windows E012 probes Office paths *before* READY and fails closed on unavailable authenticated Firestore. A/B phase completion marker gates transition; Android waits same-round two Agent READY/network and shows A/B separate receipts. 8s bounded server-filtered history and hard local HTTP budget reduce repeated scans; billed Firestore reads and quantitative savings remain unmeasured.",
+        "This technical result does not prove actual Office/normal routing, real business Agent/Picker automatic channel selection, WMS, physical 5/5 pass, provider billed usage, or Owner acceptance. Isolated D171 diagnostic artifacts only; production/Stable/D170 untouched.",
+        "Current GitHub Draft PR #647 remains review/merge-gated; no hardware field test after this code."
+      ],
+      "next_action": "Finalize authority/continuity state, merge only after final gated CI, Owner downloads matching independent EXE/APK, signs in on three devices and runs 5 network rounds with exact prompts. Collect per-route/ACK and billed usage evidence before D171 FIELD/Owner PASS.",
+      "evidence": "PR647 source head 0991c543; CI runs Windows 39199348444 Android 39199348371 emulator 39199348352 authority 39199348339 continuity 39199348395; artifacts 12163367035 and 12163406826."
     }
   ],
   "resume": {
@@ -251,20 +269,21 @@
       "PR638 merged main with source CI PASS and independent Windows/Android test artifacts; no live Firebase Rules provider readback obtained yet.",
       "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built.",
       "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715.",
-      "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79."
+      "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79.",
+      "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof."
     ],
     "in_progress": [
-      "D171-E012 source repair in Draft PR647; Windows EXE / Android APK / Firestore emulator and authority CI need PASS; physical tests pending."
+      "E013 final continuity/technical release documentation; field test on 2 Windows Agent + 1 PDA pending."
     ],
     "pending_approval": [
-      "Owner impact/rework approval for D171 E011 diagnostic-only repair; D171 field PASS/Owner PASS absent, D170 paused."
+      "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
       "Phase2 B-only ACK 9/9, A 0/9; phase barrier/partial-failure propagation missing; D171 physical 5/5 not completed."
     ],
     "next_actions": [
-      "Verify PR647 CI and only then download matching standalone EXE/APK; no production mutations or unverified billed savings."
+      "After final PR/CI pass and merge, Owner installs run 39199348444 EXE on both Windows PCs and run 39199348371 APK on PDA; only follow correct Agent network prompts."
     ],
     "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
   }
