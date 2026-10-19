@@ -1,3 +1,7 @@
+## D171 priority exception (2026-10-19)
+
+Owner temporarily suspends D170 **without Owner PASS** and explicitly prioritizes the independent three-device Office/Internet test as active D171. Last accepted project base remains D169 limited Owner PASS. Scope is only two authenticated Windows Agent diagnostic EXEs, one authenticated Picker PDA diagnostic APK that stays on normal Internet, isolated temporary Firebase Firestore test namespace and test-only readback. Official Inventory production Worker/DO, existing Agent v139, Android vc114, domain/OAuth, WMS, real PRIMARY and legacy Stable resources remain unchanged. No general parallel-change permission. See `docs/D171_THREE_NODE_NETWORK_TEST_PLAN.md` and `ops/change-continuity/D171.json` for current test and proof gates.
+
 ## D170 Phase2 domain runtime receipt — 2026-10-19 (supersedes design-only runtime statements)
 
 Main `d6833675` and GitHub Worker release run `39154128973` succeeded: Cloudflare official `inventory.supra.cc.cd` and compatibility `inventory-beta.supra.cc.cd` are both attached to one existing `supra-inventory-beta` Worker, with exact-source health, InventoryCore SQLite ready and unchanged Firebase/data identity. Signed Android vc113 official app naming passed Phase1. Technical Beta IDs stay for compatibility. No old Stable Worker release or new storage. Phase3 public-facing client/download/OAuth/CI review, fleet testing and D170 Owner PASS remain pending; no full acceptance claim.
