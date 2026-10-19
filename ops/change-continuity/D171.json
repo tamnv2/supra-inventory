@@ -7,7 +7,7 @@
   "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E020",
+    "id": "D171-E021",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -448,6 +448,28 @@
       ],
       "next_action": "Review full audit document and gather D171 Office/normal 5-phase evidence; any production code/deploy needs distinct Owner approval.",
       "evidence": "docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md; source v139/vc114 and E018/E019."
+    },
+    {
+      "id": "D171-E021",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_SCOPE_CORRECTION",
+      "owner_approval": true,
+      "topic": "Correct prior E020 analysis: review only D171 two-mode decisions, not D169 as preferred architecture",
+      "status": "OWNER_INTENT_CLARIFIED__DOCUMENTATION_ONLY__NO_NEW_IMPLEMENTATION_OR_DEPLOY_AUTH",
+      "facts": [
+        "Owner explicitly corrects the review: prior E020 centered on D169 source/optimization instead of decisions made during D171. D171 E018 two-mode requirements are the primary architecture authority: long-lived VPS dedicated fast PDA signaling, common Office/Internet Agent coordination and non-VPS PDA+Agent fallback service, safe VPS return.",
+        "Retrieved earlier 2026-10-19 D171 Owner-design workload envelope: 40 PDA, 2000 PickList/day, 200 Kick/day, 300 specialist calls/day, 500 Chat/day, Agent normal metadata sync every 10 minutes, intermediate history max 5 minutes, <=90% eligible free-usage planning target, SKU unchanged. E019 1200 jobs is an illustration, not the finalized design workload.",
+        "Prior discussion accepts Office sign-in for protected accounts with each existing OTP/emergency policy retained and permitted Google-service/Gateway initiation to Web/Cloud when Cloudflare is inaccessible from Office; VPS OTP-only remains protected and Office endpoint reachability must be proven.",
+        "Existing D171 E018 does not fix the physical VPS fast-path technology or the common Agent route to a specific provider. Firestore gRPC+REST is a previously proposed implementation; RTDB business/Cloud Function resource expansion is not authorized merely by this correction.",
+        "Current PR #655 source implementation design must be reviewed for alternatives against D171 workloads and Office proxy/Google route. Existing production Agent/Android/Rules/WMS, D170 and Stable unchanged."
+      ],
+      "open_questions": [
+        "Verify interpretation of intermediate 5-minute history lifecycle vs durable ACK and business log retention before implementation.",
+        "Choose fastest VPS-specific signal and Office/Internet common fallback based on real p95/billing/site reachability evidence, including legal current scope for RTDB/Functions.",
+        "Validate special-account Office login and Google Gateway/Function exact route with authentication, no HTTP auth bypass."
+      ],
+      "next_action": "Use corrected D171-E021 audit; compare implementation alternatives under 40 PDA/2000 PickList/1k operator events and <=90% budget, secure source/field proof and an explicit Owner code/resource approval before any production change.",
+      "evidence": "Owner correction in current conversation; canonical D171 E018/E019 and retrieved 2026-10-19 Owner discussion; docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md revision on PR #655. No new production source change."
     }
   ],
   "resume": {
@@ -475,7 +497,8 @@
       "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization.",
       "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test.",
       "E018 production implementation and any RTDB business signal not authorized; preimplementation review required.",
-      "E020 production architecture change remains proposal; requires Owner approval after scope/latency/usage tests."
+      "E020 production architecture change remains proposal; requires Owner approval after scope/latency/usage tests.",
+      "E021 updated two-mode architecture scope and 40-PDA/2000-job workload: implementation technology/resource and runtime approval remain pending; previous E020 Firestore option is NOT Owner-selected."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
