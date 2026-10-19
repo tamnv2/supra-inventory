@@ -106,7 +106,26 @@ internal static class AgentIdentityBinding
             && !MatchesLogin("admin",id,"admin",uid,"ADMIN","PICKPACK_ADMIN",id,uid,"ADMIN")
             && !MatchesLogin("admin",id,"admin",uid,"ADMIN","ADMIN",id,uid,"PICKER")
             && !MatchesLogin("admin","","admin",uid,"ADMIN","ADMIN","",uid,"ADMIN");
-        return good && bad;
+        // Refresh/Start must retain the Worker-bound UID and user_id, not rebind to a login string.
+        static string FakeJwt(string userId, string firebaseUid)
+        {
+            var payload=Convert.ToBase64String(Encoding.UTF8.GetBytes(
+                JsonSerializer.Serialize(new {app_user_id=userId,sub=firebaseUid})))
+                .TrimEnd('=').Replace('+','-').Replace('/','_');
+            return "e30."+payload+".test-only";
+        }
+        var token=new AgentTokens {
+            Role="ADMIN", VerifiedLogin="admin", VerifiedUserId=id,
+            VerifiedFirebaseUid=uid, IdToken=FakeJwt(id,uid)
+        };
+        var runtime=MatchesRuntime("admin",token,uid)
+            && !MatchesRuntime("tamnv2",token,uid)
+            && !MatchesRuntime("admin",token,"different-firebase-uid");
+        token.IdToken=FakeJwt("admin",uid);
+        runtime=runtime && !MatchesRuntime("admin",token,uid);
+        token.IdToken=FakeJwt(id,"other-uid");
+        runtime=runtime && !MatchesRuntime("admin",token,uid);
+        return good && bad && runtime;
     }
 }
 
