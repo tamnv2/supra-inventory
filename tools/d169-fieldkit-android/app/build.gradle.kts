@@ -17,7 +17,7 @@ android {
     buildConfigField("String", "FIREBASE_MESSAGING_SENDER_ID", quoted("572322098890"))
     buildConfigField("String", "FIREBASE_RTDB_URL", quoted("https://supra-inventory-beta-default-rtdb.asia-southeast1.firebasedatabase.app"))
     buildConfigField("String", "FIRESTORE_RELAY_COLLECTION_URL", quoted("https://firestore.googleapis.com/v1/projects/supra-inventory-beta/databases/(default)/documents/relay_poc_jobs"))
-    buildConfigField("String", "UPDATE_RELEASE_API", quoted("https://inventory-beta.supra.cc.cd/downloads/pda/manifest"))
+    buildConfigField("String", "UPDATE_RELEASE_API", quoted("https://inventory.supra.cc.cd/downloads/pda/manifest"))
     buildConfigField("String", "TRUSTED_SIGNER_SHA256", quoted(""))
     buildConfigField("String", "DEFAULT_PICKER_PASSWORD", quoted(""))
   }
