@@ -40,7 +40,13 @@ jobs:
       - name: Verify signed debug APK and no original source changes
         run: |
           test -s tools/d169-fieldkit-android/app/build/outputs/apk/debug/app-debug.apk
-          ! git diff --name-only origin/main...HEAD | grep -E '^(android/|relay-agent/|service/|web/|firebase/(?!firestore\\.rules$))'
+          git diff --name-only origin/main...HEAD > "$RUNNER_TEMP/changed.txt"
+          if grep -E '^(android/|relay-agent/|service/|web/)' "$RUNNER_TEMP/changed.txt"; then
+            echo 'Production source modified by standalone test PR'; exit 1
+          fi
+          if grep '^firebase/' "$RUNNER_TEMP/changed.txt" | grep -v -x 'firebase/firestore.rules'; then
+            echo 'Unexpected non-test Firebase source changed'; exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: SUPRA-D171-TEST-PICKER-APK
