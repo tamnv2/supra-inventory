@@ -845,7 +845,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D169_OWNER_OPEN__RECORD_ONLY_BULK_ANALYSIS_PENDING",
+  "active_workstream": "D171_OWNER_APPROVED_DIAGNOSTIC_TEST_ONLY__D170_PAUSED",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2468,8 +2468,8 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
-    "current_change_id": "D170",
-    "current_change_status": "D170_E021_AGENT139_SIGNED_EXE_AND_CHANNEL_RELEASE_PASS__PHASE3_OAUTH_FLEET_FIELD_PENDING",
+    "current_change_id": "D171",
+    "current_change_status": "D171_E001_OWNER_AUTHORIZED_ISOLATED_DIAGNOSTIC_WORK__D170_PAUSED_UNACCEPTED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2500,7 +2500,16 @@
     "pr574_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_AGENT_V130_NONSKU_BETA__STABLE_UNTOUCHED",
     "pr577_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_SKU_PROVENANCE_BETA__STABLE_UNTOUCHED",
     "pr578_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_310_ACCOUNT_MEAL_BETA__STABLE_UNTOUCHED",
-    "pr580_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_311_NOTPASS_REPAIR_BETA__BETA_WORKER_ONLY_STABLE_UNTOUCHED"
+    "pr580_release_gate": "OWNER_EXPLICIT_D167_DEPLOY_20261013_WEB_311_NOTPASS_REPAIR_BETA__BETA_WORKER_ONLY_STABLE_UNTOUCHED",
+    "owner_priority_exception": {
+      "approved_on_vn": "2026-10-19",
+      "previous_change": "D170",
+      "previous_status": "PAUSED_NO_OWNER_PASS",
+      "new_active_change": "D171",
+      "accepted_base_unchanged": "D169",
+      "scope": "D171_ISOLATED_DIAGNOSTIC_ONLY",
+      "automatic_future_exceptions": false
+    }
   },
   "d147": {
     "status": "OWNER_ACCEPTED_PASS__GOVERNANCE_ONLY",
@@ -7447,15 +7456,15 @@
   "change_continuity": {
     "model": "REPO_FIRST_ACCEPTED_MAIN_AND_ACTIVE_PR_DISCUSSION_JOURNAL",
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
-    "current_change_id": "D170",
-    "journal": "ops/change-continuity/D170.json",
-    "working_branch": "state/d170-agent139-release-success-receipt-20261019",
-    "pr": 637,
-    "latest_checkpoint_id": "D170-E021",
+    "current_change_id": "D171",
+    "journal": "ops/change-continuity/D171.json",
+    "working_branch": "feat/d171-three-node-network-test-20261019",
+    "pr": 638,
+    "latest_checkpoint_id": "D171-E001",
     "checkpoint_date_vn": "2026-10-19",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D170_E021_AGENT_V139_TECHNICAL_RELEASE_PASS__D170_FIELD_OWNER_PASS_FALSE",
+    "owner_release_gate": "D171_TEST_BINARIES_ONLY_AFTER_AUTHORITY_RULES_EMULATOR_COMPILE__D170_UNACCEPTED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8296,7 +8305,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E021_AGENT139_RELEASE_PASS__PHASE3_OAUTH_OLD_HOST_AND_FIELD_PENDING",
+    "status": "D170_PAUSED_BY_OWNER_2026_10_19__NO_OWNER_PASS__FIELDS_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8346,13 +8355,28 @@
     "phase3_agent_release_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08"
   },
   "d171_queued": {
-    "status": "QUEUED_ONLY_NOT_ACTIVE_NOT_IMPLEMENTATION_AUTHORIZED",
+    "status": "D171_ACTIVATED_BY_OWNER_2026_10_19__D170_PAUSED",
     "purpose": "ISOLATED_OFFICE_INTERNET_PDA_AGENT_AGENT_DIAGNOSTIC_TESTS",
     "prs": [
       612,
       613
     ],
-    "start_rule": "ONLY_AFTER_D170_EXPLICIT_OWNER_PASS_AND_FRESH_CURRENT_RULES_COMPATIBILITY",
+    "start_rule": "EXPLICIT_OWNER_2026_10_19_ONE_TIME_PRIORITY_EXCEPTION_TO_D170_SERIAL_GATE",
     "no_runtime_mutation": true
+  },
+  "d171": {
+    "status": "D171_ACTIVE_DIAGNOSTIC_IMPLEMENTATION_PR638__CI_AND_RULES_PENDING",
+    "accepted_base": "D169_LIMITED_OWNER_PASS",
+    "owner_code_approval": true,
+    "owner_test_artifact_deploy_approval": true,
+    "owner_field_pass": false,
+    "owner_pass": false,
+    "branch": "feat/d171-three-node-network-test-20261019",
+    "pr": 638,
+    "scope": "TWO_AUTH_AGENT_ONE_PICKER_PDA__PDA_ALWAYS_NORMAL__AGENT_WIFI_SWITCH_MANUAL_VERIFIED",
+    "d170_paused": true,
+    "live_prod_mutation": false,
+    "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
+    "requires_readback": true
   }
 }
