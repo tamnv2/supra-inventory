@@ -511,6 +511,9 @@ internal sealed class PeerForm : Form
         using var req=new HttpRequestMessage(new HttpMethod(method),url);
         req.Headers.Authorization=new AuthenticationHeaderValue("Bearer",_token.IdToken);
         if(data!=null)req.Content=new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8,"application/json");
+        if((method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal))
+            && Volatile.Read(ref _readCount)>=550)
+            throw new InvalidOperationException("D171_READ_BUDGET_STOP");
         var start=Environment.TickCount64;
         using var res=await _http.SendAsync(req);
         if(method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal)){
@@ -660,7 +663,11 @@ internal sealed class PeerForm : Form
         _=Task.Run(async()=>{
           while(!cancel.IsCancellationRequested)
           {
-            try{await Poll();}catch(Exception e){Log("LISTENER","ERROR",new{type=e.GetType().Name});}
+            try{await Poll();}
+            catch(InvalidOperationException e)when(e.Message=="D171_READ_BUDGET_STOP"){
+                Log("LISTENER","READ_BUDGET_STOP",new{reads=_readCount});break;
+            }
+            catch(Exception e){Log("LISTENER","ERROR",new{type=e.GetType().Name});}
             try{await Task.Delay(8000,cancel.Token);}catch(OperationCanceledException){break;}
           }
         },cancel.Token);
