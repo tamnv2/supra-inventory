@@ -127,8 +127,19 @@ internal sealed class PeerForm : Form
         var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D169-AUTO-PAIR-V7|"+date));
         return Convert.ToHexString(bytes)[..32].ToLowerInvariant();
     }
-    private string ExpectedLocalNetwork(int phase) =>
-        ((_agentLabel=="A" && (phase==1||phase==3))||(_agentLabel=="B"&&(phase==2||phase==3)))?"OFFICE":"NORMAL";
+    private string ExpectedLocalNetwork(int phase)=>RequiredNetwork(_agentLabel,phase);
+    private static string RequiredNetwork(string role,int phase)=>
+        ((role=="A" && (phase==1||phase==3))||(role=="B"&&(phase==2||phase==3)))?"OFFICE":"NORMAL";
+    private static bool ExpectedDiscovery404(HttpStatusCode status,bool notFoundOkay)=>notFoundOkay&&status==HttpStatusCode.NotFound;
+    internal static bool PairingSelfTest()
+    {
+        var a=new[]{"NORMAL","OFFICE","NORMAL","OFFICE","NORMAL"};
+        var b=new[]{"NORMAL","NORMAL","OFFICE","OFFICE","NORMAL"};
+        return Enumerable.Range(0,5).All(i=>RequiredNetwork("A",i)==a[i] && RequiredNetwork("B",i)==b[i])
+            && ExpectedDiscovery404(HttpStatusCode.NotFound,true)
+            && !ExpectedDiscovery404(HttpStatusCode.NotFound,false)
+            && !ExpectedDiscovery404(HttpStatusCode.Forbidden,true);
+    }
     private void ShowNetworkPhase()
     {
         var message=_phase<Phases.Length?Phases[_phase]:"ĐÃ HOÀN TẤT CÁC KỊCH BẢN";
@@ -442,7 +453,7 @@ internal sealed class PeerForm : Form
             url.Contains(":commit",StringComparison.Ordinal)?"DOCUMENT_WRITE" : "TEST_SESSION";
         // Missing session/list during pairing is a normal wait, not a transport failure.
         // Do not flood the on-screen error stream with expected HTTP 404 every 2 seconds.
-        if(notFoundOkay && res.StatusCode==HttpStatusCode.NotFound)return null;
+        if(ExpectedDiscovery404(res.StatusCode,notFoundOkay))return null;
         Log("FIRESTORE_HTTP",resultCode,new{method,route,elapsed_ms=Environment.TickCount64-start});
         if(!res.IsSuccessStatusCode){
             string reason="UNSPECIFIED";
