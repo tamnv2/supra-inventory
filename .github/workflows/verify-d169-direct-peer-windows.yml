@@ -1,0 +1,49 @@
+name: D171 Two-Agent Diagnostic Windows EXE
+on:
+  pull_request:
+    paths:
+      - "tools/d169-peer-windows/**"
+      - ".github/workflows/verify-d169-direct-peer-windows.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  peer-exe:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    environment: beta
+    env:
+      FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Validate isolated change and injected Firebase config
+        shell: pwsh
+        run: |
+          if (-not $env:FIREBASE_API_KEY_BETA -or $env:FIREBASE_API_KEY_BETA.Length -lt 20) { throw 'Missing Beta Firebase project public client configuration' }
+          $src = Get-Content tools/d169-peer-windows/PeerForm.cs -Raw
+          if ($src.Contains('relay_poc_jobs') -and -not $src.Contains('NEVER touches relay_poc_jobs')) { throw 'Production queue forbidden' }
+          if (-not $src.Contains('d169_diag_sessions')) { throw 'Missing isolated namespace' }
+      - name: Inject build-time public Firebase config (never print value)
+        shell: pwsh
+        run: |
+          $key = [string]$env:FIREBASE_API_KEY_BETA
+          $jsonLiteral = ConvertTo-Json -InputObject $key -Compress
+          $file = "tools/d169-peer-windows/BuildConfig.cs"
+          $content = Get-Content $file -Raw
+          if (-not $content.Contains('FirebaseApiKey = "";')) { throw 'Build config injection anchor missing' }
+          $content = $content.Replace('FirebaseApiKey = "";', 'FirebaseApiKey = ' + $jsonLiteral + ';')
+          Set-Content -Path $file -Value $content -Encoding utf8NoBOM
+      - name: Compile independent Test Agent
+        shell: pwsh
+        run: |
+          dotnet publish tools/d169-peer-windows/SUPRA.D169.PeerDiagnostic.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o dist/d169-test-agent
+          if (-not (Test-Path dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe)) { throw 'Missing EXE' }
+          Get-FileHash dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe -Algorithm SHA256 | Format-Table Hash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SUPRA-D171-TEST-AGENT-WINDOWS
+          path: dist/d169-test-agent/SUPRA.D169.PeerDiagnostic.exe
+          retention-days: 14

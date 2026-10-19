@@ -1,3 +1,12 @@
+## D171-E001 — Owner ưu tiên triển khai D171 trước khi nghiệm thu D170 (19/10/2026)
+
+- Owner yêu cầu **mở và chạy D171 ngay**, **tạm hoãn D170 chưa chốt**, không được ghi D170 OWNER PASS. Đây là **ngoại lệ điều phối riêng D170→D171**, không phải mở quyền làm nhiều change đồng thời. D169 vẫn là accepted base.
+- D171 giới hạn bộ test độc lập gồm 2 Windows Agent test đăng nhập bằng hai tài khoản có quyền Agent khác nhau và 1 PDA test bằng tài khoản Picker test. Mỗi thiết bị bấm BẮT ĐẦU TEST một lần; chỉ bắt đầu khi đủ 3 authenticated READY.
+- PDA luôn dùng mạng thường. Chỉ hai Agent lần lượt đổi NORMAL/OFFICE theo bảng hướng dẫn trên đúng EXE, có xác minh đường mạng, đồng bộ tiến độ 3 thiết bị, ACK thực giữa test clients, retry/reconnect/timeout và PRIMARY mô phỏng có fencing.
+- Dùng vùng Firestore test tạm riêng trong **Firebase Project đang đăng ký**, Firebase Rules kiểm thử quyền và đọc lại thực tế trước sử dụng; tuyệt đối không đụng WMS/Picklist/PRIMARY/call/chat/kick nghiệp vụ thật hay Stable. Tài khoản/mật khẩu/thiết bị cụ thể là cấu hình runtime riêng tư, không commit public repo.
+- Cho phép code/build/phát hành **bộ EXE/APK test riêng** sau CI, security emulator, kiểm tra đúng Rules và phân vùng resource; không suy diễn field PASS, không tự xóa log/dữ liệu trước khi Owner xác nhận đã lưu.
+- Trạng thái triển khai và bất kỳ blocker phải lưu trong `ops/change-continuity/D171.json` và `ops/project-state.json`. D170 vẫn pending để xử lý sau.
+
 ## D170-E018 — Phát hành hoàn tất Agent v139 (19/10/2026)
 
 Owner chốt lệnh mới: **chỉ tập trung phát hành DONE Agent v139**, giữ nguyên App Android vc114 và trạng thái hai domain. Main Worker D170 Phase3A và signed APK vc114 đã release thành công; GitHub Agent workflow #39157893680 compile v139 PASS nhưng failed ở bước so sánh Rules với baseline D169 `c90e521` đã cũ. Ba blob `firebase/firestore.rules`, `firebase/firestore.indexes.json`, `firebase.json` được kiểm chứng giống hệt pre-Phase3A main `3829933312d7805bdb636e1d7581e3a81bb58ff9`. Sửa cổng CI phải giữ kiểm tra diff fail-closed và ancestry; không thay đổi Rules.

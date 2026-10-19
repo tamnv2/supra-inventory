@@ -1,3 +1,7 @@
+## D171 — Bộ test Firestore riêng cho 2 Agent và 1 PDA (2026-10-19)
+
+Chỉ dùng `d169_diag_sessions` tạm trong Firebase Project đang đăng ký; không đọc/ghi job Picklist, PRIMARY, calls/chats/kicks hoặc WMS thật. PDA Picker giữ mạng NORMAL, hai Agent xác thực riêng và cùng READY ở mỗi vòng. Message có request ID, payload mô phỏng, ACK echo đúng đích, TTL 5 phút và phiên không quá 48 giờ. Security Rules phải chặn mạo danh, role sai, Picker OFFICE, sửa trạng thái của member khác, duplicate ACK, TTL sai và mọi mutation nghiệp vụ. Không coi HTTP 200 là ACK. Mỗi lần kết nối/đổi mạng đều ghi đúng transport/permission/retry và không fallback về nghiệp vụ.
+
 # REALTIME_NOTIFICATIONS — Canonical synchronization and notification rules
 
 Status: **CANONICAL PRODUCT SPEC**.

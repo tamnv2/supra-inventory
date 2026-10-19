@@ -1,0 +1,110 @@
+name: D171 Scoped Test-Only Firestore Rules
+on:
+  pull_request:
+    paths:
+      - 'firebase/firestore.rules'
+      - 'tools/d169-peer-test/**'
+      - '.github/workflows/d171-deploy-isolated-test-rules.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'firebase/firestore.rules'
+      - '.github/workflows/d171-deploy-isolated-test-rules.yml'
+permissions:
+  contents: read
+concurrency:
+  group: d171-scoped-firestore-rules
+  cancel-in-progress: false
+jobs:
+  rules-security-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prove exact shared Firestore permissions are unchanged
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess, os, json
+          rules=Path('firebase/firestore.rules').read_text()
+          start=rules.index('    // D171: TEMPORARY isolated diagnostics;')
+          end=rules.index('    match /relay_poc_jobs/',start)
+          restored=rules[:start]+rules[end:]
+          ref='origin/main:firebase/firestore.rules' if os.environ['GITHUB_EVENT_NAME']=='pull_request' else 'HEAD^:firebase/firestore.rules'
+          base=subprocess.check_output(['git','show',ref],text=True)
+          assert restored==base,'Shared production Firebase Rules changed: refuse scoped test deployment'
+          assert rules.count('match /d169_diag_sessions/{sid}')==1
+          scope=json.loads(Path('ops/project-scope.json').read_text())
+          assert any(r.get('key')=='d169-diagnostic-firestore-beta' and r.get('collection')=='d169_diag_sessions' for r in scope['resources'])
+          state=json.loads(Path('ops/project-state.json').read_text())
+          assert state['change_control']['current_change_id']=='D171'
+          assert state['d170']['owner_pass'] is False
+          assert '2026-10-19' in Path('docs/OWNER_DECISIONS.md').read_text()
+          print('D171_CURRENT_MAIN_PARITY_AND_OWNER_SCOPE_PASS')
+          PY
+      - name: Full emulator security and three-node readiness tests
+        run: |
+          npm install --no-audit --no-fund --prefix tools/d169-peer-test
+          npm install --no-audit --no-fund --global firebase-tools@14.16.0
+          firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
+  deploy-scoped-beta-only:
+    needs: rules-security-gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 20
+    env:
+      FIREBASE_RULES_SA_JSON_BETA: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require existing Beta project and credentials
+        run: |
+          test -n "$FIREBASE_RULES_SA_JSON_BETA"
+          python3 - <<'PY'
+          import json
+          s=json.load(open('ops/project-scope.json'))
+          matches=[r for r in s['resources'] if r.get('key')=='d169-diagnostic-firestore-beta']
+          assert len(matches)==1
+          assert matches[0]['project_id']=='supra-inventory-beta'
+          assert matches[0]['database']=='(default)'
+          assert matches[0]['collection']=='d169_diag_sessions'
+          print('D171_SCOPED_BETA_ONLY_PASS')
+          PY
+      - uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Publish only current-main Beta Firestore Rules, then verify release readback
+        env:
+          PROJECT: supra-inventory-beta
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          python3 - <<'PY' > "$RUNNER_TEMP/ruleset.json"
+          import json
+          print(json.dumps({'source':{'files':[{'name':'firestore.rules','content':open('firebase/firestore.rules',encoding='utf8').read()}]}}))
+          PY
+          status="$(curl --silent --show-error -o "$RUNNER_TEMP/create.json" -w '%{http_code}' -X POST -H "Authorization: Bearer $token" -H 'Content-Type: application/json' --data-binary @"$RUNNER_TEMP/ruleset.json" "https://firebaserules.googleapis.com/v1/projects/$PROJECT/rulesets")"
+          test "$status" = "200" || { echo "D171_RULES_CREATE_HTTP_$status"; exit 1; }
+          name="$(python3 -c "import json;print(json.load(open('$RUNNER_TEMP/create.json'))['name'])")"
+          python3 - "$name" "$PROJECT" > "$RUNNER_TEMP/release.json" <<'PY'
+          import json,sys
+          print(json.dumps({'release':{'name':'projects/'+sys.argv[2]+'/releases/cloud.firestore','rulesetName':sys.argv[1]}}))
+          PY
+          status="$(curl --silent --show-error -o "$RUNNER_TEMP/release-result.json" -w '%{http_code}' -X PATCH -H "Authorization: Bearer $token" -H 'Content-Type: application/json' --data-binary @"$RUNNER_TEMP/release.json" "https://firebaserules.googleapis.com/v1/projects/$PROJECT/releases/cloud.firestore")"
+          test "$status" = "200" || { echo "D171_RULES_RELEASE_HTTP_$status"; exit 1; }
+          curl --silent --show-error --fail -H "Authorization: Bearer $token" "https://firebaserules.googleapis.com/v1/projects/$PROJECT/releases/cloud.firestore" > "$RUNNER_TEMP/readback.json"
+          python3 - "$RUNNER_TEMP/readback.json" "$name" <<'PY'
+          import json,sys
+          assert json.load(open(sys.argv[1]))['rulesetName']==sys.argv[2]
+          print('D171_TEMP_BETA_FIRESTORE_RULES_READBACK_PASS')
+          PY
