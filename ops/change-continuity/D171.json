@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D171",
+  "working_branch": "feat/d171-three-node-network-test-20261019",
+  "pr": 638,
+  "accepted_base": "D169_LIMITED_OWNER_PASS",
+  "last_checkpoint": {
+    "id": "D171-E001",
+    "date_vn": "2026-10-19"
+  },
+  "deployment_gate": {
+    "owner_latest": "2026-10-19 OWNER_EXPLICIT_D171_BEFORE_UNACCEPTED_D170",
+    "accepted_base": "D169_LIMITED_OWNER_PASS",
+    "d170": "PAUSED_NO_OWNER_PASS",
+    "code_approved": true,
+    "test_artifact_release_approved": true,
+    "firestore_test_rules": "CONDITIONAL_CURRENT_MAIN_AND_EMULATOR_AND_OWNER_SCOPE_PASS",
+    "prod_deploy": false,
+    "stable": "OWNER_GATED"
+  },
+  "entries": [
+    {
+      "id": "D171-E001",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner reprioritizes D171 network field suite before D170 acceptance",
+      "status": "D171_ACTIVE_OWNER_PRIORITY_EXCEPTION__D170_PAUSED_UNACCEPTED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly orders opening and executing D171 now, leaving D170 pending and not accepted. This narrow exception alters work scheduling only: D169 remains the last Owner-accepted base and any already technically released D170 binaries remain unaccepted.",
+        "Approved test topology: two independently authenticated Windows diagnostic Agents, one authenticated Android Picker diagnostic device remaining always on normal Internet; shared three-node ready barrier, controlled Agent-only Office/normal network switches.",
+        "Use existing registered Firebase default Firestore only with a scoped separate diagnostic session collection, current Rules baseline + emulator deny matrix; no WMS, Picklist, operational Agent/Android app, production coordination or Stable writes.",
+        "Port from Draft PR613 only with current-main compatibility review; existing Draft PR612 is supplemental read-only probe.",
+        "Independent test release may proceed only after source/build/security/authority CI and explicit verified isolated resource scope; hardware FIELD PASS remains Owner-only. Do not claim D170 Owner PASS or erase D170 obligations."
+      ],
+      "next_action": "Implement diagnostic-only code/Rules and dedicated build CI through PR638, verify test namespace authorization/readback, then release sanitized Windows EXE/Android APK test artifacts for real field test.",
+      "evidence": "Owner explicit 2026-10-19 D171 before D170 pending request; D170-E022/E023; PR612/613 source references."
+    }
+  ],
+  "resume": {
+    "approved": [
+      "D171 prioritized ahead of paused D170 by explicit Owner direction; D169 stays accepted base.",
+      "Two Agent + one PDA diagnostic isolated from production and all data-plane operations; physical test after CI."
+    ],
+    "implemented": [
+      "D171 plan and journal initialized on PR638 branch."
+    ],
+    "in_progress": [
+      "Reconcile latest source, RBAC, Firestore Rules baseline and build independent test artifacts."
+    ],
+    "pending_approval": [],
+    "blocked": [
+      "No test Rules/runtime mutation or field-ready binary claim until Rules emulator, CI and provider readback verified."
+    ],
+    "next_actions": [
+      "Port and correct Agent/PDA test clients; ensure three-party barrier and PDA-normal-only scripts; run CI and release separate test files."
+    ],
+    "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
+  }
+}
