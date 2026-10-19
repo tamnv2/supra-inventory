@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e016-vps-primary-network-routing-design-20261019",
-  "pr": 650,
+  "working_branch": "docs/d171-e017-connectivity-glossary-20261019",
+  "pr": 651,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E016",
+    "id": "D171-E017",
     "date_vn": "2026-10-19"
   },
   "deployment_gate": {
@@ -345,6 +345,34 @@
       ],
       "next_action": "Present two-plane scenario matrix to Owner. For a future implementation request first perform coupled Agent/Android/Firestore/RTDB/WMS impact review and obtain explicit Owner consent under serial D171/D170 and stable gates. Continue independent D171 FIELD PASS false; no prod change.",
       "evidence": "GitHub relay-agent-v139 tag; Android beta-vc114 / RelayPocClient.kt; relay-agent FirestoreAgentLeaderCoordinator.cs (10/15s common lease, optional RTDB, CAS, VPS return), RtdbHaLiveness.cs, FirestoreVpsReclaim.cs (30s ready, 15m consent), FirestoreConfirmationTransport.cs and D168NetworkRoute.cs; D171-E014/E015."
+    },
+    {
+      "id": "D171-E017",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner-requested accessible glossary and two-network availability matrix for actual Agent v139 and Android vc114 transport",
+      "status": "ANALYSIS_ONLY__NO_RUNTIME_CHANGE__NO_OWNER_PASS",
+      "facts": [
+        "Independent paths are Firestore REST over HTTPS, Firestore gRPC streaming Listen on Windows, Android Firestore SDK exact-doc snapshot listener, Firebase RTDB REST/SSE for optional HA liveness, Firebase Auth token refresh, and Cloudflare Worker API; WMS browser route is separate from Firebase carrier.",
+        "Terms lease, heartbeat, roles, generation, CAS, and ACK are application records/protocol semantics, not distinct network services. Proxy is a route to Firestore, not another database.",
+        "D171 five-round isolated tests: both NORMAL agents had authenticated direct/system-proxy exact Firestore role+agent_sync read HTTP 200; RTDB authenticated read HTTP 200 and SSE frame HTTP 200; Worker network checks successful.",
+        "D171 Office rounds: authenticated Firestore exact reads to roles/agent_sync via SYSTEM_PROXY HTTP 200, DIRECT failure; token refresh via proxy succeeded. RTDB authenticated read/SSE via proxy returned HTTP 403 and direct failed; Worker checks unavailable. No production gRPC streaming Office capability proof, and no PDA-on-Office test because test PDA always NORMAL.",
+        "v139 Windows Agent exposes Firestore gRPC listeners (pending business, compact agent_sync+Picker presence, handoff/VPS reclaim); REST watchdog and standby lease reads, generation-fenced CAS, 10s lease/15s expiry, RTDB SSE only when mode INTERNET. VPS Ethernet/unknown mode does not announce RTDB heartbeat; v139 can still maintain Firestore common lease.",
+        "Android current RelayPocClient.kt uses authenticated Firestore SDK exact relay_poc_jobs/requestId document create, snapshot listener for terminal ACK, bounded authoritative read at timeout, one-request recovery protocol. No direct PDA-to-Agent transport or separate RTDB business queue.",
+        "Business feature readiness may be narrower than basic HTTPS probe: Firestore REST reachability alone does not establish full Windows gRPC listener function, WMS session readiness, Firebase billed quota, or every action UX on Office.",
+        "Five-round last restore had standalone diagnostic peer READY stale and transient Agent HTTP failure, not evidence of full production Agent v139 protocol failure."
+      ],
+      "alternatives": [
+        "Maintain one Firestore authority across Office and NORMAL, local transport selection per network capability; RTDB HA listener conditional, do not claim universal Office RTDB.",
+        "Do not conflate Firestore lease 10-second write with listener transport or define auto-takeover based solely on failed RTDB ping."
+      ],
+      "open_questions": [
+        "Field validate actual v139 Firestore pending/agent_sync/handoff gRPC LISTEN through Office proxy, separately from HTTPS REST.",
+        "Measure real VPS Ethernet RTDB liveness and data plane with sanitized logs, and physical end-to-end PDA confirm latency across real Office/NORMAL cases."
+      ],
+      "next_action": "Await Owner's selection or explicit request for code changes. No production Agent/Android/Rules/WMS change; D171 field+Owner PASS false and D170 paused.",
+      "evidence": "Release Agent v139 source and current Android vc114 source, D171 five-round Owner-uploaded NETWORK_PROBES/AGENT_PEER/Android test logs, canonical D169/D171 repo specs and E016 routing proposal."
     }
   ],
   "resume": {
@@ -368,7 +396,8 @@
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
       "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release.",
-      "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization."
+      "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization.",
+      "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test."
     ],
     "blocked": [
       "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
