@@ -41,6 +41,7 @@ internal sealed class PeerForm : Form
     private readonly ConcurrentDictionary<string,string> _roles=new();
     private readonly ConcurrentDictionary<int,bool> _peerComplete=new();
     private long _lastLeaderProbe=0;
+    private DateTimeOffset _pollSince=DateTimeOffset.MinValue;
     private readonly Button _testAll=new(){Text="BẮT ĐẦU TEST TỰ ĐỘNG"};
     private readonly Button _confirmSwitch=new(){Text="ĐÃ CHUYỂN MẠNG · TEST TIẾP"};
     private static readonly string[] Phases={"PDA NORMAL / A NORMAL / B NORMAL","PDA NORMAL / A OFFICE / B NORMAL","PDA NORMAL / A NORMAL / B OFFICE","PDA NORMAL / A OFFICE / B OFFICE","PDA NORMAL / A NORMAL / B NORMAL (RESTORE)"};
@@ -512,7 +513,7 @@ internal sealed class PeerForm : Form
         if(data!=null)req.Content=new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8,"application/json");
         var start=Environment.TickCount64;
         using var res=await _http.SendAsync(req);
-        if(method=="GET"){
+        if(method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal)){
             if(Interlocked.Increment(ref _readCount)>550)throw new InvalidOperationException("D171_READ_BUDGET_STOP");
         }else Interlocked.Increment(ref _writeCount);
         var resultCode="HTTP_"+(int)res.StatusCode;
@@ -654,7 +655,8 @@ internal sealed class PeerForm : Form
         if(_polling!=null)return;
         _polling=CancellationTokenSource.CreateLinkedTokenSource(_closed.Token);
         var cancel=_polling;
-        Log("LISTENER","START",new{mode="REST_WATCHDOG_8S",read_budget=550});
+        _pollSince=DateTimeOffset.UtcNow.AddSeconds(-10);
+        Log("LISTENER","START",new{mode="FIRESTORE_RECENT_QUERY_8S",http_read_budget=550});
         _=Task.Run(async()=>{
           while(!cancel.IsCancellationRequested)
           {
@@ -674,10 +676,8 @@ internal sealed class PeerForm : Form
             _lastLeaderProbe=Environment.TickCount64;
             await MaintainSimulatedLeader();
         }
-        await PollCollection/("messages",async id=>{
-          using var doc=await Http("GET",Url("/messages/"+id));
-          if(doc==null)return true;
-          var root=doc.RootElement;
+        var since=_pollSince;
+        await PollCollection("messages",since,async (id,root)=>{
           var from=GetString(root,"sender_uid");
           var to=GetString(root,"target_uid");
           if(GetString(root,"sender_node")==_nodeId || (to!="ALL" && to!=_uid))return true;
@@ -714,15 +714,13 @@ internal sealed class PeerForm : Form
           }
           return true;
         });
-        await PollCollection("receipts",async id=>{
-          using var receipt=await Http("GET",Url("/receipts/"+id));
-          if(receipt==null)return true;
-          var requestId=GetString(receipt.RootElement,"request_id");
-          var receiverUid=GetString(receipt.RootElement,"receiver_uid");
-          var receiverNode=GetString(receipt.RootElement,"receiver_node");
+        await PollCollection("receipts",since,async (id,receipt)=>{
+          var requestId=GetString(receipt,"request_id");
+          var receiverUid=GetString(receipt,"receiver_uid");
+          var receiverNode=GetString(receipt,"receiver_node");
           if(requestId.Length!=32||receiverNode==_nodeId)return true;
           if(!_sentExpected.TryGetValue(requestId,out var expected))return true;
-          if(GetString(receipt.RootElement,"payload_echo")!=expected){
+          if(GetString(receipt,"payload_echo")!=expected){
             Log("RX_TEST_RECEIPT","PAYLOAD_ECHO_MISMATCH",new{request_id=requestId});
             return true;
           }
@@ -743,24 +741,30 @@ internal sealed class PeerForm : Form
         if(role=="PICKER"||role=="ADMIN"||role=="PICKPACK_ADMIN")_roles[uid]=role;
         return role;
     }
-    private async Task PollCollection(string name,Func<string,Task<bool>> receive)
+    // Firestore filters on the server instead of repeatedly billing historic documents.
+    private async Task PollCollection(string name,DateTimeOffset since,Func<string,JsonElement,Task<bool>> receive)
     {
-        string? next=null;
-        do {
-        using var doc=await Http("GET",Url("/"+name)+"?pageSize=100"+(next==null?"":"&pageToken="+Uri.EscapeDataString(next)),null,true);
-        if(doc==null)return;
-        var root=doc.RootElement;
-        if(!root.TryGetProperty("documents",out var list))return;
-        foreach(var item in list.EnumerateArray()){
-          if(!item.TryGetProperty("name",out var nm))continue;
-          var id=nm.GetString()?.Split('/').LastOrDefault()??"";
-          if(id.Length==0)continue;
-          lock(_gate)if(_seen.Contains(name+":"+id))continue;
-          if(await receive(id)) {
-            lock(_gate)_seen.Add(name+":"+id);
-          }
+        var query=new {structuredQuery=new{
+            from=new[]{new{collectionId=name}},
+            where=new{fieldFilter=new{field=new{fieldPath="created_at"},
+                op="GREATER_THAN_OR_EQUAL",value=T(since)}},
+            orderBy=new[]{new{field=new{fieldPath="created_at"},direction="ASCENDING"}},
+            limit=100
+        }};
+        using var result=await Http("POST",Url()+":runQuery",query);
+        if(result==null||result.RootElement.ValueKind!=JsonValueKind.Array)
+            throw new InvalidOperationException("D171_QUERY_RESPONSE_INVALID");
+        var count=0;
+        foreach(var entry in result.RootElement.EnumerateArray()){
+            if(!entry.TryGetProperty("document",out var item))continue;
+            count++;
+            if(!item.TryGetProperty("name",out var nm))continue;
+            var id=nm.GetString()?.Split('/').LastOrDefault()??"";
+            if(id.Length==0)continue;
+            lock(_gate)if(_seen.Contains(name+":"+id))continue;
+            if(await receive(id,item)){lock(_gate)_seen.Add(name+":"+id);}
         }
-        next=root.TryGetProperty("nextPageToken",out var page)?page.GetString():null;
-        }while(!string.IsNullOrEmpty(next));
+        if(count>=100)throw new InvalidOperationException("D171_QUERY_WINDOW_OVERFLOW_STOP");
+        if(name=="receipts")_pollSince=DateTimeOffset.UtcNow.AddSeconds(-16);
     }
 }
