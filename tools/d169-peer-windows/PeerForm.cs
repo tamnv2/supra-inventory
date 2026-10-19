@@ -39,6 +39,9 @@ internal sealed class PeerForm : Form
     private readonly ConcurrentDictionary<string,int> _pdaAcks=new();
     private readonly ConcurrentDictionary<string,int> _agentAcks=new();
     private readonly ConcurrentDictionary<string,string> _roles=new();
+    private readonly ConcurrentDictionary<int,bool> _peerComplete=new();
+    private long _lastLeaderProbe=0;
+    private DateTimeOffset _pollSince=DateTimeOffset.MinValue;
     private readonly Button _testAll=new(){Text="BẮT ĐẦU TEST TỰ ĐỘNG"};
     private readonly Button _confirmSwitch=new(){Text="ĐÃ CHUYỂN MẠNG · TEST TIẾP"};
     private static readonly string[] Phases={"PDA NORMAL / A NORMAL / B NORMAL","PDA NORMAL / A OFFICE / B NORMAL","PDA NORMAL / A NORMAL / B OFFICE","PDA NORMAL / A OFFICE / B OFFICE","PDA NORMAL / A NORMAL / B NORMAL (RESTORE)"};
@@ -148,6 +151,7 @@ internal sealed class PeerForm : Form
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
         if(_phase>=Phases.Length){
+            StopPoll();
             Log("AUTO_TEST","ALL_FIVE_PHASES_FINISHED");
             MessageBox.Show("Đã hoàn tất 5/5 vòng kiểm thử. Kiểm tra log kết quả ACK và kết nối trước khi nghiệm thu.","SUPRA D171 · Hoàn tất",MessageBoxButtons.OK,MessageBoxIcon.Information);
             return;
@@ -174,6 +178,8 @@ internal sealed class PeerForm : Form
         Text="SUPRA D171 Test — "+_operatorLogin+" (Agent "+_agentLabel+")";
         StartPoll();
         _activeStep="02_DANG_KY_AGENT_READY";
+        await RunReadOnlyNetworkProbes(Phases[_phase]);
+        await VerifyDiagnosticRoute();
         await PublishReady();
         _activeStep="02B_BAO_PDA_CHUYEN_PHA_TEST";
         await AnnouncePhaseToPicker();
@@ -181,6 +187,7 @@ internal sealed class PeerForm : Form
         await WaitForThreeReady();
         _activeStep="04_GUI_TEST_VA_CHO_ACK";
         await TestPhase();
+        await WaitForPeerPhaseCompletion();
         _phase=1;
         ShowNetworkPhase();
     }
@@ -191,6 +198,8 @@ internal sealed class PeerForm : Form
         Log("NETWORK_SWITCH","OPERATOR_CONFIRMED",new{phase,epoch=Interlocked.Increment(ref _epoch)});
         _mode.SelectedItem=ExpectedLocalNetwork(_phase);
         _activeStep="05_CAP_NHAT_MANG_AGENT";
+        await RunReadOnlyNetworkProbes(phase);
+        await VerifyDiagnosticRoute();
         await PublishReady();
         _activeStep="05B_BAO_PDA_CHUYEN_PHA_TEST";
         await AnnouncePhaseToPicker();
@@ -198,8 +207,38 @@ internal sealed class PeerForm : Form
         await WaitForThreeReady();
         _activeStep="07_GUI_TEST_VA_CHO_ACK";
         await TestPhase();
+        await WaitForPeerPhaseCompletion();
         _phase++;
         ShowNetworkPhase();
+    }
+    private async Task VerifyDiagnosticRoute()
+    {
+        _activeStep="D171_XAC_MINH_FIRESTORE_SAU_CHUYEN_MANG";
+        using var proof=await Http("GET",Url("/members/"+Uri.EscapeDataString(_uid)));
+        if(proof==null || GetString(proof.RootElement,"uid")!=_uid)
+            throw new InvalidOperationException("D171_FIRESTORE_AUTH_ROUTE_NOT_READY");
+        Log("NETWORK_MEASURED","AUTHENTICATED_FIRESTORE_PASS",new{phase=_phase,expected=ExpectedLocalNetwork(_phase)});
+    }
+    private async Task WaitForPeerPhaseCompletion()
+    {
+        _activeStep="D171_CHO_AGENT_KIA_HOAN_THANH";
+        var id=Guid.NewGuid().ToString("N");
+        var fields=new Dictionary<string,object>{
+            ["request_id"]=S(id),["sender_uid"]=S(_uid),["sender_node"]=S(_nodeId),
+            ["sender_role"]=S(_token.Role),["target_uid"]=S("ALL"),["kind"]=S("PING"),
+            ["payload"]=S("D171-PHASE-DONE-P"+_phase),
+            ["expires_at"]=T(DateTimeOffset.UtcNow.AddMinutes(4))
+        };
+        await CreateDoc("d169_diag_sessions/"+Sid()+"/messages/"+id,fields,"created_at");
+        Log("PHASE_COMPLETE","LOCAL_PASS_PEER_PENDING",new{phase=_phase});
+        for(var i=0;i<15;i++){
+            if(_peerComplete.ContainsKey(_phase)){
+                Log("PHASE_COMPLETE","BOTH_AGENT_PASS",new{phase=_phase});
+                return;
+            }
+            await Task.Delay(4000,_closed.Token);
+        }
+        throw new InvalidOperationException("D171_PEER_PHASE_COMPLETE_TIMEOUT");
     }
     private async Task EnsureAutomaticSession()
     {
@@ -228,7 +267,7 @@ internal sealed class PeerForm : Form
         for(var attempt=0;attempt<120;attempt++){
             root=await Http("GET",Url(),null,true);
             if(root!=null)break;
-            if(attempt%8==0)Log("PAIR_DISCOVERY","WAIT_FOR_ADMIN_A_TO_PRESS_START",new{wait_seconds=attempt*2,role=_agentLabel});
+            if(attempt%4==0)Log("PAIR_DISCOVERY","WAIT_FOR_ADMIN_A_TO_PRESS_START",new{wait_seconds=attempt*2,role=_agentLabel});
             await Task.Delay(2000,_closed.Token);
         }
         if(root==null)throw new InvalidOperationException("D171_WAIT_ADMIN_A_START_TIMEOUT");
@@ -263,7 +302,7 @@ internal sealed class PeerForm : Form
     }
     private async Task WaitForThreeReady()
     {
-        for(var attempt=0;attempt<90;attempt++){
+        for(var attempt=0;attempt<24;attempt++){
             using var d=await Http("GET",Url("/members")+"?pageSize=40",null,true);
             if(d!=null&&d.RootElement.TryGetProperty("documents",out var docs)){
                 var agentCount=0;var pickerCount=0;
@@ -280,10 +319,10 @@ internal sealed class PeerForm : Form
                     }
                 }
                 if(agentCount==2&&pickerCount==1){Log("THREE_PARTY_READY","PASS",new{phase=_phase,agents=agentCount,pda=pickerCount});return;}
-                if(attempt%8==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MISSING_PARTICIPANTS",new{phase=_phase,agent_ready=agentCount,pda_ready=pickerCount,required_agents=2,required_pda=1});
+                if(attempt%4==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MISSING_PARTICIPANTS",new{phase=_phase,agent_ready=agentCount,pda_ready=pickerCount,required_agents=2,required_pda=1});
             }
-            else if(attempt%8==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MEMBERS_COLLECTION",new{phase=_phase});
-            await Task.Delay(2000,_closed.Token);
+            else if(attempt%4==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MEMBERS_COLLECTION",new{phase=_phase});
+            await Task.Delay(3000,_closed.Token);
         }
         throw new InvalidOperationException("D171_THREE_PARTY_READY_TIMEOUT");
     }
@@ -309,13 +348,12 @@ internal sealed class PeerForm : Form
     {
         var phase=Phases[_phase];
         Log("PHASE","BEGIN",new{phase,expected_operator_network=phase,node=_nodeId[..8]});
-        await RunReadOnlyNetworkProbes(phase);
         var sent=new List<string>();
         foreach(var type in new[]{"PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
           sent.Add(await SendTest(type));
         }
-        for(var t=0;t<30;t++){
-          if(sent.All(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0))break;
+        for(var t=0;t<45;t++){
+           if(sent.All(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0))break;
           await Task.Delay(1000);
         }
         foreach(var id in sent){
@@ -412,6 +450,8 @@ internal sealed class PeerForm : Form
             // Print actionable diagnostics without logging passwords, tokens or raw HTTP bodies.
             var code=PublicFailureCode(e);
             Log("ACTION","FAILED",new{stage=_activeStep,code,type=e.GetType().Name});
+             _confirmSwitch.Enabled=false;
+             StopPoll();
             if(!IsDisposed){
                 _output.AppendText(DateTime.Now.ToString("HH:mm:ss")+" LOI ["+_activeStep+"] "+code+Environment.NewLine);
                 MessageBox.Show("D171 khong the tiep tuc tai buoc: "+_activeStep+Environment.NewLine+
@@ -419,7 +459,7 @@ internal sealed class PeerForm : Form
                     "Log chi tiet: "+_logPath+Environment.NewLine+
                     "Gui file JSONL (khong gui mat khau hay token) de kiem tra.",
                     "SUPRA D171 - Loi can xu ly",MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                _testAll.Enabled=_phase==0;
+                _testAll.Enabled=false; // Faulted run must not replay stale data.
             }
         }
         finally{_busy=false;}
@@ -473,9 +513,14 @@ internal sealed class PeerForm : Form
         using var req=new HttpRequestMessage(new HttpMethod(method),url);
         req.Headers.Authorization=new AuthenticationHeaderValue("Bearer",_token.IdToken);
         if(data!=null)req.Content=new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8,"application/json");
+        if((method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal))
+            && Volatile.Read(ref _readCount)>=550)
+            throw new InvalidOperationException("D171_READ_BUDGET_STOP");
         var start=Environment.TickCount64;
         using var res=await _http.SendAsync(req);
-        if(method=="GET")Interlocked.Increment(ref _readCount);else Interlocked.Increment(ref _writeCount);
+        if(method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal)){
+            if(Interlocked.Increment(ref _readCount)>550)throw new InvalidOperationException("D171_READ_BUDGET_STOP");
+        }else Interlocked.Increment(ref _writeCount);
         var resultCode="HTTP_"+(int)res.StatusCode;
         var route = url.Contains("/members",StringComparison.Ordinal)?"MEMBERS" :
             url.Contains("/receipts",StringComparison.Ordinal)?"RECEIPTS" :
@@ -615,12 +660,17 @@ internal sealed class PeerForm : Form
         if(_polling!=null)return;
         _polling=CancellationTokenSource.CreateLinkedTokenSource(_closed.Token);
         var cancel=_polling;
-        Log("LISTENER","START",new{mode="REST_WATCHDOG_2S"});
+        _pollSince=DateTimeOffset.UtcNow.AddSeconds(-10);
+        Log("LISTENER","START",new{mode="FIRESTORE_RECENT_QUERY_8S",http_read_budget=550});
         _=Task.Run(async()=>{
           while(!cancel.IsCancellationRequested)
           {
-            try{await Poll();}catch(Exception e){Log("LISTENER","ERROR",new{type=e.GetType().Name});}
-            try{await Task.Delay(2000,cancel.Token);}catch(OperationCanceledException){break;}
+            try{await Poll();}
+            catch(InvalidOperationException e)when(e.Message=="D171_READ_BUDGET_STOP"){
+                Log("LISTENER","READ_BUDGET_STOP",new{reads=_readCount});break;
+            }
+            catch(Exception e){Log("LISTENER","ERROR",new{type=e.GetType().Name});}
+            try{await Task.Delay(8000,cancel.Token);}catch(OperationCanceledException){break;}
           }
         },cancel.Token);
     }
@@ -631,17 +681,24 @@ internal sealed class PeerForm : Form
     }
     private async Task Poll()
     {
-        await MaintainSimulatedLeader();
-        await PollCollection("messages",async id=>{
-          using var doc=await Http("GET",Url("/messages/"+id));
-          if(doc==null)return true;
-          var root=doc.RootElement;
+        if(Environment.TickCount64-_lastLeaderProbe>16000){
+            _lastLeaderProbe=Environment.TickCount64;
+            await MaintainSimulatedLeader();
+        }
+        var since=_pollSince;
+        await PollCollection("messages",since,async (id,root)=>{
           var from=GetString(root,"sender_uid");
           var to=GetString(root,"target_uid");
           if(GetString(root,"sender_node")==_nodeId || (to!="ALL" && to!=_uid))return true;
           if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return true;
           var kind=GetString(root,"kind");
           var incomingPayload=GetString(root,"payload");
+           if(incomingPayload.StartsWith("D171-PHASE-DONE-P",StringComparison.Ordinal)){
+               if(from!=_uid && int.TryParse(incomingPayload.Substring("D171-PHASE-DONE-P".Length),out var done)
+                   && done>=0 && done<Phases.Length &&
+                   ((await MemberRole(from)) is "ADMIN" or "PICKPACK_ADMIN"))_peerComplete[done]=true;
+               return true;
+           }
           var expectedPrefix="D169-SIM-P"+_phase;
           var validPayload=kind=="PICKLIST_SIM"
             ? Regex.IsMatch(incomingPayload,"^"+Regex.Escape(expectedPrefix)+@"\|[0-9]{3,4}$")
@@ -650,7 +707,7 @@ internal sealed class PeerForm : Form
             var parsed=Regex.Match(incomingPayload,@"^D169-SIM-P([0-4])");
             var prior=parsed.Success&&int.TryParse(parsed.Groups[1].Value,out var incoming)&&incoming<_phase;
             if(prior)return true; // previous phase is terminal; do not reread forever
-            Log("RX_TEST_MESSAGE","PHASE_MISMATCH_RETRY_LATER",new{request_id=id,local_phase=_phase});
+            // Cross-phase messages are deferred without per-poll log spam.
             return false;
           }
           Log("RX_TEST_MESSAGE","RECEIVED",new{request_id=id,kind,epoch=_epoch});
@@ -666,15 +723,13 @@ internal sealed class PeerForm : Form
           }
           return true;
         });
-        await PollCollection("receipts",async id=>{
-          using var receipt=await Http("GET",Url("/receipts/"+id));
-          if(receipt==null)return true;
-          var requestId=GetString(receipt.RootElement,"request_id");
-          var receiverUid=GetString(receipt.RootElement,"receiver_uid");
-          var receiverNode=GetString(receipt.RootElement,"receiver_node");
+        await PollCollection("receipts",since,async (id,receipt)=>{
+          var requestId=GetString(receipt,"request_id");
+          var receiverUid=GetString(receipt,"receiver_uid");
+          var receiverNode=GetString(receipt,"receiver_node");
           if(requestId.Length!=32||receiverNode==_nodeId)return true;
           if(!_sentExpected.TryGetValue(requestId,out var expected))return true;
-          if(GetString(receipt.RootElement,"payload_echo")!=expected){
+          if(GetString(receipt,"payload_echo")!=expected){
             Log("RX_TEST_RECEIPT","PAYLOAD_ECHO_MISMATCH",new{request_id=requestId});
             return true;
           }
@@ -695,24 +750,30 @@ internal sealed class PeerForm : Form
         if(role=="PICKER"||role=="ADMIN"||role=="PICKPACK_ADMIN")_roles[uid]=role;
         return role;
     }
-    private async Task PollCollection(string name,Func<string,Task<bool>> receive)
+    // Firestore filters on the server instead of repeatedly billing historic documents.
+    private async Task PollCollection(string name,DateTimeOffset since,Func<string,JsonElement,Task<bool>> receive)
     {
-        string? next=null;
-        do {
-        using var doc=await Http("GET",Url("/"+name)+"?pageSize=100"+(next==null?"":"&pageToken="+Uri.EscapeDataString(next)),null,true);
-        if(doc==null)return;
-        var root=doc.RootElement;
-        if(!root.TryGetProperty("documents",out var list))return;
-        foreach(var item in list.EnumerateArray()){
-          if(!item.TryGetProperty("name",out var nm))continue;
-          var id=nm.GetString()?.Split('/').LastOrDefault()??"";
-          if(id.Length==0)continue;
-          lock(_gate)if(_seen.Contains(name+":"+id))continue;
-          if(await receive(id)) {
-            lock(_gate)_seen.Add(name+":"+id);
-          }
+        var query=new {structuredQuery=new{
+            from=new[]{new{collectionId=name}},
+            where=new{fieldFilter=new{field=new{fieldPath="created_at"},
+                op="GREATER_THAN_OR_EQUAL",value=T(since)}},
+            orderBy=new[]{new{field=new{fieldPath="created_at"},direction="ASCENDING"}},
+            limit=100
+        }};
+        using var result=await Http("POST",Url()+":runQuery",query);
+        if(result==null||result.RootElement.ValueKind!=JsonValueKind.Array)
+            throw new InvalidOperationException("D171_QUERY_RESPONSE_INVALID");
+        var count=0;
+        foreach(var entry in result.RootElement.EnumerateArray()){
+            if(!entry.TryGetProperty("document",out var item))continue;
+            count++;
+            if(!item.TryGetProperty("name",out var nm))continue;
+            var id=nm.GetString()?.Split('/').LastOrDefault()??"";
+            if(id.Length==0)continue;
+            lock(_gate)if(_seen.Contains(name+":"+id))continue;
+            if(await receive(id,item)){lock(_gate)_seen.Add(name+":"+id);}
         }
-        next=root.TryGetProperty("nextPageToken",out var page)?page.GetString():null;
-        }while(!string.IsNullOrEmpty(next));
+        if(count>=100)throw new InvalidOperationException("D171_QUERY_WINDOW_OVERFLOW_STOP");
+        if(name=="receipts")_pollSince=DateTimeOffset.UtcNow.AddSeconds(-16);
     }
 }

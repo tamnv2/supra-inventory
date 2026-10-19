@@ -1,3 +1,7 @@
+## D171-E012 — Giảm đọc chẩn đoán (19/10/2026)
+
+Không quét lại toàn bộ messages/receipts ngày qua mỗi lần polling; client thử dùng Firestore query theo `created_at` và cửa sổ chồng lấn ngắn, giữ dedupe request-id. Hiển thị bộ đếm local GET/query và dừng có lý do khi quá trần chẩn đoán; số operation phía client KHÔNG phải số document read được tính phí. Giữ log chi tiết 5 vòng, hai Agent A/B và network route, tránh lặp hàng trăm log phase mismatch.
+
 ## D171 — Log chẩn đoán đa thiết bị, không chứa dữ liệu nghiệp vụ (19/10/2026)
 
 Mỗi EXE ghi JSONL riêng tại máy Windows và PDA ghi private log/cho phép chia sẻ an toàn; gắn test session, request_id, phase, network_epoch, vai trò, thời gian gửi/nhận, phản hồi ACK, timeout, retry, replica identity dạng ẩn danh. Tuyệt đối không ghi username đã đăng nhập, SSID/IP thực, passwords, Firebase token, WMS session, private device key, real Picklist hoặc dữ liệu Picker. Phân biệt `SERVER_ACCEPTED_NOT_ACK`, `ACK_PASS`, `ACK_TIMEOUT`, `NETWORK_OPERATOR_CONFIRMED` và `NETWORK_MEASURED`. Một mạng được operator xác nhận chưa phải bằng chứng tự động SSID đổi. Không tự xóa test session trước bước chấp thuận log archive, không ghi log sang collection nghiệp vụ. Ước lượng Firestore read/write theo lớp API và chỉ coi provider billing số đo khi có biên nhận thực.

@@ -39,6 +39,7 @@ class DiagHubActivity : Activity() {
   private val nodeId=UUID.randomUUID().toString().replace("-","")
   @Volatile private var phase=0
   @Volatile private var started=false
+  @Volatile private var lastPassedPhase=-1
   @Volatile private var testStartedWallMs=0L
   private val dispatchedPhases=Collections.synchronizedSet(HashSet<Int>())
   private val acked=Collections.synchronizedSet(HashSet<String>())
@@ -137,6 +138,9 @@ class DiagHubActivity : Activity() {
     worker.execute {
       try {
         val uid=auth?.currentUser?.uid?:throw IllegalStateException("AUTH_REQUIRED")
+        if(newPhase>0 && lastPassedPhase!=newPhase-1)
+          throw IllegalStateException("D171_PREVIOUS_ROUND_NOT_FINISHED")
+        waitForBothAgentReady(root,newPhase)
         root.collection("members").document(uid).update(mapOf(
           "ready_phase" to newPhase,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp()))
         val sent=ArrayList<String>()
@@ -159,17 +163,50 @@ class DiagHubActivity : Activity() {
           sent.add(request)
           journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" phase="+newPhase)
         }
-        for(i in 0 until 45){
+        for(i in 0 until 60){
           if(sent.all{(agentAcknowledgers[it]?.size?:0)==2})break
           Thread.sleep(1000)
         }
         val passed=sent.count{(agentAcknowledgers[it]?.size?:0)==2}
+        if(passed==sent.size)lastPassedPhase=newPhase
+        val owner=Tasks.await(root.get(Source.SERVER),12,TimeUnit.SECONDS).getString("owner_uid").orEmpty()
+        val adminA=sent.count{agentAcknowledgers[it]?.contains(owner)==true}
+        val adminB=sent.count{agentAcknowledgers[it]?.any{agent->agent!=owner}==true}
+        journal.event("PDA_AGENT_ACK_SPLIT","COUNT","phase="+newPhase+" A="+adminA+"/9 B="+adminB+"/9")
         journal.event("PDA_PHASE",if(passed==sent.size)"PASS" else "TIMEOUT",
           "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size)
-        notice("Vòng "+(newPhase+1)+"/"+phases.size+" · đủ 2 Agent ACK: "+passed+"/"+sent.size)
+        notice("Vòng "+(newPhase+1)+"/"+phases.size+" · admin(A): "+adminA+"/9 · tamnv2(B): "+adminB+"/9 · đủ 2 Agent: "+passed+"/9")
         if(newPhase==phases.lastIndex)upload()
       }catch(e:Exception){val code=safeFailure(e);journal.event("PDA_PHASE","FAIL",code);notice("Vòng "+(newPhase+1)+" lỗi: "+code)}
     }
+  }
+  // Agent A is the authenticated session owner; Agent B is the other authenticated
+  // Agent member. Both must prove exact same-phase READY and the correct requested
+  // network before PDA writes READY or any synthetic request.
+  private fun waitForBothAgentReady(root:DocumentReference,newPhase:Int){
+    journal.event("PDA_PHASE_GATE","WAIT","phase="+newPhase+" waiting two Agent READY")
+    val owner=Tasks.await(root.get(Source.SERVER),12,TimeUnit.SECONDS).getString("owner_uid").orEmpty()
+    if(owner.isBlank())throw IllegalStateException("D171_AGENT_A_IDENTITY_MISSING")
+    val aNetwork=if(newPhase==1||newPhase==3)"OFFICE" else "NORMAL"
+    val bNetwork=if(newPhase==2||newPhase==3)"OFFICE" else "NORMAL"
+    for(i in 0 until 15){
+      val all=Tasks.await(root.collection("members").get(Source.SERVER),12,TimeUnit.SECONDS).documents
+      val agents=all.filter{it.getString("role") in listOf("ADMIN","PICKPACK_ADMIN")}
+      val now=System.currentTimeMillis()
+      val a=agents.singleOrNull{it.id==owner}
+      val b=agents.singleOrNull{it.id!=owner}
+      fun correct(d:DocumentSnapshot?,net:String):Boolean =
+        d!=null && d.getLong("ready_phase")==newPhase.toLong() &&
+        d.getString("ready_network")==net &&
+        ((d.getTimestamp("ready_at")?.toDate()?.time?:0L)>now-90000L)
+      if(agents.size==2 && correct(a,aNetwork) && correct(b,bNetwork)){
+        journal.event("PDA_PHASE_GATE","PASS","phase="+newPhase+" A="+aNetwork+" B="+bNetwork)
+        return
+      }
+      if(i%3==0)notice("Chờ đúng 2 Agent READY vòng "+(newPhase+1)+"/5: admin(A)="+aNetwork+", tamnv2(B)="+bNetwork+". PDA giữ mạng thường.")
+      Thread.sleep(5000)
+    }
+    throw IllegalStateException("D171_TWO_AGENT_SAME_PHASE_READY_TIMEOUT")
   }
   private fun ensureAutoJoined():DocumentReference{
     val active=sessionRef
@@ -288,7 +325,8 @@ class DiagHubActivity : Activity() {
   }
   private fun startListeners(root:DocumentReference,uid:String) {
     messages?.remove();receipts?.remove();seen.clear()
-    messages=root.collection("messages").addSnapshotListener(MetadataChanges.INCLUDE){snap,error->
+    val since=com.google.firebase.Timestamp(Date((testStartedWallMs-10000L).coerceAtLeast(0L)))
+    messages=root.collection("messages").whereGreaterThanOrEqualTo("created_at",since).addSnapshotListener(MetadataChanges.INCLUDE){snap,error->
       if(error!=null){journal.event("RX_LISTEN","ERROR",error.javaClass.simpleName);return@addSnapshotListener}
       for(ch in snap?.documentChanges.orEmpty()){
         val d=ch.document
@@ -296,6 +334,7 @@ class DiagHubActivity : Activity() {
         if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
         val incomingPayload=d.getString("payload").orEmpty()
+        if(incomingPayload.startsWith("D171-PHASE-DONE-P"))continue
         val parsed=Regex("^D169-SIM-P([0-4])(?:\\|[0-9]{3,4})?$").matchEntire(incomingPayload)
         val incomingPhase=parsed?.groupValues?.get(1)?.toIntOrNull()
         if(incomingPhase==null||incomingPhase !in phases.indices){
@@ -315,7 +354,7 @@ class DiagHubActivity : Activity() {
         receiver.execute{ack(root,d.id,uid,incomingPayload)}
       }
     }
-    receipts=root.collection("receipts").addSnapshotListener{snap,error->
+    receipts=root.collection("receipts").whereGreaterThanOrEqualTo("created_at",since).addSnapshotListener{snap,error->
       if(error!=null){journal.event("ACK_LISTEN","ERROR",error.javaClass.simpleName);return@addSnapshotListener}
       for(ch in snap?.documentChanges.orEmpty()){
         val d=ch.document

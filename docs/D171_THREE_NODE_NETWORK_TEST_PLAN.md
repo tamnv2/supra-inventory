@@ -1,3 +1,13 @@
+## D171-E012 — Operator procedure for the repaired standalone kit (19 Oct 2026)
+
+1. Start with Agent A (`admin`) and Agent B (`tamnv2`) on NORMAL and one Picker PDA (`100`) on NORMAL. Each user signs in on the respective dedicated test client and presses Start **once**. Do not manually operate network changes on the PDA.
+2. Agent EXE logs prove authenticated Firestore access before publishing its own READY. PDA observes both authenticated Agent member records and required network labels for the **same phase** before sending any 9-message batch. A single phase-announcement message cannot start a round.
+3. The required sequence is A/B: (0) NORMAL/NORMAL, (1) OFFICE/NORMAL, (2) NORMAL/OFFICE, (3) OFFICE/OFFICE, (4) NORMAL/NORMAL. After a round, Agent A/B must each successfully ACK 9 peer/PDA synthetic messages and each emit a phase-complete marker; no Agent advances on only its own success.
+4. Only the EXE for the Agent whose required network changes asks the operator to switch Wi-Fi, with its signed-in account/role and required NORMAL/OFFICE target. An unchanged Agent proceeds automatically but does not send phase tests until all three READY. Operator-confirmed network label is NOT independent SSID attestation: the new authenticated Firestore GET is the separately measured route proof.
+5. Android should show independent Agent A and Agent B ACK counts and dual-ACK count. If Office connectivity fails, no PASS/automatic phase advancement. Return sanitized stage/code and local JSONL; do not retry past the failed stage by repeatedly clicking switch. Restart requires a verified fresh run boundary to prevent today's session history from masquerading as a new test.
+6. Windows low-usage rule: 8-second listener with Firestore `created_at` query window, only recent documents, no per-document extra GET, bounded query result and hard local HTTP read cap. Android snapshot listeners exclude older entries. These are **engineering controls**, not externally verified provider billing savings.
+7. Only current-matching source-head CI for Windows EXE, Android APK, Rules emulator, authority and continuity constitutes test-artifact CODE PASS. Physical 5/5 and Office↔Office/peer-to-peer behavior remain unverified until Owner's field trial; no real WMS/PRIMARY/Picklist mutations.
+
 # D171 — Isolated three-node network diagnostic field suite
 
 Status: **Owner-authorized D171 priority override; D170 PAUSED without Owner PASS.**
