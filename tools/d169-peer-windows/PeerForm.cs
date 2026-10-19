@@ -147,6 +147,17 @@ internal sealed class PeerForm : Form
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
         _testAll.Enabled=_phase==0;
+        if(_phase>0 && _phase<Phases.Length && ExpectedLocalNetwork(_phase)==RequiredNetwork(_agentLabel,_phase-1))
+        {
+            _confirmSwitch.Enabled=false;
+            Log("NETWORK_SWITCH","NO_CHANGE_AUTO_CONTINUE",new{role=_agentLabel,phase=_phase});
+            _=Task.Run(async()=>{
+                await Task.Delay(400);
+                if(!_closed.IsCancellationRequested && !IsDisposed)
+                    try{BeginInvoke(new Action(async()=>await Run(AdvancePhase)));}catch(InvalidOperationException){}
+            });
+            return;
+        }
         MessageBox.Show("Tài khoản "+_operatorLogin+" · Test Agent "+_agentLabel+": Kịch bản "+(_phase+1)+"/"+Phases.Length+": "+message+".\nWi-Fi Agent máy này cần: "+recommended+".\nĐổi mạng rồi bấm ĐÃ CHUYỂN MẠNG (trừ lượt đầu, bấm BẮT ĐẦU TEST).","SUPRA D171 · Test mạng",MessageBoxButtons.OK,MessageBoxIcon.Information);
     }
     private async Task StartAutomaticTests()
