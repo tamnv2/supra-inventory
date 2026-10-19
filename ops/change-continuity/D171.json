@@ -132,7 +132,7 @@
     {
       "id": "D171-E007",
       "date_vn": "2026-10-19",
-      "kind": "OWNER_COMMAND_AND_TECHNICAL_FIX",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner authorizes D171 Agent identity mismatch repair and replacement standalone EXE release",
       "status": "D171_PR643_WINDOWS_IDENTITY_FIX_CI_AND_RELEASE_PENDING",
       "owner_approval": true,
