@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E011_OWNER_FIELD_FAIL_3_OF_5__REPAIR_PROPOSAL_PENDING_OWNER_DIRECTION",
+    "current_change_status": "D171_E012_OWNER_APPROVED_DIAGNOSTIC_REPAIR_PR647_CI_PENDING_FIELD_FAIL",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7460,7 +7460,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "docs/d171-e011-field-log-triage-20261019",
     "pr": 647,
-    "latest_checkpoint_id": "D171-E011",
+    "latest_checkpoint_id": "D171-E012",
     "checkpoint_date_vn": "2026-10-19",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8365,7 +8365,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E011_OWNER_FIELD_FAIL_3_OF_5__NO_FIX_CODE_AUTHORIZED",
+    "status": "D171_E012_TEST_REPAIR_IN_DRAFT_PR647__CI_PENDING__FIELD_FAIL",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8378,11 +8378,11 @@
     "live_prod_mutation": false,
     "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
     "requires_readback": true,
-    "code_ready": true,
-    "release_pass": true,
+    "code_ready": false,
+    "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "OWNER_DECIDE_DIAGNOSTIC_PHASE_BARRIER_AND_OFFICE_ROUTE_REPAIR__NO_CODE_RELEASE_YET",
+    "next": "VERIFY_WINDOWS_ANDROID_FIRESTORE_QUERY_EMULATOR_AND_AUTHORITY_CI__ONLY_TEST_ARTIFACTS",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8424,6 +8424,15 @@
       "checkpoint": "D171-E011",
       "analysis": "docs/D171_FIELD_LOG_ANALYSIS_2026-10-19.md",
       "fix_authorized": false
+    },
+    "e012": {
+      "owner_command_approved": true,
+      "scope": "DIAGNOSTIC_WINDOWS_AND_PDA_ONLY",
+      "windows": "NETWORK_ROUTE_BEFORE_READY__PEER_COMPLETION_GATING__WINDOWED_CREATED_AT_QUERY__8S_POLL__550_LOCAL_HTTP_QUERY_LIMIT",
+      "pda": "TWO_AGENT_EXPECTED_NETWORK_READY_GATE__SPLIT_ACK_COUNT__STALE_QUERY_FILTER",
+      "constraints": "NO_LIVE_RULES_OR_WMS_OR_PRIMARY_OR_OFFICIAL_OTA_OR_D170_CHANGE",
+      "billing": "LOCAL_HTTP_QUERY_IS_NOT_BILLED_FIRESTORE_READ__REAL_MEASURE_PENDING",
+      "status": "DRAFT_PR647_BUILD_CI_PENDING__OWNER_FIELD_FAIL"
     }
   }
 }
