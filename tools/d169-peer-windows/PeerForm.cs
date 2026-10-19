@@ -159,6 +159,8 @@ internal sealed class PeerForm : Form
         StartPoll();
         _activeStep="02_DANG_KY_AGENT_READY";
         await PublishReady();
+        _activeStep="02B_BAO_PDA_CHUYEN_PHA_TEST";
+        await AnnouncePhaseToPicker();
         _activeStep="03_DOI_2_AGENT_VA_PDA_DU_3";
         await WaitForThreeReady();
         _activeStep="04_GUI_TEST_VA_CHO_ACK";
@@ -174,6 +176,8 @@ internal sealed class PeerForm : Form
         _mode.SelectedItem=ExpectedLocalNetwork(_phase);
         _activeStep="05_CAP_NHAT_MANG_AGENT";
         await PublishReady();
+        _activeStep="05B_BAO_PDA_CHUYEN_PHA_TEST";
+        await AnnouncePhaseToPicker();
         _activeStep="06_DOI_3_THIET_BI_READY";
         await WaitForThreeReady();
         _activeStep="07_GUI_TEST_VA_CHO_ACK";
@@ -234,6 +238,13 @@ internal sealed class PeerForm : Form
         using var result=await Http("POST",CommitUrl,req);
         Log("NETWORK_READY","OPERATOR_CONFIRMED_NOT_SSID_PROOF",new{phase=_phase,required=ExpectedLocalNetwork(_phase),agent=_agentLabel});
     }
+    private async Task AnnouncePhaseToPicker()
+    {
+        // The PDA remains NORMAL. A synthetic PING wakes its phase listener before
+        // the three-member READY barrier; otherwise later phases deadlock or pass stale PDA readiness.
+        await SendTest("PING");
+        Log("PHASE_ANNOUNCE","SENT_PDA_WAKE",new{phase=_phase,required_pda_network="NORMAL"});
+    }
     private async Task WaitForThreeReady()
     {
         for(var attempt=0;attempt<90;attempt++){
@@ -245,7 +256,7 @@ internal sealed class PeerForm : Form
                     if(role=="PICKER"){
                         var timeText=GetString(item,"ready_at");
                         var window=_phase==0?TimeSpan.FromMinutes(3):TimeSpan.FromMinutes(30);
-                        if(GetString(item,"ready_network")=="NORMAL"&&DateTimeOffset.TryParse(timeText,out var pickerReadyAt)&&pickerReadyAt>DateTimeOffset.UtcNow-window)pickerCount++;
+                        if(GetString(item,"ready_phase")==_phase.ToString() && GetString(item,"ready_network")=="NORMAL"&&DateTimeOffset.TryParse(timeText,out var pickerReadyAt)&&pickerReadyAt>DateTimeOffset.UtcNow-window)pickerCount++;
                     }
                     if(role=="ADMIN"||role=="PICKPACK_ADMIN"){
                         var stamp=GetString(item,"ready_at");
@@ -295,7 +306,9 @@ internal sealed class PeerForm : Form
           _pdaAcks.TryGetValue(id,out var p);_agentAcks.TryGetValue(id,out var a);
           Log("TEST_TERMINAL",p>0&&a>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,pda_receipts=p,peer_agent_receipts=a,required_role="PICKER_AND_AGENT",phase});
         }
-        Log("PHASE","DONE",new{phase,passed=sent.Count(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0),total=sent.Count});
+        var passed=sent.Count(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0);
+        Log("PHASE",passed==sent.Count?"ACK_PASS":"ACK_INCOMPLETE",new{phase,passed,total=sent.Count});
+        if(passed!=sent.Count)throw new InvalidOperationException("D171_PHASE_ACK_INCOMPLETE");
         if(_phase>0&&_phase<Phases.Length-1)await VerifyAutomaticLeaderFailover();
     }
     private async Task RunReadOnlyNetworkProbes(string phase)
