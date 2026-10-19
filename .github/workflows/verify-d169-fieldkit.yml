@@ -1,4 +1,4 @@
-name: D169 Fieldkit Real Picker Android
+name: D171 Normal-Network Picker Diagnostic APK
 on:
   pull_request:
     paths:
@@ -41,6 +41,6 @@ jobs:
           ! git diff --name-only origin/main...HEAD | grep -E '^(android/|relay-agent/|service/|web/|firebase/)'
       - uses: actions/upload-artifact@v4
         with:
-          name: SUPRA-D169-REAL-PICKER-FIELDKIT-APK
+          name: SUPRA-D171-TEST-PICKER-APK
           path: tools/d169-fieldkit-android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
