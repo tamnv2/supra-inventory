@@ -3,6 +3,8 @@ package cd.cc.supra.inventory.beta
 import android.app.Activity
 import android.os.Bundle
 import android.os.SystemClock
+import android.os.Handler
+import android.os.Looper
 import android.widget.*
 import android.text.InputType
 import android.net.ConnectivityManager
@@ -23,6 +25,7 @@ import java.util.Collections
 import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 // D169 isolated test client. NEVER creates relay_poc_jobs or production calls.
 class DiagHubActivity : Activity() {
@@ -42,6 +45,10 @@ class DiagHubActivity : Activity() {
   @Volatile private var lastPassedPhase=-1
   @Volatile private var testStartedWallMs=0L
   private val dispatchedPhases=Collections.synchronizedSet(HashSet<Int>())
+  @Volatile private var pendingNextPhase = -1
+  private val attemptedWrites = AtomicInteger(0)
+  private val maxTestWrites = 250
+  private val testDurationMs = 40L*60L*1000L
   private val acked=Collections.synchronizedSet(HashSet<String>())
   private val agentAcknowledgers=java.util.concurrent.ConcurrentHashMap<String,MutableSet<String>>()
   private val sentOwn=Collections.synchronizedSet(HashSet<String>())
@@ -78,7 +85,7 @@ class DiagHubActivity : Activity() {
     payloadField=field(root,"Dữ liệu mô phỏng (không dùng mã Picklist thật)","D169-SIM");payloadField.visibility=android.view.View.GONE
     // Manual request controls retired: test matrix sends all permitted synthetic kinds automatically.
     // Epoch is advanced by operator-confirmed network transition.
-    btn(root,"Gửi log lên Google Drive") {upload()}
+    // Diagnostic logs remain local and exportable; no Worker/Drive upload.
     btn(root,"Chia sẻ log JSON nếu Drive lỗi") {
       val intent=android.content.Intent(android.content.Intent.ACTION_SEND).apply {
         type="text/plain"
@@ -111,6 +118,19 @@ class DiagHubActivity : Activity() {
     return "D171_UNEXPECTED_"+e.javaClass.simpleName.uppercase(Locale.ROOT).take(30)
   }
   private fun net():String=networkField.text.toString().trim().ifBlank{"NORMAL"}.take(30)
+  private fun safeTestWrite(){
+    if(!started || testStartedWallMs<=0 || System.currentTimeMillis()-testStartedWallMs>=testDurationMs)
+      throw IllegalStateException("D171_PDA_TEST_DEADLINE_STOP")
+    if(attemptedWrites.incrementAndGet()>maxTestWrites)
+      throw IllegalStateException("D171_PDA_WRITE_BUDGET_STOP")
+  }
+  private fun stopAtDeadline(){
+    if(started && testStartedWallMs>0L && System.currentTimeMillis()-testStartedWallMs>=testDurationMs){
+      started=false;messages?.remove();receipts?.remove()
+      journal.event("ONE_SHOT_BUDGET","DEADLINE_STOP")
+      notice("Kết thúc kiểm thử sau 40 phút; hãy chia sẻ log JSON để phân tích.")
+    }
+  }
   private fun autoSid():String{
     val date=SimpleDateFormat("yyyyMMdd",Locale.US).apply{timeZone=TimeZone.getTimeZone("Asia/Ho_Chi_Minh")}.format(Date())
     val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D169-AUTO-PAIR-V7|"+date).toByteArray(Charsets.UTF_8))
@@ -125,6 +145,8 @@ class DiagHubActivity : Activity() {
         started=true
         testStartedWallMs=System.currentTimeMillis()
         ensureAutoJoined()
+        journal.event("ONE_SHOT_BUDGET","ENABLED","writes=250 minutes=40")
+        Handler(Looper.getMainLooper()).postDelayed({stopAtDeadline()},testDurationMs)
         journal.event("PDA_READY","PASS","normal_only=true")
         notice("PDA đã sẵn sàng. Giữ nguyên mạng thường. Khi cả 2 Agent bắt đầu, các kịch bản tự chạy.")
       }catch(e:Exception){started=false;val code=safeFailure(e);journal.event("AUTO_READY","ERROR",code);notice("Chưa sẵn sàng: "+code+"\nKiểm tra Agent A (admin) đã bấm BẮT ĐẦU, sau đó Agent B (tamnv2); PDA giữ mạng thường.")}
